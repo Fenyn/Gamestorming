@@ -27,8 +27,23 @@ jobs:
 
       - name: Setup export templates
         run: |
-          mkdir -p /root/.local/share/godot/export_templates/4.6.stable
-          mv /root/.local/share/godot/templates/4.6.stable/* /root/.local/share/godot/export_templates/4.6.stable/ || true
+          TEMPLATE_DIR="/root/.local/share/godot/export_templates/4.6.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          # barichello/godot-ci stores templates in varying locations — find and link them
+          find / -name "web_release.zip" -path "*/export_templates/*" 2>/dev/null | head -1 | while read f; do
+            SRC_DIR=$(dirname "$f")
+            cp "$SRC_DIR"/* "$TEMPLATE_DIR/" 2>/dev/null || true
+          done
+          # Fallback: download templates if not bundled in the image
+          if [ ! -f "$TEMPLATE_DIR/web_release.zip" ]; then
+            GODOT_VERSION=$(godot --version 2>/dev/null | grep -oP '^\d+\.\d+(\.\d+)?' || echo "4.6")
+            wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz" -O /tmp/templates.tpz || true
+            if [ -f /tmp/templates.tpz ]; then
+              unzip -o /tmp/templates.tpz -d /tmp/templates
+              cp /tmp/templates/templates/* "$TEMPLATE_DIR/" 2>/dev/null || true
+            fi
+          fi
+          ls -la "$TEMPLATE_DIR/" | head -20
 
       - name: Export ${{ matrix.game }}
         run: |

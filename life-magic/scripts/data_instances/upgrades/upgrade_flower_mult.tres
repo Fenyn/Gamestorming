@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/upgrade_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "flower_mult"
+display_name = "Petal Dance"
+description = "Flowers produce 50% more per level."
+base_cost = 5000.0
+cost_multiplier = 3.0
+max_level = 10
+effect_type = "generator_mult"
+effect_target = "2"
+effect_per_level = 0.5
+unlock_total_mana = 5000.0

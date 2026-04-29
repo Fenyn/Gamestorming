@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/upgrade_row.gd" id="1"]
+
+[node name="UpgradeRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 72)
+script = ExtResource("1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InfoVBox" type="VBoxContainer" parent="MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="TopLine" type="HBoxContainer" parent="MarginContainer/HBox/InfoVBox"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="MarginContainer/HBox/InfoVBox/TopLine"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Upgrade Name"
+
+[node name="LevelLabel" type="Label" parent="MarginContainer/HBox/InfoVBox/TopLine"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Lv 0"
+horizontal_alignment = 2
+
+[node name="DescLabel" type="Label" parent="MarginContainer/HBox/InfoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.6, 0.7, 0.6, 1)
+text = "Description"
+
+[node name="BuyVBox" type="VBoxContainer" parent="MarginContainer/HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 0)
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="BuyButton" type="Button" parent="MarginContainer/HBox/BuyVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(90, 36)
+text = "Upgrade"
+
+[node name="CostLabel" type="Label" parent="MarginContainer/HBox/BuyVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "100 Mana"
+horizontal_alignment = 1

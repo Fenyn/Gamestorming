@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:cifi.game-vault.net)",
+      "WebFetch(domain:cifi.fandom.com)"
+    ]
+  }
+}

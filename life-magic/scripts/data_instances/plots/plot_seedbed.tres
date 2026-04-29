@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PlotData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plot_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "seedbed"
+display_name = "The Seedbed"
+description = "A humble patch of enchanted earth. Your first step into garden magic."
+slot_count = 4
+plant_cost_base = 50.0
+plant_cost_mult = 2.5
+growth_ticks = 50
+tend_points = 3
+tend_options = PackedStringArray("mana", "gen_0", "gen_1")
+tend_power_base = 0.1
+full_bloom_bonus = {"all_generators": 1.5}
+unlock_total_mana = 0.0

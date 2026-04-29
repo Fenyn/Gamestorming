@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GeneratorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/generator_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shrub"
+display_name = "Mystic Shrubs"
+tier = 4
+base_cost = 100000.0
+cost_multiplier = 1.15
+base_production = 1.0
+produces_tier = 3
+unlock_total_mana = 100000.0
+description = "Ancient shrubs pulsing with life energy, spawning Creeping Vines each heartbeat."

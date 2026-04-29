@@ -26,12 +26,18 @@ var _spawn_position: Vector3 = Vector3.ZERO
 @onready var hud: Control = $HUD
 
 func _ready() -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if OS.get_name() != "Web":
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	_coin_scene = load(COIN_SCENE_PATH)
 	_spawn_position = global_position
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
+		if event is InputEventMouseButton and event.pressed:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		return
+
+	if event is InputEventMouseMotion:
 		var m := event as InputEventMouseMotion
 		_yaw -= m.relative.x * MOUSE_SENSITIVITY
 		_pitch -= m.relative.y * MOUSE_SENSITIVITY
@@ -41,7 +47,8 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("quit"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		get_tree().quit()
+		if OS.get_name() != "Web":
+			get_tree().quit()
 
 	if event.is_action_pressed("drop_coin"):
 		_spawn_coin(true)

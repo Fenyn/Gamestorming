@@ -282,6 +282,21 @@ func _build_city_backdrop(center: Vector3, inner_r: float, outer_r: float,
 			_place_box(Vector3(bx, sh * 0.5, bz), Vector3(sw, sh, sw), bg_spire)
 			_place_pyramid(Vector3(bx, sh + 1.5, bz), sw * 1.3, 3.0, bg_spire)
 
+func _place_checkpoint(pos: Vector3) -> void:
+	var area := Area3D.new()
+	area.global_position = pos + Vector3(0, 1.5, 0)
+	add_child(area)
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(6, 3, 6)
+	col.shape = shape
+	area.add_child(col)
+	var spawn_pos := pos + Vector3(0, 1.2, 0)
+	area.body_entered.connect(func(body: Node3D):
+		if body is Player:
+			body._spawn_position = spawn_pos
+	)
+
 func _on_goal_entered(body: Node3D) -> void:
 	if body is Player:
 		level_completed.emit()

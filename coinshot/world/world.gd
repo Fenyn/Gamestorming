@@ -17,6 +17,7 @@ var _player: Player = null
 func _ready() -> void:
 	_build_environment()
 	_build_ground()
+	_build_kill_volume()
 	_player = PLAYER_SCENE.instantiate()
 	add_child(_player)
 	_load_level(0)
@@ -81,10 +82,9 @@ func _build_environment() -> void:
 	add_child(sun)
 
 func _build_ground() -> void:
-	var sb := StaticBody3D.new()
-	sb.name = "Ground"
-	add_child(sb)
 	var mesh := MeshInstance3D.new()
+	mesh.name = "GroundBackdrop"
+	mesh.global_position = Vector3(0, -30, 0)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(500, 500)
 	mesh.mesh = plane
@@ -92,7 +92,19 @@ func _build_ground() -> void:
 	mat.albedo_color = Color(0.28, 0.26, 0.24)
 	mat.roughness = 1.0
 	mesh.material_override = mat
-	sb.add_child(mesh)
+	add_child(mesh)
+
+func _build_kill_volume() -> void:
+	var area := Area3D.new()
+	area.name = "KillVolume"
+	area.global_position = Vector3(0, -20, 0)
+	add_child(area)
 	var col := CollisionShape3D.new()
-	col.shape = WorldBoundaryShape3D.new()
-	sb.add_child(col)
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2000, 2, 2000)
+	col.shape = shape
+	area.add_child(col)
+	area.body_entered.connect(func(body: Node3D):
+		if body is Player:
+			body._respawn()
+	)

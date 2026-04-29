@@ -92,6 +92,11 @@ func build() -> void:
 	_place_goal(Vector3(0, 47, -295), Vector3(8, 0.5, 8))
 	_place_sign(Vector3(0, 50, -295), "Fast enough.\nNow hold still.", 20)
 
+	# ── Checkpoints ──
+	_place_checkpoint(Vector3(0, 22, 0))
+	_place_checkpoint(Vector3(0, 18, -114))
+	_place_checkpoint(Vector3(0, 22, -238))
+
 	# ── Boundary + backdrop ──
 	_build_boundary(Vector3(0, 0, -148), 170.0)
 	_build_city_backdrop(Vector3(0, 0, -148), 170.0, 230.0, 60, 25.0, 0.15)

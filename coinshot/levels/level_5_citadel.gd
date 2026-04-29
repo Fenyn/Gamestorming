@@ -10,6 +10,9 @@ func build() -> void:
 	var S := Color(0.35, 0.33, 0.38)
 	var P := Color(0.40, 0.38, 0.42)
 
+	# ── Spawn floor ──
+	_place_platform(Vector3(0, -0.25, -5), Vector3(24, 0.5, 22))
+
 	_place_sign(Vector3(0, 3.5, -3), "THE BLACK SPIRE\n\n" +
 		"Get to the top.", 28)
 
@@ -136,6 +139,15 @@ func build() -> void:
 	victory.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	victory.no_depth_test = true
 	add_child(victory)
+
+	# ── Checkpoints ──
+	_place_checkpoint(Vector3(0, 0, -5))
+	_place_checkpoint(Vector3(0, 12, -18))
+	_place_checkpoint(Vector3(10, 22, -50))
+	_place_checkpoint(Vector3(4, 32, -64))
+	_place_checkpoint(Vector3(-4, 40, -78))
+	_place_checkpoint(Vector3(6, 48, -92))
+	_place_checkpoint(Vector3(0, 70, -150))
 
 	# ── Boundary + backdrop ──
 	_build_boundary(Vector3(5, 0, -93), 115.0)

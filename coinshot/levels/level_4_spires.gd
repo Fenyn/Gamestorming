@@ -9,6 +9,9 @@ func build() -> void:
 	var D := Color(0.32, 0.30, 0.28)
 	var M := Color(0.50, 0.50, 0.55)
 
+	# ── Spawn floor ──
+	_place_platform(Vector3(0, -0.25, -5), Vector3(22, 0.5, 22))
+
 	_place_sign(Vector3(0, 3.5, -3), "THE CRUCIBLE\n\n" +
 		"Lock multiple targets.\nFeel the difference.")
 
@@ -113,6 +116,12 @@ func build() -> void:
 	# ── Goal ──
 	_place_goal(Vector3(0, 30, -158), Vector3(8, 0.5, 8))
 	_place_sign(Vector3(0, 33, -158), "One more.", 20)
+
+	# ── Checkpoints ──
+	_place_checkpoint(Vector3(0, 0, -5))
+	_place_checkpoint(Vector3(0, 22, -18))
+	_place_checkpoint(Vector3(0, 22, -85))
+	_place_checkpoint(Vector3(0, 26, -158))
 
 	# ── Boundary + backdrop ──
 	_build_boundary(Vector3(0, 0, -80), 100.0)

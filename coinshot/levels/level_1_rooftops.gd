@@ -8,6 +8,10 @@ func build() -> void:
 	var C := Color(0.36, 0.34, 0.31)
 	var D := Color(0.32, 0.30, 0.28)
 
+	# ── Spawn floors (no world ground — levels own their surfaces) ──
+	_place_platform(Vector3(0, -0.25, -3), Vector3(22, 0.5, 22))
+	_place_platform(Vector3(20, -0.25, -79), Vector3(22, 0.5, 16))
+
 	# ── Title ──
 	_place_sign(Vector3(0, 4, -2), "THE ASH YARD", 28)
 
@@ -114,6 +118,14 @@ func build() -> void:
 	# ── Goal ──
 	_place_goal(Vector3(14, 58, -125), Vector3(8, 0.5, 8))
 	_place_sign(Vector3(14, 61, -125), "The arches are next.", 20)
+
+	# ── Checkpoints ──
+	_place_checkpoint(Vector3(0, 0, -5))
+	_place_checkpoint(Vector3(0, 12, -22))
+	_place_checkpoint(Vector3(22, 16, -30))
+	_place_checkpoint(Vector3(20, 24, -64))
+	_place_checkpoint(Vector3(20, 0, -77))
+	_place_checkpoint(Vector3(20, 50, -92))
 
 	# ── Boundary + backdrop ──
 	_build_boundary(Vector3(14, 0, -62), 85.0)

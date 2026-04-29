@@ -2,7 +2,6 @@ class_name MistVision
 extends MeshInstance3D
 
 const COLOR_BASE := Color(0.4, 0.7, 1.0, 0.55)
-const COLOR_TARGET := Color(0.6, 0.85, 1.0, 0.95)
 const COLOR_ACTIVE := Color(0.55, 0.85, 1.0, 1.0)
 const MASS_REF := 50.0
 const MASS_BRIGHT_GAIN := 0.6
@@ -47,15 +46,15 @@ func _process(_delta: float) -> void:
 
 	var is_pushing := Input.is_action_pressed("push")
 	var is_pulling := Input.is_action_pressed("pull")
-	var active_node: Node = null
-	if _allomancy._is_locked and _allomancy.current_target != null and (is_pushing or is_pulling):
-		active_node = _allomancy.current_target
+	var active_targets: Array = []
+	if _allomancy._is_locked:
+		active_targets = _allomancy._locked_targets.filter(func(t): return is_instance_valid(t) and t is Node3D)
 
 	_imm.surface_begin(Mesh.PRIMITIVE_LINES)
 	for n in _allomancy.nearby_anchors:
 		if n == null or not (n is Node3D):
 			continue
-		if n == active_node:
+		if n in active_targets:
 			continue
 		var pos: Vector3 = (n as Node3D).global_position
 		var dist: float = origin.distance_to(pos)
@@ -65,8 +64,6 @@ func _process(_delta: float) -> void:
 		var brightness: float = clampf(0.5 + MASS_BRIGHT_GAIN * log(mass_term + 1.0), 0.4, 1.4)
 
 		var col := COLOR_BASE
-		if n == _allomancy.current_target:
-			col = COLOR_TARGET
 		col.a = clampf(col.a * dist_alpha * brightness, 0.0, 1.0)
 
 		_imm.surface_set_color(col)
@@ -75,11 +72,13 @@ func _process(_delta: float) -> void:
 		_imm.surface_add_vertex(pos)
 	_imm.surface_end()
 
-	if active_node != null and active_node is Node3D:
+	if not active_targets.is_empty():
 		var active_origin := _camera.global_position + Vector3(0, -0.3, 0) + forward * 0.15
-		_draw_active_line(active_origin, (active_node as Node3D).global_position, is_pushing)
+		var pulsing := is_pushing or is_pulling
+		for t in active_targets:
+			_draw_active_line(active_origin, (t as Node3D).global_position, is_pushing or not is_pulling, pulsing)
 
-func _draw_active_line(origin: Vector3, target: Vector3, pushing: bool) -> void:
+func _draw_active_line(origin: Vector3, target: Vector3, pushing: bool, pulsing: bool) -> void:
 	var diff := target - origin
 	var length := diff.length()
 	if length < 0.01:
@@ -104,16 +103,20 @@ func _draw_active_line(origin: Vector3, target: Vector3, pushing: bool) -> void:
 			var t := float(i) / float(ACTIVE_SEGMENTS)
 			var pos := origin + diff * t
 
-			var phase: float
-			if pushing:
-				phase = t * 6.0 - time * 4.0
-			else:
-				phase = t * 6.0 + time * 4.0
-			var pulse := (sin(phase) + 1.0) * 0.5
-
-			var w := ACTIVE_HALF_WIDTH * (0.5 + pulse * 0.5)
+			var w: float
 			var col := COLOR_ACTIVE
-			col.a = 0.4 + pulse * 0.6
+			if pulsing:
+				var phase: float
+				if pushing:
+					phase = t * 6.0 - time * 4.0
+				else:
+					phase = t * 6.0 + time * 4.0
+				var pulse := (sin(phase) + 1.0) * 0.5
+				w = ACTIVE_HALF_WIDTH * (0.5 + pulse * 0.5)
+				col.a = 0.4 + pulse * 0.6
+			else:
+				w = ACTIVE_HALF_WIDTH
+				col.a = 0.7
 
 			_imm.surface_set_color(col)
 			_imm.surface_add_vertex(pos + axis * w)

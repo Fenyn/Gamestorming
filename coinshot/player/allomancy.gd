@@ -49,18 +49,19 @@ func _process(_delta: float) -> void:
 		)
 		if _locked_targets.is_empty():
 			unlock_target()
-			current_target = _pick_target()
+			current_target = null
 		else:
 			var aimed := _pick_target()
 			if aimed != null and aimed not in _locked_targets and _locked_targets.size() < MAX_LOCKED_TARGETS:
 				_locked_targets.append(aimed)
 			current_target = aimed if aimed != null else _locked_targets.back()
 	else:
-		current_target = _pick_target()
+		current_target = null
 
 func lock_target() -> void:
-	if current_target != null and current_target not in _locked_targets:
-		_locked_targets.append(current_target)
+	var target := _pick_target()
+	if target != null and target not in _locked_targets:
+		_locked_targets.append(target)
 	_is_locked = true
 
 func unlock_target() -> void:

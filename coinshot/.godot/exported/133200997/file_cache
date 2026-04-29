@@ -1,0 +1,12 @@
+res://coin/coin.tscn::a644c8aeb01e6f5d2211180653042aba::1777494208::res://.godot/exported/133200997/export-a232cae2757476c69b8a66e0e85a96f5-coin.scn
+res://levels/scenes/level_template.tscn::099b2ed8352a08a1eea1ef724c1f6506::1777494208::res://.godot/exported/133200997/export-af0e2d805a9ab607db3d5183f67890a5-level_template.scn
+res://materials/mistline.tres::2da246c23781884894eb62cea6a06af9::1777494208::res://.godot/exported/133200997/export-1fe690fab05e42ca8f92684e8aa4916e-mistline.res
+res://player/player.tscn::7dddc5798648678518c122f3fc90fd0d::1777494208::res://.godot/exported/133200997/export-753d15e03e0182f9d550ac833b42bb41-player.scn
+res://prefabs/falling_girder.tscn::885c907381c1f185e68c2092f2a885e0::1777494208::res://.godot/exported/133200997/export-41230a98479e587ef3c2bc7e428bd398-falling_girder.scn
+res://prefabs/goal_zone.tscn::ed61dadcabcb18a5091ce853dec7e7d3::1777494208::res://.godot/exported/133200997/export-4c9b860c92d16b1b7fe1cecf0c686ed4-goal_zone.scn
+res://prefabs/metal_girder.tscn::c8504f96eef8890f4a4eb09efff0494d::1777494208::res://.godot/exported/133200997/export-b9a931569efa9da656b0a0d60a044132-metal_girder.scn
+res://prefabs/moving_girder.tscn::c9c8ff27edc602baba87060068a61bd6::1777494208::res://.godot/exported/133200997/export-c8652e42444b7caf5307b4f1a57a4ff3-moving_girder.scn
+res://prefabs/spawn_marker.tscn::dd4f26894573311dab9336e47e3e5e9f::1777494208::res://.godot/exported/133200997/export-1952d36ec6226c1225aa108aaa71232e-spawn_marker.scn
+res://prefabs/stone_block.tscn::eaaf9e64d539822867a9bc303127cd2c::1777494208::res://.godot/exported/133200997/export-3791f187681f5289949ab56f3b7057be-stone_block.scn
+res://ui/hud.tscn::81e5af94741707a51d224720d33c04e5::1777494208::res://.godot/exported/133200997/export-bab6eb13998c1d76cbb0c1fb3e7dc228-hud.scn
+res://world/main.tscn::295790864ccd3613797b337f4aea2980::1777500526::res://.godot/exported/133200997/export-f75c1b407ca95d3a3d4746aec629f972-main.scn

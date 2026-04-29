@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://levels/level_scene.gd" id="1_level_scene"]
+
+[node name="Level" type="Node3D"]
+script = ExtResource("1_level_scene")
+
+[node name="SpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+gizmo_extents = 2.0

@@ -1,0 +1,14 @@
+res://player/allomancy.gd
+res://world/main.tscn
+res://ui/hud.gd
+res://coin/coin.gd
+res://levels/level_1_rooftops.gd
+res://levels/level_2_canals.gd
+res://levels/level_3_keeps.gd
+res://levels/level_4_spires.gd
+res://levels/level_5_citadel.gd
+res://player/player.gd
+res://levels/level_base.gd
+res://world/world.gd
+res://props/falling_anchor.gd
+res://props/moving_anchor.gd

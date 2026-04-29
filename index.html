@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gamestorming</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem 2rem;
+  }
+  h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #fff; }
+  .subtitle { color: #888; margin-bottom: 3rem; font-size: 1.1rem; }
+  .games { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; max-width: 900px; }
+  .card {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 280px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: #666; transform: translateY(-2px); }
+  .card h2 { font-size: 1.3rem; color: #fff; margin-bottom: 0.5rem; }
+  .card p { color: #999; font-size: 0.95rem; line-height: 1.5; }
+  .tag {
+    display: inline-block;
+    background: #333;
+    color: #aaa;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+  <h1>Gamestorming</h1>
+  <p class="subtitle">A sampler platter of game prototypes</p>
+  <div class="games">
+    <a class="card" href="coinshot/">
+      <h2>Coinshot</h2>
+      <p>Push and pull on metal to fly through a city. First-person traversal inspired by Mistborn.</p>
+      <span class="tag">Godot 4.6</span>
+    </a>
+  </div>
+</body>
+</html>

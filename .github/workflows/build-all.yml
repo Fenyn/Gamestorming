@@ -1,0 +1,89 @@
+name: Build & Deploy Games
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.6
+    strategy:
+      matrix:
+        game: [coinshot]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup export templates
+        run: |
+          mkdir -p /root/.local/share/godot/export_templates/4.6.stable
+          mv /root/.local/share/godot/templates/4.6.stable/* /root/.local/share/godot/export_templates/4.6.stable/ || true
+
+      - name: Export ${{ matrix.game }}
+        run: |
+          cd ${{ matrix.game }}
+          mkdir -p ../site/${{ matrix.game }}
+          godot --headless --export-release "Web" ../site/${{ matrix.game }}/index.html
+
+      - name: Add cross-origin isolation
+        run: |
+          cd site/${{ matrix.game }}
+          sed -i 's|</head>|<script src="coi-serviceworker.js"></script></head>|' index.html
+          cat > coi-serviceworker.js << 'COIEOF'
+          /*! coi-service-worker v0.1.7 - Guido Zuidhof, licensed under MIT */
+          if(typeof window==='undefined'){self.addEventListener("install",()=>self.skipWaiting());self.addEventListener("activate",(e)=>e.waitUntil(self.clients.claim()));self.addEventListener("fetch",(e)=>{if(e.request.cache==="only-if-cached"&&e.request.mode!=="same-origin")return;e.respondWith(fetch(e.request).then((r)=>{if(r.status===0)return r;const h=new Headers(r.headers);h.set("Cross-Origin-Embedder-Policy","credentialless");h.set("Cross-Origin-Opener-Policy","same-origin");return new Response(r.body,{status:r.status,statusText:r.statusText,headers:h})}))});}else{const r=window.location;if(navigator.serviceWorker){navigator.serviceWorker.register(new URL("coi-serviceworker.js",r.href)).then((reg)=>{reg.addEventListener("updatefound",()=>{const w=reg.installing;w.addEventListener("statechange",()=>{if(w.state==="activated")window.location.reload()})})});}}
+          COIEOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-${{ matrix.game }}
+          path: site/${{ matrix.game }}
+
+  deploy:
+    needs: export
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: site
+          pattern: game-*
+          merge-multiple: false
+
+      - name: Arrange site
+        run: |
+          mkdir -p _site
+          cp index.html _site/ 2>/dev/null || true
+          for dir in site/game-*/; do
+            game=$(basename "$dir" | sed 's/^game-//')
+            mkdir -p "_site/$game"
+            cp -r "$dir"* "_site/$game/"
+          done
+
+      - name: Copy landing page
+        run: |
+          if [ ! -f _site/index.html ]; then
+            cp index.html _site/index.html
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -9,6 +9,7 @@ Projects developed with assistance of Claude Opus 4.6
 | Game | Description | Play |
 |---|---|---|
 | [coinshot](coinshot/) | First-person Mistborn traversal prototype. Push and pull on metal to fly through a city. | [Play in browser](https://fenyn.github.io/Gamestorming/coinshot/) |
+| [life-magic](life-magic/) | Idle game powered by your heartbeat. Grow a wizard's garden faster by exercising. | [Play in browser](https://fenyn.github.io/Gamestorming/life-magic/) |
 
 ## Adding a new game
 

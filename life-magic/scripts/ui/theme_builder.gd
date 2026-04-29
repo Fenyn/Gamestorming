@@ -28,6 +28,10 @@ const BAR_FILL := Color(0.3, 0.6, 0.25)
 static func build() -> Theme:
 	var theme := Theme.new()
 
+	var font := load("res://resources/fonts/game_font.tres") as Font
+	if font:
+		theme.set_default_font(font)
+
 	theme.set_color("font_color", "Label", TEXT_PRIMARY)
 	theme.set_color("font_color", "Button", TEXT_PRIMARY)
 	theme.set_color("font_hover_color", "Button", Color(0.95, 1.0, 0.9))

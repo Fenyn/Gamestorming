@@ -8,5 +8,5 @@ res://prefabs/metal_girder.tscn::c8504f96eef8890f4a4eb09efff0494d::1777494208::r
 res://prefabs/moving_girder.tscn::c9c8ff27edc602baba87060068a61bd6::1777494208::res://.godot/exported/133200997/export-c8652e42444b7caf5307b4f1a57a4ff3-moving_girder.scn
 res://prefabs/spawn_marker.tscn::dd4f26894573311dab9336e47e3e5e9f::1777494208::res://.godot/exported/133200997/export-1952d36ec6226c1225aa108aaa71232e-spawn_marker.scn
 res://prefabs/stone_block.tscn::eaaf9e64d539822867a9bc303127cd2c::1777494208::res://.godot/exported/133200997/export-3791f187681f5289949ab56f3b7057be-stone_block.scn
-res://ui/hud.tscn::81e5af94741707a51d224720d33c04e5::1777494208::res://.godot/exported/133200997/export-bab6eb13998c1d76cbb0c1fb3e7dc228-hud.scn
+res://ui/hud.tscn::2d3f7926f4730977315161355f69ad4a::1777503954::res://.godot/exported/133200997/export-bab6eb13998c1d76cbb0c1fb3e7dc228-hud.scn
 res://world/main.tscn::295790864ccd3613797b337f4aea2980::1777500526::res://.godot/exported/133200997/export-f75c1b407ca95d3a3d4746aec629f972-main.scn

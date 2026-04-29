@@ -31,7 +31,7 @@ SaveManager="*res://scripts/autoload/save_manager.gd"
 window/size/viewport_width=420
 window/size/viewport_height=800
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep_width"
 window/handheld/orientation=1
 
 [dotnet]

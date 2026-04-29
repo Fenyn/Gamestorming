@@ -1,0 +1,15 @@
+[gd_resource type="SystemFont" format=3]
+
+[resource]
+font_names = PackedStringArray("Noto Sans", "Segoe UI", "Roboto", "Arial", "sans-serif")
+font_italic = false
+font_weight = 400
+font_stretch = 100
+antialiased = true
+generate_mipmaps = false
+allow_system_fallback = true
+force_autohinter = false
+subpixel_positioning = 1
+multichannel_signed_distance_field = false
+oversampling = 0.0
+fallbacks = []

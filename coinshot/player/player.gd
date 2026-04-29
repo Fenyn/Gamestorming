@@ -102,6 +102,8 @@ func _physics_process(delta: float) -> void:
 		allomancy.lock_target()
 	elif not lmb_held and allomancy._is_locked:
 		allomancy.unlock_target()
+	if Input.is_action_just_pressed("add_anchor") and allomancy._is_locked:
+		allomancy.add_target()
 
 	if Input.is_action_just_pressed("push") and is_on_floor():
 		velocity.y = JUMP_VELOCITY

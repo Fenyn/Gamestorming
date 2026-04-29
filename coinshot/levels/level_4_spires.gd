@@ -2,114 +2,118 @@ class_name Level4Spires
 extends LevelBase
 
 func build() -> void:
-	level_name = "The Iron Spires"
+	level_name = "The Crucible"
 	spawn_point = Vector3(0, 1.2, 0)
 
-	var S := Color(0.42, 0.40, 0.45)
-	var D := Color(0.34, 0.32, 0.30)
-	var P := Color(0.48, 0.46, 0.50)
+	var C := Color(0.36, 0.34, 0.31)
+	var D := Color(0.32, 0.30, 0.28)
+	var M := Color(0.50, 0.50, 0.55)
 
-	_place_sign(Vector3(0, 3, -3), "THE IRON SPIRES\n\n" +
-		"Tall metal. No stairs.\n" +
-		"You'll have to fly.")
-
-	# ═══════════════════════════════════════
-	# SECTION A: SLINGSHOT TUTORIAL
-	# ═══════════════════════════════════════
-
-	# Starting base — wide keep with decorative spires
-	_place_box(Vector3(0, 3, -8), Vector3(12, 6, 10), D)
-	_place_box(Vector3(-8, 6, -6), Vector3(2, 12, 2), S)
-	_place_pyramid(Vector3(-8, 12.5, -6), 2.5, 3.5, P)
-	_place_box(Vector3(8, 5, -10), Vector3(2, 10, 2), S)
-	_place_pyramid(Vector3(8, 10.5, -10), 2.5, 3.0, P)
-	_place_girder(Vector3(0, 6.5, -8), Vector3(4, 0.4, 0.4), 400.0)
-
-	_place_sign(Vector3(0, 8.5, -6), "THE SLINGSHOT\n\n" +
-		"Push off the left wall to fly toward the arch.\n" +
-		"Then Pull [E] the arch anchor as you pass it.\n\n" +
-		"High burn to build speed.\n" +
-		"Low burn to swing wide.\n" +
-		"Let go when you're aimed at the landing.")
-
-	# Launch wall on the left — push off this to fly right
-	_place_box(Vector3(-8, 5, -14), Vector3(3, 14, 6), D)
-	_place_girder(Vector3(-7, 10, -14), Vector3(0.35, 0.35, 4), 500.0)
-
-	# The arch — two spires 45m to the right with a beam between
-	_place_box(Vector3(18, 10, -25), Vector3(2.5, 20, 2.5), S)
-	_place_pyramid(Vector3(18, 20.5, -25), 3.0, 4.0, P)
-	_place_box(Vector3(26, 10, -25), Vector3(2.5, 20, 2.5), S)
-	_place_pyramid(Vector3(26, 20.5, -25), 3.0, 4.0, P)
-	_place_box(Vector3(22, 21, -25), Vector3(10, 1.5, 3), D)
-	_place_girder(Vector3(22, 18, -25), Vector3(7, 0.5, 0.5), 600.0)
-
-	# Landing — generous platform 30m past the arch
-	_place_box(Vector3(34, 12, -35), Vector3(12, 24, 10), D)
-	_place_box(Vector3(34, 25, -35), Vector3(8, 2, 7), S)
-	_place_box(Vector3(38, 10, -32), Vector3(2, 18, 2), S)
-	_place_pyramid(Vector3(38, 19.5, -32), 2.5, 3.5, P)
-	_place_girder(Vector3(34, 26.5, -35), Vector3(5, 0.4, 0.4), 400.0)
-
-	# Recovery below the arch
-	_place_box(Vector3(22, 5, -20), Vector3(5, 10, 5), D)
-	_place_girder(Vector3(22, 10.5, -20), Vector3(3, 0.35, 0.35), 250.0)
+	_place_sign(Vector3(0, 3.5, -3), "THE CRUCIBLE\n\n" +
+		"Lock multiple targets.\nFeel the difference.")
 
 	# ═══════════════════════════════════════
-	# SECTION B: TIGHTER SLINGSHOT
+	# SECTION A: MULTI-TARGET LAUNCH
 	# ═══════════════════════════════════════
 
-	_place_sign(Vector3(34, 28.5, -33.5), "Same thing, tighter gap.\n" +
-		"Smaller landing this time.")
+	# Three floor girders in a triangle — lock all, push for 3x force
+	_place_girder(Vector3(0, 0.25, -6), Vector3(2.5, 0.5, 2.5), 500.0)
+	_place_girder(Vector3(-3.5, 0.25, -10), Vector3(2.5, 0.5, 2.5), 500.0)
+	_place_girder(Vector3(3.5, 0.25, -10), Vector3(2.5, 0.5, 2.5), 500.0)
 
-	# Second arch — taller, tighter, 50m to the left
-	_place_box(Vector3(10, 24, -50), Vector3(2, 24, 2), S)
-	_place_pyramid(Vector3(10, 36.5, -50), 2.5, 3.5, P)
-	_place_box(Vector3(16, 24, -50), Vector3(2, 24, 2), S)
-	_place_pyramid(Vector3(16, 36.5, -50), 2.5, 3.5, P)
-	_place_girder(Vector3(13, 34, -50), Vector3(6, 0.5, 0.5), 500.0)
+	_place_sign(Vector3(0, 2.5, -4), "Three anchors. Lock them all.\nPush.")
 
-	# Smaller landing platform
-	_place_box(Vector3(-2, 18, -60), Vector3(8, 36, 8), D)
-	_place_box(Vector3(-2, 37, -60), Vector3(5, 2, 5), S)
-	_place_girder(Vector3(-2, 38.5, -60), Vector3(4, 0.35, 0.35), 400.0)
+	_place_box(Vector3(-8, 4, -8), Vector3(5, 8, 8), C)
+	_place_box(Vector3(8, 4, -8), Vector3(5, 8, 8), C)
+
+	# Target platform ~22m up
+	_place_box(Vector3(0, 10, -18), Vector3(12, 20, 12), D)
+	_place_box(Vector3(0, 21, -18), Vector3(8, 2, 8), C)
+	_place_girder(Vector3(0, 22.5, -18), Vector3(5, 0.4, 0.4), 400.0)
+
+	_place_sign(Vector3(0, 24.5, -16), "One anchor moves you.\nThree anchors launch you.")
+
+	# ═══════════════════════════════════════
+	# SECTION B: THE HOVER CHANNEL
+	# ═══════════════════════════════════════
+
+	_place_sign(Vector3(0, 24.5, -20), "Push the iron below you to hover.\n[Scroll] to adjust height.\nDon't fall.")
+
+	# Start and end platforms at y=22 (top of section A building)
+	# Below: support pillars with girders at varying heights in the void
+	# The player hovers across by pushing off the girders below
+
+	# Support pillar 1 — tall, close, forgiving
+	_place_box(Vector3(0, 7, -32), Vector3(3, 14, 3), M)
+	_place_girder(Vector3(0, 14.5, -32), Vector3(3, 0.4, 3), 400.0)
+
+	# Support pillar 2 — shorter, needs more burn
+	_place_box(Vector3(-3, 4.5, -42), Vector3(3, 9, 3), M)
+	_place_girder(Vector3(-3, 9.5, -42), Vector3(3, 0.4, 3), 400.0)
+
+	# Support pillar 3 — medium
+	_place_box(Vector3(3, 6, -52), Vector3(3, 12, 3), M)
+	_place_girder(Vector3(3, 12.5, -52), Vector3(3, 0.4, 3), 400.0)
+
+	# Support pillar 4 — short, hardest section
+	_place_box(Vector3(0, 3.5, -62), Vector3(3, 7, 3), M)
+	_place_girder(Vector3(0, 7.5, -62), Vector3(3, 0.4, 3), 400.0)
+
+	# Support pillar 5 ��� tall again, relief
+	_place_box(Vector3(-2, 6.5, -72), Vector3(3, 13, 3), M)
+	_place_girder(Vector3(-2, 13.5, -72), Vector3(3, 0.4, 3), 400.0)
+
+	# End platform
+	_place_box(Vector3(0, 10, -85), Vector3(12, 20, 12), D)
+	_place_box(Vector3(0, 21, -85), Vector3(8, 2, 8), C)
+	_place_girder(Vector3(0, 22.5, -85), Vector3(5, 0.4, 0.4), 400.0)
+
+	# Recovery — low pillar the player can push off if they fall
+	_place_box(Vector3(-7, 2.5, -52), Vector3(3, 5, 3), D)
+	_place_girder(Vector3(-7, 5.5, -52), Vector3(2.5, 0.35, 0.35), 200.0)
+
+	# ═══════════════════════════════════════
+	# SECTION C: MOVING ANCHOR DANCE
+	# ═══════════════════════════════════════
+
+	_place_sign(Vector3(0, 24.5, -83), "Moving metal. Track it.\nPull when it swings close.")
+
+	# Three moving anchors in sequence, different patterns
+	# Moving anchor 1 — horizontal sweep
+	_place_moving_anchor(
+		Vector3(14, 22, -102),
+		Vector3(3, 0.4, 0.4), 400.0,
+		Vector3(-24, 0, 0), 4.0
+	)
+
+	# Moving anchor 2 — horizontal sweep opposite direction
+	_place_moving_anchor(
+		Vector3(-10, 24, -120),
+		Vector3(3, 0.4, 0.4), 400.0,
+		Vector3(22, 0, 0), 4.5
+	)
+
+	# Moving anchor 3 — diagonal sweep with vertical component
+	_place_moving_anchor(
+		Vector3(12, 22, -138),
+		Vector3(3, 0.4, 0.4), 400.0,
+		Vector3(-18, 6, 0), 5.0
+	)
+
+	# Final landing
+	_place_box(Vector3(0, 12, -158), Vector3(14, 24, 14), D)
+	_place_box(Vector3(0, 25, -158), Vector3(10, 2, 10), C)
+	_place_girder(Vector3(0, 26.5, -158), Vector3(5, 0.4, 0.4), 400.0)
+	_place_girder(Vector3(0, 24, -151), Vector3(4, 0.5, 0.5), 400.0)
 
 	# Recovery
-	_place_girder(Vector3(13, 28, -48), Vector3(0.35, 0.35, 4), 250.0)
-
-	# ═══════════════════════════════════════
-	# SECTION C: SLINGSHOT + FALLING ANCHOR
-	# ═══════════════════════════════════════
-
-	_place_sign(Vector3(-2, 40.5, -58.5), "That orange anchor is about to break.\n" +
-		"One slingshot. Don't miss.")
-
-	# Launch wall
-	_place_box(Vector3(-8, 36, -60), Vector3(3, 10, 4), D)
-	_place_girder(Vector3(-7, 42, -60), Vector3(0.35, 0.35, 3), 400.0)
-
-	# Crumbling arch with falling anchor — 40m right
-	_place_box(Vector3(22, 34, -72), Vector3(2, 18, 2), S)
-	_place_pyramid(Vector3(22, 43.5, -72), 2.5, 3.0, P)
-	_place_falling_anchor(Vector3(22, 42, -72), Vector3(5, 0.5, 0.5), 400.0, 2.5)
-
-	# Final spire cluster with generous landing
-	_place_box(Vector3(36, 26, -82), Vector3(10, 52, 10), D)
-	_place_box(Vector3(36, 53, -82), Vector3(7, 2, 7), S)
-	_place_box(Vector3(40, 22, -78), Vector3(2, 16, 2), S)
-	_place_pyramid(Vector3(40, 30.5, -78), 2.5, 3.5, P)
-	_place_box(Vector3(32, 20, -86), Vector3(2, 14, 2), S)
-	_place_pyramid(Vector3(32, 27.5, -86), 2.5, 3.0, P)
-	_place_girder(Vector3(36, 54.5, -82), Vector3(5, 0.4, 0.4), 400.0)
-
-	# Recovery
-	_place_girder(Vector3(22, 36, -74), Vector3(2.5, 0.35, 0.35), 250.0)
+	_place_box(Vector3(0, 6, -120), Vector3(4, 12, 4), D)
+	_place_girder(Vector3(0, 12.5, -120), Vector3(2.5, 0.35, 0.35), 200.0)
 
 	# ── Goal ──
-	_place_goal(Vector3(36, 58, -82), Vector3(9, 0.5, 9))
-	_place_pyramid(Vector3(36, 62, -82), 4.0, 6.0, COL_GOAL)
-	_place_sign(Vector3(36, 62, -82), "One more to go.", 20)
+	_place_goal(Vector3(0, 30, -158), Vector3(8, 0.5, 8))
+	_place_sign(Vector3(0, 33, -158), "One more.", 20)
 
-	# ── Boundary + city backdrop ──
-	_build_boundary(Vector3(16, 0, -45), 65.0)
-	_build_city_backdrop(Vector3(16, 0, -45), 65.0, 130.0, 50, 40.0, 0.35)
+	# ── Boundary + backdrop ──
+	_build_boundary(Vector3(0, 0, -80), 100.0)
+	_build_city_backdrop(Vector3(0, 0, -80), 100.0, 170.0, 55, 30.0, 0.2)

@@ -2,7 +2,7 @@ class_name Level5Citadel
 extends LevelBase
 
 func build() -> void:
-	level_name = "The Black Citadel"
+	level_name = "The Black Spire"
 	spawn_point = Vector3(0, 1.2, 0)
 
 	var B := Color(0.24, 0.22, 0.20)
@@ -10,148 +10,126 @@ func build() -> void:
 	var S := Color(0.35, 0.33, 0.38)
 	var P := Color(0.40, 0.38, 0.42)
 
-	_place_sign(Vector3(0, 3, -3), "THE BLACK CITADEL\n\n" +
-		"No more signs after this one.\n" +
+	_place_sign(Vector3(0, 3.5, -3), "THE BLACK SPIRE\n\n" +
 		"Get to the top.", 28)
 
 	# ═══════════════════════════════════════
-	# THE APPROACH — imposing dark walls
+	# ZONE 1: THE BASE — Push + Slingshot Entry
 	# ═══════════════════════════════════════
 
-	_place_box(Vector3(-8, 6, -8), Vector3(5, 12, 10), B)
-	_place_box(Vector3(8, 6, -8), Vector3(5, 12, 10), B)
-	_place_box(Vector3(0, 3, -10), Vector3(10, 6, 8), D)
-	_place_girder(Vector3(0, 6.5, -10), Vector3(4, 0.5, 0.5), 500.0)
+	# Starting courtyard — dark, imposing walls
+	_place_box(Vector3(-10, 5, -5), Vector3(6, 10, 10), B)
+	_place_box(Vector3(10, 5, -5), Vector3(6, 10, 10), B)
 
-	# ═══════════════════════════════════════
-	# SECTION 1: THE OUTER GATE — Moving Anchor
-	# ═══════════════════════════════════════
+	# Floor girder — push up to first ledge
+	_place_girder(Vector3(0, 0.25, -6), Vector3(3, 0.5, 3), 500.0)
 
-	# Massive gate towers — 35m ahead
-	_place_box(Vector3(-10, 12, -45), Vector3(6, 24, 12), B)
-	_place_box(Vector3(-10, 25, -45), Vector3(4, 2, 10), D)
-	_place_box(Vector3(10, 12, -45), Vector3(6, 24, 12), B)
-	_place_box(Vector3(10, 25, -45), Vector3(4, 2, 10), D)
-	# Spire caps
-	_place_box(Vector3(-10, 14, -40), Vector3(2, 12, 2), S)
-	_place_pyramid(Vector3(-10, 20.5, -40), 2.5, 3.5, P)
-	_place_box(Vector3(10, 14, -40), Vector3(2, 12, 2), S)
-	_place_pyramid(Vector3(10, 20.5, -40), 2.5, 3.5, P)
+	# First ledge at y=12
+	_place_box(Vector3(0, 6, -18), Vector3(12, 12, 10), D)
+	_place_girder(Vector3(0, 12.5, -18), Vector3(5, 0.4, 0.4), 400.0)
 
-	# Moving anchor between the gate towers
-	_place_moving_anchor(
-		Vector3(0, 14, -45), Vector3(4, 0.4, 0.4), 400.0,
-		Vector3(0, 10, 0), 4.5
-	)
-	_place_nook(Vector3(-6.5, 12, -42), Vector3(1.5, 0.25, 1.5))
+	# Slingshot entry — wall push + arch to reach y=22 ledge
+	_place_box(Vector3(-9, 8, -22), Vector3(4, 18, 8), D)
+	_place_girder(Vector3(-7, 14, -22), Vector3(0.35, 0.35, 5), 500.0)
 
-	# Courtyard beyond the gate — wide open space
-	_place_box(Vector3(0, 10, -75), Vector3(16, 20, 10), D)
-	_place_box(Vector3(0, 21, -75), Vector3(12, 2, 8), B)
-	_place_girder(Vector3(0, 22.5, -75), Vector3(5, 0.4, 0.4), 400.0)
+	# Arch for the entry sling
+	_place_box(Vector3(16, 12, -30), Vector3(2, 24, 2), S)
+	_place_pyramid(Vector3(16, 24.5, -30), 2.5, 3.5, P)
+	_place_box(Vector3(22, 12, -30), Vector3(2, 24, 2), S)
+	_place_pyramid(Vector3(22, 24.5, -30), 2.5, 3.5, P)
+	_place_girder(Vector3(19, 22, -30), Vector3(6, 0.5, 0.5), 500.0)
 
-	# Recovery in the gate gap
-	_place_box(Vector3(0, 4, -60), Vector3(4, 8, 4), D)
-	_place_girder(Vector3(0, 8.5, -60), Vector3(2.5, 0.35, 0.35), 200.0)
-
-	# ═══════════════════════════════════════
-	# SECTION 2: THE HIDDEN PATH — Mist Vision
-	# ═══════════════════════════════════════
-
-	# Solid wall blocking forward view
-	_place_box(Vector3(0, 18, -88), Vector3(20, 12, 2), B)
-
-	# Hidden girders behind the wall
-	_place_girder(Vector3(-5, 28, -95), Vector3(0.4, 0.4, 5), 350.0)
-	_place_girder(Vector3(4, 32, -105), Vector3(4, 0.4, 0.4), 350.0)
-
-	# Building behind the wall
-	_place_box(Vector3(4, 16, -108), Vector3(10, 32, 8), D)
-	_place_box(Vector3(4, 33, -108), Vector3(6, 2, 6), B)
-	_place_girder(Vector3(4, 34.5, -108), Vector3(4, 0.35, 0.35), 350.0)
-
-	# ═══════════════════════════════════════
-	# SECTION 3: THE CRUMBLING STAIR — Falling Anchors
-	# ═══════════════════════════════════════
-
-	# Sequence of towers with falling anchors — 25m apart
-	_place_box(Vector3(-6, 26, -125), Vector3(4, 12, 4), D)
-	_place_falling_anchor(Vector3(-6, 33, -125), Vector3(3, 0.4, 0.4), 300.0, 2.0)
-
-	_place_box(Vector3(4, 30, -148), Vector3(4, 10, 4), D)
-	_place_falling_anchor(Vector3(4, 36, -148), Vector3(3, 0.4, 0.4), 300.0, 2.0)
-
-	_place_box(Vector3(-4, 34, -170), Vector3(4, 10, 4), D)
-	_place_falling_anchor(Vector3(-4, 40, -170), Vector3(3, 0.4, 0.4), 300.0, 2.0)
+	# Landing ledge at y=22
+	_place_box(Vector3(10, 10, -50), Vector3(12, 20, 10), D)
+	_place_box(Vector3(10, 21, -50), Vector3(8, 2, 7), B)
+	_place_girder(Vector3(10, 22.5, -50), Vector3(5, 0.4, 0.4), 400.0)
+	_place_girder(Vector3(10, 20, -45), Vector3(4, 0.5, 0.5), 400.0)
 
 	# Recovery
-	_place_girder(Vector3(0, 30, -137), Vector3(2.5, 0.35, 0.35), 200.0)
-	_place_girder(Vector3(0, 34, -160), Vector3(2.5, 0.35, 0.35), 200.0)
-
-	# Stable platform after the crumbling stair
-	_place_box(Vector3(0, 24, -190), Vector3(10, 48, 10), B)
-	_place_box(Vector3(0, 49, -190), Vector3(7, 2, 7), D)
-	_place_girder(Vector3(0, 50.5, -190), Vector3(4, 0.4, 0.4), 400.0)
+	_place_box(Vector3(12, 4, -36), Vector3(4, 8, 4), D)
+	_place_girder(Vector3(12, 8.5, -36), Vector3(2.5, 0.35, 0.35), 200.0)
 
 	# ═══════════════════════════════════════
-	# SECTION 4: THE SLINGSHOT GAUNTLET
+	# ZONE 2: THE CLIMB — Staggered Push Platforms
+	# ═══════════════════════════════════════
+
+	# Three ascending platforms — push off each floor girder to hop upward
+	_place_box(Vector3(4, 16, -64), Vector3(8, 32, 8), B)
+	_place_girder(Vector3(4, 32.5, -64), Vector3(3, 0.5, 3), 400.0)
+
+	_place_box(Vector3(-4, 20, -78), Vector3(8, 40, 8), D)
+	_place_girder(Vector3(-4, 40.5, -78), Vector3(3, 0.5, 3), 400.0)
+
+	_place_box(Vector3(6, 24, -92), Vector3(8, 48, 8), B)
+	_place_girder(Vector3(6, 48.5, -92), Vector3(3, 0.5, 3), 400.0)
+
+	# Recovery girders on tower faces
+	_place_girder(Vector3(0, 26, -70), Vector3(2, 0.35, 0.35), 200.0)
+	_place_girder(Vector3(2, 36, -84), Vector3(2, 0.35, 0.35), 200.0)
+
+	# ═══════════════════════════════════════
+	# ZONE 3: THE CRUMBLE — Falling Anchor Staircase
+	# ═══════════════════════════════════════
+
+	# Three falling anchors — use each before it drops, rapid sequence
+	_place_box(Vector3(-4, 34, -104), Vector3(4, 18, 4), D)
+	_place_falling_anchor(Vector3(-4, 54, -104), Vector3(3, 0.4, 0.4), 300.0, 2.0)
+
+	_place_box(Vector3(6, 38, -118), Vector3(4, 16, 4), D)
+	_place_falling_anchor(Vector3(6, 60, -118), Vector3(3, 0.4, 0.4), 300.0, 2.0)
+
+	_place_box(Vector3(-2, 42, -132), Vector3(4, 14, 4), D)
+	_place_falling_anchor(Vector3(-2, 66, -132), Vector3(3, 0.4, 0.4), 300.0, 2.0)
+
+	# Recovery between falling anchors
+	_place_girder(Vector3(2, 46, -110), Vector3(2, 0.35, 0.35), 200.0)
+	_place_girder(Vector3(0, 54, -124), Vector3(2, 0.35, 0.35), 200.0)
+
+	# Stable platform after the crumble
+	_place_box(Vector3(0, 34, -150), Vector3(12, 68, 12), B)
+	_place_box(Vector3(0, 69, -150), Vector3(8, 2, 8), D)
+	_place_girder(Vector3(0, 70.5, -150), Vector3(5, 0.4, 0.4), 400.0)
+
+	# ═══════════════════════════════════════
+	# ZONE 4: THE SUMMIT — Final Slingshot
 	# ═══════════════════════════════════════
 
 	# Launch wall
-	_place_box(Vector3(-8, 46, -190), Vector3(3, 10, 5), D)
-	_place_girder(Vector3(-7, 52, -190), Vector3(0.35, 0.35, 4), 500.0)
+	_place_box(Vector3(-8, 64, -152), Vector3(4, 12, 6), D)
+	_place_girder(Vector3(-7, 70, -152), Vector3(0.35, 0.35, 4), 500.0)
 
-	# First arch — 40m to the right
-	_place_box(Vector3(22, 46, -200), Vector3(2, 18, 2), S)
-	_place_pyramid(Vector3(22, 55.5, -200), 2.5, 3.5, P)
-	_place_box(Vector3(28, 46, -200), Vector3(2, 18, 2), S)
-	_place_pyramid(Vector3(28, 55.5, -200), 2.5, 3.5, P)
-	_place_girder(Vector3(25, 54, -200), Vector3(6, 0.5, 0.5), 500.0)
+	# Summit arch
+	_place_box(Vector3(16, 60, -164), Vector3(2, 20, 2), S)
+	_place_pyramid(Vector3(16, 70.5, -164), 2.5, 3.5, P)
+	_place_box(Vector3(22, 60, -164), Vector3(2, 20, 2), S)
+	_place_pyramid(Vector3(22, 70.5, -164), 2.5, 3.5, P)
+	_place_girder(Vector3(19, 68, -164), Vector3(6, 0.5, 0.5), 500.0)
 
-	# Mid-rest platform
-	_place_box(Vector3(36, 28, -210), Vector3(8, 56, 8), D)
-	_place_box(Vector3(36, 57, -210), Vector3(5, 2, 5), B)
-	_place_girder(Vector3(36, 58.5, -210), Vector3(4, 0.35, 0.35), 350.0)
-
-	# Recovery
-	_place_girder(Vector3(25, 48, -198), Vector3(2.5, 0.35, 0.35), 200.0)
-
-	# Second arch — moving slingshot anchor
-	_place_box(Vector3(20, 54, -220), Vector3(2, 14, 2), S)
-	_place_pyramid(Vector3(20, 61.5, -220), 2.5, 3.0, P)
-	_place_box(Vector3(26, 54, -220), Vector3(2, 14, 2), S)
-	_place_pyramid(Vector3(26, 61.5, -220), 2.5, 3.0, P)
-	_place_moving_anchor(
-		Vector3(23, 58, -220), Vector3(5, 0.5, 0.5), 500.0,
-		Vector3(0, 5, 0), 5.0
-	)
-
-	_place_girder(Vector3(22, 54, -214), Vector3(2.5, 0.35, 0.35), 200.0)
-
-	# ═══════════════════════════════════════
-	# THE SUMMIT — Central Tower
-	# ═══════════════════════════════════════
-
-	_place_box(Vector3(6, 34, -240), Vector3(14, 68, 14), B)
-	_place_box(Vector3(6, 69, -240), Vector3(10, 3, 10), D)
-	_place_box(Vector3(6, 73, -240), Vector3(6, 3, 6), S)
-	_place_girder(Vector3(6, 75, -240), Vector3(6, 0.4, 0.4), 600.0)
+	# Summit tower
+	_place_box(Vector3(10, 38, -186), Vector3(14, 76, 14), B)
+	_place_box(Vector3(10, 77, -186), Vector3(10, 2, 10), D)
+	_place_box(Vector3(10, 80, -186), Vector3(6, 3, 6), S)
+	_place_girder(Vector3(10, 82, -186), Vector3(6, 0.4, 0.4), 600.0)
+	_place_girder(Vector3(10, 74, -179), Vector3(4, 0.5, 0.5), 400.0)
 
 	# Flanking spires
-	_place_box(Vector3(-4, 38, -234), Vector3(2, 28, 2), S)
-	_place_pyramid(Vector3(-4, 52.5, -234), 2.5, 4.5, P)
-	_place_box(Vector3(16, 36, -246), Vector3(2, 26, 2), S)
-	_place_pyramid(Vector3(16, 49.5, -246), 2.5, 4.0, P)
-	_place_box(Vector3(0, 32, -248), Vector3(2, 22, 2), S)
-	_place_pyramid(Vector3(0, 43.5, -248), 2.5, 3.5, P)
+	_place_box(Vector3(0, 46, -180), Vector3(2, 26, 2), S)
+	_place_pyramid(Vector3(0, 59.5, -180), 2.5, 4.0, P)
+	_place_box(Vector3(20, 44, -192), Vector3(2, 24, 2), S)
+	_place_pyramid(Vector3(20, 56.5, -192), 2.5, 3.5, P)
+	_place_box(Vector3(4, 42, -194), Vector3(2, 22, 2), S)
+	_place_pyramid(Vector3(4, 53.5, -194), 2.5, 3.0, P)
+
+	# Recovery on tower face
+	_place_girder(Vector3(10, 70, -179), Vector3(3, 0.35, 0.35), 300.0)
 
 	# ── Goal ──
-	_place_goal(Vector3(6, 78, -240), Vector3(10, 0.5, 10))
-	_place_pyramid(Vector3(6, 84, -240), 5.0, 7.0, COL_GOAL)
+	_place_goal(Vector3(10, 86, -186), Vector3(10, 0.5, 10))
+	_place_pyramid(Vector3(10, 92, -186), 5.0, 7.0, COL_GOAL)
 
 	var victory := Label3D.new()
 	victory.text = "THE MISTS ARE YOURS"
-	victory.global_position = Vector3(6, 88, -240)
+	victory.global_position = Vector3(10, 96, -186)
 	victory.font_size = 56
 	victory.modulate = Color(1, 0.85, 0.3)
 	victory.outline_size = 12
@@ -159,6 +137,6 @@ func build() -> void:
 	victory.no_depth_test = true
 	add_child(victory)
 
-	# ── Boundary + city backdrop ──
-	_build_boundary(Vector3(6, 0, -120), 140.0)
-	_build_city_backdrop(Vector3(6, 0, -120), 140.0, 200.0, 65, 50.0, 0.35)
+	# ── Boundary + backdrop ──
+	_build_boundary(Vector3(5, 0, -93), 115.0)
+	_build_city_backdrop(Vector3(5, 0, -93), 115.0, 185.0, 65, 50.0, 0.3)

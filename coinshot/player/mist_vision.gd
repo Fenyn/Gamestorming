@@ -5,7 +5,7 @@ const COLOR_BASE := Color(0.4, 0.7, 1.0, 0.55)
 const COLOR_ACTIVE := Color(0.55, 0.85, 1.0, 1.0)
 const MASS_REF := 50.0
 const MASS_BRIGHT_GAIN := 0.6
-const DIST_FALLOFF := 30.0
+const DIST_FALLOFF := 60.0
 const ACTIVE_SEGMENTS := 24
 const ACTIVE_HALF_WIDTH := 0.04
 

@@ -2,7 +2,7 @@ class_name Allomancy
 extends Node
 
 # Tunable constants — keep here for easy iteration.
-const SEARCH_RADIUS := 30.0
+const SEARCH_RADIUS := 60.0
 const MAX_ANCHORS := 32
 const BASE_FORCE := 1500.0
 const PULL_MULTIPLIER := 1.75
@@ -25,6 +25,10 @@ const PULL_APPROACH_DIST := 4.0
 const PULL_APPROACH_DECEL := 35.0
 const INTENT_OPPOSING_DAMP := 0.15
 const MAX_LOCKED_TARGETS := 8
+const ROPE_EXTEND_RATE := 6.0
+const ROPE_RETRACT_RATE := 10.0
+const ROPE_MIN_LENGTH := 2.0
+const ROPE_ABOVE_THRESHOLD := 2.0
 
 @export var burn_intensity: float = 1.0
 
@@ -33,6 +37,8 @@ var current_target: Node = null         # The primary (most recent) target for H
 var _locked_targets: Array = []         # All targets held while push/pull key is down.
 var _is_locked: bool = false
 var last_effective_force: float = 0.0   # Total force applied last tick (with falloff).
+var _rope_lengths: Dictionary = {}      # Target → locked rope length (above-anchors only).
+var swing_active: bool = false          # True when any rope swing is constraining.
 
 @onready var player: CharacterBody3D = get_parent()
 @onready var camera: Camera3D = player.get_node("Camera3D")
@@ -71,6 +77,8 @@ func add_target() -> void:
 
 func unlock_target() -> void:
 	_locked_targets.clear()
+	_rope_lengths.clear()
+	swing_active = false
 	_is_locked = false
 
 func locked_count() -> int:
@@ -177,6 +185,59 @@ func apply_push_pull(delta: float, push_pressed: bool, pull_pressed: bool) -> vo
 		if speed > 0.0:
 			var new_speed := maxf(0.0, speed - damp_rate * delta)
 			player.velocity *= new_speed / speed
+
+func apply_rope_swing(delta: float, push_pressed: bool, pull_pressed: bool) -> void:
+	if not _is_locked or _locked_targets.is_empty():
+		_rope_lengths.clear()
+		swing_active = false
+		return
+
+	var player_pos := player.global_position
+	var any_swing := false
+
+	for target in _locked_targets:
+		if not is_instance_valid(target) or not target.is_inside_tree():
+			continue
+		if not is_world_anchored(target):
+			_rope_lengths.erase(target)
+			continue
+
+		var target_pos := _node_position(target)
+		var to_target := target_pos - player_pos
+		var dist := to_target.length()
+		if dist < 0.01:
+			continue
+		var dir := to_target / dist
+
+		if target_pos.y <= player_pos.y + ROPE_ABOVE_THRESHOLD:
+			_rope_lengths.erase(target)
+			continue
+
+		any_swing = true
+
+		if not _rope_lengths.has(target):
+			_rope_lengths[target] = dist
+
+		var rope_len: float = _rope_lengths[target]
+
+		if push_pressed:
+			rope_len += ROPE_EXTEND_RATE * burn_intensity * delta
+		elif pull_pressed:
+			rope_len -= ROPE_RETRACT_RATE * burn_intensity * delta
+		rope_len = clampf(rope_len, ROPE_MIN_LENGTH, SEARCH_RADIUS)
+		_rope_lengths[target] = rope_len
+
+		if dist > rope_len:
+			var outward_vel := player.velocity.dot(-dir)
+			if outward_vel > 0.0:
+				player.velocity += dir * outward_vel
+			player.global_position = target_pos - dir * rope_len
+
+	swing_active = any_swing
+
+	for key in _rope_lengths.keys():
+		if key not in _locked_targets:
+			_rope_lengths.erase(key)
 
 func _refresh_nearby_anchors() -> void:
 	nearby_anchors.clear()

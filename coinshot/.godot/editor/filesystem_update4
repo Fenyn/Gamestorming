@@ -6,3 +6,5 @@ res://levels/level_5_citadel.gd
 res://player/allomancy.gd
 res://player/player.gd
 res://world/main.tscn
+res://levels/level_base.gd
+res://world/world.gd

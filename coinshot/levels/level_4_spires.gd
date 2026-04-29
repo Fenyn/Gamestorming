@@ -12,8 +12,7 @@ func build() -> void:
 	# ── Spawn floor ──
 	_place_platform(Vector3(0, -0.25, -5), Vector3(22, 0.5, 22))
 
-	_place_sign(Vector3(0, 3.5, -3), "THE CRUCIBLE\n\n" +
-		"Lock multiple targets.\nFeel the difference.")
+	_place_sign(Vector3(0, 3.5, -3), "THE CRUCIBLE", 28)
 
 	# ═══════════════════════════════════════
 	# SECTION A: MULTI-TARGET LAUNCH
@@ -24,7 +23,7 @@ func build() -> void:
 	_place_girder(Vector3(-3.5, 0.25, -10), Vector3(2.5, 0.5, 2.5), 500.0)
 	_place_girder(Vector3(3.5, 0.25, -10), Vector3(2.5, 0.5, 2.5), 500.0)
 
-	_place_sign(Vector3(0, 2.5, -4), "Three anchors. Lock them all.\nPush.")
+	_place_sign(Vector3(0, 2.5, -4), "[LMB] locks the first anchor.\n[RMB] adds more while locked.\nLock all three. Then push.")
 
 	_place_box(Vector3(-8, 4, -8), Vector3(5, 8, 8), C)
 	_place_box(Vector3(8, 4, -8), Vector3(5, 8, 8), C)

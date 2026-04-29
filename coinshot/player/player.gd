@@ -10,6 +10,7 @@ const AIR_STEER_FRACTION := 0.3
 const AIR_DRAG := 2.0
 const GRAVITY_FALLBACK := 18.0
 const BURN_GRAVITY_SCALE := 0.6
+const SWING_GRAVITY_SCALE := 0.35
 const MOUSE_SENSITIVITY := 0.0022
 const COINSHOT_SPEED := 100.0
 const COIN_SCENE_PATH := "res://coin/coin.tscn"
@@ -58,11 +59,15 @@ func _input(event: InputEvent) -> void:
 		_respawn()
 
 func _physics_process(delta: float) -> void:
-	# Gravity — reduced while actively burning metals.
+	# Gravity — reduced while actively burning metals or swinging.
 	var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", GRAVITY_FALLBACK)
 	var is_burning := allomancy.last_effective_force > 0.0
 	if not is_on_floor():
-		var grav_scale := BURN_GRAVITY_SCALE if is_burning else 1.0
+		var grav_scale := 1.0
+		if allomancy.swing_active:
+			grav_scale = SWING_GRAVITY_SCALE
+		elif is_burning:
+			grav_scale = BURN_GRAVITY_SCALE
 		velocity.y -= gravity * grav_scale * delta
 
 	# Movement input — relative to player yaw, ignoring pitch.
@@ -109,6 +114,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = JUMP_VELOCITY
 
 	allomancy.apply_push_pull(delta, push_held, pull_held)
+	allomancy.apply_rope_swing(delta, push_held, pull_held)
 
 	move_and_slide()
 

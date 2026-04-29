@@ -2,6 +2,8 @@
 
 A sampler platter of game ideas. Each subfolder is a standalone prototype.
 
+Projects developed with assistance of Claude Opus 4.6
+
 ## Games
 
 | Game | Description | Play |

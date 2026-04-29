@@ -5,3 +5,4 @@ res://levels/level_4_spires.gd
 res://levels/level_5_citadel.gd
 res://player/allomancy.gd
 res://player/player.gd
+res://world/main.tscn

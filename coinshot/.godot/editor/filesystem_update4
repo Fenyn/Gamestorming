@@ -9,3 +9,4 @@ res://world/main.tscn
 res://levels/level_base.gd
 res://world/world.gd
 res://player/mist_vision.gd
+res://ui/hud.tscn

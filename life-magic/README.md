@@ -4,9 +4,9 @@ An idle/incremental game that incentivizes exercise by tying game speed to your 
 
 ## Concept
 
-You are a wizard gardener tending a magical garden. Your garden grows automatically — but its growth is powered by your heartbeat. The game's tick speed scales with your heart rate: rest and the garden ticks slowly, exercise and it pulses with life energy.
+You are a wizard gardener tending a magical garden. Your garden grows automatically but its growth is powered by your heartbeat. The game's tick speed scales with your heart rate: rest and the garden ticks slowly, exercise and it pulses with life energy.
 
-The core loop is modeled after CIFI (Cell Idle Factory Incremental), with a cascading generator chain where higher-tier plants produce lower-tier plants, creating exponential growth. The twist: everything in the game runs on "heartbeats" (ticks), and your real heart rate controls how fast those ticks fire.
+The core loop is a cascading generator chain where higher-tier plants produce lower-tier plants, creating exponential growth. The twist: everything in the game runs on "heartbeats" (ticks), and your real heart rate controls how fast those ticks fire.
 
 **At rest (~65 BPM):** 1.0x speed, ~8 second ticks  
 **Light exercise (~100 BPM):** ~1.7x speed, ~4.7 second ticks  
@@ -93,8 +93,7 @@ Then switch to "Device" mode in the Profile tab. The simulator sends realistic w
 - **Additional garden plots** — each unlocking new game systems
 - **Android Health Connect plugin** — real Pixel Watch heart rate integration
 - **Audio** — heartbeat sounds synced to BPM, purchase/bloom sound effects
-- **Web export** — browser-playable demo
-
+  
 ## Tech Stack
 - Godot 4.6 (Mobile renderer)
 - GDScript

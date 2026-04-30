@@ -56,13 +56,7 @@ func _ready() -> void:
 
 	_spawn_shelf_dripper()
 
-	_status_label = Label3D.new()
-	_status_label.text = ""
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.3, 0.15)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = StationUtils.create_status_label(self)
 	_update_label()
 
 func _spawn_shelf_dripper() -> void:
@@ -126,15 +120,9 @@ func _try_start_main_pour(player: Player) -> void:
 func _start_pour_animation() -> void:
 	if not _pour_kettle or not _pouring_player:
 		return
-	_pouring_player._held_item = null
-	var pour_pos := _dripper_slot.global_position + Vector3(-0.10, 0.12, 0.06)
-	_pour_kettle.global_position = pour_pos
-	_pour_kettle.global_rotation_degrees = Vector3(0, 0, -35)
 	if _pour_tween and _pour_tween.is_valid():
 		_pour_tween.kill()
-	_pour_tween = create_tween().set_loops()
-	_pour_tween.tween_property(_pour_kettle, "global_rotation_degrees:z", -45.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_pour_tween.tween_property(_pour_kettle, "global_rotation_degrees:z", -30.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, _dripper_slot.global_position, Vector3(-0.10, 0.12, 0.06))
 
 func _set_dripper_opacity(alpha: float) -> void:
 	if not _placed_dripper:
@@ -147,26 +135,16 @@ func _set_dripper_opacity(alpha: float) -> void:
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if alpha < 0.99 else BaseMaterial3D.TRANSPARENCY_DISABLED
 
 func _stop_pour_animation() -> void:
-	if _pour_tween and _pour_tween.is_valid():
-		_pour_tween.kill()
-		_pour_tween = null
-	if _pour_kettle and is_instance_valid(_pour_kettle):
-		_pour_kettle.global_rotation_degrees = Vector3.ZERO
-		if _pouring_player and is_instance_valid(_pouring_player):
-			_pouring_player.pickup_item(_pour_kettle)
+	StationUtils.stop_kettle_pour(_pour_tween, _pour_kettle, _pouring_player)
+	_pour_tween = null
 
 func _try_pickup_shelf_dripper(player: Player) -> void:
-	if not player.has_held_item() and _shelf_dripper and is_instance_valid(_shelf_dripper):
-		player.pickup_item(_shelf_dripper)
+	if StationUtils.try_pickup_shelf(player, _shelf_dripper):
 		_shelf_dripper = null
 		_update_label()
 
 func _try_pickup_placed_dripper(player: Player) -> void:
-	if not player.has_held_item() and _placed_dripper and is_instance_valid(_placed_dripper):
-		for child in _placed_dripper.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
-		player.pickup_item(_placed_dripper)
+	if StationUtils.try_pickup_placed(player, _placed_dripper):
 		_placed_dripper = null
 		_recalculate_state()
 
@@ -193,13 +171,7 @@ func receive_item(item: Node3D) -> bool:
 	return false
 
 func _place_at_slot(item: Node3D, slot: Marker3D) -> void:
-	item.global_position = slot.global_position
-	item.global_rotation = Vector3.ZERO
-	if item is RigidBody3D:
-		(item as RigidBody3D).freeze = true
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = true
+	StationUtils.place_at_slot(item, slot.global_position)
 
 func _recalculate_state() -> void:
 	if _placed_cup and _placed_dripper:
@@ -277,9 +249,7 @@ func _finish_drip() -> void:
 			_placed_cup.order.correct_grind_level = _correct_grind
 			_placed_cup.order.grind_quality = _grind_quality * (1.0 if _correct_grind else 0.5)
 		_placed_cup.set_fill(0.85, Color(0.35, 0.22, 0.1))
-		for child in _placed_cup.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
+		StationUtils.set_item_collision(_placed_cup, true)
 
 	if _placed_dripper:
 		_placed_dripper.reset_device()
@@ -291,20 +261,12 @@ func _finish_drip() -> void:
 	_update_label()
 
 func _check_removed_items() -> void:
-	if _placed_cup:
-		if not is_instance_valid(_placed_cup):
-			_placed_cup = null
-			_recalculate_state()
-		elif _placed_cup.global_position.distance_to(_cup_slot.global_position) > 0.5:
-			_placed_cup = null
-			_recalculate_state()
-	if _placed_dripper:
-		if not is_instance_valid(_placed_dripper):
-			_placed_dripper = null
-			_recalculate_state()
-		elif _placed_dripper.global_position.distance_to(_dripper_slot.global_position) > 0.5:
-			_placed_dripper = null
-			_recalculate_state()
+	if StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
+		_placed_cup = null
+		_recalculate_state()
+	if StationUtils.is_item_removed(_placed_dripper, _dripper_slot.global_position):
+		_placed_dripper = null
+		_recalculate_state()
 
 func _update_label() -> void:
 	if not _status_label:

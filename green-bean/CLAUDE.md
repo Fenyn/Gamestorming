@@ -490,103 +490,264 @@ Size affects the *duration* of tasks, not the *difficulty* of mini-games. A Vent
 
 ### Phase 2 Additions (not yet implemented)
 - Milk alternatives: NF (nonfat), 2% (two percent), OM (oat), AM (almond)
-- Syrups: V (vanilla), C (caramel), H (hazelnut), SF prefix (sugar-free)
+- Syrups: V (vanilla), C (caramel), H (hazelnut), TN (toffee nut), SF prefix (sugar-free)
+- Sauces: M (mocha), CR (caramel drizzle), WM (white mocha)
 - Extras: WC (whipped cream), XH (extra hot)
 - Shots: number prefix for extra shots
-- New drink types: CM (caramel macchiato), M (mocha), F (frappuccino), CB (cold brew)
+- New drink types: CM (caramel macchiato), M (mocha), WM (white mocha), F (frappuccino), CB (cold brew)
 
 ---
 
-## Longer-Term Features (Post-Phase 2)
+## Modifier System — Syrups & Sauces
 
-- **Shop tidiness:** Trash accumulates, condiment bar needs restocking, counters get messy. Neglect = lower star rating.
-- **Cleaning mini-games:** Wipe counters (back-and-forth strokes), mop spills (circular strokes), take out trash.
-- **Restocking:** Carry supplies from back room to stations (milk, beans, cups, lids, sleeves).
-- **Staff management:** Hire AI baristas, assign them to stations.
-- **Traditional espresso machine:** Replaces aeropress as an upgrade — portafilter, tamping, group head, shot timing.
-- **Shop cosmetics:** Decor, menu boards, seating, cup designs, apron colors.
-- **Daily challenges:** Morning rush, happy hour, secret menu orders.
-- **Customer archetypes:** Regulars (patient), commuters (impatient), complex orderers.
-- **Latte art:** Dexterity-based mini-game for tips bonus.
+### Syrups
+Syrups are pre-bottled liquid flavorings stored at a **syrup rack** station. Each bottle sits in a pump holster. The player grabs a cup, holds it under a bottle, and pumps to dispense.
+
+**Syrup pump mini-game:** Player holds cup under the pump, clicks to pump. Each click = one pump. Different drinks require different pump counts (tall = 3, grande = 4, venti = 5). Over-pumping = too sweet (quality penalty). Under-pumping = too mild (quality penalty). The mini-game is quick and tactile — click rhythm, not duration.
+
+**Available syrups (Phase 2):** Vanilla, Hazelnut, Toffee Nut, Caramel, Sugar-Free Vanilla.
+
+**Syrup bottles** are consumable inventory. Each bottle has ~50 pumps. Empty bottles must be replaced from backstock. Running out mid-rush = lost time swapping bottles.
+
+### Sauces
+Sauces are thicker, richer flavorings (mocha, caramel, white mocha) that require **preparation before the day starts**. Unlike syrups which come pre-bottled, sauces must be mixed or heated.
+
+**Mocha sauce prep:** Combine cocoa powder + hot water + sugar in a sauce pan. Stir mini-game (similar to aeropress stir but longer). Heat to target temp. Pour into a squeeze bottle. Each batch makes enough for ~15-20 drinks. Player decides how many batches to prep during morning setup.
+
+**Caramel sauce prep:** Heat sugar + butter + cream in a sauce pan. More temperature-sensitive than mocha — must hit the right temp window or it crystallizes (quality penalty) or burns (waste). Pour into squeeze bottle.
+
+**Sauce application:** Player holds cup, picks up squeeze bottle, drizzle mini-game — mouse motion traces a pattern inside the cup. Quality based on coverage evenness (similar to pour-over saturation but faster and smaller scale).
+
+**Morning prep phase:** Before the day timer starts, the player has a prep window to make sauce batches, restock syrup bottles, grind reserve beans, and arrange their station. Time spent prepping is time well invested — running out of mocha mid-rush means stopping everything to make more.
+
+---
+
+## Inventory & Stock Management
+
+### Consumable Resources
+Every ingredient is finite and tracked:
+
+| Resource | Storage | Capacity | Restock From |
+|---|---|---|---|
+| **Coffee beans** | Bean hopper at grinder | ~30 drinks worth | 5lb bags from backstock |
+| **Milk (whole)** | Fridge | 1 gallon jug | Backstock fridge |
+| **Milk alternatives** | Fridge | Individual cartons | Backstock fridge |
+| **Syrup bottles** | Syrup rack | ~50 pumps each | Backstock shelf |
+| **Sauce batches** | Squeeze bottles | ~15-20 drinks | Player-made each morning |
+| **Cups** | Cup stacks | ~20 per size | Sleeve packs from backstock |
+| **Lids** | Lid dispenser | ~30 per size | Backstock |
+| **Filters** | Pour-over station | ~25 | Filter packs from backstock |
+
+### Backstock & Storage
+The **back room** (accessible through a door behind the bar) contains:
+- Shelving units with boxes of cups, lids, filters, syrup bottles
+- A secondary fridge for milk backup
+- Bean bag storage
+- The player physically carries items from backstock to the front stations
+
+**Storage space is limited.** The player chooses what to stock each day based on expected demand. Overstocking wastes money and space. Understocking means mid-rush backstock runs.
+
+### Ordering & Purchasing
+Between days, the player accesses a **supply order screen** to buy inventory for the next day:
+- Each item has a cost and delivery quantity
+- Budget comes from daily earnings
+- Smart ordering = predicting tomorrow's demand based on customer patterns
+- Bulk ordering = cheaper per unit but requires more storage space
+- Emergency mid-day delivery available at premium cost (but takes time to arrive)
+
+### Running Out
+If a resource runs out during a day:
+- **Beans:** Can't grind. All espresso-based drinks blocked until restocked.
+- **Milk:** Can't make lattes. Must tell customers "sorry, no milk drinks" (lost sales).
+- **Syrup bottle:** Must swap from backstock. 15-20 seconds of downtime.
+- **Sauce:** Must make a new batch. 2-3 minutes of active prep during rush = disaster.
+- **Cups/lids:** Must grab a new sleeve from back. Quick but disruptive.
+
+---
+
+## Menu Management & Unlocks
+
+### Dynamic Menu
+The player builds their menu over time:
+- Start with 3 drinks (pour over, americano, latte)
+- Unlock new drinks by purchasing recipe cards (e.g., mocha requires buying the mocha recipe + cocoa powder supply)
+- Add/remove drinks from the active menu each day based on what you want to offer
+- More menu items = more customer appeal but more inventory to manage and more complexity during rushes
+
+### Drink Modifiers
+Modifiers are unlocked and added to the menu independently:
+- **Milk alternatives** — unlock oat milk → customers can now order any drink with oat milk
+- **Syrups** — unlock hazelnut → any drink can now have hazelnut syrup added
+- **Sauces** — unlock mocha → mocha lattes and mochas become available
+- **Extras** — unlock whipped cream → any drink can add WC
+
+Each modifier adds a step to the drink recipe. A vanilla latte = latte recipe + syrup pump step. A mocha = latte recipe + mocha sauce step. The recipe system's step array makes this composable.
+
+### Equipment Upgrades
+Upgrades automate or speed up previously manual tasks:
+
+| Tier | Grinder | Aeropress | Steam | Pour-Over |
+|---|---|---|---|---|
+| 1 (start) | Hand crank | Manual press | Manual wand | Manual gooseneck |
+| 2 | Electric (auto-grind, player sets level + starts) | Semi-auto (shorter press, wider green zone) | Auto-shutoff (prevents scald) | Electric kettle (auto-heat water) |
+| 3 | Auto (reads ticket, selects level, grinds) | Traditional espresso machine (portafilter, tamping, group head) | Auto-steamer (set foam level, walk away) | Batch brewer (set and forget) |
+
+Higher tiers free up player time for other tasks. Tier 3 equipment is expensive but lets the player handle higher volume.
 
 ---
 
 ## Phasing
 
-### Phase 1a — Grey-Box Prototype (current target)
-All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Proving out the core mechanics.
-- First-person player controller with mouse look
-- Espresso stand grey-box layout (all stations within arm's reach)
+### Phase 1a — Grey-Box Prototype (COMPLETE)
+All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Core mechanics proven.
+- First-person player controller with mouse look, WASD movement, jump
+- Espresso stand grey-box layout with all stations
 - Item carry system (one item, Skyrim-style viewport float)
-- Camera-lock mini-game system with prerequisite checks
-- In-world register with center-of-view targeting (no cursor mode switch)
-- Ticket printer + cup stacks (infinite supply, one per size)
-- Mini-game mechanical proofs of concept: grind (hand crank), pour over (saturation), aeropress (pressure), milk steam (wand depth), water pour (fill line), stir
-- Unattended failure states: shot dying, milk scalding, coffee cooling
-- Basic customer AI: walk up, speech bubble, dual patience meters, pick up, leave
-- Timed day (3 min default)
-- End-of-day score screen with letter grade + money earned
+- Camera-lock mini-game system with frame guards and input cooldown
+- Carriable items: Cup, AeropressDevice, Dripper, Pitcher, Kettle, MilkJug
+- In-world register with SubViewport POS screen, keyboard + crosshair click input
+- Cash transaction flow: charge → collect from customer → cash drawer change-making mini-game
+- Grinder mini-game (hand crank, grind level toggle, progress bar)
+- Aeropress flow: grounds → water pour (kettle animation) → stir (paddle visual) → steep (passive countdown) → press (2D pressure balance, plunger visual, liquid fill)
+- Pour-over flow: bloom pour (top-down saturation painting) → bloom wait (passive) → main pour → draw-down (passive countdown) → coffee ready
+- Milk steaming (stretching phase with sinking sweet spot → texturing phase passive → finish)
+- Milk jug from fridge → pour into pitcher → steam → pour into cup
+- Hot water station with kettle fill (timed, camera-locked) and americano cup fill
+- Counter pad with 4 snap slots for temporary item storage
+- Kettle with tracked water level (depletes per use, refillable)
+- Unattended failure states: shot over-extraction/death, milk scald
+- Customer AI: walk to register, speech bubble, dual patience meters, paying state, walk to pickup, leave
+- Customer spawner with day-progress intensity curve
+- Cash drawer with denomination trays, right-click to put back
+- Day timer + money tracking + end-of-day grade panel
+- HUD: timer, money, interaction prompts, crosshair, recipe step tracker with waterfall completion
+- Recipe-based drink data system (step arrays per drink, easy to extend)
+- StationUtils autoload (shared item collision, placement, pickup, label creation, pour animation, frame guards)
+- World label visibility system (hidden during camera lock, shown in free mode)
 
-### Phase 1b — Full Prototype
-- Coffee bar and cafe shop layouts
-- Online P2P multiplayer: host/join via ENet, 2-4 players, synced positions and item state
-- Customer spawner with difficulty scaling per shop size
-- Art pass on espresso stand (low-poly models replace grey boxes)
+### Phase 1a.5 — Prefab Conversion (next step)
+Convert all stations and items from procedural code to `.tscn` prefab scenes so they can be hand-placed in the editor and have models swapped in.
+
+**Station prefabs to create (`scenes/stations/`):**
+- `register.tscn` — StaticBody3D + register.gd, screen mesh, collision
+- `cash_drawer.tscn` — StaticBody3D + cash_drawer.gd, screen mesh, collision
+- `cup_stack.tscn` — StaticBody3D + cup_stack.gd, collision
+- `grinder.tscn` — StaticBody3D + grinder_station.gd, device slot marker, collision
+- `aeropress.tscn` — StaticBody3D + aeropress_station.gd, cup/device slot markers, collision
+- `pour_over.tscn` — StaticBody3D + pour_over_station.gd, cup/dripper slot markers, collision
+- `hot_water.tscn` — StaticBody3D + hot_water_station.gd, fill cam marker, collision
+- `steam.tscn` — StaticBody3D + steam_station.gd, pitcher slot marker, collision
+- `fridge.tscn` — StaticBody3D + fridge_station.gd, collision
+- `hand_off.tscn` — StaticBody3D + hand_off.gd, collision
+- `counter_pad.tscn` — StaticBody3D + counter_pad.gd, slot markers, collision
+
+**Item prefabs to create (`scenes/items/`):**
+- `cup.tscn` — RigidBody3D + cup.gd (one per size, or parameterized)
+- `aeropress_device.tscn` — RigidBody3D + aeropress_device.gd
+- `dripper.tscn` — RigidBody3D + dripper.gd
+- `pitcher.tscn` — RigidBody3D + pitcher.gd
+- `kettle.tscn` — RigidBody3D + kettle.gd
+- `milk_jug.tscn` — RigidBody3D + milk_jug.gd
+
+**Shop scene (`scenes/shops/espresso_stand.tscn`):**
+- Hand-assembled layout using station prefab instances
+- Station name labels as Label3D children of each instance
+- Environment (floor, walls, counter, roof) as static geometry
+- Customer spawn/register/pickup positions as Marker3D nodes
+- Replaces the procedural `espresso_stand.gd` entirely
+
+**Conversion approach:**
+1. Each station script keeps its `_ready()` logic for creating mini-games, slots, and labels programmatically — these are gameplay elements, not visual mesh
+2. The grey-box mesh + collision currently added by `_build_station()` in espresso_stand.gd moves INTO each prefab's `.tscn` as child nodes
+3. When a real model is ready, replace the CSGBox3D mesh child with a MeshInstance3D pointing to the `.glb`/`.obj` — the script and collision stay the same
+4. Shelf items (aeropress device, dripper, pitcher, kettle, milk jug) are spawned by their station scripts as before, but can optionally be placed as scene children for editor visibility
+5. `espresso_stand.gd` is replaced by a simple scene with instances + a lightweight script that wires up customer spawner positions
+
+**Model replacement workflow:**
+Once prefabs exist, swapping a grey box for a real model:
+1. Open the station `.tscn` in the editor
+2. Delete the CSGBox3D mesh child
+3. Add a MeshInstance3D child, assign the `.glb` model
+4. Adjust CollisionShape3D to match the new model's bounds
+5. Adjust slot Marker3D positions if the model's geometry differs
+6. Save — all instances in the shop scene update automatically
+
+### Phase 1b — Polish & Audio
 - Audio pass: mini-game feedback sounds, ambient coffee shop, customer cues
+- Particle effects: steam, pour water stream, grind dust
+- Customer spawner with difficulty scaling
+- End-of-day summary with detailed breakdown
+- Tutorial/first-day guided walkthrough
 
-### Phase 2 — Menu Expansion
-- Flavored syrups and syrup pump mini-game
-- Milk alternatives (oat, almond, nonfat, 2%)
-- New drink types (mocha, caramel macchiato)
-- More cup code fields on tickets
-- Equipment upgrade system (tier 1-3 automation)
-- Latte art mini-game
-- More customer variety and patience mechanics
+### Phase 1c — Multiplayer
+- Coffee bar and cafe shop layouts (bigger stations, more distance = more juggling)
+- Online P2P multiplayer: host/join via ENet, 2-4 players
+- Player body visible to others, synced positions and held items
+- Shared game state: day timer, score, customer queue (server-authoritative)
 
-### Phase 3 — Shop Management
-- Tidiness system (trash accumulation, messy counters)
+### Phase 2 — Menu Expansion & Modifiers
+- Syrup rack station + pump mini-game
+- Sauce prep station + morning prep phase
+- Milk alternatives (different foam behaviors per milk type)
+- New drinks: mocha, caramel macchiato, white mocha, cappuccino
+- Cup code system expanded for modifiers on tickets
+- Latte art mini-game (tips bonus)
+- Customer archetypes: regulars (patient, tip well), commuters (impatient), complex orderers
+
+### Phase 3 — Inventory & Stock Management
+- Finite consumable resources (beans, milk, cups, lids, filters, syrups)
+- Backstock room with shelving, secondary fridge
+- Physical restocking: carry items from back to front
+- Storage space limits and layout decisions
+- Supply ordering screen between days
+- Running-out consequences and emergency deliveries
+- Morning prep phase: batch sauces, restock stations, grind reserve beans
+
+### Phase 4 — Shop Management & Progression
+- Dynamic menu building: unlock and add/remove drinks
+- Equipment upgrade tiers (hand → electric → auto)
+- Shop tidiness system (trash, spills, messy counters)
 - Cleaning mini-games (wipe, mop, take out trash)
-- Restocking from back room (milk, beans, cups, lids)
-- Shop cosmetics and visual progression
-- Staff hiring (AI baristas)
+- Shop cosmetics and visual progression (decor, menu boards, seating)
+- Staff hiring (AI baristas assigned to stations)
+- Daily challenges: morning rush, happy hour, secret menu
+- Shop expansion: espresso stand → coffee bar → full cafe
+- Revenue management: pricing, costs, profit margins
 
 ---
 
 ## What's Built vs. What's Deferred
 
-**Done:**
-- Project setup and documentation
-- FPS player controller with mouse look, WASD movement, jump
-- Interaction system (RayCast3D, E to interact, center-of-view targeting)
-- Item carry system (one item, Skyrim-style float, click to pick up/place)
-- Grey-box espresso stand (procedurally built, all stations positioned)
-- Mini-game framework (BaseMiniGame with camera lock, quality scoring)
-- Grinder mini-game (hand crank, grind level selection, fill indicator)
-- Aeropress mini-game (passive steep/ready window, active pressure press, over-extraction/death)
-- Pour-over mini-game (saturation-based gooseneck pour, passive draw-down, coffee cooling)
-- Milk steaming mini-game (wand depth, foam/temp tracking, scald failure)
-- Water pour mini-game (fill-to-line, overflow risk)
-- Stir mini-game (circular mouse input, rotation counting)
-- Register with in-world POS screen (SubViewport, size/drink selection, ticket printing)
-- Cup stacks (per-size, infinite supply, auto-attaches pending order ticket)
-- Hand-off counter (validates drink completion, scores quality, awards money)
-- Drink data system (DrinkData constants, OrderData quality tracking)
-- Station scripts: grinder, aeropress, pour-over, steam, hot water, register, cup stack, hand-off
-- Customer AI (walk to register, speech bubble, dual patience meters, walk to pickup, leave)
-- Customer spawner (time-ramped schedule, day-progress intensity curve)
-- Day timer (3 min default, HUD display) + money tracking + letter grade calculation
-- HUD (timer, money earned, interaction prompts, crosshair)
-
-**Needs Testing:**
-- Open in Godot 4.6 and run — hand-written .tscn and procedural scene may need fixes on first import
-- Mini-game feel tuning (all timing constants are best-guess)
-- Station interaction flow end-to-end (register -> grind -> brew -> hand off)
+**Done (Phase 1a):**
+- Full FPS controller with mouse look, movement, jump
+- Interaction system: RayCast3D, E to interact, crosshair click targeting
+- Item carry system: one item, Skyrim-style, click to pick up/place
+- Grey-box espresso stand with all stations procedurally placed
+- 6 carriable item types: Cup, AeropressDevice, Dripper, Pitcher, Kettle, MilkJug
+- 11 station types: Register, CashDrawer, CupStack, Grinder, Aeropress, PourOver, HotWater, Steam, Fridge, HandOff, CounterPad
+- 5 mini-games: Grind (hand crank), Press (2D pressure balance), Pour (top-down saturation), Steam (sinking sweet spot), Stir (circular mouse)
+- Register with SubViewport POS, cash transaction flow, cash drawer change-making
+- Kettle water level system with per-use depletion
+- Milk jug → pitcher → steam → pour-into-cup physical flow
+- Bloom → bloom wait → main pour → draw-down pour-over flow
+- Passive phases: aeropress steep, milk texturing, bloom wait, draw-down
+- Failure states: shot death, milk scald, coffee cooling
+- Visual feedback: progress bars, pressure balance, saturation painting, plunger/liquid animations, kettle pour tween
+- Customer AI with full state machine, dual patience, payment flow
+- Day timer, money tracking, letter grade, end-of-day panel
+- HUD: timer, money, interact prompts, recipe step tracker
+- Recipe-based DrinkData with Step enum arrays
+- StationUtils autoload for shared patterns
+- World label visibility toggle during camera lock
+- Input cooldown after mini-game exit
+- Frame guards on all E-key interactions
 
 **Deferred:**
-- End-of-day score screen UI
-- Phase 1b (multiplayer, additional shops, art/audio)
-- Phase 2 (menu expansion, upgrades)
-- Phase 3 (shop management)
+- Phase 1b (art, audio, particles, tutorial)
+- Phase 1c (multiplayer, bigger shops)
+- Phase 2 (syrups, sauces, modifiers, new drinks)
+- Phase 3 (inventory, backstock, ordering)
+- Phase 4 (shop management, upgrades, progression)
 
 ---
 

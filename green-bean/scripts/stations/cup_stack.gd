@@ -8,14 +8,9 @@ func _ready() -> void:
 	add_to_group("cup_stack")
 	EventBus.ticket_printed.connect(_on_ticket_printed)
 
-	_label = Label3D.new()
+	_label = StationUtils.create_status_label(self, Vector3(0, 0.25, 0.12))
 	_label.text = "CUPS\n[E] Grab cup"
-	_label.font_size = 12
-	_label.position = Vector3(0, 0.25, 0.12)
-	_label.pixel_size = 0.002
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_label.add_to_group("world_label")
-	add_child(_label)
 
 func _on_ticket_printed(data: Dictionary) -> void:
 	var order: OrderData = data["order"]

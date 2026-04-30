@@ -18,7 +18,6 @@ var _shot_quality := 0.0
 var _pouring_player: Player = null
 var _pour_kettle: Kettle = null
 var _pour_tween: Tween = null
-var _kettle_rest_pos := Vector3.ZERO
 
 var _cup_slot: Marker3D = null
 var _device_slot: Marker3D = null
@@ -75,14 +74,7 @@ func _ready() -> void:
 	_water_game.mini_game_completed.connect(_on_water_complete)
 
 	_spawn_shelf_device()
-
-	_status_label = Label3D.new()
-	_status_label.text = ""
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.3, 0.15)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = StationUtils.create_status_label(self)
 	_update_label()
 
 func _spawn_shelf_device() -> void:
@@ -99,17 +91,23 @@ func interact(player: Player) -> void:
 		return
 	match state:
 		State.IDLE:
-			_try_pickup_shelf_device(player)
+			if StationUtils.try_pickup_shelf(player, _shelf_device):
+				_shelf_device = null
+				_update_label()
 		State.CUP_ONLY:
-			_try_pickup_shelf_device(player)
+			if StationUtils.try_pickup_shelf(player, _shelf_device):
+				_shelf_device = null
+				_update_label()
 		State.DEVICE_ONLY:
-			_try_pickup_placed_device(player)
+			if StationUtils.try_pickup_placed(player, _placed_device):
+				_placed_device = null
+				_recalculate_state()
 		State.READY_FOR_WATER:
 			var held := player.get_held_item()
 			if held is Kettle and (held as Kettle).has_water:
 				_pouring_player = player
 				_pour_kettle = held as Kettle
-				_start_pour_animation()
+				_pour_tween = StationUtils.start_kettle_pour(player, _pour_kettle, _device_slot.global_position, Vector3(-0.12, 0.10, 0.08))
 				_water_game.start(player)
 			elif _status_label:
 				_status_label.text = "Hold filled kettle!\n[E] Pour water"
@@ -130,21 +128,6 @@ func interact(player: Player) -> void:
 		State.DEAD:
 			_reset()
 
-func _try_pickup_shelf_device(player: Player) -> void:
-	if not player.has_held_item() and _shelf_device and is_instance_valid(_shelf_device):
-		player.pickup_item(_shelf_device)
-		_shelf_device = null
-		_update_label()
-
-func _try_pickup_placed_device(player: Player) -> void:
-	if not player.has_held_item() and _placed_device and is_instance_valid(_placed_device):
-		for child in _placed_device.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
-		player.pickup_item(_placed_device)
-		_placed_device = null
-		_recalculate_state()
-
 func receive_item(item: Node3D) -> bool:
 	if _any_game_active():
 		return false
@@ -152,29 +135,20 @@ func receive_item(item: Node3D) -> bool:
 		if _placed_cup:
 			return false
 		_placed_cup = item as Cup
-		_place_at_slot(item, _cup_slot)
+		StationUtils.place_at_slot(item, _cup_slot.global_position)
 		_recalculate_state()
 		return true
 	if item is AeropressDevice:
 		if _placed_device:
 			return false
 		_placed_device = item as AeropressDevice
-		_place_at_slot(item, _device_slot)
+		StationUtils.place_at_slot(item, _device_slot.global_position)
 		if _placed_device.has_grounds():
 			_correct_grind = (_placed_device.grounds.grind_level == DrinkData.GrindLevel.FINE)
 			_grind_quality = _placed_device.grounds.grind_quality
 		_recalculate_state()
 		return true
 	return false
-
-func _place_at_slot(item: Node3D, slot: Marker3D) -> void:
-	item.global_position = slot.global_position
-	item.global_rotation = Vector3.ZERO
-	if item is RigidBody3D:
-		(item as RigidBody3D).freeze = true
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = true
 
 func _recalculate_state() -> void:
 	if _placed_cup and _placed_device:
@@ -198,40 +172,14 @@ func _on_water_complete(quality: float) -> void:
 	if _placed_device:
 		_placed_device.has_water = true
 		_placed_device.set_liquid_level(1.0)
-	_stop_pour_animation()
-	if _pouring_player:
-		if _pour_kettle and is_instance_valid(_pour_kettle):
-			_pour_kettle.use_water(Kettle.AEROPRESS_COST)
-		_pouring_player = null
+	StationUtils.stop_kettle_pour(_pour_tween, _pour_kettle, _pouring_player)
+	_pour_tween = null
+	if _pour_kettle and is_instance_valid(_pour_kettle):
+		_pour_kettle.use_water(Kettle.AEROPRESS_COST)
+	_pouring_player = null
 	_pour_kettle = null
 	state = State.HAS_WATER
 	_update_label()
-
-func _start_pour_animation() -> void:
-	if not _pour_kettle or not _pouring_player:
-		return
-	# Detach from player hold so _update_held_item doesn't fight us
-	_pouring_player._held_item = null
-
-	var pour_pos := _device_slot.global_position + Vector3(-0.12, 0.10, 0.08)
-	_pour_kettle.global_position = pour_pos
-	_pour_kettle.global_rotation_degrees = Vector3(0, 0, -35)
-
-	if _pour_tween and _pour_tween.is_valid():
-		_pour_tween.kill()
-	_pour_tween = create_tween().set_loops()
-	_pour_tween.tween_property(_pour_kettle, "global_rotation_degrees:z", -45.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_pour_tween.tween_property(_pour_kettle, "global_rotation_degrees:z", -30.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-func _stop_pour_animation() -> void:
-	if _pour_tween and _pour_tween.is_valid():
-		_pour_tween.kill()
-		_pour_tween = null
-	if _pour_kettle and is_instance_valid(_pour_kettle):
-		_pour_kettle.global_rotation_degrees = Vector3.ZERO
-		# Give back to player
-		if _pouring_player and is_instance_valid(_pouring_player):
-			_pouring_player.pickup_item(_pour_kettle)
 
 func _on_stir_complete(quality: float) -> void:
 	_stir_quality = quality
@@ -271,27 +219,18 @@ func _process(_delta: float) -> void:
 					state = State.READY_TO_PRESS
 				_update_label()
 
-	# Animate liquid fill during water pour
 	if state == State.READY_FOR_WATER and _water_game.is_active() and _placed_device:
 		_placed_device.set_liquid_level(_water_game._fill_level)
 
 	_check_removed_items()
 
 func _check_removed_items() -> void:
-	if _placed_cup:
-		if not is_instance_valid(_placed_cup):
-			_placed_cup = null
-			_recalculate_state()
-		elif _placed_cup.global_position.distance_to(_cup_slot.global_position) > 0.5:
-			_placed_cup = null
-			_recalculate_state()
-	if _placed_device:
-		if not is_instance_valid(_placed_device):
-			_placed_device = null
-			_recalculate_state()
-		elif _placed_device.global_position.distance_to(_device_slot.global_position) > 0.5:
-			_placed_device = null
-			_recalculate_state()
+	if StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
+		_placed_cup = null
+		_recalculate_state()
+	if StationUtils.is_item_removed(_placed_device, _device_slot.global_position):
+		_placed_device = null
+		_recalculate_state()
 
 func _on_press_complete(quality: float) -> void:
 	if quality <= 0:
@@ -306,15 +245,12 @@ func _on_press_complete(quality: float) -> void:
 			_placed_cup.order.correct_grind_level = _correct_grind
 			_placed_cup.order.grind_quality = _grind_quality * (1.0 if _correct_grind else 0.5)
 		_placed_cup.set_fill(0.3, Color(0.25, 0.15, 0.05))
+		StationUtils.set_item_collision(_placed_cup, true)
 	if _placed_device:
 		_placed_device.reset_device()
 		_placed_device.global_position = Vector3(global_position.x + 0.15, global_position.y + 0.18, global_position.z)
 		_shelf_device = _placed_device
 		_placed_device = null
-	if _placed_cup:
-		for child in _placed_cup.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
 	state = State.DONE
 	_update_label()
 

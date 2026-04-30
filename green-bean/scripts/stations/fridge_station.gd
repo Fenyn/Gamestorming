@@ -13,13 +13,7 @@ func _ready() -> void:
 	_milk_jug.position = Vector3(0, 0.3, 0)
 	_milk_jug.visible = false
 
-	_status_label = Label3D.new()
-	_status_label.text = ""
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.3, 0.15)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = StationUtils.create_status_label(self)
 	_update_label()
 
 func interact(player: Player) -> void:
@@ -39,9 +33,7 @@ func interact(player: Player) -> void:
 	if not held and _jug_in_fridge and _milk_jug and is_instance_valid(_milk_jug):
 		_milk_jug.visible = true
 		_milk_jug.global_position = global_position + Vector3(0, 0.5, 0.3)
-		for child in _milk_jug.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
+		StationUtils.set_item_collision(_milk_jug, true)
 		player.pickup_item(_milk_jug)
 		_jug_in_fridge = false
 		_update_label()

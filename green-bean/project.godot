@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Green Bean"
 config/description="A tactile first-person barista simulator with online multiplayer. Ring up orders, print tickets, and assemble drinks by hand."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="uid://co8sxqwrtl33k"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 EventBus="*res://scripts/autoload/event_bus.gd"
 GameManager="*res://scripts/autoload/game_manager.gd"
+StationUtils="*res://scripts/autoload/station_utils.gd"
 
 [display]
 
@@ -30,6 +31,10 @@ window/stretch/mode="canvas_items"
 [dotnet]
 
 project/assembly_name="Green Bean"
+
+[global_group]
+
+world_label=""
 
 [input]
 

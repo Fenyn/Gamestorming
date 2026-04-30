@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dw4u1fvpm2aam"]
+
+[ext_resource type="Script" uid="uid://bq85cwvuemjm5" path="res://scripts/stations/steam_station.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
+albedo_color = Color(0.72, 0.72, 0.74, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
+size = Vector3(0.2, 0.25, 0.2)
+
+[node name="Steam" type="StaticBody3D" unique_id=1034356511]
+script = ExtResource("1")
+
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=1312540809]
+size = Vector3(0.2, 0.25, 0.2)
+material = SubResource("StandardMaterial3D_001")
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=1041281781]
+shape = SubResource("BoxShape3D_001")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=2007748484 groups=["world_label"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+pixel_size = 0.002
+billboard = 2
+text = "STEAMER"
+font_size = 12

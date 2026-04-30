@@ -193,10 +193,8 @@ func _update_held_item() -> void:
 
 func _try_interact() -> void:
 	if not interact_ray.is_colliding():
-		print("[Interact] Ray not colliding with anything")
 		return
 	var collider := interact_ray.get_collider()
-	print("[Interact] Hit: ", collider.name, " type=", collider.get_class(), " has_interact=", collider.has_method("interact"))
 	if collider and collider.has_method("interact"):
 		collider.interact(self)
 
@@ -219,7 +217,7 @@ func pickup_item(item: Node3D) -> void:
 	_held_item = item
 	if item is RigidBody3D:
 		(item as RigidBody3D).freeze = true
-	_set_item_collision(item, false)
+	StationUtils.set_item_collision(item, false)
 	item.global_position = hold_point.global_transform.origin
 
 func _try_place_item() -> void:
@@ -246,15 +244,20 @@ func _try_place_item() -> void:
 	_held_item.global_position = place_pos
 	if _held_item is RigidBody3D:
 		(_held_item as RigidBody3D).freeze = false
-	_set_item_collision(_held_item, true)
+	StationUtils.set_item_collision(_held_item, true)
 	_held_item = null
 
 func drop_held_item() -> void:
 	if _held_item and is_instance_valid(_held_item):
 		if _held_item is RigidBody3D:
 			(_held_item as RigidBody3D).freeze = false
-		_set_item_collision(_held_item, true)
+		StationUtils.set_item_collision(_held_item, true)
 		_held_item = null
+
+func detach_held_item() -> Node3D:
+	var item := _held_item
+	_held_item = null
+	return item
 
 func get_held_item() -> Node3D:
 	return _held_item
@@ -268,10 +271,6 @@ func _set_world_labels_visible(vis: bool) -> void:
 	if _interact_label:
 		_interact_label.visible = vis
 
-func _set_item_collision(item: Node3D, enabled: bool) -> void:
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = not enabled
 
 func _on_ticket_printed(data: Dictionary) -> void:
 	_active_order = data["order"] as OrderData

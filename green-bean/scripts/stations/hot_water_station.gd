@@ -38,13 +38,7 @@ func _ready() -> void:
 
 	_spawn_shelf_kettle()
 
-	_status_label = Label3D.new()
-	_status_label.text = ""
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.3, 0.15)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = StationUtils.create_status_label(self)
 
 	_fill_label = Label3D.new()
 	_fill_label.text = ""
@@ -69,8 +63,7 @@ func interact(player: Player) -> void:
 
 	var held := player.get_held_item()
 
-	if not held and _shelf_kettle and is_instance_valid(_shelf_kettle):
-		player.pickup_item(_shelf_kettle)
+	if StationUtils.try_pickup_shelf(player, _shelf_kettle):
 		_shelf_kettle = null
 		_update_label()
 		return
@@ -107,7 +100,7 @@ func interact(player: Player) -> void:
 func _input(event: InputEvent) -> void:
 	if not _filling:
 		return
-	if Engine.get_process_frames() == _fill_frame:
+	if StationUtils.is_same_frame(_fill_frame):
 		return
 	if event.is_action_pressed("interact") or event.is_action_pressed("move_left") or event.is_action_pressed("move_right") or event.is_action_pressed("move_back"):
 		_stop_filling()

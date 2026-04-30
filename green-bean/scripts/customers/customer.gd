@@ -131,19 +131,8 @@ func _at_target() -> bool:
 	return dist.length() < 0.2
 
 func _show_order() -> void:
-	var drink_names := {
-		DrinkData.DrinkType.POUR_OVER: "Pour Over",
-		DrinkData.DrinkType.AMERICANO: "Americano",
-		DrinkData.DrinkType.LATTE: "Latte",
-	}
-	var size_names := {
-		DrinkData.CupSize.SHORT: "Short",
-		DrinkData.CupSize.TALL: "Tall",
-		DrinkData.CupSize.GRANDE: "Grande",
-		DrinkData.CupSize.VENTI: "Venti",
-	}
 	if _speech_label:
-		_speech_label.text = "%s %s" % [size_names[cup_size], drink_names[drink_type]]
+		_speech_label.text = "%s %s" % [DrinkData.get_size_name(cup_size), DrinkData.get_drink_name(drink_type)]
 		_speech_label.visible = true
 
 func start_paying(price: float) -> void:

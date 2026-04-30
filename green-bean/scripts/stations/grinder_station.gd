@@ -6,7 +6,6 @@ var state := State.IDLE
 var _mini_game: GrindMiniGame = null
 var _placed_device: Node3D = null
 var _device_slot: Marker3D = null
-
 var _status_label: Label3D = null
 
 func _ready() -> void:
@@ -27,19 +26,11 @@ func _ready() -> void:
 	add_child(_mini_game)
 	_mini_game._camera_point = cam
 	_mini_game.mini_game_completed.connect(_on_grind_complete)
-	print("[Grinder] camera_point set: ", _mini_game._camera_point)
 
-	_status_label = Label3D.new()
-	_status_label.text = ""
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.3, 0.15)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = StationUtils.create_status_label(self)
 	_update_label()
 
 func interact(player: Player) -> void:
-	print("[Grinder] interact, state=", State.keys()[state], " mini_active=", _mini_game.is_active())
 	match state:
 		State.IDLE:
 			if _status_label:
@@ -54,22 +45,15 @@ func interact(player: Player) -> void:
 				if _mini_game.is_active():
 					state = State.GRINDING
 					_update_label()
-					print("[Grinder] Grind started! Move mouse to grind.")
 		State.GRINDING:
 			_mini_game.stop()
 			state = State.DEVICE_PLACED
 			_update_label()
 		State.GROUNDS_READY:
-			_give_device_to_player(player)
-
-func _give_device_to_player(player: Player) -> void:
-	if not player.has_held_item() and _placed_device and is_instance_valid(_placed_device):
-		_enable_item_collision(_placed_device)
-		player.pickup_item(_placed_device)
-		_placed_device = null
-		state = State.IDLE
-		_update_label()
-		print("[Grinder] Device picked up with grounds")
+			if StationUtils.try_pickup_placed(player, _placed_device):
+				_placed_device = null
+				state = State.IDLE
+				_update_label()
 
 func receive_item(item: Node3D) -> bool:
 	if state != State.IDLE:
@@ -77,25 +61,10 @@ func receive_item(item: Node3D) -> bool:
 	if not (item is AeropressDevice or item is Dripper):
 		return false
 	_placed_device = item
-	item.global_position = _device_slot.global_position
-	item.global_rotation = Vector3.ZERO
-	if item is RigidBody3D:
-		(item as RigidBody3D).freeze = true
-	_disable_item_collision(item)
+	StationUtils.place_at_slot(item, _device_slot.global_position)
 	state = State.DEVICE_PLACED
 	_update_label()
-	print("[Grinder] Device placed, ready to grind")
 	return true
-
-func _disable_item_collision(item: Node3D) -> void:
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = true
-
-func _enable_item_collision(item: Node3D) -> void:
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = false
 
 func _on_grind_complete(quality: float) -> void:
 	if not _placed_device:
@@ -109,7 +78,6 @@ func _on_grind_complete(quality: float) -> void:
 		(_placed_device as Dripper).add_grounds(g)
 	state = State.GROUNDS_READY
 	_update_label()
-	print("[Grinder] Grind complete! Pick up device.")
 
 func _update_label() -> void:
 	if not _status_label:
@@ -136,12 +104,7 @@ func _process(_delta: float) -> void:
 		state = State.DEVICE_PLACED
 		_update_label()
 
-	if _placed_device and (state == State.DEVICE_PLACED or state == State.GROUNDS_READY):
-		if not is_instance_valid(_placed_device):
-			_placed_device = null
-			state = State.IDLE
-			_update_label()
-		elif _placed_device.global_position.distance_to(_device_slot.global_position) > 0.5:
-			_placed_device = null
-			state = State.IDLE
-			_update_label()
+	if (state == State.DEVICE_PLACED or state == State.GROUNDS_READY) and StationUtils.is_item_removed(_placed_device, _device_slot.global_position):
+		_placed_device = null
+		state = State.IDLE
+		_update_label()

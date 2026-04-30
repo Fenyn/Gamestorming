@@ -37,13 +37,7 @@ func _ready() -> void:
 	_build_screen()
 	_build_drawer_ui()
 
-	_status_label = Label3D.new()
-	_status_label.text = "Cash Drawer"
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.15, 0.12)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = null
 
 func _build_viewport() -> void:
 	_viewport = SubViewport.new()

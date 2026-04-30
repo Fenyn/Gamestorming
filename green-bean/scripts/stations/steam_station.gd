@@ -31,13 +31,7 @@ func _ready() -> void:
 
 	_spawn_shelf_pitcher()
 
-	_status_label = Label3D.new()
-	_status_label.text = ""
-	_status_label.font_size = 12
-	_status_label.position = Vector3(0, 0.3, 0.15)
-	_status_label.pixel_size = 0.002
-	_status_label.add_to_group("world_label")
-	add_child(_status_label)
+	_status_label = StationUtils.create_status_label(self)
 	_update_label()
 
 func _spawn_shelf_pitcher() -> void:
@@ -73,17 +67,12 @@ func interact(player: Player) -> void:
 			_reset()
 
 func _try_pickup_shelf_pitcher(player: Player) -> void:
-	if not player.has_held_item() and _shelf_pitcher and is_instance_valid(_shelf_pitcher):
-		player.pickup_item(_shelf_pitcher)
+	if StationUtils.try_pickup_shelf(player, _shelf_pitcher):
 		_shelf_pitcher = null
 		_update_label()
 
 func _try_pickup_placed_pitcher(player: Player) -> void:
-	if not player.has_held_item() and _placed_pitcher and is_instance_valid(_placed_pitcher):
-		for child in _placed_pitcher.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
-		player.pickup_item(_placed_pitcher)
+	if StationUtils.try_pickup_placed(player, _placed_pitcher):
 		_placed_pitcher = null
 		state = State.IDLE
 		_steam_game.reset_steam()
@@ -97,13 +86,7 @@ func receive_item(item: Node3D) -> bool:
 	if _placed_pitcher:
 		return false
 	_placed_pitcher = item as Pitcher
-	item.global_position = _pitcher_slot.global_position
-	item.global_rotation = Vector3.ZERO
-	if item is RigidBody3D:
-		(item as RigidBody3D).freeze = true
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = true
+	StationUtils.place_at_slot(item, _pitcher_slot.global_position)
 	state = State.PITCHER_PLACED
 	_update_label()
 	return true
@@ -147,15 +130,10 @@ func _process(_delta: float) -> void:
 	_check_removed_items()
 
 func _check_removed_items() -> void:
-	if _placed_pitcher:
-		if not is_instance_valid(_placed_pitcher):
-			_placed_pitcher = null
-			if state != State.IDLE:
-				_reset()
-		elif _placed_pitcher.global_position.distance_to(_pitcher_slot.global_position) > 0.5:
-			_placed_pitcher = null
-			if state != State.IDLE:
-				_reset()
+	if _placed_pitcher and StationUtils.is_item_removed(_placed_pitcher, _pitcher_slot.global_position):
+		_placed_pitcher = null
+		if state != State.IDLE:
+			_reset()
 
 func _reset() -> void:
 	state = State.IDLE

@@ -26,13 +26,13 @@ func get_final_quality() -> float:
 
 	if grind_quality >= 0.0:
 		qualities.append(grind_quality)
-	if DrinkData.USES_AEROPRESS[drink_type] and brew_quality >= 0.0:
+	if DrinkData.has_step(drink_type, DrinkData.Step.AEROPRESS_BREW) and brew_quality >= 0.0:
 		qualities.append(brew_quality)
-	if DrinkData.USES_POUR_OVER[drink_type] and pour_quality >= 0.0:
+	if DrinkData.has_step(drink_type, DrinkData.Step.POUR_OVER_BREW) and pour_quality >= 0.0:
 		qualities.append(pour_quality)
-	if DrinkData.REQUIRES_STEAM[drink_type] and steam_quality >= 0.0:
+	if DrinkData.has_step(drink_type, DrinkData.Step.STEAM_MILK) and steam_quality >= 0.0:
 		qualities.append(steam_quality)
-	if DrinkData.REQUIRES_HOT_WATER[drink_type] and pour_quality >= 0.0:
+	if DrinkData.has_step(drink_type, DrinkData.Step.HOT_WATER) and pour_quality >= 0.0:
 		qualities.append(pour_quality)
 
 	if qualities.is_empty():

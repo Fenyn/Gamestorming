@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://uo86utug3rju"]
+
+[ext_resource type="Script" uid="uid://bqud0ke8ku8b3" path="res://scripts/stations/cup_stack.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
+albedo_color = Color(0.9, 0.9, 0.85, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
+size = Vector3(0.4, 0.3, 0.2)
+
+[node name="CupStack" type="StaticBody3D" unique_id=938508310]
+script = ExtResource("1")
+
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=1929791563]
+size = Vector3(0.4, 0.3, 0.2)
+material = SubResource("StandardMaterial3D_001")
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=615742096]
+shape = SubResource("BoxShape3D_001")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=1772868887 groups=["world_label"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+pixel_size = 0.002
+billboard = 2
+text = "CUP STACK"
+font_size = 12

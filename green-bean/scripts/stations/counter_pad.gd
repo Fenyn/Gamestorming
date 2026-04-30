@@ -28,13 +28,7 @@ func receive_item(item: Node3D) -> bool:
 		return false
 	_placed_items.append(item)
 	var idx := _placed_items.size() - 1
-	item.global_position = _slots[idx].global_position
-	item.global_rotation = Vector3.ZERO
-	if item is RigidBody3D:
-		(item as RigidBody3D).freeze = true
-	for child in item.get_children():
-		if child is CollisionShape3D:
-			child.disabled = true
+	StationUtils.place_at_slot(item, _slots[idx].global_position)
 	return true
 
 func interact(player: Player) -> void:
@@ -59,9 +53,7 @@ func interact(player: Player) -> void:
 		closest = _placed_items.back()
 	if closest and is_instance_valid(closest):
 		_placed_items.erase(closest)
-		for child in closest.get_children():
-			if child is CollisionShape3D:
-				child.disabled = false
+		StationUtils.set_item_collision(closest, true)
 		player.pickup_item(closest)
 		_reposition_items()
 
@@ -74,11 +66,7 @@ func _reposition_items() -> void:
 func _process(_delta: float) -> void:
 	var changed := false
 	for i in range(_placed_items.size() - 1, -1, -1):
-		var item := _placed_items[i]
-		if not is_instance_valid(item):
-			_placed_items.remove_at(i)
-			changed = true
-		elif item.global_position.distance_to(_slots[mini(i, _slots.size() - 1)].global_position) > 0.5:
+		if StationUtils.is_item_removed(_placed_items[i], _slots[mini(i, _slots.size() - 1)].global_position):
 			_placed_items.remove_at(i)
 			changed = true
 	if changed:

@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "flower_mult"
-display_name = "Petal Dance"
-description = "Flowers produce 50% more per level."
-base_cost = 5000.0
+display_name = "Beastsong Crystal"
+description = "A tower crystal that sings your pulse to bonded creatures, quickening every breath in their bodies. Lifebound Familiars inscribe 50% more Pulse Glyphs per level."
+base_cost = 40000.0
 cost_multiplier = 3.0
 max_level = 10
 effect_type = "generator_mult"
 effect_target = "2"
 effect_per_level = 0.5
-unlock_total_mana = 5000.0
+unlock_total_mana = 40000.0

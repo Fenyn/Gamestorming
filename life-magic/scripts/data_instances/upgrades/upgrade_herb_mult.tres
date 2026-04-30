@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "herb_mult"
-display_name = "Herbal Wisdom"
-description = "Herbs produce 50% more per level."
-base_cost = 500.0
+display_name = "Sigilwright's Forge"
+description = "A tower forge that etches sigils with strands of your own life force. Pulse Glyphs release 50% more Heartmotes per level."
+base_cost = 1000.0
 cost_multiplier = 3.0
 max_level = 10
 effect_type = "generator_mult"
 effect_target = "1"
 effect_per_level = 0.5
-unlock_total_mana = 500.0
+unlock_total_mana = 1000.0

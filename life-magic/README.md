@@ -49,9 +49,14 @@ An idle/incremental game that incentivizes exercise by tying game speed to your 
 
 ## Concept
 
-You are a wizard gardener tending a magical garden. Your garden grows automatically but its growth is powered by your heartbeat. The game's tick speed scales with your heart rate: rest and the garden ticks slowly, exercise and it pulses with life energy.
+You are a wizard who specializes in life magic, working from the heart of your tower. Every spell you cast is fueled by your own heartbeat — the steadier the pulse, the more reliable the magic, and the harder you push your body, the more life energy surges through the weave. The game's tick speed scales with your heart rate: rest and the magic flows gently, exercise and it pulses with raw life force.
 
-The core loop is a cascading generator chain where higher-tier plants produce lower-tier plants, creating exponential growth. The twist: everything in the game runs on "heartbeats" (ticks), and your real heart rate controls how fast those ticks fire.
+The core fantasy is **regeneration and growth**, drawn from two life-force sources:
+
+- **Personal life force** — your heartbeat, channeled through Heartmotes, Pulse Glyphs, and Lifebound Familiars near the tower
+- **Planetary life force** — the planet's slow pulse, tapped through ley-line Wardens and Heartfont Spires anchored to Gaia's heartbeat
+
+Each tier feeds the one below, regrowing constantly, until raw Life Mana floods back to the wizard. Every tick is a heartbeat.
 
 **At rest (~65 BPM):** 1.0x speed, ~8 second ticks  
 **Light exercise (~100 BPM):** ~1.7x speed, ~4.7 second ticks  
@@ -63,13 +68,15 @@ The game rewards healthy exercise intensity but caps benefits at a safe threshol
 ## Systems
 
 ### Cascading Generators
-Five tiers of magical plants, each producing the tier below it every tick:
+Five tiers of life-magic constructs, each calling forth the tier below it every heartbeat:
 
-- **Mystic Shrubs** → produce Creeping Vines
-- **Creeping Vines** → produce Blooming Flowers
-- **Blooming Flowers** → produce Whispering Herbs
-- **Whispering Herbs** → produce Enchanted Sprouts
-- **Enchanted Sprouts** → produce **Life Mana** (primary currency)
+- **Heartfont Spires** → call **Verdant Wardens**
+- **Verdant Wardens** → summon **Lifebound Familiars**
+- **Lifebound Familiars** → inscribe **Pulse Glyphs**
+- **Pulse Glyphs** → release **Heartmotes**
+- **Heartmotes** → condense into **Life Mana** (primary currency)
+
+Costs and base production are tuned for a CIFI-style curve: per-purchase cost multipliers are gentle (1.07 → 1.15 across tiers) but the gap between tiers is large, so unlocking each new construct is a meaningful milestone rather than a quick step. Higher-tier constructs produce fewer of the next tier per heartbeat (1.0 → 0.05 base production), which dampens the runaway compounding of a 5-tier cascade.
 
 Manually purchased generators drive cost scaling. Cascade-produced generators are free and don't inflate prices.
 
@@ -82,15 +89,22 @@ Three modes for heart rate input:
 
 Heart rate drives the universal tick speed. BPM is displayed with fitness-tracker-style zone indicators (Resting → Light → Moderate → Vigorous → Peak) color-coded from blue through green/yellow/orange to red.
 
-### Garden Plots
-Plots are plantable garden areas where you grow seeds over time for multiplier bonuses. Each plot has:
+### The Sanctum
+The Sanctum is where the wizard inscribes life-bound sigils that strengthen the weave over time. Each sanctum has:
 
-- **Plant slots** — spend mana to plant seeds that grow through 5 stages (Seed → Sprout → Growing → Mature → Blooming) over ~50 ticks
-- **Tend points** — allocate points to boost specific generators or mana production, scaled by average plant maturity
-- **Full Bloom** — when all slots reach Blooming, the plot grants a permanent multiplier (survives future resets) and plants reset for another cycle
+- **Sigil slots** — spend mana to inscribe a sigil that charges through 5 stages (Seed → Sprout → Growing → Mature → Blooming) over ~60 heartbeats
+- **Attunement points** — allocate points to boost specific generators or mana production, scaled by average sigil charge
+- **Full Bloom** — when all slots reach full charge, the sanctum grants a permanent multiplier (survives future resets) and the sigils reset for another cycle
 
-### Upgrades
-Per-generator production multipliers, universal multipliers, and tick speed upgrades. Unlock as you hit lifetime mana thresholds.
+### Upgrades — Tower Enhancements
+The wizard's tower is the focus of every upgrade. Each enhancement taps a different source of life energy and channels it back into your weave to drive regeneration and growth:
+
+- **Cardiac Conduit / Sigilwright's Forge / Beastsong Crystal** — channel the wizard's *personal* life force into Heartmotes, Pulse Glyphs, and Familiars
+- **Ley-Line Tap / Gaian Heartstone** — tap the *planet's* life energy through ley lines and a heartstone in the tower's core, empowering Wardens and Spires
+- **Verdant Renewal** — a tower-wide wellspring of regenerative life force that strengthens every construct
+- **Quickened Pulse** — tower resonance accelerates the heartbeat itself, speeding every tick
+
+Per-generator multipliers, a universal multiplier, and a tick-speed enhancement. Unlock as you hit lifetime mana thresholds.
 
 ### Player Profile
 Enter your age to calibrate heart rate zones and caps. Resting HR is estimated from age automatically. HR cap (default 85% of max) is adjustable.
@@ -122,7 +136,7 @@ Then switch to "Device" mode in the Profile tab. The simulator sends realistic w
 4. **TickEngine** — accumulator-based tick system, fires at HR-driven intervals
 5. **GeneratorManager** — cascading generator chain
 6. **UpgradeManager** — upgrade purchases + multiplier reconciliation
-7. **PlotManager** — garden plot growth, tend bonuses, Full Bloom
+7. **PlotManager** — sanctum sigil growth, attunement bonuses, Full Bloom
 8. **SaveManager** — JSON persistence, offline progress, version migration
 
 ### Key Design Decisions
@@ -130,12 +144,12 @@ Then switch to "Device" mode in the Profile tab. The simulator sends realistic w
 - **EventBus decoupling:** managers communicate via signals, never reference each other directly.
 - **Data-driven content:** generators, upgrades, and plots are Godot Resource (.tres) files. Add content by creating new .tres files.
 - **Owned vs produced generators:** manually purchased generators drive cost scaling. Cascade-produced generators are free — this prevents runaway costs.
-- **Multiplier reconciliation:** UpgradeManager is the single recalculation point, querying both upgrade levels and plot tend bonuses.
+- **Multiplier reconciliation:** UpgradeManager is the single recalculation point, querying both upgrade levels and sanctum attunement bonuses.
 - **All math centralized:** GameFormulas contains every formula as a static pure function.
 
 ## Future Plans
 - **Seasonal Rebirth** (prestige system) — reset generators for permanent Season Tokens
-- **Additional garden plots** — each unlocking new game systems
+- **Additional sanctums** — each unlocking new game systems
 - **Android Health Connect plugin** — real Pixel Watch heart rate integration
 - **Audio** — heartbeat sounds synced to BPM, purchase/bloom sound effects
   

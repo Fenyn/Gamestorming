@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "tick_speed"
 display_name = "Quickened Pulse"
-description = "Heartbeats come 10% faster per level."
-base_cost = 200.0
+description = "Tower resonance accelerates the pulse driving every spell. Heartbeats come 10% faster per level."
+base_cost = 300.0
 cost_multiplier = 4.0
 max_level = 20
 effect_type = "tick_speed"
 effect_target = ""
 effect_per_level = 0.1
-unlock_total_mana = 100.0
+unlock_total_mana = 250.0

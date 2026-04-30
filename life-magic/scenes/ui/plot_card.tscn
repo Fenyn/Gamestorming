@@ -24,7 +24,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 15
-text = "The Seedbed"
+text = "The Inner Sanctum"
 
 [node name="BloomLabel" type="Label" parent="MarginContainer/VBox/HeaderRow"]
 unique_name_in_owner = true
@@ -49,13 +49,13 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(90, 36)
-text = "Plant Seed"
+text = "Inscribe Sigil"
 
 [node name="PlantCostLabel" type="Label" parent="MarginContainer/VBox/PlantRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "50 Mana"
+text = "100 Mana"
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBox"]
 layout_mode = 2
@@ -70,5 +70,5 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
-text = "Allocate tend points for bonuses"
+text = "Allocate attunement points for bonuses"
 autowrap_mode = 2

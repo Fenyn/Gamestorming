@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "herb"
-display_name = "Whispering Herbs"
+display_name = "Pulse Glyphs"
 tier = 1
-base_cost = 100.0
-cost_multiplier = 1.15
-base_production = 1.0
+base_cost = 200.0
+cost_multiplier = 1.09
+base_production = 0.5
 produces_tier = 0
-unlock_total_mana = 100.0
-description = "Fragrant herbs that cultivate Enchanted Sprouts each heartbeat."
+unlock_total_mana = 75.0
+description = "Sigils inscribed in living light around your tower. Each glyph holds a single heartbeat in tension, releasing Heartmotes whenever it is called on."

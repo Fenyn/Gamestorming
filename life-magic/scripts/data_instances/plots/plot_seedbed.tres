@@ -5,14 +5,14 @@
 [resource]
 script = ExtResource("1")
 id = "seedbed"
-display_name = "The Seedbed"
-description = "A humble patch of enchanted earth. Your first step into garden magic."
+display_name = "The Inner Sanctum"
+description = "A small chamber where the wizard inscribes life-bound sigils, each one charged by a steady heartbeat."
 slot_count = 4
-plant_cost_base = 50.0
+plant_cost_base = 100.0
 plant_cost_mult = 2.5
-growth_ticks = 50
+growth_ticks = 60
 tend_points = 3
 tend_options = PackedStringArray("mana", "gen_0", "gen_1")
 tend_power_base = 0.1
-full_bloom_bonus = {"all_generators": 1.5}
+full_bloom_bonus = {"all_generators": 1.4}
 unlock_total_mana = 0.0

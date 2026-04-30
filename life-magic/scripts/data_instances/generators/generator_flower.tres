@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1")
 id = "flower"
-display_name = "Blooming Flowers"
+display_name = "Lifebound Familiars"
 tier = 2
-base_cost = 1000.0
-cost_multiplier = 1.15
-base_production = 1.0
+base_cost = 8000.0
+cost_multiplier = 1.11
+base_production = 0.25
 produces_tier = 1
-unlock_total_mana = 1000.0
-description = "Radiant flowers that nurture Whispering Herbs with each heartbeat."
+unlock_total_mana = 1500.0
+description = "Beasts and spirits bonded to your tower, regrowing with every breath. They prowl the grounds and inscribe Pulse Glyphs in your wake."

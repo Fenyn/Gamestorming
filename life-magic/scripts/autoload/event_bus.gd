@@ -17,7 +17,7 @@ signal generator_purchased(tier: int, new_count: float)
 signal generator_production_tick(tier: int, produced: float)
 signal generator_unlocked(tier: int)
 
-# Garden Plots
+# Sanctum / Sigils
 signal plot_unlocked(plot_id: String)
 signal plot_seed_planted(plot_id: String, slot_index: int)
 signal plot_tend_changed(plot_id: String)

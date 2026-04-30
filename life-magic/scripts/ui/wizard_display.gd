@@ -74,7 +74,7 @@ func _f(lines: Array) -> String:
 
 func _build_animations() -> void:
 	_animations["REST"] = {
-		"activity": "Resting in the garden...",
+		"activity": "Resting between spells...",
 		"frames": [
 			_f([
 				"       /\\             ",
@@ -182,7 +182,7 @@ func _build_animations() -> void:
 	}
 
 	_animations["LIFTING"] = {
-		"activity": "Hoeing the enchanted soil!",
+		"activity": "Channeling life magic!",
 		"frames": [
 			_f([
 				"       /\\      |     ",
@@ -306,7 +306,7 @@ func _build_animations() -> void:
 	}
 
 	_animations["COOLDOWN"] = {
-		"activity": "Watering the garden ~",
+		"activity": "Quieting the heartbeat ~",
 		"frames": [
 			_f([
 				"       /\\             ",

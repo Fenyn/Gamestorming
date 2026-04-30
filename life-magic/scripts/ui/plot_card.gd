@@ -109,7 +109,7 @@ func _build_slots() -> void:
 
 func _build_tend_controls() -> void:
 	var header := Label.new()
-	header.text = "Tend (%d pts)" % _data.tend_points
+	header.text = "Attune (%d pts)" % _data.tend_points
 	header.add_theme_font_size_override("font_size", 12)
 	tend_container.add_child(header)
 
@@ -251,12 +251,12 @@ func _update_plant_button() -> void:
 	if not _data:
 		return
 	if not PlotManager.has_empty_slot(_data.id):
-		plant_button.text = "All Planted"
+		plant_button.text = "All Inscribed"
 		plant_button.disabled = true
 		plant_cost_label.text = ""
 	else:
 		var cost := PlotManager.get_plant_cost(_data.id)
-		plant_button.text = "Plant Seed"
+		plant_button.text = "Inscribe Sigil"
 		plant_button.disabled = GameState.mana < cost
 		plant_cost_label.text = "%s Mana" % GameFormulas.format_number(cost)
 
@@ -295,4 +295,4 @@ func _update_bonus_display() -> void:
 		var bloom_mult := pow(float(_data.full_bloom_bonus["all_generators"]), bloom_count)
 		parts.append("Bloom: %.2fx all" % bloom_mult)
 
-	bonus_label.text = ", ".join(parts) if parts.size() > 0 else "Allocate tend points for bonuses"
+	bonus_label.text = ", ".join(parts) if parts.size() > 0 else "Allocate attunement points for bonuses"

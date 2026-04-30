@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "sprout_mult"
-display_name = "Enriched Soil"
-description = "Sprouts produce 50% more per level."
-base_cost = 50.0
+display_name = "Cardiac Conduit"
+description = "A tower conduit veined to your own heart, feeding your pulse straight into the weave. Heartmotes condense 50% more Life Mana per level."
+base_cost = 75.0
 cost_multiplier = 3.0
 max_level = 10
 effect_type = "generator_mult"
 effect_target = "0"
 effect_per_level = 0.5
-unlock_total_mana = 50.0
+unlock_total_mana = 75.0

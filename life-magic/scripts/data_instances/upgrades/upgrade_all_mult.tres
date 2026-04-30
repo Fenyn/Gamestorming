@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "all_mult"
-display_name = "Verdant Blessing"
-description = "All generators produce 25% more per level."
-base_cost = 5000.0
+display_name = "Verdant Renewal"
+description = "A tower-spanning wellspring of regenerative life force. Everything you weave grows back stronger. All life magic flows 25% stronger per level."
+base_cost = 7500.0
 cost_multiplier = 5.0
 max_level = 10
 effect_type = "generator_mult"
 effect_target = "all"
 effect_per_level = 0.25
-unlock_total_mana = 2000.0
+unlock_total_mana = 5000.0

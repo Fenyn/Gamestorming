@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "vine_mult"
-display_name = "Tangled Growth"
-description = "Vines produce 50% more per level."
-base_cost = 50000.0
+display_name = "Ley-Line Tap"
+description = "A tower tap drinking from the planet's deep ley lines, flooding your wardens with regenerative current. Verdant Wardens summon 50% more Familiars per level."
+base_cost = 4000000.0
 cost_multiplier = 3.0
 max_level = 10
 effect_type = "generator_mult"
 effect_target = "3"
 effect_per_level = 0.5
-unlock_total_mana = 50000.0
+unlock_total_mana = 4000000.0

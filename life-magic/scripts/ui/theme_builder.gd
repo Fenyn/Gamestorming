@@ -21,8 +21,25 @@ const ACCENT_GREEN := Color(0.3, 0.55, 0.25)
 const ACCENT_RED := Color(0.8, 0.15, 0.15)
 const BORDER := Color(0.18, 0.26, 0.16)
 
+const TIER_COLORS := [
+	Color(0.9, 0.3, 0.3),
+	Color(0.9, 0.6, 0.2),
+	Color(0.4, 0.8, 0.3),
+	Color(0.3, 0.7, 0.7),
+	Color(0.5, 0.4, 0.9),
+]
+
+
+static func get_tier_color(tier: int) -> Color:
+	if tier >= 0 and tier < TIER_COLORS.size():
+		return TIER_COLORS[tier]
+	return TEXT_PRIMARY
+
 const BAR_BG := Color(0.1, 0.14, 0.1)
 const BAR_FILL := Color(0.3, 0.6, 0.25)
+
+const BG_VITALS := Color(0.06, 0.04, 0.08)
+const BG_VITALS_BOTTOM := Color(0.08, 0.12, 0.08)
 
 
 static func build() -> Theme:

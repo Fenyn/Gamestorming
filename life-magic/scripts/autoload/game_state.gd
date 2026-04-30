@@ -25,6 +25,26 @@ func _ready() -> void:
 	_init_generators()
 
 
+func reset_to_defaults() -> void:
+	mana = STARTING_MANA
+	total_mana_earned = 0.0
+	generators.clear()
+	_init_generators()
+	unlocked_tiers = [0]
+	tick_speed_level = 0
+	season_tokens = 0
+	rebirths_done = 0
+	total_play_time = 0.0
+	plots.clear()
+
+	UpgradeManager.reset_to_defaults()
+	PlotManager.reset_to_defaults()
+	TickEngine.reset_to_defaults()
+	HeartRateManager.reset_to_defaults()
+
+	EventBus.mana_changed.emit(mana, 0.0)
+
+
 func _init_generators() -> void:
 	for tier in range(8):
 		if not generators.has(tier):

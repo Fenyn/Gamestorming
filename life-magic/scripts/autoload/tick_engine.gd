@@ -14,6 +14,13 @@ func _ready() -> void:
 	_update_upgrade_multiplier()
 
 
+func reset_to_defaults() -> void:
+	tick_count = 0
+	upgrade_multiplier = 1.0
+	_accumulator = 0.0
+	_last_interval = -1.0
+
+
 func _process(delta: float) -> void:
 	var interval := get_current_interval()
 

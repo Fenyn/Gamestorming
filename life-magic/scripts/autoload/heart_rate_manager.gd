@@ -146,6 +146,16 @@ func _parse_hr_message(text: String) -> void:
 
 # --- Public API ---
 
+func reset_to_defaults() -> void:
+	_demo_phase_index = 0
+	_demo_phase_timer = 0.0
+	_demo_hr = 68.0
+	_demo_time = 0.0
+	current_phase = ""
+	current_bpm = GameState.settings.get("simulated_bpm", 80.0)
+	smoothed_bpm = current_bpm
+
+
 func get_hr_factor() -> float:
 	var age: float = GameState.settings.get("age", 30.0)
 	var resting := GameFormulas.resting_heart_rate(age)

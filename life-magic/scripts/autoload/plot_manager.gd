@@ -38,6 +38,14 @@ func _ensure_state(plot_id: String, data: PlotData) -> void:
 	}
 
 
+func reset_to_defaults() -> void:
+	GameState.plots.clear()
+	for data in plot_data:
+		if data.unlock_total_mana <= 0.0:
+			_ensure_state(data.id, data)
+			GameState.plots[data.id]["unlocked"] = true
+
+
 func _on_tick(_tick_number: int) -> void:
 	_check_unlocks()
 	var grew := _advance_growth()
@@ -101,7 +109,7 @@ func _check_full_blooms() -> bool:
 		any_bloomed = true
 		EventBus.plot_full_bloom.emit(plot_id, state["bloom_count"])
 		EventBus.notification.emit(
-			"%s reached Full Bloom! (x%d)" % [data.display_name, state["bloom_count"]],
+			"%s reached Full Resonance! (x%d)" % [data.display_name, state["bloom_count"]],
 			"bloom"
 		)
 	return any_bloomed
@@ -250,11 +258,11 @@ func get_plot_data(plot_id: String) -> PlotData:
 
 
 func get_plant_stage(growth: float) -> String:
-	if growth >= 0.8: return "Blooming"
-	if growth >= 0.6: return "Mature"
-	if growth >= 0.4: return "Growing"
-	if growth >= 0.2: return "Sprout"
-	return "Seed"
+	if growth >= 0.8: return "Ascended"
+	if growth >= 0.6: return "Resonant"
+	if growth >= 0.4: return "Surging"
+	if growth >= 0.2: return "Pulsing"
+	return "Inscribed"
 
 
 func get_stage_power(growth: float) -> float:

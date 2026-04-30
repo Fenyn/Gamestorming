@@ -33,6 +33,14 @@ func _load_data() -> void:
 			unlocked[res.id] = res.unlock_total_mana <= 0.0
 
 
+func reset_to_defaults() -> void:
+	levels.clear()
+	unlocked.clear()
+	for data in upgrade_data:
+		levels[data.id] = 0
+		unlocked[data.id] = data.unlock_total_mana <= 0.0
+
+
 func get_level(id: String) -> int:
 	return levels.get(id, 0)
 

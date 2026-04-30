@@ -1,5 +1,7 @@
 extends Node
 
+const BEAT_SCALE := 0.125
+
 var tier_data: Array[GeneratorData] = []
 var _tier_map: Dictionary = {}
 
@@ -44,7 +46,7 @@ func _process_cascade() -> void:
 			continue
 
 		var multiplier := GameState.get_generator_multiplier(data.tier)
-		var produced := GameFormulas.generator_production(count, data.base_production, multiplier)
+		var produced := GameFormulas.generator_production(count, data.base_production, multiplier) * BEAT_SCALE * TickEngine.upgrade_multiplier
 
 		if data.produces_tier == -1:
 			GameState.add_mana(produced)
@@ -103,7 +105,7 @@ func get_tier_data(tier: int) -> GeneratorData:
 	return _tier_map.get(tier)
 
 
-func get_production_per_tick(tier: int) -> float:
+func get_production_per_beat(tier: int) -> float:
 	var data: GeneratorData = _tier_map.get(tier)
 	if not data:
 		return 0.0
@@ -111,12 +113,12 @@ func get_production_per_tick(tier: int) -> float:
 		GameState.get_generator_count(tier),
 		data.base_production,
 		GameState.get_generator_multiplier(tier)
-	)
+	) * BEAT_SCALE * TickEngine.upgrade_multiplier
 
 
-func get_total_mana_per_tick() -> float:
+func get_total_mana_per_beat() -> float:
 	var total := 0.0
 	for data in tier_data:
 		if data.produces_tier == -1:
-			total += get_production_per_tick(data.tier)
+			total += get_production_per_beat(data.tier)
 	return total

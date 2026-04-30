@@ -14,20 +14,20 @@ var _tend_controls: Dictionary = {}
 
 const STAGE_COLORS := {
 	"empty": Color(0.2, 0.2, 0.2),
-	"Seed": Color(0.22, 0.33, 0.18),
-	"Sprout": Color(0.25, 0.45, 0.2),
-	"Growing": Color(0.3, 0.58, 0.25),
-	"Mature": Color(0.32, 0.72, 0.3),
-	"Blooming": Color(0.85, 0.65, 0.13),
+	"Inscribed": Color(0.25, 0.2, 0.4),
+	"Pulsing": Color(0.35, 0.25, 0.55),
+	"Surging": Color(0.45, 0.3, 0.7),
+	"Resonant": Color(0.5, 0.4, 0.85),
+	"Ascended": Color(0.85, 0.65, 0.13),
 }
 
 const BAR_COLORS := {
 	"empty": Color(0.15, 0.15, 0.15),
-	"Seed": Color(0.3, 0.42, 0.25),
-	"Sprout": Color(0.35, 0.55, 0.28),
-	"Growing": Color(0.4, 0.65, 0.32),
-	"Mature": Color(0.45, 0.78, 0.38),
-	"Blooming": Color(0.95, 0.75, 0.15),
+	"Inscribed": Color(0.3, 0.22, 0.42),
+	"Pulsing": Color(0.38, 0.28, 0.55),
+	"Surging": Color(0.45, 0.35, 0.68),
+	"Resonant": Color(0.52, 0.42, 0.8),
+	"Ascended": Color(0.95, 0.75, 0.15),
 }
 
 
@@ -78,7 +78,7 @@ func _build_slots() -> void:
 		vbox.add_child(top_row)
 
 		var stage_label := Label.new()
-		stage_label.text = "Empty"
+		stage_label.text = "Vacant"
 		stage_label.add_theme_font_size_override("font_size", 11)
 		stage_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		top_row.add_child(stage_label)
@@ -199,7 +199,7 @@ func _update_display() -> void:
 
 	var bloom_count: int = state.get("bloom_count", 0)
 	if bloom_count > 0:
-		bloom_label.text = "Full Bloom x%d" % bloom_count
+		bloom_label.text = "Full Resonance x%d" % bloom_count
 	else:
 		bloom_label.text = ""
 
@@ -217,7 +217,7 @@ func _update_display() -> void:
 		var bar: ProgressBar = sp["bar"]
 
 		if not slot["planted"]:
-			stage_label.text = "Empty"
+			stage_label.text = "Vacant"
 			stage_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 			pct_label.text = ""
 			bar.value = 0.0
@@ -280,7 +280,7 @@ func _update_bonus_display() -> void:
 	var parts: PackedStringArray = []
 	var state: Dictionary = GameState.plots.get(_data.id, {})
 	var alloc: Dictionary = state.get("tend_allocation", {})
-	var avg := PlotManager._get_average_maturity(state)
+	var avg := PlotManager.get_average_maturity(state)
 
 	for target in alloc:
 		var pts: int = int(alloc[target])
@@ -293,6 +293,6 @@ func _update_bonus_display() -> void:
 	var bloom_count: int = state.get("bloom_count", 0)
 	if bloom_count > 0 and _data.full_bloom_bonus.has("all_generators"):
 		var bloom_mult := pow(float(_data.full_bloom_bonus["all_generators"]), bloom_count)
-		parts.append("Bloom: %.2fx all" % bloom_mult)
+		parts.append("Resonance: %.2fx all" % bloom_mult)
 
 	bonus_label.text = ", ".join(parts) if parts.size() > 0 else "Allocate attunement points for bonuses"

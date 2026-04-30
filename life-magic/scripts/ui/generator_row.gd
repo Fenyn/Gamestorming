@@ -22,14 +22,17 @@ func _ready() -> void:
 		return
 
 	name_label.text = _data.display_name
+	tooltip_text = _data.description
 	buy_button.pressed.connect(_on_buy_pressed)
 	buy_button.gui_input.connect(_on_buy_gui_input)
+
+	_apply_tier_style()
 
 	EventBus.mana_changed.connect(func(_a, _d): _update_display())
 	EventBus.generator_purchased.connect(func(t, _c):
 		if t == _data.tier: _update_display()
 	)
-	EventBus.tick_fired.connect(func(_t): _update_display())
+	EventBus.tick_fired.connect(func(_t): _on_tick())
 
 	_update_display()
 
@@ -57,6 +60,32 @@ func _get_effective_buy_amount() -> int:
 	return _buy_amount
 
 
+func _apply_tier_style() -> void:
+	var tier_color := ThemeBuilder.get_tier_color(_data.tier)
+	var style := StyleBoxFlat.new()
+	style.bg_color = ThemeBuilder.BG_PANEL
+	style.border_width_left = 3
+	style.border_width_bottom = 1
+	style.border_color = tier_color
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	style.content_margin_left = 4
+	style.content_margin_right = 4
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	add_theme_stylebox_override("panel", style)
+
+
+func _on_tick() -> void:
+	_update_display()
+	if _data and GameState.get_generator_count(_data.tier) > 0:
+		production_label.modulate = Color(1.5, 1.5, 1.5)
+		var tween := create_tween()
+		tween.tween_property(production_label, "modulate", Color.WHITE, 0.5)
+
+
 func _update_display() -> void:
 	if not _data:
 		return
@@ -68,12 +97,12 @@ func _update_display() -> void:
 	else:
 		count_label.text = "%s" % GameFormulas.format_number(owned)
 
-	var prod := GeneratorManager.get_production_per_tick(_data.tier)
+	var prod := GeneratorManager.get_production_per_beat(_data.tier)
 	if _data.produces_tier == -1:
-		production_label.text = "%s Mana/tick" % GameFormulas.format_number(prod)
+		production_label.text = "Produces %s Mana/beat" % GameFormulas.format_number(prod)
 	else:
 		var target := GeneratorManager.get_tier_data(_data.produces_tier)
-		production_label.text = "%s %s/tick" % [GameFormulas.format_number(prod), target.display_name]
+		production_label.text = "Produces %s %s/beat" % [GameFormulas.format_number(prod), target.display_name]
 
 	var amount := _get_effective_buy_amount()
 	var amount_str := "Max" if _buy_amount == -1 else "x%d" % _buy_amount

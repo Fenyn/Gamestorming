@@ -13,6 +13,7 @@ const RECONNECT_DELAY := 3.0
 
 var _update_timer: float = 0.0
 var _last_factor: float = -1.0
+var _beat_accumulator: float = 0.0
 
 # WebSocket state
 var _ws: WebSocketPeer
@@ -60,8 +61,17 @@ func _process(delta: float) -> void:
 			_process_demo(delta)
 		"websocket":
 			_process_websocket(delta)
+		"health_connect":
+			_process_health_connect()
 
 	smoothed_bpm = lerpf(smoothed_bpm, current_bpm, SMOOTH_FACTOR)
+
+	if smoothed_bpm > 0.0:
+		var beat_interval := 60.0 / smoothed_bpm
+		_beat_accumulator += delta
+		if _beat_accumulator >= beat_interval:
+			_beat_accumulator -= beat_interval
+			EventBus.heartbeat_fired.emit()
 
 	_update_timer += delta
 	if _update_timer >= UPDATE_INTERVAL:
@@ -146,6 +156,17 @@ func _parse_hr_message(text: String) -> void:
 
 # --- Public API ---
 
+func reset_to_defaults() -> void:
+	_demo_phase_index = 0
+	_demo_phase_timer = 0.0
+	_demo_hr = 68.0
+	_demo_time = 0.0
+	_beat_accumulator = 0.0
+	current_phase = ""
+	current_bpm = GameState.settings.get("simulated_bpm", 80.0)
+	smoothed_bpm = current_bpm
+
+
 func get_hr_factor() -> float:
 	var age: float = GameState.settings.get("age", 30.0)
 	var resting := GameFormulas.resting_heart_rate(age)
@@ -172,6 +193,8 @@ func set_source(new_source: String) -> void:
 			_demo_phase_timer = 0.0
 			_demo_hr = 68.0
 			_demo_time = 0.0
+		"health_connect":
+			_start_health_connect()
 		_:
 			pass
 
@@ -182,4 +205,55 @@ func set_source(new_source: String) -> void:
 		is_connected = false
 		_ws_was_connected = false
 
+	if new_source != "health_connect":
+		_stop_health_connect()
+
 	EventBus.heart_rate_source_changed.emit(new_source)
+
+
+# --- Health Connect ---
+
+var _hc_plugin = null
+
+
+func is_health_connect_available() -> bool:
+	if _hc_plugin:
+		return _hc_plugin.isHealthConnectAvailable()
+	if Engine.has_singleton("HealthConnect"):
+		_hc_plugin = Engine.get_singleton("HealthConnect")
+		return _hc_plugin.isHealthConnectAvailable()
+	return false
+
+
+func _start_health_connect() -> void:
+	if not is_health_connect_available():
+		EventBus.notification.emit("Health Connect not available on this device.", "warning")
+		return
+	if not _hc_plugin.checkPermissions():
+		_hc_plugin.requestPermissions()
+		EventBus.notification.emit("Please grant health permissions.", "info")
+		return
+	_hc_plugin.startPolling()
+	is_connected = true
+	EventBus.notification.emit("Health Connect active!", "info")
+
+
+func _stop_health_connect() -> void:
+	if _hc_plugin:
+		_hc_plugin.stopPolling()
+	is_connected = false
+
+
+func _process_health_connect() -> void:
+	if not _hc_plugin:
+		return
+	var hr: int = _hc_plugin.getLatestHR()
+	if hr > 0:
+		current_bpm = float(hr)
+	current_phase = ""
+
+
+func get_daily_steps() -> int:
+	if _hc_plugin and source == "health_connect":
+		return _hc_plugin.getDailySteps()
+	return 0

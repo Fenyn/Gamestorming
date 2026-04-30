@@ -14,6 +14,7 @@ func _ready() -> void:
 	_label.position = Vector3(0, 0.25, 0.12)
 	_label.pixel_size = 0.002
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_label.add_to_group("world_label")
 	add_child(_label)
 
 func _on_ticket_printed(data: Dictionary) -> void:

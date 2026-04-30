@@ -10,6 +10,7 @@ func _ready() -> void:
 	_status_label.font_size = 12
 	_status_label.position = Vector3(0, 0.3, 0.15)
 	_status_label.pixel_size = 0.002
+	_status_label.add_to_group("world_label")
 	add_child(_status_label)
 
 func interact(player: Player) -> void:

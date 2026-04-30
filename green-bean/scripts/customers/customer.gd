@@ -2,15 +2,16 @@ class_name Customer
 extends CharacterBody3D
 
 const MOVE_SPEED := 2.0
-const ORDER_PATIENCE := 45.0
-const PICKUP_PATIENCE := 90.0
+const ORDER_PATIENCE := 300.0
+const PICKUP_PATIENCE := 300.0
 
-enum State { WALKING_TO_REGISTER, WAITING_TO_ORDER, WALKING_TO_PICKUP, WAITING_FOR_DRINK, LEAVING }
+enum State { WALKING_TO_REGISTER, WAITING_TO_ORDER, PAYING, WALKING_TO_PICKUP, WAITING_FOR_DRINK, LEAVING }
 
 var state := State.WALKING_TO_REGISTER
 var order_data: OrderData = null
 var drink_type: DrinkData.DrinkType = DrinkData.DrinkType.POUR_OVER
 var cup_size: DrinkData.CupSize = DrinkData.CupSize.TALL
+var _payment_amount := 0.0
 
 var _order_patience := ORDER_PATIENCE
 var _pickup_patience := PICKUP_PATIENCE
@@ -53,6 +54,7 @@ func _build_visual() -> void:
 	_speech_label.pixel_size = 0.003
 	_speech_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_speech_label.visible = false
+	_speech_label.add_to_group("world_label")
 	add_child(_speech_label)
 
 	_patience_bar_bg = CSGBox3D.new()
@@ -72,10 +74,8 @@ func _build_visual() -> void:
 	add_child(_patience_bar_fill)
 
 func _randomize_order() -> void:
-	var types := [DrinkData.DrinkType.POUR_OVER, DrinkData.DrinkType.AMERICANO, DrinkData.DrinkType.LATTE]
-	var sizes := [DrinkData.CupSize.SHORT, DrinkData.CupSize.TALL, DrinkData.CupSize.GRANDE, DrinkData.CupSize.VENTI]
-	drink_type = types[randi() % types.size()]
-	cup_size = sizes[randi() % sizes.size()]
+	drink_type = DrinkData.DrinkType.AMERICANO
+	cup_size = DrinkData.CupSize.TALL
 
 func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:
 	_register_pos = register
@@ -92,6 +92,11 @@ func _physics_process(delta: float) -> void:
 				state = State.WAITING_TO_ORDER
 				_show_order()
 		State.WAITING_TO_ORDER:
+			_order_patience -= delta
+			_update_patience_bar(_order_patience / ORDER_PATIENCE)
+			if _order_patience <= 0:
+				_leave("impatient_order")
+		State.PAYING:
 			_order_patience -= delta
 			_update_patience_bar(_order_patience / ORDER_PATIENCE)
 			if _order_patience <= 0:
@@ -140,6 +145,25 @@ func _show_order() -> void:
 	if _speech_label:
 		_speech_label.text = "%s %s" % [size_names[cup_size], drink_names[drink_type]]
 		_speech_label.visible = true
+
+func start_paying(price: float) -> void:
+	state = State.PAYING
+	if price <= 5.0:
+		_payment_amount = 5.0
+	elif price <= 10.0:
+		_payment_amount = 10.0
+	else:
+		_payment_amount = 20.0
+	if _speech_label:
+		_speech_label.text = "$%.0f" % _payment_amount
+		_speech_label.visible = true
+
+func interact(player: Player) -> void:
+	if state == State.PAYING:
+		EventBus.cash_collected.emit(self, _payment_amount)
+		if _speech_label:
+			_speech_label.text = "waiting..."
+			_speech_label.visible = true
 
 func order_taken(order: OrderData = null) -> void:
 	order_data = order

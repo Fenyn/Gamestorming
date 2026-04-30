@@ -19,3 +19,13 @@ res://scripts/stations/pour_over_station.gd
 res://scripts/stations/register.gd
 res://scripts/stations/steam_station.gd
 res://scripts/stations/fridge_station.gd
+res://scenes/player/player.tscn
+res://scripts/autoload/event_bus.gd
+res://scripts/data/drink_data.gd
+res://scripts/items/aeropress_device.gd
+res://scripts/items/dripper.gd
+res://scripts/items/grounds.gd
+res://scripts/items/pitcher.gd
+res://scripts/mini_games/base_mini_game.gd
+res://scripts/stations/base_station.gd
+res://scripts/stations/cash_drawer.gd

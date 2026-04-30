@@ -1,6 +1,6 @@
 extends Node
 
-const DAY_LENGTH := 180.0
+const DAY_LENGTH := 600.0
 const GRADE_THRESHOLDS := {
 	"S": 0.95,
 	"A": 0.85,

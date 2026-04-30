@@ -18,7 +18,9 @@ var _screen_yaw_center := 0.0
 var _screen_pitch_center := 0.0
 var _saved_yaw := 0.0
 var _saved_pitch := 0.0
-const SCREEN_LOOK_RANGE := 0.35
+var _screen_look_range := 0.35
+var _exit_frame := -1
+const EXIT_COOLDOWN_FRAMES := 10
 
 @onready var camera: Camera3D = $Camera3D
 @onready var interact_ray: RayCast3D = $Camera3D/InteractRay
@@ -54,11 +56,15 @@ func _input(event: InputEvent) -> void:
 			var m := event as InputEventMouseMotion
 			camera.rotation.y -= m.relative.x * MOUSE_SENSITIVITY
 			camera.rotation.x -= m.relative.y * MOUSE_SENSITIVITY
-			camera.rotation.y = clampf(camera.rotation.y, _screen_yaw_center - SCREEN_LOOK_RANGE, _screen_yaw_center + SCREEN_LOOK_RANGE)
-			camera.rotation.x = clampf(camera.rotation.x, _screen_pitch_center - SCREEN_LOOK_RANGE, _screen_pitch_center + SCREEN_LOOK_RANGE)
+			camera.rotation.y = clampf(camera.rotation.y, _screen_yaw_center - _screen_look_range, _screen_yaw_center + _screen_look_range)
+			camera.rotation.x = clampf(camera.rotation.x, _screen_pitch_center - _screen_look_range, _screen_pitch_center + _screen_look_range)
+		if event.is_action_pressed("move_left") or event.is_action_pressed("move_right") or event.is_action_pressed("move_back"):
+			exit_screen_mode()
 		return
 
-	if event is InputEventMouseMotion:
+	var in_cooldown := Engine.get_process_frames() - _exit_frame <= EXIT_COOLDOWN_FRAMES
+
+	if event is InputEventMouseMotion and not in_cooldown:
 		var m := event as InputEventMouseMotion
 		_yaw -= m.relative.x * MOUSE_SENSITIVITY
 		_pitch -= m.relative.y * MOUSE_SENSITIVITY
@@ -69,7 +75,7 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		_try_interact()
 
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not in_cooldown:
 		_try_click()
 
 func _physics_process(delta: float) -> void:
@@ -114,6 +120,7 @@ func _build_hud() -> void:
 	_timer_label.position = Vector2(20, 10)
 	_timer_label.add_theme_font_size_override("font_size", 28)
 	_timer_label.add_theme_color_override("font_color", Color.WHITE)
+	_timer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_timer_label)
 
 	_money_label = Label.new()
@@ -121,6 +128,7 @@ func _build_hud() -> void:
 	_money_label.position = Vector2(20, 45)
 	_money_label.add_theme_font_size_override("font_size", 22)
 	_money_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
+	_money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_money_label)
 
 	_interact_label = Label.new()
@@ -129,6 +137,7 @@ func _build_hud() -> void:
 	_interact_label.position = Vector2(940, 560)
 	_interact_label.add_theme_font_size_override("font_size", 16)
 	_interact_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	_interact_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_interact_label)
 
 	_recipe_label = Label.new()
@@ -140,6 +149,7 @@ func _build_hud() -> void:
 	_recipe_label.offset_top = 10
 	_recipe_label.add_theme_font_size_override("font_size", 14)
 	_recipe_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
+	_recipe_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_recipe_label)
 
 func _update_hud() -> void:
@@ -181,8 +191,10 @@ func _update_held_item() -> void:
 
 func _try_interact() -> void:
 	if not interact_ray.is_colliding():
+		print("[Interact] Ray not colliding with anything")
 		return
 	var collider := interact_ray.get_collider()
+	print("[Interact] Hit: ", collider.name, " type=", collider.get_class(), " has_interact=", collider.has_method("interact"))
 	if collider and collider.has_method("interact"):
 		collider.interact(self)
 
@@ -242,6 +254,12 @@ func get_held_item() -> Node3D:
 func has_held_item() -> bool:
 	return _held_item != null and is_instance_valid(_held_item)
 
+func _set_world_labels_visible(vis: bool) -> void:
+	for label in get_tree().get_nodes_in_group("world_label"):
+		(label as Node3D).visible = vis
+	if _interact_label:
+		_interact_label.visible = vis
+
 func _set_item_collision(item: Node3D, enabled: bool) -> void:
 	for child in item.get_children():
 		if child is CollisionShape3D:
@@ -257,40 +275,106 @@ func _get_recipe_text() -> String:
 	if not _active_order:
 		return ""
 	var cup := _find_active_cup()
+	var held_dev := _find_active_device()
+	var any_dev := _find_device_anywhere()
 	var lines: Array[String] = []
 	var code := _active_order.ticket_code
+	var holding_dev := held_dev != null
+	var dev := any_dev if any_dev else held_dev
+	var dev_has_grounds := dev != null and dev.has_grounds()
+	var dev_has_water := dev != null and dev.has_water
+	var dev_stirred := dev != null and dev.is_stirred
+
 	match _active_order.drink_type:
 		DrinkData.DrinkType.POUR_OVER:
+			var drip := _find_active_dripper()
+			var drip_has_grounds := drip != null and drip.has_grounds()
+			var po_checks: Array[bool] = [
+				cup != null,
+				drip != null,
+				drip_has_grounds,
+				false,
+				cup != null and cup.has_pour_over_coffee,
+				cup != null and cup.has_pour_over_coffee,
+				false,
+			]
+			po_checks = _waterfall(po_checks)
+			var po_names := [
+				"Grab cup from stack",
+				"Pick up dripper",
+				"Grind beans (coarse)",
+				"Place dripper + cup at station",
+				"Pour water (saturation)",
+				"Wait for draw-down",
+				"Hand off drink",
+			]
 			lines.append("[%s] Pour Over" % code)
-			lines.append(_step("Grab cup from stack", cup != null))
-			lines.append(_step("Pick up dripper", false))
-			lines.append(_step("Grind beans (coarse)", _check_grounds_ready(DrinkData.GrindLevel.COARSE)))
-			lines.append(_step("Place dripper + cup at station", false))
-			lines.append(_step("Pour water (saturation)", cup != null and cup.has_pour_over_coffee))
-			lines.append(_step("Wait for draw-down", cup != null and cup.has_pour_over_coffee))
-			lines.append(_step("Hand off drink", false))
+			for i in range(po_names.size()):
+				lines.append(_step(po_names[i], po_checks[i]))
 		DrinkData.DrinkType.AMERICANO:
+			var has_kettle_water := _find_filled_kettle()
+			var checks: Array[bool] = [
+				cup != null,
+				holding_dev or dev_has_grounds,
+				dev_has_grounds,
+				dev_has_grounds,
+				has_kettle_water or dev_has_water,
+				dev_has_water,
+				dev_stirred,
+				cup != null and cup.has_shot,
+				cup != null and cup.has_hot_water,
+				false,
+			]
+			checks = _waterfall(checks)
+			var step_names := [
+				"Grab cup from stack",
+				"Pick up aeropress",
+				"Grind beans (fine)",
+				"Place device + cup at station",
+				"Fill kettle at hot water",
+				"Pour water into chamber",
+				"Stir",
+				"Wait for steep + press",
+				"Fill kettle + add hot water",
+				"Hand off drink",
+			]
 			lines.append("[%s] Americano" % code)
-			lines.append(_step("Grab cup from stack", cup != null))
-			lines.append(_step("Pick up aeropress", false))
-			lines.append(_step("Grind beans (fine)", _check_grounds_ready(DrinkData.GrindLevel.FINE)))
-			lines.append(_step("Place aeropress + cup at station", false))
-			lines.append(_step("Pour water into chamber", cup != null and cup.has_shot))
-			lines.append(_step("Stir", cup != null and cup.has_shot))
-			lines.append(_step("Wait for steep", cup != null and cup.has_shot))
-			lines.append(_step("Press shot", cup != null and cup.has_shot))
-			lines.append(_step("Add hot water", cup != null and cup.has_hot_water))
-			lines.append(_step("Hand off drink", false))
+			for i in range(step_names.size()):
+				lines.append(_step(step_names[i], checks[i]))
 		DrinkData.DrinkType.LATTE:
+			var lt_checks: Array[bool] = [
+				cup != null,
+				holding_dev or dev_has_grounds,
+				cup != null and cup.has_shot,
+				_find_active_pitcher_with_milk(),
+				_find_steamed_pitcher(),
+				cup != null and cup.has_steamed_milk,
+				false,
+			]
+			lt_checks = _waterfall(lt_checks)
+			var lt_names := [
+				"Grab cup from stack",
+				"Pick up aeropress + grind",
+				"Press shot into cup",
+				"Pick up pitcher + get milk",
+				"Steam milk",
+				"Pour milk into cup",
+				"Hand off drink",
+			]
 			lines.append("[%s] Latte" % code)
-			lines.append(_step("Grab cup from stack", cup != null))
-			lines.append(_step("Pull aeropress shot into cup", cup != null and cup.has_shot))
-			lines.append(_step("Pick up pitcher", false))
-			lines.append(_step("Get milk from fridge", false))
-			lines.append(_step("Steam milk", false))
-			lines.append(_step("Pour milk into cup", cup != null and cup.has_steamed_milk))
-			lines.append(_step("Hand off drink", false))
+			for i in range(lt_names.size()):
+				lines.append(_step(lt_names[i], lt_checks[i]))
 	return "\n".join(lines)
+
+func _waterfall(steps: Array[bool]) -> Array[bool]:
+	var highest := -1
+	for i in range(steps.size()):
+		if steps[i]:
+			highest = i
+	var result: Array[bool] = []
+	for i in range(steps.size()):
+		result.append(i <= highest)
+	return result
 
 func _step(text: String, done: bool) -> String:
 	return ("  [x] " if done else "  [ ] ") + text
@@ -301,36 +385,88 @@ func _find_active_cup() -> Cup:
 			return node
 	return null
 
-func _check_grounds_ready(_level: DrinkData.GrindLevel) -> bool:
+func _find_active_device() -> AeropressDevice:
+	if _held_item is AeropressDevice:
+		return _held_item as AeropressDevice
+	return null
+
+func _find_device_anywhere() -> AeropressDevice:
+	if _held_item is AeropressDevice:
+		return _held_item as AeropressDevice
+	for node in get_tree().get_nodes_in_group("aeropress_device"):
+		var dev := node as AeropressDevice
+		if dev.has_grounds() or dev.has_water or dev.is_stirred:
+			return dev
+	return null
+
+func _find_active_dripper() -> Dripper:
+	if _held_item is Dripper:
+		return _held_item as Dripper
+	return null
+
+func _find_active_pitcher_with_milk() -> bool:
+	for node in get_tree().get_nodes_in_group("pitcher"):
+		if node is Pitcher and (node as Pitcher).has_milk:
+			return true
+	if _held_item is Pitcher and (_held_item as Pitcher).has_milk:
+		return true
+	return false
+
+func _find_filled_kettle() -> bool:
+	if _held_item is Kettle and (_held_item as Kettle).has_water:
+		return true
+	for node in get_tree().get_nodes_in_group("kettle"):
+		if node is Kettle and (node as Kettle).has_water:
+			return true
+	return false
+
+func _find_steamed_pitcher() -> bool:
+	for node in get_tree().get_nodes_in_group("pitcher"):
+		if node is Pitcher and (node as Pitcher).is_steamed:
+			return true
+	if _held_item is Pitcher and (_held_item as Pitcher).is_steamed:
+		return true
 	return false
 
 func enter_mini_game(cam_transform: Transform3D) -> void:
+	if _mode != InteractMode.FREE:
+		return
 	_mode = InteractMode.MINI_GAME
+	_saved_yaw = _yaw
+	_saved_pitch = _pitch
 	camera.global_transform = cam_transform
+	_set_world_labels_visible(false)
 
-func enter_screen_mode(look_target: Vector3, cam_pos: Vector3) -> void:
+func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35) -> void:
+	if _mode != InteractMode.FREE:
+		return
 	_mode = InteractMode.SCREEN
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
+	_screen_look_range = look_range
 	camera.global_position = cam_pos
 	camera.look_at(look_target, Vector3.UP)
 	_screen_yaw_center = camera.rotation.y
 	_screen_pitch_center = camera.rotation.x
+	_set_world_labels_visible(false)
 
-func exit_screen_mode() -> void:
+func _restore_camera() -> void:
+	if _mode == InteractMode.FREE:
+		return
 	_mode = InteractMode.FREE
+	_exit_frame = Engine.get_process_frames()
 	_yaw = _saved_yaw
 	_pitch = _saved_pitch
 	rotation.y = _yaw
-	camera.rotation.x = _pitch
 	camera.position = Vector3(0, 1.7, 0)
-	camera.rotation.y = 0
-	camera.rotation.z = 0
+	camera.rotation = Vector3(_pitch, 0, 0)
+	_set_world_labels_visible(true)
+
+func exit_screen_mode() -> void:
+	_restore_camera()
 
 func exit_mini_game() -> void:
-	_mode = InteractMode.FREE
-	camera.rotation.x = _pitch
-	rotation.y = _yaw
+	_restore_camera()
 
 func _on_day_ended() -> void:
 	_day_ended = true

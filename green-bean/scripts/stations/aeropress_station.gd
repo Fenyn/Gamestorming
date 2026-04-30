@@ -1,16 +1,5 @@
 extends StaticBody3D
 
-# Player flow:
-# 1. Place cup on station
-# 2. Pick up aeropress device from shelf (or bring one)
-# 3. Carry device to grinder, grind (grounds go into device)
-# 4. Carry device back, place on station (on top of cup)
-# 5. [E] Pour water into chamber → water mini-game
-# 6. [E] Stir → stir mini-game
-# 7. Steep (passive — walk away)
-# 8. [E] Press → press mini-game → shot into cup
-# 9. Pick up cup (has shot)
-
 enum State { IDLE, CUP_ONLY, DEVICE_ONLY, READY_FOR_WATER, HAS_WATER, STEEPING, READY_TO_PRESS, PRESSING, DONE, DEAD }
 
 var state := State.IDLE
@@ -26,10 +15,13 @@ var _grind_quality := 1.0
 var _correct_grind := true
 var _stir_quality := 1.0
 var _shot_quality := 0.0
+var _pouring_player: Player = null
+var _pour_kettle: Kettle = null
+var _pour_tween: Tween = null
+var _kettle_rest_pos := Vector3.ZERO
 
 var _cup_slot: Marker3D = null
 var _device_slot: Marker3D = null
-
 var _status_label: Label3D = null
 
 func _ready() -> void:
@@ -45,24 +37,29 @@ func _ready() -> void:
 	_device_slot.position = Vector3(0, 0.25, 0)
 	add_child(_device_slot)
 
+	var cam_pos := Vector3(0, 0.4, 0.4)
+	var cam_rot := Vector3(-30, 0, 0)
+
 	_press_game = PressMiniGame.new()
 	_press_game.name = "PressMiniGame"
 	var cam1 := Marker3D.new()
 	cam1.name = "CameraPoint"
-	cam1.position = Vector3(0, 0.4, 0.4)
-	cam1.rotation_degrees = Vector3(-30, 0, 0)
+	cam1.position = cam_pos
+	cam1.rotation_degrees = cam_rot
 	_press_game.add_child(cam1)
 	add_child(_press_game)
+	_press_game._camera_point = cam1
 	_press_game.mini_game_completed.connect(_on_press_complete)
 
 	_stir_game = StirMiniGame.new()
 	_stir_game.name = "StirMiniGame"
 	var cam2 := Marker3D.new()
 	cam2.name = "CameraPoint"
-	cam2.position = Vector3(0, 0.4, 0.4)
-	cam2.rotation_degrees = Vector3(-30, 0, 0)
+	cam2.position = cam_pos
+	cam2.rotation_degrees = cam_rot
 	_stir_game.add_child(cam2)
 	add_child(_stir_game)
+	_stir_game._camera_point = cam2
 	_stir_game.mini_game_completed.connect(_on_stir_complete)
 
 	_water_game = PourMiniGame.new()
@@ -70,10 +67,11 @@ func _ready() -> void:
 	_water_game.pour_mode = PourMiniGame.PourMode.FILL_LINE
 	var cam3 := Marker3D.new()
 	cam3.name = "CameraPoint"
-	cam3.position = Vector3(0, 0.4, 0.4)
-	cam3.rotation_degrees = Vector3(-30, 0, 0)
+	cam3.position = cam_pos
+	cam3.rotation_degrees = cam_rot
 	_water_game.add_child(cam3)
 	add_child(_water_game)
+	_water_game._camera_point = cam3
 	_water_game.mini_game_completed.connect(_on_water_complete)
 
 	_spawn_shelf_device()
@@ -83,6 +81,7 @@ func _ready() -> void:
 	_status_label.font_size = 12
 	_status_label.position = Vector3(0, 0.3, 0.15)
 	_status_label.pixel_size = 0.002
+	_status_label.add_to_group("world_label")
 	add_child(_status_label)
 	_update_label()
 
@@ -92,39 +91,40 @@ func _spawn_shelf_device() -> void:
 	add_child(_shelf_device)
 	_shelf_device.position = Vector3(0.15, 0.18, 0)
 
+func _any_game_active() -> bool:
+	return _press_game.is_active() or _stir_game.is_active() or _water_game.is_active()
+
 func interact(player: Player) -> void:
+	if _any_game_active():
+		return
 	match state:
 		State.IDLE:
 			_try_pickup_shelf_device(player)
 		State.CUP_ONLY:
 			_try_pickup_shelf_device(player)
 		State.DEVICE_ONLY:
-			if _status_label:
-				_status_label.text = "Place a cup first!"
+			_try_pickup_placed_device(player)
 		State.READY_FOR_WATER:
-			if _water_game.is_active():
-				_water_game.stop()
-			else:
+			var held := player.get_held_item()
+			if held is Kettle and (held as Kettle).has_water:
+				_pouring_player = player
+				_pour_kettle = held as Kettle
+				_start_pour_animation()
 				_water_game.start(player)
+			elif _status_label:
+				_status_label.text = "Hold filled kettle!\n[E] Pour water"
 		State.HAS_WATER:
-			if _stir_game.is_active():
-				_stir_game.stop()
-			else:
-				_stir_game.start(player)
+			_stir_game.start(player)
 		State.STEEPING:
 			pass
 		State.READY_TO_PRESS:
-			if _press_game.is_active():
-				_press_game.stop()
-			else:
-				state = State.PRESSING
-				_update_label()
-				_press_game.start(player)
+			state = State.PRESSING
+			_update_label()
+			_press_game.start(player)
 		State.PRESSING:
-			_press_game.stop()
+			pass
 		State.DONE:
-			if _status_label:
-				_status_label.text = "Pick up cup!\n(has shot)"
+			pass
 		State.DEAD:
 			_reset()
 
@@ -134,7 +134,18 @@ func _try_pickup_shelf_device(player: Player) -> void:
 		_shelf_device = null
 		_update_label()
 
+func _try_pickup_placed_device(player: Player) -> void:
+	if not player.has_held_item() and _placed_device and is_instance_valid(_placed_device):
+		for child in _placed_device.get_children():
+			if child is CollisionShape3D:
+				child.disabled = false
+		player.pickup_item(_placed_device)
+		_placed_device = null
+		_recalculate_state()
+
 func receive_item(item: Node3D) -> bool:
+	if _any_game_active():
+		return false
 	if item is Cup:
 		if _placed_cup:
 			return false
@@ -142,19 +153,16 @@ func receive_item(item: Node3D) -> bool:
 		_place_at_slot(item, _cup_slot)
 		_recalculate_state()
 		return true
-
 	if item is AeropressDevice:
 		if _placed_device:
 			return false
-		var dev := item as AeropressDevice
-		_placed_device = dev
+		_placed_device = item as AeropressDevice
 		_place_at_slot(item, _device_slot)
-		if dev.has_grounds():
-			_correct_grind = (dev.grounds.grind_level == DrinkData.GrindLevel.FINE)
-			_grind_quality = dev.grounds.grind_quality
+		if _placed_device.has_grounds():
+			_correct_grind = (_placed_device.grounds.grind_level == DrinkData.GrindLevel.FINE)
+			_grind_quality = _placed_device.grounds.grind_quality
 		_recalculate_state()
 		return true
-
 	return false
 
 func _place_at_slot(item: Node3D, slot: Marker3D) -> void:
@@ -170,8 +178,6 @@ func _recalculate_state() -> void:
 	if _placed_cup and _placed_device:
 		if not _placed_device.has_grounds():
 			state = State.DEVICE_ONLY
-			if _status_label:
-				_status_label.text = "Device needs grounds!\nTake to grinder first"
 		elif not _placed_device.has_water:
 			state = State.READY_FOR_WATER
 		elif not _placed_device.is_stirred:
@@ -189,8 +195,41 @@ func _recalculate_state() -> void:
 func _on_water_complete(quality: float) -> void:
 	if _placed_device:
 		_placed_device.has_water = true
+	_stop_pour_animation()
+	if _pouring_player:
+		var held := _pouring_player.get_held_item()
+		if held is Kettle:
+			(held as Kettle).empty()
+		_pouring_player = null
+	_pour_kettle = null
 	state = State.HAS_WATER
 	_update_label()
+
+func _start_pour_animation() -> void:
+	if not _pour_kettle or not _pouring_player:
+		return
+	# Detach from player hold so _update_held_item doesn't fight us
+	_pouring_player._held_item = null
+
+	var pour_pos := _device_slot.global_position + Vector3(-0.12, 0.10, 0.08)
+	_pour_kettle.global_position = pour_pos
+	_pour_kettle.global_rotation_degrees = Vector3(0, 0, -35)
+
+	if _pour_tween and _pour_tween.is_valid():
+		_pour_tween.kill()
+	_pour_tween = create_tween().set_loops()
+	_pour_tween.tween_property(_pour_kettle, "global_rotation_degrees:z", -45.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_pour_tween.tween_property(_pour_kettle, "global_rotation_degrees:z", -30.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+func _stop_pour_animation() -> void:
+	if _pour_tween and _pour_tween.is_valid():
+		_pour_tween.kill()
+		_pour_tween = null
+	if _pour_kettle and is_instance_valid(_pour_kettle):
+		_pour_kettle.global_rotation_degrees = Vector3.ZERO
+		# Give back to player
+		if _pouring_player and is_instance_valid(_pouring_player):
+			_pouring_player.pickup_item(_pour_kettle)
 
 func _on_stir_complete(quality: float) -> void:
 	_stir_quality = quality
@@ -201,26 +240,30 @@ func _on_stir_complete(quality: float) -> void:
 	_update_label()
 
 func _process(_delta: float) -> void:
-	if state == State.STEEPING:
-		if _press_game.phase == PressMiniGame.Phase.READY:
-			state = State.READY_TO_PRESS
-			_update_label()
-		elif _press_game.phase == PressMiniGame.Phase.DEAD:
-			state = State.DEAD
-			_update_label()
-
-	if state == State.READY_TO_PRESS:
-		if _press_game.phase == PressMiniGame.Phase.DEAD:
-			state = State.DEAD
-			_update_label()
-
-	if state == State.PRESSING and not _press_game.is_active():
-		if _press_game.phase == PressMiniGame.Phase.DEAD:
-			state = State.DEAD
-		elif _press_game.phase in [PressMiniGame.Phase.READY, PressMiniGame.Phase.OVER_EXTRACTING]:
-			state = State.READY_TO_PRESS
-		_update_label()
-
+	match state:
+		State.STEEPING:
+			if _press_game.phase == PressMiniGame.Phase.READY:
+				state = State.READY_TO_PRESS
+				_update_label()
+			elif _press_game.phase == PressMiniGame.Phase.DEAD:
+				state = State.DEAD
+				_update_label()
+			elif _status_label:
+				_status_label.text = "Steeping... %.0fs" % maxf(_press_game.phase_timer, 0)
+		State.READY_TO_PRESS:
+			if _press_game.phase == PressMiniGame.Phase.DEAD:
+				state = State.DEAD
+				_update_label()
+			elif _press_game.phase == PressMiniGame.Phase.OVER_EXTRACTING:
+				if _status_label:
+					_status_label.text = "[E] PRESS NOW!\n(over-extracting!)"
+		State.PRESSING:
+			if not _press_game.is_active():
+				if _press_game.phase == PressMiniGame.Phase.DEAD:
+					state = State.DEAD
+				elif _press_game.phase in [PressMiniGame.Phase.READY, PressMiniGame.Phase.OVER_EXTRACTING]:
+					state = State.READY_TO_PRESS
+				_update_label()
 	_check_removed_items()
 
 func _check_removed_items() -> void:
@@ -257,6 +300,10 @@ func _on_press_complete(quality: float) -> void:
 		_placed_device.global_position = Vector3(global_position.x + 0.15, global_position.y + 0.18, global_position.z)
 		_shelf_device = _placed_device
 		_placed_device = null
+	if _placed_cup:
+		for child in _placed_cup.get_children():
+			if child is CollisionShape3D:
+				child.disabled = false
 	state = State.DONE
 	_update_label()
 
@@ -280,35 +327,26 @@ func _update_label() -> void:
 	match state:
 		State.IDLE:
 			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
-			if has_shelf:
-				_status_label.text = "[E] Pick up aeropress\nor [Click] place cup"
-			else:
-				_status_label.text = "[Click] Place cup"
+			_status_label.text = "[E] Pick up aeropress" if has_shelf else "[Click] Place cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
-			if has_shelf:
-				_status_label.text = "Cup placed\n[E] Pick up aeropress"
-			else:
-				_status_label.text = "Cup placed\nBring aeropress with grounds"
+			_status_label.text = "[E] Pick up aeropress" if has_shelf else "Bring aeropress w/ grounds"
 		State.DEVICE_ONLY:
 			if _placed_device and _placed_device.has_grounds():
-				_status_label.text = "Place a cup first!"
+				_status_label.text = "[Click] Place cup"
 			else:
-				_status_label.text = "Device needs grounds!\nTake to grinder"
+				_status_label.text = "[E] Pick up device\n(needs grounds)"
 		State.READY_FOR_WATER:
-			_status_label.text = "[E] Pour water"
+			_status_label.text = "[E] Pour water\n(hold filled kettle)"
 		State.HAS_WATER:
 			_status_label.text = "[E] Stir"
 		State.STEEPING:
-			_status_label.text = "STEEPING..."
+			_status_label.text = "Steeping..."
 		State.READY_TO_PRESS:
-			if _press_game.phase == PressMiniGame.Phase.OVER_EXTRACTING:
-				_status_label.text = "[E] PRESS NOW!\n(over-extracting!)"
-			else:
-				_status_label.text = "[E] PRESS NOW!"
+			_status_label.text = "[E] Press!"
 		State.PRESSING:
-			_status_label.text = "PRESSING..."
+			_status_label.text = "Pressing..."
 		State.DONE:
-			_status_label.text = "Shot ready!\n[Click] Pick up cup"
+			_status_label.text = "[Click] Pick up cup"
 		State.DEAD:
-			_status_label.text = "Shot dead!\n[E] Reset"
+			_status_label.text = "[E] Reset (dead)"

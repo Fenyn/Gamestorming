@@ -1,8 +1,8 @@
 extends Node3D
 
-const CUSTOMER_SPAWN_INTERVAL_START := 12.0
-const CUSTOMER_SPAWN_INTERVAL_PEAK := 5.0
-const MAX_CUSTOMERS := 4
+const CUSTOMER_SPAWN_INTERVAL_START := 999.0
+const CUSTOMER_SPAWN_INTERVAL_PEAK := 999.0
+const MAX_CUSTOMERS := 1
 const SPAWN_OFFSET := Vector3(3, 0, 4)
 
 var _spawn_timer := 0.0
@@ -14,7 +14,8 @@ var _exit_pos := Vector3(3, 0, 5)
 func _ready() -> void:
 	EventBus.day_started.connect(_on_day_started)
 	EventBus.day_ended.connect(_on_day_ended)
-	EventBus.order_submitted.connect(_on_order_submitted)
+	EventBus.order_charged.connect(_on_order_charged)
+	EventBus.cash_collected.connect(_on_cash_collected)
 	EventBus.drink_handed_off.connect(_on_drink_handed_off)
 
 func setup(register: Vector3, pickup: Vector3) -> void:
@@ -49,8 +50,8 @@ func _process(delta: float) -> void:
 
 func _spawn_customer() -> void:
 	var customer := Customer.new()
-	customer.global_position = _exit_pos
 	add_child(customer)
+	customer.global_position = _exit_pos
 	customer.setup(_register_pos, _pickup_pos, _exit_pos)
 	_active_customers.append(customer)
 
@@ -59,19 +60,25 @@ func _spawn_customer() -> void:
 
 	EventBus.customer_arrived.emit(customer)
 
-func _on_order_submitted(data: Dictionary) -> void:
+func _on_order_charged(data: Dictionary) -> void:
 	var order: OrderData = data["order"]
-	# Try to match a customer who wants exactly this drink
+	var price := order.base_price
+	# Try exact match first
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_TO_ORDER:
 			if c.drink_type == order.drink_type and c.cup_size == order.cup_size:
-				c.order_taken(order)
+				c.order_data = order
+				c.start_paying(price)
 				return
-	# No exact match — take first waiting customer (player entered wrong order)
+	# No exact match — first waiting customer
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_TO_ORDER:
-			c.order_taken(order)
+			c.order_data = order
+			c.start_paying(price)
 			return
+
+func _on_cash_collected(customer: Node3D, _amount: float) -> void:
+	pass
 
 func _on_drink_handed_off(data: Dictionary, _earned: float) -> void:
 	var order: OrderData = data["order"]

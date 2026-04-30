@@ -43,6 +43,9 @@ func _build_stations() -> void:
 	_build_station("res://scripts/stations/register.gd",
 		Vector3(1.0, 1.1, 0.9), Vector3(0.35, 0.3, 0.25), Color(0.3, 0.3, 0.35), "Register")
 
+	_build_station("res://scripts/stations/cash_drawer.gd",
+		Vector3(0.55, 0.95, 0.9), Vector3(0.25, 0.1, 0.2), Color(0.35, 0.35, 0.38), "CashDrawer")
+
 	_build_station("res://scripts/stations/cup_stack.gd",
 		Vector3(-0.2, 1.1, 0.9), Vector3(0.4, 0.3, 0.2), Color(0.9, 0.9, 0.85), "CupStack")
 
@@ -75,6 +78,7 @@ func _build_stations() -> void:
 	_add_label(Vector3(1.2, 1.35, -0.9), "STEAM")
 	_add_label(Vector3(1.5, 1.1, -0.3), "FRIDGE")
 	_add_label(Vector3(1.0, 1.5, 0.9), "REGISTER")
+	_add_label(Vector3(0.55, 1.1, 0.9), "CASH DRAWER")
 	_add_label(Vector3(-0.2, 1.45, 0.9), "CUPS")
 	_add_label(Vector3(-1.0, 1.2, 1.15), "HAND OFF")
 
@@ -129,4 +133,5 @@ func _add_label(pos: Vector3, text: String) -> void:
 	label.position = pos
 	label.pixel_size = 0.002
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.add_to_group("world_label")
 	add_child(label)

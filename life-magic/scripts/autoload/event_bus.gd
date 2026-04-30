@@ -1,12 +1,12 @@
 extends Node
 
-# Tick
+# Beats
 signal tick_fired(tick_number: int)
-signal tick_speed_changed(new_interval: float)
 
 # Heart rate
 signal heart_rate_updated(bpm: float, hr_factor: float)
 signal heart_rate_source_changed(source: String)
+signal heartbeat_fired()
 
 # Currency
 signal mana_changed(new_amount: float, delta: float)

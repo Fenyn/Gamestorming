@@ -2,10 +2,10 @@ extends Node
 
 const SAVE_PATH := "user://save_game.json"
 const CURRENT_VERSION := 3
-const AUTO_SAVE_TICKS := 30
-const MAX_OFFLINE_TICKS := 500
+const AUTO_SAVE_BEATS := 30
+const MAX_OFFLINE_BEATS := 500
 
-var _tick_counter: int = 0
+var _beat_counter: int = 0
 var _last_save_timestamp: int = 0
 
 
@@ -23,9 +23,9 @@ func _notification(what: int) -> void:
 
 
 func _on_tick(_tick_number: int) -> void:
-	_tick_counter += 1
-	if _tick_counter >= AUTO_SAVE_TICKS:
-		_tick_counter = 0
+	_beat_counter += 1
+	if _beat_counter >= AUTO_SAVE_BEATS:
+		_beat_counter = 0
 		save_game()
 
 
@@ -102,21 +102,18 @@ func _process_offline_progress() -> void:
 	if elapsed < 10:
 		return
 
-	var interval := GameFormulas.effective_tick_interval(
-		TickEngine.BASE_INTERVAL, 1.0, 1.0
-	)
-	if interval <= 0.0:
-		return
-
-	var offline_ticks := int(float(elapsed) / interval)
-	offline_ticks = mini(offline_ticks, MAX_OFFLINE_TICKS)
+	var age: float = GameState.settings.get("age", 30.0)
+	var resting_bpm := GameFormulas.resting_heart_rate(age)
+	var beats_per_sec := resting_bpm / 60.0
+	var offline_beats := int(float(elapsed) * beats_per_sec)
+	var offline_ticks := mini(offline_beats, MAX_OFFLINE_BEATS)
 
 	if offline_ticks <= 0:
 		return
 
 	var mana_before := GameState.mana
 	for _i in offline_ticks:
-		_simulate_tick()
+		_simulate_beat()
 	var mana_gained := GameState.mana - mana_before
 
 	if mana_gained > 0.0:
@@ -128,7 +125,7 @@ func _process_offline_progress() -> void:
 		)
 
 
-func _simulate_tick() -> void:
+func _simulate_beat() -> void:
 	var tier_data := GeneratorManager.tier_data
 	for i in range(tier_data.size() - 1, -1, -1):
 		var data := tier_data[i]
@@ -136,13 +133,13 @@ func _simulate_tick() -> void:
 		if count <= 0.0:
 			continue
 		var multiplier := GameState.get_generator_multiplier(data.tier)
-		var produced := GameFormulas.generator_production(count, data.base_production, multiplier)
+		var produced := GameFormulas.generator_production(count, data.base_production, multiplier) * GeneratorManager.BEAT_SCALE * TickEngine.upgrade_multiplier
 		if data.produces_tier == -1:
 			GameState.add_mana(produced)
 		else:
 			GameState.add_generator_produced(data.produces_tier, produced)
-	PlotManager._advance_growth()
-	PlotManager._check_full_blooms()
+	PlotManager.advance_growth()
+	PlotManager.check_full_blooms()
 
 
 func _format_duration(seconds: int) -> String:

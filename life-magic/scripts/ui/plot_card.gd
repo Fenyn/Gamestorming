@@ -280,7 +280,7 @@ func _update_bonus_display() -> void:
 	var parts: PackedStringArray = []
 	var state: Dictionary = GameState.plots.get(_data.id, {})
 	var alloc: Dictionary = state.get("tend_allocation", {})
-	var avg := PlotManager._get_average_maturity(state)
+	var avg := PlotManager.get_average_maturity(state)
 
 	for target in alloc:
 		var pts: int = int(alloc[target])

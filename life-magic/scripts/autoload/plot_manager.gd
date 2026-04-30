@@ -48,8 +48,8 @@ func reset_to_defaults() -> void:
 
 func _on_tick(_tick_number: int) -> void:
 	_check_unlocks()
-	var grew := _advance_growth()
-	var bloomed := _check_full_blooms()
+	var grew := advance_growth()
+	var bloomed := check_full_blooms()
 	if grew or bloomed:
 		UpgradeManager.recalc_all_multipliers()
 		EventBus.plot_growth_tick.emit()
@@ -66,7 +66,7 @@ func _check_unlocks() -> void:
 			EventBus.plot_unlocked.emit(data.id)
 
 
-func _advance_growth() -> bool:
+func advance_growth() -> bool:
 	var changed := false
 	for plot_id in GameState.plots:
 		var state: Dictionary = GameState.plots[plot_id]
@@ -75,7 +75,7 @@ func _advance_growth() -> bool:
 		var data: PlotData = _data_map.get(plot_id)
 		if not data or data.growth_ticks <= 0:
 			continue
-		var increment := 1.0 / data.growth_ticks
+		var increment := 1.0 / (data.growth_ticks * 8.0)
 		for slot in state["slots"]:
 			if slot["planted"] and slot["growth"] < 1.0:
 				slot["growth"] = minf(slot["growth"] + increment, 1.0)
@@ -83,7 +83,7 @@ func _advance_growth() -> bool:
 	return changed
 
 
-func _check_full_blooms() -> bool:
+func check_full_blooms() -> bool:
 	var any_bloomed := false
 	for plot_id in GameState.plots:
 		var state: Dictionary = GameState.plots[plot_id]
@@ -211,7 +211,7 @@ func get_generator_mult(tier: int) -> float:
 			points += int(alloc.get("mana", 0))
 		if points <= 0:
 			continue
-		var avg := _get_average_maturity(state)
+		var avg := get_average_maturity(state)
 		mult *= 1.0 + (data.tend_power_base * avg * points)
 	return mult
 
@@ -246,7 +246,7 @@ func get_tick_speed_mult() -> float:
 		var points: int = int(state.get("tend_allocation", {}).get("tick_speed", 0))
 		if points <= 0:
 			continue
-		var avg := _get_average_maturity(state)
+		var avg := get_average_maturity(state)
 		mult *= 1.0 + (data.tend_power_base * avg * points)
 	return mult
 
@@ -273,7 +273,7 @@ func get_stage_power(growth: float) -> float:
 	return 0.1
 
 
-func _get_average_maturity(state: Dictionary) -> float:
+func get_average_maturity(state: Dictionary) -> float:
 	var total := 0.0
 	var count := 0
 	for slot in state["slots"]:

@@ -4,18 +4,13 @@ extends VBoxContainer
 @onready var bpm_unit: Label = %BPMUnit
 @onready var zone_label: Label = %ZoneLabel
 @onready var mana_label: Label = %ManaLabel
-@onready var per_tick_label: Label = %PerTickLabel
+@onready var per_beat_label: Label = %PerTickLabel
 @onready var mult_label: Label = %MultLabel
 @onready var wizard_view: SubViewportContainer = %WizardView
-@onready var tick_bar: ProgressBar = %TickBar
-@onready var tick_label: Label = %TickLabel
 
 var _displayed_mana: float = 0.0
 var _target_mana: float = 0.0
 const MANA_LERP_SPEED := 10.0
-
-var _heartbeat_accumulator: float = 0.0
-var _tick_fill_style: StyleBoxFlat
 
 const ZONE_RESTING := {"name": "RESTING", "color": Color(0.4, 0.6, 0.8)}
 const ZONE_LIGHT := {"name": "LIGHT", "color": Color(0.3, 0.7, 0.4)}
@@ -27,17 +22,9 @@ const ZONE_PEAK := {"name": "PEAK", "color": Color(0.9, 0.15, 0.15)}
 func _ready() -> void:
 	resized.connect(queue_redraw)
 
-	_tick_fill_style = StyleBoxFlat.new()
-	_tick_fill_style.bg_color = ThemeBuilder.BAR_FILL
-	_tick_fill_style.corner_radius_top_left = 4
-	_tick_fill_style.corner_radius_top_right = 4
-	_tick_fill_style.corner_radius_bottom_left = 4
-	_tick_fill_style.corner_radius_bottom_right = 4
-	tick_bar.add_theme_stylebox_override("fill", _tick_fill_style)
-
 	EventBus.mana_changed.connect(_on_mana_changed)
 	EventBus.heart_rate_updated.connect(_on_hr_updated)
-	EventBus.tick_speed_changed.connect(_on_tick_speed_changed)
+	EventBus.heartbeat_fired.connect(_on_heartbeat)
 	EventBus.tick_fired.connect(_on_tick_fired)
 
 	_target_mana = GameState.mana
@@ -64,16 +51,6 @@ func _draw() -> void:
 
 
 func _process(delta: float) -> void:
-	tick_bar.value = TickEngine.get_progress()
-
-	var bpm := HeartRateManager.smoothed_bpm
-	if bpm > 0.0:
-		var beat_interval := 60.0 / bpm
-		_heartbeat_accumulator += delta
-		if _heartbeat_accumulator >= beat_interval:
-			_heartbeat_accumulator -= beat_interval
-			_on_heartbeat()
-
 	if not is_equal_approx(_displayed_mana, _target_mana):
 		_displayed_mana = lerpf(_displayed_mana, _target_mana, MANA_LERP_SPEED * delta)
 		if absf(_displayed_mana - _target_mana) < 0.5:
@@ -90,12 +67,7 @@ func _on_hr_updated(bpm: float, hr_factor: float) -> void:
 	_update_hr_display(bpm, hr_factor)
 
 
-func _on_tick_speed_changed(interval: float) -> void:
-	tick_label.text = "Tick: %.1fs" % interval
-
-
-func _on_tick_fired(_tick_number: int) -> void:
-	_flash_tick_bar()
+func _on_tick_fired(_beat_number: int) -> void:
 	_update_income_display()
 
 
@@ -105,19 +77,13 @@ func _on_heartbeat() -> void:
 	tween.tween_property(bpm_value, "modulate", Color.WHITE, 0.2)
 
 
-func _flash_tick_bar() -> void:
-	tick_bar.modulate = Color(2.5, 2.5, 2.5, 1.0)
-	var tween := create_tween()
-	tween.tween_property(tick_bar, "modulate", Color.WHITE, 0.3)
-
-
 func _update_mana_display() -> void:
 	mana_label.text = GameFormulas.format_number(_displayed_mana)
 
 
 func _update_income_display() -> void:
-	var mana_per_tick := GeneratorManager.get_total_mana_per_tick()
-	per_tick_label.text = "+%s/tick" % GameFormulas.format_number(mana_per_tick)
+	var mana_per_beat := GeneratorManager.get_total_mana_per_beat()
+	per_beat_label.text = "+%s/beat" % GameFormulas.format_number(mana_per_beat)
 
 
 func _update_hr_display(bpm: float, hr_factor: float) -> void:
@@ -131,7 +97,6 @@ func _update_hr_display(bpm: float, hr_factor: float) -> void:
 	bpm_unit.add_theme_color_override("font_color", zone["color"].darkened(0.3))
 	mult_label.add_theme_color_override("font_color", zone["color"])
 
-	_tick_fill_style.bg_color = zone["color"].darkened(0.15)
 	wizard_view.set_zone_color(zone["color"])
 
 

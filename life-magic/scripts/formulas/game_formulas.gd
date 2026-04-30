@@ -17,13 +17,6 @@ static func hr_speed_factor(current_bpm: float, resting_bpm: float, max_hr: floa
 	return 1.0 + 2.0 * ratio
 
 
-static func effective_tick_interval(base_interval: float, upgrade_mult: float, hr_factor: float) -> float:
-	var divisor := upgrade_mult * hr_factor
-	if divisor <= 0.0:
-		return base_interval
-	return base_interval / divisor
-
-
 static func generator_cost(base_cost: float, cost_mult: float, owned: float) -> float:
 	return base_cost * pow(cost_mult, owned)
 

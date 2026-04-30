@@ -97,12 +97,12 @@ func _update_display() -> void:
 	else:
 		count_label.text = "%s" % GameFormulas.format_number(owned)
 
-	var prod := GeneratorManager.get_production_per_tick(_data.tier)
+	var prod := GeneratorManager.get_production_per_beat(_data.tier)
 	if _data.produces_tier == -1:
-		production_label.text = "Produces %s Mana/tick" % GameFormulas.format_number(prod)
+		production_label.text = "Produces %s Mana/beat" % GameFormulas.format_number(prod)
 	else:
 		var target := GeneratorManager.get_tier_data(_data.produces_tier)
-		production_label.text = "Produces %s %s/tick" % [GameFormulas.format_number(prod), target.display_name]
+		production_label.text = "Produces %s %s/beat" % [GameFormulas.format_number(prod), target.display_name]
 
 	var amount := _get_effective_buy_amount()
 	var amount_str := "Max" if _buy_amount == -1 else "x%d" % _buy_amount

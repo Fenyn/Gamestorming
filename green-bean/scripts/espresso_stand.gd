@@ -61,6 +61,9 @@ func _build_stations() -> void:
 	_build_station("res://scripts/stations/hot_water_station.gd",
 		Vector3(0.8, 1.2, -1.1), Vector3(0.2, 0.4, 0.2), Color(0.7, 0.7, 0.72), "HotWater")
 
+	_build_station("res://scripts/stations/counter_pad.gd",
+		Vector3(0.8, 0.92, -0.7), Vector3(0.4, 0.02, 0.3), Color(0.35, 0.3, 0.25), "CounterPad")
+
 	_build_station("res://scripts/stations/steam_station.gd",
 		Vector3(1.2, 1.0, -0.9), Vector3(0.2, 0.25, 0.2), Color(0.72, 0.72, 0.74), "Steam")
 

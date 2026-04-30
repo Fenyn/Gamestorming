@@ -120,6 +120,8 @@ func interact(player: Player) -> void:
 		State.READY_TO_PRESS:
 			state = State.PRESSING
 			_update_label()
+			if _placed_device:
+				_placed_device.show_plunger()
 			_press_game.start(player)
 		State.PRESSING:
 			pass
@@ -195,11 +197,11 @@ func _recalculate_state() -> void:
 func _on_water_complete(quality: float) -> void:
 	if _placed_device:
 		_placed_device.has_water = true
+		_placed_device.set_liquid_level(1.0)
 	_stop_pour_animation()
 	if _pouring_player:
-		var held := _pouring_player.get_held_item()
-		if held is Kettle:
-			(held as Kettle).empty()
+		if _pour_kettle and is_instance_valid(_pour_kettle):
+			_pour_kettle.use_water(Kettle.AEROPRESS_COST)
 		_pouring_player = null
 	_pour_kettle = null
 	state = State.HAS_WATER
@@ -258,12 +260,21 @@ func _process(_delta: float) -> void:
 				if _status_label:
 					_status_label.text = "[E] PRESS NOW!\n(over-extracting!)"
 		State.PRESSING:
+			if _placed_device:
+				_placed_device.set_plunger_progress(_press_game.press_progress)
 			if not _press_game.is_active():
+				if _placed_device:
+					_placed_device.hide_plunger()
 				if _press_game.phase == PressMiniGame.Phase.DEAD:
 					state = State.DEAD
 				elif _press_game.phase in [PressMiniGame.Phase.READY, PressMiniGame.Phase.OVER_EXTRACTING]:
 					state = State.READY_TO_PRESS
 				_update_label()
+
+	# Animate liquid fill during water pour
+	if state == State.READY_FOR_WATER and _water_game.is_active() and _placed_device:
+		_placed_device.set_liquid_level(_water_game._fill_level)
+
 	_check_removed_items()
 
 func _check_removed_items() -> void:

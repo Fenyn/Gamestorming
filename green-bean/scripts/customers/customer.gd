@@ -74,7 +74,7 @@ func _build_visual() -> void:
 	add_child(_patience_bar_fill)
 
 func _randomize_order() -> void:
-	drink_type = DrinkData.DrinkType.AMERICANO
+	drink_type = DrinkData.DrinkType.POUR_OVER
 	cup_size = DrinkData.CupSize.TALL
 
 func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:

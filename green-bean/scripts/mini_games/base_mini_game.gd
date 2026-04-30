@@ -65,9 +65,11 @@ func _on_stop() -> void:
 
 func _set_ui_visible(vis: bool) -> void:
 	for child in get_children():
-		if child is Label3D and child != _camera_point:
-			child.visible = vis
-		if child is CSGBox3D:
+		if child == _camera_point:
+			continue
+		if child is Marker3D:
+			continue
+		if child is Node3D:
 			child.visible = vis
 
 func is_active() -> bool:

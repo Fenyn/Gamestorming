@@ -169,20 +169,31 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	if event is InputEventMouseButton and event.pressed:
 		var pixel := _get_crosshair_pixel()
 		if pixel.x >= 0:
-			_click_at(pixel)
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				_click_at(pixel)
+			elif event.button_index == MOUSE_BUTTON_RIGHT:
+				_right_click_at(pixel)
 		get_viewport().set_input_as_handled()
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
-			KEY_1: _add_denomination(0)
-			KEY_2: _add_denomination(1)
-			KEY_3: _add_denomination(2)
-			KEY_4: _add_denomination(3)
-			KEY_5: _add_denomination(4)
-			KEY_BACKSPACE: _put_back()
+		if event.shift_pressed:
+			match event.keycode:
+				KEY_1: _remove_denomination(0)
+				KEY_2: _remove_denomination(1)
+				KEY_3: _remove_denomination(2)
+				KEY_4: _remove_denomination(3)
+				KEY_5: _remove_denomination(4)
+		else:
+			match event.keycode:
+				KEY_1: _add_denomination(0)
+				KEY_2: _add_denomination(1)
+				KEY_3: _add_denomination(2)
+				KEY_4: _add_denomination(3)
+				KEY_5: _add_denomination(4)
+				KEY_BACKSPACE: _put_back()
 
 func _add_denomination(idx: int) -> void:
 	if idx < 0 or idx >= DENOMINATIONS.size():
@@ -197,10 +208,24 @@ func _add_denomination(idx: int) -> void:
 	elif _selected_amount > _pending_change:
 		_message_label.text = "Too much! Press Backspace to put back"
 
+func _remove_denomination(idx: int) -> void:
+	if idx < 0 or idx >= DENOMINATIONS.size():
+		return
+	var value: float = DENOMINATIONS[idx]["value"]
+	_selected_amount = maxf(snapped(_selected_amount - value, 0.01), 0.0)
+	_message_label.text = ""
+	_update_drawer_display()
+
 func _put_back() -> void:
 	_selected_amount = 0.0
 	_message_label.text = ""
 	_update_drawer_display()
+
+func _right_click_at(pixel: Vector2) -> void:
+	for i in range(_denom_buttons.size()):
+		if _denom_buttons[i].is_visible_in_tree() and _denom_buttons[i].get_global_rect().has_point(pixel):
+			_remove_denomination(i)
+			return
 
 func _complete_change() -> void:
 	_has_transaction = false

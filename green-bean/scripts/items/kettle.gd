@@ -1,7 +1,15 @@
 class_name Kettle
 extends RigidBody3D
 
-var has_water := false
+const MAX_WATER := 1.0
+const BLOOM_COST := 0.1
+const AEROPRESS_COST := 0.3
+const POUR_OVER_COST := 0.4
+const AMERICANO_COST := 0.3
+
+var water_level := 0.0
+var has_water: bool:
+	get: return water_level > 0.01
 
 func _ready() -> void:
 	add_to_group("carriable")
@@ -32,7 +40,16 @@ func _ready() -> void:
 	add_child(col)
 
 func fill() -> void:
-	has_water = true
+	water_level = MAX_WATER
+
+func use_water(amount: float) -> bool:
+	if water_level < amount - 0.001:
+		return false
+	water_level = maxf(water_level - amount, 0.0)
+	return true
 
 func empty() -> void:
-	has_water = false
+	water_level = 0.0
+
+func get_level_percent() -> float:
+	return water_level / MAX_WATER * 100.0

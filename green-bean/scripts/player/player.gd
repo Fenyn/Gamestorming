@@ -169,6 +169,8 @@ func _update_hud() -> void:
 			var collider := interact_ray.get_collider()
 			if _held_item is Pitcher and collider is Cup:
 				_interact_label.text = "[Click] Pour milk"
+			elif _held_item is MilkJug and collider is Pitcher:
+				_interact_label.text = "[Click] Pour into pitcher"
 			elif collider and collider.has_method("interact"):
 				_interact_label.text = "[E] " + collider.name
 			elif collider and collider.has_method("receive_item") and _held_item:
@@ -225,10 +227,16 @@ func _try_place_item() -> void:
 		return
 	if interact_ray.is_colliding():
 		var collider := interact_ray.get_collider()
-		# Pitcher + Cup interaction: pour milk
+		# Pitcher + Cup interaction: pour steamed milk
 		if _held_item is Pitcher and collider is Cup:
 			var cup := collider as Cup
 			if cup.pour_milk_from(_held_item as Pitcher):
+				return
+		# Milk jug + Pitcher interaction: pour milk into pitcher
+		if _held_item is MilkJug and collider is Pitcher:
+			var pitcher := collider as Pitcher
+			if not pitcher.has_milk:
+				pitcher.fill_milk()
 				return
 		if collider and collider.has_method("receive_item"):
 			if collider.receive_item(_held_item):
@@ -342,10 +350,12 @@ func _get_recipe_text() -> String:
 			for i in range(step_names.size()):
 				lines.append(_step(step_names[i], checks[i]))
 		DrinkData.DrinkType.LATTE:
+			var has_milk_jug_out := _find_milk_jug_out()
 			var lt_checks: Array[bool] = [
 				cup != null,
 				holding_dev or dev_has_grounds,
 				cup != null and cup.has_shot,
+				has_milk_jug_out,
 				_find_active_pitcher_with_milk(),
 				_find_steamed_pitcher(),
 				cup != null and cup.has_steamed_milk,
@@ -353,10 +363,11 @@ func _get_recipe_text() -> String:
 			]
 			lt_checks = _waterfall(lt_checks)
 			var lt_names := [
-				"Grab cup from stack",
-				"Pick up aeropress + grind",
-				"Press shot into cup",
-				"Pick up pitcher + get milk",
+				"Grab cup + pull shot",
+				"Grind + press into cup",
+				"Set cup on counter pad",
+				"Get milk jug from fridge",
+				"Pour milk into pitcher",
 				"Steam milk",
 				"Pour milk into cup",
 				"Hand off drink",
@@ -410,6 +421,14 @@ func _find_active_pitcher_with_milk() -> bool:
 			return true
 	if _held_item is Pitcher and (_held_item as Pitcher).has_milk:
 		return true
+	return false
+
+func _find_milk_jug_out() -> bool:
+	if _held_item is MilkJug:
+		return true
+	for node in get_tree().get_nodes_in_group("milk_jug"):
+		if node is MilkJug and node.visible:
+			return true
 	return false
 
 func _find_filled_kettle() -> bool:

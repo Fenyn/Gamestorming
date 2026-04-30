@@ -247,7 +247,7 @@ func _stop_health_connect() -> void:
 func _process_health_connect() -> void:
 	if not _hc_plugin:
 		return
-	var hr := _hc_plugin.getLatestHR()
+	var hr: int = _hc_plugin.getLatestHR()
 	if hr > 0:
 		current_bpm = float(hr)
 	current_phase = ""

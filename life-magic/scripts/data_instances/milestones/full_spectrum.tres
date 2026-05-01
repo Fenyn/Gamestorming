@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "full_spectrum"
+display_name = "Full Spectrum"
+description = "Awaken all five tiers of magic"
+flavor_text = "Every thread of power hums in concert. Something deeper stirs."
+condition_type = "active_tiers"
+condition_value = 5.0
+reward_type = "unlock_prestige"
+reward_target = ""
+reward_value = 0.0

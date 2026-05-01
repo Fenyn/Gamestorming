@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bloom_mastery"
+display_name = "Bloom Mastery"
+description = "Complete five bloom cycles across all Sanctums"
+flavor_text = "The garden knows your touch now."
+condition_type = "total_blooms"
+condition_value = 5.0
+reward_type = "production_burst"
+reward_target = ""
+reward_value = 60.0

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/blessing_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "surge_frequency"
+display_name = "Surge Frequency"
+description = "Surges build faster in your blood. Cooldown shortened by 10% per level."
+max_level = 3
+essence_cost = 7
+effect_type = "surge_cooldown"
+effect_value = 0.10
+category = "wellness"

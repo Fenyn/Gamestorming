@@ -32,6 +32,7 @@ func _ready() -> void:
 
 	EventBus.generator_purchased.connect(_on_generator_purchased)
 	EventBus.tick_fired.connect(func(_t): _on_tick())
+	EventBus.seasonal_rebirth_executed.connect(_on_prestige)
 
 	_sync_all_motes()
 
@@ -67,6 +68,7 @@ func _build_scene() -> void:
 
 	_build_platform()
 	_build_wizard()
+	_apply_prestige_visuals()
 
 
 func _build_platform() -> void:
@@ -181,6 +183,36 @@ func _build_wizard() -> void:
 	_arm_r.add_child(_orb)
 
 
+func _apply_prestige_visuals() -> void:
+	var cycles := GameState.life_cycles
+	if cycles <= 0:
+		return
+
+	var robe_color := Color(0.12, 0.08, 0.3)
+	if cycles >= 10:
+		robe_color = Color(0.5, 0.35, 0.1)
+	elif cycles >= 6:
+		robe_color = Color(0.15, 0.1, 0.45)
+	elif cycles >= 3:
+		robe_color = Color(0.1, 0.12, 0.4)
+	elif cycles >= 1:
+		robe_color = Color(0.08, 0.1, 0.35)
+
+	for child in _wizard.get_children():
+		if child is MeshInstance3D and child != _head and child != _staff and child != _orb:
+			var mat: StandardMaterial3D = child.material_override
+			if mat and mat.albedo_color.is_equal_approx(Color(0.12, 0.08, 0.3)):
+				mat.albedo_color = robe_color
+
+	if _orb_mat and cycles >= 3:
+		var glow := 2.0 + cycles * 0.3
+		_orb_mat.emission_energy_multiplier = minf(glow, 6.0)
+
+	if cycles >= 6:
+		_orb_mat.emission = Color(0.9, 0.7, 0.2)
+		_orb_mat.albedo_color = Color(0.9, 0.7, 0.2)
+
+
 func _create_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
@@ -192,6 +224,14 @@ func _create_mesh(mesh: Mesh, color: Color) -> MeshInstance3D:
 
 
 # --- Mote System ---
+
+
+func clear_all_motes() -> void:
+	for tier in _motes:
+		for mote in _motes[tier]:
+			mote.queue_free()
+	_motes.clear()
+	_mote_data.clear()
 
 
 func update_motes(tier: int) -> void:
@@ -210,9 +250,12 @@ func update_motes(tier: int) -> void:
 
 	while current.size() < target:
 		var mote := _create_mote(tier)
+		mote.visible = false
 		_mote_root.add_child(mote)
 		current.append(mote)
-		_mote_data[tier].append(_create_mote_orbit_data(tier))
+		var orbit_data := _create_mote_orbit_data(tier)
+		orbit_data["visible"] = false
+		_mote_data[tier].append(orbit_data)
 
 	while current.size() > target:
 		var mote: MeshInstance3D = current.pop_back()
@@ -301,9 +344,10 @@ func _process(delta: float) -> void:
 	_time += delta
 	var hr_factor := HeartRateManager.get_hr_factor()
 	_smooth_hr = lerpf(_smooth_hr, hr_factor, 2.0 * delta)
-	_anim_time += delta * lerpf(0.65, 2.7, clampf((_smooth_hr - 1.0) / 2.0, 0.0, 1.0))
+	_anim_time += delta * lerpf(0.65, 8.0, clampf((_smooth_hr - 1.0) / 2.0, 0.0, 1.0))
 
-	_wizard.position.y = sin(_time * 0.8) * 0.02
+	var bob_amp := lerpf(0.02, 0.07, clampf((_smooth_hr - 1.0) / 2.0, 0.0, 1.0))
+	_wizard.position.y = sin(_time * 0.8) * bob_amp
 	_scene_root.rotation.y += delta * 0.15
 
 	var swing := clampf((_smooth_hr - 0.8) * 0.6, 0.08, 0.8)
@@ -314,7 +358,7 @@ func _process(delta: float) -> void:
 	_head.rotation_degrees.x = sin(_anim_time * 0.185) * 4 * swing
 	_head.rotation_degrees.z = sin(_anim_time * 0.115) * 3 * swing
 
-	var intensity := 1.0 + (_smooth_hr - 1.0) * 1.5
+	var intensity := 1.0 + (_smooth_hr - 1.0) * 3.0
 	_orb_mat.emission_energy_multiplier = intensity
 
 	_animate_motes()
@@ -339,18 +383,21 @@ func _animate_heartmotes() -> void:
 	for i in list.size():
 		var mote: MeshInstance3D = list[i]
 		var d: Dictionary = data_list[i]
+		if not d.get("visible", true):
+			continue
 		var rp: float = d["rise_phase"]
 		var wf: float = d["wobble_freq"]
 		var a: float = d["angle"]
 		var p: float = d["phase"]
 		var rise := fmod(_anim_time * 0.12 + rp, 1.0)
-		var y := lerpf(0.08, 1.5, rise)
-		var wobble_x := sin(_anim_time * wf * 0.5 + a) * 0.15
-		var wobble_z := cos(_anim_time * wf * 0.35 + p) * 0.15
+		var y := lerpf(0.7, 1.8, rise)
+		var r := 0.3 + sin(rise * PI) * 0.2
+		var wobble_x := sin(_anim_time * wf * 0.5 + a) * r
+		var wobble_z := cos(_anim_time * wf * 0.35 + p) * r
 		mote.position = Vector3(wobble_x, y, wobble_z)
 		var fade := sin(rise * PI)
 		var bs: float = d["bonus_scale"]
-		mote.scale = Vector3.ONE * fade * 0.8 * bs
+		mote.scale = Vector3.ONE * maxf(fade, 0.3) * 0.8 * bs
 
 
 func _animate_pulse_glyphs() -> void:
@@ -360,6 +407,8 @@ func _animate_pulse_glyphs() -> void:
 	for i in count:
 		var mote: MeshInstance3D = list[i]
 		var d: Dictionary = data_list[i]
+		if not d.get("visible", true):
+			continue
 		var a: float = d["angle"]
 		var p: float = d["phase"]
 		var vo: float = d["vert_offset"]
@@ -381,6 +430,8 @@ func _animate_familiars() -> void:
 	for i in list.size():
 		var mote: MeshInstance3D = list[i]
 		var d: Dictionary = data_list[i]
+		if not d.get("visible", true):
+			continue
 		var a: float = d["angle"]
 		var p: float = d["phase"]
 		var sm: float = d["speed_mult"]
@@ -399,6 +450,8 @@ func _animate_wardens() -> void:
 	for i in list.size():
 		var mote: MeshInstance3D = list[i]
 		var d: Dictionary = data_list[i]
+		if not d.get("visible", true):
+			continue
 		var a: float = d["angle"]
 		var p: float = d["phase"]
 		var ps: float = d["pulse_speed"]
@@ -420,6 +473,8 @@ func _animate_spires() -> void:
 	for i in list.size():
 		var mote: MeshInstance3D = list[i]
 		var d: Dictionary = data_list[i]
+		if not d.get("visible", true):
+			continue
 		var a: float = d["angle"]
 		var fp: float = d["fall_phase"]
 		var ss: float = d["spin_speed"]
@@ -446,11 +501,27 @@ func flash_tick() -> void:
 	tween.tween_property(_platform_mat, "emission_energy_multiplier", 1.5, 1.0).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 
 	for tier in _motes:
-		for mote in _motes[tier]:
-			var mat := mote.material_override as StandardMaterial3D
-			mat.emission_energy_multiplier = 2.5
-			var mote_tween := create_tween()
-			mote_tween.tween_property(mat, "emission_energy_multiplier", 1.5, 1.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+		var mote_list: Array = _motes[tier]
+		var data_list: Array = _mote_data[tier]
+		for i in mote_list.size():
+			var mote: MeshInstance3D = mote_list[i]
+			var d: Dictionary = data_list[i]
+			if not d.get("visible", true):
+				d["visible"] = true
+				mote.visible = true
+				mote.scale = Vector3.ZERO
+				var pop_tween := create_tween()
+				pop_tween.tween_property(mote, "scale", Vector3.ONE * 0.8, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+			else:
+				var mat := mote.material_override as StandardMaterial3D
+				mat.emission_energy_multiplier = 2.5
+				var mote_tween := create_tween()
+				mote_tween.tween_property(mat, "emission_energy_multiplier", 1.5, 1.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+
+
+func _on_prestige(_essence_earned: int) -> void:
+	clear_all_motes()
+	_apply_prestige_visuals()
 
 
 func set_zone_color(color: Color) -> void:
@@ -471,3 +542,9 @@ func _sync_all_motes() -> void:
 	for tier in range(5):
 		if GameState.is_tier_unlocked(tier):
 			update_motes(tier)
+	for tier in _mote_data:
+		for d in _mote_data[tier]:
+			d["visible"] = true
+	for tier in _motes:
+		for mote in _motes[tier]:
+			mote.visible = true

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "convergence"
+display_name = "Convergence"
+description = "Have sigils planted in all three Sanctums at once"
+flavor_text = "Three gardens, one heartbeat, endless power."
+condition_type = "sanctums_with_plants"
+condition_value = 3.0
+reward_type = "free_generators"
+reward_target = ""
+reward_value = 1.0

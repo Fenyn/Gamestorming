@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "surge_channeled"
+display_name = "Surge Channeled"
+description = "Complete your first heartbeat surge"
+flavor_text = "Your body and the magic found their rhythm."
+condition_type = "surges_completed"
+condition_value = 1.0
+reward_type = "production_burst"
+reward_target = ""
+reward_value = 120.0

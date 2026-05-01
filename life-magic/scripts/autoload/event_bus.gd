@@ -24,6 +24,19 @@ signal plot_tend_changed(plot_id: String)
 signal plot_growth_tick()
 signal plot_full_bloom(plot_id: String, bloom_count: int)
 
+# Milestones
+signal milestone_earned(milestone_id: String)
+
+# Vitality
+signal vitality_changed(new_amount: float)
+
+# Surges
+signal surge_opportunity(surge_id: String)
+signal surge_completed(surge_id: String)
+signal surge_expired(surge_id: String)
+signal surge_effect_started(surge_id: String, duration: float)
+signal surge_effect_ended(surge_id: String)
+
 # Prestige
 signal loop_progress_updated(current: float, required: float)
 signal loop_completed(total_loops: int)

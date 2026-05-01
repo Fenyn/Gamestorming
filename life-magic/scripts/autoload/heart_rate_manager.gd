@@ -14,6 +14,13 @@ const RECONNECT_DELAY := 3.0
 var _update_timer: float = 0.0
 var _last_factor: float = -1.0
 var _beat_accumulator: float = 0.0
+var _vitality_beat_counter: int = 0
+var _step_poll_timer: float = 0.0
+var _last_known_steps: int = 0
+
+const VITALITY_PER_1000_STEPS := 1.0
+const VITALITY_BEATS_FALLBACK := 500
+const STEP_POLL_INTERVAL := 60.0
 
 # WebSocket state
 var _ws: WebSocketPeer
@@ -44,9 +51,9 @@ const DEMO_WORKOUT := [
 
 
 func _ready() -> void:
-	current_bpm = GameState.settings.get("simulated_bpm", 80.0)
+	current_bpm = GameState.get_simulated_bpm()
 	smoothed_bpm = current_bpm
-	source = GameState.settings.get("hr_source", "demo")
+	source = GameState.get_hr_source()
 
 	if source == "websocket":
 		_ws_connect()
@@ -55,7 +62,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	match source:
 		"simulated":
-			current_bpm = GameState.settings.get("simulated_bpm", 80.0)
+			current_bpm = GameState.get_simulated_bpm()
 			current_phase = ""
 		"demo":
 			_process_demo(delta)
@@ -72,7 +79,9 @@ func _process(delta: float) -> void:
 		if _beat_accumulator >= beat_interval:
 			_beat_accumulator -= beat_interval
 			EventBus.heartbeat_fired.emit()
+			_accumulate_vitality_from_beats()
 
+	_poll_steps(delta)
 	_update_timer += delta
 	if _update_timer >= UPDATE_INTERVAL:
 		_update_timer = 0.0
@@ -162,17 +171,47 @@ func reset_to_defaults() -> void:
 	_demo_hr = 68.0
 	_demo_time = 0.0
 	_beat_accumulator = 0.0
+	_vitality_beat_counter = 0
+	_step_poll_timer = 0.0
+	_last_known_steps = 0
 	current_phase = ""
-	current_bpm = GameState.settings.get("simulated_bpm", 80.0)
+	current_bpm = GameState.get_simulated_bpm()
 	smoothed_bpm = current_bpm
 
 
 func get_hr_factor() -> float:
-	var age: float = GameState.settings.get("age", 30.0)
+	var age := GameState.get_age()
 	var resting := GameFormulas.resting_heart_rate(age)
-	var cap_pct: float = GameState.settings.get("hr_cap_pct", 0.85)
 	var max_hr := GameFormulas.max_heart_rate(age)
-	return GameFormulas.hr_speed_factor(smoothed_bpm, resting, max_hr, cap_pct)
+	return GameFormulas.hr_speed_factor(smoothed_bpm, resting, max_hr, GameState.get_hr_cap_pct())
+
+
+func _accumulate_vitality_from_beats() -> void:
+	if source == "health_connect":
+		return
+	_vitality_beat_counter += 1
+	if _vitality_beat_counter >= VITALITY_BEATS_FALLBACK:
+		_vitality_beat_counter = 0
+		GameState.add_vitality(1.0)
+
+
+func _poll_steps(delta: float) -> void:
+	if source != "health_connect" or not _hc_plugin:
+		return
+	_step_poll_timer += delta
+	if _step_poll_timer < STEP_POLL_INTERVAL:
+		return
+	_step_poll_timer = 0.0
+	var current_steps: int = _hc_plugin.getDailySteps()
+	if _last_known_steps <= 0:
+		_last_known_steps = current_steps
+		return
+	var step_delta := current_steps - _last_known_steps
+	if step_delta > 0:
+		_last_known_steps = current_steps
+		var vitality_earned := float(step_delta) / 1000.0 * VITALITY_PER_1000_STEPS
+		if vitality_earned > 0.0:
+			GameState.add_vitality(vitality_earned)
 
 
 func set_simulated_bpm(bpm: float) -> void:

@@ -6,13 +6,18 @@ extends Control
 @onready var garden_tab: Button = %GardenTab
 @onready var plots_tab: Button = %PlotsTab
 @onready var upgrades_tab: Button = %UpgradesTab
+@onready var chronicle_tab: Button = %ChronicleTab
+@onready var blessings_tab: Button = %BlessingsTab
 @onready var settings_tab: Button = %SettingsTab
 @onready var generator_panel: ScrollContainer = %GeneratorPanel
 @onready var plot_panel: ScrollContainer = %PlotPanel
 @onready var upgrade_panel: ScrollContainer = %UpgradePanel
+@onready var milestone_panel: ScrollContainer = %MilestonePanel
+@onready var blessing_panel: ScrollContainer = %BlessingPanel
 @onready var settings_panel: ScrollContainer = %SettingsPanel
 
 var _notification_tween: Tween
+var _notification_is_tutorial: bool = false
 var _bpm_label_tween: Tween
 const BPM_STEP := 5.0
 const BPM_MIN := 40.0
@@ -27,48 +32,44 @@ func _ready() -> void:
 
 	EventBus.notification.connect(_on_notification)
 	notification_panel.visible = false
+	notification_panel.gui_input.connect(_on_notification_input)
 	bpm_debug_label.visible = false
 
-	_tabs = [garden_tab, plots_tab, upgrades_tab, settings_tab]
-	_panels = [generator_panel, plot_panel, upgrade_panel, settings_panel]
+	_tabs = [garden_tab, plots_tab, upgrades_tab, chronicle_tab, blessings_tab, settings_tab]
+	_panels = [generator_panel, plot_panel, upgrade_panel, milestone_panel, blessing_panel, settings_panel]
 
 	for i in _tabs.size():
 		var idx := i
 		_tabs[i].pressed.connect(func(): _switch_tab(idx))
 
+	EventBus.milestone_earned.connect(_on_first_milestone)
+	EventBus.loop_completed.connect(_on_first_prestige)
+
+	if MilestoneManager.get_earned_count() > 0:
+		chronicle_tab.visible = true
+	if GameState.life_cycles > 0 or MilestoneManager.is_prestige_unlocked():
+		blessings_tab.visible = true
+
+	EventBus.milestone_earned.connect(_check_prestige_unlock)
 	_switch_tab(0)
 
 
 func _switch_tab(index: int) -> void:
+	if not _tabs[index].visible:
+		return
 	for i in _tabs.size():
-		_tabs[i].button_pressed = (i == index)
-		_panels[i].visible = (i == index)
-		_style_tab(_tabs[i], i == index)
+		var is_active := i == index
+		_tabs[i].button_pressed = is_active
+		_panels[i].visible = is_active
+		_style_tab(_tabs[i], is_active)
 
 
 func _style_tab(btn: Button, active: bool) -> void:
-	if active:
-		var style := StyleBoxFlat.new()
-		style.bg_color = ThemeBuilder.BG_TAB_ACTIVE
-		style.border_color = ThemeBuilder.ACCENT_GREEN
-		style.border_width_bottom = 3
-		style.content_margin_top = 8
-		style.content_margin_bottom = 8
-		btn.add_theme_stylebox_override("normal", style)
-		btn.add_theme_stylebox_override("hover", style)
-		btn.add_theme_stylebox_override("pressed", style)
-		btn.add_theme_color_override("font_color", ThemeBuilder.TEXT_PRIMARY)
-	else:
-		var style := StyleBoxFlat.new()
-		style.bg_color = ThemeBuilder.BG_TAB_INACTIVE
-		style.border_color = ThemeBuilder.BORDER
-		style.border_width_bottom = 1
-		style.content_margin_top = 8
-		style.content_margin_bottom = 8
-		btn.add_theme_stylebox_override("normal", style)
-		btn.add_theme_stylebox_override("hover", style)
-		btn.add_theme_stylebox_override("pressed", style)
-		btn.add_theme_color_override("font_color", ThemeBuilder.TEXT_MUTED)
+	var style := ThemeBuilder.create_tab_style(active)
+	btn.add_theme_stylebox_override("normal", style)
+	btn.add_theme_stylebox_override("hover", style)
+	btn.add_theme_stylebox_override("pressed", style)
+	btn.add_theme_color_override("font_color", ThemeBuilder.TEXT_PRIMARY if active else ThemeBuilder.TEXT_MUTED)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -80,6 +81,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_N:
 				GameState.add_mana(1000000.0)
 				_show_debug("+1M Mana")
+			KEY_S:
+				SurgeManager.cooldown_timer = 0.0
+				_show_debug("Surge forced")
+			KEY_P:
+				GameState.add_mana(50000000.0)
+				_show_debug("+50M Mana (prestige test)")
+			KEY_V:
+				GameState.add_vitality(5.0)
+				_show_debug("+5 Vitality")
 	if event is InputEventMouseButton and event.pressed:
 		var delta := 0.0
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -87,7 +97,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			delta = -BPM_STEP
 		if delta != 0.0:
-			var current: float = GameState.settings.get("simulated_bpm", 80.0)
+			var current := GameState.get_simulated_bpm()
 			var new_bpm := clampf(current + delta, BPM_MIN, BPM_MAX)
 			HeartRateManager.set_simulated_bpm(new_bpm)
 			_show_debug("SIM: %d BPM" % int(new_bpm))
@@ -108,18 +118,56 @@ func _show_debug(msg: String) -> void:
 	_bpm_label_tween.tween_callback(func(): bpm_debug_label.visible = false)
 
 
-func _on_notification(message: String, _type: String) -> void:
+func _on_notification_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		_dismiss_notification()
+
+
+func _dismiss_notification() -> void:
+	if _notification_tween and _notification_tween.is_valid():
+		_notification_tween.kill()
+	notification_panel.visible = false
+	notification_panel.modulate.a = 1.0
+	_notification_is_tutorial = false
+
+
+func _on_first_milestone(_milestone_id: String) -> void:
+	if not chronicle_tab.visible:
+		chronicle_tab.visible = true
+		EventBus.notification.emit("The Chronicle of Power has been revealed!", "tutorial")
+
+
+func _check_prestige_unlock(milestone_id: String) -> void:
+	if milestone_id == "full_spectrum" and not blessings_tab.visible:
+		blessings_tab.visible = true
+
+
+func _on_first_prestige(_total_cycles: int) -> void:
+	if not blessings_tab.visible:
+		blessings_tab.visible = true
+
+
+func _on_notification(message: String, type: String) -> void:
 	notification_label.text = message
 	notification_panel.visible = true
 	notification_panel.modulate.a = 1.0
 
+	var is_tutorial := type == "tutorial"
+	notification_label.add_theme_color_override("font_color",
+		ThemeBuilder.TEXT_GOLD if is_tutorial else ThemeBuilder.TEXT_PRIMARY)
+
 	if _notification_tween and _notification_tween.is_valid():
 		_notification_tween.kill()
 
-	_notification_tween = create_tween()
-	_notification_tween.tween_interval(5.0)
-	_notification_tween.tween_property(notification_panel, "modulate:a", 0.0, 1.0)
-	_notification_tween.tween_callback(func():
-		notification_panel.visible = false
-		notification_panel.modulate.a = 1.0
-	)
+	if is_tutorial:
+		_notification_is_tutorial = true
+		notification_label.text += "\n(tap to dismiss)"
+	else:
+		_notification_is_tutorial = false
+		_notification_tween = create_tween()
+		_notification_tween.tween_interval(5.0)
+		_notification_tween.tween_property(notification_panel, "modulate:a", 0.0, 1.0)
+		_notification_tween.tween_callback(func():
+			notification_panel.visible = false
+			notification_panel.modulate.a = 1.0
+		)

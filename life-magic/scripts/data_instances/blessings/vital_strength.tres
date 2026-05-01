@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/blessing_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vital_strength"
+display_name = "Vital Strength"
+description = "Your steps carry more weight. Vitality flows 20% faster per level."
+max_level = 3
+essence_cost = 6
+effect_type = "vitality_rate"
+effect_value = 0.20
+category = "wellness"

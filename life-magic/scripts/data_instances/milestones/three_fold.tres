@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "three_fold"
+display_name = "Three-Fold Path"
+description = "Have three tiers of spells producing at once"
+flavor_text = "Three voices weave a stronger song."
+condition_type = "active_tiers"
+condition_value = 3.0
+reward_type = "unlock_upgrade"
+reward_target = "harmonic"
+reward_value = 0.0

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlotData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plot_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "garden"
+display_name = "The Vital Garden"
+description = "A garden that grows to the rhythm of your body. Each bed blooms only when your heart beats in the right tempo. Rest, walk, and push yourself to tend them all."
+slot_count = 3
+plant_cost_base = 3.0
+plant_cost_mult = 2.0
+plant_cost_type = "vitality"
+growth_ticks = 120
+growth_mode = "zone_tracked"
+tend_points = 0
+tend_options = PackedStringArray()
+tend_power_base = 0.0
+full_bloom_bonus = {"surge_power": 1.25}
+unlock_total_mana = -1.0
+unlock_vitality = -1.0
+tithe_options = PackedFloat64Array()
+tithe_threshold = 0.0

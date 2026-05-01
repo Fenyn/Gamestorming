@@ -35,6 +35,33 @@ static func get_tier_color(tier: int) -> Color:
 		return TIER_COLORS[tier]
 	return TEXT_PRIMARY
 
+
+static func create_panel_style(border_color: Color = BORDER, border_left: int = 0) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_PANEL
+	style.border_color = border_color
+	style.border_width_bottom = 1
+	style.border_width_left = border_left
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	style.content_margin_left = 4
+	style.content_margin_right = 4
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	return style
+
+
+static func create_tab_style(active: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_TAB_ACTIVE if active else BG_TAB_INACTIVE
+	style.border_color = ACCENT_GREEN if active else BORDER
+	style.border_width_bottom = 3 if active else 1
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	return style
+
 const BAR_BG := Color(0.1, 0.14, 0.1)
 const BAR_FILL := Color(0.3, 0.6, 0.25)
 

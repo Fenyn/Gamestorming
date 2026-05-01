@@ -9,6 +9,7 @@ var _cards: Dictionary = {}
 func _ready() -> void:
 	_plot_card_scene = preload("res://scenes/ui/plot_card.tscn")
 	EventBus.plot_unlocked.connect(_on_plot_unlocked)
+	EventBus.seasonal_rebirth_executed.connect(func(_e): _rebuild())
 	_build_cards()
 
 
@@ -23,6 +24,13 @@ func _on_plot_unlocked(plot_id: String) -> void:
 	var data := PlotManager.get_plot_data(plot_id)
 	if data and not _cards.has(plot_id):
 		_add_card(data)
+
+
+func _rebuild() -> void:
+	for plot_id in _cards:
+		_cards[plot_id].queue_free()
+	_cards.clear()
+	_build_cards.call_deferred()
 
 
 func _add_card(data: PlotData) -> void:

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/blessing_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "generator_memory"
+display_name = "Generator Memory"
+description = "Your spells remember you between cycles. Begin with higher tiers already awakened."
+max_level = 3
+essence_cost = 8
+effect_type = "starting_tiers"
+effect_value = 1.0
+category = "starting"

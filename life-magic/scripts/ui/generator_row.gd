@@ -62,20 +62,7 @@ func _get_effective_buy_amount() -> int:
 
 func _apply_tier_style() -> void:
 	var tier_color := ThemeBuilder.get_tier_color(_data.tier)
-	var style := StyleBoxFlat.new()
-	style.bg_color = ThemeBuilder.BG_PANEL
-	style.border_width_left = 3
-	style.border_width_bottom = 1
-	style.border_color = tier_color
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
-	style.content_margin_left = 4
-	style.content_margin_right = 4
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	add_theme_stylebox_override("panel", style)
+	add_theme_stylebox_override("panel", ThemeBuilder.create_panel_style(tier_color, 3))
 
 
 func _on_tick() -> void:

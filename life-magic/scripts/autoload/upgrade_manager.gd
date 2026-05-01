@@ -11,8 +11,10 @@ const UPGRADE_PATHS := [
 	"res://scripts/data_instances/upgrades/upgrade_flower_mult.tres",
 	"res://scripts/data_instances/upgrades/upgrade_vine_mult.tres",
 	"res://scripts/data_instances/upgrades/upgrade_shrub_mult.tres",
-	"res://scripts/data_instances/upgrades/upgrade_tick_speed.tres",
 	"res://scripts/data_instances/upgrades/upgrade_all_mult.tres",
+	"res://scripts/data_instances/upgrades/upgrade_cascade_echo.tres",
+	"res://scripts/data_instances/upgrades/upgrade_bloom_burst.tres",
+	"res://scripts/data_instances/upgrades/upgrade_harmonic.tres",
 ]
 
 
@@ -92,8 +94,6 @@ func _apply_effect(data: UpgradeData) -> void:
 	match data.effect_type:
 		"generator_mult":
 			_apply_generator_mult(data)
-		"tick_speed":
-			_apply_tick_speed()
 
 
 func _apply_all_effects() -> void:
@@ -103,8 +103,6 @@ func _apply_all_effects() -> void:
 			match data.effect_type:
 				"generator_mult":
 					_apply_generator_mult(data)
-				"tick_speed":
-					_apply_tick_speed()
 
 
 func _apply_generator_mult(data: UpgradeData) -> void:
@@ -119,7 +117,6 @@ func _apply_generator_mult(data: UpgradeData) -> void:
 func recalc_all_multipliers() -> void:
 	for tier in range(8):
 		_recalc_tier_multiplier(tier)
-	_apply_tick_speed()
 
 
 func _recalc_tier_multiplier(tier: int) -> void:
@@ -136,21 +133,39 @@ func _recalc_tier_multiplier(tier: int) -> void:
 	if pm:
 		mult *= pm.get_generator_mult(tier)
 		mult *= pm.get_bloom_mult(tier)
+	var prestm := get_node_or_null("/root/PrestigeManager")
+	if prestm:
+		mult *= 1.0 + prestm.get_blessing_effect("all_production")
 	GameState.set_generator_multiplier(tier, mult)
 
 
-func _apply_tick_speed() -> void:
-	var total_mult := 1.0
-	for data in upgrade_data:
-		if data.effect_type != "tick_speed":
-			continue
-		var level: int = levels.get(data.id, 0)
-		if level > 0:
-			total_mult *= (1.0 + data.effect_per_level * level)
-	var pm := get_node_or_null("/root/PlotManager")
-	if pm:
-		total_mult *= pm.get_tick_speed_mult()
-	TickEngine.upgrade_multiplier = total_mult
+
+func get_cascade_echo_chance() -> float:
+	var data: UpgradeData = _data_map.get("cascade_echo")
+	if not data:
+		return 0.0
+	var level: int = levels.get("cascade_echo", 0)
+	return data.effect_per_level * level
+
+
+func get_bloom_burst_seconds() -> float:
+	var data: UpgradeData = _data_map.get("bloom_burst")
+	if not data:
+		return 0.0
+	var level: int = levels.get("bloom_burst", 0)
+	return data.effect_per_level * level
+
+
+func get_harmonic_interval() -> int:
+	var level: int = levels.get("harmonic", 0)
+	if level <= 0:
+		return 0
+	return maxi(20 - (level - 1) * 3, 5)
+
+
+func milestone_unlock(upgrade_id: String) -> void:
+	if _data_map.has(upgrade_id):
+		unlocked[upgrade_id] = true
 
 
 func get_data(id: String) -> UpgradeData:

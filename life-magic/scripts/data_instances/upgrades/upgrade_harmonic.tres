@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/upgrade_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "harmonic"
+display_name = "Harmonic Beating"
+description = "Every so often your heart beats with special force and all spells produce triple. Higher levels make it happen more often."
+base_cost = 2000.0
+cost_multiplier = 3.0
+max_level = 5
+effect_type = "harmonic"
+effect_target = "all"
+effect_per_level = 1.0
+unlock_total_mana = -1.0

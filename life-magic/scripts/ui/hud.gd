@@ -7,17 +7,16 @@ extends VBoxContainer
 @onready var per_beat_label: Label = %PerTickLabel
 @onready var mult_label: Label = %MultLabel
 @onready var wizard_view: SubViewportContainer = %WizardView
+@onready var vitality_label: Label = %VitalityLabel
+@onready var vital_charge_btn: Button = %VitalChargeBtn
+@onready var surge_bar: HBoxContainer = %SurgeBar
+@onready var surge_label: Label = %SurgeLabel
+@onready var surge_progress: ProgressBar = %SurgeProgress
+@onready var surge_timer_label: Label = %SurgeTimerLabel
 
 var _displayed_mana: float = 0.0
 var _target_mana: float = 0.0
 const MANA_LERP_SPEED := 10.0
-
-const ZONE_RESTING := {"name": "RESTING", "color": Color(0.4, 0.6, 0.8)}
-const ZONE_LIGHT := {"name": "LIGHT", "color": Color(0.3, 0.7, 0.4)}
-const ZONE_MODERATE := {"name": "MODERATE", "color": Color(0.7, 0.8, 0.2)}
-const ZONE_VIGOROUS := {"name": "VIGOROUS", "color": Color(0.9, 0.55, 0.1)}
-const ZONE_PEAK := {"name": "PEAK", "color": Color(0.9, 0.15, 0.15)}
-
 
 func _ready() -> void:
 	resized.connect(queue_redraw)
@@ -26,12 +25,21 @@ func _ready() -> void:
 	EventBus.heart_rate_updated.connect(_on_hr_updated)
 	EventBus.heartbeat_fired.connect(_on_heartbeat)
 	EventBus.tick_fired.connect(_on_tick_fired)
+	EventBus.vitality_changed.connect(_on_vitality_changed)
+	EventBus.surge_opportunity.connect(_on_surge_opportunity)
+	EventBus.surge_completed.connect(_on_surge_completed)
+	EventBus.surge_expired.connect(_on_surge_expired)
+	EventBus.surge_effect_started.connect(_on_surge_effect_started)
+	EventBus.surge_effect_ended.connect(_on_surge_effect_ended)
 
 	_target_mana = GameState.mana
 	_displayed_mana = _target_mana
 	_update_mana_display()
 	_update_income_display()
 	_update_hr_display(HeartRateManager.smoothed_bpm, HeartRateManager.get_hr_factor())
+	_update_vitality_display()
+	vital_charge_btn.pressed.connect(_on_vital_charge_pressed)
+	surge_bar.visible = false
 
 
 func _draw() -> void:
@@ -56,6 +64,7 @@ func _process(delta: float) -> void:
 		if absf(_displayed_mana - _target_mana) < 0.5:
 			_displayed_mana = _target_mana
 		_update_mana_display()
+	_update_surge_display()
 
 
 func _on_mana_changed(new_amount: float, _delta: float) -> void:
@@ -90,27 +99,103 @@ func _update_hr_display(bpm: float, hr_factor: float) -> void:
 	bpm_value.text = "%d" % int(bpm)
 	mult_label.text = "%.1fx" % hr_factor
 
-	var zone := _get_hr_zone(bpm)
+	var zone := GameFormulas.get_hr_zone(bpm, GameState.get_age())
+	var zone_color: Color = zone["color"]
 	zone_label.text = zone["name"]
-	zone_label.add_theme_color_override("font_color", zone["color"])
-	bpm_value.add_theme_color_override("font_color", zone["color"])
-	bpm_unit.add_theme_color_override("font_color", zone["color"].darkened(0.3))
-	mult_label.add_theme_color_override("font_color", zone["color"])
+	zone_label.add_theme_color_override("font_color", zone_color)
+	bpm_value.add_theme_color_override("font_color", zone_color)
+	bpm_unit.add_theme_color_override("font_color", zone_color.darkened(0.3))
+	mult_label.add_theme_color_override("font_color", zone_color)
 
-	wizard_view.set_zone_color(zone["color"])
+	wizard_view.set_zone_color(zone_color)
 
 
-func _get_hr_zone(bpm: float) -> Dictionary:
-	var age: float = GameState.settings.get("age", 30.0)
-	var max_hr := GameFormulas.max_heart_rate(age)
-	var pct := bpm / max_hr if max_hr > 0.0 else 0.0
+func _on_vitality_changed(_amount: float) -> void:
+	_update_vitality_display()
 
-	if pct >= 0.85:
-		return ZONE_PEAK
-	elif pct >= 0.70:
-		return ZONE_VIGOROUS
-	elif pct >= 0.55:
-		return ZONE_MODERATE
-	elif pct >= 0.40:
-		return ZONE_LIGHT
-	return ZONE_RESTING
+
+func _update_vitality_display() -> void:
+	if SurgeManager.vital_charge_active():
+		var remaining := int(SurgeManager.get_vital_charge_remaining())
+		vitality_label.text = "2x Production %d:%02d" % [remaining / 60, remaining % 60]
+		vitality_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_GREEN)
+		vitality_label.visible = true
+		vital_charge_btn.visible = false
+	elif GameState.vitality > 0.0:
+		vitality_label.text = "%s Vit" % GameFormulas.format_number(GameState.vitality)
+		vitality_label.add_theme_color_override("font_color", Color(0.3, 0.7, 0.9))
+		vitality_label.visible = true
+		vital_charge_btn.visible = GameState.vitality >= 3.0
+		vital_charge_btn.disabled = GameState.vitality < 3.0
+	else:
+		vitality_label.visible = false
+		vital_charge_btn.visible = false
+
+
+func _on_vital_charge_pressed() -> void:
+	if SurgeManager.vital_charge_active():
+		return
+	if GameState.spend_vitality(3.0):
+		SurgeManager.activate_vital_charge()
+		EventBus.notification.emit(
+			"Vital Charge! 2x production for 3 minutes. Time to move!",
+			"surge"
+		)
+		_update_vitality_display()
+
+
+func _on_surge_opportunity(_surge_id: String) -> void:
+	surge_bar.visible = true
+	surge_label.text = SurgeManager.get_surge_message()
+	surge_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_GOLD)
+	surge_progress.value = 0.0
+	EventBus.notification.emit("A surge opportunity has appeared!", "surge")
+
+
+func _on_surge_completed(_surge_id: String) -> void:
+	if SurgeManager.state == SurgeManager.State.IDLE:
+		surge_bar.visible = false
+
+
+func _on_surge_expired(_surge_id: String) -> void:
+	surge_bar.visible = false
+
+
+func _on_surge_effect_started(surge_id: String, _duration: float) -> void:
+	surge_bar.visible = true
+	var surge_name := surge_id.replace("_", " ").capitalize()
+	surge_label.text = "%s active!" % surge_name
+	surge_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_GREEN)
+	surge_progress.value = 100.0
+
+
+func _on_surge_effect_ended(_surge_id: String) -> void:
+	surge_bar.visible = false
+
+
+func _update_surge_display() -> void:
+	if not surge_bar.visible:
+		return
+
+	match SurgeManager.state:
+		SurgeManager.State.OFFERING, SurgeManager.State.TRACKING:
+			var progress := SurgeManager.get_hold_progress() * 100.0
+			surge_progress.value = progress
+			var remaining := int(SurgeManager.get_offer_time_remaining())
+			var mins := remaining / 60
+			var secs := remaining % 60
+			surge_timer_label.text = "%d:%02d" % [mins, secs]
+			if SurgeManager.state == SurgeManager.State.TRACKING:
+				surge_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_GREEN)
+			else:
+				surge_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_GOLD)
+		SurgeManager.State.ACTIVE:
+			var remaining := int(SurgeManager.get_effect_time_remaining())
+			var secs := remaining % 60
+			var mins := remaining / 60
+			surge_timer_label.text = "%d:%02d" % [mins, secs]
+			var total_duration: float = SurgeManager.current_surge.get("effect_duration", 1.0)
+			if total_duration > 0.0:
+				surge_progress.value = (SurgeManager.get_effect_time_remaining() / total_duration) * 100.0
+		_:
+			surge_bar.visible = false

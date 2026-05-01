@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vital_walker"
+display_name = "Vital Walker"
+description = "Earn 10 Vitality through movement"
+flavor_text = "The wizard walks and the world follows."
+condition_type = "vitality_lifetime"
+condition_value = 10.0
+reward_type = "unlock_plot"
+reward_target = "garden"
+reward_value = 0.0

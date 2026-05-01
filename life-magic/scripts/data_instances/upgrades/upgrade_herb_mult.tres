@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "herb_mult"
 display_name = "Sigilwright's Forge"
-description = "A tower forge that etches sigils with strands of your own life force. Pulse Glyphs release 50% more Heartmotes per level."
+description = "The forge etches sigils with threads of life. Pulse Glyphs release 50% more Heartmotes per level."
 base_cost = 1000.0
 cost_multiplier = 3.0
 max_level = 10

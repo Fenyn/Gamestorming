@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/blessing_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "auto_tend"
+display_name = "Auto-Tend"
+description = "The Sanctum tends itself, guided by old wisdom."
+max_level = 1
+essence_cost = 25
+effect_type = "auto_tend"
+effect_value = 1.0
+category = "qol"

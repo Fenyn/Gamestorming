@@ -35,6 +35,14 @@ func setup(data: PlotData) -> void:
 	_data = data
 
 
+const ZONE_LABELS := {"rest": "Rest", "moderate": "Moderate", "active": "Active"}
+const ZONE_COLORS := {
+	"rest": Color(0.4, 0.6, 0.8),
+	"moderate": Color(0.7, 0.8, 0.2),
+	"active": Color(0.9, 0.55, 0.1),
+}
+
+
 func _ready() -> void:
 	if not _data:
 		return
@@ -43,13 +51,17 @@ func _ready() -> void:
 	plant_button.pressed.connect(_on_plant)
 
 	_build_slots()
-	_build_tend_controls()
+	if _data.growth_mode == "tithe":
+		_build_tithe_controls()
+	elif _data.tend_points > 0:
+		_build_tend_controls()
 
 	EventBus.plot_growth_tick.connect(_update_display)
 	EventBus.plot_seed_planted.connect(func(_id, _s): _update_display())
 	EventBus.plot_tend_changed.connect(func(_id): _update_display())
 	EventBus.plot_full_bloom.connect(_on_full_bloom)
 	EventBus.mana_changed.connect(func(_a, _d): _update_plant_button())
+	EventBus.vitality_changed.connect(func(_a): _update_plant_button())
 	EventBus.tick_fired.connect(func(_t): _update_display())
 
 	_update_display()
@@ -105,6 +117,75 @@ func _build_slots() -> void:
 			"bar": bar,
 			"last_stage": "",
 		})
+
+
+func _build_tithe_controls() -> void:
+	var header := Label.new()
+	header.text = "Mana Tithe"
+	header.add_theme_font_size_override("font_size", 12)
+	tend_container.add_child(header)
+
+	var desc := Label.new()
+	desc.text = "Divert a portion of your mana production to fuel the Forge."
+	desc.add_theme_font_size_override("font_size", 9)
+	desc.add_theme_color_override("font_color", ThemeBuilder.TEXT_MUTED)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
+	tend_container.add_child(desc)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+
+	for pct in _data.tithe_options:
+		var btn := Button.new()
+		btn.text = "%d%%" % int(pct * 100.0)
+		btn.toggle_mode = true
+		btn.custom_minimum_size = Vector2(0, 32)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var pct_val: float = pct
+		btn.pressed.connect(func():
+			var current := PlotManager.get_tithe(_data.id)
+			if is_equal_approx(current, pct_val):
+				PlotManager.set_tithe(_data.id, 0.0)
+			else:
+				PlotManager.set_tithe(_data.id, pct_val)
+			_update_tithe_buttons()
+		)
+		row.add_child(btn)
+
+	var off_btn := Button.new()
+	off_btn.text = "Off"
+	off_btn.toggle_mode = true
+	off_btn.custom_minimum_size = Vector2(0, 32)
+	off_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	off_btn.pressed.connect(func():
+		PlotManager.set_tithe(_data.id, 0.0)
+		_update_tithe_buttons()
+	)
+	row.add_child(off_btn)
+
+	tend_container.add_child(row)
+
+	var progress_label := Label.new()
+	progress_label.name = "TitheProgress"
+	progress_label.add_theme_font_size_override("font_size", 10)
+	progress_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_SECONDARY)
+	tend_container.add_child(progress_label)
+
+
+func _update_tithe_buttons() -> void:
+	var current := PlotManager.get_tithe(_data.id)
+	var row: HBoxContainer = tend_container.get_child(2) as HBoxContainer
+	if not row:
+		return
+	for child in row.get_children():
+		if child is Button:
+			var btn_node: Button = child
+			if btn_node.text == "Off":
+				btn_node.button_pressed = is_equal_approx(current, 0.0)
+			else:
+				var pct_text: String = btn_node.text.replace("%", "")
+				var pct_val: float = float(pct_text) / 100.0
+				btn_node.button_pressed = is_equal_approx(current, pct_val)
 
 
 func _build_tend_controls() -> void:
@@ -217,7 +298,11 @@ func _update_display() -> void:
 		var bar: ProgressBar = sp["bar"]
 
 		if not slot["planted"]:
-			stage_label.text = "Vacant"
+			var vacant_text := "Vacant"
+			if _data.growth_mode == "zone_tracked":
+				var zone_name: String = slot.get("zone", "rest")
+				vacant_text = "Vacant [%s]" % ZONE_LABELS.get(zone_name, zone_name)
+			stage_label.text = vacant_text
 			stage_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 			pct_label.text = ""
 			bar.value = 0.0
@@ -227,7 +312,11 @@ func _update_display() -> void:
 			var stage := PlotManager.get_plant_stage(growth)
 			var pct := int(growth * 100.0)
 
-			stage_label.text = stage
+			var display_name := stage
+			if _data.growth_mode == "zone_tracked":
+				var zone_name: String = slot.get("zone", "rest")
+				display_name = "%s [%s]" % [stage, ZONE_LABELS.get(zone_name, zone_name)]
+			stage_label.text = display_name
 			stage_label.add_theme_color_override("font_color", STAGE_COLORS.get(stage, Color.WHITE))
 			pct_label.text = "%d%%" % pct
 			pct_label.add_theme_color_override("font_color", STAGE_COLORS.get(stage, Color.WHITE))
@@ -256,9 +345,19 @@ func _update_plant_button() -> void:
 		plant_cost_label.text = ""
 	else:
 		var cost := PlotManager.get_plant_cost(_data.id)
-		plant_button.text = "Inscribe Sigil"
-		plant_button.disabled = GameState.mana < cost
-		plant_cost_label.text = "%s Mana" % GameFormulas.format_number(cost)
+		match _data.plant_cost_type:
+			"vitality":
+				plant_button.text = "Inscribe Sigil"
+				plant_button.disabled = GameState.vitality < cost
+				plant_cost_label.text = "%s Vitality" % GameFormulas.format_number(cost)
+			"free":
+				plant_button.text = "Activate Slot"
+				plant_button.disabled = false
+				plant_cost_label.text = ""
+			_:
+				plant_button.text = "Inscribe Sigil"
+				plant_button.disabled = GameState.mana < cost
+				plant_cost_label.text = "%s Mana" % GameFormulas.format_number(cost)
 
 
 func _update_tend_display() -> void:
@@ -279,20 +378,43 @@ func _update_tend_display() -> void:
 func _update_bonus_display() -> void:
 	var parts: PackedStringArray = []
 	var state: Dictionary = GameState.plots.get(_data.id, {})
-	var alloc: Dictionary = state.get("tend_allocation", {})
-	var avg := PlotManager.get_average_maturity(state)
 
-	for target in alloc:
-		var pts: int = int(alloc[target])
-		if pts <= 0:
-			continue
-		var bonus_pct := _data.tend_power_base * avg * pts * 100.0
-		if bonus_pct > 0.01:
-			parts.append("%s +%.0f%%" % [PlotManager.get_tend_label(target), bonus_pct])
+	if _data.growth_mode == "tithe":
+		var accumulated: float = state.get("tithe_accumulated", 0.0)
+		var threshold: float = _data.tithe_threshold
+		parts.append("Tithed: %s / %s" % [
+			GameFormulas.format_number(accumulated),
+			GameFormulas.format_number(threshold)
+		])
+		var progress_node := tend_container.get_node_or_null("TitheProgress")
+		if progress_node and progress_node is Label:
+			var current_pct := PlotManager.get_tithe(_data.id)
+			if current_pct > 0.0:
+				progress_node.text = "Tithing %d%% of production" % int(current_pct * 100.0)
+			else:
+				progress_node.text = "Set a tithe rate to begin forging"
+		_update_tithe_buttons()
+	elif _data.growth_mode == "zone_tracked":
+		var current_zone := PlotManager._get_current_hr_zone()
+		parts.append("Current zone: %s" % ZONE_LABELS.get(current_zone, current_zone))
+	else:
+		var alloc: Dictionary = state.get("tend_allocation", {})
+		var avg := PlotManager.get_average_maturity(state)
+		for target in alloc:
+			var pts: int = int(alloc[target])
+			if pts <= 0:
+				continue
+			var bonus_pct := _data.tend_power_base * avg * pts * 100.0
+			if bonus_pct > 0.01:
+				parts.append("%s +%.0f%%" % [PlotManager.get_tend_label(target), bonus_pct])
 
 	var bloom_count: int = state.get("bloom_count", 0)
-	if bloom_count > 0 and _data.full_bloom_bonus.has("all_generators"):
-		var bloom_mult := pow(float(_data.full_bloom_bonus["all_generators"]), bloom_count)
-		parts.append("Resonance: %.2fx all" % bloom_mult)
+	if bloom_count > 0:
+		for key in _data.full_bloom_bonus:
+			var bloom_mult := pow(float(_data.full_bloom_bonus[key]), bloom_count)
+			parts.append("Resonance: %.2fx %s" % [bloom_mult, key.replace("_", " ")])
 
-	bonus_label.text = ", ".join(parts) if parts.size() > 0 else "Allocate attunement points for bonuses"
+	if parts.is_empty():
+		bonus_label.text = "Allocate attunement points for bonuses" if _data.tend_points > 0 else _data.description
+	else:
+		bonus_label.text = ", ".join(parts)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cascade_begins"
+display_name = "The Cascade Begins"
+description = "Own your first higher-tier spell"
+flavor_text = "One spell calls another, and the chain is born."
+condition_type = "any_tier_above_0"
+condition_value = 1.0
+reward_type = "unlock_upgrade"
+reward_target = "cascade_echo"
+reward_value = 0.0

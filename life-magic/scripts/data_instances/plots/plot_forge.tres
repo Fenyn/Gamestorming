@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlotData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plot_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "forge"
+display_name = "The Pulse Forge"
+description = "A crucible where you pour mana to forge lasting power. Give up some of your flow and the Forge will repay you tenfold."
+slot_count = 2
+plant_cost_base = 0.0
+plant_cost_mult = 1.0
+plant_cost_type = "free"
+growth_ticks = 1
+growth_mode = "tithe"
+tend_points = 0
+tend_options = PackedStringArray()
+tend_power_base = 0.0
+full_bloom_bonus = {"all_generators": 1.15}
+unlock_total_mana = -1.0
+unlock_vitality = 0.0
+tithe_options = PackedFloat64Array(0.1, 0.25, 0.5)
+tithe_threshold = 50000.0

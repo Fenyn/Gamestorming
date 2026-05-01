@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/upgrade_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bloom_burst"
+display_name = "Bloom Burst"
+description = "When a Sanctum blooms, all your spells fire at once in a brilliant flash. Each level adds 10 seconds worth of instant output."
+base_cost = 5000.0
+cost_multiplier = 4.0
+max_level = 5
+effect_type = "bloom_burst"
+effect_target = "all"
+effect_per_level = 10.0
+unlock_total_mana = -1.0

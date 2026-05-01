@@ -102,8 +102,7 @@ func _process_offline_progress() -> void:
 	if elapsed < 10:
 		return
 
-	var age: float = GameState.settings.get("age", 30.0)
-	var resting_bpm := GameFormulas.resting_heart_rate(age)
+	var resting_bpm := GameFormulas.resting_heart_rate(GameState.get_age())
 	var beats_per_sec := resting_bpm / 60.0
 	var offline_beats := int(float(elapsed) * beats_per_sec)
 	var offline_ticks := mini(offline_beats, MAX_OFFLINE_BEATS)
@@ -126,18 +125,7 @@ func _process_offline_progress() -> void:
 
 
 func _simulate_beat() -> void:
-	var tier_data := GeneratorManager.tier_data
-	for i in range(tier_data.size() - 1, -1, -1):
-		var data := tier_data[i]
-		var count := GameState.get_generator_count(data.tier)
-		if count <= 0.0:
-			continue
-		var multiplier := GameState.get_generator_multiplier(data.tier)
-		var produced := GameFormulas.generator_production(count, data.base_production, multiplier) * GeneratorManager.BEAT_SCALE * TickEngine.upgrade_multiplier
-		if data.produces_tier == -1:
-			GameState.add_mana(produced)
-		else:
-			GameState.add_generator_produced(data.produces_tier, produced)
+	GeneratorManager.process_production(1.0, false)
 	PlotManager.advance_growth()
 	PlotManager.check_full_blooms()
 

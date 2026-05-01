@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/upgrade_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cascade_echo"
+display_name = "Cascade Echo"
+description = "Sometimes the cascade rings twice. Each level adds a 15% chance for spells to echo and produce double."
+base_cost = 500.0
+cost_multiplier = 3.5
+max_level = 5
+effect_type = "cascade_echo"
+effect_target = "all"
+effect_per_level = 0.15
+unlock_total_mana = -1.0

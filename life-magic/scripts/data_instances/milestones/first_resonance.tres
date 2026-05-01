@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "first_resonance"
+display_name = "First Resonance"
+description = "Complete your first bloom cycle"
+flavor_text = "The Sanctum remembers what it learned."
+condition_type = "total_blooms"
+condition_value = 1.0
+reward_type = "unlock_plot"
+reward_target = "forge"
+reward_value = 0.0

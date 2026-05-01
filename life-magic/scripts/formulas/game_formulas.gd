@@ -1,5 +1,13 @@
 class_name GameFormulas
 
+const HR_ZONES := [
+	{"name": "RESTING",   "threshold": 0.0,  "color": Color(0.4, 0.6, 0.8)},
+	{"name": "LIGHT",     "threshold": 0.40, "color": Color(0.3, 0.7, 0.4)},
+	{"name": "MODERATE",  "threshold": 0.55, "color": Color(0.7, 0.8, 0.2)},
+	{"name": "VIGOROUS",  "threshold": 0.70, "color": Color(0.9, 0.55, 0.1)},
+	{"name": "PEAK",      "threshold": 0.85, "color": Color(0.9, 0.15, 0.15)},
+]
+
 
 static func max_heart_rate(age: float) -> float:
 	return 208.0 - 0.7 * age
@@ -7,6 +15,16 @@ static func max_heart_rate(age: float) -> float:
 
 static func resting_heart_rate(age: float) -> float:
 	return clampf(62.0 + 0.2 * age, 60.0, 80.0)
+
+
+static func get_hr_zone(bpm: float, age: float) -> Dictionary:
+	var max_hr := max_heart_rate(age)
+	var pct := bpm / max_hr if max_hr > 0.0 else 0.0
+	var result: Dictionary = HR_ZONES[0]
+	for zone in HR_ZONES:
+		if pct >= zone["threshold"]:
+			result = zone
+	return result
 
 
 static func hr_speed_factor(current_bpm: float, resting_bpm: float, max_hr: float, cap_pct: float) -> float:
@@ -52,6 +70,12 @@ static func format_number(value: float) -> String:
 	if value < 1000.0:
 		if value == floorf(value) and value < 100.0:
 			return str(int(value))
+		if value < 0.01:
+			return "%.4f" % value
+		if value < 0.1:
+			return "%.3f" % value
+		if value < 1.0:
+			return "%.2f" % value
 		return "%.1f" % value
 
 	var suffixes := ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"]

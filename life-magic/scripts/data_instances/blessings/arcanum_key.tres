@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BlessingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/blessing_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "arcanum_key"
+display_name = "Arcanum Key"
+description = "A key that opens the door to forgotten spell research."
+max_level = 1
+essence_cost = 20
+effect_type = "unlock_research"
+effect_value = 1.0
+category = "unlock"

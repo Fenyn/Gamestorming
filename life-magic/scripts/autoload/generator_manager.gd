@@ -39,6 +39,15 @@ func _on_tick(_tick_number: int) -> void:
 
 
 func _process_cascade() -> void:
+	var harmonic_mult := 1.0
+	var interval := UpgradeManager.get_harmonic_interval()
+	if interval > 0 and TickEngine.beat_count % interval == 0:
+		harmonic_mult = 3.0
+	var total_mult := SurgeManager.production_multiplier * SurgeManager.get_vital_charge_mult() * harmonic_mult
+	process_production(total_mult, true)
+
+
+func process_production(surge_mult: float = 1.0, emit_signals: bool = true) -> void:
 	for i in range(tier_data.size() - 1, -1, -1):
 		var data := tier_data[i]
 		var count := GameState.get_generator_count(data.tier)
@@ -46,14 +55,20 @@ func _process_cascade() -> void:
 			continue
 
 		var multiplier := GameState.get_generator_multiplier(data.tier)
-		var produced := GameFormulas.generator_production(count, data.base_production, multiplier) * BEAT_SCALE * TickEngine.upgrade_multiplier
+		var produced := GameFormulas.generator_production(count, data.base_production, multiplier) * BEAT_SCALE * surge_mult
+
+		if data.produces_tier >= 0:
+			var echo_chance := UpgradeManager.get_cascade_echo_chance()
+			if echo_chance > 0.0 and randf() < echo_chance:
+				produced *= 2.0
 
 		if data.produces_tier == -1:
 			GameState.add_mana(produced)
 		else:
 			GameState.add_generator_produced(data.produces_tier, produced)
 
-		EventBus.generator_production_tick.emit(data.tier, produced)
+		if emit_signals:
+			EventBus.generator_production_tick.emit(data.tier, produced)
 
 
 func _check_unlocks() -> void:
@@ -113,7 +128,7 @@ func get_production_per_beat(tier: int) -> float:
 		GameState.get_generator_count(tier),
 		data.base_production,
 		GameState.get_generator_multiplier(tier)
-	) * BEAT_SCALE * TickEngine.upgrade_multiplier
+	) * BEAT_SCALE
 
 
 func get_total_mana_per_beat() -> float:

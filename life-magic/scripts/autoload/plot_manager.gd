@@ -1,11 +1,26 @@
 extends Node
 
+const GROWTH_BEATS_PER_TICK := 8.0
+
+const STAGES := [
+	{"threshold": 0.8, "name": "Ascended",  "power": 1.0},
+	{"threshold": 0.6, "name": "Resonant",  "power": 0.75},
+	{"threshold": 0.4, "name": "Surging",   "power": 0.5},
+	{"threshold": 0.2, "name": "Pulsing",   "power": 0.25},
+	{"threshold": 0.0, "name": "Inscribed", "power": 0.1},
+]
+
 var plot_data: Array[PlotData] = []
 var _data_map: Dictionary = {}
 
 const PLOT_PATHS := [
 	"res://scripts/data_instances/plots/plot_seedbed.tres",
+	"res://scripts/data_instances/plots/plot_forge.tres",
+	"res://scripts/data_instances/plots/plot_garden.tres",
 ]
+
+const ZONE_REST_DELTA := 15.0
+const ZONE_MODERATE_DELTA := 40.0
 
 
 func _ready() -> void:
@@ -28,13 +43,19 @@ func _ensure_state(plot_id: String, data: PlotData) -> void:
 	if GameState.plots.has(plot_id):
 		return
 	var slots := []
-	for _i in data.slot_count:
-		slots.append({"planted": false, "growth": 0.0})
+	var zone_names := ["rest", "moderate", "active"]
+	for i in data.slot_count:
+		var slot := {"planted": false, "growth": 0.0}
+		if data.growth_mode == "zone_tracked":
+			slot["zone"] = zone_names[i % zone_names.size()]
+		slots.append(slot)
 	GameState.plots[plot_id] = {
 		"unlocked": false,
 		"slots": slots,
 		"tend_allocation": {},
 		"bloom_count": 0,
+		"tithe_pct": 0.0,
+		"tithe_accumulated": 0.0,
 	}
 
 
@@ -60,7 +81,9 @@ func _check_unlocks() -> void:
 		var state: Dictionary = GameState.plots.get(data.id, {})
 		if state.get("unlocked", false):
 			continue
-		if data.unlock_total_mana > 0.0 and GameState.total_mana_earned >= data.unlock_total_mana:
+		var mana_ok := data.unlock_total_mana <= 0.0 or GameState.total_mana_earned >= data.unlock_total_mana
+		var vitality_ok := data.unlock_vitality <= 0.0 or GameState.vitality_lifetime >= data.unlock_vitality
+		if mana_ok and vitality_ok:
 			_ensure_state(data.id, data)
 			GameState.plots[data.id]["unlocked"] = true
 			EventBus.plot_unlocked.emit(data.id)
@@ -73,14 +96,78 @@ func advance_growth() -> bool:
 		if not state["unlocked"]:
 			continue
 		var data: PlotData = _data_map.get(plot_id)
-		if not data or data.growth_ticks <= 0:
+		if not data:
 			continue
-		var increment := 1.0 / (data.growth_ticks * 8.0)
-		for slot in state["slots"]:
-			if slot["planted"] and slot["growth"] < 1.0:
+		match data.growth_mode:
+			"passive":
+				changed = _advance_passive(state, data) or changed
+			"tithe":
+				changed = _advance_tithe(state, data) or changed
+			"zone_tracked":
+				changed = _advance_zone(state, data) or changed
+	return changed
+
+
+func _advance_passive(state: Dictionary, data: PlotData) -> bool:
+	if data.growth_ticks <= 0:
+		return false
+	var increment := (1.0 / (data.growth_ticks * GROWTH_BEATS_PER_TICK)) * SurgeManager.growth_multiplier
+	var changed := false
+	for slot in state["slots"]:
+		if slot["planted"] and slot["growth"] < 1.0:
+			slot["growth"] = minf(slot["growth"] + increment, 1.0)
+			changed = true
+	return changed
+
+
+func _advance_tithe(state: Dictionary, data: PlotData) -> bool:
+	var tithe_pct: float = state.get("tithe_pct", 0.0)
+	if tithe_pct <= 0.0:
+		return false
+	var mana_per_beat := GeneratorManager.get_total_mana_per_beat()
+	var tithed := mana_per_beat * tithe_pct
+	if tithed <= 0.0:
+		return false
+	if GameState.mana < tithed:
+		tithed = GameState.mana
+	if tithed <= 0.0:
+		return false
+	GameState.mana -= tithed
+	EventBus.mana_changed.emit(GameState.mana, -tithed)
+	state["tithe_accumulated"] = state.get("tithe_accumulated", 0.0) + tithed
+	var threshold: float = data.tithe_threshold
+	var changed := false
+	for slot in state["slots"]:
+		if slot["planted"] and slot["growth"] < 1.0:
+			slot["growth"] = minf(state["tithe_accumulated"] / threshold, 1.0)
+			changed = true
+	return changed
+
+
+func _advance_zone(state: Dictionary, data: PlotData) -> bool:
+	if data.growth_ticks <= 0:
+		return false
+	var current_zone := _get_current_hr_zone()
+	var increment := (1.0 / (data.growth_ticks * GROWTH_BEATS_PER_TICK)) * SurgeManager.growth_multiplier
+	var changed := false
+	for slot in state["slots"]:
+		if slot["planted"] and slot["growth"] < 1.0:
+			var slot_zone: String = slot.get("zone", "rest")
+			if slot_zone == current_zone:
 				slot["growth"] = minf(slot["growth"] + increment, 1.0)
 				changed = true
 	return changed
+
+
+func _get_current_hr_zone() -> String:
+	var resting := GameFormulas.resting_heart_rate(GameState.get_age())
+	var bpm := HeartRateManager.smoothed_bpm
+	var delta := bpm - resting
+	if delta >= ZONE_MODERATE_DELTA:
+		return "active"
+	elif delta >= ZONE_REST_DELTA:
+		return "moderate"
+	return "rest"
 
 
 func check_full_blooms() -> bool:
@@ -106,7 +193,11 @@ func check_full_blooms() -> bool:
 		for slot in state["slots"]:
 			slot["planted"] = false
 			slot["growth"] = 0.0
+		if data.growth_mode == "tithe":
+			state["tithe_accumulated"] = 0.0
+			state["tithe_pct"] = 0.0
 		any_bloomed = true
+		_apply_bloom_burst()
 		EventBus.plot_full_bloom.emit(plot_id, state["bloom_count"])
 		EventBus.notification.emit(
 			"%s reached Full Resonance! (x%d)" % [data.display_name, state["bloom_count"]],
@@ -126,29 +217,35 @@ func plant_seed(plot_id: String) -> bool:
 		return false
 
 	var slot_index := -1
-	var planted_count := 0
 	for i in state["slots"].size():
-		if state["slots"][i]["planted"]:
-			planted_count += 1
-		elif slot_index == -1:
+		if not state["slots"][i]["planted"] and slot_index == -1:
 			slot_index = i
 
 	if slot_index == -1:
 		return false
 
 	var cost := get_plant_cost(plot_id)
-	if not GameState.spend_mana(cost):
-		return false
+	match data.plant_cost_type:
+		"mana":
+			if not GameState.spend_mana(cost):
+				return false
+		"vitality":
+			if not GameState.spend_vitality(cost):
+				return false
+		"free":
+			pass
 
 	state["slots"][slot_index]["planted"] = true
 	state["slots"][slot_index]["growth"] = 0.0
+	if data.growth_mode == "tithe":
+		state["tithe_accumulated"] = 0.0
 	EventBus.plot_seed_planted.emit(plot_id, slot_index)
 	return true
 
 
 func get_plant_cost(plot_id: String) -> float:
 	var data: PlotData = _data_map.get(plot_id)
-	if not data:
+	if not data or data.plant_cost_type == "free":
 		return 0.0
 	var state: Dictionary = GameState.plots.get(plot_id, {})
 	var planted_count := 0
@@ -164,6 +261,45 @@ func has_empty_slot(plot_id: String) -> bool:
 		if not slot["planted"]:
 			return true
 	return false
+
+
+func milestone_unlock(plot_id: String) -> void:
+	var data: PlotData = _data_map.get(plot_id)
+	if not data:
+		return
+	_ensure_state(plot_id, data)
+	GameState.plots[plot_id]["unlocked"] = true
+	EventBus.plot_unlocked.emit(plot_id)
+
+
+func _apply_bloom_burst() -> void:
+	var burst_seconds := UpgradeManager.get_bloom_burst_seconds()
+	if burst_seconds <= 0.0:
+		return
+	var mana_per_beat := GeneratorManager.get_total_mana_per_beat()
+	var bpm := HeartRateManager.smoothed_bpm
+	if bpm <= 0.0:
+		return
+	var beats_in_burst := (bpm / 60.0) * burst_seconds
+	var burst_mana := mana_per_beat * beats_in_burst
+	if burst_mana > 0.0:
+		GameState.add_mana(burst_mana)
+		EventBus.notification.emit(
+			"Bloom Burst! +%s mana!" % GameFormulas.format_number(burst_mana),
+			"surge"
+		)
+
+
+# --- Tithe ---
+
+func set_tithe(plot_id: String, pct: float) -> void:
+	var state: Dictionary = GameState.plots.get(plot_id, {})
+	state["tithe_pct"] = pct
+
+
+func get_tithe(plot_id: String) -> float:
+	var state: Dictionary = GameState.plots.get(plot_id, {})
+	return state.get("tithe_pct", 0.0)
 
 
 # --- Tend allocation ---
@@ -220,21 +356,27 @@ func get_bloom_mult(tier: int) -> float:
 	var mult := 1.0
 	for plot_id in GameState.plots:
 		var state: Dictionary = GameState.plots[plot_id]
+		if not state.get("unlocked", false):
+			continue
 		var data: PlotData = _data_map.get(plot_id)
 		if not data:
 			continue
 		var bloom_count: int = state.get("bloom_count", 0)
 		if bloom_count <= 0:
 			continue
+		var bloom_blessing := 1.0
+		var prestm := get_node_or_null("/root/PrestigeManager")
+		if prestm:
+			bloom_blessing += prestm.get_blessing_effect("bloom_bonus")
 		if data.full_bloom_bonus.has("all_generators"):
-			mult *= pow(float(data.full_bloom_bonus["all_generators"]), bloom_count)
+			mult *= pow(float(data.full_bloom_bonus["all_generators"]) * bloom_blessing, bloom_count)
 		var tier_key := "gen_%d" % tier
 		if data.full_bloom_bonus.has(tier_key):
-			mult *= pow(float(data.full_bloom_bonus[tier_key]), bloom_count)
+			mult *= pow(float(data.full_bloom_bonus[tier_key]) * bloom_blessing, bloom_count)
 	return mult
 
 
-func get_tick_speed_mult() -> float:
+func get_surge_power_mult() -> float:
 	var mult := 1.0
 	for plot_id in GameState.plots:
 		var state: Dictionary = GameState.plots[plot_id]
@@ -243,12 +385,13 @@ func get_tick_speed_mult() -> float:
 		var data: PlotData = _data_map.get(plot_id)
 		if not data:
 			continue
-		var points: int = int(state.get("tend_allocation", {}).get("tick_speed", 0))
-		if points <= 0:
+		var bloom_count: int = state.get("bloom_count", 0)
+		if bloom_count <= 0:
 			continue
-		var avg := get_average_maturity(state)
-		mult *= 1.0 + (data.tend_power_base * avg * points)
+		if data.full_bloom_bonus.has("surge_power"):
+			mult *= pow(float(data.full_bloom_bonus["surge_power"]), bloom_count)
 	return mult
+
 
 
 # --- Helpers ---
@@ -258,19 +401,17 @@ func get_plot_data(plot_id: String) -> PlotData:
 
 
 func get_plant_stage(growth: float) -> String:
-	if growth >= 0.8: return "Ascended"
-	if growth >= 0.6: return "Resonant"
-	if growth >= 0.4: return "Surging"
-	if growth >= 0.2: return "Pulsing"
-	return "Inscribed"
+	for stage in STAGES:
+		if growth >= stage["threshold"]:
+			return stage["name"]
+	return STAGES[-1]["name"]
 
 
 func get_stage_power(growth: float) -> float:
-	if growth >= 0.8: return 1.0
-	if growth >= 0.6: return 0.75
-	if growth >= 0.4: return 0.5
-	if growth >= 0.2: return 0.25
-	return 0.1
+	for stage in STAGES:
+		if growth >= stage["threshold"]:
+			return stage["power"]
+	return STAGES[-1]["power"]
 
 
 func get_average_maturity(state: Dictionary) -> float:
@@ -288,7 +429,6 @@ func get_average_maturity(state: Dictionary) -> float:
 func get_tend_label(target: String) -> String:
 	match target:
 		"mana": return "Mana"
-		"tick_speed": return "Tick Speed"
 		_:
 			if target.begins_with("gen_"):
 				var tier := int(target.substr(4))
@@ -309,6 +449,8 @@ func to_dict() -> Dictionary:
 			"slots": [],
 			"tend_allocation": state.get("tend_allocation", {}).duplicate(),
 			"bloom_count": state.get("bloom_count", 0),
+			"tithe_pct": state.get("tithe_pct", 0.0),
+			"tithe_accumulated": state.get("tithe_accumulated", 0.0),
 		}
 		for slot in state["slots"]:
 			serialized["slots"].append(slot.duplicate())
@@ -327,6 +469,8 @@ func from_dict(data: Dictionary) -> void:
 		state["unlocked"] = saved.get("unlocked", false)
 		state["bloom_count"] = saved.get("bloom_count", 0)
 		state["tend_allocation"] = saved.get("tend_allocation", {}).duplicate()
+		state["tithe_pct"] = saved.get("tithe_pct", 0.0)
+		state["tithe_accumulated"] = saved.get("tithe_accumulated", 0.0)
 		var saved_slots: Array = saved.get("slots", [])
 		for i in mini(saved_slots.size(), state["slots"].size()):
 			state["slots"][i] = saved_slots[i].duplicate()

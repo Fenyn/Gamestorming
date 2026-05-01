@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "shrub_mult"
 display_name = "Gaian Heartstone"
-description = "A heartstone in the tower's core, beating in time with the planet itself. Heartfont Spires call 50% more Wardens per level."
+description = "A heartstone that beats in time with the world. Spires call 50% more Wardens per level."
 base_cost = 1000000000.0
 cost_multiplier = 3.0
 max_level = 10

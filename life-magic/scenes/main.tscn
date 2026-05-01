@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_panel.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/plot_panel.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/milestone_panel.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/blessing_panel.tscn" id="8"]
 
 [node name="Main" type="Control" unique_id=431174953]
 layout_mode = 3
@@ -67,6 +69,24 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "Upgrades"
 
+[node name="ChronicleTab" type="Button" parent="VBoxContainer/TabBar"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Chronicle"
+
+[node name="BlessingsTab" type="Button" parent="VBoxContainer/TabBar"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Blessings"
+
 [node name="SettingsTab" type="Button" parent="VBoxContainer/TabBar" unique_id=1922687653]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 32)
@@ -89,6 +109,20 @@ size_flags_vertical = 3
 size_flags_stretch_ratio = 1.5
 
 [node name="UpgradePanel" parent="VBoxContainer" unique_id=1711524561 instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.5
+
+[node name="MilestonePanel" parent="VBoxContainer" instance=ExtResource("7")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.5
+
+[node name="BlessingPanel" parent="VBoxContainer" instance=ExtResource("8")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2

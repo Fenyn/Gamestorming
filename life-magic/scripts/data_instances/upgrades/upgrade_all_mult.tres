@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "all_mult"
 display_name = "Verdant Renewal"
-description = "A tower-spanning wellspring of regenerative life force. Everything you weave grows back stronger. All life magic flows 25% stronger per level."
+description = "A wellspring of pure life force. All your spells grow 25% stronger per level."
 base_cost = 7500.0
 cost_multiplier = 5.0
 max_level = 10

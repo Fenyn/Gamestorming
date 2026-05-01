@@ -9,6 +9,7 @@ var _rows: Dictionary = {}
 func _ready() -> void:
 	_generator_row_scene = preload("res://scenes/ui/generator_row.tscn")
 	EventBus.generator_unlocked.connect(_on_generator_unlocked)
+	EventBus.seasonal_rebirth_executed.connect(func(_e): _rebuild())
 
 	_build_rows()
 
@@ -23,6 +24,13 @@ func _on_generator_unlocked(tier: int) -> void:
 	var data := GeneratorManager.get_tier_data(tier)
 	if data and not _rows.has(tier):
 		_add_row(data)
+
+
+func _rebuild() -> void:
+	for tier in _rows:
+		_rows[tier].queue_free()
+	_rows.clear()
+	_build_rows.call_deferred()
 
 
 func _add_row(data: GeneratorData) -> void:

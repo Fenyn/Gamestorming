@@ -194,6 +194,7 @@ func _add_denomination(idx: int) -> void:
 		return
 	var value: float = DENOMINATIONS[idx]["value"]
 	_selected_amount = snapped(_selected_amount + value, 0.01)
+	SoundManager.play("coin_clink")
 	_message_label.text = ""
 	_update_drawer_display()
 
@@ -224,6 +225,7 @@ func _right_click_at(pixel: Vector2) -> void:
 func _complete_change() -> void:
 	_has_transaction = false
 	_message_label.text = ""
+	SoundManager.play("change_complete")
 	EventBus.change_made.emit(_selected_amount)
 
 	if _paying_customer and is_instance_valid(_paying_customer):

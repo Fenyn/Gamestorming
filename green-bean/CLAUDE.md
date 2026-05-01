@@ -37,7 +37,7 @@ Build a cozy, chaotic coffee shop game in the vein of Overcooked, Plate Up!, and
 
 ### 1. Register Station
 A customer walks up and states their order (speech bubble). The player walks to the register and uses the in-world POS screen to enter the drink:
-- Select size (Short, Tall, Grande, Venti)
+- Select size (Small, Medium, Large, Extra Large)
 - Select drink type
 - Select milk type
 - Add modifiers
@@ -204,7 +204,7 @@ A single-origin drip coffee. The simplest drink and a good tutorial order.
 7. Pour finished coffee into cup (interact)
 8. Lid and hand off
 
-**Ticket code:** `S/T/G/V` + `PO` (e.g., "G PO" = Grande Pour Over)
+**Ticket code:** `S/M/L/XL` + `PO` (e.g., "L PO" = Large Pour Over)
 
 ### Aeropress Espresso Shot
 Used as the base for espresso drinks. Not a traditional espresso machine — the aeropress is the Phase 1 equivalent.
@@ -229,7 +229,7 @@ Aeropress shot + hot water.
 2. Add hot water to the cup from dispenser — ACTIVE (water pour mini-game, fill to line, overflow risk)
 3. Lid and hand off
 
-**Ticket code:** `S/T/G/V` + `A` (e.g., "T A" = Tall Americano)
+**Ticket code:** `S/M/L/XL` + `A` (e.g., "M A" = Medium Americano)
 
 ### Latte
 Aeropress shot + steamed milk. The most complex Phase 1 drink — multiple active and passive phases to juggle.
@@ -242,7 +242,7 @@ Aeropress shot + steamed milk. The most complex Phase 1 drink — multiple activ
 5. Pour steamed milk into cup (interact)
 6. Lid and hand off
 
-**Ticket code:** `S/T/G/V` + `L` (e.g., "V L" = Venti Latte)
+**Ticket code:** `S/M/L/XL` + `L` (e.g., "XL L" = Extra Large Latte)
 
 ### Optimal Juggling Example
 A skilled player making a latte and a pour over simultaneously:
@@ -457,18 +457,19 @@ resources/
 
 ## Ticket / Cup Code System
 
-Tickets use Starbucks-style shorthand. Phase 1 codes:
+Tickets use coffee-shop shorthand. Current codes:
 
 | Field | Codes |
 |---|---|
-| **Size** | S (short), T (tall), G (grande), V (venti) |
-| **Drink** | PO (pour over), A (americano), L (latte) |
-| **Milk** | WM (whole milk) — default for Phase 1, omitted on ticket if default |
+| **Size** | S (small), M (medium), L (large), XL (extra large) |
+| **Drink** | PO (pour over), A (americano), L (latte), CAP (cappuccino), RE (red eye), EM (macchiato) |
+| **Syrup** | V (vanilla) — omitted if none |
 
 Example tickets:
-- `G PO` — Grande Pour Over
-- `T A` — Tall Americano
-- `V L WM` — Venti Latte, Whole Milk
+- `L PO` — Large Pour Over
+- `M A` — Medium Americano
+- `XL L V` — Extra Large Vanilla Latte
+- `S EM` — Small Macchiato
 
 ### Cup Size Mechanics
 
@@ -476,17 +477,17 @@ Size has a **small but real mechanical impact**. Larger cups require more of eve
 
 | Size | Grind Amount | Pour Duration | Milk Volume | Point Value |
 |---|---|---|---|---|
-| **Short** | Base | Base | Base | Base |
-| **Tall** | 1.2x | 1.2x | 1.2x | 1.15x |
-| **Grande** | 1.5x | 1.5x | 1.5x | 1.3x |
-| **Venti** | 1.8x | 1.8x | 1.8x | 1.5x |
+| **Small** | Base | Base | Base | Base |
+| **Medium** | 1.2x | 1.2x | 1.2x | 1.15x |
+| **Large** | 1.5x | 1.5x | 1.5x | 1.3x |
+| **Extra Large** | 1.8x | 1.8x | 1.8x | 1.5x |
 
 - **Grind amount:** More cranks on the hand grinder, longer auto-grind time
 - **Pour duration:** Fill line is higher — more water, more milk, slightly longer pour mini-games
 - **Overflow risk:** Bigger cup is more forgiving (larger margin before spill), but takes longer to fill
 - **Price:** Larger drinks cost more, so the player earns more per drink — compensating for the extra time
 
-Size affects the *duration* of tasks, not the *difficulty* of mini-games. A Venti pour-over still has the same saturation challenge — you just pour longer. The tradeoff is time vs. money: a Venti latte earns more but ties up stations longer.
+Size affects the *duration* of tasks, not the *difficulty* of mini-games. A Large pour-over still has the same saturation challenge — you just pour longer. The tradeoff is time vs. money: an Extra Large latte earns more but ties up stations longer.
 
 ### Phase 2 Additions (not yet implemented)
 - Milk alternatives: NF (nonfat), 2% (two percent), OM (oat), AM (almond)
@@ -601,45 +602,43 @@ Higher tiers free up player time for other tasks. Tier 3 equipment is expensive 
 ### Phase 1a — Grey-Box Prototype (COMPLETE)
 All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Core mechanics proven.
 - First-person player controller with mouse look, WASD movement, jump
-- Espresso stand grey-box layout with all stations
+- Hand-built espresso stand shop scene with editor-placed prefab stations
 - Item carry system (one item, Skyrim-style viewport float)
 - Camera-lock mini-game system with frame guards and input cooldown
 - Carriable items: Cup, AeropressDevice, Dripper, Pitcher, Kettle, MilkJug
-- In-world register with SubViewport POS screen, keyboard + crosshair click input
+- 6 drink types: Pour Over, Americano, Latte, Cappuccino, Red Eye, Macchiato
+- 4 cup sizes: Small, Medium, Large, Extra Large
+- In-world register with SubViewport POS screen (3 tabs: SIZE, DRINK, MODS), keyboard + crosshair click input
+- Syrup modifier system: vanilla syrup station with hold-to-pump mini-game, $0.60 upcharge, per-size pump targets
 - Cash transaction flow: charge → collect from customer → cash drawer change-making mini-game
 - Grinder mini-game (hand crank, grind level toggle, progress bar)
 - Aeropress flow: grounds → water pour (kettle animation) → stir (paddle visual) → steep (passive countdown) → press (2D pressure balance, plunger visual, liquid fill)
 - Pour-over flow: bloom pour (top-down saturation painting) → bloom wait (passive) → main pour → draw-down (passive countdown) → coffee ready
-- Milk steaming (stretching phase with sinking sweet spot → texturing phase passive → finish)
+- Milk steaming with drink-specific foam targets (stretching phase with sinking sweet spot → texturing phase passive → finish). Latte=35% foam, Cappuccino=75% foam
 - Milk jug from fridge → pour into pitcher → steam → pour into cup
 - Hot water station with kettle fill (timed, camera-locked) and americano cup fill
 - Counter pad with 4 snap slots for temporary item storage
+- Lid dispenser: hold cup + E to add lid (required for all drinks before handoff)
 - Kettle with tracked water level (depletes per use, refillable)
 - Unattended failure states: shot over-extraction/death, milk scald
-- Customer AI: walk to register, speech bubble, dual patience meters, paying state, walk to pickup, leave
-- Customer spawner with day-progress intensity curve
+- Star review system: 0-5 stars in half-star increments on handoff, quality popup, color-coded display
+- Tip system: 5-star drinks earn 20% tip on top of base price
+- Customer AI: walk to register, speech bubble, dual patience meters, paying state, walk to pickup, star review on leave
+- Customer spawner with day-progress intensity curve, randomized drink types + optional syrup modifier
 - Cash drawer with denomination trays, right-click to put back
-- Day timer + money tracking + end-of-day grade panel
-- HUD: timer, money, interaction prompts, crosshair, recipe step tracker with waterfall completion
-- Recipe-based drink data system (step arrays per drink, easy to extend)
+- Money earned at register (full price on order submission), tips earned on 5-star handoff
+- Day timer + star-based grading (S=4.5+, A=4.0+, B=3.0+) + end-of-day panel with revenue/tips/profit breakdown
+- HUD: timer, money + tips, interaction prompts, crosshair, procedural recipe step tracker with waterfall completion
+- Recipe-based drink data system (step arrays per drink, step-driven cup completion, foam targets per drink)
 - StationUtils autoload (shared item collision, placement, pickup, label creation, pour animation, frame guards)
 - World label visibility system (hidden during camera lock, shown in free mode)
+- Station item guards: reject already-processed items, E-pickup fallback in all completion states
 
-### Phase 1a.5 — Prefab Conversion (next step)
-Convert all stations and items from procedural code to `.tscn` prefab scenes so they can be hand-placed in the editor and have models swapped in.
+### Phase 1a.5 — Prefab Conversion (COMPLETE)
+All stations converted to `.tscn` prefab scenes, hand-placed in the editor.
 
-**Station prefabs to create (`scenes/stations/`):**
-- `register.tscn` — StaticBody3D + register.gd, screen mesh, collision
-- `cash_drawer.tscn` — StaticBody3D + cash_drawer.gd, screen mesh, collision
-- `cup_stack.tscn` — StaticBody3D + cup_stack.gd, collision
-- `grinder.tscn` — StaticBody3D + grinder_station.gd, device slot marker, collision
-- `aeropress.tscn` — StaticBody3D + aeropress_station.gd, cup/device slot markers, collision
-- `pour_over.tscn` — StaticBody3D + pour_over_station.gd, cup/dripper slot markers, collision
-- `hot_water.tscn` — StaticBody3D + hot_water_station.gd, fill cam marker, collision
-- `steam.tscn` — StaticBody3D + steam_station.gd, pitcher slot marker, collision
-- `fridge.tscn` — StaticBody3D + fridge_station.gd, collision
-- `hand_off.tscn` — StaticBody3D + hand_off.gd, collision
-- `counter_pad.tscn` — StaticBody3D + counter_pad.gd, slot markers, collision
+**Station prefabs (`scenes/stations/`):**
+register, cash_drawer, cup_stack, grinder, aeropress, pour_over, hot_water, steam, fridge, hand_off, counter_pad, syrup, lid_dispenser
 
 **Item prefabs to create (`scenes/items/`):**
 - `cup.tscn` — RigidBody3D + cup.gd (one per size, or parameterized)

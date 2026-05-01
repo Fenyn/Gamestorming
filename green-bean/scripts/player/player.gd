@@ -8,7 +8,7 @@ const FRICTION := 20.0
 const MOUSE_SENSITIVITY := 0.002
 const INTERACT_DISTANCE := 2.5
 
-enum InteractMode { FREE, MINI_GAME, SCREEN }
+enum InteractMode { FREE, MINI_GAME, SCREEN, INFO }
 
 var _yaw := 0.0
 var _pitch := 0.0
@@ -30,7 +30,13 @@ const EXIT_COOLDOWN_FRAMES := 10
 var _timer_label: Label = null
 var _money_label: Label = null
 var _interact_label: Label = null
-var _recipe_label: Label = null
+var _recipe_container: VBoxContainer = null
+var _recipe_title: Label = null
+var _recipe_step_labels: Array[Label] = []
+var _recipe_step_data: Array[Dictionary] = []
+var _recipe_built_for := ""
+var _tooltip_panel: PanelContainer = null
+var _tooltip_label: Label = null
 var _end_panel: PanelContainer = null
 var _day_ended := false
 var _active_order: OrderData = null
@@ -43,6 +49,17 @@ func _ready() -> void:
 	EventBus.drink_handed_off.connect(_on_drink_handed_off)
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
+		if _mode == InteractMode.FREE:
+			_enter_info_mode()
+		elif _mode == InteractMode.INFO:
+			_exit_info_mode()
+		get_viewport().set_input_as_handled()
+		return
+
+	if _mode == InteractMode.INFO:
+		return
+
 	if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 		if event is InputEventMouseButton and event.pressed:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -71,6 +88,10 @@ func _input(event: InputEvent) -> void:
 		_pitch = clampf(_pitch, -1.4, 1.4)
 		rotation.y = _yaw
 		camera.rotation.x = _pitch
+
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER and GameManager.prep_active:
+		GameManager.start_day()
+		return
 
 	if event.is_action_pressed("interact"):
 		_try_interact()
@@ -140,29 +161,67 @@ func _build_hud() -> void:
 	_interact_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_interact_label)
 
-	_recipe_label = Label.new()
-	_recipe_label.text = ""
-	_recipe_label.anchor_left = 1.0
-	_recipe_label.anchor_right = 1.0
-	_recipe_label.offset_left = -280
-	_recipe_label.offset_right = -20
-	_recipe_label.offset_top = 10
-	_recipe_label.add_theme_font_size_override("font_size", 14)
-	_recipe_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
-	_recipe_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud.add_child(_recipe_label)
+	_recipe_container = VBoxContainer.new()
+	_recipe_container.anchor_left = 1.0
+	_recipe_container.anchor_right = 1.0
+	_recipe_container.anchor_bottom = 0.5
+	_recipe_container.offset_left = -260
+	_recipe_container.offset_right = -20
+	_recipe_container.offset_top = 10
+	_recipe_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(_recipe_container)
+
+	_recipe_title = Label.new()
+	_recipe_title.add_theme_font_size_override("font_size", 15)
+	_recipe_title.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
+	_recipe_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_recipe_container.add_child(_recipe_title)
+
+	_tooltip_panel = PanelContainer.new()
+	_tooltip_panel.visible = false
+	_tooltip_panel.anchor_left = 1.0
+	_tooltip_panel.anchor_right = 1.0
+	_tooltip_panel.offset_left = -580
+	_tooltip_panel.offset_right = -275
+	_tooltip_panel.offset_top = 10
+	_tooltip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tip_style := StyleBoxFlat.new()
+	tip_style.bg_color = Color(0.08, 0.06, 0.04, 0.92)
+	tip_style.set_corner_radius_all(8)
+	tip_style.content_margin_left = 16
+	tip_style.content_margin_right = 16
+	tip_style.content_margin_top = 14
+	tip_style.content_margin_bottom = 14
+	_tooltip_panel.add_theme_stylebox_override("panel", tip_style)
+	_tooltip_label = Label.new()
+	_tooltip_label.add_theme_font_size_override("font_size", 14)
+	_tooltip_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.78))
+	_tooltip_label.add_theme_constant_override("line_spacing", 6)
+	_tooltip_panel.add_child(_tooltip_label)
+	hud.add_child(_tooltip_panel)
 
 func _update_hud() -> void:
 	if _timer_label:
-		var t := GameManager.get_time_remaining()
-		var mins := int(t) / 60
-		var secs := int(t) % 60
-		_timer_label.text = "%d:%02d" % [mins, secs]
-		if t < 30:
-			_timer_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+		if GameManager.prep_active:
+			_timer_label.text = "PREP"
+			_timer_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.4))
+		else:
+			var t := GameManager.get_time_remaining()
+			var mins := int(t) / 60
+			var secs := int(t) % 60
+			_timer_label.text = "%d:%02d" % [mins, secs]
+			if t < 30:
+				_timer_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+			else:
+				_timer_label.add_theme_color_override("font_color", Color.WHITE)
 
 	if _money_label:
-		_money_label.text = "$%.2f" % GameManager.total_earned
+		if GameManager.prep_active:
+			_money_label.text = "[Enter] Open shop"
+		elif GameManager.total_tips > 0.0:
+			_money_label.text = "$%.2f (+$%.2f tips)" % [GameManager.total_earned, GameManager.total_tips]
+		else:
+			_money_label.text = "$%.2f" % GameManager.total_earned
 
 	if _interact_label:
 		if interact_ray.is_colliding():
@@ -182,8 +241,8 @@ func _update_hud() -> void:
 		else:
 			_interact_label.text = ""
 
-	if _recipe_label:
-		_recipe_label.text = _get_recipe_text()
+	_update_recipe_display()
+	_process_info_hover()
 
 func _update_held_item() -> void:
 	if _held_item and is_instance_valid(_held_item):
@@ -219,6 +278,7 @@ func pickup_item(item: Node3D) -> void:
 		(item as RigidBody3D).freeze = true
 	StationUtils.set_item_collision(item, false)
 	item.global_position = hold_point.global_transform.origin
+	SoundManager.play("item_pickup")
 
 func _try_place_item() -> void:
 	if not _held_item:
@@ -239,6 +299,7 @@ func _try_place_item() -> void:
 		if collider and collider.has_method("receive_item"):
 			if collider.receive_item(_held_item):
 				_held_item = null
+				SoundManager.play("item_place")
 				return
 	var place_pos := hold_point.global_transform.origin + (-camera.global_transform.basis.z * 0.3)
 	_held_item.global_position = place_pos
@@ -246,6 +307,7 @@ func _try_place_item() -> void:
 		(_held_item as RigidBody3D).freeze = false
 	StationUtils.set_item_collision(_held_item, true)
 	_held_item = null
+	SoundManager.play("item_place")
 
 func drop_held_item() -> void:
 	if _held_item and is_instance_valid(_held_item):
@@ -265,6 +327,9 @@ func get_held_item() -> Node3D:
 func has_held_item() -> bool:
 	return _held_item != null and is_instance_valid(_held_item)
 
+func get_active_order() -> OrderData:
+	return _active_order
+
 func _set_world_labels_visible(vis: bool) -> void:
 	for label in get_tree().get_nodes_in_group("world_label"):
 		(label as Node3D).visible = vis
@@ -275,119 +340,155 @@ func _set_world_labels_visible(vis: bool) -> void:
 func _on_ticket_printed(data: Dictionary) -> void:
 	_active_order = data["order"] as OrderData
 
-func _on_drink_handed_off(_data: Dictionary, _earned: float) -> void:
+func _on_drink_handed_off(data: Dictionary) -> void:
 	_active_order = null
+	var stars: float = data.get("stars", 0.0)
+	var tip: float = data.get("tip", 0.0)
+	_show_review_popup(stars, tip)
 
-func _get_recipe_text() -> String:
+func _show_review_popup(stars: float, tip: float) -> void:
+	var hud := $HUD
+	var popup := Label.new()
+	popup.text = "%.1f / 5" % stars
+	if tip > 0.0:
+		popup.text += "\n+$%.2f tip!" % tip
+	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	popup.anchors_preset = Control.PRESET_CENTER
+	popup.anchor_left = 0.5
+	popup.anchor_right = 0.5
+	popup.anchor_top = 0.4
+	popup.anchor_bottom = 0.4
+	popup.offset_left = -150
+	popup.offset_right = 150
+	popup.add_theme_font_size_override("font_size", 42)
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if stars >= 5.0:
+		popup.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+	elif stars >= 4.0:
+		popup.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+	elif stars >= 3.0:
+		popup.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	elif stars >= 2.0:
+		popup.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
+	else:
+		popup.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+	hud.add_child(popup)
+	var tween := create_tween()
+	tween.tween_interval(1.5)
+	tween.tween_property(popup, "modulate:a", 0.0, 1.0)
+	tween.tween_callback(popup.queue_free)
+
+func _update_recipe_display() -> void:
 	if not _active_order:
-		return ""
+		if not _recipe_built_for.is_empty():
+			_clear_recipe_labels()
+			_recipe_title.text = ""
+			_recipe_built_for = ""
+		_tooltip_panel.visible = false
+		return
+
+	var order_key := _active_order.ticket_code
+	if order_key != _recipe_built_for:
+		_rebuild_recipe_labels()
+		_recipe_built_for = order_key
+
+	_refresh_recipe_checks()
+
+func _clear_recipe_labels() -> void:
+	for lbl in _recipe_step_labels:
+		lbl.queue_free()
+	_recipe_step_labels.clear()
+	_recipe_step_data.clear()
+
+func _rebuild_recipe_labels() -> void:
+	_clear_recipe_labels()
+
+	var drink_name := DrinkData.get_drink_name(_active_order.drink_type)
+	_recipe_title.text = "[%s] %s  (Tab: info)" % [_active_order.ticket_code, drink_name]
+
+	_recipe_step_data = []
+	_recipe_step_data.append({"name": "Grab cup", "step": -1, "tip": ""})
+
+	var recipe_steps: Array = DrinkData.get_recipe(_active_order.drink_type)["steps"]
+	for s in recipe_steps:
+		var step := s as DrinkData.Step
+		var sname := DrinkData.get_step_name(step, _active_order.drink_type)
+		if sname.is_empty():
+			continue
+		_recipe_step_data.append({
+			"name": sname,
+			"step": step,
+			"tip": DrinkData.get_step_tooltip(step),
+		})
+
+	if _active_order.has_syrup():
+		var syn := DrinkData.get_syrup_name(_active_order.requested_syrup as DrinkData.SyrupType)
+		_recipe_step_data.append({
+			"name": "Add %s syrup" % syn,
+			"step": DrinkData.Step.ADD_SYRUP,
+			"tip": "1.  Place cup at syrup station\n2.  [E] to start pumping\n3.  Hold click ~0.8s per pump\n4.  Match target pump count for size",
+		})
+
+	if _active_order.requested_sauce >= 0 and not DrinkData.has_step(_active_order.drink_type, DrinkData.Step.ADD_SAUCE):
+		var san := DrinkData.get_sauce_name(_active_order.requested_sauce as DrinkData.SauceType)
+		_recipe_step_data.append({
+			"name": "Add %s sauce" % san,
+			"step": DrinkData.Step.ADD_SAUCE,
+			"tip": DrinkData.get_step_tooltip(DrinkData.Step.ADD_SAUCE),
+		})
+
+	_recipe_step_data.append({"name": "Add lid", "step": DrinkData.Step.LID, "tip": "Hold cup, [E] at lid dispenser"})
+	_recipe_step_data.append({"name": "Hand off", "step": -2, "tip": "Place finished cup on hand-off counter"})
+
+	var in_info := _mode == InteractMode.INFO
+	for entry in _recipe_step_data:
+		var lbl := Label.new()
+		lbl.text = "  [ ] %s" % entry["name"]
+		lbl.add_theme_font_size_override("font_size", 13)
+		lbl.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.mouse_filter = Control.MOUSE_FILTER_PASS if in_info else Control.MOUSE_FILTER_IGNORE
+		if not (entry["tip"] as String).is_empty():
+			lbl.set_meta("step_tooltip", entry["tip"])
+		_recipe_container.add_child(lbl)
+		_recipe_step_labels.append(lbl)
+
+func _refresh_recipe_checks() -> void:
 	var cup := _find_active_cup()
-	var held_dev := _find_active_device()
-	var any_dev := _find_device_anywhere()
-	var lines: Array[String] = []
-	var code := _active_order.ticket_code
-	var holding_dev := held_dev != null
-	var dev := any_dev if any_dev else held_dev
-	var dev_has_grounds := dev != null and dev.has_grounds()
-	var dev_has_water := dev != null and dev.has_water
-	var dev_stirred := dev != null and dev.is_stirred
+	var checks: Array[bool] = []
+	for entry in _recipe_step_data:
+		var step_id: int = entry["step"]
+		var done := false
+		match step_id:
+			-1: done = cup != null
+			-2: done = false
+			_: done = _is_step_done(step_id as DrinkData.Step, cup)
+		checks.append(done)
 
-	match _active_order.drink_type:
-		DrinkData.DrinkType.POUR_OVER:
-			var drip := _find_active_dripper()
-			var drip_has_grounds := drip != null and drip.has_grounds()
-			var po_checks: Array[bool] = [
-				cup != null,
-				drip != null,
-				drip_has_grounds,
-				false,
-				cup != null and cup.has_pour_over_coffee,
-				cup != null and cup.has_pour_over_coffee,
-				false,
-			]
-			po_checks = _waterfall(po_checks)
-			var po_names := [
-				"Grab cup from stack",
-				"Pick up dripper",
-				"Grind beans (coarse)",
-				"Place dripper + cup at station",
-				"Pour water (saturation)",
-				"Wait for draw-down",
-				"Hand off drink",
-			]
-			lines.append("[%s] Pour Over" % code)
-			for i in range(po_names.size()):
-				lines.append(_step(po_names[i], po_checks[i]))
-		DrinkData.DrinkType.AMERICANO:
-			var has_kettle_water := _find_filled_kettle()
-			var checks: Array[bool] = [
-				cup != null,
-				holding_dev or dev_has_grounds,
-				dev_has_grounds,
-				dev_has_grounds,
-				has_kettle_water or dev_has_water,
-				dev_has_water,
-				dev_stirred,
-				cup != null and cup.has_shot,
-				cup != null and cup.has_hot_water,
-				false,
-			]
-			checks = _waterfall(checks)
-			var step_names := [
-				"Grab cup from stack",
-				"Pick up aeropress",
-				"Grind beans (fine)",
-				"Place device + cup at station",
-				"Fill kettle at hot water",
-				"Pour water into chamber",
-				"Stir",
-				"Wait for steep + press",
-				"Fill kettle + add hot water",
-				"Hand off drink",
-			]
-			lines.append("[%s] Americano" % code)
-			for i in range(step_names.size()):
-				lines.append(_step(step_names[i], checks[i]))
-		DrinkData.DrinkType.LATTE:
-			var has_milk_jug_out := _find_milk_jug_out()
-			var lt_checks: Array[bool] = [
-				cup != null,
-				holding_dev or dev_has_grounds,
-				cup != null and cup.has_shot,
-				has_milk_jug_out,
-				_find_active_pitcher_with_milk(),
-				_find_steamed_pitcher(),
-				cup != null and cup.has_steamed_milk,
-				false,
-			]
-			lt_checks = _waterfall(lt_checks)
-			var lt_names := [
-				"Grab cup + pull shot",
-				"Grind + press into cup",
-				"Set cup on counter pad",
-				"Get milk jug from fridge",
-				"Pour milk into pitcher",
-				"Steam milk",
-				"Pour milk into cup",
-				"Hand off drink",
-			]
-			lines.append("[%s] Latte" % code)
-			for i in range(lt_names.size()):
-				lines.append(_step(lt_names[i], lt_checks[i]))
-	return "\n".join(lines)
-
-func _waterfall(steps: Array[bool]) -> Array[bool]:
 	var highest := -1
-	for i in range(steps.size()):
-		if steps[i]:
+	for i in range(checks.size()):
+		if checks[i]:
 			highest = i
-	var result: Array[bool] = []
-	for i in range(steps.size()):
-		result.append(i <= highest)
-	return result
 
-func _step(text: String, done: bool) -> String:
-	return ("  [x] " if done else "  [ ] ") + text
+	for i in range(_recipe_step_labels.size()):
+		var done := i <= highest
+		var check := "x" if done else " "
+		_recipe_step_labels[i].text = "  [%s] %s" % [check, _recipe_step_data[i]["name"]]
+		var color := Color(0.5, 0.7, 0.5) if done else Color(1, 0.95, 0.8)
+		_recipe_step_labels[i].add_theme_color_override("font_color", color)
+
+func _is_step_done(step: DrinkData.Step, cup: Cup) -> bool:
+	if cup == null:
+		return false
+	match step:
+		DrinkData.Step.AEROPRESS_BREW: return cup.has_shot
+		DrinkData.Step.POUR_OVER_BREW: return cup.has_pour_over_coffee
+		DrinkData.Step.HOT_WATER: return cup.has_hot_water
+		DrinkData.Step.STEAM_MILK: return cup.has_steamed_milk
+		DrinkData.Step.ADD_SAUCE: return cup.has_sauce
+		DrinkData.Step.ADD_SYRUP: return cup.syrup_pumps > 0.0
+		DrinkData.Step.LID: return cup.has_lid
+	return false
 
 func _find_active_cup() -> Cup:
 	for node in get_tree().get_nodes_in_group("cup"):
@@ -395,56 +496,43 @@ func _find_active_cup() -> Cup:
 			return node
 	return null
 
-func _find_active_device() -> AeropressDevice:
-	if _held_item is AeropressDevice:
-		return _held_item as AeropressDevice
-	return null
+func _enter_info_mode() -> void:
+	if _mode != InteractMode.FREE:
+		return
+	_mode = InteractMode.INFO
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	for lbl in _recipe_step_labels:
+		lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+	_recipe_container.mouse_filter = Control.MOUSE_FILTER_PASS
 
-func _find_device_anywhere() -> AeropressDevice:
-	if _held_item is AeropressDevice:
-		return _held_item as AeropressDevice
-	for node in get_tree().get_nodes_in_group("aeropress_device"):
-		var dev := node as AeropressDevice
-		if dev.has_grounds() or dev.has_water or dev.is_stirred:
-			return dev
-	return null
+func _exit_info_mode() -> void:
+	if _mode != InteractMode.INFO:
+		return
+	_mode = InteractMode.FREE
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	_tooltip_panel.visible = false
+	for lbl in _recipe_step_labels:
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_recipe_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-func _find_active_dripper() -> Dripper:
-	if _held_item is Dripper:
-		return _held_item as Dripper
-	return null
-
-func _find_active_pitcher_with_milk() -> bool:
-	for node in get_tree().get_nodes_in_group("pitcher"):
-		if node is Pitcher and (node as Pitcher).has_milk:
-			return true
-	if _held_item is Pitcher and (_held_item as Pitcher).has_milk:
-		return true
-	return false
-
-func _find_milk_jug_out() -> bool:
-	if _held_item is MilkJug:
-		return true
-	for node in get_tree().get_nodes_in_group("milk_jug"):
-		if node is MilkJug and node.visible:
-			return true
-	return false
-
-func _find_filled_kettle() -> bool:
-	if _held_item is Kettle and (_held_item as Kettle).has_water:
-		return true
-	for node in get_tree().get_nodes_in_group("kettle"):
-		if node is Kettle and (node as Kettle).has_water:
-			return true
-	return false
-
-func _find_steamed_pitcher() -> bool:
-	for node in get_tree().get_nodes_in_group("pitcher"):
-		if node is Pitcher and (node as Pitcher).is_steamed:
-			return true
-	if _held_item is Pitcher and (_held_item as Pitcher).is_steamed:
-		return true
-	return false
+func _process_info_hover() -> void:
+	if _mode != InteractMode.INFO:
+		return
+	var mouse_pos := get_viewport().get_mouse_position()
+	var found_tip := false
+	for lbl in _recipe_step_labels:
+		if not lbl.has_meta("step_tooltip"):
+			continue
+		var rect := lbl.get_global_rect()
+		if rect.has_point(mouse_pos):
+			var tip_text: String = lbl.get_meta("step_tooltip")
+			_tooltip_label.text = tip_text
+			_tooltip_panel.offset_top = lbl.global_position.y
+			_tooltip_panel.visible = true
+			found_tip = true
+			break
+	if not found_tip:
+		_tooltip_panel.visible = false
 
 func enter_mini_game(cam_transform: Transform3D) -> void:
 	if _mode != InteractMode.FREE:
@@ -534,16 +622,35 @@ func _on_day_ended() -> void:
 	grade.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(grade)
 
+	var avg_stars := GameManager.get_average_stars()
+	var stars_label := Label.new()
+	stars_label.text = "%.1f / 5 avg  (%d drinks)" % [avg_stars, GameManager.drinks_reviewed]
+	stars_label.add_theme_font_size_override("font_size", 22)
+	stars_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(stars_label)
+
+	var revenue := GameManager.total_earned
+	var spent := GameManager.total_spent
+	var profit := GameManager.get_profit()
+	var profit_parts: Array[String] = []
+	profit_parts.append("Revenue: $%.2f" % revenue)
+	if GameManager.total_tips > 0.0:
+		profit_parts[-1] += " (incl $%.2f tips)" % GameManager.total_tips
+	if spent > 0.0:
+		profit_parts.append("Supplies: -$%.2f" % spent)
+	profit_parts.append("Profit: $%.2f" % profit)
+
 	var earnings := Label.new()
-	earnings.text = "$%.2f / $%.2f" % [GameManager.total_earned, GameManager.total_possible_earnings]
-	earnings.add_theme_font_size_override("font_size", 22)
-	earnings.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
+	earnings.text = "\n".join(profit_parts)
+	earnings.add_theme_font_size_override("font_size", 16)
+	earnings.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5) if profit >= 0 else Color(1.0, 0.3, 0.3))
 	earnings.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(earnings)
 
 	var customers := Label.new()
 	customers.text = "%d served / %d lost" % [GameManager.customers_served, GameManager.customers_lost]
-	customers.add_theme_font_size_override("font_size", 18)
+	customers.add_theme_font_size_override("font_size", 16)
 	customers.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	customers.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(customers)

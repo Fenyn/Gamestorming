@@ -34,3 +34,17 @@ res://scenes/stations/pour_over.tscn
 res://scenes/stations/register.tscn
 res://scenes/stations/steam.tscn
 res://scenes/stations/cash_drawer.tscn
+res://scripts/autoload/event_bus.gd
+res://scripts/autoload/game_manager.gd
+res://scripts/customers/customer_spawner.gd
+res://scripts/items/cup.gd
+res://scripts/stations/register.gd
+res://scripts/items/pitcher.gd
+res://scripts/mini_games/grind_mini_game.gd
+res://scripts/mini_games/syrup_mini_game.gd
+res://scripts/autoload/sound_manager.gd
+res://scripts/mini_games/sauce_mini_game.gd
+res://scripts/stations/sauce_station.gd
+res://scripts/mini_games/sauce_prep_mini_game.gd
+res://scripts/shops/espresso_stand_scene.gd
+res://scripts/stations/sauce_prep_station.gd

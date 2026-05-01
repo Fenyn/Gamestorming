@@ -80,6 +80,7 @@ func interact(player: Player) -> void:
 		_player_ref = player
 		_player_ref.enter_mini_game(_fill_cam.global_transform)
 		_fill_label.visible = true
+		SoundManager.play_loop("kettle_fill_loop")
 		return
 
 	if held is Cup:
@@ -115,6 +116,9 @@ func _process(delta: float) -> void:
 
 func _stop_filling() -> void:
 	_filling = false
+	SoundManager.stop_loop("kettle_fill_loop")
+	if _filling_kettle and _filling_kettle.water_level >= Kettle.MAX_WATER - 0.01:
+		SoundManager.play("kettle_full")
 	_filling_kettle = null
 	_fill_label.visible = false
 	if _player_ref and is_instance_valid(_player_ref):

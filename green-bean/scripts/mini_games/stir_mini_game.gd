@@ -54,8 +54,12 @@ func _on_start() -> void:
 	_has_prev = false
 	_rotations_done = 0.0
 	_paddle_angle = 0.0
+	SoundManager.play_loop("stir_loop")
 	if _status_label:
 		_status_label.text = "Move mouse in circles to stir"
+
+func _on_stop() -> void:
+	SoundManager.stop_loop("stir_loop")
 
 func _handle_input(event: InputEvent) -> void:
 	if not event is InputEventMouseMotion:

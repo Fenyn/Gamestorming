@@ -12,12 +12,16 @@ var _screen_mesh: MeshInstance3D = null
 
 var _size_selected: DrinkData.CupSize = -1
 var _drink_selected: DrinkData.DrinkType = -1
+var _syrup_selected: int = -1
+var _sauce_selected: int = -1
 var _current_tab := 0
 var _pending_order: OrderData = null
 var _cash_tendered := 0.0
 
 var _size_buttons: Array[Button] = []
 var _drink_buttons: Array[Button] = []
+var _syrup_buttons: Array[Button] = []
+var _sauce_buttons: Array[Button] = []
 var _tab_buttons: Array[Button] = []
 var _tab_panels: Array[PanelContainer] = []
 var _order_label: Label = null
@@ -29,8 +33,10 @@ var _panel_area: Control = null
 const VIEWPORT_SIZE := Vector2i(480, 360)
 const SCREEN_SIZE := Vector2(0.40, 0.30)
 
-const SIZE_LABELS := ["Short", "Tall", "Grande", "Venti"]
-const DRINK_LABELS := ["Pour Over", "Americano", "Latte"]
+const SIZE_LABELS := ["Small", "Medium", "Large", "Extra Large"]
+const DRINK_LABELS := ["Pour Over", "Americano", "Latte", "Cappuccino", "Red Eye", "Macchiato", "Mocha"]
+const SYRUP_LABELS := ["None", "Vanilla"]
+const SAUCE_LABELS := ["None", "Mocha", "Caramel", "White Mocha"]
 
 func _ready() -> void:
 	add_to_group("station")
@@ -78,11 +84,11 @@ func _build_pos_ui() -> void:
 	tab_bar.size = Vector2(460, 32)
 	root.add_child(tab_bar)
 
-	var tab_names := ["SIZE", "DRINK"]
+	var tab_names := ["SIZE", "DRINK", "SYRUP", "SAUCE"]
 	for i in range(tab_names.size()):
 		var btn := Button.new()
 		btn.text = tab_names[i]
-		btn.custom_minimum_size = Vector2(220, 30)
+		btn.custom_minimum_size = Vector2(108, 30)
 		btn.add_theme_font_size_override("font_size", 14)
 		var idx := i
 		btn.pressed.connect(func(): _switch_tab(idx))
@@ -113,13 +119,46 @@ func _build_pos_ui() -> void:
 	_panel_area.add_child(drink_panel)
 	_tab_panels.append(drink_panel)
 	var drink_grid := _make_button_grid()
+	drink_grid.add_theme_constant_override("v_separation", 4)
 	drink_panel.add_child(drink_grid)
 	for i in range(DRINK_LABELS.size()):
 		var btn := _make_pos_button(DRINK_LABELS[i], Color(0.4, 0.25, 0.15))
+		btn.custom_minimum_size.y = 38
 		var idx := i
 		btn.pressed.connect(func(): _select_drink(idx))
 		_drink_buttons.append(btn)
 		drink_grid.add_child(btn)
+
+	# SYRUP tab
+	var syrup_panel := _make_tab_panel()
+	syrup_panel.visible = false
+	_panel_area.add_child(syrup_panel)
+	_tab_panels.append(syrup_panel)
+	var syrup_grid := _make_button_grid()
+	syrup_panel.add_child(syrup_grid)
+	for i in range(SYRUP_LABELS.size()):
+		var color := Color(0.35, 0.3, 0.15) if i > 0 else Color(0.3, 0.3, 0.3)
+		var btn := _make_pos_button(SYRUP_LABELS[i], color)
+		var idx := i
+		btn.pressed.connect(func(): _select_syrup(idx))
+		_syrup_buttons.append(btn)
+		syrup_grid.add_child(btn)
+
+	# SAUCE tab
+	var sauce_panel := _make_tab_panel()
+	sauce_panel.visible = false
+	_panel_area.add_child(sauce_panel)
+	_tab_panels.append(sauce_panel)
+	var sauce_grid := _make_button_grid()
+	sauce_panel.add_child(sauce_grid)
+	for i in range(SAUCE_LABELS.size()):
+		var color := Color(0.25, 0.15, 0.08) if i > 0 else Color(0.3, 0.3, 0.3)
+		var btn := _make_pos_button(SAUCE_LABELS[i], color)
+		btn.custom_minimum_size.y = 38
+		var idx := i
+		btn.pressed.connect(func(): _select_sauce(idx))
+		_sauce_buttons.append(btn)
+		sauce_grid.add_child(btn)
 
 	# Order summary
 	_order_label = Label.new()
@@ -210,12 +249,27 @@ func _switch_tab(idx: int) -> void:
 func _select_size(idx: int) -> void:
 	_size_selected = idx
 	_highlight_group(_size_buttons, idx)
+	SoundManager.play("register_beep")
 	_update_display()
 	_switch_tab(1)
 
 func _select_drink(idx: int) -> void:
 	_drink_selected = idx
 	_highlight_group(_drink_buttons, idx)
+	SoundManager.play("register_beep")
+	_update_display()
+	_switch_tab(2)
+
+func _select_syrup(idx: int) -> void:
+	_syrup_selected = idx - 1
+	_highlight_group(_syrup_buttons, idx)
+	SoundManager.play("register_beep")
+	_update_display()
+
+func _select_sauce(idx: int) -> void:
+	_sauce_selected = idx - 1
+	_highlight_group(_sauce_buttons, idx)
+	SoundManager.play("register_beep")
 	_update_display()
 
 func _highlight_group(buttons: Array[Button], selected: int) -> void:
@@ -225,11 +279,15 @@ func _highlight_group(buttons: Array[Button], selected: int) -> void:
 func _clear_order() -> void:
 	_size_selected = -1
 	_drink_selected = -1
+	_syrup_selected = -1
+	_sauce_selected = -1
 	_pending_order = null
 	_cash_tendered = 0.0
 	_screen_state = Screen.ORDER
 	_highlight_group(_size_buttons, -1)
 	_highlight_group(_drink_buttons, -1)
+	_highlight_group(_syrup_buttons, -1)
+	_highlight_group(_sauce_buttons, -1)
 	_switch_tab(0)
 	_show_order_screen()
 	_update_display()
@@ -243,14 +301,25 @@ func _update_display() -> void:
 	var parts: Array[String] = []
 	if _size_selected >= 0:
 		parts.append(SIZE_LABELS[_size_selected])
+	if _syrup_selected >= 0:
+		parts.append(DrinkData.get_syrup_name(_syrup_selected as DrinkData.SyrupType))
+	if _sauce_selected >= 0:
+		parts.append(DrinkData.get_sauce_name(_sauce_selected as DrinkData.SauceType))
 	if _drink_selected >= 0:
 		parts.append(DRINK_LABELS[_drink_selected])
 	var text := " ".join(parts)
 	if _size_selected >= 0 and _drink_selected >= 0:
 		var size_enum: DrinkData.CupSize = _size_selected
 		var drink_enum: DrinkData.DrinkType = _drink_selected
-		var code := DrinkData.get_ticket_code(drink_enum, size_enum)
 		var price := DrinkData.get_base_price(drink_enum, size_enum)
+		var code := DrinkData.get_ticket_code(drink_enum, size_enum)
+		if _syrup_selected >= 0:
+			price += DrinkData.SYRUP_UPCHARGE
+			code += " " + DrinkData.get_syrup_code(_syrup_selected as DrinkData.SyrupType)
+		if _sauce_selected >= 0 and not DrinkData.has_step(drink_enum, DrinkData.Step.ADD_SAUCE):
+			price += DrinkData.SAUCE_UPCHARGE
+		if _sauce_selected >= 0:
+			code += " " + DrinkData.get_sauce_code(_sauce_selected as DrinkData.SauceType)
 		text += "\n[%s]  Total: $%.2f" % [code, price]
 	_order_label.text = text
 
@@ -262,7 +331,12 @@ func _charge_order() -> void:
 	var size_enum: DrinkData.CupSize = _size_selected
 	var drink_enum: DrinkData.DrinkType = _drink_selected
 	_pending_order = OrderData.new(drink_enum, size_enum)
+	if _syrup_selected >= 0:
+		_pending_order.set_syrup(_syrup_selected as DrinkData.SyrupType)
+	if _sauce_selected >= 0:
+		_pending_order.set_sauce(_sauce_selected as DrinkData.SauceType)
 	_screen_state = Screen.CHARGED
+	SoundManager.play("register_charge")
 	EventBus.order_charged.emit({
 		"order": _pending_order,
 		"drink_type": drink_enum,
@@ -289,8 +363,14 @@ func _show_charged_screen() -> void:
 		btn.visible = false
 	var price := _pending_order.base_price
 	var bill := _get_bill_amount(price)
-	_status_label_ui.text = "%s %s\nTotal: $%.2f\n\nCollect $%.2f from customer" % [
-		SIZE_LABELS[_size_selected], DRINK_LABELS[_drink_selected], price, bill
+	var drink_desc: String = SIZE_LABELS[_size_selected]
+	if _syrup_selected >= 0:
+		drink_desc += " " + DrinkData.get_syrup_name(_syrup_selected as DrinkData.SyrupType)
+	if _sauce_selected >= 0:
+		drink_desc += " " + DrinkData.get_sauce_name(_sauce_selected as DrinkData.SauceType)
+	drink_desc += " " + DRINK_LABELS[_drink_selected]
+	_status_label_ui.text = "%s\nTotal: $%.2f\n\nCollect $%.2f from customer" % [
+		drink_desc, price, bill
 	]
 
 func _get_bill_amount(price: float) -> float:
@@ -368,9 +448,6 @@ func _input(event: InputEvent) -> void:
 				KEY_2: _select_size(1)
 				KEY_3: _select_size(2)
 				KEY_4: _select_size(3)
-				KEY_5: _select_drink(0)
-				KEY_6: _select_drink(1)
-				KEY_7: _select_drink(2)
 				KEY_ENTER: _charge_order()
 				KEY_BACKSPACE: _clear_order()
 
@@ -442,4 +519,12 @@ func _click_at(pixel: Vector2) -> void:
 	for btn in _drink_buttons:
 		if btn.is_visible_in_tree() and btn.get_global_rect().has_point(pixel):
 			_select_drink(_drink_buttons.find(btn))
+			return
+	for btn in _syrup_buttons:
+		if btn.is_visible_in_tree() and btn.get_global_rect().has_point(pixel):
+			_select_syrup(_syrup_buttons.find(btn))
+			return
+	for btn in _sauce_buttons:
+		if btn.is_visible_in_tree() and btn.get_global_rect().has_point(pixel):
+			_select_sauce(_sauce_buttons.find(btn))
 			return

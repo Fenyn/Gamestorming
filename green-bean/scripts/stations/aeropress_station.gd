@@ -95,9 +95,13 @@ func interact(player: Player) -> void:
 				_shelf_device = null
 				_update_label()
 		State.CUP_ONLY:
-			if StationUtils.try_pickup_shelf(player, _shelf_device):
+			if _shelf_device and StationUtils.try_pickup_shelf(player, _shelf_device):
 				_shelf_device = null
 				_update_label()
+			elif not player.has_held_item() and _placed_cup:
+				if StationUtils.try_pickup_placed(player, _placed_cup):
+					_placed_cup = null
+					_recalculate_state()
 		State.DEVICE_ONLY:
 			if StationUtils.try_pickup_placed(player, _placed_device):
 				_placed_device = null
@@ -124,7 +128,10 @@ func interact(player: Player) -> void:
 		State.PRESSING:
 			pass
 		State.DONE:
-			pass
+			if not player.has_held_item() and _placed_cup:
+				if StationUtils.try_pickup_placed(player, _placed_cup):
+					_placed_cup = null
+					_recalculate_state()
 		State.DEAD:
 			_reset()
 
@@ -134,7 +141,10 @@ func receive_item(item: Node3D) -> bool:
 	if item is Cup:
 		if _placed_cup:
 			return false
-		_placed_cup = item as Cup
+		var cup := item as Cup
+		if cup.has_shot:
+			return false
+		_placed_cup = cup
 		StationUtils.place_at_slot(item, _cup_slot.global_position)
 		_recalculate_state()
 		return true
@@ -294,6 +304,6 @@ func _update_label() -> void:
 		State.PRESSING:
 			_status_label.text = "Pressing..."
 		State.DONE:
-			_status_label.text = "[Click] Pick up cup"
+			_status_label.text = "[E] Pick up cup"
 		State.DEAD:
 			_status_label.text = "[E] Reset (dead)"

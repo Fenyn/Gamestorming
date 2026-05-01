@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 EventBus="*res://scripts/autoload/event_bus.gd"
 GameManager="*res://scripts/autoload/game_manager.gd"
 StationUtils="*res://scripts/autoload/station_utils.gd"
+SoundManager="*res://scripts/autoload/sound_manager.gd"
 
 [display]
 

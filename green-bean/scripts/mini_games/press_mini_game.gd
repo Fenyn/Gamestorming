@@ -89,6 +89,7 @@ func _on_start() -> void:
 		_indicator_label.text = "Hold LClick\nKeep pressure centered"
 
 func _on_stop() -> void:
+	SoundManager.stop_loop("press_loop")
 	if phase == Phase.PRESSING:
 		phase = _started_phase
 		press_progress = 0.0
@@ -121,16 +122,19 @@ func _tick_passive(delta: float) -> void:
 			if phase_timer <= 0:
 				phase = Phase.READY
 				phase_timer = READY_WINDOW
+				SoundManager.play("shot_ready")
 		Phase.READY:
 			if not _active:
 				phase_timer -= delta
 				if phase_timer <= 0:
 					phase = Phase.OVER_EXTRACTING
 					phase_timer = OVER_EXTRACT_TIME
+					SoundManager.play("over_extract_warn")
 		Phase.OVER_EXTRACTING:
 			phase_timer -= delta
 			if phase_timer <= 0:
 				phase = Phase.DEAD
+				SoundManager.play("shot_dead")
 
 func _update_mini_game(delta: float) -> void:
 	if phase == Phase.PRESSING:
@@ -184,8 +188,10 @@ func _handle_input(event: InputEvent) -> void:
 				_started_phase = phase
 				phase = Phase.PRESSING
 				_pressing = true
+				SoundManager.play_loop("press_loop")
 			else:
 				_pressing = false
+				SoundManager.stop_loop("press_loop")
 
 	if phase == Phase.PRESSING:
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -228,6 +234,8 @@ func _update_visuals() -> void:
 			nmat.albedo_color = Color(0.2, 0.9, 0.3) if in_zone else Color(0.9, 0.3, 0.2)
 
 func _finish_press() -> void:
+	SoundManager.stop_loop("press_loop")
+	SoundManager.play("shot_complete")
 	var quality := 1.0
 	if _started_phase == Phase.OVER_EXTRACTING:
 		quality *= 0.5

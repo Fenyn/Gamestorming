@@ -55,22 +55,17 @@ func _spawn_customer() -> void:
 	customer.setup(_register_pos, _pickup_pos, _exit_pos)
 	_active_customers.append(customer)
 
-	var price := DrinkData.get_base_price(customer.drink_type, customer.cup_size)
-	GameManager.add_possible_earnings(price)
-
 	EventBus.customer_arrived.emit(customer)
 
 func _on_order_charged(data: Dictionary) -> void:
 	var order: OrderData = data["order"]
 	var price := order.base_price
-	# Try exact match first
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_TO_ORDER:
-			if c.drink_type == order.drink_type and c.cup_size == order.cup_size:
+			if c.matches_drink(order):
 				c.order_data = order
 				c.start_paying(price)
 				return
-	# No exact match — first waiting customer
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_TO_ORDER:
 			c.order_data = order
@@ -80,16 +75,15 @@ func _on_order_charged(data: Dictionary) -> void:
 func _on_cash_collected(customer: Node3D, _amount: float) -> void:
 	pass
 
-func _on_drink_handed_off(data: Dictionary, _earned: float) -> void:
+func _on_drink_handed_off(data: Dictionary) -> void:
 	var order: OrderData = data["order"]
-	# Try to match a customer whose actual desired drink matches
+	var stars: float = data.get("stars", 0.0)
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_FOR_DRINK:
-			if c.drink_type == order.drink_type and c.cup_size == order.cup_size:
-				c.drink_received()
+			if c.matches_drink(order):
+				c.drink_received(stars)
 				return
-	# No match — give to first waiting customer (wrong drink, reduced satisfaction)
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_FOR_DRINK:
-			c.drink_received()
+			c.drink_received(stars)
 			return

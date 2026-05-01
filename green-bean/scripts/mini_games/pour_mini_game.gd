@@ -99,6 +99,7 @@ func set_size_multiplier(mult: float) -> void:
 	_size_multiplier = mult
 
 func _on_start() -> void:
+	SoundManager.play_loop("pour_loop")
 	if phase == Phase.MAIN_POUR:
 		_pouring = false
 		return
@@ -121,6 +122,7 @@ func _on_start() -> void:
 
 func _on_stop() -> void:
 	_pouring = false
+	SoundManager.stop_loop("pour_loop")
 
 func _handle_input(event: InputEvent) -> void:
 	if phase == Phase.BLOOM_WAIT or phase == Phase.DRAW_DOWN or phase == Phase.COOLING:
@@ -218,6 +220,7 @@ func _update_saturation_pour(delta: float, is_bloom: bool) -> void:
 		_pouring = false
 		phase = Phase.DRAW_DOWN
 		phase_timer = DRAW_DOWN_TIME
+		SoundManager.play_loop("drip_loop")
 		var quality := _calculate_evenness() * _bloom_quality
 		complete(quality)
 

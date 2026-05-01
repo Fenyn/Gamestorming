@@ -68,8 +68,10 @@ func _on_start() -> void:
 	_bar_bg.visible = true
 	_bar_fill.visible = true
 	_update_progress_bar()
+	SoundManager.play_loop("grind_loop")
 
 func _on_stop() -> void:
+	SoundManager.stop_loop("grind_loop")
 	_bar_bg.visible = false
 	_bar_fill.visible = false
 
@@ -91,6 +93,7 @@ func _handle_input(event: InputEvent) -> void:
 		if grind_progress >= grind_target:
 			grind_progress = grind_target
 			_update_progress_bar()
+			SoundManager.play("grind_complete")
 			complete(1.0)
 
 	if event is InputEventMouseButton:

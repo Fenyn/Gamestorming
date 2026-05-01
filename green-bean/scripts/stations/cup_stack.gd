@@ -22,7 +22,7 @@ func interact(player: Player) -> void:
 		return
 
 	var order: OrderData = null
-	var size := DrinkData.CupSize.TALL
+	var size := DrinkData.CupSize.MEDIUM
 	if not _pending_orders.is_empty():
 		order = _pending_orders.pop_front()
 		size = order.cup_size

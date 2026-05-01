@@ -2,12 +2,16 @@ class_name Cup
 extends RigidBody3D
 
 var order: OrderData = null
-var cup_size: DrinkData.CupSize = DrinkData.CupSize.TALL
+var cup_size: DrinkData.CupSize = DrinkData.CupSize.MEDIUM
 var has_shot := false
 var has_hot_water := false
 var has_steamed_milk := false
 var has_pour_over_coffee := false
 var has_lid := false
+var syrup_pumps := 0.0
+var syrup_type: int = -1
+var has_sauce := false
+var sauce_type: int = -1
 
 var _fill_level := 0.0
 var _fill_visual: CSGCylinder3D = null
@@ -44,18 +48,18 @@ func _ready() -> void:
 
 func _get_radius() -> float:
 	match cup_size:
-		DrinkData.CupSize.SHORT: return 0.035
-		DrinkData.CupSize.TALL: return 0.038
-		DrinkData.CupSize.GRANDE: return 0.042
-		DrinkData.CupSize.VENTI: return 0.046
+		DrinkData.CupSize.SMALL: return 0.035
+		DrinkData.CupSize.MEDIUM: return 0.038
+		DrinkData.CupSize.LARGE: return 0.042
+		DrinkData.CupSize.EXTRA_LARGE: return 0.046
 	return 0.038
 
 func _get_height() -> float:
 	match cup_size:
-		DrinkData.CupSize.SHORT: return 0.1
-		DrinkData.CupSize.TALL: return 0.12
-		DrinkData.CupSize.GRANDE: return 0.14
-		DrinkData.CupSize.VENTI: return 0.16
+		DrinkData.CupSize.SMALL: return 0.1
+		DrinkData.CupSize.MEDIUM: return 0.12
+		DrinkData.CupSize.LARGE: return 0.14
+		DrinkData.CupSize.EXTRA_LARGE: return 0.16
 	return 0.12
 
 func set_fill(amount: float, color: Color = Color(0.3, 0.2, 0.1)) -> void:
@@ -85,14 +89,24 @@ func pour_milk_from(pitcher: Pitcher) -> bool:
 func is_complete() -> bool:
 	if not order:
 		return false
-	match order.drink_type:
-		DrinkData.DrinkType.POUR_OVER:
-			return has_pour_over_coffee
-		DrinkData.DrinkType.AMERICANO:
-			return has_shot and has_hot_water
-		DrinkData.DrinkType.LATTE:
-			return has_shot and has_steamed_milk
-	return false
+	if order.has_syrup() and syrup_pumps <= 0.0:
+		return false
+	if not has_lid:
+		return false
+	var steps: Array = DrinkData.get_recipe(order.drink_type)["steps"]
+	for step in steps:
+		match step:
+			DrinkData.Step.POUR_OVER_BREW:
+				if not has_pour_over_coffee: return false
+			DrinkData.Step.AEROPRESS_BREW:
+				if not has_shot: return false
+			DrinkData.Step.HOT_WATER:
+				if not has_hot_water: return false
+			DrinkData.Step.STEAM_MILK:
+				if not has_steamed_milk: return false
+			DrinkData.Step.ADD_SAUCE:
+				if not has_sauce: return false
+	return true
 
 static func create(size: DrinkData.CupSize, order_data: OrderData = null) -> Cup:
 	var cup := Cup.new()

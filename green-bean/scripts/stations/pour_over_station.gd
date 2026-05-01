@@ -74,8 +74,12 @@ func interact(player: Player) -> void:
 		State.CUP_ONLY:
 			if _placed_dripper and not _placed_dripper.has_grounds():
 				_try_pickup_placed_dripper(player)
-			else:
+			elif _shelf_dripper:
 				_try_pickup_shelf_dripper(player)
+			elif not player.has_held_item() and _placed_cup:
+				if StationUtils.try_pickup_placed(player, _placed_cup):
+					_placed_cup = null
+					_recalculate_state()
 		State.READY_TO_POUR:
 			_try_start_bloom(player)
 		State.BLOOMING:
@@ -87,7 +91,10 @@ func interact(player: Player) -> void:
 		State.DRAINING:
 			pass
 		State.READY, State.STALE:
-			pass
+			if not player.has_held_item() and _placed_cup:
+				if StationUtils.try_pickup_placed(player, _placed_cup):
+					_placed_cup = null
+					_recalculate_state()
 
 func _try_start_bloom(player: Player) -> void:
 	var held := player.get_held_item()
@@ -154,7 +161,10 @@ func receive_item(item: Node3D) -> bool:
 	if item is Cup:
 		if _placed_cup:
 			return false
-		_placed_cup = item as Cup
+		var cup := item as Cup
+		if cup.has_pour_over_coffee:
+			return false
+		_placed_cup = cup
 		_place_at_slot(item, _cup_slot)
 		_recalculate_state()
 		return true
@@ -241,6 +251,8 @@ func _process(_delta: float) -> void:
 	_check_removed_items()
 
 func _finish_drip() -> void:
+	SoundManager.stop_loop("drip_loop")
+	SoundManager.play("drip_done")
 	if _placed_cup:
 		var freshness := _pour_game.get_coffee_freshness()
 		_placed_cup.has_pour_over_coffee = true
@@ -289,6 +301,6 @@ func _update_label() -> void:
 		State.DRAINING:
 			_status_label.text = "Draining..."
 		State.READY:
-			_status_label.text = "Coffee ready!\n[Click] Pick up cup"
+			_status_label.text = "Coffee ready!\n[E] Pick up cup"
 		State.STALE:
-			_status_label.text = "Getting cold!\n[Click] Pick up cup"
+			_status_label.text = "Getting cold!\n[E] Pick up cup"

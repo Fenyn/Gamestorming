@@ -10,7 +10,9 @@ enum State { WALKING_TO_REGISTER, WAITING_TO_ORDER, PAYING, WALKING_TO_PICKUP, W
 var state := State.WALKING_TO_REGISTER
 var order_data: OrderData = null
 var drink_type: DrinkData.DrinkType = DrinkData.DrinkType.POUR_OVER
-var cup_size: DrinkData.CupSize = DrinkData.CupSize.TALL
+var cup_size: DrinkData.CupSize = DrinkData.CupSize.MEDIUM
+var syrup_type: int = -1
+var sauce_type: int = -1
 var _payment_amount := 0.0
 
 var _order_patience := ORDER_PATIENCE
@@ -20,6 +22,7 @@ var _register_pos := Vector3.ZERO
 var _pickup_pos := Vector3.ZERO
 var _exit_pos := Vector3.ZERO
 var _leave_reason := ""
+var _warned_impatient := false
 
 var _body_mesh: CSGBox3D = null
 var _speech_label: Label3D = null
@@ -73,9 +76,23 @@ func _build_visual() -> void:
 	_patience_bar_fill.material = fill_mat
 	add_child(_patience_bar_fill)
 
+const SYRUP_CHANCE := 0.3
+const SAUCE_CHANCE := 0.15
+
 func _randomize_order() -> void:
-	drink_type = DrinkData.DrinkType.POUR_OVER
-	cup_size = DrinkData.CupSize.TALL
+	var types := DrinkData.get_all_drink_types()
+	drink_type = types[randi() % types.size()]
+	cup_size = (randi() % 4) as DrinkData.CupSize
+	if randf() < SYRUP_CHANCE:
+		syrup_type = DrinkData.SyrupType.VANILLA
+	else:
+		syrup_type = -1
+	if DrinkData.has_step(drink_type, DrinkData.Step.ADD_SAUCE):
+		sauce_type = DrinkData.SauceType.MOCHA
+	elif randf() < SAUCE_CHANCE:
+		sauce_type = DrinkData.SauceType.values()[randi() % DrinkData.SauceType.size()]
+	else:
+		sauce_type = -1
 
 func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:
 	_register_pos = register
@@ -91,6 +108,7 @@ func _physics_process(delta: float) -> void:
 			if _at_target():
 				state = State.WAITING_TO_ORDER
 				_show_order()
+				SoundManager.play("customer_arrive")
 		State.WAITING_TO_ORDER:
 			_order_patience -= delta
 			_update_patience_bar(_order_patience / ORDER_PATIENCE)
@@ -132,7 +150,13 @@ func _at_target() -> bool:
 
 func _show_order() -> void:
 	if _speech_label:
-		_speech_label.text = "%s %s" % [DrinkData.get_size_name(cup_size), DrinkData.get_drink_name(drink_type)]
+		var parts: Array[String] = [DrinkData.get_size_name(cup_size)]
+		if syrup_type >= 0:
+			parts.append(DrinkData.get_syrup_name(syrup_type as DrinkData.SyrupType))
+		if sauce_type >= 0 and not DrinkData.has_step(drink_type, DrinkData.Step.ADD_SAUCE):
+			parts.append(DrinkData.get_sauce_name(sauce_type as DrinkData.SauceType))
+		parts.append(DrinkData.get_drink_name(drink_type))
+		_speech_label.text = " ".join(parts)
 		_speech_label.visible = true
 
 func start_paying(price: float) -> void:
@@ -149,6 +173,7 @@ func start_paying(price: float) -> void:
 
 func interact(player: Player) -> void:
 	if state == State.PAYING:
+		SoundManager.play("cash_collect")
 		EventBus.cash_collected.emit(self, _payment_amount)
 		if _speech_label:
 			_speech_label.text = "waiting..."
@@ -161,12 +186,16 @@ func order_taken(order: OrderData = null) -> void:
 	_target_pos = _pickup_pos
 	_pickup_patience = PICKUP_PATIENCE
 
-func drink_received() -> void:
-	_speech_label.visible = false
+func drink_received(stars: float = 0.0) -> void:
+	if _speech_label and stars > 0.0:
+		_speech_label.text = "%.1f / 5" % stars
+		_speech_label.visible = true
+	else:
+		_speech_label.visible = false
 	_leave("satisfied")
 
 func matches_drink(order: OrderData) -> bool:
-	return order.drink_type == drink_type and order.cup_size == cup_size
+	return order.drink_type == drink_type and order.cup_size == cup_size and order.requested_syrup == syrup_type and order.requested_sauce == sauce_type
 
 func _leave(reason: String) -> void:
 	if state == State.LEAVING:
@@ -175,9 +204,16 @@ func _leave(reason: String) -> void:
 	_target_pos = _exit_pos
 	_speech_label.visible = false
 	_leave_reason = reason
+	if reason == "satisfied":
+		SoundManager.play("customer_happy")
+	else:
+		SoundManager.play("customer_angry")
 
 func _update_patience_bar(ratio: float) -> void:
 	ratio = clampf(ratio, 0.0, 1.0)
+	if ratio < 0.25 and not _warned_impatient:
+		_warned_impatient = true
+		SoundManager.play("customer_impatient")
 	if _patience_bar_fill:
 		_patience_bar_fill.size.x = 0.5 * ratio
 		_patience_bar_fill.position.x = -0.25 * (1.0 - ratio)

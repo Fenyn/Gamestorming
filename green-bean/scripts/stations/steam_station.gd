@@ -48,6 +48,8 @@ func interact(player: Player) -> void:
 			_try_pickup_shelf_pitcher(player)
 		State.PITCHER_PLACED:
 			if _placed_pitcher and _placed_pitcher.has_milk:
+				var foam_target := _get_foam_target(player)
+				_steam_game.set_foam_target(foam_target)
 				state = State.STRETCHING
 				_update_label()
 				_steam_game.start(player)
@@ -94,10 +96,17 @@ func receive_item(item: Node3D) -> bool:
 func _on_steam_complete(quality: float) -> void:
 	if quality > 0 and _placed_pitcher:
 		_placed_pitcher.set_steamed(quality)
+		_placed_pitcher.foam_level = _steam_game.foam_level
 		state = State.MILK_DONE
 	elif quality <= 0:
 		state = State.SCALDED
 	_update_label()
+
+func _get_foam_target(player: Player) -> float:
+	var order := player.get_active_order()
+	if order:
+		return DrinkData.get_foam_target(order.drink_type)
+	return DrinkData.DEFAULT_FOAM_TARGET
 
 func _process(_delta: float) -> void:
 	# Track phase transitions from the mini-game

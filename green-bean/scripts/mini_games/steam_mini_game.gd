@@ -17,8 +17,9 @@ const WAND_SENSITIVITY := 0.005
 
 const FOAM_RATE_GOOD := 0.18
 const FOAM_RATE_BAD := 0.03
-const TARGET_FOAM := 0.7
 const BAR_WIDTH := 0.2
+
+var target_foam := 0.5
 
 var temperature := 20.0
 var foam_level := 0.0
@@ -33,6 +34,7 @@ var _temp_bar_bg: CSGBox3D = null
 var _temp_bar_fill: CSGBox3D = null
 var _foam_bar_bg: CSGBox3D = null
 var _foam_bar_fill: CSGBox3D = null
+var _foam_target_marker: CSGBox3D = null
 var _depth_bar_bg: CSGBox3D = null
 var _depth_indicator: CSGBox3D = null
 var _zone_marker: CSGBox3D = null
@@ -56,6 +58,15 @@ func _ready() -> void:
 	# Foam bar (horizontal, below temp)
 	_foam_bar_bg = _make_hbar(Vector3(0, 0.18, 0.18), Color(0.2, 0.2, 0.2))
 	_foam_bar_fill = _make_hbar(Vector3(-BAR_WIDTH / 2.0, 0.18, 0.18), Color(0.85, 0.85, 0.9))
+
+	# Foam target marker (vertical line on foam bar)
+	_foam_target_marker = CSGBox3D.new()
+	_foam_target_marker.size = Vector3(0.004, 0.018, 0.014)
+	_foam_target_marker.position = Vector3(-BAR_WIDTH / 2.0 + BAR_WIDTH * target_foam, 0.18, 0.18)
+	var ftm := StandardMaterial3D.new()
+	ftm.albedo_color = Color(0.2, 1.0, 0.4)
+	_foam_target_marker.material = ftm
+	add_child(_foam_target_marker)
 
 	# Depth gauge (vertical bar on left side)
 	_depth_bar_bg = CSGBox3D.new()
@@ -108,6 +119,9 @@ func _on_start() -> void:
 
 func _on_stop() -> void:
 	_steaming = false
+	SoundManager.stop_loop("steam_hiss_good")
+	SoundManager.stop_loop("steam_screech")
+	SoundManager.stop_loop("steam_texture_loop")
 
 func _process(delta: float) -> void:
 	_tick_passive(delta)
@@ -117,10 +131,14 @@ func _process(delta: float) -> void:
 func _tick_passive(delta: float) -> void:
 	if steam_phase == SteamPhase.TEXTURING and not _active:
 		temperature += PASSIVE_HEAT_RATE * delta
-		if temperature >= TARGET_TEMP:
-			steam_phase = SteamPhase.READY
 		if temperature >= SCALD_TEMP:
 			steam_phase = SteamPhase.SCALDED
+			SoundManager.stop_loop("steam_texture_loop")
+			SoundManager.play("milk_scald")
+		elif temperature >= TARGET_TEMP:
+			steam_phase = SteamPhase.READY
+			SoundManager.stop_loop("steam_texture_loop")
+			SoundManager.play("milk_ready")
 
 func _handle_input(event: InputEvent) -> void:
 	if steam_phase == SteamPhase.SCALDED:
@@ -160,20 +178,36 @@ func _update_mini_game(delta: float) -> void:
 			temperature += ACTIVE_HEAT_RATE * delta
 			_stretch_progress = clampf((temperature - 20.0) / (STRETCH_TEMP - 20.0), 0.0, 1.0)
 
-			if _is_in_zone():
+			var in_zone := _is_in_zone()
+			if in_zone:
 				foam_level += FOAM_RATE_GOOD * delta
+				if not SoundManager.is_loop_playing("steam_hiss_good"):
+					SoundManager.stop_loop("steam_screech")
+					SoundManager.play_loop("steam_hiss_good")
 			else:
 				foam_level += FOAM_RATE_BAD * delta
+				if not SoundManager.is_loop_playing("steam_screech"):
+					SoundManager.stop_loop("steam_hiss_good")
+					SoundManager.play_loop("steam_screech")
 			foam_level = clampf(foam_level, 0.0, 1.0)
+		else:
+			SoundManager.stop_loop("steam_hiss_good")
+			SoundManager.stop_loop("steam_screech")
 
 		if temperature >= STRETCH_TEMP:
 			steam_phase = SteamPhase.TEXTURING
 			_steaming = false
+			SoundManager.stop_loop("steam_hiss_good")
+			SoundManager.stop_loop("steam_screech")
+			SoundManager.play_loop("steam_texture_loop")
 			stop()
 			return
 
 		if temperature >= SCALD_TEMP:
 			steam_phase = SteamPhase.SCALDED
+			SoundManager.stop_loop("steam_hiss_good")
+			SoundManager.stop_loop("steam_screech")
+			SoundManager.play("milk_scald")
 			complete(0.0)
 			return
 
@@ -186,8 +220,8 @@ func _update_status() -> void:
 	match steam_phase:
 		SteamPhase.STRETCHING:
 			var in_zone := _is_in_zone()
-			_status_label.text = "STRETCH  %.0f C  [%s]\nHold LClick, track the zone down\nFoam: %.0f%%" % [
-				temperature, "GOOD" if in_zone else "---", foam_level * 100
+			_status_label.text = "STRETCH  %.0f C  [%s]\nFoam: %.0f%% / %.0f%% target" % [
+				temperature, "GOOD" if in_zone else "---", foam_level * 100, target_foam * 100
 			]
 		SteamPhase.TEXTURING:
 			_status_label.text = "TEXTURING  %.0f C\nPress E to walk away" % temperature
@@ -238,10 +272,17 @@ func _fill_hbar(bar: CSGBox3D, ratio: float) -> void:
 	bar.position.x = -BAR_WIDTH / 2.0 + w / 2.0
 
 func _finish_steaming() -> void:
+	SoundManager.stop_loop("steam_texture_loop")
 	var temp_quality := 1.0 - absf(temperature - TARGET_TEMP) / (SCALD_TEMP - TARGET_TEMP)
-	var foam_quality := 1.0 - absf(foam_level - TARGET_FOAM) / TARGET_FOAM
-	var quality := (clampf(temp_quality, 0.0, 1.0) + clampf(foam_quality, 0.0, 1.0)) / 2.0
+	var foam_diff := absf(foam_level - target_foam) / maxf(target_foam, 0.1)
+	var foam_quality := clampf(1.0 - foam_diff, 0.0, 1.0)
+	var quality := (clampf(temp_quality, 0.0, 1.0) + foam_quality) / 2.0
 	complete(quality)
+
+func set_foam_target(target: float) -> void:
+	target_foam = target
+	if _foam_target_marker:
+		_foam_target_marker.position.x = -BAR_WIDTH / 2.0 + BAR_WIDTH * target_foam
 
 func reset_steam() -> void:
 	temperature = 20.0

@@ -4,6 +4,7 @@ extends RigidBody3D
 var has_milk := false
 var is_steamed := false
 var steam_quality := 0.0
+var foam_level := 0.0
 
 func _ready() -> void:
 	add_to_group("carriable")
@@ -36,3 +37,4 @@ func reset_pitcher() -> void:
 	has_milk = false
 	is_steamed = false
 	steam_quality = 0.0
+	foam_level = 0.0

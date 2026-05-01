@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dwdfhvkwo7ere"]
+
+[ext_resource type="Script" uid="uid://iyguus2t11dd" path="res://scripts/espresso_stand.gd" id="1"]
+
+[node name="Main" type="Node3D" unique_id=1699991574]
+script = ExtResource("1")

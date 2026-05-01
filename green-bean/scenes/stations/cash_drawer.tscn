@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://5jdjpyeitkyk"]
+
+[ext_resource type="Script" uid="uid://djwpcvvuyfy2a" path="res://scripts/stations/cash_drawer.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
+albedo_color = Color(0.35, 0.35, 0.38, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
+size = Vector3(0.25, 0.1, 0.2)
+
+[node name="CashDrawer" type="StaticBody3D" unique_id=417275188]
+script = ExtResource("1")
+
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=1026637695]
+size = Vector3(0.25, 0.1, 0.2)
+material = SubResource("StandardMaterial3D_001")
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=201614689]
+shape = SubResource("BoxShape3D_001")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=356349014 groups=["world_label"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+pixel_size = 0.002
+billboard = 2
+text = "CASH DRAWER"
+font_size = 12

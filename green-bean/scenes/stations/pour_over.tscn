@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://brh6nem8kt5gu"]
+
+[ext_resource type="Script" uid="uid://c1g826t4rjh0l" path="res://scripts/stations/pour_over_station.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
+albedo_color = Color(0.6, 0.5, 0.4, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
+size = Vector3(0.25, 0.25, 0.25)
+
+[node name="PourOver" type="StaticBody3D" unique_id=573714123]
+script = ExtResource("1")
+
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=941599530]
+size = Vector3(0.25, 0.25, 0.25)
+material = SubResource("StandardMaterial3D_001")
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=2105338888]
+shape = SubResource("BoxShape3D_001")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=1494061965 groups=["world_label"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+pixel_size = 0.002
+billboard = 2
+text = "POUROVER"
+font_size = 12

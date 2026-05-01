@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dae8p6asdkrbh"]
+
+[ext_resource type="Script" uid="uid://rpttaekx5odk" path="res://scripts/stations/register.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
+albedo_color = Color(0.3, 0.3, 0.35, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
+size = Vector3(0.35, 0.3, 0.25)
+
+[node name="Register" type="StaticBody3D" unique_id=1770249230]
+script = ExtResource("1")
+
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=2132586239]
+size = Vector3(0.35, 0.3, 0.25)
+material = SubResource("StandardMaterial3D_001")
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=618147039]
+shape = SubResource("BoxShape3D_001")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=1668955086 groups=["world_label"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+pixel_size = 0.002
+billboard = 2
+text = "REGISTER"
+font_size = 12

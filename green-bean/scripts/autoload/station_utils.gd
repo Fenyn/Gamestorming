@@ -36,11 +36,20 @@ func try_pickup_placed(player: Player, item: Node3D) -> bool:
 	player.pickup_item(item)
 	return true
 
-func create_status_label(parent: Node3D, offset: Vector3 = Vector3(0, 0.3, 0.15)) -> Label3D:
+func create_status_label(parent: Node3D, offset := Vector3(-999, 0, 0)) -> Label3D:
+	var pos := offset
+	if pos.x == -999:
+		var front_z := 0.05
+		for child in parent.get_children():
+			if child is CSGBox3D:
+				front_z = maxf(front_z, child.position.z + (child as CSGBox3D).size.z * 0.5)
+			elif child is CSGCylinder3D:
+				front_z = maxf(front_z, child.position.z + (child as CSGCylinder3D).radius)
+		pos = Vector3(0, 0.12, front_z + 0.03)
 	var label := Label3D.new()
 	label.text = ""
 	label.font_size = 12
-	label.position = offset
+	label.position = pos
 	label.pixel_size = 0.002
 	label.add_to_group("world_label")
 	parent.add_child(label)

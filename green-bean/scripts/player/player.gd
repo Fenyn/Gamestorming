@@ -89,9 +89,13 @@ func _input(event: InputEvent) -> void:
 		rotation.y = _yaw
 		camera.rotation.x = _pitch
 
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER and GameManager.prep_active:
-		GameManager.start_day()
-		return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER:
+		if GameManager.prep_active:
+			GameManager.start_day()
+			return
+		if _day_ended:
+			get_tree().reload_current_scene()
+			return
 
 	if event.is_action_pressed("interact"):
 		_try_interact()
@@ -217,7 +221,9 @@ func _update_hud() -> void:
 
 	if _money_label:
 		if GameManager.prep_active:
-			_money_label.text = "[Enter] Open shop"
+			_money_label.text = "Bank: $%.2f | Stars: %d\n[Enter] Open shop" % [UnlockManager.money, UnlockManager.stars]
+		elif _day_ended:
+			_money_label.text = ""
 		elif GameManager.total_tips > 0.0:
 			_money_label.text = "$%.2f (+$%.2f tips)" % [GameManager.total_earned, GameManager.total_tips]
 		else:
@@ -342,41 +348,84 @@ func _on_ticket_printed(data: Dictionary) -> void:
 
 func _on_drink_handed_off(data: Dictionary) -> void:
 	_active_order = null
+	var order: OrderData = data.get("order")
 	var stars: float = data.get("stars", 0.0)
 	var tip: float = data.get("tip", 0.0)
-	_show_review_popup(stars, tip)
+	_show_review_popup(stars, tip, order)
 
-func _show_review_popup(stars: float, tip: float) -> void:
+func _show_review_popup(stars: float, tip: float, order: OrderData = null) -> void:
 	var hud := $HUD
-	var popup := Label.new()
-	popup.text = "%.1f / 5" % stars
+
+	var container := VBoxContainer.new()
+	container.anchors_preset = Control.PRESET_CENTER
+	container.anchor_left = 0.5
+	container.anchor_right = 0.5
+	container.anchor_top = 0.4
+	container.anchor_bottom = 0.4
+	container.offset_left = -160
+	container.offset_right = 160
+	container.add_theme_constant_override("separation", 4)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var star_label := Label.new()
+	star_label.text = "%.1f / 5" % stars
 	if tip > 0.0:
-		popup.text += "\n+$%.2f tip!" % tip
-	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	popup.anchors_preset = Control.PRESET_CENTER
-	popup.anchor_left = 0.5
-	popup.anchor_right = 0.5
-	popup.anchor_top = 0.4
-	popup.anchor_bottom = 0.4
-	popup.offset_left = -150
-	popup.offset_right = 150
-	popup.add_theme_font_size_override("font_size", 42)
-	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if stars >= 5.0:
-		popup.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
-	elif stars >= 4.0:
-		popup.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
-	elif stars >= 3.0:
-		popup.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	elif stars >= 2.0:
-		popup.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
-	else:
-		popup.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
-	hud.add_child(popup)
+		star_label.text += "   +$%.2f tip!" % tip
+	star_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	star_label.add_theme_font_size_override("font_size", 42)
+	star_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var star_color := Color(1.0, 0.2, 0.2)
+	if stars >= 5.0: star_color = Color(1.0, 0.85, 0.0)
+	elif stars >= 4.0: star_color = Color(0.3, 0.9, 0.3)
+	elif stars >= 3.0: star_color = Color(1.0, 1.0, 1.0)
+	elif stars >= 2.0: star_color = Color(1.0, 0.6, 0.2)
+	star_label.add_theme_color_override("font_color", star_color)
+	container.add_child(star_label)
+
+	if order:
+		var breakdown := _build_quality_breakdown(order)
+		if not breakdown.is_empty():
+			var detail := Label.new()
+			detail.text = breakdown
+			detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			detail.add_theme_font_size_override("font_size", 16)
+			detail.add_theme_color_override("font_color", Color(0.85, 0.82, 0.7))
+			detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			container.add_child(detail)
+
+	hud.add_child(container)
 	var tween := create_tween()
-	tween.tween_interval(1.5)
-	tween.tween_property(popup, "modulate:a", 0.0, 1.0)
-	tween.tween_callback(popup.queue_free)
+	tween.tween_interval(2.5)
+	tween.tween_property(container, "modulate:a", 0.0, 1.0)
+	tween.tween_callback(container.queue_free)
+
+func _build_quality_breakdown(order: OrderData) -> String:
+	var lines: Array[String] = []
+	if order.grind_quality >= 0.0:
+		lines.append("Grind: %s" % _quality_tag(order.grind_quality))
+	if not order.correct_grind_level:
+		lines.append("Wrong grind level!")
+	if order.brew_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.AEROPRESS_BREW):
+		lines.append("Extraction: %s" % _quality_tag(order.brew_quality))
+	if order.pour_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.POUR_OVER_BREW):
+		lines.append("Pour: %s" % _quality_tag(order.pour_quality))
+	if order.pour_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.HOT_WATER):
+		lines.append("Water: %s" % _quality_tag(order.pour_quality))
+	if order.steam_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.STEAM_MILK):
+		lines.append("Steam: %s" % _quality_tag(order.steam_quality))
+	if order.syrup_quality >= 0.0 and order.requested_syrup >= 0:
+		lines.append("Syrup: %s" % _quality_tag(order.syrup_quality))
+	if order.sauce_quality >= 0.0 and order.has_sauce():
+		lines.append("Sauce: %s" % _quality_tag(order.sauce_quality))
+	return "  |  ".join(lines)
+
+func _quality_tag(q: float) -> String:
+	var pct := int(q * 100)
+	if q >= 0.95: return "%d%% perfect" % pct
+	if q >= 0.80: return "%d%% good" % pct
+	if q >= 0.60: return "%d%% ok" % pct
+	if q >= 0.40: return "%d%% rough" % pct
+	return "%d%% bad" % pct
 
 func _update_recipe_display() -> void:
 	if not _active_order:
@@ -654,6 +703,25 @@ func _on_day_ended() -> void:
 	customers.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	customers.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(customers)
+
+	var star_earned := int(GameManager.total_stars)
+	var bank := Label.new()
+	bank.text = "+%d stars earned | Bank: $%.2f | Stars: %d" % [star_earned, UnlockManager.money, UnlockManager.stars]
+	bank.add_theme_font_size_override("font_size", 14)
+	bank.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+	bank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(bank)
+
+	var spacer2 := Control.new()
+	spacer2.custom_minimum_size.y = 10
+	vbox.add_child(spacer2)
+
+	var cont := Label.new()
+	cont.text = "[Enter] Next Day"
+	cont.add_theme_font_size_override("font_size", 18)
+	cont.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
+	cont.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(cont)
 
 	_end_panel.add_child(vbox)
 	hud.add_child(_end_panel)

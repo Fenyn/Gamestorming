@@ -48,3 +48,12 @@ res://scripts/stations/sauce_station.gd
 res://scripts/mini_games/sauce_prep_mini_game.gd
 res://scripts/shops/espresso_stand_scene.gd
 res://scripts/stations/sauce_prep_station.gd
+res://scenes/player/player.tscn
+res://scripts/autoload/station_utils.gd
+res://scripts/items/grounds.gd
+res://scripts/items/milk_jug.gd
+res://scripts/items/sauce_bottle.gd
+res://scripts/stations/lid_station.gd
+res://scripts/stations/mocha_prep_station.gd
+res://scripts/stations/syrup_station.gd
+res://scripts/autoload/unlock_manager.gd

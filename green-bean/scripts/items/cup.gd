@@ -16,18 +16,24 @@ var sauce_type: int = -1
 var _fill_level := 0.0
 var _fill_visual: CSGCylinder3D = null
 
+const CUP_MODEL_PATH := "res://models/cafe_set/coffee_cup_4.obj"
+
 func _ready() -> void:
 	add_to_group("carriable")
 	add_to_group("cup")
 	freeze = true
 
-	var body := CSGCylinder3D.new()
-	body.radius = _get_radius()
-	body.height = _get_height()
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.95, 0.95, 0.9)
-	body.material = mat
-	add_child(body)
+	var mesh_instance := _load_cup_mesh()
+	if mesh_instance:
+		add_child(mesh_instance)
+	else:
+		var body := CSGCylinder3D.new()
+		body.radius = _get_radius()
+		body.height = _get_height()
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.95, 0.95, 0.9)
+		body.material = mat
+		add_child(body)
 
 	_fill_visual = CSGCylinder3D.new()
 	_fill_visual.radius = _get_radius() * 0.85
@@ -45,6 +51,24 @@ func _ready() -> void:
 	shape.height = _get_height()
 	col.shape = shape
 	add_child(col)
+
+func _load_cup_mesh() -> MeshInstance3D:
+	if not ResourceLoader.exists(CUP_MODEL_PATH):
+		return null
+	var mesh_res: Mesh = load(CUP_MODEL_PATH)
+	if not mesh_res:
+		return null
+	var inst := MeshInstance3D.new()
+	inst.mesh = mesh_res
+	var target_h := _get_height()
+	var aabb := mesh_res.get_aabb()
+	var model_h: float = aabb.size.y
+	if model_h > 0.001:
+		var s: float = target_h / model_h
+		inst.scale = Vector3(s, s, s)
+	var center: Vector3 = aabb.get_center() * inst.scale
+	inst.position = -center
+	return inst
 
 func _get_radius() -> float:
 	match cup_size:

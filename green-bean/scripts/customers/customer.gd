@@ -80,19 +80,30 @@ const SYRUP_CHANCE := 0.3
 const SAUCE_CHANCE := 0.15
 
 func _randomize_order() -> void:
-	var types := DrinkData.get_all_drink_types()
-	drink_type = types[randi() % types.size()]
-	cup_size = (randi() % 4) as DrinkData.CupSize
-	if randf() < SYRUP_CHANCE:
-		syrup_type = DrinkData.SyrupType.VANILLA
+	var available_drinks := UnlockManager.get_menu_drinks()
+	if available_drinks.is_empty():
+		available_drinks = [DrinkData.DrinkType.POUR_OVER]
+	drink_type = available_drinks[randi() % available_drinks.size()] as DrinkData.DrinkType
+
+	var available_sizes := UnlockManager.owned_sizes.duplicate()
+	if available_sizes.is_empty():
+		available_sizes = [DrinkData.CupSize.SMALL]
+	cup_size = available_sizes[randi() % available_sizes.size()] as DrinkData.CupSize
+
+	var available_syrups := UnlockManager.owned_syrups.duplicate()
+	if not available_syrups.is_empty() and randf() < SYRUP_CHANCE:
+		syrup_type = available_syrups[randi() % available_syrups.size()]
 	else:
 		syrup_type = -1
+
 	if DrinkData.has_step(drink_type, DrinkData.Step.ADD_SAUCE):
 		sauce_type = DrinkData.SauceType.MOCHA
-	elif randf() < SAUCE_CHANCE:
-		sauce_type = DrinkData.SauceType.values()[randi() % DrinkData.SauceType.size()]
 	else:
-		sauce_type = -1
+		var available_sauces := UnlockManager.owned_sauces.duplicate()
+		if not available_sauces.is_empty() and randf() < SAUCE_CHANCE:
+			sauce_type = available_sauces[randi() % available_sauces.size()]
+		else:
+			sauce_type = -1
 
 func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:
 	_register_pos = register

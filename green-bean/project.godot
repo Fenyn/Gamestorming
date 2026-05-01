@@ -12,13 +12,14 @@ config_version=5
 
 config/name="Green Bean"
 config/description="A tactile first-person barista simulator with online multiplayer. Ring up orders, print tickets, and assemble drinks by hand."
-run/main_scene="uid://co8sxqwrtl33k"
+run/main_scene="res://scenes/ui/title_screen.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 EventBus="*res://scripts/autoload/event_bus.gd"
+UnlockManager="*res://scripts/autoload/unlock_manager.gd"
 GameManager="*res://scripts/autoload/game_manager.gd"
 StationUtils="*res://scripts/autoload/station_utils.gd"
 SoundManager="*res://scripts/autoload/sound_manager.gd"

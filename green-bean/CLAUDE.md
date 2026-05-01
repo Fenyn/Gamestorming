@@ -10,6 +10,7 @@ A first-person, low-poly 3D **barista simulator** with online multiplayer, built
 
 - **Engine:** Godot 4.6 stable. Open `green-bean/project.godot` in the editor, F5 to run.
 - **Language:** GDScript only. No C# / GDExtension.
+- **GDScript type inference rule:** `var x := value` fails when `value` comes from an untyped source (Array element, Dictionary value, Variant return). Always use explicit types in these cases: `var x: int = value`, `var x: String = value`. This applies to loop variables (`for item in untyped_array`), dictionary lookups, and lambda captures.
 - **Renderer:** Forward Plus (3D).
 - **Current phase:** Phase 1a grey-box prototype. Solo espresso stand, untextured primitives, no multiplayer yet.
 - Scene files (`.tscn`) may be hand-written — if Godot fails to parse on import, check `ext_resource` IDs and `parent=` paths.

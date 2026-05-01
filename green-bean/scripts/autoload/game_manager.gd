@@ -61,9 +61,17 @@ func _process(delta: float) -> void:
 	if day_timer <= 0.0:
 		day_timer = 0.0
 		day_active = false
+		_transfer_earnings()
 		SoundManager.stop_all_loops()
 		SoundManager.play("day_end")
 		EventBus.day_ended.emit()
+
+func _transfer_earnings() -> void:
+	UnlockManager.money += total_earned
+	var star_currency := int(total_stars)
+	UnlockManager.stars += star_currency
+	UnlockManager.lifetime_stars += star_currency
+	UnlockManager.save_to_file()
 
 func get_time_remaining() -> float:
 	return day_timer

@@ -33,8 +33,10 @@ func _ready() -> void:
 	EventBus.generator_purchased.connect(_on_generator_purchased)
 	EventBus.tick_fired.connect(func(_t): _on_tick())
 	EventBus.seasonal_rebirth_executed.connect(_on_prestige)
+	EventBus.heart_rate_updated.connect(_on_hr_updated)
 
 	_sync_all_motes()
+	_on_hr_updated(HeartRateManager.smoothed_bpm, HeartRateManager.get_hr_factor())
 
 
 func _setup_viewport() -> void:
@@ -48,9 +50,9 @@ func _setup_viewport() -> void:
 	_viewport.add_child(env_node)
 
 	var camera := Camera3D.new()
-	camera.position = Vector3(0.0, 0.7, 2.8)
-	camera.look_at(Vector3(0, 0.5, 0))
-	camera.fov = 30
+	camera.position = Vector3(0.0, 1.0, 5.5)
+	camera.look_at(Vector3(0, 0.45, 0))
+	camera.fov = 28
 	_viewport.add_child(camera)
 
 	var light := DirectionalLight3D.new()
@@ -238,9 +240,9 @@ func update_motes(tier: int) -> void:
 	if tier < 0 or tier > 4:
 		return
 
-	var owned := GameState.get_generator_owned(tier)
+	var owned := int(GameState.get_generator_owned(tier))
 	var produced := GameState.get_generator_produced(tier)
-	var target := clampi(ceili(log(owned + 1.0) * 3.5), 0, MAX_MOTES)
+	var target := mini(owned, MAX_MOTES)
 
 	if not _motes.has(tier):
 		_motes[tier] = []
@@ -517,11 +519,21 @@ func flash_tick() -> void:
 				mat.emission_energy_multiplier = 2.5
 				var mote_tween := create_tween()
 				mote_tween.tween_property(mat, "emission_energy_multiplier", 1.5, 1.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+				if tier == 0:
+					var base_scale: float = d.get("bonus_scale", 1.0) * 0.8
+					mote.scale = Vector3.ONE * base_scale * 1.3
+					var pulse_tween := create_tween()
+					pulse_tween.tween_property(mote, "scale", Vector3.ONE * base_scale, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 
 
 func _on_prestige(_essence_earned: int) -> void:
 	clear_all_motes()
 	_apply_prestige_visuals()
+
+
+func _on_hr_updated(bpm: float, _hr_factor: float) -> void:
+	var zone := GameFormulas.get_hr_zone(bpm, GameState.get_age())
+	set_zone_color(zone["color"])
 
 
 func set_zone_color(color: Color) -> void:

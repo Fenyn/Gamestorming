@@ -10,6 +10,11 @@ var _stats_label: Label
 func _ready() -> void:
 	_build_ui()
 	_update_stats()
+	resized.connect(queue_redraw)
+
+
+func _draw() -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.07, 0.05, 0.92))
 
 
 func _build_ui() -> void:

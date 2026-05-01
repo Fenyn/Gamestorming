@@ -45,6 +45,10 @@ func _update_display() -> void:
 	else:
 		level_label.text = "Lv %d" % level
 		var cost := UpgradeManager.get_cost(_data.id)
-		cost_label.text = "%s Mana" % GameFormulas.format_number(cost)
+		var currency := "Vitality" if _data.cost_type == "vitality" else "Mana"
+		cost_label.text = "%s %s" % [GameFormulas.format_number(cost), currency]
 		buy_button.text = "Upgrade"
-		buy_button.disabled = GameState.mana < cost
+		if _data.cost_type == "vitality":
+			buy_button.disabled = GameState.vitality < cost
+		else:
+			buy_button.disabled = GameState.mana < cost

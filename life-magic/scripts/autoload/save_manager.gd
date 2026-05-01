@@ -3,7 +3,7 @@ extends Node
 const SAVE_PATH := "user://save_game.json"
 const CURRENT_VERSION := 3
 const AUTO_SAVE_BEATS := 30
-const MAX_OFFLINE_BEATS := 500
+const BASE_OFFLINE_BEATS := 600
 
 var _beat_counter: int = 0
 var _last_save_timestamp: int = 0
@@ -104,8 +104,9 @@ func _process_offline_progress() -> void:
 
 	var resting_bpm := GameFormulas.resting_heart_rate(GameState.get_age())
 	var beats_per_sec := resting_bpm / 60.0
-	var offline_beats := int(float(elapsed) * beats_per_sec)
-	var offline_ticks := mini(offline_beats, MAX_OFFLINE_BEATS)
+	var raw_beats := int(float(elapsed) * beats_per_sec)
+	var max_beats := BASE_OFFLINE_BEATS + UpgradeManager.get_offline_beat_bonus()
+	var offline_ticks := mini(raw_beats, max_beats)
 
 	if offline_ticks <= 0:
 		return

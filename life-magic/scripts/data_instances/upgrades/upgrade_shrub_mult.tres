@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "shrub_mult"
 display_name = "Gaian Heartstone"
-description = "A heartstone that beats in time with the world. Spires call 50% more Wardens per level."
-base_cost = 1000000000.0
-cost_multiplier = 3.0
-max_level = 10
+description = "A heartstone that beats in time with the world. Spires call 25% more Wardens per level."
+base_cost = 1500000000.0
+cost_multiplier = 4.5
+max_level = 8
 effect_type = "generator_mult"
 effect_target = "4"
-effect_per_level = 0.5
-unlock_total_mana = 1000000000.0
+effect_per_level = 0.25
+unlock_total_mana = 1500000000.0

@@ -10,6 +10,9 @@ const BG_BUTTON_DISABLED := Color(0.1, 0.12, 0.1)
 const BG_TAB_ACTIVE := Color(0.16, 0.24, 0.14)
 const BG_TAB_INACTIVE := Color(0.09, 0.13, 0.09)
 
+const BG_GLASS := Color(0.09, 0.13, 0.09, 0.78)
+const BG_GLASS_CARD := Color(0.09, 0.14, 0.09, 0.82)
+
 const TEXT_PRIMARY := Color(0.88, 0.95, 0.85)
 const TEXT_SECONDARY := Color(0.55, 0.68, 0.52)
 const TEXT_MUTED := Color(0.4, 0.48, 0.38)
@@ -38,7 +41,7 @@ static func get_tier_color(tier: int) -> Color:
 
 static func create_panel_style(border_color: Color = BORDER, border_left: int = 0) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = BG_PANEL
+	style.bg_color = BG_GLASS_CARD
 	style.border_color = border_color
 	style.border_width_bottom = 1
 	style.border_width_left = border_left
@@ -62,6 +65,32 @@ static func create_tab_style(active: bool) -> StyleBoxFlat:
 	style.content_margin_bottom = 8
 	return style
 
+static func create_bottom_tab_style(active: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.18, 0.1, 0.92) if active else Color(0.06, 0.09, 0.06, 0.85)
+	style.border_color = ACCENT_GREEN if active else Color(0, 0, 0, 0)
+	style.border_width_top = 3 if active else 0
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	style.content_margin_left = 4
+	style.content_margin_right = 4
+	return style
+
+
+static func create_pill_style(color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(color.r * 0.3, color.g * 0.3, color.b * 0.3, 0.75)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 3
+	style.content_margin_bottom = 3
+	return style
+
+
 const BAR_BG := Color(0.1, 0.14, 0.1)
 const BAR_FILL := Color(0.3, 0.6, 0.25)
 
@@ -83,7 +112,7 @@ static func build() -> Theme:
 	theme.set_color("font_disabled_color", "Button", TEXT_DISABLED)
 
 	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = BG_PANEL
+	panel_style.bg_color = BG_GLASS
 	panel_style.corner_radius_top_left = 4
 	panel_style.corner_radius_top_right = 4
 	panel_style.corner_radius_bottom_left = 4

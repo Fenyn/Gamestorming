@@ -11,3 +11,4 @@ extends Resource
 @export var effect_target: String = "all"
 @export var effect_per_level: float = 0.5
 @export var unlock_total_mana: float = 0.0
+@export var cost_type: String = "mana"

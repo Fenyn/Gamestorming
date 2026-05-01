@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "herb_mult"
 display_name = "Sigilwright's Forge"
-description = "The forge etches sigils with threads of life. Pulse Glyphs release 50% more Heartmotes per level."
-base_cost = 1000.0
-cost_multiplier = 3.0
-max_level = 10
+description = "The forge etches sigils with threads of life. Pulse Glyphs release 25% more Heartmotes per level."
+base_cost = 1500.0
+cost_multiplier = 3.5
+max_level = 8
 effect_type = "generator_mult"
 effect_target = "1"
-effect_per_level = 0.5
-unlock_total_mana = 1000.0
+effect_per_level = 0.25
+unlock_total_mana = 1500.0

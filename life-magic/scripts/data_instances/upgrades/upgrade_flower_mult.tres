@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "flower_mult"
 display_name = "Beastsong Crystal"
-description = "A crystal that hums your heartbeat to bonded creatures. Familiars inscribe 50% more Pulse Glyphs per level."
-base_cost = 40000.0
-cost_multiplier = 3.0
-max_level = 10
+description = "A crystal that hums your heartbeat to bonded creatures. Familiars inscribe 25% more Pulse Glyphs per level."
+base_cost = 50000.0
+cost_multiplier = 4.0
+max_level = 8
 effect_type = "generator_mult"
 effect_target = "2"
-effect_per_level = 0.5
-unlock_total_mana = 40000.0
+effect_per_level = 0.25
+unlock_total_mana = 50000.0

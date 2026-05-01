@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "all_mult"
 display_name = "Verdant Renewal"
-description = "A wellspring of pure life force. All your spells grow 25% stronger per level."
-base_cost = 7500.0
+description = "A wellspring of pure life force. All your spells grow 10% stronger per level."
+base_cost = 15000.0
 cost_multiplier = 5.0
 max_level = 10
 effect_type = "generator_mult"
 effect_target = "all"
-effect_per_level = 0.25
-unlock_total_mana = 5000.0
+effect_per_level = 0.1
+unlock_total_mana = 8000.0

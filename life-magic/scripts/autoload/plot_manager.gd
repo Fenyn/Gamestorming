@@ -293,13 +293,15 @@ func _apply_bloom_burst() -> void:
 # --- Tithe ---
 
 func set_tithe(plot_id: String, pct: float) -> void:
-	var state: Dictionary = GameState.plots.get(plot_id, {})
-	state["tithe_pct"] = pct
+	if not GameState.plots.has(plot_id):
+		return
+	GameState.plots[plot_id]["tithe_pct"] = pct
 
 
 func get_tithe(plot_id: String) -> float:
-	var state: Dictionary = GameState.plots.get(plot_id, {})
-	return state.get("tithe_pct", 0.0)
+	if not GameState.plots.has(plot_id):
+		return 0.0
+	return GameState.plots[plot_id].get("tithe_pct", 0.0)
 
 
 # --- Tend allocation ---

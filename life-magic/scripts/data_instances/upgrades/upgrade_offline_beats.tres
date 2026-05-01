@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/upgrade_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "offline_beats"
+display_name = "Slumber Ward"
+description = "Your tower gathers mana while you rest. Each level adds 10 minutes of offline progress."
+base_cost = 3.0
+cost_multiplier = 1.8
+max_level = 8
+effect_type = "offline_beats"
+effect_target = ""
+effect_per_level = 600.0
+unlock_total_mana = 2000.0
+cost_type = "vitality"

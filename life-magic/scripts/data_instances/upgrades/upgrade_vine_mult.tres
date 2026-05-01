@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "vine_mult"
 display_name = "Ley-Line Tap"
-description = "A tap into the deep ley lines. Wardens summon 50% more Familiars per level."
-base_cost = 4000000.0
-cost_multiplier = 3.0
-max_level = 10
+description = "A tap into the deep ley lines. Wardens summon 25% more Familiars per level."
+base_cost = 5000000.0
+cost_multiplier = 4.0
+max_level = 8
 effect_type = "generator_mult"
 effect_target = "3"
-effect_per_level = 0.5
-unlock_total_mana = 4000000.0
+effect_per_level = 0.25
+unlock_total_mana = 5000000.0

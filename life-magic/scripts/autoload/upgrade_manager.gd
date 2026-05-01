@@ -15,6 +15,7 @@ const UPGRADE_PATHS := [
 	"res://scripts/data_instances/upgrades/upgrade_cascade_echo.tres",
 	"res://scripts/data_instances/upgrades/upgrade_bloom_burst.tres",
 	"res://scripts/data_instances/upgrades/upgrade_harmonic.tres",
+	"res://scripts/data_instances/upgrades/upgrade_offline_beats.tres",
 ]
 
 
@@ -71,8 +72,13 @@ func purchase(id: String) -> bool:
 		return false
 
 	var cost := get_cost(id)
-	if not GameState.spend_mana(cost):
-		return false
+	match data.cost_type:
+		"vitality":
+			if not GameState.spend_vitality(cost):
+				return false
+		_:
+			if not GameState.spend_mana(cost):
+				return false
 
 	levels[id] = levels.get(id, 0) + 1
 	_apply_effect(data)
@@ -154,6 +160,11 @@ func get_bloom_burst_seconds() -> float:
 		return 0.0
 	var level: int = levels.get("bloom_burst", 0)
 	return data.effect_per_level * level
+
+
+func get_offline_beat_bonus() -> int:
+	var level: int = levels.get("offline_beats", 0)
+	return level * 600
 
 
 func get_harmonic_interval() -> int:

@@ -28,26 +28,11 @@ var _ws_reconnect_timer: float = 0.0
 var _ws_was_connected: bool = false
 
 # Demo simulation state
-var _demo_phase_index: int = 0
-var _demo_phase_timer: float = 0.0
 var _demo_hr: float = 68.0
 var _demo_time: float = 0.0
 
-const DEMO_WORKOUT := [
-	{"name": "REST",           "target": 68,  "variance": 4,  "duration": 8.0,  "ramp": 0.05},
-	{"name": "WARMUP",         "target": 95,  "variance": 5,  "duration": 20.0, "ramp": 0.08},
-	{"name": "LIFTING SET 1",  "target": 135, "variance": 8,  "duration": 30.0, "ramp": 0.12},
-	{"name": "REST",           "target": 100, "variance": 5,  "duration": 8.0,  "ramp": 0.10},
-	{"name": "LIFTING SET 2",  "target": 145, "variance": 10, "duration": 28.0, "ramp": 0.12},
-	{"name": "REST",           "target": 105, "variance": 5,  "duration": 8.0,  "ramp": 0.10},
-	{"name": "LIFTING SET 3",  "target": 155, "variance": 12, "duration": 25.0, "ramp": 0.14},
-	{"name": "REST",           "target": 110, "variance": 6,  "duration": 8.0,  "ramp": 0.10},
-	{"name": "HEAVY SET",      "target": 170, "variance": 10, "duration": 22.0, "ramp": 0.15},
-	{"name": "REST",           "target": 115, "variance": 6,  "duration": 8.0,  "ramp": 0.10},
-	{"name": "LIFTING SET 4",  "target": 148, "variance": 10, "duration": 28.0, "ramp": 0.12},
-	{"name": "COOLDOWN",       "target": 90,  "variance": 5,  "duration": 15.0, "ramp": 0.06},
-	{"name": "REST",           "target": 72,  "variance": 3,  "duration": 10.0, "ramp": 0.05},
-]
+const DEMO_TAP_BOOST := 4.0
+const DEMO_DECAY_RATE := 5.0
 
 
 func _ready() -> void:
@@ -91,23 +76,26 @@ func _process(delta: float) -> void:
 			EventBus.heart_rate_updated.emit(smoothed_bpm, factor)
 
 
-# --- Demo simulation ---
+# --- Demo simulation (tap to raise HR) ---
+
+func demo_tap() -> void:
+	var max_hr := GameFormulas.max_heart_rate(GameState.get_age())
+	var headroom := (max_hr - _demo_hr) / maxf(max_hr - 60.0, 1.0)
+	_demo_hr += DEMO_TAP_BOOST * maxf(headroom, 0.1)
+	_demo_hr = minf(_demo_hr, max_hr)
+
 
 func _process_demo(delta: float) -> void:
 	_demo_time += delta
-	var phase: Dictionary = DEMO_WORKOUT[_demo_phase_index]
+	var resting := GameFormulas.resting_heart_rate(GameState.get_age())
 
-	var target: float = phase["target"] + sin(_demo_time * 0.7) * phase["variance"] * 0.3
-	_demo_hr += (target - _demo_hr) * phase["ramp"]
+	if _demo_hr > resting:
+		_demo_hr -= DEMO_DECAY_RATE * delta
+		_demo_hr = maxf(_demo_hr, resting)
 
-	var noise := sin(_demo_time * 2.3) * 1.2 + sin(_demo_time * 0.4) * 0.8
-	current_bpm = maxf(45.0, _demo_hr + noise)
-	current_phase = phase["name"]
-
-	_demo_phase_timer += delta
-	if _demo_phase_timer >= phase["duration"]:
-		_demo_phase_timer = 0.0
-		_demo_phase_index = (_demo_phase_index + 1) % DEMO_WORKOUT.size()
+	var noise := sin(_demo_time * 1.5) * 0.8
+	current_bpm = maxf(resting - 2.0, _demo_hr + noise)
+	current_phase = ""
 
 
 # --- WebSocket ---
@@ -166,9 +154,7 @@ func _parse_hr_message(text: String) -> void:
 # --- Public API ---
 
 func reset_to_defaults() -> void:
-	_demo_phase_index = 0
-	_demo_phase_timer = 0.0
-	_demo_hr = 68.0
+	_demo_hr = GameFormulas.resting_heart_rate(GameState.get_age())
 	_demo_time = 0.0
 	_beat_accumulator = 0.0
 	_vitality_beat_counter = 0
@@ -228,9 +214,7 @@ func set_source(new_source: String) -> void:
 		"websocket":
 			_ws_connect()
 		"demo":
-			_demo_phase_index = 0
-			_demo_phase_timer = 0.0
-			_demo_hr = 68.0
+			_demo_hr = GameFormulas.resting_heart_rate(GameState.get_age())
 			_demo_time = 0.0
 		"health_connect":
 			_start_health_connect()

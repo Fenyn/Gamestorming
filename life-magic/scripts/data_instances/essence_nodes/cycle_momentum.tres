@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cycle_momentum"
+display_name = "Cycle Momentum"
+description = "Each completed life cycle adds permanent momentum to all production."
+branch = "arcane"
+position = Vector2(0, 1)
+max_level = 5
+base_cost = 14
+cost_scaling = 4
+effect_type = "cycle_production"
+effect_value = 0.02
+prerequisite_ids = ["essence_echo"]
+tier_gate = -1

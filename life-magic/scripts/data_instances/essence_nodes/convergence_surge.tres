@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "convergence_surge"
+display_name = "Convergence Surge"
+description = "Completing a surge sends a wave of growth through your sanctums."
+branch = "pulse"
+position = Vector2(0, 3)
+max_level = 1
+base_cost = 65
+cost_scaling = 0
+effect_type = "convergence_surge"
+effect_value = 1.0
+prerequisite_ids = ["surge_mastery"]
+tier_gate = -1

@@ -8,7 +8,7 @@ const TILES := [
 	{"id": "upgrades", "name": "Upgrades", "desc": "Enhance your spells with raw mana", "color": Color(0.4, 0.8, 0.3)},
 	{"id": "sanctums", "name": "Sanctums", "desc": "Plant sigils, tend growth, and bloom", "color": Color(0.5, 0.4, 0.9)},
 	{"id": "chronicle", "name": "Chronicle", "desc": "Feats of power earned forever", "color": Color(0.9, 0.72, 0.15)},
-	{"id": "blessings", "name": "Blessings", "desc": "Spend essence for permanent strength", "color": Color(0.9, 0.6, 0.2)},
+	{"id": "blessings", "name": "Essence Tree", "desc": "Spend essence to grow permanent power", "color": Color(0.9, 0.6, 0.2)},
 	{"id": "research", "name": "Arcanum", "desc": "Invest mana in arcane knowledge", "color": Color(0.3, 0.7, 0.9)},
 ]
 
@@ -57,12 +57,15 @@ func _build_ui() -> void:
 
 func _is_visible(id: String) -> bool:
 	match id:
-		"upgrades", "sanctums":
+		"upgrades":
 			return true
+		"sanctums":
+			var seedbed_state: Dictionary = GameState.plots.get("seedbed", {})
+			return seedbed_state.get("unlocked", false)
 		"chronicle":
 			return MilestoneManager.get_earned_count() > 0
 		"blessings":
-			return GameState.life_cycles > 0 or MilestoneManager.is_prestige_unlocked()
+			return GameState.life_cycles > 0 or PrestigeManager.can_prestige()
 		"research":
 			return PrestigeManager.get_blessing_level("arcanum_key") > 0
 	return false
@@ -70,12 +73,15 @@ func _is_visible(id: String) -> bool:
 
 func _is_next_tease(id: String) -> bool:
 	match id:
+		"sanctums":
+			var seedbed_state: Dictionary = GameState.plots.get("seedbed", {})
+			return not seedbed_state.get("unlocked", false) and PrestigeManager.is_node_purchased("sanctum_mastery")
 		"chronicle":
 			return MilestoneManager.get_earned_count() == 0
 		"blessings":
-			return MilestoneManager.get_earned_count() > 0 and not (GameState.life_cycles > 0 or MilestoneManager.is_prestige_unlocked())
+			return MilestoneManager.get_earned_count() > 0 and not (GameState.life_cycles > 0 or PrestigeManager.can_prestige())
 		"research":
-			return (GameState.life_cycles > 0 or MilestoneManager.is_prestige_unlocked()) and PrestigeManager.get_blessing_level("arcanum_key") == 0
+			return (GameState.life_cycles > 0 or PrestigeManager.can_prestige()) and PrestigeManager.get_blessing_level("arcanum_key") == 0
 	return false
 
 
@@ -141,9 +147,10 @@ func _add_tile(grid: GridContainer, data: Dictionary, unlocked: bool) -> void:
 
 func _get_unlock_hint(id: String) -> String:
 	match id:
+		"sanctums": return "Unlock in the Essence Tree"
 		"chronicle": return "Earn your first milestone"
-		"blessings": return "Unlock the Life Cycle"
-		"research": return "Purchase a special blessing"
+		"blessings": return "Purchase your first Familiar"
+		"research": return "Unlock in the Essence Tree"
 	return "Keep exploring"
 
 

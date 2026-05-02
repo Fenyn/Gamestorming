@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "arcanum_key"
+display_name = "Arcanum Key"
+description = "A key of pure essence unlocks the Arcanum — a place where mana becomes knowledge."
+branch = "arcane"
+position = Vector2(0, 2)
+max_level = 1
+base_cost = 16
+cost_scaling = 0
+effect_type = "unlock_research"
+effect_value = 1.0
+prerequisite_ids = ["cycle_momentum"]
+tier_gate = -1

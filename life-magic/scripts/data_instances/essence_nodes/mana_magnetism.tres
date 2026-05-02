@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mana_magnetism"
+display_name = "Mana Magnetism"
+description = "Mana drifts toward you like iron to a lodestone. All spells produce 5% more per level."
+branch = "verdant"
+position = Vector2(0, 0)
+max_level = 10
+base_cost = 3
+cost_scaling = 0
+effect_type = "all_production"
+effect_value = 0.05
+prerequisite_ids = []
+tier_gate = -1

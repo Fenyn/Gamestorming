@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GeneratorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/generator_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "worldpulse"
+display_name = "Worldpulse Anchors"
+tier = 6
+base_cost = 200000000000000.0
+cost_multiplier = 1.25
+base_production = 0.003
+produces_tier = 5
+unlock_total_mana = 15000000000000.0
+description = "Massive crystalline anchors driven into ley-line convergence points. Each one synchronizes with the planet's own pulse, spawning Aether Conduits from raw planetary magic."

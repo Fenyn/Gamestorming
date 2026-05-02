@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GeneratorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/generator_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "primordial"
+display_name = "Primordial Hearts"
+tier = 7
+base_cost = 100000000000000000.0
+cost_multiplier = 1.27
+base_production = 0.001
+produces_tier = 6
+unlock_total_mana = 5000000000000000.0
+description = "Living organs of creation itself, beating with the rhythm that existed before the first star. Each Primordial Heart births Worldpulse Anchors as naturally as a heart pumps blood."

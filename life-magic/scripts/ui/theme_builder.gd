@@ -30,7 +30,18 @@ const TIER_COLORS := [
 	Color(0.4, 0.8, 0.3),
 	Color(0.3, 0.7, 0.7),
 	Color(0.5, 0.4, 0.9),
+	Color(0.8, 0.5, 0.8),
+	Color(0.3, 0.5, 0.9),
+	Color(0.9, 0.85, 0.3),
 ]
+
+const BRANCH_COLORS := {
+	"verdant": Color(0.3, 0.75, 0.25),
+	"pulse": Color(0.9, 0.35, 0.35),
+	"bloom": Color(0.8, 0.5, 0.85),
+	"vital": Color(0.3, 0.7, 0.9),
+	"arcane": Color(0.9, 0.72, 0.15),
+}
 
 
 static func get_tier_color(tier: int) -> Color:

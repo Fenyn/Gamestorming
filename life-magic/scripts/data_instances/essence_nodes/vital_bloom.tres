@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vital_bloom"
+display_name = "Vital Bloom"
+description = "Channel vitality directly into sanctum growth. Your movement feeds the garden."
+branch = "vital"
+position = Vector2(0, 3)
+max_level = 1
+base_cost = 55
+cost_scaling = 0
+effect_type = "vital_growth"
+effect_value = 0.25
+prerequisite_ids = ["living_investment"]
+tier_gate = -1

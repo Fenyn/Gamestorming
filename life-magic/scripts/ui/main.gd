@@ -18,7 +18,7 @@ extends Control
 @onready var plot_panel: ScrollContainer = %PlotPanel
 @onready var upgrade_panel: ScrollContainer = %UpgradePanel
 @onready var milestone_panel: ScrollContainer = %MilestonePanel
-@onready var blessing_panel: ScrollContainer = %BlessingPanel
+@onready var essence_tree_panel: ScrollContainer = %EssenceTreePanel
 @onready var settings_panel: ScrollContainer = %SettingsPanel
 
 @onready var spells_tab: Button = %SpellsTab
@@ -67,7 +67,7 @@ func _ready() -> void:
 		"upgrades": upgrade_panel,
 		"sanctums": plot_panel,
 		"chronicle": milestone_panel,
-		"blessings": blessing_panel,
+		"blessings": essence_tree_panel,
 	}
 
 	for i in _tabs.size():
@@ -316,7 +316,7 @@ func _get_panel_title(panel_id: String) -> String:
 		"upgrades": return "Upgrades"
 		"sanctums": return "Sanctums"
 		"chronicle": return "Chronicle"
-		"blessings": return "Blessings"
+		"blessings": return "Essence Tree"
 		"research": return "Arcanum"
 	return ""
 

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "overgrowth"
+display_name = "Overgrowth"
+description = "Your sanctums expand beyond their natural limits. New slots for new growth."
+branch = "bloom"
+position = Vector2(0, 3)
+max_level = 1
+base_cost = 60
+cost_scaling = 0
+effect_type = "extra_sanctum_slots"
+effect_value = 1.0
+prerequisite_ids = ["eternal_garden"]
+tier_gate = -1

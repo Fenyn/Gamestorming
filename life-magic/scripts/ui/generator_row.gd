@@ -77,12 +77,12 @@ func _update_display() -> void:
 	if not _data:
 		return
 
-	var owned := GameState.get_generator_owned(_data.tier)
-	var total := GameState.get_generator_count(_data.tier)
+	var owned: float = GameState.get_generator_owned(_data.tier)
+	var total: float = GameState.get_generator_count(_data.tier)
 	if total > owned + 0.01:
 		count_label.text = "%s (+%s)" % [GameFormulas.format_number(owned), GameFormulas.format_number(total - owned)]
 	else:
-		count_label.text = "%s" % GameFormulas.format_number(owned)
+		count_label.text = GameFormulas.format_number(owned)
 
 	var prod := GeneratorManager.get_production_per_beat(_data.tier)
 	if _data.produces_tier == -1:

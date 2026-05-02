@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bloom_cascade"
+display_name = "Bloom Cascade"
+description = "A full bloom releases a burst of mana, rewarding your patience with power."
+branch = "bloom"
+position = Vector2(1, 2)
+max_level = 3
+base_cost = 16
+cost_scaling = 5
+effect_type = "bloom_burst"
+effect_value = 30.0
+prerequisite_ids = ["deep_roots"]
+tier_gate = -1

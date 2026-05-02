@@ -34,6 +34,9 @@ func _ready() -> void:
 	EventBus.tick_fired.connect(func(_t): _on_tick())
 	EventBus.seasonal_rebirth_executed.connect(_on_prestige)
 	EventBus.heart_rate_updated.connect(_on_hr_updated)
+	EventBus.cascade_echo_triggered.connect(_on_cascade_echo)
+	EventBus.harmonic_beat_triggered.connect(_on_harmonic_beat)
+	EventBus.bloom_burst_triggered.connect(_on_bloom_burst)
 
 	_sync_all_motes()
 	_on_hr_updated(HeartRateManager.smoothed_bpm, HeartRateManager.get_hr_factor())
@@ -237,7 +240,7 @@ func clear_all_motes() -> void:
 
 
 func update_motes(tier: int) -> void:
-	if tier < 0 or tier > 4:
+	if tier < 0 or tier > 7:
 		return
 
 	var owned := int(GameState.get_generator_owned(tier))
@@ -551,7 +554,7 @@ func _on_tick() -> void:
 
 
 func _sync_all_motes() -> void:
-	for tier in range(5):
+	for tier in range(8):
 		if GameState.is_tier_unlocked(tier):
 			update_motes(tier)
 	for tier in _mote_data:
@@ -560,3 +563,96 @@ func _sync_all_motes() -> void:
 	for tier in _motes:
 		for mote in _motes[tier]:
 			mote.visible = true
+
+
+# --- Special Trigger VFX ---
+
+
+func _on_cascade_echo(tier: int) -> void:
+	var color: Color = ThemeBuilder.get_tier_color(tier)
+	var flash := _create_vfx_sphere(0.15, color, 3.0)
+	flash.position = Vector3(0, 0.8, 0)
+	_mote_root.add_child(flash)
+
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(flash, "scale", Vector3.ONE * 4.0, 0.4).set_ease(Tween.EASE_OUT)
+	var mat: StandardMaterial3D = flash.material_override
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.4).set_ease(Tween.EASE_IN)
+	tween.tween_property(mat, "emission_energy_multiplier", 0.0, 0.4)
+	tween.chain().tween_callback(flash.queue_free)
+
+
+func _on_harmonic_beat() -> void:
+	var ring := _create_vfx_ring(0.1, 0.15, Color(1.0, 0.85, 0.2), 4.0)
+	ring.position = Vector3(0, 0.5, 0)
+	_mote_root.add_child(ring)
+
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(ring, "scale", Vector3(6.0, 1.5, 6.0), 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CIRC)
+	var mat: StandardMaterial3D = ring.material_override
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
+	tween.tween_property(mat, "emission_energy_multiplier", 0.0, 0.5)
+	tween.chain().tween_callback(ring.queue_free)
+
+	_orb_mat.emission_energy_multiplier = 5.0
+	var orb_tween := create_tween()
+	orb_tween.tween_property(_orb_mat, "emission_energy_multiplier", 2.0, 0.8).set_ease(Tween.EASE_OUT)
+
+
+func _on_bloom_burst(_plot_id: String) -> void:
+	for i in 8:
+		var petal := _create_vfx_sphere(0.06, Color(0.8, 0.5, 0.85), 2.5)
+		var angle: float = float(i) * TAU / 8.0
+		petal.position = Vector3(0, 0.4, 0)
+		_mote_root.add_child(petal)
+
+		var target := Vector3(cos(angle) * 1.5, 0.4 + randf_range(-0.3, 0.5), sin(angle) * 1.5)
+		var tween := create_tween().set_parallel(true)
+		tween.tween_property(petal, "position", target, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		var mat: StandardMaterial3D = petal.material_override
+		tween.tween_property(mat, "albedo_color:a", 0.0, 0.8).set_ease(Tween.EASE_IN).set_delay(0.3)
+		tween.tween_property(mat, "emission_energy_multiplier", 0.0, 0.8).set_delay(0.3)
+		tween.chain().tween_callback(petal.queue_free)
+
+	_platform_mat.emission = Color(0.6, 0.3, 0.7)
+	_platform_mat.emission_energy_multiplier = 3.0
+	var plat_tween := create_tween()
+	plat_tween.tween_property(_platform_mat, "emission_energy_multiplier", 1.5, 1.0).set_ease(Tween.EASE_OUT)
+
+
+func _create_vfx_sphere(radius: float, color: Color, emission_power: float) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	mesh.radial_segments = 8
+	mesh.rings = 4
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(color.r, color.g, color.b, 0.7)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = emission_power
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mi.material_override = mat
+	return mi
+
+
+func _create_vfx_ring(inner: float, outer: float, color: Color, emission_power: float) -> MeshInstance3D:
+	var mesh := TorusMesh.new()
+	mesh.inner_radius = inner
+	mesh.outer_radius = outer
+	mesh.rings = 16
+	mesh.ring_segments = 8
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(color.r, color.g, color.b, 0.8)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = emission_power
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mi.material_override = mat
+	return mi

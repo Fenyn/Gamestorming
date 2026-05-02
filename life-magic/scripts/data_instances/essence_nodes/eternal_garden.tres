@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eternal_garden"
+display_name = "Eternal Garden"
+description = "Bloom count bonuses grow stronger. Each bloom matters more than the last."
+branch = "bloom"
+position = Vector2(0, 2)
+max_level = 3
+base_cost = 25
+cost_scaling = 8
+effect_type = "bloom_count_bonus"
+effect_value = 0.25
+prerequisite_ids = ["deep_roots"]
+tier_gate = -1

@@ -24,6 +24,11 @@ signal plot_tend_changed(plot_id: String)
 signal plot_growth_tick()
 signal plot_full_bloom(plot_id: String, bloom_count: int)
 
+# Special triggers
+signal cascade_echo_triggered(tier: int)
+signal harmonic_beat_triggered()
+signal bloom_burst_triggered(plot_id: String)
+
 # Milestones
 signal milestone_earned(milestone_id: String)
 

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vital_seedling"
+display_name = "Vital Seedling"
+description = "Seeds take root more easily. Planting costs less vitality and mana."
+branch = "bloom"
+position = Vector2(-1, 2)
+max_level = 3
+base_cost = 8
+cost_scaling = 3
+effect_type = "seed_cost_reduction"
+effect_value = 0.15
+prerequisite_ids = ["auto_tend"]
+tier_gate = -1

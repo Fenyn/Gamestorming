@@ -1,7 +1,7 @@
 extends Node
 
 const STARTING_MANA := 15.0
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 
 var mana: float = STARTING_MANA
 var total_mana_earned: float = 0.0

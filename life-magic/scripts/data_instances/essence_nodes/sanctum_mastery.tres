@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sanctum_mastery"
+display_name = "Sanctum Mastery"
+description = "Your sanctums bloom with deeper power. Each bloom grants stronger bonuses."
+branch = "bloom"
+position = Vector2(0, 0)
+max_level = 5
+base_cost = 4
+cost_scaling = 0
+effect_type = "bloom_bonus"
+effect_value = 0.1
+prerequisite_ids = []
+tier_gate = -1

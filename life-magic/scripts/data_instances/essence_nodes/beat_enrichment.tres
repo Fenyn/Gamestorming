@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "beat_enrichment"
+display_name = "Beat Enrichment"
+description = "Each heartbeat carries richer magic. Every beat produces more across all generators."
+branch = "vital"
+position = Vector2(0, 1)
+max_level = 5
+base_cost = 10
+cost_scaling = 2
+effect_type = "beat_production"
+effect_value = 0.03
+prerequisite_ids = ["vital_strength"]
+tier_gate = -1

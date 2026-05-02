@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "essence_echo"
+display_name = "Essence Echo"
+description = "Each rebirth resonates more deeply, yielding more essence from the life you lived."
+branch = "arcane"
+position = Vector2(0, 0)
+max_level = 3
+base_cost = 10
+cost_scaling = 0
+effect_type = "essence_bonus"
+effect_value = 0.1
+prerequisite_ids = []
+tier_gate = -1

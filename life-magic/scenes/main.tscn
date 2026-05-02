@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/plot_panel.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/milestone_panel.tscn" id="7"]
-[ext_resource type="PackedScene" path="res://scenes/ui/blessing_panel.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/essence_tree_panel.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/grimoire_hub.tscn" id="9"]
 
 [node name="Main" type="Control"]
@@ -180,7 +180,7 @@ visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="BlessingPanel" parent="UILayer" instance=ExtResource("8")]
+[node name="EssenceTreePanel" parent="UILayer" instance=ExtResource("8")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "surge_frequency"
+display_name = "Surge Frequency"
+description = "The rhythm of power quickens. Surges arrive more often."
+branch = "pulse"
+position = Vector2(0, 0)
+max_level = 3
+base_cost = 5
+cost_scaling = 0
+effect_type = "surge_cooldown"
+effect_value = 0.1
+prerequisite_ids = []
+tier_gate = -1

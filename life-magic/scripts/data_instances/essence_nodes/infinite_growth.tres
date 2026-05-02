@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "infinite_growth"
+display_name = "Infinite Growth"
+description = "Remove the ceiling on your earliest spells. They grow without limit."
+branch = "verdant"
+position = Vector2(0, 3)
+max_level = 3
+base_cost = 50
+cost_scaling = 15
+effect_type = "remove_upgrade_cap"
+effect_value = 1.0
+prerequisite_ids = ["tier_mastery"]
+tier_gate = -1

@@ -34,7 +34,7 @@ func _load_data() -> void:
 		if res is PlotData:
 			plot_data.append(res)
 			_data_map[res.id] = res
-			if res.unlock_total_mana <= 0.0:
+			if res.unlock_total_mana == 0.0:
 				_ensure_state(res.id, res)
 				GameState.plots[res.id]["unlocked"] = true
 
@@ -62,7 +62,7 @@ func _ensure_state(plot_id: String, data: PlotData) -> void:
 func reset_to_defaults() -> void:
 	GameState.plots.clear()
 	for data in plot_data:
-		if data.unlock_total_mana <= 0.0:
+		if data.unlock_total_mana == 0.0:
 			_ensure_state(data.id, data)
 			GameState.plots[data.id]["unlocked"] = true
 
@@ -81,9 +81,10 @@ func _check_unlocks() -> void:
 		var state: Dictionary = GameState.plots.get(data.id, {})
 		if state.get("unlocked", false):
 			continue
-		var mana_ok := data.unlock_total_mana <= 0.0 or GameState.total_mana_earned >= data.unlock_total_mana
-		var vitality_ok := data.unlock_vitality <= 0.0 or GameState.vitality_lifetime >= data.unlock_vitality
-		if mana_ok and vitality_ok:
+		if data.unlock_total_mana < 0.0:
+			continue
+		var mana_ok: bool = data.unlock_total_mana == 0.0 or GameState.total_mana_earned >= data.unlock_total_mana
+		if mana_ok:
 			_ensure_state(data.id, data)
 			GameState.plots[data.id]["unlocked"] = true
 			EventBus.plot_unlocked.emit(data.id)
@@ -284,6 +285,7 @@ func _apply_bloom_burst() -> void:
 	var burst_mana := mana_per_beat * beats_in_burst
 	if burst_mana > 0.0:
 		GameState.add_mana(burst_mana)
+		EventBus.bloom_burst_triggered.emit("")
 		EventBus.notification.emit(
 			"Bloom Burst! +%s mana!" % GameFormulas.format_number(burst_mana),
 			"surge"

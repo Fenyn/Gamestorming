@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "surge_mastery"
+display_name = "Surge Mastery"
+description = "Every surge hits with greater force. The power multiplier grows."
+branch = "pulse"
+position = Vector2(0, 2)
+max_level = 5
+base_cost = 18
+cost_scaling = 4
+effect_type = "surge_power"
+effect_value = 0.2
+prerequisite_ids = ["sustained_pulse"]
+tier_gate = -1

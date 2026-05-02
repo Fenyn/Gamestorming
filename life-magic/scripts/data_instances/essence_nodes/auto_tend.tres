@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "auto_tend"
+display_name = "Auto-Tend"
+description = "Sanctum attunement flows without your attention. Growth tends itself."
+branch = "bloom"
+position = Vector2(-1, 1)
+max_level = 1
+base_cost = 20
+cost_scaling = 0
+effect_type = "auto_tend"
+effect_value = 1.0
+prerequisite_ids = ["sanctum_mastery"]
+tier_gate = -1

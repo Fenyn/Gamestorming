@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GeneratorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/generator_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "aether"
+display_name = "Aether Conduits"
+tier = 5
+base_cost = 500000000000.0
+cost_multiplier = 1.23
+base_production = 0.008
+produces_tier = 4
+unlock_total_mana = 50000000000.0
+description = "Channels of pure aetheric energy that pierce the boundary between flesh and magic. They draw Heartfont Spires into existence through resonance alone."

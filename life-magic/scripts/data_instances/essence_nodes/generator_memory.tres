@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "generator_memory"
+display_name = "Generator Memory"
+description = "Your spells remember you between cycles. Begin with higher tiers already awakened."
+branch = "verdant"
+position = Vector2(-1, 2)
+max_level = 3
+base_cost = 6
+cost_scaling = 0
+effect_type = "starting_tiers"
+effect_value = 1.0
+prerequisite_ids = ["head_start"]
+tier_gate = -1

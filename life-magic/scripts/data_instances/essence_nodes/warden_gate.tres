@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "warden_gate"
+display_name = "Warden Gate"
+description = "Open the path to Verdant Wardens. A deeper cascade awaits."
+branch = "verdant"
+position = Vector2(1, 1)
+max_level = 1
+base_cost = 15
+cost_scaling = 0
+effect_type = "tier_unlock"
+effect_value = 3.0
+prerequisite_ids = ["mana_magnetism"]
+tier_gate = 3

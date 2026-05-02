@@ -18,6 +18,9 @@ func _load_generator_data() -> void:
 		"res://scripts/data_instances/generators/generator_flower.tres",
 		"res://scripts/data_instances/generators/generator_vine.tres",
 		"res://scripts/data_instances/generators/generator_shrub.tres",
+		"res://scripts/data_instances/generators/generator_aether.tres",
+		"res://scripts/data_instances/generators/generator_worldpulse.tres",
+		"res://scripts/data_instances/generators/generator_primordial.tres",
 	]
 
 	for path in paths:
@@ -40,9 +43,10 @@ func _on_tick(_tick_number: int) -> void:
 
 func _process_cascade() -> void:
 	var harmonic_mult := 1.0
-	var interval := UpgradeManager.get_harmonic_interval()
+	var interval: int = UpgradeManager.get_harmonic_interval()
 	if interval > 0 and TickEngine.beat_count % interval == 0:
 		harmonic_mult = 3.0
+		EventBus.harmonic_beat_triggered.emit()
 	var total_mult := SurgeManager.production_multiplier * SurgeManager.get_vital_charge_mult() * harmonic_mult
 	process_production(total_mult, true)
 
@@ -58,9 +62,11 @@ func process_production(surge_mult: float = 1.0, emit_signals: bool = true) -> v
 		var produced := GameFormulas.generator_production(count, data.base_production, multiplier) * BEAT_SCALE * surge_mult
 
 		if data.produces_tier >= 0:
-			var echo_chance := UpgradeManager.get_cascade_echo_chance()
+			var echo_chance: float = UpgradeManager.get_cascade_echo_chance()
 			if echo_chance > 0.0 and randf() < echo_chance:
 				produced *= 2.0
+				if emit_signals:
+					EventBus.cascade_echo_triggered.emit(data.tier)
 
 		if data.produces_tier == -1:
 			GameState.add_mana(produced)
@@ -76,6 +82,8 @@ func _check_unlocks() -> void:
 		if GameState.is_tier_unlocked(data.tier):
 			continue
 		if data.unlock_total_mana > 0.0 and GameState.total_mana_earned >= data.unlock_total_mana:
+			if data.tier >= 3 and not PrestigeManager.is_tier_gate_unlocked(data.tier):
+				continue
 			GameState.unlock_tier(data.tier)
 
 

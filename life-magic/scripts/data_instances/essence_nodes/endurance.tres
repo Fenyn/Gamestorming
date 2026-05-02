@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EssenceNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/essence_node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "endurance"
+display_name = "Endurance"
+description = "Vitality lingers in your body longer before fading."
+branch = "vital"
+position = Vector2(-1, 1)
+max_level = 5
+base_cost = 6
+cost_scaling = 2
+effect_type = "vitality_expiry"
+effect_value = 6.0
+prerequisite_ids = ["vital_strength"]
+tier_gate = -1

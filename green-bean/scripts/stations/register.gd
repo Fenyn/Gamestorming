@@ -89,13 +89,15 @@ func _build_viewport() -> void:
 	add_child(_viewport)
 
 func _build_screen_mesh() -> void:
-	_screen_mesh = MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.size = SCREEN_SIZE
-	_screen_mesh.mesh = quad
-	_screen_mesh.position = Vector3(0, 0.18, -0.13)
-	_screen_mesh.rotation_degrees = Vector3(-15, 180, 0)
-	add_child(_screen_mesh)
+	_screen_mesh = $ScreenQuad as MeshInstance3D
+	if not _screen_mesh:
+		_screen_mesh = MeshInstance3D.new()
+		var quad := QuadMesh.new()
+		quad.size = SCREEN_SIZE
+		_screen_mesh.mesh = quad
+		_screen_mesh.position = Vector3(0, 0.36, -0.01)
+		_screen_mesh.rotation_degrees = Vector3(-15, 180, 0)
+		add_child(_screen_mesh)
 
 # ──────────────────────────────────────────────
 # DAY-MODE POS UI

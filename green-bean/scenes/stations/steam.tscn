@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bq85cwvuemjm5" path="res://scripts/stations/steam_station.gd" id="1"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
-albedo_color = Color(0.72, 0.72, 0.74, 1)
+albedo_color = Color(0.72, 0.42, 0.42, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
 size = Vector3(0.2, 0.25, 0.2)

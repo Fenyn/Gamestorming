@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dw4u1fvpm2aam"]
+﻿[gd_scene format=3 uid="uid://dw4u1fvpm2aam"]
 
 [ext_resource type="Script" uid="uid://bq85cwvuemjm5" path="res://scripts/stations/steam_station.gd" id="1"]
 
@@ -23,4 +23,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 pixel_size = 0.002
 billboard = 2
 text = "STEAMER"
-font_size = 12
+font_size = 24

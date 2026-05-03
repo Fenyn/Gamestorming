@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dae8p6asdkrbh"]
+﻿[gd_scene format=3 uid="uid://dae8p6asdkrbh"]
 
 [ext_resource type="Script" uid="uid://rpttaekx5odk" path="res://scripts/stations/register.gd" id="1"]
 
@@ -46,4 +46,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 pixel_size = 0.002
 billboard = 2
 text = "REGISTER"
-font_size = 12
+font_size = 24

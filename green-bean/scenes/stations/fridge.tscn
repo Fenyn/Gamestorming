@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dchyeal4br6un"]
+﻿[gd_scene format=3 uid="uid://dchyeal4br6un"]
 
 [ext_resource type="Script" uid="uid://4lkd0kwavdqw" path="res://scripts/stations/fridge_station.gd" id="1"]
 
@@ -24,4 +24,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.29569983, 0)
 pixel_size = 0.002
 billboard = 2
 text = "FRIDGE"
-font_size = 12
+font_size = 24

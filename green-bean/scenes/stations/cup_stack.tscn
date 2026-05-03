@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://uo86utug3rju"]
+﻿[gd_scene format=3 uid="uid://uo86utug3rju"]
 
 [ext_resource type="Script" uid="uid://bqud0ke8ku8b3" path="res://scripts/stations/cup_stack.gd" id="1"]
 
@@ -23,4 +23,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 pixel_size = 0.002
 billboard = 2
 text = "CUP STACK"
-font_size = 12
+font_size = 24

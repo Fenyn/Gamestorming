@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://og0lvr77r062"]
+﻿[gd_scene format=3 uid="uid://og0lvr77r062"]
 
 [ext_resource type="Script" uid="uid://8x5ctdydklwi" path="res://scripts/stations/counter_pad.gd" id="1"]
 
@@ -27,4 +27,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 pixel_size = 0.002
 billboard = 2
 text = "COUNTER PAD"
-font_size = 12
+font_size = 24

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ckwdnu07q3tny"]
+﻿[gd_scene format=3 uid="uid://ckwdnu07q3tny"]
 
 [ext_resource type="Script" uid="uid://cs5on50gr0r7a" path="res://scripts/stations/hot_water_station.gd" id="1"]
 
@@ -23,4 +23,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 pixel_size = 0.002
 billboard = 2
 text = "HOT WATER"
-font_size = 12
+font_size = 24

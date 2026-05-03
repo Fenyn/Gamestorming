@@ -54,21 +54,32 @@ func _add_copies(deck: Array[CardData], card_id: String, count: int) -> void:
 	for i: int in range(count):
 		deck.append(card.duplicate())
 
-func _load_all_cards() -> void:
-	_load_directory("res://resources/cards/nordic/units/")
-	_load_directory("res://resources/cards/nordic/buildings/")
-	_load_directory("res://resources/cards/nordic/spells/")
+const CARD_PATHS: Array[String] = [
+	"res://resources/cards/nordic/units/huscarl.tres",
+	"res://resources/cards/nordic/units/berserker.tres",
+	"res://resources/cards/nordic/units/fenrirs_chosen.tres",
+	"res://resources/cards/nordic/units/dwarven_sapper.tres",
+	"res://resources/cards/nordic/units/einherjar.tres",
+	"res://resources/cards/nordic/units/changeling.tres",
+	"res://resources/cards/nordic/units/stone_troll.tres",
+	"res://resources/cards/nordic/units/valkyrie.tres",
+	"res://resources/cards/nordic/units/frost_giant.tres",
+	"res://resources/cards/nordic/buildings/grand_lodge.tres",
+	"res://resources/cards/nordic/buildings/mead_hall.tres",
+	"res://resources/cards/nordic/buildings/palisade_wall.tres",
+	"res://resources/cards/nordic/buildings/blacksmith.tres",
+	"res://resources/cards/nordic/buildings/powder_hall.tres",
+	"res://resources/cards/nordic/spells/grand_melee.tres",
+	"res://resources/cards/nordic/spells/eirs_mending.tres",
+	"res://resources/cards/nordic/spells/hlins_bulwark.tres",
+	"res://resources/cards/nordic/spells/blood_fury.tres",
+	"res://resources/cards/nordic/spells/armor_of_retribution.tres",
+	"res://resources/cards/nordic/spells/lightning_storm.tres",
+	"res://resources/cards/nordic/spells/barrel_of_mead.tres",
+]
 
-func _load_directory(path: String) -> void:
-	var dir: DirAccess = DirAccess.open(path)
-	if dir == null:
-		return
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var full_path: String = path + file_name
-			var card: CardData = load(full_path) as CardData
-			if card != null and card.id != "":
-				_cards[card.id] = card
-		file_name = dir.get_next()
+func _load_all_cards() -> void:
+	for path: String in CARD_PATHS:
+		var card: CardData = load(path) as CardData
+		if card != null and card.id != "":
+			_cards[card.id] = card

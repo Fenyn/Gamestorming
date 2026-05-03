@@ -13,11 +13,21 @@ const MIN_Y: float = 5.0
 const MAX_Y: float = 18.0
 
 var _target_pos: Vector3
+var _tween_active: bool = false
 
 func _ready() -> void:
 	_target_pos = global_position
 
+func reset_target() -> void:
+	_target_pos = global_position
+	_tween_active = false
+
+func set_tween_active() -> void:
+	_tween_active = true
+
 func _process(delta: float) -> void:
+	if _tween_active:
+		return
 	var move: Vector2 = Vector2.ZERO
 
 	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):

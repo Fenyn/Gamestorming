@@ -24,6 +24,7 @@ func _ready() -> void:
 	EventBus.unit_destroyed.connect(_on_unit_destroyed)
 	EventBus.building_destroyed.connect(_on_building_destroyed)
 	EventBus.game_started.connect(_on_game_started)
+	EventBus.turn_started.connect(_on_turn_started)
 	EventBus.combat_resolved.connect(_refresh_all_pieces)
 	EventBus.unit_damaged.connect(_on_unit_damaged)
 	EventBus.building_damaged.connect(_on_building_damaged)
@@ -59,10 +60,29 @@ func start_game_with_seed(seed_val: int, online: bool) -> void:
 		_flip_camera()
 	TurnManager.start_game()
 
+func _on_turn_started(player_index: int) -> void:
+	if is_online:
+		return
+	_orient_camera(player_index)
+
 func _flip_camera() -> void:
-	var cam: Camera3D = $Camera3D
-	cam.position = Vector3(0, 10, -11)
-	cam.rotation_degrees = Vector3(-55, 180, 0)
+	_orient_camera(1)
+
+func _orient_camera(player_index: int) -> void:
+	var cam: CameraController = $Camera3D as CameraController
+	var target_pos: Vector3
+	var target_rot: Vector3
+	if player_index == 0:
+		target_pos = Vector3(0, 10, 11)
+		target_rot = Vector3(-55, 0, 0)
+	else:
+		target_pos = Vector3(0, 10, -11)
+		target_rot = Vector3(-55, 180, 0)
+	cam.set_tween_active()
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(cam, "position", target_pos, 0.4).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(cam, "rotation_degrees", target_rot, 0.4).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.finished.connect(cam.reset_target)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("right_click") or event.is_action_pressed("ui_cancel"):

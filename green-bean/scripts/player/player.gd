@@ -142,26 +142,37 @@ func _build_hud() -> void:
 
 	_timer_label = Label.new()
 	_timer_label.text = "3:00"
-	_timer_label.position = Vector2(20, 10)
-	_timer_label.add_theme_font_size_override("font_size", 28)
+	_timer_label.anchor_left = 0.0
+	_timer_label.anchor_top = 0.0
+	_timer_label.offset_left = 20
+	_timer_label.offset_top = 10
+	_timer_label.add_theme_font_size_override("font_size", 36)
 	_timer_label.add_theme_color_override("font_color", Color.WHITE)
 	_timer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_timer_label)
 
 	_money_label = Label.new()
 	_money_label.text = "$0.00"
-	_money_label.position = Vector2(20, 45)
-	_money_label.add_theme_font_size_override("font_size", 22)
+	_money_label.anchor_left = 0.0
+	_money_label.anchor_top = 0.0
+	_money_label.offset_left = 20
+	_money_label.offset_top = 52
+	_money_label.add_theme_font_size_override("font_size", 28)
 	_money_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
 	_money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_money_label)
 
 	_interact_label = Label.new()
 	_interact_label.text = ""
-	_interact_label.anchors_preset = Control.PRESET_CENTER
-	_interact_label.position = Vector2(940, 560)
-	_interact_label.add_theme_font_size_override("font_size", 16)
-	_interact_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	_interact_label.anchor_left = 0.5
+	_interact_label.anchor_right = 0.5
+	_interact_label.anchor_top = 0.55
+	_interact_label.anchor_bottom = 0.55
+	_interact_label.offset_left = -200
+	_interact_label.offset_right = 200
+	_interact_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_interact_label.add_theme_font_size_override("font_size", 24)
+	_interact_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 	_interact_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(_interact_label)
 
@@ -273,6 +284,9 @@ func _try_pickup_item() -> void:
 	if not interact_ray.is_colliding():
 		return
 	var collider := interact_ray.get_collider()
+	if collider and collider.has_method("interact"):
+		collider.interact(self)
+		return
 	if collider and collider.is_in_group("carriable"):
 		pickup_item(collider)
 

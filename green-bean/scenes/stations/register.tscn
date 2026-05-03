@@ -1,39 +1,44 @@
 [gd_scene format=3 uid="uid://dae8p6asdkrbh"]
 
 [ext_resource type="Script" uid="uid://rpttaekx5odk" path="res://scripts/stations/register.gd" id="1"]
-[ext_resource type="ArrayMesh" uid="uid://dig0j0pp4f7xs" path="res://models/cafe_set/cash_register_base.obj" id="2_base"]
-[ext_resource type="ArrayMesh" uid="uid://dctc15ftxupca" path="res://models/cafe_set/cash_register_acc.obj" id="3_acc"]
-[ext_resource type="ArrayMesh" uid="uid://b17ha8r4vndti" path="res://models/cafe_set/cash_register_screen.obj" id="4_screen"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+size = Vector3(0.3, 0.2, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="Mat_base"]
+albedo_color = Color(0.25, 0.25, 0.28, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_screen"]
+size = Vector3(0.22, 0.16, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="Mat_screen"]
+albedo_color = Color(0.1, 0.1, 0.12, 1)
 
 [sub_resource type="QuadMesh" id="QuadMesh_001"]
 size = Vector2(0.4, 0.3)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
-size = Vector3(0.35, 0.3, 0.25)
+size = Vector3(0.45, 0.45, 0.3)
 
 [node name="Register" type="StaticBody3D" unique_id=1770249230]
 script = ExtResource("1")
 
-[node name="ModelPivot" type="Node3D" parent="." unique_id=218473161]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("BoxMesh_base")
+surface_material_override/0 = SubResource("Mat_base")
 
-[node name="Base" type="MeshInstance3D" parent="ModelPivot" unique_id=1830877396]
-transform = Transform3D(1.396, 0, 0, 0, 1.396, 0, 0, 0, 1.396, 4.24, -1.414, -1.381)
-mesh = ExtResource("2_base")
-
-[node name="Accessories" type="MeshInstance3D" parent="ModelPivot" unique_id=1646794048]
-transform = Transform3D(1.396, 0, 0, 0, 1.396, 0, 0, 0, 1.396, 4.24, -1.414, -1.381)
-mesh = ExtResource("3_acc")
-
-[node name="ScreenModel" type="MeshInstance3D" parent="ModelPivot" unique_id=1571967096]
-transform = Transform3D(1.396, 0, 0, 0, 1.396, 0, 0, 0, 1.396, 4.24, -1.414, -1.381)
-mesh = ExtResource("4_screen")
+[node name="Screen" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.966, -0.259, 0, 0.259, 0.966, 0, 0.26, -0.06)
+mesh = SubResource("BoxMesh_screen")
+surface_material_override/0 = SubResource("Mat_screen")
 
 [node name="ScreenQuad" type="MeshInstance3D" parent="." unique_id=1859124591]
 transform = Transform3D(-1, 0, 0, 0, 1.1657912, 0.2731502, 0, 0.31235814, -1.0194582, 0, 0.36417472, 0.003215706)
 mesh = SubResource("QuadMesh_001")
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=618147039]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 shape = SubResource("BoxShape3D_001")
 
 [node name="Label3D" type="Label3D" parent="." unique_id=1668955086 groups=["world_label"]]

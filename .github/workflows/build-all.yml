@@ -21,7 +21,7 @@ jobs:
       image: barichello/godot-ci:4.6
     strategy:
       matrix:
-        game: [coinshot, life-magic, mythos]
+        game: [coinshot, green-bean, life-magic, mythos]
     steps:
       - uses: actions/checkout@v4
 

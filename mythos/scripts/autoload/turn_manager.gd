@@ -208,7 +208,4 @@ func _player_has_any_action() -> bool:
 			return true
 		if card.card_type == CardData.CardType.BUILDING and has_empty_grid:
 			return true
-	for spell: SpellData in CardDatabase.get_all_spells():
-		if player.resources >= spell.cost:
-			return true
 	return false

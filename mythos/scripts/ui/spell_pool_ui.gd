@@ -5,6 +5,7 @@ var _spell_buttons: Array[Button] = []
 var _selected_spell_id: String = ""
 
 func _ready() -> void:
+	visible = false
 	_build_spell_list()
 	EventBus.spell_pool_deselected.connect(_on_deselected)
 

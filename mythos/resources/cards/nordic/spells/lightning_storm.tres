@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lightning_storm"
+display_name = "Lightning Storm"
+card_type = 2
+cost = 2
+faction = "nordic"
+description = "Deal 1 damage to all units."
+start_position = 1
+target_mode = 0
+trigger_types = [3]
+effect_description = "on_resolve: Deal 1 damage to ALL units (both players)."

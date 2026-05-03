@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/keyword_data.gd" id="2"]
+
+[sub_resource type="Resource" id="kw_elusive"]
+script = ExtResource("2")
+keyword = 3
+value = 0
+
+[sub_resource type="Resource" id="kw_mobility"]
+script = ExtResource("2")
+keyword = 5
+value = 1
+
+[resource]
+script = ExtResource("1")
+id = "changeling"
+display_name = "Changeling"
+card_type = 0
+cost = 4
+faction = "nordic"
+description = "Elusive, Mobility 1"
+attack = 5
+health = 6
+keywords = [SubResource("kw_elusive"), SubResource("kw_mobility")]

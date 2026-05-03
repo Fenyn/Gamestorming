@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "hlins_bulwark"
+display_name = "Hlin's Bulwark"
+card_type = 2
+cost = 2
+faction = "nordic"
+description = "Each damaged friendly unit gains Armor 3."
+start_position = 4
+target_mode = 0
+trigger_types = [3]
+effect_description = "on_resolve: Each damaged friendly unit gains Armor 3."

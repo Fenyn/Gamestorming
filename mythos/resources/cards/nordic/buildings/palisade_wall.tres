@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "palisade_wall"
+display_name = "Palisade Wall"
+card_type = 1
+cost = 1
+faction = "nordic"
+description = "Each adjacent building's max health is increased by 5."
+health = 20
+resource_generation = 0
+is_hq = false
+effect_text = ""
+adjacency_text = "Each adjacent building gains +5 max health."

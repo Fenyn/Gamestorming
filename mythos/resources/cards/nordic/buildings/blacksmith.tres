@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blacksmith"
+display_name = "Blacksmith"
+card_type = 1
+cost = 3
+faction = "nordic"
+description = "Each of your units gains +3/+0."
+health = 15
+resource_generation = 0
+is_hq = false
+effect_text = "All friendly units gain +3 attack."
+adjacency_text = ""

@@ -6,7 +6,9 @@
       "WebFetch(domain:cifi.game-vault.net)",
       "WebFetch(domain:www.youtube.com)",
       "WebFetch(domain:www.ldplayer.net)",
-      "WebFetch(domain:apkpure.com)"
+      "WebFetch(domain:apkpure.com)",
+      "Bash(Get-ChildItem -Path \"G:\\\\Godot\\\\Gamestorming\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

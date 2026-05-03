@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eirs_mending"
+display_name = "Eir's Mending"
+card_type = 2
+cost = 1
+faction = "nordic"
+description = "Each damaged friendly unit heals 2 HP."
+start_position = 1
+target_mode = 0
+trigger_types = [3]
+effect_description = "on_resolve: Each damaged friendly unit heals 2 HP."

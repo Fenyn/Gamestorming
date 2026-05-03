@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "valkyrie"
+display_name = "Valkyrie"
+card_type = 0
+cost = 5
+faction = "nordic"
+description = "When a friendly unit is destroyed, instead remove all damage from it. Once per Valkyrie."
+attack = 6
+health = 6
+keywords = []

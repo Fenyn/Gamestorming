@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/spell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "grand_melee"
+display_name = "Grand Melee"
+card_type = 2
+cost = 1
+faction = "nordic"
+description = "All damaged friendly units gain +3 attack."
+start_position = 3
+target_mode = 0
+trigger_types = [3]
+effect_description = "on_resolve: All damaged friendly units gain +3 attack."

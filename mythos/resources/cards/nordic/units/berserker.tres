@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "berserker"
+display_name = "Berserker"
+card_type = 0
+cost = 2
+faction = "nordic"
+description = "When damaged, gain +2 attack."
+attack = 2
+health = 3
+keywords = []

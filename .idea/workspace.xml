@@ -5,19 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/editor/editor_layout.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/editor/editor_layout.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/editor/espresso_stand.tscn-editstate-20d43a4bfc5f984fe5b429b11f7bb993.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/editor/espresso_stand.tscn-editstate-20d43a4bfc5f984fe5b429b11f7bb993.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/editor/espresso_stand.tscn-folding-20d43a4bfc5f984fe5b429b11f7bb993.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/editor/espresso_stand.tscn-folding-20d43a4bfc5f984fe5b429b11f7bb993.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/editor/project_metadata.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/editor/project_metadata.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/editor/register.tscn-editstate-4fe5c13f02276f871522cb5bd3a14b90.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/editor/register.tscn-editstate-4fe5c13f02276f871522cb5bd3a14b90.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/editor/register.tscn-folding-4fe5c13f02276f871522cb5bd3a14b90.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/editor/register.tscn-folding-4fe5c13f02276f871522cb5bd3a14b90.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/mono/metadata/ide_messaging_meta.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/.godot/scene_groups_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/.godot/scene_groups_cache.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/scenes/shops/espresso_stand.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/scenes/shops/espresso_stand.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/scenes/stations/counter_pad.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/scenes/stations/counter_pad.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/scenes/stations/register.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/scenes/stations/register.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/green-bean/scripts/stations/register.gd" beforeDir="false" afterPath="$PROJECT_DIR$/green-bean/scripts/stations/register.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,45 +16,45 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Fenyn"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Fenyn&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Fenyn/Gamestorming.git",
-    "accountId": "e5d9ff83-6726-4053-8fef-8dcabc6586c9"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Fenyn/Gamestorming.git&quot;,
+    &quot;accountId&quot;: &quot;e5d9ff83-6726-4053-8fef-8dcabc6586c9&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/../../Unreal/Kilnseed/Kilnseed.uproject" root0="FORCE_HIGHLIGHTING" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="3D3e9X7lM9D0rkR60bXyHAuJV6A" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Executable.Player">
     <configuration name="Debug GDScript (Running session)" type="GDSCRIPT_DEBUG_RUN_CONFIGURATION" factoryName="GdScriptRunFactory">
       <option name="json" value="{&#10;  // Launch: &quot;Launch a new instance of the game&quot;,&#10;  // Attach: &quot;Attach to an already running game, which was started from the Godot Editor&quot;&#10;  &quot;request&quot; : &quot;Attach&quot;,&#10;  &quot;debugServer&quot; : 6006, // port should match the Debug Adapter port in the Godot Editor project settings.&#10;  &quot;scene&quot; : &quot;main&quot;, // main, current, res://path/to/file.tscn&#10;  &#10;  // &quot;playArgs&quot; : [ &quot;--editor&quot; ], // debugging a tool script&#10;  // &quot;playArgs&quot;: [&quot;--debug-collisions&quot;,&quot;--debug-navigation&quot;], // different options&#10;  &#10;  // one click deploy and debug via Godot Editor:&#10;  // &quot;platform&quot;: &quot;Android&quot;, // including Android, iOS, Web and W4 consoles&#10;  // &quot;device&quot;: &quot;0&quot;, // index of the device of a &quot;platform&quot; type&#10;}" />
@@ -126,6 +115,7 @@
       <option name="presentableId" value="Default" />
       <updated>1777515032452</updated>
       <workItem from="1777515034084" duration="79045000" />
+      <workItem from="1777791567313" duration="6370000" />
     </task>
     <servers />
   </component>

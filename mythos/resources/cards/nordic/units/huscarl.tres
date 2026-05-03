@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "huscarl"
+display_name = "Huscarl"
+card_type = 0
+cost = 1
+faction = "nordic"
+description = "Basic Nordic warrior."
+attack = 2
+health = 1
+keywords = []

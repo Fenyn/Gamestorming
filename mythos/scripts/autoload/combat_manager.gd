@@ -1,14 +1,19 @@
 extends Node
 
+const ATTACK_DELAY: float = 0.35
+
+signal battle_finished()
+
 func resolve_battle(attacker_index: int) -> void:
 	var defender_index: int = 1 - attacker_index
 	_apply_building_buffs(attacker_index)
 	_apply_building_buffs(defender_index)
-	_resolve_side(attacker_index, defender_index)
-	_resolve_side(defender_index, attacker_index)
+	await _resolve_side(attacker_index, defender_index)
+	await _resolve_side(defender_index, attacker_index)
 	_clear_building_buffs(attacker_index)
 	_clear_building_buffs(defender_index)
 	EventBus.combat_resolved.emit()
+	battle_finished.emit()
 
 func _apply_building_buffs(player_index: int) -> void:
 	var player: PlayerState = GameState.get_player(player_index)
@@ -44,21 +49,25 @@ func _resolve_side(attacker_index: int, defender_index: int) -> void:
 	for lane: int in range(5):
 		if not GameState.game_active:
 			return
-		_resolve_lane(lane, attacker_index, defender_index)
+		var had_attack: bool = await _resolve_lane(lane, attacker_index, defender_index)
+		if had_attack:
+			await get_tree().create_timer(ATTACK_DELAY).timeout
 
-func _resolve_lane(lane: int, attacker_index: int, defender_index: int) -> void:
+func _resolve_lane(lane: int, attacker_index: int, defender_index: int) -> bool:
 	var attacker_player: PlayerState = GameState.get_player(attacker_index)
 	var unit: UnitInstance = attacker_player.get_lane_unit(lane)
 	if unit == null or unit.summoning_sickness:
-		return
+		return false
 
 	var damage: int = unit.get_effective_attack()
 	if damage <= 0:
-		return
+		return false
 
 	var target: Variant = _get_target(lane, attacker_index, defender_index)
 	if target == null:
-		return
+		return false
+
+	EventBus.unit_attacked.emit(lane, attacker_index)
 
 	if target is UnitInstance:
 		var target_unit: UnitInstance = target as UnitInstance
@@ -85,6 +94,7 @@ func _resolve_lane(lane: int, attacker_index: int, defender_index: int) -> void:
 		EventBus.building_damaged.emit(target_building.grid_pos, defender_index, total_damage)
 		if target_building.is_destroyed():
 			_destroy_building(target_building, defender_index)
+	return true
 
 func _check_berserker(unit: UnitInstance, damage: int) -> void:
 	if damage > 0 and unit.data.id == "berserker":

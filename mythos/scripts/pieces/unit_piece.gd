@@ -54,6 +54,25 @@ func _build_visuals() -> void:
 	_health_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	add_child(_health_label)
 
+func play_attack(direction: float) -> void:
+	var original_pos: Vector3 = position
+	var lunge_target: Vector3 = original_pos + Vector3(0, 0, direction * 0.4)
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "position", lunge_target, 0.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(self, "position", original_pos, 0.15).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+
+func play_hit() -> void:
+	var original_pos: Vector3 = position
+	var tween: Tween = create_tween()
+	tween.tween_property(_mesh, "position:x", 0.1, 0.05)
+	tween.tween_property(_mesh, "position:x", -0.1, 0.05)
+	tween.tween_property(_mesh, "position:x", 0.05, 0.05)
+	tween.tween_property(_mesh, "position:x", 0.0, 0.05)
+
+func play_death() -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "scale", Vector3(0.01, 0.01, 0.01), 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+
 func _get_color_for_cost(cost: int) -> Color:
 	if cost <= 2:
 		return Color(0.3, 0.7, 0.3)

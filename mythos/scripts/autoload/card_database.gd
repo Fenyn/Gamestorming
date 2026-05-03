@@ -54,32 +54,31 @@ func _add_copies(deck: Array[CardData], card_id: String, count: int) -> void:
 	for i: int in range(count):
 		deck.append(card.duplicate())
 
-const CARD_PATHS: Array[String] = [
-	"res://resources/cards/nordic/units/huscarl.tres",
-	"res://resources/cards/nordic/units/berserker.tres",
-	"res://resources/cards/nordic/units/fenrirs_chosen.tres",
-	"res://resources/cards/nordic/units/dwarven_sapper.tres",
-	"res://resources/cards/nordic/units/einherjar.tres",
-	"res://resources/cards/nordic/units/changeling.tres",
-	"res://resources/cards/nordic/units/stone_troll.tres",
-	"res://resources/cards/nordic/units/valkyrie.tres",
-	"res://resources/cards/nordic/units/frost_giant.tres",
-	"res://resources/cards/nordic/buildings/grand_lodge.tres",
-	"res://resources/cards/nordic/buildings/mead_hall.tres",
-	"res://resources/cards/nordic/buildings/palisade_wall.tres",
-	"res://resources/cards/nordic/buildings/blacksmith.tres",
-	"res://resources/cards/nordic/buildings/powder_hall.tres",
-	"res://resources/cards/nordic/spells/grand_melee.tres",
-	"res://resources/cards/nordic/spells/eirs_mending.tres",
-	"res://resources/cards/nordic/spells/hlins_bulwark.tres",
-	"res://resources/cards/nordic/spells/blood_fury.tres",
-	"res://resources/cards/nordic/spells/armor_of_retribution.tres",
-	"res://resources/cards/nordic/spells/lightning_storm.tres",
-	"res://resources/cards/nordic/spells/barrel_of_mead.tres",
+const PRELOADED_CARDS: Array[CardData] = [
+	preload("res://resources/cards/nordic/units/huscarl.tres"),
+	preload("res://resources/cards/nordic/units/berserker.tres"),
+	preload("res://resources/cards/nordic/units/fenrirs_chosen.tres"),
+	preload("res://resources/cards/nordic/units/dwarven_sapper.tres"),
+	preload("res://resources/cards/nordic/units/einherjar.tres"),
+	preload("res://resources/cards/nordic/units/changeling.tres"),
+	preload("res://resources/cards/nordic/units/stone_troll.tres"),
+	preload("res://resources/cards/nordic/units/valkyrie.tres"),
+	preload("res://resources/cards/nordic/units/frost_giant.tres"),
+	preload("res://resources/cards/nordic/buildings/grand_lodge.tres"),
+	preload("res://resources/cards/nordic/buildings/mead_hall.tres"),
+	preload("res://resources/cards/nordic/buildings/palisade_wall.tres"),
+	preload("res://resources/cards/nordic/buildings/blacksmith.tres"),
+	preload("res://resources/cards/nordic/buildings/powder_hall.tres"),
+	preload("res://resources/cards/nordic/spells/grand_melee.tres"),
+	preload("res://resources/cards/nordic/spells/eirs_mending.tres"),
+	preload("res://resources/cards/nordic/spells/hlins_bulwark.tres"),
+	preload("res://resources/cards/nordic/spells/blood_fury.tres"),
+	preload("res://resources/cards/nordic/spells/armor_of_retribution.tres"),
+	preload("res://resources/cards/nordic/spells/lightning_storm.tres"),
+	preload("res://resources/cards/nordic/spells/barrel_of_mead.tres"),
 ]
 
 func _load_all_cards() -> void:
-	for path: String in CARD_PATHS:
-		var card: CardData = load(path) as CardData
+	for card: CardData in PRELOADED_CARDS:
 		if card != null and card.id != "":
 			_cards[card.id] = card

@@ -25,6 +25,7 @@ func _ready() -> void:
 	EventBus.building_destroyed.connect(_on_building_destroyed)
 	EventBus.game_started.connect(_on_game_started)
 	EventBus.turn_started.connect(_on_turn_started)
+	EventBus.unit_attacked.connect(_on_unit_attacked)
 	EventBus.combat_resolved.connect(_refresh_all_pieces)
 	EventBus.unit_damaged.connect(_on_unit_damaged)
 	EventBus.building_damaged.connect(_on_building_damaged)
@@ -239,8 +240,10 @@ func _on_building_placed(player_index: int, _building_data: BuildingData, grid_p
 func _on_unit_destroyed(lane: int, owner_player: int, _unit_data: UnitData) -> void:
 	var key: String = str(owner_player) + "_lane_" + str(lane)
 	if _unit_pieces.has(key):
-		_unit_pieces[key].queue_free()
+		var piece: UnitPiece = _unit_pieces[key] as UnitPiece
+		piece.play_death()
 		_unit_pieces.erase(key)
+		get_tree().create_timer(0.25).timeout.connect(piece.queue_free)
 
 func _on_building_destroyed(grid_pos: Vector2i, owner_player: int) -> void:
 	var key: String = str(owner_player) + "_grid_" + str(grid_pos.x) + "_" + str(grid_pos.y)
@@ -294,10 +297,18 @@ func _on_unit_moved(player_index: int, from_lane: int, to_lane: int) -> void:
 		_unit_pieces.erase(from_key)
 		_unit_pieces[to_key] = piece
 
+func _on_unit_attacked(lane: int, attacker_player: int) -> void:
+	var key: String = str(attacker_player) + "_lane_" + str(lane)
+	if _unit_pieces.has(key):
+		var direction: float = -1.0 if attacker_player == 0 else 1.0
+		(_unit_pieces[key] as UnitPiece).play_attack(direction)
+
 func _on_unit_damaged(lane: int, owner_player: int, _damage: int) -> void:
 	var key: String = str(owner_player) + "_lane_" + str(lane)
 	if _unit_pieces.has(key):
-		(_unit_pieces[key] as UnitPiece).update_display()
+		var piece: UnitPiece = _unit_pieces[key] as UnitPiece
+		piece.play_hit()
+		piece.update_display()
 
 func _on_building_damaged(grid_pos: Vector2i, owner_player: int, _damage: int) -> void:
 	var key: String = str(owner_player) + "_grid_" + str(grid_pos.x) + "_" + str(grid_pos.y)

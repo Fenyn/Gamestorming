@@ -158,6 +158,7 @@ func _execute_spell_track() -> void:
 
 func _execute_battle() -> void:
 	CombatManager.resolve_battle(active_player)
+	await CombatManager.battle_finished
 
 func _end_turn() -> void:
 	if not GameState.game_active:

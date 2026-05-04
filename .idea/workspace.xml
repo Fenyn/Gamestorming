@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="" />
+    <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cardgame/PLAN.md" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -113,7 +116,8 @@
       <updated>1777515032452</updated>
       <workItem from="1777515034084" duration="79045000" />
       <workItem from="1777791567313" duration="6370000" />
-      <workItem from="1777844803602" duration="2679000" />
+      <workItem from="1777844803602" duration="2971000" />
+      <workItem from="1777856751926" duration="1266000" />
     </task>
     <servers />
   </component>

@@ -1,0 +1,148 @@
+[gd_scene load_steps=20 format=3 uid="uid://duhmigac3j0to"]
+
+[ext_resource type="Script" uid="uid://bvudd57jocccs" path="res://scripts/game_camera.gd" id="1_cam"]
+[ext_resource type="Script" uid="uid://csf2ml5uswhro" path="res://scripts/maw.gd" id="3_maw"]
+[ext_resource type="Script" uid="uid://dflx0s5tfhmy3" path="res://scripts/game_manager.gd" id="4_gm"]
+[ext_resource type="Script" uid="uid://pbe03reapr6j" path="res://scripts/hud.gd" id="5_hud"]
+[ext_resource type="PackedScene" uid="uid://c3orbscene001" path="res://scenes/orb.tscn" id="6_orb"]
+[ext_resource type="Script" uid="uid://x55w2hf6iyl0" path="res://scripts/main.gd" id="7_main"]
+[ext_resource type="Script" uid="uid://dckgfctg1j2um" path="res://scripts/piece_catalog.gd" id="8_catalog"]
+[ext_resource type="Script" uid="uid://8wusxrh5y7e7" path="res://scripts/track_builder.gd" id="9_builder"]
+[ext_resource type="Script" uid="uid://dxgs7u076vfyp" path="res://scripts/build_controller.gd" id="10_buildctrl"]
+[ext_resource type="Script" uid="uid://b3qd815w27nnn" path="res://scripts/piece_palette.gd" id="11_palette"]
+[ext_resource type="Script" uid="uid://pgwtxs580muo" path="res://scripts/prestige_manager.gd" id="12_prestige"]
+[ext_resource type="Script" uid="uid://cejlj56ledpit" path="res://scripts/void_marble_shop.gd" id="13_shop"]
+[ext_resource type="Script" uid="uid://cowa32b4e6p7w" path="res://scripts/blueprint_manager.gd" id="14_blueprint"]
+[ext_resource type="Script" uid="uid://cf32eoulbgtpb" path="res://scripts/build_boundary.gd" id="15_boundary"]
+[ext_resource type="Script" uid="uid://71ilnm0ub10m" path="res://scripts/portal_manager.gd" id="16_portals"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(30, 0.1, 30)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(30, 0.1, 30)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.15, 0.12, 0.2, 1)
+roughness = 0.9
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_maw"]
+radius = 2.0
+
+[node name="Main" type="Node3D"]
+script = ExtResource("7_main")
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("4_gm")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.573, 0.819, 0, -0.819, 0.573, 0, 12, 8)
+script = ExtResource("1_cam")
+target = Vector3(0, 2, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="GroundPlane" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundPlane"]
+shape = SubResource("BoxShape3D_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GroundPlane"]
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="PortalManager" type="Node3D" parent="."]
+script = ExtResource("16_portals")
+orb_scene = ExtResource("6_orb")
+
+[node name="Maw" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+script = ExtResource("3_maw")
+
+[node name="ConsumeArea" type="Area3D" parent="Maw"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Maw/ConsumeArea"]
+shape = SubResource("SphereShape3D_maw")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("5_hud")
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_bottom = 200.0
+grow_horizontal = 0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer"]
+layout_mode = 2
+
+[node name="SparksLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Sparks: 0"
+
+[node name="MawLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "The Maw"
+horizontal_alignment = 1
+
+[node name="MawBar" type="ProgressBar" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+show_percentage = false
+
+[node name="VoidLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Void Marbles: 0"
+
+[node name="OrbCountLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Orbs: 0"
+
+[node name="PiecePalette" type="PanelContainer" parent="HUD"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 230.0
+grow_vertical = 2
+script = ExtResource("11_palette")
+
+[node name="VoidMarbleShop" type="PanelContainer" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -200.0
+offset_right = 150.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("13_shop")
+
+[node name="PieceCatalog" type="Node" parent="."]
+script = ExtResource("8_catalog")
+
+[node name="PrestigeManager" type="Node" parent="."]
+script = ExtResource("12_prestige")
+
+[node name="BlueprintManager" type="Node" parent="."]
+script = ExtResource("14_blueprint")
+
+[node name="TrackBuilder" type="Node3D" parent="."]
+script = ExtResource("9_builder")
+
+[node name="BuildController" type="Node3D" parent="."]
+script = ExtResource("10_buildctrl")
+
+[node name="BuildBoundary" type="Node3D" parent="."]
+script = ExtResource("15_boundary")

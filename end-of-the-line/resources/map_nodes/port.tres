@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="NodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/node_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "port"
+display_name = "Harborview"
+type = 4
+position = Vector3(12, 0, 2)
+gold_per_delivery = 20.0
+description = "Exports anything at premium prices."

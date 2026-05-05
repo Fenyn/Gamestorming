@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuilderTypeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/builder_type_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pathfinder"
+display_name = "Pathfinder"
+build_speed = 0.6
+path_quality = 0.9
+base_cost = 80.0
+cost_multiplier = 2.2
+description = "Meticulous surveyor. Slower but future-proofed routes."

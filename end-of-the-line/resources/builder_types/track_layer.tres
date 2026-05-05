@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuilderTypeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/builder_type_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "track_layer"
+display_name = "Track Layer"
+build_speed = 1.0
+path_quality = 0.3
+base_cost = 30.0
+cost_multiplier = 2.0
+description = "Steady worker. Lays straight track at a reliable pace."

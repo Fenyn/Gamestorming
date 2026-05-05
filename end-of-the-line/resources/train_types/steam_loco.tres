@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TrainTypeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/train_type_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "steam_loco"
+display_name = "Steam Locomotive"
+speed = 3.5
+capacity = 2
+base_cost = 75.0
+cost_multiplier = 1.5
+mesh_path = "res://kenney_train-kit/Models/GLB format/train-locomotive-a.glb"
+description = "Fast and hauls double. Worth the investment."

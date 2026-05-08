@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "sprout_mult"
 display_name = "Cardiac Conduit"
-description = "A conduit woven from your own pulse. Heartmotes condense 25% more mana per level."
+description = "Increases Heartmote production by 25% per level."
 base_cost = 100.0
 cost_multiplier = 3.5
 max_level = 8

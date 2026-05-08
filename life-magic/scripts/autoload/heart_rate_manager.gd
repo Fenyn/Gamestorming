@@ -53,8 +53,8 @@ func _process(delta: float) -> void:
 			_process_demo(delta)
 		"websocket":
 			_process_websocket(delta)
-		"health_connect":
-			_process_health_connect()
+		"wear":
+			_process_wear()
 
 	smoothed_bpm = lerpf(smoothed_bpm, current_bpm, SMOOTH_FACTOR)
 
@@ -173,7 +173,7 @@ func get_hr_factor() -> float:
 
 
 func _accumulate_vitality_from_beats() -> void:
-	if source == "health_connect":
+	if source == "wear":
 		return
 	_vitality_beat_counter += 1
 	if _vitality_beat_counter >= VITALITY_BEATS_FALLBACK:
@@ -182,13 +182,13 @@ func _accumulate_vitality_from_beats() -> void:
 
 
 func _poll_steps(delta: float) -> void:
-	if source != "health_connect" or not _hc_plugin:
+	if source != "wear" or not _wear_plugin:
 		return
 	_step_poll_timer += delta
 	if _step_poll_timer < STEP_POLL_INTERVAL:
 		return
 	_step_poll_timer = 0.0
-	var current_steps: int = _hc_plugin.getDailySteps()
+	var current_steps: int = _wear_plugin.getDailySteps()
 	if _last_known_steps <= 0:
 		_last_known_steps = current_steps
 		return
@@ -216,8 +216,8 @@ func set_source(new_source: String) -> void:
 		"demo":
 			_demo_hr = GameFormulas.resting_heart_rate(GameState.get_age())
 			_demo_time = 0.0
-		"health_connect":
-			_start_health_connect()
+		"wear":
+			_start_wear()
 		_:
 			pass
 
@@ -228,55 +228,60 @@ func set_source(new_source: String) -> void:
 		is_connected = false
 		_ws_was_connected = false
 
-	if new_source != "health_connect":
-		_stop_health_connect()
+	if new_source != "wear":
+		is_connected = false
+		_wear_connected = false
 
 	EventBus.heart_rate_source_changed.emit(new_source)
 
 
-# --- Health Connect ---
+# --- Wear OS (HeartLink) ---
 
-var _hc_plugin = null
+var _wear_plugin = null
+var _wear_connected: bool = false
 
 
-func is_health_connect_available() -> bool:
-	if _hc_plugin:
-		return _hc_plugin.isHealthConnectAvailable()
-	if Engine.has_singleton("HealthConnect"):
-		_hc_plugin = Engine.get_singleton("HealthConnect")
-		return _hc_plugin.isHealthConnectAvailable()
+func is_wear_available() -> bool:
+	if _wear_plugin:
+		return _wear_plugin.isAvailable()
+	if Engine.has_singleton("HeartLink"):
+		_wear_plugin = Engine.get_singleton("HeartLink")
+		return _wear_plugin.isAvailable()
 	return false
 
 
-func _start_health_connect() -> void:
-	if not is_health_connect_available():
-		EventBus.notification.emit("Health Connect not available on this device.", "warning")
+func is_wear_connected() -> bool:
+	return _wear_connected
+
+
+func _start_wear() -> void:
+	if not is_wear_available():
+		EventBus.notification.emit("Wear OS not available on this device.", "warning")
 		return
-	if not _hc_plugin.checkPermissions():
-		_hc_plugin.requestPermissions()
-		EventBus.notification.emit("Please grant health permissions.", "info")
-		return
-	_hc_plugin.startPolling()
 	is_connected = true
-	EventBus.notification.emit("Health Connect active!", "info")
+	EventBus.notification.emit("Waiting for watch...", "info")
 
 
-func _stop_health_connect() -> void:
-	if _hc_plugin:
-		_hc_plugin.stopPolling()
-	is_connected = false
-
-
-func _process_health_connect() -> void:
-	if not _hc_plugin:
+func _process_wear() -> void:
+	if not _wear_plugin:
 		return
-	var hr: int = _hc_plugin.getLatestHR()
+	var hr: int = _wear_plugin.getLatestHR()
 	if hr > 0:
 		current_bpm = float(hr)
 	current_phase = ""
 
+	var connected: bool = _wear_plugin.isWearConnected()
+	if connected != _wear_connected:
+		_wear_connected = connected
+		is_connected = connected
+		EventBus.wear_status_changed.emit(connected)
+		if connected:
+			EventBus.notification.emit("Watch connected!", "info")
+		else:
+			EventBus.notification.emit("Watch disconnected.", "warning")
+
 
 func get_daily_steps() -> int:
-	if _hc_plugin and source == "health_connect":
-		return _hc_plugin.getDailySteps()
+	if _wear_plugin and source == "wear":
+		return _wear_plugin.getDailySteps()
 	return 0

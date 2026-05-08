@@ -6,12 +6,44 @@
   <component name="ChangeListManager">
     <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/.claude/settings.local.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/docs/android-setup.md" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/docs/android-setup.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/export_presets.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/export_presets.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scenes/main.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scenes/main.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scenes/ui/upgrade_row.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scenes/ui/upgrade_row.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/autoload/event_bus.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/autoload/event_bus.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/autoload/game_state.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/autoload/game_state.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/autoload/heart_rate_manager.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/autoload/heart_rate_manager.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/autoload/milestone_manager.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/autoload/milestone_manager.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/autoload/upgrade_manager.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/autoload/upgrade_manager.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/milestones/first_resonance.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/milestones/first_resonance.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_all_mult.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_all_mult.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_bloom_burst.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_bloom_burst.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_cascade_echo.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_cascade_echo.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_flower_mult.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_flower_mult.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_harmonic.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_harmonic.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_herb_mult.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_herb_mult.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_shrub_mult.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_shrub_mult.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_sprout_mult.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_sprout_mult.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_vine_mult.tres" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/data_instances/upgrades/upgrade_vine_mult.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/blessing_panel.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/blessing_panel.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/essence_tree_panel.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/essence_tree_panel.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/grimoire_hub.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/grimoire_hub.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/main.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/main.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/milestone_panel.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/milestone_panel.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/settings_panel.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/settings_panel.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/upgrade_panel.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/upgrade_panel.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/life-magic/scripts/ui/upgrade_row.gd" beforeDir="false" afterPath="$PROJECT_DIR$/life-magic/scripts/ui/upgrade_row.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/the-maw-of-rrrbl/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/the-maw-of-rrrbl/project.godot" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -39,22 +71,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Executable.Player.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected=".NET Executable.Player">
     <configuration name="Debug GDScript (Running session)" type="GDSCRIPT_DEBUG_RUN_CONFIGURATION" factoryName="GdScriptRunFactory">
       <option name="json" value="{&#10;  // Launch: &quot;Launch a new instance of the game&quot;,&#10;  // Attach: &quot;Attach to an already running game, which was started from the Godot Editor&quot;&#10;  &quot;request&quot; : &quot;Attach&quot;,&#10;  &quot;debugServer&quot; : 6006, // port should match the Debug Adapter port in the Godot Editor project settings.&#10;  &quot;scene&quot; : &quot;main&quot;, // main, current, res://path/to/file.tscn&#10;  &#10;  // &quot;playArgs&quot; : [ &quot;--editor&quot; ], // debugging a tool script&#10;  // &quot;playArgs&quot;: [&quot;--debug-collisions&quot;,&quot;--debug-navigation&quot;], // different options&#10;  &#10;  // one click deploy and debug via Godot Editor:&#10;  // &quot;platform&quot;: &quot;Android&quot;, // including Android, iOS, Web and W4 consoles&#10;  // &quot;device&quot;: &quot;0&quot;, // index of the device of a &quot;platform&quot; type&#10;}" />
@@ -119,6 +152,7 @@
       <workItem from="1777844803602" duration="2971000" />
       <workItem from="1777856751926" duration="1266000" />
       <workItem from="1777954490967" duration="7558000" />
+      <workItem from="1778182101442" duration="28922000" />
     </task>
     <servers />
   </component>

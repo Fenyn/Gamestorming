@@ -13,6 +13,11 @@ const STATE_PURCHASED := 2
 
 const BRANCH_ORDER := ["verdant", "pulse", "bloom", "vital", "arcane"]
 
+const ZOOM_NORMAL := 1.0
+const ZOOM_OVERVIEW := 0.45
+const DRAG_THRESHOLD := 4.0
+
+var _tree_viewport: Control
 var _tree_canvas: Control
 var _line_drawer: Control
 var _node_controls: Dictionary = {}
@@ -20,13 +25,21 @@ var _detail_popup: PanelContainer
 var _essence_label: Label
 var _prestige_btn: Button
 var _preview_label: Label
+var _overview_btn: Button
+
+var _pan_offset: Vector2 = Vector2.ZERO
+var _zoom: float = ZOOM_NORMAL
+var _is_dragging: bool = false
+var _drag_start: Vector2 = Vector2.ZERO
+var _drag_total: float = 0.0
+var _canvas_size: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
 	_build_ui()
-	EventBus.blessing_purchased.connect(func(_id, _lvl): _rebuild())
-	EventBus.seasonal_rebirth_executed.connect(func(_e): _rebuild())
-	EventBus.mana_changed.connect(func(_a, _d): _update_header())
+	EventBus.blessing_purchased.connect(func(_id: String, _lvl: int) -> void: _rebuild())
+	EventBus.seasonal_rebirth_executed.connect(func(_e: int) -> void: _rebuild())
+	EventBus.mana_changed.connect(func(_a: float, _d: float) -> void: _update_header())
 
 
 func _build_ui() -> void:
@@ -93,25 +106,47 @@ func _build_prestige_section(parent: VBoxContainer) -> void:
 
 
 func _build_tree_view(parent: VBoxContainer) -> void:
-	var canvas_size: Vector2 = _calculate_canvas_size()
+	_canvas_size = _calculate_canvas_size()
 
-	var tree_scroll := ScrollContainer.new()
-	tree_scroll.custom_minimum_size = Vector2(0, 450)
-	tree_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tree_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	tree_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	parent.add_child(tree_scroll)
+	var toolbar := HBoxContainer.new()
+	toolbar.add_theme_constant_override("separation", 8)
+	toolbar.alignment = BoxContainer.ALIGNMENT_END
+	parent.add_child(toolbar)
+
+	var drag_hint := Label.new()
+	drag_hint.text = "Drag to pan"
+	drag_hint.add_theme_font_size_override("font_size", 9)
+	drag_hint.add_theme_color_override("font_color", ThemeBuilder.TEXT_MUTED)
+	drag_hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	toolbar.add_child(drag_hint)
+
+	_overview_btn = Button.new()
+	_overview_btn.text = "Overview"
+	_overview_btn.toggle_mode = true
+	_overview_btn.custom_minimum_size = Vector2(80, 28)
+	_overview_btn.pressed.connect(_on_overview_toggled)
+	toolbar.add_child(_overview_btn)
+
+	_tree_viewport = Control.new()
+	_tree_viewport.custom_minimum_size = Vector2(0, 450)
+	_tree_viewport.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_tree_viewport.clip_contents = true
+	_tree_viewport.gui_input.connect(_on_tree_input)
+	parent.add_child(_tree_viewport)
 
 	_tree_canvas = Control.new()
-	_tree_canvas.custom_minimum_size = canvas_size
-	tree_scroll.add_child(_tree_canvas)
+	_tree_canvas.custom_minimum_size = _canvas_size
+	_tree_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tree_viewport.add_child(_tree_canvas)
 
 	_line_drawer = Control.new()
-	_line_drawer.custom_minimum_size = canvas_size
+	_line_drawer.custom_minimum_size = _canvas_size
+	_line_drawer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_line_drawer.draw.connect(_draw_connections)
 	_tree_canvas.add_child(_line_drawer)
 
 	_place_nodes()
+	_apply_transform()
 
 
 func _calculate_canvas_size() -> Vector2:
@@ -249,12 +284,70 @@ func _create_node_control(data: EssenceNodeData) -> PanelContainer:
 
 	if state != STATE_LOCKED:
 		var node_id: String = data.id
-		panel.gui_input.connect(func(event: InputEvent):
+		panel.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				_show_node_detail(node_id)
 		)
 
 	return panel
+
+
+func _on_tree_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_is_dragging = true
+			_drag_start = event.position
+			_drag_total = 0.0
+		else:
+			_is_dragging = false
+	elif event is InputEventMouseMotion and _is_dragging:
+		var delta: Vector2 = event.position - _drag_start
+		_drag_total += delta.length()
+		_drag_start = event.position
+		if _drag_total > DRAG_THRESHOLD:
+			_pan_offset += delta
+			_clamp_pan()
+			_apply_transform()
+
+
+func _on_overview_toggled() -> void:
+	if _overview_btn.button_pressed:
+		_zoom = ZOOM_OVERVIEW
+		_overview_btn.text = "Normal"
+		_center_canvas()
+	else:
+		_zoom = ZOOM_NORMAL
+		_overview_btn.text = "Overview"
+		_pan_offset = Vector2.ZERO
+	_clamp_pan()
+	_apply_transform()
+
+
+func _center_canvas() -> void:
+	if not _tree_viewport:
+		return
+	var viewport_size: Vector2 = _tree_viewport.size
+	var scaled_canvas: Vector2 = _canvas_size * _zoom
+	_pan_offset.x = (viewport_size.x - scaled_canvas.x) * 0.5
+	_pan_offset.y = 0.0
+
+
+func _clamp_pan() -> void:
+	if not _tree_viewport:
+		return
+	var viewport_size: Vector2 = _tree_viewport.size
+	var scaled_canvas: Vector2 = _canvas_size * _zoom
+	var min_x: float = viewport_size.x - scaled_canvas.x
+	var min_y: float = viewport_size.y - scaled_canvas.y
+	_pan_offset.x = clampf(_pan_offset.x, minf(min_x, 0.0), 0.0)
+	_pan_offset.y = clampf(_pan_offset.y, minf(min_y, 0.0), 0.0)
+
+
+func _apply_transform() -> void:
+	if not _tree_canvas:
+		return
+	_tree_canvas.position = _pan_offset
+	_tree_canvas.scale = Vector2(_zoom, _zoom)
 
 
 func _draw_connections() -> void:
@@ -354,7 +447,7 @@ func _show_node_detail(node_id: String) -> void:
 			buy_btn.text = "Upgrade — %d Essence" % cost if level > 0 else "Unlock — %d Essence" % cost
 			buy_btn.disabled = not can_afford
 			var nid: String = node_id
-			buy_btn.pressed.connect(func():
+			buy_btn.pressed.connect(func() -> void:
 				PrestigeManager.purchase_node(nid)
 				_show_node_detail(nid)
 			)
@@ -368,7 +461,7 @@ func _show_node_detail(node_id: String) -> void:
 	var close_btn := Button.new()
 	close_btn.text = "Close"
 	close_btn.custom_minimum_size = Vector2(0, 28)
-	close_btn.pressed.connect(func():
+	close_btn.pressed.connect(func() -> void:
 		if _detail_popup:
 			_detail_popup.queue_free()
 			_detail_popup = null
@@ -402,6 +495,8 @@ func _rebuild() -> void:
 		_detail_popup.queue_free()
 		_detail_popup = null
 	_node_controls.clear()
+	_pan_offset = Vector2.ZERO
+	_zoom = ZOOM_NORMAL
 	for child in row_container.get_children():
 		row_container.remove_child(child)
 		child.queue_free()

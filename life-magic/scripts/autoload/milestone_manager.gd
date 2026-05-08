@@ -187,6 +187,13 @@ func get_total_count() -> int:
 	return milestone_data.size()
 
 
+func get_data(milestone_id: String) -> MilestoneData:
+	for data in milestone_data:
+		if data.id == milestone_id:
+			return data
+	return null
+
+
 func reset_to_defaults() -> void:
 	earned.clear()
 	surges_completed = 0

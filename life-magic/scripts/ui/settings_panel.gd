@@ -78,8 +78,8 @@ func _build_ui() -> void:
 		{"id": "websocket", "label": "Device"},
 	]
 
-	if HeartRateManager.is_health_connect_available():
-		sources.append({"id": "health_connect", "label": "Health"})
+	if HeartRateManager.is_wear_available():
+		sources.append({"id": "wear", "label": "Watch"})
 
 	for src in sources:
 		var btn := Button.new()
@@ -102,8 +102,8 @@ func _build_ui() -> void:
 
 	var source_desc := Label.new()
 	var desc_text := "Demo: simulated workout cycle. Manual: scroll wheel to set BPM. Device: connect a heart rate monitor via WebSocket."
-	if HeartRateManager.is_health_connect_available():
-		desc_text += " Health: reads your heart rate from Android Health Connect (Fitbit, Wear OS, etc.)."
+	if HeartRateManager.is_wear_available():
+		desc_text += " Watch: streams live heart rate from a paired Wear OS watch."
 	source_desc.text = desc_text
 	source_desc.add_theme_font_size_override("font_size", 10)
 	source_desc.add_theme_color_override("font_color", ThemeBuilder.TEXT_MUTED)

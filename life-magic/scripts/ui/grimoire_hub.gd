@@ -5,7 +5,7 @@ signal tile_pressed(panel_id: String)
 @onready var row_container: VBoxContainer = %RowContainer
 
 const TILES := [
-	{"id": "upgrades", "name": "Upgrades", "desc": "Enhance your spells with raw mana", "color": Color(0.4, 0.8, 0.3)},
+	{"id": "upgrades", "name": "Rituals", "desc": "Perform rituals to empower your spells", "color": Color(0.4, 0.8, 0.3)},
 	{"id": "sanctums", "name": "Sanctums", "desc": "Plant sigils, tend growth, and bloom", "color": Color(0.5, 0.4, 0.9)},
 	{"id": "chronicle", "name": "Chronicle", "desc": "Feats of power earned forever", "color": Color(0.9, 0.72, 0.15)},
 	{"id": "blessings", "name": "Essence Tree", "desc": "Spend essence to grow permanent power", "color": Color(0.9, 0.6, 0.2)},
@@ -136,8 +136,16 @@ func _add_tile(grid: GridContainer, data: Dictionary, unlocked: bool) -> void:
 	vbox.add_child(desc_label)
 
 	if unlocked:
+		var summary: String = _get_tile_summary(data["id"])
+		if not summary.is_empty():
+			var summary_label := Label.new()
+			summary_label.text = summary
+			summary_label.add_theme_font_size_override("font_size", 9)
+			summary_label.add_theme_color_override("font_color", ThemeBuilder.TEXT_GREEN)
+			vbox.add_child(summary_label)
+
 		var tile_id: String = data["id"]
-		tile.gui_input.connect(func(event: InputEvent):
+		tile.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed:
 				tile_pressed.emit(tile_id)
 		)
@@ -152,6 +160,29 @@ func _get_unlock_hint(id: String) -> String:
 		"blessings": return "Purchase your first Familiar"
 		"research": return "Unlock in the Essence Tree"
 	return "Keep exploring"
+
+
+func _get_tile_summary(id: String) -> String:
+	match id:
+		"upgrades":
+			var mastered: int = 0
+			var available: int = 0
+			for data in UpgradeManager.upgrade_data:
+				if UpgradeManager.is_maxed(data.id):
+					mastered += 1
+				elif UpgradeManager.is_unlocked(data.id):
+					available += 1
+			if mastered > 0:
+				return "%d/%d mastered" % [mastered, UpgradeManager.upgrade_data.size()]
+			if available > 0:
+				return "%d available" % available
+			return ""
+		"chronicle":
+			var count: int = MilestoneManager.get_earned_count()
+			return "%d earned" % count
+		"blessings":
+			return "%d essence" % int(GameState.essence)
+	return ""
 
 
 func _rebuild() -> void:

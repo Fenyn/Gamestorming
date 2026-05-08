@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "flower_mult"
 display_name = "Beastsong Crystal"
-description = "A crystal that hums your heartbeat to bonded creatures. Familiars inscribe 25% more Pulse Glyphs per level."
+description = "Increases Familiar production by 25% per level."
 base_cost = 50000.0
 cost_multiplier = 4.0
 max_level = 8

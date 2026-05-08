@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/upgrade_row.gd" id="1"]
 
 [node name="UpgradeRow" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 82)
 script = ExtResource("1")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -24,13 +24,20 @@ theme_override_constants/separation = 2
 
 [node name="TopLine" type="HBoxContainer" parent="MarginContainer/HBox/InfoVBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TierTag" type="Label" parent="MarginContainer/HBox/InfoVBox/TopLine"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = ""
 
 [node name="NameLabel" type="Label" parent="MarginContainer/HBox/InfoVBox/TopLine"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
-text = "Upgrade Name"
+text = "Ritual Name"
 
 [node name="LevelLabel" type="Label" parent="MarginContainer/HBox/InfoVBox/TopLine"]
 unique_name_in_owner = true
@@ -38,6 +45,13 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Lv 0"
 horizontal_alignment = 2
+
+[node name="EffectLabel" type="Label" parent="MarginContainer/HBox/InfoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.45, 0.8, 0.4, 1)
+text = ""
 
 [node name="DescLabel" type="Label" parent="MarginContainer/HBox/InfoVBox"]
 unique_name_in_owner = true
@@ -57,7 +71,7 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(90, 36)
-text = "Upgrade"
+text = "Perform"
 
 [node name="CostLabel" type="Label" parent="MarginContainer/HBox/BuyVBox"]
 unique_name_in_owner = true

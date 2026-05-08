@@ -7,6 +7,7 @@ signal tick_fired(tick_number: int)
 signal heart_rate_updated(bpm: float, hr_factor: float)
 signal heart_rate_source_changed(source: String)
 signal heartbeat_fired()
+signal wear_status_changed(connected: bool)
 
 # Currency
 signal mana_changed(new_amount: float, delta: float)

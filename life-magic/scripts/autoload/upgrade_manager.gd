@@ -33,7 +33,7 @@ func _load_data() -> void:
 			_data_map[res.id] = res
 			if not levels.has(res.id):
 				levels[res.id] = 0
-			unlocked[res.id] = res.unlock_total_mana == 0.0
+			unlocked[res.id] = res.unlock_total_mana <= 0.0
 
 
 func reset_to_defaults() -> void:
@@ -41,7 +41,7 @@ func reset_to_defaults() -> void:
 	unlocked.clear()
 	for data in upgrade_data:
 		levels[data.id] = 0
-		unlocked[data.id] = data.unlock_total_mana == 0.0
+		unlocked[data.id] = data.unlock_total_mana <= 0.0
 
 
 func get_level(id: String) -> int:
@@ -83,7 +83,7 @@ func purchase(id: String) -> bool:
 	levels[id] = levels.get(id, 0) + 1
 	_apply_effect(data)
 	EventBus.notification.emit(
-		"%s upgraded to level %d!" % [data.display_name, levels[id]], "upgrade"
+		"%s ritual complete! Level %d" % [data.display_name, levels[id]], "upgrade"
 	)
 	return true
 

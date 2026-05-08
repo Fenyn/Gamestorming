@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "harmonic"
 display_name = "Harmonic Beating"
-description = "Every so often your heart beats with special force and all spells produce triple. Higher levels make it happen more often."
+description = "Every 20 beats (-3 per level, min 5), all spells produce triple."
 base_cost = 2000.0
 cost_multiplier = 3.0
 max_level = 5
 effect_type = "harmonic"
 effect_target = "all"
 effect_per_level = 1.0
-unlock_total_mana = -1.0
+unlock_total_mana = 100000.0

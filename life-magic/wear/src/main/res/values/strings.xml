@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Life Magic HR</string>
+    <string name="streaming_active">Streaming to Life Magic</string>
+    <string name="streaming_inactive">Tap Start to begin</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="bpm_format">%d BPM</string>
+    <string name="no_phone">Phone not found</string>
+    <string name="notification_channel">HR Streaming</string>
+    <string name="notification_title">Life Magic HR</string>
+    <string name="permission_required">Body sensor permission is required</string>
+</resources>

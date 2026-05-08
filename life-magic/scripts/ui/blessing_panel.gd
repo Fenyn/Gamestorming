@@ -27,7 +27,7 @@ func _build_ui() -> void:
 	_update_essence_label()
 
 	var desc := Label.new()
-	desc.text = "Permanent upgrades purchased with Essence. These persist across Life Cycles."
+	desc.text = "Permanent blessings purchased with Essence. These persist across Life Cycles."
 	desc.add_theme_font_size_override("font_size", 10)
 	desc.add_theme_color_override("font_color", ThemeBuilder.TEXT_MUTED)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -100,7 +100,7 @@ func _update_prestige_section() -> void:
 
 	if PrestigeManager.can_prestige():
 		var essence_gain := PrestigeManager.calculate_essence()
-		desc_node.text = "Sacrifice all progress to earn %d Essence. Your mana, generators, upgrades, and sanctum progress will reset. Milestones, Essence, and Blessings persist." % essence_gain
+		desc_node.text = "Sacrifice all progress to earn %d Essence. Your mana, generators, rituals, and sanctum progress will reset. Milestones, Essence, and Blessings persist." % essence_gain
 		btn_node.disabled = false
 		btn_node.text = "Begin Life Cycle (+%d Essence)" % essence_gain
 	else:

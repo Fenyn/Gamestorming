@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "vine_mult"
 display_name = "Ley-Line Tap"
-description = "A tap into the deep ley lines. Wardens summon 25% more Familiars per level."
+description = "Increases Warden production by 25% per level."
 base_cost = 5000000.0
 cost_multiplier = 4.0
 max_level = 8

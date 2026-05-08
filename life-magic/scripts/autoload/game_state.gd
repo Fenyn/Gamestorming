@@ -238,6 +238,8 @@ func from_dict(data: Dictionary) -> void:
 	var saved_settings: Dictionary = data.get("settings", {})
 	for key in saved_settings:
 		settings[key] = saved_settings[key]
+	if settings.get("hr_source") == "health_connect":
+		settings["hr_source"] = "wear"
 
 	var upgrade_levels: Dictionary = data.get("upgrades", {})
 	if not upgrade_levels.is_empty():

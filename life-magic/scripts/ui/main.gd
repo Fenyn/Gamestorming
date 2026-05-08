@@ -313,7 +313,7 @@ func _close_sub_panel() -> void:
 
 func _get_panel_title(panel_id: String) -> String:
 	match panel_id:
-		"upgrades": return "Upgrades"
+		"upgrades": return "Rituals"
 		"sanctums": return "Sanctums"
 		"chronicle": return "Chronicle"
 		"blessings": return "Essence Tree"

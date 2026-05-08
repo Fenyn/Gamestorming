@@ -3,7 +3,11 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:cifi.game-vault.net)",
-      "WebFetch(domain:cifi.fandom.com)"
+      "WebFetch(domain:cifi.fandom.com)",
+      "Bash(Get-ChildItem -Path \"G:\\\\Godot\\\\Gamestorming\\\\life-magic\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }

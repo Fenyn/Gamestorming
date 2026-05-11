@@ -1,0 +1,106 @@
+[gd_scene format=3 uid="uid://c2ship0001"]
+
+[ext_resource type="PackedScene" uid="uid://c2cock0001" path="res://ship/rooms/cockpit.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://c2corr0001" path="res://ship/rooms/corridor.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://c2weap0001" path="res://ship/rooms/weapons_bay.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://c2reac0001" path="res://ship/rooms/reactor_room.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://c2door0001" path="res://diegetic/door_light.tscn" id="5"]
+[ext_resource type="PackedScene" uid="uid://c2stat0001" path="res://diegetic/status_screen.tscn" id="6"]
+[ext_resource type="PackedScene" uid="uid://cdr5u1j66tfwh" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_1U_90_Outer_2.fbx" id="7_nv1c8"]
+[ext_resource type="PackedScene" uid="uid://b4n41km7hrgxn" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_1U_90_Outer_3.fbx" id="8_ebs04"]
+[ext_resource type="PackedScene" uid="uid://yblkgjq261nu" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_1U_90_Outer_3a.fbx" id="9_ydsrc"]
+[ext_resource type="PackedScene" uid="uid://b38dql78xxh54" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_1U_Add.fbx" id="10_yei66"]
+[ext_resource type="PackedScene" uid="uid://c2xcy33ml6xea" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_1U_Convex_L.fbx" id="11_45s0i"]
+[ext_resource type="PackedScene" uid="uid://y2u30e18pk1k" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_1U_Convex_R.fbx" id="12_uhm71"]
+[ext_resource type="PackedScene" uid="uid://c5uxneaf7xa40" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_2U.fbx" id="13_swtnc"]
+[ext_resource type="PackedScene" uid="uid://bud2hcbefdk27" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_05U.fbx" id="14_560ht"]
+[ext_resource type="PackedScene" uid="uid://bwumvvad0nxip" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_05U_Add.fbx" id="15_wwvc1"]
+[ext_resource type="PackedScene" uid="uid://r306u656gw5n" path="res://assets/Sci-Fi Modular Environment Pack Vol.1/Models/Perimeter/COSMIC_F_Perimeter_025U_Add.fbx" id="16_4fpsp"]
+
+[node name="PlayerShip" type="Node3D" unique_id=1438190747]
+
+[node name="Interior" type="Node3D" parent="." unique_id=82385268]
+
+[node name="Cockpit" parent="Interior" unique_id=399546262 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="CorridorA" parent="Interior" unique_id=665411768 instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.5)
+
+[node name="WeaponsBay" parent="Interior" unique_id=902140850 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="CorridorB" parent="Interior" unique_id=1315618234 instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.5)
+
+[node name="ReactorRoom" parent="Interior" unique_id=214124935 instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6)
+
+[node name="DoorLights" type="Node3D" parent="." unique_id=1214470337]
+
+[node name="DoorLight_CockpitToCorA" parent="DoorLights" unique_id=1748814413 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 6.1)
+
+[node name="DoorLight_CorAToCockpit" parent="DoorLights" unique_id=1626200667 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 5.9)
+
+[node name="DoorLight_CorAToWeapons" parent="DoorLights" unique_id=245410871 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 3.1)
+
+[node name="DoorLight_WeaponsToCorA" parent="DoorLights" unique_id=1019262915 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 2.9)
+
+[node name="DoorLight_WeaponsToCorB" parent="DoorLights" unique_id=1549177753 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, -0.9)
+
+[node name="DoorLight_CorBToWeapons" parent="DoorLights" unique_id=1081293627 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, -1.1)
+
+[node name="DoorLight_CorBToReactor" parent="DoorLights" unique_id=1093756124 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, -3.9)
+
+[node name="DoorLight_ReactorToCorB" parent="DoorLights" unique_id=845142475 instance=ExtResource("5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, -4.1)
+
+[node name="Diegetic" type="Node3D" parent="." unique_id=754809094]
+
+[node name="StatusScreen_CorA" parent="Diegetic" unique_id=67043978 instance=ExtResource("6")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -0.7, 1.5, 4.5)
+
+[node name="SpawnPoints" type="Node3D" parent="." unique_id=1226139072]
+
+[node name="PilotSpawn" type="Marker3D" parent="SpawnPoints" unique_id=993655423]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 8)
+
+[node name="GungineerSpawn" type="Marker3D" parent="SpawnPoints" unique_id=1560627797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 1)
+
+[node name="COSMIC_F_Perimeter_1U_90_Outer_2" parent="." unique_id=1836542754 instance=ExtResource("7_nv1c8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.4738884, 0, 25.089464)
+
+[node name="COSMIC_F_Perimeter_1U_90_Outer_3" parent="." unique_id=2093270810 instance=ExtResource("8_ebs04")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.591528, 0, 25.560183)
+
+[node name="COSMIC_F_Perimeter_1U_90_Outer_3a" parent="." unique_id=1930384171 instance=ExtResource("9_ydsrc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.51585, 0, 26.526402)
+
+[node name="COSMIC_F_Perimeter_1U_Add" parent="." unique_id=883627325 instance=ExtResource("10_yei66")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.766633, 0, 23.765413)
+
+[node name="COSMIC_F_Perimeter_1U_Convex_L" parent="." unique_id=258331209 instance=ExtResource("11_45s0i")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.937502, 0, 25.448544)
+
+[node name="COSMIC_F_Perimeter_1U_Convex_R" parent="." unique_id=491768971 instance=ExtResource("12_uhm71")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8557787, 0, 26.799456)
+
+[node name="COSMIC_F_Perimeter_2U" parent="." unique_id=82886813 instance=ExtResource("13_swtnc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0930324, 0, 23.979513)
+
+[node name="COSMIC_F_Perimeter_05U" parent="." unique_id=2141471529 instance=ExtResource("14_560ht")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0662751, 0, 25.085499)
+
+[node name="COSMIC_F_Perimeter_05U_Add" parent="." unique_id=592642551 instance=ExtResource("15_wwvc1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6759791, 0, 26.013832)
+
+[node name="COSMIC_F_Perimeter_025U_Add" parent="." unique_id=2032511450 instance=ExtResource("16_4fpsp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0925312, 0, 26.897943)

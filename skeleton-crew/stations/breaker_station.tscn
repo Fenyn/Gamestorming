@@ -1,0 +1,130 @@
+[gd_scene format=3 uid="uid://c2brkr0001"]
+
+[ext_resource type="Script" path="res://stations/breaker_station.gd" id="1"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_interact"]
+size = Vector3(1.4, 1.6, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_panel"]
+size = Vector3(1.2, 1.6, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lever"]
+size = Vector3(0.06, 0.3, 0.06)
+
+[sub_resource type="SphereMesh" id="SphereMesh_pip"]
+radius = 0.025
+height = 0.05
+
+[node name="BreakerStation" type="Node3D"]
+script = ExtResource("1")
+
+[node name="BreakerPanel" type="Node3D" parent="."]
+
+[node name="PanelMesh" type="MeshInstance3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_panel")
+
+[node name="WeaponsLabel" type="Label3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 1.55, 0.06)
+text = "WPN"
+font_size = 24
+
+[node name="ShieldsLabel" type="Label3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 0.06)
+text = "SHD"
+font_size = 24
+
+[node name="EnginesLabel" type="Label3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 1.55, 0.06)
+text = "ENG"
+font_size = 24
+
+[node name="WeaponsLever" type="MeshInstance3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.6, 0.06)
+mesh = SubResource("BoxMesh_lever")
+
+[node name="ShieldsLever" type="MeshInstance3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0.06)
+mesh = SubResource("BoxMesh_lever")
+
+[node name="EnginesLever" type="MeshInstance3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.6, 0.06)
+mesh = SubResource("BoxMesh_lever")
+
+[node name="WeaponsPips" type="Node3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0, 0.06)
+
+[node name="Pip0" type="MeshInstance3D" parent="BreakerPanel/WeaponsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip1" type="MeshInstance3D" parent="BreakerPanel/WeaponsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip2" type="MeshInstance3D" parent="BreakerPanel/WeaponsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip3" type="MeshInstance3D" parent="BreakerPanel/WeaponsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="ShieldsPips" type="Node3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+
+[node name="Pip0" type="MeshInstance3D" parent="BreakerPanel/ShieldsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip1" type="MeshInstance3D" parent="BreakerPanel/ShieldsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip2" type="MeshInstance3D" parent="BreakerPanel/ShieldsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip3" type="MeshInstance3D" parent="BreakerPanel/ShieldsPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="EnginesPips" type="Node3D" parent="BreakerPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, 0.06)
+
+[node name="Pip0" type="MeshInstance3D" parent="BreakerPanel/EnginesPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip1" type="MeshInstance3D" parent="BreakerPanel/EnginesPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip2" type="MeshInstance3D" parent="BreakerPanel/EnginesPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="Pip3" type="MeshInstance3D" parent="BreakerPanel/EnginesPips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("SphereMesh_pip")
+
+[node name="InteractArea" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="InteractArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("BoxShape3D_interact")
+
+[node name="StandPosition" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.8)
+
+[node name="StationCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.94, -0.34, 0, 0.34, 0.94, 0, 1.6, 0.7)
+fov = 70.0
+
+[node name="PanelLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0.3)
+light_color = Color(0.3, 0.8, 0.3, 1)
+light_energy = 0.3
+omni_range = 1.5

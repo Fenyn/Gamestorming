@@ -1,0 +1,115 @@
+[gd_scene format=3 uid="uid://c2stat0001"]
+
+[ext_resource type="Script" uid="uid://csn3l2j7ge37" path="res://diegetic/status_screen.gd" id="1"]
+[ext_resource type="Script" uid="uid://bjxeo10mlx32a" path="res://diegetic/ship_diagram.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="Material_fallback"]
+cull_mode = 2
+albedo_color = Color(0.05, 0.1, 0.05, 1)
+emission_enabled = true
+emission = Color(0.1, 0.3, 0.1, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_001"]
+size = Vector2(0.6, 0.45)
+
+[node name="StatusScreen" type="Node3D" unique_id=2134041577]
+script = ExtResource("1")
+
+[node name="ScreenMesh" type="MeshInstance3D" parent="." unique_id=54967291]
+material_override = SubResource("Material_fallback")
+mesh = SubResource("QuadMesh_001")
+
+[node name="ScreenGlow" type="OmniLight3D" parent="." unique_id=1178415418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.05)
+light_color = Color(0.3, 0.5, 0.3, 1)
+light_energy = 0.15
+omni_range = 1.0
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1191952435]
+transparent_bg = true
+size = Vector2i(200, 150)
+render_target_update_mode = 3
+
+[node name="ShipDiagram" type="Control" parent="SubViewport" unique_id=839021758]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2")
+
+[node name="Background" type="ColorRect" parent="SubViewport/ShipDiagram" unique_id=1801125428]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.05, 1)
+
+[node name="Title" type="Label" parent="SubViewport/ShipDiagram" unique_id=636916534]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 20.0
+grow_horizontal = 2
+text = "SHIP STATUS"
+horizontal_alignment = 1
+
+[node name="CockpitRect" type="ColorRect" parent="SubViewport/ShipDiagram" unique_id=92016294]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 25.0
+offset_right = 150.0
+offset_bottom = 55.0
+color = Color(0.2, 0.7, 0.2, 1)
+
+[node name="CockpitLabel" type="Label" parent="SubViewport/ShipDiagram/CockpitRect" unique_id=480955290]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "HELM"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeaponsRect" type="ColorRect" parent="SubViewport/ShipDiagram" unique_id=484334556]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 60.0
+offset_right = 150.0
+offset_bottom = 95.0
+color = Color(0.2, 0.7, 0.2, 1)
+
+[node name="WeaponsLabel" type="Label" parent="SubViewport/ShipDiagram/WeaponsRect" unique_id=939521470]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "WEAPONS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReactorRect" type="ColorRect" parent="SubViewport/ShipDiagram" unique_id=1752679091]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 100.0
+offset_right = 150.0
+offset_bottom = 135.0
+color = Color(0.2, 0.7, 0.2, 1)
+
+[node name="ReactorLabel" type="Label" parent="SubViewport/ShipDiagram/ReactorRect" unique_id=53212529]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "REACTOR"
+horizontal_alignment = 1
+vertical_alignment = 1

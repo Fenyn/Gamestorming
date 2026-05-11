@@ -27,6 +27,7 @@ func spawn_portals_for_cycle() -> void:
 		portal.orb_scene = orb_scene
 		add_child(portal)
 		portal.global_position = _random_portal_position(i, count)
+		portal.look_at(Vector3(0, portal.global_position.y, 0), Vector3.UP)
 		portal.orb_spawned.connect(func(orb: Orb) -> void: orb_spawned.emit(orb))
 		portals.append(portal)
 
@@ -70,5 +71,4 @@ func _get_portal_count() -> int:
 func _random_portal_position(index: int, total: int) -> Vector3:
 	var angle: float = (TAU / total) * index + randf() * 0.5
 	var dist: float = _build_radius * 0.4 + randf() * _build_radius * 0.3
-	var height: float = 2.0 + randf() * 3.0
-	return Vector3(cos(angle) * dist, height, sin(angle) * dist)
+	return Vector3(cos(angle) * dist, 1.5, sin(angle) * dist)

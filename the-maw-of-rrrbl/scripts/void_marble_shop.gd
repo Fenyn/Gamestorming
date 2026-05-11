@@ -6,6 +6,7 @@ signal shop_closed()
 var prestige_manager: PrestigeManager
 var _container: VBoxContainer
 var _header_label: Label
+var _earned_label: Label
 var _unlock_buttons: Dictionary = {}
 var _upgrade_buttons: Dictionary = {}
 
@@ -35,13 +36,25 @@ func _ready() -> void:
 	_header_label.add_theme_color_override("font_color", Color(0.6, 0.3, 0.8))
 	_container.add_child(_header_label)
 
+	_earned_label = Label.new()
+	_earned_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_earned_label.add_theme_font_size_override("font_size", 14)
+	_earned_label.add_theme_color_override("font_color", Color(0.4, 0.9, 0.5))
+	_container.add_child(_earned_label)
+
 func bind_prestige(pm: PrestigeManager) -> void:
 	prestige_manager = pm
 	prestige_manager.void_marbles_changed.connect(_refresh_all)
 	_build_shop()
 
-func show_shop() -> void:
+func show_shop(earned: int = 0) -> void:
 	visible = true
+	if _earned_label:
+		if earned > 0:
+			_earned_label.text = "+%d Void Marbles earned!" % earned
+			_earned_label.visible = true
+		else:
+			_earned_label.visible = false
 	_refresh_all(prestige_manager.void_marbles)
 
 func hide_shop() -> void:
@@ -160,14 +173,14 @@ func _refresh_all(_vm_total: int = 0) -> void:
 		var level: int = prestige_manager.get_level(id)
 		var max_level: int = upgrade["max_level"] as int
 		var cost: int = prestige_manager.get_upgrade_cost(id)
-		var name: String = upgrade["name"] as String
+		var upgrade_name: String = upgrade["name"] as String
 
 		if level >= max_level:
-			btn.text = "%s  [MAX]  Lv.%d" % [name, level]
+			btn.text = "%s  [MAX]  Lv.%d" % [upgrade_name, level]
 			btn.disabled = true
 			btn.modulate = Color(0.4, 0.7, 0.4, 0.7)
 		else:
-			btn.text = "%s  [%d VM]  Lv.%d/%d" % [name, cost, level, max_level]
+			btn.text = "%s  [%d VM]  Lv.%d/%d" % [upgrade_name, cost, level, max_level]
 			var can_buy: bool = prestige_manager.can_purchase_upgrade(id)
 			btn.disabled = not can_buy
 			btn.modulate = Color.WHITE if can_buy else Color(0.5, 0.5, 0.5, 0.7)

@@ -1,21 +1,22 @@
 extends Node3D
 class_name TrackBuilder
 
-## Handles placing track pieces with snap-to-connection logic.
-## The player selects a piece type, and it snaps to open connections
-## on existing track pieces. Confirm to place.
-
 signal piece_placed(piece: TrackPiece)
 
 const SNAP_DISTANCE: float = 0.5
+const COLOR_VALID: Color = Color(0.5, 1.0, 0.7, 0.4)
+const COLOR_INVALID: Color = Color(1.0, 0.3, 0.3, 0.4)
 
 @export var catalog: PieceCatalog
 
 var spark_manager: SparkManager
+var build_radius: float = 8.0
 var placed_pieces: Array[TrackPiece] = []
+var anchor_points: Array[Dictionary] = []
 var _ghost: Node3D = null
 var _ghost_data: TrackPieceData = null
 var _ghost_valid: bool = false
+var _ghost_color: Color = Color.TRANSPARENT
 var _target_connection: Dictionary = {}
 var _ghost_connection_index: int = 0
 var _selected_piece_id: String = ""
@@ -34,8 +35,18 @@ func select_piece(piece_id: String) -> void:
 
 	_ghost = scene.instantiate() as Node3D
 	_ghost.name = "Ghost"
-	_set_ghost_transparent(_ghost)
+	_apply_ghost_color(COLOR_VALID)
 	add_child(_ghost)
+
+	if _ghost_data.spark_cost > 0.0:
+		var cost_label: Label3D = Label3D.new()
+		cost_label.name = "CostLabel"
+		cost_label.text = "-%d" % int(_ghost_data.spark_cost)
+		cost_label.font_size = 20
+		cost_label.modulate = Color(1.0, 0.85, 0.3, 0.9)
+		cost_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		cost_label.position.y = 1.0
+		_ghost.add_child(cost_label)
 
 func cancel_selection() -> void:
 	_selected_piece_id = ""
@@ -54,25 +65,30 @@ func rotate_ghost() -> void:
 	_ghost.rotate_y(deg_to_rad(90))
 	_update_ghost_snap()
 
+func set_build_radius(radius: float) -> void:
+	build_radius = radius
+
+func set_anchor_points(anchors: Array[Dictionary]) -> void:
+	anchor_points = anchors
+
 func update_cursor(world_pos: Vector3) -> void:
 	if _ghost == null or _ghost_data == null:
 		return
 
-	if placed_pieces.is_empty():
-		_ghost.global_position = world_pos.snapped(Vector3(0.5, 0.5, 0.5))
-		_ghost_valid = true
-		_target_connection = {}
-		return
+	var in_bounds: bool = Vector2(world_pos.x, world_pos.z).length() <= build_radius
 
 	var best_snap: Dictionary = _find_best_snap(world_pos)
 	if best_snap.is_empty():
 		_ghost.global_position = world_pos.snapped(Vector3(0.5, 0.5, 0.5))
-		_ghost_valid = false
+		_ghost_valid = in_bounds and placed_pieces.is_empty()
 		_target_connection = {}
 	else:
 		_apply_snap(best_snap)
-		_ghost_valid = true
+		var snap_pos: Vector3 = _ghost.global_position
+		_ghost_valid = Vector2(snap_pos.x, snap_pos.z).length() <= build_radius
 		_target_connection = best_snap
+
+	_apply_ghost_color(COLOR_VALID if _ghost_valid else COLOR_INVALID)
 
 func confirm_placement() -> bool:
 	if _ghost == null or _ghost_data == null or not _ghost_valid:
@@ -87,11 +103,13 @@ func confirm_placement() -> bool:
 	piece.global_transform = _ghost.global_transform
 	piece.setup(_ghost_data)
 
-	if not _target_connection.is_empty():
+	if not _target_connection.is_empty() and not _target_connection.get("is_anchor", false):
 		var source_piece: TrackPiece = _target_connection["source_piece"] as TrackPiece
 		var source_index: int = _target_connection["source_index"] as int
 		source_piece.mark_connection_occupied(source_index)
 		piece.mark_connection_occupied(_ghost_connection_index)
+		piece.set_meta("snap_source_piece", source_piece)
+		piece.set_meta("snap_source_index", source_index)
 
 	placed_pieces.append(piece)
 	piece_placed.emit(piece)
@@ -101,6 +119,20 @@ func confirm_placement() -> bool:
 		select_piece(_selected_piece_id)
 
 	return true
+
+func undo_last() -> void:
+	if placed_pieces.is_empty():
+		return
+	var piece: TrackPiece = placed_pieces.pop_back()
+	if spark_manager and piece.piece_data:
+		spark_manager.earn(piece.piece_data.spark_cost)
+	if piece.has_meta("snap_source_piece"):
+		var source: TrackPiece = piece.get_meta("snap_source_piece") as TrackPiece
+		var source_index: int = piece.get_meta("snap_source_index") as int
+		if is_instance_valid(source):
+			source.occupied_connections.erase(source_index)
+			source.restore_connection_marker(source_index)
+	piece.queue_free()
 
 func clear_all() -> void:
 	for piece: TrackPiece in placed_pieces:
@@ -115,9 +147,12 @@ func _find_best_snap(cursor_pos: Vector3) -> Dictionary:
 		var open_conns: Array[Dictionary] = piece.get_open_world_connections()
 		for conn: Dictionary in open_conns:
 			var conn_pos: Vector3 = conn["position"] as Vector3
-			var dist: float = cursor_pos.distance_to(conn_pos)
-			if dist < SNAP_DISTANCE * 5.0 and dist < best_dist:
-				best_dist = dist
+			var flat_dist: float = Vector2(
+				cursor_pos.x - conn_pos.x,
+				cursor_pos.z - conn_pos.z
+			).length()
+			if flat_dist < SNAP_DISTANCE * 5.0 and flat_dist < best_dist:
+				best_dist = flat_dist
 				best_result = {
 					"source_piece": piece,
 					"source_index": conn["index"] as int,
@@ -125,6 +160,21 @@ func _find_best_snap(cursor_pos: Vector3) -> Dictionary:
 					"source_direction": conn["direction"] as Vector3,
 					"source_height": conn["height_offset"] as float,
 				}
+
+	for anchor: Dictionary in anchor_points:
+		var anchor_pos: Vector3 = anchor["position"] as Vector3
+		var flat_dist: float = Vector2(
+			cursor_pos.x - anchor_pos.x,
+			cursor_pos.z - anchor_pos.z
+		).length()
+		if flat_dist < SNAP_DISTANCE * 5.0 and flat_dist < best_dist:
+			best_dist = flat_dist
+			best_result = {
+				"is_anchor": true,
+				"source_position": anchor_pos,
+				"source_direction": anchor["direction"] as Vector3,
+				"source_height": 0.0,
+			}
 
 	return best_result
 
@@ -157,17 +207,24 @@ func _clear_ghost() -> void:
 		_ghost.queue_free()
 		_ghost = null
 	_ghost_valid = false
+	_ghost_color = Color.TRANSPARENT
 	_ghost_connection_index = 0
 
-func _set_ghost_transparent(node: Node) -> void:
+func _apply_ghost_color(color: Color) -> void:
+	if _ghost == null or color == _ghost_color:
+		return
+	_ghost_color = color
+	_set_material_recursive(_ghost, color)
+
+func _set_material_recursive(node: Node, color: Color) -> void:
 	for child: Node in node.get_children():
 		if child is MeshInstance3D:
 			var mi: MeshInstance3D = child as MeshInstance3D
 			var mat: StandardMaterial3D = StandardMaterial3D.new()
 			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			mat.albedo_color = Color(0.5, 1.0, 0.7, 0.4)
+			mat.albedo_color = color
 			mi.material_override = mat
-		_set_ghost_transparent(child)
+		_set_material_recursive(child, color)
 
 func _update_ghost_snap() -> void:
 	if _ghost == null:

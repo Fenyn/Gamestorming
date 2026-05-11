@@ -13,6 +13,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventMouseMotion:
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			return
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE):
+			return
 		var world_pos: Vector3 = _mouse_to_world(event.position)
 		if world_pos != Vector3.INF:
 			track_builder.update_cursor(world_pos)
@@ -20,15 +24,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
 		if mouse_event.pressed:
-			match mouse_event.button_index:
-				MOUSE_BUTTON_LEFT:
-					track_builder.confirm_placement()
-				MOUSE_BUTTON_RIGHT:
-					track_builder.cancel_selection()
+			if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+				track_builder.confirm_placement()
 
 	if event is InputEventKey:
 		var key_event: InputEventKey = event as InputEventKey
 		if key_event.pressed:
+			if key_event.keycode == KEY_Z and key_event.ctrl_pressed:
+				track_builder.undo_last()
+				return
 			match key_event.keycode:
 				KEY_R:
 					track_builder.rotate_ghost()

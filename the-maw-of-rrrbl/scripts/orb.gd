@@ -34,6 +34,16 @@ func _physics_process(_delta: float) -> void:
 func get_sparks() -> float:
 	return total_distance * BASE_SPARK_RATE * spark_multiplier
 
+func set_orb_color(color: Color) -> void:
+	for child: Node in get_children():
+		if child is MeshInstance3D:
+			var mat: StandardMaterial3D = StandardMaterial3D.new()
+			mat.albedo_color = color
+			mat.emission_enabled = true
+			mat.emission = color
+			mat.emission_energy_multiplier = 0.5
+			(child as MeshInstance3D).material_override = mat
+
 func consume() -> void:
 	if not _is_active:
 		return

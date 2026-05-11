@@ -27,13 +27,27 @@ func _generate_collision(model: Node3D) -> void:
 func _create_connection_markers() -> void:
 	if piece_data == null:
 		return
-
 	for i: int in piece_data.connections.size():
-		var conn: ConnectionPoint = piece_data.connections[i]
-		var marker: Marker3D = Marker3D.new()
-		marker.name = "Connection_%d" % i
-		marker.position = conn.local_position
-		add_child(marker)
+		_add_connection_marker(i, piece_data.connections[i])
+
+func _add_connection_marker(index: int, conn: ConnectionPoint) -> void:
+	var marker: MeshInstance3D = MeshInstance3D.new()
+	marker.name = "Connection_%d" % index
+	var sphere: SphereMesh = SphereMesh.new()
+	sphere.radius = 0.08
+	sphere.height = 0.16
+	marker.mesh = sphere
+	marker.position = conn.local_position
+
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.3, 0.8, 1.0, 0.7)
+	mat.emission_enabled = true
+	mat.emission = Color(0.3, 0.8, 1.0)
+	mat.emission_energy_multiplier = 1.5
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	marker.material_override = mat
+
+	add_child(marker)
 
 func get_world_connection(index: int) -> Dictionary:
 	if piece_data == null or index >= piece_data.connections.size():
@@ -62,3 +76,13 @@ func get_open_world_connections() -> Array[Dictionary]:
 
 func mark_connection_occupied(index: int) -> void:
 	occupied_connections[index] = true
+	var marker: Node = get_node_or_null("Connection_%d" % index)
+	if marker:
+		marker.queue_free()
+
+func restore_connection_marker(index: int) -> void:
+	if piece_data == null or index >= piece_data.connections.size():
+		return
+	if get_node_or_null("Connection_%d" % index):
+		return
+	_add_connection_marker(index, piece_data.connections[index])

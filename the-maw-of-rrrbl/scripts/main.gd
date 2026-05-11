@@ -2,6 +2,8 @@ extends Node3D
 
 enum GameState { BUILDING, IMPLODING, SHOP }
 
+const SAVE_PATH: String = "user://save.json"
+
 @onready var game_manager: GameManager = $GameManager
 @onready var maw: Maw = $Maw
 @onready var hud: HUD = $HUD
@@ -19,6 +21,7 @@ var state: GameState = GameState.BUILDING
 var active_orbs: int = 0
 
 func _ready() -> void:
+	_load_game()
 	_connect_signals()
 	_configure_systems()
 	_start_building_phase()
@@ -31,6 +34,7 @@ func _connect_signals() -> void:
 	piece_palette.piece_selected.connect(_on_piece_selected)
 	track_builder.piece_placed.connect(_on_piece_placed)
 	prestige_manager.build_space_changed.connect(build_boundary.set_radius)
+	prestige_manager.build_space_changed.connect(track_builder.set_build_radius)
 	void_marble_shop.shop_closed.connect(_on_shop_closed)
 	portal_manager.orb_spawned.connect(_on_orb_spawned)
 
@@ -40,6 +44,7 @@ func _configure_systems() -> void:
 	piece_palette.bind_prestige(prestige_manager)
 	track_builder.catalog = piece_catalog
 	track_builder.spark_manager = game_manager.spark_manager
+	track_builder.build_radius = prestige_manager.get_build_radius()
 	build_controller.track_builder = track_builder
 	build_controller.camera = $Camera
 	void_marble_shop.bind_prestige(prestige_manager)
@@ -62,8 +67,12 @@ func _start_building_phase() -> void:
 	game_manager.spark_manager.earn(prestige_manager.get_starting_sparks())
 	maw.consumption_threshold = prestige_manager.get_maw_threshold()
 	build_boundary.set_radius(prestige_manager.get_build_radius())
+	track_builder.build_radius = prestige_manager.get_build_radius()
 	portal_manager.spawn_portals_for_cycle()
+	_register_portal_anchors()
 	build_controller.set_process_unhandled_input(true)
+	hud.update_void_marbles(prestige_manager.void_marbles)
+	hud.update_cycle(prestige_manager.cycle + 1)
 
 func _on_implosion_started() -> void:
 	state = GameState.IMPLODING
@@ -82,11 +91,23 @@ func _on_implosion_finished() -> void:
 	hud.update_orb_count(0)
 	hud.update_void_marbles(prestige_manager.void_marbles)
 
+	_save_game()
+
 	state = GameState.SHOP
-	void_marble_shop.show_shop()
+	void_marble_shop.show_shop(earned)
 
 func _on_shop_closed() -> void:
+	_save_game()
 	_start_building_phase()
+
+func _register_portal_anchors() -> void:
+	var anchors: Array[Dictionary] = []
+	for portal: DreamerPortal in portal_manager.portals:
+		anchors.append({
+			"position": portal.get_connection_world_position(),
+			"direction": portal.get_connection_world_direction(),
+		})
+	track_builder.set_anchor_points(anchors)
 
 # --- Piece placement ---
 
@@ -106,7 +127,7 @@ func _check_portal_connections() -> void:
 			for i: int in piece.piece_data.connections.size():
 				var wc: Dictionary = piece.get_world_connection(i)
 				var piece_pos: Vector3 = wc["position"] as Vector3
-				if portal_pos.distance_to(piece_pos) < 1.0:
+				if portal_pos.distance_to(piece_pos) < 2.0:
 					portal_manager.connect_portal(portal)
 					break
 
@@ -140,3 +161,30 @@ func _load_blueprint(slot: int) -> void:
 		slot, piece_catalog, track_builder, game_manager.spark_manager
 	)
 	_check_portal_connections()
+
+# --- Save / Load ---
+
+func _save_game() -> void:
+	var data: Dictionary = {
+		"prestige": prestige_manager.to_save_data(),
+		"blueprints": blueprint_manager.to_save_data(),
+	}
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file == null:
+		return
+	file.store_string(JSON.stringify(data))
+
+func _load_game() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var json: JSON = JSON.new()
+	if json.parse(file.get_as_text()) != OK:
+		return
+	var data: Dictionary = json.data as Dictionary
+	if data.has("prestige"):
+		prestige_manager.load_save_data(data["prestige"] as Dictionary)
+	if data.has("blueprints"):
+		blueprint_manager.load_save_data(data["blueprints"] as Array)

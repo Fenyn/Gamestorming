@@ -1,11 +1,11 @@
 # Diceborn
 
-A roguelite dice combat game. Roll five dice Yahtzee-style, then *spend* subsets of your dice on attacks, blocks, and abilities — bigger combinations hit harder, but splitting your pool buys more actions per turn. Fight enemies on a Slay-the-Spire-style run map. Working title; theme deferred.
+A roguelite dice combat game. You have a **board of ability cards**, each with sockets that accept specific dice. Roll five dice Yahtzee-style, then drag dice into sockets at your own pace — when an ability's sockets are all filled, it fires and consumes the dice. Rerolls are a budget you spend across the turn. Fight enemies on a Slay-the-Spire-style run map and grow your board across the run. Working title; theme deferred.
 
 **Engine:** Godot 4.6 (2D UI + 3D physics dice in SubViewport)
 **Assets:** Programmer art for prototype; theme/style deferred
 **Genre:** Roguelite / Dice combat
-**Inspirations:** Slay the Spire (run shape, intents), Dice Throne (combinations as abilities), Yahtzee (the roll itself)
+**Inspirations:** Slay the Spire (run shape, intents), Dice Throne (abilities), Balatro (rerolls as resource, ability leveling), Yahtzee (the roll itself)
 
 ---
 
@@ -14,90 +14,109 @@ A roguelite dice combat game. Roll five dice Yahtzee-style, then *spend* subsets
 ```
 Enter combat → enemy telegraphs intent
   ↓
-Your turn — ROLL PHASE: roll all dice, lock some, reroll up to 2x
+Your turn opens:
+  • All FREE dice (unsocketed) auto-roll
+  • Reroll budget refreshes (e.g. 2)
+  • SOCKETED dice from earlier turns stay where they are
   ↓
-Your turn — SPEND PHASE: spend subsets of dice as combinations
-  → each combination resolves immediately as its action
-  → keep spending until the pool is exhausted or you end your turn
+Play at your own pace, in any order:
+  • Drag a free die into any compatible socket
+  • When all sockets on an ability fill → it FIRES, dice consumed, sockets clear
+  • Spend a reroll → all currently-free dice tumble again
+  • Pull a consumable
   ↓
-Enemy turn: resolves telegraphed intent → damages you / debuffs / heals self
+End turn when satisfied (or when rerolls are gone and nothing more fits)
+  ↓
+Enemy turn: resolves telegraphed intent
   ↓
 Repeat until one HP hits 0
   ↓
-Win → loot (charm OR die upgrade OR consumable OR gold) → back to map
+Win → loot (ability OR charm OR die upgrade OR consumable OR gold) → back to map
 Map → choose next node (combat / elite / shop / rest / event / boss)
   ↓
 Beat act boss → next act with higher numbers → eventual run end
 Die → meta unlocks → new run
 ```
 
-**The core tension:** spend all 5 dice as one big combo for max damage, or split them into smaller actions for flexibility (attack + block, or two attacks, etc.). With a starting pool of 5, the whole pool usually goes into a single combination. As you add a 6th, 7th die, the splitting decisions get richer — that's the game getting deeper.
+**The core tension:** sockets persist across turns. A 5-socket ultimate can charge over 2–3 turns while you spam a 1-socket Strike every turn. Do you starve your big ability to keep tempo, or commit dice now and weather the next enemy hit?
 
 **Primary resources (per combat):**
 - **HP** — yours and the enemy's
-- **Rerolls** — 2 per turn baseline (3 total rolls)
+- **Rerolls** — refreshes each turn (default 2 beyond the free auto-roll)
 - **Block** — STS-style temporary armor, expires at start of your next turn
 
 **Primary resources (per run):**
 - **HP** — persists between combats; small heals at rest sites
 - **Gold** — earned per combat, spent at shops
 - **Consumables** — limited inventory slots
+- **Your ability board** — grows and mutates as you progress
 
-**Prestige:** Meta-currency on death unlocks new charms / dice / consumables for the pool.
+**Prestige:** Meta-currency on death unlocks new abilities / charms / dice / consumables / characters for the pool.
 
 ---
 
-## Roll Phase — Yahtzee Rhythm
+## The Dice
 
-| Step | Action |
+| Property | Default |
 |---|---|
-| 1 | First roll: all dice tumble in the physics tray |
-| 2 | Click dice to toggle lock |
-| 3 | Reroll unlocked dice (rerolls remaining: 2 → 1 → 0) |
-| 4 | Commit early any time, OR reroll until rerolls run out |
-| 5 | Transition to Spend Phase |
+| Starting pool | 5d6 |
+| Roll model | `RigidBody3D` in a SubViewport (pattern from `life-magic/scripts/ui/wizard_3d.gd`) |
+| Free dice | Tumble in the tray, can be socketed or rerolled |
+| Socketed dice | Visually snap into the ability card, immune to rerolls |
+| Auto-roll | All free dice roll at start of each of your turns |
 
-Dice are `RigidBody3D` objects in a SubViewport, rendered into the 2D HUD. Tactile, tumbling, settle-and-read. (Pattern lifted from `life-magic/scripts/ui/wizard_3d.gd`.)
-
-Locking is purely a "don't reroll this" toggle — it doesn't commit a die to any spend.
+That's it. No "lock toggle" — socketing *is* locking. The board is the only commitment surface.
 
 ---
 
-## Spend Phase — Combinations as Spendable Actions
+## The Ability Board
 
-After rolling, the UI highlights valid combinations among your dice. Click one to **spend** those dice — they grey out and the action resolves immediately. Repeat with the remaining dice. End your turn when finished (unspent dice do nothing).
+The center of the screen. A row (or grid) of **ability cards** you've collected. Each card has a name, an effect, and 1–5 sockets. Dice snap into sockets; when full, the card fires.
 
-This is the Dice Throne shape, but applied to subsets rather than the whole pool: every combination tier is a thing-you-can-do, and you can chain several per turn if your pool allows.
+**Anatomy of an ability card:**
 
-| Combination | Dice Cost | Example | Default Action | Power |
-|---|---|---|---|---|
-| **Pip** (single die) | 1 | `6` | Flick — tiny damage = pip value | Filler / use up scraps |
-| **Pair** | 2 | `5 5` | Block = pair value × 2 | Defensive option |
-| **Two Pair** | 4 | `5 5 3 3` | Strike — solid damage; more than two Pairs | Workhorse |
-| **Three of a Kind** | 3 | `5 5 5` | Heavy Strike — bigger damage, scales with pip | Real threat |
-| **Small Straight** | 4 | `1 2 3 4` | Utility — draw consumable / cycle a die / debuff | Tempo |
-| **Full House** | 5 | `5 5 5 3 3` | Cleave — damage to all enemies | AoE |
-| **Four of a Kind** | 4 | `5 5 5 5` | Crusher — burst damage, ignores block | Burst |
-| **Large Straight** | 5 | `1 2 3 4 5` | Tactical — big damage + apply weak/vulnerable | Setup combo |
-| **Yahtzee** | 5 | `5 5 5 5 5` | Ultimate — massive damage + signature effect | The moment |
-
-**Splitting trade-offs:**
-- `5 5 5 3 3` spent as **Full House** = one big AoE
-- `5 5 5 3 3` spent as **Three of a Kind + Pair** = one Heavy Strike + one block — two actions, same dice, lower total damage
-- `5 5 5 5 _` with the loose die spent as **Four of a Kind + Pip** = one big hit + one flick
-- The combination ladder is tuned so bigger combos are *more efficient* per die, but splitting buys action economy (multi-target, attack-and-defend, charm-trigger stacking)
-
-**Damage formula** (working draft, tunable):
 ```
-damage = base_for_combination × (1 + sum_of_spent_pips / 10) × charm_multipliers
+┌─────────────────────────────┐
+│  HEAVY STRIKE               │
+│  [ ▢ ][ ▢ ][ ▢ ]            │   ← three sockets, "must all match"
+│  Deal 8 + (3 × pip) damage  │
+└─────────────────────────────┘
 ```
-Higher pips = more damage, so a Three-of-a-Kind 6s is meaningfully stronger than 1s.
 
-**Combination upgrades** (the specialize-or-generalize axis, Balatro-style):
-- "Level 2 Full House" → adds +X damage every time you spend a Full House
-- Levels persist for the rest of the run
-- A run might commit to leveling Pairs (cheap, spammable with 6+ dice), then stacking on-hit charms that trigger per spend
-- Some upgrades **change the action** (e.g. "Full House now hits twice for half damage" — better with on-hit charms)
+**Socket requirements** (the design space):
+
+| Requirement | Example | Notes |
+|---|---|---|
+| **Any** | accepts any die | The basic Pip / utility socket |
+| **Specific face** | accepts only a `6` | Highest-impact, hardest to fill |
+| **Range** | accepts `4–6` | "High die" |
+| **Parity** | accepts only even / only odd | Easier to upgrade into |
+| **Match other sockets** | accepts whatever already filled the matched sockets | The classic "pair / three of a kind" pattern |
+| **Sequence with other sockets** | accepts N+1 of an already-socketed N | Straights |
+| **Sum** | accepts dice that sum to X across the card | Lets the player route any combo |
+
+A "Pair Block" is two `Match-other` sockets. A "Three of a Kind Strike" is three. A "Small Straight" is four `Sequence` sockets. A "Yahtzee Ultimate" is five `Match`. But abilities can also be weirder: "Spend any two even dice" is a perfectly cromulent ability.
+
+**Firing:** when the last socket fills, the card resolves immediately (visually: dice fly off, effect animates), then sockets reset to empty.
+
+**Slot cap:** the board holds N abilities at once (start with ~4, grow to ~6). Picking up a 7th forces a swap or destroy.
+
+---
+
+## Ability Mutations — the Per-Ability Upgrade Axis
+
+Abilities aren't fixed. Upgrades change *socket requirements*, *socket count*, *and/or effects*. This is the Balatro hand-leveling axis, but it can structurally rewrite an ability instead of just buffing numbers.
+
+| Mutation type | Example before → after |
+|---|---|
+| **Loosen socket** | `must be 6` → `must be 5 or 6` → `must be 4+` |
+| **Tighten socket** | `any` → `must be even` (pairs with an effect buff) |
+| **Add socket** | 3 sockets → 4 sockets (and effect scales up) |
+| **Remove socket** | 5 sockets → 4 sockets (effect halved but fires more often) |
+| **Swap requirement** | `must match` → `must be sequence` (changes the build it fits in) |
+| **Effect buff** | `Deal 8 damage` → `Deal 8 damage + apply Vulnerable` |
+
+Upgrades come from rest sites, events, shops, and elite/boss rewards. The same ability can take many shapes by the end of a run — and characters (future scope) start with different mutation pools, so a "Berserker" might only loosen toward high dice, while a "Tactician" only adds sockets.
 
 ---
 
@@ -114,8 +133,8 @@ Slay-the-Spire-style. Enemies have HP, telegraphed intent each turn, and a small
 | **Special** | ? | Telegraphed unique move (e.g. boss combo) |
 
 **Trash enemies:** 1–2 intents on a loop, low HP, exist to drain resources between elites.
-**Elites:** Bigger HP, 3+ intents, a signature mechanic. Drop a guaranteed charm.
-**Bosses:** Act-defining unique mechanics (e.g. "every turn one of your dice is locked at 1 until rerolled"). Drop a major reward.
+**Elites:** Bigger HP, 3+ intents, a signature mechanic. Drop a guaranteed ability or charm.
+**Bosses:** Act-defining unique mechanics that mess with the board (e.g. "every turn, one random socket on your board becomes empty"). Drop a major reward.
 
 **Status effects** (small, reused both directions):
 - **Weak** — your damage halved this turn
@@ -132,57 +151,64 @@ A branching node map per act. Three acts to start. (Vertical slice = first act o
 | Node | Effect |
 |---|---|
 | **Combat** | Trash fight, modest reward |
-| **Elite** | Hard fight, guaranteed charm + gold |
-| **Shop** | Buy charms / consumables / die upgrades / remove a die |
-| **Rest** | Heal 30% HP OR upgrade a die OR level a combination |
+| **Elite** | Hard fight, guaranteed ability or charm + gold |
+| **Shop** | Buy abilities / charms / consumables / die upgrades / remove a die |
+| **Rest** | Heal 30% HP OR mutate an ability OR upgrade a die |
 | **Event** | Random encounter — risk/reward, narrative beats once theme lands |
-| **Boss** | Act-ender — defines what built the deck/loadout needs to handle |
+| **Boss** | Act-ender — defines what your board needs to handle |
 
 Player picks a path through the map. Standard STS pacing: you can't take every node, you have to commit.
 
-**Vertical slice scope:** 4–6 nodes, 1 elite, 1 boss. ~15 minute slice. Enough to feel turn-to-turn rolling AND between-combat build choices.
+**Vertical slice scope:** 4–6 nodes, 1 elite, 1 boss. ~15 minute slice. Enough to feel turn-to-turn socketing AND between-combat build choices.
 
 ---
 
-## Build Axes — Four Modifier Categories
+## Build Axes — Five Modifier Pools
 
-The roguelite identity. All four pools live simultaneously. No specific items committed yet — these are the *shapes* the design supports.
+The roguelite identity. All five pools live simultaneously. No specific items committed — these are the *shapes* the design supports.
 
-### 1. Charms / Relics — passive effects (Balatro Jokers / STS Relics)
+### 1. Abilities — the board itself
 
-Slot-limited collection of passives. Examples of the *shape*:
-- "+3 damage on every Full House"
+The headline axis. You start with a small set (e.g. Strike, Block, Heavy Strike, Cleave) and collect more. Each is a complete unit: sockets + effect. The board *is* your build.
+
+### 2. Ability Mutations — modify cards on your board
+
+See the section above. Loosen sockets, add sockets, change effects. The slow-burn axis that personalizes your starting abilities.
+
+### 3. Charms / Relics — passive effects (Balatro Jokers / STS Relics)
+
+Slot-limited passives. Examples of the *shape*:
+- "+3 damage on every ability that fires this turn"
 - "First reroll each turn is free"
-- "Gain 5 block at start of each turn"
-- "When you roll a Yahtzee, heal 5 HP"
+- "When an ability fires with all-even dice, draw a consumable"
+- "Sockets fill 'wild' on the first turn of combat"
 
-### 2. Die Upgrades — modify individual dice
+### 4. Die Upgrades — modify individual dice
 
-Specific dice in your set get marked up. Each becomes physically distinct in the tray (different material / glow).
+Specific dice get marked up. Each becomes physically distinct in the tray.
 - **Weighted** — biased toward high faces
-- **Foil** — adds flat damage when included in a triggered combination
-- **Holo** — adds multiplier when included
+- **Foil** — fires a bonus effect whenever socketed
+- **Holo** — multiplies the firing ability's effect
 - **Face-changed** — replace one or more faces (e.g. die with two 6s, no 1s)
-- **Wild** — substitutes for any value when forming combinations
-- **Echo** — when its face matches another die, triggers a bonus
+- **Wild** — fits any socket
+- **Echo** — when socketed, also counts toward another socket on the same card
 
-### 3. Add / Remove Dice — alter the set
+### 5. Add / Remove Dice — alter the pool
 
-This is the **action-economy axis**. More dice = more potential spends per turn, not just better odds.
-- Start with 5d6 — typically one big spend per turn
-- 6th die → reliably split: Three of a Kind + Pair, or Four of a Kind + Pip
-- 7th, 8th die → routinely chain three actions: attack + block + utility
-- Swap a d6 for a d8 (higher range, harder to straight, more Pip damage)
-- Remove a die at rest sites (smaller, more controllable pool — fewer spends but more consistent combos)
+The action-economy axis. More dice = more sockets you can fill per turn = more abilities firing.
+- Start with 5d6
+- Add a 6th die → can charge a 5-socket Ultimate while still firing a 1-socket Strike each turn
+- Add a d8 → higher pip ceiling, harder to straight
+- Remove a die at rest sites — smaller pool, cleaner choices
 - Cursed dice — extra die that always rolls something annoying, but pays out elsewhere
 
-### 4. Consumables — one-shot effects (Tarots / Potions)
+### 6. Consumables — one-shot effects (Tarots / Potions)
 
-Used at specific moments. Carry-limited slots.
+Used at any moment. Carry-limited slots.
 - "Reroll any one die to any face"
-- "Level up a combination by one"
-- "Turn one die into a wild for this turn"
-- "Add a free reroll to this turn"
+- "Mutate an ability (one tier)"
+- "Wild any one die for this turn"
+- "Refresh your reroll budget"
 - "Skip an enemy's next intent"
 - "Heal 10 HP"
 
@@ -190,50 +216,53 @@ Used at specific moments. Carry-limited slots.
 
 ## The Combinatorial Pitch
 
-A run is interesting because the four axes interact with the spend-economy layer.
+A run is interesting because the axes compound on the board. Every build is a story about how the abilities reshape themselves.
 
-Example **Pile-On** build: *Buy a 7th and 8th die → level Pair three times → charm "Pair also deals damage equal to pair value" → every turn I spend three Pairs for cheap, charm-triggering machine-gun hits. The combination ladder no longer matters; my action count does.*
+Example **Charge Engine**: *Pick up "Apocalypse" (5 sockets, must all be 6s, massive damage). Mutate twice to loosen sockets to "any 5+". Face-change two dice to be high-only. Charm "ability firings deal +5 splash damage." Spend 2 turns loading Apocalypse and fire it every third turn while chipping with Pip cards in between.*
 
-Example **Cleave Tyrant** build: *Stay at 5 dice → level Full House twice → charm "Full House also applies Vulnerable" → swap a d6 for a die that rolls only 4–6 → I spend my whole pool on one big AoE every turn and the room melts.*
+Example **Tempo Spammer**: *Mutate Strike from "1 any socket" into "1 any-die socket" + a charm "first ability of each turn costs no dice." Now every turn opens with a free Strike, then I spend dice on actual abilities. 7 dice means 3 firings per turn.*
 
-Example **Tactician** build: *6 dice → level Small Straight three times → face-change two dice so the pool can always straight → keep one extra die free as a Pip for chip damage → I straight every turn for utility and still attack with the spare.*
+Example **Straight Specialist**: *Take "Cascade" (4 sockets, must form 1-2-3-4). Mutate to allow 2-3-4-5 too. Face-change two dice to fill the gaps. Add a die. Every turn I fire Cascade plus a free Pip from the spare die.*
 
-Example **Generalist** build: *Don't specialize. Charm "first spend of each turn deals +X damage" → 7 dice → always lead with the biggest combo I can form, then chain Pips and Pairs for cleanup.*
+Example **Tinkerer**: *Don't commit to any ability. Mutate everything once. Pile up charms that buff "any ability firing." Generalist build that wins on action volume.*
 
 ---
 
 ## Tone — "Just One More Roll"
 
-The pull is the run's emergent build. The drama is dice tumbling and reading the result against an enemy intent. The hook is whether the charms you've picked up combine into a build that breaks the run's curve.
+The pull is the run's emergent board. The drama is dice tumbling, finding a 6 you've been waiting for, and snapping it into the last socket. The hook is whether your mutated board outpaces the act-3 boss.
 
 **Visual:**
-- 2D UI with physics-rolled 3D dice tumbling in a small tray
-- Enemy on the right with HP bar, intent icon, and status pips
-- Charms on the side as a build sheet
-- After the roll settles, valid combinations highlight on hover; spent dice grey out and slide to a "used" rail
-- Damage / block numbers fly off dice when a combination is spent
+- 2D UI. Ability cards in a row across the middle of the screen; sockets visible on each card.
+- Free dice tumble in a physics tray below; player drags them up into sockets.
+- Socketed dice visually pop into the card outline (slight glow / settle anim).
+- Card firing: dice flash, fly off, effect animates (damage numbers, block icon, etc.), sockets reset.
+- Enemy on the right with HP bar, intent icon, status pips.
+- Charms on the side as a build sheet; reroll counter visible near the tray.
 
 **Sound:**
 - Physical dice clacking against tray walls
 - A satisfying "settle" tick when each die comes to rest
-- A "swipe-spend" sound when dice are committed to a combination
-- Combination resolution scales with the ladder (Pip = tick, Yahtzee = thunder)
+- A "click-snap" when a die enters a socket
+- A "fanfare" scaling with ability tier when a card fires
 - Enemy intent telegraph "click" when it locks in
 
 **The hooks:**
-- "If I buy this 7th die at the shop, I can spend a Three of a Kind AND a Pair every turn — that's two charm triggers"
-- "Big Yahtzee here or split into Three + Pair so I also block the incoming hit?"
-- "Did the boss's intent-lock break my build? Can I still salvage by spending the rest as Pips?"
-- "Run 7: I finally understand why Echo dice matter — every Pip becomes a trigger"
+- "If I socket this 6 into Apocalypse now, I'm one die away from firing it next turn"
+- "Drop Pip Strike from my board for Cascade — the Cascade mutation makes it auto-fill"
+- "Boss empties a socket every turn — better take low-socket abilities into this fight"
+- "Run 7: I finally see why Echo dice break the socket economy"
 
 ---
 
 ## Open Questions (Deferred Until Prototype Plays)
 
-- **Theme & art** — generic dice for prototype; pick after combat feels good.
+- **Theme & art** — generic dice for prototype; pick after the board feels good.
 - **Project name** — "Diceborn" is a working title.
-- **Specific item lists** — categories are scoped; concrete charms / dice / consumables wait until the combination-to-action system is real.
-- **Numbers** — damage formula, HP totals, enemy intent values all tunable after first playable.
+- **Characters** — different starting boards and mutation pools. Out of scope for vertical slice; one default character first.
+- **Specific item lists** — concrete abilities / charms / mutations / consumables wait until the socket system is real and tunable.
+- **Numbers** — damage formula, HP totals, enemy intents, reroll budget all tunable after first playable.
+- **Ability slot cap** — starts at ~4, grows to ~6; final cap TBD.
+- **Mutation cap per ability** — should there be a limit, or can a card be mutated infinitely? Default: limit, TBD.
 - **Act count / map size** — vertical slice is one act; full game length TBD.
-- **Player HP scaling** — flat per run? Upgradeable via meta? TBD.
 - **Death severity** — full reset (STS) vs partial carryover? Default to full reset for prototype.

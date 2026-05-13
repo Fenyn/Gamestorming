@@ -1,6 +1,6 @@
 # Diceborn
 
-A roguelite dice combat game. Roll five dice Yahtzee-style, turn the combination you make into an attack or defense, fight enemies on a Slay-the-Spire-style run map. Survive a sequence of combats, build a dice loadout, beat the act boss. Working title; theme deferred.
+A roguelite dice combat game. Roll five dice Yahtzee-style, then *spend* subsets of your dice on attacks, blocks, and abilities — bigger combinations hit harder, but splitting your pool buys more actions per turn. Fight enemies on a Slay-the-Spire-style run map. Working title; theme deferred.
 
 **Engine:** Godot 4.6 (2D UI + 3D physics dice in SubViewport)
 **Assets:** Programmer art for prototype; theme/style deferred
@@ -14,9 +14,11 @@ A roguelite dice combat game. Roll five dice Yahtzee-style, turn the combination
 ```
 Enter combat → enemy telegraphs intent
   ↓
-Your turn: roll 5 dice, lock some, reroll up to 2x
+Your turn — ROLL PHASE: roll all dice, lock some, reroll up to 2x
   ↓
-Final combination → triggers an action (attack / block / utility)
+Your turn — SPEND PHASE: spend subsets of dice as combinations
+  → each combination resolves immediately as its action
+  → keep spending until the pool is exhausted or you end your turn
   ↓
 Enemy turn: resolves telegraphed intent → damages you / debuffs / heals self
   ↓
@@ -28,6 +30,8 @@ Map → choose next node (combat / elite / shop / rest / event / boss)
 Beat act boss → next act with higher numbers → eventual run end
 Die → meta unlocks → new run
 ```
+
+**The core tension:** spend all 5 dice as one big combo for max damage, or split them into smaller actions for flexibility (attack + block, or two attacks, etc.). With a starting pool of 5, the whole pool usually goes into a single combination. As you add a 6th, 7th die, the splitting decisions get richer — that's the game getting deeper.
 
 **Primary resources (per combat):**
 - **HP** — yours and the enemy's
@@ -43,47 +47,56 @@ Die → meta unlocks → new run
 
 ---
 
-## Rolling — Yahtzee Rhythm
+## Roll Phase — Yahtzee Rhythm
 
 | Step | Action |
 |---|---|
-| 1 | First roll: all 5 dice tumble in the physics tray |
+| 1 | First roll: all dice tumble in the physics tray |
 | 2 | Click dice to toggle lock |
 | 3 | Reroll unlocked dice (rerolls remaining: 2 → 1 → 0) |
 | 4 | Commit early any time, OR reroll until rerolls run out |
-| 5 | The final combination determines your action — resolve it |
-| 6 | Enemy turn |
+| 5 | Transition to Spend Phase |
 
 Dice are `RigidBody3D` objects in a SubViewport, rendered into the 2D HUD. Tactile, tumbling, settle-and-read. (Pattern lifted from `life-magic/scripts/ui/wizard_3d.gd`.)
 
+Locking is purely a "don't reroll this" toggle — it doesn't commit a die to any spend.
+
 ---
 
-## Combinations → Actions
+## Spend Phase — Combinations as Spendable Actions
 
-This is the Dice Throne shape: every combination is a thing-you-can-do. Players never "fail to score" — even nothing-rolls do something small. The combination ladder defines power level.
+After rolling, the UI highlights valid combinations among your dice. Click one to **spend** those dice — they grey out and the action resolves immediately. Repeat with the remaining dice. End your turn when finished (unspent dice do nothing).
 
-| Combination | Example | Default Action | Power |
-|---|---|---|---|
-| **High Die** (no pattern) | `6 4 3 2 1` | Flick — tiny damage = highest die pip | Filler |
-| **Pair** | `5 5 _ _ _` | Block = pair value × 2 | Defensive option |
-| **Two Pair** | `5 5 3 3 _` | Strike — moderate damage | Workhorse |
-| **Three of a Kind** | `5 5 5 _ _` | Heavy Strike — bigger damage, scales with pip | Real threat |
-| **Small Straight** | `1 2 3 4 _` | Utility — draw consumable / cycle a die / debuff | Tempo |
-| **Full House** | `5 5 5 3 3` | Cleave — damage to all enemies | AoE |
-| **Four of a Kind** | `5 5 5 5 _` | Crusher — burst damage, ignores block | Burst |
-| **Large Straight** | `1 2 3 4 5` | Tactical — big damage + apply weak/vulnerable | Setup combo |
-| **Yahtzee** | `5 5 5 5 5` | Ultimate — massive damage + signature effect | The moment |
+This is the Dice Throne shape, but applied to subsets rather than the whole pool: every combination tier is a thing-you-can-do, and you can chain several per turn if your pool allows.
+
+| Combination | Dice Cost | Example | Default Action | Power |
+|---|---|---|---|---|
+| **Pip** (single die) | 1 | `6` | Flick — tiny damage = pip value | Filler / use up scraps |
+| **Pair** | 2 | `5 5` | Block = pair value × 2 | Defensive option |
+| **Two Pair** | 4 | `5 5 3 3` | Strike — solid damage; more than two Pairs | Workhorse |
+| **Three of a Kind** | 3 | `5 5 5` | Heavy Strike — bigger damage, scales with pip | Real threat |
+| **Small Straight** | 4 | `1 2 3 4` | Utility — draw consumable / cycle a die / debuff | Tempo |
+| **Full House** | 5 | `5 5 5 3 3` | Cleave — damage to all enemies | AoE |
+| **Four of a Kind** | 4 | `5 5 5 5` | Crusher — burst damage, ignores block | Burst |
+| **Large Straight** | 5 | `1 2 3 4 5` | Tactical — big damage + apply weak/vulnerable | Setup combo |
+| **Yahtzee** | 5 | `5 5 5 5 5` | Ultimate — massive damage + signature effect | The moment |
+
+**Splitting trade-offs:**
+- `5 5 5 3 3` spent as **Full House** = one big AoE
+- `5 5 5 3 3` spent as **Three of a Kind + Pair** = one Heavy Strike + one block — two actions, same dice, lower total damage
+- `5 5 5 5 _` with the loose die spent as **Four of a Kind + Pip** = one big hit + one flick
+- The combination ladder is tuned so bigger combos are *more efficient* per die, but splitting buys action economy (multi-target, attack-and-defend, charm-trigger stacking)
 
 **Damage formula** (working draft, tunable):
 ```
-damage = base_for_combination × (1 + sum_of_relevant_pips / 10) × charm_multipliers
+damage = base_for_combination × (1 + sum_of_spent_pips / 10) × charm_multipliers
 ```
 Higher pips = more damage, so a Three-of-a-Kind 6s is meaningfully stronger than 1s.
 
 **Combination upgrades** (the specialize-or-generalize axis, Balatro-style):
-- "Level 2 Full House" → adds +X damage every time you trigger a Full House
+- "Level 2 Full House" → adds +X damage every time you spend a Full House
 - Levels persist for the rest of the run
-- A run might commit to leveling Small Straights, then stacking dice modifications that make straights reliable
+- A run might commit to leveling Pairs (cheap, spammable with 6+ dice), then stacking on-hit charms that trigger per spend
 - Some upgrades **change the action** (e.g. "Full House now hits twice for half damage" — better with on-hit charms)
 
 ---
@@ -155,11 +168,12 @@ Specific dice in your set get marked up. Each becomes physically distinct in the
 
 ### 3. Add / Remove Dice — alter the set
 
-Changes the fundamental probability space.
-- Start with 5d6
-- Buy a 6th die (combinations form from any 5 of your 6)
-- Swap a d6 for a d8 (higher range, harder to straight)
-- Remove a die at rest sites (smaller pool, more controllable)
+This is the **action-economy axis**. More dice = more potential spends per turn, not just better odds.
+- Start with 5d6 — typically one big spend per turn
+- 6th die → reliably split: Three of a Kind + Pair, or Four of a Kind + Pip
+- 7th, 8th die → routinely chain three actions: attack + block + utility
+- Swap a d6 for a d8 (higher range, harder to straight, more Pip damage)
+- Remove a die at rest sites (smaller, more controllable pool — fewer spends but more consistent combos)
 - Cursed dice — extra die that always rolls something annoying, but pays out elsewhere
 
 ### 4. Consumables — one-shot effects (Tarots / Potions)
@@ -176,13 +190,15 @@ Used at specific moments. Carry-limited slots.
 
 ## The Combinatorial Pitch
 
-A run is interesting because the four axes interact with the combination-as-action layer.
+A run is interesting because the four axes interact with the spend-economy layer.
 
-Example build: *Level Full House twice → charm "Full House also applies Vulnerable" → swap a d6 for a die that rolls only 4–6 → Holo two more dice → I throw Cleaves every turn, soften everything, win Act 1.*
+Example **Pile-On** build: *Buy a 7th and 8th die → level Pair three times → charm "Pair also deals damage equal to pair value" → every turn I spend three Pairs for cheap, charm-triggering machine-gun hits. The combination ladder no longer matters; my action count does.*
 
-Another: *Level Small Straight three times → die-face-change two dice so the pool can always straight → consumable "turn die into a wild" → Small Straight becomes my engine, I draw consumables every turn, I outlast bosses.*
+Example **Cleave Tyrant** build: *Stay at 5 dice → level Full House twice → charm "Full House also applies Vulnerable" → swap a d6 for a die that rolls only 4–6 → I spend my whole pool on one big AoE every turn and the room melts.*
 
-Another: *Don't specialize. Charm "+X damage to the lowest-power combination you played last turn" → mixed-output build that punishes whatever the enemy didn't expect.*
+Example **Tactician** build: *6 dice → level Small Straight three times → face-change two dice so the pool can always straight → keep one extra die free as a Pip for chip damage → I straight every turn for utility and still attack with the spare.*
+
+Example **Generalist** build: *Don't specialize. Charm "first spend of each turn deals +X damage" → 7 dice → always lead with the biggest combo I can form, then chain Pips and Pairs for cleanup.*
 
 ---
 
@@ -194,19 +210,21 @@ The pull is the run's emergent build. The drama is dice tumbling and reading the
 - 2D UI with physics-rolled 3D dice tumbling in a small tray
 - Enemy on the right with HP bar, intent icon, and status pips
 - Charms on the side as a build sheet
-- Damage / block numbers fly off dice when the combination resolves
+- After the roll settles, valid combinations highlight on hover; spent dice grey out and slide to a "used" rail
+- Damage / block numbers fly off dice when a combination is spent
 
 **Sound:**
 - Physical dice clacking against tray walls
 - A satisfying "settle" tick when each die comes to rest
-- Combination resolution sound that scales with the ladder (Pair = soft, Yahtzee = thunder)
+- A "swipe-spend" sound when dice are committed to a combination
+- Combination resolution scales with the ladder (Pip = tick, Yahtzee = thunder)
 - Enemy intent telegraph "click" when it locks in
 
 **The hooks:**
-- "If I commit to Full House this run and the next charm rewards AoE, the boss is dead"
-- "Almost a Yahtzee — burn a consumable to clinch it?"
-- "Did the boss's intent-lock break my build? Can I still salvage with a Small Straight engine?"
-- "Run 7: I finally understand why Echo dice matter"
+- "If I buy this 7th die at the shop, I can spend a Three of a Kind AND a Pair every turn — that's two charm triggers"
+- "Big Yahtzee here or split into Three + Pair so I also block the incoming hit?"
+- "Did the boss's intent-lock break my build? Can I still salvage by spending the rest as Pips?"
+- "Run 7: I finally understand why Echo dice matter — every Pip becomes a trigger"
 
 ---
 

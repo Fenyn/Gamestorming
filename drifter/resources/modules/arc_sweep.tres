@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/module_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/socket_requirement.gd" id="2"]
+
+[sub_resource type="Resource" id="socket_0"]
+script = ExtResource("2")
+type = 2
+range_min = 4
+range_max = 6
+
+[sub_resource type="Resource" id="socket_1"]
+script = ExtResource("2")
+type = 0
+
+[resource]
+script = ExtResource("1")
+id = "arc_sweep"
+display_name = "Arc Sweep"
+description = "Ranged blast. First socket needs 4+."
+socket_requirements = [SubResource("socket_0"), SubResource("socket_1")]
+effect_type = 0
+base_value = 6
+pip_scaling = 1.5
+attack_anim = 2

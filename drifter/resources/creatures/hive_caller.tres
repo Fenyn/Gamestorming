@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/intent_data.gd" id="2"]
+
+[sub_resource type="Resource" id="intent_0"]
+script = ExtResource("2")
+type = 4
+value = 0
+description = "Summon"
+
+[sub_resource type="Resource" id="intent_1"]
+script = ExtResource("2")
+type = 2
+value = 2
+description = "Rally"
+
+[sub_resource type="Resource" id="intent_2"]
+script = ExtResource("2")
+type = 0
+value = 10
+description = "Strike"
+
+[resource]
+script = ExtResource("1")
+id = "hive_caller"
+display_name = "Hive Caller"
+max_hp = 45
+intent_pattern = [SubResource("intent_0"), SubResource("intent_1"), SubResource("intent_2")]
+is_boss = false

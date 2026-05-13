@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/module_card.gd" id="1_card"]
+
+[node name="ModuleCard" type="PanelContainer"]
+custom_minimum_size = Vector2(160, 0)
+script = ExtResource("1_card")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ModuleName" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+
+[node name="SocketRow" type="HBoxContainer" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="EffectLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+autowrap_mode = 2

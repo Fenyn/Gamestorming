@@ -11,3 +11,6 @@ coinshot/webBuild.zip
 /end-of-the-line/.godot
 /life-magic/wear/build
 /skeleton-crew/assets/Sci-Fi Modular Environment Pack Vol.1
+*.cache
+/drifter/.godot/imported
+/drifter/assets/sprites

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ImplantData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/implant_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "resonance_field"
+display_name = "Resonance Field"
+description = "When any module fires, gain 2 shield."
+trigger = 0
+effect = 4
+value = 2

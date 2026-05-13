@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/module_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/socket_requirement.gd" id="2"]
+
+[sub_resource type="Resource" id="socket_0"]
+script = ExtResource("2")
+type = 3
+parity_even = true
+
+[sub_resource type="Resource" id="socket_1"]
+script = ExtResource("2")
+type = 3
+parity_even = true
+
+[resource]
+script = ExtResource("1")
+id = "siphon_field"
+display_name = "Siphon Field"
+description = "Two even cells. Drain HP from target."
+socket_requirements = [SubResource("socket_0"), SubResource("socket_1")]
+effect_type = 2
+base_value = 5
+pip_scaling = 0.5
+attack_anim = 5

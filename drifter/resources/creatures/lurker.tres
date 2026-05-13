@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/creature_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/intent_data.gd" id="2"]
+
+[sub_resource type="Resource" id="intent_0"]
+script = ExtResource("2")
+type = 0
+value = 6
+description = "Lunge"
+
+[sub_resource type="Resource" id="intent_1"]
+script = ExtResource("2")
+type = 0
+value = 8
+description = "Frenzy"
+
+[resource]
+script = ExtResource("1")
+id = "lurker"
+display_name = "Lurker"
+max_hp = 18
+intent_pattern = [SubResource("intent_0"), SubResource("intent_1")]
+is_boss = false

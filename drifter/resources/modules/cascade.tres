@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/module_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/socket_requirement.gd" id="2"]
+
+[sub_resource type="Resource" id="socket_0"]
+script = ExtResource("2")
+type = 0
+
+[sub_resource type="Resource" id="socket_1"]
+script = ExtResource("2")
+type = 5
+sequence_ref_index = 0
+sequence_offset = 1
+
+[sub_resource type="Resource" id="socket_2"]
+script = ExtResource("2")
+type = 5
+sequence_ref_index = 1
+sequence_offset = 1
+
+[sub_resource type="Resource" id="socket_3"]
+script = ExtResource("2")
+type = 5
+sequence_ref_index = 2
+sequence_offset = 1
+
+[resource]
+script = ExtResource("1")
+id = "cascade"
+display_name = "Cascade"
+description = "Four cells forming a straight. Big payoff."
+socket_requirements = [SubResource("socket_0"), SubResource("socket_1"), SubResource("socket_2"), SubResource("socket_3")]
+effect_type = 0
+base_value = 12
+pip_scaling = 2.0
+attack_anim = 0

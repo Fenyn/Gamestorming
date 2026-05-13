@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/module_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/socket_requirement.gd" id="2"]
+
+[sub_resource type="Resource" id="socket_0"]
+script = ExtResource("2")
+type = 0
+
+[sub_resource type="Resource" id="socket_1"]
+script = ExtResource("2")
+type = 0
+
+[resource]
+script = ExtResource("1")
+id = "emp_burst"
+display_name = "EMP Burst"
+description = "Any two cells. Weaken the target."
+socket_requirements = [SubResource("socket_0"), SubResource("socket_1")]
+effect_type = 3
+base_value = 2
+pip_scaling = 0.0
+attack_anim = 3

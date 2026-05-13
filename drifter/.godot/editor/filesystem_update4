@@ -1,0 +1,5 @@
+res://scripts/combat/power_cell.gd
+res://scripts/combat/dice_tray.gd
+res://scripts/combat/module_card.gd
+res://scripts/combat/socket_slot.gd
+res://scripts/data/module_data.gd

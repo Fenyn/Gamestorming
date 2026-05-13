@@ -31,8 +31,9 @@ class HRStreamingService : LifecycleService(), SensorEventListener {
         private const val CHANNEL_ID = "hr_streaming"
         private const val NOTIFICATION_ID = 1
         private const val HR_PATH = "/life-magic/hr"
-        private const val SEND_INTERVAL_MS = 3000L
+        private const val DISCONNECT_PATH = "/life-magic/disconnect"
         private const val BPM_CHANGE_THRESHOLD = 3
+        private const val KEEPALIVE_MS = 50_000L
 
         var currentBpm: Int = 0
             private set
@@ -64,12 +65,11 @@ class HRStreamingService : LifecycleService(), SensorEventListener {
             val samples = data.getData(DataType.HEART_RATE_BPM)
             val bpm = samples.lastOrNull()?.value?.toInt() ?: return
             currentBpm = bpm
-            val now = System.currentTimeMillis()
             val bpmDelta = kotlin.math.abs(bpm - lastSentBpm)
-            val timeDelta = now - lastSendTime
-            if (bpmDelta >= BPM_CHANGE_THRESHOLD || timeDelta >= SEND_INTERVAL_MS) {
+            val timeSinceSend = System.currentTimeMillis() - lastSendTime
+            if (bpmDelta >= BPM_CHANGE_THRESHOLD || lastSentBpm == 0 || timeSinceSend >= KEEPALIVE_MS) {
                 lastSentBpm = bpm
-                lastSendTime = now
+                lastSendTime = System.currentTimeMillis()
                 updateNotification(bpm)
                 lifecycleScope.launch { sendToPhone(bpm) }
             }
@@ -99,16 +99,17 @@ class HRStreamingService : LifecycleService(), SensorEventListener {
     override fun onDestroy() {
         isStreaming = false
         currentBpm = 0
-        wakeLock?.release()
-        wakeLock = null
-        sensorManager?.unregisterListener(this)
         lifecycleScope.launch {
+            sendDisconnect()
             try {
                 measureClient.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, hrCallback).await()
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to unregister HR callback: ${e.message}")
             }
         }
+        wakeLock?.release()
+        wakeLock = null
+        sensorManager?.unregisterListener(this)
         super.onDestroy()
     }
 
@@ -167,6 +168,15 @@ class HRStreamingService : LifecycleService(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    private suspend fun sendDisconnect() {
+        val nodeId = phoneNodeId ?: return
+        try {
+            Wearable.getMessageClient(this@HRStreamingService)
+                .sendMessage(nodeId, DISCONNECT_PATH, ByteArray(0))
+                .await()
+        } catch (_: Exception) {}
+    }
 
     private suspend fun sendToPhone(bpm: Int) {
         val nodeId = phoneNodeId

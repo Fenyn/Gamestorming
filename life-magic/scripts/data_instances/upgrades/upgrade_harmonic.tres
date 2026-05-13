@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "harmonic"
 display_name = "Harmonic Beating"
-description = "Every 20 beats (-3 per level, min 5), all spells produce triple."
+description = "Every 20 beats (-2 per level, min 12), all spells produce double."
 base_cost = 2000.0
 cost_multiplier = 3.0
 max_level = 5

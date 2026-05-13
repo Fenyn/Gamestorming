@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "vine_mult"
 display_name = "Ley-Line Tap"
-description = "Increases Warden production by 25% per level."
+description = "Increases Warden production by 10% per level."
 base_cost = 5000000.0
 cost_multiplier = 4.0
 max_level = 8
 effect_type = "generator_mult"
 effect_target = "3"
-effect_per_level = 0.25
+effect_per_level = 0.1
 unlock_total_mana = 5000000.0

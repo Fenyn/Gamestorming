@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "herb_mult"
 display_name = "Sigilwright's Forge"
-description = "Increases Pulse Glyph production by 25% per level."
+description = "Increases Pulse Glyph production by 10% per level."
 base_cost = 1500.0
 cost_multiplier = 3.5
 max_level = 8
 effect_type = "generator_mult"
 effect_target = "1"
-effect_per_level = 0.25
+effect_per_level = 0.1
 unlock_total_mana = 1500.0

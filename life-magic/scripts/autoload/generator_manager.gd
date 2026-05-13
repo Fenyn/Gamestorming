@@ -1,6 +1,6 @@
 extends Node
 
-const BEAT_SCALE := 0.125
+const BEAT_SCALE := 0.05
 
 var tier_data: Array[GeneratorData] = []
 var _tier_map: Dictionary = {}
@@ -45,7 +45,7 @@ func _process_cascade() -> void:
 	var harmonic_mult := 1.0
 	var interval: int = UpgradeManager.get_harmonic_interval()
 	if interval > 0 and TickEngine.beat_count % interval == 0:
-		harmonic_mult = 3.0
+		harmonic_mult = 2.0
 		EventBus.harmonic_beat_triggered.emit()
 	var total_mult := SurgeManager.production_multiplier * SurgeManager.get_vital_charge_mult() * harmonic_mult
 	process_production(total_mult, true)

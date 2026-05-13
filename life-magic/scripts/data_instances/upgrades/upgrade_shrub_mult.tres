@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "shrub_mult"
 display_name = "Gaian Heartstone"
-description = "Increases Spire production by 25% per level."
+description = "Increases Spire production by 10% per level."
 base_cost = 1500000000.0
 cost_multiplier = 4.5
 max_level = 8
 effect_type = "generator_mult"
 effect_target = "4"
-effect_per_level = 0.25
+effect_per_level = 0.1
 unlock_total_mana = 1500000000.0

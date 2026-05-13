@@ -171,7 +171,7 @@ func get_harmonic_interval() -> int:
 	var level: int = levels.get("harmonic", 0)
 	if level <= 0:
 		return 0
-	return maxi(20 - (level - 1) * 3, 5)
+	return maxi(20 - (level - 1) * 2, 12)
 
 
 func milestone_unlock(upgrade_id: String) -> void:

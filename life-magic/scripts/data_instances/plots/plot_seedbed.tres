@@ -14,5 +14,5 @@ growth_ticks = 60
 tend_points = 3
 tend_options = PackedStringArray("mana", "gen_0", "gen_1")
 tend_power_base = 0.1
-full_bloom_bonus = {"all_generators": 1.4}
+full_bloom_bonus = {"all_generators": 1.15}
 unlock_total_mana = -1.0

@@ -55,8 +55,12 @@ var _active_sub_panel: Control = null
 var _sub_panel_map: Dictionary = {}
 
 
+@onready var ui_layer: VBoxContainer = $UILayer
+
+
 func _ready() -> void:
 	theme = ThemeBuilder.build()
+	_apply_safe_area()
 	_style_bars()
 	_build_buff_pills()
 
@@ -98,6 +102,16 @@ func _ready() -> void:
 	EventBus.heart_rate_source_changed.connect(func(_s): tap_hint.visible = HeartRateManager.source == "demo")
 
 	_switch_tab(0)
+
+
+func _apply_safe_area() -> void:
+	var screen_size: Rect2i = DisplayServer.screen_get_usable_rect()
+	var safe_area: Rect2i = DisplayServer.get_display_safe_area()
+	var top: int = safe_area.position.y - screen_size.position.y
+	var bottom: int = (screen_size.position.y + screen_size.size.y) - (safe_area.position.y + safe_area.size.y)
+	if top > 0 or bottom > 0:
+		ui_layer.offset_top = float(top)
+		ui_layer.offset_bottom = float(-bottom)
 
 
 func _style_bars() -> void:

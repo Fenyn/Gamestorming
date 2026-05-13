@@ -117,7 +117,7 @@ func _on_prestige_pressed() -> void:
 
 
 func _add_blessing_row(data: BlessingData) -> void:
-	var is_maxed := PrestigeManager.is_blessing_maxed(data.id)
+	var is_maxed: bool = PrestigeManager.is_node_maxed(data.id)
 	var level := PrestigeManager.get_blessing_level(data.id)
 
 	var row := HBoxContainer.new()

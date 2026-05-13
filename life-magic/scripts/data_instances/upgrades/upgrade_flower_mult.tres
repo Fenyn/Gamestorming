@@ -6,11 +6,11 @@
 script = ExtResource("1")
 id = "flower_mult"
 display_name = "Beastsong Crystal"
-description = "Increases Familiar production by 25% per level."
+description = "Increases Familiar production by 10% per level."
 base_cost = 50000.0
 cost_multiplier = 4.0
 max_level = 8
 effect_type = "generator_mult"
 effect_target = "2"
-effect_per_level = 0.25
+effect_per_level = 0.1
 unlock_total_mana = 50000.0

@@ -52,8 +52,10 @@ func _build_palette() -> void:
 		categories[cat_name].append(piece)
 
 	var display_order: Array[String] = [
-		"STRAIGHT", "CORNER", "CURVE", "TUNNEL", "END_CAP",
-		"RAMP", "BEND",
+		"STRAIGHT", "CORNER",
+		"CURVE", "RAMP",
+		"TUNNEL", "BEND",
+		"END_CAP",
 		"S_CURVE", "WAVE", "SPLIT",
 		"BUMP", "FUNNEL",
 		"HELIX", "CROSS",

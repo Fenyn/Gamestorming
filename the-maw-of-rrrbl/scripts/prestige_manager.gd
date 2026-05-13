@@ -13,29 +13,28 @@ var unlocked_categories: Dictionary = {}
 
 const BASE_BUILD_RADIUS: float = 8.0
 const BUILD_RADIUS_PER_LEVEL: float = 4.0
-const BASE_MAW_THRESHOLD: float = 2000.0
-const BASE_STARTING_SPARKS: float = 100.0
+const BASE_MAW_THRESHOLD: float = 300.0
+const BASE_STARTING_SPARKS: float = 50.0
 
-## Piece category unlock costs (Void Marbles)
 const CATEGORY_UNLOCK_COSTS: Dictionary = {
 	"STRAIGHT": 0,
 	"CORNER": 0,
-	"CURVE": 3,
-	"TUNNEL": 3,
-	"END_CAP": 3,
-	"RAMP": 5,
-	"BEND": 5,
-	"S_CURVE": 8,
-	"WAVE": 8,
-	"SPLIT": 8,
-	"BUMP": 12,
-	"FUNNEL": 12,
-	"HELIX": 20,
-	"CROSS": 20,
-	"portal_deep": 5,
-	"portal_nightmare": 10,
-	"portal_gilt": 15,
-	"portal_void": 25,
+	"CURVE": 0,
+	"RAMP": 0,
+	"TUNNEL": 0,
+	"END_CAP": 1,
+	"BEND": 0,
+	"S_CURVE": 2,
+	"WAVE": 2,
+	"SPLIT": 3,
+	"BUMP": 4,
+	"FUNNEL": 4,
+	"HELIX": 6,
+	"CROSS": 6,
+	"portal_deep": 3,
+	"portal_nightmare": 6,
+	"portal_gilt": 10,
+	"portal_void": 15,
 }
 
 ## Passive upgrades (separate from piece unlocks)
@@ -44,7 +43,7 @@ var upgrades: Array[Dictionary] = [
 		"id": "build_space",
 		"name": "Expand Build Space",
 		"description": "Increases the building area",
-		"base_cost": 3,
+		"base_cost": 2,
 		"cost_scale": 2.0,
 		"max_level": 5,
 	},
@@ -52,7 +51,7 @@ var upgrades: Array[Dictionary] = [
 		"id": "starting_sparks",
 		"name": "Starting Capital",
 		"description": "Begin each cycle with more Sparks",
-		"base_cost": 2,
+		"base_cost": 1,
 		"cost_scale": 2.0,
 		"max_level": 8,
 	},
@@ -60,23 +59,23 @@ var upgrades: Array[Dictionary] = [
 		"id": "spark_multiplier",
 		"name": "Spark Yield",
 		"description": "Orbs earn more Sparks per distance",
-		"base_cost": 5,
-		"cost_scale": 3.0,
+		"base_cost": 3,
+		"cost_scale": 2.0,
 		"max_level": 5,
 	},
 	{
 		"id": "maw_capacity",
 		"name": "Maw Capacity",
-		"description": "The Maw takes longer to fill",
-		"base_cost": 4,
-		"cost_scale": 2.5,
-		"max_level": 4,
+		"description": "The Maw takes longer to fill, earning more per cycle",
+		"base_cost": 2,
+		"cost_scale": 2.0,
+		"max_level": 6,
 	},
 	{
 		"id": "blueprint_slots",
 		"name": "Blueprint Slots",
 		"description": "Save more track layouts",
-		"base_cost": 2,
+		"base_cost": 1,
 		"cost_scale": 2.0,
 		"max_level": 3,
 	},
@@ -143,7 +142,7 @@ func purchase_upgrade(upgrade_id: String) -> bool:
 
 func complete_cycle(consumed_sparks: float) -> int:
 	cycle += 1
-	var earned: int = maxi(int(consumed_sparks / 1000.0), 1)
+	var earned: int = maxi(int(consumed_sparks / 200.0), 1)
 	void_marbles += earned
 	void_marbles_changed.emit(void_marbles)
 	return earned
@@ -157,7 +156,7 @@ func get_build_radius() -> float:
 	return BASE_BUILD_RADIUS + get_level("build_space") * BUILD_RADIUS_PER_LEVEL
 
 func get_starting_sparks() -> float:
-	return BASE_STARTING_SPARKS + get_level("starting_sparks") * 50.0
+	return BASE_STARTING_SPARKS + get_level("starting_sparks") * 30.0
 
 func get_spark_multiplier() -> float:
 	return 1.0 + get_level("spark_multiplier") * 0.3

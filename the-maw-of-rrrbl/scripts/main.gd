@@ -17,10 +17,12 @@ const SAVE_PATH: String = "user://save.json"
 @onready var build_boundary: BuildBoundary = $BuildBoundary
 @onready var portal_manager: PortalManager = $PortalManager
 
+var portal_upgrade_panel: PortalUpgradePanel
 var state: GameState = GameState.BUILDING
 var active_orbs: int = 0
 
 func _ready() -> void:
+	_create_portal_upgrade_panel()
 	_load_game()
 	_connect_signals()
 	_configure_systems()
@@ -47,8 +49,30 @@ func _configure_systems() -> void:
 	track_builder.build_radius = prestige_manager.get_build_radius()
 	build_controller.track_builder = track_builder
 	build_controller.camera = $Camera
+	build_controller.portal_manager = portal_manager
+	build_controller.portal_clicked.connect(_on_portal_clicked)
 	void_marble_shop.bind_prestige(prestige_manager)
 	portal_manager.bind_prestige(prestige_manager)
+	portal_upgrade_panel.bind_spark_manager(game_manager.spark_manager)
+	game_manager.spark_manager.sparks_changed.connect(
+		func(_s: float) -> void:
+			if portal_upgrade_panel.visible:
+				portal_upgrade_panel.open_for_portal(portal_upgrade_panel._portal)
+	)
+
+func _create_portal_upgrade_panel() -> void:
+	portal_upgrade_panel = PortalUpgradePanel.new()
+	portal_upgrade_panel.anchors_preset = Control.PRESET_CENTER_RIGHT
+	portal_upgrade_panel.anchor_left = 1.0
+	portal_upgrade_panel.anchor_right = 1.0
+	portal_upgrade_panel.anchor_top = 0.5
+	portal_upgrade_panel.anchor_bottom = 0.5
+	portal_upgrade_panel.offset_left = -345.0
+	portal_upgrade_panel.offset_top = -280.0
+	portal_upgrade_panel.offset_right = -10.0
+	portal_upgrade_panel.offset_bottom = 280.0
+	portal_upgrade_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	hud.add_child(portal_upgrade_panel)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if state != GameState.BUILDING:
@@ -77,6 +101,7 @@ func _start_building_phase() -> void:
 func _on_implosion_started() -> void:
 	state = GameState.IMPLODING
 	build_controller.set_process_unhandled_input(false)
+	portal_upgrade_panel.close_panel()
 
 func _on_implosion_finished() -> void:
 	var earned: int = prestige_manager.complete_cycle(maw.consumed_sparks)
@@ -99,6 +124,12 @@ func _on_implosion_finished() -> void:
 func _on_shop_closed() -> void:
 	_save_game()
 	_start_building_phase()
+
+func _on_portal_clicked(portal: DreamerPortal) -> void:
+	if portal_upgrade_panel.visible and portal_upgrade_panel._portal == portal:
+		portal_upgrade_panel.close_panel()
+	else:
+		portal_upgrade_panel.open_for_portal(portal)
 
 func _register_portal_anchors() -> void:
 	var anchors: Array[Dictionary] = []

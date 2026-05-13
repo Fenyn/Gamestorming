@@ -3,7 +3,7 @@ class_name TrackBuilder
 
 signal piece_placed(piece: TrackPiece)
 
-const SNAP_DISTANCE: float = 0.5
+const SNAP_THRESHOLD: float = 1.5
 const COLOR_VALID: Color = Color(0.5, 1.0, 0.7, 0.4)
 const COLOR_INVALID: Color = Color(1.0, 0.3, 0.3, 0.4)
 
@@ -20,6 +20,7 @@ var _ghost_color: Color = Color.TRANSPARENT
 var _target_connection: Dictionary = {}
 var _ghost_connection_index: int = 0
 var _selected_piece_id: String = ""
+var _rotation_offset: float = 0.0
 
 func select_piece(piece_id: String) -> void:
 	_selected_piece_id = piece_id
@@ -62,8 +63,11 @@ func cycle_ghost_connection() -> void:
 func rotate_ghost() -> void:
 	if _ghost == null:
 		return
-	_ghost.rotate_y(deg_to_rad(90))
-	_update_ghost_snap()
+	_rotation_offset = fmod(_rotation_offset + deg_to_rad(90), TAU)
+	if _target_connection.is_empty():
+		_ghost.rotation.y = _rotation_offset
+	else:
+		_apply_snap(_target_connection)
 
 func set_build_radius(radius: float) -> void:
 	build_radius = radius
@@ -71,15 +75,17 @@ func set_build_radius(radius: float) -> void:
 func set_anchor_points(anchors: Array[Dictionary]) -> void:
 	anchor_points = anchors
 
-func update_cursor(world_pos: Vector3) -> void:
+func update_cursor(fallback_pos: Vector3, ray_origin: Vector3, ray_dir: Vector3) -> void:
 	if _ghost == null or _ghost_data == null:
 		return
 
-	var in_bounds: bool = Vector2(world_pos.x, world_pos.z).length() <= build_radius
-
-	var best_snap: Dictionary = _find_best_snap(world_pos)
+	var best_snap: Dictionary = _find_best_snap_on_ray(ray_origin, ray_dir)
 	if best_snap.is_empty():
-		_ghost.global_position = world_pos.snapped(Vector3(0.5, 0.5, 0.5))
+		if fallback_pos == Vector3.INF:
+			return
+		var in_bounds: bool = Vector2(fallback_pos.x, fallback_pos.z).length() <= build_radius
+		_ghost.global_position = fallback_pos.snapped(Vector3(0.5, 0.5, 0.5))
+		_ghost.rotation.y = _rotation_offset
 		_ghost_valid = in_bounds and placed_pieces.is_empty()
 		_target_connection = {}
 	else:
@@ -139,7 +145,7 @@ func clear_all() -> void:
 		piece.queue_free()
 	placed_pieces.clear()
 
-func _find_best_snap(cursor_pos: Vector3) -> Dictionary:
+func _find_best_snap_on_ray(ray_origin: Vector3, ray_dir: Vector3) -> Dictionary:
 	var best_dist: float = INF
 	var best_result: Dictionary = {}
 
@@ -147,12 +153,9 @@ func _find_best_snap(cursor_pos: Vector3) -> Dictionary:
 		var open_conns: Array[Dictionary] = piece.get_open_world_connections()
 		for conn: Dictionary in open_conns:
 			var conn_pos: Vector3 = conn["position"] as Vector3
-			var flat_dist: float = Vector2(
-				cursor_pos.x - conn_pos.x,
-				cursor_pos.z - conn_pos.z
-			).length()
-			if flat_dist < SNAP_DISTANCE * 5.0 and flat_dist < best_dist:
-				best_dist = flat_dist
+			var dist: float = _point_to_ray_distance(conn_pos, ray_origin, ray_dir)
+			if dist < SNAP_THRESHOLD and dist < best_dist:
+				best_dist = dist
 				best_result = {
 					"source_piece": piece,
 					"source_index": conn["index"] as int,
@@ -163,12 +166,9 @@ func _find_best_snap(cursor_pos: Vector3) -> Dictionary:
 
 	for anchor: Dictionary in anchor_points:
 		var anchor_pos: Vector3 = anchor["position"] as Vector3
-		var flat_dist: float = Vector2(
-			cursor_pos.x - anchor_pos.x,
-			cursor_pos.z - anchor_pos.z
-		).length()
-		if flat_dist < SNAP_DISTANCE * 5.0 and flat_dist < best_dist:
-			best_dist = flat_dist
+		var dist: float = _point_to_ray_distance(anchor_pos, ray_origin, ray_dir)
+		if dist < SNAP_THRESHOLD and dist < best_dist:
+			best_dist = dist
 			best_result = {
 				"is_anchor": true,
 				"source_position": anchor_pos,
@@ -177,6 +177,14 @@ func _find_best_snap(cursor_pos: Vector3) -> Dictionary:
 			}
 
 	return best_result
+
+func _point_to_ray_distance(point: Vector3, ray_origin: Vector3, ray_dir: Vector3) -> float:
+	var to_point: Vector3 = point - ray_origin
+	var t: float = to_point.dot(ray_dir)
+	if t < 0.0:
+		return INF
+	var closest: Vector3 = ray_origin + ray_dir * t
+	return closest.distance_to(point)
 
 func _apply_snap(snap: Dictionary) -> void:
 	if _ghost == null or _ghost_data == null:
@@ -197,7 +205,7 @@ func _apply_snap(snap: Dictionary) -> void:
 	)
 
 	_ghost.rotation = Vector3.ZERO
-	_ghost.rotate_y(angle)
+	_ghost.rotate_y(angle + _rotation_offset)
 
 	var rotated_offset: Vector3 = _ghost.global_transform.basis * ghost_conn.local_position
 	_ghost.global_position = source_pos - rotated_offset
@@ -209,6 +217,7 @@ func _clear_ghost() -> void:
 	_ghost_valid = false
 	_ghost_color = Color.TRANSPARENT
 	_ghost_connection_index = 0
+	_rotation_offset = 0.0
 
 func _apply_ghost_color(color: Color) -> void:
 	if _ghost == null or color == _ghost_color:

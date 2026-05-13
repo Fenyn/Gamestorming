@@ -57,7 +57,7 @@ func _add_cycle_label() -> void:
 
 func _add_controls_hint() -> void:
 	_hint_label = Label.new()
-	_hint_label.text = "LMB: Place  |  RMB: Orbit  |  MMB: Pan  |  Scroll: Zoom  |  R: Rotate  |  Tab: Cycle  |  Ctrl+Z: Undo  |  Esc: Cancel"
+	_hint_label.text = "LMB: Place / Click Portal  |  RMB: Orbit  |  MMB: Pan  |  Scroll: Zoom  |  R: Rotate  |  Tab: Cycle  |  Ctrl+Z: Undo  |  Esc: Cancel"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.add_theme_font_size_override("font_size", 13)
 	_hint_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 0.6))

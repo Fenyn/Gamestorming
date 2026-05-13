@@ -44,6 +44,23 @@ func get_unconnected_portals() -> Array[DreamerPortal]:
 		func(p: DreamerPortal) -> bool: return not p.connected
 	)
 
+func find_portal_near_ray(ray_origin: Vector3, ray_dir: Vector3, threshold: float) -> DreamerPortal:
+	var best_dist: float = INF
+	var best_portal: DreamerPortal = null
+	for portal: DreamerPortal in portals:
+		if not portal.connected:
+			continue
+		var to_point: Vector3 = portal.global_position - ray_origin
+		var t: float = to_point.dot(ray_dir)
+		if t < 0.0:
+			continue
+		var closest: Vector3 = ray_origin + ray_dir * t
+		var dist: float = closest.distance_to(portal.global_position)
+		if dist < threshold and dist < best_dist:
+			best_dist = dist
+			best_portal = portal
+	return best_portal
+
 func _get_available_types() -> Array[DreamerPortal.PortalType]:
 	var types: Array[DreamerPortal.PortalType] = [DreamerPortal.PortalType.SHALLOW]
 

@@ -51,24 +51,23 @@ func _conn(pos: Vector3, dir: Vector3, h: float = 0.0, wide: bool = false) -> Co
 	c.width = ConnectionPoint.TrackWidth.WIDE if wide else ConnectionPoint.TrackWidth.STANDARD
 	return c
 
-## Per-placement Spark costs by category.
-## Free pieces (Straight/Corner) let the player always build something.
-## Costs scale so the player places ~30 pieces per 5-min cycle.
+## Per-placement Spark costs. Free (0) = unlimited backbone.
+## Cheap (3-5) = core building. Premium (8-10) = trade-off pieces.
 const CATEGORY_COSTS: Dictionary = {
 	TrackPieceData.PieceCategory.STRAIGHT: 0.0,
 	TrackPieceData.PieceCategory.CORNER: 0.0,
-	TrackPieceData.PieceCategory.CURVE: 10.0,
-	TrackPieceData.PieceCategory.TUNNEL: 10.0,
-	TrackPieceData.PieceCategory.END_CAP: 5.0,
-	TrackPieceData.PieceCategory.RAMP: 15.0,
-	TrackPieceData.PieceCategory.BEND: 15.0,
-	TrackPieceData.PieceCategory.S_CURVE: 25.0,
-	TrackPieceData.PieceCategory.WAVE: 25.0,
-	TrackPieceData.PieceCategory.SPLIT: 25.0,
-	TrackPieceData.PieceCategory.BUMP: 20.0,
-	TrackPieceData.PieceCategory.FUNNEL: 20.0,
-	TrackPieceData.PieceCategory.HELIX: 50.0,
-	TrackPieceData.PieceCategory.CROSS: 40.0,
+	TrackPieceData.PieceCategory.CURVE: 3.0,
+	TrackPieceData.PieceCategory.RAMP: 5.0,
+	TrackPieceData.PieceCategory.END_CAP: 3.0,
+	TrackPieceData.PieceCategory.TUNNEL: 8.0,
+	TrackPieceData.PieceCategory.BEND: 10.0,
+	TrackPieceData.PieceCategory.S_CURVE: 12.0,
+	TrackPieceData.PieceCategory.WAVE: 12.0,
+	TrackPieceData.PieceCategory.SPLIT: 15.0,
+	TrackPieceData.PieceCategory.BUMP: 10.0,
+	TrackPieceData.PieceCategory.FUNNEL: 10.0,
+	TrackPieceData.PieceCategory.HELIX: 25.0,
+	TrackPieceData.PieceCategory.CROSS: 20.0,
 	TrackPieceData.PieceCategory.DECORATIVE: 0.0,
 }
 

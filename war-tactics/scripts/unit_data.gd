@@ -8,3 +8,4 @@ extends Resource
 @export var move_cost: int = 1
 @export var is_enemy: bool = false
 @export var weapon: WeaponData = null
+@export var secondary_weapon: WeaponData = null

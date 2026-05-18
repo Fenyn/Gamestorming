@@ -1,13 +1,22 @@
 class_name Unit
 extends Node2D
 
+const STATE_IDLE: StringName = &"Idle"
+const STATE_MOVING: StringName = &"Moving"
+const STATE_ATTACKING: StringName = &"Attacking"
+const STATE_GRENADING: StringName = &"Grenading"
+const STATE_OVERWATCH: StringName = &"Overwatch"
+const STATE_DEAD: StringName = &"Dead"
+
 signal ap_changed(current: int)
 signal unit_died(unit: Unit)
+signal attack_resolved(target: Unit, hit: bool, damage_dealt: int)
 
 var current_tile: Vector2i = Vector2i.ZERO
 var action_points: int = 0
 var is_enemy: bool = false
 var unit_data: UnitData = null
+var overwatch_cone: Array[Vector2i] = []
 
 @onready var _visual: Polygon2D = %Visual
 @onready var _unit_label: Label = %UnitLabel
@@ -23,13 +32,18 @@ var unit_data: UnitData = null
 func _ready() -> void:
 	state_machine.start()
 	_target_pip.visible = false
+	var attacking_state: UnitAttacking = state_machine.get_node(NodePath(STATE_ATTACKING)) as UnitAttacking
+	if attacking_state:
+		attacking_state.attack_resolved.connect(
+			func(target: Unit, hit: bool, dmg: int) -> void: attack_resolved.emit(target, hit, dmg)
+		)
 
 
 func setup(tile: Vector2i, data: UnitData) -> void:
 	unit_data = data
 	is_enemy = data.is_enemy
 	current_tile = tile
-	position = Grid.tile_to_world(tile)
+	position = Grid.tile_to_world_elevated(tile)
 	action_points = data.max_ap
 
 	_visual.color = data.unit_color
@@ -41,7 +55,7 @@ func setup(tile: Vector2i, data: UnitData) -> void:
 	health.setup(data.max_hp)
 
 	if data.weapon:
-		attacker.setup(data.weapon)
+		attacker.setup(data.weapon, data.secondary_weapon)
 
 
 func is_alive() -> bool:
@@ -54,6 +68,20 @@ func can_move() -> bool:
 
 func can_attack() -> bool:
 	return attacker.can_attack(action_points) and not mover.is_walking() and is_alive()
+
+
+func is_overwatching() -> bool:
+	return not overwatch_cone.is_empty()
+
+
+func clear_overwatch() -> void:
+	overwatch_cone = []
+	if state_machine.current_state is UnitOverwatch:
+		state_machine.transition_to(STATE_IDLE)
+
+
+func can_grenade() -> bool:
+	return attacker.can_use_secondary(action_points) and not mover.is_walking() and is_alive()
 
 
 func spend_ap(cost: int) -> void:

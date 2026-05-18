@@ -10,7 +10,7 @@ func enter(msg: Dictionary = {}) -> void:
 	var tile_path: Array[Vector2i] = msg.get("tile_path", [] as Array[Vector2i])
 	var move_cost: int = msg.get("move_cost", 1) as int
 	if tile_path.size() < 2:
-		state_machine.transition_to("Idle")
+		state_machine.transition_to(Unit.STATE_IDLE)
 		return
 	if not _connected:
 		_unit.mover.walk_finished.connect(_on_walk_finished)
@@ -20,4 +20,4 @@ func enter(msg: Dictionary = {}) -> void:
 
 func _on_walk_finished() -> void:
 	if state_machine.current_state == self:
-		state_machine.transition_to("Idle")
+		state_machine.transition_to(Unit.STATE_IDLE)

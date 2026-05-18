@@ -83,11 +83,13 @@ func hide_hover_info() -> void:
 	_hover_info.visible = false
 
 
-func show_attack_preview(weapon_name: String, damage: int, target_hp: int, target_max_hp: int, ap_cost: int) -> void:
+func show_attack_preview(weapon_name: String, damage: int, target_hp: int, target_max_hp: int, ap_cost: int, modifiers: String = "") -> void:
 	_preview_weapon.text = weapon_name
 	_preview_damage.text = "Damage: %d" % damage
 	_preview_target_hp.text = "Target HP: %d / %d" % [target_hp, target_max_hp]
 	_preview_ap_cost.text = "AP Cost: %d" % ap_cost
+	if modifiers != "":
+		_preview_ap_cost.text += "\n" + modifiers
 	_attack_preview.visible = true
 
 

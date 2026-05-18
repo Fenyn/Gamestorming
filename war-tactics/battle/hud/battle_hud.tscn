@@ -71,11 +71,11 @@ offset_bottom = 140.0
 mouse_filter = 2
 text = "Controls:
 LMB select / move / attack
-RMB or Esc to deselect
-Space to end turn
-Tab to cycle units
-WASD / Arrows to pan
-Scroll to zoom"
+RMB or Esc to cancel
+Space end turn, Tab cycle
+G grenade, O overwatch
+WASD pan, Scroll zoom
+Q/E rotate view"
 
 [node name="UnitStats" type="PanelContainer" parent="."]
 unique_name_in_owner = true

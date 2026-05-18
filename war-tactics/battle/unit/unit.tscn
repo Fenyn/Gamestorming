@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://battle/unit/unit.gd" id="1_unit"]
 [ext_resource type="Script" path="res://battle/unit/hp_bar.gd" id="2_hpbar"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://battle/unit/states/unit_moving.gd" id="8_moving"]
 [ext_resource type="Script" path="res://battle/unit/states/unit_attacking.gd" id="9_attacking"]
 [ext_resource type="Script" path="res://battle/unit/states/unit_dead.gd" id="10_dead"]
+[ext_resource type="Script" path="res://battle/unit/states/unit_grenading.gd" id="11_grenading"]
+[ext_resource type="Script" path="res://battle/unit/states/unit_overwatch.gd" id="12_overwatch"]
 
 [node name="Unit" type="Node2D"]
 script = ExtResource("1_unit")
@@ -94,6 +96,12 @@ script = ExtResource("8_moving")
 
 [node name="Attacking" type="Node" parent="StateMachine"]
 script = ExtResource("9_attacking")
+
+[node name="Grenading" type="Node" parent="StateMachine"]
+script = ExtResource("11_grenading")
+
+[node name="Overwatch" type="Node" parent="StateMachine"]
+script = ExtResource("12_overwatch")
 
 [node name="Dead" type="Node" parent="StateMachine"]
 script = ExtResource("10_dead")

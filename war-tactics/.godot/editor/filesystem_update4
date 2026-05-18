@@ -6,3 +6,17 @@ res://battle/minigames/wobble_minigame.tscn
 res://battle/hud/battle_hud.gd
 res://battle/unit/unit.gd
 res://battle/unit/unit.tscn
+res://battle/unit/states/unit_attacking.gd
+res://globals/database.gd
+res://globals/grid.gd
+res://battle/cover_prop/cover_prop.gd
+res://battle/turn_states/turn_enemy.gd
+res://battle/unit/attacker.gd
+res://battle/unit/mover.gd
+res://battle/unit/states/unit_moving.gd
+res://scripts/level_data.gd
+res://scripts/unit_data.gd
+res://scripts/weapon_data.gd
+res://battle/state_machine/state_machine.gd
+res://battle/unit/ai_brain.gd
+res://battle/unit/states/unit_overwatch.gd

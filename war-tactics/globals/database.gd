@@ -8,11 +8,13 @@ func _ready() -> void:
 	_register_weapon("rifle", "res://data/weapons/rifle.tres")
 	_register_weapon("sniper_rifle", "res://data/weapons/sniper_rifle.tres")
 	_register_weapon("enemy_rifle", "res://data/weapons/enemy_rifle.tres")
+	_register_weapon("grenade", "res://data/weapons/grenade.tres")
 
 	_register_unit("rifleman", "res://data/units/rifleman.tres")
 	_register_unit("sniper", "res://data/units/sniper.tres")
 	_register_unit("grenadier", "res://data/units/grenadier.tres")
 	_register_unit("dummy", "res://data/units/dummy.tres")
+	_register_unit("enemy_rifleman", "res://data/units/enemy_rifleman.tres")
 
 
 func get_weapon_data(id: String) -> WeaponData:

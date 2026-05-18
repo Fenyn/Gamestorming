@@ -7,21 +7,27 @@
     <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_layout.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_layout.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_script_doc_cache.res" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_cache10" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_cache10" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_update4" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_update4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/script_editor_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/script_editor_cache.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/.godot/global_script_class_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/global_script_class_cache.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/.godot/uid_cache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/uid_cache.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/battle/battle.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/battle.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/battle/battle.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/battle.tscn" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/battle/grid_overlay/grid_overlay.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/grid_overlay/grid_overlay.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/hud/battle_hud.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/hud/battle_hud.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/hud/battle_hud.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/hud/battle_hud.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/state_machine/state_machine.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/state_machine/state_machine.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/turn_states/turn_enemy.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/turn_states/turn_enemy.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/attacker.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/attacker.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/mover.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/mover.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/states/unit_attacking.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/states/unit_attacking.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/states/unit_moving.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/states/unit_moving.gd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/unit.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/unit.gd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/unit.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/unit.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/data/units/grenadier.tres" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/data/units/grenadier.tres" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/globals/database.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/globals/database.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/globals/events.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/globals/events.gd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/war-tactics/globals/grid.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/globals/grid.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/globals/run_state.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/globals/run_state.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/main/main.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/main/main.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/war-tactics/main/main.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/main/main.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/scripts/unit_data.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/scripts/unit_data.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/scripts/weapon_data.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/scripts/weapon_data.gd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

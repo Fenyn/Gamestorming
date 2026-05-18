@@ -1,7 +1,7 @@
 class_name StateMachine
 extends Node
 
-signal state_changed(new_state_name: String)
+signal state_changed(new_state_name: StringName)
 
 @export var initial_state: State = null
 
@@ -27,8 +27,8 @@ func _process(delta: float) -> void:
 		current_state.update(delta)
 
 
-func transition_to(target_name: String, msg: Dictionary = {}) -> void:
-	var target: State = get_node_or_null(target_name) as State
+func transition_to(target_name: StringName, msg: Dictionary = {}) -> void:
+	var target: State = get_node_or_null(NodePath(target_name)) as State
 	if target == null:
 		push_warning("StateMachine: state '%s' not found" % target_name)
 		return

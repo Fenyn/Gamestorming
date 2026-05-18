@@ -17,12 +17,14 @@ var _rotation: int = 0
 var _astar: AStarGrid2D
 var _elevation: Dictionary = {}
 var _cover_tiles: Dictionary = {}
+var _structural_solids: Dictionary = {}
 
 
 func setup_from_level(level: LevelData) -> void:
 	_grid_size = level.grid_size
 	_elevation.clear()
 	_cover_tiles.clear()
+	_structural_solids.clear()
 
 	_astar = AStarGrid2D.new()
 	_astar.region = Rect2i(Vector2i.ZERO, _grid_size)
@@ -35,6 +37,7 @@ func setup_from_level(level: LevelData) -> void:
 
 	for tile: Vector2i in level.solid_tiles:
 		_astar.set_point_solid(tile, true)
+		_structural_solids[tile] = true
 
 	for tile: Vector2i in level.cover_tiles:
 		_astar.set_point_solid(tile, true)
@@ -115,7 +118,7 @@ func is_cover_tile(tile: Vector2i) -> bool:
 
 
 func is_solid_obstacle(tile: Vector2i) -> bool:
-	return is_in_bounds(tile) and _astar.is_point_solid(tile) and not _cover_tiles.has(tile)
+	return _structural_solids.has(tile)
 
 
 func get_tile_info(tile: Vector2i) -> Dictionary:

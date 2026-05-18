@@ -1,1 +1,9 @@
 res://battle/battle.gd
+res://battle/combat_calc.gd
+res://battle/unit/health.gd
+res://battle/unit/unit.gd
+res://battle/unit/states/unit_attacking.gd
+res://globals/run_state.gd
+res://main/main.gd
+res://scripts/level_data.gd
+res://title/title_screen.gd

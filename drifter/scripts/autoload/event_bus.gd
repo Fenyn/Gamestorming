@@ -24,8 +24,15 @@ signal creature_intent_revealed(intent: IntentData)
 signal drifter_hp_changed(current: int, max_val: int)
 signal drifter_shield_changed(current: int)
 signal creature_hp_changed(creature_index: int, current: int, max_val: int)
+signal creature_shield_changed(current: int)
 signal status_applied(target: String, effect_type: int, stacks: int)
 signal status_expired(target: String, effect_type: int)
+
+# Implants
+signal implant_triggered(implant_id: String, effect_text: String)
+
+# Special mechanics
+signal magnetic_pulse_eject()
 
 # Combat result
 signal combat_won()

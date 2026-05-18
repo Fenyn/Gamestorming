@@ -6,19 +6,19 @@
 [sub_resource type="Resource" id="intent_0"]
 script = ExtResource("2")
 type = 0
-value = 12
+value = 8
 description = "Cannon Blast"
 
 [sub_resource type="Resource" id="intent_1"]
 script = ExtResource("2")
 type = 5
-value = 5
+value = 4
 description = "Sustained Fire"
 
 [sub_resource type="Resource" id="intent_2"]
 script = ExtResource("2")
 type = 0
-value = 18
+value = 14
 description = "Magnetic Punch"
 
 [sub_resource type="Resource" id="intent_3"]
@@ -31,6 +31,6 @@ description = "Magnetic Pulse"
 script = ExtResource("1")
 id = "the_warden"
 display_name = "The Warden"
-max_hp = 80
+max_hp = 120
 intent_pattern = [SubResource("intent_0"), SubResource("intent_1"), SubResource("intent_2"), SubResource("intent_3")]
 is_boss = true

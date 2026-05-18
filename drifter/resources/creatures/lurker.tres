@@ -6,19 +6,19 @@
 [sub_resource type="Resource" id="intent_0"]
 script = ExtResource("2")
 type = 0
-value = 6
+value = 4
 description = "Lunge"
 
 [sub_resource type="Resource" id="intent_1"]
 script = ExtResource("2")
 type = 0
-value = 8
+value = 6
 description = "Frenzy"
 
 [resource]
 script = ExtResource("1")
 id = "lurker"
 display_name = "Lurker"
-max_hp = 18
+max_hp = 30
 intent_pattern = [SubResource("intent_0"), SubResource("intent_1")]
 is_boss = false

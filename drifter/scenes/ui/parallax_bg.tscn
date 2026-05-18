@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://dtuwm3g8laa6k"]
+
+[ext_resource type="Script" uid="uid://gjdghih4eg8u" path="res://scripts/ui/parallax_bg.gd" id="1_bg"]
+
+[node name="ParallaxBG" type="Control" unique_id=971717872]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bg")
+
+[node name="SkyGradient" type="ColorRect" parent="." unique_id=1467512322]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.45
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.42, 0.4, 0.38, 1)
+
+[node name="GroundColor" type="ColorRect" parent="." unique_id=99345410]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.45
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.22, 0.2, 1)
+
+[node name="HorizonLine" type="ColorRect" parent="." unique_id=1492235685]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.43
+anchor_right = 1.0
+anchor_bottom = 0.47
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.48, 0.42, 0.38, 1)

@@ -16,6 +16,7 @@ const ROLL_UPWARD_FORCE: float = 1.5
 var face_value: int = 0
 var is_settled: bool = false
 var is_socketed: bool = false
+var cell_data: CellData
 
 var _settle_timer: float = 0.0
 var _total_roll_time: float = 0.0
@@ -27,7 +28,19 @@ func _ready() -> void:
 	freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 	contact_monitor = true
 	max_contacts_reported = 1
+	mass = 0.3
+	linear_damp = 3.0
+	angular_damp = 6.0
+	_build_collision()
 	_build_mesh()
+
+
+func _build_collision() -> void:
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.38, 0.38, 0.38)
+	shape.shape = box
+	add_child(shape)
 
 
 func _build_mesh() -> void:
@@ -42,6 +55,16 @@ func _build_mesh() -> void:
 	mat.roughness = 0.5
 	_mesh.set_surface_override_material(0, mat)
 	add_child(_mesh)
+
+
+func apply_cell_data(data: CellData) -> void:
+	cell_data = data
+	if _mesh and cell_data:
+		var mat: StandardMaterial3D = _mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			mat.emission_enabled = true
+			mat.emission = cell_data.glow_color
+			mat.emission_energy_multiplier = 0.3
 
 
 func roll() -> void:
@@ -94,7 +117,10 @@ func _force_settle() -> void:
 	_is_rolling = false
 	freeze = true
 	is_settled = true
-	face_value = FaceReader.read_top_face(self)
+	if cell_data:
+		face_value = cell_data.roll()
+	else:
+		face_value = FaceReader.read_top_face(self)
 	settled.emit(cell_index, face_value)
 
 

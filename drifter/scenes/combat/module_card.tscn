@@ -3,17 +3,18 @@
 [ext_resource type="Script" path="res://scripts/combat/module_card.gd" id="1_card"]
 
 [node name="ModuleCard" type="PanelContainer"]
-custom_minimum_size = Vector2(160, 0)
+clip_contents = true
 script = ExtResource("1_card")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 2
+theme_override_constants/separation = 1
 
 [node name="ModuleName" type="Label" parent="VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 10
 
 [node name="SocketRow" type="HBoxContainer" parent="VBox"]
 unique_name_in_owner = true
@@ -24,5 +25,6 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 8
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
 autowrap_mode = 2

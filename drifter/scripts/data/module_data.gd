@@ -3,10 +3,12 @@ extends Resource
 
 enum EffectType { DAMAGE, SHIELD, HEAL, DEBUFF_WEAK, DEBUFF_VULNERABLE, BUFF_STRENGTH }
 enum AttackAnim { MELEE_COMBO, SUPERCHARGED, RANGED_ORB, BLASTER_LIGHT, BLASTER_HEAVY, DASH }
+enum Category { KINETIC, RESONANCE, SIPHON, OVERCHARGE, VOLATILE }
 
 @export var id: String = ""
 @export var display_name: String = ""
 @export var description: String = ""
+@export var category: Category = Category.KINETIC
 
 @export_group("Sockets")
 @export var socket_requirements: Array[SocketRequirement] = []
@@ -19,8 +21,28 @@ enum AttackAnim { MELEE_COMBO, SUPERCHARGED, RANGED_ORB, BLASTER_LIGHT, BLASTER_
 @export_group("Behavior")
 @export var fires_per_turn: int = 1
 
+@export_group("Grid")
+@export var grid_shape: Array[Vector2i] = [Vector2i.ZERO]
+
 @export_group("Visuals")
 @export var attack_anim: AttackAnim = AttackAnim.MELEE_COMBO
+
+
+func get_rotated_shape(rotations: int) -> Array[Vector2i]:
+	var shape: Array[Vector2i] = grid_shape.duplicate()
+	for _r: int in rotations % 4:
+		var rotated: Array[Vector2i] = []
+		for cell: Vector2i in shape:
+			rotated.append(Vector2i(-cell.y, cell.x))
+		var min_x: int = 0
+		var min_y: int = 0
+		for cell: Vector2i in rotated:
+			min_x = mini(min_x, cell.x)
+			min_y = mini(min_y, cell.y)
+		shape.clear()
+		for cell: Vector2i in rotated:
+			shape.append(Vector2i(cell.x - min_x, cell.y - min_y))
+	return shape
 
 
 func get_difficulty() -> int:

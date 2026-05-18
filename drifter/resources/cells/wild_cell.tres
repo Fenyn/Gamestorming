@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/cell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wild_cell"
+display_name = "Wild Cell"
+description = "Fits any socket regardless of requirement."
+faces = Array[int]([1, 2, 3, 4, 5, 6])
+tint = Color(1.0, 1.0, 1.0, 1)
+glow_color = Color(1.0, 1.0, 1.0, 1)
+is_wild = true

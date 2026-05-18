@@ -21,7 +21,7 @@ func setup(req: SocketRequirement, idx: int, card: Control) -> void:
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(44, 44)
+	custom_minimum_size = Vector2(36, 28)
 	_update_display()
 
 
@@ -29,9 +29,14 @@ func is_filled() -> bool:
 	return filled_value >= 0
 
 
-func can_accept(value: int) -> bool:
+var _is_wild: bool = false
+
+
+func can_accept(value: int, is_wild: bool = false) -> bool:
 	if locked or is_filled():
 		return false
+	if is_wild:
+		return true
 	if not requirement:
 		return true
 	return _check_requirement(value)
@@ -92,11 +97,16 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if not dict.has("face_value"):
 		_clear_highlight()
 		return false
-	var valid: bool = can_accept(dict["face_value"] as int)
+	var wild: bool = dict.get("is_wild", false) as bool
+	var face_value: int = dict["face_value"] as int
+	var valid: bool = can_accept(face_value, wild)
 	if valid:
 		add_theme_stylebox_override("panel", ThemeBuilder.create_flat_style(
 			ThemeBuilder.BG_SOCKET_VALID, ThemeBuilder.ACCENT_GLOW, 2, 2, 2
 		))
+		var card: ModuleCard = _module_card as ModuleCard
+		if card:
+			card.preview_with_hypothetical(socket_index, face_value)
 	else:
 		_clear_highlight()
 	return valid
@@ -116,6 +126,9 @@ func _notification(what: int) -> void:
 
 
 func _clear_highlight() -> void:
+	var card: ModuleCard = _module_card as ModuleCard
+	if card:
+		card.clear_preview()
 	_update_display()
 
 

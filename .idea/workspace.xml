@@ -6,36 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/editor/editor_layout.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/.godot/editor/editor_layout.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/editor/filesystem_cache10" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/.godot/editor/filesystem_cache10" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/editor/filesystem_update4" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/.godot/editor/filesystem_update4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/editor/script_editor_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/.godot/editor/script_editor_cache.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/global_script_class_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/.godot/global_script_class_cache.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/mono/metadata/ide_messaging_meta.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/.godot/uid_cache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/.godot/uid_cache.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/creatures/hive_caller.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/creatures/hive_caller.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/creatures/lurker.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/creatures/lurker.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/creatures/spewer.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/creatures/spewer.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/creatures/the_warden.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/creatures/the_warden.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/arc_sweep.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/arc_sweep.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/barrier.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/barrier.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/cascade.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/cascade.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/emp_burst.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/emp_burst.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/orbital_strike.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/orbital_strike.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/plasma_jab.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/plasma_jab.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/plasma_lance.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/plasma_lance.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/resources/modules/siphon_field.tres" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/resources/modules/siphon_field.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scenes/combat/dice_tray.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scenes/combat/dice_tray.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scenes/combat/module_card.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scenes/combat/module_card.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scenes/main.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scenes/main.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/autoload/event_bus.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/autoload/event_bus.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/autoload/run_state.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/autoload/run_state.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/camp/camp_screen.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/camp/camp_screen.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/combat/dice_tray.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/combat/dice_tray.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/combat/module_card.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/combat/module_card.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/combat/power_cell.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/combat/power_cell.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/combat/socket_slot.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/combat/socket_slot.gd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drifter/scripts/data/module_data.gd" beforeDir="false" afterPath="$PROJECT_DIR$/drifter/scripts/data/module_data.gd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

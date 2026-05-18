@@ -1,7 +1,14 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://battle/battle.gd" id="1_battle"]
 [ext_resource type="PackedScene" path="res://battle/grid_overlay/grid_overlay.tscn" id="2_overlay"]
+[ext_resource type="PackedScene" path="res://battle/state_machine/state_machine.tscn" id="3_sm"]
+[ext_resource type="Script" path="res://battle/turn_states/turn_player.gd" id="4_player"]
+[ext_resource type="Script" path="res://battle/turn_states/turn_enemy.gd" id="5_enemy"]
+[ext_resource type="Script" path="res://battle/turn_states/turn_won.gd" id="6_won"]
+[ext_resource type="Script" path="res://battle/turn_states/turn_lost.gd" id="7_lost"]
+[ext_resource type="PackedScene" path="res://battle/hud/battle_hud.tscn" id="8_hud"]
+[ext_resource type="PackedScene" path="res://battle/minigames/minigame_layer.tscn" id="9_minigame"]
 
 [node name="BattleScene" type="Node2D"]
 script = ExtResource("1_battle")
@@ -25,4 +32,28 @@ y_sort_enabled = true
 z_index = 2
 
 [node name="TilePickLayer" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="TurnMachine" parent="." instance=ExtResource("3_sm")]
+unique_name_in_owner = true
+
+[node name="PlayerTurn" type="Node" parent="TurnMachine"]
+script = ExtResource("4_player")
+
+[node name="EnemyTurn" type="Node" parent="TurnMachine"]
+script = ExtResource("5_enemy")
+
+[node name="Won" type="Node" parent="TurnMachine"]
+script = ExtResource("6_won")
+
+[node name="Lost" type="Node" parent="TurnMachine"]
+script = ExtResource("7_lost")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="BattleHUD" parent="UILayer" instance=ExtResource("8_hud")]
+unique_name_in_owner = true
+
+[node name="MinigameLayer" parent="." instance=ExtResource("9_minigame")]
 unique_name_in_owner = true

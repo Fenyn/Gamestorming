@@ -94,6 +94,21 @@ func reachable_tiles(origin: Vector2i, max_cost: int) -> Array[Vector2i]:
 	return result
 
 
+func tiles_in_range(origin: Vector2i, max_range: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for dy: int in range(-max_range, max_range + 1):
+		for dx: int in range(-max_range, max_range + 1):
+			if dx == 0 and dy == 0:
+				continue
+			var dist: int = maxi(absi(dx), absi(dy))
+			if dist > max_range:
+				continue
+			var tile: Vector2i = origin + Vector2i(dx, dy)
+			if is_in_bounds(tile):
+				result.append(tile)
+	return result
+
+
 func is_in_bounds(tile: Vector2i) -> bool:
 	return tile.x >= 0 and tile.x < _grid_size.x and tile.y >= 0 and tile.y < _grid_size.y
 

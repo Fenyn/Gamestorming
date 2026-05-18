@@ -1,0 +1,8 @@
+res://battle/hud/battle_hud.tscn
+res://battle/battle.gd
+res://battle/grid_overlay/grid_overlay.gd
+res://battle/minigames/wobble_minigame.gd
+res://battle/minigames/wobble_minigame.tscn
+res://battle/hud/battle_hud.gd
+res://battle/unit/unit.gd
+res://battle/unit/unit.tscn

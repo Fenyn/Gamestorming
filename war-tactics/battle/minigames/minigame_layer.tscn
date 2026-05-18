@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://battle/minigames/minigame_layer.gd" id="1_layer"]
+[ext_resource type="PackedScene" path="res://battle/minigames/wobble_minigame.tscn" id="2_wobble"]
+[ext_resource type="PackedScene" path="res://battle/minigames/timing_minigame.tscn" id="3_timing"]
+
+[node name="MinigameLayer" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_layer")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.5)
+
+[node name="WobbleMinigame" parent="." instance=ExtResource("2_wobble")]
+unique_name_in_owner = true
+
+[node name="TimingMinigame" parent="." instance=ExtResource("3_timing")]
+unique_name_in_owner = true

@@ -1,0 +1,206 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://battle/minigames/wobble_minigame.gd" id="1_wobble"]
+
+[node name="WobbleMinigame" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wobble")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.6)
+
+[node name="AimArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -120.0
+offset_right = 150.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ReticleH" type="ColorRect" parent="AimArea"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 40.0
+offset_top = 119.0
+offset_right = 260.0
+offset_bottom = 121.0
+color = Color(0.5, 0.5, 0.5, 0.3)
+
+[node name="ReticleV" type="ColorRect" parent="AimArea"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 149.0
+offset_top = 10.0
+offset_right = 151.0
+offset_bottom = 230.0
+color = Color(0.5, 0.5, 0.5, 0.3)
+
+[node name="TargetZone" type="ColorRect" parent="AimArea"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 122.0
+offset_top = 92.0
+offset_right = 178.0
+offset_bottom = 148.0
+color = Color(0.2, 0.7, 0.2, 0.15)
+
+[node name="Crosshair" type="ColorRect" parent="AimArea"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 146.0
+offset_top = 116.0
+offset_right = 154.0
+offset_bottom = 124.0
+color = Color(1, 0.3, 0.3, 1)
+
+[node name="BurstLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 130.0
+offset_right = -60.0
+offset_bottom = 145.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+mouse_filter = 2
+text = "Burst"
+
+[node name="BurstBarBG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = 132.0
+offset_right = 150.0
+offset_bottom = 142.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.8)
+
+[node name="BurstBarFill" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = 132.0
+offset_right = 150.0
+offset_bottom = 142.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.8, 0.5, 0.2, 1)
+
+[node name="AccuracyLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 148.0
+offset_right = -60.0
+offset_bottom = 163.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+mouse_filter = 2
+text = "Accuracy"
+
+[node name="AccuracyBarBG" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = 150.0
+offset_right = 150.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.8)
+
+[node name="AccuracyBarFill" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = 150.0
+offset_right = 150.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.8, 0.6, 0.2, 1)
+
+[node name="ResultLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -80.0
+offset_right = 60.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+horizontal_alignment = 1
+mouse_filter = 2
+text = "HIT!"
+
+[node name="InstructionLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -40.0
+offset_right = 120.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+horizontal_alignment = 1
+mouse_filter = 2
+text = "Control the recoil!"

@@ -1,9 +1,25 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://battle/unit/unit.gd" id="1_unit"]
+[ext_resource type="Script" path="res://battle/unit/hp_bar.gd" id="2_hpbar"]
+[ext_resource type="Script" path="res://battle/unit/health.gd" id="3_health"]
+[ext_resource type="Script" path="res://battle/unit/mover.gd" id="4_mover"]
+[ext_resource type="Script" path="res://battle/unit/attacker.gd" id="5_attacker"]
+[ext_resource type="PackedScene" path="res://battle/state_machine/state_machine.tscn" id="6_sm"]
+[ext_resource type="Script" path="res://battle/unit/states/unit_idle.gd" id="7_idle"]
+[ext_resource type="Script" path="res://battle/unit/states/unit_moving.gd" id="8_moving"]
+[ext_resource type="Script" path="res://battle/unit/states/unit_attacking.gd" id="9_attacking"]
+[ext_resource type="Script" path="res://battle/unit/states/unit_dead.gd" id="10_dead"]
 
 [node name="Unit" type="Node2D"]
 script = ExtResource("1_unit")
+
+[node name="TargetPip" type="Polygon2D" parent="."]
+unique_name_in_owner = true
+visible = false
+position = Vector2(0, -50)
+color = Color(1, 0.15, 0.15, 1)
+polygon = PackedVector2Array(-8, -10, 8, -10, 0, 2)
 
 [node name="Visual" type="Polygon2D" parent="."]
 unique_name_in_owner = true
@@ -27,3 +43,57 @@ offset_right = 16
 offset_bottom = 16
 horizontal_alignment = 1
 text = "AP: 3"
+
+[node name="HPBar" type="Control" parent="."]
+unique_name_in_owner = true
+offset_left = -12
+offset_top = -42
+offset_right = 12
+offset_bottom = -38
+script = ExtResource("2_hpbar")
+
+[node name="Background" type="ColorRect" parent="HPBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.6, 0.1, 0.1, 1)
+
+[node name="Fill" type="ColorRect" parent="HPBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.8, 0.2, 1)
+
+[node name="Health" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_health")
+
+[node name="Mover" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("4_mover")
+
+[node name="Attacker" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_attacker")
+
+[node name="StateMachine" parent="." instance=ExtResource("6_sm")]
+unique_name_in_owner = true
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("7_idle")
+
+[node name="Moving" type="Node" parent="StateMachine"]
+script = ExtResource("8_moving")
+
+[node name="Attacking" type="Node" parent="StateMachine"]
+script = ExtResource("9_attacking")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("10_dead")

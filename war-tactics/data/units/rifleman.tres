@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/weapons/rifle.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+unit_label = "R"
+unit_color = Color(0.3, 0.5, 0.9, 1)
+max_hp = 100
+max_ap = 5
+move_cost = 1
+is_enemy = false
+weapon = ExtResource("2")

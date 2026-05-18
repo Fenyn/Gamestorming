@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="16" fill="#2d3a2a"/>
+  <polygon points="64,20 104,44 104,76 64,100 24,76 24,44" fill="#4a5e3f" stroke="#6b7d5e" stroke-width="2"/>
+  <polygon points="64,30 94,48 94,72 64,90 34,72 34,48" fill="#5a7048" stroke="#7a9466" stroke-width="1"/>
+  <line x1="64" y1="30" x2="64" y2="90" stroke="#7a9466" stroke-width="0.5" opacity="0.5"/>
+  <line x1="34" y1="60" x2="94" y2="60" stroke="#7a9466" stroke-width="0.5" opacity="0.5"/>
+  <circle cx="52" cy="52" r="5" fill="#4a7ac7"/>
+  <circle cx="76" cy="68" r="5" fill="#c74a4a"/>
+  <text x="64" y="118" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#a0b896">WT</text>
+</svg>

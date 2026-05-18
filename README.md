@@ -12,6 +12,7 @@ Projects developed with assistance of Claude Opus 4.6
 | [green-bean](green-bean/) | First-person barista simulator. Take orders, print tickets, and assemble drinks by hand. | [Play in browser](https://fenyn.github.io/Gamestorming/green-bean/) |
 | [life-magic](life-magic/) | Idle game powered by your heartbeat. Grow a wizard's garden faster by exercising. | [Play in browser](https://fenyn.github.io/Gamestorming/life-magic/) |
 | [mythos](mythos/) | Lane combat card game with city building. Norse mythology meets tactical deckbuilding. | [Play in browser](https://fenyn.github.io/Gamestorming/mythos/) |
+| [war-tactics](war-tactics/) | WWII squad-tactics roguelike. Isometric grid combat with shooting minigames, cover, and overwatch. | [Play in browser](https://fenyn.github.io/Gamestorming/war-tactics/) |
 
 ## Adding a new game
 

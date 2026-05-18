@@ -9,7 +9,7 @@ const BASE_ENEMY_HIT_CHANCE: float = 0.65
 const OVERWATCH_HIT_CHANCE: float = 0.50
 
 
-static func compute_damage(base_damage: int, elev_diff: int, in_cover: bool) -> int:
+static func compute_damage(base_damage: int, elev_diff: int, in_cover: bool, defense_bonus: int = 0) -> int:
 	var damage: float = float(base_damage)
 	if elev_diff > 0:
 		damage *= (1.0 + HIGH_GROUND_BONUS)
@@ -17,7 +17,7 @@ static func compute_damage(base_damage: int, elev_diff: int, in_cover: bool) -> 
 		damage *= (1.0 - LOW_GROUND_PENALTY)
 	if in_cover:
 		damage *= (1.0 - COVER_DAMAGE_REDUCTION)
-	return maxi(roundi(damage), 1)
+	return maxi(roundi(damage) - defense_bonus, 1)
 
 
 static func roll_hit(base_chance: float, in_cover: bool) -> bool:

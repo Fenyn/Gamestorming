@@ -4,7 +4,28 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="" />
+    <list default="true" id="c7f666c6-cb53-4c5a-a3ce-388fc1da1274" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_layout.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_layout.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_script_doc_cache.res-folding-a7de57390d6e786984ca20c70a831128.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/editor_script_doc_cache.res-folding-a7de57390d6e786984ca20c70a831128.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_cache10" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_cache10" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_update4" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/filesystem_update4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/project_metadata.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/project_metadata.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/editor/script_editor_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/editor/script_editor_cache.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/global_script_class_cache.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/global_script_class_cache.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/mono/metadata/ide_messaging_meta.txt" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/mono/metadata/ide_messaging_meta.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/.godot/uid_cache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/.godot/uid_cache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/battle.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/battle.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/combat_calc.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/combat_calc.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/health.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/health.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/states/unit_attacking.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/states/unit_attacking.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/battle/unit/unit.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/battle/unit/unit.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/globals/run_state.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/globals/run_state.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/main/main.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/main/main.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/project.godot" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/scripts/level_data.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/scripts/level_data.gd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/war-tactics/title/title_screen.gd" beforeDir="false" afterPath="$PROJECT_DIR$/war-tactics/title/title_screen.gd" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -47,7 +68,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "war-tactics",
+    "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

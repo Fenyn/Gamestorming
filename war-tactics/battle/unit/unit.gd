@@ -17,6 +17,10 @@ var action_points: int = 0
 var is_enemy: bool = false
 var unit_data: UnitData = null
 var overwatch_cone: Array[Vector2i] = []
+var squad_index: int = -1
+var bonus_ap: int = 0
+var bonus_damage: int = 0
+var bonus_defense: int = 0
 
 @onready var _visual: Polygon2D = %Visual
 @onready var _unit_label: Label = %UnitLabel
@@ -44,7 +48,7 @@ func setup(tile: Vector2i, data: UnitData) -> void:
 	is_enemy = data.is_enemy
 	current_tile = tile
 	position = Grid.tile_to_world_elevated(tile)
-	action_points = data.max_ap
+	action_points = data.max_ap + bonus_ap
 
 	_visual.color = data.unit_color
 	_unit_label.text = data.unit_label
@@ -91,7 +95,7 @@ func spend_ap(cost: int) -> void:
 
 
 func refresh_ap() -> void:
-	action_points = unit_data.max_ap
+	action_points = unit_data.max_ap + bonus_ap
 	_update_ap_display()
 	ap_changed.emit(action_points)
 

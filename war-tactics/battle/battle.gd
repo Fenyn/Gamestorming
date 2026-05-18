@@ -22,11 +22,13 @@ const RUIN_SIDE_RIGHT: Color = Color(0.35, 0.33, 0.30)
 const RUIN_SIDE_LEFT: Color = Color(0.28, 0.26, 0.24)
 const RUIN_HEIGHT: float = 18.0
 const UNIT_SCENE: PackedScene = preload("res://battle/unit/unit.tscn")
+const MEDAL_SCENE: PackedScene = preload("res://battle/medal/medal.tscn")
 const RESULT_DELAY: float = 1.5
 const CAMERA_PAN_SPEED: float = 300.0
 const CAMERA_ZOOM_STEP: float = 0.1
 const CAMERA_ZOOM_MIN: float = 0.5
 const CAMERA_ZOOM_MAX: float = 2.0
+const ROTATE_DURATION: float = 0.3
 
 var _input_state: InputState = InputState.IDLE
 var _action_in_progress: bool = false
@@ -39,6 +41,8 @@ var _attack_range_cache: Array[Vector2i] = []
 var _unit_at_tile: Dictionary = {}
 var _player_units: Array[Unit] = []
 var _enemy_units: Array[Unit] = []
+var _medals_on_ground: Dictionary = {} # Vector2i -> Medal
+var _rotate_tween: Tween = null
 
 @onready var _camera: Camera2D = %Camera2D
 @onready var _tile_layer: Node2D = %TileLayer
@@ -54,7 +58,7 @@ var _level: LevelData = null
 
 
 func _ready() -> void:
-	_level = LevelData.build_level_01()
+	_level = LevelData.build_for_node(RunState.current_map_node)
 	Grid.setup_from_level(_level)
 	var center_tile: Vector2i = _level.grid_size / 2
 	_camera.position = Grid.tile_to_world(center_tile)
@@ -177,22 +181,26 @@ func _on_enemy_turn_finished() -> void:
 func _on_end_turn() -> void:
 	if not _is_player_turn() or _action_in_progress:
 		return
+	_collect_medals()
 	_deselect_unit()
 	_turn_machine.transition_to(TURN_ENEMY, {"battle": self})
 
 
 func _on_battle_won() -> void:
 	_battle_over = true
+	_save_battle_results()
+	_clear_medals()
 	_deselect_unit()
 	_hud.show_result("Victory!")
 	Events.battle_won.emit()
 	var timer: SceneTreeTimer = get_tree().create_timer(RESULT_DELAY)
 	await timer.timeout
-	Events.screen_transition_requested.emit("title")
+	Events.screen_transition_requested.emit("base")
 
 
 func _on_battle_lost() -> void:
 	_battle_over = true
+	_clear_medals()
 	_deselect_unit()
 	_hud.show_result("Defeat...")
 	Events.battle_lost.emit()
@@ -454,17 +462,32 @@ func _spawn_tile_colliders() -> void:
 # --- Unit spawning ---
 
 func _spawn_squad() -> void:
-	for i: int in RunState.squad_ids.size():
-		if i >= _level.player_spawns.size():
+	var spawn_idx: int = 0
+	for i: int in RunState.squad.size():
+		if spawn_idx >= _level.player_spawns.size():
 			break
-		var data: UnitData = Database.get_unit_data(RunState.squad_ids[i])
-		if data:
-			var unit: Unit = _spawn_unit(_level.player_spawns[i], data)
-			if unit:
-				_player_units.append(unit)
+		if not RunState.is_unit_alive(i):
+			continue
+		var run_data: UnitRunData = RunState.squad[i]
+		var data: UnitData = Database.get_unit_data(run_data.unit_id)
+		if data == null:
+			continue
+		var unit: Unit = _spawn_unit(_level.player_spawns[spawn_idx], data)
+		if unit:
+			unit.squad_index = i
+			unit.bonus_ap = run_data.get_bonus(MedalData.MedalType.MOVE)
+			unit.bonus_damage = run_data.get_bonus(MedalData.MedalType.DAMAGE)
+			unit.bonus_defense = run_data.get_bonus(MedalData.MedalType.DEFENSE)
+			unit.health.setup_with_hp(run_data.current_hp, data.max_hp)
+			unit.action_points = data.max_ap + unit.bonus_ap
+			unit._update_ap_display()
+			_player_units.append(unit)
+		spawn_idx += 1
 
 
 func _spawn_enemies() -> void:
+	var node_idx: int = clampi(RunState.current_map_node, 0, Constants.ENEMY_HP_SCALE.size() - 1)
+	var hp_scale: float = Constants.ENEMY_HP_SCALE[node_idx]
 	for i: int in _level.enemy_spawns.size():
 		var enemy_id: String = _level.enemy_ids[i] if i < _level.enemy_ids.size() else "enemy_rifleman"
 		var data: UnitData = Database.get_unit_data(enemy_id)
@@ -472,6 +495,8 @@ func _spawn_enemies() -> void:
 			continue
 		var unit: Unit = _spawn_unit(_level.enemy_spawns[i], data)
 		if unit:
+			var scaled_hp: int = roundi(float(data.max_hp) * hp_scale)
+			unit.health.setup(scaled_hp)
 			_enemy_units.append(unit)
 
 
@@ -518,6 +543,9 @@ func _unregister_unit(unit: Unit) -> void:
 
 func _on_unit_died(unit: Unit) -> void:
 	_unregister_unit(unit)
+	if unit.is_enemy:
+		RunState.add_xp(Constants.XP_PER_KILL)
+		_spawn_medal(unit.current_tile)
 	if _selected_unit == unit:
 		_deselect_unit()
 	_check_battle_end()
@@ -924,7 +952,6 @@ func _execute_grenade(target_tile: Vector2i) -> void:
 
 
 func _on_grenade_resolved(aoe_tiles: Array[Vector2i], damage: int, thrower: Unit) -> void:
-	var dead_units: Array[Unit] = []
 	for tile: Vector2i in aoe_tiles:
 		if _unit_at_tile.has(tile):
 			var target: Unit = _unit_at_tile[tile] as Unit
@@ -937,12 +964,6 @@ func _on_grenade_resolved(aoe_tiles: Array[Vector2i], damage: int, thrower: Unit
 				dmg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				_entity_layer.add_child(dmg_label)
 				_flash_unit(target)
-				if not target.is_alive():
-					dead_units.append(target)
-	for dead: Unit in dead_units:
-		_unregister_unit(dead)
-	if not dead_units.is_empty():
-		_check_battle_end()
 
 	_action_in_progress = false
 	_update_exhausted_visuals()
@@ -1108,7 +1129,7 @@ func execute_ai_attack(unit: Unit, target: Unit) -> void:
 	var hit: bool = CombatCalc.roll_hit(CombatCalc.BASE_ENEMY_HIT_CHANCE, in_cover)
 	var damage_dealt: int = 0
 	if hit:
-		damage_dealt = CombatCalc.compute_damage(unit.attacker.weapon.damage, elev_diff, in_cover)
+		damage_dealt = CombatCalc.compute_damage(unit.attacker.weapon.damage, elev_diff, in_cover, target.bonus_defense)
 		target.health.take_damage(damage_dealt)
 	unit.spend_ap(unit.attacker.weapon.ap_cost)
 	_spawn_floating_text(target, hit, damage_dealt)
@@ -1127,10 +1148,48 @@ func _on_unit_tile_stepped(old_tile: Vector2i, new_tile: Vector2i, unit: Unit) -
 # --- UX helpers ---
 
 func _rotate_view(direction: int) -> void:
-	if _action_in_progress:
+	if _action_in_progress or _rotate_tween != null:
 		return
+
+	var old_camera_pos: Vector2 = _camera.position
+	var old_positions: Dictionary = {}
+	for unit: Unit in _player_units:
+		if unit.is_alive():
+			old_positions[unit] = unit.position
+	for unit: Unit in _enemy_units:
+		if unit.is_alive():
+			old_positions[unit] = unit.position
+
+	var old_tiles: Node2D = Node2D.new()
+	_tile_layer.get_parent().add_child(old_tiles)
+	while _tile_layer.get_child_count() > 0:
+		_tile_layer.get_child(0).reparent(old_tiles)
+
 	Grid.rotate_view(direction)
 	_rebuild_visuals()
+
+	_tile_layer.modulate.a = 0.0
+
+	var new_camera_pos: Vector2 = _camera.position
+	_camera.position = old_camera_pos
+	var new_positions: Dictionary = {}
+	for unit_key: Variant in old_positions.keys():
+		var unit: Unit = unit_key as Unit
+		new_positions[unit] = unit.position
+		unit.position = old_positions[unit_key] as Vector2
+
+	_rotate_tween = create_tween().set_parallel(true)
+	_rotate_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_rotate_tween.tween_property(_camera, "position", new_camera_pos, ROTATE_DURATION)
+	_rotate_tween.tween_property(_tile_layer, "modulate:a", 1.0, ROTATE_DURATION)
+	_rotate_tween.tween_property(old_tiles, "modulate:a", 0.0, ROTATE_DURATION)
+	for unit_key: Variant in new_positions.keys():
+		_rotate_tween.tween_property(unit_key as Unit, "position", new_positions[unit_key] as Vector2, ROTATE_DURATION)
+
+	_rotate_tween.finished.connect(func() -> void:
+		old_tiles.queue_free()
+		_rotate_tween = null
+	)
 
 
 func _rebuild_visuals() -> void:
@@ -1185,3 +1244,49 @@ func _update_end_turn_count() -> void:
 		if unit.is_alive() and (unit.can_move() or unit.can_attack()):
 			count += 1
 	_hud.update_end_turn_label(count)
+
+
+# --- Medals ---
+
+func _spawn_medal(tile: Vector2i) -> void:
+	if _medals_on_ground.has(tile):
+		return
+	var data: MedalData = MedalFactory.create_random()
+	var medal: Medal = MEDAL_SCENE.instantiate() as Medal
+	_entity_layer.add_child(medal)
+	medal.setup(tile, data)
+	_medals_on_ground[tile] = medal
+
+
+func _collect_medals() -> void:
+	for i: int in _player_units.size():
+		var unit: Unit = _player_units[i]
+		if not unit.is_alive():
+			continue
+		if _medals_on_ground.has(unit.current_tile):
+			var medal: Medal = _medals_on_ground[unit.current_tile] as Medal
+			RunState.add_medal(unit.squad_index, medal.medal_data)
+			var label: FloatingText = FloatingText.new()
+			label.text = medal.medal_data.label
+			label.modulate = medal.medal_data.color
+			label.position = unit.position + Vector2(-16, -50)
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_entity_layer.add_child(label)
+			_medals_on_ground.erase(unit.current_tile)
+			medal.queue_free()
+
+
+func _clear_medals() -> void:
+	for tile: Variant in _medals_on_ground.keys():
+		var medal: Medal = _medals_on_ground[tile] as Medal
+		medal.queue_free()
+	_medals_on_ground.clear()
+
+
+# --- Battle results ---
+
+func _save_battle_results() -> void:
+	for i: int in _player_units.size():
+		var unit: Unit = _player_units[i]
+		if unit.squad_index >= 0 and unit.squad_index < RunState.squad.size():
+			RunState.squad[unit.squad_index].current_hp = unit.health.current_hp

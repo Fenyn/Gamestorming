@@ -14,6 +14,12 @@ func setup(p_max_hp: int) -> void:
 	hp_changed.emit(current_hp, max_hp)
 
 
+func setup_with_hp(p_current_hp: int, p_max_hp: int) -> void:
+	max_hp = p_max_hp
+	current_hp = mini(p_current_hp, p_max_hp)
+	hp_changed.emit(current_hp, max_hp)
+
+
 func take_damage(amount: int) -> void:
 	current_hp = maxi(current_hp - amount, 0)
 	hp_changed.emit(current_hp, max_hp)

@@ -10,4 +10,4 @@ func _ready() -> void:
 
 func _on_new_game_pressed() -> void:
 	RunState.reset()
-	Events.screen_transition_requested.emit("battle")
+	Events.screen_transition_requested.emit("map")

@@ -4,6 +4,8 @@ extends Control
 const SCENES: Dictionary = {
 	"title": preload("res://title/title_screen.tscn"),
 	"battle": preload("res://battle/battle.tscn"),
+	"map": preload("res://map/map_screen.tscn"),
+	"base": preload("res://base/base_screen.tscn"),
 }
 
 const FADE_DURATION: float = 0.25

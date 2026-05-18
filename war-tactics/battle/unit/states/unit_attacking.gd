@@ -25,7 +25,8 @@ func _run_attack(target: Unit, weapon: WeaponData, minigame_layer: Node, elev_di
 	var damage_dealt: int = 0
 
 	if hit and target.is_alive():
-		damage_dealt = CombatCalc.compute_damage(weapon.damage, elev_diff, in_cover)
+		var base_dmg: int = weapon.damage + _unit.bonus_damage
+		damage_dealt = CombatCalc.compute_damage(base_dmg, elev_diff, in_cover, target.bonus_defense)
 		target.health.take_damage(damage_dealt)
 
 	_unit.spend_ap(weapon.ap_cost)

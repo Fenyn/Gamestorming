@@ -188,6 +188,7 @@ func _on_end_turn() -> void:
 
 func _on_battle_won() -> void:
 	_battle_over = true
+	_collect_medals()
 	_save_battle_results()
 	_clear_medals()
 	_deselect_unit()

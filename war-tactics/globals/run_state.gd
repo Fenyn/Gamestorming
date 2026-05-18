@@ -12,12 +12,14 @@ func reset() -> void:
 	current_map_node = 0
 	squad.clear()
 	for unit_id: String in squad_ids:
-		var data: UnitData = Database.get_unit_data(unit_id)
 		var run_data: UnitRunData = UnitRunData.new()
 		run_data.unit_id = unit_id
+		var data: UnitData = Database.get_unit_data(unit_id)
 		if data:
 			run_data.current_hp = data.max_hp
 			run_data.max_hp = data.max_hp
+		else:
+			push_warning("RunState: unit data not found for '%s'" % unit_id)
 		squad.append(run_data)
 
 

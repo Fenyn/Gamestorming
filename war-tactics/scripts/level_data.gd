@@ -33,6 +33,8 @@ func validate() -> bool:
 			if all_spawns[i] == all_spawns[j]:
 				push_error("LevelData: duplicate spawn at %s" % str(all_spawns[i]))
 				valid = false
+	if enemy_spawns.size() < enemy_ids.size():
+		push_warning("LevelData: only %d enemy spawns for %d enemy IDs" % [enemy_spawns.size(), enemy_ids.size()])
 	return valid
 
 
@@ -160,4 +162,6 @@ static func _random_tiles_in_zone(zone: Rect2i, count: int, blocked: Array[Vecto
 		if not blocked.has(tile) and not result.has(tile):
 			result.append(tile)
 		attempts += 1
+	if result.size() < count:
+		push_warning("LevelData: only placed %d/%d tiles in zone %s" % [result.size(), count, str(zone)])
 	return result

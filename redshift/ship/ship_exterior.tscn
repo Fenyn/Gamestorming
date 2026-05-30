@@ -1,0 +1,127 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_hull"]
+albedo_color = Color(0.35, 0.35, 0.4, 1)
+metallic = 0.7
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="Material_accent"]
+albedo_color = Color(0.15, 0.2, 0.35, 1)
+metallic = 0.6
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Material_engine"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+metallic = 0.9
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="Material_canopy"]
+albedo_color = Color(0.15, 0.4, 0.6, 0.7)
+metallic = 0.3
+roughness = 0.1
+transparency = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_stripe"]
+albedo_color = Color(0.9, 0.3, 0.1, 1)
+emission_enabled = true
+emission = Color(0.9, 0.3, 0.1, 1)
+emission_energy_multiplier = 0.5
+metallic = 0.5
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_fuselage"]
+size = Vector3(1.4, 0.5, 2.4)
+
+[sub_resource type="PrismMesh" id="PrismMesh_nose"]
+size = Vector3(1.2, 0.4, 1.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wing_l"]
+size = Vector3(1.2, 0.06, 1.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wing_r"]
+size = Vector3(1.2, 0.06, 1.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fin"]
+size = Vector3(0.06, 0.6, 0.7)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_engine_l"]
+top_radius = 0.18
+bottom_radius = 0.22
+height = 0.8
+radial_segments = 12
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_engine_r"]
+top_radius = 0.18
+bottom_radius = 0.22
+height = 0.8
+radial_segments = 12
+
+[sub_resource type="SphereMesh" id="SphereMesh_canopy"]
+radius = 0.4
+height = 0.35
+radial_segments = 16
+rings = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_stripe"]
+size = Vector3(0.02, 0.08, 1.8)
+
+[node name="ShipExterior" type="Node3D"]
+
+[node name="Fuselage" type="MeshInstance3D" parent="."]
+layers = 2
+mesh = SubResource("BoxMesh_fuselage")
+material_override = SubResource("Material_hull")
+
+[node name="Nose" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.05, -1.5)
+layers = 2
+mesh = SubResource("PrismMesh_nose")
+material_override = SubResource("Material_hull")
+
+[node name="WingLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, -0.05, 0.2)
+layers = 2
+mesh = SubResource("BoxMesh_wing_l")
+material_override = SubResource("Material_accent")
+
+[node name="WingRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, -0.05, 0.2)
+layers = 2
+mesh = SubResource("BoxMesh_wing_r")
+material_override = SubResource("Material_accent")
+
+[node name="FinTop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.6)
+layers = 2
+mesh = SubResource("BoxMesh_fin")
+material_override = SubResource("Material_accent")
+
+[node name="EngineLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -0.45, -0.05, 1.2)
+layers = 2
+mesh = SubResource("CylinderMesh_engine_l")
+material_override = SubResource("Material_engine")
+
+[node name="EngineRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0.45, -0.05, 1.2)
+layers = 2
+mesh = SubResource("CylinderMesh_engine_r")
+material_override = SubResource("Material_engine")
+
+[node name="Canopy" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -0.4)
+layers = 2
+mesh = SubResource("SphereMesh_canopy")
+material_override = SubResource("Material_canopy")
+
+[node name="StripeLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.71, 0.12, -0.2)
+layers = 2
+mesh = SubResource("BoxMesh_stripe")
+material_override = SubResource("Material_stripe")
+
+[node name="StripeRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.71, 0.12, -0.2)
+layers = 2
+mesh = SubResource("BoxMesh_stripe")
+material_override = SubResource("Material_stripe")

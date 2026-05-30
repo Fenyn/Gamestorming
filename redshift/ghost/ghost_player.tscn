@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://ghost/ghost_player.gd" id="1_ghost"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghost"]
+size = Vector3(1.8, 1.0, 2.0)
+
+[sub_resource type="StandardMaterial3D" id="Material_ghost"]
+transparency = 1
+albedo_color = Color(0.3, 0.7, 1.0, 0.3)
+emission_enabled = true
+emission = Color(0.2, 0.5, 0.8, 1)
+emission_energy_multiplier = 1.5
+shading_mode = 0
+
+[node name="GhostPlayer" type="Node3D"]
+visible = false
+script = ExtResource("1_ghost")
+
+[node name="GhostMesh" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
+mesh = SubResource("BoxMesh_ghost")
+material_override = SubResource("Material_ghost")

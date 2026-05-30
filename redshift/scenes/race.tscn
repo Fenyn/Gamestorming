@@ -1,0 +1,77 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scenes/race.gd" id="1_race"]
+[ext_resource type="PackedScene" path="res://ship/ship.tscn" id="2_ship"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://track/track_builder.tscn" id="4_builder"]
+[ext_resource type="Resource" path="res://resources/tracks/track_01.tres" id="5_track"]
+[ext_resource type="PackedScene" path="res://ghost/ghost_player.tscn" id="6_ghost"]
+[ext_resource type="Script" path="res://ghost/ghost_recorder.gd" id="7_recorder"]
+[ext_resource type="PackedScene" path="res://camera/chase_cam.tscn" id="8_chase"]
+
+[ext_resource type="Shader" path="res://resources/space_sky.gdshader" id="9_skyshader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("9_skyshader")
+shader_parameter/base_color = Vector3(0.005, 0.005, 0.02)
+shader_parameter/nebula_color_a = Vector3(0.06, 0.01, 0.08)
+shader_parameter/nebula_color_b = Vector3(0.01, 0.03, 0.08)
+shader_parameter/star_density = 0.55
+shader_parameter/star_brightness = 2.5
+shader_parameter/nebula_intensity = 0.08
+
+[sub_resource type="Sky" id="Sky_race"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_race"]
+background_mode = 2
+sky = SubResource("Sky_race")
+ambient_light_source = 3
+ambient_light_color = Color(0.1, 0.1, 0.15, 1)
+ambient_light_energy = 0.3
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.3
+glow_bloom = 0.1
+
+[sub_resource type="SphereMesh" id="SphereMesh_moon"]
+radius = 500.0
+height = 1000.0
+radial_segments = 64
+rings = 32
+
+[node name="Race" type="Node3D"]
+script = ExtResource("1_race")
+track_data = ExtResource("5_track")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_race")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.433, 0.25, 0, 0.5, 0.866, -0.5, -0.75, 0.433, 0, 0, 0)
+light_color = Color(1.0, 0.95, 0.85, 1)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_max_distance = 500.0
+
+[node name="MoonSurface" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_moon")
+
+[node name="TrackBuilder" parent="." instance=ExtResource("4_builder")]
+unique_name_in_owner = true
+
+[node name="Ship" parent="." instance=ExtResource("2_ship")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 530, 0)
+
+[node name="GhostPlayer" parent="." instance=ExtResource("6_ghost")]
+unique_name_in_owner = true
+
+[node name="GhostRecorder" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_recorder")
+
+[node name="ChaseCamViewport" parent="." instance=ExtResource("8_chase")]
+unique_name_in_owner = true
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]

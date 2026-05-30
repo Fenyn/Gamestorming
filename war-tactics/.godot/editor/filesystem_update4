@@ -7,3 +7,4 @@ res://globals/run_state.gd
 res://main/main.gd
 res://scripts/level_data.gd
 res://title/title_screen.gd
+res://globals/grid.gd

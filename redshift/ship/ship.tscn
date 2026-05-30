@@ -1,0 +1,47 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://ship/ship.gd" id="1_ship"]
+[ext_resource type="PackedScene" path="res://ship/ship_mesh.tscn" id="2_mesh"]
+[ext_resource type="Script" path="res://camera/cockpit_cam.gd" id="3_cam"]
+[ext_resource type="Resource" path="res://resources/default_ship_config.tres" id="4_config"]
+[ext_resource type="Script" path="res://ship/ship_effects.gd" id="5_effects"]
+[ext_resource type="PackedScene" path="res://ship/ship_exterior.tscn" id="6_exterior"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hull"]
+size = Vector3(1.8, 1.0, 2.0)
+
+[node name="Ship" type="RigidBody3D"]
+collision_layer = 2
+collision_mask = 1
+mass = 500.0
+gravity_scale = 0.0
+linear_damp = 0.0
+angular_damp = 0.0
+script = ExtResource("1_ship")
+config = ExtResource("4_config")
+
+[node name="ShipMesh" parent="." instance=ExtResource("2_mesh")]
+
+[node name="ShipExterior" parent="." instance=ExtResource("6_exterior")]
+
+[node name="CockpitCam" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0.2)
+cull_mask = 1048573
+current = true
+fov = 75.0
+script = ExtResource("3_cam")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_hull")
+
+[node name="ShipEffects" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_effects")
+
+[node name="ThrusterLight" type="OmniLight3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+light_color = Color(1.0, 0.6, 0.2, 1)
+light_energy = 0.0
+omni_range = 8.0
+omni_attenuation = 1.5

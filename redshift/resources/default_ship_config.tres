@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ShipConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/ship_config.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+main_thrust = 5000.0
+retro_thrust = 2500.0
+lateral_thrust = 3000.0
+vertical_thrust = 3000.0
+pitch_torque = 5000.0
+yaw_torque = 5000.0
+roll_torque = 600.0
+thrust_spool_rate = 30000.0
+torque_spool_rate = 16000.0
+inertia_tensor = Vector3(250, 350, 200)
+coupling_torque = 80.0
+rcs_torque = 2000.0
+rcs_roll_torque = 3500.0
+rcs_thrust = 3500.0
+velocity_cap = 120.0
+afterburner_thrust_mult = 2.0
+afterburner_fuel_max = 3.0
+afterburner_burn_rate = 1.0
+afterburner_recharge_rate = 0.4

@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
+[ext_resource type="PackedScene" path="res://ui/race_end_panel.tscn" id="2_end_panel"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="CountdownLabel" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = -50.0
+offset_right = 60.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 72
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
+
+[node name="PIPContainer" type="MarginContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -190.0
+offset_right = 260.0
+offset_bottom = -20.0
+grow_vertical = 0
+
+[node name="PIPRect" type="TextureRect" parent="PIPContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+stretch_mode = 5
+
+[node name="RaceEndPanel" parent="." instance=ExtResource("2_end_panel")]

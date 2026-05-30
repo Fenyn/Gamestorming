@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://camera/chase_cam.gd" id="1_chase"]
+
+[node name="ChaseCamViewport" type="SubViewport"]
+size = Vector2i(480, 270)
+render_target_update_mode = 4
+
+[node name="ChaseCam" type="Camera3D" parent="."]
+current = true
+fov = 70.0
+script = ExtResource("1_chase")

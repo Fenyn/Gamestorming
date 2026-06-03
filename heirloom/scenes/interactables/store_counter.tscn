@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dqstore0001"]
+
+[ext_resource type="Script" uid="uid://ikanivlmuskj" path="res://scripts/interactables/store_counter.gd" id="1_store"]
+[ext_resource type="PackedScene" uid="uid://dqshopui001" path="res://scenes/ui/shop_ui.tscn" id="2_shopui"]
+[ext_resource type="PackedScene" uid="uid://cjmvm1rtgh2by" path="res://assets/psx/props/bench_mx_1.glb" id="3_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_counter"]
+size = Vector3(1.852478, 0.63757324, 0.43638915)
+
+[node name="StoreCounter" type="StaticBody3D" unique_id=10648595]
+script = ExtResource("1_store")
+shop_ui_scene = ExtResource("2_shopui")
+
+[node name="Model" parent="." unique_id=1480705361 instance=ExtResource("3_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=856044317]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0054626465, 0.31878662, -0.0051819086)
+shape = SubResource("BoxShape3D_counter")

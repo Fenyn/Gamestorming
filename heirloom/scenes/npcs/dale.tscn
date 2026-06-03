@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dqdale00001"]
+
+[ext_resource type="Script" path="res://scripts/npcs/npc.gd" id="1_npc"]
+[ext_resource type="PackedScene" path="res://assets/psx/characters/dale.fbx" id="2_mesh"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+radius = 0.3
+height = 1.7
+
+[node name="Dale" type="CharacterBody3D"]
+script = ExtResource("1_npc")
+npc_id = "dale"
+display_name = "Dale"
+dialogue_by_level = Array[PackedStringArray]([PackedStringArray("Hey kid. You got your grandpa's place now, huh?", "I used to work on cars with him back in the day.", "That Camaro in the garage... she's seen better days, but she's got good bones."), PackedStringArray("You're putting in the work, I can see that.", "Start with the engine block if you're serious about that Camaro.", "Come talk to me if you need advice on the rebuild order."), PackedStringArray("You know, I got an old VW Cabriolet sitting out back.", "She runs. Mostly. I'd let her go for five hundred if you want a daily driver.", "Beats that bicycle, I'll tell you that much.")])
+
+[node name="Model" parent="." instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="NameLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0)
+text = "Dale"
+font_size = 32
+billboard = 1

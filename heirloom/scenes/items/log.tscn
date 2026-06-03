@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dqlog000001"]
+
+[ext_resource type="Script" uid="uid://b6vfn44nk6drn" path="res://scripts/items/carriable_item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://clp3vr30fmryb" path="res://assets/psx/nature/tree_log_1.glb" id="2_mesh"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_log"]
+height = 1.0190918
+radius = 0.07373047
+
+[node name="Log" type="RigidBody3D" unique_id=161847842]
+script = ExtResource("1_item")
+item_id = "log"
+display_name = "Log"
+
+[node name="Model" parent="." unique_id=904612649 instance=ExtResource("2_mesh")]
+transform = Transform3D(0.015153734, 0.007066303, 0.29953367, -0.12678547, 0.2718923, 0, -0.27146968, -0.1265884, 0.016720299, 0.054073796, 0.09116119, 0.003411673)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1958553571]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.12, -0.00070795417)
+shape = SubResource("CylinderShape3D_log")

@@ -1,0 +1,170 @@
+[gd_scene load_steps=2 format=3 uid="uid://dqhud00001"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="Crosshair" type="CenterContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 2
+
+[node name="Dot" type="ColorRect" parent="Crosshair"]
+custom_minimum_size = Vector2(4, 4)
+color = Color(1, 1, 1, 0.7)
+mouse_filter = 2
+
+[node name="TopLeft" type="VBoxContainer" parent="."]
+offset_left = 20.0
+offset_top = 10.0
+offset_right = 300.0
+offset_bottom = 120.0
+mouse_filter = 2
+
+[node name="ClockLabel" type="Label" parent="TopLeft"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 28
+text = "6:00 AM"
+mouse_filter = 2
+
+[node name="DayLabel" type="Label" parent="TopLeft"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "Day 1"
+mouse_filter = 2
+
+[node name="MoneyLabel" type="Label" parent="TopLeft"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.5, 0.9, 0.5, 1)
+text = "$50.00"
+mouse_filter = 2
+
+[node name="NeedBars" type="VBoxContainer" parent="."]
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 260.0
+offset_bottom = 300.0
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="HungerRow" type="HBoxContainer" parent="NeedBars"]
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="HungerIcon" type="Label" parent="NeedBars/HungerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 0)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.9, 0.75, 0.5, 1)
+text = "HUNGER"
+mouse_filter = 2
+
+[node name="HungerBar" type="ProgressBar" parent="NeedBars/HungerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 14)
+size_flags_vertical = 1
+max_value = 1.0
+value = 0.8
+show_percentage = false
+
+[node name="ThirstRow" type="HBoxContainer" parent="NeedBars"]
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ThirstIcon" type="Label" parent="NeedBars/ThirstRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 0)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.5, 0.75, 0.95, 1)
+text = "THIRST"
+mouse_filter = 2
+
+[node name="ThirstBar" type="ProgressBar" parent="NeedBars/ThirstRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 14)
+size_flags_vertical = 1
+max_value = 1.0
+value = 0.9
+show_percentage = false
+
+[node name="FatigueRow" type="HBoxContainer" parent="NeedBars"]
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="FatigueIcon" type="Label" parent="NeedBars/FatigueRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 0)
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.6, 0.9, 1)
+text = "REST"
+mouse_filter = 2
+
+[node name="FatigueBar" type="ProgressBar" parent="NeedBars/FatigueRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 14)
+size_flags_vertical = 1
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="MaterialsLabel" type="Label" parent="NeedBars"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.75, 0.75, 0.65, 1)
+text = ""
+mouse_filter = 2
+
+[node name="BicycleLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -40.0
+offset_right = 80.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 0.7)
+text = ""
+mouse_filter = 2
+
+[node name="CamaroProgress" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 10.0
+offset_right = -20.0
+offset_bottom = 50.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.9, 0.7, 0.4, 1)
+text = ""
+mouse_filter = 2
+
+[node name="InteractLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.55
+anchor_right = 0.5
+anchor_bottom = 0.55
+offset_left = -200.0
+offset_right = 200.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+mouse_filter = 2

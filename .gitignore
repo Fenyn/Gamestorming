@@ -14,3 +14,6 @@ coinshot/webBuild.zip
 *.cache
 /drifter/.godot/imported
 /drifter/assets/sprites
+/heirloom/.godot/editor
+/heirloom/.godot/imported
+/heirloom/assets/psx

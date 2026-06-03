@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dqscav00001"]
+
+[ext_resource type="Script" uid="uid://cpk61qrk2r3ub" path="res://scripts/interactables/scavenge_pile.gd" id="1_scav"]
+[ext_resource type="PackedScene" uid="uid://ixtbgyda0ylw" path="res://assets/psx/props/scrap_metal_mx_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_scav"]
+size = Vector3(0.31237182, 0.10430908, 0.36107177)
+
+[node name="ScavengePile" type="StaticBody3D" unique_id=53409537]
+script = ExtResource("1_scav")
+material_id = "salvage_part"
+material_name = "Salvage Part"
+
+[node name="Model" parent="." unique_id=1933664341 instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1807915025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0038482398, 0.051971436, -0.0009704828)
+shape = SubResource("BoxShape3D_scav")

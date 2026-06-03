@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dqstump0001"]
+
+[ext_resource type="Script" uid="uid://ck12f1m8xhi4v" path="res://scripts/interactables/splitting_stump.gd" id="1_stump"]
+[ext_resource type="PackedScene" uid="uid://dqfirwd0001" path="res://scenes/items/firewood.tscn" id="2_firewood"]
+[ext_resource type="PackedScene" uid="uid://x7stjrxalnog" path="res://assets/psx/nature/tree_stump_1.glb" id="3_mesh"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_stump"]
+height = 0.5
+radius = 0.38867188
+
+[node name="SplittingStump" type="StaticBody3D" unique_id=1143999246]
+script = ExtResource("1_stump")
+firewood_scene = ExtResource("2_firewood")
+
+[node name="Model" parent="." unique_id=461649836 instance=ExtResource("3_mesh")]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=499810708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("CylinderShape3D_stump")

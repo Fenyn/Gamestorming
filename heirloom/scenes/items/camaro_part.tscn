@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dqcpart0001"]
+
+[ext_resource type="Script" uid="uid://dsjqwys3iql2i" path="res://scripts/items/camaro_part_item.gd" id="1_part"]
+[ext_resource type="PackedScene" uid="uid://suvfmaoiv2i2" path="res://assets/psx/props/gear_mx_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_part"]
+size = Vector3(0.3, 0.103515625, 0.3)
+
+[node name="CamaroPart" type="RigidBody3D" unique_id=1638539840]
+script = ExtResource("1_part")
+
+[node name="Model" parent="." unique_id=1209982442 instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1611432130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.051757813, 0)
+shape = SubResource("BoxShape3D_part")

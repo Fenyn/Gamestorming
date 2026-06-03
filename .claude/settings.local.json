@@ -9,7 +9,28 @@
       "WebFetch(domain:apkpure.com)",
       "Bash(Get-ChildItem -Path \"G:\\\\Godot\\\\Gamestorming\" -Directory)",
       "Bash(Select-Object Name)",
-      "WebFetch(domain:penusbmic.itch.io)"
+      "WebFetch(domain:penusbmic.itch.io)",
+      "WebFetch(domain:johanpeitz.itch.io)",
+      "WebFetch(domain:cdn.akamai.steamstatic.com)",
+      "WebFetch(domain:studylib.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:picocad.net)",
+      "mcp__picocad2__create_box",
+      "mcp__picocad2__set_transform",
+      "mcp__picocad2__save_project",
+      "mcp__picocad2__create_project",
+      "mcp__picocad2__create_sphere",
+      "mcp__picocad2__create_cylinder",
+      "mcp__picocad2__set_all_faces_color",
+      "mcp__blender__execute_blender_code",
+      "mcp__blender__get_viewport_screenshot",
+      "Bash(Get-ChildItem *)",
+      "PowerShell(Copy-Item *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "picocad2",
+    "blender"
+  ]
 }

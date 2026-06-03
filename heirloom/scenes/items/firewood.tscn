@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dqfirwd0001"]
+
+[ext_resource type="Script" uid="uid://b6vfn44nk6drn" path="res://scripts/items/carriable_item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://bnbhpfc5hrpqc" path="res://assets/psx/props/wooden_board_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fw"]
+size = Vector3(0.1518921, 0.010937501, 0.57119143)
+
+[node name="Firewood" type="RigidBody3D" unique_id=1002682496]
+script = ExtResource("1_item")
+item_id = "firewood"
+display_name = "Firewood"
+sell_price = 5.0
+
+[node name="Model" parent="." unique_id=1171954750 instance=ExtResource("2_mesh")]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0.25)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1476220803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00010375492, 0.0054687522, -0.036572292)
+shape = SubResource("BoxShape3D_fw")

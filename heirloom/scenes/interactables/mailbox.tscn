@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dqmail00001"]
+
+[ext_resource type="Script" uid="uid://biu31yyutnc8e" path="res://scripts/interactables/mailbox.gd" id="1_mail"]
+[ext_resource type="PackedScene" uid="uid://clvq2dwn52rs5" path="res://assets/psx/props/mail_box_mx_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mail"]
+size = Vector3(0.31712645, 0.43666992, 0.10207519)
+
+[node name="Mailbox" type="StaticBody3D" unique_id=844299919]
+script = ExtResource("1_mail")
+
+[node name="Model" parent="." unique_id=1547614070 instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=352753037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00048217177, 0.013423748, 0.04320067)
+shape = SubResource("BoxShape3D_mail")

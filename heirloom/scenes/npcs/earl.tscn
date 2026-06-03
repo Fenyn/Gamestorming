@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dqearl00001"]
+
+[ext_resource type="Script" path="res://scripts/npcs/npc.gd" id="1_npc"]
+[ext_resource type="PackedScene" path="res://assets/psx/characters/earl.fbx" id="2_mesh"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+radius = 0.3
+height = 1.7
+
+[node name="Earl" type="CharacterBody3D"]
+script = ExtResource("1_npc")
+npc_id = "earl"
+display_name = "Earl"
+dialogue_by_level = Array[PackedStringArray]([PackedStringArray("Hey there. You must be the grandson.", "Your grandpa was a good man. Store's open if you need anything.", "Got food, water, materials... whatever you need to get started."), PackedStringArray("Good to see you settling in.", "I got some Camaro parts in the back if you're working on that old car.", "Earl's got you covered."), PackedStringArray("You're looking more at home out here every day.", "I'll cut you a deal on what you need. Friends and family discount.", "Your grandpa would be proud.")])
+
+[node name="Model" parent="." instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="NameLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0)
+text = "Earl"
+font_size = 32
+billboard = 1

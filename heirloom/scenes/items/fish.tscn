@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dqfish10001"]
+
+[ext_resource type="Script" uid="uid://3sisn7retxl1" path="res://scripts/items/fish_item.gd" id="1_fish"]
+[ext_resource type="PackedScene" uid="uid://bi48hgk73ceqt" path="res://assets/psx/props/fish_mx_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fish"]
+size = Vector3(0.08, 0.037402347, 0.27854005)
+
+[node name="Fish" type="RigidBody3D" unique_id=336420533]
+script = ExtResource("1_fish")
+
+[node name="Model" parent="." unique_id=2036348474 instance=ExtResource("2_mesh")]
+transform = Transform3D(-2.1855692e-08, 0, 0.49999997, 0, 0.5, 0, -0.49999997, 0, -2.1855692e-08, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1072037795]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.018701173, 0.020617664)
+shape = SubResource("BoxShape3D_fish")

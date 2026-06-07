@@ -1,0 +1,17 @@
+[gd_resource type="TileSet" load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Room_Builder_subfiles_48x48/Room_Builder_Floors_48x48.png" id="1_floors"]
+[ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Room_Builder_subfiles_48x48/Room_Builder_Walls_48x48.png" id="2_walls"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_floors"]
+texture = ExtResource("1_floors")
+texture_region_size = Vector2i(48, 48)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_walls"]
+texture = ExtResource("2_walls")
+texture_region_size = Vector2i(48, 48)
+
+[resource]
+tile_size = Vector2i(48, 48)
+sources/0 = SubResource("TileSetAtlasSource_floors")
+sources/1 = SubResource("TileSetAtlasSource_walls")

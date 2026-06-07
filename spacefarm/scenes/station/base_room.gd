@@ -10,8 +10,6 @@ const ENTRANCE_OFFSET: float = 40.0
 @export var room_id: String = ""
 @export var room_width: float = 400.0
 @export var room_height: float = 300.0
-@export var floor_color: Color = Color(0.1, 0.1, 0.13, 1)
-@export var wall_color: Color = Color(0.3, 0.3, 0.35, 1)
 
 @export_group("Exits")
 @export var exit_north: String = ""
@@ -30,8 +28,7 @@ var _wall_nodes_by_direction: Dictionary = {}
 
 
 func _ready() -> void:
-	_build_floor()
-	_build_walls()
+	_build_collision_walls()
 
 
 func unlock_airlock(direction: String, target_room: String) -> void:
@@ -66,20 +63,7 @@ func unlock_airlock(direction: String, target_room: String) -> void:
 	_build_wall_with_exit(center, full_size, is_horizontal, target_room, direction)
 
 
-func _build_floor() -> void:
-	var floor_rect: ColorRect = ColorRect.new()
-	var hw: float = room_width / 2.0
-	var hh: float = room_height / 2.0
-	floor_rect.offset_left = -hw
-	floor_rect.offset_top = -hh
-	floor_rect.offset_right = hw
-	floor_rect.offset_bottom = hh
-	floor_rect.color = floor_color
-	floor_rect.z_index = -1
-	add_child(floor_rect)
-
-
-func _build_walls() -> void:
+func _build_collision_walls() -> void:
 	var hw: float = room_width / 2.0 + WALL_THICKNESS / 2.0
 	var hh: float = room_height / 2.0 + WALL_THICKNESS / 2.0
 	var full_w: float = room_width + WALL_THICKNESS
@@ -98,21 +82,18 @@ func _build_wall_side(center: Vector2, full_size: Vector2, exit_target: String, 
 	if exit_target != "":
 		_build_wall_with_exit(center, full_size, is_horizontal, exit_target, direction)
 	elif airlock_label != "":
-		_build_wall_with_airlock(center, full_size, is_horizontal, airlock_label, direction)
+		_build_solid_wall(center, full_size, direction)
 	else:
 		_build_solid_wall(center, full_size, direction)
 
 
 func _build_solid_wall(center: Vector2, size: Vector2, direction: String = "") -> void:
 	var wall: StaticBody2D = _create_wall_body(center, size)
-	_add_wall_visual(wall, size, wall_color)
 	if direction != "":
 		_wall_nodes_by_direction[direction].append(wall)
 
 
 func _build_wall_with_exit(center: Vector2, full_size: Vector2, is_horizontal: bool, target_room: String, direction: String) -> void:
-	var half_exit: float = EXIT_WIDTH / 2.0
-
 	if is_horizontal:
 		var seg_width: float = (full_size.x - EXIT_WIDTH) / 2.0
 		var offset: float = (seg_width + EXIT_WIDTH) / 2.0
@@ -126,44 +107,6 @@ func _build_wall_with_exit(center: Vector2, full_size: Vector2, is_horizontal: b
 
 	_build_exit_zone(center, direction, target_room)
 	_build_entrance(center, direction)
-
-
-func _build_wall_with_airlock(center: Vector2, full_size: Vector2, is_horizontal: bool, label_text: String, direction: String) -> void:
-	_build_solid_wall(center, full_size, direction)
-	var airlock_vis: ColorRect = ColorRect.new()
-	var half_exit: float = EXIT_WIDTH / 2.0
-	if is_horizontal:
-		airlock_vis.offset_left = -half_exit
-		airlock_vis.offset_top = -WALL_THICKNESS / 2.0
-		airlock_vis.offset_right = half_exit
-		airlock_vis.offset_bottom = WALL_THICKNESS / 2.0
-	else:
-		airlock_vis.offset_left = -WALL_THICKNESS / 2.0
-		airlock_vis.offset_top = -half_exit
-		airlock_vis.offset_right = WALL_THICKNESS / 2.0
-		airlock_vis.offset_bottom = half_exit
-	airlock_vis.color = Color(0.5, 0.15, 0.1, 1)
-	airlock_vis.position = center
-	airlock_vis.z_index = 1
-	add_child(airlock_vis)
-	_wall_nodes_by_direction[direction].append(airlock_vis)
-
-	var label: Label = Label.new()
-	label.text = "SEALED: %s" % label_text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 8)
-	label.offset_left = -60.0
-	label.offset_right = 60.0
-	if is_horizontal:
-		label.position = center + Vector2(0, -20)
-		label.offset_top = -8.0
-		label.offset_bottom = 8.0
-	else:
-		label.position = center + Vector2(-70, 0)
-		label.offset_top = -8.0
-		label.offset_bottom = 8.0
-	add_child(label)
-	_wall_nodes_by_direction[direction].append(label)
 
 
 func _build_exit_zone(wall_center: Vector2, direction: String, target_room: String) -> void:
@@ -225,16 +168,6 @@ func _create_wall_body(center: Vector2, size: Vector2) -> StaticBody2D:
 
 	add_child(body)
 	return body
-
-
-func _add_wall_visual(body: StaticBody2D, size: Vector2, color: Color) -> void:
-	var vis: ColorRect = ColorRect.new()
-	vis.offset_left = -size.x / 2.0
-	vis.offset_top = -size.y / 2.0
-	vis.offset_right = size.x / 2.0
-	vis.offset_bottom = size.y / 2.0
-	vis.color = color
-	body.add_child(vis)
 
 
 func get_entrance_position(direction: String) -> Vector2:

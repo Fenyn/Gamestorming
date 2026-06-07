@@ -4,6 +4,10 @@ extends BaseState
 var _tended: bool = false
 
 
+func is_tended() -> bool:
+	return _tended
+
+
 func enter(_msg: Dictionary = {}) -> void:
 	_tended = false
 	var tile: CropTile = owner as CropTile

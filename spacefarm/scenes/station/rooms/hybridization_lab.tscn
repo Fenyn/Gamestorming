@@ -6,13 +6,18 @@
 [node name="HybridizationLab" type="Node2D"]
 script = ExtResource("1_room")
 room_id = "hybridization_lab"
-room_width = 350.0
-room_height = 280.0
-floor_color = Color(0.08, 0.11, 0.1, 1)
-wall_color = Color(0.28, 0.3, 0.3, 1)
+room_width = 420.0
+room_height = 340.0
 exit_west = "processing_lab"
 
+[node name="FloorLayer" type="TileMapLayer" parent="."]
+z_index = -2
+
+[node name="WallLayer" type="TileMapLayer" parent="."]
+z_index = -1
+
 [node name="RoomLabel" type="Label" parent="."]
+z_index = 5
 offset_left = -160.0
 offset_top = -120.0
 offset_right = 160.0

@@ -1,7 +1,7 @@
 class_name Player
 extends CharacterBody2D
 
-const SPEED: float = 120.0
+const SPEED: float = 150.0
 const TOOLBAR_ACTIONS: Array[String] = [
 	"tool_1", "tool_2", "tool_3", "tool_4", "tool_5",
 	"tool_6", "tool_7", "tool_8", "tool_9", "tool_0",

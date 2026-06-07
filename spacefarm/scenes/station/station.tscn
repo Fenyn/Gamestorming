@@ -63,36 +63,36 @@ position = Vector2(-2000, -2000)
 
 [node name="Hotbar" type="HBoxContainer" parent="HUD"]
 unique_name_in_owner = true
+mouse_filter = 2
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -110.0
-offset_top = -64.0
-offset_right = 110.0
+offset_top = -60.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 4
 script = ExtResource("10_hotbar")
 
 [node name="InteractHint" type="Label" parent="HUD"]
 unique_name_in_owner = true
+mouse_filter = 2
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -150.0
-offset_top = -80.0
-offset_right = 150.0
-offset_bottom = -66.0
+offset_left = -200.0
+offset_top = -76.0
+offset_right = 200.0
+offset_bottom = -62.0
 grow_horizontal = 2
 grow_vertical = 0
 horizontal_alignment = 1
 
 [node name="DayLabel" type="Label" parent="HUD"]
 unique_name_in_owner = true
+mouse_filter = 2
 offset_left = 16.0
 offset_top = 8.0
 offset_right = 400.0
@@ -101,6 +101,7 @@ text = "Day 1 | Season 1"
 
 [node name="SeedInfo" type="Label" parent="HUD"]
 unique_name_in_owner = true
+mouse_filter = 2
 offset_left = 16.0
 offset_top = 32.0
 offset_right = 500.0
@@ -109,6 +110,7 @@ text = "Seeds: ..."
 
 [node name="DirectivePanel" type="PanelContainer" parent="HUD"]
 unique_name_in_owner = true
+mouse_filter = 2
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -135,6 +137,7 @@ modulate = Color(0.6, 0.9, 0.6, 1)
 
 [node name="RoomName" type="Label" parent="HUD"]
 unique_name_in_owner = true
+mouse_filter = 2
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0

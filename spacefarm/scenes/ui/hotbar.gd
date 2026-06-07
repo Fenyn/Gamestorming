@@ -1,9 +1,7 @@
 class_name Hotbar
 extends HBoxContainer
 
-const SLOT_SIZE: Vector2 = Vector2(44, 44)
-const SELECTED_BORDER: Color = Color(0.9, 0.8, 0.5, 0.9)
-const UNSELECTED_BORDER: Color = Color(0.45, 0.35, 0.22, 0.6)
+const SLOT_SIZE: Vector2 = Vector2(48, 48)
 
 var _slots: Array[PanelContainer] = []
 var _slot_labels: Array[Label] = []
@@ -12,38 +10,33 @@ var _slot_counts: Array[Label] = []
 
 
 func _ready() -> void:
+	alignment = BoxContainer.ALIGNMENT_CENTER
+	add_theme_constant_override("separation", 2)
+
 	for i: int in range(GameState.TOOLBAR_SIZE):
 		var slot: PanelContainer = _create_slot(i)
 		add_child(slot)
 		_slots.append(slot)
 
-	EventBus.tool_switched.connect(_on_refresh)
-	EventBus.inventory_changed.connect(_on_refresh)
+	EventBus.tool_switched.connect(_on_tool_switched)
+	EventBus.inventory_changed.connect(_on_inventory_changed)
 	_refresh()
 
 
-func _create_slot(index: int) -> PanelContainer:
+func _create_slot(_index: int) -> PanelContainer:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = SLOT_SIZE
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = FarmTheme.PANEL_BG
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.border_color = UNSELECTED_BORDER
-	style.corner_radius_top_left = 3
-	style.corner_radius_top_right = 3
-	style.corner_radius_bottom_left = 3
-	style.corner_radius_bottom_right = 3
-	panel.add_theme_stylebox_override("panel", style)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.add_theme_stylebox_override("panel", FarmTheme.make_slot_style(false))
 
 	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	var swatch: ColorRect = ColorRect.new()
 	swatch.custom_minimum_size = Vector2(20, 20)
+	swatch.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	swatch.color = Color(0.2, 0.2, 0.2, 0.5)
 	vbox.add_child(swatch)
 	_slot_swatches.append(swatch)
@@ -51,6 +44,7 @@ func _create_slot(index: int) -> PanelContainer:
 	var name_label: Label = Label.new()
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 7)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(name_label)
 	_slot_labels.append(name_label)
 
@@ -58,6 +52,7 @@ func _create_slot(index: int) -> PanelContainer:
 	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_label.add_theme_font_size_override("font_size", 7)
 	count_label.modulate = Color(0.7, 0.7, 0.7, 1)
+	count_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(count_label)
 	_slot_counts.append(count_label)
 
@@ -69,18 +64,12 @@ func _refresh() -> void:
 	for i: int in range(_slots.size()):
 		var item_id: String = GameState.toolbar[i] if i < GameState.toolbar.size() else ""
 		var panel: PanelContainer = _slots[i]
-		var style: StyleBoxFlat = panel.get_theme_stylebox("panel") as StyleBoxFlat
 
-		if i == GameState.active_slot:
-			style.border_color = SELECTED_BORDER
-			style.bg_color = FarmTheme.BUTTON_HOVER_BG
-		else:
-			style.border_color = UNSELECTED_BORDER
-			style.bg_color = FarmTheme.PANEL_BG
+		panel.add_theme_stylebox_override("panel", FarmTheme.make_slot_style(i == GameState.active_slot))
 
 		if item_id == "":
 			_slot_swatches[i].color = Color(0.15, 0.15, 0.15, 0.3)
-			_slot_labels[i].text = "[%d]" % (i + 1) if i < 9 else "[0]"
+			_slot_labels[i].text = "[%d]" % ((i + 1) % 10)
 			_slot_counts[i].text = ""
 		else:
 			_slot_swatches[i].color = _get_item_color(item_id)
@@ -121,9 +110,13 @@ func _get_item_short_name(item_id: String) -> String:
 	return item_id.substr(0, 6)
 
 
-func _on_refresh() -> void:
+func _on_tool_switched(_tool_id: String) -> void:
 	_refresh()
 	_pulse_active_slot()
+
+
+func _on_inventory_changed() -> void:
+	_refresh()
 
 
 func _pulse_active_slot() -> void:
@@ -131,5 +124,5 @@ func _pulse_active_slot() -> void:
 		return
 	var panel: PanelContainer = _slots[GameState.active_slot]
 	var tw: Tween = create_tween()
-	tw.tween_property(panel, "scale", Vector2(1.15, 1.15), 0.08)
-	tw.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.12)
+	tw.tween_property(panel, "scale", Vector2(1.1, 1.1), 0.06)
+	tw.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.1)

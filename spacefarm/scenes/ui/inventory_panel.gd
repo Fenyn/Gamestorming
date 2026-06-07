@@ -1,8 +1,6 @@
 class_name InventoryPanel
 extends PanelContainer
 
-var _visible_state: bool = false
-
 @onready var _seeds_list: VBoxContainer = %SeedsList
 @onready var _crops_list: VBoxContainer = %CropsList
 @onready var _goods_list: VBoxContainer = %GoodsList
@@ -13,19 +11,12 @@ func _ready() -> void:
 	EventBus.inventory_changed.connect(_on_inventory_changed)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("open_inventory"):
-		toggle()
+func on_opened() -> void:
+	_refresh()
 
 
-func toggle() -> void:
-	_visible_state = not _visible_state
-	visible = _visible_state
-	if _visible_state:
-		InputManager.set_mode(InputContext.Mode.MENU)
-		_refresh()
-	else:
-		InputManager.set_mode(InputContext.Mode.GAMEPLAY)
+func on_closed() -> void:
+	pass
 
 
 func _refresh() -> void:
@@ -84,5 +75,5 @@ func _clear_list(container: VBoxContainer) -> void:
 
 
 func _on_inventory_changed() -> void:
-	if _visible_state:
+	if visible:
 		_refresh()

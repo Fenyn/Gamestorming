@@ -5,14 +5,19 @@
 [node name="ServiceTunnel" type="Node2D"]
 script = ExtResource("1_room")
 room_id = "service_tunnel"
-room_width = 200.0
-room_height = 400.0
-floor_color = Color(0.08, 0.08, 0.1, 1)
-wall_color = Color(0.22, 0.22, 0.26, 1)
+room_width = 240.0
+room_height = 480.0
 exit_west = "living_quarters"
 exit_south = "grow_bay"
 
+[node name="FloorLayer" type="TileMapLayer" parent="."]
+z_index = -2
+
+[node name="WallLayer" type="TileMapLayer" parent="."]
+z_index = -1
+
 [node name="RoomLabel" type="Label" parent="."]
+z_index = 5
 offset_left = -80.0
 offset_top = -180.0
 offset_right = 80.0

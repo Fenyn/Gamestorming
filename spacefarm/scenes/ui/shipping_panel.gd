@@ -2,6 +2,8 @@ class_name ShippingPanel
 extends PanelContainer
 
 var _pod: CargoPod = null
+var _ship_crops: Dictionary = {}
+var _ship_goods: Dictionary = {}
 
 @onready var _inventory_list: VBoxContainer = %InventoryList
 @onready var _cargo_list: VBoxContainer = %CargoList
@@ -15,25 +17,18 @@ func _ready() -> void:
 	_launch_button.pressed.connect(_on_launch)
 
 
-func show_panel(pod: CargoPod) -> void:
+func set_pod(pod: CargoPod) -> void:
 	_pod = pod
-	visible = true
-	InputManager.set_mode(InputContext.Mode.MENU)
+
+
+func on_opened() -> void:
+	_ship_crops.clear()
+	_ship_goods.clear()
 	_refresh()
 
 
-func hide_panel() -> void:
-	visible = false
+func on_closed() -> void:
 	_pod = null
-	InputManager.set_mode(InputContext.Mode.GAMEPLAY)
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
-		hide_panel()
-		get_viewport().set_input_as_handled()
 
 
 func _refresh() -> void:
@@ -47,10 +42,8 @@ func _rebuild_inventory_list() -> void:
 	_clear_list(_inventory_list)
 
 	var shippable: Dictionary = {}
-	var harvested: Dictionary = GameState.get_all_harvested()
-	shippable.merge(harvested)
-	var processed: Dictionary = GameState.get_all_processed()
-	shippable.merge(processed)
+	shippable.merge(GameState.get_all_harvested())
+	shippable.merge(GameState.get_all_processed())
 
 	if shippable.is_empty():
 		var label: Label = Label.new()
@@ -126,7 +119,7 @@ func _on_launch() -> void:
 	if food_total > 0:
 		EventBus.food_added.emit(food_total)
 	EventBus.notification_requested.emit("Cargo pod launched!")
-	hide_panel()
+	visible = false
 
 
 func _update_directive_label() -> void:
@@ -142,8 +135,8 @@ func _update_directive_label() -> void:
 		var parts: Array[String] = []
 		for item_id: String in directive.required_items:
 			var needed: int = directive.required_items[item_id]
-			var shipped: int = GameState.items_shipped.get(item_id, 0)
-			parts.append("%s: %d/%d" % [_display_name(item_id), shipped, needed])
+			var shipped_count: int = GameState.items_shipped.get(item_id, 0)
+			parts.append("%s: %d/%d" % [_display_name(item_id), shipped_count, needed])
 		_directive_label.text = ", ".join(parts)
 
 

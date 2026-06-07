@@ -104,12 +104,11 @@ func _try_spread_moss(tile: CropTile) -> void:
 			continue
 		if neighbor.crop_data != null:
 			continue
-		var state_name: String = neighbor._state_machine.get_current_state_name()
-		if state_name == "Tilled":
+		if neighbor.get_state_name() == &"Tilled":
 			var moss_data: CropData = Database.get_crop("cotton")
 			if moss_data:
 				neighbor.set_crop(moss_data)
-				neighbor._state_machine.transition_to(&"Planted")
-				neighbor._state_machine.transition_to(&"Growing")
-				EventBus.notification_requested.emit("Nebula Moss spreading...")
+				neighbor.force_transition(&"Planted")
+				neighbor.force_transition(&"Growing")
+				EventBus.notification_requested.emit("Cotton spreading...")
 			return

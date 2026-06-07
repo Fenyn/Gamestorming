@@ -1,26 +1,34 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
 [ext_resource type="Script" path="res://scenes/station/station_interactable.gd" id="2_interact"]
 [ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_30.png" id="3_terminal_tex"]
-[ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_60.png" id="4_comms_tex"]
+[ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_34.png" id="4_comms_tex"]
 
 [sub_resource type="RectangleShape2D" id="shape_terminal"]
 size = Vector2(36, 36)
 
+[sub_resource type="RectangleShape2D" id="shape_comms"]
+size = Vector2(60, 36)
+
 [node name="Hub" type="Node2D"]
 script = ExtResource("1_room")
 room_id = "hub"
-room_width = 480.0
-room_height = 360.0
-floor_color = Color(0.11, 0.11, 0.14, 1)
-wall_color = Color(0.28, 0.28, 0.33, 1)
+room_width = 580.0
+room_height = 430.0
 exit_north = "living_quarters"
 exit_east = "grow_bay"
 exit_south = "cargo_bay"
 airlock_west = "PROCESSING LAB"
 
+[node name="FloorLayer" type="TileMapLayer" parent="."]
+z_index = -2
+
+[node name="WallLayer" type="TileMapLayer" parent="."]
+z_index = -1
+
 [node name="RoomLabel" type="Label" parent="."]
+z_index = 5
 offset_left = -100.0
 offset_top = -160.0
 offset_right = 100.0
@@ -75,7 +83,7 @@ theme_override_font_sizes/font_size = 8
 text = "COMMS"
 
 [node name="Col" type="CollisionShape2D" parent="Comms"]
-shape = SubResource("shape_terminal")
+shape = SubResource("shape_comms")
 
 [node name="SignNorth" type="Label" parent="."]
 offset_left = -50.0

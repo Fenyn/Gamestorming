@@ -10,15 +10,20 @@
 [node name="ProcessingLab" type="Node2D"]
 script = ExtResource("1_room")
 room_id = "processing_lab"
-room_width = 520.0
-room_height = 320.0
-floor_color = Color(0.1, 0.09, 0.12, 1)
-wall_color = Color(0.28, 0.28, 0.35, 1)
+room_width = 620.0
+room_height = 380.0
 exit_north = "hub"
 airlock_south = "ADV. PROCESSING"
 airlock_east = "HYBRIDIZATION"
 
+[node name="FloorLayer" type="TileMapLayer" parent="."]
+z_index = -2
+
+[node name="WallLayer" type="TileMapLayer" parent="."]
+z_index = -1
+
 [node name="RoomLabel" type="Label" parent="."]
+z_index = 5
 offset_left = -200.0
 offset_top = -140.0
 offset_right = 200.0

@@ -26,6 +26,10 @@ var _canvas_modulate: CanvasModulate = null
 @onready var _terminal_panel: StationTerminal = $Overlays/TerminalPanel
 @onready var _hybridizer_panel: HybridizerPanel = $Overlays/HybridizerPanel
 @onready var _comms_panel: CommsPanel = $Overlays/CommsPanel
+@onready var _inventory_panel: InventoryPanel = $Overlays/InventoryPanel
+@onready var _pause_menu: PauseMenu = $Overlays/PauseMenu
+
+var _active_overlay: Control = null
 
 
 func _ready() -> void:
@@ -59,6 +63,68 @@ func _ready() -> void:
 	_update_directive_display()
 	_update_lighting(TimeManager.current_hour)
 	TimeManager.start_day()
+
+
+func _process(_delta: float) -> void:
+	if not _transitioning:
+		_update_day_label()
+
+
+# --- Overlay Management ---
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _transitioning:
+		return
+
+	if event.is_action_pressed("pause"):
+		if _active_overlay != null:
+			_close_active_overlay()
+		else:
+			_open_overlay(_pause_menu)
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("open_inventory"):
+		if _active_overlay == _inventory_panel:
+			_close_active_overlay()
+		elif _active_overlay == null:
+			_open_overlay(_inventory_panel)
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("ui_cancel") and _active_overlay != null:
+		_close_active_overlay()
+		get_viewport().set_input_as_handled()
+		return
+
+
+func _open_overlay(panel: Control) -> void:
+	if _active_overlay != null:
+		_close_active_overlay()
+	_active_overlay = panel
+	panel.visible = true
+	if panel == _pause_menu:
+		get_tree().paused = true
+		InputManager.set_mode(InputContext.Mode.MENU)
+	elif panel == _terminal_panel or panel == _comms_panel:
+		InputManager.set_mode(InputContext.Mode.CUTSCENE)
+	else:
+		InputManager.set_mode(InputContext.Mode.MENU)
+
+	if panel.has_method("on_opened"):
+		panel.on_opened()
+
+
+func _close_active_overlay() -> void:
+	if _active_overlay == null:
+		return
+	if _active_overlay == _pause_menu:
+		get_tree().paused = false
+	if _active_overlay.has_method("on_closed"):
+		_active_overlay.on_closed()
+	_active_overlay.visible = false
+	_active_overlay = null
+	InputManager.set_mode(InputContext.Mode.GAMEPLAY)
 
 
 # --- Room Transitions ---
@@ -290,7 +356,8 @@ func _connect_cargo_pods() -> void:
 
 
 func _on_pod_opened(pod: CargoPod) -> void:
-	_shipping_panel.show_panel(pod)
+	_shipping_panel.set_pod(pod)
+	_open_overlay(_shipping_panel)
 
 
 func _connect_hybridizers() -> void:
@@ -302,7 +369,8 @@ func _connect_hybridizers() -> void:
 
 
 func _on_hybridizer_opened(hyb: Hybridizer) -> void:
-	_hybridizer_panel.show_panel(hyb)
+	_hybridizer_panel.set_hybridizer(hyb)
+	_open_overlay(_hybridizer_panel)
 
 
 func _connect_station_interactables() -> void:
@@ -316,9 +384,9 @@ func _connect_station_interactables() -> void:
 func _on_station_interactable(interactable_name: String) -> void:
 	match interactable_name:
 		"TERMINAL":
-			_terminal_panel.open()
+			_open_overlay(_terminal_panel)
 		"COMMS":
-			_comms_panel.open()
+			_open_overlay(_comms_panel)
 		"BED":
 			_save_and_notify()
 

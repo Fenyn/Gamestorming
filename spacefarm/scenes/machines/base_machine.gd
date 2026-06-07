@@ -97,8 +97,8 @@ func _try_process_active_item() -> void:
 
 	_active_recipe = recipe
 	_process_timer = recipe.process_time
-	_output_item_id = recipe._output_item_id
-	_output_count = recipe._output_count
+	_output_item_id = recipe.output_item_id
+	_output_count = recipe.output_count
 	_current_state = MachineState.PROCESSING
 	_progress_bar.visible = true
 	_progress_bg.visible = true

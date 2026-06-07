@@ -19,27 +19,18 @@ func _ready() -> void:
 	_clear_button.pressed.connect(_on_clear)
 
 
-func show_panel(hybridizer: Hybridizer) -> void:
-	_hybridizer = hybridizer
+func set_hybridizer(hyb: Hybridizer) -> void:
+	_hybridizer = hyb
+
+
+func on_opened() -> void:
 	_selected_a = ""
 	_selected_b = ""
-	visible = true
-	InputManager.set_mode(InputContext.Mode.MENU)
 	_refresh()
 
 
-func hide_panel() -> void:
-	visible = false
+func on_closed() -> void:
 	_hybridizer = null
-	InputManager.set_mode(InputContext.Mode.GAMEPLAY)
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
-		hide_panel()
-		get_viewport().set_input_as_handled()
 
 
 func _refresh() -> void:
@@ -71,9 +62,9 @@ func _rebuild_crop_list() -> void:
 		if available <= 0:
 			continue
 		var crop: CropData = Database.get_crop(crop_id)
-		var name: String = crop.get_active_name() if crop else crop_id
+		var crop_name: String = crop.get_active_name() if crop else crop_id
 		var btn: Button = Button.new()
-		btn.text = "%s x%d" % [name, available]
+		btn.text = "%s x%d" % [crop_name, available]
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.pressed.connect(_on_crop_selected.bind(crop_id))
 		_crop_list.add_child(btn)
@@ -99,7 +90,7 @@ func _on_start() -> void:
 	if _hybridizer == null or _selected_a == "" or _selected_b == "":
 		return
 	if _hybridizer.start_hybridizing(_selected_a, _selected_b):
-		hide_panel()
+		visible = false
 	else:
 		EventBus.notification_requested.emit("Invalid combination!")
 

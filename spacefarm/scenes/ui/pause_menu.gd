@@ -11,34 +11,22 @@ func _ready() -> void:
 	_save_btn.pressed.connect(_on_save)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause"):
-		if visible:
-			close()
-		else:
-			open()
-		get_viewport().set_input_as_handled()
+func on_opened() -> void:
+	pass
 
 
-func open() -> void:
-	visible = true
-	get_tree().paused = true
-	InputManager.set_mode(InputContext.Mode.MENU)
-
-
-func close() -> void:
-	visible = false
-	get_tree().paused = false
-	InputManager.set_mode(InputContext.Mode.GAMEPLAY)
+func on_closed() -> void:
+	pass
 
 
 func _on_resume() -> void:
-	close()
+	EventBus.notification_requested.emit("")
+	visible = false
+	get_tree().paused = false
+	InputManager.set_mode(InputContext.Mode.GAMEPLAY)
 
 
 func _on_save() -> void:
 	var handler: SaveFileHandler = SaveFileHandler.new(GameState.SAVE_PATH, GameState.SAVE_VERSION)
 	handler.save_dict(GameState.to_dict())
 	_save_btn.text = "SAVED!"
-	await get_tree().create_timer(1.0).timeout
-	_save_btn.text = "SAVE GAME"

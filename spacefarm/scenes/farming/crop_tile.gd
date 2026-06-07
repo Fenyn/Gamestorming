@@ -34,6 +34,14 @@ func interact(player: Node2D) -> void:
 		current_state.interact(player)
 
 
+func get_state_name() -> String:
+	return _state_machine.get_current_state_name()
+
+
+func force_transition(state_name: StringName) -> void:
+	_state_machine.transition_to(state_name)
+
+
 func get_interact_hint() -> String:
 	var state_name: String = _state_machine.get_current_state_name()
 
@@ -66,8 +74,8 @@ func get_interact_hint() -> String:
 		"Wilting":
 			if crop_data and crop_data.water_schedule == CropData.WaterSchedule.ALTERNATE_DAYS:
 				return "WILTING! Do not water"
-			var wilting_state: BaseState = _state_machine.current_state
-			if wilting_state.get("_tended"):
+			var wilt: CropWiltingState = _state_machine.current_state as CropWiltingState
+			if wilt and wilt.is_tended():
 				return "Tended — recovering tomorrow"
 			if GameState.is_active_tool("watering_can"):
 				return "E/Click: Tend (recovers tomorrow)"

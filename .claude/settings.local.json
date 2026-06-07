@@ -26,7 +26,13 @@
       "mcp__blender__execute_blender_code",
       "mcp__blender__get_viewport_screenshot",
       "Bash(Get-ChildItem *)",
-      "PowerShell(Copy-Item *)"
+      "PowerShell(Copy-Item *)",
+      "WebFetch(domain:terrain3d.readthedocs.io)",
+      "PowerShell(New-Item *)",
+      "WebFetch(domain:terrain.party)",
+      "WebFetch(domain:api.open-elevation.com)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)"
     ]
   },
   "enabledMcpjsonServers": [

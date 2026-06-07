@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/recipe_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+recipe_id = "nutrient_paste"
+display_name = "Nutrient Paste"
+machine_type = "extractor"
+input_items = [{"id": "tomato", "count": 1}]
+output_item_id = "nutrient_paste"
+output_count = 1
+process_time = 3.0

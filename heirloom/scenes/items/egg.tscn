@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://dqegg000001"]
+
+[ext_resource type="Script" path="res://scripts/items/carriable_item.gd" id="1_item"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_egg"]
+radius = 0.04
+
+[sub_resource type="SphereMesh" id="SphereMesh_egg"]
+radius = 0.04
+height = 0.06
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_egg"]
+albedo_color = Color(0.95, 0.9, 0.8, 1)
+
+[node name="Egg" type="RigidBody3D"]
+script = ExtResource("1_item")
+item_id = "egg"
+display_name = "Egg"
+sell_price = 0.33
+item_category = 2
+hunger_restore = 0.15
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+shape = SubResource("SphereShape3D_egg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+mesh = SubResource("SphereMesh_egg")
+surface_material_override/0 = SubResource("StandardMaterial3D_egg")

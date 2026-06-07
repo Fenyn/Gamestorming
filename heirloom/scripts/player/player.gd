@@ -70,6 +70,9 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_bicycle"):
 		_toggle_bicycle()
 
+	if event.is_action_pressed("eat"):
+		_try_eat_held()
+
 
 func _physics_process(delta: float) -> void:
 	var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8) as float
@@ -216,6 +219,28 @@ func get_held_item() -> Node3D:
 
 func has_held_item() -> bool:
 	return _held_item != null and is_instance_valid(_held_item)
+
+
+func _try_eat_held() -> void:
+	if not _held_item or not is_instance_valid(_held_item):
+		return
+	if not _held_item.has_method("is_food"):
+		return
+	if not _held_item.is_food():
+		return
+
+	var restore: float = _held_item.get("hunger_restore") as float
+	if restore <= 0.0:
+		restore = 0.3
+
+	var cooked_bonus: float = 1.0
+	if GameState.stove_fixed:
+		cooked_bonus = 1.5
+
+	GameState.hunger = clampf(GameState.hunger + restore * cooked_bonus, 0.0, 1.0)
+	EventBus.need_changed.emit("hunger", GameState.hunger)
+	_held_item.queue_free()
+	_held_item = null
 
 
 func _toggle_bicycle() -> void:

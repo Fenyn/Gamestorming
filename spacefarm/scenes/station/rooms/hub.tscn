@@ -1,0 +1,108 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scenes/station/station_interactable.gd" id="2_interact"]
+[ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_30.png" id="3_terminal_tex"]
+[ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_60.png" id="4_comms_tex"]
+
+[sub_resource type="RectangleShape2D" id="shape_terminal"]
+size = Vector2(36, 36)
+
+[node name="Hub" type="Node2D"]
+script = ExtResource("1_room")
+room_id = "hub"
+room_width = 480.0
+room_height = 360.0
+floor_color = Color(0.11, 0.11, 0.14, 1)
+wall_color = Color(0.28, 0.28, 0.33, 1)
+exit_north = "living_quarters"
+exit_east = "grow_bay"
+exit_south = "cargo_bay"
+airlock_west = "PROCESSING LAB"
+
+[node name="RoomLabel" type="Label" parent="."]
+offset_left = -100.0
+offset_top = -160.0
+offset_right = 100.0
+offset_bottom = -140.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = "MAIN HUB"
+
+[node name="Terminal" type="StaticBody2D" parent="."]
+position = Vector2(-60, -80)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("2_interact")
+interactable_name = "TERMINAL"
+interact_hint_text = "E/Click: Station Terminal"
+
+[node name="Visual" type="Sprite2D" parent="Terminal"]
+texture = ExtResource("3_terminal_tex")
+
+[node name="Label" type="Label" parent="Terminal"]
+z_index = 5
+offset_left = -24.0
+offset_top = 22.0
+offset_right = 24.0
+offset_bottom = 36.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 8
+text = "TERMINAL"
+
+[node name="Col" type="CollisionShape2D" parent="Terminal"]
+shape = SubResource("shape_terminal")
+
+[node name="Comms" type="StaticBody2D" parent="."]
+position = Vector2(60, -80)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("2_interact")
+interactable_name = "COMMS"
+interact_hint_text = "E/Click: Communications"
+
+[node name="Visual" type="Sprite2D" parent="Comms"]
+texture = ExtResource("4_comms_tex")
+
+[node name="Label" type="Label" parent="Comms"]
+z_index = 5
+offset_left = -24.0
+offset_top = 22.0
+offset_right = 24.0
+offset_bottom = 36.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 8
+text = "COMMS"
+
+[node name="Col" type="CollisionShape2D" parent="Comms"]
+shape = SubResource("shape_terminal")
+
+[node name="SignNorth" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -130.0
+offset_right = 50.0
+offset_bottom = -116.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 9
+text = "QUARTERS"
+modulate = Color(0.5, 0.5, 0.6, 1)
+
+[node name="SignEast" type="Label" parent="."]
+offset_left = 160.0
+offset_top = -8.0
+offset_right = 240.0
+offset_bottom = 8.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 9
+text = "GROW BAY"
+modulate = Color(0.5, 0.5, 0.6, 1)
+
+[node name="SignSouth" type="Label" parent="."]
+offset_left = -40.0
+offset_top = 140.0
+offset_right = 40.0
+offset_bottom = 156.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 9
+text = "CARGO"
+modulate = Color(0.5, 0.5, 0.6, 1)

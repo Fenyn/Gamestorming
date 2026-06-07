@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CropData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/crop_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Crops_Growth_48x48/Grape_Growth_Stages_48x48.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+crop_id = "grapevine"
+display_name = "Grapevine"
+designation = "HY-02 Bioluminescent Vine"
+description = "Vine crop. Provides light bonus to adjacent crops. Dual output."
+growth_sprite = ExtResource("2")
+sprite_row = 0
+growth_days = 5
+water_schedule = 0
+requires_adjacency = 2
+base_quality = 1.0
+food_units = 2
+secondary_output_id = "bio_light_extract"
+secondary_output_count = 1
+crop_color = Color(0.4, 0.3, 0.6, 1)
+seed_color = Color(0.25, 0.2, 0.4, 1)

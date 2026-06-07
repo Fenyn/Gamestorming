@@ -6,6 +6,16 @@ extends StaticBody3D
 var _has_log := false
 
 
+func get_interact_hint(player: Node3D) -> String:
+	if _has_log:
+		return ""
+	if player.has_held_item():
+		var held: Node3D = player.get_held_item()
+		if held.get("item_id") == "log":
+			return "[Click] Split Log"
+	return "[Click] Place log to split"
+
+
 func receive_item(item: Node3D) -> bool:
 	if _has_log:
 		return false

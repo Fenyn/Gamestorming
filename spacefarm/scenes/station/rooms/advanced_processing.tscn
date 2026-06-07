@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/machines/base_machine.tscn" id="2_machine"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Milk_Can_1_48x48.png" id="3_barrel_tex"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Tailor_Crafting_Table_Full_48x48.png" id="4_synth_tex"]
+
+[node name="AdvancedProcessing" type="Node2D"]
+script = ExtResource("1_room")
+room_id = "advanced_processing"
+room_width = 450.0
+room_height = 320.0
+floor_color = Color(0.09, 0.08, 0.13, 1)
+wall_color = Color(0.28, 0.28, 0.35, 1)
+exit_north = "processing_lab"
+
+[node name="RoomLabel" type="Label" parent="."]
+offset_left = -200.0
+offset_top = -140.0
+offset_right = 200.0
+offset_bottom = -120.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "ADVANCED PROCESSING"
+
+[node name="Refinery" parent="." instance=ExtResource("2_machine")]
+position = Vector2(-60, 0)
+machine_type = "refinery"
+machine_label = "REFINERY"
+machine_color = Color(0.35, 0.3, 0.4, 1)
+sprite_texture = ExtResource("3_barrel_tex")
+
+[node name="Synthesizer" parent="." instance=ExtResource("2_machine")]
+position = Vector2(60, 0)
+machine_type = "synthesizer"
+machine_label = "SYNTHESIZER"
+machine_color = Color(0.3, 0.35, 0.45, 1)
+sprite_texture = ExtResource("4_synth_tex")
+
+[node name="SignNorth" type="Label" parent="."]
+offset_left = -60.0
+offset_top = -110.0
+offset_right = 60.0
+offset_bottom = -96.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 9
+text = "PROCESSING LAB"
+modulate = Color(0.5, 0.5, 0.6, 1)

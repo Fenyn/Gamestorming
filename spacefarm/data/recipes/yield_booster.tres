@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/recipe_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+recipe_id = "yield_booster"
+display_name = "Yield Booster"
+machine_type = "assembler"
+input_items = [{"id": "protein_concentrate", "count": 1}, {"id": "nutrient_starch", "count": 1}]
+output_item_id = "yield_booster"
+output_count = 1
+process_time = 3.0

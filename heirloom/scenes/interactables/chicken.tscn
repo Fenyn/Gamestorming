@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://dqchick0001"]
+
+[ext_resource type="Script" path="res://scripts/interactables/chicken.gd" id="1_chicken"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.12
+height = 0.3
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+radius = 0.12
+height = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.9, 0.85, 0.75, 1)
+
+[sub_resource type="ConeMesh" id="ConeMesh_beak"]
+radius = 0.03
+height = 0.06
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beak"]
+albedo_color = Color(0.9, 0.6, 0.1, 1)
+
+[node name="Chicken" type="CharacterBody3D"]
+script = ExtResource("1_chicken")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.2, 0)
+mesh = SubResource("CapsuleMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.32, -0.12)
+mesh = SubResource("CapsuleMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="Beak" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.3, -0.2)
+mesh = SubResource("ConeMesh_beak")
+surface_material_override/0 = SubResource("StandardMaterial3D_beak")

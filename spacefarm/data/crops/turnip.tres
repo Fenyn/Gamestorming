@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CropData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/crop_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Crops_Growth_48x48/Turnip_Growth_Stages_48x48.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+crop_id = "turnip"
+display_name = "Turnip"
+designation = "AG-04 Root Cultivar"
+description = "Reliable workhorse crop. No special requirements."
+growth_sprite = ExtResource("2")
+sprite_row = 0
+growth_days = 4
+water_schedule = 0
+requires_adjacency = 0
+base_quality = 1.0
+food_units = 2
+crop_color = Color(0.55, 0.4, 0.6, 1)
+seed_color = Color(0.3, 0.25, 0.35, 1)

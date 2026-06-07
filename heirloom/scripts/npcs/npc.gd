@@ -4,12 +4,64 @@ extends CharacterBody3D
 @export var display_name: String = ""
 @export var dialogue_by_level: Array[PackedStringArray] = []
 
+@export_group("Schedule")
+@export var has_schedule: bool = false
+@export var open_hour: int = 7
+@export var close_hour: int = 20
+@export var work_position: Vector3 = Vector3.ZERO
+@export var home_position: Vector3 = Vector3.ZERO
+
 var _in_dialogue := false
 var _dialogue_index: int = 0
 var _current_lines: PackedStringArray = PackedStringArray()
+var _is_available := true
+
+const WALK_SPEED := 2.0
+
+
+func _ready() -> void:
+	if has_schedule:
+		work_position = global_position
+		EventBus.hour_changed.connect(_on_hour_changed)
+
+
+func _physics_process(delta: float) -> void:
+	if not has_schedule:
+		return
+
+	var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8) as float
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+
+	if home_position == Vector3.ZERO:
+		move_and_slide()
+		return
+
+	var target: Vector3 = work_position if _is_available else home_position
+	var to_target: Vector3 = target - global_position
+	to_target.y = 0.0
+
+	if to_target.length() > 0.5:
+		var dir: Vector3 = to_target.normalized()
+		velocity.x = dir.x * WALK_SPEED
+		velocity.z = dir.z * WALK_SPEED
+	else:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
+	move_and_slide()
+
+
+func get_interact_hint(_player: Node3D) -> String:
+	if not _is_available:
+		return "%s is closed for the day" % display_name
+	return "[E] Talk to %s" % display_name
 
 
 func interact(player: Node3D) -> void:
+	if not _is_available:
+		return
+
 	if _in_dialogue:
 		_advance_dialogue()
 		return
@@ -61,3 +113,12 @@ func _end_dialogue() -> void:
 		dialogue_ui.hide_dialogue()
 
 	EventBus.dialogue_ended.emit(npc_id)
+
+
+func _on_hour_changed(hour: int) -> void:
+	var display_hour: int = hour % 24
+	_is_available = display_hour >= open_hour and display_hour < close_hour
+
+
+func is_available() -> bool:
+	return _is_available

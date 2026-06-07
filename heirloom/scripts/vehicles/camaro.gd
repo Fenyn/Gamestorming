@@ -33,6 +33,23 @@ func _init_parts() -> void:
 			GameState.camaro_parts[pid] = false
 
 
+func get_interact_hint(player: Node3D) -> String:
+	if player.has_held_item():
+		var item_id: String = player.get_held_item().get("item_id") as String
+		if item_id.begins_with("camaro_"):
+			if GameState.is_part_installed(item_id):
+				return "[E] Already installed"
+			if _check_prerequisites(item_id):
+				return "[E] Install %s" % (player.get_held_item().get("display_name") as String)
+			return "[E] Missing prerequisites"
+		return ""
+	var installed: int = 0
+	for key: String in GameState.camaro_parts:
+		if GameState.camaro_parts[key] as bool:
+			installed += 1
+	return "[E] Inspect Camaro (%d/%d)" % [installed, GameState.camaro_parts.size()]
+
+
 func interact(player: Node3D) -> void:
 	if not player.has_held_item():
 		_inspect()
@@ -51,8 +68,6 @@ func interact(player: Node3D) -> void:
 
 	player.drop_held_item()
 	item.queue_free()
-	if GameState.inventory.has(item_id):
-		GameState.inventory.erase(item_id)
 	GameState.install_part(item_id)
 	_update_visuals()
 

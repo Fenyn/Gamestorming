@@ -83,10 +83,7 @@ func _update_materials() -> void:
 
 func _update_bicycle() -> void:
 	if _player and _player.has_method("is_on_bicycle"):
-		if _player.is_on_bicycle():
-			bicycle_label.text = "[B] Riding Bicycle"
-		else:
-			bicycle_label.text = ""
+		bicycle_label.text = "[B] Riding Bicycle" if _player.is_on_bicycle() else ""
 	else:
 		bicycle_label.text = ""
 
@@ -111,6 +108,12 @@ func _update_interact_prompt() -> void:
 		interact_label.text = ""
 		return
 
+	if _player.has_held_item():
+		var held: Node3D = _player.get_held_item()
+		if held and held.has_method("is_food") and held.is_food():
+			interact_label.text = "[F] Eat %s" % (held.get("display_name") as String)
+			return
+
 	var ray: RayCast3D = _player.get_node("Camera3D/InteractRay") as RayCast3D
 	if not ray or not ray.is_colliding():
 		interact_label.text = ""
@@ -121,9 +124,13 @@ func _update_interact_prompt() -> void:
 		interact_label.text = ""
 		return
 
-	if collider.has_method("interact"):
-		interact_label.text = "[E] %s" % _get_interact_label(collider)
-	elif collider.is_in_group("carriable") and not _player.has_held_item():
+	if collider.has_method("get_interact_hint"):
+		var hint: String = collider.get_interact_hint(_player) as String
+		if not hint.is_empty():
+			interact_label.text = hint
+			return
+
+	if collider.is_in_group("carriable") and not _player.has_held_item():
 		var item_name: String = collider.get("display_name") as String
 		if item_name.is_empty():
 			item_name = collider.name
@@ -132,47 +139,3 @@ func _update_interact_prompt() -> void:
 		interact_label.text = "[Click] Place"
 	else:
 		interact_label.text = ""
-
-
-func _get_interact_label(node: Node) -> String:
-	var script: Script = node.get_script() as Script
-	if not script:
-		return node.name
-
-	var path: String = script.resource_path
-	if path.contains("bed"):
-		return "Sleep"
-	if path.contains("well"):
-		return "Drink" if GameState.well_repaired else "Broken Well"
-	if path.contains("kitchen"):
-		var food_count: int = GameState.inventory.get("food", 0) as int
-		if food_count > 0:
-			return "Eat (%d food)" % food_count
-		return "Kitchen (no food)"
-	if path.contains("choppable_tree"):
-		return "Chop"
-	if path.contains("splitting_stump"):
-		return "Split Log"
-	if path.contains("store_counter"):
-		return "Sell" if _player.has_held_item() else "Shop"
-	if path.contains("upgrade_site"):
-		var upgrade_id: String = node.get("upgrade_id") as String
-		if GameState.is_upgrade_complete(upgrade_id):
-			return "Completed"
-		var upgrade: Dictionary = HomesteadManager.get_upgrade(upgrade_id)
-		return upgrade.get("display_name", "Upgrade") as String
-	if path.contains("mailbox"):
-		return "Check Mail"
-	if path.contains("scavenge"):
-		return "Scavenge %s" % (node.get("material_name") as String)
-	if path.contains("camaro"):
-		if _player.has_held_item():
-			return "Install Part"
-		return "Inspect Camaro"
-	if path.contains("fishing"):
-		return "Fish"
-	if path.contains("npc"):
-		var npc_name: String = node.get("display_name") as String
-		return "Talk to %s" % npc_name if not npc_name.is_empty() else "Talk"
-
-	return node.name

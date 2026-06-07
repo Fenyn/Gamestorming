@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+milestone_id = "directive_2"
+directive_number = 2
+display_name = "NUTRITIONAL PROTOCOL"
+ai_message = "[PLACEHOLDER - PENDING TONE APPROVAL]"
+required_food_units = 0
+required_items = {"ration_pack": 30, "supplement_pack": 20}
+unlocked_crops = []
+unlocked_modules = ["advanced_processing", "hybridization_lab"]
+unlocked_story_entries = []
+lore_hint = "[PLACEHOLDER - PENDING TONE APPROVAL]"

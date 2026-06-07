@@ -1,0 +1,74 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/farming/crop_tile.gd" id="1_tile"]
+[ext_resource type="Script" path="res://addons/godot_base/state_machine/base_state_machine.gd" id="2_sm"]
+[ext_resource type="Script" path="res://scenes/farming/crop_states/empty_state.gd" id="3_empty"]
+[ext_resource type="Script" path="res://scenes/farming/crop_states/tilled_state.gd" id="4_tilled"]
+[ext_resource type="Script" path="res://scenes/farming/crop_states/planted_state.gd" id="5_planted"]
+[ext_resource type="Script" path="res://scenes/farming/crop_states/growing_state.gd" id="6_growing"]
+[ext_resource type="Script" path="res://scenes/farming/crop_states/harvestable_state.gd" id="7_harvest"]
+[ext_resource type="Script" path="res://scenes/farming/crop_states/wilting_state.gd" id="8_wilting"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/0_Complete_Tileset_48x48/Topsoil_Arable_Big_Modular_Middle_Central_48x48.png" id="9_soil_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tile"]
+size = Vector2(30, 30)
+
+[node name="CropTile" type="StaticBody2D"]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_tile")
+
+[node name="SoilVisual" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("9_soil_tex")
+
+[node name="CropVisual" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+visible = false
+region_enabled = true
+region_rect = Rect2(0, 0, 48, 48)
+
+[node name="WaterIndicator" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = 10.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = -10.0
+color = Color(0.3, 0.5, 1.0, 1)
+
+[node name="GrowthLabel" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 5
+offset_left = -24.0
+offset_top = -8.0
+offset_right = 24.0
+offset_bottom = 6.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_tile")
+
+[node name="StateMachine" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_sm")
+
+[node name="Empty" type="Node" parent="StateMachine"]
+script = ExtResource("3_empty")
+
+[node name="Tilled" type="Node" parent="StateMachine"]
+script = ExtResource("4_tilled")
+
+[node name="Planted" type="Node" parent="StateMachine"]
+script = ExtResource("5_planted")
+
+[node name="Growing" type="Node" parent="StateMachine"]
+script = ExtResource("6_growing")
+
+[node name="Harvestable" type="Node" parent="StateMachine"]
+script = ExtResource("7_harvest")
+
+[node name="Wilting" type="Node" parent="StateMachine"]
+script = ExtResource("8_wilting")

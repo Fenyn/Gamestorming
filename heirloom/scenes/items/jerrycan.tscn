@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dqjerry0001"]
+
+[ext_resource type="Script" path="res://scripts/items/carriable_item.gd" id="1_item"]
+[ext_resource type="PackedScene" path="res://assets/psx/props/jerrycan_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jerry"]
+size = Vector3(0.15, 0.3, 0.1)
+
+[node name="JerryCan" type="RigidBody3D"]
+script = ExtResource("1_item")
+item_id = "jerrycan"
+display_name = "Jerry Can"
+sell_price = 0.0
+item_category = 0
+
+[node name="Model" parent="." instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("BoxShape3D_jerry")

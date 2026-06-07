@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://dqcoop00001"]
+
+[ext_resource type="Script" path="res://scripts/interactables/chicken_coop.gd" id="1_coop"]
+[ext_resource type="PackedScene" uid="uid://dqchick0001" path="res://scenes/interactables/chicken.tscn" id="2_chicken"]
+[ext_resource type="PackedScene" path="res://assets/psx/props/wooden_crate_1.glb" id="3_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_coop"]
+size = Vector3(2.0, 1.0, 1.5)
+
+[node name="ChickenCoop" type="StaticBody3D"]
+script = ExtResource("1_coop")
+chicken_scene = ExtResource("2_chicken")
+max_chickens = 6
+
+[node name="Model" parent="." instance=ExtResource("3_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_coop")

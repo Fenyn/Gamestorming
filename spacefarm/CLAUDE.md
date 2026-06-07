@@ -1,0 +1,73 @@
+# Spacefarm
+
+2D top-down space station farming game. Stardew Valley farming meets Factorio/Satisfactory tech progression. Working title — Godot 4.6, GDScript.
+
+## GDScript Rules
+
+- Always explicit type annotations — never `:=` with untyped sources
+- Autoload scripts must NOT use `class_name`
+- All other scripts should use `class_name`
+- Signals defined at top of script with typed parameters
+- Private members prefixed with `_`
+- Objects placed in `.tscn` files — dynamic children use `packed_scene.instantiate()`, not `Node.new()`
+- `@onready var x: Type = %UniqueName` for internal node references
+- `@export_group()` for organizing Resource inspector fields
+
+## Architecture
+
+### Autoloads (5)
+
+- **EventBus** — Pure signal hub, zero logic
+- **InputManager** — Aggregates input, InputContext mode switching (GAMEPLAY / MENU / CUTSCENE)
+- **GameState** — All persistent data (inventory, progression, unlocks)
+- **TimeManager** — Orbital day/night cycle via TickEmitter
+- **Database** — Preloads all .tres resources, provides typed getters
+
+### godot-base Addon
+
+Shared addon via junction at `addons/godot_base/`. Used modules:
+- `BaseStateMachine` + `BaseState` — crop tile states, machine states
+- `TickEmitter` — TimeManager hour ticks
+- `ScreenFade` — day/scene transitions
+- `SaveFileHandler` — game persistence
+- `InputContext` — input mode filtering
+- `SfxPool` — audio
+- `StyleFactory` — UI styling
+- `WeightedTable` — RNG
+
+### Data
+
+Resource class definitions in `resources/` (with `class_name`). Instances as `.tres` in `data/`.
+
+### Scenes
+
+Organized by system domain under `scenes/`. Scripts live alongside their scenes.
+
+## Core Systems
+
+- **Crops**: 10 types across 4 tiers, each with unique growth mechanic
+- **Processing**: Multi-step chains (raw → basic → advanced → probe materials)
+- **Directives**: AI-issued milestone requirements (Satisfactory Space Elevator equivalent)
+- **Sub-milestones**: Optional research unlocks for automation and tool upgrades
+- **Nano-worms**: Farming automation (ground-level)
+- **Nano-bees**: Logistics automation (flying)
+- **Terminal**: Story delivery via escalating log entries
+- **Contacts**: AI-simulated NPCs for social simulation
+
+## Tuning Constants
+
+Located in `globals/time_manager.gd`:
+- `SECONDS_PER_GAME_HOUR = 10.0` (use 30 for release pacing)
+- `HOURS_PER_DAY = 16`
+- `DAYS_PER_SEASON = 14`
+- `DAY_START_HOUR = 6`
+- `DAY_END_HOUR = 22`
+
+## Deferred Features
+
+- Tier 3-4 crops (Nebula Moss, Void Bloom, Archive Fern)
+- Directives 3-4 (Continuity Protocol, Project Genesis)
+- Track 3-4 sub-milestones (full automation, self-replicating)
+- Save/load system
+- Audio
+- Proper pixel art assets

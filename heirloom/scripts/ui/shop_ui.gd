@@ -5,19 +5,24 @@ signal shop_closed
 enum Tab { BUY, SELL }
 
 var _current_tab: Tab = Tab.BUY
+var _store_position: Vector3 = Vector3.ZERO
 
+# Physical items spawn near the store when bought
+# Pocket items (seeds, abstract) go to GameState
 var _buy_items: Array[Dictionary] = [
-	{"id": "food_cold", "name": "Store Food", "price": 5.0, "category": "food"},
-	{"id": "food_ingredients", "name": "Cooking Ingredients", "price": 2.0, "category": "food"},
-	{"id": "water_bottle", "name": "Water Bottle", "price": 2.0, "category": "water"},
-	{"id": "seed_packet", "name": "Seed Packet", "price": 3.0, "category": "farming"},
-	{"id": "wood_plank", "name": "Wood Plank", "price": 5.0, "category": "material"},
-	{"id": "salvage_part", "name": "Salvage Part", "price": 8.0, "category": "material"},
-	{"id": "wire_pipe", "name": "Wire/Pipe", "price": 10.0, "category": "material"},
+	{"id": "food", "name": "Canned Food", "price": 5.0, "scene": "res://scenes/items/food_item.tscn", "physical": true},
+	{"id": "water_bottle", "name": "Water Bottle", "price": 2.0, "scene": "", "physical": false},
+	{"id": "seed_packet", "name": "Seed Packet", "price": 3.0, "scene": "", "physical": false},
+	{"id": "wood_plank", "name": "Wood Plank", "price": 5.0, "scene": "res://scenes/items/material_plank.tscn", "physical": true},
+	{"id": "salvage_part", "name": "Salvage Part", "price": 8.0, "scene": "res://scenes/items/material_salvage.tscn", "physical": true},
+	{"id": "wire_pipe", "name": "Wire/Pipe", "price": 10.0, "scene": "", "physical": false},
+	{"id": "sapling", "name": "Tree Sapling", "price": 5.0, "scene": "", "physical": false},
+	{"id": "chicken_purchase", "name": "Live Chicken", "price": 15.0, "scene": "res://scenes/items/chicken_purchase.tscn", "physical": true},
+	{"id": "jerrycan", "name": "Jerry Can (fuel)", "price": 8.0, "scene": "res://scenes/items/jerrycan.tscn", "physical": true},
 ]
 
 @onready var _panel: PanelContainer = $Panel
-@onready var _item_list: VBoxContainer = $Panel/Margin/VBox/ItemList
+@onready var _item_list: VBoxContainer = $Panel/Margin/VBox/Scroll/ItemList
 @onready var _tab_buy: Button = $Panel/Margin/VBox/Tabs/BuyTab
 @onready var _tab_sell: Button = $Panel/Margin/VBox/Tabs/SellTab
 @onready var _close_btn: Button = $Panel/Margin/VBox/CloseBtn
@@ -34,7 +39,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("interact") or event is InputEventKey and (event as InputEventKey).keycode == KEY_ESCAPE:
+	if event.is_action_pressed("interact") or (event is InputEventKey and (event as InputEventKey).keycode == KEY_ESCAPE):
 		_close()
 		get_viewport().set_input_as_handled()
 
@@ -50,89 +55,96 @@ func _switch_tab(tab: Tab) -> void:
 func _populate_buy() -> void:
 	_clear_list()
 
-	var camaro_parts: Array[Dictionary] = _get_available_camaro_parts()
-	var all_items: Array[Dictionary] = _buy_items.duplicate()
-	all_items.append_array(camaro_parts)
-
-	for item: Dictionary in all_items:
+	for item: Dictionary in _buy_items:
 		var price: float = item["price"] as float
 		var btn := Button.new()
 		btn.text = "%s  -  $%.2f" % [item["name"], price]
 		btn.disabled = GameState.money < price
-		var item_id: String = item["id"] as String
-		btn.pressed.connect(_on_buy_pressed.bind(item_id, price))
+		var item_data: Dictionary = item
+		btn.pressed.connect(_on_buy_pressed.bind(item_data))
+		_item_list.add_child(btn)
+
+	# Camaro parts
+	var parts: Array[Dictionary] = _get_available_camaro_parts()
+	for part: Dictionary in parts:
+		var price: float = part["price"] as float
+		var btn := Button.new()
+		btn.text = "%s  -  $%.2f" % [part["name"], price]
+		btn.disabled = GameState.money < price
+		btn.pressed.connect(_on_buy_camaro_part.bind(part))
 		_item_list.add_child(btn)
 
 
 func _populate_sell() -> void:
 	_clear_list()
-	for item_id: String in GameState.inventory:
-		var count: int = GameState.inventory[item_id] as int
-		if count <= 0:
-			continue
-		var price: float = Economy.get_sell_price(item_id)
-		if price <= 0.0:
-			continue
-		var btn := Button.new()
-		btn.text = "%s (x%d)  -  $%.2f each" % [item_id, count, price]
-		btn.pressed.connect(_on_sell_pressed.bind(item_id, price))
-		_item_list.add_child(btn)
-
-	if _item_list.get_child_count() == 0:
-		var lbl := Label.new()
-		lbl.text = "Nothing to sell."
-		_item_list.add_child(lbl)
+	var lbl := Label.new()
+	lbl.text = "Hold an item and press [E] at the counter to sell it."
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_item_list.add_child(lbl)
 
 
-func _on_buy_pressed(item_id: String, price: float) -> void:
+func _on_buy_pressed(item: Dictionary) -> void:
+	var price: float = item["price"] as float
 	if not GameState.spend_money(price):
 		return
 
-	if item_id.begins_with("camaro_"):
-		var part_scene: PackedScene = load("res://scenes/items/camaro_part.tscn") as PackedScene
-		if part_scene:
-			var part: Node3D = part_scene.instantiate()
-			part.set("part_id", item_id)
-			part.set("item_id", item_id)
-			part.set("display_name", _get_part_display_name(item_id))
-			get_tree().root.add_child(part)
-			var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
-			if player:
-				part.global_position = player.global_position + Vector3(0, 1.0, -1.5)
-	elif item_id == "food_cold" or item_id == "food_ingredients":
-		GameState.inventory["food"] = (GameState.inventory.get("food", 0) as int) + 1
-		if item_id == "food_cold":
-			GameState.hunger = clampf(GameState.hunger + 0.3, 0.0, 1.0)
-		else:
-			GameState.hunger = clampf(GameState.hunger + 0.15, 0.0, 1.0)
+	var is_physical: bool = item["physical"] as bool
+	var scene_path: String = item["scene"] as String
+	var item_id: String = item["id"] as String
+
+	if is_physical and not scene_path.is_empty():
+		_spawn_item(scene_path, item)
 	elif item_id == "water_bottle":
 		GameState.thirst = clampf(GameState.thirst + 0.5, 0.0, 1.0)
-	elif item_id == "wood_plank" or item_id == "salvage_part" or item_id == "wire_pipe":
-		GameState.add_material(item_id)
-	else:
+	elif item_id == "seed_packet" or item_id == "sapling":
 		GameState.inventory[item_id] = (GameState.inventory.get(item_id, 0) as int) + 1
+	elif item_id == "wire_pipe":
+		GameState.add_material("wire_pipe")
 
 	EventBus.item_purchased.emit(item_id, price)
 	_update_money()
 	_switch_tab(_current_tab)
 
 
-func _on_sell_pressed(item_id: String, price: float) -> void:
-	var count: int = GameState.inventory.get(item_id, 0) as int
-	if count <= 0:
+func _on_buy_camaro_part(part: Dictionary) -> void:
+	var price: float = part["price"] as float
+	if not GameState.spend_money(price):
 		return
-	GameState.inventory[item_id] = count - 1
-	var discount: float = Economy.get_friendship_discount("earl")
-	GameState.add_money(price * (1.0 + discount))
-	EventBus.item_sold.emit(item_id, price)
+
+	var part_scene: PackedScene = load("res://scenes/items/camaro_part.tscn") as PackedScene
+	if part_scene:
+		var item: Node3D = part_scene.instantiate()
+		item.set("part_id", part["id"])
+		item.set("item_id", part["id"])
+		item.set("display_name", part["name"])
+		get_tree().root.add_child(item)
+		item.global_position = _get_spawn_pos()
+
+	EventBus.item_purchased.emit(part["id"] as String, price)
 	_update_money()
 	_switch_tab(_current_tab)
 
 
+func _spawn_item(scene_path: String, item_data: Dictionary) -> void:
+	var scene: PackedScene = load(scene_path) as PackedScene
+	if not scene:
+		return
+	var item: Node3D = scene.instantiate()
+	get_tree().root.add_child(item)
+	item.global_position = _get_spawn_pos()
+
+
+func _get_spawn_pos() -> Vector3:
+	if _store_position != Vector3.ZERO:
+		return _store_position + Vector3(randf_range(-1.0, 1.0), 1.0, randf_range(-1.0, 1.0))
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if player:
+		return player.global_position + Vector3(0, 1.0, -1.5)
+	return Vector3.ZERO
+
+
 func _get_available_camaro_parts() -> Array[Dictionary]:
 	var parts: Array[Dictionary] = []
-	var catalog: Dictionary = HomesteadManager.get_all_upgrades()
-
 	var part_list: Array[Dictionary] = [
 		{"id": "camaro_suspension", "name": "Suspension", "price": 100.0, "prereqs": []},
 		{"id": "camaro_body_panels", "name": "Body Panels", "price": 150.0, "prereqs": []},
@@ -149,8 +161,6 @@ func _get_available_camaro_parts() -> Array[Dictionary]:
 
 	for part: Dictionary in part_list:
 		if GameState.is_part_installed(part["id"] as String):
-			continue
-		if GameState.inventory.get(part["id"], 0) as int > 0:
 			continue
 		var prereqs_met := true
 		var prereqs: Array = part["prereqs"] as Array
@@ -171,23 +181,6 @@ func _update_money() -> void:
 func _clear_list() -> void:
 	for child: Node in _item_list.get_children():
 		child.queue_free()
-
-
-func _get_part_display_name(part_id: String) -> String:
-	var names: Dictionary = {
-		"camaro_suspension": "Suspension",
-		"camaro_body_panels": "Body Panels",
-		"camaro_engine_block": "Engine Block",
-		"camaro_heads": "Cylinder Heads",
-		"camaro_transmission": "Transmission",
-		"camaro_intake": "Intake Manifold",
-		"camaro_exhaust": "Exhaust System",
-		"camaro_interior": "Interior",
-		"camaro_carburetor": "Carburetor",
-		"camaro_electrical": "Electrical System",
-		"camaro_paint": "Paint Job",
-	}
-	return names.get(part_id, part_id) as String
 
 
 func _close() -> void:

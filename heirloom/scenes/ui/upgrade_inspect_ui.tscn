@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://dqupgui0001"]
+
+[ext_resource type="Script" path="res://scripts/ui/upgrade_inspect_ui.gd" id="1_upg"]
+
+[node name="UpgradeInspectUI" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_upg")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -340.0
+offset_top = 80.0
+offset_right = -20.0
+offset_bottom = 260.0
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Repair the Well"
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+
+[node name="DescLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Free drinking water."
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="ReqLabel" type="RichTextLabel" parent="Panel/Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+bbcode_enabled = true
+text = ""
+fit_content = true
+theme_override_font_sizes/normal_font_size = 16
+
+[node name="StatusLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Gather materials"
+theme_override_font_sizes/font_size = 16

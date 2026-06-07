@@ -1,0 +1,11 @@
+<Project Sdk="Godot.NET.Sdk/4.6.3">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Autobattler</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="F:\dev\Pf2e.Core\Pf2e.Core\Pf2e.Core.csproj" />
+  </ItemGroup>
+</Project>

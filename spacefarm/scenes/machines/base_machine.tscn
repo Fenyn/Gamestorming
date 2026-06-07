@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/machines/base_machine.gd" id="1_machine"]
+
+[sub_resource type="RectangleShape2D" id="shape_machine"]
+size = Vector2(50, 50)
+
+[node name="BaseMachine" type="StaticBody2D"]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_machine")
+
+[node name="MachineVisual" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+
+[node name="MachineLabel" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 5
+offset_left = -28.0
+offset_top = -10.0
+offset_right = 28.0
+offset_bottom = 6.0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 8
+text = "MACHINE"
+
+[node name="ProgressBg" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = -24.0
+offset_top = 20.0
+offset_right = 24.0
+offset_bottom = 26.0
+color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="ProgressBar" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = -24.0
+offset_top = 20.0
+offset_right = 24.0
+offset_bottom = 26.0
+color = Color(0.3, 0.8, 0.3, 1)
+
+[node name="StatusLabel" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 5
+offset_left = -36.0
+offset_top = 28.0
+offset_right = 36.0
+offset_bottom = 42.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 7
+text = "IDLE"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("shape_machine")

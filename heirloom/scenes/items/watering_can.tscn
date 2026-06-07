@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dqwater0001"]
+
+[ext_resource type="Script" path="res://scripts/items/watering_can.gd" id="1_item"]
+[ext_resource type="PackedScene" path="res://assets/psx/props/bucket_mx_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_can"]
+size = Vector3(0.2, 0.25, 0.2)
+
+[node name="WateringCan" type="RigidBody3D"]
+script = ExtResource("1_item")
+max_uses = 4
+
+[node name="Model" parent="." instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 0)
+shape = SubResource("BoxShape3D_can")

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/recipe_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+recipe_id = "quality_enhancer"
+display_name = "Quality Enhancer"
+machine_type = "assembler"
+input_items = [{"id": "protein_concentrate", "count": 1}, {"id": "flour", "count": 1}]
+output_item_id = "quality_enhancer"
+output_count = 1
+process_time = 3.0

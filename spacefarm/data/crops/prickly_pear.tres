@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CropData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/crop_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Crops_Growth_48x48/Prickly_Pear_Growth_Stages_48x48.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+crop_id = "prickly_pear"
+display_name = "Prickly Pear"
+designation = "HY-05 Mineral Rhizome"
+description = "Water every other day only. Overwatering causes wilting."
+growth_sprite = ExtResource("2")
+sprite_row = 0
+growth_days = 10
+water_schedule = 2
+requires_adjacency = 0
+base_quality = 1.0
+food_units = 5
+secondary_output_id = "mineral_substrate"
+secondary_output_count = 1
+crop_color = Color(0.4, 0.6, 0.35, 1)
+seed_color = Color(0.25, 0.35, 0.2, 1)

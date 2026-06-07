@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/recipe_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+recipe_id = "ration_pack"
+display_name = "Ration Pack"
+machine_type = "assembler"
+input_items = [{"id": "flour", "count": 1}, {"id": "nutrient_starch", "count": 1}]
+output_item_id = "ration_pack"
+output_count = 1
+process_time = 4.0

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MilestoneData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/milestone_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+milestone_id = "directive_1"
+directive_number = 1
+display_name = "OPERATIONAL BASELINE"
+ai_message = "Station AG-7 operational. Primary directive: establish food production baseline. Required: demonstrate sustained output capability. Ship 50 food units via cargo pod."
+required_food_units = 50
+unlocked_crops = ["tomato", "pepper"]
+unlocked_modules = ["processing_lab"]
+unlocked_story_entries = ["log_crop_guide", "log_maintenance_1"]
+lore_hint = "Crop diversification protocols initialized. New seed varieties released from gene bank storage."

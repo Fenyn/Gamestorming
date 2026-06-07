@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ToolData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/tool_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+tool_id = "trowel"
+display_name = "Trowel"
+tool_type = 1
+tier = 1
+area_width = 1
+area_height = 1
+efficiency = 1.0
+tool_color = Color(0.6, 0.4, 0.2, 1)

@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://dqplot00001"]
+
+[ext_resource type="Script" path="res://scripts/interactables/farm_plot.gd" id="1_plot"]
+[ext_resource type="PackedScene" path="res://assets/psx/nature/wheat_1.glb" id="2_crop"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_plot"]
+size = Vector3(2.0, 0.2, 2.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_soil"]
+size = Vector3(2.0, 0.15, 2.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_soil"]
+albedo_color = Color(0.3, 0.2, 0.1, 1)
+
+[node name="FarmPlot" type="StaticBody3D"]
+script = ExtResource("1_plot")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("BoxShape3D_plot")
+
+[node name="SoilMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075, 0)
+visible = false
+mesh = SubResource("BoxMesh_soil")
+surface_material_override/0 = SubResource("StandardMaterial3D_soil")
+
+[node name="CropMesh" parent="." instance=ExtResource("2_crop")]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0.15, 0)
+visible = false

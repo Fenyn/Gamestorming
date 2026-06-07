@@ -11,6 +11,7 @@ var paused: bool = false
 
 var _sun: DirectionalLight3D = null
 var _env: WorldEnvironment = null
+var _searched := false
 
 
 func _ready() -> void:
@@ -18,6 +19,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not _searched:
+		_find_lighting()
+		_searched = true
+
 	if paused:
 		return
 
@@ -62,12 +67,33 @@ func advance_to_morning() -> void:
 	EventBus.day_started.emit(GameState.day)
 
 
-func bind_sun(sun: DirectionalLight3D) -> void:
-	_sun = sun
+func _find_lighting() -> void:
+	if not _sun:
+		var suns: Array[Node] = get_tree().get_nodes_in_group("sun")
+		if not suns.is_empty():
+			_sun = suns[0] as DirectionalLight3D
+		else:
+			for node: Node in get_tree().root.get_children():
+				var found: DirectionalLight3D = _find_child_of_type(node, "DirectionalLight3D") as DirectionalLight3D
+				if found:
+					_sun = found
+					break
+
+	if not _env:
+		for node: Node in get_tree().root.get_children():
+			var found: WorldEnvironment = _find_child_of_type(node, "WorldEnvironment") as WorldEnvironment
+			if found:
+				_env = found
+				break
 
 
-func bind_environment(env: WorldEnvironment) -> void:
-	_env = env
+func _find_child_of_type(node: Node, type_name: String) -> Node:
+	if node.get_class() == type_name:
+		return node
+	for child: Node in node.get_children():
+		if child.get_class() == type_name:
+			return child
+	return null
 
 
 func _update_lighting() -> void:
@@ -79,12 +105,27 @@ func _update_lighting() -> void:
 	sun_angle = clampf(sun_angle, -80.0, 80.0)
 	_sun.rotation_degrees.x = -sun_angle
 
+	# Sun color: warm at dawn/dusk, neutral midday
 	var is_night: bool = current_hour >= 21 or current_hour < 5
 	if is_night:
-		_sun.light_energy = 0.1
+		_sun.light_energy = 0.05
+		_sun.light_color = Color(0.3, 0.35, 0.5)
 	elif current_hour >= 19:
-		_sun.light_energy = lerpf(1.0, 0.1, (time_frac - 19.0) / 2.0)
+		var t: float = (time_frac - 19.0) / 2.0
+		_sun.light_energy = lerpf(0.9, 0.05, t)
+		_sun.light_color = Color(1.0, 0.7, 0.4).lerp(Color(0.3, 0.35, 0.5), t)
 	elif current_hour <= 7:
-		_sun.light_energy = lerpf(0.1, 1.0, (time_frac - 5.0) / 2.0)
+		var t: float = (time_frac - 5.0) / 2.0
+		_sun.light_energy = lerpf(0.05, 0.9, t)
+		_sun.light_color = Color(0.3, 0.35, 0.5).lerp(Color(1.0, 0.75, 0.5), t)
+	elif current_hour <= 9:
+		var t: float = (time_frac - 7.0) / 2.0
+		_sun.light_energy = lerpf(0.9, 1.0, t)
+		_sun.light_color = Color(1.0, 0.75, 0.5).lerp(Color(1.0, 0.95, 0.9), t)
+	elif current_hour >= 17:
+		var t: float = (time_frac - 17.0) / 2.0
+		_sun.light_energy = lerpf(1.0, 0.9, t)
+		_sun.light_color = Color(1.0, 0.95, 0.9).lerp(Color(1.0, 0.7, 0.4), t)
 	else:
 		_sun.light_energy = 1.0
+		_sun.light_color = Color(1.0, 0.95, 0.9)

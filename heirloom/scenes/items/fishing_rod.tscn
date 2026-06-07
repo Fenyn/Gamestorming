@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dqfrod00001"]
+
+[ext_resource type="Script" path="res://scripts/items/carriable_item.gd" id="1_item"]
+[ext_resource type="PackedScene" path="res://assets/psx/props/fishing_hook_mx_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_rod"]
+size = Vector3(0.05, 0.8, 0.05)
+
+[node name="FishingRod" type="RigidBody3D"]
+script = ExtResource("1_item")
+item_id = "fishing_rod"
+display_name = "Fishing Rod"
+tool_type = 4
+item_category = 1
+
+[node name="Model" parent="." instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_rod")

@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://dqfood00001"]
+
+[ext_resource type="Script" path="res://scripts/items/carriable_item.gd" id="1_item"]
+[ext_resource type="PackedScene" path="res://assets/psx/props/canned_food_mp_1.glb" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_food"]
+size = Vector3(0.08, 0.12, 0.08)
+
+[node name="FoodItem" type="RigidBody3D"]
+script = ExtResource("1_item")
+item_id = "food"
+display_name = "Canned Food"
+sell_price = 0.0
+item_category = 2
+hunger_restore = 0.3
+
+[node name="Model" parent="." instance=ExtResource("2_mesh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+shape = SubResource("BoxShape3D_food")

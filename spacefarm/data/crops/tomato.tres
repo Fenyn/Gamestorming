@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CropData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/crop_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Crops_Growth_48x48/Tomato_Growth_Stages_48x48.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+crop_id = "tomato"
+display_name = "Tomato"
+designation = "AG-09 Fruit Cultivar"
+description = "Light-dependent. Must be adjacent to window tiles."
+growth_sprite = ExtResource("2")
+sprite_row = 0
+growth_days = 7
+water_schedule = 0
+requires_adjacency = 1
+base_quality = 1.0
+food_units = 3
+crop_color = Color(0.85, 0.25, 0.2, 1)
+seed_color = Color(0.5, 0.15, 0.1, 1)

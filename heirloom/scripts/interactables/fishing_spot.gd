@@ -9,9 +9,20 @@ const CATCH_CHANCES: Array[Dictionary] = [
 ]
 
 
+func get_interact_hint(player: Node3D) -> String:
+	var held: Node3D = player.get_held_item() as Node3D
+	if held and held.get("tool_type") == 4:
+		return "[E] Fish"
+	return "[E] Fish (hold rod)"
+
+
 func interact(player: Node3D) -> void:
-	if player.has_held_item():
+	var held: Node3D = player.get_held_item() as Node3D
+	if not held or not held.has_method("is_tool"):
 		return
+	if held.get("tool_type") != 4:  # FISHING_ROD
+		return
+
 	_catch_fish(player)
 
 
@@ -27,6 +38,9 @@ func _catch_fish(player: Node3D) -> void:
 			break
 
 	if fish_scene:
+		# Drop the fishing rod first
+		player.drop_held_item()
+
 		var fish: Node3D = fish_scene.instantiate()
 		get_parent().add_child(fish)
 		fish.global_position = global_position + Vector3(0, 1.0, 0)

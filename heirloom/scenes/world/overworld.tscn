@@ -1,10 +1,110 @@
 [gd_scene format=3 uid="uid://dqworld00001"]
 
 [ext_resource type="PackedScene" uid="uid://dqplayer001" path="res://scenes/player/player.tscn" id="1_player"]
-[ext_resource type="Script" path="res://scripts/world/scene_manager.gd" id="2_scenemgr"]
+[ext_resource type="Script" uid="uid://tjvx8squq3fn" path="res://scripts/world/scene_manager.gd" id="2_scenemgr"]
+[ext_resource type="Texture2D" uid="uid://dq6skpovqob6r" path="res://assets/terrain_textures/grass_albedo.png" id="3_xwc2a"]
+[ext_resource type="Script" uid="uid://di6ge588cgdls" path="res://scripts/world/terrain_generator.gd" id="3_yfnw3"]
+[ext_resource type="Texture2D" uid="uid://cxb5r8unb4c1s" path="res://assets/terrain_textures/grass_normal.png" id="4_yfnw3"]
+[ext_resource type="Texture2D" uid="uid://bcrfaqv5e5xk2" path="res://assets/terrain_textures/dirt_albedo.png" id="5_ic2ev"]
+[ext_resource type="Texture2D" uid="uid://xppu2a5awhxu" path="res://assets/terrain_textures/dirt_normal.png" id="6_bppwh"]
+[ext_resource type="Texture2D" uid="uid://doujflamvhr0v" path="res://assets/terrain_textures/dirt_path_albedo.png" id="7_nf88s"]
+[ext_resource type="Texture2D" uid="uid://bqfoqa35n1c7a" path="res://assets/terrain_textures/dirt_path_normal.png" id="8_koevj"]
+[ext_resource type="Texture2D" uid="uid://c2ns1ebfl03u7" path="res://assets/terrain_textures/rock_albedo.png" id="9_mrb77"]
+[ext_resource type="Texture2D" uid="uid://bkvnalp1q1n07" path="res://assets/terrain_textures/rock_normal.png" id="10_hu3i1"]
+[ext_resource type="Texture2D" uid="uid://bw3c16m73qw7w" path="res://assets/terrain_textures/grass_dry_albedo.png" id="11_nwxhm"]
+[ext_resource type="Texture2D" uid="uid://b3twm1bq8rbu2" path="res://assets/terrain_textures/grass_dry_normal.png" id="12_nmeri"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(200, 1, 200)
+[sub_resource type="Gradient" id="Gradient_mupvu"]
+offsets = PackedFloat32Array(0.2, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_h7ehk"]
+noise_type = 2
+frequency = 0.03
+cellular_jitter = 3.0
+cellular_return_type = 0
+domain_warp_enabled = true
+domain_warp_type = 1
+domain_warp_amplitude = 50.0
+domain_warp_fractal_type = 2
+domain_warp_fractal_lacunarity = 1.5
+domain_warp_fractal_gain = 1.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_40iui"]
+noise = SubResource("FastNoiseLite_h7ehk")
+color_ramp = SubResource("Gradient_mupvu")
+seamless = true
+
+[sub_resource type="Terrain3DMaterial" id="Terrain3DMaterial_6e3sj"]
+_shader_parameters = {
+&"bias_distance": null,
+&"blend_sharpness": null,
+&"depth_blur": null,
+&"enable_macro_variation": null,
+&"enable_projection": null,
+&"flat_terrain_normals": null,
+&"macro_variation1": null,
+&"macro_variation2": null,
+&"macro_variation_slope": null,
+&"mipmap_bias": null,
+&"noise1_angle": null,
+&"noise1_offset": null,
+&"noise1_scale": null,
+&"noise2_scale": null,
+&"noise_texture": SubResource("NoiseTexture2D_40iui"),
+&"projection_threshold": null
+}
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n2ht8"]
+transparency = 4
+cull_mode = 2
+vertex_color_use_as_albedo = true
+backlight_enabled = true
+backlight = Color(0.5, 0.5, 0.5, 1)
+distance_fade_mode = 1
+distance_fade_min_distance = 128.0
+distance_fade_max_distance = 96.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_8r25w"]
+generated_type = 1
+height_offset = 0.5
+material_override = SubResource("StandardMaterial3D_n2ht8")
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_x2g0f"]
+name = ""
+albedo_texture = ExtResource("3_xwc2a")
+normal_texture = ExtResource("4_yfnw3")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_k6gjt"]
+name = ""
+id = 1
+albedo_texture = ExtResource("5_ic2ev")
+normal_texture = ExtResource("6_bppwh")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_ph410"]
+name = ""
+id = 2
+albedo_texture = ExtResource("7_nf88s")
+normal_texture = ExtResource("8_koevj")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_130fj"]
+name = ""
+id = 3
+albedo_texture = ExtResource("9_mrb77")
+normal_texture = ExtResource("10_hu3i1")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_jda88"]
+name = ""
+id = 4
+albedo_texture = ExtResource("11_nwxhm")
+normal_texture = ExtResource("12_nmeri")
+
+[sub_resource type="Terrain3DAssets" id="Terrain3DAssets_qy4l7"]
+mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_8r25w")])
+texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_x2g0f"), SubResource("Terrain3DTextureAsset_k6gjt"), SubResource("Terrain3DTextureAsset_ph410"), SubResource("Terrain3DTextureAsset_130fj"), SubResource("Terrain3DTextureAsset_jda88")])
 
 [node name="Overworld" type="Node3D" unique_id=456467246]
 
@@ -14,16 +114,20 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1560649741]
 
-[node name="Ground" type="StaticBody3D" parent="." unique_id=1784949474]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=740468191]
-shape = SubResource("BoxShape3D_ground")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1153998147]
-
-[node name="SceneManager" type="Node" parent="."]
+[node name="SceneManager" type="Node" parent="." unique_id=538257235]
 script = ExtResource("2_scenemgr")
 
 [node name="Player" parent="." unique_id=635635980 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Node" type="Node" parent="." unique_id=130766170 node_paths=PackedStringArray("terrain")]
+script = ExtResource("3_yfnw3")
+terrain = NodePath("Terrain3D")
+height_scale = 3.0
+
+[node name="Terrain3D" type="Terrain3D" parent="Node" unique_id=989819185]
+data_directory = "res://terrain_data"
+material = SubResource("Terrain3DMaterial_6e3sj")
+assets = SubResource("Terrain3DAssets_qy4l7")
+top_level = true
+metadata/_edit_lock_ = true

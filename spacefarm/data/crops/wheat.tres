@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CropData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/crop_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Crops_Growth_48x48/Wheat_Growth_Stages_48x48.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+crop_id = "wheat"
+display_name = "Wheat"
+designation = "AG-06 Grain Cultivar"
+description = "Must be planted in groups of 3+ adjacent tiles for cross-pollination."
+growth_sprite = ExtResource("2")
+sprite_row = 0
+growth_days = 5
+water_schedule = 0
+requires_adjacency = 3
+base_quality = 1.0
+food_units = 2
+group_bonus_threshold = 5
+group_bonus_food = 1
+crop_color = Color(0.85, 0.75, 0.3, 1)
+seed_color = Color(0.55, 0.45, 0.15, 1)

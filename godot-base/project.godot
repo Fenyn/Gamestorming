@@ -1,0 +1,23 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Godot Base"
+config/description="Shared base systems addon for Gamestorming prototypes."
+config/features=PackedStringArray("4.6", "Forward Plus")
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_base/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="forward_plus"

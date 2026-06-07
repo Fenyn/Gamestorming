@@ -15,6 +15,12 @@ func _ready() -> void:
 			_set_mail("Rent is due this month: $%.0f" % Economy.MONTHLY_BILL))
 
 
+func get_interact_hint(_player: Node3D) -> String:
+	if _has_mail:
+		return "[E] Check Mail"
+	return ""
+
+
 func interact(_player: Node3D) -> void:
 	if not _has_mail:
 		return

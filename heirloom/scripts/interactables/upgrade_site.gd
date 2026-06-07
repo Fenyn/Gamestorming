@@ -12,6 +12,20 @@ func _ready() -> void:
 	EventBus.upgrade_completed.connect(_on_upgrade_completed)
 
 
+func get_interact_hint(player: Node3D) -> String:
+	if GameState.is_upgrade_complete(upgrade_id):
+		return ""
+	var upgrade: Dictionary = HomesteadManager.get_upgrade(upgrade_id)
+	var name: String = upgrade.get("display_name", "Upgrade") as String
+	if not HomesteadManager.can_build(upgrade_id):
+		return "[E] %s (locked)" % name
+	if player.has_held_item() and player.get_held_item().has_method("is_material") and player.get_held_item().is_material():
+		return "[Click] Deposit material"
+	if HomesteadManager.has_resources(upgrade_id):
+		return "[E] Build %s" % name
+	return "[E] Inspect %s" % name
+
+
 func interact(_player: Node3D) -> void:
 	if GameState.is_upgrade_complete(upgrade_id):
 		return

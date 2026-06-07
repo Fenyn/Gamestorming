@@ -1,0 +1,108 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/shipping_panel.gd" id="1_ship"]
+
+[node name="ShippingPanel" type="PanelContainer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -200.0
+offset_right = 260.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ship")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "CARGO POD"
+horizontal_alignment = 1
+
+[node name="DirectiveLabel" type="Label" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+modulate = Color(0.6, 0.8, 0.6, 1)
+
+[node name="Sep" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="Columns" type="HSplitContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeftPanel" type="VBoxContainer" parent="Margin/VBox/Columns"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+
+[node name="InvHeader" type="Label" parent="Margin/VBox/Columns/LeftPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "INVENTORY (click to load)"
+modulate = Color(0.7, 0.7, 0.8, 1)
+
+[node name="InvScroll" type="ScrollContainer" parent="Margin/VBox/Columns/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryList" type="VBoxContainer" parent="Margin/VBox/Columns/LeftPanel/InvScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightPanel" type="VBoxContainer" parent="Margin/VBox/Columns"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+
+[node name="CargoHeader" type="Label" parent="Margin/VBox/Columns/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "CARGO (click to unload)"
+modulate = Color(0.7, 0.7, 0.8, 1)
+
+[node name="CargoScroll" type="ScrollContainer" parent="Margin/VBox/Columns/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CargoList" type="VBoxContainer" parent="Margin/VBox/Columns/RightPanel/CargoScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Sep2" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="CargoSummary" type="Label" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Nothing loaded"
+horizontal_alignment = 1
+
+[node name="LaunchButton" type="Button" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+disabled = true
+text = "LAUNCH CARGO POD"
+
+[node name="CloseHint" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "[Esc] Close"
+horizontal_alignment = 1
+modulate = Color(0.5, 0.5, 0.6, 1)

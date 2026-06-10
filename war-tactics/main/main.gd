@@ -17,7 +17,7 @@ var _transitioning: bool = false
 
 
 func _ready() -> void:
-	Events.screen_transition_requested.connect(_on_transition_requested)
+	EventBus.screen_transition_requested.connect(_on_transition_requested)
 	_fade_rect.modulate.a = 0.0
 	_load_screen("title")
 

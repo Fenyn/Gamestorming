@@ -17,11 +17,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Events="*res://globals/events.gd"
-RunState="*res://globals/run_state.gd"
-MetaState="*res://globals/meta_state.gd"
-Database="*res://globals/database.gd"
-Grid="*res://globals/grid.gd"
+EventBus="*res://scripts/autoload/event_bus.gd"
+RunState="*res://scripts/autoload/run_state.gd"
+MetaState="*res://scripts/autoload/meta_state.gd"
+Database="*res://scripts/autoload/database.gd"
+Grid="*res://scripts/autoload/grid.gd"
 
 [display]
 

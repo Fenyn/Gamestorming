@@ -193,10 +193,10 @@ func _on_battle_won() -> void:
 	_clear_medals()
 	_deselect_unit()
 	_hud.show_result("Victory!")
-	Events.battle_won.emit()
+	EventBus.battle_won.emit()
 	var timer: SceneTreeTimer = get_tree().create_timer(RESULT_DELAY)
 	await timer.timeout
-	Events.screen_transition_requested.emit("base")
+	EventBus.screen_transition_requested.emit("base")
 
 
 func _on_battle_lost() -> void:
@@ -204,10 +204,10 @@ func _on_battle_lost() -> void:
 	_clear_medals()
 	_deselect_unit()
 	_hud.show_result("Defeat...")
-	Events.battle_lost.emit()
+	EventBus.battle_lost.emit()
 	var timer: SceneTreeTimer = get_tree().create_timer(RESULT_DELAY)
 	await timer.timeout
-	Events.screen_transition_requested.emit("title")
+	EventBus.screen_transition_requested.emit("title")
 
 
 # --- Tile rendering ---

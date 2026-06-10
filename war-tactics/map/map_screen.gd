@@ -22,7 +22,7 @@ func _build_nodes() -> void:
 		btn.text = "Return to Title"
 		btn.pressed.connect(func() -> void:
 			RunState.reset()
-			Events.screen_transition_requested.emit("title")
+			EventBus.screen_transition_requested.emit("title")
 		)
 		_node_container.add_child(btn)
 		return
@@ -64,4 +64,4 @@ func _build_nodes() -> void:
 
 
 func _on_node_clicked(_index: int) -> void:
-	Events.screen_transition_requested.emit("battle")
+	EventBus.screen_transition_requested.emit("battle")

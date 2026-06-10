@@ -17,11 +17,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-EventBus="*res://globals/event_bus.gd"
-InputManager="*res://globals/input_manager.gd"
-GameState="*res://globals/game_state.gd"
-TimeManager="*res://globals/time_manager.gd"
-Database="*res://globals/database.gd"
+EventBus="*res://scripts/autoload/event_bus.gd"
+InputManager="*res://scripts/autoload/input_manager.gd"
+GameState="*res://scripts/autoload/game_state.gd"
+TimeManager="*res://scripts/autoload/time_manager.gd"
+Database="*res://scripts/autoload/database.gd"
 
 [display]
 

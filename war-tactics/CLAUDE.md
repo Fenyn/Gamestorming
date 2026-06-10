@@ -15,11 +15,11 @@ WWII squad-tactics roguelike. Godot 4.6, 2D isometric pixel art, Forward Plus.
 
 ## Architecture
 
-- **5 autoloads (hard cap 6):** Events (signal bus), RunState (per-run data), MetaState (cross-run unlocks stub), Database (resource cache stub), Grid (AStarGrid2D + iso projection)
+- **5 autoloads (hard cap 6):** EventBus (signal bus), RunState (per-run data), MetaState (cross-run unlocks stub), Database (resource cache stub), Grid (AStarGrid2D + iso projection)
 - **Scene-local folders:** each scene lives alongside its scripts and resources
 - **Composition over inheritance:** units composed of child nodes (Health, Mover, Attacker, etc.), not subclassed per unit type
 - **Node-based state machines:** for unit action states and battle turn phases (states as child nodes with enter/exit/update)
-- **Signal bus for cross-scene only:** local communication uses direct signals; Events bus only for decoupling distant scenes (Battle ↔ Map ↔ Base)
+- **Signal bus for cross-scene only:** local communication uses direct signals; EventBus only for decoupling distant scenes (Battle ↔ Map ↔ Base)
 
 ## Isometric Rendering
 
@@ -35,7 +35,7 @@ WWII squad-tactics roguelike. Godot 4.6, 2D isometric pixel art, Forward Plus.
 war-tactics/
 ├── project.godot
 ├── CLAUDE.md
-├── globals/          # autoloads only
+├── scripts/autoload/ # autoloads only
 ├── main/             # root scene + screen management
 ├── battle/           # battle scene, units, overlays, levels
 │   ├── unit/

@@ -59,4 +59,4 @@ func _on_heal_pressed() -> void:
 
 func _on_continue_pressed() -> void:
 	RunState.advance_map_node()
-	Events.screen_transition_requested.emit("map")
+	EventBus.screen_transition_requested.emit("map")

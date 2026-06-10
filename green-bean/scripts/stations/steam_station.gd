@@ -2,7 +2,7 @@ extends StaticBody3D
 
 enum State { IDLE, PITCHER_PLACED, STRETCHING, TEXTURING, READY, MILK_DONE, SCALDED }
 
-var state := State.IDLE
+var state: State = State.IDLE
 var _steam_game: SteamMiniGame = null
 var _placed_pitcher: Pitcher = null
 var _shelf_pitcher: Pitcher = null
@@ -20,7 +20,7 @@ func _ready() -> void:
 
 	_steam_game = SteamMiniGame.new()
 	_steam_game.name = "SteamMiniGame"
-	var cam := Marker3D.new()
+	var cam: Marker3D = Marker3D.new()
 	cam.name = "CameraPoint"
 	cam.position = Vector3(0, 0.4, 0.4)
 	cam.rotation_degrees = Vector3(-25, 0, 0)
@@ -48,7 +48,7 @@ func interact(player: Player) -> void:
 			_try_pickup_shelf_pitcher(player)
 		State.PITCHER_PLACED:
 			if _placed_pitcher and _placed_pitcher.has_milk:
-				var foam_target := _get_foam_target(player)
+				var foam_target: float = _get_foam_target(player)
 				_steam_game.set_foam_target(foam_target)
 				state = State.STRETCHING
 				_update_label()
@@ -103,7 +103,7 @@ func _on_steam_complete(quality: float) -> void:
 	_update_label()
 
 func _get_foam_target(player: Player) -> float:
-	var order := player.get_active_order()
+	var order: OrderData = player.get_active_order()
 	if order:
 		return DrinkData.get_foam_target(order.drink_type)
 	return DrinkData.DEFAULT_FOAM_TARGET
@@ -126,7 +126,7 @@ func _process(_delta: float) -> void:
 			state = State.READY
 			_update_label()
 		elif not _steam_game.is_active() and _status_label:
-			var temp := _steam_game.get_temperature()
+			var temp: float = _steam_game.get_temperature()
 			_status_label.text = "Texturing... %.0f C\n[E] Check milk" % temp
 
 	if state == State.READY and not _steam_game.is_active():
@@ -159,7 +159,7 @@ func _update_label() -> void:
 		return
 	match state:
 		State.IDLE:
-			var has_shelf := _shelf_pitcher != null and is_instance_valid(_shelf_pitcher)
+			var has_shelf: bool = _shelf_pitcher != null and is_instance_valid(_shelf_pitcher)
 			if has_shelf:
 				_status_label.text = "[E] Pick up pitcher"
 			else:

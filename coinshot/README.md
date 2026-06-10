@@ -1,88 +1,21 @@
-```
-                                        .
-                                       /|\
-                                      / | \
-                                     /  |  \
-                                    /   |   \
-                              .----'    |    '----.
-                             /          |          \
-                 ___________/___________+___________\____________
-                |           |     . ~ ~ ~ ~ ~ .      |           |
-                |           |   ~   T H E   ~        |           |
-                |     ||    | ~  M I S T S  ~        |    ||     |
-                |     ||    |   ~   A R E   ~        |    ||     |
-                |     ||    |     ~ Y O U R S ~      |    ||     |
-                |     ||    |       ~ ~ ~ ~ ~        |    ||     |
-                |     ||    |           |            |    ||     |
-                |     ||    |          /|\           |    ||     |
-                |     ||    |         / | \          |    ||     |
-           _____|_____||____|________/__|__\_________|____||_____|_____
-          /     |     ||    |       /   |   \        |    ||     |     \
-         /      |     ||    |      /    |    \       |    ||     |      \
-        /  .    |     ||    |     / --- + --- \      |    ||     |    .  \
-       / /|\ . |     ||    |    /      |      \      |    ||     | . /|\  \
-      / / | \  |     ||    |   /  C O I N S H O T    |    ||     |  / | \  \
-     /./  |  \.|_____||----|--/--------|--------\----|----||_____|./  |  \. \
-    //    |    \\     |    | /         |         \   |    |     //    |    \ \
-   //____ | ____\\____|____|/_________/ \_________ \ |____|____//_____|_____\ \
-  ========+========================================================================
-                     ~ . ~ push ~ . ~ pull ~ . ~ fly ~ . ~
-           
-   
-                        A Mistborn traversal prototype
-                        Push and pull on metal anchors.
-                        Drop coins. Defy gravity.
-    
-                        Built in Godot 4.6 with Jolt Physics.
-  
-```
-
 # Coinshot
 
-A first-person traversal prototype inspired by Brandon Sanderson's *Mistborn* — push and pull on metal anchors to fly through a dark, ash-choked city.
+A Mistborn-inspired first-person traversal prototype: steel-push and iron-pull on metal anchors, drop coins to launch yourself skyward. Traversal only — no combat or enemies.
 
-## Run
-
-1. Install [Godot 4.6 stable](https://godotengine.org/download/) (4.4+ should also work).
-2. Open this folder in Godot (`Import` → select `project.godot`).
-3. Press **F5** to play.
+- **Engine:** Godot 4.6 (Forward Plus), GDScript
+- **Status:** playable
+- **Run:** Open `coinshot/project.godot` in Godot 4.6 and press F5.
 
 ## Controls
+- WASD — move, mouse — look
+- Left mouse — lock target, right mouse — add anchor
+- Space — push (steel), E — pull (iron)
+- Q — drop coin, F — toss coin
+- Mouse wheel — burn intensity up/down
+- Tab — toggle mist-vision, R — respawn, [ / ] — prev/next level, Esc — quit
 
-| Action | Binding |
-|---|---|
-| Move | W A S D |
-| Look | Mouse |
-| **Lock target** | Left mouse (hold) |
-| **Add anchor** | Right mouse (while locked) |
-| **Push** (steel) | Space |
-| **Pull** (iron)  | E |
-| **Drop coin** | Q |
-| **Coinshot** (fire coin forward) | F |
-| Burn intensity | Scroll wheel |
-| Toggle mist-vision | Tab |
-| Respawn | R |
-| Switch levels | \[ / \] |
-| Quit | Esc |
-
-## Levels
-
-| # | Name | Teaches |
-|---|------|---------|
-| 1 | **The Ash Yard** | Lock, push, pull, multi-target, push+pull combo |
-| 2 | **The Iron Arches** | Slingshot maneuvers — push a wall, pull an arch to curve mid-flight |
-| 3 | **The Steel Run** | High-speed pull chains and momentum redirection |
-| 4 | **The Crucible** | Multi-target hovering, burn control, moving anchor tracking |
-| 5 | **The Black Spire** | Everything combined in a vertical ascent |
-
-## What this prototype demonstrates
-
-- **Sense-through-walls metal vision** — blue lines penetrate geometry like a sixth sense. Heavier anchors render brighter.
-- **Newton's-3rd push/pull** — light coins fly away, heavy crates barely budge, anchored girders fling the player.
-- **Multi-target tethering** — lock multiple anchors with RMB for combined force. Three floor girders launch you three times as high.
-- **Slingshot traversal** — push off a wall for speed, pull an arch to curve your trajectory mid-flight.
-- **Hover control** — push off anchors below you to hover. Scroll to adjust burn intensity and altitude.
-
-## Scope
-
-Traversal core only — no combat, no enemies. If the basic verb feels good, combat layers on top later.
+## Notes
+- Uses **Jolt physics** (`physics/3d/physics_engine="JoltPhysics3D"`) with gravity tuned to 18 m/s² for mass-aware push/pull.
+- Push/pull is pure Newton's 3rd law: light coins fly, heavy anchored girders fling the player instead.
+- Mist-vision renders blue lines to nearby metal anchors through walls (no depth test), brighter for heavier anchors.
+- No external assets — geometry is built from Godot primitives.

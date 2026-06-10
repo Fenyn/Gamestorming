@@ -1,26 +1,32 @@
-coinshot/webBuild.zip
+# --- Engine / IDE / OS artifacts (global) ---
+.godot/
+.idea/
+*.cache
+*.tmp
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# --- Export builds ---
+*.apk
+*.zip
+/coinshot/build/
+/life-magic/android/
+/life-magic/build/
+/life-magic/wear/build/
+/skeleton-crew/android/
+
+# --- Local-only asset packs (deliberately untracked) ---
 /worldseed/assets
-/worldseed/.godot
 /end-of-the-line/kenney_train-kit
 /the-maw-of-rrrbl/kenney_marble-kit
-/end-of-the-line/.godot/editor
-/end-of-the-line/.godot/imported
-/the-maw-of-rrrbl/.godot/editor
-/the-maw-of-rrrbl/.godot/imported
-/the-maw-of-rrrbl/.godot
-/end-of-the-line/.godot
-/life-magic/wear/build
 /skeleton-crew/assets/Sci-Fi Modular Environment Pack Vol.1
-*.cache
-/drifter/.godot/imported
 /drifter/assets/sprites
-/heirloom/.godot/editor
-/heirloom/.godot/imported
-/heirloom/assets/psx
-/heirloom/addons
-/autobattler/.godot
 /heirloom/assets
 /heirloom/demo/assets
 /heirloom/terrain_data
-/spacefarm/.godot
 /spacefarm/assets
+
+# --- Third-party addons kept local (godot_base stays tracked) ---
+/heirloom/addons/*
+!/heirloom/addons/godot_base

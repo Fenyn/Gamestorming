@@ -1,5 +1,5 @@
 class_name TurnWon
-extends State
+extends BaseState
 
 signal battle_won
 

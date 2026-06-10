@@ -3,7 +3,7 @@ extends CanvasLayer
 @onready var _panel: PanelContainer = $Panel
 @onready var _title_label: Label = $Panel/Margin/VBox/TitleLabel
 @onready var _desc_label: Label = $Panel/Margin/VBox/DescLabel
-@onready var _req_label: Label = $Panel/Margin/VBox/ReqLabel
+@onready var _req_label: RichTextLabel = $Panel/Margin/VBox/ReqLabel
 @onready var _status_label: Label = $Panel/Margin/VBox/StatusLabel
 
 var _visible_upgrade: String = ""

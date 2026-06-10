@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://5jdjpyeitkyk"]
+[gd_scene format=3 uid="uid://5jdjpyeitkyk"]
 
 [ext_resource type="Script" uid="uid://djwpcvvuyfy2a" path="res://scripts/stations/cash_drawer.gd" id="1"]
 

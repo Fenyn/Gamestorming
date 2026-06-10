@@ -1,5 +1,5 @@
 class_name UnitOverwatch
-extends State
+extends BaseState
 
 var _unit: Unit = null
 var _cone_tiles: Array[Vector2i] = []

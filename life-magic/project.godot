@@ -42,6 +42,10 @@ window/handheld/orientation=1
 
 project/assembly_name="Life Magic"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_base/plugin.cfg")
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true

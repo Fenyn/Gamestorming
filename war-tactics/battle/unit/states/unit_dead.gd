@@ -1,5 +1,5 @@
 class_name UnitDead
-extends State
+extends BaseState
 
 var _unit: Unit = null
 

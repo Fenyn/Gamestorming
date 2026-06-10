@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://ckwdnu07q3tny"]
+[gd_scene format=3 uid="uid://ckwdnu07q3tny"]
 
 [ext_resource type="Script" uid="uid://cs5on50gr0r7a" path="res://scripts/stations/hot_water_station.gd" id="1"]
 

@@ -49,7 +49,7 @@ var _rotate_tween: Tween = null
 @onready var _grid_overlay: GridOverlay = %GridOverlay
 @onready var _entity_layer: Node2D = %EntityLayer
 @onready var _tile_pick_layer: Node2D = %TilePickLayer
-@onready var _turn_machine: StateMachine = %TurnMachine
+@onready var _turn_machine: BaseStateMachine = %TurnMachine
 @onready var _hud: BattleHUD = %BattleHUD
 @onready var _minigame_layer: MinigameLayer = %MinigameLayer
 

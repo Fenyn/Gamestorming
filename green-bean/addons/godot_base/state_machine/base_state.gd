@@ -1,7 +1,7 @@
-class_name State
+class_name BaseState
 extends Node
 
-var state_machine: StateMachine = null
+var state_machine: BaseStateMachine = null
 
 
 func enter(_msg: Dictionary = {}) -> void:
@@ -13,4 +13,8 @@ func exit() -> void:
 
 
 func update(_delta: float) -> void:
+	pass
+
+
+func physics_update(_delta: float) -> void:
 	pass

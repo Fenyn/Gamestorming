@@ -1,5 +1,5 @@
 class_name UnitAttacking
-extends State
+extends BaseState
 
 signal attack_resolved(target: Unit, hit: bool, damage_dealt: int)
 

@@ -1,5 +1,5 @@
 class_name TurnEnemy
-extends State
+extends BaseState
 
 signal enemy_turn_started
 signal enemy_turn_finished

@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://dae8p6asdkrbh"]
+[gd_scene format=3 uid="uid://dae8p6asdkrbh"]
 
 [ext_resource type="Script" uid="uid://rpttaekx5odk" path="res://scripts/stations/register.gd" id="1"]
 

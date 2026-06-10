@@ -33,6 +33,10 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="War Tactics"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_base/plugin.cfg")
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

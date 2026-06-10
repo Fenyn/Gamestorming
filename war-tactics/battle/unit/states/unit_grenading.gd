@@ -1,5 +1,5 @@
 class_name UnitGrenading
-extends State
+extends BaseState
 
 signal grenade_resolved(aoe_tiles: Array[Vector2i], damage: int)
 

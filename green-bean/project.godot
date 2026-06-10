@@ -34,6 +34,10 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="Green Bean"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_base/plugin.cfg")
+
 [global_group]
 
 world_label=""

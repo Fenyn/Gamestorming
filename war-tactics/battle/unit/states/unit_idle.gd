@@ -1,2 +1,2 @@
 class_name UnitIdle
-extends State
+extends BaseState

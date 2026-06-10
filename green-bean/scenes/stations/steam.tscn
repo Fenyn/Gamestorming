@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://dw4u1fvpm2aam"]
+[gd_scene format=3 uid="uid://dw4u1fvpm2aam"]
 
 [ext_resource type="Script" uid="uid://bq85cwvuemjm5" path="res://scripts/stations/steam_station.gd" id="1"]
 

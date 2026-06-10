@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://bj6yjp8w1k5f5"]
+[gd_scene format=3 uid="uid://bj6yjp8w1k5f5"]
 
 [ext_resource type="Script" uid="uid://dkj0rwxkj3cu5" path="res://scripts/stations/grinder_station.gd" id="1"]
 

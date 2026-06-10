@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://chj46v7dc8hoe"]
+[gd_scene format=3 uid="uid://chj46v7dc8hoe"]
 
 [ext_resource type="Script" uid="uid://bb0wnxcmwdje2" path="res://scripts/stations/aeropress_station.gd" id="1"]
 

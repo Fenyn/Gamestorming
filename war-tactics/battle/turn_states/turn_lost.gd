@@ -1,5 +1,5 @@
 class_name TurnLost
-extends State
+extends BaseState
 
 signal battle_lost
 

@@ -1,5 +1,5 @@
 class_name TurnPlayer
-extends State
+extends BaseState
 
 signal player_turn_started
 

@@ -42,6 +42,10 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="Worldseed"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_base/plugin.cfg")
+
 [input]
 
 move_forward={

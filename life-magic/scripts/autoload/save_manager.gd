@@ -1,15 +1,16 @@
 extends Node
 
-const SAVE_PATH := "user://save_game.json"
-const CURRENT_VERSION := 3
-const AUTO_SAVE_BEATS := 30
-const BASE_OFFLINE_BEATS := 600
+const SAVE_PATH: String = "user://save_game.json"
+const AUTO_SAVE_BEATS: int = 30
+const BASE_OFFLINE_BEATS: int = 600
 
+var _handler: SaveFileHandler
 var _beat_counter: int = 0
 var _last_save_timestamp: int = 0
 
 
 func _ready() -> void:
+	_handler = SaveFileHandler.new(SAVE_PATH, GameState.SAVE_VERSION)
 	load_game()
 	EventBus.tick_fired.connect(_on_tick)
 	EventBus.generator_purchased.connect(func(_t, _c): save_game())
@@ -30,43 +31,19 @@ func _on_tick(_tick_number: int) -> void:
 
 
 func save_game() -> void:
-	var data := GameState.to_dict()
-	data["timestamp"] = int(Time.get_unix_time_from_system())
-	_last_save_timestamp = data["timestamp"]
-
-	var json_string := JSON.stringify(data, "\t")
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if not file:
-		push_warning("SaveManager: Could not open save file for writing")
-		return
-	file.store_string(json_string)
-	file.close()
-	EventBus.save_completed.emit()
+	var data: Dictionary = GameState.to_dict()
+	var saved: bool = _handler.save_dict(data)
+	_last_save_timestamp = data.get("timestamp", _last_save_timestamp) as int
+	if saved:
+		EventBus.save_completed.emit()
 
 
 func load_game() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
-		return
-
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
-	if not file:
-		push_warning("SaveManager: Could not open save file for reading")
-		return
-
-	var json_string := file.get_as_text()
-	file.close()
-
-	var json := JSON.new()
-	var parse_result := json.parse(json_string)
-	if parse_result != OK:
-		push_warning("SaveManager: Failed to parse save file, starting fresh")
-		return
-
-	var data: Dictionary = json.data
+	var data: Dictionary = _handler.load_dict()
 	if data.is_empty():
 		return
 
-	data = _migrate(data)
+	data = _handler.migrate(data, {1: _migrate_v1_to_v2, 2: _migrate_v2_to_v3})
 	GameState.from_dict(data)
 	_last_save_timestamp = data.get("timestamp", 0)
 
@@ -74,22 +51,19 @@ func load_game() -> void:
 	EventBus.load_completed.emit()
 
 
-func _migrate(data: Dictionary) -> Dictionary:
-	var version: int = data.get("save_version", 1)
-	while version < CURRENT_VERSION:
-		match version:
-			1:
-				var gens: Dictionary = data.get("generators", {})
-				for key in gens:
-					if gens[key].has("count") and not gens[key].has("owned"):
-						gens[key]["owned"] = gens[key]["count"]
-						gens[key]["produced"] = 0.0
-						gens[key].erase("count")
-			2:
-				if not data.has("plots"):
-					data["plots"] = {}
-		version += 1
-		data["save_version"] = version
+func _migrate_v1_to_v2(data: Dictionary) -> Dictionary:
+	var gens: Dictionary = data.get("generators", {})
+	for key in gens:
+		if gens[key].has("count") and not gens[key].has("owned"):
+			gens[key]["owned"] = gens[key]["count"]
+			gens[key]["produced"] = 0.0
+			gens[key].erase("count")
+	return data
+
+
+func _migrate_v2_to_v3(data: Dictionary) -> Dictionary:
+	if not data.has("plots"):
+		data["plots"] = {}
 	return data
 
 
@@ -143,5 +117,4 @@ func _format_duration(seconds: int) -> String:
 
 
 func delete_save() -> void:
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+	_handler.delete_save()

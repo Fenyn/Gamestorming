@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://bun7h50310vfi"]
+[gd_scene format=3 uid="uid://bun7h50310vfi"]
 
 [ext_resource type="Script" uid="uid://khdnbb05v1u6" path="res://scripts/stations/hand_off.gd" id="1"]
 

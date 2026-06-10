@@ -74,67 +74,35 @@ const SFX_PATHS := {
 	"item_place": "res://audio/sfx/item_place.ogg",
 }
 
-const POOL_SIZE := 8
-
-var _pool: Array[AudioStreamPlayer] = []
-var _pool_index := 0
-var _loops: Dictionary = {}
-var _cache: Dictionary = {}
+var _sfx: SfxPool
 
 func _ready() -> void:
-	for i in range(POOL_SIZE):
-		var p := AudioStreamPlayer.new()
-		p.bus = "Master"
-		add_child(p)
-		_pool.append(p)
+	_sfx = SfxPool.new()
+	add_child(_sfx)
 
 func play(sound_name: String, volume_db: float = 0.0) -> void:
-	var stream := _get_stream(sound_name)
-	if not stream:
-		return
-	var player := _pool[_pool_index]
-	_pool_index = (_pool_index + 1) % POOL_SIZE
-	player.stream = stream
-	player.volume_db = volume_db
-	player.play()
+	var path: String = _resolve_path(sound_name)
+	if not path.is_empty():
+		_sfx.play(path, volume_db)
 
 func play_loop(sound_name: String, volume_db: float = 0.0) -> void:
-	if sound_name in _loops:
-		return
-	var stream := _get_stream(sound_name)
-	if not stream:
-		return
-	var player := AudioStreamPlayer.new()
-	player.bus = "Master"
-	player.stream = stream
-	player.volume_db = volume_db
-	add_child(player)
-	player.play()
-	_loops[sound_name] = player
+	var path: String = _resolve_path(sound_name)
+	if not path.is_empty():
+		_sfx.play_loop(sound_name, path, volume_db)
 
 func stop_loop(sound_name: String) -> void:
-	if sound_name not in _loops:
-		return
-	var player: AudioStreamPlayer = _loops[sound_name]
-	player.stop()
-	player.queue_free()
-	_loops.erase(sound_name)
+	_sfx.stop_loop(sound_name)
 
 func stop_all_loops() -> void:
-	for key in _loops.keys():
-		stop_loop(key)
+	_sfx.stop_all_loops()
 
 func is_loop_playing(sound_name: String) -> bool:
-	return sound_name in _loops
+	return _sfx.is_loop_playing(sound_name)
 
-func _get_stream(sound_name: String) -> AudioStream:
-	if sound_name in _cache:
-		return _cache[sound_name]
-	if sound_name not in SFX_PATHS:
-		return null
-	var path: String = SFX_PATHS[sound_name]
-	if not ResourceLoader.exists(path):
-		return null
-	var stream := load(path) as AudioStream
-	_cache[sound_name] = stream
-	return stream
+# Missing/unknown sounds resolve to "" and are skipped silently
+# (SfxPool itself warns on missing paths).
+func _resolve_path(sound_name: String) -> String:
+	var path: String = SFX_PATHS.get(sound_name, "") as String
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return ""
+	return path

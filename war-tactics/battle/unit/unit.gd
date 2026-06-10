@@ -29,7 +29,7 @@ var bonus_defense: int = 0
 @onready var health: Health = %Health
 @onready var mover: Mover = %Mover
 @onready var attacker: Attacker = %Attacker
-@onready var state_machine: StateMachine = %StateMachine
+@onready var state_machine: BaseStateMachine = %StateMachine
 @onready var _target_pip: Polygon2D = %TargetPip
 
 

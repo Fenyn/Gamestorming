@@ -1,5 +1,5 @@
 class_name UnitMoving
-extends State
+extends BaseState
 
 var _unit: Unit = null
 var _connected: bool = false

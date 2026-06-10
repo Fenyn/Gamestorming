@@ -1,4 +1,4 @@
-﻿[gd_scene format=3 uid="uid://og0lvr77r062"]
+[gd_scene format=3 uid="uid://og0lvr77r062"]
 
 [ext_resource type="Script" uid="uid://8x5ctdydklwi" path="res://scripts/stations/counter_pad.gd" id="1"]
 

@@ -1,10 +1,13 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scenes/station/station.gd" id="1_station"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/living_quarters.tscn" id="3_lq"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/hub.tscn" id="4_hub"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/grow_bay_room.tscn" id="5_gb"]
+[ext_resource type="PackedScene" path="res://scenes/station/rooms/grow_bay_b.tscn" id="18_gbb"]
+[ext_resource type="PackedScene" path="res://scenes/station/rooms/grow_bay_c.tscn" id="19_gbc"]
+[ext_resource type="PackedScene" path="res://scenes/station/rooms/grow_bay_d.tscn" id="20_gbd"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/cargo_bay.tscn" id="6_cargo"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/service_tunnel.tscn" id="7_tunnel"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/processing_lab.tscn" id="8_proc"]
@@ -17,47 +20,58 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="15_pause"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hybridizer_panel.tscn" id="16_hybrid_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/comms_panel.tscn" id="17_comms"]
+[ext_resource type="Script" path="res://scenes/ui/energy_bar.gd" id="21_energy"]
+[ext_resource type="PackedScene" path="res://scenes/ui/day_summary_panel.tscn" id="22_summary"]
 
 
 [node name="Station" type="Node2D"]
 script = ExtResource("1_station")
 
 [node name="SpaceBackground" type="ColorRect" parent="."]
-offset_left = -6000.0
-offset_top = -6000.0
-offset_right = 6000.0
-offset_bottom = 6000.0
+offset_left = -12000.0
+offset_top = -12000.0
+offset_right = 12000.0
+offset_bottom = 12000.0
 color = Color(0.02, 0.02, 0.05, 1)
 z_index = -10
 
 [node name="Rooms" type="Node2D" parent="."]
 
 [node name="LivingQuarters" parent="Rooms" instance=ExtResource("3_lq")]
-position = Vector2(-2000, -2000)
+position = Vector2(-4000, -4000)
 
 [node name="Hub" parent="Rooms" instance=ExtResource("4_hub")]
 position = Vector2(0, 0)
 
 [node name="GrowBayRoom" parent="Rooms" instance=ExtResource("5_gb")]
-position = Vector2(2000, 0)
+position = Vector2(4000, 0)
+
+[node name="GrowBayB" parent="Rooms" instance=ExtResource("18_gbb")]
+position = Vector2(8000, 0)
+
+[node name="GrowBayC" parent="Rooms" instance=ExtResource("19_gbc")]
+position = Vector2(8000, 4000)
+
+[node name="GrowBayD" parent="Rooms" instance=ExtResource("20_gbd")]
+position = Vector2(4000, 4000)
 
 [node name="CargoBay" parent="Rooms" instance=ExtResource("6_cargo")]
-position = Vector2(0, 2000)
+position = Vector2(0, 4000)
 
 [node name="ServiceTunnel" parent="Rooms" instance=ExtResource("7_tunnel")]
-position = Vector2(2000, -2000)
+position = Vector2(4000, -4000)
 
 [node name="ProcessingLab" parent="Rooms" instance=ExtResource("8_proc")]
-position = Vector2(-2000, 2000)
+position = Vector2(-4000, 4000)
 
 [node name="AdvancedProcessing" parent="Rooms" instance=ExtResource("9_advproc")]
-position = Vector2(-2000, 4000)
+position = Vector2(-4000, 8000)
 
 [node name="HybridizationLab" parent="Rooms" instance=ExtResource("14_hybrid")]
-position = Vector2(-4000, 2000)
+position = Vector2(-8000, 4000)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
-position = Vector2(-2000, -2000)
+position = Vector2(-4000, -4000)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -73,6 +87,38 @@ offset_top = -60.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("10_hotbar")
+
+[node name="EnergyBar" type="ProgressBar" parent="HUD"]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -196.0
+offset_top = -34.0
+offset_right = -16.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("21_energy")
+
+[node name="EnergyLabel" type="Label" parent="HUD"]
+mouse_filter = 2
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -196.0
+offset_top = -52.0
+offset_right = -16.0
+offset_bottom = -36.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 9
+text = "ENERGY"
+modulate = Color(0.6, 0.6, 0.7, 1)
 
 [node name="InteractHint" type="Label" parent="HUD"]
 unique_name_in_owner = true
@@ -166,3 +212,5 @@ layer = 50
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 color = Color(0.6, 0.5, 0.4, 1)
+
+[node name="DaySummary" parent="." instance=ExtResource("22_summary")]

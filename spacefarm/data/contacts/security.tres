@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ContactData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/contact_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contact_id = "security"
+contact_name = "Security Lead"
+role = "Security Lead"
+greeting = "[STUB] Greeting for Security Lead — add personality text to security.tres"
+location_claim = "service_tunnel"
+gameplay_function = ""

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ContactData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/contact_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contact_id = "chef"
+contact_name = "Chef"
+role = "Chef"
+greeting = "[STUB] Greeting for Chef — add personality text to chef.tres"
+location_claim = "hub"
+gameplay_function = "cooking"

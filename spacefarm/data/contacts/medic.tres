@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ContactData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/contact_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contact_id = "medic"
+contact_name = "Doctor"
+role = "Medical Officer"
+greeting = "[STUB] Greeting for Medical Officer — add personality text to medic.tres"
+location_claim = "living_quarters"
+gameplay_function = "clinic"

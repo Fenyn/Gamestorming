@@ -27,6 +27,5 @@ func _on_resume() -> void:
 
 
 func _on_save() -> void:
-	var handler: SaveFileHandler = SaveFileHandler.new(GameState.SAVE_PATH, GameState.SAVE_VERSION)
-	handler.save_dict(GameState.to_dict())
+	GameState.save_game()
 	_save_btn.text = "SAVED!"

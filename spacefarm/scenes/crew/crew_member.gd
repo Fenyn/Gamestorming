@@ -1,0 +1,54 @@
+class_name CrewMember
+extends CharacterBody2D
+
+signal crew_interacted(crew_id: String)
+
+const SPEED: float = 80.0
+const IDLE_TIME_MIN: float = 3.0
+const IDLE_TIME_MAX: float = 8.0
+const WANDER_RADIUS: float = 80.0
+const ARRIVAL_THRESHOLD: float = 8.0
+
+var crew_id: String = ""
+var crew_data: ContactData = null
+var home_position: Vector2 = Vector2.ZERO
+
+@onready var _sprite: Sprite2D = $Sprite2D
+@onready var _name_label: Label = $NameLabel
+@onready var nav_agent: NavigationAgent2D = $NavigationAgent2D
+@onready var _state_machine: BaseStateMachine = $StateMachine
+
+
+func setup(data: ContactData) -> void:
+	crew_id = data.contact_id
+	crew_data = data
+	if _name_label:
+		_name_label.text = data.contact_name
+	home_position = position
+	add_to_group("crew_members")
+
+
+func _ready() -> void:
+	nav_agent.path_desired_distance = ARRIVAL_THRESHOLD
+	nav_agent.target_desired_distance = ARRIVAL_THRESHOLD
+	_state_machine.start()
+
+
+func interact(_player: Node2D) -> void:
+	_state_machine.transition_to(&"Talking", {"duration": 2.0})
+	crew_interacted.emit(crew_id)
+
+
+func get_interact_hint() -> String:
+	if crew_data:
+		return "E/Click: Talk to %s" % crew_data.contact_name
+	return "E/Click: Talk"
+
+
+func get_state_name() -> StringName:
+	return _state_machine.get_current_state_name()
+
+
+func is_busy() -> bool:
+	var state: StringName = get_state_name()
+	return state == &"Talking" or state == &"Relocating" or state == &"Transit"

@@ -6,11 +6,11 @@
 script = ExtResource("1")
 milestone_id = "directive_2"
 directive_number = 2
-display_name = "NUTRITIONAL PROTOCOL"
-ai_message = "[PLACEHOLDER - PENDING TONE APPROVAL]"
+display_name = "SUSTAINED NUTRITION"
+ai_message = "Raw calories are keeping us alive, but I'm seeing deficiency markers in the crew's health panels. We need processed nutrition — ration packs for energy, supplements for balance. Thirty and twenty, respectively. Their long-term health depends on this."
 required_food_units = 0
 required_items = {"ration_pack": 30, "supplement_pack": 20}
 unlocked_crops = []
-unlocked_modules = ["advanced_processing", "hybridization_lab"]
+unlocked_modules = ["advanced_processing", "hybridization_lab", "grow_ring_c", "grow_ring_d"]
 unlocked_story_entries = []
-lore_hint = "[PLACEHOLDER - PENDING TONE APPROVAL]"
+lore_hint = "The Linguist has decoded environmental controls for two more chambers. The Engineer is ready to configure them."

@@ -1,10 +1,13 @@
 extends Node
 
-const SECONDS_PER_GAME_HOUR: float = 10.0
-const HOURS_PER_DAY: int = 16
-const DAYS_PER_SEASON: int = 14
+const SECONDS_PER_GAME_HOUR: float = 10.0 # Dev speed. Release: 42.0 (Stardew-matched)
+const HOURS_PER_DAY: int = 20
+const DAYS_PER_SEASON: int = 28
+const DAYS_PER_WEEK: int = 7
 const DAY_START_HOUR: int = 6
-const DAY_END_HOUR: int = 22
+const DAY_END_HOUR: int = 26 # 2am next day
+const DAY_NAMES: Array[String] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+const SEASON_NAMES: Array[String] = ["Radiance", "Blaze", "Dusk", "Frost"]
 
 var current_hour: int = DAY_START_HOUR
 var paused: bool = false
@@ -56,6 +59,10 @@ func _on_tick(_tick_count: int) -> void:
 		_end_day()
 
 
+func end_day_early() -> void:
+	_end_day()
+
+
 func _end_day() -> void:
 	_tick_emitter.stop()
 	var ended_day: int = GameState.day
@@ -78,8 +85,9 @@ func advance_to_next_season() -> void:
 
 
 func get_time_string() -> String:
+	var display_hour: int = current_hour % 24
 	var minute: int = int(_seconds_into_hour * 60.0 / SECONDS_PER_GAME_HOUR)
-	return "%02d:%02d" % [current_hour, minute]
+	return "%02d:%02d" % [display_hour, minute]
 
 
 func get_day_progress() -> float:
@@ -93,3 +101,16 @@ func is_peak_sun() -> bool:
 
 func is_night() -> bool:
 	return current_hour >= 20 or current_hour < 6
+
+
+func get_day_of_week() -> int:
+	return (GameState.day - 1) % DAYS_PER_WEEK
+
+
+func get_day_name() -> String:
+	return DAY_NAMES[get_day_of_week()]
+
+
+func get_season_name() -> String:
+	var idx: int = (GameState.season - 1) % SEASON_NAMES.size()
+	return SEASON_NAMES[idx]

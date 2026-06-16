@@ -23,13 +23,17 @@ func _try_plant() -> void:
 	var crop_id: String = GameState.get_active_seed_crop_id()
 	if crop_id == "":
 		return
+	var crop_data: CropData = Database.get_crop(crop_id)
+	if crop_data == null:
+		return
+	var bay: GrowBay = tile.get_grow_bay()
+	var bay_biome: String = bay.get_biome() if bay else "verdant"
+	if crop_data.biome != bay_biome:
+		EventBus.notification_requested.emit("%s only grows in the %s bay" % [crop_data.get_active_name(), crop_data.biome.capitalize()])
+		return
 	var seed_id: String = crop_id + "_seed"
 	if not GameState.remove_item(seed_id, 1):
 		EventBus.notification_requested.emit("No seeds left")
-		return
-	var crop_data: CropData = Database.get_crop(crop_id)
-	if crop_data == null:
-		GameState.add_item(seed_id, 1)
 		return
 	tile.set_crop(crop_data)
 	state_machine.transition_to(&"Planted")

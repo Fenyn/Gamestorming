@@ -11,6 +11,7 @@ designation = "HY-05 Mineral Rhizome"
 description = "Water every other day only. Overwatering causes wilting."
 growth_sprite = ExtResource("2")
 sprite_row = 0
+biome = "arid"
 growth_days = 10
 water_schedule = 2
 requires_adjacency = 0

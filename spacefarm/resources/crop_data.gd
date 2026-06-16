@@ -11,6 +11,8 @@ enum AdjacencyRequirement { NONE, WINDOW, WALL, GROUP_3, THERMAL_REG }
 @export var description: String = ""
 
 @export_group("Growth")
+## Which grow-ring bay this crop accepts: verdant, arid, fungal, or cryo.
+@export var biome: String = "verdant"
 @export var growth_days: int = 5
 @export var water_schedule: WaterSchedule = WaterSchedule.ONCE_DAILY
 @export var requires_adjacency: AdjacencyRequirement = AdjacencyRequirement.NONE
@@ -31,6 +33,6 @@ enum AdjacencyRequirement { NONE, WINDOW, WALL, GROUP_3, THERMAL_REG }
 
 
 func get_active_name() -> String:
-	if GameState.simulation_revealed and designation != "":
+	if GameState.titan_ai_awakened and designation != "":
 		return designation
 	return display_name

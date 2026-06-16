@@ -1,40 +1,65 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/machines/hybridizer.tscn" id="2_hyb"]
+[ext_resource type="Script" path="res://scenes/machines/hybridizer.gd" id="4_6270v"]
+[ext_resource type="Script" path="res://scenes/station/exit_zone.gd" id="5_6031h"]
+[ext_resource type="TileSet" path="res://resources/room_tileset.tres" id="90_tileset"]
 
-[node name="HybridizationLab" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6270v"]
+size = Vector2(24, 96)
+
+[node name="HybridizationLab" type="Node2D" unique_id=1842157308]
 script = ExtResource("1_room")
 room_id = "hybridization_lab"
-room_width = 420.0
-room_height = 340.0
-exit_west = "processing_lab"
+room_width = 576.0
+exit_east = "processing_lab"
 
-[node name="FloorLayer" type="TileMapLayer" parent="."]
+[node name="FloorLayer" type="TileMapLayer" parent="." unique_id=1009929150]
 z_index = -2
+tile_map_data = PackedByteArray("AAD6//z/AAANAB0AAAD7//z/AAANAB0AAAD8//z/AAANAB0AAAD9//z/AAANAB0AAAD+//z/AAANAB0AAAD///z/AAANAB0AAAAAAPz/AAANAB0AAAABAPz/AAANAB0AAAACAPz/AAANAB0AAAADAPz/AAANAB0AAAAEAPz/AAANAB0AAAAFAPz/AAANAB0AAAD6//3/AAANAB0AAAD7//3/AAANAB0AAAD8//3/AAANAB0AAAD9//3/AAANAB0AAAD+//3/AAANAB0AAAD///3/AAANAB0AAAAAAP3/AAANAB0AAAABAP3/AAANAB0AAAACAP3/AAANAB0AAAADAP3/AAANAB0AAAAEAP3/AAANAB0AAAAFAP3/AAANAB0AAAD6//7/AAANAB0AAAD7//7/AAANAB0AAAD8//7/AAANAB0AAAD9//7/AAANAB0AAAD+//7/AAANAB0AAAD///7/AAANAB0AAAAAAP7/AAANAB0AAAABAP7/AAANAB0AAAACAP7/AAANAB0AAAADAP7/AAANAB0AAAAEAP7/AAANAB0AAAAFAP7/AAANAB0AAAD6////AAANAB0AAAD7////AAANAB0AAAD8////AAANAB0AAAD9////AAANAB0AAAD+////AAANAB0AAAD/////AAANAB0AAAAAAP//AAANAB0AAAABAP//AAANAB0AAAACAP//AAANAB0AAAADAP//AAANAB0AAAAEAP//AAANAB0AAAAFAP//AAANAB0AAAD6/wAAAAANAB0AAAD7/wAAAAANAB0AAAD8/wAAAAANAB0AAAD9/wAAAAANAB0AAAD+/wAAAAANAB0AAAD//wAAAAANAB0AAAAAAAAAAAANAB0AAAABAAAAAAANAB0AAAACAAAAAAANAB0AAAADAAAAAAANAB0AAAAEAAAAAAANAB0AAAAFAAAAAAANAB0AAAD6/wEAAAANAB0AAAD7/wEAAAANAB0AAAD8/wEAAAANAB0AAAD9/wEAAAANAB0AAAD+/wEAAAANAB0AAAD//wEAAAANAB0AAAAAAAEAAAANAB0AAAABAAEAAAANAB0AAAACAAEAAAANAB0AAAADAAEAAAANAB0AAAAEAAEAAAANAB0AAAAFAAEAAAANAB0AAAD6/wIAAAANAB0AAAD7/wIAAAANAB0AAAD8/wIAAAANAB0AAAD9/wIAAAANAB0AAAD+/wIAAAANAB0AAAD//wIAAAANAB0AAAAAAAIAAAANAB0AAAABAAIAAAANAB0AAAACAAIAAAANAB0AAAADAAIAAAANAB0AAAAEAAIAAAANAB0AAAAFAAIAAAANAB0AAAD6/wMAAAANAB0AAAD7/wMAAAANAB0AAAD8/wMAAAANAB0AAAD9/wMAAAANAB0AAAD+/wMAAAANAB0AAAD//wMAAAANAB0AAAAAAAMAAAANAB0AAAABAAMAAAANAB0AAAACAAMAAAANAB0AAAADAAMAAAANAB0AAAAEAAMAAAANAB0AAAAFAAMAAAANAB0AAAD5//z/AAANAB0AAAAGAPz/AAANAB0AAAD5//3/AAANAB0AAAAGAP3/AAANAB0AAAD5//7/AAANAB0AAAAGAP7/AAANAB0AAAD5////AAANAB0AAAAGAP//AAANAB0AAAD5/wAAAAANAB0AAAAGAAAAAAANAB0AAAD5/wEAAAANAB0AAAAGAAEAAAANAB0AAAD5/wIAAAANAB0AAAAGAAIAAAANAB0AAAD5/wMAAAANAB0AAAAGAAMAAAANAB0AAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="WallLayer" type="TileMapLayer" parent="."]
+[node name="WallLayer" type="TileMapLayer" parent="." unique_id=1478889889]
 z_index = -1
+tile_map_data = PackedByteArray("AAD6//r/AQAXAAoAAAD6//v/AQAXAAsAAAD7//r/AQAXAAoAAAD7//v/AQAXAAsAAAD8//r/AQAXAAoAAAD8//v/AQAXAAsAAAD9//r/AQAXAAoAAAD9//v/AQAXAAsAAAD+//r/AQAXAAoAAAD+//v/AQAXAAsAAAD///r/AQAXAAoAAAD///v/AQAXAAsAAAAAAPr/AQAXAAoAAAAAAPv/AQAXAAsAAAABAPr/AQAXAAoAAAABAPv/AQAXAAsAAAACAPr/AQAXAAoAAAACAPv/AQAXAAsAAAADAPr/AQAXAAoAAAADAPv/AQAXAAsAAAAEAPr/AQAXAAoAAAAEAPv/AQAXAAsAAAAFAPr/AQAXAAoAAAAFAPv/AQAXAAsAAAD6/wQAAQAXAAoAAAD6/wUAAQAXAAsAAAD7/wQAAQAXAAoAAAD7/wUAAQAXAAsAAAD8/wQAAQAXAAoAAAD8/wUAAQAXAAsAAAD9/wQAAQAXAAoAAAD9/wUAAQAXAAsAAAD+/wQAAQAXAAoAAAD+/wUAAQAXAAsAAAD//wQAAQAXAAoAAAD//wUAAQAXAAsAAAAAAAQAAQAXAAoAAAAAAAUAAQAXAAsAAAABAAQAAQAXAAoAAAABAAUAAQAXAAsAAAACAAQAAQAXAAoAAAACAAUAAQAXAAsAAAADAAQAAQAXAAoAAAADAAUAAQAXAAsAAAAEAAQAAQAXAAoAAAAEAAUAAQAXAAsAAAAFAAQAAQAXAAoAAAAFAAUAAQAXAAsAAAD6//z////////////6//3////////////6//7////////////6/wEA///////////6/wIA///////////6/wMA//////////8FAPz///////////8FAP3///////////8FAP7///////////8FAP////////////8FAAAA//////////8FAAEA//////////8FAAIA//////////8FAAMA///////////5//r/AQAWAAoAAAD5//v/AQAWAAsAAAAGAPr/AQAYAAoAAAAGAPv/AQAYAAsAAAD5/wQAAQAWAAoAAAD5/wUAAQAWAAsAAAAGAAQAAQAYAAoAAAAGAAUAAQAYAAsAAAD5//z/AQAbAAsAAAD5//3/AQAbAAsAAAD5//7/AQAbAAsAAAD5/wEAAQAbAAsAAAD5/wIAAQAbAAsAAAD5/wMAAQAbAAsAAAAGAPz/AQAbAAsAAAAGAP3/AQAbAAsAAAAGAP7/AQAbAAsAAAAGAP////////////8GAAAA//////////8GAAEAAQAbAAsAAAAGAAIAAQAbAAsAAAAGAAMAAQAbAAsAAAD5////AQAbAAsAAAD5/wAAAQAbAAsAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="RoomLabel" type="Label" parent="."]
+[node name="RoomLabel" type="Label" parent="." unique_id=507318295]
 z_index = 5
 offset_left = -160.0
-offset_top = -120.0
+offset_top = -174.0
 offset_right = 160.0
-offset_bottom = -100.0
-horizontal_alignment = 1
+offset_bottom = -154.0
 theme_override_font_sizes/font_size = 14
 text = "HYBRIDIZATION LAB"
-
-[node name="Hybridizer" parent="." instance=ExtResource("2_hyb")]
-position = Vector2(0, 10)
-
-[node name="SignWest" type="Label" parent="."]
-offset_left = -165.0
-offset_top = -8.0
-offset_right = -95.0
-offset_bottom = 8.0
 horizontal_alignment = 1
+
+[node name="Hybridizer" type="StaticBody2D" parent="." unique_id=2030716122 instance=ExtResource("2_hyb")]
+position = Vector2(0, 10)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_6270v")
+
+[node name="SignEast" type="Label" parent="." unique_id=1928313371]
+modulate = Color(0.5, 0.5, 0.6, 1)
+offset_left = 165.0
+offset_top = -8.0
+offset_right = 235.0
+offset_bottom = 8.0
 theme_override_font_sizes/font_size = 9
 text = "PROC. LAB"
-modulate = Color(0.5, 0.5, 0.6, 1)
+horizontal_alignment = 1
+
+[node name="Exit_east" type="Area2D" parent="." unique_id=1810649658]
+position = Vector2(300, 0)
+collision_layer = 0
+script = ExtResource("5_6031h")
+target_room = "processing_lab"
+target_entrance = "east"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_east" unique_id=204367658]
+shape = SubResource("RectangleShape2D_6270v")
+
+[node name="Entrance_east" type="Marker2D" parent="." unique_id=1847726778]
+position = Vector2(248, 0)

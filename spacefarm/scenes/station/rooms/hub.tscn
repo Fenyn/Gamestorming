@@ -1,9 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
 [ext_resource type="Script" path="res://scenes/station/station_interactable.gd" id="2_interact"]
 [ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_30.png" id="3_terminal_tex"]
 [ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_34.png" id="4_comms_tex"]
+[ext_resource type="Script" path="res://scenes/station/exit_zone.gd" id="6_ist55"]
+[ext_resource type="TileSet" path="res://resources/room_tileset.tres" id="90_tileset"]
 
 [sub_resource type="RectangleShape2D" id="shape_terminal"]
 size = Vector2(36, 36)
@@ -11,33 +13,46 @@ size = Vector2(36, 36)
 [sub_resource type="RectangleShape2D" id="shape_comms"]
 size = Vector2(60, 36)
 
-[node name="Hub" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ist55"]
+size = Vector2(96, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fppqs"]
+size = Vector2(96, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mh7c8"]
+size = Vector2(24, 96)
+
+[node name="Hub" type="Node2D" unique_id=1930983091]
 script = ExtResource("1_room")
 room_id = "hub"
-room_width = 580.0
-room_height = 430.0
+room_width = 768.0
+room_height = 576.0
 exit_north = "living_quarters"
-exit_east = "grow_bay"
 exit_south = "cargo_bay"
+exit_east = "grow_bay"
 airlock_west = "PROCESSING LAB"
 
-[node name="FloorLayer" type="TileMapLayer" parent="."]
+[node name="FloorLayer" type="TileMapLayer" parent="." unique_id=1156325941]
 z_index = -2
+tile_map_data = PackedByteArray("AAD5//v/AAAMAB4AAAD6//v/AAAMAB4AAAD7//v/AAAMAB4AAAD8//v/AAAMAB4AAAD9//v/AAAMAB4AAAD+//v/AAAMAB4AAAD///v/AAAMAB4AAAAAAPv/AAAMAB4AAAABAPv/AAAMAB4AAAACAPv/AAAMAB4AAAADAPv/AAAMAB4AAAAEAPv/AAAMAB4AAAAFAPv/AAAMAB4AAAAGAPv/AAAMAB4AAAD5//z/AAAMAB4AAAD6//z/AAAMAB4AAAD7//z/AAAMAB4AAAD8//z/AAAMAB4AAAD9//z/AAAMAB4AAAD+//z/AAAMAB4AAAD///z/AAAMAB4AAAAAAPz/AAAMAB4AAAABAPz/AAAMAB4AAAACAPz/AAAMAB4AAAADAPz/AAAMAB4AAAAEAPz/AAAMAB4AAAAFAPz/AAAMAB4AAAAGAPz/AAAMAB4AAAD5//3/AAAMAB4AAAD6//3/AAAMAB4AAAD7//3/AAAMAB4AAAD8//3/AAAMAB4AAAD9//3/AAAMAB4AAAD+//3/AAAMAB4AAAD///3/AAAMAB4AAAAAAP3/AAAMAB4AAAABAP3/AAAMAB4AAAACAP3/AAAMAB4AAAADAP3/AAAMAB4AAAAEAP3/AAAMAB4AAAAFAP3/AAAMAB4AAAAGAP3/AAAMAB4AAAD5//7/AAAMAB4AAAD6//7/AAAMAB4AAAD7//7/AAAMAB4AAAD8//7/AAAMAB4AAAD9//7/AAAMAB4AAAD+//7/AAAMAB4AAAD///7/AAAMAB4AAAAAAP7/AAAMAB4AAAABAP7/AAAMAB4AAAACAP7/AAAMAB4AAAADAP7/AAAMAB4AAAAEAP7/AAAMAB4AAAAFAP7/AAAMAB4AAAAGAP7/AAAMAB4AAAD5////AAAMAB4AAAD6////AAAMAB4AAAD7////AAAMAB4AAAD8////AAAMAB4AAAD9////AAAMAB4AAAD+////AAAMAB4AAAD/////AAAMAB4AAAAAAP//AAAMAB4AAAABAP//AAAMAB4AAAACAP//AAAMAB4AAAADAP//AAAMAB4AAAAEAP//AAAMAB4AAAAFAP//AAAMAB4AAAAGAP//AAAMAB4AAAD5/wAAAAAMAB4AAAD6/wAAAAAMAB4AAAD7/wAAAAAMAB4AAAD8/wAAAAAMAB4AAAD9/wAAAAAMAB4AAAD+/wAAAAAMAB4AAAD//wAAAAAMAB4AAAAAAAAAAAAMAB4AAAABAAAAAAAMAB4AAAACAAAAAAAMAB4AAAADAAAAAAAMAB4AAAAEAAAAAAAMAB4AAAAFAAAAAAAMAB4AAAAGAAAAAAAMAB4AAAD5/wEAAAAMAB4AAAD6/wEAAAAMAB4AAAD7/wEAAAAMAB4AAAD8/wEAAAAMAB4AAAD9/wEAAAAMAB4AAAD+/wEAAAAMAB4AAAD//wEAAAAMAB4AAAAAAAEAAAAMAB4AAAABAAEAAAAMAB4AAAACAAEAAAAMAB4AAAADAAEAAAAMAB4AAAAEAAEAAAAMAB4AAAAFAAEAAAAMAB4AAAAGAAEAAAAMAB4AAAD5/wIAAAAMAB4AAAD6/wIAAAAMAB4AAAD7/wIAAAAMAB4AAAD8/wIAAAAMAB4AAAD9/wIAAAAMAB4AAAD+/wIAAAAMAB4AAAD//wIAAAAMAB4AAAAAAAIAAAAMAB4AAAABAAIAAAAMAB4AAAACAAIAAAAMAB4AAAADAAIAAAAMAB4AAAAEAAIAAAAMAB4AAAAFAAIAAAAMAB4AAAAGAAIAAAAMAB4AAAD5/wMAAAAMAB4AAAD6/wMAAAAMAB4AAAD7/wMAAAAMAB4AAAD8/wMAAAAMAB4AAAD9/wMAAAAMAB4AAAD+/wMAAAAMAB4AAAD//wMAAAAMAB4AAAAAAAMAAAAMAB4AAAABAAMAAAAMAB4AAAACAAMAAAAMAB4AAAADAAMAAAAMAB4AAAAEAAMAAAAMAB4AAAAFAAMAAAAMAB4AAAAGAAMAAAAMAB4AAAD5/wQAAAAMAB4AAAD6/wQAAAAMAB4AAAD7/wQAAAAMAB4AAAD8/wQAAAAMAB4AAAD9/wQAAAAMAB4AAAD+/wQAAAAMAB4AAAD//wQAAAAMAB4AAAAAAAQAAAAMAB4AAAABAAQAAAAMAB4AAAACAAQAAAAMAB4AAAADAAQAAAAMAB4AAAAEAAQAAAAMAB4AAAAFAAQAAAAMAB4AAAAGAAQAAAAMAB4AAAD///r/AAAMAB4AAAD///n/AAAMAB4AAAAAAPr/AAAMAB4AAAAAAPn/AAAMAB4AAAD//wUAAAAMAB4AAAD//wYAAAAMAB4AAAAAAAUAAAAMAB4AAAAAAAYAAAAMAB4AAAD3//r/AAAMAB4AAAD4//r/AAAMAB4AAAD5//r/AAAMAB4AAAD6//r/AAAMAB4AAAD7//r/AAAMAB4AAAD8//r/AAAMAB4AAAD9//r/AAAMAB4AAAD+//r/AAAMAB4AAAABAPr/AAAMAB4AAAACAPr/AAAMAB4AAAADAPr/AAAMAB4AAAAEAPr/AAAMAB4AAAAFAPr/AAAMAB4AAAAGAPr/AAAMAB4AAAAHAPr/AAAMAB4AAAAIAPr/AAAMAB4AAAD3//v/AAAMAB4AAAD4//v/AAAMAB4AAAAHAPv/AAAMAB4AAAAIAPv/AAAMAB4AAAD3//z/AAAMAB4AAAD4//z/AAAMAB4AAAAHAPz/AAAMAB4AAAAIAPz/AAAMAB4AAAD3//3/AAAMAB4AAAD4//3/AAAMAB4AAAAHAP3/AAAMAB4AAAAIAP3/AAAMAB4AAAD3//7/AAAMAB4AAAD4//7/AAAMAB4AAAAHAP7/AAAMAB4AAAAIAP7/AAAMAB4AAAD3////AAAMAB4AAAD4////AAAMAB4AAAAHAP//AAAMAB4AAAAIAP//AAAMAB4AAAD3/wAAAAAMAB4AAAD4/wAAAAAMAB4AAAAHAAAAAAAMAB4AAAAIAAAAAAAMAB4AAAD3/wEAAAAMAB4AAAD4/wEAAAAMAB4AAAAHAAEAAAAMAB4AAAAIAAEAAAAMAB4AAAD3/wIAAAAMAB4AAAD4/wIAAAAMAB4AAAAHAAIAAAAMAB4AAAAIAAIAAAAMAB4AAAD3/wMAAAAMAB4AAAD4/wMAAAAMAB4AAAAHAAMAAAAMAB4AAAAIAAMAAAAMAB4AAAD3/wQAAAAMAB4AAAD4/wQAAAAMAB4AAAAHAAQAAAAMAB4AAAAIAAQAAAAMAB4AAAD3/wUAAAAMAB4AAAD4/wUAAAAMAB4AAAD5/wUAAAAMAB4AAAD6/wUAAAAMAB4AAAD7/wUAAAAMAB4AAAD8/wUAAAAMAB4AAAD9/wUAAAAMAB4AAAD+/wUAAAAMAB4AAAABAAUAAAAMAB4AAAACAAUAAAAMAB4AAAADAAUAAAAMAB4AAAAEAAUAAAAMAB4AAAAFAAUAAAAMAB4AAAAGAAUAAAAMAB4AAAAHAAUAAAAMAB4AAAAIAAUAAAAMAB4AAAD///j/AAAMAB4AAAAAAPj/AAAMAB4AAAD//wcAAAAMAB4AAAAAAAcAAAAMAB4AAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="WallLayer" type="TileMapLayer" parent="."]
+[node name="WallLayer" type="TileMapLayer" parent="." unique_id=1158288449]
 z_index = -1
+tile_map_data = PackedByteArray("AAD5//n/AQABAAMAAAD5//r////////////6//n/AQABAAMAAAD6//r////////////7//n/AQABAAMAAAD7//r////////////8//n/AQABAAMAAAD8//r////////////9//n/AQABAAMAAAD9//r////////////+//n/AQACAAMAAAD+//r///////////8BAPn/AQAAAAMAAAABAPr///////////8CAPn/AQABAAMAAAACAPr///////////8DAPn/AQABAAMAAAADAPr///////////8EAPn/AQABAAMAAAAEAPr///////////8FAPn/AQABAAMAAAAFAPr///////////8GAPn/AQABAAMAAAAGAPr////////////5/wUA///////////5/wYAAQABAAIAAAD6/wUA///////////6/wYAAQABAAIAAAD7/wUA///////////7/wYAAQABAAIAAAD8/wUA///////////8/wYAAQABAAIAAAD9/wUA///////////9/wYAAQABAAIAAAD+/wUA///////////+/wYAAQACAAIAAAABAAUA//////////8BAAYAAQAAAAIAAAACAAUA//////////8CAAYAAQABAAIAAAADAAUA//////////8DAAYAAQABAAIAAAAEAAUA//////////8EAAYAAQABAAIAAAAFAAUA//////////8FAAYAAQABAAIAAAAGAAUA//////////8GAAYAAQABAAIAAAD5//v////////////5//z////////////5//3////////////5//7////////////5///////////////5/wAA///////////5/wEA///////////5/wIA///////////5/wMA///////////5/wQA//////////8GAPv///////////8GAPz///////////8GAP3///////////8GAP7///////////8GAAEA//////////8GAAIA//////////8GAAMA//////////8GAAQA///////////3//j/AQAAAAIAAAD3//n/AQAAAAMAAAD4//j/AQABAAIAAAD4//n/AQABAAMAAAD5//j/AQABAAIAAAD6//j/AQABAAIAAAD7//j/AQABAAIAAAD8//j/AQABAAIAAAD9//j/AQABAAIAAAD+//j/AQACAAIAAAABAPj/AQAAAAIAAAACAPj/AQABAAIAAAADAPj/AQABAAIAAAAEAPj/AQABAAIAAAAFAPj/AQABAAIAAAAGAPj/AQABAAIAAAAHAPj/AQABAAIAAAAHAPn/AQABAAMAAAAIAPj/AQACAAIAAAAIAPn/AQACAAMAAAD3/wYAAQAAAAIAAAD3/wcAAQAAAAMAAAD4/wYAAQABAAIAAAD4/wcAAQABAAMAAAD5/wcAAQABAAMAAAD6/wcAAQABAAMAAAD7/wcAAQABAAMAAAD8/wcAAQABAAMAAAD9/wcAAQABAAMAAAD+/wcAAQACAAMAAAABAAcAAQAAAAMAAAACAAcAAQABAAMAAAADAAcAAQABAAMAAAAEAAcAAQABAAMAAAAFAAcAAQABAAMAAAAGAAcAAQABAAMAAAAHAAYAAQABAAIAAAAHAAcAAQABAAMAAAAIAAYAAQACAAIAAAAIAAcAAQACAAMAAAD3//r/AQAFAAMAAAD3//v/AQAFAAMAAAD3//z/AQAFAAMAAAD3//3/AQAFAAMAAAD3//7/AQAFAAMAAAD3////AQAFAAMAAAD3/wAAAQAFAAMAAAD3/wEAAQAFAAMAAAD3/wIAAQAFAAMAAAD3/wMAAQAFAAMAAAD3/wQAAQAFAAMAAAD3/wUAAQAFAAMAAAAIAPr/AQAFAAMAAAAIAPv/AQAFAAMAAAAIAPz/AQAFAAMAAAAIAP3/AQAFAAMAAAAIAP7/AQAFAAMAAAAIAAEAAQAFAAMAAAAIAAIAAQAFAAMAAAAIAAMAAQAFAAMAAAAIAAQAAQAFAAMAAAAIAAUAAQAFAAMAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="RoomLabel" type="Label" parent="."]
+[node name="RoomLabel" type="Label" parent="." unique_id=1441373160]
 z_index = 5
 offset_left = -100.0
-offset_top = -160.0
+offset_top = -270.0
 offset_right = 100.0
-offset_bottom = -140.0
-horizontal_alignment = 1
+offset_bottom = -250.0
 theme_override_font_sizes/font_size = 16
 text = "MAIN HUB"
+horizontal_alignment = 1
 
-[node name="Terminal" type="StaticBody2D" parent="."]
+[node name="Terminal" type="StaticBody2D" parent="." unique_id=380667613]
 position = Vector2(-60, -80)
 collision_layer = 2
 collision_mask = 0
@@ -45,23 +60,23 @@ script = ExtResource("2_interact")
 interactable_name = "TERMINAL"
 interact_hint_text = "E/Click: Station Terminal"
 
-[node name="Visual" type="Sprite2D" parent="Terminal"]
+[node name="Visual" type="Sprite2D" parent="Terminal" unique_id=1300529945]
 texture = ExtResource("3_terminal_tex")
 
-[node name="Label" type="Label" parent="Terminal"]
+[node name="Label" type="Label" parent="Terminal" unique_id=506955886]
 z_index = 5
 offset_left = -24.0
 offset_top = 22.0
 offset_right = 24.0
 offset_bottom = 36.0
-horizontal_alignment = 1
 theme_override_font_sizes/font_size = 8
 text = "TERMINAL"
+horizontal_alignment = 1
 
-[node name="Col" type="CollisionShape2D" parent="Terminal"]
+[node name="Col" type="CollisionShape2D" parent="Terminal" unique_id=282382131]
 shape = SubResource("shape_terminal")
 
-[node name="Comms" type="StaticBody2D" parent="."]
+[node name="Comms" type="StaticBody2D" parent="." unique_id=1433320476]
 position = Vector2(60, -80)
 collision_layer = 2
 collision_mask = 0
@@ -69,48 +84,87 @@ script = ExtResource("2_interact")
 interactable_name = "COMMS"
 interact_hint_text = "E/Click: Communications"
 
-[node name="Visual" type="Sprite2D" parent="Comms"]
+[node name="Visual" type="Sprite2D" parent="Comms" unique_id=697292576]
 texture = ExtResource("4_comms_tex")
 
-[node name="Label" type="Label" parent="Comms"]
+[node name="Label" type="Label" parent="Comms" unique_id=1859861519]
 z_index = 5
 offset_left = -24.0
 offset_top = 22.0
 offset_right = 24.0
 offset_bottom = 36.0
-horizontal_alignment = 1
 theme_override_font_sizes/font_size = 8
 text = "COMMS"
+horizontal_alignment = 1
 
-[node name="Col" type="CollisionShape2D" parent="Comms"]
+[node name="Col" type="CollisionShape2D" parent="Comms" unique_id=1437777847]
 shape = SubResource("shape_comms")
 
-[node name="SignNorth" type="Label" parent="."]
+[node name="SignNorth" type="Label" parent="." unique_id=587308494]
+modulate = Color(0.5, 0.5, 0.6, 1)
 offset_left = -50.0
-offset_top = -130.0
+offset_top = -231.0
 offset_right = 50.0
-offset_bottom = -116.0
-horizontal_alignment = 1
+offset_bottom = -217.0
 theme_override_font_sizes/font_size = 9
 text = "QUARTERS"
-modulate = Color(0.5, 0.5, 0.6, 1)
+horizontal_alignment = 1
 
-[node name="SignEast" type="Label" parent="."]
-offset_left = 160.0
+[node name="SignEast" type="Label" parent="." unique_id=1233067525]
+modulate = Color(0.5, 0.5, 0.6, 1)
+offset_left = 256.0
 offset_top = -8.0
-offset_right = 240.0
+offset_right = 336.0
 offset_bottom = 8.0
-horizontal_alignment = 1
 theme_override_font_sizes/font_size = 9
-text = "GROW BAY"
-modulate = Color(0.5, 0.5, 0.6, 1)
-
-[node name="SignSouth" type="Label" parent="."]
-offset_left = -40.0
-offset_top = 140.0
-offset_right = 40.0
-offset_bottom = 156.0
+text = "GROW RING"
 horizontal_alignment = 1
+
+[node name="SignSouth" type="Label" parent="." unique_id=891614570]
+modulate = Color(0.5, 0.5, 0.6, 1)
+offset_left = -40.0
+offset_top = 216.0
+offset_right = 40.0
+offset_bottom = 232.0
 theme_override_font_sizes/font_size = 9
 text = "CARGO"
-modulate = Color(0.5, 0.5, 0.6, 1)
+horizontal_alignment = 1
+
+[node name="Exit_north" type="Area2D" parent="." unique_id=1245268669]
+position = Vector2(0, -300)
+collision_layer = 0
+script = ExtResource("6_ist55")
+target_room = "living_quarters"
+target_entrance = "north"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_north" unique_id=1514651090]
+shape = SubResource("RectangleShape2D_ist55")
+
+[node name="Entrance_north" type="Marker2D" parent="." unique_id=707641721]
+position = Vector2(0, -248)
+
+[node name="Exit_south" type="Area2D" parent="." unique_id=1892775722]
+position = Vector2(0, 300)
+collision_layer = 0
+script = ExtResource("6_ist55")
+target_room = "cargo_bay"
+target_entrance = "south"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_south" unique_id=1803435953]
+shape = SubResource("RectangleShape2D_fppqs")
+
+[node name="Entrance_south" type="Marker2D" parent="." unique_id=1901703138]
+position = Vector2(0, 248)
+
+[node name="Exit_east" type="Area2D" parent="." unique_id=1027854610]
+position = Vector2(396, 0)
+collision_layer = 0
+script = ExtResource("6_ist55")
+target_room = "grow_bay"
+target_entrance = "east"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_east" unique_id=1786846492]
+shape = SubResource("RectangleShape2D_mh7c8")
+
+[node name="Entrance_east" type="Marker2D" parent="." unique_id=1236576115]
+position = Vector2(344, 0)

@@ -6,10 +6,10 @@
 script = ExtResource("1")
 milestone_id = "directive_1"
 directive_number = 1
-display_name = "OPERATIONAL BASELINE"
-ai_message = "Station AG-7 operational. Primary directive: establish food production baseline. Required: demonstrate sustained output capability. Ship 50 food units via cargo pod."
+display_name = "FIRST HARVEST"
+ai_message = "I've been watching the crew ration what we brought from Earth, and it won't last. I need you to get those chambers producing — real food, enough to feed everyone. Fifty units will give us breathing room. You can do this."
 required_food_units = 50
-unlocked_crops = ["tomato", "pepper"]
-unlocked_modules = ["processing_lab"]
+unlocked_crops = ["tomato", "pepper", "cotton", "prickly_pear"]
+unlocked_modules = ["processing_lab", "grow_ring_b"]
 unlocked_story_entries = ["log_crop_guide", "log_maintenance_1"]
-lore_hint = "Crop diversification protocols initialized. New seed varieties released from gene bank storage."
+lore_hint = "New seed varieties released from the Hermes supply kit. The Engineer has restored power to the Workshop and a second grow chamber."

@@ -1,71 +1,105 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/machines/base_machine.tscn" id="2_machine"]
 [ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Stone_Oven_1_48x48.png" id="3_oven_tex"]
+[ext_resource type="Script" path="res://scenes/machines/base_machine.gd" id="4_jchmo"]
 [ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Woodwork_Crafting_Table_Full_48x48.png" id="4_mill_tex"]
 [ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Cheese_Machine_Full_48x48.png" id="5_press_tex"]
 [ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/DIY_Crafting_Table_Full_48x48.png" id="6_bench_tex"]
+[ext_resource type="Script" path="res://scenes/station/exit_zone.gd" id="9_7mxmc"]
+[ext_resource type="TileSet" path="res://resources/room_tileset.tres" id="90_tileset"]
 
-[node name="ProcessingLab" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jchmo"]
+size = Vector2(24, 96)
+
+[node name="ProcessingLab" type="Node2D" unique_id=2067387036]
 script = ExtResource("1_room")
 room_id = "processing_lab"
-room_width = 620.0
-room_height = 380.0
-exit_north = "hub"
+room_width = 768.0
+room_height = 480.0
+exit_east = "hub"
 airlock_south = "ADV. PROCESSING"
-airlock_east = "HYBRIDIZATION"
+airlock_west = "HYBRIDIZATION"
 
-[node name="FloorLayer" type="TileMapLayer" parent="."]
+[node name="FloorLayer" type="TileMapLayer" parent="." unique_id=19642786]
 z_index = -2
+tile_map_data = PackedByteArray("AAD5//z/AAAOAAIAAAD6//z/AAAOAAIAAAD7//z/AAAOAAIAAAD8//z/AAAOAAIAAAD9//z/AAAOAAIAAAD+//z/AAAOAAIAAAD///z/AAAOAAIAAAAAAPz/AAAOAAIAAAABAPz/AAAOAAIAAAACAPz/AAAOAAIAAAADAPz/AAAOAAIAAAAEAPz/AAAOAAIAAAAFAPz/AAAOAAIAAAAGAPz/AAAOAAIAAAD5//3/AAAOAAIAAAD6//3/AAAOAAIAAAD7//3/AAAOAAIAAAD8//3/AAAOAAIAAAD9//3/AAAOAAIAAAD+//3/AAAOAAIAAAD///3/AAAOAAIAAAAAAP3/AAAOAAIAAAABAP3/AAAOAAIAAAACAP3/AAAOAAIAAAADAP3/AAAOAAIAAAAEAP3/AAAOAAIAAAAFAP3/AAAOAAIAAAAGAP3/AAAOAAIAAAD5//7/AAAOAAIAAAD6//7/AAAOAAIAAAD7//7/AAAOAAIAAAD8//7/AAAOAAIAAAD9//7/AAAOAAIAAAD+//7/AAAOAAIAAAD///7/AAAOAAIAAAAAAP7/AAAOAAIAAAABAP7/AAAOAAIAAAACAP7/AAAOAAIAAAADAP7/AAAOAAIAAAAEAP7/AAAOAAIAAAAFAP7/AAAOAAIAAAAGAP7/AAAOAAIAAAD5////AAAOAAIAAAD6////AAAOAAIAAAD7////AAAOAAIAAAD8////AAAOAAIAAAD9////AAAOAAIAAAD+////AAAOAAIAAAD/////AAAOAAIAAAAAAP//AAAOAAIAAAABAP//AAAOAAIAAAACAP//AAAOAAIAAAADAP//AAAOAAIAAAAEAP//AAAOAAIAAAAFAP//AAAOAAIAAAAGAP//AAAOAAIAAAD5/wAAAAAOAAIAAAD6/wAAAAAOAAIAAAD7/wAAAAAOAAIAAAD8/wAAAAAOAAIAAAD9/wAAAAAOAAIAAAD+/wAAAAAOAAIAAAD//wAAAAAOAAIAAAAAAAAAAAAOAAIAAAABAAAAAAAOAAIAAAACAAAAAAAOAAIAAAADAAAAAAAOAAIAAAAEAAAAAAAOAAIAAAAFAAAAAAAOAAIAAAAGAAAAAAAOAAIAAAD5/wEAAAAOAAIAAAD6/wEAAAAOAAIAAAD7/wEAAAAOAAIAAAD8/wEAAAAOAAIAAAD9/wEAAAAOAAIAAAD+/wEAAAAOAAIAAAD//wEAAAAOAAIAAAAAAAEAAAAOAAIAAAABAAEAAAAOAAIAAAACAAEAAAAOAAIAAAADAAEAAAAOAAIAAAAEAAEAAAAOAAIAAAAFAAEAAAAOAAIAAAAGAAEAAAAOAAIAAAD5/wIAAAAOAAIAAAD6/wIAAAAOAAIAAAD7/wIAAAAOAAIAAAD8/wIAAAAOAAIAAAD9/wIAAAAOAAIAAAD+/wIAAAAOAAIAAAD//wIAAAAOAAIAAAAAAAIAAAAOAAIAAAABAAIAAAAOAAIAAAACAAIAAAAOAAIAAAADAAIAAAAOAAIAAAAEAAIAAAAOAAIAAAAFAAIAAAAOAAIAAAAGAAIAAAAOAAIAAAD5/wMAAAAOAAIAAAD6/wMAAAAOAAIAAAD7/wMAAAAOAAIAAAD8/wMAAAAOAAIAAAD9/wMAAAAOAAIAAAD+/wMAAAAOAAIAAAD//wMAAAAOAAIAAAAAAAMAAAAOAAIAAAABAAMAAAAOAAIAAAACAAMAAAAOAAIAAAADAAMAAAAOAAIAAAAEAAMAAAAOAAIAAAAFAAMAAAAOAAIAAAAGAAMAAAAOAAIAAAD///v/AAAOAAIAAAD///r///////////8AAPv/AAAOAAIAAAAAAPr////////////3//v/AAAOAAIAAAD4//v/AAAOAAIAAAD5//v/AAAOAAIAAAD6//v/AAAOAAIAAAD7//v/AAAOAAIAAAD8//v/AAAOAAIAAAD9//v/AAAOAAIAAAD+//v/AAAOAAIAAAABAPv/AAAOAAIAAAACAPv/AAAOAAIAAAADAPv/AAAOAAIAAAAEAPv/AAAOAAIAAAAFAPv/AAAOAAIAAAAGAPv/AAAOAAIAAAAHAPv/AAAOAAIAAAAIAPv/AAAOAAIAAAD3//z/AAAOAAIAAAD4//z/AAAOAAIAAAAHAPz/AAAOAAIAAAAIAPz/AAAOAAIAAAD3//3/AAAOAAIAAAD4//3/AAAOAAIAAAAHAP3/AAAOAAIAAAAIAP3/AAAOAAIAAAD3//7/AAAOAAIAAAD4//7/AAAOAAIAAAAHAP7/AAAOAAIAAAAIAP7/AAAOAAIAAAD3////AAAOAAIAAAD4////AAAOAAIAAAAHAP//AAAOAAIAAAAIAP//AAAOAAIAAAD3/wAAAAAOAAIAAAD4/wAAAAAOAAIAAAAHAAAAAAAOAAIAAAAIAAAAAAAOAAIAAAD3/wEAAAAOAAIAAAD4/wEAAAAOAAIAAAAHAAEAAAAOAAIAAAAIAAEAAAAOAAIAAAD3/wIAAAAOAAIAAAD4/wIAAAAOAAIAAAAHAAIAAAAOAAIAAAAIAAIAAAAOAAIAAAD3/wMAAAAOAAIAAAD4/wMAAAAOAAIAAAAHAAMAAAAOAAIAAAAIAAMAAAAOAAIAAAD3/wQAAAAOAAIAAAD4/wQAAAAOAAIAAAD5/wQAAAAOAAIAAAD6/wQAAAAOAAIAAAD7/wQAAAAOAAIAAAD8/wQAAAAOAAIAAAD9/wQAAAAOAAIAAAD+/wQAAAAOAAIAAAD//wQAAAAOAAIAAAAAAAQAAAAOAAIAAAABAAQAAAAOAAIAAAACAAQAAAAOAAIAAAADAAQAAAAOAAIAAAAEAAQAAAAOAAIAAAAFAAQAAAAOAAIAAAAGAAQAAAAOAAIAAAAHAAQAAAAOAAIAAAAIAAQAAAAOAAIAAAD///n///////////8AAPn///////////8=")
+tile_set = ExtResource("90_tileset")
 
-[node name="WallLayer" type="TileMapLayer" parent="."]
+[node name="WallLayer" type="TileMapLayer" parent="." unique_id=372626619]
 z_index = -1
+tile_map_data = PackedByteArray("AAD5//r/AQAXAAcAAAD5//v////////////6//r/AQAXAAcAAAD6//v////////////7//r/AQAXAAcAAAD7//v////////////8//r/AQAXAAcAAAD8//v////////////9//r/AQAXAAcAAAD9//v////////////+//r/AQAXAAcAAAD+//v///////////8BAPr/AQAXAAcAAAABAPv///////////8CAPr/AQAXAAcAAAACAPv///////////8DAPr/AQAXAAcAAAADAPv///////////8EAPr/AQAXAAcAAAAEAPv///////////8FAPr/AQAXAAcAAAAFAPv///////////8GAPr/AQAXAAcAAAAGAPv////////////5/wQA///////////5/wUAAQAXAAYAAAD6/wQA///////////6/wUAAQAXAAYAAAD7/wQA///////////7/wUAAQAXAAYAAAD8/wQA///////////8/wUAAQAXAAYAAAD9/wQA///////////9/wUAAQAXAAYAAAD+/wQA///////////+/wUAAQAXAAYAAAD//wQA/////////////wUAAQAXAAYAAAAAAAQA//////////8AAAUAAQAXAAYAAAABAAQA//////////8BAAUAAQAXAAYAAAACAAQA//////////8CAAUAAQAXAAYAAAADAAQA//////////8DAAUAAQAXAAYAAAAEAAQA//////////8EAAUAAQAXAAYAAAAFAAQA//////////8FAAUAAQAXAAYAAAAGAAQA//////////8GAAUAAQAXAAYAAAD5//z////////////5//3////////////5//7////////////5///////////////5/wAA///////////5/wEA///////////5/wIA///////////5/wMA//////////8GAPz///////////8GAP3///////////8GAP7///////////8GAP////////////8GAAAA//////////8GAAEA//////////8GAAIA//////////8GAAMA///////////3//n/AQAWAAYAAAD3//r/AQAWAAcAAAD4//n/AQAXAAYAAAD4//r/AQAXAAcAAAD5//n/AQAXAAYAAAD6//n/AQAXAAYAAAD7//n/AQAXAAYAAAD8//n/AQAXAAYAAAD9//n/AQAXAAYAAAD+//n/AQAXAAYAAAABAPn/AQAXAAYAAAACAPn/AQAXAAYAAAADAPn/AQAXAAYAAAAEAPn/AQAXAAYAAAAFAPn/AQAXAAYAAAAGAPn/AQAXAAYAAAAHAPn/AQAXAAYAAAAHAPr/AQAXAAcAAAAIAPn/AQAYAAYAAAAIAPr/AQAYAAcAAAD3/wUAAQAWAAYAAAD3/wYAAQAWAAcAAAD4/wUAAQAXAAYAAAD4/wYAAQAXAAcAAAD5/wYAAQAXAAcAAAD6/wYAAQAXAAcAAAD7/wYAAQAXAAcAAAD8/wYAAQAXAAcAAAD9/wYAAQAXAAcAAAD+/wYAAQAXAAcAAAD//wYAAQAXAAcAAAAAAAYAAQAXAAcAAAABAAYAAQAXAAcAAAACAAYAAQAXAAcAAAADAAYAAQAXAAcAAAAEAAYAAQAXAAcAAAAFAAYAAQAXAAcAAAAGAAYAAQAXAAcAAAAHAAUAAQAXAAYAAAAHAAYAAQAXAAcAAAAIAAUAAQAYAAYAAAAIAAYAAQAYAAcAAAD3//v/AQAbAAcAAAD3//z/AQAbAAcAAAD3//3/AQAbAAcAAAD3//7/AQAbAAcAAAD3////AQAbAAcAAAD3/wAAAQAbAAcAAAD3/wEAAQAbAAcAAAD3/wIAAQAbAAcAAAD3/wMAAQAbAAcAAAD3/wQAAQAbAAcAAAAIAPv/AQAbAAcAAAAIAPz/AQAbAAcAAAAIAP3/AQAbAAcAAAAIAP7/AQAbAAcAAAAIAP////////////8IAAAA//////////8IAAEAAQAbAAcAAAAIAAIAAQAbAAcAAAAIAAMAAQAbAAcAAAAIAAQAAQAbAAcAAAD///n/AQAXAAYAAAD///r/AQAXAAcAAAAAAPn/AQAXAAYAAAAAAPr/AQAXAAcAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="RoomLabel" type="Label" parent="."]
+[node name="RoomLabel" type="Label" parent="." unique_id=669956094]
 z_index = 5
 offset_left = -200.0
-offset_top = -140.0
+offset_top = -222.0
 offset_right = 200.0
-offset_bottom = -120.0
-horizontal_alignment = 1
+offset_bottom = -202.0
 theme_override_font_sizes/font_size = 14
 text = "PROCESSING LAB"
+horizontal_alignment = 1
 
-[node name="Dehydrator" parent="." instance=ExtResource("2_machine")]
+[node name="Dehydrator" type="StaticBody2D" parent="." unique_id=438107185 instance=ExtResource("2_machine")]
 position = Vector2(-160, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_jchmo")
 machine_type = "dehydrator"
 machine_label = "DEHYDRATOR"
 machine_color = Color(0.4, 0.3, 0.25, 1)
 sprite_texture = ExtResource("3_oven_tex")
 
-[node name="Mill" parent="." instance=ExtResource("2_machine")]
+[node name="Mill" type="StaticBody2D" parent="." unique_id=34848507 instance=ExtResource("2_machine")]
 position = Vector2(-50, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_jchmo")
 machine_type = "mill"
 machine_label = "MILL"
 machine_color = Color(0.35, 0.35, 0.3, 1)
 sprite_texture = ExtResource("4_mill_tex")
 
-[node name="Extractor" parent="." instance=ExtResource("2_machine")]
+[node name="Extractor" type="StaticBody2D" parent="." unique_id=1312615656 instance=ExtResource("2_machine")]
 position = Vector2(60, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_jchmo")
 machine_type = "extractor"
 machine_label = "EXTRACTOR"
 machine_color = Color(0.3, 0.35, 0.45, 1)
 sprite_texture = ExtResource("5_press_tex")
 
-[node name="Assembler" parent="." instance=ExtResource("2_machine")]
+[node name="Assembler" type="StaticBody2D" parent="." unique_id=358644913 instance=ExtResource("2_machine")]
 position = Vector2(170, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_jchmo")
 machine_type = "assembler"
 machine_label = "ASSEMBLER"
-machine_color = Color(0.3, 0.3, 0.4, 1)
 sprite_texture = ExtResource("6_bench_tex")
 
-[node name="SignNorth" type="Label" parent="."]
-offset_left = -40.0
-offset_top = -110.0
-offset_right = 40.0
-offset_bottom = -96.0
-horizontal_alignment = 1
+[node name="SignEast" type="Label" parent="." unique_id=2047899706]
+modulate = Color(0.5, 0.5, 0.6, 1)
+offset_left = 256.0
+offset_top = -7.0
+offset_right = 336.0
+offset_bottom = 7.0
 theme_override_font_sizes/font_size = 9
 text = "MAIN HUB"
-modulate = Color(0.5, 0.5, 0.6, 1)
+horizontal_alignment = 1
+
+[node name="Exit_east" type="Area2D" parent="." unique_id=815359558]
+position = Vector2(396, 0)
+collision_layer = 0
+script = ExtResource("9_7mxmc")
+target_room = "hub"
+target_entrance = "east"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_east" unique_id=1668919572]
+shape = SubResource("RectangleShape2D_jchmo")
+
+[node name="Entrance_east" type="Marker2D" parent="." unique_id=1017004476]
+position = Vector2(344, 0)

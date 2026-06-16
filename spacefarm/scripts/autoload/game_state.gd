@@ -4,6 +4,8 @@ const TOOLBAR_SIZE: int = 10
 const BACKPACK_SIZE: int = 20
 const SAVE_PATH: String = "user://spacefarm_save.json"
 const SAVE_VERSION: int = 1
+const MAX_ENERGY: float = 100.0
+const TIRED_WAKE_FRACTION: float = 0.75
 
 # --- Time ---
 var day: int = 1
@@ -29,14 +31,26 @@ var unlocked_modules: Array[String] = ["core"]
 var unlocked_story_entries: Array[String] = []
 var unlocked_contacts: Array[String] = []
 
-# --- Simulation ---
-var simulation_revealed: bool = false
+# --- Titan AI ---
+var titan_ai_awakened: bool = false
+
+# --- Crew (managed by CrewManager, persisted here) ---
 
 # --- Automation ---
 var worm_count: int = 0
 var bee_count: int = 0
 var worm_assignments: Dictionary = {}
 var bee_routes: Array[Dictionary] = []
+
+# --- Energy ---
+var energy: float = MAX_ENERGY
+
+# --- Daily Stats (reset each morning, not saved) ---
+var today_harvested: Dictionary = {}
+var day_start_food_shipped: int = 0
+
+# --- Crop tile snapshots, captured on save (key: room/bay/tile) ---
+var crop_tile_states: Dictionary = {}
 
 
 func _ready() -> void:
@@ -45,6 +59,33 @@ func _ready() -> void:
 	toolbar[0] = "watering_can"
 	toolbar[1] = "trowel"
 	_init_starting_inventory()
+	EventBus.day_started.connect(_on_day_started)
+	EventBus.crop_harvested.connect(_on_crop_harvested)
+
+
+func _on_day_started(_day: int) -> void:
+	today_harvested = {}
+	day_start_food_shipped = food_shipped_total
+
+
+func _on_crop_harvested(_tile_pos: Vector2i, crop_id: String, _quality: float) -> void:
+	today_harvested[crop_id] = today_harvested.get(crop_id, 0) + 1
+
+
+# --- Energy ---
+
+func spend_energy(amount: float) -> bool:
+	if energy < amount:
+		EventBus.notification_requested.emit("Too exhausted. Sleep to recover.")
+		return false
+	energy -= amount
+	EventBus.energy_changed.emit(energy, MAX_ENERGY)
+	return true
+
+
+func wake_up(rested: bool) -> void:
+	energy = MAX_ENERGY if rested else MAX_ENERGY * TIRED_WAKE_FRACTION
+	EventBus.energy_changed.emit(energy, MAX_ENERGY)
 
 
 func _init_starting_inventory() -> void:
@@ -207,11 +248,14 @@ func to_dict() -> Dictionary:
 		"unlocked_modules": unlocked_modules.duplicate(),
 		"unlocked_story_entries": unlocked_story_entries.duplicate(),
 		"unlocked_contacts": unlocked_contacts.duplicate(),
-		"simulation_revealed": simulation_revealed,
+		"titan_ai_awakened": titan_ai_awakened,
+		"crew": CrewManager.to_dict(),
 		"worm_count": worm_count,
 		"bee_count": bee_count,
 		"worm_assignments": worm_assignments.duplicate(),
 		"bee_routes": bee_routes.duplicate(),
+		"energy": energy,
+		"crop_tile_states": crop_tile_states.duplicate(true),
 	}
 
 
@@ -234,8 +278,33 @@ func from_dict(data: Dictionary) -> void:
 	unlocked_modules = Array(data.get("unlocked_modules", []), TYPE_STRING, &"", null)
 	unlocked_story_entries = Array(data.get("unlocked_story_entries", []), TYPE_STRING, &"", null)
 	unlocked_contacts = Array(data.get("unlocked_contacts", []), TYPE_STRING, &"", null)
-	simulation_revealed = data.get("simulation_revealed", false)
+	titan_ai_awakened = data.get("titan_ai_awakened", false)
+	CrewManager.from_dict(data.get("crew", {}))
 	worm_count = data.get("worm_count", 0)
 	bee_count = data.get("bee_count", 0)
 	worm_assignments = data.get("worm_assignments", {})
 	bee_routes = data.get("bee_routes", [])
+	energy = data.get("energy", MAX_ENERGY)
+	crop_tile_states = data.get("crop_tile_states", {})
+
+func save_game() -> void:
+	crop_tile_states = {}
+	for node: Node in get_tree().get_nodes_in_group("crop_tiles"):
+		var tile: CropTile = node as CropTile
+		if tile == null or tile.get_state_name() == "Empty":
+			continue
+		crop_tile_states[tile.get_save_key()] = tile.save_data()
+	var handler: SaveFileHandler = SaveFileHandler.new(SAVE_PATH, SAVE_VERSION)
+	handler.save_dict(to_dict())
+
+
+func restore_crop_tiles() -> void:
+	if crop_tile_states.is_empty():
+		return
+	for node: Node in get_tree().get_nodes_in_group("crop_tiles"):
+		var tile: CropTile = node as CropTile
+		if tile == null:
+			continue
+		var data: Variant = crop_tile_states.get(tile.get_save_key(), null)
+		if data is Dictionary:
+			tile.load_data(data)

@@ -1,103 +1,85 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
+[ext_resource type="Script" path="res://scenes/station/exit_zone.gd" id="3_vspgw"]
+[ext_resource type="TileSet" path="res://resources/room_tileset.tres" id="90_tileset"]
 
-[node name="ServiceTunnel" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vspgw"]
+size = Vector2(96, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bgafx"]
+size = Vector2(24, 96)
+
+[node name="ServiceTunnel" type="Node2D" unique_id=846025711]
 script = ExtResource("1_room")
 room_id = "service_tunnel"
-room_width = 240.0
-room_height = 480.0
-exit_west = "living_quarters"
+room_width = 288.0
+room_height = 768.0
 exit_south = "grow_bay"
+exit_west = "living_quarters"
 
-[node name="FloorLayer" type="TileMapLayer" parent="."]
+[node name="FloorLayer" type="TileMapLayer" parent="." unique_id=1930691878]
 z_index = -2
+tile_map_data = PackedByteArray("AAD8//v/AAAOABEAAAD9//v/AAAOABEAAAD+//v/AAAOABEAAAD///v/AAAOABEAAAAAAPv/AAAOABEAAAABAPv/AAAOABEAAAACAPv/AAAOABEAAAADAPv/AAAOABEAAAD8//z/AAAOABEAAAD9//z/AAAOABEAAAD+//z/AAAOABEAAAD///z/AAAOABEAAAAAAPz/AAAOABEAAAABAPz/AAAOABEAAAACAPz/AAAOABEAAAADAPz/AAAOABEAAAD8//3/AAAOABEAAAD9//3/AAAOABEAAAD+//3/AAAOABEAAAD///3/AAAOABEAAAAAAP3/AAAOABEAAAABAP3/AAAOABEAAAACAP3/AAAOABEAAAADAP3/AAAOABEAAAD8//7/AAAOABEAAAD9//7/AAAOABEAAAD+//7/AAAOABEAAAD///7/AAAOABEAAAAAAP7/AAAOABEAAAABAP7/AAAOABEAAAACAP7/AAAOABEAAAADAP7/AAAOABEAAAD8////AAAOABEAAAD9////AAAOABEAAAD+////AAAOABEAAAD/////AAAOABEAAAAAAP//AAAOABEAAAABAP//AAAOABEAAAACAP//AAAOABEAAAADAP//AAAOABEAAAD8/wAAAAAOABEAAAD9/wAAAAAOABEAAAD+/wAAAAAOABEAAAD//wAAAAAOABEAAAAAAAAAAAAOABEAAAABAAAAAAAOABEAAAACAAAAAAAOABEAAAADAAAAAAAOABEAAAD8/wEAAAAOABEAAAD9/wEAAAAOABEAAAD+/wEAAAAOABEAAAD//wEAAAAOABEAAAAAAAEAAAAOABEAAAABAAEAAAAOABEAAAACAAEAAAAOABEAAAADAAEAAAAOABEAAAD8/wIAAAAOABEAAAD9/wIAAAAOABEAAAD+/wIAAAAOABEAAAD//wIAAAAOABEAAAAAAAIAAAAOABEAAAABAAIAAAAOABEAAAACAAIAAAAOABEAAAADAAIAAAAOABEAAAD8/wMAAAAOABEAAAD9/wMAAAAOABEAAAD+/wMAAAAOABEAAAD//wMAAAAOABEAAAAAAAMAAAAOABEAAAABAAMAAAAOABEAAAACAAMAAAAOABEAAAADAAMAAAAOABEAAAD8/wQAAAAOABEAAAD9/wQAAAAOABEAAAD+/wQAAAAOABEAAAD//wQAAAAOABEAAAAAAAQAAAAOABEAAAABAAQAAAAOABEAAAACAAQAAAAOABEAAAADAAQAAAAOABEAAAD//wUAAAAOABEAAAD//wYAAAAOABEAAAAAAAUAAAAOABEAAAAAAAYAAAAOABEAAAD8//j/AAAOABEAAAD9//j/AAAOABEAAAD+//j/AAAOABEAAAD///j/AAAOABEAAAAAAPj/AAAOABEAAAABAPj/AAAOABEAAAACAPj/AAAOABEAAAADAPj/AAAOABEAAAD8//n/AAAOABEAAAD9//n/AAAOABEAAAD+//n/AAAOABEAAAD///n/AAAOABEAAAAAAPn/AAAOABEAAAABAPn/AAAOABEAAAACAPn/AAAOABEAAAADAPn/AAAOABEAAAD8//r/AAAOABEAAAD9//r/AAAOABEAAAD+//r/AAAOABEAAAD///r/AAAOABEAAAAAAPr/AAAOABEAAAABAPr/AAAOABEAAAACAPr/AAAOABEAAAADAPr/AAAOABEAAAD8/wUAAAAOABEAAAD9/wUAAAAOABEAAAD+/wUAAAAOABEAAAABAAUAAAAOABEAAAACAAUAAAAOABEAAAADAAUAAAAOABEAAAD8/wYAAAAOABEAAAD9/wYAAAAOABEAAAD+/wYAAAAOABEAAAABAAYAAAAOABEAAAACAAYAAAAOABEAAAADAAYAAAAOABEAAAD8/wcAAAAOABEAAAD9/wcAAAAOABEAAAD+/wcAAAAOABEAAAD//wcAAAAOABEAAAAAAAcAAAAOABEAAAABAAcAAAAOABEAAAACAAcAAAAOABEAAAADAAcAAAAOABEAAAD//wgAAAAOABEAAAD//wkAAAAOABEAAAAAAAgAAAAOABEAAAAAAAkAAAAOABEAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="WallLayer" type="TileMapLayer" parent="."]
+[node name="WallLayer" type="TileMapLayer" parent="." unique_id=1894573980]
 z_index = -1
+tile_map_data = PackedByteArray("AAD8//n/AQAFAB8AAAD8//r/AQAFAB8AAAD9//n////////////9//r////////////+//n////////////+//r///////////////n///////////////r///////////8AAPn///////////8AAPr///////////8BAPn///////////8BAPr///////////8CAPn///////////8CAPr///////////8DAPn/AQAFAB8AAAADAPr/AQAFAB8AAAD8/wUAAQAFAB8AAAD8/wYAAQAFAB8AAAD9/wUA///////////9/wYA///////////+/wUA///////////+/wYA//////////8BAAUA//////////8BAAYA//////////8CAAUA//////////8CAAYA//////////8DAAUAAQAFAB8AAAADAAYAAQAFAB8AAAD8//v/AQAFAB8AAAD8//z/AQAFAB8AAAD8//3/AQAFAB8AAAD8//7/AQAFAB8AAAD8/wEAAQAFAB8AAAD8/wIAAQAFAB8AAAD8/wMAAQAFAB8AAAD8/wQAAQAFAB8AAAADAPv/AQAFAB8AAAADAPz/AQAFAB8AAAADAP3/AQAFAB8AAAADAP7/AQAFAB8AAAADAP//AQAFAB8AAAADAAAAAQAFAB8AAAADAAEAAQAFAB8AAAADAAIAAQAFAB8AAAADAAMAAQAFAB8AAAADAAQAAQAFAB8AAAD8//b/AQAAAB4AAAD8//f/AQAAAB8AAAD9//b/AQABAB4AAAD9//f/AQABAB8AAAD+//b/AQABAB4AAAD+//f/AQABAB8AAAD///b/AQABAB4AAAD///f/AQABAB8AAAAAAPb/AQABAB4AAAAAAPf/AQABAB8AAAABAPb/AQABAB4AAAABAPf/AQABAB8AAAACAPb/AQABAB4AAAACAPf/AQABAB8AAAADAPb/AQACAB4AAAADAPf/AQACAB8AAAD8/wgAAQAAAB4AAAD8/wkAAQAAAB8AAAD9/wgAAQABAB4AAAD9/wkAAQABAB8AAAD+/wgAAQACAB4AAAD+/wkAAQACAB8AAAABAAgAAQAAAB4AAAABAAkAAQAAAB8AAAACAAgAAQABAB4AAAACAAkAAQABAB8AAAADAAgAAQACAB4AAAADAAkAAQACAB8AAAD8//j/AQAFAB8AAAD8/wcAAQAFAB8AAAADAPj/AQAFAB8AAAADAAcAAQAFAB8AAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="RoomLabel" type="Label" parent="."]
+[node name="RoomLabel" type="Label" parent="." unique_id=598738260]
 z_index = 5
 offset_left = -80.0
-offset_top = -180.0
+offset_top = -366.0
 offset_right = 80.0
-offset_bottom = -160.0
-horizontal_alignment = 1
+offset_bottom = -346.0
 theme_override_font_sizes/font_size = 12
 text = "SERVICE TUNNEL"
-
-[node name="PipeLeft1" type="ColorRect" parent="."]
-offset_left = -92.0
-offset_top = -140.0
-offset_right = -84.0
-offset_bottom = 140.0
-color = Color(0.2, 0.18, 0.15, 1)
-
-[node name="PipeLeft2" type="ColorRect" parent="."]
-offset_left = -78.0
-offset_top = -140.0
-offset_right = -74.0
-offset_bottom = 140.0
-color = Color(0.18, 0.16, 0.13, 1)
-
-[node name="PipeRight1" type="ColorRect" parent="."]
-offset_left = 84.0
-offset_top = -140.0
-offset_right = 92.0
-offset_bottom = 140.0
-color = Color(0.2, 0.18, 0.15, 1)
-
-[node name="PipeRight2" type="ColorRect" parent="."]
-offset_left = 74.0
-offset_top = -140.0
-offset_right = 78.0
-offset_bottom = 140.0
-color = Color(0.18, 0.16, 0.13, 1)
-
-[node name="GrateFloor1" type="ColorRect" parent="."]
-offset_left = -60.0
-offset_top = -100.0
-offset_right = 60.0
-offset_bottom = -96.0
-color = Color(0.15, 0.15, 0.18, 1)
-
-[node name="GrateFloor2" type="ColorRect" parent="."]
-offset_left = -60.0
-offset_top = -20.0
-offset_right = 60.0
-offset_bottom = -16.0
-color = Color(0.15, 0.15, 0.18, 1)
-
-[node name="GrateFloor3" type="ColorRect" parent="."]
-offset_left = -60.0
-offset_top = 60.0
-offset_right = 60.0
-offset_bottom = 64.0
-color = Color(0.15, 0.15, 0.18, 1)
-
-[node name="GrateFloor4" type="ColorRect" parent="."]
-offset_left = -60.0
-offset_top = 140.0
-offset_right = 60.0
-offset_bottom = 144.0
-color = Color(0.15, 0.15, 0.18, 1)
-
-[node name="SignWest" type="Label" parent="."]
-offset_left = -90.0
-offset_top = -8.0
-offset_right = -20.0
-offset_bottom = 8.0
 horizontal_alignment = 1
+
+[node name="SignWest" type="Label" parent="." unique_id=257835455]
+modulate = Color(0.4, 0.4, 0.5, 1)
+offset_left = -91.0
+offset_top = -8.0
+offset_right = -21.0
+offset_bottom = 8.0
 theme_override_font_sizes/font_size = 9
 text = "QUARTERS"
-modulate = Color(0.4, 0.4, 0.5, 1)
-
-[node name="SignSouth" type="Label" parent="."]
-offset_left = -45.0
-offset_top = 170.0
-offset_right = 45.0
-offset_bottom = 186.0
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 9
-text = "GROW BAY"
+
+[node name="SignSouth" type="Label" parent="." unique_id=210944601]
 modulate = Color(0.4, 0.4, 0.5, 1)
+offset_left = -45.0
+offset_top = 312.0
+offset_right = 45.0
+offset_bottom = 328.0
+theme_override_font_sizes/font_size = 9
+text = "GROW RING A"
+horizontal_alignment = 1
+
+[node name="Exit_south" type="Area2D" parent="." unique_id=534678586]
+position = Vector2(0, 396)
+collision_layer = 0
+script = ExtResource("3_vspgw")
+target_room = "grow_bay"
+target_entrance = "south"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_south" unique_id=1427344161]
+shape = SubResource("RectangleShape2D_vspgw")
+
+[node name="Entrance_south" type="Marker2D" parent="." unique_id=274483647]
+position = Vector2(0, 344)
+
+[node name="Exit_west" type="Area2D" parent="." unique_id=1147242801]
+position = Vector2(-156, 0)
+collision_layer = 0
+script = ExtResource("3_vspgw")
+target_room = "living_quarters"
+target_entrance = "west"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_west" unique_id=56354236]
+shape = SubResource("RectangleShape2D_bgafx")
+
+[node name="Entrance_west" type="Marker2D" parent="." unique_id=1697595877]
+position = Vector2(-104, 0)

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ContactData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/contact_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contact_id = "geologist"
+contact_name = "Geologist"
+role = "Geologist"
+greeting = "[STUB] Greeting for Geologist — add personality text to geologist.tres"
+location_claim = "cargo_bay"
+gameplay_function = ""

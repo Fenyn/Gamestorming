@@ -15,6 +15,8 @@ func _harvest() -> void:
 	var tile: CropTile = owner as CropTile
 	if tile.crop_data == null:
 		return
+	if not GameState.spend_energy(CropTile.ENERGY_HARVEST):
+		return
 
 	var crop_id: String = tile.crop_data.crop_id
 	var crop_name: String = tile.crop_data.get_active_name()

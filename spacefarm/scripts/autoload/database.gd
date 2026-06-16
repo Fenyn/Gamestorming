@@ -37,7 +37,27 @@ var _recipes: Dictionary = {
 }
 
 var _story_entries: Dictionary = {}
+
 var _contacts: Dictionary = {}
+
+
+func _ready() -> void:
+	_load_contacts()
+
+
+func _load_contacts() -> void:
+	var dir: DirAccess = DirAccess.open("res://data/contacts")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".tres"):
+			var res: Resource = load("res://data/contacts/%s" % file_name)
+			if res is ContactData:
+				var contact: ContactData = res as ContactData
+				_contacts[contact.contact_id] = contact
+		file_name = dir.get_next()
 
 
 func get_crop(id: String) -> CropData:
@@ -84,9 +104,13 @@ func get_all_story_entries() -> Array:
 	return _story_entries.values()
 
 
-func get_contact(id: String) -> Resource:
-	return _contacts.get(id, null)
+func get_contact(id: String) -> ContactData:
+	return _contacts.get(id, null) as ContactData
 
 
 func get_all_contacts() -> Array:
 	return _contacts.values()
+
+
+func get_contact_ids() -> Array:
+	return _contacts.keys()

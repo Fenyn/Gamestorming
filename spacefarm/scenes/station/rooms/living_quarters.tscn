@@ -1,38 +1,49 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
 [ext_resource type="Script" path="res://scenes/station/station_interactable.gd" id="2_interact"]
 [ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/4_Bedroom_Singles_Shadowless_48x48/Bedroom_Singles_Shadowless_48x48_1.png" id="3_bed_tex"]
 [ext_resource type="Texture2D" path="res://assets/ModernInteriors/1_Interiors/48x48/Theme_Sorter_Shadowless_Singles_48x48/2_Living_Room_Singles_Shadowless_48x48/Living_Room_Singles_Shadowless_48x48_70.png" id="4_desk_tex"]
+[ext_resource type="Script" path="res://scenes/station/exit_zone.gd" id="6_gkf1g"]
+[ext_resource type="TileSet" path="res://resources/room_tileset.tres" id="90_tileset"]
 
 [sub_resource type="RectangleShape2D" id="shape_bed"]
 size = Vector2(56, 46)
 
-[node name="LivingQuarters" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gkf1g"]
+size = Vector2(96, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8xi5v"]
+size = Vector2(24, 96)
+
+[node name="LivingQuarters" type="Node2D" unique_id=1544566992]
 script = ExtResource("1_room")
 room_id = "living_quarters"
-room_width = 460.0
-room_height = 340.0
+room_width = 576.0
 exit_south = "hub"
 exit_east = "service_tunnel"
 
-[node name="FloorLayer" type="TileMapLayer" parent="."]
+[node name="FloorLayer" type="TileMapLayer" parent="." unique_id=1068140774]
 z_index = -2
+tile_map_data = PackedByteArray("AAD6//z/AAAOABsAAAD7//z/AAAOABsAAAD8//z/AAAOABsAAAD9//z/AAAOABsAAAD+//z/AAAOABsAAAD///z/AAAOABsAAAAAAPz/AAAOABsAAAABAPz/AAAOABsAAAACAPz/AAAOABsAAAADAPz/AAAOABsAAAAEAPz/AAAOABsAAAAFAPz/AAAOABsAAAD6//3/AAAOABsAAAD7//3/AAAOABsAAAD8//3/AAAOABsAAAD9//3/AAAOABsAAAD+//3/AAAOABsAAAD///3/AAAOABsAAAAAAP3/AAAOABsAAAABAP3/AAAOABsAAAACAP3/AAAOABsAAAADAP3/AAAOABsAAAAEAP3/AAAOABsAAAAFAP3/AAAOABsAAAD6//7/AAAOABsAAAD7//7/AAAOABsAAAD8//7/AAAOABsAAAD9//7/AAAOABsAAAD+//7/AAAOABsAAAD///7/AAAOABsAAAAAAP7/AAAOABsAAAABAP7/AAAOABsAAAACAP7/AAAOABsAAAADAP7/AAAOABsAAAAEAP7/AAAOABsAAAAFAP7/AAAOABsAAAD6////AAAOABsAAAD7////AAAOABsAAAD8////AAAOABsAAAD9////AAAOABsAAAD+////AAAOABsAAAD/////AAAOABsAAAAAAP//AAAOABsAAAABAP//AAAOABsAAAACAP//AAAOABsAAAADAP//AAAOABsAAAAEAP//AAAOABsAAAAFAP//AAAOABsAAAD6/wAAAAAOABsAAAD7/wAAAAAOABsAAAD8/wAAAAAOABsAAAD9/wAAAAAOABsAAAD+/wAAAAAOABsAAAD//wAAAAAOABsAAAAAAAAAAAAOABsAAAABAAAAAAAOABsAAAACAAAAAAAOABsAAAADAAAAAAAOABsAAAAEAAAAAAAOABsAAAAFAAAAAAAOABsAAAD6/wEAAAAOABsAAAD7/wEAAAAOABsAAAD8/wEAAAAOABsAAAD9/wEAAAAOABsAAAD+/wEAAAAOABsAAAD//wEAAAAOABsAAAAAAAEAAAAOABsAAAABAAEAAAAOABsAAAACAAEAAAAOABsAAAADAAEAAAAOABsAAAAEAAEAAAAOABsAAAAFAAEAAAAOABsAAAD6/wIAAAAOABsAAAD7/wIAAAAOABsAAAD8/wIAAAAOABsAAAD9/wIAAAAOABsAAAD+/wIAAAAOABsAAAD//wIAAAAOABsAAAAAAAIAAAAOABsAAAABAAIAAAAOABsAAAACAAIAAAAOABsAAAADAAIAAAAOABsAAAAEAAIAAAAOABsAAAAFAAIAAAAOABsAAAD6/wMAAAAOABsAAAD7/wMAAAAOABsAAAD8/wMAAAAOABsAAAD9/wMAAAAOABsAAAD+/wMAAAAOABsAAAD//wMAAAAOABsAAAAAAAMAAAAOABsAAAABAAMAAAAOABsAAAACAAMAAAAOABsAAAADAAMAAAAOABsAAAAEAAMAAAAOABsAAAAFAAMAAAAOABsAAAD//wQAAAAOABsAAAD//wUAAAAOABsAAAAAAAQAAAAOABsAAAAAAAUAAAAOABsAAAD5//z/AAAOABsAAAAGAPz/AAAOABsAAAD5//3/AAAOABsAAAAGAP3/AAAOABsAAAD5//7/AAAOABsAAAAGAP7/AAAOABsAAAD5////AAAOABsAAAAGAP//AAAOABsAAAD5/wAAAAAOABsAAAAGAAAAAAAOABsAAAD5/wEAAAAOABsAAAAGAAEAAAAOABsAAAD5/wIAAAAOABsAAAAGAAIAAAAOABsAAAD5/wMAAAAOABsAAAAGAAMAAAAOABsAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="WallLayer" type="TileMapLayer" parent="."]
+[node name="WallLayer" type="TileMapLayer" parent="." unique_id=82957998]
 z_index = -1
+tile_map_data = PackedByteArray("AAD6//r/AQAXAAgAAAD6//v/AQAXAAkAAAD7//r/AQAXAAgAAAD7//v/AQAXAAkAAAD8//r/AQAXAAgAAAD8//v/AQAXAAkAAAD9//r/AQAXAAgAAAD9//v/AQAXAAkAAAD+//r/AQAXAAgAAAD+//v/AQAXAAkAAAD///r/AQAXAAgAAAD///v/AQAXAAkAAAAAAPr/AQAXAAgAAAAAAPv/AQAXAAkAAAABAPr/AQAXAAgAAAABAPv/AQAXAAkAAAACAPr/AQAXAAgAAAACAPv/AQAXAAkAAAADAPr/AQAXAAgAAAADAPv/AQAXAAkAAAAEAPr/AQAXAAgAAAAEAPv/AQAXAAkAAAAFAPr/AQAXAAgAAAAFAPv/AQAXAAkAAAD6/wQAAQAXAAgAAAD6/wUAAQAXAAkAAAD7/wQAAQAXAAgAAAD7/wUAAQAXAAkAAAD8/wQAAQAXAAgAAAD8/wUAAQAXAAkAAAD9/wQAAQAXAAgAAAD9/wUAAQAXAAkAAAD+/wQAAQAYAAgAAAD+/wUAAQAYAAkAAAABAAQAAQAWAAgAAAABAAUAAQAWAAkAAAACAAQAAQAXAAgAAAACAAUAAQAXAAkAAAADAAQAAQAXAAgAAAADAAUAAQAXAAkAAAAEAAQAAQAXAAgAAAAEAAUAAQAXAAkAAAAFAAQAAQAXAAgAAAAFAAUAAQAXAAkAAAD6//z////////////6//3////////////6//7////////////6///////////////6/wAA///////////6/wEA///////////6/wIA///////////6/wMA//////////8FAPz///////////8FAP3///////////8FAP7///////////8FAAEA//////////8FAAIA//////////8FAAMA///////////5//r/AQAWAAgAAAD5//v/AQAWAAkAAAAGAPr/AQAYAAgAAAAGAPv/AQAYAAkAAAD5/wQAAQAWAAgAAAD5/wUAAQAWAAkAAAAGAAQAAQAYAAgAAAAGAAUAAQAYAAkAAAD5//z/AQAbAAkAAAD5//3/AQAbAAkAAAD5//7/AQAbAAkAAAD5////AQAbAAkAAAD5/wAAAQAbAAkAAAD5/wEAAQAbAAkAAAD5/wIAAQAbAAkAAAD5/wMAAQAbAAkAAAAGAPz/AQAbAAkAAAAGAP3/AQAbAAkAAAAGAP7/AQAbAAkAAAAGAAEAAQAbAAkAAAAGAAIAAQAbAAkAAAAGAAMAAQAbAAkAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="RoomLabel" type="Label" parent="."]
+[node name="RoomLabel" type="Label" parent="." unique_id=302184007]
 z_index = 5
 offset_left = -170.0
-offset_top = -120.0
+offset_top = -174.0
 offset_right = 170.0
-offset_bottom = -100.0
-horizontal_alignment = 1
+offset_bottom = -154.0
 theme_override_font_sizes/font_size = 14
 text = "LIVING QUARTERS"
+horizontal_alignment = 1
 
-[node name="Bed" type="StaticBody2D" parent="."]
+[node name="Bed" type="StaticBody2D" parent="." unique_id=2007635299]
 position = Vector2(-120, -35)
 collision_layer = 2
 collision_mask = 0
@@ -40,51 +51,77 @@ script = ExtResource("2_interact")
 interactable_name = "BED"
 interact_hint_text = "E/Click: Save & Sleep"
 
-[node name="Visual" type="Sprite2D" parent="Bed"]
+[node name="Visual" type="Sprite2D" parent="Bed" unique_id=503804352]
 texture = ExtResource("3_bed_tex")
 
-[node name="Label" type="Label" parent="Bed"]
+[node name="Label" type="Label" parent="Bed" unique_id=579471756]
 z_index = 5
 offset_left = -20.0
 offset_top = 27.0
 offset_right = 20.0
 offset_bottom = 41.0
-horizontal_alignment = 1
 theme_override_font_sizes/font_size = 8
 text = "BED"
+horizontal_alignment = 1
 
-[node name="Col" type="CollisionShape2D" parent="Bed"]
+[node name="Col" type="CollisionShape2D" parent="Bed" unique_id=1644838474]
 shape = SubResource("shape_bed")
 
-[node name="DeskMarker" type="Sprite2D" parent="."]
+[node name="DeskMarker" type="Sprite2D" parent="." unique_id=625228438]
 position = Vector2(-130, 50)
 texture = ExtResource("4_desk_tex")
 
-[node name="DeskLabel" type="Label" parent="DeskMarker"]
+[node name="DeskLabel" type="Label" parent="DeskMarker" unique_id=213452856]
 offset_left = -4.0
 offset_top = 44.0
 offset_right = 44.0
 offset_bottom = 58.0
-horizontal_alignment = 1
 theme_override_font_sizes/font_size = 8
 text = "DESK"
-
-[node name="SignSouth" type="Label" parent="."]
-offset_left = -40.0
-offset_top = 130.0
-offset_right = 40.0
-offset_bottom = 146.0
 horizontal_alignment = 1
+
+[node name="SignSouth" type="Label" parent="." unique_id=1094308305]
+modulate = Color(0.5, 0.5, 0.6, 1)
+offset_left = -40.0
+offset_top = 120.0
+offset_right = 40.0
+offset_bottom = 136.0
 theme_override_font_sizes/font_size = 9
 text = "MAIN HUB"
-modulate = Color(0.5, 0.5, 0.6, 1)
-
-[node name="SignEast" type="Label" parent="."]
-offset_left = 180.0
-offset_top = -8.0
-offset_right = 225.0
-offset_bottom = 8.0
 horizontal_alignment = 1
+
+[node name="SignEast" type="Label" parent="." unique_id=1384915563]
+modulate = Color(0.5, 0.5, 0.6, 1)
+offset_left = 177.5
+offset_top = -8.0
+offset_right = 222.5
+offset_bottom = 8.0
 theme_override_font_sizes/font_size = 9
 text = "TUNNEL"
-modulate = Color(0.5, 0.5, 0.6, 1)
+horizontal_alignment = 1
+
+[node name="Exit_south" type="Area2D" parent="." unique_id=780474193]
+position = Vector2(0, 204)
+collision_layer = 0
+script = ExtResource("6_gkf1g")
+target_room = "hub"
+target_entrance = "south"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_south" unique_id=110375223]
+shape = SubResource("RectangleShape2D_gkf1g")
+
+[node name="Entrance_south" type="Marker2D" parent="." unique_id=2053096463]
+position = Vector2(0, 152)
+
+[node name="Exit_east" type="Area2D" parent="." unique_id=789158778]
+position = Vector2(300, 0)
+collision_layer = 0
+script = ExtResource("6_gkf1g")
+target_room = "service_tunnel"
+target_entrance = "east"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_east" unique_id=195530159]
+shape = SubResource("RectangleShape2D_8xi5v")
+
+[node name="Entrance_east" type="Marker2D" parent="." unique_id=151216121]
+position = Vector2(248, 0)

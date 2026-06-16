@@ -11,6 +11,7 @@ designation = "HY-08 Self-Replicating Fiber"
 description = "Never needs water. Spreads to adjacent empty tiles if not harvested."
 growth_sprite = ExtResource("2")
 sprite_row = 0
+biome = "arid"
 growth_days = 3
 water_schedule = 4
 requires_adjacency = 0

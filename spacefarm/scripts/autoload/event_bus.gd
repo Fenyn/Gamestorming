@@ -6,6 +6,7 @@ signal hour_changed(hour: int)
 signal day_started(day: int)
 signal day_ended(day: int)
 signal season_ended(season: int)
+signal ship_jumped(season_name: String)
 
 # --- Farming ---
 signal crop_planted(tile_pos: Vector2i, crop_id: String)
@@ -34,13 +35,17 @@ signal story_entry_unlocked(entry_id: String)
 signal terminal_opened()
 signal terminal_closed()
 
-# --- Contacts ---
+# --- Crew ---
 signal contact_message_received(contact_id: String, message_index: int)
+signal crew_relationship_changed(crew_id: String, level: int)
 signal comms_opened()
 signal comms_closed()
 
 # --- Inventory ---
 signal inventory_changed()
+
+# --- Energy ---
+signal energy_changed(current: float, max_energy: float)
 
 # --- Tools ---
 signal tool_switched(tool_id: String)

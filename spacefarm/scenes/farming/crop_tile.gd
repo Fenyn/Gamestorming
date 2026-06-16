@@ -2,6 +2,9 @@ class_name CropTile
 extends StaticBody2D
 
 const WILT_THRESHOLD: int = 2
+const ENERGY_TILL: float = 2.0
+const ENERGY_WATER: float = 1.0
+const ENERGY_HARVEST: float = 1.0
 const TWEEN_SPEED: float = 0.25
 const FRAME_SIZE: int = 48
 
@@ -25,6 +28,7 @@ var is_near_window: bool = false
 
 func _ready() -> void:
 	collision_layer = 2
+	add_to_group("crop_tiles")
 	_state_machine.start()
 
 
@@ -40,6 +44,46 @@ func get_state_name() -> String:
 
 func force_transition(state_name: StringName) -> void:
 	_state_machine.transition_to(state_name)
+
+
+# --- Save / Load ---
+
+func get_save_key() -> String:
+	var bay: GrowBay = get_grow_bay()
+	if bay == null:
+		return "no_bay/%s" % name
+	var room: BaseRoom = bay.get_parent() as BaseRoom
+	var room_id: String = room.room_id if room else "no_room"
+	return "%s/%s/%s" % [room_id, bay.name, name]
+
+
+func save_data() -> Dictionary:
+	return {
+		"state": get_state_name(),
+		"crop_id": crop_data.crop_id if crop_data else "",
+		"days_grown": days_grown,
+		"water_count": water_count,
+		"quality": quality,
+		"missed_water_days": missed_water_days,
+		"fertility_type": fertility_type,
+		"fertility_stacks": fertility_stacks,
+	}
+
+
+func load_data(data: Dictionary) -> void:
+	fertility_type = data.get("fertility_type", "")
+	fertility_stacks = int(data.get("fertility_stacks", 0))
+	var crop_id: String = data.get("crop_id", "")
+	crop_data = Database.get_crop(crop_id) if crop_id != "" else null
+	days_grown = int(data.get("days_grown", 0))
+	force_transition(StringName(String(data.get("state", "Empty"))))
+	# state enter() callbacks reset some fields; re-apply the snapshot
+	days_grown = int(data.get("days_grown", 0))
+	water_count = int(data.get("water_count", 0))
+	quality = float(data.get("quality", 1.0))
+	missed_water_days = int(data.get("missed_water_days", 0))
+	if get_state_name() == "Growing":
+		update_growth_visual()
 
 
 func get_interact_hint() -> String:

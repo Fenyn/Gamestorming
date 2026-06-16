@@ -23,7 +23,7 @@ var _days_remaining: int = 0
 var _result_crop_id: String = ""
 var _is_processing: bool = false
 
-@onready var _visual: ColorRect = %HybridVisual
+@onready var _visual: Sprite2D = %HybridVisual
 @onready var _label: Label = %HybridLabel
 @onready var _status: Label = %StatusLabel
 

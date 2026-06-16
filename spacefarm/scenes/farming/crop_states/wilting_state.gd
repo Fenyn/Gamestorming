@@ -28,6 +28,8 @@ func interact(_player: Node2D) -> void:
 		return
 
 	var tile: CropTile = owner as CropTile
+	if not GameState.spend_energy(CropTile.ENERGY_WATER):
+		return
 
 	if tile.crop_data.water_schedule == CropData.WaterSchedule.ALTERNATE_DAYS:
 		EventBus.notification_requested.emit("%s weakened by watering while wilting!" % tile.crop_data.get_active_name())

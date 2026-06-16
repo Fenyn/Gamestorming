@@ -1,15 +1,22 @@
 class_name BaseRoom
 extends Node2D
+## A station room. Floors and walls are painted TileMapLayers; wall collision
+## comes from the tileset's physics layer, so the painted walls ARE the
+## collision. Exit zones and entrance markers for open exits are baked into
+## each room scene by tools/room_painter.gd; sealed airlocks stay solid wall
+## until unlock_airlock() erases the door tiles and creates the exit.
 
-const WALL_THICKNESS: float = 16.0
-const EXIT_WIDTH: float = 48.0
+const TILE_SIZE: int = 48
+const EXIT_WIDTH: float = 96.0
 const EXIT_ZONE_DEPTH: float = 24.0
 const ENTRANCE_OFFSET: float = 40.0
 
 @export_group("Room")
 @export var room_id: String = ""
-@export var room_width: float = 400.0
-@export var room_height: float = 300.0
+@export var room_width: float = 480.0
+@export var room_height: float = 384.0
+## Grow-ring biome for crop gating: verdant, arid, fungal, or cryo.
+@export var biome: String = "verdant"
 
 @export_group("Exits")
 @export var exit_north: String = ""
@@ -24,150 +31,106 @@ const ENTRANCE_OFFSET: float = 40.0
 @export var airlock_west: String = ""
 
 var _entrances: Dictionary = {}
-var _wall_nodes_by_direction: Dictionary = {}
+var _nav_region: NavigationRegion2D = null
+
+@onready var _floor_layer: TileMapLayer = $FloorLayer
+@onready var _wall_layer: TileMapLayer = $WallLayer
 
 
 func _ready() -> void:
-	_build_collision_walls()
+	for child: Node in get_children():
+		var child_name: String = String(child.name)
+		if child is Marker2D and child_name.begins_with("Entrance_"):
+			_entrances[child_name.trim_prefix("Entrance_")] = child
+	_create_navigation_region()
+
+
+func _create_navigation_region() -> void:
+	_nav_region = NavigationRegion2D.new()
+	var nav_poly: NavigationPolygon = NavigationPolygon.new()
+	var inset: float = float(TILE_SIZE) * 1.5
+	var hw: float = room_width / 2.0 - inset
+	var hh: float = room_height / 2.0 - inset
+	var outline: PackedVector2Array = PackedVector2Array([
+		Vector2(-hw, -hh),
+		Vector2(hw, -hh),
+		Vector2(hw, hh),
+		Vector2(-hw, hh),
+	])
+	nav_poly.add_outline(outline)
+	nav_poly.make_polygons_from_outlines()
+	_nav_region.navigation_polygon = nav_poly
+	add_child(_nav_region)
+
+
+func get_exit_target(direction: String) -> String:
+	match direction:
+		"north": return exit_north
+		"south": return exit_south
+		"east": return exit_east
+		"west": return exit_west
+	return ""
+
+
+func get_airlock_label(direction: String) -> String:
+	match direction:
+		"north": return airlock_north
+		"south": return airlock_south
+		"east": return airlock_east
+		"west": return airlock_west
+	return ""
 
 
 func unlock_airlock(direction: String, target_room: String) -> void:
-	for node: Node in _wall_nodes_by_direction.get(direction, []):
-		node.queue_free()
-	_wall_nodes_by_direction[direction] = []
-
-	var hw: float = room_width / 2.0 + WALL_THICKNESS / 2.0
-	var hh: float = room_height / 2.0 + WALL_THICKNESS / 2.0
-	var full_w: float = room_width + WALL_THICKNESS
-	var full_h: float = room_height + WALL_THICKNESS
-
-	var center: Vector2 = Vector2.ZERO
-	var full_size: Vector2 = Vector2.ZERO
-	var is_horizontal: bool = false
-	match direction:
-		"north":
-			center = Vector2(0, -hh)
-			full_size = Vector2(full_w, WALL_THICKNESS)
-			is_horizontal = true
-		"south":
-			center = Vector2(0, hh)
-			full_size = Vector2(full_w, WALL_THICKNESS)
-			is_horizontal = true
-		"west":
-			center = Vector2(-hw, 0)
-			full_size = Vector2(WALL_THICKNESS, full_h)
-		"east":
-			center = Vector2(hw, 0)
-			full_size = Vector2(WALL_THICKNESS, full_h)
-
-	_build_wall_with_exit(center, full_size, is_horizontal, target_room, direction)
+	_open_door_visual(direction)
+	create_exit(direction, target_room)
 
 
-func _build_collision_walls() -> void:
-	var hw: float = room_width / 2.0 + WALL_THICKNESS / 2.0
-	var hh: float = room_height / 2.0 + WALL_THICKNESS / 2.0
-	var full_w: float = room_width + WALL_THICKNESS
-	var full_h: float = room_height + WALL_THICKNESS
+## Creates the ExitZone trigger and entrance marker for a door. Used at
+## runtime when an airlock unlocks, and by tools/room_painter.gd to bake
+## the nodes for regular exits into the scene. Returns the created nodes.
+func create_exit(direction: String, target_room: String) -> Array[Node]:
+	var hw: float = room_width / 2.0
+	var hh: float = room_height / 2.0
 
-	_build_wall_side(Vector2(0, -hh), Vector2(full_w, WALL_THICKNESS), exit_north, airlock_north, "north")
-	_build_wall_side(Vector2(0, hh), Vector2(full_w, WALL_THICKNESS), exit_south, airlock_south, "south")
-	_build_wall_side(Vector2(-hw, 0), Vector2(WALL_THICKNESS, full_h), exit_west, airlock_west, "west")
-	_build_wall_side(Vector2(hw, 0), Vector2(WALL_THICKNESS, full_h), exit_east, airlock_east, "east")
-
-
-func _build_wall_side(center: Vector2, full_size: Vector2, exit_target: String, airlock_label: String, direction: String) -> void:
-	var is_horizontal: bool = full_size.x > full_size.y
-	_wall_nodes_by_direction[direction] = []
-
-	if exit_target != "":
-		_build_wall_with_exit(center, full_size, is_horizontal, exit_target, direction)
-	elif airlock_label != "":
-		_build_solid_wall(center, full_size, direction)
-	else:
-		_build_solid_wall(center, full_size, direction)
-
-
-func _build_solid_wall(center: Vector2, size: Vector2, direction: String = "") -> void:
-	var wall: StaticBody2D = _create_wall_body(center, size)
-	if direction != "":
-		_wall_nodes_by_direction[direction].append(wall)
-
-
-func _build_wall_with_exit(center: Vector2, full_size: Vector2, is_horizontal: bool, target_room: String, direction: String) -> void:
-	if is_horizontal:
-		var seg_width: float = (full_size.x - EXIT_WIDTH) / 2.0
-		var offset: float = (seg_width + EXIT_WIDTH) / 2.0
-		_build_solid_wall(center + Vector2(-offset, 0), Vector2(seg_width, full_size.y))
-		_build_solid_wall(center + Vector2(offset, 0), Vector2(seg_width, full_size.y))
-	else:
-		var seg_height: float = (full_size.y - EXIT_WIDTH) / 2.0
-		var offset: float = (seg_height + EXIT_WIDTH) / 2.0
-		_build_solid_wall(center + Vector2(0, -offset), Vector2(full_size.x, seg_height))
-		_build_solid_wall(center + Vector2(0, offset), Vector2(full_size.x, seg_height))
-
-	_build_exit_zone(center, direction, target_room)
-	_build_entrance(center, direction)
-
-
-func _build_exit_zone(wall_center: Vector2, direction: String, target_room: String) -> void:
 	var zone: ExitZone = ExitZone.new()
+	zone.name = "Exit_%s" % direction
 	zone.target_room = target_room
 	zone.target_entrance = direction
 	zone.collision_layer = 0
 	zone.collision_mask = 1
 
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var shape_node: CollisionShape2D = CollisionShape2D.new()
+	shape_node.name = "Shape"
 	var rect: RectangleShape2D = RectangleShape2D.new()
-
 	match direction:
 		"north":
 			rect.size = Vector2(EXIT_WIDTH, EXIT_ZONE_DEPTH)
-			zone.position = wall_center + Vector2(0, -EXIT_ZONE_DEPTH / 2.0)
+			zone.position = Vector2(0, -hh - EXIT_ZONE_DEPTH / 2.0)
 		"south":
 			rect.size = Vector2(EXIT_WIDTH, EXIT_ZONE_DEPTH)
-			zone.position = wall_center + Vector2(0, EXIT_ZONE_DEPTH / 2.0)
+			zone.position = Vector2(0, hh + EXIT_ZONE_DEPTH / 2.0)
 		"east":
 			rect.size = Vector2(EXIT_ZONE_DEPTH, EXIT_WIDTH)
-			zone.position = wall_center + Vector2(EXIT_ZONE_DEPTH / 2.0, 0)
+			zone.position = Vector2(hw + EXIT_ZONE_DEPTH / 2.0, 0)
 		"west":
 			rect.size = Vector2(EXIT_ZONE_DEPTH, EXIT_WIDTH)
-			zone.position = wall_center + Vector2(-EXIT_ZONE_DEPTH / 2.0, 0)
-
-	shape.shape = rect
-	zone.add_child(shape)
-	zone.name = "Exit_%s" % direction
+			zone.position = Vector2(-hw - EXIT_ZONE_DEPTH / 2.0, 0)
+	shape_node.shape = rect
+	zone.add_child(shape_node)
 	add_child(zone)
 
-
-func _build_entrance(wall_center: Vector2, direction: String) -> void:
 	var marker: Marker2D = Marker2D.new()
-	match direction:
-		"north":
-			marker.position = wall_center + Vector2(0, ENTRANCE_OFFSET)
-		"south":
-			marker.position = wall_center + Vector2(0, -ENTRANCE_OFFSET)
-		"east":
-			marker.position = wall_center + Vector2(-ENTRANCE_OFFSET, 0)
-		"west":
-			marker.position = wall_center + Vector2(ENTRANCE_OFFSET, 0)
 	marker.name = "Entrance_%s" % direction
+	match direction:
+		"north": marker.position = Vector2(0, -hh + ENTRANCE_OFFSET)
+		"south": marker.position = Vector2(0, hh - ENTRANCE_OFFSET)
+		"east": marker.position = Vector2(hw - ENTRANCE_OFFSET, 0)
+		"west": marker.position = Vector2(-hw + ENTRANCE_OFFSET, 0)
 	add_child(marker)
 	_entrances[direction] = marker
 
-
-func _create_wall_body(center: Vector2, size: Vector2) -> StaticBody2D:
-	var body: StaticBody2D = StaticBody2D.new()
-	body.position = center
-	body.collision_layer = 1
-
-	var col: CollisionShape2D = CollisionShape2D.new()
-	var shape: RectangleShape2D = RectangleShape2D.new()
-	shape.size = size
-	col.shape = shape
-	body.add_child(col)
-
-	add_child(body)
-	return body
+	return [zone, marker]
 
 
 func get_entrance_position(direction: String) -> Vector2:
@@ -175,3 +138,38 @@ func get_entrance_position(direction: String) -> Vector2:
 	if marker:
 		return marker.global_position
 	return global_position
+
+
+func _open_door_visual(direction: String) -> void:
+	if _wall_layer == null or _wall_layer.tile_set == null:
+		return
+	var half_cols: int = int(room_width) / TILE_SIZE / 2
+	var half_rows: int = int(room_height) / TILE_SIZE / 2
+	match direction:
+		"north":
+			for x: int in [-1, 0]:
+				_wall_layer.erase_cell(Vector2i(x, -half_rows - 1))
+				_wall_layer.erase_cell(Vector2i(x, -half_rows - 2))
+				_paint_doorway_floor(Vector2i(x, -half_rows - 1), Vector2i(x, -half_rows))
+				_paint_doorway_floor(Vector2i(x, -half_rows - 2), Vector2i(x, -half_rows))
+		"south":
+			for x: int in [-1, 0]:
+				_wall_layer.erase_cell(Vector2i(x, half_rows))
+				_wall_layer.erase_cell(Vector2i(x, half_rows + 1))
+				_paint_doorway_floor(Vector2i(x, half_rows), Vector2i(x, half_rows - 1))
+				_paint_doorway_floor(Vector2i(x, half_rows + 1), Vector2i(x, half_rows - 1))
+		"west":
+			for y: int in [-1, 0]:
+				_wall_layer.erase_cell(Vector2i(-half_cols - 1, y))
+		"east":
+			for y: int in [-1, 0]:
+				_wall_layer.erase_cell(Vector2i(half_cols, y))
+
+
+func _paint_doorway_floor(target: Vector2i, copy_from: Vector2i) -> void:
+	if _floor_layer == null or _floor_layer.get_cell_source_id(target) != -1:
+		return
+	var src_id: int = _floor_layer.get_cell_source_id(copy_from)
+	if src_id == -1:
+		return
+	_floor_layer.set_cell(target, src_id, _floor_layer.get_cell_atlas_coords(copy_from))

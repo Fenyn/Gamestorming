@@ -8,6 +8,11 @@ const GRID_HEIGHT: int = 4
 var _tiles: Array[CropTile] = []
 
 
+func get_biome() -> String:
+	var room: BaseRoom = get_parent() as BaseRoom
+	return room.biome if room else "verdant"
+
+
 func _ready() -> void:
 	var half_grid: float = (GRID_WIDTH - 1) * TILE_SPACING / 2.0
 	for child: Node in get_children():

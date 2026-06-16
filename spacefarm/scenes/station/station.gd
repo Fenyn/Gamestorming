@@ -10,11 +10,38 @@ const ROOM_TRANSITION_DELAY: float = 0.1
 const SEASON_REPLENISH_MIN: int = 4
 const FADE_CANVAS_LAYER: int = 100
 
+const ROOM_DISPLAY_NAMES: Dictionary = {
+	"hub": "The Commons",
+	"living_quarters": "Crew Quarters",
+	"cargo_bay": "Cargo Hold",
+	"service_tunnel": "Maintenance Corridor",
+	"grow_bay": "Grow Chamber Alpha",
+	"grow_bay_b": "Grow Chamber Beta",
+	"grow_bay_c": "Grow Chamber Gamma",
+	"grow_bay_d": "Grow Chamber Delta",
+	"processing_lab": "Workshop",
+	"advanced_processing": "Research Lab",
+	"hybridization_lab": "Bio-Lab",
+}
+
+## Doors opened when a module unlocks: module_id -> [[room_id, direction, target_room], ...]
+const MODULE_DOORS: Dictionary = {
+	"processing_lab": [["hub", "west", "processing_lab"]],
+	"advanced_processing": [["processing_lab", "south", "advanced_processing"]],
+	"hybridization_lab": [["processing_lab", "west", "hybridization_lab"]],
+	"grow_ring_b": [["grow_bay", "east", "grow_bay_b"]],
+	"grow_ring_c": [["grow_bay_b", "south", "grow_bay_c"]],
+	"grow_ring_d": [["grow_bay_c", "west", "grow_bay_d"], ["grow_bay", "south", "grow_bay_d"]],
+}
+
 var _rooms: Dictionary = {}
 var _current_room: BaseRoom = null
 var _transitioning: bool = false
 var _player: CharacterBody2D = null
 var _canvas_modulate: CanvasModulate = null
+var _deferred_moves: Dictionary = {}
+var _crew_transit_paths: Dictionary = {}
+var _slept_in_bed: bool = false
 
 @onready var _interact_hint: Label = %InteractHint
 @onready var _day_label: Label = %DayLabel
@@ -28,6 +55,7 @@ var _canvas_modulate: CanvasModulate = null
 @onready var _comms_panel: CommsPanel = $Overlays/CommsPanel
 @onready var _inventory_panel: InventoryPanel = $Overlays/InventoryPanel
 @onready var _pause_menu: PauseMenu = $Overlays/PauseMenu
+@onready var _day_summary: DaySummaryPanel = $DaySummary
 
 var _active_overlay: Control = null
 
@@ -45,6 +73,7 @@ func _ready() -> void:
 	_connect_cargo_pods()
 	_connect_hybridizers()
 	_connect_station_interactables()
+	_spawn_crew()
 
 	EventBus.interact_hint_changed.connect(_on_interact_hint_changed)
 	EventBus.hour_changed.connect(_on_hour_changed)
@@ -57,17 +86,20 @@ func _ready() -> void:
 	EventBus.notification_requested.connect(_on_notification)
 
 	_current_room = _rooms.get("living_quarters", null) as BaseRoom
+	_apply_unlocked_modules()
 	_update_day_label()
 	_update_seed_info()
 	_update_room_name()
 	_update_directive_display()
 	_update_lighting(TimeManager.current_hour)
 	TimeManager.start_day()
+	GameState.restore_crop_tiles()
 
 
 func _process(_delta: float) -> void:
 	if not _transitioning:
 		_update_day_label()
+		_process_deferred_moves()
 
 
 # --- Overlay Management ---
@@ -223,6 +255,9 @@ func _do_day_transition(ended_day: int) -> void:
 	InputManager.set_mode(InputContext.Mode.DISABLED)
 	_player.velocity = Vector2.ZERO
 
+	var rested: bool = _slept_in_bed
+	_slept_in_bed = false
+
 	var fade: ColorRect = _get_or_create_fade()
 	fade.modulate.a = 0.0
 	var tween: Tween = create_tween()
@@ -230,10 +265,14 @@ func _do_day_transition(ended_day: int) -> void:
 	await tween.finished
 
 	_day_label.text = "Day %d complete" % ended_day
-	await get_tree().create_timer(DAY_TRANSITION_PAUSE).timeout
+	GameState.wake_up(rested)
+	_day_summary.show_summary(ended_day, rested)
+	await _day_summary.continue_requested
 
 	_update_lighting(TimeManager.DAY_START_HOUR)
 	TimeManager.start_day()
+	GameState.save_game()
+	EventBus.notification_requested.emit("Game saved.")
 	_update_day_label()
 	_update_seed_info()
 
@@ -270,9 +309,12 @@ func _do_season_transition(season: int) -> void:
 	await tween.finished
 
 	_day_label.text = "Season %d complete" % season
+	GameState.wake_up(_slept_in_bed)
+	_slept_in_bed = false
 	await get_tree().create_timer(SEASON_TRANSITION_PAUSE).timeout
 
 	TimeManager.advance_to_next_season()
+	GameState.save_game()
 	_update_day_label()
 	_update_seed_info()
 	_update_lighting(TimeManager.DAY_START_HOUR)
@@ -294,6 +336,7 @@ func _on_interact_hint_changed(text: String) -> void:
 func _on_hour_changed(hour: int) -> void:
 	_update_day_label()
 	_update_lighting(hour)
+	_update_crew_positions(hour)
 
 
 func _on_day_started(_day: int) -> void:
@@ -319,22 +362,24 @@ func _on_cargo_shipped(_items: Dictionary) -> void:
 
 
 func _on_module_unlocked(module_id: String) -> void:
-	match module_id:
-		"processing_lab":
-			var hub: BaseRoom = _rooms.get("hub", null) as BaseRoom
-			if hub:
-				hub.unlock_airlock("west", "processing_lab")
-				_reconnect_exit_zones_for_room(hub)
-		"advanced_processing":
-			var proc_lab: BaseRoom = _rooms.get("processing_lab", null) as BaseRoom
-			if proc_lab:
-				proc_lab.unlock_airlock("south", "advanced_processing")
-				_reconnect_exit_zones_for_room(proc_lab)
-		"hybridization_lab":
-			var proc_lab2: BaseRoom = _rooms.get("processing_lab", null) as BaseRoom
-			if proc_lab2:
-				proc_lab2.unlock_airlock("east", "hybridization_lab")
-				_reconnect_exit_zones_for_room(proc_lab2)
+	_apply_module_unlock(module_id)
+
+
+## Re-opens airlocks for modules already unlocked in a loaded save.
+func _apply_unlocked_modules() -> void:
+	for module_id: String in GameState.unlocked_modules:
+		_apply_module_unlock(module_id)
+
+
+func _apply_module_unlock(module_id: String) -> void:
+	if not MODULE_DOORS.has(module_id):
+		return
+	for door: Array in MODULE_DOORS[module_id]:
+		var room: BaseRoom = _rooms.get(door[0], null) as BaseRoom
+		if room == null:
+			continue
+		room.unlock_airlock(door[1], door[2])
+		_reconnect_exit_zones_for_room(room)
 
 
 func _reconnect_exit_zones_for_room(room: BaseRoom) -> void:
@@ -388,7 +433,7 @@ func _on_station_interactable(interactable_name: String) -> void:
 		"COMMS":
 			_open_overlay(_comms_panel)
 		"BED":
-			_save_and_notify()
+			_sleep()
 
 
 # --- Directives ---
@@ -498,8 +543,9 @@ func _show_milestone_popup(directive: MilestoneData) -> void:
 # --- HUD Updates ---
 
 func _update_day_label() -> void:
-	_day_label.text = "Day %d | Season %d | %s" % [
-		GameState.day, GameState.season, TimeManager.get_time_string()
+	_day_label.text = "%s Day %d | %s | %s" % [
+		TimeManager.get_day_name(), GameState.day,
+		TimeManager.get_season_name(), TimeManager.get_time_string()
 	]
 
 
@@ -523,15 +569,259 @@ func _update_seed_info() -> void:
 
 func _update_room_name() -> void:
 	if _current_room:
-		_room_name.text = _current_room.room_id.to_upper().replace("_", " ")
+		_room_name.text = ROOM_DISPLAY_NAMES.get(_current_room.room_id, _current_room.room_id.to_upper().replace("_", " "))
+
+
+# --- Crew ---
+
+const _crew_scene: PackedScene = preload("res://scenes/crew/crew_member.tscn")
+
+func _spawn_crew() -> void:
+	for contact: ContactData in Database.get_all_contacts():
+		var room: BaseRoom = _rooms.get(contact.location_claim, null) as BaseRoom
+		if room == null:
+			continue
+		if not _is_room_unlocked(room.room_id):
+			continue
+		var member: CrewMember = _crew_scene.instantiate() as CrewMember
+		member.position = _get_safe_position(room)
+		room.add_child(member)
+		member.setup(contact)
+		member.crew_interacted.connect(_on_crew_interacted)
+
+
+func _get_safe_position(room: BaseRoom) -> Vector2:
+	var inset: float = float(BaseRoom.TILE_SIZE) * 2.0
+	var hw: float = room.room_width / 2.0 - inset
+	var hh: float = room.room_height / 2.0 - inset
+	return Vector2(randf_range(-hw, hw), randf_range(-hh, hh))
+
+
+func _update_crew_positions(hour: int) -> void:
+	for member: Node in get_tree().get_nodes_in_group("crew_members"):
+		if not member is CrewMember:
+			continue
+		var crew: CrewMember = member as CrewMember
+		var target_room_id: String = CrewManager.get_scheduled_room(crew.crew_id, hour)
+		if target_room_id == "":
+			continue
+		if crew.get_parent() is BaseRoom and (crew.get_parent() as BaseRoom).room_id == target_room_id:
+			_deferred_moves.erase(crew.crew_id)
+			continue
+		if crew.is_busy():
+			_deferred_moves[crew.crew_id] = target_room_id
+			continue
+		_execute_crew_move(crew, target_room_id)
+
+
+func _process_deferred_moves() -> void:
+	if _deferred_moves.is_empty():
+		return
+	var to_execute: Array[Array] = []
+	for crew_id: String in _deferred_moves:
+		var target_room_id: String = _deferred_moves[crew_id]
+		for member: Node in get_tree().get_nodes_in_group("crew_members"):
+			if not member is CrewMember:
+				continue
+			var crew: CrewMember = member as CrewMember
+			if crew.crew_id != crew_id:
+				continue
+			if crew.get_state_name() == &"Transit":
+				break
+			if crew.get_state_name() == &"Talking":
+				break
+			to_execute.append([crew, target_room_id])
+			break
+	for entry: Array in to_execute:
+		_execute_crew_move(entry[0] as CrewMember, entry[1] as String)
+
+
+func _execute_crew_move(crew: CrewMember, target_room_id: String) -> void:
+	if not _is_room_unlocked(target_room_id):
+		return
+	var current_room: BaseRoom = crew.get_parent() as BaseRoom
+	if current_room == null:
+		return
+	var path: Array[String] = _find_room_path(current_room.room_id, target_room_id)
+	if path.is_empty():
+		var target_room: BaseRoom = _rooms.get(target_room_id, null) as BaseRoom
+		if target_room:
+			_instant_crew_move(crew, target_room)
+		return
+	_crew_transit_paths[crew.crew_id] = path
+	var transit_state: CrewTransitState = crew.get_node("StateMachine/Transit") as CrewTransitState
+	if transit_state == null:
+		var target_room: BaseRoom = _rooms.get(target_room_id, null) as BaseRoom
+		if target_room:
+			_instant_crew_move(crew, target_room)
+		return
+	if not transit_state.arrived_at_exit.is_connected(_on_crew_at_exit):
+		transit_state.arrived_at_exit.connect(_on_crew_at_exit)
+	_start_next_hop(crew)
+
+
+func _start_next_hop(crew: CrewMember) -> void:
+	var path: Array = _crew_transit_paths.get(crew.crew_id, [])
+	if path.is_empty():
+		_crew_transit_paths.erase(crew.crew_id)
+		crew._state_machine.transition_to(&"Idle")
+		return
+	var next_room_id: String = path[0]
+	var current_room: BaseRoom = crew.get_parent() as BaseRoom
+	if current_room:
+		var exit_dir: String = _get_exit_direction_to(current_room, next_room_id)
+		crew._state_machine.transition_to(&"Transit", {
+			"target_room": next_room_id,
+			"exit_direction": exit_dir,
+		})
+	else:
+		var target_room: BaseRoom = _rooms.get(next_room_id, null) as BaseRoom
+		if target_room:
+			_instant_crew_move(crew, target_room)
+		path.pop_front()
+
+
+func _on_crew_at_exit(crew_id: String) -> void:
+	var path: Array = _crew_transit_paths.get(crew_id, [])
+	if path.is_empty():
+		return
+	var next_room_id: String = path.pop_front()
+	var next_room: BaseRoom = _rooms.get(next_room_id, null) as BaseRoom
+	for member: Node in get_tree().get_nodes_in_group("crew_members"):
+		if not member is CrewMember:
+			continue
+		var crew: CrewMember = member as CrewMember
+		if crew.crew_id != crew_id:
+			continue
+		if next_room == null:
+			crew._state_machine.transition_to(&"Idle")
+			_crew_transit_paths.erase(crew_id)
+			return
+		var current_room: BaseRoom = crew.get_parent() as BaseRoom
+		var exit_dir: String = ""
+		if current_room:
+			exit_dir = _get_exit_direction_to(current_room, next_room_id)
+		var enter_dir: String = _get_opposite(exit_dir) if exit_dir != "" else _get_entrance_direction(next_room)
+		crew.get_parent().remove_child(crew)
+		var entrance_pos: Vector2 = next_room.get_entrance_position(enter_dir)
+		crew.position = entrance_pos - next_room.global_position
+		next_room.add_child(crew)
+		if path.is_empty():
+			_crew_transit_paths.erase(crew_id)
+			crew.home_position = _get_safe_position(next_room)
+			var transit_state: CrewTransitState = crew.get_node("StateMachine/Transit") as CrewTransitState
+			if transit_state:
+				transit_state.begin_enter(entrance_pos)
+			else:
+				crew._state_machine.transition_to(&"Idle")
+		else:
+			_start_next_hop(crew)
+		return
+
+
+func _instant_crew_move(crew: CrewMember, target_room: BaseRoom) -> void:
+	crew.get_parent().remove_child(crew)
+	crew.position = _get_safe_position(target_room)
+	crew.home_position = crew.position
+	target_room.add_child(crew)
+	crew._state_machine.transition_to(&"Idle")
+
+
+func _get_entrance_direction(room: BaseRoom) -> String:
+	for dir_name: String in ["south", "west", "east", "north"]:
+		if room._entrances.has(dir_name):
+			return dir_name
+	return "south"
+
+
+# --- Room Graph Pathfinding ---
+
+func _get_room_neighbors(room: BaseRoom) -> Dictionary:
+	var neighbors: Dictionary = {}
+	for dir_name: String in ["north", "south", "east", "west"]:
+		var target_id: String = room.get_exit_target(dir_name)
+		if target_id != "" and _rooms.has(target_id):
+			neighbors[dir_name] = target_id
+	return neighbors
+
+
+func _find_room_path(from_id: String, to_id: String) -> Array[String]:
+	if from_id == to_id:
+		return []
+	var queue: Array[String] = [from_id]
+	var visited: Dictionary = {from_id: ""}
+	while queue.size() > 0:
+		var current_id: String = queue.pop_front()
+		var current_room: BaseRoom = _rooms.get(current_id, null) as BaseRoom
+		if current_room == null:
+			continue
+		var neighbors: Dictionary = _get_room_neighbors(current_room)
+		for dir_name: String in neighbors:
+			var neighbor_id: String = neighbors[dir_name]
+			if visited.has(neighbor_id):
+				continue
+			visited[neighbor_id] = current_id
+			if neighbor_id == to_id:
+				return _reconstruct_path(visited, from_id, to_id)
+			queue.append(neighbor_id)
+	return []
+
+
+func _reconstruct_path(visited: Dictionary, from_id: String, to_id: String) -> Array[String]:
+	var path: Array[String] = []
+	var current: String = to_id
+	while current != from_id:
+		path.push_front(current)
+		current = visited[current]
+	return path
+
+
+func _get_exit_direction_to(room: BaseRoom, target_room_id: String) -> String:
+	for dir_name: String in ["north", "south", "east", "west"]:
+		if room.get_exit_target(dir_name) == target_room_id:
+			return dir_name
+	return ""
+
+
+func _get_opposite(direction: String) -> String:
+	match direction:
+		"north": return "south"
+		"south": return "north"
+		"east": return "west"
+		"west": return "east"
+	return ""
+
+
+func _is_room_unlocked(room_id: String) -> bool:
+	for module_id: String in MODULE_DOORS:
+		for door_entry: Array in MODULE_DOORS[module_id]:
+			if door_entry[2] == room_id:
+				return module_id in GameState.unlocked_modules
+	return true
+
+
+func _on_crew_interacted(crew_id: String) -> void:
+	var contact: ContactData = Database.get_contact(crew_id)
+	if contact == null:
+		return
+	var held_item: String = GameState.get_active_item_id()
+	var is_tool: bool = held_item in ["watering_can", "trowel"]
+	var is_giftable: bool = held_item != "" and not is_tool
+	if is_giftable and CrewManager.can_give_gift(crew_id):
+		var response: String = CrewManager.give_gift(crew_id, held_item)
+		EventBus.notification_requested.emit(response)
+	else:
+		var chatter: String = CrewManager.talk_to(crew_id)
+		EventBus.notification_requested.emit(chatter)
 
 
 # --- Utilities ---
 
-func _save_and_notify() -> void:
-	var handler: SaveFileHandler = SaveFileHandler.new(GameState.SAVE_PATH, GameState.SAVE_VERSION)
-	handler.save_dict(GameState.to_dict())
-	EventBus.notification_requested.emit("Game saved.")
+func _sleep() -> void:
+	if _transitioning:
+		return
+	_slept_in_bed = true
+	TimeManager.end_day_early()
 
 
 func _get_opposite_direction(direction: String) -> String:

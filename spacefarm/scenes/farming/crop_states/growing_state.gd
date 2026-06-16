@@ -21,6 +21,8 @@ func interact(_player: Node2D) -> void:
 
 func _water() -> void:
 	var tile: CropTile = owner as CropTile
+	if not GameState.spend_energy(CropTile.ENERGY_WATER):
+		return
 
 	if tile.crop_data.water_schedule == CropData.WaterSchedule.NIGHT_ONLY:
 		if not TimeManager.is_night():

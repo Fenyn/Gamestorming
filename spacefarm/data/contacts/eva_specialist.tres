@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ContactData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/contact_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+contact_id = "eva_specialist"
+contact_name = "EVA Specialist"
+role = "EVA Specialist"
+greeting = "[STUB] Greeting for EVA Specialist — add personality text to eva_specialist.tres"
+location_claim = "cargo_bay"
+gameplay_function = ""

@@ -1,53 +1,82 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=4]
 
 [ext_resource type="Script" path="res://scenes/station/base_room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/machines/base_machine.tscn" id="2_machine"]
 [ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Milk_Can_1_48x48.png" id="3_barrel_tex"]
+[ext_resource type="Script" path="res://scenes/machines/base_machine.gd" id="4_4y8lg"]
 [ext_resource type="Texture2D" path="res://assets/ModernFarm/Single_Files_48x48/Props_and_Buildings_48x48/Tailor_Crafting_Table_Full_48x48.png" id="4_synth_tex"]
+[ext_resource type="Script" path="res://scenes/station/exit_zone.gd" id="7_o7qsd"]
+[ext_resource type="TileSet" path="res://resources/room_tileset.tres" id="90_tileset"]
 
-[node name="AdvancedProcessing" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4y8lg"]
+size = Vector2(96, 24)
+
+[node name="AdvancedProcessing" type="Node2D" unique_id=1442712107]
 script = ExtResource("1_room")
 room_id = "advanced_processing"
-room_width = 540.0
-room_height = 380.0
+room_width = 672.0
+room_height = 480.0
 exit_north = "processing_lab"
 
-[node name="FloorLayer" type="TileMapLayer" parent="."]
+[node name="FloorLayer" type="TileMapLayer" parent="." unique_id=566558700]
 z_index = -2
+tile_map_data = PackedByteArray("AAD5//z/AAAOABkAAAD6//z/AAAOABkAAAD7//z/AAAOABkAAAD8//z/AAAOABkAAAD9//z/AAAOABkAAAD+//z/AAAOABkAAAD///z/AAAOABkAAAAAAPz/AAAOABkAAAABAPz/AAAOABkAAAACAPz/AAAOABkAAAADAPz/AAAOABkAAAAEAPz/AAAOABkAAAAFAPz/AAAOABkAAAAGAPz/AAAOABkAAAD5//3/AAAOABkAAAD6//3/AAAOABkAAAD7//3/AAAOABkAAAD8//3/AAAOABkAAAD9//3/AAAOABkAAAD+//3/AAAOABkAAAD///3/AAAOABkAAAAAAP3/AAAOABkAAAABAP3/AAAOABkAAAACAP3/AAAOABkAAAADAP3/AAAOABkAAAAEAP3/AAAOABkAAAAFAP3/AAAOABkAAAAGAP3/AAAOABkAAAD5//7/AAAOABkAAAD6//7/AAAOABkAAAD7//7/AAAOABkAAAD8//7/AAAOABkAAAD9//7/AAAOABkAAAD+//7/AAAOABkAAAD///7/AAAOABkAAAAAAP7/AAAOABkAAAABAP7/AAAOABkAAAACAP7/AAAOABkAAAADAP7/AAAOABkAAAAEAP7/AAAOABkAAAAFAP7/AAAOABkAAAAGAP7/AAAOABkAAAD5////AAAOABkAAAD6////AAAOABkAAAD7////AAAOABkAAAD8////AAAOABkAAAD9////AAAOABkAAAD+////AAAOABkAAAD/////AAAOABkAAAAAAP//AAAOABkAAAABAP//AAAOABkAAAACAP//AAAOABkAAAADAP//AAAOABkAAAAEAP//AAAOABkAAAAFAP//AAAOABkAAAAGAP//AAAOABkAAAD5/wAAAAAOABkAAAD6/wAAAAAOABkAAAD7/wAAAAAOABkAAAD8/wAAAAAOABkAAAD9/wAAAAAOABkAAAD+/wAAAAAOABkAAAD//wAAAAAOABkAAAAAAAAAAAAOABkAAAABAAAAAAAOABkAAAACAAAAAAAOABkAAAADAAAAAAAOABkAAAAEAAAAAAAOABkAAAAFAAAAAAAOABkAAAAGAAAAAAAOABkAAAD5/wEAAAAOABkAAAD6/wEAAAAOABkAAAD7/wEAAAAOABkAAAD8/wEAAAAOABkAAAD9/wEAAAAOABkAAAD+/wEAAAAOABkAAAD//wEAAAAOABkAAAAAAAEAAAAOABkAAAABAAEAAAAOABkAAAACAAEAAAAOABkAAAADAAEAAAAOABkAAAAEAAEAAAAOABkAAAAFAAEAAAAOABkAAAAGAAEAAAAOABkAAAD5/wIAAAAOABkAAAD6/wIAAAAOABkAAAD7/wIAAAAOABkAAAD8/wIAAAAOABkAAAD9/wIAAAAOABkAAAD+/wIAAAAOABkAAAD//wIAAAAOABkAAAAAAAIAAAAOABkAAAABAAIAAAAOABkAAAACAAIAAAAOABkAAAADAAIAAAAOABkAAAAEAAIAAAAOABkAAAAFAAIAAAAOABkAAAAGAAIAAAAOABkAAAD5/wMAAAAOABkAAAD6/wMAAAAOABkAAAD7/wMAAAAOABkAAAD8/wMAAAAOABkAAAD9/wMAAAAOABkAAAD+/wMAAAAOABkAAAD//wMAAAAOABkAAAAAAAMAAAAOABkAAAABAAMAAAAOABkAAAACAAMAAAAOABkAAAADAAMAAAAOABkAAAAEAAMAAAAOABkAAAAFAAMAAAAOABkAAAAGAAMAAAAOABkAAAD///v/AAAOABkAAAD///r/AAAOABkAAAAAAPv/AAAOABkAAAAAAPr/AAAOABkAAAD4//v/AAAOABkAAAD5//v/AAAOABkAAAD6//v/AAAOABkAAAD7//v/AAAOABkAAAD8//v/AAAOABkAAAD9//v/AAAOABkAAAD+//v/AAAOABkAAAABAPv/AAAOABkAAAACAPv/AAAOABkAAAADAPv/AAAOABkAAAAEAPv/AAAOABkAAAAFAPv/AAAOABkAAAAGAPv/AAAOABkAAAAHAPv/AAAOABkAAAD4//z/AAAOABkAAAAHAPz/AAAOABkAAAD4//3/AAAOABkAAAAHAP3/AAAOABkAAAD4//7/AAAOABkAAAAHAP7/AAAOABkAAAD4////AAAOABkAAAAHAP//AAAOABkAAAD4/wAAAAAOABkAAAAHAAAAAAAOABkAAAD4/wEAAAAOABkAAAAHAAEAAAAOABkAAAD4/wIAAAAOABkAAAAHAAIAAAAOABkAAAD4/wMAAAAOABkAAAAHAAMAAAAOABkAAAD4/wQAAAAOABkAAAD5/wQAAAAOABkAAAD6/wQAAAAOABkAAAD7/wQAAAAOABkAAAD8/wQAAAAOABkAAAD9/wQAAAAOABkAAAD+/wQAAAAOABkAAAD//wQAAAAOABkAAAAAAAQAAAAOABkAAAABAAQAAAAOABkAAAACAAQAAAAOABkAAAADAAQAAAAOABkAAAAEAAQAAAAOABkAAAAFAAQAAAAOABkAAAAGAAQAAAAOABkAAAAHAAQAAAAOABkAAAD///n/AAAOABkAAAAAAPn/AAAOABkAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="WallLayer" type="TileMapLayer" parent="."]
+[node name="WallLayer" type="TileMapLayer" parent="." unique_id=749714570]
 z_index = -1
+tile_map_data = PackedByteArray("AAD5//r/AQAXAAUAAAD5//v////////////6//r/AQAXAAUAAAD6//v////////////7//r/AQAXAAUAAAD7//v////////////8//r/AQAXAAUAAAD8//v////////////9//r/AQAXAAUAAAD9//v////////////+//r/AQAYAAUAAAD+//v///////////8BAPr/AQAWAAUAAAABAPv///////////8CAPr/AQAXAAUAAAACAPv///////////8DAPr/AQAXAAUAAAADAPv///////////8EAPr/AQAXAAUAAAAEAPv///////////8FAPr/AQAXAAUAAAAFAPv///////////8GAPr/AQAXAAUAAAAGAPv////////////5/wQA///////////5/wUAAQAXAAQAAAD6/wQA///////////6/wUAAQAXAAQAAAD7/wQA///////////7/wUAAQAXAAQAAAD8/wQA///////////8/wUAAQAXAAQAAAD9/wQA///////////9/wUAAQAXAAQAAAD+/wQA///////////+/wUAAQAXAAQAAAD//wQA/////////////wUAAQAXAAQAAAAAAAQA//////////8AAAUAAQAXAAQAAAABAAQA//////////8BAAUAAQAXAAQAAAACAAQA//////////8CAAUAAQAXAAQAAAADAAQA//////////8DAAUAAQAXAAQAAAAEAAQA//////////8EAAUAAQAXAAQAAAAFAAQA//////////8FAAUAAQAXAAQAAAAGAAQA//////////8GAAUAAQAXAAQAAAD5//z////////////5//3////////////5//7////////////5///////////////5/wAA///////////5/wEA///////////5/wIA///////////5/wMA//////////8GAPz///////////8GAP3///////////8GAP7///////////8GAP////////////8GAAAA//////////8GAAEA//////////8GAAIA//////////8GAAMA///////////4//n/AQAWAAQAAAD4//r/AQAWAAUAAAD5//n/AQAXAAQAAAD6//n/AQAXAAQAAAD7//n/AQAXAAQAAAD8//n/AQAXAAQAAAD9//n/AQAXAAQAAAD+//n/AQAYAAQAAAABAPn/AQAWAAQAAAACAPn/AQAXAAQAAAADAPn/AQAXAAQAAAAEAPn/AQAXAAQAAAAFAPn/AQAXAAQAAAAGAPn/AQAXAAQAAAAHAPn/AQAYAAQAAAAHAPr/AQAYAAUAAAD4/wUAAQAWAAQAAAD4/wYAAQAWAAUAAAD5/wYAAQAXAAUAAAD6/wYAAQAXAAUAAAD7/wYAAQAXAAUAAAD8/wYAAQAXAAUAAAD9/wYAAQAXAAUAAAD+/wYAAQAXAAUAAAD//wYAAQAXAAUAAAAAAAYAAQAXAAUAAAABAAYAAQAXAAUAAAACAAYAAQAXAAUAAAADAAYAAQAXAAUAAAAEAAYAAQAXAAUAAAAFAAYAAQAXAAUAAAAGAAYAAQAXAAUAAAAHAAUAAQAYAAQAAAAHAAYAAQAYAAUAAAD4//v/AQAbAAUAAAD4//z/AQAbAAUAAAD4//3/AQAbAAUAAAD4//7/AQAbAAUAAAD4////AQAbAAUAAAD4/wAAAQAbAAUAAAD4/wEAAQAbAAUAAAD4/wIAAQAbAAUAAAD4/wMAAQAbAAUAAAD4/wQAAQAbAAUAAAAHAPv/AQAbAAUAAAAHAPz/AQAbAAUAAAAHAP3/AQAbAAUAAAAHAP7/AQAbAAUAAAAHAP//AQAbAAUAAAAHAAAAAQAbAAUAAAAHAAEAAQAbAAUAAAAHAAIAAQAbAAUAAAAHAAMAAQAbAAUAAAAHAAQAAQAbAAUAAAA=")
+tile_set = ExtResource("90_tileset")
 
-[node name="RoomLabel" type="Label" parent="."]
+[node name="RoomLabel" type="Label" parent="." unique_id=47004741]
 z_index = 5
 offset_left = -200.0
-offset_top = -140.0
+offset_top = -222.0
 offset_right = 200.0
-offset_bottom = -120.0
-horizontal_alignment = 1
+offset_bottom = -202.0
 theme_override_font_sizes/font_size = 14
 text = "ADVANCED PROCESSING"
+horizontal_alignment = 1
 
-[node name="Refinery" parent="." instance=ExtResource("2_machine")]
+[node name="Refinery" type="StaticBody2D" parent="." unique_id=1756058925 instance=ExtResource("2_machine")]
 position = Vector2(-60, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_4y8lg")
 machine_type = "refinery"
 machine_label = "REFINERY"
 machine_color = Color(0.35, 0.3, 0.4, 1)
 sprite_texture = ExtResource("3_barrel_tex")
 
-[node name="Synthesizer" parent="." instance=ExtResource("2_machine")]
+[node name="Synthesizer" type="StaticBody2D" parent="." unique_id=15176454 instance=ExtResource("2_machine")]
 position = Vector2(60, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_4y8lg")
 machine_type = "synthesizer"
 machine_label = "SYNTHESIZER"
 machine_color = Color(0.3, 0.35, 0.45, 1)
 sprite_texture = ExtResource("4_synth_tex")
 
-[node name="SignNorth" type="Label" parent="."]
+[node name="SignNorth" type="Label" parent="." unique_id=257883072]
+modulate = Color(0.5, 0.5, 0.6, 1)
 offset_left = -60.0
-offset_top = -110.0
+offset_top = -183.0
 offset_right = 60.0
-offset_bottom = -96.0
-horizontal_alignment = 1
+offset_bottom = -169.0
 theme_override_font_sizes/font_size = 9
 text = "PROCESSING LAB"
-modulate = Color(0.5, 0.5, 0.6, 1)
+horizontal_alignment = 1
+
+[node name="Exit_north" type="Area2D" parent="." unique_id=1762180179]
+position = Vector2(0, -252)
+collision_layer = 0
+script = ExtResource("7_o7qsd")
+target_room = "processing_lab"
+target_entrance = "north"
+
+[node name="Shape" type="CollisionShape2D" parent="Exit_north" unique_id=765792759]
+shape = SubResource("RectangleShape2D_4y8lg")
+
+[node name="Entrance_north" type="Marker2D" parent="." unique_id=1668116440]
+position = Vector2(0, -200)

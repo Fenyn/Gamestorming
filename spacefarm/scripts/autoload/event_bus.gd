@@ -14,21 +14,14 @@ signal crop_watered(tile_pos: Vector2i)
 signal crop_tended(tile_pos: Vector2i)
 signal crop_harvested(tile_pos: Vector2i, crop_id: String, quality: float)
 
-# --- Quota / Directives ---
-signal food_added(amount: int)
+# --- Supply / Directives ---
 signal cargo_shipped(items: Dictionary)
 signal directive_completed(directive_id: String)
-signal directive_failed(directive_id: String)
 
 # --- Progression ---
 signal milestone_unlocked(milestone_id: String)
 signal sub_milestone_unlocked(sub_id: String)
 signal module_unlocked(module_id: String)
-
-# --- Automation ---
-signal automation_activated(automation_id: String)
-signal worm_task_completed(tile_pos: Vector2i, task: String)
-signal bee_delivery_completed(from: String, to: String, item_id: String)
 
 # --- Story ---
 signal story_entry_unlocked(entry_id: String)

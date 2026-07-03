@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "Lunge"
+attack_type = 3
+stance = 0
+startup_time = 0.6
+active_time = 0.067
+recovery_time = 0.133
+feint_window = 0.0
+is_chargeable = false
+hp_damage = 30
+posture_on_hit = 25
+posture_on_block = 0
+posture_on_deflect = 35
+stamina_cost = 20.0
+is_blockable = false
+is_deflectable = true
+is_dodgeable = true
+is_perilous = true
+perilous_counter = &"mikiri"
+indicator_color = Color(1, 0.5, 0, 1)

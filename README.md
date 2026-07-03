@@ -8,24 +8,26 @@ Projects developed with assistance of Claude.
 
 | Game | Description | Play |
 |---|---|---|
-| [autobattler](autobattler/) | TFT-style Pathfinder 2e autobattler running a full-fidelity rules engine. C#. | — |
-| [coinshot](coinshot/) | First-person Mistborn traversal prototype. Push and pull on metal to fly through a city. | [Play in browser](https://fenyn.github.io/Gamestorming/coinshot/) |
+| [autobattler](autobattler/) | TFT-style Pathfinder 2e autobattler with a full-fidelity PF2e Remaster rules engine. C#. | — |
+| [coinshot](coinshot/) | First-person Mistborn traversal. Steel-push and iron-pull on metal anchors to fly through a city. | [Play in browser](https://fenyn.github.io/Gamestorming/coinshot/) |
+| [combat-proto](combat-proto/) | 3D melee combat prototype. For Honor directional stance meets Sekiro posture/deflection. Greybox. | — |
 | [drifter](drifter/) | Roguelite dice combat on a barren alien planet. Pixel art cards, physical 3D dice. | — |
-| [end-of-the-line](end-of-the-line/) | Train network management. Route trains, grow the rail graph. | — |
-| [green-bean](green-bean/) | First-person barista simulator. Take orders, print tickets, and assemble drinks by hand. | [Play in browser](https://fenyn.github.io/Gamestorming/green-bean/) |
-| [heirloom](heirloom/) | Rural Washington life sim. Pay the land bills and rebuild grandpa's '69 Camaro. | — |
-| [life-magic](life-magic/) | Idle game powered by your heartbeat. Grow a wizard's garden faster by exercising. | [Play in browser](https://fenyn.github.io/Gamestorming/life-magic/) |
-| [mythos](mythos/) | Lane combat card game with city building. Norse mythology meets tactical deckbuilding. | [Play in browser](https://fenyn.github.io/Gamestorming/mythos/) |
-| [redshift](redshift/) | Zero-g Newtonian spaceship time-trial racing with ghost replays. | — |
-| [skeleton-crew](skeleton-crew/) | 4-player co-op ship sim. Crew one vessel together: fly, fix, and fight. | — |
-| [spacefarm](spacefarm/) | Top-down space-station farming. Stardew pacing, Factorio processing chains. | — |
-| [the-maw-of-rrrbl](the-maw-of-rrrbl/) | Marble-run builder incremental. | — |
-| [war-tactics](war-tactics/) | WWII squad-tactics roguelike. Isometric grid combat with shooting minigames, cover, and overwatch. | [Play in browser](https://fenyn.github.io/Gamestorming/war-tactics/) |
-| [worldseed](worldseed/) | Terraform an alien planet by farming exotic crops under O2 and power pressure. | — |
+| [end-of-the-line](end-of-the-line/) | Logistics incremental with sentient trains. Rail network expansion inside a 3-day time loop. | — |
+| [green-bean](green-bean/) | First-person barista simulator. Ring up orders, print tickets, assemble drinks via tactile mini-games. | [Play in browser](https://fenyn.github.io/Gamestorming/green-bean/) |
+| [heirloom](heirloom/) | First-person rural life sim in mid-2000s Washington. Pay the land bills, rebuild grandpa's '69 Camaro. | — |
+| [life-magic](life-magic/) | Idle game powered by your heartbeat. Tick speed scales with real heart rate. | [Play in browser](https://fenyn.github.io/Gamestorming/life-magic/) |
+| [mythos](mythos/) | Lane-combat card game with city building. Norse mythology, summon units, destroy the Grand Lodge. | [Play in browser](https://fenyn.github.io/Gamestorming/mythos/) |
+| [redshift](redshift/) | Zero-g Newtonian spaceship time-trial racer. 6DOF flight with ghost replays. | — |
+| [skeleton-crew](skeleton-crew/) | 2–4 player co-op roguelike ship sim. First-person, multiplayer, FTL meets friendslop. | — |
+| [spacefarm](spacefarm/) | 2D top-down sci-fi farming aboard an alien ship. First-contact survival, crew of 16. | — |
+| [the-maw-of-rrrbl](the-maw-of-rrrbl/) | Builder-incremental. Place marble track pieces in 3D, earn Sparks, feed The Maw. | — |
+| [war-tactics](war-tactics/) | WWII isometric squad-tactics roguelike. Shooting minigames, permadeath, and medal pickups. | [Play in browser](https://fenyn.github.io/Gamestorming/war-tactics/) |
+| [worldseed](worldseed/) | Terraform an alien planet by farming exotic crops. Manage power and deploy nanobot bees. | — |
 
 ## Shared code
 
-[godot-base](godot-base/) is the shared addon (state machine, save, audio, input, transitions, UI scaffolding). See its README for the module list and how to install it into a project.
+- [godot-base](godot-base/) — shared addon (state machine, save, audio, input, transitions, UI scaffolding). See its README for the module list and install instructions.
+- [designs](designs/) — design documents for game concepts that don't have a project folder yet.
 
 ## Conventions
 

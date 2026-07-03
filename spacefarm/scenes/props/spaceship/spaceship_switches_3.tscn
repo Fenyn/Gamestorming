@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!Spaceship_switches.png" id="1_6ffmq"]
+
+[node name="SpaceshipSwitches3" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_6ffmq")
+region_enabled = true
+region_rect = Rect2(480, 0, 48, 96)

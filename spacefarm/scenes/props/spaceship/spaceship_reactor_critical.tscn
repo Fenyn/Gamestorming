@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!$Spaceship_reactor_critical.png" id="1_o03m7"]
+
+[node name="SpaceshipReactorCritical" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_o03m7")
+region_enabled = true
+region_rect = Rect2(144, 0, 144, 192)

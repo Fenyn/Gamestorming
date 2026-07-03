@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!$Light_1.png" id="1_5ej8l"]
+
+[node name="Light1" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_5ej8l")
+region_enabled = true
+region_rect = Rect2(144, 0, 144, 144)

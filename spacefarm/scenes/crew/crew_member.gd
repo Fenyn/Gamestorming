@@ -15,8 +15,11 @@ var home_position: Vector2 = Vector2.ZERO
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _name_label: Label = $NameLabel
-@onready var nav_agent: NavigationAgent2D = $NavigationAgent2D
+@onready var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 @onready var _state_machine: BaseStateMachine = $StateMachine
+
+var nav_agent: NavigationAgent2D:
+	get: return _nav_agent
 
 
 func setup(data: ContactData) -> void:
@@ -29,13 +32,17 @@ func setup(data: ContactData) -> void:
 
 
 func _ready() -> void:
-	nav_agent.path_desired_distance = ARRIVAL_THRESHOLD
-	nav_agent.target_desired_distance = ARRIVAL_THRESHOLD
+	_nav_agent.path_desired_distance = ARRIVAL_THRESHOLD
+	_nav_agent.target_desired_distance = ARRIVAL_THRESHOLD
+	call_deferred("_deferred_start")
+
+
+func _deferred_start() -> void:
 	_state_machine.start()
 
 
 func interact(_player: Node2D) -> void:
-	_state_machine.transition_to(&"Talking", {"duration": 2.0})
+	transition_state(&"Talking", {"duration": 2.0})
 	crew_interacted.emit(crew_id)
 
 
@@ -47,6 +54,10 @@ func get_interact_hint() -> String:
 
 func get_state_name() -> StringName:
 	return _state_machine.get_current_state_name()
+
+
+func transition_state(state_name: StringName, msg: Dictionary = {}) -> void:
+	_state_machine.transition_to(state_name, msg)
 
 
 func is_busy() -> bool:

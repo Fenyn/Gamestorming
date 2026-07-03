@@ -1,0 +1,160 @@
+[gd_scene load_steps=30 format=3 uid="uid://fighter_scene"]
+
+[ext_resource type="Script" path="res://scenes/fighter/fighter.gd" id="1_fighter"]
+[ext_resource type="Script" path="res://scenes/fighter/combat_resource.gd" id="2_combat_res"]
+[ext_resource type="Script" path="res://scenes/fighter/stance_manager.gd" id="3_stance"]
+[ext_resource type="PackedScene" path="res://scenes/fighter/hitbox.tscn" id="4_hitbox"]
+[ext_resource type="PackedScene" path="res://scenes/fighter/hurtbox.tscn" id="5_hurtbox"]
+[ext_resource type="Script" path="res://addons/godot_base/state_machine/base_state_machine.gd" id="6_sm"]
+[ext_resource type="Script" path="res://scenes/fighter/states/idle_state.gd" id="7_idle"]
+[ext_resource type="Script" path="res://scenes/fighter/states/moving_state.gd" id="8_moving"]
+[ext_resource type="Script" path="res://scenes/fighter/states/attack_state.gd" id="9_attack"]
+[ext_resource type="Script" path="res://scenes/fighter/states/block_state.gd" id="10_block"]
+[ext_resource type="Script" path="res://scenes/fighter/states/deflect_state.gd" id="11_deflect"]
+[ext_resource type="Script" path="res://scenes/fighter/states/dodge_state.gd" id="12_dodge"]
+[ext_resource type="Script" path="res://scenes/fighter/states/jump_state.gd" id="13_jump"]
+[ext_resource type="Script" path="res://scenes/fighter/states/shove_state.gd" id="14_shove"]
+[ext_resource type="Script" path="res://scenes/fighter/states/hitstun_state.gd" id="15_hitstun"]
+[ext_resource type="Script" path="res://scenes/fighter/states/guard_broken_state.gd" id="16_guardbroken"]
+[ext_resource type="Script" path="res://scenes/fighter/states/grabbed_state.gd" id="17_grabbed"]
+[ext_resource type="Script" path="res://scenes/fighter/states/exhausted_state.gd" id="18_exhausted"]
+[ext_resource type="Script" path="res://scenes/fighter/states/posture_break_state.gd" id="19_posturebreak"]
+[ext_resource type="Script" path="res://scenes/fighter/states/deathblow_state.gd" id="20_deathblow"]
+[ext_resource type="Script" path="res://scenes/fighter/states/dead_state.gd" id="21_dead"]
+[ext_resource type="Script" path="res://scenes/fighter/fighter_animator.gd" id="22_animator"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.5, 0.5, 0.55, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
+material = SubResource("StandardMaterial3D_body")
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blade"]
+albedo_color = Color(0.78, 0.8, 0.85, 1)
+metallic = 0.7
+roughness = 0.25
+emission_enabled = false
+
+[sub_resource type="BoxMesh" id="BoxMesh_blade"]
+material = SubResource("StandardMaterial3D_blade")
+size = Vector3(0.04, 0.9, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_guard"]
+albedo_color = Color(0.45, 0.35, 0.2, 1)
+metallic = 0.4
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_guard"]
+material = SubResource("StandardMaterial3D_guard")
+size = Vector3(0.25, 0.06, 0.08)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_handle"]
+material = SubResource("StandardMaterial3D_guard")
+top_radius = 0.025
+bottom_radius = 0.03
+height = 0.2
+
+[node name="Fighter" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_fighter")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="FighterMesh" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_1")
+
+[node name="FighterAnimator" type="Node3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.1, 0)
+script = ExtResource("22_animator")
+
+[node name="HandPivot" type="Node3D" parent="FighterAnimator"]
+unique_name_in_owner = true
+
+[node name="BladeMesh" type="MeshInstance3D" parent="FighterAnimator/HandPivot"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+mesh = SubResource("BoxMesh_blade")
+
+[node name="GuardMesh" type="MeshInstance3D" parent="FighterAnimator/HandPivot"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, 0)
+mesh = SubResource("BoxMesh_guard")
+
+[node name="HandleMesh" type="MeshInstance3D" parent="FighterAnimator/HandPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08, 0)
+mesh = SubResource("CylinderMesh_handle")
+
+[node name="CombatResource" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_combat_res")
+
+[node name="StanceManager" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_stance")
+
+[node name="Hitbox" parent="." instance=ExtResource("4_hitbox")]
+unique_name_in_owner = true
+
+[node name="Hurtbox" parent="." instance=ExtResource("5_hurtbox")]
+unique_name_in_owner = true
+
+[node name="StateMachine" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_sm")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("7_idle")
+
+[node name="Moving" type="Node" parent="StateMachine"]
+script = ExtResource("8_moving")
+
+[node name="Attacking" type="Node" parent="StateMachine"]
+script = ExtResource("9_attack")
+
+[node name="Blocking" type="Node" parent="StateMachine"]
+script = ExtResource("10_block")
+
+[node name="Deflecting" type="Node" parent="StateMachine"]
+script = ExtResource("11_deflect")
+
+[node name="Dodging" type="Node" parent="StateMachine"]
+script = ExtResource("12_dodge")
+
+[node name="Jumping" type="Node" parent="StateMachine"]
+script = ExtResource("13_jump")
+
+[node name="Shoving" type="Node" parent="StateMachine"]
+script = ExtResource("14_shove")
+
+[node name="Hitstun" type="Node" parent="StateMachine"]
+script = ExtResource("15_hitstun")
+
+[node name="GuardBroken" type="Node" parent="StateMachine"]
+script = ExtResource("16_guardbroken")
+
+[node name="Grabbed" type="Node" parent="StateMachine"]
+script = ExtResource("17_grabbed")
+
+[node name="Exhausted" type="Node" parent="StateMachine"]
+script = ExtResource("18_exhausted")
+
+[node name="PostureBreak" type="Node" parent="StateMachine"]
+script = ExtResource("19_posturebreak")
+
+[node name="Deathblowing" type="Node" parent="StateMachine"]
+script = ExtResource("20_deathblow")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("21_dead")

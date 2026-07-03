@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!Spaceship_Ladder.png" id="1_2c8ds"]
+
+[node name="SpaceshipLadder1" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_2c8ds")
+region_enabled = true
+region_rect = Rect2(192, 0, 48, 144)

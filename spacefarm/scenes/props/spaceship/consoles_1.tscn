@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!Consoles.png" id="1_abihk"]
+
+[node name="Consoles1" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_abihk")
+region_enabled = true
+region_rect = Rect2(192, 0, 48, 96)

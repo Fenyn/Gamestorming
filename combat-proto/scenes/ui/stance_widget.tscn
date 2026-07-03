@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://stance_widget_scene"]
+
+[ext_resource type="Script" path="res://scenes/ui/stance_widget.gd" id="1_sw"]
+
+[node name="StanceWidget" type="Control"]
+custom_minimum_size = Vector2(100, 100)
+script = ExtResource("1_sw")

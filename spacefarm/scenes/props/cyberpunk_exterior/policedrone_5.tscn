@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Cyberpunk Exterior/characters/!Policedrone.png" id="1_38i5u"]
+
+[node name="Policedrone5" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_38i5u")
+region_enabled = true
+region_rect = Rect2(192, 384, 48, 96)

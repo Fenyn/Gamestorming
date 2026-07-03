@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "Light Bottom-Right"
+attack_type = 0
+stance = 2
+startup_time = 0.2
+active_time = 0.1
+recovery_time = 0.2
+feint_window = 0.0
+is_chargeable = false
+hp_damage = 12
+posture_on_hit = 10
+posture_on_block = 8
+posture_on_deflect = 20
+stamina_cost = 10.0
+is_blockable = true
+is_deflectable = true
+is_dodgeable = true

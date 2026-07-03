@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/player/player_3d.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/ModernFarm/Characters_48x48/Farmer_1_48x48.png" id="2_texture"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.3
+height = 1.2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_interact"]
+radius = 1.5
+
+[node name="Player3D" type="CharacterBody3D"]
+collision_layer = 1
+collision_mask = 1
+motion_mode = 1
+script = ExtResource("1_player")
+
+[node name="PlayerSprite" type="Sprite3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
+billboard = 2
+texture = ExtResource("2_texture")
+pixel_size = 0.02
+region_enabled = true
+region_rect = Rect2(0, 96, 48, 96)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="InteractArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="InteractShape" type="CollisionShape3D" parent="InteractArea"]
+shape = SubResource("SphereShape3D_interact")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.574, -0.819, 0, 0.819, 0.574, 0, 10, 7)
+projection = 1
+size = 7.0

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Cyberpunk Exterior/characters/!Cyberpunk_smoke.png" id="1_ne3tr"]
+
+[node name="CyberpunkSmoke6" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_ne3tr")
+region_enabled = true
+region_rect = Rect2(336, 576, 48, 144)

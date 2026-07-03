@@ -1,0 +1,58 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/crew/crew_member_3d.gd" id="1"]
+[ext_resource type="Script" path="res://addons/godot_base/state_machine/base_state_machine.gd" id="2_sm"]
+[ext_resource type="Script" path="res://scenes/crew/crew_states_3d/idle_state_3d.gd" id="3_idle"]
+[ext_resource type="Script" path="res://scenes/crew/crew_states_3d/wander_state_3d.gd" id="4_wander"]
+[ext_resource type="Script" path="res://scenes/crew/crew_states_3d/talking_state_3d.gd" id="5_talk"]
+[ext_resource type="Script" path="res://scenes/crew/crew_states_3d/relocating_state_3d.gd" id="6_reloc"]
+[ext_resource type="Script" path="res://scenes/crew/crew_states_3d/transit_state_3d.gd" id="7_transit"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_crew"]
+radius = 0.25
+height = 1.0
+
+[node name="CrewMember3D" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 1
+motion_mode = 1
+script = ExtResource("1")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+modulate = Color(0.6, 0.7, 0.9, 1)
+billboard = 2
+pixel_size = 0.02
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CapsuleShape3D_crew")
+
+[node name="NameLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0)
+billboard = 2
+text = "Crew"
+font_size = 24
+outline_size = 4
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.3
+target_desired_distance = 0.3
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("2_sm")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("3_idle")
+
+[node name="Wander" type="Node" parent="StateMachine"]
+script = ExtResource("4_wander")
+
+[node name="Talking" type="Node" parent="StateMachine"]
+script = ExtResource("5_talk")
+
+[node name="Relocating" type="Node" parent="StateMachine"]
+script = ExtResource("6_reloc")
+
+[node name="Transit" type="Node" parent="StateMachine"]
+script = ExtResource("7_transit")

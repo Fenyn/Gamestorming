@@ -46,7 +46,7 @@ Display text (display_name, ai_message, description, lore_hint, UI labels) uses 
 ### godot-base Addon
 
 Shared addon via junction at `addons/godot_base/`. Used modules:
-- `BaseStateMachine` + `BaseState` â€” crop tile states, machine states
+- `BaseStateMachine` + `BaseState` -- crop tile states, machine states, NPC AI states (Idle/Wander/Talking/Transit/Relocating)
 - `TickEmitter` â€” TimeManager hour ticks
 - `ScreenFade` â€” day/scene transitions
 - `SaveFileHandler` â€” game persistence
@@ -65,16 +65,18 @@ Organized by system domain under `scenes/`. Scripts live alongside their scenes.
 
 ## Core Systems
 
-- **Crops**: 10 types across 4 tiers, each with unique growth mechanic
-- **Processing**: Multi-step chains (raw -> basic -> advanced)
-- **Directives**: Milestone requirements issued by the Hermes AI (early game) and Titan AI (late game). Satisfactory Space Elevator equivalent.
-- **Sub-milestones**: Optional research unlocks for automation and tool upgrades
-- **Automation**: [TBD re-theme] Farming automation (ground-level) and logistics automation (flying) -- currently nano-worms/nano-bees, pending alien-context redesign
-- **Energy**: GameState.energy (100 max); till 2 / water 1 / harvest 1. Sleeping in bed restores full; working past 22:00 shutdown wakes at 75%
-- **Sleep loop**: bed ends day early; day summary panel during fade; save-on-sleep includes crop tile snapshots (GameState.save_game / restore_crop_tiles)
-- **Biome gating**: CropData.biome must match the bay's BaseRoom.biome to plant; ring bays unlock via directive module rewards (grow_ring_b/c/d in Station.MODULE_DOORS)
-- **Terminal**: Story delivery via log entries from the Hermes AI (early) and decoded Titan data (late)
-- **Crew**: 16 mission specialists aboard the Titan -- real NPCs with vendor/service roles (see `docs/crew_manifest.md`)
+- **Crops**: 10 types across 4 tiers, each with unique growth mechanic. Jump-driven seasons (Radiance/Blaze/Dusk/Frost) will determine what grows when.
+- **Processing**: Multi-step chains (raw -> basic -> advanced), 3 machine types
+- **Supply Board**: Community Center-style bundle system (replaced old cargo pod). Three sections: Provisions, Crew Requests, Ship Restoration. Data-driven via SupplyRequestData .tres files in `data/supply_requests/`
+- **Crew NPCs**: 15 crew members (CharacterBody2D) with NavigationAgent2D pathfinding, 5-state machine (Idle/Wander/Talking/Transit/Relocating), room-graph traversal, phase-on-stuck. Spawned from ContactData .tres files in `data/contacts/`
+- **Heart System**: CrewManager autoload. 10 hearts (250pts each), 5 gift tiers (loved/liked/neutral/disliked/hated), 2 gifts/week (reset Monday), -2 decay/day, 8x birthday multiplier. SocialConfig resource for tuning
+- **Dialogue Panel**: Overlay for NPC conversations. Supports single lines, multi-step sequences, and choice buttons. Heart events trigger at hearts 2/4/6/8/10 with location+time conditions
+- **NPC Schedules**: Day-of-week string keys + hour -> room_id. NPCs walk to exits and transit through intermediate rooms via BFS pathfinding. Deferred moves retry each frame if NPC is busy
+- **Energy**: GameState.energy (100 max); till 2 / water 1 / harvest 1. Sleeping in bed restores full; working past shutdown wakes at 75%
+- **Sleep loop**: bed ends day early; day summary panel during fade; save-on-sleep includes crop tile snapshots
+- **Biome gating**: CropData.biome must match the bay's BaseRoom.biome to plant; bays unlock via supply board restoration bundles
+- **Terminal**: Story delivery via log entries from Maia (early) and decoded Titan data (late)
+- **Navigation**: Each BaseRoom auto-generates a NavigationRegion2D. NPCs pathfind within rooms via NavigationAgent2D
 
 ## Tuning Constants
 
@@ -89,14 +91,16 @@ Located in `scripts/autoload/time_manager.gd`:
 
 ## Deferred Features
 
-- Tier 3-4 crops (Nebula Moss, Void Bloom, Archive Fern)
-- Directives 3-4 (tied to Titan AI awakening and Act 2-3 story arc)
-- Track 3-4 sub-milestones (automation, alien tech mastery)
-- Audio
-- Titan exterior exploration: EVA operations on the ship's hull and damaged outer sections (replaces forage concept)
-- NPC vendor/service systems, crew schedules, social/relationship mechanics
-- Alien language display and translation progression
-- Titan AI interface and communication system
+- **Phase 5: Ship Zones** -- new room scenes (Hangar, Triage Bay, Vivarium, Stellar Array, Data Vault, Command Nexus, Drive Core, The Sanctum), restoration bundle .tres files, Titan Fragment tracking
+- **Phase 5b: Hermes Mining** -- laser mining minigame, asteroid field data, Hermes upgrade flow (needs UX design decision)
+- **Phase 7: Crew Services** -- per-NPC service panels: ShopPanel (Quartermaster), UpgradePanel (Engineer), CookingPanel (Chef), ClinicPanel (Medic), ResearchPanel (Physicist), CollectionPanel (Xenobiologist)
+- **Phase 8: Automation** -- replace removed worm/bee stubs with alien-context system (needs creative decision: alien symbiotes vs Titan subsystems vs crew tasks)
+- **SeasonManager autoload** -- visual tints per season, time multipliers per star system, jump transitions, prediction data for Stellar Array
+- **Tier 3-4 crops** (Nebula Moss, Void Bloom, Archive Fern) -- unlocked via Data Vault
+- **Audio**
+- **Alien language mechanic** -- glyph display, translation progression, Linguist NPC integration
+- **Titan AI interface** -- second AI voice, alien directives, Command Nexus interaction
+- **Content authoring** -- crew names, personalities, idle chatter, gift preferences, heart events, supply requests, story entries, crop season assignments. All systems built, zero content. See `docs/content_status.md`
 
 ## Room Visuals & Collision
 
@@ -112,11 +116,11 @@ Room sizes/floor tiles/wall bands/biomes are configured in that script's `ROOMS`
 
 Rooms sit on a 4000px grid in `station.tscn`; exits teleport between them (each room is its own screen). Code room_ids are unchanged; display names reflect the Titan setting (see `docs/terminology_map.md`). Full layout details in `docs/ship_layout.md`.
 
-The grow wing is four connected biome chambers walkable in a loop:
+Grow bays use jump-driven seasons (not preset biomes) for crop variety. See `docs/ship_layout.md` for full room inventory and unlock progression.
 
-- **Grow Chamber Alpha — Verdant** (grow_bay, 30x20 tiles, 6 plots) — Commons east; also corridor south
-- **Grow Chamber Beta — Arid** (grow_bay_b, 22x14, 4 plots) — east of Alpha
-- **Grow Chamber Gamma — Fungal** (grow_bay_c, 22x14, 4 plots) — south of Beta
-- **Grow Chamber Delta — Cryo** (grow_bay_d, 22x14, 4 plots) — west of Gamma, south of Alpha
+- **Grow Bay 1** (grow_bay) — Small damaged alcove, 4 plots, jury-rigged. Starting area.
+- **Grow Bay 2** (grow_bay_b) — Full alien cultivation array, 8+ plots, intact infrastructure, automation hooks. Unlock B (~3 hrs).
+- **Grow Bay 3** (grow_bay_c) — Specialized alien substrate, supports unique crop types. Unlock F (~20 hrs).
+- **Grow Bay 4** (grow_bay_d) — Currently in code but may be removed in Phase 5 layout rework.
 
-Biome chambers have a walkway ring inside the walls with the biome terrain field inset. Habitat rooms: Commons (hub) 16x12, Cargo Hold 16x12, Workshop (processing_lab) 16x10, Research Lab (advanced_processing) 14x10, Bio-Lab (hybridization_lab) 12x8, Crew Quarters (living_quarters) 12x8, Maintenance Corridor (service_tunnel) 6x16. Crops are biome-gated (CropData.biome vs BaseRoom.biome); Beta/Gamma/Delta start sealed and unlock via directives.
+Habitat rooms: Commons (hub) 16x12, Cargo Hold 16x12, The Forge (processing_lab) 16x10, Analysis Chamber (advanced_processing) 14x10, Splice Lab (hybridization_lab) 12x8, Crew Quarters (living_quarters) 12x8, Maintenance Corridor (service_tunnel) 6x16. Room unlocks use bundle-based restoration system (Community Center style).

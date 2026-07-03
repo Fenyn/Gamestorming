@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Cyberpunk Exterior/characters/!Cyberpunk_chest.png" id="1_xsouq"]
+
+[node name="CyberpunkChest4" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_xsouq")
+region_enabled = true
+region_rect = Rect2(48, 384, 48, 96)

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Cyberpunk Interior/characters/!cleanrobot_remaster.png" id="1_74qxw"]
+
+[node name="CleanrobotRemaster4" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_74qxw")
+region_enabled = true
+region_rect = Rect2(48, 192, 48, 48)

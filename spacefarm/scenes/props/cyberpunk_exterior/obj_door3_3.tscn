@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Cyberpunk Exterior/characters/!obj_door3.png" id="1_4b27h"]
+
+[node name="ObjDoor33" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_4b27h")
+region_enabled = true
+region_rect = Rect2(480, 0, 48, 96)

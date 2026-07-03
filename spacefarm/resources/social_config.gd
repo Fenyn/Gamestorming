@@ -29,4 +29,6 @@ extends Resource
 	"close", "close",
 	"trusted", "trusted",
 	"bonded",
+	"devoted", "devoted",
+	"soulbound", "soulbound",
 ]

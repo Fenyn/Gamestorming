@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "Shove"
+attack_type = 2
+stance = 0
+startup_time = 0.3
+active_time = 0.067
+recovery_time = 0.133
+feint_window = 0.0
+is_chargeable = false
+hp_damage = 0
+posture_on_hit = 5
+posture_on_block = 35
+posture_on_deflect = 0
+stamina_cost = 15.0
+is_blockable = false
+is_deflectable = false
+is_dodgeable = true

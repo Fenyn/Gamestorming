@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="FighterProfile" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fighter_profile.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/fighters/default_stats.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/attacks/light_top.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/attacks/light_bottom_left.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/attacks/light_bottom_right.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/attacks/heavy_top.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/attacks/heavy_bottom_left.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/attacks/heavy_bottom_right.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/attacks/shove.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/attacks/perilous_lunge.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/attacks/perilous_sweep.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/attacks/perilous_grab.tres" id="12"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Fighter"
+stats = ExtResource("2")
+attacks = {
+"light_top": ExtResource("3"),
+"light_bottom_left": ExtResource("4"),
+"light_bottom_right": ExtResource("5"),
+"heavy_top": ExtResource("6"),
+"heavy_bottom_left": ExtResource("7"),
+"heavy_bottom_right": ExtResource("8"),
+"shove": ExtResource("9"),
+}
+available_perilous = [ExtResource("10"), ExtResource("11"), ExtResource("12")]

@@ -33,7 +33,6 @@ func _harvest() -> void:
 
 	EventBus.crop_harvested.emit(tile.grid_position, crop_id, tile.quality)
 	if food > 0:
-		EventBus.food_added.emit(food)
 		tile.show_harvest_result(food, crop_name)
 	else:
 		tile._spawn_float_text("No yield (needs group)", Color(1.0, 0.4, 0.3, 1))

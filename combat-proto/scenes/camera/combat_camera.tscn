@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://combat_camera_scene"]
+
+[ext_resource type="Script" path="res://scenes/camera/combat_camera.gd" id="1_cam"]
+
+[node name="CombatCamera" type="Node3D"]
+script = ExtResource("1_cam")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+unique_name_in_owner = true
+fov = 65.0
+current = true

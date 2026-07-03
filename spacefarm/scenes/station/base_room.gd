@@ -133,6 +133,10 @@ func create_exit(direction: String, target_room: String) -> Array[Node]:
 	return [zone, marker]
 
 
+func has_entrance(direction: String) -> bool:
+	return _entrances.has(direction)
+
+
 func get_entrance_position(direction: String) -> Vector2:
 	var marker: Marker2D = _entrances.get(direction, null) as Marker2D
 	if marker:

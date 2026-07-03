@@ -32,7 +32,18 @@
       "WebFetch(domain:terrain.party)",
       "WebFetch(domain:api.open-elevation.com)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "WebFetch(domain:www.nexusmods.com)",
+      "WebFetch(domain:steamcommunity.com)",
+      "WebFetch(domain:www.oreateai.com)",
+      "WebFetch(domain:www.gamedeveloper.com)",
+      "WebFetch(domain:sekiroshadowsdietwice.wiki.fextralife.com)",
+      "WebFetch(domain:forhonorinfohub.com)",
+      "WebFetch(domain:forhonor.fandom.com)",
+      "WebFetch(domain:whats-in-a-game.com)",
+      "WebFetch(domain:www.superjumpmagazine.com)",
+      "WebFetch(domain:www.ubisoft.com)",
+      "WebFetch(domain:ozea-studio.itch.io)"
     ]
   },
   "enabledMcpjsonServers": [

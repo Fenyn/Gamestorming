@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "Heavy Top"
+attack_type = 1
+stance = 0
+startup_time = 0.4
+active_time = 0.133
+recovery_time = 0.333
+feint_window = 0.25
+is_chargeable = true
+charge_time = 1.0
+charge_damage_multiplier = 1.6
+hp_damage = 25
+posture_on_hit = 18
+posture_on_block = 14
+posture_on_deflect = 30
+stamina_cost = 15.0
+is_blockable = true
+is_deflectable = true
+is_dodgeable = true
+has_hyper_armor = false
+unblockable_at_full_charge = true

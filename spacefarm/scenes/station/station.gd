@@ -49,13 +49,14 @@ var _slept_in_bed: bool = false
 @onready var _room_name: Label = %RoomName
 @onready var _directive_name: Label = %DirectiveName
 @onready var _directive_progress: Label = %DirectiveProgress
-@onready var _shipping_panel: ShippingPanel = $Overlays/ShippingPanel
 @onready var _terminal_panel: StationTerminal = $Overlays/TerminalPanel
 @onready var _hybridizer_panel: HybridizerPanel = $Overlays/HybridizerPanel
 @onready var _comms_panel: CommsPanel = $Overlays/CommsPanel
 @onready var _inventory_panel: InventoryPanel = $Overlays/InventoryPanel
 @onready var _pause_menu: PauseMenu = $Overlays/PauseMenu
 @onready var _day_summary: DaySummaryPanel = $DaySummary
+@onready var _dialogue_panel: DialoguePanel = $Overlays/DialoguePanel
+@onready var _supply_board: SupplyBoard = $Overlays/SupplyBoard
 
 var _active_overlay: Control = null
 
@@ -400,9 +401,8 @@ func _connect_cargo_pods() -> void:
 				pod.pod_opened.connect(_on_pod_opened.bind(pod))
 
 
-func _on_pod_opened(pod: CargoPod) -> void:
-	_shipping_panel.set_pod(pod)
-	_open_overlay(_shipping_panel)
+func _on_pod_opened(_pod: CargoPod) -> void:
+	_open_overlay(_supply_board)
 
 
 func _connect_hybridizers() -> void:
@@ -574,7 +574,7 @@ func _update_room_name() -> void:
 
 # --- Crew ---
 
-const _crew_scene: PackedScene = preload("res://scenes/crew/crew_member.tscn")
+const CREW_SCENE: PackedScene = preload("res://scenes/crew/crew_member.tscn")
 
 func _spawn_crew() -> void:
 	for contact: ContactData in Database.get_all_contacts():
@@ -583,7 +583,7 @@ func _spawn_crew() -> void:
 			continue
 		if not _is_room_unlocked(room.room_id):
 			continue
-		var member: CrewMember = _crew_scene.instantiate() as CrewMember
+		var member: CrewMember = CREW_SCENE.instantiate() as CrewMember
 		member.position = _get_safe_position(room)
 		room.add_child(member)
 		member.setup(contact)
@@ -639,6 +639,9 @@ func _process_deferred_moves() -> void:
 func _execute_crew_move(crew: CrewMember, target_room_id: String) -> void:
 	if not _is_room_unlocked(target_room_id):
 		return
+	if crew.get_state_name() == &"Transit":
+		_crew_transit_paths.erase(crew.crew_id)
+		crew.transition_state(&"Idle")
 	var current_room: BaseRoom = crew.get_parent() as BaseRoom
 	if current_room == null:
 		return
@@ -649,14 +652,14 @@ func _execute_crew_move(crew: CrewMember, target_room_id: String) -> void:
 			_instant_crew_move(crew, target_room)
 		return
 	_crew_transit_paths[crew.crew_id] = path
-	var transit_state: CrewTransitState = crew.get_node("StateMachine/Transit") as CrewTransitState
-	if transit_state == null:
+	var transit_node: CrewTransitState = crew.get_node("StateMachine/Transit") as CrewTransitState
+	if transit_node == null:
 		var target_room: BaseRoom = _rooms.get(target_room_id, null) as BaseRoom
 		if target_room:
 			_instant_crew_move(crew, target_room)
 		return
-	if not transit_state.arrived_at_exit.is_connected(_on_crew_at_exit):
-		transit_state.arrived_at_exit.connect(_on_crew_at_exit)
+	if not transit_node.arrived_at_exit.is_connected(_on_crew_at_exit):
+		transit_node.arrived_at_exit.connect(_on_crew_at_exit)
 	_start_next_hop(crew)
 
 
@@ -664,13 +667,13 @@ func _start_next_hop(crew: CrewMember) -> void:
 	var path: Array = _crew_transit_paths.get(crew.crew_id, [])
 	if path.is_empty():
 		_crew_transit_paths.erase(crew.crew_id)
-		crew._state_machine.transition_to(&"Idle")
+		crew.transition_state(&"Idle")
 		return
 	var next_room_id: String = path[0]
 	var current_room: BaseRoom = crew.get_parent() as BaseRoom
 	if current_room:
 		var exit_dir: String = _get_exit_direction_to(current_room, next_room_id)
-		crew._state_machine.transition_to(&"Transit", {
+		crew.transition_state(&"Transit", {
 			"target_room": next_room_id,
 			"exit_direction": exit_dir,
 		})
@@ -687,49 +690,55 @@ func _on_crew_at_exit(crew_id: String) -> void:
 		return
 	var next_room_id: String = path.pop_front()
 	var next_room: BaseRoom = _rooms.get(next_room_id, null) as BaseRoom
-	for member: Node in get_tree().get_nodes_in_group("crew_members"):
-		if not member is CrewMember:
-			continue
-		var crew: CrewMember = member as CrewMember
-		if crew.crew_id != crew_id:
-			continue
-		if next_room == null:
-			crew._state_machine.transition_to(&"Idle")
-			_crew_transit_paths.erase(crew_id)
-			return
-		var current_room: BaseRoom = crew.get_parent() as BaseRoom
-		var exit_dir: String = ""
-		if current_room:
-			exit_dir = _get_exit_direction_to(current_room, next_room_id)
-		var enter_dir: String = _get_opposite(exit_dir) if exit_dir != "" else _get_entrance_direction(next_room)
-		crew.get_parent().remove_child(crew)
-		var entrance_pos: Vector2 = next_room.get_entrance_position(enter_dir)
-		crew.position = entrance_pos - next_room.global_position
-		next_room.add_child(crew)
-		if path.is_empty():
-			_crew_transit_paths.erase(crew_id)
-			crew.home_position = _get_safe_position(next_room)
-			var transit_state: CrewTransitState = crew.get_node("StateMachine/Transit") as CrewTransitState
-			if transit_state:
-				transit_state.begin_enter(entrance_pos)
-			else:
-				crew._state_machine.transition_to(&"Idle")
-		else:
-			_start_next_hop(crew)
+	var crew: CrewMember = _find_crew_member(crew_id)
+	if crew == null:
+		_crew_transit_paths.erase(crew_id)
 		return
+	if next_room == null:
+		crew.transition_state(&"Idle")
+		_crew_transit_paths.erase(crew_id)
+		return
+	var current_room: BaseRoom = crew.get_parent() as BaseRoom
+	var exit_dir: String = ""
+	if current_room:
+		exit_dir = _get_exit_direction_to(current_room, next_room_id)
+	var enter_dir: String = _get_opposite_direction(exit_dir) if exit_dir != "" else _get_entrance_direction(next_room)
+	if crew.get_parent():
+		crew.get_parent().remove_child(crew)
+	var entrance_pos: Vector2 = next_room.get_entrance_position(enter_dir)
+	crew.position = entrance_pos - next_room.global_position
+	next_room.add_child(crew)
+	if path.is_empty():
+		_crew_transit_paths.erase(crew_id)
+		crew.home_position = _get_safe_position(next_room)
+		var transit_node: CrewTransitState = crew.get_node("StateMachine/Transit") as CrewTransitState
+		if transit_node:
+			transit_node.begin_enter(entrance_pos)
+		else:
+			crew.transition_state(&"Idle")
+	else:
+		_start_next_hop(crew)
 
 
 func _instant_crew_move(crew: CrewMember, target_room: BaseRoom) -> void:
-	crew.get_parent().remove_child(crew)
+	if crew.get_parent():
+		crew.get_parent().remove_child(crew)
 	crew.position = _get_safe_position(target_room)
 	crew.home_position = crew.position
 	target_room.add_child(crew)
-	crew._state_machine.transition_to(&"Idle")
+	crew.transition_state(&"Idle")
+
+
+func _find_crew_member(crew_id: String) -> CrewMember:
+	for member: Node in get_tree().get_nodes_in_group("crew_members"):
+		if member is CrewMember and (member as CrewMember).crew_id == crew_id:
+			return member as CrewMember
+	return null
 
 
 func _get_entrance_direction(room: BaseRoom) -> String:
 	for dir_name: String in ["south", "west", "east", "north"]:
-		if room._entrances.has(dir_name):
+		if room.has_entrance(dir_name):
 			return dir_name
 	return "south"
 
@@ -783,15 +792,6 @@ func _get_exit_direction_to(room: BaseRoom, target_room_id: String) -> String:
 	return ""
 
 
-func _get_opposite(direction: String) -> String:
-	match direction:
-		"north": return "south"
-		"south": return "north"
-		"east": return "west"
-		"west": return "east"
-	return ""
-
-
 func _is_room_unlocked(room_id: String) -> bool:
 	for module_id: String in MODULE_DOORS:
 		for door_entry: Array in MODULE_DOORS[module_id]:
@@ -804,15 +804,63 @@ func _on_crew_interacted(crew_id: String) -> void:
 	var contact: ContactData = Database.get_contact(crew_id)
 	if contact == null:
 		return
+
+	var heart_event: HeartEventData = _check_heart_event(crew_id)
+	if heart_event:
+		_play_heart_event(heart_event)
+		return
+
 	var held_item: String = GameState.get_active_item_id()
 	var is_tool: bool = held_item in ["watering_can", "trowel"]
 	var is_giftable: bool = held_item != "" and not is_tool
 	if is_giftable and CrewManager.can_give_gift(crew_id):
 		var response: String = CrewManager.give_gift(crew_id, held_item)
-		EventBus.notification_requested.emit(response)
+		_show_dialogue(contact.contact_name, response)
 	else:
 		var chatter: String = CrewManager.talk_to(crew_id)
-		EventBus.notification_requested.emit(chatter)
+		_show_dialogue(contact.contact_name, chatter)
+
+
+func _show_dialogue(speaker: String, text: String) -> void:
+	if not _dialogue_panel.dialogue_finished.is_connected(_on_dialogue_finished):
+		_dialogue_panel.dialogue_finished.connect(_on_dialogue_finished, CONNECT_ONE_SHOT)
+	_dialogue_panel.show_single(speaker, text)
+	_open_overlay(_dialogue_panel)
+
+
+func _play_heart_event(event: HeartEventData) -> void:
+	GameState.unlocked_story_entries.append(event.event_id)
+	if not _dialogue_panel.dialogue_finished.is_connected(_on_dialogue_finished):
+		_dialogue_panel.dialogue_finished.connect(_on_dialogue_finished, CONNECT_ONE_SHOT)
+	_dialogue_panel.show_sequence(event.dialogue_sequence)
+	_open_overlay(_dialogue_panel)
+
+
+func _on_dialogue_finished() -> void:
+	_close_active_overlay()
+
+
+func _check_heart_event(crew_id: String) -> HeartEventData:
+	if not _current_room:
+		return null
+	var hour: int = TimeManager.current_hour
+	var day_name: String = TimeManager.get_day_name().to_lower()
+	var heart_level: int = CrewManager.get_heart_level(crew_id)
+	for event: HeartEventData in Database.get_all_heart_events():
+		if event.crew_id != crew_id:
+			continue
+		if event.event_id in GameState.unlocked_story_entries:
+			continue
+		if heart_level < event.required_hearts:
+			continue
+		if event.required_room != "" and _current_room.room_id != event.required_room:
+			continue
+		if hour < event.required_hour_min or hour > event.required_hour_max:
+			continue
+		if event.required_day_of_week != "" and day_name != event.required_day_of_week:
+			continue
+		return event
+	return null
 
 
 # --- Utilities ---

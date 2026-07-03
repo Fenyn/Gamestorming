@@ -37,12 +37,15 @@ var _recipes: Dictionary = {
 }
 
 var _story_entries: Dictionary = {}
-
 var _contacts: Dictionary = {}
+var _heart_events: Array[HeartEventData] = []
+var _supply_requests: Array[SupplyRequestData] = []
 
 
 func _ready() -> void:
 	_load_contacts()
+	_load_heart_events()
+	_load_supply_requests()
 
 
 func _load_contacts() -> void:
@@ -114,3 +117,39 @@ func get_all_contacts() -> Array:
 
 func get_contact_ids() -> Array:
 	return _contacts.keys()
+
+
+func _load_heart_events() -> void:
+	var dir: DirAccess = DirAccess.open("res://data/heart_events")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".tres"):
+			var res: Resource = load("res://data/heart_events/%s" % file_name)
+			if res is HeartEventData:
+				_heart_events.append(res as HeartEventData)
+		file_name = dir.get_next()
+
+
+func get_all_heart_events() -> Array[HeartEventData]:
+	return _heart_events
+
+
+func _load_supply_requests() -> void:
+	var dir: DirAccess = DirAccess.open("res://data/supply_requests")
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".tres"):
+			var res: Resource = load("res://data/supply_requests/%s" % file_name)
+			if res is SupplyRequestData:
+				_supply_requests.append(res as SupplyRequestData)
+		file_name = dir.get_next()
+
+
+func get_all_supply_requests() -> Array[SupplyRequestData]:
+	return _supply_requests

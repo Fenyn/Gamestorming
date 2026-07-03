@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!Spaceship_decoration_signs.png" id="1_b2bw7"]
+
+[node name="SpaceshipDecorationSigns0" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_b2bw7")
+region_enabled = true
+region_rect = Rect2(48, 0, 48, 96)

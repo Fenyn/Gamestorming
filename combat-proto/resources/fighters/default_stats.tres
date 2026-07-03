@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="FighterStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/fighter_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+max_hp = 100
+max_posture = 100
+posture_recovery_rate = 5.0
+guard_recovery_bonus = 3.0
+max_stamina = 100.0
+stamina_recovery_rate = 15.0
+stamina_recovery_pause = 0.5
+exhaustion_threshold = 0.2
+exhaustion_speed_penalty = 0.3
+move_speed = 5.0
+dodge_speed = 10.0
+dodge_duration = 0.6
+dodge_iframe_start = 0.05
+dodge_iframe_duration = 0.2
+jump_duration = 0.6
+jump_iframe_start = 0.1
+jump_iframe_duration = 0.2
+jump_height = 1.5
+deflect_window = 0.2
+counter_shove_window = 0.267
+posture_break_stun_duration = 3.0
+deathblow_damage_percent = 0.65
+hp_bracket_100_75 = 1.0
+hp_bracket_75_50 = 0.66
+hp_bracket_50_25 = 0.33
+hp_bracket_25_0 = 0.05

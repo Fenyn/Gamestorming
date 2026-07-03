@@ -1,154 +1,122 @@
 # Content Status Tracker
 
-What's decided, what's TBD, what's blocked, what's implemented. Check this before starting any work.
+What's built, what's stubbed, what's remaining. Check this before starting any work.
 
-**Legend**: DONE = implemented and working in code. DECIDED = creative decision made, not yet in code. STUB = code skeleton exists with debug placeholders. TBD = needs creative decision. BLOCKED = waiting on another decision.
+**Legend**: DONE = implemented and working. STUB = code exists with debug placeholders, needs content. TBD = needs design decision or implementation. BLOCKED = waiting on another decision.
 
 Full design details: `.claude/plans/look-at-spacefarming-and-piped-snowflake.md`
 
-## Architecture (Code Infrastructure)
+## Architecture (Autoloads — 6 total)
 
-| System | Status | Notes |
+| Autoload | Status | Notes |
 |---|---|---|
-| EventBus | DONE | Pure signal hub, crew_relationship_changed added |
-| InputManager | DONE | Input contexts (GAMEPLAY/MENU/CUTSCENE) |
-| GameState | DONE | Inventory, progression, unlocks, titan_ai_awakened |
-| TimeManager | DONE (needs update) | Currently 16hr days, 14-day seasons, 10s/hr dev speed. Needs: 20hr days, 28-day seasons, 42s/hr, day-of-week system |
-| Database | DONE (needs expansion) | Preloads crops/recipes/milestones. Needs: contact loading |
-| CrewManager | TBD | NEW autoload — crew relationships, gifts, decay, birthday, chatter |
-| SeasonManager | TBD | NEW autoload — jump/season state, predictions, canvas tints |
-| SocialConfig resource | TBD | Tuning constants for heart/gift system |
-| SeasonConfig resource | TBD | Season names, tints, time multipliers |
+| EventBus | DONE | Signals for time, farming, supply, progression, crew, UI. Cleaned: removed food_added, directive_failed, automation signals |
+| InputManager | DONE | GAMEPLAY / MENU / CUTSCENE contexts |
+| GameState | DONE | Inventory, progression, unlocks, titan_ai_awakened, supply_deposits. Automation stubs removed |
+| TimeManager | DONE | 20hr days (6am-2am), 28-day seasons, 7-day weeks (Mon-Sun), season names (Radiance/Blaze/Dusk/Frost), 10s/hr dev speed (42s for release) |
+| Database | DONE | Preloads crops/recipes/milestones. Dynamic loading: contacts, heart events, supply requests |
+| CrewManager | DONE | Relationships (250pts/heart, 10 levels), gifts (2/week, 5 tiers, birthday 8x), talk (+20/day), decay (-2/day), chatter, schedules |
 
-## Core Mechanics (Existing)
+## Systems Built (Phases 1-4, 6)
 
-| System | Status | Notes |
+| System | Status | Key Files |
 |---|---|---|
-| Crop growth (10 types) | DONE | State machine, biome gating, water schedules, quality |
-| Processing chains (10 recipes) | DONE | Raw -> basic -> advanced, 3 machine types |
-| Directive/milestone system | DONE | 2 directives in code (Maia-voiced), system supports more |
-| Energy/fatigue | DONE | 100 max, tool costs, sleep recovery |
-| Save/load | DONE | JSON persistence with crop tile snapshots |
-| Room transitions | DONE | Exit zones, sealed airlock unlock system |
-| Terminal UI | DONE | Shell works, needs story content |
-| Comms UI | DONE | Shell exists, needs crew content |
-| Hybridizer | DONE | 10 hybrid recipes, 3-day incubation |
-| Cargo shipping | DONE | Pod + panel — needs text reframe to "distribute to crew" |
-| Room display names | DONE | ROOM_DISPLAY_NAMES dict in station.gd |
+| Day-of-week | DONE | time_manager.gd — DAY_NAMES, get_day_name(), get_day_of_week() |
+| Jump-driven seasons | DONE (constants only) | time_manager.gd — SEASON_NAMES, get_season_name(). SeasonManager autoload not yet built (visual tints, time multipliers, jump prediction TBD) |
+| CrewMember NPC | DONE | scenes/crew/crew_member.gd+.tscn — CharacterBody2D, NavigationAgent2D, 5-state machine |
+| NPC state machine | DONE | crew_states/ — Idle, Wander, Talking, Relocating, Transit. Uses godot-base BaseStateMachine |
+| NPC pathfinding | DONE | NavigationAgent2D per NPC, NavigationRegion2D per room (auto-generated), phase-on-stuck after 2s |
+| Room-graph traversal | DONE | station.gd — BFS pathfinding across rooms, NPCs walk to exits, chain through intermediate rooms |
+| NPC schedules | DONE (no content) | crew_manager.gd — day-of-week string keys + hour → room_id. Deferred moves retry each frame |
+| Heart/gift system | DONE | crew_manager.gd — 5 tiers, weekly cap, birthday multiplier, decay, per-character responses |
+| Idle chatter | DONE (no content) | crew_manager.gd — pool-based by heart range (stranger/acquaintance/friendly/close/trusted/bonded/devoted/soulbound) |
+| Dialogue panel | DONE | scenes/ui/dialogue_panel.gd+.tscn — speaker, text, choices, sequence advancement |
+| Heart events | DONE (no content) | resources/heart_event_data.gd, Database loads from data/heart_events/, station.gd checks on NPC interact |
+| Supply Board | DONE (no content) | scenes/ui/supply_board.gd+.tscn — 3 sections (Provisions/Requests/Restoration), per-item deposit, rewards, module unlocks |
+| Supply requests | DONE (no content) | resources/supply_request_data.gd, Database loads from data/supply_requests/ |
+| Room display names | DONE | station.gd ROOM_DISPLAY_NAMES dict |
+| SocialConfig | DONE | resources/social_config.gd + data/config/social_config.tres — tunable heart/gift constants |
+| Nav regions per room | DONE | base_room.gd — auto-generated rectangular NavigationRegion2D |
 
-## New Mechanics (Planned)
+## 15 Crew ContactData Files (STUB)
 
-| System | Status | Phase | Notes |
+All in `data/contacts/`. Each has contact_id, contact_name, role, greeting (stub text), location_claim, gameplay_function. All content fields empty:
+
+| contact_id | Role | Location | Service |
 |---|---|---|---|
-| Day-of-week system | TBD | Phase 1 | 7 named days, derived from day number |
-| Jump-driven seasons | DECIDED | Phase 1 | Radiance/Blaze/Dusk/Frost, 28-day seasons, star-system time variation |
-| CrewMember scene | TBD | Phase 1 | StaticBody2D interactable, spawned from data |
-| NPC interaction | TBD | Phase 1 | Talk = greeting/chatter, hold item = gift |
-| Heart/friendship points | DECIDED | Phase 2 | 10 hearts, 250pts each, weekly gift cap, decay |
-| Gift tier system | DECIDED | Phase 2 | Loved/liked/neutral/disliked/hated, per-character responses |
-| Idle chatter pools | DECIDED | Phase 2 | Keyed by stranger/acquaintance/friendly/close/trusted/bonded |
-| NPC schedules | DECIDED | Phase 3 | Day-of-week + hour → room_id, string keys |
-| Dialogue panel | TBD | Phase 4 | Overlay for NPC conversations |
-| Heart events | DECIDED | Phase 4 | At hearts 2/4/6/8/10, location+time+hearts trigger |
-| Bundle restoration system | DECIDED | Phase 5 | Community Center style, repair nodes at sealed doors |
-| Hermes asteroid mining | DECIDED | Phase 5 | Ship-based laser mining, half-day time cost |
-| Cargo reframe | DECIDED | Phase 6 | Text changes: "distribute to crew" not "launch" |
-| Crew services | DECIDED | Phase 7 | Heart-gated vendor/service per NPC role |
-| Automation redesign | TBD | Phase 8 | Replace worm/bee stubs — alien symbiotes? Titan subsystems? |
+| commander | Mission Commander | hub | quest |
+| pilot | Pilot | hub | — |
+| medic | Medical Officer | living_quarters | clinic |
+| engineer | Chief Engineer | processing_lab | upgrades |
+| xenobiologist | Xenobiologist | advanced_processing | museum |
+| linguist | Linguist | hub | translation |
+| geologist | Geologist | cargo_bay | — |
+| physicist | Physicist | advanced_processing | research |
+| comms_officer | Comms Officer | hub | — |
+| security | Security Lead | service_tunnel | — |
+| quartermaster | Quartermaster | cargo_bay | shop |
+| chef | Chef | hub | cooking |
+| psychologist | Psychologist | living_quarters | — |
+| hacker | Computer Scientist | hub | — |
+| eva_specialist | EVA Specialist | cargo_bay | — |
 
-## Room Progression
+## Content Needing Authoring (systems built, zero content)
 
-| Room | Crew Name | room_id | Status | Unlock |
-|---|---|---|---|---|
-| Hangar | Hangar | hangar | TBD (new room) | Start |
-| The Commons | The Commons | hub | DONE | Start |
-| Crew Quarters | Crew Quarters | living_quarters | DONE | Start |
-| Cargo Hold | Cargo Hold | cargo_bay | DONE | Start |
-| Grow Bay 1 | Grow Bay 1 | grow_bay | DONE (needs resize: 4 plots) | Start |
-| Triage Bay | Triage Bay | medical_bay | TBD (new room) | Unlock A: tool interaction |
-| The Forge | The Forge | processing_lab | DONE | Unlock B: bundle "Nutrient Restoration" |
-| Grow Bay 2 | Grow Bay 2 | grow_bay_b | DONE (needs resize: 8+ plots) | Unlock B: same bundle |
-| Analysis Chamber | Analysis Chamber | advanced_processing | DONE | Unlock C: bundle "Synthesis Restoration" |
-| Vivarium | Vivarium | animal_bay | TBD (new room) | Unlock D: bundle "Containment Revival" |
-| Splice Lab | Splice Lab | hybridization_lab | DONE | Unlock E: bundle "Conduit Restoration" |
-| Grow Bay 3 | Grow Bay 3 | grow_bay_c | DONE | Unlock F: bundle "Chamber Activation" |
-| Stellar Array | Stellar Array | observatory | TBD (new room) | Unlock G: bundle "Sensor Restoration" |
-| Hermes Mining | — | — | TBD (Hermes upgrade) | Unlock H: crew project |
-| Data Vault | Data Vault | archive | TBD (new room) | Unlock I: 15 text fragments + quest |
-| Command Nexus | Command Nexus | bridge | TBD (new room) | Unlock J: Data Vault prereq + bundles |
-| Drive Core | Drive Core | engine_room | TBD (new room) | Unlock K: Command Nexus prereq + bundles |
-| The Sanctum | The Sanctum | alien_quarters | TBD (new room) | Unlock L: heart 8 Titan AI + all fragments |
-| Seed Archive | Seed Archive | greenhouse_vault | TBD (new room) | Unlock L: same gate |
+| Content | Format | Location | Scope |
+|---|---|---|---|
+| Crew names | contact_name field in .tres | data/contacts/*.tres | 15 names |
+| Crew personalities | Not yet structured | — | 15 personality sketches |
+| Idle chatter | idle_chatter dict in .tres | data/contacts/*.tres | 6+ lines per heart range per crew (90+ lines min) |
+| Gift preferences | loved/liked/disliked/hated arrays | data/contacts/*.tres | 4 arrays per crew |
+| Gift responses | gift_responses dict in .tres | data/contacts/*.tres | 5 tiers × 15 crew = 75 lines |
+| NPC schedules | schedule dict in .tres | data/contacts/*.tres | Day + hour → room per crew |
+| Heart events | HeartEventData .tres files | data/heart_events/ | Up to 75 (5 per crew at hearts 2/4/6/8/10) |
+| Supply requests | SupplyRequestData .tres files | data/supply_requests/ | Provisions + crew requests + restoration bundles |
+| Story terminal entries | StoryEntryData .tres files | data/story_entries/ | None exist |
+| Crop season assignments | seasons array on CropData | data/crops/*.tres | Which crops grow in which season |
+| Directive 3-5 text | MilestoneData .tres files | data/milestones/ | Bundle-based, requirements designed in plan |
 
-## Narrative Content
+## Remaining Implementation Phases
 
-| Content | Status | Notes |
-|---|---|---|
-| Core premise | DECIDED | See premise.md |
-| Ship names | DECIDED | Hermes (shuttle), Titan (alien ship) |
-| M.A.I.A. name + personality | DECIDED | Monitoring and Advising Integrated Assistant, helicopter-parent motherly |
-| Directive 1-2 text | DONE | Maia-voiced, in directive_1.tres and directive_2.tres |
-| Directives 3-5 text | TBD | Bundle-based, requirements designed but text not written |
-| Season names | DECIDED | Radiance, Blaze, Dusk, Frost |
-| Room display names | DECIDED | See terminology_map.md + plan file |
-| Crew member names | TBD | Using role-based IDs (commander, engineer, etc.) |
-| Crew personalities | TBD | Brief sketches needed per member |
-| Crew gift preferences | TBD | Loved/liked/disliked/hated arrays per member |
-| Crew idle chatter | TBD | Pool-based, keyed by heart range |
-| Crew gift responses | TBD | Per-character per-tier overrides |
-| Crew schedules | TBD | Day-of-week + hour → room_id |
-| Heart events (75 total) | TBD | 5 per crew member at hearts 2/4/6/8/10 |
-| Story entries (.tres) | TBD | None exist yet |
-| Titan AI name + personality | TBD | Late-game priority |
-| Alien text fragment content | TBD | Collectibles, Linguist translates |
-| Crop season assignments | TBD | Which crops grow in which season |
-| Automation concept | TBD | Alien symbiotes? Titan subsystems? Crew tasks? |
-| Bundle item requirements | DECIDED (A-H) | Specific items per bundle in plan file. I-L TBD pending mining items |
-| Animal/creature designs | TBD | Vivarium inhabitants |
-| Mining output items | TBD | Ores, minerals, alien alloys |
+| Phase | Scope | Status | Notes |
+|---|---|---|---|
+| **5: Ship Zones** | New room scenes, bundle .tres files, Titan Fragment tracking | NOT BUILT | Rooms need tilemap painting via room_painter. Largest remaining phase. |
+| **5b: Hermes Mining** | Laser mining minigame, asteroid data, Hermes upgrade flow | NOT BUILT | Separate from Phase 5. Needs UX design decision. |
+| **7: Crew Services** | Per-NPC service panels (Shop, Upgrades, Cooking, Clinic, Research, Collection) | NOT BUILT | Build 1-2 at a time, each self-contained. |
+| **8: Automation** | Replace removed worm/bee stubs with new concept | NOT BUILT | BLOCKED on creative decision: alien symbiotes vs Titan subsystems vs crew tasks |
+| **SeasonManager autoload** | Visual tints per season, time multipliers, jump transitions, prediction data | NOT BUILT | Constants exist in TimeManager, but the manager itself doesn't exist yet |
 
-## Implementation Phases
+## Removed This Session
 
-| Phase | Scope | Status |
-|---|---|---|
-| Phase 1 | Day-of-week + crew foundation | NEXT — building this session |
-| Phase 2 | Heart system + gift mechanics | Designed, not built |
-| Phase 3 | NPC schedules | Designed, not built |
-| Phase 4 | Dialogue panel + heart events | Designed, not built |
-| Phase 5 | Ship zones + new rooms + mining | Designed, not built |
-| Phase 6 | Cargo reframe | Designed, not built |
-| Phase 7 | Crew services | Designed, not built |
-| Phase 8 | Automation redesign | Concept TBD |
+- ShippingPanel (replaced by SupplyBoard)
+- CargoPod cargo storage methods (kept as interaction-only trigger for SupplyBoard)
+- food_added signal + emit
+- directive_failed signal
+- All automation signals (automation_activated, worm_task_completed, bee_delivery_completed)
+- All automation vars from GameState (worm_count, bee_count, worm_assignments, bee_routes)
+- simulation_revealed → repurposed to titan_ai_awakened (earlier in session)
 
-## Decisions Needed (Priority Order)
+## Open Design Decisions
 
-### Done
-1. ~~Hermes AI name/personality~~ — M.A.I.A., helicopter-parent motherly
-2. ~~simulation_revealed flag~~ — repurposed to titan_ai_awakened
-3. ~~Season system~~ — jump-driven, 4 named seasons
-4. ~~Unlock system~~ — bundle-based restoration, modular (first bundle opens, rest upgrade)
-5. ~~Pacing~~ — Stardew-matched, 42s/hr, 28-day seasons
-6. ~~Room progression~~ — 12 unlocks across ~65 hours
-7. ~~Mining concept~~ — Hermes-based asteroid laser mining
-
-### Remaining
-1. **Crew member names** — 15 names needed, using role placeholders for now
-2. **Titan AI concept** — name, personality, communication style
-3. **Automation theme** — alien symbiotes, Titan subsystems, or crew tasks
-4. **Alien language mechanic** — glyphs, research tree, or passive unlock
-5. **Animal/creature designs** — what lives in the Vivarium
-6. **Mining minigame UX** — interactive piloting, point-and-click, or timer-based
-7. **Cooking system design** — how Chef recipes work alongside processing
+| # | Decision | Impact | Notes |
+|---|---|---|---|
+| 1 | Crew member names | Unlocks NPC content authoring | Using role placeholders now |
+| 2 | Titan AI concept | Unlocks Act 2+ story, late-game content | Name, personality, communication style |
+| 3 | Automation theme | Unlocks Phase 8 implementation | Alien symbiotes? Titan subsystems? Crew tasks? |
+| 4 | Alien language mechanic | Unlocks Linguist NPC, environmental storytelling | Glyph replacement? Research tree? Passive? |
+| 5 | Vivarium creatures | Unlocks animal husbandry content | What lives there, what they produce |
+| 6 | Mining minigame UX | Unlocks Phase 5b build | Interactive piloting? Point-and-click? Timer? |
+| 7 | Cooking system design | Unlocks Chef NPC service panel | How recipes work alongside existing processing |
 
 ## Document Status
 
 | Document | Status | Last Updated |
 |---|---|---|
-| premise.md | Needs update (jump seasons, bundle system) | 2026-06-15 |
-| terminology_map.md | Needs update (new room names) | 2026-06-15 |
-| ship_layout.md | Needs rewrite (bundles, new rooms, pacing) | 2026-06-15 |
-| crew_manifest.md | Complete (roster level) | 2026-06-15 |
-| progression.md | Needs update (bundle system, seasons) | 2026-06-15 |
-| content_status.md | **Updated** | 2026-06-16 |
-| CLAUDE.md | Needs update (pacing, seasons, new autoloads) | 2026-06-15 |
+| premise.md | **Updated** — jump seasons, biological alien tech, dual AI | 2026-06-16 |
+| terminology_map.md | **Updated** — all new room names, CrewManager in autoloads | 2026-06-16 |
+| ship_layout.md | **Updated** — discover/repurpose, bundles, mining, grow bay philosophy | 2026-06-16 |
+| crew_manifest.md | Complete (roster level, no names) | 2026-06-15 |
+| progression.md | **Updated** — bundle-based unlocks, jump seasons, Act structure | 2026-06-16 |
+| content_status.md | **Current** | 2026-06-16 |
+| CLAUDE.md | **Updated** — 6 autoloads, pacing constants, naming discipline | 2026-06-16 |
 | Plan file | **Comprehensive** — full design source of truth | 2026-06-16 |

@@ -67,7 +67,7 @@ func _rebuild_cargo_list() -> void:
 
 	if _pod == null or _pod.get_cargo().is_empty():
 		var label: Label = Label.new()
-		label.text = "Cargo empty"
+		label.text = "Supply station empty"
 		label.add_theme_font_size_override("font_size", 11)
 		label.modulate = Color(0.5, 0.5, 0.5, 1)
 		_cargo_list.add_child(label)
@@ -118,7 +118,7 @@ func _on_launch() -> void:
 	EventBus.cargo_shipped.emit(shipped)
 	if food_total > 0:
 		EventBus.food_added.emit(food_total)
-	EventBus.notification_requested.emit("Cargo pod launched!")
+	EventBus.notification_requested.emit("Supplies distributed to crew.")
 	visible = false
 
 

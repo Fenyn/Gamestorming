@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Cyberpunk Interior/characters/!Cyberpunk_Toilet_Door.png" id="1_jpw7p"]
+
+[node name="CyberpunkToiletDoor5" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_jpw7p")
+region_enabled = true
+region_rect = Rect2(192, 576, 48, 144)

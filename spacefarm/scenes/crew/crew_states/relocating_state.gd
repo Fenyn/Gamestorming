@@ -14,4 +14,3 @@ func exit() -> void:
 	var crew: CrewMember = owner as CrewMember
 	crew.visible = true
 	crew.set_physics_process(true)
-	state_machine.transition_to(&"Idle")

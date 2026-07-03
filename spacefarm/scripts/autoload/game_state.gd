@@ -36,11 +36,8 @@ var titan_ai_awakened: bool = false
 
 # --- Crew (managed by CrewManager, persisted here) ---
 
-# --- Automation ---
-var worm_count: int = 0
-var bee_count: int = 0
-var worm_assignments: Dictionary = {}
-var bee_routes: Array[Dictionary] = []
+# --- Supply Board ---
+var supply_deposits: Dictionary = {}
 
 # --- Energy ---
 var energy: float = MAX_ENERGY
@@ -250,10 +247,7 @@ func to_dict() -> Dictionary:
 		"unlocked_contacts": unlocked_contacts.duplicate(),
 		"titan_ai_awakened": titan_ai_awakened,
 		"crew": CrewManager.to_dict(),
-		"worm_count": worm_count,
-		"bee_count": bee_count,
-		"worm_assignments": worm_assignments.duplicate(),
-		"bee_routes": bee_routes.duplicate(),
+		"supply_deposits": supply_deposits.duplicate(true),
 		"energy": energy,
 		"crop_tile_states": crop_tile_states.duplicate(true),
 	}
@@ -280,10 +274,7 @@ func from_dict(data: Dictionary) -> void:
 	unlocked_contacts = Array(data.get("unlocked_contacts", []), TYPE_STRING, &"", null)
 	titan_ai_awakened = data.get("titan_ai_awakened", false)
 	CrewManager.from_dict(data.get("crew", {}))
-	worm_count = data.get("worm_count", 0)
-	bee_count = data.get("bee_count", 0)
-	worm_assignments = data.get("worm_assignments", {})
-	bee_routes = data.get("bee_routes", [])
+	supply_deposits = data.get("supply_deposits", {})
 	energy = data.get("energy", MAX_ENERGY)
 	crop_tile_states = data.get("crop_tile_states", {})
 

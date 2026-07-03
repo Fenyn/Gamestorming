@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "Grab"
+attack_type = 5
+stance = 0
+startup_time = 0.5
+active_time = 0.1
+recovery_time = 0.1
+feint_window = 0.0
+is_chargeable = false
+hp_damage = 10
+posture_on_hit = 10
+posture_on_block = 0
+posture_on_deflect = 0
+stamina_cost = 15.0
+is_blockable = false
+is_deflectable = false
+is_dodgeable = true
+is_perilous = true
+perilous_counter = &"side_dodge"
+indicator_color = Color(1, 0, 0, 1)

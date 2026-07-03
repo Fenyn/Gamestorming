@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!Spaceship_decoration2.png" id="1_314ns"]
+
+[node name="SpaceshipDecoration27" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_314ns")
+region_enabled = true
+region_rect = Rect2(480, 576, 48, 144)

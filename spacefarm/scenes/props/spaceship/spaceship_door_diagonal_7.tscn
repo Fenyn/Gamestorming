@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Spaceship/characters/!Spaceship_door_diagonal.png" id="1_q5347"]
+
+[node name="SpaceshipDoorDiagonal7" type="Sprite2D"]
+texture_filter = 1
+texture = ExtResource("1_q5347")
+region_enabled = true
+region_rect = Rect2(480, 576, 48, 144)

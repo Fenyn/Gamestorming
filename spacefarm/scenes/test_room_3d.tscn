@@ -1,0 +1,47 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player_3d.tscn" id="1_player"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(12.0, 0.1, 10.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.2, 0.22, 0.26, 1)
+metallic = 0.3
+roughness = 0.7
+
+[sub_resource type="Environment" id="Environment_main"]
+ambient_light_source = 3
+ambient_light_color = Color(0.35, 0.38, 0.45, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(12.0, 3.0, 0.2)
+
+[node name="TestRoom3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, -0.866, 0, 0.866, 0.5, 0, 0, 0)
+light_color = Color(1, 0.96, 0.9, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="WallNorth" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -5.0)
+mesh = SubResource("BoxMesh_wall")
+
+[node name="WallSouth" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 5.0)
+mesh = SubResource("BoxMesh_wall")
+
+[node name="Player3D" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

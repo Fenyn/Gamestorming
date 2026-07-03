@@ -2,9 +2,9 @@ extends Node
 
 var _config: SocialConfig = preload("res://data/config/social_config.tres")
 
-var crew_relationships: Dictionary = {}
-var gifts_given_this_week: Dictionary = {}
-var talked_today: Dictionary = {}
+var _crew_relationships: Dictionary = {}
+var _gifts_given_this_week: Dictionary = {}
+var _talked_today: Dictionary = {}
 
 
 func _ready() -> void:
@@ -12,32 +12,32 @@ func _ready() -> void:
 
 
 func _on_day_started(_day: int) -> void:
-	_apply_decay()
 	_reset_talked()
+	_apply_decay()
 	_check_weekly_reset()
 	_check_birthdays()
 
 
 func _apply_decay() -> void:
 	for crew_id: String in _get_all_crew_ids():
-		if talked_today.get(crew_id, false):
+		if _talked_today.get(crew_id, false):
 			continue
-		var current: int = crew_relationships.get(crew_id, 0)
+		var current: int = _crew_relationships.get(crew_id, 0)
 		if current <= 0:
 			continue
 		var max_pts: int = _config.max_hearts_friend * _config.points_per_heart
 		if current >= max_pts:
 			continue
-		crew_relationships[crew_id] = maxi(0, current - _config.daily_decay)
+		_crew_relationships[crew_id] = maxi(0, current - _config.daily_decay)
 
 
 func _reset_talked() -> void:
-	talked_today = {}
+	_talked_today = {}
 
 
 func _check_weekly_reset() -> void:
 	if TimeManager.get_day_of_week() == 0:
-		gifts_given_this_week = {}
+		_gifts_given_this_week = {}
 
 
 func _check_birthdays() -> void:
@@ -53,18 +53,18 @@ func _check_birthdays() -> void:
 # --- Friendship ---
 
 func add_friendship(crew_id: String, points: int) -> void:
-	var current: int = crew_relationships.get(crew_id, 0)
+	var current: int = _crew_relationships.get(crew_id, 0)
 	var contact: ContactData = Database.get_contact(crew_id)
 	var max_hearts: int = _config.max_hearts_friend
 	if contact and contact.is_romanceable:
 		max_hearts = _config.max_hearts_romance
 	var max_pts: int = max_hearts * _config.points_per_heart
-	crew_relationships[crew_id] = clampi(current + points, 0, max_pts)
+	_crew_relationships[crew_id] = clampi(current + points, 0, max_pts)
 	EventBus.crew_relationship_changed.emit(crew_id, get_heart_level(crew_id))
 
 
 func get_heart_level(crew_id: String) -> int:
-	return crew_relationships.get(crew_id, 0) / _config.points_per_heart
+	return _crew_relationships.get(crew_id, 0) / _config.points_per_heart
 
 
 func get_heart_range(crew_id: String) -> String:
@@ -76,7 +76,7 @@ func get_heart_range(crew_id: String) -> String:
 # --- Gifts ---
 
 func can_give_gift(crew_id: String) -> bool:
-	return gifts_given_this_week.get(crew_id, 0) < _config.gifts_per_week
+	return _gifts_given_this_week.get(crew_id, 0) < _config.gifts_per_week
 
 
 func classify_gift(crew_id: String, item_id: String) -> String:
@@ -96,11 +96,11 @@ func classify_gift(crew_id: String, item_id: String) -> String:
 
 func give_gift(crew_id: String, item_id: String) -> String:
 	var tier: String = classify_gift(crew_id, item_id)
-	var points: int = _config.gift_points.get(tier, 0)
+	var points: int = int(_config.gift_points.get(tier, 0))
 	if _is_birthday(crew_id):
 		points *= _config.birthday_multiplier
 	add_friendship(crew_id, points)
-	gifts_given_this_week[crew_id] = gifts_given_this_week.get(crew_id, 0) + 1
+	_gifts_given_this_week[crew_id] = _gifts_given_this_week.get(crew_id, 0) + 1
 	GameState.remove_item(item_id, 1)
 	return get_gift_response(crew_id, tier)
 
@@ -123,8 +123,8 @@ func get_gift_response(crew_id: String, tier: String) -> String:
 # --- Talk ---
 
 func talk_to(crew_id: String) -> String:
-	if not talked_today.get(crew_id, false):
-		talked_today[crew_id] = true
+	if not _talked_today.get(crew_id, false):
+		_talked_today[crew_id] = true
 		add_friendship(crew_id, _config.daily_talk_bonus)
 	return get_idle_chatter(crew_id)
 
@@ -148,14 +148,14 @@ func get_idle_chatter(crew_id: String) -> String:
 
 func to_dict() -> Dictionary:
 	return {
-		"crew_relationships": crew_relationships.duplicate(),
-		"gifts_given_this_week": gifts_given_this_week.duplicate(),
+		"crew_relationships": _crew_relationships.duplicate(),
+		"gifts_given_this_week": _gifts_given_this_week.duplicate(),
 	}
 
 
 func from_dict(data: Dictionary) -> void:
-	crew_relationships = data.get("crew_relationships", {})
-	gifts_given_this_week = data.get("gifts_given_this_week", {})
+	_crew_relationships = data.get("crew_relationships", {})
+	_gifts_given_this_week = data.get("gifts_given_this_week", {})
 
 
 func _get_all_crew_ids() -> Array:
@@ -176,7 +176,9 @@ func get_scheduled_room(crew_id: String, hour: int) -> String:
 	if day_schedule.is_empty():
 		return contact.location_claim
 	var target_room: String = contact.location_claim
-	for sched_hour: int in day_schedule:
-		if hour >= sched_hour:
+	var hours: Array = day_schedule.keys()
+	hours.sort()
+	for sched_hour: Variant in hours:
+		if hour >= int(sched_hour):
 			target_room = day_schedule[sched_hour]
 	return target_room

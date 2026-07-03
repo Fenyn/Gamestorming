@@ -27,12 +27,13 @@ func enter(msg: Dictionary = {}) -> void:
 		state_machine.transition_to(&"Idle")
 		return
 
-	if exit_direction != "" and room._entrances.has(exit_direction):
-		_exit_position = (room._entrances[exit_direction] as Marker2D).global_position
+	if exit_direction != "" and room.has_entrance(exit_direction):
+		_exit_position = room.get_entrance_position(exit_direction)
 	else:
 		_exit_position = _find_nearest_exit(crew, room)
 
 	if _exit_position == Vector2.ZERO:
+		_phase = Phase.WAITING_REPARENT
 		arrived_at_exit.emit(crew.crew_id)
 		return
 
@@ -86,10 +87,11 @@ func _find_nearest_exit(crew: CrewMember, room: BaseRoom) -> Vector2:
 	var best_pos: Vector2 = Vector2.ZERO
 	var best_dist: float = INF
 	for dir_name: String in ["north", "south", "east", "west"]:
-		var entrance_marker: Variant = room._entrances.get(dir_name, null)
-		if entrance_marker is Marker2D:
-			var dist: float = crew.global_position.distance_to((entrance_marker as Marker2D).global_position)
-			if dist < best_dist:
-				best_dist = dist
-				best_pos = (entrance_marker as Marker2D).global_position
+		if not room.has_entrance(dir_name):
+			continue
+		var pos: Vector2 = room.get_entrance_position(dir_name)
+		var dist: float = crew.global_position.distance_to(pos)
+		if dist < best_dist:
+			best_dist = dist
+			best_pos = pos
 	return best_pos

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scenes/station/station.gd" id="1_station"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -14,7 +14,6 @@
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/advanced_processing.tscn" id="9_advproc"]
 [ext_resource type="Script" path="res://scenes/ui/hotbar.gd" id="10_hotbar"]
 [ext_resource type="PackedScene" path="res://scenes/ui/inventory_panel.tscn" id="11_inv"]
-[ext_resource type="PackedScene" path="res://scenes/ui/shipping_panel.tscn" id="12_ship"]
 [ext_resource type="PackedScene" path="res://scenes/terminal/terminal.tscn" id="13_terminal"]
 [ext_resource type="PackedScene" path="res://scenes/station/rooms/hybridization_lab.tscn" id="14_hybrid"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="15_pause"]
@@ -22,6 +21,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/comms_panel.tscn" id="17_comms"]
 [ext_resource type="Script" path="res://scenes/ui/energy_bar.gd" id="21_energy"]
 [ext_resource type="PackedScene" path="res://scenes/ui/day_summary_panel.tscn" id="22_summary"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_panel.tscn" id="23_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/ui/supply_board.tscn" id="24_supply"]
 
 
 [node name="Station" type="Node2D"]
@@ -200,8 +201,6 @@ layer = 50
 
 [node name="InventoryPanel" parent="Overlays" instance=ExtResource("11_inv")]
 
-[node name="ShippingPanel" parent="Overlays" instance=ExtResource("12_ship")]
-
 [node name="TerminalPanel" parent="Overlays" instance=ExtResource("13_terminal")]
 
 [node name="PauseMenu" parent="Overlays" instance=ExtResource("15_pause")]
@@ -209,6 +208,10 @@ layer = 50
 [node name="HybridizerPanel" parent="Overlays" instance=ExtResource("16_hybrid_ui")]
 
 [node name="CommsPanel" parent="Overlays" instance=ExtResource("17_comms")]
+
+[node name="DialoguePanel" parent="Overlays" instance=ExtResource("23_dialogue")]
+
+[node name="SupplyBoard" parent="Overlays" instance=ExtResource("24_supply")]
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 color = Color(0.6, 0.5, 0.4, 1)

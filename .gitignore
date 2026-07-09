@@ -1,6 +1,8 @@
 # --- Engine / IDE / OS artifacts (global) ---
 .godot/
 .idea/
+bin/
+obj/
 *.cache
 *.tmp
 Thumbs.db
@@ -26,6 +28,7 @@ Desktop.ini
 /heirloom/demo/assets
 /heirloom/terrain_data
 /spacefarm/assets
+/bulwark/assets/tilesets/
 
 # --- Third-party addons kept local (godot_base stays tracked) ---
 /heirloom/addons/*

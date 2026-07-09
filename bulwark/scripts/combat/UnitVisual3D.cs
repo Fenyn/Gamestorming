@@ -1,0 +1,344 @@
+using Godot;
+using PF2e.Core;
+
+namespace Bulwark.Combat;
+
+/// <summary>
+/// 2.5D combat token: a billboarded 2D sprite standing on a grid square in the 3D board. Heroes use
+/// an 8-direction Winlu sheet (8 rows = facings, 8 columns = idle frames) with classic Doom-style
+/// camera-relative facing selection; enemies use a side-view rat that cycles idle frames and flips
+/// horizontally to match its logical facing as seen by the camera. Carries a Label3D name, a
+/// billboarded HP bar and a team-colored ground ring that doubles as the current-turn indicator.
+/// Thin presentation adapter — no rules.
+/// </summary>
+public partial class UnitVisual3D : Node3D
+{
+    // --- Sizing (1 tile = 1 m). Heroes ~1.75 m, rats ~0.7 m over a 1 m tile. ---
+    // Hero sheets are 2800x3200 = 7 columns (animation frames) x 8 rows (facings) of 400x400
+    // cells — verified by cropping; slicing as 8 columns shears the frames and makes the
+    // character drift sideways while idling.
+    private const int HeroColumns = 7;
+    private const int HeroFrameH = 400;
+    private const float HeroPixelSize = 0.00648f; // -> ~1.75 m tall character
+    private const float RatPixelSize = 0.02f;     // -> ~0.7 m tall rat
+    private const float AnimFrameTime = 1f / 6f;  // ~6 fps
+
+    // Screen-space reference directions per hero sheet row (sx = screen-right, sy = into-screen/away).
+    // Row order verified from the sheet: 0=S(toward camera) 1=SW 2=W 3=NW 4=N(away) 5=NE 6=E 7=SE.
+    private static readonly Vector2[] RowScreenDirs =
+    {
+        new(0f, -1f),                                    // 0 S  (toward viewer)
+        new(-0.7071f, -0.7071f),                         // 1 SW
+        new(-1f, 0f),                                     // 2 W
+        new(-0.7071f, 0.7071f),                          // 3 NW
+        new(0f, 1f),                                      // 4 N  (away)
+        new(0.7071f, 0.7071f),                           // 5 NE
+        new(1f, 0f),                                      // 6 E
+        new(0.7071f, -0.7071f),                          // 7 SE
+    };
+
+    private ICharacter _character = null!;
+    private bool _isHero;
+    private Color _teamColor;
+    private Camera3D? _camera;
+
+    private Sprite3D _sprite = null!;
+    private Texture2D[] _ratFrames = System.Array.Empty<Texture2D>();
+    private MeshInstance3D _ring = null!;
+    private StandardMaterial3D _ringMat = null!;
+    private Node3D _hpBar = null!;
+    private MeshInstance3D _hpFill = null!;
+    private StandardMaterial3D _hpFillMat = null!;
+    private Label3D _name = null!;
+
+    private float _animTimer;
+    private int _animFrame;
+    private bool _active;
+    private bool _dead;
+    private float _hpBarY;
+
+    /// <summary>Logical facing in grid space (x along world X, y along world Z). Set by the presenter.</summary>
+    public Vector2 Facing { get; set; } = Vector2.Right;
+
+    public ICharacter Character => _character;
+
+    public static UnitVisual3D Create(ICharacter character, string? ratFolder = null)
+    {
+        bool isHero = character.CreatureStats == null;
+        return new UnitVisual3D
+        {
+            _character = character,
+            _isHero = isHero,
+            _teamColor = character.TeamId == 1
+                ? new Color(0.35f, 0.6f, 0.95f)
+                : new Color(0.85f, 0.4f, 0.35f),
+            // Heroes start facing the enemy side; team 1 (left) looks +X, team 2 (right) looks -X.
+            Facing = character.TeamId == 1 ? Vector2.Right : Vector2.Left,
+            _ratFolder = ratFolder,
+        };
+    }
+
+    private string? _ratFolder;
+
+    public void SetCamera(Camera3D camera) => _camera = camera;
+
+    public override void _Ready()
+    {
+        BuildSprite();
+        BuildRing();
+        BuildHpBar();
+        BuildName();
+        UpdateHealthBar();
+        ApplyFacingFrame();
+    }
+
+    // ------------------------------------------------------------------ Build
+
+    private void BuildSprite()
+    {
+        _sprite = new Sprite3D
+        {
+            Shaded = false,
+            Billboard = BaseMaterial3D.BillboardModeEnum.FixedY,
+            TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest,
+            AlphaCut = SpriteBase3D.AlphaCutMode.Discard,
+            AlphaScissorThreshold = 0.5f,
+        };
+
+        if (_isHero)
+        {
+            string folder = HeroSpriteMap.FolderFor(_character.Id);
+            _sprite.Texture = GD.Load<Texture2D>($"{folder}/idle.png");
+            _sprite.Hframes = HeroColumns;
+            _sprite.Vframes = 8;
+            _sprite.PixelSize = HeroPixelSize;
+            float h = HeroFrameH * HeroPixelSize;
+            _sprite.Position = new Vector3(0f, h * 0.5f - 0.19f, 0f); // feet ~ y=0
+            _hpBarY = 1.95f;
+        }
+        else
+        {
+            LoadRatFrames();
+            if (_ratFrames.Length > 0) _sprite.Texture = _ratFrames[0];
+            _sprite.PixelSize = RatPixelSize;
+            float h = (_sprite.Texture?.GetHeight() ?? 44) * RatPixelSize;
+            _sprite.Position = new Vector3(0f, h * 0.5f - 0.08f, 0f);
+            _hpBarY = 0.9f;
+        }
+        AddChild(_sprite);
+    }
+
+    private void LoadRatFrames()
+    {
+        string folder = _ratFolder ?? "res://assets/sprites/enemies/rat_v1";
+        var frames = new System.Collections.Generic.List<Texture2D>(8);
+        for (int i = 1; i <= 8; i++)
+        {
+            var tex = GD.Load<Texture2D>($"{folder}/idle_{i}.png");
+            if (tex != null) frames.Add(tex);
+        }
+        _ratFrames = frames.ToArray();
+    }
+
+    private void BuildRing()
+    {
+        _ring = new MeshInstance3D
+        {
+            Mesh = new CylinderMesh { TopRadius = 0.42f, BottomRadius = 0.42f, Height = 0.02f, RadialSegments = 24 },
+            Position = new Vector3(0f, 0.02f, 0f),
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+        _ringMat = new StandardMaterial3D
+        {
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            AlbedoColor = _teamColor with { A = 0.45f },
+        };
+        _ring.MaterialOverride = _ringMat;
+        AddChild(_ring);
+    }
+
+    private void BuildHpBar()
+    {
+        _hpBar = new Node3D { Position = new Vector3(0f, _hpBarY, 0f) };
+        AddChild(_hpBar);
+
+        const float w = 0.8f, h = 0.09f;
+        var bg = new MeshInstance3D
+        {
+            Mesh = new QuadMesh { Size = new Vector2(w + 0.04f, h + 0.04f) },
+            MaterialOverride = BarMaterial(new Color(0.08f, 0.08f, 0.1f, 0.9f)),
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+        _hpBar.AddChild(bg);
+
+        _hpFillMat = BarMaterial(new Color(0.25f, 0.8f, 0.25f));
+        _hpFill = new MeshInstance3D
+        {
+            Mesh = new QuadMesh { Size = new Vector2(w, h) },
+            MaterialOverride = _hpFillMat,
+            Position = new Vector3(0f, 0f, 0.001f),
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+        _hpBar.AddChild(_hpFill);
+    }
+
+    private void BuildName()
+    {
+        _name = new Label3D
+        {
+            Text = _character.Name,
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            FontSize = 48,
+            PixelSize = 0.005f,
+            Position = new Vector3(0f, _hpBarY + 0.22f, 0f),
+            Modulate = Colors.White,
+            OutlineSize = 8,
+            OutlineModulate = Colors.Black,
+            NoDepthTest = true,
+        };
+        AddChild(_name);
+    }
+
+    private static StandardMaterial3D BarMaterial(Color color) => new()
+    {
+        ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+        Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+        AlbedoColor = color,
+        CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+        NoDepthTest = true,
+    };
+
+    // ------------------------------------------------------------------ Per-frame
+
+    public override void _Process(double delta)
+    {
+        // Idle animation.
+        _animTimer += (float)delta;
+        if (_animTimer >= AnimFrameTime)
+        {
+            _animTimer -= AnimFrameTime;
+            // 56 is divisible by both the hero (7) and rat (8) frame counts, so both loops stay smooth.
+            _animFrame = (_animFrame + 1) % 56;
+            if (!_dead) AdvanceAnimFrame();
+        }
+
+        if (!_dead) ApplyFacingFrame();
+
+        // Billboard the HP bar to face the camera (full).
+        if (_camera != null && IsInstanceValid(_camera))
+            _hpBar.GlobalBasis = _camera.GlobalBasis;
+    }
+
+    private void AdvanceAnimFrame()
+    {
+        if (_isHero)
+        {
+            // Row (facing) chosen in ApplyFacingFrame; advance the column only.
+            int row = _sprite.Frame / HeroColumns;
+            _sprite.Frame = row * HeroColumns + _animFrame % HeroColumns;
+        }
+        else if (_ratFrames.Length > 0)
+        {
+            _sprite.Texture = _ratFrames[_animFrame % _ratFrames.Length];
+        }
+    }
+
+    /// <summary>Pick the sprite row (hero) or flip (rat) from facing as seen through the camera.</summary>
+    private void ApplyFacingFrame()
+    {
+        // Camera basis projected onto the ground plane.
+        Vector3 right = Vector3.Right, fwd = Vector3.Forward;
+        if (_camera != null && IsInstanceValid(_camera))
+        {
+            var basis = _camera.GlobalBasis;
+            fwd = -basis.Z; fwd.Y = 0f; fwd = fwd.LengthSquared() > 0.0001f ? fwd.Normalized() : Vector3.Forward;
+            right = basis.X; right.Y = 0f; right = right.LengthSquared() > 0.0001f ? right.Normalized() : Vector3.Right;
+        }
+
+        Vector3 facing = new Vector3(Facing.X, 0f, Facing.Y);
+        if (facing.LengthSquared() < 0.0001f) facing = Vector3.Right;
+        facing = facing.Normalized();
+
+        float sx = facing.Dot(right);      // + = screen right
+        float sy = facing.Dot(fwd);        // + = into screen (away from viewer)
+
+        if (_isHero)
+        {
+            var screen = new Vector2(sx, sy);
+            int best = 0;
+            float bestDot = -2f;
+            for (int r = 0; r < 8; r++)
+            {
+                float d = screen.Dot(RowScreenDirs[r]);
+                if (d > bestDot) { bestDot = d; best = r; }
+            }
+            _sprite.Frame = best * HeroColumns + _animFrame % HeroColumns;
+        }
+        else
+        {
+            // Rat art faces screen-right by default; flip when logical facing points screen-left.
+            if (sx < -0.1f) _sprite.FlipH = true;
+            else if (sx > 0.1f) _sprite.FlipH = false;
+        }
+    }
+
+    // ------------------------------------------------------------------ Presenter API
+
+    public void SetActive(bool active)
+    {
+        _active = active;
+        _ringMat.AlbedoColor = active
+            ? new Color(1f, 0.9f, 0.3f, 0.9f)
+            : _teamColor with { A = 0.45f };
+        _ring.Scale = active ? new Vector3(1.18f, 1f, 1.18f) : Vector3.One;
+    }
+
+    public void UpdateHealthBar()
+    {
+        if (_character.Health == null) return;
+        int cur = _character.Health.CurrentHP;
+        int max = _character.Health.MaxHP;
+        float ratio = max > 0 ? Mathf.Clamp((float)cur / max, 0f, 1f) : 0f;
+
+        const float w = 0.8f;
+        _hpFill.Scale = new Vector3(ratio, 1f, 1f);
+        _hpFill.Position = new Vector3(-w * 0.5f + w * ratio * 0.5f, 0f, 0.001f);
+        _hpFillMat.AlbedoColor = ratio > 0.6f ? new Color(0.25f, 0.8f, 0.25f)
+            : ratio > 0.3f ? new Color(0.9f, 0.8f, 0.15f)
+            : new Color(0.9f, 0.25f, 0.25f);
+    }
+
+    public void FlashHit()
+    {
+        var tween = CreateTween();
+        tween.TweenProperty(_sprite, "modulate", new Color(1.6f, 0.6f, 0.6f), 0.05f);
+        tween.TweenProperty(_sprite, "modulate", Colors.White, 0.18f);
+    }
+
+    public void FlashAttack()
+    {
+        var lunge = new Vector3(Facing.X, 0f, Facing.Y);
+        if (lunge.LengthSquared() > 0.0001f) lunge = lunge.Normalized() * 0.2f;
+        var origin = Position;
+        var tween = CreateTween();
+        tween.TweenProperty(this, "position", origin + lunge, 0.05f);
+        tween.TweenProperty(this, "position", origin, 0.08f);
+    }
+
+    public void FlashShield()
+    {
+        var tween = CreateTween();
+        tween.TweenProperty(_sprite, "modulate", new Color(0.7f, 0.85f, 1.4f), 0.1f);
+        tween.TweenProperty(_sprite, "modulate", Colors.White, 0.25f);
+    }
+
+    public void PlayDeath()
+    {
+        _dead = true;
+        var tween = CreateTween();
+        tween.SetParallel(true);
+        tween.TweenProperty(_sprite, "modulate", new Color(0.4f, 0.4f, 0.4f, 0.25f), 0.5f);
+        tween.TweenProperty(_ringMat, "albedo_color", _teamColor with { A = 0f }, 0.4f);
+    }
+}

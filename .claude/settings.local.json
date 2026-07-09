@@ -43,7 +43,8 @@
       "WebFetch(domain:whats-in-a-game.com)",
       "WebFetch(domain:www.superjumpmagazine.com)",
       "WebFetch(domain:www.ubisoft.com)",
-      "WebFetch(domain:ozea-studio.itch.io)"
+      "WebFetch(domain:ozea-studio.itch.io)",
+      "WebFetch(domain:www.opendaoc.com)"
     ]
   },
   "enabledMcpjsonServers": [

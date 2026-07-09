@@ -103,19 +103,27 @@ public sealed class GodotPresenter3D
 
     private async Task AnimateMovement(UnitVisual3D unit, List<PF2eVec> path)
     {
-        for (int i = 1; i < path.Count; i++)
+        unit.SetMoving(true);
+        try
         {
-            var from = path[i - 1];
-            var to = path[i];
-            unit.Facing = new Vector2(to.x - from.x, to.y - from.y);
+            for (int i = 1; i < path.Count; i++)
+            {
+                var from = path[i - 1];
+                var to = path[i];
+                unit.Facing = new Vector2(to.x - from.x, to.y - from.y);
 
-            var target = GridSpace.GridToWorld(to);
-            var tween = unit.CreateTween();
-            tween.TweenProperty(unit, "position", target, MoveDuration);
+                var target = GridSpace.GridToWorld(to);
+                var tween = unit.CreateTween();
+                tween.TweenProperty(unit, "position", target, MoveDuration);
 
-            var tcs = new TaskCompletionSource<bool>();
-            tween.Finished += () => tcs.TrySetResult(true);
-            await tcs.Task;
+                var tcs = new TaskCompletionSource<bool>();
+                tween.Finished += () => tcs.TrySetResult(true);
+                await tcs.Task;
+            }
+        }
+        finally
+        {
+            unit.SetMoving(false);
         }
     }
 

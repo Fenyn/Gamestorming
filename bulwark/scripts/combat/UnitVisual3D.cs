@@ -5,37 +5,30 @@ namespace Bulwark.Combat;
 
 /// <summary>
 /// 2.5D combat token: a billboarded 2D sprite standing on a grid square in the 3D board. Heroes use
-/// an 8-direction Winlu sheet (8 rows = facings, 8 columns = idle frames) with classic Doom-style
-/// camera-relative facing selection; enemies use a side-view rat that cycles idle frames and flips
-/// horizontally to match its logical facing as seen by the camera. Carries a Label3D name, a
-/// billboarded HP bar and a team-colored ground ring that doubles as the current-turn indicator.
+/// a baked Mana Seed "page 1" sheet (see <see cref="HeroSpriteMap"/>): 4 facings (S/N/E/W), a single
+/// static stand frame while idle and a 6-frame walk cycle while moving, with camera-relative facing
+/// selection; enemies use a side-view rat that cycles idle frames and flips horizontally to match
+/// its logical facing as seen by the camera. Carries a Label3D name, a billboarded HP bar and a
+/// team-colored ground ring that doubles as the current-turn indicator.
 /// Thin presentation adapter — no rules.
 /// </summary>
 public partial class UnitVisual3D : Node3D
 {
-    // --- Sizing (1 tile = 1 m). Heroes ~1.75 m, rats ~0.7 m over a 1 m tile. ---
-    // Hero sheets are 2800x3200 = 7 columns (animation frames) x 8 rows (facings) of 400x400
-    // cells — verified by cropping; slicing as 8 columns shears the frames and makes the
-    // character drift sideways while idling.
-    private const int HeroColumns = 7;
-    private const int HeroFrameH = 400;
-    private const float HeroPixelSize = 0.00648f; // -> ~1.75 m tall character
-    private const float RatPixelSize = 0.02f;     // -> ~0.7 m tall rat
-    private const float AnimFrameTime = 1f / 6f;  // ~6 fps
+    // --- Mana Seed page-1 layout: 512x512, 8x8 grid of 64x64 cells. Rows 0-3 = stand S/N/E/W
+    // (column 0); rows 4-7 = walk S/N/E/W (columns 0-5, ~135 ms/frame per the pack's guide). ---
+    private const int HeroSheetColumns = 8;
+    private const int HeroCellPx = 64;
+    private const int HeroWalkFrames = 6;
+    private const int HeroWalkRowOffset = 4;
+    /// <summary>Pixels between the cell's bottom edge and the character's feet. Measured on the
+    /// baked sheets: the 32px body occupies cell rows 12-43, so the feet sit 20px above the bottom.</summary>
+    private const int HeroFootMarginPx = 20;
+    private const float HeroWalkFrameTime = 0.135f;
 
-    // Screen-space reference directions per hero sheet row (sx = screen-right, sy = into-screen/away).
-    // Row order verified from the sheet: 0=S(toward camera) 1=SW 2=W 3=NW 4=N(away) 5=NE 6=E 7=SE.
-    private static readonly Vector2[] RowScreenDirs =
-    {
-        new(0f, -1f),                                    // 0 S  (toward viewer)
-        new(-0.7071f, -0.7071f),                         // 1 SW
-        new(-1f, 0f),                                     // 2 W
-        new(-0.7071f, 0.7071f),                          // 3 NW
-        new(0f, 1f),                                      // 4 N  (away)
-        new(0.7071f, 0.7071f),                           // 5 NE
-        new(1f, 0f),                                      // 6 E
-        new(0.7071f, -0.7071f),                          // 7 SE
-    };
+    // --- Sizing (1 tile = 1 m). ---
+    private const float HeroPixelSize = 0.05f;    // ~30 px chibi body -> ~1.5 m
+    private const float RatPixelSize = 0.02f;     // -> ~0.7 m tall rat
+    private const float AnimFrameTime = 1f / 6f;  // rat idle fps
 
     private ICharacter _character = null!;
     private bool _isHero;
@@ -59,6 +52,17 @@ public partial class UnitVisual3D : Node3D
 
     /// <summary>Logical facing in grid space (x along world X, y along world Z). Set by the presenter.</summary>
     public Vector2 Facing { get; set; } = Vector2.Right;
+
+    private bool _moving;
+
+    /// <summary>Heroes play their walk cycle while true, else the static stand frame. Set by the presenter.</summary>
+    public void SetMoving(bool moving)
+    {
+        if (_moving == moving) return;
+        _moving = moving;
+        _animFrame = 0;
+        _animTimer = 0f;
+    }
 
     public ICharacter Character => _character;
 
@@ -108,13 +112,14 @@ public partial class UnitVisual3D : Node3D
         if (_isHero)
         {
             string folder = HeroSpriteMap.FolderFor(_character.Id);
-            _sprite.Texture = GD.Load<Texture2D>($"{folder}/idle.png");
-            _sprite.Hframes = HeroColumns;
+            _sprite.Texture = GD.Load<Texture2D>($"{folder}/p1.png");
+            _sprite.Hframes = HeroSheetColumns;
             _sprite.Vframes = 8;
             _sprite.PixelSize = HeroPixelSize;
-            float h = HeroFrameH * HeroPixelSize;
-            _sprite.Position = new Vector3(0f, h * 0.5f - 0.19f, 0f); // feet ~ y=0
-            _hpBarY = 1.95f;
+            // Cell center sits (32 - foot margin) px above the feet; lift by that to plant feet at y=0.
+            float centerAboveFeet = (HeroCellPx * 0.5f - HeroFootMarginPx) * HeroPixelSize;
+            _sprite.Position = new Vector3(0f, centerAboveFeet, 0f);
+            _hpBarY = 1.75f;
         }
         else
         {
@@ -213,13 +218,14 @@ public partial class UnitVisual3D : Node3D
 
     public override void _Process(double delta)
     {
-        // Idle animation.
+        // Animation clock: heroes only animate while walking; rats idle-cycle continuously.
+        float frameTime = _isHero ? HeroWalkFrameTime : AnimFrameTime;
         _animTimer += (float)delta;
-        if (_animTimer >= AnimFrameTime)
+        if (_animTimer >= frameTime)
         {
-            _animTimer -= AnimFrameTime;
-            // 56 is divisible by both the hero (7) and rat (8) frame counts, so both loops stay smooth.
-            _animFrame = (_animFrame + 1) % 56;
+            _animTimer -= frameTime;
+            // 24 is divisible by both the hero-walk (6) and rat (8) frame counts.
+            _animFrame = (_animFrame + 1) % 24;
             if (!_dead) AdvanceAnimFrame();
         }
 
@@ -232,13 +238,8 @@ public partial class UnitVisual3D : Node3D
 
     private void AdvanceAnimFrame()
     {
-        if (_isHero)
-        {
-            // Row (facing) chosen in ApplyFacingFrame; advance the column only.
-            int row = _sprite.Frame / HeroColumns;
-            _sprite.Frame = row * HeroColumns + _animFrame % HeroColumns;
-        }
-        else if (_ratFrames.Length > 0)
+        // Hero frames are fully resolved in ApplyFacingFrame (stand vs walk); nothing to do here.
+        if (!_isHero && _ratFrames.Length > 0)
         {
             _sprite.Texture = _ratFrames[_animFrame % _ratFrames.Length];
         }
@@ -265,15 +266,15 @@ public partial class UnitVisual3D : Node3D
 
         if (_isHero)
         {
-            var screen = new Vector2(sx, sy);
-            int best = 0;
-            float bestDot = -2f;
-            for (int r = 0; r < 8; r++)
-            {
-                float d = screen.Dot(RowScreenDirs[r]);
-                if (d > bestDot) { bestDot = d; best = r; }
-            }
-            _sprite.Frame = best * HeroColumns + _animFrame % HeroColumns;
+            // 4-direction snap on the dominant screen axis. Sheet rows: 0=S (toward viewer),
+            // 1=N (away), 2=E (screen right), 3=W (screen left).
+            int dir = Mathf.Abs(sx) >= Mathf.Abs(sy)
+                ? (sx >= 0f ? 2 : 3)
+                : (sy >= 0f ? 1 : 0);
+
+            _sprite.Frame = _moving
+                ? (HeroWalkRowOffset + dir) * HeroSheetColumns + _animFrame % HeroWalkFrames
+                : dir * HeroSheetColumns;
         }
         else
         {

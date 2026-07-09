@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cxedffeox06gu"
-path="res://.godot/imported/walk.png-35e31b32cd4fc4615ba5606978517348.ctex"
+uid="uid://bcnx6tgritdoy"
+path="res://.godot/imported/p1.png-bd8758027abe3992d7ad06ebe8175450.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/heroes/king_winlu/walk.png"
-dest_files=["res://.godot/imported/walk.png-35e31b32cd4fc4615ba5606978517348.ctex"]
+source_file="res://assets/sprites/heroes/veteran/p1.png"
+dest_files=["res://.godot/imported/p1.png-bd8758027abe3992d7ad06ebe8175450.ctex"]
 
 [params]
 

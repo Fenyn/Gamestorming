@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ci4kvfegysex5"
-path="res://.godot/imported/walk.png-7c794babcc27c5fc820da6f3eab07502.ctex"
+uid="uid://cmwv01ixj3vs4"
+path="res://.godot/imported/p1.png-8bc35286f8512a625e0abec14024a7c4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/heroes/archer_theresa/walk.png"
-dest_files=["res://.godot/imported/walk.png-7c794babcc27c5fc820da6f3eab07502.ctex"]
+source_file="res://assets/sprites/heroes/cleric/p1.png"
+dest_files=["res://.godot/imported/p1.png-8bc35286f8512a625e0abec14024a7c4.ctex"]
 
 [params]
 

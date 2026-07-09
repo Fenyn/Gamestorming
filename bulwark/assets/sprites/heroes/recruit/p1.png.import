@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://blot6srbn5sle"
-path="res://.godot/imported/idle.png-5593ca629ed32c7e2c1e438c322e1572.ctex"
+uid="uid://cy8wgca20arqu"
+path="res://.godot/imported/p1.png-9fe3f30404732377ce62cf94d5dd4fac.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/heroes/mage_ted/idle.png"
-dest_files=["res://.godot/imported/idle.png-5593ca629ed32c7e2c1e438c322e1572.ctex"]
+source_file="res://assets/sprites/heroes/recruit/p1.png"
+dest_files=["res://.godot/imported/p1.png-9fe3f30404732377ce62cf94d5dd4fac.ctex"]
 
 [params]
 

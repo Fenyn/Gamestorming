@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://l3h4pqmjtbvt"
-path="res://.godot/imported/walk.png-82a5f330068a8af4a7f6b1aa9f2c1d8e.ctex"
+uid="uid://bam3apor6hc15"
+path="res://.godot/imported/p1.png-f11a1b3861a82903419285a71060d4a5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/heroes/knight_low/walk.png"
-dest_files=["res://.godot/imported/walk.png-82a5f330068a8af4a7f6b1aa9f2c1d8e.ctex"]
+source_file="res://assets/sprites/heroes/wizard/p1.png"
+dest_files=["res://.godot/imported/p1.png-f11a1b3861a82903419285a71060d4a5.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8qy4ptg4507x"
-path="res://.godot/imported/walk.png-1883e3f2650f328a20e94f8498b2a3d7.ctex"
+uid="uid://bdnkdxw20fqir"
+path="res://.godot/imported/p1.png-25747f9a444506f7bc76f3b174dee962.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/heroes/mage_ted/walk.png"
-dest_files=["res://.godot/imported/walk.png-1883e3f2650f328a20e94f8498b2a3d7.ctex"]
+source_file="res://assets/sprites/heroes/rogue/p1.png"
+dest_files=["res://.godot/imported/p1.png-25747f9a444506f7bc76f3b174dee962.ctex"]
 
 [params]
 

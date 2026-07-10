@@ -1,9 +1,13 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
 [ext_resource type="Script" path="res://scripts/combat/OrbitCameraRig.cs" id="3_camera"]
 [ext_resource type="Script" path="res://scripts/combat/GridInput3D.cs" id="4_input"]
+[ext_resource type="PackedScene" path="res://scenes/ui/turn_order_bar.tscn" id="5_turn"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_log_panel.tscn" id="6_log"]
+[ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="7_ab"]
+[ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="8_vb"]
 
 [sub_resource type="Shader" id="Shader_floor"]
 code = "shader_type spatial;
@@ -85,4 +89,35 @@ shadow_enabled = true
 environment = SubResource("Environment_1")
 
 [node name="HUD" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+
+[node name="TurnOrderBar" parent="HUD" instance=ExtResource("5_turn")]
+unique_name_in_owner = true
+anchor_right = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 40.0
+
+[node name="CombatLog" parent="HUD" instance=ExtResource("6_log")]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = 48.0
+offset_right = -8.0
+offset_bottom = -72.0
+
+[node name="ActionBar" parent="HUD" instance=ExtResource("7_ab")]
+unique_name_in_owner = true
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -60.0
+offset_right = -8.0
+offset_bottom = -8.0
+
+[node name="VictoryBanner" parent="HUD" instance=ExtResource("8_vb")]
 unique_name_in_owner = true

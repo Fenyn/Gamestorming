@@ -7,3 +7,87 @@ layout_mode = 3
 anchors_preset = 0
 mouse_filter = 1
 script = ExtResource("1_ab")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Col" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Row" type="HBoxContainer" parent="Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ActorLabel" type="Label" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "—"
+vertical_alignment = 1
+
+[node name="PipRow" type="HBoxContainer" parent="Panel/Col/Row"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Pip0" type="ColorRect" parent="Panel/Col/Row/PipRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+
+[node name="Pip1" type="ColorRect" parent="Panel/Col/Row/PipRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+
+[node name="Pip2" type="ColorRect" parent="Panel/Col/Row/PipRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+
+[node name="MoveButton" type="Button" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Move"
+
+[node name="StepButton" type="Button" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Step"
+
+[node name="StrikeButton" type="Button" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Strike"
+
+[node name="ShieldButton" type="Button" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Raise Shield"
+
+[node name="EndButton" type="Button" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "End Turn"
+
+[node name="AiToggle" type="CheckButton" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "AI"
+
+[node name="PreviewLabel" type="Label" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = ""
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.85, 0.85, 0.7, 1)
+
+[node name="ChipRow" type="HFlowContainer" parent="Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4

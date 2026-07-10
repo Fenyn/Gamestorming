@@ -43,6 +43,11 @@ public sealed class CombatSession
     private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
     private bool _finished;
 
+    // External presentation sink, wrapped so we can watch the shared event stream for mid-turn
+    // deaths. Decisive result latched here the instant it is detected; the turn loop's gate reads it.
+    private Func<BattleEvent, Task>? _presenter;
+    private BattleResult _pendingResult = BattleResult.InProgress;
+
     // ---------------------------------------------------------------- Events
     public event Action<ICharacter>? PlayerTurnStarted;
     public event Action? PlayerTurnEnded;
@@ -105,7 +110,36 @@ public sealed class CombatSession
         _turnManager.OnTurnStart += HandleTurnStart;
     }
 
-    public void SetPresenter(Func<BattleEvent, Task> presenter) => _runner.SetPresenter(presenter);
+    public void SetPresenter(Func<BattleEvent, Task> presenter)
+    {
+        _presenter = presenter;
+        _runner.SetPresenter(OnBattleEvent);
+    }
+
+    /// <summary>
+    /// Presenter shim: forwards every event to the real presentation sink, then — for a
+    /// <see cref="BattleEventType.CreatureDied"/> — evaluates victory immediately. If the encounter is
+    /// decided mid-turn, latch the result and unblock any in-progress player turn so the turn loop
+    /// reaches its single end-of-encounter gate at once (remaining player actions / AI plan stop).
+    /// The victory flow itself still fires exactly once, from the loop's gate — never here.
+    /// </summary>
+    private async Task OnBattleEvent(BattleEvent evt)
+    {
+        if (_presenter != null)
+            await _presenter(evt);
+
+        if (evt.Type == BattleEventType.CreatureDied
+            && !_finished
+            && _pendingResult == BattleResult.InProgress)
+        {
+            var result = BattleSimulator.CheckVictory(_team1, _team2);
+            if (result != BattleResult.InProgress)
+            {
+                _pendingResult = result;
+                _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+            }
+        }
+    }
 
     public void Teardown()
     {
@@ -145,7 +179,9 @@ public sealed class CombatSession
             if (IsPlayerControlled(current))
             {
                 var resolution = await RunPlayerTurn(current);
-                if (resolution == PlayerTurnResolution.HandOffToAi)
+                // A mid-turn death may have already decided the encounter; don't start an AI plan.
+                if (resolution == PlayerTurnResolution.HandOffToAi
+                    && _pendingResult == BattleResult.InProgress)
                     await _ai.ExecuteTurn(current);
             }
             else
@@ -155,14 +191,8 @@ public sealed class CombatSession
 
             await _runner.Emit(BattleEventType.TurnEnded, source: current);
 
-            var result = BattleSimulator.CheckVictory(_team1, _team2);
-            if (result != BattleResult.InProgress)
-            {
-                _turnManager.EndEncounter();
-                await _runner.Emit(BattleEventType.EncounterEnded, description: result.ToString());
-                Finish(result);
+            if (await EndIfDecided())
                 return;
-            }
 
             _turnManager.EndTurn();
         }
@@ -171,9 +201,32 @@ public sealed class CombatSession
             Finish(BattleSimulator.CheckVictory(_team1, _team2));
     }
 
+    /// <summary>
+    /// The single victory gate: runs the end-of-encounter flow (EndEncounter, EncounterEnded event,
+    /// <see cref="Finish"/>) exactly once. Prefers a result already latched by a mid-turn death,
+    /// otherwise checks now. Returns true when the encounter ended.
+    /// </summary>
+    private async Task<bool> EndIfDecided()
+    {
+        var result = _pendingResult != BattleResult.InProgress
+            ? _pendingResult
+            : BattleSimulator.CheckVictory(_team1, _team2);
+        if (result == BattleResult.InProgress)
+            return false;
+
+        if (_turnManager.IsEncounterActive)
+            _turnManager.EndEncounter();
+        await _runner.Emit(BattleEventType.EncounterEnded, description: result.ToString());
+        Finish(result);
+        return true;
+    }
+
     private async Task<PlayerTurnResolution> RunPlayerTurn(ICharacter current)
     {
-        _playerTurnTcs = new TaskCompletionSource<PlayerTurnResolution>();
+        // Async continuations so a mid-turn CreatureDied (which completes this from inside an Emit
+        // call) doesn't reentrantly unwind the turn loop within that Emit's call stack.
+        _playerTurnTcs = new TaskCompletionSource<PlayerTurnResolution>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
         PlayerTurnStarted?.Invoke(current);
         var resolution = await _playerTurnTcs.Task;
         _playerTurnTcs = null;

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Bulwark.Combat;
 
 /// <summary>
@@ -14,4 +16,10 @@ public sealed record ActionBarState
     public int Map { get; init; }
     public PlayerTurnMode Mode { get; init; }
     public string ActorName { get; init; } = "";
+
+    /// <summary>Castable spells / cost-variants for the dynamic chip row (empty for non-casters).</summary>
+    public IReadOnlyList<SpellEntryView> SpellEntries { get; init; } = System.Array.Empty<SpellEntryView>();
+
+    /// <summary>Castable skill actions for the dynamic chip row.</summary>
+    public IReadOnlyList<SkillEntryView> SkillEntries { get; init; } = System.Array.Empty<SkillEntryView>();
 }

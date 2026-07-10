@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Bulwark.Combat;
 using Godot;
 
@@ -17,6 +18,13 @@ public partial class ActionBar : Control
     public event Action? RaiseShieldPressed;
     public event Action? EndTurnPressed;
     public event Action<bool>? AiToggled;
+    /// <summary>Raised with (spellId, variantIndex) when a spell chip is pressed.</summary>
+    public event Action<string, int>? SpellChipPressed;
+    /// <summary>Raised with the skill action id when a skill chip is pressed.</summary>
+    public event Action<string>? SkillChipPressed;
+
+    private static readonly PackedScene ChipScene =
+        GD.Load<PackedScene>("res://scenes/ui/action_chip.tscn");
 
     private Label _actorLabel = null!;
     private readonly ColorRect[] _pips = new ColorRect[3];
@@ -27,47 +35,32 @@ public partial class ActionBar : Control
     private Button _endBtn = null!;
     private CheckButton _aiToggle = null!;
     private Label _previewLabel = null!;
+    private HFlowContainer _chipRow = null!;
 
     private bool _suppressToggle;
     private bool _interactable = true;
 
     public override void _Ready()
     {
-        var panel = new PanelContainer();
-        panel.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(panel);
+        _actorLabel = GetNode<Label>("%ActorLabel");
+        _pips[0] = GetNode<ColorRect>("%Pip0");
+        _pips[1] = GetNode<ColorRect>("%Pip1");
+        _pips[2] = GetNode<ColorRect>("%Pip2");
+        _moveBtn = GetNode<Button>("%MoveButton");
+        _stepBtn = GetNode<Button>("%StepButton");
+        _strikeBtn = GetNode<Button>("%StrikeButton");
+        _shieldBtn = GetNode<Button>("%ShieldButton");
+        _endBtn = GetNode<Button>("%EndButton");
+        _aiToggle = GetNode<CheckButton>("%AiToggle");
+        _previewLabel = GetNode<Label>("%PreviewLabel");
+        _chipRow = GetNode<HFlowContainer>("%ChipRow");
 
-        var row = new HBoxContainer();
-        row.AddThemeConstantOverride("separation", 10);
-        panel.AddChild(row);
-
-        _actorLabel = new Label { Text = "—", CustomMinimumSize = new Vector2(120, 0) };
-        _actorLabel.VerticalAlignment = VerticalAlignment.Center;
-        row.AddChild(_actorLabel);
-
-        var pipRow = new HBoxContainer();
-        pipRow.AddThemeConstantOverride("separation", 4);
-        for (int i = 0; i < _pips.Length; i++)
-        {
-            _pips[i] = new ColorRect { CustomMinimumSize = new Vector2(16, 16) };
-            pipRow.AddChild(_pips[i]);
-        }
-        row.AddChild(pipRow);
-
-        _moveBtn = MakeButton(row, "Move", () => MovePressed?.Invoke());
-        _stepBtn = MakeButton(row, "Step", () => StepPressed?.Invoke());
-        _strikeBtn = MakeButton(row, "Strike", () => StrikePressed?.Invoke());
-        _shieldBtn = MakeButton(row, "Raise Shield", () => RaiseShieldPressed?.Invoke());
-        _endBtn = MakeButton(row, "End Turn", () => EndTurnPressed?.Invoke());
-
-        _aiToggle = new CheckButton { Text = "AI" };
+        _moveBtn.Pressed += () => MovePressed?.Invoke();
+        _stepBtn.Pressed += () => StepPressed?.Invoke();
+        _strikeBtn.Pressed += () => StrikePressed?.Invoke();
+        _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
+        _endBtn.Pressed += () => EndTurnPressed?.Invoke();
         _aiToggle.Toggled += on => { if (!_suppressToggle) AiToggled?.Invoke(on); };
-        row.AddChild(_aiToggle);
-
-        _previewLabel = new Label { Text = "", CustomMinimumSize = new Vector2(220, 0) };
-        _previewLabel.VerticalAlignment = VerticalAlignment.Center;
-        _previewLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.85f, 0.7f));
-        row.AddChild(_previewLabel);
     }
 
     /// <summary>Enable/disable the whole bar (disabled while an AI or enemy turn is running).</summary>
@@ -102,6 +95,41 @@ public partial class ActionBar : Control
         _strikeBtn.Disabled = !_interactable || !state.CanStrike;
         _shieldBtn.Disabled = !_interactable || !state.CanRaiseShield;
         _endBtn.Disabled = !_interactable;
+
+        RebuildChips(state.SpellEntries, state.SkillEntries);
+    }
+
+    /// <summary>Rebuild the dynamic spell/skill chip row from state (children via PackedScene.Instantiate).</summary>
+    private void RebuildChips(IReadOnlyList<SpellEntryView> spells, IReadOnlyList<SkillEntryView> skills)
+    {
+        foreach (var child in _chipRow.GetChildren())
+            child.QueueFree();
+
+        foreach (var spell in spells)
+        {
+            string sid = spell.SpellId;
+            int vi = spell.VariantIndex;
+            AddChip($"{spell.Name}  {spell.CostText} [{spell.SlotsText}]",
+                enabled: _interactable && spell.Castable,
+                () => SpellChipPressed?.Invoke(sid, vi));
+        }
+
+        foreach (var skill in skills)
+        {
+            string aid = skill.ActionId;
+            AddChip($"{skill.Name}  {skill.CostText}",
+                enabled: _interactable && skill.Castable,
+                () => SkillChipPressed?.Invoke(aid));
+        }
+    }
+
+    private void AddChip(string text, bool enabled, Action onPressed)
+    {
+        var chip = ChipScene.Instantiate<Button>();
+        chip.Text = text;
+        chip.Disabled = !enabled;
+        chip.Pressed += onPressed;
+        _chipRow.AddChild(chip);
     }
 
     public void ShowAttackPreview(AttackPreviewView? preview)
@@ -117,13 +145,5 @@ public partial class ActionBar : Control
             $"{preview.WeaponName} +{preview.TotalAttackBonus} vs AC {preview.TargetAc}  " +
             $"{preview.HitChancePercent}% hit / {preview.CritChancePercent}% crit  " +
             $"dmg {preview.DamageFormula}{flank}";
-    }
-
-    private static Button MakeButton(Node parent, string text, Action onPressed)
-    {
-        var btn = new Button { Text = text };
-        btn.Pressed += onPressed;
-        parent.AddChild(btn);
-        return btn;
     }
 }

@@ -28,12 +28,21 @@ public sealed class PlayerTurnController
     private HashSet<PF2eVec> _stepTiles = new();
     private readonly Dictionary<PF2eVec, ICharacter> _strikeTargets = new();
 
+    // Pending spell/skill selection state.
+    private string _pendingSpellId = "";
+    private int _pendingVariant = -1;
+    private string _pendingSkillId = "";
+    private HashSet<PF2eVec> _spellTiles = new();
+    private HashSet<PF2eVec> _skillTiles = new();
+
     public PlayerTurnController(PlayerActionExecutor exec) => _exec = exec;
 
     // ---------------------------------------------------------------- View events
     public event Action<IReadOnlyCollection<PF2eVec>, HighlightKind>? HighlightsChanged;
     public event Action<IReadOnlyList<PF2eVec>?>? PathPreviewChanged;
     public event Action<AttackPreviewView?>? AttackPreviewChanged;
+    /// <summary>Tiles an area template currently covers (hover preview during SelectingAreaOrigin).</summary>
+    public event Action<IReadOnlyCollection<PF2eVec>>? AreaPreviewChanged;
     public event Action<ActionBarState>? ButtonStateChanged;
     public event Action<PlayerTurnMode>? ModeChanged;
     public event Action<int>? ActionsChanged;
@@ -100,6 +109,56 @@ public sealed class PlayerTurnController
         RunAction(() => _exec.ExecuteRaiseShield(_current!));
     }
 
+    /// <summary>Begin casting a spell (or a cost-variant). Enters the matching selection mode, or
+    /// casts immediately for a self-centered emanation.</summary>
+    public void BeginSpell(string spellId, int variantIndex)
+    {
+        if (!Ready()) return;
+        ClearTransient();
+
+        var plan = _exec.GetSpellTargets(_current!, spellId, variantIndex);
+        _pendingSpellId = spellId;
+        _pendingVariant = variantIndex;
+
+        switch (plan.Kind)
+        {
+            case TargetingKind.SelfArea:
+                RunAction(() => _exec.ExecuteCast(_current!, spellId, variantIndex, null));
+                return;
+
+            case TargetingKind.AreaAim:
+                if (plan.Tiles.Count == 0) { Cancel(); return; }
+                _spellTiles = plan.Tiles;
+                SetMode(PlayerTurnMode.SelectingAreaOrigin);
+                HighlightsChanged?.Invoke(_spellTiles, HighlightKind.AreaOrigin);
+                break;
+
+            default: // SingleEnemy / SingleAlly / MultiEnemy
+                if (plan.Tiles.Count == 0) { Cancel(); return; }
+                _spellTiles = plan.Tiles;
+                SetMode(PlayerTurnMode.SelectingSpellTarget);
+                HighlightsChanged?.Invoke(_spellTiles,
+                    plan.Kind == TargetingKind.SingleAlly ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget);
+                break;
+        }
+    }
+
+    /// <summary>Begin a skill action (Trip / Demoralize / Battle Medicine).</summary>
+    public void BeginSkill(string actionId)
+    {
+        if (!Ready()) return;
+        ClearTransient();
+
+        var plan = _exec.GetSkillTargets(_current!, actionId);
+        if (plan.Tiles.Count == 0) { Cancel(); return; }
+
+        _pendingSkillId = actionId;
+        _skillTiles = plan.Tiles;
+        SetMode(PlayerTurnMode.SelectingSkillTarget);
+        HighlightsChanged?.Invoke(_skillTiles,
+            plan.Kind == TargetingKind.SingleAlly ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget);
+    }
+
     public void EndTurn()
     {
         if (_busy) return;
@@ -132,6 +191,13 @@ public sealed class PlayerTurnController
                 else
                     AttackPreviewChanged?.Invoke(null);
                 break;
+
+            case PlayerTurnMode.SelectingAreaOrigin:
+                if (pos.HasValue)
+                    AreaPreviewChanged?.Invoke(_exec.GetAreaTemplateTiles(_current, _pendingSpellId, pos.Value));
+                else
+                    AreaPreviewChanged?.Invoke(Array.Empty<PF2eVec>());
+                break;
         }
     }
 
@@ -154,6 +220,32 @@ public sealed class PlayerTurnController
             case PlayerTurnMode.SelectingStrike:
                 if (_strikeTargets.TryGetValue(pos, out var target))
                     RunAction(() => _exec.ExecuteStrike(_current!, target));
+                break;
+
+            case PlayerTurnMode.SelectingSpellTarget:
+                if (_spellTiles.Contains(pos))
+                {
+                    string sid = _pendingSpellId;
+                    int vi = _pendingVariant;
+                    RunAction(() => _exec.ExecuteCast(_current!, sid, vi, pos));
+                }
+                break;
+
+            case PlayerTurnMode.SelectingAreaOrigin:
+                if (_spellTiles.Contains(pos))
+                {
+                    string sid = _pendingSpellId;
+                    int vi = _pendingVariant;
+                    RunAction(() => _exec.ExecuteCast(_current!, sid, vi, pos));
+                }
+                break;
+
+            case PlayerTurnMode.SelectingSkillTarget:
+                if (_skillTiles.Contains(pos))
+                {
+                    string aid = _pendingSkillId;
+                    RunAction(() => _exec.ExecuteSkillAction(_current!, aid, pos));
+                }
                 break;
         }
     }
@@ -204,9 +296,15 @@ public sealed class PlayerTurnController
         _moveTiles = new();
         _stepTiles = new();
         _strikeTargets.Clear();
+        _spellTiles = new();
+        _skillTiles = new();
+        _pendingSpellId = "";
+        _pendingVariant = -1;
+        _pendingSkillId = "";
         HighlightsChanged?.Invoke(Array.Empty<PF2eVec>(), HighlightKind.None);
         PathPreviewChanged?.Invoke(null);
         AttackPreviewChanged?.Invoke(null);
+        AreaPreviewChanged?.Invoke(Array.Empty<PF2eVec>());
     }
 
     private void PublishState()
@@ -224,7 +322,11 @@ public sealed class PlayerTurnController
             CanStrike = actions > 0 && _exec.GetStrikeTargets(_current).Count > 0,
             CanRaiseShield = actions > 0 && _current.Equipment?.CanRaiseShield() == true,
             Map = _exec.GetCurrentMap(_current),
-            Mode = _mode
+            Mode = _mode,
+            SpellEntries = _current.Spellcasting != null
+                ? _exec.GetSpellEntries(_current)
+                : System.Array.Empty<SpellEntryView>(),
+            SkillEntries = _exec.GetSkillEntries(_current),
         });
     }
 

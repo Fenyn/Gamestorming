@@ -6,8 +6,9 @@ namespace Bulwark.Combat;
 
 /// <summary>
 /// Translates mouse input into grid coordinates for the 2.5D board. Per-frame it ray-casts the
-/// cursor onto the floor plane and reports hover; left-click forwards a tile click and right-click
-/// cancels targeting. Pure input translation — no rules. Middle-drag / wheel are left untouched so
+/// cursor onto the floor plane and reports hover; left-click forwards a tile click and both a
+/// stationary right-click and Esc (ui_cancel) cancel targeting. Pure input translation — no rules.
+/// Middle-drag / wheel are left untouched so
 /// the <see cref="OrbitCameraRig"/> can consume them. Right-drag also orbits (handled by the rig),
 /// so cancel only fires when the right button is RELEASED after traveling less than
 /// <see cref="DragThresholdPixels"/> — a click, not a drag.
@@ -54,7 +55,16 @@ public partial class GridInput3D : Node3D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (_camera == null || @event is not InputEventMouseButton mb) return;
+        if (_camera == null) return;
+
+        // Esc (ui_cancel) cancels targeting, mirroring the stationary right-click cancel below.
+        if (@event.IsActionPressed("ui_cancel"))
+        {
+            _onCancel?.Invoke();
+            return;
+        }
+
+        if (@event is not InputEventMouseButton mb) return;
 
         if (mb.Pressed && mb.ButtonIndex == MouseButton.Left)
         {

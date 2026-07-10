@@ -6,5 +6,8 @@ public enum PlayerTurnMode
     Idle,
     SelectingMove,
     SelectingStep,
-    SelectingStrike
+    SelectingStrike,
+    SelectingSpellTarget,
+    SelectingAreaOrigin,
+    SelectingSkillTarget
 }

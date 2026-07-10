@@ -28,19 +28,7 @@ public partial class CombatLogPanel : Control
 
     public override void _Ready()
     {
-        var panel = new PanelContainer();
-        panel.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(panel);
-
-        _label = new RichTextLabel
-        {
-            BbcodeEnabled = true,
-            ScrollActive = true,
-            ScrollFollowing = true,
-            FitContent = false,
-        };
-        _label.AddThemeFontSizeOverride("normal_font_size", 12);
-        panel.AddChild(_label);
+        _label = GetNode<RichTextLabel>("%Log");
     }
 
     public void AppendEntry(string message, int severity, bool isDetail)

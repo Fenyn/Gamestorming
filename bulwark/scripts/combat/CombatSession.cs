@@ -4,10 +4,12 @@ using System.Threading.Tasks;
 using PF2e;
 using PF2e.Actions;
 using PF2e.AI;
+using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Events;
 using PF2e.Grid;
 using PF2e.TurnManagement;
+using PF2e.Utilities;
 using PF2eVec = PF2e.Vector2Int;
 
 namespace Bulwark.Combat;
@@ -39,7 +41,7 @@ public sealed class CombatSession
     private readonly List<ICharacter> _team2 = new();
     private readonly HashSet<ICharacter> _aiControlled = new();
 
-    private ReactionEvents.DamageReactionHandler _damageHandler = null!;
+    private ReactionManager _reactions = null!;
     private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
     private bool _finished;
 
@@ -81,9 +83,22 @@ public sealed class CombatSession
         Grid.WireDelegates();
         SpatialDelegates.Wire(Grid);
 
-        // Shield Block prompt is out of scope for M1 — apply incoming damage unconditionally.
-        _damageHandler = (src, tgt, result, applyDamage) => applyDamage();
-        ReactionEvents.OnDamageReactionCheck += _damageHandler;
+        // Reactions: a subscribed ReactionManager OWNS damage delivery (its damage handler runs
+        // reactions then calls the applyDamage continuation). It replaces the old pass-through — never
+        // both, or the multicast event would deliver damage twice. It also owns movement/defense/etc.
+        _reactions = new ReactionManager();
+        _reactions.Subscribe();
+        // Player-team members (not toggled to AI) are "player controlled" for reaction decisions.
+        ReactionManager.IsPlayerControlled = IsPlayerControlled;
+        // Auto-use policy: player reactors always spend their reaction (Shield Block / Reactive
+        // Strike). Interactive reaction prompts are a future feature; this is the safe stand-in.
+        ReactionManager.PlayerReactionPolicy = _ => true;
+
+        // Forced movement (Shove push/follow, Tumble Through exit-move, push-strike riders) resolves
+        // through ForcedMovementExecutor against this encounter's grid. Install() routes push-rider
+        // OnPushRequested events so rider displacement actually moves creatures.
+        ForcedMovementExecutor.Grid = Grid;
+        ForcedMovementExecutor.Install();
 
         // Step destination legality (reject blocked/occupied tiles).
         StepAction.ValidateDestination = ValidateStepDestination;
@@ -128,11 +143,15 @@ public sealed class CombatSession
         if (_presenter != null)
             await _presenter(evt);
 
-        if (evt.Type == BattleEventType.CreatureDied
+        // Watch both deaths (enemy slain → win) and damage (a PC dropped to Dying/Unconscious mid-turn
+        // → potential defeat, since dying emits no CreatureDied). Latch a decisive result the instant
+        // it appears so remaining player actions / AI plans stop; the victory flow still fires once,
+        // from the loop's gate.
+        if ((evt.Type == BattleEventType.CreatureDied || evt.Type == BattleEventType.DamageDealt)
             && !_finished
             && _pendingResult == BattleResult.InProgress)
         {
-            var result = BattleSimulator.CheckVictory(_team1, _team2);
+            var result = EvaluateEncounter();
             if (result != BattleResult.InProgress)
             {
                 _pendingResult = result;
@@ -140,6 +159,33 @@ public sealed class CombatSession
             }
         }
     }
+
+    /// <summary>
+    /// Decide the encounter. Win when no enemy is alive (enemies die outright). Loss when NO
+    /// player-team member can still act — dying, unconscious, and dead all count as "down" (a dying
+    /// PC is Unconscious, not dead, so this can't rely on IsDead / CheckVictory alone).
+    /// </summary>
+    private BattleResult EvaluateEncounter()
+    {
+        bool anyEnemyAlive = false;
+        foreach (var c in _team2)
+            if (c.Health != null && c.Health.IsAlive) { anyEnemyAlive = true; break; }
+
+        bool anyPlayerActive = false;
+        foreach (var c in _team1)
+            if (IsConsciousAndAble(c)) { anyPlayerActive = true; break; }
+
+        if (!anyEnemyAlive && !anyPlayerActive) return BattleResult.Draw;
+        if (!anyEnemyAlive) return BattleResult.Team1Wins;
+        if (!anyPlayerActive) return BattleResult.Team2Wins;
+        return BattleResult.InProgress;
+    }
+
+    /// <summary>A combatant still in the fight: alive and not Unconscious (dying/knocked-out PCs are
+    /// Unconscious at 0 HP and cannot act).</summary>
+    private static bool IsConsciousAndAble(ICharacter c)
+        => c.Health != null && !c.Health.IsDead
+           && c.Conditions?.HasCondition(Condition.Unconscious) != true;
 
     public void Teardown()
     {
@@ -152,8 +198,13 @@ public sealed class CombatSession
                 _turnManager.EndEncounter();
         }
 
-        if (_damageHandler != null)
-            ReactionEvents.OnDamageReactionCheck -= _damageHandler;
+        _reactions?.Unsubscribe();
+        ReactionManager.IsPlayerControlled = null;
+        ReactionManager.PlayerReactionPolicy = null;
+
+        ForcedMovementExecutor.Uninstall();
+        ForcedMovementExecutor.Grid = null;
+
         StepAction.ValidateDestination = null;
         SpatialDelegates.Unwire();
     }
@@ -175,6 +226,18 @@ public sealed class CombatSession
             if (current == null) break;
 
             await _runner.Emit(BattleEventType.TurnStarted, source: current);
+
+            // A dying character's recovery check ran at StartTurn (DyingSystem.OnTurnStart) and called
+            // TurnManager.RequestEndTurn — dying creatures can't act. Skip the turn body (mirrors
+            // BattleSimulator.RunEncounter). StartTurn clears the flag for the next character.
+            if (_turnManager.EndTurnRequested)
+            {
+                await _runner.Emit(BattleEventType.TurnEnded, source: current);
+                if (await EndIfDecided())
+                    return;
+                _turnManager.EndTurn();
+                continue;
+            }
 
             if (IsPlayerControlled(current))
             {
@@ -198,7 +261,7 @@ public sealed class CombatSession
         }
 
         if (!_finished)
-            Finish(BattleSimulator.CheckVictory(_team1, _team2));
+            Finish(EvaluateEncounter());
     }
 
     /// <summary>
@@ -210,7 +273,7 @@ public sealed class CombatSession
     {
         var result = _pendingResult != BattleResult.InProgress
             ? _pendingResult
-            : BattleSimulator.CheckVictory(_team1, _team2);
+            : EvaluateEncounter();
         if (result == BattleResult.InProgress)
             return false;
 
@@ -279,6 +342,9 @@ public sealed class CombatSession
         c.Equipment?.Shield?.SubscribeToTurnEvents(_turnManager);
         c.Conditions?.SubscribeToTurnEvents(_turnManager);
         c.CooldownTracker?.SubscribeToTurnEvents(_turnManager);
+        // Dying PCs make their recovery check at turn start via the DyingSystem's OnTurnStart hook;
+        // it then calls TurnManager.RequestEndTurn (dying creatures can't act) — RunAsync honors that.
+        c.Health?.DyingSystem?.SubscribeToTurnEvents(_turnManager);
     }
 
     private void UnsubscribeCharacter(ICharacter c)
@@ -287,5 +353,9 @@ public sealed class CombatSession
         c.Equipment?.Shield?.UnsubscribeFromTurnEvents(_turnManager);
         c.Conditions?.UnsubscribeFromTurnEvents(_turnManager);
         c.CooldownTracker?.UnsubscribeFromTurnEvents();
+        // Detach the per-encounter turn wiring only. We deliberately do NOT Dispose() the DyingSystem:
+        // Dispose severs its permanent ConditionTracker wiring (dying/wounded/doomed), which the
+        // character keeps across encounters for future M3 attrition (carried damage/wounds).
+        c.Health?.DyingSystem?.UnsubscribeFromTurnEvents(_turnManager);
     }
 }

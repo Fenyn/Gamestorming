@@ -9,9 +9,10 @@ using PF2eVec = PF2e.Vector2Int;
 namespace Bulwark.Dev;
 
 /// <summary>
-/// F5 target for M1 phase 2: assembles the playable combat slice — a party of four (the Veteran,
-/// the Recruit, the Medic, the Scholar) on team 1 versus five Goblin Warriors on team 2, on a 14x12
-/// grid — and hands it to the combat scene. The Medic/Scholar exercise the spell + skill layer.
+/// F5 target for M1 phase 2: assembles the playable combat slice — the canonical party of four (the
+/// Veteran, the Scout, the Medic, the Scholar) on team 1 versus five Goblin Warriors on team 2, on a
+/// 14x12 grid — and hands it to the combat scene. The Scout exercises the rogue/precision layer; the
+/// Medic/Scholar exercise the spell + skill layer.
 /// </summary>
 public partial class CombatTestScene : Node
 {
@@ -25,7 +26,7 @@ public partial class CombatTestScene : Node
         }
 
         var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
-        var recruit = PresetCharacters.BuildRecruit(level: 2, teamId: 1);
+        var scout = PresetCharacters.BuildScout(level: 2, teamId: 1);
         var medic = PresetCharacters.BuildMedic(level: 2, teamId: 1);
         var scholar = PresetCharacters.BuildScholar(level: 2, teamId: 1);
 
@@ -40,7 +41,7 @@ public partial class CombatTestScene : Node
             Party =
             {
                 (veteran, new PF2eVec(1, 4)),
-                (recruit, new PF2eVec(2, 5)),
+                (scout, new PF2eVec(2, 5)),
                 (medic, new PF2eVec(1, 6)),
                 (scholar, new PF2eVec(2, 7)),
             },

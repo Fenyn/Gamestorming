@@ -32,6 +32,7 @@ public sealed class PlayerTurnController
     private string _pendingSpellId = "";
     private int _pendingVariant = -1;
     private string _pendingSkillId = "";
+    private bool _shieldedStride;
     private HashSet<PF2eVec> _spellTiles = new();
     private HashSet<PF2eVec> _skillTiles = new();
 
@@ -143,11 +144,33 @@ public sealed class PlayerTurnController
         }
     }
 
-    /// <summary>Begin a skill action (Trip / Demoralize / Battle Medicine).</summary>
+    /// <summary>
+    /// Begin a skill / maneuver / feat action. Self-actions (Parry, Reload) fire immediately;
+    /// Shielded Stride enters a (reaction-free, half-Speed) move selection; everything else enters
+    /// target-a-creature selection (Trip, Demoralize, Battle Medicine, Shove, Tumble Through, Seek,
+    /// Lunge, Sudden Charge).
+    /// </summary>
     public void BeginSkill(string actionId)
     {
         if (!Ready()) return;
         ClearTransient();
+
+        if (PlayerActionExecutor.IsSelfSkill(actionId))
+        {
+            RunAction(() => _exec.ExecuteSelfSkill(_current!, actionId));
+            return;
+        }
+
+        if (PlayerActionExecutor.IsMoveSkill(actionId)) // Shielded Stride
+        {
+            _moveTiles = _exec.GetShieldedStrideTiles(_current!);
+            if (_moveTiles.Count == 0) { Cancel(); return; }
+            _shieldedStride = true;
+            SetMode(PlayerTurnMode.SelectingMove);
+            HighlightsChanged?.Invoke(_moveTiles, HighlightKind.Move);
+            PathPreviewChanged?.Invoke(null);
+            return;
+        }
 
         var plan = _exec.GetSkillTargets(_current!, actionId);
         if (plan.Tiles.Count == 0) { Cancel(); return; }
@@ -209,7 +232,12 @@ public sealed class PlayerTurnController
         {
             case PlayerTurnMode.SelectingMove:
                 if (_moveTiles.Contains(pos))
-                    RunAction(() => _exec.ExecuteStride(_current!, pos));
+                {
+                    if (_shieldedStride)
+                        RunAction(() => _exec.ExecuteShieldedStride(_current!, pos));
+                    else
+                        RunAction(() => _exec.ExecuteStride(_current!, pos));
+                }
                 break;
 
             case PlayerTurnMode.SelectingStep:
@@ -244,7 +272,12 @@ public sealed class PlayerTurnController
                 if (_skillTiles.Contains(pos))
                 {
                     string aid = _pendingSkillId;
-                    RunAction(() => _exec.ExecuteSkillAction(_current!, aid, pos));
+                    // Sudden Charge repositions the actor then Strikes (its own executor path);
+                    // every other targeted maneuver resolves through the generic skill executor.
+                    if (aid == "sudden-charge")
+                        RunAction(() => _exec.ExecuteSuddenChargeTile(_current!, pos));
+                    else
+                        RunAction(() => _exec.ExecuteSkillAction(_current!, aid, pos));
                 }
                 break;
         }
@@ -301,6 +334,7 @@ public sealed class PlayerTurnController
         _pendingSpellId = "";
         _pendingVariant = -1;
         _pendingSkillId = "";
+        _shieldedStride = false;
         HighlightsChanged?.Invoke(Array.Empty<PF2eVec>(), HighlightKind.None);
         PathPreviewChanged?.Invoke(null);
         AttackPreviewChanged?.Invoke(null);

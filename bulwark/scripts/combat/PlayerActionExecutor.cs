@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Bulwark.Data;
 using PF2e.Actions;
 using PF2e.Actions.SkillActions;
+using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Events;
@@ -120,8 +121,12 @@ public sealed class PlayerActionExecutor
 
     // ---------------------------------------------------------------- Commands
 
-    /// <summary>Stride to <paramref name="dest"/> (1 action). Mirrors AITurnExecutor.ExecuteMove.</summary>
-    public async Task<bool> ExecuteStride(ICharacter character, PF2eVec dest)
+    /// <summary>
+    /// Stride to <paramref name="dest"/> (1 action). Mirrors AITurnExecutor.ExecuteMove EXACTLY,
+    /// including the per-tile-exit movement-reaction publish (Reactive Strike). Set
+    /// <paramref name="triggersReactions"/> false for reaction-free strides (Shielded Stride).
+    /// </summary>
+    public async Task<bool> ExecuteStride(ICharacter character, PF2eVec dest, bool triggersReactions = true)
     {
         int speed = SpeedInTiles(character);
         if (speed <= 0) return false;
@@ -147,6 +152,16 @@ public sealed class PlayerActionExecutor
 
             var args = new BeforeMoveEventArgs(character, from, to, path.Count, path.Count * FeetPerTile);
             MovementEvents.FireBeforeMove(args);
+
+            // Publish the AoO/Reactive-Strike check at the tile-exit point (the FROM tile the reactor
+            // threatens), mirroring AITurnExecutor.ExecuteMove. Gated on an active subscriber so a
+            // stride with no ReactionManager present does not throw. Resolution is synchronous, so a
+            // reaction that drops the mover (setting args.Cancelled) has resolved on return.
+            if (triggersReactions && !args.Cancelled
+                && ReactionEvents.HasMovementReactionSubscriber)
+            {
+                ReactionEvents.CheckMovementReactions(args, () => { });
+            }
 
             if (args.Cancelled)
             {
@@ -599,38 +614,107 @@ public sealed class PlayerActionExecutor
 
     // ================================================================ Skill actions
 
-    /// <summary>The three placeholder skill actions (Trip, Demoralize, Battle Medicine) with gating.</summary>
+    // Basic actions every combatant may attempt (each still gated by CanPerform + target availability).
+    // Trip/Demoralize/Battle Medicine (skills) + Shove/Tumble Through/Seek (maneuvers) target another
+    // creature; Parry/Reload are self-actions that fire immediately (no target selection).
+    private static readonly string[] BasicSkillIds =
+        { "trip", "demoralize", "battle-medicine", "shove", "tumble-through", "seek", "parry", "reload" };
+
+    /// <summary>Self-actions (no target) that execute immediately when their chip is pressed.</summary>
+    public static bool IsSelfSkill(string id) => id == "parry" || id == "reload";
+
+    /// <summary>Move-mode chips (enter tile selection, not a target-a-creature flow).</summary>
+    public static bool IsMoveSkill(string id) => id == "shielded-stride";
+
+    /// <summary>
+    /// Every basic + feat-granted action chip for the action bar, with UI text and gating. Basic
+    /// actions are gated by CanPerform + a legal target/exit; feat actions (Lunge, Sudden Charge,
+    /// Shielded Stride) appear only when a feature grants them (FeatureHolder.GetAllGrantedActions).
+    /// </summary>
     public List<SkillEntryView> GetSkillEntries(ICharacter character)
     {
         var list = new List<SkillEntryView>();
-        foreach (var id in new[] { "trip", "demoralize", "battle-medicine" })
+        int actions = character.Actions?.TotalActionsRemaining ?? 0;
+
+        foreach (var id in BasicSkillIds)
         {
             var action = MakeSkillAction(id);
             if (action == null) continue;
-            bool hasTargets = GetSkillTargets(character, id).Tiles.Count > 0;
+
+            bool castable;
+            if (IsSelfSkill(id))
+                castable = action.CanPerform(character) && actions >= action.ActionCostCount;
+            else
+                castable = action.CanPerform(character) && GetSkillTargets(character, id).Tiles.Count > 0
+                           && actions >= action.ActionCostCount;
+
             list.Add(new SkillEntryView
             {
                 ActionId = id,
                 Name = action.ActionName,
-                CostText = "1a",
-                Targeting = id == "battle-medicine" ? TargetingKind.SingleAlly : TargetingKind.SingleEnemy,
-                Castable = action.CanPerform(character) && hasTargets,
+                CostText = $"{action.ActionCostCount}a",
+                Targeting = SkillKind(id),
+                Castable = castable,
             });
         }
+
+        // Feat-granted actions (Lunge / Sudden Charge / Shielded Stride) surface only when a feature
+        // grants them. GetAllGrantedActions returns non-reaction actions from the character's active
+        // features; we map each by ActionName to its chip id + targeting.
+        var granted = character.Features?.GetAllGrantedActions();
+        if (granted != null)
+        {
+            foreach (var action in granted)
+            {
+                string? id = GrantedActionId(action.ActionName);
+                if (id == null) continue;
+
+                bool castable;
+                if (IsMoveSkill(id))
+                    castable = action.CanPerform(character) && actions >= action.ActionCostCount
+                               && GetShieldedStrideTiles(character).Count > 0;
+                else
+                    castable = action.CanPerform(character) && GetSkillTargets(character, id).Tiles.Count > 0
+                               && actions >= action.ActionCostCount;
+
+                list.Add(new SkillEntryView
+                {
+                    ActionId = id,
+                    Name = action.ActionName,
+                    CostText = $"{action.ActionCostCount}a",
+                    Targeting = SkillKind(id),
+                    Castable = castable,
+                });
+            }
+        }
+
         return list;
     }
 
-    /// <summary>Legal target tiles for a skill action.</summary>
+    private static string? GrantedActionId(string actionName) => actionName switch
+    {
+        "Lunge" => "lunge",
+        "Sudden Charge" => "sudden-charge",
+        "Shielded Stride" => "shielded-stride",
+        _ => null,
+    };
+
+    private static TargetingKind SkillKind(string id) => id switch
+    {
+        "battle-medicine" => TargetingKind.SingleAlly,
+        "parry" or "reload" or "shielded-stride" => TargetingKind.SelfArea,
+        _ => TargetingKind.SingleEnemy,
+    };
+
+    /// <summary>Legal target tiles for a skill / maneuver / feat action.</summary>
     public TargetingPlan GetSkillTargets(ICharacter actor, string actionId)
     {
-        var plan = new TargetingPlan
-        {
-            Kind = actionId == "battle-medicine" ? TargetingKind.SingleAlly : TargetingKind.SingleEnemy
-        };
+        var plan = new TargetingPlan { Kind = SkillKind(actionId) };
 
         switch (actionId)
         {
             case "trip":
+            case "shove": // Athletics maneuver — adjacent foe.
                 foreach (var t in TargetsInRange(actor, 1, enemies: true))
                     plan.Tiles.Add(t.GridPosition);
                 break;
@@ -647,8 +731,80 @@ public sealed class PlayerActionExecutor
                     plan.Tiles.Add(t.GridPosition);
                 }
                 break;
+
+            case "tumble-through":
+                // Adjacent foe with a legal exit tile — the tile continuing the actor->foe straight
+                // line, one full footprint beyond. Simplification: only that single collinear exit is
+                // considered (matches TumbleThroughAction.ComputeExitPosition); diagonal re-routes are
+                // not offered. If that exit is off-grid/blocked/occupied the foe is not a legal target.
+                foreach (var t in TargetsInRange(actor, 1, enemies: true))
+                    if (HasValidTumbleExit(actor, t))
+                        plan.Tiles.Add(t.GridPosition);
+                break;
+
+            case "seek":
+                // Locate a Hidden/Undetected foe. In the current prototype nothing makes enemies
+                // Hidden/Undetected, so this is normally empty (chip disabled) — wired for correctness.
+                foreach (var t in TargetsInRange(actor, 12, enemies: true))
+                    if (t.Conditions?.HasCondition(Condition.Hidden) == true
+                        || t.Conditions?.HasCondition(Condition.Undetected) == true)
+                        plan.Tiles.Add(t.GridPosition);
+                break;
+
+            case "lunge":
+            {
+                var weapon = WeaponAttackCalculator.ResolveWeapon(actor);
+                int reachPlus = weapon.GetRangeInTiles() + 1; // +5 ft of reach
+                foreach (var t in TargetsInRange(actor, reachPlus, enemies: true))
+                    plan.Tiles.Add(t.GridPosition);
+                break;
+            }
+
+            case "sudden-charge":
+            {
+                // Any foe you could plausibly reach with a double Stride (2x Speed) and then Strike.
+                var weapon = WeaponAttackCalculator.ResolveWeapon(actor);
+                int reach = weapon.IsMelee ? weapon.GetRangeInTiles() : 1;
+                int span = SpeedInTiles(actor) * 2 + reach;
+                foreach (var t in TargetsInRange(actor, span, enemies: true))
+                    plan.Tiles.Add(t.GridPosition);
+                break;
+            }
         }
         return plan;
+    }
+
+    /// <summary>Tiles a Shielded Stride may reach: a normal Stride capped at half Speed (min 1 tile).</summary>
+    public HashSet<PF2eVec> GetShieldedStrideTiles(ICharacter character)
+    {
+        var result = new HashSet<PF2eVec>();
+        int half = ShieldedStrideAction.GetMaxDistanceTiles(character);
+        if (half <= 0 || character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
+            return result;
+        if (character.Equipment?.IsShieldRaised != true)
+            return result;
+
+        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(character, half));
+        foreach (var kvp in map)
+        {
+            var tile = kvp.Key;
+            if (tile == character.GridPosition || kvp.Value.Cost <= 0) continue;
+            if (!_grid.CanCreatureFit(tile, character.TileWidth, ignore: character)) continue;
+            result.Add(tile);
+        }
+        return result;
+    }
+
+    private bool HasValidTumbleExit(ICharacter actor, ICharacter target)
+    {
+        var dir = target.GridPosition - actor.GridPosition;
+        var unit = new PF2eVec(System.Math.Sign(dir.x), System.Math.Sign(dir.y));
+        if (unit == PF2eVec.zero) return false;
+        var exit = target.GridPosition + unit * target.TileWidth;
+        var tile = _grid.GetTile(exit);
+        if (tile == null || tile.IsBlocked) return false;
+        var occ = _grid.GetGroundOccupant(exit);
+        return occ == null || (occ.Health != null && occ.Health.IsDead);
     }
 
     /// <summary>
@@ -667,6 +823,11 @@ public sealed class PlayerActionExecutor
         if (!action.CanPerform(actor, target)) return false;
 
         int preHp = target.Health.CurrentHP;
+        // Capture positions so board-moving maneuvers (Shove pushes the target + follow; Tumble
+        // Through moves the actor) re-sync the 3D presenter after the rules resolve.
+        var actorFrom = actor.GridPosition;
+        var targetFrom = target.GridPosition;
+
         action.Execute(actor, target);
 
         await _runner.Emit(new BattleEvent
@@ -676,6 +837,9 @@ public sealed class PlayerActionExecutor
             Target = target,
             Description = $"{actor.Name} uses {action.ActionName} on {target.Name}"
         });
+
+        await EmitPositionSync(target, targetFrom);
+        await EmitPositionSync(actor, actorFrom);
 
         int delta = preHp - target.Health.CurrentHP;
         if (delta > 0)
@@ -711,6 +875,145 @@ public sealed class PlayerActionExecutor
     }
 
     /// <summary>
+    /// Execute a self-targeted action that fires immediately (Parry, Reload). The engine action owns
+    /// its cost + state (parry AC bonus, reload progress); we emit an ActionUsed event for the board.
+    /// </summary>
+    public async Task<bool> ExecuteSelfSkill(ICharacter actor, string actionId)
+    {
+        var action = MakeSkillAction(actionId);
+        if (action == null || !action.CanPerform(actor)) return false;
+
+        action.Execute(actor);
+
+        await _runner.Emit(new BattleEvent
+        {
+            Type = BattleEventType.ActionUsed,
+            Source = actor,
+            Description = $"{actor.Name} uses {action.ActionName}"
+        });
+        return true;
+    }
+
+    /// <summary>
+    /// Shielded Stride (feat move token, reaction-free, half-Speed cap). Movement is resolved by this
+    /// executor exactly like a normal Stride — the engine action only carries the gate + cap — so we
+    /// route through ExecuteStride with triggersReactions:false (its TriggersMovementReactions marker).
+    /// </summary>
+    public Task<bool> ExecuteShieldedStride(ICharacter actor, PF2eVec dest)
+    {
+        if (actor.Equipment?.IsShieldRaised != true) return Task.FromResult(false);
+        return ExecuteStride(actor, dest, triggersReactions: false);
+    }
+
+    /// <summary>
+    /// Sudden Charge (2 actions, Flourish): Stride twice, then Strike a foe in reach. The engine
+    /// action handles the 2-action cost, Flourish marking and the Strike, but expects the actor to
+    /// have already moved (it strikes only if already within reach). So we first reposition the actor
+    /// adjacent to the target (via pathfind, no action cost — the cost belongs to SuddenChargeAction),
+    /// emit a position-sync move, then run Execute which resolves the Strike.
+    /// </summary>
+    /// <summary>Sudden Charge against the foe occupying <paramref name="tile"/>.</summary>
+    public Task<bool> ExecuteSuddenChargeTile(ICharacter actor, PF2eVec tile)
+    {
+        var target = _grid.GetGroundOccupant(tile);
+        if (target == null || target.Health == null || target.Health.IsDead)
+            return Task.FromResult(false);
+        return ExecuteSuddenCharge(actor, target);
+    }
+
+    public async Task<bool> ExecuteSuddenCharge(ICharacter actor, ICharacter target)
+    {
+        var action = new SuddenChargeAction();
+        if (!action.CanPerform(actor, target)) return false;
+        if (target.Health == null || target.Health.IsDead) return false;
+
+        var weapon = WeaponAttackCalculator.ResolveWeapon(actor);
+        int reach = weapon.IsMelee ? weapon.GetRangeInTiles() : 1;
+
+        var from = actor.GridPosition;
+        var dest = FindChargeTile(actor, target, reach);
+        if (dest.HasValue && dest.Value != from)
+        {
+            _grid.MoveCreature(actor, dest.Value);
+            await EmitPositionSync(actor, from);
+        }
+
+        int preHp = target.Health.CurrentHP;
+        action.Execute(actor, target); // consumes 2 actions, marks Flourish, strikes if in reach
+
+        await _runner.Emit(new BattleEvent
+        {
+            Type = BattleEventType.ActionUsed,
+            Source = actor,
+            Target = target,
+            Description = $"{actor.Name} charges {target.Name}"
+        });
+
+        int delta = preHp - target.Health.CurrentHP;
+        if (delta > 0)
+        {
+            await _runner.Emit(new BattleEvent
+            {
+                Type = BattleEventType.DamageDealt,
+                Source = actor, Target = target, IntValue = delta,
+                Description = $"{target.Name} takes {delta} damage"
+            });
+            if (target.Health.IsDead)
+                await _runner.Emit(new BattleEvent
+                {
+                    Type = BattleEventType.CreatureDied, Source = target,
+                    Description = $"{target.Name} is slain!"
+                });
+        }
+        return true;
+    }
+
+    /// <summary>A tile within melee <paramref name="reach"/> of the target, reachable within 2x Speed.</summary>
+    private PF2eVec? FindChargeTile(ICharacter actor, ICharacter target, int reach)
+    {
+        int span = SpeedInTiles(actor) * 2;
+        if (span <= 0) return null;
+
+        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(actor, span));
+        PF2eVec? best = null;
+        int bestCost = int.MaxValue;
+        foreach (var kvp in map)
+        {
+            var tile = kvp.Key;
+            if (!_grid.CanCreatureFit(tile, actor.TileWidth, ignore: actor)) continue;
+            if (!FlankingCalculator.IsWithinReach(tile, actor.TileWidth,
+                    target.GridPosition, target.TileWidth, reach))
+                continue;
+            if (kvp.Value.Cost < bestCost)
+            {
+                bestCost = kvp.Value.Cost;
+                best = tile;
+            }
+        }
+        // Already in reach (or nothing better found): stay put.
+        return best;
+    }
+
+    /// <summary>
+    /// Re-sync the presenter after a rules-driven position change (forced movement, tumble, charge).
+    /// Emits a MovementStarted (2-point path for a slide) + MovementCompleted only when the tile
+    /// actually changed, so UnitVisual3D lands on the new GridPosition.
+    /// </summary>
+    private async Task EmitPositionSync(ICharacter character, PF2eVec from)
+    {
+        if (character.GridPosition == from) return;
+
+        await _runner.Emit(new BattleEvent
+        {
+            Type = BattleEventType.MovementStarted,
+            Source = character,
+            Path = new List<PF2eVec> { from, character.GridPosition },
+            Description = $"{character.Name} moves"
+        });
+        await _runner.Emit(BattleEventType.MovementCompleted, source: character);
+    }
+
+    /// <summary>
     /// Construct a per-call skill-action instance. These SkillActionBase subclasses ship WITHOUT
     /// cost/target metadata (it's a construction-site concern), so we configure it here: all cost 1;
     /// Trip/Demoralize target enemies; Battle Medicine targets allies including self.
@@ -732,6 +1035,14 @@ public sealed class PlayerActionExecutor
             ActionName = "Battle Medicine", ActionCostCount = 1,
             RequiresTarget = true, TargetMode = TargetMode.Allies, CanTargetSelf = true
         },
+        // Engine maneuver/feat actions author their own name/cost/traits in their constructors.
+        "shove" => new ShoveAction(),
+        "tumble-through" => new TumbleThroughAction(),
+        "seek" => new SeekAction(),
+        "parry" => new ParryAction(),
+        "reload" => new ReloadAction(),
+        "lunge" => new LungeAction(),
+        "sudden-charge" => new SuddenChargeAction(),
         _ => null
     };
 

@@ -98,12 +98,18 @@ public static class PresetCharacters
             Combat = new CombatState(),
             RuleEvents = new RuleEventBus(),
             Actions = new ActionResource(),
+            // Build choices must exist BEFORE features resolve: WeaponMasteryFeature (L5) reads
+            // ChosenWeaponGroup for its critical-specialization gate, and WeaponAttackCalculator
+            // consults it for group-restricted progressions. Sword is a data implication of the
+            // longsword loadout every Fighter preset carries — NOT a pending combo choice.
+            BuildChoices = new CharacterBuildChoices { ChosenWeaponGroup = WeaponGroup.Sword },
         };
 
         // --- Defenses / health / conditions ---
         character.DefenseProfile = new DefenseProfile(character.RuleEvents);
-        // usesDying:false — M1 has no DyingSystem wired; a downed PC dies outright (intended).
-        character.Health = new Health(character, usesDying: false);
+        // usesDying:true — PCs use the full PF2e dying rules. A downed PC becomes
+        // Dying + Unconscious (not dead); the DyingSystem is wired below once Conditions exists.
+        character.Health = new Health(character, usesDying: true);
         character.Health.Initialize();
         character.CooldownTracker = new AbilityCooldownTracker();
 
@@ -133,6 +139,11 @@ public static class PresetCharacters
         character.Conditions = new ConditionTracker(
             character, character.Actions, character.Modifiers, character.DefenseProfile);
 
+        // Dying rules: Health delegates zero-HP handling to the DyingSystem, which drives
+        // Dying/Wounded/Unconscious via the ConditionTracker. Must be constructed after Conditions.
+        // CombatSession subscribes/unsubscribes it to the per-encounter TurnManager (recovery checks).
+        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
+
         // --- Skills (Trained Athletics for Trip + Intimidation for Demoralize come from the class
         //     + Sentinel overlay's auto-trained skill list). ---
         character.Skills = new SkillProficiencies();
@@ -157,6 +168,84 @@ public static class PresetCharacters
             // Health caches MaxHP at Initialize; recompute now that the level (and HP) changed.
             character.Health.Initialize();
         }
+
+        return character;
+    }
+
+    // ══════════════════════════ Rogue (Scout) ══════════════════════════
+
+    /// <summary>
+    /// Build "the Scout": a Dex-based Rogue with a rapier (finesse) + leather armor. Sneak Attack,
+    /// Surprise Attack and the placeholder Thief racket are granted at level 1; Deny Advantage at 3;
+    /// Weapon Tricks at 5. Built at the target level directly (no Free-Archetype combo — the racket
+    /// and any archetype are pending design review), then class features resolve by level. Mirrors the
+    /// caster assembly (stats → components → Health → equipment → conditions → skills → features) plus
+    /// the WP4 dying wiring.
+    /// </summary>
+    public static PF2eCharacter BuildScout(int level, int teamId = 1)
+    {
+        if (level < 1) level = 1;
+
+        var modifiers = new ModifierStack();
+        var stats = new PF2eCharacterStats(modifiers)
+        {
+            CharacterClass = PresetClasses.BuildRogue(),
+            Level = level,
+            Strength = 12, Dexterity = 18, Constitution = 12,
+            Intelligence = 12, Wisdom = 14, Charisma = 12,
+            BaseSpeedInFeet = 25,
+        };
+
+        var character = new PF2eCharacter
+        {
+            Id = "the-scout",
+            Name = "the Scout",
+            TeamId = teamId,
+            Stats = stats,
+            StatProvider = stats,
+            Modifiers = modifiers,
+            Combat = new CombatState(),
+            RuleEvents = new RuleEventBus(),
+            Actions = new ActionResource(),
+            // Rapier (and shortsword) are Sword group — a data implication of the finesse loadout, not
+            // a combo choice. No rogue feature reads ChosenWeaponGroup; set for consistency/future use.
+            BuildChoices = new CharacterBuildChoices { ChosenWeaponGroup = WeaponGroup.Sword },
+        };
+
+        character.DefenseProfile = new DefenseProfile(character.RuleEvents);
+        // usesDying:true — PCs use the full PF2e dying rules (DyingSystem wired after Conditions).
+        character.Health = new Health(character, usesDying: true);
+        character.Health.Initialize();
+        character.CooldownTracker = new AbilityCooldownTracker();
+
+        // --- Equipment (rapier + leather armor, no shield) ---
+        var appendages = new AppendageTracker(AppendageLayout.Humanoid());
+        character.Appendages = appendages;
+        var equipment = new EquipmentHolder(appendages, null!, character.Modifiers);
+        character.Equipment = equipment;
+        equipment.SetStartingLoadout(
+            mainHand: FindWeapon("rapier"),
+            offHand: null,
+            armor: FindArmor("leather-armor"));
+        equipment.Initialize();
+
+        character.Conditions = new ConditionTracker(
+            character, character.Actions, character.Modifiers, character.DefenseProfile);
+
+        // Dying rules (see BuildFighterSentinel): wire after Conditions exists.
+        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
+
+        // --- Skills: Stealth (class auto) + Thievery + Intimidation (Demoralize chip) ---
+        character.Skills = new SkillProficiencies();
+        character.Skills.ApplyClassSkills(stats.CharacterClass);
+        character.Skills.SetProficiency(Skill.Thievery, ProficiencyLevel.Trained);
+        character.Skills.SetProficiency(Skill.Intimidation, ProficiencyLevel.Trained);
+
+        // --- Features (rogue class features grant by level) ---
+        var features = new FeatureHolder();
+        character.Features = features;
+        features.Initialize(character);
+        features.ResolveAndGrantFeatures();
 
         return character;
     }
@@ -254,10 +343,15 @@ public static class PresetCharacters
             Combat = new CombatState(),
             RuleEvents = new RuleEventBus(),
             Actions = new ActionResource(),
+            // Build choices must be non-null before features resolve. Deity is intentionally left
+            // unset — HealingFontFeature (Divine Font) no-ops without a deity, and choosing one is a
+            // combo decision pending design review. The placeholder casters read nothing else from it.
+            BuildChoices = new CharacterBuildChoices(),
         };
 
         character.DefenseProfile = new DefenseProfile(character.RuleEvents);
-        character.Health = new Health(character, usesDying: false);
+        // usesDying:true — PCs use the full PF2e dying rules (DyingSystem wired after Conditions).
+        character.Health = new Health(character, usesDying: true);
         character.Health.Initialize();
         character.CooldownTracker = new AbilityCooldownTracker();
 
@@ -274,6 +368,9 @@ public static class PresetCharacters
 
         character.Conditions = new ConditionTracker(
             character, character.Actions, character.Modifiers, character.DefenseProfile);
+
+        // Dying rules (see BuildFighterSentinel): wire after Conditions exists.
+        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
 
         // --- Skills ---
         character.Skills = new SkillProficiencies();
@@ -314,7 +411,12 @@ public static class PresetCharacters
 
     private static WeaponDefinition? FindWeapon(string slug)
     {
-        return GameDataLoader.FindEquipment(slug)?.ToWeaponDefinition();
+        var imported = GameDataLoader.FindEquipment(slug);
+        if (imported == null) return null;
+
+        // Boolean weapon traits (finesse/agile/reach/...) are populated by the engine importer —
+        // ImportedEquipment.MapTraitsToWeapon carries every raw trait id onto def.Traits.
+        return imported.ToWeaponDefinition();
     }
 
     private static ArmorDefinition? FindArmor(string slug)

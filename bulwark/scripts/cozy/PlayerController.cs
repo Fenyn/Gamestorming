@@ -43,6 +43,13 @@ public partial class PlayerController : CharacterBody2D
     /// <summary>Raised when the player Hand-interacts at the bedroll; the scene runs the sleep flow.</summary>
     public event Action? SleepRequested;
 
+    /// <summary>
+    /// Raised on every interact press with the active tool, BEFORE any farm/bedroll handling.
+    /// World scenes without farm plots (territories) consume this to resolve proximity
+    /// interactions (resource nodes); the outpost ignores it.
+    /// </summary>
+    public event Action<ToolKind>? InteractRequested;
+
     // Facing row (0=S, 1=N, 2=E, 3=W) and its grid-space unit vector. Kept when idle.
     private int _facingRow;
     private Vector2I _facingDir = new(0, 1); // start facing South (toward the camera)
@@ -167,9 +174,11 @@ public partial class PlayerController : CharacterBody2D
 
     private void DoInteract()
     {
+        InteractRequested?.Invoke(_tools.Current);
+
         var gs = GameState.Instance;
         if (gs == null || _outpost == null)
-            return;
+            return; // no farm world injected (e.g. a territory scene) — proximity handling only
 
         Vector2I cell = _target.Cell;
         switch (_tools.Current)

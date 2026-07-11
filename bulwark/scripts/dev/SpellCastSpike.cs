@@ -77,14 +77,19 @@ public partial class SpellCastSpike : Node
             int hpBefore = veteran.Health.CurrentHP;
             int actionsBefore = medic.Actions.TotalActionsRemaining;
             int preparedBefore = PreparedCount(medic, PresetSpells.HealId);
+            int fontBefore = medic.Spellcasting!.DivineFont?.CurrentSlots ?? -1;
 
             await exec.ExecuteCast(medic, PresetSpells.HealId, variantIndex: 0, veteran.GridPosition);
 
             Check("(a) Heal raises HP", veteran.Health.CurrentHP > hpBefore);
             Check("(a) 1-action variant consumes 1 action",
                 actionsBefore - medic.Actions.TotalActionsRemaining == 1);
-            Check("(a) one rank-1 prepared entry consumed",
-                preparedBefore - PreparedCount(medic, PresetSpells.HealId) == 1);
+            // Warpriest Medic: Heal is Aveline's divine-font spell, so the cast is paid from the
+            // font pool FIRST — preparations stay untouched until the font runs dry.
+            Check("(a) Heal consumed a divine-font slot (font-first)",
+                fontBefore == 4 && medic.Spellcasting!.DivineFont!.CurrentSlots == fontBefore - 1);
+            Check("(a) rank-1 preparations untouched while font slots remain",
+                PreparedCount(medic, PresetSpells.HealId) == preparedBefore);
         }
         finally { session.Teardown(); }
     }
@@ -244,18 +249,25 @@ public partial class SpellCastSpike : Node
             var heal = PresetSpells.Get(PresetSpells.HealId);
             Check("(g) rank-1 spell castable with slots remaining", heal.CanPerform(medic));
 
-            // Medic prepared Heal, Heal, Fear = 3 rank-1 preparations. Spend all three.
-            medic.Actions.RefillActions();
-            await exec.ExecuteCast(medic, PresetSpells.HealId, 0, veteran.GridPosition);
-            medic.Actions.RefillActions();
-            await exec.ExecuteCast(medic, PresetSpells.HealId, 0, veteran.GridPosition);
+            // Warpriest Medic heal budget: 4 divine-font slots + 2 prepared Heals = 6 casts.
+            // The font pays first; only then do the preparations get consumed.
+            int healCasts = 0;
+            while (heal.CanPerform(medic) && healCasts < 10)
+            {
+                medic.Actions.RefillActions();
+                await exec.ExecuteCast(medic, PresetSpells.HealId, 0, veteran.GridPosition);
+                healCasts++;
+            }
+            Check("(g) Heal budget = 4 font slots + 2 preparations (6 casts)", healCasts == 6);
+            Check("(g) font pool exhausted", medic.Spellcasting!.DivineFont!.CurrentSlots == 0);
+            Check("(g) Heal not castable once font + preparations are spent", !heal.CanPerform(medic));
+
+            // Fear was the third rank-1 preparation and is not a font spell — still castable once.
+            var fear = PresetSpells.Get(PresetSpells.FearId);
+            Check("(g) Fear still castable (its preparation is untouched)", fear.CanPerform(medic));
             medic.Actions.RefillActions();
             await exec.ExecuteCast(medic, PresetSpells.FearId, -1, goblin.GridPosition);
-
-            medic.Actions.RefillActions();
-            Check("(g) Heal not castable after 3 rank-1 casts", !heal.CanPerform(medic));
-            Check("(g) Fear not castable after slots exhausted",
-                !PresetSpells.Get(PresetSpells.FearId).CanPerform(medic));
+            Check("(g) Fear not castable after its preparation is spent", !fear.CanPerform(medic));
         }
         finally { session.Teardown(); }
     }

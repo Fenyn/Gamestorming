@@ -31,6 +31,17 @@ public static class PresetSpells
     public const string HealId = "preset-heal";
     public const string FearId = "preset-fear";
     public const string BreatheFireId = "preset-breathe-fire";
+    public const string TelekineticProjectileId = "preset-telekinetic-projectile";
+    public const string ForceBarrageId = "preset-force-barrage";
+    public const string ForceBoltId = "preset-force-bolt";
+    public const string FireballId = "preset-fireball";
+
+    /// <summary>
+    /// Canonical shared identity for Heal. DeityDefinition.FontSpellIdentity and the Heal
+    /// SpellDefinition.Identity must be the SAME instance — DivineFontPool.MatchesSpell compares
+    /// by reference, which is how a cast of Heal gets routed to divine-font slots.
+    /// </summary>
+    public static readonly SpellIdentity HealIdentity = new() { SpellName = "Heal" };
 
     private static bool _registered;
     private static readonly Dictionary<string, SpellCastAction> _byId = new();
@@ -51,6 +62,10 @@ public static class PresetSpells
             BuildHeal(),
             BuildFear(),
             BuildBreatheFire(),
+            BuildTelekineticProjectile(),
+            BuildForceBarrage(),
+            BuildForceBolt(),
+            BuildFireball(),
         };
 
         foreach (var s in all)
@@ -197,6 +212,10 @@ public static class PresetSpells
         ActionName = "Heal",
         Spell = new SpellDefinition
         {
+            // Shared identity + font flag: lets DivineFontPool slots (Aveline's heal font)
+            // pay for casts of this spell, and enables the undead-reversal channel rules.
+            Identity = HealIdentity,
+            IsDivineFontSpell = true,
             SpellLevel = 1,
             Traditions = new List<SpellcastingTradition>
                 { SpellcastingTradition.Divine, SpellcastingTradition.Primal },
@@ -266,6 +285,112 @@ public static class PresetSpells
                 ValueOnCritFailure = 3,
                 DurationInRounds = 0,   // Frightened decays by its own value each turn
             },
+        },
+    };
+
+    /// <summary>
+    /// Telekinetic Projectile — Battle Magic curriculum cantrip. Spell attack, 2d6 bludgeoning
+    /// (hurled debris), heightened +1d6. PLACEHOLDER-faithful numbers like the other cantrips.
+    /// </summary>
+    private static SpellCastAction BuildTelekineticProjectile() => new()
+    {
+        SpellId = TelekineticProjectileId,
+        ActionName = "Telekinetic Projectile",
+        ActionCostCount = 2,
+        RequiresTarget = true,
+        TargetMode = TargetMode.Enemies,
+        MaxTargets = 1,
+        Area = new AreaDefinition { RangeInFeet = 30 },
+        Spell = new SpellDefinition
+        {
+            SpellLevel = 0,
+            Traditions = new List<SpellcastingTradition>
+                { SpellcastingTradition.Arcane, SpellcastingTradition.Occult },
+            DefenseType = SpellDefenseType.SpellAttack,
+            DamageFormula = new DiceFormula(2, 6, 0),
+            DamageType = DamageType.Bludgeoning,
+            HeightenIncrement = 1,
+            HeightenBonusDamage = new DiceFormula(1, 6, 0),
+        },
+    };
+
+    /// <summary>
+    /// Force Barrage — Battle Magic curriculum rank 1. Unerring force darts (no attack roll, no
+    /// save). MVP simplification: fixed 2-action cast = two darts (2d4+2 force) instead of the
+    /// RAW 1-3 action scaling; heightened (+2) adds another dart's worth per RAW pacing.
+    /// </summary>
+    private static SpellCastAction BuildForceBarrage() => new()
+    {
+        SpellId = ForceBarrageId,
+        ActionName = "Force Barrage",
+        ActionCostCount = 2,
+        RequiresTarget = true,
+        TargetMode = TargetMode.Enemies,
+        MaxTargets = 1,
+        Area = new AreaDefinition { RangeInFeet = 120 },
+        Spell = new SpellDefinition
+        {
+            SpellLevel = 1,
+            Traditions = new List<SpellcastingTradition>
+                { SpellcastingTradition.Arcane, SpellcastingTradition.Occult },
+            DefenseType = SpellDefenseType.None, // auto-hit: full damage, no roll
+            DamageFormula = new DiceFormula(2, 4, 2),
+            DamageType = DamageType.Force,
+            HeightenIncrement = 2,
+            HeightenBonusDamage = new DiceFormula(1, 4, 1),
+        },
+    };
+
+    /// <summary>
+    /// Force Bolt — School of Battle Magic initial focus spell. 1 action, unerring force bolt
+    /// (1d4+1, no roll), heightened (+2) +1d4+1. IsFocusSpell: consumes a focus point and
+    /// auto-heightens with character level.
+    /// </summary>
+    private static SpellCastAction BuildForceBolt() => new()
+    {
+        SpellId = ForceBoltId,
+        ActionName = "Force Bolt",
+        ActionCostCount = 1,
+        RequiresTarget = true,
+        TargetMode = TargetMode.Enemies,
+        MaxTargets = 1,
+        Area = new AreaDefinition { RangeInFeet = 30 },
+        Spell = new SpellDefinition
+        {
+            SpellLevel = 1,
+            IsFocusSpell = true,
+            Traditions = new List<SpellcastingTradition> { SpellcastingTradition.Arcane },
+            DefenseType = SpellDefenseType.None, // auto-hit: full damage, no roll
+            DamageFormula = new DiceFormula(1, 4, 1),
+            DamageType = DamageType.Force,
+            HeightenIncrement = 2,
+            HeightenBonusDamage = new DiceFormula(1, 4, 1),
+        },
+    };
+
+    /// <summary>
+    /// Fireball — Battle Magic curriculum rank 3 (also Aveline's rank-3 granted spell).
+    /// 20 ft burst, basic Reflex, 6d6 fire, heightened (+1) +2d6.
+    /// </summary>
+    private static SpellCastAction BuildFireball() => new()
+    {
+        SpellId = FireballId,
+        ActionName = "Fireball",
+        ActionCostCount = 2,
+        RequiresAreaTarget = true,
+        TargetMode = TargetMode.Enemies,
+        Area = new AreaDefinition { Type = AreaType.Burst, SizeInFeet = 20, RangeInFeet = 500 },
+        Spell = new SpellDefinition
+        {
+            SpellLevel = 3,
+            Traditions = new List<SpellcastingTradition>
+                { SpellcastingTradition.Arcane, SpellcastingTradition.Primal },
+            DefenseType = SpellDefenseType.BasicSave,
+            SaveType = SavingThrow.Reflex,
+            DamageFormula = new DiceFormula(6, 6, 0),
+            DamageType = DamageType.Fire,
+            HeightenIncrement = 1,
+            HeightenBonusDamage = new DiceFormula(2, 6, 0),
         },
     };
 

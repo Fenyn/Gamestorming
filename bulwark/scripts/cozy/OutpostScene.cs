@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Text;
 using Bulwark.Autoload;
 using Bulwark.Data;
+using Bulwark.Territory;
 using Bulwark.UI;
 using Godot;
 
@@ -19,6 +21,9 @@ namespace Bulwark.Cozy;
 /// </summary>
 public partial class OutpostScene : Node2D
 {
+    /// <summary>The territory the gate leads to (M3: the single Tier-1 forest).</summary>
+    [Export] public string GateTerritoryId { get; set; } = "verdant_fringe";
+
     private TileMapLayer? _ground;
     private TileMapLayer? _groundDecor;
     private TileMapLayer? _walls;
@@ -34,6 +39,12 @@ public partial class OutpostScene : Node2D
     private PlayerController? _player;
     private FarmRenderer? _farmRenderer;
     private CozyHud? _hud;
+    private SquadPanel? _squadPanel;
+    private PartySelectPanel? _partySelectPanel;
+    private bool _departing; // travel confirmed — scene swap pending, ignore further input
+
+    // Level-ups announced by the sleep command, held until the wake toast consumes them.
+    private IReadOnlyList<SquadLevelUpView>? _pendingLevelUps;
 
     public override void _Ready()
     {
@@ -57,9 +68,12 @@ public partial class OutpostScene : Node2D
         SpawnFarmRenderer();
         SpawnPlayer();
         SpawnHud();
+        SpawnSquadPanel();
+        SpawnPartySelectPanel();
         WireGate();
         WireStateEvents();
         RefreshHudAll();
+        ShowArrivalToasts();
     }
 
     public override void _ExitTree()
@@ -72,6 +86,9 @@ public partial class OutpostScene : Node2D
             gs.DayStarted -= RefreshHudTime;
             gs.InventoryChanged -= OnInventoryChanged;
             gs.GameLoaded -= RefreshHudAll;
+            gs.SquadChanged -= RefreshSquadPanel;
+            gs.TreatWoundsResolved -= OnTreatWoundsResolved;
+            gs.SquadLeveledUp -= OnSquadLeveledUp;
         }
     }
 
@@ -110,6 +127,30 @@ public partial class OutpostScene : Node2D
         AddChild(_hud);
     }
 
+    private void SpawnSquadPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/squad_panel.tscn");
+        if (scene == null)
+            return;
+
+        _squadPanel = scene.Instantiate<SquadPanel>();
+        AddChild(_squadPanel);
+        _squadPanel.TreatWoundsRequested += OnTreatWoundsRequested;
+        _squadPanel.Toggled += OnSquadPanelToggled;
+    }
+
+    private void SpawnPartySelectPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/party_select_panel.tscn");
+        if (scene == null)
+            return;
+
+        _partySelectPanel = scene.Instantiate<PartySelectPanel>();
+        AddChild(_partySelectPanel);
+        _partySelectPanel.TravelConfirmed += OnTravelConfirmed;
+        _partySelectPanel.Toggled += OnPartySelectToggled;
+    }
+
     private void WireGate()
     {
         _gateTrigger?.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnGateBodyEntered));
@@ -125,6 +166,9 @@ public partial class OutpostScene : Node2D
         gs.DayStarted += RefreshHudTime;
         gs.InventoryChanged += OnInventoryChanged;
         gs.GameLoaded += RefreshHudAll;
+        gs.SquadChanged += RefreshSquadPanel;
+        gs.TreatWoundsResolved += OnTreatWoundsResolved;
+        gs.SquadLeveledUp += OnSquadLeveledUp;
     }
 
     // ------------------------------------------------------------------ HUD wiring (passive push)
@@ -175,7 +219,43 @@ public partial class OutpostScene : Node2D
         RefreshHudTool(); // a spent/gained seed changes the tool-belt count too
     }
 
+    // ------------------------------------------------------------------ Squad panel (passive push)
+
+    private void OnSquadPanelToggled(bool open)
+    {
+        // Freeze the world while the panel is modal: no avatar input/motion, no clock ticks
+        // (same seam SceneRouter uses for combat — Clock.IsPaused).
+        if (_player != null)
+            _player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+
+        var clock = GameState.Instance?.Clock;
+        if (clock != null)
+            clock.IsPaused = open;
+
+        if (open)
+            RefreshSquadPanel();
+    }
+
+    private void OnTreatWoundsRequested(string healerId, string targetId, int dc)
+        => GameState.Instance?.TreatWounds(healerId, targetId, dc);
+
+    private void OnTreatWoundsResolved(TreatWoundsResultView view)
+        => _squadPanel?.ShowResult(view);
+
+    private void RefreshSquadPanel()
+    {
+        if (_squadPanel == null || !_squadPanel.Visible)
+            return;
+
+        var view = GameState.Instance?.GetSquadPanelView();
+        if (view != null)
+            _squadPanel.Render(view);
+    }
+
     // ------------------------------------------------------------------ Interactions
+
+    private void OnSquadLeveledUp(IReadOnlyList<SquadLevelUpView> levelUps)
+        => _pendingLevelUps = levelUps;
 
     private void OnSleepRequested()
     {
@@ -184,15 +264,97 @@ public partial class OutpostScene : Node2D
             return;
 
         if (_hud != null)
-            _hud.PlaySleepTransition(gs.Sleep, () => $"You wake — {gs.Clock.DateString()}");
+            _hud.PlaySleepTransition(gs.Sleep, () => BuildWakeText(gs));
         else
             gs.Sleep();
     }
 
+    /// <summary>Wake toast: date line plus one line per overnight level-up (consumed here).</summary>
+    private string BuildWakeText(GameState gs)
+    {
+        string text = $"You wake — {gs.Clock.DateString()}";
+        if (_pendingLevelUps != null)
+        {
+            foreach (var lu in _pendingLevelUps)
+                text += $"\n{lu.MemberName} reached level {lu.ToLevel}!";
+            _pendingLevelUps = null;
+        }
+        return text;
+    }
+
+    /// <summary>Gate reached: open the party-selection panel (walk out and back to re-open after
+    /// cancelling). Confirm raises <see cref="OnTravelConfirmed"/>.</summary>
     private void OnGateBodyEntered(Node2D body)
     {
-        if (body is PlayerController)
-            GD.Print("[Outpost] Gate reached — territory travel comes in M3.");
+        var gs = GameState.Instance;
+        if (body is not PlayerController || gs == null || _departing)
+            return;
+        if (_partySelectPanel == null || _partySelectPanel.Visible)
+            return;
+
+        _partySelectPanel.Open(gs.GetPartySelectView(GateTerritoryId));
+    }
+
+    private void OnPartySelectToggled(bool open)
+    {
+        // Same modal freeze the squad panel uses: no avatar motion, no clock ticks.
+        if (_player != null && !_departing)
+            _player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+
+        var clock = GameState.Instance?.Clock;
+        if (clock != null)
+            clock.IsPaused = open;
+    }
+
+    private void OnTravelConfirmed(IReadOnlyList<string> companionIds)
+    {
+        var gs = GameState.Instance;
+        if (gs == null || _departing)
+            return;
+
+        if (!gs.TravelToTerritory(GateTerritoryId, companionIds))
+        {
+            _hud?.ShowToast("Cannot travel right now.", 1.5f);
+            return;
+        }
+
+        _departing = true;
+        string territoryId = GateTerritoryId;
+        Callable.From(() => SceneRouter.Instance?.GoToTerritory(territoryId)).CallDeferred();
+    }
+
+    /// <summary>One-shot arrival messages: return-travel notice and/or the defeat wake summary.</summary>
+    private void ShowArrivalToasts()
+    {
+        var gs = GameState.Instance;
+        if (gs == null || _hud == null)
+            return;
+
+        var defeat = gs.ConsumeDefeatSummary();
+        if (defeat != null)
+        {
+            var sb = new StringBuilder("Defeated... you wake at the outpost — ");
+            sb.Append(gs.Clock.DateString());
+            if (defeat.Losses.Count == 0)
+            {
+                sb.Append("\nThe stores survived intact.");
+            }
+            else
+            {
+                sb.Append("\nLost: ");
+                for (int i = 0; i < defeat.Losses.Count; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append($"{defeat.Losses[i].ItemName} x{defeat.Losses[i].Lost}");
+                }
+            }
+            _hud.ShowToast(sb.ToString(), 4.5f);
+            return;
+        }
+
+        string? travel = gs.Territory.ConsumeTravelToast();
+        if (travel != null)
+            _hud.ShowToast(travel);
     }
 
     // --- Layer accessors ---

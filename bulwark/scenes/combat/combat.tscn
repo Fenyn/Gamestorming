@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_log_panel.tscn" id="6_log"]
 [ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="7_ab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="8_vb"]
+[ext_resource type="PackedScene" path="res://scenes/ui/reaction_prompt_panel.tscn" id="9_rpp"]
 
 [sub_resource type="Shader" id="Shader_floor"]
 code = "shader_type spatial;
@@ -120,4 +121,7 @@ offset_right = -8.0
 offset_bottom = -8.0
 
 [node name="VictoryBanner" parent="HUD" instance=ExtResource("8_vb")]
+unique_name_in_owner = true
+
+[node name="ReactionPrompt" parent="HUD" instance=ExtResource("9_rpp")]
 unique_name_in_owner = true

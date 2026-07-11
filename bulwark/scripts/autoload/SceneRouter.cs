@@ -1,13 +1,14 @@
 using System;
-using Bulwark.Combat;
+using Bulwark.Data;
 using Godot;
 
 namespace Bulwark.Autoload;
 
 /// <summary>
 /// Owns top-level mode transitions and swaps the active scene. Thin adapter: it changes scenes and
-/// toggles the shared day clock (running in the Outpost, paused in Combat). Territory mode arrives
-/// in M3.
+/// toggles the shared day clock — running in the Outpost and Territory modes, paused in Combat
+/// (attrition-time freezes in battle). Combat routes to the encounter assembler scene, which builds
+/// the real combat scene from GameState's pending territory encounter.
 /// </summary>
 public partial class SceneRouter : Node
 {
@@ -16,14 +17,14 @@ public partial class SceneRouter : Node
     public enum Mode
     {
         Outpost,
+        Territory,
         Combat,
     }
 
     private const string OutpostScene = "res://scenes/outpost/outpost.tscn";
 
-    // M2 stub: combat has no GameState-driven entry yet, so route to the existing combat dev scene.
-    // M3 replaces this with a real combat scene built from the CombatSetup.
-    private const string CombatDevScene = "res://scenes/dev/combat_test.tscn";
+    // Assembler that consumes GameState.Territory.PendingEncounter and runs combat.tscn with it.
+    private const string EncounterScene = "res://scenes/combat/encounter.tscn";
 
     public Mode CurrentMode { get; private set; } = Mode.Outpost;
 
@@ -41,16 +42,31 @@ public partial class SceneRouter : Node
         ModeChanged?.Invoke(CurrentMode);
     }
 
-    /// <summary>
-    /// Enter a combat encounter. Pauses the day clock (attrition-time freezes in battle). For M2 the
-    /// <paramref name="setup"/> is not yet consumed — the stub loads the existing combat dev scene.
-    /// </summary>
-    public void GoToCombat(CombatSetup setup)
+    /// <summary>Enter a territory map (data-driven scene path). The day clock keeps running —
+    /// exploration shares the outpost clock.</summary>
+    public void GoToTerritory(string territoryId)
     {
-        _ = setup; // TODO (M3): build the combat scene from this setup.
+        if (!Territories.TryGet(territoryId, out var territory))
+        {
+            GD.PushError($"[SceneRouter] Unknown territory '{territoryId}'.");
+            return;
+        }
+
+        CurrentMode = Mode.Territory;
+        SetClockPaused(false);
+        GetTree().ChangeSceneToFile(territory.ScenePath);
+        ModeChanged?.Invoke(CurrentMode);
+    }
+
+    /// <summary>
+    /// Enter the pending combat encounter (parameterized via GameState.Territory.PendingEncounter,
+    /// staged by the BeginTerritoryEncounter command). Pauses the day clock.
+    /// </summary>
+    public void GoToCombat()
+    {
         CurrentMode = Mode.Combat;
         SetClockPaused(true);
-        GetTree().ChangeSceneToFile(CombatDevScene);
+        GetTree().ChangeSceneToFile(EncounterScene);
         ModeChanged?.Invoke(CurrentMode);
     }
 

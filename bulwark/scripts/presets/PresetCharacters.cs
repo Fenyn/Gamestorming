@@ -20,6 +20,24 @@ namespace Bulwark.Presets;
 /// </summary>
 public static class PresetCharacters
 {
+    // Authored daily-casting loadouts, shared by the initial build and the in-place level-up
+    // refresh (RefreshDailyCasting) so both prepare the identical lists.
+    private static readonly string[] MedicCantripIds =
+        { PresetSpells.DivineLanceId, PresetSpells.DazeId };
+    private static readonly string[] MedicPreparedSpellIds =
+        { PresetSpells.HealId, PresetSpells.HealId, PresetSpells.FearId };
+    private static readonly string[] ScholarCantripIds =
+        { PresetSpells.ElectricArcId, PresetSpells.IgnitionId, PresetSpells.FrostbiteId };
+    private static readonly string[] ScholarPreparedSpellIds =
+    {
+        // Rank 1 (curriculum first: Breathe Fire and Force Barrage may fill the school slot)
+        PresetSpells.BreatheFireId, PresetSpells.ForceBarrageId,
+        PresetSpells.BreatheFireId, PresetSpells.FearId,
+        // Rank 3 (curriculum; auto-dropped below L5 where no rank-3 slots exist)
+        PresetSpells.FireballId, PresetSpells.FireballId,
+        PresetSpells.FireballId, PresetSpells.FireballId,
+    };
+
     /// <summary>
     /// Build "the Veteran": a Fighter (Sentinel) PC with a longsword, steel shield and chain mail.
     /// At level >= 2 the combo's scripted Free-Archetype choice (Bastion Dedication) is applied.
@@ -175,22 +193,27 @@ public static class PresetCharacters
     // ══════════════════════════ Rogue (Scout) ══════════════════════════
 
     /// <summary>
-    /// Build "the Scout": a Dex-based Rogue with a rapier (finesse) + leather armor. Sneak Attack,
-    /// Surprise Attack and the placeholder Thief racket are granted at level 1; Deny Advantage at 3;
-    /// Weapon Tricks at 5. Built at the target level directly (no Free-Archetype combo — the racket
-    /// and any archetype are pending design review), then class features resolve by level. Mirrors the
-    /// caster assembly (stats → components → Health → equipment → conditions → skills → features) plus
-    /// the WP4 dying wiring.
+    /// Build "the Scout": a Dex-based Thief-racket Rogue dual-wielding a rapier (finesse) and an
+    /// agile finesse shortsword off-hand, in leather armor. Locked combo: Thief subclass overlay +
+    /// Dual-Weapon Warrior Free Archetype line (L2 DWW Dedication → grants Double Slice; L4 Dual
+    /// Thrower). Built at level 1 then leveled via LevelUpApplicator so every scripted combo
+    /// choice takes effect at build — same seam as the Fighter presets.
     /// </summary>
     public static PF2eCharacter BuildScout(int level, int teamId = 1)
     {
         if (level < 1) level = 1;
 
+        PresetCombos.EnsureFeaturesRegistered();
+
+        var rogue = PresetClasses.BuildRogue();
+        var combo = PresetCombos.RogueThief;
+        ClassDefinition resolvedClass = rogue.ResolveSubclass(combo.Subclass);
+
         var modifiers = new ModifierStack();
         var stats = new PF2eCharacterStats(modifiers)
         {
-            CharacterClass = PresetClasses.BuildRogue(),
-            Level = level,
+            CharacterClass = resolvedClass,
+            Level = 1,
             Strength = 12, Dexterity = 18, Constitution = 12,
             Intelligence = 12, Wisdom = 14, Charisma = 12,
             BaseSpeedInFeet = 25,
@@ -207,7 +230,7 @@ public static class PresetCharacters
             Combat = new CombatState(),
             RuleEvents = new RuleEventBus(),
             Actions = new ActionResource(),
-            // Rapier (and shortsword) are Sword group — a data implication of the finesse loadout, not
+            // Rapier and shortsword are Sword group — a data implication of the finesse loadout, not
             // a combo choice. No rogue feature reads ChosenWeaponGroup; set for consistency/future use.
             BuildChoices = new CharacterBuildChoices { ChosenWeaponGroup = WeaponGroup.Sword },
         };
@@ -218,14 +241,14 @@ public static class PresetCharacters
         character.Health.Initialize();
         character.CooldownTracker = new AbilityCooldownTracker();
 
-        // --- Equipment (rapier + leather armor, no shield) ---
+        // --- Equipment (rapier main / agile finesse shortsword off-hand + leather armor) ---
         var appendages = new AppendageTracker(AppendageLayout.Humanoid());
         character.Appendages = appendages;
         var equipment = new EquipmentHolder(appendages, null!, character.Modifiers);
         character.Equipment = equipment;
         equipment.SetStartingLoadout(
             mainHand: FindWeapon("rapier"),
-            offHand: null,
+            offHand: FindWeapon("shortsword"),
             armor: FindArmor("leather-armor"));
         equipment.Initialize();
 
@@ -237,92 +260,130 @@ public static class PresetCharacters
 
         // --- Skills: Stealth (class auto) + Thievery + Intimidation (Demoralize chip) ---
         character.Skills = new SkillProficiencies();
-        character.Skills.ApplyClassSkills(stats.CharacterClass);
+        character.Skills.ApplyClassSkills(resolvedClass);
         character.Skills.SetProficiency(Skill.Thievery, ProficiencyLevel.Trained);
         character.Skills.SetProficiency(Skill.Intimidation, ProficiencyLevel.Trained);
 
-        // --- Features (rogue class features grant by level) ---
+        // --- Features (thief racket via overlay + rogue class features by level) ---
         var features = new FeatureHolder();
         character.Features = features;
         features.Initialize(character);
         features.ResolveAndGrantFeatures();
 
+        // --- Level up (replays the DWW free-archetype line) ---
+        if (level >= 2)
+        {
+            var choices = combo.ChoicesUpTo(level);
+            LevelUpApplicator.ApplyLevelUp(character, fromLevel: 1, toLevel: level, choices);
+            features.ResolveAndGrantFeatures();
+            character.Health.Initialize();
+        }
+
         return character;
     }
 
-    // ══════════════════════════ Caster placeholders ══════════════════════════
-    //
-    // PLACEHOLDER build — class combos pending design review. The Medic and Scholar exist to
-    // exercise the spell + skill-action layer. The assembly (Spellcasting component wiring, slot
-    // init, prepared loadout, skill proficiencies) is real; the class chassis and prepared spell
-    // list are throwaway. No doctrine / thesis / dedication is chosen.
+    // ══════════════════════════ Casters (Medic / Scholar) ══════════════════════════
 
     /// <summary>
-    /// Build "the Medic": a Cleric with a warhammer + chain shirt, Trained Medicine (for Battle
-    /// Medicine), and a placeholder prepared loadout (cantrips Divine Lance + Daze; 3×rank-1:
-    /// Heal, Heal, Fear).
+    /// Build "the Medic": the lone soldier-priest who held the outpost. Cleric with the
+    /// WARPRIEST doctrine overlay (light/medium armor + Shield Block at L1, Expert Fort,
+    /// martial @3), deity AVELINE (heal divine font, favored weapon scimitar, divine skill
+    /// Medicine, holy sanctification), and the MARSHAL Free Archetype line (L2 dedication:
+    /// fear-save aura + Diplomacy upgrade; L4 Inspiring Marshal Stance). Equipment: Aveline's
+    /// scimitar (the SAME
+    /// WeaponDefinition instance the favored-weapon checks compare against), steel shield
+    /// (Shield Block), breastplate (medium — what First Doctrine grants).
+    /// Prepared loadout: cantrips Divine Lance + Daze; rank 1 Heal ×2 + Fear. Heal casts are
+    /// paid from the divine font pool first (4 slots at the highest castable rank).
     /// </summary>
     public static PF2eCharacter BuildMedic(int level, int teamId = 1)
     {
+        var aveline = PresetDeities.Aveline;
         return BuildCaster(
             id: "the-medic",
             name: "the Medic",
-            classDef: PresetClasses.BuildCleric(),
+            baseClass: PresetClasses.BuildCleric(),
+            combo: PresetCombos.ClericWarpriest,
             level: level,
             teamId: teamId,
             strength: 12, dexterity: 12, constitution: 14,
             intelligence: 10, wisdom: 18, charisma: 12,
-            weaponSlug: "warhammer",
-            armorSlug: "chain-shirt",
-            cantripIds: new[] { PresetSpells.DivineLanceId, PresetSpells.DazeId },
-            preparedRank1: new[] { PresetSpells.HealId, PresetSpells.HealId, PresetSpells.FearId },
-            extraTrainedSkills: new[] { Skill.Medicine });
+            mainHand: aveline.FavoredWeapon,
+            armorSlug: "breastplate",
+            shieldSlug: "steel-shield",
+            deity: aveline,
+            cantripIds: MedicCantripIds,
+            preparedSpellIds: MedicPreparedSpellIds,
+            // Religion + Medicine come from the class list (Medicine = Aveline's divine skill).
+            // Diplomacy: Inspiring Marshal Stance prerequisite ("trained in Diplomacy") and the
+            // skill its stance check rolls — the Marshal Dedication upgrade path now lands on
+            // Diplomacy (trained → expert) instead of Intimidation.
+            extraTrainedSkills: new[] { Skill.Diplomacy });
     }
 
     /// <summary>
-    /// Build "the Scholar": a Wizard with a staff and no armor, and a placeholder prepared loadout
-    /// (cantrips Electric Arc + Ignition + Frostbite; 3×rank-1: Breathe Fire, Fear, Breathe Fire).
+    /// Build "the Scholar": a Wizard of the SCHOOL OF BATTLE MAGIC (Force Bolt focus spell,
+    /// curriculum cantrip, +1 curriculum-restricted slot per rank) with the SPELL BLENDING
+    /// thesis (static daily-prep config: 2 rank-1 slots → 1 slot at the highest castable rank,
+    /// applied once rank 2+ unlocks) and the MEDIC Free Archetype line (L2 Battle Medicine +
+    /// Medic Dedication → Medicine Expert; L4 Treat Condition). Staff, no armor.
+    /// Prepared loadout (curriculum-first so the school slots are legally filled; trimmed to
+    /// the level's actual slots): rank 1 Breathe Fire + Force Barrage (+ Breathe Fire + Fear
+    /// while pre-blending slots exist); rank 3 Fireball ×4 once unlocked at L5.
     /// </summary>
     public static PF2eCharacter BuildScholar(int level, int teamId = 1)
     {
         return BuildCaster(
             id: "the-scholar",
             name: "the Scholar",
-            classDef: PresetClasses.BuildWizard(),
+            baseClass: PresetClasses.BuildWizard(),
+            combo: PresetCombos.WizardBattleMagic,
             level: level,
             teamId: teamId,
             strength: 10, dexterity: 14, constitution: 12,
             intelligence: 18, wisdom: 12, charisma: 10,
-            weaponSlug: "staff",
+            mainHand: FindWeapon("staff"),
             armorSlug: null,
-            cantripIds: new[] { PresetSpells.ElectricArcId, PresetSpells.IgnitionId, PresetSpells.FrostbiteId },
-            preparedRank1: new[] { PresetSpells.BreatheFireId, PresetSpells.FearId, PresetSpells.BreatheFireId },
-            extraTrainedSkills: null);
+            shieldSlug: null,
+            deity: null,
+            cantripIds: ScholarCantripIds,
+            preparedSpellIds: ScholarPreparedSpellIds,
+            // Medicine trained at build: prerequisite for the L2 Battle Medicine skill feat and
+            // Medic Dedication (which upgrades it to Expert).
+            extraTrainedSkills: new[] { Skill.Medicine });
     }
 
     /// <summary>
-    /// Shared prepared-caster assembly. Mirrors the Fighter core (stats → components → Health →
-    /// equipment → conditions → skills → features) then adds the Spellcasting component, initializes
-    /// slots, learns the loadout into the personal spellbook, and prepares the rank-1 list.
-    /// KnowledgeType is Spellbook for both placeholders (robust reference-identity preparation) —
-    /// see PresetClasses for the rationale.
+    /// Shared prepared-caster assembly, now combo-driven. Mirrors the Fighter core
+    /// (stats → components → Health → equipment → conditions → skills) with two ordering rules
+    /// specific to casters:
+    ///  1. The Spellcasting component is created and slot-initialized BEFORE features resolve —
+    ///     WizardSchoolFeature (focus spell, curriculum cantrips, school slots) and
+    ///     HealingFontFeature (divine font pool) both write into it when granted.
+    ///  2. After the level-up replay, slots are refilled (fresh character at full), the divine
+    ///     font is re-synced to the final level/highest rank, the static Spell Blending trade is
+    ///     applied, and the prepared loadout is trimmed to the final slot layout and prepared.
     /// </summary>
     private static PF2eCharacter BuildCaster(
-        string id, string name, ClassDefinition classDef, int level, int teamId,
+        string id, string name, ClassDefinition baseClass, VariantComboDefinition combo,
+        int level, int teamId,
         int strength, int dexterity, int constitution, int intelligence, int wisdom, int charisma,
-        string weaponSlug, string? armorSlug,
-        string[] cantripIds, string[] preparedRank1, Skill[]? extraTrainedSkills)
+        WeaponDefinition? mainHand, string? armorSlug, string? shieldSlug, DeityDefinition? deity,
+        string[] cantripIds, string[] preparedSpellIds, Skill[]? extraTrainedSkills)
     {
         if (level < 1) level = 1;
 
+        PresetCombos.EnsureFeaturesRegistered();
         // Ensure the preset spells exist in SpellDatabase before we prepare from them.
         PresetSpells.EnsureRegistered();
+
+        ClassDefinition resolvedClass = baseClass.ResolveSubclass(combo.Subclass);
 
         var modifiers = new ModifierStack();
         var stats = new PF2eCharacterStats(modifiers)
         {
-            CharacterClass = classDef,
-            Level = level,
+            CharacterClass = resolvedClass,
+            Level = 1,
             Strength = strength,
             Dexterity = dexterity,
             Constitution = constitution,
@@ -343,10 +404,15 @@ public static class PresetCharacters
             Combat = new CombatState(),
             RuleEvents = new RuleEventBus(),
             Actions = new ActionResource(),
-            // Build choices must be non-null before features resolve. Deity is intentionally left
-            // unset — HealingFontFeature (Divine Font) no-ops without a deity, and choosing one is a
-            // combo decision pending design review. The placeholder casters read nothing else from it.
-            BuildChoices = new CharacterBuildChoices(),
+            // Build choices must exist BEFORE features resolve: HealingFontFeature reads the
+            // deity's FontSpellIdentity, favored-weapon proficiency reads GetFavoredWeapon(),
+            // and WarpriestThirdDoctrine compares strikes against it.
+            BuildChoices = new CharacterBuildChoices
+            {
+                ChosenWeaponGroup = mainHand?.Group ?? WeaponGroup.Sword,
+                Deity = deity,
+                Sanctification = deity?.AllowedSanctification ?? SanctificationType.None,
+            },
         };
 
         character.DefenseProfile = new DefenseProfile(character.RuleEvents);
@@ -355,13 +421,25 @@ public static class PresetCharacters
         character.Health.Initialize();
         character.CooldownTracker = new AbilityCooldownTracker();
 
-        // --- Equipment ---
+        // --- Equipment (optional shield: the Warpriest Medic blocks with a steel shield) ---
         var appendages = new AppendageTracker(AppendageLayout.Humanoid());
         character.Appendages = appendages;
-        var equipment = new EquipmentHolder(appendages, null!, character.Modifiers);
+
+        ShieldManager? shield = null;
+        if (shieldSlug != null)
+        {
+            var shieldDef = FindShield(shieldSlug);
+            if (shieldDef != null)
+            {
+                shield = new ShieldManager(character, appendages);
+                shield.SetEquippedShield(shieldDef);
+            }
+        }
+
+        var equipment = new EquipmentHolder(appendages, shield!, character.Modifiers);
         character.Equipment = equipment;
         equipment.SetStartingLoadout(
-            mainHand: FindWeapon(weaponSlug),
+            mainHand: mainHand,
             offHand: null,
             armor: armorSlug != null ? FindArmor(armorSlug) : null);
         equipment.Initialize();
@@ -374,39 +452,164 @@ public static class PresetCharacters
 
         // --- Skills ---
         character.Skills = new SkillProficiencies();
-        character.Skills.ApplyClassSkills(classDef);
+        character.Skills.ApplyClassSkills(resolvedClass);
         if (extraTrainedSkills != null)
             foreach (var skill in extraTrainedSkills)
                 character.Skills.SetProficiency(skill, ProficiencyLevel.Trained);
 
-        // --- Features ---
+        // --- Spellcasting BEFORE features: school/font features write into it on grant ---
+        var spellcasting = new Spellcasting(character, stats);
+        spellcasting.Sources.Add(resolvedClass.SpellcastingSource);
+        spellcasting.InitializeSlots();
+        character.Spellcasting = spellcasting;
+
+        // --- Features (class + subclass overlay grants at L1) ---
         var features = new FeatureHolder();
         character.Features = features;
         features.Initialize(character);
         features.ResolveAndGrantFeatures();
 
-        // --- Spellcasting: source + slots + prepared loadout ---
-        var spellcasting = new Spellcasting(character, stats);
-        spellcasting.Sources.Add(classDef.SpellcastingSource);
-        spellcasting.InitializeSlots();
-        character.Spellcasting = spellcasting;
-
-        foreach (var cantripId in cantripIds)
-            spellcasting.Cantrips.Add(PresetSpells.Get(cantripId));
-
-        // Learn each unique rank-1 spell into the spellbook, then prepare (duplicates allowed).
-        var prepared = new List<PF2e.Actions.SpellAction>();
-        var learned = new HashSet<string>();
-        foreach (var spellId in preparedRank1)
+        // --- Level up (replays the combo's scripted choices, incl. Free Archetype feats) ---
+        if (level >= 2)
         {
-            var spell = PresetSpells.Get(spellId);
-            if (learned.Add(spellId))
-                spellcasting.LearnSpell(spell);
-            prepared.Add(spell);
+            var choices = combo.ChoicesUpTo(level);
+            LevelUpApplicator.ApplyLevelUp(character, fromLevel: 1, toLevel: level, choices);
+            features.ResolveAndGrantFeatures();
+            character.Health.Initialize();
         }
-        spellcasting.PrepareSpells(prepared);
+
+        ApplySpellBlending(spellcasting);
+
+        // Fresh character: slots/focus at full for the final level, then sync the divine font
+        // (HealingFontFeature configured it at L1; count and rank scale with level).
+        spellcasting.RefillSlots();
+        spellcasting.RefillFocusPoints();
+        if (deity?.FontSpellIdentity != null && spellcasting.DivineFont != null)
+            spellcasting.DivineFont.Configure(deity.FontSpellIdentity, level, spellcasting.HighestSlotRank);
+
+        // --- Cantrips (school curriculum cantrips were already added by the feature) ---
+        foreach (var cantripId in cantripIds)
+        {
+            var cantrip = PresetSpells.Get(cantripId);
+            if (cantrip != null && !spellcasting.Cantrips.Contains(cantrip))
+                spellcasting.Cantrips.Add(cantrip);
+        }
+
+        // --- Learn + prepare the authored loadout, trimmed to the final slot layout ---
+        PrepareLoadout(spellcasting, preparedSpellIds);
 
         return character;
+    }
+
+    /// <summary>
+    /// Re-run the level-dependent daily-casting decisions on a LIVE preset member after an
+    /// in-place level-up — the same post-level steps <see cref="BuildCaster"/> runs on a fresh
+    /// build, so a member leveled in place ends mechanically identical to one built at that
+    /// level: the Spell Blending trade re-targets the new highest castable rank, the divine
+    /// font is re-sized per its level table (4 → 5 slots at L5) at the new highest rank, and
+    /// the authored loadout is re-learned/re-prepared into the new slot layout (the Scholar's
+    /// rank-3 Fireballs unlock at L5). No-op for non-casters. Does NOT refill slots or focus —
+    /// the caller's rest flow owns that (font Configure does reset its own pool, which the
+    /// nightly rest refills anyway).
+    /// </summary>
+    public static void RefreshDailyCasting(PF2eCharacter character)
+    {
+        var spellcasting = character.Spellcasting;
+        if (spellcasting == null)
+            return;
+
+        PresetSpells.EnsureRegistered();
+        ApplySpellBlending(spellcasting);
+
+        var deity = character.BuildChoices?.Deity;
+        if (deity?.FontSpellIdentity != null && spellcasting.DivineFont != null)
+        {
+            spellcasting.DivineFont.Configure(
+                deity.FontSpellIdentity, character.Stats?.Level ?? 1, spellcasting.HighestSlotRank);
+        }
+
+        string[]? loadout = character.Id switch
+        {
+            "the-medic" => MedicPreparedSpellIds,
+            "the-scholar" => ScholarPreparedSpellIds,
+            _ => null,
+        };
+        if (loadout != null)
+            PrepareLoadout(spellcasting, loadout);
+    }
+
+    /// <summary>
+    /// Spell Blending (static daily-prep decision, documented MVP simplification): trade
+    /// 2 rank-1 slots for 1 slot at the highest castable rank above 1 (bonus rank must be
+    /// ≤ sacrifice+2 and actually have base slots — both hold for ranks 2-3 at the L2-5
+    /// preset band). Below rank-2 access there is no legal slot trade. No-op without the
+    /// Spell Blending thesis. SetBlendTrades replaces any previous trade, so re-running at
+    /// a higher level re-targets the bonus rank instead of stacking.
+    /// </summary>
+    private static void ApplySpellBlending(Spellcasting spellcasting)
+    {
+        if (!spellcasting.HasSpellBlending)
+            return;
+
+        int bonusRank = 0;
+        for (int rank = 3; rank >= 2; rank--)
+        {
+            if (spellcasting.GetBaseMaxSlots(rank) > 0) { bonusRank = rank; break; }
+        }
+        if (bonusRank <= 0)
+            return;
+
+        var trades = new List<SpellBlendTrade>
+        {
+            new SpellBlendTrade { SacrificeRank = 1, BonusRank = bonusRank },
+        };
+        if (spellcasting.ValidateBlendTrades(trades))
+            spellcasting.SetBlendTrades(trades);
+    }
+
+    /// <summary>
+    /// Learn each unique authored spell (ranks the caster can actually cast) and prepare the
+    /// loadout, trimming overflow so PrepareSpells always succeeds: per rank, total preparations
+    /// are capped at max slots and NON-curriculum preparations at the unrestricted (non-school)
+    /// slots. Authored lists put curriculum spells first so school slots are filled greedily.
+    /// </summary>
+    private static void PrepareLoadout(Spellcasting spellcasting, string[] preparedSpellIds)
+    {
+        var school = spellcasting.SchoolSlotSchool;
+        var prepared = new List<PF2e.Actions.SpellAction>();
+        var totalByRank = new int[11];
+        var nonCurriculumByRank = new int[11];
+        var learned = new HashSet<string>();
+
+        foreach (var spellId in preparedSpellIds)
+        {
+            var spell = PresetSpells.Get(spellId);
+            if (spell?.Spell == null) continue;
+
+            int rank = spell.Spell.SpellLevel;
+            if (rank < 1 || rank > 10) continue;
+            if (rank > spellcasting.HighestSlotRank) continue; // not castable yet — skip learn too
+
+            if (learned.Add(spellId))
+                spellcasting.LearnSpell(spell);
+
+            if (totalByRank[rank] >= spellcasting.GetMaxSlots(rank))
+                continue; // rank full
+
+            bool isCurriculum = school != null && school.IsCurriculumSpell(spell);
+            if (!isCurriculum)
+            {
+                int unrestricted = spellcasting.GetMaxSlots(rank) - spellcasting.GetSchoolBonusSlots(rank);
+                if (nonCurriculumByRank[rank] >= unrestricted)
+                    continue; // only the school slot remains and this spell isn't curriculum
+                nonCurriculumByRank[rank]++;
+            }
+
+            totalByRank[rank]++;
+            prepared.Add(spell);
+        }
+
+        spellcasting.PrepareSpells(prepared);
     }
 
     private static WeaponDefinition? FindWeapon(string slug)

@@ -78,6 +78,12 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "AI"
 
+[node name="AutoReactToggle" type="CheckButton" parent="Panel/Col/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
+text = "Auto React"
+
 [node name="PreviewLabel" type="Label" parent="Panel/Col/Row"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)

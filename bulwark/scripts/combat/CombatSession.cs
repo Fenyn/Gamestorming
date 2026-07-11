@@ -40,6 +40,8 @@ public sealed class CombatSession
     private readonly List<ICharacter> _team1 = new();
     private readonly List<ICharacter> _team2 = new();
     private readonly HashSet<ICharacter> _aiControlled = new();
+    // Allies toggled to auto-use reactions (skip the prompt). Default is empty = everyone PROMPTS.
+    private readonly HashSet<ICharacter> _autoReactions = new();
 
     private ReactionManager _reactions = null!;
     private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
@@ -56,6 +58,15 @@ public sealed class CombatSession
     public event Action<BattleResult>? EncounterFinished;
     /// <summary>Fires whenever a new combatant's turn begins (player or AI) — for turn-order UI.</summary>
     public event Action? TurnChanged;
+
+    /// <summary>
+    /// Interactive reaction prompt seam, set by the scene. Given a UI view model, resolve true
+    /// (Use) or false (Skip) — typically by showing a modal panel and completing on click. While
+    /// the returned Task is pending the entire combat pipeline is suspended (the engine awaits it
+    /// through ReactionManager.PlayerReactionPolicy), including mid-enemy-turn prompts.
+    /// Null (headless / no UI wired) → auto-use, preserving the old behaviour safely.
+    /// </summary>
+    public Func<ReactionPromptView, Task<bool>>? ReactionPromptHandler { get; set; }
 
     // ---------------------------------------------------------------- Pass-throughs
     public ICharacter? CurrentActor => _turnManager?.CurrentTurn?.Character;
@@ -90,9 +101,9 @@ public sealed class CombatSession
         _reactions.Subscribe();
         // Player-team members (not toggled to AI) are "player controlled" for reaction decisions.
         ReactionManager.IsPlayerControlled = IsPlayerControlled;
-        // Auto-use policy: player reactors always spend their reaction (Shield Block / Reactive
-        // Strike). Interactive reaction prompts are a future feature; this is the safe stand-in.
-        ReactionManager.PlayerReactionPolicy = _ => true;
+        // Interactive reaction policy: prompt through the scene-supplied handler unless the ally
+        // is toggled to auto-reactions (or no UI handler is wired) — then auto-use.
+        ReactionManager.PlayerReactionPolicy = DecidePlayerReaction;
 
         // Forced movement (Shove push/follow, Tumble Through exit-move, push-strike riders) resolves
         // through ForcedMovementExecutor against this encounter's grid. Install() routes push-rider
@@ -316,6 +327,74 @@ public sealed class CombatSession
 
     public void RequestEndPlayerTurn()
         => _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+
+    // ---------------------------------------------------------------- Reaction prompts
+
+    /// <summary>True when this ally auto-uses reactions (no prompt). Default false = prompt.</summary>
+    public bool IsAutoReactions(ICharacter character) => _autoReactions.Contains(character);
+
+    public void SetAutoReactions(ICharacter character, bool autoUse)
+    {
+        if (autoUse) _autoReactions.Add(character);
+        else _autoReactions.Remove(character);
+    }
+
+    /// <summary>
+    /// The engine's PlayerReactionPolicy. Runs for player-controlled reactors only (AI-toggled
+    /// allies and enemies use the feature's AI decision inside ReactionManager). Auto-toggled
+    /// allies — or a session with no UI handler — auto-use, matching the pre-prompt behaviour.
+    /// Otherwise the handler shows a modal prompt; combat stays suspended on this Task, even when
+    /// the trigger is inside an ENEMY's turn (goblin strike → Shield Block offer).
+    /// </summary>
+    private Task<bool> DecidePlayerReaction(ReactionPromptContext ctx)
+    {
+        if (ReactionPromptHandler == null || _autoReactions.Contains(ctx.Reactor))
+            return Task.FromResult(true);
+
+        return ReactionPromptHandler(BuildPromptView(ctx));
+    }
+
+    /// <summary>Translate the engine context into a UI view model (no engine types cross to UI).</summary>
+    private static ReactionPromptView BuildPromptView(ReactionPromptContext ctx)
+    {
+        string description = ctx.PromptInfo.Description ?? "";
+
+        // Feature-supplied text is null for preview-style prompts (Shield Block, Reactive
+        // Strike) — synthesize the consequence text the panel shows.
+        if (string.IsNullOrEmpty(description))
+        {
+            switch (ctx.Trigger)
+            {
+                case ReactionTrigger.Damage:
+                {
+                    int incoming = ctx.Damage?.TotalDamage ?? 0;
+                    int hardness = ctx.Reactor.Equipment?.EquippedShield?.Hardness ?? 0;
+                    int absorbed = Math.Min(hardness, incoming);
+                    string who = ctx.ProtectedAlly != null ? $" for {ctx.ProtectedAlly.Name}" : "";
+                    description =
+                        $"Absorb {absorbed} of {incoming} incoming damage{who} — your shield takes the rest.";
+                    break;
+                }
+                case ReactionTrigger.Movement:
+                    description = $"Strike {ctx.Source?.Name ?? "the enemy"} as they leave your reach.";
+                    break;
+                case ReactionTrigger.Action:
+                    description = $"Strike {ctx.Source?.Name ?? "the enemy"} as they act within your reach.";
+                    break;
+                default:
+                    description = $"Spend your reaction to use {ctx.ReactionName}.";
+                    break;
+            }
+        }
+
+        return new ReactionPromptView
+        {
+            ReactorName = ctx.Reactor.Name,
+            PortraitKey = ctx.Reactor.Name,
+            ReactionName = ctx.ReactionName,
+            Description = description,
+        };
+    }
 
     // ---------------------------------------------------------------- Helpers
 

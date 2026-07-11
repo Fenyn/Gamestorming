@@ -30,6 +30,7 @@ public partial class CombatScene : Node3D
     private CombatLogPanel _log = null!;
     private TurnOrderBar _turnBar = null!;
     private VictoryBanner _victoryBanner = null!;
+    private ReactionPromptPanel _reactionPrompt = null!;
 
     private CombatSession _session = null!;
     private PlayerTurnController _controller = null!;
@@ -38,6 +39,12 @@ public partial class CombatScene : Node3D
     private readonly Dictionary<int, UnitVisual3D> _visuals = new();
     private int _ratIndex;
     private System.Action<CombatLogEntry>? _logHandler;
+
+    /// <summary>
+    /// Raised once when the encounter result is known (relays the session's EncounterFinished).
+    /// The scene assembler forwards this to GameState.CompleteEncounter for squad attrition/XP.
+    /// </summary>
+    public event System.Action<PF2e.Core.BattleResult>? EncounterFinished;
 
     public override void _Ready()
     {
@@ -51,6 +58,7 @@ public partial class CombatScene : Node3D
         _log = GetNode<CombatLogPanel>("%CombatLog");
         _actionBar = GetNode<ActionBar>("%ActionBar");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
+        _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
     }
 
     /// <summary>Entry point: hand an assembled encounter and it plays out.</summary>
@@ -65,6 +73,9 @@ public partial class CombatScene : Node3D
         SpawnUnits();
 
         _session.SetPresenter(_presenter.Present);
+        // Interactive reaction prompts: the session suspends combat on this Task until the modal
+        // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
+        _session.ReactionPromptHandler = view => _reactionPrompt.ShowAsync(view);
         _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, OnTileClicked, OnTileHovered, OnCancel);
 
         WireControllerToView();
@@ -136,6 +147,11 @@ public partial class CombatScene : Node3D
             var actor = _session.CurrentActor;
             if (actor != null) _session.SetAiToggle(actor, on);
         };
+        _actionBar.AutoReactToggled += on =>
+        {
+            var actor = _session.CurrentActor;
+            if (actor != null) _session.SetAutoReactions(actor, on);
+        };
     }
 
     private void WireSession()
@@ -145,6 +161,7 @@ public partial class CombatScene : Node3D
             _controller.BeginTurn(character);
             _actionBar.SetInteractable(true);
             _actionBar.SetAiToggle(_session.IsAiToggled(character));
+            _actionBar.SetAutoReactToggle(_session.IsAutoReactions(character));
         };
         _session.PlayerTurnEnded += () =>
         {
@@ -204,6 +221,8 @@ public partial class CombatScene : Node3D
             : new Color(1f, 0.5f, 0.5f);
         _victoryBanner.ShowResult(text, color);
         _actionBar.SetInteractable(false);
+
+        EncounterFinished?.Invoke(result);
     }
 
     private void OnLogEntry(CombatLogEntry entry)

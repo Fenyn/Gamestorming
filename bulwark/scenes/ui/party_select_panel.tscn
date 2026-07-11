@@ -1,0 +1,97 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/PartySelectPanel.cs" id="1_ptysl"]
+
+[node name="PartySelectPanel" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_ptysl")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Center" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Panel" type="PanelContainer" parent="Root/Center"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+
+[node name="Col" type="VBoxContainer" parent="Root/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Head out?"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="LeaderLabel" type="Label" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "The Veteran leads."
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+
+[node name="PickLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "Choose up to 3 companions:"
+
+[node name="Companion0" type="Button" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Companion1" type="Button" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Companion2" type="Button" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="ConfirmRow" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="Root/Center/Panel/Col/ConfirmRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 36)
+layout_mode = 2
+text = "Travel (30 min)"
+
+[node name="CancelButton" type="Button" parent="Root/Center/Panel/Col/ConfirmRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "Stay"
+
+[node name="HintLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "Esc = stay"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
+theme_override_font_sizes/font_size = 11

@@ -4,12 +4,15 @@ using Bulwark.Data;
 
 namespace Bulwark.Cozy;
 
-/// <summary>The four tool slots the player cycles through with Tab.</summary>
+/// <summary>The tool slots the player cycles through with Tab. Axe and Pick (M3) gate territory
+/// resource nodes; they have no farm action at the outpost.</summary>
 public enum ToolKind
 {
     Hoe,
     WateringCan,
     Seeds,
+    Axe,
+    Pick,
     Hand,
 }
 
@@ -23,7 +26,7 @@ public sealed class ToolBelt
 {
     private static readonly ToolKind[] Slots =
     {
-        ToolKind.Hoe, ToolKind.WateringCan, ToolKind.Seeds, ToolKind.Hand,
+        ToolKind.Hoe, ToolKind.WateringCan, ToolKind.Seeds, ToolKind.Axe, ToolKind.Pick, ToolKind.Hand,
     };
 
     private int _slot;
@@ -41,6 +44,8 @@ public sealed class ToolBelt
         ToolKind.Hoe => "Hoe",
         ToolKind.WateringCan => "Watering Can",
         ToolKind.Seeds => "Seeds",
+        ToolKind.Axe => "Axe",
+        ToolKind.Pick => "Pick",
         ToolKind.Hand => "Hand",
         _ => Current.ToString(),
     };

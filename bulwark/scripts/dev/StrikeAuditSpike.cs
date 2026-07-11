@@ -44,7 +44,7 @@ public partial class StrikeAuditSpike : Node
             return;
         }
 
-        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => applyDamage();
+        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => { applyDamage(); return System.Threading.Tasks.Task.CompletedTask; };
         ReactionEvents.OnDamageReactionCheck += damageHandler;
         StrikeResolver.OnStrikeResolved += OnStrike;
 

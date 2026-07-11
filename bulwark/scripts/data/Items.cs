@@ -80,11 +80,19 @@ public static class Items
     {
         Id = "stone", DisplayName = "Stone", Category = ItemCategory.Resource,
     };
+    public static readonly ItemDefinition Herb = new()
+    {
+        Id = "herb", DisplayName = "Herbs", Category = ItemCategory.Resource,
+    };
+    public static readonly ItemDefinition Berries = new()
+    {
+        Id = "berries", DisplayName = "Berries", Category = ItemCategory.Resource,
+    };
 
     private static readonly Dictionary<string, ItemDefinition> ById = BuildIndex(
         TurnipSeed, PotatoSeed, WheatSeed, TomatoSeed,
         Turnip, Potato, Wheat, Tomato,
-        Wood, Stone);
+        Wood, Stone, Herb, Berries);
 
     /// <summary>Every defined item.</summary>
     public static IReadOnlyCollection<ItemDefinition> All => ById.Values;

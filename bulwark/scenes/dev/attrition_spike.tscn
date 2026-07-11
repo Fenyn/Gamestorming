@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/AttritionSpike.cs" id="1_attri"]
+
+[node name="AttritionSpike" type="Node"]
+script = ExtResource("1_attri")

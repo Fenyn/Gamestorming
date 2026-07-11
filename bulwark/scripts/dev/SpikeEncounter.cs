@@ -61,7 +61,7 @@ public partial class SpikeEncounter : Node
         // ReactionEvents.DeliverDamage throws if no OnDamageReactionCheck subscriber is present.
         // This is a pass-through stand-in until M1 adds a real reaction-prompt system (Shield
         // Block, etc.) — it just applies damage unconditionally.
-        ReactionEvents.OnDamageReactionCheck += (src, tgt, result, applyDamage) => applyDamage();
+        ReactionEvents.OnDamageReactionCheck += (src, tgt, result, applyDamage) => { applyDamage(); return System.Threading.Tasks.Task.CompletedTask; };
 
         var grid = BattleGrid.CreateFlat(8, 8);
         var runner = new BattleRunner();

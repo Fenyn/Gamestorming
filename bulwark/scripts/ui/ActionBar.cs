@@ -18,6 +18,8 @@ public partial class ActionBar : Control
     public event Action? RaiseShieldPressed;
     public event Action? EndTurnPressed;
     public event Action<bool>? AiToggled;
+    /// <summary>Raised when the per-ally auto-reactions toggle changes (true = auto-use, no prompt).</summary>
+    public event Action<bool>? AutoReactToggled;
     /// <summary>Raised with (spellId, variantIndex) when a spell chip is pressed.</summary>
     public event Action<string, int>? SpellChipPressed;
     /// <summary>Raised with the skill action id when a skill chip is pressed.</summary>
@@ -34,6 +36,7 @@ public partial class ActionBar : Control
     private Button _shieldBtn = null!;
     private Button _endBtn = null!;
     private CheckButton _aiToggle = null!;
+    private CheckButton _autoReactToggle = null!;
     private Label _previewLabel = null!;
     private HFlowContainer _chipRow = null!;
 
@@ -52,6 +55,7 @@ public partial class ActionBar : Control
         _shieldBtn = GetNode<Button>("%ShieldButton");
         _endBtn = GetNode<Button>("%EndButton");
         _aiToggle = GetNode<CheckButton>("%AiToggle");
+        _autoReactToggle = GetNode<CheckButton>("%AutoReactToggle");
         _previewLabel = GetNode<Label>("%PreviewLabel");
         _chipRow = GetNode<HFlowContainer>("%ChipRow");
 
@@ -61,6 +65,7 @@ public partial class ActionBar : Control
         _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
         _endBtn.Pressed += () => EndTurnPressed?.Invoke();
         _aiToggle.Toggled += on => { if (!_suppressToggle) AiToggled?.Invoke(on); };
+        _autoReactToggle.Toggled += on => { if (!_suppressToggle) AutoReactToggled?.Invoke(on); };
     }
 
     /// <summary>Enable/disable the whole bar (disabled while an AI or enemy turn is running).</summary>
@@ -74,6 +79,13 @@ public partial class ActionBar : Control
     {
         _suppressToggle = true;
         _aiToggle.ButtonPressed = on;
+        _suppressToggle = false;
+    }
+
+    public void SetAutoReactToggle(bool on)
+    {
+        _suppressToggle = true;
+        _autoReactToggle.ButtonPressed = on;
         _suppressToggle = false;
     }
 

@@ -1,4 +1,5 @@
 using System.Linq;
+using Bulwark.Territory;
 using Godot;
 
 namespace Bulwark.Cozy;
@@ -12,7 +13,10 @@ namespace Bulwark.Cozy;
 public static class SaveState
 {
     /// <summary>Snapshot the current state of all cozy systems into a serializable DTO.</summary>
-    public static SaveData Capture(DayClock clock, Inventory inventory, FarmSystem farm, bool collapsedLastNight)
+    public static SaveData Capture(
+        DayClock clock, Inventory inventory, FarmSystem farm, bool collapsedLastNight,
+        SquadRoster? squad = null, TreatWoundsSystem? treatWounds = null,
+        TerritorySystem? territory = null)
     {
         return new SaveData
         {
@@ -34,6 +38,9 @@ public static class SaveState
                 WateredToday = p.WateredToday,
             }).ToList(),
             Flags = new FlagsDto { CollapsedLastNight = collapsedLastNight },
+            Squad = squad?.CaptureMembers(),
+            TreatWoundsImmunities = treatWounds?.CaptureImmunities(),
+            Territory = territory?.CaptureState(),
         };
     }
 
@@ -41,7 +48,10 @@ public static class SaveState
     /// Overwrite the live systems from a DTO. Returns the persisted CollapsedLastNight flag so the
     /// caller can restore it onto its own state.
     /// </summary>
-    public static bool Restore(SaveData data, DayClock clock, Inventory inventory, FarmSystem farm)
+    public static bool Restore(
+        SaveData data, DayClock clock, Inventory inventory, FarmSystem farm,
+        SquadRoster? squad = null, TreatWoundsSystem? treatWounds = null,
+        TerritorySystem? territory = null)
     {
         clock.RestoreState(data.Clock.MinuteOfDay, data.Clock.Day, data.Clock.Season, data.Clock.Year);
 
@@ -55,6 +65,16 @@ public static class SaveState
             DaysGrown = p.DaysGrown,
             WateredToday = p.WateredToday,
         }));
+
+        // v1 saves carry no squad section — the freshly built presets stand as-is.
+        if (squad != null && data.Squad != null)
+            squad.RestoreMembers(data.Squad);
+
+        // Additive field: null in pre-Treat-Wounds saves — restore clears to "no one immune".
+        treatWounds?.RestoreImmunities(data.TreatWoundsImmunities);
+
+        // Additive field: null in pre-M3 saves — restore clears to fresh territory state.
+        territory?.RestoreState(data.Territory);
 
         return data.Flags.CollapsedLastNight;
     }

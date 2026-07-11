@@ -54,7 +54,7 @@ public partial class AiStackSpike : Node
         Rng.Seed(1234);
 
         // Pass-through reaction handler (StrikeResolver.DeliverDamage throws without one).
-        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => applyDamage();
+        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => { applyDamage(); return System.Threading.Tasks.Task.CompletedTask; };
         ReactionEvents.OnDamageReactionCheck += damageHandler;
 
         // Observe engine info logs to confirm the goblins ran the planner. DataManager already

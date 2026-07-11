@@ -19,6 +19,7 @@ public partial class CozyHud : CanvasLayer
     private Label _inventory = null!;
     private ColorRect _fade = null!;
     private Label _toast = null!;
+    private Tween? _toastTween;
 
     public override void _Ready()
     {
@@ -66,12 +67,28 @@ public partial class CozyHud : CanvasLayer
     }
 
     /// <summary>
+    /// Flash a transient center-screen toast (travel notices, harvest results, encounter starts,
+    /// defeat wake summaries). A newer toast replaces a still-visible one.
+    /// </summary>
+    public void ShowToast(string text, float seconds = 2.5f)
+    {
+        _toastTween?.Kill();
+        _toast.Text = text;
+        _toast.Visible = true;
+
+        _toastTween = CreateTween();
+        _toastTween.TweenInterval(seconds);
+        _toastTween.TweenCallback(Callable.From(() => _toast.Visible = false));
+    }
+
+    /// <summary>
     /// Fade to black, run <paramref name="atBlack"/> at the darkest point (the caller mutates state
     /// there — e.g. GameState.Sleep), then fade back in while flashing a wake toast whose text is
     /// pulled after the mutation via <paramref name="wakeText"/>. Purely presentational.
     /// </summary>
     public void PlaySleepTransition(Action atBlack, Func<string> wakeText)
     {
+        _toastTween?.Kill(); // a lingering ShowToast must not hide the wake text mid-flash
         _toast.Visible = false;
 
         Tween tween = CreateTween();

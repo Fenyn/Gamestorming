@@ -155,12 +155,13 @@ public sealed class PlayerActionExecutor
 
             // Publish the AoO/Reactive-Strike check at the tile-exit point (the FROM tile the reactor
             // threatens), mirroring AITurnExecutor.ExecuteMove. Gated on an active subscriber so a
-            // stride with no ReactionManager present does not throw. Resolution is synchronous, so a
-            // reaction that drops the mover (setting args.Cancelled) has resolved on return.
+            // stride with no ReactionManager present does not throw. Awaited: an interactive reaction
+            // prompt may suspend the walk here; a reaction that drops the mover (setting
+            // args.Cancelled) has fully resolved when the await completes.
             if (triggersReactions && !args.Cancelled
                 && ReactionEvents.HasMovementReactionSubscriber)
             {
-                ReactionEvents.CheckMovementReactions(args, () => { });
+                await ReactionEvents.CheckMovementReactions(args);
             }
 
             if (args.Cancelled)
@@ -224,9 +225,10 @@ public sealed class PlayerActionExecutor
         if (character.Actions == null || !character.Actions.TryConsumeActions(1))
             return false;
 
-        // StrikeResolver runs its callbacks synchronously, so strikeCtx is fully resolved on return.
+        // Awaited: the strike Task completes when all reactions (possibly an interactive prompt,
+        // e.g. the defender's Shield Block) have resolved, so strikeCtx is fully resolved after.
         StrikeContext? strikeCtx = null;
-        StrikeResolver.ExecuteStrike(character, target, sourceAction: null,
+        await StrikeResolver.ExecuteStrike(character, target, sourceAction: null,
             onComplete: ctx => strikeCtx = ctx);
 
         if (strikeCtx == null) return true;
@@ -446,6 +448,7 @@ public sealed class PlayerActionExecutor
             Description = $"{caster.Name} casts {spell.ActionName}"
         });
 
+        // Awaited ExecuteAsync variants: a save-reaction / Shield Block prompt may suspend the cast.
         SpellContext? resolved = null;
         void Capture(SpellCompletionEvent e) { if (e.Caster == caster) resolved = e.Context; }
         SpellCastAction.OnSpellResolved += Capture;
@@ -454,19 +457,19 @@ public sealed class PlayerActionExecutor
             switch (kind)
             {
                 case TargetingKind.SelfArea:
-                    spell.Execute(caster, null); // self-centered emanation resolves inside Execute
+                    await spell.ExecuteAsync(caster, null); // self-centered emanation resolves inside
                     break;
 
                 case TargetingKind.MultiEnemy:
-                    spell.ExecuteMultiTarget(caster, BuildMultiTargetList(caster, spell, variant, primary));
+                    await spell.ExecuteMultiTargetAsync(caster, BuildMultiTargetList(caster, spell, variant, primary));
                     break;
 
                 case TargetingKind.AreaAim:
-                    spell.ExecuteArea(caster, BuildAreaResult(caster, spell, aim!.Value));
+                    await spell.ExecuteAreaAsync(caster, BuildAreaResult(caster, spell, aim!.Value));
                     break;
 
                 default: // SingleEnemy / SingleAlly
-                    spell.Execute(caster, primary);
+                    await spell.ExecuteAsync(caster, primary);
                     break;
             }
         }
@@ -828,7 +831,9 @@ public sealed class PlayerActionExecutor
         var actorFrom = actor.GridPosition;
         var targetFrom = target.GridPosition;
 
-        action.Execute(actor, target);
+        // Awaited: manipulate-trait maneuvers can provoke a (promptable) Reactive Strike, and Trip
+        // crit damage can offer the target a Shield Block.
+        await action.ExecuteAsync(actor, target);
 
         await _runner.Emit(new BattleEvent
         {
@@ -883,7 +888,7 @@ public sealed class PlayerActionExecutor
         var action = MakeSkillAction(actionId);
         if (action == null || !action.CanPerform(actor)) return false;
 
-        action.Execute(actor);
+        await action.ExecuteAsync(actor);
 
         await _runner.Emit(new BattleEvent
         {
@@ -939,7 +944,8 @@ public sealed class PlayerActionExecutor
         }
 
         int preHp = target.Health.CurrentHP;
-        action.Execute(actor, target); // consumes 2 actions, marks Flourish, strikes if in reach
+        // Consumes 2 actions, marks Flourish, strikes if in reach. Awaited: the strike may prompt.
+        await action.ExecuteAsync(actor, target);
 
         await _runner.Emit(new BattleEvent
         {

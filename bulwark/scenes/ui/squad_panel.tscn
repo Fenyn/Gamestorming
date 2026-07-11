@@ -1,0 +1,310 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/SquadPanel.cs" id="1_sqpn"]
+
+[node name="SquadPanel" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_sqpn")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Center" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Panel" type="PanelContainer" parent="Root/Center"]
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+
+[node name="Col" type="VBoxContainer" parent="Root/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "Squad"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="Row0" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Name0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Hp0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Cond0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+
+[node name="Immune0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+visible = false
+text = ""
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+
+[node name="Treat0" type="Button" parent="Root/Center/Panel/Col/Row0"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+toggle_mode = true
+text = "Treat"
+
+[node name="Row1" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Name1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Hp1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Cond1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+
+[node name="Immune1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+visible = false
+text = ""
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+
+[node name="Treat1" type="Button" parent="Root/Center/Panel/Col/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+toggle_mode = true
+text = "Treat"
+
+[node name="Row2" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Name2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Hp2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Cond2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+
+[node name="Immune2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+visible = false
+text = ""
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+
+[node name="Treat2" type="Button" parent="Root/Center/Panel/Col/Row2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+toggle_mode = true
+text = "Treat"
+
+[node name="Row3" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Name3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Hp3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "—"
+
+[node name="Cond3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+
+[node name="Immune3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+visible = false
+text = ""
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+
+[node name="Treat3" type="Button" parent="Root/Center/Panel/Col/Row3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+toggle_mode = true
+text = "Treat"
+
+[node name="Sep" type="HSeparator" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+
+[node name="FlowSection" type="VBoxContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="FlowLabel" type="Label" parent="Root/Center/Panel/Col/FlowSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+
+[node name="HealerRow" type="HBoxContainer" parent="Root/Center/Panel/Col/FlowSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Healer0" type="Button" parent="Root/Center/Panel/Col/FlowSection/HealerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Healer1" type="Button" parent="Root/Center/Panel/Col/FlowSection/HealerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Healer2" type="Button" parent="Root/Center/Panel/Col/FlowSection/HealerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Healer3" type="Button" parent="Root/Center/Panel/Col/FlowSection/HealerRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="DcRow" type="HBoxContainer" parent="Root/Center/Panel/Col/FlowSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Dc0" type="Button" parent="Root/Center/Panel/Col/FlowSection/DcRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Dc1" type="Button" parent="Root/Center/Panel/Col/FlowSection/DcRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Dc2" type="Button" parent="Root/Center/Panel/Col/FlowSection/DcRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="Dc3" type="Button" parent="Root/Center/Panel/Col/FlowSection/DcRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+toggle_mode = true
+text = "—"
+
+[node name="ConfirmRow" type="HBoxContainer" parent="Root/Center/Panel/Col/FlowSection"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="Root/Center/Panel/Col/FlowSection/ConfirmRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+text = "Treat (10 min)"
+
+[node name="CancelButton" type="Button" parent="Root/Center/Panel/Col/FlowSection/ConfirmRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "Cancel"
+
+[node name="ResultLabel" type="Label" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(720, 0)
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+
+[node name="HintLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "C / Esc = close"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
+theme_override_font_sizes/font_size = 11

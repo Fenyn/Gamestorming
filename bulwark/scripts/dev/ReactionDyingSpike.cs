@@ -47,9 +47,9 @@ public partial class ReactionDyingSpike : Node
             return;
         }
 
-        Check1_ShieldBlock(data);
-        Check2_ReactiveStrike(data);
-        Check3_DyingNotDead(data);
+        await Check1_ShieldBlock(data);
+        await Check2_ReactiveStrike(data);
+        await Check3_DyingNotDead(data);
         await Check4_DefeatWhenAllDown(data);
         await Check5_ShoveDisplaces(data);
         Check6_ForcedMovementInstalled(data);
@@ -63,7 +63,7 @@ public partial class ReactionDyingSpike : Node
 
     // ── (1) Shield Block reduces damage by hardness + consumes the reaction ──
 
-    private void Check1_ShieldBlock(DataManager data)
+    private async Task Check1_ShieldBlock(DataManager data)
     {
         GD.Print("-------------------- (1) Shield Block --------------------");
         var raised = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
@@ -85,10 +85,10 @@ public partial class ReactionDyingSpike : Node
             int raisedHpBefore = raised.Health.CurrentHP;
             int controlHpBefore = control.Health.CurrentHP;
 
-            // Identical fixed physical hit to each. Auto-use policy fires Shield Block for the raised
-            // veteran; the control (shield down) cannot block.
-            ReactionEvents.DeliverDamage(goblin, raised, Physical(10));
-            ReactionEvents.DeliverDamage(goblin, control, Physical(10));
+            // Identical fixed physical hit to each. With no prompt handler wired, the session's
+            // policy auto-uses Shield Block for the raised veteran; the control cannot block.
+            await ReactionEvents.DeliverDamage(goblin, raised, Physical(10));
+            await ReactionEvents.DeliverDamage(goblin, control, Physical(10));
 
             int raisedTaken = raisedHpBefore - raised.Health.CurrentHP;
             int controlTaken = controlHpBefore - control.Health.CurrentHP;
@@ -100,7 +100,7 @@ public partial class ReactionDyingSpike : Node
 
             // Second hit same round: reaction spent → no block, full damage.
             int mid = raised.Health.CurrentHP;
-            ReactionEvents.DeliverDamage(goblin, raised, Physical(10));
+            await ReactionEvents.DeliverDamage(goblin, raised, Physical(10));
             Check("(1) second hit unblocked (reaction spent)", mid - raised.Health.CurrentHP == 10);
         }
         finally { session.Teardown(); }
@@ -108,7 +108,7 @@ public partial class ReactionDyingSpike : Node
 
     // ── (2) Reactive Strike provokes when a foe strides out of reach ──
 
-    private void Check2_ReactiveStrike(DataManager data)
+    private async Task Check2_ReactiveStrike(DataManager data)
     {
         GD.Print("-------------------- (2) Reactive Strike --------------------");
         var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
@@ -136,7 +136,7 @@ public partial class ReactionDyingSpike : Node
                 var args = new BeforeMoveEventArgs(goblin, from, to, 2, 10);
                 MovementEvents.FireBeforeMove(args);
                 if (ReactionEvents.HasMovementReactionSubscriber)
-                    ReactionEvents.CheckMovementReactions(args, () => { });
+                    await ReactionEvents.CheckMovementReactions(args);
 
                 Check("(2) reaction was available before the stride", reactionBefore);
                 Check("(2) striding out of reach provoked a Reactive Strike", strikesAtGoblin >= 1);
@@ -150,7 +150,7 @@ public partial class ReactionDyingSpike : Node
 
     // ── (3) A PC dropped to 0 HP is Dying + Unconscious, not dead; the ally stays up ──
 
-    private void Check3_DyingNotDead(DataManager data)
+    private async Task Check3_DyingNotDead(DataManager data)
     {
         GD.Print("-------------------- (3) Dying, not dead --------------------");
         var down = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
@@ -163,7 +163,7 @@ public partial class ReactionDyingSpike : Node
         try
         {
             // Non-critical hit that drops the veteran straight to 0 HP (shield down → full damage).
-            ReactionEvents.DeliverDamage(goblin, down,
+            await ReactionEvents.DeliverDamage(goblin, down,
                 new DamageResult { TotalDamage = down.Health.MaxHP, DamageType = DamageType.Slashing });
 
             Check("(3) downed PC is at 0 HP", down.Health.CurrentHP == 0);

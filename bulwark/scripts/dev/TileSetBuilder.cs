@@ -30,6 +30,10 @@ public partial class TileSetBuilder : Node
 {
     private const int Cell = 48;
 
+    // A1 liquid terrains carry a 3-frame TileSetAtlasSource animation (frames 12 tiles apart). Set
+    // false to fall back to static frame-0 liquid tiles if animation + terrain painting ever conflict.
+    private const bool EnableLiquidAnim = true;
+
     private enum Collide { None, OpaqueRightHalf, OpaqueAll }
     private enum WallColl { None, BottomHalf, All }
 
@@ -55,6 +59,44 @@ public partial class TileSetBuilder : Node
         public int SeasonPair = 0;
     }
 
+    // --- PRE-EXPANDED sources (Winlu Godot-native sheets, no MZ assembly) --------------------------
+    // A vendored sheet already laid out in Godot terrain blocks. The builder registers it verbatim as
+    // a TileSetAtlasSource and wires peering straight from AutotileExpander's pre-expanded tables. Each
+    // source carries one or more terrain-block groups (a rectangular family of same-kind blocks) plus
+    // optional plain-tile regions (misc / animation-band art with no terrain).
+
+    private enum PreKind { Floor, WallSide, WallTop }
+
+    /// <summary>3-frame tile animation for A1 liquids (frames sit <see cref="ColStride"/> tiles apart).</summary>
+    private sealed class PreAnim { public required int Frames; public required int ColStride; public required float FrameDuration; }
+
+    /// <summary>A rectangular family of pre-expanded terrain blocks, all the same kind / terrain set.
+    /// Blocks are enumerated in <see cref="BlockOrigins"/> order — that order drives terrain-id
+    /// allocation within the set (so grass/dirt stay at index 0/1).</summary>
+    private sealed class PreGroup
+    {
+        public required PreKind Kind;
+        public required string SetKey;
+        public required string NamePrefix;
+        public required List<Vector2I> BlockOrigins;   // top-left tile of each block's used region
+        public Func<int, bool>? Collides = null;       // per-block-index -> full-square collision
+        public bool FarmableSoil = false;              // farmable on blocks whose fill tile reads as soil
+        public bool SkipEmpty = false;                 // skip a block whose fill tile is fully transparent
+        public int RuinPair = 0;                       // ruin_pair custom-data on every created tile
+        public PreAnim? Anim = null;                   // floor liquid animation (null = static)
+    }
+
+    /// <summary>A tile-space rectangle promoted to plain tiles (create on non-empty cells, no terrain).</summary>
+    private sealed class PrePlain { public required int X; public required int Y; public required int W; public required int H; }
+
+    private sealed class PreExpSrc
+    {
+        public required int Id;
+        public required string Res;
+        public required List<PreGroup> Groups;
+        public List<PrePlain> Plain = new();
+    }
+
     private sealed class TerrainSetDef
     {
         public required string Key;
@@ -72,6 +114,8 @@ public partial class TileSetBuilder : Node
         public required List<TerrainSetDef> Sets;   // ordered by Index
         public required List<PlainSrc> Plain;       // ordered
         public required List<GenAtlas> Gen;         // ordered — drives terrain creation order
+        public List<PreExpSrc> PreExp = new();      // ordered — drives terrain creation order per set
+        public bool Rebaseline = false;             // COMPAT: allow sources removed/added this run
     }
 
     private const string E = "res://assets/tilesets/winlu_exterior/";
@@ -94,6 +138,11 @@ public partial class TileSetBuilder : Node
     private static Output BuildOutpost() => new()
     {
         OutPath = "res://assets/tilesets/outpost_tileset.tres",
+        // The outpost switched its ground/water/building/wall terrains from MZ-expanded atlases to
+        // Winlu's pre-expanded Godot-native sheets this run: sources 16/17/18/40/41/42/50/51/90/91/
+        // 99/100/101/120/121/122/123/125/172/173 are retired and 200-216 added. COMPAT is rebaselined
+        // for this output (surviving pre-existing sources are still checked strictly).
+        Rebaseline = true,
         Layers = new()
         {
             new() { Name = "farmable", Type = Variant.Type.Bool },
@@ -109,28 +158,148 @@ public partial class TileSetBuilder : Node
             new() { Key = "walls_red",     Index = 4, Mode = TileSet.TerrainMode.Sides,           Name = "Buildings (A3 red)" },
             new() { Key = "winter_ground", Index = 5, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Ground (winter)" },
             new() { Key = "winter_walls",  Index = 6, Mode = TileSet.TerrainMode.Sides,           Name = "Buildings (winter)" },
+            new() { Key = "a4_walls",      Index = 7, Mode = TileSet.TerrainMode.Sides,           Name = "Walls (A4)" },
+            new() { Key = "a4_walltops",   Index = 8, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Wall tops (A4)" },
         },
         Plain = OutpostPlain(),
         Gen = new()
         {
-            // set 0 (order preserved: ground_a2, ground_a2_2, water_a1)
-            new() { AtlasKey = "ground_a2",   SourceId = 40, TerrainSetKey = "ground" },
-            new() { AtlasKey = "ground_a2_2", SourceId = 41, TerrainSetKey = "ground" },
-            new() { AtlasKey = "water_a1",    SourceId = 42, TerrainSetKey = "ground" },
-            // colorway ground (sets 1,2)
-            new() { AtlasKey = "ground_a2_green", SourceId = 120, TerrainSetKey = "green" },
-            new() { AtlasKey = "ground_a2_red",   SourceId = 121, TerrainSetKey = "red" },
-            new() { AtlasKey = "ground_a2_2_red", SourceId = 122, TerrainSetKey = "red" },
-            // A3 building walls (sets 3,4) + destroyed pairs (plain)
-            new() { AtlasKey = "wall_a3",             SourceId = 123, TerrainSetKey = "walls",     Wall = WallColl.BottomHalf, RuinPair = 125 },
+            // Red A3 building walls (set 4) + its destroyed ruin counterpart (plain). Base A3 (set 3)
+            // is now the pre-expanded source 204; base ground/water (set 0) and colorways (sets 1,2)
+            // are pre-expanded sources 200-203 / 210-216 (see PreExp below).
             new() { AtlasKey = "wall_a3_red",         SourceId = 124, TerrainSetKey = "walls_red", Wall = WallColl.BottomHalf, RuinPair = 126 },
-            new() { AtlasKey = "wall_a3_destroyed",     SourceId = 125, TerrainSetKey = "", RuinPair = 123 },
             new() { AtlasKey = "wall_a3_red_destroyed", SourceId = 126, TerrainSetKey = "", RuinPair = 124 },
-            // NEW winter terrains (sets 5,6)
+            // Winter terrains (sets 5,6) — unchanged, still MZ-expanded from the winter pack.
             new() { AtlasKey = "ground_a2_snow", SourceId = 170, TerrainSetKey = "winter_ground" },
             new() { AtlasKey = "wall_a3_snow",   SourceId = 171, TerrainSetKey = "winter_walls", Wall = WallColl.BottomHalf },
         },
+        PreExp = OutpostPreExp(),
     };
+
+    // ==============================================================================================
+    // PRE-EXPANDED outpost sources (200-216). Winlu's Godot-native sheets, wired straight to terrains.
+    // List order drives terrain-id allocation per set: within each set the A2 ground group is listed
+    // first so Grass stays terrain 0 and Dirt terrain 1 (blockout builders paint set 0 with those).
+    // ==============================================================================================
+    private static List<PreExpSrc> OutpostPreExp()
+    {
+        // Block-origin helpers (origins in TILES, top-left of each block's used region).
+        List<Vector2I> FloorGrid(int cols, int rows, int pitchX, int pitchY) =>
+            Enumerable.Range(0, rows).SelectMany(r => Enumerable.Range(0, cols)
+                .Select(c => new Vector2I(c * pitchX, r * pitchY))).ToList();
+
+        // a2_terrain: 4x8 floor blocks, pitch 13x5. Raster order (brow*4+bcol) -> grass=0, dirt=1.
+        var a2 = new PreExpSrc
+        {
+            Id = 200, Res = E + "a2_terrain.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "ground", NamePrefix = "grd",
+                BlockOrigins = FloorGrid(4, 8, 13, 5), FarmableSoil = true } },
+        };
+        // a2_forest_terrain: 3x3 floor blocks, pitch 13x5. Distinct forest-floor colorways (verified
+        // NOT pixel-identical to base blocks — kept). Empty blocks skipped defensively.
+        var a2f = new PreExpSrc
+        {
+            Id = 201, Res = E + "a2_forest_terrain.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "ground", NamePrefix = "forest",
+                BlockOrigins = FloorGrid(3, 3, 13, 5), SkipEmpty = true } },
+        };
+        // a2_shadow: one 12x4 semi-transparent drop-shadow overlay block.
+        var a2s = new PreExpSrc
+        {
+            Id = 202, Res = E + "a2_shadow.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "ground", NamePrefix = "shadow",
+                BlockOrigins = new() { new Vector2I(0, 0) } } },
+        };
+        // a1_liquids: 8 animated liquid terrains (frame-0 blocks); misc + waterfall bands as plain
+        // tiles. Liquid block-rows at tile-rows 0,10,15,20,25,30,35,40 (5-tile pitch, 3 anim frames).
+        int[] liquidRows = { 0, 10, 15, 20, 25, 30, 35, 40 };
+        var a1 = new PreExpSrc
+        {
+            Id = 203, Res = E + "a1_liquids.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "ground", NamePrefix = "liquid",
+                BlockOrigins = liquidRows.Select(r => new Vector2I(0, r)).ToList(),
+                Anim = EnableLiquidAnim ? new PreAnim { Frames = 3, ColStride = 12, FrameDuration = 0.35f } : null } },
+            Plain = new()
+            {
+                new PrePlain { X = 0, Y = 5, W = 24, H = 4 },    // dock-floor + lily-pad misc band
+                new PrePlain { X = 0, Y = 45, W = 36, H = 3 },   // waterfall band (4 groups x 9 wide, 3 frames)
+            },
+        };
+        // a3_walls: 4x8 wall materials, pitch 4x4 (3x3 used). material = 4*brow+bcol. Materials 0-15
+        // (top 4 block-rows) are ROOFS (no collision); 16-31 (bottom 4) are WALLS (full collision).
+        var a3origins = Enumerable.Range(0, 8).SelectMany(br => Enumerable.Range(0, 4)
+            .Select(bc => new Vector2I(bc * 4, br * 4))).ToList();
+        var a3 = new PreExpSrc
+        {
+            Id = 204, Res = E + "a3_walls.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.WallSide, SetKey = "walls", NamePrefix = "a3",
+                BlockOrigins = a3origins, Collides = mi => mi >= 16, RuinPair = 34 } },
+        };
+        // a4_walls: 24 materials, 8 block-rows x 3 materials. Each material = a wall-TOP 3x3 block at
+        // tile_x = matcol*8 then a wall-FACE 3x3 block at tile_x = matcol*8+4 (tile_y = brow*4). Faces
+        // -> set 7 (match-sides), tops -> set 8 (corners+sides). Full collision on all. Some lower-row
+        // materials are irregular special art (framed openings / banners) — wired anyway.
+        var a4faces = new List<Vector2I>();
+        var a4tops = new List<Vector2I>();
+        for (int br = 0; br < 8; br++)
+            for (int mc = 0; mc < 3; mc++)
+            {
+                a4tops.Add(new Vector2I(mc * 8, br * 4));
+                a4faces.Add(new Vector2I(mc * 8 + 4, br * 4));
+            }
+        var a4 = new PreExpSrc
+        {
+            Id = 205, Res = E + "a4_walls.png",
+            Groups = new()
+            {
+                new PreGroup { Kind = PreKind.WallSide, SetKey = "a4_walls",    NamePrefix = "a4face", BlockOrigins = a4faces, Collides = _ => true },
+                new PreGroup { Kind = PreKind.WallTop,  SetKey = "a4_walltops", NamePrefix = "a4top",  BlockOrigins = a4tops,  Collides = _ => true },
+            },
+        };
+
+        // Green colorway: a2_terrain_green (4x3 grid, 3 empty blocks skipped) -> set 1; a1_liquids_green
+        // (3 liquid rows) -> set 1. A2 first so green Grass stays terrain 0.
+        var a2g = new PreExpSrc
+        {
+            Id = 211, Res = EG + "a2_terrain_green.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "green", NamePrefix = "grn",
+                BlockOrigins = FloorGrid(4, 3, 13, 5), FarmableSoil = true, SkipEmpty = true } },
+        };
+        var a1g = new PreExpSrc
+        {
+            Id = 210, Res = EG + "a1_liquids_green.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "green", NamePrefix = "grnliquid",
+                BlockOrigins = new[] { 0, 5, 10 }.Select(r => new Vector2I(0, r)).ToList(), SkipEmpty = true,
+                Anim = EnableLiquidAnim ? new PreAnim { Frames = 3, ColStride = 12, FrameDuration = 0.35f } : null } },
+        };
+        // Red colorway (same geometry as green) -> set 2.
+        var a2r = new PreExpSrc
+        {
+            Id = 216, Res = ER + "a2_terrain_red.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "red", NamePrefix = "red",
+                BlockOrigins = FloorGrid(4, 3, 13, 5), FarmableSoil = true, SkipEmpty = true } },
+        };
+        var a1r = new PreExpSrc
+        {
+            Id = 215, Res = ER + "a1_liquids_red.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.Floor, SetKey = "red", NamePrefix = "redliquid",
+                BlockOrigins = new[] { 0, 5, 10 }.Select(r => new Vector2I(0, r)).ToList(), SkipEmpty = true,
+                Anim = EnableLiquidAnim ? new PreAnim { Frames = 3, ColStride = 12, FrameDuration = 0.35f } : null } },
+        };
+
+        // Order matters: within each terrain set the A2 ground group must be allocated before the A1
+        // liquid group so Grass=0 / Dirt=1 hold for base (set 0) and colorways (sets 1,2).
+        return new() { a2, a2f, a2s, a1, a2g, a1g, a2r, a1r, a3, a4 };
+    }
 
     private static List<PlainSrc> OutpostPlain() => new()
     {
@@ -141,9 +310,8 @@ public partial class TileSetBuilder : Node
         new() { Id = 13, Res = E + "fantasy_outside_d_noshadow.png", SeasonPair = 134 },
         new() { Id = 14, Res = E + "fantasy_roofs.png", RuinPair = 33, SeasonPair = 135 },
         new() { Id = 15, Res = E + "fantasy_roofs_2.png" },
-        new() { Id = 16, Res = E + "fantasy_outside_a2.png", SeasonPair = 137 },   // decorative objects (right half)
-        new() { Id = 17, Res = E + "fantasy_outside_a2_2.png" },
-        new() { Id = 18, Res = E + "fantasy_outside_a1.png", SeasonPair = 136 },   // lily pads / waterfall objects
+        // (16/17/18 retired: fantasy_outside_a2 / a2_2 / a1 MZ sheets replaced by pre-expanded
+        //  a2_terrain / a2_forest_terrain / a1_liquids — sources 200/201/203.)
         // --- exterior props ---
         new() { Id = 20, Res = E + "signs.png", RuinPair = 35, SeasonPair = 140 },
         new() { Id = 21, Res = E + "gate_wood1.png", Collision = Collide.OpaqueAll, RuinPair = 36, SeasonPair = 147 },
@@ -155,13 +323,15 @@ public partial class TileSetBuilder : Node
         new() { Id = 31, Res = D + "fantasy_outside_b_destroyed.png", Collision = Collide.OpaqueRightHalf, RuinPair = 11 },
         new() { Id = 32, Res = D + "fantasy_outside_c_destroyed.png", RuinPair = 12 },
         new() { Id = 33, Res = D + "fantasy_roofs_destroyed.png", RuinPair = 14 },
-        new() { Id = 34, Res = D + "fantasy_outside_a3_destroyed.png" },
+        // Winlu's Godot pre-expanded destroyed A3 (768x1536) — verified cell-for-cell (0 footprint
+        // mismatch, 288 opaque cells each) with the pristine pre-expanded a3_walls (source 204).
+        new() { Id = 34, Res = D + "fantasy_outside_a3_destroyed.png", RuinPair = 204 },
         new() { Id = 35, Res = D + "signs_destroyed.png", RuinPair = 20 },
         new() { Id = 36, Res = D + "gate_wood1_destroyed.png", Collision = Collide.OpaqueAll, RuinPair = 21 },
         new() { Id = 37, Res = D + "big_decoration_destroyed.png" },
-        // --- NEW plain sources: 50-83 base exterior sheets/props ---
-        new() { Id = 50, Res = E + "fantasy_outside_a3.png", SeasonPair = 138 },
-        new() { Id = 51, Res = E + "fantasy_outside_a4.png", SeasonPair = 139 },
+        // --- NEW plain sources: 52-83 base exterior sheets/props ---
+        // (50/51 retired: raw fantasy_outside_a3 / a4 MZ sheets replaced by pre-expanded a3_walls /
+        //  a4_walls — terrain sources 204/205. The a3/a4 snow winter sheets keep their season_pair 0.)
         new() { Id = 52, Res = E + "fantasy_outside_d.png", SeasonPair = 133 },
         new() { Id = 53, Res = E + "big_decoration.png", SeasonPair = 141 },
         new() { Id = 54, Res = E + "big_drawbridge.png", Collision = Collide.OpaqueAll, SeasonPair = 145 },
@@ -195,8 +365,8 @@ public partial class TileSetBuilder : Node
         new() { Id = 82, Res = E + "roof_windows.png", SeasonPair = 158 },
         new() { Id = 83, Res = E + "waterfall_animation.png" }, // static; animation frames exist in sheet
         // --- green colorway (plain) ---
-        new() { Id = 90, Res = EG + "fantasy_outside_a1_green.png" },
-        new() { Id = 91, Res = EG + "fantasy_outside_a2_green.png" },
+        // (90/91 retired: fantasy_outside_a1_green / a2_green replaced by pre-expanded
+        //  a1_liquids_green / a2_terrain_green — terrain sources 210/211.)
         new() { Id = 92, Res = EG + "fantasy_outside_a4_green.png" },
         new() { Id = 93, Res = EG + "fantasy_outside_a5_green.png", FarmableByColor = true },
         new() { Id = 94, Res = EG + "fantasy_outside_b_green.png", Collision = Collide.OpaqueRightHalf, RuinPair = 116 },
@@ -205,9 +375,8 @@ public partial class TileSetBuilder : Node
         new() { Id = 97, Res = EG + "big_trees_green.png" },
         new() { Id = 98, Res = EG + "big_trees_green_noshadow.png" },
         // --- red colorway (plain) ---
-        new() { Id = 99,  Res = ER + "fantasy_outside_a1_red.png" },
-        new() { Id = 100, Res = ER + "fantasy_outside_a2_red.png" },
-        new() { Id = 101, Res = ER + "fantasy_outside_a2_2_red.png" },
+        // (99/100/101 retired: fantasy_outside_a1_red / a2_red / a2_2_red replaced by pre-expanded
+        //  a1_liquids_red / a2_terrain_red — terrain sources 215/216.)
         new() { Id = 102, Res = ER + "fantasy_outside_a3_red.png" },
         new() { Id = 103, Res = ER + "fantasy_outside_a4_red.png" },
         new() { Id = 104, Res = ER + "fantasy_outside_a5_red.png", FarmableByColor = true },
@@ -235,10 +404,12 @@ public partial class TileSetBuilder : Node
         new() { Id = 133, Res = W + "fantasy_outside_d_snow.png", SeasonPair = 52 },
         new() { Id = 134, Res = W + "fantasy_outside_d_snow_noshadow.png", SeasonPair = 13 },
         new() { Id = 135, Res = W + "fantasy_roofs_snow.png", SeasonPair = 14 },
-        new() { Id = 136, Res = W + "fantasy_outside_a1_snow.png", SeasonPair = 18 },
-        new() { Id = 137, Res = W + "fantasy_outside_a2_snow.png", SeasonPair = 16 },  // right-half decorative objects
-        new() { Id = 138, Res = W + "fantasy_outside_a3_snow.png", SeasonPair = 50 },  // raw A3 (also terrained -> src 171)
-        new() { Id = 139, Res = W + "fantasy_outside_a4_snow.png", SeasonPair = 51 },
+        // 136-139 lose their season_pair: their summer counterparts (18/16/50/51, the raw A1/A2/A3/A4
+        // MZ sheets) were retired with the pre-expanded switch. Winter still ships the MZ snow sheets.
+        new() { Id = 136, Res = W + "fantasy_outside_a1_snow.png" },
+        new() { Id = 137, Res = W + "fantasy_outside_a2_snow.png" },  // right-half decorative objects
+        new() { Id = 138, Res = W + "fantasy_outside_a3_snow.png" },  // raw A3 (also terrained -> src 171)
+        new() { Id = 139, Res = W + "fantasy_outside_a4_snow.png" },
         new() { Id = 140, Res = W + "signs_snow.png", SeasonPair = 20 },
         new() { Id = 141, Res = W + "big_decoration_snow.png", SeasonPair = 53 },
         new() { Id = 142, Res = W + "big_trees_snow.png", SeasonPair = 22 },
@@ -748,7 +919,7 @@ public partial class TileSetBuilder : Node
         Error err = ResourceSaver.Save(ts, o.OutPath);
         GD.Print($"[TileSetBuilder] saved {o.OutPath} err={err}");
         VerifyReload(o.OutPath);
-        CompareAfter(o.OutPath);
+        CompareAfter(o.OutPath, o.Rebaseline);
     }
 
     private TileSet Build(Output o)
@@ -774,6 +945,7 @@ public partial class TileSetBuilder : Node
 
         foreach (var s in o.Plain) AddPlainSource(ts, s);
         AddGenAtlases(ts, o, setIndexByKey);
+        AddPreExpSources(ts, o, setIndexByKey);
 
         GD.Print($"[TileSetBuilder] sources={ts.GetSourceCount()} terrainSets={ts.GetTerrainSetsCount()} " +
                  $"terrains0={ts.GetTerrainsCount(0)} collisionTiles={_collisionCount} " +
@@ -932,6 +1104,132 @@ public partial class TileSetBuilder : Node
         }
     }
 
+    /// <summary>Register every PRE-EXPANDED source (Winlu Godot-native sheet): add the source, wire its
+    /// terrain-block groups (peering straight from the pre-expanded tables), and promote plain regions.
+    /// Terrain ids allocate per set across all sources in list order (grass/dirt stay 0/1).</summary>
+    private void AddPreExpSources(TileSet ts, Output o, Dictionary<string, int> setIndexByKey)
+    {
+        if (o.PreExp.Count == 0) return;
+        var nextTerrain = new Dictionary<int, int>();
+
+        foreach (var pre in o.PreExp)
+        {
+            var tex = GD.Load<Texture2D>(pre.Res);
+            if (tex == null) throw new InvalidOperationException($"missing pre-expanded texture {pre.Res}");
+            Image img = Image.LoadFromFile(ProjectSettings.GlobalizePath(pre.Res));
+            if (img.GetFormat() != Image.Format.Rgba8) img.Convert(Image.Format.Rgba8);
+
+            var src = new TileSetAtlasSource { Texture = tex, TextureRegionSize = new Vector2I(Cell, Cell) };
+            ts.AddSource(src, pre.Id);
+            _tilesPerSource[pre.Id] = 0;
+
+            foreach (var grp in pre.Groups)
+            {
+                int setIndex = setIndexByKey[grp.SetKey];
+                bool floor = grp.Kind == PreKind.Floor;
+                bool corners = grp.Kind != PreKind.WallSide; // Floor + WallTop peer corners; WallSide sides only
+                int blockIndex = -1;
+                foreach (var origin in grp.BlockOrigins)
+                {
+                    blockIndex++;
+                    // fill / centre tile: floor block-relative index 33 -> (9,2); 3x3 wall centre -> (1,1)
+                    Vector2I fill = origin + (floor ? new Vector2I(9, 2) : new Vector2I(1, 1));
+                    if (grp.SkipEmpty && OpaqueFraction(img, fill.X, fill.Y) < 0.02f)
+                    {
+                        GD.Print($"[TileSetBuilder]   PRE {pre.Id} {grp.NamePrefix}: skipped empty block #{blockIndex} at {origin}");
+                        continue;
+                    }
+
+                    if (!nextTerrain.TryGetValue(setIndex, out int terrainId)) terrainId = 0;
+                    ts.AddTerrain(setIndex);
+                    ts.SetTerrainName(setIndex, terrainId, $"{grp.NamePrefix}_{blockIndex}");
+                    ts.SetTerrainColor(setIndex, terrainId, TerrainColor(setIndex, terrainId));
+                    nextTerrain[setIndex] = terrainId + 1;
+
+                    bool farm = grp.FarmableSoil && IsSoil(img, fill.X, fill.Y);
+                    bool coll = grp.Collides?.Invoke(blockIndex) ?? false;
+
+                    if (floor)
+                    {
+                        for (int ir = 0; ir < 4; ir++)
+                            for (int ic = 0; ic < 12; ic++)
+                            {
+                                int rel = ir * 12 + ic;
+                                if (AutotileExpander.IsPreFloorBlank(rel)) continue;
+                                var coords = origin + new Vector2I(ic, ir);
+                                CreatePreTile(src, pre.Id, coords, setIndex, terrainId,
+                                    AutotileExpander.PreFloorNeighbors(rel), corners: true, coll, farm, grp.RuinPair);
+                                if (grp.Anim != null) SetTileAnim(src, coords, grp.Anim);
+                            }
+                    }
+                    else
+                    {
+                        for (int ir = 0; ir < 3; ir++)
+                            for (int ic = 0; ic < 3; ic++)
+                            {
+                                var nb = grp.Kind == PreKind.WallTop
+                                    ? AutotileExpander.PreWallTopNeighbors(ic, ir)
+                                    : AutotileExpander.PreWallSideNeighbors(ic, ir);
+                                var coords = origin + new Vector2I(ic, ir);
+                                CreatePreTile(src, pre.Id, coords, setIndex, terrainId, nb, corners, coll, farm, grp.RuinPair);
+                            }
+                    }
+                }
+            }
+
+            // Plain-tile regions (misc / animation-band art with no terrain — e.g. dock, lily, waterfall).
+            foreach (var pr in pre.Plain)
+                for (int y = pr.Y; y < pr.Y + pr.H; y++)
+                    for (int x = pr.X; x < pr.X + pr.W; x++)
+                    {
+                        if (OpaqueFraction(img, x, y) < 0.02f) continue;
+                        var coords = new Vector2I(x, y);
+                        if (src.GetTileAtCoords(coords) != new Vector2I(-1, -1)) continue; // already a terrain tile
+                        src.CreateTile(coords);
+                        _tilesPerSource[pre.Id]++;
+                    }
+        }
+    }
+
+    private void CreatePreTile(TileSetAtlasSource src, int sourceId, Vector2I coords, int setIndex, int terrainId,
+        AutotileExpander.Neighbors nb, bool corners, bool collide, bool farm, int ruinPair)
+    {
+        src.CreateTile(coords);
+        _tilesPerSource[sourceId]++;
+        TileData td = src.GetTileData(coords, 0);
+        td.TerrainSet = setIndex;
+        td.Terrain = terrainId;
+        SetBit(td, TileSet.CellNeighbor.TopSide, nb.N, terrainId);
+        SetBit(td, TileSet.CellNeighbor.RightSide, nb.E, terrainId);
+        SetBit(td, TileSet.CellNeighbor.BottomSide, nb.S, terrainId);
+        SetBit(td, TileSet.CellNeighbor.LeftSide, nb.W, terrainId);
+        if (corners)
+        {
+            SetBit(td, TileSet.CellNeighbor.TopRightCorner, nb.Ne, terrainId);
+            SetBit(td, TileSet.CellNeighbor.BottomRightCorner, nb.Se, terrainId);
+            SetBit(td, TileSet.CellNeighbor.BottomLeftCorner, nb.Sw, terrainId);
+            SetBit(td, TileSet.CellNeighbor.TopLeftCorner, nb.Nw, terrainId);
+        }
+        if (collide)
+        {
+            td.AddCollisionPolygon(0);
+            td.SetCollisionPolygonPoints(0, 0, FullSquare);
+            _collisionCount++;
+        }
+        if (farm) { SetData(td, "farmable", true); _farmableCount++; }
+        if (ruinPair != 0) SetData(td, "ruin_pair", ruinPair);
+    }
+
+    /// <summary>Wire a 3-frame horizontal tile animation (frames <c>ColStride</c> tiles apart).</summary>
+    private static void SetTileAnim(TileSetAtlasSource src, Vector2I coords, PreAnim anim)
+    {
+        src.SetTileAnimationColumns(coords, anim.Frames);
+        src.SetTileAnimationSeparation(coords, new Vector2I(anim.ColStride - 1, 0));
+        src.SetTileAnimationFramesCount(coords, anim.Frames);
+        for (int f = 0; f < anim.Frames; f++)
+            src.SetTileAnimationFrameDuration(coords, f, anim.FrameDuration);
+    }
+
     private void SetBit(TileData td, TileSet.CellNeighbor n, bool same, int terrainId)
     {
         if (!same) return;
@@ -1036,17 +1334,22 @@ public partial class TileSetBuilder : Node
         GD.Print($"[TileSetBuilder] PATTERNS: carried over {count} pattern(s), {orphanCells} orphan cell(s)");
     }
 
-    /// <summary>Assert every pre-existing source (texture path + tile count) survives unchanged.</summary>
-    private void CompareAfter(string outPath)
+    /// <summary>Assert every pre-existing source (texture path + tile count) survives unchanged. When
+    /// <paramref name="rebaseline"/> is set (an output whose source roster legitimately changed this
+    /// run), sources removed since the baseline are reported as expected removals rather than mismatches
+    /// — but every SURVIVING pre-existing source is still checked strictly.</summary>
+    private void CompareAfter(string outPath, bool rebaseline)
     {
         if (_before.Count == 0) { GD.Print("[TileSetBuilder] AFTER: no baseline to compare"); return; }
         var now = ResourceLoader.Load<TileSet>(outPath, cacheMode: ResourceLoader.CacheMode.Ignore);
-        int checkedCount = 0, mismatches = 0;
+        int checkedCount = 0, mismatches = 0, removed = 0;
         foreach (var (id, before) in _before.OrderBy(kv => kv.Key))
         {
             if (now.GetSource(id) is not TileSetAtlasSource a)
             {
-                GD.Print($"[TileSetBuilder] AFTER: source {id} MISSING (was {before.tex}, {before.count} tiles)"); mismatches++; continue;
+                if (rebaseline) { GD.Print($"[TileSetBuilder] AFTER: source {id} removed (rebaselined; was {before.tex})"); removed++; }
+                else { GD.Print($"[TileSetBuilder] AFTER: source {id} MISSING (was {before.tex}, {before.count} tiles)"); mismatches++; }
+                continue;
             }
             string tex = a.Texture?.ResourcePath ?? "";
             int count = a.GetTilesCount();
@@ -1054,7 +1357,8 @@ public partial class TileSetBuilder : Node
             if (!ok) { GD.Print($"[TileSetBuilder] AFTER: source {id} CHANGED tex {before.tex}->{tex} count {before.count}->{count}"); mismatches++; }
             checkedCount++;
         }
-        GD.Print($"[TileSetBuilder] COMPAT: checked {checkedCount} pre-existing sources, {mismatches} mismatches " +
-                 $"({(mismatches == 0 ? "PASS - all pre-existing sources intact" : "FAIL")})");
+        string suffix = rebaseline ? $", {removed} rebaselined removal(s)" : "";
+        GD.Print($"[TileSetBuilder] COMPAT: checked {checkedCount} surviving pre-existing sources, {mismatches} mismatches{suffix} " +
+                 $"({(mismatches == 0 ? "PASS - all surviving pre-existing sources intact" : "FAIL")})");
     }
 }

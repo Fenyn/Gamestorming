@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Bulwark.Data;
 using PF2e.CharacterComponents;
@@ -20,6 +21,14 @@ namespace Bulwark.Presets;
 /// </summary>
 public static class PresetCharacters
 {
+    // Squad member ids — the single source the roster, sprite map, save data and daily-casting
+    // switch all key on (SquadRoster re-exposes them as aliases for existing call sites).
+    public const string VeteranId = "the-veteran";
+    public const string RecruitId = "the-recruit";
+    public const string ScoutId = "the-scout";
+    public const string MedicId = "the-medic";
+    public const string ScholarId = "the-scholar";
+
     // Authored daily-casting loadouts, shared by the initial build and the in-place level-up
     // refresh (RefreshDailyCasting) so both prepare the identical lists.
     private static readonly string[] MedicCantripIds =
@@ -45,7 +54,7 @@ public static class PresetCharacters
     public static PF2eCharacter BuildVeteran(int level, int teamId = 1)
     {
         return BuildFighterSentinel(
-            id: "the-veteran",
+            id: VeteranId,
             name: "the Veteran",
             level: level,
             teamId: teamId,
@@ -61,7 +70,7 @@ public static class PresetCharacters
     public static PF2eCharacter BuildRecruit(int level, int teamId = 1)
     {
         return BuildFighterSentinel(
-            id: "the-recruit",
+            id: RecruitId,
             name: "the Recruit",
             level: level,
             teamId: teamId,
@@ -71,9 +80,9 @@ public static class PresetCharacters
     }
 
     /// <summary>
-    /// Shared Fighter (Sentinel) build core. At level 1 the Fighter + Sentinel overlay is fully
-    /// resolved and its features granted. At level >= 2, LevelUpApplicator replays the combo's
-    /// scripted choices and the newly granted feats are resolved onto the sheet.
+    /// Shared Fighter (Sentinel) parameterization: longsword + chain mail (+ optional shield).
+    /// At level 1 the Fighter + Sentinel overlay is fully resolved and its features granted. At
+    /// level >= 2, the chassis replays the combo's scripted choices.
     /// </summary>
     private static PF2eCharacter BuildFighterSentinel(
         string id, string name, int level, int teamId,
@@ -81,113 +90,23 @@ public static class PresetCharacters
         int intelligence, int wisdom, int charisma,
         string? shieldSlug)
     {
-        if (level < 1) level = 1;
-
-        PresetCombos.EnsureFeaturesRegistered();
-
-        // --- Resolve class + subclass overlay ---
-        var fighter = PresetClasses.BuildFighter();
-        var combo = PresetCombos.FighterSentinel;
-        ClassDefinition resolvedClass = fighter.ResolveSubclass(combo.Subclass);
-
-        // --- Ability scores + stats (start at level 1; level up applied below) ---
-        var modifiers = new ModifierStack();
-        var stats = new PF2eCharacterStats(modifiers)
-        {
-            CharacterClass = resolvedClass,
-            Level = 1,
-            Strength = strength,
-            Dexterity = dexterity,
-            Constitution = constitution,
-            Intelligence = intelligence,
-            Wisdom = wisdom,
-            Charisma = charisma,
-            BaseSpeedInFeet = 25,
-        };
-
-        var character = new PF2eCharacter
+        return BuildChassis(new ChassisSpec
         {
             Id = id,
             Name = name,
+            Level = level,
             TeamId = teamId,
-            Stats = stats,
-            StatProvider = stats,
-            Modifiers = modifiers,
-            Combat = new CombatState(),
-            RuleEvents = new RuleEventBus(),
-            Actions = new ActionResource(),
-            // Build choices must exist BEFORE features resolve: WeaponMasteryFeature (L5) reads
-            // ChosenWeaponGroup for its critical-specialization gate, and WeaponAttackCalculator
-            // consults it for group-restricted progressions. Sword is a data implication of the
-            // longsword loadout every Fighter preset carries — NOT a pending combo choice.
-            BuildChoices = new CharacterBuildChoices { ChosenWeaponGroup = WeaponGroup.Sword },
-        };
-
-        // --- Defenses / health / conditions ---
-        character.DefenseProfile = new DefenseProfile(character.RuleEvents);
-        // usesDying:true — PCs use the full PF2e dying rules. A downed PC becomes
-        // Dying + Unconscious (not dead); the DyingSystem is wired below once Conditions exists.
-        character.Health = new Health(character, usesDying: true);
-        character.Health.Initialize();
-        character.CooldownTracker = new AbilityCooldownTracker();
-
-        // --- Equipment (longsword + optional shield + chain mail, resolved from packs) ---
-        var appendages = new AppendageTracker(AppendageLayout.Humanoid());
-        character.Appendages = appendages;
-
-        ShieldManager? shield = null;
-        if (shieldSlug != null)
-        {
-            var shieldDef = FindShield(shieldSlug);
-            if (shieldDef != null)
-            {
-                shield = new ShieldManager(character, appendages);
-                shield.SetEquippedShield(shieldDef);
-            }
-        }
-
-        var equipment = new EquipmentHolder(appendages, shield!, character.Modifiers);
-        character.Equipment = equipment;
-        equipment.SetStartingLoadout(
-            mainHand: FindWeapon("longsword"),
-            offHand: null,
-            armor: FindArmor("chain-mail"));
-        equipment.Initialize();
-
-        character.Conditions = new ConditionTracker(
-            character, character.Actions, character.Modifiers, character.DefenseProfile);
-
-        // Dying rules: Health delegates zero-HP handling to the DyingSystem, which drives
-        // Dying/Wounded/Unconscious via the ConditionTracker. Must be constructed after Conditions.
-        // CombatSession subscribes/unsubscribes it to the per-encounter TurnManager (recovery checks).
-        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
-
-        // --- Skills (Trained Athletics for Trip + Intimidation for Demoralize come from the class
-        //     + Sentinel overlay's auto-trained skill list). ---
-        character.Skills = new SkillProficiencies();
-        character.Skills.ApplyClassSkills(resolvedClass);
-
-        // --- Features (ancestry/heritage/background are null; class + subclass features grant here) ---
-        var features = new FeatureHolder();
-        character.Features = features;
-        features.Initialize(character);
-        features.ResolveAndGrantFeatures();
-
-        // --- Level up (replays scripted Free-Archetype choices) ---
-        if (level >= 2)
-        {
-            var choices = combo.ChoicesUpTo(level);
-            LevelUpApplicator.ApplyLevelUp(character, fromLevel: 1, toLevel: level, choices);
-
-            // ApplyLevelUp only appends the chosen feats to the FeatureHolder; re-resolve so the
-            // new free-archetype feat (Bastion Dedication) is actually granted at its level.
-            features.ResolveAndGrantFeatures();
-
-            // Health caches MaxHP at Initialize; recompute now that the level (and HP) changed.
-            character.Health.Initialize();
-        }
-
-        return character;
+            BaseClass = PresetClasses.BuildFighter(),
+            Combo = PresetCombos.FighterSentinel,
+            Strength = strength, Dexterity = dexterity, Constitution = constitution,
+            Intelligence = intelligence, Wisdom = wisdom, Charisma = charisma,
+            MainHand = FindWeapon("longsword"),
+            ArmorSlug = "chain-mail",
+            ShieldSlug = shieldSlug,
+            // Sword is a data implication of the longsword loadout every Fighter preset carries —
+            // NOT a pending combo choice.
+            ChosenWeaponGroup = WeaponGroup.Sword,
+        });
     }
 
     // ══════════════════════════ Rogue (Scout) ══════════════════════════
@@ -201,85 +120,26 @@ public static class PresetCharacters
     /// </summary>
     public static PF2eCharacter BuildScout(int level, int teamId = 1)
     {
-        if (level < 1) level = 1;
-
-        PresetCombos.EnsureFeaturesRegistered();
-
-        var rogue = PresetClasses.BuildRogue();
-        var combo = PresetCombos.RogueThief;
-        ClassDefinition resolvedClass = rogue.ResolveSubclass(combo.Subclass);
-
-        var modifiers = new ModifierStack();
-        var stats = new PF2eCharacterStats(modifiers)
+        return BuildChassis(new ChassisSpec
         {
-            CharacterClass = resolvedClass,
-            Level = 1,
+            Id = ScoutId,
+            Name = "the Scout",
+            Level = level,
+            TeamId = teamId,
+            BaseClass = PresetClasses.BuildRogue(),
+            Combo = PresetCombos.RogueThief,
             Strength = 12, Dexterity = 18, Constitution = 12,
             Intelligence = 12, Wisdom = 14, Charisma = 12,
-            BaseSpeedInFeet = 25,
-        };
-
-        var character = new PF2eCharacter
-        {
-            Id = "the-scout",
-            Name = "the Scout",
-            TeamId = teamId,
-            Stats = stats,
-            StatProvider = stats,
-            Modifiers = modifiers,
-            Combat = new CombatState(),
-            RuleEvents = new RuleEventBus(),
-            Actions = new ActionResource(),
-            // Rapier and shortsword are Sword group — a data implication of the finesse loadout, not
-            // a combo choice. No rogue feature reads ChosenWeaponGroup; set for consistency/future use.
-            BuildChoices = new CharacterBuildChoices { ChosenWeaponGroup = WeaponGroup.Sword },
-        };
-
-        character.DefenseProfile = new DefenseProfile(character.RuleEvents);
-        // usesDying:true — PCs use the full PF2e dying rules (DyingSystem wired after Conditions).
-        character.Health = new Health(character, usesDying: true);
-        character.Health.Initialize();
-        character.CooldownTracker = new AbilityCooldownTracker();
-
-        // --- Equipment (rapier main / agile finesse shortsword off-hand + leather armor) ---
-        var appendages = new AppendageTracker(AppendageLayout.Humanoid());
-        character.Appendages = appendages;
-        var equipment = new EquipmentHolder(appendages, null!, character.Modifiers);
-        character.Equipment = equipment;
-        equipment.SetStartingLoadout(
-            mainHand: FindWeapon("rapier"),
-            offHand: FindWeapon("shortsword"),
-            armor: FindArmor("leather-armor"));
-        equipment.Initialize();
-
-        character.Conditions = new ConditionTracker(
-            character, character.Actions, character.Modifiers, character.DefenseProfile);
-
-        // Dying rules (see BuildFighterSentinel): wire after Conditions exists.
-        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
-
-        // --- Skills: Stealth (class auto) + Thievery + Intimidation (Demoralize chip) ---
-        character.Skills = new SkillProficiencies();
-        character.Skills.ApplyClassSkills(resolvedClass);
-        character.Skills.SetProficiency(Skill.Thievery, ProficiencyLevel.Trained);
-        character.Skills.SetProficiency(Skill.Intimidation, ProficiencyLevel.Trained);
-
-        // --- Features (thief racket via overlay + rogue class features by level) ---
-        var features = new FeatureHolder();
-        character.Features = features;
-        features.Initialize(character);
-        features.ResolveAndGrantFeatures();
-
-        // --- Level up (replays the DWW free-archetype line) ---
-        if (level >= 2)
-        {
-            var choices = combo.ChoicesUpTo(level);
-            LevelUpApplicator.ApplyLevelUp(character, fromLevel: 1, toLevel: level, choices);
-            features.ResolveAndGrantFeatures();
-            character.Health.Initialize();
-        }
-
-        return character;
+            MainHand = FindWeapon("rapier"),
+            OffHand = FindWeapon("shortsword"),
+            ArmorSlug = "leather-armor",
+            // Rapier and shortsword are Sword group — a data implication of the finesse loadout,
+            // not a combo choice. No rogue feature reads ChosenWeaponGroup; set for consistency.
+            ChosenWeaponGroup = WeaponGroup.Sword,
+            // Stealth comes from the class auto-trained list; Thievery + Intimidation (Demoralize
+            // chip) are the Scout's extra trained picks.
+            ExtraTrainedSkills = new[] { Skill.Thievery, Skill.Intimidation },
+        });
     }
 
     // ══════════════════════════ Casters (Medic / Scholar) ══════════════════════════
@@ -300,7 +160,7 @@ public static class PresetCharacters
     {
         var aveline = PresetDeities.Aveline;
         return BuildCaster(
-            id: "the-medic",
+            id: MedicId,
             name: "the Medic",
             baseClass: PresetClasses.BuildCleric(),
             combo: PresetCombos.ClericWarpriest,
@@ -334,7 +194,7 @@ public static class PresetCharacters
     public static PF2eCharacter BuildScholar(int level, int teamId = 1)
     {
         return BuildCaster(
-            id: "the-scholar",
+            id: ScholarId,
             name: "the Scholar",
             baseClass: PresetClasses.BuildWizard(),
             combo: PresetCombos.WizardBattleMagic,
@@ -354,12 +214,12 @@ public static class PresetCharacters
     }
 
     /// <summary>
-    /// Shared prepared-caster assembly, now combo-driven. Mirrors the Fighter core
-    /// (stats → components → Health → equipment → conditions → skills) with two ordering rules
-    /// specific to casters:
-    ///  1. The Spellcasting component is created and slot-initialized BEFORE features resolve —
-    ///     WizardSchoolFeature (focus spell, curriculum cantrips, school slots) and
-    ///     HealingFontFeature (divine font pool) both write into it when granted.
+    /// Shared prepared-caster assembly on top of <see cref="BuildChassis"/>, with two ordering
+    /// rules specific to casters:
+    ///  1. The Spellcasting component is created and slot-initialized BEFORE features resolve
+    ///     (the chassis' BeforeFeatures hook) — WizardSchoolFeature (focus spell, curriculum
+    ///     cantrips, school slots) and HealingFontFeature (divine font pool) both write into it
+    ///     when granted.
     ///  2. After the level-up replay, slots are refilled (fresh character at full), the divine
     ///     font is re-synced to the final level/highest rank, the static Spell Blending trade is
     ///     applied, and the prepared loadout is trimmed to the final slot layout and prepared.
@@ -373,111 +233,37 @@ public static class PresetCharacters
     {
         if (level < 1) level = 1;
 
-        PresetCombos.EnsureFeaturesRegistered();
         // Ensure the preset spells exist in SpellDatabase before we prepare from them.
         PresetSpells.EnsureRegistered();
 
-        ClassDefinition resolvedClass = baseClass.ResolveSubclass(combo.Subclass);
-
-        var modifiers = new ModifierStack();
-        var stats = new PF2eCharacterStats(modifiers)
-        {
-            CharacterClass = resolvedClass,
-            Level = 1,
-            Strength = strength,
-            Dexterity = dexterity,
-            Constitution = constitution,
-            Intelligence = intelligence,
-            Wisdom = wisdom,
-            Charisma = charisma,
-            BaseSpeedInFeet = 25,
-        };
-
-        var character = new PF2eCharacter
+        var character = BuildChassis(new ChassisSpec
         {
             Id = id,
             Name = name,
+            Level = level,
             TeamId = teamId,
-            Stats = stats,
-            StatProvider = stats,
-            Modifiers = modifiers,
-            Combat = new CombatState(),
-            RuleEvents = new RuleEventBus(),
-            Actions = new ActionResource(),
-            // Build choices must exist BEFORE features resolve: HealingFontFeature reads the
-            // deity's FontSpellIdentity, favored-weapon proficiency reads GetFavoredWeapon(),
-            // and WarpriestThirdDoctrine compares strikes against it.
-            BuildChoices = new CharacterBuildChoices
+            BaseClass = baseClass,
+            Combo = combo,
+            Strength = strength, Dexterity = dexterity, Constitution = constitution,
+            Intelligence = intelligence, Wisdom = wisdom, Charisma = charisma,
+            MainHand = mainHand,
+            ArmorSlug = armorSlug,
+            ShieldSlug = shieldSlug,
+            Deity = deity,
+            ChosenWeaponGroup = mainHand?.Group ?? WeaponGroup.Sword,
+            ExtraTrainedSkills = extraTrainedSkills,
+            // Spellcasting BEFORE features (caster ordering rule #1): school/font features write
+            // into it on grant.
+            BeforeFeatures = (c, stats) =>
             {
-                ChosenWeaponGroup = mainHand?.Group ?? WeaponGroup.Sword,
-                Deity = deity,
-                Sanctification = deity?.AllowedSanctification ?? SanctificationType.None,
+                var casting = new Spellcasting(c, stats);
+                casting.Sources.Add(stats.CharacterClass.SpellcastingSource);
+                casting.InitializeSlots();
+                c.Spellcasting = casting;
             },
-        };
+        });
 
-        character.DefenseProfile = new DefenseProfile(character.RuleEvents);
-        // usesDying:true — PCs use the full PF2e dying rules (DyingSystem wired after Conditions).
-        character.Health = new Health(character, usesDying: true);
-        character.Health.Initialize();
-        character.CooldownTracker = new AbilityCooldownTracker();
-
-        // --- Equipment (optional shield: the Warpriest Medic blocks with a steel shield) ---
-        var appendages = new AppendageTracker(AppendageLayout.Humanoid());
-        character.Appendages = appendages;
-
-        ShieldManager? shield = null;
-        if (shieldSlug != null)
-        {
-            var shieldDef = FindShield(shieldSlug);
-            if (shieldDef != null)
-            {
-                shield = new ShieldManager(character, appendages);
-                shield.SetEquippedShield(shieldDef);
-            }
-        }
-
-        var equipment = new EquipmentHolder(appendages, shield!, character.Modifiers);
-        character.Equipment = equipment;
-        equipment.SetStartingLoadout(
-            mainHand: mainHand,
-            offHand: null,
-            armor: armorSlug != null ? FindArmor(armorSlug) : null);
-        equipment.Initialize();
-
-        character.Conditions = new ConditionTracker(
-            character, character.Actions, character.Modifiers, character.DefenseProfile);
-
-        // Dying rules (see BuildFighterSentinel): wire after Conditions exists.
-        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
-
-        // --- Skills ---
-        character.Skills = new SkillProficiencies();
-        character.Skills.ApplyClassSkills(resolvedClass);
-        if (extraTrainedSkills != null)
-            foreach (var skill in extraTrainedSkills)
-                character.Skills.SetProficiency(skill, ProficiencyLevel.Trained);
-
-        // --- Spellcasting BEFORE features: school/font features write into it on grant ---
-        var spellcasting = new Spellcasting(character, stats);
-        spellcasting.Sources.Add(resolvedClass.SpellcastingSource);
-        spellcasting.InitializeSlots();
-        character.Spellcasting = spellcasting;
-
-        // --- Features (class + subclass overlay grants at L1) ---
-        var features = new FeatureHolder();
-        character.Features = features;
-        features.Initialize(character);
-        features.ResolveAndGrantFeatures();
-
-        // --- Level up (replays the combo's scripted choices, incl. Free Archetype feats) ---
-        if (level >= 2)
-        {
-            var choices = combo.ChoicesUpTo(level);
-            LevelUpApplicator.ApplyLevelUp(character, fromLevel: 1, toLevel: level, choices);
-            features.ResolveAndGrantFeatures();
-            character.Health.Initialize();
-        }
-
+        var spellcasting = character.Spellcasting!;
         ApplySpellBlending(spellcasting);
 
         // Fresh character: slots/focus at full for the final level, then sync the divine font
@@ -497,6 +283,163 @@ public static class PresetCharacters
 
         // --- Learn + prepare the authored loadout, trimmed to the final slot layout ---
         PrepareLoadout(spellcasting, preparedSpellIds);
+
+        return character;
+    }
+
+    // ══════════════════════════ Shared chassis ══════════════════════════
+
+    /// <summary>Parameter block for <see cref="BuildChassis"/> — one property per axis the four
+    /// preset builds vary on.</summary>
+    private sealed class ChassisSpec
+    {
+        public string Id { get; init; } = "";
+        public string Name { get; init; } = "";
+        public int Level { get; init; } = 1;
+        public int TeamId { get; init; } = 1;
+        public ClassDefinition BaseClass { get; init; } = null!;
+        public VariantComboDefinition Combo { get; init; } = null!;
+        public int Strength { get; init; }
+        public int Dexterity { get; init; }
+        public int Constitution { get; init; }
+        public int Intelligence { get; init; }
+        public int Wisdom { get; init; }
+        public int Charisma { get; init; }
+        public WeaponDefinition? MainHand { get; init; }
+        public WeaponDefinition? OffHand { get; init; }
+        public string? ArmorSlug { get; init; }
+        public string? ShieldSlug { get; init; }
+        public DeityDefinition? Deity { get; init; }
+        public WeaponGroup ChosenWeaponGroup { get; init; } = WeaponGroup.Sword;
+        public Skill[]? ExtraTrainedSkills { get; init; }
+
+        /// <summary>Runs after skills, immediately before the FeatureHolder resolves — the caster
+        /// seam that must inject Spellcasting before school/font features grant.</summary>
+        public Action<PF2eCharacter, PF2eCharacterStats>? BeforeFeatures { get; init; }
+    }
+
+    /// <summary>
+    /// The single PC assembly sequence all four presets share (rules-bearing — fix it HERE, once):
+    /// stats → components → defenses/health → equipment → conditions → DyingSystem → skills →
+    /// [BeforeFeatures hook] → features → scripted level-up replay.
+    /// </summary>
+    private static PF2eCharacter BuildChassis(ChassisSpec spec)
+    {
+        int level = spec.Level < 1 ? 1 : spec.Level;
+
+        PresetCombos.EnsureFeaturesRegistered();
+
+        // --- Resolve class + subclass overlay ---
+        ClassDefinition resolvedClass = spec.BaseClass.ResolveSubclass(spec.Combo.Subclass);
+
+        // --- Ability scores + stats (start at level 1; level up applied below) ---
+        var modifiers = new ModifierStack();
+        var stats = new PF2eCharacterStats(modifiers)
+        {
+            CharacterClass = resolvedClass,
+            Level = 1,
+            Strength = spec.Strength,
+            Dexterity = spec.Dexterity,
+            Constitution = spec.Constitution,
+            Intelligence = spec.Intelligence,
+            Wisdom = spec.Wisdom,
+            Charisma = spec.Charisma,
+            BaseSpeedInFeet = 25,
+        };
+
+        var character = new PF2eCharacter
+        {
+            Id = spec.Id,
+            Name = spec.Name,
+            TeamId = spec.TeamId,
+            Stats = stats,
+            StatProvider = stats,
+            Modifiers = modifiers,
+            Combat = new CombatState(),
+            RuleEvents = new RuleEventBus(),
+            Actions = new ActionResource(),
+            // Build choices must exist BEFORE features resolve: WeaponMasteryFeature (L5) reads
+            // ChosenWeaponGroup for its critical-specialization gate and WeaponAttackCalculator
+            // consults it for group-restricted progressions; HealingFontFeature reads the deity's
+            // FontSpellIdentity, favored-weapon proficiency reads GetFavoredWeapon(), and
+            // WarpriestThirdDoctrine compares strikes against it.
+            BuildChoices = new CharacterBuildChoices
+            {
+                ChosenWeaponGroup = spec.ChosenWeaponGroup,
+                Deity = spec.Deity,
+                Sanctification = spec.Deity?.AllowedSanctification ?? SanctificationType.None,
+            },
+        };
+
+        // --- Defenses / health / conditions ---
+        character.DefenseProfile = new DefenseProfile(character.RuleEvents);
+        // usesDying:true — PCs use the full PF2e dying rules. A downed PC becomes
+        // Dying + Unconscious (not dead); the DyingSystem is wired below once Conditions exists.
+        character.Health = new Health(character, usesDying: true);
+        character.Health.Initialize();
+        character.CooldownTracker = new AbilityCooldownTracker();
+
+        // --- Equipment (main hand / optional off-hand, shield and armor, resolved from packs) ---
+        var appendages = new AppendageTracker(AppendageLayout.Humanoid());
+        character.Appendages = appendages;
+
+        ShieldManager? shield = null;
+        if (spec.ShieldSlug != null)
+        {
+            var shieldDef = FindShield(spec.ShieldSlug);
+            if (shieldDef != null)
+            {
+                shield = new ShieldManager(character, appendages);
+                shield.SetEquippedShield(shieldDef);
+            }
+        }
+
+        var equipment = new EquipmentHolder(appendages, shield!, character.Modifiers);
+        character.Equipment = equipment;
+        equipment.SetStartingLoadout(
+            mainHand: spec.MainHand,
+            offHand: spec.OffHand,
+            armor: spec.ArmorSlug != null ? FindArmor(spec.ArmorSlug) : null);
+        equipment.Initialize();
+
+        character.Conditions = new ConditionTracker(
+            character, character.Actions, character.Modifiers, character.DefenseProfile);
+
+        // Dying rules: Health delegates zero-HP handling to the DyingSystem, which drives
+        // Dying/Wounded/Unconscious via the ConditionTracker. Must be constructed after Conditions.
+        // CombatSession subscribes/unsubscribes it to the per-encounter TurnManager (recovery checks).
+        character.Health.DyingSystem = new DyingSystem(character, character.Health, character.Conditions);
+
+        // --- Skills (class + subclass overlay auto-trained list, then the spec's extra picks) ---
+        character.Skills = new SkillProficiencies();
+        character.Skills.ApplyClassSkills(resolvedClass);
+        if (spec.ExtraTrainedSkills != null)
+            foreach (var skill in spec.ExtraTrainedSkills)
+                character.Skills.SetProficiency(skill, ProficiencyLevel.Trained);
+
+        // --- Pre-feature hook (casters inject Spellcasting here) ---
+        spec.BeforeFeatures?.Invoke(character, stats);
+
+        // --- Features (ancestry/heritage/background are null; class + subclass features grant here) ---
+        var features = new FeatureHolder();
+        character.Features = features;
+        features.Initialize(character);
+        features.ResolveAndGrantFeatures();
+
+        // --- Level up (replays the combo's scripted choices, incl. Free Archetype feats) ---
+        if (level >= 2)
+        {
+            var choices = spec.Combo.ChoicesUpTo(level);
+            LevelUpApplicator.ApplyLevelUp(character, fromLevel: 1, toLevel: level, choices);
+
+            // ApplyLevelUp only appends the chosen feats to the FeatureHolder; re-resolve so the
+            // newly granted feats (e.g. the free-archetype dedication) are actually granted at
+            // their level.
+            features.ResolveAndGrantFeatures();
+
+            // Health caches MaxHP at Initialize; recompute now that the level (and HP) changed.
+            character.Health.Initialize();
+        }
 
         return character;
     }
@@ -530,8 +473,8 @@ public static class PresetCharacters
 
         string[]? loadout = character.Id switch
         {
-            "the-medic" => MedicPreparedSpellIds,
-            "the-scholar" => ScholarPreparedSpellIds,
+            MedicId => MedicPreparedSpellIds,
+            ScholarId => ScholarPreparedSpellIds,
             _ => null,
         };
         if (loadout != null)

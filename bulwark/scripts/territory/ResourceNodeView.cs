@@ -13,6 +13,7 @@ public partial class ResourceNodeView : Node2D
 {
     private ColorRect _token = null!;
     private Label _label = null!;
+    private CollisionShape2D? _bodyShape;
 
     /// <summary>The territory-local node id (matches TerritoryNode.NodeId and the %Node_ marker).</summary>
     public string NodeId { get; private set; } = "";
@@ -21,6 +22,7 @@ public partial class ResourceNodeView : Node2D
     {
         _token = GetNode<ColorRect>("%Token");
         _label = GetNode<Label>("%Label");
+        _bodyShape = GetNodeOrNull<CollisionShape2D>("%BodyShape");
     }
 
     /// <summary>Bind this view to its placement. Call after instancing (the scene owns wiring).</summary>
@@ -38,6 +40,11 @@ public partial class ResourceNodeView : Node2D
         };
     }
 
-    /// <summary>Depleted nodes hide (respawn re-shows them on day change).</summary>
-    public void SetDepleted(bool depleted) => Visible = !depleted;
+    /// <summary>Depleted nodes hide AND stop blocking (respawn re-shows them on day change).
+    /// Deferred: depletion lands from a physics-adjacent signal path.</summary>
+    public void SetDepleted(bool depleted)
+    {
+        Visible = !depleted;
+        _bodyShape?.SetDeferred(CollisionShape2D.PropertyName.Disabled, depleted);
+    }
 }

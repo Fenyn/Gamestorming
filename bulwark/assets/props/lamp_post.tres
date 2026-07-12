@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://c2vyl6fkvrmp0"]
+
+[ext_resource type="Texture2D" uid="uid://q0vanlgbsjqe" path="res://assets/tilesets/winlu_exterior/lamp.png" id="1_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_off0"]
+atlas = ExtResource("1_tex")
+region = Rect2(144, 0, 48, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_on0"]
+atlas = ExtResource("1_tex")
+region = Rect2(0, 0, 48, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_on1"]
+atlas = ExtResource("1_tex")
+region = Rect2(48, 0, 48, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_on2"]
+atlas = ExtResource("1_tex")
+region = Rect2(96, 0, 48, 144)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_off0")
+}],
+"loop": false,
+"name": &"off",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_on0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_on1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_on2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_on1")
+}],
+"loop": true,
+"name": &"on",
+"speed": 6.0
+}]

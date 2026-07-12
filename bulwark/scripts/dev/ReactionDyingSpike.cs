@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Autoload;
+using Bulwark.Data;
 using Bulwark.Combat;
 using Bulwark.Presets;
 using Godot;
@@ -28,10 +29,8 @@ namespace Bulwark.Dev;
 /// stays up; (4) with every PC down the session reports defeat and ends; (5) Shove displaces a goblin
 /// and grid occupancy updates; (6) ForcedMovementExecutor is installed against the session grid.
 /// </summary>
-public partial class ReactionDyingSpike : Node
+public partial class ReactionDyingSpike : SpikeBase
 {
-    private int _failures;
-
     public override void _Ready() => _ = RunAsync();
 
     private async Task RunAsync()
@@ -41,9 +40,7 @@ public partial class ReactionDyingSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[ReactionSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[ReactionSpike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -54,11 +51,7 @@ public partial class ReactionDyingSpike : Node
         await Check5_ShoveDisplaces(data);
         Check6_ForcedMovementInstalled(data);
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[ReactionSpike] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("ReactionSpike");
     }
 
     // ── (1) Shield Block reduces damage by hardness + consumes the reaction ──
@@ -317,17 +310,10 @@ public partial class ReactionDyingSpike : Node
 
     private ICharacter MakeGoblin(DataManager data)
     {
-        var def = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var def = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         return CreatureFactory.Create(def, teamId: 2);
     }
 
     private static DamageResult Physical(int amount) =>
         new DamageResult { TotalDamage = amount, DamageType = DamageType.Slashing };
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
-    }
 }

@@ -46,7 +46,6 @@ public sealed class PlayerTurnController
     public event Action<IReadOnlyCollection<PF2eVec>>? AreaPreviewChanged;
     public event Action<ActionBarState>? ButtonStateChanged;
     public event Action<PlayerTurnMode>? ModeChanged;
-    public event Action<int>? ActionsChanged;
     public event Action? EndTurnRequested;
 
     public ICharacter? Current => _current;
@@ -305,7 +304,6 @@ public sealed class PlayerTurnController
         _busy = false;
 
         int remaining = _current?.Actions?.TotalActionsRemaining ?? 0;
-        ActionsChanged?.Invoke(remaining);
         PublishState();
 
         if (remaining <= 0)

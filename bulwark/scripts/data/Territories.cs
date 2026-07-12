@@ -99,21 +99,13 @@ public static class Territories
         },
     };
 
-    private static readonly Dictionary<string, TerritoryDefinition> ById = BuildIndex(Forest);
+    private static readonly DefinitionRegistry<TerritoryDefinition> Registry = new(d => d.Id, Forest);
 
-    public static IReadOnlyCollection<TerritoryDefinition> All => ById.Values;
+    public static IReadOnlyCollection<TerritoryDefinition> All => Registry.All;
 
-    public static bool IsDefined(string id) => ById.ContainsKey(id);
+    public static bool IsDefined(string id) => Registry.IsDefined(id);
 
-    public static TerritoryDefinition Get(string id) => ById[id];
+    public static TerritoryDefinition Get(string id) => Registry.Get(id);
 
-    public static bool TryGet(string id, out TerritoryDefinition def) => ById.TryGetValue(id, out def!);
-
-    private static Dictionary<string, TerritoryDefinition> BuildIndex(params TerritoryDefinition[] defs)
-    {
-        var index = new Dictionary<string, TerritoryDefinition>(defs.Length);
-        foreach (var def in defs)
-            index[def.Id] = def;
-        return index;
-    }
+    public static bool TryGet(string id, out TerritoryDefinition def) => Registry.TryGet(id, out def);
 }

@@ -40,18 +40,10 @@ public sealed class TerritorySystem
     /// <summary>Defeat penalty: each Resource-category stack loses count / 4 (integer floor).</summary>
     public const int DefeatPenaltyDivisor = 4;
 
-    /// <summary>Combat grid used for territory encounters (matches the M1 combat slice).</summary>
-    public const int GridWidth = 14;
-    public const int GridHeight = 12;
-
-    private static readonly PF2eVec[] PartyAnchors =
-    {
-        new(1, 4), new(2, 5), new(1, 6), new(2, 7),
-    };
-    private static readonly PF2eVec[] EnemyAnchors =
-    {
-        new(12, 3), new(12, 5), new(11, 6), new(12, 7), new(11, 9),
-    };
+    /// <summary>Combat grid used for territory encounters (aliases of the standard board in
+    /// <see cref="CombatBoards"/> — the M1 combat slice).</summary>
+    public const int GridWidth = CombatBoards.StandardWidth;
+    public const int GridHeight = CombatBoards.StandardHeight;
 
     private readonly Inventory _inventory;
     private readonly DayClock _clock;
@@ -142,8 +134,9 @@ public sealed class TerritorySystem
     /// <summary>
     /// Travel from the outpost to a territory with up to three living companions. Validates the
     /// destination, the selection (count, duplicates, ids, alive, not the Veteran) and that the
-    /// Veteran himself can march. Spends <see cref="TravelMinutes"/>; if the clock collapses the day
-    /// mid-march (2 AM), the collapse-sleep already ran and the travel is cancelled.
+    /// Veteran himself can march. Spends <see cref="TravelMinutes"/> and always completes — a
+    /// march that crosses the 30:00 dawn rollover simply arrives in the new morning (the rollover
+    /// relocates nobody).
     /// </summary>
     public bool Travel(string territoryId, IReadOnlyList<string> companionIds)
     {
@@ -169,8 +162,7 @@ public sealed class TerritorySystem
                 return false;
         }
 
-        if (!SpendTravelTime())
-            return false; // collapsed mid-march; the collapse-sleep already put us to bed
+        _clock.SpendTime(TravelMinutes);
 
         CurrentTerritoryId = territoryId;
         _companions.Clear();
@@ -180,24 +172,45 @@ public sealed class TerritorySystem
     }
 
     /// <summary>
-    /// Travel back to the outpost (same constant cost). Returns true when the player ends up at the
-    /// outpost — including a collapse mid-march, where the forced sleep already reset the location.
+    /// Travel with EVERY living non-Veteran member as the companion selection — the gate's
+    /// all-hands default (no party-select step in the current game flow). Delegates to
+    /// <see cref="Travel"/>: same validation and the same 30-minute cost; the explicit ≤3
+    /// selection path stays fully intact for future capability-limited trips. With the fixed
+    /// squad of four, "everyone" is at most <see cref="MaxCompanions"/> companions, so no
+    /// validation rule needs suspending.
     /// </summary>
+    public bool TravelWithFullParty(string territoryId)
+    {
+        if (_squad == null)
+            return false;
+
+        var companions = new List<string>();
+        foreach (var member in _squad.Members)
+        {
+            if (member.Id == SquadRoster.VeteranId)
+                continue;
+            if (member.Health != null && !member.Health.IsDead)
+                companions.Add(member.Id);
+        }
+        return Travel(territoryId, companions);
+    }
+
+    /// <summary>Travel back to the outpost (same constant cost, always completes).</summary>
     public bool TravelToOutpost()
     {
         if (CurrentTerritoryId == null)
             return false;
 
-        bool marched = SpendTravelTime();
+        _clock.SpendTime(TravelMinutes);
         CurrentTerritoryId = null;
-        if (marched)
-            _travelToast = $"Traveled to the outpost — {TravelMinutes} min";
+        _travelToast = $"Traveled to the outpost — {TravelMinutes} min";
         return true;
     }
 
     /// <summary>
-    /// Called by the sleep command (voluntary, collapse, or defeat wake): whatever happened, the
-    /// player wakes at the outpost with the gate selection cleared for the next embark.
+    /// Called by the voluntary sleep command and the defeat wake: either way, the player wakes at
+    /// the outpost with the gate selection cleared for the next embark. (The 30:00 all-nighter
+    /// rollover deliberately does NOT call this — nobody is relocated by staying up.)
     /// </summary>
     public void OnSlept()
     {
@@ -278,10 +291,10 @@ public sealed class TerritorySystem
             return false;
 
         var setup = new CombatSetup { GridWidth = GridWidth, GridHeight = GridHeight };
-        for (int i = 0; i < party.Count && i < PartyAnchors.Length; i++)
-            setup.Party.Add((party[i], PartyAnchors[i]));
-        for (int i = 0; i < enemies.Count && i < EnemyAnchors.Length; i++)
-            setup.Enemies.Add((enemies[i], EnemyAnchors[i]));
+        for (int i = 0; i < party.Count && i < CombatBoards.PartyAnchors.Length; i++)
+            setup.Party.Add((party[i], CombatBoards.PartyAnchors[i]));
+        for (int i = 0; i < enemies.Count && i < CombatBoards.EnemyAnchors.Length; i++)
+            setup.Enemies.Add((enemies[i], CombatBoards.EnemyAnchors[i]));
 
         PendingEncounter = new TerritoryEncounter
         {
@@ -382,18 +395,6 @@ public sealed class TerritorySystem
     // ===================== Internals =====================
 
     private static string Key(string territoryId, string localId) => $"{territoryId}:{localId}";
-
-    /// <summary>
-    /// Spend the travel cost. Returns false when the day collapsed mid-march — the DayEnded handler
-    /// (GameState's collapse-sleep) ran reentrantly inside SpendTime and already advanced the
-    /// calendar, so the caller must abort its transition.
-    /// </summary>
-    private bool SpendTravelTime()
-    {
-        (int, Season, int) before = (_clock.Day, _clock.Season, _clock.Year);
-        _clock.SpendTime(TravelMinutes);
-        return (_clock.Day, _clock.Season, _clock.Year) == before;
-    }
 
     private void OnDayStarted()
     {

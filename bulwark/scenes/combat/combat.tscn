@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="7_ab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="8_vb"]
 [ext_resource type="PackedScene" path="res://scenes/ui/reaction_prompt_panel.tscn" id="9_rpp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/input_legend.tscn" id="10_legend"]
 
 [sub_resource type="Shader" id="Shader_floor"]
 code = "shader_type spatial;
@@ -58,6 +59,7 @@ script = ExtResource("1_scene")
 unique_name_in_owner = true
 
 [node name="PlaceholderFloor" type="MeshInstance3D" parent="MapRoot"]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
 mesh = SubResource("PlaneMesh_floor")
 surface_material_override/0 = SubResource("ShaderMaterial_floor")
@@ -92,33 +94,41 @@ environment = SubResource("Environment_1")
 [node name="HUD" type="CanvasLayer" parent="."]
 unique_name_in_owner = true
 
+[node name="ControlsLegend" parent="HUD" instance=ExtResource("10_legend")]
+unique_name_in_owner = true
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 12.0
+offset_bottom = 12.0
+
 [node name="TurnOrderBar" parent="HUD" instance=ExtResource("5_turn")]
 unique_name_in_owner = true
-anchor_right = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = 40.0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 10.0
+offset_bottom = 10.0
+grow_horizontal = 2
 
 [node name="CombatLog" parent="HUD" instance=ExtResource("6_log")]
 unique_name_in_owner = true
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -400.0
-offset_top = 48.0
-offset_right = -8.0
-offset_bottom = -72.0
+offset_left = -390.0
+offset_top = 64.0
+offset_right = -10.0
+offset_bottom = -150.0
 
 [node name="ActionBar" parent="HUD" instance=ExtResource("7_ab")]
 unique_name_in_owner = true
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = -60.0
-offset_right = -8.0
-offset_bottom = -8.0
+offset_top = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="VictoryBanner" parent="HUD" instance=ExtResource("8_vb")]
 unique_name_in_owner = true

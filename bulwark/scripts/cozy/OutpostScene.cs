@@ -3,7 +3,6 @@ using System.Text;
 using Bulwark.Autoload;
 using Bulwark.Data;
 using Bulwark.Territory;
-using Bulwark.UI;
 using Godot;
 
 namespace Bulwark.Cozy;
@@ -13,13 +12,13 @@ namespace Bulwark.Cozy;
 /// game logic: it only exposes typed accessors so the avatar / farming systems can query the
 /// blockout — tile layers, spawn/farm markers, ruined-building placeholders, and the territory
 /// gate trigger. The user hand-paints the actual tilemaps in the editor; this script never mutates
-/// world state.
+/// world state. Player/HUD/squad-panel hosting is inherited from <see cref="CozyWorldScene"/>.
 ///
 /// Layer draw order (bottom to top): Ground, GroundDecor, Walls, Props, Overhead. Overhead is meant
 /// to render above the player avatar (roofs / treetops); the player scene is expected to sit between
 /// Props and Overhead.
 /// </summary>
-public partial class OutpostScene : Node2D
+public partial class OutpostScene : CozyWorldScene
 {
     /// <summary>The territory the gate leads to (M3: the single Tier-1 forest).</summary>
     [Export] public string GateTerritoryId { get; set; } = "verdant_fringe";
@@ -35,13 +34,10 @@ public partial class OutpostScene : Node2D
     private Area2D? _bedroll;
     private readonly List<Marker2D> _ruinedBuildings = new();
 
-    // Avatar / farming / HUD instanced by this scene (draw order: layers < FarmRenderer < Player < Overhead).
-    private PlayerController? _player;
+    // Farm renderer instanced by this scene (draw order: layers < FarmRenderer < Player < Overhead).
     private FarmRenderer? _farmRenderer;
-    private CozyHud? _hud;
-    private SquadPanel? _squadPanel;
-    private PartySelectPanel? _partySelectPanel;
-    private bool _departing; // travel confirmed — scene swap pending, ignore further input
+    private TransitionSign? _gateSign;
+    private bool _playerAtGate;  // player currently inside the gate trigger (interact travels)
 
     // Level-ups announced by the sleep command, held until the wake toast consumes them.
     private IReadOnlyList<SquadLevelUpView>? _pendingLevelUps;
@@ -69,27 +65,13 @@ public partial class OutpostScene : Node2D
         SpawnPlayer();
         SpawnHud();
         SpawnSquadPanel();
-        SpawnPartySelectPanel();
+        SpawnDaySummaryPanel();
+        SpawnGateSign();
         WireGate();
+        BuildWorldCollision(_ground);
         WireStateEvents();
         RefreshHudAll();
         ShowArrivalToasts();
-    }
-
-    public override void _ExitTree()
-    {
-        // GameState is an autoload that outlives this scene, so drop our subscriptions on scene swap.
-        var gs = GameState.Instance;
-        if (gs != null)
-        {
-            gs.MinuteChanged -= RefreshHudTime;
-            gs.DayStarted -= RefreshHudTime;
-            gs.InventoryChanged -= OnInventoryChanged;
-            gs.GameLoaded -= RefreshHudAll;
-            gs.SquadChanged -= RefreshSquadPanel;
-            gs.TreatWoundsResolved -= OnTreatWoundsResolved;
-            gs.SquadLeveledUp -= OnSquadLeveledUp;
-        }
     }
 
     // ------------------------------------------------------------------ Instancing
@@ -101,155 +83,41 @@ public partial class OutpostScene : Node2D
         _farmRenderer.Bind(this);
     }
 
-    private void SpawnPlayer()
-    {
-        var scene = GD.Load<PackedScene>("res://scenes/cozy/player.tscn");
-        if (scene == null)
-            return;
+    protected override Vector2 GetPlayerSpawnPosition() => PlayerSpawnPosition;
 
-        _player = scene.Instantiate<PlayerController>();
-        _player.Name = "Player";
-        _player.ZIndex = 5; // between the z=0 world layers and the z=10 Overhead layer
-        AddChild(_player);
-        _player.GlobalPosition = PlayerSpawnPosition;
-        _player.Setup(this, _bedroll);
-        _player.SleepRequested += OnSleepRequested;
-        _player.Tools.Changed += RefreshHudTool;
+    protected override void ConfigurePlayer(PlayerController player)
+    {
+        player.Setup(this, _bedroll);
+        player.SleepRequested += OnSleepRequested;
+        player.ActionRejected += ShowRejectionToast;
     }
 
-    private void SpawnHud()
-    {
-        var scene = GD.Load<PackedScene>("res://scenes/ui/cozy_hud.tscn");
-        if (scene == null)
-            return;
-
-        _hud = scene.Instantiate<CozyHud>();
-        AddChild(_hud);
-    }
-
-    private void SpawnSquadPanel()
-    {
-        var scene = GD.Load<PackedScene>("res://scenes/ui/squad_panel.tscn");
-        if (scene == null)
-            return;
-
-        _squadPanel = scene.Instantiate<SquadPanel>();
-        AddChild(_squadPanel);
-        _squadPanel.TreatWoundsRequested += OnTreatWoundsRequested;
-        _squadPanel.Toggled += OnSquadPanelToggled;
-    }
-
-    private void SpawnPartySelectPanel()
-    {
-        var scene = GD.Load<PackedScene>("res://scenes/ui/party_select_panel.tscn");
-        if (scene == null)
-            return;
-
-        _partySelectPanel = scene.Instantiate<PartySelectPanel>();
-        AddChild(_partySelectPanel);
-        _partySelectPanel.TravelConfirmed += OnTravelConfirmed;
-        _partySelectPanel.Toggled += OnPartySelectToggled;
-    }
+    /// <summary>Signpost at the %GateTrigger position. Visual only: the proximity hint rides the
+    /// gate trigger's own entered/exited signals.</summary>
+    private void SpawnGateSign()
+        => _gateSign = SpawnTransitionSign("GateSign", $"To {GateDestinationName}", _gateTrigger, trackPlayer: false);
 
     private void WireGate()
     {
         _gateTrigger?.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnGateBodyEntered));
+        _gateTrigger?.Connect(Area2D.SignalName.BodyExited, Callable.From<Node2D>(OnGateBodyExited));
     }
 
-    private void WireStateEvents()
+    protected override void WireExtraStateEvents(GameState gs)
     {
-        var gs = GameState.Instance;
-        if (gs == null)
-            return;
-
-        gs.MinuteChanged += RefreshHudTime;
         gs.DayStarted += RefreshHudTime;
-        gs.InventoryChanged += OnInventoryChanged;
-        gs.GameLoaded += RefreshHudAll;
-        gs.SquadChanged += RefreshSquadPanel;
-        gs.TreatWoundsResolved += OnTreatWoundsResolved;
         gs.SquadLeveledUp += OnSquadLeveledUp;
+
+        // World-rules seam: farm commands validate through THIS scene's map truth while it hosts
+        // the farm (cleared symmetrically below so a freed scene is never queried).
+        gs.BindFarmWorld(IsTillable);
     }
 
-    // ------------------------------------------------------------------ HUD wiring (passive push)
-
-    private void OnInventoryChanged(string itemId) => RefreshHudInventory();
-
-    private void RefreshHudAll()
+    protected override void UnwireExtraStateEvents(GameState gs)
     {
-        RefreshHudTime();
-        RefreshHudTool();
-        RefreshHudInventory();
-    }
-
-    private void RefreshHudTime()
-    {
-        var gs = GameState.Instance;
-        if (_hud == null || gs == null)
-            return;
-        _hud.SetTimeDate(gs.Clock.TimeString(), gs.Clock.DateString());
-    }
-
-    private void RefreshHudTool()
-    {
-        var gs = GameState.Instance;
-        if (_hud == null || _player == null || gs == null)
-            return;
-
-        ItemDefinition? seed = _player.Tools.SelectedSeed;
-        _hud.SetTool(
-            _player.Tools.CurrentDisplayName,
-            seed?.DisplayName,
-            seed == null ? 0 : gs.Inventory.Count(seed.Id));
-    }
-
-    private void RefreshHudInventory()
-    {
-        var gs = GameState.Instance;
-        if (_hud == null || gs == null)
-            return;
-
-        var list = new List<(string Name, int Count)>();
-        foreach (var (id, qty) in gs.Inventory.Stacks)
-            if (qty > 0 && Items.TryGet(id, out ItemDefinition def))
-                list.Add((def.DisplayName, qty));
-        list.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
-
-        _hud.SetInventory(list);
-        RefreshHudTool(); // a spent/gained seed changes the tool-belt count too
-    }
-
-    // ------------------------------------------------------------------ Squad panel (passive push)
-
-    private void OnSquadPanelToggled(bool open)
-    {
-        // Freeze the world while the panel is modal: no avatar input/motion, no clock ticks
-        // (same seam SceneRouter uses for combat — Clock.IsPaused).
-        if (_player != null)
-            _player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
-
-        var clock = GameState.Instance?.Clock;
-        if (clock != null)
-            clock.IsPaused = open;
-
-        if (open)
-            RefreshSquadPanel();
-    }
-
-    private void OnTreatWoundsRequested(string healerId, string targetId, int dc)
-        => GameState.Instance?.TreatWounds(healerId, targetId, dc);
-
-    private void OnTreatWoundsResolved(TreatWoundsResultView view)
-        => _squadPanel?.ShowResult(view);
-
-    private void RefreshSquadPanel()
-    {
-        if (_squadPanel == null || !_squadPanel.Visible)
-            return;
-
-        var view = GameState.Instance?.GetSquadPanelView();
-        if (view != null)
-            _squadPanel.Render(view);
+        gs.DayStarted -= RefreshHudTime;
+        gs.SquadLeveledUp -= OnSquadLeveledUp;
+        gs.BindFarmWorld(null);
     }
 
     // ------------------------------------------------------------------ Interactions
@@ -263,8 +131,8 @@ public partial class OutpostScene : Node2D
         if (gs == null)
             return;
 
-        if (_hud != null)
-            _hud.PlaySleepTransition(gs.Sleep, () => BuildWakeText(gs));
+        if (Hud != null)
+            Hud.PlaySleepTransition(gs.Sleep, () => BuildWakeText(gs));
         else
             gs.Sleep();
     }
@@ -282,52 +150,57 @@ public partial class OutpostScene : Node2D
         return text;
     }
 
-    /// <summary>Gate reached: open the party-selection panel (walk out and back to re-open after
-    /// cancelling). Confirm raises <see cref="OnTravelConfirmed"/>.</summary>
+    /// <summary>Destination display name for gate affordance text ("the Verdant Fringe").</summary>
+    private string GateDestinationName
+        => Territories.TryGet(GateTerritoryId, out var def) ? def.DisplayName : GateTerritoryId;
+
+    /// <summary>Gate trigger reached: flash the travel hint (once per approach — the trigger's own
+    /// entered/exited boundary is the hysteresis) and arm the interact-to-travel flow.</summary>
     private void OnGateBodyEntered(Node2D body)
     {
-        var gs = GameState.Instance;
-        if (body is not PlayerController || gs == null || _departing)
-            return;
-        if (_partySelectPanel == null || _partySelectPanel.Visible)
+        if (body is not PlayerController || IsTransitioning)
             return;
 
-        _partySelectPanel.Open(gs.GetPartySelectView(GateTerritoryId));
+        _playerAtGate = true;
+        Hud?.ShowToast(
+            $"Press E / LMB — travel to {GateDestinationName} ({TerritorySystem.TravelMinutes} min)",
+            2.5f);
     }
 
-    private void OnPartySelectToggled(bool open)
+    private void OnGateBodyExited(Node2D body)
     {
-        // Same modal freeze the squad panel uses: no avatar motion, no clock ticks.
-        if (_player != null && !_departing)
-            _player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
-
-        var clock = GameState.Instance?.Clock;
-        if (clock != null)
-            clock.IsPaused = open;
+        if (body is PlayerController)
+            _playerAtGate = false;
     }
 
-    private void OnTravelConfirmed(IReadOnlyList<string> companionIds)
+    /// <summary>
+    /// Interact press: at the gate, march out with the FULL living squad — confirm-free travel
+    /// (interact → toast → travel; no party-select panel in this flow — the panel and the
+    /// capability-limited selection command remain in the repo for future flows).
+    /// </summary>
+    protected override void OnInteractRequested(ToolKind tool)
     {
         var gs = GameState.Instance;
-        if (gs == null || _departing)
+        if (gs == null || IsTransitioning || !_playerAtGate)
             return;
 
-        if (!gs.TravelToTerritory(GateTerritoryId, companionIds))
+        if (!gs.TravelToTerritory(GateTerritoryId))
         {
-            _hud?.ShowToast("Cannot travel right now.", 1.5f);
+            Hud?.ShowToast("Cannot travel right now.", 1.5f);
             return;
         }
 
-        _departing = true;
         string territoryId = GateTerritoryId;
-        Callable.From(() => SceneRouter.Instance?.GoToTerritory(territoryId)).CallDeferred();
+        BeginHandOff(
+            $"The squad marches for {GateDestinationName}.",
+            () => SceneRouter.Instance?.GoToTerritory(territoryId));
     }
 
     /// <summary>One-shot arrival messages: return-travel notice and/or the defeat wake summary.</summary>
     private void ShowArrivalToasts()
     {
         var gs = GameState.Instance;
-        if (gs == null || _hud == null)
+        if (gs == null || Hud == null)
             return;
 
         var defeat = gs.ConsumeDefeatSummary();
@@ -348,13 +221,13 @@ public partial class OutpostScene : Node2D
                     sb.Append($"{defeat.Losses[i].ItemName} x{defeat.Losses[i].Lost}");
                 }
             }
-            _hud.ShowToast(sb.ToString(), 4.5f);
+            Hud.ShowToast(sb.ToString(), 4.5f);
             return;
         }
 
         string? travel = gs.Territory.ConsumeTravelToast();
         if (travel != null)
-            _hud.ShowToast(travel);
+            Hud.ShowToast(travel);
     }
 
     // --- Layer accessors ---
@@ -389,6 +262,47 @@ public partial class OutpostScene : Node2D
         TileData? td = _ground?.GetCellTileData(cell);
         return td != null && (bool)td.GetCustomData("farmable");
     }
+
+    /// <summary>
+    /// Stardew rule: a cell can be tilled only when the map says so — farmable Ground, nothing
+    /// painted over it on a blocking/prop layer, and no world object standing on it. This is the
+    /// predicate the scene injects into the farm system (GameState.BindFarmWorld); the highlight
+    /// and the command share it, so an actionable highlight always matches a command that succeeds.
+    /// </summary>
+    public bool IsTillable(Vector2I cell)
+        => IsFarmable(cell) && !HasBlockingTile(cell) && !IsCellOccupied(cell);
+
+    /// <summary>A painted Walls/Props tile claims the cell (fences, ruins, decor) — no tilling under it.</summary>
+    private bool HasBlockingTile(Vector2I cell)
+        => (_walls != null && _walls.GetCellSourceId(cell) != -1)
+           || (_props != null && _props.GetCellSourceId(cell) != -1);
+
+    /// <summary>
+    /// Occupancy is scene knowledge: functional world objects (triggers, signs, placeable props,
+    /// nodes, roamers) claim their cell even when the soil under them is farmable-flagged. Scanned
+    /// live — tilling happens on interact presses, and a live scan tracks runtime-spawned children.
+    /// </summary>
+    private bool IsCellOccupied(Vector2I cell)
+    {
+        if (_gateTrigger != null && WorldToCell(_gateTrigger.GlobalPosition) == cell)
+            return true;
+        if (_bedroll != null && WorldToCell(_bedroll.GlobalPosition) == cell)
+            return true;
+
+        foreach (Node child in GetChildren())
+            if (IsCellOccupant(child) && child is Node2D node && WorldToCell(node.GlobalPosition) == cell)
+                return true;
+        return false;
+    }
+
+    /// <summary>World objects that make their cell untillable (depleted nodes are hidden and free).</summary>
+    private static bool IsCellOccupant(Node node) => node switch
+    {
+        ResourceNodeView view => view.Visible,
+        TransitionSign or RoamingEnemy => true,
+        Bulwark.Props.Door or Bulwark.Props.Chest or Bulwark.Props.Lever or Bulwark.Props.AmbientProp => true,
+        _ => false,
+    };
 
     /// <summary>Every painted Ground cell flagged farmable (the tillable soil the player may work).</summary>
     public IEnumerable<Vector2I> FarmableCells()

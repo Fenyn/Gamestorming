@@ -24,10 +24,8 @@ namespace Bulwark.Dev;
 /// and tears the session down (so pass-through reaction handlers never stack). Prints
 /// "SPIKE RESULT: PASS/FAIL" and quits with the matching exit code.
 /// </summary>
-public partial class SpellCastSpike : Node
+public partial class SpellCastSpike : SpikeBase
 {
-    private int _failures;
-
     public override void _Ready() => _ = RunAsync();
 
     private async Task RunAsync()
@@ -37,9 +35,7 @@ public partial class SpellCastSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[SpellSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[SpellSpike] DataManager not loaded — aborting.");
             return;
         }
         PresetSpells.EnsureRegistered();
@@ -52,11 +48,7 @@ public partial class SpellCastSpike : Node
         await Scenario_F_BattleMedicine(data);
         await Scenario_G_SlotExhaustion(data);
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[SpellSpike] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("SpellSpike");
     }
 
     // ─────────────────────────── (a) Heal (1-action touch) ───────────────────────────
@@ -296,8 +288,7 @@ public partial class SpellCastSpike : Node
 
     private ICharacter MakeGoblin(DataManager data)
     {
-        var def = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var def = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         return CreatureFactory.Create(def, teamId: 2);
     }
 
@@ -325,10 +316,4 @@ public partial class SpellCastSpike : Node
 
     private static int PreparedCount(ICharacter c, string spellId)
         => c.Spellcasting?.GetPreparedCount(PresetSpells.Get(spellId)) ?? 0;
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
-    }
 }

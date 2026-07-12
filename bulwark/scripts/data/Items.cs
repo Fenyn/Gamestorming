@@ -89,28 +89,20 @@ public static class Items
         Id = "berries", DisplayName = "Berries", Category = ItemCategory.Resource,
     };
 
-    private static readonly Dictionary<string, ItemDefinition> ById = BuildIndex(
+    private static readonly DefinitionRegistry<ItemDefinition> Registry = new(d => d.Id,
         TurnipSeed, PotatoSeed, WheatSeed, TomatoSeed,
         Turnip, Potato, Wheat, Tomato,
         Wood, Stone, Herb, Berries);
 
     /// <summary>Every defined item.</summary>
-    public static IReadOnlyCollection<ItemDefinition> All => ById.Values;
+    public static IReadOnlyCollection<ItemDefinition> All => Registry.All;
 
     /// <summary>True when <paramref name="id"/> names a defined item.</summary>
-    public static bool IsDefined(string id) => ById.ContainsKey(id);
+    public static bool IsDefined(string id) => Registry.IsDefined(id);
 
     /// <summary>Look up an item by id. Throws if unknown — call <see cref="IsDefined"/> to probe.</summary>
-    public static ItemDefinition Get(string id) => ById[id];
+    public static ItemDefinition Get(string id) => Registry.Get(id);
 
     /// <summary>Non-throwing lookup.</summary>
-    public static bool TryGet(string id, out ItemDefinition def) => ById.TryGetValue(id, out def!);
-
-    private static Dictionary<string, ItemDefinition> BuildIndex(params ItemDefinition[] defs)
-    {
-        var index = new Dictionary<string, ItemDefinition>(defs.Length);
-        foreach (var def in defs)
-            index[def.Id] = def;
-        return index;
-    }
+    public static bool TryGet(string id, out ItemDefinition def) => Registry.TryGet(id, out def);
 }

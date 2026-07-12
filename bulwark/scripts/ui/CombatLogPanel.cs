@@ -11,20 +11,8 @@ public partial class CombatLogPanel : Control
 {
     private RichTextLabel _label = null!;
 
-    // Mirrors PF2e.Core.CombatLogSeverity ordinal values (kept as ints to stay engine-free).
-    private static readonly Color[] SeverityColors =
-    {
-        new(0.82f, 0.82f, 0.85f), // Info
-        new(0.55f, 0.9f, 0.55f),  // Hit
-        new(0.35f, 1f, 0.35f),    // CriticalHit
-        new(0.75f, 0.75f, 0.6f),  // Miss
-        new(0.9f, 0.5f, 0.5f),    // CriticalMiss
-        new(0.4f, 0.9f, 0.9f),    // Healing
-        new(0.8f, 0.6f, 1f),      // ConditionApplied
-        new(0.6f, 0.6f, 0.7f),    // ConditionRemoved
-        new(1f, 0.85f, 0.4f),     // ActionHeader
-        new(1f, 0.65f, 0.25f),    // Reaction
-    };
+    // Severity ramp lives in the shared warm palette (UiPalette.LogSeverity).
+    private static readonly Color[] SeverityColors = UiPalette.LogSeverity;
 
     public override void _Ready()
     {

@@ -37,11 +37,8 @@ public sealed class TreatWoundsSystem
     /// <summary>RAW: "temporarily immune to Treat Wounds actions for 1 hour".</summary>
     public const int ImmunityMinutes = 60;
 
-    /// <summary>Conditions worth surfacing on the panel (the attrition whitelist).</summary>
-    private static readonly Condition[] NotableConditions =
-    {
-        Condition.Wounded, Condition.Drained, Condition.Doomed, Condition.Fatigued,
-    };
+    /// <summary>Role: conditions worth surfacing on the panel (the shared attrition whitelist).</summary>
+    private static readonly Condition[] NotableConditions = AttritionConditions.LongTerm;
 
     private readonly SquadRoster _squad;
     private readonly DayClock _clock;
@@ -209,8 +206,11 @@ public sealed class TreatWoundsSystem
     // ===================== Internals =====================
 
     /// <summary>
-    /// Absolute game minute since the calendar epoch (Year 1, Spring 1, midnight). Monotonic across
-    /// day rollover: MinuteOfDay only runs 6:00–26:00 so consecutive days never overlap.
+    /// Absolute game minute since the calendar epoch (Year 1, Spring 1, midnight). Monotonic
+    /// (non-decreasing) across day rollover: MinuteOfDay runs 6:00–30:00, so day N's 30:00
+    /// (N·1440 + 1800) equals day N+1's 6:00 exactly — the clock never goes backwards, and the
+    /// expiry comparisons (remaining &lt;= 0 expired, expiresAt &gt; now kept) behave at the
+    /// boundary: immunity anchored before a rollover keeps its full RAW hour, no more, no less.
     /// </summary>
     public static long AbsoluteMinute(DayClock clock)
     {

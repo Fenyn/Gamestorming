@@ -44,6 +44,24 @@ public partial class DataManager : Node
     public EnemyDefinition LoadCreatureFile(string packSubfolder, string slug)
         => _loader.LoadCreatureFile(packSubfolder, slug);
 
+    /// <summary>
+    /// Resolve a data-driven creature ref: display-name lookup first, direct pack-file load as the
+    /// fallback. Null (with an error log) when the content is unavailable — the single home for
+    /// the idiom every consumer used to hand-roll.
+    /// </summary>
+    public EnemyDefinition? ResolveCreature(CreatureRef @ref)
+    {
+        try
+        {
+            return FindCreature(@ref.DisplayName) ?? LoadCreatureFile(@ref.Pack, @ref.Slug);
+        }
+        catch (System.Exception e)
+        {
+            GD.PushError($"[DataManager] Could not resolve creature '{@ref.DisplayName}': {e.Message}");
+            return null;
+        }
+    }
+
     private static void WireLogging()
     {
         Log.OnInfo = msg => GD.Print($"[PF2e] {msg}");

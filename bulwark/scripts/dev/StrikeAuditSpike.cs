@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Autoload;
+using Bulwark.Data;
 using Bulwark.Presets;
 using Godot;
 using PF2e;
@@ -22,7 +23,7 @@ namespace Bulwark.Dev;
 ///   ranged  -> 6 range increments (hard PF2e maximum; violation if farther).
 /// Every strike is logged with positions so violations can be traced to the deciding code path.
 /// </summary>
-public partial class StrikeAuditSpike : Node
+public partial class StrikeAuditSpike : SpikeBase
 {
     private const int MaxRangeIncrements = 6;
 
@@ -38,9 +39,7 @@ public partial class StrikeAuditSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[Audit] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[Audit] DataManager not loaded — aborting.");
             return;
         }
 
@@ -54,11 +53,10 @@ public partial class StrikeAuditSpike : Node
         StrikeResolver.OnStrikeResolved -= OnStrike;
         ReactionEvents.OnDamageReactionCheck -= damageHandler;
 
-        GD.Print("---------------------------------------------------------");
         GD.Print($"[Audit] Strikes audited: {_strikes}, range violations: {_violations}");
-        bool pass = _violations == 0 && _strikes > 0;
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        Check($"strikes were actually audited ({_strikes})", _strikes > 0);
+        Check($"no range violations ({_violations})", _violations == 0);
+        FinishAndQuit("Audit");
     }
 
     private async Task RunEncounter(DataManager data, int seed)
@@ -77,8 +75,7 @@ public partial class StrikeAuditSpike : Node
         simulator.PlaceCreature(veteran, new PF2eVec(2, 5));
         simulator.PlaceCreature(recruit, new PF2eVec(2, 7));
 
-        var goblinDef = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var team2 = new List<ICharacter>();
         var positions = new[]
         {

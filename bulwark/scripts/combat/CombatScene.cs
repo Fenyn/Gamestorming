@@ -25,12 +25,28 @@ public partial class CombatScene : Node3D
     private Node3D _popupLayer = null!;
     private GridInput3D _input = null!;
     private OrbitCameraRig _cameraRig = null!;
+    private MeshInstance3D _floor = null!;
 
     private ActionBar _actionBar = null!;
     private CombatLogPanel _log = null!;
     private TurnOrderBar _turnBar = null!;
     private VictoryBanner _victoryBanner = null!;
     private ReactionPromptPanel _reactionPrompt = null!;
+    private InputLegend _legend = null!;
+
+    /// <summary>
+    /// Upper-left controls legend rows — render data only, mirroring the actual bindings in
+    /// <see cref="OrbitCameraRig"/> (MMB/RMB-drag orbit, wheel zoom, WASD pan) and
+    /// <see cref="GridInput3D"/> (LMB click, Esc / stationary RMB click cancel).
+    /// </summary>
+    private static readonly (string Keys, string Action)[] LegendRows =
+    {
+        ("LMB", "Select · Confirm"),
+        ("Esc / RMB", "Cancel targeting"),
+        ("MMB / RMB drag", "Orbit camera"),
+        ("Wheel / WASD", "Zoom · Pan camera"),
+        ("End Turn", "Button on action bar"),
+    };
 
     private CombatSession _session = null!;
     private PlayerTurnController _controller = null!;
@@ -53,12 +69,15 @@ public partial class CombatScene : Node3D
         _popupLayer = GetNode<Node3D>("%PopupLayer");
         _input = GetNode<GridInput3D>("%GridInput");
         _cameraRig = GetNode<OrbitCameraRig>("%CameraRig");
+        _floor = GetNode<MeshInstance3D>("%PlaceholderFloor");
 
         _turnBar = GetNode<TurnOrderBar>("%TurnOrderBar");
         _log = GetNode<CombatLogPanel>("%CombatLog");
         _actionBar = GetNode<ActionBar>("%ActionBar");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
+        _legend = GetNode<InputLegend>("%ControlsLegend");
+        _legend.SetRows(LegendRows);
     }
 
     /// <summary>Entry point: hand an assembled encounter and it plays out.</summary>
@@ -66,8 +85,17 @@ public partial class CombatScene : Node3D
     {
         _session = new CombatSession();
         _session.Setup(setup);
+        foreach (string correction in _session.SetupCorrections)
+            GD.PushWarning($"[CombatScene] {correction}");
         _controller = new PlayerTurnController(_session.PlayerActions);
         _presenter = new GodotPresenter3D(_popupLayer);
+
+        // The floor mesh is sized from the setup so every board dimension renders correctly —
+        // grid tile (x, y) spans world x..x+1 / y..y+1, so a WxH plane sits at BoardCenter.
+        // The checker shader works in world space and follows automatically.
+        if (_floor.Mesh is PlaneMesh floorPlane)
+            floorPlane.Size = new Vector2(setup.GridWidth, setup.GridHeight);
+        _floor.Position = GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight);
 
         _cameraRig.FocusOn(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight));
         SpawnUnits();
@@ -77,6 +105,8 @@ public partial class CombatScene : Node3D
         // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
         _session.ReactionPromptHandler = view => _reactionPrompt.ShowAsync(view);
         _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, OnTileClicked, OnTileHovered, OnCancel);
+        // One click-vs-drag threshold for the whole gesture: the rig's value wins.
+        _input.DragThresholdPixels = _cameraRig.DragThresholdPixels;
 
         WireControllerToView();
         WireActionBar();
@@ -130,6 +160,7 @@ public partial class CombatScene : Node3D
         _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
         _controller.AttackPreviewChanged += preview => _actionBar.ShowAttackPreview(preview);
         _controller.ButtonStateChanged += state => _actionBar.Render(state);
+        _controller.ModeChanged += mode => _actionBar.SetTargetingHint(mode != PlayerTurnMode.Idle);
         _controller.EndTurnRequested += () => _session.RequestEndPlayerTurn();
     }
 
@@ -217,8 +248,8 @@ public partial class CombatScene : Node3D
             _ => "Draw",
         };
         Color color = result == PF2e.Core.BattleResult.Team1Wins
-            ? new Color(1f, 0.9f, 0.4f)
-            : new Color(1f, 0.5f, 0.5f);
+            ? UiPalette.VictoryGold
+            : UiPalette.DefeatRed;
         _victoryBanner.ShowResult(text, color);
         _actionBar.SetInteractable(false);
 

@@ -20,7 +20,8 @@ public sealed class SaveData
 
     public List<PlotDto> Plots { get; set; } = new();
 
-    public FlagsDto Flags { get; set; } = new();
+    // NOTE: older saves carry a "Flags" object (the retired CollapsedLastNight collapse flag).
+    // System.Text.Json ignores unknown JSON members by default, so those saves still load.
 
     /// <summary>
     /// Squad delta snapshot (see <see cref="SquadRoster.CaptureMembers"/>). Null in v1 saves —
@@ -83,13 +84,6 @@ public sealed class PlotDto
     public string? CropId { get; set; }
     public int DaysGrown { get; set; }
     public bool WateredToday { get; set; }
-}
-
-/// <summary>Persistent game flags.</summary>
-public sealed class FlagsDto
-{
-    /// <summary>Set when the player collapsed at 2 AM instead of sleeping voluntarily.</summary>
-    public bool CollapsedLastNight { get; set; }
 }
 
 /// <summary>

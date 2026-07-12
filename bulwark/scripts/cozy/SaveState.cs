@@ -14,7 +14,7 @@ public static class SaveState
 {
     /// <summary>Snapshot the current state of all cozy systems into a serializable DTO.</summary>
     public static SaveData Capture(
-        DayClock clock, Inventory inventory, FarmSystem farm, bool collapsedLastNight,
+        DayClock clock, Inventory inventory, FarmSystem farm,
         SquadRoster? squad = null, TreatWoundsSystem? treatWounds = null,
         TerritorySystem? territory = null)
     {
@@ -37,18 +37,14 @@ public static class SaveState
                 DaysGrown = p.DaysGrown,
                 WateredToday = p.WateredToday,
             }).ToList(),
-            Flags = new FlagsDto { CollapsedLastNight = collapsedLastNight },
             Squad = squad?.CaptureMembers(),
             TreatWoundsImmunities = treatWounds?.CaptureImmunities(),
             Territory = territory?.CaptureState(),
         };
     }
 
-    /// <summary>
-    /// Overwrite the live systems from a DTO. Returns the persisted CollapsedLastNight flag so the
-    /// caller can restore it onto its own state.
-    /// </summary>
-    public static bool Restore(
+    /// <summary>Overwrite the live systems from a DTO.</summary>
+    public static void Restore(
         SaveData data, DayClock clock, Inventory inventory, FarmSystem farm,
         SquadRoster? squad = null, TreatWoundsSystem? treatWounds = null,
         TerritorySystem? territory = null)
@@ -75,7 +71,5 @@ public static class SaveState
 
         // Additive field: null in pre-M3 saves — restore clears to fresh territory state.
         territory?.RestoreState(data.Territory);
-
-        return data.Flags.CollapsedLastNight;
     }
 }

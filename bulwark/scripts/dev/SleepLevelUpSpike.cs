@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Bulwark.Autoload;
 using Bulwark.Cozy;
 using Bulwark.Data;
 using Bulwark.Presets;
 using Godot;
+using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
 
@@ -24,15 +26,18 @@ namespace Bulwark.Dev;
 ///  (4) EQUIVALENCE: each member leveled in place matches a fresh PresetCharacters L5 build on
 ///      level, ability scores, max HP, skill proficiencies, granted feature set, per-rank max
 ///      slots, focus, font, and prepared loadout — the core invariant of the level-up seam;
-///  (5) a further sleep at the cap changes nothing and emits no level-up event.
+///  (5) a further sleep at the cap changes nothing and emits no level-up event;
+///  (6) the 30:00 all-nighter dawn rollover is NOT a rest: no banked level-up applies, no HP or
+///      font-slot refill, the squad ends up Fatigued — and Fatigued round-trips through the save
+///      into a fresh GameState (the attrition-condition persistence path);
+///  (7) a subsequent voluntary Sleep() IS the full rest: banked level-up applies, Fatigued
+///      clears, HP and font refill.
 /// Prints [PASS]/[FAIL] per check and a final SPIKE RESULT line.
 /// </summary>
-public partial class SleepLevelUpSpike : Node
+public partial class SleepLevelUpSpike : SpikeBase
 {
     private const string SavePath = "user://save/slot0.json";
 
-    private int _failures;
-    private int _checks;
     private bool _slot0Existed;
     private string? _slot0Backup;
 
@@ -43,9 +48,7 @@ public partial class SleepLevelUpSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[SleepLevelUpSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[SleepLevelUpSpike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -57,18 +60,14 @@ public partial class SleepLevelUpSpike : Node
         catch (Exception e)
         {
             GD.PushError($"[SleepLevelUpSpike] Unhandled exception: {e}");
-            _failures++;
+            Fail();
         }
         finally
         {
             RestoreSlot0();
         }
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[SleepLevelUpSpike] checks: {_checks}, failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("SleepLevelUpSpike");
     }
 
     private void RunScenario()
@@ -198,6 +197,68 @@ public partial class SleepLevelUpSpike : Node
         Check("(5) veteran still level 5 with 1300 XP banked",
             vet2.Stats.Level == 5 && squad2.GetXp(SquadRoster.VeteranId) == 1300);
         Check("(5) no level-up event emitted at the cap", levelUpEvents2.Count == eventsBefore);
+
+        // ── (6) All-nighter rollover: NO rest benefits; Fatigued applies and round-trips ──
+        GD.Print("-------------------- (6) All-nighter dawn rollover --------------------");
+        // Fresh slot + fresh GameState: an L2 squad with room below the level cap, so "the
+        // rollover applies no banked level-up" is observable.
+        ClearSlot0();
+        var gs3 = new GameState { RealSecondsPerGameMinute = 0 };
+        AddChild(gs3);
+        var squad3 = gs3.Squad;
+        Check("(6) fresh GameState built a squad", squad3 != null && squad3.Members.Count == 4);
+        if (squad3 == null)
+            return;
+
+        var vet3 = squad3.FindMember(SquadRoster.VeteranId)!;
+        var medic3 = squad3.FindMember(SquadRoster.MedicId)!;
+        var levelUpEvents3 = new List<SquadLevelUpView>();
+        gs3.SquadLeveledUp += ups => levelUpEvents3.AddRange(ups);
+
+        squad3.AddXp(SquadRoster.VeteranId, 1000);          // a banked level-up a sleep WOULD apply
+        vet3.Health!.SetCurrentHP(vet3.Health.MaxHP - 9);   // an HP dent a sleep WOULD heal
+        var font3 = medic3.Spellcasting!.DivineFont!;
+        font3.RestoreState(font3.CurrentSlots - 1, font3.FontRank); // a spent slot a sleep WOULD refill
+        int fontAfterSpend = font3.CurrentSlots;
+
+        int dayBefore = gs3.Clock.Day;
+        gs3.Clock.SpendTime(DayClock.DayRolloverMinute - gs3.Clock.MinuteOfDay); // ride 6:00 → 30:00
+        Check("(6) rollover advanced the calendar", gs3.Clock.Day == dayBefore + 1);
+        Check("(6) rollover applied NO banked level-up (still L2, 1000 XP intact, no event)",
+            vet3.Stats!.Level == 2 && squad3.GetXp(SquadRoster.VeteranId) == 1000
+            && levelUpEvents3.Count == 0);
+        Check("(6) rollover refilled NO HP", vet3.Health.CurrentHP == vet3.Health.MaxHP - 9);
+        Check("(6) rollover refilled NO font slots", font3.CurrentSlots == fontAfterSpend);
+        Check("(6) squad Fatigued after the rollover", squad3.Members.All(HasFatigued));
+
+        // Fatigued round-trip: the rollover saved — a fresh GameState must restore it from disk.
+        var gs4 = new GameState();
+        AddChild(gs4);
+        var squad4 = gs4.Squad!;
+        var vet4 = squad4.FindMember(SquadRoster.VeteranId)!;
+        Check("(6) Fatigued survives save → fresh restore", squad4.Members.All(HasFatigued));
+        Check("(6) HP dent survived the restore",
+            vet4.Health!.CurrentHP == vet4.Health.MaxHP - 9);
+
+        // ── (7) A subsequent voluntary Sleep() IS the full rest ──
+        GD.Print("-------------------- (7) Voluntary sleep after the all-nighter --------------------");
+        var font4 = squad4.FindMember(SquadRoster.MedicId)!.Spellcasting!.DivineFont!;
+        gs4.Sleep();
+        Check("(7) sleep applied the banked level-up (2 → 3, XP consumed)",
+            vet4.Stats!.Level == 3 && squad4.GetXp(SquadRoster.VeteranId) == 0);
+        Check("(7) sleep cleared Fatigued", squad4.Members.All(m => !HasFatigued(m)));
+        Check("(7) sleep refilled HP to the new max", vet4.Health.IsFullHealth);
+        Check("(7) sleep refilled the font", font4.CurrentSlots == font4.MaxSlots);
+    }
+
+    private static bool HasFatigued(ICharacter member)
+        => member.Conditions?.HasCondition(Condition.Fatigued) == true;
+
+    /// <summary>Drop the (already backed-up) slot so the next GameState starts a fresh save.</summary>
+    private static void ClearSlot0()
+    {
+        if (Godot.FileAccess.FileExists(SavePath))
+            DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(SavePath));
     }
 
     // ─────────────────────────── Equivalence ───────────────────────────
@@ -289,13 +350,6 @@ public partial class SleepLevelUpSpike : Node
             if (s?.SpellId == spellId)
                 count++;
         return count;
-    }
-
-    private void Check(string label, bool ok)
-    {
-        _checks++;
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
     }
 
     // ─────────────────────────── Save-slot protection ───────────────────────────

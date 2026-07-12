@@ -77,22 +77,14 @@ public static class EncounterTables
         Creatures = new[] { new EncounterCreature { Creature = GiantRat, Count = 3 } },
     };
 
-    private static readonly Dictionary<string, EncounterDefinition> ById = BuildIndex(
+    private static readonly DefinitionRegistry<EncounterDefinition> Registry = new(d => d.Id,
         GoblinPair, GoblinPatrol, GoblinWarband, RatPack);
 
-    public static IReadOnlyCollection<EncounterDefinition> All => ById.Values;
+    public static IReadOnlyCollection<EncounterDefinition> All => Registry.All;
 
-    public static bool IsDefined(string id) => ById.ContainsKey(id);
+    public static bool IsDefined(string id) => Registry.IsDefined(id);
 
-    public static EncounterDefinition Get(string id) => ById[id];
+    public static EncounterDefinition Get(string id) => Registry.Get(id);
 
-    public static bool TryGet(string id, out EncounterDefinition def) => ById.TryGetValue(id, out def!);
-
-    private static Dictionary<string, EncounterDefinition> BuildIndex(params EncounterDefinition[] defs)
-    {
-        var index = new Dictionary<string, EncounterDefinition>(defs.Length);
-        foreach (var def in defs)
-            index[def.Id] = def;
-        return index;
-    }
+    public static bool TryGet(string id, out EncounterDefinition def) => Registry.TryGet(id, out def);
 }

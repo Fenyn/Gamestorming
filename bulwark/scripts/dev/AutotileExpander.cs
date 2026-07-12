@@ -264,6 +264,85 @@ public partial class AutotileExpander : Node
     }
 
     // ==============================================================================================
+    // Pre-expanded Winlu Godot-native sheets (NOT MZ-assembled)
+    // ==============================================================================================
+    //
+    // Newer Winlu packs ship autotile sheets already expanded to Godot's terrain layout, so no MZ
+    // quadrant assembly is needed — <see cref="TileSetBuilder"/> registers the sheet verbatim and only
+    // needs the per-tile peering. These tables give the "same terrain" 8-neighbour set for each tile
+    // of a pre-expanded block, derived by exact pixel-match against an MZ assembly (ground truth).
+    //
+    // FLOOR block = 12x4 used tiles (block-relative index = ir*12 + ic). Corners-and-sides mode; a
+    // corner peers only when both its adjacent sides peer (blob rule). Index 22 is BLANK (no tile).
+    // WALL block = 3x3 used tiles (match-sides; only the 9 shipped side-combos, no thin/end-cap art).
+    // WALL-TOP block = 3x3 used tiles (corners-and-sides), so wall faces can be capped.
+
+    /// <summary>Block-relative floor tile index (ir*12+ic) that is fully surrounded (the "fill" tile).</summary>
+    public const int PreFloorFillIndex = 33;
+
+    /// <summary>True for the one blank slot (index 22) in a pre-expanded 12x4 floor block.</summary>
+    public static bool IsPreFloorBlank(int blockRelIndex) => blockRelIndex == 22;
+
+    private static readonly string[] PreFloorSpec =
+    {
+        // row 0 (ir=0)
+        "S", "E,S", "W,E,S", "W,S", "N,E,S,W,NW", "E,S,W,SE", "E,S,W,SW", "N,E,S,W,NE", "E,S,SE", "N,E,S,W,SE,SW", "E,S,W,SE,SW", "S,W,SW",
+        // row 1 (ir=1)
+        "N,S", "N,E,S", "N,E,S,W", "N,S,W", "N,E,S,SE", "N,E,S,W,NE,SE,SW", "N,E,S,W,SE,SW,NW", "N,S,W,SW", "N,E,S,NE,SE", "N,E,S,W,NE,SW", "", "N,E,S,W,SW,NW",
+        // row 2 (ir=2)
+        "N", "N,E", "N,E,W", "N,W", "N,E,S,NE", "N,E,S,W,NE,SE,NW", "N,E,S,W,NE,SW,NW", "N,S,W,NW", "N,E,S,W,NE,SE", "N,E,S,W,NE,SE,SW,NW", "N,E,S,W,SE,NW", "N,S,W,SW,NW",
+        // row 3 (ir=3)
+        "", "E", "E,W", "W", "N,E,S,W,SW", "N,E,W,NE", "N,E,W,NW", "N,E,S,W,SE", "N,E,NE", "N,E,W,NE,NW", "N,E,S,W,NE,NW", "N,W,NW",
+    };
+
+    // WALL side (match-sides), indexed ir*3+ic.
+    private static readonly string[] PreWallSideSpec =
+    {
+        "E,S", "W,E,S", "W,S",
+        "N,E,S", "W,N,E,S", "W,N,S",
+        "N,E", "W,N,E", "W,N",
+    };
+
+    // WALL-TOP (corners-and-sides), indexed ir*3+ic.
+    private static readonly string[] PreWallTopSpec =
+    {
+        "E,S,W,SE", "E,S,W,SE,SW", "E,S,W,SW",
+        "N,E,S,W,NE,SE", "N,E,S,W,NE,SE,SW,NW", "N,E,S,W,SW,NW",
+        "N,E,S,NE", "N,E,S,W,NE,NW", "N,S,W,NW",
+    };
+
+    private static Neighbors ParseNeighbors(string spec)
+    {
+        var n = new Neighbors();
+        if (string.IsNullOrEmpty(spec)) return n;
+        foreach (var tok in spec.Split(','))
+        {
+            switch (tok)
+            {
+                case "N": n.N = true; break;
+                case "S": n.S = true; break;
+                case "E": n.E = true; break;
+                case "W": n.W = true; break;
+                case "NE": n.Ne = true; break;
+                case "NW": n.Nw = true; break;
+                case "SE": n.Se = true; break;
+                case "SW": n.Sw = true; break;
+                default: throw new InvalidOperationException($"bad neighbor token '{tok}'");
+            }
+        }
+        return n;
+    }
+
+    /// <summary>Peering for a pre-expanded FLOOR tile at block-relative index (ir*12+ic).</summary>
+    public static Neighbors PreFloorNeighbors(int blockRelIndex) => ParseNeighbors(PreFloorSpec[blockRelIndex]);
+
+    /// <summary>Peering for a pre-expanded WALL-face tile at block-relative (ic,ir) in the 3x3 block.</summary>
+    public static Neighbors PreWallSideNeighbors(int ic, int ir) => ParseNeighbors(PreWallSideSpec[ir * 3 + ic]);
+
+    /// <summary>Peering for a pre-expanded WALL-TOP tile at block-relative (ic,ir) in the 3x3 block.</summary>
+    public static Neighbors PreWallTopNeighbors(int ic, int ir) => ParseNeighbors(PreWallTopSpec[ir * 3 + ic]);
+
+    // ==============================================================================================
     // Pack catalog (data-driven)
     // ==============================================================================================
 
@@ -334,34 +413,26 @@ public partial class AutotileExpander : Node
         new Pack { Name = "orc",       Autotiles = BuildOrcGen() },
     };
 
-    // --- outpost pack (reproduces the original generated atlases byte-for-byte) ---
+    // --- outpost pack (MZ-expanded atlases still needed by the outpost .tres) ---
+    //
+    // The base/green/red A2 grounds, base A1 water, base A3 walls, base destroyed A3 and base A4
+    // bands were retired when the outpost switched to Winlu's Godot-native PRE-EXPANDED sheets
+    // (a2_terrain / a2_forest_terrain / a2_shadow / a1_liquids / a3_walls / a4_walls, wired directly
+    // by <see cref="TileSetBuilder"/> as PreExpanded sources 200-216 — no MZ assembly). What remains
+    // here is only what the outpost .tres still consumes as generated atlases: the RED A3 building
+    // terrain (source 124, set 4) + its destroyed ruin counterpart (source 126), and the winter
+    // terrains (built in <see cref="BuildWinterGen"/>). The green/red A4 band atlases stay
+    // verification-only (unwired; their raw sheets are plain sources 92/103).
     private static List<GenAutotile> BuildOutpostGen()
     {
         var list = new List<GenAutotile>();
 
-        // Base set-0 ground (A2 / A2_2 left 4x4) + A1 water first frame.
-        AddFloorGround(list, ExtDir + "fantasy_outside_a2.png", "ground_a2", "ground", "a2", farmable: true);
-        AddFloorGround(list, ExtDir + "fantasy_outside_a2_2.png", "ground_a2_2", "ground", "a2b", farmable: true);
-        list.Add(new GenAutotile
-        {
-            AtlasKey = "water_a1", Format = GenFormat.Floor, SourcePng = ExtDir + "fantasy_outside_a1.png",
-            SrcPxX = 0, SrcPxY = 0, IndexInAtlas = 0, TerrainName = "water", TerrainSetKey = "ground",
-        });
-
-        // Colorway ground (green -> set "green", red -> set "red").
-        AddFloorGround(list, ExtDir + "green/fantasy_outside_a2_green.png", "ground_a2_green", "green", "a2g", farmable: true);
-        AddFloorGround(list, ExtDir + "red/fantasy_outside_a2_red.png", "ground_a2_red", "red", "a2r", farmable: true);
-        AddFloorGround(list, ExtDir + "red/fantasy_outside_a2_2_red.png", "ground_a2_2_red", "red", "a2br", farmable: true);
-
-        // A3 buildings (wall format, 32 blocks: 8 cols x 4 rows).
-        AddWallSheet(list, ExtDir + "fantasy_outside_a3.png", "wall_a3", "walls", "a3", cols: 8, rows: 4);
+        // Red A3 buildings (wall format, 32 blocks: 8 cols x 4 rows) -> set 4; destroyed ruin pair.
         AddWallSheet(list, ExtDir + "red/fantasy_outside_a3_red.png", "wall_a3_red", "walls_red", "a3r", cols: 8, rows: 4);
-        // Destroyed counterparts (plain: no terrain, coords match pristine; used for ruin_pair).
-        AddWallSheet(list, DDir + "fantasy_outside_a3_destroyed_raw.png", "wall_a3_destroyed", "", "a3d", cols: 8, rows: 4);
         AddWallSheet(list, DDir + "fantasy_outside_a3_red_destroyed_raw.png", "wall_a3_red_destroyed", "", "a3rd", cols: 8, rows: 4);
 
-        // A4 wall bands (verification-only atlases; not wired as terrains — see README).
-        AddA4Bands(list, ExtDir + "fantasy_outside_a4.png", "a4");
+        // Green/red A4 wall bands (verification-only; not wired to any terrain set — raw A4 sheets are
+        // plain sources 92/103). The base A4 band expansion is retired in favour of pre-expanded a4_walls.
         AddA4Bands(list, ExtDir + "green/fantasy_outside_a4_green.png", "a4g");
         AddA4Bands(list, ExtDir + "red/fantasy_outside_a4_red.png", "a4r");
 
@@ -575,16 +646,12 @@ public partial class AutotileExpander : Node
         ExpandAtlases(_allGen, srcCache);
 
         // Ground-truth validation: our WALL expansion of the raw destroyed-A3 must reproduce the
-        // "Other_Engines" Godot expansion Winlu ships (the current source 34).
-        ValidateAgainstShipped("wall_a3_destroyed.png", DDir + "fantasy_outside_a3_destroyed.png");
+        // "Other_Engines" Godot expansion Winlu ships (the current source 114). The base destroyed-A3
+        // validation is retired with the base A3 expansion (the outpost now uses pre-expanded a3_walls).
         ValidateAgainstShipped("wall_a3_red_destroyed.png", DDir + "fantasy_outside_a3_red_destroyed.png");
 
-        // Contact sheets for eyeball verification (scaled, all < 1900px).
-        WriteContactSheetPx(srcCache, ExtDir + "fantasy_outside_a2.png", 96, 0, "contact_dirt");       // base dirt block
-        WriteWallContact(srcCache, ExtDir + "fantasy_outside_a3.png", 96 * 3, 0, "contact_a3_wall");    // block col3,row0
-        WriteContactSheetPx(srcCache, ExtDir + "green/fantasy_outside_a2_green.png", 96, 0, "contact_a2_green");
-        WriteContactSheetPx(srcCache, ExtDir + "fantasy_outside_a4.png", 0, 0, "contact_a4_walltop");   // group0 top block col0
-        WriteWallContact(srcCache, ExtDir + "fantasy_outside_a4.png", 0, 144, "contact_a4_wallface");   // group0 face block col0
+        // Contact sheets for eyeball verification (scaled, all < 1900px). The base A2/A3/A4 contact
+        // sheets are retired with their MZ source sheets (pre-expanded sheets need no MZ assembly).
         // Wave-2 verification contact sheets.
         WriteContactSheetPx(srcCache, WDir + "fantasy_outside_a2_snow.png", 96, 0, "contact_a2_snow");  // winter dirt block
         WriteContactSheetPx(srcCache, IDir + "fantasy_inside_a2.png", 0, 0, "contact_inside_floor");    // interior floor block col0
@@ -776,6 +843,18 @@ public partial class AutotileExpander : Node
         var iso = DecodeNeighbors(47);
         if (iso.N || iso.E || iso.S || iso.W || iso.Ne || iso.Se || iso.Sw || iso.Nw)
             throw new InvalidOperationException("shape 47 (isolated) should decode to no neighbors set");
+
+        // Pre-expanded peering anchors: floor fill = all 8; wall-face centre = all 4 sides; wall-top
+        // centre = all 8.
+        var ff = PreFloorNeighbors(PreFloorFillIndex);
+        if (!(ff.N && ff.E && ff.S && ff.W && ff.Ne && ff.Se && ff.Sw && ff.Nw))
+            throw new InvalidOperationException("pre-expanded floor fill (index 33) should peer all 8");
+        var wf = PreWallSideNeighbors(1, 1);
+        if (!(wf.N && wf.E && wf.S && wf.W))
+            throw new InvalidOperationException("pre-expanded wall-face centre (1,1) should peer all 4 sides");
+        var wt = PreWallTopNeighbors(1, 1);
+        if (!(wt.N && wt.E && wt.S && wt.W && wt.Ne && wt.Se && wt.Sw && wt.Nw))
+            throw new InvalidOperationException("pre-expanded wall-top centre (1,1) should peer all 8");
         GD.Print("[AutotileExpander] table sanity check passed");
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Autoload;
+using Bulwark.Data;
 using Bulwark.Combat;
 using Bulwark.Presets;
 using Godot;
@@ -17,10 +18,8 @@ namespace Bulwark.Dev;
 /// (reachable check → Stride → MAP-checked Strikes → shield/exhaustion), then lets the session run
 /// AI turns to a decisive result. Prints per-assertion PASS/FAIL and a final SPIKE RESULT line.
 /// </summary>
-public partial class PlayerTurnSpike : Node
+public partial class PlayerTurnSpike : SpikeBase
 {
-    private int _asserts;
-    private int _failures;
     private int _playerTurns;
 
     public override void _Ready() => _ = RunAsync();
@@ -32,15 +31,12 @@ public partial class PlayerTurnSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[Spike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[Spike] DataManager not loaded — aborting.");
             return;
         }
 
         var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
-        var goblinDef = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var g1 = CreatureFactory.Create(goblinDef, teamId: 2);
         var g2 = CreatureFactory.Create(goblinDef, teamId: 2);
 
@@ -66,17 +62,13 @@ public partial class PlayerTurnSpike : Node
         CombatLog.OnLogEntry -= OnLog;
         session.Teardown();
 
-        Assert("encounter reached a decisive result",
+        Check("encounter reached a decisive result",
             finalResult is BattleResult.Team1Wins or BattleResult.Team2Wins);
-        Assert("Veteran survived", veteran.Health.IsAlive);
-        Assert("all goblins defeated", !g1.Health.IsAlive && !g2.Health.IsAlive);
+        Check("Veteran survived", veteran.Health.IsAlive);
+        Check("all goblins defeated", !g1.Health.IsAlive && !g2.Health.IsAlive);
 
-        GD.Print("---------------------------------------------------------");
         GD.Print($"[Spike] Result: {finalResult} | player turns driven: {_playerTurns}");
-        GD.Print($"[Spike] Asserts passed: {_asserts - _failures}/{_asserts}");
-        bool pass = _failures == 0;
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("Spike");
     }
 
     private async Task DrivePlayerTurn(ICharacter c, CombatSession session)
@@ -86,7 +78,7 @@ public partial class PlayerTurnSpike : Node
         var exec = session.PlayerActions;
 
         if (first)
-            Assert("reachable tiles non-empty at turn start", exec.GetReachableTiles(c).Count > 0);
+            Check("reachable tiles non-empty at turn start", exec.GetReachableTiles(c).Count > 0);
 
         int strikeIndex = 0;
 
@@ -98,9 +90,9 @@ public partial class PlayerTurnSpike : Node
                 var target = targets[0];
                 int mapBefore = exec.GetCurrentMap(c);
                 if (first && strikeIndex == 0)
-                    Assert("MAP is 0 before first Strike", mapBefore == 0);
+                    Check("MAP is 0 before first Strike", mapBefore == 0);
                 if (first && strikeIndex == 1)
-                    Assert("MAP is -5 before second Strike", mapBefore == -5);
+                    Check("MAP is -5 before second Strike", mapBefore == -5);
 
                 if (!await exec.ExecuteStrike(c, target))
                     break;
@@ -118,9 +110,9 @@ public partial class PlayerTurnSpike : Node
 
                 if (first)
                 {
-                    Assert("position changed after Stride",
+                    Check("position changed after Stride",
                         c.GridPosition.x != before.x || c.GridPosition.y != before.y);
-                    Assert("one action spent by Stride (2 remain)",
+                    Check("one action spent by Stride (2 remain)",
                         c.Actions.TotalActionsRemaining == actionsBefore - 1);
                 }
             }
@@ -131,9 +123,9 @@ public partial class PlayerTurnSpike : Node
             bool canRaise = c.Equipment?.CanRaiseShield() == true
                             && (c.Actions?.TotalActionsRemaining ?? 0) > 0;
             if (canRaise)
-                Assert("Raise Shield succeeded", await exec.ExecuteRaiseShield(c));
+                Check("Raise Shield succeeded", await exec.ExecuteRaiseShield(c));
             else
-                Assert("actions exhausted at end of turn", (c.Actions?.TotalActionsRemaining ?? 0) == 0);
+                Check("actions exhausted at end of turn", (c.Actions?.TotalActionsRemaining ?? 0) == 0);
         }
 
         session.RequestEndPlayerTurn();
@@ -164,13 +156,6 @@ public partial class PlayerTurnSpike : Node
             }
         }
         return best;
-    }
-
-    private void Assert(string label, bool condition)
-    {
-        _asserts++;
-        if (!condition) _failures++;
-        GD.Print($"  [{(condition ? "PASS" : "FAIL")}] {label}");
     }
 
     private static void OnLog(CombatLogEntry entry)

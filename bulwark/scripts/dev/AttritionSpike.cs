@@ -33,11 +33,10 @@ namespace Bulwark.Dev;
 ///  (5) sleep — full HP, slots re-prepared, Wounded cleared, day advanced, XP retained unapplied.
 /// Prints [PASS]/[FAIL] per check and a final SPIKE RESULT line.
 /// </summary>
-public partial class AttritionSpike : Node
+public partial class AttritionSpike : SpikeBase
 {
     private const string SavePath = "user://save/slot0.json";
 
-    private int _failures;
     private bool _slot0Existed;
     private string? _slot0Backup;
 
@@ -50,9 +49,7 @@ public partial class AttritionSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[AttritionSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[AttritionSpike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -65,18 +62,14 @@ public partial class AttritionSpike : Node
         catch (Exception e)
         {
             GD.PushError($"[AttritionSpike] Unhandled exception: {e}");
-            _failures++;
+            Fail();
         }
         finally
         {
             RestoreSlot0();
         }
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[AttritionSpike] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("AttritionSpike");
     }
 
     private async Task RunScenario(DataManager data)
@@ -314,8 +307,7 @@ public partial class AttritionSpike : Node
 
     private ICharacter MakeGoblin(DataManager data)
     {
-        var def = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var def = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         return CreatureFactory.Create(def, teamId: 2);
     }
 
@@ -333,12 +325,6 @@ public partial class AttritionSpike : Node
 
     private static DamageResult Physical(int amount) =>
         new() { TotalDamage = amount, DamageType = DamageType.Slashing };
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
-    }
 
     // ─────────────────────────── Save-slot protection ───────────────────────────
 

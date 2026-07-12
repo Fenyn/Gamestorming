@@ -1,22 +1,28 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ActionBar.cs" id="1_ab"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
 
 [node name="ActionBar" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 mouse_filter = 1
+theme = ExtResource("2_theme")
 script = ExtResource("1_ab")
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="Col" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
 [node name="Row" type="HBoxContainer" parent="Panel/Col"]
 layout_mode = 2
@@ -24,29 +30,35 @@ theme_override_constants/separation = 10
 
 [node name="ActorLabel" type="Label" parent="Panel/Col/Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 0)
+custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 text = "—"
 vertical_alignment = 1
+theme_type_variation = &"FloatingLabel"
+theme_override_font_sizes/font_size = 18
 
 [node name="PipRow" type="HBoxContainer" parent="Panel/Col/Row"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 5
+alignment = 1
 
 [node name="Pip0" type="ColorRect" parent="Panel/Col/Row/PipRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
+size_flags_vertical = 4
 
 [node name="Pip1" type="ColorRect" parent="Panel/Col/Row/PipRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
+size_flags_vertical = 4
 
 [node name="Pip2" type="ColorRect" parent="Panel/Col/Row/PipRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
+size_flags_vertical = 4
 
 [node name="MoveButton" type="Button" parent="Panel/Col/Row"]
 unique_name_in_owner = true
@@ -68,32 +80,41 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Raise Shield"
 
-[node name="EndButton" type="Button" parent="Panel/Col/Row"]
+[node name="PreviewLabel" type="Label" parent="Panel/Col/Row"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-text = "End Turn"
+size_flags_horizontal = 3
+text = ""
+vertical_alignment = 1
+theme_type_variation = &"WoodLabel"
 
-[node name="AiToggle" type="CheckButton" parent="Panel/Col/Row"]
+[node name="ToggleCol" type="VBoxContainer" parent="Panel/Col/Row"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="AiToggle" type="CheckButton" parent="Panel/Col/Row/ToggleCol"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "AI"
 
-[node name="AutoReactToggle" type="CheckButton" parent="Panel/Col/Row"]
+[node name="AutoReactToggle" type="CheckButton" parent="Panel/Col/Row/ToggleCol"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
 text = "Auto React"
 
-[node name="PreviewLabel" type="Label" parent="Panel/Col/Row"]
+[node name="EndButton" type="Button" parent="Panel/Col/Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = ""
-vertical_alignment = 1
-theme_override_colors/font_color = Color(0.85, 0.85, 0.7, 1)
+size_flags_vertical = 4
+theme_type_variation = &"AccentButton"
+text = "End Turn"
 
 [node name="ChipRow" type="HFlowContainer" parent="Panel/Col"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 4
+theme_override_constants/h_separation = 5
+theme_override_constants/v_separation = 5

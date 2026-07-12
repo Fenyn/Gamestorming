@@ -1,0 +1,52 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/Hd2dSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/props/lamp.tscn" id="3_lamp"]
+[ext_resource type="PackedScene" path="res://scenes/props/fireplace.tscn" id="4_fire"]
+[ext_resource type="PackedScene" path="res://scenes/fx/fireflies.tscn" id="5_ff"]
+[ext_resource type="PackedScene" path="res://scenes/fx/dust_motes.tscn" id="6_dust"]
+[ext_resource type="PackedScene" path="res://scenes/fx/embers.tscn" id="7_embers"]
+[ext_resource type="PackedScene" path="res://scenes/fx/light_shaft.tscn" id="8_shaft"]
+[ext_resource type="PackedScene" path="res://scenes/fx/cloud_shadows.tscn" id="9_clouds"]
+[ext_resource type="PackedScene" path="res://scenes/fx/hd2d_stack.tscn" id="10_stack"]
+
+[node name="Hd2dSpike" type="Node2D"]
+script = ExtResource("1_spike")
+
+[node name="Ground" type="ColorRect" parent="."]
+offset_left = -600.0
+offset_top = -400.0
+offset_right = 600.0
+offset_bottom = 400.0
+color = Color(0.3, 0.42, 0.26, 1)
+
+[node name="Door" parent="." instance=ExtResource("2_door")]
+position = Vector2(-180, 30)
+
+[node name="Lamp" parent="." instance=ExtResource("3_lamp")]
+position = Vector2(-60, 40)
+
+[node name="Fireplace" parent="." instance=ExtResource("4_fire")]
+position = Vector2(120, 10)
+
+[node name="Embers" parent="." instance=ExtResource("7_embers")]
+position = Vector2(120, -40)
+
+[node name="Fireflies" parent="." instance=ExtResource("5_ff")]
+
+[node name="DustMotes" parent="." instance=ExtResource("6_dust")]
+
+[node name="LightShaft" parent="." instance=ExtResource("8_shaft")]
+offset_left = -420.0
+offset_top = -260.0
+offset_right = -200.0
+offset_bottom = -20.0
+
+[node name="CloudShadows" parent="." instance=ExtResource("9_clouds")]
+
+[node name="Hd2dStack" parent="." instance=ExtResource("10_stack")]
+Preset = 2
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)

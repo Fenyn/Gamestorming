@@ -42,6 +42,10 @@ public partial class ActionBar : Control
 
     private bool _suppressToggle;
     private bool _interactable = true;
+    private bool _targeting;
+    private string _previewText = "";
+
+    private const string TargetingHint = "LMB  confirm · Esc  cancel";
 
     public override void _Ready()
     {
@@ -68,11 +72,24 @@ public partial class ActionBar : Control
         _autoReactToggle.Toggled += on => { if (!_suppressToggle) AutoReactToggled?.Invoke(on); };
     }
 
-    /// <summary>Enable/disable the whole bar (disabled while an AI or enemy turn is running).</summary>
+    /// <summary>
+    /// Enable/disable the whole bar (disabled while an AI or enemy turn is running). The state is
+    /// carried by the buttons' disabled styles — never by dimming the bar's Modulate, which made
+    /// every label unreadable. Buttons disable immediately; re-enabling per-action state waits for
+    /// the next <see cref="Render"/> (the turn-start state push), except End Turn which only
+    /// depends on interactability.
+    /// </summary>
     public void SetInteractable(bool interactable)
     {
         _interactable = interactable;
-        Modulate = interactable ? Colors.White : new Color(1, 1, 1, 0.45f);
+        if (!interactable)
+        {
+            _moveBtn.Disabled = true;
+            _stepBtn.Disabled = true;
+            _strikeBtn.Disabled = true;
+            _shieldBtn.Disabled = true;
+        }
+        _endBtn.Disabled = !interactable;
     }
 
     public void SetAiToggle(bool on)
@@ -96,7 +113,8 @@ public partial class ActionBar : Control
         for (int i = 0; i < _pips.Length; i++)
         {
             bool filled = i < state.ActionsRemaining && i < state.MaxActions;
-            _pips[i].Color = filled ? new Color(1f, 0.85f, 0.3f) : new Color(0.25f, 0.25f, 0.28f);
+            // Warm theme colors: gold = available action, dark wood = spent.
+            _pips[i].Color = filled ? UiPalette.Gold : UiPalette.DarkWood;
             _pips[i].Visible = i < state.MaxActions;
         }
 
@@ -148,14 +166,30 @@ public partial class ActionBar : Control
     {
         if (preview == null)
         {
-            _previewLabel.Text = "";
-            return;
+            _previewText = "";
+        }
+        else
+        {
+            string flank = preview.TargetOffGuard ? " [off-guard]" : "";
+            _previewText =
+                $"{preview.WeaponName} +{preview.TotalAttackBonus} vs AC {preview.TargetAc}  " +
+                $"{preview.HitChancePercent}% hit / {preview.CritChancePercent}% crit  " +
+                $"dmg {preview.DamageFormula}{flank}";
         }
 
-        string flank = preview.TargetOffGuard ? " [off-guard]" : "";
-        _previewLabel.Text =
-            $"{preview.WeaponName} +{preview.TotalAttackBonus} vs AC {preview.TargetAc}  " +
-            $"{preview.HitChancePercent}% hit / {preview.CritChancePercent}% crit  " +
-            $"dmg {preview.DamageFormula}{flank}";
+        RefreshPreviewLabel();
     }
+
+    /// <summary>
+    /// While a targeting mode is active (the host feeds the controller's ModeChanged), the preview
+    /// area falls back to a "LMB confirm · Esc cancel" hint whenever no attack preview is showing.
+    /// </summary>
+    public void SetTargetingHint(bool targeting)
+    {
+        _targeting = targeting;
+        RefreshPreviewLabel();
+    }
+
+    private void RefreshPreviewLabel()
+        => _previewLabel.Text = _previewText.Length > 0 ? _previewText : _targeting ? TargetingHint : "";
 }

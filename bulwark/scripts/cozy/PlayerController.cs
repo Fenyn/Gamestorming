@@ -13,19 +13,20 @@ namespace Bulwark.Cozy;
 /// decision lives in <see cref="TargetResolver"/> and the selection state in <see cref="ToolBelt"/>;
 /// this node only translates between them and the engine.
 ///
-/// Controls: WASD / arrows move. Tab cycles the tool (Hoe → Watering Can → Seeds → Hand). Q cycles
-/// the selected seed. E interacts with the cell in front of you (or the tile you stand on as a
-/// fallback), and — with the Hand tool — sleeps when at the bedroll.
+/// Controls: WASD / arrows move. 1-6 select a tool slot directly, Tab / mouse wheel cycle the tool,
+/// Q cycles the selected seed. E, LMB and RMB all interact/use the active tool on the targeted cell
+/// (the hovered cell when adjacent, else the cell in front of you, else the tile you stand on), and
+/// — with the Hand tool — sleep when at the bedroll. Mouse input is read in _UnhandledInput so
+/// clicks/scrolls consumed by UI buttons never leak into the world.
 /// </summary>
 public partial class PlayerController : CharacterBody2D
 {
-    // --- Mana Seed page-1 sheet: 8x8 grid of 64x64 cells. Rows 0-3 = stand S/N/E/W (col 0);
-    // rows 4-7 = 6-frame walk in the same order (cols 0-5). ---
-    private const int SheetColumns = 8;
-    private const int WalkRowOffset = 4;
-    private const int WalkFrames = 6;
-    private const float WalkFrameTime = 0.135f;
-
+    /// <summary>Direct-select actions in hotbar slot order (index i selects ToolBelt slot i).</summary>
+    private static readonly string[] ToolSelectActions =
+    {
+        "select_tool_1", "select_tool_2", "select_tool_3",
+        "select_tool_4", "select_tool_5", "select_tool_6",
+    };
     private const int TileSize = 48;
 
     /// <summary>Free-movement speed in pixels/second.</summary>
@@ -50,6 +51,13 @@ public partial class PlayerController : CharacterBody2D
     /// </summary>
     public event Action<ToolKind>? InteractRequested;
 
+    /// <summary>
+    /// Raised when a farm action was rejected because the WORLD disallows the cell (non-farmable
+    /// or occupied ground) — the scene turns it into a subtle toast. Rule-level failures that are
+    /// silent in Stardew (re-tilling tilled soil, wrong season, no seed) do not raise it.
+    /// </summary>
+    public event Action<string>? ActionRejected;
+
     // Facing row (0=S, 1=N, 2=E, 3=W) and its grid-space unit vector. Kept when idle.
     private int _facingRow;
     private Vector2I _facingDir = new(0, 1); // start facing South (toward the camera)
@@ -63,7 +71,7 @@ public partial class PlayerController : CharacterBody2D
     public override void _Ready()
     {
         _sprite = GetNode<Sprite2D>("%Sprite");
-        _sprite.Frame = _facingRow * SheetColumns;
+        _sprite.Frame = _facingRow * ManaSeedSheet.Columns;
 
         var gs = GameState.Instance;
         if (gs != null)
@@ -117,6 +125,39 @@ public partial class PlayerController : CharacterBody2D
             _tools.CycleSeed();
         if (Input.IsActionJustPressed("interact"))
             DoInteract();
+
+        for (int i = 0; i < ToolSelectActions.Length; i++)
+            if (Input.IsActionJustPressed(ToolSelectActions[i]))
+                _tools.SelectTool(i);
+    }
+
+    /// <summary>
+    /// Mouse controls (unhandled only, so UI-consumed clicks never reach the world): LMB/RMB
+    /// interact with the active tool (aliases of E through the same seam), wheel cycles the hotbar
+    /// (down = next, up = previous). The cozy camera never zooms with the wheel — zoom is HUD
+    /// buttons only.
+    /// </summary>
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event is not InputEventMouseButton mb || !mb.Pressed)
+            return;
+
+        switch (mb.ButtonIndex)
+        {
+            case MouseButton.Left:
+            case MouseButton.Right:
+                DoInteract();
+                GetViewport().SetInputAsHandled();
+                break;
+            case MouseButton.WheelDown:
+                _tools.CycleTool();
+                GetViewport().SetInputAsHandled();
+                break;
+            case MouseButton.WheelUp:
+                _tools.CycleToolBack();
+                GetViewport().SetInputAsHandled();
+                break;
+        }
     }
 
     // ------------------------------------------------------------------ Movement / animation
@@ -125,13 +166,13 @@ public partial class PlayerController : CharacterBody2D
     {
         if (Mathf.Abs(v.X) >= Mathf.Abs(v.Y))
         {
-            if (v.X >= 0f) { _facingRow = 2; _facingDir = new Vector2I(1, 0); }   // East
-            else { _facingRow = 3; _facingDir = new Vector2I(-1, 0); }            // West
+            if (v.X >= 0f) { _facingRow = ManaSeedSheet.RowEast; _facingDir = new Vector2I(1, 0); }
+            else { _facingRow = ManaSeedSheet.RowWest; _facingDir = new Vector2I(-1, 0); }
         }
         else
         {
-            if (v.Y >= 0f) { _facingRow = 0; _facingDir = new Vector2I(0, 1); }   // South
-            else { _facingRow = 1; _facingDir = new Vector2I(0, -1); }            // North
+            if (v.Y >= 0f) { _facingRow = ManaSeedSheet.RowSouth; _facingDir = new Vector2I(0, 1); }
+            else { _facingRow = ManaSeedSheet.RowNorth; _facingDir = new Vector2I(0, -1); }
         }
     }
 
@@ -140,18 +181,18 @@ public partial class PlayerController : CharacterBody2D
         if (_moving)
         {
             _animTimer += (float)delta;
-            if (_animTimer >= WalkFrameTime)
+            if (_animTimer >= ManaSeedSheet.WalkFrameTime)
             {
-                _animTimer -= WalkFrameTime;
-                _animFrame = (_animFrame + 1) % WalkFrames;
+                _animTimer -= ManaSeedSheet.WalkFrameTime;
+                _animFrame = (_animFrame + 1) % ManaSeedSheet.WalkFrames;
             }
-            _sprite.Frame = (WalkRowOffset + _facingRow) * SheetColumns + _animFrame;
+            _sprite.Frame = (ManaSeedSheet.WalkRowOffset + _facingRow) * ManaSeedSheet.Columns + _animFrame;
         }
         else
         {
             _animFrame = 0;
             _animTimer = 0f;
-            _sprite.Frame = _facingRow * SheetColumns; // stand frame at column 0
+            _sprite.Frame = _facingRow * ManaSeedSheet.Columns; // stand frame at column 0
         }
     }
 
@@ -167,9 +208,10 @@ public partial class PlayerController : CharacterBody2D
         }
 
         Vector2I playerCell = _outpost.WorldToCell(GlobalPosition);
+        Vector2I hoveredCell = _outpost.WorldToCell(GetGlobalMousePosition());
         _target = TargetResolver.Resolve(
             _tools.Current, playerCell, _facingDir, _tools.SelectedSeed, gs.Clock.Season,
-            _outpost.IsFarmable, gs.Farm.GetPlot, gs.Inventory.Count);
+            _outpost.IsTillable, gs.Farm.GetPlot, gs.Inventory.Count, hoveredCell);
     }
 
     private void DoInteract()
@@ -184,15 +226,19 @@ public partial class PlayerController : CharacterBody2D
         switch (_tools.Current)
         {
             case ToolKind.Hoe:
-                gs.TillPlot(cell);
+                // World-level rejection (non-farmable / occupied cell) gets the subtle toast;
+                // rule-level failures (already tilled) stay silent, like Stardew.
+                if (!gs.TillPlot(cell) && !_outpost.IsTillable(cell))
+                    ActionRejected?.Invoke("Can't till here");
                 break;
             case ToolKind.WateringCan:
                 gs.WaterPlot(cell);
                 break;
             case ToolKind.Seeds:
                 ItemDefinition? seed = _tools.SelectedSeed;
-                if (seed?.CropId != null)
-                    gs.PlantCrop(cell, seed.CropId);
+                if (seed?.CropId != null && !gs.PlantCrop(cell, seed.CropId)
+                    && (gs.Farm.GetPlot(cell)?.Stage ?? PlotStage.Untilled) == PlotStage.Untilled)
+                    ActionRejected?.Invoke("Can't plant here"); // no tilled soil under the cursor
                 break;
             case ToolKind.Hand:
                 // Bedroll first (sleep); otherwise harvest a mature crop.

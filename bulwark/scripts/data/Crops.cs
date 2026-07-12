@@ -68,22 +68,14 @@ public static class Crops
         Regrows = true, RegrowDays = 4,
     };
 
-    private static readonly Dictionary<string, CropDefinition> ById = BuildIndex(
+    private static readonly DefinitionRegistry<CropDefinition> Registry = new(d => d.Id,
         Turnip, Potato, Wheat, Tomato);
 
-    public static IReadOnlyCollection<CropDefinition> All => ById.Values;
+    public static IReadOnlyCollection<CropDefinition> All => Registry.All;
 
-    public static bool IsDefined(string id) => ById.ContainsKey(id);
+    public static bool IsDefined(string id) => Registry.IsDefined(id);
 
-    public static CropDefinition Get(string id) => ById[id];
+    public static CropDefinition Get(string id) => Registry.Get(id);
 
-    public static bool TryGet(string id, out CropDefinition def) => ById.TryGetValue(id, out def!);
-
-    private static Dictionary<string, CropDefinition> BuildIndex(params CropDefinition[] defs)
-    {
-        var index = new Dictionary<string, CropDefinition>(defs.Length);
-        foreach (var def in defs)
-            index[def.Id] = def;
-        return index;
-    }
+    public static bool TryGet(string id, out CropDefinition def) => Registry.TryGet(id, out def);
 }

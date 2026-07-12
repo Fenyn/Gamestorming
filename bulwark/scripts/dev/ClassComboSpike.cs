@@ -29,10 +29,8 @@ namespace Bulwark.Dev;
 ///      Disarming Block lands at L4.
 /// Prints [PASS]/[FAIL] per check and a final SPIKE RESULT line.
 /// </summary>
-public partial class ClassComboSpike : Node
+public partial class ClassComboSpike : SpikeBase
 {
-    private int _failures;
-
     public override void _Ready() => _ = RunAsync();
 
     private async Task RunAsync()
@@ -42,9 +40,7 @@ public partial class ClassComboSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[ComboSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[ComboSpike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -53,11 +49,7 @@ public partial class ClassComboSpike : Node
         await CheckC_ScoutDualWielder(data);
         CheckD_VeteranBastion();
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[ComboSpike] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("ComboSpike");
     }
 
     // ── (a) Medic: Warpriest doctrine + Aveline + Marshal ──
@@ -381,11 +373,5 @@ public partial class ClassComboSpike : Node
         foreach (var (c, _) in enemies) CombatantRegistry.Instance.Register(c);
 
         return (session, session.PlayerActions);
-    }
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
     }
 }

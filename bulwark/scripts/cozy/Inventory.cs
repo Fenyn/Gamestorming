@@ -16,6 +16,14 @@ public sealed class Inventory
     /// <summary>Raised after a stack changes, with the affected item id.</summary>
     public event Action<string>? InventoryChanged;
 
+    /// <summary>
+    /// Raised after <see cref="AddItem"/> grows a stack, with the item id and the quantity added —
+    /// the single choke point every gain flows through (farm harvests, territory node yields,
+    /// direct grants). NOT raised by <see cref="LoadFrom"/>: a save-restore repopulation is not a
+    /// gain, so day-ledger style subscribers stay clean across loads.
+    /// </summary>
+    public event Action<string, int>? ItemAdded;
+
     /// <summary>Current quantity of <paramref name="itemId"/> (0 if none).</summary>
     public int Count(string itemId) => _stacks.TryGetValue(itemId, out int n) ? n : 0;
 
@@ -38,6 +46,7 @@ public sealed class Inventory
 
         _stacks[itemId] = Count(itemId) + qty;
         InventoryChanged?.Invoke(itemId);
+        ItemAdded?.Invoke(itemId, qty);
     }
 
     /// <summary>

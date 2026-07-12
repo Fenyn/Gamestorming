@@ -13,8 +13,9 @@ script = ExtResource("1_pc")
 [node name="Sprite" type="Sprite2D" parent="."]
 unique_name_in_owner = true
 texture_filter = 1
+scale = Vector2(2, 2)
 texture = ExtResource("2_tex")
-offset = Vector2(0, -12)
+offset = Vector2(0, -11)
 hframes = 8
 vframes = 8
 
@@ -23,5 +24,6 @@ position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_feet")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
 position_smoothing_enabled = true
 position_smoothing_speed = 6.0

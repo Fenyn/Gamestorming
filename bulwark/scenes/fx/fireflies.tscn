@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/fx/soft_dot.png" id="1_dot"]
+
+[sub_resource type="Gradient" id="Gradient_ff"]
+offsets = PackedFloat32Array(0, 0.15, 0.85, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ff"]
+gradient = SubResource("Gradient_ff")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ff"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(420, 240, 1)
+spread = 180.0
+initial_velocity_min = 3.0
+initial_velocity_max = 10.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.1
+scale_max = 0.22
+color = Color(1.7, 1.5, 0.65, 1)
+color_ramp = SubResource("GradientTexture1D_ff")
+turbulence_enabled = true
+turbulence_noise_strength = 0.6
+turbulence_noise_scale = 1.5
+turbulence_influence_min = 0.1
+turbulence_influence_max = 0.3
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ff"]
+blend_mode = 1
+
+[node name="Fireflies" type="GPUParticles2D"]
+material = SubResource("CanvasItemMaterial_ff")
+amount = 24
+lifetime = 8.0
+preprocess = 8.0
+randomness = 0.5
+visibility_rect = Rect2(-480, -280, 960, 560)
+process_material = SubResource("ParticleProcessMaterial_ff")
+texture = ExtResource("1_dot")

@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/CozyHud.cs" id="1_hud"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/input_legend.tscn" id="3_legend"]
 
 [node name="CozyHud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -11,80 +13,285 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+theme = ExtResource("2_theme")
 
-[node name="TimeBox" type="VBoxContainer" parent="Panel"]
+[node name="ControlsLegend" parent="Panel" instance=ExtResource("3_legend")]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 12.0
+offset_bottom = 12.0
+
+[node name="TimeBox" type="PanelContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -260.0
+offset_left = -220.0
 offset_top = 12.0
 offset_right = -14.0
-offset_bottom = 74.0
 grow_horizontal = 0
 mouse_filter = 2
 
-[node name="TimeLabel" type="Label" parent="Panel/TimeBox"]
+[node name="TimeInner" type="PanelContainer" parent="Panel/TimeBox"]
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+mouse_filter = 2
+
+[node name="TimeCol" type="VBoxContainer" parent="Panel/TimeBox/TimeInner"]
+layout_mode = 2
+theme_override_constants/separation = 0
+mouse_filter = 2
+
+[node name="DateLabel" type="Label" parent="Panel/TimeBox/TimeInner/TimeCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Spring 1, Year 1"
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+
+[node name="TimeLabel" type="Label" parent="Panel/TimeBox/TimeInner/TimeCol"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "6:00 AM"
 horizontal_alignment = 2
 theme_override_font_sizes/font_size = 26
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 5
-
-[node name="DateLabel" type="Label" parent="Panel/TimeBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Spring 1, Year 1"
-horizontal_alignment = 2
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 4
-
-[node name="ToolBox" type="VBoxContainer" parent="Panel"]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 14.0
-offset_top = -74.0
-offset_right = 340.0
-offset_bottom = -14.0
-grow_vertical = 0
 mouse_filter = 2
 
-[node name="ToolLabel" type="Label" parent="Panel/ToolBox"]
+[node name="ZoomRow" type="HBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -90.0
+offset_top = 108.0
+offset_right = -14.0
+offset_bottom = 140.0
+grow_horizontal = 0
+alignment = 2
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="ZoomOutButton" type="Button" parent="Panel/ZoomRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-text = "Tool: Hoe"
+text = "-"
+tooltip_text = "Zoom out"
+
+[node name="ZoomInButton" type="Button" parent="Panel/ZoomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+text = "+"
+tooltip_text = "Zoom in"
+
+[node name="HotbarBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 4
+mouse_filter = 2
+
+[node name="HotbarPanel" type="PanelContainer" parent="Panel/HotbarBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SlotRow" type="HBoxContainer" parent="Panel/HotbarBox/HotbarPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="Slot0" type="PanelContainer" parent="Panel/HotbarBox/HotbarPanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"HotbarSlot"
+mouse_filter = 2
+
+[node name="SlotLabel0" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot0"]
+layout_mode = 2
+text = "Ho"
+horizontal_alignment = 1
+vertical_alignment = 1
 theme_override_font_sizes/font_size = 20
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 4
+mouse_filter = 2
 
-[node name="SeedLabel" type="Label" parent="Panel/ToolBox"]
+[node name="SlotBadge0" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot0"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 4
+text = "1"
+theme_override_colors/font_color = Color(0.251, 0.18, 0.125, 1)
+theme_override_font_sizes/font_size = 11
+mouse_filter = 2
 
-[node name="InventoryLabel" type="Label" parent="Panel"]
+[node name="Slot1" type="PanelContainer" parent="Panel/HotbarBox/HotbarPanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"HotbarSlot"
+mouse_filter = 2
+
+[node name="SlotLabel1" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot1"]
+layout_mode = 2
+text = "Wc"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+
+[node name="SlotBadge1" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot1"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "2"
+theme_override_colors/font_color = Color(0.251, 0.18, 0.125, 1)
+theme_override_font_sizes/font_size = 11
+mouse_filter = 2
+
+[node name="Slot2" type="PanelContainer" parent="Panel/HotbarBox/HotbarPanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"HotbarSlot"
+mouse_filter = 2
+
+[node name="SlotLabel2" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot2"]
+layout_mode = 2
+text = "Se"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+
+[node name="SlotBadge2" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "3"
+theme_override_colors/font_color = Color(0.251, 0.18, 0.125, 1)
+theme_override_font_sizes/font_size = 11
+mouse_filter = 2
+
+[node name="Slot3" type="PanelContainer" parent="Panel/HotbarBox/HotbarPanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"HotbarSlot"
+mouse_filter = 2
+
+[node name="SlotLabel3" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot3"]
+layout_mode = 2
+text = "Ax"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+
+[node name="SlotBadge3" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "4"
+theme_override_colors/font_color = Color(0.251, 0.18, 0.125, 1)
+theme_override_font_sizes/font_size = 11
+mouse_filter = 2
+
+[node name="Slot4" type="PanelContainer" parent="Panel/HotbarBox/HotbarPanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"HotbarSlot"
+mouse_filter = 2
+
+[node name="SlotLabel4" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot4"]
+layout_mode = 2
+text = "Pk"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+
+[node name="SlotBadge4" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot4"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "5"
+theme_override_colors/font_color = Color(0.251, 0.18, 0.125, 1)
+theme_override_font_sizes/font_size = 11
+mouse_filter = 2
+
+[node name="Slot5" type="PanelContainer" parent="Panel/HotbarBox/HotbarPanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"HotbarSlot"
+mouse_filter = 2
+
+[node name="SlotLabel5" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot5"]
+layout_mode = 2
+text = "Ha"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+
+[node name="SlotBadge5" type="Label" parent="Panel/HotbarBox/HotbarPanel/SlotRow/Slot5"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "6"
+theme_override_colors/font_color = Color(0.251, 0.18, 0.125, 1)
+theme_override_font_sizes/font_size = 11
+mouse_filter = 2
+
+[node name="CaptionRow" type="HBoxContainer" parent="Panel/HotbarBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+mouse_filter = 2
+
+[node name="ToolLabel" type="Label" parent="Panel/HotbarBox/CaptionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Hoe"
+horizontal_alignment = 1
+theme_type_variation = &"FloatingLabel"
+theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+
+[node name="SeedLabel" type="Label" parent="Panel/HotbarBox/CaptionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+theme_type_variation = &"FloatingLabel"
+theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+
+[node name="InventoryPanel" type="PanelContainer" parent="Panel"]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 12
+anchors_preset = 3
+anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 14.0
-offset_top = -34.0
 offset_right = -14.0
 offset_bottom = -14.0
+grow_horizontal = 0
 grow_vertical = 0
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 4
+theme_type_variation = &"InnerPanel"
+mouse_filter = 2
+
+[node name="InventoryLabel" type="Label" parent="Panel/InventoryPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 15
+mouse_filter = 2
 
 [node name="FadeRect" type="ColorRect" parent="Panel"]
 unique_name_in_owner = true
@@ -95,7 +302,7 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
-[node name="ToastLabel" type="Label" parent="Panel"]
+[node name="ToastPanel" type="PanelContainer" parent="Panel"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 8
@@ -103,15 +310,23 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -240.0
-offset_top = -30.0
-offset_right = 240.0
-offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_type_variation = &"ModalPanel"
+mouse_filter = 2
+
+[node name="ToastInner" type="PanelContainer" parent="Panel/ToastPanel"]
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+mouse_filter = 2
+
+[node name="ToastLabel" type="Label" parent="Panel/ToastPanel/ToastInner"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "You wake"
-theme_override_font_sizes/font_size = 34
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
-theme_override_constants/outline_size = 6
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
+mouse_filter = 2

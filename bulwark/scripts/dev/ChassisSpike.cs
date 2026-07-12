@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Autoload;
+using Bulwark.Data;
 using Bulwark.Combat;
 using Bulwark.Presets;
 using Godot;
@@ -29,10 +30,8 @@ namespace Bulwark.Dev;
 ///  (f) Weapon Mastery (L5) is granted with ChosenWeaponGroup=Sword, and a forced sword critical
 ///      applies the sword crit-spec Off-Guard rider to the target.
 /// </summary>
-public partial class ChassisSpike : Node
+public partial class ChassisSpike : SpikeBase
 {
-    private int _failures;
-
     public override void _Ready() => _ = RunAsync();
 
     private async Task RunAsync()
@@ -42,9 +41,7 @@ public partial class ChassisSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[Chassis] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[Chassis] DataManager not loaded — aborting.");
             return;
         }
 
@@ -55,11 +52,7 @@ public partial class ChassisSpike : Node
         CheckE_ScoutFinesseUsesDex();
         await CheckF_WeaponMasteryCritSpec(data);
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[Chassis] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("Chassis");
     }
 
     // ── (a) Veteran L5: Master martial weapons → +15 with the longsword ──
@@ -252,14 +245,7 @@ public partial class ChassisSpike : Node
 
     private ICharacter MakeGoblin(DataManager data)
     {
-        var def = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var def = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         return CreatureFactory.Create(def, teamId: 2);
-    }
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
     }
 }

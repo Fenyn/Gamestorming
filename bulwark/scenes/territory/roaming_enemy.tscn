@@ -12,9 +12,24 @@ script = ExtResource("1_roam")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 texture_filter = 1
+scale = Vector2(2, 2)
 texture = ExtResource("2_rat")
-offset = Vector2(0, -10)
+offset = Vector2(0, -17)
 modulate = Color(1, 0.75, 0.75, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_roamer")
+
+[node name="AggroLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = -10.0
+offset_top = -68.0
+offset_right = 10.0
+offset_bottom = -46.0
+horizontal_alignment = 1
+text = "!"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.35, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4

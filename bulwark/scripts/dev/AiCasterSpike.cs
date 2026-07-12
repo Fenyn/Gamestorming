@@ -31,9 +31,8 @@ namespace Bulwark.Dev;
 /// Prints [PASS]/[FAIL] per check and a final "SPIKE RESULT: PASS/FAIL", then quits with the
 /// matching exit code.
 /// </summary>
-public partial class AiCasterSpike : Node
+public partial class AiCasterSpike : SpikeBase
 {
-    private int _failures;
     private Action<string>? _priorInfoSink;
 
     public override void _Ready() => _ = RunAsync();
@@ -45,9 +44,7 @@ public partial class AiCasterSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[AiCasterSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[AiCasterSpike] DataManager not loaded — aborting.");
             return;
         }
         PresetSpells.EnsureRegistered();
@@ -68,11 +65,7 @@ public partial class AiCasterSpike : Node
             ReactionEvents.OnDamageReactionCheck -= damageHandler;
         }
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[AiCasterSpike] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("AiCasterSpike");
     }
 
     // ─────────────────── (a) AI Medic heals the most-wounded ally ───────────────────
@@ -263,14 +256,7 @@ public partial class AiCasterSpike : Node
 
     private static ICharacter MakeGoblin(DataManager data)
     {
-        var def = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var def = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         return CreatureFactory.Create(def, teamId: 2);
-    }
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
     }
 }

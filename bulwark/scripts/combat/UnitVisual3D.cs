@@ -1,3 +1,4 @@
+using Bulwark.Data;
 using Godot;
 using PF2e.Core;
 
@@ -14,16 +15,10 @@ namespace Bulwark.Combat;
 /// </summary>
 public partial class UnitVisual3D : Node3D
 {
-    // --- Mana Seed page-1 layout: 512x512, 8x8 grid of 64x64 cells. Rows 0-3 = stand S/N/E/W
-    // (column 0); rows 4-7 = walk S/N/E/W (columns 0-5, ~135 ms/frame per the pack's guide). ---
-    private const int HeroSheetColumns = 8;
-    private const int HeroCellPx = 64;
-    private const int HeroWalkFrames = 6;
-    private const int HeroWalkRowOffset = 4;
+    // Hero sheet anatomy comes from ManaSeedSheet (shared with the cozy avatar renderer).
     /// <summary>Pixels between the cell's bottom edge and the character's feet. Measured on the
     /// baked sheets: the 32px body occupies cell rows 12-43, so the feet sit 20px above the bottom.</summary>
     private const int HeroFootMarginPx = 20;
-    private const float HeroWalkFrameTime = 0.135f;
 
     // --- Sizing (1 tile = 1 m). ---
     private const float HeroPixelSize = 0.05f;    // ~30 px chibi body -> ~1.5 m
@@ -113,11 +108,11 @@ public partial class UnitVisual3D : Node3D
         {
             string folder = HeroSpriteMap.FolderFor(_character.Id);
             _sprite.Texture = GD.Load<Texture2D>($"{folder}/p1.png");
-            _sprite.Hframes = HeroSheetColumns;
+            _sprite.Hframes = ManaSeedSheet.Columns;
             _sprite.Vframes = 8;
             _sprite.PixelSize = HeroPixelSize;
             // Cell center sits (32 - foot margin) px above the feet; lift by that to plant feet at y=0.
-            float centerAboveFeet = (HeroCellPx * 0.5f - HeroFootMarginPx) * HeroPixelSize;
+            float centerAboveFeet = (ManaSeedSheet.CellPx * 0.5f - HeroFootMarginPx) * HeroPixelSize;
             _sprite.Position = new Vector3(0f, centerAboveFeet, 0f);
             _hpBarY = 1.75f;
         }
@@ -219,7 +214,7 @@ public partial class UnitVisual3D : Node3D
     public override void _Process(double delta)
     {
         // Animation clock: heroes only animate while walking; rats idle-cycle continuously.
-        float frameTime = _isHero ? HeroWalkFrameTime : AnimFrameTime;
+        float frameTime = _isHero ? ManaSeedSheet.WalkFrameTime : AnimFrameTime;
         _animTimer += (float)delta;
         if (_animTimer >= frameTime)
         {
@@ -266,15 +261,15 @@ public partial class UnitVisual3D : Node3D
 
         if (_isHero)
         {
-            // 4-direction snap on the dominant screen axis. Sheet rows: 0=S (toward viewer),
-            // 1=N (away), 2=E (screen right), 3=W (screen left).
+            // 4-direction snap on the dominant screen axis: S = toward viewer, N = away,
+            // E = screen right, W = screen left (ManaSeedSheet facing rows).
             int dir = Mathf.Abs(sx) >= Mathf.Abs(sy)
-                ? (sx >= 0f ? 2 : 3)
-                : (sy >= 0f ? 1 : 0);
+                ? (sx >= 0f ? ManaSeedSheet.RowEast : ManaSeedSheet.RowWest)
+                : (sy >= 0f ? ManaSeedSheet.RowNorth : ManaSeedSheet.RowSouth);
 
             _sprite.Frame = _moving
-                ? (HeroWalkRowOffset + dir) * HeroSheetColumns + _animFrame % HeroWalkFrames
-                : dir * HeroSheetColumns;
+                ? (ManaSeedSheet.WalkRowOffset + dir) * ManaSeedSheet.Columns + _animFrame % ManaSeedSheet.WalkFrames
+                : dir * ManaSeedSheet.Columns;
         }
         else
         {

@@ -33,10 +33,11 @@ namespace Bulwark.Cozy;
 /// </summary>
 public sealed class SquadRoster
 {
-    public const string VeteranId = "the-veteran";
-    public const string ScoutId = "the-scout";
-    public const string MedicId = "the-medic";
-    public const string ScholarId = "the-scholar";
+    // Aliases of the preset ids (PresetCharacters owns the strings) so existing call sites compile.
+    public const string VeteranId = PresetCharacters.VeteranId;
+    public const string ScoutId = PresetCharacters.ScoutId;
+    public const string MedicId = PresetCharacters.MedicId;
+    public const string ScholarId = PresetCharacters.ScholarId;
 
     /// <summary>PF2e standard progression: 1000 XP banks a level (applied by the sleep command
     /// via <see cref="ApplyBankedLevelUps"/>).</summary>
@@ -50,14 +51,11 @@ public sealed class SquadRoster
     public const int MaxAppliedLevel = 5;
 
     /// <summary>
-    /// Long-term conditions captured into the save file (see <see cref="CaptureConditions"/>).
-    /// Encounter cleanup itself now relies on the engine's duration classification
-    /// (<c>ConditionTracker.RemoveNonPersistingConditions</c>), not this list.
+    /// Role: long-term conditions captured into the save file (see <see cref="CaptureConditions"/>) —
+    /// the shared attrition whitelist. Encounter cleanup itself relies on the engine's duration
+    /// classification (<c>ConditionTracker.RemoveNonPersistingConditions</c>), not this list.
     /// </summary>
-    private static readonly Condition[] PersistAcrossEncounters =
-    {
-        Condition.Wounded, Condition.Drained, Condition.Doomed, Condition.Fatigued,
-    };
+    private static readonly Condition[] PersistAcrossEncounters = AttritionConditions.LongTerm;
 
     private static readonly string[] MemberOrder = { VeteranId, ScoutId, MedicId, ScholarId };
 
@@ -107,10 +105,6 @@ public sealed class SquadRoster
     public PF2eCharacter? FindMember(string memberId) => _members.Find(m => m.Id == memberId);
 
     public int GetXp(string memberId) => _xp.TryGetValue(memberId, out var xp) ? xp : 0;
-
-    /// <summary>Level-up is banked, not applied — the sleep command owns applying it
-    /// (<see cref="ApplyBankedLevelUps"/>, capped at <see cref="MaxAppliedLevel"/>).</summary>
-    public bool CanLevelUp(string memberId) => GetXp(memberId) >= XpPerLevel;
 
     /// <summary>
     /// Bank XP directly (quest/story awards and dev tooling). Encounter XP goes through
@@ -217,15 +211,18 @@ public sealed class SquadRoster
     ///
     /// XP: on victory each member banks the encounter's creature XP total (PF2e Table 10-2 via the
     /// engine's <see cref="EncounterXPCalculator"/>, level-vs-party-level differential).
+    ///
+    /// Returns the encounter XP banked PER MEMBER (0 on defeat/draw) — the additive seam the
+    /// day ledger reads; existing callers may ignore it.
     /// </summary>
-    public void CompleteEncounter(BattleResult result, IReadOnlyList<ICharacter>? defeatedEnemies)
+    public int CompleteEncounter(BattleResult result, IReadOnlyList<ICharacter>? defeatedEnemies)
     {
         foreach (var m in _members)
             CleanUpAfterEncounter(m);
 
+        int encounterXp = 0;
         if (result == BattleResult.Team1Wins && defeatedEnemies != null)
         {
-            int encounterXp = 0;
             foreach (var enemy in defeatedEnemies)
                 encounterXp += EncounterXPCalculator.GetCreatureXP(GetEnemyLevel(enemy), Level);
 
@@ -234,6 +231,7 @@ public sealed class SquadRoster
         }
 
         Changed?.Invoke();
+        return encounterXp;
     }
 
     private static int GetEnemyLevel(ICharacter enemy)
@@ -305,6 +303,42 @@ public sealed class SquadRoster
 
         Changed?.Invoke();
         return true;
+    }
+
+    // ===================== Fatigue (up past midnight) =====================
+
+    /// <summary>
+    /// Apply the engine Fatigued condition to every LIVING member that doesn't already carry it —
+    /// PF2e's going-without-sleep rule, house-tuned to midnight (GameState latches the threshold
+    /// and calls this; the 30:00 dawn rollover repeats it as a backstop). Idempotent. Fatigued is
+    /// on the attrition whitelist (<see cref="AttritionConditions.LongTerm"/>) and the importer
+    /// duration-classifies it as long-term, so it persists through encounters and the save file
+    /// until <see cref="RestFully"/> removes it. Returns true (and raises <see cref="Changed"/>)
+    /// only when at least one member newly gained the condition.
+    /// </summary>
+    public bool ApplyFatigue()
+    {
+        var def = ConditionDatabase.Instance?.GetCondition(Condition.Fatigued);
+        if (def == null)
+            return false;
+
+        bool applied = false;
+        foreach (var m in _members)
+        {
+            if (m.Health == null || m.Health.IsDead)
+                continue;
+
+            var conds = m.Conditions;
+            if (conds == null || conds.HasCondition(Condition.Fatigued))
+                continue;
+
+            conds.AddCondition(def, value: 0, duration: 0);
+            applied = true;
+        }
+
+        if (applied)
+            Changed?.Invoke();
+        return applied;
     }
 
     // ===================== Rest (outpost sleep) =====================

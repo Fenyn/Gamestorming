@@ -47,6 +47,7 @@ public sealed class FarmSystem
     private readonly Inventory _inventory;
     private readonly Func<Season> _currentSeason;
     private readonly Dictionary<Vector2I, Plot> _plots = new();
+    private Func<Vector2I, bool>? _isTillable;
 
     /// <summary>Raised after a plot's state changes, with the affected tile.</summary>
     public event Action<Vector2I>? PlotChanged;
@@ -56,6 +57,14 @@ public sealed class FarmSystem
         _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _currentSeason = currentSeason ?? throw new ArgumentNullException(nameof(currentSeason));
     }
+
+    /// <summary>
+    /// Inject the world's tillability predicate (the map's "farmable" flag plus occupancy — the
+    /// scene adapter owns map truth, this system owns the rules). Null (the default) is permissive
+    /// so pure-C# tests and headless tooling keep running without a world; the world scene binds on
+    /// enter and clears on exit so a freed scene is never queried.
+    /// </summary>
+    public void SetTillable(Func<Vector2I, bool>? isTillable) => _isTillable = isTillable;
 
     // --- Queries ---
 
@@ -67,9 +76,13 @@ public sealed class FarmSystem
 
     // --- Commands (validate → mutate → raise PlotChanged) ---
 
-    /// <summary>Till bare ground into a plantable plot. Fails if the tile is already tilled/planted.</summary>
+    /// <summary>Till bare ground into a plantable plot. Fails if the world says the cell isn't
+    /// tillable (non-farmable ground, occupied cell) or the tile is already tilled/planted.</summary>
     public bool TillPlot(Vector2I tile)
     {
+        if (_isTillable != null && !_isTillable(tile))
+            return false;
+
         var plot = GetPlot(tile);
         if (plot != null && plot.Stage != PlotStage.Untilled)
             return false;

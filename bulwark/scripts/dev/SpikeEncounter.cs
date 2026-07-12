@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Autoload;
+using Bulwark.Data;
 using Bulwark.Presets;
 using Godot;
 using PF2e;
@@ -83,8 +84,7 @@ public partial class SpikeEncounter : Node
         simulator.PlaceCreature(veteran, new PF2eVec(1, 4));
 
         var team2 = new List<ICharacter>();
-        var goblinDef = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var goblinPositions = new[] { new PF2eVec(6, 3), new PF2eVec(6, 5) };
         for (int i = 0; i < goblinPositions.Length; i++)
         {

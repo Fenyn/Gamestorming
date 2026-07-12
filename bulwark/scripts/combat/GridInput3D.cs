@@ -15,8 +15,9 @@ namespace Bulwark.Combat;
 /// </summary>
 public partial class GridInput3D : Node3D
 {
-    /// <summary>Keep in sync with <see cref="OrbitCameraRig.DragThresholdPixels"/>.</summary>
-    [Export] public float DragThresholdPixels { get; set; } = 6f;
+    /// <summary>The rig owns the click-vs-drag gesture threshold; CombatScene pushes the rig's
+    /// live value in at Setup so the two stay in agreement.</summary>
+    [Export] public float DragThresholdPixels { get; set; } = OrbitCameraRig.DefaultDragThresholdPixels;
 
     private Camera3D _camera = null!;
     private int _gridWidth;

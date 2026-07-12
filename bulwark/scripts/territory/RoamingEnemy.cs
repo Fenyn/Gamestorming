@@ -30,16 +30,19 @@ public partial class RoamingEnemy : CharacterBody2D
     public string RoamerId { get; private set; } = "";
 
     private Node2D? _player;
+    private Label? _aggroLabel;
     private Vector2 _home;
     private Vector2 _wanderTarget;
     private double _retargetIn;
     private bool _triggered;
+    private bool _chasing;
     private readonly Random _random = new();
 
     public override void _Ready()
     {
         _home = GlobalPosition;
         _wanderTarget = _home;
+        _aggroLabel = GetNodeOrNull<Label>("%AggroLabel");
     }
 
     /// <summary>Injected by the territory scene after instancing.</summary>
@@ -73,11 +76,13 @@ public partial class RoamingEnemy : CharacterBody2D
         float speed;
         if (playerDistance <= SightRange)
         {
+            SetChasing(true);
             target = _player.GlobalPosition;
             speed = ChaseSpeed;
         }
         else
         {
+            SetChasing(false);
             _retargetIn -= delta;
             if (_retargetIn <= 0.0 || GlobalPosition.DistanceTo(_wanderTarget) < 6f)
                 PickWanderTarget();
@@ -88,6 +93,16 @@ public partial class RoamingEnemy : CharacterBody2D
         Vector2 to = target - GlobalPosition;
         Velocity = to.Length() < 2f ? Vector2.Zero : to.Normalized() * speed;
         MoveAndSlide();
+    }
+
+    /// <summary>Render-only aggro indicator: the "!" label shows while chasing, hides on wander.</summary>
+    private void SetChasing(bool chasing)
+    {
+        if (_chasing == chasing)
+            return;
+        _chasing = chasing;
+        if (_aggroLabel != null)
+            _aggroLabel.Visible = chasing;
     }
 
     private void PickWanderTarget()

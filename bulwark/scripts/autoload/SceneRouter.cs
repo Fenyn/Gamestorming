@@ -28,7 +28,8 @@ public partial class SceneRouter : Node
 
     public Mode CurrentMode { get; private set; } = Mode.Outpost;
 
-    /// <summary>Raised after a mode transition completes.</summary>
+    /// <summary>Raised after a mode transition completes. No subscribers yet — kept deliberately as
+    /// the future co-op/analytics seam (mode-scoped systems hook transitions here).</summary>
     public event Action<Mode>? ModeChanged;
 
     public override void _Ready() => Instance = this;

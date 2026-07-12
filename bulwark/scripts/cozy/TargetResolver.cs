@@ -11,10 +11,11 @@ namespace Bulwark.Cozy;
 /// so this stays deterministically testable. The predicates here mirror the FarmSystem command
 /// validation, so a highlighted (actionable) cell always corresponds to a command that will succeed.
 ///
-/// Targeting rule: prefer the cell one tile in front of the player's facing; if the tool can't act
-/// there, fall back to the player's own cell (lets you till/water/harvest the tile you're standing
-/// on). If neither is actionable the faced cell is returned with <c>CanAct == false</c> so callers
-/// can suppress the highlight.
+/// Targeting rule: prefer the hovered (mouse) cell when it is within one tile of the player and
+/// actionable (Stardew-style cursor aim); otherwise the cell one tile in front of the player's
+/// facing; if the tool can't act there, fall back to the player's own cell (lets you
+/// till/water/harvest the tile you're standing on). If none is actionable the faced cell is
+/// returned with <c>CanAct == false</c> so callers can suppress the highlight.
 /// </summary>
 public static class TargetResolver
 {
@@ -28,8 +29,14 @@ public static class TargetResolver
         Season season,
         Func<Vector2I, bool> isFarmable,
         Func<Vector2I, Plot?> getPlot,
-        Func<string, int> itemCount)
+        Func<string, int> itemCount,
+        Vector2I? hoveredCell = null)
     {
+        if (hoveredCell is Vector2I hovered &&
+            Math.Abs(hovered.X - playerCell.X) <= 1 && Math.Abs(hovered.Y - playerCell.Y) <= 1 &&
+            CanActOn(tool, hovered, selectedSeed, season, isFarmable, getPlot, itemCount))
+            return new Target(hovered, true);
+
         Vector2I faced = playerCell + facingDir;
 
         if (CanActOn(tool, faced, selectedSeed, season, isFarmable, getPlot, itemCount))

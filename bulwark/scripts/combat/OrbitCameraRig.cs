@@ -1,3 +1,4 @@
+using Bulwark.Cozy;
 using Godot;
 
 namespace Bulwark.Combat;
@@ -9,6 +10,8 @@ namespace Bulwark.Combat;
 /// left unconsumed so <see cref="GridInput3D"/> can treat it as cancel-targeting; only once the
 /// travel exceeds the threshold does the rig start orbiting and consuming the motion. Left clicks
 /// are never consumed here. Thin input adapter: holds only camera tunables and pose, no game rules.
+/// Zoom distance persists across sessions via <see cref="ViewPreferences.CombatCameraDistance"/>
+/// (user://settings.json): read on _Ready, written back on every wheel zoom.
 /// </summary>
 public partial class OrbitCameraRig : Node3D
 {
@@ -18,14 +21,21 @@ public partial class OrbitCameraRig : Node3D
     [Export] public float ZoomMax { get; set; } = 30f;
     [Export] public float OrbitSensitivity { get; set; } = 0.4f;
     [Export] public float ZoomStep { get; set; } = 1.6f;
-    /// <summary>Right-button travel (pixels) below which the gesture counts as a click, not a drag.
-    /// Keep in sync with <see cref="GridInput3D.DragThresholdPixels"/>.</summary>
-    [Export] public float DragThresholdPixels { get; set; } = 6f;
+    /// <summary>Default right-button travel (pixels) below which a gesture counts as a click, not a
+    /// drag. The rig owns the gesture, so it owns the constant; GridInput3D defaults to it too, and
+    /// CombatScene pushes the rig's live value into GridInput3D so both always agree.</summary>
+    public const float DefaultDragThresholdPixels = 6f;
+
+    /// <summary>Right-button travel (pixels) below which the gesture counts as a click, not a drag.</summary>
+    [Export] public float DragThresholdPixels { get; set; } = DefaultDragThresholdPixels;
     /// <summary>WASD pan speed in meters/second at the ground plane.</summary>
     [Export] public float PanSpeed { get; set; } = 10f;
 
     [Export] public float InitialYawDegrees { get; set; } = 45f;
     [Export] public float InitialPitchDegrees { get; set; } = 50f;
+    /// <summary>Fallback start distance, used only until the player has ever zoomed in combat.
+    /// Once <see cref="ViewPreferences.CombatCameraDistance"/> exists in the settings file, the
+    /// persisted preference wins so the zoom survives restarts and re-encounters.</summary>
     [Export] public float InitialDistance { get; set; } = 16f;
 
     private Camera3D _camera = null!;
@@ -43,7 +53,9 @@ public partial class OrbitCameraRig : Node3D
         _camera = GetNode<Camera3D>("Camera3D");
         _yaw = InitialYawDegrees;
         _pitch = InitialPitchDegrees;
-        _distance = InitialDistance;
+        _distance = ViewPreferences.HasStoredCombatCameraDistance
+            ? Mathf.Clamp(ViewPreferences.CombatCameraDistance, ZoomMin, ZoomMax)
+            : InitialDistance;
         _camera.Current = true;
         UpdateCameraPose();
     }
@@ -128,6 +140,7 @@ public partial class OrbitCameraRig : Node3D
     private void Zoom(float delta)
     {
         _distance = Mathf.Clamp(_distance + delta, ZoomMin, ZoomMax);
+        ViewPreferences.CombatCameraDistance = _distance;
         UpdateCameraPose();
     }
 

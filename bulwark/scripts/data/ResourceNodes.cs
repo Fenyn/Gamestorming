@@ -57,22 +57,14 @@ public static class ResourceNodes
         YieldItemId = "wood", YieldCount = 2, HarvestMinutes = 15, RespawnsDaily = false,
     };
 
-    private static readonly Dictionary<string, ResourceNodeDefinition> ById = BuildIndex(
+    private static readonly DefinitionRegistry<ResourceNodeDefinition> Registry = new(d => d.Id,
         Rock, HerbPatch, BerryBush, FallenWood);
 
-    public static IReadOnlyCollection<ResourceNodeDefinition> All => ById.Values;
+    public static IReadOnlyCollection<ResourceNodeDefinition> All => Registry.All;
 
-    public static bool IsDefined(string id) => ById.ContainsKey(id);
+    public static bool IsDefined(string id) => Registry.IsDefined(id);
 
-    public static ResourceNodeDefinition Get(string id) => ById[id];
+    public static ResourceNodeDefinition Get(string id) => Registry.Get(id);
 
-    public static bool TryGet(string id, out ResourceNodeDefinition def) => ById.TryGetValue(id, out def!);
-
-    private static Dictionary<string, ResourceNodeDefinition> BuildIndex(params ResourceNodeDefinition[] defs)
-    {
-        var index = new Dictionary<string, ResourceNodeDefinition>(defs.Length);
-        foreach (var def in defs)
-            index[def.Id] = def;
-        return index;
-    }
+    public static bool TryGet(string id, out ResourceNodeDefinition def) => Registry.TryGet(id, out def);
 }

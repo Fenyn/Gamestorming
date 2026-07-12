@@ -25,6 +25,7 @@ public partial class SquadPanel : CanvasLayer
     public event Action<bool>? Toggled;
 
     private readonly Label[] _nameLabels = new Label[MemberCount];
+    private readonly ProgressBar[] _hpBars = new ProgressBar[MemberCount];
     private readonly Label[] _hpLabels = new Label[MemberCount];
     private readonly Label[] _condLabels = new Label[MemberCount];
     private readonly Label[] _immuneLabels = new Label[MemberCount];
@@ -48,6 +49,7 @@ public partial class SquadPanel : CanvasLayer
         for (int i = 0; i < MemberCount; i++)
         {
             _nameLabels[i] = GetNode<Label>($"%Name{i}");
+            _hpBars[i] = GetNode<ProgressBar>($"%HpBar{i}");
             _hpLabels[i] = GetNode<Label>($"%Hp{i}");
             _condLabels[i] = GetNode<Label>($"%Cond{i}");
             _immuneLabels[i] = GetNode<Label>($"%Immune{i}");
@@ -87,6 +89,10 @@ public partial class SquadPanel : CanvasLayer
         }
     }
 
+    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host
+    /// unfreezes). Used when another modal — the day summary — must take the screen.</summary>
+    public void Close() => SetOpen(false);
+
     /// <summary>Render a fresh view-model. Selections that became invalid are dropped.</summary>
     public void Render(SquadPanelView view)
     {
@@ -110,7 +116,8 @@ public partial class SquadPanel : CanvasLayer
 
             var m = view.Members[i];
             _nameLabels[i].Text = m.Name;
-            _hpLabels[i].Text = m.IsDead ? "Dead" : $"HP {m.CurrentHp}/{m.MaxHp}";
+            _hpLabels[i].Text = m.IsDead ? "Dead" : $"{m.CurrentHp}/{m.MaxHp}";
+            RenderHpBar(_hpBars[i], m.CurrentHp, m.MaxHp);
             _condLabels[i].Text = m.ConditionsText;
 
             bool immune = m.ImmunityMinutesRemaining > 0;
@@ -137,6 +144,23 @@ public partial class SquadPanel : CanvasLayer
             $"{r.HealerName} treats {r.TargetName} — d20 {r.D20Roll} = {r.Total} vs DC {r.Dc}: "
             + $"{r.DegreeText} — {effect}.{wounded} "
             + $"Took {r.MinutesSpent} min; immune for {r.ImmunityMinutesRemaining} min.";
+    }
+
+    /// <summary>Pure presentation: bar value + green→amber→red fill tint by remaining-HP ratio.</summary>
+    private static void RenderHpBar(ProgressBar bar, int currentHp, int maxHp)
+    {
+        bar.MaxValue = Math.Max(1, maxHp);
+        bar.Value = Math.Clamp(currentHp, 0, Math.Max(1, maxHp));
+
+        float ratio = maxHp > 0 ? (float)currentHp / maxHp : 0f;
+        // HP bar fill tint by remaining-HP ratio (shared warm palette).
+        Color fillColor = ratio > 0.5f ? UiPalette.HpGreen : ratio > 0.25f ? UiPalette.HpAmber : UiPalette.HpRed;
+        if (bar.GetThemeStylebox("fill") is StyleBoxFlat themed)
+        {
+            var fill = (StyleBoxFlat)themed.Duplicate();
+            fill.BgColor = fillColor;
+            bar.AddThemeStyleboxOverride("fill", fill);
+        }
     }
 
     // ------------------------------------------------------------------ Flow (view state only)

@@ -77,10 +77,17 @@ public sealed class CombatSession
 
     // ---------------------------------------------------------------- Setup / teardown
 
+    /// <summary>Deployment corrections from <see cref="CombatSetup.Normalize"/> (empty when legal).</summary>
+    public IReadOnlyList<string> SetupCorrections { get; private set; } = Array.Empty<string>();
+
     public void Setup(CombatSetup setup)
     {
         if (setup.RngSeed.HasValue)
             Rng.Seed(setup.RngSeed.Value);
+
+        // Self-heal out-of-bounds/stacked anchors BEFORE placement; the scene surfaces these
+        // loudly so data/board mismatches never silently render units off the visible board.
+        SetupCorrections = setup.Normalize();
 
         Grid = BattleGrid.CreateFlat(setup.GridWidth, setup.GridHeight);
         _runner = new BattleRunner();

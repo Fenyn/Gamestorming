@@ -21,9 +21,10 @@ namespace Bulwark.Dev;
 /// roaming encounters into real combat, victory/defeat flows). Drives a REAL GameState node's
 /// commands directly (fresh, on a clean save slot — the user's slot0.json is backed up first and
 /// restored at the end); no rendered scenes.
-///  (1) TravelToTerritory: rejects >3 companions, duplicates, the Veteran-as-companion, unknown
-///      territories and dead companions; a valid travel spends exactly 30 game-minutes and stores
-///      the selection.
+///  (1) TravelToTerritory: the all-hands overload (the gate contract) takes every living companion
+///      and skips the dead; the explicit-selection path still rejects >3 companions, duplicates,
+///      the Veteran-as-companion, unknown territories and dead companions; a valid travel spends
+///      exactly 30 game-minutes and stores the selection.
 ///  (2) HarvestResourceNode: tool gate (no time spent on refusal), yield lands in the shared
 ///      inventory, node depletes, daily nodes respawn on day change while one-shot nodes stay gone.
 ///  (3) BeginTerritoryEncounter: pending setup's team-1 roster is EXACTLY Veteran + selection
@@ -35,13 +36,11 @@ namespace Bulwark.Dev;
 ///  (5) Treat Wounds + immunity/clock interactions unaffected; territory state round-trips the save.
 /// Prints [PASS]/[FAIL] per check and a final SPIKE RESULT line.
 /// </summary>
-public partial class TerritorySpike : Node
+public partial class TerritorySpike : SpikeBase
 {
     private const string SavePath = "user://save/slot0.json";
     private const string ForestId = "verdant_fringe";
 
-    private int _failures;
-    private int _checks;
     private bool _slot0Existed;
     private string? _slot0Backup;
 
@@ -54,9 +53,7 @@ public partial class TerritorySpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[TerritorySpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[TerritorySpike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -68,18 +65,14 @@ public partial class TerritorySpike : Node
         catch (Exception e)
         {
             GD.PushError($"[TerritorySpike] Unhandled exception: {e}");
-            _failures++;
+            Fail();
         }
         finally
         {
             RestoreSlot0();
         }
 
-        GD.Print("---------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[TerritorySpike] checks: {_checks}, failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("TerritorySpike");
     }
 
     private async Task RunScenario()
@@ -117,10 +110,22 @@ public partial class TerritorySpike : Node
         Check("(1) unknown companion id rejected",
             !gs.TravelToTerritory(ForestId, new[] { "nobody" }));
 
+        // The gate contract: the all-hands overload marches the FULL living roster, no selection.
+        Check("(1) all-hands travel (gate contract) accepted", gs.TravelToTerritory(ForestId));
+        Check("(1) all-hands selection is every living companion (Scout, Medic, Scholar)",
+            gs.Territory.SelectedCompanionIds.SequenceEqual(
+                new[] { SquadRoster.ScoutId, SquadRoster.MedicId, SquadRoster.ScholarId }));
+        Check("(1) all-hands march home again", gs.TravelToOutpost());
+
         // The Scholar falls — dead members cannot be taken along (and later must sit out).
         scholar.Health!.ForceDeadState();
         Check("(1) dead companion rejected",
             !gs.TravelToTerritory(ForestId, new[] { SquadRoster.ScholarId }));
+        Check("(1) all-hands travel skips the dead (Scholar sits out)",
+            gs.TravelToTerritory(ForestId)
+            && gs.Territory.SelectedCompanionIds.SequenceEqual(
+                new[] { SquadRoster.ScoutId, SquadRoster.MedicId }));
+        Check("(1) march home for the explicit-selection checks", gs.TravelToOutpost());
 
         int minuteBefore = gs.Clock.MinuteOfDay;
         Check("(1) valid travel (Veteran + Scout) accepted",
@@ -335,13 +340,6 @@ public partial class TerritorySpike : Node
 
     private static DamageResult Physical(int amount) =>
         new() { TotalDamage = amount, DamageType = DamageType.Slashing };
-
-    private void Check(string label, bool ok)
-    {
-        _checks++;
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
-    }
 
     // ─────────────────────────── Save-slot protection ───────────────────────────
 

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/SquadPanel.cs" id="1_sqpn"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
 
 [node name="SquadPanel" type="CanvasLayer"]
 layer = 2
@@ -12,6 +13,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 0
+theme = ExtResource("2_theme")
 
 [node name="Backdrop" type="ColorRect" parent="Root"]
 layout_mode = 1
@@ -29,177 +31,215 @@ anchor_bottom = 1.0
 mouse_filter = 1
 
 [node name="Panel" type="PanelContainer" parent="Root/Center"]
-custom_minimum_size = Vector2(760, 0)
+custom_minimum_size = Vector2(820, 0)
 layout_mode = 2
+theme_type_variation = &"ModalPanel"
 
 [node name="Col" type="VBoxContainer" parent="Root/Center/Panel"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col"]
+[node name="TitleBar" type="PanelContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"TitleBar"
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col/TitleBar"]
 layout_mode = 2
 text = "Squad"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"TitleLabel"
 
-[node name="Row0" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+[node name="Members" type="PanelContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+
+[node name="MembersCol" type="VBoxContainer" parent="Root/Center/Panel/Col/Members"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Row0" type="HBoxContainer" parent="Root/Center/Panel/Col/Members/MembersCol"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Name0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+[node name="Name0" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row0"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Hp0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+[node name="HpBar0" type="ProgressBar" parent="Root/Center/Panel/Col/Members/MembersCol/Row0"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 0)
+custom_minimum_size = Vector2(130, 20)
+layout_mode = 2
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="Hp0" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row0"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Cond0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+[node name="Cond0" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row0"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = ""
-theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+theme_override_colors/font_color = Color(0.63, 0.24, 0.18, 1)
 
-[node name="Immune0" type="Label" parent="Root/Center/Panel/Col/Row0"]
+[node name="Immune0" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row0"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 visible = false
 text = ""
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(0.55, 0.36, 0.1, 1)
 
-[node name="Treat0" type="Button" parent="Root/Center/Panel/Col/Row0"]
+[node name="Treat0" type="Button" parent="Root/Center/Panel/Col/Members/MembersCol/Row0"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 toggle_mode = true
 text = "Treat"
 
-[node name="Row1" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+[node name="Row1" type="HBoxContainer" parent="Root/Center/Panel/Col/Members/MembersCol"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Name1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+[node name="Name1" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row1"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Hp1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+[node name="HpBar1" type="ProgressBar" parent="Root/Center/Panel/Col/Members/MembersCol/Row1"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 0)
+custom_minimum_size = Vector2(130, 20)
+layout_mode = 2
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="Hp1" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Cond1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+[node name="Cond1" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row1"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = ""
-theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+theme_override_colors/font_color = Color(0.63, 0.24, 0.18, 1)
 
-[node name="Immune1" type="Label" parent="Root/Center/Panel/Col/Row1"]
+[node name="Immune1" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row1"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 visible = false
 text = ""
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(0.55, 0.36, 0.1, 1)
 
-[node name="Treat1" type="Button" parent="Root/Center/Panel/Col/Row1"]
+[node name="Treat1" type="Button" parent="Root/Center/Panel/Col/Members/MembersCol/Row1"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 toggle_mode = true
 text = "Treat"
 
-[node name="Row2" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+[node name="Row2" type="HBoxContainer" parent="Root/Center/Panel/Col/Members/MembersCol"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Name2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+[node name="Name2" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row2"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Hp2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+[node name="HpBar2" type="ProgressBar" parent="Root/Center/Panel/Col/Members/MembersCol/Row2"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 0)
+custom_minimum_size = Vector2(130, 20)
+layout_mode = 2
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="Hp2" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Cond2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+[node name="Cond2" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row2"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = ""
-theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+theme_override_colors/font_color = Color(0.63, 0.24, 0.18, 1)
 
-[node name="Immune2" type="Label" parent="Root/Center/Panel/Col/Row2"]
+[node name="Immune2" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row2"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 visible = false
 text = ""
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(0.55, 0.36, 0.1, 1)
 
-[node name="Treat2" type="Button" parent="Root/Center/Panel/Col/Row2"]
+[node name="Treat2" type="Button" parent="Root/Center/Panel/Col/Members/MembersCol/Row2"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 toggle_mode = true
 text = "Treat"
 
-[node name="Row3" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+[node name="Row3" type="HBoxContainer" parent="Root/Center/Panel/Col/Members/MembersCol"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Name3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+[node name="Name3" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row3"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Hp3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+[node name="HpBar3" type="ProgressBar" parent="Root/Center/Panel/Col/Members/MembersCol/Row3"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 0)
+custom_minimum_size = Vector2(130, 20)
+layout_mode = 2
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="Hp3" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 text = "—"
 
-[node name="Cond3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+[node name="Cond3" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row3"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = ""
-theme_override_colors/font_color = Color(1, 0.6, 0.5, 1)
+theme_override_colors/font_color = Color(0.63, 0.24, 0.18, 1)
 
-[node name="Immune3" type="Label" parent="Root/Center/Panel/Col/Row3"]
+[node name="Immune3" type="Label" parent="Root/Center/Panel/Col/Members/MembersCol/Row3"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 visible = false
 text = ""
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(0.55, 0.36, 0.1, 1)
 
-[node name="Treat3" type="Button" parent="Root/Center/Panel/Col/Row3"]
+[node name="Treat3" type="Button" parent="Root/Center/Panel/Col/Members/MembersCol/Row3"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 toggle_mode = true
 text = "Treat"
-
-[node name="Sep" type="HSeparator" parent="Root/Center/Panel/Col"]
-layout_mode = 2
 
 [node name="FlowSection" type="VBoxContainer" parent="Root/Center/Panel/Col"]
 unique_name_in_owner = true
@@ -211,7 +251,7 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(1, 0.965, 0.878, 1)
 
 [node name="HealerRow" type="HBoxContainer" parent="Root/Center/Panel/Col/FlowSection"]
 layout_mode = 2
@@ -286,6 +326,7 @@ alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
+theme_type_variation = &"AccentButton"
 text = "Treat (10 min)"
 
 [node name="CancelButton" type="Button" parent="Root/Center/Panel/Col/FlowSection/ConfirmRow"]
@@ -300,11 +341,10 @@ custom_minimum_size = Vector2(720, 0)
 layout_mode = 2
 text = ""
 autowrap_mode = 3
-theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+theme_override_colors/font_color = Color(0.85, 0.95, 0.7, 1)
 
 [node name="HintLabel" type="Label" parent="Root/Center/Panel/Col"]
 layout_mode = 2
 text = "C / Esc = close"
 horizontal_alignment = 1
-theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
-theme_override_font_sizes/font_size = 11
+theme_type_variation = &"HintLabel"

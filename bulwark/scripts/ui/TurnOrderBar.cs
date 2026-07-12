@@ -30,18 +30,23 @@ public partial class TurnOrderBar : Control
         {
             var chip = _chipScene.Instantiate<PanelContainer>();
 
-            // Per-chip stylebox: duplicate the authored override so each chip owns its bg color.
+            // Per-chip stylebox: duplicate the authored override so each chip owns its colors.
+            // Warm palette (UiPalette): active = bright gold, allies = green-brown,
+            // enemies = red-brown, dead = grayed via modulate.
             var style = (StyleBoxFlat)chip.GetThemeStylebox("panel").Duplicate();
             style.BgColor = unit.IsCurrent
-                ? new Color(1f, 0.85f, 0.35f)
-                : unit.TeamId == 1 ? new Color(0.2f, 0.3f, 0.45f) : new Color(0.45f, 0.22f, 0.2f);
+                ? UiPalette.Gold
+                : unit.TeamId == 1 ? UiPalette.AllyGreen : UiPalette.EnemyRed;
+            style.BorderColor = unit.IsCurrent ? UiPalette.Parchment : UiPalette.DarkWood;
             chip.AddThemeStyleboxOverride("panel", style);
 
             var label = chip.GetNode<Label>("%Label");
             label.Text = unit.Name;
-            Color fg = unit.IsCurrent ? Colors.Black : Colors.White;
+            Color fg = unit.IsCurrent ? UiPalette.InkDark : UiPalette.Cream;
             if (unit.IsDead) fg = new Color(fg.R, fg.G, fg.B, 0.35f);
             label.AddThemeColorOverride("font_color", fg);
+            // Slight enlargement for the active combatant so the current turn pops.
+            label.AddThemeFontSizeOverride("font_size", unit.IsCurrent ? 15 : 13);
             chip.Modulate = unit.IsDead ? new Color(1, 1, 1, 0.5f) : Colors.White;
 
             _row.AddChild(chip);

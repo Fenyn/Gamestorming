@@ -27,11 +27,10 @@ namespace Bulwark.Dev;
 /// Dice are made deterministic via DiceRoller.EnqueueD20/EnqueueDie.
 /// Prints [PASS]/[FAIL] per check and a final SPIKE RESULT line.
 /// </summary>
-public partial class TreatWoundsSpike : Node
+public partial class TreatWoundsSpike : SpikeBase
 {
     private const string SavePath = "user://save/slot0.json";
 
-    private int _failures;
     private bool _slot0Existed;
     private string? _slot0Backup;
 
@@ -44,9 +43,7 @@ public partial class TreatWoundsSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[TreatWoundsSpike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[TreatWoundsSpike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -58,7 +55,7 @@ public partial class TreatWoundsSpike : Node
         catch (Exception e)
         {
             GD.PushError($"[TreatWoundsSpike] Unhandled exception: {e}");
-            _failures++;
+            Fail();
         }
         finally
         {
@@ -66,11 +63,7 @@ public partial class TreatWoundsSpike : Node
             RestoreSlot0();
         }
 
-        GD.Print("------------------------------------------------------------");
-        bool pass = _failures == 0;
-        GD.Print($"[TreatWoundsSpike] failures: {_failures}");
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("TreatWoundsSpike");
     }
 
     private void RunScenario()
@@ -247,12 +240,6 @@ public partial class TreatWoundsSpike : Node
                 loadedView.Members.First(m => m.Id == SquadRoster.ScholarId)
                     .ImmunityMinutesRemaining == 50);
         }
-    }
-
-    private void Check(string label, bool ok)
-    {
-        if (!ok) _failures++;
-        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
     }
 
     // ─────────────────────────── Save-slot protection ───────────────────────────

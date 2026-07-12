@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Autoload;
+using Bulwark.Data;
 using Bulwark.Presets;
 using Godot;
 using PF2e;
@@ -23,7 +24,7 @@ namespace Bulwark.Dev;
 ///      combatant (a transit must never delete or clobber another creature's registration).
 /// Also verifies at least one goblin ran the planner (a "[AI] ... executing plan" log line).
 /// </summary>
-public partial class AiStackSpike : Node
+public partial class AiStackSpike : SpikeBase
 {
     private readonly List<ICharacter> _all = new();
     private BattleGrid _grid = null!;
@@ -45,9 +46,7 @@ public partial class AiStackSpike : Node
         var data = GetNode<DataManager>("/root/DataManager");
         if (data == null || !data.IsLoaded)
         {
-            GD.PushError("[Spike] DataManager not loaded — aborting.");
-            GD.Print("SPIKE RESULT: FAIL");
-            GetTree().Quit(1);
+            AbortFail("[Spike] DataManager not loaded — aborting.");
             return;
         }
 
@@ -80,8 +79,7 @@ public partial class AiStackSpike : Node
         simulator.PlaceCreature(recruit, new PF2eVec(2, 7));
 
         // Team 2: four Goblin Warriors (full planner) clustered so they must fan out to avoid stacking.
-        var goblinDef = data.FindCreature("Goblin Warrior")
-            ?? data.LoadCreatureFile("pathfinder-monster-core", "goblin-warrior");
+        var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var goblinPositions = new[]
         {
             new PF2eVec(11, 4), new PF2eVec(11, 5),
@@ -109,22 +107,18 @@ public partial class AiStackSpike : Node
         Log.OnInfo = _priorInfoSink;
         ReactionEvents.OnDamageReactionCheck -= damageHandler;
 
-        GD.Print("---------------------------------------------------------");
         GD.Print($"[Spike] Result: {result}");
         GD.Print($"[Spike] Movement events checked: {_movementEvents}, turn-end events checked: {_turnEndEvents}");
 
-        bool distinctOk = _distinctFailures == 0;
-        bool registrationOk = _registrationFailures == 0;
-        bool decisive = result is BattleResult.Team1Wins or BattleResult.Team2Wins;
+        Check($"distinct-tiles: no two living combatants share a tile ({_distinctFailures} violations)",
+            _distinctFailures == 0);
+        Check($"registration-integrity: GetGroundOccupant(pos)==c ({_registrationFailures} violations)",
+            _registrationFailures == 0);
+        Check("a goblin ran the planner (\"executing plan\")", _plannerObserved);
+        Check($"encounter reached a decisive result ({result})",
+            result is BattleResult.Team1Wins or BattleResult.Team2Wins);
 
-        GD.Print($"  [{(distinctOk ? "PASS" : "FAIL")}] distinct-tiles: no two living combatants share a tile ({_distinctFailures} violations)");
-        GD.Print($"  [{(registrationOk ? "PASS" : "FAIL")}] registration-integrity: GetGroundOccupant(pos)==c ({_registrationFailures} violations)");
-        GD.Print($"  [{(_plannerObserved ? "PASS" : "FAIL")}] a goblin ran the planner (\"executing plan\")");
-        GD.Print($"  [{(decisive ? "PASS" : "FAIL")}] encounter reached a decisive result ({result})");
-
-        bool pass = distinctOk && registrationOk && _plannerObserved && decisive;
-        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
-        GetTree().Quit(pass ? 0 : 1);
+        FinishAndQuit("AiStackSpike");
     }
 
     private Task CheckOnEvent(BattleEvent evt)

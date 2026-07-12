@@ -1,0 +1,154 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/DaySummaryPanel.cs" id="1_dysm"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
+
+[node name="DaySummaryPanel" type="CanvasLayer"]
+layer = 3
+script = ExtResource("1_dysm")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = ExtResource("2_theme")
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Center" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Panel" type="PanelContainer" parent="Root/Center"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+theme_type_variation = &"ModalPanel"
+
+[node name="Col" type="VBoxContainer" parent="Root/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleBar" type="PanelContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"TitleBar"
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col/TitleBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Day complete"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="FatigueLabel" type="Label" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+text = ""
+autowrap_mode = 3
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.63, 0.24, 0.18, 1)
+
+[node name="HarvestSection" type="PanelContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+
+[node name="HarvestCol" type="VBoxContainer" parent="Root/Center/Panel/Col/HarvestSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HarvestHeader" type="Label" parent="Root/Center/Panel/Col/HarvestSection/HarvestCol"]
+layout_mode = 2
+text = "Harvest & Gains"
+theme_override_colors/font_color = Color(1, 0.965, 0.878, 1)
+
+[node name="HarvestLabel" type="Label" parent="Root/Center/Panel/Col/HarvestSection/HarvestCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+
+[node name="BattlesSection" type="PanelContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+
+[node name="BattlesCol" type="VBoxContainer" parent="Root/Center/Panel/Col/BattlesSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BattlesHeader" type="Label" parent="Root/Center/Panel/Col/BattlesSection/BattlesCol"]
+layout_mode = 2
+text = "Battles"
+theme_override_colors/font_color = Color(1, 0.965, 0.878, 1)
+
+[node name="BattlesLabel" type="Label" parent="Root/Center/Panel/Col/BattlesSection/BattlesCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+
+[node name="XpSection" type="PanelContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+
+[node name="XpCol" type="VBoxContainer" parent="Root/Center/Panel/Col/XpSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="XpHeader" type="Label" parent="Root/Center/Panel/Col/XpSection/XpCol"]
+layout_mode = 2
+text = "Experience"
+theme_override_colors/font_color = Color(1, 0.965, 0.878, 1)
+
+[node name="XpLabel" type="Label" parent="Root/Center/Panel/Col/XpSection/XpCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+
+[node name="LevelUpsSection" type="PanelContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+
+[node name="LevelUpsCol" type="VBoxContainer" parent="Root/Center/Panel/Col/LevelUpsSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LevelUpsHeader" type="Label" parent="Root/Center/Panel/Col/LevelUpsSection/LevelUpsCol"]
+layout_mode = 2
+text = "Level-ups"
+theme_override_colors/font_color = Color(1, 0.965, 0.878, 1)
+
+[node name="LevelUpsLabel" type="Label" parent="Root/Center/Panel/Col/LevelUpsSection/LevelUpsCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+theme_override_colors/font_color = Color(0.85, 0.95, 0.7, 1)
+
+[node name="ButtonRow" type="HBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+alignment = 1
+
+[node name="OnwardButton" type="Button" parent="Root/Center/Panel/Col/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Onward"
+
+[node name="HintLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "E / Esc = continue"
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"

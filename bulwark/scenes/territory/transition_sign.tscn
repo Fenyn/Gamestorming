@@ -1,0 +1,41 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/territory/TransitionSign.cs" id="1_trsign"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sign_post"]
+size = Vector2(12, 8)
+
+[node name="TransitionSign" type="Node2D"]
+script = ExtResource("1_trsign")
+
+[node name="PostBody" type="StaticBody2D" parent="."]
+
+[node name="PostShape" type="CollisionShape2D" parent="PostBody"]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_sign_post")
+
+[node name="Post" type="ColorRect" parent="."]
+offset_left = -3.0
+offset_top = -6.0
+offset_right = 3.0
+offset_bottom = 14.0
+color = Color(0.42, 0.3, 0.18, 1)
+
+[node name="Board" type="ColorRect" parent="."]
+offset_left = -22.0
+offset_top = -26.0
+offset_right = 22.0
+offset_bottom = -4.0
+color = Color(0.58, 0.42, 0.24, 1)
+
+[node name="Label" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = -64.0
+offset_top = -46.0
+offset_right = 64.0
+offset_bottom = -28.0
+horizontal_alignment = 1
+text = "Sign"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3

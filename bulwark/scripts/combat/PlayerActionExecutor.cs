@@ -42,23 +42,7 @@ public sealed class PlayerActionExecutor
 
     /// <summary>Tiles reachable with a single Stride (unoccupied, creature fits).</summary>
     public HashSet<PF2eVec> GetReachableTiles(ICharacter character)
-    {
-        var result = new HashSet<PF2eVec>();
-        int speed = SpeedInTiles(character);
-        if (speed <= 0 || character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
-            return result;
-
-        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(character, speed));
-        foreach (var kvp in map)
-        {
-            var tile = kvp.Key;
-            if (tile == character.GridPosition) continue;
-            if (kvp.Value.Cost <= 0) continue;
-            if (!_grid.CanCreatureFit(tile, character.TileWidth, ignore: character)) continue;
-            result.Add(tile);
-        }
-        return result;
-    }
+        => ReachableTiles(character, SpeedInTiles(character));
 
     /// <summary>Adjacent tiles a Step can legally land on (unoccupied, fits).</summary>
     public HashSet<PF2eVec> GetStepTiles(ICharacter character)
@@ -246,26 +230,10 @@ public sealed class PlayerActionExecutor
         if (strikeCtx.Hit && strikeCtx.DamageResult != null)
         {
             int damage = strikeCtx.DamageResult.TotalDamage;
-
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.DamageDealt,
-                Source = character,
-                Target = target,
-                IntValue = damage,
-                DamageType = strikeCtx.DamageResult.DamageType,
-                Description = $"{target.Name} takes {damage} {strikeCtx.DamageResult.DamageType} damage"
-            });
-
-            if (strikeCtx.TargetKilled || target.Health.IsDead)
-            {
-                await _runner.Emit(new BattleEvent
-                {
-                    Type = BattleEventType.CreatureDied,
-                    Source = target,
-                    Description = $"{target.Name} is slain!"
-                });
-            }
+            await EmitDamageAndDeath(character, target, damage,
+                type: strikeCtx.DamageResult.DamageType,
+                description: $"{target.Name} takes {damage} {strikeCtx.DamageResult.DamageType} damage",
+                targetKilled: strikeCtx.TargetKilled);
         }
 
         return true;
@@ -493,26 +461,10 @@ public sealed class PlayerActionExecutor
 
             if (tr.DamageResult != null && tr.DamageResult.TotalDamage > 0)
             {
-                await _runner.Emit(new BattleEvent
-                {
-                    Type = BattleEventType.DamageDealt,
-                    Source = caster,
-                    Target = target,
-                    IntValue = tr.DamageResult.TotalDamage,
-                    DamageType = tr.DamageResult.DamageType,
-                    Degree = tr.Degree,
-                    Description = $"{target.Name} takes {tr.DamageResult.TotalDamage} {tr.DamageResult.DamageType} ({tr.Degree})"
-                });
-
-                if (target.Health != null && target.Health.IsDead)
-                {
-                    await _runner.Emit(new BattleEvent
-                    {
-                        Type = BattleEventType.CreatureDied,
-                        Source = target,
-                        Description = $"{target.Name} is slain!"
-                    });
-                }
+                await EmitDamageAndDeath(caster, target, tr.DamageResult.TotalDamage,
+                    type: tr.DamageResult.DamageType,
+                    degree: tr.Degree,
+                    description: $"{target.Name} takes {tr.DamageResult.TotalDamage} {tr.DamageResult.DamageType} ({tr.Degree})");
             }
 
             if (tr.HealingApplied > 0)
@@ -780,22 +732,9 @@ public sealed class PlayerActionExecutor
     /// <summary>Tiles a Shielded Stride may reach: a normal Stride capped at half Speed (min 1 tile).</summary>
     public HashSet<PF2eVec> GetShieldedStrideTiles(ICharacter character)
     {
-        var result = new HashSet<PF2eVec>();
-        int half = ShieldedStrideAction.GetMaxDistanceTiles(character);
-        if (half <= 0 || character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
-            return result;
         if (character.Equipment?.IsShieldRaised != true)
-            return result;
-
-        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(character, half));
-        foreach (var kvp in map)
-        {
-            var tile = kvp.Key;
-            if (tile == character.GridPosition || kvp.Value.Cost <= 0) continue;
-            if (!_grid.CanCreatureFit(tile, character.TileWidth, ignore: character)) continue;
-            result.Add(tile);
-        }
-        return result;
+            return new HashSet<PF2eVec>();
+        return ReachableTiles(character, ShieldedStrideAction.GetMaxDistanceTiles(character));
     }
 
     private bool HasValidTumbleExit(ICharacter actor, ICharacter target)
@@ -846,36 +785,7 @@ public sealed class PlayerActionExecutor
         await EmitPositionSync(target, targetFrom);
         await EmitPositionSync(actor, actorFrom);
 
-        int delta = preHp - target.Health.CurrentHP;
-        if (delta > 0)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.DamageDealt,
-                Source = actor,
-                Target = target,
-                IntValue = delta,
-                Description = $"{target.Name} takes {delta} damage"
-            });
-            if (target.Health.IsDead)
-                await _runner.Emit(new BattleEvent
-                {
-                    Type = BattleEventType.CreatureDied,
-                    Source = target,
-                    Description = $"{target.Name} is slain!"
-                });
-        }
-        else if (delta < 0)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.Healed,
-                Source = actor,
-                Target = target,
-                IntValue = -delta,
-                Description = $"{target.Name} heals {-delta} HP"
-            });
-        }
+        await EmitHpDelta(actor, target, preHp);
         return true;
     }
 
@@ -955,22 +865,7 @@ public sealed class PlayerActionExecutor
             Description = $"{actor.Name} charges {target.Name}"
         });
 
-        int delta = preHp - target.Health.CurrentHP;
-        if (delta > 0)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.DamageDealt,
-                Source = actor, Target = target, IntValue = delta,
-                Description = $"{target.Name} takes {delta} damage"
-            });
-            if (target.Health.IsDead)
-                await _runner.Emit(new BattleEvent
-                {
-                    Type = BattleEventType.CreatureDied, Source = target,
-                    Description = $"{target.Name} is slain!"
-                });
-        }
+        await EmitHpDelta(actor, target, preHp);
         return true;
     }
 
@@ -998,6 +893,66 @@ public sealed class PlayerActionExecutor
         }
         // Already in reach (or nothing better found): stay put.
         return best;
+    }
+
+    /// <summary>
+    /// Emit the shared DamageDealt → CreatureDied pair every damage source funnels through (strikes,
+    /// spell outcomes, HP-delta skills). The optional <paramref name="description"/> preserves each
+    /// caller's exact log text; the default is the plain HP-delta line. <paramref name="targetKilled"/>
+    /// lets the strike path honor its StrikeContext.TargetKilled latch in addition to Health.IsDead.
+    /// </summary>
+    private async Task EmitDamageAndDeath(ICharacter source, ICharacter target, int damage,
+        DamageType? type = null, DegreeOfSuccess? degree = null, string? description = null,
+        bool targetKilled = false)
+    {
+        await _runner.Emit(new BattleEvent
+        {
+            Type = BattleEventType.DamageDealt,
+            Source = source,
+            Target = target,
+            IntValue = damage,
+            DamageType = type,
+            Degree = degree,
+            Description = description ?? $"{target.Name} takes {damage} damage"
+        });
+
+        if (targetKilled || target.Health?.IsDead == true)
+        {
+            await _runner.Emit(new BattleEvent
+            {
+                Type = BattleEventType.CreatureDied,
+                Source = target,
+                Description = $"{target.Name} is slain!"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Emit Damage/Died or Healed events from a target's HP delta since <paramref name="preHp"/> —
+    /// the animation seam for engine actions that apply their own damage/healing internally
+    /// (skill actions, Sudden Charge). No delta, no events.
+    /// </summary>
+    private async Task EmitHpDelta(ICharacter actor, ICharacter target, int preHp)
+    {
+        if (target.Health == null)
+            return;
+
+        int delta = preHp - target.Health.CurrentHP;
+        if (delta > 0)
+        {
+            await EmitDamageAndDeath(actor, target, delta);
+        }
+        else if (delta < 0)
+        {
+            await _runner.Emit(new BattleEvent
+            {
+                Type = BattleEventType.Healed,
+                Source = actor,
+                Target = target,
+                IntValue = -delta,
+                Description = $"{target.Name} heals {-delta} HP"
+            });
+        }
     }
 
     /// <summary>
@@ -1053,6 +1008,29 @@ public sealed class PlayerActionExecutor
     };
 
     // ---------------------------------------------------------------- Helpers
+
+    /// <summary>
+    /// Tiles reachable within <paramref name="maxDistance"/> where the creature can legally stand
+    /// (excludes the origin and unreachable/zero-cost entries; requires an action remaining).
+    /// FindChargeTile keeps its own map walk — it needs the per-tile costs to pick the cheapest
+    /// in-reach tile and deliberately considers the origin ("already in reach: stay put").
+    /// </summary>
+    private HashSet<PF2eVec> ReachableTiles(ICharacter character, int maxDistance)
+    {
+        var result = new HashSet<PF2eVec>();
+        if (maxDistance <= 0 || character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
+            return result;
+
+        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(character, maxDistance));
+        foreach (var kvp in map)
+        {
+            var tile = kvp.Key;
+            if (tile == character.GridPosition || kvp.Value.Cost <= 0) continue;
+            if (!_grid.CanCreatureFit(tile, character.TileWidth, ignore: character)) continue;
+            result.Add(tile);
+        }
+        return result;
+    }
 
     private PathfindingRequest BuildRequest(ICharacter character, int maxDistance) => new()
     {

@@ -85,27 +85,27 @@ public partial class SleepLevelUpSpike : SpikeBase
 
         // ── (1) Single level-up: 1300 XP → level 3, remainder 300 banked ──
         GD.Print("-------------------- (1) Single level-up on sleep --------------------");
-        var vet = squad.FindMember(SquadRoster.VeteranId)!;
+        var vet = squad.FindMember(SquadRoster.PlayerId)!;
         int vetMaxBefore = vet.Health!.MaxHP;
 
-        squad.AddXp(SquadRoster.VeteranId, 1300);
-        Check("(1) 1300 XP banked pre-sleep", squad.GetXp(SquadRoster.VeteranId) == 1300);
+        squad.AddXp(SquadRoster.PlayerId, 1300);
+        Check("(1) 1300 XP banked pre-sleep", squad.GetXp(SquadRoster.PlayerId) == 1300);
 
         gs1.Sleep();
 
         Check("(1) veteran is level 3 after sleep", vet.Stats!.Level == 3);
-        Check("(1) 1000 XP consumed, 300 remainder banked", squad.GetXp(SquadRoster.VeteranId) == 300);
+        Check("(1) 1000 XP consumed, 300 remainder banked", squad.GetXp(SquadRoster.PlayerId) == 300);
         // Fighter 10 class HP + Con 14 (+2) = 12 per level; no ability boost between L2 and L3.
         Check($"(1) max HP grew by 12 (class 10 + Con 2): {vetMaxBefore} -> {vet.Health.MaxHP}",
             vet.Health.MaxHP == vetMaxBefore + 12);
         Check("(1) full HP after the rest (FullHeal to the NEW max)", vet.Health.IsFullHealth);
         Check("(1) other members untouched at level 2",
             squad.FindMember(SquadRoster.ScoutId)!.Stats!.Level == 2
-            && squad.FindMember(SquadRoster.MedicId)!.Stats!.Level == 2
+            && squad.FindMember(SquadRoster.TharrId)!.Stats!.Level == 2
             && squad.FindMember(SquadRoster.ScholarId)!.Stats!.Level == 2);
         Check("(1) SquadLeveledUp event reported veteran 2 -> 3",
             levelUpEvents.Count == 1
-            && levelUpEvents[0].MemberId == SquadRoster.VeteranId
+            && levelUpEvents[0].MemberId == SquadRoster.PlayerId
             && levelUpEvents[0].FromLevel == 2 && levelUpEvents[0].ToLevel == 3);
 
         // ── (2) Save mid-progression → reload → level 3 rebuilt + live state + XP intact ──
@@ -122,11 +122,11 @@ public partial class SleepLevelUpSpike : SpikeBase
         string snapLoaded = JsonSerializer.Serialize(squad2!.CaptureMembers());
         Check("(2) EXACT squad round-trip (serialized snapshots identical)", snapLive == snapLoaded);
 
-        var vet2 = squad2.FindMember(SquadRoster.VeteranId)!;
+        var vet2 = squad2.FindMember(SquadRoster.PlayerId)!;
         Check("(2) veteran REBUILT at level 3", vet2.Stats!.Level == 3);
         Check("(2) live HP dent restored on top of the level-3 rebuild",
             vet2.Health!.CurrentHP == vet2.Health.MaxHP - 7);
-        Check("(2) banked 300 XP intact", squad2.GetXp(SquadRoster.VeteranId) == 300);
+        Check("(2) banked 300 XP intact", squad2.GetXp(SquadRoster.PlayerId) == 300);
         Check("(2) scholar still rebuilt at level 2",
             squad2.FindMember(SquadRoster.ScholarId)!.Stats!.Level == 2);
 
@@ -137,26 +137,26 @@ public partial class SleepLevelUpSpike : SpikeBase
 
         foreach (var id in new[]
         {
-            SquadRoster.VeteranId, SquadRoster.ScoutId, SquadRoster.MedicId, SquadRoster.ScholarId,
+            SquadRoster.PlayerId, SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId,
         })
             squad2.AddXp(id, 3000);
 
         gs2.Sleep();
 
         var scout2 = squad2.FindMember(SquadRoster.ScoutId)!;
-        var medic2 = squad2.FindMember(SquadRoster.MedicId)!;
+        var medic2 = squad2.FindMember(SquadRoster.TharrId)!;
         var scholar2 = squad2.FindMember(SquadRoster.ScholarId)!;
         Check("(3) all four members at the level-5 cap",
             vet2.Stats.Level == 5 && scout2.Stats!.Level == 5
             && medic2.Stats!.Level == 5 && scholar2.Stats!.Level == 5);
         // Veteran had 300 + 3000 = 3300 and only two levels (4, 5) to the cap: 1300 stays banked.
         Check("(3) XP above the cap stays banked (veteran 3300 - 2000 = 1300)",
-            squad2.GetXp(SquadRoster.VeteranId) == 1300);
+            squad2.GetXp(SquadRoster.PlayerId) == 1300);
         Check("(3) exactly consumed for the others (3000 = three levels)",
             squad2.GetXp(SquadRoster.ScoutId) == 0 && squad2.GetXp(SquadRoster.ScholarId) == 0);
         Check("(3) event reported veteran 3 -> 5 and scholar 2 -> 5",
             levelUpEvents2.Count == 4
-            && levelUpEvents2.Exists(v => v.MemberId == SquadRoster.VeteranId && v.FromLevel == 3 && v.ToLevel == 5)
+            && levelUpEvents2.Exists(v => v.MemberId == SquadRoster.PlayerId && v.FromLevel == 3 && v.ToLevel == 5)
             && levelUpEvents2.Exists(v => v.MemberId == SquadRoster.ScholarId && v.FromLevel == 2 && v.ToLevel == 5));
 
         // Scholar: L5 Spell Blending trade live on top of the school slots, Fireballs prepared.
@@ -185,9 +185,9 @@ public partial class SleepLevelUpSpike : SpikeBase
 
         // ── (4) Equivalence: leveled-in-place == fresh L5 build ──
         GD.Print("-------------------- (4) Equivalence vs fresh L5 builds --------------------");
-        CheckEquivalence("veteran", vet2, PresetCharacters.BuildVeteran(5));
+        CheckEquivalence("veteran", vet2, PresetCharacters.BuildPlayer(5));
         CheckEquivalence("scout", scout2, PresetCharacters.BuildScout(5));
-        CheckEquivalence("medic", medic2, PresetCharacters.BuildMedic(5));
+        CheckEquivalence("medic", medic2, PresetCharacters.BuildTharr(5));
         CheckEquivalence("scholar", scholar2, PresetCharacters.BuildScholar(5));
 
         // ── (5) Sleeping again at the cap changes nothing ──
@@ -195,7 +195,7 @@ public partial class SleepLevelUpSpike : SpikeBase
         int eventsBefore = levelUpEvents2.Count;
         gs2.Sleep();
         Check("(5) veteran still level 5 with 1300 XP banked",
-            vet2.Stats.Level == 5 && squad2.GetXp(SquadRoster.VeteranId) == 1300);
+            vet2.Stats.Level == 5 && squad2.GetXp(SquadRoster.PlayerId) == 1300);
         Check("(5) no level-up event emitted at the cap", levelUpEvents2.Count == eventsBefore);
 
         // ── (6) All-nighter rollover: NO rest benefits; Fatigued applies and round-trips ──
@@ -210,12 +210,12 @@ public partial class SleepLevelUpSpike : SpikeBase
         if (squad3 == null)
             return;
 
-        var vet3 = squad3.FindMember(SquadRoster.VeteranId)!;
-        var medic3 = squad3.FindMember(SquadRoster.MedicId)!;
+        var vet3 = squad3.FindMember(SquadRoster.PlayerId)!;
+        var medic3 = squad3.FindMember(SquadRoster.TharrId)!;
         var levelUpEvents3 = new List<SquadLevelUpView>();
         gs3.SquadLeveledUp += ups => levelUpEvents3.AddRange(ups);
 
-        squad3.AddXp(SquadRoster.VeteranId, 1000);          // a banked level-up a sleep WOULD apply
+        squad3.AddXp(SquadRoster.PlayerId, 1000);          // a banked level-up a sleep WOULD apply
         vet3.Health!.SetCurrentHP(vet3.Health.MaxHP - 9);   // an HP dent a sleep WOULD heal
         var font3 = medic3.Spellcasting!.DivineFont!;
         font3.RestoreState(font3.CurrentSlots - 1, font3.FontRank); // a spent slot a sleep WOULD refill
@@ -225,7 +225,7 @@ public partial class SleepLevelUpSpike : SpikeBase
         gs3.Clock.SpendTime(DayClock.DayRolloverMinute - gs3.Clock.MinuteOfDay); // ride 6:00 → 30:00
         Check("(6) rollover advanced the calendar", gs3.Clock.Day == dayBefore + 1);
         Check("(6) rollover applied NO banked level-up (still L2, 1000 XP intact, no event)",
-            vet3.Stats!.Level == 2 && squad3.GetXp(SquadRoster.VeteranId) == 1000
+            vet3.Stats!.Level == 2 && squad3.GetXp(SquadRoster.PlayerId) == 1000
             && levelUpEvents3.Count == 0);
         Check("(6) rollover refilled NO HP", vet3.Health.CurrentHP == vet3.Health.MaxHP - 9);
         Check("(6) rollover refilled NO font slots", font3.CurrentSlots == fontAfterSpend);
@@ -235,17 +235,17 @@ public partial class SleepLevelUpSpike : SpikeBase
         var gs4 = new GameState();
         AddChild(gs4);
         var squad4 = gs4.Squad!;
-        var vet4 = squad4.FindMember(SquadRoster.VeteranId)!;
+        var vet4 = squad4.FindMember(SquadRoster.PlayerId)!;
         Check("(6) Fatigued survives save → fresh restore", squad4.Members.All(HasFatigued));
         Check("(6) HP dent survived the restore",
             vet4.Health!.CurrentHP == vet4.Health.MaxHP - 9);
 
         // ── (7) A subsequent voluntary Sleep() IS the full rest ──
         GD.Print("-------------------- (7) Voluntary sleep after the all-nighter --------------------");
-        var font4 = squad4.FindMember(SquadRoster.MedicId)!.Spellcasting!.DivineFont!;
+        var font4 = squad4.FindMember(SquadRoster.TharrId)!.Spellcasting!.DivineFont!;
         gs4.Sleep();
         Check("(7) sleep applied the banked level-up (2 → 3, XP consumed)",
-            vet4.Stats!.Level == 3 && squad4.GetXp(SquadRoster.VeteranId) == 0);
+            vet4.Stats!.Level == 3 && squad4.GetXp(SquadRoster.PlayerId) == 0);
         Check("(7) sleep cleared Fatigued", squad4.Members.All(m => !HasFatigued(m)));
         Check("(7) sleep refilled HP to the new max", vet4.Health.IsFullHealth);
         Check("(7) sleep refilled the font", font4.CurrentSlots == font4.MaxSlots);

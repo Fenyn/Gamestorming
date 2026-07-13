@@ -60,7 +60,7 @@ public partial class ChassisSpike : SpikeBase
     private void CheckA_VeteranL5AttackMaster()
     {
         GD.Print("-------------------- (a) Veteran L5 attack (Master) --------------------");
-        var vet = PresetCharacters.BuildVeteran(level: 5);
+        var vet = PresetCharacters.BuildPlayer(level: 5);
         var weapon = vet.Equipment.MainHandWeapon;
 
         var prof = WeaponAttackCalculator.ResolveWeaponProficiency(
@@ -80,7 +80,7 @@ public partial class ChassisSpike : SpikeBase
     private void CheckB_VeteranL1AttackExpert()
     {
         GD.Print("-------------------- (b) Veteran L1 attack (Expert) --------------------");
-        var vet = PresetCharacters.BuildVeteran(level: 1);
+        var vet = PresetCharacters.BuildPlayer(level: 1);
         var weapon = vet.Equipment.MainHandWeapon;
 
         var prof = WeaponAttackCalculator.ResolveWeaponProficiency(
@@ -105,7 +105,7 @@ public partial class ChassisSpike : SpikeBase
             return;
         }
 
-        var vetL3 = PresetCharacters.BuildVeteran(level: 3);
+        var vetL3 = PresetCharacters.BuildPlayer(level: 3);
         Check("(c) L3 Veteran has Bravery", vetL3.Features?.GetFeatureById("bravery") != null);
 
         // Bravery's OnConditionApplied listener fires synchronously inside AddCondition.
@@ -115,7 +115,7 @@ public partial class ChassisSpike : SpikeBase
         Check("(c) Bravery reduced Frightened 1 → 0", reduced == 0);
 
         // Control: an L1 fighter has no Bravery, so Frightened 1 stays 1.
-        var vetL1 = PresetCharacters.BuildVeteran(level: 1);
+        var vetL1 = PresetCharacters.BuildPlayer(level: 1);
         Check("(c) L1 Veteran does NOT have Bravery", vetL1.Features?.GetFeatureById("bravery") == null);
         vetL1.Conditions.AddCondition(frightenedDef, value: 1);
         int control = vetL1.Conditions.GetConditionValue(Condition.Frightened);
@@ -182,13 +182,13 @@ public partial class ChassisSpike : SpikeBase
     private async Task CheckF_WeaponMasteryCritSpec(DataManager data)
     {
         GD.Print("-------------------- (f) Weapon Mastery crit-spec --------------------");
-        var vet = PresetCharacters.BuildVeteran(level: 5, teamId: 1);
+        var vet = PresetCharacters.BuildPlayer(level: 5, teamId: 1);
         Check("(f) L5 Veteran has Weapon Mastery", vet.Features?.GetFeatureById("weapon-mastery") != null);
         Check("(f) ChosenWeaponGroup is Sword", vet.BuildChoices?.ChosenWeaponGroup == WeaponGroup.Sword);
 
         // High-HP target (a second L5 Fighter) that survives the crit so the applied Off-Guard rider
         // is observable. Force a natural 20 through the deterministic d20 queue → guaranteed critical.
-        var target = PresetCharacters.BuildVeteran(level: 5, teamId: 2);
+        var target = PresetCharacters.BuildPlayer(level: 5, teamId: 2);
         var (session, exec) = StartSession(data,
             party: new() { (vet, new PF2eVec(5, 5)) },
             enemies: new() { (target, new PF2eVec(6, 5)) }, seed: 5);

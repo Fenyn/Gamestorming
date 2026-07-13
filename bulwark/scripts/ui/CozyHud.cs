@@ -24,7 +24,7 @@ public partial class CozyHud : CanvasLayer
         ("LMB / RMB / E", "Use tool · Interact"),
         ("1-6 / Tab / Wheel", "Select tool"),
         ("Q", "Cycle seed"),
-        ("C", "Squad panel"),
+        ("C·B·I·G·K·T", "Squad·Build·Bag·Smithy·Craft·Store"),
     };
 
     /// <summary>Intent: player pressed the HUD zoom-in (+) button. Host scene applies the camera zoom.</summary>

@@ -80,8 +80,24 @@ public abstract partial class CozyWorldScene : Node2D
     /// <summary>The instanced squad panel (null when squad_panel.tscn is missing).</summary>
     protected SquadPanel? SquadPanel { get; private set; }
 
+    /// <summary>The instanced planning-table build panel (null when build_panel.tscn is missing or the
+    /// scene didn't spawn it — only the outpost does).</summary>
+    protected BuildPanel? BuildPanel { get; private set; }
+
     /// <summary>The instanced end-of-day summary panel (null when day_summary_panel.tscn is missing).</summary>
     protected DaySummaryPanel? DaySummaryPanel { get; private set; }
+
+    /// <summary>The instanced inventory / warehouse panel (null when inventory_panel.tscn is missing).</summary>
+    protected InventoryPanel? InventoryPanel { get; private set; }
+
+    /// <summary>The instanced smithy panel (null when smithy_panel.tscn is missing or not spawned).</summary>
+    protected SmithyPanel? SmithyPanel { get; private set; }
+
+    /// <summary>The instanced crafting-bench panel (null when crafting_panel.tscn is missing or not spawned).</summary>
+    protected CraftingPanel? CraftingPanel { get; private set; }
+
+    /// <summary>The instanced Trading Post panel (null when trading_post_panel.tscn is missing or not spawned).</summary>
+    protected TradingPostPanel? TradingPostPanel { get; private set; }
 
     /// <summary>Scene hand-off pending (travel or encounter): world input is ignored and the
     /// deliberately frozen player must NOT be unfrozen (e.g. by the squad-panel toggle).</summary>
@@ -98,9 +114,15 @@ public abstract partial class CozyWorldScene : Node2D
         gs.InventoryChanged -= OnInventoryChanged;
         gs.GameLoaded -= RefreshHudAll;
         gs.SquadChanged -= RefreshSquadPanel;
+        gs.SquadChanged -= RefreshInventoryPanel;
+        gs.GoldChanged -= OnGoldChanged;
+        gs.SmithyChanged -= RefreshSmithyPanel;
+        gs.TradingPostChanged -= RefreshTradingPostPanel;
+        gs.RecipeCrafted -= OnRecipeCrafted;
         gs.TreatWoundsResolved -= OnTreatWoundsResolved;
         gs.SquadStatusNotice -= OnSquadStatusNotice;
         gs.DayStarted -= TryShowDaySummary;
+        gs.BuildingChanged -= OnBuildingChanged;
         UnwireExtraStateEvents(gs);
     }
 
@@ -168,6 +190,83 @@ public abstract partial class CozyWorldScene : Node2D
         AddChild(SquadPanel);
         SquadPanel.TreatWoundsRequested += OnTreatWoundsRequested;
         SquadPanel.Toggled += OnSquadPanelToggled;
+    }
+
+    /// <summary>Instance the planning-table build panel (mirrors <see cref="SpawnSquadPanel"/>). The
+    /// panel toggles on the "toggle_build_panel" action (B), freezes the world while open, and raises
+    /// commission/contribute/upgrade intents forwarded to GameState commands. Called by the outpost.</summary>
+    protected void SpawnBuildPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/build_panel.tscn");
+        if (scene == null)
+            return;
+
+        BuildPanel = scene.Instantiate<BuildPanel>();
+        AddChild(BuildPanel);
+        BuildPanel.Toggled += OnBuildPanelToggled;
+        BuildPanel.CommissionRequested += OnCommissionRequested;
+        BuildPanel.ContributeRequested += OnContributeRequested;
+        BuildPanel.UpgradeRequested += OnUpgradeRequested;
+    }
+
+    /// <summary>Instance the inventory / warehouse panel (mirrors <see cref="SpawnBuildPanel"/>). Toggles
+    /// on "toggle_inventory_panel" (I), freezes the world while open, and raises deposit/withdraw intents
+    /// forwarded to GameState. The warehouse half renders only when accessible (outpost).</summary>
+    protected void SpawnInventoryPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/inventory_panel.tscn");
+        if (scene == null)
+            return;
+
+        InventoryPanel = scene.Instantiate<InventoryPanel>();
+        AddChild(InventoryPanel);
+        InventoryPanel.Toggled += OnInventoryPanelToggled;
+        InventoryPanel.DepositRequested += OnDepositRequested;
+        InventoryPanel.WithdrawRequested += OnWithdrawRequested;
+    }
+
+    /// <summary>Instance the smithy panel (buy weapons, apply runes, sell surplus). Toggles on
+    /// "toggle_smithy_panel" (G). Outpost-only station — call from the outpost scene.</summary>
+    protected void SpawnSmithyPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/smithy_panel.tscn");
+        if (scene == null)
+            return;
+
+        SmithyPanel = scene.Instantiate<SmithyPanel>();
+        AddChild(SmithyPanel);
+        SmithyPanel.Toggled += OnSmithyPanelToggled;
+        SmithyPanel.ApplyRuneRequested += OnApplyRuneRequested;
+        SmithyPanel.BuyWeaponRequested += OnBuyWeaponRequested;
+    }
+
+    /// <summary>Instance the Trading Post panel (buy catalog goods for gold, sell surplus). Toggles on
+    /// "toggle_trading_post_panel" (T). Outpost-only station — call from the outpost scene.</summary>
+    protected void SpawnTradingPostPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/trading_post_panel.tscn");
+        if (scene == null)
+            return;
+
+        TradingPostPanel = scene.Instantiate<TradingPostPanel>();
+        AddChild(TradingPostPanel);
+        TradingPostPanel.Toggled += OnTradingPostPanelToggled;
+        TradingPostPanel.BuyRequested += OnBuyGoodRequested;
+        TradingPostPanel.SellRequested += OnSellRequested;
+    }
+
+    /// <summary>Instance the crafting-bench panel. Toggles on "toggle_crafting_panel" (K). Outpost-only
+    /// station — call from the outpost scene.</summary>
+    protected void SpawnCraftingPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/crafting_panel.tscn");
+        if (scene == null)
+            return;
+
+        CraftingPanel = scene.Instantiate<CraftingPanel>();
+        AddChild(CraftingPanel);
+        CraftingPanel.Toggled += OnCraftingPanelToggled;
+        CraftingPanel.CraftRequested += OnCraftRequested;
     }
 
     /// <summary>Instance the end-of-day summary modal and schedule a deferred consume for
@@ -399,9 +498,15 @@ public abstract partial class CozyWorldScene : Node2D
         gs.InventoryChanged += OnInventoryChanged;
         gs.GameLoaded += RefreshHudAll;
         gs.SquadChanged += RefreshSquadPanel;
+        gs.SquadChanged += RefreshInventoryPanel; // deposit/withdraw shift Bulk/encumbrance
+        gs.GoldChanged += OnGoldChanged;
+        gs.SmithyChanged += RefreshSmithyPanel;
+        gs.TradingPostChanged += RefreshTradingPostPanel;
+        gs.RecipeCrafted += OnRecipeCrafted;
         gs.TreatWoundsResolved += OnTreatWoundsResolved;
         gs.SquadStatusNotice += OnSquadStatusNotice;
         gs.DayStarted += TryShowDaySummary;
+        gs.BuildingChanged += OnBuildingChanged;
         WireExtraStateEvents(gs);
     }
 
@@ -417,7 +522,14 @@ public abstract partial class CozyWorldScene : Node2D
 
     // ------------------------------------------------------------------ HUD wiring (passive push)
 
-    private void OnInventoryChanged(string itemId) => RefreshHudInventory();
+    private void OnInventoryChanged(string itemId)
+    {
+        RefreshHudInventory();
+        RefreshInventoryPanel();
+        RefreshSmithyPanel();      // forge material affordability tracks carried stacks
+        RefreshCraftingPanel();    // recipe have/need tracks carried stacks
+        RefreshTradingPostPanel(); // buy fit + sell shelf track carried stacks
+    }
 
     protected void RefreshHudAll()
     {
@@ -479,7 +591,185 @@ public abstract partial class CozyWorldScene : Node2D
             clock.IsPaused = open;
 
         if (open)
+        {
+            CloseOtherModals(SquadPanel); // the economy modals never share the screen
             RefreshSquadPanel();
+        }
+    }
+
+    // ------------------------------------------------------------------ Build panel (passive push)
+
+    private void OnBuildPanelToggled(bool open)
+    {
+        // Same freeze seam as the squad panel: no avatar input, no clock ticks while modal.
+        if (Player != null && !IsTransitioning)
+            Player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+
+        var clock = GameState.Instance?.Clock;
+        if (clock != null)
+            clock.IsPaused = open;
+
+        if (open)
+        {
+            CloseOtherModals(BuildPanel); // the economy modals never share the screen
+            RefreshBuildPanel();
+        }
+    }
+
+    private void OnCommissionRequested(string buildingId)
+        => GameState.Instance?.CommissionBuilding(buildingId);
+
+    private void OnContributeRequested(string buildingId, string itemId, int qty)
+        => GameState.Instance?.ContributeBundle(buildingId, itemId, qty);
+
+    private void OnUpgradeRequested(string buildingId)
+        => GameState.Instance?.UpgradeBuilding(buildingId);
+
+    /// <summary>Building state changed (commission/contribute/upgrade): re-render the open panel so
+    /// have/need + affordability stay live. The outpost's loader handles the world visual separately.</summary>
+    private void OnBuildingChanged(string buildingId) => RefreshBuildPanel();
+
+    private void RefreshBuildPanel()
+    {
+        if (BuildPanel == null || !BuildPanel.Visible)
+            return;
+        var view = GameState.Instance?.GetPlanningTableView();
+        if (view != null)
+            BuildPanel.Render(view);
+    }
+
+    // ------------------------------------------------------------------ Economy panels (inventory/smithy/crafting)
+
+    /// <summary>Close every hotkey modal except <paramref name="keep"/> so only one is ever open
+    /// (each Close is a no-op when already closed).</summary>
+    private void CloseOtherModals(Node? keep)
+    {
+        if (SquadPanel != null && SquadPanel != keep) SquadPanel.Close();
+        if (BuildPanel != null && BuildPanel != keep) BuildPanel.Close();
+        if (InventoryPanel != null && InventoryPanel != keep) InventoryPanel.Close();
+        if (SmithyPanel != null && SmithyPanel != keep) SmithyPanel.Close();
+        if (CraftingPanel != null && CraftingPanel != keep) CraftingPanel.Close();
+        if (TradingPostPanel != null && TradingPostPanel != keep) TradingPostPanel.Close();
+    }
+
+    /// <summary>Shared modal freeze seam (same as the squad/build toggles): no avatar input, no clock
+    /// ticks while a panel is open. Never unfreezes a deliberately frozen hand-off.</summary>
+    private void SetModalFreeze(bool frozen)
+    {
+        if (Player != null && !IsTransitioning)
+            Player.ProcessMode = frozen ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
+        var clock = GameState.Instance?.Clock;
+        if (clock != null)
+            clock.IsPaused = frozen;
+    }
+
+    private void OnInventoryPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(InventoryPanel);
+            RefreshInventoryPanel();
+        }
+    }
+
+    private void OnSmithyPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(SmithyPanel);
+            RefreshSmithyPanel();
+        }
+    }
+
+    private void OnCraftingPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(CraftingPanel);
+            RefreshCraftingPanel();
+        }
+    }
+
+    private void OnTradingPostPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(TradingPostPanel);
+            RefreshTradingPostPanel();
+        }
+    }
+
+    private void OnDepositRequested(string memberId, string itemId, int qty)
+        => GameState.Instance?.DepositToWarehouse(memberId, itemId, qty);
+
+    private void OnWithdrawRequested(string memberId, string itemId, int qty)
+        => GameState.Instance?.WithdrawFromWarehouse(memberId, itemId, qty);
+
+    private void OnApplyRuneRequested(string memberId, RuneKind kind)
+        => GameState.Instance?.ApplyWeaponRune(memberId, kind);
+
+    private void OnBuyWeaponRequested(string memberId, string weaponSlug)
+        => GameState.Instance?.BuyWeapon(memberId, weaponSlug);
+
+    private void OnSellRequested(string itemId, int qty)
+        => GameState.Instance?.SellItem(itemId, qty);
+
+    private void OnBuyGoodRequested(string itemId, int count)
+        => GameState.Instance?.BuyGood(itemId, count);
+
+    private void OnCraftRequested(string recipeId, int count)
+        => GameState.Instance?.Craft(recipeId, count);
+
+    private void OnGoldChanged(int gold)
+    {
+        RefreshInventoryPanel();
+        RefreshSmithyPanel();
+        RefreshTradingPostPanel();
+    }
+
+    private void OnRecipeCrafted(string recipeId) => RefreshCraftingPanel();
+
+    protected void RefreshInventoryPanel()
+    {
+        if (InventoryPanel == null || !InventoryPanel.Visible)
+            return;
+        var gs = GameState.Instance;
+        if (gs == null)
+            return;
+        InventoryPanel.Render(gs.GetInventoryView(), gs.Inventory.WarehouseAccessible);
+    }
+
+    protected void RefreshSmithyPanel()
+    {
+        if (SmithyPanel == null || !SmithyPanel.Visible)
+            return;
+        var gs = GameState.Instance;
+        var view = gs?.GetSmithyView();
+        if (gs == null || view == null)
+            return;
+        SmithyPanel.Render(view);
+    }
+
+    protected void RefreshTradingPostPanel()
+    {
+        if (TradingPostPanel == null || !TradingPostPanel.Visible)
+            return;
+        var view = GameState.Instance?.GetTradingPostView();
+        if (view != null)
+            TradingPostPanel.Render(view);
+    }
+
+    protected void RefreshCraftingPanel()
+    {
+        if (CraftingPanel == null || !CraftingPanel.Visible)
+            return;
+        var view = GameState.Instance?.GetCraftingView();
+        if (view != null)
+            CraftingPanel.Render(view);
     }
 
     private void OnTreatWoundsRequested(string healerId, string targetId, int dc)

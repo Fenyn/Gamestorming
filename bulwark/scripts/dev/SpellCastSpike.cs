@@ -55,8 +55,8 @@ public partial class SpellCastSpike : SpikeBase
 
     private async Task Scenario_A_HealTouch(DataManager data)
     {
-        var medic = PresetCharacters.BuildMedic(level: 2, teamId: 1);
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var medic = PresetCharacters.BuildTharr(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
 
         var (session, exec) = StartSession(data,
             party: new() { (medic, new PF2eVec(5, 5)), (veteran, new PF2eVec(5, 6)) },
@@ -127,7 +127,7 @@ public partial class SpellCastSpike : SpikeBase
         bool applied = false;
         foreach (int seed in new[] { 1, 2, 3, 7, 11, 42 })
         {
-            var medic = PresetCharacters.BuildMedic(level: 2, teamId: 1);
+            var medic = PresetCharacters.BuildTharr(level: 2, teamId: 1);
             var goblin = MakeGoblin(data);
             var (session, exec) = StartSession(data,
                 party: new() { (medic, new PF2eVec(5, 5)) },
@@ -176,7 +176,7 @@ public partial class SpellCastSpike : SpikeBase
         bool prone = false;
         foreach (int seed in new[] { 1, 2, 3, 7, 11, 42, 100 })
         {
-            var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+            var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
             var goblin = MakeGoblin(data);
             var (session, exec) = StartSession(data,
                 party: new() { (veteran, new PF2eVec(5, 5)) },
@@ -199,8 +199,8 @@ public partial class SpellCastSpike : SpikeBase
         bool ok = false;
         foreach (int seed in new[] { 1, 2, 3, 7, 11, 42, 100 })
         {
-            var medic = PresetCharacters.BuildMedic(level: 2, teamId: 1);
-            var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+            var medic = PresetCharacters.BuildTharr(level: 2, teamId: 1);
+            var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
             var (session, exec) = StartSession(data,
                 party: new() { (medic, new PF2eVec(5, 5)), (veteran, new PF2eVec(5, 6)) },
                 enemies: new(), seed: seed);
@@ -229,8 +229,8 @@ public partial class SpellCastSpike : SpikeBase
 
     private async Task Scenario_G_SlotExhaustion(DataManager data)
     {
-        var medic = PresetCharacters.BuildMedic(level: 2, teamId: 1);
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var medic = PresetCharacters.BuildTharr(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
 
         var (session, exec) = StartSession(data,

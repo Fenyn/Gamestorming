@@ -76,8 +76,8 @@ public partial class AiCasterSpike : SpikeBase
 
         var (grid, events, executor) = MakeArena();
 
-        var medic = PresetCharacters.BuildMedic(level: 2, teamId: 1);
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);   // badly wounded
+        var medic = PresetCharacters.BuildTharr(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);   // badly wounded
         var recruit = PresetCharacters.BuildRecruit(level: 2, teamId: 1);   // full HP
         var goblin = MakeGoblin(data);
 
@@ -181,7 +181,7 @@ public partial class AiCasterSpike : SpikeBase
 
         var (grid, events, executor) = MakeArena();
 
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
 
         grid.PlaceCreature(veteran, new PF2eVec(3, 5));

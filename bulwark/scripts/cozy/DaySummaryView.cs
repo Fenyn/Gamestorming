@@ -22,6 +22,10 @@ public sealed class DaySummaryView
     /// <summary>Encounter XP banked per member during the day.</summary>
     public required int XpAwarded { get; init; }
 
+    /// <summary>Gold earned during the day (loot coin + item sales). Additive field: 0 by default so
+    /// existing constructors (e.g. UI smoke fixtures) need no change.</summary>
+    public int GoldEarned { get; init; }
+
     public required int EncountersWon { get; init; }
     public required int EncountersLost { get; init; }
 

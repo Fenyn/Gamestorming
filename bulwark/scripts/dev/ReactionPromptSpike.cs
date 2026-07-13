@@ -52,7 +52,7 @@ public partial class ReactionPromptSpike : SpikeBase
     private async Task Check1_AcceptedPromptSuspendsAndBlocks(DataManager data)
     {
         GD.Print("---------------- (1) Accept: suspend + Shield Block ----------------");
-        var vet = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var vet = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
         var session = StartSession(data, vet, goblin, seed: 42);
         try
@@ -103,7 +103,7 @@ public partial class ReactionPromptSpike : SpikeBase
     private async Task Check2_DeclinedPromptTakesFullDamage(DataManager data)
     {
         GD.Print("---------------- (2) Decline: full damage ----------------");
-        var vet = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var vet = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
         var session = StartSession(data, vet, goblin, seed: 7);
         try
@@ -136,7 +136,7 @@ public partial class ReactionPromptSpike : SpikeBase
         bool scenarioRan = false;
         foreach (int seed in new[] { 3, 5, 11, 42, 99, 123, 500, 7, 1, 2 })
         {
-            var vet = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+            var vet = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
             var goblin = MakeGoblin(data);
 
             var setup = new CombatSetup { GridWidth = 12, GridHeight = 10, RngSeed = seed };

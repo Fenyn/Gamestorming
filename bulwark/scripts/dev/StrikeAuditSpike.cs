@@ -69,7 +69,7 @@ public partial class StrikeAuditSpike : SpikeBase
         runner.SetPresenter(_ => Task.CompletedTask);
         var simulator = new AIBattleSimulator(grid, runner);
 
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var recruit = PresetCharacters.BuildRecruit(level: 2, teamId: 1);
         var team1 = new List<ICharacter> { veteran, recruit };
         simulator.PlaceCreature(veteran, new PF2eVec(2, 5));

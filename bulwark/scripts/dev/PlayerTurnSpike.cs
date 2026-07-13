@@ -35,7 +35,7 @@ public partial class PlayerTurnSpike : SpikeBase
             return;
         }
 
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var g1 = CreatureFactory.Create(goblinDef, teamId: 2);
         var g2 = CreatureFactory.Create(goblinDef, teamId: 2);

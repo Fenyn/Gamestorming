@@ -42,6 +42,10 @@ public partial class UiSmokeSpike : SpikeBase
         await CheckSquadPanel();
         await CheckDaySummaryPanel();
         await CheckPartySelect();
+        await CheckInventoryPanel();
+        await CheckSmithyPanel();
+        await CheckCraftingPanel();
+        await CheckTradingPostPanel();
 
         FinishAndQuit("UiSmoke");
     }
@@ -491,7 +495,268 @@ public partial class UiSmokeSpike : SpikeBase
         await Frames(1);
     }
 
+    private async Task CheckInventoryPanel()
+    {
+        GD.Print("-------------------- inventory_panel --------------------");
+        var panel = await Spawn<InventoryPanel>("res://scenes/ui/inventory_panel.tscn");
+        if (panel == null) return;
+
+        foreach (string n in new[] { "%Body", "%GoldLabel" })
+            CheckNode(panel, n);
+
+        var view = new InventoryView
+        {
+            Gold = 125,
+            Members = new List<MemberInventoryView>
+            {
+                new()
+                {
+                    MemberId = "vet", Name = "Veteran",
+                    Stacks = new Dictionary<string, int> { ["wood"] = 6 },
+                    CarriedBulk = 9.5, EncumberedThreshold = 7, MaxBulk = 12, Encumbered = true,
+                },
+            },
+            Warehouse = new Dictionary<string, int> { ["stone"] = 4 },
+        };
+
+        // At the outpost: warehouse stacks + take affordance render.
+        panel.Render(view, warehouseAccessible: true);
+        await Frames(2);
+        Check("inventory_panel gold counter renders", panel.GetNodeOrNull<Label>("%GoldLabel")?.Text.Contains("125") == true);
+        Check("inventory_panel shows the member Bulk load line", HasLabelContaining(panel, "Bulk 9.5"));
+        Check("inventory_panel flags the encumbered member", HasLabelContaining(panel, "ENCUMBERED"));
+        Check("inventory_panel renders the warehouse take affordance when accessible", FindButton(panel, "◂ Take") != null);
+
+        int deposits = 0; string? depItem = null;
+        panel.DepositRequested += (mid, iid, qty) => { deposits++; depItem = iid; };
+        FindButton(panel, "Store ▸")?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("inventory_panel Store raises DepositRequested with the stack", deposits == 1 && depItem == "wood");
+
+        int withdraws = 0;
+        panel.WithdrawRequested += (mid, iid, qty) => withdraws++;
+        FindButton(panel, "◂ Take")?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("inventory_panel Take raises WithdrawRequested", withdraws == 1);
+
+        // In the field: warehouse withheld with a note, no take affordance, deposit disabled.
+        panel.Render(view, warehouseAccessible: false);
+        await Frames(1);
+        Check("inventory_panel hides warehouse stacks when not accessible", FindButton(panel, "◂ Take") == null);
+        Check("inventory_panel disables Store when the warehouse is unreachable", FindButton(panel, "Store ▸")?.Disabled == true);
+        Check("inventory_panel explains the warehouse is outpost-only in the field", HasLabelContaining(panel, "only reachable back at the outpost"));
+
+        bool lastOpen = true;
+        panel.Toggled += open => lastOpen = open;
+        panel.Visible = true;
+        panel.Close();
+        Check("inventory_panel Close hides and raises Toggled(false)", !panel.Visible && lastOpen == false);
+
+        panel.QueueFree();
+        await Frames(1);
+    }
+
+    private async Task CheckSmithyPanel()
+    {
+        GD.Print("-------------------- smithy_panel --------------------");
+        var panel = await Spawn<SmithyPanel>("res://scenes/ui/smithy_panel.tscn");
+        if (panel == null) return;
+
+        foreach (string n in new[] { "%Body", "%GoldLabel" })
+            CheckNode(panel, n);
+
+        var view = new SmithyView
+        {
+            Gold = 500,
+            Members = new List<SmithyMemberView>
+            {
+                new()
+                {
+                    MemberId = "vet", Name = "Veteran", WeaponName = "Longsword",
+                    PotencyBonus = 0, HasStriking = false,
+                    RuneUpgrades = new List<SmithyRuneOption>
+                    {
+                        new() { Kind = RuneKind.Potency, Label = "Potency +1", Cost = 100, ReagentCost = 1, Available = true, CanAfford = true },
+                    },
+                },
+            },
+            Weapons = new List<SmithyWeaponOption>
+            {
+                new() { WeaponSlug = "greatsword", DisplayName = "Greatsword", Price = 200, MetalCost = 2, CanAfford = true },
+            },
+        };
+        panel.Render(view);
+        await Frames(2);
+        Check("smithy_panel gold counter renders", panel.GetNodeOrNull<Label>("%GoldLabel")?.Text.Contains("500") == true);
+        Check("smithy_panel shows a rune upgrade row", HasLabelContaining(panel, "Potency +1"));
+        Check("smithy_panel shows the weapon metal-material cost (physical model)", HasLabelContaining(panel, "200g + 2"));
+        Check("smithy_panel shows the rune reagent cost", HasLabelContaining(panel, "100g + 1"));
+        // Reframe: the smithy is a forge/rune bench — selling moved to the Trading Post.
+        Check("smithy_panel presents a Forge shelf (not a store)", HasLabelContaining(panel, "Forge Weapons"));
+        Check("smithy_panel no longer shows a Sell Surplus shelf", !HasLabelContaining(panel, "Sell Surplus"));
+        Check("smithy_panel no longer shows a sell button", FindButton(panel, "Sell 1") == null);
+
+        int runes = 0; RuneKind runeKind = default;
+        panel.ApplyRuneRequested += (mid, k) => { runes++; runeKind = k; };
+        FindButton(panel, "Apply")?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("smithy_panel Apply raises ApplyRuneRequested(Potency)", runes == 1 && runeKind == RuneKind.Potency);
+
+        int buys = 0; string? boughtSlug = null;
+        panel.BuyWeaponRequested += (mid, slug) => { buys++; boughtSlug = slug; };
+        FindButton(panel, "Forge")?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("smithy_panel Forge raises BuyWeaponRequested with the slug", buys == 1 && boughtSlug == "greatsword");
+
+        bool lastOpen = true;
+        panel.Toggled += open => lastOpen = open;
+        panel.Visible = true;
+        panel.Close();
+        Check("smithy_panel Close hides and raises Toggled(false)", !panel.Visible && lastOpen == false);
+
+        panel.QueueFree();
+        await Frames(1);
+    }
+
+    private async Task CheckCraftingPanel()
+    {
+        GD.Print("-------------------- crafting_panel --------------------");
+        var panel = await Spawn<CraftingPanel>("res://scenes/ui/crafting_panel.tscn");
+        if (panel == null) return;
+
+        CheckNode(panel, "%Body");
+
+        var view = new CraftingView
+        {
+            Recipes = new List<CraftableRecipeView>
+            {
+                new()
+                {
+                    RecipeId = "plank", DisplayName = "Plank", OutputItemId = "plank",
+                    OutputDisplayName = "Plank", OutputQuantity = 1, CraftMinutes = 10,
+                    Inputs = new List<RecipeInputView>
+                    {
+                        new() { ItemId = "wood", DisplayName = "Wood", Need = 2, Have = 6 },
+                    },
+                    Unlocked = true, HasInputs = true, Fits = true,
+                },
+                new()
+                {
+                    RecipeId = "cloth", DisplayName = "Cloth", OutputItemId = "cloth",
+                    OutputDisplayName = "Cloth", OutputQuantity = 1, CraftMinutes = 15,
+                    Inputs = new List<RecipeInputView>
+                    {
+                        new() { ItemId = "fiber", DisplayName = "Fiber", Need = 3, Have = 0 },
+                    },
+                    RequiredCategory = "loom", Unlocked = false, HasInputs = false, Fits = true,
+                },
+            },
+        };
+
+        panel.Render(view);
+        await Frames(2);
+        Check("crafting_panel shows a recipe input have/need line", HasLabelContaining(panel, "Wood   6/2"));
+        Check("crafting_panel shows the locked recipe's requirement", HasLabelContaining(panel, "requires loom"));
+
+        var craftButtons = new List<Button>();
+        CollectButtons(panel, "Craft", craftButtons);
+        Check("crafting_panel renders a Craft button per recipe", craftButtons.Count == 2);
+        Check("crafting_panel disables Craft for the uncraftable recipe",
+            craftButtons.Exists(b => !b.Disabled) && craftButtons.Exists(b => b.Disabled));
+
+        int crafts = 0; string? craftedId = null;
+        panel.CraftRequested += (rid, count) => { crafts++; craftedId = rid; };
+        craftButtons.Find(b => !b.Disabled)?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("crafting_panel Craft raises CraftRequested for the ready recipe", crafts == 1 && craftedId == "plank");
+
+        bool lastOpen = true;
+        panel.Toggled += open => lastOpen = open;
+        panel.Visible = true;
+        panel.Close();
+        Check("crafting_panel Close hides and raises Toggled(false)", !panel.Visible && lastOpen == false);
+
+        panel.QueueFree();
+        await Frames(1);
+    }
+
+    private async Task CheckTradingPostPanel()
+    {
+        GD.Print("-------------------- trading_post_panel --------------------");
+        var panel = await Spawn<TradingPostPanel>("res://scenes/ui/trading_post_panel.tscn");
+        if (panel == null) return;
+
+        foreach (string n in new[] { "%Body", "%GoldLabel" })
+            CheckNode(panel, n);
+
+        var view = new TradingPostView
+        {
+            Gold = 250,
+            Offers = new List<TradingPostOffer>
+            {
+                new() { ItemId = "turnip_seed", DisplayName = "Turnip Seeds", Price = 6, Unlocked = true, CanAfford = true, Fits = true },
+                new() { ItemId = "copper_ingot", DisplayName = "Copper Ingot", Price = 45, Unlocked = false, CanAfford = false, Fits = true },
+            },
+            SellShelf = new List<TradingPostSellStack>
+            {
+                new() { ItemId = "goblin_fang", DisplayName = "Goblin Fang", Quantity = 3, UnitValue = 5 },
+            },
+        };
+
+        panel.Render(view);
+        await Frames(2);
+        Check("trading_post_panel gold counter renders", panel.GetNodeOrNull<Label>("%GoldLabel")?.Text.Contains("250") == true);
+        Check("trading_post_panel shows a buy offer with price", HasLabelContaining(panel, "Turnip Seeds"));
+        Check("trading_post_panel shows the locked-offer smithy hint", HasLabelContaining(panel, "locked (upgrade the smithy)"));
+        Check("trading_post_panel shows a sellable surplus row", HasLabelContaining(panel, "Goblin Fang"));
+
+        int buys = 0; string? boughtId = null; int boughtCount = 0;
+        panel.BuyRequested += (iid, count) => { buys++; boughtId = iid; boughtCount = count; };
+        FindButton(panel, "Buy")?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("trading_post_panel Buy raises BuyRequested(turnip_seed, 1)", buys == 1 && boughtId == "turnip_seed" && boughtCount == 1);
+
+        int sells = 0; int sellQty = 0;
+        panel.SellRequested += (iid, qty) => { sells++; sellQty = qty; };
+        FindButton(panel, "Sell 1")?.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("trading_post_panel Sell raises SellRequested", sells == 1 && sellQty == 1);
+
+        bool lastOpen = true;
+        panel.Toggled += open => lastOpen = open;
+        panel.Visible = true;
+        panel.Close();
+        Check("trading_post_panel Close hides and raises Toggled(false)", !panel.Visible && lastOpen == false);
+
+        panel.QueueFree();
+        await Frames(1);
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /// <summary>Depth-first search for the first Button whose text equals <paramref name="text"/>.</summary>
+    private static Button? FindButton(Node root, string text)
+    {
+        if (root is Button b && b.Text == text)
+            return b;
+        foreach (Node c in root.GetChildren())
+            if (FindButton(c, text) is { } found)
+                return found;
+        return null;
+    }
+
+    /// <summary>Collect every Button whose text equals <paramref name="text"/> (row-per-recipe checks).</summary>
+    private static void CollectButtons(Node root, string text, List<Button> into)
+    {
+        if (root is Button b && b.Text == text)
+            into.Add(b);
+        foreach (Node c in root.GetChildren())
+            CollectButtons(c, text, into);
+    }
+
+    /// <summary>True when any Label under <paramref name="root"/> contains <paramref name="substr"/>.</summary>
+    private static bool HasLabelContaining(Node root, string substr)
+    {
+        if (root is Label l && l.Text.Contains(substr))
+            return true;
+        foreach (Node c in root.GetChildren())
+            if (HasLabelContaining(c, substr))
+                return true;
+        return false;
+    }
 
     private async Task<T?> Spawn<T>(string path) where T : Node
     {

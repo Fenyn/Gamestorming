@@ -130,7 +130,7 @@ public partial class SceneFlowSpike : SpikeBase
         Check("(2) travel spent exactly 30 game-minutes", gs.Clock.MinuteOfDay == minuteBefore + 30);
         Check("(2) party = full living roster (3 companions + the Veteran)",
             gs.Territory.SelectedCompanionIds.SequenceEqual(
-                new[] { SquadRoster.ScoutId, SquadRoster.MedicId, SquadRoster.ScholarId }));
+                new[] { SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId }));
 
         SceneRouter.Instance.GoToTerritory(ForestId);
         Check("(2) GoToTerritory → current scene is the forest",
@@ -167,7 +167,7 @@ public partial class SceneFlowSpike : SpikeBase
         Check("(3) combat team-1 roster = ALL living members (4, marching order)",
             pending.Setup.Party.Select(p => p.Unit.Id).SequenceEqual(new[]
             {
-                SquadRoster.VeteranId, SquadRoster.ScoutId, SquadRoster.MedicId, SquadRoster.ScholarId,
+                SquadRoster.PlayerId, SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId,
             }));
         var enemies = pending.Enemies;
         Check($"(3) enemies staged from gob_1's table ({enemies.Count}x)", enemies.Count == 2);
@@ -192,7 +192,7 @@ public partial class SceneFlowSpike : SpikeBase
             () => TurnManager.Instance?.CurrentTurn?.Character?.TeamId == 1, 30);
         Check("(4) session reached a party member's turn (idling on player input)", partyTurn);
 
-        var veteran = squad.FindMember(SquadRoster.VeteranId)!;
+        var veteran = squad.FindMember(SquadRoster.PlayerId)!;
         foreach (var enemy in enemies)
         {
             if (enemy.Health != null && !enemy.Health.IsDead)

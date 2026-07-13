@@ -110,7 +110,7 @@ public partial class DaySummaryPanel : CanvasLayer
 
     private void RenderHarvest(DaySummaryView view)
     {
-        bool any = view.ItemsGained.Count > 0 || view.CropsHarvested > 0;
+        bool any = view.ItemsGained.Count > 0 || view.CropsHarvested > 0 || view.GoldEarned > 0;
         _harvestSection.Visible = any;
         if (!any)
             return;
@@ -128,6 +128,10 @@ public partial class DaySummaryPanel : CanvasLayer
 
         if (view.CropsHarvested > 0)
             lines.Add($"Crops harvested: {view.CropsHarvested}");
+
+        // Gold sits below the item lines (reuses the harvest section — no new scene nodes).
+        if (view.GoldEarned > 0)
+            lines.Add($"Gold earned: {view.GoldEarned}");
 
         _harvestLabel.Text = string.Join("\n", lines);
     }

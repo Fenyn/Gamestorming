@@ -160,6 +160,8 @@ public partial class TileSetBuilder : Node
             new() { Key = "winter_walls",  Index = 6, Mode = TileSet.TerrainMode.Sides,           Name = "Buildings (winter)" },
             new() { Key = "a4_walls",      Index = 7, Mode = TileSet.TerrainMode.Sides,           Name = "Walls (A4)" },
             new() { Key = "a4_walltops",   Index = 8, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Wall tops (A4)" },
+            new() { Key = "walls_destroyed",     Index = 9,  Mode = TileSet.TerrainMode.Sides, Name = "Buildings destroyed (A3)" },
+            new() { Key = "walls_red_destroyed", Index = 10, Mode = TileSet.TerrainMode.Sides, Name = "Buildings destroyed (A3 red)" },
         },
         Plain = OutpostPlain(),
         Gen = new()
@@ -168,7 +170,7 @@ public partial class TileSetBuilder : Node
             // is now the pre-expanded source 204; base ground/water (set 0) and colorways (sets 1,2)
             // are pre-expanded sources 200-203 / 210-216 (see PreExp below).
             new() { AtlasKey = "wall_a3_red",         SourceId = 124, TerrainSetKey = "walls_red", Wall = WallColl.BottomHalf, RuinPair = 126 },
-            new() { AtlasKey = "wall_a3_red_destroyed", SourceId = 126, TerrainSetKey = "", RuinPair = 124 },
+            new() { AtlasKey = "wall_a3_red_destroyed", SourceId = 126, TerrainSetKey = "walls_red_destroyed", Wall = WallColl.BottomHalf, RuinPair = 124 },
             // Winter terrains (sets 5,6) — unchanged, still MZ-expanded from the winter pack.
             new() { AtlasKey = "ground_a2_snow", SourceId = 170, TerrainSetKey = "winter_ground" },
             new() { AtlasKey = "wall_a3_snow",   SourceId = 171, TerrainSetKey = "winter_walls", Wall = WallColl.BottomHalf },
@@ -240,6 +242,17 @@ public partial class TileSetBuilder : Node
                 Kind = PreKind.WallSide, SetKey = "walls", NamePrefix = "a3",
                 BlockOrigins = a3origins, Collides = mi => mi >= 16, RuinPair = 34 } },
         };
+        // Destroyed base A3 (768x1536): Winlu's Godot-native destroyed sheet, cell-for-cell with the
+        // pristine a3_walls (204) — verified 288/288 opaque cells. Identical PreExp spec (same block
+        // origins, same PreWallSideNeighbors peering, same roof/wall collision split) so the ruin_pair
+        // swap 204<->34 lands the same peering config at each atlas coordinate. -> set 9.
+        var a3d = new PreExpSrc
+        {
+            Id = 34, Res = D + "fantasy_outside_a3_destroyed.png",
+            Groups = new() { new PreGroup {
+                Kind = PreKind.WallSide, SetKey = "walls_destroyed", NamePrefix = "a3d",
+                BlockOrigins = a3origins, Collides = mi => mi >= 16, RuinPair = 204 } },
+        };
         // a4_walls: 24 materials, 8 block-rows x 3 materials. Each material = a wall-TOP 3x3 block at
         // tile_x = matcol*8 then a wall-FACE 3x3 block at tile_x = matcol*8+4 (tile_y = brow*4). Faces
         // -> set 7 (match-sides), tops -> set 8 (corners+sides). Full collision on all. Some lower-row
@@ -298,7 +311,7 @@ public partial class TileSetBuilder : Node
 
         // Order matters: within each terrain set the A2 ground group must be allocated before the A1
         // liquid group so Grass=0 / Dirt=1 hold for base (set 0) and colorways (sets 1,2).
-        return new() { a2, a2f, a2s, a1, a2g, a1g, a2r, a1r, a3, a4 };
+        return new() { a2, a2f, a2s, a1, a2g, a1g, a2r, a1r, a3, a3d, a4 };
     }
 
     private static List<PlainSrc> OutpostPlain() => new()
@@ -323,9 +336,8 @@ public partial class TileSetBuilder : Node
         new() { Id = 31, Res = D + "fantasy_outside_b_destroyed.png", Collision = Collide.OpaqueRightHalf, RuinPair = 11 },
         new() { Id = 32, Res = D + "fantasy_outside_c_destroyed.png", RuinPair = 12 },
         new() { Id = 33, Res = D + "fantasy_roofs_destroyed.png", RuinPair = 14 },
-        // Winlu's Godot pre-expanded destroyed A3 (768x1536) — verified cell-for-cell (0 footprint
-        // mismatch, 288 opaque cells each) with the pristine pre-expanded a3_walls (source 204).
-        new() { Id = 34, Res = D + "fantasy_outside_a3_destroyed.png", RuinPair = 204 },
+        // Source 34 (fantasy_outside_a3_destroyed) is now a PRE-EXPANDED terrain (set 9), paired
+        // cell-for-cell to the pristine a3_walls (source 204) — see OutpostPreExp().
         new() { Id = 35, Res = D + "signs_destroyed.png", RuinPair = 20 },
         new() { Id = 36, Res = D + "gate_wood1_destroyed.png", Collision = Collide.OpaqueAll, RuinPair = 21 },
         new() { Id = 37, Res = D + "big_decoration_destroyed.png" },

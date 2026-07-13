@@ -20,7 +20,7 @@ namespace Bulwark.Territory;
 ///  - Location: <see cref="CurrentTerritoryId"/> (null = at the outpost). Travel in either direction
 ///    costs <see cref="TravelMinutes"/> game-minutes (constant).
 ///  - Party selection: up to <see cref="MaxCompanions"/> living companions picked at the gate; the
-///    avatar (the Veteran) always goes. The selection persists for the visit and rides the save
+///    avatar (the player) always goes. The selection persists for the visit and rides the save
 ///    additively; on load the player is always back at the outpost (location is NOT persisted).
 ///  - Nodes: depleted on harvest; nodes whose definition has RespawnsDaily respawn when a new day
 ///    starts (DayClock.DayStarted), mirroring how FarmSystem hooks the overnight boundary.
@@ -34,7 +34,7 @@ public sealed class TerritorySystem
     /// <summary>Game-minutes one gate travel costs, each direction (documented constant).</summary>
     public const int TravelMinutes = 30;
 
-    /// <summary>Max companions the player may take through the gate (the Veteran is always along).</summary>
+    /// <summary>Max companions the player may take through the gate (the player is always along).</summary>
     public const int MaxCompanions = 3;
 
     /// <summary>Defeat penalty: each Resource-category stack loses count / 4 (integer floor).</summary>
@@ -79,7 +79,7 @@ public sealed class TerritorySystem
     /// <summary>The territory the player is in, or null at the outpost.</summary>
     public string? CurrentTerritoryId { get; private set; }
 
-    /// <summary>Companion member ids selected at the gate (the Veteran is implicit).</summary>
+    /// <summary>Companion member ids selected at the gate (the player is implicit).</summary>
     public IReadOnlyList<string> SelectedCompanionIds => _companions;
 
     /// <summary>Encounter built by <see cref="BeginEncounter"/>, consumed by the combat scene.</summary>
@@ -113,7 +113,7 @@ public sealed class TerritorySystem
         foreach (var member in _squad.Members)
         {
             bool dead = member.Health == null || member.Health.IsDead;
-            if (member.Id == SquadRoster.VeteranId)
+            if (member.Id == SquadRoster.PlayerId)
             {
                 view.LeaderName = member.Name;
                 continue;
@@ -133,7 +133,7 @@ public sealed class TerritorySystem
 
     /// <summary>
     /// Travel from the outpost to a territory with up to three living companions. Validates the
-    /// destination, the selection (count, duplicates, ids, alive, not the Veteran) and that the
+    /// destination, the selection (count, duplicates, ids, alive, not the player) and that the
     /// Veteran himself can march. Spends <see cref="TravelMinutes"/> and always completes — a
     /// march that crosses the 30:00 dawn rollover simply arrives in the new morning (the rollover
     /// relocates nobody).
@@ -145,7 +145,7 @@ public sealed class TerritorySystem
         if (_squad == null)
             return false;
 
-        var veteran = _squad.FindMember(SquadRoster.VeteranId);
+        var veteran = _squad.FindMember(SquadRoster.PlayerId);
         if (veteran?.Health == null || veteran.Health.IsDead)
             return false;
 
@@ -155,7 +155,7 @@ public sealed class TerritorySystem
             return false;
         foreach (var id in companionIds)
         {
-            if (id == SquadRoster.VeteranId)
+            if (id == SquadRoster.PlayerId)
                 return false; // the avatar is not a companion slot
             var member = _squad.FindMember(id);
             if (member?.Health == null || member.Health.IsDead)
@@ -172,12 +172,17 @@ public sealed class TerritorySystem
     }
 
     /// <summary>
-    /// Travel with EVERY living non-Veteran member as the companion selection — the gate's
-    /// all-hands default (no party-select step in the current game flow). Delegates to
-    /// <see cref="Travel"/>: same validation and the same 30-minute cost; the explicit ≤3
-    /// selection path stays fully intact for future capability-limited trips. With the fixed
-    /// squad of four, "everyone" is at most <see cref="MaxCompanions"/> companions, so no
-    /// validation rule needs suspending.
+    /// Travel with the gate's all-hands default party: the player plus up to
+    /// <see cref="MaxCompanions"/> living non-player ROSTER members (marching order), forming a
+    /// party of at most four. Delegates to <see cref="Travel"/> — same validation, same 30-minute
+    /// cost; the explicit selection path stays intact for future capability-limited trips.
+    ///
+    /// The roster is a POOL that grows past four via party-join (SquadRoster.InsertMember), but an
+    /// adventuring party is always ≤4: with the default four-member roster this takes all three
+    /// non-player companions (byte-identical to before); with a larger pool it caps at the first
+    /// <see cref="MaxCompanions"/> living companions rather than over-filling the party. Explicit
+    /// selection (<see cref="Travel"/> + <see cref="BuildPartySelectView"/>) is how the player picks
+    /// WHICH members go once the pool exceeds four.
     /// </summary>
     public bool TravelWithFullParty(string territoryId)
     {
@@ -187,7 +192,9 @@ public sealed class TerritorySystem
         var companions = new List<string>();
         foreach (var member in _squad.Members)
         {
-            if (member.Id == SquadRoster.VeteranId)
+            if (companions.Count >= MaxCompanions)
+                break; // an adventuring party is capped at Veteran + MaxCompanions, even with a larger roster
+            if (member.Id == SquadRoster.PlayerId)
                 continue;
             if (member.Health != null && !member.Health.IsDead)
                 companions.Add(member.Id);
@@ -260,7 +267,7 @@ public sealed class TerritorySystem
 
     /// <summary>
     /// Build the pending encounter for a roamer contact: roll its weighted table, resolve and
-    /// instantiate the creatures (team 2), and assemble the party from the LIVE squad — the Veteran
+    /// instantiate the creatures (team 2), and assemble the party from the LIVE squad — the player
     /// plus the gate-selected companions, living members only; everyone else sits out. Returns false
     /// (no state change) when out of territory, the roamer is unknown/already beaten today, the
     /// squad or creature content is unavailable, or an encounter is already pending.
@@ -472,7 +479,7 @@ public sealed class TerritorySystem
     private List<ICharacter> BuildParty()
     {
         var party = new List<ICharacter>();
-        var veteran = _squad!.FindMember(SquadRoster.VeteranId);
+        var veteran = _squad!.FindMember(SquadRoster.PlayerId);
         if (veteran?.Health != null && !veteran.Health.IsDead)
             party.Add(veteran);
 

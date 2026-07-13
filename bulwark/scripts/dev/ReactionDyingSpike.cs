@@ -59,8 +59,8 @@ public partial class ReactionDyingSpike : SpikeBase
     private async Task Check1_ShieldBlock(DataManager data)
     {
         GD.Print("-------------------- (1) Shield Block --------------------");
-        var raised = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
-        var control = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var raised = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
+        var control = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
 
         var (session, _) = StartSession(data,
@@ -104,7 +104,7 @@ public partial class ReactionDyingSpike : SpikeBase
     private async Task Check2_ReactiveStrike(DataManager data)
     {
         GD.Print("-------------------- (2) Reactive Strike --------------------");
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
 
         var (session, _) = StartSession(data,
@@ -146,7 +146,7 @@ public partial class ReactionDyingSpike : SpikeBase
     private async Task Check3_DyingNotDead(DataManager data)
     {
         GD.Print("-------------------- (3) Dying, not dead --------------------");
-        var down = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var down = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var ally = PresetCharacters.BuildRecruit(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
 

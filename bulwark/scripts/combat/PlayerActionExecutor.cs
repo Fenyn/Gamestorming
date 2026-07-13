@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bulwark.Data;
@@ -254,6 +255,33 @@ public sealed class PlayerActionExecutor
             Description = $"{character.Name} raises a shield"
         });
         return true;
+    }
+
+    // ================================================================ Consumables (Use Item)
+    //
+    // Per-fight consumables (potions/elixirs/antidotes) as a combat action. The bulwark ConsumableSystem
+    // owns the rules (engine UseConsumableAction: cost + manipulate + effect, consumed from the member's
+    // carry); this executor is the action-path seam. Delegates are injected by CombatSession so the
+    // executor stays decoupled from the GameState autoload (and unit-testable).
+
+    /// <summary>Injected combat consumable-use: (actor, itemId, target) → consumed?. Runs the engine
+    /// action (spends the action, manipulate-tagged) and consumes from the actor's carry. Null = feature off.</summary>
+    public Func<ICharacter, string, ICharacter?, Task<bool>>? UseConsumable { get; set; }
+
+    /// <summary>Injected query: the consumables the actor is carrying, as action-bar view-models. Null = none.</summary>
+    public Func<ICharacter, List<ConsumableOptionView>>? ConsumableOptions { get; set; }
+
+    /// <summary>Consumables this character is carrying and may use this turn (for the action bar).</summary>
+    public List<ConsumableOptionView> GetConsumableOptions(ICharacter character)
+        => ConsumableOptions?.Invoke(character) ?? new List<ConsumableOptionView>();
+
+    /// <summary>Use a carried consumable as this character's action (drink potion / elixir / antidote).
+    /// Delegates to the injected ConsumableSystem path; false if unwired, not carried, or the id is unknown.</summary>
+    public async Task<bool> ExecuteUseItem(ICharacter character, string itemId, ICharacter? target = null)
+    {
+        if (UseConsumable == null)
+            return false;
+        return await UseConsumable(character, itemId, target);
     }
 
     // ================================================================ Spells

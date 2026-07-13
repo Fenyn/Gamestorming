@@ -31,13 +31,13 @@ public partial class CombatTestScene : Node
         // Consume the live squad instances (built once per save); fall back to throwaway presets
         // when the squad is unavailable (standalone runs without a GameState-owned roster).
         var squad = GameState.Instance?.Squad;
-        ICharacter? veteran = squad?.FindMember(SquadRoster.VeteranId);
+        ICharacter? veteran = squad?.FindMember(SquadRoster.PlayerId);
         ICharacter? scout = squad?.FindMember(SquadRoster.ScoutId);
-        ICharacter? medic = squad?.FindMember(SquadRoster.MedicId);
+        ICharacter? medic = squad?.FindMember(SquadRoster.TharrId);
         ICharacter? scholar = squad?.FindMember(SquadRoster.ScholarId);
-        veteran ??= PresetCharacters.BuildVeteran(level: GameState.SquadStartLevel, teamId: 1);
+        veteran ??= PresetCharacters.BuildPlayer(level: GameState.SquadStartLevel, teamId: 1);
         scout ??= PresetCharacters.BuildScout(level: GameState.SquadStartLevel, teamId: 1);
-        medic ??= PresetCharacters.BuildMedic(level: GameState.SquadStartLevel, teamId: 1);
+        medic ??= PresetCharacters.BuildTharr(level: GameState.SquadStartLevel, teamId: 1);
         scholar ??= PresetCharacters.BuildScholar(level: GameState.SquadStartLevel, teamId: 1);
 
         var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior);

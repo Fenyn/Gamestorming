@@ -16,10 +16,15 @@ public static class SaveState
     public static SaveData Capture(
         DayClock clock, Inventory inventory, FarmSystem farm,
         SquadRoster? squad = null, TreatWoundsSystem? treatWounds = null,
-        TerritorySystem? territory = null)
+        TerritorySystem? territory = null, Wallet? wallet = null,
+        BuildingSystem? buildings = null,
+        StoryFlags? storyFlags = null, VillagerSystem? villagers = null,
+        MealSystem? meals = null,
+        string? playerName = null)
     {
         return new SaveData
         {
+            PlayerName = playerName,
             Clock = new ClockDto
             {
                 MinuteOfDay = clock.MinuteOfDay,
@@ -27,7 +32,9 @@ public static class SaveState
                 Season = clock.Season,
                 Year = clock.Year,
             },
-            Inventory = inventory.Stacks.ToDictionary(kv => kv.Key, kv => kv.Value),
+            MemberInventories = inventory.CaptureMemberInventories(),
+            Warehouse = inventory.CaptureWarehouse(),
+            Gold = wallet?.Gold ?? 0,
             Plots = farm.AllPlots.Select(p => new PlotDto
             {
                 X = p.Tile.X,
@@ -40,6 +47,10 @@ public static class SaveState
             Squad = squad?.CaptureMembers(),
             TreatWoundsImmunities = treatWounds?.CaptureImmunities(),
             Territory = territory?.CaptureState(),
+            Buildings = buildings?.Capture(),
+            StoryFlags = storyFlags?.Capture(),
+            ArrivedVillagers = villagers?.Capture(),
+            ActiveMeal = meals?.Capture(),
         };
     }
 
@@ -47,11 +58,22 @@ public static class SaveState
     public static void Restore(
         SaveData data, DayClock clock, Inventory inventory, FarmSystem farm,
         SquadRoster? squad = null, TreatWoundsSystem? treatWounds = null,
-        TerritorySystem? territory = null)
+        TerritorySystem? territory = null, Wallet? wallet = null,
+        BuildingSystem? buildings = null,
+        StoryFlags? storyFlags = null, VillagerSystem? villagers = null,
+        MealSystem? meals = null)
     {
         clock.RestoreState(data.Clock.MinuteOfDay, data.Clock.Day, data.Clock.Season, data.Clock.Year);
 
-        inventory.LoadFrom(data.Inventory);
+        // v3+ persists per-member carry + warehouse; pre-v3 saves carry only the flat pool, which
+        // is distributed across members (bound) or dropped into the warehouse (unbound) on migration.
+        if (data.MemberInventories != null || data.Warehouse != null)
+            inventory.LoadState(data.MemberInventories, data.Warehouse);
+        else
+            inventory.LoadFrom(data.Inventory);
+
+        // Additive field: 0 in pre-economy saves — restore sets the balance to 0 cleanly.
+        wallet?.LoadFrom(data.Gold);
 
         farm.LoadPlots(data.Plots.Select(p => new Plot
         {
@@ -64,12 +86,24 @@ public static class SaveState
 
         // v1 saves carry no squad section — the freshly built presets stand as-is.
         if (squad != null && data.Squad != null)
-            squad.RestoreMembers(data.Squad);
+            squad.RestoreMembers(data.Squad, data.PlayerName);
 
         // Additive field: null in pre-Treat-Wounds saves — restore clears to "no one immune".
         treatWounds?.RestoreImmunities(data.TreatWoundsImmunities);
 
         // Additive field: null in pre-M3 saves — restore clears to fresh territory state.
         territory?.RestoreState(data.Territory);
+
+        // Additive field: null in pre-v4 saves — restore resets buildings to not-commissioned.
+        buildings?.Restore(data.Buildings);
+
+        // Additive fields: null in pre-v5 saves — restore clears flags and arrivals. GameState
+        // re-runs villager EvaluateArrivals after this so any now-satisfied trigger catches up.
+        storyFlags?.Restore(data.StoryFlags);
+        villagers?.Restore(data.ArrivedVillagers);
+
+        // Additive field: null in pre-v6 saves / no active meal — restore clears the buff. Re-applies
+        // to the roster's live instances (rebuilt fresh by RestoreMembers above), so the buff is live.
+        meals?.Restore(data.ActiveMeal);
     }
 }

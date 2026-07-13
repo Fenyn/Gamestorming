@@ -27,6 +27,9 @@ public sealed class DayLedger
     /// <summary>Encounter XP banked per member today (each member receives the same award).</summary>
     public int XpAwarded { get; private set; }
 
+    /// <summary>Gold earned today (loot coin + item sales), summed at the EarnGold choke point.</summary>
+    public int GoldEarned { get; private set; }
+
     public int EncountersWon { get; private set; }
     public int EncountersLost { get; private set; }
 
@@ -51,6 +54,12 @@ public sealed class DayLedger
             XpAwarded += amount;
     }
 
+    public void RecordGoldEarned(int amount)
+    {
+        if (amount > 0)
+            GoldEarned += amount;
+    }
+
     public void RecordEncounter(bool victory)
     {
         if (victory) EncountersWon++;
@@ -67,6 +76,7 @@ public sealed class DayLedger
         _itemsGained.Clear();
         CropsHarvested = 0;
         XpAwarded = 0;
+        GoldEarned = 0;
         EncountersWon = 0;
         EncountersLost = 0;
         TreatWoundsUses = 0;
@@ -91,6 +101,7 @@ public sealed class DayLedger
             ItemsGained = new Dictionary<string, int>(_itemsGained),
             CropsHarvested = CropsHarvested,
             XpAwarded = XpAwarded,
+            GoldEarned = GoldEarned,
             EncountersWon = EncountersWon,
             EncountersLost = EncountersLost,
             TreatWoundsUses = TreatWoundsUses,

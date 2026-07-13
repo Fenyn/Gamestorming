@@ -12,6 +12,12 @@ public sealed class CreatureRef
     public required string DisplayName { get; init; }
     public required string Pack { get; init; }
     public required string Slug { get; init; }
+
+    /// <summary>
+    /// Optional loot table this creature rolls when defeated (see <see cref="DropTables"/>). Null =
+    /// no drops. Rolled once per defeated instance on victory (see LootRoller). Data-only per CLAUDE.md.
+    /// </summary>
+    public string? DropTableId { get; init; }
 }
 
 /// <summary>One creature line of an encounter: which creature, how many.</summary>
@@ -49,10 +55,12 @@ public static class EncounterTables
     public static readonly CreatureRef GoblinWarrior = new()
     {
         DisplayName = "Goblin Warrior", Pack = "pathfinder-monster-core", Slug = "goblin-warrior",
+        DropTableId = "goblin_drops",
     };
     public static readonly CreatureRef GiantRat = new()
     {
         DisplayName = "Giant Rat", Pack = "pathfinder-monster-core", Slug = "giant-rat",
+        DropTableId = "rat_drops",
     };
 
     // --- T1 forest encounters ---

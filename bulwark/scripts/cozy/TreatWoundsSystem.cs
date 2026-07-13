@@ -43,16 +43,25 @@ public sealed class TreatWoundsSystem
     private readonly SquadRoster _squad;
     private readonly DayClock _clock;
 
+    /// <summary>
+    /// Phase-4 Infirmary seam: an ADDITIVE healing bonus (0-default) read from the building-effect
+    /// aggregator (<see cref="OutpostEffects.InfirmaryHealingBonus"/>). Injected as a provider so the
+    /// system stays pure and the bonus is always the current aggregated value. Null → baseline 0, so
+    /// with no infirmary the heal is byte-identical to today.
+    /// </summary>
+    private readonly Func<int> _healingBonus;
+
     /// <summary>Per-target immunity expiry, in absolute game minutes.</summary>
     private readonly Dictionary<string, long> _immunityExpiry = new();
 
     /// <summary>Raised after a Treat Wounds command resolves (GameState re-exposes it to UI).</summary>
     public event Action<TreatWoundsResultView>? Resolved;
 
-    public TreatWoundsSystem(SquadRoster squad, DayClock clock)
+    public TreatWoundsSystem(SquadRoster squad, DayClock clock, Func<int>? healingBonus = null)
     {
         _squad = squad;
         _clock = clock;
+        _healingBonus = healingBonus ?? (static () => 0);
     }
 
     // ===================== Command =====================
@@ -85,7 +94,13 @@ public sealed class TreatWoundsSystem
         int bonus = SkillCalculator.CalculateSkillBonus(healer, Skill.Medicine);
         var result = TreatWoundsResolver.Resolve(bonus, dc, healer);
 
-        _squad.ApplyTreatWoundsResult(targetId, result.HealingOrDamage, result.RemovedWounded);
+        // Phase-4 Infirmary bonus: additive, and only on a HEAL (positive) — crit-failure damage is
+        // untouched. Baseline (no infirmary) adds 0, so the applied amount is byte-identical.
+        int applied = result.HealingOrDamage;
+        if (applied > 0)
+            applied += Math.Max(0, _healingBonus());
+
+        _squad.ApplyTreatWoundsResult(targetId, applied, result.RemovedWounded);
         _immunityExpiry[targetId] = expiresAt;
 
         Resolved?.Invoke(new TreatWoundsResultView
@@ -96,7 +111,7 @@ public sealed class TreatWoundsSystem
             D20Roll = result.D20Roll,
             Total = result.Total,
             DegreeText = DegreeText(result.Degree),
-            HealingOrDamage = result.HealingOrDamage,
+            HealingOrDamage = applied,
             HealingFormula = result.HealingFormula ?? "",
             RemovedWounded = result.RemovedWounded,
             MinutesSpent = TreatMinutes,

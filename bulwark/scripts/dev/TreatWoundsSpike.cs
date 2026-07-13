@@ -80,9 +80,9 @@ public partial class TreatWoundsSpike : SpikeBase
         if (squad == null)
             return;
 
-        var vet = squad.FindMember(SquadRoster.VeteranId)!;
+        var vet = squad.FindMember(SquadRoster.PlayerId)!;
         var scout = squad.FindMember(SquadRoster.ScoutId)!;
-        var medic = squad.FindMember(SquadRoster.MedicId)!;
+        var medic = squad.FindMember(SquadRoster.TharrId)!;
         var scholar = squad.FindMember(SquadRoster.ScholarId)!;
 
         int schBonus = SkillCalculator.CalculateSkillBonus(scholar, Skill.Medicine);
@@ -96,7 +96,7 @@ public partial class TreatWoundsSpike : SpikeBase
             return;
 
         var scholarView = view.Members.First(m => m.Id == SquadRoster.ScholarId);
-        var medicView = view.Members.First(m => m.Id == SquadRoster.MedicId);
+        var medicView = view.Members.First(m => m.Id == SquadRoster.TharrId);
         Check("(1) Scholar (Medicine Expert) offers DC 15 + 20",
             scholarView.DcOptions.Select(o => o.Dc).SequenceEqual(new[] { 15, 20 }));
         Check("(1) Medic (Trained) offers DC 15 only — cannot attempt DC 20+",
@@ -129,7 +129,7 @@ public partial class TreatWoundsSpike : SpikeBase
 
         long before = TreatWoundsSystem.AbsoluteMinute(gs1.Clock);
         _lastResult = null;
-        bool ok = gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.VeteranId, 20);
+        bool ok = gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.PlayerId, 20);
         long after = TreatWoundsSystem.AbsoluteMinute(gs1.Clock);
 
         Check("(2) command accepted", ok);
@@ -143,24 +143,24 @@ public partial class TreatWoundsSpike : SpikeBase
         // ── (3) Immunity: immediate re-treat blocked; 60 min from treatment START ──
         GD.Print("-------------------- (3) Immunity window --------------------");
         Check("(3) immediate second treatment is rejected",
-            !gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.VeteranId, 15));
+            !gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.PlayerId, 15));
         Check("(3) rejection spent no time",
             TreatWoundsSystem.AbsoluteMinute(gs1.Clock) == after);
 
-        var vetView = gs1.GetSquadPanelView()!.Members.First(m => m.Id == SquadRoster.VeteranId);
+        var vetView = gs1.GetSquadPanelView()!.Members.First(m => m.Id == SquadRoster.PlayerId);
         Check("(3) 50 minutes of immunity left after the 10-minute treatment (RAW overlap)",
             vetView.ImmunityMinutesRemaining == 50 && !vetView.CanBeTreated);
 
         gs1.Clock.SpendTime(49); // 59 minutes since treatment start
         Check("(3) still immune 1 minute before the hour",
-            !gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.VeteranId, 15));
+            !gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.PlayerId, 15));
 
         gs1.Clock.SpendTime(1); // exactly 60 minutes since treatment start
         int vetHp = vet.Health.CurrentHP;
         DiceRoller.EnqueueD20(15 - schBonus);
         DiceRoller.EnqueueDie(1, 1); // 2d8 → 2
         Check("(3) treatable again exactly on the hour boundary",
-            gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.VeteranId, 15));
+            gs1.TreatWounds(SquadRoster.ScholarId, SquadRoster.PlayerId, 15));
         Check("(3) post-expiry treatment healed 2 HP (2d8, no tier bonus at DC 15)",
             vet.Health.CurrentHP == vetHp + 2);
 
@@ -170,7 +170,7 @@ public partial class TreatWoundsSpike : SpikeBase
         scholar.Health.SetCurrentHP(schMax - 10);
         long tGate = TreatWoundsSystem.AbsoluteMinute(gs1.Clock);
         Check("(4) Trained Medic cannot attempt DC 20 (gated, no time spent)",
-            !gs1.TreatWounds(SquadRoster.MedicId, SquadRoster.ScholarId, 20)
+            !gs1.TreatWounds(SquadRoster.TharrId, SquadRoster.ScholarId, 20)
             && TreatWoundsSystem.AbsoluteMinute(gs1.Clock) == tGate);
 
         // Wounded at full HP is still "injured" per the target gate; success removes Wounded.
@@ -184,7 +184,7 @@ public partial class TreatWoundsSpike : SpikeBase
         DiceRoller.EnqueueD20(medRoll);
         DiceRoller.EnqueueDie(1, 1);
         Check("(4) Medic treats the Wounded scout at DC 15",
-            gs1.TreatWounds(SquadRoster.MedicId, SquadRoster.ScoutId, 15));
+            gs1.TreatWounds(SquadRoster.TharrId, SquadRoster.ScoutId, 15));
         Check("(4) success removed Wounded (HP already at max, heal clamps)",
             !scout.Conditions.HasCondition(Condition.Wounded)
             && scout.Health!.CurrentHP == scout.Health.MaxHP);
@@ -196,7 +196,7 @@ public partial class TreatWoundsSpike : SpikeBase
         DiceRoller.EnqueueDie(5); // 1d8 damage
         _lastResult = null;
         Check("(4) crit-fail treatment still executes",
-            gs1.TreatWounds(SquadRoster.MedicId, SquadRoster.ScholarId, 15));
+            gs1.TreatWounds(SquadRoster.TharrId, SquadRoster.ScholarId, 15));
         Check("(4) critical failure dealt 5 damage (1d8)",
             scholar.Health.CurrentHP == schHp - 5
             && _lastResult != null && _lastResult.DegreeText == "Critical Failure"

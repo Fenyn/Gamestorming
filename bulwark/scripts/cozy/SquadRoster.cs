@@ -7,6 +7,8 @@ using PF2e.CharacterComponents;
 using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
+using PF2e.Equipment;
+using PF2e.Import;
 using PF2e.Utilities;
 
 namespace Bulwark.Cozy;
@@ -34,9 +36,9 @@ namespace Bulwark.Cozy;
 public sealed class SquadRoster
 {
     // Aliases of the preset ids (PresetCharacters owns the strings) so existing call sites compile.
-    public const string VeteranId = PresetCharacters.VeteranId;
+    public const string PlayerId = PresetCharacters.PlayerId;
     public const string ScoutId = PresetCharacters.ScoutId;
-    public const string MedicId = PresetCharacters.MedicId;
+    public const string TharrId = PresetCharacters.TharrId;
     public const string ScholarId = PresetCharacters.ScholarId;
 
     /// <summary>PF2e standard progression: 1000 XP banks a level (applied by the sleep command
@@ -57,13 +59,13 @@ public sealed class SquadRoster
     /// </summary>
     private static readonly Condition[] PersistAcrossEncounters = AttritionConditions.LongTerm;
 
-    private static readonly string[] MemberOrder = { VeteranId, ScoutId, MedicId, ScholarId };
+    private static readonly string[] MemberOrder = { PlayerId, ScoutId, TharrId, ScholarId };
 
     private static readonly Dictionary<string, Func<int, PF2eCharacter>> Builders = new()
     {
-        [VeteranId] = lvl => PresetCharacters.BuildVeteran(lvl),
+        [PlayerId] = lvl => PresetCharacters.BuildPlayer(lvl),
         [ScoutId] = lvl => PresetCharacters.BuildScout(lvl),
-        [MedicId] = lvl => PresetCharacters.BuildMedic(lvl),
+        [TharrId] = lvl => PresetCharacters.BuildTharr(lvl),
         [ScholarId] = lvl => PresetCharacters.BuildScholar(lvl),
     };
 
@@ -71,18 +73,38 @@ public sealed class SquadRoster
     // through LevelUpApplicator (same source the preset builders replay from).
     private static readonly Dictionary<string, VariantComboDefinition> Combos = new()
     {
-        [VeteranId] = PresetCombos.FighterSentinel,
+        [PlayerId] = PresetCombos.FighterSentinel,
         [ScoutId] = PresetCombos.RogueThief,
-        [MedicId] = PresetCombos.ClericWarpriest,
+        [TharrId] = PresetCombos.ClericWarpriest,
         [ScholarId] = PresetCombos.WizardBattleMagic,
     };
 
     private readonly List<PF2eCharacter> _members = new();
     private readonly Dictionary<string, int> _xp = new();
 
+    // Smithy purchases: member id → the bought weapon's pack slug. The preset weapons are
+    // deterministic (rebuilt on load), so only a bought REPLACEMENT needs persisting; fundamental
+    // runes are captured from the live weapon instance directly. Empty for an untouched squad.
+    private readonly Dictionary<string, string> _purchasedWeaponSlug = new();
+
     // Each prepared caster's daily loadout, captured at build time (LeveledSpells starts full).
     // RestFully re-prepares from this list — PF2e daily preparations.
     private readonly Dictionary<string, List<SpellAction>> _dailyPreparations = new();
+
+    // Roster GROWTH (Phase 3 party-join): additional members inserted BEYOND the fixed four. Keyed
+    // by the added member's own character id → the spec needed to rebuild it (PartyPresets key +
+    // its builder + combo). Empty for the default squad, so the fixed-four path is byte-identical;
+    // growth is purely additive (appended after the four). The key persists in the save so restore
+    // rebuilds the grown member via PartyPresets and re-applies its live-state delta.
+    private readonly Dictionary<string, GrownMemberSpec> _grown = new();
+
+    /// <summary>Rebuild recipe for one grown (party-joined) member.</summary>
+    private sealed class GrownMemberSpec
+    {
+        public required string PresetKey { get; init; }
+        public required Func<int, PF2eCharacter> Builder { get; init; }
+        public required VariantComboDefinition Combo { get; init; }
+    }
 
     /// <summary>Raised after any squad-state mutation (encounter completion, rest, restore).</summary>
     public event Action? Changed;
@@ -92,15 +114,25 @@ public sealed class SquadRoster
     /// <summary>Party level for XP budgeting (presets are built uniformly at this level).</summary>
     public int Level { get; private set; }
 
-    private SquadRoster(int level)
+    private string? _playerName;
+
+    private SquadRoster(int level, string? playerName = null)
     {
         Level = Math.Max(1, level);
+        _playerName = playerName;
         foreach (var id in MemberOrder)
-            AddMember(Builders[id](Level));
+            AddMember(BuildMember(id, Level));
     }
 
     /// <summary>Build the four live preset PCs once for a new save.</summary>
-    public static SquadRoster BuildNew(int level) => new(level);
+    public static SquadRoster BuildNew(int level, string? playerName = null) => new(level, playerName);
+
+    private PF2eCharacter BuildMember(string id, int level)
+    {
+        if (id == PlayerId)
+            return PresetCharacters.BuildPlayer(level, _playerName);
+        return Builders[id](level);
+    }
 
     public PF2eCharacter? FindMember(string memberId) => _members.Find(m => m.Id == memberId);
 
@@ -116,6 +148,146 @@ public sealed class SquadRoster
             return;
         _xp[memberId] = GetXp(memberId) + amount;
         Changed?.Invoke();
+    }
+
+    // ===================== Roster growth (Phase 3 party-join) =====================
+
+    /// <summary>
+    /// Grow the roster POOL by one member, built from a registered (builder, combo) party preset —
+    /// the roster-join seam (validated by <see cref="RosterJoin"/> / GameState.JoinRoster). This
+    /// enlarges the POOL of available characters, NOT a live combat party: the adventuring party is
+    /// always a selection of ≤4 from the pool (TerritorySystem.BuildPartySelectView / Travel), so a
+    /// pool of five never puts a fifth body into an encounter. The fixed four are untouched: the new
+    /// member is APPENDED after them and shares the identical member lifecycle across the whole pool
+    /// (encounter cleanup, rest, fatigue, capture, and — via <see cref="ComboFor"/> — banked
+    /// level-ups). Keyed by the built character's own <see cref="ICharacter.Id"/>; a duplicate id is
+    /// rejected (idempotent). The <paramref name="presetKey"/> is retained so a save round-trip
+    /// rebuilds the member via PartyPresets and re-applies its live-state delta. Returns the new
+    /// member, or null when the inputs are invalid or the member is already present. Raises
+    /// <see cref="Changed"/> on success.
+    /// </summary>
+    public PF2eCharacter? InsertMember(string presetKey, Func<int, PF2eCharacter> builder, VariantComboDefinition combo, int level)
+    {
+        if (string.IsNullOrEmpty(presetKey) || builder == null || combo == null)
+            return null;
+
+        var member = builder(Math.Max(1, level));
+        if (member == null || FindMember(member.Id) != null)
+            return null;
+
+        AddMember(member);
+        _grown[member.Id] = new GrownMemberSpec { PresetKey = presetKey, Builder = builder, Combo = combo };
+        Changed?.Invoke();
+        return member;
+    }
+
+    /// <summary>The level-up combo for a member: a grown member's registered combo, else the fixed-four map.</summary>
+    private VariantComboDefinition ComboFor(string memberId)
+        => _grown.TryGetValue(memberId, out var g) ? g.Combo : Combos[memberId];
+
+    // ===================== Smithy (gold-sink: fundamental runes + weapon shop) =====================
+
+    /// <summary>
+    /// The member's live main-hand weapon instance — the exact object combat reads
+    /// (EquipmentHolder.GetActiveWeapon → DamageCalculator/AttackResolver). Null when the member is
+    /// unknown or wields nothing (unarmed). Rune mutations here flow straight into strike math.
+    /// </summary>
+    private WeaponInstance? MainWeapon(string memberId) => FindMember(memberId)?.Equipment?.MainHandWeapon;
+
+    /// <summary>
+    /// True when <paramref name="kind"/> can still be applied to the member's main-hand weapon
+    /// (member exists, holds a weapon, and the rune isn't already maxed). The command layer calls
+    /// this BEFORE spending gold so an inapplicable rune costs nothing.
+    /// </summary>
+    public bool CanApplyRune(string memberId, RuneKind kind)
+    {
+        var w = MainWeapon(memberId);
+        if (w == null)
+            return false;
+        return kind switch
+        {
+            RuneKind.Potency => w.PotencyBonus < RunePrices.MaxPotency,
+            RuneKind.Striking => w.Striking < StrikingRuneLevel.Striking,
+            _ => false,
+        };
+    }
+
+    /// <summary>
+    /// Apply a fundamental rune to the member's LIVE main-hand weapon instance in place — potency
+    /// bumps to-hit (+1/step), striking adds a weapon damage die. In-place mutation is the cleanest
+    /// path: the instance IS what combat reads, and nothing re-syncs hands mid-play, so no re-equip
+    /// is needed. Rejects (no mutation) when <see cref="CanApplyRune"/> is false. Gold is the
+    /// command layer's concern; this only mutates the weapon. Raises <see cref="Changed"/>.
+    /// </summary>
+    public bool ApplyWeaponRune(string memberId, RuneKind kind)
+    {
+        var w = MainWeapon(memberId);
+        if (w == null)
+            return false;
+
+        switch (kind)
+        {
+            case RuneKind.Potency:
+                if (w.PotencyBonus >= RunePrices.MaxPotency)
+                    return false;
+                w.PotencyBonus++;
+                break;
+            case RuneKind.Striking:
+                if (w.Striking >= StrikingRuneLevel.Striking)
+                    return false;
+                w.Striking = StrikingRuneLevel.Striking;
+                break;
+            default:
+                return false;
+        }
+
+        Changed?.Invoke();
+        return true;
+    }
+
+    /// <summary>
+    /// Equip a freshly bought weapon to the member's main hand, built from the engine
+    /// <paramref name="weaponDef"/> (a real pack weapon). Uses EquipmentHolder.DrawMainHand, which
+    /// creates the instance and occupies both hands for two-handers — preserving the member's other
+    /// live state (HP, conditions, spell slots). The new weapon carries no runes (a blank blade);
+    /// the bought slug is recorded so the purchase round-trips a save/load. Raises
+    /// <see cref="Changed"/>. False when the member is unknown or has no equipment holder.
+    /// </summary>
+    public bool BuyWeapon(string memberId, WeaponDefinition weaponDef, string weaponSlug)
+    {
+        var member = FindMember(memberId);
+        if (member?.Equipment == null || weaponDef == null)
+            return false;
+
+        if (!ReequipMainHand(member, weaponDef))
+            return false;
+
+        _purchasedWeaponSlug[memberId] = weaponSlug;
+        Changed?.Invoke();
+        return true;
+    }
+
+    /// <summary>
+    /// Swap the member's main-hand weapon to <paramref name="def"/>, freeing whatever the hands hold
+    /// first so even a two-hander fits (the preset weapon may already occupy both hands via a
+    /// two-hand grip, and a held shield must yield the off hand). Shared by the live buy and the
+    /// save-restore replay. Returns EquipmentHolder.DrawMainHand's success.
+    /// </summary>
+    private static bool ReequipMainHand(PF2eCharacter member, WeaponDefinition def)
+    {
+        var equip = member.Equipment!;
+
+        // FreeMainHand also releases a two-hand-grip off slot; that clears the common preset case.
+        equip.Appendages?.FreeMainHand();
+
+        if (def.Hands == HandRequirement.TwoHands)
+        {
+            if (equip.HasShieldEquipped && equip.IsShieldInHand)
+                equip.StowShield(member);
+            equip.Appendages?.FreeOffHand();
+        }
+
+        return equip.DrawMainHand(def);
     }
 
     // ===================== Level-up application (sleep command) =====================
@@ -146,7 +318,7 @@ public sealed class SquadRoster
 
             int from = m.Stats?.Level ?? Level;
             int level = from;
-            var combo = Combos[m.Id];
+            var combo = ComboFor(m.Id);
 
             while (GetXp(m.Id) >= XpPerLevel && level < MaxAppliedLevel)
             {
@@ -389,6 +561,7 @@ public sealed class SquadRoster
         var result = new List<SquadMemberDto>(_members.Count);
         foreach (var m in _members)
         {
+            var weapon = m.Equipment?.MainHandWeapon;
             var dto = new SquadMemberDto
             {
                 Id = m.Id,
@@ -403,6 +576,15 @@ public sealed class SquadRoster
                 Conditions = CaptureConditions(m),
                 SpellRanks = CaptureSpellRanks(m),
                 FontSlotsRemaining = m.Spellcasting?.DivineFont?.CurrentSlots ?? -1,
+                // Smithy state: the bought weapon slug (null = preset weapon) plus the live
+                // fundamental-rune levels on the main-hand instance. StrikingRuneLevel.None is 1;
+                // 0 means "absent" in older saves (restore skips it).
+                WeaponSlug = _purchasedWeaponSlug.TryGetValue(m.Id, out var slug) ? slug : null,
+                WeaponPotency = weapon?.PotencyBonus ?? 0,
+                WeaponStriking = weapon != null ? (int)weapon.Striking : 0,
+                // Party-join: a grown member carries its PartyPresets key so restore rebuilds it;
+                // null for the fixed four (the default-squad snapshot is byte-identical).
+                PresetKey = _grown.TryGetValue(m.Id, out var grown) ? grown.PresetKey : null,
             };
             result.Add(dto);
         }
@@ -413,11 +595,14 @@ public sealed class SquadRoster
     /// Rebuild the presets (deterministic) and re-apply a snapshot. Round-trip is exact for
     /// everything <see cref="CaptureMembers"/> captures.
     /// </summary>
-    public void RestoreMembers(List<SquadMemberDto> snapshot)
+    public void RestoreMembers(List<SquadMemberDto> snapshot, string? playerName = null)
     {
         _members.Clear();
         _xp.Clear();
         _dailyPreparations.Clear();
+        _purchasedWeaponSlug.Clear();
+        _grown.Clear();
+        _playerName = playerName;
 
         foreach (var id in MemberOrder)
         {
@@ -426,10 +611,29 @@ public sealed class SquadRoster
             // per-member Level field carry the 0 default and fall back to the roster's build
             // level (GameState's SquadStartLevel). Live state overlays below via ApplyDelta.
             int level = dto != null && dto.Level >= 1 ? dto.Level : Level;
-            var member = Builders[id](level);
+            var member = BuildMember(id, level);
             AddMember(member);
             if (dto != null)
                 ApplyDelta(member, dto);
+        }
+
+        // Grown (party-joined) members: rebuild each from its PartyPresets key, appended after the
+        // four. Skipped cleanly when the preset isn't registered (no content shipped) — the default
+        // squad simply stays at four. A grown member's PresetKey identifies it; the fixed four never
+        // carry one, so the MemberOrder guard is belt-and-suspenders.
+        foreach (var dto in snapshot)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.PresetKey) || Array.IndexOf(MemberOrder, dto.Id) >= 0)
+                continue;
+            if (!PartyPresets.TryGet(dto.PresetKey!, out var spec))
+                continue;
+            int level = dto.Level >= 1 ? dto.Level : Level;
+            var member = spec.Builder(level);
+            if (member == null || FindMember(member.Id) != null)
+                continue;
+            AddMember(member);
+            _grown[member.Id] = new GrownMemberSpec { PresetKey = dto.PresetKey!, Builder = spec.Builder, Combo = spec.Combo };
+            ApplyDelta(member, dto);
         }
 
         Level = _members[0].Stats?.Level ?? Level;
@@ -481,12 +685,38 @@ public sealed class SquadRoster
         if (dto.ShieldHp >= 0)
             member.Equipment?.Shield?.SetCurrentShieldHP(dto.ShieldHp);
 
+        RestoreWeapon(member, dto);
+
         RestoreSpellRanks(member, dto.SpellRanks, dto.FocusPoints);
 
         // Divine font usage (additive v2 field; -1 = absent/no font → keep the rebuilt pool).
         var font = member.Spellcasting?.DivineFont;
         if (font != null && dto.FontSlotsRemaining >= 0)
             font.RestoreState(dto.FontSlotsRemaining, font.FontRank);
+    }
+
+    /// <summary>
+    /// Re-apply persisted smithy state after the preset rebuilt with its default weapon: re-equip a
+    /// bought weapon (from its pack slug), then stamp the fundamental-rune levels onto the resulting
+    /// main-hand instance. Older saves carry null slug / 0 rune levels and leave the preset weapon
+    /// untouched. StrikingRuneLevel.None == 1, so a stored value ≥ 2 is a real striking rune.
+    /// </summary>
+    private void RestoreWeapon(PF2eCharacter member, SquadMemberDto dto)
+    {
+        if (!string.IsNullOrEmpty(dto.WeaponSlug) && member.Equipment != null)
+        {
+            var def = GameDataLoader.FindEquipment(dto.WeaponSlug)?.ToWeaponDefinition();
+            if (def != null && ReequipMainHand(member, def))
+                _purchasedWeaponSlug[member.Id] = dto.WeaponSlug!;
+        }
+
+        var weapon = member.Equipment?.MainHandWeapon;
+        if (weapon == null)
+            return;
+        if (dto.WeaponPotency > 0)
+            weapon.PotencyBonus = dto.WeaponPotency;
+        if (dto.WeaponStriking >= (int)StrikingRuneLevel.Striking)
+            weapon.Striking = (StrikingRuneLevel)dto.WeaponStriking;
     }
 
     private List<SquadConditionDto> CaptureConditions(PF2eCharacter member)

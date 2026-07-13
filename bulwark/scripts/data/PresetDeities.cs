@@ -53,7 +53,7 @@ public static class PresetDeities
         AllowedSanctification = SanctificationType.Holy,
 
         // Scimitar (martial sword) — resolved from the pack so the equipped weapon and the
-        // favored weapon are the same definition instance (see BuildMedic).
+        // favored weapon are the same definition instance (see BuildTharr).
         FavoredWeapon = GameDataLoader.FindEquipment("scimitar")?.ToWeaponDefinition(),
 
         DivineSkill = Skill.Medicine,

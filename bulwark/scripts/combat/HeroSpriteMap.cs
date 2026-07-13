@@ -18,11 +18,11 @@ public static class HeroSpriteMap
 
     private static readonly Dictionary<string, string> ByCharacterId = new()
     {
-        [PresetCharacters.VeteranId] = Root + "veteran",
+        [PresetCharacters.PlayerId] = Root + "veteran",
         [PresetCharacters.RecruitId] = Root + "recruit",
-        [PresetCharacters.MedicId] = Root + "cleric",    // future preset (Field Medic)
-        [PresetCharacters.ScholarId] = Root + "wizard",  // future preset (Battle Scholar)
-        [PresetCharacters.ScoutId] = Root + "rogue",     // future preset (Scout)
+        [PresetCharacters.TharrId] = Root + "cleric",
+        [PresetCharacters.ScholarId] = Root + "wizard",
+        [PresetCharacters.ScoutId] = Root + "rogue",
     };
 
     /// <summary>Resolve the sprite folder for a hero id, falling back to the default.</summary>

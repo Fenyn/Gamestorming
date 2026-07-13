@@ -382,7 +382,7 @@ public partial class CozySpike : SpikeBase
             int encounterXp = squad.GetXp(SquadRoster.ScoutId) - scoutXpBefore;
             Check($"victory banked encounter XP ({encounterXp})", encounterXp > 0);
 
-            squad.AddXp(SquadRoster.VeteranId, SquadRoster.XpPerLevel); // guarantee a level-up tonight
+            squad.AddXp(SquadRoster.PlayerId, SquadRoster.XpPerLevel); // guarantee a level-up tonight
 
             string date2 = gs.Clock.DateString();
             gs.Sleep();
@@ -400,7 +400,7 @@ public partial class CozySpike : SpikeBase
             Check($"encounter XP counted ({s2.XpAwarded})", s2.XpAwarded == encounterXp);
             Check("won encounter counted", s2.EncountersWon == 1 && s2.EncountersLost == 0);
             Check("sleep summary includes the applied level-up (Veteran)",
-                s2.LevelUps.Any(v => v.MemberId == SquadRoster.VeteranId && v.ToLevel == 3));
+                s2.LevelUps.Any(v => v.MemberId == SquadRoster.PlayerId && v.ToLevel == 3));
             Check("a slept day is not an all-nighter",
                 !s2.AllNighter && s2.FatigueNotice == null);
             Check($"day-2 summary dated the ended day ({s2.Date})", s2.Date == date2);

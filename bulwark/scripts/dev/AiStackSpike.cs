@@ -72,7 +72,7 @@ public partial class AiStackSpike : SpikeBase
         var simulator = new AIBattleSimulator(_grid, runner);
 
         // Team 1: two AI-driven PCs (weapon fallback path).
-        var veteran = PresetCharacters.BuildVeteran(level: 2, teamId: 1);
+        var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var recruit = PresetCharacters.BuildRecruit(level: 2, teamId: 1);
         var team1 = new List<ICharacter> { veteran, recruit };
         simulator.PlaceCreature(veteran, new PF2eVec(2, 5));

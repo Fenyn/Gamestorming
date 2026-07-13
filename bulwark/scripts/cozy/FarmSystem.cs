@@ -49,6 +49,14 @@ public sealed class FarmSystem
     private readonly Dictionary<Vector2I, Plot> _plots = new();
     private Func<Vector2I, bool>? _isTillable;
 
+    /// <summary>
+    /// Phase-4 capability provider: the farm's building-granted capabilities from the effect
+    /// aggregator (<see cref="OutpostEffects.FarmCapabilities"/>). Null (the default) → baseline
+    /// (<see cref="FarmCapabilities.Baseline"/>: no auto-water, no greenhouse, 0 plot allowance), so
+    /// with no farmhouse commissioned every rule below is byte-identical to today.
+    /// </summary>
+    private Func<FarmCapabilities>? _capabilities;
+
     /// <summary>Raised after a plot's state changes, with the affected tile.</summary>
     public event Action<Vector2I>? PlotChanged;
 
@@ -65,6 +73,27 @@ public sealed class FarmSystem
     /// enter and clears on exit so a freed scene is never queried.
     /// </summary>
     public void SetTillable(Func<Vector2I, bool>? isTillable) => _isTillable = isTillable;
+
+    /// <summary>
+    /// Inject the building-effect capability provider (GameState binds it to
+    /// <see cref="OutpostEffects.FarmCapabilities"/>). Null clears it back to baseline.
+    /// </summary>
+    public void SetCapabilities(Func<FarmCapabilities>? capabilities) => _capabilities = capabilities;
+
+    private FarmCapabilities Caps => _capabilities?.Invoke() ?? FarmCapabilities.Baseline;
+
+    // --- Capability queries (read the aggregator; DEFAULT to baseline) ---
+
+    /// <summary>Auto-watering active — planted plots grow overnight without a manual water. Baseline false.</summary>
+    public bool AutoWaterEnabled => Caps.AutoWater;
+
+    /// <summary>Greenhouse active — crops may be planted/grown out of season. Baseline false.</summary>
+    public bool GreenhouseEnabled => Caps.Greenhouse;
+
+    /// <summary>Refinement 2 — the farm TILLABLE-AREA expansion level (summed FarmPlots effect). Unlocks
+    /// farmable tile zones ≤ this level (the world's IsTillable gate reads it via GameState); baseline 0
+    /// = base zone only. See <see cref="FarmZones"/> and <see cref="FarmCapabilities.TillableAreaLevel"/>.</summary>
+    public int TillableAreaLevel => Caps.TillableAreaLevel;
 
     // --- Queries ---
 
@@ -113,7 +142,8 @@ public sealed class FarmSystem
             return false;
         if (!Crops.TryGet(cropId, out var crop))
             return false;
-        if (!crop.Seasons.Contains(_currentSeason()))
+        // Greenhouse (Phase-4 farm capability) lifts the season gate; baseline enforces it as before.
+        if (!GreenhouseEnabled && !crop.Seasons.Contains(_currentSeason()))
             return false;
         if (!_inventory.RemoveItem(crop.SeedItemId, 1))
             return false;
@@ -183,6 +213,9 @@ public sealed class FarmSystem
     public void OnDayEnded()
     {
         var season = _currentSeason();
+        // Phase-4 farm capabilities snapshot for this pass (baseline: false / false).
+        bool greenhouse = GreenhouseEnabled;
+        bool autoWater = AutoWaterEnabled;
 
         foreach (var plot in _plots.Values)
         {
@@ -190,16 +223,17 @@ public sealed class FarmSystem
 
             if (plot.CropId != null && Crops.TryGet(plot.CropId, out var crop))
             {
-                if (!crop.Seasons.Contains(season))
+                if (!greenhouse && !crop.Seasons.Contains(season))
                 {
-                    // Out of season → the crop dies, leaving tilled soil.
+                    // Out of season → the crop dies, leaving tilled soil (greenhouse suppresses this).
                     plot.Stage = PlotStage.Tilled;
                     plot.CropId = null;
                     plot.DaysGrown = 0;
                     changed = true;
                 }
-                else if (plot.WateredToday && plot.Stage == PlotStage.Planted)
+                else if ((plot.WateredToday || autoWater) && plot.Stage == PlotStage.Planted)
                 {
+                    // Auto-watering advances growth even when the player didn't water by hand.
                     plot.DaysGrown++;
                     if (plot.DaysGrown >= crop.GrowthDays)
                         plot.Stage = PlotStage.Mature;

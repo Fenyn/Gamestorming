@@ -57,7 +57,7 @@ public partial class ClassComboSpike : SpikeBase
     private void CheckA_MedicWarpriest()
     {
         GD.Print("-------------------- (a) Medic (Warpriest, Aveline, Marshal) --------------------");
-        var medic = PresetCharacters.BuildMedic(level: 2);
+        var medic = PresetCharacters.BuildTharr(level: 2);
 
         Check("(a) resolved class is Warpriest", medic.Stats?.CharacterClass?.ClassName == "Warpriest");
         Check("(a) deity is Aveline", medic.BuildChoices?.Deity?.DefinitionId == "aveline");
@@ -114,7 +114,7 @@ public partial class ClassComboSpike : SpikeBase
                 new List<SpellAction> { PresetSpells.Get(PresetSpells.ForceBarrageId) }));
 
         // L5: font scales to 5 slots at rank 3; Second Doctrine martial training (L3) is live.
-        var medic5 = PresetCharacters.BuildMedic(level: 5);
+        var medic5 = PresetCharacters.BuildTharr(level: 5);
         var font5 = medic5.Spellcasting?.DivineFont;
         Check("(a) L5 font = 5 slots at rank 3", font5 is { MaxSlots: 5 } && font5.FontRank == 3);
         var martialProf = medic5.Stats!.CharacterClass!.GetWeaponProficiency(
@@ -147,10 +147,10 @@ public partial class ClassComboSpike : SpikeBase
     /// </summary>
     private void CheckA_InspiringMarshalStance()
     {
-        var medic = PresetCharacters.BuildMedic(level: 5);
+        var medic = PresetCharacters.BuildTharr(level: 5);
         var insideAlly = PresetCharacters.BuildScout(level: 5);
-        var outsideAlly = PresetCharacters.BuildVeteran(level: 5);
-        var enemy = PresetCharacters.BuildVeteran(level: 5, teamId: 2);
+        var outsideAlly = PresetCharacters.BuildPlayer(level: 5);
+        var enemy = PresetCharacters.BuildPlayer(level: 5, teamId: 2);
 
         medic.GridPosition = new PF2eVec(5, 5);
         insideAlly.GridPosition = new PF2eVec(5, 7);   // 10 ft — inside the 15 ft aura
@@ -299,7 +299,7 @@ public partial class ClassComboSpike : SpikeBase
 
         // Behavioral: Double Slice = two Strikes for 2 actions, both at the frozen (0) MAP,
         // counting as two attacks afterwards. Target is a tanky L5 fighter that survives.
-        var target = PresetCharacters.BuildVeteran(level: 5, teamId: 2);
+        var target = PresetCharacters.BuildPlayer(level: 5, teamId: 2);
         var (session, _) = StartSession(data,
             party: new() { (scout, new PF2eVec(5, 5)) },
             enemies: new() { (target, new PF2eVec(6, 5)) }, seed: 11);
@@ -338,7 +338,7 @@ public partial class ClassComboSpike : SpikeBase
     private void CheckD_VeteranBastion()
     {
         GD.Print("-------------------- (d) Veteran (Sentinel, Bastion) --------------------");
-        var vet2 = PresetCharacters.BuildVeteran(level: 2);
+        var vet2 = PresetCharacters.BuildPlayer(level: 2);
         Check("(d) Bastion Dedication granted at L2",
             vet2.Features?.GetFeatureById("bastion-dedication") != null);
         Check("(d) dedication granted Reactive Shield",
@@ -346,7 +346,7 @@ public partial class ClassComboSpike : SpikeBase
         Check("(d) Disarming Block NOT granted at L2",
             vet2.Features?.GetFeatureById("disarming-block") == null);
 
-        var vet5 = PresetCharacters.BuildVeteran(level: 5);
+        var vet5 = PresetCharacters.BuildPlayer(level: 5);
         Check("(d) Disarming Block granted at L4",
             vet5.Features?.GetFeatureById("disarming-block") != null);
         Check("(d) Reactive Shield still active at L5",

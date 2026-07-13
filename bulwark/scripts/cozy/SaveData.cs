@@ -10,13 +10,38 @@ namespace Bulwark.Cozy;
 /// </summary>
 public sealed class SaveData
 {
-    /// <summary>Save schema version, bumped when the shape changes. v2 added the squad snapshot.</summary>
-    public int Version { get; set; } = 2;
+    /// <summary>Save schema version, bumped when the shape changes. v2 added the squad snapshot;
+    /// v3 split the flat inventory into per-member carry + warehouse; v4 added building states;
+    /// v5 added story flags, villager arrival state, and grown-roster preset keys; v6 added the
+    /// active meal buff id; v7 added the player-chosen character name.</summary>
+    public int Version { get; set; } = 7;
+
+    /// <summary>
+    /// Player-chosen name for the main character. Additive field: null in pre-v7 saves, where
+    /// restore falls back to the profile's DefaultName.
+    /// </summary>
+    public string? PlayerName { get; set; }
 
     public ClockDto Clock { get; set; } = new();
 
-    /// <summary>Inventory stacks: item id → quantity.</summary>
+    /// <summary>
+    /// LEGACY flat inventory (item id → quantity) from pre-v3 saves. New saves leave this empty and
+    /// persist <see cref="MemberInventories"/> + <see cref="Warehouse"/> instead; restore falls back
+    /// to distributing this pool only when the new fields are absent.
+    /// </summary>
     public Dictionary<string, int> Inventory { get; set; } = new();
+
+    /// <summary>
+    /// Per-member carried stacks (the PF2e Bulk carry system). Null in pre-v3 saves — restore then
+    /// migrates the legacy flat <see cref="Inventory"/> instead.
+    /// </summary>
+    public List<MemberInventoryDto>? MemberInventories { get; set; }
+
+    /// <summary>Shared outpost warehouse stacks (item id → quantity). Null in pre-v3 saves.</summary>
+    public Dictionary<string, int>? Warehouse { get; set; }
+
+    /// <summary>Gold balance (Phase-1 combat-economy currency). Additive field: 0 in pre-economy saves.</summary>
+    public int Gold { get; set; }
 
     public List<PlotDto> Plots { get; set; } = new();
 
@@ -41,6 +66,51 @@ public sealed class SaveData
     /// outpost; only the gate selection and the day-scoped depleted/defeated sets round-trip.
     /// </summary>
     public TerritoryDto? Territory { get; set; }
+
+    /// <summary>
+    /// Phase-2 building states (commissioned + tier + accumulated upgrade contributions). Additive
+    /// field: null in pre-v4 saves, where restore resets every building to not-commissioned.
+    /// </summary>
+    public List<BuildingStateDto>? Buildings { get; set; }
+
+    /// <summary>
+    /// Phase-3 bulwark story flags that have been set. Additive field: null in pre-v5 saves, where
+    /// restore clears to "no flags".
+    /// </summary>
+    public List<string>? StoryFlags { get; set; }
+
+    /// <summary>
+    /// Phase-3 ids of villagers that have arrived at the outpost. Additive field: null in pre-v5
+    /// saves, where restore clears to "none arrived" (GameState re-evaluates triggers on load).
+    /// Empty in shipped play — the villager catalog ships empty.
+    /// </summary>
+    public List<string>? ArrivedVillagers { get; set; }
+
+    /// <summary>
+    /// Phase-5 active meal buff id (the day-long provision buff). Additive field: null in pre-v6
+    /// saves and whenever no meal is active — restore then clears to "no buff". Re-applied to the
+    /// roster on load (the buff itself lives only on the live instances, never serialized).
+    /// </summary>
+    public string? ActiveMeal { get; set; }
+}
+
+/// <summary>
+/// One building's persisted state: its current tier (0 = not commissioned) and the items
+/// accumulated toward the next tier's upgrade bundle. See Bulwark.Cozy.BuildingSystem.
+/// </summary>
+public sealed class BuildingStateDto
+{
+    public string Id { get; set; } = "";
+    public int Tier { get; set; }
+    public Dictionary<string, int> Contributions { get; set; } = new();
+}
+
+/// <summary>One member's carried stacks (item id → quantity) for the PF2e Bulk carry system.
+/// Encumbrance is NOT persisted here — it is recomputed from these weights on load.</summary>
+public sealed class MemberInventoryDto
+{
+    public string MemberId { get; set; } = "";
+    public Dictionary<string, int> Stacks { get; set; } = new();
 }
 
 /// <summary>Persisted territory-loop state (see Bulwark.Territory.TerritorySystem).</summary>
@@ -126,6 +196,28 @@ public sealed class SquadMemberDto
     /// rebuilt font untouched (version-tolerant, mirroring how v2 added Squad itself).
     /// </summary>
     public int FontSlotsRemaining { get; set; } = -1;
+
+    /// <summary>
+    /// Smithy: pack slug of a bought replacement weapon; null keeps the deterministic preset weapon.
+    /// Additive field — absent in pre-economy saves.
+    /// </summary>
+    public string? WeaponSlug { get; set; }
+
+    /// <summary>Smithy: potency-rune bonus on the main-hand weapon (0 = none). Additive field.</summary>
+    public int WeaponPotency { get; set; }
+
+    /// <summary>
+    /// Smithy: striking-rune level on the main-hand weapon as the engine enum's int
+    /// (None = 1, Striking = 2). 0 = absent in older saves (restore leaves the weapon as built).
+    /// </summary>
+    public int WeaponStriking { get; set; }
+
+    /// <summary>
+    /// Phase-3 party-join: for a GROWN member (inserted beyond the fixed four), the Bulwark.Presets
+    /// PartyPresets key its preset is rebuilt from on load. Null for the fixed four — an additive
+    /// field (WeaponSlug precedent) that keeps the default-squad snapshot byte-identical.
+    /// </summary>
+    public string? PresetKey { get; set; }
 }
 
 /// <summary>A persistent condition on a squad member (enum name + value; 0 for binary).</summary>

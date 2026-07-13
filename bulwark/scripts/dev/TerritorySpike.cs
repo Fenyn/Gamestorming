@@ -87,9 +87,9 @@ public partial class TerritorySpike : SpikeBase
         if (squad == null)
             return;
 
-        var veteran = squad.FindMember(SquadRoster.VeteranId)!;
+        var veteran = squad.FindMember(SquadRoster.PlayerId)!;
         var scout = squad.FindMember(SquadRoster.ScoutId)!;
-        var medic = squad.FindMember(SquadRoster.MedicId)!;
+        var medic = squad.FindMember(SquadRoster.TharrId)!;
         var scholar = squad.FindMember(SquadRoster.ScholarId)!;
 
         // ── (1) Travel command & party selection ──
@@ -99,10 +99,10 @@ public partial class TerritorySpike : SpikeBase
 
         Check("(1) >3 companions rejected", !gs.TravelToTerritory(ForestId, new[]
         {
-            SquadRoster.ScoutId, SquadRoster.MedicId, SquadRoster.ScholarId, SquadRoster.VeteranId,
+            SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId, SquadRoster.PlayerId,
         }));
         Check("(1) the Veteran as a companion rejected",
-            !gs.TravelToTerritory(ForestId, new[] { SquadRoster.VeteranId }));
+            !gs.TravelToTerritory(ForestId, new[] { SquadRoster.PlayerId }));
         Check("(1) duplicate companion rejected",
             !gs.TravelToTerritory(ForestId, new[] { SquadRoster.ScoutId, SquadRoster.ScoutId }));
         Check("(1) unknown territory rejected",
@@ -114,7 +114,7 @@ public partial class TerritorySpike : SpikeBase
         Check("(1) all-hands travel (gate contract) accepted", gs.TravelToTerritory(ForestId));
         Check("(1) all-hands selection is every living companion (Scout, Medic, Scholar)",
             gs.Territory.SelectedCompanionIds.SequenceEqual(
-                new[] { SquadRoster.ScoutId, SquadRoster.MedicId, SquadRoster.ScholarId }));
+                new[] { SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId }));
         Check("(1) all-hands march home again", gs.TravelToOutpost());
 
         // The Scholar falls — dead members cannot be taken along (and later must sit out).
@@ -124,7 +124,7 @@ public partial class TerritorySpike : SpikeBase
         Check("(1) all-hands travel skips the dead (Scholar sits out)",
             gs.TravelToTerritory(ForestId)
             && gs.Territory.SelectedCompanionIds.SequenceEqual(
-                new[] { SquadRoster.ScoutId, SquadRoster.MedicId }));
+                new[] { SquadRoster.ScoutId, SquadRoster.TharrId }));
         Check("(1) march home for the explicit-selection checks", gs.TravelToOutpost());
 
         int minuteBefore = gs.Clock.MinuteOfDay;
@@ -193,8 +193,8 @@ public partial class TerritorySpike : SpikeBase
         Check("(3) rolled gob_1's single-entry table (goblin_pair)", pending.EncounterId == "goblin_pair");
         var partyIds = pending.Setup.Party.Select(p => p.Unit.Id).ToList();
         Check("(3) player roster is EXACTLY Veteran + Scout (in order)",
-            partyIds.SequenceEqual(new[] { SquadRoster.VeteranId, SquadRoster.ScoutId }));
-        Check("(3) living sit-out (Medic) absent", !partyIds.Contains(SquadRoster.MedicId));
+            partyIds.SequenceEqual(new[] { SquadRoster.PlayerId, SquadRoster.ScoutId }));
+        Check("(3) living sit-out (Medic) absent", !partyIds.Contains(SquadRoster.TharrId));
         Check("(3) dead member (Scholar) absent", !partyIds.Contains(SquadRoster.ScholarId));
         Check("(3) roster units are the LIVE squad instances (attrition)",
             ReferenceEquals(pending.Setup.Party[0].Unit, veteran)
@@ -206,7 +206,7 @@ public partial class TerritorySpike : SpikeBase
         Check("(3) a second contact while one is pending is refused",
             !gs.BeginTerritoryEncounter("gob_2", contactPos));
 
-        int xpBefore = squad.GetXp(SquadRoster.VeteranId);
+        int xpBefore = squad.GetXp(SquadRoster.PlayerId);
         int goblinLevel = pending.Enemies[0].CreatureStats!.Data.CreatureLevel;
         int xpPerGoblin = EncounterXPCalculator.GetCreatureXP(goblinLevel, squad.Level);
 
@@ -224,8 +224,8 @@ public partial class TerritorySpike : SpikeBase
         Check("(3) outcome: victory, returning to the forest",
             outcome is { Victory: true } && outcome.TerritoryId == ForestId);
         Check("(3) encounter XP banked on every member",
-            squad.GetXp(SquadRoster.VeteranId) == xpBefore + 2 * xpPerGoblin
-            && squad.GetXp(SquadRoster.MedicId) == xpBefore + 2 * xpPerGoblin);
+            squad.GetXp(SquadRoster.PlayerId) == xpBefore + 2 * xpPerGoblin
+            && squad.GetXp(SquadRoster.TharrId) == xpBefore + 2 * xpPerGoblin);
         Check("(3) post-encounter save written", Godot.FileAccess.FileExists(SavePath));
         Check("(3) roamer despawned for the day", gs.Territory.IsRoamerDefeated(ForestId, "gob_1"));
         Check("(3) beaten roamer cannot re-trigger", !gs.BeginTerritoryEncounter("gob_1", contactPos));
@@ -274,7 +274,7 @@ public partial class TerritorySpike : SpikeBase
             veteran.Health.CurrentHP == 1
             && veteran.Conditions!.HasCondition(Condition.Wounded));
         Check("(4) XP survived the defeat (none awarded, none lost)",
-            squad.GetXp(SquadRoster.VeteranId) == xpBefore + 2 * xpPerGoblin);
+            squad.GetXp(SquadRoster.PlayerId) == xpBefore + 2 * xpPerGoblin);
 
         bool penaltyOk = true;
         foreach (var (itemId, before) in resourceBefore)
@@ -301,15 +301,15 @@ public partial class TerritorySpike : SpikeBase
         // ── (5) Treat Wounds / clock interactions unaffected; territory save round-trip ──
         GD.Print("-------------------- (5) Treat Wounds & save round-trip --------------------");
         var panel = gs.GetSquadPanelView();
-        var medicView = panel?.Members.Find(m => m.Id == SquadRoster.MedicId);
+        var medicView = panel?.Members.Find(m => m.Id == SquadRoster.TharrId);
         int dc = medicView != null && medicView.DcOptions.Count > 0 ? medicView.DcOptions[0].Dc : 0;
         minuteBefore = gs.Clock.MinuteOfDay;
         Check("(5) Medic can still Treat Wounds on the battered Veteran",
-            dc > 0 && gs.TreatWounds(SquadRoster.MedicId, SquadRoster.VeteranId, dc));
+            dc > 0 && gs.TreatWounds(SquadRoster.TharrId, SquadRoster.PlayerId, dc));
         Check("(5) treatment spent its 10 minutes", gs.Clock.MinuteOfDay == minuteBefore + 10);
         var panelAfter = gs.GetSquadPanelView();
         Check("(5) RAW 1-hour immunity window is running",
-            (panelAfter?.Members.Find(m => m.Id == SquadRoster.VeteranId)?.ImmunityMinutesRemaining ?? 0) > 0);
+            (panelAfter?.Members.Find(m => m.Id == SquadRoster.PlayerId)?.ImmunityMinutesRemaining ?? 0) > 0);
 
         gs.SaveGame();
         var gs2 = new GameState { RealSecondsPerGameMinute = 0 };
@@ -319,7 +319,7 @@ public partial class TerritorySpike : SpikeBase
         Check("(5) reloaded: player is at the outpost (location never persists)",
             gs2.Territory.CurrentTerritoryId == null);
         Check("(5) reloaded: Veteran still battered (attrition round-trips)",
-            gs2.Squad?.FindMember(SquadRoster.VeteranId)?.Health?.CurrentHP
+            gs2.Squad?.FindMember(SquadRoster.PlayerId)?.Health?.CurrentHP
                 == veteran.Health.CurrentHP);
     }
 

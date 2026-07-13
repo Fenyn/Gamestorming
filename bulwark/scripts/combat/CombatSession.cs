@@ -123,6 +123,7 @@ public sealed class CombatSession
 
         _ai = new AITurnExecutor(_runner, Grid);
         PlayerActions = new PlayerActionExecutor(_runner, Grid);
+        WireConsumables();
 
         foreach (var (unit, pos) in setup.Party)
         {
@@ -141,6 +142,45 @@ public sealed class CombatSession
         foreach (var c in _team2) SubscribeCharacter(c);
 
         _turnManager.OnTurnStart += HandleTurnStart;
+
+        // Combat-scoped consumable buffs (elixirs) expire on their round duration — tick them at each
+        // round's end. Encounter-end clearing is owned by GameState.CompleteEncounter.
+        _turnManager.OnRoundEnd += _ => Bulwark.Autoload.GameState.Instance?.Consumables.AdvanceCombatRound();
+    }
+
+    /// <summary>
+    /// Wire the "Use Item" action path: point the executor's consumable delegates at the live GameState's
+    /// ConsumableSystem + Inventory. A player-controlled ally can drink a carried potion/elixir as their
+    /// action (engine cost + manipulate, consumed from their carry). No-op when no GameState is active
+    /// (standalone combat scenes) — the executor simply reports "no consumables".
+    /// </summary>
+    private void WireConsumables()
+    {
+        var gs = Bulwark.Autoload.GameState.Instance;
+        if (gs?.Squad == null)
+            return;
+
+        PlayerActions.UseConsumable = (actor, itemId, target) =>
+            gs.Consumables.UseInCombat(gs.Squad.FindMember(actor.Id), itemId, gs.Inventory, target);
+
+        PlayerActions.ConsumableOptions = actor =>
+        {
+            var list = new List<ConsumableOptionView>();
+            foreach (var kv in gs.Inventory.MemberStacks(actor.Id))
+            {
+                if (!Bulwark.Data.Consumables.TryGet(kv.Key, out var def))
+                    continue;
+                list.Add(new ConsumableOptionView
+                {
+                    ItemId = def.Id,
+                    Name = def.DisplayName,
+                    EffectText = def.EffectText,
+                    CostText = def.ActionCost.ToString(),
+                    Quantity = kv.Value,
+                });
+            }
+            return list;
+        };
     }
 
     public void SetPresenter(Func<BattleEvent, Task> presenter)

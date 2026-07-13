@@ -36,6 +36,14 @@ public partial class OutpostScene : CozyWorldScene
 
     // Farm renderer instanced by this scene (draw order: layers < FarmRenderer < Player < Overhead).
     private FarmRenderer? _farmRenderer;
+
+    // Phase-2 build loop: instances commissioned buildings at their %Building_<id> markers and
+    // refreshes their staged visual on BuildingChanged.
+    private BuildingLoader? _buildingLoader;
+
+    // Phase-3 static cast: spawns an NPC node for each ARRIVED villager at its %Villager_<id> marker
+    // and refreshes on VillagerArrived. No-op in shipped play (empty villager catalog).
+    private VillagerLoader? _villagerLoader;
     private TransitionSign? _gateSign;
     private bool _playerAtGate;  // player currently inside the gate trigger (interact travels)
 
@@ -65,10 +73,17 @@ public partial class OutpostScene : CozyWorldScene
         SpawnPlayer();
         SpawnHud();
         SpawnSquadPanel();
+        SpawnBuildPanel();
+        SpawnInventoryPanel();
+        SpawnSmithyPanel();
+        SpawnCraftingPanel();
+        SpawnTradingPostPanel();
         SpawnDaySummaryPanel();
         SpawnGateSign();
         WireGate();
         BuildWorldCollision(_ground);
+        SpawnBuildings();
+        SpawnVillagers();
         WireStateEvents();
         RefreshHudAll();
         ShowArrivalToasts();
@@ -81,6 +96,24 @@ public partial class OutpostScene : CozyWorldScene
         _farmRenderer = new FarmRenderer { Name = "FarmRenderer", ZIndex = 1 };
         AddChild(_farmRenderer);
         _farmRenderer.Bind(this);
+    }
+
+    /// <summary>Instance every commissioned building at its <c>%Building_&lt;id&gt;</c> marker with the
+    /// correct staged visual for its tier. Null-safe: missing markers/scenes are skipped (the build
+    /// state still works, art arrives later). Refreshed per building on BuildingChanged.</summary>
+    private void SpawnBuildings()
+    {
+        _buildingLoader = new BuildingLoader(this, id => GameState.Instance?.GetBuildingTier(id) ?? 0);
+        _buildingLoader.PlaceCommissioned();
+    }
+
+    /// <summary>Instance a placeholder NPC for every ARRIVED villager at its <c>%Villager_&lt;id&gt;</c>
+    /// marker. Null-safe: missing markers are skipped. Refreshed per villager on VillagerArrived.
+    /// Places nothing in shipped play (the villager catalog ships empty).</summary>
+    private void SpawnVillagers()
+    {
+        _villagerLoader = new VillagerLoader(this, id => GameState.Instance?.IsVillagerArrived(id) ?? false);
+        _villagerLoader.PlaceArrived();
     }
 
     protected override Vector2 GetPlayerSpawnPosition() => PlayerSpawnPosition;
@@ -107,6 +140,8 @@ public partial class OutpostScene : CozyWorldScene
     {
         gs.DayStarted += RefreshHudTime;
         gs.SquadLeveledUp += OnSquadLeveledUp;
+        gs.BuildingChanged += OnBuildingPlaced;
+        gs.VillagerArrived += OnVillagerArrived;
 
         // World-rules seam: farm commands validate through THIS scene's map truth while it hosts
         // the farm (cleared symmetrically below so a freed scene is never queried).
@@ -117,8 +152,17 @@ public partial class OutpostScene : CozyWorldScene
     {
         gs.DayStarted -= RefreshHudTime;
         gs.SquadLeveledUp -= OnSquadLeveledUp;
+        gs.BuildingChanged -= OnBuildingPlaced;
+        gs.VillagerArrived -= OnVillagerArrived;
         gs.BindFarmWorld(null);
     }
+
+    /// <summary>A building was commissioned or upgraded: (re)place its world visual at its marker and
+    /// select the stage for the new tier. The panel refresh is handled by the base class.</summary>
+    private void OnBuildingPlaced(string buildingId) => _buildingLoader?.Refresh(buildingId);
+
+    /// <summary>A villager arrived: spawn its NPC node at its marker (idempotent).</summary>
+    private void OnVillagerArrived(string villagerId) => _villagerLoader?.Refresh(villagerId);
 
     // ------------------------------------------------------------------ Interactions
 
@@ -265,12 +309,41 @@ public partial class OutpostScene : CozyWorldScene
 
     /// <summary>
     /// Stardew rule: a cell can be tilled only when the map says so — farmable Ground, nothing
-    /// painted over it on a blocking/prop layer, and no world object standing on it. This is the
-    /// predicate the scene injects into the farm system (GameState.BindFarmWorld); the highlight
-    /// and the command share it, so an actionable highlight always matches a command that succeeds.
+    /// painted over it on a blocking/prop layer, no world object standing on it, AND (Refinement 2)
+    /// the tile is within the currently UNLOCKED tillable area (its farm zone ≤ the outpost's
+    /// tillable-area level). This is the predicate the scene injects into the farm system
+    /// (GameState.BindFarmWorld); the highlight and the command share it, so an actionable highlight
+    /// always matches a command that succeeds.
     /// </summary>
     public bool IsTillable(Vector2I cell)
-        => IsFarmable(cell) && !HasBlockingTile(cell) && !IsCellOccupied(cell);
+        => IsFarmable(cell) && !HasBlockingTile(cell) && !IsCellOccupied(cell) && IsWithinUnlockedZone(cell);
+
+    /// <summary>Refinement 2: the cell's farm zone is within the outpost's current tillable-area level.
+    /// Baseline-safe — an unauthored zone reads as base (0), so with no zone tiers authored every
+    /// farmable tile passes at level 0 exactly as before.</summary>
+    private bool IsWithinUnlockedZone(Vector2I cell)
+    {
+        int level = GameState.Instance?.FarmTillableAreaLevel ?? 0;
+        return FarmZones.IsWithinTillableArea(FarmZoneOf(cell), level);
+    }
+
+    /// <summary>The authored <c>farm_zone</c> tier on a Ground tile (default <see cref="FarmZones.BaseZone"/>).
+    /// BASELINE SAFETY: when the TileSet has no <c>farm_zone</c> custom-data layer (nothing authored),
+    /// returns base zone with no engine error — behaviour stays byte-identical until the user authors tiers.</summary>
+    private int FarmZoneOf(Vector2I cell)
+    {
+        var tileSet = _ground?.TileSet;
+        if (tileSet == null)
+            return FarmZones.BaseZone;
+        int layer = tileSet.GetCustomDataLayerByName(FarmZones.CustomDataKey);
+        if (layer < 0)
+            return FarmZones.BaseZone; // layer not authored → base zone
+        TileData? td = _ground!.GetCellTileData(cell);
+        if (td == null)
+            return FarmZones.BaseZone;
+        Variant v = td.GetCustomDataByLayerId(layer);
+        return v.VariantType == Variant.Type.Int ? (int)v : FarmZones.BaseZone;
+    }
 
     /// <summary>A painted Walls/Props tile claims the cell (fences, ruins, decor) — no tilling under it.</summary>
     private bool HasBlockingTile(Vector2I cell)

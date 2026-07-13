@@ -38,6 +38,20 @@ public sealed record SpellEntryView
     public bool Castable { get; init; }
 }
 
+/// <summary>UI-facing snapshot of one carried consumable the actor may use this turn (Use Item action bar
+/// entry). No engine types — a passive Control renders it; using it raises an intent with <see cref="ItemId"/>.</summary>
+public sealed record ConsumableOptionView
+{
+    public required string ItemId { get; init; }
+    public required string Name { get; init; }
+    /// <summary>Short effect summary (e.g. "restore 8 HP", "+1 item to AC").</summary>
+    public string EffectText { get; init; } = "";
+    /// <summary>Action cost glyph text (potions = "1").</summary>
+    public string CostText { get; init; } = "1";
+    /// <summary>Units of this item the actor is carrying.</summary>
+    public int Quantity { get; init; }
+}
+
 /// <summary>UI-facing snapshot of one castable skill action (Trip / Demoralize / Battle Medicine).</summary>
 public sealed record SkillEntryView
 {

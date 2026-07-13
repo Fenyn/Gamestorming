@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Bulwark.Data;
+using Bulwark.Data.Characters;
 using PF2e.CharacterComponents;
 using PF2e.Classes;
 using PF2e.Core;
@@ -23,10 +24,10 @@ public static class PresetCharacters
 {
     // Squad member ids — the single source the roster, sprite map, save data and daily-casting
     // switch all key on (SquadRoster re-exposes them as aliases for existing call sites).
-    public const string VeteranId = "the-veteran";
+    public const string PlayerId = "player";
     public const string RecruitId = "the-recruit";
     public const string ScoutId = "the-scout";
-    public const string MedicId = "the-medic";
+    public const string TharrId = "tharr";
     public const string ScholarId = "the-scholar";
 
     // Authored daily-casting loadouts, shared by the initial build and the in-place level-up
@@ -48,14 +49,14 @@ public static class PresetCharacters
     };
 
     /// <summary>
-    /// Build "the Veteran": a Fighter (Sentinel) PC with a longsword, steel shield and chain mail.
+    /// Build the player character: a Fighter (Sentinel) PC with a longsword, steel shield and chain mail.
     /// At level >= 2 the combo's scripted Free-Archetype choice (Bastion Dedication) is applied.
     /// </summary>
-    public static PF2eCharacter BuildVeteran(int level, int teamId = 1)
+    public static PF2eCharacter BuildPlayer(int level, string? name = null, int teamId = 1)
     {
         return BuildFighterSentinel(
-            id: VeteranId,
-            name: "the Veteran",
+            id: PlayerId,
+            name: name ?? PlayerCharacter.Profile.DefaultName,
             level: level,
             teamId: teamId,
             strength: 18, dexterity: 14, constitution: 14,
@@ -64,8 +65,9 @@ public static class PresetCharacters
     }
 
     /// <summary>
-    /// Build "the Recruit": a second Fighter (Sentinel), same class/combo as the Veteran but with
+    /// Build "the Recruit": a second Fighter (Sentinel), same class/combo as the player but with
     /// NO shield (exercises the Raise-Shield-disabled path) and a balanced Str/Dex emphasis.
+    /// Used in spikes only.
     /// </summary>
     public static PF2eCharacter BuildRecruit(int level, int teamId = 1)
     {
@@ -145,7 +147,7 @@ public static class PresetCharacters
     // ══════════════════════════ Casters (Medic / Scholar) ══════════════════════════
 
     /// <summary>
-    /// Build "the Medic": the lone soldier-priest who held the outpost. Cleric with the
+    /// Build Tharr: the dwarven stonemason cleric who held the outpost alone. Cleric with the
     /// WARPRIEST doctrine overlay (light/medium armor + Shield Block at L1, Expert Fort,
     /// martial @3), deity AVELINE (heal divine font, favored weapon scimitar, divine skill
     /// Medicine, holy sanctification), and the MARSHAL Free Archetype line (L2 dedication:
@@ -156,12 +158,12 @@ public static class PresetCharacters
     /// Prepared loadout: cantrips Divine Lance + Daze; rank 1 Heal ×2 + Fear. Heal casts are
     /// paid from the divine font pool first (4 slots at the highest castable rank).
     /// </summary>
-    public static PF2eCharacter BuildMedic(int level, int teamId = 1)
+    public static PF2eCharacter BuildTharr(int level, int teamId = 1)
     {
         var aveline = PresetDeities.Aveline;
         return BuildCaster(
-            id: MedicId,
-            name: "the Medic",
+            id: TharrId,
+            name: "Tharr",
             baseClass: PresetClasses.BuildCleric(),
             combo: PresetCombos.ClericWarpriest,
             level: level,
@@ -473,7 +475,7 @@ public static class PresetCharacters
 
         string[]? loadout = character.Id switch
         {
-            MedicId => MedicPreparedSpellIds,
+            TharrId => MedicPreparedSpellIds,
             ScholarId => ScholarPreparedSpellIds,
             _ => null,
         };

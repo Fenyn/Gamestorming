@@ -46,7 +46,7 @@ public partial class SpikeEncounter : Node
             + $"{data.EquipmentCount} equipment, {data.CreatureCount} creatures");
 
         // --- Math cross-check: level-1 longsword strike bonus should be +9 ---
-        var veteranL1 = PresetCharacters.BuildVeteran(level: 1);
+        var veteranL1 = PresetCharacters.BuildPlayer(level: 1);
         int actualL1 = StrikeBonus(veteranL1);
         bool pass = actualL1 == ExpectedLevel1StrikeBonus;
         GD.Print(
@@ -54,7 +54,7 @@ public partial class SpikeEncounter : Node
             + $"actual +{actualL1} → {(pass ? "PASS" : "FAIL")}");
 
         // --- Build the level-2 Veteran (so the Bastion free-archetype feat applies) ---
-        var veteran = PresetCharacters.BuildVeteran(level: 2);
+        var veteran = PresetCharacters.BuildPlayer(level: 2);
         PrintStatblock(veteran);
 
         // --- Assemble the encounter ---

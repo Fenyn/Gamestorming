@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3]
+
+; ============================================================================
+; BUILDING SCENE TEMPLATE (Phase 2 placement contract) — see BuildingInstance.cs
+; ----------------------------------------------------------------------------
+; The BuildingLoader instances this at the outpost's %Building_farmhouse marker
+; and calls SetStage(tier) to reveal ONE %Stages child at a time:
+;   Stage0 = ruined/site (shown before commission — the loader only places
+;            commissioned buildings, so this is the authoring reference look)
+;   Stage1..N = evolving restored art for tiers 1..N
+; %Footprint is a real StaticBody2D that blocks the building's tiles (buildings
+;   are instanced, not painted, so they carry their own collision).
+; %Interact is a Marker2D anchor for a future diegetic interaction point.
+; Replace the placeholder ColorRects with Sprite2D art — only child ORDER matters.
+; Author the other buildings (smithy.tscn, infirmary.tscn) from this template.
+; ============================================================================
+
+[ext_resource type="Script" path="res://scripts/cozy/BuildingInstance.cs" id="1_bldg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint"]
+size = Vector2(96, 48)
+
+[node name="Farmhouse" type="Node2D"]
+script = ExtResource("1_bldg")
+
+[node name="Stages" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Stage0" type="ColorRect" parent="Stages"]
+offset_left = -48.0
+offset_top = -64.0
+offset_right = 48.0
+offset_bottom = 0.0
+color = Color(0.32, 0.3, 0.28, 1)
+
+[node name="Stage1" type="ColorRect" parent="Stages"]
+visible = false
+offset_left = -48.0
+offset_top = -80.0
+offset_right = 48.0
+offset_bottom = 0.0
+color = Color(0.55, 0.38, 0.24, 1)
+
+[node name="Stage2" type="ColorRect" parent="Stages"]
+visible = false
+offset_left = -52.0
+offset_top = -96.0
+offset_right = 52.0
+offset_bottom = 0.0
+color = Color(0.72, 0.55, 0.34, 1)
+
+[node name="Stage3" type="ColorRect" parent="Stages"]
+visible = false
+offset_left = -56.0
+offset_top = -112.0
+offset_right = 56.0
+offset_bottom = 0.0
+color = Color(0.86, 0.72, 0.42, 1)
+
+[node name="Footprint" type="StaticBody2D" parent="."]
+unique_name_in_owner = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint"]
+position = Vector2(0, -24)
+shape = SubResource("RectangleShape2D_footprint")
+
+[node name="Interact" type="Marker2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(0, 16)

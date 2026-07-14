@@ -53,6 +53,23 @@ Pure Blueprint, under `/Game/Pal/Blueprint/UI/UserInterface/IngameMenu/WorkSuita
 - Enumeration note: container `GetSlots()` by-value return fails in UE4SS — use the `SlotArray`
   property (fixed in engine v0.1.1). BP classes need the `_C` suffix for FindAllOf.
 
+## Force-job feature design (in progress, session 8+)
+Goal: player looks at a workstation's active job, presses a key → job is FORCED: filled to its
+slot capacity with the most capable pals, held at top priority until completed.
+- Server: forced set keyed by work GUID. Per forced job:
+  1. Enumerate the work's assign slots (`GetWorkAssignInfo` → entries → `WorkAssign:IsAssigned()`;
+     out-param pattern UNVERIFIED — fallback: pin one pal, log once).
+  2. Candidate pals: base pals with the work's suitability, config prio ≥1 or unconfigured
+     (prio 0 = user said never — force respects it).
+  3. Rank candidates: `GetWorkSuitabilityRankWithCharacterRank(type)` desc; tiebreak: pals doing
+     lower-priority work first (cheapest to steal).
+  4. Pin top N into free slots via native `RequestFixedAssignWorkInBaseCamp_ToServer(BaseCampId,
+     WorkId, IndividualId)` (BaseCampIdBelongTo property on the work gives the camp id).
+  5. Hold the work's type at max bar for pinned pals; release everything when the work object
+     dies/completes (GUID vanishes from live works).
+- Client: hook the station-info widget's bind (widget names from probe v4 F7 dump — pending),
+  overlay FORCE prompt/FORCED state, send work GUID via 4× Request_Server_int32 + commit.
+
 ## HARD-WON CRASH RULE #2 (session 6)
 READING a SoftObjectProperty from Lua (`row.bindedSlot`) crashes natively inside UE4SS
 (`push_softobjectproperty` → `FString::operator=` AV) — the crash is in the property read itself,

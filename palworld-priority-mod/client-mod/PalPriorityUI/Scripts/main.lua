@@ -20,7 +20,7 @@
 --   never in a loop. A cell that fails is simply skipped this tick.
 -- ============================================================================
 
-local VERSION = "0.7.1"
+local VERSION = "0.8.0"
 
 local function log(msg)
     print(string.format("[PalPriorityUI] %s\n", msg))
@@ -355,6 +355,44 @@ local function findInsertTarget(cell)
     return root, false, tree
 end
 
+-- Insert the text block as a SIBLING of the hidden PalCheckBox in the SAME
+-- parent panel, copying its slot geometry — identical placement by construction.
+-- The cell's internals are canvas-style (absolute layout: slot mirror of
+-- alignment properties failed live, and overlay-centering landed a full column
+-- off), so geometry must be copied, not inferred.
+local function injectAtCheckbox(cell, tb)
+    local cb = nil
+    pcall(function() cb = cell.PalCheckBox end)
+    if not alive(cb) then return false end
+    local parent = nil
+    pcall(function() parent = cb:GetParent() end)
+    if not alive(parent) then return false end
+    local cbSlot = nil
+    pcall(function() cbSlot = cb.Slot end)
+    if not alive(cbSlot) then return false end
+
+    local newSlot = nil
+    local okAdd = pcall(function() newSlot = parent:AddChild(tb) end)
+    if not okAdd or not alive(newSlot) then return false end
+
+    local slotCls = classNameOf(cbSlot) or ""
+    if slotCls == "CanvasPanelSlot" then
+        -- Absolute layout: replicate the checkbox's exact rectangle, draw above it.
+        pcall(function() newSlot:SetAnchors(cbSlot:GetAnchors()) end)
+        pcall(function() newSlot:SetPosition(cbSlot:GetPosition()) end)
+        pcall(function() newSlot:SetSize(cbSlot:GetSize()) end)
+        pcall(function() newSlot:SetAlignment(cbSlot:GetAlignment()) end)
+        pcall(function() newSlot:SetZOrder(cbSlot:GetZOrder() + 1) end)
+    else
+        -- Box/overlay-style layout: copy alignment + padding where present.
+        pcall(function() newSlot:SetHorizontalAlignment(cbSlot.HorizontalAlignment) end)
+        pcall(function() newSlot:SetVerticalAlignment(cbSlot.VerticalAlignment) end)
+        pcall(function() newSlot:SetPadding(cbSlot.Padding) end)
+    end
+    logOnce("injectmode", "number placement: checkbox-sibling (" .. slotCls .. ")")
+    return true
+end
+
 -- Verify a cached widget is still live. STRICT: only IsValid()==true counts.
 -- (An earlier version fell back to probing GetVisibility() when IsValid was
 -- unavailable — that probe itself can be a native crash on a stale wrapper.)
@@ -372,8 +410,9 @@ local function ensureTextBlock(cell, cellName)
         lastText[cellName] = nil
     end
 
-    local target, isOverlay, tree = findInsertTarget(cell)
-    if not target or not tree then
+    local tree = nil
+    pcall(function() tree = cell.WidgetTree end)
+    if not alive(tree) then
         logOnce("inject:" .. CELL_CLASS,
             "number overlay injection failed — priorities work but are display-less; check log")
         return nil
@@ -396,20 +435,29 @@ local function ensureTextBlock(cell, cellName)
         return nil
     end
 
-    local added = false
-    if isOverlay then
-        local oslot = nil
-        local oka = pcall(function() oslot = target:AddChildToOverlay(tb) end)
-        if oka and oslot then
-            added = true
-            -- HAlign_Center=2, VAlign_Center=2 — center the number over the checkbox.
-            pcall(function() oslot:SetHorizontalAlignment(2) end)
-            pcall(function() oslot:SetVerticalAlignment(2) end)
-        end
-    end
+    -- Primary: sibling-of-checkbox with copied slot geometry (exact placement).
+    local added = injectAtCheckbox(cell, tb)
     if not added then
-        local oka2 = pcall(function() target:AddChild(tb) end)
-        if oka2 then added = true end
+        -- Fallback: previous overlay/root insertion, centered (may be offset).
+        local target, isOverlay = findInsertTarget(cell)
+        if target then
+            if isOverlay then
+                local oslot = nil
+                local oka = pcall(function() oslot = target:AddChildToOverlay(tb) end)
+                if oka and oslot then
+                    added = true
+                    pcall(function() oslot:SetHorizontalAlignment(2) end)
+                    pcall(function() oslot:SetVerticalAlignment(2) end)
+                end
+            end
+            if not added then
+                local oka2 = pcall(function() target:AddChild(tb) end)
+                if oka2 then added = true end
+            end
+            if added then
+                logOnce("injectmode", "number placement: overlay fallback (may be offset)")
+            end
+        end
     end
     if not added then
         logOnce("inject:" .. CELL_CLASS,
@@ -419,6 +467,10 @@ local function ensureTextBlock(cell, cellName)
 
     -- HitTestInvisible (3): the number must let clicks pass through to the button.
     pcall(function() tb:SetVisibility(3) end)
+
+    -- Centered glyph within the box the slot gives us (the slot geometry itself
+    -- was copied from the checkbox at injection time).
+    pcall(function() tb:SetJustification(1) end)
 
     -- Cosmetics — each independently guarded; a failure just means plainer text.
     pcall(function()

@@ -20,7 +20,7 @@
 --   never in a loop. A cell that fails is simply skipped this tick.
 -- ============================================================================
 
-local VERSION = "0.5.0"
+local VERSION = "0.7.1"
 
 local function log(msg)
     print(string.format("[PalPriorityUI] %s\n", msg))
@@ -233,6 +233,14 @@ end
 local rowKeyCache = {} -- rowFullName -> palKey (rows are recycled; rebind overwrites)
 local bindHooked = false
 local bindCaptures = 0
+-- Screen-open signal. BindFromSlot fires on every screen open/rebind (verified),
+-- so it doubles as our "the work screen is (probably) up" flag. While false, the
+-- poll loop and the right-click handler bail on a plain Lua read — zero game
+-- calls, no game-thread hop — which is the whole idle cost of this mod.
+local menuLikelyOpen = false
+local menuRef = nil -- cached menu widget while open (avoids FindAllOf per tick)
+local uiInternal = false -- true while WE call the toggle RPC (right-click path)
+local helloSent = false  -- PrioMod_Ping announced this session
 
 local ROW_BP_CLASS = "/Game/Pal/Blueprint/UI/UserInterface/IngameMenu/WorkSuitabilityPreference/WBP_WorlSuitabilityPreference_PalList.WBP_WorlSuitabilityPreference_PalList_C"
 local ROW_BIND_FN = ROW_BP_CLASS .. ":BindFromSlot"
@@ -273,6 +281,7 @@ local function tryHookBind()
                         }
                     end)
                     rowKeyCache[rname] = { key = key, raw = raw }
+                    menuLikelyOpen = true -- rows binding == the screen is opening
                     bindCaptures = bindCaptures + 1
                     -- Log the first few captures so a live session shows the
                     -- mapping actually happening (then go quiet).
@@ -514,14 +523,60 @@ end
 -- ---------------------------------------------------------------------------
 -- Poll tick. Runs ON the game thread (via ExecuteInGameThread).
 -- ---------------------------------------------------------------------------
+-- Is the work screen actually showing? Fast path: the cached menu widget is
+-- alive AND visible. Cache miss: rescan — multiple menu instances coexist
+-- (seen live: a hidden/stale one alongside the open one), so we must cache a
+-- VISIBLE instance, never just the first alive one. IsVisible failing to call
+-- counts as visible (fall back to pre-optimization behavior, don't go dark).
+local function isShowing(m)
+    local okv, vis = pcall(function() return m:IsVisible() end)
+    if not okv then return true end
+    return vis == true
+end
+
+local function menuIsShowing()
+    if alive(menuRef) and isShowing(menuRef) then return true end
+    menuRef = nil
+    local menus = nil
+    pcall(function() menus = FindAllOf(MENU_CLASS) end)
+    if not menus then return false end
+    for _, m in ipairs(menus) do
+        if alive(m) then
+            local mname = nil
+            pcall(function() mname = m:GetFullName() end)
+            if mname and not mname:find("Default__", 1, true) and isShowing(m) then
+                menuRef = m
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function tickBody()
     -- 0. Keep trying to register the BindFromSlot hook until the BP class loads.
     tryHookBind()
 
-    -- 1. Cheap idle: only do work while the vanilla screen is actually open.
-    local menus = nil
-    pcall(function() menus = FindAllOf(MENU_CLASS) end)
-    if not menus or #menus == 0 then return end
+    -- 1. Only do work while the vanilla screen is actually showing. When it is
+    -- not, drop the open-flag so the loop goes back to zero-cost idle until the
+    -- next BindFromSlot fires.
+    if not menuIsShowing() then
+        menuLikelyOpen = false
+        return
+    end
+
+    -- Announce ourselves once per session (marks this client's component as
+    -- modded server-side even before the first click).
+    if not helloSent then
+        pcall(function()
+            local comp = FindFirstOf("PalNetworkBaseCampComponent")
+            if alive(comp) then
+                comp:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
+                    FName("PrioMod_Ping"), 1)
+                helloSent = true
+            end
+        end)
+    end
 
     -- 2. Reload the engine's config (small file; keeps last good on failure).
     reloadConfig()
@@ -535,6 +590,33 @@ local function tickBody()
         pcall(handleCellTop, cell)
     end
 end
+
+-- ---------------------------------------------------------------------------
+-- Click attestation. The server engine only applies cycle semantics to toggles
+-- from MODDED clients — everyone else's vanilla checkboxes bypass the mod. We
+-- attest by sending a PrioMod_Dir marker before every toggle this client
+-- originates: left-clicks are caught by hooking the toggle RPC client-side
+-- (pre-hook runs before the call transmits, so the marker goes first on the
+-- same ordered channel); the right-click path sends its own -1 marker and sets
+-- uiInternal so this hook doesn't stack a +1 on top of it.
+-- ---------------------------------------------------------------------------
+pcall(function()
+    local ok, err = pcall(function()
+        RegisterHook("/Script/Pal.PalNetworkBaseCampComponent:RequestChangeWorkSuitability_ToServer",
+            function(Context, TargetIndividualId, WorkSuitability, bOn)
+                if uiInternal then return end -- right-click already sent its marker
+                pcall(function()
+                    local c = Context:get()
+                    if alive(c) then
+                        c:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
+                            FName("PrioMod_Dir"), 1)
+                    end
+                end)
+            end)
+    end)
+    log(ok and "HOOK OK toggle attestation (left-click marker)"
+        or ("HOOK FAILED toggle attestation: " .. tostring(err)))
+end)
 
 -- ---------------------------------------------------------------------------
 -- Right-click decrement. A right-mouse keybind that acts only when the work
@@ -563,10 +645,15 @@ local function sendDecrement(cell)
     end
     local ok, err = pcall(function()
         comp:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 }, FName("PrioMod_Dir"), -1)
+        -- uiInternal keeps the attestation hook from stacking a +1 marker on
+        -- top of the -1 we just sent.
+        uiInternal = true
         comp:RequestChangeWorkSuitability_ToServer(
             { PlayerUId = raw.PlayerUId, InstanceId = raw.InstanceId, DebugName = "" },
             t, false) -- bOn is ignored by the engine's cycle logic
+        uiInternal = false
     end)
+    uiInternal = false -- ensure cleared even if the call threw
     if not ok then logOnce("rclick-send", "right-click send failed: " .. tostring(err)) end
 end
 
@@ -578,11 +665,9 @@ pcall(function()
     end
     RegisterKeyBind(rmb, function()
         local ok, err = pcall(function()
-            -- Fast bail when the work screen isn't up, so gameplay right-clicks
-            -- (aiming etc.) cost one FindAllOf and nothing else.
-            local menus = nil
-            pcall(function() menus = FindAllOf(MENU_CLASS) end)
-            if not menus or #menus == 0 then return end
+            -- Fast bail on a plain Lua flag when the work screen isn't up, so
+            -- gameplay right-clicks (aiming etc.) cost literally nothing.
+            if not menuLikelyOpen then return end
 
             local cells = nil
             pcall(function() cells = FindAllOf(CELL_CLASS) end)
@@ -701,6 +786,10 @@ end)
 pcall(function()
     LoopAsync(500, function()
         local ok, err = pcall(function()
+            -- Zero-cost idle: while the hook is registered and no screen-open
+            -- signal has fired, don't even hop to the game thread. (Before the
+            -- hook registers we must hop — tryHookBind needs the game thread.)
+            if bindHooked and not menuLikelyOpen then return end
             ExecuteInGameThread(function()
                 local okt, errt = pcall(tickBody)
                 if not okt then logOnce("tick", "tick error: " .. tostring(errt)) end

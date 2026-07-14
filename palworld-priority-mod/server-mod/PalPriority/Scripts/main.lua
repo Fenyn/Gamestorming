@@ -20,7 +20,7 @@
 --   are logged once (never in a retry loop). Prefer skip-and-log over retry.
 -- ============================================================================
 
-local VERSION = "0.4.0"
+local VERSION = "0.6.0"
 
 -- CYCLE_MODE: when true, a genuine user toggle on the vanilla work screen CYCLES
 -- that work type's priority 0->1->2->3->4->5->0 (auto-configuring the pal on the
@@ -81,10 +81,21 @@ local shadows = {}             -- palKey -> { [type]=true }  our belief of the p
 local pending = {}             -- workKey -> { type=int, lastSeen=os.time() }
 local campComp = nil           -- captured PalNetworkBaseCampComponent used to send RPCs
 local internalCall = false     -- reentrancy guard: true while WE send an RPC (see hook)
-local pendingDir = nil         -- cycle direction (+1/-1) set by a PrioMod_Dir marker RPC
-local pendingDirAt = 0         -- os.clock() when the marker arrived (stale after 1s)
+-- Modded-client attestation. The client UI mod sends a PrioMod_Dir marker just
+-- before each toggle it originates; both arrive on the sender's own network
+-- component, so keying by component full name (a) identifies the sender and
+-- (b) prevents one player's marker being consumed by another player's toggle.
+-- Components that have EVER spoken our protocol are remembered as modded.
+local pendingDirByComp = {}    -- compFullName -> { dir=+1/-1, at=os.clock() } (stale after 1s)
+local moddedComps = {}         -- compFullName -> os.clock() of last PrioMod_* message.
+-- TTL'd because UE recycles object names: a stale entry must not classify a NEW
+-- player's component as modded. Every marker/ping refreshes it, so an active
+-- modded client never expires mid-session.
+local MODDED_TTL_SECONDS = 600
 local barHold = {}             -- palKey -> { bar=int, at=os.clock() } bar hysteresis (anti-wiggle)
 local BAR_HOLD_SECONDS = 10    -- how long a higher bar persists after its pending work vanishes
+local managedCache = {}        -- palKey -> { set={[t]=true}, at=os.clock() } suitability cache
+local MANAGED_TTL_SECONDS = 60 -- suitabilities barely change; skip 13 reflection calls/pal/tick
 local CONFIG_PATH = "Mods/PalPriority/priorities.lua" -- resolved for real at startup
 
 -- ---------------------------------------------------------------------------
@@ -372,9 +383,15 @@ local function typeFromClassName(name)
 end
 
 -- Determine the work type of a pending work object.
--- Primary path uses GetWorkAssignInfo's out-param — UNVERIFIED at runtime, so it
--- is fully pcall-guarded and we fall back to the class-name map on any failure.
+-- Cheap class-name map FIRST (covers the high-frequency classes with one string
+-- scan); only unknown classes pay for the GetWorkAssignInfo attempt, which is
+-- UNVERIFIED at runtime and observed to fail (a thrown pcall per call) — no
+-- reason to eat that cost on every transport-spam event.
 local function getWorkType(w)
+    local name = classNameOf(w)
+    local ct = typeFromClassName(name)
+    if ct then return ct end
+
     local found = nil
     pcall(function()
         local outArr = {}
@@ -395,11 +412,6 @@ local function getWorkType(w)
         end)
     end)
     if found then return found end
-
-    -- Fallback: class-name substring map.
-    local name = classNameOf(w)
-    local ct = typeFromClassName(name)
-    if ct then return ct end
 
     -- Unknown class: record it once WITH its identifying plain-value properties
     -- (FName/enum — safe reads, no object refs), so real observed values can be
@@ -603,16 +615,26 @@ local function reconcilePal(id, param, pendingByType)
     if not okr then return end
     cfg.raw = raw
 
-    -- managed = types this pal can actually do; eligible = managed AND prio>=1.
-    local managed = {}
-    local eligible = {}
-    for t = WORK_MIN, WORK_MAX do
-        local okh, has = pcall(function() return param:HasWorkSuitability(t) end)
-        if okh and has then
-            managed[t] = true
-            local p = cfg.prio[t] or 0
-            if p >= 1 then eligible[t] = p end
+    -- managed = types this pal can actually do (cached: suitabilities barely
+    -- change, and this is 13 reflection calls per pal otherwise — F8 clears it);
+    -- eligible = managed AND prio>=1 (recomputed each tick from plain Lua state).
+    local nowC = os.clock()
+    local mc = managedCache[key]
+    local managed
+    if mc and (nowC - mc.at) < MANAGED_TTL_SECONDS then
+        managed = mc.set
+    else
+        managed = {}
+        for t = WORK_MIN, WORK_MAX do
+            local okh, has = pcall(function() return param:HasWorkSuitability(t) end)
+            if okh and has then managed[t] = true end
         end
+        managedCache[key] = { set = managed, at = nowC }
+    end
+    local eligible = {}
+    for t in pairs(managed) do
+        local p = cfg.prio[t] or 0
+        if p >= 1 then eligible[t] = p end
     end
 
     -- Among eligible types that have pending work, find the max priority (the bar).
@@ -700,6 +722,10 @@ end
 
 -- The tick body. Runs ON the game thread (invoked via ExecuteInGameThread).
 local function tickBody()
+    -- Nothing configured -> the supervisor has nothing to manage. Skip the
+    -- director enumeration (a global object scan) entirely.
+    if next(config.pals) == nil then return end
+
     local now = os.time()
     prunePending(now)
     local pendingByType = countPendingByType()
@@ -861,9 +887,18 @@ local okA, errA = pcall(function()
             local ok, err = pcall(function()
                 local w = Work:get()
                 if not w then return end
+                -- The same unfilled job re-fires every few seconds. If we already
+                -- know it, just refresh its timestamp — skip type resolution
+                -- (the expensive part) entirely for repeat events.
+                local wk = workKey(w)
+                local e = pending[wk]
+                if e then
+                    e.lastSeen = os.time()
+                    return
+                end
                 local t = getWorkType(w)
                 if not t then return end -- unknown class already logged once
-                pending[workKey(w)] = { type = t, lastSeen = os.time() }
+                pending[wk] = { type = t, lastSeen = os.time() }
             end)
             if not ok then logOnce("assignhook", "OnRequiredAssignWork handler error: " .. tostring(err)) end
         end)
@@ -889,27 +924,80 @@ local okB, errB = pcall(function()
                 local key = palKey(id.PlayerUId, id.InstanceId)
                 local cfg = config.pals[key]
 
-                if not CYCLE_MODE then
-                    -- Legacy binary semantics (for unmodded clients): off -> prio 0,
-                    -- on -> prio 3 only if it was 0 (don't stomp a tuned value).
-                    if not cfg then return end -- unconfigured pals: pure vanilla
-                    if on == false then
-                        cfg.prio[work] = 0
-                    else
-                        if (cfg.prio[work] or 0) == 0 then cfg.prio[work] = 3 end
+                -- Determine whether this toggle came from a MODDED client: a fresh
+                -- per-component PrioMod_Dir marker (the client mod attests every
+                -- click it originates), or failing that a component that has spoken
+                -- our protocol before (covers a marker lost to hook-order races —
+                -- assume the default increment).
+                local step = nil
+                if CYCLE_MODE then
+                    local compName = nil
+                    pcall(function()
+                        local c = Context:get()
+                        if alive(c) then compName = c:GetFullName() end
+                    end)
+                    if compName then
+                        local m = pendingDirByComp[compName]
+                        if m and (os.clock() - m.at) < 1.0 then
+                            step = m.dir
+                            pendingDirByComp[compName] = nil
+                        else
+                            local seen = moddedComps[compName]
+                            if seen and (os.clock() - seen) < MODDED_TTL_SECONDS then
+                                step = 1
+                            end
+                        end
                     end
-                    local sh = shadows[key]
-                    if sh then
-                        if on == false then sh[work] = true else sh[work] = nil end
+                end
+
+                if step == nil then
+                    -- UNMODDED source (vanilla checkboxes, or CYCLE_MODE off):
+                    -- bypass mod cycling entirely. Unconfigured pals stay pure
+                    -- vanilla. A configured pal touched by a vanilla client (e.g.
+                    -- the player uninstalled the client mod) is RELEASED: restore
+                    -- its off-list to the binary reading of its priorities (0 ->
+                    -- off, 1-5 -> on) so lingering supervisor shaping is undone,
+                    -- keep the toggle the user just made as-is, then forget the
+                    -- pal — its checkboxes are plain vanilla from here on.
+                    if not cfg then return end
+
+                    local fid, fparam = findPalByKey(key)
+                    if fparam then
+                        local offNow = readOffList(fparam)
+                        local raw = cfg.raw
+                        if not raw then
+                            local okr, r = pcall(extractRaw, fid)
+                            if okr then raw = r end
+                        end
+                        if raw then
+                            for t = WORK_MIN, WORK_MAX do
+                                if t ~= work then -- the user's own toggle stands
+                                    local has = false
+                                    pcall(function() has = fparam:HasWorkSuitability(t) end)
+                                    if has then
+                                        local wantOn = (cfg.prio[t] or 0) >= 1
+                                        local isOn = not offNow[t]
+                                        if wantOn ~= isOn then
+                                            sendToggle(raw, t, wantOn)
+                                        end
+                                    end
+                                end
+                            end
+                        end
                     end
-                    log(string.format("user toggle [%s] %s %s -> prio %d",
-                        cfg.name or key, WORKNAME[work] or ("type" .. work),
-                        on and "ON" or "OFF", cfg.prio[work] or 0))
+
+                    config.pals[key] = nil
+                    shadows[key] = nil
+                    barHold[key] = nil
+                    managedCache[key] = nil
                     saveConfig(config)
+                    log(string.format(
+                        "released [%s]: unattested toggle — pal returned to vanilla on/off",
+                        cfg.name or key))
                     return
                 end
 
-                -- CYCLE MODE ---------------------------------------------------
+                -- MODDED cycle path ---------------------------------------------
                 -- Locate the live pal. Needed for auto-config (HasWorkSuitability +
                 -- off-list) and for the immediate reconcile below. If we can't find
                 -- it, this isn't a base pal we manage -> stay fully vanilla.
@@ -942,15 +1030,9 @@ local okB, errB = pcall(function()
                         cfg.name or key, nInit))
                 end
 
-                -- Advance the priority one step: 0->1->2->3->4->5->0. A fresh
-                -- PrioMod_Dir marker (sent by the client UI just before this RPC,
-                -- same ordered reliable channel) flips the step to -1 for
-                -- right-click decrement; Lua's % handles the negative wrap (0-1 -> 5).
-                local step = 1
-                if pendingDir and (os.clock() - pendingDirAt) < 1.0 then
-                    step = pendingDir
-                end
-                pendingDir = nil
+                -- Advance the priority one step: 0->1->2->3->4->5->0, or the
+                -- reverse for a -1 marker (right-click). Lua's % handles the
+                -- negative wrap (0-1 -> 5).
                 local new = ((cfg.prio[work] or 0) + step) % 6
 
                 -- Mirror the toggle the game just applied into our shadow, so the
@@ -992,19 +1074,31 @@ local okC, errC = pcall(function()
                 if type(name) ~= "string" then return end
                 if name:sub(1, 8) ~= "PrioMod_" then return end -- ignore everything else silently
 
+                -- ANY PrioMod_* message marks the sending component as a modded
+                -- client — its toggles are then eligible for cycle semantics.
+                local compName = nil
+                pcall(function()
+                    local c = Context:get()
+                    if alive(c) then compName = c:GetFullName() end
+                end)
+                if compName then moddedComps[compName] = os.clock() end
+
                 if name == "PrioMod_Ping" then
-                    -- No-op ack for now. TODO: send a real response RPC back to the
-                    -- client once the client-side UI mod defines a response channel.
-                    log(string.format("PrioMod_Ping received (value=%d) — ack (no-op)", Value:get()))
+                    log(string.format("PrioMod_Ping received (value=%d) — client mod announced%s",
+                        Value:get(), compName and (" on " .. compName) or ""))
                     return
                 end
 
                 if name == "PrioMod_Dir" then
                     -- Direction marker for the toggle that immediately follows
-                    -- (right-click decrement). Clamp to ±1; stale after 1s.
-                    local v = Value:get()
-                    pendingDir = (v and v < 0) and -1 or 1
-                    pendingDirAt = os.clock()
+                    -- (+1 left-click, -1 right-click). Clamp to ±1; stale after 1s.
+                    if compName then
+                        local v = Value:get()
+                        pendingDirByComp[compName] = {
+                            dir = (v and v < 0) and -1 or 1,
+                            at = os.clock(),
+                        }
+                    end
                     return
                 end
 
@@ -1037,6 +1131,7 @@ pcall(function()
             end
             config = cfg
             shadows = {} -- forget beliefs; next tick re-reads off-lists and reshapes
+            managedCache = {} -- re-read suitabilities too (rank-ups, new pals)
             local n = 0
             for _ in pairs(config.pals) do n = n + 1 end
             log(string.format("F8 reloaded: %d pal(s) configured; shadows reset", n))

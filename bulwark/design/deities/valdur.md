@@ -1,63 +1,74 @@
 # Valdûr, the Stonefather
 
-Dwarven god of stone, craftsmanship, and the forge. His worship is ancient among the dwarves —
-rooted in the belief that stone is divine, that shaping it is a sacred act, and that the quality
-of your work reflects the quality of your soul.
+Dwarven god of stone, craftsmanship, and the forge. His worship is among the oldest of the
+dwarven traditions, built on a simple and absolute conviction: that stone is divine, that the
+act of shaping it is sacred, and that the quality of one's work reflects the quality of one's
+soul.
 
 ## Core identity
 
 - **Title:** The Stonefather
 - **Domains:** Earth, Creation, Fire, Toil
 - **Divine font:** Heal
-- **Sanctification:** Optional good (worshipper's choice — the faith reveres craft itself, not a
-  moral axis, but many followers lean toward protection and building up rather than tearing down)
+- **Sanctification:** Optional good (the faith reveres craft itself rather than a moral axis,
+  though most followers lean toward protection and building up rather than tearing down)
 - **Divine skill:** Crafting
 - **Favored weapon:** Warhammer
 
-## Favored weapon — the warhammer
+## Favored weapon: the warhammer
 
-Craftsmen of Valdûr originally improvised stone and masonry hammers as weapons — the same tools
-they shaped the world with, turned to its defense. Over generations this tradition evolved into
-ornate, powerful warhammers. A warhammer blessed by Valdûr is a tool first and a weapon second.
-The best ones are works of art: etched with devotional runes, balanced for both the forge and
-the field.
+The earliest craftsmen of Valdûr used their masonry hammers as weapons. They fought with the
+same tools they used to shape the world, and they saw no contradiction in this. Over generations,
+the tradition grew more deliberate. The hammers became heavier, better balanced, etched with
+devotional runes. What had started as improvisation became ceremony. A warhammer blessed by
+Valdûr is considered a tool first and a weapon second. The finest among them are genuine works
+of art, balanced for both the forge and the field.
 
 Warhammer stats (PF2e Remaster): 1d8 B, 1 hand, Shove trait. Martial weapon, Hammer group.
 
 ## Edicts
 
 - Build with care and intention; never do shoddy work
-- Honor your materials — stone, metal, wood are gifts, not resources to be wasted
+- Honor your materials, for stone, metal, and wood are gifts and not resources to be spent
 - Maintain and repair before you replace
 - Teach your craft to those willing to learn
 
 ## Anathema
 
-- Destroy well-made things out of spite or laziness
-- Use inferior materials when better ones are available and the work demands it
-- Abandon a structure you've committed to building
+- Destroy objects of fine quality
+- Use inferior materials when better ones are available and the work demands quality
+- Abandon a structure you have committed to building
 - Claim credit for another's craftsmanship
 
-## Personality / theology
+## Theology
 
-Valdûr is not a distant god. His followers believe he is IN the stone — that every vein of ore,
-every grain of granite carries a fragment of his intent. Prayer to Valdûr is done with a hammer
-in hand. Temples are workshops. Sermons are demonstrations of technique. A perfectly laid wall
-is a hymn.
+Valdûr is not a distant god who watches from beyond the sky. According to his followers, he is
+the earth itself. The world is his body. Its mountains are his spine, its caverns his lungs, its
+veins of ore his blood. The dwarves do not merely live on the world. They live upon him and
+within him, and every stone they quarry is taken from the Stonefather's own flesh. To build with
+that stone is to shape his gift into something worthy of the sacrifice.
 
-The faith is pragmatic. Valdûrites don't proselytize — they build. A village that needs a bridge
-gets a bridge, not a sermon. The craftsmanship speaks for itself. "If the stones hold, the
-Stonefather approves."
+The dwarves believe they were the first people, carved from the living rock by Valdûr's own
+hands. He shaped them the way a master mason shapes a keystone: slowly, with patience and
+precision and clear purpose. This is why dwarves feel stone the way other races feel wind or
+rain. It is not poetry. They are made of him.
 
-## Granted spells (thematic — engine feasibility TBD)
+This origin carries weight in their culture. Every dwarf is a work of Valdûr's craftsmanship,
+and so every dwarf owes a debt of craft in return. To build poorly is to dishonor the hands
+that carved you. To build well is to say, without words, that you are worthy of the stone you
+were made from.
 
-- **Rank 1:** Pummeling Rubble (earth, 2d4 B in a 15-ft cone — stones and debris)
+Prayer to Valdûr is done with a hammer in hand. Temples are workshops. Sermons are
+demonstrations of technique. A perfectly laid wall is considered a hymn, and the holiest act
+is not prayer but rather work done so well it endures beyond the one who made it.
+
+The faith is deeply pragmatic. Valdûrites do not proselytize. They build. A village that needs
+a bridge gets a bridge, not a sermon. The craftsmanship speaks for itself.
+
+"If the stones hold, the Stonefather approves."
+
+## Granted spells (thematic, engine feasibility TBD)
+
+- **Rank 1:** Pummeling Rubble (earth, 2d4 B in a 15-ft cone of stones and debris)
 - **Rank 3:** Blazing Dive or Fireball (the forge's flame turned outward)
 
-## Relationship to Aveline
-
-Aveline (the Lady of Dawn) is a healing/sun/truth deity — compassionate, outward-facing, focused
-on mending and light. Valdûr is earth and labor — inward-facing, focused on making and enduring.
-They are not opposed; their followers would respect each other. A Valdûrite would appreciate
-Aveline's emphasis on care; an Avelinite would appreciate Valdûr's emphasis on building something
-worth caring about.

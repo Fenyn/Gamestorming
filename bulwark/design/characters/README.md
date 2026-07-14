@@ -4,17 +4,40 @@ One profile file per character. Profiles live in `scripts/data/characters/` as p
 that declare a `CharacterProfile` instance. The `Characters` registry aggregates them; non-starting
 characters auto-emit `VillagerDefinition`s for arrival and placement.
 
-## The cast (starting party)
+## The cast
+
+### Starting party
 
 | Id | Name | Class | Ancestry | Role | Building |
 |---|---|---|---|---|---|
 | `player` | *(player-chosen)* | Fighter | Human | Farmhand-soldier. The player avatar: farming, expansion, upgrades. | — (generalist) |
 | `tharr` | Tharr | Cleric (Warpriest) | Dwarf | Stonemason. Construction-master: repairs, restores, builds. | Command Post |
-| *(TBD)* | *(TBD)* | Rogue | Elf | Charismatic merchant. Runs the trading post. | Trading Post |
-| *(TBD)* | *(TBD)* | Wizard | Halfling | Friendly cook. Loves recipes and learning new spells. | Kitchen / Tavern |
+| `elara` | Elara | Rogue (Thief) | Elf | Silver-tongued merchant. Runs the trading post. | Trading Post |
+| `fenwick` | Fenwick | Wizard (Battle Magic) | Halfling | Gastronomancer and chef. Social heart of the outpost. | Kitchen / Tavern |
 
-The story opens with the player, the elf, and the halfling traveling to reinforce the outpost. Tharr
-is already there — the lone holdout who's been struggling to maintain the place alone.
+The story opens with the player, Elara, and Fenwick traveling to reinforce the outpost. Tharr
+is already there, the lone holdout who has been struggling to maintain the place alone.
+
+### Recruitable
+
+| Id | Name | Class | Ancestry | Role | Building | Arrival |
+|---|---|---|---|---|---|---|
+| `arkus` | Arkus | Barbarian | Orc | Failed rite of passage. Blacksmith. | Smithy | Found wounded in forest |
+| `aldric` | Sir Aldric | Champion (Paladin) | Human | Ex-soldier seeking atonement. Drillmaster. | Training Yard | Drawn by outpost's reputation |
+| `spore` | Spore | Witch | Leshy (Fungus) | Forest outsider. Brewer of potions and consumables. | Apothecary | Found in deep forest |
+| `josen` | Josen | Monk | Elf | Quiet Hand master. Healer and anatomist seeking transcendence. | Infirmary | Already in the region, drawn in by injuries |
+| `thistle` | Thistle | Ranger | Gnome | Frontier scout fading into The Stillness. | Watchtower | Found at abandoned campsite during expedition |
+| `grub` | Grub | Druid | Goblin | Wilderness gardener and reclaimer. Automates farming. | Farmhouse / Fields | Found tending wild patch during territory expansion |
+| `sera` | Sera | Magus | Human | Exiled academic. Studies the fabric of arcane magic. | Arcane Study | Arrives deliberately, seeking frontier research freedom |
+| `oskar` | Oskar | Oracle | Dwarf | War-cursed elder. Builds a legacy before the decline takes him. | Chapel / Shrine | Arrives seeking a place to spend his final years |
+
+| `hazel` | Hazel | Thaumaturge | Halfling | Ex-curator rebuilding a lost collection. Monster expert. | Reliquary | Arrives seeking a home for her work |
+
+### Unassigned (no building)
+
+| Id | Name | Class | Ancestry | Role | Arrival |
+|---|---|---|---|---|---|
+| `vasska` | Vasska | Psychic | Nagaji | Telepathic mind-reader. Key to Oskar's ritual quest. | Swamp biome, gated behind Oskar 6/10 hearts |
 
 ## How to add a character
 
@@ -48,11 +71,11 @@ non-StartingPC profiles, which flows into the existing villager arrival and plac
 Fighter, Cleric, Wizard, Rogue
 
 **Planned (no engine feature-classes yet — fine to assign in a profile, flag in BuildSpec later):**
-Alchemist, Ranger, Champion, Bard, Monk, Barbarian
+Alchemist, Ranger, Champion, Bard, Monk, Barbarian, Witch
 
 ## Supported ancestries
 
-Human, Dwarf, Elf, Halfling, Gnome, Goblin — stored as strings, no engine validation.
+Human, Dwarf, Elf, Halfling, Orc, Leshy, Gnome, Goblin — stored as strings, no engine validation.
 
 ## Deferred: the Free Archetype build layer
 

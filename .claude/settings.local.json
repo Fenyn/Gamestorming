@@ -44,7 +44,8 @@
       "WebFetch(domain:www.superjumpmagazine.com)",
       "WebFetch(domain:www.ubisoft.com)",
       "WebFetch(domain:ozea-studio.itch.io)",
-      "WebFetch(domain:www.opendaoc.com)"
+      "WebFetch(domain:www.opendaoc.com)",
+      "WebFetch(domain:2e.aonprd.com)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -1,0 +1,55 @@
+-- PalPriority config. Auto-managed: the mod REWRITES this file when you toggle a
+-- work type in-game on a configured pal, so hand-written comments inside the
+-- pals table will not survive. Edit priorities freely; keep the structure below.
+--
+-- FORMAT
+--   return {
+--     pals = {
+--       ["<palkey>"] = {
+--         name = "display name",         -- optional, cosmetic only
+--         prio = { [8]=5, [12]=1 },      -- [worktype]=priority (0-5); missing => 0
+--         raw  = { PlayerUId={A,B,C,D}, InstanceId={A,B,C,D} }, -- identity, do not edit
+--       },
+--     },
+--   }
+--
+-- PRIORITY: 0 = never do this work. 1-5 = higher wins. A pal only works its
+--   highest-priority types that currently have pending work. If nothing it can
+--   do has pending work, it stays free to do any of its eligible (prio>=1) types.
+--
+-- WORK TYPES (the numeric keys in `prio`):
+--    1 EmitFlame(Kindling)   2 Watering         3 Seeding
+--    4 GenerateElectricity   5 Handcraft        6 Collection
+--    7 Deforest              8 Mining           9 OilExtraction
+--   10 ProductMedicine      11 Cool            12 Transport
+--   13 MonsterFarm
+--
+-- HOW TO GET A PAL'S KEY: load into your base and press F9 in-game. The console
+-- prints every base pal with its <palkey> and a ready-to-paste, commented
+-- skeleton entry (already filled with the correct `raw` identity). Copy the line
+-- for the pal you want, uncomment it, and fill in `prio`.
+--
+-- EDITING WHILE PLAYING: press F8 in-game to reload this file after you edit it.
+-- Toggling work types on the vanilla pal screen also edits this file live
+-- (off -> prio 0; on -> prio 3 if it was 0).
+--
+-- ---------------------------------------------------------------------------
+-- EXAMPLE (commented — delete or replace with real entries from F9):
+--
+--   ["A1B2C3D400000000-11223344AABBCCDD"] = {
+--     name = "Digtoise",
+--     -- Mining is this pal's job: max priority. It may also haul (Transport)
+--     -- and water crops, but only when no mining work is pending.
+--     prio = { [8]=5, [12]=2, [2]=1 },
+--     raw  = {
+--       PlayerUId  = { A=-1583242812, B=0, C=0, D=0 },
+--       InstanceId = { A=287454020, B=-1430532899, C=0, D=0 },
+--     },
+--   },
+-- ---------------------------------------------------------------------------
+
+return {
+  pals = {
+    -- Add pals here (see F9 output). Empty = every pal is vanilla / untouched.
+  },
+}

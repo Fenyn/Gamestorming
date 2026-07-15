@@ -1,0 +1,43 @@
+PalPriority — RimWorld-style work priorities for Palworld base pals
+====================================================================
+
+REQUIREMENTS
+- Palworld 1.0 (Steam)
+- UE4SS, Okaetsu Palworld fork ("experimental-palworld" release):
+  https://github.com/Okaetsu/RE-UE4SS/releases
+  Install it first: extract so dwmapi.dll and the ue4ss folder sit next to
+  Palworld\Pal\Binaries\Win64\Palworld-Win64-Shipping.exe
+
+INSTALL — Vortex (recommended)
+Install with Vortex using the official Palworld extension. It routes the
+files automatically and can install UE4SS itself as a dependency.
+
+INSTALL — manual
+1. Extract this zip's "ue4ss" folder into Palworld\Pal\Binaries\Win64
+   (merge with the existing ue4ss folder).
+2. That's it — each mod contains an enabled.txt, so UE4SS loads them
+   automatically. No mods.txt editing required.
+
+WHO INSTALLS WHAT (both parts are required for the mod to function)
+- PalPriority (the logic): runs on whoever hosts — single-player, co-op
+  host, or dedicated server.
+- PalPriorityUI (the interface): runs on every player using the mod.
+- Single-player: install both.
+- Players without the mod: everything stays vanilla for them.
+
+USE
+- Open the base pal work screen (Monitoring Stand). Left-click a work cell
+  to cycle its priority X -> 1 -> 2 -> 3 -> 4 -> 5 -> X. RimWorld scale:
+  1 = most important, 5 = least, X = never. Values are color-coded green
+  (1) through yellow to red (5). Right-click cycles the other way.
+- Pals do their most important work that currently exists, then move
+  down their list.
+- Priorities are saved in ue4ss\Mods\PalPriority\priorities.lua — hand-editable;
+  edits are picked up when the game/server starts.
+
+UNINSTALL
+- Delete ue4ss\Mods\PalPriority and ue4ss\Mods\PalPriorityUI.
+- Pals keep whatever work toggles they last had; clicking their checkboxes
+  works vanilla immediately. (If the server keeps the engine but a player
+  drops the UI mod, the engine auto-releases each of that player's pals to
+  vanilla on their first checkbox click.)

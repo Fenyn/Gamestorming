@@ -1,0 +1,43 @@
+PalPriority adds numeric work priorities to base pals, RimWorld-style. Each pal gets a value per work type: 1 (highest) to 5 (lowest), or X (never). Pals work their most important type that currently has work available and move down their list when it runs out.
+
+[size=4]What it does[/size]
+[list]
+[*]The work suitability screen (Monitoring Stand) shows a color-coded priority value in place of each checkbox — green (1) through yellow to red (5), gray X for never. Left click cycles X → 1 → … → 5 → X, right click cycles the other way.
+[*]A pal set to Transport 1 / Mining 3 hauls until nothing needs hauling, then mines.
+[*]Pending work is tracked per type (hauling, crafting, smelting, cooking, farming, mining, etc.), with a short hold so pals commit to a task instead of flip-flopping.
+[*]Pals you never click are not touched by the mod at all.
+[*]Priorities are stored in a config file in the mod folder. Nothing is written to save files; all in-game changes go through the game's own replicated toggle system.
+[/list]
+
+[size=4]Files[/size]
+Both files are required — the mod does not function without them.
+[list]
+[*][b]PalPriority[/b] — the logic. Runs on whoever hosts: single player, co-op host, or dedicated server.
+[*][b]PalPriorityUI[/b] — the interface. Runs on every player using the mod.
+[/list]
+Single player: install both.
+
+[size=4]Installation[/size]
+Requires [url=https://www.nexusmods.com/palworld/mods/3035]UE4SS (Okaetsu build)[/url].
+
+Vortex: install both files normally; the Palworld extension places them and can install UE4SS as a dependency.
+
+Manual: extract the [font=Courier New]ue4ss[/font] folder from each zip into [font=Courier New]Palworld\Pal\Binaries\Win64[/font], merging folders. The mods enable themselves; no mods.txt editing.
+
+[size=4]Multiplayer[/size]
+[list]
+[*]The server/host runs PalPriority; every player using the mod installs PalPriorityUI.
+[*]Players without the mod installed see normal checkboxes and normal pal behavior — they are unaffected.
+[*]If a player removes PalPriorityUI, each of their configured pals reverts to vanilla toggles the next time they click one.
+[/list]
+
+[size=4]Notes[/size]
+[list]
+[*]Tested on Steam, single player and co-op host. Dedicated servers should work but are untested so far.
+[*]Game Pass version untested.
+[*]Game updates can break UE4SS hooks. If the mod stops working after a patch, check the UE4SS console for HOOK FAILED lines and wait for an updated UE4SS build. Both scripts have a DEBUG flag at the top of main.lua that enables detailed diagnostics for bug reports.
+[*]Config file: [font=Courier New]ue4ss\Mods\PalPriority\priorities.lua[/font] — editable by hand, read at startup.
+[/list]
+
+[size=4]Credits[/size]
+The [url=https://github.com/UE4SS-RE/RE-UE4SS]UE4SS[/url] team, [url=https://github.com/Okaetsu/RE-UE4SS]Okaetsu[/url] for the Palworld build, and [url=https://pwmodding.wiki]pwmodding.wiki[/url].

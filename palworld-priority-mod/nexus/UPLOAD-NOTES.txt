@@ -1,0 +1,32 @@
+Nexus page setup notes (one mod page, two files)
+=================================================
+
+Page
+- Name: PalPriority — RimWorld-style Work Priorities
+- Category: Gameplay
+- Summary: paste summary.txt
+- Description: paste description.bbcode (editor accepts BBCode)
+- Requirements: add "UE4SS (Okaetsu fork)" — nexusmods.com/palworld/mods/3035
+  (Vortex's Palworld extension can auto-install it as a dependency)
+- Changelog: paste changelog.txt into version 1.0.0
+
+Files tab — upload BOTH as Main Files (both required):
+- PalPriority-1.0.0.zip    -> file name "PalPriority (logic — server/host)"
+- PalPriorityUI-1.0.0.zip  -> file name "PalPriorityUI (interface — every player)"
+Each is a single-component archive rooted at ue4ss/Mods/<Name>/ — this is the
+layout the official Vortex Palworld extension parses (one tracked mod per
+archive; enabled.txt is ignored by Vortex and used by manual installs).
+The zips contain ONLY the ue4ss tree — no loose root files. A shared root
+file (e.g. INSTALL.txt) in both archives deploys to the same path and makes
+Vortex flag a mod conflict between the two files. Install instructions live
+on the mod page instead (the release/ folder keeps INSTALL.txt for the
+manually-shared friend bundle only).
+
+Images: at least one required. Best shots:
+- Work screen with numbers + X mix on a pal row (the money shot)
+- A pal at its priority-5 station with the number UI visible in the corner
+
+Before first upload: run one in-game smoke test of the current builds
+(engine 0.6.3 / UI 0.8.2) — numbers render, both click directions cycle,
+no HOOK FAILED lines. No F-keys are active in release (F8/F9/F10 are all
+behind the DEBUG flag at the top of each main.lua).

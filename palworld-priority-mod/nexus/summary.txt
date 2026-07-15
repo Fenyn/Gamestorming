@@ -1,0 +1,1 @@
+RimWorld-style work priorities for base pals: 1 (highest) to 5 (lowest) or X (never) per work type, color-coded on the vanilla work screen. Left/right-click to cycle. Pals work their most important type that has pending work. Unmodded players stay vanilla.

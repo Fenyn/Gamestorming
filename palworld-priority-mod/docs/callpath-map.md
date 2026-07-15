@@ -53,7 +53,14 @@ Pure Blueprint, under `/Game/Pal/Blueprint/UI/UserInterface/IngameMenu/WorkSuita
 - Enumeration note: container `GetSlots()` by-value return fails in UE4SS — use the `SlotArray`
   property (fixed in engine v0.1.1). BP classes need the `_C` suffix for FindAllOf.
 
-## Force-job feature design (in progress, session 8+)
+## Force-job feature (REMOVED 2026-07-14)
+Built and working (interact-bracket targeting via APalMapObject:OnInteractBegin/End, native
+fixed-assign pinning, per-item completion via OnFinishWorkInServer + RemainProductNum), then
+dropped by decision. Force-era sources archived in ../attic/. The WORKTYPE_TO_SUIT station
+work-type map stayed in the engine (it fixes the pending tracker, not force). Discovery facts
+below remain valid if the feature is ever revived.
+
+## Original design notes (historical)
 Goal: player looks at a workstation's active job, presses a key → job is FORCED: filled to its
 slot capacity with the most capable pals, held at top priority until completed.
 - Server: forced set keyed by work GUID. Per forced job:

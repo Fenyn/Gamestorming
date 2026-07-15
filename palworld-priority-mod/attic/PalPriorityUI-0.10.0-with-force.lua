@@ -20,7 +20,7 @@
 --   never in a loop. A cell that fails is simply skipped this tick.
 -- ============================================================================
 
-local VERSION = "0.9.0"
+local VERSION = "0.10.0"
 
 local function log(msg)
     print(string.format("[PalPriorityUI] %s\n", msg))
@@ -45,10 +45,8 @@ local CELL_CLASS = "WBP_WorkSuitabilityPreference_CheckBox_0_C"
 -- Game's own typo "Worl" (not "Work") — keep it exactly, it is the real class name.
 local ROW_CLASS  = "WBP_WorlSuitabilityPreference_PalList_C"
 local WORK_MAX   = 13 -- highest valid EPalWorkSuitability value
-
--- DEBUG: enables the dev diagnostics (F10 UI pipeline dump). Ships false in
--- release; flip to true when the overlay misbehaves after a game patch.
-local DEBUG = false
+-- Base-camp overhead HUD canvas — host for the F6 force-job indicator (below).
+local INFO_CANVAS_CLASS = "WBP_QuestAndBaseCampInfoCanvas_C"
 
 -- ---------------------------------------------------------------------------
 -- Pal-key helpers — MUST match the engine's exactly, or keys won't line up with
@@ -195,36 +193,13 @@ local function makeFText(str)
     return nil
 end
 
--- Priority colors (RimWorld scale: 1 = most important). Green fades through
--- yellow/orange to red as importance drops; X (never) is neutral gray.
-local PRIO_COLORS = {
-    ["1"] = { R = 0.25, G = 0.90, B = 0.25 },
-    ["2"] = { R = 0.60, G = 0.88, B = 0.20 },
-    ["3"] = { R = 0.95, G = 0.85, B = 0.15 },
-    ["4"] = { R = 0.95, G = 0.55, B = 0.10 },
-    ["5"] = { R = 0.90, G = 0.25, B = 0.15 },
-    ["X"] = { R = 0.62, G = 0.62, B = 0.62 },
-}
-
--- Set a cell's overlay text (and its matching color), only through the
--- changed-value gate below — the caller compares against lastText first, so we
--- don't rebuild an FText or restyle every 500ms.
+-- Set a cell's overlay text, but only through the changed-value gate below. Caches
+-- the last string so we don't rebuild/SetText an FText every 500ms.
 local function setText(tb, cellName, str)
     local ft = makeFText(str)
     if ft == nil then return end
     local ok = pcall(function() tb:SetText(ft) end)
-    if ok then
-        lastText[cellName] = str
-        local c = PRIO_COLORS[str]
-        if c then
-            pcall(function()
-                tb:SetColorAndOpacity({
-                    SpecifiedColor = { R = c.R, G = c.G, B = c.B, A = 1.0 },
-                    ColorUseRule = 0,
-                })
-            end)
-        end
-    end
+    if ok then lastText[cellName] = str end
 end
 
 -- ---------------------------------------------------------------------------
@@ -268,6 +243,28 @@ local menuLikelyOpen = false
 local menuRef = nil -- cached menu widget while open (avoids FindAllOf per tick)
 local uiInternal = false -- true while WE call the toggle RPC (right-click path)
 local helloSent = false  -- PrioMod_Ping announced this session
+
+-- ---------------------------------------------------------------------------
+-- Force-job (F6) state. The station-HUD hook captures the most-recently-viewed
+-- station job's WorkId; F6 sends it to the engine to force/un-force. All plain
+-- Lua state (no UObject refs) except the injected indicator widget below.
+-- ---------------------------------------------------------------------------
+local lookedJob = nil        -- { raw = {A,B,C,D}, at = os.clock(), actor = fullname }
+-- Backstop TTL only: the interact bracket (OnInteractBegin/End) is authoritative —
+-- End clears the latch when the player looks away. The TTL just caps a latch
+-- whose End event we somehow missed.
+local LOOKED_TTL = 120
+local lookedLogged = false   -- logged the first capture this session (test signal)
+local forceMsgAt = nil       -- os.clock() of the last F6 send (drives "sent" indicator)
+local FORCE_MSG_WINDOW = 3   -- seconds to show "Force toggle sent"
+local forceIndicator = nil   -- injected TextBlock on the base-camp HUD (revalidated)
+local forceIndicatorText = nil -- last string SetText'd on the indicator (churn guard)
+
+-- Is there a fresh looked-at station job? Plain Lua read — safe to call from the
+-- poll short-circuit without a game-thread hop.
+local function lookedFresh()
+    return lookedJob ~= nil and (os.clock() - lookedJob.at) < LOOKED_TTL
+end
 
 local ROW_BP_CLASS = "/Game/Pal/Blueprint/UI/UserInterface/IngameMenu/WorkSuitabilityPreference/WBP_WorlSuitabilityPreference_PalList.WBP_WorlSuitabilityPreference_PalList_C"
 local ROW_BIND_FN = ROW_BP_CLASS .. ":BindFromSlot"
@@ -632,12 +629,122 @@ local function menuIsShowing()
     return false
 end
 
+-- ---------------------------------------------------------------------------
+-- Force-job on-screen indicator. A single TextBlock injected into the base-camp
+-- overhead HUD canvas's VerticalBox. Reuses makeFText / isShowing / logOnce.
+-- ---------------------------------------------------------------------------
+
+-- What the indicator should read right now: the "sent" flash wins for 3s, then a
+-- fresh looked-at job shows the prompt, else empty.
+local function forceIndicatorDesired()
+    if forceMsgAt and (os.clock() - forceMsgAt) < FORCE_MSG_WINDOW then
+        return "Force toggle sent"
+    end
+    if lookedFresh() then
+        return "[F6] Force job"
+    end
+    return ""
+end
+
+-- Find the visible base-camp info canvas (skip Default__ CDO; IsVisible-tolerant
+-- like menuIsShowing). Multiple instances can coexist — take a visible one.
+local function findInfoCanvas()
+    local list = nil
+    pcall(function() list = FindAllOf(INFO_CANVAS_CLASS) end)
+    if not list then return nil end
+    for _, c in ipairs(list) do
+        if alive(c) then
+            local cname = nil
+            pcall(function() cname = c:GetFullName() end)
+            if cname and not cname:find("Default__", 1, true) and isShowing(c) then
+                return c
+            end
+        end
+    end
+    return nil
+end
+
+-- Ensure the indicator TextBlock exists on the current info canvas; returns it or
+-- nil. Cached + alive()-revalidated; re-injected when stale (HUD rebuilt/GC'd).
+local function ensureForceIndicator()
+    if forceIndicator and alive(forceIndicator) then return forceIndicator end
+    forceIndicator = nil
+    forceIndicatorText = nil
+
+    local canvas = findInfoCanvas()
+    if not canvas then return nil end
+
+    local vbox = nil
+    pcall(function() vbox = canvas.VerticalBox end) -- ObjectProperty, alive-gated
+    if not alive(vbox) then return nil end
+
+    local tbClass = nil
+    pcall(function() tbClass = StaticFindObject("/Script/UMG.TextBlock") end)
+    if not tbClass then return nil end
+
+    -- Own the widget by the canvas's WidgetTree so it lives with the HUD.
+    local tree = nil
+    pcall(function() tree = canvas.WidgetTree end)
+    local outer = alive(tree) and tree or vbox
+    local tb = nil
+    pcall(function() tb = StaticConstructObject(tbClass, outer) end)
+    if not alive(tb) then return nil end
+
+    local added = pcall(function() vbox:AddChild(tb) end)
+    if not added then
+        logOnce("forceind", "force indicator injection failed — F6 still works, no on-screen prompt")
+        return nil
+    end
+
+    pcall(function() tb:SetVisibility(3) end) -- HitTestInvisible: never eat clicks
+    pcall(function()
+        tb:SetColorAndOpacity({
+            SpecifiedColor = { R = 1.0, G = 0.85, B = 0.1, A = 1.0 }, -- gold, like the cells
+            ColorUseRule = 0,
+        })
+    end)
+    pcall(function() tb:SetShadowOffset({ X = 1, Y = 1 }) end)
+
+    forceIndicator = tb
+    forceIndicatorText = nil
+    return tb
+end
+
+-- Sync the indicator text to forceIndicatorDesired(). When empty we only blank an
+-- already-injected widget (never force-create one just to write "").
+local function updateForceIndicator()
+    local desired = forceIndicatorDesired()
+    if desired == "" then
+        if forceIndicator and alive(forceIndicator) and forceIndicatorText ~= "" then
+            local ft = makeFText("")
+            if ft then
+                local ok = pcall(function() forceIndicator:SetText(ft) end)
+                if ok then forceIndicatorText = "" end
+            end
+        end
+        return
+    end
+    local tb = ensureForceIndicator()
+    if not tb then return end
+    if forceIndicatorText ~= desired then
+        local ft = makeFText(desired)
+        if ft then
+            local ok = pcall(function() tb:SetText(ft) end)
+            if ok then forceIndicatorText = desired end
+        end
+    end
+end
+
 local function tickBody()
     -- Heartbeat: proves game-thread hops still process for this mod.
     logOnce("alive-hop", "poll loop game-thread hop alive")
 
     -- 0. Keep trying to register the BindFromSlot hook until the BP class loads.
     tryHookBind()
+
+    -- 0b. Force-job indicator lives on the always-on base-camp HUD, so update it
+    -- BEFORE the work-suitability-menu gate below (it shows without that menu).
+    pcall(updateForceIndicator)
 
     -- 1. Only do work while the vanilla screen is actually showing. When it is
     -- not, drop the open-flag so the loop goes back to zero-cost idle until the
@@ -698,6 +805,124 @@ pcall(function()
     end)
     log(ok and "HOOK OK toggle attestation (left-click marker)"
         or ("HOOK FAILED toggle attestation: " .. tostring(err)))
+end)
+
+-- ---------------------------------------------------------------------------
+-- Looked-at station-job capture (for F6 force), via the game's own interact-
+-- targeting bracket: APalMapObject:OnInteractBegin fires when the player targets
+-- a station (the interact-prompt moment), OnInteractEnd when they look away.
+-- From the station actor: GetModel() -> .ConcreteModel -> GetWorkeeModule()
+-- (base-class accessor: covers every station type) -> GetWork() -> GetWorkId().
+-- All native members (header-verified), alive-gated per hop. This replaced the
+-- earlier OnReadyStatusHUDModule capture, which fires only ONCE per station per
+-- session (module setup), leaving F6 with a stale latch on re-approach.
+-- ---------------------------------------------------------------------------
+local function resolveActorJob(actor)
+    if not alive(actor) then return nil end
+    local model = nil
+    pcall(function() model = actor:GetModel() end)
+    if not alive(model) then return nil end
+    local concrete = nil
+    pcall(function() concrete = model.ConcreteModel end)
+    if not alive(concrete) then return nil end
+    local module = nil
+    pcall(function() module = concrete:GetWorkeeModule() end)
+    if not alive(module) then return nil end
+    local work = nil
+    pcall(function() work = module:GetWork() end)
+    if not alive(work) then return nil end
+    local g = nil
+    pcall(function() g = work:GetWorkId() end)
+    if g == nil then return nil end
+    local raw = nil
+    pcall(function() raw = { A = g.A, B = g.B, C = g.C, D = g.D } end)
+    return raw
+end
+
+pcall(function()
+    local ok, err = pcall(function()
+        RegisterHook("/Script/Pal.PalMapObject:OnInteractBegin",
+            function(Context, Other, Component)
+                pcall(function()
+                    local actor = Context:get()
+                    if not alive(actor) then return end
+                    -- NOTE (multiplayer, later): Other is the interacting actor;
+                    -- on a shared host this fires for other players too. Filter by
+                    -- comparing Other to the local pawn when we deploy to the server.
+                    local raw = resolveActorJob(actor)
+                    if not raw then return end -- interactable without a job (chest etc.)
+                    local aname = nil
+                    pcall(function() aname = actor:GetFullName() end)
+                    -- Store the RAW ints verbatim (F6 forwards them unchanged; the
+                    -- engine normalizes when building the work key).
+                    lookedJob = { raw = raw, at = os.clock(), actor = aname }
+                    if not lookedLogged then
+                        lookedLogged = true
+                        log("station job targeted — press F6 to force it")
+                    end
+                end)
+            end)
+    end)
+    log(ok and "HOOK OK OnInteractBegin (station targeting)"
+        or ("HOOK FAILED OnInteractBegin: " .. tostring(err)))
+
+    local ok2, err2 = pcall(function()
+        RegisterHook("/Script/Pal.PalMapObject:OnInteractEnd",
+            function(Context, Other, Component)
+                pcall(function()
+                    if lookedJob == nil then return end
+                    local actor = Context:get()
+                    if not alive(actor) then return end
+                    local aname = nil
+                    pcall(function() aname = actor:GetFullName() end)
+                    -- Only clear the latch if it's THIS station losing focus.
+                    if aname and lookedJob.actor == aname then
+                        lookedJob = nil
+                    end
+                end)
+            end)
+    end)
+    log(ok2 and "HOOK OK OnInteractEnd (station targeting)"
+        or ("HOOK FAILED OnInteractEnd: " .. tostring(err2)))
+end)
+
+-- ---------------------------------------------------------------------------
+-- F6 force toggle. When a fresh station job is in view, stage its WorkId as four
+-- raw int32s (PrioMod_FGA..FGD) then commit (PrioMod_ForceToggle) over the same
+-- attested transport the rest of the mod uses. The engine forces/un-forces that
+-- job. Keybind callbacks run on the game thread (same as the right-click path).
+-- ---------------------------------------------------------------------------
+pcall(function()
+    RegisterKeyBind(Key.F6, function()
+        local ok, err = pcall(function()
+            if not lookedFresh() then
+                log("no station job in view (approach the station so its HUD shows)")
+                return
+            end
+            local raw = lookedJob.raw
+            local comp = FindFirstOf("PalNetworkBaseCampComponent")
+            if not alive(comp) then
+                logOnce("f6-comp", "F6 force: no PalNetworkBaseCampComponent found")
+                return
+            end
+            local zero = { A = 0, B = 0, C = 0, D = 0 }
+            local sent = pcall(function()
+                comp:Request_Server_int32(zero, FName("PrioMod_FGA"), raw.A)
+                comp:Request_Server_int32(zero, FName("PrioMod_FGB"), raw.B)
+                comp:Request_Server_int32(zero, FName("PrioMod_FGC"), raw.C)
+                comp:Request_Server_int32(zero, FName("PrioMod_FGD"), raw.D)
+                comp:Request_Server_int32(zero, FName("PrioMod_ForceToggle"), 1)
+            end)
+            if sent then
+                forceMsgAt = os.clock()
+                log("force toggle sent")
+            else
+                logOnce("f6-send", "F6 force: transport send failed")
+            end
+        end)
+        if not ok then logOnce("f6", "F6 handler error: " .. tostring(err)) end
+    end)
+    log("F6 force-job bound")
 end)
 
 -- ---------------------------------------------------------------------------
@@ -776,7 +1001,6 @@ end)
 -- silent skip is eating the overlay when numbers don't render.
 -- ---------------------------------------------------------------------------
 pcall(function()
-    if not DEBUG then return end -- dev-only diagnostic (see DEBUG flag at top)
     RegisterKeyBind(Key.F10, function()
         local ok, err = pcall(function()
             log("=== F10 DIAG ===")
@@ -874,7 +1098,13 @@ pcall(function()
             -- Zero-cost idle: while the hook is registered and no screen-open
             -- signal has fired, don't even hop to the game thread. (Before the
             -- hook registers we must hop — tryHookBind needs the game thread.)
-            if bindHooked and not menuLikelyOpen then return end
+            -- EXCEPTION: keep hopping while a looked-at job is fresh or the force
+            -- indicator still has text to show/clear — the indicator lives on the
+            -- base HUD, independent of the work-suitability menu. All plain Lua
+            -- reads, so the idle check itself stays free.
+            local indicatorActive = lookedFresh()
+                or (forceIndicatorText ~= nil and forceIndicatorText ~= "")
+            if bindHooked and not menuLikelyOpen and not indicatorActive then return end
             ExecuteInGameThread(function()
                 local okt, errt = pcall(tickBody)
                 if not okt then logOnce("tick", "tick error: " .. tostring(errt)) end
@@ -913,4 +1143,4 @@ pcall(function()
     end)
 end)
 
-log(string.format("v%s ready. Poll 500ms; display-only overlay.", VERSION))
+log(string.format("v%s ready. Poll 500ms; number overlay + F6 force-job.", VERSION))

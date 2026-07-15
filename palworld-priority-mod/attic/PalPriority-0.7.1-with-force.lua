@@ -20,7 +20,7 @@
 --   are logged once (never in a retry loop). Prefer skip-and-log over retry.
 -- ============================================================================
 
-local VERSION = "0.7.0"
+local VERSION = "0.7.1"
 
 -- CYCLE_MODE: when true, a genuine user toggle on the vanilla work screen CYCLES
 -- that work type's priority 0->1->2->3->4->5->0 (auto-configuring the pal on the
@@ -28,10 +28,6 @@ local VERSION = "0.7.0"
 -- (off -> prio 0, on -> prio 3-if-0) which is what an UNMODDED client sees, since
 -- an unmodded client can only send true/false and cannot show a cycle number.
 local CYCLE_MODE = true
-
--- DEBUG: enables the dev diagnostics (F9 roster dump). Ships false in release;
--- flip to true when hunting a bug or re-verifying hooks after a game patch.
-local DEBUG = false
 
 local function log(msg)
     -- Single choke-point so the tag + newline format is consistent everywhere.
@@ -80,10 +76,8 @@ local CLASS_TYPE_MAP = {
 -- EPalWorkType (the job's OverrideWorkType enum) -> EPalWorkSuitability. Station
 -- jobs (PalWorkProgress) don't match CLASS_TYPE_MAP and their assign-info out-param
 -- is unreliable, but they DO carry a plain OverrideWorkType enum (VERIFIED: workbench
--- job reported 12 = ConvertItem). Without this map the pending tracker is blind to
--- all station work (crafting, smelting, cooking...), which skews the priority bar.
--- Key = EPalWorkType int; value = EPalWorkSuitability (1-13). Enum indices confirmed
--- against the game's EPalWorkType declaration order.
+-- job reported 12). Key = EPalWorkType int; value = EPalWorkSuitability (1-13).
+-- Enum indices confirmed against the game's EPalWorkType declaration order.
 local WORKTYPE_TO_SUIT = {
     [3]=5,[4]=5,[5]=6,[6]=6,[7]=12,[8]=3,[9]=2,[10]=1,[11]=12,[12]=5,[13]=5,
     [14]=1,[15]=10,[16]=12,[17]=6,[18]=7,[19]=8,[20]=7,[21]=8,[22]=4,[23]=1,
@@ -114,6 +108,14 @@ local BAR_HOLD_SECONDS = 10    -- how long a higher bar persists after its pendi
 local managedCache = {}        -- palKey -> { set={[t]=true}, at=os.clock() } suitability cache
 local MANAGED_TTL_SECONDS = 60 -- suitabilities barely change; skip 13 reflection calls/pal/tick
 local CONFIG_PATH = "Mods/PalPriority/priorities.lua" -- resolved for real at startup
+-- Force-job state (F6 feature). workKeyStr -> forced job descriptor. See the
+-- "Force-job" section below and ../docs/callpath-map.md. Empty in normal play.
+local forced = {}              -- workKeyStr -> { type, at, campRaw, workRaw, pinned={ [palKey]={raw} } }
+-- Per-component staging of a forced job's WorkId, mirroring pendingDirByComp: the
+-- client sends the four RAW int32s as PrioMod_FGA..FGD, then PrioMod_ForceToggle
+-- commits. Keyed by component full name so senders don't cross-consume. Stale >5s.
+local pendingForceByComp = {}  -- compFullName -> { a, b, c, d, at=os.clock() }
+local FORCE_STAGE_TTL = 5
 
 -- ---------------------------------------------------------------------------
 -- Small helpers
@@ -234,9 +236,8 @@ local CONFIG_HEADER = [==[
 --     },
 --   }
 --
--- PRIORITY (RimWorld scale): 0 = never do this work. 1 = most important,
---   5 = least important. A pal only works its most-important types that
---   currently have pending work.
+-- PRIORITY: 0 = never do this work. 1-5 = higher wins. A pal only works its
+--   highest-priority types that currently have pending work.
 -- WORK TYPES: 1 EmitFlame(Kindling) 2 Watering 3 Seeding 4 GenerateElectricity
 --   5 Handcraft 6 Collection 7 Deforest 8 Mining 9 OilExtraction
 --   10 ProductMedicine 11 Cool 12 Transport 13 MonsterFarm
@@ -410,13 +411,14 @@ local function getWorkType(w)
     local ct = typeFromClassName(name)
     if ct then return ct end
 
-    -- Station jobs: resolve via the plain OverrideWorkType enum (safe property
-    -- read, VERIFIED populated) mapped through WORKTYPE_TO_SUIT.
-    local wt = nil
-    pcall(function() wt = w.OverrideWorkType end)
-    if type(wt) == "number" then
-        local mapped = WORKTYPE_TO_SUIT[wt]
-        if mapped then return mapped end
+    -- Station jobs carry a plain OverrideWorkType enum (EPalWorkType) — a safe
+    -- plain-value read (no object refs). Map it to EPalWorkSuitability. This is
+    -- what makes PalWorkProgress station jobs resolvable at all (VERIFIED: 12).
+    local owt = nil
+    pcall(function() owt = w.OverrideWorkType end)
+    if type(owt) == "number" then
+        local suit = WORKTYPE_TO_SUIT[owt]
+        if suit and suit >= WORK_MIN and suit <= WORK_MAX then return suit end
     end
 
     local found = nil
@@ -572,21 +574,29 @@ local function findPalByKey(key)
     return foundId, foundParam
 end
 
+-- Revalidate + return the cached base-camp component (our RPC caller). It can be
+-- GC'd/recreated on level transitions, and calling into a stale wrapper is a
+-- native crash, so re-check alive() every time. Returns nil (logged once) when
+-- none is available yet.
+local function getCampComp()
+    if campComp and not alive(campComp) then campComp = nil end
+    local comp = campComp or FindFirstOf("PalNetworkBaseCampComponent")
+    if not alive(comp) then
+        logOnce("nocomp", "no PalNetworkBaseCampComponent available yet — cannot send RPC")
+        return nil
+    end
+    campComp = comp
+    return comp
+end
+
 -- ---------------------------------------------------------------------------
 -- The write lever: send one off-list toggle via the vanilla RPC.
 -- bOn == true  -> enable the type (remove from off-list)
 -- bOn == false -> disable the type (add to off-list)
 -- ---------------------------------------------------------------------------
 local function sendToggle(raw, t, bOn)
-    -- Revalidate the cached component every send: it can be GC'd/recreated on
-    -- level transitions, and calling into a stale wrapper is a native crash.
-    if campComp and not alive(campComp) then campComp = nil end
-    local comp = campComp or FindFirstOf("PalNetworkBaseCampComponent")
-    if not alive(comp) then
-        logOnce("nocomp", "no PalNetworkBaseCampComponent available yet — cannot send RPC")
-        return false
-    end
-    campComp = comp
+    local comp = getCampComp()
+    if not comp then return false end
     local ok, err = pcall(function()
         -- Reentrancy: our own RPC re-enters the RequestChangeWorkSuitability hook
         -- synchronously (listen-server ProcessEvent), so flag it to be ignored.
@@ -631,8 +641,9 @@ end
 -- ---------------------------------------------------------------------------
 -- Supervisor: reconcile one configured pal toward its desired enabled set.
 -- ---------------------------------------------------------------------------
-local function reconcilePal(id, param, pendingByType)
+local function reconcilePal(id, param, pendingByType, forcedTypes)
     if not param then return end
+    forcedTypes = forcedTypes or {}
     local key = palKey(id.PlayerUId, id.InstanceId)
     local cfg = config.pals[key]
     if not cfg then return end -- unconfigured pals stay fully vanilla
@@ -664,56 +675,70 @@ local function reconcilePal(id, param, pendingByType)
         if p >= 1 then eligible[t] = p end
     end
 
-    -- RIMWORLD SCALE: 1 is the MOST important, 5 the least. The "bar" is the
-    -- numerically LOWEST priority among eligible types with pending work; types
-    -- numerically above the bar (less important) get fenced off.
-    local bar = nil
-    for t, p in pairs(eligible) do
-        if (pendingByType[t] or 0) > 0 then
-            if not bar or p < bar then bar = p end
+    -- FORCE OVERRIDE: if this pal is capable+willing (eligible) of any FORCED work
+    -- type, its desired-enabled set collapses to exactly those forced types and the
+    -- bar logic (and its hysteresis state) is skipped entirely for this pal — so
+    -- every capable, willing pal converges on the forced work until it completes.
+    local forcedHit = nil
+    for f in pairs(forcedTypes) do
+        if eligible[f] then
+            forcedHit = forcedHit or {}
+            forcedHit[f] = true
         end
     end
 
-    -- ANTI-WIGGLE 1: the pal's CURRENT assignment counts as pending for it. The
-    -- event-based pending tracker only sees UNFILLED jobs — the moment this pal
-    -- takes the last transport job, transport stops "pending", the bar collapses,
-    -- and lower-priority types reopen mid-task. Counting the active job keeps the
-    -- bar up while the pal is actually doing high-priority work.
-    pcall(function()
-        local cur = param:GetCurrentWorkSuitability()
-        if type(cur) == "number" and eligible[cur] then
-            if not bar or eligible[cur] < bar then bar = eligible[cur] end
-        end
-    end)
-
-    -- ANTI-WIGGLE 2: hysteresis. A bar only relaxes (numerically rises) after
-    -- BAR_HOLD_SECONDS of genuinely nothing at its level — bridging the seconds
-    -- between finishing one job and the next "need a worker" event, which
-    -- otherwise flip-flops lower-priority types every tick.
-    local now = os.clock()
-    local hold = barHold[key]
-    if bar ~= nil then
-        if hold == nil or bar <= hold.bar or (now - hold.at) >= BAR_HOLD_SECONDS then
-            barHold[key] = { bar = bar, at = now }
-        else
-            bar = hold.bar -- recent stronger (lower) bar still holds
-        end
-    else
-        if hold and (now - hold.at) < BAR_HOLD_SECONDS then
-            bar = hold.bar
-        else
-            barHold[key] = nil
-        end
-    end
-
-    -- desiredEnabled: if nothing pending, allow all eligible; otherwise only the
-    -- eligible types at least as important as the bar (numerically <=).
     local desiredEnabled = {}
-    if bar == nil then
-        for t in pairs(eligible) do desiredEnabled[t] = true end
+    if forcedHit then
+        desiredEnabled = forcedHit
     else
+        -- Among eligible types that have pending work, find the max priority (the bar).
+        local maxp = nil
         for t, p in pairs(eligible) do
-            if p <= bar then desiredEnabled[t] = true end
+            if (pendingByType[t] or 0) > 0 then
+                if not maxp or p > maxp then maxp = p end
+            end
+        end
+
+        -- ANTI-WIGGLE 1: the pal's CURRENT assignment counts as pending for it. The
+        -- event-based pending tracker only sees UNFILLED jobs — the moment this pal
+        -- takes the last transport job, transport stops "pending", the bar collapses,
+        -- and lower-priority types reopen mid-task. Counting the active job keeps the
+        -- bar up while the pal is actually doing high-priority work.
+        pcall(function()
+            local cur = param:GetCurrentWorkSuitability()
+            if type(cur) == "number" and eligible[cur] then
+                if not maxp or eligible[cur] > maxp then maxp = eligible[cur] end
+            end
+        end)
+
+        -- ANTI-WIGGLE 2: hysteresis. A bar only drops after BAR_HOLD_SECONDS of
+        -- genuinely nothing at that level — bridging the seconds between finishing
+        -- one job and the next "need a worker" event, which otherwise flip-flops
+        -- lower-priority types every tick.
+        local now = os.clock()
+        local hold = barHold[key]
+        if maxp ~= nil then
+            if hold == nil or maxp >= hold.bar or (now - hold.at) >= BAR_HOLD_SECONDS then
+                barHold[key] = { bar = maxp, at = now }
+            else
+                maxp = hold.bar -- recent higher bar still holds
+            end
+        else
+            if hold and (now - hold.at) < BAR_HOLD_SECONDS then
+                maxp = hold.bar
+            else
+                barHold[key] = nil
+            end
+        end
+
+        -- desiredEnabled: if nothing pending, allow all eligible; otherwise only the
+        -- eligible types at/above the bar.
+        if maxp == nil then
+            for t in pairs(eligible) do desiredEnabled[t] = true end
+        else
+            for t, p in pairs(eligible) do
+                if p >= maxp then desiredEnabled[t] = true end
+            end
         end
     end
 
@@ -749,26 +774,272 @@ local function reconcilePal(id, param, pendingByType)
     end
 end
 
+-- ---------------------------------------------------------------------------
+-- Force-job: pin the most capable pals onto a station's job and hold its work
+-- type at top priority for capable pals until the job completes. Driven by the
+-- client's F6 via the PrioMod_FG*/PrioMod_ForceToggle transport. See the design
+-- notes in ../docs/callpath-map.md ("Force-job feature design").
+-- ---------------------------------------------------------------------------
+
+-- The set of currently-forced work types, for reconcilePal enforcement.
+local function buildForcedTypes()
+    local ft = {}
+    for _, st in pairs(forced) do
+        if st.type then ft[st.type] = true end
+    end
+    return ft
+end
+
+-- Locate a live work object by its workKey string. Station jobs are
+-- PalWorkProgress instances (VERIFIED); also try PalWorkBase (may find nothing).
+local function findWorkByKey(wkStr)
+    local match = nil
+    local function scan(className)
+        if match then return end
+        local list = nil
+        pcall(function() list = FindAllOf(className) end)
+        if not list then return end
+        for _, w in ipairs(list) do
+            if alive(w) then
+                local ok, k = pcall(workKey, w)
+                if ok and k == wkStr then match = w; return end
+            end
+        end
+    end
+    scan("PalWorkProgress")
+    scan("PalWorkBase")
+    return match
+end
+
+-- Force ON: fill the job to slot capacity with the most capable pals and record
+-- the forced state. rawABCD = the four RAW (verbatim) int32s of the work's FGuid.
+local function forceOn(wkStr, rawABCD)
+    local w = findWorkByKey(wkStr)
+    if not alive(w) then
+        log("force ON " .. wkStr .. ": live work not found — ignoring")
+        return
+    end
+
+    local t = getWorkType(w)
+    if not t then
+        log("force ON " .. wkStr .. ": work type unresolved — ignoring")
+        return
+    end
+
+    -- Camp id (plain FGuid property). Keep raw ints (for RPCs) + normalized string.
+    local campRaw, campStr = nil, nil
+    pcall(function()
+        local g = w.BaseCampIdBelongTo
+        campRaw = { A = g.A, B = g.B, C = g.C, D = g.D }
+        campStr = string.format("%08X%08X%08X%08X", norm(g.A), norm(g.B), norm(g.C), norm(g.D))
+    end)
+
+    -- Slot fill: count free slots via the (UNVERIFIED) assign-info out-param.
+    -- Free = entries whose WorkAssign is alive and IsAssigned()==false; total =
+    -- entry count. On any failure, assume exactly one free slot (log once).
+    local freeSlots, totalSlots, gotInfo = 1, 1, false
+    pcall(function()
+        local outArr = {}
+        local ret = w:GetWorkAssignInfo(outArr)
+        local arr = ret
+        if arr == nil then arr = outArr end
+        local total, free = 0, 0
+        arrayForEach(arr, function(entry)
+            total = total + 1
+            local isFree = false
+            pcall(function()
+                local wa = entry.WorkAssign
+                if alive(wa) and wa:IsAssigned() == false then isFree = true end
+            end)
+            if isFree then free = free + 1 end
+        end)
+        if total > 0 then
+            gotInfo = true
+            totalSlots, freeSlots = total, free
+        end
+    end)
+    if not gotInfo then
+        logOnce("forceslots", "force: GetWorkAssignInfo unusable — assuming 1 free slot")
+        freeSlots, totalSlots = 1, 1
+    end
+
+    -- Candidate pals: every base pal that HAS the work suitability, matching the
+    -- job's camp when the director camp is readable, and not explicitly barred
+    -- (configured prio == 0 = user's "never"; unconfigured/nil is eligible).
+    local candidates = {}
+    local dirs = nil
+    pcall(function() dirs = FindAllOf("PalBaseCampWorkerDirector") end)
+    if dirs then
+        for _, dir in ipairs(dirs) do
+            local dirCampStr = nil
+            pcall(function()
+                if alive(dir) then
+                    local g = dir.BaseCampId
+                    dirCampStr = string.format("%08X%08X%08X%08X",
+                        norm(g.A), norm(g.B), norm(g.C), norm(g.D))
+                end
+            end)
+            -- Camp match only when BOTH sides are readable; otherwise accept.
+            if not (campStr and dirCampStr and campStr ~= dirCampStr) then
+                enumerateDir(dir, function(_, id, param)
+                    if not param then return end
+                    local hasIt = false
+                    pcall(function() hasIt = param:HasWorkSuitability(t) end)
+                    if not hasIt then return end
+                    local key = palKey(id.PlayerUId, id.InstanceId)
+                    local cfg = config.pals[key]
+                    if cfg and cfg.prio[t] == 0 then return end -- explicit never
+
+                    local okr, raw = pcall(extractRaw, id)
+                    if not okr then return end
+
+                    local rank = 1
+                    pcall(function()
+                        local r = param:GetWorkSuitabilityRankWithCharacterRank(t)
+                        if type(r) == "number" then rank = r end
+                    end)
+                    -- Tiebreak: prefer stealing pals doing cheaper current work.
+                    -- Its configured prio (or 3 if unconfigured); idle/none = 0.
+                    local curPrio = 0
+                    pcall(function()
+                        local cur = param:GetCurrentWorkSuitability()
+                        if type(cur) == "number" and cur > 0 then
+                            curPrio = (cfg and cfg.prio[cur]) or 3
+                        end
+                    end)
+                    candidates[#candidates + 1] =
+                        { key = key, raw = raw, rank = rank, curPrio = curPrio }
+                end)
+            end
+        end
+    end
+
+    -- Rank descending by capability, then ascending by current-work priority.
+    table.sort(candidates, function(a, b)
+        if a.rank ~= b.rank then return a.rank > b.rank end
+        return a.curPrio < b.curPrio
+    end)
+
+    local comp = getCampComp()
+    if not comp then return end
+
+    local campTable = { A = 0, B = 0, C = 0, D = 0 }
+    if campRaw then campTable = { A = campRaw.A, B = campRaw.B, C = campRaw.C, D = campRaw.D } end
+    local workTable = { A = rawABCD[1], B = rawABCD[2], C = rawABCD[3], D = rawABCD[4] }
+
+    local pinned = {}
+    local nPin = math.min(freeSlots, #candidates)
+    for i = 1, nPin do
+        local c = candidates[i]
+        local ok = pcall(function()
+            -- internalCall guard (same discipline as sendToggle) — belt-and-braces
+            -- in case this RPC re-enters a hooked path synchronously.
+            internalCall = true
+            comp:RequestFixedAssignWorkInBaseCamp_ToServer(
+                campTable, workTable,
+                { PlayerUId = c.raw.PlayerUId, InstanceId = c.raw.InstanceId, DebugName = "" })
+            internalCall = false
+        end)
+        internalCall = false
+        if ok then
+            pinned[c.key] = { raw = c.raw }
+        else
+            logOnce("forcepin", "force: RequestFixedAssignWorkInBaseCamp RPC failed")
+        end
+    end
+
+    local np = 0
+    for _ in pairs(pinned) do np = np + 1 end
+    forced[wkStr] = { type = t, at = os.clock(), campRaw = campRaw, workRaw = workTable, pinned = pinned }
+    log(string.format("force ON %s type=%s pinned=%d/%d",
+        wkStr, WORKNAME[t] or ("type" .. t), np, totalSlots))
+end
+
+-- Force OFF: unpin every pinned pal and drop the forced record.
+local function forceOff(wkStr)
+    local st = forced[wkStr]
+    if not st then return end
+    local comp = getCampComp()
+    if comp then
+        local campTable = st.campRaw
+            and { A = st.campRaw.A, B = st.campRaw.B, C = st.campRaw.C, D = st.campRaw.D }
+            or { A = 0, B = 0, C = 0, D = 0 }
+        local workTable = st.workRaw or { A = 0, B = 0, C = 0, D = 0 }
+        for _, p in pairs(st.pinned or {}) do
+            pcall(function()
+                internalCall = true
+                comp:RequestUnassignWorkInBaseCamp_ToServer(
+                    campTable, workTable,
+                    { PlayerUId = p.raw.PlayerUId, InstanceId = p.raw.InstanceId, DebugName = "" })
+                internalCall = false
+            end)
+            internalCall = false
+        end
+    end
+    forced[wkStr] = nil
+    log("force OFF " .. wkStr)
+end
+
+-- Toggle: un-force if already forced (looked-at job), else force.
+local function forceToggle(wkStr, rawABCD)
+    if forced[wkStr] then
+        forceOff(wkStr)
+    else
+        forceOn(wkStr, rawABCD)
+    end
+end
+
+-- Completion watch: a forced job whose work object has vanished from the live
+-- PalWorkProgress set has completed — release it (the fixed assignment dies with
+-- the work object; the supervisor reshapes next tick). Only runs when something
+-- is forced, and only releases when we successfully enumerated the live works
+-- (a failed scan must not falsely "complete" every forced job).
+local function forceCompletionWatch()
+    if next(forced) == nil then return end
+    local works = nil
+    pcall(function() works = FindAllOf("PalWorkProgress") end)
+    if not works then return end
+    local live = {}
+    for _, w in ipairs(works) do
+        if alive(w) then
+            local ok, k = pcall(workKey, w)
+            if ok and k then live[k] = true end
+        end
+    end
+    for wkStr in pairs(forced) do
+        if not live[wkStr] then
+            forced[wkStr] = nil
+            log("force COMPLETE " .. wkStr)
+        end
+    end
+end
+
 -- The tick body. Runs ON the game thread (invoked via ExecuteInGameThread).
 local function tickBody()
     -- Heartbeat: proves this mod's async queue survived startup (UE4SS can kill
     -- a mod's engine-tick processing on a "Ref was not function" exception).
     logOnce("alive", "supervisor async loop alive")
+    -- Nothing to do at all -> skip the global object scans entirely. Force jobs
+    -- keep the tick alive even with no configured pals (completion watch below).
+    if next(config.pals) == nil and next(forced) == nil then return end
 
-    -- Nothing configured -> the supervisor has nothing to manage. Skip the
-    -- director enumeration (a global object scan) entirely.
-    if next(config.pals) == nil then return end
+    -- Release any forced job that has completed/vanished.
+    forceCompletionWatch()
 
     local now = os.time()
     prunePending(now)
     local pendingByType = countPendingByType()
+    local forcedTypes = buildForcedTypes()
+
+    -- No configured pals -> nothing to reconcile (pins alone hold the forced job).
+    if next(config.pals) == nil then return end
 
     local dirs = nil
     local okd = pcall(function() dirs = FindAllOf("PalBaseCampWorkerDirector") end)
     if not okd or not dirs then return end
     for _, dir in ipairs(dirs) do
         enumerateDir(dir, function(_, id, param)
-            reconcilePal(id, param, pendingByType)
+            reconcilePal(id, param, pendingByType, forcedTypes)
         end)
     end
 end
@@ -801,6 +1072,15 @@ local function dumpRoster()
             if c > 0 then psum[#psum + 1] = (WORKNAME[t] or ("type" .. t)) .. "=" .. c end
         end
         log("pending work: " .. (#psum > 0 and table.concat(psum, ", ") or "(none)"))
+
+        local fsum = {}
+        for wkStr, st in pairs(forced) do
+            local np = 0
+            for _ in pairs(st.pinned or {}) do np = np + 1 end
+            fsum[#fsum + 1] = string.format("%s[%s]x%d",
+                wkStr, WORKNAME[st.type] or ("type" .. tostring(st.type)), np)
+        end
+        log("forced: " .. (#fsum > 0 and table.concat(fsum, ", ") or "(none)"))
 
         local dirs = nil
         pcall(function() dirs = FindAllOf("PalBaseCampWorkerDirector") end)
@@ -845,12 +1125,10 @@ local function dumpRoster()
                     -- The supervisor's CURRENT decision, computed exactly like
                     -- reconcilePal: which pending type sets the bar, and what
                     -- the desired enable/disable split is right now.
-                    -- RimWorld scale: 1 = most important; the bar is the LOWEST
-                    -- number among pending eligible types.
-                    local bar, barsrc = nil, nil
+                    local maxp, maxsrc = nil, nil
                     for t, p in pairs(eligible) do
-                        if (pendingByType[t] or 0) > 0 and (not bar or p < bar) then
-                            bar, barsrc = p, t
+                        if (pendingByType[t] or 0) > 0 and (not maxp or p > maxp) then
+                            maxp, maxsrc = p, t
                         end
                     end
                     local cur = nil
@@ -861,13 +1139,13 @@ local function dumpRoster()
                     local en, dis = {}, {}
                     for t in pairs(managed) do
                         local p = cfg.prio[t] or 0
-                        local want = p >= 1 and (bar == nil or p <= bar)
+                        local want = p >= 1 and (maxp == nil or p >= maxp)
                         if want then en[#en + 1] = WORKNAME[t] else dis[#dis + 1] = WORKNAME[t] end
                     end
                     table.sort(en); table.sort(dis)
                     log(string.format(
                         "    plan: bar=%s%s cur=%s hold=%s | want-on {%s} | want-off {%s}",
-                        tostring(bar), barsrc and (" via " .. WORKNAME[barsrc]) or "",
+                        tostring(maxp), maxsrc and (" via " .. WORKNAME[maxsrc]) or "",
                         (type(cur) == "number" and WORKNAME[cur]) or "none",
                         hold and string.format("%d(%.0fs)", hold.bar, os.clock() - hold.at) or "none",
                         table.concat(en, ","), table.concat(dis, ",")))
@@ -1090,7 +1368,7 @@ local okB, errB = pcall(function()
                 -- synchronous ProcessEvent); that nested call is filtered above.
                 if fparam then
                     pcall(function()
-                        reconcilePal(fid or id, fparam, countPendingByType())
+                        reconcilePal(fid or id, fparam, countPendingByType(), buildForcedTypes())
                     end)
                 end
             end)
@@ -1137,6 +1415,43 @@ local okC, errC = pcall(function()
                     return
                 end
 
+                -- Force-job WorkId staging (per component, like pendingDirByComp):
+                -- FGA/FGB/FGC/FGD carry the four RAW int32s of the target work's
+                -- FGuid; PrioMod_ForceToggle then commits. Staging is stale >5s.
+                if name == "PrioMod_FGA" or name == "PrioMod_FGB"
+                    or name == "PrioMod_FGC" or name == "PrioMod_FGD" then
+                    if compName then
+                        local st = pendingForceByComp[compName]
+                        if not st or (os.clock() - st.at) >= FORCE_STAGE_TTL then
+                            st = {}
+                            pendingForceByComp[compName] = st
+                        end
+                        st.at = os.clock()
+                        local v = Value:get()
+                        if name == "PrioMod_FGA" then st.a = v
+                        elseif name == "PrioMod_FGB" then st.b = v
+                        elseif name == "PrioMod_FGC" then st.c = v
+                        else st.d = v end
+                    end
+                    return
+                end
+
+                if name == "PrioMod_ForceToggle" then
+                    local st = compName and pendingForceByComp[compName] or nil
+                    if not st or (os.clock() - st.at) >= FORCE_STAGE_TTL
+                        or st.a == nil or st.b == nil or st.c == nil or st.d == nil then
+                        logOnce("forcestale",
+                            "PrioMod_ForceToggle: no fresh/complete staged WorkId — ignoring")
+                        return
+                    end
+                    pendingForceByComp[compName] = nil
+                    -- Build the work key exactly like workKey() (normalized halves).
+                    local wkStr = string.format("%08X%08X%08X%08X",
+                        norm(st.a), norm(st.b), norm(st.c), norm(st.d))
+                    forceToggle(wkStr, { st.a, st.b, st.c, st.d })
+                    return
+                end
+
                 -- TODO: set-priority protocol. Planned encoding (client -> server):
                 --   FunctionName = "PrioMod_SetPrio", Value packs work-type + priority,
                 --   with the target pal identified via a preceding Request_Server_* call
@@ -1151,15 +1466,49 @@ end)
 log(okC and "HOOK OK Request_Server_int32"
     or ("HOOK FAILED Request_Server_int32: " .. tostring(errC)))
 
+-- (D) Job-completion release for forced jobs. Station work objects PERSIST
+-- across jobs (per-station, not per-queue), so the GUID-vanish completion watch
+-- never fires for a finished craft — the real signal is the station model's
+-- OnFinishWorkInServer(Work). It may fire per crafted ITEM, not per queue, so
+-- only release when the model reports nothing left to produce
+-- (RemainProductNum <= 0; if unreadable, release anyway — better to under-force
+-- than to pin pals to a dead job forever).
+local okD, errD = pcall(function()
+    RegisterHook("/Script/Pal.PalMapObjectConvertItemModel:OnFinishWorkInServer",
+        function(Context, Work)
+            local ok, err = pcall(function()
+                if next(forced) == nil then return end
+                local w = Work:get()
+                if not alive(w) then return end
+                local k = workKey(w)
+                if not forced[k] then return end
+
+                local remain = nil
+                pcall(function()
+                    local model = Context:get()
+                    if alive(model) then remain = model.RemainProductNum end
+                end)
+                if type(remain) == "number" and remain > 0 then
+                    logOnce("forceprog:" .. k, string.format(
+                        "forced job %s: item finished, %d remaining — keeping force", k, remain))
+                    return
+                end
+
+                forceOff(k)
+                log("force COMPLETE " .. k .. " (job finished)")
+            end)
+            if not ok then logOnce("finishhook", "OnFinishWorkInServer handler error: " .. tostring(err)) end
+        end)
+end)
+log(okD and "HOOK OK OnFinishWorkInServer (forced-job completion)"
+    or ("HOOK FAILED OnFinishWorkInServer: " .. tostring(errD)))
+
 -- ---------------------------------------------------------------------------
 -- Keybinds
 -- ---------------------------------------------------------------------------
 
 -- F8: reload priorities.lua, reset shadows so the next tick reshapes from scratch.
--- Dev-only: inert in release builds (see the DEBUG flag at the top); manual
--- config edits are picked up at game start.
 pcall(function()
-    if not DEBUG then return end
     RegisterKeyBind(Key.F8, function()
         local ok, err = pcall(function()
             local cfg, lerr = loadConfig(CONFIG_PATH)
@@ -1179,9 +1528,7 @@ pcall(function()
 end)
 
 -- F9: dump the roster (keys, names, priorities, pending) + paste-ready skeletons.
--- Dev-only: inert in release builds (see the DEBUG flag at the top).
 pcall(function()
-    if not DEBUG then return end
     RegisterKeyBind(Key.F9, function()
         dumpRoster()
     end)

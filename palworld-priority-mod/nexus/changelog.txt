@@ -1,0 +1,11 @@
+1.0.0 (2026-07-14)
+- Initial release.
+- Per-pal, per-work-type priorities replacing the vanilla work toggles.
+  RimWorld scale: 1 = most important, 5 = least, X = never.
+- Integrated UI on the Monitoring Stand work screen: color-coded values
+  (green 1 -> yellow -> red 5), left/right-click to cycle.
+- Priority engine with event-driven pending-work tracking (including station jobs:
+  crafting, smelting, cooking, farming) and anti-flip-flop hysteresis.
+- Multiplayer safety: unmodded clients stay fully vanilla; uninstalling the client
+  mod gracefully returns pals to vanilla on/off on next interaction.
+- Config persistence in the mod folder (no save-file writes); F8 reload, F9 diagnostics.

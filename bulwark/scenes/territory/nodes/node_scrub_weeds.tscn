@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndswd"]
+[ext_resource type="Texture2D" uid="uid://ql382v8ud7i8" path="res://assets/tilesets/winlu_exterior/decoration_vegetation.png" id="2_ndswd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_scrub_weeds"]
+atlas = ExtResource("2_ndswd")
+region = Rect2(48, 528, 48, 48)
+
+[node name="NodeScrubWeeds" type="Node2D"]
+z_index = 5
+script = ExtResource("1_ndswd")
+DefinitionId = "scrub_weeds"
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(-24, -24)
+texture = SubResource("AtlasTexture_scrub_weeds")
+centered = false
+
+[node name="Label" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 10
+offset_left = -48.0
+offset_top = -40.0
+offset_right = 48.0
+offset_bottom = -22.0
+horizontal_alignment = 1
+text = "Scrub Weeds"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3

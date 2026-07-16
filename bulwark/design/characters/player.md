@@ -22,8 +22,11 @@ His job, broadly, is to turn this neglected outpost into something worth defendi
 ## Background
 
 A farmhand who joined the army and was sent to reinforce a crumbling frontier outpost on the
-kingdom's border. He arrives with two companions, the elf rogue and the halfling wizard, and
-finds Tharr holding the place together alone.
+kingdom's border. He attended the academy alongside Fenwick, where the two became friends
+despite their different temperaments. The player trained as a fighter while Fenwick studied
+magic in the next hall over. They were assigned to the frontier posting together. He arrives
+with Fenwick in tow, meets Elara on the road, and finds Tharr holding the place together
+alone.
 
 ## Arrival
 

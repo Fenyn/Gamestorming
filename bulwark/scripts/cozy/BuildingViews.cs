@@ -10,6 +10,19 @@ namespace Bulwark.Cozy;
 public sealed class PlanningTableView
 {
     public List<BuildingView> Buildings { get; } = new();
+
+    /// <summary>True when a building is currently under construction (the one-at-a-time constraint —
+    /// commission buttons are already disabled via <see cref="BuildingView.CanCommission"/>; this is
+    /// the seam for the UI to explain WHY).</summary>
+    public bool BuilderBusy { get; set; }
+
+    /// <summary>Display name of the building under construction. Null when <see cref="BuilderBusy"/>
+    /// is false.</summary>
+    public string? BusyBuildingName { get; set; }
+
+    /// <summary>Days remaining until the busy building completes. 0 when <see cref="BuilderBusy"/>
+    /// is false.</summary>
+    public int BusyDaysRemaining { get; set; }
 }
 
 /// <summary>One building's row in the planning table.</summary>
@@ -46,11 +59,22 @@ public sealed class BuildingView
     /// <summary>Declarative effects the next tier would grant (upgrade preview).</summary>
     public List<EffectLineView> NextEffects { get; } = new();
 
-    /// <summary>Construction bundle fully affordable right now.</summary>
+    /// <summary>Construction bundle AND gold cost fully affordable right now.</summary>
     public bool CanCommission { get; set; }
 
-    /// <summary>Next-tier upgrade bundle fully accumulated right now.</summary>
+    /// <summary>Next-tier upgrade bundle fully accumulated AND its gold cost affordable right now.</summary>
     public bool CanUpgrade { get; set; }
+
+    /// <summary>Gold charged for the current target (commission, or advancing into the next tier).
+    /// Paid all-at-once at the Commission/Upgrade step, never contributed piecemeal like the bundle.
+    /// 0 when there is no target (<see cref="HasTarget"/> false) or the target is free (the shipped
+    /// baseline).</summary>
+    public int GoldCost { get; set; }
+
+    /// <summary>True when the party's gold ALONE covers <see cref="GoldCost"/> right now — split out
+    /// from <see cref="CanCommission"/>/<see cref="CanUpgrade"/> so the UI can distinguish "short on
+    /// gold" from "short on materials". Defaults true (vacuously affordable) when there is no target.</summary>
+    public bool CanAffordGold { get; set; } = true;
 }
 
 /// <summary>One item line of a target bundle: how much is committed/available vs required.</summary>

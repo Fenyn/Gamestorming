@@ -49,6 +49,14 @@ text = "Planning Table"
 horizontal_alignment = 1
 theme_type_variation = &"TitleLabel"
 
+[node name="BusyStatus" type="Label" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+text = ""
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"
+
 [node name="Scroll" type="ScrollContainer" parent="Root/Center/Panel/Col"]
 custom_minimum_size = Vector2(720, 520)
 layout_mode = 2

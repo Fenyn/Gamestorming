@@ -1,0 +1,65 @@
+{
+  "id": "tharr_tutorial",
+  "type": "TalkPool",
+  "character": "tharr",
+  "entries": [
+    {
+      "priority": 50,
+      "conditions": {
+        "flags_required": ["intro_complete"],
+        "flags_blocked": ["lodging_quest_started"]
+      },
+      "lines": [
+        { "speaker": "tharr", "text": "Before anything else, the lodging needs mending. The roof has held, but the walls have not. If you intend to sleep under something other than sky tonight, I will need stone and timber." }
+      ]
+    },
+    {
+      "priority": 45,
+      "conditions": {
+        "flags_required": ["lodging_quest_started"],
+        "flags_blocked": ["lodging_repaired"]
+      },
+      "lines": [
+        { "speaker": "tharr", "text": "Fifteen lengths of cut timber. Ten blocks of stone. The forest beyond the gate has both." }
+      ]
+    },
+    {
+      "priority": 40,
+      "conditions": {
+        "flags_required": ["lodging_repaired"],
+        "flags_blocked": ["first_rest"]
+      },
+      "lines": [
+        { "speaker": "tharr", "text": "The lodging holds. You have beds, a roof, and a door that shuts. It is not much, but it is enough for the night." }
+      ]
+    },
+    {
+      "priority": 35,
+      "conditions": {
+        "flags_required": ["first_rest"],
+        "flags_blocked": ["planning_table_shown"]
+      },
+      "lines": [
+        { "speaker": "tharr", "text": "Now that we have a roof that holds, let me show you how we build the rest." },
+        { "speaker": "tharr", "text": "This is the planning table. Every building the outpost needs starts here. You bring the materials, I handle the construction." },
+        { "speaker": "tharr", "text": "Three buildings are ready to go up first. Each one opens a part of the outpost we will need." }
+      ]
+    },
+    {
+      "priority": 30,
+      "conditions": {
+        "flags_required": ["building_under_construction"]
+      },
+      "lines": [
+        { "speaker": "tharr", "text": "The work is underway. Give me another day. Gather what you need for whatever comes next." }
+      ]
+    },
+    {
+      "priority": 0,
+      "conditions": {},
+      "lines": [
+        { "speaker": "tharr", "text": "The walls need mending. Always do." }
+      ]
+    }
+  ]
+}

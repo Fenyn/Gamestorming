@@ -169,7 +169,7 @@ public partial class TerritorySpike : SpikeBase
 
         gs.Sleep(); // day change: daily nodes respawn, one-shot nodes stay gone
         Check("(2) rock respawned on day change", !gs.Territory.IsNodeDepleted(ForestId, "rock_1"));
-        Check("(2) one-shot fallen wood stayed depleted (RespawnsDaily=false)",
+        Check("(2) one-shot fallen wood stayed depleted (RespawnDays=0)",
             gs.Territory.IsNodeDepleted(ForestId, "wood_1"));
         Check("(2) sleeping woke us at the outpost", gs.Territory.CurrentTerritoryId == null);
         Check("(2) harvesting from the outpost rejected", !gs.HarvestResourceNode("rock_1", ToolKind.Pick));

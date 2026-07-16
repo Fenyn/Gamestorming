@@ -1,0 +1,182 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" path="res://scripts/cozy/BuildingInstance.cs" id="1_xhhst"]
+[ext_resource type="TileSet" path="res://assets/tilesets/outpost_tileset.tres" id="2_lv1gi"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/winlu_exterior/fantasy_chimney.png" id="3_ydivd"]
+[ext_resource type="PackedScene" path="res://scenes/props/fireplace.tscn" id="4_4mnal"]
+[ext_resource type="Script" path="res://scripts/props/AmbientProp.cs" id="5_wmr8m"]
+[ext_resource type="SpriteFrames" path="res://assets/props/fireplace_cauldron.tres" id="6_lckq1"]
+[ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="7_1r2i8"]
+[ext_resource type="Script" path="res://scripts/props/Door.cs" id="8_g3ct2"]
+[ext_resource type="SpriteFrames" path="res://assets/props/door_ext_plank.tres" id="9_eh0k5"]
+[ext_resource type="PackedScene" path="res://scenes/props/lamp.tscn" id="10_n24q0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y7ptw"]
+size = Vector2(240, 48)
+
+[node name="Kitchen" type="Node2D" unique_id=2014668713]
+script = ExtResource("1_xhhst")
+
+[node name="Stages" type="Node2D" parent="." unique_id=355110227]
+unique_name_in_owner = true
+
+[node name="Stage0" type="Node2D" parent="Stages" unique_id=457704593]
+
+[node name="Structure" type="TileMapLayer" parent="Stages/Stage0" unique_id=392283497]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD+//7/HwAIAAoAAAD///7/HwAJAAoAAAAAAP7/HwAKAAoAAAD///3/HwACAAAAAAD/////HwACAAoAAAAAAP//HwADAAoAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Dressing" type="TileMapLayer" parent="Stages/Stage0" unique_id=887085787]
+z_index = 1
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD+//3/HwAAAAwAAAD+//7/HwAAAA0AAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Debris" type="Sprite2D" parent="Stages/Stage0" unique_id=861085398]
+texture_filter = 1
+position = Vector2(48, -12)
+rotation = 1.2915436
+texture = ExtResource("3_ydivd")
+region_enabled = true
+region_rect = Rect2(0, 96, 96, 48)
+
+[node name="Stage1" type="Node2D" parent="Stages" unique_id=1147955742]
+visible = false
+
+[node name="Structure" type="TileMapLayer" parent="Stages/Stage1" unique_id=563021929]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD+////zAABABEAAAD/////zAABABEAAAAAAP//zAABABEAAAABAP//zAABABEAAAACAP//zAABABEAAAD+//7/zAABABEAAAD///7/CwACAAAAAAAAAP7/zAABABEAAAABAP7/zAABABEAAAACAP7/CwACAAAAAAD9//3/zAANAAkAAAD+//3/zAANAAkAAAD///3/zAANAAkAAAAAAP3/zAANAAkAAAABAP3/zAANAAkAAAACAP3/zAANAAkAAAADAP3/zAANAAkAAAD9//z/zAANAAkAAAD+//z/zAANAAkAAAD///z/zAANAAkAAAAAAPz/zAANAAkAAAABAPz/zAANAAkAAAACAPz/zAANAAkAAAADAPz/zAANAAkAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Dressing" type="TileMapLayer" parent="Stages/Stage1" unique_id=263307661]
+z_index = 1
+texture_filter = 1
+tile_map_data = PackedByteArray("AAABAPr/SwAAAAAAAAACAPr/SwABAAAAAAABAPv/SwAAAAEAAAACAPv/SwABAAEAAAABAPz/SwAAAAIAAAACAPz/SwABAAIAAAABAP3/SwAAAAMAAAACAP3/SwABAAMAAAD+//7/DAADAAQAAAD+////DAADAAUAAAACAP7/DAANAAoAAAADAP7/DAAOAAoAAAACAP//DAANAAsAAAADAP//DAAOAAsAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Hearth" type="Node2D" parent="Stages/Stage1" unique_id=783994498 instance=ExtResource("4_4mnal")]
+position = Vector2(-48, 0)
+script = ExtResource("5_wmr8m")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage1/Hearth" unique_id=254991410]
+unique_name_in_owner = true
+texture_filter = 1
+sprite_frames = ExtResource("6_lckq1")
+animation = &"on"
+autoplay = "on"
+offset = Vector2(0, -72)
+
+[node name="Door" type="Node2D" parent="Stages/Stage1" unique_id=1314566393 instance=ExtResource("7_1r2i8")]
+position = Vector2(-24, 0)
+script = ExtResource("8_g3ct2")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage1/Door" unique_id=1244257793]
+texture_filter = 1
+sprite_frames = ExtResource("9_eh0k5")
+animation = &"open"
+offset = Vector2(0, -48)
+
+[node name="Stage2" type="Node2D" parent="Stages" unique_id=1668683025]
+visible = false
+
+[node name="Structure" type="TileMapLayer" parent="Stages/Stage2" unique_id=1577771479]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD+////zAABABEAAAD/////zAABABEAAAAAAP//zAABABEAAAABAP//zAABABEAAAACAP//zAABABEAAAD+//7/zAABABEAAAD///7/CwACAAAAAAAAAP7/zAABABEAAAABAP7/zAABABEAAAACAP7/CwACAAAAAAD9//3/zAANAAkAAAD+//3/zAANAAkAAAD///3/zAANAAkAAAAAAP3/zAANAAkAAAABAP3/zAANAAkAAAACAP3/zAANAAkAAAADAP3/zAANAAkAAAD9//z/zAANAAkAAAD+//z/zAANAAkAAAD///z/zAANAAkAAAAAAPz/zAANAAkAAAABAPz/zAANAAkAAAACAPz/zAANAAkAAAADAPz/zAANAAkAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Dressing" type="TileMapLayer" parent="Stages/Stage2" unique_id=907954948]
+z_index = 1
+texture_filter = 1
+tile_map_data = PackedByteArray("AAABAPr/SwAAAAAAAAACAPr/SwABAAAAAAABAPv/SwAAAAEAAAACAPv/SwABAAEAAAABAPz/SwAAAAIAAAACAPz/SwABAAIAAAABAP3/SwAAAAMAAAACAP3/SwABAAMAAAD+//7/DAADAAQAAAD+////DAADAAUAAAACAP7/DAANAAoAAAADAP7/DAAOAAoAAAACAP//DAANAAsAAAADAP//DAAOAAsAAAAAAP3/FAAHAAAAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Hearth" type="Node2D" parent="Stages/Stage2" unique_id=844478376 instance=ExtResource("4_4mnal")]
+position = Vector2(-48, 0)
+script = ExtResource("5_wmr8m")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage2/Hearth" unique_id=204978094]
+texture_filter = 1
+sprite_frames = ExtResource("6_lckq1")
+animation = &"on"
+autoplay = "on"
+offset = Vector2(0, -72)
+
+[node name="Door" type="Node2D" parent="Stages/Stage2" unique_id=2105081387 instance=ExtResource("7_1r2i8")]
+position = Vector2(-24, 0)
+script = ExtResource("8_g3ct2")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage2/Door" unique_id=80172217]
+texture_filter = 1
+sprite_frames = ExtResource("9_eh0k5")
+animation = &"open"
+offset = Vector2(0, -48)
+
+[node name="Stage3" type="Node2D" parent="Stages" unique_id=843269401]
+visible = false
+
+[node name="Structure" type="TileMapLayer" parent="Stages/Stage3" unique_id=1970630875]
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD9////zAABABEAAAD+////zAABABEAAAD/////zAABABEAAAAAAP//zAABABEAAAABAP//zAABABEAAAACAP//zAABABEAAAD9//7/zAABABEAAAD+//7/CwACAAAAAAD///7/zAABABEAAAAAAP7/zAABABEAAAABAP7/zAABABEAAAACAP7/CwACAAAAAAD8//3/zAANABEAAAD9//3/zAANABEAAAD+//3/zAANABEAAAD///3/zAANABEAAAAAAP3/zAANABEAAAABAP3/zAANABEAAAACAP3/zAANABEAAAADAP3/zAANABEAAAD8//z/zAANABEAAAD9//z/zAANABEAAAD+//z/zAANABEAAAD///z/zAANABEAAAAAAPz/zAANABEAAAABAPz/zAANABEAAAACAPz/zAANABEAAAADAPz/zAANABEAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Dressing" type="TileMapLayer" parent="Stages/Stage3" unique_id=1698299697]
+z_index = 1
+texture_filter = 1
+tile_map_data = PackedByteArray("AAABAPr/SwAAAAAAAAACAPr/SwABAAAAAAABAPv/SwAAAAEAAAACAPv/SwABAAEAAAABAPz/SwAAAAIAAAACAPz/SwABAAIAAAABAP3/SwAAAAMAAAACAP3/SwABAAMAAAD9//r/SwAGAAAAAAD+//r/SwAHAAAAAAD9//v/SwAGAAEAAAD+//v/SwAHAAEAAAD9//z/SwAGAAIAAAD+//z/SwAHAAIAAAD9//3/SwAGAAMAAAD+//3/SwAHAAMAAAD9//7/DAADAAQAAAD9////DAADAAUAAAACAP7/DAANAAoAAAADAP7/DAAOAAoAAAACAP//DAANAAsAAAADAP//DAAOAAsAAAAAAP3/FAAHAAAAAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false
+
+[node name="Hearth" type="Node2D" parent="Stages/Stage3" unique_id=1587252487 instance=ExtResource("4_4mnal")]
+position = Vector2(-48, 0)
+script = ExtResource("5_wmr8m")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage3/Hearth" unique_id=246797697]
+texture_filter = 1
+sprite_frames = ExtResource("6_lckq1")
+animation = &"on"
+autoplay = "on"
+offset = Vector2(0, -72)
+
+[node name="Door" type="Node2D" parent="Stages/Stage3" unique_id=1077229684 instance=ExtResource("7_1r2i8")]
+position = Vector2(-24, 0)
+script = ExtResource("8_g3ct2")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage3/Door" unique_id=1145564334]
+texture_filter = 1
+sprite_frames = ExtResource("9_eh0k5")
+animation = &"open"
+offset = Vector2(0, -48)
+
+[node name="Lamp" type="Node2D" parent="Stages/Stage3" unique_id=162527393 instance=ExtResource("10_n24q0")]
+position = Vector2(96, 0)
+script = ExtResource("5_wmr8m")
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=425821430]
+unique_name_in_owner = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=184757882]
+position = Vector2(0, -24)
+shape = SubResource("RectangleShape2D_y7ptw")
+
+[node name="Interact" type="Marker2D" parent="." unique_id=1959353842]
+unique_name_in_owner = true
+position = Vector2(0, 16)
+
+[node name="Scaffold" type="Node2D" parent="." unique_id=953837373]
+unique_name_in_owner = true
+visible = false
+
+[node name="Beams" type="TileMapLayer" parent="Scaffold" unique_id=2045491546]
+z_index = 2
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD9////zAAJAB0AAAD9//7/zAAJAB0AAAD+////zAAJAB0AAAD+//7/zAAJAB0AAAD/////zAAJAB0AAAD///7/zAAJAB0AAAAAAP//zAAJAB0AAAAAAP7/zAAJAB0AAAABAP//zAAJAB0AAAABAP7/zAAJAB0AAAACAP//zAAJAB0AAAACAP7/zAAJAB0AAAADAP//zAAJAB0AAAADAP7/zAAJAB0AAAA=")
+tile_set = ExtResource("2_lv1gi")
+collision_enabled = false

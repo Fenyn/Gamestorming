@@ -99,6 +99,21 @@ public sealed class Inventory
     public bool Has(string itemId, int qty = 1) => Count(itemId) >= qty;
 
     /// <summary>
+    /// Total quantity of <paramref name="itemId"/> across every member's carry PLUS the warehouse,
+    /// UNCONDITIONALLY — unlike <see cref="Count"/>, this ignores <see cref="WarehouseAccessible"/>.
+    /// Framework queries that must stay stable no matter which scene mode the party is currently in
+    /// (e.g. a villager arrival <see cref="Bulwark.Data.ArrivalTrigger.ItemCountReached"/> trigger,
+    /// which can be re-evaluated from a field event) read this instead of <see cref="Count"/>.
+    /// </summary>
+    public int CountEverywhere(string itemId)
+    {
+        int total = _warehouse.Count(itemId);
+        foreach (var m in _members)
+            total += m.Count(itemId);
+        return total;
+    }
+
+    /// <summary>
     /// Non-mutating capacity probe: could a <see cref="AddItem"/> of <paramref name="qty"/> units be
     /// placed IN FULL? Mirrors the greedy per-member fill exactly — each member can accept
     /// floor(room / bulk) units up to their hard cap (10 + Str mod), so the party fits the gain when

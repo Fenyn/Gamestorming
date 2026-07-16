@@ -1,0 +1,117 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/PauseMenu.cs" id="1_pausemenu"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_pausemenu")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = ExtResource("2_theme")
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Panel" type="PanelContainer" parent="Root/Center"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_type_variation = &"ModalPanel"
+
+[node name="Col" type="VBoxContainer" parent="Root/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleBar" type="PanelContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"TitleBar"
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col/TitleBar"]
+layout_mode = 2
+text = "Paused"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="MainButtons" type="VBoxContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ResumeButton" type="Button" parent="Root/Center/Panel/Col/MainButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Resume"
+
+[node name="SaveButton" type="Button" parent="Root/Center/Panel/Col/MainButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save Game"
+
+[node name="OptionsButton" type="Button" parent="Root/Center/Panel/Col/MainButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Options"
+
+[node name="QuitButton" type="Button" parent="Root/Center/Panel/Col/MainButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit to Title"
+
+[node name="SavedLabel" type="Label" parent="Root/Center/Panel/Col/MainButtons"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Saved."
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.357, 0.545, 0.267, 1)
+
+[node name="ConfirmButtons" type="VBoxContainer" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ConfirmLabel" type="Label" parent="Root/Center/Panel/Col/ConfirmButtons"]
+layout_mode = 2
+text = "Quit to title?"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="SaveAndQuitButton" type="Button" parent="Root/Center/Panel/Col/ConfirmButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Save and Quit"
+
+[node name="QuitWithoutSavingButton" type="Button" parent="Root/Center/Panel/Col/ConfirmButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit without Saving"
+
+[node name="CancelQuitButton" type="Button" parent="Root/Center/Panel/Col/ConfirmButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"
+
+[node name="HintLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "Esc = Resume"
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"

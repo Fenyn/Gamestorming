@@ -40,7 +40,8 @@ public static class RunePrices
     public const int MaxPotency = 3;
 
     /// <summary>The abstracted MAGICAL rune reagent consumed (in addition to gold) on every rune apply.
-    /// CONTENT FLAG: arcane_essence has no gather source authored yet (see <see cref="Bulwark.Data.Items.ArcaneEssence"/>).</summary>
+    /// Two gather/craft routes exist: <c>ResourceNodes.LeyGlade</c> (Elderwood forage) and
+    /// <c>Recipes.ArcaneEssence</c> (Apothecary T2 reagent refining) — see <see cref="Bulwark.Data.Items.ArcaneEssence"/>.</summary>
     public const string ReagentItemId = "arcane_essence";
 
     public static int CostOf(RuneKind kind) => kind switch
@@ -74,7 +75,8 @@ public sealed class WeaponCatalogEntry
     public SmithyTier Tier { get; init; } = SmithyTier.Base;
 
     /// <summary>Metal ingot item consumed on purchase (Refinement 3). Default copper_ingot; only charged
-    /// when <see cref="MetalCost"/> &gt; 0. CONTENT FLAG: copper_ingot needs copper_ore→smelter authored.</summary>
+    /// when <see cref="MetalCost"/> &gt; 0. Sourced from <c>ResourceNodes.CopperVein</c> (copper_ore)
+    /// refined at the smelter into copper_ingot.</summary>
     public string MetalItemId { get; init; } = "copper_ingot";
 
     /// <summary>Units of <see cref="MetalItemId"/> consumed on purchase (0 = gold-only, for base entries).</summary>

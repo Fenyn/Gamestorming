@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Text;
 using Bulwark.Autoload;
 using Bulwark.Data;
+using Bulwark.Data.Dialogues;
 using Bulwark.Territory;
 using Godot;
+using CharacterRegistry = Bulwark.Data.Characters.Characters;
 
 namespace Bulwark.Cozy;
 
@@ -78,7 +80,12 @@ public partial class OutpostScene : CozyWorldScene
         SpawnSmithyPanel();
         SpawnCraftingPanel();
         SpawnTradingPostPanel();
+        SpawnFriendshipPanel();
+        SpawnQuestPanel();
+        SpawnCalendarPanel();
+        SpawnDialogueBox();
         SpawnDaySummaryPanel();
+        SpawnPauseMenu();
         SpawnGateSign();
         WireGate();
         BuildWorldCollision(_ground);
@@ -87,6 +94,7 @@ public partial class OutpostScene : CozyWorldScene
         WireStateEvents();
         RefreshHudAll();
         ShowArrivalToasts();
+        TryPlayIntroScene2();
     }
 
     // ------------------------------------------------------------------ Instancing
@@ -98,13 +106,21 @@ public partial class OutpostScene : CozyWorldScene
         _farmRenderer.Bind(this);
     }
 
-    /// <summary>Instance every commissioned building at its <c>%Building_&lt;id&gt;</c> marker with the
-    /// correct staged visual for its tier. Null-safe: missing markers/scenes are skipped (the build
-    /// state still works, art arrives later). Refreshed per building on BuildingChanged.</summary>
+    /// <summary>Instance every building (ruined Stage0 for not-yet-commissioned ones too) at its
+    /// <c>%Building_&lt;id&gt;</c> marker with the correct stage/scaffold/overlays for its current
+    /// tier, construction, season/day, and story flags (design/building_visuals.md). Null-safe:
+    /// missing markers/scenes are skipped (the build state still works, art arrives later). Refreshed
+    /// per building on BuildingChanged, and for every building on DayStarted/StoryFlagChanged
+    /// (season/window/flag boundaries).</summary>
     private void SpawnBuildings()
     {
-        _buildingLoader = new BuildingLoader(this, id => GameState.Instance?.GetBuildingTier(id) ?? 0);
-        _buildingLoader.PlaceCommissioned();
+        _buildingLoader = new BuildingLoader(
+            this,
+            id => GameState.Instance?.GetBuildingTier(id) ?? 0,
+            id => GameState.Instance?.Building.IsUnderConstruction(id) ?? false,
+            () => GameState.Instance is { } gs ? (gs.Clock.Season, gs.Clock.Day) : (Season.Spring, 1),
+            id => GameState.Instance?.HasStoryFlag(id) ?? false);
+        _buildingLoader.PlaceAll();
     }
 
     /// <summary>Instance a placeholder NPC for every ARRIVED villager at its <c>%Villager_&lt;id&gt;</c>
@@ -142,6 +158,8 @@ public partial class OutpostScene : CozyWorldScene
         gs.SquadLeveledUp += OnSquadLeveledUp;
         gs.BuildingChanged += OnBuildingPlaced;
         gs.VillagerArrived += OnVillagerArrived;
+        gs.DayStarted += RefreshBuildingVisuals;
+        gs.StoryFlagChanged += OnStoryFlagChangedForVisuals;
 
         // World-rules seam: farm commands validate through THIS scene's map truth while it hosts
         // the farm (cleared symmetrically below so a freed scene is never queried).
@@ -154,12 +172,23 @@ public partial class OutpostScene : CozyWorldScene
         gs.SquadLeveledUp -= OnSquadLeveledUp;
         gs.BuildingChanged -= OnBuildingPlaced;
         gs.VillagerArrived -= OnVillagerArrived;
+        gs.DayStarted -= RefreshBuildingVisuals;
+        gs.StoryFlagChanged -= OnStoryFlagChangedForVisuals;
         gs.BindFarmWorld(null);
     }
 
     /// <summary>A building was commissioned or upgraded: (re)place its world visual at its marker and
     /// select the stage for the new tier. The panel refresh is handled by the base class.</summary>
     private void OnBuildingPlaced(string buildingId) => _buildingLoader?.Refresh(buildingId);
+
+    /// <summary>Calendar boundary (new day): re-evaluate every commissioned building's visual —
+    /// season overlays and event windows can flip without any building's own tier/construction
+    /// state changing.</summary>
+    private void RefreshBuildingVisuals() => _buildingLoader?.RefreshAll();
+
+    /// <summary>A story flag was set: re-evaluate every commissioned building's visual — flag-driven
+    /// overlays and stage overrides can change independent of tier/construction.</summary>
+    private void OnStoryFlagChangedForVisuals(string flagId) => _buildingLoader?.RefreshAll();
 
     /// <summary>A villager arrived: spawn its NPC node at its marker (idempotent).</summary>
     private void OnVillagerArrived(string villagerId) => _villagerLoader?.Refresh(villagerId);
@@ -217,27 +246,134 @@ public partial class OutpostScene : CozyWorldScene
             _playerAtGate = false;
     }
 
+    /// <summary>Proximity radius (px) for the villager TALK/gift interactions (~1.5 tiles).</summary>
+    private const float VillagerTalkRadius = 72f;
+
     /// <summary>
     /// Interact press: at the gate, march out with the FULL living squad — confirm-free travel
     /// (interact → toast → travel; no party-select panel in this flow — the panel and the
-    /// capability-limited selection command remain in the repo for future flows).
+    /// capability-limited selection command remain in the repo for future flows). Away from the
+    /// gate, an interact BESIDE a villager NPC talks to them (the friendship daily-talk bump).
     /// </summary>
     protected override void OnInteractRequested(ToolKind tool)
     {
         var gs = GameState.Instance;
-        if (gs == null || IsTransitioning || !_playerAtGate)
+        if (gs == null || IsTransitioning)
             return;
 
-        if (!gs.TravelToTerritory(GateTerritoryId))
+        if (_playerAtGate)
         {
-            Hud?.ShowToast("Cannot travel right now.", 1.5f);
+            if (!gs.TravelToTerritory(GateTerritoryId))
+            {
+                Hud?.ShowToast("Cannot travel right now.", 1.5f);
+                return;
+            }
+
+            string territoryId = GateTerritoryId;
+            BeginHandOff(
+                $"The squad marches for {GateDestinationName}.",
+                () => SceneRouter.Instance?.GoToTerritory(territoryId));
             return;
         }
 
-        string territoryId = GateTerritoryId;
-        BeginHandOff(
-            $"The squad marches for {GateDestinationName}.",
-            () => SceneRouter.Instance?.GoToTerritory(territoryId));
+        TryTalkToVillager(gs);
+    }
+
+    /// <summary>The placed villager NPC beside the player, for the friendship panel's gift flow.</summary>
+    protected override string? GetNearbyVillagerId()
+        => Player == null ? null : _villagerLoader?.NearestVillagerId(Player.GlobalPosition, VillagerTalkRadius);
+
+    /// <summary>Floating "E — …" HUD prompt: mirrors <see cref="OnInteractRequested"/>'s exact
+    /// proximity checks (the gate-trigger flag, the bedroll cell math, the villager talk radius) so
+    /// the hint never promises an action interact wouldn't actually take.</summary>
+    protected override string? GetInteractionHint()
+    {
+        if (Player == null)
+            return null;
+        if (_playerAtGate)
+            return "Travel";
+        if (IsNearBedroll())
+            return "Sleep";
+        if (GetNearbyVillagerId() != null)
+            return "Talk";
+        return null;
+    }
+
+    /// <summary>Same cell math as <see cref="PlayerController.TrySleepAtBedroll"/> (standing on or
+    /// facing the bedroll tile) — read-only mirror the hint needs, without duplicating the private
+    /// bedroll cell cached on the controller.</summary>
+    private bool IsNearBedroll()
+    {
+        if (_bedroll == null || Player == null)
+            return false;
+        Vector2I self = WorldToCell(Player.GlobalPosition);
+        Vector2I bedrollCell = WorldToCell(_bedroll.GlobalPosition);
+        return self == bedrollCell || self + Player.FacingDirection == bedrollCell;
+    }
+
+    /// <summary>
+    /// TALK: interact beside a placed villager NPC. First tries the dialogue system's talk pool
+    /// (if a talk pool exists for the character with a passing entry, play it in the dialogue box).
+    /// Falls back to the old Personality toast if no talk pool is loaded.
+    /// </summary>
+    private void TryTalkToVillager(GameState gs)
+    {
+        string? charId = GetNearbyVillagerId();
+        if (charId == null)
+            return;
+
+        bool bumped = gs.TalkTo(charId);
+
+        // Try the dialogue system's talk pool first
+        if (gs.DialogueDb != null && gs.DialogueDb.HasTalkPool(charId))
+        {
+            var lines = gs.DialogueDb.GetTalkLines(charId, gs.BuildConditionContext());
+            if (lines != null && lines.Count > 0)
+            {
+                PlayTalkLines(lines);
+                return;
+            }
+        }
+
+        // Fallback: the old Personality toast
+        string name = charId;
+        string? line = null;
+        if (CharacterRegistry.TryGet(charId, out var profile))
+        {
+            name = profile.DefaultName;
+            line = profile.Personality;
+        }
+        else if (_villagerLoader != null)
+        {
+            foreach (var v in Villagers.All)
+                if (v.Id == charId)
+                {
+                    name = v.DisplayName;
+                    break;
+                }
+        }
+
+        string text = line != null ? $"{name}: \"{line}\"" : $"You chat with {name} for a while.";
+        if (bumped)
+            text += "\n(+12 friendship)";
+        Hud?.ShowToast(text, 3f);
+    }
+
+    /// <summary>If this is the first arrival at the outpost after the road intro (intro_scene_1 set
+    /// but intro_complete not yet set), play the Scene 2 dialogue sequence.</summary>
+    private void TryPlayIntroScene2()
+    {
+        var gs = GameState.Instance;
+        if (gs == null || DialogueBox == null)
+            return;
+        if (!gs.HasStoryFlag("intro_scene_1") || gs.HasStoryFlag("intro_complete"))
+            return;
+
+        var db = gs.DialogueDb;
+        if (db == null || !db.TryGetSequence("intro_scene_2", out var seq) || seq.Steps == null)
+            return;
+
+        PlayDialogueSteps(seq.Steps, "intro_scene_2", seq.Once);
     }
 
     /// <summary>One-shot arrival messages: return-travel notice and/or the defeat wake summary.</summary>

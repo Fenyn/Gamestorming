@@ -16,11 +16,13 @@ namespace Bulwark.Dev;
 /// <summary>
 /// Headless regression for the Phase-1 economy loop: combat loot → gold → smithy sink. Drives a
 /// REAL GameState node's commands directly (fresh, on a clean save slot — the user's slot0.json is
-/// backed up first and restored at the end); no rendered scenes. The Phase-1 forest drop tables are
-/// min == max, so victory loot is deterministic without an RNG seam.
-///  (1) Loot: defeating gob_1 (goblin_pair) drops exactly 2 goblin fangs + 8 coin; parts land in
-///      the shared inventory, the day ledger counts both (verified through the end-of-day summary),
-///      and gold rose.
+/// backed up first and restored at the end); no rendered scenes. The full-bestiary drop tables widen
+/// common-tier quantity bands (1-3 per kill, no longer min == max), so victory loot is bounded rather
+/// than exactly deterministic — checks assert ranges and internal consistency (delta vs. day-summary)
+/// instead of fixed totals.
+///  (1) Loot: defeating gob_1 (goblin_pair) drops 2-6 goblin parts (fang and/or scrap) + 6-12 coin;
+///      parts land in the shared inventory, the day ledger counts exactly what dropped (verified
+///      through the end-of-day summary), and gold rose by exactly that amount.
 ///  (2) Selling: parts sell for qty × SellValue (gold up, inventory down); over-sell and unsellable
 ///      items reject cleanly.
 ///  (3) Smithy runes: an insufficient-gold Striking buy spends nothing; with gold the Veteran's
@@ -88,7 +90,7 @@ public partial class EconomySpike : SpikeBase
 
         Check("(0) fresh wallet starts empty", gs.Gold == 0);
 
-        // ── (1) Victory loot: deterministic drop table (2 goblins → 2 fang + 8 coin) ──
+        // ── (1) Victory loot: bounded drop table (2 goblins → 2-6 parts + 6-12 coin) ──
         GD.Print("-------------------- (1) Loot drops --------------------");
         Check("(1) travel to the forest", gs.TravelToTerritory(ForestId));
         Check("(1) contact gob_1 (goblin_pair)", gs.BeginTerritoryEncounter("gob_1", new Vector2(1, 1)));
@@ -96,6 +98,8 @@ public partial class EconomySpike : SpikeBase
         if (pending == null) { AbortFail("[EconomySpike] no pending encounter."); return; }
 
         int fangBefore = gs.Inventory.Count(Items.GoblinFang.Id);
+        int scrapBefore = gs.Inventory.Count(Items.GoblinScrap.Id);
+        int goldBeforeLoot = gs.Gold;
         var session = StartSession(pending.Setup);
         try
         {
@@ -106,27 +110,45 @@ public partial class EconomySpike : SpikeBase
 
         var outcome = gs.CompleteTerritoryEncounter(BattleResult.Team1Wins);
         Check("(1) victory outcome", outcome is { Victory: true });
-        Check("(1) 2 goblin fangs dropped into the inventory",
-            gs.Inventory.Count(Items.GoblinFang.Id) == fangBefore + 2);
-        Check("(1) 8 coin awarded (2 goblins × 4)", gs.Gold == 8);
+
+        // goblin_drops is no longer min==max: each of the 2 kills rolls goblin_fang OR goblin_scrap
+        // (qty 1-3) plus coin (3-6), so the exact haul varies — assert the deterministic BOUNDS instead
+        // (2 kills × qty 1-3 = 2-6 parts total; 2 kills × coin 3-6 = 6-12 gold total).
+        int fangGained = gs.Inventory.Count(Items.GoblinFang.Id) - fangBefore;
+        int scrapGained = gs.Inventory.Count(Items.GoblinScrap.Id) - scrapBefore;
+        int goldGainedFromLoot = gs.Gold - goldBeforeLoot;
+        Check("(1) goblin parts dropped into the inventory (fang and/or scrap, 2-6 total)",
+            fangGained >= 0 && scrapGained >= 0 && fangGained + scrapGained is >= 2 and <= 6);
+        Check("(1) gold awarded within the goblin_drops coin band (2 × 3-6 = 6-12)",
+            goldGainedFromLoot is >= 6 and <= 12);
 
         // The day ledger counts loot through the AddItem/EarnGold choke points: sleep, then read the
         // staged end-of-day summary.
         gs.Sleep();
         var summary = gs.ConsumeDaySummary();
-        Check("(1) day summary counted the fangs",
-            summary != null && summary.ItemsGained.TryGetValue(Items.GoblinFang.Id, out int f) && f == 2);
-        Check("(1) day summary shows the gold earned", summary != null && summary.GoldEarned == 8);
-        Check("(1) gold survived the night", gs.Gold == 8);
+        int fangInSummary = summary != null && summary.ItemsGained.TryGetValue(Items.GoblinFang.Id, out int f) ? f : 0;
+        int scrapInSummary = summary != null && summary.ItemsGained.TryGetValue(Items.GoblinScrap.Id, out int s) ? s : 0;
+        Check("(1) day summary counted whatever goblin parts dropped",
+            summary != null && fangInSummary == fangGained && scrapInSummary == scrapGained);
+        Check("(1) day summary shows the gold earned", summary != null && summary.GoldEarned == goldGainedFromLoot);
+        Check("(1) gold survived the night", gs.Gold == goldBeforeLoot + goldGainedFromLoot);
 
         // ── (2) Selling parts for gold ──
         GD.Print("-------------------- (2) Selling --------------------");
+        // Top up to a known quantity so the sell math below is deterministic regardless of section
+        // (1)'s randomized goblin-drop roll (fangs held could be 0-6 at this point).
+        gs.AddItem(Items.GoblinFang.Id, 5);
+        int fangStock = gs.Inventory.Count(Items.GoblinFang.Id);
+
         Check("(2) unsellable item rejected (turnip seeds have no sell value)",
             !gs.SellItem(Items.TurnipSeed.Id, 1));
-        Check("(2) over-selling rejected (only 2 fangs held)", !gs.SellItem(Items.GoblinFang.Id, 3));
-        Check("(2) selling both fangs succeeds", gs.SellItem(Items.GoblinFang.Id, 2));
-        Check("(2) gold rose by 2 × SellValue(5) = 10", gs.Gold == 18);
-        Check("(2) fangs left the inventory", gs.Inventory.Count(Items.GoblinFang.Id) == 0);
+        Check("(2) over-selling rejected (asking for more than held)",
+            !gs.SellItem(Items.GoblinFang.Id, fangStock + 1));
+
+        int goldBeforeSell = gs.Gold;
+        Check("(2) selling 2 fangs succeeds", gs.SellItem(Items.GoblinFang.Id, 2));
+        Check("(2) gold rose by 2 × SellValue(5) = 10", gs.Gold == goldBeforeSell + 10);
+        Check("(2) fangs left the inventory (2 sold)", gs.Inventory.Count(Items.GoblinFang.Id) == fangStock - 2);
 
         // ── (3) Smithy: fundamental runes on the Veteran's longsword ──
         GD.Print("-------------------- (3) Smithy runes --------------------");
@@ -135,36 +157,42 @@ public partial class EconomySpike : SpikeBase
 
         (bool previewOk, int baseBonus, int baseMax) = TryPreview(veteran, target);
 
-        Check("(3) Striking rejected when gold is short (18 < 400)",
+        // Section (1)+(2)'s randomized goblin-drop loot leaves at most ~22 gold on the wallet (2
+        // kills × coin max 6, plus the 2-fang sale) — well under both the Striking rune (400g) and the
+        // greataxe (200g), so both rejections below are deterministic regardless of the exact roll.
+        int goldBeforeSmithy = gs.Gold;
+        Check("(3) Striking rejected when gold is short",
             !gs.ApplyWeaponRune(SquadRoster.PlayerId, RuneKind.Striking));
-        Check("(3) rejected rune spent no gold", gs.Gold == 18);
+        Check("(3) rejected rune spent no gold", gs.Gold == goldBeforeSmithy);
 
-        // Insufficient-gold weapon buy (folded weapon-shop check) — 18 < 200, spends nothing.
+        // Insufficient-gold weapon buy (folded weapon-shop check) — still short of the 200g greataxe.
         Check("(3) insufficient-gold greataxe buy rejected", !gs.BuyWeapon(SquadRoster.ScholarId, "greataxe"));
-        Check("(3) rejected buy spent no gold", gs.Gold == 18);
+        Check("(3) rejected buy spent no gold", gs.Gold == goldBeforeSmithy);
 
         gs.EarnGold(1000); // bankroll the smithy run
-        Check("(3) granted gold banked", gs.Gold == 1018);
+        Check("(3) granted gold banked", gs.Gold == goldBeforeSmithy + 1000);
 
         // Refinement 3: runes are a MAGICAL enchantment — they cost gold + arcane_essence (a non-metal
         // reagent). With gold but NO reagent, the apply rejects and spends nothing.
+        int goldBankrolled = gs.Gold;
         Check("(3) Striking rejected when reagent short (gold ok, no arcane_essence)",
             !gs.ApplyWeaponRune(SquadRoster.PlayerId, RuneKind.Striking));
-        Check("(3) reagent-short rejection spent no gold", gs.Gold == 1018);
+        Check("(3) reagent-short rejection spent no gold", gs.Gold == goldBankrolled);
         Check("(3) reagent-short rejection consumed no reagent", gs.Inventory.Count(Items.ArcaneEssence.Id) == 0);
 
         gs.AddItem(Items.ArcaneEssence.Id, 5); // enough for Striking (2) + Potency (1)
 
         Check("(3) Striking applied (gold + reagent)", gs.ApplyWeaponRune(SquadRoster.PlayerId, RuneKind.Striking));
-        Check("(3) Striking cost 400 gold", gs.Gold == 618);
+        Check("(3) Striking cost 400 gold", gs.Gold == goldBankrolled - RunePrices.Striking);
         Check("(3) Striking consumed 2 arcane_essence", gs.Inventory.Count(Items.ArcaneEssence.Id) == 3);
         Check("(3) weapon now carries a Striking rune",
             vetWeapon.Striking == PF2e.Data.StrikingRuneLevel.Striking);
         Check("(3) strike math sees a 2nd weapon die (DamageCalculator input)",
             vetWeapon.GetEffectiveDamageDice().NumberOfDice == 2);
 
+        int goldAfterStriking = gs.Gold;
         Check("(3) Potency applied (gold + reagent)", gs.ApplyWeaponRune(SquadRoster.PlayerId, RuneKind.Potency));
-        Check("(3) Potency cost 150 gold", gs.Gold == 468);
+        Check("(3) Potency cost 150 gold", gs.Gold == goldAfterStriking - RunePrices.Potency);
         Check("(3) Potency consumed 1 arcane_essence", gs.Inventory.Count(Items.ArcaneEssence.Id) == 2);
         Check("(3) weapon now carries a +1 potency rune", vetWeapon.PotencyBonus == 1);
 
@@ -179,10 +207,11 @@ public partial class EconomySpike : SpikeBase
             GD.Print("  [note] combat preview unavailable — relying on instance/dice assertions.");
         }
 
+        int goldAfterPotency = gs.Gold;
         Check("(3) duplicate Striking rejected", !gs.ApplyWeaponRune(SquadRoster.PlayerId, RuneKind.Striking));
-        Check("(3) duplicate rejection spent no gold", gs.Gold == 468);
+        Check("(3) duplicate rejection spent no gold", gs.Gold == goldAfterPotency);
         Check("(3) unknown member rejected", !gs.ApplyWeaponRune("nobody", RuneKind.Potency));
-        Check("(3) unknown-member rejection spent no gold", gs.Gold == 468);
+        Check("(3) unknown-member rejection spent no gold", gs.Gold == goldAfterPotency);
 
         // ── (4) Weapon shop: replace the Scholar's staff with a bought greataxe ──
         GD.Print("-------------------- (4) Weapon shop --------------------");
@@ -192,8 +221,9 @@ public partial class EconomySpike : SpikeBase
         Check("(4) unknown weapon slug rejected", !gs.BuyWeapon(SquadRoster.ScholarId, "vorpal-nonsense"));
         Check("(4) unknown member rejected", !gs.BuyWeapon("nobody", "greataxe"));
 
+        int goldBeforeGreataxe = gs.Gold;
         Check("(4) buy the greataxe (200g)", gs.BuyWeapon(SquadRoster.ScholarId, "greataxe"));
-        Check("(4) greataxe cost 200 gold", gs.Gold == 268);
+        Check("(4) greataxe cost 200 gold", gs.Gold == goldBeforeGreataxe - 200);
         var scholarWeapon = scholar.Equipment!.MainHandWeapon!;
         Check("(4) Scholar's main-hand weapon changed to the greataxe (d12)",
             scholarWeapon.DamageDice.DieSize == 12);
@@ -216,16 +246,30 @@ public partial class EconomySpike : SpikeBase
             // A higher-tier catalog entry (falchion, Improved tier) is locked until the smithy upgrades.
             Check("(4b) higher-tier falchion locked at base smithy", !gm.BuyWeapon(SquadRoster.TharrId, "falchion"));
 
-            // Upgrade the shipped Smithy to Improved (commission + tier-2 bundle). Fresh inventory seeds
-            // wood10+stone10; commission consumes wood6+stone10 first, then the tier-2 bundle is added.
+            // Upgrade the shipped Smithy to Improved (commission + tier-2 bundle). Construction needs
+            // goblin_fang 25 + rat_pelt 20 + wood 15 (starter already has wood 10) + Gold 120.
+            gm.AddItem("goblin_fang", 25);
+            gm.AddItem("rat_pelt", 20);
+            gm.AddItem("wood", 5); // starter 10 + 5 = 15
+            gm.EarnGold(120);
             Check("(4b) commission smithy", gm.CommissionBuilding("smithy"));
-            gm.AddItem("stone", 8);
-            gm.AddItem("goblin_fang", 6);
-            gm.AddItem("rat_pelt", 5);
-            Check("(4b) contribute smithy tier2 stone", gm.ContributeBundle("smithy", "stone", 8));
-            Check("(4b) contribute smithy tier2 goblin_fang", gm.ContributeBundle("smithy", "goblin_fang", 6));
-            Check("(4b) contribute smithy tier2 rat_pelt", gm.ContributeBundle("smithy", "rat_pelt", 5));
+            // Tutorial pacing occupies a freshly commissioned smithy for 2 days (SetConstructionDays) —
+            // ActiveEffects (and so the SmithyTier ceiling) ignores a building still under construction,
+            // so the days must tick before its effects (and later, the upgrade's) are readable.
+            CompleteConstruction(gm);
+
+            // Tier-2 bundle: goblin_scrap 25 + coal 25 + beast_hide 25 + Gold 300.
+            gm.AddItem("goblin_scrap", 25);
+            gm.AddItem("coal", 25);
+            gm.AddItem("beast_hide", 25);
+            gm.EarnGold(300);
+            Check("(4b) contribute smithy tier2 goblin_scrap", gm.ContributeBundle("smithy", "goblin_scrap", 25));
+            Check("(4b) contribute smithy tier2 coal", gm.ContributeBundle("smithy", "coal", 25));
+            Check("(4b) contribute smithy tier2 beast_hide", gm.ContributeBundle("smithy", "beast_hide", 25));
             Check("(4b) upgrade smithy to Improved", gm.UpgradeBuilding("smithy"));
+            // Upgrades now take construction time too (Tharr busy) — tick the window closed before
+            // the new tier's SmithyTier ceiling is readable.
+            CompleteConstruction(gm);
             Check("(4b) smithy tier now Improved", gm.SmithyTier == SmithyTier.Improved);
 
             gm.EarnGold(1000); // bankroll the metal buy
@@ -283,9 +327,9 @@ public partial class EconomySpike : SpikeBase
 
             // SELL routes through the Trading Post now (GameState.SellItem → StoreSystem.Sell).
             gp.AddItem("goblin_fang", 2);
-            int goldBeforeSell = gp.Gold;
+            int goldBeforeTpSell = gp.Gold;
             Check("(7) sell via trading post succeeds", gp.SellItem("goblin_fang", 2));
-            Check("(7) sale credited gold (2 × 5)", gp.Gold == goldBeforeSell + 10);
+            Check("(7) sale credited gold (2 × 5)", gp.Gold == goldBeforeTpSell + 10);
             Check("(7) unsellable item still rejects (turnip seeds)", !gp.SellItem("turnip_seed", 1));
 
             // The sell shelf enumeration lives on the Trading Post view (the SmithyView never had it).
@@ -301,15 +345,26 @@ public partial class EconomySpike : SpikeBase
             Check("(7) view: copper_ingot present but flagged locked at base",
                 gp.GetTradingPostView().Offers.Any(o => o.ItemId == "copper_ingot" && !o.Unlocked));
 
+            // Construction needs goblin_fang 25 + rat_pelt 20 + wood 15 (starter already has wood 10) +
+            // Gold 120; the tier-2 bundle needs goblin_scrap 25 + coal 25 + beast_hide 25 + Gold 300.
+            gp.AddItem("goblin_fang", 25);
+            gp.AddItem("rat_pelt", 20);
+            gp.AddItem("wood", 5); // starter 10 + 5 = 15
+            gp.EarnGold(120);
             Check("(7) commission smithy", gp.CommissionBuilding("smithy"));
-            gp.AddItem("stone", 8);
-            gp.AddItem("goblin_fang", 6);
-            gp.AddItem("rat_pelt", 5);
+            CompleteConstruction(gp);
+            gp.AddItem("goblin_scrap", 25);
+            gp.AddItem("coal", 25);
+            gp.AddItem("beast_hide", 25);
+            gp.EarnGold(300);
             Check("(7) contribute smithy tier2 bundle",
-                gp.ContributeBundle("smithy", "stone", 8)
-                && gp.ContributeBundle("smithy", "goblin_fang", 6)
-                && gp.ContributeBundle("smithy", "rat_pelt", 5));
+                gp.ContributeBundle("smithy", "goblin_scrap", 25)
+                && gp.ContributeBundle("smithy", "coal", 25)
+                && gp.ContributeBundle("smithy", "beast_hide", 25));
             Check("(7) upgrade smithy to Improved", gp.UpgradeBuilding("smithy"));
+            // Upgrades now take construction time too (Tharr busy) — tick the window closed before
+            // the new tier's SmithyTier ceiling (and the copper_ingot unlock below) is readable.
+            CompleteConstruction(gp);
             Check("(7) smithy tier now Improved", gp.SmithyTier == SmithyTier.Improved);
 
             Check("(7) view: copper_ingot now unlocked after the smithy upgrade",
@@ -350,6 +405,12 @@ public partial class EconomySpike : SpikeBase
     }
 
     // ─────────────────────────── Harness helpers ───────────────────────────
+
+    /// <summary>Tick construction days until no building is under construction (opt-in pacing).</summary>
+    private static void CompleteConstruction(GameState gs)
+    {
+        while (gs.AnyBuildingUnderConstruction) gs.Building.TickDay();
+    }
 
     private static (bool ok, int bonus, int max) TryPreview(ICharacter attacker, ICharacter target)
     {

@@ -11,6 +11,8 @@ namespace Bulwark.Data;
 ///   ArrivalTrigger.BuildingReached("smithy", minTier: 1)   // a building restored to a tier
 ///   ArrivalTrigger.StoryFlag("met_the_smith")              // a story beat happened
 ///   ArrivalTrigger.DateReached(Season.Summer, day: 5)      // the calendar reached a date
+///   ArrivalTrigger.ItemCountReached("beast_hide", 8)       // the party has stockpiled N of an item
+///   ArrivalTrigger.FriendshipReached("tharr", 4)           // a character reached a heart level
 ///   ArrivalTrigger.All(triggerA, triggerB, ...)            // every sub-trigger satisfied
 ///
 /// Pure and immutable: the definition holds the trigger, the live <see cref="IArrivalContext"/> is
@@ -40,6 +42,34 @@ public abstract class ArrivalTrigger
     /// <summary>AND-composite: satisfied only when EVERY sub-trigger is (and at least one is given).</summary>
     public static ArrivalTrigger All(params ArrivalTrigger[] triggers)
         => new AllTrigger(triggers);
+
+    /// <summary>OR-composite: satisfied once ANY sub-trigger is (false when none are given). The
+    /// primary-trigger-or-fallback-date shape (e.g. Josen: a wounded/downed party member, OR a
+    /// mid-Spring calendar fallback so a cautious/lucky player can't lock him out forever).</summary>
+    public static ArrivalTrigger Any(params ArrivalTrigger[] triggers)
+        => new AnyTrigger(triggers);
+
+    /// <summary>
+    /// Fires once the party's total CURRENT count of an item (every member's carry plus the outpost
+    /// warehouse — <see cref="IArrivalContext.CountItem"/>) reaches (≥) <paramref name="minCount"/>.
+    /// E.g. a curator character who shows up once the party has stockpiled enough monster trophies
+    /// (see design/economy/characters.md — Hazel/Reliquary). NOTE: this reads CURRENT holdings, not a
+    /// lifetime/cumulative total — spending or selling counted items lowers it back below the
+    /// threshold. A future lifetime-counter seam would be a separate trigger variant if that
+    /// distinction turns out to matter for an authored character.
+    /// </summary>
+    public static ArrivalTrigger ItemCountReached(string itemId, int minCount)
+        => new ItemCountReachedTrigger(itemId, minCount);
+
+    /// <summary>
+    /// Fires once a character's friendship reaches (≥) <paramref name="minHearts"/> hearts
+    /// (<see cref="IArrivalContext.HeartsOf"/> — the FriendshipSystem heart model, see
+    /// design/friendship.md). The arrival gate for social/missable characters: someone who only
+    /// shows up once the party is close with someone else. Friendship never decays, so once
+    /// satisfied the condition stays satisfied.
+    /// </summary>
+    public static ArrivalTrigger FriendshipReached(string characterId, int minHearts)
+        => new FriendshipReachedTrigger(characterId, minHearts);
 
     /// <summary>
     /// Absolute day index for calendar comparisons: 28 days per season, 4 seasons per year, year
@@ -106,5 +136,54 @@ public abstract class ArrivalTrigger
                     return false;
             return true;
         }
+    }
+
+    private sealed class AnyTrigger : ArrivalTrigger
+    {
+        private readonly ArrivalTrigger[] _triggers;
+
+        public AnyTrigger(ArrivalTrigger[] triggers)
+            => _triggers = triggers ?? Array.Empty<ArrivalTrigger>();
+
+        public override bool IsSatisfied(IArrivalContext context)
+        {
+            // Empty composite never fires (mirrors AllTrigger's empty-set convention).
+            if (_triggers.Length == 0)
+                return false;
+            foreach (var t in _triggers)
+                if (t != null && t.IsSatisfied(context))
+                    return true;
+            return false;
+        }
+    }
+
+    private sealed class ItemCountReachedTrigger : ArrivalTrigger
+    {
+        private readonly string _itemId;
+        private readonly int _minCount;
+
+        public ItemCountReachedTrigger(string itemId, int minCount)
+        {
+            _itemId = itemId;
+            _minCount = minCount;
+        }
+
+        public override bool IsSatisfied(IArrivalContext context)
+            => context.CountItem(_itemId) >= _minCount;
+    }
+
+    private sealed class FriendshipReachedTrigger : ArrivalTrigger
+    {
+        private readonly string _characterId;
+        private readonly int _minHearts;
+
+        public FriendshipReachedTrigger(string characterId, int minHearts)
+        {
+            _characterId = characterId;
+            _minHearts = minHearts;
+        }
+
+        public override bool IsSatisfied(IArrivalContext context)
+            => context.HeartsOf(_characterId) >= _minHearts;
     }
 }

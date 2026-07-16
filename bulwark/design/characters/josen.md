@@ -70,7 +70,10 @@ powers, the quiet that the wars left behind, is the closest thing to peace he ha
 Civilization is noise. The frontier is not. He was here before the outpost began to grow, living
 in solitude in the surrounding wilderness. The stream of injuries and sickness that frontier
 life produces drew him in. Not compassion exactly, but recognition: these bodies need what he
-knows. So he stays. Specific trigger TBD (day threshold, event, or zone discovery).
+knows. So he stays. He steps forward the first time a party member ends a combat wounded or downed,
+the moment the stream of injuries stops being theoretical to him. If the party's early expeditions
+somehow avoid that outcome, he arrives regardless by mid-Spring of Year 1, unwilling to wait
+indefinitely for a reason that was always going to come.
 
 ## Notes (deferred / later)
 

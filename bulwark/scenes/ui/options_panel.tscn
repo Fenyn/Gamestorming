@@ -1,0 +1,133 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/OptionsPanel.cs" id="1_optspn"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
+
+[node name="OptionsPanel" type="CanvasLayer"]
+layer = 3
+script = ExtResource("1_optspn")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = ExtResource("2_theme")
+
+[node name="Backdrop" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Center" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Panel" type="PanelContainer" parent="Root/Center"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+theme_type_variation = &"ModalPanel"
+
+[node name="Col" type="VBoxContainer" parent="Root/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleBar" type="PanelContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"TitleBar"
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Panel/Col/TitleBar"]
+layout_mode = 2
+text = "Options"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="Rows" type="VBoxContainer" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MasterRow" type="HBoxContainer" parent="Root/Center/Panel/Col/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MasterLabel" type="Label" parent="Root/Center/Panel/Col/Rows/MasterRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Master Volume"
+
+[node name="MasterSlider" type="HSlider" parent="Root/Center/Panel/Col/Rows/MasterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="MusicRow" type="HBoxContainer" parent="Root/Center/Panel/Col/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MusicLabel" type="Label" parent="Root/Center/Panel/Col/Rows/MusicRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Music Volume"
+
+[node name="MusicSlider" type="HSlider" parent="Root/Center/Panel/Col/Rows/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="SfxRow" type="HBoxContainer" parent="Root/Center/Panel/Col/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SfxLabel" type="Label" parent="Root/Center/Panel/Col/Rows/SfxRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Sound Effects"
+
+[node name="SfxSlider" type="HSlider" parent="Root/Center/Panel/Col/Rows/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="FullscreenRow" type="HBoxContainer" parent="Root/Center/Panel/Col/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FullscreenLabel" type="Label" parent="Root/Center/Panel/Col/Rows/FullscreenRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Fullscreen"
+
+[node name="FullscreenCheck" type="CheckButton" parent="Root/Center/Panel/Col/Rows/FullscreenRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="Root/Center/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Close"
+
+[node name="HintLabel" type="Label" parent="Root/Center/Panel/Col"]
+layout_mode = 2
+text = "Esc = close"
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"

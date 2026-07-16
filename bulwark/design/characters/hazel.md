@@ -91,8 +91,10 @@ Recruitable. Hazel arrives at the outpost after hearing about the growing settle
 things its people have been encountering in the surrounding territory. She shows up with a
 careful inventory of what she saved from the old museum, a set of professional tools, and a
 proposal: give her a space, bring her what you find, and she will build something that lasts.
-Specific trigger TBD (day threshold, territory milestone, or number of unidentified artifacts
-in inventory).
+The trigger is a trophy-count threshold: once the party has accumulated a collection's worth of
+monster trophies and rare drops, scattered and uncatalogued, there is enough material sitting
+around to be worth a curator showing up for (see `design/economy/characters.md` for the proposed
+number).
 
 ## Notes (deferred / later)
 

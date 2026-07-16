@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Bulwark.Data;
 
 namespace Bulwark.Cozy;
@@ -44,7 +46,7 @@ public sealed class CraftingSystem
     /// <summary>
     /// Whether <paramref name="count"/> crafts of a recipe can run right now: recipe defined, count
     /// positive, station unlocked, inputs present for the full count, and the produced output fits the
-    /// carry cap. Pure — no mutation.
+    /// carry cap. Wildcard inputs resolve to the first held item in the matching category. Pure.
     /// </summary>
     public bool CanCraft(string recipeId, int count = 1)
     {
@@ -53,8 +55,11 @@ public sealed class CraftingSystem
         if (!IsUnlocked(recipe))
             return false;
         foreach (var input in recipe.Inputs)
-            if (!_inventory.Has(input.ItemId, input.Quantity * count))
+        {
+            string? resolved = ResolveInput(input);
+            if (resolved == null || !_inventory.Has(resolved, input.Quantity * count))
                 return false;
+        }
         return _inventory.WouldFit(recipe.OutputItemId, recipe.OutputQuantity * count);
     }
 
@@ -63,9 +68,9 @@ public sealed class CraftingSystem
     /// <summary>
     /// Craft <paramref name="count"/> batches of a recipe. Validates via <see cref="CanCraft"/> — a
     /// rejected craft (unknown recipe, non-positive count, locked station, missing inputs, or output
-    /// overflow) consumes NOTHING and returns false. On success: consume the inputs, add the output
-    /// (guaranteed to fit, so it lands in full), spend the craft-minutes on the clock, and emit
-    /// <see cref="Crafted"/>. Returns true.
+    /// overflow) consumes NOTHING and returns false. On success: consume the inputs (wildcard inputs
+    /// resolve to the first held item in their category), add the output, spend the craft-minutes on
+    /// the clock, and emit <see cref="Crafted"/>. Returns true.
     /// </summary>
     public bool Craft(string recipeId, int count = 1)
     {
@@ -74,9 +79,11 @@ public sealed class CraftingSystem
 
         var recipe = Recipes.Get(recipeId);
 
-        // Validated present + fitting above, so each mutation below succeeds.
         foreach (var input in recipe.Inputs)
-            _inventory.RemoveItem(input.ItemId, input.Quantity * count);
+        {
+            string resolved = ResolveInput(input)!;
+            _inventory.RemoveItem(resolved, input.Quantity * count);
+        }
 
         _inventory.AddItem(recipe.OutputItemId, recipe.OutputQuantity * count);
 
@@ -84,6 +91,24 @@ public sealed class CraftingSystem
 
         Crafted?.Invoke(recipeId);
         return true;
+    }
+
+    /// <summary>
+    /// For a specific input, returns the item id directly. For a wildcard input, scans the inventory
+    /// for the first held item whose category matches, returning null if none is found.
+    /// </summary>
+    private string? ResolveInput(RecipeInput input)
+    {
+        if (!input.IsWildcard)
+            return input.ItemId;
+
+        var category = input.CategoryWildcard!.Value;
+        foreach (var (itemId, qty) in _inventory.Stacks)
+        {
+            if (qty > 0 && Items.TryGet(itemId, out var def) && def.Category == category)
+                return itemId;
+        }
+        return null;
     }
 
     // ===================== View-model =====================
@@ -97,16 +122,18 @@ public sealed class CraftingSystem
         {
             bool unlocked = IsUnlocked(recipe);
             bool hasInputs = true;
-            var inputs = new System.Collections.Generic.List<RecipeInputView>(recipe.Inputs.Count);
+            var inputs = new List<RecipeInputView>(recipe.Inputs.Count);
             foreach (var input in recipe.Inputs)
             {
-                int have = _inventory.Count(input.ItemId);
+                string? resolved = ResolveInput(input);
+                string displayId = resolved ?? (input.IsWildcard ? $"Any {input.CategoryWildcard}" : input.ItemId!);
+                int have = resolved != null ? _inventory.Count(resolved) : 0;
                 if (have < input.Quantity)
                     hasInputs = false;
                 inputs.Add(new RecipeInputView
                 {
-                    ItemId = input.ItemId,
-                    DisplayName = NameOf(input.ItemId),
+                    ItemId = displayId,
+                    DisplayName = input.IsWildcard ? $"Any {input.CategoryWildcard}" : NameOf(input.ItemId!),
                     Need = input.Quantity,
                     Have = have,
                 });

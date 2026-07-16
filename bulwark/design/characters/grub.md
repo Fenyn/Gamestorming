@@ -82,7 +82,10 @@ just there, the way he has always been there, doing what he has always been doin
 
 He does not need to be convinced to join the outpost. The outpost came to him. He is perfectly
 happy to keep doing what he was doing, just with more people around and a building to not
-maintain. Specific trigger TBD (territory expansion milestone, day threshold, or farm level).
+maintain. The trigger is the Farmhouse reaching tier 2 together with a territory-expansion
+milestone: the player has to already be serious enough about the fields to have grown them once,
+and has to have pushed far enough into the wilderness to stumble onto the patch Grub has been
+tending all along.
 
 ## Notes (deferred / later)
 

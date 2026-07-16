@@ -75,7 +75,9 @@ the attention.
 
 ## Arrival
 
-Recruitable. Found in the deep forest during a territory expedition. Specific trigger TBD.
+Recruitable. Found in the Elderwood during a territory expedition. The trigger is the Elderwood biome
+itself being explored. Spore was never hiding and never waiting for anything; the party simply has to
+walk far enough to reach the part of the map she already inhabits.
 
 ## Notes (deferred / later)
 

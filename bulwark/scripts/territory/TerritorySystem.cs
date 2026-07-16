@@ -22,8 +22,12 @@ namespace Bulwark.Territory;
 ///  - Party selection: up to <see cref="MaxCompanions"/> living companions picked at the gate; the
 ///    avatar (the player) always goes. The selection persists for the visit and rides the save
 ///    additively; on load the player is always back at the outpost (location is NOT persisted).
-///  - Nodes: depleted on harvest; nodes whose definition has RespawnsDaily respawn when a new day
-///    starts (DayClock.DayStarted), mirroring how FarmSystem hooks the overnight boundary.
+///  - Nodes: depletion rolls the RESPAWN DAY at harvest time from the definition's
+///    RespawnDaysMin/Max window (deterministic via the save's RNG seam; 1/1 = next morning,
+///    0/0 = never, trees 7–14) and persists it — never re-rolled on load. Node ids resolve from
+///    three sources: the authored Territories data (marker flow), scene-registered placements
+///    (prefabs placed in the .tscn, registered by the scene adapter at ready), and live forage
+///    spawns (ForageSystem).
 ///  - Roamers: a beaten roamer is despawned for the rest of the day (cleared on day start).
 ///  - Encounters: <see cref="BeginEncounter"/> rolls the roamer's weighted table, resolves creature
 ///    refs through the injected resolver (DataManager-backed), and builds the CombatSetup +
@@ -52,9 +56,21 @@ public sealed class TerritorySystem
     private readonly Random _random = new();
 
     private readonly List<string> _companions = new();
-    private readonly HashSet<string> _depletedNodes = new();   // "territoryId:nodeId"
-    private readonly HashSet<string> _defeatedRoamers = new(); // "territoryId:roamerId"
+
+    /// <summary>"territoryId:nodeId" → absolute day ordinal the node respawns on (0 = never,
+    /// rolled at harvest time — see <see cref="RollRespawnDays"/>).</summary>
+    private readonly Dictionary<string, int> _depletedNodes = new();
+
+    private readonly HashSet<string> _defeatedRoamers = new();       // "territoryId:roamerId"
     private string? _travelToast;
+    private int _worldSeed;
+
+    /// <summary>Scene-registered node placements: territory id → (node name → resource id).
+    /// Session-scoped (re-registered every time a territory scene loads) — the .tscn is the
+    /// authoring source, so nothing here is persisted.</summary>
+    private readonly Dictionary<string, Dictionary<string, string>> _scenePlacements = new();
+
+    private readonly ForageSystem? _forage;
 
     /// <summary>Raised after a node's depleted state changes (harvest or respawn), with the node id.</summary>
     public event Action<string>? NodeChanged;
@@ -64,12 +80,14 @@ public sealed class TerritorySystem
 
     public TerritorySystem(
         Inventory inventory, DayClock clock, SquadRoster? squad,
-        Func<CreatureRef, EnemyDefinition?>? creatureResolver)
+        Func<CreatureRef, EnemyDefinition?>? creatureResolver,
+        ForageSystem? forage = null)
     {
         _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
         _squad = squad;
         _creatureResolver = creatureResolver;
+        _forage = forage;
 
         _clock.DayStarted += OnDayStarted;
     }
@@ -85,8 +103,44 @@ public sealed class TerritorySystem
     /// <summary>Encounter built by <see cref="BeginEncounter"/>, consumed by the combat scene.</summary>
     public TerritoryEncounter? PendingEncounter { get; private set; }
 
+    /// <summary>
+    /// True while the node has nothing to give. Forage spawns answer from their harvested flag;
+    /// authored/placed nodes answer from their persisted respawn day (rolled at harvest) — no
+    /// definition lookup needed, so a placed node in a scene not registered this session still
+    /// reads correctly.
+    /// </summary>
     public bool IsNodeDepleted(string territoryId, string nodeId)
-        => _depletedNodes.Contains(Key(territoryId, nodeId));
+    {
+        if (_forage?.IsForageNode(territoryId, nodeId) == true)
+            return _forage.IsHarvested(territoryId, nodeId);
+
+        if (!_depletedNodes.TryGetValue(Key(territoryId, nodeId), out int respawnDay))
+            return false;
+        return respawnDay <= 0 || CurrentDayOrdinal < respawnDay;
+    }
+
+    /// <summary>Set the per-save world seed (the deterministic respawn-roll anchor).</summary>
+    public void SetWorldSeed(int seed) => _worldSeed = seed;
+
+    /// <summary>
+    /// Register the resource-node prefabs an authored territory scene carries (placed directly in
+    /// the .tscn — save identity is territory id + node name). Idempotent per territory; called by
+    /// the scene adapter at ready, BEFORE it queries depletion state. Unknown resource ids are
+    /// skipped (the scene logs them).
+    /// </summary>
+    public void RegisterScenePlacements(
+        string territoryId, IReadOnlyList<(string NodeId, string ResourceId)> placements)
+    {
+        if (string.IsNullOrEmpty(territoryId))
+            return;
+        var map = new Dictionary<string, string>();
+        foreach (var (nodeId, resourceId) in placements)
+        {
+            if (!string.IsNullOrEmpty(nodeId) && ResourceNodes.IsDefined(resourceId))
+                map[nodeId] = resourceId;
+        }
+        _scenePlacements[territoryId] = map;
+    }
 
     public bool IsRoamerDefeated(string territoryId, string roamerId)
         => _defeatedRoamers.Contains(Key(territoryId, roamerId));
@@ -238,19 +292,26 @@ public sealed class TerritorySystem
         if (CurrentTerritoryId == null || !Territories.TryGet(CurrentTerritoryId, out var territory))
             return false;
 
-        var placement = territory.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-        if (placement == null || !ResourceNodes.TryGet(placement.ResourceId, out var def))
+        var def = ResolveNodeDef(territory.Id, nodeId);
+        if (def == null)
             return false;
 
-        string key = Key(territory.Id, nodeId);
-        if (_depletedNodes.Contains(key))
+        if (IsNodeDepleted(territory.Id, nodeId))
             return false;
         if (tool != def.Tool)
             return false;
 
         _clock.SpendTime(def.HarvestMinutes);
         _inventory.AddItem(def.YieldItemId, def.YieldCount);
-        _depletedNodes.Add(key);
+        if (_forage?.MarkHarvested(territory.Id, nodeId) != true)
+        {
+            // Roll the respawn day NOW and persist it (design/forage.md) — deterministic from the
+            // save's RNG seam, so replaying the same harvest rolls the same window.
+            string key = Key(territory.Id, nodeId);
+            int today = CurrentDayOrdinal;
+            int days = RollRespawnDays(_worldSeed, today, key, def.RespawnDaysMin, def.RespawnDaysMax);
+            _depletedNodes[key] = days <= 0 ? 0 : today + days;
+        }
         NodeChanged?.Invoke(nodeId);
 
         ResourceHarvested?.Invoke(new HarvestResultView
@@ -369,11 +430,14 @@ public sealed class TerritorySystem
 
     // ===================== Save bridge =====================
 
-    /// <summary>Snapshot the persisted territory state (selection + depleted/defeated sets).</summary>
+    /// <summary>Snapshot the persisted territory state (selection + depleted/defeated sets).
+    /// The legacy key list is still written alongside the respawn-day entries (shape stability).</summary>
     public TerritoryDto CaptureState() => new()
     {
         SelectedCompanionIds = new List<string>(_companions),
-        DepletedNodeIds = new List<string>(_depletedNodes),
+        DepletedNodeIds = new List<string>(_depletedNodes.Keys),
+        DepletedNodes = _depletedNodes
+            .Select(kv => new DepletedNodeDto { Key = kv.Key, RespawnDay = kv.Value }).ToList(),
         DefeatedRoamerIds = new List<string>(_defeatedRoamers),
     };
 
@@ -393,8 +457,32 @@ public sealed class TerritorySystem
             return;
 
         _companions.AddRange(dto.SelectedCompanionIds.Where(id => !string.IsNullOrEmpty(id)));
-        foreach (var key in dto.DepletedNodeIds)
-            _depletedNodes.Add(key);
+
+        // v12 saves carry rolled respawn days; pre-v12 saves carry only keys — migrate through the
+        // authored definitions (legacy saves can only hold marker nodes): one-shots never respawn,
+        // everything else respawns tomorrow, reproducing the old daily behavior exactly. Keys that
+        // no longer resolve are dropped (the old stale-key rule).
+        if (dto.DepletedNodes != null)
+        {
+            foreach (var entry in dto.DepletedNodes)
+                if (!string.IsNullOrEmpty(entry.Key))
+                    _depletedNodes[entry.Key] = entry.RespawnDay;
+        }
+        else
+        {
+            int tomorrow = CurrentDayOrdinal + 1;
+            foreach (var key in dto.DepletedNodeIds)
+            {
+                var (territoryId, nodeId) = SplitKey(key);
+                if (territoryId == null || nodeId == null)
+                    continue;
+                var def = ResolveNodeDef(territoryId, nodeId);
+                if (def == null)
+                    continue;
+                _depletedNodes[key] = def.RespawnDaysMax <= 0 ? 0 : tomorrow;
+            }
+        }
+
         foreach (var key in dto.DefeatedRoamerIds)
             _defeatedRoamers.Add(key);
     }
@@ -403,30 +491,74 @@ public sealed class TerritorySystem
 
     private static string Key(string territoryId, string localId) => $"{territoryId}:{localId}";
 
+    /// <summary>Absolute day ordinal (year/season/day flattened) — the RespawnDays clock.</summary>
+    private int CurrentDayOrdinal => ArrivalTrigger.Ordinal(_clock.Year, _clock.Season, _clock.Day);
+
+    /// <summary>
+    /// Resolve a node id to its definition from the three placement sources: the authored
+    /// Territories data (marker flow), scene-registered placements (prefabs in the .tscn), then
+    /// live forage spawns. Null when nothing knows the id.
+    /// </summary>
+    private ResourceNodeDefinition? ResolveNodeDef(string territoryId, string nodeId)
+    {
+        if (Territories.TryGet(territoryId, out var territory))
+        {
+            var placement = territory.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
+            if (placement != null && ResourceNodes.TryGet(placement.ResourceId, out var authored))
+                return authored;
+        }
+
+        if (_scenePlacements.TryGetValue(territoryId, out var map)
+            && map.TryGetValue(nodeId, out var resourceId)
+            && ResourceNodes.TryGet(resourceId, out var placed))
+        {
+            return placed;
+        }
+
+        string? forageResource = _forage?.ResolveResourceId(territoryId, nodeId);
+        if (forageResource != null && ResourceNodes.TryGet(forageResource, out var forage))
+            return forage;
+
+        return null;
+    }
+
+    /// <summary>
+    /// The respawn-window roll (design/forage.md): days until a harvested node returns, rolled at
+    /// harvest time from the save's deterministic RNG seam — (world seed, harvest day, node key)
+    /// always rolls the same window. Pure and public so the spike can verify range + determinism.
+    /// Returns 0 for never (max &lt;= 0); a fixed cadence (min == max) skips the RNG entirely.
+    /// </summary>
+    public static int RollRespawnDays(int worldSeed, int harvestDay, string nodeKey, int minDays, int maxDays)
+    {
+        if (maxDays <= 0)
+            return 0;
+        int min = Math.Max(1, minDays);
+        if (maxDays <= min)
+            return min;
+        var rng = new Random(DeterministicRng.StableSeed(worldSeed, harvestDay, "respawn:" + nodeKey));
+        return rng.Next(min, maxDays + 1);
+    }
+
     private void OnDayStarted()
     {
-        // Roamers respawn every morning; nodes respawn per their definition flag.
+        // Roamers respawn every morning; nodes respawn once their rolled respawn day arrives.
         _defeatedRoamers.Clear();
+
+        int today = CurrentDayOrdinal;
 
         // Decide first, mutate second, notify last — subscribers reading IsNodeDepleted from a
         // NodeChanged handler must observe the settled post-respawn state.
         var respawned = new List<(string Key, string NodeId)>();
-        foreach (var key in _depletedNodes)
+        foreach (var (key, respawnDay) in _depletedNodes)
         {
             var (territoryId, nodeId) = SplitKey(key);
-            if (territoryId == null || !Territories.TryGet(territoryId, out var territory))
+            if (territoryId == null || !Territories.TryGet(territoryId, out _))
             {
-                respawned.Add((key, nodeId ?? "")); // stale key — drop it
+                respawned.Add((key, nodeId ?? "")); // stale key (unknown territory) — drop it
                 continue;
             }
-            // Daily nodes (and stale placements) respawn; one-shot nodes (RespawnsDaily=false)
-            // keep their key and stay depleted.
-            var placement = territory.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-            if (placement == null || !ResourceNodes.TryGet(placement.ResourceId, out var def)
-                || def.RespawnsDaily)
-            {
+            if (respawnDay > 0 && today >= respawnDay)
                 respawned.Add((key, nodeId!));
-            }
         }
 
         foreach (var (key, _) in respawned)

@@ -1,0 +1,48 @@
+{
+  "id": "intro_scene_0",
+  "type": "Sequence",
+  "once": true,
+  "steps": [
+    { "type": "line", "speaker": "fenwick", "text": "I am reasonably certain we have not passed a signpost in the last three miles." },
+    { "type": "line", "speaker": "player", "text": "Four." },
+    { "type": "line", "speaker": "fenwick", "text": "Four, then. That is worse, though I appreciate the precision." },
+    { "type": "wait", "seconds": 1.5 },
+    { "type": "line", "speaker": "player", "text": "Look at the road. These stones have not been set right in years. Whatever the crown holds out here, it would appear their grasp is not a tight one." },
+    { "type": "line", "speaker": "fenwick", "text": "I had been trying not to notice that. You have a gift for dispelling comfort." },
+    { "type": "line", "speaker": "player", "text": "I have seen neglect of this sort before. When a family leaves their homestead, the road is the first thing to go." },
+    { "type": "line", "speaker": "fenwick", "text": "And what follows the road?" },
+    { "type": "line", "speaker": "player", "text": "Everything else." },
+    { "type": "enter", "actor": "elara" },
+    { "type": "line", "speaker": "elara", "text": "I would not take that fork, were I in your position." },
+    { "type": "line", "speaker": "player", "text": "Why not?" },
+    { "type": "line", "speaker": "elara", "text": "The gorge bridge washed out two winters past. No one has troubled to rebuild it. You shall discover that for yourselves if you continue — though ’tis a long way down to learn a short lesson." },
+    { "type": "line", "speaker": "fenwick", "text": "Well, its nice to meet such a well-informed stranger on an empty road." },
+    { "type": "line", "speaker": "elara", "text": "I have traded these routes for a good many years. Long enough to know which bridges still stand. Where are you bound?" },
+    { "type": "line", "speaker": "player", "text": "A frontier garrison. Past the Thornwood, near the forest’s edge." },
+    { "type": "line", "speaker": "elara", "text": "The old outpost? There are not many who head out that way.", "emotion": "surprised" },
+    { "type": "line", "speaker": "fenwick", "text": "We were told it was still manned. Though, given the state of everything else out here, I am beginning to question the reliability of what we were told." },
+    {
+      "type": "choice",
+      "speaker": "player",
+      "text": "",
+      "options": [
+        {
+          "text": "You seem surprised. What do you know of it?",
+          "steps": [
+            { "type": "line", "speaker": "elara", "text": "Surprised is too strong. Let us say... curious. I had not thought the crown remembered that post existed." }
+          ]
+        },
+        {
+          "text": "We are reinforcements. Long overdue, by the sound of it.",
+          "steps": [
+            { "type": "line", "speaker": "elara", "text": "Reinforcements. After all this time. Well. Someone in the capital must have found a conscience, or at least a reason." }
+          ]
+        }
+      ]
+    },
+    { "type": "line", "speaker": "elara", "text": "I am Elara. I trade along these frontier routes. That’s the plan, at least, but there are few along them worth trading with.\n\nThe crown is offering concessions to anyone willing to bring commerce back to the borderlands, and I intend to be the first to collect.\n\nAs it happens, I am heading the same direction. I can guide you to the outpost." },
+    { "type": "line", "speaker": "fenwick", "text": "Then we are in your debt. I am Fenwick. This is {player_name}." },
+    { "type": "line", "speaker": "elara", "text": "Reinforcements for a forgotten outpost, armed with a map drawn by someone who has never set foot out here. The crown’s generosity knows no bounds." },
+    { "type": "line", "speaker": "player", "text": "(laughs)\nWe would welcome the company, Elara." }
+  ]
+}

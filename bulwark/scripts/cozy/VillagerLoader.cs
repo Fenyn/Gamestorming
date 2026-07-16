@@ -90,6 +90,30 @@ public sealed class VillagerLoader
         return inst;
     }
 
+    /// <summary>
+    /// The placed villager NPC nearest to <paramref name="worldPos"/> within
+    /// <paramref name="maxDistance"/> pixels, or null when none is in range — the proximity query
+    /// the talk/gift interactions use ("E on/near the villager"). Only ARRIVED, actually-placed
+    /// NPCs are considered.
+    /// </summary>
+    public string? NearestVillagerId(Vector2 worldPos, float maxDistance)
+    {
+        string? best = null;
+        float bestDistance = maxDistance;
+        foreach (var (id, node) in _placed)
+        {
+            if (!GodotObject.IsInstanceValid(node) || !_hasArrived(id))
+                continue;
+            float distance = node.GlobalPosition.DistanceTo(worldPos);
+            if (distance <= bestDistance)
+            {
+                bestDistance = distance;
+                best = id;
+            }
+        }
+        return best;
+    }
+
     /// <summary>The villager's own marker, or — failing that — its associated building's marker.</summary>
     private Marker2D? FindMarker(VillagerDefinition def)
     {

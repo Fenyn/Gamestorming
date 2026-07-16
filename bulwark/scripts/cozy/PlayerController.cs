@@ -41,6 +41,11 @@ public partial class PlayerController : CharacterBody2D
     private readonly ToolBelt _tools = new();
     public ToolBelt Tools => _tools;
 
+    /// <summary>Current facing direction as a grid-space unit vector (kept when idle) — exposed so the
+    /// world scene's interaction-hint proximity check can mirror <see cref="TrySleepAtBedroll"/>'s
+    /// exact cell math without duplicating the cached facing state.</summary>
+    public Vector2I FacingDirection => _facingDir;
+
     /// <summary>Raised when the player Hand-interacts at the bedroll; the scene runs the sleep flow.</summary>
     public event Action? SleepRequested;
 

@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Bulwark.Cozy;
 using Bulwark.Data;
+using Bulwark.Data.Characters;
+using Bulwark.Data.Dialogues;
 using Bulwark.Territory;
+using CharacterRegistry = Bulwark.Data.Characters.Characters;
 using Godot;
+using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Equipment;
@@ -39,6 +43,29 @@ public partial class GameState : Node, IArrivalContext
     /// </summary>
     public const int FatigueMinuteOfDay = 24 * 60;  // 1440 (midnight)
 
+    /// <summary>
+    /// Bulwark story flag latched by <see cref="CompleteEncounter"/> the first time any party member
+    /// ends a combat encounter dead or Wounded (see that method for the exact query + its known
+    /// limitation). A framework seam only — no shipped villager/quest reads it yet; authored content
+    /// can gate on it later via <see cref="ArrivalTrigger.StoryFlag"/>.
+    /// </summary>
+    private const string FirstCasualtyFlag = "first_casualty";
+
+    /// <summary>
+    /// Bulwark story flag latched by <see cref="CommissionBuilding"/> the first time the outpost has
+    /// 8 or more buildings commissioned (tier ≥ 1), EXCLUDING the "command_post" start-state building
+    /// (present from day one, so it never counts toward this milestone). One-shot, idempotent.
+    /// </summary>
+    private const string EightBuildingsFlag = "eight_buildings_constructed";
+
+    /// <summary>
+    /// Bulwark story flag latched the first time the party's combined trophy count (every
+    /// <see cref="ItemCategory.Trophy"/> item, summed across carry + warehouse) reaches 8 — checked
+    /// after every inventory gain and again after a load (a restored save may already be past the
+    /// threshold). One-shot, idempotent.
+    /// </summary>
+    private const string EightTrophiesFlag = "eight_trophies_collected";
+
     /// <summary>Real seconds per in-game minute (fed to <see cref="DayClock"/>). ~18 real min/day at 0.75.</summary>
     [Export] public double RealSecondsPerGameMinute { get; set; } = 0.75;
 
@@ -72,6 +99,14 @@ public partial class GameState : Node, IArrivalContext
     /// <summary>Territory loop (M3): travel/party selection, resource nodes, roaming encounters.</summary>
     public TerritorySystem Territory { get; private set; } = null!;
 
+    /// <summary>Forage daily-spawn system (design/forage.md). Private: scenes go through the
+    /// SyncTerritoryForage command and GetLiveForage query below.</summary>
+    private ForageSystem _forage = null!;
+
+    /// <summary>Per-save world seed anchoring deterministic rolls (forage). Generated fresh for a
+    /// new game; persisted in SaveData (pre-v12 saves adopt the generated one on their next save).</summary>
+    private int _worldSeed;
+
     /// <summary>Phase-5 crafting loop: raw→refined artisan chains + kitchen meals, gated on station
     /// CategoryUnlocks. Charges craft-minutes on the clock and moves items through the inventory.</summary>
     public CraftingSystem Crafting { get; private set; } = null!;
@@ -99,6 +134,9 @@ public partial class GameState : Node, IArrivalContext
     // through the TreatWounds command and GetSquadPanelView query below.
     private TreatWoundsSystem? _treatWounds;
 
+    /// <summary>Phase-6 quest log: tracks tutorial and narrative quests with objectives and progress.</summary>
+    private QuestLog _questLog = null!;
+
     /// <summary>Phase-3 bulwark story flags (a trigger source for villager arrivals + future quests).</summary>
     private StoryFlags _storyFlags = null!;
 
@@ -107,6 +145,25 @@ public partial class GameState : Node, IArrivalContext
     /// the SHIPPED (empty) catalog, so a no-op in shipped play — the framework the user fills later.
     /// </summary>
     private VillagerSystem _villagers = null!;
+
+    /// <summary>
+    /// The friendship / heart system (design/friendship.md): per-character points earned by gifts,
+    /// daily talks, and quest/help awards. No decay. Heart thresholds fire once and feed the
+    /// dialogue hook + the friendship effect source registered into <see cref="_effects"/>.
+    /// </summary>
+    private FriendshipSystem _friendship = null!;
+
+    /// <summary>
+    /// Dialogue database: loads all JSON dialogue files from res://data/dialogues/ and indexes them.
+    /// Empty database (no files) is the shipped baseline — a clean no-op.
+    /// </summary>
+    private DialogueDatabase _dialogueDb = null!;
+
+    /// <summary>Dialogue ids that have been seen (once-only sequences never replay).</summary>
+    private readonly HashSet<string> _seenDialogues = new();
+
+    /// <summary>True while a dialogue sequence is actively playing.</summary>
+    public bool IsDialogueActive { get; private set; }
 
     // Once-per-day latch for the up-past-midnight fatigue rule (reset when a new day starts).
     private bool _squadFatigueLatched;
@@ -146,6 +203,11 @@ public partial class GameState : Node, IArrivalContext
     /// the building id — the loader re-places/refreshes that building's visual, the UI refreshes.</summary>
     public event Action<string>? BuildingChanged;
 
+    /// <summary>Raised ONLY when a building's construction timer completes, with the building id — the
+    /// world scene's one-shot "«Name» is complete." toast seam (distinct from the broader
+    /// <see cref="BuildingChanged"/>, which also fires on commission/contribute/upgrade).</summary>
+    public event Action<string>? ConstructionCompleted;
+
     /// <summary>Raised after the building-effect aggregator recomputes (commission/upgrade/load) — the
     /// UI/systems refresh capability-gated state (smithy shelf, farm caps, unlocked categories).</summary>
     public event Action? EffectsChanged;
@@ -156,6 +218,18 @@ public partial class GameState : Node, IArrivalContext
     /// <summary>Raised when a villager's arrival trigger first fires, with the villager id — the NPC
     /// loader spawns that character. Never fires in shipped play (empty catalog).</summary>
     public event Action<string>? VillagerArrived;
+
+    /// <summary>Raised after a character's friendship points changed, with the character id — the
+    /// friendship panel refresh seam.</summary>
+    public event Action<string>? FriendshipChanged;
+
+    /// <summary>Raised ONCE per (character, heart) the first time that heart level is reached —
+    /// the future dialogue system consumes it (heart events); perk/recipe unlocks apply beneath it
+    /// via the friendship effect source (already recomputed when this fires).</summary>
+    public event Action<string, int>? HeartThresholdReached;
+
+    /// <summary>Raised after a successful gift (charId, itemId, points delta) — HUD toast seam.</summary>
+    public event Action<string, string, int>? GiftGiven;
 
     /// <summary>Raised after a villager joins the roster pool (pool grown), with the villager id.</summary>
     public event Action<string>? RosterMemberJoined;
@@ -168,6 +242,10 @@ public partial class GameState : Node, IArrivalContext
 
     /// <summary>Raised after a resource node's depleted state changes (harvest or respawn).</summary>
     public event Action<string>? TerritoryNodeChanged;
+
+    /// <summary>Raised after a territory's forage spawn set changed (daily pass / sweep), with the
+    /// territory id — the territory scene re-syncs its forage node views.</summary>
+    public event Action<string>? ForageChanged;
 
     /// <summary>Raised after a successful craft, with the recipe id — UI refresh seam.</summary>
     public event Action<string>? RecipeCrafted;
@@ -191,6 +269,21 @@ public partial class GameState : Node, IArrivalContext
     /// </summary>
     public event Action<IReadOnlyList<SquadLevelUpView>>? SquadLeveledUp;
 
+    /// <summary>Raised when a dialogue sequence starts playing, with the dialogue id.</summary>
+    public event Action<string>? DialogueStarted;
+
+    /// <summary>Raised when a dialogue sequence finishes playing.</summary>
+    public event Action? DialogueEnded;
+
+    /// <summary>Raised after a quest is started, with the quest id.</summary>
+    public event Action<string>? QuestStarted;
+
+    /// <summary>Raised after a quest is completed, with the quest id.</summary>
+    public event Action<string>? QuestCompleted;
+
+    /// <summary>Raised after a quest objective progresses, with the quest id and objective index.</summary>
+    public event Action<string, int>? QuestObjectiveProgressed;
+
     public override void _Ready()
     {
         Instance = this;
@@ -198,8 +291,20 @@ public partial class GameState : Node, IArrivalContext
         Clock = new DayClock { RealSecondsPerGameMinute = RealSecondsPerGameMinute };
         Inventory = new Inventory();
         Farm = new FarmSystem(Inventory, () => Clock.Season);
-        Building = new BuildingSystem(Inventory);
         _wallet = new Wallet();
+        // Gold seam: building commission/upgrade can charge gold alongside the material bundle
+        // (Stardew carpenter model). BuildingSystem stays a plain accounting class — it reads/spends
+        // gold only through these injected delegates, never a direct Wallet reference.
+        Building = new BuildingSystem(Inventory, () => _wallet.Gold, _wallet.TrySpendGold);
+        // Tutorial pacing (design/tutorial.md): each commission occupies Tharr for 1-2 days. The
+        // one-at-a-time constraint keeps the player gathering/adventuring between builds.
+        Building.SetConstructionDays(new Dictionary<string, int>
+        {
+            { "trading_post", 2 },
+            { "farmhouse", 2 },
+            { "smithy", 2 },
+            { "infirmary", 2 },
+        });
 
         // Phase-4 effect aggregator over the commissioned buildings' cumulative active effects, and
         // the farm capability provider that reads it. Built before the systems that consult it; the
@@ -210,7 +315,9 @@ public partial class GameState : Node, IArrivalContext
 
         // Trading Post (gold store): buy from the catalog (stock widens with the smithy tier) + sell any
         // sellable carried item. Sale gold routes through the ledger-aware EarnGold; spends via the wallet.
-        _store = new StoreSystem(Inventory, _wallet, EarnGold, () => _effects.SmithyTier);
+        // Buy prices honour the aggregator's StorePriceDiscount (baseline 0 — a friendship heart perk seam).
+        _store = new StoreSystem(Inventory, _wallet, EarnGold, () => _effects.SmithyTier,
+            () => _effects.StorePriceDiscountPercent);
         _store.ItemSold += (id, qty) => { ItemSold?.Invoke(id, qty); TradingPostChanged?.Invoke(); };
         _store.GoodBought += (_, _) => TradingPostChanged?.Invoke();
 
@@ -235,11 +342,21 @@ public partial class GameState : Node, IArrivalContext
             GD.PushWarning("[GameState] PF2e content not loaded — squad unavailable this session.");
         }
 
+        // Forage spawns (design/forage.md): built before the territory system so harvests can
+        // resolve forage node ids. The world seed anchors deterministic daily passes; a load
+        // below overwrites it with the persisted seed.
+        _worldSeed = Random.Shared.Next(1, int.MaxValue);
+        _forage = new ForageSystem();
+        _forage.SetWorldSeed(_worldSeed);
+        _forage.ForageChanged += id => ForageChanged?.Invoke(id);
+
         // Territory loop runs even without a squad (harvest still works); encounters need both the
         // squad and the creature resolver, so BeginTerritoryEncounter degrades to a clean refusal.
         Territory = new TerritorySystem(
             Inventory, Clock, Squad,
-            Squad != null ? @ref => dataManager!.ResolveCreature(@ref) : null);
+            Squad != null ? @ref => dataManager!.ResolveCreature(@ref) : null,
+            _forage);
+        Territory.SetWorldSeed(_worldSeed);
         Territory.NodeChanged += id => TerritoryNodeChanged?.Invoke(id);
         Territory.ResourceHarvested += view => ResourceHarvested?.Invoke(view);
 
@@ -264,6 +381,57 @@ public partial class GameState : Node, IArrivalContext
         };
         _villagers.Arrived += id => VillagerArrived?.Invoke(id);
 
+        // Friendship / hearts (design/friendship.md): points per character, earned by gifts (from
+        // the party inventory), daily talks, and quest awards. Presence = starting PC (always at
+        // the outpost) or an ARRIVED villager. Its earned heart perks/unlocks register as an
+        // ADDITIONAL effect source in the aggregator (additive with building effects; empty at
+        // baseline, so shipped behaviour is unchanged until hearts are earned).
+        _friendship = new FriendshipSystem(Inventory, Clock, IsCharacterPresent);
+        _friendship.FriendshipChanged += id => FriendshipChanged?.Invoke(id);
+        _friendship.GiftGiven += (id, item, delta) => GiftGiven?.Invoke(id, item, delta);
+        _friendship.HeartThresholdReached += (id, heart) =>
+        {
+            // Recompute BEFORE announcing so subscribers observe the settled unlock state
+            // (perk effects landed, categories unlocked). The eventId on the profile's unlock
+            // entry is the Phase-4 dialogue hook — consumed by the future dialogue system.
+            _effects.Recompute();
+            HeartThresholdReached?.Invoke(id, heart);
+            // A heart crossing is a villager-arrival trigger source (FriendshipReached) — the
+            // StoryFlagChanged/BuildingChanged pattern. No-op over the shipped (empty) catalog.
+            _villagers.EvaluateArrivals();
+        };
+        _effects.AddSource(_friendship.ActiveEffects);
+
+        // Dialogue database: load all JSON files from res://data/dialogues/. Missing or empty
+        // directory is a clean no-op (the shipped baseline — framework only, no content).
+        string dialoguePath = ProjectSettings.GlobalizePath("res://data/dialogues");
+        _dialogueDb = new DialogueDatabase(dialoguePath);
+
+        // Wire heart-event auto-play: when a heart threshold fires with a non-null EventId, queue
+        // the dialogue to play AFTER the threshold handler finishes (CallDeferred so the threshold
+        // event completes before the dialogue starts). No-op if the dialogue doesn't exist (the
+        // EventId is a HOOK — content is authored later).
+        _friendship.HeartThresholdReached += (charId, heart) =>
+        {
+            var profile = Friendships.Get(charId);
+            foreach (var unlock in profile.Unlocks)
+            {
+                if (unlock.Heart == heart && !string.IsNullOrEmpty(unlock.EventId))
+                {
+                    string eventId = unlock.EventId;
+                    Callable.From(() => StartDialogue(eventId)).CallDeferred();
+                }
+            }
+        };
+
+        // Phase-6 quest log: register all tutorial quest definitions and wire events. The quest
+        // log is a plain C# system; the definitions come from the data registry.
+        _questLog = new QuestLog();
+        _questLog.RegisterAll(Quests.All);
+        _questLog.QuestStarted += id => QuestStarted?.Invoke(id);
+        _questLog.QuestCompleted += id => QuestCompleted?.Invoke(id);
+        _questLog.ObjectiveProgressed += (id, idx) => QuestObjectiveProgressed?.Invoke(id, idx);
+
         // Re-expose system events through the hub (minutes also feed the fatigue latch; a new
         // day resets it).
         Clock.MinuteChanged += OnClockMinuteChanged;
@@ -280,6 +448,7 @@ public partial class GameState : Node, IArrivalContext
             BuildingChanged?.Invoke(id);
             _villagers.EvaluateArrivals();
         };
+        Building.ConstructionCompleted += id => ConstructionCompleted?.Invoke(id);
         _wallet.GoldChanged += gold => GoldChanged?.Invoke(gold);
 
         // Bind the squad so gains distribute per-member (PF2e Bulk carry) and encumbrance applies.
@@ -293,6 +462,8 @@ public partial class GameState : Node, IArrivalContext
         // after GameState, so its Instance isn't live yet in _Ready (and this also sets the boot state).
         Callable.From(WireWarehouseAccess).CallDeferred();
 
+        // Auto-load or seed: the title screen routes to outpost (Continue) or calls StartNewGame
+        // (which clears and re-seeds). This ensures spikes and other standalone paths still work.
         if (SaveExists())
             LoadGame();
         else
@@ -304,6 +475,18 @@ public partial class GameState : Node, IArrivalContext
         // ItemAdded). Every later gain — farm harvest, territory node yield, direct grant —
         // flows through this single choke point.
         Inventory.ItemAdded += (id, qty) => _ledger.RecordItemGained(id, qty);
+        // Framework seam (EightTrophiesFlag): re-check the trophy-count milestone on every gain (loot,
+        // sale reversal N/A — sells remove, never add). CountEverywhere-based, so it self-corrects
+        // regardless of which trophy id(s) pushed the total over the threshold.
+        Inventory.ItemAdded += (_, _) => CheckEightTrophiesMilestone();
+
+        // Quest trigger wiring: story flags and inventory changes drive quest progress.
+        // intro_complete → start repair_lodging quest.
+        _storyFlags.FlagSet += OnStoryFlagForQuests;
+        Inventory.ItemAdded += OnItemAddedForQuests;
+
+        // Building commission hook: first building commissioned → complete first_building quest.
+        Building.Changed += OnBuildingChangedForQuests;
     }
 
     public override void _Process(double delta)
@@ -373,17 +556,60 @@ public partial class GameState : Node, IArrivalContext
     // ===================== Phase-2 build loop: planning table =====================
 
     /// <summary>
-    /// Command: commission a building from the planning table — validate the construction bundle is
-    /// fully affordable, consume it from the party inventory, mark the building Built at tier 1.
-    /// Rejects cleanly (false, nothing consumed) otherwise. Emits <see cref="BuildingChanged"/> and
-    /// saves so the freshly commissioned building survives a crash.
+    /// Command: commission a building from the planning table — validate the construction bundle AND
+    /// its gold cost are fully affordable, consume the bundle and spend the gold (via the wallet
+    /// delegates wired into <see cref="Building"/>), mark the building Built at tier 1. Rejects
+    /// cleanly (false, nothing consumed) otherwise. Emits <see cref="BuildingChanged"/> and saves so
+    /// the freshly commissioned building survives a crash.
     /// </summary>
     public bool CommissionBuilding(string buildingId)
     {
         if (!Building.Commission(buildingId))
             return false;
+        // Friendship quest-award hook: restoring a character's associated building grants that
+        // character a point chunk (before the save below, so the award persists with the tier).
+        FriendshipAwards.OnBuildingAdvanced(buildingId, isCommission: true, CharacterRegistry.All, _friendship);
         SaveGame();
+        CheckEightBuildingsMilestone();
         return true;
+    }
+
+    /// <summary>
+    /// Framework seam (EightBuildingsFlag): latch "eight_buildings_constructed" the first time the
+    /// outpost has 8+ buildings at tier ≥ 1, excluding the "command_post" start-state building (it is
+    /// present from day one and narratively isn't a constructed building). One-shot — Set is
+    /// idempotent past the first call. Calls the internal flag store directly (not the SetStoryFlag
+    /// command) to avoid a redundant extra save — CommissionBuilding already saved above.
+    /// </summary>
+    private void CheckEightBuildingsMilestone()
+    {
+        if (_storyFlags.Has(EightBuildingsFlag))
+            return;
+        int count = Building.CommissionedCount();
+        if (Building.GetTier("command_post") >= 1)
+            count--;
+        if (count >= 8)
+            _storyFlags.Set(EightBuildingsFlag);
+    }
+
+    /// <summary>
+    /// Framework seam (EightTrophiesFlag): latch "eight_trophies_collected" the first time the
+    /// party's combined trophy count (every <see cref="ItemCategory.Trophy"/> item, summed via
+    /// <see cref="Inventory.CountEverywhere"/> — carry + warehouse, regardless of scene mode) reaches
+    /// 8. Called after every inventory gain AND after a load (a restored save may already be past the
+    /// threshold — <see cref="Inventory.ItemAdded"/> never fires during restore). One-shot — Set is
+    /// idempotent past the first call.
+    /// </summary>
+    private void CheckEightTrophiesMilestone()
+    {
+        if (_storyFlags.Has(EightTrophiesFlag))
+            return;
+        int total = 0;
+        foreach (var def in Items.All)
+            if (def.Category == ItemCategory.Trophy)
+                total += Inventory.CountEverywhere(def.Id);
+        if (total >= 8)
+            _storyFlags.Set(EightTrophiesFlag);
     }
 
     /// <summary>
@@ -396,14 +622,17 @@ public partial class GameState : Node, IArrivalContext
         => Building.Contribute(buildingId, itemId, qty);
 
     /// <summary>
-    /// Command: advance a building to its next tier once the upgrade bundle is complete. Rejects
-    /// cleanly when incomplete or already at max tier. Emits <see cref="BuildingChanged"/> (the
-    /// loader swaps the building's visual stage) and saves.
+    /// Command: advance a building to its next tier once the upgrade bundle is complete AND the
+    /// tier's gold cost is affordable (charged all-at-once, via the same wallet delegates). Rejects
+    /// cleanly when incomplete, gold-short, or already at max tier. Emits <see cref="BuildingChanged"/>
+    /// (the loader swaps the building's visual stage) and saves.
     /// </summary>
     public bool UpgradeBuilding(string buildingId)
     {
         if (!Building.Upgrade(buildingId))
             return false;
+        // Friendship quest-award hook: a tier upgrade grants the associated character a smaller chunk.
+        FriendshipAwards.OnBuildingAdvanced(buildingId, isCommission: false, CharacterRegistry.All, _friendship);
         SaveGame();
         return true;
     }
@@ -412,8 +641,30 @@ public partial class GameState : Node, IArrivalContext
     public int GetBuildingTier(string buildingId) => Building.GetTier(buildingId);
 
     /// <summary>Query: the planning-table view-model (per building: state, tier, target bundle
-    /// have/need, commission/upgrade affordability, effects).</summary>
+    /// have/need, gold cost + affordability, commission/upgrade affordability, effects).</summary>
     public PlanningTableView GetPlanningTableView() => Building.BuildView();
+
+    /// <summary>Query: whether any building is currently under construction.</summary>
+    public bool AnyBuildingUnderConstruction => Building.AnyUnderConstruction();
+
+    /// <summary>
+    /// Command: repair the outpost lodging — the simple "bring materials to Tharr" task before the
+    /// full building system. Requires 15 wood + 10 stone in the party inventory. Consumes the
+    /// materials and sets the lodging_repaired story flag. Returns false (clean reject) when the
+    /// materials are insufficient or the lodging is already repaired.
+    /// </summary>
+    public bool RepairLodging()
+    {
+        if (_storyFlags.Has("lodging_repaired"))
+            return false;
+        if (!Inventory.Has("wood", 15) || !Inventory.Has("stone", 10))
+            return false;
+        Inventory.RemoveItem("wood", 15);
+        Inventory.RemoveItem("stone", 10);
+        SetStoryFlag("lodging_quest_started");
+        SetStoryFlag("lodging_repaired");
+        return true;
+    }
 
     // ===================== Phase-4: building-effect capability queries + grant seams =====================
 
@@ -506,10 +757,142 @@ public partial class GameState : Node, IArrivalContext
         return true;
     }
 
+    // ===================== Friendship / hearts (design/friendship.md) =====================
+
+    /// <summary>
+    /// Command: give one unit of a carried item to a present character. Validates befriendable +
+    /// present + item carried + weekly gift cadence (2/character/week) — a rejected gift consumes
+    /// NOTHING. On success consumes the item from the party inventory and applies the character's
+    /// preference-tier points (×8 on their birthday; floor 0 on a bad gift). Emits
+    /// <see cref="GiftGiven"/> + <see cref="FriendshipChanged"/> (+ threshold events as crossed).
+    /// Not saved here — friendship rides the sleep/encounter save cadence (crafting precedent).
+    /// </summary>
+    public bool GiveGift(string charId, string itemId) => _friendship.GiveGift(charId, itemId);
+
+    /// <summary>
+    /// Command: talk to a present character — the first conversation each day grants +12 points;
+    /// repeats the same day are a clean no-op (false). Emits <see cref="FriendshipChanged"/>.
+    /// </summary>
+    public bool TalkTo(string charId) => _friendship.Talk(charId);
+
+    /// <summary>
+    /// Command: award friendship points to a character from dialogue effects. Routes through the
+    /// friendship system's quest/help award seam.
+    /// </summary>
+    public bool AddDialogueFriendship(string charId, int amount)
+        => _friendship.AddFriendship(charId, amount, "dialogue");
+
+    /// <summary>Query: the friendship-panel view — every befriendable, PRESENT character (starting
+    /// PCs and arrived villagers) with hearts/points/cadence/birthday state, plus carried gift
+    /// options. Engine-free view-model.</summary>
+    public FriendshipView GetFriendshipView()
+        => _friendship.BuildView(CharacterRegistry.All.Select(p => (p.Id, p.DefaultName)));
+
+    /// <summary>A character is present at the outpost when they are a starting PC (there from day
+    /// one) or an arrived villager (recruitables/townsfolk after their trigger fires).</summary>
+    private bool IsCharacterPresent(string charId)
+        => (CharacterRegistry.TryGet(charId, out var p) && p.Kind == CharacterKind.StartingPC)
+           || _villagers.HasArrived(charId);
+
     // --- IArrivalContext (the villager triggers read live state through these) ---
 
     /// <summary>Absolute day ordinal for DateReached triggers (28 days/season, 4 seasons/year).</summary>
     public int CurrentDayOrdinal => ArrivalTrigger.Ordinal(Clock.Year, Clock.Season, Clock.Day);
+
+    /// <summary>Query: the party's total CURRENT count of an item — carry + warehouse, regardless of
+    /// scene mode (also serves the villager IArrivalContext's ItemCountReached trigger).</summary>
+    public int CountItem(string itemId) => Inventory.CountEverywhere(itemId);
+
+    /// <summary>Query: a character's current friendship heart level (0 when never befriended or the
+    /// friendship system isn't built yet — defensive; it is constructed in _Ready). Also serves the
+    /// villager IArrivalContext's FriendshipReached trigger.</summary>
+    public int HeartsOf(string characterId) => _friendship?.HeartsOf(characterId) ?? 0;
+
+    // ===================== Dialogue / cutscene (design/dialogue.md) =====================
+
+    /// <summary>
+    /// Command: start a dialogue sequence by id. Validates the sequence exists, conditions pass,
+    /// and it has not been seen (if once-only). Returns false (clean reject) otherwise. On success
+    /// fires <see cref="DialogueStarted"/> and sets <see cref="IsDialogueActive"/>.
+    /// The caller (world scene) wires the runner to a dialogue box and a cutscene director.
+    /// </summary>
+    public bool StartDialogue(string sequenceId)
+    {
+        if (_dialogueDb == null || string.IsNullOrEmpty(sequenceId))
+            return false;
+        if (!_dialogueDb.TryGetSequence(sequenceId, out var seq))
+            return false;
+        if (seq.Once && _seenDialogues.Contains(sequenceId))
+            return false;
+        if (!DialogueConditionContext.EvaluateCondition(seq.Conditions, BuildConditionContext()))
+            return false;
+
+        IsDialogueActive = true;
+        DialogueStarted?.Invoke(sequenceId);
+        return true;
+    }
+
+    /// <summary>
+    /// Command: start a talk-pool dialogue for a character. Returns false if no talk pool exists
+    /// or no entry passes conditions (caller falls back to toast). On success fires
+    /// <see cref="DialogueStarted"/>.
+    /// </summary>
+    public bool StartTalkDialogue(string charId)
+    {
+        if (_dialogueDb == null || string.IsNullOrEmpty(charId))
+            return false;
+        var lines = _dialogueDb.GetTalkLines(charId, BuildConditionContext());
+        if (lines == null || lines.Count == 0)
+            return false;
+
+        IsDialogueActive = true;
+        DialogueStarted?.Invoke($"talk:{charId}");
+        return true;
+    }
+
+    /// <summary>Called by the dialogue system when a sequence ends.</summary>
+    public void EndDialogue()
+    {
+        IsDialogueActive = false;
+        DialogueEnded?.Invoke();
+    }
+
+    /// <summary>Query: whether a dialogue id has been seen (for once-only gating).</summary>
+    public bool HasSeenDialogue(string id) => _seenDialogues.Contains(id);
+
+    /// <summary>Mark a dialogue as seen (called by the runner when a once-only sequence ends).</summary>
+    public void MarkDialogueSeen(string id)
+    {
+        if (!string.IsNullOrEmpty(id))
+            _seenDialogues.Add(id);
+    }
+
+    /// <summary>The seen dialogue ids (for save capture).</summary>
+    public IReadOnlyCollection<string> SeenDialogues => _seenDialogues;
+
+    /// <summary>Query: the dialogue database (for talk-pool queries by the world scene).</summary>
+    public DialogueDatabase DialogueDb => _dialogueDb;
+
+    /// <summary>Build a condition context from the current game state.</summary>
+    public DialogueConditionContext BuildConditionContext() => new()
+    {
+        HasFlag = HasFlagForDialogue,
+        GetHearts = HeartsOf,
+        CurrentSeason = Clock.Season.ToString().ToLowerInvariant(),
+        HasSeenDialogue = HasSeenDialogue,
+    };
+
+    /// <summary>
+    /// Dialogue-condition flag lookup: real story flags PLUS one DERIVED (virtual) flag —
+    /// "building_under_construction" reports LIVE <see cref="AnyBuildingUnderConstruction"/> state
+    /// instead of consulting <see cref="_storyFlags"/>. Construction is DYNAMIC (a building is under
+    /// construction for 1-2 days, then completes), while StoryFlags are one-way latches (Set/Has, no
+    /// Clear) — so a real story flag cannot represent it. This derived flag is never persisted and
+    /// never set via <see cref="SetStoryFlag"/>; dialogue authors can gate on it exactly like a real
+    /// flag (see data/dialogues/tutorial/tharr_tutorial.json's "The work is underway..." entry).
+    /// </summary>
+    private bool HasFlagForDialogue(string flagId)
+        => flagId == "building_under_construction" ? AnyBuildingUnderConstruction : _storyFlags.Has(flagId);
 
     // ===================== Economy: gold, selling, smithy =====================
 
@@ -758,6 +1141,24 @@ public partial class GameState : Node, IArrivalContext
         // derived Encumbered state with the still-carried weight so it persists past the fight.
         Inventory.RecomputeEncumbrance();
         _ledger.RecordXpAwarded(xpAwarded);
+
+        // Framework seam (arrival-trigger category — no new ArrivalTrigger variant needed for combat
+        // events; see SquadRoster.CompleteEncounter's contract above): latch "first_casualty" the
+        // FIRST time any member ends an encounter dead or Wounded. Read AFTER the roster's own cleanup
+        // ran, which already stabilizes a downed ally to 1 HP + Wounded (dead members stay dead), so
+        // this observes the exact post-cleanup state combat left the squad in. KNOWN LIMITATION: there
+        // is no clean "was this member downed THIS encounter" query on the engine side — Wounded also
+        // persists from an earlier fight, so a squad that arrives already Wounded (and stays Wounded)
+        // reads as a casualty here too even if nobody went down this particular fight. Acceptable for
+        // a one-shot latch: SetStoryFlag/_storyFlags.Set is idempotent past the first set. Calls the
+        // internal flag store directly (not the SetStoryFlag command) to avoid a redundant extra save —
+        // this method already saves below.
+        if (!_storyFlags.Has(FirstCasualtyFlag) && Squad.Members.Any(m =>
+                (m.Health?.IsDead ?? false) || (m.Conditions?.HasCondition(Condition.Wounded) ?? false)))
+        {
+            _storyFlags.Set(FirstCasualtyFlag);
+        }
+
         SaveGame();
     }
 
@@ -803,6 +1204,29 @@ public partial class GameState : Node, IArrivalContext
     /// <see cref="TerritoryNodeChanged"/> + <see cref="ResourceHarvested"/>.
     /// </summary>
     public bool HarvestResourceNode(string nodeId, ToolKind tool) => Territory.Harvest(nodeId, tool);
+
+    /// <summary>
+    /// Command: a territory scene announces the resource-node prefabs placed directly in its .tscn
+    /// (design/forage.md — save identity is territory id + node name). Called at scene ready,
+    /// before the scene queries depletion state; idempotent per territory.
+    /// </summary>
+    public void RegisterTerritoryPlacements(
+        string territoryId, IReadOnlyList<(string NodeId, string ResourceId)> placements)
+        => Territory.RegisterScenePlacements(territoryId, placements);
+
+    /// <summary>
+    /// Command: run every owed forage daily pass for a territory (deterministic catch-up through
+    /// today — see <see cref="ForageSystem.CatchUp"/>). The scene calls it at ready and on day
+    /// change while inside, passing its cell adapter; changes emit <see cref="ForageChanged"/>.
+    /// </summary>
+    public void SyncTerritoryForage(string territoryId, IForageCellProvider cells)
+        => _forage.CatchUp(territoryId, CurrentDayOrdinal, cells);
+
+    /// <summary>Query: the live (uncollected) forage spawns in a territory.</summary>
+    public IReadOnlyList<ForageSpawn> GetLiveForage(string territoryId) => _forage.GetLive(territoryId);
+
+    /// <summary>Query: the live (uncleared) debris pieces in a territory (design/forage.md).</summary>
+    public IReadOnlyList<ForageSpawn> GetLiveDebris(string territoryId) => _forage.GetLiveDebris(territoryId);
 
     /// <summary>
     /// Command: a roamer touched the player — build the pending territory encounter (weighted table
@@ -967,6 +1391,164 @@ public partial class GameState : Node, IArrivalContext
         return Consumables.UseOutOfCombat(itemId, recipient, Inventory);
     }
 
+    // ===================== Quest log (Phase 6) =====================
+
+    /// <summary>Command: start a quest by id (data-driven definitions in Quests registry).</summary>
+    public void StartQuest(string questId) => _questLog.StartQuest(questId);
+
+    /// <summary>Command: update quest objective progress.</summary>
+    public void UpdateQuestProgress(string questId, int objectiveIndex, int amount)
+        => _questLog.UpdateProgress(questId, objectiveIndex, amount);
+
+    /// <summary>Command: complete a quest.</summary>
+    public void CompleteQuest(string questId) => _questLog.CompleteQuest(questId);
+
+    /// <summary>Query: whether a quest is currently active.</summary>
+    public bool IsQuestActive(string questId) => _questLog.IsActive(questId);
+
+    /// <summary>Query: whether a quest has been completed.</summary>
+    public bool IsQuestCompleted(string questId) => _questLog.IsCompleted(questId);
+
+    /// <summary>Query: the quest-panel view-model.</summary>
+    public QuestView GetQuestView() => _questLog.GetView();
+
+    /// <summary>Quest trigger: story flags drive quest starts and completions.</summary>
+    private void OnStoryFlagForQuests(string flagId)
+    {
+        switch (flagId)
+        {
+            case "intro_complete":
+                _questLog.StartQuest("repair_lodging");
+                break;
+            case "lodging_repaired":
+                _questLog.CompleteQuest("repair_lodging");
+                _questLog.StartQuest("first_rest");
+                break;
+            case "first_rest":
+                _questLog.CompleteQuest("first_rest");
+                _questLog.StartQuest("planning_table");
+                break;
+            case "planning_table_shown":
+                _questLog.CompleteQuest("planning_table");
+                _questLog.StartQuest("first_building");
+                break;
+        }
+    }
+
+    /// <summary>Quest trigger: inventory gains drive repair_lodging progress.</summary>
+    private void OnItemAddedForQuests(string itemId, int qty)
+    {
+        if (!_questLog.IsActive("repair_lodging"))
+            return;
+
+        if (itemId == "wood")
+            _questLog.UpdateProgress("repair_lodging", 0, qty);
+        else if (itemId == "stone")
+            _questLog.UpdateProgress("repair_lodging", 1, qty);
+    }
+
+    /// <summary>Quest trigger: first building commissioned completes first_building quest.</summary>
+    private void OnBuildingChangedForQuests(string buildingId)
+    {
+        if (!_questLog.IsActive("first_building"))
+            return;
+
+        // Any building reaching tier >= 1 (commissioned) counts.
+        if (Building.GetTier(buildingId) >= 1)
+        {
+            _questLog.CompleteObjective("first_building", 0);
+            _questLog.CompleteQuest("first_building");
+        }
+    }
+
+    // ===================== Calendar (Phase 6+ polish) =====================
+
+    /// <summary>
+    /// Query: the current season's 28-day calendar view-model for the calendar panel — today's day
+    /// flagged, plus per-day marker lines for (1) befriendable characters whose birthday falls in
+    /// THIS season, resolved from <see cref="Friendships"/> against the <see cref="Characters"/>
+    /// registry for a display name, and (2) buildings currently under construction whose completion
+    /// day (<c>Clock.Day + GetConstructionDaysRemaining</c>) lands within this season — a completion
+    /// spilling past day 28 is next season's calendar and is skipped here. Engine-free view-model.
+    /// </summary>
+    public CalendarView GetCalendarView()
+    {
+        var marksByDay = new Dictionary<int, List<string>>();
+        void AddMark(int day, string text)
+        {
+            if (day < 1 || day > DayClock.DaysPerSeason)
+                return;
+            if (!marksByDay.TryGetValue(day, out var list))
+                marksByDay[day] = list = new List<string>();
+            list.Add(text);
+        }
+
+        foreach (var profile in Friendships.All)
+        {
+            if (profile.BirthdaySeason != Clock.Season)
+                continue;
+            string name = CharacterRegistry.TryGet(profile.CharacterId, out var cp) ? cp.DefaultName : profile.CharacterId;
+            AddMark(profile.BirthdayDay, $"{name}'s birthday");
+        }
+
+        foreach (var def in Buildings.All)
+        {
+            if (!Building.IsUnderConstruction(def.Id))
+                continue;
+            int completionDay = Clock.Day + Building.GetConstructionDaysRemaining(def.Id);
+            if (completionDay <= DayClock.DaysPerSeason)
+                AddMark(completionDay, $"{def.DisplayName} completes");
+        }
+
+        var days = new List<CalendarDayView>(DayClock.DaysPerSeason);
+        for (int d = 1; d <= DayClock.DaysPerSeason; d++)
+        {
+            IReadOnlyList<string> marks = marksByDay.TryGetValue(d, out var list) ? list : Array.Empty<string>();
+            days.Add(new CalendarDayView(d, d == Clock.Day, marks));
+        }
+
+        return new CalendarView(Clock.Season, Clock.Year, Clock.Day, days);
+    }
+
+    // ===================== New game / continue (title screen flow) =====================
+
+    /// <summary>
+    /// Start a new game: clear any existing save, set the player name, seed starter inventory, and
+    /// prepare for the intro sequence. Called by the title screen's New Game flow after name entry.
+    /// </summary>
+    public void StartNewGame(string name)
+    {
+        PlayerName = name;
+
+        // Delete any existing save so the new game starts clean.
+        if (SaveExists())
+            DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(SavePath));
+
+        // Fresh deterministic world: new seed, no forage carried over from a previous save.
+        _worldSeed = Random.Shared.Next(1, int.MaxValue);
+        _forage.SetWorldSeed(_worldSeed);
+        Territory.SetWorldSeed(_worldSeed);
+        _forage.Restore(null);
+
+        // Rebuild the squad with the new name.
+        var dataManager = GetNodeOrNull<DataManager>("/root/DataManager");
+        if (dataManager != null && dataManager.IsLoaded && Squad != null)
+            Squad.RenamePlayer(PlayerName);
+
+        SeedStarterInventory();
+    }
+
+    /// <summary>
+    /// Continue an existing game: load the save file. Called by the title screen's Continue button.
+    /// </summary>
+    public void ContinueGame()
+    {
+        if (SaveExists())
+            LoadGame();
+        else
+            SeedStarterInventory();
+    }
+
     // ===================== Save / load =====================
 
     public bool SaveExists() => Godot.FileAccess.FileExists(SavePath);
@@ -976,7 +1558,8 @@ public partial class GameState : Node, IArrivalContext
     {
         var data = SaveState.Capture(
             Clock, Inventory, Farm, Squad, _treatWounds, Territory, _wallet, Building, _storyFlags, _villagers, _meals,
-            playerName: PlayerName);
+            playerName: PlayerName, friendship: _friendship, seenDialogues: _seenDialogues,
+            questLog: _questLog, forage: _forage, worldSeed: _worldSeed);
         string json = SaveSerializer.Serialize(data);
 
         DirAccess.MakeDirRecursiveAbsolute(SaveDir);
@@ -1010,8 +1593,17 @@ public partial class GameState : Node, IArrivalContext
         }
 
         PlayerName = data.PlayerName;
+
+        // World seed first: forage restore + future deterministic passes read it. Pre-v12 saves
+        // carry 0 — the freshly generated seed stands and persists on the next SaveGame.
+        if (data.WorldSeed != 0)
+            _worldSeed = data.WorldSeed;
+        _forage.SetWorldSeed(_worldSeed);
+        Territory.SetWorldSeed(_worldSeed);
+
         SaveState.Restore(
-            data, Clock, Inventory, Farm, Squad, _treatWounds, Territory, _wallet, Building, _storyFlags, _villagers, _meals);
+            data, Clock, Inventory, Farm, Squad, _treatWounds, Territory, _wallet, Building, _storyFlags, _villagers, _meals,
+            _friendship, _seenDialogues, _questLog, _forage);
 
         // Catch up villager arrivals against the restored state: a pre-v5 save (no arrival section)
         // whose buildings/flags/date already satisfy a trigger arrives now; a v5 save is idempotent
@@ -1036,6 +1628,10 @@ public partial class GameState : Node, IArrivalContext
         // any summary staged by pre-load play is stale now.
         _ledger.Reset();
         _pendingDaySummary = null;
+
+        // A restored save may already be past the trophy-count threshold (ItemAdded never fires
+        // during restore — see the choke-point comment above), so re-check it explicitly here.
+        CheckEightTrophiesMilestone();
 
         GameLoaded?.Invoke();
     }
@@ -1083,6 +1679,9 @@ public partial class GameState : Node, IArrivalContext
         // A new day is a villager-arrival trigger source (DateReached). Evaluate before announcing
         // the day so DayStarted subscribers observe any arrival already reflected.
         _villagers?.EvaluateArrivals();
+        // Friendship daily/weekly counters roll with the calendar (talked-today clears every day,
+        // gift cadence every 7 days from day 1).
+        _friendship?.OnDayStarted();
         DayStarted?.Invoke();
     }
 
@@ -1112,6 +1711,7 @@ public partial class GameState : Node, IArrivalContext
     {
         string dateEnded = Clock.DateString();
         Farm.OnDayEnded();
+        Building.TickDay();
 
         // Phase-5: the active meal buff is day-long — it expires at every day rollover (voluntary
         // sleep, the all-nighter dawn, and the defeat wake all funnel through here). Clears the buff

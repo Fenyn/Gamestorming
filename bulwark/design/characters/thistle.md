@@ -77,8 +77,10 @@ morning, pointing out a better trail, without being asked. The knowledge is stil
 person is still in there. The outpost just needs to give her a reason to come back out.
 
 She arrives like a feral cat. Wary, silent, present but not participating. Each increase in
-her heart level represents another step back from The Stillness. Specific trigger TBD (zone
-discovery or day threshold).
+her heart level represents another step back from The Stillness. The trigger is the far-forest
+campsite zone being discovered, deep in the Elderwood and the farthest edge of scouted territory the
+party can reach, which is exactly where a scout who has stopped looking for anything would end up
+sitting still.
 
 ## Notes (deferred / later)
 

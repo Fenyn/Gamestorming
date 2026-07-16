@@ -13,8 +13,18 @@ public sealed class SaveData
     /// <summary>Save schema version, bumped when the shape changes. v2 added the squad snapshot;
     /// v3 split the flat inventory into per-member carry + warehouse; v4 added building states;
     /// v5 added story flags, villager arrival state, and grown-roster preset keys; v6 added the
-    /// active meal buff id; v7 added the player-chosen character name.</summary>
-    public int Version { get; set; } = 7;
+    /// active meal buff id; v7 added the player-chosen character name; v8 added friendship state;
+    /// v9 added seen dialogue ids; v10 added building construction days remaining; v11 added quest
+    /// log state; v12 added the world seed, per-territory forage state, and day-stamped depleted
+    /// nodes (RespawnDays).</summary>
+    public int Version { get; set; } = 12;
+
+    /// <summary>
+    /// Per-save world seed anchoring deterministic rolls (forage daily passes). Additive field:
+    /// 0 in pre-v12 saves, where GameState keeps its freshly generated seed and persists it on the
+    /// next save.
+    /// </summary>
+    public int WorldSeed { get; set; }
 
     /// <summary>
     /// Player-chosen name for the main character. Additive field: null in pre-v7 saves, where
@@ -92,6 +102,93 @@ public sealed class SaveData
     /// roster on load (the buff itself lives only on the live instances, never serialized).
     /// </summary>
     public string? ActiveMeal { get; set; }
+
+    /// <summary>
+    /// Friendship / heart-system state (v8). Additive field: null in pre-v8 saves, where restore
+    /// clears to zero friendship (points, counters, fired thresholds all empty).
+    /// </summary>
+    public FriendshipDto? Friendship { get; set; }
+
+    /// <summary>
+    /// Dialogue ids that have been seen (v9). Additive field: null in pre-v9 saves, where restore
+    /// clears to "nothing seen". Used by once-only dialogue sequences.
+    /// </summary>
+    public List<string>? SeenDialogueIds { get; set; }
+
+    /// <summary>
+    /// Quest log state (v11). Additive field: null in pre-v11 saves, where restore clears to
+    /// "no quests started". Each entry carries the quest id, completed flag, and per-objective
+    /// progress array.
+    /// </summary>
+    public List<QuestDto>? Quests { get; set; }
+
+    /// <summary>
+    /// Per-territory forage spawn state (v12, design/forage.md). Additive field: null in pre-v12
+    /// saves, where restore clears to "no forage yet" and the first territory visit catches up
+    /// deterministically from day 1.
+    /// </summary>
+    public List<TerritoryForageDto>? Forage { get; set; }
+}
+
+/// <summary>One territory's persisted forage state: the last day the daily pass processed plus
+/// every live/harvested-today spawn (see Bulwark.Territory.ForageSystem).</summary>
+public sealed class TerritoryForageDto
+{
+    public string TerritoryId { get; set; } = "";
+
+    /// <summary>Absolute day ordinal of the last processed daily pass (0 = never).</summary>
+    public int LastPassDay { get; set; }
+
+    public List<ForageSpawnDto> Spawns { get; set; } = new();
+
+    /// <summary>Debris clutter pieces (design/forage.md third category — the non-swept second
+    /// pass). Additive field: empty in pre-debris saves.</summary>
+    public List<ForageSpawnDto> Debris { get; set; } = new();
+
+    /// <summary>True once the one-time initial debris sprinkle ran here. Additive field: false in
+    /// pre-debris saves, so their next pass runs the 8–12 piece sprinkle exactly once.</summary>
+    public bool DebrisSeeded { get; set; }
+}
+
+/// <summary>One forage spawn: node id, resource id, cell, spawn day, harvested flag.</summary>
+public sealed class ForageSpawnDto
+{
+    public string NodeId { get; set; } = "";
+    public string ResourceId { get; set; } = "";
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int SpawnDay { get; set; }
+    public bool Harvested { get; set; }
+}
+
+/// <summary>
+/// Persisted friendship state (see Bulwark.Cozy.FriendshipSystem): per-character points, the
+/// weekly gift counters + their week index, the talked-today set + its day ordinal (so counters
+/// only restore within the same day/week window), the once-only fired heart thresholds, and the
+/// Phase-4 romance-state placeholder.
+/// </summary>
+public sealed class FriendshipDto
+{
+    /// <summary>Character id → friendship points (hearts are derived, never stored).</summary>
+    public Dictionary<string, int> Points { get; set; } = new();
+
+    /// <summary>Character id → gifts accepted in the current week.</summary>
+    public Dictionary<string, int> GiftsThisWeek { get; set; } = new();
+
+    /// <summary>Week index (7-day windows from day 1) the gift counters belong to.</summary>
+    public int GiftWeekIndex { get; set; }
+
+    /// <summary>Characters already talked to today.</summary>
+    public List<string> TalkedToday { get; set; } = new();
+
+    /// <summary>Absolute day ordinal the talked-today set belongs to.</summary>
+    public int TalkedDayOrdinal { get; set; }
+
+    /// <summary>Character id → highest heart threshold that has fired (fires once, stays earned).</summary>
+    public Dictionary<string, int> FiredHearts { get; set; } = new();
+
+    /// <summary>Phase-4 romance-track placeholder (character ids courted). No commands write it yet.</summary>
+    public List<string> Romanced { get; set; } = new();
 }
 
 /// <summary>
@@ -103,6 +200,10 @@ public sealed class BuildingStateDto
     public string Id { get; set; } = "";
     public int Tier { get; set; }
     public Dictionary<string, int> Contributions { get; set; } = new();
+
+    /// <summary>Days remaining under construction (0 = complete or not started). Additive field:
+    /// 0 in pre-v10 saves (buildings complete instantly in those).</summary>
+    public int ConstructionDaysRemaining { get; set; }
 }
 
 /// <summary>One member's carried stacks (item id → quantity) for the PF2e Bulk carry system.
@@ -119,11 +220,25 @@ public sealed class TerritoryDto
     /// <summary>Companion member ids picked at the gate (the Veteran is implicit).</summary>
     public List<string> SelectedCompanionIds { get; set; } = new();
 
-    /// <summary>Depleted resource nodes, as "territoryId:nodeId" keys.</summary>
+    /// <summary>LEGACY (pre-v12) depleted resource nodes, as "territoryId:nodeId" keys. Still
+    /// written for shape stability; restore uses it only when <see cref="DepletedNodes"/> is
+    /// absent (migrated with the depletion day = the loaded day).</summary>
     public List<string> DepletedNodeIds { get; set; } = new();
+
+    /// <summary>Depleted resource nodes with their rolled respawn day (v12, RespawnDays window —
+    /// the roll happens at harvest time and is never repeated on load).</summary>
+    public List<DepletedNodeDto>? DepletedNodes { get; set; }
 
     /// <summary>Roamers beaten today, as "territoryId:roamerId" keys.</summary>
     public List<string> DefeatedRoamerIds { get; set; } = new();
+}
+
+/// <summary>One depleted node: its "territoryId:nodeId" key and the absolute day ordinal it
+/// respawns on (0 = never — one-shot nodes).</summary>
+public sealed class DepletedNodeDto
+{
+    public string Key { get; set; } = "";
+    public int RespawnDay { get; set; }
 }
 
 /// <summary>

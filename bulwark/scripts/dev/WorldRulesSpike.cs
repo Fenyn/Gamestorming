@@ -206,7 +206,7 @@ public partial class WorldRulesSpike : SpikeBase
         var decorPre = outpost.GetNodeOrNull<TileMapLayer>("%GroundDecor");
         Vector2I? waterCell = null, bridgeCell = null;
         if (groundPre?.TileSet != null && decorPre != null
-            && FindWaterTile(groundPre.TileSet, out int waterSrc, out Vector2I waterAtlas))
+            && FindWaterTile(outpost, groundPre.TileSet, out int waterSrc, out Vector2I waterAtlas))
         {
             var picked = PickQuietCells(groundPre, decorPre,
                 outpost.GetNodeOrNull<TileMapLayer>("%Walls"),
@@ -296,7 +296,7 @@ public partial class WorldRulesSpike : SpikeBase
         Check("BakedWaterCollision body exists under Ground", waterBody != null);
         if (ground != null && waterBody != null && outpost.BakeReport.TryGetValue("Water", out var wReport))
         {
-            var (expNative, expBaked, expBridged) = RecountWater(ground,
+            var (expNative, expBaked, expBridged) = RecountWater(outpost, ground,
                 outpost.GetNodeOrNull<TileMapLayer>("%GroundDecor"), outpost.Props);
             GD.Print($"  [info] outpost Water: {wReport.Native} tile-physics, {wReport.Baked} baked, "
                      + $"{outpost.WaterBridgedCells} bridged (recount {expNative}/{expBaked}/{expBridged})");
@@ -408,7 +408,11 @@ public partial class WorldRulesSpike : SpikeBase
     /// <summary>Locate a paintable water tile in the tileset by the same identity the baker uses:
     /// the atlas source's texture file name contains "water_a1" (the generated water autotile
     /// atlas convention — sources carry no runtime name, terrain names vary per pack).</summary>
-    private static bool FindWaterTile(TileSet tileSet, out int sourceId, out Vector2I atlasCoords)
+    /// <summary>Find any tile from a water atlas source, using the SCENE's own water identity
+    /// (WaterSourceKeywords — covers both the legacy "water_a1" atlas and the pre-expanded
+    /// "a1_liquids" sheet the current maps paint with).</summary>
+    private static bool FindWaterTile(
+        CozyWorldScene scene, TileSet tileSet, out int sourceId, out Vector2I atlasCoords)
     {
         for (int i = 0; i < tileSet.GetSourceCount(); i++)
         {
@@ -416,8 +420,7 @@ public partial class WorldRulesSpike : SpikeBase
             if (tileSet.GetSource(id) is not TileSetAtlasSource atlas || atlas.Texture == null
                 || atlas.GetTilesCount() == 0)
                 continue;
-            if (!System.IO.Path.GetFileName(atlas.Texture.ResourcePath)
-                    .Contains("water_a1", StringComparison.OrdinalIgnoreCase))
+            if (!scene.IsWaterSource(tileSet, id))
                 continue;
             sourceId = id;
             atlasCoords = atlas.GetTileId(0);
@@ -481,8 +484,11 @@ public partial class WorldRulesSpike : SpikeBase
     /// <summary>Independent recount of what the water baker should have done: per painted ground
     /// cell whose source texture is a water_a1 atlas — bridged (overlay tile on GroundDecor/Props),
     /// native (tile ships physics), or baked.</summary>
-    private static (int Native, int Baked, int Bridged) RecountWater(TileMapLayer ground,
-        TileMapLayer? decor, TileMapLayer? props)
+    /// <summary>Independent water recount using the SCENE's own water identity (same
+    /// WaterSourceKeywords the baker consults), so the check can never drift from the baker's
+    /// source list.</summary>
+    private static (int Native, int Baked, int Bridged) RecountWater(CozyWorldScene scene,
+        TileMapLayer ground, TileMapLayer? decor, TileMapLayer? props)
     {
         if (ground.TileSet == null)
             return (0, 0, 0);
@@ -491,10 +497,7 @@ public partial class WorldRulesSpike : SpikeBase
         foreach (Vector2I cell in ground.GetUsedCells())
         {
             int src = ground.GetCellSourceId(cell);
-            if (!ground.TileSet.HasSource(src)
-                || ground.TileSet.GetSource(src) is not TileSetAtlasSource atlas || atlas.Texture == null
-                || !System.IO.Path.GetFileName(atlas.Texture.ResourcePath)
-                    .Contains("water_a1", StringComparison.OrdinalIgnoreCase))
+            if (!scene.IsWaterSource(ground.TileSet, src))
                 continue;
 
             if ((decor != null && decor.GetCellSourceId(cell) != -1)
@@ -541,7 +544,7 @@ public partial class WorldRulesSpike : SpikeBase
         Check("forest BakedWaterCollision body exists under Ground", fWaterBody != null);
         if (fGround != null && fWaterBody != null && forest.BakeReport.TryGetValue("Water", out var fWater))
         {
-            var (expNative, expBaked, expBridged) = RecountWater(fGround,
+            var (expNative, expBaked, expBridged) = RecountWater(forest, fGround,
                 forest.GetNodeOrNull<TileMapLayer>("%GroundDecor"),
                 forest.GetNodeOrNull<TileMapLayer>("%Props"));
             GD.Print($"  [info] forest Water: {fWater.Native} tile-physics, {fWater.Baked} baked, "

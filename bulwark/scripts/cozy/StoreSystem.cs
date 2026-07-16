@@ -25,6 +25,7 @@ public sealed class StoreSystem
     private readonly Wallet _wallet;
     private readonly Action<int> _earnGold;
     private readonly Func<SmithyTier> _smithyTier;
+    private readonly Func<int>? _discountPercent;
 
     /// <summary>Raised after a successful sell (itemId, qty) — GameState re-exposes it as ItemSold.</summary>
     public event Action<string, int>? ItemSold;
@@ -32,12 +33,24 @@ public sealed class StoreSystem
     /// <summary>Raised after a successful buy (itemId, qty) — GameState re-exposes it as TradingPostChanged.</summary>
     public event Action<string, int>? GoodBought;
 
-    public StoreSystem(Inventory inventory, Wallet wallet, Action<int> earnGold, Func<SmithyTier> smithyTier)
+    /// <param name="discountPercent">Optional live BUY-price discount percent (the OutpostEffects
+    /// StorePriceDiscount aggregate — e.g. granted by friendship heart perks). Null or 0 = catalog
+    /// prices unchanged (the baseline); a discounted price never drops below 1 gold.</param>
+    public StoreSystem(Inventory inventory, Wallet wallet, Action<int> earnGold, Func<SmithyTier> smithyTier,
+        Func<int>? discountPercent = null)
     {
         _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
         _earnGold = earnGold ?? throw new ArgumentNullException(nameof(earnGold));
         _smithyTier = smithyTier ?? throw new ArgumentNullException(nameof(smithyTier));
+        _discountPercent = discountPercent;
+    }
+
+    /// <summary>A catalog price after the live discount (baseline: unchanged; floor 1 gold).</summary>
+    private int PriceOf(TradingPostEntry entry)
+    {
+        int discount = Math.Clamp(_discountPercent?.Invoke() ?? 0, 0, 90);
+        return discount <= 0 ? entry.Price : Math.Max(1, entry.Price * (100 - discount) / 100);
     }
 
     // ===================== Commands =====================
@@ -56,7 +69,7 @@ public sealed class StoreSystem
         if (!TradingPost.TryGetAvailable(itemId, out var entry, _smithyTier()))
             return false;
 
-        int cost = entry.Price * count;
+        int cost = PriceOf(entry) * count;
         if (_wallet.Gold < cost)
             return false;
         if (!_inventory.WouldFit(itemId, count))
@@ -101,13 +114,14 @@ public sealed class StoreSystem
         foreach (var e in TradingPost.All)
         {
             bool unlocked = e.RequiredTier <= tier;
+            int price = PriceOf(e); // live discounted price (baseline: the catalog price)
             offers.Add(new TradingPostOffer
             {
                 ItemId = e.ItemId,
                 DisplayName = NameOf(e.ItemId),
-                Price = e.Price,
+                Price = price,
                 Unlocked = unlocked,
-                CanAfford = unlocked && gold >= e.Price,
+                CanAfford = unlocked && gold >= price,
                 Fits = _inventory.WouldFit(e.ItemId, 1),
             });
         }

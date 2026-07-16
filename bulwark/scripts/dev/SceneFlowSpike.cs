@@ -147,9 +147,11 @@ public partial class SceneFlowSpike : SpikeBase
         int roamers = CountChildren<RoamingEnemy>(forest);
         Check($"(2) roamer bodies spawned ({roamers}/{territory.Roamers.Count}, none defeated yet)",
             roamers == territory.Roamers.Count);
+        // Marker views plus the scene-placed tree prefabs and any live forage spawns
+        // (design/forage.md) — the marker contract is a floor now, not an exact count.
         int nodes = CountChildren<ResourceNodeView>(forest);
-        Check($"(2) resource node views spawned ({nodes}/{territory.Nodes.Count})",
-            nodes == territory.Nodes.Count);
+        Check($"(2) resource node views spawned ({nodes} >= {territory.Nodes.Count} marker nodes)",
+            nodes >= territory.Nodes.Count);
         Check("(2) exit sign affordance present (at %ExitTrigger)",
             forest.GetNodeOrNull<TransitionSign>("ExitSign") != null);
 

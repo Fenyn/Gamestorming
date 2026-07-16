@@ -1,0 +1,63 @@
+{
+  "id": "intro_scene_1",
+  "type": "Sequence",
+  "once": true,
+  "conditions": {
+    "flags_required": ["intro_scene_0"]
+  },
+  "steps": [
+    { "type": "line", "speaker": "fenwick", "text": "Elara, might I ask you something? This land feels abandoned. Not ruined or destroyed. Just... left. What happened here?" },
+    { "type": "line", "speaker": "elara", "text": "The short answer is the crown pulled its garrisons back. Eight years ago, perhaps nine. Some dispute of treasury or shifting borders, all the usual arguments that sound very sensible when spoken in a marble hall." },
+    { "type": "line", "speaker": "player", "text": "And the long answer?" },
+    { "type": "line", "speaker": "elara", "text": "The long answer is that when the soldiers left, the trade caravans stopped. When the caravans stopped, the settlements shrank. When the settlements shrank, the roads fell apart. And everyone who could afford to leave did so." },
+    { "type": "line", "speaker": "fenwick", "text": "And the ones who stayed?" },
+    { "type": "line", "speaker": "elara", "text": "Are either very stubborn or had nowhere else to go." },
+    { "type": "wait", "seconds": 1.0 },
+    { "type": "line", "speaker": "player", "text": "We passed a farmstead a few miles back whose roof had completely caved in. There were still tools hanging on the wall." },
+    { "type": "line", "speaker": "elara", "text": "Many families took only what they could carry. The rest was left for the forests to reclaim." },
+    {
+      "type": "choice",
+      "speaker": "player",
+      "text": "",
+      "options": [
+        {
+          "text": "Nobody told us it was this bad. Our briefing said nothing of this.",
+          "steps": [
+            { "type": "line", "speaker": "elara", "text": "Briefings written by men who have never set foot beyond the capital walls. You will find the frontier full of things no one thought to mention." }
+          ]
+        },
+        {
+          "text": "Those tools were well-kept. Whoever hung them there loved that land.",
+          "steps": [
+            { "type": "line", "speaker": "elara", "text": "Aye. Most of them did. But love does not put food on the table." }
+          ]
+        },
+        {
+          "text": "If this is what the road looks like, I am not certain I want to see the outpost.",
+          "steps": [
+            { "type": "line", "speaker": "elara", "text": "The roads answer to the crown, and you can see how well the crown has answered for them. But the outpost has its own keeper. I would not judge the one by the other." }
+          ]
+        }
+      ]
+    },
+    { "type": "line", "speaker": "fenwick", "text": "Its own keeper? Someone is still out there?" },
+    { "type": "line", "speaker": "elara", "text": "So the traders say. A dwarf." },
+    { "type": "line", "speaker": "fenwick", "text": "One dwarf, alone all this time?" },
+    { "type": "line", "speaker": "elara", "text": "He moved in shortly after the garrison left. Rumor has it that he's taken a liking to the old fort." },
+    { "type": "line", "speaker": "fenwick", "text": "Let us hope the solitude has not driven him to madness." },
+    { "type": "line", "speaker": "elara", "text": "He is a dwarf. It is stubbornness that drives him, which is likely a point of personal pride." },
+    { "type": "wait", "seconds": 1.0 },
+    { "type": "line", "speaker": "player", "text": "Our orders called the post operational." },
+    { "type": "line", "speaker": "elara", "text": "One soldier and a crumbling wall. The crown's standards have slipped since last I checked." },
+    { "type": "wait", "seconds": 1.0 },
+    { "type": "line", "speaker": "fenwick", "text": "Well. Whatever state we find it in, there will be a hearth that needs sorting. I have yet to see an outpost that could not be improved by someone who understands the fundamental importance of a proper meal." },
+    { "type": "line", "speaker": "elara", "text": "You are a cook?" },
+    { "type": "line", "speaker": "fenwick", "text": "I am a gastronomancer." },
+    { "type": "line", "speaker": "elara", "text": "I have lived a very long time, and I have never heard that word." },
+    { "type": "line", "speaker": "fenwick", "text": "That is because I coined it. Wizard by training, cook by vocation. The two disciplines share more than you might expect." },
+    { "type": "line", "speaker": "player", "text": "He graduated from the academy and immediately requested a kitchen posting. His professors were... unsure how to process the paperwork." },
+    { "type": "line", "speaker": "fenwick", "text": "They lacked vision. Both fields demand precision, timing, and a willingness to accept that some things will simply explode if you get the ratios wrong. The only difference is that when a soufflé collapses, fewer people catch fire." },
+    { "type": "line", "speaker": "elara", "text": "Fewer?" },
+    { "type": "line", "speaker": "fenwick", "text": "I did say fewer." }
+  ]
+}

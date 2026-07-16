@@ -84,8 +84,9 @@ deliberately, with no intention of leaving. He heard about the settlement throug
 networks that carry frontier news, and he recognized it as the kind of place where the last
 years of a life could mean something. He does not announce his condition. The party discovers
 it over time, through dialogue that gradually reveals the decline — a repeated story, a
-forgotten name, a blessing that falters mid-casting. Specific trigger TBD (day threshold or
-reputation milestone).
+forgotten name, a blessing that falters mid-casting. The trigger is the Chapel's construction
+itself. There is nothing for Oskar to tend without it, so he only arrives once the outpost has
+raised the building he means to spend his last years inside.
 
 ## The Curse — Design Notes
 

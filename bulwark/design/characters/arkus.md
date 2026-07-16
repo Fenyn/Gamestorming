@@ -63,8 +63,10 @@ feel whole.
 
 ## Arrival
 
-Recruitable. Found wounded during a territory expedition. Specific trigger TBD (zone, day
-threshold, or event).
+Recruitable. Found wounded during a territory expedition. The trigger is mechanical as well as
+narrative: the party clears its first forest expedition encounter, and Arkus is discovered wounded
+and unconscious on the way back, dragged in by the same patrol that just proved it could survive out
+there.
 
 ## Notes (deferred / later)
 

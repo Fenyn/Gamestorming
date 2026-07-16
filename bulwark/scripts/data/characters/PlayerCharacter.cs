@@ -26,4 +26,12 @@ public static class PlayerCharacter
         SpriteId = "veteran",
         Build = null,
     };
+
+    /// <summary>The player avatar is NOT befriendable (design/friendship.md) — the friendship
+    /// system rejects every gift/talk/award aimed at "player".</summary>
+    public static readonly FriendshipProfile Friendship = new()
+    {
+        CharacterId = CharacterId,
+        Befriendable = false,
+    };
 }

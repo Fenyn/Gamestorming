@@ -55,11 +55,15 @@ public partial class VillagerSpike : SpikeBase
     {
         public readonly Dictionary<string, int> Tiers = new();
         public readonly HashSet<string> Flags = new();
+        public readonly Dictionary<string, int> ItemCounts = new();
+        public readonly Dictionary<string, int> Hearts = new();
         public int DayOrdinal = ArrivalTrigger.Ordinal(1, Season.Spring, 1);
 
         public int GetBuildingTier(string buildingId) => Tiers.TryGetValue(buildingId, out var t) ? t : 0;
         public bool HasStoryFlag(string flagId) => Flags.Contains(flagId);
         public int CurrentDayOrdinal => DayOrdinal;
+        public int CountItem(string itemId) => ItemCounts.TryGetValue(itemId, out var n) ? n : 0;
+        public int HeartsOf(string characterId) => Hearts.TryGetValue(characterId, out var h) ? h : 0;
     }
 
     public override void _Ready()
@@ -344,7 +348,7 @@ public partial class VillagerSpike : SpikeBase
     {
         GD.Print("-------------------- (G) Shipped registries EMPTY + GameState no-op --------------------");
 
-        Check("(G) SHIPPED Villagers registry is EMPTY", Villagers.All.Count == 0);
+        Check("(G) SHIPPED Villagers registry has content", Villagers.All.Count > 0);
 
         ClearSlot0();
         var gs = new GameState { RealSecondsPerGameMinute = 0 };

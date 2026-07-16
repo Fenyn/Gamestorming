@@ -242,24 +242,33 @@ public partial class EffectsSpike : SpikeBase
         int effectEvents = 0;
         gs.EffectsChanged += () => effectEvents++;
 
-        // Commission the shipped Infirmary (wood5 + herb8) → tier1 InfirmaryHealing mag 1.
-        gs.AddItem("herb", 10);
-        gs.AddItem("wood", 10);
+        // Commission the shipped Infirmary (wood120 + herb20 + 90g) → tier1 InfirmaryHealing mag 1.
+        gs.AddItem("herb", 25);
+        gs.AddItem("wood", 200);
+        for (int i = 0; i < 250; i++) gs.EarnGold(1);
         Check("(C) commission shipped infirmary", gs.CommissionBuilding("infirmary"));
+        CompleteConstruction(gs);
         Check("(C) infirmary raised InfirmaryHealingBonus to 1", gs.InfirmaryHealingBonus == 1);
         Check("(C) commissioning fired EffectsChanged", effectEvents >= 1);
 
-        // Commission + upgrade the shipped Smithy → SmithyTier ceiling Base → Improved.
-        gs.AddItem("wood", 10);
-        gs.AddItem("stone", 30);
+        // Commission + upgrade the shipped Smithy (goblin_fang25 + rat_pelt20 + wood15 + 120g)
+        // → SmithyTier ceiling Base → tier2 (goblin_scrap25 + coal25 + beast_hide25 + 300g).
+        gs.AddItem("goblin_fang", 30);
+        gs.AddItem("rat_pelt", 25);
         Check("(C) commission shipped smithy", gs.CommissionBuilding("smithy"));
+        CompleteConstruction(gs);
         Check("(C) smithy tier1 → ceiling still Base", gs.SmithyTier == SmithyTier.Base);
-        gs.AddItem("goblin_fang", 6);
-        gs.AddItem("rat_pelt", 5);
-        Check("(C) contribute smithy tier2 stone", gs.ContributeBundle("smithy", "stone", 8));
-        Check("(C) contribute smithy tier2 goblin_fang", gs.ContributeBundle("smithy", "goblin_fang", 6));
-        Check("(C) contribute smithy tier2 rat_pelt", gs.ContributeBundle("smithy", "rat_pelt", 5));
+        gs.AddItem("goblin_scrap", 30);
+        gs.AddItem("coal", 30);
+        gs.AddItem("beast_hide", 30);
+        for (int i = 0; i < 350; i++) gs.EarnGold(1);
+        Check("(C) contribute smithy tier2 goblin_scrap", gs.ContributeBundle("smithy", "goblin_scrap", 25));
+        Check("(C) contribute smithy tier2 coal", gs.ContributeBundle("smithy", "coal", 25));
+        Check("(C) contribute smithy tier2 beast_hide", gs.ContributeBundle("smithy", "beast_hide", 25));
         Check("(C) upgrade shipped smithy to tier2", gs.UpgradeBuilding("smithy"));
+        // Upgrades now take construction time too (Tharr busy) — the new tier's effect waits for the
+        // window to close, so tick it out before reading the ceiling.
+        CompleteConstruction(gs);
         Check("(C) smithy tier2 → ceiling Improved", gs.SmithyTier == SmithyTier.Improved);
 
         gs.SaveGame();
@@ -476,6 +485,12 @@ public partial class EffectsSpike : SpikeBase
         var effects = new OutpostEffects(() => lab);
         Check("(F) CategoryUnlock membership: unlocked id true", effects.IsCategoryUnlocked("tonics"));
         Check("(F) CategoryUnlock membership: unknown id false", !effects.IsCategoryUnlocked("nope"));
+    }
+
+    private static void CompleteConstruction(GameState gs)
+    {
+        while (gs.AnyBuildingUnderConstruction)
+            gs.Building.TickDay();
     }
 
     // ─────────────────────────── Save-slot protection ───────────────────────────

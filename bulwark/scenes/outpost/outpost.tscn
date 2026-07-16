@@ -1,7 +1,8 @@
 [gd_scene format=4 uid="uid://rw7yujw3vns"]
 
 [ext_resource type="Script" uid="uid://b7apqf3i1eopk" path="res://scripts/cozy/OutpostScene.cs" id="1_4evlg"]
-[ext_resource type="TileSet" path="res://assets/tilesets/outpost_tileset.tres" id="2_fa2be"]
+[ext_resource type="TileSet" uid="uid://b3eu2aig0u8yg" path="res://assets/tilesets/outpost_tileset.tres" id="2_fa2be"]
+[ext_resource type="PackedScene" uid="uid://dcbc6h7jj4ang" path="res://scenes/buildings/command_post.tscn" id="4_je5td"]
 [ext_resource type="PackedScene" path="res://scenes/fx/hd2d_stack.tscn" id="90_hd2d"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_je5td"]
@@ -107,3 +108,6 @@ enabled = false
 
 [node name="Hd2dStack" parent="." unique_id=711561602 instance=ExtResource("90_hd2d")]
 position = Vector2(79, 31)
+
+[node name="CommandPost" parent="." unique_id=546216695 instance=ExtResource("4_je5td")]
+position = Vector2(645, 726)

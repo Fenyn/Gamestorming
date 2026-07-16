@@ -1,8 +1,9 @@
 # Bulwark — Friendship / Heart System
 
 A Stardew-style relationship system layered over the outpost's cast (`design/characters/`). The player
-builds bonds with the named characters; hearts unlock story, romance, and optional perks. **Design
-doc — not yet implemented.**
+builds bonds with the named characters; hearts unlock story, romance, and optional perks. **Core
+system implemented** (`scripts/cozy/FriendshipSystem.cs`: points/hearts, gifts, talk, thresholds,
+save round-trip); heart events, romance, and per-character preference content are still to come.
 
 ## Decisions (locked with user, 2026-07-13)
 - **Earned by:** gifts (with per-character preferences) + daily talking + helping/quests. *(Not
@@ -12,6 +13,11 @@ doc — not yet implemented.**
 - **No decay** — friendship only ever grows. No neglect penalty (cozy).
 - **Recruitment is NOT gated by friendship** — recruitable characters still join via their arrival
   triggers (found in forest, etc.). Friendship is a parallel, social/narrative track.
+- **Documented exceptions (missables):** three characters deliberately break the rule above, by
+  design (see `design/economy/characters.md`). **Raven** joins only after reaching 5-6 hearts as a
+  visiting customer; **Vasska**'s swamp encounter gates on Oskar at 6 hearts plus her subquest;
+  **Hilde**'s playable reveal fires from her own 2-4 heart event. These are the only
+  friendship-gated recruitments; everyone else follows their arrival trigger.
 
 ## Who is befriendable
 The named cast — `tharr`, `elara`, `fenwick`, and the recruitables `arkus`, `aldric`, `spore`,

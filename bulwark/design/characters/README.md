@@ -30,14 +30,17 @@ is already there, the lone holdout who has been struggling to maintain the place
 | `grub` | Grub | Druid | Goblin | Wilderness gardener and reclaimer. Automates farming. | Farmhouse / Fields | Found tending wild patch during territory expansion |
 | `sera` | Sera | Magus | Human | Exiled academic. Studies the fabric of arcane magic. | Arcane Study | Arrives deliberately, seeking frontier research freedom |
 | `oskar` | Oskar | Oracle | Dwarf | War-cursed elder. Builds a legacy before the decline takes him. | Chapel / Shrine | Arrives seeking a place to spend his final years |
-
 | `hazel` | Hazel | Thaumaturge | Halfling | Ex-curator rebuilding a lost collection. Monster expert. | Reliquary | Arrives seeking a home for her work |
+| `wynn` | Wynn | Bard | Human | Exiled playwright. Oral storyteller collecting material. | Kitchen / Tavern (co-tenant) | Wandered in, never left |
 
 ### Unassigned (no building)
 
 | Id | Name | Class | Ancestry | Role | Arrival |
 |---|---|---|---|---|---|
 | `vasska` | Vasska | Psychic | Nagaji | Telepathic mind-reader. Key to Oskar's ritual quest. | Swamp biome, gated behind Oskar 6/10 hearts |
+| `raven` | Raven | Swashbuckler (Braggart) | Human | Bounty hunter and wandering brigand. Real name hidden. | Periodic visitor, recruitable via friendship |
+| `hilde` | Hilde | Summoner | Dwarf | Fugitive miner bonded to an earth eidolon. Starts as townsfolk. | Present at tavern, revealed via heart event |
+| `flick` | Flick | Sorcerer (Elemental) | Goblin | Reckless junk-mage. Contained at outpost for everyone's safety. | Found mid-disaster during expedition |
 
 ## How to add a character
 
@@ -71,11 +74,13 @@ non-StartingPC profiles, which flows into the existing villager arrival and plac
 Fighter, Cleric, Wizard, Rogue
 
 **Planned (no engine feature-classes yet — fine to assign in a profile, flag in BuildSpec later):**
-Alchemist, Ranger, Champion, Bard, Monk, Barbarian, Witch
+Alchemist, Ranger, Champion, Bard, Monk, Barbarian, Witch, Druid, Magus, Oracle, Thaumaturge,
+Psychic, Swashbuckler, Summoner, Sorcerer
 
 ## Supported ancestries
 
-Human, Dwarf, Elf, Halfling, Orc, Leshy, Gnome, Goblin — stored as strings, no engine validation.
+Human, Dwarf, Elf, Halfling, Orc, Leshy, Gnome, Goblin, Nagaji (rare/exotic) — stored as strings,
+no engine validation.
 
 ## Deferred: the Free Archetype build layer
 

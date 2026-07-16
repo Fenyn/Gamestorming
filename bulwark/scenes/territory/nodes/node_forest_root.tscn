@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndfrt"]
+[ext_resource type="Texture2D" uid="uid://geaemivbt1pi" path="res://assets/tilesets/winlu_exterior/fantasy_outside_d_noshadow.png" id="2_ndfrt"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_forest_root"]
+atlas = ExtResource("2_ndfrt")
+region = Rect2(182, 628, 66, 112)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_forest_root_base"]
+size = Vector2(40, 18)
+
+[node name="NodeForestRoot" type="Node2D"]
+z_index = 5
+script = ExtResource("1_ndfrt")
+DefinitionId = "forest_root_patch"
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(-33, -88)
+texture = SubResource("AtlasTexture_forest_root")
+centered = false
+
+[node name="Body" type="StaticBody2D" parent="."]
+
+[node name="BodyShape" type="CollisionShape2D" parent="Body"]
+unique_name_in_owner = true
+position = Vector2(0, 6)
+shape = SubResource("RectangleShape2D_forest_root_base")
+
+[node name="Label" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 10
+offset_left = -60.0
+offset_top = -44.0
+offset_right = 60.0
+offset_bottom = -26.0
+horizontal_alignment = 1
+text = "Forest Root Patch"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3

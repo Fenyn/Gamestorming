@@ -1,0 +1,59 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndhrb"]
+[ext_resource type="Texture2D" uid="uid://ql382v8ud7i8" path="res://assets/tilesets/winlu_exterior/decoration_vegetation.png" id="2_ndhrb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_herb_a"]
+atlas = ExtResource("2_ndhrb")
+region = Rect2(0, 336, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_herb_b"]
+atlas = ExtResource("2_ndhrb")
+region = Rect2(96, 336, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_herb_c"]
+atlas = ExtResource("2_ndhrb")
+region = Rect2(192, 336, 48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_herb_patch_base"]
+size = Vector2(28, 14)
+
+[node name="NodeHerbPatch" type="Node2D"]
+z_index = 5
+script = ExtResource("1_ndhrb")
+DefinitionId = "herb_patch"
+
+[node name="HerbA" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(-16, -2)
+texture = SubResource("AtlasTexture_herb_a")
+
+[node name="HerbB" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(16, -8)
+texture = SubResource("AtlasTexture_herb_b")
+
+[node name="HerbC" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, 8)
+texture = SubResource("AtlasTexture_herb_c")
+
+[node name="Body" type="StaticBody2D" parent="."]
+
+[node name="BodyShape" type="CollisionShape2D" parent="Body"]
+unique_name_in_owner = true
+position = Vector2(0, 6)
+shape = SubResource("RectangleShape2D_herb_patch_base")
+
+[node name="Label" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 10
+offset_left = -48.0
+offset_top = -42.0
+offset_right = 48.0
+offset_bottom = -24.0
+horizontal_alignment = 1
+text = "Herb Patch"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3

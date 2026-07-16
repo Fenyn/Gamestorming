@@ -40,11 +40,13 @@ which in their view meant wizard college. Fenwick went, and he did well enough, 
 more time in the dormitory kitchen than the library. He graduated with a solid grasp of
 evocation and transmutation and an even more solid grasp of how to properly reduce a sauce.
 
-He joined the expedition to the frontier outpost because he heard there was a kitchen to be
-built from scratch, which to Fenwick sounded like the opportunity of a lifetime. A chance to
-design a menu from the ground up, forage new ingredients, and cook for people who genuinely
-need a good meal. The fact that the borderlands are dangerous only makes the cooking more
-important, in his view. Morale starts at the table.
+He attended the academy alongside the player, where the two became friends despite their
+different temperaments. Fenwick studied magic while the player trained as a fighter in the
+next hall over. When the frontier posting came through, Fenwick volunteered. He heard there
+was a kitchen to be built from scratch, which sounded like the opportunity of a lifetime. A
+chance to design a menu from the ground up, forage new ingredients, and cook for people who
+genuinely need a good meal. The fact that the borderlands are dangerous only makes the cooking
+more important, in his view. Morale starts at the table.
 
 ## Arrival
 

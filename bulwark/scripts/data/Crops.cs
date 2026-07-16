@@ -68,8 +68,40 @@ public static class Crops
         Regrows = true, RegrowDays = 4,
     };
 
+    // --- materials.md family 1 additions (2026-07-14): fill out the Spring/Fall/Winter roster
+    //     alongside the Spring/Summer/Fall starter set above. Winter-hardy crops (winter_squash,
+    //     hearth_root, frost_kale) grow outdoors once Farmhouse T2 opens zone 2 — see buildings.md;
+    //     the Greenhouse (T4) lifts the season restriction entirely rather than gating these. ---
+    public static readonly CropDefinition Carrot = new()
+    {
+        Id = "carrot", DisplayName = "Carrot",
+        SeedItemId = "carrot_seed", YieldItemId = "carrot", YieldCount = 1,
+        GrowthDays = 4, Seasons = new[] { Season.Spring },
+    };
+
+    public static readonly CropDefinition WinterSquash = new()
+    {
+        Id = "winter_squash", DisplayName = "Winter Squash",
+        SeedItemId = "winter_squash_seed", YieldItemId = "winter_squash", YieldCount = 1,
+        GrowthDays = 10, Seasons = new[] { Season.Fall, Season.Winter },
+    };
+
+    public static readonly CropDefinition HearthRoot = new()
+    {
+        Id = "hearth_root", DisplayName = "Hearth Root",
+        SeedItemId = "hearth_root_seed", YieldItemId = "hearth_root", YieldCount = 1,
+        GrowthDays = 10, Seasons = new[] { Season.Fall, Season.Winter },
+    };
+
+    public static readonly CropDefinition FrostKale = new()
+    {
+        Id = "frost_kale", DisplayName = "Frost Kale",
+        SeedItemId = "frost_kale_seed", YieldItemId = "frost_kale", YieldCount = 1,
+        GrowthDays = 8, Seasons = new[] { Season.Winter },
+    };
+
     private static readonly DefinitionRegistry<CropDefinition> Registry = new(d => d.Id,
-        Turnip, Potato, Wheat, Tomato);
+        Turnip, Potato, Wheat, Tomato, Carrot, WinterSquash, HearthRoot, FrostKale);
 
     public static IReadOnlyCollection<CropDefinition> All => Registry.All;
 

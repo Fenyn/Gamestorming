@@ -3,11 +3,22 @@ using System.Collections.Generic;
 
 namespace Bulwark.Data;
 
-/// <summary>One (itemId, quantity) input a recipe consumes from the party inventory.</summary>
+/// <summary>
+/// One input a recipe consumes. Either a specific item (<see cref="ItemId"/>) or any item from a
+/// category (<see cref="CategoryWildcard"/>). Exactly one must be set. When a wildcard is used,
+/// the crafting system picks the first held item that matches at craft time.
+/// </summary>
 public sealed class RecipeInput
 {
-    public required string ItemId { get; init; }
+    /// <summary>Specific item id, or null when <see cref="CategoryWildcard"/> is set.</summary>
+    public string? ItemId { get; init; }
+
+    /// <summary>When set, any item whose <see cref="ItemCategory"/> matches is accepted.</summary>
+    public ItemCategory? CategoryWildcard { get; init; }
+
     public required int Quantity { get; init; }
+
+    public bool IsWildcard => CategoryWildcard != null;
 }
 
 /// <summary>
@@ -65,6 +76,7 @@ public static class Recipes
     public const string StillCategory = "still";
     public const string LoomCategory = "loom";
     public const string KitchenCategory = "kitchen";
+    public const string ApothecaryCategory = "apothecary";
 
     // ---- Refined chains: baseline (no station) ----
     public static readonly RecipeDefinition Plank = new()
@@ -108,6 +120,86 @@ public static class Recipes
         Inputs = new RecipeInput[] { new() { ItemId = "fiber", Quantity = 3 } },
         OutputItemId = "cloth", OutputQuantity = 1, CraftMinutes = 15,
         RequiredCategory = LoomCategory,
+    };
+
+    // --- materials.md family 3/9 addition: the Elderwood/Sunken Reach ore ceiling. Smelter T2 per the
+    //     catalog; the RequiredCategory schema has no tier field, so this gates on the same SmelterCategory
+    //     as CopperIngot (the building ladder's own T2 tier check happens at the CategoryUnlock effect,
+    //     authored later alongside the smelter building). ---
+    public static readonly RecipeDefinition IronIngot = new()
+    {
+        Id = "craft_iron_ingot", DisplayName = "Iron Ingot",
+        Inputs = new RecipeInput[]
+        {
+            new() { ItemId = "iron_ore", Quantity = 2 },
+            new() { ItemId = "coal", Quantity = 1 },
+        },
+        OutputItemId = "iron_ingot", OutputQuantity = 1, CraftMinutes = 20,
+        RequiredCategory = SmelterCategory,
+    };
+
+    // --- Husbandry/apiary refined goods (materials.md families 5/6/9), all kitchen/still/loom-gated
+    //     the same way the Phase-5 chains above are. ---
+    public static readonly RecipeDefinition Cheese = new()
+    {
+        Id = "craft_cheese", DisplayName = "Cheese",
+        Inputs = new RecipeInput[] { new() { ItemId = "milk", Quantity = 2 } },
+        OutputItemId = "cheese", OutputQuantity = 1, CraftMinutes = 15,
+        RequiredCategory = KitchenCategory,
+    };
+    public static readonly RecipeDefinition Butter = new()
+    {
+        Id = "craft_butter", DisplayName = "Butter",
+        Inputs = new RecipeInput[] { new() { ItemId = "cream", Quantity = 2 } },
+        OutputItemId = "butter", OutputQuantity = 1, CraftMinutes = 15,
+        RequiredCategory = KitchenCategory,
+    };
+    public static readonly RecipeDefinition SpunYarn = new()
+    {
+        Id = "craft_spun_yarn", DisplayName = "Spun Yarn",
+        Inputs = new RecipeInput[] { new() { ItemId = "wool", Quantity = 2 } },
+        OutputItemId = "spun_yarn", OutputQuantity = 1, CraftMinutes = 15,
+        RequiredCategory = LoomCategory,
+    };
+    public static readonly RecipeDefinition Mead = new()
+    {
+        Id = "craft_mead", DisplayName = "Mead",
+        Inputs = new RecipeInput[] { new() { ItemId = "honey", Quantity = 2 } },
+        OutputItemId = "mead", OutputQuantity = 1, CraftMinutes = 15,
+        RequiredCategory = StillCategory,
+    };
+
+    // --- Apothecary T2 reagent refining (materials.md families 2/7/10). Closes the arcane_essence
+    //     content flag's second route (the first being ResourceNodes.LeyGlade) and wires spirit_dust's
+    //     only source. Gated on ApothecaryCategory, a new station category alongside smelter/tanner/
+    //     still/loom/kitchen — no Apothecary building ships this pass; the category is data-only until
+    //     one is authored, same as the other station categories above. ---
+    public static readonly RecipeDefinition ArcaneEssence = new()
+    {
+        Id = "craft_arcane_essence", DisplayName = "Arcane Essence",
+        Inputs = new RecipeInput[] { new() { ItemId = "nightcap_mushroom", Quantity = 2 } },
+        OutputItemId = "arcane_essence", OutputQuantity = 1, CraftMinutes = 20,
+        RequiredCategory = ApothecaryCategory,
+    };
+    public static readonly RecipeDefinition SpiritDust = new()
+    {
+        Id = "craft_spirit_dust", DisplayName = "Spirit Dust",
+        Inputs = new RecipeInput[]
+        {
+            new() { ItemId = "drowned_bone", Quantity = 1 },
+            new() { ItemId = "bog_moss", Quantity = 2 },
+        },
+        OutputItemId = "spirit_dust", OutputQuantity = 1, CraftMinutes = 20,
+        RequiredCategory = ApothecaryCategory,
+    };
+
+    // ---- Wildcard-input refined chain: any fish → smoked fish (kitchen-gated) ----
+    public static readonly RecipeDefinition SmokedFish = new()
+    {
+        Id = "craft_smoked_fish", DisplayName = "Smoked Fish",
+        Inputs = new RecipeInput[] { new() { CategoryWildcard = ItemCategory.Fish, Quantity = 1 } },
+        OutputItemId = "smoked_fish", OutputQuantity = 1, CraftMinutes = 15,
+        RequiredCategory = KitchenCategory,
     };
 
     // ---- Meals: kitchen-gated (output is a Food item that Meals maps to a day-long buff) ----
@@ -170,7 +262,10 @@ public static class Recipes
 
     private static readonly DefinitionRegistry<RecipeDefinition> Registry = new(d => d.Id,
         Plank, CutStone,
-        CopperIngot, Leather, Tincture, Cloth,
+        CopperIngot, Leather, Tincture, Cloth, IronIngot,
+        Cheese, Butter, SpunYarn, Mead,
+        ArcaneEssence, SpiritDust,
+        SmokedFish,
         HeartyStew, HerbTonic, TravelRation, BattleDraught, GuardRation);
 
     /// <summary>Every defined recipe.</summary>

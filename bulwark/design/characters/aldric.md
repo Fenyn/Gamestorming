@@ -55,8 +55,9 @@ offered his sword and his training, and asked for nothing in return except a pla
 
 ## Arrival
 
-Recruitable. Arrives voluntarily after hearing of the outpost's growth. Specific trigger TBD
-(reputation threshold, day count, or building milestone).
+Recruitable. Arrives voluntarily after hearing of the outpost's growth. The trigger is eight
+buildings constructed at the outpost, a visible sign of the growth word would actually travel on,
+and reason enough for a soldier to believe the place is worth committing his sword to.
 
 ## Notes (deferred / later)
 

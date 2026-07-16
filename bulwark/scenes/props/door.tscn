@@ -1,35 +1,35 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://db3npcr4u13g0"]
 
-[ext_resource type="Script" path="res://scripts/props/Door.cs" id="1_door"]
-[ext_resource type="SpriteFrames" path="res://assets/props/door_ext_plank.tres" id="2_frames"]
+[ext_resource type="Script" uid="uid://ysvifejx3yh8" path="res://scripts/props/Door.cs" id="1_door"]
+[ext_resource type="SpriteFrames" uid="uid://de8w4imipjfj4" path="res://assets/props/door_ext_plank.tres" id="2_frames"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door_blocker"]
-size = Vector2(48, 12)
+size = Vector2(48, 77)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door_trigger"]
-size = Vector2(64, 44)
+size = Vector2(63, 44)
 
-[node name="Door" type="Node2D"]
+[node name="Door" type="Node2D" unique_id=2140818135]
 script = ExtResource("1_door")
 
-[node name="Sprite" type="AnimatedSprite2D" parent="."]
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=1684177310]
 unique_name_in_owner = true
 texture_filter = 1
 sprite_frames = ExtResource("2_frames")
 animation = &"open"
 offset = Vector2(0, -48)
 
-[node name="Blocker" type="StaticBody2D" parent="."]
+[node name="Blocker" type="StaticBody2D" parent="." unique_id=1708754837]
 
-[node name="BlockerShape" type="CollisionShape2D" parent="Blocker"]
+[node name="BlockerShape" type="CollisionShape2D" parent="Blocker" unique_id=1165766352]
 unique_name_in_owner = true
-position = Vector2(0, -6)
+position = Vector2(0, -38.5)
 shape = SubResource("RectangleShape2D_door_blocker")
 
-[node name="Trigger" type="Area2D" parent="."]
+[node name="Trigger" type="Area2D" parent="." unique_id=1460274879]
 unique_name_in_owner = true
 monitorable = false
 
-[node name="TriggerShape" type="CollisionShape2D" parent="Trigger"]
-position = Vector2(0, -4)
+[node name="TriggerShape" type="CollisionShape2D" parent="Trigger" unique_id=2091643709]
+position = Vector2(0.5, -4)
 shape = SubResource("RectangleShape2D_door_trigger")

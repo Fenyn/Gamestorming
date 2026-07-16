@@ -134,6 +134,21 @@ public sealed class SquadRoster
         return Builders[id](level);
     }
 
+    /// <summary>
+    /// Update the player-chosen character name (used by the title-screen new-game flow). Rebuilds
+    /// the player member at the current level so the live instance carries the new name.
+    /// </summary>
+    public void RenamePlayer(string? name)
+    {
+        _playerName = name;
+        int idx = _members.FindIndex(m => m.Id == PlayerId);
+        if (idx >= 0)
+        {
+            _members[idx] = BuildMember(PlayerId, Level);
+            Changed?.Invoke();
+        }
+    }
+
     public PF2eCharacter? FindMember(string memberId) => _members.Find(m => m.Id == memberId);
 
     public int GetXp(string memberId) => _xp.TryGetValue(memberId, out var xp) ? xp : 0;

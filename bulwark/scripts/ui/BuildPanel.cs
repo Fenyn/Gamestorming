@@ -29,10 +29,12 @@ public partial class BuildPanel : CanvasLayer
     public event Action<bool>? Toggled;
 
     private VBoxContainer _list = null!;
+    private Label _busyStatus = null!;
 
     public override void _Ready()
     {
         _list = GetNode<VBoxContainer>("%BuildingList");
+        _busyStatus = GetNode<Label>("%BusyStatus");
         Visible = false;
     }
 
@@ -56,12 +58,21 @@ public partial class BuildPanel : CanvasLayer
     /// <summary>Render a fresh planning-table view — rebuilds every building row from the view-model.</summary>
     public void Render(PlanningTableView view)
     {
+        // Busy status: explains WHY every Commission button below is disabled (CanCommission already
+        // rejects while any building is under construction — this line says which one, and for how long).
+        _busyStatus.Visible = view.BuilderBusy;
+        _busyStatus.Text = view.BuilderBusy
+            ? $"Tharr is building the {view.BusyBuildingName} — {DaysLabel(view.BusyDaysRemaining)} remain."
+            : "";
+
         foreach (Node child in _list.GetChildren())
             child.QueueFree();
 
         foreach (var b in view.Buildings)
             _list.AddChild(BuildRow(b));
     }
+
+    private static string DaysLabel(int days) => days == 1 ? "1 day" : $"{days} days";
 
     // ------------------------------------------------------------------ Row construction (view only)
 

@@ -1,5 +1,11 @@
 # Bulwark — Planned Buildings
 
+> **Superseded for costs and tiers:** the full progression design (commission prerequisites,
+> construction bundles, tier ladders, benefits, migration notes vs shipped code) now lives in
+> **`design/economy/buildings.md`**, priced against the material catalog in
+> `design/economy/materials.md` and scheduled in `design/economy/pacing.md`. This file remains the
+> quick theme/roster tracker.
+
 Living tracker for the outpost's buildings: their theme, the PF2e class/archetype each embodies, what
 they do, and how they're funded. Buildings are commissioned at the Command Post **planning table**,
 rise at a fixed map spot (`%Building_<id>` marker), and grow through bundle-gated tiers. Each building

@@ -90,18 +90,18 @@ public partial class InventorySpike : SpikeBase
         var view0 = gs.GetInventoryView();
         Check("(1) view exposes all 4 members", view0.Members.Count == 4);
 
-        // Carried Bulk sums to the starter total: 8 seeds ×0.1 + 20 wood/stone ×1 = 20.8 Bulk.
+        // Carried Bulk sums to the starter total: 8 seeds ×0.1 + 20 wood/stone ×0.1 = 2.8 Bulk.
         double totalCarried = view0.Members.Sum(m => m.CarriedBulk);
-        Check($"(1) per-member Bulk sums to 20.8 (got {totalCarried:0.###})",
-            Math.Abs(totalCarried - 20.8) < 0.001);
+        Check($"(1) per-member Bulk sums to 2.8 (got {totalCarried:0.###})",
+            Math.Abs(totalCarried - 2.8) < 0.001);
 
         bool anyEncumbered = squad.Members.Any(m => m.Conditions!.HasCondition(Condition.Encumbered));
         Check("(1) light default squad is NOT encumbered", !anyEncumbered);
         Check("(1) view agrees: no member flagged encumbered", view0.Members.All(m => !m.Encumbered));
 
-        // Auto-distribution spread the bulky wood over more than one carrier.
+        // Light wood (Bulk 0.1) consolidates on one carrier — no need to spread.
         int woodCarriers = view0.Members.Count(m => m.Stacks.ContainsKey(Items.Wood.Id));
-        Check($"(1) auto-distribution spread wood across ≥2 members (got {woodCarriers})", woodCarriers >= 2);
+        Check($"(1) light wood stays consolidated on ≥1 carrier (got {woodCarriers})", woodCarriers >= 1);
 
         // ── (2) Party ItemAdded choke point → DayLedger counts a harvest gain ──
         GD.Print("-------------------- (2) ItemAdded choke point --------------------");
@@ -119,6 +119,7 @@ public partial class InventorySpike : SpikeBase
             summary != null && summary.ItemsGained.TryGetValue(Items.Herb.Id, out int h) && h == 3);
 
         // ── (3) Encumbrance crossing + hard cap + combat bite (Scholar: Str +0 → thr 5, cap 10) ──
+        // Uses plank (Bulk 1.0) so the arithmetic matches PF2e Bulk thresholds exactly.
         GD.Print("-------------------- (3) Encumbrance teeth --------------------");
         var scholar = squad.FindMember(SquadRoster.ScholarId)!;
 
@@ -128,13 +129,13 @@ public partial class InventorySpike : SpikeBase
         Check("(3) Scholar emptied to the warehouse", ScholarCarriedBulk(gs) == 0);
         int baseSpeed = scholar.Stats!.SpeedInFeet;
 
-        Check("(3) give 5 wood → carried 5.0, at threshold, NOT encumbered",
-            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Wood.Id, 5)
+        Check("(3) give 5 plank → carried 5.0, at threshold, NOT encumbered",
+            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 5)
             && Math.Abs(ScholarCarriedBulk(gs) - 5.0) < 0.001
             && !scholar.Conditions!.HasCondition(Condition.Encumbered));
 
-        Check("(3) give 1 more wood → carried 6.0 > 5, ENCUMBERED",
-            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Wood.Id, 1)
+        Check("(3) give 1 more plank → carried 6.0 > 5, ENCUMBERED",
+            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 1)
             && scholar.Conditions!.HasCondition(Condition.Encumbered));
 
         Check($"(3) Encumbered bites combat: Speed dropped 10 ft ({baseSpeed} → {scholar.Stats.SpeedInFeet})",
@@ -144,40 +145,40 @@ public partial class InventorySpike : SpikeBase
         GD.Print($"  [note] engine models Encumbered's Speed penalty; Clumsy child not applied "
             + $"(HasClumsy={scholar.Conditions!.HasCondition(Condition.Clumsy)}).");
 
-        Check("(3) fill to the cap: give 4 wood → carried 10.0 (== 10+Str, allowed)",
-            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Wood.Id, 4)
+        Check("(3) fill to the cap: give 4 plank → carried 10.0 (== 10+Str, allowed)",
+            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 4)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001);
 
-        Check("(3) hard cap: one more wood REJECTED (would exceed 10), no mutation",
-            !gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Wood.Id, 1)
+        Check("(3) hard cap: one more plank REJECTED (would exceed 10), no mutation",
+            !gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 1)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001);
 
         // ── (4) Deposit/withdraw move items and update encumbrance ──
         GD.Print("-------------------- (4) Deposit / withdraw --------------------");
-        int whWoodBefore = gs.GetInventoryView().Warehouse.GetValueOrDefault(Items.Wood.Id, 0);
-        Check("(4) deposit 6 wood → carried 4.0, encumbrance CLEARED, Speed restored",
-            gs.DepositToWarehouse(SquadRoster.ScholarId, Items.Wood.Id, 6)
+        int whPlankBefore = gs.GetInventoryView().Warehouse.GetValueOrDefault(Items.Plank.Id, 0);
+        Check("(4) deposit 6 plank → carried 4.0, encumbrance CLEARED, Speed restored",
+            gs.DepositToWarehouse(SquadRoster.ScholarId, Items.Plank.Id, 6)
             && Math.Abs(ScholarCarriedBulk(gs) - 4.0) < 0.001
             && !scholar.Conditions!.HasCondition(Condition.Encumbered)
             && scholar.Stats.SpeedInFeet == baseSpeed);
-        Check("(4) deposited wood landed in the warehouse (+6)",
-            gs.GetInventoryView().Warehouse.GetValueOrDefault(Items.Wood.Id, 0) == whWoodBefore + 6);
+        Check("(4) deposited plank landed in the warehouse (+6)",
+            gs.GetInventoryView().Warehouse.GetValueOrDefault(Items.Plank.Id, 0) == whPlankBefore + 6);
 
-        Check("(4) withdraw 6 wood → carried 10.0, RE-ENCUMBERED",
-            gs.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Wood.Id, 6)
+        Check("(4) withdraw 6 plank → carried 10.0, RE-ENCUMBERED",
+            gs.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Plank.Id, 6)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001
             && scholar.Conditions!.HasCondition(Condition.Encumbered));
         Check("(4) withdraw past the hard cap REJECTED",
-            !gs.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Wood.Id, 1)
+            !gs.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Plank.Id, 1)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001);
 
         // ── (5) Party-level hard cap: fill everyone, then AddItem rejects the lot ──
         GD.Print("-------------------- (5) Party hard cap --------------------");
         foreach (var mv in gs.GetInventoryView().Members)
         {
-            int room = (int)Math.Floor(mv.MaxBulk - mv.CarriedBulk); // whole wood (Bulk 1) units
+            int room = (int)Math.Floor(mv.MaxBulk - mv.CarriedBulk); // whole plank (Bulk 1) units
             if (room > 0)
-                gs.Inventory.TryGiveToMember(mv.MemberId, Items.Wood.Id, room);
+                gs.Inventory.TryGiveToMember(mv.MemberId, Items.Plank.Id, room);
         }
         bool anyRoomLeft = gs.GetInventoryView().Members.Any(m => m.MaxBulk - m.CarriedBulk >= 1.0);
         Check("(5) every member topped to <1 Bulk of free capacity", !anyRoomLeft);
@@ -185,7 +186,7 @@ public partial class InventorySpike : SpikeBase
         (string Id, int Qty)? phantom = null;
         Action<string, int> phantomProbe = (id, qty) => phantom = (id, qty);
         gs.Inventory.ItemAdded += phantomProbe;
-        var addResult = gs.Inventory.AddItem(Items.Wood.Id, 5);
+        var addResult = gs.Inventory.AddItem(Items.Plank.Id, 5);
         gs.Inventory.ItemAdded -= phantomProbe;
         Check("(5) AddItem placed 0 and rejected all 5 at the party hard cap",
             addResult.Placed == 0 && addResult.Rejected == 5 && !addResult.FullyPlaced);
@@ -195,7 +196,7 @@ public partial class InventorySpike : SpikeBase
         GD.Print("-------------------- (6) Save / load round-trip --------------------");
         gs.SaveGame();
         var before = gs.GetInventoryView();
-        int scholarWoodBefore = ScholarStacks(gs).GetValueOrDefault(Items.Wood.Id, 0);
+        int scholarPlankBefore = ScholarStacks(gs).GetValueOrDefault(Items.Plank.Id, 0);
         bool scholarEncumberedBefore = scholar.Conditions!.HasCondition(Condition.Encumbered);
 
         var gs2 = new GameState { RealSecondsPerGameMinute = 0 };
@@ -218,8 +219,8 @@ public partial class InventorySpike : SpikeBase
             membersMatch);
 
         var scholar2 = gs2.Squad!.FindMember(SquadRoster.ScholarId)!;
-        Check("(6) reloaded: Scholar wood count round-trips",
-            ScholarStacks(gs2).GetValueOrDefault(Items.Wood.Id, 0) == scholarWoodBefore);
+        Check("(6) reloaded: Scholar plank count round-trips",
+            ScholarStacks(gs2).GetValueOrDefault(Items.Plank.Id, 0) == scholarPlankBefore);
         Check("(6) reloaded: encumbrance RECOMPUTED on load (condition reapplied + Speed reduced)",
             scholarEncumberedBefore
             && scholar2.Conditions!.HasCondition(Condition.Encumbered)
@@ -273,45 +274,45 @@ public partial class InventorySpike : SpikeBase
             unbound.WouldFit(Items.Wood.Id, 1));
 
         // ── (8) Refinement 2: a gain consolidates onto an existing holder before spreading ──
-        // Scholar (Str +0 → threshold 5) is the deterministic holder.
+        // Scholar (Str +0 → threshold 5) is the deterministic holder. Uses plank (Bulk 1.0).
         GD.Print("-------------------- (8) Stack-consolidation distribution --------------------");
         var inv2 = new Inventory();
         inv2.BindSquad(squad);
-        inv2.TryGiveToMember(SquadRoster.ScholarId, Items.Wood.Id, 2); // Scholar already holds a stack
+        inv2.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 2); // Scholar already holds a stack
 
         (string Id, int Qty)? gain = null;
         Action<string, int> gainProbe = (id, qty) => gain = (id, qty);
         inv2.ItemAdded += gainProbe;
-        var consolidate = inv2.AddItem(Items.Wood.Id, 3); // 2 + 3 = 5, all fits under the Scholar's threshold
+        var consolidate = inv2.AddItem(Items.Plank.Id, 3); // 2 + 3 = 5, all fits under the Scholar's threshold
         inv2.ItemAdded -= gainProbe;
 
         var vc = inv2.BuildView(0);
-        int scholarWood = vc.Members.First(m => m.MemberId == SquadRoster.ScholarId)
-                            .Stacks.GetValueOrDefault(Items.Wood.Id, 0);
+        int scholarPlank = vc.Members.First(m => m.MemberId == SquadRoster.ScholarId)
+                            .Stacks.GetValueOrDefault(Items.Plank.Id, 0);
         int otherCarriers = vc.Members.Count(m => m.MemberId != SquadRoster.ScholarId
-                            && m.Stacks.ContainsKey(Items.Wood.Id));
+                            && m.Stacks.ContainsKey(Items.Plank.Id));
         Check("(8) gain CONSOLIDATED onto the existing holder (Scholar 2→5, not spread)",
-            scholarWood == 5 && otherCarriers == 0);
-        Check("(8) consolidation: Placed 3 / Rejected 0, ItemAdded fired once for (wood, 3)",
-            consolidate.Placed == 3 && consolidate.Rejected == 0 && gain is { Id: "wood", Qty: 3 });
+            scholarPlank == 5 && otherCarriers == 0);
+        Check("(8) consolidation: Placed 3 / Rejected 0, ItemAdded fired once for (plank, 3)",
+            consolidate.Placed == 3 && consolidate.Rejected == 0 && gain is { Id: "plank", Qty: 3 });
         Check("(8) holder at threshold (5 == 5+Str) is NOT encumbered",
             !squad.FindMember(SquadRoster.ScholarId)!.Conditions!.HasCondition(Condition.Encumbered));
 
         // Holder now full to threshold → the next gain must overflow to another member.
         gain = null;
         inv2.ItemAdded += gainProbe;
-        var overflow = inv2.AddItem(Items.Wood.Id, 2);
+        var overflow = inv2.AddItem(Items.Plank.Id, 2);
         inv2.ItemAdded -= gainProbe;
 
         var vo = inv2.BuildView(0);
-        int scholarWood2 = vo.Members.First(m => m.MemberId == SquadRoster.ScholarId)
-                             .Stacks.GetValueOrDefault(Items.Wood.Id, 0);
+        int scholarPlank2 = vo.Members.First(m => m.MemberId == SquadRoster.ScholarId)
+                             .Stacks.GetValueOrDefault(Items.Plank.Id, 0);
         int overflowHeld = vo.Members.Where(m => m.MemberId != SquadRoster.ScholarId)
-                             .Sum(m => m.Stacks.GetValueOrDefault(Items.Wood.Id, 0));
+                             .Sum(m => m.Stacks.GetValueOrDefault(Items.Plank.Id, 0));
         Check("(8) holder full → gain OVERFLOWED to another member (Scholar stays 5, other +2)",
-            scholarWood2 == 5 && overflowHeld == 2);
-        Check("(8) overflow: Placed 2 / Rejected 0, ItemAdded fired once for (wood, 2)",
-            overflow.Placed == 2 && overflow.Rejected == 0 && gain is { Id: "wood", Qty: 2 });
+            scholarPlank2 == 5 && overflowHeld == 2);
+        Check("(8) overflow: Placed 2 / Rejected 0, ItemAdded fired once for (plank, 2)",
+            overflow.Placed == 2 && overflow.Rejected == 0 && gain is { Id: "plank", Qty: 2 });
     }
 
     // ─────────────────────────── Scholar helpers ───────────────────────────

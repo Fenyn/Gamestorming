@@ -75,8 +75,9 @@ trade networks. A growing settlement on the border between two powers, in territ
 old rules are thin and the land has not been studied — that is exactly the kind of place where
 someone like Sera can do her best work. She shows up with a cart full of books, instruments,
 and half-finished experiments, asks where she can set up a workspace, and starts working before
-anyone has formally agreed to let her stay. Specific trigger TBD (reputation threshold, day
-count, or building milestone).
+anyone has formally agreed to let her stay. The trigger is the Trading Post reaching tier 2, the
+expanded store that means enough goods and enough word are moving through the outpost to have
+reached the trade networks she was listening to in the first place.
 
 ## Notes (deferred / later)
 

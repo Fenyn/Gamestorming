@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://1g1r3ya5h048"]
+
+[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndcpr"]
+[ext_resource type="Texture2D" uid="uid://geaemivbt1pi" path="res://assets/tilesets/winlu_exterior/fantasy_outside_d_noshadow.png" id="2_ndcpr"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_node_copper"]
+atlas = ExtResource("2_ndcpr")
+region = Rect2(432, 259.8068, 48, 55.036774)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_node_copper_base"]
+size = Vector2(42, 53)
+
+[node name="NodeCopperVein" type="Node2D" unique_id=54825787]
+z_index = 5
+script = ExtResource("1_ndcpr")
+DefinitionId = "copper_vein"
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=549331287]
+self_modulate = Color(1, 0.68, 0.42, 1)
+texture_filter = 1
+position = Vector2(-23, -49)
+texture = SubResource("AtlasTexture_node_copper")
+centered = false
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=606094631]
+
+[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=521393600]
+unique_name_in_owner = true
+position = Vector2(-1, -21.5)
+shape = SubResource("RectangleShape2D_node_copper_base")
+
+[node name="Label" type="Label" parent="." unique_id=720385221]
+unique_name_in_owner = true
+z_index = 10
+offset_left = -48.0
+offset_top = -46.0
+offset_right = 48.0
+offset_bottom = -28.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
+text = "Copper Vein"
+horizontal_alignment = 1

@@ -27,4 +27,32 @@ public static class Tharr
         SpriteId = "cleric",
         Build = null,
     };
+
+    /// <summary>
+    /// Minimal proving friendship content (design/friendship.md Phase 1): a stonemason's tastes —
+    /// fine worked materials loved, raw building stock liked, vermin trophies hated. The unlock
+    /// table ships EVENT HOOKS only (the future dialogue system consumes the ids); perk/recipe
+    /// unlock entries are authored later per character.
+    /// </summary>
+    public static readonly FriendshipProfile Friendship = new()
+    {
+        CharacterId = CharacterId,
+        Befriendable = true,
+        LovedItems = new[] { "cut_stone", "copper_ingot" },
+        LikedItems = new[] { "stone", "plank", "hearty_stew" },
+        LikedCategories = new[] { ItemCategory.Refined },
+        DislikedCategories = new[] { ItemCategory.Seed },
+        HatedItems = new[] { "rat_pelt" },
+        BirthdaySeason = Season.Summer,
+        BirthdayDay = 11,
+        Romanceable = false,
+        Unlocks = new HeartUnlock[]
+        {
+            new() { Heart = 2, EventId = "tharr_heart_2" },
+            new() { Heart = 4, EventId = "tharr_heart_4" },
+            new() { Heart = 6, EventId = "tharr_heart_6" },
+            new() { Heart = 8, EventId = "tharr_heart_8" },
+            new() { Heart = 10, EventId = "tharr_heart_10" },
+        },
+    };
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Bulwark.Autoload;
 using Bulwark.Data;
+using Bulwark.Data.Dialogues;
 using Bulwark.Territory;
 using Bulwark.UI;
 using Godot;
@@ -99,9 +100,60 @@ public abstract partial class CozyWorldScene : Node2D
     /// <summary>The instanced Trading Post panel (null when trading_post_panel.tscn is missing or not spawned).</summary>
     protected TradingPostPanel? TradingPostPanel { get; private set; }
 
+    /// <summary>The instanced friendship panel (null when friendship_panel.tscn is missing or not spawned).</summary>
+    protected FriendshipPanel? FriendshipPanel { get; private set; }
+
+    /// <summary>The instanced quest panel (null when quest_panel.tscn is missing or not spawned).</summary>
+    protected QuestPanel? QuestPanel { get; private set; }
+
+    /// <summary>The instanced calendar panel (null when calendar_panel.tscn is missing or not spawned).</summary>
+    protected CalendarPanel? CalendarPanel { get; private set; }
+
+    /// <summary>The instanced Esc pause menu (null when pause_menu.tscn is missing or not spawned).</summary>
+    protected PauseMenu? PauseMenu { get; private set; }
+
+    /// <summary>The instanced dialogue box (null when dialogue_box.tscn is missing or not spawned).</summary>
+    protected DialogueBox? DialogueBox { get; private set; }
+
+    /// <summary>The cutscene director (null when not spawned).</summary>
+    protected CutsceneDirector? Director { get; private set; }
+
     /// <summary>Scene hand-off pending (travel or encounter): world input is ignored and the
     /// deliberately frozen player must NOT be unfrozen (e.g. by the squad-panel toggle).</summary>
     protected bool IsTransitioning { get; set; }
+
+    /// <summary>Cadence (seconds) between interaction-hint polls — cheap proximity checks, no need
+    /// for per-frame precision.</summary>
+    private const double InteractionHintPollInterval = 0.15;
+
+    private double _interactionHintPollAccumulator;
+
+    /// <summary>
+    /// Poll <see cref="GetInteractionHint"/> on <see cref="InteractionHintPollInterval"/> and push the
+    /// result to the HUD's floating "E — …" prompt (null hides it) — suppressed while a modal is open
+    /// or a hand-off is mid-flight, same guard as the interact input itself.
+    /// </summary>
+    public override void _Process(double delta)
+    {
+        if (Hud == null)
+            return;
+
+        _interactionHintPollAccumulator += delta;
+        if (_interactionHintPollAccumulator < InteractionHintPollInterval)
+            return;
+        _interactionHintPollAccumulator = 0.0;
+
+        Hud.SetInteractionPrompt(IsTransitioning || AnyModalOpen ? null : GetInteractionHint());
+    }
+
+    /// <summary>
+    /// What an E/LMB/RMB interact press would do right now, for the HUD's floating prompt
+    /// ("E — Talk"). Null hides the prompt. Default: nothing — the outpost/territory scenes override
+    /// with proximity checks that mirror their own <see cref="OnInteractRequested"/> logic exactly
+    /// (same distance constants/helpers, no duplication) so the hint never promises an action
+    /// interact wouldn't actually take. Cheap — proximity checks over small collections.
+    /// </summary>
+    protected virtual string? GetInteractionHint() => null;
 
     public override void _ExitTree()
     {
@@ -123,6 +175,15 @@ public abstract partial class CozyWorldScene : Node2D
         gs.SquadStatusNotice -= OnSquadStatusNotice;
         gs.DayStarted -= TryShowDaySummary;
         gs.BuildingChanged -= OnBuildingChanged;
+        gs.ConstructionCompleted -= OnConstructionCompleted;
+        gs.FriendshipChanged -= OnFriendshipChanged;
+        gs.GiftGiven -= OnGiftGiven;
+        gs.QuestStarted -= OnQuestChanged;
+        gs.QuestStarted -= OnQuestStartedBanner;
+        gs.QuestCompleted -= OnQuestChanged;
+        gs.QuestCompleted -= OnQuestCompletedBanner;
+        gs.QuestObjectiveProgressed -= OnQuestObjectiveChanged;
+        gs.Inventory.ItemAdded -= OnItemAddedForFeed;
         UnwireExtraStateEvents(gs);
     }
 
@@ -172,6 +233,7 @@ public abstract partial class CozyWorldScene : Node2D
         AddChild(Hud);
         Hud.ZoomInRequested += () => { ViewPreferences.ZoomIn(); ApplyZoom(); };
         Hud.ZoomOutRequested += () => { ViewPreferences.ZoomOut(); ApplyZoom(); };
+        Hud.ClockClicked += () => CalendarPanel?.Toggle();
     }
 
     protected void ApplyZoom()
@@ -255,6 +317,64 @@ public abstract partial class CozyWorldScene : Node2D
         TradingPostPanel.SellRequested += OnSellRequested;
     }
 
+    /// <summary>Instance the friendship panel (heart pips per befriendable present character + the
+    /// near-a-villager gift flow). Toggles on "toggle_friendship_panel" (F), freezes the world while
+    /// open, and raises gift intents forwarded to GameState.GiveGift. Called by the outpost.</summary>
+    protected void SpawnFriendshipPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/friendship_panel.tscn");
+        if (scene == null)
+            return;
+
+        FriendshipPanel = scene.Instantiate<FriendshipPanel>();
+        AddChild(FriendshipPanel);
+        FriendshipPanel.Toggled += OnFriendshipPanelToggled;
+        FriendshipPanel.GiftRequested += OnGiftRequested;
+    }
+
+    /// <summary>Instance the quest log panel. Toggles on "toggle_quest_panel" (J). Available in all
+    /// cozy world scenes (outpost + territory).</summary>
+    protected void SpawnQuestPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/quest_panel.tscn");
+        if (scene == null)
+            return;
+
+        QuestPanel = scene.Instantiate<QuestPanel>();
+        AddChild(QuestPanel);
+        QuestPanel.Toggled += OnQuestPanelToggled;
+    }
+
+    /// <summary>Instance the calendar panel (mirrors <see cref="SpawnQuestPanel"/>). Toggles on
+    /// "toggle_calendar_panel" (N) or the HUD's clock-click, freezes the world while open, and
+    /// re-renders from <see cref="Bulwark.Autoload.GameState.GetCalendarView"/>. Available in every
+    /// cozy world scene (outpost + territory).</summary>
+    protected void SpawnCalendarPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/calendar_panel.tscn");
+        if (scene == null)
+            return;
+
+        CalendarPanel = scene.Instantiate<CalendarPanel>();
+        AddChild(CalendarPanel);
+        CalendarPanel.Toggled += OnCalendarPanelToggled;
+    }
+
+    /// <summary>Instance the Esc pause menu (Resume/Save/Options/Quit to Title). Available in every
+    /// cozy world scene — call alongside the other panel spawns.</summary>
+    protected void SpawnPauseMenu()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/pause_menu.tscn");
+        if (scene == null)
+            return;
+
+        PauseMenu = scene.Instantiate<PauseMenu>();
+        AddChild(PauseMenu);
+        PauseMenu.Toggled += OnPauseMenuToggled;
+        PauseMenu.SaveRequested += OnPauseSaveRequested;
+        PauseMenu.QuitToTitleRequested += OnQuitToTitleRequested;
+    }
+
     /// <summary>Instance the crafting-bench panel. Toggles on "toggle_crafting_panel" (K). Outpost-only
     /// station — call from the outpost scene.</summary>
     protected void SpawnCraftingPanel()
@@ -267,6 +387,70 @@ public abstract partial class CozyWorldScene : Node2D
         AddChild(CraftingPanel);
         CraftingPanel.Toggled += OnCraftingPanelToggled;
         CraftingPanel.CraftRequested += OnCraftRequested;
+    }
+
+    /// <summary>Instance the dialogue box and cutscene director. The dialogue box is a modal that
+    /// freezes the world while visible. Call from the scene's _Ready alongside other panel spawns.</summary>
+    protected void SpawnDialogueBox()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/dialogue_box.tscn");
+        if (scene == null)
+            return;
+
+        DialogueBox = scene.Instantiate<DialogueBox>();
+        AddChild(DialogueBox);
+        DialogueBox.Opened += () => SetModalFreeze(true);
+        DialogueBox.Closed += () =>
+        {
+            SetModalFreeze(false);
+            GameState.Instance?.EndDialogue();
+        };
+
+        Director = new CutsceneDirector { Name = "CutsceneDirector" };
+        AddChild(Director);
+    }
+
+    /// <summary>
+    /// Play a dialogue sequence through the dialogue box. Builds a <see cref="DialogueRunner"/>,
+    /// binds it to the box and director, and starts it. Returns false if the box is not spawned
+    /// or the steps are null/empty.
+    /// </summary>
+    protected bool PlayDialogueSteps(List<DialogueStep> steps, string? dialogueId = null, bool once = false)
+    {
+        if (DialogueBox == null || steps == null || steps.Count == 0)
+            return false;
+
+        var gs = GameState.Instance;
+        var handler = new GameStateEffectHandler(gs);
+        var runner = new DialogueRunner(steps, handler, dialogueId, once);
+        DialogueBox.Bind(runner);
+        Director?.Bind(runner);
+        CloseOtherModals(DialogueBox);
+        runner.Start();
+        return true;
+    }
+
+    /// <summary>
+    /// Play a list of <see cref="DialogueLine"/>s (from a talk pool) as simple sequential lines.
+    /// Converts them to DialogueStep format and plays them.
+    /// </summary>
+    protected bool PlayTalkLines(List<DialogueLine> lines)
+    {
+        if (lines == null || lines.Count == 0)
+            return false;
+
+        var steps = new List<DialogueStep>();
+        foreach (var line in lines)
+        {
+            steps.Add(new DialogueStep
+            {
+                Type = "line",
+                Speaker = line.Speaker,
+                Text = line.Text,
+                Emotion = line.Emotion ?? "neutral",
+            });
+        }
+        return PlayDialogueSteps(steps);
     }
 
     /// <summary>Instance the end-of-day summary modal and schedule a deferred consume for
@@ -507,6 +691,15 @@ public abstract partial class CozyWorldScene : Node2D
         gs.SquadStatusNotice += OnSquadStatusNotice;
         gs.DayStarted += TryShowDaySummary;
         gs.BuildingChanged += OnBuildingChanged;
+        gs.ConstructionCompleted += OnConstructionCompleted;
+        gs.FriendshipChanged += OnFriendshipChanged;
+        gs.GiftGiven += OnGiftGiven;
+        gs.QuestStarted += OnQuestChanged;
+        gs.QuestStarted += OnQuestStartedBanner;
+        gs.QuestCompleted += OnQuestChanged;
+        gs.QuestCompleted += OnQuestCompletedBanner;
+        gs.QuestObjectiveProgressed += OnQuestObjectiveChanged;
+        gs.Inventory.ItemAdded += OnItemAddedForFeed;
         WireExtraStateEvents(gs);
     }
 
@@ -529,6 +722,7 @@ public abstract partial class CozyWorldScene : Node2D
         RefreshSmithyPanel();      // forge material affordability tracks carried stacks
         RefreshCraftingPanel();    // recipe have/need tracks carried stacks
         RefreshTradingPostPanel(); // buy fit + sell shelf track carried stacks
+        RefreshFriendshipPanel();  // gift options track carried stacks
     }
 
     protected void RefreshHudAll()
@@ -629,6 +823,14 @@ public abstract partial class CozyWorldScene : Node2D
     /// have/need + affordability stay live. The outpost's loader handles the world visual separately.</summary>
     private void OnBuildingChanged(string buildingId) => RefreshBuildPanel();
 
+    /// <summary>A building's construction timer completed: a regular toast (distinct from the quest
+    /// banner) announcing it — "«Name» is complete."</summary>
+    private void OnConstructionCompleted(string buildingId)
+    {
+        string name = Buildings.TryGet(buildingId, out var def) ? def.DisplayName : buildingId;
+        Hud?.ShowToast($"{name} is complete.", 3f);
+    }
+
     private void RefreshBuildPanel()
     {
         if (BuildPanel == null || !BuildPanel.Visible)
@@ -650,6 +852,64 @@ public abstract partial class CozyWorldScene : Node2D
         if (SmithyPanel != null && SmithyPanel != keep) SmithyPanel.Close();
         if (CraftingPanel != null && CraftingPanel != keep) CraftingPanel.Close();
         if (TradingPostPanel != null && TradingPostPanel != keep) TradingPostPanel.Close();
+        if (FriendshipPanel != null && FriendshipPanel != keep) FriendshipPanel.Close();
+        if (QuestPanel != null && QuestPanel != keep) QuestPanel.Close();
+        if (CalendarPanel != null && CalendarPanel != keep) CalendarPanel.Close();
+        if (DialogueBox != null && DialogueBox != keep) DialogueBox.Close();
+        if (PauseMenu != null && PauseMenu != keep) PauseMenu.Close();
+    }
+
+    /// <summary>True while any modal panel — including the pause menu and the one-shot day summary
+    /// — is showing. The Esc handler below uses this so it never opens the pause menu over another
+    /// modal (those panels already consume Esc to close themselves; this is the belt-and-suspenders
+    /// check on top of that input-ordering guarantee, and the one the AnyModalOpen-logic spike
+    /// exercises directly).</summary>
+    protected bool AnyModalOpen =>
+        (SquadPanel?.Visible ?? false)
+        || (BuildPanel?.Visible ?? false)
+        || (InventoryPanel?.Visible ?? false)
+        || (SmithyPanel?.Visible ?? false)
+        || (CraftingPanel?.Visible ?? false)
+        || (TradingPostPanel?.Visible ?? false)
+        || (FriendshipPanel?.Visible ?? false)
+        || (QuestPanel?.Visible ?? false)
+        || (CalendarPanel?.Visible ?? false)
+        || (DialogueBox?.Visible ?? false)
+        || (DaySummaryPanel?.Visible ?? false)
+        || (PauseMenu?.Visible ?? false);
+
+    /// <summary>
+    /// Esc-to-open the pause menu. Only fires when no modal is open and no hand-off is mid-flight —
+    /// every other modal's own _UnhandledInput consumes "ui_cancel" itself while visible (children
+    /// process before this parent node per Godot's input propagation), so in practice this only
+    /// ever runs on a genuinely unhandled Esc; AnyModalOpen is the explicit backstop.
+    /// </summary>
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (PauseMenu != null && !IsTransitioning && !AnyModalOpen && @event.IsActionPressed("ui_cancel"))
+        {
+            PauseMenu.Open();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    // ------------------------------------------------------------------ Pause menu (passive push)
+
+    private void OnPauseMenuToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+            CloseOtherModals(PauseMenu);
+    }
+
+    private void OnPauseSaveRequested() => GameState.Instance?.SaveGame();
+
+    /// <summary>Quit to title: mark the scene transitioning FIRST so nothing else (freeze toggles,
+    /// other panels) reacts mid-swap, then route through SceneRouter (which pauses the day clock).</summary>
+    private void OnQuitToTitleRequested()
+    {
+        IsTransitioning = true;
+        SceneRouter.Instance?.GoToTitleScreen();
     }
 
     /// <summary>Shared modal freeze seam (same as the squad/build toggles): no avatar input, no clock
@@ -703,6 +963,36 @@ public abstract partial class CozyWorldScene : Node2D
         }
     }
 
+    private void OnFriendshipPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(FriendshipPanel);
+            RefreshFriendshipPanel();
+        }
+    }
+
+    private void OnQuestPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(QuestPanel);
+            RefreshQuestPanel();
+        }
+    }
+
+    private void OnCalendarPanelToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+        {
+            CloseOtherModals(CalendarPanel);
+            RefreshCalendarPanel();
+        }
+    }
+
     private void OnDepositRequested(string memberId, string itemId, int qty)
         => GameState.Instance?.DepositToWarehouse(memberId, itemId, qty);
 
@@ -723,6 +1013,47 @@ public abstract partial class CozyWorldScene : Node2D
 
     private void OnCraftRequested(string recipeId, int count)
         => GameState.Instance?.Craft(recipeId, count);
+
+    private void OnGiftRequested(string charId, string itemId)
+        => GameState.Instance?.GiveGift(charId, itemId);
+
+    /// <summary>Friendship points changed (gift/talk/award): re-render the open panel so pips and
+    /// counters stay live.</summary>
+    private void OnFriendshipChanged(string charId) => RefreshFriendshipPanel();
+
+    /// <summary>Quest started/completed: re-render the open quest panel.</summary>
+    private void OnQuestChanged(string questId) => RefreshQuestPanel();
+
+    /// <summary>Quest objective progressed: re-render the open quest panel.</summary>
+    private void OnQuestObjectiveChanged(string questId, int objectiveIndex) => RefreshQuestPanel();
+
+    /// <summary>Quest started: flash the "New Quest" banner with the quest's title.</summary>
+    private void OnQuestStartedBanner(string questId) => Hud?.ShowQuestBanner("New Quest", TitleOf(questId));
+
+    /// <summary>Quest completed: flash the "Quest Complete" banner with the quest's title.</summary>
+    private void OnQuestCompletedBanner(string questId) => Hud?.ShowQuestBanner("Quest Complete", TitleOf(questId));
+
+    private static string TitleOf(string questId) => Quests.TryGet(questId, out var def) ? def.Title : questId;
+
+    /// <summary>An inventory gain flowed through the party-level choke point (farm harvest, territory
+    /// node yield, combat loot) — never fires during save-restore or the starter-inventory seed (see
+    /// <see cref="Bulwark.Cozy.Inventory.ItemAdded"/>'s contract). Stacks a "+N Name" row into the
+    /// HUD's item pickup feed.</summary>
+    private void OnItemAddedForFeed(string itemId, int qty)
+    {
+        string name = Items.TryGet(itemId, out var def) ? def.DisplayName : itemId;
+        Hud?.ShowItemGain(name, qty);
+    }
+
+    /// <summary>Gift resolved: flash the reaction toast (positive or negative delta).</summary>
+    private void OnGiftGiven(string charId, string itemId, int delta)
+    {
+        string name = GameState.Instance?.GetFriendshipView()
+            .Characters.Find(c => c.CharacterId == charId)?.DisplayName ?? charId;
+        Hud?.ShowToast(delta >= 0
+            ? $"{name} accepts your gift. (+{delta} friendship)"
+            : $"{name} does not care for that. ({delta} friendship)", 2f);
+    }
 
     private void OnGoldChanged(int gold)
     {
@@ -771,6 +1102,37 @@ public abstract partial class CozyWorldScene : Node2D
         if (view != null)
             CraftingPanel.Render(view);
     }
+
+    protected void RefreshFriendshipPanel()
+    {
+        if (FriendshipPanel == null || !FriendshipPanel.Visible)
+            return;
+        var view = GameState.Instance?.GetFriendshipView();
+        if (view != null)
+            FriendshipPanel.Render(view, GetNearbyVillagerId());
+    }
+
+    protected void RefreshQuestPanel()
+    {
+        if (QuestPanel == null || !QuestPanel.Visible)
+            return;
+        var view = GameState.Instance?.GetQuestView();
+        if (view != null)
+            QuestPanel.Render(view);
+    }
+
+    protected void RefreshCalendarPanel()
+    {
+        if (CalendarPanel == null || !CalendarPanel.Visible)
+            return;
+        var view = GameState.Instance?.GetCalendarView();
+        if (view != null)
+            CalendarPanel.Render(view);
+    }
+
+    /// <summary>The villager NPC the player is standing beside, for the gift flow (scene knowledge —
+    /// only the outpost hosts villager NPCs). Default: none.</summary>
+    protected virtual string? GetNearbyVillagerId() => null;
 
     private void OnTreatWoundsRequested(string healerId, string targetId, int dc)
         => GameState.Instance?.TreatWounds(healerId, targetId, dc);

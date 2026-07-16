@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://dgboh1sqg0crj"]
+
+[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_trpnt"]
+[ext_resource type="Texture2D" uid="uid://o6ovdjndylh" path="res://assets/tilesets/winlu_exterior/big_trees_noshadow.png" id="2_trpnt"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tree_pine_tall"]
+atlas = ExtResource("2_trpnt")
+region = Rect2(384, 0, 192, 288)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tree_pine_tall_trunk"]
+size = Vector2(37, 57)
+
+[node name="TreePineTall" type="Node2D" unique_id=6427735]
+z_index = 5
+script = ExtResource("1_trpnt")
+DefinitionId = "pine_tree"
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1639699972]
+texture_filter = 1
+position = Vector2(-93, -243)
+texture = SubResource("AtlasTexture_tree_pine_tall")
+centered = false
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=1767847798]
+
+[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=184444823]
+unique_name_in_owner = true
+position = Vector2(2, -12)
+shape = SubResource("RectangleShape2D_tree_pine_tall_trunk")
+
+[node name="Label" type="Label" parent="." unique_id=1459835931]
+unique_name_in_owner = true
+z_index = 10
+offset_left = -48.0
+offset_top = -46.0
+offset_right = 48.0
+offset_bottom = -28.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
+text = "Pine Tree"
+horizontal_alignment = 1

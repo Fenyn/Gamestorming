@@ -1,17 +1,30 @@
 # Bulwark — Opening Cutscene
 
 Three-scene intro sequence before gameplay. Short, character-driven, establishes the mission
-and the cast. Ivalician register — formal, archaic, poetic but grounded. Longer worldbuilding
-comes through gameplay journals and notes, not front-loaded exposition.
+and the cast. Longer worldbuilding comes through gameplay journals and notes, not front-loaded
+exposition.
+
+**The player speaks during the opening cutscene.** The intro needs a real conversational
+presence — Fenwick needs a straight man, Elara needs someone to spar with. Once the cutscene
+ends and gameplay begins, the player shifts to silent protagonist (choices only, Stardew-style).
+Choices during the cutscene are still expressive and varied.
+
+**Influences**: Sanderson (natural flow, characters who listen and react, wit from the
+situation not from cleverness), Rothfuss (rhythm, precision, banter that feels musical),
+Ivalician register (slightly elevated but never stiff — the formality is how these people
+actually talk, not a costume they put on).
 
 ## Voice guide
 
-- **Player**: Direct, military formality. Grounded metaphors — earth, iron, seasons. Spare with
-  words. The farmhand-soldier who speaks when it matters.
+- **Player**: Direct, grounded, practical. A farmhand's eye for the land and a soldier's
+  economy with words. Not flowery — observational, honest. The one who sees what is in front
+  of them. Serves as the straight man to Fenwick's warmth and Elara's wit.
 - **Fenwick**: Academic warmth. Well-educated (wizard college) but approachable. Lighter
-  formality, self-deprecating humor, food adjacent. Cheerful without being grating.
+  formality, self-deprecating humor, food adjacent. Cheerful without being grating. Talks
+  more than the others but earns it — he's genuinely good company.
 - **Elara**: Silver-tongued, measured, knowing. An elf who has been doing this longer than the
-  humans have been alive. Dry wit, quiet confidence, never flustered. Words as tools.
+  humans have been alive. Dry wit, quiet confidence, never flustered. Answers questions she
+  finds interesting, redirects ones she doesn't.
 - **Tharr**: Shortest sentences. Stone metaphors. Economy of words. The loneliest character —
   his relief shows in what he does NOT say.
 
@@ -32,8 +45,10 @@ Story flags set: `intro_scene_0`, `intro_scene_1`, `intro_complete`. A returning
 
 ## Scene 0 — "The Frontier"
 
-*Player and Fenwick on a neglected frontier road. The landscape is overgrown, the
-infrastructure crumbling. They are lost. Elara finds them.*
+*Player and Fenwick on a neglected frontier road. They've been walking too long on bad
+directions. The road is falling apart, the landmarks are gone. They're not panicking yet,
+but the silence between complaints is getting longer. Elara finds them before they find
+the ravine.*
 
 ---
 
@@ -41,156 +56,217 @@ infrastructure crumbling. They are lost. Elara finds them.*
 
 ```
 FENWICK
-I am given to believe we passed a signpost some three miles hence.
+I am reasonably certain we have not passed a signpost in the last
+three miles.
 
 PLAYER
-There has been no signpost for three miles, Fenwick.
+Four.
 
 FENWICK
-Precisely. A proper marker would have had the decency to inform us
-of its absence.
+Four, then. That is worse, though I appreciate the precision.
 
-[Beat — they walk. The player surveys the road.]
+[Beat. They walk. The player looks down at the road — stones split
+by roots, edges soft with overgrowth.]
 
 PLAYER
-This road has not seen a mason's hand in years. The stones are
-half-swallowed by the earth.
+Look at the road. These stones have not been set right in
+years. Whatever the crown holds out here, it would appear their grasp is not a tight one.
 
 FENWICK
-The whole of this country bears the same neglect. Overgrown,
-hollowed out... I had understood the crown still held these
-borderlands?
+I had been trying not to notice that. You have a gift for
+dispelling comfort.
 
 PLAYER
-They do. On parchment.
+I have seen neglect of this sort before. When a family leaves
+their homestead, the road is the first thing to go.
 
-[Elara enters from a side path, unhurried. She regards them with
-quiet amusement.]
+FENWICK
+And what follows the road?
+
+PLAYER
+Everything else.
+
+[A figure steps onto the road from a side path — unhurried,
+deliberate. An elf. She has been watching them for longer than
+they realize.]
 
 ELARA
-You bear the look of men about to walk into a ravine.
+I would not take that fork, were I in your position.
 
-FENWICK
-We follow the route we were furnished upon departure—
+PLAYER
+Why not?
 
 ELARA
-That route crosses a bridge which surrendered itself to the river
-two seasons past. Whither are you bound?
+The gorge bridge washed out two winters past. No one has troubled
+to rebuild it. You shall discover that for yourselves if you
+continue — though 'tis a long way down to learn a short lesson.
+
+FENWICK
+Well, its nice to meet such a well-informed stranger on an empty road.
+
+ELARA
+I have traded these routes for a good many years. Long enough to
+know which bridges still stand. Where are you bound?
+
+PLAYER
+A frontier garrison. Past the Thornwood, near the forest's edge.
+
+ELARA
+(her expression shifts — not quite surprise, but something close
+to interest)
+The old outpost? There are not many who head out that way.
+
+FENWICK
+We were told it was still manned. Though, given the state of everything else out
+here, I am beginning to question the reliability of what we were
+told.
 
 PLAYER CHOICE:
-  > "A frontier garrison. We are sent as reinforcements."
-  > "That would depend upon who asks."
+  > "You seem surprised. What do you know of it?"
+  > "We are reinforcements. Long overdue, by the sound of it."
 
-[If "who asks"]
+[If "surprised"]
 ELARA
-One who knows these roads rather better than whoever drew your map.
-So. Whither are you bound?
+Surprised is too strong. Let us say... curious. I had not thought
+the crown remembered that post existed.
+
+[If "reinforcements"]
+ELARA
+Reinforcements. After all this time. Well. Someone in the capital
+must have found a conscience, or at least a reason.
 
 [Converge]
+ELARA
+I am Elara. I trade along these frontier routes. That's the plan, at least, 
+but there are few along them worth trading with.
+ 
+The crown is offering concessions to anyone willing to bring commerce back to the
+borderlands, and I intend to be the first to collect.
+
+As it happens, I am heading the same direction. I can guide you to the outpost.
+
+FENWICK
+Then we are in your debt. I am Fenwick. This is {player_name}.
+
+ELARA
+Reinforcements for a forgotten outpost, armed with a map drawn by
+someone who has never set foot out here. The crown's generosity
+knows no bounds.
+
 PLAYER
-A border outpost, near the forest's edge. The garrison has been
-undermanned for some time. We are sent to mend what we can.
+(laughs)
+We would welcome the company, Elara.
 
-ELARA
-The old post by the Thornwood? I know the place. Or what remains
-of it.
-
-FENWICK
-Your confidence inspires the very soul.
-
-ELARA
-I am Elara. I have traded along these frontier routes for longer
-than your parents have drawn breath. The crown extends favorable
-concessions to any who would bring commerce back to the
-borderlands. I make for the same road you walk, albeit with a
-clearer sense of where it leads.
-
-FENWICK
-Well met. I am Fenwick, and this is {player_name}. We should be
-glad of the company — and gladder still of the direction.
-
-ELARA
-Then keep pace. I do not wait for stragglers.
+[They begin to walk off down the new path]
 ```
 
 ---
 
 ## Scene 1 — "The Road"
 
-*The three walking together. Fenwick and the player press Elara for information about the
-frontier. She answers with the wearied knowledge of someone who has watched this decline
-unfold over decades.*
+*The three walking together. The initial awkwardness of strangers has settled into the easy
+rhythm of shared travel. Fenwick is curious about everything. The player notices things the
+others miss. Elara has answers but parcels them out at her own pace.*
 
 ---
 
 ### Draft dialogue — Scene 1
 
 ```
+[They have been walking for a while. The terrain has not improved.]
+
 FENWICK
-What manner of ruin befell this land? These were imperial holdings
-once, were they not?
+Elara, might I ask you something? This land feels abandoned.
+Not ruined or destroyed. Just... left. What happened here?
 
 ELARA
-They remain so, in the strictest legal sense. But the crown began
-withdrawing its garrisons some eight years past. Disputes of
-treasury, renegotiations of border — the usual machinery of an
-empire turning its gaze inward.
+The short answer is the crown pulled its garrisons back. Eight
+years ago, perhaps nine. Some dispute of treasury or
+shifting borders, all the usual arguments that sound very sensible
+when spoken in a marble hall.
+
+PLAYER
+And the long answer?
+
+ELARA
+The long answer is that when the soldiers left, the trade
+caravans stopped. When the caravans stopped, the settlements
+shrank. When the settlements shrank, the roads fell apart. And everyone 
+who could afford to leave did so.
+
+FENWICK
+And the ones who stayed?
+
+ELARA
+Are either very stubborn or had nowhere else to go.
+
+[Beat.]
+
+PLAYER
+We passed a farmstead a few miles back whose roof had completely caved in. There
+were still tools hanging on the wall.
+
+ELARA
+Many families took only what they could carry. The rest was left for the forests to reclaim.
 
 PLAYER CHOICE:
-  > "They abandoned the frontier."
-  > "There must have been cause."
+  > "Nobody told us it was this bad. Our briefing said nothing of this."
+  > "Those tools were well-kept. Whoever hung them there loved that land."
+  > "If this is what the road looks like, I am not certain I want to see the outpost."
 
-[If "abandoned"]
+[If "briefing"]
 ELARA
-Abandoned carries a weight the court would not suffer. They prefer
-"consolidated." The distinction is of comfort only to those who
-made the decision, not to those who bore its cost.
+Briefings written by men who have never set foot beyond the
+capital walls. You will find the frontier full of things no one
+thought to mention.
 
-[If "cause"]
+[If "loved that land"]
 ELARA
-There is always cause. It matters precious little to those left
-standing in the silence that follows.
+Aye. Most of them did. But love does not put food on the table.
+
+[If "not certain"]
+ELARA
+The roads answer to the crown, and you can see how well the crown
+has answered for them. But the outpost has its own keeper. I would
+not judge the one by the other.
 
 [Converge]
 FENWICK
-And none raised objection? No petition, no appeal?
+Its own keeper? Someone is still out there?
 
 ELARA
-Some did. Most simply moved to ground more hospitable. Those who
-remained are of a particular sort. Stubborn, or without the means
-to leave.
-
-PLAYER
-What do you know of the outpost itself?
-
-ELARA
-Little of recent vintage. There is said to be one soldier still
-posted there. A dwarf — held the garrison alone for longer than
-any soul ought to be asked.
+So the traders say. A dwarf.
 
 FENWICK
-A single man? Holding an entire garrison?
+One dwarf, alone all this time?
 
 ELARA
-Dwarves possess a certain... immovability of spirit. I believe I
-mentioned stubbornness.
-
-PLAYER
-Our orders stated the post was operational.
-
-ELARA
-(a pause)
-Your orders were written by hands that have not set foot beyond
-the capital walls.
-
-[Beat — they walk in silence for a moment.]
+He moved in shortly after the garrison left. Rumor has it that he's taken a liking to the 
+old fort.
 
 FENWICK
-Well. Whatever state it holds, there shall be a hearth to set
-right. No proper outpost was ever built without a proper kitchen,
-and no proper kitchen was ever built without one who knows the
-sacred art of turning raw provision into something worth the
-living.
+Let us hope the solitude has not driven him to madness.
+
+ELARA
+He is a dwarf. It is stubbornness that drives him, which is likely a point of
+personal pride.
+
+[Beat.]
+
+PLAYER
+Our orders called the post operational.
+
+ELARA
+One soldier and a crumbling wall. The crown's standards have
+slipped since last I checked.
+
+[They walk in silence for a moment. The road is getting worse.]
+
+FENWICK
+Well. Whatever state we find it in, there will be a hearth that
+needs sorting. I have yet to see an outpost that could not be
+improved by someone who understands the fundamental importance
+of a proper meal.
 
 ELARA
 You are a cook?
@@ -199,106 +275,151 @@ FENWICK
 I am a gastronomancer.
 
 ELARA
-...Pray tell, is that a word?
+I have lived a very long time, and I have never heard that word.
 
 FENWICK
-It is now.
+That is because I coined it. Wizard by training, cook by
+vocation. The two disciplines share more than you might expect.
+
+PLAYER
+He graduated from the academy and immediately requested a kitchen
+posting. His professors were... unsure how to process the
+paperwork.
+
+FENWICK
+They lacked vision. Both fields demand precision, timing, and a
+willingness to accept that some things will simply explode if
+you get the ratios wrong. The only difference is that when a
+soufflé collapses, fewer people catch fire.
+
+ELARA
+Fewer?
+
+FENWICK
+I did say fewer.
 ```
 
 ---
 
 ## Scene 2 — "The Outpost"
 
-*The three arrive. The outpost is worse than expected — walls crumbling, fields choked with
-weeds, timber sagging. Tharr emerges from within. He has been alone a long time, and it shows
-in the careful way he regards them — measuring, guarded, quietly relieved beneath the stone.*
+*The three arrive. The outpost is worse than any of them expected — walls crumbling, fields
+choked with weeds, timber sagging under its own weight. But it is still here. Tharr emerges
+from within. He moves like a man who has forgotten what company feels like — careful, measured,
+sizing them up the way a mason sizes up a crack in a load-bearing wall.*
 
 ---
 
 ### Draft dialogue — Scene 2
 
 ```
-[Fade in to the outpost. The three stand at the entrance, taking
-in the state of the place.]
+[Fade in. The three stand at the entrance to the outpost, seeing
+it for the first time.]
 
 FENWICK
-...Ah.
-
-ELARA
-As foretold.
+Ah.
 
 PLAYER
-It stands. That is something.
+(quietly)
+Well, at least it is standing.
 
 FENWICK
-Portions of it stand. Other portions have entered into negotiation
-with the earth regarding their continued verticality.
+Parts of it are standing. The rest appears to be negotiating
+terms with gravity.
 
-[Tharr enters from within the outpost walls. He stops at a
-distance, regarding the newcomers.]
+ELARA
+I have seen worse. Though not recently.
+
+[The outpost up close. The walls are cracked but patched in
+places. Fresh-cut stone sits stacked near the gate. Someone has
+been working here.]
+
+[A dwarf steps through the gate carrying a mason's hammer. Stone
+dust on his sleeves. He stops when he sees them and for a long
+moment simply stands there.]
+
+[Then he sets the hammer down on the stack of cut stone beside
+the gate.]
 
 THARR
-You are the reinforcements, then.
+The crown sent you.
 
 PLAYER CHOICE:
-  > "We are. Forgive the delay."
-  > "What remains to be reinforced?"
+  > "Aye. Reinforcements. We should have come sooner."
+  > "We'd heard the garrison was manned by one soldier. I did not believe it until now."
+  > "Two of us were sent, and one joined in along the way."
 
-[If "forgive the delay"]
+[If "sooner"]
 THARR
-Delay does not begin to name it. But you are here. That is what
-holds weight.
+You came. That is more than most.
 
-[If "what remains"]
+[If "one soldier"]
 THARR
-More than you would reckon. Less than there ought to be.
+(he looks down at the hammer on the stone)
+It is the unfortunate truth.
+
+[If "Two were sent"]
+THARR
+Three.
+(he looks at the outpost behind him)
+I suppose its better than none.
 
 [Converge]
+PLAYER
+I am {player_name}.
+
 THARR
-I am Tharr. Stonemason. Cleric. And, until this moment, the whole
-of the garrison. You stand at the edge of the empire. Such as it is.
+Tharr.
+
+FENWICK
+Fenwick. I trained as a wizard, but my true purpose has always
+been the kitchen. Please tell me there is a hearth.
+
+THARR
+Aye. There is a hearth.
+
+FENWICK
+Then there is a kitchen. You simply lacked someone to tell you so.
 
 ELARA
-Elara. I am here for the trade concessions. And because these two
-would have walked into a river without guidance.
-
-FENWICK
-Fenwick. I was given to understand there would be a kitchen.
-
-THARR
-There is a room. It has a hearth. Whether it becomes a kitchen is
-a question your hands must answer, not your expectations.
-
-FENWICK
-That shall do splendidly.
+Elara. I trade these routes.
+(she glances past Tharr, toward a collapsed structure inside
+the walls)
+Is that a trading post?
 
 THARR
-(turning to the player)
-And you?
+It was.
 
-PLAYER
-{player_name}. Soldier. Farmhand before that.
+ELARA
+Hmm. Interesting.
 
-THARR
-(a nod)
-Good. We have need of both.
-
-[Beat. Tharr surveys the outpost behind him — the crumbling walls,
-the overgrown fields, the sagging timber.]
+[Beat. Tharr looks between the three of them.]
 
 THARR
-I will not dress the truth. The walls want mending. The fields
-have gone to seed. And the forest grows bolder with each passing
-season, pressing closer than it has any right to.
+Come inside.
+
+[He picks the hammer back up and walks to the gate. He pauses
+there, one hand on the stone.]
+
+THARR
+The walls need mending, the fields have gone to seed, and it seems the 
+forest presses closer every season.
+
+THARR
+But the foundation holds. I have seen to that.
 
 [He turns back to them.]
 
 THARR
-But the bones are sound. Good stone does not forget its purpose.
-This place can be something again.
+There is much work to be done here, if you are willing.  
+
+PLAYER
+We are willing.
 
 THARR
-Come. I shall show you what we are working with.
+Good.
+
+[He walks through the gate. They follow.]
 
 [Fade out. Player gains control at outpost. Flag: intro_complete]
 ```

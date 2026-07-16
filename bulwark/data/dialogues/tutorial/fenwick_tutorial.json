@@ -1,0 +1,36 @@
+{
+  "id": "fenwick_tutorial",
+  "type": "TalkPool",
+  "character": "fenwick",
+  "entries": [
+    {
+      "priority": 40,
+      "conditions": {
+        "flags_required": ["lodging_repaired"],
+        "flags_blocked": ["first_rest"]
+      },
+      "lines": [
+        { "speaker": "fenwick", "text": "The lodging is sorted, and I have found the hearth Tharr mentioned. It is not much yet, but I can work with it. Get some rest tonight. Tomorrow we start making this place livable." }
+      ]
+    },
+    {
+      "priority": 35,
+      "conditions": {
+        "flags_required": ["planning_table_shown"],
+        "flags_blocked": ["kitchen_built"]
+      },
+      "lines": [
+        { "speaker": "fenwick", "text": "The hearth draws well, but the room around it needs a roof and a proper flue. A kitchen is only as good as the walls that keep the rain out of the soup." }
+      ]
+    },
+    {
+      "priority": 30,
+      "conditions": {
+        "flags_required": ["kitchen_built"]
+      },
+      "lines": [
+        { "speaker": "fenwick", "text": "The kitchen is open. Bring me ingredients and I will turn them into something worth eating. A well-fed party fights better, works harder, and complains less. Mostly less." }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@ script = ExtResource("1_3268u")
 
 [node name="Stages" type="Node2D" parent="." unique_id=244636786]
 unique_name_in_owner = true
+position = Vector2(0, 46)
 
 [node name="Stage0" type="Node2D" parent="Stages" unique_id=1598763267]
 

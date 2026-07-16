@@ -1,14 +1,8 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://dwdxu44vb3df0"]
 
-[ext_resource type="Script" path="res://scripts/cozy/BuildingInstance.cs" id="1_fe1lf"]
-[ext_resource type="TileSet" path="res://assets/tilesets/outpost_tileset.tres" id="2_7uqu2"]
-[ext_resource type="Texture2D" path="res://assets/tilesets/winlu_exterior/fantasy_outside_c.png" id="3_11fnr"]
-[ext_resource type="PackedScene" path="res://scenes/props/door.tscn" id="4_l3ci7"]
-[ext_resource type="Script" path="res://scripts/props/Door.cs" id="5_aevgn"]
-[ext_resource type="SpriteFrames" path="res://assets/props/door_ext_plank.tres" id="6_cvtws"]
-[ext_resource type="SpriteFrames" path="res://assets/props/door_ext_white.tres" id="7_ck5pb"]
-[ext_resource type="PackedScene" path="res://scenes/props/lamp.tscn" id="8_dixgl"]
-[ext_resource type="Script" path="res://scripts/props/AmbientProp.cs" id="9_aggeu"]
+[ext_resource type="Script" uid="uid://4cxeln2qta8e" path="res://scripts/cozy/BuildingInstance.cs" id="1_fe1lf"]
+[ext_resource type="TileSet" uid="uid://b3eu2aig0u8yg" path="res://assets/tilesets/outpost_tileset.tres" id="2_7uqu2"]
+[ext_resource type="PackedScene" uid="uid://db3npcr4u13g0" path="res://scenes/props/door.tscn" id="4_l3ci7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_uohv6"]
 size = Vector2(288, 48)
@@ -23,81 +17,78 @@ unique_name_in_owner = true
 
 [node name="Structure" type="TileMapLayer" parent="Stages/Stage0" unique_id=1982645929]
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD9//7/HwAIAAoAAAD+//7/HwAJAAoAAAD///7/HwAKAAoAAAD///3/HwAFAAAAAAAAAP//HwACAAoAAAABAP//HwADAAoAAAA=")
+tile_map_data = PackedByteArray("AAACAPz/IgAKABIAAAACAPv/IgAKABAAAAABAPz/fAAJABEAAAABAPv/IgAJABAAAAAAAPz/IgAJABIAAAAAAPv/IgAJABAAAAD///z/fAAIABIAAAD///v/fAAKABAAAAD+//z/fAAIABIAAAD+//v/IgAJABAAAAD9//z/IgAIABIAAAD9//v/IgAIABAAAAACAP7/IgAGABoAAAACAP3/IgAGABgAAAABAP7/zAAFABoAAAABAP3/zAAFABgAAAAAAP7/zAAFABoAAAAAAP3/zAAFABgAAAD///7/zAAFABoAAAD///3/zAAFABgAAAD+//7/zAAFABoAAAD+//3/zAAFABgAAAD9//7/IgAEABoAAAD9//3/IgAEABgAAAA=")
+tile_set = ExtResource("2_7uqu2")
+collision_enabled = false
+
+[node name="Props" type="TileMapLayer" parent="Stages/Stage0" unique_id=386513162]
+z_index = 1
+texture_filter = 1
+tile_map_data = PackedByteArray("AAD7//3/IAAFAAQAAAD5//z/IQAGAAYAAAD5//7/IQAGAAgAAAD6//z/IAADAAUAAAD7//7/IAAFAAUAAAD6//v/IAADAAQAAAD7//v/IAAEAAQAAAD7//z/IAAEAAUAAAA=")
 tile_set = ExtResource("2_7uqu2")
 collision_enabled = false
 
 [node name="Dressing" type="TileMapLayer" parent="Stages/Stage0" unique_id=400365153]
 z_index = 1
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD9//3/HwAAAAwAAAD9//7/HwAAAA0AAAA=")
+tile_map_data = PackedByteArray("AAD7//v/IQAEAAUAAAD7//3/IQAEAAcAAAD8//v/IQAFAAUAAAD8//z/IQAFAAYAAAD8//3/IQAFAAcAAAD8//7/IQAFAAgAAAD5//v/IQAGAAUAAAD5//z/IQAGAAYAAAD5//3/IQAGAAcAAAD5//7/IQAGAAgAAAD6//v/IQAHAAUAAAD6//z/IQAHAAYAAAD6//3/IQAHAAcAAAAAAP3/IwABAAAAAAA=")
 tile_set = ExtResource("2_7uqu2")
 collision_enabled = false
 
-[node name="Debris" type="Sprite2D" parent="Stages/Stage0" unique_id=1802022310]
-texture_filter = 1
-position = Vector2(48, -10)
-rotation = 0.38397244
-texture = ExtResource("3_11fnr")
-region_enabled = true
-region_rect = Rect2(144, 240, 48, 48)
+[node name="Door" parent="Stages/Stage0" unique_id=2140818135 instance=ExtResource("4_l3ci7")]
+position = Vector2(-24, -47)
 
 [node name="Stage1" type="Node2D" parent="Stages" unique_id=856824213]
 visible = false
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage1" unique_id=1149098079]
+[node name="Structure" type="TileMapLayer" parent="Stages/Stage1" unique_id=1396958957]
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD9////zAABABEAAAD+////zAABABEAAAD/////zAABABEAAAAAAP//zAABABEAAAABAP//zAABABEAAAACAP//zAABABEAAAD9//7/zAABABEAAAD+//7/CwACAAAAAAD///7/zAABABEAAAAAAP7/zAABABEAAAABAP7/CwACAAAAAAACAP7/zAABABEAAAD8//3/zAANAAEAAAD9//3/zAANAAEAAAD+//3/zAANAAEAAAD///3/zAANAAEAAAAAAP3/zAANAAEAAAABAP3/zAANAAEAAAACAP3/zAANAAEAAAADAP3/zAANAAEAAAD8//z/zAANAAEAAAD9//z/zAANAAEAAAD+//z/zAANAAEAAAD///z/zAANAAEAAAAAAPz/zAANAAEAAAABAPz/zAANAAEAAAACAPz/zAANAAEAAAADAPz/zAANAAEAAAA=")
+tile_map_data = PackedByteArray("AAACAPz/zAAKABIAAAACAPv/zAAKABAAAAABAPz/zAAJABIAAAABAPv/zAAJABAAAAAAAPz/zAAJABIAAAAAAPv/zAAJABAAAAD///z/zAAJABIAAAD///v/zAAJABAAAAD+//z/zAAJABIAAAD+//v/zAAJABAAAAD9//z/zAAIABIAAAD9//v/zAAIABAAAAACAP7/zAAGABoAAAACAP3/zAAGABgAAAABAP7/zAAFABoAAAABAP3/zAAFABgAAAAAAP7/zAAFABoAAAAAAP3/zAAFABgAAAD///7/zAAFABoAAAD///3/zAAFABgAAAD+//7/zAAFABoAAAD+//3/zAAFABgAAAD9//7/zAAEABoAAAD9//3/zAAEABgAAAA=")
 tile_set = ExtResource("2_7uqu2")
 collision_enabled = false
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage1" unique_id=617287738]
+[node name="Props" type="TileMapLayer" parent="Stages/Stage1" unique_id=494761475]
 z_index = 1
 texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAP3/FAAGAAAAAAD9//7/DAADAAQAAAD9////DAADAAUAAAACAP7/DAAKAAYAAAADAP7/DAALAAYAAAACAP//DAAKAAcAAAADAP//DAALAAcAAAA=")
+tile_map_data = PackedByteArray("AAD7//3/IAAFAAQAAAD5//z/IQAGAAYAAAD5//7/IQAGAAgAAAD6//z/IAADAAUAAAD7//7/IAAFAAUAAAD6//v/IAADAAQAAAD7//v/IAAEAAQAAAD7//z/IAAEAAUAAAA=")
 tile_set = ExtResource("2_7uqu2")
 collision_enabled = false
 
-[node name="Door" type="Node2D" parent="Stages/Stage1" unique_id=1344574179 instance=ExtResource("4_l3ci7")]
-position = Vector2(-24, 0)
-script = ExtResource("5_aevgn")
-
-[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage1/Door" unique_id=1739188413]
-unique_name_in_owner = true
+[node name="Dressing" type="TileMapLayer" parent="Stages/Stage1" unique_id=800918306]
+z_index = 1
 texture_filter = 1
-sprite_frames = ExtResource("6_cvtws")
-animation = &"open"
-offset = Vector2(0, -48)
+tile_map_data = PackedByteArray("AAD7//v/IQAEAAUAAAD7//3/IQAEAAcAAAD8//v/IQAFAAUAAAD8//z/IQAFAAYAAAD8//3/IQAFAAcAAAD8//7/IQAFAAgAAAD5//v/IQAGAAUAAAD5//z/IQAGAAYAAAD5//3/IQAGAAcAAAD5//7/IQAGAAgAAAD6//v/IQAHAAUAAAD6//z/IQAHAAYAAAD6//3/IQAHAAcAAAAAAP3/FAABAAAAAAA=")
+tile_set = ExtResource("2_7uqu2")
+collision_enabled = false
+
+[node name="Door" parent="Stages/Stage1" unique_id=62778130 instance=ExtResource("4_l3ci7")]
+position = Vector2(-24, -47)
 
 [node name="Stage2" type="Node2D" parent="Stages" unique_id=472752252]
 visible = false
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage2" unique_id=910739460]
+[node name="Structure" type="TileMapLayer" parent="Stages/Stage2" unique_id=2136538678]
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD8////zAABABEAAAD9////zAABABEAAAD+////zAABABEAAAD/////zAABABEAAAAAAP//zAABABEAAAABAP//zAABABEAAAACAP//zAABABEAAAADAP//zAABABEAAAD8//7/zAABABEAAAD9//7/CwAGAAAAAAD+//7/zAABABEAAAD///7/zAABABEAAAAAAP7/zAABABEAAAABAP7/zAABABEAAAACAP7/CwAGAAAAAAADAP7/zAABABEAAAD7//3/zAANAAEAAAD8//3/zAANAAEAAAD9//3/zAANAAEAAAD+//3/zAANAAEAAAD///3/zAANAAEAAAAAAP3/zAANAAEAAAABAP3/zAANAAEAAAACAP3/zAANAAEAAAADAP3/zAANAAEAAAAEAP3/zAANAAEAAAD7//z/zAANAAEAAAD8//z/zAANAAEAAAD9//z/zAANAAEAAAD+//z/zAANAAEAAAD///z/zAANAAEAAAAAAPz/zAANAAEAAAABAPz/zAANAAEAAAACAPz/zAANAAEAAAADAPz/zAANAAEAAAAEAPz/zAANAAEAAAA=")
+tile_map_data = PackedByteArray("AAACAPz/zAAKABIAAAACAPv/zAAKABEAAAABAPz/zAAJABIAAAABAPv/zAAJABEAAAAAAPz/zAAJABIAAAAAAPv/zAAJABEAAAD///z/zAAJABIAAAD///v/zAAJABEAAAD+//z/zAAJABIAAAD+//v/zAAJABEAAAD9//z/zAAIABIAAAD9//v/zAAIABEAAAACAP7/zAAGABoAAAACAP3/zAAGABgAAAABAP7/zAAFABoAAAABAP3/zAAFABgAAAAAAP7/zAAFABoAAAAAAP3/zAAFABgAAAD///7/zAAFABoAAAD///3/zAAFABgAAAD+//7/zAAFABoAAAD+//3/zAAFABgAAAD9//7/zAAEABoAAAD9//3/zAAEABgAAAACAPr/zAAKABAAAAABAPr/zAAJABAAAAAAAPr/zAAJABAAAAD///r/zAAJABAAAAD+//r/zAAJABAAAAD9//r/zAAIABAAAAA=")
 tile_set = ExtResource("2_7uqu2")
 collision_enabled = false
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage2" unique_id=1350876720]
+[node name="Props" type="TileMapLayer" parent="Stages/Stage2" unique_id=972460302]
 z_index = 1
 texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAP3/DAAMAA0AAAD+//3/DAAKAA0AAAD///3/DAALAA0AAAABAP3/DAANAA0AAAD8//7/DAADAAQAAAD8////DAADAAUAAAADAP7/DAAKAAYAAAAEAP7/DAALAAYAAAADAP//DAAKAAcAAAAEAP//DAALAAcAAAABAP7/DAALAAgAAAACAP7/DAAMAAgAAAABAP//DAALAAkAAAACAP//DAAMAAkAAAA=")
+tile_map_data = PackedByteArray("AAD7//3/DAAFAAQAAAD5//z/IQAGAAYAAAD5//7/IQAGAAgAAAD6//z/DAADAAUAAAD7//7/DAAFAAUAAAD6//v/DAADAAQAAAD7//v/DAAEAAQAAAD7//z/DAAEAAUAAAA=")
 tile_set = ExtResource("2_7uqu2")
 collision_enabled = false
 
-[node name="Door" type="Node2D" parent="Stages/Stage2" unique_id=1307787393 instance=ExtResource("4_l3ci7")]
-position = Vector2(-24, 0)
-script = ExtResource("5_aevgn")
-
-[node name="Sprite" type="AnimatedSprite2D" parent="Stages/Stage2/Door" unique_id=899002370]
+[node name="Dressing" type="TileMapLayer" parent="Stages/Stage2" unique_id=1333239458]
+z_index = 1
 texture_filter = 1
-sprite_frames = ExtResource("7_ck5pb")
-animation = &"open"
-offset = Vector2(0, -48)
+tile_map_data = PackedByteArray("AAD7//v/DgAEAAUAAAD7//3/DgAEAAcAAAD8//v/DgAFAAUAAAD8//z/DgAFAAYAAAD8//3/DgAFAAcAAAD8//7/DgAFAAgAAAD5//v/DgAGAAUAAAD5//z/DgAGAAYAAAD5//3/DgAGAAcAAAD5//7/DgAGAAgAAAD6//v/DgAHAAUAAAD6//z/DgAHAAYAAAD6//3/DgAHAAcAAAAAAP3/FAABAAAAAAD7//z/DgAEAAYAAAA=")
+tile_set = ExtResource("2_7uqu2")
+collision_enabled = false
 
-[node name="Lamp" type="Node2D" parent="Stages/Stage2" unique_id=2118987865 instance=ExtResource("8_dixgl")]
-position = Vector2(144, 0)
-script = ExtResource("9_aggeu")
+[node name="Door" parent="Stages/Stage2" unique_id=628722969 instance=ExtResource("4_l3ci7")]
+position = Vector2(-24, -47)
 
 [node name="Footprint" type="StaticBody2D" parent="." unique_id=914547409]
 unique_name_in_owner = true

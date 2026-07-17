@@ -121,21 +121,21 @@ public partial class InventorySpike : SpikeBase
         // ── (3) Encumbrance crossing + hard cap + combat bite (Scholar: Str +0 → thr 5, cap 10) ──
         // Uses plank (Bulk 1.0) so the arithmetic matches PF2e Bulk thresholds exactly.
         GD.Print("-------------------- (3) Encumbrance teeth --------------------");
-        var scholar = squad.FindMember(SquadRoster.ScholarId)!;
+        var scholar = squad.FindMember(SquadRoster.FenwickId)!;
 
         // Empty the Scholar into the warehouse so the crossing is deterministic.
         foreach (var (id, qty) in ScholarStacks(gs).ToList())
-            gs.DepositToWarehouse(SquadRoster.ScholarId, id, qty);
+            gs.DepositToWarehouse(SquadRoster.FenwickId, id, qty);
         Check("(3) Scholar emptied to the warehouse", ScholarCarriedBulk(gs) == 0);
         int baseSpeed = scholar.Stats!.SpeedInFeet;
 
         Check("(3) give 5 plank → carried 5.0, at threshold, NOT encumbered",
-            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 5)
+            gs.Inventory.TryGiveToMember(SquadRoster.FenwickId, Items.Plank.Id, 5)
             && Math.Abs(ScholarCarriedBulk(gs) - 5.0) < 0.001
             && !scholar.Conditions!.HasCondition(Condition.Encumbered));
 
         Check("(3) give 1 more plank → carried 6.0 > 5, ENCUMBERED",
-            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 1)
+            gs.Inventory.TryGiveToMember(SquadRoster.FenwickId, Items.Plank.Id, 1)
             && scholar.Conditions!.HasCondition(Condition.Encumbered));
 
         Check($"(3) Encumbered bites combat: Speed dropped 10 ft ({baseSpeed} → {scholar.Stats.SpeedInFeet})",
@@ -146,18 +146,18 @@ public partial class InventorySpike : SpikeBase
             + $"(HasClumsy={scholar.Conditions!.HasCondition(Condition.Clumsy)}).");
 
         Check("(3) fill to the cap: give 4 plank → carried 10.0 (== 10+Str, allowed)",
-            gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 4)
+            gs.Inventory.TryGiveToMember(SquadRoster.FenwickId, Items.Plank.Id, 4)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001);
 
         Check("(3) hard cap: one more plank REJECTED (would exceed 10), no mutation",
-            !gs.Inventory.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 1)
+            !gs.Inventory.TryGiveToMember(SquadRoster.FenwickId, Items.Plank.Id, 1)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001);
 
         // ── (4) Deposit/withdraw move items and update encumbrance ──
         GD.Print("-------------------- (4) Deposit / withdraw --------------------");
         int whPlankBefore = gs.GetInventoryView().Warehouse.GetValueOrDefault(Items.Plank.Id, 0);
         Check("(4) deposit 6 plank → carried 4.0, encumbrance CLEARED, Speed restored",
-            gs.DepositToWarehouse(SquadRoster.ScholarId, Items.Plank.Id, 6)
+            gs.DepositToWarehouse(SquadRoster.FenwickId, Items.Plank.Id, 6)
             && Math.Abs(ScholarCarriedBulk(gs) - 4.0) < 0.001
             && !scholar.Conditions!.HasCondition(Condition.Encumbered)
             && scholar.Stats.SpeedInFeet == baseSpeed);
@@ -165,11 +165,11 @@ public partial class InventorySpike : SpikeBase
             gs.GetInventoryView().Warehouse.GetValueOrDefault(Items.Plank.Id, 0) == whPlankBefore + 6);
 
         Check("(4) withdraw 6 plank → carried 10.0, RE-ENCUMBERED",
-            gs.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Plank.Id, 6)
+            gs.WithdrawFromWarehouse(SquadRoster.FenwickId, Items.Plank.Id, 6)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001
             && scholar.Conditions!.HasCondition(Condition.Encumbered));
         Check("(4) withdraw past the hard cap REJECTED",
-            !gs.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Plank.Id, 1)
+            !gs.WithdrawFromWarehouse(SquadRoster.FenwickId, Items.Plank.Id, 1)
             && Math.Abs(ScholarCarriedBulk(gs) - 10.0) < 0.001);
 
         // ── (5) Party-level hard cap: fill everyone, then AddItem rejects the lot ──
@@ -218,7 +218,7 @@ public partial class InventorySpike : SpikeBase
         Check("(6) reloaded: every member's carried stacks + Bulk + encumbered flag round-trip",
             membersMatch);
 
-        var scholar2 = gs2.Squad!.FindMember(SquadRoster.ScholarId)!;
+        var scholar2 = gs2.Squad!.FindMember(SquadRoster.FenwickId)!;
         Check("(6) reloaded: Scholar plank count round-trips",
             ScholarStacks(gs2).GetValueOrDefault(Items.Plank.Id, 0) == scholarPlankBefore);
         Check("(6) reloaded: encumbrance RECOMPUTED on load (condition reapplied + Speed reduced)",
@@ -235,8 +235,8 @@ public partial class InventorySpike : SpikeBase
 
         var inv = new Inventory();
         inv.BindSquad(squad);
-        string yId = squad.Members.First(m => m.Id != SquadRoster.ScholarId).Id;
-        inv.TryGiveToMember(SquadRoster.ScholarId, Items.Wood.Id, 3); // member carry: 3
+        string yId = squad.Members.First(m => m.Id != SquadRoster.FenwickId).Id;
+        inv.TryGiveToMember(SquadRoster.FenwickId, Items.Wood.Id, 3); // member carry: 3
         inv.TryGiveToMember(yId, Items.Wood.Id, 4);
         inv.DepositToWarehouse(yId, Items.Wood.Id, 4);                // warehouse: 4, member carry: 3
 
@@ -252,10 +252,10 @@ public partial class InventorySpike : SpikeBase
         Check("(7) field: RemoveItem can't pull warehouse stock (remove 4 rejected)",
             !inv.RemoveItem(Items.Wood.Id, 4) && inv.Count(Items.Wood.Id) == 3);
         Check("(7) field: deposit & withdraw both REFUSE (outpost-only actions)",
-            !inv.DepositToWarehouse(SquadRoster.ScholarId, Items.Wood.Id, 1)
-            && !inv.WithdrawFromWarehouse(SquadRoster.ScholarId, Items.Wood.Id, 1));
+            !inv.DepositToWarehouse(SquadRoster.FenwickId, Items.Wood.Id, 1)
+            && !inv.WithdrawFromWarehouse(SquadRoster.FenwickId, Items.Wood.Id, 1));
         Check("(7) field: member carry untouched by the refused actions (still 3)",
-            inv.BuildView(0).Members.First(m => m.MemberId == SquadRoster.ScholarId)
+            inv.BuildView(0).Members.First(m => m.MemberId == SquadRoster.FenwickId)
                .Stacks.GetValueOrDefault(Items.Wood.Id, 0) == 3);
         Check("(7) field: merged view EXCLUDES the warehouse (empty / carry-only)",
             inv.BuildView(0).Warehouse.GetValueOrDefault(Items.Wood.Id, 0) == 0
@@ -264,7 +264,7 @@ public partial class InventorySpike : SpikeBase
         inv.WarehouseAccessible = true;
         Check("(7) back at the outpost: warehouse access RESTORED (Count 7 again, warehouse stock intact)",
             inv.Count(Items.Wood.Id) == 7
-            && inv.DepositToWarehouse(SquadRoster.ScholarId, Items.Wood.Id, 1)); // deposit works again
+            && inv.DepositToWarehouse(SquadRoster.FenwickId, Items.Wood.Id, 1)); // deposit works again
 
         var unbound = new Inventory { WarehouseAccessible = false };
         Check("(7) unbound field: WouldFit is false (no reachable storage)",
@@ -278,7 +278,7 @@ public partial class InventorySpike : SpikeBase
         GD.Print("-------------------- (8) Stack-consolidation distribution --------------------");
         var inv2 = new Inventory();
         inv2.BindSquad(squad);
-        inv2.TryGiveToMember(SquadRoster.ScholarId, Items.Plank.Id, 2); // Scholar already holds a stack
+        inv2.TryGiveToMember(SquadRoster.FenwickId, Items.Plank.Id, 2); // Scholar already holds a stack
 
         (string Id, int Qty)? gain = null;
         Action<string, int> gainProbe = (id, qty) => gain = (id, qty);
@@ -287,16 +287,16 @@ public partial class InventorySpike : SpikeBase
         inv2.ItemAdded -= gainProbe;
 
         var vc = inv2.BuildView(0);
-        int scholarPlank = vc.Members.First(m => m.MemberId == SquadRoster.ScholarId)
+        int scholarPlank = vc.Members.First(m => m.MemberId == SquadRoster.FenwickId)
                             .Stacks.GetValueOrDefault(Items.Plank.Id, 0);
-        int otherCarriers = vc.Members.Count(m => m.MemberId != SquadRoster.ScholarId
+        int otherCarriers = vc.Members.Count(m => m.MemberId != SquadRoster.FenwickId
                             && m.Stacks.ContainsKey(Items.Plank.Id));
         Check("(8) gain CONSOLIDATED onto the existing holder (Scholar 2→5, not spread)",
             scholarPlank == 5 && otherCarriers == 0);
         Check("(8) consolidation: Placed 3 / Rejected 0, ItemAdded fired once for (plank, 3)",
             consolidate.Placed == 3 && consolidate.Rejected == 0 && gain is { Id: "plank", Qty: 3 });
         Check("(8) holder at threshold (5 == 5+Str) is NOT encumbered",
-            !squad.FindMember(SquadRoster.ScholarId)!.Conditions!.HasCondition(Condition.Encumbered));
+            !squad.FindMember(SquadRoster.FenwickId)!.Conditions!.HasCondition(Condition.Encumbered));
 
         // Holder now full to threshold → the next gain must overflow to another member.
         gain = null;
@@ -305,9 +305,9 @@ public partial class InventorySpike : SpikeBase
         inv2.ItemAdded -= gainProbe;
 
         var vo = inv2.BuildView(0);
-        int scholarPlank2 = vo.Members.First(m => m.MemberId == SquadRoster.ScholarId)
+        int scholarPlank2 = vo.Members.First(m => m.MemberId == SquadRoster.FenwickId)
                              .Stacks.GetValueOrDefault(Items.Plank.Id, 0);
-        int overflowHeld = vo.Members.Where(m => m.MemberId != SquadRoster.ScholarId)
+        int overflowHeld = vo.Members.Where(m => m.MemberId != SquadRoster.FenwickId)
                              .Sum(m => m.Stacks.GetValueOrDefault(Items.Plank.Id, 0));
         Check("(8) holder full → gain OVERFLOWED to another member (Scholar stays 5, other +2)",
             scholarPlank2 == 5 && overflowHeld == 2);
@@ -318,10 +318,10 @@ public partial class InventorySpike : SpikeBase
     // ─────────────────────────── Scholar helpers ───────────────────────────
 
     private static IReadOnlyDictionary<string, int> ScholarStacks(GameState gs)
-        => gs.GetInventoryView().Members.First(m => m.MemberId == SquadRoster.ScholarId).Stacks;
+        => gs.GetInventoryView().Members.First(m => m.MemberId == SquadRoster.FenwickId).Stacks;
 
     private static double ScholarCarriedBulk(GameState gs)
-        => gs.GetInventoryView().Members.First(m => m.MemberId == SquadRoster.ScholarId).CarriedBulk;
+        => gs.GetInventoryView().Members.First(m => m.MemberId == SquadRoster.FenwickId).CarriedBulk;
 
     private static bool DictEqual(IReadOnlyDictionary<string, int> a, IReadOnlyDictionary<string, int> b)
         => a.Count == b.Count && a.All(kv => b.TryGetValue(kv.Key, out int v) && v == kv.Value);

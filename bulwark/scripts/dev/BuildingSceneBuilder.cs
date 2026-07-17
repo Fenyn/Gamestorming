@@ -7,7 +7,7 @@ namespace Bulwark.Dev;
 
 /// <summary>
 /// One-shot headless painter that authors the four staged building scenes
-/// (command_post / trading_post / kitchen / farmhouse) in code and saves each via
+/// (command_post / trading_post / tavern / farmhouse) in code and saves each via
 /// PackedScene.Pack — the proven blockout pattern (see <see cref="OutpostBlockoutBuilder"/>): build
 /// nodes + SetCell tiles through the TileMapLayer API, never hand-roll tile_map_data bytes.
 ///
@@ -23,7 +23,7 @@ namespace Bulwark.Dev;
 ///     banners (source 80 handprint standard), a mounted crest, brazier lamps at the resurrection tier.
 ///   • Trading Post — plank store, market carts + crates + hanging goods (source 12), a coin shop
 ///     sign (source 20), a wide door; ruin Stage0 is a collapsed storefront.
-///   • Kitchen — thatch cook-house anchored by a SMOKING chimney (source 75) at every restored stage,
+///   • Tavern — thatch cook-house anchored by a SMOKING chimney (source 75) at every restored stage,
 ///     an instanced flickering fireplace hearth (scenes/props/fireplace.tscn), warm windows + food
 ///     barrels; ruin Stage0 has a toppled chimney.
 ///   • Farmhouse — half-timber homestead (source 204 material 30) contrasting the CP's stone, thatch
@@ -62,7 +62,7 @@ public partial class BuildingSceneBuilder : Node
     private const int MatTealPlaster = 31;
 
     // ── Scene targets ─────────────────────────────────────────────────────────────────────────
-    private static readonly string[] TargetIds = { "command_post", "trading_post", "kitchen", "farmhouse" };
+    private static readonly string[] TargetIds = { "command_post", "trading_post", "tavern", "farmhouse" };
 
     private TileSet _ts = null!;
     private readonly List<string> _log = new();
@@ -81,7 +81,7 @@ public partial class BuildingSceneBuilder : Node
 
             SaveScene("command_post", BuildCommandPost());
             SaveScene("trading_post", BuildTradingPost());
-            SaveScene("kitchen", BuildKitchen());
+            SaveScene("tavern", BuildTavern());
             SaveScene("farmhouse", BuildFarmhouse());
 
             GD.Print("[BuildingSceneBuilder] DONE");
@@ -288,12 +288,12 @@ public partial class BuildingSceneBuilder : Node
         return root;
     }
 
-    // ══════════════════════════════ Kitchen ══════════════════════════════
+    // ══════════════════════════════ Tavern ══════════════════════════════
     // Buildings.cs: tiers 1-3 → StageIndex 1-3, so Stage0..Stage3 (4 children).
 
-    private BuildingInstance BuildKitchen()
+    private BuildingInstance BuildTavern()
     {
-        var (root, stages) = NewBuilding("Kitchen");
+        var (root, stages) = NewBuilding("Tavern");
 
         // Stage0 — cold collapsed cookhouse with a TOPPLED chimney.
         {
@@ -308,11 +308,11 @@ public partial class BuildingSceneBuilder : Node
         }
 
         // Stage1 — working kitchen: thatch cookhouse, SMOKING chimney, flickering hearth, warm window, food.
-        BuildKitchenStage(root, stages, "Stage1", 1, tavern: false);
+        BuildTavernStage(root, stages, "Stage1", 1, tavern: false);
         // Stage2 — performances tier: same hearth, add barrels/produce, a mug sign (tavern hint).
-        BuildKitchenStage(root, stages, "Stage2", 2, tavern: false, mugSign: true);
+        BuildTavernStage(root, stages, "Stage2", 2, tavern: false, mugSign: true);
         // Stage3 — tavern-scale hearth hall: wider, gold thatch, twin chimney, feast dressing, lamp.
-        BuildKitchenStage(root, stages, "Stage3", 3, tavern: true, mugSign: true);
+        BuildTavernStage(root, stages, "Stage3", 3, tavern: true, mugSign: true);
 
         AddFootprint(root, width: 5 * Cell, cx: 0);
         AddInteract(root);
@@ -320,7 +320,7 @@ public partial class BuildingSceneBuilder : Node
         return root;
     }
 
-    private void BuildKitchenStage(BuildingInstance root, Node2D stages, string name, int idx,
+    private void BuildTavernStage(BuildingInstance root, Node2D stages, string name, int idx,
         bool tavern, bool mugSign = false)
     {
         var (s, st, dr) = NewStage(root, stages, name, idx);

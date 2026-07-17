@@ -137,7 +137,6 @@ understands the real reason she is here. Nobody corrects her.
   bloodline grants focus spells and resistance based on chosen element (or rotating
   elements if we want to lean into the unpredictability). Sorcerer class will need
   implementation.
-- Sorcerer is not on the planned class list. Needs adding to the README.
 - Her relationship with Grub is the natural pairing. Two goblins, both chaotic, completely
   different scales of consequence. Grub's chaos grows weird plants. Flick's chaos levels
   buildings. Grub would find her fascinating. Flick would find Grub confusingly calm.

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Bulwark.Data;
 
 namespace Bulwark.Cozy;
@@ -30,8 +31,29 @@ public sealed class DayClock
     /// </summary>
     public double RealSecondsPerGameMinute { get; set; } = 0.75;
 
-    /// <summary>When true, <see cref="Tick"/> is a no-op. Set during combat / menus.</summary>
-    public bool IsPaused { get; set; }
+    /// <summary>
+    /// True while at least one pause reason is active — <see cref="Tick"/> is then a no-op. Reason-
+    /// counted rather than a raw bool: two independent writer groups pause the clock (SceneRouter per
+    /// scene-mode, the cozy world host per open modal), and a single shared bool let either group's
+    /// "unpause" silently cancel the other's pause — closing a panel would resume a clock a cutscene
+    /// meant to stay frozen. Read-only here; writers go through <see cref="SetPaused"/>.
+    /// </summary>
+    public bool IsPaused => _pauseSources.Count > 0;
+
+    private readonly HashSet<string> _pauseSources = new();
+
+    /// <summary>
+    /// Add (<paramref name="paused"/> true) or drop (<paramref name="paused"/> false) a named pause
+    /// reason. Idempotent per <paramref name="source"/>; the clock resumes only once every source has
+    /// been dropped, so overlapping reasons never clobber one another.
+    /// </summary>
+    public void SetPaused(string source, bool paused)
+    {
+        if (paused)
+            _pauseSources.Add(source);
+        else
+            _pauseSources.Remove(source);
+    }
 
     private double _realAccumulator;
     private bool _dayEnded;

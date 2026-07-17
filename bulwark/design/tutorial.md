@@ -1,51 +1,56 @@
 # Bulwark — Tutorial & Onboarding
 
-Smooth guided onboarding from the moment the intro cutscene ends through the player's first
-few days at the outpost. Follows the Stardew/Coral Island pattern: give the player one clear
-task at a time, teach a mechanic by doing it, expand the scope only after the previous step is
-understood. No tutorial popups or walls of text — the characters deliver guidance through
-dialogue, and the quest log tracks objectives.
+Smooth guided onboarding from the moment the intro cutscene ends through the player's first week at
+the outpost. Follows the Stardew/Coral Island pattern: give the player one clear task at a time, teach
+a mechanic by doing it, expand the scope only after the previous step is understood. No tutorial popups
+or walls of text — the characters deliver guidance through dialogue, and the quest log tracks
+objectives.
+
+**The opening is directed, not free (rewritten 2026-07-16).** Day 1 is a single frozen-clock task that
+closes on a scripted cutscene. Day 2 tours the ruins and hands the player two specific builds. Freedom
+widens only once the base loop is taught. The canonical step-by-step spine is the quest chain in
+`design/tutorial_quests.md` — this doc describes the onboarding *experience*; where the two disagree,
+the quest chain wins.
 
 ## Principles
 
-- **One thing at a time.** Each step teaches exactly one mechanic. The player should never be
-  learning two systems at once.
-- **NPCs are the teachers.** Tharr teaches building and gathering. Elara teaches trading.
-  Fenwick teaches cooking and rest. The player learns by talking to people, not by reading
-  panels.
-- **Earn the complexity.** The planning table, the territory system, and combat reveal
-  themselves in order. Day 1 is "get wood and stone." Day 2 is "here is how the outpost
-  grows." Day 3+ is "go further, fight harder, bring back more."
-- **The quest log is the guide.** Each tutorial step appears as a tracked quest objective.
-  Completing one reveals the next. The player always knows what to do next.
-- **Character motivation drives the tasks.** Tharr needs the lodging patched because people
-  need to sleep. Elara eyes the Trading Post because she sees opportunity. Fenwick needs the
-  Kitchen because morale starts at the table. The tutorial tasks are not arbitrary — they are
-  what each character would naturally want done first.
-- **One building at a time.** Tharr is the outpost's only mason. When a building is
-  commissioned, he is busy for 1-2 days performing the construction. During that time the
-  planning table is unavailable for new commissions or upgrades. The player spends the
-  downtime gathering, farming, adventuring, or socializing. This mirrors Stardew's Robin:
-  construction takes real calendar time and the builder is occupied until it finishes. The
-  pacing creates a natural rhythm of gather → commission → wait/adventure → building rises →
-  gather for the next one.
+- **One thing at a time.** Each step teaches exactly one mechanic. The player should never be learning
+  two systems at once.
+- **NPCs are the teachers.** Tharr teaches building and gathering. Fenwick teaches cooking. Elara
+  teaches trading — but later, because the store she runs is gated behind the deep forest. The player
+  learns by talking to people, not by reading panels.
+- **Earn the complexity.** Day 1 is "get wood and stone," on a frozen clock. Day 2 is "here is how the
+  outpost grows — raise these two." The forest, farming, combat, and the deep woods reveal themselves in
+  order after that.
+- **The quest log is the guide.** Each tutorial step appears as a tracked quest objective. Completing
+  one reveals the next. The player always knows what to do next.
+- **Character motivation drives the tasks.** Tharr needs the lodging patched because people need to
+  sleep. Fenwick needs the Tavern because morale starts at the table. The player needs the Farmhouse
+  because the soil is still good. The tasks are not arbitrary — they are what each character would
+  naturally want done first.
+- **One building at a time.** Tharr is the outpost's only mason. When a building is commissioned, he is
+  busy for 1-2 days performing the construction. During that time the planning table is unavailable for
+  new commissions. The player spends the downtime gathering, farming, fighting, or socializing. This
+  mirrors Stardew's Robin: construction takes real calendar time and the builder is occupied until it
+  finishes. The rhythm is gather → commission → wait/adventure → building rises → gather for the next.
 
 ---
 
-## Day 1 — "Shelter"
+## Day 1 — "Shelter" (the clock is frozen)
 
-The cutscene fades out with Tharr walking through the gate. The player gains control standing
-in the outpost. Tharr is nearby. The quest log is empty. The first thing the player does is
-talk to Tharr.
+The cutscene fades out with Tharr walking through the gate. The player gains control standing in the
+outpost. **Day 1's clock is FROZEN** — time does not advance from the moment the intro ends until the
+scripted day close. The player can take as long as they like on the single task, and the day will not
+end until it is done. Tharr is nearby. The first thing the player does is talk to him.
 
 ### Step 1: Talk to Tharr
 
-**Trigger:** Player gains control after the intro cutscene.
+**Trigger:** Player gains control after the intro cutscene (`intro_complete`).
 
-**Quest appears:** "Speak with Tharr"
+**Quest appears:** "Repair the Lodging"
 
-Tharr is standing near the Command Post. Talking to him triggers a short dialogue sequence
-(not a cutscene — the regular dialogue box, first real use of the talk system).
+Tharr is standing near the Command Post. Talking to him triggers a short dialogue sequence (the regular
+dialogue box, first real use of the talk system).
 
 ```
 THARR
@@ -75,150 +80,139 @@ I will handle the rest. Just bring the materials.
 
 **Quest updates:** "Gather timber (0/15)" + "Gather stone (0/10)"
 
-The player now knows: go outside the gate, use tools to gather resources, bring them back.
-The amounts are small enough to complete in a single expedition.
+The player now knows: go outside the gate, use tools to gather resources, bring them back. Small enough
+to complete in a single trip.
 
 ### Step 2: Learn the tools
 
 **Trigger:** Player approaches the outpost gate for the first time.
 
-A brief tooltip appears (the only popup-style hint in the tutorial): "Press [Tab] to cycle
-tools. Use [E] to interact with the world."
+A brief tooltip appears (the only popup-style hint in the tutorial): "Press [Tab] to cycle tools. Use
+[E] to interact with the world." The player already has the Axe and Pick in their tool belt.
 
-The player already has the Axe and Pick in their tool belt from the start. The tool HUD at
-the bottom shows the equipped tool.
-
-### Step 3: First expedition
+### Step 3: First expedition (the near forest)
 
 **Trigger:** Player exits through the outpost gate.
 
-The Verdant Fringe (the starting territory) loads. Resource nodes are visible: trees (axe)
-and stone outcrops (pick). The player walks up to a tree, equips the axe, hits E, and gathers
-wood. Same for stone.
+The Verdant Fringe (the near forest — the "Thornwood" of `design/world.md`) loads. Resource nodes are
+visible: trees (axe) and stone outcrops (pick).
 
-**Gathering teaches:**
-- Tool selection (Tab)
-- Interact to harvest (E)
-- Items go into inventory (the Bulk carry system — each item has weight)
-- The day clock ticks while you work
+**Gathering teaches:** tool selection (Tab), interact to harvest (E), items into inventory (the Bulk
+carry system, each item has weight). **The day clock does NOT tick — Day 1 is frozen.** The player
+cannot burn the day on the tutorial's first task; there is no time pressure at all on Day 1.
 
-**No mandatory combat on the first expedition.** Roaming enemies exist in the territory but
-the first few resource nodes are placed near the gate, before the roamer patrol zones. The
-player CAN stumble into a fight, but they do not HAVE to. The tutorial does not assume combat
-knowledge yet.
-
-If the player does encounter a roamer: the combat system handles itself (it's already
-built). The tutorial quest does not gate on combat — it gates on materials gathered.
+**Combat is welcome but not required on the first expedition.** A rat or goblin roamer patrols the edge
+of the gathering zone — close enough that many players will brush into their first fight while
+collecting timber. That is intended texture: gather, scrap, gather, head home. The quest gates on
+materials, not combat. Whenever the first victory lands, Tharr's `first_combat_victory` debrief follows
+it. The directed combat introduction ("First Blood," see `design/tutorial_quests.md`) comes after the
+first building is commissioned on Day 2, so combat stays woven through the opening rather than arriving
+as one lesson.
 
 ### Step 4: Return and repair
 
-**Trigger:** Player returns to the outpost with 15 wood + 10 stone.
-
-Talk to Tharr. He takes the materials and the lodging repair completes.
+**Trigger:** Player returns to the outpost with 15 wood + 10 stone and talks to Tharr.
 
 ```
 THARR
 That will do. Give me a moment.
 
 [Beat. The lodging hall visually updates — patched walls, a door
-that closes properly.]
+that closes properly, bunks ready for use.]
 
 THARR
 The lodging holds. You have beds, a roof, and a door that shuts.
 It is not much, but it is enough for the night.
 ```
 
-**Quest completes:** "Repair the Lodging"
+**Quest completes:** "Repair the Lodging" (`lodging_repaired`).
 
-**Unlocks:**
-- The party can now sleep at the outpost (the sleep/rest mechanic becomes available)
-- Tharr's next quest appears
+This is the last thing the player *does* on Day 1. There is no separate "rest" task — turning in the
+bundle triggers the scripted close.
 
-### Step 5: Rest
+### Step 5: The scripted day close (automatic)
 
-**Trigger:** Lodging repair complete. The day is getting late (or the player can choose
-to keep exploring).
+**Trigger:** `lodging_repaired`. **The day closes on its own** — the player does not choose to sleep.
 
-Fenwick has a talk line available (condition: `lodging_repaired`, no flag `first_rest`):
+A short cutscene plays (full draft in `design/intro.md`, "The Hearth and the Howl"). Two beats:
 
-```
-FENWICK
-The lodging is sorted, and I have found the hearth Tharr
-mentioned. It is not much yet, but I can work with it. Get some
-rest tonight. Tomorrow we start making this place livable.
-```
+- **Fenwick at the hearth.** He has found the hearth Tharr mentioned and is examining the flue — warm,
+  self-deprecating, food-adjacent. "A proper hearth under all the soot. Give me a few days and it will
+  feed everyone here." He tells the player to rest; the outpost can simply be *standing* for one night.
+- **The howl.** After the fade, a long low wolf howl carries through the dark — held too long to be a
+  dog, closer than anyone would like. Foreshadow only; no name yet. It pays off in the wolf hunt
+  (`design/tutorial_quests.md` quest 7).
 
-When the player sleeps (interact with the bed): full rest resolves, the day advances, the
-end-of-day summary appears. The player has completed their first day.
-
-**Flag set:** `first_rest`
+The sequence advances to Day 2, sets `first_rest`, and **unfreezes the clock** — from here on, time
+runs normally. This replaces the old "Rest for the Night" quest entirely; the day close is scripted, not
+a player action.
 
 ---
 
-## Day 2 — "The Table"
+## Day 2 — "The Table" (time now runs)
 
-The player wakes. Tharr has new dialogue gated on `first_rest`.
+The player wakes on Day 2. The clock is live. Tharr has new dialogue gated on `first_rest`.
 
-### Step 6: The planning table
+### Step 6: The planning table and the tour
 
-**Trigger:** Talk to Tharr on Day 2 (flag: `first_rest`, no flag: `planning_table_shown`).
+**Trigger:** Talk to Tharr on Day 2 (`first_rest`, no `planning_table_shown`).
+
+Tharr walks the player past the three ruins, the camera panning to each (the `camera` staging step):
+the sagging **farmhouse** frame, the **hearth** Fenwick has claimed, and the collapsed **storefront**
+Elara has her eye on.
 
 ```
 THARR
 Now that we have a roof that holds, let me show you how we
 build the rest.
 
-[The camera pans to the Command Post planning table.]
+[The camera pans across the three ruins as he names them.]
 
 THARR
 This is the planning table. Every building the outpost needs
 starts here. You bring the materials, I handle the construction.
 
 THARR
-Three buildings are ready to go up first. Each one opens a part
-of the outpost we will need.
+Two we can raise now — the farmhouse and the hearth. The
+storefront waits. Its timber comes from deeper in the forest than
+we can yet walk. First things first.
 ```
 
-**Quest appears:** "Visit the Planning Table"
+**Quest appears:** "Raise the Hearths" — raise the **Farmhouse** and the **Tavern** to stage 1.
 
-The player interacts with the planning table. The build panel (hotkey B) opens for the first
-time, showing three commissionable buildings:
+The player interacts with the planning table. The build panel (hotkey B) opens for the first time. All
+three starter ruins are visible, but the **Trading Post is shown deferred** — its bundle lists Elderwood
+**hardwood**, which the party cannot gather yet, so it cannot be funded until the deep forest opens:
 
-- **Trading Post** — 60 gold, 90 wood, 60 stone — "Elara has been eyeing the old storefront
-  since she arrived."
-- **Kitchen** — (similar cost, wood + stone + fiber) — "Fenwick found the hearth. He needs
-  walls around it."
-- **Farmhouse** — (similar cost, wood + stone) — "The fields have gone to seed, but the soil
-  is still good."
+- **Farmhouse** — 90g, wood + stone — "The fields have gone to seed, but the soil is still good."
+- **Tavern** — 70g, wood + stone + herb — "Fenwick found the hearth. He needs walls around it."
+- **Trading Post** — *deferred* — 60g, wood + stone + **hardwood** — "The frame is sound, but the last
+  of its timber grows where we cannot yet reach."
 
-**No forced order.** The player can build any of the three first. Each NPC has a talk line
-that hints at their building:
+The NPCs reinforce the directed order:
 
 ```
+FENWICK (condition: planning_table_shown)
+The hearth draws well, but the room around it needs a roof and a
+proper flue. A tavern is only as good as the walls that keep the
+rain out of the soup.
+
 ELARA (condition: planning_table_shown)
 There is a storefront in the eastern wall. The frame is sound.
-With timber and stone I can have it open within the week.
-
-FENWICK (condition: planning_table_shown)
-The hearth draws well, but the room around it needs a roof and
-a proper flue. A kitchen is only as good as the walls that keep
-the rain out of the soup.
+But the good timber for it — the hardwood — grows deep, past
+where anything sane wants to walk just now. It will keep.
 ```
 
-**Flag set:** `planning_table_shown`
-
-**Quest updates:** "Commission your first building at the planning table"
+**Flag set:** `planning_table_shown`. **Quest updates:** "Commission the Farmhouse and the Tavern."
 
 ### Step 7: Gather and build
 
-The player gathers materials for whichever building they choose. This is the first
-"real" economy loop: gather resources → return → contribute to the building bundle →
-repeat until the bundle is full → building commissions.
+The player gathers materials for whichever of the two they choose first. This is the first "real"
+economy loop: gather → return → contribute to the bundle → repeat until full → building commissions.
+Both bundles are cheap Verdant Fringe timber and stone, gatherable within a trip or two each.
 
-The bundle costs are tuned so that the Trading Post and Kitchen can each be gathered
-within 2-3 trips (Days 2-4). Once the player has the materials and commissions the building,
-Tharr begins construction. He is occupied for 1-2 days — during which the planning table
-is locked and Tharr has a talk line about the work:
+Once the player commissions the first building, Tharr begins construction. He is occupied for 1-2 days —
+the planning table is locked and Tharr has a build-day talk line:
 
 ```
 THARR (condition: building_under_construction)
@@ -226,128 +220,130 @@ The work is underway. Give me another day. Gather what you need
 for whatever comes next.
 ```
 
-When construction finishes (the next morning, or the morning after):
-- The building visually appears at its marker in the outpost
-- The associated NPC claims it and becomes functional
-- A new mechanic unlocks (buying/selling, cooking, farming)
-- The planning table reopens for the next commission
-
-This means the player cannot rush all three starter buildings on Day 2. The natural
-rhythm is: commission one → spend 1-2 days gathering/adventuring while Tharr builds →
-building rises → commission the next. The three starters go up across the first week,
-not the first day.
+The combat quest **First Blood** (`design/tutorial_quests.md` quest 4) fires on that first commission,
+filling the build day with a directed fight. When construction finishes the next morning (or the one
+after), the building appears at its marker, the associated NPC claims it, and the planning table reopens
+for the second commission. The two starters go up across several days, not one.
 
 ### Step 8: NPC activation
 
-**Trading Post commissions → Elara opens the store.**
-
-```
-ELARA
-(standing in the newly built Trading Post)
-It is not much, but it is mine. Bring what you have to sell,
-and I will see what I can offer in return.
-
-Seeds, provisions, and whatever else the frontier demands. The
-stock will grow as the outpost does.
-```
-
-The player learns: buying and selling, the gold economy, seed purchasing for farming.
-
-**Kitchen commissions → Fenwick starts cooking.**
+**Tavern commissions → Fenwick starts cooking.**
 
 ```
 FENWICK
 (standing at the hearth, already cooking something)
-The kitchen is open. Bring me ingredients and I will turn them
+The tavern is open. Bring me ingredients and I will turn them
 into something worth eating. A well-fed party fights better,
 works harder, and complains less. Mostly less.
 ```
 
 The player learns: meal buffs (day-long benefits from eating), the crafting/recipe system.
 
----
+**Farmhouse commissions → the soil opens** (farming is taught in Step 10 below).
 
-## Day 3-5 — "The Frontier"
-
-By Day 3 the player has at least one building up, understands gathering and contributing,
-and has seen the planning table. Now the tutorial opens the rest of the game.
-
-### Step 9: First combat (guided)
-
-**Trigger:** The player ventures deeper into the Verdant Fringe, past the safe gathering
-zone near the gate.
-
-A roaming enemy is visible on the territory map. The first encounter is tuned easy (2-3
-goblins or rats). If the player avoided combat on Day 1, this is their first fight.
-
-After the first combat victory:
-
-```
-THARR (next talk, condition: first_combat_victory)
-You survived your first encounter. The forest will send worse.
-Keep your weapons sharp and your squad rested. Treat Wounds
-before you press deeper — a wound carried into a second fight
-is twice as dangerous.
-```
-
-The player learns: combat, loot/gold drops, attrition (HP carries between fights), Treat
-Wounds (the out-of-combat healing mechanic).
-
-### Step 10: Farmhouse and the soil
-
-**Trigger:** Farmhouse commissioned.
-
-Tharr or a talk-pool line from the player's own observation:
-
-```
-THARR (condition: farmhouse_built)
-The fields are cleared enough to start. The soil is poor but
-it will answer to steady work. Plant what you can, water it
-daily, and the harvest will come.
-```
-
-The player learns: tilling, planting, watering, crop growth over days, harvesting.
-
-Farming provides a renewable resource loop that supplements gathering: crops sell for gold
-at the Trading Post, cook into meals at the Kitchen, or contribute to building bundles.
+The **Trading Post does not activate on Day 2** — it is deferred until the Elderwood opens. Elara's
+store-open line waits for `trading_post_built`, which cannot happen until the dire wolf is dead.
 
 ---
 
-## Day 5+ — Open play
+## The freeform week — farm, fight, and the deep forest
 
-By Day 5 the player has:
-- Repaired the lodging (sleeping unlocked)
-- Seen the planning table (building system unlocked)
-- Built 1-2 buildings (Trading Post, Kitchen, or Farmhouse)
-- Fought at least one encounter (combat understood)
-- Gathered, sold, cooked, or farmed (economy loop understood)
+Once the Farmhouse and Tavern stand, the tutorial's tight rails loosen. The player gathers, fights, and
+socializes at their own pace while the story quests thread through. NPCs wander the outpost. The player
+can take the **full squad — player, Tharr, Fenwick, and Elara** — on expedition (the party-select gate
+at territory travel; the founding four are the expedition party until recruits arrive).
 
-The tutorial does not formally end. Instead, the quest log transitions from single-task
-tutorial objectives to the broader restoration goals:
+### Step 9: Farming (after Farmhouse + Tavern)
 
-- "Commission the remaining starting buildings" (Trading Post / Kitchen / Farmhouse)
-- "Upgrade the Command Post" (unlocks the Elderwood, the next territory)
-- "Clear the forest expedition" (triggers Arkus's arrival → Smithy unlockable)
+**Trigger:** `farmhouse_built`.
 
-The game has taught its mechanics. From here, the player explores at their own pace.
+```
+THARR / ambient (condition: farmhouse_built)
+The fields are cleared enough to start. The soil is poor but it
+will answer to steady work. Plant what you can, water it daily,
+and the harvest will come.
+```
+
+Because **no store exists yet** (the Trading Post is deferred), the **starter seeds are granted via
+dialogue** — the farming intro line hands them over (a dialogue `item` effect) so the loop can start
+without a shop. The player learns: tilling, planting, watering, growth over days, harvesting. The
+directed farm quest ("First Harvest," quest 5) tracks six crops.
+
+### Step 10: The first meal
+
+**Trigger:** First Harvest complete AND `tavern_built`.
+
+The harvest in hand IS the lesson: crops go to the hearth. The player gives Fenwick three fresh crops;
+he cooks; the player eats; the meal-buff icon appears on the HUD ("Fenwick's Table," quest 6). Selling
+is NOT taught here — there is still no store. This is one clean economy sink, no busywork.
+
+Completing the meal quest is the hinge: it opens BOTH the wolf hunt and the Trading Post restoration.
+
+### Step 11: The wolf and the deep forest
+
+**Trigger:** Fenwick's Table complete.
+
+Two threads start together (`design/tutorial_quests.md` quests 7 and 8):
+
+- **The Wolf of the Fringe.** The howl from the first night returns. A dire wolf holds the passage
+  between the near forest and the deep Elderwood. A fixed lair appears at the passage; the wolf is a
+  Severe encounter tuned for a level 1–2 party of four, **beatable with the gear the party already
+  carries — no Smithy required.** The strategy is everything already taught: eat a meal, treat wounds,
+  spend three actions well. Killing it (`dire_wolf_slain`) **opens the Elderwood.**
+- **Restore the Trading Post.** Its bundle needs Elderwood hardwood, so its guidance objectives — enter
+  the Elderwood, gather hardwood — send the player into the deep forest the wolf's death just opened.
+  Funding it (`trading_post_built`) is what finally lets Elara open her store.
+
+**On the first walk home after the wolf kill,** the party finds Arkus wounded on the road — the same
+beast, the same ground (`arkus_found`; cutscene in `design/intro.md`, "On the Road Home"). He is the
+first recruit, laid up unconscious until he wakes.
+
+### Step 12: Arkus wakes → the forge and the sickbed
+
+**Trigger:** the day-start after `arkus_found` AND `trading_post_built`.
+
+Arkus wakes ("The Smith and the Sickbed," quest 9). Blunt orc honesty: what he carried was not enough,
+and the outpost has no proper place to mend the wounded. His asks make **two** buildings commissionable
+at once — the **Smithy** and the **Infirmary**, both gated on `arkus_awake`. The player learns
+character-first arrivals (a villager brings a building) and that one arrival can open more than one.
+First Steel (crafting) and Mend the Wounded (Treat Wounds — Josen arrives 1-3 days after the Infirmary
+is built) follow from here and close the arc. Command Post upgrade tiers are deferred pending design
+(see `design/economy/buildings.md`), so there is no tier-upgrade beat this pass.
+
+---
+
+## After the arc — open play
+
+By the end of the arc the player has:
+- Repaired the lodging (Day 1, frozen clock, scripted close)
+- Raised the Farmhouse and Tavern (building system understood)
+- Farmed and cooked (economy loop understood)
+- Fought roamers and the dire wolf boss (combat and preparation understood)
+- Opened the Elderwood, restored the Trading Post, recruited Arkus, built the Smithy and Infirmary
+- Crafted at the forge and treated a squad member's wounds (First Steel, Mend the Wounded)
+
+The tutorial does not formally end; the quest log transitions to the broader restoration goals, which
+emerge from the pacing schedule. The game has taught its mechanics. From here, the player explores at
+their own pace.
 
 ---
 
 ## Quest log structure
 
-Tutorial quests appear in the quest log with clear objectives and progress tracking.
+Tutorial quests appear in the quest log with clear objectives and progress tracking. The canonical table
+is in `design/tutorial_quests.md`; the onboarding-facing subset:
 
 | Quest | Objectives | Trigger | Completion |
 |---|---|---|---|
-| Speak with Tharr | Talk to Tharr at the Command Post | Intro cutscene ends | Dialogue plays |
-| Repair the Lodging | Gather timber (0/15), Gather stone (0/10), Return to Tharr | "Speak with Tharr" complete | Lodging repairs, sleep unlocked |
-| Rest for the Night | Sleep at the outpost | Lodging repaired | First rest, day advances |
-| The Planning Table | Visit the planning table | Day 2, talk to Tharr | Build panel opens |
-| Commission a Building | Choose and fund a building at the table | Planning table visited | First building rises |
+| Repair the Lodging | Gather timber (0/15), Gather stone (0/10), Return to Tharr | Intro ends | Lodging repairs; scripted Day-1 close fires |
+| *(Day-1 close)* | *(automatic cutscene, not a quest)* | Lodging repaired | Day advances, `first_rest` set, clock unfreezes |
+| The Planning Table | Follow Tharr's tour, visit the planning table | Day 2, talk to Tharr | Build panel opens |
+| Raise the Hearths | Commission the Farmhouse and the Tavern (Trading Post deferred) | Planning table visited | Both `*_built` |
 | (varies by building) | Building-specific intro from the NPC | Building commissions | NPC functional, mechanic unlocked |
 
-Later quests (Arkus rescue, Command Post upgrade, etc.) flow from the organic progression
-and are not part of the guided tutorial — they emerge from gameplay.
+Later quests (First Blood, First Harvest, Fenwick's Table, the wolf hunt, the Trading Post, Arkus's
+arrival, the Smith and the Sickbed, First Steel, Mend the Wounded) flow from the quest chain and are
+documented in `design/tutorial_quests.md`.
 
 ---
 
@@ -355,26 +351,33 @@ and are not part of the guided tutorial — they emerge from gameplay.
 
 | Flag | Set by | Consumed by |
 |---|---|---|
-| `intro_complete` | Intro cutscene Scene 2 | Tharr's first talk (requires this) |
-| `lodging_repaired` | Lodging repair quest | Sleep unlock, Fenwick rest line, Day 2 trigger |
-| `first_rest` | First sleep | Tharr Day 2 planning table dialogue |
-| `planning_table_shown` | Tharr shows the table | Elara/Fenwick building-hint lines |
-| `first_combat_victory` | First encounter won | Tharr combat debrief line |
-| `farmhouse_built` | Farmhouse commissioned | Tharr farming intro line |
-| `trading_post_built` | Trading Post commissioned | Elara store-open line |
-| `kitchen_built` | Kitchen commissioned | Fenwick cooking-open line |
+| `intro_complete` | Intro cutscene Scene 2 | Tharr's first talk / Repair the Lodging start |
+| `lodging_repaired` | Repair the Lodging turn-in | Scripted Day-1 close trigger; lodging visual update |
+| `first_rest` | **The scripted Day-1 close** (no longer a rest quest) | Tharr's Day-2 planning dialogue |
+| `planning_table_shown` | Tharr's Day-2 tour + table visit | Fenwick/Elara building-hint lines; Raise the Hearths start |
+| `first_commission` | First building commissioned | First Blood start |
+| `first_combat_victory` | First encounter won | Tharr's combat debrief line |
+| `farmhouse_built` | Farmhouse commissioned | Farming intro (starter-seed grant); First Harvest start |
+| `tavern_built` | Tavern commissioned | Fenwick cooking-open line; Fenwick's Table gate |
+| `dire_wolf_slain` | Dire wolf boss defeated | Elderwood territory unlock; Arkus-found gate |
+| `trading_post_built` | Trading Post commissioned (needs Elderwood hardwood) | Elara store-open line; half of Arkus's wake gate |
+| `arkus_found` | Arkus-found cutscene (first return after `dire_wolf_slain`) | Arkus placed as unconscious resident; half of the wake gate |
+| `arkus_awake` | Arkus's wake (day-start after `arkus_found` + `trading_post_built`) | Smithy AND Infirmary commissionability |
+
+Retired since the prior version: no `Rest for the Night` quest (the day close is scripted); the free
+three-building Day-2 choice is gone (directed Farmhouse+Tavern, Trading Post deferred); Elara's
+store-open no longer fires on Day 2 (it waits on the Elderwood).
 
 ---
 
 ## Tone notes
 
-- **Tharr is the primary tutorial voice.** He is practical and direct. He tells you what needs
-  doing, where to find what you need, and then he lets you go do it. He does not over-explain.
-- **Elara and Fenwick supplement, not duplicate.** Each teaches their own domain (trading,
-  cooking) when their building goes up. They do not repeat Tharr's lessons.
-- **No hand-holding past Day 2.** The tutorial teaches gather → build → rest → fight. After
-  that, the game trusts the player to explore. Deeper mechanics (runes, Treat Wounds DC
-  choices, party composition, friendship) surface through play, not tutorials.
-- **The quest log is the safety net.** If the player gets lost, the quest log always has the
-  next objective. But the NPCs make the next step obvious enough that most players will not
-  need it.
+- **Tharr is the primary tutorial voice.** Practical and direct. He tells you what needs doing, where to
+  find it, and lets you go. He does not over-explain.
+- **Elara and Fenwick supplement, not duplicate.** Fenwick teaches cooking when the Tavern goes up.
+  Elara teaches trading — but later, once the Elderwood opens her store. Neither repeats Tharr's lessons.
+- **No hand-holding past the freeform week.** The tutorial teaches gather → build → farm → cook → fight
+  → open the deep forest. After that, the game trusts the player. Deeper mechanics (runes, Treat Wounds
+  DC choices, party composition, friendship) surface through play.
+- **The quest log is the safety net.** If the player gets lost, the quest log always has the next
+  objective. But the NPCs make the next step obvious enough that most players will not need it.

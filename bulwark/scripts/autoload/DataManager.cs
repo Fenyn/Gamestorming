@@ -35,6 +35,11 @@ public partial class DataManager : Node
         GD.Print(
             $"[DataManager] Ready — {ConditionCount} conditions, {SpellCount} spells, "
             + $"{EquipmentCount} equipment, {CreatureCount} creatures");
+
+        // Fail-fast content validation: cross-registry referential integrity, loud in dev, absent in
+        // release. Violations surface as GD.PushError lines (see DataValidation).
+        if (OS.IsDebugBuild())
+            DataValidation.RunAll();
     }
 
     /// <summary>Find an imported creature definition by display name (case-insensitive).</summary>

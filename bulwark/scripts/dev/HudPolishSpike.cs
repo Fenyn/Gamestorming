@@ -353,12 +353,12 @@ public partial class HudPolishSpike : SpikeBase
             var titleLabel = hud.GetNodeOrNull<Label>("%QuestBannerTitleLabel");
             Check("(F) quest banner starts hidden", bannerPanel != null && !bannerPanel.Visible);
 
-            Check("(F) first_building is not yet active on the fresh quest log", !gs.IsQuestActive("first_building"));
-            gs.StartQuest("first_building");
+            Check("(F) raise_the_hearths is not yet active on the fresh quest log", !gs.IsQuestActive("raise_the_hearths"));
+            gs.StartQuest("raise_the_hearths");
             await Frames(2);
 
             Check("(F) QuestStarted reached the HUD: banner now visible", bannerPanel != null && bannerPanel.Visible);
-            Check("(F) banner shows the quest's title", titleLabel != null && titleLabel.Text == Quests.FirstBuilding.Title);
+            Check("(F) banner shows the quest's title", titleLabel != null && titleLabel.Text == Bulwark.Data.Quests.RaiseTheHearths.Title);
         }
 
         outpost.QueueFree();

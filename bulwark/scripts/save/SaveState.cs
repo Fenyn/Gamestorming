@@ -3,7 +3,10 @@ using System.Linq;
 using Bulwark.Territory;
 using Godot;
 
-namespace Bulwark.Cozy;
+using Bulwark.Cozy;
+using Bulwark.Quests;
+using Bulwark.Dialogue;
+namespace Bulwark.Save;
 
 /// <summary>
 /// Bridges the live cozy systems (<see cref="DayClock"/>, <see cref="Inventory"/>,
@@ -23,7 +26,7 @@ public static class SaveState
         MealSystem? meals = null,
         string? playerName = null,
         FriendshipSystem? friendship = null,
-        IReadOnlyCollection<string>? seenDialogues = null,
+        DialogueSession? dialogue = null,
         QuestLog? questLog = null,
         ForageSystem? forage = null,
         int worldSeed = 0)
@@ -59,7 +62,7 @@ public static class SaveState
             ArrivedVillagers = villagers?.Capture(),
             ActiveMeal = meals?.Capture(),
             Friendship = friendship?.Capture(),
-            SeenDialogueIds = seenDialogues != null ? new List<string>(seenDialogues) : null,
+            SeenDialogueIds = dialogue != null ? new List<string>(dialogue.Seen) : null,
             Quests = questLog?.Capture(),
             Forage = forage?.Capture(),
         };
@@ -74,7 +77,7 @@ public static class SaveState
         StoryFlags? storyFlags = null, VillagerSystem? villagers = null,
         MealSystem? meals = null,
         FriendshipSystem? friendship = null,
-        HashSet<string>? seenDialogues = null,
+        DialogueSession? dialogue = null,
         QuestLog? questLog = null,
         ForageSystem? forage = null)
     {
@@ -127,19 +130,8 @@ public static class SaveState
         // above so the daily/weekly counters reconcile against the loaded calendar.
         friendship?.Restore(data.Friendship);
 
-        // Additive field: null in pre-v9 saves — restore clears to "nothing seen".
-        if (seenDialogues != null)
-        {
-            seenDialogues.Clear();
-            if (data.SeenDialogueIds != null)
-            {
-                foreach (var id in data.SeenDialogueIds)
-                {
-                    if (!string.IsNullOrEmpty(id))
-                        seenDialogues.Add(id);
-                }
-            }
-        }
+        // Additive field: null in pre-v9 saves — DialogueSession.Restore clears to "nothing seen".
+        dialogue?.Restore(data.SeenDialogueIds);
 
         // Additive field: null in pre-v11 saves — restore clears to "no quests started".
         questLog?.Restore(data.Quests);

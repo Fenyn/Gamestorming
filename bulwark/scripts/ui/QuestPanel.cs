@@ -1,36 +1,20 @@
-using System;
 using Bulwark.Cozy;
 using Godot;
 
+using Bulwark.Quests;
 namespace Bulwark.UI;
 
-public partial class QuestPanel : CanvasLayer
+public partial class QuestPanel : TogglePanel
 {
-    public event Action<bool>? Toggled;
-
     private VBoxContainer _body = null!;
+
+    public QuestPanel() => ToggleAction = "toggle_quest_panel";
 
     public override void _Ready()
     {
         _body = GetNode<VBoxContainer>("%Body");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_quest_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    public void Close() => SetOpen(false);
 
     public void Render(QuestView view)
     {
@@ -103,13 +87,5 @@ public partial class QuestPanel : CanvasLayer
         }
 
         return panel;
-    }
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 }

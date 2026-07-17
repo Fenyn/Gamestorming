@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Bulwark.Autoload;
@@ -86,15 +87,23 @@ public partial class OutpostScene : CozyWorldScene
         SpawnDialogueBox();
         SpawnDaySummaryPanel();
         SpawnPauseMenu();
+        SpawnPartySelectPanel();
         SpawnGateSign();
         WireGate();
         BuildWorldCollision(_ground);
         SpawnBuildings();
         SpawnVillagers();
         WireStateEvents();
+        if (PartySelectPanel != null)
+            PartySelectPanel.TravelConfirmed += OnGatePartyConfirmed;
         RefreshHudAll();
         ShowArrivalToasts();
         TryPlayIntroScene2();
+        // Arrival-triggered story cutscenes (design/tutorial_quests.md): Arkus found on the first
+        // return after the wolf kill, then Arkus wakes once the Trading Post is up. Both set their
+        // real flag even when the (later-authored) cutscene JSON is missing.
+        TryPlayArkusFound();
+        TryPlayArkusWake();
     }
 
     // ------------------------------------------------------------------ Instancing
@@ -119,16 +128,29 @@ public partial class OutpostScene : CozyWorldScene
             id => GameState.Instance?.GetBuildingTier(id) ?? 0,
             id => GameState.Instance?.Building.IsUnderConstruction(id) ?? false,
             () => GameState.Instance is { } gs ? (gs.Clock.Season, gs.Clock.Day) : (Season.Spring, 1),
-            id => GameState.Instance?.HasStoryFlag(id) ?? false);
+            // GameState.HasFlagForConditions (not the plain HasStoryFlag) so visual rules can also
+            // gate on the derived <id>_built / <id>_commissioned / building_under_construction flags
+            // (design/building_visuals.md; the lodging-repair payoff on the tavern's tier-1 override).
+            id => GameState.Instance?.HasFlagForConditions(id) ?? false);
         _buildingLoader.PlaceAll();
     }
 
-    /// <summary>Instance a placeholder NPC for every ARRIVED villager at its <c>%Villager_&lt;id&gt;</c>
-    /// marker. Null-safe: missing markers are skipped. Refreshed per villager on VillagerArrived.
-    /// Places nothing in shipped play (the villager catalog ships empty).</summary>
+    /// <summary>Instance an NPC entity for every PRESENT villager at its <c>%Villager_&lt;id&gt;</c>
+    /// marker: the always-present starting party (Tharr, Elara, Fenwick) from day one, plus any arrived
+    /// villager. Null-safe: missing markers are skipped. Refreshed per villager on VillagerArrived.</summary>
     private void SpawnVillagers()
     {
-        _villagerLoader = new VillagerLoader(this, id => GameState.Instance?.IsVillagerArrived(id) ?? false);
+        _villagerLoader = new VillagerLoader(
+            this,
+            id => GameState.Instance?.IsVillagerArrived(id) ?? false,
+            residents: CharacterRegistry.StartingResidents(),
+            // Wander is suppressed while any dialogue/modal is open (covers cutscenes, since the
+            // dialogue box that stages them opens as a modal too), during a hand-off, or for whichever
+            // villager is currently the interact-adjacent talk target.
+            isWanderSuppressed: id => IsTransitioning || AnyModalOpen || id == GetNearbyVillagerId(),
+            // Daily schedules (design/schedules): NPCs spawn on their current slot's anchor and re-anchor
+            // (walk) as the clock crosses slot times (see OnScheduleTick wiring below).
+            currentMinuteOfDay: () => GameState.Instance?.Clock.MinuteOfDay ?? DayClock.DayStartMinute);
         _villagerLoader.PlaceArrived();
     }
 
@@ -152,29 +174,25 @@ public partial class OutpostScene : CozyWorldScene
         _gateTrigger?.Connect(Area2D.SignalName.BodyExited, Callable.From<Node2D>(OnGateBodyExited));
     }
 
-    protected override void WireExtraStateEvents(GameState gs)
+    protected override void WireExtraStateEvents(GameState gs, EventSubscriptions subs)
     {
-        gs.DayStarted += RefreshHudTime;
-        gs.SquadLeveledUp += OnSquadLeveledUp;
-        gs.BuildingChanged += OnBuildingPlaced;
-        gs.VillagerArrived += OnVillagerArrived;
-        gs.DayStarted += RefreshBuildingVisuals;
-        gs.StoryFlagChanged += OnStoryFlagChangedForVisuals;
+        subs.Add(() => gs.DayStarted += RefreshHudTime, () => gs.DayStarted -= RefreshHudTime);
+        subs.Add(() => gs.SquadLeveledUp += OnSquadLeveledUp, () => gs.SquadLeveledUp -= OnSquadLeveledUp);
+        subs.Add(() => gs.BuildingChanged += OnBuildingPlaced, () => gs.BuildingChanged -= OnBuildingPlaced);
+        subs.Add(() => gs.VillagerArrived += OnVillagerArrived, () => gs.VillagerArrived -= OnVillagerArrived);
+        // Daily-schedule re-anchor: on each game-minute (and the dawn rollover) push the current slot to
+        // each placed NPC, which walks it there when the slot flips.
+        subs.Add(() => gs.MinuteChanged += OnScheduleTick, () => gs.MinuteChanged -= OnScheduleTick);
+        subs.Add(() => gs.DayStarted += OnScheduleTick, () => gs.DayStarted -= OnScheduleTick);
+        subs.Add(() => gs.DayStarted += RefreshBuildingVisuals, () => gs.DayStarted -= RefreshBuildingVisuals);
+        subs.Add(() => gs.StoryFlagChanged += OnStoryFlagChangedForVisuals, () => gs.StoryFlagChanged -= OnStoryFlagChangedForVisuals);
+        // Arkus wakes on the day-start where the outpost catches the conditions (found + Trading Post
+        // up). Deferred so any day-summary modal for the same rollover opens first.
+        subs.Add(() => gs.DayStarted += OnDayStartedArkusWake, () => gs.DayStarted -= OnDayStartedArkusWake);
 
-        // World-rules seam: farm commands validate through THIS scene's map truth while it hosts
-        // the farm (cleared symmetrically below so a freed scene is never queried).
-        gs.BindFarmWorld(IsTillable);
-    }
-
-    protected override void UnwireExtraStateEvents(GameState gs)
-    {
-        gs.DayStarted -= RefreshHudTime;
-        gs.SquadLeveledUp -= OnSquadLeveledUp;
-        gs.BuildingChanged -= OnBuildingPlaced;
-        gs.VillagerArrived -= OnVillagerArrived;
-        gs.DayStarted -= RefreshBuildingVisuals;
-        gs.StoryFlagChanged -= OnStoryFlagChangedForVisuals;
-        gs.BindFarmWorld(null);
+        // World-rules seam: farm commands validate through THIS scene's map truth while it hosts the
+        // farm — the paired undo unbinds it on teardown so a freed scene is never queried.
+        subs.Add(() => gs.BindFarmWorld(IsTillable), () => gs.BindFarmWorld(null));
     }
 
     /// <summary>A building was commissioned or upgraded: (re)place its world visual at its marker and
@@ -193,6 +211,11 @@ public partial class OutpostScene : CozyWorldScene
     /// <summary>A villager arrived: spawn its NPC node at its marker (idempotent).</summary>
     private void OnVillagerArrived(string villagerId) => _villagerLoader?.Refresh(villagerId);
 
+    /// <summary>Clock advanced (a game-minute, or the dawn rollover): re-anchor placed NPCs to their
+    /// current schedule slot. Cheap — the loader skips NPCs whose slot has not changed.</summary>
+    private void OnScheduleTick()
+        => _villagerLoader?.ApplySchedules(GameState.Instance?.Clock.MinuteOfDay ?? DayClock.DayStartMinute);
+
     // ------------------------------------------------------------------ Interactions
 
     private void OnSquadLeveledUp(IReadOnlyList<SquadLevelUpView> levelUps)
@@ -203,6 +226,16 @@ public partial class OutpostScene : CozyWorldScene
         var gs = GameState.Instance;
         if (gs == null)
             return;
+
+        // Sleep is unlocked by repairing the lodging (design/tutorial.md — "sleep unlocked by lodging
+        // repair"): before the walls and roof hold there is nowhere safe to bed down. A friendly toast
+        // points the player back at Tharr's task. The gate lives here (the bedroll interaction), NOT in
+        // GameState.Sleep(), so spike/F6 paths that drive Sleep() directly keep working.
+        if (!gs.HasStoryFlag("lodging_repaired"))
+        {
+            Hud?.ShowToast("No safe place to sleep yet — patch up the lodging with Tharr first.", 3f);
+            return;
+        }
 
         if (Hud != null)
             Hud.PlaySleepTransition(gs.Sleep, () => BuildWakeText(gs));
@@ -250,10 +283,11 @@ public partial class OutpostScene : CozyWorldScene
     private const float VillagerTalkRadius = 72f;
 
     /// <summary>
-    /// Interact press: at the gate, march out with the FULL living squad — confirm-free travel
-    /// (interact → toast → travel; no party-select panel in this flow — the panel and the
-    /// capability-limited selection command remain in the repo for future flows). Away from the
-    /// gate, an interact BESIDE a villager NPC talks to them (the friendship daily-talk bump).
+    /// Interact press: at the gate, open the party-select panel (defaulting to the full party — the
+    /// player deselects anyone to leave behind), then travel on confirm via
+    /// <see cref="OnGatePartyConfirmed"/>. F6/spike fallback (no panel spawned) marches the full squad
+    /// directly. Away from the gate, an interact BESIDE a villager NPC talks to them (the friendship
+    /// daily-talk bump).
     /// </summary>
     protected override void OnInteractRequested(ToolKind tool)
     {
@@ -263,12 +297,18 @@ public partial class OutpostScene : CozyWorldScene
 
         if (_playerAtGate)
         {
+            if (PartySelectPanel != null)
+            {
+                PartySelectPanel.Open(gs.GetPartySelectView(GateTerritoryId));
+                return;
+            }
+
+            // Fallback: no panel (standalone F6) — march with the full living squad.
             if (!gs.TravelToTerritory(GateTerritoryId))
             {
                 Hud?.ShowToast("Cannot travel right now.", 1.5f);
                 return;
             }
-
             string territoryId = GateTerritoryId;
             BeginHandOff(
                 $"The squad marches for {GateDestinationName}.",
@@ -277,6 +317,26 @@ public partial class OutpostScene : CozyWorldScene
         }
 
         TryTalkToVillager(gs);
+    }
+
+    /// <summary>The gate party-select confirmed with the chosen companions (0-3): travel with that
+    /// explicit selection and hand off to the territory.</summary>
+    private void OnGatePartyConfirmed(IReadOnlyList<string> companionIds)
+    {
+        var gs = GameState.Instance;
+        if (gs == null || IsTransitioning)
+            return;
+
+        if (!gs.TravelToTerritory(GateTerritoryId, companionIds))
+        {
+            Hud?.ShowToast("Cannot travel right now.", 1.5f);
+            return;
+        }
+
+        string territoryId = GateTerritoryId;
+        BeginHandOff(
+            $"The squad marches for {GateDestinationName}.",
+            () => SceneRouter.Instance?.GoToTerritory(territoryId));
     }
 
     /// <summary>The placed villager NPC beside the player, for the friendship panel's gift flow.</summary>
@@ -322,15 +382,56 @@ public partial class OutpostScene : CozyWorldScene
         if (charId == null)
             return;
 
+        // Tutorial hand-offs that happen by TALKING to the NPC (design/tutorial.md Step 4 + Fenwick's
+        // Table). Both are attempted BEFORE the talk line is chosen so a successful hand-off has already
+        // mutated state by the time the talk pool is queried:
+        //  • Tharr + repair_lodging active: handing him 15 wood / 10 stone repairs the lodging. On
+        //    success lodging_repaired flips and the scripted Day-1 close takes over (below). Short on
+        //    materials => RepairLodging cleanly no-ops and his "fifteen timber, ten stone" ask plays.
+        //  • Fenwick + a live "give 3 fresh crops" deliver objective: DeliverQuestItems consumes the
+        //    crops and ticks Fenwick's Table. It self-validates (right quest active AND crops in the
+        //    pack), so it only fires at the intended moment and no-ops otherwise.
+        bool lodgingJustRepaired = false;
+        if (charId == "tharr" && gs.IsQuestActive("repair_lodging"))
+        {
+            lodgingJustRepaired = gs.RepairLodging();
+        }
+        else if (charId == "fenwick" && gs.DeliverQuestItems(Bulwark.Data.Quests.FreshCropsSet))
+        {
+            Hud?.ShowToast("You hand Fenwick three fresh crops for the pot.", 3f);
+        }
+
         bool bumped = gs.TalkTo(charId);
 
-        // Try the dialogue system's talk pool first
+        // Scripted Day-1 close (design/tutorial.md): repairing the lodging ends the first day — play the
+        // hearth cutscene, then auto-sleep to Day 2. Takes over the screen from the normal talk line.
+        if (lodgingJustRepaired)
+        {
+            PlayScriptedDayOneClose(gs);
+            return;
+        }
+
+        // Day-2 planning-table tour (design/tutorial_quests.md quest 2): the first talk to Tharr after
+        // first_rest, before the table has been shown, plays the staged ruins tour (camera pans to the
+        // Farmhouse/Tavern/Trading Post building instances) INSTEAD of the talk pool. HasSeenDialogue
+        // guards the once-only replay — planning_table_shown itself is set later, by opening the build
+        // panel for the first time (CozyWorldScene.OnBuildPanelToggled), not by this tour finishing, so
+        // a player who keeps talking to Tharr before ever opening the panel doesn't get the tour again.
+        if (charId == "tharr" && gs.HasStoryFlag("first_rest") && !gs.HasStoryFlag("planning_table_shown")
+            && !gs.HasSeenDialogue("tharr_day2_tour")
+            && TryPlayStoryCutscene(gs, "tharr_day2_tour"))
+        {
+            return;
+        }
+
+        // Try the dialogue system's talk pool first. Play the whole entry (not just its lines) so
+        // any entry-level effects (e.g. latching a story flag on first talk) and choices apply.
         if (gs.DialogueDb != null && gs.DialogueDb.HasTalkPool(charId))
         {
-            var lines = gs.DialogueDb.GetTalkLines(charId, gs.BuildConditionContext());
-            if (lines != null && lines.Count > 0)
+            var entry = gs.DialogueDb.GetTalkEntry(charId, gs.BuildConditionContext());
+            if (entry != null && entry.Lines.Count > 0)
             {
-                PlayTalkLines(lines);
+                PlayTalkEntry(entry);
                 return;
             }
         }
@@ -373,8 +474,93 @@ public partial class OutpostScene : CozyWorldScene
         if (db == null || !db.TryGetSequence("intro_scene_2", out var seq) || seq.Steps == null)
             return;
 
+        // Stage the arrival cutscene against the resident NPC instances the villager loader spawned:
+        // the director hides the actors this script stages (Tharr, via scene_2's `enter` step), then
+        // reveals + walks each in on its enter step. The lookup resolves an actor id to its spawned
+        // node; it returns null when the loader didn't place that villager (or in an F6/spike run
+        // with no VillagerLoader), so staging degrades cleanly to log-and-continue.
+        Director?.PrepareStaging(seq.Steps, id => _villagerLoader?.GetPlaced(id));
+
         PlayDialogueSteps(seq.Steps, "intro_scene_2", seq.Once);
     }
+
+    /// <summary>
+    /// Play a staged story cutscene sequence by id if the (later-authored) JSON exists. Returns true
+    /// when it started playing; false when the sequence is missing, so callers can degrade gracefully
+    /// (still set their flag / advance the day). Mirrors <see cref="TryPlayIntroScene2"/>'s staging.
+    /// </summary>
+    private bool TryPlayStoryCutscene(GameState gs, string dialogueId)
+    {
+        var db = gs.DialogueDb;
+        if (DialogueBox == null || db == null || !db.TryGetSequence(dialogueId, out var seq) || seq.Steps == null)
+            return false;
+
+        Director?.PrepareStaging(seq.Steps, id => _villagerLoader?.GetPlaced(id));
+        return PlayDialogueSteps(seq.Steps, dialogueId, seq.Once);
+    }
+
+    /// <summary>
+    /// Scripted Day-1 close (design/tutorial.md): play the <c>day1_close</c> hearth cutscene, then
+    /// auto-sleep into Day 2 (reusing the sleep/day-advance path, which sets first_rest and lifts the
+    /// tutorial time freeze). The dialogue JSON is authored later — if it is missing, still advance the
+    /// day directly with a warning, so the tutorial never stalls.
+    /// </summary>
+    private void PlayScriptedDayOneClose(GameState gs)
+    {
+        if (TryPlayStoryCutscene(gs, "day1_close"))
+        {
+            Action? onEnded = null;
+            onEnded = () =>
+            {
+                gs.DialogueEnded -= onEnded;
+                gs.Sleep();
+            };
+            gs.DialogueEnded += onEnded;
+            return;
+        }
+
+        GD.PushWarning("[OutpostScene] day1_close cutscene missing — advancing the day directly.");
+        gs.Sleep();
+    }
+
+    /// <summary>
+    /// Arkus found on the first return to the outpost after the wolf kill (dire_wolf_slain &amp;&amp; not yet
+    /// found): play the <c>arkus_found</c> cutscene (if authored) and latch <c>arkus_found</c>, which
+    /// places Arkus as an unconscious resident. The flag is set even when the cutscene JSON is missing.
+    /// </summary>
+    private void TryPlayArkusFound()
+    {
+        var gs = GameState.Instance;
+        if (gs == null)
+            return;
+        if (!gs.HasStoryFlag("dire_wolf_slain") || gs.HasStoryFlag("arkus_found"))
+            return;
+
+        TryPlayStoryCutscene(gs, "arkus_found");
+        gs.SetStoryFlag("arkus_found");
+    }
+
+    /// <summary>
+    /// Arkus wakes once he has been found AND the Trading Post is up (arkus_found &amp;&amp; trading_post_built
+    /// &amp;&amp; not yet awake): play the <c>arkus_wake</c> cutscene (if authored) and latch <c>arkus_awake</c>,
+    /// which opens the Smithy + Infirmary and starts The Smith and the Sickbed. Flag set regardless of
+    /// the cutscene JSON's existence.
+    /// </summary>
+    private void TryPlayArkusWake()
+    {
+        var gs = GameState.Instance;
+        if (gs == null)
+            return;
+        if (!gs.HasStoryFlag("arkus_found") || gs.HasStoryFlag("arkus_awake")
+            || !gs.HasFlagForConditions("trading_post_built"))
+            return;
+
+        TryPlayStoryCutscene(gs, "arkus_wake");
+        gs.SetStoryFlag("arkus_awake");
+    }
+
+    /// <summary>Day-start Arkus-wake check, deferred so a same-rollover day-summary modal opens first.</summary>
+    private void OnDayStartedArkusWake() => Callable.From(TryPlayArkusWake).CallDeferred();
 
     /// <summary>One-shot arrival messages: return-travel notice and/or the defeat wake summary.</summary>
     private void ShowArrivalToasts()

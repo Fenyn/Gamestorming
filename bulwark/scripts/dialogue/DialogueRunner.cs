@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Bulwark.Data.Dialogues;
 
-namespace Bulwark.Cozy;
+namespace Bulwark.Dialogue;
 
 /// <summary>
 /// Callback interface for applying dialogue effects. GameState implements this, routing through
@@ -14,6 +14,14 @@ public interface IDialogueEffectHandler
     void AddFriendship(string charId, int amount);
     void GiveItem(string itemId, int quantity);
     void MarkSeen(string dialogueId);
+
+    /// <summary>
+    /// The player's runtime-chosen name (or null if not yet set). Injected through the same seam as
+    /// the effect commands — the runner already receives this handler at every construction site — so
+    /// line text and the player speaker label can be resolved at the push point without the runner or
+    /// the box reading a singleton.
+    /// </summary>
+    string? PlayerName { get; }
 }
 
 /// <summary>
@@ -34,8 +42,10 @@ public sealed class DialogueRunner
     private bool _waitingForStaging;
     private bool _running;
 
-    /// <summary>Fired when a line is ready for display.</summary>
-    public event Action<string, string, string, bool>? LineReady; // speaker, text, emotion, isChoice
+    /// <summary>Fired when a line is ready for display. The speaker id (for portrait lookup) and the
+    /// resolved speaker display name (for the name label) are pushed separately; the text has had its
+    /// inline tokens (e.g. {player_name}) substituted.</summary>
+    public event Action<string, string, string, string, bool>? LineReady; // speakerId, speakerName, text, emotion, isChoice
 
     /// <summary>Fired when choice buttons should appear.</summary>
     public event Action<List<string>>? ChoicesReady;
@@ -144,22 +154,14 @@ public sealed class DialogueRunner
             {
                 case "line":
                     _waitingForAdvance = true;
-                    LineReady?.Invoke(
-                        step.Speaker ?? "",
-                        step.Text ?? "",
-                        step.Emotion ?? "neutral",
-                        false);
+                    PushLine(step, isChoice: false);
                     return; // wait for Advance()
 
                 case "choice":
                     // Show the prompt line first, then the choices
                     _waitingForChoice = true;
                     CurrentOptions = step.Options;
-                    LineReady?.Invoke(
-                        step.Speaker ?? "",
-                        step.Text ?? "",
-                        step.Emotion ?? "neutral",
-                        true);
+                    PushLine(step, isChoice: true);
                     if (step.Options != null)
                     {
                         var labels = new List<string>();
@@ -181,6 +183,12 @@ public sealed class DialogueRunner
                     _index++;
                     continue;
 
+                case "item":
+                    if (!string.IsNullOrEmpty(step.ItemId))
+                        _handler.GiveItem(step.ItemId, step.Quantity ?? 1);
+                    _index++;
+                    continue;
+
                 case "emote":
                     // Staging command — director handles it
                     _waitingForStaging = true;
@@ -192,6 +200,7 @@ public sealed class DialogueRunner
                 case "exit":
                 case "move":
                 case "camera":
+                case "sfx":
                 case "wait":
                     _waitingForStaging = true;
                     StageCommand?.Invoke(step);
@@ -209,6 +218,22 @@ public sealed class DialogueRunner
         if (_once && !string.IsNullOrEmpty(_dialogueId))
             _handler.MarkSeen(_dialogueId);
         SequenceEnded?.Invoke();
+    }
+
+    /// <summary>
+    /// Push a line/choice-prompt to the UI, resolving presentation at this single seam: the speaker id
+    /// travels for portrait lookup, its display name for the label, and the text has its inline tokens
+    /// substituted — all keyed off the injected player name (see <see cref="DialogueText"/>).
+    /// </summary>
+    private void PushLine(DialogueStep step, bool isChoice)
+    {
+        string? playerName = _handler.PlayerName;
+        LineReady?.Invoke(
+            step.Speaker ?? "",
+            DialogueText.ResolveSpeaker(step.Speaker, playerName),
+            DialogueText.Format(step.Text, playerName),
+            step.Emotion ?? "neutral",
+            isChoice);
     }
 
     private void ApplyEffect(StepEffect effect)

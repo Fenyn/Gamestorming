@@ -285,7 +285,7 @@ public partial class ForestPainter : Node
 
         // Y-sorted root: the baked tree prefabs (z=5, origin at the trunk base) must sort against
         // the player (z=5) so canopies draw over the player standing behind a tree.
-        var root = new Bulwark.Territory.ForestScene { Name = "Forest", YSortEnabled = true };
+        var root = new Bulwark.Territory.TerritoryScene { Name = "Forest", YSortEnabled = true };
         _ground = MakeLayer(root, "Ground", 0, false);
         _groundDecor = MakeLayer(root, "GroundDecor", 0, false);
         _walls = MakeLayer(root, "Walls", 0, true);

@@ -6,6 +6,7 @@ using Bulwark.Cozy;
 using Bulwark.UI;
 using Godot;
 
+using Bulwark.Settings;
 namespace Bulwark.Dev;
 
 /// <summary>
@@ -319,13 +320,13 @@ public partial class PauseOptionsSpike : SpikeBase
         var gs = GetNodeOrNull<GameState>("/root/GameState");
         bool clockWasPaused = gs?.Clock.IsPaused ?? false;
         if (gs != null)
-            gs.Clock.IsPaused = true; // freeze the loaded save's clock for the duration of this section
+            gs.Clock.SetPaused("spike", true); // freeze the loaded save's clock for the duration of this section
 
         var packed = GD.Load<PackedScene>("res://scenes/outpost/outpost.tscn");
         Check("(E) outpost.tscn loads", packed != null);
         if (packed == null)
         {
-            if (gs != null) gs.Clock.IsPaused = clockWasPaused;
+            if (gs != null) gs.Clock.SetPaused("spike", clockWasPaused);
             return;
         }
 
@@ -366,7 +367,7 @@ public partial class PauseOptionsSpike : SpikeBase
         outpost.QueueFree();
         await PhysicsFrames(1);
         if (gs != null)
-            gs.Clock.IsPaused = clockWasPaused;
+            gs.Clock.SetPaused("spike", clockWasPaused);
     }
 
     // ─────────────────────────── helpers ───────────────────────────

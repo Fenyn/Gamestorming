@@ -31,13 +31,19 @@ public sealed class Wallet
     }
 
     /// <summary>
-    /// Spend gold if the balance covers it. Returns false (no mutation) when the amount is
-    /// non-positive or exceeds the balance — the validation path for smithy commands, so an
-    /// insufficient-gold purchase consumes nothing.
+    /// Spend gold if the balance covers it. A zero amount is a no-op SUCCESS (a free/0-price purchase
+    /// costs nothing and always "affords") — callers no longer special-case it. Returns false (no
+    /// mutation) when the amount exceeds the balance — the validation path for smithy commands, so an
+    /// insufficient-gold purchase consumes nothing. A negative amount is a programmer error and throws,
+    /// consistent with <see cref="EarnGold"/>.
     /// </summary>
     public bool TrySpendGold(int amount)
     {
-        if (amount <= 0 || Gold < amount)
+        if (amount < 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), amount, "Spent gold must not be negative.");
+        if (amount == 0)
+            return true;
+        if (Gold < amount)
             return false;
         Gold -= amount;
         GoldChanged?.Invoke(Gold);

@@ -24,8 +24,9 @@ Layering (dependencies point down only):
 - Node access via %UniqueName; exported fields for tunables.
 - UI is passive: renders from state-change events, raises intent events. No game rules in Control scripts.
 - Data-driven content: crops, buildings, quests, variant combos, encounter tables are declarative definitions in scripts/data/ — adding content touches data only.
-- C#: .NET naming, nullable enabled, one class per file, folders mirror namespaces (Bulwark.Combat, Bulwark.Cozy, Bulwark.Outpost, Bulwark.Data, Bulwark.UI, Bulwark.Autoload).
+- C#: .NET naming, nullable enabled, one class per file, folders mirror namespaces (Bulwark.Combat, Bulwark.Cozy, Bulwark.Save, Bulwark.Quests, Bulwark.Dialogue, Bulwark.Settings, Bulwark.Territory, Bulwark.Data, Bulwark.UI, Bulwark.Autoload).
 - Engine types never leak into UI code; UI consumes view-model shaped data from system classes.
+- Error channels: plain-C# systems signal failure through return values / results (or the PF2e `Log` seam), never `GD.Print`. Godot-side classes (Nodes, loaders, autoloads) use `GD.PushError`/`GD.PushWarning` for genuine problems (missing/malformed content, broken references) so they surface in the editor's error panel; `GD.Print` is for chatter only (progress, adopted-instance notices). Content-load referential integrity is validated fail-fast by `DataValidation.RunAll` (dev builds only).
 
 ## Scene/asset conventions
 

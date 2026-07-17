@@ -174,6 +174,16 @@ public sealed class BuildingDefinition
     /// baseline behavior is unchanged.</summary>
     public int GoldCost { get; init; }
 
+    /// <summary>
+    /// Optional commissionability gate (design/tutorial_quests.md — the character-first rule made
+    /// mechanical). While set and NOT satisfied (resolved through GameState.HasFlagForConditions, so
+    /// derived flags work too), the building is HIDDEN from the planning table entirely and
+    /// <see cref="Bulwark.Cozy.BuildingSystem.CanCommission"/> rejects it. Null (the default) = always
+    /// offered — byte-identical to the pre-gate behaviour. Smithy → "arkus_arrived",
+    /// Infirmary → "josen_arrived"; the pattern extends to later character-first buildings.
+    /// </summary>
+    public string? RequiredFlagId { get; init; }
+
     /// <summary>Tiers in ascending order (tier 1 = base built state).</summary>
     public required IReadOnlyList<BuildingTier> Tiers { get; init; }
 
@@ -210,8 +220,9 @@ public sealed class BuildingDefinition
 /// Static registry of every buildable structure — the full 13-building roster from
 /// design/economy/buildings.md, which is the source of truth for every bundle, Gold cost, and
 /// effect below. The Command Post is the one start-state building: it exists at tier 1 from day
-/// one with no construction bundle, and its ladder is upgrades only (tiers 2-4). Trading Post,
-/// Kitchen, and Farmhouse are commissionable from day one but are NOT start-state: each still pays
+/// one with no construction bundle, and no tiers beyond it — upgrade tiers are deferred pending
+/// design (see the Command Post's own tier-1-only <see cref="BuildingDefinition.Tiers"/>). Trading Post,
+/// Tavern, and Farmhouse are commissionable from day one but are NOT start-state: each still pays
 /// a construction bundle to stand up tier 1. The remaining nine buildings are character-first or
 /// progress-gated (see characters.md / buildings.md section 1). Adding a building is a data-only
 /// edit here.
@@ -224,6 +235,11 @@ public static class Buildings
         DisplayName = "Command Post",
         GoldCost = 0,
         ConstructionBundle = Array.Empty<BundleRequirement>(),
+        // Upgrade tiers are DEFERRED pending design (2026-07-16 decision): the Command Post's purpose
+        // is the planning table that guides repair of the whole outpost, not a tier ladder. Tier 1 —
+        // the start state below — is the only shipped tier; the old 2-4 ladder (stat/facility tier,
+        // BiomeUnlock(sunken_reach), Resurrection) lives in design-doc history / git, not here. The
+        // Sunken Reach's eventual unlock path is TBD, decided when upgrade tiers are designed.
         Tiers = new BuildingTier[]
         {
             new()
@@ -231,54 +247,6 @@ public static class Buildings
                 // Planning table (start state): the commission menu for every other building, plus
                 // the roster screen. No upgrade bundle, no Gold cost, no declarative effect.
                 Tier = 1, StageIndex = 1,
-            },
-            new()
-            {
-                Tier = 2, StageIndex = 2,
-                GoldCost = 350,
-                UpgradeBundle = new BundleRequirement[]
-                {
-                    new() { ItemId = "goblin_fang", Quantity = 30 },
-                    new() { ItemId = "deserter_badge", Quantity = 20 },
-                    new() { ItemId = "wood", Quantity = 15 },
-                },
-                Effects = new BuildingEffect[]
-                {
-                    new() { Type = BuildingEffectType.BiomeUnlock, Detail = "elderwood" },
-                },
-            },
-            new()
-            {
-                Tier = 3, StageIndex = 3,
-                GoldCost = 450,
-                UpgradeBundle = new BundleRequirement[]
-                {
-                    new() { ItemId = "beast_hide", Quantity = 25 },
-                    new() { ItemId = "warden_bark", Quantity = 20 },
-                    new() { ItemId = "hardwood", Quantity = 15 },
-                },
-                Effects = new BuildingEffect[]
-                {
-                    new() { Type = BuildingEffectType.BiomeUnlock, Detail = "sunken_reach" },
-                },
-            },
-            new()
-            {
-                Tier = 4, StageIndex = 4,
-                GoldCost = 2000,
-                UpgradeBundle = new BundleRequirement[]
-                {
-                    new() { ItemId = "hollow_locket", Quantity = 1 },
-                    new() { ItemId = "venom_sac", Quantity = 1 },
-                    new() { ItemId = "goblin_totem", Quantity = 1 },
-                    new() { ItemId = "iron_ingot", Quantity = 20 },
-                    new() { ItemId = "ward_salt", Quantity = 15 },
-                    new() { ItemId = "bogwood", Quantity = 15 },
-                },
-                Effects = new BuildingEffect[]
-                {
-                    new() { Type = BuildingEffectType.Resurrection },
-                },
             },
         },
     };
@@ -288,10 +256,13 @@ public static class Buildings
         Id = "trading_post",
         DisplayName = "Trading Post",
         GoldCost = 60,
+        // Requires Elderwood hardwood — the wolf guards that passage (design/tutorial_quests.md,
+        // Restore the Trading Post).
         ConstructionBundle = new BundleRequirement[]
         {
             new() { ItemId = "wood", Quantity = 90 },
             new() { ItemId = "stone", Quantity = 60 },
+            new() { ItemId = "hardwood", Quantity = 30 },
         },
         Tiers = new BuildingTier[]
         {
@@ -327,11 +298,15 @@ public static class Buildings
         Id = "smithy",
         DisplayName = "Smithy",
         GoldCost = 120,
+        // Character-first: hidden from the planning table until Arkus wakes (design/tutorial_quests.md,
+        // The Smith and the Sickbed).
+        RequiredFlagId = "arkus_awake",
+        // design/economy/buildings.md keeps one combat-drop line in this bundle deliberately.
         ConstructionBundle = new BundleRequirement[]
         {
+            new() { ItemId = "wood", Quantity = 90 },
+            new() { ItemId = "hardwood", Quantity = 40 },
             new() { ItemId = "goblin_fang", Quantity = 25 },
-            new() { ItemId = "rat_pelt", Quantity = 20 },
-            new() { ItemId = "wood", Quantity = 15 },
         },
         Tiers = new BuildingTier[]
         {
@@ -401,9 +376,13 @@ public static class Buildings
         Id = "infirmary",
         DisplayName = "Infirmary",
         GoldCost = 90,
+        // Character-first: hidden until Arkus wakes and prompts it (design/tutorial_quests.md, The
+        // Smith and the Sickbed). Josen then arrives once the Infirmary is built.
+        RequiredFlagId = "arkus_awake",
         ConstructionBundle = new BundleRequirement[]
         {
             new() { ItemId = "wood", Quantity = 120 },
+            new() { ItemId = "hardwood", Quantity = 30 },
             new() { ItemId = "herb", Quantity = 20 },
         },
         Tiers = new BuildingTier[]
@@ -662,16 +641,27 @@ public static class Buildings
         },
     };
 
-    public static readonly BuildingDefinition Kitchen = new()
+    /// <summary>
+    /// The tavern — hearth, kitchen, and common room. <see cref="VisualRules"/> carries the lodging
+    /// repair's visual payoff (design/tutorial.md Day 1): once <c>lodging_repaired</c> is set, Stage1
+    /// shows early (the "the lodging hall visually updates" beat) even though the tavern itself is not
+    /// yet commissioned — the override retires the moment the tavern IS commissioned (<c>tavern_commissioned</c>),
+    /// handing off to the normal scaffold → tier-stage progression.
+    /// </summary>
+    public static readonly BuildingDefinition Tavern = new()
     {
-        Id = "kitchen",
-        DisplayName = "Kitchen",
+        Id = "tavern",
+        DisplayName = "Tavern",
         GoldCost = 70,
         ConstructionBundle = new BundleRequirement[]
         {
             new() { ItemId = "wood", Quantity = 90 },
             new() { ItemId = "stone", Quantity = 60 },
             new() { ItemId = "herb", Quantity = 15 },
+        },
+        VisualRules = new BuildingVisualRule[]
+        {
+            new() { StageOverride = 1, FlagId = "lodging_repaired", UnlessFlagId = "tavern_commissioned" },
         },
         Tiers = new BuildingTier[]
         {
@@ -953,7 +943,7 @@ public static class Buildings
 
     private static readonly DefinitionRegistry<BuildingDefinition> Registry = new(d => d.Id,
         CommandPost, TradingPost, Smithy, Infirmary, Chapel, ArcaneStudy, TrainingYard,
-        Apothecary, Kitchen, Farmhouse, Watchtower, Reliquary, FishingDock);
+        Apothecary, Tavern, Farmhouse, Watchtower, Reliquary, FishingDock);
 
     /// <summary>Every defined building.</summary>
     public static IReadOnlyCollection<BuildingDefinition> All => Registry.All;

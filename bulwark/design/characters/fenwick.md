@@ -5,7 +5,7 @@
 - **Ancestry:** Halfling
 - **Pronouns:** he/him
 - **Kind:** starting-party PC
-- **Associated building:** Kitchen / Tavern
+- **Associated building:** Tavern
 - **Deity:** Lyndra (see `../deities/lyndra.md`)
 
 ## Vibe
@@ -28,7 +28,7 @@ Fenwick runs the tavern and the kitchen. He is the outpost's chef, its social an
 person most likely to know how everyone is doing on any given day. People talk to Fenwick because
 he is easy to talk to, and because there is usually something cooking.
 
-Mechanically, he is the source of day-long meal buffs for the party. As the Kitchen building
+Mechanically, he is the source of day-long meal buffs for the party. As the Tavern building
 upgrades and his recipe collection grows, the range and quality of those buffs expand. He is
 also the party's second spellcaster, bringing arcane firepower that complements Tharr's divine
 support.

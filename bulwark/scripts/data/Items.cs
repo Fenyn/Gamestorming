@@ -554,6 +554,14 @@ public static class Items
         Id = "drowning_lantern", DisplayName = "Drowning Lantern", Category = ItemCategory.Trophy, SellValue = 37,
     };
 
+    /// <summary>The dire wolf's pelt — the tutorial-arc capstone boss trophy (design/tutorial_quests.md
+    /// quest 9). A Verdant Fringe boss drop, not a creature-family trophy: dropped only by the one-shot
+    /// wolf-lair boss encounter. Bundle / Smithy material — almost always the wrong call to sell.</summary>
+    public static readonly ItemDefinition DireWolfPelt = new()
+    {
+        Id = "dire_wolf_pelt", DisplayName = "Dire Wolf Pelt", Category = ItemCategory.Trophy, SellValue = 40,
+    };
+
     private static readonly DefinitionRegistry<ItemDefinition> Registry = new(d => d.Id,
         TurnipSeed, PotatoSeed, WheatSeed, TomatoSeed, CarrotSeed, WinterSquashSeed, HearthRootSeed, FrostKaleSeed,
         Turnip, Potato, Wheat, Tomato, Carrot, WinterSquash, HearthRoot, FrostKale,
@@ -571,7 +579,8 @@ public static class Items
         GoblinFang, RatPelt, BeastHide, GoblinScrap, DeserterBadge, WardenBark, MudclawHide, SerpentScale,
         SporePod, DrownedBone, MarshLeech, SapGland, FeyCharm, SpiderSilk, ThornbackHide, SwampDrakeScale, WispEmber,
         GoblinTotem, NestMatriarchTail, DeserterSignet, AlphaPelt, HeartwoodShard, ReaverTooth, VenomSac, FungalCore,
-        HollowLocket, AmberCore, HollowCrown, SilkqueenFang, GrovefatherKnuckle, SovereignHide, DrowningLantern);
+        HollowLocket, AmberCore, HollowCrown, SilkqueenFang, GrovefatherKnuckle, SovereignHide, DrowningLantern,
+        DireWolfPelt);
 
     /// <summary>Every defined item.</summary>
     public static IReadOnlyCollection<ItemDefinition> All => Registry.All;

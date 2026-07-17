@@ -1,0 +1,34 @@
+{
+  "id": "arkus_tutorial",
+  "type": "TalkPool",
+  "character": "arkus",
+  "entries": [
+    {
+      "priority": 20,
+      "conditions": {
+        "flags_required": ["arkus_awake"],
+        "flags_blocked": ["smithy_built"]
+      },
+      "lines": [
+        { "speaker": "arkus", "text": "The forge frame goes where you marked it. Wood and hardwood — I will make it a forge." },
+        { "speaker": "arkus", "text": "And a sickbed. The outpost has none. Build both before the forest sends the next one of us back broken." }
+      ]
+    },
+    {
+      "priority": 15,
+      "conditions": {
+        "flags_required": ["smithy_built"]
+      },
+      "lines": [
+        { "speaker": "arkus", "text": "The forge holds heat now. Bring me metal. I will make you something that does not break when you need it to hold. I do not make junk." }
+      ]
+    },
+    {
+      "priority": 0,
+      "conditions": {},
+      "lines": [
+        { "speaker": "arkus", "text": "Say what you mean. It is faster." }
+      ]
+    }
+  ]
+}

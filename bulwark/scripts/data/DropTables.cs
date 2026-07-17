@@ -199,6 +199,24 @@ public static class DropTables
         CoinMin = 25, CoinMax = 35,
     };
 
+    // --- The Wolf of the Fringe (tutorial-arc capstone boss, design/tutorial_quests.md quest 9) ---
+    // A one-shot Verdant Fringe boss, not a creature family: the dire wolf drops its unique pelt
+    // (dire_wolf_pelt trophy, guaranteed — single entry) with a boss-band coin roll; its pack-mates
+    // drop the ordinary beast_hide common part plus common-band coin. The trophy reaches the party
+    // through the normal per-creature loot roll (LootRoller.RollEncounter), alongside these drops.
+    public static readonly DropTable DireWolfBossDrops = new()
+    {
+        Id = "dire_wolf_boss_drops",
+        Entries = new[] { new DropEntry { ItemId = "dire_wolf_pelt", MinQty = 1, MaxQty = 1 } },
+        CoinMin = 25, CoinMax = 35,
+    };
+    public static readonly DropTable DireWolfPackDrops = new()
+    {
+        Id = "dire_wolf_pack_drops",
+        Entries = new[] { new DropEntry { ItemId = "beast_hide", MinQty = 1, MaxQty = 2 } },
+        CoinMin = 3, CoinMax = 6,
+    };
+
     // ================= The Elderwood (moderate: common 6-10, elite 18-26, boss 35-50) =================
 
     // --- Beasts (beast_hide common; alpha_pelt trophy) ---
@@ -515,6 +533,7 @@ public static class DropTables
         BrigandDrops, BrigandEliteDrops, BrigandBossDrops,
         BrambleSlickDrops, BrambleSlickEliteDrops, BrambleSlickBossDrops,
         HedgeFolkDrops, HedgeFolkEliteDrops, HedgeFolkBossDrops,
+        DireWolfBossDrops, DireWolfPackDrops,
         BeastDrops, BeastEliteDrops, BeastBossDrops,
         RootWardenDrops, RootWardenEliteDrops, RootWardenBossDrops,
         CanopySpiderDrops, CanopySpiderEliteDrops, CanopySpiderBossDrops,

@@ -23,6 +23,9 @@ public static class HeroSpriteMap
         [PresetCharacters.TharrId] = Root + "cleric",
         [PresetCharacters.ScholarId] = Root + "wizard",
         [PresetCharacters.ScoutId] = Root + "rogue",
+        // The founding cast reuse the wizard/rogue sheets under their real ids.
+        [PresetCharacters.FenwickId] = Root + "wizard",
+        [PresetCharacters.ElaraId] = Root + "rogue",
     };
 
     /// <summary>Resolve the sprite folder for a hero id, falling back to the default.</summary>

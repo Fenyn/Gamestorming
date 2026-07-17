@@ -122,11 +122,17 @@ public sealed class PlayerActionExecutor
         if (character.Actions == null || !character.Actions.TryConsumeActions(1))
             return false;
 
+        // Walk-animation CUE only — deliberately carries NO Path. The per-tile MovementStep events
+        // in the loop below drive the actual segment-by-segment animation so movement reactions
+        // (Reactive Strike) resolve BETWEEN tiles. Emitting the whole path here would animate the
+        // token to the destination before the first tile-exit prompt could appear, and a
+        // reaction-cancelled stride would then teleport it back on MovementCompleted. The presenter
+        // reads a pathless MovementStarted as SetMoving(true) (lowered by MovementCompleted); a
+        // 2-point Path (Step / EmitPositionSync) still animates immediately as a slide.
         await _runner.Emit(new BattleEvent
         {
             Type = BattleEventType.MovementStarted,
             Source = character,
-            Path = path,
             Description = $"{character.Name} Strides to ({dest.x}, {dest.y})"
         });
 
@@ -152,6 +158,9 @@ public sealed class PlayerActionExecutor
             if (args.Cancelled)
             {
                 _grid.MoveCreature(character, from);
+                // Reconcile-only: no MovementStep ran for this tile, so the token still sits on `from`.
+                // MovementCompleted snaps to the authoritative GridPosition (== from) — never a
+                // teleport back across the already-animated segments.
                 await _runner.Emit(BattleEventType.MovementCompleted, source: character,
                     description: $"{character.Name} movement interrupted!");
                 return true;
@@ -159,10 +168,14 @@ public sealed class PlayerActionExecutor
 
             _grid.MoveCreature(character, to);
 
+            // Animate exactly this one segment now that the tile-exit reaction has resolved. The
+            // 2-point Path is the animation payload; the presenter tweens from -> to without toggling
+            // the walk state (raised by MovementStarted, lowered by MovementCompleted).
             await _runner.Emit(new BattleEvent
             {
                 Type = BattleEventType.MovementStep,
-                Source = character
+                Source = character,
+                Path = new List<PF2eVec> { from, to }
             });
         }
 

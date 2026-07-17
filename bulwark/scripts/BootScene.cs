@@ -2,6 +2,7 @@ using Bulwark.Autoload;
 using Bulwark.Cozy;
 using Godot;
 
+using Bulwark.Settings;
 namespace Bulwark;
 
 /// <summary>

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Bulwark.Cozy;
+namespace Bulwark.Quests;
 
 public sealed record QuestView(
     IReadOnlyList<QuestEntryView> Active,
@@ -17,10 +17,3 @@ public sealed record QuestObjectiveView(
     int Progress,
     int Target,
     bool Done);
-
-public sealed class QuestDto
-{
-    public string QuestId { get; set; } = "";
-    public bool Completed { get; set; }
-    public int[] ObjectiveProgress { get; set; } = System.Array.Empty<int>();
-}

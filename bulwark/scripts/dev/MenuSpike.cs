@@ -7,6 +7,7 @@ using Bulwark.Data;
 using Bulwark.UI;
 using Godot;
 
+using Bulwark.Quests;
 namespace Bulwark.Dev;
 
 /// <summary>
@@ -16,10 +17,14 @@ namespace Bulwark.Dev;
 ///  (C) Quest definitions: tutorial quests exist and have correct objectives
 ///  (D) Title screen scene instantiates without error
 ///  (E) Name entry scene instantiates, emits signal on confirm
-///  (F) GameState.StartNewGame sets name, clears save, seeds inventory
+///  (F) GameState.StartNewGame sets name, seeds inventory, and RESETS all prior state to fresh
 /// </summary>
 public partial class MenuSpike : SpikeBase
 {
+    private const string SavePath = "user://save/slot0.json";
+    private bool _slot0Existed;
+    private string? _slot0Backup;
+
     public override void _Ready() => _ = RunAsync();
 
     private async Task RunAsync()
@@ -165,23 +170,24 @@ public partial class MenuSpike : SpikeBase
     {
         GD.Print("-------------------- (C) Quest definitions --------------------");
 
-        Check("(C) repair_lodging defined", Quests.TryGet("repair_lodging", out var rl));
+        Check("(C) repair_lodging defined", Bulwark.Data.Quests.TryGet("repair_lodging", out var rl));
         Check("(C) repair_lodging has 3 objectives", rl!.Objectives.Length == 3);
         Check("(C) repair_lodging obj 0 tracks wood x15",
             rl.Objectives[0].TrackingItemId == "wood" && rl.Objectives[0].TargetCount == 15);
         Check("(C) repair_lodging obj 1 tracks stone x10",
             rl.Objectives[1].TrackingItemId == "stone" && rl.Objectives[1].TargetCount == 10);
 
-        Check("(C) first_rest defined", Quests.TryGet("first_rest", out var fr));
+        Check("(C) first_rest defined", Bulwark.Data.Quests.TryGet("first_rest", out var fr));
         Check("(C) first_rest has 1 objective", fr!.Objectives.Length == 1);
 
-        Check("(C) planning_table defined", Quests.TryGet("planning_table", out var pt));
+        Check("(C) planning_table defined", Bulwark.Data.Quests.TryGet("planning_table", out var pt));
         Check("(C) planning_table has 1 objective", pt!.Objectives.Length == 1);
 
-        Check("(C) first_building defined", Quests.TryGet("first_building", out var fb));
+        Check("(C) first_building defined", Bulwark.Data.Quests.TryGet("first_building", out var fb));
         Check("(C) first_building has 1 objective", fb!.Objectives.Length == 1);
 
-        Check("(C) All contains 4 quests", Quests.All.Count == 4);
+        // 4 shipped tutorial quests + the 11-quest "The First Season" arc (design/tutorial_quests.md).
+        Check("(C) All contains the 4 tutorial + 11 arc quests", Bulwark.Data.Quests.All.Count == 15);
     }
 
     // ─────────────────── (D) Title screen scene ───────────────────
@@ -283,17 +289,100 @@ public partial class MenuSpike : SpikeBase
             return;
         }
 
-        // StartNewGame: set name, seed inventory
-        gs.StartNewGame("TestWarden");
-        Check("(F) PlayerName set", gs.PlayerName == "TestWarden");
-        Check("(F) starter inventory seeded (turnip_seed)",
-            gs.Inventory.Count("turnip_seed") > 0);
-        Check("(F) starter inventory seeded (wood)",
-            gs.Inventory.Count("wood") > 0);
+        // This section mutates and DELETES the save slot; protect the user's real save around it.
+        BackupSlot0();
+        try
+        {
+            RunStartNewGameReset(gs);
+        }
+        finally
+        {
+            RestoreSlot0();
+        }
+    }
 
-        // Quest queries
+    private void RunStartNewGameReset(GameState gs)
+    {
+        // ── Simulate a played session: dirty a spread of persisted systems ──
+        // clock date, gold, inventory, story flags (incl. the intro gate), quest log, a building,
+        // friendship points, and a seen once-only dialogue.
+        gs.Clock.RestoreState(1000, 5, gs.Clock.Season, gs.Clock.Year); // Day 5, ~4:40 PM
+        gs.EarnGold(500);
+        gs.AddItem("wood", 90);
+        gs.AddItem("stone", 60);
+        gs.SetStoryFlag("intro_complete");   // would skip the intro on a contaminated New Game
+        gs.SetStoryFlag("lodging_repaired"); // completes repair_lodging, starts first_rest
+        gs.MarkDialogueSeen("intro_scene_0");
+        gs.AddDialogueFriendship("tharr", 300); // 300 pts → ≥ 1 heart (PointsPerHeart = 250)
+
+        // A building commission is the heaviest persisted mutation (consumes the wood/stone above +
+        // gold, latches tier 1, and SAVES). Guarded: if the economy rejects it we skip only the
+        // building assertions, never fail the reset proof.
+        bool commissioned = gs.CommissionBuilding("trading_post");
+
+        // Preconditions: confirm the mutations actually landed (else the reset asserts are hollow).
+        Check("(F) pre: clock advanced to Day 5", gs.Clock.Day == 5);
+        Check("(F) pre: gold mutated", gs.Gold > 0);
+        Check("(F) pre: intro_complete flag set", gs.HasStoryFlag("intro_complete"));
+        Check("(F) pre: repair_lodging completed, first_rest active",
+            gs.IsQuestCompleted("repair_lodging") && gs.IsQuestActive("first_rest"));
+        Check("(F) pre: dialogue marked seen", gs.HasSeenDialogue("intro_scene_0"));
+        Check("(F) pre: friendship earned (tharr ≥ 1 heart)", gs.HeartsOf("tharr") >= 1);
+        if (commissioned)
+            Check("(F) pre: trading_post commissioned (tier ≥ 1)", gs.GetBuildingTier("trading_post") >= 1);
+        Check("(F) pre: a save file was written", gs.SaveExists());
+
+        // ── New Game: must wipe every one of the above back to fresh ──
+        gs.StartNewGame("TestWarden");
+
+        Check("(F) PlayerName set", gs.PlayerName == "TestWarden");
+        Check("(F) clock reset to Day 1 at day-start",
+            gs.Clock.Day == 1 && gs.Clock.MinuteOfDay == DayClock.DayStartMinute);
+        Check("(F) clock reset to Spring, Year 1",
+            gs.Clock.Season == Season.Spring && gs.Clock.Year == 1);
+        Check("(F) gold reset to 0", gs.Gold == 0);
+        Check("(F) intro_complete flag cleared (intro will play)", !gs.HasStoryFlag("intro_complete"));
+        Check("(F) lodging_repaired flag cleared", !gs.HasStoryFlag("lodging_repaired"));
+        Check("(F) quest log cleared (repair_lodging not completed)", !gs.IsQuestCompleted("repair_lodging"));
+        Check("(F) quest log cleared (first_rest not active)", !gs.IsQuestActive("first_rest"));
+        Check("(F) seen dialogues cleared", !gs.HasSeenDialogue("intro_scene_0"));
+        Check("(F) friendship reset (tharr back to 0 hearts)", gs.HeartsOf("tharr") == 0);
+        if (commissioned)
+            Check("(F) building reset (trading_post back to tier 0)", gs.GetBuildingTier("trading_post") == 0);
+
+        // Starter inventory re-seeded onto the now-empty pool (wood back to the starter 10, not 100).
+        Check("(F) starter inventory seeded (turnip_seed)", gs.Inventory.Count("turnip_seed") > 0);
+        Check("(F) starter inventory reset to starter amount (wood == 10)",
+            gs.Inventory.Count("wood") == 10);
+        Check("(F) prior save deleted by New Game", !gs.SaveExists());
+
         var qView = gs.GetQuestView();
         Check("(F) quest view accessible (not null)", qView != null);
+        Check("(F) quest view has no completed quests", qView != null && qView.Completed.Count == 0);
+    }
+
+    // ── Save-slot protection (this section deletes user://save/slot0.json + its .bak) ──
+
+    private void BackupSlot0()
+    {
+        _slot0Existed = Godot.FileAccess.FileExists(SavePath);
+        if (!_slot0Existed)
+            return;
+        using var file = Godot.FileAccess.Open(SavePath, Godot.FileAccess.ModeFlags.Read);
+        _slot0Backup = file?.GetAsText();
+    }
+
+    private void RestoreSlot0()
+    {
+        if (_slot0Existed && _slot0Backup != null)
+        {
+            using var file = Godot.FileAccess.Open(SavePath, Godot.FileAccess.ModeFlags.Write);
+            file?.StoreString(_slot0Backup);
+        }
+        else if (!_slot0Existed && Godot.FileAccess.FileExists(SavePath))
+        {
+            DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(SavePath));
+        }
     }
 
     private async Task Frames(int count)

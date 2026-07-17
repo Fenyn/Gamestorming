@@ -4,6 +4,32 @@
   "character": "fenwick",
   "entries": [
     {
+      "priority": 55,
+      "conditions": {
+        "flags_required": ["farmhouse_built"],
+        "flags_blocked": ["starter_seeds_granted"]
+      },
+      "effects": [
+        { "type": "flag", "set": "starter_seeds_granted" },
+        { "type": "item", "item_id": "turnip_seed", "quantity": 10 }
+      ],
+      "lines": [
+        { "speaker": "fenwick", "text": "The farmhouse is up, and I have been rummaging. Found the old seed-store — turnip, mostly, and still good. Here, take them." },
+        { "speaker": "fenwick", "text": "Till a patch of the cleared soil, plant them, and water them every day. Four days and you will have turnips. There is no store to buy seed from yet, so mind these — they are the whole first crop." },
+        { "speaker": "fenwick", "text": "Bring me some when they come up. A kitchen is a very sad room without something to cook." }
+      ]
+    },
+    {
+      "priority": 45,
+      "conditions": {
+        "flags_required": ["quest_first_harvest_complete", "tavern_built"],
+        "flags_blocked": ["quest_fenwicks_table_complete"]
+      },
+      "lines": [
+        { "speaker": "fenwick", "text": "You have a harvest. Splendid. Bring me three fresh crops and I will put the hearth to proper use — the first real meal this outpost has seen in years." }
+      ]
+    },
+    {
       "priority": 40,
       "conditions": {
         "flags_required": ["lodging_repaired"],
@@ -17,16 +43,16 @@
       "priority": 35,
       "conditions": {
         "flags_required": ["planning_table_shown"],
-        "flags_blocked": ["kitchen_built"]
+        "flags_blocked": ["tavern_built"]
       },
       "lines": [
-        { "speaker": "fenwick", "text": "The hearth draws well, but the room around it needs a roof and a proper flue. A kitchen is only as good as the walls that keep the rain out of the soup." }
+        { "speaker": "fenwick", "text": "The hearth draws well, but the room around it needs a roof and a proper flue. A tavern is only as good as the walls that keep the rain out of the soup." }
       ]
     },
     {
       "priority": 30,
       "conditions": {
-        "flags_required": ["kitchen_built"]
+        "flags_required": ["tavern_built"]
       },
       "lines": [
         { "speaker": "fenwick", "text": "The kitchen is open. Bring me ingredients and I will turn them into something worth eating. A well-fed party fights better, works harder, and complains less. Mostly less." }

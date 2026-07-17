@@ -20,21 +20,13 @@ public static class Villagers
     // complete, and the flag/counter itself is a follow-up GameState wiring task, not a data-pass
     // concern. Building associations mirror buildings.md's character-first / building-first split.
 
-    /// <summary>Barbarian. Character-first → Smithy: found wounded after the party clears the first
-    /// forest expedition encounter.</summary>
-    public static readonly VillagerDefinition Arkus = new()
-    {
-        Id = "arkus",
-        DisplayName = "Arkus",
-        AssociatedBuildingId = "smithy",
-        Recruitable = true,
-        JoinPresetKey = "arkus",
-        Arrival = ArrivalTrigger.StoryFlag("first_forest_encounter_cleared"),
-    };
+    // Arkus is NOT hand-authored here: he has a full CharacterProfile (characters/Arkus.cs) whose
+    // emitted VillagerDefinition carries his arrival (StoryFlag arkus_found, latched by the found
+    // cutscene on the first return after dire_wolf_slain). One source of truth — do not re-add him.
 
-    /// <summary>Monk. Character-first → Infirmary: a party member ends combat wounded/downed for the
-    /// first time, with a mid-Spring Year 1 calendar fallback so a cautious/lucky player can't lock
-    /// him out forever.</summary>
+    /// <summary>Monk. Character-first → Infirmary: a random event 1-3 days after the Infirmary is
+    /// built brings him in (StoryDirector.OnDayStarted sets josen_arrived), rather than gating the
+    /// building itself. Mend the Wounded starts on his arrival.</summary>
     public static readonly VillagerDefinition Josen = new()
     {
         Id = "josen",
@@ -42,9 +34,7 @@ public static class Villagers
         AssociatedBuildingId = "infirmary",
         Recruitable = true,
         JoinPresetKey = "josen",
-        Arrival = ArrivalTrigger.Any(
-            ArrivalTrigger.StoryFlag("first_casualty"),
-            ArrivalTrigger.DateReached(Season.Spring, 14, 1)),
+        Arrival = ArrivalTrigger.StoryFlag("josen_arrived"),
     };
 
     /// <summary>Witch. Character-first → Apothecary: the Elderwood biome is explored (requires
@@ -137,18 +127,18 @@ public static class Villagers
         Arrival = ArrivalTrigger.StoryFlag("eight_trophies_collected"),
     };
 
-    /// <summary>Bard. Building-first: Kitchen reaches tier 2 (the tavern common room exists).</summary>
+    /// <summary>Bard. Building-first: Tavern reaches tier 2 (the common room exists).</summary>
     public static readonly VillagerDefinition Wynn = new()
     {
         Id = "wynn",
         DisplayName = "Wynn",
-        AssociatedBuildingId = "kitchen",
+        AssociatedBuildingId = "tavern",
         Recruitable = true,
         JoinPresetKey = "wynn",
-        Arrival = ArrivalTrigger.BuildingReached("kitchen", 2),
+        Arrival = ArrivalTrigger.BuildingReached("tavern", 2),
     };
 
-    /// <summary>Summoner. Building-first: Kitchen reaches tier 3 (boarding rooms exist) — this only
+    /// <summary>Summoner. Building-first: Tavern reaches tier 3 (boarding rooms exist) — this only
     /// makes her present as townsfolk. Not recruitable from this trigger alone: her PC-reveal runs on
     /// a separate hearts 2-4 friendship event (design/characters/hilde.md), so she starts as
     /// non-recruitable townsfolk here.</summary>
@@ -156,13 +146,13 @@ public static class Villagers
     {
         Id = "hilde",
         DisplayName = "Hilde",
-        AssociatedBuildingId = "kitchen",
+        AssociatedBuildingId = "tavern",
         Recruitable = false,
         JoinPresetKey = null,
-        Arrival = ArrivalTrigger.BuildingReached("kitchen", 3),
+        Arrival = ArrivalTrigger.BuildingReached("tavern", 3),
     };
 
-    /// <summary>Swashbuckler. Missable: Trading Post and Kitchen are both built, plus a calendar
+    /// <summary>Swashbuckler. Missable: Trading Post and Tavern are both built, plus a calendar
     /// threshold that paces when her visits begin. This trigger only governs her ARRIVAL (visits) —
     /// actual recruitment stays separately friendship-gated at hearts 5-6
     /// (design/characters/raven.md, per the documented friendship exception), not modeled here.</summary>
@@ -175,7 +165,7 @@ public static class Villagers
         JoinPresetKey = "raven",
         Arrival = ArrivalTrigger.All(
             ArrivalTrigger.BuildingReached("trading_post", 1),
-            ArrivalTrigger.BuildingReached("kitchen", 1),
+            ArrivalTrigger.BuildingReached("tavern", 1),
             ArrivalTrigger.DateReached(Season.Summer, 1, 1)),
     };
 
@@ -208,7 +198,7 @@ public static class Villagers
 
     private static readonly VillagerDefinition[] HandAuthored =
     {
-        Arkus, Josen, Spore, Thistle, Aldric, Sera, Oskar, Grub,
+        Josen, Spore, Thistle, Aldric, Sera, Oskar, Grub,
         Hazel, Wynn, Hilde, Raven, Flick, Vasska,
     };
 

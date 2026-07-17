@@ -17,16 +17,13 @@ namespace Bulwark.UI;
 /// the UI. Member↔member moves are not a GameState command: deposit then withdraw (at the outpost).
 /// Toggled by the "toggle_inventory_panel" input action (I); Esc closes.
 /// </summary>
-public partial class InventoryPanel : CanvasLayer
+public partial class InventoryPanel : TogglePanel
 {
     /// <summary>Intent: move a member's whole stack into the warehouse (memberId, itemId, qty).</summary>
     public event Action<string, string, int>? DepositRequested;
 
     /// <summary>Intent: move a whole warehouse stack to a member's carry (memberId, itemId, qty).</summary>
     public event Action<string, string, int>? WithdrawRequested;
-
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
 
     private VBoxContainer _body = null!;
     private Label _gold = null!;
@@ -35,29 +32,14 @@ public partial class InventoryPanel : CanvasLayer
     private bool _warehouseAccessible;
     private string? _withdrawTargetId; // member the warehouse withdraws into
 
+    public InventoryPanel() => ToggleAction = "toggle_inventory_panel";
+
     public override void _Ready()
     {
         _body = GetNode<VBoxContainer>("%Body");
         _gold = GetNode<Label>("%GoldLabel");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_inventory_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>
     /// Render a fresh inventory view. <paramref name="warehouseAccessible"/> mirrors
@@ -232,14 +214,6 @@ public partial class InventoryPanel : CanvasLayer
     }
 
     // ------------------------------------------------------------------ helpers
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
-    }
 
     private static MemberInventoryView? FindMember(InventoryView view, string id)
     {

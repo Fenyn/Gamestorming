@@ -112,10 +112,10 @@ are not itemized quantity by quantity in this document.
 
 | Buildings commissioned | Characters arriving | Routes online | Territories open |
 |---|---|---|---|
-| Trading Post, Kitchen, Farmhouse (all constructed in the first ten days), Chapel, Smithy, Infirmary, Command Post tier 2 | Arkus (Smithy trigger), Josen (Infirmary trigger, or the mid-Spring fallback), Oskar (arrives the moment the Chapel stands) | Verdant Fringe gathering (wood, stone, herb, berries, fiber), Spring/Summer crop planting (turnip, potato, wheat, tomato, carrot), goblin and rat combat drops | The Verdant Fringe's starting zone and the first expedition zone; the Elderwood opens once Command Post tier 2 completes |
+| Trading Post, Tavern, Farmhouse (all constructed in the first ten days), Chapel, Smithy, Infirmary, Command Post tier 2 | Arkus (Smithy trigger), Josen (Infirmary trigger, or the mid-Spring fallback), Oskar (arrives the moment the Chapel stands) | Verdant Fringe gathering (wood, stone, herb, berries, fiber), Spring/Summer crop planting (turnip, potato, wheat, tomato, carrot), goblin and rat combat drops | The Verdant Fringe's starting zone and the first expedition zone; the Elderwood opens once Command Post tier 2 completes |
 
 Elara, Fenwick, and the player are present from day one and start running the Trading Post and
-Kitchen as soon as each is commissioned. Oskar's arrival is the season's most important beat: the
+Tavern as soon as each is commissioned. Oskar's arrival is the season's most important beat: the
 Chapel's construction bundle (rat_pelt 20, goblin_fang 15, cloth 12) is affordable from the party's very
 first goblin and rat fights, so nothing stops it from going up in the first two to three weeks, and
 his own heart-building can begin immediately. This is the earliest the Chapel can plausibly land, and
@@ -128,7 +128,7 @@ triggers sit inside the Elderwood, so this tier landing early in Spring is what 
 reachable on their previously scheduled beats later in the year (see the ordering-check in
 `characters.md`).
 
-**Sanity check.** Seven buildings/tiers go up this season: Trading Post (wood 90, stone 60), Kitchen
+**Sanity check.** Seven buildings/tiers go up this season: Trading Post (wood 90, stone 60), Tavern
 (wood 90, stone 60, herb 15), Farmhouse (wood 120, stone 90), Smithy (goblin_fang 25, rat_pelt 20, wood
 15), Infirmary (wood 120, herb 20), Chapel (rat_pelt 20, goblin_fang 15, cloth 12), Command Post tier 2
 (goblin_fang 30, deserter_badge 20, wood 15). Summed by material type: gather total = 150 + 165 + 210 +
@@ -150,7 +150,7 @@ under the flag line despite the added load.
 
 | Buildings commissioned/upgraded | Characters arriving | Routes online | Territories open |
 |---|---|---|---|
-| Fishing Dock (construction), Apothecary (construction), Command Post tier 3, Kitchen tier 2, Farmhouse tier 2 | Spore (Apothecary trigger, the Elderwood explored), Wynn (Kitchen tier 2 trigger) | Rod fishing on the Verdant Fringe's pond/river, mushroom log and coop husbandry, Sunken Reach access once Command Post tier 3 lands | The Elderwood (already open since Spring) is explored far enough to find Spore; the Sunken Reach opens once Command Post tier 3 completes |
+| Fishing Dock (construction), Apothecary (construction), Command Post tier 3, Tavern tier 2, Farmhouse tier 2 | Spore (Apothecary trigger, the Elderwood explored), Wynn (Tavern tier 2 trigger) | Rod fishing on the Verdant Fringe's pond/river, mushroom log and coop husbandry, Sunken Reach access once Command Post tier 3 lands | The Elderwood (already open since Spring) is explored far enough to find Spore; the Sunken Reach opens once Command Post tier 3 completes |
 
 Command Post tier 3 (beast_hide 25, warden_bark 20, hardwood 15) is the season's hinge under the
 three-biome revision: reaching it opens the swamp for travel and gathering, which is what the brief
@@ -162,11 +162,11 @@ and Root Wardens encounter families, both reachable in the Elderwood that Comman
 back in Spring, so this season is where hunting those two families starts mattering.
 
 **Sanity check.** Gather total: Fishing Dock (plank 90, cut_stone 60 = 150) + Apothecary (herb 20,
-berries 15, wood 100 = 135) + Command Post tier 3's hardwood 15 + Kitchen tier 2 (mead 15, egg 25,
+berries 15, wood 100 = 135) + Command Post tier 3's hardwood 15 + Tavern tier 2 (mead 15, egg 25,
 wild_mushroom 20, log_mushroom 15 = 75) + Farmhouse tier 2 (turnip 25, wheat 25, wood 200 = 250) =
 **625 units** against 1,500 (41.7 percent, comfortable, identical to the two-biome draft's total since
 tier 3's hardwood 15 replaces tier 2's wood 15 at the same unit count). A large share of that (325
-units, Kitchen and Farmhouse upgrades) draws on crops and husbandry the player is already producing
+units, Tavern and Farmhouse upgrades) draws on crops and husbandry the player is already producing
 daily rather than one-off gathering trips, a softer kind of demand than raw foraging, but even the
 raw-commons share stays well under the pool. Combat total: Command Post tier 3's beast_hide 25 +
 warden_bark 20 = **45 units** against 250 (18 percent, comfortable, close to but slightly lighter than
@@ -183,7 +183,7 @@ natural banking season (see the slack analysis).
 |---|---|---|---|
 | Training Yard (construction), Fishing Dock tier 2, Trading Post tier 2, Arcane Study (construction), Watchtower (construction) | Aldric (proposed 8-building trigger, see section 5), Sera (Trading Post tier 2 trigger), Thistle (Watchtower trigger, far-forest campsite deep in the Elderwood) | Trap fishing and Elderwood/Sunken Reach deeper-water fish, the expanded Trading Post shelf, Flick's early swamp encounter | The far-forest campsite zone within the already-open Elderwood (Thistle's trigger); deeper pushes into the already-open Sunken Reach |
 
-By the start of Fall, eight buildings stand (Trading Post, Kitchen, Farmhouse, Chapel, Smithy,
+By the start of Fall, eight buildings stand (Trading Post, Tavern, Farmhouse, Chapel, Smithy,
 Infirmary, Fishing Dock, Apothecary), which is this document's proposed Aldric trigger. He arrives
 right at the Year 1 midpoint and immediately makes the Training Yard commissionable, matching
 `buildings.md`'s own "Mid Year 1" position for that building. Trading Post tier 2 needs swamp fish
@@ -401,7 +401,7 @@ sit at tier 1 or 2 (Command Post at tier 3, Farmhouse at tier 3, several others 
 matching the pacing anchor's call for "most buildings reach tier 1-2" by this point. Character-wise,
 by this checkpoint the roster should include Arkus, Josen, Oskar, Spore, Aldric, Sera, Thistle, Wynn,
 Flick, Grub, and Hazel, with Raven's recruitment and Vasska's subquest plausibly resolved or in
-progress (see section 4) and Hilde still likely townsfolk-only pending Kitchen tier 3.
+progress (see section 4) and Hilde still likely townsfolk-only pending Tavern tier 3.
 
 ### Checkpoint 3: mid-Year 2 (day 168, after Summer of Year 2)
 
@@ -430,7 +430,7 @@ support that pace, if only barely on the Gold side.
 
 ### Raven
 
-Raven's trigger has two parts: Trading Post and Kitchen built, then a day threshold before her
+Raven's trigger has two parts: Trading Post and Tavern built, then a day threshold before her
 visits begin. Both buildings are commissioned in the first ten days of Spring Year 1, so this
 document proposes a threshold of roughly three to four weeks (21 to 28 days) before her visits
 start, landing her first appearance in late Spring to early Summer Year 1 (around day 35 to 45).
@@ -473,13 +473,13 @@ Chapel lands in the first weeks of Spring Year 1 specifically so this chain has 
 
 ## Aldric decision (proposed change)
 
-`characters.md` currently gates Aldric on "three buildings constructed." Trading Post, Kitchen, and
+`characters.md` currently gates Aldric on "three buildings constructed." Trading Post, Tavern, and
 Farmhouse, the party's three cheap opening commissions, already satisfy that count within the first
 ten days of Spring Year 1, well before the Smithy, Infirmary, or Chapel exist. That makes his arrival
 trivial and immediate rather than the mid-Year-1 beat the building's own table position implies.
 
 Working from this document's calendar: by the end of Spring Year 1, six buildings stand (Trading
-Post, Kitchen, Farmhouse, Chapel, Smithy, Infirmary). By the end of Summer Year 1, two more land
+Post, Tavern, Farmhouse, Chapel, Smithy, Infirmary). By the end of Summer Year 1, two more land
 (Fishing Dock, Apothecary), for a total of **eight**, and this is the point at which this schedule
 places Aldric's arrival, right at the natural midpoint of Year 1 (the Summer/Fall boundary, day
 around 56). Eight is proposed here in place of three.
@@ -488,7 +488,7 @@ around 56). Eight is proposed here in place of three.
 to "**eight** buildings constructed at the outpost." The Command Post still does not count (it is
 the start state, not something the player builds), and the Training Yard itself does not count
 either, since it is what Aldric's own arrival unlocks. The other eleven buildings (Trading Post,
-Kitchen, Farmhouse, Chapel, Fishing Dock, Smithy, Infirmary, Apothecary, Arcane Study, Watchtower,
+Tavern, Farmhouse, Chapel, Fishing Dock, Smithy, Infirmary, Apothecary, Arcane Study, Watchtower,
 Reliquary) are the eligible pool; reaching eight of them is what fires the trigger. This count lands
 him immediately after the natural "early Year 1" cohort of buildings (the six from Spring plus
 Fishing Dock and Apothecary from Summer) finishes, which is exactly the set of buildings
@@ -506,7 +506,7 @@ in aggregate (52 percent, 44.5 percent, 50.5 percent) and stays under the 60 per
 eight seasons, one more than the two-biome draft managed, now that moving the Sunken Reach unlock out
 of Winter Year 1 resolves that season's old pinch. Summer Year 1 is the year's natural banking season,
 the lightest combat season in Year 1 (18 percent of pool) despite being one of the busiest by
-construction count, because Kitchen tier 2 and Farmhouse tier 2 draw on crops and husbandry the player
+construction count, because Tavern tier 2 and Farmhouse tier 2 draw on crops and husbandry the player
 is producing daily rather than fights.
 Fall and Winter of Year 2 are the slackest seasons in the back half of the schedule (26.4 percent and
 1.2 percent of the combat pool, 5.5 percent and 2.3 percent of the gather pool), which is the right

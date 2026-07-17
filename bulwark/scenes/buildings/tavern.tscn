@@ -7,7 +7,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y7ptw"]
 size = Vector2(431, 323)
 
-[node name="Kitchen" type="Node2D" unique_id=2014668713]
+[node name="Tavern" type="Node2D" unique_id=2014668713]
 script = ExtResource("1_oja03")
 
 [node name="Stages" type="Node2D" parent="." unique_id=355110227]

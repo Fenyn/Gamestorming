@@ -11,6 +11,9 @@
       },
       "lines": [
         { "speaker": "tharr", "text": "Before anything else, the lodging needs mending. The roof has held, but the walls have not. If you intend to sleep under something other than sky tonight, I will need stone and timber." }
+      ],
+      "effects": [
+        { "type": "flag", "set": "lodging_quest_started" }
       ]
     },
     {
@@ -36,13 +39,11 @@
     {
       "priority": 35,
       "conditions": {
-        "flags_required": ["first_rest"],
-        "flags_blocked": ["planning_table_shown"]
+        "flags_required": ["planning_table_shown"],
+        "flags_blocked": ["first_commission", "quest_raise_the_hearths_complete"]
       },
       "lines": [
-        { "speaker": "tharr", "text": "Now that we have a roof that holds, let me show you how we build the rest." },
-        { "speaker": "tharr", "text": "This is the planning table. Every building the outpost needs starts here. You bring the materials, I handle the construction." },
-        { "speaker": "tharr", "text": "Three buildings are ready to go up first. Each one opens a part of the outpost we will need." }
+        { "speaker": "tharr", "text": "The table is set. Farmhouse or tavern — bring the stone and the timber, and I will raise whichever you choose first." }
       ]
     },
     {
@@ -52,6 +53,16 @@
       },
       "lines": [
         { "speaker": "tharr", "text": "The work is underway. Give me another day. Gather what you need for whatever comes next." }
+      ]
+    },
+    {
+      "priority": 5,
+      "conditions": {
+        "flags_required": ["intro_complete"],
+        "flags_blocked": ["dire_wolf_slain"]
+      },
+      "lines": [
+        { "speaker": "tharr", "text": "The forest presses closer every season. Game's gone scarce, and the tracks by the tree line run too big. Something out there is hunting. Keep your axe close." }
       ]
     },
     {

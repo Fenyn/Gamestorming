@@ -35,5 +35,6 @@ public sealed class CharacterProfile
         Arrival = Arrival!,
         Recruitable = Kind == CharacterKind.RecruitablePC,
         JoinPresetKey = Kind == CharacterKind.RecruitablePC ? Id : null,
+        SpriteId = SpriteId,
     };
 }

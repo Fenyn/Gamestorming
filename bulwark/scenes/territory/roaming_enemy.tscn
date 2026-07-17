@@ -1,10 +1,14 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/territory/RoamingEnemy.cs" id="1_roam"]
 [ext_resource type="Texture2D" path="res://assets/sprites/enemies/rat_v1/idle_1.png" id="2_rat"]
+[ext_resource type="Script" path="res://scripts/territory/ContactTrigger.cs" id="3_contact"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_roamer"]
 radius = 10.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_contact_roamer"]
+radius = 30.0
 
 [node name="RoamingEnemy" type="CharacterBody2D"]
 motion_mode = 1
@@ -19,6 +23,13 @@ modulate = Color(1, 0.75, 0.75, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_roamer")
+
+[node name="ContactTrigger" type="Area2D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_contact")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactTrigger"]
+shape = SubResource("CircleShape2D_contact_roamer")
 
 [node name="AggroLabel" type="Label" parent="."]
 unique_name_in_owner = true

@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://u5qhgta1gk3d"]
 
-[ext_resource type="Script" uid="uid://dvdvidioo6tdo" path="res://scripts/territory/ForestScene.cs" id="1_h662v"]
+[ext_resource type="Script" uid="uid://dvdvidioo6tdo" path="res://scripts/territory/TerritoryScene.cs" id="1_h662v"]
 [ext_resource type="TileSet" uid="uid://b3eu2aig0u8yg" path="res://assets/tilesets/outpost_tileset.tres" id="2_sv3w6"]
 [ext_resource type="PackedScene" uid="uid://3nonf0mocv6x" path="res://scenes/territory/nodes/tree_round.tscn" id="3_k2juq"]
 [ext_resource type="PackedScene" uid="uid://cej4bcyohxpx1" path="res://scenes/territory/nodes/tree_pine_small.tscn" id="5_m8gnp"]
@@ -9,9 +9,16 @@
 [ext_resource type="PackedScene" path="res://scenes/fx/hd2d_stack.tscn" id="11_bdmt3"]
 [ext_resource type="PackedScene" path="res://scenes/fx/cloud_shadows.tscn" id="13_6og00"]
 [ext_resource type="PackedScene" uid="uid://ctfy5ggi3dg82" path="res://scenes/fx/falling_leaves.tscn" id="15_78ijo"]
+[ext_resource type="Script" path="res://scripts/territory/ExplorationTrigger.cs" id="16_expl0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2aig1"]
 size = Vector2(102, 133.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deeper"]
+size = Vector2(192, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_expl_wolf"]
+radius = 200.0
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_nso3f"]
 resource_local_to_scene = true
@@ -38,6 +45,7 @@ turbulence_influence_max = 0.4
 [node name="Forest" type="Node2D" unique_id=918695271]
 y_sort_enabled = true
 script = ExtResource("1_h662v")
+DeeperTerritoryId = "elderwood"
 
 [node name="Ground" type="TileMapLayer" parent="." unique_id=1472569060]
 unique_name_in_owner = true
@@ -153,6 +161,29 @@ position = Vector2(600, 1368)
 unique_name_in_owner = true
 position = Vector2(2472, 1224)
 
+[node name="Roamer_expedition_1" type="Marker2D" parent="." unique_id=1900000001]
+unique_name_in_owner = true
+position = Vector2(2856, 552)
+
+[node name="Roamer_wolf_lair" type="Marker2D" parent="." unique_id=1900000002]
+unique_name_in_owner = true
+position = Vector2(360, 456)
+
+[node name="Roamer_brigand_1" type="Marker2D" parent="." unique_id=1900000003]
+unique_name_in_owner = true
+position = Vector2(2000, 1080)
+
+[node name="Roamer_brigand_2" type="Marker2D" parent="." unique_id=1900000004]
+unique_name_in_owner = true
+position = Vector2(900, 1100)
+
+[node name="DeeperTrigger" type="Area2D" parent="." unique_id=1900000005]
+unique_name_in_owner = true
+position = Vector2(1560, 264)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeeperTrigger" unique_id=1900000006]
+shape = SubResource("RectangleShape2D_deeper")
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=308077640]
 position = Vector2(1560, 888)
 enabled = false
@@ -230,3 +261,12 @@ position = Vector2(2016, 786)
 
 [node name="TreePineTall3" parent="." unique_id=991610338 instance=ExtResource("8_h725s")]
 position = Vector2(2118, 522)
+
+[node name="WolfTrackedTrigger" type="Area2D" parent="." unique_id=1900000007]
+unique_name_in_owner = true
+position = Vector2(360, 456)
+script = ExtResource("16_expl0")
+QuestEvent = "wolf_tracked"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WolfTrackedTrigger" unique_id=1900000008]
+shape = SubResource("CircleShape2D_expl_wolf")

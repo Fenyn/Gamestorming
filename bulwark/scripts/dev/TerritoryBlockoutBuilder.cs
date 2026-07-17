@@ -22,6 +22,7 @@ public partial class TerritoryBlockoutBuilder : Node
 {
     private const string TilesetPath = "res://assets/tilesets/outpost_tileset.tres";
     private const string OutPath = "res://scenes/territory/forest.tscn";
+    private const string ElderwoodOutPath = "res://scenes/territory/elderwood.tscn";
     private const int Cell = 48;
 
     // Map extents (tiles): ~2 outpost screens (outpost is 40x30).
@@ -60,24 +61,59 @@ public partial class TerritoryBlockoutBuilder : Node
         ["gob_3"] = new Vector2I(32, 18),
         ["gob_4"] = new Vector2I(12, 28),
         ["gob_5"] = new Vector2I(52, 26),
+        // The brigands and expedition/wolf-lair sites (added after the forest.tscn was hand-painted)
+        // are placed directly in that scene; they are intentionally NOT positioned here, so a
+        // never-happen forest rebuild would fail loudly rather than silently drop them.
+    };
+
+    // ---- Elderwood blockout positions (the moderate second territory; ids from Territories.Elderwood).
+    private static readonly System.Collections.Generic.Dictionary<string, Vector2I> ElderwoodNodeCells = new()
+    {
+        ["hardwood_1"] = new Vector2I(10, 8),
+        ["hardwood_2"] = new Vector2I(54, 10),
+        ["coal_1"] = new Vector2I(14, 26),
+        ["coal_2"] = new Vector2I(50, 28),
+        ["mushroom_1"] = new Vector2I(20, 14),
+        ["mushroom_2"] = new Vector2I(44, 16),
+        ["forest_root_1"] = new Vector2I(8, 18),
+        ["forest_root_2"] = new Vector2I(56, 22),
+        ["ward_salt_1"] = new Vector2I(26, 24),
+        ["ley_glade_1"] = new Vector2I(38, 8),
+    };
+
+    private static readonly System.Collections.Generic.Dictionary<string, Vector2I> ElderwoodRoamerCells = new()
+    {
+        ["beast_1"] = new Vector2I(16, 10),
+        ["beast_2"] = new Vector2I(48, 12),
+        ["warden_1"] = new Vector2I(24, 20),
+        ["warden_2"] = new Vector2I(40, 22),
+        ["spider_1"] = new Vector2I(12, 14),
+        ["spider_2"] = new Vector2I(52, 18),
+        ["thornback_1"] = new Vector2I(30, 12),
+        ["thornback_2"] = new Vector2I(36, 26),
     };
 
     public override void _Ready()
     {
         try
         {
-            // Never-rerun guard: the user hand-paints forest.tscn after generation.
-            bool force = System.Array.IndexOf(OS.GetCmdlineUserArgs(), "--force") >= 0;
-            if (Godot.FileAccess.FileExists(OutPath) && !force)
+            var args = OS.GetCmdlineUserArgs();
+            bool force = System.Array.IndexOf(args, "--force") >= 0;
+            // Which territory to generate: default forest; "-- --territory elderwood" for the Elderwood.
+            bool elderwood = ReadTerritoryArg(args) == "elderwood";
+            string outPath = elderwood ? ElderwoodOutPath : OutPath;
+
+            // Never-rerun guard: the user hand-paints each territory scene after generation.
+            if (Godot.FileAccess.FileExists(outPath) && !force)
             {
-                GD.Print($"[TerritoryBlockoutBuilder] REFUSED: {OutPath} already exists. " +
+                GD.Print($"[TerritoryBlockoutBuilder] REFUSED: {outPath} already exists. " +
                          "It may be hand-painted — never re-run this builder over a painted map. " +
                          "Pass '-- --force' to overwrite anyway.");
                 GetTree().Quit(1);
                 return;
             }
 
-            Build();
+            Build(elderwood);
             GD.Print("[TerritoryBlockoutBuilder] DONE");
         }
         catch (Exception e)
@@ -90,14 +126,39 @@ public partial class TerritoryBlockoutBuilder : Node
         GetTree().Quit();
     }
 
-    private void Build()
+    /// <summary>Read the "--territory &lt;id&gt;" user arg (default "forest").</summary>
+    private static string ReadTerritoryArg(string[] args)
+    {
+        int i = System.Array.IndexOf(args, "--territory");
+        return i >= 0 && i + 1 < args.Length ? args[i + 1] : "forest";
+    }
+
+    private void Build(bool elderwood)
     {
         var tileSet = GD.Load<TileSet>(TilesetPath);
         if (tileSet == null) throw new InvalidOperationException("could not load tileset");
 
+        // Per-territory config: the data definition (id source of truth), blockout cell tables, output
+        // path, and the TerritoryScene exports that make each scene self-describing. The Elderwood reuses
+        // the exact same TerritoryScene adapter (design decision: one generic territory scene) — only its
+        // exports differ: its exit points back to the Verdant Fringe, and entry raises elderwood_entered.
+        var def = elderwood ? Bulwark.Data.Territories.Elderwood : Bulwark.Data.Territories.Forest;
+        var nodeCells = elderwood ? ElderwoodNodeCells : NodeCells;
+        var roamerCells = elderwood ? ElderwoodRoamerCells : RoamerCells;
+        string outPath = elderwood ? ElderwoodOutPath : OutPath;
+
         // Instantiate the adapter directly so its script is attached without SetScript() (which
         // would swap the managed wrapper and invalidate our reference).
-        var root = new Bulwark.Territory.ForestScene { Name = "Forest" };
+        var root = elderwood
+            ? new Bulwark.Territory.TerritoryScene
+            {
+                Name = "Elderwood",
+                TerritoryId = "elderwood",
+                ExitTerritoryId = "verdant_fringe",
+                ExitLabel = "To the Verdant Fringe",
+                TerritoryEnteredEvent = "elderwood_entered",
+            }
+            : new Bulwark.Territory.TerritoryScene { Name = "Forest" };
 
         // --- Tile layers (bottom to top, matching the outpost scene shape) ---
         var ground = MakeLayer(root, "Ground", tileSet, zIndex: 0, ySort: false);
@@ -156,17 +217,18 @@ public partial class TerritoryBlockoutBuilder : Node
         AddMarker(root, "PlayerSpawn", CellCenter(32, 32));
         AddExitTrigger(root, CellCenter(32, 34), new Vector2(4 * Cell, Cell));
 
-        // Node/roamer markers: Territories.Forest drives the ids so scene and data cannot drift.
-        var forest = Bulwark.Data.Territories.Forest;
-        foreach (var node in forest.Nodes)
+        // Node/roamer markers: the territory definition drives the ids so scene and data cannot drift.
+        foreach (var node in def.Nodes)
         {
-            if (!NodeCells.TryGetValue(node.NodeId, out Vector2I cell))
+            if (!nodeCells.TryGetValue(node.NodeId, out Vector2I cell))
                 throw new InvalidOperationException($"no blockout position for node '{node.NodeId}'");
             AddMarker(root, $"Node_{node.NodeId}", CellCenter(cell.X, cell.Y));
         }
-        foreach (var roamer in forest.Roamers)
+        foreach (var roamer in def.Roamers)
         {
-            if (!RoamerCells.TryGetValue(roamer.RoamerId, out Vector2I cell))
+            if (roamer.IsBoss)
+                continue; // boss sites are placed by their dedicated lair scene, not as a roamer marker
+            if (!roamerCells.TryGetValue(roamer.RoamerId, out Vector2I cell))
                 throw new InvalidOperationException($"no blockout position for roamer '{roamer.RoamerId}'");
             AddMarker(root, $"Roamer_{roamer.RoamerId}", CellCenter(cell.X, cell.Y));
         }
@@ -184,11 +246,11 @@ public partial class TerritoryBlockoutBuilder : Node
         var packed = new PackedScene();
         Error perr = packed.Pack(root);
         if (perr != Error.Ok) throw new InvalidOperationException($"pack failed: {perr}");
-        Error serr = ResourceSaver.Save(packed, OutPath);
+        Error serr = ResourceSaver.Save(packed, outPath);
         if (serr != Error.Ok) throw new InvalidOperationException($"save failed: {serr}");
-        GD.Print($"[TerritoryBlockoutBuilder] saved {OutPath} " +
+        GD.Print($"[TerritoryBlockoutBuilder] saved {outPath} " +
                  $"(ground cells={ground.GetUsedCells().Count}, walls={walls.GetUsedCells().Count}, " +
-                 $"nodes={forest.Nodes.Count}, roamers={forest.Roamers.Count})");
+                 $"nodes={def.Nodes.Count}, roamers={def.Roamers.Count})");
     }
 
     private static TileMapLayer MakeLayer(Node2D root, string name, TileSet ts, int zIndex, bool ySort)

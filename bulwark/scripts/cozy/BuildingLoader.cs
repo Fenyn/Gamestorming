@@ -6,18 +6,27 @@ using Godot;
 namespace Bulwark.Cozy;
 
 /// <summary>
-/// Places every building that has a marker + scene into a walkable world scene (the outpost) —
-/// commissioned or not. For each building it instances the premade
-/// <c>scenes/buildings/&lt;id&gt;.tscn</c> at the user-placed <c>%Building_&lt;id&gt;</c> marker,
-/// drives its visible stage/scaffold/overlays from the building's current state
-/// (design/building_visuals.md), and lets the scene's own StaticBody2D footprint block the tiles
-/// (buildings are instanced, not painted, so they bring their own collision — consistent with
-/// CozyWorldScene's baked collision). A tier-0 (not-commissioned) building is placed too, showing its
-/// Stage0 ruined/site look — the design intent is that a ruin is visible in the world from day one
-/// (the intro has Elara spotting the collapsed trading post), not that the building appears only once
-/// commissioned.
+/// Places every building that has either a PRE-PLACED instance or a marker + scene into a walkable
+/// world scene (the outpost) — commissioned or not. Two placement strategies, tried in order per
+/// building (design/building_authoring_guide.md):
+///  1. PRE-PLACED (primary, per CLAUDE.md's "objects placed in .tscn via editor" convention): the
+///     user instances <c>scenes/buildings/&lt;id&gt;.tscn</c> directly as a child of the outpost scene
+///     and hand-positions it in the editor. The loader finds it by matching a child
+///     <see cref="BuildingInstance"/>'s <see cref="Node.SceneFilePath"/> against
+///     <see cref="BuildingDefinition.ScenePath"/> (robust to node renames — never matched by node
+///     name) and ADOPTS it: tracks it, drives it via <see cref="BuildingInstance.Apply"/> exactly like
+///     a spawned one, but NEVER repositions it (the user's placement is authoritative).
+///  2. MARKER + INSTANTIATE (legacy fallback): if no pre-placed instance is found, the loader falls
+///     back to instancing the premade scene at the user-placed <c>%Building_&lt;id&gt;</c> marker, as
+///     before.
+/// Either way it drives the placed instance's visible stage/scaffold/overlays from the building's
+/// current state (design/building_visuals.md), and lets the scene's own StaticBody2D footprint block
+/// the tiles (buildings bring their own collision — consistent with CozyWorldScene's baked collision).
+/// A tier-0 (not-commissioned) building is placed too, showing its Stage0 ruined/site look — the
+/// design intent is that a ruin is visible in the world from day one (the intro has Elara spotting the
+/// collapsed trading post), not that the building appears only once commissioned.
 ///
-/// Fully null-safe: a missing marker or a missing/incompatible building scene is skipped with a log
+/// Fully null-safe: a missing pre-placed instance AND a missing marker/scene is skipped with a log
 /// line (the build STATE still works; the art arrives later). Placement re-runs per building on
 /// BuildingChanged, so a just-commissioned building swaps off its ruin and an upgrade swaps its stage
 /// in place. A driver-boundary event (day start, story-flag set) calls <see cref="RefreshAll"/> so
@@ -107,9 +116,9 @@ public sealed class BuildingLoader
 
         if (!_placed.TryGetValue(id, out var inst) || !GodotObject.IsInstanceValid(inst))
         {
-            inst = InstanceBuilding(def);
+            inst = FindPrePlaced(def) ?? InstanceBuilding(def);
             if (inst == null)
-                return; // missing marker/scene — state still works, art arrives later
+                return; // no pre-placed instance and no marker/scene — state still works, art arrives later
             _placed[id] = inst;
         }
 
@@ -127,19 +136,44 @@ public sealed class BuildingLoader
         inst.Apply(stageIndex, underConstruction, overlayKeys);
     }
 
+    /// <summary>
+    /// Primary placement strategy: find a <see cref="BuildingInstance"/> the user already instanced as
+    /// a direct child of <see cref="_host"/> in the editor (outpost.tscn) whose
+    /// <see cref="Node.SceneFilePath"/> matches <paramref name="def"/>'s <see cref="BuildingDefinition.ScenePath"/>.
+    /// Matched by SCENE PATH, never by node name — the user is free to rename the instance (e.g. the
+    /// outpost.tscn node is named "Tavern", not "Building_tavern"). Its position is never touched: the
+    /// user's hand-placement in the editor is authoritative.
+    /// </summary>
+    private BuildingInstance? FindPrePlaced(BuildingDefinition def)
+    {
+        foreach (Node child in _host.GetChildren())
+        {
+            if (child is BuildingInstance bi && bi.SceneFilePath == def.ScenePath)
+            {
+                GD.Print($"[BuildingLoader] Adopted pre-placed instance \"{bi.Name}\" for {def.Id} " +
+                         $"(scene {def.ScenePath}) — position left as authored.");
+                return bi;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>Legacy fallback: instance the premade scene at the user-placed %Building_&lt;id&gt;
+    /// marker. Only reached when <see cref="FindPrePlaced"/> found nothing.</summary>
     private BuildingInstance? InstanceBuilding(BuildingDefinition def)
     {
         Marker2D? marker = _host.GetNodeOrNull<Marker2D>($"%{def.MarkerName}")
                            ?? _host.GetNodeOrNull<Marker2D>(def.MarkerName);
         if (marker == null)
         {
-            GD.Print($"[BuildingLoader] No %{def.MarkerName} marker in the scene — skipping {def.Id} visual.");
+            GD.PushWarning($"[BuildingLoader] No pre-placed instance and no %{def.MarkerName} marker in the " +
+                     $"scene — skipping {def.Id} visual.");
             return null;
         }
 
         if (!ResourceLoader.Exists(def.ScenePath))
         {
-            GD.Print($"[BuildingLoader] Building scene {def.ScenePath} not found — skipping {def.Id} visual.");
+            GD.PushWarning($"[BuildingLoader] Building scene {def.ScenePath} not found — skipping {def.Id} visual.");
             return null;
         }
 
@@ -147,7 +181,7 @@ public sealed class BuildingLoader
         var inst = packed?.InstantiateOrNull<BuildingInstance>();
         if (inst == null)
         {
-            GD.Print($"[BuildingLoader] {def.ScenePath} root is not a BuildingInstance — skipping {def.Id}.");
+            GD.PushError($"[BuildingLoader] {def.ScenePath} root is not a BuildingInstance — skipping {def.Id}.");
             return null;
         }
 
@@ -155,6 +189,7 @@ public sealed class BuildingLoader
         inst.Name = $"{def.MarkerName}Instance";
         _host.AddChild(inst);
         inst.GlobalPosition = marker.GlobalPosition;
+        GD.Print($"[BuildingLoader] Spawned {def.Id} at its %{def.MarkerName} marker (scene {def.ScenePath}).");
         return inst;
     }
 }

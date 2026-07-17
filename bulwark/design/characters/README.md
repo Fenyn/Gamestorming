@@ -13,7 +13,7 @@ characters auto-emit `VillagerDefinition`s for arrival and placement.
 | `player` | *(player-chosen)* | Fighter | Human | Farmhand-soldier. The player avatar: farming, expansion, upgrades. | — (generalist) |
 | `tharr` | Tharr | Cleric (Warpriest) | Dwarf | Stonemason. Construction-master: repairs, restores, builds. | Command Post |
 | `elara` | Elara | Rogue (Thief) | Elf | Silver-tongued merchant. Runs the trading post. | Trading Post |
-| `fenwick` | Fenwick | Wizard (Battle Magic) | Halfling | Gastronomancer and chef. Social heart of the outpost. | Kitchen / Tavern |
+| `fenwick` | Fenwick | Wizard (Battle Magic) | Halfling | Gastronomancer and chef. Social heart of the outpost. | Tavern |
 
 The story opens with the player, Elara, and Fenwick traveling to reinforce the outpost. Tharr
 is already there, the lone holdout who has been struggling to maintain the place alone.
@@ -31,7 +31,7 @@ is already there, the lone holdout who has been struggling to maintain the place
 | `sera` | Sera | Magus | Human | Exiled academic. Studies the fabric of arcane magic. | Arcane Study | Arrives deliberately, seeking frontier research freedom |
 | `oskar` | Oskar | Oracle | Dwarf | War-cursed elder. Builds a legacy before the decline takes him. | Chapel / Shrine | Arrives seeking a place to spend his final years |
 | `hazel` | Hazel | Thaumaturge | Halfling | Ex-curator rebuilding a lost collection. Monster expert. | Reliquary | Arrives seeking a home for her work |
-| `wynn` | Wynn | Bard | Human | Exiled playwright. Oral storyteller collecting material. | Kitchen / Tavern (co-tenant) | Wandered in, never left |
+| `wynn` | Wynn | Bard | Human | Exiled playwright. Oral storyteller collecting material. | Tavern (co-tenant) | Wandered in, never left |
 
 ### Unassigned (no building)
 
@@ -64,7 +64,7 @@ non-StartingPC profiles, which flows into the existing villager arrival and plac
 | Arcane Study | Library | Wizard / arcane caster | Learn spells, scrolls, Recall Knowledge |
 | Training Yard | Drill & discipline | Martial (Fighter/Ranger/Monk) | Proficiency training, respec |
 | Apothecary / Lab | Alchemy | Alchemist / herbalist | Potions, elixirs, poisons |
-| Kitchen | Hearth | Cook (townsfolk or Bard) | Day-long meal buffs, feasts |
+| Tavern | Hearth | Cook (townsfolk or Bard) | Day-long meal buffs, feasts |
 | Farmhouse / Fields | Homestead | Farmhand / Druid-ish | Crops, tillable expansion, greenhouse |
 | Watchtower | Scouting | Rogue / Ranger | Reveal territory, encounter previews, fast travel |
 

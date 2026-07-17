@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/territory/WolfLair.cs" id="1_lair"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/rat_v1/idle_1.png" id="2_wolf"]
+[ext_resource type="Script" path="res://scripts/territory/ContactTrigger.cs" id="3_contact"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_contact_lair"]
+radius = 34.0
+
+[node name="WolfLair" type="Node2D"]
+script = ExtResource("1_lair")
+
+[node name="ContactTrigger" type="Area2D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_contact")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactTrigger"]
+shape = SubResource("CircleShape2D_contact_lair")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(3, 3)
+texture = ExtResource("2_wolf")
+offset = Vector2(0, -17)
+modulate = Color(0.5, 0.45, 0.55, 1)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -32.0
+offset_top = -88.0
+offset_right = 32.0
+offset_bottom = -64.0
+horizontal_alignment = 1
+text = "Lair"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.9, 0.4, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4

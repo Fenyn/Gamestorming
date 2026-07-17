@@ -8,9 +8,14 @@ namespace Bulwark.Combat;
 /// 2.5D combat token: a billboarded 2D sprite standing on a grid square in the 3D board. Heroes use
 /// a baked Mana Seed "page 1" sheet (see <see cref="HeroSpriteMap"/>): 4 facings (S/N/E/W), a single
 /// static stand frame while idle and a 6-frame walk cycle while moving, with camera-relative facing
-/// selection; enemies use a side-view rat that cycles idle frames and flips horizontally to match
-/// its logical facing as seen by the camera. Carries a Label3D name, a billboarded HP bar and a
-/// team-colored ground ring that doubles as the current-turn indicator.
+/// selection; enemies use a side-view sheet (currently only rats — see <see cref="EnemySpriteMap"/>)
+/// that cycles idle frames and flips horizontally to match its logical facing as seen by the camera.
+/// Carries a Label3D name, a billboarded HP bar and a team-colored ground ring that doubles as the
+/// current-turn indicator.
+///
+/// The static node subtree (sprite, ring, HP bar, name) is authored in scenes/combat/unit_token.tscn;
+/// this script only fetches those nodes in _Ready and applies the per-unit runtime configuration
+/// (sprite texture/frames/size, team-tinted materials, bar/name height) set through <see cref="Configure"/>.
 /// Thin presentation adapter — no rules.
 /// </summary>
 public partial class UnitVisual3D : Node3D
@@ -35,6 +40,7 @@ public partial class UnitVisual3D : Node3D
     private MeshInstance3D _ring = null!;
     private StandardMaterial3D _ringMat = null!;
     private Node3D _hpBar = null!;
+    private MeshInstance3D _hpBarBg = null!;
     private MeshInstance3D _hpFill = null!;
     private StandardMaterial3D _hpFillMat = null!;
     private Label3D _name = null!;
@@ -61,49 +67,71 @@ public partial class UnitVisual3D : Node3D
 
     public ICharacter Character => _character;
 
-    public static UnitVisual3D Create(ICharacter character, string? ratFolder = null)
+    /// <summary>
+    /// Per-unit setup for a token instanced from unit_token.tscn. Must be called before the node
+    /// enters the tree (before _Ready) so the runtime configuration has its data. Heroes pass a null
+    /// <paramref name="enemyFolder"/> and resolve their sheet via <see cref="HeroSpriteMap"/>; enemies
+    /// pass the folder resolved by <see cref="EnemySpriteMap"/>.
+    /// </summary>
+    public void Configure(ICharacter character, string? enemyFolder = null)
     {
-        bool isHero = character.CreatureStats == null;
-        return new UnitVisual3D
-        {
-            _character = character,
-            _isHero = isHero,
-            _teamColor = character.TeamId == 1
-                ? new Color(0.35f, 0.6f, 0.95f)
-                : new Color(0.85f, 0.4f, 0.35f),
-            // Heroes start facing the enemy side; team 1 (left) looks +X, team 2 (right) looks -X.
-            Facing = character.TeamId == 1 ? Vector2.Right : Vector2.Left,
-            _ratFolder = ratFolder,
-        };
+        _character = character;
+        _isHero = character.CreatureStats == null;
+        _teamColor = character.TeamId == 1
+            ? new Color(0.35f, 0.6f, 0.95f)
+            : new Color(0.85f, 0.4f, 0.35f);
+        // Heroes start facing the enemy side; team 1 (left) looks +X, team 2 (right) looks -X.
+        Facing = character.TeamId == 1 ? Vector2.Right : Vector2.Left;
+        _enemyFolder = enemyFolder;
     }
 
-    private string? _ratFolder;
+    private string? _enemyFolder;
 
     public void SetCamera(Camera3D camera) => _camera = camera;
 
     public override void _Ready()
     {
-        BuildSprite();
-        BuildRing();
-        BuildHpBar();
-        BuildName();
+        // The static node subtree lives in unit_token.tscn; grab it, then apply per-unit runtime state.
+        _sprite = GetNode<Sprite3D>("%Sprite");
+        _ring = GetNode<MeshInstance3D>("%Ring");
+        _hpBar = GetNode<Node3D>("%HpBar");
+        _hpBarBg = GetNode<MeshInstance3D>("%HpBarBg");
+        _hpFill = GetNode<MeshInstance3D>("%HpFill");
+        _name = GetNode<Label3D>("%Name");
+
+        // Standalone (F6) with no Configure() call: leave the raw blockout token visible, don't crash.
+        if (_character == null) return;
+
+        BuildMaterials();
+        ConfigureSprite();
+        ConfigureHpBar();
+        ConfigureName();
         UpdateHealthBar();
         ApplyFacingFrame();
     }
 
-    // ------------------------------------------------------------------ Build
+    // ------------------------------------------------------------------ Configure (runtime)
 
-    private void BuildSprite()
+    // Team-tinted, per-instance materials stay in code (SetActive, the health-bar color, and the death
+    // tween all mutate them), assigned as overrides on the scene's meshes so the shared scene
+    // sub-resources never diverge across tokens.
+    private void BuildMaterials()
     {
-        _sprite = new Sprite3D
+        _ringMat = new StandardMaterial3D
         {
-            Shaded = false,
-            Billboard = BaseMaterial3D.BillboardModeEnum.FixedY,
-            TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest,
-            AlphaCut = SpriteBase3D.AlphaCutMode.Discard,
-            AlphaScissorThreshold = 0.5f,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            AlbedoColor = _teamColor with { A = 0.45f },
         };
+        _ring.MaterialOverride = _ringMat;
 
+        _hpBarBg.MaterialOverride = BarMaterial(new Color(0.08f, 0.08f, 0.1f, 0.9f));
+        _hpFillMat = BarMaterial(new Color(0.25f, 0.8f, 0.25f));
+        _hpFill.MaterialOverride = _hpFillMat;
+    }
+
+    private void ConfigureSprite()
+    {
         if (_isHero)
         {
             string folder = HeroSpriteMap.FolderFor(_character.Id);
@@ -125,12 +153,11 @@ public partial class UnitVisual3D : Node3D
             _sprite.Position = new Vector3(0f, h * 0.5f - 0.08f, 0f);
             _hpBarY = 0.9f;
         }
-        AddChild(_sprite);
     }
 
     private void LoadRatFrames()
     {
-        string folder = _ratFolder ?? "res://assets/sprites/enemies/rat_v1";
+        string folder = _enemyFolder ?? EnemySpriteMap.DefaultFolder;
         var frames = new System.Collections.Generic.List<Texture2D>(8);
         for (int i = 1; i <= 8; i++)
         {
@@ -140,64 +167,12 @@ public partial class UnitVisual3D : Node3D
         _ratFrames = frames.ToArray();
     }
 
-    private void BuildRing()
+    private void ConfigureHpBar() => _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
+
+    private void ConfigureName()
     {
-        _ring = new MeshInstance3D
-        {
-            Mesh = new CylinderMesh { TopRadius = 0.42f, BottomRadius = 0.42f, Height = 0.02f, RadialSegments = 24 },
-            Position = new Vector3(0f, 0.02f, 0f),
-            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-        };
-        _ringMat = new StandardMaterial3D
-        {
-            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
-            AlbedoColor = _teamColor with { A = 0.45f },
-        };
-        _ring.MaterialOverride = _ringMat;
-        AddChild(_ring);
-    }
-
-    private void BuildHpBar()
-    {
-        _hpBar = new Node3D { Position = new Vector3(0f, _hpBarY, 0f) };
-        AddChild(_hpBar);
-
-        const float w = 0.8f, h = 0.09f;
-        var bg = new MeshInstance3D
-        {
-            Mesh = new QuadMesh { Size = new Vector2(w + 0.04f, h + 0.04f) },
-            MaterialOverride = BarMaterial(new Color(0.08f, 0.08f, 0.1f, 0.9f)),
-            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-        };
-        _hpBar.AddChild(bg);
-
-        _hpFillMat = BarMaterial(new Color(0.25f, 0.8f, 0.25f));
-        _hpFill = new MeshInstance3D
-        {
-            Mesh = new QuadMesh { Size = new Vector2(w, h) },
-            MaterialOverride = _hpFillMat,
-            Position = new Vector3(0f, 0f, 0.001f),
-            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-        };
-        _hpBar.AddChild(_hpFill);
-    }
-
-    private void BuildName()
-    {
-        _name = new Label3D
-        {
-            Text = _character.Name,
-            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
-            FontSize = 48,
-            PixelSize = 0.005f,
-            Position = new Vector3(0f, _hpBarY + 0.22f, 0f),
-            Modulate = Colors.White,
-            OutlineSize = 8,
-            OutlineModulate = Colors.Black,
-            NoDepthTest = true,
-        };
-        AddChild(_name);
+        _name.Text = _character.Name;
+        _name.Position = new Vector3(0f, _hpBarY + 0.22f, 0f);
     }
 
     private static StandardMaterial3D BarMaterial(Color color) => new()
@@ -213,6 +188,9 @@ public partial class UnitVisual3D : Node3D
 
     public override void _Process(double delta)
     {
+        // Standalone (F6) blockout: no unit configured, so there is nothing to animate.
+        if (_character == null) return;
+
         // Animation clock: heroes only animate while walking; rats idle-cycle continuously.
         float frameTime = _isHero ? ManaSeedSheet.WalkFrameTime : AnimFrameTime;
         _animTimer += (float)delta;

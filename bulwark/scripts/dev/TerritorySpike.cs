@@ -88,9 +88,9 @@ public partial class TerritorySpike : SpikeBase
             return;
 
         var veteran = squad.FindMember(SquadRoster.PlayerId)!;
-        var scout = squad.FindMember(SquadRoster.ScoutId)!;
+        var scout = squad.FindMember(SquadRoster.ElaraId)!;
         var medic = squad.FindMember(SquadRoster.TharrId)!;
-        var scholar = squad.FindMember(SquadRoster.ScholarId)!;
+        var scholar = squad.FindMember(SquadRoster.FenwickId)!;
 
         // ── (1) Travel command & party selection ──
         GD.Print("-------------------- (1) Travel & party selection --------------------");
@@ -99,43 +99,44 @@ public partial class TerritorySpike : SpikeBase
 
         Check("(1) >3 companions rejected", !gs.TravelToTerritory(ForestId, new[]
         {
-            SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId, SquadRoster.PlayerId,
+            SquadRoster.ElaraId, SquadRoster.TharrId, SquadRoster.FenwickId, SquadRoster.PlayerId,
         }));
         Check("(1) the Veteran as a companion rejected",
             !gs.TravelToTerritory(ForestId, new[] { SquadRoster.PlayerId }));
         Check("(1) duplicate companion rejected",
-            !gs.TravelToTerritory(ForestId, new[] { SquadRoster.ScoutId, SquadRoster.ScoutId }));
+            !gs.TravelToTerritory(ForestId, new[] { SquadRoster.ElaraId, SquadRoster.ElaraId }));
         Check("(1) unknown territory rejected",
             !gs.TravelToTerritory("the_moon", Array.Empty<string>()));
         Check("(1) unknown companion id rejected",
             !gs.TravelToTerritory(ForestId, new[] { "nobody" }));
 
         // The gate contract: the all-hands overload marches the FULL living roster, no selection.
+        // Order follows SquadRoster.MemberOrder (marching order): Player, Tharr, Fenwick, Elara.
         Check("(1) all-hands travel (gate contract) accepted", gs.TravelToTerritory(ForestId));
-        Check("(1) all-hands selection is every living companion (Scout, Medic, Scholar)",
+        Check("(1) all-hands selection is every living companion (Medic, Scholar, Scout)",
             gs.Territory.SelectedCompanionIds.SequenceEqual(
-                new[] { SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId }));
+                new[] { SquadRoster.TharrId, SquadRoster.FenwickId, SquadRoster.ElaraId }));
         Check("(1) all-hands march home again", gs.TravelToOutpost());
 
         // The Scholar falls — dead members cannot be taken along (and later must sit out).
         scholar.Health!.ForceDeadState();
         Check("(1) dead companion rejected",
-            !gs.TravelToTerritory(ForestId, new[] { SquadRoster.ScholarId }));
+            !gs.TravelToTerritory(ForestId, new[] { SquadRoster.FenwickId }));
         Check("(1) all-hands travel skips the dead (Scholar sits out)",
             gs.TravelToTerritory(ForestId)
             && gs.Territory.SelectedCompanionIds.SequenceEqual(
-                new[] { SquadRoster.ScoutId, SquadRoster.TharrId }));
+                new[] { SquadRoster.TharrId, SquadRoster.ElaraId }));
         Check("(1) march home for the explicit-selection checks", gs.TravelToOutpost());
 
         int minuteBefore = gs.Clock.MinuteOfDay;
         Check("(1) valid travel (Veteran + Scout) accepted",
-            gs.TravelToTerritory(ForestId, new[] { SquadRoster.ScoutId }));
+            gs.TravelToTerritory(ForestId, new[] { SquadRoster.ElaraId }));
         Check("(1) travel spent exactly 30 game-minutes",
             gs.Clock.MinuteOfDay == minuteBefore + 30);
         Check("(1) location is the forest", gs.Territory.CurrentTerritoryId == ForestId);
         Check("(1) selection stored (Scout only)",
             gs.Territory.SelectedCompanionIds.Count == 1
-            && gs.Territory.SelectedCompanionIds[0] == SquadRoster.ScoutId);
+            && gs.Territory.SelectedCompanionIds[0] == SquadRoster.ElaraId);
         Check("(1) traveling again while in territory rejected",
             !gs.TravelToTerritory(ForestId, Array.Empty<string>()));
 
@@ -179,7 +180,7 @@ public partial class TerritorySpike : SpikeBase
         // ── (3) Roamer contact → real combat setup → scripted victory ──
         GD.Print("-------------------- (3) Encounter & victory --------------------");
         Check("(3) travel back out (Veteran + Scout)",
-            gs.TravelToTerritory(ForestId, new[] { SquadRoster.ScoutId }));
+            gs.TravelToTerritory(ForestId, new[] { SquadRoster.ElaraId }));
 
         var contactPos = new Vector2(123f, 456f);
         Check("(3) encounter refused for an unknown roamer", !gs.BeginTerritoryEncounter("gob_99", contactPos));
@@ -193,9 +194,9 @@ public partial class TerritorySpike : SpikeBase
         Check("(3) rolled gob_1's single-entry table (goblin_pair)", pending.EncounterId == "goblin_pair");
         var partyIds = pending.Setup.Party.Select(p => p.Unit.Id).ToList();
         Check("(3) player roster is EXACTLY Veteran + Scout (in order)",
-            partyIds.SequenceEqual(new[] { SquadRoster.PlayerId, SquadRoster.ScoutId }));
+            partyIds.SequenceEqual(new[] { SquadRoster.PlayerId, SquadRoster.ElaraId }));
         Check("(3) living sit-out (Medic) absent", !partyIds.Contains(SquadRoster.TharrId));
-        Check("(3) dead member (Scholar) absent", !partyIds.Contains(SquadRoster.ScholarId));
+        Check("(3) dead member (Scholar) absent", !partyIds.Contains(SquadRoster.FenwickId));
         Check("(3) roster units are the LIVE squad instances (attrition)",
             ReferenceEquals(pending.Setup.Party[0].Unit, veteran)
             && ReferenceEquals(pending.Setup.Party[1].Unit, scout));
@@ -321,6 +322,85 @@ public partial class TerritorySpike : SpikeBase
         Check("(5) reloaded: Veteran still battered (attrition round-trips)",
             gs2.Squad?.FindMember(SquadRoster.PlayerId)?.Health?.CurrentHP
                 == veteran.Health.CurrentHP);
+
+        // ── (6) Exploration triggers → story flags / quest events ──
+        GD.Print("-------------------- (6) Exploration triggers --------------------");
+        await TestExplorationTriggers();
+    }
+
+    /// <summary>
+    /// The world-side producers for the three story hooks: the ExplorationTrigger instances placed in
+    /// the real Elderwood/forest scenes (existence + authored sink ids), and the fire-once → GameState
+    /// behaviour (first player-body contact sets the flag; re-entry is idempotent because SetStoryFlag
+    /// no-ops an already-set flag). Uses GameState.Instance (the reloaded gs2 on the protected slot0).
+    /// </summary>
+    private async Task TestExplorationTriggers()
+    {
+        // (a) Placement/authoring: the triggers are wired into the REAL territory scenes with the
+        //     right sink ids, at distinct locations, and the Elderwood campsite carries its marker.
+        var elder = GD.Load<PackedScene>("res://scenes/territory/elderwood.tscn").Instantiate<Node2D>();
+        var deep = elder.GetNodeOrNull<Bulwark.Territory.ExplorationTrigger>("ExploredTrigger");
+        var camp = elder.GetNodeOrNull<Bulwark.Territory.ExplorationTrigger>("FarCampsiteTrigger");
+        Check("(6) Elderwood deep-zone trigger present → elderwood_explored",
+            deep != null && deep.StoryFlag == "elderwood_explored");
+        Check("(6) Elderwood far-corner trigger present → elderwood_far_campsite_discovered",
+            camp != null && camp.StoryFlag == "elderwood_far_campsite_discovered");
+        Check("(6) the two Elderwood triggers sit at distinct locations (far campsite deeper)",
+            deep != null && camp != null && deep.Position.DistanceTo(camp.Position) > 400f);
+        Check("(6) far campsite carries a visual marker (Campfire prop)",
+            elder.GetNodeOrNull<Node2D>("Campfire") != null);
+        elder.QueueFree();
+
+        var forest = GD.Load<PackedScene>("res://scenes/territory/forest.tscn").Instantiate<Node2D>();
+        var wolf = forest.GetNodeOrNull<Bulwark.Territory.ExplorationTrigger>("WolfTrackedTrigger");
+        Check("(6) forest wolf-lair trigger present → wolf_tracked quest event",
+            wolf != null && string.IsNullOrEmpty(wolf.StoryFlag) && wolf.QuestEvent == "wolf_tracked");
+        float wolfRadius =
+            (wolf?.GetNodeOrNull<CollisionShape2D>("CollisionShape2D")?.Shape as CircleShape2D)?.Radius ?? 0f;
+        Check($"(6) wolf trigger radius is generous ({wolfRadius:0} px, trips before lair contact 34)",
+            wolfRadius > 100f);
+        forest.QueueFree();
+        await PhysicsFrames(1);
+
+        // (b) Behaviour: first player-body contact fires exactly once and reaches GameState; a
+        //     re-entering fresh instance cannot double the beat (SetStoryFlag idempotent).
+        var gs = GameState.Instance;
+        const string probe = "spike_exploration_probe";
+        Check("(6) probe flag starts unset", !gs.HasStoryFlag(probe));
+
+        var world = new Node2D { Name = "ExplProbeWorld" };
+        AddChild(world);
+        var player = GD.Load<PackedScene>("res://scenes/cozy/player.tscn").Instantiate<PlayerController>();
+        player.Position = new Vector2(500, 500);
+        world.AddChild(player);
+
+        world.AddChild(MakeProbeTrigger(probe, new Vector2(500, 500)));
+        await PhysicsFrames(3);
+        Check("(6) walking into the trigger set its story flag", gs.HasStoryFlag(probe));
+        Check("(6) re-set of the already-set flag is a no-op (idempotent)", !gs.SetStoryFlag(probe));
+
+        // Re-entry (fresh instance overlaps the player again): the flag stays set exactly once.
+        world.AddChild(MakeProbeTrigger(probe, new Vector2(500, 500)));
+        await PhysicsFrames(3);
+        Check("(6) re-entry left the flag set exactly once (still true, no crash)", gs.HasStoryFlag(probe));
+
+        world.QueueFree();
+        await PhysicsFrames(1);
+    }
+
+    /// <summary>A bare ExplorationTrigger (default Area2D layer/mask, like the shipped ones) with a
+    /// small circle shape, positioned to overlap the probe player body.</summary>
+    private static Bulwark.Territory.ExplorationTrigger MakeProbeTrigger(string flag, Vector2 pos)
+    {
+        var t = new Bulwark.Territory.ExplorationTrigger { StoryFlag = flag, Position = pos };
+        t.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = 40f } });
+        return t;
+    }
+
+    private async Task PhysicsFrames(int count)
+    {
+        for (int i = 0; i < count; i++)
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
     }
 
     // ─────────────────────────── Harness helpers ───────────────────────────

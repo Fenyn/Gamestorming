@@ -5,7 +5,7 @@
 - **Ancestry:** Human
 - **Pronouns:** he/him
 - **Kind:** recruitable PC
-- **Associated building:** Kitchen / Tavern (co-tenant with Fenwick)
+- **Associated building:** Tavern (co-tenant with Fenwick)
 - **Deity:** None. Wynn has a deep appreciation for the narrative structure of religion
   and zero interest in participating in it. He once described a chapel sermon as "good
   material, needs tighter pacing."
@@ -46,7 +46,7 @@ is that someone. He just happens to be funny about it.
 
 ## Role in the town
 
-Wynn shares the Kitchen / Tavern with Fenwick. Fenwick runs the kitchen. Wynn runs the
+Wynn shares the Tavern with Fenwick. Fenwick runs the kitchen. Wynn runs the
 room. He is the entertainment, the atmosphere, the reason people linger after the meal
 is finished. His dramatized retellings of outpost events, expeditions, and battles are a
 fixture of evening life. Hearing your own adventure turned into a three-act drama with
@@ -115,9 +115,9 @@ evening because Fenwick's cooking was good and the company was interesting, and 
 stayed for another day because someone told him a story worth hearing, and then he
 stopped pretending he was leaving.
 
-The trigger is the Kitchen reaching tier 2, the point where the tavern common room exists. That
+The trigger is the Tavern reaching tier 2, the point where the tavern common room exists. That
 room is the reason he stays: a space where people linger after a meal is finished is exactly what
-a playwright without a stage needs, and the outpost only has one once the Kitchen grows into it.
+a playwright without a stage needs, and the outpost only has one once the Tavern grows into it.
 His arrival should feel organic: he wandered in, and the outpost was interesting enough to hold him.
 
 ## Heart Level Progression

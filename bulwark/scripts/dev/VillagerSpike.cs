@@ -80,6 +80,7 @@ public partial class VillagerSpike : SpikeBase
         BackupSlot0();
         try
         {
+            RunScheduleResolution();    // (S)
             RunTriggerVariants();       // (A)
             RunStoryFlags();            // (B)
             RunPartyJoinAndGrowth();    // (C) + (D) + (E) + (F)
@@ -97,6 +98,39 @@ public partial class VillagerSpike : SpikeBase
         }
 
         FinishAndQuit("VillagerSpike");
+    }
+
+    // ─────────────────────────── (S) Schedule resolution (pure logic) ───────────────────────────
+
+    /// <summary>
+    /// Exercises <see cref="Schedules.ResolveMarker"/> — the Node-free daily-slot resolution — against
+    /// shipped data: unknown villager → home (null), before-first-slot → home, exactly-at / between
+    /// slots → the latest passed slot, after the last slot → last marker (late night stays), and the
+    /// dawn rollover → home again. Generic over the shipped tharr schedule so it survives content edits.
+    /// </summary>
+    private void RunScheduleResolution()
+    {
+        GD.Print("-------------------- (S) Schedule resolution (pure) --------------------");
+
+        Check("(S) unknown villager → home (null)", Schedules.ResolveMarker("nobody_here", 700) == null);
+
+        Check("(S) tharr has a shipped schedule (≥2 slots)",
+            Schedules.TryGet("tharr", out var tharr) && tharr!.Entries.Count >= 2);
+        var e = tharr!.Entries;
+        var first = e[0];
+        var second = e[1];
+        var last = e[e.Count - 1];
+
+        Check("(S) before the first slot → home (null)",
+            Schedules.ResolveMarker("tharr", first.MinuteOfDay - 1) == null);
+        Check("(S) exactly at the first slot → first marker",
+            Schedules.ResolveMarker("tharr", first.MinuteOfDay) == first.MarkerName);
+        Check("(S) between slots → the latest passed slot",
+            Schedules.ResolveMarker("tharr", second.MinuteOfDay - 1) == first.MarkerName);
+        Check("(S) at/after the last slot → last marker (late night stays)",
+            Schedules.ResolveMarker("tharr", DayClock.DayRolloverMinute) == last.MarkerName);
+        Check("(S) dawn rollover (new day at 6:00) → home (null)",
+            Schedules.ResolveMarker("tharr", DayClock.DayStartMinute) == null);
     }
 
     // ─────────────────────────── (A) Trigger variants + arrival-once ───────────────────────────
@@ -326,20 +360,21 @@ public partial class VillagerSpike : SpikeBase
         loaderNotArrived.PlaceArrived();
         Check("(F) not-arrived villager places no NPC (marker only)", host.GetChildCount() == 1);
 
-        // Arrived + marker present → a placeholder NPC node is spawned at the marker position.
+        // Arrived + marker present → a real NPC entity is spawned at the marker position (tracked by
+        // the loader; with no schedule wired its anchor is the villager's own home marker).
         var loader = new VillagerLoader(host, _ => true, new[] { recruitVillager });
         loader.PlaceArrived();
-        var npc = host.GetNodeOrNull<Node2D>($"{recruitVillager.MarkerName}Instance");
-        Check("(F) arrived villager gets a placeholder NPC at its marker",
+        var npc = loader.GetPlaced(recruitVillager.Id);
+        Check("(F) arrived villager gets an NPC at its marker",
             npc != null && npc.GlobalPosition == marker.GlobalPosition);
 
         // Idempotent: refreshing again does not duplicate the NPC.
         loader.Refresh(recruitVillager.Id);
-        int instances = 0;
+        int npcCount = 0;
         foreach (Node c in host.GetChildren())
-            if (c.Name.ToString().EndsWith("Instance"))
-                instances++;
-        Check("(F) refresh does not duplicate the NPC", instances == 1);
+            if (c is VillagerNpc)
+                npcCount++;
+        Check("(F) refresh does not duplicate the NPC", npcCount == 1);
     }
 
     // ─────────────── (G) shipped empty + GameState no-op, (H) GameState round-trip ───────────────
@@ -445,19 +480,19 @@ public partial class VillagerSpike : SpikeBase
         // A party of five (4 companions) is REJECTED — the adventuring party is capped at 4.
         var fourCompanions = new List<string>
         {
-            SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId, RecruitCharacterId,
+            SquadRoster.ElaraId, SquadRoster.TharrId, SquadRoster.FenwickId, RecruitCharacterId,
         };
         Check("(I) travel with 4 companions (party of 5) rejected", !gs.TravelToTerritory(territoryId, fourCompanions));
         Check("(I) still at the outpost after the rejected embark", gs.Territory.CurrentTerritoryId == null);
 
         // A chosen 3 (party of 4) is ACCEPTED — the selection from the pool, not the whole pool.
-        var chosen = new List<string> { SquadRoster.TharrId, SquadRoster.ScholarId, RecruitCharacterId };
+        var chosen = new List<string> { SquadRoster.TharrId, SquadRoster.FenwickId, RecruitCharacterId };
         Check("(I) travel with a chosen 3 (party of 4) accepted", gs.TravelToTerritory(territoryId, chosen));
         Check("(I) exactly 3 companions selected → party of 4 (Veteran + 3)",
             gs.Territory.SelectedCompanionIds.Count == 3);
         Check("(I) selection holds the CHOSEN members, not the whole pool",
             gs.Territory.SelectedCompanionIds.Contains(RecruitCharacterId)
-            && !gs.Territory.SelectedCompanionIds.Contains(SquadRoster.ScoutId));
+            && !gs.Territory.SelectedCompanionIds.Contains(SquadRoster.ElaraId));
 
         // Save mid-selection → reload → pool (5) AND selection (3) both restored.
         gs.SaveGame();

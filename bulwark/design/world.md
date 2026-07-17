@@ -89,10 +89,19 @@ the crown decided to build upon it.
 
 ### The Elderwood
 
-The great forest that borders the outpost. It has many names along the frontier — Thornwood
-near the outpost, Elderwood in the deeper reaches — but it is one continuous thing, and it is
+The great forest that borders the outpost. It has many names along the frontier — **Thornwood**
+near the outpost, **Elderwood** in the deeper reaches — but it is one continuous thing, and it is
 old. Older than the hegemony. Older than the wars. The trees remember a time before the roads,
 and they have been waiting patiently for the roads to leave.
+
+**Resolved (2026-07-16):** Thornwood and Elderwood are the near and deep reaches of a single forest,
+not two forests. The **Thornwood is the near forest** — the game's starting territory, the **Verdant
+Fringe** — safe enough to gather and cut timber in. The **Elderwood is the deep reaches**, older and
+darker, and it is gated: a **dire wolf has come down out of the deep and guards the passage between the
+two**. Until the wolf is slain, the party cannot press past the Thornwood into the Elderwood. Killing it
+is what opens the deeper forest (mechanically, the `dire_wolf_slain` flag unlocks the Elderwood
+territory). Everything the Elderwood supplies — hardwood, coal, its own forage and beasts, and the
+outsiders who live there like Spore and Thistle — sits behind that kill.
 
 The forest is not hostile in the way a monster is hostile. It is indifferent in the way that
 something ancient is indifferent. It does not hate the outpost. It simply does not recognize
@@ -290,8 +299,10 @@ and touch.
   happened to him — death, disappearance, betrayal?
 - **The war's name**: did the human-elf conflict have a name? ("The Sundering," "The
   Ashfall," "The War of the Divided Light"?)
-- **Thornwood vs. Elderwood**: are these different names for the same forest (near vs. deep),
-  or different forests? The character bios use both.
+- ~~**Thornwood vs. Elderwood**: are these different names for the same forest (near vs. deep),
+  or different forests?~~ **Resolved (2026-07-16):** one continuous forest. Thornwood = the near
+  reaches (the starting Verdant Fringe); Elderwood = the deep reaches (a gated territory). A dire wolf
+  guards the passage between them; killing it opens the Elderwood. See The Elderwood section above.
 - **Elara's specific history**: she is an elf in post-war hegemony territory. Does she have
   a personal connection to the war, or is she simply old enough to have lived through it?
 - **The Fey**: Thistle came through a Fey door. How present is the Fey in this world — rare

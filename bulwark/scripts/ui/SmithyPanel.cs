@@ -16,7 +16,7 @@ namespace Bulwark.UI;
 /// no game rules, no engine types, per CLAUDE.md.
 /// Toggled by the "toggle_smithy_panel" input action (G); Esc closes.
 /// </summary>
-public partial class SmithyPanel : CanvasLayer
+public partial class SmithyPanel : TogglePanel
 {
     /// <summary>Intent: apply a fundamental rune to a member's main-hand weapon (memberId, kind).</summary>
     public event Action<string, RuneKind>? ApplyRuneRequested;
@@ -24,14 +24,13 @@ public partial class SmithyPanel : CanvasLayer
     /// <summary>Intent: forge a catalog weapon from materials and equip it to a member (memberId, weaponSlug).</summary>
     public event Action<string, string>? BuyWeaponRequested;
 
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
-
     private VBoxContainer _body = null!;
     private Label _gold = null!;
 
     private SmithyView? _view;
     private string? _buyTargetId; // member a forged weapon equips to
+
+    public SmithyPanel() => ToggleAction = "toggle_smithy_panel";
 
     public override void _Ready()
     {
@@ -39,23 +38,6 @@ public partial class SmithyPanel : CanvasLayer
         _gold = GetNode<Label>("%GoldLabel");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_smithy_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>Render a fresh smithy view (forge + runes only — selling moved to the Trading Post).</summary>
     public void Render(SmithyView view)
@@ -201,14 +183,6 @@ public partial class SmithyPanel : CanvasLayer
             return $"{gold}g";
         string mat = Items.TryGet(materialItemId, out ItemDefinition def) ? def.DisplayName : materialItemId;
         return $"{gold}g + {materialQty} {mat}";
-    }
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 
     private static SmithyMemberView? FindMember(SmithyView view, string id)

@@ -266,6 +266,34 @@ public static class EncounterTables
         Creatures = new[] { new EncounterCreature { Creature = HollowKing, Count = 1 } },
     };
 
+    // --- The Wolf of the Fringe (tutorial-arc capstone boss, design/tutorial_quests.md quest 9) ---
+    // The dire wolf that broke Arkus, run as a one-shot Severe-budget fight for a level 1-2 party of
+    // four: the dire wolf (Dire Wolf, PF2e level 3) plus two pack-mate wolves (Wolf, level 1). XP
+    // budget (party of 4): at party level 2 the boss is PL+1 (60 XP) and each pack-mate is PL-1
+    // (30 XP), 60 + 30 + 30 = 120 = SEVERE. Distinct CreatureRefs from the Elderwood beast family so
+    // the boss carries its own one-shot loot (the unique dire_wolf_pelt trophy) rather than the
+    // roaming beast drops.
+    public static readonly CreatureRef DireWolfBoss = new()
+    {
+        DisplayName = "Dire Wolf", Pack = "pathfinder-monster-core", Slug = "dire-wolf",
+        DropTableId = "dire_wolf_boss_drops",
+    };
+    public static readonly CreatureRef DireWolfPackmate = new()
+    {
+        DisplayName = "Wolf", Pack = "pathfinder-monster-core", Slug = "wolf",
+        DropTableId = "dire_wolf_pack_drops",
+    };
+
+    public static readonly EncounterDefinition DireWolf = new()
+    {
+        Id = "dire_wolf", DisplayName = "The Dire Wolf",
+        Creatures = new[]
+        {
+            new EncounterCreature { Creature = DireWolfBoss, Count = 1 },
+            new EncounterCreature { Creature = DireWolfPackmate, Count = 2 },
+        },
+    };
+
     // ================= The Elderwood =================
 
     // --- Beasts (fills the beast_drops table that shipped with no creature behind it) ---
@@ -662,6 +690,7 @@ public static class EncounterTables
         DeserterPatrol, OutriderAmbush, BrigandEliteOutrider, BrigandBossWarbandCaptain,
         BrambleSlickSingle, KnotOfSlicks, BrambleSlickEliteAmbercore, BrambleSlickBossOrchardMother,
         HedgePrankster, HedgeFolkGathering, HedgeFolkEliteThistlewhistle, HedgeFolkBossHollowKing,
+        DireWolf,
         LonePredator, HuntingPack, BeastEliteAlpha, BeastBossOldGrowl,
         RootWardenSingle, StandOfRootWardens, RootWardenEliteBrambleWarden, RootWardenBossHeartwood,
         CanopySpiderSingle, SpiderDrop, CanopySpiderEliteWeaver, CanopySpiderBossSilkqueen,

@@ -73,6 +73,38 @@ position = Vector2(696, 360)
 unique_name_in_owner = true
 position = Vector2(984, 216)
 
+[node name="Villager_tharr" type="Marker2D" parent="." unique_id=220000001]
+unique_name_in_owner = true
+position = Vector2(1128, 600)
+
+[node name="Villager_elara" type="Marker2D" parent="." unique_id=220000002]
+unique_name_in_owner = true
+position = Vector2(1344, 840)
+
+[node name="Villager_fenwick" type="Marker2D" parent="." unique_id=220000003]
+unique_name_in_owner = true
+position = Vector2(1560, 600)
+
+[node name="Spot_command_post" type="Marker2D" parent="." unique_id=220100001]
+unique_name_in_owner = true
+position = Vector2(1167, 552)
+
+[node name="Spot_gate" type="Marker2D" parent="." unique_id=220100002]
+unique_name_in_owner = true
+position = Vector2(984, 1296)
+
+[node name="Spot_farm_field" type="Marker2D" parent="." unique_id=220100003]
+unique_name_in_owner = true
+position = Vector2(1320, 552)
+
+[node name="Spot_trading_post" type="Marker2D" parent="." unique_id=220100004]
+unique_name_in_owner = true
+position = Vector2(1383, 1008)
+
+[node name="Spot_tavern" type="Marker2D" parent="." unique_id=220100005]
+unique_name_in_owner = true
+position = Vector2(1635, 552)
+
 [node name="GateTrigger" type="Area2D" parent="." unique_id=330112783]
 unique_name_in_owner = true
 position = Vector2(984, 1416)
@@ -118,5 +150,5 @@ position = Vector2(1383, 937)
 [node name="Farmhouse" parent="." unique_id=1453181310 instance=ExtResource("6_j6kdo")]
 position = Vector2(313, 473)
 
-[node name="Kitchen" parent="." unique_id=2014668713 instance=ExtResource("7_077m5")]
+[node name="Tavern" parent="." unique_id=2014668713 instance=ExtResource("7_077m5")]
 position = Vector2(1635, 471)

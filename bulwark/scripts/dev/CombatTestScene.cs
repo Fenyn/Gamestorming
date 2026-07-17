@@ -32,9 +32,9 @@ public partial class CombatTestScene : Node
         // when the squad is unavailable (standalone runs without a GameState-owned roster).
         var squad = GameState.Instance?.Squad;
         ICharacter? veteran = squad?.FindMember(SquadRoster.PlayerId);
-        ICharacter? scout = squad?.FindMember(SquadRoster.ScoutId);
+        ICharacter? scout = squad?.FindMember(SquadRoster.ElaraId);
         ICharacter? medic = squad?.FindMember(SquadRoster.TharrId);
-        ICharacter? scholar = squad?.FindMember(SquadRoster.ScholarId);
+        ICharacter? scholar = squad?.FindMember(SquadRoster.FenwickId);
         veteran ??= PresetCharacters.BuildPlayer(level: GameState.SquadStartLevel, teamId: 1);
         scout ??= PresetCharacters.BuildScout(level: GameState.SquadStartLevel, teamId: 1);
         medic ??= PresetCharacters.BuildTharr(level: GameState.SquadStartLevel, teamId: 1);

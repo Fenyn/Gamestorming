@@ -11,6 +11,7 @@ using PF2e.Equipment;
 using PF2e.Import;
 using PF2e.Utilities;
 
+using Bulwark.Save;
 namespace Bulwark.Cozy;
 
 /// <summary>
@@ -37,9 +38,12 @@ public sealed class SquadRoster
 {
     // Aliases of the preset ids (PresetCharacters owns the strings) so existing call sites compile.
     public const string PlayerId = PresetCharacters.PlayerId;
-    public const string ScoutId = PresetCharacters.ScoutId;
     public const string TharrId = PresetCharacters.TharrId;
-    public const string ScholarId = PresetCharacters.ScholarId;
+
+    // The founding four (design/economy/characters.md): the scout/scholar slots are now Elara and
+    // Fenwick — the real starting cast, reusing the scout/scholar stat builds.
+    public const string ElaraId = PresetCharacters.ElaraId;
+    public const string FenwickId = PresetCharacters.FenwickId;
 
     /// <summary>PF2e standard progression: 1000 XP banks a level (applied by the sleep command
     /// via <see cref="ApplyBankedLevelUps"/>).</summary>
@@ -59,14 +63,16 @@ public sealed class SquadRoster
     /// </summary>
     private static readonly Condition[] PersistAcrossEncounters = AttritionConditions.LongTerm;
 
-    private static readonly string[] MemberOrder = { PlayerId, ScoutId, TharrId, ScholarId };
+    // The founding four (design/economy/characters.md): player, Tharr, Fenwick (wizard build),
+    // Elara (scout build). Marching/party order follows this list.
+    private static readonly string[] MemberOrder = { PlayerId, TharrId, FenwickId, ElaraId };
 
     private static readonly Dictionary<string, Func<int, PF2eCharacter>> Builders = new()
     {
         [PlayerId] = lvl => PresetCharacters.BuildPlayer(lvl),
-        [ScoutId] = lvl => PresetCharacters.BuildScout(lvl),
         [TharrId] = lvl => PresetCharacters.BuildTharr(lvl),
-        [ScholarId] = lvl => PresetCharacters.BuildScholar(lvl),
+        [FenwickId] = lvl => PresetCharacters.BuildFenwick(lvl),
+        [ElaraId] = lvl => PresetCharacters.BuildElara(lvl),
     };
 
     // Each member's locked combo: the per-level scripted choices ApplyBankedLevelUps replays
@@ -74,9 +80,9 @@ public sealed class SquadRoster
     private static readonly Dictionary<string, VariantComboDefinition> Combos = new()
     {
         [PlayerId] = PresetCombos.FighterSentinel,
-        [ScoutId] = PresetCombos.RogueThief,
         [TharrId] = PresetCombos.ClericWarpriest,
-        [ScholarId] = PresetCombos.WizardBattleMagic,
+        [FenwickId] = PresetCombos.WizardBattleMagic,
+        [ElaraId] = PresetCombos.RogueThief,
     };
 
     private readonly List<PF2eCharacter> _members = new();
@@ -147,6 +153,29 @@ public sealed class SquadRoster
             _members[idx] = BuildMember(PlayerId, Level);
             Changed?.Invoke();
         }
+    }
+
+    /// <summary>
+    /// Reset the roster to a fresh new-game state: discard ALL live delta (HP, XP, persistent
+    /// conditions, applied level-ups, fundamental runes, bought weapons, grown/party-joined members)
+    /// and rebuild the four presets at <paramref name="level"/> with the given player name. In-place —
+    /// the SquadRoster instance is reused, so GameState's systems cross-wired to it (TreatWounds,
+    /// meals, consumables, the inventory's per-member binding, the Changed subscription) keep their
+    /// references. Mirrors the private constructor; the title-screen new-game seam
+    /// (GameState.StartNewGame) drives it so a same-session New Game after play starts truly clean.
+    /// </summary>
+    public void Reset(int level, string? playerName = null)
+    {
+        _members.Clear();
+        _xp.Clear();
+        _dailyPreparations.Clear();
+        _purchasedWeaponSlug.Clear();
+        _grown.Clear();
+        _playerName = playerName;
+        Level = Math.Max(1, level);
+        foreach (var id in MemberOrder)
+            AddMember(BuildMember(id, Level));
+        Changed?.Invoke();
     }
 
     public PF2eCharacter? FindMember(string memberId) => _members.Find(m => m.Id == memberId);

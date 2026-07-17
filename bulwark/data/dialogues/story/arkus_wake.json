@@ -1,0 +1,32 @@
+{
+  "id": "arkus_wake",
+  "type": "Sequence",
+  "once": true,
+  "steps": [
+    { "type": "line", "speaker": "arkus", "text": "(upright on the mended bunk, stiff, bandaged wrong in two places)\nYou are the ones who carried me. Good. I hate owing strangers." },
+    { "type": "line", "speaker": "player", "text": "You were on the road past the near forest. A dire wolf." },
+    { "type": "line", "speaker": "arkus", "text": "The wolf. Yes.\nI went in to prove something. I came out like this. What I carried was not enough. Bad steel breaks when you need it to hold." },
+    { "type": "line", "speaker": "arkus", "text": "(tests the arm, winces, does not complain)\nYou killed it, then. With better luck than sense, probably. The next thing out of that forest will be worse. You will want a forge. I can build one. I know metal — it is the one thing the rite did not take from me." },
+    {
+      "type": "choice",
+      "speaker": "player",
+      "text": "",
+      "options": [
+        {
+          "text": "We have a place for a smithy. It's yours.",
+          "steps": [
+            { "type": "line", "speaker": "arkus", "text": "Then it is settled. I start when the frame is up." }
+          ]
+        },
+        {
+          "text": "You could barely stand a moment ago.",
+          "steps": [
+            { "type": "line", "speaker": "arkus", "text": "I mended a spearhead once with a broken hand. Standing is optional. Straight steel is not." }
+          ]
+        }
+      ]
+    },
+    { "type": "line", "speaker": "arkus", "text": "(glances down at their own botched bandages)\nAnd this — whoever wrapped me meant well and did it wrong. You have no proper place to mend the hurt. There will be more of us coming back like I did. Build somewhere to put them. A sickbed, before you need one and do not have it." },
+    { "type": "line", "speaker": "tharr", "text": "(from the doorway)\nA forge and an infirmary.\nThe table can hold both." }
+  ]
+}

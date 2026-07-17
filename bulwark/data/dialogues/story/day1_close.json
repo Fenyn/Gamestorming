@@ -1,0 +1,20 @@
+{
+  "id": "day1_close",
+  "type": "Sequence",
+  "once": true,
+  "steps": [
+    { "type": "fade", "direction": "in", "duration": 0.6 },
+    { "type": "camera", "actor": "fenwick", "duration": 1.0 },
+    { "type": "line", "speaker": "fenwick", "text": "(crouched at the old hearth, sleeves pushed up)\nWalls that hold, a roof that keeps the rain off the soup. You have done more today than the crown managed in nine years." },
+    { "type": "line", "speaker": "player", "text": "That was Tharr's doing. I only carried the stone." },
+    { "type": "line", "speaker": "fenwick", "text": "Carrying the stone is most of it. Ask any mason." },
+    { "type": "line", "speaker": "fenwick", "text": "(he peers up the chimney)\nAnd this — this is a proper hearth under all the soot. The draw is honest. Give me a few days and it will feed everyone here." },
+    { "type": "line", "speaker": "fenwick", "text": "(he stands, brushing ash from his hands)\nGet some rest. Whatever this place is going to be, it starts tomorrow. Tonight it can simply be standing." },
+    { "type": "camera", "marker": "return", "duration": 0.8 },
+    { "type": "fade", "direction": "out", "duration": 1.0 },
+    { "type": "wait", "seconds": 0.9 },
+    { "type": "sfx", "sound": "res://assets/sfx/wolf_howl.ogg" },
+    { "type": "line", "speaker": "", "text": "Far off in the dark, a long, low howl. Held too long to be a dog. Closer than anyone would like." },
+    { "type": "fade", "direction": "in", "duration": 1.0 }
+  ]
+}

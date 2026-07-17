@@ -1,6 +1,6 @@
 using Bulwark.Autoload;
 
-namespace Bulwark.Cozy;
+namespace Bulwark.Dialogue;
 
 /// <summary>
 /// Routes dialogue effects through the existing GameState commands. Implements
@@ -14,6 +14,8 @@ public sealed class GameStateEffectHandler : IDialogueEffectHandler
     {
         _gs = gs;
     }
+
+    public string? PlayerName => _gs?.PlayerName;
 
     public void SetFlag(string flagId) => _gs?.SetStoryFlag(flagId);
 

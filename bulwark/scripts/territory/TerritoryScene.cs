@@ -28,7 +28,7 @@ namespace Bulwark.Territory;
 /// (z=5, origin at the trunk base) draw over the player standing behind them and under the player
 /// standing in front.
 /// </summary>
-public partial class ForestScene : CozyWorldScene
+public partial class TerritoryScene : CozyWorldScene
 {
     /// <summary>The <see cref="TerritoryDefinition.Id"/> this scene renders.</summary>
     [Export] public string TerritoryId { get; set; } = "verdant_fringe";
@@ -36,15 +36,41 @@ public partial class ForestScene : CozyWorldScene
     /// <summary>Max distance (px) from the player at which an interact press harvests a node.</summary>
     [Export] public float InteractRange { get; set; } = 64f;
 
+    /// <summary>Quest whose active window governs the wolf-lair boss site (design/tutorial_quests.md
+    /// quest 9). Tunable so the boss-site convention is not hard-coded in logic.</summary>
+    [Export] public string WolfQuestId { get; set; } = "wolf_of_the_fringe";
+
+    /// <summary>Where the %ExitTrigger leads. Empty = back to the outpost (the Verdant Fringe
+    /// default); a territory id = march to that LINKED territory instead without an outpost round-trip
+    /// (the Elderwood's exit points back to the Verdant Fringe). Set per scene.</summary>
+    [Export] public string ExitTerritoryId { get; set; } = "";
+
+    /// <summary>Signpost text for the %ExitTrigger affordance.</summary>
+    [Export] public string ExitLabel { get; set; } = "To Outpost";
+
+    /// <summary>Optional deeper-forest transition (the Verdant Fringe → Elderwood seam,
+    /// design/tutorial_quests.md quest 11): the territory id the %DeeperTrigger leads to. Empty = this
+    /// scene has no deeper sign. GATED on the biome unlock — impassable until the outpost's Command
+    /// Post opens the biome (GameState.IsBiomeUnlocked).</summary>
+    [Export] public string DeeperTerritoryId { get; set; } = "";
+
+    /// <summary>Quest event raised once on arrival in this territory (design/tutorial_quests.md quest
+    /// 11's optional "Travel to the Elderwood" objective, key <c>elderwood_entered</c>). Empty = raise
+    /// nothing.</summary>
+    [Export] public string TerritoryEnteredEvent { get; set; } = "";
+
     private TileMapLayer? _ground;
     private Marker2D? _playerSpawn;
     private Area2D? _exitTrigger;
     private TransitionSign? _exitSign;
+    private Area2D? _deeperTrigger;
+    private TransitionSign? _deeperSign;
 
     private readonly Dictionary<string, ResourceNodeView> _nodeViews = new();
     private readonly Dictionary<string, ResourceNodeDefinition> _nodeDefs = new();
     private readonly HashSet<string> _forageNodeIds = new();
     private readonly List<RoamingEnemy> _roamers = new();
+    private WolfLair? _wolfLair;
     private ForestForageAdapter? _forageAdapter;
 
     public override void _Ready()
@@ -62,13 +88,16 @@ public partial class ForestScene : CozyWorldScene
         DiscoverPlacedNodes();
         SpawnResourceNodes();
         SpawnRoamers();
+        RefreshWolfLair();
         SpawnExitSign();
         WireExit();
+        SpawnDeeperSign();
         BuildWorldCollision(_ground);
         WireStateEvents();
         SyncForage();
         RefreshHudAll();
         ShowArrivalToast();
+        RaiseTerritoryEnteredEvent();
     }
 
     // ------------------------------------------------------------------ Instancing
@@ -116,13 +145,13 @@ public partial class ForestScene : CozyWorldScene
                 string nodeId = view.Name;
                 if (_nodeViews.ContainsKey(nodeId) || result.Exists(r => r.Item2 == nodeId))
                 {
-                    GD.PushError($"[ForestScene] duplicate placed node name '{nodeId}' — skipped " +
+                    GD.PushError($"[TerritoryScene] duplicate placed node name '{nodeId}' — skipped " +
                                  "(placed-node names must be unique per scene, they are the save identity)");
                     continue;
                 }
                 if (!ResourceNodes.TryGet(view.DefinitionId, out var def))
                 {
-                    GD.PushError($"[ForestScene] placed node '{nodeId}' has unknown definition id " +
+                    GD.PushError($"[TerritoryScene] placed node '{nodeId}' has unknown definition id " +
                                  $"'{view.DefinitionId}' — skipped");
                     continue;
                 }
@@ -291,7 +320,11 @@ public partial class ForestScene : CozyWorldScene
         if (!Territories.TryGet(TerritoryId, out var territory))
             return;
         foreach (var roamer in territory.Roamers)
+        {
+            if (roamer.IsBoss)
+                continue; // boss sites are placed by the wolf-lair path, not the wandering pass
             TrySpawnRoamer(roamer.RoamerId);
+        }
     }
 
     /// <summary>
@@ -304,10 +337,69 @@ public partial class ForestScene : CozyWorldScene
             return;
         foreach (var roamer in territory.Roamers)
         {
+            if (roamer.IsBoss)
+                continue; // boss sites do not respawn with the daily roamer pass (see RefreshWolfLair)
             if (_roamers.Exists(r => IsInstanceValid(r) && r.RoamerId == roamer.RoamerId))
                 continue;
             TrySpawnRoamer(roamer.RoamerId);
         }
+    }
+
+    /// <summary>
+    /// Place or clear the one-shot wolf-lair boss site (design/tutorial_quests.md quest 9) to match
+    /// its lifecycle: present exactly while <see cref="WolfQuestId"/> is active AND the wolf is not yet
+    /// slain (<see cref="WolfLair.ShouldAppear"/>). Null-safe — a missing boss roamer or marker logs
+    /// and skips (BuildingLoader's pattern). Re-run at ready and on day change; the flag persists, so
+    /// a slain wolf never reappears across save/load.
+    /// </summary>
+    private void RefreshWolfLair()
+    {
+        var gs = GameState.Instance;
+        if (gs == null || Player == null || !Territories.TryGet(TerritoryId, out var territory))
+            return;
+
+        string? bossId = null;
+        foreach (var roamer in territory.Roamers)
+            if (roamer.IsBoss)
+            {
+                bossId = roamer.RoamerId;
+                break;
+            }
+        if (bossId == null)
+            return; // this territory has no boss site
+
+        bool shouldAppear = WolfLair.ShouldAppear(gs.IsQuestActive(WolfQuestId), gs.HasStoryFlag("dire_wolf_slain"));
+        bool present = _wolfLair != null && IsInstanceValid(_wolfLair);
+
+        if (shouldAppear && !present)
+            SpawnWolfLair(bossId);
+        else if (!shouldAppear && present)
+        {
+            _wolfLair!.QueueFree();
+            _wolfLair = null;
+        }
+    }
+
+    /// <summary>Instance the wolf-lair scene at its %Roamer_&lt;id&gt; marker and wire its contact to
+    /// the same encounter hand-off a roamer uses. Missing marker/scene logs and skips.</summary>
+    private void SpawnWolfLair(string bossId)
+    {
+        var marker = GetNodeOrNull<Marker2D>($"%Roamer_{bossId}");
+        var scene = GD.Load<PackedScene>("res://scenes/territory/wolf_lair.tscn");
+        if (marker == null || scene == null)
+        {
+            GD.PushWarning($"[TerritoryScene] wolf-lair marker '%Roamer_{bossId}' or scene missing — boss site skipped");
+            return;
+        }
+
+        var lair = scene.Instantiate<WolfLair>();
+        lair.Name = $"WolfLair_{bossId}";
+        lair.ZIndex = 5;
+        AddChild(lair);
+        lair.GlobalPosition = marker.GlobalPosition;
+        lair.Setup(bossId, Player);
+        lair.PlayerContacted += OnRoamerContact;
+        _wolfLair = lair;
     }
 
     /// <summary>Spawn one roamer body at its %Roamer_&lt;id&gt; marker — unless it was already
@@ -339,15 +431,62 @@ public partial class ForestScene : CozyWorldScene
     /// player learns what walking in does). One hint mechanism only: the HUD toast.</summary>
     private void SpawnExitSign()
     {
-        _exitSign = SpawnTransitionSign("ExitSign", "To Outpost", _exitTrigger, trackPlayer: true);
+        _exitSign = SpawnTransitionSign("ExitSign", ExitLabel, _exitTrigger, trackPlayer: true);
         if (_exitSign != null)
             _exitSign.PlayerApproached += OnExitApproached;
     }
 
+    /// <summary>Human-readable name of wherever the %ExitTrigger leads (the outpost by default).</summary>
+    private string ExitDestinationName()
+        => string.IsNullOrEmpty(ExitTerritoryId)
+            ? "the outpost"
+            : (Territories.TryGet(ExitTerritoryId, out var d) ? d.DisplayName : ExitTerritoryId);
+
     private void OnExitApproached()
     {
         if (!IsTransitioning)
-            Hud?.ShowToast("Walk here to return to the outpost", 2f);
+            Hud?.ShowToast($"Walk here to return to {ExitDestinationName()}", 2f);
+    }
+
+    /// <summary>Optional gated deep-forest affordance (the Verdant Fringe → Elderwood seam,
+    /// design/tutorial_quests.md quest 11): a signpost at %DeeperTrigger that only lets the party press
+    /// on once the outpost has opened the biome (GameState.IsBiomeUnlocked). Locked, it reads as
+    /// impassable and travels nowhere. No deeper trigger / empty id = skipped (the Elderwood itself has
+    /// no deeper sign until the Sunken Reach lands).</summary>
+    private void SpawnDeeperSign()
+    {
+        if (string.IsNullOrEmpty(DeeperTerritoryId))
+            return;
+
+        _deeperTrigger = GetNodeOrNull<Area2D>("%DeeperTrigger");
+        if (_deeperTrigger == null)
+            return;
+
+        bool unlocked = GameState.Instance?.IsBiomeUnlocked(DeeperTerritoryId) ?? false;
+        _deeperSign = SpawnTransitionSign(
+            "DeeperSign",
+            unlocked ? $"To {DeeperDestinationName()}" : "The deep forest — impassable",
+            _deeperTrigger,
+            trackPlayer: true);
+        if (_deeperSign != null)
+            _deeperSign.PlayerApproached += OnDeeperApproached;
+        _deeperTrigger.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnDeeperBodyEntered));
+    }
+
+    /// <summary>Human-readable name of the deeper territory the %DeeperTrigger leads to.</summary>
+    private string DeeperDestinationName()
+        => Territories.TryGet(DeeperTerritoryId, out var d) ? d.DisplayName : DeeperTerritoryId;
+
+    private void OnDeeperApproached()
+    {
+        if (IsTransitioning)
+            return;
+        bool unlocked = GameState.Instance?.IsBiomeUnlocked(DeeperTerritoryId) ?? false;
+        Hud?.ShowToast(
+            unlocked
+                ? $"Walk here to press on into {DeeperDestinationName()}"
+                : "The deep forest is impassable. The outpost must grow before the way opens.",
+            2.5f);
     }
 
     private void WireExit()
@@ -355,20 +494,12 @@ public partial class ForestScene : CozyWorldScene
         _exitTrigger?.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnExitBodyEntered));
     }
 
-    protected override void WireExtraStateEvents(GameState gs)
+    protected override void WireExtraStateEvents(GameState gs, EventSubscriptions subs)
     {
-        gs.DayStarted += OnDayStarted;
-        gs.TerritoryNodeChanged += OnNodeChanged;
-        gs.ResourceHarvested += OnResourceHarvested;
-        gs.ForageChanged += OnForageChanged;
-    }
-
-    protected override void UnwireExtraStateEvents(GameState gs)
-    {
-        gs.DayStarted -= OnDayStarted;
-        gs.TerritoryNodeChanged -= OnNodeChanged;
-        gs.ResourceHarvested -= OnResourceHarvested;
-        gs.ForageChanged -= OnForageChanged;
+        subs.Add(() => gs.DayStarted += OnDayStarted, () => gs.DayStarted -= OnDayStarted);
+        subs.Add(() => gs.TerritoryNodeChanged += OnNodeChanged, () => gs.TerritoryNodeChanged -= OnNodeChanged);
+        subs.Add(() => gs.ResourceHarvested += OnResourceHarvested, () => gs.ResourceHarvested -= OnResourceHarvested);
+        subs.Add(() => gs.ForageChanged += OnForageChanged, () => gs.ForageChanged -= OnForageChanged);
     }
 
     // ------------------------------------------------------------------ Interactions
@@ -433,6 +564,10 @@ public partial class ForestScene : CozyWorldScene
         if (_exitSign?.PlayerInRange == true)
             return "Travel";
 
+        // The deeper sign only prompts once the biome is unlocked; locked, the approach toast explains.
+        if (_deeperSign?.PlayerInRange == true)
+            return (GameState.Instance?.IsBiomeUnlocked(DeeperTerritoryId) ?? false) ? "Travel" : null;
+
         if (nearest != null && _nodeDefs.TryGetValue(nearest.NodeId, out var def))
         {
             return def.Tool switch
@@ -469,11 +604,58 @@ public partial class ForestScene : CozyWorldScene
             return;
 
         var gs = GameState.Instance;
-        if (gs == null || !gs.TravelToOutpost())
+        if (gs == null)
+            return;
+
+        // Default (empty ExitTerritoryId): march back to the outpost. Otherwise march directly to the
+        // linked territory (the Elderwood's exit returns to the Verdant Fringe) — no outpost round-trip.
+        if (string.IsNullOrEmpty(ExitTerritoryId))
+        {
+            if (!gs.TravelToOutpost())
+                return;
+            IsTransitioning = true;
+            Callable.From(() => SceneRouter.Instance?.GoToOutpost()).CallDeferred();
+        }
+        else
+        {
+            if (!gs.TravelToLinkedTerritory(ExitTerritoryId))
+                return;
+            IsTransitioning = true;
+            string dest = ExitTerritoryId;
+            Callable.From(() => SceneRouter.Instance?.GoToTerritory(dest)).CallDeferred();
+        }
+    }
+
+    private void OnDeeperBodyEntered(Node2D body)
+    {
+        if (body is not PlayerController || IsTransitioning)
+            return;
+
+        var gs = GameState.Instance;
+        if (gs == null)
+            return;
+
+        if (!gs.IsBiomeUnlocked(DeeperTerritoryId))
+        {
+            Hud?.ShowToast("The deep forest is impassable. The outpost must grow before the way opens.", 2.5f);
+            return;
+        }
+        if (!gs.TravelToLinkedTerritory(DeeperTerritoryId))
             return;
 
         IsTransitioning = true;
-        Callable.From(() => SceneRouter.Instance?.GoToOutpost()).CallDeferred();
+        string dest = DeeperTerritoryId;
+        Callable.From(() => SceneRouter.Instance?.GoToTerritory(dest)).CallDeferred();
+    }
+
+    /// <summary>Fire the one-shot territory-entry quest event (design/tutorial_quests.md quest 11's
+    /// optional <c>elderwood_entered</c> objective). Runs on every scene entry; RecordQuestEvent is
+    /// idempotent once the OnceEvent objective is satisfied, so re-firing after a combat return is
+    /// harmless.</summary>
+    private void RaiseTerritoryEnteredEvent()
+    {
+        if (!string.IsNullOrEmpty(TerritoryEnteredEvent))
+            GameState.Instance?.RecordQuestEvent(TerritoryEnteredEvent);
     }
 
     /// <summary>
@@ -487,6 +669,7 @@ public partial class ForestScene : CozyWorldScene
     {
         RefreshHudTime();
         RespawnRoamers();
+        RefreshWolfLair();
         SyncForage();
     }
 

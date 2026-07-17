@@ -7,6 +7,7 @@ using Bulwark.Cozy;
 using Bulwark.Data.Dialogues;
 using Godot;
 
+using Bulwark.Dialogue;
 namespace Bulwark.Dev;
 
 /// <summary>
@@ -38,6 +39,8 @@ public partial class DialogueSpike : SpikeBase
             RunDatabaseLoadAndQuery();    // (H)
             RunSeenTracking();            // (I)
             RunConditionGating();         // (J)
+            RunTalkEntryEffects();        // (K)
+            RunTextResolution();          // (L)
         }
         catch (Exception e)
         {
@@ -272,7 +275,7 @@ public partial class DialogueSpike : SpikeBase
 
         var lines = new List<(string Speaker, string Text, string Emotion)>();
         bool ended = false;
-        runner.LineReady += (s, t, e, _) => lines.Add((s, t, e));
+        runner.LineReady += (s, _, t, e, _) => lines.Add((s, t, e));
         runner.SequenceEnded += () => ended = true;
 
         runner.Start();
@@ -336,7 +339,7 @@ public partial class DialogueSpike : SpikeBase
         var lines = new List<string>();
         List<string>? choiceLabels = null;
         bool ended = false;
-        runner.LineReady += (_, t, _, _) => lines.Add(t);
+        runner.LineReady += (_, _, t, _, _) => lines.Add(t);
         runner.ChoicesReady += opts => choiceLabels = opts;
         runner.SequenceEnded += () => ended = true;
 
@@ -406,7 +409,7 @@ public partial class DialogueSpike : SpikeBase
         var stageCommands = new List<string>();
         var lines = new List<string>();
         bool ended = false;
-        runner.LineReady += (_, t, _, _) => lines.Add(t);
+        runner.LineReady += (_, _, t, _, _) => lines.Add(t);
         runner.StageCommand += step => stageCommands.Add(step.Type);
         runner.SequenceEnded += () => ended = true;
 
@@ -458,7 +461,7 @@ public partial class DialogueSpike : SpikeBase
         var runner = new DialogueRunner(steps, handler);
 
         var lines = new List<string>();
-        runner.LineReady += (_, t, _, _) => lines.Add(t);
+        runner.LineReady += (_, _, t, _, _) => lines.Add(t);
 
         runner.Start();
         // flag and friendship are immediate — the runner processes them and advances to the line
@@ -495,7 +498,7 @@ public partial class DialogueSpike : SpikeBase
 
         var handler2 = new StubEffectHandler();
         var runner2 = new DialogueRunner(choiceSteps, handler2);
-        runner2.LineReady += (_, _, _, _) => { };
+        runner2.LineReady += (_, _, _, _, _) => { };
         runner2.ChoicesReady += _ => { };
 
         runner2.Start();
@@ -629,7 +632,7 @@ public partial class DialogueSpike : SpikeBase
         db.TryGetSequence("once_seq", out var seq);
         var runner = new DialogueRunner(seq.Steps!, handler, "once_seq", once: true);
         bool ended = false;
-        runner.LineReady += (_, _, _, _) => { };
+        runner.LineReady += (_, _, _, _, _) => { };
         runner.SequenceEnded += () => ended = true;
         runner.Start();
         runner.Advance();
@@ -705,6 +708,187 @@ public partial class DialogueSpike : SpikeBase
         Check("(J) unknown id is never available", !db.IsAvailable("no_such_seq", ctxPass));
     }
 
+    // ─────────────────────────── (K) Talk-pool entry effects + choices ───────────────────────────
+
+    private void RunTalkEntryEffects()
+    {
+        GD.Print("-------------------- (K) Talk-pool entry: effects, choices, ToSteps flatten --------------------");
+
+        // A talk entry that latches a flag + item on play, then presents a choice on its last line.
+        string json = @"{
+            ""id"": ""talk_fx"",
+            ""type"": ""TalkPool"",
+            ""character"": ""tharr"",
+            ""entries"": [
+                {
+                    ""priority"": 50,
+                    ""conditions"": { ""flags_blocked"": [""quest_started""] },
+                    ""lines"": [
+                        { ""speaker"": ""tharr"", ""text"": ""The lodging needs mending."" },
+                        { ""speaker"": ""tharr"", ""text"": ""Will you gather timber and stone?"" }
+                    ],
+                    ""effects"": [
+                        { ""type"": ""flag"", ""set"": ""quest_started"" },
+                        { ""type"": ""item"", ""item_id"": ""map"", ""quantity"": 1 }
+                    ],
+                    ""choices"": [
+                        {
+                            ""text"": ""I will."",
+                            ""effects"": [{ ""type"": ""friendship"", ""character"": ""tharr"", ""amount"": 15 }]
+                        },
+                        { ""text"": ""Not yet."" }
+                    ]
+                }
+            ]
+        }";
+
+        var opts = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        };
+        var file = JsonSerializer.Deserialize<DialogueFile>(json, opts);
+
+        Check("(K) deserializes non-null", file != null);
+        var entry = file!.Entries![0];
+        Check("(K) entry effects count = 2", entry.Effects != null && entry.Effects.Count == 2);
+        Check("(K) entry effect 0 = flag quest_started",
+            entry.Effects![0].Type == "flag" && entry.Effects[0].Set == "quest_started");
+        Check("(K) entry effect 1 = item map x1",
+            entry.Effects[1].Type == "item" && entry.Effects[1].ItemId == "map" && entry.Effects[1].Quantity == 1);
+        Check("(K) entry choices count = 2", entry.Choices != null && entry.Choices.Count == 2);
+
+        // ToSteps flatten: 2 effect steps + 1 line + 1 choice (last line becomes the prompt).
+        var steps = entry.ToSteps();
+        Check("(K) ToSteps produces 4 steps", steps.Count == 4);
+        Check("(K) step 0 = flag effect", steps[0].Type == "flag" && steps[0].Set == "quest_started");
+        Check("(K) step 1 = item effect", steps[1].Type == "item" && steps[1].ItemId == "map" && steps[1].Quantity == 1);
+        Check("(K) step 2 = line (first line)", steps[2].Type == "line" && steps[2].Text == "The lodging needs mending.");
+        Check("(K) step 3 = choice (last line is prompt)",
+            steps[3].Type == "choice" && steps[3].Text == "Will you gather timber and stone?"
+            && steps[3].Options != null && steps[3].Options!.Count == 2);
+
+        // Drive the runner over the flattened steps: effects latch, then the choice awards friendship.
+        var handler = new StubEffectHandler();
+        var runner = new DialogueRunner(steps, handler);
+        var lines = new List<string>();
+        List<string>? choiceLabels = null;
+        bool ended = false;
+        runner.LineReady += (_, _, t, _, _) => lines.Add(t);
+        runner.ChoicesReady += o => choiceLabels = o;
+        runner.SequenceEnded += () => ended = true;
+
+        runner.Start();
+        Check("(K) flag effect latched on start", handler.FlagsSet.Contains("quest_started"));
+        Check("(K) item effect granted on start",
+            handler.ItemsGiven.Count == 1 && handler.ItemsGiven[0].ItemId == "map" && handler.ItemsGiven[0].Quantity == 1);
+        Check("(K) first line shown", lines.Count == 1 && lines[0] == "The lodging needs mending.");
+
+        runner.Advance();
+        Check("(K) choice prompt shown", lines.Count == 2 && lines[1] == "Will you gather timber and stone?");
+        Check("(K) choices offered", choiceLabels != null && choiceLabels.Count == 2 && choiceLabels[0] == "I will.");
+
+        runner.SelectChoice(0);
+        Check("(K) choice awarded friendship",
+            handler.FriendshipAwarded.Count == 1 && handler.FriendshipAwarded[0].CharId == "tharr"
+            && handler.FriendshipAwarded[0].Amount == 15);
+        Check("(K) sequence ends after choice", ended);
+
+        // A plain line-only entry (no effects/choices) still flattens to bare line steps (back-compat).
+        var plain = new TalkPoolEntry
+        {
+            Lines = new List<DialogueLine>
+            {
+                new() { Speaker = "tharr", Text = "The walls need mending. Always do." },
+            },
+        };
+        var plainSteps = plain.ToSteps();
+        Check("(K) plain entry flattens to 1 line step",
+            plainSteps.Count == 1 && plainSteps[0].Type == "line" && plainSteps[0].Emotion == "neutral");
+    }
+
+    // ─────────────────────────── (L) Text resolution: tokens + speaker display names ───────────────────────────
+
+    private void RunTextResolution()
+    {
+        GD.Print("-------------------- (L) DialogueText: {player_name} tokens + speaker display names --------------------");
+
+        string playerDefault = Bulwark.Data.Characters.PlayerCharacter.Profile.DefaultName; // "Warden"
+
+        // --- DialogueText.Format: token substitution ---
+        Check("(L) Format substitutes {player_name} with chosen name",
+            DialogueText.Format("This is {player_name}.", "Mira") == "This is Mira.");
+        Check("(L) Format substitutes every occurrence",
+            DialogueText.Format("{player_name} is {player_name}.", "Mira") == "Mira is Mira.");
+        Check("(L) Format falls back to profile default when name unset",
+            DialogueText.Format("I am {player_name}.", null) == $"I am {playerDefault}.");
+        Check("(L) Format leaves token-free text unchanged",
+            DialogueText.Format("No tokens here.", "Mira") == "No tokens here.");
+        Check("(L) Format handles null text", DialogueText.Format(null, "Mira") == "");
+
+        // --- DialogueText.ResolveSpeaker: id → display name ---
+        Check("(L) player speaker resolves to the chosen name",
+            DialogueText.ResolveSpeaker("player", "Mira") == "Mira");
+        Check("(L) player speaker falls back to profile default when name unset",
+            DialogueText.ResolveSpeaker("player", null) == playerDefault);
+        Check("(L) known character id resolves to its profile display name (tharr → Tharr)",
+            DialogueText.ResolveSpeaker("tharr", "Mira") == "Tharr");
+        Check("(L) known character id resolves to its profile display name (fenwick → Fenwick)",
+            DialogueText.ResolveSpeaker("fenwick", "Mira") == "Fenwick");
+        Check("(L) unknown speaker id falls back to the raw id",
+            DialogueText.ResolveSpeaker("some_stranger", "Mira") == "some_stranger");
+        Check("(L) empty speaker id resolves to empty", DialogueText.ResolveSpeaker("", "Mira") == "");
+
+        // --- End-to-end through the runner push path (the real seam) ---
+        var steps = new List<DialogueStep>
+        {
+            new() { Type = "line", Speaker = "player", Text = "This is {player_name}." },
+            new() { Type = "line", Speaker = "tharr", Text = "Well met, {player_name}." },
+            new() { Type = "line", Speaker = "some_stranger", Text = "Who are you?" },
+        };
+
+        var handler = new StubEffectHandler { PlayerName = "Mira" };
+        var runner = new DialogueRunner(steps, handler);
+
+        var pushed = new List<(string SpeakerId, string SpeakerName, string Text)>();
+        runner.LineReady += (id, name, text, _, _) => pushed.Add((id, name, text));
+
+        runner.Start();
+        Check("(L) push 0: player line — id preserved for portrait",
+            pushed.Count == 1 && pushed[0].SpeakerId == "player");
+        Check("(L) push 0: player line — label is the chosen name",
+            pushed[0].SpeakerName == "Mira");
+        Check("(L) push 0: player line — {player_name} substituted in text",
+            pushed[0].Text == "This is Mira.");
+
+        runner.Advance();
+        Check("(L) push 1: tharr line — label is the profile display name",
+            pushed.Count == 2 && pushed[1].SpeakerName == "Tharr");
+        Check("(L) push 1: tharr line — token substituted with the player's name",
+            pushed[1].Text == "Well met, Mira.");
+
+        runner.Advance();
+        Check("(L) push 2: unknown speaker — label falls back to the raw id",
+            pushed.Count == 3 && pushed[2].SpeakerName == "some_stranger");
+        Check("(L) push 2: token-free text passes through unchanged",
+            pushed[2].Text == "Who are you?");
+
+        // --- End-to-end with no chosen name (pre-name-entry / spike default) ---
+        var noNameSteps = new List<DialogueStep>
+        {
+            new() { Type = "line", Speaker = "player", Text = "I am {player_name}." },
+        };
+        var noNameHandler = new StubEffectHandler(); // PlayerName == null
+        var noNameRunner = new DialogueRunner(noNameSteps, noNameHandler);
+        (string SpeakerName, string Text) firstPush = ("", "");
+        noNameRunner.LineReady += (_, name, text, _, _) => firstPush = (name, text);
+        noNameRunner.Start();
+        Check("(L) no chosen name: player label falls back to profile default",
+            firstPush.SpeakerName == playerDefault);
+        Check("(L) no chosen name: {player_name} substituted with profile default",
+            firstPush.Text == $"I am {playerDefault}.");
+    }
+
     // ─────────────────────────── Helpers ───────────────────────────
 
     private void CleanupTemp()
@@ -724,6 +908,9 @@ public partial class DialogueSpike : SpikeBase
         public readonly List<(string ItemId, int Quantity)> ItemsGiven = new();
         public readonly HashSet<string> Seen = new();
         public Action<string>? SeenCallback;
+
+        /// <summary>Simulated runtime-chosen player name (null = no name set).</summary>
+        public string? PlayerName { get; set; }
 
         public void SetFlag(string flagId) => FlagsSet.Add(flagId);
         public void AddFriendship(string charId, int amount) => FriendshipAwarded.Add((charId, amount));

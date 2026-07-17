@@ -32,9 +32,11 @@ party members.
 | **Arcane Study** | Library of magic | Wizard / arcane caster | Learn spells, higher ranks, scrolls, Recall Knowledge | bundles | planned |
 | **Training Yard** | Drill & discipline | Martial trainer (Fighter/Ranger/Monk) | Proficiency training, class feats, archetype/dedication unlocks, respec | bundles | planned |
 | **Apothecary / Lab** | Alchemy & reagents | Alchemist / herbalist | Potions, elixirs, poisons, antidotes, talismans; rune reagents | bundles + gold | planned |
-| **Kitchen** | Hearth & provisions | Cook (townsfolk, or Bard-ish) | Day-long meal buffs, tonics, feasts | bundles | systems built |
+| **Tavern** | Hearth & provisions | Cook (townsfolk, or Bard-ish) | Day-long meal buffs, tonics, feasts | bundles | systems built |
 | **Farmhouse / Fields** | The homestead | Farmhand / Druid-ish nature | Crops, tillable-**area** expansion, watering, greenhouse | bundles | systems built |
 | **Watchtower** | Scouting & the frontier | Rogue / Ranger | Reveal territory, encounter previews, ambush/initiative, fast travel | bundles | planned |
+| **Reliquary** | Relics & the bestiary | Thaumaturge | Collect & identify trophies, bestiary combat intel, relic-display outpost buffs | bundles | planned |
+| **Fishing Dock** | Fishing | — (no character yet) | Rod & trap fishing across the Verdant Fringe, Elderwood, and Sunken Reach | bundles | planned |
 
 ## Character-matching notes
 - **Two divine buildings, split on purpose:** the **Infirmary** is the *medicine / battle-medic* side;
@@ -42,7 +44,7 @@ party members.
 - **Three martial personalities:** the **Smithy** (craftsman), the **Training Yard** (drillmaster),
   the **Watchtower** (scout).
 - **Unclaimed archetypes worth a character:** **Alchemist** (Apothecary — nobody occupies it yet),
-  a **primal/nature** figure (Farmhouse), a **social/support** figure (Kitchen), a **merchant**
+  a **primal/nature** figure (Farmhouse), a **social/support** figure (Tavern), a **merchant**
   (Trading Post).
 
 ## Engine feasibility (for character builds)

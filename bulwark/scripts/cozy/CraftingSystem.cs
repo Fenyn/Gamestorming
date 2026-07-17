@@ -16,6 +16,14 @@ namespace Bulwark.Cozy;
 /// party's Bulk carry cap. Then it consumes the inputs, adds the output, and charges the craft time
 /// through <see cref="DayClock.SpendTime"/> (the exploration-activity seam). Every rejection is clean:
 /// NOTHING is consumed unless the whole craft succeeds. Emits <see cref="Crafted"/> with the recipe id.
+///
+/// PLAN INVARIANT: a recipe's inputs are never validated or consumed line-by-line in isolation. Both
+/// <see cref="CanCraft"/> and <see cref="Craft"/> funnel through <see cref="BuildConsumptionPlan"/>,
+/// which resolves every input (wildcards included) ONCE against the unmutated inventory and AGGREGATES
+/// quantities by resolved item id before checking affordability — so two lines that draw from the same
+/// item (an explicit line plus a same-item wildcard, or two same-category wildcards) are validated and
+/// consumed as one combined requirement instead of each independently passing a per-line check that
+/// jointly overdraws the party's holdings.
 /// </summary>
 public sealed class CraftingSystem
 {
@@ -54,12 +62,8 @@ public sealed class CraftingSystem
             return false;
         if (!IsUnlocked(recipe))
             return false;
-        foreach (var input in recipe.Inputs)
-        {
-            string? resolved = ResolveInput(input);
-            if (resolved == null || !_inventory.Has(resolved, input.Quantity * count))
-                return false;
-        }
+        if (!BuildConsumptionPlan(recipe, count, out _))
+            return false;
         return _inventory.WouldFit(recipe.OutputItemId, recipe.OutputQuantity * count);
     }
 
@@ -79,10 +83,29 @@ public sealed class CraftingSystem
 
         var recipe = Recipes.Get(recipeId);
 
-        foreach (var input in recipe.Inputs)
+        // CanCraft (above) just validated a consumption plan against these exact, still-unmutated
+        // holdings. BuildConsumptionPlan is a pure read of recipe + inventory — nothing mutates the
+        // inventory between that call and this one — so re-deriving the plan here reproduces the SAME
+        // result CanCraft approved; it cannot diverge into a different resolution or a different total.
+        if (!BuildConsumptionPlan(recipe, count, out var plan))
+            return false; // unreachable — CanCraft above just proved this succeeds against this state
+
+        var removed = new List<(string ItemId, int Quantity)>(plan.Count);
+        foreach (var line in plan)
         {
-            string resolved = ResolveInput(input)!;
-            _inventory.RemoveItem(resolved, input.Quantity * count);
+            if (!_inventory.RemoveItem(line.ItemId, line.Quantity))
+            {
+                // Unreachable in practice: BuildConsumptionPlan validated the FULL aggregated quantity
+                // for every distinct item id against these holdings immediately above, and nothing else
+                // touches the inventory in between (synchronous, single-threaded). Belt-and-braces
+                // anyway, so a craft never silently under-consumes: undo whatever this loop already
+                // removed and abort WITHOUT granting output, preserving "a rejected craft consumes
+                // NOTHING".
+                foreach (var undo in removed)
+                    _inventory.AddItem(undo.ItemId, undo.Quantity);
+                return false;
+            }
+            removed.Add(line);
         }
 
         _inventory.AddItem(recipe.OutputItemId, recipe.OutputQuantity * count);
@@ -90,6 +113,55 @@ public sealed class CraftingSystem
         _clock.SpendTime(recipe.CraftMinutes * count);
 
         Crafted?.Invoke(recipeId);
+        return true;
+    }
+
+    /// <summary>
+    /// Resolve every input line of <paramref name="recipe"/> ONCE against current holdings, in
+    /// <see cref="RecipeDefinition.Inputs"/> order — so a wildcard line still prefers the same "first
+    /// held item in category" item a lone wildcard would (see <see cref="ResolveInput"/>) — then
+    /// AGGREGATE the per-craft quantities by resolved item id. This is the fix for the case an
+    /// independent-per-line check misses: an explicit line and a wildcard line that resolve to the
+    /// same item, or two wildcards of the same category, both draw from the same pool and must be
+    /// validated (and later consumed) as ONE combined requirement, not two independently-satisfiable
+    /// ones. <see cref="CanCraft"/> and <see cref="Craft"/> both funnel through this single method so
+    /// validation and consumption can never resolve or total differently.
+    ///
+    /// Returns false (and an incomplete <paramref name="plan"/>) the moment any input fails to resolve
+    /// (an unresolvable wildcard) or the aggregate for some item id exceeds what's currently held.
+    /// Returns true with <paramref name="plan"/> populated — one line per distinct item id, in
+    /// first-seen order, each already validated affordable — otherwise. Pure: does not touch the
+    /// inventory.
+    /// </summary>
+    private bool BuildConsumptionPlan(RecipeDefinition recipe, int count, out List<(string ItemId, int Quantity)> plan)
+    {
+        plan = new List<(string ItemId, int Quantity)>();
+        var totals = new Dictionary<string, int>();
+        var order = new List<string>();
+
+        foreach (var input in recipe.Inputs)
+        {
+            string? resolved = ResolveInput(input);
+            if (resolved == null)
+                return false;
+
+            int add = input.Quantity * count;
+            if (totals.TryGetValue(resolved, out int existing))
+                totals[resolved] = existing + add;
+            else
+            {
+                totals[resolved] = add;
+                order.Add(resolved);
+            }
+        }
+
+        foreach (var itemId in order)
+        {
+            int need = totals[itemId];
+            if (!_inventory.Has(itemId, need))
+                return false;
+            plan.Add((itemId, need));
+        }
         return true;
     }
 

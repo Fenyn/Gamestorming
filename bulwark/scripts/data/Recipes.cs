@@ -29,7 +29,7 @@ public sealed class RecipeInput
 /// GATING: <see cref="RequiredCategory"/> is a Phase-4 CategoryUnlock id a station BUILDING grants
 /// (reusing GameState.IsCategoryUnlocked). <c>null</c> = ALWAYS craftable baseline (no station needed —
 /// e.g. plank/cut_stone); a non-null id gates the recipe behind that station's category (smelter,
-/// tanner, still, loom, kitchen). Phase 5 does NOT ship station-building content — the user wires the
+/// tanner, still, loom, meals/Tavern). Phase 5 does NOT ship station-building content — the user wires the
 /// station buildings (which declare the matching CategoryUnlock effect) later; until then the gated
 /// recipes are simply unavailable, and the spike proves the gate with a synthetic unlock.
 /// </summary>
@@ -65,7 +65,7 @@ public sealed class RecipeDefinition
 /// Static registry of every crafting recipe. The Phase-5 PROVING SET only — the framework is
 /// data-driven so the user extends the catalog here. Two baseline refined chains (plank, cut_stone)
 /// need no station; the rest gate on their station's CategoryUnlock id (smelter/tanner/still/loom),
-/// and the three meals gate on "kitchen".
+/// and the meals gate on "meals" (the Tavern's tier-1 CategoryUnlock detail — see Buildings.Tavern).
 /// </summary>
 public static class Recipes
 {
@@ -75,7 +75,9 @@ public static class Recipes
     public const string TannerCategory = "tanner";
     public const string StillCategory = "still";
     public const string LoomCategory = "loom";
-    public const string KitchenCategory = "kitchen";
+    // "meals" (not "tavern") — matches the Tavern tier-1 effect's Detail (Buildings.cs), which is what
+    // GameState.IsCategoryUnlocked actually gets asked about at craft time.
+    public const string TavernCategory = "meals";
     public const string ApothecaryCategory = "apothecary";
 
     // ---- Refined chains: baseline (no station) ----
@@ -138,21 +140,21 @@ public static class Recipes
         RequiredCategory = SmelterCategory,
     };
 
-    // --- Husbandry/apiary refined goods (materials.md families 5/6/9), all kitchen/still/loom-gated
+    // --- Husbandry/apiary refined goods (materials.md families 5/6/9), all tavern/still/loom-gated
     //     the same way the Phase-5 chains above are. ---
     public static readonly RecipeDefinition Cheese = new()
     {
         Id = "craft_cheese", DisplayName = "Cheese",
         Inputs = new RecipeInput[] { new() { ItemId = "milk", Quantity = 2 } },
         OutputItemId = "cheese", OutputQuantity = 1, CraftMinutes = 15,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
     public static readonly RecipeDefinition Butter = new()
     {
         Id = "craft_butter", DisplayName = "Butter",
         Inputs = new RecipeInput[] { new() { ItemId = "cream", Quantity = 2 } },
         OutputItemId = "butter", OutputQuantity = 1, CraftMinutes = 15,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
     public static readonly RecipeDefinition SpunYarn = new()
     {
@@ -172,7 +174,7 @@ public static class Recipes
     // --- Apothecary T2 reagent refining (materials.md families 2/7/10). Closes the arcane_essence
     //     content flag's second route (the first being ResourceNodes.LeyGlade) and wires spirit_dust's
     //     only source. Gated on ApothecaryCategory, a new station category alongside smelter/tanner/
-    //     still/loom/kitchen — no Apothecary building ships this pass; the category is data-only until
+    //     still/loom/tavern — no Apothecary building ships this pass; the category is data-only until
     //     one is authored, same as the other station categories above. ---
     public static readonly RecipeDefinition ArcaneEssence = new()
     {
@@ -193,16 +195,16 @@ public static class Recipes
         RequiredCategory = ApothecaryCategory,
     };
 
-    // ---- Wildcard-input refined chain: any fish → smoked fish (kitchen-gated) ----
+    // ---- Wildcard-input refined chain: any fish → smoked fish (tavern-gated) ----
     public static readonly RecipeDefinition SmokedFish = new()
     {
         Id = "craft_smoked_fish", DisplayName = "Smoked Fish",
         Inputs = new RecipeInput[] { new() { CategoryWildcard = ItemCategory.Fish, Quantity = 1 } },
         OutputItemId = "smoked_fish", OutputQuantity = 1, CraftMinutes = 15,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
 
-    // ---- Meals: kitchen-gated (output is a Food item that Meals maps to a day-long buff) ----
+    // ---- Meals: tavern-gated (output is a Food item that Meals maps to a day-long buff) ----
     public static readonly RecipeDefinition HeartyStew = new()
     {
         Id = "cook_hearty_stew", DisplayName = "Hearty Stew",
@@ -212,7 +214,7 @@ public static class Recipes
             new() { ItemId = "wheat", Quantity = 1 },
         },
         OutputItemId = "hearty_stew", OutputQuantity = 1, CraftMinutes = 20,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
     public static readonly RecipeDefinition HerbTonic = new()
     {
@@ -223,7 +225,7 @@ public static class Recipes
             new() { ItemId = "berries", Quantity = 1 },
         },
         OutputItemId = "herb_tonic", OutputQuantity = 1, CraftMinutes = 20,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
     public static readonly RecipeDefinition TravelRation = new()
     {
@@ -234,7 +236,7 @@ public static class Recipes
             new() { ItemId = "berries", Quantity = 2 },
         },
         OutputItemId = "travel_ration", OutputQuantity = 1, CraftMinutes = 20,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
 
     public static readonly RecipeDefinition BattleDraught = new()
@@ -246,7 +248,7 @@ public static class Recipes
             new() { ItemId = "herb", Quantity = 1 },
         },
         OutputItemId = "battle_draught", OutputQuantity = 1, CraftMinutes = 20,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
     public static readonly RecipeDefinition GuardRation = new()
     {
@@ -257,7 +259,7 @@ public static class Recipes
             new() { ItemId = "berries", Quantity = 1 },
         },
         OutputItemId = "guard_ration", OutputQuantity = 1, CraftMinutes = 20,
-        RequiredCategory = KitchenCategory,
+        RequiredCategory = TavernCategory,
     };
 
     private static readonly DefinitionRegistry<RecipeDefinition> Registry = new(d => d.Id,

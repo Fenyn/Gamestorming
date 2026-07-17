@@ -159,7 +159,7 @@ Loads all `.json` files from `res://data/dialogues/` (recursive). Indexes by id.
 View-model carrying current state for condition evaluation: story flags (Has), friendship hearts
 (per character), current season. Built from GameState at query time.
 
-### DialogueRunner.cs (scripts/cozy/)
+### DialogueRunner.cs (scripts/dialogue/)
 Plain C# state machine. Constructed with a step list, advances through steps, emits events for
 the UI to render. No Godot dependency — testable.
 - `Start(steps)` — begin a sequence
@@ -179,7 +179,7 @@ reveal, advance indicator, choice button container. Wired to DialogueRunner even
   `{speakerId}.png` then a default silhouette.
 - Player speaker uses the player's chosen name from CharacterProfile.
 
-### CutsceneDirector.cs (scripts/cozy/)
+### CutsceneDirector.cs (scripts/dialogue/)
 A Node that executes staging commands from `DialogueRunner.StageCommand`. Manages:
 - Fade overlay (ColorRect with AnimationPlayer or tween)
 - Actor registry: maps actor ids to scene nodes (villager sprites, the player) or spawns
@@ -215,7 +215,7 @@ scripts/data/dialogues/      # C# data model + database
   DialogueData.cs
   DialogueDatabase.cs
 
-scripts/cozy/                # runtime system
+scripts/dialogue/            # runtime system
   DialogueRunner.cs
   CutsceneDirector.cs
 

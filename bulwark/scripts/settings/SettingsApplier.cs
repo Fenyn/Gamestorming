@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Bulwark.Cozy;
+namespace Bulwark.Settings;
 
 /// <summary>
 /// Applies persisted <see cref="ViewPreferences"/> values to the engine: the three audio bus

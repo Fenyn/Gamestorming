@@ -16,11 +16,10 @@ namespace Bulwark.UI;
 /// Esc then resumes. The host never opens the pause menu on Esc while ANY modal — including this
 /// one — is already open; see CozyWorldScene.AnyModalOpen.
 /// </summary>
-public partial class PauseMenu : CanvasLayer
+public partial class PauseMenu : TogglePanel
 {
     private const float SavedFeedbackSeconds = 1.5f;
 
-    public event Action<bool>? Toggled;
     public event Action? SaveRequested;
     public event Action? QuitToTitleRequested;
 
@@ -64,35 +63,28 @@ public partial class PauseMenu : CanvasLayer
         _savedLabel.Visible = false;
     }
 
-    public override void _UnhandledInput(InputEvent @event)
+    // Esc while open always means Resume (inherited _UnhandledInput) — the nested OptionsPanel (a
+    // child, processed before this node) already claims Esc for itself while it's visible, so the
+    // inherited handler only ever fires when the pause menu's own buttons (main or confirm) are
+    // what's showing. PauseMenu has no hotkey of its own (ToggleAction stays empty) — the host scene
+    // opens it directly via Open() on a world-level Esc when no other modal is open.
+    public void Open() => SetOpen(true);
+
+    /// <summary>Opening resets the inline quit-confirm back to the main buttons and clears the
+    /// "Saved." feedback label; closing also closes the nested OptionsPanel so it never lingers
+    /// visible underneath a re-opened pause menu.</summary>
+    protected override void SetOpen(bool open)
     {
-        // Esc while open always means Resume — the nested OptionsPanel (a child, processed before
-        // this node) already claims Esc for itself while it's visible, so this only ever fires when
-        // the pause menu's own buttons (main or confirm) are what's showing.
-        if (Visible && @event.IsActionPressed("ui_cancel"))
+        if (open && !Visible)
         {
-            Close();
-            GetViewport().SetInputAsHandled();
+            HideQuitConfirm();
+            _savedLabel.Visible = false;
         }
-    }
-
-    public void Open()
-    {
-        if (Visible)
-            return;
-        HideQuitConfirm();
-        _savedLabel.Visible = false;
-        Visible = true;
-        Toggled?.Invoke(true);
-    }
-
-    public void Close()
-    {
-        if (!Visible)
-            return;
-        _optionsPanel?.Close();
-        Visible = false;
-        Toggled?.Invoke(false);
+        else if (!open && Visible)
+        {
+            _optionsPanel?.Close();
+        }
+        base.SetOpen(open);
     }
 
     private void SpawnOptionsPanel()

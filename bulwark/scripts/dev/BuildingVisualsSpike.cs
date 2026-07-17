@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Bulwark.Autoload;
 using Bulwark.Cozy;
 using Bulwark.Data;
 using Godot;
@@ -36,9 +37,29 @@ namespace Bulwark.Dev;
 ///      building's commission is blocked while the upgrade is in flight (one-at-a-time), and
 ///      completion (TickDay) flips the scaffold back to the new tier stage and admits the new tier's
 ///      effects.
+///  (G) Shipped building scenes: loads every scenes/buildings/*.tscn and validates the placement
+///      contract against Buildings.cs.
+///  (H) Pre-placed instance adoption (Task B): the PRIMARY placement strategy is now a
+///      BuildingInstance the user instances directly in outpost.tscn (matched by SceneFilePath, never
+///      node name) — the loader ADOPTS it (drives it via Apply, tracks it) rather than spawning a
+///      second instance, and NEVER repositions it. Proven against a host with NO %Building_&lt;id&gt;
+///      marker at all, so a pass can only mean adoption worked.
+///  (I) The tavern's lodging-repair visual payoff, full arc (design/tutorial.md Day 1 + Buildings.cs
+///      Tavern.VisualRules), AND the "&lt;id&gt;_built"/"&lt;id&gt;_commissioned" derived-flag semantics
+///      (GameState.HasFlagForConditions) — driven end to end through a real (throwaway) GameState +
+///      the real BuildingLoader/BuildingVisualState against the real (read-only) shipped tavern.tscn:
+///      Stage0 ruin on day one → RepairLodging sets the early Stage1 payoff (tier still 0) →
+///      commissioning the tavern retires the override and shows the scaffold (tavern_commissioned
+///      flips true immediately, tavern_built stays false) → completion shows Stage1 via ordinary tier
+///      mapping (tavern_built flips true) → a tier-2 upgrade re-scaffolds (tavern_built stays true
+///      throughout) → completion shows Stage2.
 /// </summary>
 public partial class BuildingVisualsSpike : SpikeBase
 {
+    private const string SavePath = "user://save/slot0.json";
+    private bool _slot0Existed;
+    private string? _slot0Backup;
+
     public override void _Ready()
     {
         GD.Print("==================== BUILDING VISUALS SPIKE ====================");
@@ -51,6 +72,8 @@ public partial class BuildingVisualsSpike : SpikeBase
             RunTier0RuinPlacement();
             RunUpgradeConstructionWindow();
             RunShippedBuildingScenes();
+            RunLoaderAdoption();
+            RunLodgingRepairVisualArc();
         }
         catch (Exception e)
         {
@@ -59,6 +82,39 @@ public partial class BuildingVisualsSpike : SpikeBase
         }
 
         FinishAndQuit("BuildingVisualsSpike");
+    }
+
+    // ─────────────────── slot0.json backup/restore (section I drives a real GameState) ───────────────────
+
+    private void BackupSlot0()
+    {
+        _slot0Existed = Godot.FileAccess.FileExists(SavePath);
+        if (!_slot0Existed)
+            return;
+
+        using (var file = Godot.FileAccess.Open(SavePath, Godot.FileAccess.ModeFlags.Read))
+            _slot0Backup = file?.GetAsText();
+
+        DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(SavePath));
+        GD.Print("[BuildingVisualsSpike] slot0.json backed up and cleared for the test run.");
+    }
+
+    private static void ClearSlot0()
+    {
+        if (Godot.FileAccess.FileExists(SavePath))
+            DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(SavePath));
+    }
+
+    private void RestoreSlot0()
+    {
+        if (!_slot0Existed || _slot0Backup == null)
+        {
+            ClearSlot0();
+            return;
+        }
+
+        using var file = Godot.FileAccess.Open(SavePath, Godot.FileAccess.ModeFlags.Write);
+        file?.StoreString(_slot0Backup);
     }
 
     // ─────────────────────────── (A) BuildingVisualState evaluator ───────────────────────────
@@ -610,7 +666,7 @@ public partial class BuildingVisualsSpike : SpikeBase
     {
         GD.Print("-------------------- (G) shipped building scenes --------------------");
 
-        foreach (string id in new[] { "command_post", "trading_post", "kitchen", "farmhouse" })
+        foreach (string id in new[] { "command_post", "trading_post", "tavern", "farmhouse" })
         {
             var def = Buildings.Get(id);
             int expectedStages = MaxStageIndex(def) + 1;
@@ -628,12 +684,17 @@ public partial class BuildingVisualsSpike : SpikeBase
 
             var stages = inst.GetNodeOrNull("%Stages");
             Check($"(G) {id}: has %Stages", stages != null);
-            Check($"(G) {id}: %Stages child count == maxStageIndex+1 ({expectedStages})",
-                stages != null && stages.GetChildCount() == expectedStages);
+            // >= rather than == : command_post's scene still carries its full Stage0-4 art from
+            // before the 2026-07-16 Command Post tier-deferral (design/economy/buildings.md) — its
+            // BuildingDefinition now ships tier 1 only, so the scene legitimately has MORE painted
+            // stages than the current data ladder uses, ready for whenever upgrade tiers are designed.
+            Check($"(G) {id}: %Stages child count >= maxStageIndex+1 ({expectedStages})",
+                stages != null && stages.GetChildCount() >= expectedStages);
 
             var footprint = inst.GetNodeOrNull("%Footprint");
             Check($"(G) {id}: %Footprint is a StaticBody2D", footprint is StaticBody2D);
-            Check($"(G) {id}: %Footprint has a CollisionShape2D", FindCollisionShape(footprint) != null);
+            Check($"(G) {id}: %Footprint has a collision shape (rect or polygon)",
+                FindCollisionShape(footprint) != null || FindCollisionPolygon(footprint) != null);
 
             int layers = 0, colliding = 0;
             foreach (Node n in Descendants(stages!))
@@ -812,6 +873,21 @@ public partial class BuildingVisualsSpike : SpikeBase
         return null;
     }
 
+    private static CollisionPolygon2D? FindCollisionPolygon(Node? root)
+    {
+        if (root == null)
+            return null;
+        foreach (Node child in root.GetChildren())
+        {
+            if (child is CollisionPolygon2D cp)
+                return cp;
+            var found = FindCollisionPolygon(child);
+            if (found != null)
+                return found;
+        }
+        return null;
+    }
+
     private static BuildingInstance? FindBuildingInstance(Node host)
     {
         foreach (Node c in host.GetChildren())
@@ -827,5 +903,218 @@ public partial class BuildingVisualsSpike : SpikeBase
             if (c is BuildingInstance)
                 n++;
         return n;
+    }
+
+    // ─────────────────────────── (H) BuildingLoader pre-placed instance adoption (Task B) ───────────────────────────
+
+    private const string SpikeAdoptBuildingId = "spike_adopt_building";
+
+    private static readonly BuildingDefinition SpikeAdoptDef = new()
+    {
+        Id = SpikeAdoptBuildingId,
+        DisplayName = "Spike Adopt Building",
+        ConstructionBundle = new BundleRequirement[] { new() { ItemId = "wood", Quantity = 1 } },
+        Tiers = new BuildingTier[] { new() { Tier = 1, StageIndex = 1 } },
+    };
+
+    /// <summary>
+    /// Task B: the PRIMARY placement strategy is now a pre-placed <see cref="BuildingInstance"/> the
+    /// user instances directly in outpost.tscn — matched by <see cref="Node.SceneFilePath"/>, never by
+    /// node name — with the marker+instantiate path demoted to a fallback. Proves the loader ADOPTS a
+    /// pre-placed instance (drives it via Apply, exactly like a spawned one), never spawns a SECOND
+    /// instance alongside it, and NEVER repositions it (the user's hand-placement is authoritative).
+    /// The host in this test carries NO %Building_&lt;id&gt; marker at all, so a pass can only mean
+    /// adoption worked — a marker-fallback bug would find nothing and every check would fail.
+    /// </summary>
+    private void RunLoaderAdoption()
+    {
+        GD.Print("-------------------- (H) BuildingLoader pre-placed instance adoption --------------------");
+
+        string scenePath = SpikeAdoptDef.ScenePath;
+        string absPath = ProjectSettings.GlobalizePath(scenePath);
+        bool preExisted = Godot.FileAccess.FileExists(scenePath);
+        Check("(H) spike scene path is not a shipped building (nothing to protect)", !preExisted);
+        if (preExisted)
+            return; // never touch a file that was already there
+
+        var packed = PackRoot(BuildSyntheticRoot("SpikeAdoptBuilding", withScaffoldAndOverlays: true));
+        Error saveErr = ResourceSaver.Save(packed, scenePath);
+        Check("(H) synthetic building scene saved for the duration of this test", saveErr == Error.Ok);
+
+        try
+        {
+            var catalog = new[] { SpikeAdoptDef };
+
+            // Pre-place the instance ourselves, exactly like the user would in the outpost editor:
+            // load the shipped scene, instance it, give it an UNRELATED name, and drop it at an
+            // arbitrary hand-picked position — no %Building_<id> marker anywhere in this host.
+            var host = new Node2D { Name = "AdoptHost" };
+            AddChild(host);
+            var prePlacedScene = GD.Load<PackedScene>(scenePath);
+            var prePlaced = prePlacedScene?.Instantiate<BuildingInstance>();
+            Check("(H) pre-placed instance loads from its shipped scene path", prePlaced != null);
+            if (prePlaced == null)
+                return;
+            prePlaced.Name = "HandPlacedTavernLikeThing"; // deliberately NOT "Building_spike_adopt_building"
+            host.AddChild(prePlaced);
+            var handPlacedPosition = new Vector2(777, 333);
+            prePlaced.GlobalPosition = handPlacedPosition;
+            Check("(H) pre-placed instance carries the definition's SceneFilePath",
+                prePlaced.SceneFilePath == scenePath);
+
+            var inv = new Inventory();
+            inv.AddItem("wood", 5);
+            var wallet = new Wallet();
+            var bs = new BuildingSystem(inv, () => wallet.Gold, wallet.TrySpendGold, catalog);
+
+            var loader = new BuildingLoader(
+                host,
+                id => bs.GetTier(id),
+                id => bs.IsUnderConstruction(id),
+                () => (Season.Spring, 1),
+                _ => false,
+                catalog);
+
+            loader.PlaceAll();
+
+            Check("(H) no marker existed, yet the building IS placed (adopted, not marker-spawned)",
+                FindBuildingInstance(host) != null);
+            Check("(H) adoption did not duplicate the instance (still exactly one)",
+                CountBuildingInstances(host) == 1);
+            var adopted = FindBuildingInstance(host);
+            Check("(H) the adopted instance IS the exact pre-placed node (same instance id)",
+                adopted != null && adopted.GetInstanceId() == prePlaced.GetInstanceId());
+            Check("(H) adoption never repositions the pre-placed instance",
+                adopted != null && adopted.GlobalPosition == handPlacedPosition);
+            Check("(H) the loader DRIVES the adopted instance (tier 0 → Stage0 now visible, was saved hidden)",
+                StageVisible(adopted, 0));
+
+            Check("(H) commission the adopted building", bs.Commission(SpikeAdoptBuildingId));
+            loader.Refresh(SpikeAdoptBuildingId);
+            Check("(H) after commission the SAME adopted instance now shows tier 1",
+                StageVisible(adopted, 1) && !StageVisible(adopted, 0));
+            Check("(H) still exactly one instance after the refresh (no duplicate spawned)",
+                CountBuildingInstances(host) == 1);
+        }
+        finally
+        {
+            if (Godot.FileAccess.FileExists(scenePath))
+                DirAccess.RemoveAbsolute(absPath);
+            string uidPath = absPath + ".uid";
+            if (System.IO.File.Exists(uidPath))
+                System.IO.File.Delete(uidPath);
+            GD.Print("[BuildingVisualsSpike] temp adopt building scene removed.");
+        }
+    }
+
+    // ─────────────────────────── (I) Tavern lodging-repair arc + derived flags (Task C) ───────────────────────────
+
+    /// <summary>
+    /// Full end-to-end arc for Buildings.cs' Tavern.VisualRules payoff, driven through a real
+    /// (throwaway) GameState + the real BuildingLoader/BuildingVisualState against the real,
+    /// read-only shipped tavern.tscn (never written to). Also proves the "&lt;id&gt;_built" /
+    /// "&lt;id&gt;_commissioned" derived-flag semantics inline as the arc progresses (Task C.1):
+    /// tavern_built is false throughout the tavern's OWN commission construction window and true only
+    /// once it completes; tavern_commissioned is true from the instant of commission, including
+    /// throughout every later construction window (commission AND upgrade).
+    /// </summary>
+    private void RunLodgingRepairVisualArc()
+    {
+        GD.Print("-------------------- (I) tavern lodging-repair visual payoff — full arc --------------------");
+
+        BackupSlot0();
+        var gs = new GameState { RealSecondsPerGameMinute = 0 };
+        AddChild(gs); // _Ready seeds a clean starter inventory (10 wood / 10 stone) on the clean slot
+
+        try
+        {
+            var host = new Node2D { Name = "LodgingArcHost" };
+            AddChild(host);
+            var marker = new Marker2D { Name = "Building_tavern" };
+            host.AddChild(marker);
+
+            // No catalog passed → the loader drives off the REAL Buildings.All registry (includes the
+            // shipped Tavern definition + its VisualRules), and gs.HasFlagForConditions is the REAL
+            // derived-flag lookup (not a simulated lambda).
+            var loader = new BuildingLoader(
+                host,
+                id => gs.GetBuildingTier(id),
+                id => gs.Building.IsUnderConstruction(id),
+                () => (gs.Clock.Season, gs.Clock.Day),
+                id => gs.HasFlagForConditions(id));
+
+            loader.PlaceAll();
+            var inst = FindBuildingInstance(host);
+            Check("(I) tavern instantiates at its marker from the real shipped scene", inst != null);
+            Check("(I) day one: tavern shows Stage0 (the ruin) before repair/commission", StageVisible(inst, 0));
+            Check("(I) tavern_built false before any of this", !gs.HasFlagForConditions("tavern_built"));
+            Check("(I) tavern_commissioned false before any of this", !gs.HasFlagForConditions("tavern_commissioned"));
+
+            // RepairLodging (15 wood / 10 stone) — starter inventory already holds 10/10; top up wood.
+            gs.AddItem("wood", 5);
+            Check("(I) RepairLodging succeeds", gs.RepairLodging());
+            loader.Refresh("tavern");
+            Check("(I) lodging_repaired flips the tavern to Stage1 EARLY (the visual payoff) despite tier 0",
+                StageVisible(inst, 1) && !StageVisible(inst, 0));
+            Check("(I) tavern_built still false (this is the early payoff, not an actual build)",
+                !gs.HasFlagForConditions("tavern_built"));
+
+            // Commission the tavern (90 wood / 60 stone / 15 herb / 70 gold) — the override must retire.
+            gs.AddItem("wood", 90);
+            gs.AddItem("stone", 60);
+            gs.AddItem("herb", 15);
+            gs.EarnGold(200);
+            Check("(I) commission the tavern", gs.CommissionBuilding("tavern"));
+            Check("(I) tavern_commissioned true immediately at commission",
+                gs.HasFlagForConditions("tavern_commissioned"));
+            loader.Refresh("tavern");
+            Check("(I) commission retires the lodging-repair override — scaffold shows instead",
+                ScaffoldVisible(inst));
+            Check("(I) every stage hidden while scaffolded", !StageVisible(inst, 0) && !StageVisible(inst, 1));
+            Check("(I) tavern_built still false during the tavern's OWN commission construction window",
+                !gs.HasFlagForConditions("tavern_built"));
+
+            // Complete the tavern's 2-day commission construction window (GameState wires tavern → 2 days).
+            gs.Building.TickDay();
+            Check("(I) still under construction after 1 of 2 days", gs.Building.IsUnderConstruction("tavern"));
+            Check("(I) tavern_built still false mid-construction", !gs.HasFlagForConditions("tavern_built"));
+            gs.Building.TickDay();
+            Check("(I) construction complete after 2 days", !gs.Building.IsUnderConstruction("tavern"));
+            loader.Refresh("tavern");
+            Check("(I) completion: scaffold hides, Stage1 shows via ordinary tier mapping",
+                !ScaffoldVisible(inst) && StageVisible(inst, 1));
+            Check("(I) tavern_built true now that tier 1 has completed", gs.HasFlagForConditions("tavern_built"));
+            Check("(I) tavern_commissioned still true after completion",
+                gs.HasFlagForConditions("tavern_commissioned"));
+
+            // Tier-2 upgrade (mead/egg/wild_mushroom/log_mushroom) — re-scaffolds; built stays true.
+            gs.AddItem("mead", 15);
+            gs.AddItem("egg", 25);
+            gs.AddItem("wild_mushroom", 20);
+            gs.AddItem("log_mushroom", 15);
+            gs.EarnGold(500);
+            Check("(I) contribute the full tier-2 bundle",
+                gs.ContributeBundle("tavern", "mead", 15)
+                && gs.ContributeBundle("tavern", "egg", 25)
+                && gs.ContributeBundle("tavern", "wild_mushroom", 20)
+                && gs.ContributeBundle("tavern", "log_mushroom", 15));
+            Check("(I) upgrade to tier 2", gs.UpgradeBuilding("tavern"));
+            loader.Refresh("tavern");
+            Check("(I) upgrade window shows the scaffold again", ScaffoldVisible(inst));
+            Check("(I) tavern_built STAYS true during the upgrade window (tier 1 already completed)",
+                gs.HasFlagForConditions("tavern_built"));
+
+            gs.Building.TickDay();
+            gs.Building.TickDay();
+            loader.Refresh("tavern");
+            Check("(I) tier-2 upgrade completes: scaffold hides, Stage2 shows",
+                !ScaffoldVisible(inst) && StageVisible(inst, 2));
+            Check("(I) tavern_built still true after the upgrade completes", gs.HasFlagForConditions("tavern_built"));
+        }
+        finally
+        {
+            gs.QueueFree();
+            RestoreSlot0();
+        }
     }
 }

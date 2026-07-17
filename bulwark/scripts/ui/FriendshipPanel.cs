@@ -13,38 +13,20 @@ namespace Bulwark.UI;
 /// <see cref="FriendshipView"/> pushed via <see cref="Render"/> — no game rules, no engine types,
 /// per CLAUDE.md. Toggled by the "toggle_friendship_panel" input action (F); Esc closes.
 /// </summary>
-public partial class FriendshipPanel : CanvasLayer
+public partial class FriendshipPanel : TogglePanel
 {
     /// <summary>Intent: give one unit of an item to a character (charId, itemId).</summary>
     public event Action<string, string>? GiftRequested;
 
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
-
     private VBoxContainer _body = null!;
+
+    public FriendshipPanel() => ToggleAction = "toggle_friendship_panel";
 
     public override void _Ready()
     {
         _body = GetNode<VBoxContainer>("%Body");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_friendship_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>
     /// Render a fresh friendship view. <paramref name="nearbyCharacterId"/> is the villager the
@@ -170,15 +152,5 @@ public partial class FriendshipPanel : CanvasLayer
         for (int i = 0; i < maxHearts; i++)
             sb.Append(i < hearts ? '♥' : '♡');
         return sb.ToString();
-    }
-
-    // ------------------------------------------------------------------ helpers
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 }

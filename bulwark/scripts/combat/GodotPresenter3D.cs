@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Godot;
 using PF2e.Core;
@@ -23,6 +24,16 @@ public sealed class GodotPresenter3D
     private readonly Dictionary<int, UnitVisual3D> _units = new();
     private readonly Node3D _popupLayer;
 
+    /// <summary>
+    /// The encounter's cancellation token, set by <see cref="CombatScene"/> from the same source it
+    /// cancels in <c>_ExitTree</c>. Every paced <c>Task.Delay</c> and tween wait below observes it so a
+    /// mid-animation scene exit unblocks the pipeline (a <c>Task.Delay</c> throws OperationCanceled up
+    /// through the loop; a tween wait — whose Finished never fires once the tween is freed — is released
+    /// by the registration) instead of parking a continuation that later resumes on disposed nodes.
+    /// Defaults to None so a headless / standalone presenter behaves exactly as before.
+    /// </summary>
+    public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+
     public GodotPresenter3D(Node3D popupLayer) => _popupLayer = popupLayer;
 
     public void RegisterUnit(ICharacter character, UnitVisual3D visual) => _units[character.UniqueId] = visual;
@@ -41,13 +52,39 @@ public sealed class GodotPresenter3D
                 break;
 
             case BattleEventType.MovementStarted:
-                if (evt.Path != null && TryGet(evt.Source, out var moveUnit))
-                    await AnimateMovement(moveUnit, evt.Path);
+                // Two roles, distinguished by whether a Path rides along:
+                //  • Stride/Fly CUE (no Path): the walk is animated one tile at a time by the
+                //    MovementStep events that follow, so per-tile Reactive-Strike reactions resolve
+                //    BETWEEN segments. Here we only raise the walk-animation state; MovementCompleted
+                //    lowers it. Animating the whole path here would race ahead of the reaction prompts.
+                //  • Slide (2-point Path): Step / forced-move / charge re-sync — a single reaction-free
+                //    hop. Animate it immediately, exactly as before (SetMoving is bracketed inside).
+                if (TryGet(evt.Source, out var moveUnit))
+                {
+                    if (evt.Path is { Count: >= 2 })
+                        await AnimateMovement(moveUnit, evt.Path);
+                    else
+                        moveUnit.SetMoving(true);
+                }
+                break;
+
+            case BattleEventType.MovementStep:
+                // One stride segment (from -> to). The tile-exit reaction check already resolved in the
+                // executor before this was emitted (the prompt appeared while the token still sat on
+                // `from`); now walk the single tile. Walk state stays raised across the whole stride.
+                if (evt.Path is { Count: >= 2 } && TryGet(evt.Source, out var stepUnit))
+                    await AnimateSegment(stepUnit, evt.Path[0], evt.Path[1]);
                 break;
 
             case BattleEventType.MovementCompleted:
+                // Reconcile-only: the per-segment walk (or the slide) already placed the token, so
+                // snapping to the authoritative GridPosition is a no-op — even on a reaction-cancelled
+                // stride, where the token stopped on the tile the rules left it on (no teleport back).
                 if (TryGet(evt.Source, out var movedUnit))
+                {
+                    movedUnit.SetMoving(false);
                     movedUnit.Position = GridSpace.GridToWorld(evt.Source.GridPosition);
+                }
                 break;
 
             case BattleEventType.AttackRolled:
@@ -101,30 +138,48 @@ public sealed class GodotPresenter3D
         }
     }
 
+    // A multi-tile slide (Step / forced-move / charge re-sync): brackets the walk state and animates
+    // every segment back-to-back. Strides do NOT use this — they walk one AnimateSegment per
+    // MovementStep so reactions resolve between tiles (walk state bracketed by Started/Completed).
     private async Task AnimateMovement(UnitVisual3D unit, List<PF2eVec> path)
     {
+        if (!GodotObject.IsInstanceValid(unit)) return;
         unit.SetMoving(true);
         try
         {
             for (int i = 1; i < path.Count; i++)
-            {
-                var from = path[i - 1];
-                var to = path[i];
-                unit.Facing = new Vector2(to.x - from.x, to.y - from.y);
-
-                var target = GridSpace.GridToWorld(to);
-                var tween = unit.CreateTween();
-                tween.TweenProperty(unit, "position", target, MoveDuration);
-
-                var tcs = new TaskCompletionSource<bool>();
-                tween.Finished += () => tcs.TrySetResult(true);
-                await tcs.Task;
-            }
+                await AnimateSegment(unit, path[i - 1], path[i]);
         }
         finally
         {
-            unit.SetMoving(false);
+            if (GodotObject.IsInstanceValid(unit))
+                unit.SetMoving(false);
         }
+    }
+
+    // Tween the unit across a single tile (from -> to), facing the direction of travel. Does NOT touch
+    // the walk-animation state — callers bracket that (AnimateMovement for a slide; the presenter's
+    // MovementStarted/MovementCompleted for a segment-by-segment stride).
+    private async Task AnimateSegment(UnitVisual3D unit, PF2eVec from, PF2eVec to)
+    {
+        // The unit (or the whole scene) can be freed mid-walk on scene exit; creating a tween on — or
+        // setting a property of — a disposed node throws. Bail the instant it's gone.
+        if (!GodotObject.IsInstanceValid(unit)) return;
+
+        unit.Facing = new Vector2(to.x - from.x, to.y - from.y);
+
+        var target = GridSpace.GridToWorld(to);
+        var tween = unit.CreateTween();
+        tween.TweenProperty(unit, "position", target, MoveDuration);
+
+        var tcs = new TaskCompletionSource<bool>();
+        tween.Finished += () => tcs.TrySetResult(true);
+        // On scene exit the tween is freed and its Finished never fires — this await would hang forever,
+        // parking the whole combat pipeline. Cancellation completes the wait so the loop unwinds; the
+        // IsInstanceValid check at the top of the next segment stops the walk.
+        using (CancellationToken.Register(
+            static t => ((TaskCompletionSource<bool>)t!).TrySetResult(false), tcs))
+            await tcs.Task;
     }
 
     private static void FaceToward(UnitVisual3D unit, ICharacter? from, ICharacter? target)
@@ -136,6 +191,13 @@ public sealed class GodotPresenter3D
 
     private void SpawnPopup(DamagePopup3D popup, UnitVisual3D on)
     {
+        // A continuation can reach here just as the scene tears down; reading a freed unit's position
+        // or adding a child to a freed popup layer throws. Drop the orphan popup if either side is gone.
+        if (!GodotObject.IsInstanceValid(_popupLayer) || !GodotObject.IsInstanceValid(on))
+        {
+            popup.QueueFree();
+            return;
+        }
         popup.Position = on.Position + new Vector3(0f, 1.9f, 0f);
         _popupLayer.AddChild(popup);
     }
@@ -146,9 +208,11 @@ public sealed class GodotPresenter3D
         return character != null && _units.TryGetValue(character.UniqueId, out visual!);
     }
 
-    private static async Task Delay(float seconds)
+    private async Task Delay(float seconds)
     {
         if (seconds <= 0) return;
-        await Task.Delay((int)(seconds * 1000));
+        // The token lets a scene exit interrupt the pace-delay: Task.Delay throws OperationCanceled,
+        // which propagates up through the AI plan / Emit chain to the turn loop's cancellation handler.
+        await Task.Delay((int)(seconds * 1000), CancellationToken);
     }
 }

@@ -18,31 +18,54 @@ alongside its materials, paid in full at the moment the bundle completes: the St
 of gold plus materials, at full Stardew scale (revised 2026-07-14). Section 4 lays out the bands this
 document builds every bundle against.
 
+> **2026-07-16 revision (early-game progression rework).** Three construction bundles gain Elderwood
+> **hardwood**, tying the outpost's early growth to the dire wolf that guards the passage into the
+> Elderwood (see `design/tutorial_quests.md`, the canonical quest chain): Trading Post (90 wood /
+> 60 stone / 30 hardwood), Smithy (90 wood / 40 hardwood / 25 goblin_fang), and Infirmary (120 wood /
+> 30 hardwood / 20 herb). The Trading Post is still offered at the planning table from day one with no
+> flag gate, but its hardwood line means it cannot actually be raised until the Elderwood opens — which
+> now happens when the **dire wolf is slain** (`dire_wolf_slain`), NOT at Command Post tier 2. Smithy and
+> Infirmary are now both gated on `arkus_awake` (Arkus wakes after the Trading Post is built and asks for
+> a forge and a sickbed); Josen no longer gates the Infirmary — he arrives 1-3 days after it is built,
+> via random event.
+>
+> **Same-day follow-up decision: Command Post upgrade tiers deferred.** The Command Post ships with NO
+> upgrade tiers this pass — its purpose is the planning table that guides the outpost's repair, not a
+> tier ladder. The previously drafted tier 2-4 ladder (including tier 3's Sunken Reach `BiomeUnlock`) is
+> dropped from this document pending a future design pass; see the Command Post section below. The
+> Sunken Reach's unlock is now TBD.
+
 ## 1. Unlock-order overview
 
 Only the Command Post exists at tier 1 from the first day of play. Tharr already runs its planning
-table, so it carries no construction bundle, and its ladder is upgrades only: he is the lone holdout who
-kept it standing while everything else at the outpost fell to ruin. Trading Post, Kitchen, and Farmhouse
-are commissionable from day one as well, with no prerequisite beyond outpost progress, but each is still
-rubble until its construction bundle is paid. Those three bundles are cheap and drawn entirely from
-forest commons, so they are typically the party's first builds, usually all three going up within the
-first few days of Year 1: restoring them is the opening move of the whole restoration. Elara, Fenwick,
-and the player are all present at the outpost from day one regardless of construction state; Elara opens
-the Trading Post's store once it is commissioned, and Fenwick starts cooking once the Kitchen is
-commissioned. The remaining nine buildings are commissioned over the rest of Year 1 and into Year 2,
-gated either by a character's arrival or by outpost progress alone.
+table, so it carries no construction bundle; its upgrade tiers are deferred pending design (tier 1 is
+the whole of it for now). He is the lone holdout who kept it standing while everything else at the
+outpost fell to ruin. Trading Post, Tavern, and Farmhouse
+are offered at the planning table from day one as well, with no character or flag prerequisite, but each
+is still rubble until its construction bundle is paid. The Tavern and Farmhouse bundles are cheap and
+drawn entirely from Verdant Fringe commons, so they are the directed early builds: the tutorial points
+the player at raising them to stage 1 first (see `design/tutorial.md`). The Trading Post is different.
+Since the 2026-07-16 revision, its construction bundle includes Elderwood **hardwood** (90 wood / 60
+stone / 30 hardwood), which the party cannot gather until the Elderwood opens — and the Elderwood is
+gated behind the dire wolf that guards the passage in. So while the Trading Post shows at the planning
+table from day one, it cannot be raised until the wolf is slain (`dire_wolf_slain`); it is the outpost's
+first Elderwood-gated build rather than a day-one one. Elara, Fenwick, and the player are all present at
+the outpost from day one regardless of construction state; Elara opens the Trading Post's store once it
+is commissioned, and Fenwick starts cooking once the Tavern is commissioned. The remaining buildings are
+commissioned over the rest of Year 1 and into Year 2, gated either by a character's arrival or by outpost
+progress alone.
 
 | Building | Commission prerequisite | Rough calendar position |
 |---|---|---|
-| Command Post | None. Exists at tier 1 from day one; the ladder is upgrades only. | Day one (start state) |
-| Trading Post | None. Commissionable from day one (construction bundle). | First days of Year 1 |
-| Kitchen | None. Commissionable from day one (construction bundle). | First days of Year 1 |
-| Farmhouse | None. Commissionable from day one (construction bundle). | First days of Year 1 |
+| Command Post | None. Exists at tier 1 from day one; upgrade tiers deferred pending design. | Day one (start state) |
+| Trading Post | None (no flag gate), but its construction bundle needs Elderwood hardwood, so it cannot be raised until the Elderwood opens (dire wolf slain). | After the dire wolf is slain; early-mid Year 1 |
+| Tavern | None. Commissionable from day one (construction bundle). | First days of Year 1 (directed) |
+| Farmhouse | None. Commissionable from day one (construction bundle). | First days of Year 1 (directed) |
 | Chapel | None beyond outpost progress. Buildable as soon as its construction bundle is affordable, with no character or tier prerequisite. | Early Year 1 |
 | Fishing Dock | None beyond outpost progress. No character is attached yet. | Early Year 1 |
-| Smithy | Arkus arrives (clear the first forest expedition encounter; he is found wounded on the return trip). | Early Year 1 |
-| Infirmary | Josen arrives (a party member ends combat wounded or downed for the first time; fallback: mid-Spring, Year 1). | Early Year 1 |
-| Apothecary | Spore arrives (the Elderwood biome is explored; requires Command Post tier 2). | Mid Year 1 |
+| Smithy | Arkus wakes (`arkus_awake`): found wounded on the return from the wolf kill, he wakes once the Trading Post is built and asks for a forge. | Early-mid Year 1 |
+| Infirmary | Arkus wakes (`arkus_awake`): his lasting wounds prompt the sickbed. Josen arrives 1-3 days after it is built (no longer gates it). | Early-mid Year 1 |
+| Apothecary | Spore arrives (the Elderwood biome is explored; requires the Elderwood open — dire wolf slain). | Mid Year 1 |
 | Arcane Study | Sera arrives (Trading Post reaches tier 2). | Mid Year 1 |
 | Training Yard | Aldric arrives (eight buildings have been constructed at the outpost). | Mid Year 1 |
 | Watchtower | Thistle arrives (the far-forest campsite zone, deep in the Elderwood, is discovered; farther in than Spore's own trigger). | Late Year 1 |
@@ -57,13 +80,17 @@ building tiers stands between the player and an early Chapel.
 
 ## 2. Character-first and building-first patterns, restated
 
-Per `characters.md`: Smithy (Arkus), Infirmary (Josen), Apothecary (Spore), Watchtower (Thistle),
-Training Yard (Aldric), Arcane Study (Sera), and Reliquary (Hazel) are character-first. Each of these
-seven buildings only becomes commissionable once its character arrives; there is nothing to build
-before that. Chapel, Kitchen, Farmhouse, Trading Post, and Fishing Dock are building-first: each is
-commissionable, or reachable, by outpost progress alone, with no character required to unlock it.
-Trading Post, Kitchen, and Farmhouse are commissionable from day one, needing only their construction
-bundle to go up; any character tied to them (Oskar, Wynn, Hilde, Grub) arrives afterward because the
+Per `characters.md`: Smithy (Arkus), Apothecary (Spore), Watchtower (Thistle), Training Yard (Aldric),
+Arcane Study (Sera), and Reliquary (Hazel) are character-first — each only becomes commissionable once
+its character arrives; there is nothing to build before that. The **Infirmary is a special case since
+the 2026-07-16 revision**: it is unlocked by `arkus_awake` (the same wake beat that unlocks the Smithy —
+Arkus's lasting wounds are the reason the sickbed goes up), and Josen, the monk who runs it, arrives 1-3
+days *after* it is built via a random event. So the Infirmary is character-gated (on Arkus, not on its
+own staffing character) rather than building-first. Chapel, Tavern, Farmhouse, Trading Post, and Fishing
+Dock are building-first: each is commissionable, or reachable, by outpost progress alone, with no
+character required to unlock it. Tavern and Farmhouse are the directed day-one builds; the Trading Post
+is offered from day one too but is hardwood-gated (see section 1), so it goes up after the dire wolf
+opens the Elderwood. Any character tied to these (Oskar, Wynn, Hilde, Grub) arrives afterward because the
 building reached the state that draws them in.
 
 ## 3. Buildings
@@ -75,10 +102,9 @@ the pinned ladder in `economy_brief.md` exactly. Where the brief asks for a prop
 
 ### Command Post
 
-The outpost's command post is where every building gets commissioned and where the squad's roster and
-resurrection services eventually live. It is the start state of the whole economy: tier 1 exists before
-play begins, with Tharr already running the planning table, so it carries no construction bundle. Its
-ladder is upgrades only.
+The outpost's command post is where every building gets commissioned: the planning table that guides
+the repair of the whole outpost. It is the start state of the whole economy: tier 1 exists before play
+begins, with Tharr already running the planning table, so it carries no construction bundle.
 
 **Commission prerequisite:** None. Start state.
 
@@ -87,61 +113,12 @@ ladder is upgrades only.
 **Tier 1: Planning table.** No upgrade bundle (start state). This is the table itself: the commission
 menu for every other building, plus the roster screen where new arrivals join the active squad of four.
 
-**Tier 2: Elderwood unlock.**
-
-| Item id | Quantity |
-|---|---|
-| Gold | 350 |
-| goblin_fang | 30 |
-| deserter_badge | 20 |
-| wood | 15 |
-
-*Effect:* `BiomeUnlock` (Detail: `elderwood`). The Elderwood, the moderate second territory the Verdant
-Fringe frays into, opens for travel and gathering. This is the gate behind every Elderwood-sourced
-material in the catalog: hardwood, coal, the Elderwood's own forage and mushroom lines, its shaded-pool
-fish, its tap line, and the Beasts and Root Wardens creature families. The bundle itself draws entirely
-from the Verdant Fringe: goblin_fang and deserter_badge are common drops from Goblins and Brigands, two
-of the easy-tier families available from the very first day of play, so the party never needs to have
-set foot in the Elderwood to afford the unlock that opens it.
-
-**Tier 3: Sunken Reach unlock.**
-
-| Item id | Quantity |
-|---|---|
-| Gold | 450 |
-| beast_hide | 25 |
-| warden_bark | 20 |
-| hardwood | 15 |
-
-*Effect:* `BiomeUnlock` (Detail: `sunken_reach`). The swamp territory opens for travel and gathering.
-This is the gate behind every swamp-sourced material in the catalog: swamp forage, the bog-iron
-deposit, the swamp tap line, and every Sunken Reach creature family. This bundle draws on the Elderwood
-instead of the Verdant Fringe: beast_hide and warden_bark are common drops from Beasts and Root Wardens,
-the Elderwood's own moderate-tier families, and hardwood is the Elderwood's own timber. Since the
-Sunken Reach cannot supply the materials that pay for its own unlock, this tier has to be priced from
-the territory that opens immediately before it, the same logic tier 2 already follows one rung down the
-ladder. **Migration note:** this tier replaces the previously proposed "expedition logistics"
-CategoryUnlock entirely; that proposal is dropped, not deferred, now that the tier's slot is filled by
-the Sunken Reach unlock itself (see section 6).
-
-**Tier 4: Resurrection.**
-
-| Item id | Quantity |
-|---|---|
-| Gold | 2000 |
-| hollow_locket | 1 |
-| venom_sac | 1 |
-| goblin_totem | 1 |
-| iron_ingot | 20 |
-| ward_salt | 15 |
-| bogwood | 15 |
-
-*Effect:* `Resurrection`. The command post gains the standing to restore a squad member who has died in
-the field rather than merely gone down, the outpost's answer to PF2e's dying and death rules. The
-hollow locket, taken from the Drowned Lord or the Deep Keeper, ties this capability directly to the
-Sunken Reach's undead-lite family, the biome's own answer to death not being final. Bogwood forms the
-ritual dais itself, the one timber dense enough to hold against the Sunken Reach's own water long
-enough for the ritual to complete.
+**Upgrade tiers (2+): DEFERRED pending design (2026-07-16 decision).** The Command Post's purpose is the
+planning table itself, not a tier ladder — it may gain upgrade tiers later, but they are not designed
+yet. The previously drafted 2-4 ladder (a pure stat/facility tier; a `BiomeUnlock` (Sunken Reach) tier;
+a `Resurrection` capstone) is dropped from this document — it lives in this file's git history, not
+here — along with its open question about tier 2's replacement effect. The Sunken Reach's eventual
+unlock path is **TBD (previously CP Tier 3)**, to be resolved whenever upgrade tiers are designed.
 
 ### Trading Post
 
@@ -149,15 +126,23 @@ The Trading Post is the outpost's merchant, buying and selling finished goods fo
 seeds for the Farmhouse. Elara is present at the outpost from day one, and she opens the store as soon
 as the Trading Post is commissioned.
 
-**Commission prerequisite:** None, commissionable from day one.
+**Commission prerequisite:** None (no flag gate); offered at the planning table from day one. But its
+construction bundle includes Elderwood hardwood, so it cannot actually be raised until the Elderwood
+opens — which happens when the dire wolf that guards the passage is slain (`dire_wolf_slain`). It is the
+outpost's first Elderwood-gated build, not a day-one one (2026-07-16 revision).
 
-**Construction bundle**
+**Construction bundle** *(hardwood line added 2026-07-16)*
 
 | Item id | Quantity |
 |---|---|
 | Gold | 60 |
 | wood | 90 |
 | stone | 60 |
+| hardwood | 30 |
+
+The hardwood is the deliberate gate: the Verdant Fringe supplies the wood and stone from day one, but the
+30 hardwood cannot be gathered until the Elderwood is open. Restoring the Trading Post (quest 8 in
+`design/tutorial_quests.md`) is what first sends the party into the Elderwood for it.
 
 **Tiers**
 
@@ -185,16 +170,25 @@ existing cross-building mechanic kept unchanged (see section 5).
 The Smithy is the forge: Arkus's weapon catalog, fundamental runes, and, as it grows, the metal-armor
 and property-rune work that keeps the party's gear scaling across two years.
 
-**Commission prerequisite:** Arkus arrives (clear the first forest expedition encounter).
+**Commission prerequisite:** Arkus wakes (`arkus_awake`). Found wounded on the return from the dire-wolf
+kill and laid up until the Trading Post is built, Arkus wakes and asks for a forge — naming the wolf as
+what broke him and his lost gear as why. Gated on the wake, not on the earlier `arkus_found` beat.
 
-**Construction bundle**
+**Construction bundle** *(rebuilt 2026-07-16 — now a wood + hardwood mix)*
 
 | Item id | Quantity |
 |---|---|
 | Gold | 120 |
+| wood | 90 |
+| hardwood | 40 |
 | goblin_fang | 25 |
-| rat_pelt | 20 |
-| wood | 15 |
+
+The forge is a real timber project, so wood is its foundation and Elderwood hardwood braces the frame
+(available by now — Arkus cannot wake to ask for it until the Trading Post is up and the Elderwood is
+already open). The 25 goblin_fang keeps one combat-drop line, the thematic nod that a smithy on the
+frontier is forged partly from what the party has killed. This replaces the shipped all-monster-parts
+bundle (goblin_fang 25 / rat_pelt 20 / wood 15); the Smithy is no longer priced as a pure combat-facing
+building, since the new flow raises it after the Elderwood opens rather than from the first forest fights.
 
 **Tiers**
 
@@ -214,7 +208,7 @@ runes, gold-only at this tier.
 *Effect:* `SmithyTier` (Magnitude 1). Unlocks the improved weapon tier (falchion, maul) and the
 Smithy's first armor line, built from tanned beast hide and the coal-fired forge the Elderwood's own
 seam now supplies. Both ingredients are Elderwood materials, but this tier lands a full year after the
-Command Post's Elderwood unlock on the schedule `pacing.md` lays out, so neither is a timing risk.
+Elderwood opens (the dire-wolf kill) on the schedule `pacing.md` lays out, so neither is a timing risk.
 
 **Tier 3: Advanced catalog + property runes.**
 
@@ -257,16 +251,22 @@ own water-hardened timber, the one material tough enough to be trusted behind a 
 The Infirmary is field medicine: Josen's rest healing, and, as it grows, faster recovery and the
 capacity to treat serious afflictions in a single stay.
 
-**Commission prerequisite:** Josen arrives (a party member ends combat wounded or downed for the first
-time; fallback: mid-Spring, Year 1).
+**Commission prerequisite:** Arkus wakes (`arkus_awake`), 2026-07-16 revision. Arkus's lasting wounds
+are what prompt the sickbed, so the Infirmary becomes commissionable from the same wake beat that unlocks
+the Smithy (quest 9, "The Smith and the Sickbed"). **Josen no longer gates the Infirmary** — the monk who
+runs it arrives 1-3 days *after* it is built, via a random event (see `characters.md`).
 
-**Construction bundle**
+**Construction bundle** *(hardwood line added 2026-07-16)*
 
 | Item id | Quantity |
 |---|---|
 | Gold | 90 |
 | wood | 120 |
+| hardwood | 30 |
 | herb | 20 |
+
+Wood remains the foundation; 30 Elderwood hardwood braces the frame (available by the wake beat, since
+the Elderwood is open by then), and herb ties the bundle to the medicine the building is for.
 
 **Tiers**
 
@@ -340,7 +340,7 @@ basic divine blessings.
 *Effect:* `CategoryUnlock` (Detail: `hero_point_grants_greater_blessings`). The Chapel starts granting
 hero points on its own schedule and its blessings grow stronger. This is the Chapel's only upgrade
 tier, so its trophy cost sits here rather than at a nominal tier 3 or 4; the hollow locket in particular
-ties the Chapel's own growth to the same Sunken Reach threat that Command Post tier 4 draws on. A
+ties the Chapel's own growth to the same Sunken Reach threat. A
 captured wisp-light, the Drowning Light's own lantern, adds a second Sunken Reach trophy to the tier: a
 light that finally leads somewhere honest, fitting company for a font that grants hero points.
 
@@ -455,8 +455,8 @@ the yard's later dedications are built to teach.
 The Apothecary is alchemy and reagents: Spore's potions, elixirs, and (per the migration below)
 antidotes, growing into talisman crafting and reagent refining, then rare consumables at its capstone.
 
-**Commission prerequisite:** Spore arrives (the Elderwood biome is explored; requires the Command
-Post's Elderwood unlock, tier 2).
+**Commission prerequisite:** Spore arrives (the Elderwood biome is explored; requires the Elderwood
+open — the dire wolf slain, per the 2026-07-16 revision).
 
 **Construction bundle**
 
@@ -502,15 +502,16 @@ moss into spirit dust.
 elixirs, built from a boss-tier venom sac alongside the Sunken Reach's own fungal and bog-grown
 reagents.
 
-### Kitchen
+### Tavern
 
-The Kitchen is hearth and provisions: Fenwick's day-long meal buffs, growing into a tavern common room
+The Tavern is hearth and provisions: Fenwick's day-long meal buffs, growing into a tavern common room
 and, at its capstone, boarding rooms and feasts. Fenwick is present at the outpost from day one, and he
-starts cooking as soon as the Kitchen is commissioned.
+starts cooking as soon as the Tavern is commissioned.
 
-**Commission prerequisite:** None, commissionable from day one.
+**Commission prerequisite:** None, commissionable from day one. Along with the Farmhouse, the Tavern is
+one of the two directed early builds the tutorial points the player at first (see `design/tutorial.md`).
 
-**Construction bundle (PROPOSED)**
+**Construction bundle**
 
 | Item id | Quantity |
 |---|---|
@@ -558,7 +559,7 @@ here once it exists, though her PC-reveal still runs on the hearts 2-4 event in 
 The Farmhouse is the homestead: tillable land, growing through a coop and a barn into the greenhouse
 that finally removes the season restriction entirely. The player is present at the outpost from day one
 and works the Farmhouse as soon as it is commissioned, typically among the outpost's first builds
-alongside the Trading Post and Kitchen.
+alongside the Trading Post and Tavern.
 
 **Commission prerequisite:** None, commissionable from day one.
 
@@ -624,7 +625,8 @@ The Watchtower is scouting and the frontier: Thistle's territory reveal, growing
 previews and, at its capstone, fast travel.
 
 **Commission prerequisite:** Thistle arrives (the far-forest campsite zone, deep in the Elderwood, is
-discovered; requires the Command Post's Elderwood unlock, tier 2).
+discovered; requires the Elderwood open — the dire wolf slain, per the 2026-07-16 revision, not Command
+Post tier 2).
 
 **Construction bundle**
 
@@ -815,7 +817,11 @@ in the first place. Any raw-commons item that still appears in one of these bund
 copper_ingot, hardwood, cut_stone) plays a minor cross-route role rather than the bundle's foundation,
 so it stays in the small refined/special band rather than chasing the 100-plus raw-commons band; a
 Smithy or a Watchtower is not, thematically, a lumber project the way a Farmhouse or a Trading Post is.
-The remaining six buildings (Trading Post, Kitchen, Farmhouse, Infirmary, Apothecary, Fishing Dock) draw
+(**2026-07-16 exception:** the Smithy's *construction* bundle is the one place this rule now bends — the
+early-game rework rebuilt it as a wood+hardwood mix, wood 90 / hardwood 40 / goblin_fang 25, because the
+new flow raises the forge only after the Elderwood opens rather than from the first forest fights, so its
+foundation is timber, not fangs. Its four upgrade tiers keep the majority-monster-parts character.)
+The remaining six buildings (Trading Post, Tavern, Farmhouse, Infirmary, Apothecary, Fishing Dock) draw
 mostly from their own thematic family, with monster parts appearing only as an occasional 1 to 2 item
 cross-route ingredient (Apothecary's spore pod and venom sac, for instance), scaled modestly rather than
 to the combat-facing 30-to-80 band since they are not that family's primary demand.
@@ -838,37 +844,37 @@ appears in, or the recipe, meal, rune, or gift mechanic that already sinks it wi
 | carrot_seed | Trading Post stock |
 | carrot | Farmhouse tier 3 |
 | winter_squash_seed | Trading Post stock |
-| winter_squash | Kitchen tier 3 |
+| winter_squash | Tavern tier 3 |
 | hearth_root_seed | Trading Post stock |
-| hearth_root | Kitchen tier 3 |
+| hearth_root | Tavern tier 3 |
 | frost_kale_seed | Trading Post stock |
 | frost_kale | Farmhouse tier 3 |
-| herb | Recipe (craft_tincture, cook_herb_tonic, cook_battle_draught); also Infirmary construction/tier 2/tier 3, Apothecary construction, Kitchen construction |
+| herb | Recipe (craft_tincture, cook_herb_tonic, cook_battle_draught); also Infirmary construction/tier 2/tier 3, Apothecary construction, Tavern construction |
 | berries | Recipe (cook_herb_tonic, cook_travel_ration, cook_guard_ration); also Infirmary tier 2, Apothecary construction |
 | fiber | Recipe (craft_cloth) |
-| wild_mushroom | Kitchen tier 2 |
+| wild_mushroom | Tavern tier 2 |
 | forest_root | Trading Post tier 2 |
 | bog_moss | Apothecary tier 3; recipe (craft_spirit_dust input) |
 | marsh_reed | Farmhouse tier 3 |
 | bitter_root | Apothecary tier 2 |
 | nightcap_mushroom | Apothecary tier 3; recipe (Apothecary tier 2 reagent refining into arcane_essence) |
-| wood | Recipe (craft_plank); construction bundles for Smithy, Training Yard, Command Post tier 2, Apothecary, Watchtower tier 2, Trading Post construction, Kitchen construction, Farmhouse construction |
-| stone | Recipe (craft_cut_stone); also Trading Post construction, Kitchen construction, Farmhouse construction |
+| wood | Recipe (craft_plank); construction bundles for Smithy, Training Yard, Command Post tier 2, Apothecary, Watchtower tier 2, Trading Post construction, Tavern construction, Farmhouse construction |
+| stone | Recipe (craft_cut_stone); also Trading Post construction, Tavern construction, Farmhouse construction |
 | copper_ore | Recipe (craft_copper_ingot) |
-| hardwood | Watchtower tier 3, Command Post tier 3 |
+| hardwood | Trading Post construction, Smithy construction, Infirmary construction (all added 2026-07-16), Watchtower tier 3, Command Post tier 3 |
 | coal | Smithy tier 2 |
 | iron_ore | Recipe (craft_iron_ingot) |
 | bogwood | Watchtower tier 3, Command Post tier 4, Smithy tier 4 |
 | river_minnow | Recipe (craft_smoked_fish) |
 | stream_trout | Recipe (craft_smoked_fish) |
 | lake_bass | Recipe (craft_smoked_fish) |
-| frost_pike | Kitchen tier 3 |
+| frost_pike | Tavern tier 3 |
 | murk_catfish | Recipe (craft_smoked_fish) |
 | bog_eel | Recipe (craft_smoked_fish) |
 | silt_carp | Trading Post tier 2 |
 | shadow_gar | Reliquary tier 3 |
 | marsh_clam | Trading Post tier 2 |
-| egg | Kitchen tier 2 |
+| egg | Tavern tier 2 |
 | feather | Watchtower construction |
 | milk | Recipe (craft_cheese, craft_butter) |
 | wool | Recipe (craft_spun_yarn) |
@@ -876,7 +882,7 @@ appears in, or the recipe, meal, rune, or gift mechanic that already sinks it wi
 | honey | Farmhouse tier 4; recipe (craft_mead) |
 | tree_sap | Trading Post tier 2 |
 | bog_resin | Arcane Study tier 2 |
-| log_mushroom | Kitchen tier 2 |
+| log_mushroom | Tavern tier 2 |
 | goblin_fang | Smithy construction, Chapel construction, Arcane Study construction/tier 2, Reliquary construction, Command Post tier 2 |
 | rat_pelt | Smithy construction, Chapel construction, Training Yard construction/tier 2, Arcane Study construction, Watchtower construction, Reliquary tier 2 |
 | beast_hide | Farmhouse tier 3, Smithy tier 2, Infirmary tier 2, Command Post tier 3; recipe (craft_leather) |
@@ -919,8 +925,8 @@ appears in, or the recipe, meal, rune, or gift mechanic that already sinks it wi
 | cheese | Farmhouse tier 4 |
 | butter | Farmhouse tier 4 |
 | spun_yarn | Infirmary tier 2 |
-| mead | Kitchen tier 2 |
-| smoked_fish | Kitchen tier 3 |
+| mead | Tavern tier 2 |
+| smoked_fish | Tavern tier 3 |
 | arcane_essence | System sink (Smithy rune reagent, RunePrices.ReagentItemId) |
 | ward_salt | Reliquary construction, Chapel tier 2, Command Post tier 4 |
 | spirit_dust | Reliquary tier 3, Arcane Study tier 3 |
@@ -932,7 +938,7 @@ appears in, or the recipe, meal, rune, or gift mechanic that already sinks it wi
 - **Trading Post stock widens with Smithy tier.** This existing mechanic is unchanged: as the Smithy's
   tier rises, the Trading Post's shelf gains access to goods keyed to that tier, in addition to the
   widening its own tier 2 grants.
-- **Kitchen tiers gate two characters.** Reaching tier 2 (the tavern common room) is Wynn's arrival
+- **Tavern tiers gate two characters.** Reaching tier 2 (the tavern common room) is Wynn's arrival
   trigger. Reaching tier 3 (boarding rooms) is Hilde's arrival trigger as townsfolk, though her
   PC-reveal still runs on the hearts 2-4 event in her own file.
 - **Farmhouse tiers gate the husbandry route.** The coop (tier 2) and the barn (tier 3) are what open
@@ -941,8 +947,10 @@ appears in, or the recipe, meal, rune, or gift mechanic that already sinks it wi
 - **Fishing Dock tiers gate the entire fish family.** Tier 1 opens Verdant Fringe rod fishing; tier 2
   opens trap fishing and every Elderwood and Sunken Reach fish, gated jointly with each territory's own
   Command Post unlock.
-- **Command Post tier 2 gates the Elderwood.** Every Elderwood-sourced item in the catalog, hardwood,
-  coal, forage, fish, tap-line goods, and both of its creature families, sits behind this unlock.
+- **The dire wolf's death gates the Elderwood** (2026-07-16 revision; formerly Command Post tier 2).
+  Every Elderwood-sourced item in the catalog — hardwood, coal, forage, fish, tap-line goods, and both
+  of its creature families — sits behind the `dire_wolf_slain` flag (wired as the `elderwood` territory's
+  `UnlockFlagId`). The dire wolf guards the passage from the near forest into the deep Elderwood.
 - **Command Post tier 3 gates the Sunken Reach.** Every swamp-sourced item in the catalog, forage,
   ore, tap-line goods, fish, and every Sunken Reach creature family, sits behind this unlock, and it can
   only be paid for with Elderwood materials and moderate-family parts, since the Sunken Reach itself is
@@ -950,24 +958,33 @@ appears in, or the recipe, meal, rune, or gift mechanic that already sinks it wi
 
 ## 6. Migration table
 
+**As-implemented (2026-07-16).** All 13 building definitions now ship in `Buildings.cs` matching section 3
+of this document — its header comment names this doc as "the source of truth for every bundle, Gold cost,
+and effect." This table is therefore history, not a proposal: it records how each definition reached its
+current shipped form, from the original four placeholder definitions, through the 2026-07-14 full-Stardew
+scale doctrine, to the 2026-07-16 early-game progression rework. The **"Shipped (`Buildings.cs`)"** column
+below means the ORIGINAL placeholder code that predated this design; the code today matches "This design."
+The 2026-07-16 rework changed four rows (Trading Post, Smithy, Infirmary, Command Post) after the code had
+already caught up, so those four are once again ahead of code until workstream B mirrors them.
+
 | Building | Shipped (`Buildings.cs`) | This design | What changed |
 |---|---|---|---|
 | Farmhouse | 3 tiers: T1 farm plots, T2 farm plots + watering, T3 greenhouse | 4 tiers: T1 zone 1, T2 zone 2 + coop, T3 barn + auto-water, T4 greenhouse | Reshuffled from 3 to 4 tiers. The coop is inserted at tier 2 and the barn at tier 3; watering automation moves from the old tier 2 to the new tier 3, alongside the barn. Greenhouse shifts from tier 3 to tier 4. |
-| Smithy | 3 tiers: T1 base catalog, T2 improved catalog, T3 advanced catalog + property runes | 4 tiers: T1 base catalog + fundamental runes, T2 improved catalog + armor, T3 advanced catalog + property runes, T4 trophy-forged/masterwork | Tiers 1 through 3 keep their shipped substance (tier 3's "advanced catalog + property runes" already matches). A new tier 4 is appended. **Code note:** the `SmithyTier` enum in `Smithy.cs` (`Base`, `Improved`, `Advanced`) needs a fourth value (for example `Masterwork`) to gate the new tier's catalog entries; `BuildingEffectType.SmithyTier`'s `Magnitude` field needs no enum change since it is already a plain int. |
-| Infirmary | 3 tiers: T1 rest healing, T2 faster recovery, T3 antidotes + tonics category | 3 tiers: T1 rest healing, T2 faster recovery + affliction treatment, T3 advanced care | Tier count unchanged. Tier 3's effect changes from a `CategoryUnlock` (antidotes + tonics) to a third `InfirmaryHealing` step (advanced care). The antidote and tonic category moves to Apothecary tier 1. |
+| Smithy | 3 tiers: T1 base catalog, T2 improved catalog, T3 advanced catalog + property runes | 4 tiers: T1 base catalog + fundamental runes, T2 improved catalog + armor, T3 advanced catalog + property runes, T4 trophy-forged/masterwork | Tiers 1 through 3 keep their shipped substance (tier 3's "advanced catalog + property runes" already matches). A new tier 4 is appended. **Code note:** the `SmithyTier` enum in `Smithy.cs` (`Base`, `Improved`, `Advanced`) needs a fourth value (for example `Masterwork`) to gate the new tier's catalog entries; `BuildingEffectType.SmithyTier`'s `Magnitude` field needs no enum change since it is already a plain int. **2026-07-16 rework:** construction bundle rebuilt from all-monster-parts (goblin_fang 25 / rat_pelt 20 / wood 15) to a wood+hardwood mix (wood 90 / hardwood 40 / goblin_fang 25); `RequiredFlagId` changes from `arkus_arrived` to `arkus_awake`. |
+| Infirmary | 3 tiers: T1 rest healing, T2 faster recovery, T3 antidotes + tonics category | 3 tiers: T1 rest healing, T2 faster recovery + affliction treatment, T3 advanced care | Tier count unchanged. Tier 3's effect changes from a `CategoryUnlock` (antidotes + tonics) to a third `InfirmaryHealing` step (advanced care). The antidote and tonic category moves to Apothecary tier 1. **2026-07-16 rework:** construction bundle gains a hardwood line (wood 120 / hardwood 30 / herb 20); `RequiredFlagId` changes from `josen_arrived` to `arkus_awake` (Arkus's wounds prompt the sickbed; Josen now arrives 1-3 days *after* it is built via random event, no longer gating it). |
 | Apothecary | Not defined in shipped code | 3 tiers, new definition | Net-new. Tier 1 absorbs the antidote and tonic category migrated from Infirmary tier 3. |
-| Trading Post | 2 tiers: T1 general store, T2 expanded store, with a construction bundle (wood 6, stone 4) | 2 tiers, same effects, construction bundle rescaled | Tier count and effects unchanged. The Trading Post is commissionable from day one with no prerequisite (Elara is present from day one and opens the store once it is commissioned), but it is not a start-state building like the Command Post: it still pays a construction bundle to commission, now rescaled to full Stardew scale (wood 90, stone 60, plus a new 60g Gold cost) rather than the shipped wood 6, stone 4. |
-| Command Post | Not defined in shipped code | 4 tiers, new definition, no construction bundle | Net-new. Confirmed as the start state per the framework brief: tier 1 exists from day one with no construction bundle, and the ladder is upgrades only. Tier 2 and tier 3 both carry a `BiomeUnlock` effect now (Detail `elderwood` and `sunken_reach` respectively), replacing the earlier draft's single tier-2 `BiomeUnlock` (`sunken_reach`) plus a proposed tier-3 `CategoryUnlock` (`expedition_logistics`). The expedition-logistics proposal is dropped entirely, not deferred; the Sunken Reach unlock now fills that tier's slot outright. |
+| Trading Post | 2 tiers: T1 general store, T2 expanded store, with a construction bundle (wood 6, stone 4) | 2 tiers, same effects, construction bundle rescaled + hardwood-gated | Tier count and effects unchanged. Rescaled to full Stardew scale (was wood 6 / stone 4; then wood 90 / stone 60 + 60g). **2026-07-16 rework:** the construction bundle gains a 30-hardwood line (wood 90 / stone 60 / hardwood 30, 60g unchanged). No flag gate — the building is still offered from day one — but the hardwood cannot be gathered until the Elderwood opens (dire wolf slain), so the Trading Post is now the outpost's first Elderwood-gated build rather than a day-one one. |
+| Command Post | Not defined in shipped code | 4 tiers, new definition, no construction bundle | Net-new. Tier 1 is the start state (no bundle, upgrades-only ladder). **2026-07-16 rework:** tier 2 LOSES its `BiomeUnlock` (`elderwood`) effect — the Elderwood is now unlocked by the `dire_wolf_slain` flag (an `UnlockFlagId` on the `elderwood` territory definition), not by this ladder. Tier 2 keeps its bundle as quest 12's "the outpost grows" milestone but no longer opens a biome (a replacement declarative effect is an open question for the systems pass). Tier 3's `BiomeUnlock` (`sunken_reach`) is unchanged, as is tier 4's `Resurrection`. |
 | Chapel | Not defined in shipped code | 2 tiers, new definition | Net-new. |
 | Arcane Study | Not defined in shipped code | 3 tiers, new definition | Net-new. |
 | Training Yard | Not defined in shipped code | 3 tiers, new definition | Net-new. |
-| Kitchen | Not defined in shipped code | 3 tiers, new definition, with a proposed construction bundle | Net-new. The Kitchen is commissionable from day one with no prerequisite (Fenwick is present from day one and starts cooking once it is commissioned), but it is not a start-state building: this design proposes a construction bundle (wood 90, stone 60, herb 15, plus a 70g Gold cost) at the same full-Stardew-scale band as Trading Post's and Farmhouse's construction bundles. |
+| Tavern | Not defined in shipped code | 3 tiers, new definition, with a proposed construction bundle | Net-new. The Tavern is commissionable from day one with no prerequisite (Fenwick is present from day one and starts cooking once it is commissioned), but it is not a start-state building: this design proposes a construction bundle (wood 90, stone 60, herb 15, plus a 70g Gold cost) at the same full-Stardew-scale band as Trading Post's and Farmhouse's construction bundles. |
 | Watchtower | Not defined in shipped code | 3 tiers, new definition | Net-new. |
 | Reliquary | Not defined in shipped code | 3 tiers, new definition | Net-new. |
 | Fishing Dock | Not defined in shipped code | 2 tiers, new definition | Net-new building; no character attached yet. |
 
 Nine building definitions are net-new against the shipped four (Farmhouse, Smithy, Infirmary, Trading
-Post): Command Post, Chapel, Arcane Study, Training Yard, Apothecary, Kitchen, Watchtower, Reliquary,
+Post): Command Post, Chapel, Arcane Study, Training Yard, Apothecary, Tavern, Watchtower, Reliquary,
 and Fishing Dock.
 
 Three further migration items follow from the revised scale doctrine (2026-07-14) and apply on top of
@@ -990,8 +1007,9 @@ everything above:
   reasoning.
 
 Every `BuildingEffectType` value this design calls for already exists in the shipped enum:
-`BiomeUnlock` (Command Post tiers 2 and 3, `elderwood` and `sunken_reach`), `Boarding` (Kitchen tier 3),
-`Performances` (Kitchen tier 2), `FastTravel` (Watchtower tier 3), `Resurrection` (Command Post tier 4),
+`BiomeUnlock` (Command Post tier 3, `sunken_reach`; the Elderwood unlock moved off Command Post tier 2 to
+the `dire_wolf_slain` territory `UnlockFlagId` in the 2026-07-16 rework), `Boarding` (Tavern tier 3),
+`Performances` (Tavern tier 2), `FastTravel` (Watchtower tier 3), `Resurrection` (Command Post tier 4),
 `Husbandry` (Farmhouse tiers 2 and 3), and `Fishing` (Fishing Dock tiers 1 and 2). Several tiers
 (Watchtower tiers 1 and 2, Reliquary tiers 1 through 3, Apothecary all tiers, Arcane Study all tiers,
 Training Yard all tiers, Chapel tier 1, and the general/expanded store tiers) use the generic
@@ -1001,15 +1019,17 @@ note above.
 
 ## Judgment calls
 
-- **One start-state building, three day-one commissions.** The framework brief pins only the Command
-  Post as the no-construction-bundle start state: tier 1 exists before play begins, with no bundle and
-  an upgrades-only ladder. Trading Post, Kitchen, and Farmhouse are commissionable from day one with no
-  prerequisite, but each still needs its construction bundle paid before it stands. Under the revised
-  scale doctrine, Farmhouse and Trading Post no longer keep their shipped bundles from `Buildings.cs`
-  (wood 8 / stone 6, and wood 6 / stone 4, respectively): both are rescaled to the full-Stardew-scale
-  construction band, same as every other building in this document. Kitchen has no shipped definition,
-  so this design proposes a bundle for it at the same scale (wood 90, stone 60, herb 15, 70g Gold). See
-  the migration table for all three entries.
+- **One start-state building, two directed day-one commissions, and a hardwood-gated third.** The
+  framework brief pins only the Command Post as the no-construction-bundle start state: tier 1 exists
+  before play begins, with no bundle and an upgrades-only ladder. The **Tavern and Farmhouse** are the two
+  directed day-one commissions — cheap Verdant Fringe bundles the tutorial points the player at first. The
+  **Trading Post** is offered at the planning table from day one too, with no flag gate, but since the
+  2026-07-16 rework its construction bundle includes 30 Elderwood hardwood, so it cannot be raised until
+  the Elderwood opens (dire wolf slain); it is the first Elderwood-gated build rather than a day-one one.
+  Under the 2026-07-14 scale doctrine, Farmhouse and Trading Post no longer keep their shipped bundles
+  from `Buildings.cs` (wood 8 / stone 6, and wood 6 / stone 4, respectively): both are rescaled to the
+  full-Stardew-scale construction band. Tavern had no shipped definition; its bundle is wood 90 / stone 60
+  / herb 15, 70g Gold, at the same scale.
 - **2-tier buildings' only upgrade tier is priced as a mid tier, not a capstone.** Trading Post tier 2,
   Chapel tier 2, and Fishing Dock tier 2 are each the top of a ladder pinned at only 2 tiers by the
   framework brief. Rather than pricing them at the capstone band (300-550 commons, 1,000-2,500g), this

@@ -12,38 +12,20 @@ namespace Bulwark.UI;
 /// names in the view-model, so no data lookups happen here.
 /// Toggled by the "toggle_crafting_panel" input action (K); Esc closes.
 /// </summary>
-public partial class CraftingPanel : CanvasLayer
+public partial class CraftingPanel : TogglePanel
 {
     /// <summary>Intent: craft <c>count</c> of a recipe (recipeId, count).</summary>
     public event Action<string, int>? CraftRequested;
 
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
-
     private VBoxContainer _body = null!;
+
+    public CraftingPanel() => ToggleAction = "toggle_crafting_panel";
 
     public override void _Ready()
     {
         _body = GetNode<VBoxContainer>("%Body");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_crafting_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>Render a fresh crafting view — rebuilds every recipe row.</summary>
     public void Render(CraftingView view)
@@ -109,13 +91,5 @@ public partial class CraftingPanel : CanvasLayer
         col.AddChild(craft);
 
         return panel;
-    }
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 }

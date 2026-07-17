@@ -1,10 +1,10 @@
 namespace Bulwark.Data;
 
 /// <summary>
-/// Declarative definition of one hand-authored named character in the STATIC cast (Phase 3
-/// keystone). Data-only per CLAUDE.md — the shipped <see cref="Villagers"/> registry is EMPTY and
-/// the user authors villagers here later (exactly like building markers), so this type only
-/// describes the framework, never content.
+/// Declarative definition of one named character in the STATIC cast (Phase 3 keystone). Data-only
+/// per CLAUDE.md — the shipped <see cref="Villagers"/> registry combines hand-authored definitions
+/// with ones emitted from <see cref="Characters.CharacterProfile"/> (last id wins), so a character
+/// should live in exactly ONE of the two sources.
 ///
 /// A villager becomes present at the outpost when its <see cref="Arrival"/> trigger fires
 /// (building restored / story flag / date). Association with a building is many-to-many and purely
@@ -26,6 +26,10 @@ public sealed class VillagerDefinition
 
     /// <summary>True when this character is a playable party member that can JOIN the squad once arrived.</summary>
     public bool Recruitable { get; init; }
+
+    /// <summary>Optional Mana Seed sprite-sheet id (folder under <c>assets/sprites/heroes/</c>) the NPC
+    /// loader renders this villager with. Null → the loader falls back to a default sheet.</summary>
+    public string? SpriteId { get; init; }
 
     /// <summary>
     /// For a recruitable villager: the key of the joinable PC preset (Bulwark.Presets.PartyPresets)

@@ -86,7 +86,7 @@ public partial class EconomySpike : SpikeBase
             return;
 
         var veteran = squad.FindMember(SquadRoster.PlayerId)!;
-        var scholar = squad.FindMember(SquadRoster.ScholarId)!;
+        var scholar = squad.FindMember(SquadRoster.FenwickId)!;
 
         Check("(0) fresh wallet starts empty", gs.Gold == 0);
 
@@ -166,7 +166,7 @@ public partial class EconomySpike : SpikeBase
         Check("(3) rejected rune spent no gold", gs.Gold == goldBeforeSmithy);
 
         // Insufficient-gold weapon buy (folded weapon-shop check) — still short of the 200g greataxe.
-        Check("(3) insufficient-gold greataxe buy rejected", !gs.BuyWeapon(SquadRoster.ScholarId, "greataxe"));
+        Check("(3) insufficient-gold greataxe buy rejected", !gs.BuyWeapon(SquadRoster.FenwickId, "greataxe"));
         Check("(3) rejected buy spent no gold", gs.Gold == goldBeforeSmithy);
 
         gs.EarnGold(1000); // bankroll the smithy run
@@ -218,11 +218,11 @@ public partial class EconomySpike : SpikeBase
         int staffDie = scholar.Equipment!.MainHandWeapon!.DamageDice.DieSize;
         Check("(4) Scholar starts on the staff (d4)", staffDie == 4);
 
-        Check("(4) unknown weapon slug rejected", !gs.BuyWeapon(SquadRoster.ScholarId, "vorpal-nonsense"));
+        Check("(4) unknown weapon slug rejected", !gs.BuyWeapon(SquadRoster.FenwickId, "vorpal-nonsense"));
         Check("(4) unknown member rejected", !gs.BuyWeapon("nobody", "greataxe"));
 
         int goldBeforeGreataxe = gs.Gold;
-        Check("(4) buy the greataxe (200g)", gs.BuyWeapon(SquadRoster.ScholarId, "greataxe"));
+        Check("(4) buy the greataxe (200g)", gs.BuyWeapon(SquadRoster.FenwickId, "greataxe"));
         Check("(4) greataxe cost 200 gold", gs.Gold == goldBeforeGreataxe - 200);
         var scholarWeapon = scholar.Equipment!.MainHandWeapon!;
         Check("(4) Scholar's main-hand weapon changed to the greataxe (d12)",
@@ -247,11 +247,12 @@ public partial class EconomySpike : SpikeBase
             Check("(4b) higher-tier falchion locked at base smithy", !gm.BuyWeapon(SquadRoster.TharrId, "falchion"));
 
             // Upgrade the shipped Smithy to Improved (commission + tier-2 bundle). Construction needs
-            // goblin_fang 25 + rat_pelt 20 + wood 15 (starter already has wood 10) + Gold 120.
+            // wood 90 (starter already has wood 10) + hardwood 40 + goblin_fang 25 + Gold 120.
+            gm.AddItem("wood", 80); // starter 10 + 80 = 90
+            gm.AddItem("hardwood", 40);
             gm.AddItem("goblin_fang", 25);
-            gm.AddItem("rat_pelt", 20);
-            gm.AddItem("wood", 5); // starter 10 + 5 = 15
             gm.EarnGold(120);
+            gm.SetStoryFlag("arkus_awake"); // Smithy is character-first gated on Arkus's wake (RequiredFlagId)
             Check("(4b) commission smithy", gm.CommissionBuilding("smithy"));
             // Tutorial pacing occupies a freshly commissioned smithy for 2 days (SetConstructionDays) —
             // ActiveEffects (and so the SmithyTier ceiling) ignores a building still under construction,
@@ -291,7 +292,7 @@ public partial class EconomySpike : SpikeBase
 
             // Base-tier buy is UNAFFECTED by metal (gold-only) even at the upgraded smithy.
             int goldBeforeClub = gm.Gold;
-            Check("(4b) base-tier club buy needs no metal (gold-only)", gm.BuyWeapon(SquadRoster.ScoutId, "club"));
+            Check("(4b) base-tier club buy needs no metal (gold-only)", gm.BuyWeapon(SquadRoster.ElaraId, "club"));
             Check("(4b) base club cost only gold (15)", gm.Gold == goldBeforeClub - 15);
 
             gm.QueueFree();
@@ -345,12 +346,13 @@ public partial class EconomySpike : SpikeBase
             Check("(7) view: copper_ingot present but flagged locked at base",
                 gp.GetTradingPostView().Offers.Any(o => o.ItemId == "copper_ingot" && !o.Unlocked));
 
-            // Construction needs goblin_fang 25 + rat_pelt 20 + wood 15 (starter already has wood 10) +
+            // Construction needs wood 90 (starter already has wood 10) + hardwood 40 + goblin_fang 25 +
             // Gold 120; the tier-2 bundle needs goblin_scrap 25 + coal 25 + beast_hide 25 + Gold 300.
+            gp.AddItem("wood", 80); // starter 10 + 80 = 90
+            gp.AddItem("hardwood", 40);
             gp.AddItem("goblin_fang", 25);
-            gp.AddItem("rat_pelt", 20);
-            gp.AddItem("wood", 5); // starter 10 + 5 = 15
             gp.EarnGold(120);
+            gp.SetStoryFlag("arkus_awake"); // Smithy is character-first gated on Arkus's wake (RequiredFlagId)
             Check("(7) commission smithy", gp.CommissionBuilding("smithy"));
             CompleteConstruction(gp);
             gp.AddItem("goblin_scrap", 25);
@@ -399,7 +401,7 @@ public partial class EconomySpike : SpikeBase
             && vetWeapon2.GetEffectiveDamageDice().NumberOfDice == 2);
         Check("(6) reloaded: Potency rune round-trips", vetWeapon2.PotencyBonus == vetPotency);
 
-        var scholar2 = gs2.Squad!.FindMember(SquadRoster.ScholarId)!;
+        var scholar2 = gs2.Squad!.FindMember(SquadRoster.FenwickId)!;
         Check("(6) reloaded: bought greataxe round-trips (d12 main hand)",
             scholar2.Equipment!.MainHandWeapon!.DamageDice.DieSize == 12);
     }

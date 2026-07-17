@@ -78,8 +78,8 @@ she would be furious.
 ## Arrival
 
 Recruitable, missable. Raven begins appearing at the outpost once the Trading Post and the
-Kitchen are both built and a day threshold has passed. She uses the Trading Post to
-sell loot and buy supplies. She uses the Kitchen for a hot meal. She is a customer.
+Tavern are both built and a day threshold has passed. She uses the Trading Post to
+sell loot and buy supplies. She uses the Tavern for a hot meal. She is a customer.
 
 Her visits are periodic and initially brief. She is friendly in the way that people who are
 good at talking to strangers are friendly: warm on the surface, nothing underneath it yet.

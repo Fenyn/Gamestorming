@@ -130,23 +130,26 @@ public partial class SceneFlowSpike : SpikeBase
         Check("(2) travel spent exactly 30 game-minutes", gs.Clock.MinuteOfDay == minuteBefore + 30);
         Check("(2) party = full living roster (3 companions + the Veteran)",
             gs.Territory.SelectedCompanionIds.SequenceEqual(
-                new[] { SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId }));
+                new[] { SquadRoster.ElaraId, SquadRoster.TharrId, SquadRoster.FenwickId }));
 
         SceneRouter.Instance.GoToTerritory(ForestId);
         Check("(2) GoToTerritory → current scene is the forest",
-            await WaitUntil(() => tree.CurrentScene is ForestScene, 10));
+            await WaitUntil(() => tree.CurrentScene is TerritoryScene, 10));
         Check("(2) clock still unpaused in territory", !gs.Clock.IsPaused);
 
-        var forest = tree.CurrentScene as ForestScene;
+        var forest = tree.CurrentScene as TerritoryScene;
         var player = forest?.GetNodeOrNull<PlayerController>("Player");
         Check("(2) forest spawned the player", player != null);
         if (forest == null || player == null)
             return;
 
         var territory = Territories.Forest;
+        // Only NON-boss roamers spawn as wandering bodies; boss sites (IsBoss, e.g. the wolf lair) are
+        // placed by their own quest-conditional scene path, not the roaming pass.
+        int wanderers = territory.Roamers.Count(r => !r.IsBoss);
         int roamers = CountChildren<RoamingEnemy>(forest);
-        Check($"(2) roamer bodies spawned ({roamers}/{territory.Roamers.Count}, none defeated yet)",
-            roamers == territory.Roamers.Count);
+        Check($"(2) roamer bodies spawned ({roamers}/{wanderers}, none defeated yet)",
+            roamers == wanderers);
         // Marker views plus the scene-placed tree prefabs and any live forage spawns
         // (design/forage.md) — the marker contract is a floor now, not an exact count.
         int nodes = CountChildren<ResourceNodeView>(forest);
@@ -169,7 +172,7 @@ public partial class SceneFlowSpike : SpikeBase
         Check("(3) combat team-1 roster = ALL living members (4, marching order)",
             pending.Setup.Party.Select(p => p.Unit.Id).SequenceEqual(new[]
             {
-                SquadRoster.PlayerId, SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId,
+                SquadRoster.PlayerId, SquadRoster.ElaraId, SquadRoster.TharrId, SquadRoster.FenwickId,
             }));
         var enemies = pending.Enemies;
         Check($"(3) enemies staged from gob_1's table ({enemies.Count}x)", enemies.Count == 2);
@@ -219,7 +222,7 @@ public partial class SceneFlowSpike : SpikeBase
         {
             if (endButton != null && IsInstanceValid(endButton))
                 endButton.EmitSignal(BaseButton.SignalName.Pressed);
-            routedBack = await WaitUntil(() => tree.CurrentScene is ForestScene, 0.5);
+            routedBack = await WaitUntil(() => tree.CurrentScene is TerritoryScene, 0.5);
         }
         Check("(4) victory detected → assembler routed back to the forest", routedBack);
 
@@ -228,14 +231,14 @@ public partial class SceneFlowSpike : SpikeBase
         Check("(5) day clock unpaused again", !gs.Clock.IsPaused);
         Check("(5) still in the territory", gs.Territory.CurrentTerritoryId == ForestId);
 
-        forest = tree.CurrentScene as ForestScene;
+        forest = tree.CurrentScene as TerritoryScene;
         player = forest?.GetNodeOrNull<PlayerController>("Player");
         Check("(5) player respawned at the stored return position",
             player != null && player.GlobalPosition.DistanceTo(contactPos) < 1f);
         Check("(5) gob_1 marked defeated for the day", gs.Territory.IsRoamerDefeated(ForestId, "gob_1"));
         int roamersAfter = forest != null ? CountChildren<RoamingEnemy>(forest) : -1;
-        Check($"(5) defeated roamer's body absent ({roamersAfter}/{territory.Roamers.Count - 1})",
-            roamersAfter == territory.Roamers.Count - 1);
+        Check($"(5) defeated roamer's body absent ({roamersAfter}/{wanderers - 1})",
+            roamersAfter == wanderers - 1);
         Check("(5) pending encounter cleared", gs.Territory.PendingEncounter == null);
 
         // ── (6) Exit travel → outpost, sleep → next day ──

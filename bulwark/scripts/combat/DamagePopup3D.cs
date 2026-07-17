@@ -4,12 +4,17 @@ using PF2e.Data;
 namespace Bulwark.Combat;
 
 /// <summary>Floating combat text (damage / crit / MISS / heal) as a billboarded Label3D that rises,
-/// fades, and self-frees. Same Create semantics as the old 2D DamagePopup.</summary>
+/// fades, and self-frees. Static presentation props live in scenes/combat/damage_popup.tscn; Create /
+/// CreateHeal instance it and set the per-spawn text, size, and color.</summary>
 public partial class DamagePopup3D : Label3D
 {
+    // Preloaded blockout (billboard/outline/render-priority props authored in the scene).
+    private static readonly PackedScene Scene =
+        GD.Load<PackedScene>("res://scenes/combat/damage_popup.tscn");
+
     public static DamagePopup3D Create(int amount, DamageType? damageType, DegreeOfSuccess? degree)
     {
-        var popup = NewPopup();
+        var popup = Scene.Instantiate<DamagePopup3D>();
 
         bool isCrit = degree == DegreeOfSuccess.CriticalSuccess;
         bool isMiss = degree == DegreeOfSuccess.Failure;
@@ -41,22 +46,12 @@ public partial class DamagePopup3D : Label3D
 
     public static DamagePopup3D CreateHeal(int amount)
     {
-        var popup = NewPopup();
+        var popup = Scene.Instantiate<DamagePopup3D>();
         popup.Text = $"+{amount}";
         popup.FontSize = 52;
         popup.Modulate = new Color(0.25f, 1f, 0.35f);
         return popup;
     }
-
-    private static DamagePopup3D NewPopup() => new()
-    {
-        Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
-        PixelSize = 0.006f,
-        OutlineSize = 10,
-        OutlineModulate = Colors.Black,
-        NoDepthTest = true,
-        RenderPriority = 2,
-    };
 
     public override void _Ready()
     {

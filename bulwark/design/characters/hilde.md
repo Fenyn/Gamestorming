@@ -5,7 +5,7 @@
 - **Ancestry:** Dwarf
 - **Pronouns:** she/her
 - **Kind:** starts as townsfolk, becomes recruitable PC
-- **Associated building:** None (rents a room at the Kitchen / Tavern)
+- **Associated building:** None (rents a room at the Tavern)
 - **Deity:** None. Hilde grew up in the practical dwarven tradition of trusting what you
   can hold in your hands. She has not had time for faith since the bond happened.
 
@@ -104,7 +104,7 @@ investigators. She rents a room. She keeps her head down. She keeps the eidolon 
 
 ## Arrival
 
-Townsfolk, initially. Hilde is present at the outpost once the Kitchen reaches tier 3, the point
+Townsfolk, initially. Hilde is present at the outpost once the Tavern reaches tier 3, the point
 where boarding rooms exist for her to rent. She appears as a quiet boarder, not as a recruitable
 character. She is part of the tavern's scenery.
 

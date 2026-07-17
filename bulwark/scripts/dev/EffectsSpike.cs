@@ -246,6 +246,7 @@ public partial class EffectsSpike : SpikeBase
         gs.AddItem("herb", 25);
         gs.AddItem("wood", 200);
         for (int i = 0; i < 250; i++) gs.EarnGold(1);
+        gs.SetStoryFlag("josen_arrived"); // Infirmary is now character-first gated on Josen's arrival
         Check("(C) commission shipped infirmary", gs.CommissionBuilding("infirmary"));
         CompleteConstruction(gs);
         Check("(C) infirmary raised InfirmaryHealingBonus to 1", gs.InfirmaryHealingBonus == 1);
@@ -255,6 +256,7 @@ public partial class EffectsSpike : SpikeBase
         // → SmithyTier ceiling Base → tier2 (goblin_scrap25 + coal25 + beast_hide25 + 300g).
         gs.AddItem("goblin_fang", 30);
         gs.AddItem("rat_pelt", 25);
+        gs.SetStoryFlag("arkus_arrived"); // Smithy is now character-first gated on Arkus's arrival
         Check("(C) commission shipped smithy", gs.CommissionBuilding("smithy"));
         CompleteConstruction(gs);
         Check("(C) smithy tier1 → ceiling still Base", gs.SmithyTier == SmithyTier.Base);
@@ -438,7 +440,7 @@ public partial class EffectsSpike : SpikeBase
         GD.Print("-------------------- (F) Spell-access grant seam + CategoryUnlock membership --------------------");
 
         var squad = SquadRoster.BuildNew(2); // BuildScholar registers the preset spells into SpellDatabase
-        var scholar = squad.FindMember(SquadRoster.ScholarId);
+        var scholar = squad.FindMember(SquadRoster.FenwickId);
         Check("(F) scholar is a spellcaster", scholar?.Spellcasting != null);
         if (scholar?.Spellcasting == null)
             return;

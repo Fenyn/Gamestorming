@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Godot;
 
-namespace Bulwark.Cozy;
+namespace Bulwark.Settings;
 
 /// <summary>
 /// Player view preferences (cozy overworld zoom + combat camera distance). Plain static C# —

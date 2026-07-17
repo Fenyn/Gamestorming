@@ -45,7 +45,10 @@
       "WebFetch(domain:www.ubisoft.com)",
       "WebFetch(domain:ozea-studio.itch.io)",
       "WebFetch(domain:www.opendaoc.com)",
-      "WebFetch(domain:2e.aonprd.com)"
+      "WebFetch(domain:2e.aonprd.com)",
+      "WebFetch(domain:www.rpgsite.net)",
+      "WebFetch(domain:eludamos.org)",
+      "WebFetch(domain:www.neogaf.com)"
     ]
   },
   "enabledMcpjsonServers": [

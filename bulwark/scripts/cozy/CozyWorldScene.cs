@@ -7,6 +7,8 @@ using Bulwark.Territory;
 using Bulwark.UI;
 using Godot;
 
+using Bulwark.Dialogue;
+using Bulwark.Settings;
 namespace Bulwark.Cozy;
 
 /// <summary>
@@ -59,9 +61,27 @@ public abstract partial class CozyWorldScene : Node2D
     /// </summary>
     [Export] public string[] BridgeOverlayLayers { get; set; } = { "GroundDecor", "Props" };
 
+    /// <summary>Day-clock pause reason raised while any cozy modal is open (see
+    /// <see cref="Bulwark.Cozy.DayClock.SetPaused"/>). One key for all modals — only one is ever open
+    /// at a time (see <see cref="CloseOtherModals"/>) — kept independent of SceneRouter's scene-mode
+    /// pause so closing a panel never resumes a clock a mode transition or cutscene froze.</summary>
+    private const string ModalPauseSource = "cozy_modal";
+
     private readonly Dictionary<string, (int Native, int Baked)> _bakeReport = new();
     private ulong _lastRejectionToastMs;
     private Camera2D? _playerCamera;
+
+    /// <summary>Records every GameState subscription with its exact inverse so <see cref="_ExitTree"/>
+    /// can drop them all via one <see cref="EventSubscriptions.DrainAll"/> — no hand-mirrored teardown
+    /// to fall out of sync (base wiring and each subclass's <see cref="WireExtraStateEvents"/> both
+    /// register here).</summary>
+    private readonly EventSubscriptions _stateSubscriptions = new();
+
+    /// <summary>The spawned hotkey modals that share the <see cref="Bulwark.UI.TogglePanel"/> base, in
+    /// spawn order. The one-open-at-a-time close pass, the any-open check, and modal-freeze all loop
+    /// over this instead of naming each panel (DialogueBox / DaySummaryPanel are handled alongside — they
+    /// are modals but not TogglePanels).</summary>
+    private readonly List<TogglePanel> _modalPanels = new();
 
     /// <summary>Per blocking layer (plus the "Water" pass over Ground): painted cells that had
     /// tileset physics vs cells that got a baked runtime rect. Diagnostic — spikes and logs read
@@ -112,6 +132,10 @@ public abstract partial class CozyWorldScene : Node2D
     /// <summary>The instanced Esc pause menu (null when pause_menu.tscn is missing or not spawned).</summary>
     protected PauseMenu? PauseMenu { get; private set; }
 
+    /// <summary>The instanced gate party-select panel (null when party_select_panel.tscn is missing or
+    /// not spawned — only the outpost gate uses it). Opened programmatically at the gate, not by a hotkey.</summary>
+    protected PartySelectPanel? PartySelectPanel { get; private set; }
+
     /// <summary>The instanced dialogue box (null when dialogue_box.tscn is missing or not spawned).</summary>
     protected DialogueBox? DialogueBox { get; private set; }
 
@@ -157,34 +181,10 @@ public abstract partial class CozyWorldScene : Node2D
 
     public override void _ExitTree()
     {
-        // GameState is an autoload that outlives this scene, so drop our subscriptions on scene swap.
-        var gs = GameState.Instance;
-        if (gs == null)
-            return;
-
-        gs.MinuteChanged -= RefreshHudTime;
-        gs.InventoryChanged -= OnInventoryChanged;
-        gs.GameLoaded -= RefreshHudAll;
-        gs.SquadChanged -= RefreshSquadPanel;
-        gs.SquadChanged -= RefreshInventoryPanel;
-        gs.GoldChanged -= OnGoldChanged;
-        gs.SmithyChanged -= RefreshSmithyPanel;
-        gs.TradingPostChanged -= RefreshTradingPostPanel;
-        gs.RecipeCrafted -= OnRecipeCrafted;
-        gs.TreatWoundsResolved -= OnTreatWoundsResolved;
-        gs.SquadStatusNotice -= OnSquadStatusNotice;
-        gs.DayStarted -= TryShowDaySummary;
-        gs.BuildingChanged -= OnBuildingChanged;
-        gs.ConstructionCompleted -= OnConstructionCompleted;
-        gs.FriendshipChanged -= OnFriendshipChanged;
-        gs.GiftGiven -= OnGiftGiven;
-        gs.QuestStarted -= OnQuestChanged;
-        gs.QuestStarted -= OnQuestStartedBanner;
-        gs.QuestCompleted -= OnQuestChanged;
-        gs.QuestCompleted -= OnQuestCompletedBanner;
-        gs.QuestObjectiveProgressed -= OnQuestObjectiveChanged;
-        gs.Inventory.ItemAdded -= OnItemAddedForFeed;
-        UnwireExtraStateEvents(gs);
+        // GameState is an autoload that outlives this scene, so drop every subscription we wired
+        // (base + subclass) on scene swap. DrainAll runs the exact inverse of each Add against the
+        // same GameState instance we subscribed to — nothing left to hand-mirror.
+        _stateSubscriptions.DrainAll();
     }
 
     // ------------------------------------------------------------------ Instancing
@@ -250,6 +250,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         SquadPanel = scene.Instantiate<SquadPanel>();
         AddChild(SquadPanel);
+        _modalPanels.Add(SquadPanel);
         SquadPanel.TreatWoundsRequested += OnTreatWoundsRequested;
         SquadPanel.Toggled += OnSquadPanelToggled;
     }
@@ -265,6 +266,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         BuildPanel = scene.Instantiate<BuildPanel>();
         AddChild(BuildPanel);
+        _modalPanels.Add(BuildPanel);
         BuildPanel.Toggled += OnBuildPanelToggled;
         BuildPanel.CommissionRequested += OnCommissionRequested;
         BuildPanel.ContributeRequested += OnContributeRequested;
@@ -282,6 +284,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         InventoryPanel = scene.Instantiate<InventoryPanel>();
         AddChild(InventoryPanel);
+        _modalPanels.Add(InventoryPanel);
         InventoryPanel.Toggled += OnInventoryPanelToggled;
         InventoryPanel.DepositRequested += OnDepositRequested;
         InventoryPanel.WithdrawRequested += OnWithdrawRequested;
@@ -297,6 +300,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         SmithyPanel = scene.Instantiate<SmithyPanel>();
         AddChild(SmithyPanel);
+        _modalPanels.Add(SmithyPanel);
         SmithyPanel.Toggled += OnSmithyPanelToggled;
         SmithyPanel.ApplyRuneRequested += OnApplyRuneRequested;
         SmithyPanel.BuyWeaponRequested += OnBuyWeaponRequested;
@@ -312,6 +316,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         TradingPostPanel = scene.Instantiate<TradingPostPanel>();
         AddChild(TradingPostPanel);
+        _modalPanels.Add(TradingPostPanel);
         TradingPostPanel.Toggled += OnTradingPostPanelToggled;
         TradingPostPanel.BuyRequested += OnBuyGoodRequested;
         TradingPostPanel.SellRequested += OnSellRequested;
@@ -328,6 +333,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         FriendshipPanel = scene.Instantiate<FriendshipPanel>();
         AddChild(FriendshipPanel);
+        _modalPanels.Add(FriendshipPanel);
         FriendshipPanel.Toggled += OnFriendshipPanelToggled;
         FriendshipPanel.GiftRequested += OnGiftRequested;
     }
@@ -342,6 +348,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         QuestPanel = scene.Instantiate<QuestPanel>();
         AddChild(QuestPanel);
+        _modalPanels.Add(QuestPanel);
         QuestPanel.Toggled += OnQuestPanelToggled;
     }
 
@@ -357,7 +364,31 @@ public abstract partial class CozyWorldScene : Node2D
 
         CalendarPanel = scene.Instantiate<CalendarPanel>();
         AddChild(CalendarPanel);
+        _modalPanels.Add(CalendarPanel);
         CalendarPanel.Toggled += OnCalendarPanelToggled;
+    }
+
+    /// <summary>Instance the gate party-select panel (mirrors the other panel spawns). No hotkey — the
+    /// outpost gate opens it programmatically with a <see cref="Bulwark.Territory.PartySelectView"/>;
+    /// registered as a modal so the shared freeze/close-others machinery applies. The host subscribes
+    /// <see cref="PartySelectPanel.TravelConfirmed"/> to route the expedition.</summary>
+    protected void SpawnPartySelectPanel()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/ui/party_select_panel.tscn");
+        if (scene == null)
+            return;
+
+        PartySelectPanel = scene.Instantiate<PartySelectPanel>();
+        AddChild(PartySelectPanel);
+        _modalPanels.Add(PartySelectPanel);
+        PartySelectPanel.Toggled += OnPartySelectToggled;
+    }
+
+    private void OnPartySelectToggled(bool open)
+    {
+        SetModalFreeze(open);
+        if (open)
+            CloseOtherModals(PartySelectPanel);
     }
 
     /// <summary>Instance the Esc pause menu (Resume/Save/Options/Quit to Title). Available in every
@@ -370,6 +401,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         PauseMenu = scene.Instantiate<PauseMenu>();
         AddChild(PauseMenu);
+        _modalPanels.Add(PauseMenu);
         PauseMenu.Toggled += OnPauseMenuToggled;
         PauseMenu.SaveRequested += OnPauseSaveRequested;
         PauseMenu.QuitToTitleRequested += OnQuitToTitleRequested;
@@ -385,6 +417,7 @@ public abstract partial class CozyWorldScene : Node2D
 
         CraftingPanel = scene.Instantiate<CraftingPanel>();
         AddChild(CraftingPanel);
+        _modalPanels.Add(CraftingPanel);
         CraftingPanel.Toggled += OnCraftingPanelToggled;
         CraftingPanel.CraftRequested += OnCraftRequested;
     }
@@ -431,26 +464,28 @@ public abstract partial class CozyWorldScene : Node2D
     }
 
     /// <summary>
+    /// Play a talk-pool entry through the dialogue box. Flattens the entry via
+    /// <see cref="TalkPoolEntry.ToSteps"/> so its optional effects (e.g. latching a story flag) and
+    /// choices run through the same <see cref="DialogueRunner"/> path as sequences. Returns false if
+    /// the entry is null or produces no steps.
+    /// </summary>
+    protected bool PlayTalkEntry(TalkPoolEntry entry)
+    {
+        if (entry == null)
+            return false;
+        return PlayDialogueSteps(entry.ToSteps());
+    }
+
+    /// <summary>
     /// Play a list of <see cref="DialogueLine"/>s (from a talk pool) as simple sequential lines.
-    /// Converts them to DialogueStep format and plays them.
+    /// Thin wrapper over <see cref="PlayTalkEntry"/> for callers that only have loose lines and no
+    /// entry-level effects/choices.
     /// </summary>
     protected bool PlayTalkLines(List<DialogueLine> lines)
     {
         if (lines == null || lines.Count == 0)
             return false;
-
-        var steps = new List<DialogueStep>();
-        foreach (var line in lines)
-        {
-            steps.Add(new DialogueStep
-            {
-                Type = "line",
-                Speaker = line.Speaker,
-                Text = line.Text,
-                Emotion = line.Emotion ?? "neutral",
-            });
-        }
-        return PlayDialogueSteps(steps);
+        return PlayTalkEntry(new TalkPoolEntry { Lines = lines });
     }
 
     /// <summary>Instance the end-of-day summary modal and schedule a deferred consume for
@@ -678,38 +713,37 @@ public abstract partial class CozyWorldScene : Node2D
         if (gs == null)
             return;
 
-        gs.MinuteChanged += RefreshHudTime;
-        gs.InventoryChanged += OnInventoryChanged;
-        gs.GameLoaded += RefreshHudAll;
-        gs.SquadChanged += RefreshSquadPanel;
-        gs.SquadChanged += RefreshInventoryPanel; // deposit/withdraw shift Bulk/encumbrance
-        gs.GoldChanged += OnGoldChanged;
-        gs.SmithyChanged += RefreshSmithyPanel;
-        gs.TradingPostChanged += RefreshTradingPostPanel;
-        gs.RecipeCrafted += OnRecipeCrafted;
-        gs.TreatWoundsResolved += OnTreatWoundsResolved;
-        gs.SquadStatusNotice += OnSquadStatusNotice;
-        gs.DayStarted += TryShowDaySummary;
-        gs.BuildingChanged += OnBuildingChanged;
-        gs.ConstructionCompleted += OnConstructionCompleted;
-        gs.FriendshipChanged += OnFriendshipChanged;
-        gs.GiftGiven += OnGiftGiven;
-        gs.QuestStarted += OnQuestChanged;
-        gs.QuestStarted += OnQuestStartedBanner;
-        gs.QuestCompleted += OnQuestChanged;
-        gs.QuestCompleted += OnQuestCompletedBanner;
-        gs.QuestObjectiveProgressed += OnQuestObjectiveChanged;
-        gs.Inventory.ItemAdded += OnItemAddedForFeed;
-        WireExtraStateEvents(gs);
+        var subs = _stateSubscriptions;
+        subs.Add(() => gs.MinuteChanged += RefreshHudTime, () => gs.MinuteChanged -= RefreshHudTime);
+        subs.Add(() => gs.InventoryChanged += OnInventoryChanged, () => gs.InventoryChanged -= OnInventoryChanged);
+        subs.Add(() => gs.GameLoaded += RefreshHudAll, () => gs.GameLoaded -= RefreshHudAll);
+        subs.Add(() => gs.SquadChanged += RefreshSquadPanel, () => gs.SquadChanged -= RefreshSquadPanel);
+        // deposit/withdraw shift Bulk/encumbrance
+        subs.Add(() => gs.SquadChanged += RefreshInventoryPanel, () => gs.SquadChanged -= RefreshInventoryPanel);
+        subs.Add(() => gs.GoldChanged += OnGoldChanged, () => gs.GoldChanged -= OnGoldChanged);
+        subs.Add(() => gs.SmithyChanged += RefreshSmithyPanel, () => gs.SmithyChanged -= RefreshSmithyPanel);
+        subs.Add(() => gs.TradingPostChanged += RefreshTradingPostPanel, () => gs.TradingPostChanged -= RefreshTradingPostPanel);
+        subs.Add(() => gs.RecipeCrafted += OnRecipeCrafted, () => gs.RecipeCrafted -= OnRecipeCrafted);
+        subs.Add(() => gs.TreatWoundsResolved += OnTreatWoundsResolved, () => gs.TreatWoundsResolved -= OnTreatWoundsResolved);
+        subs.Add(() => gs.SquadStatusNotice += OnSquadStatusNotice, () => gs.SquadStatusNotice -= OnSquadStatusNotice);
+        subs.Add(() => gs.DayStarted += TryShowDaySummary, () => gs.DayStarted -= TryShowDaySummary);
+        subs.Add(() => gs.BuildingChanged += OnBuildingChanged, () => gs.BuildingChanged -= OnBuildingChanged);
+        subs.Add(() => gs.ConstructionCompleted += OnConstructionCompleted, () => gs.ConstructionCompleted -= OnConstructionCompleted);
+        subs.Add(() => gs.FriendshipChanged += OnFriendshipChanged, () => gs.FriendshipChanged -= OnFriendshipChanged);
+        subs.Add(() => gs.GiftGiven += OnGiftGiven, () => gs.GiftGiven -= OnGiftGiven);
+        subs.Add(() => gs.QuestStarted += OnQuestChanged, () => gs.QuestStarted -= OnQuestChanged);
+        subs.Add(() => gs.QuestStarted += OnQuestStartedBanner, () => gs.QuestStarted -= OnQuestStartedBanner);
+        subs.Add(() => gs.QuestCompleted += OnQuestChanged, () => gs.QuestCompleted -= OnQuestChanged);
+        subs.Add(() => gs.QuestCompleted += OnQuestCompletedBanner, () => gs.QuestCompleted -= OnQuestCompletedBanner);
+        subs.Add(() => gs.QuestObjectiveProgressed += OnQuestObjectiveChanged, () => gs.QuestObjectiveProgressed -= OnQuestObjectiveChanged);
+        subs.Add(() => gs.Inventory.ItemAdded += OnItemAddedForFeed, () => gs.Inventory.ItemAdded -= OnItemAddedForFeed);
+        WireExtraStateEvents(gs, subs);
     }
 
-    /// <summary>Scene-specific subscriptions (paired with <see cref="UnwireExtraStateEvents"/>).</summary>
-    protected virtual void WireExtraStateEvents(GameState gs)
-    {
-    }
-
-    /// <summary>Must drop exactly what <see cref="WireExtraStateEvents"/> subscribed.</summary>
-    protected virtual void UnwireExtraStateEvents(GameState gs)
+    /// <summary>Scene-specific GameState subscriptions. Register each through <paramref name="subs"/>
+    /// (<see cref="EventSubscriptions.Add"/> with the paired subscribe/unsubscribe) so _ExitTree drops
+    /// them automatically — no separate teardown override to keep in sync.</summary>
+    protected virtual void WireExtraStateEvents(GameState gs, EventSubscriptions subs)
     {
     }
 
@@ -774,16 +808,7 @@ public abstract partial class CozyWorldScene : Node2D
 
     private void OnSquadPanelToggled(bool open)
     {
-        // Freeze the world while the panel is modal: no avatar input/motion, no clock ticks
-        // (same seam SceneRouter uses for combat — Clock.IsPaused). During a hand-off the player
-        // is already deliberately frozen — closing the panel must not walk them mid-scene-swap.
-        if (Player != null && !IsTransitioning)
-            Player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
-
-        var clock = GameState.Instance?.Clock;
-        if (clock != null)
-            clock.IsPaused = open;
-
+        SetModalFreeze(open);
         if (open)
         {
             CloseOtherModals(SquadPanel); // the economy modals never share the screen
@@ -795,16 +820,19 @@ public abstract partial class CozyWorldScene : Node2D
 
     private void OnBuildPanelToggled(bool open)
     {
-        // Same freeze seam as the squad panel: no avatar input, no clock ticks while modal.
-        if (Player != null && !IsTransitioning)
-            Player.ProcessMode = open ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
-
-        var clock = GameState.Instance?.Clock;
-        if (clock != null)
-            clock.IsPaused = open;
-
+        SetModalFreeze(open);
         if (open)
         {
+            // Tutorial (design/tutorial.md Step 6 — "Flag set: planning_table_shown"): opening the
+            // planning table for the first time IS that beat — it completes The Planning Table quest
+            // and reveals the first commission, and unlocks Elara's/Fenwick's building-hint talk lines.
+            // Gated behind first_rest so it can only fire once the Day-2 table reveal is actually due;
+            // an early hotkey-B press before the tutorial reaches it does nothing. SetStoryFlag is
+            // idempotent, so a returning player re-opening the panel is a clean no-op.
+            var gs = GameState.Instance;
+            if (gs != null && gs.HasStoryFlag("first_rest"))
+                gs.SetStoryFlag("planning_table_shown");
+
             CloseOtherModals(BuildPanel); // the economy modals never share the screen
             RefreshBuildPanel();
         }
@@ -843,40 +871,35 @@ public abstract partial class CozyWorldScene : Node2D
     // ------------------------------------------------------------------ Economy panels (inventory/smithy/crafting)
 
     /// <summary>Close every hotkey modal except <paramref name="keep"/> so only one is ever open
-    /// (each Close is a no-op when already closed).</summary>
+    /// (each Close is a no-op when already closed). DialogueBox is a modal too (not a TogglePanel);
+    /// DaySummaryPanel is deliberately NOT force-closed here — the day-summary flow
+    /// (<see cref="TryShowDaySummary"/>) sequences it against the squad panel itself.</summary>
     private void CloseOtherModals(Node? keep)
     {
-        if (SquadPanel != null && SquadPanel != keep) SquadPanel.Close();
-        if (BuildPanel != null && BuildPanel != keep) BuildPanel.Close();
-        if (InventoryPanel != null && InventoryPanel != keep) InventoryPanel.Close();
-        if (SmithyPanel != null && SmithyPanel != keep) SmithyPanel.Close();
-        if (CraftingPanel != null && CraftingPanel != keep) CraftingPanel.Close();
-        if (TradingPostPanel != null && TradingPostPanel != keep) TradingPostPanel.Close();
-        if (FriendshipPanel != null && FriendshipPanel != keep) FriendshipPanel.Close();
-        if (QuestPanel != null && QuestPanel != keep) QuestPanel.Close();
-        if (CalendarPanel != null && CalendarPanel != keep) CalendarPanel.Close();
-        if (DialogueBox != null && DialogueBox != keep) DialogueBox.Close();
-        if (PauseMenu != null && PauseMenu != keep) PauseMenu.Close();
+        foreach (TogglePanel panel in _modalPanels)
+            if (panel != keep)
+                panel.Close();
+
+        if (DialogueBox != null && DialogueBox != keep)
+            DialogueBox.Close();
     }
 
     /// <summary>True while any modal panel — including the pause menu and the one-shot day summary
     /// — is showing. The Esc handler below uses this so it never opens the pause menu over another
     /// modal (those panels already consume Esc to close themselves; this is the belt-and-suspenders
     /// check on top of that input-ordering guarantee, and the one the AnyModalOpen-logic spike
-    /// exercises directly).</summary>
-    protected bool AnyModalOpen =>
-        (SquadPanel?.Visible ?? false)
-        || (BuildPanel?.Visible ?? false)
-        || (InventoryPanel?.Visible ?? false)
-        || (SmithyPanel?.Visible ?? false)
-        || (CraftingPanel?.Visible ?? false)
-        || (TradingPostPanel?.Visible ?? false)
-        || (FriendshipPanel?.Visible ?? false)
-        || (QuestPanel?.Visible ?? false)
-        || (CalendarPanel?.Visible ?? false)
-        || (DialogueBox?.Visible ?? false)
-        || (DaySummaryPanel?.Visible ?? false)
-        || (PauseMenu?.Visible ?? false);
+    /// exercises directly). DialogueBox and DaySummaryPanel are modals but not TogglePanels, so they
+    /// are checked alongside the registry loop.</summary>
+    protected bool AnyModalOpen
+    {
+        get
+        {
+            foreach (TogglePanel panel in _modalPanels)
+                if (panel.Visible)
+                    return true;
+            return (DialogueBox?.Visible ?? false) || (DaySummaryPanel?.Visible ?? false);
+        }
+    }
 
     /// <summary>
     /// Esc-to-open the pause menu. Only fires when no modal is open and no hand-off is mid-flight —
@@ -918,9 +941,7 @@ public abstract partial class CozyWorldScene : Node2D
     {
         if (Player != null && !IsTransitioning)
             Player.ProcessMode = frozen ? ProcessModeEnum.Disabled : ProcessModeEnum.Inherit;
-        var clock = GameState.Instance?.Clock;
-        if (clock != null)
-            clock.IsPaused = frozen;
+        GameState.Instance?.Clock?.SetPaused(ModalPauseSource, frozen);
     }
 
     private void OnInventoryPanelToggled(bool open)
@@ -1033,7 +1054,7 @@ public abstract partial class CozyWorldScene : Node2D
     /// <summary>Quest completed: flash the "Quest Complete" banner with the quest's title.</summary>
     private void OnQuestCompletedBanner(string questId) => Hud?.ShowQuestBanner("Quest Complete", TitleOf(questId));
 
-    private static string TitleOf(string questId) => Quests.TryGet(questId, out var def) ? def.Title : questId;
+    private static string TitleOf(string questId) => Bulwark.Data.Quests.TryGet(questId, out var def) ? def.Title : questId;
 
     /// <summary>An inventory gain flowed through the party-level choke point (farm harvest, territory
     /// node yield, combat loot) — never fires during save-restore or the starter-inventory seed (see
@@ -1165,27 +1186,18 @@ public abstract partial class CozyWorldScene : Node2D
             return;
 
         // The squad panel yields the screen. Its Toggled(false) unfreezes the world; the summary
-        // re-freezes right below, so the net state is "frozen for the summary".
+        // re-freezes right below, so the net state is "frozen for the summary". The IsTransitioning
+        // early-return above means SetModalFreeze applies the player freeze unconditionally here.
         SquadPanel?.Close();
 
-        if (Player != null)
-            Player.ProcessMode = ProcessModeEnum.Disabled;
-        var clock = gs!.Clock;
-        if (clock != null)
-            clock.IsPaused = true;
-
+        SetModalFreeze(true);
         DaySummaryPanel.Open(summary);
     }
 
     private void OnDaySummaryClosed()
     {
-        // Mirror OnSquadPanelToggled(false): never unfreeze a deliberately frozen hand-off.
-        if (Player != null && !IsTransitioning)
-            Player.ProcessMode = ProcessModeEnum.Inherit;
-
-        var clock = GameState.Instance?.Clock;
-        if (clock != null)
-            clock.IsPaused = false;
+        // Same modal-freeze release as the panels: never unfreeze a deliberately frozen hand-off.
+        SetModalFreeze(false);
     }
 
     protected void RefreshSquadPanel()

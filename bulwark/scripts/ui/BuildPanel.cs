@@ -14,7 +14,7 @@ namespace Bulwark.UI;
 /// The host reacts to <see cref="Toggled"/> to freeze the player + day clock while open (the
 /// squad-panel precedent). Toggled by the "toggle_build_panel" input action (B); Esc closes.
 /// </summary>
-public partial class BuildPanel : CanvasLayer
+public partial class BuildPanel : TogglePanel
 {
     /// <summary>Intent: commission a building (pay its construction bundle).</summary>
     public event Action<string>? CommissionRequested;
@@ -25,11 +25,10 @@ public partial class BuildPanel : CanvasLayer
     /// <summary>Intent: advance a building to its next tier.</summary>
     public event Action<string>? UpgradeRequested;
 
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
-
     private VBoxContainer _list = null!;
     private Label _busyStatus = null!;
+
+    public BuildPanel() => ToggleAction = "toggle_build_panel";
 
     public override void _Ready()
     {
@@ -37,23 +36,6 @@ public partial class BuildPanel : CanvasLayer
         _busyStatus = GetNode<Label>("%BusyStatus");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_build_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>Render a fresh planning-table view — rebuilds every building row from the view-model.</summary>
     public void Render(PlanningTableView view)
@@ -197,13 +179,5 @@ public partial class BuildPanel : CanvasLayer
         foreach (var e in effects)
             parts.Add(e.Text);
         return string.Join(", ", parts);
-    }
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 }

@@ -12,15 +12,12 @@ namespace Bulwark.UI;
 /// no engine types (per CLAUDE.md). The host scene reacts to <see cref="Toggled"/> to freeze the
 /// avatar and the day clock while the panel is modal; Esc or Cancel closes.
 /// </summary>
-public partial class PartySelectPanel : CanvasLayer
+public partial class PartySelectPanel : TogglePanel
 {
     private const int CompanionSlots = 3;
 
     /// <summary>Intent: the player confirmed travel with these companion ids (0..3).</summary>
     public event Action<IReadOnlyList<string>>? TravelConfirmed;
-
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
 
     private Label _title = null!;
     private Label _leaderLabel = null!;
@@ -49,20 +46,16 @@ public partial class PartySelectPanel : CanvasLayer
         Visible = false;
     }
 
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Open the panel with a fresh view. Selection starts empty every time.</summary>
+    /// <summary>Open the panel with a fresh view. Every joinable companion starts SELECTED — the
+    /// default is the full party (design/tutorial_quests.md: "take all four on expedition"); the player
+    /// deselects anyone they want to leave behind.</summary>
     public void Open(PartySelectView view)
     {
         _view = view;
         _selected.Clear();
+        foreach (var c in view.Companions)
+            if (c.CanJoin)
+                _selected.Add(c.Id);
         Render();
         SetOpen(true);
     }
@@ -117,13 +110,5 @@ public partial class PartySelectPanel : CanvasLayer
 
         SetOpen(false);
         TravelConfirmed?.Invoke(ids);
-    }
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 }

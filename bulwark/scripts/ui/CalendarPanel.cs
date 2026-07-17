@@ -1,4 +1,3 @@
-using System;
 using Bulwark.Cozy;
 using Godot;
 
@@ -12,12 +11,12 @@ namespace Bulwark.UI;
 /// as QuestPanel/BuildPanel — toggled by the "toggle_calendar_panel" hotkey (N) or by the host
 /// forwarding the HUD's clock-click (<see cref="CozyHud.ClockClicked"/>); Esc closes.
 /// </summary>
-public partial class CalendarPanel : CanvasLayer
+public partial class CalendarPanel : TogglePanel
 {
-    public event Action<bool>? Toggled;
-
     private Label _titleLabel = null!;
     private GridContainer _grid = null!;
+
+    public CalendarPanel() => ToggleAction = "toggle_calendar_panel";
 
     public override void _Ready()
     {
@@ -26,46 +25,12 @@ public partial class CalendarPanel : CanvasLayer
         Visible = false;
     }
 
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_calendar_panel"))
-        {
-            Toggle();
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            Close();
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    public void Open()
-    {
-        if (Visible)
-            return;
-        Visible = true;
-        Toggled?.Invoke(true);
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close()
-    {
-        if (!Visible)
-            return;
-        Visible = false;
-        Toggled?.Invoke(false);
-    }
+    /// <summary>Open the panel (no-op if already open).</summary>
+    public void Open() => SetOpen(true);
 
     /// <summary>Flip open/closed — the seam the HUD's clock-click drives (as opposed to the panel's
     /// own hotkey, which always means "open the way I want it").</summary>
-    public void Toggle()
-    {
-        if (Visible)
-            Close();
-        else
-            Open();
-    }
+    public void Toggle() => SetOpen(!Visible);
 
     /// <summary>Render a fresh calendar view — rebuilds all 28 day cells from the view-model.</summary>
     public void Render(CalendarView view)

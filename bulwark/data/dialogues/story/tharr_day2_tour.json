@@ -1,0 +1,18 @@
+{
+  "id": "tharr_day2_tour",
+  "type": "Sequence",
+  "once": true,
+  "steps": [
+    { "type": "line", "speaker": "tharr", "text": "Now that we have a roof that holds, let me show you how we build the rest." },
+    { "type": "line", "speaker": "tharr", "text": "Look about you." },
+    { "type": "camera", "marker": "Farmhouse", "duration": 1.0 },
+    { "type": "line", "speaker": "tharr", "text": "The farmhouse frame, west." },
+    { "type": "camera", "marker": "Tavern", "duration": 1.0 },
+    { "type": "line", "speaker": "tharr", "text": "The hearth Fenwick has claimed." },
+    { "type": "camera", "marker": "TradingPost", "duration": 1.0 },
+    { "type": "line", "speaker": "tharr", "text": "And the storefront in the east wall, the one the merchant keeps eyeing. Its timber comes from deeper in the forest than we can yet walk. Not safe. Not yet." },
+    { "type": "camera", "marker": "return", "duration": 0.8 },
+    { "type": "line", "speaker": "tharr", "text": "This is the planning table. Every building the outpost needs starts here. You bring the materials, I handle the construction." },
+    { "type": "line", "speaker": "tharr", "text": "Two we can raise now — the farmhouse and the tavern. The storefront waits. First things first." }
+  ]
+}

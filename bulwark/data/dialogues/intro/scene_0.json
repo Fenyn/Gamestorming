@@ -16,7 +16,7 @@
     { "type": "line", "speaker": "elara", "text": "I would not take that fork, were I in your position." },
     { "type": "line", "speaker": "player", "text": "Why not?" },
     { "type": "line", "speaker": "elara", "text": "The gorge bridge washed out two winters past. No one has troubled to rebuild it. You shall discover that for yourselves if you continue — though ’tis a long way down to learn a short lesson." },
-    { "type": "line", "speaker": "fenwick", "text": "Well, its nice to meet such a well-informed stranger on an empty road." },
+    { "type": "line", "speaker": "fenwick", "text": "Well, it's nice to meet such a well-informed stranger on an empty road." },
     { "type": "line", "speaker": "elara", "text": "I have traded these routes for a good many years. Long enough to know which bridges still stand. Where are you bound?" },
     { "type": "line", "speaker": "player", "text": "A frontier garrison. Past the Thornwood, near the forest’s edge." },
     { "type": "line", "speaker": "elara", "text": "The old outpost? There are not many who head out that way.", "emotion": "surprised" },

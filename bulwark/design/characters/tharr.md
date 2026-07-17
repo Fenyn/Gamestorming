@@ -26,11 +26,13 @@ threatens the walls he built.
 
 ## Background
 
-Tharr is a dwarven stonemason and cleric of Valdûr who was stationed alone at this crumbling
-frontier outpost. For months he struggled to hold it together on his own, patching walls,
-bracing roofs, and trusting the Stonefather to keep the foundations sound. His warhammer has
-seen more masonry than combat, though it serves well enough for both. When the player arrives
-with reinforcements, the outpost finally has a real chance.
+Tharr is a dwarven stonemason and cleric of Valdûr who was stationed at this frontier outpost
+with the garrison the crown once kept here. When the crown pulled the garrison back some eight
+years ago, he refused to withdraw with it — the walls were his work, and he would not leave them
+to the forest. He has held the outpost alone ever since, patching walls, bracing roofs, and
+trusting the Stonefather to keep the foundations sound through years no one else was there to
+see. His warhammer has seen more masonry than combat, though it serves well enough for both.
+When the player arrives with reinforcements, the outpost finally has a real chance.
 
 ## Arrival
 

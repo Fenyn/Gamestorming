@@ -37,6 +37,24 @@ public sealed class TerritoryRoamer
 
     /// <summary>Weighted encounter entries this roamer rolls on contact.</summary>
     public required IReadOnlyList<WeightedEncounter> Encounters { get; init; }
+
+    /// <summary>
+    /// Story flag latched when this roamer's encounter is WON (design/tutorial_quests.md). Null = an
+    /// ordinary roamer that flips no flag. Used to wire designated encounters to the quest arc: the
+    /// deeper "first expedition" encounter (<c>first_expedition_cleared</c>) and the wolf-lair boss
+    /// (<c>dire_wolf_slain</c>). GameState sets it on victory through the normal one-way-latch path,
+    /// which drives quest completion + villager arrivals.
+    /// </summary>
+    public string? ClearsStoryFlag { get; init; }
+
+    /// <summary>
+    /// True for a fixed BOSS site rather than a wandering roamer: it is NOT spawned by the territory
+    /// scene's roaming-enemy pass. A dedicated quest-conditional lair scene places and governs it
+    /// (appears when its quest starts, despawns for good once its <see cref="ClearsStoryFlag"/> is
+    /// latched). The encounter/flag data still lives here so BeginEncounter resolves it like any
+    /// other roamer.
+    /// </summary>
+    public bool IsBoss { get; init; }
 }
 
 /// <summary>
@@ -50,6 +68,15 @@ public sealed class TerritoryDefinition
     public required string ScenePath { get; init; }
     public required IReadOnlyList<TerritoryNode> Nodes { get; init; }
     public required IReadOnlyList<TerritoryRoamer> Roamers { get; init; }
+
+    /// <summary>
+    /// Optional story-flag gate on travelling here (design/tutorial_quests.md). Null = ungated (or
+    /// opened only by a building's <see cref="BuildingEffectType.BiomeUnlock"/> effect).
+    /// <see cref="Bulwark.Autoload.GameState.IsBiomeUnlocked"/> returns true when a BiomeUnlock effect
+    /// OR this flag (resolved through HasFlagForConditions) is satisfied. The Elderwood sets
+    /// <c>dire_wolf_slain</c> — the wolf guards the passage.
+    /// </summary>
+    public string? UnlockFlagId { get; init; }
 
     /// <summary>
     /// Weighted daily forage spawns (design/forage.md). Empty = the territory seeds no forage.
@@ -150,6 +177,55 @@ public static class Territories
                     new WeightedEncounter { EncounterId = "rat_pack", Weight = 1 },
                 },
             },
+            // Brigands (deserter_badge common; see DropTables.BrigandDrops): the Command Post tier-2
+            // bundle (design/tutorial_quests.md quest 10: goblin_fang 30, deserter_badge 20, wood 15)
+            // is priced "entirely from Verdant Fringe fights" per design/economy/pacing.md, affordable
+            // "alongside the Chapel and Smithy from the same first weeks of forest fighting" — so these
+            // are ordinary roamers with no story-flag gate (unlike wolf_lair below), farmable from day
+            // one same as the goblin/rat markers above. Two markers mixing the family's two common
+            // encounters (outrider_ambush: 2 Deserters, deserter_patrol: 3), same weighted-mix pattern
+            // as gob_2/gob_3; the elite (brigand_elite_outrider) and boss (brigand_boss_warband_captain)
+            // are left unwired here, matching how the Elderwood/Sunken Reach keep bosses as set-pieces
+            // rather than roamer picks, and how goblin/rat elites above are likewise not yet placed.
+            new TerritoryRoamer
+            {
+                RoamerId = "brigand_1",
+                Encounters = new[]
+                {
+                    new WeightedEncounter { EncounterId = "outrider_ambush", Weight = 2 },
+                    new WeightedEncounter { EncounterId = "deserter_patrol", Weight = 1 },
+                },
+            },
+            new TerritoryRoamer
+            {
+                RoamerId = "brigand_2",
+                Encounters = new[]
+                {
+                    new WeightedEncounter { EncounterId = "deserter_patrol", Weight = 2 },
+                    new WeightedEncounter { EncounterId = "outrider_ambush", Weight = 1 },
+                },
+            },
+            // The First Expedition (design/tutorial_quests.md quest 5): the designated expedition-zone
+            // encounter, deeper in the Fringe and a step past the gate-side pairs — an ordinary but
+            // heavier goblin patrol (the wolf is absent; the dread is set dressing). Winning it latches
+            // first_expedition_cleared, which completes the quest AND triggers Arkus's arrival.
+            // Single-entry so the encounter is deterministic (mirrors gob_1's spike-relied contract).
+            new TerritoryRoamer
+            {
+                RoamerId = "expedition_1",
+                Encounters = new[] { new WeightedEncounter { EncounterId = "goblin_patrol" } },
+                ClearsStoryFlag = "first_expedition_cleared",
+            },
+            // The Wolf of the Fringe (design/tutorial_quests.md quest 9): the one-shot boss site. Not
+            // spawned as a wanderer (IsBoss) — the wolf-lair scene places it when the quest starts and
+            // despawns it for good once dire_wolf_slain latches on victory.
+            new TerritoryRoamer
+            {
+                RoamerId = "wolf_lair",
+                Encounters = new[] { new WeightedEncounter { EncounterId = "dire_wolf" } },
+                ClearsStoryFlag = "dire_wolf_slain",
+                IsBoss = true,
+            },
         },
     };
 
@@ -168,6 +244,9 @@ public static class Territories
         Id = "elderwood",
         DisplayName = "the Elderwood",
         ScenePath = "res://scenes/territory/elderwood.tscn",
+        // The dire wolf guards the Elderwood passage: slaying it opens the biome (replaces the old
+        // Command Post tier-2 BiomeUnlock).
+        UnlockFlagId = "dire_wolf_slain",
         Nodes = new[]
         {
             new TerritoryNode { NodeId = "hardwood_1", ResourceId = "hardwood_stand" },

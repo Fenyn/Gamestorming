@@ -1,0 +1,19 @@
+{
+  "id": "arkus_found",
+  "type": "Sequence",
+  "once": true,
+  "steps": [
+    { "type": "fade", "direction": "in", "duration": 0.6 },
+    { "type": "line", "speaker": "elara", "text": "Hold. There — off the road." },
+    { "type": "line", "speaker": "", "text": "Something large is slumped against the roots at the roadside. An orc, armor scored and broken, not moving." },
+    { "type": "line", "speaker": "fenwick", "text": "Stars above. Still breathing. Only just." },
+    { "type": "line", "speaker": "player", "text": "Same wounds the wolf gave us. Look at the spacing. It had them before it had us." },
+    { "type": "line", "speaker": "tharr", "text": "(kneeling, testing the orc's weight)\nThen it is a debt." },
+    { "type": "line", "speaker": "tharr", "text": "We carry them." },
+    { "type": "line", "speaker": "elara", "text": "They are twice your size, mason." },
+    { "type": "line", "speaker": "tharr", "text": "Stone is heavier. Take the other arm." },
+    { "type": "fade", "direction": "out", "duration": 1.0 },
+    { "type": "wait", "seconds": 0.8 },
+    { "type": "fade", "direction": "in", "duration": 0.8 }
+  ]
+}

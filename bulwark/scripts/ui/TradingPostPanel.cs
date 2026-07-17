@@ -13,7 +13,7 @@ namespace Bulwark.UI;
 /// their own display names in the view-model, so no data lookups happen here.
 /// Toggled by the "toggle_trading_post_panel" input action (T); Esc closes.
 /// </summary>
-public partial class TradingPostPanel : CanvasLayer
+public partial class TradingPostPanel : TogglePanel
 {
     /// <summary>Intent: buy <c>count</c> units of a catalog good (itemId, count).</summary>
     public event Action<string, int>? BuyRequested;
@@ -21,11 +21,10 @@ public partial class TradingPostPanel : CanvasLayer
     /// <summary>Intent: sell a quantity of a carried item for gold (itemId, qty).</summary>
     public event Action<string, int>? SellRequested;
 
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
-
     private VBoxContainer _body = null!;
     private Label _gold = null!;
+
+    public TradingPostPanel() => ToggleAction = "toggle_trading_post_panel";
 
     public override void _Ready()
     {
@@ -33,23 +32,6 @@ public partial class TradingPostPanel : CanvasLayer
         _gold = GetNode<Label>("%GoldLabel");
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_trading_post_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host unfreezes).</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>Render a fresh Trading Post view — rebuilds the buy list + sell shelf.</summary>
     public void Render(TradingPostView view)
@@ -160,15 +142,5 @@ public partial class TradingPostPanel : CanvasLayer
         sellAll.Pressed += () => SellRequested?.Invoke(id, qty);
         row.AddChild(sellAll);
         return row;
-    }
-
-    // ------------------------------------------------------------------ helpers
-
-    private void SetOpen(bool open)
-    {
-        if (Visible == open)
-            return;
-        Visible = open;
-        Toggled?.Invoke(open);
     }
 }

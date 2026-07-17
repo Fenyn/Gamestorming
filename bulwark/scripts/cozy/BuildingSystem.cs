@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Bulwark.Data;
 
+using Bulwark.Save;
 namespace Bulwark.Cozy;
 
 /// <summary>
@@ -27,6 +28,14 @@ namespace Bulwark.Cozy;
 /// Every successful mutation raises <see cref="Changed"/> with the building id (GameState re-exposes
 /// it as BuildingChanged). Effects the tiers carry are declarative data only this phase — nothing
 /// here consumes them.
+///
+/// PLAN INVARIANT: a bundle's lines are never validated independently. <see cref="CanCommission"/> and
+/// <see cref="Commission"/> both funnel through <see cref="BuildConsumptionPlan"/>, which aggregates a
+/// bundle's requirements by item id BEFORE checking affordability — so a bundle that (unexpectedly)
+/// names the same item on two lines is validated and consumed as one combined requirement, not two
+/// independently-satisfiable checks that could jointly overdraw the party's holdings. The same
+/// aggregate-don't-check-independently rule applies to the UPGRADE bundle's have-vs-need gate (see
+/// <see cref="AggregateBundle"/>, used by <see cref="CanUpgrade"/> and <see cref="Contribute"/>).
 ///
 /// Gold is a live-read dependency, not a direct <c>Wallet</c> reference (kept out of Bulwark.Cozy's
 /// currency-owning type so this class stays a pure accounting system, same shape as
@@ -63,6 +72,7 @@ public sealed class BuildingSystem
     private readonly Inventory _inventory;
     private readonly Func<int> _goldBalance;
     private readonly Func<int, bool> _trySpendGold;
+    private readonly Func<string, bool> _flagSatisfied;
     private readonly Dictionary<string, BuildingDefinition> _catalog;
     private readonly Dictionary<string, State> _states = new();
 
@@ -85,12 +95,17 @@ public sealed class BuildingSystem
     /// <param name="catalog">The building set this instance operates over. Null → the shipped
     /// <see cref="Buildings.All"/> registry (every production caller). A spike/test may pass its own
     /// definitions (e.g. one with a non-zero GoldCost) without touching the shared registry.</param>
+    /// <param name="flagSatisfied">Resolver for a definition's <see cref="BuildingDefinition.RequiredFlagId"/>
+    /// commissionability gate (GameState.HasFlagForConditions in production). Null → every gate is
+    /// treated as satisfied, so gating is disabled and behaviour is byte-identical to the pre-gate build
+    /// (the wallet-delegate precedent) — a bare test/UI BuildingSystem still offers every building.</param>
     public BuildingSystem(Inventory inventory, Func<int>? goldBalance = null, Func<int, bool>? trySpendGold = null,
-        IEnumerable<BuildingDefinition>? catalog = null)
+        IEnumerable<BuildingDefinition>? catalog = null, Func<string, bool>? flagSatisfied = null)
     {
         _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _goldBalance = goldBalance ?? (static () => 0);
         _trySpendGold = trySpendGold ?? (static _ => false);
+        _flagSatisfied = flagSatisfied ?? (static _ => true);
         _catalog = new Dictionary<string, BuildingDefinition>();
         foreach (var def in catalog ?? Buildings.All)
             _catalog[def.Id] = def;
@@ -162,14 +177,13 @@ public sealed class BuildingSystem
     {
         if (!_catalog.TryGetValue(id, out var def) || _states[id].Commissioned)
             return false;
+        if (IsGated(def))
+            return false;
         if (AnyUnderConstruction())
             return false;
         if (!HasGold(def.GoldCost))
             return false;
-        foreach (var r in def.ConstructionBundle)
-            if (!_inventory.Has(r.ItemId, r.Quantity))
-                return false;
-        return true;
+        return BuildConsumptionPlan(def.ConstructionBundle, out _);
     }
 
     /// <summary>True when the next-tier upgrade bundle has been fully accumulated AND that tier's gold
@@ -188,10 +202,10 @@ public sealed class BuildingSystem
             return false;
         if (!HasGold(next.GoldCost))
             return false;
-        foreach (var r in next.UpgradeBundle)
+        foreach (var (itemId, need) in AggregateBundle(next.UpgradeBundle))
         {
-            int have = s.Contributions.TryGetValue(r.ItemId, out int n) ? n : 0;
-            if (have < r.Quantity)
+            int have = s.Contributions.TryGetValue(itemId, out int n) ? n : 0;
+            if (have < need)
                 return false;
         }
         return true;
@@ -201,8 +215,8 @@ public sealed class BuildingSystem
 
     /// <summary>
     /// Commission a building: validate the construction bundle AND gold cost are fully affordable
-    /// BEFORE touching either, then spend the gold and consume the bundle from the party inventory,
-    /// and mark the building Built at tier 1. Rejects cleanly (false, nothing consumed) when the id is
+    /// BEFORE touching either, then consume the bundle from the party inventory, spend the gold, and
+    /// mark the building Built at tier 1. Rejects cleanly (false, nothing consumed) when the id is
     /// unknown, the building is already commissioned, or the bundle/gold is unaffordable.
     /// </summary>
     public bool Commission(string id)
@@ -211,10 +225,37 @@ public sealed class BuildingSystem
             return false;
 
         var def = _catalog[id];
-        // Validated affordable above, so the spend and each removal succeed.
+
+        // CanCommission (above) just validated an aggregated consumption plan against these exact,
+        // still-unmutated holdings. BuildConsumptionPlan is a pure read of the bundle + inventory —
+        // nothing mutates the inventory between that call and this one — so re-deriving the plan here
+        // reproduces the SAME result CanCommission approved; it cannot diverge into a different total.
+        if (!BuildConsumptionPlan(def.ConstructionBundle, out var plan))
+            return false; // unreachable — CanCommission above just proved this succeeds against this state
+
+        // Consume the bundle BEFORE spending gold: RemoveItem failure can be undone (AddItem the units
+        // back), but a gold spend has no refund path here, so ordering it last means the "impossible"
+        // belt-and-braces failure below can still return false having spent NEITHER resource — the
+        // rejection stays clean even in a path that should never execute.
+        var removed = new List<(string ItemId, int Quantity)>(plan.Count);
+        foreach (var line in plan)
+        {
+            if (!_inventory.RemoveItem(line.ItemId, line.Quantity))
+            {
+                // Unreachable in practice: BuildConsumptionPlan validated the FULL aggregated quantity
+                // for every distinct item id against these holdings immediately above, and nothing else
+                // touches the inventory in between (synchronous, single-threaded). Belt-and-braces
+                // anyway, so a commission never silently under-consumes: undo whatever this loop already
+                // removed and abort WITHOUT commissioning or spending gold.
+                foreach (var undo in removed)
+                    _inventory.AddItem(undo.ItemId, undo.Quantity);
+                return false;
+            }
+            removed.Add(line);
+        }
+
+        // Validated affordable above, so the spend succeeds.
         SpendGold(def.GoldCost);
-        foreach (var r in def.ConstructionBundle)
-            _inventory.RemoveItem(r.ItemId, r.Quantity);
 
         var s = _states[id];
         s.Tier = 1;
@@ -241,12 +282,14 @@ public sealed class BuildingSystem
         if (!s.Commissioned || !def.TryGetTier(s.Tier + 1, out var next))
             return false;
 
-        var req = FindRequirement(next.UpgradeBundle, itemId);
-        if (req == null)
+        // Aggregate rather than look up the first matching line, so a bundle that (unexpectedly) names
+        // this item on more than one line reports the TRUE combined requirement — same rule as
+        // BuildConsumptionPlan/CanUpgrade, just for "how much total is needed" instead of "remove now".
+        if (!AggregateBundle(next.UpgradeBundle).TryGetValue(itemId, out int totalNeeded))
             return false;
 
         int already = s.Contributions.TryGetValue(itemId, out int n) ? n : 0;
-        int remaining = req.Quantity - already;
+        int remaining = totalNeeded - already;
         if (remaining <= 0 || qty > remaining)
             return false;
 
@@ -338,6 +381,12 @@ public sealed class BuildingSystem
         foreach (var def in _catalog.Values)
         {
             var s = _states[def.Id];
+
+            // Character-first gate (design/tutorial_quests.md): a not-yet-commissioned building whose
+            // RequiredFlagId is unmet is HIDDEN from the planning table entirely (not shown-but-disabled).
+            // Once commissioned it always shows (its upgrade path is unaffected by the arrival gate).
+            if (!s.Commissioned && IsGated(def))
+                continue;
 
             // One-at-a-time constraint: at most one building is ever under construction, so this
             // assignment fires for exactly one def per call (or never, when nothing is building).
@@ -476,20 +525,63 @@ public sealed class BuildingSystem
 
     // ===================== Internals =====================
 
+    /// <summary>True when a building carries an unmet commissionability gate (its
+    /// <see cref="BuildingDefinition.RequiredFlagId"/> is set and the resolver reports it unsatisfied).
+    /// Null gate / null resolver → never gated (baseline).</summary>
+    private bool IsGated(BuildingDefinition def)
+        => def.RequiredFlagId != null && !_flagSatisfied(def.RequiredFlagId);
+
     /// <summary>True when a gold cost is affordable right now. A non-positive cost is always true
     /// without consulting <see cref="_goldBalance"/> — the baseline (every shipped GoldCost is 0).</summary>
     private bool HasGold(int cost) => cost <= 0 || _goldBalance() >= cost;
 
-    /// <summary>Spend a gold cost (call only after <see cref="HasGold"/> validated it). A non-positive
-    /// cost is a free no-op — <see cref="_trySpendGold"/> is never invoked with 0/negative amounts.</summary>
-    private bool SpendGold(int cost) => cost <= 0 || _trySpendGold(cost);
+    /// <summary>Spend a gold cost (call only after <see cref="HasGold"/> validated it). A zero cost is a
+    /// free no-op success, handled directly by <see cref="_trySpendGold"/> (Wallet.TrySpendGold).</summary>
+    private bool SpendGold(int cost) => _trySpendGold(cost);
 
-    private static BundleRequirement? FindRequirement(IReadOnlyList<BundleRequirement> bundle, string itemId)
+    /// <summary>
+    /// Aggregate a construction bundle by item id and validate the aggregate against the party's
+    /// current holdings, THEN populate <paramref name="plan"/> with one line per distinct item id (in
+    /// first-seen order) — the fix for the case a per-line independent check misses: a bundle that
+    /// (unexpectedly) names the same item on two lines must be validated and consumed as ONE combined
+    /// requirement, not two independently-satisfiable checks that could jointly overdraw the party's
+    /// holdings. <see cref="CanCommission"/> and <see cref="Commission"/> both funnel through this
+    /// single method so validation and consumption can never total differently. Returns false (and an
+    /// incomplete <paramref name="plan"/>) the moment any aggregated line exceeds what's held. Pure:
+    /// does not touch the inventory.
+    /// </summary>
+    private bool BuildConsumptionPlan(IReadOnlyList<BundleRequirement> bundle, out List<(string ItemId, int Quantity)> plan)
     {
+        plan = new List<(string ItemId, int Quantity)>();
+        var totals = AggregateBundle(bundle);
+        var order = new List<string>();
         foreach (var r in bundle)
-            if (r.ItemId == itemId)
-                return r;
-        return null;
+            if (!order.Contains(r.ItemId))
+                order.Add(r.ItemId);
+
+        foreach (var itemId in order)
+        {
+            int need = totals[itemId];
+            if (!_inventory.Has(itemId, need))
+                return false;
+            plan.Add((itemId, need));
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Aggregate a bundle's requirements by item id, summing quantities for any item that appears on
+    /// more than one line. Used wherever a bundle's TOTAL required quantity for an item must be known
+    /// without physically removing anything: <see cref="BuildConsumptionPlan"/>'s affordability check,
+    /// <see cref="CanUpgrade"/>'s have-vs-need gate, and <see cref="Contribute"/>'s remaining-room gate.
+    /// Order is irrelevant here (nothing is removed against this map).
+    /// </summary>
+    private static Dictionary<string, int> AggregateBundle(IReadOnlyList<BundleRequirement> bundle)
+    {
+        var totals = new Dictionary<string, int>();
+        foreach (var r in bundle)
+            totals[r.ItemId] = (totals.TryGetValue(r.ItemId, out int n) ? n : 0) + r.Quantity;
+        return totals;
     }
 
     private static string NameOf(string itemId)

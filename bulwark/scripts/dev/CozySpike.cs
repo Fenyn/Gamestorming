@@ -7,6 +7,7 @@ using Godot;
 using PF2e.Conditions;
 using PF2e.Core;
 
+using Bulwark.Save;
 namespace Bulwark.Dev;
 
 /// <summary>
@@ -374,12 +375,12 @@ public partial class CozySpike : SpikeBase
             });
             Check("mature farm plot harvested", gs.HarvestPlot(new Vector2I(2, 2)));
 
-            int scoutXpBefore = squad.GetXp(SquadRoster.ScoutId);
+            int scoutXpBefore = squad.GetXp(SquadRoster.ElaraId);
             Check("roamer contact accepted (gob_1)",
                 gs.BeginTerritoryEncounter("gob_1", new Vector2(10f, 20f)));
             var outcome = gs.CompleteTerritoryEncounter(BattleResult.Team1Wins);
             Check("scripted victory outcome", outcome is { Victory: true });
-            int encounterXp = squad.GetXp(SquadRoster.ScoutId) - scoutXpBefore;
+            int encounterXp = squad.GetXp(SquadRoster.ElaraId) - scoutXpBefore;
             Check($"victory banked encounter XP ({encounterXp})", encounterXp > 0);
 
             squad.AddXp(SquadRoster.PlayerId, SquadRoster.XpPerLevel); // guarantee a level-up tonight

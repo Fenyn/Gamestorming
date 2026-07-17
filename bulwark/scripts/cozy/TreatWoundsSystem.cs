@@ -6,6 +6,7 @@ using PF2e.Data;
 using PF2e.RuleEvents.Features;
 using PF2e.Utilities;
 
+using Bulwark.Save;
 namespace Bulwark.Cozy;
 
 /// <summary>

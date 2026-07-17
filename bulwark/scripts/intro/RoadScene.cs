@@ -5,6 +5,7 @@ using Bulwark.Data.Dialogues;
 using Bulwark.UI;
 using Godot;
 
+using Bulwark.Dialogue;
 namespace Bulwark.Intro;
 
 /// <summary>
@@ -62,9 +63,45 @@ public partial class RoadScene : Node2D
 
     private void OnFadeInComplete()
     {
-        _phase = Phase.Scene0;
-        PlaySequence("intro_scene_0", OnScene0Complete);
+        // Resume point: start at the FIRST road scene whose completion flag is missing, so a mid-intro
+        // quit (intro_scene_0 set, intro_scene_1 not) resumes at scene 1 instead of replaying scene 0.
+        // Scene flags are set by this scene as each finishes (intro_scene_0 after scene 0, intro_scene_1
+        // after scene 1); scene 2 plays at the outpost. The Continue router only sends us here while the
+        // road scenes are unfinished (SceneRouter.ResumeRoute), but the both-done branch is a defensive
+        // hand-off to the outpost in case we're reached with both already set.
+        var gs = GameState.Instance;
+        string? resumeAt = FirstUnplayedRoadScene(
+            gs?.HasStoryFlag("intro_scene_0") ?? false,
+            gs?.HasStoryFlag("intro_scene_1") ?? false);
+
+        if (resumeAt == "intro_scene_0")
+        {
+            _phase = Phase.Scene0;
+            PlaySequence("intro_scene_0", OnScene0Complete);
+        }
+        else if (resumeAt == "intro_scene_1")
+        {
+            _phase = Phase.Scene1;
+            PlaySequence("intro_scene_1", OnScene1Complete);
+        }
+        else
+        {
+            // Both road scenes already done — nothing to replay here; hand off to the outpost (where
+            // scene 2 triggers if still pending). OnScene1Complete re-sets intro_scene_1 (idempotent),
+            // fades out, and routes.
+            OnScene1Complete();
+        }
     }
+
+    /// <summary>
+    /// The id of the first road-scene sequence still unplayed given the two road completion flags, or
+    /// null when both are done. Pure decision extracted for headless testing: <c>intro_scene_0</c> when
+    /// scene 0 isn't done, else <c>intro_scene_1</c> when scene 1 isn't done, else null (both done — the
+    /// caller hands off to the outpost). This is the skip branch that lets a resumed intro start past an
+    /// already-played scene rather than replaying from the top.
+    /// </summary>
+    public static string? FirstUnplayedRoadScene(bool scene0Done, bool scene1Done)
+        => !scene0Done ? "intro_scene_0" : !scene1Done ? "intro_scene_1" : null;
 
     private void OnScene0Complete()
     {

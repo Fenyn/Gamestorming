@@ -87,13 +87,13 @@ public partial class AttritionSpike : SpikeBase
 
         Check("(1) all four canonical members present",
             squad.FindMember(SquadRoster.PlayerId) != null
-            && squad.FindMember(SquadRoster.ScoutId) != null
+            && squad.FindMember(SquadRoster.ElaraId) != null
             && squad.FindMember(SquadRoster.TharrId) != null
-            && squad.FindMember(SquadRoster.ScholarId) != null);
+            && squad.FindMember(SquadRoster.FenwickId) != null);
         var vet = squad.FindMember(SquadRoster.PlayerId)!;
-        var scout = squad.FindMember(SquadRoster.ScoutId)!;
+        var scout = squad.FindMember(SquadRoster.ElaraId)!;
         var medic = squad.FindMember(SquadRoster.TharrId)!;
-        var scholar = squad.FindMember(SquadRoster.ScholarId)!;
+        var scholar = squad.FindMember(SquadRoster.FenwickId)!;
         Check("(1) squad starts at full HP",
             vet.Health.IsFullHealth && scout.Health.IsFullHealth
             && medic.Health.IsFullHealth && scholar.Health.IsFullHealth);
@@ -168,7 +168,7 @@ public partial class AttritionSpike : SpikeBase
             medic.Spellcasting?.DivineFont?.CurrentSlots == 3);
         Check($"(2) squad banked {xpPerGoblin} XP each",
             squad.GetXp(SquadRoster.PlayerId) == xpPerGoblin
-            && squad.GetXp(SquadRoster.ScholarId) == xpPerGoblin);
+            && squad.GetXp(SquadRoster.FenwickId) == xpPerGoblin);
 
         // ── (3) Save → reload into a fresh GameState → exact round-trip ──
         GD.Print("-------------------- (3) Save / load round-trip --------------------");
@@ -184,7 +184,7 @@ public partial class AttritionSpike : SpikeBase
             string snapLoaded = JsonSerializer.Serialize(squad2.CaptureMembers());
             Check("(3) EXACT squad round-trip (serialized snapshots identical)", snapLive == snapLoaded);
 
-            var scout2 = squad2.FindMember(SquadRoster.ScoutId)!;
+            var scout2 = squad2.FindMember(SquadRoster.ElaraId)!;
             var medic2 = squad2.FindMember(SquadRoster.TharrId)!;
             Check("(3) reloaded scout at 1 HP with Wounded 1",
                 scout2.Health.CurrentHP == 1

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using PF2e;
 using PF2e.Actions;
@@ -81,6 +82,25 @@ public sealed class CombatSession
     public IReadOnlyList<string> SetupCorrections { get; private set; } = Array.Empty<string>();
 
     public void Setup(CombatSetup setup)
+    {
+        // Ordering trap: SetupCore wires engine statics (TurnManager.Instance,
+        // CombatantRegistry.Instance) and global delegates (reactions, forced movement, step
+        // validation, spatial) incrementally. If it throws partway, those are left half-wired and
+        // would poison the next encounter. Teardown is null-tolerant (every step guards on null /
+        // identity), so it is safe to call on a partially-constructed session — unwind through it,
+        // then surface the fault.
+        try
+        {
+            SetupCore(setup);
+        }
+        catch
+        {
+            Teardown();
+            throw;
+        }
+    }
+
+    private void SetupCore(CombatSetup setup)
     {
         if (setup.RngSeed.HasValue)
             Rng.Seed(setup.RngSeed.Value);
@@ -247,6 +267,13 @@ public sealed class CombatSession
 
     public void Teardown()
     {
+        // A player turn parked on RunPlayerTurn's TCS would otherwise hang forever once the scene
+        // exits (nothing left to press End Turn / hand off to AI). Complete it as an EndTurn so the
+        // awaiting turn loop unwinds; after cancellation RunAsync's next boundary check bails out
+        // before an AI plan can start. TrySetResult is idempotent — harmless if already resolved or
+        // never created.
+        _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+
         if (_turnManager != null)
         {
             _turnManager.OnTurnStart -= HandleTurnStart;
@@ -265,61 +292,106 @@ public sealed class CombatSession
 
         StepAction.ValidateDestination = null;
         SpatialDelegates.Unwire();
+
+        // Release the engine singletons Setup claimed — but ONLY if they still point at THIS
+        // encounter. Setup overwrites both unconditionally, so a newer CombatSession may already own
+        // them (e.g. an old scene tearing down after the next encounter began); clobbering those to
+        // null would break the live fight. Identity-guard the clear.
+        if (ReferenceEquals(TurnManager.Instance, _turnManager))
+            TurnManager.Instance = null!;
+        if (ReferenceEquals(CombatantRegistry.Instance, _registry))
+            CombatantRegistry.Instance = null!;
     }
 
     // ---------------------------------------------------------------- Turn loop
 
-    public async Task RunAsync()
+    /// <summary>
+    /// Runs the encounter to completion (or abort). CANCELLATION CONTRACT: the owner passes a token
+    /// whose source it cancels on scene exit (<c>CombatScene._ExitTree</c>, before/around Teardown).
+    /// Cancellation is cooperative and surfaces two ways — a boundary check between turns, and, mid-turn,
+    /// the presenter's paced <c>Task.Delay</c> / tween waits observing the SAME token and throwing
+    /// <see cref="OperationCanceledException"/> up through the AI plan and Emit chain. Either path unwinds
+    /// the loop WITHOUT running the victory flow: a torn-down scene must not raise EncounterFinished or
+    /// touch freed nodes. A NON-cancel exception (AI-planning bug, Emit fault) is logged through the
+    /// engine <see cref="Log"/> and routed to an abort finish (Team2Wins) so the encounter still ends and
+    /// the owning scene can route out instead of soft-locking. The task therefore never faults for
+    /// cancellation; the fire-and-forget caller attaches a faulted continuation only as a last backstop.
+    /// </summary>
+    public async Task RunAsync(CancellationToken cancellationToken = default)
     {
-        var all = new List<ICharacter>(_team1.Count + _team2.Count);
-        all.AddRange(_team1);
-        all.AddRange(_team2);
-
-        await _runner.Emit(BattleEventType.EncounterStarted);
-        _turnManager.StartEncounter(all);
-
-        while (_turnManager.IsEncounterActive && !_finished)
+        try
         {
-            var current = _turnManager.CurrentTurn?.Character;
-            if (current == null) break;
+            var all = new List<ICharacter>(_team1.Count + _team2.Count);
+            all.AddRange(_team1);
+            all.AddRange(_team2);
 
-            await _runner.Emit(BattleEventType.TurnStarted, source: current);
+            await _runner.Emit(BattleEventType.EncounterStarted);
+            _turnManager.StartEncounter(all);
 
-            // A dying character's recovery check ran at StartTurn (DyingSystem.OnTurnStart) and called
-            // TurnManager.RequestEndTurn — dying creatures can't act. Skip the turn body (mirrors
-            // BattleSimulator.RunEncounter). StartTurn clears the flag for the next character.
-            if (_turnManager.EndTurnRequested)
+            while (_turnManager.IsEncounterActive && !_finished)
             {
+                // Cooperative cancellation point between turns (scene exit). Throwing here unwinds to
+                // the OperationCanceledException handler below — no victory flow, no freed-node touches.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var current = _turnManager.CurrentTurn?.Character;
+                if (current == null) break;
+
+                await _runner.Emit(BattleEventType.TurnStarted, source: current);
+
+                // A dying character's recovery check ran at StartTurn (DyingSystem.OnTurnStart) and called
+                // TurnManager.RequestEndTurn — dying creatures can't act. Skip the turn body (mirrors
+                // BattleSimulator.RunEncounter). StartTurn clears the flag for the next character.
+                if (_turnManager.EndTurnRequested)
+                {
+                    await _runner.Emit(BattleEventType.TurnEnded, source: current);
+                    if (await EndIfDecided())
+                        return;
+                    _turnManager.EndTurn();
+                    continue;
+                }
+
+                if (IsPlayerControlled(current))
+                {
+                    var resolution = await RunPlayerTurn(current, cancellationToken);
+                    // A mid-turn death may have already decided the encounter; don't start an AI plan.
+                    if (resolution == PlayerTurnResolution.HandOffToAi
+                        && _pendingResult == BattleResult.InProgress)
+                        await _ai.ExecuteTurn(current);
+                }
+                else
+                {
+                    await _ai.ExecuteTurn(current);
+                }
+
                 await _runner.Emit(BattleEventType.TurnEnded, source: current);
+
                 if (await EndIfDecided())
                     return;
+
                 _turnManager.EndTurn();
-                continue;
             }
 
-            if (IsPlayerControlled(current))
-            {
-                var resolution = await RunPlayerTurn(current);
-                // A mid-turn death may have already decided the encounter; don't start an AI plan.
-                if (resolution == PlayerTurnResolution.HandOffToAi
-                    && _pendingResult == BattleResult.InProgress)
-                    await _ai.ExecuteTurn(current);
-            }
-            else
-            {
-                await _ai.ExecuteTurn(current);
-            }
-
-            await _runner.Emit(BattleEventType.TurnEnded, source: current);
-
-            if (await EndIfDecided())
-                return;
-
-            _turnManager.EndTurn();
+            if (!_finished)
+                Finish(EvaluateEncounter());
         }
-
-        if (!_finished)
-            Finish(EvaluateEncounter());
+        catch (OperationCanceledException)
+        {
+            // Scene torn down mid-encounter (Task.Delay / tween wait / boundary check observed the
+            // token). Teardown — run from _ExitTree alongside the cancel — owns cleanup; the loop just
+            // stops. Deliberately NO Finish: the scene is gone, EncounterFinished must not fire.
+        }
+        catch (Exception e)
+        {
+            // Without this, a bug in AI planning or an Emit chain vanishes into this unobserved Task and
+            // combat soft-locks with no result / no EncounterFinished / no log. Log through the engine
+            // sink (plain C# — no GD.* here) and route to a defeat/abort finish so the encounter still
+            // ends and the owning scene routes out. Guarded by _finished so a fault raised during the
+            // end-of-encounter flow itself is a harmless no-op.
+            Log.Error($"[CombatSession] Encounter loop faulted, aborting encounter: {e}");
+            if (!_finished)
+                Finish(BattleResult.Team2Wins);
+        }
     }
 
     /// <summary>
@@ -342,17 +414,27 @@ public sealed class CombatSession
         return true;
     }
 
-    private async Task<PlayerTurnResolution> RunPlayerTurn(ICharacter current)
+    private async Task<PlayerTurnResolution> RunPlayerTurn(ICharacter current, CancellationToken cancellationToken)
     {
         // Async continuations so a mid-turn CreatureDied (which completes this from inside an Emit
         // call) doesn't reentrantly unwind the turn loop within that Emit's call stack.
         _playerTurnTcs = new TaskCompletionSource<PlayerTurnResolution>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         PlayerTurnStarted?.Invoke(current);
-        var resolution = await _playerTurnTcs.Task;
-        _playerTurnTcs = null;
-        PlayerTurnEnded?.Invoke();
-        return resolution;
+        // Scene exit while the turn is parked here would suspend this task forever (nothing left to
+        // press End Turn / hand off to AI). Completing the TCS as an EndTurn on cancellation unblocks
+        // it; the loop's next boundary check then throws before an AI plan starts. Teardown does the
+        // same as a backstop for a session with no live token. Register is disposed when the turn ends.
+        using (cancellationToken.Register(
+            static tcs => ((TaskCompletionSource<PlayerTurnResolution>)tcs!)
+                .TrySetResult(PlayerTurnResolution.EndTurn),
+            _playerTurnTcs))
+        {
+            var resolution = await _playerTurnTcs.Task;
+            _playerTurnTcs = null;
+            PlayerTurnEnded?.Invoke();
+            return resolution;
+        }
     }
 
     // ---------------------------------------------------------------- Player intents

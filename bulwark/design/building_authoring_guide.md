@@ -11,9 +11,18 @@ System contract: `design/building_visuals.md`.
 - **Stage index ↔ tier** comes from data (`Buildings.cs` → each tier's `StageIndex`), not the
   scene. Command Post tiers 1–4 map to stages 1–4; Trading Post tiers 1–2 map to stages 1–2.
   Stage 0 is always the ruined/pre-commission look.
-- **One origin for everything.** The `%Building_<id>` marker in outpost.tscn is the building's
-  "feet" (bottom-center). Author every stage relative to that: art extends upward in −Y
-  (farmhouse: a 96-wide building spans x −48..48, y −64..0).
+- **One origin for everything.** The building scene's own origin (0,0) is its "feet"
+  (bottom-center). Author every stage relative to that: art extends upward in −Y
+  (farmhouse: a 96-wide building spans x −48..48, y −64..0). Placing the building in the outpost
+  (see below) is then just positioning that origin at the right spot in the world.
+- **Placement: instance-and-position is the primary workflow, a marker is the fallback.** Per
+  CLAUDE.md's "objects placed in .tscn via editor" convention, drag the building scene directly
+  into outpost.tscn as a child of the root and move it into place — no marker needed.
+  `BuildingLoader` finds it by matching the instance's scene path against `Buildings.cs`'s
+  `ScenePath` (never by node name — rename it freely, e.g. "Tavern" not "Building_tavern") and
+  ADOPTS it: drives its stage/scaffold/overlays exactly like a spawned building, but never moves
+  it. Only when NO pre-placed instance exists does the loader fall back to instancing the scene
+  at a hand-placed `%Building_<id>` Marker2D (the original, still-supported mechanism — see Part 1).
 - **Exactly one stage is visible at runtime** — toggle visibility freely in the editor to
   compare stages; the loader overrides it on placement.
 - **Collision:** the shared `%Footprint` StaticBody2D blocks tiles at every stage. If a stage
@@ -47,8 +56,12 @@ day one), T2 Elderwood unlock, T3 Sunken Reach unlock, T4 Resurrection.
    NOTE: Command Post upgrades are currently INSTANT (only trading_post/farmhouse/smithy/
    infirmary have construction days wired). To make CP upgrades take Tharr-time, add
    `{ "command_post", 2 }` to the SetConstructionDays dictionary in GameState._Ready.
-6. **Marker.** In outpost.tscn (your scene): add a Marker2D named `Building_command_post`,
-   right-click → % Access as Unique Name, position it at the building's feet-point.
+6. **Place it.** Preferred: in outpost.tscn, instance `command_post.tscn` as a child of the
+   scene root (drag from the FileSystem dock) and position it at the building's feet-point —
+   `BuildingLoader` finds it by scene path and adopts it, no marker needed. Fallback: add a
+   Marker2D named `Building_command_post` instead, right-click → % Access as Unique Name,
+   position it at the feet-point — the loader only instances the scene there when no pre-placed
+   instance exists.
 7. **Verify.** F6 the building scene (standalone-safe), then F5: the Command Post appears at
    Stage1 from day one.
 
@@ -70,7 +83,8 @@ store (StageIndex 2). Commission = 90 wood + 60 stone + 60g; 2 build days.
 4. **Overlays (optional).** Add an `Overlays` container (unique name) with a `Winter` child —
    snow on the roofline, automatic every winter, zero data edits. Festival dressing or a
    permanent story change later = paint the child + one `VisualRule` line in Buildings.cs.
-5. **Footprint + marker** `Building_trading_post`, same as Part 1.
+5. **Footprint + placement.** Instance `trading_post.tscn` in outpost.tscn and position it
+   (preferred), or add the fallback `%Building_trading_post` marker — same as Part 1.
 6. **Verify the full arc in-game (F5):** day one shows the Stage0 ruin → commission at the
    planning table → scaffold rises, Tharr's busy line + build-panel countdown + calendar
    completion mark → completion toast → Stage1, Elara opens the store → (later) fund the
@@ -78,11 +92,13 @@ store (StageIndex 2). Commission = 90 wood + 60 stone + 60g; 2 build days.
 
 ## Quick reference
 
-| Building | Scene | Marker | Stages needed | Notes |
-|---|---|---|---|---|
-| Command Post | scenes/buildings/command_post.tscn | %Building_command_post | Stage0–Stage4 | Starts at Stage1 day one; upgrades instant unless construction days added |
-| Trading Post | scenes/buildings/trading_post.tscn | %Building_trading_post | Stage0–Stage2 | Stage0 ruin visible pre-commission; scaffold on commission + upgrade |
-| (any other) | scenes/buildings/<id>.tscn | %Building_<id> | Stage0..max StageIndex in its tier data | Same recipe |
+| Building | Scene | Placement (preferred) | Placement (fallback) | Stages needed | Notes |
+|---|---|---|---|---|---|
+| Command Post | scenes/buildings/command_post.tscn | pre-placed instance in outpost.tscn | %Building_command_post marker | Stage0–Stage4 | Starts at Stage1 day one; upgrades instant unless construction days added |
+| Trading Post | scenes/buildings/trading_post.tscn | pre-placed instance in outpost.tscn | %Building_trading_post marker | Stage0–Stage2 | Stage0 ruin visible pre-commission; scaffold on commission + upgrade |
+| (any other) | scenes/buildings/<id>.tscn | pre-placed instance in outpost.tscn | %Building_<id> marker | Stage0..max StageIndex in its tier data | Same recipe |
 
-Missing marker or scene = skipped with a log line; state still works, art arrives whenever
-you get to it.
+`BuildingLoader` tries the pre-placed instance FIRST (matched by scene path, never node name;
+its position is never touched), then falls back to the marker. Neither a pre-placed instance
+nor a marker/scene = skipped with a log line; state still works, art arrives whenever you get
+to it.

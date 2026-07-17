@@ -14,15 +14,12 @@ namespace Bulwark.UI;
 /// panel is open; the full-rect backdrop (MouseFilter.Stop) swallows mouse events meanwhile.
 /// Toggled by the "toggle_squad_panel" input action (C); Esc closes.
 /// </summary>
-public partial class SquadPanel : CanvasLayer
+public partial class SquadPanel : TogglePanel
 {
     private const int MemberCount = 4;
 
     /// <summary>Intent: player confirmed a treatment (healerId, targetId, dc).</summary>
     public event Action<string, string, int>? TreatWoundsRequested;
-
-    /// <summary>Raised when the panel opens (true) or closes (false).</summary>
-    public event Action<bool>? Toggled;
 
     private readonly Label[] _nameLabels = new Label[MemberCount];
     private readonly ProgressBar[] _hpBars = new ProgressBar[MemberCount];
@@ -43,6 +40,8 @@ public partial class SquadPanel : CanvasLayer
     private string? _targetId;
     private string? _healerId;
     private int _dc; // 0 = none selected
+
+    public SquadPanel() => ToggleAction = "toggle_squad_panel";
 
     public override void _Ready()
     {
@@ -74,24 +73,6 @@ public partial class SquadPanel : CanvasLayer
 
         Visible = false;
     }
-
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (@event.IsActionPressed("toggle_squad_panel"))
-        {
-            SetOpen(!Visible);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (Visible && @event.IsActionPressed("ui_cancel"))
-        {
-            SetOpen(false);
-            GetViewport().SetInputAsHandled();
-        }
-    }
-
-    /// <summary>Host command: close the panel if open (fires Toggled(false) so the host
-    /// unfreezes). Used when another modal — the day summary — must take the screen.</summary>
-    public void Close() => SetOpen(false);
 
     /// <summary>Render a fresh view-model. Selections that became invalid are dropped.</summary>
     public void Render(SquadPanelView view)
@@ -254,21 +235,19 @@ public partial class SquadPanel : CanvasLayer
         _confirmButton.Disabled = healer == null || _dc <= 0;
     }
 
-    private void SetOpen(bool open)
+    /// <summary>Opening resets the treat-wounds selection flow so a stale pick from the last visit
+    /// never lingers. Host reacts to <see cref="TogglePanel.Toggled"/>: pauses the day clock + player
+    /// input, and pushes a fresh view when opening.</summary>
+    protected override void SetOpen(bool open)
     {
-        if (Visible == open)
-            return;
-
-        Visible = open;
-        if (open)
+        if (open && !Visible)
         {
             _targetId = null;
             _healerId = null;
             _dc = 0;
             _resultLabel.Text = "";
         }
-        // Host reacts: pauses the day clock + player input, and pushes a fresh view when opening.
-        Toggled?.Invoke(open);
+        base.SetOpen(open);
     }
 
     private void SetRowVisible(int i, bool visible)

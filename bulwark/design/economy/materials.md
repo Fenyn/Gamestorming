@@ -154,9 +154,9 @@ Farmhouse-gated as noted.
 | carrot_seed | Carrot Seeds | Seed | 0 | Farming (Farmhouse T1) | Verdant Fringe | Spring | Trading Post stock; plants carrot | new |
 | carrot | Carrot | Common | 3 | Farming (Farmhouse T1) | Verdant Fringe | Spring | Sale; Farmhouse bundles | new |
 | winter_squash_seed | Winter Squash Seeds | Seed | 0 | Farming (Farmhouse T2, zone 2) | Verdant Fringe | Fall, Winter | Trading Post stock; plants winter_squash | new |
-| winter_squash | Winter Squash | Uncommon | 6 | Farming (Farmhouse T2) | Verdant Fringe | Fall, Winter | Kitchen bundles | new |
+| winter_squash | Winter Squash | Uncommon | 6 | Farming (Farmhouse T2) | Verdant Fringe | Fall, Winter | Tavern bundles | new |
 | hearth_root_seed | Hearth Root Seeds | Seed | 0 | Farming (Farmhouse T2) | Verdant Fringe | Fall, Winter | Trading Post stock; plants hearth_root | new |
-| hearth_root | Hearth Root | Uncommon | 6 | Farming (Farmhouse T2) | Verdant Fringe | Fall, Winter | Kitchen bundles | new |
+| hearth_root | Hearth Root | Uncommon | 6 | Farming (Farmhouse T2) | Verdant Fringe | Fall, Winter | Tavern bundles | new |
 | frost_kale_seed | Frost Kale Seeds | Seed | 0 | Farming (Farmhouse T2) | Verdant Fringe | Winter | Trading Post stock; plants frost_kale | new |
 | frost_kale | Frost Kale | Common | 4 | Farming (Farmhouse T2) | Verdant Fringe | Winter | Sale; Farmhouse bundles | new |
 
@@ -172,10 +172,10 @@ Category: `Resource`. Foraging route unless noted.
 | herb | Herbs | Common | 2 | Foraging (Hand, herb patch) | Verdant Fringe | Any | craft_tincture; cook_herb_tonic; cook_battle_draught | existing |
 | berries | Berries | Common | 2 | Foraging (Hand, berry bush) | Verdant Fringe | Any | cook_herb_tonic; cook_travel_ration; cook_guard_ration | existing |
 | fiber | Fiber | Common | 1 | Foraging (Hand, NEW bramble patch node; closes the content flag) | Verdant Fringe | Any | craft_cloth | existing |
-| wild_mushroom | Wild Mushroom | Common | 2 | Foraging (Hand, Elderwood floor) | Elderwood | Fall | Sale; Kitchen bundles | new |
-| forest_root | Forest Root | Common | 2 | Foraging (Hand, Elderwood) | Elderwood | Spring, Fall | Sale; Kitchen bundles | new |
+| wild_mushroom | Wild Mushroom | Common | 2 | Foraging (Hand, Elderwood floor) | Elderwood | Fall | Sale; Tavern bundles | new |
+| forest_root | Forest Root | Common | 2 | Foraging (Hand, Elderwood) | Elderwood | Spring, Fall | Sale; Tavern bundles | new |
 | bog_moss | Bog Moss | Common | 1 | Foraging (Hand, Sunken Reach) | Sunken Reach | Any | Apothecary bundles; craft_spirit_dust input | new |
-| marsh_reed | Marsh Reed | Common | 2 | Foraging (Hand, Sunken Reach) | Sunken Reach | Any | Kitchen bundles; Farmhouse bundles | new |
+| marsh_reed | Marsh Reed | Common | 2 | Foraging (Hand, Sunken Reach) | Sunken Reach | Any | Tavern bundles; Farmhouse bundles | new |
 | bitter_root | Bitter Root | Uncommon | 5 | Foraging (Hand, deep Sunken Reach) | Sunken Reach | Fall, Winter | Apothecary bundles | new |
 | nightcap_mushroom | Nightcap Mushroom | Rare | 12 | Foraging (Hand, deep Sunken Reach, gated behind Sunken Reach exploration) | Sunken Reach | Fall | Apothecary T2 reagent refining into arcane_essence | new |
 
@@ -202,15 +202,15 @@ Category: `Resource`. Fishing Dock route.
 
 | Id | Name | Rarity | Sell | Route/Source | Biome | Season | Sinks | Status |
 |---|---|---|---|---|---|---|---|---|
-| river_minnow | River Minnow | Common | 2 | Fishing (Fishing Dock T1, rod) | Verdant Fringe | Spring, Summer | Sale; Kitchen bundles | new |
-| stream_trout | Stream Trout | Uncommon | 5 | Fishing (Fishing Dock T1) | Verdant Fringe | Spring, Fall | Kitchen bundles; craft_smoked_fish | new |
-| lake_bass | Lake Bass | Uncommon | 6 | Fishing (Fishing Dock T2, deeper waters) | Elderwood | Summer | Kitchen bundles; craft_smoked_fish | new |
-| frost_pike | Frost Pike | Rare | 12 | Fishing (Fishing Dock T2, Winter only) | Elderwood | Winter | Kitchen bundles; Reliquary bundles | new |
-| murk_catfish | Murk Catfish | Uncommon | 6 | Fishing (Fishing Dock T2, deeper waters) | Sunken Reach | Summer, Fall | Kitchen bundles; craft_smoked_fish | new |
-| bog_eel | Bog Eel | Uncommon | 7 | Fishing (Fishing Dock T2) | Sunken Reach | Fall, Winter | Kitchen bundles; craft_smoked_fish | new |
-| silt_carp | Silt Carp | Common | 3 | Fishing (Fishing Dock T2) | Sunken Reach | Spring, Summer | Sale; Kitchen bundles | new |
+| river_minnow | River Minnow | Common | 2 | Fishing (Fishing Dock T1, rod) | Verdant Fringe | Spring, Summer | Sale; Tavern bundles | new |
+| stream_trout | Stream Trout | Uncommon | 5 | Fishing (Fishing Dock T1) | Verdant Fringe | Spring, Fall | Tavern bundles; craft_smoked_fish | new |
+| lake_bass | Lake Bass | Uncommon | 6 | Fishing (Fishing Dock T2, deeper waters) | Elderwood | Summer | Tavern bundles; craft_smoked_fish | new |
+| frost_pike | Frost Pike | Rare | 12 | Fishing (Fishing Dock T2, Winter only) | Elderwood | Winter | Tavern bundles; Reliquary bundles | new |
+| murk_catfish | Murk Catfish | Uncommon | 6 | Fishing (Fishing Dock T2, deeper waters) | Sunken Reach | Summer, Fall | Tavern bundles; craft_smoked_fish | new |
+| bog_eel | Bog Eel | Uncommon | 7 | Fishing (Fishing Dock T2) | Sunken Reach | Fall, Winter | Tavern bundles; craft_smoked_fish | new |
+| silt_carp | Silt Carp | Common | 3 | Fishing (Fishing Dock T2) | Sunken Reach | Spring, Summer | Sale; Tavern bundles | new |
 | shadow_gar | Shadow Gar | Rare | 14 | Fishing (Fishing Dock T2, Winter only, rare) | Sunken Reach | Winter | Reliquary bundles | new |
-| marsh_clam | Marsh Clam | Common | 3 | Fishing (Fishing Dock T2, trap) | Sunken Reach | Any | Sale; Kitchen bundles | new |
+| marsh_clam | Marsh Clam | Common | 3 | Fishing (Fishing Dock T2, trap) | Sunken Reach | Any | Sale; Tavern bundles | new |
 
 Season coverage: Spring (river_minnow, stream_trout, silt_carp), Summer (river_minnow, lake_bass,
 murk_catfish, silt_carp), Fall (stream_trout, murk_catfish, bog_eel), Winter (frost_pike, bog_eel,
@@ -224,7 +224,7 @@ Category: `Resource`. Animal husbandry route, Farmhouse-gated.
 
 | Id | Name | Rarity | Sell | Route/Source | Biome | Season | Sinks | Status |
 |---|---|---|---|---|---|---|---|---|
-| egg | Egg | Common | 2 | Animal husbandry (Farmhouse T2 coop, daily) | Verdant Fringe | Any | Kitchen bundles | new |
+| egg | Egg | Common | 2 | Animal husbandry (Farmhouse T2 coop, daily) | Verdant Fringe | Any | Tavern bundles | new |
 | feather | Feather | Common | 1 | Animal husbandry (Farmhouse T2 coop, daily) | Verdant Fringe | Any | Sale; Watchtower bundles (fletching flavor) | new |
 | milk | Milk | Common | 3 | Animal husbandry (Farmhouse T3 barn, daily) | Verdant Fringe | Any | craft_cheese; craft_butter | new |
 | wool | Wool | Uncommon | 5 | Animal husbandry (Farmhouse T3 barn, periodic shearing) | Verdant Fringe | Any | craft_spun_yarn | new |
@@ -235,10 +235,10 @@ Category: `Resource`. Passive daily producer route as noted.
 
 | Id | Name | Rarity | Sell | Route/Source | Biome | Season | Sinks | Status |
 |---|---|---|---|---|---|---|---|---|
-| honey | Honey | Uncommon | 6 | Apiary (Farmhouse T3 beehive, daily) | Verdant Fringe | Any | craft_mead; Kitchen bundles | new |
-| tree_sap | Tree Sap | Common | 2 | Tapping (Verdant Fringe tap line, territory access, daily) | Verdant Fringe | Any | Sale; Kitchen bundles | new |
+| honey | Honey | Uncommon | 6 | Apiary (Farmhouse T3 beehive, daily) | Verdant Fringe | Any | craft_mead; Tavern bundles | new |
+| tree_sap | Tree Sap | Common | 2 | Tapping (Verdant Fringe tap line, territory access, daily) | Verdant Fringe | Any | Sale; Tavern bundles | new |
 | bog_resin | Bog Resin | Uncommon | 5 | Tapping (Sunken Reach tap line, gated behind the Sunken Reach unlock, daily) | Sunken Reach | Any | Smithy bundles; Arcane Study bundles | new |
-| log_mushroom | Log Mushroom | Common | 3 | Apiary (Farmhouse T2 mushroom log, daily; closes the mushroom content flag) | Verdant Fringe | Any | Sale; Kitchen bundles | new |
+| log_mushroom | Log Mushroom | Common | 3 | Apiary (Farmhouse T2 mushroom log, daily; closes the mushroom content flag) | Verdant Fringe | Any | Sale; Tavern bundles | new |
 
 ### 7. Monster parts (common)
 Category: `MonsterPart`. Combat drop route; see the creature sections below for which family drops
@@ -298,13 +298,13 @@ Category: `Refined`. Crafting/refining route, station-gated as noted.
 | copper_ingot | Copper Ingot | Uncommon | 6 | Crafting (craft_copper_ingot, smelter) | Verdant Fringe | Any | Smithy weapon MetalCost; construction bundles | existing |
 | leather | Leather | Rare | 12 | Crafting (craft_leather, tanner, from beast_hide) | Elderwood | Any | Construction bundles | existing |
 | tincture | Tincture | Uncommon | 6 | Crafting (craft_tincture, still) | Verdant Fringe | Any | Apothecary bundles | existing |
-| cloth | Cloth | Uncommon | 5 | Crafting (craft_cloth, loom) | Verdant Fringe | Any | Construction bundles; Kitchen bundles | existing |
+| cloth | Cloth | Uncommon | 5 | Crafting (craft_cloth, loom) | Verdant Fringe | Any | Construction bundles; Tavern bundles | existing |
 | iron_ingot | Iron Ingot | Rare | 14 | Crafting (craft_iron_ingot, smelter T2, from iron_ore + coal) | Sunken Reach/Elderwood | Any | Smithy T2 weapon upgrades; construction bundles | new |
-| cheese | Cheese | Uncommon | 8 | Crafting (craft_cheese, kitchen, from milk) | Verdant Fringe | Any | Kitchen bundles | new |
-| butter | Butter | Uncommon | 6 | Crafting (craft_butter, kitchen, from cream) | Verdant Fringe | Any | Kitchen bundles | new |
+| cheese | Cheese | Uncommon | 8 | Crafting (craft_cheese, kitchen, from milk) | Verdant Fringe | Any | Tavern bundles | new |
+| butter | Butter | Uncommon | 6 | Crafting (craft_butter, kitchen, from cream) | Verdant Fringe | Any | Tavern bundles | new |
 | spun_yarn | Spun Yarn | Uncommon | 7 | Crafting (craft_spun_yarn, loom, from wool) | Verdant Fringe | Any | Construction bundles | new |
-| mead | Mead | Uncommon | 9 | Crafting (craft_mead, still, from honey) | Verdant Fringe | Any | Kitchen tavern common-room bundles (T2) | new |
-| smoked_fish | Smoked Fish | Uncommon | 8 | Crafting (craft_smoked_fish, kitchen, from any fish) | Verdant Fringe/Elderwood/Sunken Reach | Any | Kitchen bundles | new |
+| mead | Mead | Uncommon | 9 | Crafting (craft_mead, still, from honey) | Verdant Fringe | Any | Tavern common-room bundles (T2) | new |
+| smoked_fish | Smoked Fish | Uncommon | 8 | Crafting (craft_smoked_fish, kitchen, from any fish) | Verdant Fringe/Elderwood/Sunken Reach | Any | Tavern bundles | new |
 
 ### 10. Reagents
 Category: `Reagent`.
@@ -474,16 +474,16 @@ across the whole catalog; see the family tables above for full detail on each ro
 | wheat_seed / wheat | Farming | cook_hearty_stew; cook_travel_ration |
 | tomato_seed / tomato | Farming | cook_battle_draught |
 | carrot_seed / carrot | Farming | Sale; Farmhouse bundles |
-| winter_squash_seed / winter_squash | Farming | Kitchen bundles |
-| hearth_root_seed / hearth_root | Farming | Kitchen bundles |
+| winter_squash_seed / winter_squash | Farming | Tavern bundles |
+| hearth_root_seed / hearth_root | Farming | Tavern bundles |
 | frost_kale_seed / frost_kale | Farming | Sale; Farmhouse bundles |
 | herb | Foraging | craft_tincture; meals |
 | berries | Foraging | meals |
 | fiber | Foraging (bramble patch) | craft_cloth |
-| wild_mushroom | Foraging | Sale; Kitchen bundles |
-| forest_root | Foraging | Sale; Kitchen bundles |
+| wild_mushroom | Foraging | Sale; Tavern bundles |
+| forest_root | Foraging | Sale; Tavern bundles |
 | bog_moss | Foraging | Apothecary bundles; craft_spirit_dust |
-| marsh_reed | Foraging | Kitchen bundles; Farmhouse bundles |
+| marsh_reed | Foraging | Tavern bundles; Farmhouse bundles |
 | bitter_root | Foraging | Apothecary bundles |
 | nightcap_mushroom | Foraging | craft_arcane_essence |
 | wood | Gathering | craft_plank; construction bundles |
@@ -493,16 +493,16 @@ across the whole catalog; see the family tables above for full detail on each ro
 | coal | Mining | craft_iron_ingot; Smithy bundles |
 | iron_ore | Mining (Sunken Reach) | craft_iron_ingot |
 | bogwood | Gathering (Sunken Reach drowned-tree stand) | Watchtower T3, Command Post T4, Smithy T4 bundles |
-| river_minnow / stream_trout | Fishing (Fishing Dock T1) | Sale; Kitchen bundles; craft_smoked_fish |
-| lake_bass / frost_pike | Fishing (Fishing Dock T2) | Sale; Kitchen bundles; craft_smoked_fish |
-| murk_catfish / bog_eel / silt_carp / shadow_gar / marsh_clam | Fishing (Fishing Dock T2) | Sale; Kitchen bundles; craft_smoked_fish; Reliquary bundles |
-| egg / feather | Animal husbandry (coop) | Kitchen bundles; Watchtower bundles |
+| river_minnow / stream_trout | Fishing (Fishing Dock T1) | Sale; Tavern bundles; craft_smoked_fish |
+| lake_bass / frost_pike | Fishing (Fishing Dock T2) | Sale; Tavern bundles; craft_smoked_fish |
+| murk_catfish / bog_eel / silt_carp / shadow_gar / marsh_clam | Fishing (Fishing Dock T2) | Sale; Tavern bundles; craft_smoked_fish; Reliquary bundles |
+| egg / feather | Animal husbandry (coop) | Tavern bundles; Watchtower bundles |
 | milk / cream | Animal husbandry (barn) | craft_cheese; craft_butter |
 | wool | Animal husbandry (barn) | craft_spun_yarn |
-| honey | Apiary | craft_mead; Kitchen bundles |
-| tree_sap | Tapping | Sale; Kitchen bundles |
+| honey | Apiary | craft_mead; Tavern bundles |
+| tree_sap | Tapping | Sale; Tavern bundles |
 | bog_resin | Tapping | Smithy bundles; Arcane Study bundles |
-| log_mushroom | Apiary | Sale; Kitchen bundles |
+| log_mushroom | Apiary | Sale; Tavern bundles |
 | goblin_fang / goblin_scrap | Combat (Goblins) | Smithy bundles; Reliquary bundles |
 | rat_pelt | Combat (Rats) | Smithy bundles; Training Yard bundles |
 | beast_hide | Combat (Beasts) | craft_leather; Smithy bundles |
@@ -538,12 +538,12 @@ across the whole catalog; see the family tables above for full detail on each ro
 | copper_ingot | Crafting (smelter) | Smithy weapon MetalCost; construction bundles |
 | leather | Crafting (tanner) | Construction bundles |
 | tincture | Crafting (still) | Apothecary bundles |
-| cloth | Crafting (loom) | Construction bundles; Kitchen bundles |
+| cloth | Crafting (loom) | Construction bundles; Tavern bundles |
 | iron_ingot | Crafting (smelter T2) | Smithy T2 weapon upgrades; construction bundles |
-| cheese / butter | Crafting (kitchen) | Kitchen bundles |
+| cheese / butter | Crafting (kitchen) | Tavern bundles |
 | spun_yarn | Crafting (loom) | Construction bundles |
-| mead | Crafting (still) | Kitchen T2 bundles |
-| smoked_fish | Crafting (kitchen) | Kitchen bundles |
+| mead | Crafting (still) | Tavern T2 bundles |
+| smoked_fish | Crafting (kitchen) | Tavern bundles |
 | arcane_essence | Foraging (ley glade) or crafting (Apothecary T2) | Smithy rune reagent |
 | ward_salt | Foraging | Chapel, Reliquary, Arcane Study bundles |
 | spirit_dust | Crafting (Apothecary T2) | Chapel, Reliquary, Arcane Study bundles |

@@ -71,9 +71,12 @@ public sealed class DialogueDatabase
 
     /// <summary>
     /// From the character's talk pool, find the highest-priority entry whose conditions pass.
-    /// Returns the lines of that entry, or null if no talk pool exists or no entry passes.
+    /// Returns the whole entry (lines + optional effects/choices), or null if no talk pool exists
+    /// or no entry passes. Prefer this over <see cref="GetTalkLines"/> when the caller needs to
+    /// apply the entry's effects or render its choices — <see cref="TalkPoolEntry.ToSteps"/> flattens
+    /// it for the runner.
     /// </summary>
-    public List<DialogueLine>? GetTalkLines(string charId, DialogueConditionContext ctx)
+    public TalkPoolEntry? GetTalkEntry(string charId, DialogueConditionContext ctx)
     {
         if (!_talkPoolsByChar.TryGetValue(charId, out var pool) || pool.Entries == null)
             return null;
@@ -87,8 +90,16 @@ public sealed class DialogueDatabase
                 best = entry;
         }
 
-        return best?.Lines;
+        return best;
     }
+
+    /// <summary>
+    /// From the character's talk pool, find the highest-priority entry whose conditions pass and
+    /// return its lines only. Convenience wrapper over <see cref="GetTalkEntry"/>; ignores any
+    /// entry-level effects/choices, so callers that must latch flags should use GetTalkEntry.
+    /// </summary>
+    public List<DialogueLine>? GetTalkLines(string charId, DialogueConditionContext ctx)
+        => GetTalkEntry(charId, ctx)?.Lines;
 
     /// <summary>
     /// Check whether a dialogue id exists and its conditions pass (without loading/playing it).

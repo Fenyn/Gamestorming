@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Bulwark.Data;
 
-namespace Bulwark.Cozy;
+using Bulwark.Cozy;
+namespace Bulwark.Save;
 
 /// <summary>
 /// Plain serializable snapshot of all persisted cozy-layer state. Flat DTO — no Godot types, no
@@ -10,14 +11,24 @@ namespace Bulwark.Cozy;
 /// </summary>
 public sealed class SaveData
 {
+    /// <summary>The highest schema version this build knows how to write/restore. GameState.LoadGame
+    /// refuses (treats as unparseable) any save whose <see cref="Version"/> is greater than this —
+    /// that save came from a newer build, and loading it here would silently drop fields this build
+    /// doesn't know about and corrupt it on the next write.</summary>
+    public const int CurrentVersion = 13;
+
     /// <summary>Save schema version, bumped when the shape changes. v2 added the squad snapshot;
     /// v3 split the flat inventory into per-member carry + warehouse; v4 added building states;
     /// v5 added story flags, villager arrival state, and grown-roster preset keys; v6 added the
     /// active meal buff id; v7 added the player-chosen character name; v8 added friendship state;
     /// v9 added seen dialogue ids; v10 added building construction days remaining; v11 added quest
     /// log state; v12 added the world seed, per-territory forage state, and day-stamped depleted
-    /// nodes (RespawnDays).</summary>
-    public int Version { get; set; } = 12;
+    /// nodes (RespawnDays); v13 added the tutorial-arc quest fabric — its new state (event counters,
+    /// one-shot latches) rides the EXISTING <see cref="QuestDto.ObjectiveProgress"/> array, and its new
+    /// real flags (first_commission, first_combat_victory, command_post_tier2_built) ride the existing
+    /// <see cref="StoryFlags"/> list, so no new DTO field is required and pre-v13 saves load unchanged
+    /// (missing state = quests re-evaluate fresh from the restored flags/buildings on load).</summary>
+    public int Version { get; set; } = CurrentVersion;
 
     /// <summary>
     /// Per-save world seed anchoring deterministic rolls (forage daily passes). Additive field:
@@ -351,4 +362,11 @@ public sealed class SpellRankDto
     public int Rank { get; set; }
     public int Remaining { get; set; }
     public List<string>? PreparedSpellIds { get; set; }
+}
+
+public sealed class QuestDto
+{
+    public string QuestId { get; set; } = "";
+    public bool Completed { get; set; }
+    public int[] ObjectiveProgress { get; set; } = System.Array.Empty<int>();
 }

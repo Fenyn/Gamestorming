@@ -7,8 +7,13 @@ namespace Bulwark.Territory;
 /// A visible roaming enemy on a territory map (scenes/territory/roaming_enemy.tscn): random-walk
 /// wander inside a home radius, chase when the player comes into sight, and raise
 /// <see cref="PlayerContacted"/> once on contact — the scene turns that into the
-/// BeginTerritoryEncounter command. Placeholder visual: a rat idle sprite, matching the token art
-/// combat already uses for enemies (monster sprite pack TBD). Holds no game rules.
+/// BeginTerritoryEncounter command. Contact detection is delegated to the scene's
+/// <see cref="ContactTrigger"/> Area2D child (idiomatic Godot BodyEntered, shared with the wolf lair)
+/// rather than a hand-rolled distance poll; the trigger's shape is the contact range. Movement is
+/// MoveAndSlide, so wander and chase are stopped by the same baked world collision that blocks the
+/// player (see CozyWorldScene.BuildWorldCollision) — the enemy never slides through walls or water.
+/// Placeholder visual: a rat idle sprite, matching the token art combat already uses for enemies
+/// (monster sprite pack TBD). Holds no game rules.
 /// </summary>
 public partial class RoamingEnemy : CharacterBody2D
 {
@@ -21,21 +26,21 @@ public partial class RoamingEnemy : CharacterBody2D
     /// <summary>Player distance at which the roamer switches to chasing.</summary>
     [Export] public float SightRange { get; set; } = 180f;
 
-    /// <summary>Player distance that counts as contact (triggers the encounter).</summary>
-    [Export] public float ContactRange { get; set; } = 30f;
-
     /// <summary>Raised once when the roamer touches the player, with the roamer id.</summary>
     public event Action<string>? PlayerContacted;
 
     public string RoamerId { get; private set; } = "";
 
     private Node2D? _player;
+    private ContactTrigger? _contact;
     private Label? _aggroLabel;
     private Vector2 _home;
     private Vector2 _wanderTarget;
     private double _retargetIn;
     private bool _triggered;
     private bool _chasing;
+    // Cosmetic wander only (never anchors save state), so plain Random matches the fx precedent —
+    // DeterministicRng is reserved for the save-critical forage/respawn rolls.
     private readonly Random _random = new();
 
     public override void _Ready()
@@ -43,9 +48,14 @@ public partial class RoamingEnemy : CharacterBody2D
         _home = GlobalPosition;
         _wanderTarget = _home;
         _aggroLabel = GetNodeOrNull<Label>("%AggroLabel");
+
+        _contact = GetNodeOrNull<ContactTrigger>("%ContactTrigger");
+        if (_contact != null)
+            _contact.Contacted += OnContact;
     }
 
-    /// <summary>Injected by the territory scene after instancing.</summary>
+    /// <summary>Injected by the territory scene after instancing. The player reference drives the
+    /// sight/chase steering; contact itself flows through the <see cref="ContactTrigger"/> child.</summary>
     public void Setup(string roamerId, Node2D player)
     {
         RoamerId = roamerId;
@@ -57,6 +67,16 @@ public partial class RoamingEnemy : CharacterBody2D
     {
         _triggered = true;
         Velocity = Vector2.Zero;
+        _contact?.Disarm();
+    }
+
+    /// <summary>The contact trigger fired: latch, halt, and hand the encounter to the scene once.</summary>
+    private void OnContact()
+    {
+        if (_triggered)
+            return;
+        Freeze();
+        PlayerContacted?.Invoke(RoamerId);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -65,12 +85,6 @@ public partial class RoamingEnemy : CharacterBody2D
             return;
 
         float playerDistance = GlobalPosition.DistanceTo(_player.GlobalPosition);
-        if (playerDistance <= ContactRange)
-        {
-            Freeze();
-            PlayerContacted?.Invoke(RoamerId);
-            return;
-        }
 
         Vector2 target;
         float speed;

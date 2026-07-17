@@ -10,7 +10,7 @@
         "flags_blocked": ["trading_post_built"]
       },
       "lines": [
-        { "speaker": "elara", "text": "There is a storefront in the eastern wall. The frame is sound. With timber and stone I can have it open within the week." }
+        { "speaker": "elara", "text": "There is a storefront in the eastern wall. The frame is sound — I marked it the day we arrived. But the good timber for it, the hardwood, grows deep in the forest, past where anything sane wants to walk just now. It will keep." }
       ]
     },
     {
@@ -20,6 +20,16 @@
       },
       "lines": [
         { "speaker": "elara", "text": "It is not much, but it is mine. Bring what you have to sell, and I will see what I can offer in return.\n\nSeeds, provisions, and whatever else the frontier demands. The stock will grow as the outpost does." }
+      ]
+    },
+    {
+      "priority": 5,
+      "conditions": {
+        "flags_required": ["intro_complete"],
+        "flags_blocked": ["dire_wolf_slain"]
+      },
+      "lines": [
+        { "speaker": "elara", "text": "The trappers used to bring me pelts out of that forest. They have stopped coming. Either the game has gone scarce, or something larger has claimed it for itself. I have my guess which." }
       ]
     }
   ]

@@ -2,6 +2,7 @@ using System;
 using Bulwark.Cozy;
 using Godot;
 
+using Bulwark.Settings;
 namespace Bulwark.UI;
 
 /// <summary>

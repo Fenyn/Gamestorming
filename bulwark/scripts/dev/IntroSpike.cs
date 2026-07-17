@@ -6,6 +6,8 @@ using Bulwark.Autoload;
 using Bulwark.Cozy;
 using Bulwark.Data;
 using Bulwark.Data.Dialogues;
+using Bulwark.Dialogue;
+using Bulwark.Intro;
 using Godot;
 
 namespace Bulwark.Dev;
@@ -26,6 +28,12 @@ namespace Bulwark.Dev;
 ///      talk pool resolves to the "work is underway" busy line (and outranks his unconditional default
 ///      fallback) while it is true; the planning-table view exposes BuilderBusy/BusyBuildingName/
 ///      BusyDaysRemaining. Drives a real (throwaway) GameState, so slot0.json is backed up/restored.
+///  (H) "tavern_built" / "tavern_commissioned" derived flags (GameState.HasFlagForConditions), proven
+///      against a real (throwaway) GameState — not a simulated HasFlag lambda like section F: commission
+///      the tavern (tavern_commissioned true immediately, tavern_built still false while building),
+///      TickDay to completion (tavern_built flips true), and confirm fenwick's "kitchen_built"→
+///      "tavern_built"-gated talk-pool entry (data/dialogues/tutorial/fenwick_tutorial.json) is silent
+///      before completion and fires for real through GameState.DialogueDb + BuildConditionContext after.
 /// </summary>
 public partial class IntroSpike : SpikeBase
 {
@@ -48,6 +56,8 @@ public partial class IntroSpike : SpikeBase
             RunLodgingRepair();                 // (E)
             RunTutorialConditionGating();       // (F)
             RunBuilderBusyDialogueFlag();        // (G)
+            RunTavernBuiltDerivedFlag();         // (H)
+            RunResumeMidIntro();                 // (I)
         }
         catch (Exception e)
         {
@@ -483,21 +493,21 @@ public partial class IntroSpike : SpikeBase
         Check("(F) elara TP-built line mentions sell/offer",
             elaraTPBuilt != null && (elaraTPBuilt[0].Text.Contains("sell") || elaraTPBuilt[0].Text.Contains("offer")));
 
-        // State: kitchen built
-        var ctxKitchenBuilt = new DialogueConditionContext
+        // State: tavern built (simulated flag lookup — section H proves the REAL GameState path)
+        var ctxTavernBuilt = new DialogueConditionContext
         {
             HasFlag = f => f == "intro_complete" || f == "lodging_quest_started"
                           || f == "lodging_repaired" || f == "first_rest"
-                          || f == "planning_table_shown" || f == "kitchen_built",
+                          || f == "planning_table_shown" || f == "tavern_built",
             GetHearts = _ => 0,
             CurrentSeason = "spring",
             HasSeenDialogue = _ => false,
         };
-        var fenwickKitchen = db.GetTalkLines("fenwick", ctxKitchenBuilt);
-        Check("(F) fenwick has lines when kitchen_built",
-            fenwickKitchen != null && fenwickKitchen.Count > 0);
-        Check("(F) fenwick kitchen-built line mentions ingredients/cooking",
-            fenwickKitchen != null && (fenwickKitchen[0].Text.Contains("ingredients") || fenwickKitchen[0].Text.Contains("kitchen")));
+        var fenwickTavern = db.GetTalkLines("fenwick", ctxTavernBuilt);
+        Check("(F) fenwick has lines when tavern_built",
+            fenwickTavern != null && fenwickTavern.Count > 0);
+        Check("(F) fenwick tavern-built line mentions ingredients/cooking",
+            fenwickTavern != null && (fenwickTavern[0].Text.Contains("ingredients") || fenwickTavern[0].Text.Contains("kitchen")));
 
         // State: no intro_complete yet (tharr default fallback)
         var ctxNoIntro = new DialogueConditionContext
@@ -553,6 +563,7 @@ public partial class IntroSpike : SpikeBase
         gs.AddItem("goblin_fang", 25);
         gs.AddItem("rat_pelt", 20);
         gs.AddItem("wood", 15);
+        gs.SetStoryFlag("arkus_arrived"); // Smithy is now character-first gated on Arkus's arrival
         Check("(G) commission smithy (2-day construction)", gs.CommissionBuilding("smithy"));
 
         var view = gs.GetPlanningTableView();
@@ -587,5 +598,125 @@ public partial class IntroSpike : SpikeBase
             tharrBusy != null && tharrBusy.Count > 0);
         Check("(G) tharr busy line wins over the default fallback and mentions the work underway",
             tharrBusy != null && tharrBusy[0].Text.Contains("underway"));
+    }
+
+    // ─────────────────── (H) "tavern_built" / "tavern_commissioned" derived flags (real GameState) ───────────────────
+
+    /// <summary>
+    /// Proves GameState.HasFlagForConditions' two building-id-derived flag families end to end
+    /// against a REAL (throwaway) GameState — not the simulated HasFlag lambda section F uses — and
+    /// that the shipped fenwick "tavern_built" talk-pool gate (previously "kitchen_built"; nothing in
+    /// the game ever sets a real story flag by that name) now actually fires through it.
+    /// </summary>
+    private void RunTavernBuiltDerivedFlag()
+    {
+        GD.Print("-------------------- (H) tavern_built / tavern_commissioned derived flags --------------------");
+
+        ClearSlot0();
+        var gs = new GameState { RealSecondsPerGameMinute = 0 };
+        AddChild(gs); // _Ready seeds a clean starter inventory on the clean slot
+
+        // Stock the tavern's exact construction bundle (90 wood/60 stone/15 herb — Buildings.cs; the
+        // starter inventory already holds 10 wood + 10 stone, per SeedStarterInventory).
+        gs.AddItem("wood", 80);
+        gs.AddItem("stone", 50);
+        gs.AddItem("herb", 15);
+        gs.EarnGold(1000);
+
+        Check("(H) tavern_commissioned false before commission",
+            !gs.BuildConditionContext().HasFlag("tavern_commissioned"));
+        Check("(H) tavern_built false before commission",
+            !gs.BuildConditionContext().HasFlag("tavern_built"));
+
+        Check("(H) commission the tavern (2-day construction)", gs.CommissionBuilding("tavern"));
+        Check("(H) tavern_commissioned true immediately at commission (tier already >= 1)",
+            gs.BuildConditionContext().HasFlag("tavern_commissioned"));
+        Check("(H) tavern_built still false during the commission's construction window",
+            !gs.BuildConditionContext().HasFlag("tavern_built"));
+
+        // Real dialogue path: fenwick's tavern_built-gated entry must NOT fire yet.
+        var stillBuilding = gs.DialogueDb?.GetTalkLines("fenwick", gs.BuildConditionContext());
+        Check("(H) fenwick's tavern_built line does not fire while the tavern is under construction",
+            stillBuilding == null || stillBuilding.Count == 0);
+
+        gs.Building.TickDay();
+        Check("(H) tavern_built still false after a partial tick (1 of 2 days)",
+            !gs.BuildConditionContext().HasFlag("tavern_built"));
+        gs.Building.TickDay(); // completes the 2-day tavern construction
+
+        Check("(H) tavern_built true once construction completes",
+            gs.BuildConditionContext().HasFlag("tavern_built"));
+        Check("(H) tavern_commissioned still true after completion",
+            gs.BuildConditionContext().HasFlag("tavern_commissioned"));
+
+        // Real dialogue path: the fenwick tavern_built entry now fires for real, through
+        // GameState.DialogueDb + BuildConditionContext (HasFlagForConditions) — not a simulated lambda.
+        var tavernBuiltLines = gs.DialogueDb?.GetTalkLines("fenwick", gs.BuildConditionContext());
+        Check("(H) fenwick has talk lines once tavern_built is true (real GameState flag path)",
+            tavernBuiltLines != null && tavernBuiltLines.Count > 0);
+        Check("(H) the fired line is the tavern_built entry (\"The kitchen is open...\")",
+            tavernBuiltLines != null && tavernBuiltLines.Count > 0
+            && tavernBuiltLines[0].Text.Contains("The kitchen is open"));
+
+        gs.QueueFree();
+    }
+
+    // ─────────────────── (I) Resume after a mid-intro quit ───────────────────
+
+    /// <summary>
+    /// The mid-intro quit soft-lock fix: the Continue router resumes at the right place, the road
+    /// scene skips an already-played scene, and scene-2 staging degrades cleanly with no NPC instances.
+    /// </summary>
+    private void RunResumeMidIntro()
+    {
+        GD.Print("-------------------- (I) Resume mid-intro --------------------");
+
+        // (I.a) Continue resume-route decision table (SceneRouter.ResumeRoute). The soft-lock case:
+        // quitting between road scenes 0 and 1 leaves intro_scene_0 set but intro_scene_1 unset and
+        // intro_complete unset — Continue must route back to the intro road, not the outpost.
+        Check("(I) resume routes to the road scene when neither intro_complete nor intro_scene_1 is set (mid-intro quit)",
+            SceneRouter.ResumeRoute(introComplete: false, introScene1Done: false) == SceneRouter.Mode.Intro);
+        Check("(I) resume routes to the outpost when intro_scene_1 is set but intro_complete is not (scene 2 pending there)",
+            SceneRouter.ResumeRoute(introComplete: false, introScene1Done: true) == SceneRouter.Mode.Outpost);
+        Check("(I) resume routes to the outpost once intro_complete is set (intro finished)",
+            SceneRouter.ResumeRoute(introComplete: true, introScene1Done: true) == SceneRouter.Mode.Outpost);
+
+        // (I.b) RoadScene resume skip: with intro_scene_0 already set and intro_scene_1 not, the road
+        // scene resumes at scene 1 (skips scene 0) rather than replaying from the top.
+        Check("(I) road scene resumes at scene 1 when scene 0 is done and scene 1 is not (skips scene 0)",
+            RoadScene.FirstUnplayedRoadScene(scene0Done: true, scene1Done: false) == "intro_scene_1");
+        Check("(I) road scene starts at scene 0 when neither road scene is done (fresh intro)",
+            RoadScene.FirstUnplayedRoadScene(scene0Done: false, scene1Done: false) == "intro_scene_0");
+        Check("(I) road scene has nothing to replay when both road scenes are done",
+            RoadScene.FirstUnplayedRoadScene(scene0Done: true, scene1Done: true) == null);
+
+        // (I.c) Scene-2 staging degrades cleanly with no NPC instances (F6/headless — no VillagerLoader):
+        // PrepareStaging with a null-returning lookup stages nothing, and the enter step falls back to
+        // log-and-continue so the sequence still runs to completion (no crash, no soft-lock).
+        var director = new CutsceneDirector { Name = "ItestDirector" };
+        AddChild(director);
+
+        var enterSteps = new List<DialogueStep> { new() { Type = "enter", Actor = "tharr" } };
+        director.PrepareStaging(enterSteps, _ => null); // no instance resolves — nothing hidden
+
+        bool ended = false;
+        var runner = new DialogueRunner(enterSteps, new NullEffectHandler(), dialogueId: null, once: false);
+        runner.SequenceEnded += () => ended = true;
+        director.Bind(runner);
+        runner.Start(); // enter → no staged actor → log + StagingComplete → sequence ends synchronously
+
+        Check("(I) scene-2 enter staging degrades to log-and-continue with no NPC instances (sequence completes)", ended);
+
+        director.QueueFree();
+    }
+
+    /// <summary>No-op dialogue effect handler for the staging degrade test (no GameState needed).</summary>
+    private sealed class NullEffectHandler : IDialogueEffectHandler
+    {
+        public string? PlayerName => null;
+        public void SetFlag(string flagId) { }
+        public void AddFriendship(string charId, int amount) { }
+        public void GiveItem(string itemId, int quantity) { }
+        public void MarkSeen(string dialogueId) { }
     }
 }

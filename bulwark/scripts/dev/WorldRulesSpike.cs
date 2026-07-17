@@ -17,7 +17,8 @@ namespace Bulwark.Dev;
 ///  (2) Placeable collision in a minimal physics world: a resource node body blocks a
 ///      CharacterBody2D, a depleted node stops blocking, the transition sign / lever carry solid
 ///      bodies, a roamer is stopped by a wall, and roamer→player contact still fires the
-///      encounter event (it is distance-based, so collision cannot eat it).
+///      encounter event (the ContactTrigger Area2D senses the player body, so a blocking wall
+///      cannot eat it).
 ///  (3) The REAL outpost scene: the farm-world predicate is bound (tilling off the map / on
 ///      non-farmable ground / under a placed prop fails through GameState), the wall baker
 ///      covered every Walls cell without physics (counts match, no double bake), and the player
@@ -37,7 +38,7 @@ public partial class WorldRulesSpike : SpikeBase
         var gs = GetNodeOrNull<GameState>("/root/GameState");
         bool clockWasPaused = gs?.Clock.IsPaused ?? false;
         if (gs != null)
-            gs.Clock.IsPaused = true; // freeze the loaded save's clock (no mid-spike fatigue latch / dawn rollover)
+            gs.Clock.SetPaused("spike", true); // freeze the loaded save's clock (no mid-spike fatigue latch / dawn rollover)
 
         try
         {
@@ -63,7 +64,7 @@ public partial class WorldRulesSpike : SpikeBase
         finally
         {
             if (gs != null)
-                gs.Clock.IsPaused = clockWasPaused;
+                gs.Clock.SetPaused("spike", clockWasPaused);
         }
 
         FinishAndQuit("WorldRulesSpike");
@@ -176,16 +177,21 @@ public partial class WorldRulesSpike : SpikeBase
             roamer2.Position.X < 52f);
         Check("wall-blocked roamer fired no contact", !contact2);
 
-        // (2e) Contact seam intact: distance-based, so collision cannot eat the encounter signal.
+        // (2e) Contact seam intact: the ContactTrigger Area2D fires on the player BODY entering (not a
+        // bare marker), so the probe needs a real avatar — a roamer whose trigger overlaps it raises
+        // the encounter even when a wall would block the body's approach.
         string? contactId = null;
+        var playerBody = GD.Load<PackedScene>("res://scenes/cozy/player.tscn").Instantiate<PlayerController>();
+        playerBody.Position = new Vector2(160, 0);
+        world2.AddChild(playerBody);
         var roamer3 = roamerScene.Instantiate<RoamingEnemy>();
-        roamer3.Position = new Vector2(135, 0); // 25 px from the bait — inside ContactRange
+        roamer3.Position = new Vector2(135, 0); // 25 px from the player — inside the contact trigger radius (30)
         world2.AddChild(roamer3);
-        roamer3.Setup("contact_probe", bait2);
+        roamer3.Setup("contact_probe", playerBody);
         roamer3.PlayerContacted += id => contactId = id;
 
         await PhysicsFrames(3);
-        Check("roamer contact with the player still fires the encounter event", contactId == "contact_probe");
+        Check("roamer contact with the player body fires the encounter event", contactId == "contact_probe");
 
         world2.QueueFree();
         await PhysicsFrames(1);
@@ -527,7 +533,7 @@ public partial class WorldRulesSpike : SpikeBase
     private async Task TestRealForest()
     {
         GD.Print("-------------------- (4) Real forest scene --------------------");
-        var forest = GD.Load<PackedScene>("res://scenes/territory/forest.tscn").Instantiate<ForestScene>();
+        var forest = GD.Load<PackedScene>("res://scenes/territory/forest.tscn").Instantiate<TerritoryScene>();
         AddChild(forest);
         await PhysicsFrames(2);
 

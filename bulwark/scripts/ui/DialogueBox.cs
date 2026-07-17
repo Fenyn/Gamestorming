@@ -3,6 +3,7 @@ using Bulwark.Cozy;
 using Bulwark.Data.Dialogues;
 using Godot;
 
+using Bulwark.Dialogue;
 namespace Bulwark.UI;
 
 /// <summary>
@@ -119,10 +120,10 @@ public partial class DialogueBox : PanelContainer
         Closed?.Invoke();
     }
 
-    private void OnLineReady(string speaker, string text, string emotion, bool isChoice)
+    private void OnLineReady(string speakerId, string speakerName, string text, string emotion, bool isChoice)
     {
         if (_speakerLabel != null)
-            _speakerLabel.Text = speaker;
+            _speakerLabel.Text = speakerName;
 
         if (_textLabel != null)
         {
@@ -137,7 +138,7 @@ public partial class DialogueBox : PanelContainer
             _advanceIndicator.Visible = false;
 
         ClearChoices();
-        LoadPortrait(speaker, emotion);
+        LoadPortrait(speakerId, emotion);
     }
 
     private void OnChoicesReady(List<string> options)

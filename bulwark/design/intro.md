@@ -102,7 +102,7 @@ to rebuild it. You shall discover that for yourselves if you
 continue — though 'tis a long way down to learn a short lesson.
 
 FENWICK
-Well, its nice to meet such a well-informed stranger on an empty road.
+Well, it's nice to meet such a well-informed stranger on an empty road.
 
 ELARA
 I have traded these routes for a good many years. Long enough to
@@ -362,7 +362,7 @@ It is the unfortunate truth.
 THARR
 Three.
 (he looks at the outpost behind him)
-I suppose its better than none.
+I suppose it's better than none.
 
 [Converge]
 PLAYER
@@ -423,6 +423,180 @@ Good.
 
 [Fade out. Player gains control at outpost. Flag: intro_complete]
 ```
+
+---
+
+# Story cutscenes (post-intro)
+
+These are in-world dialogue-box sequences that fire during play, not part of the opening road
+cutscene. They follow the same JSON/dialogue-box pattern as the intro scenes and use the same voice
+guide above (plus Arkus below). They belong to the early-game progression rework
+(`design/tutorial.md`, `design/tutorial_quests.md`, added 2026-07-16). Drafts are concise — these are
+short modal beats, not the full road cutscenes.
+
+**Arkus's voice** (see `design/characters/arkus.md`): blunt orc honesty. Says exactly what he thinks,
+no softening, no cruelty intended. Short, plain sentences. He states problems as facts and expects the
+same in return. Underneath the bluntness is someone who cares more than he knows how to show.
+
+---
+
+## Day-1 close — "The Hearth and the Howl"
+
+*Fires automatically the moment the lodging repair is turned in on Day 1 (flag `lodging_repaired`).
+Day 1's clock is frozen until this plays; the sequence ends by advancing to Day 2 and setting
+`first_rest`. The player does not choose to sleep — the day closes on its own. Two beats: Fenwick at
+the hearth as the light goes, then a wolf's howl heard through the dark.*
+
+### Draft dialogue — Day-1 close
+
+```
+[The lodging is patched. Evening light. Fenwick is crouched at the
+old hearth inside the hall, sleeves pushed up, examining the flue.]
+
+FENWICK
+Walls that hold, a roof that keeps the rain off the soup. You have
+done more today than the crown managed in nine years.
+
+PLAYER
+That was Tharr's doing. I only carried the stone.
+
+FENWICK
+Carrying the stone is most of it. Ask any mason.
+(he peers up the chimney)
+And this — this is a proper hearth under all the soot. The draw is
+honest. Give me a few days and it will feed everyone here.
+
+[He stands, brushing ash from his hands. The light through the
+doorway has gone amber, then grey.]
+
+FENWICK
+Get some rest. Whatever this place is going to be, it starts
+tomorrow. Tonight it can simply be standing.
+
+[Fade to black. A beat of quiet. Then, from far off in the dark —
+a long, low howl. Held too long to be a dog. Closer than anyone
+would like.]
+
+[Fade in on morning. Day 2. The howl is not mentioned yet — it
+sits under the day like a splinter.]
+```
+
+**Flags:** sets `first_rest`; advances to Day 2; unfreezes the day clock. The howl is foreshadow only —
+the dire wolf thread pays it off later (`design/tutorial_quests.md`).
+
+---
+
+## Arkus found — "On the Road Home"
+
+*Fires on the party's first return to the outpost after the dire wolf is slain (flag
+`dire_wolf_slain`, sets `arkus_found`). Template: the arrival-triggered cutscene pattern used for intro
+Scene 2. The full squad — player, Tharr, Fenwick, Elara — is coming home from the kill and finds a
+wounded orc on the road. He is placed as an unconscious resident afterward; he does not wake here.*
+
+### Draft dialogue — Arkus found
+
+```
+[The road back to the outpost. The party is worn from the wolf.
+Something large is slumped against the roots at the roadside — an
+orc, armor scored and broken, not moving.]
+
+ELARA
+Hold. There — off the road.
+
+[They approach. The orc is breathing, barely. Wounds days old,
+none of them tended right.]
+
+FENWICK
+Stars above. He is alive. Only just.
+
+PLAYER
+Same wounds as the wolf gave. Look at the spacing. It had him
+before it had us.
+
+THARR
+(kneeling, checking the orc's weight)
+Then it is a debt.
+(a beat)
+We carry him.
+
+ELARA
+He is twice your size, mason.
+
+THARR
+Stone is heavier. Take his other arm.
+
+[They lift the orc between them. Fade as they carry him through
+the gate.]
+```
+
+**Flags:** sets `arkus_found`. Arkus is placed as an unconscious resident at the outpost. His wake is a
+separate beat (below), gated on the Trading Post being built.
+
+---
+
+## Arkus wakes — "What Was Not Enough"
+
+*Fires at the start of the day after both `arkus_found` and `trading_post_built` are set (quest 9,
+"The Smith and the Sickbed"). Sets `arkus_awake`; his asks make BOTH the Smithy and the Infirmary
+commissionable at the planning table.*
+
+### Draft dialogue — Arkus wakes
+
+```
+[Arkus is upright on the mended bunk, stiff, bandaged wrong in
+two places. He looks at the party without ceremony.]
+
+ARKUS
+You are the ones who carried me. Good. I hate owing strangers.
+
+PLAYER
+You were on the road past the near forest. A dire wolf.
+
+ARKUS
+The wolf. Yes.
+(flat, no drama)
+I went in to prove something. I came out like this. What I carried
+was not enough. Bad steel breaks when you need it to hold.
+
+[He tests his arm, winces, does not complain.]
+
+ARKUS
+You killed it, then. With better luck than sense, probably. Next
+thing out of that forest will be worse. You will want a forge. I
+can build one. I know metal — it is the one thing the rite did not
+take from me.
+
+PLAYER CHOICE:
+  > "We have a place for a smithy. It's yours."
+  > "You could barely stand a moment ago."
+
+[If "it's yours"]
+ARKUS
+Then it is settled. I start when the frame is up.
+
+[If "barely stand"]
+ARKUS
+I mended a spearhead once with a broken hand. Standing is
+optional. Straight steel is not.
+
+[Converge. He glances down at his own botched bandages.]
+
+ARKUS
+And this — whoever wrapped me meant well and did it wrong. You
+have no proper place to mend the hurt. There will be more of us
+coming back like I did. Build somewhere to put them. A sickbed,
+before you need one and do not have it.
+
+THARR
+(from the doorway)
+A forge and an infirmary.
+(a nod)
+The table can hold both.
+```
+
+**Flags:** sets `arkus_awake`. Unlocks Smithy (`arkus_awake`) and Infirmary (`arkus_awake`) at the
+planning table. Josen — the monk who will run the Infirmary — arrives 1-3 days after it is built, via a
+random event (`design/economy/characters.md`).
 
 ---
 

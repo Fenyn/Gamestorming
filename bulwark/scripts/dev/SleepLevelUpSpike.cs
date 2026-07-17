@@ -100,9 +100,9 @@ public partial class SleepLevelUpSpike : SpikeBase
             vet.Health.MaxHP == vetMaxBefore + 12);
         Check("(1) full HP after the rest (FullHeal to the NEW max)", vet.Health.IsFullHealth);
         Check("(1) other members untouched at level 2",
-            squad.FindMember(SquadRoster.ScoutId)!.Stats!.Level == 2
+            squad.FindMember(SquadRoster.ElaraId)!.Stats!.Level == 2
             && squad.FindMember(SquadRoster.TharrId)!.Stats!.Level == 2
-            && squad.FindMember(SquadRoster.ScholarId)!.Stats!.Level == 2);
+            && squad.FindMember(SquadRoster.FenwickId)!.Stats!.Level == 2);
         Check("(1) SquadLeveledUp event reported veteran 2 -> 3",
             levelUpEvents.Count == 1
             && levelUpEvents[0].MemberId == SquadRoster.PlayerId
@@ -128,7 +128,7 @@ public partial class SleepLevelUpSpike : SpikeBase
             vet2.Health!.CurrentHP == vet2.Health.MaxHP - 7);
         Check("(2) banked 300 XP intact", squad2.GetXp(SquadRoster.PlayerId) == 300);
         Check("(2) scholar still rebuilt at level 2",
-            squad2.FindMember(SquadRoster.ScholarId)!.Stats!.Level == 2);
+            squad2.FindMember(SquadRoster.FenwickId)!.Stats!.Level == 2);
 
         // ── (3) Multi-level to the cap (on the RELOADED state — proves post-load leveling) ──
         GD.Print("-------------------- (3) Multi-level to the L5 cap --------------------");
@@ -137,15 +137,15 @@ public partial class SleepLevelUpSpike : SpikeBase
 
         foreach (var id in new[]
         {
-            SquadRoster.PlayerId, SquadRoster.ScoutId, SquadRoster.TharrId, SquadRoster.ScholarId,
+            SquadRoster.PlayerId, SquadRoster.ElaraId, SquadRoster.TharrId, SquadRoster.FenwickId,
         })
             squad2.AddXp(id, 3000);
 
         gs2.Sleep();
 
-        var scout2 = squad2.FindMember(SquadRoster.ScoutId)!;
+        var scout2 = squad2.FindMember(SquadRoster.ElaraId)!;
         var medic2 = squad2.FindMember(SquadRoster.TharrId)!;
-        var scholar2 = squad2.FindMember(SquadRoster.ScholarId)!;
+        var scholar2 = squad2.FindMember(SquadRoster.FenwickId)!;
         Check("(3) all four members at the level-5 cap",
             vet2.Stats.Level == 5 && scout2.Stats!.Level == 5
             && medic2.Stats!.Level == 5 && scholar2.Stats!.Level == 5);
@@ -153,11 +153,11 @@ public partial class SleepLevelUpSpike : SpikeBase
         Check("(3) XP above the cap stays banked (veteran 3300 - 2000 = 1300)",
             squad2.GetXp(SquadRoster.PlayerId) == 1300);
         Check("(3) exactly consumed for the others (3000 = three levels)",
-            squad2.GetXp(SquadRoster.ScoutId) == 0 && squad2.GetXp(SquadRoster.ScholarId) == 0);
+            squad2.GetXp(SquadRoster.ElaraId) == 0 && squad2.GetXp(SquadRoster.FenwickId) == 0);
         Check("(3) event reported veteran 3 -> 5 and scholar 2 -> 5",
             levelUpEvents2.Count == 4
             && levelUpEvents2.Exists(v => v.MemberId == SquadRoster.PlayerId && v.FromLevel == 3 && v.ToLevel == 5)
-            && levelUpEvents2.Exists(v => v.MemberId == SquadRoster.ScholarId && v.FromLevel == 2 && v.ToLevel == 5));
+            && levelUpEvents2.Exists(v => v.MemberId == SquadRoster.FenwickId && v.FromLevel == 2 && v.ToLevel == 5));
 
         // Scholar: L5 Spell Blending trade live on top of the school slots, Fireballs prepared.
         var casting = scholar2.Spellcasting!;

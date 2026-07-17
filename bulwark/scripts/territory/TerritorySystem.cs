@@ -9,6 +9,7 @@ using PF2e.Core;
 using PF2e.Data;
 using PF2eVec = PF2e.Vector2Int;
 
+using Bulwark.Save;
 namespace Bulwark.Territory;
 
 /// <summary>
@@ -265,6 +266,23 @@ public sealed class TerritorySystem
         _clock.SpendTime(TravelMinutes);
         CurrentTerritoryId = null;
         _travelToast = $"Traveled to the outpost — {TravelMinutes} min";
+        return true;
+    }
+
+    /// <summary>
+    /// March directly from the current territory into a LINKED one (the Verdant Fringe ⇄ Elderwood
+    /// deep-forest seam) without returning to the outpost first: the marching party is unchanged,
+    /// and the same constant cost applies as any march. Rejects when not currently in a territory,
+    /// the destination is undefined, or it is the territory already occupied.
+    /// </summary>
+    public bool TravelToLinkedTerritory(string territoryId)
+    {
+        if (CurrentTerritoryId == null || CurrentTerritoryId == territoryId || !Territories.IsDefined(territoryId))
+            return false;
+
+        _clock.SpendTime(TravelMinutes);
+        CurrentTerritoryId = territoryId;
+        _travelToast = $"Traveled to {Territories.Get(territoryId).DisplayName} — {TravelMinutes} min";
         return true;
     }
 

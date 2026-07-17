@@ -44,7 +44,14 @@ public sealed class DialogueFile
     public List<TalkPoolEntry>? Entries { get; set; }
 }
 
-/// <summary>One entry in a talk pool: a priority-ordered set of lines gated by conditions.</summary>
+/// <summary>
+/// One entry in a talk pool: a priority-ordered set of lines gated by conditions. Optionally
+/// latches <see cref="Effects"/> (e.g. a story flag) and/or offers player <see cref="Choices"/>
+/// when it plays, reusing the exact same <see cref="StepEffect"/> / <see cref="DialogueOption"/>
+/// vocabulary that dialogue sequences use. Entries with neither field are plain line-only talks
+/// (the historical shape) — both fields are optional and absent by default, so existing JSON loads
+/// unchanged.
+/// </summary>
 public sealed class TalkPoolEntry
 {
     [JsonPropertyName("priority")]
@@ -55,6 +62,64 @@ public sealed class TalkPoolEntry
 
     [JsonPropertyName("lines")]
     public List<DialogueLine> Lines { get; set; } = new();
+
+    /// <summary>
+    /// Effects latched when this entry plays (e.g. set a story flag on first talk). Same
+    /// vocabulary as sequence choice options — flag / friendship / item. Applied once, up front,
+    /// before the entry's lines are shown (Stardew-style: talking latches immediately). Absent =>
+    /// no effects.
+    /// </summary>
+    [JsonPropertyName("effects")]
+    public List<StepEffect>? Effects { get; set; }
+
+    /// <summary>
+    /// Optional player choices presented after the entry's lines. Reuses the sequence
+    /// <see cref="DialogueOption"/> shape (text + per-option effects / inline steps / next_id) and
+    /// renders through the same DialogueBox choice UI. When present, the entry's LAST line becomes
+    /// the choice prompt; author at least one line to anchor it. Absent => a plain line-only talk.
+    /// </summary>
+    [JsonPropertyName("choices")]
+    public List<DialogueOption>? Choices { get; set; }
+
+    /// <summary>
+    /// Flatten this talk entry into the <see cref="DialogueStep"/> list the shared
+    /// <see cref="Bulwark.Cozy.DialogueRunner"/> executes. Entry-level <see cref="Effects"/> become
+    /// leading immediate effect steps; each line becomes a "line" step; when <see cref="Choices"/>
+    /// are present the last line becomes a "choice" step carrying them. Pure data transform — no
+    /// Godot dependency — so it is unit-testable via the dialogue spike.
+    /// </summary>
+    public List<DialogueStep> ToSteps()
+    {
+        var steps = new List<DialogueStep>();
+
+        if (Effects != null)
+        {
+            foreach (var effect in Effects)
+                steps.Add(effect.ToStep());
+        }
+
+        bool hasChoices = Choices != null && Choices.Count > 0;
+        for (int i = 0; i < Lines.Count; i++)
+        {
+            DialogueLine line = Lines[i];
+            bool isPrompt = hasChoices && i == Lines.Count - 1;
+            steps.Add(new DialogueStep
+            {
+                Type = isPrompt ? "choice" : "line",
+                Speaker = line.Speaker,
+                Text = line.Text,
+                Emotion = line.Emotion ?? "neutral",
+                Options = isPrompt ? Choices : null,
+            });
+        }
+
+        // Choices authored without any line to anchor the prompt: emit a bare choice step so the
+        // options still render rather than being silently dropped.
+        if (hasChoices && Lines.Count == 0)
+            steps.Add(new DialogueStep { Type = "choice", Options = Choices });
+
+        return steps;
+    }
 }
 
 /// <summary>A single spoken line (speaker + text + optional emotion). Used in talk pools.</summary>
@@ -121,6 +186,20 @@ public sealed class DialogueStep
     /// <summary>Friendship point amount for friendship effects.</summary>
     [JsonPropertyName("amount")]
     public int? Amount { get; set; }
+
+    /// <summary>Item id to grant (for the "item" effect step type).</summary>
+    [JsonPropertyName("item_id")]
+    public string? ItemId { get; set; }
+
+    /// <summary>Item quantity to grant (defaults to 1 when absent, for "item" steps).</summary>
+    [JsonPropertyName("quantity")]
+    public int? Quantity { get; set; }
+
+    /// <summary>Audio stream path for the "sfx" staging step (e.g. <c>res://assets/sfx/wolf_howl.ogg</c>).
+    /// Loaded and played one-shot by the cutscene director; a missing asset degrades to a warning and
+    /// an immediate staging completion so an authored-but-not-yet-produced sound never stalls a cutscene.</summary>
+    [JsonPropertyName("sound")]
+    public string? Sound { get; set; }
 }
 
 /// <summary>One player choice in a choice step.</summary>
@@ -165,6 +244,21 @@ public sealed class StepEffect
 
     [JsonPropertyName("quantity")]
     public int? Quantity { get; set; }
+
+    /// <summary>
+    /// Project this effect onto an equivalent immediate <see cref="DialogueStep"/> (type "flag",
+    /// "friendship", or "item"), so entry-level talk effects run through the same runner path as
+    /// sequence effect steps rather than a parallel application system.
+    /// </summary>
+    public DialogueStep ToStep() => new()
+    {
+        Type = Type,
+        Character = Character,
+        Amount = Amount,
+        Set = Set,
+        ItemId = ItemId,
+        Quantity = Quantity,
+    };
 }
 
 /// <summary>

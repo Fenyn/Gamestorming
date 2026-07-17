@@ -1,3 +1,34 @@
+1.1.0 (2026-07-17)
+- Numbers now show immediately when the work screen opens: unconfigured pals
+  display their default values (3 for enabled types, X for disabled) in a dim
+  neutral color. Dim = vanilla defaults, display only; colored = managed by the
+  priority engine. Clicking a cell activates the pal with exactly the values
+  previewed.
+- Priorities now survive server restarts and pal redeployment. The game quietly
+  gives a base pal a new internal identity when it is re-instanced (restart, or
+  picking it up and putting it back), which orphaned its priorities — they now
+  migrate to the pal's new identity automatically, matched by a stable fingerprint
+  (species + talent IVs + gender). Identical bred twins are the one case that
+  cannot be told apart; those just need their priorities set again.
+- Dedicated server and remote-client support. The server now syncs priorities to
+  every modded player over the game's own replicated RPC channel, so PalPriorityUI
+  no longer needs to be on the same machine as the server. Thanks to the testers
+  in the comments for the sharp diagnosis of the old file-based design.
+- Fixed: clicking a work column a pal cannot do no longer shows a priority number
+  (the engine now checks work suitability before cycling — thanks for the report
+  and the code pointer). Bogus entries from 1.0.0 are cleaned up automatically.
+- Fixed: priority numbers could permanently disappear from a pal after longer
+  sessions — the client could announce itself on the wrong network component, so
+  the server mistook a modded click for an unmodded one and reset the pal to
+  vanilla. The client now uses its own player component and re-announces
+  periodically.
+- Fixed: config file not found on the Steam Workshop UE4SS layout (thanks for the
+  path fix in the comments).
+- Much faster fallback to lower-priority work. When a pal's preferred job gets
+  taken by someone else (or a work queue finishes), other pals now fall down
+  their priority list within a few seconds instead of idling for 15-25 seconds.
+- Internal mod versions now match the release version.
+
 1.0.0 (2026-07-14)
 - Initial release.
 - Per-pal, per-work-type priorities replacing the vanilla work toggles.

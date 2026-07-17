@@ -8,11 +8,12 @@ Page
 - Description: paste description.bbcode (editor accepts BBCode)
 - Requirements: add "UE4SS (Okaetsu fork)" — nexusmods.com/palworld/mods/3035
   (Vortex's Palworld extension can auto-install it as a dependency)
-- Changelog: paste changelog.txt into version 1.0.0
+- Changelog: paste each version's block from changelog.txt into the matching
+  version entry (1.1.0 is the current release)
 
 Files tab — upload BOTH as Main Files (both required):
-- PalPriority-1.0.0.zip    -> file name "PalPriority (logic — server/host)"
-- PalPriorityUI-1.0.0.zip  -> file name "PalPriorityUI (interface — every player)"
+- PalPriority-1.1.0.zip    -> file name "PalPriority (logic — server/host)"
+- PalPriorityUI-1.1.0.zip  -> file name "PalPriorityUI (interface — every player)"
 Each is a single-component archive rooted at ue4ss/Mods/<Name>/ — this is the
 layout the official Vortex Palworld extension parses (one tracked mod per
 archive; enabled.txt is ignored by Vortex and used by manual installs).
@@ -26,7 +27,13 @@ Images: at least one required. Best shots:
 - Work screen with numbers + X mix on a pal row (the money shot)
 - A pal at its priority-5 station with the number UI visible in the corner
 
-Before first upload: run one in-game smoke test of the current builds
-(engine 0.6.3 / UI 0.8.2) — numbers render, both click directions cycle,
-no HOOK FAILED lines. No F-keys are active in release (F8/F9/F10 are all
-behind the DEBUG flag at the top of each main.lua).
+Before upload: run the 1.1.0 verification pass — (1) single player: numbers
+render, both click directions cycle, unsuitable columns stay blank when
+clicked, console shows PrioSync lines, no HOOK FAILED lines; (2) co-op host
+with a modded and an unmodded guest; (3) dedicated server: PalPriority on the
+server only, remote modded client gets numbers on opening the work screen and
+can cycle. No F-keys are active in release (F8/F9/F10 are all behind the
+DEBUG flag at the top of each main.lua).
+
+Zips: build with 7-Zip or python zipfile, NEVER the Windows built-in
+compressor (it writes backslash entry paths that break on other OSes).

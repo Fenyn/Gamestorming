@@ -4,14 +4,20 @@
 --
 -- WHAT IT DOES
 --   Renders each work-suitability cell's priority number (1-5) directly on the
---   vanilla "Work Suitability Preference" screen. Pure display: no click handling,
---   no RPCs, no writes. It READS the same priorities.lua that the server engine
---   (PalPriority) writes — in single-player / on the host these live in the same
---   process and the same files, so we resolve the ENGINE's config path.
+--   vanilla "Work Suitability Preference" screen. Priority state arrives from
+--   the server engine (PalPriority) over its Notify_RequestClient_int32 sync
+--   channel — the only path that reaches remote clients on dedicated servers,
+--   and it executes locally on listen-server/single-player too. Reading the
+--   engine's priorities.lua from disk remains as bootstrap/fallback for hosts
+--   (same machine, same files), so the overlay still works there even if the
+--   sync channel breaks after a game patch.
 --
 --   A configured pal shows its priority number on each work type (blank when the
 --   priority is 0, so the vanilla unchecked 'X' shows through). Unconfigured pals
---   are left untouched.
+--   show a dim monochrome PREVIEW of the defaults a first click would create,
+--   computed client-side from their current toggles (enabled → 3, off → X) —
+--   colored numbers mean the priority engine manages the pal, dim ones are
+--   display-only and the pal stays vanilla until actually clicked.
 --
 -- SAFETY
 --   This poll loop touches live UI widgets every 500ms. A Lua error on the game
@@ -20,7 +26,7 @@
 --   never in a loop. A cell that fails is simply skipped this tick.
 -- ============================================================================
 
-local VERSION = "0.9.0"
+local VERSION = "1.1.0"
 
 local function log(msg)
     print(string.format("[PalPriorityUI] %s\n", msg))
@@ -88,6 +94,34 @@ local function alive(obj)
     return ok and v == true
 end
 
+-- Iterate a UE4SS TArray (or a plain Lua array as a degenerate fallback).
+-- UE4SS ForEach hands each element as a RemoteUnrealParam -> :get(); we unwrap
+-- it so callers always receive the underlying value. Same shape as the server
+-- engine's arrayForEach (kept local — the two mods share no code on purpose).
+-- Everything is pcall-guarded; we degrade to a numeric loop, then to nothing.
+local function arrayForEach(arr, fn)
+    if arr == nil then return false end
+    local ok = pcall(function()
+        arr:ForEach(function(_, elem)
+            local v = elem
+            local okg, got = pcall(function() return elem:get() end)
+            if okg then v = got end
+            fn(v)
+        end)
+    end)
+    if ok then return true end
+    -- Fallback: numeric indexing. Try TArray:GetArrayNum() first (the '#'
+    -- operator is not implemented for TArray userdata in all UE4SS builds),
+    -- then plain '#' for Lua tables.
+    local ok2 = pcall(function()
+        local n = nil
+        pcall(function() n = arr:GetArrayNum() end)
+        if n == nil then n = #arr end
+        for i = 1, n do fn(arr[i]) end
+    end)
+    return ok2
+end
+
 -- ---------------------------------------------------------------------------
 -- Config load (READ-ONLY) — same parsing as the engine's loadConfig.
 -- ---------------------------------------------------------------------------
@@ -126,7 +160,27 @@ local function resolveConfigPath()
         "Mods/PalPriority/priorities.lua",
         "ue4ss/Mods/PalPriority/priorities.lua",
         "priorities.lua",
+        -- Steam-workshop UE4SS layout (tester-verified): mods live under
+        -- <game>/Pal/Mods/NativeMods/UE4SS/Mods/ while cwd sits in Win64.
+        "../../../Mods/NativeMods/UE4SS/Mods/PalPriority/priorities.lua",
     }
+    -- Best guess first: derive the engine's dir from OUR OWN package.path entry.
+    -- UE4SS points package.path at this mod's Scripts dir, so swapping the
+    -- PalPriorityUI directory segment for PalPriority lands exactly where the
+    -- engine lives, whatever the install layout or cwd. Plain-Lua string work,
+    -- but guarded anyway — a surprise package.path shape must not kill startup.
+    pcall(function()
+        for entry in string.gmatch(package.path or "", "[^;]+") do
+            if entry:find("Mods[/\\]PalPriorityUI[/\\]") then
+                local base = entry:gsub("Scripts[/\\]%?%.lua$", "")
+                if base ~= entry then -- tail actually stripped => right entry
+                    local derived = base:gsub("PalPriorityUI([/\\])", "PalPriority%1", 1)
+                    table.insert(candidates, 1, derived .. "priorities.lua")
+                    break
+                end
+            end
+        end
+    end)
     for _, p in ipairs(candidates) do
         local f = io.open(p, "r")
         if f then
@@ -206,16 +260,23 @@ local PRIO_COLORS = {
     ["X"] = { R = 0.62, G = 0.62, B = 0.62 },
 }
 
+-- Default-preview glyphs (unconfigured pals) render in ONE uniform dim gray —
+-- deliberately outside the green→red scale above, so managed pals and
+-- display-only previews are distinguishable at a glance.
+local PREVIEW_COLOR = { R = 0.75, G = 0.75, B = 0.75 }
+
 -- Set a cell's overlay text (and its matching color), only through the
 -- changed-value gate below — the caller compares against lastText first, so we
--- don't rebuild an FText or restyle every 500ms.
-local function setText(tb, cellName, str)
+-- don't rebuild an FText or restyle every 500ms. The gate compares the
+-- STYLE-QUALIFIED token ("3" real vs "3~" preview) that we cache here, so a
+-- same-glyph preview↔real transition (first click / release) still restyles.
+local function setText(tb, cellName, str, isPreview)
     local ft = makeFText(str)
     if ft == nil then return end
     local ok = pcall(function() tb:SetText(ft) end)
     if ok then
-        lastText[cellName] = str
-        local c = PRIO_COLORS[str]
+        lastText[cellName] = isPreview and (str .. "~") or str
+        local c = isPreview and PREVIEW_COLOR or PRIO_COLORS[str]
         if c then
             pcall(function()
                 tb:SetColorAndOpacity({
@@ -257,7 +318,7 @@ end
 -- NEVER read bindedSlot. Instead: the row's BindFromSlot is a BLUEPRINT function
 -- (always executes via the hookable reflection layer); hook it and capture the
 -- row -> pal-key mapping at bind time, with the slot arriving as a safe hook arg.
-local rowKeyCache = {} -- rowFullName -> palKey (rows are recycled; rebind overwrites)
+local rowKeyCache = {} -- rowFullName -> { key, raw, preview? } (rows recycle; rebind overwrites)
 local bindHooked = false
 local bindCaptures = 0
 -- Screen-open signal. BindFromSlot fires on every screen open/rebind (verified),
@@ -267,7 +328,13 @@ local bindCaptures = 0
 local menuLikelyOpen = false
 local menuRef = nil -- cached menu widget while open (avoids FindAllOf per tick)
 local uiInternal = false -- true while WE call the toggle RPC (right-click path)
-local helloSent = false  -- PrioMod_Ping announced this session
+local lastPingAt = -math.huge -- os.clock() of the last SUCCESSFUL PrioMod_Ping
+
+-- Server-pushed priority state (see the Notify_RequestClient_int32 hook below).
+-- Once ANY sync message parses, `synced` supersedes the file-read `config`.
+local synced = { pals = {} }
+local syncReceived = false
+local syncLogs = 0 -- first-few sync messages get logged, then quiet
 
 local ROW_BP_CLASS = "/Game/Pal/Blueprint/UI/UserInterface/IngameMenu/WorkSuitabilityPreference/WBP_WorlSuitabilityPreference_PalList.WBP_WorlSuitabilityPreference_PalList_C"
 local ROW_BIND_FN = ROW_BP_CLASS .. ":BindFromSlot"
@@ -315,6 +382,45 @@ local function tryHookBind()
                     if bindCaptures <= 5 then
                         log(string.format("bind capture #%d: %s", bindCaptures, key))
                     end
+                    -- DEFAULT PREVIEW (display-only, no server traffic). Without
+                    -- a config entry the row shows nothing until first click; so
+                    -- precompute the row the server's auto-config WOULD create
+                    -- (enabled work types → 3, off-list types → 0/X) from the
+                    -- pal's own replicated data. Runs strictly AFTER the key/raw
+                    -- capture above — any failure here just leaves .preview nil
+                    -- and the row keeps its vanilla checkboxes; the capture
+                    -- itself must never be blocked. A rebind (screen reopen /
+                    -- scroll recycle) recomputes, so the preview tracks vanilla
+                    -- toggle changes made while unconfigured.
+                    -- NOTE: TryGetIndividualParameter may legitimately fail on
+                    -- remote clients when the parameter isn't replicated for
+                    -- this pal yet — the preview silently degrades, nothing else.
+                    pcall(function()
+                        local param = nil
+                        pcall(function() param = handle:TryGetIndividualParameter() end)
+                        if not alive(param) then return end
+                        -- The pal's vanilla off-list (unchecked work types).
+                        local off = {}
+                        pcall(function()
+                            local list = param.SaveParameter.WorkSuitabilityOptionInfo.OffWorkSuitabilityList
+                            arrayForEach(list, function(v)
+                                if type(v) == "number" then off[v] = true end
+                            end)
+                        end)
+                        local prio = {}
+                        local any = false
+                        for t = 1, WORK_MAX do
+                            local has = false
+                            pcall(function() has = param:HasWorkSuitability(t) end)
+                            if has == true then
+                                prio[t] = off[t] and 0 or 3
+                                any = true
+                            end
+                        end
+                        if any then
+                            rowKeyCache[rname].preview = { prio = prio, preview = true }
+                        end
+                    end)
                 end
             end)
         end)
@@ -336,6 +442,60 @@ end
 local function resolveRaw(rowName)
     local e = rowKeyCache[rowName]
     return e and e.raw or nil
+end
+
+-- ---------------------------------------------------------------------------
+-- Our OWN network component. The server identifies modded clients by WHICH
+-- component their messages arrive on, so FindFirstOf("PalNetworkBaseCampComponent")
+-- is a multiplayer correctness bug: it can return a stale instance or ANOTHER
+-- player's component, making the server treat this player's toggles as unmodded
+-- and RELEASE the pal (config deleted → the "numbers disappear" reports).
+-- Resolve ours via the local PalPlayerController's Transmitter.BaseCamp
+-- (callpath-map: RPC surface). Cached; revalidated with alive() every call.
+-- ---------------------------------------------------------------------------
+local ownCompCache = nil
+local function getOwnBaseCampComp()
+    if alive(ownCompCache) then return ownCompCache end
+    ownCompCache = nil
+    local comp = nil
+    pcall(function()
+        local ctrls = FindAllOf("PalPlayerController")
+        if not ctrls then return end
+        for _, ctrl in ipairs(ctrls) do
+            if alive(ctrl) then
+                local cname = nil
+                pcall(function() cname = ctrl:GetFullName() end)
+                if cname and not cname:find("Default__", 1, true) then
+                    local isLocal = false
+                    pcall(function() isLocal = ctrl:IsLocalController() end)
+                    if isLocal == true then
+                        local tx = nil
+                        pcall(function() tx = ctrl.Transmitter end)
+                        if alive(tx) then
+                            local bc = nil
+                            pcall(function() bc = tx.BaseCamp end)
+                            if alive(bc) then comp = bc end
+                        end
+                        return -- only one controller is local; stop either way
+                    end
+                end
+            end
+        end
+    end)
+    if comp == nil then
+        -- Degraded: the old global search. Wrong-component risk returns, but a
+        -- possibly-right component still beats none at all.
+        pcall(function()
+            local c = FindFirstOf("PalNetworkBaseCampComponent")
+            if alive(c) then comp = c end
+        end)
+        if comp ~= nil then
+            logOnce("owncomp-fb",
+                "own base-camp component unresolved — FindFirstOf fallback (may be another player's)")
+        end
+    end
+    ownCompCache = comp
+    return comp
 end
 
 -- ---------------------------------------------------------------------------
@@ -536,8 +696,14 @@ local function handleCell(cell, entry)
     if type(t) ~= "number" or t <= 0 or t > WORK_MAX then return end
 
     -- Look up this pal + work type's priority. nil => pal not configured for it.
+    -- `entry` may be a real (file/synced) entry or a display-only default
+    -- preview (entry.preview) — same rendering path, dim styling.
     local prio = nil
-    if entry and entry.prio then prio = entry.prio[t] end
+    local isPreview = false
+    if entry and entry.prio then
+        prio = entry.prio[t]
+        isPreview = entry.preview == true
+    end
 
     if prio == nil then
         -- Unconfigured pal: we don't manage it. Clear a previously-injected overlay
@@ -575,10 +741,21 @@ local function handleCell(cell, entry)
     local tb = ensureTextBlock(cell, cellName)
     if not tb then return end
 
+    -- Compare the style-qualified token, not just the glyph: a preview→real
+    -- transition (or back) with the same glyph must still restyle.
     local desired = (prio > 0) and tostring(prio) or "X"
-    if lastText[cellName] ~= desired then
-        setText(tb, cellName, desired)
+    local token = isPreview and (desired .. "~") or desired
+    if lastText[cellName] ~= token then
+        setText(tb, cellName, desired, isPreview)
     end
+end
+
+-- Display source: server-pushed sync once ANY sync message has arrived, else
+-- the file read. The file fallback keeps single-player/host working even if
+-- the sync channel breaks after a game patch — deliberate resilience.
+local function activeEntry(key)
+    if syncReceived then return synced.pals[key] end
+    return config.pals[key]
 end
 
 -- Handle one cell top-to-bottom: find its row via the slate-parent chain, its
@@ -596,7 +773,14 @@ local function handleCellTop(cell)
     local key = resolveKey(rowName)
     if not key then return end
 
-    handleCell(cell, config.pals[key])
+    -- Real entries (file or synced) always win; an unconfigured pal falls back
+    -- to the bind-time default preview (may be nil → vanilla checkboxes).
+    local entry = activeEntry(key)
+    if entry == nil then
+        local rc = rowKeyCache[rowName]
+        entry = rc and rc.preview or nil
+    end
+    handleCell(cell, entry)
 end
 
 -- ---------------------------------------------------------------------------
@@ -647,21 +831,29 @@ local function tickBody()
         return
     end
 
-    -- Announce ourselves once per session (marks this client's component as
-    -- modded server-side even before the first click).
-    if not helloSent then
+    -- Re-ping every 60s while the screen is up: the server marks this client's
+    -- component as modded with a 600s TTL, and each ping also triggers a full
+    -- priority re-sync. The old one-shot ping let long sessions expire the TTL,
+    -- which downgraded the next click to the vanilla release path (the "numbers
+    -- disappear after a while" bug). Timestamp advances only on a successful
+    -- send, so a failed send just retries next tick.
+    if os.clock() - lastPingAt >= 60 then
         pcall(function()
-            local comp = FindFirstOf("PalNetworkBaseCampComponent")
+            local comp = getOwnBaseCampComp()
             if alive(comp) then
                 comp:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
                     FName("PrioMod_Ping"), 1)
-                helloSent = true
+                lastPingAt = os.clock()
             end
         end)
     end
 
-    -- 2. Reload the engine's config (small file; keeps last good on failure).
-    reloadConfig()
+    -- 2. Reload the engine's config (small file; keeps last good on failure) —
+    -- but only until the sync channel delivers: after that the file is moot,
+    -- and on host machines the 500ms reads can collide with the engine's saves.
+    if not syncReceived then
+        reloadConfig()
+    end
 
     -- 3. Update every cell on screen (cell -> slate-parent chain -> row -> pal).
     -- One bad cell must not stop the rest.
@@ -701,6 +893,67 @@ pcall(function()
 end)
 
 -- ---------------------------------------------------------------------------
+-- Server→client priority sync. The server pushes state to modded clients via
+-- Notify_RequestClient_int32 on this client's own component (Client+Reliable
+-- RPC; it executes locally on listen-server/single-player too, so this ONE
+-- code path covers all topologies). The FName carries the payload:
+--   "PrioSync|<palkey>|<13 chars>"  Value=1 — full row for one pal. The chars
+--       are work types 1..13 in order: '0'-'5' = explicit priority value ('0'
+--       renders as X/never), '-' = no entry (pal can't do that type → blank).
+--   "PrioDrop|<palkey>"             Value=1 — pal released/unconfigured; drop.
+-- <palkey> is the same canonical 65-char key palKey() builds — it CONTAINS a
+-- '-', so messages split on '|', never on '-'. Any other FName passes through
+-- silently (the channel is the game's own generic named-notify surface).
+-- ---------------------------------------------------------------------------
+pcall(function()
+    local ok, err = pcall(function()
+        RegisterHook("/Script/Pal.PalNetworkBaseCampComponent:Notify_RequestClient_int32",
+            function(Context, BaseCampId, FunctionName, Value)
+                -- Runs on the game thread — an uncaught error is a crash, so the
+                -- whole handler body is pcall-wrapped.
+                pcall(function()
+                    local name = nil
+                    pcall(function() name = FunctionName:get():ToString() end)
+                    if type(name) ~= "string" then return end
+                    local parsed = false
+                    if name:sub(1, 9) == "PrioSync|" then
+                        local key, rowStr = name:match("^PrioSync|([^|]+)|(.+)$")
+                        if key and rowStr and #rowStr == 13 then
+                            local entry = { prio = {} }
+                            for t = 1, 13 do
+                                local ch = rowStr:sub(t, t)
+                                if ch >= "0" and ch <= "5" then
+                                    entry.prio[t] = tonumber(ch)
+                                end
+                                -- '-' (or anything else): no entry → cell blank
+                            end
+                            synced.pals[key] = entry
+                            parsed = true
+                        end
+                    elseif name:sub(1, 9) == "PrioDrop|" then
+                        local key = name:sub(10)
+                        if #key > 0 then
+                            synced.pals[key] = nil
+                            parsed = true
+                        end
+                    end
+                    if parsed then
+                        syncReceived = true
+                        -- Log the first few messages so a live session shows the
+                        -- channel working, then go quiet (bind-capture pattern).
+                        if syncLogs < 5 then
+                            syncLogs = syncLogs + 1
+                            log(string.format("sync #%d: %s", syncLogs, name))
+                        end
+                    end
+                end)
+            end)
+    end)
+    log(ok and "HOOK OK priority sync (Notify_RequestClient_int32)"
+        or ("HOOK FAILED priority sync: " .. tostring(err)))
+end)
+
+-- ---------------------------------------------------------------------------
 -- Right-click decrement. A right-mouse keybind that acts only when the work
 -- screen is open AND the pointer is over a work cell (IsHovered). It sends a
 -- PrioMod_Dir=-1 marker through the custom transport, then the same vanilla
@@ -720,9 +973,12 @@ local function sendDecrement(cell)
     local raw = resolveRaw(rname)
     if not raw then return end
 
-    local comp = FindFirstOf("PalNetworkBaseCampComponent")
+    -- MUST be our own component: the server keys its modded-client marking on
+    -- the arrival component, and a wrong one downgrades this toggle to the
+    -- vanilla release path (see getOwnBaseCampComp).
+    local comp = getOwnBaseCampComp()
     if not alive(comp) then
-        logOnce("rclick-comp", "right-click: no PalNetworkBaseCampComponent found")
+        logOnce("rclick-comp", "right-click: no base-camp network component resolvable")
         return
     end
     local ok, err = pcall(function()

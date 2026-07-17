@@ -3,6 +3,7 @@ PalPriority adds numeric work priorities to base pals, RimWorld-style. Each pal 
 [size=4]What it does[/size]
 [list]
 [*]The work suitability screen (Monitoring Stand) shows a color-coded priority value in place of each checkbox — green (1) through yellow to red (5), gray X for never. Left click cycles X → 1 → … → 5 → X, right click cycles the other way.
+[*]Pals you haven't configured show their default values (3 / X, from their current toggles) in a dim neutral color the moment the screen opens. Dim numbers are display-only — the pal stays fully vanilla until you click; colored numbers mean the priority engine is managing it.
 [*]A pal set to Transport 1 / Mining 3 hauls until nothing needs hauling, then mines.
 [*]Pending work is tracked per type (hauling, crafting, smelting, cooking, farming, mining, etc.), with a short hold so pals commit to a task instead of flip-flopping.
 [*]Pals you never click are not touched by the mod at all.
@@ -27,13 +28,14 @@ Manual: extract the [font=Courier New]ue4ss[/font] folder from each zip into [fo
 [size=4]Multiplayer[/size]
 [list]
 [*]The server/host runs PalPriority; every player using the mod installs PalPriorityUI.
-[*]Players without the mod installed see normal checkboxes and normal pal behavior — they are unaffected.
+[*]Works on dedicated servers: the server holds the priorities and syncs them to each modded player through the game's own replicated RPC channel — PalPriorityUI does not need access to the server's files. (Linux hosts need the Windows server build under Wine/Proton, standard for UE4SS.)
+[*]Players without the mod installed see normal checkboxes and normal pal behavior — they are unaffected, and no mod traffic is ever sent to them.
 [*]If a player removes PalPriorityUI, each of their configured pals reverts to vanilla toggles the next time they click one.
 [/list]
 
 [size=4]Notes[/size]
 [list]
-[*]Tested on Steam, single player and co-op host. Dedicated servers should work but are untested so far.
+[*]Tested on Steam: single player, co-op host, and dedicated server.
 [*]Game Pass version untested.
 [*]Game updates can break UE4SS hooks. If the mod stops working after a patch, check the UE4SS console for HOOK FAILED lines and wait for an updated UE4SS build. Both scripts have a DEBUG flag at the top of main.lua that enables detailed diagnostics for bug reports.
 [*]Config file: [font=Courier New]ue4ss\Mods\PalPriority\priorities.lua[/font] — editable by hand, read at startup.

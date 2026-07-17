@@ -14,13 +14,35 @@
 --   per-pal "off list" via the RequestChangeWorkSuitability_ToServer RPC, which is
 --   the exact write path the vanilla toggle UI uses (replicated + persisted).
 --
+--   Writes route PER-OWNER: each configured pal remembers the player whose
+--   attested click manages it (cfg.owner), and its writes go through that
+--   player's own network component — the same authority the vanilla UI uses
+--   (guild-per-player servers silently reject writes sent through another
+--   player's component). Manager offline -> the pal's shaping defers quietly.
+--
+--   Pending work is tracked from the "needs worker" event, which is a PULSE
+--   (re-fires every 1-4s per unfilled job, verified for transport), not a
+--   level. Smoothing over pulse gaps happens in exactly ONE place: the pending
+--   freshness window (PENDING_FRESH_SECONDS), fast-pathed by a liveness check
+--   on the job object so filled/completed jobs drop out within one tick. The
+--   active worker needs no hold of its own — its current work counts as
+--   pending (see reconcilePal's active-worker lock). A second stacked lag
+--   mechanism (bar hysteresis) was removed after a live report of pals idling
+--   15-25s before falling back to lower-priority work.
+--
+--   Server->client priority sync: state is pushed to attested modded clients via
+--   Notify_RequestClient_int32 (Client+Reliable, called on that player's own
+--   server-side component — NEVER the Multicast variants, so unmodded clients
+--   receive nothing). Each unique FName string sent interns permanently in UE's
+--   name table; volume is bounded by clicks per session — acceptable, deliberate.
+--
 -- SAFETY
 --   This runs inside someone's game. A Lua error thrown from a hook can crash the
 --   game, so EVERY game-object access is wrapped in pcall, and repeated failures
 --   are logged once (never in a retry loop). Prefer skip-and-log over retry.
 -- ============================================================================
 
-local VERSION = "0.7.0"
+local VERSION = "1.1.0"
 
 -- CYCLE_MODE: when true, a genuine user toggle on the vanilla work screen CYCLES
 -- that work type's priority 0->1->2->3->4->5->0 (auto-configuring the pal on the
@@ -95,7 +117,7 @@ local WORKTYPE_TO_SUIT = {
 -- ---------------------------------------------------------------------------
 local config = { pals = {} }   -- loaded from priorities.lua (see loadConfig)
 local shadows = {}             -- palKey -> { [type]=true }  our belief of the pal's off-list
-local pending = {}             -- workKey -> { type=int, lastSeen=os.time() }
+local pending = {}             -- workKey -> { type=int, lastSeen=os.time(), work=<obj, alive()-gated ONLY> }
 local campComp = nil           -- captured PalNetworkBaseCampComponent used to send RPCs
 local internalCall = false     -- reentrancy guard: true while WE send an RPC (see hook)
 -- Modded-client attestation. The client UI mod sends a PrioMod_Dir marker just
@@ -104,15 +126,67 @@ local internalCall = false     -- reentrancy guard: true while WE send an RPC (s
 -- (b) prevents one player's marker being consumed by another player's toggle.
 -- Components that have EVER spoken our protocol are remembered as modded.
 local pendingDirByComp = {}    -- compFullName -> { dir=+1/-1, at=os.clock() } (stale after 1s)
-local moddedComps = {}         -- compFullName -> os.clock() of last PrioMod_* message.
+local moddedComps = {}         -- compFullName -> { comp=<component ref>, at=os.clock() of last PrioMod_* message }
 -- TTL'd because UE recycles object names: a stale entry must not classify a NEW
 -- player's component as modded. Every marker/ping refreshes it, so an active
--- modded client never expires mid-session.
+-- modded client never expires mid-session. The comp ref is the send target for
+-- the server->client sync channel; it MUST be alive()-revalidated before every
+-- use (cached UObject refs go stale — see the crash rule on alive()).
 local MODDED_TTL_SECONDS = 600
-local barHold = {}             -- palKey -> { bar=int, at=os.clock() } bar hysteresis (anti-wiggle)
-local BAR_HOLD_SECONDS = 10    -- how long a higher bar persists after its pending work vanishes
+-- PER-OWNER WRITE ROUTING. On servers where every player is in their own
+-- guild, an off-list write for pal X sent through another player's component
+-- may not be authorized for X's guild and silently no-ops. So each configured
+-- pal remembers its managing player (cfg.owner = the attested clicker) and its
+-- writes go through THAT player's own component — the same authority the
+-- vanilla UI uses. campComp stays as the legacy fallback for entries that
+-- predate the owner field. Owner offline -> the pal's shaping defers quietly.
+local ownerComps = {}          -- ownerHex (32-hex PlayerUId) -> { comp=<ref>, at=os.clock() }
+local compOwnerCache = {}      -- compFullName -> ownerHex; session cache for resolveCompOwner.
+                               -- CAVEAT: UE recycles object names, so a hit can in theory go
+                               -- stale; capture points always hold a LIVE component when they
+                               -- consult it, keeping the window small (same hazard class the
+                               -- moddedComps TTL exists for).
+-- The ONE pending-smoothing window. The "needs worker" event is a PULSE that
+-- re-fires every 1-4s per unfilled job (verified for transport), not a level:
+-- this window must exceed the worst observed re-fire gap (~4s) or unfilled
+-- jobs oscillate in and out of pending, flip-flopping toggles at pulse
+-- frequency (observed live: pals drop carried items when their current type
+-- gets fenced mid-task). Raise it if a job type is ever observed pulsing
+-- slower. Deliberately the ONLY smoothing mechanism: a bar hysteresis once
+-- stacked on top of this, and the two lags summed to 15-25s of idle pals
+-- before they fell back to lower-priority work. The active worker needs no
+-- hold at all — reconcilePal counts the pal's own current work as pending,
+-- which keeps the winner locked on independent of events.
+local PENDING_FRESH_SECONDS = 6
+-- CONVERGENCE GUARD for off-list writes. The reconciler diffs against the
+-- game's ACTUAL stored off-list every tick, so a write that silently no-ops —
+-- observed live at boot: RPC sent on a FindFirstOf component with no owning
+-- player connection — would otherwise resend identically (RPC + delta log)
+-- every 3s forever. After SEND_MAX_TRIES unacknowledged sends per pal+type we
+-- back off; any newly captured player component resets the guard
+-- (clearSendGuard) for a clean retry, since writes may work fine through it.
+local sendGuard = {}           -- "palkey|worktype" -> { tries=n, holdUntil=nil-or-os.clock() }
+local SEND_MAX_TRIES = 3
+local SEND_BACKOFF_SECONDS = 120
+local function clearSendGuard() sendGuard = {} end
 local managedCache = {}        -- palKey -> { set={[t]=true}, at=os.clock() } suitability cache
 local MANAGED_TTL_SECONDS = 60 -- suitabilities barely change; skip 13 reflection calls/pal/tick
+-- Identity migration (pal re-instancing, observed live on a dedicated server):
+-- Palworld assigns a NEW InstanceId to a base pal on server restart and on
+-- pickup+redeploy, so the palKey the config was written under stops matching
+-- and the entry silently orphans (file accumulates dead duplicates). We track
+-- every live pal's identity each tick and adopt orphaned entries onto their
+-- re-instanced pal by ANCHOR (species + immutable IVs + gender, see anchorOf)
+-- when the match is unambiguous.
+local liveSeen = {}            -- palKey -> os.clock() of last enumeration (EVERY pal, configured or not)
+local liveInfo = {}            -- palKey -> { name, anchor, raw } identity snapshot (stable while live)
+local firstTickAt = nil        -- os.clock() of the first supervisor tick (boot-grace anchor)
+local lastAdoptAt = nil        -- os.clock() of the last adoption sweep (self-throttle)
+local ADOPT_INTERVAL_SECONDS = 10   -- sweep at most this often
+local ADOPT_BOOT_GRACE_SECONDS = 60 -- bases stream in slowly after boot; a not-yet-loaded
+                                    -- base must not orphan its pals, so judge nothing early
+local LIVE_STALE_SECONDS = 30  -- unseen this long => not live (orphan / not a candidate)
+local LIVE_PRUNE_SECONDS = 600 -- forget liveSeen/liveInfo entries this stale (churn growth guard)
 local CONFIG_PATH = "Mods/PalPriority/priorities.lua" -- resolved for real at startup
 
 -- ---------------------------------------------------------------------------
@@ -228,6 +302,13 @@ local CONFIG_HEADER = [==[
 --     pals = {
 --       ["<palkey>"] = {
 --         name = "display name",         -- optional, cosmetic only
+--         anchor = "Species|hp/sh/df/g", -- optional, set by the mod, do not edit:
+--                                        --   species + immutable IVs + gender, used
+--                                        --   to re-adopt this entry when the game
+--                                        --   re-instances the pal (restart/redeploy)
+--         owner = "<32-hex PlayerUId>",  -- optional, set by the mod: the managing
+--                                        --   player (last attested clicker) whose own
+--                                        --   component carries this pal's writes
 --         prio = { [8]=5, [12]=1 },      -- [worktype]=priority (0-5); missing => 0
 --         raw  = { PlayerUId={A,B,C,D}, InstanceId={A,B,C,D} }, -- identity, do not edit
 --       },
@@ -259,6 +340,12 @@ local function serializeConfig(cfg)
         out[#out + 1] = string.format("    [%q] = {\n", k)
         if e.name then
             out[#out + 1] = string.format("      name = %q,\n", e.name)
+        end
+        if e.anchor then
+            out[#out + 1] = string.format("      anchor = %q,\n", e.anchor)
+        end
+        if e.owner then
+            out[#out + 1] = string.format("      owner = %q,\n", e.owner)
         end
 
         -- prio, sorted by work type
@@ -306,6 +393,11 @@ local function loadConfig(path)
             result.pals[k] = nil
         else
             if type(e.prio) ~= "table" then e.prio = {} end
+            -- anchor is optional (files predating it lack it entirely); a
+            -- malformed value degrades to "absent" = inert for adoption.
+            if type(e.anchor) ~= "string" then e.anchor = nil end
+            -- owner likewise optional; absent = legacy campComp routing.
+            if type(e.owner) ~= "string" then e.owner = nil end
         end
     end
     return result
@@ -354,7 +446,24 @@ local function resolveConfigPath()
         "Mods/PalPriority/priorities.lua",
         "ue4ss/Mods/PalPriority/priorities.lua",
         "priorities.lua",
+        -- Steam-workshop UE4SS layout (tester-verified exact relative path).
+        "../../../Mods/NativeMods/UE4SS/Mods/PalPriority/priorities.lua",
     }
+    -- Best candidate: derive the mod's ABSOLUTE directory from package.path,
+    -- which UE4SS seeds with each mod's Scripts dir — immune to whatever cwd
+    -- the game/loader picked. Plain Lua string work only; pcall-guarded anyway
+    -- so a weird package.path can never abort startup. The [/\\] right after
+    -- "PalPriority" is the segment boundary that keeps us from matching the
+    -- companion PalPriorityUI mod's entry.
+    pcall(function()
+        for entry in string.gmatch(package.path or "", "[^;]+") do
+            local base = entry:match("^(.*[/\\]Mods[/\\]PalPriority)[/\\]Scripts[/\\]%?%.lua$")
+            if base then
+                table.insert(candidates, 1, base .. "/priorities.lua")
+                break
+            end
+        end
+    end)
     for _, p in ipairs(candidates) do
         local f = io.open(p, "r")
         if f then
@@ -369,12 +478,20 @@ end
 -- Pending-work tracking
 -- ---------------------------------------------------------------------------
 
--- Drop pending entries not refreshed within 15s. The assign hook re-fires for a
--- job every few seconds while it stays unfilled; once filled/gone it stops, so
--- a stale entry means the work no longer needs a worker.
+-- Drop a pending entry when its pulse stops being fresh (the assign hook
+-- stopped re-firing — see PENDING_FRESH_SECONDS) OR when its work object died,
+-- the fast path: a completed/destroyed job vanishes within one 3s tick instead
+-- of aging out of the window. The stored work ref is consulted through alive()
+-- and NOTHING else (crash rule: pcall cannot catch stale-wrapper AVs); entries
+-- that somehow lack the ref fall back to pure freshness. os.time() is
+-- second-granular — fine at these window sizes, and what the file already uses.
 local function prunePending(now)
     for k, e in pairs(pending) do
-        if now - e.lastSeen > 15 then pending[k] = nil end
+        if (now - e.lastSeen) > PENDING_FRESH_SECONDS then
+            pending[k] = nil
+        elseif e.work ~= nil and not alive(e.work) then
+            pending[k] = nil
+        end
     end
 end
 
@@ -482,6 +599,30 @@ local function displayName(id, param)
     return nm
 end
 
+-- Identity-migration anchor. The InstanceId does not survive re-instancing
+-- (restart / pickup+redeploy) but the SaveParameter blob provably does, so we
+-- fingerprint the pal from stable fields inside it: species (CharacterID) +
+-- the three SAVED immutable IVs (Talent_HP/Shot/Defense — Talent_Melee is
+-- Transient/unsaved, deliberately excluded) + gender. Nicknames turned out to
+-- be empty in the wild (the "names" we store are just CharacterIDs), so name
+-- matching would be species-only and too weak; the IV spread disambiguates
+-- same-species pals except true identical twins. Returns nil unless ALL five
+-- reads succeed — a partial anchor could mis-match, absent must stay absent.
+local function anchorOf(param)
+    local a = nil
+    pcall(function()
+        if not alive(param) then return end
+        local sp = param.SaveParameter
+        local species = fstr(sp.CharacterID)
+        local hp, shot, def, gender = sp.Talent_HP, sp.Talent_Shot, sp.Talent_Defense, sp.Gender
+        if species == nil or #species == 0 then return end
+        if type(hp) ~= "number" or type(shot) ~= "number"
+            or type(def) ~= "number" or type(gender) ~= "number" then return end
+        a = species .. "|" .. hp .. "/" .. shot .. "/" .. def .. "/" .. tostring(gender)
+    end)
+    return a
+end
+
 -- Fetch the slot array from a character container. Prefer the SlotArray
 -- property (plain replicated property — most reliable access path in UE4SS);
 -- fall back to the GetSlots() by-value function return, which some UE4SS
@@ -572,21 +713,94 @@ local function findPalByKey(key)
     return foundId, foundParam
 end
 
+-- Resolve which player owns a network basecamp component, as the 32-hex
+-- PlayerUId string the owner registry is keyed by. Chain (header-verified,
+-- the same one the client mod uses): APalPlayerController.Transmitter ->
+-- .BaseCamp; the match is by GetFullName() STRING because wrapper equality
+-- across separate UE4SS calls is unreliable. Skips Default__ CDOs (crash
+-- rule). Result cached per component name for the session; nil = unresolved.
+local function resolveCompOwner(compName)
+    if type(compName) ~= "string" then return nil end
+    local hit = compOwnerCache[compName]
+    if hit then return hit end
+    local found = nil
+    pcall(function()
+        local ctrls = FindAllOf("PalPlayerController")
+        if not ctrls then return end
+        for _, ctrl in ipairs(ctrls) do
+            if found then break end
+            pcall(function()
+                if not alive(ctrl) then return end
+                local full = ctrl:GetFullName()
+                if type(full) == "string" and full:find("Default__", 1, true) then return end
+                local tx = ctrl.Transmitter
+                if not alive(tx) then return end
+                local bc = tx.BaseCamp
+                if not alive(bc) then return end
+                if bc:GetFullName() ~= compName then return end
+                local uid = ctrl:GetPlayerUId()
+                if uid == nil then return end
+                found = string.format("%08X%08X%08X%08X",
+                    norm(uid.A), norm(uid.B), norm(uid.C), norm(uid.D))
+            end)
+        end
+    end)
+    if found then compOwnerCache[compName] = found end
+    return found
+end
+
+-- Register a live component as its owning player's send target. Returns the
+-- ownerHex when resolvable (callers use it to stamp/refresh cfg.owner).
+local function registerOwnerComp(compName, compRef)
+    local owner = resolveCompOwner(compName)
+    if owner and alive(compRef) then
+        ownerComps[owner] = { comp = compRef, at = os.clock() }
+    end
+    return owner
+end
+
 -- ---------------------------------------------------------------------------
 -- The write lever: send one off-list toggle via the vanilla RPC.
 -- bOn == true  -> enable the type (remove from off-list)
 -- bOn == false -> disable the type (add to off-list)
+-- ownerHex (optional): route through THAT player's component; see below.
 -- ---------------------------------------------------------------------------
-local function sendToggle(raw, t, bOn)
-    -- Revalidate the cached component every send: it can be GC'd/recreated on
-    -- level transitions, and calling into a stale wrapper is a native crash.
-    if campComp and not alive(campComp) then campComp = nil end
-    local comp = campComp or FindFirstOf("PalNetworkBaseCampComponent")
-    if not alive(comp) then
-        logOnce("nocomp", "no PalNetworkBaseCampComponent available yet — cannot send RPC")
-        return false
+local function sendToggle(raw, t, bOn, ownerHex)
+    local comp = nil
+    if ownerHex then
+        -- PER-OWNER ROUTING: this pal's writes go through its managing
+        -- player's own component. No live component for that player -> DEFER:
+        -- return false WITHOUT sending (callers must not advance the
+        -- convergence guard for a deferred toggle). NEVER fall back to the
+        -- global component for owner-tagged entries — a wrong-guild
+        -- component's silently no-op'd write is exactly the bug this fixes.
+        local e = ownerComps[ownerHex]
+        if not (e and alive(e.comp)) then return false end
+        comp = e.comp
+    else
+        -- LEGACY routing (entries predating the owner field): global cached
+        -- component, metered by the convergence guard; the next genuine click
+        -- on such a pal stamps an owner and upgrades it.
+        -- Revalidate the cached component every send: it can be GC'd/recreated
+        -- on level transitions; calling into a stale wrapper is a native crash.
+        if campComp and not alive(campComp) then campComp = nil end
+        local hadComp = campComp ~= nil
+        comp = campComp or FindFirstOf("PalNetworkBaseCampComponent")
+        if not alive(comp) then
+            logOnce("nocomp", "no PalNetworkBaseCampComponent available yet — cannot send RPC")
+            return false
+        end
+        if not hadComp then
+            -- Replacement component (boot, or the cached one went stale): fresh
+            -- guard tries everywhere. CAVEAT: this FindFirstOf fallback can hand
+            -- back a component with NO owning player connection whose RPCs
+            -- silently no-op (observed live at boot) — still better than nothing,
+            -- and the convergence guard contains the damage until hooks (B)/(C)
+            -- adopt a proven player component.
+            clearSendGuard()
+        end
+        campComp = comp
     end
-    campComp = comp
     local ok, err = pcall(function()
         -- Reentrancy: our own RPC re-enters the RequestChangeWorkSuitability hook
         -- synchronously (listen-server ProcessEvent), so flag it to be ignored.
@@ -602,6 +816,70 @@ local function sendToggle(raw, t, bOn)
         return false
     end
     return true
+end
+
+-- ---------------------------------------------------------------------------
+-- Server -> client priority sync. On a dedicated server the client mod cannot
+-- read priorities.lua, so we push state to it over the wire instead:
+-- Notify_RequestClient_int32(FGuid, FName, int32) is a Client+Reliable RPC (the
+-- exact mirror of the runtime-proven Request_Server_int32) — calling it on the
+-- server-side instance of a SPECIFIC player's component delivers to that player
+-- only. On listen-server/single-player it executes locally through ProcessEvent,
+-- so the local client hook still fires. NEVER the Multicast variants: unmodded
+-- clients must receive nothing.
+--
+-- Wire protocol (Value is always 1; the payload rides in the FName string):
+--   "PrioSync|<palkey>|<13 chars>"  full row: work types 1..13 in order, each
+--       char '0'-'5' when cfg.prio[t] is a number, '-' when nil. '-' vs '0'
+--       matters to the client: '0' renders "X" (never), '-' renders blank.
+--   "PrioDrop|<palkey>"             pal released / no longer configured.
+-- <palkey> contains a '-' but no '|', so the client parses by splitting on '|'.
+-- ---------------------------------------------------------------------------
+
+-- Build the "PrioSync|..." string for one pal. Plain Lua only, no game objects.
+local function packSyncMsg(key, cfg)
+    local chars = {}
+    for t = WORK_MIN, WORK_MAX do
+        local p = cfg.prio[t]
+        if type(p) == "number" then
+            -- Clamp defensively: a hand-edited config value outside 0-5 must not
+            -- desync the fixed-width 13-char field the client parses.
+            chars[#chars + 1] = tostring(math.max(0, math.min(5, I(p))))
+        else
+            chars[#chars + 1] = "-"
+        end
+    end
+    return "PrioSync|" .. key .. "|" .. table.concat(chars)
+end
+
+-- Send one sync message to one component. alive() first — the refs in
+-- moddedComps are cached across ticks and can go stale.
+local function sendSync(comp, msg)
+    if not alive(comp) then return false end
+    local ok, err = pcall(function()
+        comp:Notify_RequestClient_int32({ A = 0, B = 0, C = 0, D = 0 }, FName(msg), 1)
+    end)
+    if not ok then
+        logOnce("syncsend", "Notify_RequestClient_int32 failed: " .. tostring(err))
+        return false
+    end
+    return true
+end
+
+-- Push one pal's current state (PrioSync if configured, PrioDrop if not) to
+-- every attested modded client. Doubles as the moddedComps janitor: expired or
+-- dead entries are dropped here rather than in a dedicated sweep.
+local function pushPal(key)
+    local cfg = config.pals[key]
+    local msg = cfg and packSyncMsg(key, cfg) or ("PrioDrop|" .. key)
+    local now = os.clock()
+    for name, e in pairs(moddedComps) do
+        if (now - e.at) > MODDED_TTL_SECONDS or not alive(e.comp) then
+            moddedComps[name] = nil
+        else
+            sendSync(e.comp, msg)
+        end
+    end
 end
 
 -- Read the game's ACTUAL stored off-list for a pal. Returns (set, okFlag).
@@ -642,6 +920,17 @@ local function reconcilePal(id, param, pendingByType)
     if not okr then return end
     cfg.raw = raw
 
+    -- Anchor backfill (identity migration): entries written before the anchor
+    -- field existed (or whose reads failed at capture time) get it filled from
+    -- the live pal, making them adoptable after the next re-instancing. In
+    -- memory only; persisted by whichever saveConfig happens next (not worth a
+    -- disk write of its own). Refresh-on-change lives on the managedCache-miss
+    -- branch below (60s cadence — no need to re-read five fields every tick).
+    if cfg.anchor == nil then
+        local a = anchorOf(param)
+        if a then cfg.anchor = a end
+    end
+
     -- managed = types this pal can actually do (cached: suitabilities barely
     -- change, and this is 13 reflection calls per pal otherwise — F8 clears it);
     -- eligible = managed AND prio>=1 (recomputed each tick from plain Lua state).
@@ -657,6 +946,36 @@ local function reconcilePal(id, param, pendingByType)
             if okh and has then managed[t] = true end
         end
         managedCache[key] = { set = managed, at = nowC }
+
+        -- Anchor refresh (piggybacks the same 60s cadence): IVs are immutable
+        -- in vanilla, but a future patch/mod could change them — refreshing
+        -- while the pal is live keeps the stored anchor accurate at the moment
+        -- of orphaning. In-memory; persisted by the next natural save.
+        local freshAnchor = anchorOf(param)
+        if freshAnchor and freshAnchor ~= cfg.anchor then cfg.anchor = freshAnchor end
+
+        -- PRUNE bogus prio entries (heals configs damaged before the toggle
+        -- hook's suitability guard existed): a prio key for a type this pal
+        -- cannot do is dead weight that confuses the client display. Only when
+        -- the fresh recompute is NON-empty — if all 13 HasWorkSuitability calls
+        -- failed, managed is empty and "pruning" would wipe a valid config over
+        -- a transient read failure.
+        if next(managed) ~= nil then
+            local removed = nil
+            for t in pairs(cfg.prio) do
+                if not managed[t] then
+                    removed = removed or {}
+                    removed[#removed + 1] = WORKNAME[t] or ("type" .. tostring(t))
+                    cfg.prio[t] = nil
+                end
+            end
+            if removed then
+                log(string.format("pruned bogus prio entries [%s]: %s",
+                    cfg.name or key, table.concat(removed, ", ")))
+                saveConfig(config)
+                pushPal(key) -- modded clients drop the stale numbers immediately
+            end
+        end
     end
     local eligible = {}
     for t in pairs(managed) do
@@ -674,37 +993,22 @@ local function reconcilePal(id, param, pendingByType)
         end
     end
 
-    -- ANTI-WIGGLE 1: the pal's CURRENT assignment counts as pending for it. The
-    -- event-based pending tracker only sees UNFILLED jobs — the moment this pal
-    -- takes the last transport job, transport stops "pending", the bar collapses,
-    -- and lower-priority types reopen mid-task. Counting the active job keeps the
-    -- bar up while the pal is actually doing high-priority work.
+    -- ACTIVE-WORKER LOCK: the pal's CURRENT assignment counts as pending for
+    -- it. The event-based pending tracker only sees UNFILLED jobs — the moment
+    -- this pal takes the last transport job, transport stops "pending", the bar
+    -- collapses, and lower-priority types reopen mid-task. Counting the active
+    -- job keeps the bar up while the pal is actually doing high-priority work.
+    -- This is what keeps the winning worker stable now that the bar hysteresis
+    -- is gone: the lock is level-accurate (read from the pal itself, not the
+    -- event pulse), so the winner never needs a time-based hold — while idle
+    -- pals follow the pending window alone and fall back to lower-priority
+    -- work within about one tick of the job being taken by someone else.
     pcall(function()
         local cur = param:GetCurrentWorkSuitability()
         if type(cur) == "number" and eligible[cur] then
             if not bar or eligible[cur] < bar then bar = eligible[cur] end
         end
     end)
-
-    -- ANTI-WIGGLE 2: hysteresis. A bar only relaxes (numerically rises) after
-    -- BAR_HOLD_SECONDS of genuinely nothing at its level — bridging the seconds
-    -- between finishing one job and the next "need a worker" event, which
-    -- otherwise flip-flops lower-priority types every tick.
-    local now = os.clock()
-    local hold = barHold[key]
-    if bar ~= nil then
-        if hold == nil or bar <= hold.bar or (now - hold.at) >= BAR_HOLD_SECONDS then
-            barHold[key] = { bar = bar, at = now }
-        else
-            bar = hold.bar -- recent stronger (lower) bar still holds
-        end
-    else
-        if hold and (now - hold.at) < BAR_HOLD_SECONDS then
-            bar = hold.bar
-        else
-            barHold[key] = nil
-        end
-    end
 
     -- desiredEnabled: if nothing pending, allow all eligible; otherwise only the
     -- eligible types at least as important as the bar (numerically <=).
@@ -732,20 +1036,231 @@ local function reconcilePal(id, param, pendingByType)
         end
     end
 
+    -- PER-OWNER DEFER: an owner-tagged pal whose managing player has no live
+    -- component gets NO delta sends this tick — nothing is ever sent blind
+    -- through another player's component (guild-per-player servers reject it).
+    -- Quiet skip; the convergence guard does not advance because nothing is
+    -- sent. Resumes automatically once the owner's component registers (click,
+    -- ping, or the connect-time resolver in adoptOrphans).
+    if cfg.owner then
+        local oc = ownerComps[cfg.owner]
+        if not (oc and alive(oc.comp)) then
+            logOnce("defer:" .. key, string.format(
+                "shaping deferred for [%s] — managing player not connected", cfg.name or key))
+            return
+        end
+    end
+
+    -- Every delta send is metered by the convergence guard (see sendGuard): a
+    -- type observed in its desired state clears its guard entry; a type whose
+    -- sends never take effect backs off after SEND_MAX_TRIES instead of
+    -- resending forever. Shadow semantics deliberately unchanged: a successful
+    -- send still sets sh[t] optimistically, and it is precisely the fresh
+    -- off-list read CONTRADICTING that optimism next tick that re-raises the
+    -- delta and advances the guard's tries counter.
+    local nowG = os.clock()
     for t in pairs(managed) do
         local wantOff = not desiredEnabled[t] -- disable everything not desired-enabled
         local isOff = (sh[t] == true)
-        if wantOff and not isOff then
-            if sendToggle(cfg.raw, t, false) then
-                sh[t] = true
-                log(string.format("delta [%s] %s DISABLE", cfg.name or key, WORKNAME[t] or ("type" .. t)))
-            end
-        elseif (not wantOff) and isOff then
-            if sendToggle(cfg.raw, t, true) then
-                sh[t] = nil
-                log(string.format("delta [%s] %s ENABLE", cfg.name or key, WORKNAME[t] or ("type" .. t)))
+        local gk = key .. "|" .. t
+        if wantOff == isOff then
+            sendGuard[gk] = nil -- converged (or never diverged): clean slate
+        else
+            local g = sendGuard[gk]
+            if g and g.holdUntil and nowG < g.holdUntil then
+                -- Stuck toggle backing off: skip silently (no log spam).
+            else
+                local sent = false
+                if wantOff then
+                    sent = sendToggle(cfg.raw, t, false, cfg.owner)
+                    if sent then
+                        sh[t] = true
+                        log(string.format("delta [%s] %s DISABLE", cfg.name or key, WORKNAME[t] or ("type" .. t)))
+                    end
+                else
+                    sent = sendToggle(cfg.raw, t, true, cfg.owner)
+                    if sent then
+                        sh[t] = nil
+                        log(string.format("delta [%s] %s ENABLE", cfg.name or key, WORKNAME[t] or ("type" .. t)))
+                    end
+                end
+                if sent then
+                    -- Re-read the entry: sendToggle can clearSendGuard() when it
+                    -- adopts a replacement component mid-call.
+                    g = sendGuard[gk] or { tries = 0 }
+                    g.tries = g.tries + 1
+                    if g.tries >= SEND_MAX_TRIES then
+                        g.holdUntil = os.clock() + SEND_BACKOFF_SECONDS
+                        g.tries = 0
+                        logOnce("stuck:" .. gk, string.format(
+                            "toggle for [%s] %s not taking effect after %d attempts — backing off %ds (no connected player component yet?)",
+                            cfg.name or key, WORKNAME[t] or ("type" .. t),
+                            SEND_MAX_TRIES, SEND_BACKOFF_SECONDS))
+                    end
+                    sendGuard[gk] = g
+                end
             end
         end
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- Identity migration: adopt orphaned config entries onto re-instanced pals.
+-- An "orphan" is a configured key that no longer enumerates; a "candidate" is a
+-- live pal. Matching is by anchor (anchorOf) and acts ONLY when unambiguous —
+-- guessing wrong would weld one pal's priorities onto another, so any doubt
+-- means do nothing and tell the user once. Matching itself is pure Lua state
+-- (identity captured at enumeration time); the owner-registry upkeep hosted
+-- here (it already runs on the 10s throttle) does alive()/pcall-guarded
+-- controller reads. Still pcall'd at the call site so a bug in this sweep can
+-- never kill the tick.
+-- ---------------------------------------------------------------------------
+local function adoptOrphans()
+    local now = os.clock()
+    if lastAdoptAt ~= nil and (now - lastAdoptAt) < ADOPT_INTERVAL_SECONDS then return end
+    lastAdoptAt = now
+
+    -- Owner-registry upkeep FIRST — deliberately ahead of the boot grace, so
+    -- shaping resumes within ~10s of boot for players already connected (the
+    -- grace protects orphan judgment, not write routing). Drop dead component
+    -- refs, then proactively resolve components for owners that config entries
+    -- reference but who have no live registration — shaping thus resumes on
+    -- player CONNECT, not only when they click or open the work screen.
+    for oh, oe in pairs(ownerComps) do
+        if not alive(oe.comp) then ownerComps[oh] = nil end
+    end
+    local wanted = {}   -- ownerHex -> true: referenced by config, not registered
+    for _, ce in pairs(config.pals) do
+        if ce.owner and ownerComps[ce.owner] == nil then wanted[ce.owner] = true end
+    end
+    if next(wanted) ~= nil then
+        -- ONE controller pass covers every missing owner.
+        pcall(function()
+            local ctrls = FindAllOf("PalPlayerController")
+            if not ctrls then return end
+            for _, ctrl in ipairs(ctrls) do
+                if next(wanted) == nil then break end
+                pcall(function()
+                    if not alive(ctrl) then return end
+                    local full = ctrl:GetFullName()
+                    if type(full) == "string" and full:find("Default__", 1, true) then return end
+                    local uid = ctrl:GetPlayerUId()
+                    if uid == nil then return end
+                    local hex = string.format("%08X%08X%08X%08X",
+                        norm(uid.A), norm(uid.B), norm(uid.C), norm(uid.D))
+                    if not wanted[hex] then return end
+                    local tx = ctrl.Transmitter
+                    if not alive(tx) then return end
+                    local bc = tx.BaseCamp
+                    if not alive(bc) then return end
+                    ownerComps[hex] = { comp = bc, at = os.clock() }
+                    wanted[hex] = nil
+                end)
+            end
+        end)
+    end
+
+    -- Boot grace: bases stream in over tens of seconds after start; a config
+    -- entry whose base has not loaded yet is NOT an orphan. Judge nothing early.
+    if firstTickAt == nil or (now - firstTickAt) < ADOPT_BOOT_GRACE_SECONDS then return end
+
+    -- Housekeeping: liveSeen/liveInfo grow as pals churn across a long session;
+    -- entries stale beyond matching relevance are dropped here (same loop
+    -- family, negligible at this cadence).
+    for k, at in pairs(liveSeen) do
+        if (now - at) > LIVE_PRUNE_SECONDS then
+            liveSeen[k] = nil
+            liveInfo[k] = nil
+        end
+    end
+
+    -- Classify live (fresh) pals by anchor: configured vs unconfigured. Pals
+    -- whose anchor never became readable are skipped entirely — they can
+    -- neither be adopted onto nor counted as a configured twin.
+    local unconfByAnchor = {}     -- anchor -> array of live unconfigured keys
+    local confCountByAnchor = {}  -- anchor -> count of live configured keys
+    for k, at in pairs(liveSeen) do
+        if (now - at) <= LIVE_STALE_SECONDS then
+            local info = liveInfo[k]
+            local a = info and info.anchor or nil
+            if a then
+                if config.pals[k] then
+                    confCountByAnchor[a] = (confCountByAnchor[a] or 0) + 1
+                else
+                    unconfByAnchor[a] = unconfByAnchor[a] or {}
+                    table.insert(unconfByAnchor[a], k)
+                end
+            end
+        end
+    end
+
+    -- Orphans, grouped by stored anchor. Entries WITHOUT an anchor are INERT:
+    -- never matched, never dropped (they only leave via the release path) —
+    -- anything weaker than the anchor mis-matches (the "names" we store proved
+    -- to be bare species CharacterIDs in the wild, not nicknames).
+    local orphansByAnchor = {}    -- anchor -> array of orphaned config keys
+    for k, e in pairs(config.pals) do
+        if e.anchor ~= nil then
+            local at = liveSeen[k]
+            if at == nil or (now - at) > LIVE_STALE_SECONDS then
+                orphansByAnchor[e.anchor] = orphansByAnchor[e.anchor] or {}
+                table.insert(orphansByAnchor[e.anchor], k)
+            end
+        end
+    end
+
+    local changed = false
+    local touched = {}   -- keys to pushPal after the save (old keys -> PrioDrop, new -> PrioSync)
+    for a, orphans in pairs(orphansByAnchor) do
+        local cands = unconfByAnchor[a] or {}
+        local confCount = confCountByAnchor[a] or 0
+
+        if #orphans == 1 and #cands == 1 and confCount == 0 then
+            -- Unambiguous re-instancing: move the entry to the pal's new key.
+            -- confCount == 0 matters: with a CONFIGURED twin also live on this
+            -- anchor, the orphan could belong to either pal — that's a guess,
+            -- and guesses fall through to the ambiguity log below.
+            local oldKey, newKey = orphans[1], cands[1]
+            local entry = config.pals[oldKey]
+            local info = liveInfo[newKey]
+            if info and info.raw then entry.raw = info.raw end
+            config.pals[newKey] = entry
+            config.pals[oldKey] = nil
+            shadows[oldKey], managedCache[oldKey] = nil, nil
+            shadows[newKey], managedCache[newKey] = nil, nil
+            touched[oldKey], touched[newKey] = true, true
+            changed = true
+            log(string.format("migrated [%s]: %s -> %s (pal was re-instanced)",
+                entry.name or "?", oldKey, newKey))
+        elseif #cands == 0 and confCount > 0 then
+            -- Superseded duplicates: the pal already lives under a NEW configured
+            -- key (re-configured before this sweep could migrate — e.g. by a
+            -- click that predates this feature). The orphan is dead weight, and
+            -- exactly the file bloat this feature exists to stop accumulating.
+            for _, oldKey in ipairs(orphans) do
+                local entry = config.pals[oldKey]
+                config.pals[oldKey] = nil
+                shadows[oldKey], managedCache[oldKey] = nil, nil
+                touched[oldKey] = true
+                changed = true
+                log(string.format("dropped superseded config [%s] %s",
+                    (entry and entry.name) or "?", oldKey))
+            end
+        elseif #cands >= 1 then
+            -- Ambiguous: multiple orphans or multiple live candidates on one
+            -- anchor — identical twins (same species/IVs/gender) cannot be told
+            -- apart. Never guess; the user re-clicks those pals by hand.
+            logOnce("adopt:" .. a, string.format(
+                "cannot migrate config for anchor %s (%d orphan(s), %d live candidate(s)) — identical twins cannot be told apart; re-set priorities by clicking those pals",
+                a, #orphans, #cands))
+        end
+        -- else (#cands == 0 and confCount == 0): the pal's base is likely just
+        -- not loaded right now — keep the entry and keep waiting.
+    end
+
+    if changed then
+        saveConfig(config)
+        for k in pairs(touched) do pushPal(k) end
     end
 end
 
@@ -754,6 +1269,9 @@ local function tickBody()
     -- Heartbeat: proves this mod's async queue survived startup (UE4SS can kill
     -- a mod's engine-tick processing on a "Ref was not function" exception).
     logOnce("alive", "supervisor async loop alive")
+
+    -- Boot-grace anchor for the adoption sweep (see adoptOrphans).
+    if firstTickAt == nil then firstTickAt = os.clock() end
 
     -- Nothing configured -> the supervisor has nothing to manage. Skip the
     -- director enumeration (a global object scan) entirely.
@@ -768,9 +1286,37 @@ local function tickBody()
     if not okd or not dirs then return end
     for _, dir in ipairs(dirs) do
         enumerateDir(dir, function(_, id, param)
+            -- Identity tracking for the adoption sweep: EVERY enumerated pal,
+            -- configured or not — the unconfigured live ones are the adoption
+            -- candidates. liveInfo is captured once per key (identity is stable
+            -- while the pal stays live; no reason to repeat the reflection
+            -- reads every tick). pcall: a bad id must not skip reconcile.
+            pcall(function()
+                local key = palKey(id.PlayerUId, id.InstanceId)
+                liveSeen[key] = os.clock()
+                local info = liveInfo[key]
+                if info == nil then
+                    local okr, raw = pcall(extractRaw, id)
+                    liveInfo[key] = {
+                        name = displayName(id, param),
+                        anchor = anchorOf(param),
+                        raw = okr and raw or nil,
+                    }
+                elseif info.anchor == nil then
+                    -- First capture can land on a tick where param wasn't
+                    -- readable; heal the anchor once it becomes so — a live pal
+                    -- with a nil anchor is invisible to adoption.
+                    info.anchor = anchorOf(param)
+                end
+            end)
             reconcilePal(id, param, pendingByType)
         end)
     end
+
+    -- Adoption sweep (boot grace + 10s throttle live inside it). pcall: total-
+    -- failure-safe — a thrown sweep skips the sweep, never the tick.
+    local oka, erra = pcall(adoptOrphans)
+    if not oka then logOnce("adoptsweep", "adoptOrphans error: " .. tostring(erra)) end
 end
 
 -- ---------------------------------------------------------------------------
@@ -857,7 +1403,6 @@ local function dumpRoster()
                     if param then
                         pcall(function() cur = param:GetCurrentWorkSuitability() end)
                     end
-                    local hold = barHold[key]
                     local en, dis = {}, {}
                     for t in pairs(managed) do
                         local p = cfg.prio[t] or 0
@@ -866,10 +1411,9 @@ local function dumpRoster()
                     end
                     table.sort(en); table.sort(dis)
                     log(string.format(
-                        "    plan: bar=%s%s cur=%s hold=%s | want-on {%s} | want-off {%s}",
+                        "    plan: bar=%s%s cur=%s | want-on {%s} | want-off {%s}",
                         tostring(bar), barsrc and (" via " .. WORKNAME[barsrc]) or "",
                         (type(cur) == "number" and WORKNAME[cur]) or "none",
-                        hold and string.format("%d(%.0fs)", hold.bar, os.clock() - hold.at) or "none",
                         table.concat(en, ","), table.concat(dis, ",")))
 
                     -- Ground truth vs our belief: the game's actual stored off-list
@@ -929,11 +1473,17 @@ local okA, errA = pcall(function()
                 local e = pending[wk]
                 if e then
                     e.lastSeen = os.time()
+                    -- Entries can predate the work-ref stash; heal it so the
+                    -- prunePending death fast-path can see this job too.
+                    if e.work == nil then e.work = w end
                     return
                 end
                 local t = getWorkType(w)
                 if not t then return end -- unknown class already logged once
-                pending[wk] = { type = t, lastSeen = os.time() }
+                -- The work ref rides along ONLY for prunePending's liveness
+                -- fast-path, gated through alive() — never any other member
+                -- call on it (crash rule).
+                pending[wk] = { type = t, lastSeen = os.time(), work = w }
             end)
             if not ok then logOnce("assignhook", "OnRequiredAssignWork handler error: " .. tostring(err)) end
         end)
@@ -947,8 +1497,31 @@ local okB, errB = pcall(function()
     RegisterHook("/Script/Pal.PalNetworkBaseCampComponent:RequestChangeWorkSuitability_ToServer",
         function(Context, TargetIndividualId, WorkSuitability, bOn)
             -- Always try to capture the component — it is our RPC caller.
+            -- COMPONENT ADOPTION: a GENUINE toggle only ever arrives on a live
+            -- player's component, so it unconditionally replaces the cache —
+            -- freshest wins. This evicts the boot-time FindFirstOf dud (a
+            -- component with no owning player connection whose RPCs silently
+            -- no-op — observed live). Our OWN sends (internalCall) prove
+            -- nothing about player ownership and merely fill an empty cache;
+            -- if they also triggered adoption, every resend would reset the
+            -- convergence guard and defeat it. A replacement component gets
+            -- fresh guard tries everywhere (clearSendGuard).
             pcall(function()
-                if not campComp then campComp = Context:get() end
+                local c = Context:get()
+                if not alive(c) then return end
+                if campComp == nil then
+                    campComp = c
+                elseif not internalCall and c ~= campComp then
+                    campComp = c
+                    clearSendGuard()
+                end
+                -- Per-owner registry: a genuine toggle proves this component
+                -- belongs to a live player — map it to that player's UId so
+                -- their owner-tagged pals route writes through it (and any
+                -- deferred shaping resumes).
+                if not internalCall then
+                    registerOwnerComp(c:GetFullName(), c)
+                end
             end)
             if internalCall then return end -- ignore our own writes
 
@@ -965,8 +1538,9 @@ local okB, errB = pcall(function()
                 -- our protocol before (covers a marker lost to hook-order races —
                 -- assume the default increment).
                 local step = nil
+                local compName = nil -- toggling component's name; also keys the
+                                     -- owner (managing player) resolution below
                 if CYCLE_MODE then
-                    local compName = nil
                     pcall(function()
                         local c = Context:get()
                         if alive(c) then compName = c:GetFullName() end
@@ -978,7 +1552,7 @@ local okB, errB = pcall(function()
                             pendingDirByComp[compName] = nil
                         else
                             local seen = moddedComps[compName]
-                            if seen and (os.clock() - seen) < MODDED_TTL_SECONDS then
+                            if seen and (os.clock() - seen.at) < MODDED_TTL_SECONDS then
                                 step = 1
                             end
                         end
@@ -1013,7 +1587,11 @@ local okB, errB = pcall(function()
                                         local wantOn = (cfg.prio[t] or 0) >= 1
                                         local isOn = not offNow[t]
                                         if wantOn ~= isOn then
-                                            sendToggle(raw, t, wantOn)
+                                            -- Owner routing like everywhere else; if
+                                            -- the manager is offline this restore
+                                            -- defers (send skipped) — the release
+                                            -- below still proceeds.
+                                            sendToggle(raw, t, wantOn, cfg.owner)
                                         end
                                     end
                                 end
@@ -1023,9 +1601,9 @@ local okB, errB = pcall(function()
 
                     config.pals[key] = nil
                     shadows[key] = nil
-                    barHold[key] = nil
                     managedCache[key] = nil
                     saveConfig(config)
+                    pushPal(key) -- PrioDrop: modded clients blank the pal's row
                     log(string.format(
                         "released [%s]: unattested toggle — pal returned to vanilla on/off",
                         cfg.name or key))
@@ -1033,13 +1611,78 @@ local okB, errB = pcall(function()
                 end
 
                 -- MODDED cycle path ---------------------------------------------
+                -- The attested clicker is this pal's managing player: its writes
+                -- route through their component (see sendToggle). Cache is warm —
+                -- the capture block above just registered this same component.
+                -- nil when unresolvable: the entry then keeps legacy routing.
+                local ownerHex = compName and resolveCompOwner(compName) or nil
+
                 -- Locate the live pal. Needed for auto-config (HasWorkSuitability +
                 -- off-list) and for the immediate reconcile below. If we can't find
                 -- it, this isn't a base pal we manage -> stay fully vanilla.
                 local fid, fparam = findPalByKey(key)
 
+                -- SUITABILITY GUARD (live tester bug): clicking a column the pal
+                -- cannot work (e.g. Watering on a non-waterer) must not create or
+                -- cycle a bogus prio entry. Verify against the live pal when we
+                -- have it; when we don't (pal not enumerable right now), only
+                -- allow types the config already manages — never invent an entry
+                -- we cannot verify.
+                if fparam and alive(fparam) then
+                    local okh, has = pcall(function() return fparam:HasWorkSuitability(work) end)
+                    if okh and has == false then
+                        logOnce("unsuit", "ignored toggle on unsuitable work type")
+                        return
+                    end
+                elseif cfg then
+                    if cfg.prio[work] == nil then return end
+                end
+
                 if not cfg then
                     if not fparam then return end -- not a base pal -> ignore toggle
+
+                    -- ADOPTION FAST-PATH: before minting a fresh config, check
+                    -- whether an ORPHANED entry (its key no longer enumerates —
+                    -- the pal was re-instanced on restart/redeploy) carries this
+                    -- pal's anchor. Covers the user clicking a re-instanced pal
+                    -- before the 10s sweep notices; without this the click
+                    -- would mint defaults and strand the old priorities forever.
+                    -- Unreadable anchor -> no adoption (anchorless entries are
+                    -- inert by design, and nothing weaker is trustworthy).
+                    local myAnchor = anchorOf(fparam)
+                    local orphanKey, orphanN = nil, 0
+                    if myAnchor then
+                        local nowA = os.clock()
+                        for k2, e2 in pairs(config.pals) do
+                            if k2 ~= key and e2.anchor == myAnchor then
+                                local at = liveSeen[k2]
+                                if at == nil or (nowA - at) > LIVE_STALE_SECONDS then
+                                    orphanN = orphanN + 1
+                                    orphanKey = k2
+                                end
+                            end
+                        end
+                    end
+                    if orphanN == 1 then
+                        -- Exactly one match: adopt it onto this key. The normal
+                        -- cycle+save+push code below then applies this click to
+                        -- the adopted priorities, exactly as if the pal had
+                        -- always lived under its new key.
+                        cfg = config.pals[orphanKey]
+                        local okr, raw = pcall(extractRaw, fid or id)
+                        if okr then cfg.raw = raw end
+                        config.pals[key] = cfg
+                        config.pals[orphanKey] = nil
+                        shadows[orphanKey], managedCache[orphanKey] = nil, nil
+                        shadows[key], managedCache[key] = nil, nil
+                        log(string.format("adopted config [%s] on first click", cfg.name or key))
+                        pushPal(orphanKey) -- PrioDrop for the dead key (new key syncs below)
+                    end
+                    -- Zero or ambiguous (twin) matches: fall through to fresh
+                    -- auto-config.
+                end
+
+                if not cfg then
                     -- Auto-configure on first touch. Read the pal's current off-list
                     -- (same logic as initShadow) and seed every work type it can do:
                     -- enabled -> 3, disabled -> 0. NOTE: the vanilla click already
@@ -1056,7 +1699,12 @@ local okB, errB = pcall(function()
                             nInit = nInit + 1
                         end
                     end
-                    cfg = { name = displayName(fid or id, fparam), prio = prio }
+                    -- anchor rides along for identity migration (nil tolerated:
+                    -- the entry is then inert for adoption until the reconcile
+                    -- backfill manages to read one). name is cosmetic/log only.
+                    -- owner = the clicking player; nil keeps legacy routing.
+                    cfg = { name = displayName(fid or id, fparam), anchor = anchorOf(fparam),
+                            owner = ownerHex, prio = prio }
                     local okr, raw = pcall(extractRaw, fid or id)
                     if okr then cfg.raw = raw end
                     config.pals[key] = cfg
@@ -1078,8 +1726,15 @@ local okB, errB = pcall(function()
                     if on == false then sh[work] = true else sh[work] = nil end
                 end
 
+                -- MANAGER REFRESH: the attested clicker becomes (or stays) the
+                -- pal's managing player — a different modded player clicking
+                -- the pal TAKES OVER its management, because their component is
+                -- the freshest proven authority for this pal's guild.
+                if ownerHex and cfg.owner ~= ownerHex then cfg.owner = ownerHex end
+
                 cfg.prio[work] = new
                 saveConfig(config) -- persist the edit back to priorities.lua
+                pushPal(key)       -- sync the row to modded clients (covers auto-config too)
                 log(string.format("cycle [%s] %s -> %d",
                     cfg.name or key, WORKNAME[work] or ("type" .. work), new))
 
@@ -1111,16 +1766,51 @@ local okC, errC = pcall(function()
 
                 -- ANY PrioMod_* message marks the sending component as a modded
                 -- client — its toggles are then eligible for cycle semantics.
-                local compName = nil
+                -- The component ref is kept alongside the timestamp: it is the
+                -- send target for the server->client sync channel (pushPal /
+                -- sendSync alive()-revalidate it before every use).
+                local compName, compRef = nil, nil
                 pcall(function()
                     local c = Context:get()
-                    if alive(c) then compName = c:GetFullName() end
+                    if alive(c) then
+                        compName = c:GetFullName()
+                        compRef = c
+                    end
                 end)
-                if compName then moddedComps[compName] = os.clock() end
+                if compName then moddedComps[compName] = { comp = compRef, at = os.clock() } end
+
+                -- COMPONENT ADOPTION (the dedicated-server fix): ANY PrioMod_*
+                -- message proves this component belongs to a real modded
+                -- player — clients ping within seconds of opening the work
+                -- screen — so promote it to the RPC send target, evicting a
+                -- boot-time FindFirstOf dud whose writes silently no-op.
+                -- Replacement component => fresh convergence-guard tries.
+                if compRef ~= nil and compRef ~= campComp then
+                    campComp = compRef
+                    clearSendGuard()
+                end
+                -- Per-owner registry: any PrioMod_* sender is a live modded
+                -- player's component — register it so that player's owner-
+                -- tagged pals route writes through it (clients ping within
+                -- seconds of opening the work screen; deferred shaping
+                -- resumes right there on dedicated servers).
+                if compName and compRef then
+                    registerOwnerComp(compName, compRef)
+                end
 
                 if name == "PrioMod_Ping" then
                     log(string.format("PrioMod_Ping received (value=%d) — client mod announced%s",
                         Value:get(), compName and (" on " .. compName) or ""))
+                    -- Reply with FULL priority state to just this component, so a
+                    -- freshly connected client on a dedicated server catches up.
+                    -- Cost profile: ping fires ~once per minute per client while
+                    -- the work screen is open, and pal counts are small (tens),
+                    -- so the unthrottled full loop is cheap — no batching needed.
+                    if compRef and alive(compRef) then
+                        for key, cfg in pairs(config.pals) do
+                            sendSync(compRef, packSyncMsg(key, cfg))
+                        end
+                    end
                     return
                 end
 

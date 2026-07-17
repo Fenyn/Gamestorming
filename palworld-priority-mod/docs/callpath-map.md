@@ -31,6 +31,26 @@ A supervisor tick driving the off-list per pal from the priority table replicate
 `FPalInstanceID { FGuid PlayerUId; FGuid InstanceId; FString DebugName; }` via
 `UPalIndividualCharacterHandle::GetIndividualID()`. JSON key: `PlayerUId_InstanceId`.
 
+**⚠ InstanceId is NOT stable (verified live 2026-07-17, dedicated server):** Palworld
+re-instances base pals — the same pal returned with a new InstanceId after a server
+restart (SamuraiDog `...AD1DCFA9...` → `...C33911CE...`, same nickname + suitabilities),
+and a mid-session re-instance was also observed (PinkCat auto-configured under two keys
+2s apart). PlayerUId was all-zero for base workers. Anything keyed by palKey silently
+orphans on re-instance. Mitigation (1.1.0): ANCHOR FINGERPRINT — the engine stores
+`anchor = CharacterID|Talent_HP/Talent_Shot/Talent_Defense/Gender` per entry (all
+persisted SaveParameter fields, immutable IVs; refreshed while live in case a future
+patch changes them) and ADOPTS orphaned configs onto re-instanced pals by exact-unique
+anchor match (sweep + click-time fast-path); superseded duplicates are dropped.
+Identical bred twins (same species+IVs+gender) are never guessed — re-click those.
+
+Probe findings 2026-07-17 (anchor selection):
+- Names seen in configs were NOT nicknames: displayName falls back to `CharacterID`,
+  the INTERNAL species id (Cattiva=PinkCat, Pupperai=SamuraiDog, Gumoss=PlantSlime,
+  Pengullet=Penguin). NickName was empty on all probed base pals.
+- `SaveParameter.ItemContainerId.ID` is an all-zero guid on most pals (lazily
+  allocated) — unusable as an anchor. `EquipItemContainerId` and `Talent_Melee` are
+  marked Transient in the header (unsaved) — never fingerprint on them.
+
 ## Work types (EPalWorkSuitability, 13 usable)
 EmitFlame (Kindling), Watering, Seeding, GenerateElectricity, Handcraft, Collection, Deforest,
 Mining, OilExtraction, ProductMedicine, Cool, Transport, MonsterFarm. (Plus None/Anyone/MAX sentinels.)
@@ -49,7 +69,33 @@ Pure Blueprint, under `/Game/Pal/Blueprint/UI/UserInterface/IngameMenu/WorkSuita
   `SetCheckedState`, `SetEnableClick`. 26 live instances with a 2-pal base (13 × pal row).
 - Cell click → vanilla `RequestChangeWorkSuitability_ToServer` RPC (verified) — so the ENGINE owns
   cycle logic; client UI mod (PalPriorityUI) is display-only (injected TextBlock number overlays,
-  500ms poll while menu open, reads engine's priorities.lua).
+  500ms poll while menu open). Display data source since 1.1.0: server→client sync over
+  `Notify_RequestClient_int32` (primary; works on dedicated servers), with the local
+  priorities.lua read kept as a same-machine bootstrap/fallback.
+
+## Write routing (1.1.0, multi-guild correctness)
+The supervisor's off-list writes execute the toggle RPC on a PLAYER's server-side
+component — and the game may scope authority per guild, so the caller must be a player
+who manages that pal. Design: each config entry persists `owner = <PlayerUId hex>` (the
+player whose attested click created/last cycled it — captured for free inside hook B).
+A runtime registry maps owner → live component (learned from mod traffic, plus a
+periodic controller scan — `APalPlayerController:GetPlayerUId()` + `.Transmitter.BaseCamp`
+— so shaping resumes when the owner merely connects). Writes route through the pal's
+own manager's component; owner offline → that pal's shaping defers quietly (never send
+through a possibly-unauthorized component, never spam a boot-time playerless dud).
+Legacy owner-less entries fall back to the old campComp path, metered by the
+convergence guard (3 tries → 120s backoff), until a click upgrades them.
+
+## Sync wire protocol (1.1.0, server → modded clients)
+Channel: `comp:Notify_RequestClient_int32({0-guid}, FName(msg), 1)` on each modded player's own
+component. The server learns which components are modded from incoming `PrioMod_*` messages
+(client pings every 60s while the work screen is open; server replies to a ping with full state).
+Messages (parse by splitting on `|` — the palkey itself contains a `-`):
+- `PrioSync|<palkey>|<13 chars>` — work types 1..13 in order; `0`-`5` = explicit priority
+  (`0` renders X/never), `-` = no entry (pal lacks the suitability → cell stays blank).
+- `PrioDrop|<palkey>` — pal released/unconfigured; client forgets it.
+Note: every unique FName string interns permanently in UE's name table. Bounded by clicks per
+session (one string per config change + full-state replies) — accepted deliberately.
 - Enumeration note: container `GetSlots()` by-value return fails in UE4SS — use the `SlotArray`
   property (fixed in engine v0.1.1). BP classes need the `_C` suffix for FindAllOf.
 
@@ -102,6 +148,8 @@ Reached via `APalPlayerController.Transmitter` (`APalNetworkTransmitter`) → `.
 - `RequestFixedAssignWorkInBaseCamp_ToServer(BaseCampId, WorkId, IndividualId)` — 1.0 pin-to-station
 - `RequestUnassignWorkInBaseCamp_ToServer(BaseCampId, WorkId, IndividualId)` — kick pal off job
 - `Request_Server_int32(FGuid BaseCampId, FName FunctionName, int32 Value)` (+ _void/_bool/_FVector/_FPalNetArchive variants) — generic named RPC; candidate custom client→server transport (replaces chat-command plan)
+- `Notify_RequestClient_int32(FGuid, FName, int32)` (+ _void/_bool/_FVector/_FPalNetArchive variants; all Client+Reliable) — the exact server→client mirror of Request_Server_*. Header-verified 2026-07-17 (PalworldModdingKit). Called on the server-side instance of a player's component it delivers to that player only; on listen server / single-player it executes locally through ProcessEvent, so the client hook fires in-process. ✅ runtime-verified 2026-07-17 on a live dedicated server: client hook received PrioSync payloads pushed from the server (custom FName, no side effects observed).
+- `Notify_Multicast_*` family also exists (NetMulticast+Reliable) — deliberately NOT used: multicast would deliver to unmodded clients, whose native handling of an unknown FName is unverified.
 - Client-side UI model: `UPalUIWorkSuitabilitySettingModel::RequestChangeWorkSuitability(...)` — what the toggle widget calls; hook = click interception.
 
 ## In-game verification log

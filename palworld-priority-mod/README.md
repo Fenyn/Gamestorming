@@ -17,17 +17,24 @@ Both mods are required — the pair is the mod.
 ## Features
 
 - **Per-pal, per-work-type priorities**: RimWorld scale — 1 highest, 5 lowest, X never;
-  values color-coded green (1) through yellow to red (5).
+  values color-coded green (1) through yellow to red (5). Unconfigured pals show their
+  default values (3/X from current toggles) in dim neutral gray the moment the screen
+  opens — display-only until first click activates the pal.
 - **Integrated UI**: the vanilla Monitoring Stand work screen shows a number (or X)
   in place of each checkbox. Left-click cycles X→1→…→5→X, right-click cycles the other way.
 - **Smart supervisor**: pals only get fenced to high-priority work while that work
-  actually exists (event-driven pending tracking incl. station jobs, with hysteresis
-  so pals don't flip-flop between tasks).
+  actually exists (event-driven pending tracking incl. station jobs, smoothed by a
+  single short freshness window so pals neither flip-flop between tasks nor idle
+  when their preferred job is taken).
+- **Works on dedicated servers**: the server holds the priorities and syncs them to
+  each modded player over the game's own replicated RPC channel (`Notify_RequestClient_int32`),
+  so the UI mod never needs access to the server's files. Unmodded players are never
+  sent any mod traffic.
 - **Safe with unmodded players**: their checkboxes behave 100% vanilla. If a modded
   player uninstalls the client mod, the first checkbox they touch on a configured pal
   returns that pal to plain vanilla on/off (with its work state restored sanely).
-- **No save-file writes**: priorities live in a mod-folder Lua file; all game-state
-  changes go through the game's own replicated toggle RPC.
+- **No save-file writes**: priorities live in a mod-folder Lua file on the server; all
+  game-state changes go through the game's own replicated toggle RPC.
 
 ## Install
 
@@ -44,10 +51,12 @@ Both mods are required — the pair is the mod.
 - Open the work suitability screen (Monitoring Stand / Palbox → base pals).
 - Click any work cell: the pal is auto-configured (current toggles become 3/X) and the
   clicked type cycles. Right-click cycles down. X = never do this work.
-- A pal does its most important (lowest-numbered) work type that has pending work; when none of that
-  work exists (for ~10s), it moves down its list. Unconfigured pals are untouched.
-- Priorities persist in `ue4ss\Mods\PalPriority\priorities.lua` (auto-managed; also
-  hand-editable — edits load at game/server start).
+- A pal does its most important (lowest-numbered) work type that has pending work; when none of
+  that work exists (or another pal takes the last job), it moves down its list within a few
+  seconds. Unconfigured pals are untouched.
+- Priorities persist server-side in `ue4ss\Mods\PalPriority\priorities.lua`
+  (auto-managed; also hand-editable — edits load at game/server start). The Steam
+  Workshop UE4SS layout (`Mods\NativeMods\UE4SS\Mods\...`) is detected automatically.
 
 ### Dev diagnostics (disabled in release — no F-keys ship active)
 Both mods have a `DEBUG` flag at the top of `main.lua` (ships `false`). Flip to

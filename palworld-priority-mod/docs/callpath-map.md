@@ -15,9 +15,9 @@ runtime behavior below marked ✅ verified / ⏳ pending in-game verification.
 - `UPalBaseCampWorkerDirector` — per-basecamp roster manager. Holds `RequiredAssignWorks` queue,
   `WaitingWorkerIndividualIds : TArray<FPalInstanceID>`, `WorkerTasks`, state machine.
 - Jobs are `UPalWorkBase` objects (abstract; `OverrideWorkType : EPalWorkType`, assign/unassign/start/end delegates).
-- ⏳ `UPalBaseCampWorkerDirector::OnRequiredAssignWork_ServerInternal(UPalWorkBase*, const FPalWorkAssignRequirementParameter&)` — job-needs-worker intake.
-- ⏳ `UPalWorkBase::IsExistAssignableSlot(const UPalIndividualCharacterHandle*, bool bByFixedAssign)` — per-pal/per-job eligibility gate. **Primary priority-injection candidate.**
-- ⏳ `UPalBaseCampWorkerDirector::OnNotifiedUnassignWork_ServerInternal(UPalWorkBase*, const FPalInstanceID&)` — unassign path.
+- ✅ `UPalBaseCampWorkerDirector::OnRequiredAssignWork_ServerInternal(UPalWorkBase*, const FPalWorkAssignRequirementParameter&)` — job-needs-worker intake. Fires constantly (pulse, every 1-4s per unfilled job). `Context` is the director, which is how the engine learns camps without scanning.
+- ❌ `UPalWorkBase::IsExistAssignableSlot(...)` — **DEAD END, verified session 1:** called directly from native C++, never reaches the reflection layer, so it cannot be hooked. Inline assignment veto is impossible; the off-list supervisor is the mechanism.
+- ✅ `UPalBaseCampWorkerDirector::OnNotifiedUnassignWork_ServerInternal(UPalWorkBase*, const FPalInstanceID&)` — unassign path. Used for camp discovery only (1.2.0).
 - Suitability reads: `UPalIndividualCharacterParameter::HasWorkSuitability / HasWorkSuitabilityRank / GetWorkSuitabilityRank`.
 - Live per-pal state: `UPalCharacterParameterComponent` → `GetWork()`, `GetWorkAssign()`, `IsAssignedToAnyWork()`.
 
@@ -50,6 +50,36 @@ Probe findings 2026-07-17 (anchor selection):
 - `SaveParameter.ItemContainerId.ID` is an all-zero guid on most pals (lazily
   allocated) — unusable as an anchor. `EquipItemContainerId` and `Talent_Melee` are
   marked Transient in the header (unsaved) — never fingerprint on them.
+
+## Work-type resolution — SETTLED 2026-07-25 (WorkTypeProbe)
+UEnum reflection worked: `EPalWorkType` (0-47) and `EPalWorkSuitability` (0-15, `Anyone`=14) were
+read straight from the game. `WORKTYPE_TO_SUIT` is now annotated with the real enum names and every
+pre-existing entry checked out — the map was correct, just unverified.
+
+Three things the dump settled:
+1. **`OverrideWorkType` is authoritative when non-zero; 0 means "no override, use the class."**
+   One class carries several work types: `PalWorkTransportItemInBaseCamp` was observed with 11
+   (TransportDisposable), 16 (TransportItemInBaseCamp), 17 (CollectResourcePickable), 7
+   (TransportFood) and 0. The old order checked `CLASS_TYPE_MAP` first, so **every
+   CollectResourcePickable job was mis-labelled Transport** and hidden from pals set to Collection.
+   Resolution order is now OverrideWorkType → class map → `STATION_SUIT[AssignDefineDataId]`.
+   ⏳ The one inference to watch: 17 → Collection(6) rather than Transport(12).
+2. **Only SOME stations report 0.** `Workbench_0` carries 12 (ConvertItem) and always resolved
+   fine. `CampFire_0` and `BuildWork_0` report 0 and were invisible — `CampFire_0` → EmitFlame is
+   the root cause of the "Sootseer never leaves the ranch for a cold campfire" report.
+   Campfire also shows `RequiredWorkAmount = 0` with `AutoWorkSelfAmountBySec = 6`: continuous
+   work that never completes, which is why preemption (not finish-the-job) is the right default.
+3. **`FPalWorkAssignRequirementParameter` exposes no suitability field** under any plausible name —
+   there is nothing to read there, so the three-step order above is the whole story.
+
+Still unobserved, so still potentially invisible: furnace/smelting, mill, farm plot, ranch, cooler,
+medicine bench, power generator, lab. Each resolves IF its job sets OverrideWorkType (most enum
+values are mapped); watch the log's `unmapped work class ... assignId=X` lines and add any that
+appear to `STATION_SUIT`.
+
+## Camp scoping — VERIFIED 2026-07-25
+`dir.BaseCampId` reads fine off hook A's `Context` (`57AAE6B949DFA7F153907B9EF040538F`), and matches
+`work.BaseCampIdBelongTo` on the same job. Per-camp demand is sound.
 
 ## Work types (EPalWorkSuitability, 13 usable)
 EmitFlame (Kindling), Watering, Seeding, GenerateElectricity, Handcraft, Collection, Deforest,

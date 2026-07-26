@@ -22,10 +22,11 @@ Both mods are required — the pair is the mod.
   opens — display-only until first click activates the pal.
 - **Integrated UI**: the vanilla Monitoring Stand work screen shows a number (or X)
   in place of each checkbox. Left-click cycles X→1→…→5→X, right-click cycles the other way.
-- **Smart supervisor**: pals only get fenced to high-priority work while that work
-  actually exists (event-driven pending tracking incl. station jobs, smoothed by a
-  single short freshness window so pals neither flip-flop between tasks nor idle
-  when their preferred job is taken).
+- **Smart supervisor**: pals compete for the jobs that actually exist *at their own
+  base*. Each camp's pending work is allocated down the priority levels — a pal that
+  gets a job is fenced to its level, a pal that misses out stays free to do something
+  else rather than idling next to work it is barred from. Pals already on a task keep
+  it; more important work still preempts.
 - **Works on dedicated servers**: the server holds the priorities and syncs them to
   each modded player over the game's own replicated RPC channel (`Notify_RequestClient_int32`),
   so the UI mod never needs access to the server's files. Unmodded players are never
@@ -80,6 +81,10 @@ hand-edits to `priorities.lua` are picked up at game/server start.
 - `server-mod/`, `client-mod/` — the two mods (source of truth).
 - `docs/callpath-map.md` — every verified game API, the crash rules
   (READ THIS before touching the Lua), and the discovery history.
-- `probe/` — the reusable in-game reflection probe used for discovery (dev only).
+- `probe/` — in-game reflection probes (dev only, never shipped).
+  `WorkTypeProbe/` is the current one: install it alongside PalPriority, play for a
+  couple of minutes with a furnace/bench/ranch/plot running, and it writes
+  `worktype-dump.txt` next to itself. That dump is what closes the station-work gap
+  (see callpath-map). `PrioProbe/` is the older widget-discovery probe.
 - `attic/` — archived experimental builds (e.g. the removed force-job feature).
 - `release/` — the shippable `ue4ss/Mods` tree; zip it to share.

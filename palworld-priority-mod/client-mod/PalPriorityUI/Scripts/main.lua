@@ -26,7 +26,7 @@
 --   never in a loop. A cell that fails is simply skipped this tick.
 -- ============================================================================
 
-local VERSION = "1.1.0"
+local VERSION = "1.2.0"
 
 local function log(msg)
     print(string.format("[PalPriorityUI] %s\n", msg))
@@ -92,6 +92,15 @@ local function alive(obj)
     if obj == nil then return false end
     local ok, v = pcall(function() return obj:IsValid() end)
     return ok and v == true
+end
+
+-- Full name of a UObject, or nil. Same choke-point role as classNameOf; the
+-- alive() gate is mandatory (GetFullName on a stale wrapper is a native AV).
+local function fullNameOf(obj)
+    if not alive(obj) then return nil end
+    local n = nil
+    pcall(function() n = obj:GetFullName() end)
+    return type(n) == "string" and n or nil
 end
 
 -- Iterate a UE4SS TArray (or a plain Lua array as a degenerate fallback).
@@ -311,6 +320,17 @@ local function rowOfCell(cell)
     return nil
 end
 
+-- Poll-loop caches. FindAllOf(CELL_CLASS) and the per-cell parent/outer walk are
+-- the two expensive things a tick does, and neither changes while the same rows
+-- stay bound. Dropped on rebind, on losing the menu, or on any dead cached cell —
+-- correctness first: rescan rather than render from a stale list.
+local cellCache = nil   -- array of cell widgets (revalidated with alive() per use)
+local cellRowName = {}  -- cellFullName -> rowFullName
+local function invalidateCells()
+    cellCache = nil
+    cellRowName = {}
+end
+
 -- CRASH-CRITICAL #2 (from a second live crash): merely READING the row's
 -- `bindedSlot` SoftObjectProperty crashes natively inside UE4SS
 -- (push_softobjectproperty -> FString::operator= AV) — the crash is in the
@@ -320,6 +340,8 @@ end
 -- row -> pal-key mapping at bind time, with the slot arriving as a safe hook arg.
 local rowKeyCache = {} -- rowFullName -> { key, raw, preview? } (rows recycle; rebind overwrites)
 local bindHooked = false
+local lastHookTry = -math.huge -- os.clock() of the last registration attempt
+local HOOK_RETRY_SEC = 5       -- LoadAsset+RegisterHook are costly; don't spin at tick rate
 local bindCaptures = 0
 -- Screen-open signal. BindFromSlot fires on every screen open/rebind (verified),
 -- so it doubles as our "the work screen is (probably) up" flag. While false, the
@@ -377,6 +399,7 @@ local function tryHookBind()
                     end)
                     rowKeyCache[rname] = { key = key, raw = raw }
                     menuLikelyOpen = true -- rows binding == the screen is opening
+                    invalidateCells() -- rows rebinding == the cell list/mapping moved
                     bindCaptures = bindCaptures + 1
                     -- Log the first few captures so a live session shows the
                     -- mapping actually happening (then go quiet).
@@ -455,9 +478,14 @@ end
 -- (callpath-map: RPC surface). Cached; revalidated with alive() every call.
 -- ---------------------------------------------------------------------------
 local ownCompCache = nil
+-- true when the cached component did NOT come from the local controller (global
+-- fallback / hook adoption): good enough to send on, never trustworthy enough to
+-- decide that some OTHER component isn't ours.
+local ownCompFallback = false
 local function getOwnBaseCampComp()
     if alive(ownCompCache) then return ownCompCache end
     ownCompCache = nil
+    ownCompFallback = false
     local comp = nil
     pcall(function()
         local ctrls = FindAllOf("PalPlayerController")
@@ -491,12 +519,27 @@ local function getOwnBaseCampComp()
             if alive(c) then comp = c end
         end)
         if comp ~= nil then
+            ownCompFallback = true
             logOnce("owncomp-fb",
                 "own base-camp component unresolved — FindFirstOf fallback (may be another player's)")
         end
     end
     ownCompCache = comp
     return comp
+end
+
+-- Is this hook Context OUR component? Returns (isOwn, known). known=false means
+-- we could not authoritatively resolve our own component, and callers must keep
+-- the unguarded behavior — a solo player must never lose the feature.
+-- LISTEN SERVER: the host runs remote players' Server RPCs in-process, so the
+-- component hooks fire for other players too; acting on those attests THEIR
+-- vanilla clicks as modded cycles.
+local function isOwnComp(c)
+    local own = getOwnBaseCampComp()
+    if not alive(own) or ownCompFallback then return false, false end
+    local a, b = fullNameOf(c), fullNameOf(own)
+    if a == nil or b == nil then return false, false end
+    return a == b, true
 end
 
 -- ---------------------------------------------------------------------------
@@ -677,14 +720,11 @@ end
 -- Per-cell handling.
 -- ---------------------------------------------------------------------------
 -- Handle one cell belonging to a row whose config entry is `entry` (may be nil
--- for an unconfigured pal).
-local function handleCell(cell, entry)
-    -- Cell must be affirmatively alive (widgets can be mid-teardown between
-    -- polls), and never touch class defaults.
+-- for an unconfigured pal). `cellName` is the caller's already-resolved
+-- GetFullName (also the per-cell cache key); the caller has vetted it.
+local function handleCell(cell, cellName, entry)
+    -- Cell must be affirmatively alive (widgets can be mid-teardown between polls).
     if not alive(cell) then return end
-    local cellName = nil
-    pcall(function() cellName = cell:GetFullName() end)
-    if not cellName or cellName:find("Default__", 1, true) then return end
 
     -- Skip the battle-suitability checkbox variant entirely.
     local battle = false
@@ -764,12 +804,18 @@ end
 -- are skipped entirely (never cleared — we may just be mid-bind).
 local function handleCellTop(cell)
     if not alive(cell) then return end
+    local cellName = fullNameOf(cell)
+    if not cellName or cellName:find("Default__", 1, true) then return end
 
-    local row = rowOfCell(cell)
-    if not row then return end
-    local rowName = nil
-    pcall(function() rowName = row:GetFullName() end)
-    if not rowName then return end
+    -- Cached parent/outer walk; the cache dies with the binding that produced it.
+    local rowName = cellRowName[cellName]
+    if not rowName then
+        local row = rowOfCell(cell)
+        if not row then return end
+        rowName = fullNameOf(row)
+        if not rowName then return end
+        cellRowName[cellName] = rowName
+    end
 
     local key = resolveKey(rowName)
     if not key then return end
@@ -781,7 +827,7 @@ local function handleCellTop(cell)
         local rc = rowKeyCache[rowName]
         entry = rc and rc.preview or nil
     end
-    handleCell(cell, entry)
+    handleCell(cell, cellName, entry)
 end
 
 -- ---------------------------------------------------------------------------
@@ -800,7 +846,10 @@ end
 
 local function menuIsShowing()
     if alive(menuRef) and isShowing(menuRef) then return true end
+    -- Lost the cached menu: any cells we cached belong to a screen that is gone
+    -- or being rebuilt.
     menuRef = nil
+    invalidateCells()
     local menus = nil
     pcall(function() menus = FindAllOf(MENU_CLASS) end)
     if not menus then return false end
@@ -822,7 +871,16 @@ local function tickBody()
     logOnce("alive-hop", "poll loop game-thread hop alive")
 
     -- 0. Keep trying to register the BindFromSlot hook until the BP class loads.
-    tryHookBind()
+    -- Nothing can render without the row->pal mapping it builds, so until it
+    -- takes, retry slowly and skip the rest of the tick entirely — LoadAsset and
+    -- menuIsShowing's FindAllOf twice a second for a whole session is the stutter.
+    if not bindHooked then
+        if os.clock() - lastHookTry >= HOOK_RETRY_SEC then
+            lastHookTry = os.clock()
+            tryHookBind()
+        end
+        return
+    end
 
     -- 1. Only do work while the vanilla screen is actually showing. When it is
     -- not, drop the open-flag so the loop goes back to zero-cost idle until the
@@ -869,11 +927,20 @@ local function tickBody()
     end
 
     -- 3. Update every cell on screen (cell -> slate-parent chain -> row -> pal).
-    -- One bad cell must not stop the rest.
-    local cells = nil
-    pcall(function() cells = FindAllOf(CELL_CLASS) end)
-    if not cells then return end
-    for _, cell in ipairs(cells) do
+    -- One bad cell must not stop the rest. The scan is cached until a rebind or
+    -- menu change invalidates it; a dead cached cell means the whole list is
+    -- suspect, so drop it and rescan next tick instead of rendering from it.
+    if cellCache == nil then
+        local cells = nil
+        pcall(function() cells = FindAllOf(CELL_CLASS) end)
+        if not cells then return end
+        cellCache = cells
+    end
+    for _, cell in ipairs(cellCache) do
+        if not alive(cell) then
+            invalidateCells()
+            return
+        end
         pcall(handleCellTop, cell)
     end
 end
@@ -894,10 +961,23 @@ pcall(function()
                 pcall(function()
                     local c = Context:get()
                     if not alive(c) then return end
-                    local n = nil
-                    pcall(function() n = c:GetFullName() end)
+                    -- Ours only. On a listen server the host also runs remote
+                    -- players' toggles through here; marking one makes the server
+                    -- read that player's vanilla click as a modded cycle.
+                    local isOwn, known = isOwnComp(c)
+                    if known and not isOwn then
+                        logOnce("attest-remote",
+                            "toggle on a component that is not ours — not attested (expected for other players on a listen server)")
+                        return
+                    end
+                    if not known then
+                        logOnce("attest-degraded",
+                            "own component unresolved — attesting every toggle (correct solo; a listen-server host may mark other players' clicks)")
+                    end
+                    local n = fullNameOf(c)
                     if n and not n:find("Default__", 1, true) then
                         ownCompCache = c
+                        ownCompFallback = not known
                     end
                     if uiInternal then return end -- right-click already sent its marker
                     c:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
@@ -918,6 +998,9 @@ end)
 --       are work types 1..13 in order: '0'-'5' = explicit priority value ('0'
 --       renders as X/never), '-' = no entry (pal can't do that type → blank).
 --   "PrioDrop|<palkey>"             Value=1 — pal released/unconfigured; drop.
+--   "PrioReset"                     Value=1 — sent just before a full-state
+--       batch (ping reply); clear everything so stale rows can't survive a
+--       reconnect.
 -- <palkey> is the same canonical 65-char key palKey() builds — it CONTAINS a
 -- '-', so messages split on '|', never on '-'. Any other FName passes through
 -- silently (the channel is the game's own generic named-notify surface).
@@ -929,14 +1012,22 @@ pcall(function()
                 -- Runs on the game thread — an uncaught error is a crash, so the
                 -- whole handler body is pcall-wrapped.
                 pcall(function()
+                    -- Adopt Context as OUR component only when it is ours (this
+                    -- hook fires for other players' components on a listen
+                    -- server). Payload parsing below is unconditional — the
+                    -- priority data is global, whoever it arrived for.
                     pcall(function()
+                        -- Skip the lookup when we already hold a trusted comp;
+                        -- an untrusted (fallback) one still self-heals here.
+                        if alive(ownCompCache) and not ownCompFallback then return end
                         local c = Context:get()
-                        if alive(c) then
-                            local n = nil
-                            pcall(function() n = c:GetFullName() end)
-                            if n and not n:find("Default__", 1, true) then
-                                ownCompCache = c
-                            end
+                        if not alive(c) then return end
+                        local isOwn, known = isOwnComp(c)
+                        if known and not isOwn then return end
+                        local n = fullNameOf(c)
+                        if n and not n:find("Default__", 1, true) then
+                            ownCompCache = c
+                            ownCompFallback = not known
                         end
                     end)
                     local name = nil
@@ -963,6 +1054,12 @@ pcall(function()
                             synced.pals[key] = nil
                             parsed = true
                         end
+                    elseif name == "PrioReset" then
+                        -- Precedes a full-state batch: forget pals released while
+                        -- we were disconnected. Deliberately not `parsed` — a lone
+                        -- reset must not latch syncReceived and blank the display.
+                        synced.pals = {}
+                        logOnce("sync-reset", "server sent PrioReset — cleared cached pal state before resync")
                     end
                     if parsed then
                         syncReceived = true

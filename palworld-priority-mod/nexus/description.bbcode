@@ -5,7 +5,7 @@ PalPriority adds numeric work priorities to base pals, RimWorld-style. Each pal 
 [*]The work suitability screen (Monitoring Stand) shows a color-coded priority value in place of each checkbox — green (1) through yellow to red (5), gray X for never. Left click cycles X → 1 → … → 5 → X, right click cycles the other way.
 [*]Pals you haven't configured show their default values (3 / X, from their current toggles) in a dim neutral color the moment the screen opens. Dim numbers are display-only — the pal stays fully vanilla until you click; colored numbers mean the priority engine is managing it.
 [*]A pal set to Transport 1 / Mining 3 hauls until nothing needs hauling, then mines.
-[*]Pending work is tracked per type (hauling, crafting, smelting, cooking, farming, mining, etc.), with a short hold so pals commit to a task instead of flip-flopping.
+[*]Pending work is tracked per type and per base, and shared out down the priority list — pals compete for the jobs that actually exist at their own base rather than all crowding onto the same one.
 [*]Pals you never click are not touched by the mod at all.
 [*]Priorities are stored in a config file in the mod folder. Nothing is written to save files; all in-game changes go through the game's own replicated toggle system.
 [/list]

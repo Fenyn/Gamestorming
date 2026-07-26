@@ -1,0 +1,9 @@
+PalPriorityUI (interface) 1.2.0 (2026-07-25)
+- Fixed: on a co-op host the mod could attest another player's click as its own,
+  cycling an unmodded player's vanilla checkbox. Only local clicks are marked now.
+- Performance: widget lookups and cell-to-row resolution are cached while the
+  work screen is open.
+- Performance: the work-screen hook retry no longer runs a widget search and an
+  asset load twice a second while registration is pending.
+- Fixed: priority numbers could persist on a pal that was reset to vanilla while
+  you were disconnected.

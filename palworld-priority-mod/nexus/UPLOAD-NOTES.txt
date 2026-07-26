@@ -9,11 +9,11 @@ Page
 - Requirements: add "UE4SS (Okaetsu fork)" — nexusmods.com/palworld/mods/3035
   (Vortex's Palworld extension can auto-install it as a dependency)
 - Changelog: paste each version's block from changelog.txt into the matching
-  version entry (1.1.0 is the current release)
+  version entry (1.2.0 is the current release)
 
 Files tab — upload BOTH as Main Files (both required):
-- PalPriority-1.1.0.zip    -> file name "PalPriority (logic — server/host)"
-- PalPriorityUI-1.1.0.zip  -> file name "PalPriorityUI (interface — every player)"
+- PalPriority-1.2.0.zip    -> file name "PalPriority (logic — server/host)"
+- PalPriorityUI-1.2.0.zip  -> file name "PalPriorityUI (interface — every player)"
 Each is a single-component archive rooted at ue4ss/Mods/<Name>/ — this is the
 layout the official Vortex Palworld extension parses (one tracked mod per
 archive; enabled.txt is ignored by Vortex and used by manual installs).
@@ -27,7 +27,7 @@ Images: at least one required. Best shots:
 - Work screen with numbers + X mix on a pal row (the money shot)
 - A pal at its priority-5 station with the number UI visible in the corner
 
-Before upload: run the 1.1.0 verification pass — (1) single player: numbers
+Before upload: run the verification pass — (1) single player: numbers
 render, both click directions cycle, unsuitable columns stay blank when
 clicked, console shows PrioSync lines, no HOOK FAILED lines; (2) co-op host
 with a modded and an unmodded guest; (3) dedicated server: PalPriority on the
@@ -37,3 +37,12 @@ DEBUG flag at the top of each main.lua).
 
 Zips: build with 7-Zip or python zipfile, NEVER the Windows built-in
 compressor (it writes backslash entry paths that break on other OSes).
+
+1.2.0 notes
+- The core mod gained a second script: Scripts/planner.lua. It is required —
+  main.lua does require("planner"). Anyone updating by hand must copy both.
+- priorities.lua ships in the archive (as it has since 1.0.0), so a manual
+  extract over an existing install overwrites a player's saved priorities.
+  Mention "back up priorities.lua before updating" in the update description.
+- Diagnostics ship off: DEBUG=false in both mods, VERBOSE=false in the core.
+  Verified in the built archives.

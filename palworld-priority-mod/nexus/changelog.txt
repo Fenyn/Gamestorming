@@ -1,3 +1,25 @@
+1.2.0 (2026-07-25)
+- Fixed stutter. The engine no longer scans the game's object list every tick or
+  re-checks pals when nothing has changed.
+- Pending work is counted per base. Jobs at one base no longer fence pals at
+  another base that cannot reach them.
+- Jobs are allocated down the priority list instead of fencing every pal onto the
+  same job. Pals that miss out stay available for other work instead of idling.
+- Fixed: campfire and construction work was invisible to the mod. A pal set to
+  Kindling 1 / Ranching 5 stayed in the ranch while a campfire went cold.
+- Fixed: item-pickup jobs were classified as hauling and hidden from pals set to
+  Gathering.
+- Fixed: the first click on a work cell cycled to the wrong value (3 went to 1,
+  X went to 4).
+- Fixed: pals could take the wrong job briefly after a base loaded.
+- Fixed: a pal could be left with work permanently disabled if it was reset to
+  vanilla while its managing player was offline.
+- Fixed: on a co-op host the interface mod could attest another player's click as
+  its own, cycling an unmodded player's vanilla checkbox.
+- Fixed: priority numbers could persist on a pal reset while you were disconnected.
+- Priority changes apply within about a second (previously three), and config
+  writes are batched per burst of changes rather than per click.
+
 1.1.0 (2026-07-17)
 - Numbers now show immediately when the work screen opens: unconfigured pals
   display their default values (3 for enabled types, X for disabled) in a dim

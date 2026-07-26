@@ -1,59 +1,162 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/DialogueBox.cs" id="1_dlgbx"]
 
+[sub_resource type="StyleBoxFlat" id="SB_panel"]
+content_margin_left = 28.0
+content_margin_top = 20.0
+content_margin_right = 28.0
+content_margin_bottom = 20.0
+bg_color = Color(0.15, 0.105, 0.075, 0.97)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.62, 0.45, 0.26, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="SB_portrait"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.1, 0.07, 0.05, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.5, 0.37, 0.22, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_normal"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.24, 0.17, 0.11, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.37, 0.22, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_hover"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.34, 0.25, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.68, 0.5, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_pressed"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.18, 0.13, 0.08, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.37, 0.22, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="Theme" id="Theme_choices"]
+Button/font_sizes/font_size = 18
+Button/styles/hover = SubResource("SB_btn_hover")
+Button/styles/normal = SubResource("SB_btn_normal")
+Button/styles/pressed = SubResource("SB_btn_pressed")
+
 [node name="DialogueBox" type="PanelContainer"]
-anchors_preset = 12
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_top = -160.0
+offset_left = -640.0
+offset_top = -322.0
+offset_right = 640.0
+offset_bottom = -32.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/panel = SubResource("SB_panel")
 script = ExtResource("1_dlgbx")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
+theme_override_constants/separation = 20
 
-[node name="HBox" type="HBoxContainer" parent="MarginContainer"]
-layout_mode = 2
-
-[node name="Portrait" type="TextureRect" parent="MarginContainer/HBox"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(96, 96)
-expand_mode = 1
-stretch_mode = 5
-visible = false
-
-[node name="VBox" type="VBoxContainer" parent="MarginContainer/HBox"]
+[node name="VBox" type="VBoxContainer" parent="HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
-[node name="SpeakerName" type="Label" parent="MarginContainer/HBox/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = ""
-
-[node name="DialogueText" type="RichTextLabel" parent="MarginContainer/HBox/VBox"]
+[node name="DialogueText" type="RichTextLabel" parent="HBox/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 22
 text = ""
 fit_content = true
 
-[node name="ChoiceContainer" type="VBoxContainer" parent="MarginContainer/HBox/VBox"]
+[node name="ChoiceContainer" type="VBoxContainer" parent="HBox/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme = SubResource("Theme_choices")
+theme_override_constants/separation = 6
 visible = false
 
-[node name="AdvanceIndicator" type="Label" parent="MarginContainer/HBox/VBox"]
+[node name="AdvanceIndicator" type="Label" parent="HBox/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
 text = "▼"
 visible = false
+
+[node name="PortraitColumn" type="VBoxContainer" parent="HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(210, 0)
+theme_override_constants/separation = 8
+visible = false
+
+[node name="PortraitFrame" type="PanelContainer" parent="HBox/PortraitColumn"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_portrait")
+
+[node name="Portrait" type="TextureRect" parent="HBox/PortraitColumn/PortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(192, 192)
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 0
+
+[node name="SpeakerName" type="Label" parent="HBox/PortraitColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+text = ""

@@ -379,6 +379,7 @@ public partial class AutotileExpander : Node
     private const string DDir = "res://assets/tilesets/winlu_destroyed/";
     private const string WDir = "res://assets/tilesets/winlu_winter/";
     private const string IDir = "res://assets/tilesets/winlu_interior/";
+    private const string IDDir = "res://assets/tilesets/winlu_interior_destroyed/";
     private const string SwDir = "res://assets/tilesets/winlu_swamp/";
     private const string DunDir = "res://assets/tilesets/winlu_dungeon/";
     private const string MushDir = "res://assets/tilesets/winlu_mushroom/";
@@ -459,6 +460,20 @@ public partial class AutotileExpander : Node
         AddFloorGround(list, IDir + "fantasy_inside_a2.png", "floor_inside_a2", "interior_floors", "ia2", farmable: false);
         // Walls: A3 32 blocks (wall format) -> set "interior_walls".
         AddWallSheet(list, IDir + "fantasy_inside_a3.png", "wall_inside_a3", "interior_walls", "ia3", cols: 8, rows: 4);
+        // A4 floor-pattern bands (parquet/tile/rug) -> set "interior_patterns". The A4 sheet (768x720)
+        // is the standard 3-group / 240px-pitch layout, but every wall-FACE band (the lower 96px of each
+        // group) is opaque-black filler (RGB 0,0,0) — only the 144px wall-TOP band of each group holds
+        // real floor patterns, 8 across x 3 groups = 24 floor-format blocks. Expand just those tops as
+        // floor terrains (block origins at SrcPxX=c*96, SrcPxY=g*240); skip the black face bands.
+        var a4tops = new List<Vector2I>();
+        for (int g = 0; g < 3; g++)
+            for (int c = 0; c < 8; c++)
+                a4tops.Add(new Vector2I(c * WallBlockPx, g * 240));
+        AddFloorBlocks(list, IDir + "fantasy_inside_a4.png", "pattern_inside_a4", "interior_patterns", "pat", a4tops, farmable: false);
+        // Destroyed floors: A2_destroyed left 4x4 (floor format) -> set "interior_floors_destroyed".
+        // Same block layout as pristine floor_inside_a2, so the generated atlas is cell-for-cell with it
+        // (ruin_pair wired in TileSetBuilder). No farmable (interior).
+        AddFloorGround(list, IDDir + "fantasy_inside_a2_destroyed.png", "floor_inside_a2_destroyed", "interior_floors_destroyed", "ia2d", farmable: false);
         return list;
     }
 
@@ -572,6 +587,20 @@ public partial class AutotileExpander : Node
             }
     }
 
+    /// <summary>Expand an arbitrary list of floor-format blocks (explicit pixel origins) into one atlas.
+    /// Used for floor-pattern sheets whose blocks are not a clean 4x4 grid (e.g. interior A4's 3x8
+    /// wall-top pattern bands). Block index (list order) drives terrain-id allocation.</summary>
+    private static void AddFloorBlocks(List<GenAutotile> list, string png, string atlasKey, string setKey, string prefix, IReadOnlyList<Vector2I> origins, bool farmable)
+    {
+        for (int i = 0; i < origins.Count; i++)
+            list.Add(new GenAutotile
+            {
+                AtlasKey = atlasKey, Format = GenFormat.Floor, SourcePng = png,
+                SrcPxX = origins[i].X, SrcPxY = origins[i].Y, IndexInAtlas = i,
+                TerrainName = $"{prefix}_{i}", TerrainSetKey = setKey, Farmable = farmable,
+            });
+    }
+
     /// <param name="blockRowOffset">Skip this many 96px block-rows from the sheet top before reading
     /// (for sheets whose wall materials do not start at row 0, e.g. Orc A3's bottom-aligned walls).
     /// IndexInAtlas stays 0-based so the generated atlas packs only the populated blocks.</param>
@@ -656,6 +685,8 @@ public partial class AutotileExpander : Node
         WriteContactSheetPx(srcCache, WDir + "fantasy_outside_a2_snow.png", 96, 0, "contact_a2_snow");  // winter dirt block
         WriteContactSheetPx(srcCache, IDir + "fantasy_inside_a2.png", 0, 0, "contact_inside_floor");    // interior floor block col0
         WriteWallContact(srcCache, IDir + "fantasy_inside_a3.png", 0, 0, "contact_inside_wall");        // interior wall block col0
+        WriteContactSheetPx(srcCache, IDir + "fantasy_inside_a4.png", 0, 0, "contact_inside_pattern");  // interior A4 pattern g0c0 (walltop band)
+        WriteContactSheetPx(srcCache, IDDir + "fantasy_inside_a2_destroyed.png", 0, 0, "contact_inside_floor_destroyed"); // destroyed floor block col0
         // Wave-2 territory-biome verification contact sheets (one ground each, + dungeon wall).
         WriteContactSheetPx(srcCache, SwDir + "fantasy_outside_a2_swamp.png", 96, 0, "contact_a2_swamp");   // swamp ground block col1
         WriteContactSheetPx(srcCache, DunDir + "fantasy_dungeon_a2.png", 0, 0, "contact_a2_dungeon");       // dungeon floor block col0

@@ -4,29 +4,43 @@ Three-scene intro sequence before gameplay. Short, character-driven, establishes
 and the cast. Longer worldbuilding comes through gameplay journals and notes, not front-loaded
 exposition.
 
+This file is a beat outline, not a script. Each scene lists what happens and why. Dialogue is
+written by hand from these beats; nothing here is final lines. **Once a scene is scripted, its
+section here collapses to a stub and the script in `story/` becomes the single source** — beats,
+lines, staging, and notes live there and only there, so each scene has exactly one place to
+edit. Unscripted scenes keep their full beat outlines here until their script exists.
+
 **The player speaks during the opening cutscene.** The intro needs a real conversational
 presence — Fenwick needs a straight man, Elara needs someone to spar with. Once the cutscene
 ends and gameplay begins, the player shifts to silent protagonist (choices only, Stardew-style).
 Choices during the cutscene are still expressive and varied.
 
 **Influences**: Sanderson (natural flow, characters who listen and react, wit from the
-situation not from cleverness), Rothfuss (rhythm, precision, banter that feels musical),
-Ivalician register (slightly elevated but never stiff — the formality is how these people
-actually talk, not a costume they put on).
+situation not from cleverness), Rothfuss (rhythm, precision, banter that feels musical), and
+the Ivalician register defined in `prose_style.md` (elevated but never stiff).
+ 
+The frontier has been declining for a *generation*: the crown
+  pulling back over decades, trade thinning, roads and settlements failing. That is the wide
+  backdrop. Separately, *this outpost's* garrison was recalled **eight years ago** — one recent,
+  specific event, and the reason Tharr is alone. Never collapse the generational decline into the
+  eight-year mark.
 
 ## Voice guide
 
-- **Player**: Direct, grounded, practical. A farmhand's eye for the land and a soldier's
-  economy with words. Not flowery — observational, honest. The one who sees what is in front
-  of them. Serves as the straight man to Fenwick's warmth and Elara's wit.
-- **Fenwick**: Academic warmth. Well-educated (wizard college) but approachable. Lighter
-  formality, self-deprecating humor, food adjacent. Cheerful without being grating. Talks
-  more than the others but earns it — he's genuinely good company.
-- **Elara**: Silver-tongued, measured, knowing. An elf who has been doing this longer than the
-  humans have been alive. Dry wit, quiet confidence, never flustered. Answers questions she
-  finds interesting, redirects ones she doesn't.
-- **Tharr**: Shortest sentences. Stone metaphors. Economy of words. The loneliest character —
-  his relief shows in what he does NOT say.
+Per-character register — sentence shape, contraction rate, archaism, oaths — lives in
+`prose_style.md` under **Per-character register**. That table is authoritative; it is not
+restated here, so the two cannot drift. What follows is only the ensemble dynamic particular to
+the intro.
+
+- **Player** is the straight man: a farmhand's eye for the land, a soldier's economy with words,
+  the one who names what is in front of them. Sets up Fenwick's warmth and Elara's wit.
+- **Fenwick** carries the talk and earns it. Wizard-college educated, cheerful, self-deprecating,
+  forever steering back toward food. He is good company, which is the point of him.
+- **Elara** answers the questions she finds interesting and redirects the ones she does not.
+  Decades older than the humans, never flustered, parcels out what she knows at her own pace —
+  and a newcomer here all the same: two years on the frontier is nothing to an elf, and she is
+  honest about the edges of what she knows.
+- **Tharr** speaks least. His relief at company shows in what he does not say.
 
 ## Flow
 
@@ -45,398 +59,198 @@ Story flags set: `intro_scene_0`, `intro_scene_1`, `intro_complete`. A returning
 
 ## Scene 0 — "The Frontier"
 
-*Player and Fenwick on a neglected frontier road. They've been walking too long on bad
-directions. The road is falling apart, the landmarks are gone. They're not panicking yet,
-but the silence between complaints is getting longer. Elara finds them before they find
-the ravine.*
-
----
-
-### Draft dialogue — Scene 0
-
-```
-FENWICK
-I am reasonably certain we have not passed a signpost in the last
-three miles.
-
-PLAYER
-Four.
-
-FENWICK
-Four, then. That is worse, though I appreciate the precision.
-
-[Beat. They walk. The player looks down at the road — stones split
-by roots, edges soft with overgrowth.]
-
-PLAYER
-Look at the road. These stones have not been set right in
-years. Whatever the crown holds out here, it would appear their grasp is not a tight one.
-
-FENWICK
-I had been trying not to notice that. You have a gift for
-dispelling comfort.
-
-PLAYER
-I have seen neglect of this sort before. When a family leaves
-their homestead, the road is the first thing to go.
-
-FENWICK
-And what follows the road?
-
-PLAYER
-Everything else.
-
-[A figure steps onto the road from a side path — unhurried,
-deliberate. An elf. She has been watching them for longer than
-they realize.]
-
-ELARA
-I would not take that fork, were I in your position.
-
-PLAYER
-Why not?
-
-ELARA
-The gorge bridge washed out two winters past. No one has troubled
-to rebuild it. You shall discover that for yourselves if you
-continue — though 'tis a long way down to learn a short lesson.
-
-FENWICK
-Well, it's nice to meet such a well-informed stranger on an empty road.
-
-ELARA
-I have traded these routes for a good many years. Long enough to
-know which bridges still stand. Where are you bound?
-
-PLAYER
-A frontier garrison. Past the Thornwood, near the forest's edge.
-
-ELARA
-(her expression shifts — not quite surprise, but something close
-to interest)
-The old outpost? There are not many who head out that way.
-
-FENWICK
-We were told it was still manned. Though, given the state of everything else out
-here, I am beginning to question the reliability of what we were
-told.
-
-PLAYER CHOICE:
-  > "You seem surprised. What do you know of it?"
-  > "We are reinforcements. Long overdue, by the sound of it."
-
-[If "surprised"]
-ELARA
-Surprised is too strong. Let us say... curious. I had not thought
-the crown remembered that post existed.
-
-[If "reinforcements"]
-ELARA
-Reinforcements. After all this time. Well. Someone in the capital
-must have found a conscience, or at least a reason.
-
-[Converge]
-ELARA
-I am Elara. I trade along these frontier routes. That's the plan, at least, 
-but there are few along them worth trading with.
- 
-The crown is offering concessions to anyone willing to bring commerce back to the
-borderlands, and I intend to be the first to collect.
-
-As it happens, I am heading the same direction. I can guide you to the outpost.
-
-FENWICK
-Then we are in your debt. I am Fenwick. This is {player_name}.
-
-ELARA
-Reinforcements for a forgotten outpost, armed with a map drawn by
-someone who has never set foot out here. The crown's generosity
-knows no bounds.
-
-PLAYER
-(laughs)
-We would welcome the company, Elara.
-
-[They begin to walk off down the new path]
-```
+**Scripted — `story/intro_scene_0.md` is the single source** for this scene's beats, lines,
+staging, and notes. Nothing about Scene 0 is maintained here. In brief, for cross-scene
+reference: the pair meet the dead bridge (first exposure to the decay, filed innocently), Elara
+hails them as a merchant on the road and joins for mutual benefit, and the three exit
+mid-conversation onto the detour track. Sets `intro_scene_0`. The war, the garrison recall, the
+eight years, the generational scale, and the wizard reveal all stay out of it — Scene 1 cargo.
 
 ---
 
 ## Scene 1 — "The Road"
 
-*The three walking together. The initial awkwardness of strangers has settled into the easy
-rhythm of shared travel. Fenwick is curious about everything. The player notices things the
-others miss. Elara has answers but parcels them out at her own pace.*
+*Evening past the ford. The three camp in an abandoned homestead off the road; supper at a dead
+family's hearth. Placeholder staging: dark background with sprites; the homestead scene is
+painted later (focal setting: homestead interior or yard at firelight, tools still racked on
+the wall).*
 
----
+**Goal:** Scale the decay from an anomaly to a generation (war unspoken), put the first crack in
+the player's faith without opening it, foreshadow Tharr against the orders, and let Fenwick
+reveal the wizard half of himself at a hearth.
 
-### Draft dialogue — Scene 1
+Scene 0 already covered: dated infrastructure decay (bridge, detour, ditches), outbound-only
+traffic, Elara's two years, Fenwick the cook, and the roads-grown-dangerous plant. Scene 1 does
+not re-tread any of it. Its clean ground: the human cost, the generational scale, the rumor
+against the orders, the wizard reveal.
 
-```
-[They have been walking for a while. The terrain has not improved.]
+### Beats
 
-FENWICK
-Elara, might I ask you something? This land feels abandoned.
-Not ruined or destroyed. Just... left. What happened here?
-
-ELARA
-The short answer is the crown pulled its garrisons back. Eight
-years ago, perhaps nine. Some dispute of treasury or
-shifting borders, all the usual arguments that sound very sensible
-when spoken in a marble hall.
-
-PLAYER
-And the long answer?
-
-ELARA
-The long answer is that when the soldiers left, the trade
-caravans stopped. When the caravans stopped, the settlements
-shrank. When the settlements shrank, the roads fell apart. And everyone 
-who could afford to leave did so.
-
-FENWICK
-And the ones who stayed?
-
-ELARA
-Are either very stubborn or had nowhere else to go.
-
-[Beat.]
-
-PLAYER
-We passed a farmstead a few miles back whose roof had completely caved in. There
-were still tools hanging on the wall.
-
-ELARA
-Many families took only what they could carry. The rest was left for the forests to reclaim.
-
-PLAYER CHOICE:
-  > "Nobody told us it was this bad. Our briefing said nothing of this."
-  > "Those tools were well-kept. Whoever hung them there loved that land."
-  > "If this is what the road looks like, I am not certain I want to see the outpost."
-
-[If "briefing"]
-ELARA
-Briefings written by men who have never set foot beyond the
-capital walls. You will find the frontier full of things no one
-thought to mention.
-
-[If "loved that land"]
-ELARA
-Aye. Most of them did. But love does not put food on the table.
-
-[If "not certain"]
-ELARA
-The roads answer to the crown, and you can see how well the crown
-has answered for them. But the outpost has its own keeper. I would
-not judge the one by the other.
-
-[Converge]
-FENWICK
-Its own keeper? Someone is still out there?
-
-ELARA
-So the traders say. A dwarf.
-
-FENWICK
-One dwarf, alone all this time?
-
-ELARA
-He moved in shortly after the garrison left. Rumor has it that he's taken a liking to the 
-old fort.
-
-FENWICK
-Let us hope the solitude has not driven him to madness.
-
-ELARA
-He is a dwarf. It is stubbornness that drives him, which is likely a point of
-personal pride.
-
-[Beat.]
-
-PLAYER
-Our orders called the post operational.
-
-ELARA
-One soldier and a crumbling wall. The crown's standards have
-slipped since last I checked.
-
-[They walk in silence for a moment. The road is getting worse.]
-
-FENWICK
-Well. Whatever state we find it in, there will be a hearth that
-needs sorting. I have yet to see an outpost that could not be
-improved by someone who understands the fundamental importance
-of a proper meal.
-
-ELARA
-You are a cook?
-
-FENWICK
-I am a gastronomancer.
-
-ELARA
-I have lived a very long time, and I have never heard that word.
-
-FENWICK
-That is because I coined it. Wizard by training, cook by
-vocation. The two disciplines share more than you might expect.
-
-PLAYER
-He graduated from the academy and immediately requested a kitchen
-posting. His professors were... unsure how to process the
-paperwork.
-
-FENWICK
-They lacked vision. Both fields demand precision, timing, and a
-willingness to accept that some things will simply explode if
-you get the ratios wrong. The only difference is that when a
-soufflé collapses, fewer people catch fire.
-
-ELARA
-Fewer?
-
-FENWICK
-I did say fewer.
-```
+- Open past the ford, late day; the crossing itself is skipped offscreen and acknowledged in one
+  line (Fenwick's boots, drowned a second time). The rhythm is eased — banter, not wariness. No
+  landscape commentary; that account was paid in Scene 0.
+- The homestead: door on its hinge, tools racked, a kettle left behind. The player reads it with
+  the farmhand's eye — left in order, not in flight. Nobody drove them out; they quit. Scene 0
+  showed what the crown abandoned; this is what the people abandoned.
+- Camp decision: light failing, sound walls, a working well. Fenwick uneasy about using a dead
+  family's house; the player practical about it. Small and tonal, not logistical.
+- Fenwick takes the hearth: supper built from trail stock, the Scene 0 forage (payoff), and
+  something bought off Elara's pack (her trade made real). He lights the cold hearth with a
+  flick of cantrip, unremarked — the game's first magic, spent casually. The reveal's fuse, not
+  its detonation.
+- The question, asked at that hearth: not "what happened here" — they have walked the answer for
+  days — but the people. Where does everyone go? How long has this land been emptying?
+- The scale, assembled: Elara widens it — every road she has walked in two years, the same, and
+  the deeper her circuits run, the older the abandonment gets. The player adds one new date
+  (this homestead: a decade, thereabouts) and does not like the sum. The retreat is a generation
+  long; no one says so in as many words, no one names the war, and Elara conspicuously offers no
+  causes. Her silence is character, not omission.
+- **The player does not conclude the kingdom is in decay.** His frame is still the songs; he can
+  hold "someone failed this stretch" and "the crown is what the songs say" at once. The outpost
+  ahead is where he expects the answer to be, not where he expects the evidence to worsen. The
+  crack forms from his own arithmetic; it does not open here.
+- *Player choice (flavor):* his footing after the sum — defend the crown's reasons, voice a
+  first doubt, or set it aside until the post. Converges. No mechanical effect.
+- The rumor against the orders: Elara relays what the road says of their destination — not
+  empty; one dwarf holds it, the last of a garrison that marched off **eight years ago** (the
+  discrete recent event, held apart from the generational decline above). Hearsay, and she
+  prices it as hearsay — she has never been through the gate. Fenwick fetches the orders and
+  reads the line that calls the post manned. The gap opens on screen: one stubborn dwarf is not
+  a garrison. The player's footing is the paper's — orders are official, rumors are rumors.
+  Trusting crown paper is the trait Scene 2 starts to break. (Crown paper against the land,
+  second instance: the map was the first; Tharr's unanswered requisitions in Scene 2 are the
+  third, from the other side.)
+- The wizard owned: Elara asks the question she finds interesting — she watched him light a
+  hearth with no flint. Academy-trained, kitchen-called, the self-coined gastronomancer, and
+  delighted about it. The disownment stays fully buried (heart events, much later). He returns
+  the curiosity — what sends an elf past the edge of the maps? — and she declines it smoothly.
+  Her pattern established, her mystery kept.
+- Closer: a watch set in one line (keeps Scene 0's danger plant warm, spends nothing — the howl
+  belongs to the Day-1 close, not here). Elara: walls by midday. Cool final beat on the player —
+  the racked tools, the orders in his pack that say the frontier is fine — and fade. (Optional
+  wordless gesture if staging allows: he rehangs a fallen tool.)
 
 ---
 
 ## Scene 2 — "The Outpost"
 
-*The three arrive. The outpost is worse than any of them expected — walls crumbling, fields
-choked with weeds, timber sagging under its own weight. But it is still here. Tharr emerges
-from within. He moves like a man who has forgotten what company feels like — careful, measured,
-sizing them up the way a mason sizes up a crack in a load-bearing wall.*
+*The three reach the outpost for the first time — worse than expected but standing, and worked
+by one pair of hands. The gate is freshly damaged: the dire wolf and its pack attacked a few
+nights past, and Tharr is at the gate repairing it when they arrive. Plays on the outpost map
+with the cutscene flag active.*
 
----
+**Goal:** Land the gap between the garrison they were promised and the ruin they find, introduce
+Tharr through his work, make the forest's danger present tense (the wolf thread starts here),
+and turn the mission from "reinforce a garrison" into "rebuild this place." Hand the player
+control.
 
-### Draft dialogue — Scene 2
+### Beats
 
-```
-[Fade in. The three stand at the entrance to the outpost, seeing
-it for the first time.]
+- The approach: the outpost from the road, standing and wrong. The player's farmhand eye reads
+  **two ages of damage** — years of patient patches on the walls (one pair of hands, the rumor
+  confirmed by masonry before Tharr says a word), and the gate splintered *fresh*. Claw-work,
+  days old, too high and too broad. Wolves do not come at walls; he knows it and says so.
+  Hammering from the gate itself — work, not battle.
+- Tharr is at the gate, repairing it. He finishes setting the brace before he turns — character
+  through action, his register throughout (5–8 words, declarative, stone). He counts them.
+  Three. That is the greeting.
+- The attack, named flat: wolves, a few nights past, a pack with a great one leading it, come
+  out of the deep wood. Eight years and they never pressed the walls before. He held; the gate
+  wants timber. They will come again — stated as fact, not fear. (Elara's one measured line
+  ties her two years of road-talk to the claw-marks: the teeth she kept hearing about. Fenwick's
+  cheer audibly strains. Nobody names the beast beyond "the big one"; the dire wolf gets its
+  name later — `design/tutorial_quests.md`.)
+- The paper beat (crown paper #3): the player, by the book, reports formally — to the commander
+  of the post, per orders — and hands them over. The commander of record is a mason who never
+  wanted command, saluted by a farm boy in academy kit. Tharr answers their paper with his own
+  arithmetic: eight years of requisitions, filed and unanswered — he asked for a garrison and a
+  mason's crew, and the count of his askings comes out flat. Their orders promised a garrison;
+  his requisitions begged for one; both were fiction. The forest sent its answer before the
+  crown sent theirs. His relief at company stays unvoiced — it shows only in the fact that he
+  keeps talking.
+- Introductions, triangled: Fenwick asks after the hearth and kitchen before his own bunk —
+  absurd and exactly right; Tharr's response is minimal and not unkind. Elara names herself a
+  trader; her eye has already found the ruined trading post, and one measured question — what
+  happened to the post's trader? — does double duty: the post had a life once, and her settle
+  arc gets its seed. No announcement; the look is the whole beat.
+- *Player choice (flavor):* how he answers Tharr's read of them. Converges; no mechanical
+  effect. Options carry the faith gradient: defend the crown ("more will come — the ministries
+  answered late, not never," and Tharr's silence is its own reply, sharper now against fresh
+  claw-marks), own the shortfall ("we are what was sent; best make us count"), or turn it
+  around and ask what the post needs first.
+- The survey: Tharr names the state of the place — walls breached, fields gone to seed, the
+  forest closer every season. After the gate, that is no longer metaphor. The one line he has
+  earned: the foundation holds. He has seen to that.
+- The turn: the player, still by the book, asks for orders. Tharr does not give orders — he
+  never wanted command and does not pretend to it now. He offers work. The mission reframes on
+  screen: not reinforcing a garrison — rebuilding a bulwark (the word itself goes unsaid). The
+  player accepts, plainly. His faith does not break here: he files all of it as clerical
+  failure, and the acceptance is resolve, not disillusionment.
+- The gate: they pass through it, Tharr last. His care surfaces the only way it can — one gruff
+  caretaking line about the fresh brace as they enter. Inside, one held beat on Elara seeing
+  the interior for the first time (all three are; her look is the one that lingers). Fade.
+  Flag: `intro_complete`.
 
-FENWICK
-Ah.
+**Scene 2 must not:** have Tharr narrate the recall history (Scene 1's rumor carried the facts;
+he confirms in one line at most — recalled eight years past; he stayed), open the Elderwood
+lore beyond "out of the deep wood," break the player's faith, let Elara announce staying, or
+surface Fenwick's disownment.
 
-PLAYER
-(quietly)
-Well, at least it is standing.
-
-FENWICK
-Parts of it are standing. The rest appears to be negotiating
-terms with gravity.
-
-ELARA
-I have seen worse. Though not recently.
-
-[The outpost up close. The walls are cracked but patched in
-places. Fresh-cut stone sits stacked near the gate. Someone has
-been working here.]
-
-[A dwarf steps through the gate carrying a mason's hammer. Stone
-dust on his sleeves. He stops when he sees them and for a long
-moment simply stands there.]
-
-[Then he sets the hammer down on the stack of cut stone beside
-the gate.]
-
-THARR
-The crown sent you.
-
-PLAYER CHOICE:
-  > "Aye. Reinforcements. We should have come sooner."
-  > "We'd heard the garrison was manned by one soldier. I did not believe it until now."
-  > "Two of us were sent, and one joined in along the way."
-
-[If "sooner"]
-THARR
-You came. That is more than most.
-
-[If "one soldier"]
-THARR
-(he looks down at the hammer on the stone)
-It is the unfortunate truth.
-
-[If "Two were sent"]
-THARR
-Three.
-(he looks at the outpost behind him)
-I suppose it's better than none.
-
-[Converge]
-PLAYER
-I am {player_name}.
-
-THARR
-Tharr.
-
-FENWICK
-Fenwick. I trained as a wizard, but my true purpose has always
-been the kitchen. Please tell me there is a hearth.
-
-THARR
-Aye. There is a hearth.
-
-FENWICK
-Then there is a kitchen. You simply lacked someone to tell you so.
-
-ELARA
-Elara. I trade these routes.
-(she glances past Tharr, toward a collapsed structure inside
-the walls)
-Is that a trading post?
-
-THARR
-It was.
-
-ELARA
-Hmm. Interesting.
-
-[Beat. Tharr looks between the three of them.]
-
-THARR
-Come inside.
-
-[He picks the hammer back up and walks to the gate. He pauses
-there, one hand on the stone.]
-
-THARR
-The walls need mending, the fields have gone to seed, and it seems the 
-forest presses closer every season.
-
-THARR
-But the foundation holds. I have seen to that.
-
-[He turns back to them.]
-
-THARR
-There is much work to be done here, if you are willing.  
-
-PLAYER
-We are willing.
-
-THARR
-Good.
-
-[He walks through the gate. They follow.]
-
-[Fade out. Player gains control at outpost. Flag: intro_complete]
-```
+**Gameplay seam (decided):** the intro does not chain straight into another dialogue. The
+cutscene ends, control lands, and the quest prompt appears — "Repair the Lodging," with a
+talk-marker on Tharr — but the Day-1 gather *dialogue* fires only when the player walks to
+Tharr and interacts. Teaches move + interact with zero tutorial text, sets the
+quests-come-from-talking pattern, and the frozen Day-1 clock makes exploring first free.
+`design/tutorial.md` already implements this shape (Day 1, Step 1: Talk to Tharr).
 
 ---
 
 # Story cutscenes (post-intro)
 
 These are in-world dialogue-box sequences that fire during play, not part of the opening road
-cutscene. They follow the same JSON/dialogue-box pattern as the intro scenes and use the same voice
-guide above (plus Arkus below). They belong to the early-game progression rework
-(`design/tutorial.md`, `design/tutorial_quests.md`, added 2026-07-16). Drafts are concise — these are
-short modal beats, not the full road cutscenes.
+cutscene. They follow the same JSON/dialogue-box pattern as the intro scenes and use the same
+voice guide above (plus Arkus below). They belong to the early-game progression rework
+(`design/tutorial.md`, `design/tutorial_quests.md`). Same treatment: beats only, dialogue written
+by hand.
 
-**Arkus's voice** (see `design/characters/arkus.md`): blunt orc honesty. Says exactly what he thinks,
-no softening, no cruelty intended. Short, plain sentences. He states problems as facts and expects the
-same in return. Underneath the bluntness is someone who cares more than he knows how to show.
+**Arkus's voice** (see `design/characters/arkus.md`): blunt orc honesty. Says exactly what they
+think, no softening, no cruelty intended. Short, plain sentences. States problems as facts and
+expects the same in return. Underneath the bluntness is someone who cares more than they know how
+to show.
+
+---
+
+## Day-1 gather — "The Axe and the Pick"
+
+*The quest prompt appears the moment the player gains control after intro Scene 2 (talk-marker
+on Tharr); the dialogue itself fires on the player's first interact with him — see the decided
+gameplay seam under Scene 2. Day 1's clock stays frozen for this whole loop — no time passes
+until the lodging is repaired, and the clock UI panel is hidden entirely for all of Day 1. This
+is the first directed quest and the tutorial for the gather loop and for combat.*
+
+**Goal:** Put tools in the player's hands, send them into the near forest for the first repair
+materials, and stage the game's first fight.
+
+### Beats
+
+- Tharr hands the player the outpost's spare axe and pick. First thing the place needs is timber
+  and stone; nothing else can start until the walls and lodging have material.
+- He points them at the near forest (the Thornwood) and names the objective: bring back enough
+  wood and stone to mend the lodging.
+- The player takes the party out on its first expedition and learns the gather loop — chopping
+  timber, breaking stone — in the safe near forest.
+- The trip triggers the **first combat encounter**: something in the Thornwood the party must
+  fight. This is the game's tutorial fight and teaches the PF2e combat basics. (Enemy and
+  encounter specifics live in `design/tutorial.md` / `design/tutorial_quests.md`. Natural
+  candidate after the Scene 2 gate attack: wolves of the same pack — the thread stays warm and
+  the dire wolf itself stays offscreen.)
+- With the fight won and the materials gathered, the party returns to the outpost.
+- Turning in the lodging repair sets `lodging_repaired`, which chains directly into the Day-1
+  close below.
+
+**Flags:** Day-1 clock remains frozen throughout. Completing the loop sets `lodging_repaired`,
+which fires "The Hearth and the Howl." Quest and encounter definitions live in
+`design/tutorial.md` / `design/tutorial_quests.md`.
 
 ---
 
@@ -444,159 +258,74 @@ same in return. Underneath the bluntness is someone who cares more than he knows
 
 *Fires automatically the moment the lodging repair is turned in on Day 1 (flag `lodging_repaired`).
 Day 1's clock is frozen until this plays; the sequence ends by advancing to Day 2 and setting
-`first_rest`. The player does not choose to sleep — the day closes on its own. Two beats: Fenwick at
-the hearth as the light goes, then a wolf's howl heard through the dark.*
+`first_rest`. The player does not choose to sleep — the day closes on its own.*
 
-### Draft dialogue — Day-1 close
+**Goal:** Close the first day on a note of small, real progress, then plant the wolf.
 
-```
-[The lodging is patched. Evening light. Fenwick is crouched at the
-old hearth inside the hall, sleeves pushed up, examining the flue.]
+### Beats
 
-FENWICK
-Walls that hold, a roof that keeps the rain off the soup. You have
-done more today than the crown managed in nine years.
+- Evening. Fenwick is at the mended hearth, taking its measure. He marks how much got done today
+  and credits the work rather than himself.
+- He tells the player to rest — whatever this place becomes starts tomorrow; tonight it is enough
+  that it stands.
+- Fade to black. From far off in the dark, a long, low howl: too long for a dog, closer than
+  anyone would like.
+- Fade in on Day 2 morning. The howl goes unmentioned; it sits under the day.
 
-PLAYER
-That was Tharr's doing. I only carried the stone.
-
-FENWICK
-Carrying the stone is most of it. Ask any mason.
-(he peers up the chimney)
-And this — this is a proper hearth under all the soot. The draw is
-honest. Give me a few days and it will feed everyone here.
-
-[He stands, brushing ash from his hands. The light through the
-doorway has gone amber, then grey.]
-
-FENWICK
-Get some rest. Whatever this place is going to be, it starts
-tomorrow. Tonight it can simply be standing.
-
-[Fade to black. A beat of quiet. Then, from far off in the dark —
-a long, low howl. Held too long to be a dog. Closer than anyone
-would like.]
-
-[Fade in on morning. Day 2. The howl is not mentioned yet — it
-sits under the day like a splinter.]
-```
-
-**Flags:** sets `first_rest`; advances to Day 2; unfreezes the day clock. The howl is foreshadow only —
-the dire wolf thread pays it off later (`design/tutorial_quests.md`).
+**Flags:** sets `first_rest`; advances to Day 2; unfreezes the day clock and shows the clock UI
+panel for the first time (hidden all of Day 1). The howl is an echo, not a cold plant — the
+pack that hit the gate (intro Scene 2) is still out there, and everyone hearing it knows what
+it is. The dire wolf thread pays off later (`design/tutorial_quests.md`).
 
 ---
 
 ## Arkus found — "On the Road Home"
 
 *Fires on the party's first return to the outpost after the dire wolf is slain (flag
-`dire_wolf_slain`, sets `arkus_found`). Template: the arrival-triggered cutscene pattern used for intro
-Scene 2. The full squad — player, Tharr, Fenwick, Elara — is coming home from the kill and finds a
-wounded orc on the road. He is placed as an unconscious resident afterward; he does not wake here.*
+`dire_wolf_slain`, sets `arkus_found`). Uses the arrival-triggered cutscene pattern from intro
+Scene 2. The full squad — player, Tharr, Fenwick, Elara — is present. Arkus is placed as an
+unconscious resident afterward and does not wake here.*
 
-### Draft dialogue — Arkus found
+**Goal:** Bring Arkus into the outpost as a debt owed, not a recruit chosen.
 
-```
-[The road back to the outpost. The party is worn from the wolf.
-Something large is slumped against the roots at the roadside — an
-orc, armor scored and broken, not moving.]
+### Beats
 
-ELARA
-Hold. There — off the road.
+- On the road home, worn from the wolf, the party finds a wounded orc slumped at the roadside,
+  barely alive, wounds days old and badly tended.
+- They read the wounds as the same wolf's work — it had the orc before it had them.
+- Tharr calls it a debt and decides they carry the orc back, over Elara's practical objection
+  about the orc's size.
+- They bring the orc through the gate. Fade.
 
-[They approach. The orc is breathing, barely. Wounds days old,
-none of them tended right.]
-
-FENWICK
-Stars above. He is alive. Only just.
-
-PLAYER
-Same wounds as the wolf gave. Look at the spacing. It had him
-before it had us.
-
-THARR
-(kneeling, checking the orc's weight)
-Then it is a debt.
-(a beat)
-We carry him.
-
-ELARA
-He is twice your size, mason.
-
-THARR
-Stone is heavier. Take his other arm.
-
-[They lift the orc between them. Fade as they carry him through
-the gate.]
-```
-
-**Flags:** sets `arkus_found`. Arkus is placed as an unconscious resident at the outpost. His wake is a
-separate beat (below), gated on the Trading Post being built.
+**Flags:** sets `arkus_found`. Arkus is placed as an unconscious resident at the outpost. The wake
+is a separate beat (below), gated on the Trading Post being built.
 
 ---
 
 ## Arkus wakes — "What Was Not Enough"
 
 *Fires at the start of the day after both `arkus_found` and `trading_post_built` are set (quest 9,
-"The Smith and the Sickbed"). Sets `arkus_awake`; his asks make BOTH the Smithy and the Infirmary
+"The Smith and the Sickbed"). Sets `arkus_awake`; the asks make BOTH the Smithy and the Infirmary
 commissionable at the planning table.*
 
-### Draft dialogue — Arkus wakes
+**Goal:** Establish Arkus through blunt honesty, and turn their recovery into the outpost's next
+two builds.
 
-```
-[Arkus is upright on the mended bunk, stiff, bandaged wrong in
-two places. He looks at the party without ceremony.]
+### Beats
 
-ARKUS
-You are the ones who carried me. Good. I hate owing strangers.
-
-PLAYER
-You were on the road past the near forest. A dire wolf.
-
-ARKUS
-The wolf. Yes.
-(flat, no drama)
-I went in to prove something. I came out like this. What I carried
-was not enough. Bad steel breaks when you need it to hold.
-
-[He tests his arm, winces, does not complain.]
-
-ARKUS
-You killed it, then. With better luck than sense, probably. Next
-thing out of that forest will be worse. You will want a forge. I
-can build one. I know metal — it is the one thing the rite did not
-take from me.
-
-PLAYER CHOICE:
-  > "We have a place for a smithy. It's yours."
-  > "You could barely stand a moment ago."
-
-[If "it's yours"]
-ARKUS
-Then it is settled. I start when the frame is up.
-
-[If "barely stand"]
-ARKUS
-I mended a spearhead once with a broken hand. Standing is
-optional. Straight steel is not.
-
-[Converge. He glances down at his own botched bandages.]
-
-ARKUS
-And this — whoever wrapped me meant well and did it wrong. You
-have no proper place to mend the hurt. There will be more of us
-coming back like I did. Build somewhere to put them. A sickbed,
-before you need one and do not have it.
-
-THARR
-(from the doorway)
-A forge and an infirmary.
-(a nod)
-The table can hold both.
-```
+- Arkus is upright on the mended bunk, stiff and badly bandaged, blunt from the first word —
+  hates owing strangers.
+- The party places where they found them; Arkus confirms the wolf and states plainly that the
+  rite was failed. What they carried "was not enough"; bad steel breaks when you need it to hold.
+- Arkus offers to build a forge — working metal is the one thing the rite did not take from them.
+- *Player choice (flavor):* accept the offer, or note the orc can barely stand. Converges.
+- Looking at their own botched bandages, Arkus argues for an infirmary as well — more will come
+  back wounded like this; build the sickbed before it is needed.
+- Tharr, from the doorway, agrees the planning table can hold both.
 
 **Flags:** sets `arkus_awake`. Unlocks Smithy (`arkus_awake`) and Infirmary (`arkus_awake`) at the
-planning table. Josen — the monk who will run the Infirmary — arrives 1-3 days after it is built, via a
-random event (`design/economy/characters.md`).
+planning table. Josen — the monk who will run the Infirmary — arrives 1-3 days after it is built,
+via a random event (`design/economy/characters.md`).
 
 ---
 

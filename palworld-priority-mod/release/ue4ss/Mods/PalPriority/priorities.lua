@@ -7,6 +7,13 @@
 --     pals = {
 --       ["<palkey>"] = {
 --         name = "display name",         -- optional, cosmetic only
+--         anchor = "Species|hp/sh/df/g", -- optional, set by the mod, do not edit:
+--                                        --   species + immutable IVs + gender, used
+--                                        --   to re-adopt this entry when the game
+--                                        --   re-instances the pal (restart/redeploy)
+--         owner = "<32-hex PlayerUId>",  -- optional, set by the mod: the managing
+--                                        --   player (last attested clicker) whose own
+--                                        --   component carries this pal's writes
 --         prio = { [8]=5, [12]=1 },      -- [worktype]=priority (0-5); missing => 0
 --         raw  = { PlayerUId={A,B,C,D}, InstanceId={A,B,C,D} }, -- identity, do not edit
 --       },
@@ -15,42 +22,15 @@
 --
 -- PRIORITY (RimWorld scale): 0 = never do this work. 1 = most important,
 --   5 = least important. A pal only works its most-important types that
---   currently have pending work. If nothing it can
---   do has pending work, it stays free to do any of its eligible (prio>=1) types.
+--   currently have pending work.
+-- WORK TYPES: 1 EmitFlame(Kindling) 2 Watering 3 Seeding 4 GenerateElectricity
+--   5 Handcraft 6 Collection 7 Deforest 8 Mining 9 OilExtraction
+--   10 ProductMedicine 11 Cool 12 Transport 13 MonsterFarm
 --
--- WORK TYPES (the numeric keys in `prio`):
---    1 EmitFlame(Kindling)   2 Watering         3 Seeding
---    4 GenerateElectricity   5 Handcraft        6 Collection
---    7 Deforest              8 Mining           9 OilExtraction
---   10 ProductMedicine      11 Cool            12 Transport
---   13 MonsterFarm
---
--- HOW TO GET A PAL'S KEY: load into your base and press F9 in-game. The console
--- prints every base pal with its <palkey> and a ready-to-paste, commented
--- skeleton entry (already filled with the correct `raw` identity). Copy the line
--- for the pal you want, uncomment it, and fill in `prio`.
---
--- EDITING WHILE PLAYING: press F8 in-game to reload this file after you edit it.
--- Toggling work types on the vanilla pal screen also edits this file live
--- (off -> prio 0; on -> prio 3 if it was 0).
---
--- ---------------------------------------------------------------------------
--- EXAMPLE (commented — delete or replace with real entries from F9):
---
---   ["A1B2C3D400000000-11223344AABBCCDD"] = {
---     name = "Digtoise",
---     -- Mining is this pal's job: max priority. It may also haul (Transport)
---     -- and water crops, but only when no mining work is pending.
---     prio = { [8]=5, [12]=2, [2]=1 },
---     raw  = {
---       PlayerUId  = { A=-1583242812, B=0, C=0, D=0 },
---       InstanceId = { A=287454020, B=-1430532899, C=0, D=0 },
---     },
---   },
--- ---------------------------------------------------------------------------
-
+-- Press F9 in-game to print every base pal's key + a ready-to-paste skeleton entry.
 return {
   pals = {
-    -- Add pals here (see F9 output). Empty = every pal is vanilla / untouched.
+    -- Add pals here (auto-managed: clicking a work cell in-game creates entries).
+    -- Empty = every pal is vanilla / untouched.
   },
 }

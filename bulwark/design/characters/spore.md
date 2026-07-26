@@ -10,8 +10,8 @@
 
 ## Vibe
 
-Spore is strange in the way that a talking mushroom who brews potions in a walking cauldron
-is strange, which is to say completely and without apology. She does not understand why people
+Spore is exactly as strange as a talking mushroom who brews potions in a walking cauldron
+sounds: completely, and without apology. She does not understand why people
 build walls between themselves and the rain. She does not understand money. She does not
 understand why anyone would cook meat when there are perfectly good lichen right there on that
 rock. She is not stupid. She is operating from a set of assumptions so different from everyone
@@ -33,7 +33,7 @@ consumables from foraged ingredients. As the Apothecary upgrades and her ingredi
 grows, the range and potency of what she can produce expands. She is the outpost's only source
 of alchemical consumables.
 
-She fills the outsider role in the settlement. She is not hostile or antisocial. She simply
+She fills the outsider role in the settlement. She is not hostile or antisocial. She
 operates on a different wavelength from everyone else. She does not attend meetings. She does
 not care about the economy. She cares about the forest, her brews, and the small living things
 that most people step on without noticing. Over time, the other residents learn to appreciate
@@ -52,12 +52,12 @@ as the medium she exists within.
 She has lived in the deep forest for as long as she can remember, which could be decades or
 centuries. Time does not organize itself the same way for her. She measures it in bloom cycles
 and fruiting seasons, not in years. She has never seen a town. She has met travelers before but
-only in the way that a fox meets travelers, by watching from a distance and occasionally
+only the way a fox meets travelers: watching from a distance and occasionally
 following them for a while.
 
 She was found by the outpost's patrol in the deep forest, crouched over her cauldron, brewing
 something that smelled terrible and worked remarkably well. She is not lost. She is not in
-danger. She is simply there, doing what she does, and if these strange tall creatures want to
+danger. She is just there, doing what she does, and if these strange tall creatures want to
 give her a roof and a steady supply of interesting ingredients, she sees no reason to object.
 
 ## The cauldron
@@ -76,7 +76,7 @@ the attention.
 ## Arrival
 
 Recruitable. Found in the Elderwood during a territory expedition. The trigger is the Elderwood biome
-itself being explored. Spore was never hiding and never waiting for anything; the party simply has to
+itself being explored. Spore was never hiding and never waiting for anything; the party has only to
 walk far enough to reach the part of the map she already inhabits.
 
 ## Notes (deferred / later)

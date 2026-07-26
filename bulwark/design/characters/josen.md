@@ -15,10 +15,10 @@ kind of economy that comes from centuries of practice, every gesture deliberate,
 There is no urgency in him. He has watched enough wars begin and end to know that very little
 in the mortal world is actually urgent, and the things that are urgent benefit least from panic.
 
-He is not warm, but he is not cold either. He is present. When he listens, he listens
+He is neither warm nor cold, only present. When he listens, he listens
 completely. When he works on a patient, the rest of the world ceases to exist for him. He does
-not make small talk. He does not offer comfort in words. He offers it in competence: the steady
-hands, the precise touch, the absolute certainty that he knows what he is doing.
+not make small talk or offer comfort in words. He offers it in competence: the steady
+hands, the precise touch, the certainty that he knows what he is doing.
 
 He is neither good nor evil. He has spent enough centuries watching people sort themselves into
 those categories to find the exercise uninteresting. He has turned his efforts toward building

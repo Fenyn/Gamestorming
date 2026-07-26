@@ -1,0 +1,81 @@
+{
+  "id": "intro_scene_1b",
+  "type": "Sequence",
+  "once": true,
+  "conditions": {
+    "flags_required": ["intro_scene_1a"]
+  },
+  "steps": [
+    { "type": "enter", "actor": "elara", "marker": "MarkDoorInside" },
+    { "type": "enter", "actor": "player", "marker": "MarkDoorInside" },
+    { "type": "enter", "actor": "fenwick", "marker": "MarkDoorInside" },
+    { "type": "camera", "marker": "MarkInteriorCam", "duration": 0.1 },
+    { "type": "prop", "marker": "EveningTint", "direction": "on" },
+    { "type": "fade", "direction": "in", "duration": 1.0 },
+
+    { "type": "move", "actor": "fenwick", "marker": "MarkHearthFenwick", "speed": 100 },
+    { "type": "move", "actor": "player", "marker": "MarkHearthPlayer", "speed": 100 },
+    { "type": "move", "actor": "elara", "marker": "MarkHearthElara", "speed": 100 },
+
+    { "type": "line", "speaker": "fenwick", "text": "Right. Let us see what this road has earned us." },
+    { "type": "wait", "seconds": 0.8 },
+    { "type": "prop", "marker": "HearthFire", "direction": "on" },
+    { "type": "line", "speaker": "fenwick", "text": "These greens you named this morning. You were right — better than they've any business being." },
+    { "type": "line", "speaker": "elara", "text": "Out here you learn the plants or you go hungry. I have eaten worse for lack of knowing." },
+
+    { "type": "line", "speaker": "player", "text": "Where do they all go?", "emotion": "low" },
+    { "type": "line", "speaker": "fenwick", "text": "Hm?" },
+    { "type": "line", "speaker": "player", "text": "The folk who leave. This house, the ones back on the bridge road. Whole families walking out. Where is it they're all walking to?" },
+
+    { "type": "line", "speaker": "elara", "text": "West, mostly. Toward the towns. It is the same on every road I run. The farther out you go, the more houses stand empty, and the longer they have stood that way." },
+    { "type": "line", "speaker": "player", "text": "This one's been a while. Ten years of dust on that kettle, near enough. Orchard's gone to sucker." },
+    { "type": "wait", "seconds": 1.2 },
+    {
+      "type": "choice",
+      "speaker": "player",
+      "text": "The bridge was six years. This house is ten. It's not one bad stretch of road, Fen. It runs the whole way behind us — and the deeper we go, the older it gets.",
+      "emotion": "sharp",
+      "options": [
+        {
+          "text": "There'll be a reason for it. There always is.",
+          "steps": [
+            { "type": "line", "speaker": "fenwick", "text": "Mayhap so.", "emotion": "low" }
+          ]
+        },
+        {
+          "text": "Something's wrong out here. More than one clerk asleep at his desk.",
+          "steps": [
+            { "type": "line", "speaker": "fenwick", "text": "Aye. That's the part I don't much like.", "emotion": "low" }
+          ]
+        },
+        {
+          "text": "We'll have our answers at the post. No sense chasing them in the dark.",
+          "steps": [
+            { "type": "line", "speaker": "fenwick", "text": "Spoken like a man who wants his supper." }
+          ]
+        }
+      ]
+    },
+
+    { "type": "line", "speaker": "elara", "text": "Your post. I know a little more of it than its turn in the road." },
+    { "type": "line", "speaker": "fenwick", "text": "Go on." },
+    { "type": "line", "speaker": "elara", "text": "The road says it is not wholly empty. One man holds it — a dwarf, they tell it, the last of a garrison that marched off eight years past. I have never been through the gate myself, but I have heard it from more than one mouth." },
+    { "type": "line", "speaker": "player", "text": "That does not square. These orders are a month old, and they name a standing garrison. If the last of them marched off eight years past..." },
+    { "type": "line", "speaker": "fenwick", "text": "Then someone wrote our orders from an eight-year-old book." },
+    { "type": "line", "speaker": "player", "text": "Or the road's got it wrong. We'll see for ourselves by midday." },
+
+    { "type": "line", "speaker": "elara", "text": "I have seen a hearth lit many ways, but never by a snap of the fingers. There is magic where I come from, in the elven lands. It runs in the blood, or it is coaxed up out of the wild, from living and growing things. What you did looked like neither." },
+    { "type": "line", "speaker": "fenwick", "text": "Ah, that. Academy-trained, I'm afraid. Three years and a diploma to prove it, though it was evocation I loved best.", "emotion": "bright" },
+    { "type": "line", "speaker": "elara", "text": "An academy. I did not know it could be taught. That is a great deal of schooling for a pot of soup." },
+    { "type": "line", "speaker": "fenwick", "text": "Ah, but that is the whole of it. I am a gastronomancer, and the best use I ever found for all that schooling was a supper worth sitting down to.", "emotion": "delighted" },
+    { "type": "line", "speaker": "fenwick", "text": "But you. An elf, alone, well within the kingdom's borders. That is the stranger tale by far. What sends you out this way?" },
+    { "type": "line", "speaker": "elara", "text": "That is a longer tale than the supper will keep. Serve it out, gastronomancer, and let us see if all that schooling was worth it.", "emotion": "dry" },
+
+    { "type": "line", "speaker": "fenwick", "text": "I'll take first watch." },
+    { "type": "line", "speaker": "elara", "text": "Wake me at the turn of the night. We reach the walls by midday, if the road holds. And... for what it is worth, that was the finest thing I have eaten on this road." },
+    { "type": "line", "speaker": "fenwick", "text": "I know.", "emotion": "bright" },
+
+    { "type": "fade", "direction": "out", "duration": 1.0 },
+    { "type": "flag", "set": "intro_scene_1" }
+  ]
+}

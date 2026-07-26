@@ -40,7 +40,7 @@ Sickle stats (PF2e Remaster): 1d4 S, 1 hand, Agile/Finesse/Trip traits. Simple w
 
 ## Theology
 
-Lyndra is not a god of grand temples or ancient mysteries. She is the warmth of a kitchen on a
+Lyndra keeps no grand temples and guards no ancient mysteries. She is the warmth of a kitchen on a
 cold evening. She is the reason halflings set one more chair than they need and cook a little
 more than they can eat. Her followers believe she is present wherever people gather to share food
 and company, and absent wherever they eat alone by choice rather than necessity.
@@ -50,9 +50,9 @@ choose to sit beside someone at a crowded inn. She saw them and liked them and d
 and that has made all the difference. There is no creation myth, no cosmic origin story. Just a
 goddess who showed up, sat down, and never left.
 
-Her faith has no formal clergy in the way other religions do. Any halfling who cooks for others
+Unlike other religions, her faith has no formal clergy. Any halfling who cooks for others
 is performing a rite. Any home that welcomes a stranger is a temple. The most devout followers
-of Lyndra are simply the ones who cook the most and share the most freely. Among halfling
+of Lyndra are the ones who cook the most and share the most freely. Among halfling
 communities, the greatest honor is to be known as someone who keeps a good table.
 
 "A full belly and a warm fire. What else does anyone need?"

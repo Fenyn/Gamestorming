@@ -329,6 +329,7 @@ local menuLikelyOpen = false
 local menuRef = nil -- cached menu widget while open (avoids FindAllOf per tick)
 local uiInternal = false -- true while WE call the toggle RPC (right-click path)
 local lastPingAt = -math.huge -- os.clock() of the last SUCCESSFUL PrioMod_Ping
+local firstPingAt = nil -- os.clock() of the FIRST successful ping (sync watchdog)
 
 -- Server-pushed priority state (see the Notify_RequestClient_int32 hook below).
 -- Once ANY sync message parses, `synced` supersedes the file-read `config`.
@@ -844,8 +845,20 @@ local function tickBody()
                 comp:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
                     FName("PrioMod_Ping"), 1)
                 lastPingAt = os.clock()
+                if firstPingAt == nil then firstPingAt = os.clock() end
+                logOnce("ping-sent",
+                    "announced to server (PrioMod_Ping) — awaiting sync reply")
+            else
+                logOnce("ping-nocomp",
+                    "cannot announce to server — no base-camp network component resolvable yet (will keep trying)")
             end
         end)
+    end
+
+    if firstPingAt ~= nil and not syncReceived
+        and os.clock() - firstPingAt > 15 then
+        logOnce("no-sync-reply",
+            "no sync reply from server 15s after announcing — server engine missing, older than 1.1.0, or not receiving; numbers stay display-only previews")
     end
 
     -- 2. Reload the engine's config (small file; keeps last good on failure) —
@@ -878,13 +891,17 @@ pcall(function()
     local ok, err = pcall(function()
         RegisterHook("/Script/Pal.PalNetworkBaseCampComponent:RequestChangeWorkSuitability_ToServer",
             function(Context, TargetIndividualId, WorkSuitability, bOn)
-                if uiInternal then return end -- right-click already sent its marker
                 pcall(function()
                     local c = Context:get()
-                    if alive(c) then
-                        c:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
-                            FName("PrioMod_Dir"), 1)
+                    if not alive(c) then return end
+                    local n = nil
+                    pcall(function() n = c:GetFullName() end)
+                    if n and not n:find("Default__", 1, true) then
+                        ownCompCache = c
                     end
+                    if uiInternal then return end -- right-click already sent its marker
+                    c:Request_Server_int32({ A = 0, B = 0, C = 0, D = 0 },
+                        FName("PrioMod_Dir"), 1)
                 end)
             end)
     end)
@@ -912,6 +929,16 @@ pcall(function()
                 -- Runs on the game thread — an uncaught error is a crash, so the
                 -- whole handler body is pcall-wrapped.
                 pcall(function()
+                    pcall(function()
+                        local c = Context:get()
+                        if alive(c) then
+                            local n = nil
+                            pcall(function() n = c:GetFullName() end)
+                            if n and not n:find("Default__", 1, true) then
+                                ownCompCache = c
+                            end
+                        end
+                    end)
                     local name = nil
                     pcall(function() name = FunctionName:get():ToString() end)
                     if type(name) ~= "string" then return end

@@ -8,7 +8,10 @@ namespace Bulwark.Dialogue;
 /// <summary>
 /// Godot Node that executes staging commands emitted by <see cref="DialogueRunner.StageCommand"/>.
 /// Fade and wait use tweens/timers; <c>camera</c> pans the active Camera2D and <c>sfx</c> plays a
-/// one-shot sound; exit/move/emote remain log-and-continue placeholders.
+/// one-shot sound; <c>move</c>/<c>exit</c> walk an actor to a marker (exit then hides it), <c>face</c>
+/// turns one instantly, and <c>emote</c> remains a log-and-continue placeholder. Every command signals
+/// completion back to the runner, and every command degrades to a <see cref="GD.Print"/> log plus an
+/// immediate completion when its actor or marker cannot be resolved — a headless/F6 run never stalls.
 ///
 /// The <c>enter</c> command stages a REAL actor when the host supplies an actor lookup via
 /// <see cref="PrepareStaging"/> (the outpost hands one that resolves an id to its spawned resident
@@ -30,6 +33,9 @@ public partial class CutsceneDirector : Node
 
     /// <summary>Default seconds a <c>camera</c> pan (to a target or back home) tweens over.</summary>
     private const float CameraPanSeconds = 1.0f;
+
+    /// <summary>Default walk speed (px/s) a <c>move</c>/<c>exit</c> step uses when none is given.</summary>
+    private const float MoveSpeedDefault = 90f;
 
     private DialogueRunner? _runner;
     private ColorRect? _fadeOverlay;
@@ -130,13 +136,15 @@ public partial class CutsceneDirector : Node
                 break;
 
             case "exit":
-                GD.Print($"[CutsceneDirector] Exit: actor={step.Actor}");
-                _runner?.StagingComplete();
+                ExecuteExit(step);
                 break;
 
             case "move":
-                GD.Print($"[CutsceneDirector] Move: actor={step.Actor}, marker={step.Marker}, speed={step.Speed}");
-                _runner?.StagingComplete();
+                ExecuteMove(step);
+                break;
+
+            case "face":
+                ExecuteFace(step);
                 break;
 
             case "camera":
@@ -145,6 +153,10 @@ public partial class CutsceneDirector : Node
 
             case "sfx":
                 ExecuteSfx(step);
+                break;
+
+            case "prop":
+                ExecuteProp(step);
                 break;
 
             case "emote":
@@ -159,9 +171,11 @@ public partial class CutsceneDirector : Node
         }
     }
 
-    /// <summary>Reveal an entering actor at its home marker and play a short walk-in tween. When no
-    /// real instance was staged for the actor (no lookup, or the NPC isn't placed — F6/headless),
-    /// falls back to the old log-and-continue.</summary>
+    /// <summary>Reveal an entering actor. With a <c>marker</c>, snap it to the resolved marker and show
+    /// it, completing immediately — no walk-in tween (a following <c>move</c> step does the walking).
+    /// Without a marker, keep the original home+offset reveal-and-walk-up (the outpost relies on this).
+    /// When no real instance was staged for the actor (no lookup, or the NPC isn't placed — F6/headless),
+    /// falls back to the log-and-continue.</summary>
     private void ExecuteEnter(DialogueStep step)
     {
         if (string.IsNullOrEmpty(step.Actor)
@@ -174,12 +188,143 @@ public partial class CutsceneDirector : Node
         }
 
         Node2D node = staged.Node;
+
+        // Marker-carrying enter: place at the marker (or home if it won't resolve) and reveal, no walk-in.
+        if (!string.IsNullOrEmpty(step.Marker))
+        {
+            Node2D? marker = ResolveSceneNode(step.Marker);
+            node.GlobalPosition = marker != null && GodotObject.IsInstanceValid(marker)
+                ? marker.GlobalPosition
+                : staged.Home;
+            node.Visible = true;
+            _runner?.StagingComplete();
+            return;
+        }
+
+        // No marker: the original home+offset reveal-and-walk-up.
         node.GlobalPosition = staged.Home + EnterOffset;
         node.Visible = true;
 
         var tween = CreateTween();
         tween.TweenProperty(node, "global_position", staged.Home, EnterWalkSeconds);
         tween.Finished += () => _runner?.StagingComplete();
+    }
+
+    /// <summary>Walk an actor to a marker at the step's speed (default <see cref="MoveSpeedDefault"/>),
+    /// playing the walk animation en route and facing the dominant travel direction. Degrades to a log +
+    /// immediate completion when the actor or marker cannot be resolved.</summary>
+    private void ExecuteMove(DialogueStep step)
+    {
+        Node2D? actor = ResolveActor(step.Actor);
+        Node2D? marker = ResolveMarker(step.Marker);
+        if (actor == null || marker == null)
+        {
+            GD.Print($"[CutsceneDirector] Move: actor={step.Actor}, marker={step.Marker} (unresolved — log only)");
+            _runner?.StagingComplete();
+            return;
+        }
+
+        WalkTo(actor, marker.GlobalPosition, step.Speed ?? MoveSpeedDefault, hideOnArrival: false);
+    }
+
+    /// <summary>Same walk as <see cref="ExecuteMove"/>, then hides the actor on arrival (a walk-off exit).
+    /// Degrades to a log + immediate completion when the actor or marker cannot be resolved.</summary>
+    private void ExecuteExit(DialogueStep step)
+    {
+        Node2D? actor = ResolveActor(step.Actor);
+        Node2D? marker = ResolveMarker(step.Marker);
+        if (actor == null || marker == null)
+        {
+            GD.Print($"[CutsceneDirector] Exit: actor={step.Actor}, marker={step.Marker} (unresolved — log only)");
+            _runner?.StagingComplete();
+            return;
+        }
+
+        WalkTo(actor, marker.GlobalPosition, step.Speed ?? MoveSpeedDefault, hideOnArrival: true);
+    }
+
+    /// <summary>Instantly turn a <see cref="CutsceneActor"/> to face a cardinal direction, then complete.
+    /// A plain (non-puppet) actor or an unresolvable one just logs. Never stalls.</summary>
+    private void ExecuteFace(DialogueStep step)
+    {
+        if (ResolveActor(step.Actor) is CutsceneActor puppet
+            && CutsceneActor.TryParseFacing(step.Direction, out CutsceneFacing facing))
+        {
+            puppet.SetFacing(facing);
+        }
+        else
+        {
+            GD.Print($"[CutsceneDirector] Face: actor={step.Actor}, direction={step.Direction} (no puppet to turn — log only)");
+        }
+        _runner?.StagingComplete();
+    }
+
+    /// <summary>Tween an actor's global position to <paramref name="dest"/> at <paramref name="speed"/>
+    /// px/s (duration = distance/speed), auto-facing the dominant travel direction and playing the walk
+    /// cycle (if it is a <see cref="CutsceneActor"/>) for the duration. Returns to the stand frame on
+    /// arrival, optionally hiding the actor, and signals staging completion. A zero-distance or non-positive
+    /// speed settles instantly rather than dividing by zero.</summary>
+    private void WalkTo(Node2D actor, Vector2 dest, float speed, bool hideOnArrival)
+    {
+        var puppet = actor as CutsceneActor;
+        Vector2 delta = dest - actor.GlobalPosition;
+        float distance = delta.Length();
+
+        if (puppet != null && distance > 0.001f)
+            puppet.SetFacing(DominantFacing(delta));
+
+        if (distance < 0.5f || speed <= 0f)
+        {
+            actor.GlobalPosition = dest;
+            puppet?.StopWalk();
+            if (hideOnArrival)
+                actor.Visible = false;
+            _runner?.StagingComplete();
+            return;
+        }
+
+        puppet?.StartWalk();
+        var tween = CreateTween();
+        tween.TweenProperty(actor, "global_position", dest, distance / speed);
+        tween.Finished += () =>
+        {
+            puppet?.StopWalk();
+            if (hideOnArrival)
+                actor.Visible = false;
+            _runner?.StagingComplete();
+        };
+    }
+
+    /// <summary>The cardinal direction a travel vector points most strongly along (ties to horizontal).</summary>
+    private static CutsceneFacing DominantFacing(Vector2 delta)
+    {
+        if (Mathf.Abs(delta.X) >= Mathf.Abs(delta.Y))
+            return delta.X >= 0f ? CutsceneFacing.East : CutsceneFacing.West;
+        return delta.Y >= 0f ? CutsceneFacing.South : CutsceneFacing.North;
+    }
+
+    /// <summary>Resolve an actor id to its world node: the staging lookup first (dialogue ids like
+    /// "player"/"fenwick"), then a scene node by name (mirrors how camera targets resolve). Null when
+    /// the id is empty or nothing valid resolves.</summary>
+    private Node2D? ResolveActor(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return null;
+        Node2D? actor = _actorLookup?.Invoke(id);
+        if (actor != null && GodotObject.IsInstanceValid(actor))
+            return actor;
+        Node2D? scene = ResolveSceneNode(id);
+        return scene != null && GodotObject.IsInstanceValid(scene) ? scene : null;
+    }
+
+    /// <summary>Resolve a marker name to its scene node (a <c>%UniqueName</c> Marker2D or a child by name),
+    /// or null when the name is empty or nothing valid resolves.</summary>
+    private Node2D? ResolveMarker(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return null;
+        Node2D? node = ResolveSceneNode(name);
+        return node != null && GodotObject.IsInstanceValid(node) ? node : null;
     }
 
     /// <summary>Show every staged actor and return it to its home marker, then clear the staging set.
@@ -194,6 +339,29 @@ public partial class CutsceneDirector : Node
             staged.Node.GlobalPosition = staged.Home;
         }
         _staged.Clear();
+    }
+
+    /// <summary>Toggle a staged prop's visibility. Resolve the node named by the step's <c>marker</c>
+    /// (a <c>%UniqueName</c> or direct child) through <see cref="ResolveSceneNode"/>, then reveal it on
+    /// <c>direction</c>="on" (Visible = true) or hide it on "off" (Visible = false), completing
+    /// immediately. Reveals Scene 1's lit hearth (HearthFire) and switches on its dusk CanvasModulate
+    /// (EveningTint) — both hidden-by-default nodes in road.tscn. An unresolvable node, or a missing/
+    /// unrecognised direction, degrades to a <see cref="GD.Print"/> log + immediate completion so a
+    /// headless/F6 run never stalls.</summary>
+    private void ExecuteProp(DialogueStep step)
+    {
+        Node2D? node = ResolveMarker(step.Marker);
+        bool on = step.Direction == "on";
+        bool off = step.Direction == "off";
+        if (node == null || (!on && !off))
+        {
+            GD.Print($"[CutsceneDirector] Prop: marker={step.Marker}, direction={step.Direction} (unresolved node or bad direction — log only)");
+            _runner?.StagingComplete();
+            return;
+        }
+
+        node.Visible = on;
+        _runner?.StagingComplete();
     }
 
     private void ExecuteFade(DialogueStep step)
@@ -349,6 +517,13 @@ public partial class CutsceneDirector : Node
         player.Play();
         _runner?.StagingComplete();
     }
+
+    /// <summary>Adopt an externally owned fade <see cref="ColorRect"/> so the director's <c>fade</c> steps
+    /// drive it instead of creating a private one. A host that manages its own fades (the road scene) hands
+    /// over its single overlay, so the JSON fade steps and the host's fades never fight two competing black
+    /// rects. Pass an overlay whose current alpha is the scene's starting state (fully black for a JSON
+    /// fade-in). Call before the sequence starts.</summary>
+    public void AdoptFadeOverlay(ColorRect overlay) => _fadeOverlay = overlay;
 
     private void EnsureFadeOverlay()
     {

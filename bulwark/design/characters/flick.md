@@ -30,11 +30,10 @@ needs patching, and you try again. The fact that other ancestries treat a small 
 as an emergency is genuinely funny to her. She laughs about it. She is not being cruel.
 She sincerely does not see the problem.
 
-This is the thing about Flick: she is not malicious and she is not stupid. She is fearless
-in a way that looks like recklessness because the gap between her risk tolerance and
-everyone else's is enormous. What a human considers catastrophic, a goblin considers
-Tuesday. Her bloodline did not create the fearlessness. It just gave it consequences that
-extend beyond the goblin norm.
+This is the thing about Flick: the recklessness is a misread. She is fearless, and the gap
+between her risk tolerance and everyone else's is enormous. What a human considers
+catastrophic, a goblin considers Tuesday. Her bloodline did not create the fearlessness; it
+gave that fearlessness consequences beyond the goblin norm.
 
 ## The Junk Magic
 
@@ -83,8 +82,8 @@ Her clan is accustomed to dangerous work. Goblin reclaimers handle volatile mate
 unstable structures, and toxic substances as a matter of course. But Flick's magic
 escalated beyond what even goblin risk tolerance could absorb. She was not exiled with
 malice. Her clan likes her. They told her, with genuine affection, that she needed to go
-figure this out somewhere that was not next to their homes. She understood. She was not
-offended. She went.
+figure this out somewhere that was not next to their homes. She understood, and she left
+without offense.
 
 Left to her own devices in the wilderness, she has been experimenting freely and without
 restraint. The results are visible from a distance: scorched clearings, shattered rock

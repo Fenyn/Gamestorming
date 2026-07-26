@@ -1,0 +1,41 @@
+{
+  "id": "intro_scene_1a",
+  "type": "Sequence",
+  "once": true,
+  "conditions": {
+    "flags_required": ["intro_scene_0"]
+  },
+  "steps": [
+    { "type": "enter", "actor": "player", "marker": "MarkFordPlayer" },
+    { "type": "enter", "actor": "fenwick", "marker": "MarkFordFenwick" },
+    { "type": "enter", "actor": "elara", "marker": "MarkFordElara" },
+    { "type": "camera", "marker": "MarkHomesteadCam", "duration": 0.1 },
+    { "type": "prop", "marker": "EveningTint", "direction": "on" },
+    { "type": "fade", "direction": "in", "duration": 1.0 },
+
+    { "type": "line", "speaker": "fenwick", "text": "The far bank at last. I'd begun to think that ford went on forever." },
+    { "type": "line", "speaker": "player", "text": "It was knee-deep." },
+    { "type": "line", "speaker": "fenwick", "text": "For you." },
+
+    { "type": "line", "speaker": "elara", "text": "There is a house off the road ahead. I have sheltered there before. It has sound walls, and a well that still draws clean water." },
+
+    { "type": "move", "actor": "elara", "marker": "MarkYardElara", "speed": 130 },
+    { "type": "move", "actor": "player", "marker": "MarkYardPlayer", "speed": 130 },
+    { "type": "move", "actor": "fenwick", "marker": "MarkYardFenwick", "speed": 130 },
+
+    { "type": "line", "speaker": "player", "text": "This place is in finer shape than I expected. It is a shame to see it stand abandoned." },
+    { "type": "line", "speaker": "fenwick", "text": "Why would a body walk away from a place like this? Sound walls, sweet well. Someone kept it well for years." },
+    { "type": "line", "speaker": "elara", "text": "A house is only worth its neighbors. When the road empties, the last family on it does not stay long — no smith, no market, no one to send for when the fever takes a child. Sound walls will not feed anyone alone." },
+
+    { "type": "line", "speaker": "fenwick", "text": "It feels wrong, bedding down in a dead family's house." },
+    { "type": "line", "speaker": "player", "text": "They're not dead. They're only gone. And a roof's a roof — we'll not find a better one before dark." },
+    { "type": "line", "speaker": "fenwick", "text": "...No sense letting a good hearth sit cold, I suppose.", "emotion": "weary" },
+
+    { "type": "exit", "actor": "elara", "marker": "MarkDoor", "speed": 100 },
+    { "type": "exit", "actor": "player", "marker": "MarkDoor", "speed": 100 },
+    { "type": "exit", "actor": "fenwick", "marker": "MarkDoor", "speed": 100 },
+
+    { "type": "fade", "direction": "out", "duration": 1.0 },
+    { "type": "flag", "set": "intro_scene_1a" }
+  ]
+}

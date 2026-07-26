@@ -13,7 +13,7 @@
 ## Vibe
 
 Sera is the smartest person in the room and she does not know how to pretend otherwise. This
-is not arrogance. She does not think less of other people. She simply operates at a speed and
+is not arrogance. She does not think less of other people. She operates at a speed and
 depth that most people cannot follow, and it has never occurred to her to slow down. She asks
 questions the way other people breathe: constantly, involuntarily, and with no regard for
 whether the person she is asking wants to think that hard right now.

@@ -62,8 +62,10 @@ Both mods are required — the pair is the mod.
 Both mods have a `DEBUG` flag at the top of `main.lua` (ships `false`). Flip to
 `true` to enable **F8** (reload `priorities.lua` + reset internal state), **F9**
 (full roster dump: priorities, supervisor plan, off-list vs shadow, pending work)
-and **F10** (client UI pipeline diagnostic). In release, hand-edits to
-`priorities.lua` are picked up at game/server start.
+and **F10** (client UI pipeline diagnostic). The engine also has a `VERBOSE`
+flag for routine per-operation logging (cycles, deltas, config saves) — off in
+release so the server log stays quiet; `DEBUG = true` implies it. In release,
+hand-edits to `priorities.lua` are picked up at game/server start.
 
 ## Compatibility & maintenance
 

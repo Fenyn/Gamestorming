@@ -1,0 +1,19 @@
+PalPriorityUI (interface) 1.1.0 (2026-07-17)
+- Works on dedicated servers and as a remote client. Priority numbers now
+  arrive from the server over the game's own replicated RPC channel instead of
+  being read from a local file — the UI no longer needs to be on the same
+  machine as the server. (On single-player/host the local file still serves as
+  an instant fallback.)
+- Numbers show immediately when the work screen opens: pals you haven't
+  configured display their default values (3 for enabled types, X for disabled)
+  in a dim neutral color. Dim = display-only vanilla defaults; colored = the
+  priority engine manages the pal. Clicking a cell activates the pal with
+  exactly the values previewed.
+- Fixed: priority numbers could permanently disappear from a pal after longer
+  sessions. The mod could announce itself on the wrong network component, so
+  the server mistook a modded click for an unmodded one and reset the pal to
+  vanilla. The UI now always uses your own player's component and re-announces
+  itself periodically while the work screen is open.
+- Fixed: config file not found on the Steam Workshop UE4SS layout (single
+  player / host only; remote clients no longer read any file).
+- Internal version now matches the release version.

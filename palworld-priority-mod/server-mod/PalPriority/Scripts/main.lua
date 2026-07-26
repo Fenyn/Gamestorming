@@ -55,9 +55,31 @@ local CYCLE_MODE = true
 -- flip to true when hunting a bug or re-verifying hooks after a game patch.
 local DEBUG = false
 
+-- VERBOSE: routine per-operation logging (cycles, deltas, config saves). Ships
+-- false so a healthy release server logs only events that matter; flip on (or
+-- set DEBUG = true, which implies it) when diagnosing.
+local VERBOSE = false
+
+-- PROBE_WORKTYPE: one-shot discovery aid for closing the station-work gap. When
+-- true, the assign hook reflection-dumps each UNMAPPED work class ONCE (its
+-- scalar properties + a poke at the RequirementParameter struct), so we can find
+-- the SAFE, name-independent field that carries a station job's required
+-- EPalWorkSuitability (OverrideWorkType is None/0 for most station jobs — see
+-- getWorkType). Ships false; flip on, restart, stand in a base with active
+-- station jobs (pits/furnaces/mills/farm plots/labs), read the log, then map the
+-- discovered field in getWorkType and flip this back off. Uses ONLY the proven-
+-- safe reflection pattern (scalar reads, SoftObjectProperty skipped — crash rule
+-- #2); never reintroduces GetWorkAssignInfo (the removed crash suspect).
+local PROBE_WORKTYPE = false
+
 local function log(msg)
     -- Single choke-point so the tag + newline format is consistent everywhere.
     print(string.format("[PalPriority] %s\n", msg))
+end
+
+-- Routine-tier log line: emitted only under VERBOSE (or DEBUG, which implies it).
+local function vlog(msg)
+    if VERBOSE or DEBUG then log(msg) end
 end
 
 -- Log a given message only once per tag, so degraded paths don't spam the console.
@@ -90,9 +112,9 @@ local WORKNAME = {
 }
 local WORK_MIN, WORK_MAX = 1, 13
 
--- Fallback map: work object class-name substring -> work type. Used only when the
--- (unverified) GetWorkAssignInfo out-param path fails. Substring match is robust to
--- the "_C" / package-path decoration in GetFullName().
+-- Primary map: work object class-name substring -> work type (getWorkType's
+-- first, cheapest resolution step). Substring match is robust to the "_C" /
+-- package-path decoration in GetFullName().
 local CLASS_TYPE_MAP = {
     PalWorkTransportItemInBaseCamp = 12, -- Transport
     PalWorkDeforestFoliage         = 7,  -- Deforest
@@ -247,7 +269,7 @@ local function arrayForEach(arr, fn)
     if ok then return true end
     -- Fallback: numeric indexing. Try TArray:GetArrayNum() first (the '#'
     -- operator is not implemented for TArray userdata in all UE4SS builds),
-    -- then plain '#' for Lua tables (the GetWorkAssignInfo out-param case).
+    -- then plain '#' as a last resort for any table-like value.
     local ok2 = pcall(function()
         local n = nil
         pcall(function() n = arr:GetArrayNum() end)
@@ -263,6 +285,19 @@ local function palKey(playerUId, instanceId)
     return string.format("%08X%08X%08X%08X-%08X%08X%08X%08X",
         norm(playerUId.A), norm(playerUId.B), norm(playerUId.C), norm(playerUId.D),
         norm(instanceId.A), norm(instanceId.B), norm(instanceId.C), norm(instanceId.D))
+end
+
+-- Short log label for a pal: display name + the first 4 hex chars of the
+-- InstanceId half of its key (chars 34-37 — the key is 32 hex + '-' + 32 hex,
+-- and the suffix must come from the InstanceId half, NOT the PlayerUId half,
+-- which is all zeros for base pals). Unnamed pals display their species
+-- CharacterID, so two same-species pals are otherwise indistinguishable in
+-- the log — that ambiguity once cost a whole debugging cycle (two configured
+-- Cattivas read as one pal contradicting itself). Logs ONLY; never used for
+-- keys, config contents, or wire payloads.
+local function palLabel(name, key)
+    return string.format("%s/%s", name or "?",
+        (key and #key >= 37) and key:sub(34, 37) or "?")
 end
 
 -- Pull the RAW (unnormalized, possibly negative) A/B/C/D ints from a live
@@ -420,7 +455,7 @@ local function saveConfig(cfg)
         pcall(os.remove, CONFIG_PATH)        -- Windows os.rename won't clobber
         local renamed = os.rename(tmp, CONFIG_PATH)
         if renamed then
-            log("config saved -> " .. CONFIG_PATH)
+            vlog("config saved -> " .. CONFIG_PATH)
             return true
         end
         pcall(os.remove, tmp)                -- rename failed; clean up and fall through
@@ -434,7 +469,7 @@ local function saveConfig(cfg)
     end
     df:write(text)
     df:close()
-    log("config saved (direct rewrite) -> " .. CONFIG_PATH)
+    vlog("config saved (direct rewrite) -> " .. CONFIG_PATH)
     return true
 end
 
@@ -518,10 +553,16 @@ local function typeFromClassName(name)
 end
 
 -- Determine the work type of a pending work object.
--- Cheap class-name map FIRST (covers the high-frequency classes with one string
--- scan); only unknown classes pay for the GetWorkAssignInfo attempt, which is
--- UNVERIFIED at runtime and observed to fail (a thrown pcall per call) — no
--- reason to eat that cost on every transport-spam event.
+-- Cheap class-name map FIRST (covers the high-frequency classes with one
+-- string scan), then the plain OverrideWorkType enum. There is deliberately NO
+-- deeper fallback: the old GetWorkAssignInfo attempt — out-param marshaling of
+-- object-ref-bearing structs, runtime-UNVERIFIED, and it never once succeeded
+-- — is the same native-AV marshaling family as the documented
+-- SoftObjectProperty crash (callpath-map crash rule #2), and the prime suspect
+-- in station-bench crash reports; the two paths above are the ones that
+-- actually work. Unknown classes are grown via the unmapped-class logOnce
+-- below (add real observed values to WORKTYPE_TO_SUIT). All member calls on w
+-- here rely on hook (A) having alive()-checked it before calling us.
 local function getWorkType(w)
     local name = classNameOf(w)
     local ct = typeFromClassName(name)
@@ -535,27 +576,6 @@ local function getWorkType(w)
         local mapped = WORKTYPE_TO_SUIT[wt]
         if mapped then return mapped end
     end
-
-    local found = nil
-    pcall(function()
-        local outArr = {}
-        -- Some UE4SS builds populate the passed table; others return the array.
-        -- Accept whichever gives us usable data.
-        local ret = w:GetWorkAssignInfo(outArr)
-        local arr = ret
-        if arr == nil then arr = outArr end
-        arrayForEach(arr, function(entry)
-            if found then return end
-            local ok, suit = pcall(function()
-                local wa = entry.WorkAssign
-                return wa:GetWorkSuitability()
-            end)
-            if ok and type(suit) == "number" and suit >= WORK_MIN and suit <= WORK_MAX then
-                found = suit
-            end
-        end)
-    end)
-    if found then return found end
 
     -- Unknown class: record it once WITH its identifying plain-value properties
     -- (FName/enum — safe reads, no object refs), so real observed values can be
@@ -574,6 +594,92 @@ local function getWorkType(w)
             "unmapped work class (skipping): " .. name .. extra)
     end
     return nil
+end
+
+-- ---------------------------------------------------------------------------
+-- PROBE: discover the safe field carrying a station job's required suitability.
+-- Gated behind PROBE_WORKTYPE; dumps each unmapped work class ONCE. Reflection
+-- only (ForEachProperty + scalar reads), the same pattern PrioProbe proved safe;
+-- SoftObjectProperty values are NEVER read (crash rule #2). Both the work object
+-- and the hook's RequirementParameter struct are inspected — whichever exposes a
+-- readable EPalWorkSuitability (an int in 1..13) is the field getWorkType should
+-- adopt. Struct fields aren't enumerable the way UObject props are, so the
+-- RequirementParameter is poked by a list of plausible header names instead.
+-- ---------------------------------------------------------------------------
+local probedClass = {}
+-- Plausible EPalWorkSuitability-bearing field names on the work object and on
+-- FPalWorkAssignRequirementParameter. Reads are pcall-guarded; a miss is silent.
+local SUIT_FIELD_GUESSES = {
+    "WorkSuitability", "RequiredWorkSuitability", "TargetWorkSuitability",
+    "WorkHardType", "WorkType", "RequireWorkSuitability", "Suitability",
+    "AssignableWorkSuitability", "WorkableSuitability",
+}
+-- Property TYPES whose VALUE is safe to marshal into Lua (the suitability field
+-- is one of these). Object/Struct/Array/SoftObject values are never read — only
+-- their name+type is logged — so the dump can't trip a marshaling AV.
+local SCALAR_PROP_TYPES = {
+    ByteProperty = true, EnumProperty = true, IntProperty = true,
+    Int64Property = true, BoolProperty = true, FloatProperty = true,
+    DoubleProperty = true, NameProperty = true, StrProperty = true,
+}
+
+local function probeWorkObject(w, reqParam, className)
+    if not PROBE_WORKTYPE then return end
+    local tag = className or "?"
+    if probedClass[tag] then return end
+    probedClass[tag] = true
+
+    log("=== PROBE work class: " .. tag .. " ===")
+
+    -- (1) Full reflection dump of the work object's own scalar properties. This
+    -- is the primary source: an enum/int field naming the suitability shows up
+    -- here with its exact property name, ready to read directly in getWorkType.
+    pcall(function()
+        local cls = w:GetClass()
+        cls:ForEachProperty(function(prop)
+            pcall(function()
+                local pname = prop:GetFName():ToString()
+                local ptype = prop:GetClass():GetFName():ToString()
+                -- Read the VALUE only for safe scalar types; everything else
+                -- (Object/Struct/Array/SoftObject) is name+type only.
+                if SCALAR_PROP_TYPES[ptype] then
+                    local v = w[pname]
+                    log(string.format("  PROP %s : %s = %s", pname, ptype, tostring(v)))
+                else
+                    log(string.format("  PROP %s : %s (value skipped)", pname, ptype))
+                end
+            end)
+        end)
+    end)
+
+    -- (2) Poke the RequirementParameter struct by plausible field name. Structs
+    -- don't enumerate like UObjects, so we try known-shaped names; any that read
+    -- back a number are candidate suitability carriers.
+    if reqParam ~= nil then
+        local rp = reqParam
+        pcall(function() rp = reqParam:get() end)
+        for _, fname in ipairs(SUIT_FIELD_GUESSES) do
+            pcall(function()
+                local v = rp[fname]
+                if type(v) == "number" then
+                    log(string.format("  REQPARAM %s = %d", fname, I(v)))
+                end
+            end)
+        end
+    end
+
+    -- (3) Also poke the same guesses on the work object directly, in case a
+    -- suitability field exists but ForEachProperty didn't surface it as scalar.
+    for _, fname in ipairs(SUIT_FIELD_GUESSES) do
+        pcall(function()
+            local v = w[fname]
+            if type(v) == "number" then
+                log(string.format("  WORKOBJ %s = %d", fname, I(v)))
+            end
+        end)
+    end
+
+    log("=== END PROBE " .. tag .. " ===")
 end
 
 -- ---------------------------------------------------------------------------
@@ -971,7 +1077,7 @@ local function reconcilePal(id, param, pendingByType)
             end
             if removed then
                 log(string.format("pruned bogus prio entries [%s]: %s",
-                    cfg.name or key, table.concat(removed, ", ")))
+                    palLabel(cfg.name, key), table.concat(removed, ", ")))
                 saveConfig(config)
                 pushPal(key) -- modded clients drop the stale numbers immediately
             end
@@ -1046,7 +1152,7 @@ local function reconcilePal(id, param, pendingByType)
         local oc = ownerComps[cfg.owner]
         if not (oc and alive(oc.comp)) then
             logOnce("defer:" .. key, string.format(
-                "shaping deferred for [%s] — managing player not connected", cfg.name or key))
+                "shaping deferred for [%s] — managing player not connected", palLabel(cfg.name, key)))
             return
         end
     end
@@ -1075,13 +1181,13 @@ local function reconcilePal(id, param, pendingByType)
                     sent = sendToggle(cfg.raw, t, false, cfg.owner)
                     if sent then
                         sh[t] = true
-                        log(string.format("delta [%s] %s DISABLE", cfg.name or key, WORKNAME[t] or ("type" .. t)))
+                        vlog(string.format("delta [%s] %s DISABLE", palLabel(cfg.name, key), WORKNAME[t] or ("type" .. t)))
                     end
                 else
                     sent = sendToggle(cfg.raw, t, true, cfg.owner)
                     if sent then
                         sh[t] = nil
-                        log(string.format("delta [%s] %s ENABLE", cfg.name or key, WORKNAME[t] or ("type" .. t)))
+                        vlog(string.format("delta [%s] %s ENABLE", palLabel(cfg.name, key), WORKNAME[t] or ("type" .. t)))
                     end
                 end
                 if sent then
@@ -1094,7 +1200,7 @@ local function reconcilePal(id, param, pendingByType)
                         g.tries = 0
                         logOnce("stuck:" .. gk, string.format(
                             "toggle for [%s] %s not taking effect after %d attempts — backing off %ds (no connected player component yet?)",
-                            cfg.name or key, WORKNAME[t] or ("type" .. t),
+                            palLabel(cfg.name, key), WORKNAME[t] or ("type" .. t),
                             SEND_MAX_TRIES, SEND_BACKOFF_SECONDS))
                     end
                     sendGuard[gk] = g
@@ -1231,7 +1337,7 @@ local function adoptOrphans()
             touched[oldKey], touched[newKey] = true, true
             changed = true
             log(string.format("migrated [%s]: %s -> %s (pal was re-instanced)",
-                entry.name or "?", oldKey, newKey))
+                palLabel(entry.name, newKey), oldKey, newKey))
         elseif #cands == 0 and confCount > 0 then
             -- Superseded duplicates: the pal already lives under a NEW configured
             -- key (re-configured before this sweep could migrate — e.g. by a
@@ -1244,7 +1350,7 @@ local function adoptOrphans()
                 touched[oldKey] = true
                 changed = true
                 log(string.format("dropped superseded config [%s] %s",
-                    (entry and entry.name) or "?", oldKey))
+                    palLabel(entry and entry.name, oldKey), oldKey))
             end
         elseif #cands >= 1 then
             -- Ambiguous: multiple orphans or multiple live candidates on one
@@ -1284,15 +1390,30 @@ local function tickBody()
     local dirs = nil
     local okd = pcall(function() dirs = FindAllOf("PalBaseCampWorkerDirector") end)
     if not okd or not dirs then return end
+    -- Per-tick dedupe (defensive): same-species pals are indistinguishable by
+    -- display name (unnamed pals display their species CharacterID — the
+    -- "contradictory sends" once blamed on double enumeration were really TWO
+    -- Cattivas with different configs), and a pal CAN legitimately appear
+    -- under more than one worker director. Reconciling the same key twice in
+    -- one tick would waste RPC pairs and re-read state mutated mid-tick (the
+    -- server-side RPC applies synchronously), so first sighting wins; later
+    -- sightings only refresh liveness. Not a response to an observed live bug.
+    local reconciled = {} -- palKey -> true for this tick
     for _, dir in ipairs(dirs) do
         enumerateDir(dir, function(_, id, param)
+            local okk, key = pcall(function() return palKey(id.PlayerUId, id.InstanceId) end)
+            if okk and key and reconciled[key] then
+                liveSeen[key] = os.clock()
+                return
+            end
+            if okk and key then reconciled[key] = true end
             -- Identity tracking for the adoption sweep: EVERY enumerated pal,
             -- configured or not — the unconfigured live ones are the adoption
             -- candidates. liveInfo is captured once per key (identity is stable
             -- while the pal stays live; no reason to repeat the reflection
             -- reads every tick). pcall: a bad id must not skip reconcile.
             pcall(function()
-                local key = palKey(id.PlayerUId, id.InstanceId)
+                if not (okk and key) then return end
                 liveSeen[key] = os.clock()
                 local info = liveInfo[key]
                 if info == nil then
@@ -1465,7 +1586,10 @@ local okA, errA = pcall(function()
         function(Context, Work, RequirementParameter)
             local ok, err = pcall(function()
                 local w = Work:get()
-                if not w then return end
+                -- alive(), not ~= nil: a null/stale wrapper is non-nil and any
+                -- member call on it (workKey's GetWorkId, GetClass) can AV
+                -- natively past pcall (crash rule).
+                if not alive(w) then return end
                 -- The same unfilled job re-fires every few seconds. If we already
                 -- know it, just refresh its timestamp — skip type resolution
                 -- (the expensive part) entirely for repeat events.
@@ -1479,7 +1603,16 @@ local okA, errA = pcall(function()
                     return
                 end
                 local t = getWorkType(w)
-                if not t then return end -- unknown class already logged once
+                if not t then
+                    -- Unknown class already logged once by getWorkType. When
+                    -- probing, dump its readable fields (+ the RequirementParameter)
+                    -- once so we can adopt the real suitability field — see
+                    -- probeWorkObject / PROBE_WORKTYPE.
+                    if PROBE_WORKTYPE then
+                        pcall(probeWorkObject, w, RequirementParameter, classNameOf(w))
+                    end
+                    return
+                end
                 -- The work ref rides along ONLY for prunePending's liveness
                 -- fast-path, gated through alive() — never any other member
                 -- call on it (crash rule).
@@ -1606,7 +1739,7 @@ local okB, errB = pcall(function()
                     pushPal(key) -- PrioDrop: modded clients blank the pal's row
                     log(string.format(
                         "released [%s]: unattested toggle — pal returned to vanilla on/off",
-                        cfg.name or key))
+                        palLabel(cfg.name, key)))
                     return
                 end
 
@@ -1675,7 +1808,7 @@ local okB, errB = pcall(function()
                         config.pals[orphanKey] = nil
                         shadows[orphanKey], managedCache[orphanKey] = nil, nil
                         shadows[key], managedCache[key] = nil, nil
-                        log(string.format("adopted config [%s] on first click", cfg.name or key))
+                        log(string.format("adopted config [%s] on first click", palLabel(cfg.name, key)))
                         pushPal(orphanKey) -- PrioDrop for the dead key (new key syncs below)
                     end
                     -- Zero or ambiguous (twin) matches: fall through to fresh
@@ -1710,7 +1843,7 @@ local okB, errB = pcall(function()
                     config.pals[key] = cfg
                     shadows[key] = offList -- seed shadow from what we just read
                     log(string.format("auto-config [%s]: %d work type(s) initialized",
-                        cfg.name or key, nInit))
+                        palLabel(cfg.name, key), nInit))
                 end
 
                 -- Advance the priority one step: 0->1->2->3->4->5->0, or the
@@ -1735,8 +1868,8 @@ local okB, errB = pcall(function()
                 cfg.prio[work] = new
                 saveConfig(config) -- persist the edit back to priorities.lua
                 pushPal(key)       -- sync the row to modded clients (covers auto-config too)
-                log(string.format("cycle [%s] %s -> %d",
-                    cfg.name or key, WORKNAME[work] or ("type" .. work), new))
+                vlog(string.format("cycle [%s] %s -> %d",
+                    palLabel(cfg.name, key), WORKNAME[work] or ("type" .. work), new))
 
                 -- Immediate reconcile of just this pal so the checkbox visual snaps
                 -- to the new state without waiting for the 3s supervisor tick. We are

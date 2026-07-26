@@ -27,6 +27,11 @@
 - Much faster fallback to lower-priority work. When a pal's preferred job gets
   taken by someone else (or a work queue finishes), other pals now fall down
   their priority list within a few seconds instead of idling for 15-25 seconds.
+- Stability: removed an unverified engine call used while identifying station
+  jobs (crafting/production benches) — the prime suspect for the reported
+  crashes that started once advanced production benches were built — and
+  hardened all work-object handling against stale references. If 1.0.0 crashed
+  for you, please retest on this version and report back.
 - Internal mod versions now match the release version.
 
 1.0.0 (2026-07-14)

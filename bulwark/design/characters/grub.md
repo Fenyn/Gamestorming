@@ -18,11 +18,11 @@ thirty seconds ago without washing them. His living space is indistinguishable f
 greenhouse that has been abandoned for a decade, and if you point this out he will look around,
 fail to identify the problem, and offer you a radish.
 
-He is not performing eccentricity. He is not making a statement. This is simply how goblins
+He is not performing eccentricity or making a statement. This is how goblins
 are, as far as he is concerned, and the fact that other people organize their lives differently
 is a curiosity he finds mildly interesting but not worth adopting. When the party tries to
 explain that most people plant crops in rows, he listens politely, nods, and then continues
-doing what he was doing. It is not defiance. The information just does not stick, because it
+doing what he was doing. It is not defiance. The information does not stick, because it
 does not make sense to him, and things that do not make sense slide off Grub like water.
 
 He is social in a way that catches people off guard. He has been living alone for a while but

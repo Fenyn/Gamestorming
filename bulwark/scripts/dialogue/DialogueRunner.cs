@@ -199,9 +199,11 @@ public sealed class DialogueRunner
                 case "enter":
                 case "exit":
                 case "move":
+                case "face":
                 case "camera":
                 case "sfx":
                 case "wait":
+                case "prop":
                     _waitingForStaging = true;
                     StageCommand?.Invoke(step);
                     return; // wait for StagingComplete()

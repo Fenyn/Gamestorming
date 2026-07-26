@@ -20,11 +20,11 @@ and almost entirely absent from her own life.
 This is The Stillness. Thistle has been alone on the frontier for a long time, long enough that
 the novelty ran out, long enough that the days stopped being different from each other, long
 enough that the thing inside her that needed constant change began to starve. She is not dead.
-She is not dying in any way a healer could treat. She has simply stopped being present in her
+She is not dying in any way a healer could treat. She has stopped being present in her
 own existence.
 
-As her relationship with the outpost deepens, she comes back. It is not dramatic. It is
-gradual. She starts asking questions again. She corrects someone's route without being asked.
+As her relationship with the outpost deepens, she comes back. The return is gradual, not
+dramatic. She starts asking questions again. She corrects someone's route without being asked.
 She laughs at something Fenwick says and looks surprised that she did. She starts caring about
 the answers to her own questions. She picks up habits, preferences, opinions. She becomes
 someone again, not the someone she was before, but someone new built from the wreckage of the

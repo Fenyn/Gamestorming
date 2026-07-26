@@ -123,6 +123,16 @@ slot capacity with the most capable pals, held at top priority until completed.
 - Client: hook the station-info widget's bind (widget names from probe v4 F7 dump — pending),
   overlay FORCE prompt/FORCED state, send work GUID via 4× Request_Server_int32 + commit.
 
+## CRASH SUSPECT REMOVED (2026-07-17, pre-1.1.0-release)
+Nexus users reported repeated crashes minutes into play once ADVANCED PRODUCTION
+BENCHES were built. Prime suspect: `UPalWorkBase::GetWorkAssignInfo(TArray<FPalWorkAssignInfo>&)`
+— the engine's deepest getWorkType fallback, runtime-UNVERIFIED, never once succeeded
+(always a caught error on our build), and its out-param marshals object-bearing structs —
+the same native-AV family as the bindedSlot SoftObjectProperty crash below (pcall cannot
+catch those). Station jobs from advanced benches are exactly the classes that reached it.
+REMOVED from the engine 1.1.0; unknown job classes now just log once (grow WORKTYPE_TO_SUIT
+from those logs). Do not reintroduce this call without an in-game probe proving it safe.
+
 ## HARD-WON CRASH RULE #2 (session 6)
 READING a SoftObjectProperty from Lua (`row.bindedSlot`) crashes natively inside UE4SS
 (`push_softobjectproperty` → `FString::operator=` AV) — the crash is in the property read itself,

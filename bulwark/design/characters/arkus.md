@@ -11,7 +11,7 @@
 ## Vibe
 
 Arkus is young and has never learned the rules that other cultures live by. They grew up in an
-orc tribe where saying what you think is not rude, it is expected. If the food is bad, you say
+orc tribe where saying what you think is expected, not rude. If the food is bad, you say
 the food is bad. If someone's plan is going to get people killed, you say that too, in exactly
 those words, and no one takes offense because the alternative is dying.
 

@@ -14,8 +14,8 @@
         { "type": "item", "item_id": "turnip_seed", "quantity": 10 }
       ],
       "lines": [
-        { "speaker": "fenwick", "text": "The farmhouse is up, and I have been rummaging. Found the old seed-store — turnip, mostly, and still good. Here, take them." },
-        { "speaker": "fenwick", "text": "Till a patch of the cleared soil, plant them, and water them every day. Four days and you will have turnips. There is no store to buy seed from yet, so mind these — they are the whole first crop." },
+        { "speaker": "fenwick", "text": "The farmhouse is up, and I've been rummaging. The old seed-store gave up ten turnip seeds, which is ten more than I had this morning. Here. Take them." },
+        { "speaker": "fenwick", "text": "Now, I have a hearth and nothing to put over it, so I'll be plain. Till a patch of the cleared soil, plant them, and water them every day. Every day, mind, or they sulk and you get nothing. Four days, and you will have turnips. There is nowhere to buy more seed yet, so guard those ten. They are the whole of the first crop." },
         { "speaker": "fenwick", "text": "Bring me some when they come up. A kitchen is a very sad room without something to cook." }
       ]
     },
@@ -26,7 +26,7 @@
         "flags_blocked": ["quest_fenwicks_table_complete"]
       },
       "lines": [
-        { "speaker": "fenwick", "text": "You have a harvest. Splendid. Bring me three fresh crops and I will put the hearth to proper use — the first real meal this outpost has seen in years." }
+        { "speaker": "fenwick", "text": "You have a harvest. Splendid. Bring me three fresh crops and I'll put the hearth to proper use — the first real meal this outpost has seen in years." }
       ]
     },
     {
@@ -36,7 +36,7 @@
         "flags_blocked": ["first_rest"]
       },
       "lines": [
-        { "speaker": "fenwick", "text": "The lodging is sorted, and I have found the hearth Tharr mentioned. It is not much yet, but I can work with it. Get some rest tonight. Tomorrow we start making this place livable." }
+        { "speaker": "fenwick", "text": "The lodging is sorted, and I've found the hearth Tharr mentioned. It is not much yet, but I can work with it. Get some rest tonight. Tomorrow we'll start making this place livable." }
       ]
     },
     {
@@ -55,7 +55,7 @@
         "flags_required": ["tavern_built"]
       },
       "lines": [
-        { "speaker": "fenwick", "text": "The kitchen is open. Bring me ingredients and I will turn them into something worth eating. A well-fed party fights better, works harder, and complains less. Mostly less." }
+        { "speaker": "fenwick", "text": "The kitchen is open. Bring me ingredients and I'll turn them into something worth eating. A well-fed party fights better, works harder, and complains less. Mostly less." }
       ]
     }
   ]

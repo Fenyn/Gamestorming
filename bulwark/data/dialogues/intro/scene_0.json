@@ -3,46 +3,87 @@
   "type": "Sequence",
   "once": true,
   "steps": [
-    { "type": "line", "speaker": "fenwick", "text": "I am reasonably certain we have not passed a signpost in the last three miles." },
-    { "type": "line", "speaker": "player", "text": "Four." },
-    { "type": "line", "speaker": "fenwick", "text": "Four, then. That is worse, though I appreciate the precision." },
+    { "type": "fade", "direction": "in", "duration": 1.0 },
+    { "type": "camera", "marker": "MarkPilings", "duration": 2.0 },
+    { "type": "camera", "marker": "return" },
+    { "type": "move", "actor": "player", "marker": "MarkPlayerStop", "speed": 120 },
+    { "type": "move", "actor": "fenwick", "marker": "MarkFenwickStop", "speed": 120 },
+    { "type": "line", "speaker": "fenwick", "text": "Ah." },
+    { "type": "line", "speaker": "player", "text": "Aye." },
+    { "type": "line", "speaker": "fenwick", "text": "That would be our bridge." },
+    { "type": "line", "speaker": "player", "text": "What's left of her." },
+    { "type": "line", "speaker": "fenwick", "text": "It's on the map, right enough. Bridge, river, road east." },
+    { "type": "line", "speaker": "player", "text": "Look at the saplings coming up through the roadbed. At least five years' growing since it fell. Mayhap more." },
+    { "type": "line", "speaker": "fenwick", "text": "Five years... They sent us out with a map five years stale." },
+    { "type": "line", "speaker": "player", "text": "It's a crown bridge, Fen. Word of it likely never reached the right desk, is all." },
+    { "type": "line", "speaker": "fenwick", "text": "You said that about the milestone. And the waystation. And the chapel with the tree growing out of it." },
+    { "type": "line", "speaker": "player", "text": "And when we reach the post, they'll hear about all four." },
+
+    { "type": "line", "speaker": "player", "text": "Here. Look at this." },
+    { "type": "line", "speaker": "fenwick", "text": "Going upstream... that'll be the way around, then." },
+    { "type": "line", "speaker": "player", "text": "Boot-worn, and deep. Plenty have walked it before us." },
+
+    { "type": "line", "speaker": "fenwick", "text": "So then. An unmarked path through strange country, or three days back to that village with the cute barmaiden." },
+    { "type": "line", "speaker": "player", "text": "We've only food enough for two days." },
+    { "type": "line", "speaker": "fenwick", "text": "The path it is... If I'm eaten, I expect a proper funeral. Cooked meats. Weeping. Someone reads a poem." },
+    { "type": "line", "speaker": "player", "text": "You'll get a hole and a hat on a stick." },
+    { "type": "line", "speaker": "fenwick", "text": "You're a good friend, {player_name}. I mean to note it in my will, which I shall begin drafting the moment—" },
+
+    { "type": "enter", "actor": "elara", "marker": "MarkElaraEnter" },
+    { "type": "line", "speaker": "elara", "text": "Do not try the pilings.", "emotion": "calling" },
+    { "type": "face", "actor": "player", "direction": "west" },
+    { "type": "face", "actor": "fenwick", "direction": "west" },
+    { "type": "line", "speaker": "fenwick", "text": "Stars above — a living soul. Madam, we had nearly resolved to swim it." },
+    { "type": "line", "speaker": "elara", "text": "A carter tried that last autumn. He lives; his cart is still down there." },
+    { "type": "move", "actor": "elara", "marker": "MarkElaraLevel", "speed": 300 },
+    { "type": "line", "speaker": "elara", "text": "Six years gone, the river folk say. The path serves instead — it crosses at a shallows half a day up. I have walked it these two years." },
+    { "type": "line", "speaker": "fenwick", "text": "Six. You were close.", "emotion": "low" },
+
+    { "type": "line", "speaker": "fenwick", "text": "Fenwick. My friend is {player_name}." },
+    { "type": "line", "speaker": "player", "text": "Well met." },
+    { "type": "line", "speaker": "elara", "text": "Elara. I trade the villages out here. Pots, salt, needles, news." },
+
+    { "type": "line", "speaker": "elara", "text": "Where are you two bound? There is little east of here but trees." },
+    { "type": "line", "speaker": "fenwick", "text": "The old outpost, if it still stands. They tell us it stands." },
     { "type": "wait", "seconds": 1.5 },
-    { "type": "line", "speaker": "player", "text": "Look at the road. These stones have not been set right in years. Whatever the crown holds out here, it would appear their grasp is not a tight one." },
-    { "type": "line", "speaker": "fenwick", "text": "I had been trying not to notice that. You have a gift for dispelling comfort." },
-    { "type": "line", "speaker": "player", "text": "I have seen neglect of this sort before. When a family leaves their homestead, the road is the first thing to go." },
-    { "type": "line", "speaker": "fenwick", "text": "And what follows the road?" },
-    { "type": "line", "speaker": "player", "text": "Everything else." },
-    { "type": "enter", "actor": "elara" },
-    { "type": "line", "speaker": "elara", "text": "I would not take that fork, were I in your position." },
-    { "type": "line", "speaker": "player", "text": "Why not?" },
-    { "type": "line", "speaker": "elara", "text": "The gorge bridge washed out two winters past. No one has troubled to rebuild it. You shall discover that for yourselves if you continue — though ’tis a long way down to learn a short lesson." },
-    { "type": "line", "speaker": "fenwick", "text": "Well, it's nice to meet such a well-informed stranger on an empty road." },
-    { "type": "line", "speaker": "elara", "text": "I have traded these routes for a good many years. Long enough to know which bridges still stand. Where are you bound?" },
-    { "type": "line", "speaker": "player", "text": "A frontier garrison. Past the Thornwood, near the forest’s edge." },
-    { "type": "line", "speaker": "elara", "text": "The old outpost? There are not many who head out that way.", "emotion": "surprised" },
-    { "type": "line", "speaker": "fenwick", "text": "We were told it was still manned. Though, given the state of everything else out here, I am beginning to question the reliability of what we were told." },
+    { "type": "line", "speaker": "elara", "text": "The outpost.", "emotion": "sharp" },
+    { "type": "line", "speaker": "player", "text": "You know it?" },
     {
       "type": "choice",
-      "speaker": "player",
-      "text": "",
+      "speaker": "elara",
+      "text": "I know its turn in the road. Two years trading this circuit, and I have watched folk come out of that country, usually families with everything they own on a mule. Once, a man carrying his own front door. You would be the first I have seen walking in.",
       "options": [
         {
-          "text": "You seem surprised. What do you know of it?",
+          "text": "You're wondering why we'd head there.",
           "steps": [
-            { "type": "line", "speaker": "elara", "text": "Surprised is too strong. Let us say... curious. I had not thought the crown remembered that post existed." }
+            { "type": "line", "speaker": "elara", "text": "I am wondering what is worth the walk. Nobody has paid me to carry goods that way in two years. Now the crown sends men." },
+            { "type": "line", "speaker": "fenwick", "text": "The relief for its garrison, in fact. All of it, I'm afraid." }
           ]
         },
         {
-          "text": "We are reinforcements. Long overdue, by the sound of it.",
+          "text": "We're its reinforcements.",
           "steps": [
-            { "type": "line", "speaker": "elara", "text": "Reinforcements. After all this time. Well. Someone in the capital must have found a conscience, or at least a reason." }
+            { "type": "line", "speaker": "elara", "text": "Are you. Where are the rest of you?", "emotion": "dry" },
+            { "type": "line", "speaker": "fenwick", "text": "There are no others. We two are the whole of it." }
           ]
         }
       ]
     },
-    { "type": "line", "speaker": "elara", "text": "I am Elara. I trade along these frontier routes. That’s the plan, at least, but there are few along them worth trading with.\n\nThe crown is offering concessions to anyone willing to bring commerce back to the borderlands, and I intend to be the first to collect.\n\nAs it happens, I am heading the same direction. I can guide you to the outpost." },
-    { "type": "line", "speaker": "fenwick", "text": "Then we are in your debt. I am Fenwick. This is {player_name}." },
-    { "type": "line", "speaker": "elara", "text": "Reinforcements for a forgotten outpost, armed with a map drawn by someone who has never set foot out here. The crown’s generosity knows no bounds." },
-    { "type": "line", "speaker": "player", "text": "(laughs)\nWe would welcome the company, Elara." }
+
+    { "type": "line", "speaker": "elara", "text": "My own road runs east as well." },
+    { "type": "move", "actor": "elara", "marker": "MarkTrackBend" },
+    { "type": "line", "speaker": "elara", "text": "The roads have been bad this year. Wolves, trolls, and whispers of worse. Two soldiers make for welcome company." },
+    { "type": "line", "speaker": "player", "text": "Glad to have you, then." },
+    { "type": "line", "speaker": "elara", "text": "All the way to the gate, if you allow it. Two years on this road, and I have never once seen inside those walls. I would like to know what I have been passing." },
+    { "type": "line", "speaker": "fenwick", "text": "Settled, then. And take heart, madam. Whatever else this road does to us, I ensure we eat well.", "emotion": "delighted" },
+
+    { "type": "line", "speaker": "elara", "text": "Let us make haste. It is half a day to the ford, and the light will not wait." },
+    { "type": "line", "speaker": "fenwick", "text": "Supper on the far bank, then. What grows out here that's worth a pot?" },
+    { "type": "line", "speaker": "elara", "text": "Come, and I will tell you." },
+    { "type": "exit", "actor": "elara", "marker": "MarkTrackExit", "speed": 200 },
+    { "type": "move", "actor": "player", "marker": "MarkTrackBend", "speed": 160 },
+    { "type": "move", "actor": "fenwick", "marker": "MarkTrackBend", "speed": 160 },
+    { "type": "fade", "direction": "out", "duration": 1.0 },
+    { "type": "flag", "set": "intro_scene_0" }
   ]
 }

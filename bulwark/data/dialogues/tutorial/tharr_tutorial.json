@@ -10,7 +10,7 @@
         "flags_blocked": ["lodging_quest_started"]
       },
       "lines": [
-        { "speaker": "tharr", "text": "Before anything else, the lodging needs mending. The roof has held, but the walls have not. If you intend to sleep under something other than sky tonight, I will need stone and timber." }
+        { "speaker": "tharr", "text": "Before aught else, the lodging needs mending. The roof has held, but the walls have not. If you intend to sleep under something other than sky tonight, I'll need stone and timber." }
       ],
       "effects": [
         { "type": "flag", "set": "lodging_quest_started" }
@@ -43,7 +43,7 @@
         "flags_blocked": ["first_commission", "quest_raise_the_hearths_complete"]
       },
       "lines": [
-        { "speaker": "tharr", "text": "The table is set. Farmhouse or tavern — bring the stone and the timber, and I will raise whichever you choose first." }
+        { "speaker": "tharr", "text": "The table is set. Farmhouse or tavern — bring the stone and the timber, and I'll raise whichever you choose first." }
       ]
     },
     {
@@ -62,7 +62,7 @@
         "flags_blocked": ["dire_wolf_slain"]
       },
       "lines": [
-        { "speaker": "tharr", "text": "The forest presses closer every season. Game's gone scarce, and the tracks by the tree line run too big. Something out there is hunting. Keep your axe close." }
+        { "speaker": "tharr", "text": "The forest presses closer every season. The game has gone scarce, and the tracks by the tree line run too big. Something out there is hunting. Keep your axe close." }
       ]
     },
     {

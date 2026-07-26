@@ -115,7 +115,15 @@ public partial class TitleFlowSpike : SpikeBase
         // (SceneRouter.ResumeRoute) sends a finished-intro save to the outpost. A save still mid-intro
         // resumes to the road instead — covered headless by intro_spike section (I). SetStoryFlag also
         // persists the save, so SaveExists() is true below.
+        // Also set first_rest: StoryDirector.OnStoryFlag freezes the day clock on Day 1 (source
+        // "tutorial_day1") the moment intro_complete lands, and only lifts it once first_rest lands
+        // (plus a post-load catch-up that re-applies the freeze if intro_complete is set without
+        // first_rest) — so without it this save is "intro done, never slept" and the clock is paused
+        // at the outpost BY DESIGN. Setting first_rest here makes this a genuinely post-tutorial save,
+        // which is what the unpause check below is actually meant to prove (the router's
+        // SceneRouter-source unpause on GoToOutpost).
         gs.SetStoryFlag("intro_complete");
+        gs.SetStoryFlag("first_rest");
         Check("(4) precondition: a save now exists", gs.SaveExists());
 
         router.GoToTitleScreen();

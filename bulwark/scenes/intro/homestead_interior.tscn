@@ -1,0 +1,115 @@
+[gd_scene format=4 uid="uid://cgdu3ub8rpeob"]
+
+[ext_resource type="Script" uid="uid://cpn6w3labar0t" path="res://scripts/intro/HomesteadInteriorScene.cs" id="1_int"]
+[ext_resource type="PackedScene" path="res://scenes/dialogue/cutscene_actor.tscn" id="2_actor"]
+[ext_resource type="TileSet" uid="uid://uofvvsp0qlh5" path="res://assets/tilesets/interior_tileset.tres" id="3_tiles"]
+[ext_resource type="PackedScene" path="res://scenes/props/fireplace.tscn" id="4_fire"]
+[ext_resource type="Texture2D" uid="uid://nx3swg4s53ja" path="res://assets/fx/glow_warm.png" id="5_glow"]
+
+[node name="HomesteadInteriorScene" type="Node2D" unique_id=2098828581]
+script = ExtResource("1_int")
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=2011960789]
+tile_map_data = PackedByteArray("AAD9/wAAPgAIAAkAAAD+/wAAPgAIAAkAAAD//wAAPgAIAAkAAAD//wEAPgAAAAgAAAAAAAEAPgAAAAgAAAAAAAIAPgAAAAgAAAABAAIAPgAAAAgAAAACAAIAPgAAAAgAAAACAAMAPgAAAAgAAAADAAMAPgAAAAgAAAAEAAMAPgAAAAgAAAAEAAQAPgAAAAgAAAAFAAQAPgAAAAgAAAAFAAUAPgAEAAoAAAAGAAUAPgAEAAoAAAAHAAUAPgACAAsAAAAHAAQAPgAAAAoAAAAHAAMAPgAAAAoAAAAHAAIAPgAAAAoAAAAHAAEAPgAAAAoAAAAHAAAAPgAAAAsAAAAGAAQAPgAAAAgAAAAGAAMAPgAAAAgAAAAGAAIAPgAAAAgAAAAGAAEAPgAAAAgAAAAGAAAAPgAIAAkAAAAFAAMAPgAAAAgAAAAFAAIAPgAAAAgAAAAFAAEAPgAAAAgAAAAFAAAAPgAIAAkAAAAEAAUAPgAEAAoAAAAEAAIAPgAAAAgAAAAEAAEAPgAAAAgAAAAEAAAAPgAIAAkAAAADAAUAPgAEAAoAAAADAAQAPgAAAAgAAAADAAIAPgAAAAgAAAADAAEAPgAAAAgAAAADAAAAPgAIAAkAAAACAAUAPgAEAAoAAAACAAQAPgAAAAgAAAACAAEAPgAAAAgAAAACAAAAPgAIAAkAAAABAAUAPgAEAAoAAAABAAQAPgAAAAgAAAABAAMAPgAAAAgAAAABAAEAPgAAAAgAAAABAAAAPgAIAAkAAAAAAAUAPgAEAAoAAAAAAAQAPgAAAAgAAAAAAAMAPgAAAAgAAAAAAAAAPgAIAAkAAAD//wUAPgAEAAoAAAD//wQAPgAAAAgAAAD//wMAPgAAAAgAAAD//wIAPgAAAAgAAAD+/wUAPgAEAAoAAAD+/wQAPgAAAAgAAAD+/wMAPgAAAAgAAAD+/wIAPgAAAAgAAAD+/wEAPgAAAAgAAAD9/wUAPgAEAAoAAAD9/wQAPgAAAAgAAAD9/wMAPgAAAAgAAAD9/wIAPgAAAAgAAAD9/wEAPgAAAAgAAAD8/wUAPgAEAAoAAAD8/wQAPgAAAAgAAAD8/wMAPgAAAAgAAAD8/wIAPgAAAAgAAAD8/wEAPgAAAAgAAAD8/wAAPgAIAAkAAAD7/wUAPgAEAAoAAAD7/wQAPgAAAAgAAAD7/wMAPgAAAAgAAAD7/wIAPgAAAAgAAAD7/wEAPgAAAAgAAAD7/wAAPgAIAAkAAAD6/wUAPgAEAAoAAAD6/wQAPgAAAAgAAAD6/wMAPgAAAAgAAAD6/wIAPgAAAAgAAAD6/wEAPgAAAAgAAAD6/wAAPgAIAAkAAAD5/wUAPgAEAAoAAAD5/wQAPgAAAAgAAAD5/wMAPgAAAAgAAAD5/wIAPgAAAAgAAAD5/wEAPgAAAAgAAAD5/wAAPgAIAAkAAAD4/wUAPgAEAAsAAAD4/wQAPgAEAAkAAAD4/wMAPgAEAAkAAAD4/wIAPgAEAAkAAAD4/wEAPgAEAAkAAAD4/wAAPgAKAAoAAAA=")
+tile_set = ExtResource("3_tiles")
+
+[node name="GroundDecor" type="TileMapLayer" parent="." unique_id=476285457]
+tile_map_data = PackedByteArray("AAD4/wQARwABAAQAAAD4/wUARwABAAUAAAD8/wAARwAAAA8AAAD7/wAARwABAA8AAAA=")
+tile_set = ExtResource("3_tiles")
+
+[node name="Walls" type="TileMapLayer" parent="." unique_id=512855785]
+y_sort_enabled = true
+tile_map_data = PackedByteArray("AAD4////PQAFAAIAAAD5////PQAEAAIAAAD6////PQAEAAIAAAD7////PQAEAAIAAAD9//7/PQAEAAAAAAD8////PQAEAAIAAAD+//7/PQAEAAAAAAD///7/PQAEAAAAAAAAAP7/PQAEAAAAAAABAP7/PQAEAAAAAAACAP7/PQAEAAAAAAADAP7/PQAEAAAAAAAEAP7/PQAEAAAAAAAEAP3/PQAEAAAAAAAFAP3/PQAEAAAAAAAGAP3/PQAEAAAAAAAHAP3/PQAEAAEAAAAHAP//PQAEAAMAAAAHAP7/PQAEAAEAAAAGAP//PQAEAAIAAAAGAP7/PQAEAAAAAAAFAP//PQAEAAIAAAAFAP7/PQAEAAAAAAAEAP//PQAEAAIAAAADAP//PQAEAAIAAAADAP3/PQAEAAAAAAACAP//PQAEAAIAAAACAP3/PQAEAAAAAAABAP//PQAEAAIAAAABAP3/PQAEAAAAAAAAAP//PQAEAAIAAAAAAP3/PQAEAAAAAAD/////PQAEAAIAAAD///3/PQAEAAAAAAD+////PQAEAAIAAAD+//3/PQAEAAAAAAD9////PQAEAAIAAAD9//3/PQAEAAAAAAD8//7/PQAEAAAAAAD8//3/PQAEAAAAAAD7//7/PQAEAAAAAAD7//3/PQAEAAAAAAD6//7/PQAEAAAAAAD6//3/PQAEAAAAAAD5//7/PQAEAAAAAAD5//3/PQAEAAAAAAD4//7/PQAFAAAAAAD4//3/PQAFAAAAAAAHAPz/PQAGAAEAAAAGAPz/PQAGAAAAAAAFAPz/PQAGAAAAAAAEAPz/PQAGAAAAAAADAPz/PQAGAAAAAAACAPz/PQAGAAAAAAABAPz/PQAGAAAAAAAAAPz/PQAGAAAAAAD///z/PQAGAAAAAAD+//z/PQAGAAAAAAD9//z/PQAGAAAAAAD8//z/PQAGAAAAAAD7//z/PQAGAAAAAAD6//z/PQAGAAAAAAD5//z/PQAGAAAAAAD4//z/PQAHAAAAAAA=")
+tile_set = ExtResource("3_tiles")
+
+[node name="Props" type="TileMapLayer" parent="." unique_id=1939527647]
+y_sort_enabled = true
+tile_map_data = PackedByteArray("AAADAP//RwAEAAQAAAADAAAARwAEAAUAAAAEAP//RwAJAAMAAAAEAAAARwAFAAUAAAAFAP//RwAGAAQAAAAFAAAARwAGAAUAAAAGAP//RwAHAAQAAAAGAAAARwAHAAUAAAD4/wEARwANAA0AAAD4/wIARwANAA4AAAD4/wMARwANAA8AAAD6//3/SQABAAAAAAD6//7/SQABAAEAAAD5/wQARwALAAIAAAAFAAEARwANAAAAAAADAAEARwAPAAAAAAAEAAIARwAKAAEAAAD/////HQAAAAEAAAAAAP7/HQABAAAAAAAAAP//HQABAAEAAAABAP//HQACAAEAAAAAAP3/HQABAAAAAAAAAPz/HQABAAAAAAD5/wUASQAAAAsAAAD7//7/RwAAAAkAAAD7////RwAAAAoAAAD7/wAARwAAAAsAAAD8//7/RwABAAkAAAD8////RwABAAoAAAD8/wAARwABAAsAAAD5////RwACAAYAAAD5/wAARwACAAcAAAD6////RwADAAYAAAD6/wAARwADAAcAAAD8/wIARwADAAgAAAD8/wMARwADAAkAAAAAAAAAGwABAAQAAAAAAAEAGwABAAUAAAA=")
+tile_set = ExtResource("3_tiles")
+
+[node name="Overhead" type="TileMapLayer" parent="." unique_id=1278254744]
+z_index = 10
+y_sort_enabled = true
+tile_map_data = PackedByteArray("AAD6//3/DgAGAAwAAAD6//7/DgAGAA0AAAD8//3/SQALAAoAAAD8//7/SQALAAsAAAA=")
+tile_set = ExtResource("3_tiles")
+
+[node name="OverheadDecor" type="TileMapLayer" parent="." unique_id=1799922512]
+z_index = 10
+y_sort_enabled = true
+tile_set = ExtResource("3_tiles")
+
+[node name="Furnishings" type="Node2D" parent="." unique_id=1839606687]
+
+[node name="Pot" type="ColorRect" parent="Furnishings" unique_id=1342714059]
+offset_left = -18.0
+offset_top = -200.0
+offset_right = 18.0
+offset_bottom = -168.0
+color = Color(0.15, 0.14, 0.13, 1)
+
+[node name="Kettle" type="ColorRect" parent="Furnishings" unique_id=606946514]
+offset_left = 44.0
+offset_top = -196.0
+offset_right = 78.0
+offset_bottom = -166.0
+color = Color(0.18, 0.18, 0.2, 1)
+
+[node name="HearthFire" type="Node2D" parent="." unique_id=1447218228]
+unique_name_in_owner = true
+visible = false
+position = Vector2(0, -260)
+
+[node name="Fireplace" parent="HearthFire" unique_id=1708324361 instance=ExtResource("4_fire")]
+
+[node name="HearthGlow" type="PointLight2D" parent="HearthFire" unique_id=63037365]
+position = Vector2(0, -40)
+color = Color(1, 0.7, 0.4, 1)
+energy = 1.4
+texture = ExtResource("5_glow")
+texture_scale = 3.0
+
+[node name="EveningTint" type="CanvasModulate" parent="." unique_id=734157012]
+unique_name_in_owner = true
+visible = false
+color = Color(0.42, 0.36, 0.44, 1)
+
+[node name="Marks" type="Node2D" parent="." unique_id=1966510736]
+
+[node name="MarkDoorInside" type="Marker2D" parent="Marks" unique_id=144688979]
+unique_name_in_owner = true
+position = Vector2(0, 283)
+
+[node name="MarkHearthPlayer" type="Marker2D" parent="Marks" unique_id=282696904]
+unique_name_in_owner = true
+position = Vector2(-45, 92)
+
+[node name="MarkHearthFenwick" type="Marker2D" parent="Marks" unique_id=1075634282]
+unique_name_in_owner = true
+position = Vector2(24, 69)
+
+[node name="MarkHearthElara" type="Marker2D" parent="Marks" unique_id=676644224]
+unique_name_in_owner = true
+position = Vector2(87, 106)
+
+[node name="MarkInteriorCam" type="Marker2D" parent="Marks" unique_id=653333216]
+unique_name_in_owner = true
+
+[node name="Actors" type="Node2D" parent="." unique_id=2068874759]
+y_sort_enabled = true
+
+[node name="ActorPlayer" parent="Actors" unique_id=176399935 instance=ExtResource("2_actor")]
+unique_name_in_owner = true
+position = Vector2(0, 250)
+Facing = 1
+
+[node name="ActorFenwick" parent="Actors" unique_id=433294365 instance=ExtResource("2_actor")]
+unique_name_in_owner = true
+position = Vector2(-80, 262)
+Facing = 1
+
+[node name="ActorElara" parent="Actors" unique_id=1273716693 instance=ExtResource("2_actor")]
+unique_name_in_owner = true
+position = Vector2(80, 262)
+Facing = 1
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=297317745]

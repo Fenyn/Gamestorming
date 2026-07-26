@@ -17,10 +17,10 @@ consider either of these things a problem. The world is the stage. The people in
 the company. He has been watching, listening, and taking mental notes since he arrived at
 the outpost, and he has not stopped since.
 
-He is witty in the way that makes people laugh before they realize they have been
-observed. He notices things. He notices the way Aldric stands when he thinks no one is
-watching. He notices that Thistle speaks more on days when the weather is good. He notices
-that Fenwick salts the stew differently when Elara is eating. He files all of it away,
+He is witty enough to make people laugh before they realize they have been
+observed. He notices things: the way Aldric stands when he thinks no one is
+watching, that Thistle speaks more on days when the weather is good, that Fenwick salts
+the stew differently when Elara is eating. He files all of it away,
 not to gossip but because it is true and truth is what makes a story work.
 
 He is a theater kid to his core. He speaks in heightened language when he is excited and
@@ -137,7 +137,7 @@ His arrival should feel organic: he wandered in, and the outpost was interesting
   seen him nervous about anything.
 - **Hearts 9-10:** The friend. The performance has not dropped because it was never a
   performance. Wynn is exactly who he appeared to be, just more of it. He tells the
-  player that the outpost is the first place he has felt at home, and he says it simply,
+  player that the outpost is the first place he has felt at home, and he says it plainly,
   without dramatizing it, which is how the player knows he means it.
 
 ## Notes (deferred / later)

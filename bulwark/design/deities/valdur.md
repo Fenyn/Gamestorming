@@ -42,9 +42,9 @@ Warhammer stats (PF2e Remaster): 1d8 B, 1 hand, Shove trait. Martial weapon, Ham
 
 ## Theology
 
-Valdûr is not a distant god who watches from beyond the sky. According to his followers, he is
-the earth itself. The world is his body. Its mountains are his spine, its caverns his lungs, its
-veins of ore his blood. The dwarves do not merely live on the world. They live upon him and
+According to his followers, Valdûr is not a distant god who watches from beyond the sky but the
+earth itself. The world is his body. Its mountains are his spine, its caverns his lungs, its
+veins of ore his blood. The dwarves do not just live on the world. They live upon him and
 within him, and every stone they quarry is taken from the Stonefather's own flesh. To build with
 that stone is to shape his gift into something worthy of the sacrifice.
 

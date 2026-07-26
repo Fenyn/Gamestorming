@@ -124,6 +124,7 @@ public partial class TileSetBuilder : Node
     private const string D = "res://assets/tilesets/winlu_destroyed/";
     private const string W = "res://assets/tilesets/winlu_winter/";
     private const string I = "res://assets/tilesets/winlu_interior/";
+    private const string ID = "res://assets/tilesets/winlu_interior_destroyed/";
     private const string SW = "res://assets/tilesets/winlu_swamp/";
     private const string DUN = "res://assets/tilesets/winlu_dungeon/";
     private const string MUSH = "res://assets/tilesets/winlu_mushroom/";
@@ -456,17 +457,25 @@ public partial class TileSetBuilder : Node
     private static Output BuildInterior() => new()
     {
         OutPath = "res://assets/tilesets/interior_tileset.tres",
-        Layers = new(),   // no farmable / ruin / season data needed
+        // ruin_pair (int) added this run: the destroyed interior pack ships a cell-for-cell A2 floor
+        // counterpart. Adding a custom-data layer + setting values does not change any pre-existing
+        // source's tile count / texture, so COMPAT still PASSes strictly (no rebaseline).
+        Layers = new()
+        {
+            new() { Name = "ruin_pair", Type = Variant.Type.Int },
+        },
         Sets = new()
         {
-            new() { Key = "interior_floors", Index = 0, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Floors" },
-            new() { Key = "interior_walls",  Index = 1, Mode = TileSet.TerrainMode.Sides,           Name = "Walls" },
+            new() { Key = "interior_floors",   Index = 0, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Floors" },
+            new() { Key = "interior_walls",    Index = 1, Mode = TileSet.TerrainMode.Sides,           Name = "Walls" },
+            new() { Key = "interior_patterns", Index = 2, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Floor patterns (A4)" },
+            new() { Key = "interior_floors_destroyed", Index = 3, Mode = TileSet.TerrainMode.CornersAndSides, Name = "Floors destroyed" },
         },
         Plain = new()
         {
             // tilesets
             new() { Id = 10, Res = I + "fantasy_inside_a5.png" },
-            new() { Id = 11, Res = I + "fantasy_inside_a2.png" },   // right-half decorative floor patterns / rugs
+            new() { Id = 11, Res = I + "fantasy_inside_a2.png", RuinPair = 70 },   // right-half decor / rugs; A2 floor sheet -> ruin_pair 70 (destroyed A2, cell-for-cell)
             new() { Id = 12, Res = I + "fantasy_inside_a3.png" },   // raw walls (terrained -> src 61)
             new() { Id = 13, Res = I + "fantasy_inside_a4.png" },   // floor patterns (parquet/tile bands)
             new() { Id = 14, Res = I + "fantasy_inside_b.png" },
@@ -514,11 +523,22 @@ public partial class TileSetBuilder : Node
             new() { Id = 55, Res = I + "railing.png", Collision = Collide.OpaqueAll },
             new() { Id = 56, Res = I + "statue.png", Collision = Collide.OpaqueAll },
             new() { Id = 57, Res = I + "table_decoration.png", Collision = Collide.OpaqueAll },
+            // --- destroyed interior pack (plain sources, ids 70-73). Collision mirrors pristine
+            //     precedent: mixed architecture/furniture/debris & prop sheets stay free (refine
+            //     in-editor). Only the A2 floor sheet is a cell-for-cell ruin counterpart (70<->11). ---
+            new() { Id = 70, Res = ID + "fantasy_inside_a2_destroyed.png", RuinPair = 11 },  // ruined A2 floor sheet (also terrained -> src 80)
+            new() { Id = 71, Res = ID + "fantasy_inside_destroyed.png" },                    // ruined furniture / debris / broken decor (no single pristine counterpart)
+            new() { Id = 72, Res = ID + "chandelier_destroyed.png" },                        // single broken chandelier stamp (not a cell-for-cell pair)
+            new() { Id = 73, Res = ID + "decoration_interior_destroyed.png" },               // ruined decoration stamps (not a cell-for-cell pair)
         },
         Gen = new()
         {
-            new() { AtlasKey = "floor_inside_a2", SourceId = 60, TerrainSetKey = "interior_floors" },
+            new() { AtlasKey = "floor_inside_a2", SourceId = 60, TerrainSetKey = "interior_floors", RuinPair = 80 },
             new() { AtlasKey = "wall_inside_a3",  SourceId = 61, TerrainSetKey = "interior_walls", Wall = WallColl.All },
+            // A4 floor patterns (24 terrains, set 2). No pristine/destroyed pairing (no destroyed A4).
+            new() { AtlasKey = "pattern_inside_a4", SourceId = 62, TerrainSetKey = "interior_patterns" },
+            // Destroyed A2 floors (16 terrains, set 3). Cell-for-cell with pristine floor src 60.
+            new() { AtlasKey = "floor_inside_a2_destroyed", SourceId = 80, TerrainSetKey = "interior_floors_destroyed", RuinPair = 60 },
         },
     };
 

@@ -21,6 +21,8 @@ public partial class SceneRouter : Node
         Territory,
         Combat,
         Intro,
+        HomesteadExterior,
+        HomesteadInterior,
         TitleScreen,
         NameEntry,
     }
@@ -30,7 +32,13 @@ public partial class SceneRouter : Node
     // Assembler that consumes GameState.Territory.PendingEncounter and runs combat.tscn with it.
     private const string EncounterScene = "res://scenes/combat/encounter.tscn";
 
+    // The intro's homestead half is two hosted cutscene scenes: the road/ford (Scene 0) hands off to the
+    // homestead EXTERIOR (Scene 1a — ford/yard/camp), which hands off to the homestead INTERIOR (Scene 1b
+    // — the hearth beat onward), splitting the old single homestead scene along the top-down exterior /
+    // interior map convention.
     private const string IntroScene = "res://scenes/intro/road.tscn";
+    private const string HomesteadExteriorScene = "res://scenes/intro/homestead_exterior.tscn";
+    private const string HomesteadInteriorScene = "res://scenes/intro/homestead_interior.tscn";
 
     private const string TitleScene = "res://scenes/ui/title_screen.tscn";
     private const string NameEntryScene = "res://scenes/ui/name_entry.tscn";
@@ -44,7 +52,7 @@ public partial class SceneRouter : Node
 
     /// <summary>Source key for the scene-mode pause reason on the shared day clock (see
     /// <see cref="DayClock.SetPaused"/>). One key covers every transition: Outpost/Territory drop it so
-    /// the clock runs, Combat/Intro/title/name-entry raise it — independent of the cozy host's modal
+    /// the clock runs, Combat/Intro/Homestead/title/name-entry raise it — independent of the cozy host's modal
     /// pause, so a panel close can never resume a clock a mode transition froze.</summary>
     private const string ClockPauseSource = "scene_mode";
 
@@ -87,12 +95,34 @@ public partial class SceneRouter : Node
         ModeChanged?.Invoke(CurrentMode);
     }
 
-    /// <summary>Enter the intro cutscene sequence. Pauses the day clock.</summary>
+    /// <summary>Enter the intro cutscene sequence at the road/ford scene (Scene 0). Pauses the day clock.</summary>
     public void GoToIntro()
     {
         CurrentMode = Mode.Intro;
         SetClockPaused(true);
         GetTree().ChangeSceneToFile(IntroScene);
+        ModeChanged?.Invoke(CurrentMode);
+    }
+
+    /// <summary>Enter the homestead EXTERIOR cutscene scene (intro Scene 1a — ford/yard/camp) — the road
+    /// scene routes here when Scene 0 finishes, and Continue resumes here on a mid-intro quit with Scene 0
+    /// done and Scene 1a pending. Pauses the day clock.</summary>
+    public void GoToHomesteadExterior()
+    {
+        CurrentMode = Mode.HomesteadExterior;
+        SetClockPaused(true);
+        GetTree().ChangeSceneToFile(HomesteadExteriorScene);
+        ModeChanged?.Invoke(CurrentMode);
+    }
+
+    /// <summary>Enter the homestead INTERIOR cutscene scene (intro Scene 1b — the hearth beat onward) — the
+    /// exterior scene routes here when Scene 1a finishes, and Continue resumes here on a mid-intro quit with
+    /// Scene 1a done and Scene 1 pending. Pauses the day clock.</summary>
+    public void GoToHomesteadInterior()
+    {
+        CurrentMode = Mode.HomesteadInterior;
+        SetClockPaused(true);
+        GetTree().ChangeSceneToFile(HomesteadInteriorScene);
         ModeChanged?.Invoke(CurrentMode);
     }
 
@@ -190,23 +220,25 @@ public partial class SceneRouter : Node
     private void OnNewGameRequested() => GoToNameEntry();
 
     /// <summary>
-    /// Continue: load the existing save, then resume at the right place. The intro is a three-scene
-    /// sequence with two save checkpoints — the road scene sets intro_scene_0 (after scene 0) and
-    /// intro_scene_1 (after scene 1), and the outpost sets intro_complete when scene 2 finishes. A
-    /// mid-intro quit must resume where it left off rather than soft-locking:
+    /// Continue: load the existing save, then resume at the right place. The intro is a four-scene
+    /// sequence with three save checkpoints across three hosted scenes — the road scene sets intro_scene_0
+    /// (after Scene 0) then routes to the homestead exterior, which sets intro_scene_1a (after Scene 1a)
+    /// then routes to the homestead interior, which sets intro_scene_1 (after Scene 1b); the outpost sets
+    /// intro_complete when Scene 2 finishes. A mid-intro quit must resume where it left off rather than
+    /// soft-locking:
     ///
-    ///   intro_complete set                          -> Outpost    (intro already finished — normal case)
-    ///   intro_scene_1 set,   intro_complete unset    -> Outpost    (road scenes done; scene 2 is still
-    ///                                                               pending and OutpostScene.TryPlayIntroScene2
-    ///                                                               fires it there)
-    ///   intro_scene_1 unset, intro_complete unset    -> Intro road (road scenes unfinished; RoadScene
-    ///                                                               resumes at the first missing scene)
+    ///   intro_complete set                          -> Outpost            (intro already finished)
+    ///   intro_scene_1 set,   intro_complete unset    -> Outpost            (both homestead cutscenes done;
+    ///                                                                       scene 2 is still pending and
+    ///                                                                       OutpostScene.TryPlayIntroScene2
+    ///                                                                       fires it there)
+    ///   intro_scene_1a set,  intro_scene_1 unset      -> HomesteadInterior  (Scene 1a done, Scene 1b pending)
+    ///   intro_scene_0 set,   intro_scene_1a unset     -> HomesteadExterior  (Scene 0 done, Scene 1a pending)
+    ///   intro_scene_0 unset                          -> Intro road         (nothing played yet — Scene 0)
     ///
-    /// intro_complete implies intro_scene_1, so the table collapses to <see cref="ResumeRoute"/>: the
-    /// road scene only when NEITHER intro_complete nor intro_scene_1 is set; otherwise the outpost.
-    ///
-    /// The Continue button is hidden when no save exists (HookTitleScreen), so this only runs with a
-    /// real save; the ContinueGame guard degrades to a fresh seed if somehow reached without one.
+    /// The four flags collapse to <see cref="ResumeRoute"/>. The Continue button is hidden when no save
+    /// exists (HookTitleScreen), so this only runs with a real save; the ContinueGame guard degrades to a
+    /// fresh seed if somehow reached without one.
     /// </summary>
     private void OnContinueRequested()
     {
@@ -218,18 +250,43 @@ public partial class SceneRouter : Node
             return;
         }
 
-        if (ResumeRoute(gs.HasStoryFlag("intro_complete"), gs.HasStoryFlag("intro_scene_1")) == Mode.Intro)
-            GoToIntro();
-        else
-            GoToOutpost();
+        switch (ResumeRoute(
+                    gs.HasStoryFlag("intro_complete"),
+                    gs.HasStoryFlag("intro_scene_0"),
+                    gs.HasStoryFlag("intro_scene_1a"),
+                    gs.HasStoryFlag("intro_scene_1")))
+        {
+            case Mode.Intro:
+                GoToIntro();
+                break;
+            case Mode.HomesteadExterior:
+                GoToHomesteadExterior();
+                break;
+            case Mode.HomesteadInterior:
+                GoToHomesteadInterior();
+                break;
+            default:
+                GoToOutpost();
+                break;
+        }
     }
 
     /// <summary>The Continue resume route (extracted pure decision — see <see cref="OnContinueRequested"/>
-    /// for the full table). Returns <see cref="Mode.Intro"/> only when the intro is unfinished AND the
-    /// two road scenes aren't done yet; otherwise <see cref="Mode.Outpost"/> (where a still-pending
-    /// scene 2 triggers). Kept static and side-effect-free so the intro spike can assert it headless.</summary>
-    public static Mode ResumeRoute(bool introComplete, bool introScene1Done)
-        => (!introComplete && !introScene1Done) ? Mode.Intro : Mode.Outpost;
+    /// for the full table). <see cref="Mode.Outpost"/> once the intro is finished or both homestead
+    /// cutscenes are done (a pending Scene 2 triggers there); <see cref="Mode.HomesteadInterior"/> when
+    /// Scene 1a is done but Scene 1b is pending; <see cref="Mode.HomesteadExterior"/> when Scene 0 is done
+    /// but Scene 1a is pending; otherwise <see cref="Mode.Intro"/> (the road scene, nothing played yet).
+    /// Kept static and side-effect-free so the intro spike can assert it headless.</summary>
+    public static Mode ResumeRoute(bool introComplete, bool scene0Done, bool scene1aDone, bool scene1Done)
+    {
+        if (introComplete || scene1Done)
+            return Mode.Outpost;
+        if (scene1aDone)
+            return Mode.HomesteadInterior;
+        if (scene0Done)
+            return Mode.HomesteadExterior;
+        return Mode.Intro;
+    }
 
     private static void SetClockPaused(bool paused)
     {

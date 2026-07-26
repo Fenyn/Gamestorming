@@ -1,0 +1,25 @@
+PalPriority (core) 1.1.0 (2026-07-17)
+- Dedicated server support. The engine now pushes priority state to every modded
+  player over the game's own replicated RPC channel so clients no longer need to
+  be on the same machine as the server. Thanks to the testers in the comments
+  for the diagnosis of the old file-based design.
+- Per-player write routing. Each pal's work toggles are applied through the
+  connection of the player who manages it (the one who set its priorities) —
+  the same authority as that player's own clicks. If a pal's manager is offline, its
+  shaping simply pauses until they reconnect.
+- Fixed: clicking a work column a pal cannot do no longer creates a priority
+  entry (the engine now checks work suitability before cycling — thanks for the
+  report and the code pointer). Bogus entries from 1.0.0 are cleaned up
+  automatically.
+- Much faster fallback to lower-priority work. When a pal's preferred job gets
+  taken by someone else (or a work queue finishes), other pals now fall down
+  their priority list within a few seconds instead of idling for 15-25 seconds.
+- Fixed: config file not found on the Steam Workshop UE4SS layout (thanks for
+  the path fix in the comments); the config location is now also derived
+  automatically from the mod's own install path.
+- Stability: removed an unverified engine call used while identifying station
+  jobs (crafting/production benches) — the prime suspect for the reported
+  crashes that started once advanced production benches were built — and
+  hardened all work-object handling against stale references. If 1.0.0 crashed
+  for you, please retest on this version and report back.
+

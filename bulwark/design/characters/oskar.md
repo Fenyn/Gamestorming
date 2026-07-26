@@ -34,7 +34,7 @@ plant trees under which they will never sit. Oskar is planting trees.
 ## Role in the town
 
 Oskar runs the Chapel. He provides divine blessings, maintains spiritual wards, and serves as
-the outpost's anchor for matters of faith and meaning. He is not a preacher. He does not
+the outpost's anchor for matters of faith and meaning. He is not a preacher and does not
 deliver sermons or push doctrine. He offers a space and a presence, and people come to him
 because they want to, not because they are told to.
 

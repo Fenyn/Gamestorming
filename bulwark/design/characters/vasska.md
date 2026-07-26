@@ -15,11 +15,11 @@ Every interaction with Vasska feels like standing on the edge of a trance. Her u
 serpentine eyes fix on you with absolute focus, and there is a sensation, not unpleasant but
 not comfortable, of your thoughts being gently held in place. You are aware, on some level
 beneath language, that you could slip under if you stopped resisting. That if you let go, you
-would simply float in the stillness of her attention until she released you.
+would float in the stillness of her attention until she released you.
 
 This is Vasska saying hello. She has no idea it is unsettling.
 
-To her, this is simply how nagaji communicate. The intensity, the psychic weight, the
+To her, this is how nagaji communicate. The intensity, the psychic weight, the
 trance-edge that makes mammals want to either flee or submit, is as natural and unremarkable
 as a handshake. She does not modulate it because it has never occurred to her that it needs
 modulating. When people flinch or lose their train of thought mid-conversation, she waits
@@ -44,7 +44,7 @@ without warning, in a way that makes the subject feel like a pinned butterfly.
 Vasska has no building assignment. She is a party member whose value is in combat and in the
 Oskar ritual questline. In the field, she is an occult caster who manipulates perception,
 emotion, and cognition. She does not hit hard. She makes the enemy forget why they were
-fighting, or believe they are somewhere else, or simply stop.
+fighting, or believe they are somewhere else, or just stop.
 
 Her psychic abilities also make her uniquely suited to support roles that no other character
 can fill: reading intentions during negotiations, sensing threats before they materialize,
@@ -62,12 +62,12 @@ Nagaji communicate telepathically as a matter of course. Among her own people, V
 psychic presence is normal. Outside her community, it registers as something between hypnosis
 and a threat display. She does not understand this reaction because she has never had to. The
 swamp kept her people isolated enough that the question of how other ancestries experience
-nagaji communication simply never came up.
+nagaji communication never came up at all.
 
 Vasska left the swamp for her own reasons. She is a psychic of unusual strength, and her
 abilities drew her outward, toward minds she had never touched, structures of thought she had
-never encountered. She is not on a mission. She is not fleeing. She is exploring, in the way
-that a deeply focused specialist explores: methodically, thoroughly, and with a level of
+never encountered. She is not on a mission. She is not fleeing. She is exploring the way
+a deeply focused specialist explores: methodically, thoroughly, and with a level of
 personal investment that other people find intense because it is intense.
 
 ## Arrival
@@ -76,7 +76,7 @@ Recruitable, missable. Vasska's encounter in the swamp biome is gated behind rea
 hearts with Oskar. Until that threshold is met, she does not appear.
 
 When the player explores the swamp biome after triggering the gate, they encounter Vasska.
-She is not hostile, not hiding, not in distress. She is simply present, observing, the way
+She is not hostile, not hiding, not in distress. She is present, observing, the way
 she observes everything. Recruiting her requires a subquest to befriend her. She is not
 immediately willing to leave the swamp. The player must give her a reason, and "we need your
 help" is not sufficient. She needs to find the outpost interesting enough to warrant her

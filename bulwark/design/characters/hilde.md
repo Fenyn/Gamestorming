@@ -11,25 +11,25 @@
 
 ## Vibe
 
-Hilde is quiet in the way that people who are trying not to be noticed are quiet. She pays
+Hilde is quiet the way people who are trying not to be noticed are quiet. She pays
 her rent on time. She eats in the corner. She does not volunteer for things and she does
 not linger in common spaces. She is polite when spoken to and brief in her answers and
 forgettable in exactly the way she is trying to be.
 
 This is not who she is. This is who she is pretending to be.
 
-Before the bond, Hilde was a miner. Competent, steady, comfortable underground in the way
-dwarves are comfortable underground. She was not remarkable and she was fine with that. She
+Before the bond, Hilde was a miner. Competent, steady, as comfortable
+underground as dwarves tend to be. She was not remarkable and she was fine with that. She
 had a trade and a routine and a life that made sense. Then she broke through a wall in a
 deep shaft and something on the other side reached back, and now she shares her body and
 her mind with an ancient thing made of stone and ore that she did not ask for and cannot
 send away.
 
 She is terrified. Not of the eidolon itself, which has never harmed her and radiates a
-patience that borders on affection. She is terrified of what it means. She is terrified of
-what the hegemony would do if they found out. She is terrified of the power she can feel
-moving through her when the bond is active, because that power is vast and she does not
-understand it and she does not trust herself with something she does not understand.
+patience that borders on affection, but of what it means: what the hegemony would do if they
+found out, and the power she can feel moving through her when the bond is active. That power
+is vast, she does not understand it, and she does not trust herself with something she does
+not understand.
 
 Her anxiety is genuine and present. She flinches at loud noises. She checks the door when
 someone enters the tavern. She sleeps poorly. She is living in a state of sustained low
@@ -46,12 +46,12 @@ Between the plates of stone that make up its body, cracks glow faintly with mine
 It is ancient and patient. It does not speak, but Hilde feels its moods through the bond:
 calm, curiosity, warmth, and occasionally a deep rumbling contentment when it is near raw
 stone or ore. It is completely at peace with the bond in a way that Hilde is not. It chose
-her, or was drawn to her, or simply woke up when she broke through that wall, and it has
+her, or was drawn to her, or woke up on its own when she broke through that wall, and it has
 no reservations about any of it.
 
 The contrast between Hilde's anxiety and the eidolon's serenity is central to her arc.
 The thing that knows the deep earth is not worried. Learning to trust that, learning to
-believe that something ancient and powerful is not wrong about choosing her, is how Hilde
+believe that an ancient, patient power is not wrong about choosing her, is how Hilde
 eventually learns to stop being afraid of herself.
 
 Hilde does not name the eidolon. She refers to it as "it" or "the thing" or avoids

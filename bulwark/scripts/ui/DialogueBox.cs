@@ -17,6 +17,7 @@ public partial class DialogueBox : PanelContainer
     [Export] public float CharsPerSecond { get; set; } = 30f;
 
     private TextureRect? _portrait;
+    private Control? _portraitColumn;
     private Label? _speakerLabel;
     private RichTextLabel? _textLabel;
     private Label? _advanceIndicator;
@@ -25,6 +26,15 @@ public partial class DialogueBox : PanelContainer
     private bool _typewriterActive;
     private int _targetVisibleChars;
     private double _charTimer;
+
+    /// <summary>Loaded portrait textures keyed by res:// path, so a repeated speaker/emotion never
+    /// re-hits the disk. Populated on demand (hits only) as lines resolve.</summary>
+    private readonly Dictionary<string, Texture2D> _portraitCache = new();
+
+    /// <summary>Speakers we have already warned about a missing portrait folder for — one warning per
+    /// character per session, never a per-line spam (portraits are populated by a parallel pass and may
+    /// legitimately be absent early).</summary>
+    private readonly HashSet<string> _warnedMissingPortraits = new();
 
     /// <summary>Raised when the dialogue box opens (for modal freeze).</summary>
     public event System.Action? Opened;
@@ -35,6 +45,7 @@ public partial class DialogueBox : PanelContainer
     public override void _Ready()
     {
         _portrait = GetNodeOrNull<TextureRect>("%Portrait");
+        _portraitColumn = GetNodeOrNull<Control>("%PortraitColumn");
         _speakerLabel = GetNodeOrNull<Label>("%SpeakerName");
         _textLabel = GetNodeOrNull<RichTextLabel>("%DialogueText");
         _advanceIndicator = GetNodeOrNull<Label>("%AdvanceIndicator");
@@ -191,30 +202,51 @@ public partial class DialogueBox : PanelContainer
         _choiceContainer.Visible = false;
     }
 
+    /// <summary>
+    /// Resolve the portrait for the current line and show or hide the whole right-hand column
+    /// accordingly: <c>res://assets/portraits/&lt;speakerId&gt;/&lt;emotion&gt;.png</c>, falling back to
+    /// that character's <c>neutral.png</c>, and hiding the column when neither exists (or the speaker id
+    /// is empty). Everything degrades to "no portrait" — the portraits are populated by a parallel pass
+    /// and may legitimately be absent, so a missing sheet is never an error, only a hidden column.
+    /// </summary>
     private void LoadPortrait(string speaker, string emotion)
     {
         if (_portrait == null)
             return;
 
-        // Try speaker_emotion.png, then speaker.png, then hide
-        string basePath = $"res://assets/portraits/{speaker}";
-        string emotionPath = $"{basePath}_{emotion}.png";
-        string fallbackPath = $"{basePath}.png";
+        Texture2D? tex = string.IsNullOrEmpty(speaker)
+            ? null
+            : ResolvePortrait(speaker, string.IsNullOrEmpty(emotion) ? "neutral" : emotion);
 
-        if (ResourceLoader.Exists(emotionPath))
-        {
-            _portrait.Texture = GD.Load<Texture2D>(emotionPath);
-            _portrait.Visible = true;
-        }
-        else if (ResourceLoader.Exists(fallbackPath))
-        {
-            _portrait.Texture = GD.Load<Texture2D>(fallbackPath);
-            _portrait.Visible = true;
-        }
-        else
-        {
-            _portrait.Texture = null;
-            _portrait.Visible = false;
-        }
+        _portrait.Texture = tex;
+        if (_portraitColumn != null)
+            _portraitColumn.Visible = tex != null;
+    }
+
+    /// <summary>Emotion texture if present, else the character's neutral, else null (warned once).</summary>
+    private Texture2D? ResolvePortrait(string speaker, string emotion)
+    {
+        Texture2D? tex = LoadCachedTexture($"res://assets/portraits/{speaker}/{emotion}.png")
+                         ?? LoadCachedTexture($"res://assets/portraits/{speaker}/neutral.png");
+
+        if (tex == null && _warnedMissingPortraits.Add(speaker))
+            GD.PushWarning($"[DialogueBox] No portrait for '{speaker}' (res://assets/portraits/{speaker}/).");
+
+        return tex;
+    }
+
+    /// <summary>Load a portrait texture with a per-path cache; returns null (uncached) when the path
+    /// does not resolve, so a still-absent asset stays cheap to re-check as it lands.</summary>
+    private Texture2D? LoadCachedTexture(string path)
+    {
+        if (_portraitCache.TryGetValue(path, out Texture2D? cached))
+            return cached;
+        if (!ResourceLoader.Exists(path))
+            return null;
+
+        var tex = GD.Load<Texture2D>(path);
+        if (tex != null)
+            _portraitCache[path] = tex;
+        return tex;
     }
 }

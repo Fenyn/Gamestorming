@@ -430,8 +430,12 @@ public abstract partial class CozyWorldScene : Node2D
         if (scene == null)
             return;
 
+        // The box is a Control — parent it under a CanvasLayer so it renders in screen space, not
+        // through the player's Camera2D (which squished it into world space). Below any fade layer (100).
         DialogueBox = scene.Instantiate<DialogueBox>();
-        AddChild(DialogueBox);
+        var dialogueLayer = new CanvasLayer { Name = "DialogueLayer", Layer = 50 };
+        AddChild(dialogueLayer);
+        dialogueLayer.AddChild(DialogueBox);
         DialogueBox.Opened += () => SetModalFreeze(true);
         DialogueBox.Closed += () =>
         {

@@ -41,7 +41,7 @@ orders, held the line, and did what was asked of him. The problem was what was a
 The details of which wars and which deeds haunt him are his to share or not, and he does not
 share them easily. What is known is that he left the army, surrendered his commission, and
 walked into a chapel of Aveline with his sword across his palms. He knelt and did not rise for
-three days. When he stood, he was different. Not healed. Different.
+three days. When he stood, he was different. Not healed, only changed.
 
 He took up Aveline's cause because her edicts are the exact inverse of what he was ordered to
 do. Destroy the undead, not the living. Bring light to dark places, not fire. Offer mercy to

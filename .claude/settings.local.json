@@ -48,7 +48,10 @@
       "WebFetch(domain:2e.aonprd.com)",
       "WebFetch(domain:www.rpgsite.net)",
       "WebFetch(domain:eludamos.org)",
-      "WebFetch(domain:www.neogaf.com)"
+      "WebFetch(domain:www.neogaf.com)",
+      "WebFetch(domain:gamefaqs.gamespot.com)",
+      "WebFetch(domain:corpsebrigadier.neocities.org)",
+      "WebFetch(domain:dekaja.dreamwidth.org)"
     ]
   },
   "enabledMcpjsonServers": [

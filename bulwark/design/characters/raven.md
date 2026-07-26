@@ -81,8 +81,8 @@ Recruitable, missable. Raven begins appearing at the outpost once the Trading Po
 Tavern are both built and a day threshold has passed. She uses the Trading Post to
 sell loot and buy supplies. She uses the Tavern for a hot meal. She is a customer.
 
-Her visits are periodic and initially brief. She is friendly in the way that people who are
-good at talking to strangers are friendly: warm on the surface, nothing underneath it yet.
+Her visits are periodic and initially brief. She has the easy friendliness of someone
+good at talking to strangers: warm on the surface, nothing underneath it yet.
 She has stories. She will tell them. She will not ask about yours.
 
 The player can build friendship through gifts and conversation during her visits. As

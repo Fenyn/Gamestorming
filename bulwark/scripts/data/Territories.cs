@@ -70,6 +70,15 @@ public sealed class TerritoryDefinition
     public required IReadOnlyList<TerritoryRoamer> Roamers { get; init; }
 
     /// <summary>
+    /// Registry id of the battle-map biome encounters here are fought on
+    /// (<c>PF2e.MapGen.Biomes.MapGenRegistry</c>), which is also the key its visual theme is looked up
+    /// under in <see cref="MapThemes"/>. <see cref="Bulwark.Territory.TerritorySystem.BeginEncounter"/>
+    /// generates the map from (this id, a derived seed); an id the map-gen catalog does not know is
+    /// reported and the encounter falls back to the flat board.
+    /// </summary>
+    public string BiomeId { get; init; } = "forest";
+
+    /// <summary>
     /// Optional story-flag gate on travelling here (design/tutorial_quests.md). Null = ungated (or
     /// opened only by a building's <see cref="BuildingEffectType.BiomeUnlock"/> effect).
     /// <see cref="Bulwark.Autoload.GameState.IsBiomeUnlocked"/> returns true when a BiomeUnlock effect
@@ -105,6 +114,7 @@ public static class Territories
         Id = "verdant_fringe",
         DisplayName = "the Verdant Fringe",
         ScenePath = "res://scenes/territory/forest.tscn",
+        BiomeId = "forest",
         Nodes = new[]
         {
             new TerritoryNode { NodeId = "rock_1", ResourceId = "rock" },
@@ -244,6 +254,7 @@ public static class Territories
         Id = "elderwood",
         DisplayName = "the Elderwood",
         ScenePath = "res://scenes/territory/elderwood.tscn",
+        BiomeId = "forest",
         // The dire wolf guards the Elderwood passage: slaying it opens the biome (replaces the old
         // Command Post tier-2 BiomeUnlock).
         UnlockFlagId = "dire_wolf_slain",
@@ -359,6 +370,10 @@ public static class Territories
         Id = "sunken_reach",
         DisplayName = "the Sunken Reach",
         ScenePath = "res://scenes/territory/sunken_reach.tscn",
+        // The swamp fights on the woodland generator for now: the shipped catalog is forest + sewer,
+        // and forest already draws the river/pool shapes a marsh reads as. A marsh biome is a catalog
+        // entry away, and swapping this one string is the whole migration.
+        BiomeId = "forest",
         Nodes = new[]
         {
             new TerritoryNode { NodeId = "iron_1", ResourceId = "bog_iron_deposit" },

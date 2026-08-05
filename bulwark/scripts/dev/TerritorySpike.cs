@@ -11,8 +11,11 @@ using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Events;
+using PF2e.MapGen;
+using PF2e.MapGen.Biomes;
 using PF2e.TurnManagement;
 using PF2e.Utilities;
+using PF2eVec = PF2e.Vector2Int;
 
 namespace Bulwark.Dev;
 
@@ -34,6 +37,9 @@ namespace Bulwark.Dev;
 ///  (4) Scripted defeat → day advanced WITHOUT full rest, 25% resource penalty applied (floor),
 ///      party back at the outpost, defeat summary staged.
 ///  (5) Treat Wounds + immunity/clock interactions unaffected; territory state round-trips the save.
+///  (7) Encounters deploy onto a GENERATED battle map, and the map is a function of (world seed, day,
+///      contact) only: the same roamer on the same day reproduces it across a save/load, a new day
+///      does not.
 /// Prints [PASS]/[FAIL] per check and a final SPIKE RESULT line.
 /// </summary>
 public partial class TerritorySpike : SpikeBase
@@ -326,6 +332,144 @@ public partial class TerritorySpike : SpikeBase
         // ── (6) Exploration triggers → story flags / quest events ──
         GD.Print("-------------------- (6) Exploration triggers --------------------");
         await TestExplorationTriggers();
+
+        // ── (7) Generated battle maps: layout-backed setups + rematch reproducibility ──
+        GD.Print("-------------------- (7) Generated battle maps --------------------");
+        TestGeneratedBattleMaps(gs2, contactPos);
+    }
+
+    /// <summary>
+    /// The M3 producer contract: a roamer contact deploys onto a GENERATED map, and that map is a
+    /// function of (world seed, day, contact) alone — so the same roamer on the same day gives the
+    /// same battlefield even across a save/load, and tomorrow's fight is somewhere else.
+    ///
+    /// Reproducibility is tested the way the game can actually hit it: two fresh GameStates loaded
+    /// from the same save are the same world on the same day, which is exactly the "save between
+    /// BeginEncounter and the combat scene" case the encounter has to survive. The third loads the
+    /// same save and sleeps first, isolating the day as the only difference.
+    /// </summary>
+    private void TestGeneratedBattleMaps(GameState source, Vector2 contactPos)
+    {
+        const string Roamer = "expedition_1"; // single-entry table: the enemy roster is deterministic too
+        source.SaveGame();
+
+        var first = LoadFixture();
+        Check("(7) fixture A marched out", first.TravelToTerritory(ForestId));
+        Check($"(7) fixture A contacted {Roamer}", first.BeginTerritoryEncounter(Roamer, contactPos));
+        var a = first.Territory.PendingEncounter;
+        if (a?.Setup.Layout == null)
+        {
+            Check("(7) the encounter runs on a generated map", false);
+            return;
+        }
+        var layoutA = a.Setup.Layout;
+
+        Check("(7) the encounter runs on a generated map", true);
+        Check("(7) map provenance recorded (forest biome, non-zero seed)",
+            a.BiomeId == "forest" && a.MapSeed != 0 && a.Setup.BiomeId == "forest");
+        // The board is sized by the BIOME (its size range plus whatever border it asked for), not by
+        // the flat CombatBoards constants, and the setup reports the layout's numbers.
+        var biome = MapGenRegistry.GetBiome("forest");
+        int pad = 2 * layoutA.BorderWidth;
+        Check($"(7) the setup's board is the layout's biome-sized own ({layoutA.Width}x{layoutA.Height})",
+            a.Setup.GridWidth == layoutA.Width && a.Setup.GridHeight == layoutA.Height
+            && layoutA.Width >= biome.MinSize.x + pad && layoutA.Width <= biome.MaxSize.x + pad
+            && layoutA.Height >= biome.MinSize.y + pad && layoutA.Height <= biome.MaxSize.y + pad);
+        Check("(7) the whole party and every enemy deployed",
+            a.Setup.Party.Count == first.Territory.SelectedCompanionIds.Count + 1
+            && a.Setup.Enemies.Count == a.Enemies.Count);
+        Check("(7) every combatant stands on walkable terrain",
+            Anchors(a).TrueForAll(p => layoutA.IsWalkable(p.x, p.y)));
+        Check("(7) party deploys in team 0's zone, enemies in team 1's",
+            InZone(layoutA, 0, a.Setup.Party) && InZone(layoutA, 1, a.Setup.Enemies));
+
+        // Same world, same day, freshly reloaded: identical ground and identical deployment.
+        var rematch = LoadFixture();
+        Check("(7) fixture B (same save, same day) marched out", rematch.TravelToTerritory(ForestId));
+        Check("(7) fixture B contacted the same roamer", rematch.BeginTerritoryEncounter(Roamer, contactPos));
+        var b = rematch.Territory.PendingEncounter;
+        Check("(7) same-day rematch derived the same map seed", b != null && b.MapSeed == a.MapSeed);
+        Check("(7) same-day rematch generated an identical map",
+            b?.Setup.Layout != null && LayoutHash(b.Setup.Layout) == LayoutHash(layoutA));
+        Check("(7) same-day rematch deployed both teams identically",
+            b != null && Anchors(b).SequenceEqual(Anchors(a)));
+
+        // Planner anchors are legal by construction — the self-heal should find nothing to fix.
+        // (Normalize mutates, so it runs after the deployment comparison above.)
+        var corrections = a.Setup.Normalize();
+        Check($"(7) planner anchors need no deployment corrections ({corrections.Count})",
+            corrections.Count == 0);
+
+        // Only the day differs.
+        var tomorrow = LoadFixture();
+        tomorrow.Sleep();
+        Check("(7) fixture C marched out on the next day", tomorrow.TravelToTerritory(ForestId));
+        Check("(7) fixture C contacted the same roamer", tomorrow.BeginTerritoryEncounter(Roamer, contactPos));
+        var c = tomorrow.Territory.PendingEncounter;
+        Check("(7) a new day derives a new map seed", c != null && c.MapSeed != a.MapSeed);
+        Check("(7) a new day generates a different map",
+            c?.Setup.Layout != null && LayoutHash(c.Setup.Layout) != LayoutHash(layoutA));
+    }
+
+    /// <summary>A GameState freshly loaded from the protected slot0 — same world, same day.</summary>
+    private GameState LoadFixture()
+    {
+        var gs = new GameState { RealSecondsPerGameMinute = 0 };
+        AddChild(gs);
+        return gs;
+    }
+
+    private static List<PF2eVec> Anchors(Bulwark.Territory.TerritoryEncounter e) =>
+        e.Setup.Party.Select(p => p.Pos).Concat(e.Setup.Enemies.Select(p => p.Pos)).ToList();
+
+    /// <summary>True when every listed anchor falls inside the layout's zone for that team.</summary>
+    private static bool InZone(
+        MapLayout layout, int teamId, List<(ICharacter Unit, PF2eVec Pos)> team)
+    {
+        var zone = DeploymentPlanner.FindZone(layout, teamId);
+        if (zone == null)
+            return false;
+
+        int xMin = Math.Min(zone.CornerA.x, zone.CornerB.x), xMax = Math.Max(zone.CornerA.x, zone.CornerB.x);
+        int yMin = Math.Min(zone.CornerA.y, zone.CornerB.y), yMax = Math.Max(zone.CornerA.y, zone.CornerB.y);
+        return team.TrueForAll(t =>
+            t.Pos.x >= xMin && t.Pos.x <= xMax && t.Pos.y >= yMin && t.Pos.y <= yMax);
+    }
+
+    /// <summary>
+    /// FNV-1a over everything that defines the battlefield — dimensions, recorded seed, tile roles,
+    /// surfaces, elevations and corner heights. Equal hashes mean the same ground.
+    /// </summary>
+    private static uint LayoutHash(MapLayout layout)
+    {
+        unchecked
+        {
+            uint h = 2166136261u;
+            void Mix(int v)
+            {
+                for (int b = 0; b < 4; b++)
+                {
+                    h ^= (uint)((v >> (b * 8)) & 0xFF);
+                    h *= 16777619u;
+                }
+            }
+
+            Mix(layout.Width);
+            Mix(layout.Height);
+            Mix(layout.Seed);
+            for (int i = 0; i < layout.Tiles.Length; i++)
+            {
+                Mix((int)layout.Tiles[i]);
+                Mix((int)layout.Surfaces[i]);
+                Mix(layout.Elevations[i]);
+                var corners = layout.CornerHeights[i];
+                Mix(corners.NW);
+                Mix(corners.NE);
+                Mix(corners.SE);
+                Mix(corners.SW);
+            }
+            return h;
+        }
     }
 
     /// <summary>

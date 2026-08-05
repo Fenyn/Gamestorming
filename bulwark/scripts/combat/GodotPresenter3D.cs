@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Bulwark.Combat.Map;
 using Godot;
 using PF2e.Core;
 using PF2e.Data;
@@ -25,6 +26,12 @@ public sealed class GodotPresenter3D
     private readonly Node3D _popupLayer;
 
     /// <summary>
+    /// Where the board's surface is. Tokens are tweened to — and snapped to — the tile centre height
+    /// from here. <see cref="TerrainHeightMap.Flat"/> reproduces the flat board exactly (every Y is 0).
+    /// </summary>
+    private readonly TerrainHeightMap _height;
+
+    /// <summary>
     /// The encounter's cancellation token, set by <see cref="CombatScene"/> from the same source it
     /// cancels in <c>_ExitTree</c>. Every paced <c>Task.Delay</c> and tween wait below observes it so a
     /// mid-animation scene exit unblocks the pipeline (a <c>Task.Delay</c> throws OperationCanceled up
@@ -34,7 +41,12 @@ public sealed class GodotPresenter3D
     /// </summary>
     public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
-    public GodotPresenter3D(Node3D popupLayer) => _popupLayer = popupLayer;
+    /// <param name="heightMap">Board surface heights; pass <see cref="TerrainHeightMap.Flat"/> for a flat board.</param>
+    public GodotPresenter3D(Node3D popupLayer, TerrainHeightMap heightMap)
+    {
+        _popupLayer = popupLayer;
+        _height = heightMap;
+    }
 
     public void RegisterUnit(ICharacter character, UnitVisual3D visual) => _units[character.UniqueId] = visual;
 
@@ -83,7 +95,7 @@ public sealed class GodotPresenter3D
                 if (TryGet(evt.Source, out var movedUnit))
                 {
                     movedUnit.SetMoving(false);
-                    movedUnit.Position = GridSpace.GridToWorld(evt.Source.GridPosition);
+                    movedUnit.Position = GridSpace.GridToWorld(evt.Source.GridPosition, _height);
                 }
                 break;
 
@@ -168,7 +180,10 @@ public sealed class GodotPresenter3D
 
         unit.Facing = new Vector2(to.x - from.x, to.y - from.y);
 
-        var target = GridSpace.GridToWorld(to);
+        // Y is interpolated linearly with X/Z across the segment, so a step onto a ramp walks up it and
+        // a hop off a ledge cuts the corner diagonally. Accepted for v1 — a two-stage tween (out, then
+        // down) is the polish pass if cliff hops read badly in play.
+        var target = GridSpace.GridToWorld(to, _height);
         var tween = unit.CreateTween();
         tween.TweenProperty(unit, "position", target, MoveDuration);
 

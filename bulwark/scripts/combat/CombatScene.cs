@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Bulwark.Combat.Map;
+using Bulwark.Data;
 using Bulwark.UI;
 using Godot;
 using PF2e.Core;
@@ -25,7 +27,18 @@ public partial class CombatScene : Node3D
     private Node3D _popupLayer = null!;
     private GridInput3D _input = null!;
     private OrbitCameraRig _cameraRig = null!;
+    private Node3D _mapRoot = null!;
     private MeshInstance3D _floor = null!;
+
+    /// <summary>Generated terrain for this encounter, added under %MapRoot. Null on a flat board.</summary>
+    private MapView3D? _mapView;
+
+    /// <summary>
+    /// The board's surface heights — the one instance every elevation-aware view piece reads (unit
+    /// spawn, presenter tweens, overlay, input, camera pivot). <see cref="TerrainHeightMap.Flat"/> on a
+    /// flat board, which makes both paths run the same code with all-zero heights.
+    /// </summary>
+    private TerrainHeightMap _heightMap = TerrainHeightMap.Flat;
 
     private ActionBar _actionBar = null!;
     private CombatLogPanel _log = null!;
@@ -72,6 +85,7 @@ public partial class CombatScene : Node3D
         _popupLayer = GetNode<Node3D>("%PopupLayer");
         _input = GetNode<GridInput3D>("%GridInput");
         _cameraRig = GetNode<OrbitCameraRig>("%CameraRig");
+        _mapRoot = GetNode<Node3D>("%MapRoot");
         _floor = GetNode<MeshInstance3D>("%PlaceholderFloor");
 
         _turnBar = GetNode<TurnOrderBar>("%TurnOrderBar");
@@ -91,23 +105,22 @@ public partial class CombatScene : Node3D
         foreach (string correction in _session.SetupCorrections)
             GD.PushWarning($"[CombatScene] {correction}");
         _controller = new PlayerTurnController(_session.PlayerActions);
-        _presenter = new GodotPresenter3D(_popupLayer);
 
-        // The floor mesh is sized from the setup so every board dimension renders correctly —
-        // grid tile (x, y) spans world x..x+1 / y..y+1, so a WxH plane sits at BoardCenter.
-        // The checker shader works in world space and follows automatically.
-        if (_floor.Mesh is PlaneMesh floorPlane)
-            floorPlane.Size = new Vector2(setup.GridWidth, setup.GridHeight);
-        _floor.Position = GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight);
+        // Board surface first: everything below is positioned against it.
+        BuildBoard(setup);
 
-        _cameraRig.FocusOn(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight));
+        _presenter = new GodotPresenter3D(_popupLayer, _heightMap);
+        _overlay.SetHeightMap(_heightMap);
+
+        _cameraRig.FocusOn(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight, _heightMap));
         SpawnUnits();
 
         _session.SetPresenter(_presenter.Present);
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
         // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
         _session.ReactionPromptHandler = view => _reactionPrompt.ShowAsync(view);
-        _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, OnTileClicked, OnTileHovered, OnCancel);
+        _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight,
+            OnTileClicked, OnTileHovered, OnCancel, _heightMap);
         // One click-vs-drag threshold for the whole gesture: the rig's value wins.
         _input.DragThresholdPixels = _cameraRig.DragThresholdPixels;
 
@@ -144,9 +157,52 @@ public partial class CombatScene : Node3D
         _session?.Teardown();
         _encounterCts?.Dispose();
         _encounterCts = null;
+
+        // Terrain last, after the loop is released and the session is unwired: nothing may still be
+        // resolving a position against the map when its meshes and collider go away.
+        _mapView?.Clear();
+        _mapView = null;
+        _heightMap = TerrainHeightMap.Flat;
     }
 
     // ---------------------------------------------------------------- Build
+
+    /// <summary>
+    /// Put a surface under the fight and publish its heights into <see cref="_heightMap"/>.
+    ///
+    /// With a generated layout: build the terrain mesh + trimesh collider under %MapRoot and hide the
+    /// placeholder floor. Without one: the original flat board, byte for byte — the checker plane is
+    /// sized and centred exactly as before and the height map is the all-zeros null object, so every
+    /// downstream call resolves to the same Y = 0 it always did.
+    /// </summary>
+    private void BuildBoard(CombatSetup setup)
+    {
+        var layout = _session.MapLayout;
+        if (layout == null)
+        {
+            // The floor mesh is sized from the setup so every board dimension renders correctly —
+            // grid tile (x, y) spans world x..x+1 / y..y+1, so a WxH plane sits at BoardCenter.
+            // The checker shader works in world space and follows automatically.
+            if (_floor.Mesh is PlaneMesh floorPlane)
+                floorPlane.Size = new Vector2(setup.GridWidth, setup.GridHeight);
+            _floor.Position = GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight);
+            _heightMap = TerrainHeightMap.Flat;
+            return;
+        }
+
+        // A biome with no theme is a content bug (DataValidation covers it), not a reason to lose the
+        // encounter — say so loudly and dress the map in the fallback palette.
+        string biomeId = setup.BiomeId ?? MapThemes.Forest.BiomeId;
+        if (!MapThemes.TryGet(biomeId, out var theme))
+            GD.PushWarning($"[CombatScene] No map theme for biome '{biomeId}'; using '{theme.BiomeId}'.");
+
+        _mapView = new MapView3D { Name = "MapView" };
+        _mapRoot.AddChild(_mapView);
+        _mapView.Build(layout, theme);
+        _floor.Visible = false;
+
+        _heightMap = new TerrainHeightMap(layout, theme.HeightScale);
+    }
 
     private void SpawnUnits()
     {
@@ -164,7 +220,7 @@ public partial class CombatScene : Node3D
 
         var visual = UnitTokenScene.Instantiate<UnitVisual3D>();
         visual.Configure(character, enemyFolder);
-        visual.Position = GridSpace.GridToWorld(character.GridPosition);
+        visual.Position = GridSpace.GridToWorld(character.GridPosition, _heightMap);
         _unitLayer.AddChild(visual);
         visual.SetCamera(_cameraRig.Camera);
         _visuals[character.UniqueId] = visual;

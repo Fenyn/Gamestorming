@@ -155,6 +155,10 @@ select_tool_6={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_1="Terrain"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

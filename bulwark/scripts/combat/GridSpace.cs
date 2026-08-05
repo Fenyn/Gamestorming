@@ -1,3 +1,4 @@
+using Bulwark.Combat.Map;
 using Godot;
 using PF2eVec = PF2e.Vector2Int;
 
@@ -8,6 +9,12 @@ namespace Bulwark.Combat;
 /// export spec in assets/maps/README.md): 1 tile = 1 m, grid tile (x, y) occupies world
 /// x..x+1 on X and y..y+1 on Z, the floor walk surface is at world y = 0, and grid tile (0,0)'s
 /// corner is the world origin. Pure math — holds no state.
+///
+/// Elevation arrives as OVERLOADS taking a <see cref="TerrainHeightMap"/> rather than as a mutable
+/// static: the flat signatures below keep their exact meaning ("walk surface at y = 0") for the flat
+/// board, and terrain-aware call sites take the height map explicitly. The parameter is deliberately
+/// non-nullable — a flat board passes <see cref="TerrainHeightMap.Flat"/>, so both paths run the same
+/// code and no call site ever has to invent a null check.
 /// </summary>
 public static class GridSpace
 {
@@ -17,13 +24,32 @@ public static class GridSpace
     public static Vector3 GridToWorld(PF2eVec p) =>
         new(p.x * TileSize + TileSize * 0.5f, 0f, p.y * TileSize + TileSize * 0.5f);
 
+    /// <summary>Center of a grid tile, standing on the terrain surface described by <paramref name="height"/>.</summary>
+    public static Vector3 GridToWorld(PF2eVec p, TerrainHeightMap height) =>
+        new(p.x * TileSize + TileSize * 0.5f, height.CenterY(p), p.y * TileSize + TileSize * 0.5f);
+
     /// <summary>World-space corner (min X, min Z) of a grid tile — used to lay flat overlays.</summary>
     public static Vector3 GridToWorldCorner(PF2eVec p) =>
         new(p.x * TileSize, 0f, p.y * TileSize);
 
+    /// <summary>
+    /// World-space corner (min X, min Z) of a grid tile, lifted to the tile's CENTRE height. The tile
+    /// corner's own elevation is deliberately not used: an overlay anchored here is positioned by its
+    /// centre and carries per-corner offsets in its own mesh.
+    /// </summary>
+    public static Vector3 GridToWorldCorner(PF2eVec p, TerrainHeightMap height) =>
+        new(p.x * TileSize, height.CenterY(p), p.y * TileSize);
+
     /// <summary>Board center in world space, for the orbit camera pivot.</summary>
     public static Vector3 BoardCenter(int width, int height) =>
         new(width * TileSize * 0.5f, 0f, height * TileSize * 0.5f);
+
+    /// <summary>
+    /// Board center for the orbit camera pivot, raised to the mean walkable height so the camera
+    /// orbits the ground the fight happens on rather than the y = 0 plane under a raised map.
+    /// </summary>
+    public static Vector3 BoardCenter(int width, int height, TerrainHeightMap heightMap) =>
+        new(width * TileSize * 0.5f, heightMap.MeanCenterY, height * TileSize * 0.5f);
 
     /// <summary>Floor a world point onto its grid tile (no bounds check).</summary>
     public static PF2eVec WorldToGrid(Vector3 world) =>

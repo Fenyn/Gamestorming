@@ -10,6 +10,10 @@ using PF2e.Data;
 using PF2eVec = PF2e.Vector2Int;
 
 using Bulwark.Save;
+using DeploymentPlanner = PF2e.MapGen.DeploymentPlanner;
+using MapGenerator = PF2e.MapGen.MapGenerator;
+using MapLayout = PF2e.MapGen.MapLayout;
+
 namespace Bulwark.Territory;
 
 /// <summary>
@@ -45,8 +49,9 @@ public sealed class TerritorySystem
     /// <summary>Defeat penalty: each Resource-category stack loses count / 4 (integer floor).</summary>
     public const int DefeatPenaltyDivisor = 4;
 
-    /// <summary>Combat grid used for territory encounters (aliases of the standard board in
-    /// <see cref="CombatBoards"/> — the M1 combat slice).</summary>
+    /// <summary>Flat-board fallback grid for territory encounters (aliases of the standard board in
+    /// <see cref="CombatBoards"/>). Used only when the territory's biome has no generated map;
+    /// otherwise the generated layout's own dimensions win.</summary>
     public const int GridWidth = CombatBoards.StandardWidth;
     public const int GridHeight = CombatBoards.StandardHeight;
 
@@ -346,10 +351,11 @@ public sealed class TerritorySystem
 
     /// <summary>
     /// Build the pending encounter for a roamer contact: roll its weighted table, resolve and
-    /// instantiate the creatures (team 2), and assemble the party from the LIVE squad — the player
-    /// plus the gate-selected companions, living members only; everyone else sits out. Returns false
-    /// (no state change) when out of territory, the roamer is unknown/already beaten today, the
-    /// squad or creature content is unavailable, or an encounter is already pending.
+    /// instantiate the creatures (team 2), assemble the party from the LIVE squad — the player plus
+    /// the gate-selected companions, living members only; everyone else sits out — and generate the
+    /// battle map both sides deploy onto. Returns false (no state change) when out of territory, the
+    /// roamer is unknown/already beaten today, the squad or creature content is unavailable, or an
+    /// encounter is already pending.
     /// </summary>
     public bool BeginEncounter(string roamerId, Vector2 playerPosition)
     {
@@ -376,11 +382,24 @@ public sealed class TerritorySystem
         if (party.Count == 0)
             return false;
 
-        var setup = new CombatSetup { GridWidth = GridWidth, GridHeight = GridHeight };
-        for (int i = 0; i < party.Count && i < CombatBoards.PartyAnchors.Length; i++)
-            setup.Party.Add((party[i], CombatBoards.PartyAnchors[i]));
-        for (int i = 0; i < enemies.Count && i < CombatBoards.EnemyAnchors.Length; i++)
-            setup.Enemies.Add((enemies[i], CombatBoards.EnemyAnchors[i]));
+        // The battle map is generated HERE, in the producer, so what the combat scene receives is
+        // already terrain-backed. The seed rides the save's deterministic RNG seam — (world seed,
+        // today, this contact) — which makes a same-day rematch of the same roamer fight on the same
+        // ground, and makes the whole map reconstructible from (BiomeId, MapSeed) with nothing about
+        // it serialized. string.GetHashCode / HashCode.Combine are randomized per .NET process and
+        // could not anchor either property.
+        int mapSeed = DeterministicRng.StableSeed(
+            _worldSeed, CurrentDayOrdinal, $"encounter:{territory.Id}:{roamerId}");
+        if (mapSeed == 0)
+            mapSeed = 1; // the generator reads 0 as "roll me one" — never let a hash of 0 unpin the map
+
+        var layout = GenerateLayout(territory.BiomeId, mapSeed);
+
+        var setup = layout != null
+            ? new CombatSetup { Layout = layout, BiomeId = territory.BiomeId }
+            : new CombatSetup { GridWidth = GridWidth, GridHeight = GridHeight };
+        Deploy(setup.Party, party, layout, teamId: 0, CombatBoards.PartyAnchors);
+        Deploy(setup.Enemies, enemies, layout, teamId: 1, CombatBoards.EnemyAnchors);
 
         PendingEncounter = new TerritoryEncounter
         {
@@ -390,6 +409,8 @@ public sealed class TerritorySystem
             EncounterName = encounter.DisplayName,
             ReturnPosition = playerPosition,
             Setup = setup,
+            BiomeId = layout != null ? territory.BiomeId : null,
+            MapSeed = layout != null ? mapSeed : 0,
             Enemies = enemies,
         };
         return true;
@@ -592,6 +613,55 @@ public sealed class TerritorySystem
     {
         int idx = key.IndexOf(':');
         return idx <= 0 ? (null, null) : (key[..idx], key[(idx + 1)..]);
+    }
+
+    /// <summary>
+    /// The encounter's generated battle map, or null to fight on the flat <see cref="CombatBoards"/>
+    /// board. A biome id the map-gen catalog does not know is authored-data breakage, not a reason to
+    /// lose the encounter: it is reported through the PF2e <c>Log</c> seam (system code never touches
+    /// GD) and the fight goes ahead on the flat board.
+    /// </summary>
+    private static MapLayout? GenerateLayout(string biomeId, int seed)
+    {
+        if (string.IsNullOrEmpty(biomeId) || !PF2e.MapGen.Biomes.BiomeCatalog.All.ContainsKey(biomeId))
+        {
+            PF2e.Log.Warn(
+                $"TerritorySystem: no generated battle map for biome '{biomeId}' — "
+                + "the encounter falls back to the flat board.");
+            return null;
+        }
+        return MapGenerator.GenerateValidated(biomeId, seed);
+    }
+
+    /// <summary>
+    /// Put one team on its starting squares. With a layout that means the map's own deployment zone
+    /// (<see cref="DeploymentPlanner"/> — walkable tiles, centre-out, no RNG, which is what keeps an
+    /// encounter reproducible from biome + seed alone); without one, the flat board's fixed
+    /// <see cref="CombatBoards"/> anchors, exactly as before. A zone too small for the whole team
+    /// falls back to the fixed anchor for that slot, and <see cref="CombatSetup.Normalize"/> then
+    /// walks anything illegal or doubled-up to the nearest free standable cell and reports it.
+    ///
+    /// On the flat board the fixed table stays the hard cap it has always been (a unit past the last
+    /// authored anchor has nowhere to stand and sits the fight out); a generated map has a real zone
+    /// to read, so every combatant deploys.
+    /// </summary>
+    private static void Deploy(
+        List<(ICharacter Unit, PF2eVec Pos)> slots,
+        List<ICharacter> units,
+        MapLayout? layout,
+        int teamId,
+        PF2eVec[] fixedAnchors)
+    {
+        if (layout == null)
+        {
+            for (int i = 0; i < units.Count && i < fixedAnchors.Length; i++)
+                slots.Add((units[i], fixedAnchors[i]));
+            return;
+        }
+
+        var planned = DeploymentPlanner.GetAnchors(layout, teamId, units.Count);
+        for (int i = 0; i < units.Count; i++)
+            slots.Add((units[i], i < planned.Count ? planned[i] : fixedAnchors[i % fixedAnchors.Length]));
     }
 
     private string PickWeighted(IReadOnlyList<WeightedEncounter> entries)

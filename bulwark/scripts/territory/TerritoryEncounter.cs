@@ -24,6 +24,22 @@ public sealed class TerritoryEncounter
     /// <summary>Grid, party (selected members only) and enemies for the combat scene.</summary>
     public required CombatSetup Setup { get; init; }
 
+    /// <summary>
+    /// Battle-map provenance: the biome the map was generated from and the seed it was generated with.
+    /// <c>MapGenerator.GenerateValidated(BiomeId, MapSeed)</c> rebuilds <see cref="Setup"/>'s layout
+    /// byte-for-byte, so an encounter is fully described by this pair and no MapLayout ever needs to be
+    /// serialized. Null/0 when the encounter fell back to the flat <see cref="CombatBoards"/> board.
+    ///
+    /// Nothing persists a pending encounter today — <c>TerritoryDto</c> carries none and RestoreState
+    /// clears it, because the player always loads back at the outpost — so these are carried for
+    /// debugging (which map am I looking at?) and to keep that reconstruction one call away if an
+    /// in-flight save is ever wanted.
+    /// </summary>
+    public string? BiomeId { get; init; }
+
+    /// <inheritdoc cref="BiomeId"/>
+    public int MapSeed { get; init; }
+
     /// <summary>The enemy instances, for XP on victory (GameState.CompleteEncounter).</summary>
     public required IReadOnlyList<ICharacter> Enemies { get; init; }
 }

@@ -33,6 +33,14 @@ public sealed class CombatSession
     public BattleGrid Grid { get; private set; } = null!;
     public PlayerActionExecutor PlayerActions { get; private set; } = null!;
 
+    /// <summary>
+    /// The generated battle map this encounter runs on, or null for a flat board. Read by the scene to
+    /// decide whether to build terrain geometry and an elevation-aware view; the rules themselves need
+    /// nothing from it, because everything they ask about elevation is already baked into
+    /// <see cref="Grid"/>'s per-tile corner heights.
+    /// </summary>
+    public PF2e.MapGen.MapLayout? MapLayout { get; private set; }
+
     private BattleRunner _runner = null!;
     private TurnManager _turnManager = null!;
     private CombatantRegistry _registry = null!;
@@ -109,7 +117,13 @@ public sealed class CombatSession
         // loudly so data/board mismatches never silently render units off the visible board.
         SetupCorrections = setup.Normalize();
 
-        Grid = BattleGrid.CreateFlat(setup.GridWidth, setup.GridHeight);
+        // The single grid swap point. A generated layout brings per-tile roles, corner heights, cover
+        // flags and climb DCs with it (MapLayoutGridBuilder), which is all the engine's movement,
+        // forced-movement and fall handling needs to become terrain-aware — no rule code changes here.
+        MapLayout = setup.Layout;
+        Grid = setup.Layout != null
+            ? PF2e.MapGen.MapLayoutGridBuilder.Build(setup.Layout)
+            : BattleGrid.CreateFlat(setup.GridWidth, setup.GridHeight);
         _runner = new BattleRunner();
 
         // Own the engine singletons for this encounter (mirrors BattleSimulator's constructor).

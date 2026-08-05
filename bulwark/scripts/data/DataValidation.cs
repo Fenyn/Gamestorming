@@ -346,7 +346,8 @@ public static class DataValidation
     private static readonly HashSet<string> KnownStoryFlags = new()
     {
         "intro_scene_0",               // RoadScene (SetStoryFlag)
-        "intro_scene_1",                // RoadScene (SetStoryFlag)
+        "intro_scene_1a",               // HomesteadExteriorScene (SetStoryFlag) + scene_1a.json step effect ("type": "flag")
+        "intro_scene_1",                // HomesteadInteriorScene (SetStoryFlag)
         "intro_complete",               // data/dialogues/intro/scene_2.json step effect ("type": "flag")
         "lodging_quest_started",        // GameState.RepairLodging + tharr_tutorial.json talk-entry effect
         "lodging_repaired",             // GameState.RepairLodging

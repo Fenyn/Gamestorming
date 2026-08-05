@@ -1,0 +1,46 @@
+PalPriority adds numeric work priorities to base pals, RimWorld-style. Each pal gets a value per work type: 1 (highest) to 5 (lowest), or X (never). Pals work their most important type that currently has work available and move down their list when it runs out.
+
+[size=4]Updating from 1.2.0 — read this first[/size]
+[b]Delete the old PalPriorityUI mod before launching.[/b] PalPriority is now a single install containing both halves. If the old interface mod is still present, PalPriority refuses to start rather than let two copies fight over the same pals, and the log will tell you exactly what to remove. Your saved priorities are kept.
+
+In Vortex: disable/remove "PalPriorityUI". Manual installs: delete the [font=Courier New]ue4ss\Mods\PalPriorityUI[/font] folder.
+
+[size=4]What it does[/size]
+[list]
+[*]The work suitability screen (Monitoring Stand) shows a color-coded priority value in place of each checkbox — green (1) through yellow to red (5), gray X for never. Left click cycles X → 1 → … → 5 → X, right click cycles the other way.
+[*]Pals you haven't configured show their default values (3 / X, from their current toggles) in a dim neutral color the moment the screen opens. Dim numbers are display-only — the pal stays fully vanilla until you click; colored numbers mean the priority engine is managing it.
+[*]A pal set to Transport 1 / Mining 3 hauls until nothing needs hauling, then mines.
+[*]Pending work is tracked per type and per base, and shared out down the priority list — pals compete for the jobs that actually exist at their own base rather than all crowding onto the same one.
+[*]Pals you never click are not touched by the mod at all.
+[*]Nothing is written to your save files. All in-game changes go through the game's own replicated toggle system.
+[/list]
+
+[size=4]Files[/size]
+One file. Install the same thing everywhere — single player, co-op host, remote client, dedicated server. The mod detects what the machine actually is and turns on the half it needs: the priority engine where the base pals live, the interface wherever there is a player looking at the screen.
+
+[size=4]Installation[/size]
+Requires [url=https://www.nexusmods.com/palworld/mods/3035]UE4SS (Okaetsu build)[/url].
+
+Vortex: install normally; the Palworld extension places it and can install UE4SS as a dependency.
+
+Manual: extract the [font=Courier New]ue4ss[/font] folder from the zip into [font=Courier New]Palworld\Pal\Binaries\Win64[/font], merging folders. The mod enables itself; no mods.txt editing.
+
+[size=4]Multiplayer[/size]
+[list]
+[*]Everyone installs the same file. The machine with authority over the base pals runs the engine; everyone with a screen runs the interface.
+[*]Works on dedicated servers: the server holds the priorities and syncs them to each modded player through the game's own replicated RPC channel, so a client never needs access to the server's files. (Linux hosts need the Windows server build under Wine/Proton, standard for UE4SS.)
+[*]Players without the mod installed see normal checkboxes and normal pal behavior — they are unaffected, and no mod traffic is ever sent to them.
+[*]If a player uninstalls the mod, each of their configured pals reverts to vanilla toggles the next time they click one.
+[/list]
+
+[size=4]Notes[/size]
+[list]
+[*]Tested on Steam: single player, co-op host, and dedicated server.
+[*]Game Pass version untested.
+[*]Game updates can break UE4SS hooks. If the mod stops working after a patch, check the UE4SS console for HOOK FAILED lines and wait for an updated UE4SS build. There is a DEBUG flag at the top of main.lua that enables detailed diagnostics for bug reports.
+[*]Config file: [font=Courier New]ue4ss\Mods\PalPriority\priorities.lua[/font] — editable by hand, read at startup. It is also mirrored to [font=Courier New]%LOCALAPPDATA%\Pal\Saved\PalPriority-priorities.lua[/font] and restored from there if the mod folder copy is wiped, which is what stops a mod-manager redeploy losing your settings. To start genuinely fresh, delete both.
+[*]Oil Extraction priorities do not do anything yet — the mod cannot currently see oil rig work. Every other work type is supported.
+[/list]
+
+[size=4]Credits[/size]
+The [url=https://github.com/UE4SS-RE/RE-UE4SS]UE4SS[/url] team, [url=https://github.com/Okaetsu/RE-UE4SS]Okaetsu[/url] for the Palworld build, and [url=https://pwmodding.wiki]pwmodding.wiki[/url].

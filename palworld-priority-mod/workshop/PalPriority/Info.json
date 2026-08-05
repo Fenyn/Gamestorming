@@ -1,0 +1,15 @@
+{
+  "PackageName": "PalPriority",
+  "Version": "1.3.0",
+  "InstallRule": [
+    {
+      "Type": "Lua",
+      "Targets": ["./Scripts", "./enabled.txt"]
+    },
+    {
+      "Type": "Lua",
+      "IsServer": true,
+      "Targets": ["./Scripts", "./enabled.txt"]
+    }
+  ]
+}

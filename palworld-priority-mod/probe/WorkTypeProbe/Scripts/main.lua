@@ -22,7 +22,7 @@
 --   3. The owning director's BaseCampId, which the rebuild needs to scope
 --      pending work per base camp.
 --
--- SAFETY (these rules are why the mod does not crash — see ../../docs/callpath-map.md)
+-- SAFETY (these rules are why the mod does not crash — see ../../../docs/callpath-map.md)
 --   - alive() (strict IsValid) before EVERY member call on EVERY received object.
 --   - Property VALUES are read only for the scalar types in SCALAR_PROP_TYPES.
 --     Object / Struct / Array / SoftObject values are logged by name+type only:

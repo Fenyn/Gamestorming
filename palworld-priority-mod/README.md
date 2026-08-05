@@ -14,6 +14,11 @@ Both mods are required — the pair is the mod.
 | `PalPriority` | server / host / single-player | The priority engine (assignment shaping, config, persistence) |
 | `PalPriorityUI` | every player using the mod | Numbers on the vanilla work screen + click-to-cycle controls |
 
+> **This describes the published 1.2.0.** 1.3.0 (in development, in `unified-mod/`) merges
+> both halves into ONE install that enables whichever half the machine needs, so every
+> role installs the same thing. It refuses to start while the old `PalPriorityUI` mod is
+> still present rather than let two engines fight over the same pals.
+
 ## Features
 
 - **Per-pal, per-work-type priorities**: RimWorld scale — 1 highest, 5 lowest, X never;
@@ -34,10 +39,17 @@ Both mods are required — the pair is the mod.
 - **Safe with unmodded players**: their checkboxes behave 100% vanilla. If a modded
   player uninstalls the client mod, the first checkbox they touch on a configured pal
   returns that pal to plain vanilla on/off (with its work state restored sanely).
-- **No save-file writes**: priorities live in a mod-folder Lua file on the server; all
-  game-state changes go through the game's own replicated toggle RPC.
+- **No save-file writes**: priorities live in a Lua file the mod owns (in its mod folder,
+  mirrored to `%LOCALAPPDATA%\Pal\Saved\` so a mod-manager reinstall cannot wipe them);
+  all game-state changes go through the game's own replicated toggle RPC. The game's save
+  files are never touched.
 
 ## Install
+
+> These steps are for the **published 1.2.0**, which is a pair of mods. For 1.3.0
+> (`unified-mod/`) install the single `PalPriority` package on every machine and
+> **remove any existing `PalPriorityUI` folder** — 1.3.0 refuses to start while the
+> old interface mod is present, rather than let two engines fight over the same pals.
 
 1. Install **UE4SS (Okaetsu Palworld fork)** into `Palworld\Pal\Binaries\Win64`
    (the `experimental-palworld` release: `dwmapi.dll` + `ue4ss\` next to
@@ -58,15 +70,21 @@ Both mods are required — the pair is the mod.
 - Priorities persist server-side in `ue4ss\Mods\PalPriority\priorities.lua`
   (auto-managed; also hand-editable — edits load at game/server start). The Steam
   Workshop UE4SS layout (`Mods\NativeMods\UE4SS\Mods\...`) is detected automatically.
+- **Config mirror (1.3.0).** Every save is also written to
+  `%LOCALAPPDATA%\Pal\Saved\PalPriority-priorities.lua`, outside the mod folder, and
+  restored from there if the mod-folder copy comes back empty — which is what happens
+  when a mod manager reinstalls the package over your settings. If you ever want a
+  genuinely clean slate, delete both files.
 
 ### Dev diagnostics (disabled in release — no F-keys ship active)
-Both mods have a `DEBUG` flag at the top of `main.lua` (ships `false`). Flip to
-`true` to enable **F8** (reload `priorities.lua` + reset internal state), **F9**
-(full roster dump: priorities, supervisor plan, off-list vs shadow, pending work)
-and **F10** (client UI pipeline diagnostic). The engine also has a `VERBOSE`
-flag for routine per-operation logging (cycles, deltas, config saves) — off in
-release so the server log stays quiet; `DEBUG = true` implies it. In release,
-hand-edits to `priorities.lua` are picked up at game/server start.
+There is a `DEBUG` flag at the top of `main.lua` (ships `false`; 1.2.0 had one in
+each of its two mods). Flip it to `true` to enable **F8** (reload `priorities.lua`
++ reset internal state), **F9** (full roster dump: priorities, supervisor plan,
+off-list vs shadow, pending work) and **F10** (interface pipeline diagnostic).
+`VERBOSE`, alongside it in the same `main.lua`, turns on routine per-operation
+logging (cycles, deltas, config saves) for both halves — off in release so the
+server log stays quiet; `DEBUG = true` implies it. In release, hand-edits to
+`priorities.lua` are picked up at game/server start.
 
 ## Compatibility & maintenance
 
@@ -78,13 +96,35 @@ hand-edits to `priorities.lua` are picked up at game/server start.
 
 ## Repo layout (developers)
 
-- `server-mod/`, `client-mod/` — the two mods (source of truth).
-- `docs/callpath-map.md` — every verified game API, the crash rules
-  (READ THIS before touching the Lua), and the discovery history.
-- `probe/` — in-game reflection probes (dev only, never shipped).
-  `WorkTypeProbe/` is the current one: install it alongside PalPriority, play for a
-  couple of minutes with a furnace/bench/ranch/plot running, and it writes
-  `worktype-dump.txt` next to itself. That dump is what closes the station-work gap
-  (see callpath-map). `PrioProbe/` is the older widget-discovery probe.
+- `unified-mod/PalPriority/` — **source of truth for 1.3.0**: the single-install mod, both
+  halves in one. Make changes here.
+- `workshop/PalPriority/` — Steam Workshop packaging copy: the same six scripts plus
+  `Info.json`. Kept byte-identical to `unified-mod`, so re-sync it after any edit.
+- `server-mod/`, `client-mod/`, `release/` — the superseded 1.2.0 two-mod line, kept
+  because it is what is published on Nexus today. Not where changes go; 1.3.0 replaces
+  all three with `unified-mod/` + `workshop/`.
+- `docs/callpath-map.md` — every verified game API, the crash rules (READ THIS before
+  touching the Lua), which findings are proven vs merely inferred, and the discovery
+  history.
+- `tests/planner_test.lua` — `planner.lua` is a pure function over plain tables, so it
+  runs in a bare interpreter: `cd palworld-priority-mod && lua tests/planner_test.lua`.
+  Covers eligibility, allocation, tie-breaks, preemption and the level-major ordering
+  property. Behaviour the redesign still owes is listed there as PENDING.
+- `probe/` — in-game reflection probes (dev only, never shipped). Install one alongside
+  PalPriority; each writes a dump file next to itself.
+  - `TransportLoadProbe/` — run this one. Measures what a high-output station does to the
+    pending-work tracker (hook A pulses/sec with a peak, distinct unfilled jobs per camp
+    per work type), and — **F5** — verifies the step-3 architecture the 1.3 redesign is
+    gated on: the Lua TArray index base, the `WaitingWorkerIndividualIds` idle list, the
+    per-slot occupancy chain that replaces `GetWorkAssignInfo`, and whether Lua can key or
+    iterate `UPalWorkProgressManager`'s TMaps. **F8** dumps every distinct job signature with
+    `RequiredWorkAmount`, which is how unmapped stations and never-completing work get
+    found. F6 = per-pal ranks + idle signals, F7 = `UnregisterHook` test, F9 = fixed-assign
+    reachability (reports only, never sends — the probe writes no game state at all).
+    Run it on the machine that owns the pals (single-player / host / server) — the hook is
+    server-internal, so a remote client correctly reports zero.
+  - `WorkTypeProbe/` — play a couple of minutes with a furnace/bench/ranch/plot running
+    and it writes `worktype-dump.txt`. That dump closed the station-work gap.
 - `attic/` — archived experimental builds (e.g. the removed force-job feature).
-- `release/` — the shippable `ue4ss/Mods` tree; zip it to share.
+- `nexus/` — Nexus page copy (`description.bbcode`, `summary.txt`), the changelogs, and
+  the published zips. `UPLOAD-NOTES.txt` is the upload checklist.

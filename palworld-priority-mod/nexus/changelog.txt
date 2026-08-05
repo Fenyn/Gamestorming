@@ -1,3 +1,38 @@
+1.3.0 (unreleased)
+- One install instead of two. The engine and the interface now ship as a single
+  mod that turns on whichever half the machine needs, so single-player, co-op
+  hosts, remote clients and dedicated servers all install the same thing. Remove
+  the old PalPriorityUI mod before updating: the mod refuses to start while it is
+  still installed rather than let two copies fight over the same pals.
+- Fixed: a high-output station could bring hauling to a standstill. Once a base
+  produced items faster than its pals could carry them away, every item in the
+  growing pile cost the mod work every second, on the same thread the pals think
+  on — so the backlog starved the pals that would have cleared it, and hauling
+  collapsed instead of just falling behind. The mod now stops counting a pile
+  past the point where the count could change any decision. Priorities behave
+  exactly as before; a base that is simply short of haulers still puts every
+  available pal on hauling, which is the correct answer to a real backlog.
+- Fixed: a pal at a base with nothing left to do could stay stuck on one job type
+  forever. A base only announces itself to the mod when it has UNFINISHED work, so
+  a base that was fully caught up became invisible and its pals were never
+  reconsidered — including pals left restricted from before a restart.
+- Fixed: a pal could permanently lose one of its priorities. A single failed read
+  while checking what a pal is capable of was enough for the mod to conclude it
+  could no longer do that work, and to delete the setting from disk. It never came
+  back, and the pal quietly stopped doing that job for good.
+- Fixed: clicking a work checkbox from an unmodded client could leave a pal
+  restricted with no settings left to un-restrict it. The mod now only hands a pal
+  back to vanilla when it can actually confirm the hand-back.
+- Fixed: when the mod's attempt to RE-ENABLE a work type failed a few times, it
+  stopped retrying for two minutes — so a retry limiter meant to prevent problems
+  was itself leaving pals unable to work. It now only ever backs off disabling.
+- Fixed: work the mod cannot identify (an unrecognised station) is no longer
+  tracked without limit, which was the one gap left in the runaway-pile guard.
+- Campfire and construction work: 1.2.0 fixed these only for the FIRST campfire or
+  build site in a base. Every later one is now recognised too.
+- Known gap: Oil Extraction has no recognised work behind it yet, so setting an oil
+  priority currently does nothing. Being fixed for the next release.
+
 1.2.0 (2026-07-25)
 - Fixed stutter. The engine no longer scans the game's object list every tick or
   re-checks pals when nothing has changed.

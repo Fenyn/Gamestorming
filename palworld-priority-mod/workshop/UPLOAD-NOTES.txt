@@ -1,0 +1,63 @@
+Steam Workshop release notes (Palworld 1.0 official mod loader)
+================================================================
+
+Package layout (this folder IS the package root)
+  Info.json
+  enabled.txt
+  Scripts/  main.lua  shared.lua  registry.lua  engine.lua  planner.lua  ui.lua
+
+  SIX scripts. registry.lua was missing from this list and is a hard
+  require() from both main.lua and engine.lua — packaging from the old list
+  produced a mod that failed to load on the first require. Copy the whole
+  Scripts/ directory rather than naming files individually.
+
+Info.json
+- PackageName "PalPriority" is also the install folder name. It MUST stay
+  "PalPriority": the mod finds its own directory (and its config file) by
+  matching ...\Mods\PalPriority\Scripts\?.lua out of package.path. Renaming the
+  package breaks config loading and the migration guard.
+- Version is compared as a plain string against the installed copy. Bump it for
+  every update or the loader will not reinstall.
+- DebugMode must stay absent/false. True reinstalls the package on every launch.
+- Two InstallRule entries, both Type "Lua": one for clients, one with
+  "IsServer": true. Without the second, the loader does not deploy to dedicated
+  servers — and the engine half is exactly what a dedicated server needs.
+
+Deploy target for Type "Lua" is Mods\NativeMods\UE4SS\Mods\{PackageName}, which
+is the same layout the mod already handled (it was tester-reported during 1.1.0
+and has a fallback path for it).
+
+priorities.lua is DELIBERATELY NOT in the package
+- The loader reinstalls the package whenever Version changes, which would
+  overwrite every player's saved priorities on each update.
+- Not shipping it is safe: with no file present the engine resolves its write
+  path to <moddir>/priorities.lua and creates it on the first change. The only
+  cost is one "config load failed - starting with empty config" line in the log
+  on a fresh install.
+- Do not add it to Targets later. Since 1.3.0 the engine also mirrors the config
+  to %LOCALAPPDATA%\Pal\Saved\PalPriority-priorities.lua and restores from
+  there when the mod-folder copy comes back empty, so a reinstall no longer
+  loses priorities - but shipping the file would still cause the wipe that the
+  mirror then has to undo.
+
+Dependencies
+- The mod requires UE4SS. Steam presents required items as a subscribe-all
+  collection, so link the UE4SS Experimental (Palworld) Workshop item as a
+  required item on the Workshop page.
+
+Upload
+- Use Pocketpair's official uploader: github.com/pocketpairjp/PalworldModUploader
+- A preview image is required by Steam.
+- Description: adapt nexus/description.bbcode. Steam BBCode is close but not
+  identical - check list and header tags render before publishing.
+
+One item per Workshop page: unlike the Nexus release, 1.3.0 is a single mod that
+turns its engine and interface halves on independently, so there is no
+client/server split to explain. That was the point of the merge.
+
+UNVERIFIED - confirm against the uploader before the first publish
+- Whether multiple entries in "Targets" behave as expected (we pass both
+  ./Scripts and ./enabled.txt). If only one path is honoured, ship Scripts and
+  confirm whether the official loader needs enabled.txt at all.
+- Whether required items are declared in the uploader or only on the Workshop
+  page afterwards. The packaging docs did not cover it.

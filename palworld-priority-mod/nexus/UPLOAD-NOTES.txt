@@ -1,17 +1,26 @@
-Nexus page setup notes (one mod page, two files)
-=================================================
+Nexus page setup notes
+======================
+
+CURRENT STATE: 1.2.0 is what is published (two files). 1.3.0 is built but not
+uploaded, and it is ONE file. The "Files tab" section below still describes the
+1.2.0 pair because that is what is live on the page right now — read the 1.3.0
+notes at the bottom before uploading anything, because they replace it.
 
 Page
 - Name: PalPriority — RimWorld-style Work Priorities
 - Category: Gameplay
 - Summary: paste summary.txt
-- Description: paste description.bbcode (editor accepts BBCode)
+- Description: paste the BBCode for the version you are uploading.
+    description.bbcode        -> 1.2.0, the text currently live on the page.
+    description-1.3.0.bbcode  -> use this for the 1.3.0 upload.
+  Do NOT paste the 1.2.0 one for 1.3.0: it tells players to install
+  PalPriorityUI, which 1.3.0 refuses to start alongside.
 - Requirements: add "UE4SS (Okaetsu fork)" — nexusmods.com/palworld/mods/3035
   (Vortex's Palworld extension can auto-install it as a dependency)
 - Changelog: paste each version's block from changelog.txt into the matching
-  version entry (1.2.0 is the current release)
+  version entry
 
-Files tab — upload BOTH as Main Files (both required):
+Files tab (1.2.0, as currently published) — BOTH are Main Files, both required:
 - PalPriority-1.2.0.zip    -> file name "PalPriority (logic — server/host)"
 - PalPriorityUI-1.2.0.zip  -> file name "PalPriorityUI (interface — every player)"
 Each is a single-component archive rooted at ue4ss/Mods/<Name>/ — this is the
@@ -46,3 +55,22 @@ compressor (it writes backslash entry paths that break on other OSes).
   Mention "back up priorities.lua before updating" in the update description.
 - Diagnostics ship off: DEBUG=false in both mods, VERBOSE=false in the core.
   Verified in the built archives.
+
+1.3.0 notes — THESE SUPERSEDE THE "Files tab" AND "1.2.0 notes" SECTIONS ABOVE
+- Single archive: the mod is now one folder containing both halves, gated at
+  runtime on authority (engine) and local player (interface). The separate
+  PalPriorityUI file is retired - mark it obsolete on the Nexus page.
+- SIX scripts, all required, all hard require()d:
+    main.lua  shared.lua  registry.lua  engine.lua  planner.lua  ui.lua
+  Copy the whole Scripts/ directory. Naming files individually is how
+  registry.lua got left out of the Workshop packaging list.
+- Diagnostics ship off: DEBUG=false and VERBOSE=false, both at the top of the
+  single main.lua (1.2.0 had a DEBUG flag in each of its two mods). Verify in
+  the built archive.
+- Players MUST remove the old PalPriorityUI mod. 1.3.0 detects it and refuses to
+  start rather than run two engines against the same pals; the log says what to
+  delete. Put this at the top of the update description.
+- priorities.lua is no longer shipped in the archive. The engine creates it on
+  first change and mirrors it to %LOCALAPPDATA%\Pal\Saved\, which is what
+  stops a mod-manager deploy or a Workshop reinstall wiping saved priorities
+  (observed live on a Vortex deploy 2026-07-25).

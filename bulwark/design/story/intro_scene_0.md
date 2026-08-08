@@ -15,12 +15,9 @@ Format conventions: `README.md`. Voice authority: `../prose_style.md`.
   name are **portrait emotion hints only** (one word), never physical action — the director cannot
   render hands, glances, or held objects. Business that is not a walk, a cardinal turn, a camera
   pan, or a held beat has to be spoken aloud or cut.
-- **Markers:** existing in `road.tscn` — `MarkPlayerStop`, `MarkFenwickStop`, `MarkElaraEnter`,
-  `MarkElaraLevel`, `MarkTrackBend`, `MarkTrackExit`, `MarkPilings`. **Needs placing:**
-  `MarkFenwickBend` (beside `MarkTrackBend`, where Fenwick catches up) and `MarkTrackHead` (a few
-  steps up the track, where Elara steps past the pair). `MarkElaraLevel` wants repositioning to the
-  bend cluster rather than the river, since the conversation has moved off the road by the time she
-  arrives.
+- **Markers:** all placed in `road.tscn` — `MarkPlayerStop`, `MarkFenwickStop`, `MarkElaraEnter`,
+  `MarkElaraLevel`, `MarkTrackBend`, `MarkFenwickBend`, `MarkTrackHead`, `MarkTrackExit`,
+  `MarkPilings`.
 - **Choices:** one, flavor only, converges, no effects — three options, all posture.
 - **Flags:** sets `intro_scene_0` at the end.
 
@@ -211,9 +208,6 @@ road does to us, I'll see that we eat well.
 
 ## Open items
 
-- **Markers to place in `road.tscn`:** `MarkFenwickBend` (beside `MarkTrackBend`, where Fenwick
-  catches up) and `MarkTrackHead` (a few steps up the track, where Elara steps past the pair).
-  `MarkElaraLevel` needs repositioning from the river to the bend cluster.
 - Facings are placeholders pending final marker geometry — check every `face` step once the markers
   are placed.
 - `crownguard` is introduced in this script and appears nowhere else in the repo. Propagate to

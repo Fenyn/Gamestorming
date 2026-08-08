@@ -8,16 +8,18 @@ namespace Bulwark.Territory;
 
 /// <summary>
 /// What a territory scene must expose for the forage daily pass to place spawns. Implemented by an
-/// engine-aware adapter (e.g. ForestForageAdapter over the TileMapLayers); the system itself stays
-/// plain C# — no Godot types cross this seam (cells are ints, not Vector2I).
+/// engine-aware adapter (<see cref="RegionForageCellProvider"/> over the scene's authored ground
+/// region); the system itself stays plain C# — no Godot types cross this seam (cells are ints, not
+/// Vector2I).
 /// </summary>
 public interface IForageCellProvider
 {
     /// <summary>Inclusive cell bounds forage may spawn inside (the playable field, band excluded).</summary>
     (int X0, int Y0, int X1, int Y1) PlayableRect { get; }
 
-    /// <summary>True when the cell is open spawnable ground: grass-family Ground tile, no
-    /// Walls/Props/Overhead tile, no collision (water/trail/band excluded by the adapter).</summary>
+    /// <summary>True when the cell is open spawnable ground: inside the territory's authored
+    /// walkable region and clear of the cells its world objects occupy (trigger footprints, obstacle
+    /// bodies such as water, plus their margin — all supplied by the adapter).</summary>
     bool IsOpenGround(int x, int y);
 
     /// <summary>Cells forage must keep its distance from: authored node positions (markers and

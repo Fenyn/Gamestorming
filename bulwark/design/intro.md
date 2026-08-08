@@ -48,9 +48,11 @@ the intro.
 New Game → [Name Entry] → Scene 0 (road) → Scene 1 (road) → Scene 2 (outpost) → Gameplay
 ```
 
-Each scene is a dialogue sequence. Scene 0 and 1 play on a simple road scene (user-painted
-later; placeholder = dark background with character sprites). Scene 2 plays on the outpost map
-with a cutscene flag active (Tharr walks out, dialogue, then player gets control).
+Each scene is a dialogue sequence. Scene 0 plays on the road scene, now built out with tiled
+art (`assets/models/environment/intro_road.glb`); Scene 1 plays on its two homestead sets, also
+built out with tiled art (`assets/models/environment/homestead_exterior.glb` /
+`homestead_interior.glb`). Scene 2 plays on the outpost map with a cutscene flag active (Tharr
+walks out, dialogue, then player gets control).
 
 Story flags set: `intro_scene_0`, `intro_scene_1`, `intro_complete`. A returning save with
 `intro_complete` already set skips the whole intro.
@@ -71,9 +73,9 @@ eight years, the generational scale, and the wizard reveal all stay out of it �
 ## Scene 1 — "The Road"
 
 *Evening past the ford. The three camp in an abandoned homestead off the road; supper at a dead
-family's hearth. Placeholder staging: dark background with sprites; the homestead scene is
-painted later (focal setting: homestead interior or yard at firelight, tools still racked on
-the wall).*
+family's hearth. Built out with tiled art (homestead exterior yard, then the interior at
+firelight, tools still racked on the wall); the interior uses the x-ray cutaway
+(`scripts/fx/CutawayApplier.cs`) instead of low south walls.*
 
 **Goal:** Scale the decay from an anomaly to a generation (war unspoken), put the first crack in
 the player's faith without opening it, foreshadow Tharr against the orders, and let Fenwick
@@ -331,8 +333,8 @@ via a random event (`design/economy/characters.md`).
 
 ## Infrastructure needed
 
-- **Road scene** (`scenes/intro/road.tscn`): simple Node2D, dark/simple background the user
-  can paint later. Character sprites positioned. Transitions to outpost after Scene 1 ends.
+- **Road scene** (`scenes/intro/road.tscn`): 3D greybox (Node3D) road corridor. Billboard character
+  sprites positioned. Transitions to outpost after Scene 1 ends.
 - **SceneRouter** addition: `GoToIntro()` / new-game flow routes here instead of straight to
   outpost. After Scene 1 ends: `GoToOutpost()` with `intro_scene_1` flag set.
 - **Outpost cutscene trigger**: on `_Ready`, if `intro_scene_1` is set but `intro_complete`
@@ -342,7 +344,6 @@ via a random event (`design/economy/characters.md`).
 
 ## Deferred
 
-- Road scene art (user paints later — placeholder dark/simple for now)
 - Character sprite staging in road scenes (enter/exit/move commands — framework supports it,
   wiring actors to sprites is scene-specific)
 - Name entry UI (currently `PlayerName` is set in code; UI is a future piece)

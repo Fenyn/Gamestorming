@@ -1,0 +1,305 @@
+{
+  "convention": "kind names models/props/<kind>.glb, except bench -> bench_wood.glb. x/y/z is where that .glb's origin goes, y being the height the prop was seated at. rot_deg is the construction's own yaw about +Y, in which local +X swings toward +Z, so Godot wants rotation.y = -deg2rad(rot_deg); it is absent for the kinds whose construction has no yaw. scale is per-axis in the prop's local space against the size export_props.py builds that kind at, and is absent when it is [1, 1, 1].",
+  "instances": [
+    {
+      "kind": "barrel",
+      "x": 6.376,
+      "z": 94.4,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel",
+      "x": 49.7,
+      "z": 94.5,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel",
+      "x": 50.3,
+      "z": 95.0,
+      "y": 0.02,
+      "scale": [
+        0.9032,
+        0.8974,
+        0.9032
+      ]
+    },
+    {
+      "kind": "barrel",
+      "x": 50.7,
+      "z": 94.1,
+      "y": 0.02,
+      "scale": [
+        0.9355,
+        0.9231,
+        0.9355
+      ]
+    },
+    {
+      "kind": "barrel",
+      "x": 72.5,
+      "z": 58.4,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel",
+      "x": 84.0,
+      "z": 21.0,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel",
+      "x": 94.4,
+      "z": 14.652,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel",
+      "x": 94.4,
+      "z": 43.178,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel_broken",
+      "x": 55.0,
+      "z": 98.6,
+      "y": 0.02
+    },
+    {
+      "kind": "barrel_broken",
+      "x": 55.9,
+      "z": 99.2,
+      "y": 0.04,
+      "scale": [
+        0.871,
+        0.6667,
+        0.871
+      ]
+    },
+    {
+      "kind": "bench",
+      "x": 44.6,
+      "z": 85.6,
+      "y": 0.02,
+      "rot_deg": 90.0
+    },
+    {
+      "kind": "bench",
+      "x": 51.5,
+      "z": 76.5,
+      "y": 0.02,
+      "rot_deg": 0.0
+    },
+    {
+      "kind": "cart",
+      "x": 56.6,
+      "z": 100.1,
+      "y": 0.242,
+      "rot_deg": -19.481
+    },
+    {
+      "kind": "cart",
+      "x": 66.0,
+      "z": 57.5,
+      "y": 0.02,
+      "rot_deg": 31.513
+    },
+    {
+      "kind": "crate",
+      "x": 74.2,
+      "z": 58.6,
+      "y": 0.02,
+      "rot_deg": -16.043
+    },
+    {
+      "kind": "crate",
+      "x": 82.6,
+      "z": 22.2,
+      "y": 0.02,
+      "rot_deg": 19.481
+    },
+    {
+      "kind": "crate_broken",
+      "x": 40.8,
+      "z": 99.4,
+      "y": 0.02,
+      "rot_deg": 12.605,
+      "scale": [
+        1.0222,
+        1.0222,
+        1.0222
+      ]
+    },
+    {
+      "kind": "crate_holed",
+      "x": 41.9,
+      "z": 100.6,
+      "y": 0.017,
+      "rot_deg": -28.648,
+      "scale": [
+        0.9111,
+        0.9111,
+        0.9111
+      ]
+    },
+    {
+      "kind": "crate_open",
+      "x": 25.631,
+      "z": 94.4,
+      "y": 0.02,
+      "rot_deg": -5.163
+    },
+    {
+      "kind": "crate_open",
+      "x": 42.8,
+      "z": 94.5,
+      "y": 0.02,
+      "rot_deg": 0.0
+    },
+    {
+      "kind": "crate_open",
+      "x": 78.229,
+      "z": 94.4,
+      "y": 0.02,
+      "rot_deg": 15.982
+    },
+    {
+      "kind": "firewood",
+      "x": 24.0,
+      "z": 36.6,
+      "y": 0.02,
+      "rot_deg": 0.0
+    },
+    {
+      "kind": "firewood",
+      "x": 94.4,
+      "z": 56.613,
+      "y": 0.02,
+      "rot_deg": -2.477
+    },
+    {
+      "kind": "logpile",
+      "x": 30.5,
+      "z": 39.6,
+      "y": 0.02,
+      "rot_deg": -10.313,
+      "scale": [
+        1.0625,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "kind": "logpile",
+      "x": 37.756,
+      "z": 94.4,
+      "y": 0.02,
+      "rot_deg": 17.137,
+      "scale": [
+        1.0625,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "kind": "logpile",
+      "x": 38.5,
+      "z": 98.8,
+      "y": 0.02,
+      "rot_deg": 6.875,
+      "scale": [
+        1.5,
+        1.0286,
+        1.0625
+      ]
+    },
+    {
+      "kind": "logpile",
+      "x": 60.5,
+      "z": 33.8,
+      "y": 0.02,
+      "rot_deg": 14.324,
+      "scale": [
+        1.0625,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "kind": "logpile",
+      "x": 73.812,
+      "z": 94.4,
+      "y": 0.02,
+      "rot_deg": -13.088,
+      "scale": [
+        1.0625,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "kind": "logpile",
+      "x": 94.4,
+      "z": 37.655,
+      "y": 0.02,
+      "rot_deg": -14.015,
+      "scale": [
+        1.0625,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "kind": "logpile",
+      "x": 94.4,
+      "z": 50.09,
+      "y": 0.02,
+      "rot_deg": 0.457,
+      "scale": [
+        1.0625,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "kind": "sack_pair",
+      "x": 53.2,
+      "z": 94.6,
+      "y": 0.02,
+      "rot_deg": 0.0,
+      "scale": [
+        1.0,
+        0.9545,
+        1.0
+      ]
+    },
+    {
+      "kind": "trough",
+      "x": 68.0,
+      "z": 27.5,
+      "y": 0.02,
+      "rot_deg": 0.0
+    },
+    {
+      "kind": "well",
+      "x": 44.0,
+      "z": 78.5,
+      "y": 0.02
+    }
+  ],
+  "kinds": {
+    "barrel": 8,
+    "barrel_broken": 2,
+    "bench": 2,
+    "cart": 2,
+    "crate": 2,
+    "crate_broken": 1,
+    "crate_holed": 1,
+    "crate_open": 3,
+    "firewood": 2,
+    "logpile": 7,
+    "sack_pair": 1,
+    "trough": 1,
+    "well": 1
+  }
+}

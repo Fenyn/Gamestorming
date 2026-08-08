@@ -1,43 +1,69 @@
-[gd_scene format=3 uid="uid://1g1r3ya5h048"]
+[gd_scene load_steps=9 format=3]
 
-[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndcpr"]
-[ext_resource type="Texture2D" uid="uid://geaemivbt1pi" path="res://assets/tilesets/winlu_exterior/fantasy_outside_d_noshadow.png" id="2_ndcpr"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_node_copper"]
-atlas = ExtResource("2_ndcpr")
-region = Rect2(432, 259.8068, 48, 55.036774)
+[sub_resource type="BoxMesh" id="Mesh_outcrop"]
+size = Vector3(0.9, 0.7, 0.9)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_node_copper_base"]
-size = Vector2(42, 53)
+[sub_resource type="StandardMaterial3D" id="Mat_outcrop"]
+albedo_color = Color(0.48, 0.48, 0.52, 1)
+roughness = 1.0
 
-[node name="NodeCopperVein" type="Node2D" unique_id=54825787]
-z_index = 5
-script = ExtResource("1_ndcpr")
+[sub_resource type="SphereMesh" id="Mesh_ore"]
+radius = 0.2
+height = 0.3
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_ore"]
+albedo_color = Color(0.82, 0.45, 0.2, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_ore2"]
+radius = 0.14
+height = 0.22
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_ore2"]
+albedo_color = Color(0.82, 0.45, 0.2, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Shape_node_copper_vein_body"]
+size = Vector3(0.9, 0.7, 0.9)
+
+[node name="NodeCopperVein" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "copper_vein"
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=549331287]
-self_modulate = Color(1, 0.68, 0.42, 1)
-texture_filter = 1
-position = Vector2(-23, -49)
-texture = SubResource("AtlasTexture_node_copper")
-centered = false
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="Body" type="StaticBody2D" parent="." unique_id=606094631]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=521393600]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(-1, -21.5)
-shape = SubResource("RectangleShape2D_node_copper_base")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("Shape_node_copper_vein_body")
 
-[node name="Label" type="Label" parent="." unique_id=720385221]
+[node name="Outcrop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("Mesh_outcrop")
+surface_material_override/0 = SubResource("Mat_outcrop")
+
+[node name="Ore" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, 0.66, 0.24)
+mesh = SubResource("Mesh_ore")
+surface_material_override/0 = SubResource("Mat_ore")
+
+[node name="Ore2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24, 0.6, -0.18)
+mesh = SubResource("Mesh_ore2")
+surface_material_override/0 = SubResource("Mat_ore2")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -46.0
-offset_right = 48.0
-offset_bottom = -28.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Copper Vein"
-horizontal_alignment = 1
+font_size = 48
+outline_size = 10

@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/psx_props/cement_bag_mp_1.glb" id="1_model"]
+
+[node name="SackPair" type="Node3D"]
+
+[node name="BagBottom" parent="." instance=ExtResource("1_model")]
+transform = Transform3D(1.08929, 0, -0.15309, 0, 1.1, 0, 0.15309, 0, 1.08929, 0, 0, 0)
+
+[node name="BagTop" parent="." instance=ExtResource("1_model")]
+transform = Transform3D(0.999395, -0.105041, 0.44741, 0.114981, 1.09397, 0, -0.444959, 0.0467671, 1.0049, 0.06, 0.2, -0.04)

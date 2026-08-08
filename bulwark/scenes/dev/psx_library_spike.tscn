@@ -1,0 +1,319 @@
+[gd_scene load_steps=41 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/PsxLibraryShotSpike.cs" id="0_spike"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/wall_straight_plank.glb" id="1_wall_straight_plank"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/wall_straight_log.glb" id="2_wall_straight_log"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/wall_straight_pale.glb" id="3_wall_straight_pale"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/wall_corner.glb" id="4_wall_corner"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/tower_corner.glb" id="5_tower_corner"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/tower_ruined.glb" id="6_tower_ruined"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/gate_tower.glb" id="7_gate_tower"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/gate_lintel.glb" id="8_gate_lintel"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/gate_leaf_open.glb" id="9_gate_leaf_open"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/gate_leaf_ajar.glb" id="10_gate_leaf_ajar"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/pine_a.glb" id="11_pine_a"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/pine_b.glb" id="12_pine_b"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/pine_c.glb" id="13_pine_c"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/oak_a.glb" id="14_oak_a"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/oak_b.glb" id="15_oak_b"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bush_a.glb" id="16_bush_a"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bush_b.glb" id="17_bush_b"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/stump.glb" id="18_stump"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/log_fallen.glb" id="19_log_fallen"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/boulder_s.glb" id="20_boulder_s"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/boulder_m.glb" id="21_boulder_m"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/boulder_l.glb" id="22_boulder_l"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/rock_cluster.glb" id="23_rock_cluster"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/well.glb" id="24_well"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bench.glb" id="25_bench"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/crate.glb" id="26_crate"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/barrel.glb" id="27_barrel"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/cart_broken.glb" id="28_cart_broken"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/firewood_stack.glb" id="29_firewood_stack"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/logpile.glb" id="30_logpile"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/signpost.glb" id="31_signpost"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/dock_deck.glb" id="32_dock_deck"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/dock_piling.glb" id="33_dock_piling"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/reeds.glb" id="34_reeds"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/grass_tuft.glb" id="35_grass_tuft"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/flowers.glb" id="36_flowers"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/ground_pad.glb" id="37_ground_pad"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/outpost_terrain_psx.glb" id="99_terrain"]
+
+[sub_resource type="Environment" id="Environment_lib"]
+background_mode = 1
+background_color = Color(0.53, 0.71, 0.86, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.66, 0.72, 0.8, 1)
+ambient_light_energy = 0.55
+
+[node name="PsxLibrarySpike" type="Node3D"]
+script = ExtResource("0_spike")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lib")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8192, -0.4699, 0.329, 0, 0.5736, 0.8192, -0.5736, -0.671, 0.4699, 0, 40, 0)
+light_energy = 1.1
+shadow_enabled = true
+
+[node name="Rows" type="Node3D" parent="."]
+
+[node name="GroundPad" parent="Rows" instance=ExtResource("37_ground_pad")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 12.0, -0.05, -22.0)
+
+[node name="LblWALL" type="Label3D" parent="Rows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 3.2, 9.0)
+text = "WALL"
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.0016
+modulate = Color(1, 0.96, 0.72, 1)
+outline_size = 14
+
+[node name="WALL_wall_straight_plank" parent="Rows" instance=ExtResource("1_wall_straight_plank")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 0.0, 0.0, 9.0)
+
+[node name="WALL_wall_straight_log" parent="Rows" instance=ExtResource("2_wall_straight_log")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 4.0, 0.0, 9.0)
+
+[node name="WALL_wall_straight_pale" parent="Rows" instance=ExtResource("3_wall_straight_pale")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 8.0, 0.0, 9.0)
+
+[node name="WALL_wall_corner" parent="Rows" instance=ExtResource("4_wall_corner")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 11.5, 0.0, 9.0)
+
+[node name="WALL_tower_corner" parent="Rows" instance=ExtResource("5_tower_corner")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 15.0, 0.0, 9.0)
+
+[node name="WALL_tower_ruined" parent="Rows" instance=ExtResource("6_tower_ruined")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 20.0, 0.0, 9.0)
+
+[node name="WALL_gate_tower" parent="Rows" instance=ExtResource("7_gate_tower")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 25.0, 0.0, 9.0)
+
+[node name="WALL_gate_lintel" parent="Rows" instance=ExtResource("8_gate_lintel")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 31.0, 0.0, 9.0)
+
+[node name="WALL_gate_leaf_open" parent="Rows" instance=ExtResource("9_gate_leaf_open")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 36.0, 0.0, 9.0)
+
+[node name="WALL_gate_leaf_ajar" parent="Rows" instance=ExtResource("10_gate_leaf_ajar")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 40.5, 0.0, 9.0)
+
+[node name="LblTREES" type="Label3D" parent="Rows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 3.2, 0.0)
+text = "TREES"
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.0016
+modulate = Color(1, 0.96, 0.72, 1)
+outline_size = 14
+
+[node name="TREES_pine_a" parent="Rows" instance=ExtResource("11_pine_a")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 0.0, 0.0, 0.0)
+
+[node name="TREES_pine_b" parent="Rows" instance=ExtResource("12_pine_b")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 3.0, 0.0, 0.0)
+
+[node name="TREES_pine_c" parent="Rows" instance=ExtResource("13_pine_c")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 6.0, 0.0, 0.0)
+
+[node name="TREES_oak_a" parent="Rows" instance=ExtResource("14_oak_a")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 10.0, 0.0, 0.0)
+
+[node name="TREES_oak_b" parent="Rows" instance=ExtResource("15_oak_b")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 15.0, 0.0, 0.0)
+
+[node name="TREES_bush_a" parent="Rows" instance=ExtResource("16_bush_a")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 19.0, 0.0, 0.0)
+
+[node name="TREES_bush_b" parent="Rows" instance=ExtResource("17_bush_b")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 21.0, 0.0, 0.0)
+
+[node name="TREES_stump" parent="Rows" instance=ExtResource("18_stump")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 23.0, 0.0, 0.0)
+
+[node name="TREES_log_fallen" parent="Rows" instance=ExtResource("19_log_fallen")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 25.5, 0.0, 0.0)
+
+[node name="LblROCK" type="Label3D" parent="Rows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 3.2, -10.0)
+text = "ROCK"
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.0016
+modulate = Color(1, 0.96, 0.72, 1)
+outline_size = 14
+
+[node name="ROCK_boulder_s" parent="Rows" instance=ExtResource("20_boulder_s")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 0.0, 0.0, -10.0)
+
+[node name="ROCK_boulder_m" parent="Rows" instance=ExtResource("21_boulder_m")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 2.0, 0.0, -10.0)
+
+[node name="ROCK_boulder_l" parent="Rows" instance=ExtResource("22_boulder_l")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 4.5, 0.0, -10.0)
+
+[node name="ROCK_rock_cluster" parent="Rows" instance=ExtResource("23_rock_cluster")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 8.0, 0.0, -10.0)
+
+[node name="LblPROPS" type="Label3D" parent="Rows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 3.2, -17.0)
+text = "PROPS"
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.0016
+modulate = Color(1, 0.96, 0.72, 1)
+outline_size = 14
+
+[node name="PROPS_well" parent="Rows" instance=ExtResource("24_well")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 0.0, 0.0, -17.0)
+
+[node name="PROPS_bench" parent="Rows" instance=ExtResource("25_bench")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 3.0, 0.0, -17.0)
+
+[node name="PROPS_crate" parent="Rows" instance=ExtResource("26_crate")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 5.0, 0.0, -17.0)
+
+[node name="PROPS_barrel" parent="Rows" instance=ExtResource("27_barrel")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 6.5, 0.0, -17.0)
+
+[node name="PROPS_cart_broken" parent="Rows" instance=ExtResource("28_cart_broken")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 9.0, 0.0, -17.0)
+
+[node name="PROPS_firewood_stack" parent="Rows" instance=ExtResource("29_firewood_stack")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 12.0, 0.0, -17.0)
+
+[node name="PROPS_logpile" parent="Rows" instance=ExtResource("30_logpile")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 14.5, 0.0, -17.0)
+
+[node name="PROPS_signpost" parent="Rows" instance=ExtResource("31_signpost")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 17.5, 0.0, -17.0)
+
+[node name="PROPS_dock_deck" parent="Rows" instance=ExtResource("32_dock_deck")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 20.0, 0.0, -17.0)
+
+[node name="PROPS_dock_piling" parent="Rows" instance=ExtResource("33_dock_piling")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 22.5, 0.0, -17.0)
+
+[node name="PROPS_reeds" parent="Rows" instance=ExtResource("34_reeds")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 24.0, 0.0, -17.0)
+
+[node name="PROPS_grass_tuft" parent="Rows" instance=ExtResource("35_grass_tuft")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 25.6, 0.0, -17.0)
+
+[node name="PROPS_flowers" parent="Rows" instance=ExtResource("36_flowers")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 26.6, 0.0, -17.0)
+
+[node name="Assembly" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -58.0)
+
+[node name="A0_tower_ruined" parent="Assembly" instance=ExtResource("6_tower_ruined")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, -15.0, 0.0, 0.0)
+
+[node name="A1_wall_straight_plank" parent="Assembly" instance=ExtResource("1_wall_straight_plank")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, -11.0, 0.0, 0.0)
+
+[node name="A2_wall_straight_log" parent="Assembly" instance=ExtResource("2_wall_straight_log")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, -7.0, 0.0, 0.0)
+
+[node name="A3_wall_straight_pale" parent="Assembly" instance=ExtResource("3_wall_straight_pale")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, -3.0, 0.0, 0.0)
+
+[node name="A4_wall_straight_log" parent="Assembly" instance=ExtResource("2_wall_straight_log")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 1.0, 0.0, 0.0)
+
+[node name="A5_wall_straight_plank" parent="Assembly" instance=ExtResource("1_wall_straight_plank")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 5.0, 0.0, 0.0)
+
+[node name="A6_gate_tower" parent="Assembly" instance=ExtResource("7_gate_tower")]
+transform = Transform3D(-1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, -1.00000, 8.33, 0.0, 0.0)
+
+[node name="A7_gate_tower" parent="Assembly" instance=ExtResource("7_gate_tower")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 17.67, 0.0, 0.0)
+
+[node name="A8_gate_lintel" parent="Assembly" instance=ExtResource("8_gate_lintel")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 13.0, 0.0, 0.0)
+
+[node name="A9_gate_leaf_open" parent="Assembly" instance=ExtResource("9_gate_leaf_open")]
+transform = Transform3D(0.10453, 0, -0.99452, 0, 1, 0, 0.99452, 0, 0.10453, 10.0, 0.0, 0.0)
+
+[node name="A10_gate_leaf_ajar" parent="Assembly" instance=ExtResource("10_gate_leaf_ajar")]
+transform = Transform3D(-0.89879, 0, -0.43837, 0, 1, 0, 0.43837, 0, -0.89879, 16.0, 0.0, 0.0)
+
+[node name="A11_wall_straight_pale" parent="Assembly" instance=ExtResource("3_wall_straight_pale")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 21.0, 0.0, 0.0)
+
+[node name="A12_wall_straight_plank" parent="Assembly" instance=ExtResource("1_wall_straight_plank")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 25.0, 0.0, 0.0)
+
+[node name="A13_wall_corner" parent="Assembly" instance=ExtResource("4_wall_corner")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 27.5, 0.0, 0.0)
+
+[node name="A14_wall_straight_log" parent="Assembly" instance=ExtResource("2_wall_straight_log")]
+transform = Transform3D(0.00000, 0, -1.00000, 0, 1, 0, 1.00000, 0, 0.00000, 27.5, 0.0, 2.5)
+
+[node name="A15_wall_straight_plank" parent="Assembly" instance=ExtResource("1_wall_straight_plank")]
+transform = Transform3D(0.00000, 0, -1.00000, 0, 1, 0, 1.00000, 0, 0.00000, 27.5, 0.0, 6.5)
+
+[node name="A16_tower_corner" parent="Assembly" instance=ExtResource("5_tower_corner")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1, 0, -0.00000, 0, 1.00000, 27.5, 0.0, 10.0)
+
+[node name="Terrain" type="Node3D" parent="."]
+
+[node name="OutpostTerrain" parent="Terrain" instance=ExtResource("99_terrain")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300.0, 0.0, 0.0)
+
+[node name="CamRowsPos" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 36.0, 26.0)
+
+[node name="CamRowsTarget" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 1.5, 0.0)
+
+[node name="CamRowsClosePos" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 16.0, -40.0)
+
+[node name="CamRowsCloseTarget" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0, 5.0, -12.0)
+
+[node name="CamTowersPos" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 12.0, 20.0)
+
+[node name="CamTowersTarget" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.0, 3.0, 9.0)
+
+[node name="CamWallPos" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 25.0, -35.0)
+
+[node name="CamWallTarget" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 2.5, -52.0)
+
+[node name="CamWallClosePos" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 7.0, -45.0)
+
+[node name="CamWallCloseTarget" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.0, 3.2, -56.0)
+
+[node name="CamTerrainPos" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 348.0, 168.0, 176.0)
+
+[node name="CamTerrainTarget" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 348.0, 0.0, 46.0)

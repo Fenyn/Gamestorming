@@ -1,66 +1,87 @@
-[gd_scene format=3 uid="uid://3eoorvd3qd26"]
+[gd_scene load_steps=11 format=3]
 
-[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndbry"]
-[ext_resource type="Texture2D" uid="uid://o6ovdjndylh" path="res://assets/tilesets/winlu_exterior/big_trees_noshadow.png" id="2_ndbry"]
-[ext_resource type="Texture2D" uid="uid://ql382v8ud7i8" path="res://assets/tilesets/winlu_exterior/decoration_vegetation.png" id="3_ndbry"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_berry_dome"]
-atlas = ExtResource("2_ndbry")
-region = Rect2(0, 432, 192, 144)
+[sub_resource type="SphereMesh" id="Mesh_bush"]
+radius = 0.52
+height = 0.9
+radial_segments = 12
+rings = 6
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_berry_a"]
-atlas = ExtResource("3_ndbry")
-region = Rect2(150.09476, 134.00772, 40.36029, 49.065475)
+[sub_resource type="StandardMaterial3D" id="Mat_bush"]
+albedo_color = Color(0.24, 0.46, 0.22, 1)
+roughness = 1.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_berry_b"]
-atlas = ExtResource("3_ndbry")
-region = Rect2(199.04796, 134.16776, 40.95204, 48.74893)
+[sub_resource type="SphereMesh" id="Mesh_berrya"]
+radius = 0.09
+height = 0.18
+radial_segments = 12
+rings = 6
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_berry_bush_base"]
-size = Vector2(130, 63)
+[sub_resource type="StandardMaterial3D" id="Mat_berrya"]
+albedo_color = Color(0.74, 0.2, 0.34, 1)
+roughness = 1.0
 
-[node name="NodeBerryBush" type="Node2D" unique_id=1465426834]
-z_index = 5
-script = ExtResource("1_ndbry")
+[sub_resource type="SphereMesh" id="Mesh_berryb"]
+radius = 0.09
+height = 0.18
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_berryb"]
+albedo_color = Color(0.74, 0.2, 0.34, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_berryc"]
+radius = 0.09
+height = 0.18
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_berryc"]
+albedo_color = Color(0.74, 0.2, 0.34, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Shape_node_berry_bush_body"]
+size = Vector3(1.0, 0.9, 1.0)
+
+[node name="NodeBerryBush" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "berry_bush"
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=194089111]
-texture_filter = 1
-position = Vector2(-96, -120)
-texture = SubResource("AtlasTexture_berry_dome")
-centered = false
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="BerryA" type="Sprite2D" parent="." unique_id=339498039]
-texture_filter = 1
-position = Vector2(-45, -44)
-texture = SubResource("AtlasTexture_berry_a")
-
-[node name="BerryB" type="Sprite2D" parent="." unique_id=1597155398]
-texture_filter = 1
-position = Vector2(52, -52)
-texture = SubResource("AtlasTexture_berry_b")
-
-[node name="BerryC" type="Sprite2D" parent="." unique_id=1209700309]
-texture_filter = 1
-position = Vector2(1, -82)
-texture = SubResource("AtlasTexture_berry_a")
-
-[node name="Body" type="StaticBody2D" parent="." unique_id=1682659206]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=414033075]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(-4, -21.5)
-shape = SubResource("RectangleShape2D_berry_bush_base")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("Shape_node_berry_bush_body")
 
-[node name="Label" type="Label" parent="." unique_id=46765530]
+[node name="Bush" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("Mesh_bush")
+surface_material_override/0 = SubResource("Mat_bush")
+
+[node name="BerryA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.34, 0.62, 0.2)
+mesh = SubResource("Mesh_berrya")
+surface_material_override/0 = SubResource("Mat_berrya")
+
+[node name="BerryB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.5, 0.26)
+mesh = SubResource("Mesh_berryb")
+surface_material_override/0 = SubResource("Mat_berryb")
+
+[node name="BerryC" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 0.82, -0.3)
+mesh = SubResource("Mesh_berryc")
+surface_material_override/0 = SubResource("Mat_berryc")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -46.0
-offset_right = 48.0
-offset_bottom = -28.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Berry Bush"
-horizontal_alignment = 1
+font_size = 48
+outline_size = 10

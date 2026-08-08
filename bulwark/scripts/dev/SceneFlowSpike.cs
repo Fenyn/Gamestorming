@@ -162,7 +162,8 @@ public partial class SceneFlowSpike : SpikeBase
         GD.Print("-------------------- (3) Roamer contact -> combat --------------------");
         // The exact seam OnRoamerContact drives: the command stages the encounter with the return
         // position, then the router swaps to the assembler (deterministic gob_1 = goblin_pair).
-        Vector2 contactPos = player.GlobalPosition + new Vector2(7f, 3f);
+        // The return position is PLANAR (world X, Z) — the ground plane the territory lives on.
+        Vector2 contactPos = new(player.GlobalPosition.X + 3f, player.GlobalPosition.Z - 2f);
         Check("(3) BeginTerritoryEncounter (gob_1) accepted", gs.BeginTerritoryEncounter("gob_1", contactPos));
 
         var pending = gs.Territory.PendingEncounter;
@@ -234,7 +235,8 @@ public partial class SceneFlowSpike : SpikeBase
         forest = tree.CurrentScene as TerritoryScene;
         player = forest?.GetNodeOrNull<PlayerController>("Player");
         Check("(5) player respawned at the stored return position",
-            player != null && player.GlobalPosition.DistanceTo(contactPos) < 1f);
+            player != null
+            && new Vector2(player.GlobalPosition.X, player.GlobalPosition.Z).DistanceTo(contactPos) < 1f);
         Check("(5) gob_1 marked defeated for the day", gs.Territory.IsRoamerDefeated(ForestId, "gob_1"));
         int roamersAfter = forest != null ? CountChildren<RoamingEnemy>(forest) : -1;
         Check($"(5) defeated roamer's body absent ({roamersAfter}/{wanderers - 1})",

@@ -103,9 +103,8 @@ public sealed class TerritoryDefinition
 
 /// <summary>
 /// Static registry of territory maps: the Verdant Fringe (M3, forest), the Elderwood (moderate), and
-/// the Sunken Reach (dangerous). The latter two are blockout scenes only — the user hand-paints the
-/// tilemap/visuals in the editor per CLAUDE.md; the scene files themselves are not part of this
-/// data-only pass. Additions are data-only.
+/// the Sunken Reach (dangerous). The scenes themselves are 3D greybox (scenes/territory/*.tscn) and
+/// are not part of this pass. Additions are data-only.
 /// </summary>
 public static class Territories
 {
@@ -260,10 +259,10 @@ public static class Territories
         UnlockFlagId = "dire_wolf_slain",
         Nodes = new[]
         {
-            new TerritoryNode { NodeId = "hardwood_1", ResourceId = "hardwood_stand" },
-            new TerritoryNode { NodeId = "hardwood_2", ResourceId = "hardwood_stand" },
-            new TerritoryNode { NodeId = "coal_1", ResourceId = "coal_seam" },
-            new TerritoryNode { NodeId = "coal_2", ResourceId = "coal_seam" },
+            new TerritoryNode { NodeId = "hardwood_1", ResourceId = "elderwood_tree_stand" },
+            new TerritoryNode { NodeId = "hardwood_2", ResourceId = "elderwood_tree_stand" },
+            new TerritoryNode { NodeId = "coal_1", ResourceId = "elderwood_coal_seam" },
+            new TerritoryNode { NodeId = "coal_2", ResourceId = "elderwood_coal_seam" },
             new TerritoryNode { NodeId = "mushroom_1", ResourceId = "wild_mushroom_patch" },
             new TerritoryNode { NodeId = "mushroom_2", ResourceId = "wild_mushroom_patch" },
             new TerritoryNode { NodeId = "forest_root_1", ResourceId = "forest_root_patch" },
@@ -378,8 +377,8 @@ public static class Territories
         {
             new TerritoryNode { NodeId = "iron_1", ResourceId = "bog_iron_deposit" },
             new TerritoryNode { NodeId = "iron_2", ResourceId = "bog_iron_deposit" },
-            new TerritoryNode { NodeId = "bogwood_1", ResourceId = "bogwood_stand" },
-            new TerritoryNode { NodeId = "bogwood_2", ResourceId = "bogwood_stand" },
+            new TerritoryNode { NodeId = "bogwood_1", ResourceId = "drowned_tree_stand" },
+            new TerritoryNode { NodeId = "bogwood_2", ResourceId = "drowned_tree_stand" },
             new TerritoryNode { NodeId = "mossbed_1", ResourceId = "bog_moss_patch" },
             new TerritoryNode { NodeId = "mossbed_2", ResourceId = "bog_moss_patch" },
             new TerritoryNode { NodeId = "reed_1", ResourceId = "marsh_reed_patch" },

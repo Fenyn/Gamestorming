@@ -15,21 +15,21 @@ namespace Bulwark.Cozy;
 ///  • <c>%Stages</c> — a container whose children are the visual STAGES in order. Child 0 = the
 ///    ruined/site look; children 1..N = the evolving restored art for tiers 1..N (or a story-override
 ///    index — story stages are addressed by index like any other). Exactly one is shown at a time;
-///    the rest are hidden. Replace the placeholder ColorRects with real Sprite2D art — only the
-///    child ORDER matters.
+///    the rest are hidden. Each stage is its OWN Node3D subtree, so a greybox stage can be swapped
+///    for finished art in the editor without touching any other stage — only the child ORDER matters.
 ///  • <c>%Scaffold</c> — (optional) shown INSTEAD of any stage while the building is under
 ///    construction (commission or upgrade); hidden otherwise.
 ///  • <c>%Overlays</c> — (optional) zero or more children shown by Name, additive on top of the
 ///    active stage (season/event/story dressing — see <see cref="BuildingVisualState"/>).
-///  • <c>%Footprint</c> — a StaticBody2D + CollisionShape2D that blocks the building's tiles. Shared
+///  • <c>%Footprint</c> — a StaticBody3D + CollisionShape3D that blocks the building's cells. Shared
 ///    across every stage — always active, never toggled here.
-///  • <c>%Interact</c> — a Marker2D anchor for a future diegetic interaction point (unused this phase).
+///  • <c>%Interact</c> — a Marker3D anchor for a future diegetic interaction point (unused this phase).
 /// A stage/scaffold that changes the building's OUTLINE may carry its own collision shapes
-/// (CollisionShape2D/CollisionPolygon2D anywhere under it) — <see cref="Apply"/> disables them under
-/// a hidden stage/scaffold (hidden CanvasItems still collide in Godot; this is the explicit fix).
+/// (CollisionShape3D/CollisionPolygon3D anywhere under it) — <see cref="Apply"/> disables them under
+/// a hidden stage/scaffold (a hidden Node3D's colliders still collide in Godot; this is the explicit fix).
 /// Unique collision shapes per node, never shared sub_resources.
 /// </summary>
-public partial class BuildingInstance : Node2D
+public partial class BuildingInstance : Node3D
 {
     /// <summary>
     /// Resolve the full visual state in one call: scaffold-vs-stage, per-stage/scaffold collision,
@@ -66,8 +66,8 @@ public partial class BuildingInstance : Node2D
         if (overlays != null)
         {
             foreach (Node child in overlays.GetChildren())
-                if (child is CanvasItem ci)
-                    ci.Visible = overlayKeys.Contains(child.Name.ToString());
+                if (child is Node3D n3)
+                    n3.Visible = overlayKeys.Contains(child.Name.ToString());
         }
     }
 
@@ -77,21 +77,21 @@ public partial class BuildingInstance : Node2D
     public void SetStage(int stageIndex) => Apply(stageIndex, false, Array.Empty<string>());
 
     /// <summary>Toggle a stage/scaffold subtree's own visibility AND disable collision under every
-    /// CollisionShape2D/CollisionPolygon2D descendant when hidden (hidden CanvasItems still collide
-    /// in Godot — this is the explicit fix). The shared %Footprint is never passed here.</summary>
+    /// CollisionShape3D/CollisionPolygon3D descendant when hidden (a hidden Node3D's colliders still
+    /// collide in Godot — this is the explicit fix). The shared %Footprint is never passed here.</summary>
     private static void SetVisibleAndCollision(Node root, bool visible)
     {
-        if (root is CanvasItem ci)
-            ci.Visible = visible;
+        if (root is Node3D n3)
+            n3.Visible = visible;
 
         foreach (Node descendant in Descendants(root))
         {
             switch (descendant)
             {
-                case CollisionShape2D shape:
+                case CollisionShape3D shape:
                     shape.Disabled = !visible;
                     break;
-                case CollisionPolygon2D poly:
+                case CollisionPolygon3D poly:
                     poly.Disabled = !visible;
                     break;
             }

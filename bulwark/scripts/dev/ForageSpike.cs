@@ -76,6 +76,7 @@ public partial class ForageSpike : SpikeBase
             TestRespawnDays();
             TestDebris();
             TestDebrisTrailClearance();
+            TestRegionCellProvider();
         }
         catch (Exception e)
         {
@@ -502,5 +503,56 @@ public partial class ForageSpike : SpikeBase
         Check("(6) all debris exactly 1 cell (Chebyshev) from a trail cell",
             debris.All(s => cells.TrailCells.Min(t =>
                 Math.Max(Math.Abs(t.X - s.CellX), Math.Abs(t.Y - s.CellY))) == 1));
+    }
+
+    // ------------------------------------------------------ (7) region cell provider (3D territories)
+
+    /// <summary>
+    /// The 3D replacement for the painted-tilemap adapter: a territory hands over the walkable
+    /// ground rectangle it AUTHORED (its %Ground floor collider, in cells) plus the cells its own
+    /// world objects occupy, and <see cref="RegionForageCellProvider"/> turns that into the valid-cell
+    /// rule — rect shrunk by one ring, occupied cells (plus their margin) closed off. Pure: the
+    /// provider takes plain cell tuples, no scene needed.
+    /// </summary>
+    private void TestRegionCellProvider()
+    {
+        GD.Print("-------------------- (7) Region cell provider (3D territories) --------------------");
+
+        var occupied = new[] { (10, 10) };
+        var reserved = new[] { (20, 20), (30, 12) };
+        var trail = new[] { (32, 34), (32, 32) };
+        var region = new RegionForageCellProvider(new Rect2I(0, 0, 64, 36), occupied, reserved, trail);
+
+        var (x0, y0, x1, y1) = region.PlayableRect;
+        Check($"(7) playable rect is the ground rect shrunk by one ring ({x0},{y0})-({x1},{y1})",
+            (x0, y0, x1, y1) == (1, 1, 62, 34));
+        Check("(7) the perimeter ring is never spawnable",
+            !region.IsOpenGround(0, 0) && !region.IsOpenGround(63, 35) && !region.IsOpenGround(0, 18));
+        Check("(7) the inside corners of the playable rect are open",
+            region.IsOpenGround(1, 1) && region.IsOpenGround(62, 34));
+        Check("(7) cells outside the authored ground are closed",
+            !region.IsOpenGround(-3, 10) && !region.IsOpenGround(80, 10) && !region.IsOpenGround(20, -1));
+
+        Check("(7) an occupied cell is closed", !region.IsOpenGround(10, 10));
+        Check("(7) the occupancy margin closes the ring around it",
+            !region.IsOpenGround(9, 9) && !region.IsOpenGround(11, 11) && !region.IsOpenGround(10, 11));
+        Check("(7) two cells away from an occupied cell is open again",
+            region.IsOpenGround(12, 10) && region.IsOpenGround(10, 12));
+
+        Check("(7) reserved and trail cells pass through to the system untouched",
+            region.ReservedCells.Count == 2 && region.TrailCells.Count == 2);
+
+        // End to end: the daily passes only ever place spawns the region calls open.
+        var forage = new ForageSystem();
+        forage.SetWorldSeed(Seed);
+        for (int day = 1; day <= 12; day++)
+            forage.CatchUp(ForestId, day, region);
+        var placed = forage.GetLive(ForestId).Concat(forage.GetLiveDebris(ForestId)).ToList();
+        Check($"(7) the daily passes found cells inside the region ({placed.Count} spawns)", placed.Count > 0);
+        Check("(7) every spawn sits on a cell the region calls open ground",
+            placed.All(s => region.IsOpenGround(s.CellX, s.CellY)));
+        Check("(7) no spawn landed on the occupied cell or its margin",
+            placed.All(s => Math.Max(Math.Abs(s.CellX - 10), Math.Abs(s.CellY - 10))
+                            > RegionForageCellProvider.BlockMarginCells));
     }
 }

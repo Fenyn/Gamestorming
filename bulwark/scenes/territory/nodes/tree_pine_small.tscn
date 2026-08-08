@@ -1,42 +1,60 @@
-[gd_scene format=3 uid="uid://cej4bcyohxpx1"]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_trpns"]
-[ext_resource type="Texture2D" uid="uid://o6ovdjndylh" path="res://assets/tilesets/winlu_exterior/big_trees_noshadow.png" id="2_trpns"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_tree_pine_small"]
-atlas = ExtResource("2_trpns")
-region = Rect2(192, 288, 192, 240)
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+top_radius = 0.12
+bottom_radius = 0.16
+height = 1.0
+radial_segments = 10
+rings = 1
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_tree_pine_small_trunk"]
-size = Vector2(95, 39)
+[sub_resource type="StandardMaterial3D" id="Mat_trunk"]
+albedo_color = Color(0.3, 0.21, 0.14, 1)
+roughness = 1.0
 
-[node name="TreePineSmall" type="Node2D" unique_id=2108058458]
-z_index = 5
-script = ExtResource("1_trpns")
+[sub_resource type="CylinderMesh" id="Mesh_canopy"]
+top_radius = 0.0
+bottom_radius = 0.8
+height = 2.1
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Mat_canopy"]
+albedo_color = Color(0.17, 0.37, 0.25, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderShape3D" id="Shape_tree_pine_small_body"]
+radius = 0.24
+height = 1.0
+
+[node name="TreePineSmall" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "pine_tree"
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=809570733]
-texture_filter = 1
-position = Vector2(-93, -197)
-texture = SubResource("AtlasTexture_tree_pine_small")
-centered = false
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="Body" type="StaticBody2D" parent="." unique_id=296884257]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=1673134985]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(4.5, -6)
-shape = SubResource("RectangleShape2D_tree_pine_small_trunk")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("Shape_tree_pine_small_body")
 
-[node name="Label" type="Label" parent="." unique_id=962595402]
+[node name="Trunk" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("Mesh_trunk")
+surface_material_override/0 = SubResource("Mat_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 0)
+mesh = SubResource("Mesh_canopy")
+surface_material_override/0 = SubResource("Mat_canopy")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -46.0
-offset_right = 48.0
-offset_bottom = -28.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Pine Tree"
-horizontal_alignment = 1
+font_size = 48
+outline_size = 10

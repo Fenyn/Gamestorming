@@ -344,16 +344,16 @@ public partial class VillagerSpike : SpikeBase
         GD.Print("-------------------- (F) VillagerLoader placement + null-safety --------------------");
 
         // No marker anywhere → nothing placed, no throw (even though the predicate says "arrived").
-        var bareHost = new Node2D { Name = "BareVillagerHost" };
+        var bareHost = new Node3D { Name = "BareVillagerHost" };
         AddChild(bareHost);
         var loaderBare = new VillagerLoader(bareHost, _ => true, new[] { recruitVillager });
         loaderBare.PlaceArrived();
         Check("(F) loader null-safe: no marker → nothing placed, no throw", bareHost.GetChildCount() == 0);
 
         // Marker present but villager NOT arrived → still nothing placed.
-        var host = new Node2D { Name = "VillagerHost" };
+        var host = new Node3D { Name = "VillagerHost" };
         AddChild(host);
-        var marker = new Marker2D { Name = recruitVillager.MarkerName, Position = new Vector2(64, 32) };
+        var marker = new Marker3D { Name = recruitVillager.MarkerName, Position = new Vector3(6f, 0f, 3f) };
         host.AddChild(marker);
 
         var loaderNotArrived = new VillagerLoader(host, _ => false, new[] { recruitVillager });

@@ -276,14 +276,14 @@ public partial class IntroSpike : SpikeBase
             foreach (var marker in markers0)
             {
                 Check($"(A) road.tscn marker %{marker} resolves",
-                    roadInstance.GetNodeOrNull<Node2D>($"%{marker}") != null);
+                    roadInstance.GetNodeOrNull<Node3D>($"%{marker}") != null);
             }
 
             foreach (var actorId in actorIds0)
             {
                 Check($"(A) road.tscn actor node for '{actorId}' resolves",
                     actorNodeNames.TryGetValue(actorId, out var nodeName)
-                    && roadInstance.GetNodeOrNull<Node2D>($"%{nodeName}") != null);
+                    && roadInstance.GetNodeOrNull<Node3D>($"%{nodeName}") != null);
             }
 
             // scene_0 has no "prop" steps today, but this stays generic in case it grows some.
@@ -310,18 +310,18 @@ public partial class IntroSpike : SpikeBase
             foreach (var marker in markers1a)
             {
                 Check($"(A) homestead_exterior.tscn marker %{marker} resolves",
-                    exteriorInstance.GetNodeOrNull<Node2D>($"%{marker}") != null);
+                    exteriorInstance.GetNodeOrNull<Node3D>($"%{marker}") != null);
             }
 
             foreach (var actorId in actorIds1a)
             {
                 Check($"(A) homestead_exterior.tscn actor node for '{actorId}' resolves",
                     actorNodeNames.TryGetValue(actorId, out var nodeName)
-                    && exteriorInstance.GetNodeOrNull<Node2D>($"%{nodeName}") != null);
+                    && exteriorInstance.GetNodeOrNull<Node3D>($"%{nodeName}") != null);
             }
 
             // "prop" step markers name a scene node whose visibility is toggled — e.g. %EveningTint
-            // (a CanvasModulate, NOT a Node2D) — so resolve as a plain Node, which covers both shapes.
+            // (a Node3D holding the dusk key light) — so resolve as a plain Node, which covers any shape.
             foreach (var propMarker in propMarkers1a)
             {
                 Check($"(A) homestead_exterior.tscn prop node %{propMarker} resolves",
@@ -345,19 +345,19 @@ public partial class IntroSpike : SpikeBase
             foreach (var marker in markers1b)
             {
                 Check($"(A) homestead_interior.tscn marker %{marker} resolves",
-                    interiorInstance.GetNodeOrNull<Node2D>($"%{marker}") != null);
+                    interiorInstance.GetNodeOrNull<Node3D>($"%{marker}") != null);
             }
 
             foreach (var actorId in actorIds1b)
             {
                 Check($"(A) homestead_interior.tscn actor node for '{actorId}' resolves",
                     actorNodeNames.TryGetValue(actorId, out var nodeName)
-                    && interiorInstance.GetNodeOrNull<Node2D>($"%{nodeName}") != null);
+                    && interiorInstance.GetNodeOrNull<Node3D>($"%{nodeName}") != null);
             }
 
             // "prop" step markers name a scene node whose visibility is toggled — e.g. %HearthFire
-            // (a Node2D fire effect) and %EveningTint (a CanvasModulate, NOT a Node2D) — so resolve
-            // as a plain Node, which covers both shapes.
+            // (a Node3D holding the emissive grate + its OmniLight3D) and %EveningTint (a Node3D
+            // holding the dusk fill light) — so resolve as a plain Node, which covers any shape.
             foreach (var propMarker in propMarkers1b)
             {
                 Check($"(A) homestead_interior.tscn prop node %{propMarker} resolves",

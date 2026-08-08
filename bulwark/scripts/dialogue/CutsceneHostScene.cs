@@ -7,11 +7,12 @@ using Godot;
 namespace Bulwark.Dialogue;
 
 /// <summary>
-/// Reusable base for any Node2D scene that hosts JSON cutscene sequences. Builds the shared plumbing once
+/// Reusable base for any Node3D scene that hosts JSON cutscene sequences. Builds the shared plumbing once
 /// in <see cref="_Ready"/> — a screen-space <see cref="DialogueBox"/> on a CanvasLayer (layer 50), a
 /// <see cref="CutsceneDirector"/>, and a full-screen black fade <see cref="ColorRect"/> on a layer-100
 /// CanvasLayer handed to the director via <see cref="CutsceneDirector.AdoptFadeOverlay"/> — then exposes
-/// <see cref="PlaySequence"/> for derived scenes to drive their sequence(s).
+/// <see cref="PlaySequence"/> for derived scenes to drive their sequence(s). CanvasLayers render in screen
+/// space over the 3D viewport, so the box and the fade sit on a 3D set exactly as they did on a 2D one.
 ///
 /// The overlay starts FULLY OPAQUE: a derived scene reveals its scene through a JSON <c>fade</c>-in step
 /// (the director drives the same rect) or an explicit <see cref="FadeTo"/>. Actor lookup is by CONVENTION
@@ -21,7 +22,7 @@ namespace Bulwark.Dialogue;
 /// Null-safe throughout: an F6/headless run with no GameState/DialogueDb, or a scene missing the box
 /// scene, degrades to log-and-continue (each PlaySequence completes immediately) rather than crashing.
 /// </summary>
-public abstract partial class CutsceneHostScene : Node2D
+public abstract partial class CutsceneHostScene : Node3D
 {
     /// <summary>The hosted dialogue box (screen-space, layer 50). Null in a run where the box scene fails
     /// to load — PlaySequence then completes immediately.</summary>
@@ -52,9 +53,9 @@ public abstract partial class CutsceneHostScene : Node2D
         var boxScene = GD.Load<PackedScene>("res://scenes/ui/dialogue_box.tscn");
         if (boxScene != null)
         {
-            // The box is a Control — parent it under a CanvasLayer so it renders in screen space, not
-            // through this Node2D host's Camera2D. Below the fade layer (100) so the scene fade still
-            // covers the dialogue.
+            // The box is a Control — parent it under a CanvasLayer so it renders in screen space, over
+            // this host's 3D view. Below the fade layer (100) so the scene fade still covers the
+            // dialogue.
             DialogueBox = boxScene.Instantiate<DialogueBox>();
             var dialogueLayer = new CanvasLayer { Name = "DialogueLayer", Layer = 50 };
             AddChild(dialogueLayer);
@@ -121,12 +122,12 @@ public abstract partial class CutsceneHostScene : Node2D
     /// letter and resolve the unique node <c>%Actor&lt;Id&gt;</c> (e.g. "elara" =&gt; <c>%ActorElara</c>).
     /// Returns null for an empty id or when the node is absent (an F6 run of the base without a scene).
     /// Virtual so a derived scene can override for puppets that do not follow the convention.</summary>
-    protected virtual Node2D? ResolveActor(string id)
+    protected virtual Node3D? ResolveActor(string id)
     {
         if (string.IsNullOrEmpty(id))
             return null;
         string unique = "%Actor" + char.ToUpperInvariant(id[0]) + id.Substring(1);
-        return GetNodeOrNull<Node2D>(unique);
+        return GetNodeOrNull<Node3D>(unique);
     }
 
     /// <summary>Tween the shared fade overlay to <paramref name="targetAlpha"/> over

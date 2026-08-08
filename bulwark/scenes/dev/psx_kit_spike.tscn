@@ -1,0 +1,119 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/PsxKitShotSpike.cs" id="0_spike"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/pine.glb" id="1_a_winlu_pine"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/oak.glb" id="2_a_winlu_oak"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/boulder.glb" id="3_a_winlu_boulder"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/wall_segment.glb" id="4_a_winlu_wall_segment"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/well.glb" id="5_a_winlu_well"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/ground.glb" id="6_a_winlu_ground"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/b_fresh/pine.glb" id="7_b_fresh_pine"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/b_fresh/oak.glb" id="8_b_fresh_oak"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/b_fresh/boulder.glb" id="9_b_fresh_boulder"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/b_fresh/wall_segment.glb" id="10_b_fresh_wall_segment"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/b_fresh/well.glb" id="11_b_fresh_well"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/b_fresh/ground.glb" id="12_b_fresh_ground"]
+
+[sub_resource type="Environment" id="Environment_kit"]
+background_mode = 1
+background_color = Color(0.53, 0.71, 0.86, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.66, 0.72, 0.8, 1)
+ambient_light_energy = 0.55
+
+[node name="PsxKitShotSpike" type="Node3D"]
+script = ExtResource("0_spike")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_kit")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8192, -0.4699, 0.329, 0, 0.5736, 0.8192, -0.5736, -0.671, 0.4699, 0, 24, 0)
+light_energy = 1.1
+shadow_enabled = true
+
+[node name="VignetteA" type="Node3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0, 0)
+
+[node name="Ground" parent="VignetteA" instance=ExtResource("6_a_winlu_ground")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, 0.0, 0.0, 0.0)
+
+[node name="WallW" parent="VignetteA" instance=ExtResource("4_a_winlu_wall_segment")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, -4.0, 0.0, -1.6)
+
+[node name="WallC" parent="VignetteA" instance=ExtResource("4_a_winlu_wall_segment")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, 0.0, 0.0, -1.6)
+
+[node name="WallE" parent="VignetteA" instance=ExtResource("4_a_winlu_wall_segment")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, 4.0, 0.0, -1.6)
+
+[node name="Well" parent="VignetteA" instance=ExtResource("5_a_winlu_well")]
+transform = Transform3D(0.93937, 0, 0.34290, 0, 1.0, 0, -0.34290, 0, 0.93937, 0.0, 0.0, 2.0)
+
+[node name="PineW" parent="VignetteA" instance=ExtResource("1_a_winlu_pine")]
+transform = Transform3D(0.82534, 0, 0.56464, 0, 1.0, 0, -0.56464, 0, 0.82534, -3.4, 0.0, -4.0)
+
+[node name="PineE" parent="VignetteA" instance=ExtResource("1_a_winlu_pine")]
+transform = Transform3D(0.39916, 0, -0.78426, 0, 0.88, 0, 0.78426, 0, 0.39916, 3.6, 0.0, -3.4)
+
+[node name="Oak" parent="VignetteA" instance=ExtResource("2_a_winlu_oak")]
+transform = Transform3D(-0.41615, 0, 0.90930, 0, 1.0, 0, -0.90930, 0, -0.41615, 0.9, 0.0, -4.3)
+
+[node name="Boulder" parent="VignetteA" instance=ExtResource("3_a_winlu_boulder")]
+transform = Transform3D(0.62161, 0, 0.78333, 0, 1.0, 0, -0.78333, 0, 0.62161, -2.9, 0.0, 1.4)
+
+[node name="CamWidePos" type="Marker3D" parent="VignetteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 17.0, 8.0)
+
+[node name="CamWideTarget" type="Marker3D" parent="VignetteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 2.6, -2.2)
+
+[node name="CamClosePos" type="Marker3D" parent="VignetteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 5.6, 6.4)
+
+[node name="CamCloseTarget" type="Marker3D" parent="VignetteA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.0, -0.6)
+
+[node name="VignetteB" type="Node3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.0, 0, 0)
+
+[node name="Ground" parent="VignetteB" instance=ExtResource("12_b_fresh_ground")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, 0.0, 0.0, 0.0)
+
+[node name="WallW" parent="VignetteB" instance=ExtResource("10_b_fresh_wall_segment")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, -4.0, 0.0, -1.6)
+
+[node name="WallC" parent="VignetteB" instance=ExtResource("10_b_fresh_wall_segment")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, 0.0, 0.0, -1.6)
+
+[node name="WallE" parent="VignetteB" instance=ExtResource("10_b_fresh_wall_segment")]
+transform = Transform3D(1.00000, 0, 0.00000, 0, 1.0, 0, -0.00000, 0, 1.00000, 4.0, 0.0, -1.6)
+
+[node name="Well" parent="VignetteB" instance=ExtResource("11_b_fresh_well")]
+transform = Transform3D(0.93937, 0, 0.34290, 0, 1.0, 0, -0.34290, 0, 0.93937, 0.0, 0.0, 2.0)
+
+[node name="PineW" parent="VignetteB" instance=ExtResource("7_b_fresh_pine")]
+transform = Transform3D(0.82534, 0, 0.56464, 0, 1.0, 0, -0.56464, 0, 0.82534, -3.4, 0.0, -4.0)
+
+[node name="PineE" parent="VignetteB" instance=ExtResource("7_b_fresh_pine")]
+transform = Transform3D(0.39916, 0, -0.78426, 0, 0.88, 0, 0.78426, 0, 0.39916, 3.6, 0.0, -3.4)
+
+[node name="Oak" parent="VignetteB" instance=ExtResource("8_b_fresh_oak")]
+transform = Transform3D(-0.41615, 0, 0.90930, 0, 1.0, 0, -0.90930, 0, -0.41615, 0.9, 0.0, -4.3)
+
+[node name="Boulder" parent="VignetteB" instance=ExtResource("9_b_fresh_boulder")]
+transform = Transform3D(0.62161, 0, 0.78333, 0, 1.0, 0, -0.78333, 0, 0.62161, -2.9, 0.0, 1.4)
+
+[node name="CamWidePos" type="Marker3D" parent="VignetteB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 17.0, 8.0)
+
+[node name="CamWideTarget" type="Marker3D" parent="VignetteB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 2.6, -2.2)
+
+[node name="CamClosePos" type="Marker3D" parent="VignetteB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 5.6, 6.4)
+
+[node name="CamCloseTarget" type="Marker3D" parent="VignetteB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.0, -0.6)

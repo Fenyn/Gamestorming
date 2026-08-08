@@ -1,145 +1,446 @@
-[gd_scene format=4 uid="uid://b8wb2u2j8pt6a"]
+[gd_scene load_steps=41 format=3]
 
-[ext_resource type="Script" uid="uid://4cxeln2qta8e" path="res://scripts/cozy/BuildingInstance.cs" id="1_a7fvo"]
-[ext_resource type="TileSet" uid="uid://b3eu2aig0u8yg" path="res://assets/tilesets/outpost_tileset.tres" id="2_rlbsr"]
-[ext_resource type="PackedScene" uid="uid://db3npcr4u13g0" path="res://scenes/props/door.tscn" id="4_f64kh"]
+[ext_resource type="Script" path="res://scripts/cozy/BuildingInstance.cs" id="1_bi"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/farmhouse_stage0.glb" id="2_stage0"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/farmhouse_stage1.glb" id="3_stage1"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/farmhouse_stage2.glb" id="4_stage2"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/farmhouse_stage3.glb" id="5_stage3"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/farmhouse_stage4.glb" id="6_stage4"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/cart_broken.glb" id="7_cart_broken"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/crate.glb" id="8_crate"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/barrel.glb" id="9_barrel"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/logpile.glb" id="10_logpile"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/firewood_stack.glb" id="11_firewood_stack"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bench.glb" id="12_bench"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bush_a.glb" id="13_bush_a"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bush_b.glb" id="14_bush_b"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/grass_tuft.glb" id="15_grass_tuft"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/flowers.glb" id="16_flowers"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/log_fallen.glb" id="17_log_fallen"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/stump.glb" id="18_stump"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/boulder_s.glb" id="19_boulder_s"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_jl0ln"]
-size = Vector2(288, 268)
+[sub_resource type="StandardMaterial3D" id="Mat_scaffold"]
+albedo_color = Color(0.46, 0.33, 0.18, 1)
+roughness = 1.0
 
-[node name="Farmhouse" type="Node2D" unique_id=1453181310]
-script = ExtResource("1_a7fvo")
+[sub_resource type="BoxMesh" id="BoxMesh_post"]
+size = Vector3(0.16, 3.2, 0.16)
+material = SubResource("Mat_scaffold")
 
-[node name="Stages" type="Node2D" parent="." unique_id=295425806]
+[sub_resource type="BoxMesh" id="BoxMesh_beam_ns"]
+size = Vector3(9.2, 0.14, 0.14)
+material = SubResource("Mat_scaffold")
+
+[sub_resource type="BoxMesh" id="BoxMesh_beam_we"]
+size = Vector3(0.14, 0.14, 7.2)
+material = SubResource("Mat_scaffold")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_footprint"]
+size = Vector3(4.2, 2.6, 4.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chimney_stub"]
+size = Vector3(1.28, 3.05, 1.24)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chimney_s1"]
+size = Vector3(1.28, 4.7, 1.24)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chimney_s2"]
+size = Vector3(1.28, 4.7, 1.24)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_porch_s2"]
+size = Vector3(3.1, 2.4, 1.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_coop_s2"]
+size = Vector3(1.42, 1.55, 1.42)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_run_s2"]
+size = Vector3(1.36, 0.9, 0.92)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chimney_s3"]
+size = Vector3(1.28, 4.7, 1.24)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_porch_s3"]
+size = Vector3(3.1, 2.4, 1.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_coop_s3"]
+size = Vector3(1.42, 1.55, 1.42)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_run_s3"]
+size = Vector3(1.36, 0.9, 0.92)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_barn_s3"]
+size = Vector3(2.26, 3.0, 2.96)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chimney_s4"]
+size = Vector3(1.28, 4.7, 1.24)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_porch_s4"]
+size = Vector3(3.1, 2.4, 1.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_coop_s4"]
+size = Vector3(1.42, 1.55, 1.42)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_run_s4"]
+size = Vector3(1.36, 0.9, 0.92)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_barn_s4"]
+size = Vector3(2.26, 3.0, 2.96)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_greenhouse_s4"]
+size = Vector3(2.35, 2.0, 2.98)
+
+[node name="Farmhouse" type="Node3D"]
+script = ExtResource("1_bi")
+
+[node name="Stages" type="Node3D" parent="."]
 unique_name_in_owner = true
 
-[node name="Stage0" type="Node2D" parent="Stages" unique_id=16867823]
+[node name="Stage0" type="Node3D" parent="Stages"]
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage0" unique_id=1730737614]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAACAP//zAAGABoAAAACAP7/IgAGABkAAAACAP3/zAAGABgAAAABAP//zAAFABoAAAABAP7/zAAFABkAAAABAP3/IgAFABgAAAAAAP//zAAFABoAAAAAAP7/zAAFABkAAAAAAP3/zAAFABgAAAD/////zAAFABoAAAD///7/zAAFABkAAAD///3/zAAFABgAAAD+////IgAFABoAAAD+//7/zAAFABkAAAD+//3/zAAFABgAAAD9////zAAEABoAAAD9//7/IgAEABkAAAD9//3/zAAEABgAAAACAPz/IgACAAoAAAACAPv/zAACAAkAAAACAPr/IgACAAkAAAABAPz/IgABAAoAAAABAPv/zAABAAkAAAABAPr/zAABAAkAAAAAAPz/zAABAAoAAAAAAPv/IgABAAkAAAAAAPr/zAABAAkAAAD///z/IgABAAoAAAD///v/zAABAAkAAAD///r/zAABAAkAAAD+//z/zAABAAoAAAD+//v/IgABAAkAAAD+//r/zAABAAkAAAD9//z/IgAAAAoAAAD9//v/zAAAAAkAAAD9//r/IgAAAAkAAAACAPn/zAACAAgAAAABAPn/IgABAAgAAAAAAPn/zAABAAgAAAD///n/IgABAAgAAAD+//n/zAABAAgAAAD9//n/zAAAAAgAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Model" parent="Stages/Stage0" instance=ExtResource("2_stage0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage0" unique_id=1592266782]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/HwAFAAoAAAD+//r/HwAFAAsAAAD+//7/HwAAAAIAAAD+////HwAAAAMAAAD///7/HwABAAIAAAD/////HwABAAMAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="ChimneyStub" type="StaticBody3D" parent="Stages/Stage0"]
 
-[node name="Door" parent="Stages/Stage0" unique_id=2140818135 instance=ExtResource("4_f64kh")]
-position = Vector2(25, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage0/ChimneyStub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.525, -1.1)
+shape = SubResource("BoxShape3D_chimney_stub")
 
-[node name="Stage1" type="Node2D" parent="Stages" unique_id=979577564]
+[node name="CartBroken1" parent="Stages/Stage0" instance=ExtResource("7_cart_broken")]
+transform = Transform3D(-0.32329, 0, 0.9463, 0, 1, 0, -0.9463, 0, -0.32329, -3.8, 0, 1.6)
+
+[node name="Logpile1" parent="Stages/Stage0" instance=ExtResource("10_logpile")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3, 0, 1.7)
+
+[node name="Crate1" parent="Stages/Stage0" instance=ExtResource("8_crate")]
+transform = Transform3D(0.95534, 0, 0.29552, 0, 1, 0, -0.29552, 0, 0.95534, 0.9, 0, 2.75)
+
+[node name="Barrel1" parent="Stages/Stage0" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 0, -2.55)
+
+[node name="Stump1" parent="Stages/Stage0" instance=ExtResource("18_stump")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 0, -2.4)
+
+[node name="LogFallen1" parent="Stages/Stage0" instance=ExtResource("17_log_fallen")]
+transform = Transform3D(0.98877, 0, 0.14944, 0, 1, 0, -0.14944, 0, 0.98877, -0.6, 0, -2.8)
+
+[node name="BoulderS1" parent="Stages/Stage0" instance=ExtResource("19_boulder_s")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3, 0, -2.85)
+
+[node name="BushA1" parent="Stages/Stage0" instance=ExtResource("13_bush_a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 0, -1.3)
+
+[node name="BushB1" parent="Stages/Stage0" instance=ExtResource("14_bush_b")]
+transform = Transform3D(0.69671, 0, 0.71736, 0, 1, 0, -0.71736, 0, 0.69671, 3.5, 0, 0.8)
+
+[node name="GrassTuft1" parent="Stages/Stage0" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, 2.6)
+
+[node name="GrassTuft2" parent="Stages/Stage0" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(0.87758, 0, -0.47943, 0, 1, 0, 0.47943, 0, 0.87758, -2.9, 0, 2.7)
+
+[node name="Stage1" type="Node3D" parent="Stages"]
 visible = false
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage1" unique_id=1142466184]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAACAP//zAAGABoAAAACAP7/zAAGABkAAAACAP3/zAAGABgAAAABAP//zAAFABoAAAABAP7/zAAFABkAAAABAP3/zAAFABgAAAAAAP//zAAFABoAAAAAAP7/zAAFABkAAAAAAP3/zAAFABgAAAD/////zAAFABoAAAD///7/zAAFABkAAAD///3/zAAFABgAAAD+////zAAFABoAAAD+//7/zAAFABkAAAD+//3/zAAFABgAAAD9////zAAEABoAAAD9//7/zAAEABkAAAD9//3/zAAEABgAAAACAPz/zAACAAoAAAACAPv/zAACAAkAAAACAPr/zAACAAkAAAABAPz/zAABAAoAAAABAPv/zAABAAkAAAABAPr/zAABAAkAAAAAAPz/zAABAAoAAAAAAPv/zAABAAkAAAAAAPr/zAABAAkAAAD///z/zAABAAoAAAD///v/zAABAAkAAAD///r/zAABAAkAAAD+//z/zAABAAoAAAD+//v/zAABAAkAAAD+//r/zAABAAkAAAD9//z/zAAAAAoAAAD9//v/zAAAAAkAAAD9//r/zAAAAAkAAAACAPn/zAACAAgAAAABAPn/zAABAAgAAAAAAPn/zAABAAgAAAD///n/zAABAAgAAAD+//n/zAABAAgAAAD9//n/zAAAAAgAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Model" parent="Stages/Stage1" instance=ExtResource("3_stage1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage1" unique_id=631402845]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/CwAFAAoAAAD+//r/CwAFAAsAAAD+//7/CwAAAAIAAAD+////CwAAAAMAAAD///7/CwABAAIAAAD/////CwABAAMAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Chimney" type="StaticBody3D" parent="Stages/Stage1"]
 
-[node name="Door" parent="Stages/Stage1" unique_id=564897489 instance=ExtResource("4_f64kh")]
-position = Vector2(25, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage1/Chimney"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2.35, -1.1)
+shape = SubResource("BoxShape3D_chimney_s1")
 
-[node name="Stage2" type="Node2D" parent="Stages" unique_id=1969241137]
+[node name="Firewood1" parent="Stages/Stage1" instance=ExtResource("11_firewood_stack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.85, 0, -2.6)
+
+[node name="Barrel1" parent="Stages/Stage1" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.85, 0, -2.62)
+
+[node name="Crate1" parent="Stages/Stage1" instance=ExtResource("8_crate")]
+transform = Transform3D(0.96891, 0, 0.2474, 0, 1, 0, -0.2474, 0, 0.96891, 0.95, 0, -2.7)
+
+[node name="Logpile1" parent="Stages/Stage1" instance=ExtResource("10_logpile")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3.05, 0, 1.6)
+
+[node name="Bench1" parent="Stages/Stage1" instance=ExtResource("12_bench")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -1.7, 0, 2.55)
+
+[node name="BushA1" parent="Stages/Stage1" instance=ExtResource("13_bush_a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0, -2.6)
+
+[node name="BushB1" parent="Stages/Stage1" instance=ExtResource("14_bush_b")]
+transform = Transform3D(0.69671, 0, 0.71736, 0, 1, 0, -0.71736, 0, 0.69671, -2.9, 0, 1.9)
+
+[node name="Flowers1" parent="Stages/Stage1" instance=ExtResource("16_flowers")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7, 0, 0.4)
+
+[node name="GrassTuft1" parent="Stages/Stage1" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.55, 0, 2.6)
+
+[node name="GrassTuft2" parent="Stages/Stage1" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(0.87758, 0, -0.47943, 0, 1, 0, 0.47943, 0, 0.87758, -2.6, 0, -1.2)
+
+[node name="Stage2" type="Node3D" parent="Stages"]
 visible = false
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage2" unique_id=282900161]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAACAP//zAAGABoAAAACAP7/zAAGABkAAAACAP3/zAAGABgAAAABAP//zAAFABoAAAABAP7/zAAFABkAAAABAP3/zAAFABgAAAAAAP//zAAFABoAAAAAAP7/zAAFABkAAAAAAP3/zAAFABgAAAD/////zAAFABoAAAD///7/zAAFABkAAAD///3/zAAFABgAAAD+////zAAFABoAAAD+//7/zAAFABkAAAD+//3/zAAFABgAAAD9////zAAEABoAAAD9//7/zAAEABkAAAD9//3/zAAEABgAAAACAPz/zAACAAoAAAACAPv/zAACAAkAAAACAPr/zAACAAkAAAABAPz/zAABAAoAAAABAPv/zAABAAkAAAABAPr/zAABAAkAAAAAAPz/zAABAAoAAAAAAPv/zAABAAkAAAAAAPr/zAABAAkAAAD///z/zAABAAoAAAD///v/zAABAAkAAAD///r/zAABAAkAAAD+//z/zAABAAoAAAD+//v/zAABAAkAAAD+//r/zAABAAkAAAD9//z/zAAAAAoAAAD9//v/zAAAAAkAAAD9//r/zAAAAAkAAAACAPn/zAACAAgAAAABAPn/zAABAAgAAAAAAPn/zAABAAgAAAD///n/zAABAAgAAAD+//n/zAABAAgAAAD9//n/zAAAAAgAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Model" parent="Stages/Stage2" instance=ExtResource("4_stage2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage2" unique_id=1456781663]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/CwAFAAoAAAD+//r/CwAFAAsAAAD+//7/CwAAAAIAAAD+////CwAAAAMAAAD///7/CwABAAIAAAD/////CwABAAMAAAACAP//CwAKAAUAAAACAP7/CwAKAAUAAAD9////CwAIAAUAAAD9//7/CwAIAAUAAAD9//3/CwAIAAQAAAACAP3/CwAKAAQAAAABAP3/CwAJAAQAAAAAAP3/CwAJAAQAAAD///3/CwAJAAQAAAD+//3/CwAJAAQAAAABAPr/CwAGAAYAAAABAPv/CwAGAAcAAAADAP7/DAAKAAYAAAADAP//DAAKAAcAAAAEAP7/DAALAAYAAAAEAP//DAALAAcAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Chimney" type="StaticBody3D" parent="Stages/Stage2"]
 
-[node name="Door" parent="Stages/Stage2" unique_id=2046717723 instance=ExtResource("4_f64kh")]
-position = Vector2(25, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage2/Chimney"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2.35, -1.1)
+shape = SubResource("BoxShape3D_chimney_s2")
 
-[node name="Stage3" type="Node2D" parent="Stages" unique_id=603596609]
+[node name="Porch" type="StaticBody3D" parent="Stages/Stage2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage2/Porch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 2.6)
+shape = SubResource("BoxShape3D_porch_s2")
+
+[node name="Coop" type="StaticBody3D" parent="Stages/Stage2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage2/Coop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.725, 0.775, -1.35)
+shape = SubResource("BoxShape3D_coop_s2")
+
+[node name="Run" type="StaticBody3D" parent="Stages/Stage2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage2/Run"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.76, 0.45, -0.16)
+shape = SubResource("BoxShape3D_run_s2")
+
+[node name="Firewood1" parent="Stages/Stage2" instance=ExtResource("11_firewood_stack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.85, 0, -2.62)
+
+[node name="Barrel1" parent="Stages/Stage2" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.85, 0, -2.62)
+
+[node name="Crate1" parent="Stages/Stage2" instance=ExtResource("8_crate")]
+transform = Transform3D(0.96891, 0, 0.2474, 0, 1, 0, -0.2474, 0, 0.96891, 0.95, 0, -2.7)
+
+[node name="Crate2" parent="Stages/Stage2" instance=ExtResource("8_crate")]
+transform = Transform3D(0.92106, 0, 0.38942, 0, 1, 0, -0.38942, 0, 0.92106, -3.7, 0, 0.75)
+
+[node name="Logpile1" parent="Stages/Stage2" instance=ExtResource("10_logpile")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3.05, 0, 1.6)
+
+[node name="Bench1" parent="Stages/Stage2" instance=ExtResource("12_bench")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -2.55, 0, 2.55)
+
+[node name="BushA1" parent="Stages/Stage2" instance=ExtResource("13_bush_a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0, -2.6)
+
+[node name="BushB1" parent="Stages/Stage2" instance=ExtResource("14_bush_b")]
+transform = Transform3D(0.69671, 0, 0.71736, 0, 1, 0, -0.71736, 0, 0.69671, 2.9, 0, 2.6)
+
+[node name="Flowers1" parent="Stages/Stage2" instance=ExtResource("16_flowers")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7, 0, 1.15)
+
+[node name="GrassTuft1" parent="Stages/Stage2" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.55, 0, 2.6)
+
+[node name="GrassTuft2" parent="Stages/Stage2" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(0.87758, 0, -0.47943, 0, 1, 0, 0.47943, 0, 0.87758, -4.15, 0, -1.35)
+
+[node name="Stage3" type="Node3D" parent="Stages"]
 visible = false
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage3" unique_id=1665285316]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAACAP//zAAGABoAAAACAP7/zAAGABkAAAACAP3/zAAGABgAAAABAP//zAAFABoAAAABAP7/zAAFABkAAAABAP3/zAAFABgAAAAAAP//zAAFABoAAAAAAP7/zAAFABkAAAAAAP3/zAAFABgAAAD/////zAAFABoAAAD///7/zAAFABkAAAD///3/zAAFABgAAAD+////zAAFABoAAAD+//7/zAAFABkAAAD+//3/zAAFABgAAAD9////zAAEABoAAAD9//7/zAAEABkAAAD9//3/zAAEABgAAAACAPz/zAACAAoAAAACAPv/zAACAAkAAAACAPr/zAACAAkAAAABAPz/zAABAAoAAAABAPv/zAABAAkAAAABAPr/zAABAAkAAAAAAPz/zAABAAoAAAAAAPv/zAABAAkAAAAAAPr/zAABAAkAAAD///z/zAABAAoAAAD///v/zAABAAkAAAD///r/zAABAAkAAAD+//z/zAABAAoAAAD+//v/zAABAAkAAAD+//r/zAABAAkAAAD9//z/zAAAAAoAAAD9//v/zAAAAAkAAAD9//r/zAAAAAkAAAACAPn/zAACAAgAAAABAPn/zAABAAgAAAAAAPn/zAABAAgAAAD///n/zAABAAgAAAD+//n/zAABAAgAAAD9//n/zAAAAAgAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Model" parent="Stages/Stage3" instance=ExtResource("5_stage3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage3" unique_id=1160670821]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/CwAFAAoAAAD+//r/CwAFAAsAAAD+//7/CwAAAAIAAAD+////CwAAAAMAAAD///7/CwABAAIAAAD/////CwABAAMAAAACAP//CwAKAAUAAAACAP7/CwAKAAUAAAD9////CwAIAAUAAAD9//7/CwAIAAUAAAD9//3/CwAIAAQAAAACAP3/CwAKAAQAAAABAP3/CwAJAAQAAAAAAP3/CwAJAAQAAAD///3/CwAJAAQAAAD+//3/CwAJAAQAAAABAPr/CwAGAAYAAAABAPv/CwAGAAcAAAADAP7/DAAKAAgAAAADAP//DAAKAAkAAAAEAP7/DAALAAgAAAAEAP//DAALAAkAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Chimney" type="StaticBody3D" parent="Stages/Stage3"]
 
-[node name="ExtraDressing" type="TileMapLayer" parent="Stages/Stage3" unique_id=1837665313]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/CwAFAAoAAAD+//r/CwAFAAsAAAD+//7/CwAAAAIAAAD+////CwAAAAEAAAD///7/CwABAAIAAAD/////CwAHAAAAAAACAP//CwAKAAUAAAACAP7/CwAKAAUAAAD9////CwAIAAUAAAD9//7/CwAIAAUAAAD9//3/CwAIAAQAAAACAP3/CwAKAAQAAAABAP3/CwAJAAQAAAAAAP3/CwAJAAQAAAD///3/CwAJAAQAAAD+//3/CwAJAAQAAAABAPr/CwAGAAYAAAABAPv/CwAGAAcAAAADAP7/DAAKAAgAAAADAP//DAAKAAkAAAAEAP7/DAALAAgAAAAEAP//DAALAAkAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage3/Chimney"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2.35, -1.1)
+shape = SubResource("BoxShape3D_chimney_s3")
 
-[node name="Door" parent="Stages/Stage3" unique_id=299241147 instance=ExtResource("4_f64kh")]
-position = Vector2(25, 0)
+[node name="Porch" type="StaticBody3D" parent="Stages/Stage3"]
 
-[node name="Stage4" type="Node2D" parent="Stages" unique_id=1751195119]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage3/Porch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 2.6)
+shape = SubResource("BoxShape3D_porch_s3")
+
+[node name="Coop" type="StaticBody3D" parent="Stages/Stage3"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage3/Coop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.725, 0.775, -1.35)
+shape = SubResource("BoxShape3D_coop_s3")
+
+[node name="Run" type="StaticBody3D" parent="Stages/Stage3"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage3/Run"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.76, 0.45, -0.16)
+shape = SubResource("BoxShape3D_run_s3")
+
+[node name="Barn" type="StaticBody3D" parent="Stages/Stage3"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage3/Barn"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.27, 1.5, 1.9)
+shape = SubResource("BoxShape3D_barn_s3")
+
+[node name="Firewood1" parent="Stages/Stage3" instance=ExtResource("11_firewood_stack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.85, 0, -2.62)
+
+[node name="Barrel1" parent="Stages/Stage3" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.85, 0, -2.62)
+
+[node name="Barrel2" parent="Stages/Stage3" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95, 0, 1.8)
+
+[node name="Crate1" parent="Stages/Stage3" instance=ExtResource("8_crate")]
+transform = Transform3D(0.96891, 0, 0.2474, 0, 1, 0, -0.2474, 0, 0.96891, 0.95, 0, -2.7)
+
+[node name="Crate2" parent="Stages/Stage3" instance=ExtResource("8_crate")]
+transform = Transform3D(0.92106, 0, 0.38942, 0, 1, 0, -0.38942, 0, 0.92106, -3.85, 0, -0.35)
+
+[node name="Logpile1" parent="Stages/Stage3" instance=ExtResource("10_logpile")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 3.05, 0, 1.6)
+
+[node name="Bench1" parent="Stages/Stage3" instance=ExtResource("12_bench")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.55, 0, 2.6)
+
+[node name="BushA1" parent="Stages/Stage3" instance=ExtResource("13_bush_a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0, -2.6)
+
+[node name="BushB1" parent="Stages/Stage3" instance=ExtResource("14_bush_b")]
+transform = Transform3D(0.69671, 0, 0.71736, 0, 1, 0, -0.71736, 0, 0.69671, -5.05, 0, -0.6)
+
+[node name="Flowers1" parent="Stages/Stage3" instance=ExtResource("16_flowers")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7, 0, 1.15)
+
+[node name="GrassTuft1" parent="Stages/Stage3" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0, 2.4)
+
+[node name="GrassTuft2" parent="Stages/Stage3" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(0.87758, 0, -0.47943, 0, 1, 0, 0.47943, 0, 0.87758, -4.15, 0, -1.35)
+
+[node name="Stage4" type="Node3D" parent="Stages"]
 visible = false
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage4" unique_id=721708736]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAACAP//zAAGABoAAAACAP7/zAAGABkAAAACAP3/zAAGABgAAAABAP//zAAFABoAAAABAP7/zAAFABkAAAABAP3/zAAFABgAAAAAAP//zAAFABoAAAAAAP7/zAAFABkAAAAAAP3/zAAFABgAAAD/////zAAFABoAAAD///7/zAAFABkAAAD///3/zAAFABgAAAD+////zAAFABoAAAD+//7/zAAFABkAAAD+//3/zAAFABgAAAD9////zAAEABoAAAD9//7/zAAEABkAAAD9//3/zAAEABgAAAACAPz/zAACAAoAAAACAPv/zAACAAkAAAACAPr/zAACAAkAAAABAPz/zAABAAoAAAABAPv/zAABAAkAAAABAPr/zAABAAkAAAAAAPz/zAABAAoAAAAAAPv/zAABAAkAAAAAAPr/zAABAAkAAAD///z/zAABAAoAAAD///v/zAABAAkAAAD///r/zAABAAkAAAD+//z/zAABAAoAAAD+//v/zAABAAkAAAD+//r/zAABAAkAAAD9//z/zAAAAAoAAAD9//v/zAAAAAkAAAD9//r/zAAAAAkAAAACAPn/zAACAAgAAAABAPn/zAABAAgAAAAAAPn/zAABAAgAAAD///n/zAABAAgAAAD+//n/zAABAAgAAAD9//n/zAAAAAgAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Model" parent="Stages/Stage4" instance=ExtResource("6_stage4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage4" unique_id=1042498508]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/CwAFAAoAAAD+//r/CwAFAAsAAAD+//7/CwAAAAIAAAD+////CwAAAAMAAAD///7/CwABAAIAAAD/////CwABAAMAAAACAP//CwAKAAUAAAACAP7/CwAKAAUAAAD9////CwAIAAUAAAD9//7/CwAIAAUAAAD9//3/CwAIAAQAAAACAP3/CwAKAAQAAAABAP3/CwAJAAQAAAAAAP3/CwAJAAQAAAD///3/CwAJAAQAAAD+//3/CwAJAAQAAAABAPr/CwAGAAYAAAABAPv/CwAGAAcAAAADAP7/DAAKAAgAAAADAP//DAAKAAkAAAAEAP7/DAALAAgAAAAEAP//DAALAAkAAAD+//v/UgAIAAoAAAD+//z/UgAIAAsAAAD///v/UgAJAAoAAAD///z/UgAJAAsAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="Chimney" type="StaticBody3D" parent="Stages/Stage4"]
 
-[node name="ExtraDressing" type="TileMapLayer" parent="Stages/Stage4" unique_id=1777704537]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD+//n/CwAFAAoAAAD+//r/CwAFAAsAAAD+//7/CwAAAAIAAAD+////CwAAAAEAAAD///7/CwABAAIAAAD/////CwAHAAAAAAACAP//CwAKAAUAAAACAP7/CwAKAAUAAAD9////CwAIAAUAAAD9//7/CwAIAAUAAAD9//3/CwAIAAQAAAACAP3/CwAKAAQAAAABAP3/CwAJAAQAAAAAAP3/CwAJAAQAAAD///3/CwAJAAQAAAD+//3/CwAJAAQAAAABAPr/CwAGAAYAAAABAPv/CwAGAAcAAAADAP7/DAAKAAgAAAADAP//DAAKAAkAAAAEAP7/DAALAAgAAAAEAP//DAALAAkAAAD7//7/DAAOAAYAAAD7////DAAMAAUAAAD6//3/DAANAAUAAAD6//7/DAANAAYAAAD7//3/DAAOAAUAAAD8//3/DAAPAAUAAAD8//7/DAAPAAYAAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage4/Chimney"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2.35, -1.1)
+shape = SubResource("BoxShape3D_chimney_s4")
 
-[node name="Door" parent="Stages/Stage4" unique_id=1003798283 instance=ExtResource("4_f64kh")]
-position = Vector2(25, 0)
+[node name="Porch" type="StaticBody3D" parent="Stages/Stage4"]
 
-[node name="Footprint" type="StaticBody2D" parent="." unique_id=1273909187]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage4/Porch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 2.6)
+shape = SubResource("BoxShape3D_porch_s4")
+
+[node name="Coop" type="StaticBody3D" parent="Stages/Stage4"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage4/Coop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.725, 0.775, -1.35)
+shape = SubResource("BoxShape3D_coop_s4")
+
+[node name="Run" type="StaticBody3D" parent="Stages/Stage4"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage4/Run"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.76, 0.45, -0.16)
+shape = SubResource("BoxShape3D_run_s4")
+
+[node name="Barn" type="StaticBody3D" parent="Stages/Stage4"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage4/Barn"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.27, 1.5, 1.9)
+shape = SubResource("BoxShape3D_barn_s4")
+
+[node name="Greenhouse" type="StaticBody3D" parent="Stages/Stage4"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage4/Greenhouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.375, 1, 1.75)
+shape = SubResource("BoxShape3D_greenhouse_s4")
+
+[node name="Firewood1" parent="Stages/Stage4" instance=ExtResource("11_firewood_stack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, 0, -2.62)
+
+[node name="Logpile1" parent="Stages/Stage4" instance=ExtResource("10_logpile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 0, -2.95)
+
+[node name="Bench1" parent="Stages/Stage4" instance=ExtResource("12_bench")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0, -2.65)
+
+[node name="Crate1" parent="Stages/Stage4" instance=ExtResource("8_crate")]
+transform = Transform3D(0.96891, 0, 0.2474, 0, 1, 0, -0.2474, 0, 0.96891, 1.3, 0, -2.75)
+
+[node name="Crate2" parent="Stages/Stage4" instance=ExtResource("8_crate")]
+transform = Transform3D(0.92106, 0, 0.38942, 0, 1, 0, -0.38942, 0, 0.92106, -3.85, 0, -0.35)
+
+[node name="Barrel1" parent="Stages/Stage4" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.95, 0, -1.9)
+
+[node name="Barrel2" parent="Stages/Stage4" instance=ExtResource("9_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95, 0, 1.8)
+
+[node name="BushA1" parent="Stages/Stage4" instance=ExtResource("13_bush_a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.85, 0, -1.4)
+
+[node name="BushB1" parent="Stages/Stage4" instance=ExtResource("14_bush_b")]
+transform = Transform3D(0.69671, 0, 0.71736, 0, 1, 0, -0.71736, 0, 0.69671, -5.05, 0, -0.6)
+
+[node name="Flowers1" parent="Stages/Stage4" instance=ExtResource("16_flowers")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.95, 0, -3.3)
+
+[node name="GrassTuft1" parent="Stages/Stage4" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.85, 0, 2.4)
+
+[node name="GrassTuft2" parent="Stages/Stage4" instance=ExtResource("15_grass_tuft")]
+transform = Transform3D(0.87758, 0, -0.47943, 0, 1, 0, 0.47943, 0, 0.87758, -4.15, 0, -1.35)
+
+[node name="Scaffold" type="Node3D" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="PostNW" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.6, -3.4)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostNE" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.6, -3.4)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostSW" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.6, 3.4)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostSE" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.6, 3.4)
+mesh = SubResource("BoxMesh_post")
+
+[node name="BeamNorth" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.6, -3.4)
+mesh = SubResource("BoxMesh_beam_ns")
+
+[node name="BeamSouth" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.6, 3.4)
+mesh = SubResource("BoxMesh_beam_ns")
+
+[node name="BeamWest" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.4, 0.0)
+mesh = SubResource("BoxMesh_beam_we")
+
+[node name="BeamEast" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, 1.4, 0.0)
+mesh = SubResource("BoxMesh_beam_we")
+
+[node name="Overlays" type="Node3D" parent="."]
 unique_name_in_owner = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=1387602728]
-visible = false
-position = Vector2(0, -134)
-shape = SubResource("RectangleShape2D_jl0ln")
-
-[node name="Interact" type="Marker2D" parent="." unique_id=1369151889]
+[node name="Footprint" type="StaticBody3D" parent="."]
 unique_name_in_owner = true
-position = Vector2(0, 16)
 
-[node name="Scaffold" type="Node2D" parent="." unique_id=1062301503]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Footprint"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.3, 0.0)
+shape = SubResource("BoxShape3D_footprint")
+
+[node name="Interact" type="Marker3D" parent="."]
 unique_name_in_owner = true
-visible = false
-
-[node name="Beams" type="TileMapLayer" parent="Scaffold" unique_id=1879129940]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD9////zAAJAB0AAAD9//7/zAAJAB0AAAD+////zAAJAB0AAAD+//7/zAAJAB0AAAD/////zAAJAB0AAAD///7/zAAJAB0AAAAAAP//zAAJAB0AAAAAAP7/zAAJAB0AAAABAP//zAAJAB0AAAABAP7/zAAJAB0AAAACAP//zAAJAB0AAAACAP7/zAAJAB0AAAADAP//zAAJAB0AAAADAP7/zAAJAB0AAAA=")
-tile_set = ExtResource("2_rlbsr")
-collision_enabled = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 3.5)

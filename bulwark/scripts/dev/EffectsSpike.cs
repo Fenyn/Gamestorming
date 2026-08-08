@@ -242,21 +242,22 @@ public partial class EffectsSpike : SpikeBase
         int effectEvents = 0;
         gs.EffectsChanged += () => effectEvents++;
 
-        // Commission the shipped Infirmary (wood120 + herb20 + 90g) → tier1 InfirmaryHealing mag 1.
+        // Commission the shipped Infirmary (wood120 + hardwood30 + herb20 + 90g) → tier1
+        // InfirmaryHealing mag 1.
         gs.AddItem("herb", 25);
         gs.AddItem("wood", 200);
+        gs.AddItem("hardwood", 80); // infirmary 30 + smithy 40 below
         for (int i = 0; i < 250; i++) gs.EarnGold(1);
-        gs.SetStoryFlag("josen_arrived"); // Infirmary is now character-first gated on Josen's arrival
+        gs.SetStoryFlag("arkus_awake"); // Infirmary + Smithy are character-first gated on Arkus waking
         Check("(C) commission shipped infirmary", gs.CommissionBuilding("infirmary"));
         CompleteConstruction(gs);
         Check("(C) infirmary raised InfirmaryHealingBonus to 1", gs.InfirmaryHealingBonus == 1);
         Check("(C) commissioning fired EffectsChanged", effectEvents >= 1);
 
-        // Commission + upgrade the shipped Smithy (goblin_fang25 + rat_pelt20 + wood15 + 120g)
+        // Commission + upgrade the shipped Smithy (wood90 + hardwood40 + goblin_fang25 + 120g)
         // → SmithyTier ceiling Base → tier2 (goblin_scrap25 + coal25 + beast_hide25 + 300g).
         gs.AddItem("goblin_fang", 30);
-        gs.AddItem("rat_pelt", 25);
-        gs.SetStoryFlag("arkus_arrived"); // Smithy is now character-first gated on Arkus's arrival
+        gs.AddItem("wood", 100);
         Check("(C) commission shipped smithy", gs.CommissionBuilding("smithy"));
         CompleteConstruction(gs);
         Check("(C) smithy tier1 → ceiling still Base", gs.SmithyTier == SmithyTier.Base);

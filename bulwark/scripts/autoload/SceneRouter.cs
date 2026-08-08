@@ -154,8 +154,8 @@ public partial class SceneRouter : Node
     //
     // Event hygiene: the AUTOLOAD subscribes to the freed-on-swap SCREEN (not the reverse), so each
     // screen owns its own subscription and drops it when it leaves the tree — nothing accumulates on
-    // this router across visits (the opposite of Hd2dStack, where a world scene subscribes to the
-    // autoload and MUST unsubscribe in _ExitTree to avoid leaking itself). The TreeExiting hooks below
+    // this router across visits (the opposite of a world scene subscribing to an autoload, where it
+    // MUST unsubscribe in _ExitTree to avoid leaking itself). The TreeExiting hooks below
     // are belt-and-suspenders: they detach before the screen tears down, so a stale invoke can never
     // fire mid-free and re-entrancy from the same instance is impossible.
 

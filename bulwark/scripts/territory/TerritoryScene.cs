@@ -7,34 +7,38 @@ using Godot;
 namespace Bulwark.Territory;
 
 /// <summary>
-/// Thin Node2D adapter for the Tier-1 forest territory (<c>scenes/territory/forest.tscn</c>),
-/// mirroring OutpostScene: it exposes the blockout's functional nodes (entry spawn, exit trigger,
-/// node/roamer markers) and translates world contact into GameState commands
-/// (HarvestResourceNode, BeginTerritoryEncounter, TravelToOutpost). No game rules live here.
-/// Player/HUD/squad-panel hosting is inherited from <see cref="CozyWorldScene"/>; no farm world is
-/// injected — the player moves and raises interact intents only. The user hand-paints the
-/// tilemaps; marker ids are the contract with <see cref="Territories"/> data
-/// (%Node_&lt;id&gt; / %Roamer_&lt;id&gt;).
+/// Thin Node3D adapter for the greybox territory scenes (<c>scenes/territory/forest.tscn</c>,
+/// <c>elderwood.tscn</c>, <c>sunken_reach.tscn</c>), mirroring OutpostScene: it exposes the
+/// blockout's functional nodes (entry spawn, exit/deeper/exploration triggers, node/roamer markers)
+/// and translates world contact into GameState commands (HarvestResourceNode,
+/// BeginTerritoryEncounter, TravelToOutpost). No game rules live here. Player/HUD/squad-panel
+/// hosting is inherited from <see cref="CozyWorldScene"/>; no farm world is injected — the player
+/// moves and raises interact intents only. The user authors the 3D blockout in the editor (every
+/// tree, node prefab and sign is its own scene, swappable one at a time); marker ids are the
+/// contract with <see cref="Territories"/> data (%Node_&lt;id&gt; / %Roamer_&lt;id&gt;).
 ///
 /// Resource nodes come in three placement flavors (design/forage.md):
 ///  - marker-spawned (the original %Node_&lt;id&gt; contract, instanced from the definition's prefab),
 ///  - PLACED prefabs authored directly in the .tscn (trees etc.) — discovered at ready, registered
 ///    with the territory system under territory id + node name (names must be scene-unique),
-///  - forage spawns — the ForageSystem's daily pass, synced here through the cell adapter and
+///  - forage spawns — the ForageSystem's daily pass, synced here through the cell provider and
 ///    instanced at runtime (the sanctioned dynamic-children path).
 ///
-/// Layer draw order matches the outpost: Ground, GroundDecor, Walls, Props, Overhead(z=10); the
-/// player sits at z=5 between Props and Overhead. The scene root is Y-SORTED, so tree prefabs
-/// (z=5, origin at the trunk base) draw over the player standing behind them and under the player
-/// standing in front.
+/// WALKABLE BOUNDS: the scene AUTHORS its own collision — a <c>%Ground</c> StaticBody3D (physics
+/// layer 1 "Terrain") carrying the floor box and the perimeter wall boxes. There is no runtime
+/// baking. Depth sorting is the 3D depth buffer's job; the old y-sort/z-index contract is gone.
+///
+/// GRID: one cell is ONE METRE. Cell (x, y) covers world X ∈ [x, x+1), Z ∈ [y, y+1); its centre is
+/// (x + 0.5, 0, y + 0.5).
 /// </summary>
 public partial class TerritoryScene : CozyWorldScene
 {
     /// <summary>The <see cref="TerritoryDefinition.Id"/> this scene renders.</summary>
     [Export] public string TerritoryId { get; set; } = "verdant_fringe";
 
-    /// <summary>Max distance (px) from the player at which an interact press harvests a node.</summary>
-    [Export] public float InteractRange { get; set; } = 64f;
+    /// <summary>Max distance (m) from the player at which an interact press harvests a node
+    /// (≈1.5 cells — the 3D reading of the old 64 px reach).</summary>
+    [Export] public float InteractRange { get; set; } = 1.5f;
 
     /// <summary>Quest whose active window governs the wolf-lair boss site (design/tutorial_quests.md
     /// quest 9). Tunable so the boss-site convention is not hard-coded in logic.</summary>
@@ -59,11 +63,11 @@ public partial class TerritoryScene : CozyWorldScene
     /// nothing.</summary>
     [Export] public string TerritoryEnteredEvent { get; set; } = "";
 
-    private TileMapLayer? _ground;
-    private Marker2D? _playerSpawn;
-    private Area2D? _exitTrigger;
+    private StaticBody3D? _ground;
+    private Marker3D? _playerSpawn;
+    private Area3D? _exitTrigger;
     private TransitionSign? _exitSign;
-    private Area2D? _deeperTrigger;
+    private Area3D? _deeperTrigger;
     private TransitionSign? _deeperSign;
 
     private readonly Dictionary<string, ResourceNodeView> _nodeViews = new();
@@ -71,13 +75,13 @@ public partial class TerritoryScene : CozyWorldScene
     private readonly HashSet<string> _forageNodeIds = new();
     private readonly List<RoamingEnemy> _roamers = new();
     private WolfLair? _wolfLair;
-    private ForestForageAdapter? _forageAdapter;
+    private RegionForageCellProvider? _forageCells;
 
     public override void _Ready()
     {
-        _ground = GetNodeOrNull<TileMapLayer>("%Ground");
-        _playerSpawn = GetNodeOrNull<Marker2D>("%PlayerSpawn");
-        _exitTrigger = GetNodeOrNull<Area2D>("%ExitTrigger");
+        _ground = GetNodeOrNull<StaticBody3D>("%Ground");
+        _playerSpawn = GetNodeOrNull<Marker3D>("%PlayerSpawn");
+        _exitTrigger = GetNodeOrNull<Area3D>("%ExitTrigger");
 
         SpawnPlayer();
         SpawnHud();
@@ -92,7 +96,6 @@ public partial class TerritoryScene : CozyWorldScene
         SpawnExitSign();
         WireExit();
         SpawnDeeperSign();
-        BuildWorldCollision(_ground);
         WireStateEvents();
         SyncForage();
         RefreshHudAll();
@@ -102,17 +105,21 @@ public partial class TerritoryScene : CozyWorldScene
 
     // ------------------------------------------------------------------ Instancing
 
-    /// <summary>Victorious return drops the player back where the fight started; otherwise the entry.</summary>
-    protected override Vector2 GetPlayerSpawnPosition()
-        => GameState.Instance?.ConsumeTerritoryReturn(TerritoryId)
-           ?? _playerSpawn?.GlobalPosition
-           ?? Vector2.Zero;
+    /// <summary>Victorious return drops the player back where the fight started; otherwise the entry.
+    /// The stored return context is planar (X, Z) — the ground plane the whole territory lives on.</summary>
+    protected override Vector3 GetPlayerSpawnPosition()
+    {
+        Vector2? stored = GameState.Instance?.ConsumeTerritoryReturn(TerritoryId);
+        if (stored is { } p)
+            return new Vector3(p.X, 0f, p.Y);
+        return _playerSpawn?.GlobalPosition ?? Vector3.Zero;
+    }
 
     /// <summary>
-    /// Discover the resource-node prefabs placed directly in this .tscn (authored in the editor /
-    /// baked by ForestPainter). Node NAME is the save identity (territory id + name), so duplicate
-    /// names are rejected loudly. Registers all placements with the territory system FIRST (the
-    /// depleted query resolves definitions through that registry), then binds the views.
+    /// Discover the resource-node prefabs placed directly in this .tscn (authored in the editor).
+    /// Node NAME is the save identity (territory id + name), so duplicate names are rejected loudly.
+    /// Registers all placements with the territory system FIRST (the depleted query resolves
+    /// definitions through that registry), then binds the views.
     /// </summary>
     private void DiscoverPlacedNodes()
     {
@@ -173,7 +180,7 @@ public partial class TerritoryScene : CozyWorldScene
 
         foreach (var placement in territory.Nodes)
         {
-            var marker = GetNodeOrNull<Marker2D>($"%Node_{placement.NodeId}");
+            var marker = GetNodeOrNull<Marker3D>($"%Node_{placement.NodeId}");
             if (marker == null || !ResourceNodes.TryGet(placement.ResourceId, out var def))
                 continue;
 
@@ -184,7 +191,7 @@ public partial class TerritoryScene : CozyWorldScene
     }
 
     /// <summary>Instance one node view (marker or forage flow) from the definition's prefab.</summary>
-    private ResourceNodeView? SpawnNodeView(string nodeId, ResourceNodeDefinition def, Vector2 position)
+    private ResourceNodeView? SpawnNodeView(string nodeId, ResourceNodeDefinition def, Vector3 position)
     {
         var scene = GD.Load<PackedScene>(def.ScenePath ?? "res://scenes/territory/resource_node.tscn");
         if (scene == null)
@@ -192,7 +199,6 @@ public partial class TerritoryScene : CozyWorldScene
 
         var view = scene.Instantiate<ResourceNodeView>();
         view.Name = $"ResourceNode_{nodeId}";
-        view.ZIndex = 5; // y-sorts with the player under the y-sorted scene root
         AddChild(view);
         view.GlobalPosition = position;
         view.Bind(nodeId, def);
@@ -209,23 +215,110 @@ public partial class TerritoryScene : CozyWorldScene
     private void SyncForage()
     {
         var gs = GameState.Instance;
-        if (gs == null || _ground == null)
+        if (gs == null)
             return;
 
-        _forageAdapter ??= new ForestForageAdapter(
-            _ground, BuildBlockedLayers(), BuildReservedCells(), BuildTrailCells());
-        gs.SyncTerritoryForage(TerritoryId, _forageAdapter);
+        _forageCells ??= new RegionForageCellProvider(
+            GroundRectCells(), BuildOccupiedCells(), BuildReservedCells(), BuildTrailCells());
+        gs.SyncTerritoryForage(TerritoryId, _forageCells);
         RefreshForageViews();
     }
 
-    private IEnumerable<TileMapLayer?> BuildBlockedLayers() => new[]
+    /// <summary>
+    /// The walkable ground rectangle in CELLS, read off the AUTHORED %Ground body: the floor is the
+    /// largest box collider it carries (the perimeter walls are the thin ones). Without a %Ground
+    /// body — an F6 run of a stub scene — the region degenerates to nothing and forage simply never
+    /// finds a cell.
+    /// </summary>
+    public Rect2I GroundRectCells()
     {
-        GetNodeOrNull<TileMapLayer>("%Walls"),
-        GetNodeOrNull<TileMapLayer>("%Props"),
-        GetNodeOrNull<TileMapLayer>("%Overhead"),
-        GetNodeOrNull<TileMapLayer>("%OverheadDecor"),
-        GetNodeOrNull<TileMapLayer>("%OverheadAccent"),
-    };
+        if (_ground == null)
+            return new Rect2I(0, 0, 0, 0);
+
+        Rect2I best = new(0, 0, 0, 0);
+        long bestArea = 0;
+        foreach (Node child in _ground.GetChildren())
+        {
+            if (child is not CollisionShape3D { Disabled: false } shape || shape.Shape is not BoxShape3D box)
+                continue;
+
+            Vector3 centre = shape.GlobalPosition;
+            Vector3 half = box.Size * 0.5f;
+            int x0 = Mathf.FloorToInt(centre.X - half.X);
+            int y0 = Mathf.FloorToInt(centre.Z - half.Z);
+            int x1 = Mathf.CeilToInt(centre.X + half.X);
+            int y1 = Mathf.CeilToInt(centre.Z + half.Z);
+            long area = (long)(x1 - x0) * (y1 - y0);
+            if (area > bestArea)
+            {
+                bestArea = area;
+                best = new Rect2I(x0, y0, x1 - x0, y1 - y0);
+            }
+        }
+        return best;
+    }
+
+    /// <summary>
+    /// Cells claimed by world objects the forage pass must stay off: every trigger footprint
+    /// (exit / deeper / exploration sensors) and every authored obstacle body that is not a resource
+    /// node (those are handled as reserved cells) or the %Ground body itself. The provider adds its
+    /// own one-cell ring around each.
+    /// </summary>
+    private IEnumerable<(int X, int Y)> BuildOccupiedCells()
+    {
+        var occupied = new List<(int, int)>();
+        CollectOccupiedCells(this, occupied);
+        return occupied;
+    }
+
+    private void CollectOccupiedCells(Node parent, List<(int, int)> result)
+    {
+        foreach (Node child in parent.GetChildren())
+        {
+            // Resource nodes are reserved cells (full spacing), the ground body IS the walkable
+            // region, and the player/roamer bodies move — none of them are static occupancy.
+            if (child is ResourceNodeView || child == _ground
+                || child is PlayerController || child is RoamingEnemy)
+            {
+                continue;
+            }
+
+            if (child is CollisionShape3D { Disabled: false } shape)
+            {
+                AddShapeCells(shape, result);
+                continue;
+            }
+            CollectOccupiedCells(child, result);
+        }
+    }
+
+    /// <summary>Rasterise a collider's XZ footprint into cells (box / sphere / cylinder / capsule
+    /// extents; anything else claims just the cell it stands on).</summary>
+    private static void AddShapeCells(CollisionShape3D shape, List<(int, int)> result)
+    {
+        Vector3 centre = shape.GlobalPosition;
+        float halfX = 0.5f, halfZ = 0.5f;
+        switch (shape.Shape)
+        {
+            case BoxShape3D box:
+                halfX = box.Size.X * 0.5f;
+                halfZ = box.Size.Z * 0.5f;
+                break;
+            case SphereShape3D sphere:
+                halfX = halfZ = sphere.Radius;
+                break;
+            case CylinderShape3D cylinder:
+                halfX = halfZ = cylinder.Radius;
+                break;
+            case CapsuleShape3D capsule:
+                halfX = halfZ = capsule.Radius;
+                break;
+        }
+
+        for (int x = Mathf.FloorToInt(centre.X - halfX); x <= Mathf.FloorToInt(centre.X + halfX); x++)
+            for (int y = Mathf.FloorToInt(centre.Z - halfZ); y <= Mathf.FloorToInt(centre.Z + halfZ); y++)
+                result.Add((x, y));
+    }
 
     /// <summary>Cells all spawns keep their full distance from: every current node view (markers,
     /// placed prefabs) and every roamer marker.</summary>
@@ -238,7 +331,7 @@ public partial class TerritoryScene : CozyWorldScene
         {
             foreach (var roamer in territory.Roamers)
             {
-                var marker = GetNodeOrNull<Marker2D>($"%Roamer_{roamer.RoamerId}");
+                var marker = GetNodeOrNull<Marker3D>($"%Roamer_{roamer.RoamerId}");
                 if (marker != null)
                     reserved.Add(ToCell(marker.GlobalPosition));
             }
@@ -294,24 +387,22 @@ public partial class TerritoryScene : CozyWorldScene
             {
                 continue;
             }
-            Vector2 pos = CellCenter(spawn.CellX, spawn.CellY);
+            Vector3 pos = CellCentre(spawn.CellX, spawn.CellY);
             if (SpawnNodeView(spawn.NodeId, def, pos) != null)
                 _forageNodeIds.Add(spawn.NodeId);
         }
     }
 
-    private (int, int) ToCell(Vector2 globalPos)
-    {
-        if (_ground == null)
-            return ((int)(globalPos.X / 48f), (int)(globalPos.Y / 48f));
-        Vector2I cell = _ground.LocalToMap(_ground.ToLocal(globalPos));
-        return (cell.X, cell.Y);
-    }
+    /// <summary>Grid cell containing a world-space point (one cell = one metre on the XZ plane).</summary>
+    private static (int, int) ToCell(Vector3 world)
+        => (Mathf.FloorToInt(world.X), Mathf.FloorToInt(world.Z));
 
-    private Vector2 CellCenter(int x, int y)
-        => _ground != null
-            ? _ground.ToGlobal(_ground.MapToLocal(new Vector2I(x, y)))
-            : new Vector2(x * 48 + 24, y * 48 + 24);
+    /// <summary>Centre world-space point (on the ground plane) of a grid cell.</summary>
+    private static Vector3 CellCentre(int x, int y) => new(x + 0.5f, 0f, y + 0.5f);
+
+    /// <summary>Planar (X, Z) reading of a world point — the shape the territory system stores as a
+    /// return position.</summary>
+    private static Vector2 Planar(Vector3 world) => new(world.X, world.Z);
 
     // ------------------------------------------------------------------ Roamers
 
@@ -384,7 +475,7 @@ public partial class TerritoryScene : CozyWorldScene
     /// the same encounter hand-off a roamer uses. Missing marker/scene logs and skips.</summary>
     private void SpawnWolfLair(string bossId)
     {
-        var marker = GetNodeOrNull<Marker2D>($"%Roamer_{bossId}");
+        var marker = GetNodeOrNull<Marker3D>($"%Roamer_{bossId}");
         var scene = GD.Load<PackedScene>("res://scenes/territory/wolf_lair.tscn");
         if (marker == null || scene == null)
         {
@@ -394,10 +485,9 @@ public partial class TerritoryScene : CozyWorldScene
 
         var lair = scene.Instantiate<WolfLair>();
         lair.Name = $"WolfLair_{bossId}";
-        lair.ZIndex = 5;
         AddChild(lair);
         lair.GlobalPosition = marker.GlobalPosition;
-        lair.Setup(bossId, Player);
+        lair.Setup(bossId, Player!);
         lair.PlayerContacted += OnRoamerContact;
         _wolfLair = lair;
     }
@@ -411,14 +501,13 @@ public partial class TerritoryScene : CozyWorldScene
         if (GameState.Instance?.Territory.IsRoamerDefeated(TerritoryId, roamerId) == true)
             return;
 
-        var marker = GetNodeOrNull<Marker2D>($"%Roamer_{roamerId}");
+        var marker = GetNodeOrNull<Marker3D>($"%Roamer_{roamerId}");
         var scene = GD.Load<PackedScene>("res://scenes/territory/roaming_enemy.tscn");
         if (marker == null || scene == null)
             return;
 
         var enemy = scene.Instantiate<RoamingEnemy>();
         enemy.Name = $"Roamer_{roamerId}_Body";
-        enemy.ZIndex = 5;
         AddChild(enemy);
         enemy.GlobalPosition = marker.GlobalPosition;
         enemy.Setup(roamerId, Player);
@@ -458,7 +547,7 @@ public partial class TerritoryScene : CozyWorldScene
         if (string.IsNullOrEmpty(DeeperTerritoryId))
             return;
 
-        _deeperTrigger = GetNodeOrNull<Area2D>("%DeeperTrigger");
+        _deeperTrigger = GetNodeOrNull<Area3D>("%DeeperTrigger");
         if (_deeperTrigger == null)
             return;
 
@@ -470,7 +559,7 @@ public partial class TerritoryScene : CozyWorldScene
             trackPlayer: true);
         if (_deeperSign != null)
             _deeperSign.PlayerApproached += OnDeeperApproached;
-        _deeperTrigger.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnDeeperBodyEntered));
+        _deeperTrigger.Connect(Area3D.SignalName.BodyEntered, Callable.From<Node3D>(OnDeeperBodyEntered));
     }
 
     /// <summary>Human-readable name of the deeper territory the %DeeperTrigger leads to.</summary>
@@ -491,7 +580,7 @@ public partial class TerritoryScene : CozyWorldScene
 
     private void WireExit()
     {
-        _exitTrigger?.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnExitBodyEntered));
+        _exitTrigger?.Connect(Area3D.SignalName.BodyEntered, Callable.From<Node3D>(OnExitBodyEntered));
     }
 
     protected override void WireExtraStateEvents(GameState gs, EventSubscriptions subs)
@@ -523,7 +612,8 @@ public partial class TerritoryScene : CozyWorldScene
             Hud?.ShowToast($"{def.DisplayName}: needs the {ToolBelt.DisplayName(def.Tool)}", 1.5f);
     }
 
-    /// <summary>Nearest visible (non-depleted) node view within <see cref="InteractRange"/>.</summary>
+    /// <summary>Nearest visible (non-depleted) node view within <see cref="InteractRange"/>, measured
+    /// on the ground plane so a tall prefab's height never affects reach.</summary>
     private ResourceNodeView? FindNearestNode()
     {
         if (Player == null)
@@ -531,11 +621,12 @@ public partial class TerritoryScene : CozyWorldScene
 
         ResourceNodeView? nearest = null;
         float best = InteractRange;
+        Vector2 player = Planar(Player.GlobalPosition);
         foreach (var view in _nodeViews.Values)
         {
             if (!IsInstanceValid(view) || !view.Visible)
                 continue;
-            float d = view.GlobalPosition.DistanceTo(Player.GlobalPosition);
+            float d = Planar(view.GlobalPosition).DistanceTo(player);
             if (d <= best)
             {
                 best = d;
@@ -586,19 +677,20 @@ public partial class TerritoryScene : CozyWorldScene
         var gs = GameState.Instance;
         if (gs == null || Player == null || IsTransitioning)
             return;
-        if (!gs.BeginTerritoryEncounter(roamerId, Player.GlobalPosition))
+        if (!gs.BeginTerritoryEncounter(roamerId, Planar(Player.GlobalPosition)))
             return;
 
         // Freeze the world, flash the encounter line, then hand off to the combat mode
         // (SceneRouter pauses the day clock on GoToCombat).
         foreach (var roamer in _roamers)
-            roamer.Freeze();
+            if (IsInstanceValid(roamer))
+                roamer.Freeze();
 
         string name = gs.Territory.PendingEncounter?.EncounterName ?? "An enemy";
         BeginHandOff($"{name} attacks!", () => SceneRouter.Instance?.GoToCombat());
     }
 
-    private void OnExitBodyEntered(Node2D body)
+    private void OnExitBodyEntered(Node3D body)
     {
         if (body is not PlayerController || IsTransitioning)
             return;
@@ -626,7 +718,7 @@ public partial class TerritoryScene : CozyWorldScene
         }
     }
 
-    private void OnDeeperBodyEntered(Node2D body)
+    private void OnDeeperBodyEntered(Node3D body)
     {
         if (body is not PlayerController || IsTransitioning)
             return;
@@ -697,4 +789,17 @@ public partial class TerritoryScene : CozyWorldScene
         if (territoryId == TerritoryId)
             RefreshForageViews();
     }
+
+    // --- Blockout accessors (spike/host queries — mirrors OutpostScene) ---
+
+    /// <summary>The authored floor + perimeter body (physics layer 1 "Terrain").</summary>
+    public StaticBody3D? Ground => _ground;
+
+    public Marker3D? PlayerSpawn => _playerSpawn;
+
+    public Area3D? ExitTrigger => _exitTrigger;
+
+    /// <summary>The forage spawn region this scene built from its authored ground + occupancy
+    /// (null before <see cref="SyncForage"/> runs, or without a GameState autoload).</summary>
+    public IForageCellProvider? ForageCells => _forageCells;
 }

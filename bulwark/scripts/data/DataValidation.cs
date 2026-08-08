@@ -206,7 +206,7 @@ public static class DataValidation
         foreach (var terr in Territories.All)
         {
             if (!ResourceLoader.Exists(terr.ScenePath))
-                GD.PushWarning($"{Tag} territory '{terr.Id}' scene '{terr.ScenePath}' does not exist yet (user-authored blockout — pending content).");
+                GD.PushWarning($"{Tag} territory '{terr.Id}' scene '{terr.ScenePath}' does not exist yet (3D greybox pending).");
 
             foreach (var roamer in terr.Roamers)
             {

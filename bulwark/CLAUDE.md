@@ -14,7 +14,7 @@ Godot 4.6 C# (.NET 8). Stardew Valley × Pathfinder 2e: squad of 4 restores a ru
 Layering (dependencies point down only):
 
     UI (Control scenes)  →  Game systems (plain C#)  →  Pf2e.Core
-    World (Node2D scenes) ↗
+    World (Node3D scenes) ↗
 
 - Game logic lives in plain C# classes, not Nodes. Nodes are thin adapters: read input, render state, forward calls.
 - Autoload discipline: exactly three — DataManager (pack/content loading), GameState (single authoritative mutable state root), SceneRouter (mode transitions). Nothing else global.
@@ -30,11 +30,13 @@ Layering (dependencies point down only):
 
 ## Scene/asset conventions
 
-- The user hand-paints all tilemaps and scene visuals in the Godot editor. Claude delivers TileSet .tres resources, blockout scenes with functional nodes (markers, triggers, TileMapLayers), and systems code only.
-- Objects placed in .tscn via editor; dynamic children via PackedScene.instantiate().
+- Objects placed in .tscn (authored, not spawned by script); dynamic children via PackedScene.instantiate().
 - Unique collision shapes per differently-sized node (no shared sub_resources).
-- No UTF-8 BOM in any Godot text file (.tscn/.tres/.csproj/project.godot).
-- Winlu 48×48 tile packs: MZ-autotile editions live at `F:\UnityNVME\Art\Sprites\Winlu`; Godot-native "Other Engines" editions live at `F:\UnityNVME\Art\Sprites\WinluGodot` and are PREFERRED when available (pre-expanded terrain sheets, wired via TileSetBuilder's PreExpanded catalog — no MZ autotile expansion needed). Use the MZ library only for packs without a Godot edition. Imported sheets go under assets/tilesets/<pack>/ with TileSet .tres resources separate from scenes. Texture filter nearest.
-- HD-2D ambiance: scenes/fx/hd2d_stack.tscn (WorldEnvironment canvas glow + CanvasModulate time-of-day tint via Hd2dStack.Apply + full-screen tilt-shift/vignette/grade pass, assets/shaders/hd2d_post.gdshader) — instanced in outpost and forest; hdr_2d is on project-wide. Atmosphere scenes in scenes/fx/ (fireflies, dust_motes, falling_leaves, embers, cloud_shadows, light_shaft). PointLight2D textures must be plain PNGs (AtlasTexture is rejected) — Winlu glow blobs baked to assets/fx/glow_warm.png / glow_cool.png. The hdr_2d screen buffer is linear: grade in gamma space in post shaders.
-- Animated Winlu entity props (door, gate, chest, lever, lamp, fireplace) are placeable scenes in scenes/props/ — scripts in scripts/props/ (Bulwark.Props), SpriteFrames styles in assets/props/. Swap a style by assigning a different assets/props/*.tres to the scene's %Sprite. Winlu sheet anatomy (origin filenames): `!` object sheets = 4×2 blocks of [3 identical columns × 4 rows], cell 48×96, rows top→bottom are the animation stages (door closed→open); `!$` sheets = one character, cell = width/3 × height/4, columns are loop frames (fire/flame) — except big gates, which play all 12 cells in reading order.
+- No UTF-8 BOM in any Godot text file (.tscn/.tres/.csproj/project.godot). Texture filter nearest.
+- World scenes are 3D greybox (Node3D roots: outpost, the three territories, the intro scenes). 1 cell = 1 m; cell (x,y) is world (x+0.5, 0, y+0.5). Each carries a `%Ground` StaticBody3D (physics layer 1, "Terrain") holding the AUTHORED floor + perimeter collision — nothing is baked at runtime, the .tscn is the law. Markers are Marker3D, triggers Area3D, node access via %UniqueName. Greybox meshes are placeholder: swap them per scene without touching the functional nodes.
+- Characters and actors are Mana Seed billboard sprites: Sprite3D with Y-billboard, nearest filtering, `pixel_size = 0.05`, feet at y=0, camera-relative facing driven from `scripts/data/ManaSeedSheet.cs` (8×8 grid of 64×64 cells; rows 0-3 stand S/N/E/W, rows 4-7 the 6-frame walk). PlayerController, VillagerNpc, UnitVisual3D and CutsceneActor all share that pattern. Y-billboards foreshorten the further a subject sits off the camera axis — frame shots with the subject near it.
+- Buildings: one scene per building under scenes/buildings/, following the `%Stages` / `%Scaffold` / `%Overlays` / `%Footprint` contract in `BuildingInstance` (a hidden Node3D's colliders still collide — per-stage collision must be `.Disabled`-toggled). Pre-placed instances are adopted by SceneFilePath, never by node name.
+- Combat battle maps are procedurally generated, not authored: Pf2e.Core's `PF2e.MapGen` produces the layout, `scripts/combat/map/TerrainMeshBuilder.cs` builds the mesh, palettes live in `scripts/data/MapThemes.cs`. Gotcha: a `Transform3D(...)` literal in a .tscn lists the basis ROW-major, while the C#/GDScript constructor takes column vectors — hand-writing one from columns silently transposes it.
+- Cutscenes: `CutsceneDirector` runs a 10-command grammar (fade, wait, enter, exit, move, face, camera, sfx, prop, emote) over Node3D actors and a Camera3D; `CutsceneHostScene` is the reusable host (dialogue box + fade overlay on CanvasLayers). Dialogue JSON in data/dialogues/ is engine-agnostic. Legacy px speeds convert at `CutsceneDirector.PixelsPerMetre` (÷48) to m/s.
+- Day/night: `Bulwark.Fx.DayNightGradient.EvaluateTint(minuteOfDay)` is the surviving colour ramp; it has no consumer yet and awaits a 3D one (DirectionalLight3D colour / WorldEnvironment ambient).
 - snake_case for scenes/resources, PascalCase for C# files.

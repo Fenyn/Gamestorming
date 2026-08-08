@@ -5,18 +5,20 @@ using Godot;
 namespace Bulwark.Territory;
 
 /// <summary>
-/// One-shot exploration sensor: an Area2D placed directly in a territory .tscn that fires the first
-/// time the player avatar walks into its CollisionShape2D, then latches. Where <see cref="ContactTrigger"/>
+/// One-shot exploration sensor: an Area3D placed directly in a territory .tscn that fires the first
+/// time the player avatar walks into its CollisionShape3D, then latches. Where <see cref="ContactTrigger"/>
 /// raises an event for an owner enemy script, this one talks straight to GameState — it turns "the
 /// party has been HERE" into a persisted story beat (villager-arrival triggers like
 /// <c>elderwood_explored</c> / <c>elderwood_far_campsite_discovered</c>) or a quest event
 /// (<c>wolf_tracked</c>). It reuses the exact body-identification idiom from ContactTrigger
 /// (<c>BodyEntered</c>, identify the avatar by <see cref="PlayerController"/> type, default collision
-/// layer/mask) so baked walls, resource-node bodies and campsite props overlap harmlessly and are ignored.
+/// layer/mask) so the authored ground body, resource-node bodies and campsite props overlap
+/// harmlessly and are ignored.
 ///
 /// Exactly one of <see cref="StoryFlag"/> / <see cref="QuestEvent"/> is authored per instance (flag
-/// wins if both are set). The shape IS the discovery range (authored per .tscn — a deep-zone sensor is
-/// broad, a specific-corner one is tight), so no tunable export is needed beyond the id.
+/// wins if both are set). The shape IS the discovery range (authored per .tscn in METRES — a
+/// deep-zone sensor is broad, a specific-corner one is tight), so no tunable export is needed beyond
+/// the id.
 ///
 /// One-shot semantics survive re-entry for free: within a session <see cref="_fired"/> latches after
 /// the first hit; on scene re-entry a fresh instance MAY re-fire, but both sinks are idempotent —
@@ -26,7 +28,7 @@ namespace Bulwark.Territory;
 /// one-shot guarantee; the sensor needs no save field. Null-safe: with no GameState autoload
 /// (F6/headless standalone) it latches and does nothing, exactly like ContactTrigger with no owner.
 /// </summary>
-public partial class ExplorationTrigger : Area2D
+public partial class ExplorationTrigger : Area3D
 {
     /// <summary>Story flag to set on first contact (villager-arrival beats). Leave empty to use
     /// <see cref="QuestEvent"/> instead. If both are set, the flag wins.</summary>
@@ -43,7 +45,7 @@ public partial class ExplorationTrigger : Area2D
         BodyEntered += OnBodyEntered;
     }
 
-    private void OnBodyEntered(Node2D body)
+    private void OnBodyEntered(Node3D body)
     {
         if (_fired || body is not PlayerController)
             return;

@@ -1,32 +1,53 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
-[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndswd"]
-[ext_resource type="Texture2D" uid="uid://ql382v8ud7i8" path="res://assets/tilesets/winlu_exterior/decoration_vegetation.png" id="2_ndswd"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_scrub_weeds"]
-atlas = ExtResource("2_ndswd")
-region = Rect2(48, 528, 48, 48)
+[sub_resource type="BoxMesh" id="Mesh_bladea"]
+size = Vector3(0.05, 0.4, 0.05)
 
-[node name="NodeScrubWeeds" type="Node2D"]
-z_index = 5
-script = ExtResource("1_ndswd")
+[sub_resource type="StandardMaterial3D" id="Mat_bladea"]
+albedo_color = Color(0.45, 0.52, 0.24, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_bladeb"]
+size = Vector3(0.045, 0.32, 0.045)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bladeb"]
+albedo_color = Color(0.5, 0.56, 0.28, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Mesh_bladec"]
+size = Vector3(0.045, 0.28, 0.045)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bladec"]
+albedo_color = Color(0.4, 0.48, 0.22, 1)
+roughness = 1.0
+
+[node name="NodeScrubWeeds" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "scrub_weeds"
 
-[node name="Sprite" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(-24, -24)
-texture = SubResource("AtlasTexture_scrub_weeds")
-centered = false
+[node name="BladeA" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.990268, 0.139173, 0, -0.139173, 0.990268, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("Mesh_bladea")
+surface_material_override/0 = SubResource("Mat_bladea")
 
-[node name="Label" type="Label" parent="."]
+[node name="BladeB" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.927184, -0.374607, 0, 0.374607, 0.927184, 0, 0, 0, 1, 0.16, 0.16, 0.1)
+mesh = SubResource("Mesh_bladeb")
+surface_material_override/0 = SubResource("Mat_bladeb")
+
+[node name="BladeC" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.898794, 0.438371, 0, -0.438371, 0.898794, 0, 0, 0, 1, -0.14, 0.14, -0.09)
+mesh = SubResource("Mesh_bladec")
+surface_material_override/0 = SubResource("Mat_bladec")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -40.0
-offset_right = 48.0
-offset_bottom = -22.0
-horizontal_alignment = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Scrub Weeds"
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
+font_size = 48
+outline_size = 10

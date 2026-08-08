@@ -28,15 +28,18 @@ scenes/buildings/<id>.tscn          (root: BuildingInstance)
 │   ├── Winter                       season key (auto: Spring/Summer/Autumn/Winter)
 │   ├── Festival_Harvest             event-window key (calendar-driven)
 │   └── Memorial_Plaque              story key (flag-driven, permanent)
-├── %Footprint                       StaticBody2D collision (shared across stages)
-└── %Interact                        Marker2D (future diegetic interaction point)
+├── %Footprint                       StaticBody3D collision (shared across stages)
+└── %Interact                        Marker3D (future diegetic interaction point)
 ```
 
-- Every stage/overlay child is a plain Node2D group (sprites, lights, particles, animated
-  Winlu props) authored at the same origin. Toggle visibility in-editor to preview any combo.
-- A stage that changes the building's OUTLINE carries its own StaticBody2D inside the stage
-  node; the swap disables collision shapes under hidden stages (hidden CanvasItems still
-  collide in Godot — the code must toggle shapes, not just visibility). Unique collision
+- Every stage/overlay child is a plain Node3D subtree — greybox meshes, an imported model, plus
+  lights/particles/Label3D — authored at the same origin, the building's feet on the ground plane,
+  +Y up. Toggle visibility in-editor to preview any combo; swapping one stage for finished art
+  never touches the others. The Trading Post's Stage0 is the worked example of that swap: a
+  Winlu-textured `.glb` ruin sitting beside two greybox stages in the same scene.
+- A stage that changes the building's OUTLINE carries its own StaticBody3D inside the stage
+  node; the swap disables collision shapes under hidden stages (a hidden Node3D's colliders
+  still collide in Godot — the code must toggle shapes, not just visibility). Unique collision
   shapes per node, never shared sub_resources.
 - Missing containers are fine (null-safe): a building with no %Overlays simply never dresses.
 

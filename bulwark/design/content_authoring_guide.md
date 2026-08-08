@@ -61,7 +61,7 @@ actually sets that flag — several authored triggers reference flags GameState 
 For each present villager the loader instances `res://scenes/cozy/npc.tscn` (a `VillagerNpc`) at the
 marker, then calls `VillagerNpc.Setup(id, spriteId, position)`. Marker lookup order:
 `%Villager_<id>` → `Villager_<id>` → the associated building's `%Building_<id>`. **You hand-place a
-`Villager_<id>` Marker2D in `scenes/outpost/outpost.tscn`** and right-click → *Access as Unique
+`Villager_<id>` Marker3D in `scenes/outpost/outpost.tscn`** and right-click → *Access as Unique
 Name* (the outpost already has `Villager_tharr`, `Villager_elara`, `Villager_fenwick`). No marker
 and no building fallback → the villager is skipped with a log line (state still works). A per-villager
 override scene at `scenes/villagers/<id>.tscn` is honored if present; none ship today.
@@ -106,7 +106,7 @@ public static readonly VillagerSchedule Tharr = new()
 ```
 
 Markers are the five `%Spot_*` nodes in `outpost.tscn` (`Spot_command_post`, `Spot_gate`,
-`Spot_farm_field`, `Spot_trading_post`, `Spot_tavern`) — plain hand-placed/repositionable Marker2Ds,
+`Spot_farm_field`, `Spot_trading_post`, `Spot_tavern`) — plain hand-placed/repositionable Marker3Ds,
 same convention as `Villager_<id>` and `Building_<id>`. Reuse one marker across villagers where the
 fiction calls for it: all three shipped routines converge on `Spot_tavern` in the evening, and
 `Spot_gate` covers both Tharr's midday patrol and Elara's afternoon supply run. `VillagerLoader` spawns
@@ -186,7 +186,7 @@ The mechanism exists for future content; authoring a joinable recruit means also
 1. **Profile** (preferred): copy `characters/_Template.cs` → `X.cs`, set `Id="x"`, `Kind`, and an
    `Arrival` trigger; add `X.Profile` to the `Characters.cs` registry. (Or a `VillagerDefinition` in
    `Villagers.cs` if no profile is warranted.)
-2. **Marker**: in `outpost.tscn`, add a `Villager_x` Marker2D at the spot, *Access as Unique Name*.
+2. **Marker**: in `outpost.tscn`, add a `Villager_x` Marker3D at the spot, *Access as Unique Name*.
 3. **Sprite/portrait**: add `assets/sprites/heroes/<SpriteId>/p1.png` (or omit `SpriteId` for the
    `veteran` fallback); author the portrait for `PortraitId`.
 4. **Talk pool**: add `data/dialogues/<area>/x_talk.json` (type `TalkPool`, `character:"x"`,
@@ -249,13 +249,14 @@ creature's `DropTableId` to resolve in `DropTables`.
 
 ### Marker placement (`scenes/territory/forest.tscn`, `scripts/territory/TerritoryScene.cs`)
 
-**You hand-place a `Roamer_<id>` Marker2D in the .tscn** and *Access as Unique Name* (the forest
+**You hand-place a `Roamer_<id>` Marker3D in the .tscn** and *Access as Unique Name* (the forest
 already has `Roamer_gob_1`…`Roamer_wolf_lair`, plus `%Node_<id>`, `%PlayerSpawn`, `%ExitTrigger`).
-For each non-boss roamer `TerritoryScene` instances `roaming_enemy.tscn` at `%Roamer_<id>`:
-`RoamingEnemy` random-walks in a home radius, chases within `SightRange`, and raises
-`PlayerContacted` once on contact (tunables: `WanderSpeed` 55, `ChaseSpeed` 95, `WanderRadius` 140,
-`SightRange` 180). A roamer beaten today stays despawned until day start. Missing marker/scene → the
-roamer is silently skipped.
+One cell is ONE METRE: cell (x, y) covers world X ∈ [x, x+1), Z ∈ [y, y+1). For each non-boss roamer
+`TerritoryScene` instances `roaming_enemy.tscn` at `%Roamer_<id>`: `RoamingEnemy` (a
+`CharacterBody3D` drawn as a billboarded rat) random-walks on the XZ plane inside a home radius,
+chases within `SightRange`, and raises `PlayerContacted` once on contact (tunables in metres:
+`WanderSpeed` 1.1, `ChaseSpeed` 2, `WanderRadius` 3, `SightRange` 3.8). A roamer beaten today stays
+despawned until day start. Missing marker/scene → the roamer is silently skipped.
 
 ### Boss variant (optional)
 
@@ -264,7 +265,7 @@ pass — `RefreshWolfLair` instances `wolf_lair.tscn` (a stationary `WolfLair`) 
 `%Roamer_<id>` marker only while `WolfLair.ShouldAppear(questActive, wolfSlain)` is true (its quest
 is active AND the flag is not yet latched — persists across save/load, so a slain boss never returns).
 The boss-quest id is the scene export `WolfQuestId`. The lair uses the same `PlayerContacted` →
-encounter hand-off as a roamer. Use `ExplorationTrigger` (an Area2D placed in the .tscn with a
+encounter hand-off as a roamer. Use `ExplorationTrigger` (an Area3D placed in the .tscn with a
 `StoryFlag` or `QuestEvent` export) to latch "the party reached here" beats independently of combat.
 
 ### Combat visuals — what a NEW creature needs (`scripts/combat/EnemySpriteMap.cs`)
@@ -296,7 +297,7 @@ wiring needed to make a kill drive story: put the flag on the roamer.
 3. **Drops**: add `DropTable`(s) to `DropTables.cs` + `Registry`; point each `CreatureRef.DropTableId`
    at one. All item ids must exist in `Items`.
 4. **Roamer**: add a `TerritoryRoamer` to `Territories.Forest.Roamers` with weighted `Encounters`.
-5. **Marker**: hand-place `Roamer_y_1` Marker2D in `forest.tscn`, *Access as Unique Name*.
+5. **Marker**: hand-place `Roamer_y_1` Marker3D in `forest.tscn`, *Access as Unique Name*.
 6. **Boss (optional)**: `IsBoss = true` + `ClearsStoryFlag`, place its `%Roamer_<id>` marker, and rely
    on the lair pattern (or add a dedicated lair scene modeled on `wolf_lair.tscn`).
 7. **Visuals**: add the 8-frame idle sheet under `assets/sprites/enemies/<folder>/` and a

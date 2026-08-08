@@ -1,42 +1,74 @@
-[gd_scene format=3 uid="uid://3nonf0mocv6x"]
+[gd_scene load_steps=9 format=3]
 
-[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_trrnd"]
-[ext_resource type="Texture2D" uid="uid://o6ovdjndylh" path="res://assets/tilesets/winlu_exterior/big_trees_noshadow.png" id="2_trrnd"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_tree_round"]
-atlas = ExtResource("2_trrnd")
-region = Rect2(384, 288, 192, 288)
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+top_radius = 0.18
+bottom_radius = 0.24
+height = 2.0
+radial_segments = 10
+rings = 1
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_tree_round_trunk"]
-size = Vector2(32, 62)
+[sub_resource type="StandardMaterial3D" id="Mat_trunk"]
+albedo_color = Color(0.36, 0.25, 0.16, 1)
+roughness = 1.0
 
-[node name="TreeRound" type="Node2D" unique_id=1936561163]
-z_index = 5
-script = ExtResource("1_trrnd")
+[sub_resource type="SphereMesh" id="Mesh_canopy"]
+radius = 1.1
+height = 2.0
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_canopy"]
+albedo_color = Color(0.26, 0.5, 0.24, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_canopytop"]
+radius = 0.7
+height = 1.2
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_canopytop"]
+albedo_color = Color(0.3, 0.56, 0.27, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderShape3D" id="Shape_tree_round_body"]
+radius = 0.32
+height = 2.0
+
+[node name="TreeRound" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "forest_tree"
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=540096819]
-texture_filter = 1
-position = Vector2(-88, -231)
-texture = SubResource("AtlasTexture_tree_round")
-centered = false
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="Body" type="StaticBody2D" parent="." unique_id=1567814338]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=1184563286]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(4, -14)
-shape = SubResource("RectangleShape2D_tree_round_trunk")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("Shape_tree_round_body")
 
-[node name="Label" type="Label" parent="." unique_id=931530850]
+[node name="Trunk" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("Mesh_trunk")
+surface_material_override/0 = SubResource("Mat_trunk")
+
+[node name="Canopy" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+mesh = SubResource("Mesh_canopy")
+surface_material_override/0 = SubResource("Mat_canopy")
+
+[node name="CanopyTop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 3.3, -0.1)
+mesh = SubResource("Mesh_canopytop")
+surface_material_override/0 = SubResource("Mat_canopytop")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -46.0
-offset_right = 48.0
-offset_bottom = -28.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.9, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Tree"
-horizontal_alignment = 1
+font_size = 48
+outline_size = 10

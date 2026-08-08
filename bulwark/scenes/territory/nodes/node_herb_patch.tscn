@@ -1,60 +1,75 @@
-[gd_scene format=3 uid="uid://caei56a751u2r"]
+[gd_scene load_steps=9 format=3]
 
-[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndhrb"]
-[ext_resource type="Texture2D" uid="uid://ql382v8ud7i8" path="res://assets/tilesets/winlu_exterior/decoration_vegetation.png" id="2_ndhrb"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_herb_a"]
-atlas = ExtResource("2_ndhrb")
-region = Rect2(0, 336, 48, 48)
+[sub_resource type="CylinderMesh" id="Mesh_herba"]
+top_radius = 0.0
+bottom_radius = 0.16
+height = 0.42
+radial_segments = 10
+rings = 1
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_herb_b"]
-atlas = ExtResource("2_ndhrb")
-region = Rect2(96, 336, 48, 48)
+[sub_resource type="StandardMaterial3D" id="Mat_herba"]
+albedo_color = Color(0.36, 0.74, 0.34, 1)
+roughness = 1.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_herb_c"]
-atlas = ExtResource("2_ndhrb")
-region = Rect2(192, 336, 48, 48)
+[sub_resource type="CylinderMesh" id="Mesh_herbb"]
+top_radius = 0.0
+bottom_radius = 0.13
+height = 0.34
+radial_segments = 10
+rings = 1
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_herb_patch_base"]
-size = Vector2(28, 14)
+[sub_resource type="StandardMaterial3D" id="Mat_herbb"]
+albedo_color = Color(0.42, 0.8, 0.38, 1)
+roughness = 1.0
 
-[node name="NodeHerbPatch" type="Node2D" unique_id=1827535257]
-z_index = 5
-position = Vector2(0, 2)
-script = ExtResource("1_ndhrb")
+[sub_resource type="CylinderMesh" id="Mesh_herbc"]
+top_radius = 0.0
+bottom_radius = 0.12
+height = 0.3
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Mat_herbc"]
+albedo_color = Color(0.32, 0.68, 0.32, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Shape_node_herb_patch_body"]
+size = Vector3(0.72, 0.42, 0.72)
+
+[node name="NodeHerbPatch" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "herb_patch"
 
-[node name="HerbA" type="Sprite2D" parent="." unique_id=1905523144]
-texture_filter = 1
-position = Vector2(-16, -2)
-texture = SubResource("AtlasTexture_herb_a")
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="HerbB" type="Sprite2D" parent="." unique_id=150955054]
-texture_filter = 1
-position = Vector2(16, -8)
-texture = SubResource("AtlasTexture_herb_b")
-
-[node name="HerbC" type="Sprite2D" parent="." unique_id=1752970657]
-texture_filter = 1
-position = Vector2(0, 8)
-texture = SubResource("AtlasTexture_herb_c")
-
-[node name="Body" type="StaticBody2D" parent="." unique_id=2002222474]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=1802661121]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(0, 6)
-shape = SubResource("RectangleShape2D_herb_patch_base")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21, 0)
+shape = SubResource("Shape_node_herb_patch_body")
 
-[node name="Label" type="Label" parent="." unique_id=1186831690]
+[node name="HerbA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21, 0)
+mesh = SubResource("Mesh_herba")
+surface_material_override/0 = SubResource("Mat_herba")
+
+[node name="HerbB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24, 0.17, 0.18)
+mesh = SubResource("Mesh_herbb")
+surface_material_override/0 = SubResource("Mat_herbb")
+
+[node name="HerbC" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22, 0.15, -0.16)
+mesh = SubResource("Mesh_herbc")
+surface_material_override/0 = SubResource("Mat_herbc")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -42.0
-offset_right = 48.0
-offset_bottom = -24.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Herb Patch"
-horizontal_alignment = 1
+font_size = 48
+outline_size = 10

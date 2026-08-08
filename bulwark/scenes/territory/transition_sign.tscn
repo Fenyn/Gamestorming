@@ -1,41 +1,40 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/territory/TransitionSign.cs" id="1_trsign"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_sign_post"]
-size = Vector2(12, 8)
+[sub_resource type="BoxMesh" id="BoxMesh_post"]
+size = Vector3(0.14, 1.8, 0.14)
 
-[node name="TransitionSign" type="Node2D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_post"]
+albedo_color = Color(0.42, 0.29, 0.17, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_board"]
+size = Vector3(1.5, 0.5, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_board"]
+albedo_color = Color(0.64, 0.48, 0.28, 1)
+roughness = 1.0
+
+[node name="TransitionSign" type="Node3D"]
 script = ExtResource("1_trsign")
 
-[node name="PostBody" type="StaticBody2D" parent="."]
+[node name="Post" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_post")
+surface_material_override/0 = SubResource("StandardMaterial3D_post")
 
-[node name="PostShape" type="CollisionShape2D" parent="PostBody"]
-position = Vector2(0, 10)
-shape = SubResource("RectangleShape2D_sign_post")
+[node name="Board" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+mesh = SubResource("BoxMesh_board")
+surface_material_override/0 = SubResource("StandardMaterial3D_board")
 
-[node name="Post" type="ColorRect" parent="."]
-offset_left = -3.0
-offset_top = -6.0
-offset_right = 3.0
-offset_bottom = 14.0
-color = Color(0.42, 0.3, 0.18, 1)
-
-[node name="Board" type="ColorRect" parent="."]
-offset_left = -22.0
-offset_top = -26.0
-offset_right = 22.0
-offset_bottom = -4.0
-color = Color(0.58, 0.42, 0.24, 1)
-
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-offset_left = -64.0
-offset_top = -46.0
-offset_right = 64.0
-offset_bottom = -28.0
-horizontal_alignment = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.72, 0.08)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.008
 text = "Sign"
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
+font_size = 48
+outline_size = 10

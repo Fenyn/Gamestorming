@@ -1,46 +1,50 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/territory/RoamingEnemy.cs" id="1_roam"]
 [ext_resource type="Texture2D" path="res://assets/sprites/enemies/rat_v1/idle_1.png" id="2_rat"]
 [ext_resource type="Script" path="res://scripts/territory/ContactTrigger.cs" id="3_contact"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_roamer"]
-radius = 10.0
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_roamer"]
+radius = 0.22
+height = 0.6
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_contact_roamer"]
-radius = 30.0
+[sub_resource type="SphereShape3D" id="SphereShape3D_contact_roamer"]
+radius = 0.6
 
-[node name="RoamingEnemy" type="CharacterBody2D"]
+[node name="RoamingEnemy" type="CharacterBody3D"]
 motion_mode = 1
 script = ExtResource("1_roam")
 
-[node name="Sprite" type="Sprite2D" parent="."]
-texture_filter = 1
-scale = Vector2(2, 2)
-texture = ExtResource("2_rat")
-offset = Vector2(0, -17)
+[node name="Sprite" type="Sprite3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+billboard = 2
+texture_filter = 0
+alpha_cut = 1
+pixel_size = 0.02
 modulate = Color(1, 0.75, 0.75, 1)
+texture = ExtResource("2_rat")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_roamer")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("CapsuleShape3D_roamer")
 
-[node name="ContactTrigger" type="Area2D" parent="."]
+[node name="ContactTrigger" type="Area3D" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_contact")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactTrigger"]
-shape = SubResource("CircleShape2D_contact_roamer")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ContactTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("SphereShape3D_contact_roamer")
 
-[node name="AggroLabel" type="Label" parent="."]
+[node name="AggroLabel" type="Label3D" parent="."]
 unique_name_in_owner = true
 visible = false
-offset_left = -10.0
-offset_top = -68.0
-offset_right = 10.0
-offset_bottom = -46.0
-horizontal_alignment = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.008
+modulate = Color(1, 0.35, 0.3, 1)
 text = "!"
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(1, 0.35, 0.3, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
-theme_override_constants/outline_size = 4
+font_size = 56
+outline_size = 12

@@ -51,11 +51,13 @@
       "WebFetch(domain:www.neogaf.com)",
       "WebFetch(domain:gamefaqs.gamespot.com)",
       "WebFetch(domain:corpsebrigadier.neocities.org)",
-      "WebFetch(domain:dekaja.dreamwidth.org)"
+      "WebFetch(domain:dekaja.dreamwidth.org)",
+      "mcp__crocotile__inspect_sheet"
     ]
   },
   "enabledMcpjsonServers": [
     "picocad2",
-    "blender"
+    "blender",
+    "crocotile"
   ]
 }

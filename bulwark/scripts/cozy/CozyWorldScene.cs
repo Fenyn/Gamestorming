@@ -12,14 +12,22 @@ using Bulwark.Settings;
 namespace Bulwark.Cozy;
 
 /// <summary>
-/// Shared "cozy world host" layer for the walkable Node2D scenes (outpost, territories). Still a
+/// Shared "cozy world host" layer for the walkable Node3D scenes (outpost, territories). Still a
 /// thin adapter per CLAUDE.md — written once: it instances the player / HUD / squad panel, wires
 /// the common GameState events, pushes view-model data into the passive HUD, and owns the
 /// freeze → toast → scene-swap hand-off pacing. Scene-specific world content (farm plots,
 /// resource nodes, roamers, triggers) stays in the subclasses, which must still run standalone
 /// (F6) with null-safe fallbacks.
+///
+/// WALKABLE BOUNDS (3D pivot): there is no runtime collision baking any more. A world scene
+/// AUTHORS its own floor (a StaticBody3D on the "Terrain" physics layer with a plane/box collider)
+/// and its own perimeter walls as CollisionShape3D boxes in the .tscn — what you see in the editor
+/// is what blocks. Buildings keep bringing their own %Footprint body.
+///
+/// The HUD/panels are CanvasLayer scenes, so they render in screen space regardless of this node
+/// being a Node3D; the dialogue box (a plain Control) gets its own CanvasLayer below.
 /// </summary>
-public abstract partial class CozyWorldScene : Node2D
+public abstract partial class CozyWorldScene : Node3D
 {
     /// <summary>Seconds the departure/encounter toast stays visible during a hand-off.</summary>
     protected const float HandOffToastSeconds = 1.2f;
@@ -27,39 +35,8 @@ public abstract partial class CozyWorldScene : Node2D
     /// <summary>Delay before the hand-off routes — shorter than the toast so it stays readable.</summary>
     protected const double HandOffDelaySeconds = 0.9;
 
-    /// <summary>Thickness (px) of the programmatic perimeter walls placed just outside the map.</summary>
-    private const float BarrierThickness = 48f;
-
     /// <summary>Minimum ms between rejection toasts, so a mashed/held interact never spams the HUD.</summary>
     private const ulong RejectionToastCooldownMs = 800;
-
-    /// <summary>
-    /// TileMapLayers (by unique name) whose every painted cell must block movement — the
-    /// layer-is-the-law rule. Cells whose tile already carries physics polygons keep them; cells
-    /// without get a full-cell rect baked at runtime (see <see cref="BuildWorldCollision"/>).
-    /// Props stays decorative (tileset per-tile physics only) unless a scene adds it here.
-    /// </summary>
-    [Export] public string[] BlockingLayers { get; set; } = { "Walls" };
-
-    /// <summary>
-    /// Case-insensitive substrings matched against a Ground-layer atlas source's TEXTURE FILE NAME
-    /// to identify water sources, whose cells block movement (baked like walls — water autotiles
-    /// carry no tileset physics by design). Texture path is the identifier because it is the only
-    /// stable, runtime-queryable name on a TileSetAtlasSource: generated sources ship no
-    /// ResourceName, and the water terrain names vary per pack ("water", "bog", "cavewater", …) —
-    /// while every generated water autotile atlas is <c>generated/water_a1*.png</c> in the territory
-    /// biomes (keyword <c>water_a1</c>), and the outpost's pre-expanded liquid sources are the Winlu
-    /// Godot-native <c>a1_liquids*.png</c> sheets (keyword <c>a1_liquids</c>) — so the two default
-    /// keywords together cover outpost + every territory biome.
-    /// </summary>
-    [Export] public string[] WaterSourceKeywords { get; set; } = { "water_a1", "a1_liquids" };
-
-    /// <summary>
-    /// Bridge contract: a tile painted on any of these overlay layers at a water cell's coords
-    /// marks a passable crossing, so that cell is NOT water-baked. To let the player cross water,
-    /// paint a bridge/plank tile on GroundDecor (or Props) over the water — no code needed.
-    /// </summary>
-    [Export] public string[] BridgeOverlayLayers { get; set; } = { "GroundDecor", "Props" };
 
     /// <summary>Day-clock pause reason raised while any cozy modal is open (see
     /// <see cref="Bulwark.Cozy.DayClock.SetPaused"/>). One key for all modals — only one is ever open
@@ -67,9 +44,7 @@ public abstract partial class CozyWorldScene : Node2D
     /// pause so closing a panel never resumes a clock a mode transition or cutscene froze.</summary>
     private const string ModalPauseSource = "cozy_modal";
 
-    private readonly Dictionary<string, (int Native, int Baked)> _bakeReport = new();
     private ulong _lastRejectionToastMs;
-    private Camera2D? _playerCamera;
 
     /// <summary>Records every GameState subscription with its exact inverse so <see cref="_ExitTree"/>
     /// can drop them all via one <see cref="EventSubscriptions.DrainAll"/> — no hand-mirrored teardown
@@ -82,15 +57,6 @@ public abstract partial class CozyWorldScene : Node2D
     /// over this instead of naming each panel (DialogueBox / DaySummaryPanel are handled alongside — they
     /// are modals but not TogglePanels).</summary>
     private readonly List<TogglePanel> _modalPanels = new();
-
-    /// <summary>Per blocking layer (plus the "Water" pass over Ground): painted cells that had
-    /// tileset physics vs cells that got a baked runtime rect. Diagnostic — spikes and logs read
-    /// it, gameplay does not.</summary>
-    public IReadOnlyDictionary<string, (int Native, int Baked)> BakeReport => _bakeReport;
-
-    /// <summary>Water cells skipped by the water baker because an overlay layer tile marks them
-    /// as a crossing (see <see cref="BridgeOverlayLayers"/>). Diagnostic.</summary>
-    public int WaterBridgedCells { get; private set; }
 
     /// <summary>The instanced avatar (null until <see cref="SpawnPlayer"/>, or when player.tscn is missing).</summary>
     protected PlayerController? Player { get; private set; }
@@ -199,7 +165,6 @@ public abstract partial class CozyWorldScene : Node2D
 
         var player = scene.Instantiate<PlayerController>();
         player.Name = "Player";
-        player.ZIndex = 5; // between the z=0 world layers and the z=10 Overhead layer
         AddChild(player);
         Player = player;
         player.GlobalPosition = GetPlayerSpawnPosition();
@@ -208,12 +173,11 @@ public abstract partial class CozyWorldScene : Node2D
         player.Tools.Changed += RefreshHudTool;
 
         // Session view preference: keep the chosen zoom stable across scene swaps (not saved).
-        _playerCamera = player.GetNodeOrNull<Camera2D>("Camera2D");
         ApplyZoom();
     }
 
     /// <summary>World-space position the avatar spawns at.</summary>
-    protected abstract Vector2 GetPlayerSpawnPosition();
+    protected abstract Vector3 GetPlayerSpawnPosition();
 
     /// <summary>Scene-specific avatar setup (farm world injection, sleep seam). Default: none.</summary>
     protected virtual void ConfigurePlayer(PlayerController player)
@@ -236,11 +200,9 @@ public abstract partial class CozyWorldScene : Node2D
         Hud.ClockClicked += () => CalendarPanel?.Toggle();
     }
 
-    protected void ApplyZoom()
-    {
-        if (_playerCamera != null)
-            _playerCamera.Zoom = new Vector2(ViewPreferences.CozyZoom, ViewPreferences.CozyZoom);
-    }
+    /// <summary>Push the session zoom preference to the avatar's follow camera (3D: zoom maps to the
+    /// camera arm's distance — see <see cref="PlayerController.SetCameraZoom"/>).</summary>
+    protected void ApplyZoom() => Player?.SetCameraZoom(ViewPreferences.CozyZoom);
 
     protected void SpawnSquadPanel()
     {
@@ -431,7 +393,7 @@ public abstract partial class CozyWorldScene : Node2D
             return;
 
         // The box is a Control — parent it under a CanvasLayer so it renders in screen space, not
-        // through the player's Camera2D (which squished it into world space). Below any fade layer (100).
+        // in the 3D world. Below any fade layer (100).
         DialogueBox = scene.Instantiate<DialogueBox>();
         var dialogueLayer = new CanvasLayer { Name = "DialogueLayer", Layer = 50 };
         AddChild(dialogueLayer);
@@ -510,11 +472,11 @@ public abstract partial class CozyWorldScene : Node2D
         Callable.From(TryShowDaySummary).CallDeferred();
     }
 
-    /// <summary>Blockout-grade travel affordance: a visible signpost placed at a trigger's position
-    /// (programmatic — the world .tscn stays hand-painted by the user). With
+    /// <summary>Greybox travel affordance: a visible signpost placed at a trigger's position
+    /// (programmatic — the world .tscn stays hand-authored by the user). With
     /// <paramref name="trackPlayer"/> the sign raises PlayerApproached proximity hints; without it
     /// the sign is purely visual. Null when the trigger (or tracked player) is missing.</summary>
-    protected TransitionSign? SpawnTransitionSign(string nodeName, string text, Area2D? trigger, bool trackPlayer)
+    protected TransitionSign? SpawnTransitionSign(string nodeName, string text, Area3D? trigger, bool trackPlayer)
     {
         if (trigger == null || (trackPlayer && Player == null))
             return null;
@@ -525,186 +487,10 @@ public abstract partial class CozyWorldScene : Node2D
 
         var sign = scene.Instantiate<TransitionSign>();
         sign.Name = nodeName;
-        sign.ZIndex = 1;
         AddChild(sign);
         sign.GlobalPosition = trigger.GlobalPosition;
         sign.Bind(text, trackPlayer ? Player : null);
         return sign;
-    }
-
-    // ------------------------------------------------------------------ World collision (paint-safe)
-
-    /// <summary>
-    /// Runtime "world rules" collision pass — nothing is written to the hand-painted .tscn:
-    /// a perimeter barrier just outside the Ground layer's used rect (the player can never walk
-    /// off the painted map, and it adapts as the user paints the map bigger), plus a full-cell
-    /// collision bake for every <see cref="BlockingLayers"/> cell whose tile ships no physics
-    /// polygons (manually placed object-sheet wall tiles block by layer membership, not per-tile
-    /// physics luck). Call from the scene's _Ready after the layers exist.
-    /// </summary>
-    protected void BuildWorldCollision(TileMapLayer? ground)
-    {
-        SpawnPerimeterBarrier(ground);
-        foreach (string layerName in BlockingLayers)
-            BakeBlockingLayer(GetNodeOrNull<TileMapLayer>($"%{layerName}"), layerName);
-        BakeWaterCollision(ground);
-    }
-
-    /// <summary>Four StaticBody2D border walls just outside the Ground used rect (one unique
-    /// runtime shape per differently-sized wall, per the collision-shape convention).</summary>
-    private void SpawnPerimeterBarrier(TileMapLayer? ground)
-    {
-        if (ground?.TileSet == null)
-            return;
-
-        Rect2I used = ground.GetUsedRect();
-        if (used.Size.X <= 0 || used.Size.Y <= 0)
-            return;
-
-        // World-space outer edges of the painted map (MapToLocal returns cell centers).
-        Vector2 tile = ground.TileSet.TileSize;
-        Vector2 topLeft = ground.ToGlobal(ground.MapToLocal(used.Position) - tile * 0.5f);
-        Vector2 bottomRight = ground.ToGlobal(ground.MapToLocal(used.End - Vector2I.One) + tile * 0.5f);
-        Vector2 size = bottomRight - topLeft;
-        Vector2 center = (topLeft + bottomRight) * 0.5f;
-        float t = BarrierThickness;
-
-        var barrier = new Node2D { Name = "PerimeterBarrier" };
-        AddChild(barrier);
-        AddBorderWall(barrier, "North", new Vector2(center.X, topLeft.Y - t / 2f), new Vector2(size.X + 2f * t, t));
-        AddBorderWall(barrier, "South", new Vector2(center.X, bottomRight.Y + t / 2f), new Vector2(size.X + 2f * t, t));
-        AddBorderWall(barrier, "West", new Vector2(topLeft.X - t / 2f, center.Y), new Vector2(t, size.Y + 2f * t));
-        AddBorderWall(barrier, "East", new Vector2(bottomRight.X + t / 2f, center.Y), new Vector2(t, size.Y + 2f * t));
-    }
-
-    private static void AddBorderWall(Node2D parent, string name, Vector2 center, Vector2 size)
-    {
-        var body = new StaticBody2D { Name = name, Position = center };
-        parent.AddChild(body);
-        body.AddChild(new CollisionShape2D { Shape = new RectangleShape2D { Size = size } });
-    }
-
-    /// <summary>
-    /// Layer-is-the-law bake: every painted cell of a blocking layer must stop bodies. Cells whose
-    /// TileData already has physics polygons are left to the tileset (no double bodies); the rest
-    /// get a full-cell rect on one runtime StaticBody2D under the layer. All baked cells share one
-    /// tile-sized RectangleShape2D (identical runtime rects — the unique-shape convention concerns
-    /// differently-sized nodes in .tscn files).
-    /// </summary>
-    private void BakeBlockingLayer(TileMapLayer? layer, string layerName)
-    {
-        if (layer?.TileSet == null || layer.TileSet.GetPhysicsLayersCount() == 0)
-            return;
-
-        var body = new StaticBody2D { Name = "BakedWallCollision" };
-        layer.AddChild(body);
-
-        var cellShape = new RectangleShape2D { Size = layer.TileSet.TileSize };
-        int native = 0, baked = 0;
-        foreach (Vector2I cell in layer.GetUsedCells())
-        {
-            TileData? tileData = layer.GetCellTileData(cell);
-            if (tileData == null)
-                continue;
-
-            if (tileData.GetCollisionPolygonsCount(0) > 0)
-            {
-                native++;
-                continue;
-            }
-
-            body.AddChild(new CollisionShape2D { Shape = cellShape, Position = layer.MapToLocal(cell) });
-            baked++;
-        }
-
-        _bakeReport[layerName] = (native, baked);
-        GD.Print($"[WallBaker] {layerName}: {native} tile-physics, {baked} baked");
-    }
-
-    /// <summary>
-    /// Water-is-solid bake over the GROUND layer (user decision: water blocks movement). Every
-    /// cell whose tile comes from a water atlas source (see <see cref="WaterSourceKeywords"/>)
-    /// gets a full-cell rect on a "BakedWaterCollision" StaticBody2D — same default layer/mask as
-    /// the wall baker, so player and roamers alike are stopped. Cells covered by a tile on a
-    /// <see cref="BridgeOverlayLayers"/> layer are skipped (paint a bridge on GroundDecor/Props to
-    /// cross water), and cells whose water tile somehow carries physics keep the no-double-bake
-    /// guarantee. Counts land in <see cref="BakeReport"/> under "Water".
-    /// </summary>
-    private void BakeWaterCollision(TileMapLayer? ground)
-    {
-        if (ground?.TileSet == null || ground.TileSet.GetPhysicsLayersCount() == 0)
-            return;
-
-        var overlays = new List<TileMapLayer>();
-        foreach (string layerName in BridgeOverlayLayers)
-        {
-            if (GetNodeOrNull<TileMapLayer>($"%{layerName}") is { } overlay)
-                overlays.Add(overlay);
-        }
-
-        var body = new StaticBody2D { Name = "BakedWaterCollision" };
-        ground.AddChild(body);
-
-        var waterBySource = new Dictionary<int, bool>();
-        var cellShape = new RectangleShape2D { Size = ground.TileSet.TileSize };
-        int native = 0, baked = 0, bridged = 0;
-        foreach (Vector2I cell in ground.GetUsedCells())
-        {
-            int sourceId = ground.GetCellSourceId(cell);
-            if (!waterBySource.TryGetValue(sourceId, out bool isWater))
-                waterBySource[sourceId] = isWater = IsWaterSource(ground.TileSet, sourceId);
-            if (!isWater)
-                continue;
-
-            bool overlaid = false;
-            foreach (TileMapLayer overlay in overlays)
-            {
-                if (overlay.GetCellSourceId(cell) != -1)
-                {
-                    overlaid = true;
-                    break;
-                }
-            }
-            if (overlaid)
-            {
-                bridged++;
-                continue;
-            }
-
-            if (ground.GetCellTileData(cell) is not { } tileData)
-                continue;
-            if (tileData.GetCollisionPolygonsCount(0) > 0)
-            {
-                native++;
-                continue;
-            }
-
-            body.AddChild(new CollisionShape2D { Shape = cellShape, Position = ground.MapToLocal(cell) });
-            baked++;
-        }
-
-        WaterBridgedCells = bridged;
-        _bakeReport["Water"] = (native, baked);
-        GD.Print($"[WaterBaker] {ground.Name}: {native} tile-physics, {baked} baked, {bridged} bridged");
-    }
-
-    /// <summary>True when the atlas source's texture file name contains a
-    /// <see cref="WaterSourceKeywords"/> keyword (case-insensitive). Public so tools/spikes can
-    /// query the same water identity the baker uses.</summary>
-    public bool IsWaterSource(TileSet tileSet, int sourceId)
-    {
-        if (sourceId < 0 || !tileSet.HasSource(sourceId))
-            return false;
-        if (tileSet.GetSource(sourceId) is not TileSetAtlasSource atlas || atlas.Texture == null)
-            return false;
-
-        string file = System.IO.Path.GetFileName(atlas.Texture.ResourcePath);
-        foreach (string keyword in WaterSourceKeywords)
-        {
-            if (!string.IsNullOrEmpty(keyword) && file.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-        return false;
     }
 
     // ------------------------------------------------------------------ State events

@@ -281,6 +281,11 @@ public static class TerrainMeshBuilder
     /// correct normal, which is what stops the dark-triangle artifact on slopes whose halves face
     /// different ways. <paramref name="faceDown"/> flips both the normal and the winding, for the
     /// downward-looking quads (bridge undersides, pillar bottom caps).
+    ///
+    /// The four corners MUST trace the footprint counter-clockwise seen from above, as a tile's
+    /// sw → se → ne → nw does. <see cref="ComputeUpNormal"/> forces the stored normal up (then
+    /// <paramref name="faceDown"/> negates it) without re-deriving the winding, so a clockwise
+    /// footprint gets a normal that contradicts the face it actually emits.
     /// </summary>
     private static void AddQuad(
         SubmeshBuffer buffer, SubmeshBuffer? collision,
@@ -462,7 +467,12 @@ public static class TerrainMeshBuilder
         AddWallQuad(buffer, null, iTR, iTL, iBL, iBR);   // inner face (L/R swapped = reversed)
         AddWallQuad(buffer, null, iTL, oTL, oBL, iBL);   // side
         AddWallQuad(buffer, null, oTR, iTR, iBR, oBR);   // side
-        AddQuad(buffer, null, oBL, oBR, iBR, iBL, faceDown: true); // bottom cap
+        // Bottom cap. Unity listed it outer-left → outer-right → inner-right → inner-left, which traces
+        // the box CLOCKWISE seen from above (the outer edge runs left-to-right as seen from OUTSIDE the
+        // tile) and so already front-faced downward there. AddQuad's faceDown path flips a CCW footprint
+        // to face down, so handing it Unity's order would flip an already-down face back up — leaving the
+        // cap invisible from below, which is the one place it is ever seen. Reversed to CCW.
+        AddQuad(buffer, null, oBL, iBL, iBR, oBR, faceDown: true);
     }
 
     /// <summary>True when a ground-ish tile sits on either edge perpendicular to <paramref name="dir"/>.</summary>
@@ -619,6 +629,12 @@ public static class TerrainMeshBuilder
             bottomA = VoidFloorCornerHeight;
             bottomB = VoidFloorCornerHeight;
         }
+
+        // The canyon floor is the lowest surface the map renders, so no wall may hang below it: the
+        // overhang is invisible and only muddies the mesh's Y bounds. The subtractions above are the
+        // only way to get there, and only from a derived (bridge floor) neighbour height.
+        bottomA = Math.Max(bottomA, VoidFloorCornerHeight);
+        bottomB = Math.Max(bottomB, VoidFloorCornerHeight);
 
         (Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight) =
             GetEdgeWorldPositions(x, y, dir, thisA, thisB, bottomA, bottomB, hs);
@@ -967,31 +983,43 @@ public static class TerrainMeshBuilder
     /// Height beneath a bridge tile: the lowest relevant cardinal neighbour, or the canyon floor when
     /// the span crosses void. In corner-height units. Sizes both the pillars and the cliff faces of the
     /// tiles that approach the span.
+    ///
+    /// "Crosses void" means the same thing here as in <see cref="IsBridgeOverVoid"/> — an Empty tile ON
+    /// the map. Off-map neighbours are skipped: the floor this returns has to meet the fill
+    /// <see cref="RenderBridge"/> draws under the same deck, and that fill is the canyon floor only when
+    /// the neighbouring void tiles render one at <see cref="VoidFloorCornerHeight"/> to match. Nothing
+    /// is rendered past the boundary, so an off-map neighbour contributes no floor to reach for. (Unity
+    /// tested bounds in one method and not the other; taken literally that gives a map-edge bridge over
+    /// WATER a floor of -40, which <see cref="AddEdgeWall"/> then drops another
+    /// <see cref="WaterWallDepth"/> below the deepest surface in the world.)
     /// </summary>
     private static int FindBridgeFloorHeight(MapLayout layout, int x, int y)
     {
         var bridgeCorners = layout.GetCornerHeights(x, y);
         int slabBottom = RoundToInt(bridgeCorners.CenterHeight) - BridgeSlabThickness;
 
-        bool hasVoid = false;
+        bool overVoid = false;
         int lowestNeighbor = slabBottom;
 
         foreach (var dir in Cardinals)
         {
             (int nx, int ny) = Step(x, y, dir);
-            if (!layout.IsInBounds(nx, ny) || layout.GetTile(nx, ny) == TileRole.Empty)
+            if (!layout.IsInBounds(nx, ny)) continue;
+
+            var role = layout.GetTile(nx, ny);
+            if (role == TileRole.Empty)
             {
-                hasVoid = true;
+                overVoid = true;
                 continue;
             }
 
-            if (layout.GetTile(nx, ny) == TileRole.Bridge) continue;
+            if (role == TileRole.Bridge) continue;
 
             int neighborMin = layout.GetCornerHeights(nx, ny).MinHeight;
             if (neighborMin < lowestNeighbor) lowestNeighbor = neighborMin;
         }
 
-        return hasVoid ? Math.Min(lowestNeighbor, VoidFloorCornerHeight) : lowestNeighbor;
+        return overVoid ? Math.Min(lowestNeighbor, VoidFloorCornerHeight) : lowestNeighbor;
     }
 
     /// <summary>
@@ -1021,7 +1049,12 @@ public static class TerrainMeshBuilder
         return fallback;
     }
 
-    /// <summary>True when any cardinal neighbour of (x, y) is an Empty tile.</summary>
+    /// <summary>
+    /// True when any cardinal neighbour of (x, y) is an Empty tile. Off-map neighbours do not count:
+    /// the caller uses this to decide whether the span's under-deck fill continues the canyon floor the
+    /// neighbouring void tiles render, and no tile renders one past the boundary.
+    /// <see cref="FindBridgeFloorHeight"/> follows the same rule.
+    /// </summary>
     private static bool IsBridgeOverVoid(MapLayout layout, int x, int y)
     {
         foreach (var dir in Cardinals)

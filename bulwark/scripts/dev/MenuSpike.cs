@@ -177,17 +177,18 @@ public partial class MenuSpike : SpikeBase
         Check("(C) repair_lodging obj 1 tracks stone x10",
             rl.Objectives[1].TrackingItemId == "stone" && rl.Objectives[1].TargetCount == 10);
 
-        Check("(C) first_rest defined", Bulwark.Data.Quests.TryGet("first_rest", out var fr));
-        Check("(C) first_rest has 1 objective", fr!.Objectives.Length == 1);
-
         Check("(C) planning_table defined", Bulwark.Data.Quests.TryGet("planning_table", out var pt));
         Check("(C) planning_table has 1 objective", pt!.Objectives.Length == 1);
 
-        Check("(C) first_building defined", Bulwark.Data.Quests.TryGet("first_building", out var fb));
-        Check("(C) first_building has 1 objective", fb!.Objectives.Length == 1);
+        Check("(C) raise_the_hearths defined", Bulwark.Data.Quests.TryGet("raise_the_hearths", out var rh));
+        Check("(C) raise_the_hearths starts on planning_table_shown",
+            rh!.StartWhen != null && Array.IndexOf(rh.StartWhen, "planning_table_shown") >= 0);
 
-        // 4 shipped tutorial quests + the 11-quest "The First Season" arc (design/tutorial_quests.md).
-        Check("(C) All contains the 4 tutorial + 11 arc quests", Bulwark.Data.Quests.All.Count == 15);
+        Check("(C) mend_the_wounded defined", Bulwark.Data.Quests.TryGet("mend_the_wounded", out var mw));
+        Check("(C) mend_the_wounded has 2 objectives", mw!.Objectives.Length == 2);
+
+        // 2 hand-wired opening quests + the 9-quest "The First Season" arc (design/tutorial_quests.md).
+        Check("(C) All contains the 2 hand-wired + 9 arc quests", Bulwark.Data.Quests.All.Count == 11);
     }
 
     // ─────────────────── (D) Title screen scene ───────────────────
@@ -311,7 +312,8 @@ public partial class MenuSpike : SpikeBase
         gs.AddItem("wood", 90);
         gs.AddItem("stone", 60);
         gs.SetStoryFlag("intro_complete");   // would skip the intro on a contaminated New Game
-        gs.SetStoryFlag("lodging_repaired"); // completes repair_lodging, starts first_rest
+        gs.SetStoryFlag("lodging_repaired"); // completes repair_lodging
+        gs.SetStoryFlag("first_rest");       // the scripted Day-1 close → starts planning_table
         gs.MarkDialogueSeen("intro_scene_0");
         gs.AddDialogueFriendship("tharr", 300); // 300 pts → ≥ 1 heart (PointsPerHeart = 250)
 
@@ -324,8 +326,8 @@ public partial class MenuSpike : SpikeBase
         Check("(F) pre: clock advanced to Day 5", gs.Clock.Day == 5);
         Check("(F) pre: gold mutated", gs.Gold > 0);
         Check("(F) pre: intro_complete flag set", gs.HasStoryFlag("intro_complete"));
-        Check("(F) pre: repair_lodging completed, first_rest active",
-            gs.IsQuestCompleted("repair_lodging") && gs.IsQuestActive("first_rest"));
+        Check("(F) pre: repair_lodging completed, planning_table active",
+            gs.IsQuestCompleted("repair_lodging") && gs.IsQuestActive("planning_table"));
         Check("(F) pre: dialogue marked seen", gs.HasSeenDialogue("intro_scene_0"));
         Check("(F) pre: friendship earned (tharr ≥ 1 heart)", gs.HeartsOf("tharr") >= 1);
         if (commissioned)
@@ -344,7 +346,7 @@ public partial class MenuSpike : SpikeBase
         Check("(F) intro_complete flag cleared (intro will play)", !gs.HasStoryFlag("intro_complete"));
         Check("(F) lodging_repaired flag cleared", !gs.HasStoryFlag("lodging_repaired"));
         Check("(F) quest log cleared (repair_lodging not completed)", !gs.IsQuestCompleted("repair_lodging"));
-        Check("(F) quest log cleared (first_rest not active)", !gs.IsQuestActive("first_rest"));
+        Check("(F) quest log cleared (planning_table not active)", !gs.IsQuestActive("planning_table"));
         Check("(F) seen dialogues cleared", !gs.HasSeenDialogue("intro_scene_0"));
         Check("(F) friendship reset (tharr back to 0 hearts)", gs.HeartsOf("tharr") == 0);
         if (commissioned)

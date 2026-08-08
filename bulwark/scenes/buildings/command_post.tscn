@@ -1,161 +1,150 @@
-[gd_scene format=4 uid="uid://dcbc6h7jj4ang"]
+[gd_scene load_steps=18 format=3]
 
-[ext_resource type="Script" uid="uid://4cxeln2qta8e" path="res://scripts/cozy/BuildingInstance.cs" id="1_3268u"]
-[ext_resource type="TileSet" uid="uid://b3eu2aig0u8yg" path="res://assets/tilesets/outpost_tileset.tres" id="2_qx2my"]
-[ext_resource type="PackedScene" uid="uid://db3npcr4u13g0" path="res://scenes/props/door.tscn" id="4_ltg4o"]
+[ext_resource type="Script" path="res://scripts/cozy/BuildingInstance.cs" id="1_bi"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/command_post_stage0.glb" id="2_stage0"]
+[ext_resource type="PackedScene" path="res://assets/models/buildings/command_post_stage1.glb" id="3_stage1"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/barrel.glb" id="4_barrel"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/crate.glb" id="5_crate"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bench.glb" id="6_bench"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/firewood_stack.glb" id="7_firewood"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/logpile.glb" id="8_logpile"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/cart_broken.glb" id="9_cart_broken"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/stump.glb" id="10_stump"]
+[ext_resource type="PackedScene" path="res://assets/models/psx_kit/a_winlu/bush_a.glb" id="11_bush_a"]
 
-[node name="CommandPost" type="Node2D" unique_id=546216695]
-script = ExtResource("1_3268u")
+[sub_resource type="StandardMaterial3D" id="Mat_scaffold"]
+albedo_color = Color(0.46, 0.33, 0.18, 1)
+roughness = 1.0
 
-[node name="Stages" type="Node2D" parent="." unique_id=244636786]
-unique_name_in_owner = true
-position = Vector2(0, 46)
+[sub_resource type="BoxMesh" id="BoxMesh_post"]
+size = Vector3(0.16, 3.2, 0.16)
+material = SubResource("Mat_scaffold")
 
-[node name="Stage0" type="Node2D" parent="Stages" unique_id=1598763267]
+[sub_resource type="BoxMesh" id="BoxMesh_beam_ns"]
+size = Vector3(8.8, 0.14, 0.14)
+material = SubResource("Mat_scaffold")
 
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage0" unique_id=885347080]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/zQAGAAoAAAAAAP7/zQAFAAoAAAAAAP3/zQAFAAgAAAABAP3/zQAGAAgAAAD///7/zQAFAAoAAAD+//3/zQAFAAgAAAD+//7/zQAFAAoAAAD///3/zQAFAAgAAAAAAPz/IQAGAAsAAAABAPz/IQAHAAsAAAD+//z/IQAEAAsAAAD///z/IQAFAAsAAAD///v/IQAFAAoAAAAAAPv/IQAGAAoAAAACAPj/HwANAAAAAAACAPn/HwANAAEAAAACAPr/HwANAAIAAAACAPv/HwANAAMAAAACAPz/HwANAAQAAAACAP3/HwANAAUAAAACAP7/HwANAAYAAAADAPj/HwAOAAAAAAADAPn/HwAOAAEAAAADAPr/HwAOAAIAAAADAPv/HwAOAAMAAAADAPz/HwAOAAQAAAADAP3/HwAOAAUAAAADAP7/HwAOAAYAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
+[sub_resource type="BoxMesh" id="BoxMesh_beam_we"]
+size = Vector3(0.14, 0.14, 6.8)
+material = SubResource("Mat_scaffold")
 
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage0" unique_id=569307100]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/CwAGAA0AAAABAP3/CwAGAAwAAAAAAP3/CwAFAAwAAAAAAP7/CwAFAA0AAAACAP7/CwACAA0AAAADAP7/CwAEAA0AAAACAP3/CwACAAwAAAADAP3/CwAEAAwAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
+[sub_resource type="BoxShape3D" id="BoxShape3D_footprint"]
+size = Vector3(8.0, 4.6, 5.0)
 
-[node name="Roof" type="TileMapLayer" parent="Stages/Stage0" unique_id=1435907693]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAPn/IQALAAgAAAAAAPr/IQALAAkAAAAAAPv/IQALAAoAAAABAPr/IQAMAAkAAAABAPv/IQAMAAoAAAABAPz/IQAMAAsAAAD///n/IQAKAAgAAAD///r/IQAKAAkAAAD///v/IQAKAAoAAAD+//r/IQAJAAkAAAD+//v/IQAJAAoAAAD+//z/IQAJAAsAAAD9//v/IQAIAAoAAAD9//z/IQAIAAsAAAD9//3/IQAIAAwAAAD+//3/IQAJAAwAAAABAP3/IQAMAAwAAAD///z/IQAKAAsAAAAAAPz/IQALAAsAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
+[sub_resource type="BoxShape3D" id="BoxShape3D_porch"]
+size = Vector3(4.56, 3.4, 1.0)
 
-[node name="Door" parent="Stages/Stage0" unique_id=2072334487 instance=ExtResource("4_ltg4o")]
-position = Vector2(-29, -48)
+[node name="CommandPost" type="Node3D"]
+script = ExtResource("1_bi")
 
-[node name="Stage1" type="Node2D" parent="Stages" unique_id=1658689275]
-visible = false
-
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage1" unique_id=1370621708]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/zQAGAAoAAAAAAP7/zQAFAAoAAAAAAP3/zQAFAAgAAAABAP3/zQAGAAgAAAD///7/zQAFAAoAAAD+//3/zQAFAAgAAAD+//7/zQAFAAoAAAD///3/zQAFAAgAAAAAAPz/IQAGAAsAAAABAPz/IQAHAAsAAAD+//z/IQAEAAsAAAD///z/IQAFAAsAAAD///v/IQAFAAoAAAAAAPv/IQAGAAoAAAACAPj/HwANAAAAAAACAPn/HwANAAEAAAACAPr/HwANAAIAAAACAPv/HwANAAMAAAACAPz/HwANAAQAAAACAP3/HwANAAUAAAACAP7/HwANAAYAAAADAPj/HwAOAAAAAAADAPn/HwAOAAEAAAADAPr/HwAOAAIAAAADAPv/HwAOAAMAAAADAPz/HwAOAAQAAAADAP3/HwAOAAUAAAADAP7/HwAOAAYAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage1" unique_id=1264542679]
-z_index = 1
-texture_filter = 1
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Roof" type="TileMapLayer" parent="Stages/Stage1" unique_id=1884719078]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAPn/DgALAAgAAAAAAPr/DgALAAkAAAAAAPv/DgALAAoAAAABAPr/DgAMAAkAAAABAPv/DgAMAAoAAAABAPz/DgAMAAsAAAD///n/IQAKAAgAAAD///r/IQAKAAkAAAD///v/DgAKAAoAAAD+//r/DgAJAAkAAAD+//v/DgAJAAoAAAD+//z/DgAJAAsAAAD9//v/DgAIAAoAAAD9//z/DgAIAAsAAAD9//3/DgAIAAwAAAD+//3/IQAJAAwAAAABAP3/IQAMAAwAAAD///z/IQAKAAsAAAAAAPz/IQALAAsAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Door" parent="Stages/Stage1" unique_id=2140818135 instance=ExtResource("4_ltg4o")]
-position = Vector2(-29, -48)
-
-[node name="Stage2" type="Node2D" parent="Stages" unique_id=1085747712]
-visible = false
-
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage2" unique_id=429890907]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/zQAGAAoAAAAAAP7/zQAFAAoAAAAAAP3/zQAFAAgAAAABAP3/zQAGAAgAAAD///7/zQAFAAoAAAD+//3/zQAFAAgAAAD+//7/zQAFAAoAAAD///3/zQAFAAgAAAAAAPz/IQAGAAsAAAABAPz/IQAHAAsAAAD+//z/IQAEAAsAAAD///z/IQAFAAsAAAD///v/IQAFAAoAAAAAAPv/IQAGAAoAAAACAPj/HwANAAAAAAACAPn/HwANAAEAAAACAPr/HwANAAIAAAACAPv/CwANAAMAAAACAPz/HwANAAQAAAACAP3/CwANAAUAAAACAP7/HwANAAYAAAADAPj/HwAOAAAAAAADAPn/HwAOAAEAAAADAPr/HwAOAAIAAAADAPv/CwAOAAMAAAADAPz/CwAOAAQAAAADAP3/HwAOAAUAAAADAP7/HwAOAAYAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage2" unique_id=1274782103]
-z_index = 1
-texture_filter = 1
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Roof" type="TileMapLayer" parent="Stages/Stage2" unique_id=1141240046]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAPn/DgALAAgAAAAAAPr/DgALAAkAAAAAAPv/DgALAAoAAAABAPr/DgAMAAkAAAABAPv/DgAMAAoAAAABAPz/DgAMAAsAAAD///n/IQAKAAgAAAD///r/IQAKAAkAAAD///v/DgAKAAoAAAD+//r/DgAJAAkAAAD+//v/DgAJAAoAAAD+//z/DgAJAAsAAAD9//v/DgAIAAoAAAD9//z/DgAIAAsAAAD9//3/DgAIAAwAAAD+//3/IQAJAAwAAAABAP3/IQAMAAwAAAD///z/IQAKAAsAAAAAAPz/IQALAAsAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Door" parent="Stages/Stage2" unique_id=674336268 instance=ExtResource("4_ltg4o")]
-position = Vector2(-29, -48)
-
-[node name="Stage3" type="Node2D" parent="Stages" unique_id=877765139]
-visible = false
-
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage3" unique_id=1365498206]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/zQAGAAoAAAAAAP7/zQAFAAoAAAAAAP3/zQAFAAgAAAABAP3/zQAGAAgAAAD///7/zQAFAAoAAAD+//3/zQAFAAgAAAD+//7/zQAFAAoAAAD///3/zQAFAAgAAAAAAPz/IQAGAAsAAAABAPz/IQAHAAsAAAD+//z/IQAEAAsAAAD///z/IQAFAAsAAAD///v/IQAFAAoAAAAAAPv/IQAGAAoAAAACAPj/CwANAAAAAAACAPn/CwANAAEAAAACAPr/CwANAAIAAAACAPv/CwANAAMAAAACAPz/CwANAAQAAAACAP3/CwANAAUAAAACAP7/CwANAAYAAAADAPj/CwAOAAAAAAADAPn/CwAOAAEAAAADAPr/CwAOAAIAAAADAPv/CwAOAAMAAAADAPz/CwAOAAQAAAADAP3/CwAOAAUAAAADAP7/CwAOAAYAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage3" unique_id=1711272266]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/DAAAAA0AAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Roof" type="TileMapLayer" parent="Stages/Stage3" unique_id=1756633034]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAPn/DgALAAgAAAAAAPr/DgALAAkAAAAAAPv/DgALAAoAAAABAPr/DgAMAAkAAAABAPv/DgAMAAoAAAABAPz/DgAMAAsAAAD///n/IQAKAAgAAAD///r/IQAKAAkAAAD///v/DgAKAAoAAAD+//r/DgAJAAkAAAD+//v/DgAJAAoAAAD+//z/DgAJAAsAAAD9//v/DgAIAAoAAAD9//z/DgAIAAsAAAD9//3/DgAIAAwAAAD+//3/IQAJAAwAAAABAP3/IQAMAAwAAAD///z/IQAKAAsAAAAAAPz/IQALAAsAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Door" parent="Stages/Stage3" unique_id=1682642607 instance=ExtResource("4_ltg4o")]
-position = Vector2(-29, -48)
-
-[node name="Stage4" type="Node2D" parent="Stages" unique_id=1323475991]
-visible = false
-
-[node name="Structure" type="TileMapLayer" parent="Stages/Stage4" unique_id=34589486]
-texture_filter = 1
-tile_map_data = PackedByteArray("AAABAP7/zQAGAAoAAAAAAP7/zQAFAAoAAAAAAP3/zQAFAAgAAAABAP3/zQAGAAgAAAD///7/zQAFAAoAAAD+//3/zQAFAAgAAAD+//7/zQAFAAoAAAD///3/zQAFAAgAAAAAAPz/IQAGAAsAAAABAPz/IQAHAAsAAAD+//z/IQAEAAsAAAD///z/IQAFAAsAAAD///v/IQAFAAoAAAAAAPv/IQAGAAoAAAACAPj/CwANAAAAAAACAPn/CwANAAEAAAACAPr/CwANAAIAAAACAPv/CwANAAMAAAACAPz/CwANAAQAAAACAP3/CwANAAUAAAACAP7/CwANAAYAAAADAPj/CwAOAAAAAAADAPn/CwAOAAEAAAADAPr/CwAOAAIAAAADAPv/CwAOAAMAAAADAPz/CwAOAAQAAAADAP3/CwAOAAUAAAADAP7/CwAOAAYAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Dressing" type="TileMapLayer" parent="Stages/Stage4" unique_id=1816188066]
-z_index = 1
-texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAP7/CwAHAAEAAAABAP7/DAAAAA0AAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Roof" type="TileMapLayer" parent="Stages/Stage4" unique_id=239893471]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAAAAPn/DgALAAgAAAAAAPr/DgALAAkAAAAAAPv/DgALAAoAAAABAPr/DgAMAAkAAAABAPv/DgAMAAoAAAABAPz/DgAMAAsAAAD///n/IQAKAAgAAAD///r/IQAKAAkAAAD///v/DgAKAAoAAAD+//r/DgAJAAkAAAD+//v/DgAJAAoAAAD+//z/DgAJAAsAAAD9//v/DgAIAAoAAAD9//z/DgAIAAsAAAD9//3/DgAIAAwAAAD+//3/IQAJAAwAAAABAP3/IQAMAAwAAAD///z/IQAKAAsAAAAAAPz/IQALAAsAAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
-
-[node name="Door" parent="Stages/Stage4" unique_id=1914749248 instance=ExtResource("4_ltg4o")]
-position = Vector2(-29, -48)
-
-[node name="Footprint" type="StaticBody2D" parent="." unique_id=2140603755]
+[node name="Stages" type="Node3D" parent="."]
 unique_name_in_owner = true
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Footprint" unique_id=1980796780]
+[node name="Stage0" type="Node3D" parent="Stages"]
+
+[node name="Model" parent="Stages/Stage0" instance=ExtResource("2_stage0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="CartBroken1" parent="Stages/Stage0" instance=ExtResource("9_cart_broken")]
+transform = Transform3D(0.150225, 0, 0.988652, 0, 1, 0, -0.988652, 0, 0.150225, -5.9, 0.02, 0.4)
+
+[node name="Logpile1" parent="Stages/Stage0" instance=ExtResource("8_logpile")]
+transform = Transform3D(0.992809, 0, 0.119712, 0, 1, 0, -0.119712, 0, 0.992809, -2.2, 0.02, -4.5)
+
+[node name="Stump1" parent="Stages/Stage0" instance=ExtResource("10_stump")]
+transform = Transform3D(0.62161, 0, 0.783327, 0, 1, 0, -0.783327, 0, 0.62161, -5.2, 0.02, 2.6)
+
+[node name="BushA1" parent="Stages/Stage0" instance=ExtResource("11_bush_a")]
+transform = Transform3D(0.877583, 0, -0.479426, 0, 1, 0, 0.479426, 0, 0.877583, 3.1, 0.02, -4.4)
+
+[node name="Barrel1" parent="Stages/Stage0" instance=ExtResource("4_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.4, 0.02, 0.6)
+
+[node name="Barrel2" parent="Stages/Stage0" instance=ExtResource("4_barrel")]
+transform = Transform3D(0.9, 0, 0, 0, 0.88, 0, 0, 0, 0.9, 5.1, 0.02, 1.55)
+
+[node name="Crate1" parent="Stages/Stage0" instance=ExtResource("5_crate")]
+transform = Transform3D(0.913089, 0, 0.40776, 0, 1, 0, -0.40776, 0, 0.913089, 5.35, 0.02, 2.55)
+
+[node name="Stage1" type="Node3D" parent="Stages"]
 visible = false
-polygon = PackedVector2Array(-96, -49, -98, -230, 96, -230, 191, -231, 191, -33, 181, -13, 161, -2, 131, -1, 110, -11, 96, -30, 95, -49)
 
-[node name="Interact" type="Marker2D" parent="." unique_id=1289506425]
-unique_name_in_owner = true
-position = Vector2(0, 16)
+[node name="Model" parent="Stages/Stage1" instance=ExtResource("3_stage1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
-[node name="Scaffold" type="Node2D" parent="." unique_id=1024967320]
+[node name="Porch" type="StaticBody3D" parent="Stages/Stage1"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stages/Stage1/Porch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 1.7, 2.5)
+shape = SubResource("BoxShape3D_porch")
+
+[node name="Barrel1" parent="Stages/Stage1" instance=ExtResource("4_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.02, -0.6)
+
+[node name="Barrel2" parent="Stages/Stage1" instance=ExtResource("4_barrel")]
+transform = Transform3D(0.92, 0, 0, 0, 0.94, 0, 0, 0, 0.92, 4.95, 0.02, -1.55)
+
+[node name="Crate1" parent="Stages/Stage1" instance=ExtResource("5_crate")]
+transform = Transform3D(0.955336, 0, 0.29552, 0, 1, 0, -0.29552, 0, 0.955336, 4.9, 0.02, 1.3)
+
+[node name="Crate2" parent="Stages/Stage1" instance=ExtResource("5_crate")]
+transform = Transform3D(0.86975, 0, -0.231373, 0, 0.9, 0, 0.231373, 0, 0.86975, -4.9, 0.02, 1.05)
+
+[node name="Bench1" parent="Stages/Stage1" instance=ExtResource("6_bench")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.3, 0.02, 3.35)
+
+[node name="Firewood1" parent="Stages/Stage1" instance=ExtResource("7_firewood")]
+transform = Transform3D(0.996802, 0, 0.079915, 0, 1, 0, -0.079915, 0, 0.996802, -2.6, 0.02, -4.1)
+
+[node name="Logpile1" parent="Stages/Stage1" instance=ExtResource("8_logpile")]
+transform = Transform3D(0.998201, 0, -0.059964, 0, 1, 0, 0.059964, 0, 0.998201, 2.3, 0.02, -4.1)
+
+[node name="Scaffold" type="Node3D" parent="."]
 unique_name_in_owner = true
 visible = false
 
-[node name="Beams" type="TileMapLayer" parent="Scaffold" unique_id=794234241]
-z_index = 2
-texture_filter = 1
-tile_map_data = PackedByteArray("AAD8////zAAJAB0AAAD8//7/zAAJAB0AAAD9////zAAJAB0AAAD9//7/zAAJAB0AAAD+////zAAJAB0AAAD+//7/zAAJAB0AAAD/////zAAJAB0AAAD///7/zAAJAB0AAAAAAP//zAAJAB0AAAAAAP7/zAAJAB0AAAABAP//zAAJAB0AAAABAP7/zAAJAB0AAAACAP//zAAJAB0AAAACAP7/zAAJAB0AAAADAP//zAAJAB0AAAADAP7/zAAJAB0AAAAEAP//zAAJAB0AAAAEAP7/zAAJAB0AAAA=")
-tile_set = ExtResource("2_qx2my")
-collision_enabled = false
+[node name="PostNW" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 1.6, -3.2)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostNE" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 1.6, -3.2)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostSW" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 1.6, 3.2)
+mesh = SubResource("BoxMesh_post")
+
+[node name="PostSE" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 1.6, 3.2)
+mesh = SubResource("BoxMesh_post")
+
+[node name="BeamNorth" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.6, -3.2)
+mesh = SubResource("BoxMesh_beam_ns")
+
+[node name="BeamSouth" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.6, 3.2)
+mesh = SubResource("BoxMesh_beam_ns")
+
+[node name="BeamWest" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 1.4, 0.0)
+mesh = SubResource("BoxMesh_beam_we")
+
+[node name="BeamEast" type="MeshInstance3D" parent="Scaffold"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 1.4, 0.0)
+mesh = SubResource("BoxMesh_beam_we")
+
+[node name="Overlays" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Footprint" type="StaticBody3D" parent="."]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Footprint"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 2.3, -0.5)
+shape = SubResource("BoxShape3D_footprint")
+
+[node name="Interact" type="Marker3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.0, 3.5)

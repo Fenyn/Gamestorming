@@ -14,7 +14,10 @@ keeps only a stub and the cross-scene flow). Wins over the JSON
   separate scenes): `intro_scene_1a` plays outdoors on `homestead_exterior.tscn` (ford, yard, and
   camp beats) and ends on Fenwick's relenting line; `intro_scene_1b` opens indoors on
   `homestead_interior.tscn` (hearth beat onward) and carries the scene's closing flag,
-  `intro_scene_1`. Placeholder art either way — the painted scenes come later.
+  `intro_scene_1`. Both scenes now carry built tile art
+  (`assets/models/environment/homestead_exterior.glb` / `homestead_interior.glb`); the interior
+  uses the x-ray cutaway (`scripts/fx/CutawayApplier.cs`) to hold a full-height south wall while
+  keeping the actors visible, instead of the old low-wall staging convention.
 - **Choices:** one, flavor only, converges, no effects — the player's footing after the sum.
 - **Clean ground:** Scene 0 already paid for the dated infrastructure, the outbound-only traffic,
   Elara's two years, Fenwick the cook, and the roads-grown-dangerous plant. Scene 1 does not

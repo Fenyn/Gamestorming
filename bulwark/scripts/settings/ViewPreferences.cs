@@ -12,8 +12,9 @@ namespace Bulwark.Settings;
 /// camelCase JSON, e.g. <c>{"cozyZoom":2.5,"combatCameraDistance":16.0}</c>): lazily loaded on
 /// first access, rewritten on every change. A missing or corrupt file silently falls back to
 /// defaults, and loaded values are clamped to the valid ranges — preference I/O must never break
-/// the game. The HUD raises zoom intents, the world scene mutates this and applies it to the
-/// player Camera2D; <see cref="Bulwark.Combat.OrbitCameraRig"/> reads/writes the combat distance.
+/// the game. The HUD raises zoom intents, the world scene mutates this and applies it through
+/// <c>PlayerController.SetCameraZoom</c>; <see cref="Bulwark.Combat.OrbitCameraRig"/> reads/writes
+/// the combat distance.
 /// </summary>
 public static class ViewPreferences
 {

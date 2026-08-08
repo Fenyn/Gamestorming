@@ -8,13 +8,13 @@ namespace Bulwark.Territory;
 /// stationary lair placed at a marker in the forest territory. Unlike a <see cref="RoamingEnemy"/> it
 /// never wanders — it waits. Walking into it raises <see cref="PlayerContacted"/> ONCE (with the boss
 /// roamer id), which the scene turns into the very same BeginTerritoryEncounter hand-off a roamer
-/// uses. Contact is sensed by the shared <see cref="ContactTrigger"/> Area2D child (its shape, larger
+/// uses. Contact is sensed by the shared <see cref="ContactTrigger"/> Area3D child (its shape, larger
 /// than a regular roamer's, is the contact range) — the same idiomatic BodyEntered seam a roamer uses,
 /// so the two enemy kinds never drift apart. Holds no game rules; its lifecycle (appear when the quest
 /// starts, despawn for good once the wolf is slain) is decided by <see cref="ShouldAppear"/> and
 /// driven by the scene from GameState.
 /// </summary>
-public partial class WolfLair : Node2D
+public partial class WolfLair : Node3D
 {
     /// <summary>Raised once when the player reaches the lair, with the boss roamer id.</summary>
     public event Action<string>? PlayerContacted;
@@ -43,7 +43,7 @@ public partial class WolfLair : Node2D
     /// <summary>Injected by the territory scene after instancing. The lair is stationary, so the
     /// player reference is unused here — contact flows through the <see cref="ContactTrigger"/> child;
     /// the parameter is kept so the scene wires a lair exactly like a roamer.</summary>
-    public void Setup(string roamerId, Node2D player)
+    public void Setup(string roamerId, Node3D player)
     {
         RoamerId = roamerId;
         _ = player;

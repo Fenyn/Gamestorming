@@ -3,6 +3,7 @@ using System.Linq;
 using Bulwark.Autoload;
 using Bulwark.Cozy;
 using Bulwark.Data;
+using Bulwark.Fx;
 using Godot;
 using PF2e.Conditions;
 using PF2e.Core;
@@ -11,7 +12,8 @@ using Bulwark.Save;
 namespace Bulwark.Dev;
 
 /// <summary>
-/// Headless verification of the M2 cozy core: day clock advance, till/plant/water/harvest loop,
+/// Headless verification of the M2 cozy core: day clock advance, the day/night colour gradient the
+/// clock drives, till/plant/water/harvest loop,
 /// unwatered plots not growing, save→mutate→load restore (incl. legacy-save tolerance), and
 /// season/year rollover — driven on the plain C# systems for deterministic assertions. The final
 /// scenario drives a REAL GameState on a protected save slot to prove the world rules: the midnight
@@ -34,6 +36,7 @@ public partial class CozySpike : SpikeBase
         GD.Print("==================== COZY SPIKE ====================");
 
         TestClockAdvance();
+        TestDayNightGradient();
         TestFarmLoop();
         TestUnwateredDoesNotGrow();
         TestSaveLoadRoundTrip();
@@ -85,6 +88,70 @@ public partial class CozySpike : SpikeBase
         clock.RestoreState(27 * 60 + 30, clock.Day, clock.Season, clock.Year);
         Check($"27:30 renders 3:30 AM (got {clock.TimeString()})", clock.TimeString() == "3:30 AM");
     }
+
+    /// <summary>
+    /// The clock's visual companion: <see cref="DayNightGradient.EvaluateTint"/>, the pure day/night
+    /// ramp over the same 360–1800 minute span. Anchor colours, warmth/coolness at key hours, monotonic
+    /// darkening into midnight, full-range sanity, and out-of-range clamping.
+    /// </summary>
+    private void TestDayNightGradient()
+    {
+        GD.Print("-- day/night gradient --");
+
+        var noon = DayNightGradient.EvaluateTint(720);
+        Check($"noon is the Day colour ({noon})", noon.IsEqualApprox(new Color(0.99f, 0.99f, 0.98f)));
+
+        var dusk = DayNightGradient.EvaluateTint(1140);
+        Check($"19:00 is duskish, R > B ({dusk})", dusk.R > dusk.B);
+
+        var midnight = DayNightGradient.EvaluateTint(1440);
+        Check($"24:00 is night-ish, B > R ({midnight})", midnight.B > midnight.R);
+
+        var dawnStart = DayNightGradient.EvaluateTint(360);
+        var dawnEnd = DayNightGradient.EvaluateTint(1800);
+        Check($"6:00 is dawn-warm, R > B ({dawnStart})", dawnStart.R > dawnStart.B);
+        Check($"30:00 is dawn-warm, R > B ({dawnEnd})", dawnEnd.R > dawnEnd.B);
+        Check("all-nighter dawn matches morning dawn", dawnStart.IsEqualApprox(dawnEnd));
+
+        bool monotonic = true;
+        float prev = Luminance(DayNightGradient.EvaluateTint(1260));
+        for (int m = 1261; m <= 1440; m++)
+        {
+            float lum = Luminance(DayNightGradient.EvaluateTint(m));
+            if (lum >= prev)
+            {
+                monotonic = false;
+                break;
+            }
+            prev = lum;
+        }
+        Check("luminance strictly decreases every minute 21:00 → 24:00", monotonic);
+
+        bool allValid = true;
+        for (int m = 360; m <= 1800; m++)
+        {
+            var c = DayNightGradient.EvaluateTint(m);
+            if (!ComponentValid(c.R) || !ComponentValid(c.G) || !ComponentValid(c.B))
+            {
+                GD.Print($"  invalid tint at minute {m}: {c}");
+                allValid = false;
+                break;
+            }
+        }
+        Check("every minute in [360, 1800] yields finite components in [0, 1]", allValid);
+
+        var below = DayNightGradient.EvaluateTint(0);
+        Check($"minute 0 clamps to the 6:00 dawn ({below})",
+            below.IsEqualApprox(DayNightGradient.EvaluateTint(360)));
+
+        var above = DayNightGradient.EvaluateTint(5000);
+        Check($"minute 5000 clamps to the 30:00 dawn ({above})",
+            above.IsEqualApprox(DayNightGradient.EvaluateTint(1800)));
+    }
+
+    private static float Luminance(Color c) => 0.299f * c.R + 0.587f * c.G + 0.114f * c.B;
+
+    private static bool ComponentValid(float v) => float.IsFinite(v) && v is >= 0f and <= 1f;
 
     private void TestFarmLoop()
     {

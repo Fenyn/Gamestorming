@@ -224,7 +224,7 @@ public partial class HudPolishSpike : SpikeBase
     private sealed partial class BareWorldScene : CozyWorldScene
     {
         public string? PublicHint => GetInteractionHint();
-        protected override Vector2 GetPlayerSpawnPosition() => Vector2.Zero;
+        protected override Vector3 GetPlayerSpawnPosition() => Vector3.Zero;
         protected override void OnInteractRequested(ToolKind tool) { }
     }
 

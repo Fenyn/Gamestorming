@@ -151,6 +151,7 @@ public partial class BuildingSpike : SpikeBase
         var inv = new Inventory(); // unbound flat pool, no Bulk caps
         inv.AddItem("wood", 100);
         inv.AddItem("stone", 70);
+        inv.AddItem("hardwood", 30); // the Elderwood line in the shipped construction bundle
         inv.AddItem("forest_root", 20);
         inv.AddItem("tree_sap", 20);
         inv.AddItem("silt_carp", 20);
@@ -239,16 +240,16 @@ public partial class BuildingSpike : SpikeBase
         GD.Print("-------------------- (C) BuildingLoader placement + null-safety --------------------");
 
         // No marker present anywhere → PlaceCommissioned skips gracefully, no throw, nothing added.
-        var bareHost = new Node2D { Name = "BareHost" };
+        var bareHost = new Node3D { Name = "BareHost" };
         AddChild(bareHost);
         var loaderBare = new BuildingLoader(bareHost, id => id == "farmhouse" ? 1 : 0);
         loaderBare.PlaceCommissioned();
         Check("(C) loader null-safe: no marker → nothing placed, no throw", bareHost.GetChildCount() == 0);
 
         // Marker present → the farmhouse scene is instanced at it with the tier's stage shown.
-        var host = new Node2D { Name = "PlaceHost" };
+        var host = new Node3D { Name = "PlaceHost" };
         AddChild(host);
-        var marker = new Marker2D { Name = "Building_farmhouse", Position = new Vector2(120, 80) };
+        var marker = new Marker3D { Name = "Building_farmhouse", Position = new Vector3(12f, 0f, 8f) };
         host.AddChild(marker);
 
         int tier = 1;
@@ -257,7 +258,7 @@ public partial class BuildingSpike : SpikeBase
 
         var placed = FindBuildingInstance(host);
         Check("(C) loader instanced the farmhouse at its marker", placed != null && placed.GlobalPosition == marker.GlobalPosition);
-        Check("(C) placed building carries a StaticBody2D footprint", placed?.GetNodeOrNull("%Footprint") is StaticBody2D);
+        Check("(C) placed building carries a StaticBody3D footprint", placed?.GetNodeOrNull("%Footprint") is StaticBody3D);
         Check("(C) tier 1 shows stage index 1", StageVisible(placed, 1) && !StageVisible(placed, 0));
 
         // Upgrade → refresh swaps the stage in place, no duplicate instance.
@@ -289,7 +290,7 @@ public partial class BuildingSpike : SpikeBase
         var stages = inst?.GetNodeOrNull("%Stages");
         if (stages == null || stageIndex >= stages.GetChildCount())
             return false;
-        return stages.GetChild(stageIndex) is CanvasItem ci && ci.Visible;
+        return stages.GetChild(stageIndex) is Node3D n3 && n3.Visible;
     }
 
     // ─────────────────────────── (D) UI smoke ───────────────────────────

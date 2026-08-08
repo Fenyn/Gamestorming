@@ -10,8 +10,8 @@ namespace Bulwark.Cozy;
 /// framework mirror of <see cref="BuildingLoader"/>. For each arrived villager it spawns a node at
 /// the user-placed <c>%Villager_&lt;id&gt;</c> marker (falling back to the associated building's
 /// <c>%Building_&lt;id&gt;</c> marker); if a premade <c>scenes/villagers/&lt;id&gt;.tscn</c> exists it
-/// instances that, otherwise it drops a bare placeholder Node2D so the arrival is visible while art
-/// is authored later.
+/// instances that, otherwise it drops a bare placeholder Node3D so the arrival is still tracked and
+/// positioned while art is authored later.
 ///
 /// Fully null-safe: a villager with no marker (and no associated building marker) is skipped with a
 /// log line. DIALOGUE / schedules / interaction are OUT OF SCOPE this phase — a later system. With
@@ -24,11 +24,11 @@ public sealed class VillagerLoader
     /// identity come from <see cref="VillagerNpc.Setup"/>, not per-character scenes).</summary>
     private const string NpcScenePath = "res://scenes/cozy/npc.tscn";
 
-    private readonly Node2D _host;
+    private readonly Node3D _host;
     private readonly Func<string, bool> _hasArrived;
     private readonly List<VillagerDefinition> _catalog;
     private readonly HashSet<string> _residentIds = new();
-    private readonly Dictionary<string, Node2D> _placed = new();
+    private readonly Dictionary<string, Node3D> _placed = new();
     private readonly Func<string, bool>? _isWanderSuppressed;
     private readonly Func<int>? _currentMinuteOfDay;
 
@@ -40,7 +40,7 @@ public sealed class VillagerLoader
     /// <summary>Schedule markers already warned-about (missing at runtime) so the warning fires once.</summary>
     private readonly HashSet<string> _warnedMissingMarker = new();
 
-    /// <param name="host">Scene the villager markers live under (the outpost Node2D).</param>
+    /// <param name="host">Scene the villager markers live under (the outpost Node3D).</param>
     /// <param name="hasArrived">Whether a villager id has arrived (GameState.IsVillagerArrived).</param>
     /// <param name="catalog">Arrival-gated villager set to place; defaults to the shipped
     /// <see cref="Villagers.All"/>.</param>
@@ -59,7 +59,7 @@ public sealed class VillagerLoader
     /// <see cref="ApplySchedules"/> on each minute change to re-anchor them. Null (default) disables
     /// schedules entirely — every NPC just spawns and wanders at its home marker (F6/spike runs).</param>
     public VillagerLoader(
-        Node2D host,
+        Node3D host,
         Func<string, bool> hasArrived,
         IEnumerable<VillagerDefinition>? catalog = null,
         IEnumerable<VillagerDefinition>? residents = null,
@@ -112,9 +112,9 @@ public sealed class VillagerLoader
             _placed[id] = inst;
     }
 
-    private Node2D? InstanceVillager(VillagerDefinition def)
+    private Node3D? InstanceVillager(VillagerDefinition def)
     {
-        Marker2D? marker = FindMarker(def);
+        Marker3D? marker = FindMarker(def);
         if (marker == null)
         {
             GD.Print($"[VillagerLoader] No %{def.MarkerName} marker (or associated building) — skipping {def.Id} NPC.");
@@ -123,7 +123,7 @@ public sealed class VillagerLoader
 
         // Preferred override: a hand-authored per-villager scene, self-configured (none ship today).
         if (ResourceLoader.Exists(def.ScenePath)
-            && GD.Load<PackedScene>(def.ScenePath)?.InstantiateOrNull<Node2D>() is { } premade)
+            && GD.Load<PackedScene>(def.ScenePath)?.InstantiateOrNull<Node3D>() is { } premade)
         {
             premade.Name = $"{def.MarkerName}Instance";
             _host.AddChild(premade);
@@ -141,7 +141,7 @@ public sealed class VillagerLoader
             // / save load). With no schedule (or before the first slot, or a missing spot marker) this
             // falls back to the villager's own home marker — byte-identical to the pre-schedule behavior.
             string anchorName = CurrentAnchorName(def);
-            Node2D? anchorNode = ResolveSpot(anchorName);
+            Node3D? anchorNode = ResolveSpot(anchorName);
             npc.Setup(def.Id, def.SpriteId, (anchorNode ?? marker).GlobalPosition);
             _anchoredMarker[def.Id] = anchorNode != null ? anchorName : def.MarkerName;
 
@@ -151,7 +151,7 @@ public sealed class VillagerLoader
         }
 
         // Last resort: a bare node so the villager is still tracked/positioned if the scene is missing.
-        var bare = new Node2D { Name = $"{def.MarkerName}Instance" };
+        var bare = new Node3D { Name = $"{def.MarkerName}Instance" };
         _host.AddChild(bare);
         bare.GlobalPosition = marker.GlobalPosition;
         GD.Print($"[VillagerLoader] {NpcScenePath} missing/invalid — placed a bare node for {def.Id}.");
@@ -161,16 +161,16 @@ public sealed class VillagerLoader
     /// <summary>The spawned world node for a present villager, or null when it isn't placed (not
     /// present, or its marker/scene was missing). The cutscene director uses this to stage a resident
     /// actor (hide/reveal/walk-in) against its real instance during the arrival cutscene.</summary>
-    public Node2D? GetPlaced(string id)
+    public Node3D? GetPlaced(string id)
         => _placed.TryGetValue(id, out var node) && GodotObject.IsInstanceValid(node) ? node : null;
 
     /// <summary>
     /// The placed villager NPC nearest to <paramref name="worldPos"/> within
-    /// <paramref name="maxDistance"/> pixels, or null when none is in range — the proximity query
+    /// <paramref name="maxDistance"/> METRES, or null when none is in range — the proximity query
     /// the talk/gift interactions use ("E on/near the villager"). Only PRESENT (arrived or
     /// always-present resident), actually-placed NPCs are considered.
     /// </summary>
-    public string? NearestVillagerId(Vector2 worldPos, float maxDistance)
+    public string? NearestVillagerId(Vector3 worldPos, float maxDistance)
     {
         string? best = null;
         float bestDistance = maxDistance;
@@ -213,7 +213,7 @@ public sealed class VillagerLoader
             if (_anchoredMarker.TryGetValue(id, out var current) && current == target)
                 continue;
 
-            Node2D? spot = ResolveSpot(target);
+            Node3D? spot = ResolveSpot(target);
             if (spot == null)
             {
                 if (_warnedMissingMarker.Add(target))
@@ -236,20 +236,20 @@ public sealed class VillagerLoader
     }
 
     /// <summary>Resolve a schedule marker by name (%UniqueName, then a direct child name) — mirrors
-    /// <see cref="FindMarker"/>'s lookup but returns any Node2D so a building instance could anchor too.</summary>
-    private Node2D? ResolveSpot(string markerName)
-        => _host.GetNodeOrNull<Node2D>($"%{markerName}") ?? _host.GetNodeOrNull<Node2D>(markerName);
+    /// <see cref="FindMarker"/>'s lookup but returns any Node3D so a building instance could anchor too.</summary>
+    private Node3D? ResolveSpot(string markerName)
+        => _host.GetNodeOrNull<Node3D>($"%{markerName}") ?? _host.GetNodeOrNull<Node3D>(markerName);
 
     /// <summary>The villager's own marker, or — failing that — its associated building's marker.</summary>
-    private Marker2D? FindMarker(VillagerDefinition def)
+    private Marker3D? FindMarker(VillagerDefinition def)
     {
-        Marker2D? marker = _host.GetNodeOrNull<Marker2D>($"%{def.MarkerName}")
-                           ?? _host.GetNodeOrNull<Marker2D>(def.MarkerName);
+        Marker3D? marker = _host.GetNodeOrNull<Marker3D>($"%{def.MarkerName}")
+                           ?? _host.GetNodeOrNull<Marker3D>(def.MarkerName);
         if (marker != null || string.IsNullOrEmpty(def.AssociatedBuildingId))
             return marker;
 
         string buildingMarker = $"Building_{def.AssociatedBuildingId}";
-        return _host.GetNodeOrNull<Marker2D>($"%{buildingMarker}")
-               ?? _host.GetNodeOrNull<Marker2D>(buildingMarker);
+        return _host.GetNodeOrNull<Marker3D>($"%{buildingMarker}")
+               ?? _host.GetNodeOrNull<Marker3D>(buildingMarker);
     }
 }

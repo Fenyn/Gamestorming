@@ -1,42 +1,59 @@
-[gd_scene format=3 uid="uid://ci201c2lqrkr3"]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" uid="uid://dl6uqd6enl2u1" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndfwd"]
-[ext_resource type="Texture2D" uid="uid://geaemivbt1pi" path="res://assets/tilesets/winlu_exterior/fantasy_outside_d_noshadow.png" id="2_ndfwd"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_fallen_wood"]
-atlas = ExtResource("2_ndfwd")
-region = Rect2(672, 192, 51.433594, 48)
+[sub_resource type="CylinderMesh" id="Mesh_log"]
+top_radius = 0.17
+bottom_radius = 0.17
+height = 1.25
+radial_segments = 10
+rings = 1
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_fallen_wood_base"]
-size = Vector2(50, 35)
+[sub_resource type="StandardMaterial3D" id="Mat_log"]
+albedo_color = Color(0.5, 0.36, 0.2, 1)
+roughness = 1.0
 
-[node name="NodeFallenWood" type="Node2D" unique_id=1437160195]
-z_index = 5
-script = ExtResource("1_ndfwd")
+[sub_resource type="CylinderMesh" id="Mesh_branch"]
+top_radius = 0.09
+bottom_radius = 0.09
+height = 0.7
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Mat_branch"]
+albedo_color = Color(0.44, 0.31, 0.17, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Shape_node_fallen_wood_body"]
+size = Vector3(1.3, 0.34, 0.62)
+
+[node name="NodeFallenWood" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "fallen_wood"
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=542306761]
-texture_filter = 1
-position = Vector2(-26, -23)
-texture = SubResource("AtlasTexture_fallen_wood")
-centered = false
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="Body" type="StaticBody2D" parent="." unique_id=444695404]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body" unique_id=1257704233]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(0, -0.5)
-shape = SubResource("RectangleShape2D_fallen_wood_base")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17, 0)
+shape = SubResource("Shape_node_fallen_wood_body")
 
-[node name="Label" type="Label" parent="." unique_id=361059818]
+[node name="Log" type="MeshInstance3D" parent="."]
+transform = Transform3D(6.12323e-17, 1, 0, -1, 6.12323e-17, 0, 0, 0, 1, 0, 0.17, 0)
+mesh = SubResource("Mesh_log")
+surface_material_override/0 = SubResource("Mat_log")
+
+[node name="Branch" type="MeshInstance3D" parent="."]
+transform = Transform3D(6.12323e-17, 1, 0, -1, 6.12323e-17, 0, 0, 0, 1, 0.1, 0.09, 0.32)
+mesh = SubResource("Mesh_branch")
+surface_material_override/0 = SubResource("Mat_branch")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -42.0
-offset_right = 48.0
-offset_bottom = -24.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 11
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Fallen Wood"
-horizontal_alignment = 1
+font_size = 48
+outline_size = 10

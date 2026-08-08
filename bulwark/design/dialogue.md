@@ -180,13 +180,21 @@ reveal, advance indicator, choice button container. Wired to DialogueRunner even
 - Player speaker uses the player's chosen name from CharacterProfile.
 
 ### CutsceneDirector.cs (scripts/dialogue/)
-A Node that executes staging commands from `DialogueRunner.StageCommand`. Manages:
-- Fade overlay (ColorRect with AnimationPlayer or tween)
-- Actor registry: maps actor ids to scene nodes (villager sprites, the player) or spawns
-  temporary cutscene actors at markers
-- Camera pan: tweens the camera to a marker position, returns when done
-- Move: tweens an actor to a marker, calls back when arrived
-- Markers: `%CutsceneMarker_<name>` nodes placed in the scene (Marker2D)
+A Node that executes staging commands from `DialogueRunner.StageCommand` against the 3D world
+(1 cell = 1 m). Manages:
+- Fade overlay: a full-screen ColorRect on a CanvasLayer (screen space, so it covers the 3D view),
+  adopted from the host via `AdoptFadeOverlay`
+- Actor lookup: `PrepareStaging(steps, Func<string, Node3D?>)` — the host maps actor ids to placed
+  puppets (`%Actor<Id>` by convention) or to the outpost's spawned resident NPCs; every actor named
+  by an `enter` step is hidden up front and revealed on that step
+- Camera pan: slides the active Camera3D across the ground plane so the target lands under its view
+  centre, leaving height and pitch untouched; top-level is forced on for the pan so a follow arm
+  can't drag the tween, and both are restored on the return step or at sequence end
+- Move/exit: tweens an actor's `global_position` on XZ, walk cycle running, facing the dominant
+  travel direction; exit hides it on arrival
+- Markers: `%<Name>` Marker3D nodes placed in the scene (also resolves a direct child by name)
+- Units: the JSON is authored in the old 48 px/tile pixel space and is never edited — authored
+  `speed` values divide by `CutsceneDirector.PixelsPerMetre` (90 px/s default → 1.875 m/s)
 
 ### GameState integration
 - `StartDialogue(sequenceId)` — resolve from database, play via runner, freeze world

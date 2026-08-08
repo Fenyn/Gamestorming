@@ -482,7 +482,8 @@ public partial class TerritorySpike : SpikeBase
     {
         // (a) Placement/authoring: the triggers are wired into the REAL territory scenes with the
         //     right sink ids, at distinct locations, and the Elderwood campsite carries its marker.
-        var elder = GD.Load<PackedScene>("res://scenes/territory/elderwood.tscn").Instantiate<Node2D>();
+        //     Distances/radii are METRES now (1 cell = 1 m).
+        var elder = GD.Load<PackedScene>("res://scenes/territory/elderwood.tscn").Instantiate<Node3D>();
         var deep = elder.GetNodeOrNull<Bulwark.Territory.ExplorationTrigger>("ExploredTrigger");
         var camp = elder.GetNodeOrNull<Bulwark.Territory.ExplorationTrigger>("FarCampsiteTrigger");
         Check("(6) Elderwood deep-zone trigger present → elderwood_explored",
@@ -490,55 +491,92 @@ public partial class TerritorySpike : SpikeBase
         Check("(6) Elderwood far-corner trigger present → elderwood_far_campsite_discovered",
             camp != null && camp.StoryFlag == "elderwood_far_campsite_discovered");
         Check("(6) the two Elderwood triggers sit at distinct locations (far campsite deeper)",
-            deep != null && camp != null && deep.Position.DistanceTo(camp.Position) > 400f);
+            deep != null && camp != null && deep.Position.DistanceTo(camp.Position) > 8f);
         Check("(6) far campsite carries a visual marker (Campfire prop)",
-            elder.GetNodeOrNull<Node2D>("Campfire") != null);
+            elder.GetNodeOrNull<Node3D>("Campfire") != null);
         elder.QueueFree();
 
-        var forest = GD.Load<PackedScene>("res://scenes/territory/forest.tscn").Instantiate<Node2D>();
+        // Every territory's declared scene exists and honours the marker contract its data names
+        // (%Node_<id> / %Roamer_<id>), so no placement silently spawns nothing.
+        foreach (var terr in Bulwark.Data.Territories.All)
+        {
+            if (!ResourceLoader.Exists(terr.ScenePath))
+            {
+                Check($"(6) {terr.Id}: declared scene '{terr.ScenePath}' exists", false);
+                continue;
+            }
+            var scene = GD.Load<PackedScene>(terr.ScenePath).Instantiate<Node3D>();
+            var missing = new List<string>();
+            foreach (var node in terr.Nodes)
+            {
+                if (scene.GetNodeOrNull<Marker3D>($"%Node_{node.NodeId}") == null)
+                    missing.Add($"%Node_{node.NodeId}");
+                if (!ResourceNodes.IsDefined(node.ResourceId))
+                    missing.Add($"undefined resource '{node.ResourceId}'");
+            }
+            foreach (var roamer in terr.Roamers)
+                if (scene.GetNodeOrNull<Marker3D>($"%Roamer_{roamer.RoamerId}") == null)
+                    missing.Add($"%Roamer_{roamer.RoamerId}");
+            Check($"(6) {terr.Id}: scene honours its marker contract "
+                  + $"({terr.Nodes.Count} nodes + {terr.Roamers.Count} roamers"
+                  + (missing.Count == 0 ? ")" : $", missing: {string.Join(", ", missing)})"),
+                missing.Count == 0);
+            Check($"(6) {terr.Id}: authored %Ground body (floor + perimeter, no runtime baking)",
+                scene.GetNodeOrNull<StaticBody3D>("%Ground") != null);
+            scene.QueueFree();
+        }
+        await PhysicsFrames(1);
+
+        var forest = GD.Load<PackedScene>("res://scenes/territory/forest.tscn").Instantiate<Node3D>();
         var wolf = forest.GetNodeOrNull<Bulwark.Territory.ExplorationTrigger>("WolfTrackedTrigger");
         Check("(6) forest wolf-lair trigger present → wolf_tracked quest event",
             wolf != null && string.IsNullOrEmpty(wolf.StoryFlag) && wolf.QuestEvent == "wolf_tracked");
         float wolfRadius =
-            (wolf?.GetNodeOrNull<CollisionShape2D>("CollisionShape2D")?.Shape as CircleShape2D)?.Radius ?? 0f;
-        Check($"(6) wolf trigger radius is generous ({wolfRadius:0} px, trips before lair contact 34)",
-            wolfRadius > 100f);
+            (wolf?.GetNodeOrNull<CollisionShape3D>("CollisionShape3D")?.Shape as SphereShape3D)?.Radius ?? 0f;
+        Check($"(6) wolf trigger radius is generous ({wolfRadius:0.0} m, trips before the lair's 0.9 m contact)",
+            wolfRadius > 2f);
         forest.QueueFree();
         await PhysicsFrames(1);
 
-        // (b) Behaviour: first player-body contact fires exactly once and reaches GameState; a
-        //     re-entering fresh instance cannot double the beat (SetStoryFlag idempotent).
+        // (b) Behaviour: the player avatar WALKING into the Area3D fires the sink exactly once and
+        //     reaches GameState; a re-entering fresh instance cannot double the beat (SetStoryFlag
+        //     is idempotent).
         var gs = GameState.Instance;
         const string probe = "spike_exploration_probe";
         Check("(6) probe flag starts unset", !gs.HasStoryFlag(probe));
 
-        var world = new Node2D { Name = "ExplProbeWorld" };
+        var world = new Node3D { Name = "ExplorationProbeWorld" };
         AddChild(world);
-        var player = GD.Load<PackedScene>("res://scenes/cozy/player.tscn").Instantiate<PlayerController>();
-        player.Position = new Vector2(500, 500);
-        world.AddChild(player);
+        var floor = new StaticBody3D { Name = "Floor" };
+        floor.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(20f, 1f, 20f) } });
+        world.AddChild(floor);
+        floor.Position = new Vector3(0f, -0.5f, 0f);
 
-        world.AddChild(MakeProbeTrigger(probe, new Vector2(500, 500)));
-        await PhysicsFrames(3);
-        Check("(6) walking into the trigger set its story flag", gs.HasStoryFlag(probe));
+        var trigger = new Bulwark.Territory.ExplorationTrigger { Name = "ProbeTrigger", StoryFlag = probe };
+        trigger.AddChild(new CollisionShape3D
+        {
+            Shape = new SphereShape3D { Radius = 0.8f },
+            Position = new Vector3(0f, 1f, 0f),
+        });
+        world.AddChild(trigger);
+        trigger.Position = new Vector3(2.5f, 0f, 0f);
+
+        var avatar = GD.Load<PackedScene>("res://scenes/cozy/player.tscn")
+            .Instantiate<Bulwark.Cozy.PlayerController>();
+        world.AddChild(avatar);
+        avatar.Position = Vector3.Zero;
+        await PhysicsFrames(2);
+        Check("(6) standing clear of the sensor leaves the flag unset", !gs.HasStoryFlag(probe));
+
+        Input.ActionPress("move_right");
+        await PhysicsFrames(60);
+        Input.ActionRelease("move_right");
+        await PhysicsFrames(2);
+        Check("(6) walking the avatar into the sensor set the story flag", gs.HasStoryFlag(probe));
         Check("(6) re-set of the already-set flag is a no-op (idempotent)", !gs.SetStoryFlag(probe));
-
-        // Re-entry (fresh instance overlaps the player again): the flag stays set exactly once.
-        world.AddChild(MakeProbeTrigger(probe, new Vector2(500, 500)));
-        await PhysicsFrames(3);
-        Check("(6) re-entry left the flag set exactly once (still true, no crash)", gs.HasStoryFlag(probe));
 
         world.QueueFree();
         await PhysicsFrames(1);
-    }
-
-    /// <summary>A bare ExplorationTrigger (default Area2D layer/mask, like the shipped ones) with a
-    /// small circle shape, positioned to overlap the probe player body.</summary>
-    private static Bulwark.Territory.ExplorationTrigger MakeProbeTrigger(string flag, Vector2 pos)
-    {
-        var t = new Bulwark.Territory.ExplorationTrigger { StoryFlag = flag, Position = pos };
-        t.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = 40f } });
-        return t;
     }
 
     private async Task PhysicsFrames(int count)

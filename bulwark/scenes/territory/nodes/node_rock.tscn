@@ -1,42 +1,57 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndrck"]
-[ext_resource type="Texture2D" uid="uid://geaemivbt1pi" path="res://assets/tilesets/winlu_exterior/fantasy_outside_d_noshadow.png" id="2_ndrck"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_node_rock"]
-atlas = ExtResource("2_ndrck")
-region = Rect2(384, 240, 48, 48)
+[sub_resource type="SphereMesh" id="Mesh_boulder"]
+radius = 0.45
+height = 0.66
+radial_segments = 12
+rings = 6
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_node_rock_base"]
-size = Vector2(32, 18)
+[sub_resource type="StandardMaterial3D" id="Mat_boulder"]
+albedo_color = Color(0.55, 0.55, 0.6, 1)
+roughness = 1.0
 
-[node name="NodeRock" type="Node2D"]
-z_index = 5
-script = ExtResource("1_ndrck")
+[sub_resource type="SphereMesh" id="Mesh_chip"]
+radius = 0.2
+height = 0.28
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_chip"]
+albedo_color = Color(0.47, 0.47, 0.52, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Shape_node_rock_body"]
+size = Vector3(0.95, 0.66, 0.95)
+
+[node name="NodeRock" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "rock"
 
-[node name="Sprite" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(-24, -24)
-texture = SubResource("AtlasTexture_node_rock")
-centered = false
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="Body" type="StaticBody2D" parent="."]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body"]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(0, 6)
-shape = SubResource("RectangleShape2D_node_rock_base")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.33, 0)
+shape = SubResource("Shape_node_rock_body")
 
-[node name="Label" type="Label" parent="."]
+[node name="Boulder" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+mesh = SubResource("Mesh_boulder")
+surface_material_override/0 = SubResource("Mat_boulder")
+
+[node name="Chip" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38, 0.12, -0.22)
+mesh = SubResource("Mesh_chip")
+surface_material_override/0 = SubResource("Mat_chip")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -48.0
-offset_top = -40.0
-offset_right = 48.0
-offset_bottom = -22.0
-horizontal_alignment = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Rock"
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
+font_size = 48
+outline_size = 10

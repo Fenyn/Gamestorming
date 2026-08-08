@@ -6,32 +6,33 @@ namespace Bulwark.Cozy;
 
 /// <summary>
 /// A single villager NPC in a walkable world scene (the outpost). Each placed villager is its OWN
-/// entity — a <see cref="CharacterBody2D"/> that owns its per-instance presentation and behavior —
+/// entity — a <see cref="CharacterBody3D"/> that owns its per-instance presentation and behavior —
 /// instanced from the shared <c>scenes/cozy/npc.tscn</c> by <see cref="VillagerLoader"/> and
 /// configured through <see cref="Setup"/> from villager data (no per-character scene needed; the
 /// appearance is data-driven off the <see cref="CharacterProfile.SpriteId"/>).
 ///
-/// Behavior: the NPC idles at its home marker (the spawn position) and periodically wanders to a
-/// random point within <see cref="WanderRadius"/> of HOME (never of its current position, so it
-/// can't drift away over time), then returns to idling. Wander uses the same Mana Seed 4-direction
-/// walk cycle as <see cref="PlayerController"/> when it moves. It is a thin adapter per CLAUDE.md:
-/// no game rules live here beyond this presentational wander loop. The talk/gift interaction is
-/// resolved by the scene via <see cref="VillagerLoader.NearestVillagerId"/> using this node's world
-/// position, so the NPC only needs to expose its <see cref="Id"/> and sit at the right place.
+/// Presentation matches the avatar: a billboarded Mana Seed <see cref="Sprite3D"/> with the same
+/// 4-direction stand/walk sheet anatomy. Behavior: the NPC idles at its home anchor (the spawn
+/// position) and periodically wanders to a random point within <see cref="WanderRadius"/> METRES of
+/// HOME (never of its current position, so it can't drift away over time), then returns to idling.
+/// It is a thin adapter per CLAUDE.md: no game rules live here beyond this presentational wander
+/// loop. The talk/gift interaction is resolved by the scene via
+/// <see cref="VillagerLoader.NearestVillagerId"/> using this node's world position, so the NPC only
+/// needs to expose its <see cref="Id"/> and sit at the right place.
 /// </summary>
-public partial class VillagerNpc : CharacterBody2D
+public partial class VillagerNpc : CharacterBody3D
 {
     /// <summary>Mana Seed hero sheets shared with the avatar / combat token (folder = SpriteId).</summary>
     private const string SpriteRoot = "res://assets/sprites/heroes/";
     private const string DefaultSpriteFolder = "veteran";
 
-    // ------------------------------------------------------------------ Wander tunables
+    // ------------------------------------------------------------------ Wander tunables (metres, 1 cell = 1 m)
 
-    /// <summary>Max distance (px) from HOME a wander target may be picked.</summary>
-    [Export] public float WanderRadius { get; set; } = 96f;
+    /// <summary>Max distance (m) from HOME a wander target may be picked.</summary>
+    [Export] public float WanderRadius { get; set; } = 2f;
 
-    /// <summary>Wander walk speed (px/s) — deliberately slow, well under the player's pace.</summary>
-    [Export] public float WanderSpeed { get; set; } = 40f;
+    /// <summary>Wander walk speed (m/s) — deliberately slow, well under the player's pace.</summary>
+    [Export] public float WanderSpeed { get; set; } = 0.9f;
 
     /// <summary>Minimum idle time (s) before picking a new wander target.</summary>
     [Export] public float WanderIdleMinSeconds { get; set; } = 3f;
@@ -39,8 +40,8 @@ public partial class VillagerNpc : CharacterBody2D
     /// <summary>Maximum idle time (s) before picking a new wander target.</summary>
     [Export] public float WanderIdleMaxSeconds { get; set; } = 7f;
 
-    /// <summary>Distance (px) to the wander target counted as "arrived".</summary>
-    [Export] public float WanderArriveDistance { get; set; } = 4f;
+    /// <summary>Distance (m) to the wander target counted as "arrived".</summary>
+    [Export] public float WanderArriveDistance { get; set; } = 0.12f;
 
     /// <summary>How long (s) a wander walk may be blocked by a collision before giving up and
     /// returning to idle (an unreachable target must not wedge the NPC against a wall forever).</summary>
@@ -48,29 +49,29 @@ public partial class VillagerNpc : CharacterBody2D
 
     // ------------------------------------------------------------------ Commute (schedule) tunables
 
-    /// <summary>Walk speed (px/s) while commuting to a new schedule anchor — deliberately brisker than
+    /// <summary>Walk speed (m/s) while commuting to a new schedule anchor — deliberately brisker than
     /// <see cref="WanderSpeed"/> so the daily move reads as purposeful, not a stroll.</summary>
-    [Export] public float CommuteSpeed { get; set; } = 70f;
+    [Export] public float CommuteSpeed { get; set; } = 1.6f;
 
     /// <summary>How long (s) a commute may make no progress (wedged on geometry) before the NPC warps
     /// straight to its anchor rather than staying stuck forever.</summary>
     [Export] public float CommuteTeleportSeconds { get; set; } = 4f;
 
-    private Sprite2D? _sprite;
+    private Sprite3D? _sprite;
 
     /// <summary>The character/villager id this NPC represents (the dialogue + friendship key).</summary>
     public string Id { get; private set; } = string.Empty;
 
-    // Facing row into the Mana Seed sheet (0=S, 1=N, 2=E, 3=W). Idle NPCs face south (toward camera)
-    // until their first wander sets a real facing.
+    // Facing row into the Mana Seed sheet (0=S, 1=N, 2=E, 3=W). Idle NPCs face south (+Z, toward the
+    // camera) until their first wander sets a real facing.
     private int _facingRow = ManaSeedSheet.RowSouth;
     private float _animTimer;
     private int _animFrame;
     private bool _moving;
 
     // ---- Wander state ----
-    private Vector2 _home;
-    private Vector2 _walkTarget;
+    private Vector3 _home;
+    private Vector3 _walkTarget;
     private bool _walking;
     private bool _wanderEnabled = true;
     private double _idleTimer;
@@ -78,7 +79,7 @@ public partial class VillagerNpc : CharacterBody2D
     private Random? _rng;
 
     // ---- Commute state (walking to a new schedule anchor) ----
-    private Vector2 _anchorTarget;
+    private Vector3 _anchorTarget;
     private bool _commuting;
     private double _commuteStuckTimer;
 
@@ -93,8 +94,7 @@ public partial class VillagerNpc : CharacterBody2D
 
     public override void _Ready()
     {
-        _sprite ??= GetNodeOrNull<Sprite2D>("%Sprite");
-        ZIndex = 4; // just under the player (z=5), above the z=0 world layers, below Overhead (z=10)
+        _sprite ??= GetNodeOrNull<Sprite3D>("%Sprite");
         ApplyStandFrame();
     }
 
@@ -104,7 +104,7 @@ public partial class VillagerNpc : CharacterBody2D
     /// and appearance. Null-safe: an unknown/absent sprite falls back to the default hero sheet so the
     /// NPC is always visible.
     /// </summary>
-    public void Setup(string id, string? spriteId, Vector2 spawnPosition)
+    public void Setup(string id, string? spriteId, Vector3 spawnPosition)
     {
         Id = id;
         Name = $"Villager_{id}";
@@ -139,7 +139,7 @@ public partial class VillagerNpc : CharacterBody2D
     /// gates as wander, so a dialogue or a pin holds the NPC mid-walk. Idempotent when already at the
     /// anchor (the placement-time / save-load case, where the NPC is spawned directly on its anchor).
     /// </summary>
-    public void SetAnchor(Vector2 position)
+    public void SetAnchor(Vector3 position)
     {
         _home = position; // wander now centers on the new anchor even before the commute finishes
         if (GlobalPosition.DistanceTo(position) <= WanderArriveDistance)
@@ -164,7 +164,7 @@ public partial class VillagerNpc : CharacterBody2D
                 StopWalking();
             if (_commuting)
             {
-                Velocity = Vector2.Zero;
+                Velocity = Vector3.Zero;
                 _moving = false;
             }
             UpdateAnimation(delta);
@@ -196,7 +196,7 @@ public partial class VillagerNpc : CharacterBody2D
 
     private void ProcessWalking(double delta)
     {
-        Vector2 toTarget = _walkTarget - GlobalPosition;
+        Vector3 toTarget = Flat(_walkTarget - GlobalPosition);
         float distance = toTarget.Length();
         if (distance <= WanderArriveDistance)
         {
@@ -204,8 +204,8 @@ public partial class VillagerNpc : CharacterBody2D
             return;
         }
 
-        Vector2 direction = toTarget / distance;
-        Velocity = direction * WanderSpeed;
+        Vector3 direction = toTarget / distance;
+        Velocity = direction * WanderSpeed + Vector3.Down;
         MoveAndSlide();
         UpdateFacing(direction);
         _moving = true;
@@ -233,7 +233,7 @@ public partial class VillagerNpc : CharacterBody2D
     /// </summary>
     private void ProcessCommute(double delta)
     {
-        Vector2 toTarget = _anchorTarget - GlobalPosition;
+        Vector3 toTarget = Flat(_anchorTarget - GlobalPosition);
         float distance = toTarget.Length();
         if (distance <= WanderArriveDistance)
         {
@@ -242,15 +242,15 @@ public partial class VillagerNpc : CharacterBody2D
             return;
         }
 
-        Vector2 before = GlobalPosition;
-        Vector2 direction = toTarget / distance;
-        Velocity = direction * CommuteSpeed;
+        Vector3 before = GlobalPosition;
+        Vector3 direction = toTarget / distance;
+        Velocity = direction * CommuteSpeed + Vector3.Down;
         MoveAndSlide();
         UpdateFacing(direction);
         _moving = true;
 
         // No meaningful progress this tick (blocked by a wall/prop) accrues toward the teleport fallback.
-        if (GlobalPosition.DistanceTo(before) < 0.5f)
+        if (GlobalPosition.DistanceTo(before) < 0.01f)
         {
             _commuteStuckTimer += delta;
             if (_commuteStuckTimer >= CommuteTeleportSeconds)
@@ -272,17 +272,19 @@ public partial class VillagerNpc : CharacterBody2D
     {
         _walking = false;
         _moving = false;
-        Velocity = Vector2.Zero;
+        Velocity = Vector3.Zero;
         _blockedTimer = 0;
         _idleTimer = NextIdleSeconds();
     }
 
-    private Vector2 RandomOffsetInRadius()
+    private static Vector3 Flat(Vector3 v) => new(v.X, 0f, v.Z);
+
+    private Vector3 RandomOffsetInRadius()
     {
         var rng = _rng ??= new Random();
         double angle = rng.NextDouble() * (Math.PI * 2);
         double radius = rng.NextDouble() * WanderRadius;
-        return new Vector2((float)(Math.Cos(angle) * radius), (float)(Math.Sin(angle) * radius));
+        return new Vector3((float)(Math.Cos(angle) * radius), 0f, (float)(Math.Sin(angle) * radius));
     }
 
     private double NextIdleSeconds()
@@ -295,13 +297,14 @@ public partial class VillagerNpc : CharacterBody2D
 
     // ------------------------------------------------------------------ Facing / animation
 
-    /// <summary>Same 4-direction facing rule as <see cref="PlayerController"/>: the larger axis wins.</summary>
-    private void UpdateFacing(Vector2 v)
+    /// <summary>Same 4-direction facing rule as <see cref="PlayerController"/>, on the XZ plane: the
+    /// larger axis wins (+Z reads as south / toward the fixed cozy camera).</summary>
+    private void UpdateFacing(Vector3 v)
     {
-        if (Mathf.Abs(v.X) >= Mathf.Abs(v.Y))
+        if (Mathf.Abs(v.X) >= Mathf.Abs(v.Z))
             _facingRow = v.X >= 0f ? ManaSeedSheet.RowEast : ManaSeedSheet.RowWest;
         else
-            _facingRow = v.Y >= 0f ? ManaSeedSheet.RowSouth : ManaSeedSheet.RowNorth;
+            _facingRow = v.Z >= 0f ? ManaSeedSheet.RowSouth : ManaSeedSheet.RowNorth;
     }
 
     private void UpdateAnimation(double delta)
@@ -329,7 +332,7 @@ public partial class VillagerNpc : CharacterBody2D
 
     private void ApplySprite(string? spriteId)
     {
-        _sprite ??= GetNodeOrNull<Sprite2D>("%Sprite");
+        _sprite ??= GetNodeOrNull<Sprite3D>("%Sprite");
         if (_sprite == null)
             return;
 

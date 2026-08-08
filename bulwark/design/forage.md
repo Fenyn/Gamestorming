@@ -29,9 +29,10 @@ randomly each day, Stardew-style). Trees become first-class choppable resource n
   node name (names unique per scene). Chopped/harvested state persists exactly like today's
   marker-spawned nodes.
 - Trees: new Axe node definitions (data-only in `ResourceNodes.cs`), yields anchored Stardew-scale
-  (a full tree ≈ 10–12 wood, one-shot per day-respawn rules below), art from the Winlu big-tree
-  sheets (footprints already catalogued in `ForestPainter.cs`). Trunk-base collision only; canopy
-  stays walk-under (y-sort by trunk base).
+  (a full tree ≈ 10–12 wood, one-shot per day-respawn rules below). 3D greybox art for now — a
+  cylinder trunk plus a sphere/cone canopy per prefab, swappable one scene at a time. Trunk-base
+  collision only (a `CylinderShape3D` around the trunk); the canopy stays walk-under and depth
+  sorting is the 3D depth buffer's job.
 
 ### Forage spawns (random daily)
 - Per-territory **forage table** on `TerritoryDefinition`: list of (nodeId, weight), optional
@@ -39,8 +40,9 @@ randomly each day, Stardew-style). Trees become first-class choppable resource n
 - **Daily pass** on day change, per unlocked territory:
   - If live forage count ≥ cap (default 6) → skip.
   - Roll N = 1–4 attempts; each picks a random valid cell and spawns the weighted node prefab.
-  - Valid cell = grass-family ground tile, no Walls/Props tile, no collision, ≥ 2 cells from any
-    other node/marker/trail-exit, inside the playable rect.
+  - Valid cell = inside the territory's authored walkable ground rect (its `%Ground` floor collider,
+    shrunk by one ring), not a cell claimed by a world object (trigger footprints, obstacle bodies,
+    plus a 1-cell margin), ≥ 2 cells from any other node/marker/trail-exit.
 - **Determinism**: RNG seeded by (save seed, day, territory id) — reload gives the same spawns.
 - **Sweep**: uncollected forage clears every 7th day before the daily pass (and on season change
   when seasons land).

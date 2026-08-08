@@ -2,21 +2,24 @@
 
 [ext_resource type="Script" path="res://scripts/cozy/VillagerNpc.cs" id="1_npc"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_feet"]
-size = Vector2(24, 14)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+radius = 0.3
+height = 1.2
 
-[node name="Npc" type="CharacterBody2D"]
+[node name="Npc" type="CharacterBody3D"]
 motion_mode = 1
 script = ExtResource("1_npc")
 
-[node name="Sprite" type="Sprite2D" parent="."]
+[node name="Sprite" type="Sprite3D" parent="."]
 unique_name_in_owner = true
-texture_filter = 1
-scale = Vector2(2, 2)
-offset = Vector2(0, -11)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+billboard = 2
+texture_filter = 0
+alpha_cut = 1
+pixel_size = 0.05
 hframes = 8
 vframes = 8
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -4)
-shape = SubResource("RectangleShape2D_feet")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("CapsuleShape3D_npc")

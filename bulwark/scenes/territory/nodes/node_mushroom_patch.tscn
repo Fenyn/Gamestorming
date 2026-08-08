@@ -1,59 +1,120 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=15 format=3]
 
-[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_ndmsh"]
-[ext_resource type="Texture2D" uid="uid://ql382v8ud7i8" path="res://assets/tilesets/winlu_exterior/decoration_vegetation.png" id="2_ndmsh"]
+[ext_resource type="Script" path="res://scripts/territory/ResourceNodeView.cs" id="1_resnode"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_mushroom_a"]
-atlas = ExtResource("2_ndmsh")
-region = Rect2(436, 712, 36, 56)
+[sub_resource type="CylinderMesh" id="Mesh_stema"]
+top_radius = 0.06
+bottom_radius = 0.07
+height = 0.24
+radial_segments = 10
+rings = 1
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_mushroom_b"]
-atlas = ExtResource("2_ndmsh")
-region = Rect2(484, 712, 36, 56)
+[sub_resource type="StandardMaterial3D" id="Mat_stema"]
+albedo_color = Color(0.86, 0.82, 0.7, 1)
+roughness = 1.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_mushroom_c"]
-atlas = ExtResource("2_ndmsh")
-region = Rect2(532, 712, 36, 56)
+[sub_resource type="SphereMesh" id="Mesh_capa"]
+radius = 0.16
+height = 0.18
+radial_segments = 12
+rings = 6
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mushroom_patch_base"]
-size = Vector2(28, 14)
+[sub_resource type="StandardMaterial3D" id="Mat_capa"]
+albedo_color = Color(0.72, 0.32, 0.28, 1)
+roughness = 1.0
 
-[node name="NodeMushroomPatch" type="Node2D"]
-z_index = 5
-script = ExtResource("1_ndmsh")
+[sub_resource type="CylinderMesh" id="Mesh_stemb"]
+top_radius = 0.05
+bottom_radius = 0.06
+height = 0.18
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Mat_stemb"]
+albedo_color = Color(0.86, 0.82, 0.7, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_capb"]
+radius = 0.12
+height = 0.14
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_capb"]
+albedo_color = Color(0.72, 0.32, 0.28, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Mesh_stemc"]
+top_radius = 0.04
+bottom_radius = 0.05
+height = 0.15
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Mat_stemc"]
+albedo_color = Color(0.86, 0.82, 0.7, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="Mesh_capc"]
+radius = 0.1
+height = 0.12
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_capc"]
+albedo_color = Color(0.66, 0.28, 0.26, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Shape_node_mushroom_patch_body"]
+size = Vector3(0.66, 0.36, 0.66)
+
+[node name="NodeMushroomPatch" type="Node3D"]
+script = ExtResource("1_resnode")
 DefinitionId = "wild_mushroom_patch"
 
-[node name="MushroomA" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(-14, 0)
-texture = SubResource("AtlasTexture_mushroom_a")
+[node name="Body" type="StaticBody3D" parent="."]
 
-[node name="MushroomB" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(14, -6)
-texture = SubResource("AtlasTexture_mushroom_b")
-
-[node name="MushroomC" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(0, 8)
-texture = SubResource("AtlasTexture_mushroom_c")
-
-[node name="Body" type="StaticBody2D" parent="."]
-
-[node name="BodyShape" type="CollisionShape2D" parent="Body"]
+[node name="BodyShape" type="CollisionShape3D" parent="Body"]
 unique_name_in_owner = true
-position = Vector2(0, 6)
-shape = SubResource("RectangleShape2D_mushroom_patch_base")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.18, 0)
+shape = SubResource("Shape_node_mushroom_patch_body")
 
-[node name="Label" type="Label" parent="."]
+[node name="StemA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+mesh = SubResource("Mesh_stema")
+surface_material_override/0 = SubResource("Mat_stema")
+
+[node name="CapA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+mesh = SubResource("Mesh_capa")
+surface_material_override/0 = SubResource("Mat_capa")
+
+[node name="StemB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26, 0.09, 0.18)
+mesh = SubResource("Mesh_stemb")
+surface_material_override/0 = SubResource("Mat_stemb")
+
+[node name="CapB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26, 0.21, 0.18)
+mesh = SubResource("Mesh_capb")
+surface_material_override/0 = SubResource("Mat_capb")
+
+[node name="StemC" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22, 0.075, -0.15)
+mesh = SubResource("Mesh_stemc")
+surface_material_override/0 = SubResource("Mat_stemc")
+
+[node name="CapC" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22, 0.18, -0.15)
+mesh = SubResource("Mesh_capc")
+surface_material_override/0 = SubResource("Mat_capc")
+
+[node name="Label" type="Label3D" parent="."]
 unique_name_in_owner = true
-z_index = 10
-offset_left = -60.0
-offset_top = -42.0
-offset_right = 60.0
-offset_bottom = -24.0
-horizontal_alignment = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+billboard = 2
+no_depth_test = true
+pixel_size = 0.006
 text = "Wild Mushroom Patch"
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
+font_size = 48
+outline_size = 10

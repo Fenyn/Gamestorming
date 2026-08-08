@@ -16,7 +16,7 @@ namespace Bulwark.Dev;
 ///      last-match-wins; window-rule day-boundary inclusive/exclusive edges; flag rule +
 ///      UnlessFlag retirement; the season auto-key is always present; an invalid rule (both/neither
 ///      of OverlayKey+StageOverride set) is ignored with no crash.
-///  (B) BuildingInstance.Apply against an in-memory-packed synthetic building (Node2D root +
+///  (B) BuildingInstance.Apply against an in-memory-packed synthetic building (Node3D root +
 ///      %Stages/%Scaffold/%Overlays/%Footprint, one stage carrying its own collision shape): exactly
 ///      one stage visible at a time; scaffold shown + all stages hidden while under construction;
 ///      per-stage/scaffold collision Disabled tracks visibility; overlays toggle by key; null-safe on
@@ -219,13 +219,13 @@ public partial class BuildingVisualsSpike : SpikeBase
         full.Apply(2, false, Array.Empty<string>());
         Check("(B) switching to stage 2 hides stage 1", StageVisible(full, 2) && !StageVisible(full, 1));
 
-        // Per-stage collision follows visibility (Stage1 carries its own CollisionShape2D).
+        // Per-stage collision follows visibility (Stage1 carries its own CollisionShape3D).
         var stage1Shape = FindCollisionShape(StageNode(full, 1));
         Check("(B) stage 1 has a collision shape to test", stage1Shape != null);
         full.Apply(1, false, Array.Empty<string>());
         Check("(B) visible stage's collision is enabled", stage1Shape != null && !stage1Shape.Disabled);
         full.Apply(2, false, Array.Empty<string>());
-        Check("(B) hidden stage's collision is disabled (hidden CanvasItems still collide — the fix)",
+        Check("(B) hidden stage's collision is disabled (hidden nodes still collide — the fix)",
             stage1Shape != null && stage1Shape.Disabled);
 
         // Scaffold shown + all stages hidden while under construction; scaffold collision enabled.
@@ -313,9 +313,9 @@ public partial class BuildingVisualsSpike : SpikeBase
             var bs = new BuildingSystem(inv, () => wallet.Gold, wallet.TrySpendGold, catalog);
             bs.SetConstructionDays(new Dictionary<string, int> { [SpikeBuildingId] = 2 });
 
-            var host = new Node2D { Name = "LoaderHost" };
+            var host = new Node3D { Name = "LoaderHost" };
             AddChild(host);
-            var marker = new Marker2D { Name = $"Building_{SpikeBuildingId}" };
+            var marker = new Marker3D { Name = $"Building_{SpikeBuildingId}" };
             host.AddChild(marker);
 
             Season season = Season.Spring;
@@ -393,9 +393,9 @@ public partial class BuildingVisualsSpike : SpikeBase
     {
         GD.Print("-------------------- (D) Back-compat: loader without new delegates --------------------");
 
-        var host = new Node2D { Name = "BackCompatHost" };
+        var host = new Node3D { Name = "BackCompatHost" };
         AddChild(host);
-        var marker = new Marker2D { Name = "Building_farmhouse", Position = new Vector2(64, 32) };
+        var marker = new Marker3D { Name = "Building_farmhouse", Position = new Vector3(6f, 0f, 3f) };
         host.AddChild(marker);
 
         int tier = 1;
@@ -406,7 +406,7 @@ public partial class BuildingVisualsSpike : SpikeBase
         var inst = FindBuildingInstance(host);
         Check("(D) farmhouse placed at its marker (real, read-only shipped scene)",
             inst != null && inst.GlobalPosition == marker.GlobalPosition);
-        Check("(D) placed building keeps its %Footprint", inst?.GetNodeOrNull("%Footprint") is StaticBody2D);
+        Check("(D) placed building keeps its %Footprint", inst?.GetNodeOrNull("%Footprint") is StaticBody3D);
         Check("(D) tier 1 shows stage index 1 (plain SetStage behavior)", StageVisible(inst, 1) && !StageVisible(inst, 0));
 
         tier = 2;
@@ -459,9 +459,9 @@ public partial class BuildingVisualsSpike : SpikeBase
             Season season = Season.Winter;
             int day = 1;
 
-            var host = new Node2D { Name = "RuinHost" };
+            var host = new Node3D { Name = "RuinHost" };
             AddChild(host);
-            var marker = new Marker2D { Name = $"Building_{SpikeRuinBuildingId}" };
+            var marker = new Marker3D { Name = $"Building_{SpikeRuinBuildingId}" };
             host.AddChild(marker);
 
             // tierOf always 0 — nothing ever commissions this building in this test.
@@ -477,8 +477,8 @@ public partial class BuildingVisualsSpike : SpikeBase
             var inst = FindBuildingInstance(host);
             Check("(E) tier-0 building IS placed by the loader (ruin visible from day one)", inst != null);
             Check("(E) tier-0 shows Stage0 (the ruined/site look)", StageVisible(inst, 0) && !StageVisible(inst, 1));
-            Check("(E) placed ruin still carries a %Footprint (rubble blocks the tiles)",
-                inst?.GetNodeOrNull("%Footprint") is StaticBody2D);
+            Check("(E) placed ruin still carries a %Footprint (rubble blocks the cells)",
+                inst?.GetNodeOrNull("%Footprint") is StaticBody3D);
 
             // Overlay keys still apply at stage 0 (a snowy ruin is fine and free).
             Check("(E) season overlay still applies at tier 0 (Winter)", OverlayVisible(inst, "Winter"));
@@ -580,9 +580,9 @@ public partial class BuildingVisualsSpike : SpikeBase
                 bs.ActiveEffects().Any(e => e.Detail == "spike_tier1_shop"));
 
             // Place it in the world and confirm the tier-1 stage shows, not scaffolded.
-            var host = new Node2D { Name = "UpgradeHost" };
+            var host = new Node3D { Name = "UpgradeHost" };
             AddChild(host);
-            var marker = new Marker2D { Name = $"Building_{SpikeUpgradeBuildingId}" };
+            var marker = new Marker3D { Name = $"Building_{SpikeUpgradeBuildingId}" };
             host.AddChild(marker);
             var loader = new BuildingLoader(
                 host,
@@ -654,13 +654,18 @@ public partial class BuildingVisualsSpike : SpikeBase
     // ─────────────────────────── (G) Shipped building scenes ───────────────────────────
 
     /// <summary>
-    /// Loads each SHIPPED building scene (scenes/buildings/*.tscn, authored by BuildingSceneBuilder)
-    /// and validates the placement contract against its Buildings.cs data: it instantiates as a
-    /// BuildingInstance; its %Stages child count equals maxStageIndex+1; %Footprint carries a
-    /// CollisionShape2D; EVERY TileMapLayer under %Stages has collision_enabled == false (the footprint
-    /// owns all blocking); and Apply() over every valid stage index plus the scaffold path runs without
-    /// throwing. A scene with a missing ext_resource (prop/tileset/frames) fails to instantiate cleanly,
-    /// so a non-null instance with painted stage tiles is itself the missing-resource guard.
+    /// Loads each SHIPPED building scene (scenes/buildings/*.tscn) and validates the placement
+    /// contract against its Buildings.cs data: it instantiates as a BuildingInstance; its %Stages
+    /// child count is at least maxStageIndex+1; %Footprint is a StaticBody3D carrying a collision
+    /// shape; every stage is built from MeshInstance3D geometry (greybox or an instanced .glb, both
+    /// import as MeshInstance3D descendants); Apply(i, ...) leaves EXACTLY ONE stage visible for every
+    /// valid index i; a stage that carries its OWN collider (a stage that changes the building's
+    /// OUTLINE — trading_post's Stage0 ruin, command_post's Stage1 porch — per
+    /// design/building_authoring_guide.md) tracks visibility exactly: enabled only while ITS OWN stage
+    /// is the one Apply() shows, disabled under every other stage; and Apply() over every valid stage
+    /// index plus the scaffold path runs without throwing. A scene with a missing ext_resource fails
+    /// to instantiate cleanly, so a non-null instance with stage geometry is itself the
+    /// missing-resource guard.
     /// </summary>
     private void RunShippedBuildingScenes()
     {
@@ -692,27 +697,42 @@ public partial class BuildingVisualsSpike : SpikeBase
                 stages != null && stages.GetChildCount() >= expectedStages);
 
             var footprint = inst.GetNodeOrNull("%Footprint");
-            Check($"(G) {id}: %Footprint is a StaticBody2D", footprint is StaticBody2D);
-            Check($"(G) {id}: %Footprint has a collision shape (rect or polygon)",
+            Check($"(G) {id}: %Footprint is a StaticBody3D", footprint is StaticBody3D);
+            Check($"(G) {id}: %Footprint has a collision shape (box or polygon)",
                 FindCollisionShape(footprint) != null || FindCollisionPolygon(footprint) != null);
 
-            int layers = 0, colliding = 0;
+            int meshes = 0;
             foreach (Node n in Descendants(stages!))
-                if (n is TileMapLayer tml)
-                {
-                    layers++;
-                    if (tml.CollisionEnabled) colliding++;
-                }
-            Check($"(G) {id}: has painted TileMapLayers under %Stages ({layers})", layers > 0);
-            Check($"(G) {id}: EVERY TileMapLayer under %Stages has collision_enabled == false",
-                colliding == 0);
+                if (n is MeshInstance3D) meshes++;
+            Check($"(G) {id}: has geometry under %Stages ({meshes} MeshInstance3D)", meshes > 0);
 
-            // Apply over every valid stage index + the scaffold path must run clean.
+            // Apply over every valid stage index + the scaffold path must run clean. Any stage-local
+            // collider must track visibility: enabled only while its own stage is the one shown.
             bool threw = false;
             try
             {
                 for (int i = 0; i < expectedStages; i++)
+                {
                     inst.Apply(i, false, Array.Empty<string>());
+
+                    int visibleCount = 0;
+                    for (int j = 0; j < stages!.GetChildCount(); j++)
+                    {
+                        bool shouldBeEnabled = j == i;
+                        var stageNode = stages.GetChild(j);
+                        if (stageNode is Node3D stage3D && stage3D.Visible) visibleCount++;
+                        foreach (Node n in Descendants(stageNode))
+                        {
+                            if (n is CollisionShape3D cs)
+                                Check($"(G) {id}: stage {j} collider {(shouldBeEnabled ? "enabled" : "disabled")} while stage {i} shows",
+                                    cs.Disabled == !shouldBeEnabled);
+                            else if (n is CollisionPolygon3D cp)
+                                Check($"(G) {id}: stage {j} collider {(shouldBeEnabled ? "enabled" : "disabled")} while stage {i} shows",
+                                    cp.Disabled == !shouldBeEnabled);
+                        }
+                    }
+                    Check($"(G) {id}: exactly one stage visible after Apply({i})", visibleCount == 1);
+                }
                 inst.Apply(1, true, Array.Empty<string>());  // scaffold path
                 inst.Apply(1, false, Array.Empty<string>());
             }
@@ -723,13 +743,13 @@ public partial class BuildingVisualsSpike : SpikeBase
             }
             Check($"(G) {id}: Apply over all stages + scaffold runs without throwing", !threw);
 
-            // Stage 1 (the day-one restored look) must actually carry painted tiles somewhere.
+            // Stage 1 (the day-one restored look) must actually carry geometry.
             inst.Apply(1, false, Array.Empty<string>());
-            int stage1Cells = 0;
+            int stage1Meshes = 0;
             if (stages!.GetChildCount() > 1)
                 foreach (Node n in Descendants(stages.GetChild(1)))
-                    if (n is TileMapLayer tml) stage1Cells += tml.GetUsedCells().Count;
-            Check($"(G) {id}: Stage1 has painted tiles ({stage1Cells} cells)", stage1Cells > 0);
+                    if (n is MeshInstance3D) stage1Meshes++;
+            Check($"(G) {id}: Stage1 has greybox geometry ({stage1Meshes} meshes)", stage1Meshes > 0);
 
             inst.QueueFree();
         }
@@ -767,7 +787,7 @@ public partial class BuildingVisualsSpike : SpikeBase
     {
         var root = new BuildingInstance { Name = rootName };
 
-        var stages = new Node2D { Name = "Stages", UniqueNameInOwner = true };
+        var stages = new Node3D { Name = "Stages", UniqueNameInOwner = true };
         root.AddChild(stages);
         stages.Owner = root;
         AddStage(stages, root, "Stage0", withCollision: false);
@@ -776,53 +796,53 @@ public partial class BuildingVisualsSpike : SpikeBase
 
         if (withScaffoldAndOverlays)
         {
-            var scaffold = new Node2D { Name = "Scaffold", UniqueNameInOwner = true, Visible = false };
+            var scaffold = new Node3D { Name = "Scaffold", UniqueNameInOwner = true, Visible = false };
             root.AddChild(scaffold);
             scaffold.Owner = root;
             AddCollisionBody(scaffold, root);
 
-            var overlays = new Node2D { Name = "Overlays", UniqueNameInOwner = true };
+            var overlays = new Node3D { Name = "Overlays", UniqueNameInOwner = true };
             root.AddChild(overlays);
             overlays.Owner = root;
             foreach (string key in new[] { "Spring", "Summer", "Fall", "Winter", "Festival_Harvest", "Memorial_Plaque" })
             {
-                var c = new ColorRect { Name = key, Visible = false, Size = new Vector2(4, 4) };
+                var c = new Node3D { Name = key, Visible = false };
                 overlays.AddChild(c);
                 c.Owner = root;
             }
         }
 
-        var footprint = new StaticBody2D { Name = "Footprint", UniqueNameInOwner = true };
+        var footprint = new StaticBody3D { Name = "Footprint", UniqueNameInOwner = true };
         root.AddChild(footprint);
         footprint.Owner = root;
-        var footprintShape = new CollisionShape2D { Name = "CollisionShape2D", Shape = new RectangleShape2D { Size = new Vector2(20, 20) } };
+        var footprintShape = new CollisionShape3D { Name = "CollisionShape3D", Shape = new BoxShape3D { Size = new Vector3(2f, 2f, 2f) } };
         footprint.AddChild(footprintShape);
         footprintShape.Owner = root;
 
-        var interact = new Marker2D { Name = "Interact", UniqueNameInOwner = true };
+        var interact = new Marker3D { Name = "Interact", UniqueNameInOwner = true };
         root.AddChild(interact);
         interact.Owner = root;
 
         return root;
     }
 
-    private static void AddStage(Node2D stages, Node root, string name, bool withCollision)
+    private static void AddStage(Node3D stages, Node root, string name, bool withCollision)
     {
-        var stage = new Node2D { Name = name, Visible = false };
+        var stage = new Node3D { Name = name, Visible = false };
         stages.AddChild(stage);
         stage.Owner = root;
         if (withCollision)
             AddCollisionBody(stage, root);
     }
 
-    /// <summary>A unique StaticBody2D + CollisionShape2D under <paramref name="parent"/> (per the
+    /// <summary>A unique StaticBody3D + CollisionShape3D under <paramref name="parent"/> (per the
     /// unique-collision-shapes convention — never a shared sub_resource).</summary>
-    private static void AddCollisionBody(Node2D parent, Node root)
+    private static void AddCollisionBody(Node3D parent, Node root)
     {
-        var body = new StaticBody2D { Name = "Body" };
+        var body = new StaticBody3D { Name = "Body" };
         parent.AddChild(body);
         body.Owner = root;
-        var shape = new CollisionShape2D { Name = "CollisionShape2D", Shape = new RectangleShape2D { Size = new Vector2(8, 8) } };
+        var shape = new CollisionShape3D { Name = "CollisionShape3D", Shape = new BoxShape3D { Size = new Vector3(0.8f, 0.8f, 0.8f) } };
         body.AddChild(shape);
         shape.Owner = root;
     }
@@ -847,24 +867,24 @@ public partial class BuildingVisualsSpike : SpikeBase
     }
 
     private static bool StageVisible(BuildingInstance? inst, int index)
-        => StageNode(inst, index) is CanvasItem ci && ci.Visible;
+        => StageNode(inst, index) is Node3D n3 && n3.Visible;
 
     private static bool ScaffoldVisible(BuildingInstance? inst)
-        => inst?.GetNodeOrNull("%Scaffold") is CanvasItem ci && ci.Visible;
+        => inst?.GetNodeOrNull("%Scaffold") is Node3D n3 && n3.Visible;
 
     private static bool OverlayVisible(BuildingInstance? inst, string key)
     {
         var overlays = inst?.GetNodeOrNull("%Overlays");
-        return overlays?.GetNodeOrNull(key) is CanvasItem ci && ci.Visible;
+        return overlays?.GetNodeOrNull(key) is Node3D n3 && n3.Visible;
     }
 
-    private static CollisionShape2D? FindCollisionShape(Node? root)
+    private static CollisionShape3D? FindCollisionShape(Node? root)
     {
         if (root == null)
             return null;
         foreach (Node child in root.GetChildren())
         {
-            if (child is CollisionShape2D cs)
+            if (child is CollisionShape3D cs)
                 return cs;
             var found = FindCollisionShape(child);
             if (found != null)
@@ -873,13 +893,13 @@ public partial class BuildingVisualsSpike : SpikeBase
         return null;
     }
 
-    private static CollisionPolygon2D? FindCollisionPolygon(Node? root)
+    private static CollisionPolygon3D? FindCollisionPolygon(Node? root)
     {
         if (root == null)
             return null;
         foreach (Node child in root.GetChildren())
         {
-            if (child is CollisionPolygon2D cp)
+            if (child is CollisionPolygon3D cp)
                 return cp;
             var found = FindCollisionPolygon(child);
             if (found != null)
@@ -948,7 +968,7 @@ public partial class BuildingVisualsSpike : SpikeBase
             // Pre-place the instance ourselves, exactly like the user would in the outpost editor:
             // load the shipped scene, instance it, give it an UNRELATED name, and drop it at an
             // arbitrary hand-picked position — no %Building_<id> marker anywhere in this host.
-            var host = new Node2D { Name = "AdoptHost" };
+            var host = new Node3D { Name = "AdoptHost" };
             AddChild(host);
             var prePlacedScene = GD.Load<PackedScene>(scenePath);
             var prePlaced = prePlacedScene?.Instantiate<BuildingInstance>();
@@ -957,7 +977,7 @@ public partial class BuildingVisualsSpike : SpikeBase
                 return;
             prePlaced.Name = "HandPlacedTavernLikeThing"; // deliberately NOT "Building_spike_adopt_building"
             host.AddChild(prePlaced);
-            var handPlacedPosition = new Vector2(777, 333);
+            var handPlacedPosition = new Vector3(77.7f, 0f, 33.3f);
             prePlaced.GlobalPosition = handPlacedPosition;
             Check("(H) pre-placed instance carries the definition's SceneFilePath",
                 prePlaced.SceneFilePath == scenePath);
@@ -1028,9 +1048,9 @@ public partial class BuildingVisualsSpike : SpikeBase
 
         try
         {
-            var host = new Node2D { Name = "LodgingArcHost" };
+            var host = new Node3D { Name = "LodgingArcHost" };
             AddChild(host);
-            var marker = new Marker2D { Name = "Building_tavern" };
+            var marker = new Marker3D { Name = "Building_tavern" };
             host.AddChild(marker);
 
             // No catalog passed → the loader drives off the REAL Buildings.All registry (includes the

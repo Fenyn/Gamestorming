@@ -11,41 +11,56 @@ using CharacterRegistry = Bulwark.Data.Characters.Characters;
 namespace Bulwark.Cozy;
 
 /// <summary>
-/// Thin Node2D adapter for the outpost world scene (<c>scenes/outpost/outpost.tscn</c>). Holds no
+/// Thin Node3D adapter for the outpost world scene (<c>scenes/outpost/outpost.tscn</c>). Holds no
 /// game logic: it only exposes typed accessors so the avatar / farming systems can query the
-/// blockout — tile layers, spawn/farm markers, ruined-building placeholders, and the territory
-/// gate trigger. The user hand-paints the actual tilemaps in the editor; this script never mutates
+/// greybox — the ground body, spawn/farm markers, pre-placed building instances, and the territory
+/// gate trigger. The user authors the actual 3D blockout in the editor (every building, prop and
+/// bedroll is its own scene instanced here, swappable one at a time); this script never mutates
 /// world state. Player/HUD/squad-panel hosting is inherited from <see cref="CozyWorldScene"/>.
 ///
-/// Layer draw order (bottom to top): Ground, GroundDecor, Walls, Props, Overhead. Overhead is meant
-/// to render above the player avatar (roofs / treetops); the player scene is expected to sit between
-/// Props and Overhead.
+/// NODE CONTRACT (all optional — every lookup is null-safe so the scene still runs standalone):
+///  • <c>%Ground</c> — StaticBody3D floor (physics layer 1 "Terrain") + the perimeter wall colliders.
+///  • <c>%PlayerSpawn</c> / <c>%FarmArea</c> / <c>%Villager_&lt;id&gt;</c> / <c>%Spot_*</c> — Marker3D.
+///  • <c>%GateTrigger</c> / <c>%Bedroll</c> — Area3D.
+///  • building instances — <c>scenes/buildings/&lt;id&gt;.tscn</c> placed directly as children and
+///    adopted by <see cref="BuildingLoader"/> through their SceneFilePath (never by node name).
+///
+/// GRID: one cell is ONE METRE. Cell (x, y) covers world X ∈ [x, x+1), Z ∈ [y, y+1).
 /// </summary>
 public partial class OutpostScene : CozyWorldScene
 {
     /// <summary>The territory the gate leads to (M3: the single Tier-1 forest).</summary>
     [Export] public string GateTerritoryId { get; set; } = "verdant_fringe";
 
-    private TileMapLayer? _ground;
-    private TileMapLayer? _groundDecor;
-    private TileMapLayer? _walls;
-    private TileMapLayer? _props;
-    private TileMapLayer? _overhead;
-    private Marker2D? _playerSpawn;
-    private Marker2D? _farmArea;
-    private Area2D? _gateTrigger;
-    private Area2D? _bedroll;
-    private readonly List<Marker2D> _ruinedBuildings = new();
+    /// <summary>Size (in CELLS) of the base, always-unlocked farm plot centred on <c>%FarmArea</c>.
+    /// This rectangle is farm zone 0 — the soil the player can work from day one.</summary>
+    [Export] public Vector2I FarmSizeCells { get; set; } = new(8, 8);
 
-    // Farm renderer instanced by this scene (draw order: layers < FarmRenderer < Player < Overhead).
+    /// <summary>Cells of extra farmland each higher farm ZONE adds around the base rectangle
+    /// (design/Refinement 2: farm upgrades expand the tillable AREA, they don't grant plot count).</summary>
+    [Export] public int FarmZoneRingCells { get; set; } = 2;
+
+    /// <summary>Highest authored farm zone — soil beyond this ring is not farmland at all.</summary>
+    [Export] public int FarmMaxZone { get; set; } = 2;
+
+    /// <summary>Proximity radius (m) for the villager TALK/gift interactions (~1.5 cells).</summary>
+    private const float VillagerTalkRadius = 1.5f;
+
+    private StaticBody3D? _ground;
+    private Marker3D? _playerSpawn;
+    private Marker3D? _farmArea;
+    private Area3D? _gateTrigger;
+    private Area3D? _bedroll;
+
+    // Farm renderer instanced by this scene (pooled per-cell greybox soil/crop meshes).
     private FarmRenderer? _farmRenderer;
 
-    // Phase-2 build loop: instances commissioned buildings at their %Building_<id> markers and
-    // refreshes their staged visual on BuildingChanged.
+    // Phase-2 build loop: adopts the pre-placed building instances (or instances them at their
+    // %Building_<id> markers) and refreshes their staged visual on BuildingChanged.
     private BuildingLoader? _buildingLoader;
 
-    // Phase-3 static cast: spawns an NPC node for each ARRIVED villager at its %Villager_<id> marker
-    // and refreshes on VillagerArrived. No-op in shipped play (empty villager catalog).
+    // Phase-3 static cast: spawns an NPC node for each PRESENT villager at its %Villager_<id> marker
+    // and refreshes on VillagerArrived.
     private VillagerLoader? _villagerLoader;
     private TransitionSign? _gateSign;
     private bool _playerAtGate;  // player currently inside the gate trigger (interact travels)
@@ -55,22 +70,11 @@ public partial class OutpostScene : CozyWorldScene
 
     public override void _Ready()
     {
-        _ground = GetNodeOrNull<TileMapLayer>("%Ground");
-        _groundDecor = GetNodeOrNull<TileMapLayer>("%GroundDecor");
-        _walls = GetNodeOrNull<TileMapLayer>("%Walls");
-        _props = GetNodeOrNull<TileMapLayer>("%Props");
-        _overhead = GetNodeOrNull<TileMapLayer>("%Overhead");
-        _playerSpawn = GetNodeOrNull<Marker2D>("%PlayerSpawn");
-        _farmArea = GetNodeOrNull<Marker2D>("%FarmArea");
-        _gateTrigger = GetNodeOrNull<Area2D>("%GateTrigger");
-        _bedroll = GetNodeOrNull<Area2D>("%Bedroll");
-
-        _ruinedBuildings.Clear();
-        for (int i = 1; i <= 8; i++)
-        {
-            var m = GetNodeOrNull<Marker2D>($"%RuinedBuilding_{i}");
-            if (m != null) _ruinedBuildings.Add(m);
-        }
+        _ground = GetNodeOrNull<StaticBody3D>("%Ground");
+        _playerSpawn = GetNodeOrNull<Marker3D>("%PlayerSpawn");
+        _farmArea = GetNodeOrNull<Marker3D>("%FarmArea");
+        _gateTrigger = GetNodeOrNull<Area3D>("%GateTrigger");
+        _bedroll = GetNodeOrNull<Area3D>("%Bedroll");
 
         SpawnFarmRenderer();
         SpawnPlayer();
@@ -90,7 +94,6 @@ public partial class OutpostScene : CozyWorldScene
         SpawnPartySelectPanel();
         SpawnGateSign();
         WireGate();
-        BuildWorldCollision(_ground);
         SpawnBuildings();
         SpawnVillagers();
         WireStateEvents();
@@ -110,17 +113,18 @@ public partial class OutpostScene : CozyWorldScene
 
     private void SpawnFarmRenderer()
     {
-        _farmRenderer = new FarmRenderer { Name = "FarmRenderer", ZIndex = 1 };
+        _farmRenderer = new FarmRenderer { Name = "FarmRenderer" };
         AddChild(_farmRenderer);
         _farmRenderer.Bind(this);
     }
 
-    /// <summary>Instance every building (ruined Stage0 for not-yet-commissioned ones too) at its
-    /// <c>%Building_&lt;id&gt;</c> marker with the correct stage/scaffold/overlays for its current
-    /// tier, construction, season/day, and story flags (design/building_visuals.md). Null-safe:
-    /// missing markers/scenes are skipped (the build state still works, art arrives later). Refreshed
-    /// per building on BuildingChanged, and for every building on DayStarted/StoryFlagChanged
-    /// (season/window/flag boundaries).</summary>
+    /// <summary>Drive every building (ruined Stage0 for not-yet-commissioned ones too) with the
+    /// correct stage/scaffold/overlays for its current tier, construction, season/day, and story
+    /// flags (design/building_visuals.md). Instances pre-placed in this scene are ADOPTED by their
+    /// scene path; anything missing falls back to a <c>%Building_&lt;id&gt;</c> marker. Null-safe:
+    /// missing instances/markers/scenes are skipped (the build state still works, art arrives
+    /// later). Refreshed per building on BuildingChanged, and for every building on
+    /// DayStarted/StoryFlagChanged (season/window/flag boundaries).</summary>
     private void SpawnBuildings()
     {
         _buildingLoader = new BuildingLoader(
@@ -154,7 +158,7 @@ public partial class OutpostScene : CozyWorldScene
         _villagerLoader.PlaceArrived();
     }
 
-    protected override Vector2 GetPlayerSpawnPosition() => PlayerSpawnPosition;
+    protected override Vector3 GetPlayerSpawnPosition() => PlayerSpawnPosition;
 
     protected override void ConfigurePlayer(PlayerController player)
     {
@@ -170,8 +174,8 @@ public partial class OutpostScene : CozyWorldScene
 
     private void WireGate()
     {
-        _gateTrigger?.Connect(Area2D.SignalName.BodyEntered, Callable.From<Node2D>(OnGateBodyEntered));
-        _gateTrigger?.Connect(Area2D.SignalName.BodyExited, Callable.From<Node2D>(OnGateBodyExited));
+        _gateTrigger?.Connect(Area3D.SignalName.BodyEntered, Callable.From<Node3D>(OnGateBodyEntered));
+        _gateTrigger?.Connect(Area3D.SignalName.BodyExited, Callable.From<Node3D>(OnGateBodyExited));
     }
 
     protected override void WireExtraStateEvents(GameState gs, EventSubscriptions subs)
@@ -262,7 +266,7 @@ public partial class OutpostScene : CozyWorldScene
 
     /// <summary>Gate trigger reached: flash the travel hint (once per approach — the trigger's own
     /// entered/exited boundary is the hysteresis) and arm the interact-to-travel flow.</summary>
-    private void OnGateBodyEntered(Node2D body)
+    private void OnGateBodyEntered(Node3D body)
     {
         if (body is not PlayerController || IsTransitioning)
             return;
@@ -273,14 +277,11 @@ public partial class OutpostScene : CozyWorldScene
             2.5f);
     }
 
-    private void OnGateBodyExited(Node2D body)
+    private void OnGateBodyExited(Node3D body)
     {
         if (body is PlayerController)
             _playerAtGate = false;
     }
-
-    /// <summary>Proximity radius (px) for the villager TALK/gift interactions (~1.5 tiles).</summary>
-    private const float VillagerTalkRadius = 72f;
 
     /// <summary>
     /// Interact press: at the gate, open the party-select panel (defaulting to the full party — the
@@ -360,7 +361,7 @@ public partial class OutpostScene : CozyWorldScene
     }
 
     /// <summary>Same cell math as <see cref="PlayerController.TrySleepAtBedroll"/> (standing on or
-    /// facing the bedroll tile) — read-only mirror the hint needs, without duplicating the private
+    /// facing the bedroll cell) — read-only mirror the hint needs, without duplicating the private
     /// bedroll cell cached on the controller.</summary>
     private bool IsNearBedroll()
     {
@@ -476,10 +477,8 @@ public partial class OutpostScene : CozyWorldScene
 
         // Stage the arrival cutscene against the resident NPC instances the villager loader spawned:
         // the director hides the actors this script stages (Tharr, via scene_2's `enter` step), then
-        // reveals + walks each in on its enter step. The lookup resolves an actor id to its spawned
-        // node; it returns null when the loader didn't place that villager (or in an F6/spike run
-        // with no VillagerLoader), so staging degrades cleanly to log-and-continue.
-        Director?.PrepareStaging(seq.Steps, id => _villagerLoader?.GetPlaced(id));
+        // reveals + walks each in on its enter step.
+        PrepareCutsceneStaging(seq.Steps);
 
         PlayDialogueSteps(seq.Steps, "intro_scene_2", seq.Once);
     }
@@ -495,7 +494,7 @@ public partial class OutpostScene : CozyWorldScene
         if (DialogueBox == null || db == null || !db.TryGetSequence(dialogueId, out var seq) || seq.Steps == null)
             return false;
 
-        Director?.PrepareStaging(seq.Steps, id => _villagerLoader?.GetPlaced(id));
+        PrepareCutsceneStaging(seq.Steps);
         return PlayDialogueSteps(seq.Steps, dialogueId, seq.Once);
     }
 
@@ -559,6 +558,19 @@ public partial class OutpostScene : CozyWorldScene
         gs.SetStoryFlag("arkus_awake");
     }
 
+    /// <summary>
+    /// Resolve a dialogue actor id to the villager NPC the loader placed, or null when that villager
+    /// isn't present (or there is no loader, e.g. an F6/spike run). The cutscene director stages against
+    /// <see cref="Node3D"/> actors, which is exactly what the villager loader places.
+    /// </summary>
+    private Node3D? FindCutsceneActor(string id) => _villagerLoader?.GetPlaced(id);
+
+    /// <summary>Hand the director the actor lookup for a staged sequence, so each <c>enter</c> step
+    /// reveals the real resident NPC instance. An id the loader never placed resolves to null and that
+    /// step degrades to the director's log-and-continue.</summary>
+    private void PrepareCutsceneStaging(List<DialogueStep> steps)
+        => Director?.PrepareStaging(steps, FindCutsceneActor);
+
     /// <summary>Day-start Arkus-wake check, deferred so a same-rollover day-summary modal opens first.</summary>
     private void OnDayStartedArkusWake() => Callable.From(TryPlayArkusWake).CallDeferred();
 
@@ -596,86 +608,86 @@ public partial class OutpostScene : CozyWorldScene
             Hud.ShowToast(travel);
     }
 
-    // --- Layer accessors ---
-    public TileMapLayer? Ground => _ground;
-    public TileMapLayer? GroundDecor => _groundDecor;
-    public TileMapLayer? Walls => _walls;
-    public TileMapLayer? Props => _props;
-    public TileMapLayer? Overhead => _overhead;
+    // --- Blockout accessors ---
 
-    // --- Marker accessors ---
-    public Marker2D? PlayerSpawn => _playerSpawn;
-    public Marker2D? FarmArea => _farmArea;
-    public Area2D? GateTrigger => _gateTrigger;
-    public IReadOnlyList<Marker2D> RuinedBuildings => _ruinedBuildings;
+    /// <summary>The authored floor + perimeter body (physics layer 1 "Terrain").</summary>
+    public StaticBody3D? Ground => _ground;
+
+    public Marker3D? PlayerSpawn => _playerSpawn;
+    public Marker3D? FarmArea => _farmArea;
+    public Area3D? GateTrigger => _gateTrigger;
+    public Area3D? Bedroll => _bedroll;
 
     /// <summary>World-space player spawn point (falls back to origin if the marker is missing).</summary>
-    public Vector2 PlayerSpawnPosition => _playerSpawn?.GlobalPosition ?? Vector2.Zero;
+    public Vector3 PlayerSpawnPosition => _playerSpawn?.GlobalPosition ?? Vector3.Zero;
 
     // --- Farming query API (for the farm system) ---
 
-    /// <summary>Ground cell containing a world-space point.</summary>
-    public Vector2I WorldToCell(Vector2 world)
-        => _ground?.LocalToMap(_ground.ToLocal(world)) ?? Vector2I.Zero;
+    /// <summary>Grid cell containing a world-space point (one cell = one metre on the XZ plane).</summary>
+    public Vector2I WorldToCell(Vector3 world)
+        => new(Mathf.FloorToInt(world.X), Mathf.FloorToInt(world.Z));
 
-    /// <summary>Center world-space point of a ground cell.</summary>
-    public Vector2 CellToWorld(Vector2I cell)
-        => _ground != null ? _ground.ToGlobal(_ground.MapToLocal(cell)) : Vector2.Zero;
+    /// <summary>Centre world-space point (on the ground plane) of a grid cell.</summary>
+    public Vector3 CellToWorld(Vector2I cell)
+        => new(cell.X + 0.5f, 0f, cell.Y + 0.5f);
 
-    /// <summary>True if the Ground tile at <paramref name="cell"/> carries the "farmable" flag.</summary>
-    public bool IsFarmable(Vector2I cell)
+    /// <summary>The base (zone-0) farm rectangle in cells, centred on <c>%FarmArea</c>. Empty
+    /// (a degenerate rect at the origin) when the marker is missing — nothing is farmable then.</summary>
+    private Rect2I BaseFarmRect()
     {
-        TileData? td = _ground?.GetCellTileData(cell);
-        return td != null && (bool)td.GetCustomData("farmable");
+        if (_farmArea == null)
+            return new Rect2I(0, 0, 0, 0);
+
+        Vector2I centre = WorldToCell(_farmArea.GlobalPosition);
+        Vector2I size = new(Mathf.Max(FarmSizeCells.X, 0), Mathf.Max(FarmSizeCells.Y, 0));
+        return new Rect2I(centre - size / 2, size);
     }
 
     /// <summary>
-    /// Stardew rule: a cell can be tilled only when the map says so — farmable Ground, nothing
-    /// painted over it on a blocking/prop layer, no world object standing on it, AND (Refinement 2)
-    /// the tile is within the currently UNLOCKED tillable area (its farm zone ≤ the outpost's
-    /// tillable-area level). This is the predicate the scene injects into the farm system
-    /// (GameState.BindFarmWorld); the highlight and the command share it, so an actionable highlight
-    /// always matches a command that succeeds.
+    /// The farm ZONE of a cell, or -1 when the cell is not farmland at all. Zone 0 is the base
+    /// rectangle; each further <see cref="FarmZoneRingCells"/>-wide ring around it is the next zone,
+    /// up to <see cref="FarmMaxZone"/>, feeding the <see cref="FarmZones"/> unlock rule.
     /// </summary>
-    public bool IsTillable(Vector2I cell)
-        => IsFarmable(cell) && !HasBlockingTile(cell) && !IsCellOccupied(cell) && IsWithinUnlockedZone(cell);
-
-    /// <summary>Refinement 2: the cell's farm zone is within the outpost's current tillable-area level.
-    /// Baseline-safe — an unauthored zone reads as base (0), so with no zone tiers authored every
-    /// farmable tile passes at level 0 exactly as before.</summary>
-    private bool IsWithinUnlockedZone(Vector2I cell)
-    {
-        int level = GameState.Instance?.FarmTillableAreaLevel ?? 0;
-        return FarmZones.IsWithinTillableArea(FarmZoneOf(cell), level);
-    }
-
-    /// <summary>The authored <c>farm_zone</c> tier on a Ground tile (default <see cref="FarmZones.BaseZone"/>).
-    /// BASELINE SAFETY: when the TileSet has no <c>farm_zone</c> custom-data layer (nothing authored),
-    /// returns base zone with no engine error — behaviour stays byte-identical until the user authors tiers.</summary>
     private int FarmZoneOf(Vector2I cell)
     {
-        var tileSet = _ground?.TileSet;
-        if (tileSet == null)
+        Rect2I rect = BaseFarmRect();
+        if (rect.Size.X <= 0 || rect.Size.Y <= 0)
+            return -1;
+
+        int dx = Math.Max(rect.Position.X - cell.X, cell.X - (rect.Position.X + rect.Size.X - 1));
+        int dy = Math.Max(rect.Position.Y - cell.Y, cell.Y - (rect.Position.Y + rect.Size.Y - 1));
+        int outside = Math.Max(Math.Max(dx, dy), 0);
+        if (outside == 0)
             return FarmZones.BaseZone;
-        int layer = tileSet.GetCustomDataLayerByName(FarmZones.CustomDataKey);
-        if (layer < 0)
-            return FarmZones.BaseZone; // layer not authored → base zone
-        TileData? td = _ground!.GetCellTileData(cell);
-        if (td == null)
-            return FarmZones.BaseZone;
-        Variant v = td.GetCustomDataByLayerId(layer);
-        return v.VariantType == Variant.Type.Int ? (int)v : FarmZones.BaseZone;
+
+        int ring = Math.Max(FarmZoneRingCells, 1);
+        int zone = (outside + ring - 1) / ring;
+        return zone <= FarmMaxZone ? zone : -1;
     }
 
-    /// <summary>A painted Walls/Props tile claims the cell (fences, ruins, decor) — no tilling under it.</summary>
-    private bool HasBlockingTile(Vector2I cell)
-        => (_walls != null && _walls.GetCellSourceId(cell) != -1)
-           || (_props != null && _props.GetCellSourceId(cell) != -1);
+    /// <summary>True if <paramref name="cell"/> is farm soil (inside the farm region, any zone).</summary>
+    public bool IsFarmable(Vector2I cell) => FarmZoneOf(cell) >= 0;
 
     /// <summary>
-    /// Occupancy is scene knowledge: functional world objects (triggers, signs, placeable props,
-    /// nodes, roamers) claim their cell even when the soil under them is farmable-flagged. Scanned
-    /// live — tilling happens on interact presses, and a live scan tracks runtime-spawned children.
+    /// Stardew rule: a cell can be tilled only when the world says so — farm soil, nothing standing
+    /// on it (a trigger, a sign, a building footprint), AND (Refinement 2) the cell is within the
+    /// currently UNLOCKED tillable area (its farm zone ≤ the outpost's tillable-area level). This is
+    /// the predicate the scene injects into the farm system (GameState.BindFarmWorld); the highlight
+    /// and the command share it, so an actionable highlight always matches a command that succeeds.
+    /// </summary>
+    public bool IsTillable(Vector2I cell)
+    {
+        int zone = FarmZoneOf(cell);
+        if (zone < 0)
+            return false;
+        int level = GameState.Instance?.FarmTillableAreaLevel ?? 0;
+        return FarmZones.IsWithinTillableArea(zone, level) && !IsCellOccupied(cell);
+    }
+
+    /// <summary>
+    /// Occupancy is scene knowledge: functional world objects (triggers, signs, building footprints)
+    /// claim their cell even when the soil under them is farm soil. Scanned live — tilling happens on
+    /// interact presses, and a live scan tracks runtime-spawned children.
     /// </summary>
     private bool IsCellOccupied(Vector2I cell)
     {
@@ -685,25 +697,55 @@ public partial class OutpostScene : CozyWorldScene
             return true;
 
         foreach (Node child in GetChildren())
-            if (IsCellOccupant(child) && child is Node2D node && WorldToCell(node.GlobalPosition) == cell)
-                return true;
+        {
+            switch (child)
+            {
+                case TransitionSign sign when WorldToCell(sign.GlobalPosition) == cell:
+                    return true;
+                case BuildingInstance building when FootprintCoversCell(building, cell):
+                    return true;
+            }
+        }
         return false;
     }
 
-    /// <summary>World objects that make their cell untillable (depleted nodes are hidden and free).</summary>
-    private static bool IsCellOccupant(Node node) => node switch
+    /// <summary>True when a placed building's <c>%Footprint</c> box covers the cell centre. Boxes are
+    /// the only footprint shape the greybox scenes use; anything else is ignored (the building still
+    /// blocks physically, it just doesn't veto tilling).</summary>
+    private bool FootprintCoversCell(BuildingInstance building, Vector2I cell)
     {
-        ResourceNodeView view => view.Visible,
-        TransitionSign or RoamingEnemy => true,
-        Bulwark.Props.Door or Bulwark.Props.Chest or Bulwark.Props.Lever or Bulwark.Props.AmbientProp => true,
-        _ => false,
-    };
+        var footprint = building.GetNodeOrNull<StaticBody3D>("%Footprint");
+        if (footprint == null)
+            return false;
 
-    /// <summary>Every painted Ground cell flagged farmable (the tillable soil the player may work).</summary>
+        Vector3 centre = CellToWorld(cell);
+        foreach (Node child in footprint.GetChildren())
+        {
+            if (child is not CollisionShape3D { Disabled: false } shape || shape.Shape is not BoxShape3D box)
+                continue;
+
+            Vector3 local = shape.GlobalTransform.AffineInverse() * centre;
+            Vector3 half = box.Size * 0.5f;
+            if (Mathf.Abs(local.X) <= half.X && Mathf.Abs(local.Z) <= half.Z)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Every farm-soil cell (the tillable region the player may work, across all zones).</summary>
     public IEnumerable<Vector2I> FarmableCells()
     {
-        if (_ground == null) yield break;
-        foreach (Vector2I cell in _ground.GetUsedCells())
-            if (IsFarmable(cell)) yield return cell;
+        Rect2I rect = BaseFarmRect();
+        if (rect.Size.X <= 0 || rect.Size.Y <= 0)
+            yield break;
+
+        int margin = Math.Max(FarmZoneRingCells, 1) * Math.Max(FarmMaxZone, 0);
+        for (int x = rect.Position.X - margin; x < rect.Position.X + rect.Size.X + margin; x++)
+            for (int y = rect.Position.Y - margin; y < rect.Position.Y + rect.Size.Y + margin; y++)
+            {
+                var cell = new Vector2I(x, y);
+                if (IsFarmable(cell))
+                    yield return cell;
+            }
     }
 }

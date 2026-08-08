@@ -20,8 +20,8 @@ namespace Bulwark.Cozy;
 ///     back to instancing the premade scene at the user-placed <c>%Building_&lt;id&gt;</c> marker, as
 ///     before.
 /// Either way it drives the placed instance's visible stage/scaffold/overlays from the building's
-/// current state (design/building_visuals.md), and lets the scene's own StaticBody2D footprint block
-/// the tiles (buildings bring their own collision — consistent with CozyWorldScene's baked collision).
+/// current state (design/building_visuals.md), and lets the scene's own StaticBody3D footprint block
+/// the cells (buildings bring their own collision — the world scene authors its own floor and walls).
 /// A tier-0 (not-commissioned) building is placed too, showing its Stage0 ruined/site look — the
 /// design intent is that a ruin is visible in the world from day one (the intro has Elara spotting the
 /// collapsed trading post), not that the building appears only once commissioned.
@@ -39,7 +39,7 @@ namespace Bulwark.Cozy;
 /// </summary>
 public sealed class BuildingLoader
 {
-    private readonly Node2D _host;
+    private readonly Node3D _host;
     private readonly Func<string, int> _tierOf;
     private readonly Func<string, bool>? _isUnderConstruction;
     private readonly Func<(Season Season, int Day)>? _calendar;
@@ -47,7 +47,7 @@ public sealed class BuildingLoader
     private readonly Dictionary<string, BuildingDefinition> _catalog;
     private readonly Dictionary<string, BuildingInstance> _placed = new();
 
-    /// <param name="host">Scene the buildings + markers live under (the outpost Node2D).</param>
+    /// <param name="host">Scene the buildings + markers live under (the outpost Node3D).</param>
     /// <param name="tierOf">Current tier of a building id (0 = not commissioned).</param>
     /// <param name="isUnderConstruction">Optional: true while a building's construction window
     /// (commission or upgrade) is active. Null → back-compat fallback (see class remarks).</param>
@@ -60,7 +60,7 @@ public sealed class BuildingLoader
     /// definitions (mirrors <see cref="BuildingSystem"/>'s catalog seam) without touching the shared
     /// registry.</param>
     public BuildingLoader(
-        Node2D host,
+        Node3D host,
         Func<string, int> tierOf,
         Func<string, bool>? isUnderConstruction = null,
         Func<(Season Season, int Day)>? calendar = null,
@@ -162,8 +162,8 @@ public sealed class BuildingLoader
     /// marker. Only reached when <see cref="FindPrePlaced"/> found nothing.</summary>
     private BuildingInstance? InstanceBuilding(BuildingDefinition def)
     {
-        Marker2D? marker = _host.GetNodeOrNull<Marker2D>($"%{def.MarkerName}")
-                           ?? _host.GetNodeOrNull<Marker2D>(def.MarkerName);
+        Marker3D? marker = _host.GetNodeOrNull<Marker3D>($"%{def.MarkerName}")
+                           ?? _host.GetNodeOrNull<Marker3D>(def.MarkerName);
         if (marker == null)
         {
             GD.PushWarning($"[BuildingLoader] No pre-placed instance and no %{def.MarkerName} marker in the " +

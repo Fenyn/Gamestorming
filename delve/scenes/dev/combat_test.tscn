@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://hufa4adaf0vi"]
+
+[ext_resource type="Script" uid="uid://b4b4usysp7jal" path="res://scripts/dev/CombatTestScene.cs" id="1_test"]
+
+[node name="CombatTest" type="Node" unique_id=1502981836]
+script = ExtResource("1_test")
+UseGeneratedMap = true

@@ -1,0 +1,97 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ReactionPromptPanel.cs" id="1_rpp"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
+
+[node name="ReactionPromptPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = ExtResource("2_theme")
+script = ExtResource("1_rpp")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="CenterBox" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Panel" type="PanelContainer" parent="CenterBox"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_type_variation = &"ModalPanel"
+
+[node name="Col" type="VBoxContainer" parent="CenterBox/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleBar" type="PanelContainer" parent="CenterBox/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"TitleBar"
+
+[node name="TitleLabel" type="Label" parent="CenterBox/Panel/Col/TitleBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Use Reaction?"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+theme_override_font_sizes/font_size = 20
+
+[node name="Body" type="PanelContainer" parent="CenterBox/Panel/Col"]
+layout_mode = 2
+theme_type_variation = &"InnerPanel"
+
+[node name="BodyCol" type="VBoxContainer" parent="CenterBox/Panel/Col/Body"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ReactorLabel" type="Label" parent="CenterBox/Panel/Col/Body/BodyCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "—"
+horizontal_alignment = 1
+theme_type_variation = &"GoldLabel"
+theme_override_font_sizes/font_size = 18
+
+[node name="DescriptionLabel" type="Label" parent="CenterBox/Panel/Col/Body/BodyCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterBox/Panel/Col"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="UseButton" type="Button" parent="CenterBox/Panel/Col/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 40)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Use (Enter)"
+
+[node name="SkipButton" type="Button" parent="CenterBox/Panel/Col/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 40)
+layout_mode = 2
+text = "Skip (Esc)"
+
+[node name="HintLabel" type="Label" parent="CenterBox/Panel/Col"]
+layout_mode = 2
+text = "Enter / Y = use    Esc / N = skip"
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"

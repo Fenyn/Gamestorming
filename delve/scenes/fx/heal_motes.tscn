@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot healing motes (see scripts/fx/HealMotes.cs) — a bare Node3D root, mirroring
+; scenes/fx/whiff_puff.tscn's convention: nothing is authored as a child here because the mote
+; geometry is generated and tweened per-instance in code, keyed off Tint/MoteScale/Lifetime
+; (exported, set by the caller before AddChild).
+
+[ext_resource type="Script" path="res://scripts/fx/HealMotes.cs" id="1_healmotes"]
+
+[node name="HealMotes" type="Node3D"]
+script = ExtResource("1_healmotes")

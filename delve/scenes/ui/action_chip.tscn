@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="1_theme"]
+
+[node name="ActionChip" type="Button"]
+theme = ExtResource("1_theme")
+offset_right = 120.0
+offset_bottom = 26.0
+theme_type_variation = &"ActionChip"
+text = "Spell"
+clip_text = true

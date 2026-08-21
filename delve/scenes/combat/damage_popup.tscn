@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+; Floating combat-text blockout: a billboarded Label3D that DamagePopup3D animates (rise + fade + self
+; -free) in _Ready. The static presentation props live here; text, font size, and color are set per
+; spawn in DamagePopup3D.Create / CreateHeal.
+
+[ext_resource type="Script" path="res://scripts/combat/DamagePopup3D.cs" id="1_popup"]
+
+[node name="DamagePopup" type="Label3D"]
+script = ExtResource("1_popup")
+pixel_size = 0.006
+billboard = 1
+no_depth_test = true
+render_priority = 2
+outline_size = 10
+outline_modulate = Color(0, 0, 0, 1)

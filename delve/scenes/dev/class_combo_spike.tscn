@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/ClassComboSpike.cs" id="1_combo"]
+
+[node name="ClassComboSpike" type="Node"]
+script = ExtResource("1_combo")

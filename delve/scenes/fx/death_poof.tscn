@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot defeat dissipation (see scripts/fx/DeathPoof.cs) — a bare Node3D root, mirroring
+; scenes/fx/whiff_puff.tscn's convention: nothing is authored as a child here because the puff
+; geometry is generated and tweened per-instance in code, keyed off Tint/PoofScale/Lifetime
+; (exported, set by the caller before AddChild).
+
+[ext_resource type="Script" path="res://scripts/fx/DeathPoof.cs" id="1_deathpoof"]
+
+[node name="DeathPoof" type="Node3D"]
+script = ExtResource("1_deathpoof")

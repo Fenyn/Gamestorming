@@ -11,6 +11,7 @@ Projects developed with assistance of Claude.
 | [autobattler](autobattler/) | TFT-style Pathfinder 2e autobattler with a full-fidelity PF2e Remaster rules engine. C#. | — |
 | [coinshot](coinshot/) | First-person Mistborn traversal. Steel-push and iron-pull on metal anchors to fly through a city. | [Play in browser](https://fenyn.github.io/Gamestorming/coinshot/) |
 | [combat-proto](combat-proto/) | 3D melee combat prototype. For Honor directional stance meets Sekiro posture/deflection. Greybox. | — |
+| [delve](delve/) | PF2e roguelite combat proof. HD-2D tactical encounters on generated maps, full Remaster rules engine. C#. | — |
 | [drifter](drifter/) | Roguelite dice combat on a barren alien planet. Pixel art cards, physical 3D dice. | — |
 | [end-of-the-line](end-of-the-line/) | Logistics incremental with sentient trains. Rail network expansion inside a 3-day time loop. | — |
 | [green-bean](green-bean/) | First-person barista simulator. Ring up orders, print tickets, assemble drinks via tactile mini-games. | [Play in browser](https://fenyn.github.io/Gamestorming/green-bean/) |

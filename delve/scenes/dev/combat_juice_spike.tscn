@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Headless proof for the combat hit-feedback pass (crit degree on strikes, presenter FX spawns, the
+; hero swing's impact gate, per-unit popup height, camera trauma decay). See CombatJuiceSpike.cs.
+
+[ext_resource type="Script" path="res://scripts/dev/CombatJuiceSpike.cs" id="1_juice"]
+
+[node name="CombatJuiceSpike" type="Node"]
+script = ExtResource("1_juice")

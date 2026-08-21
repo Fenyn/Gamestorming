@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot melee impact spark (see scripts/fx/HitSpark.cs) — a bare Node3D root, mirroring
+; scenes/fx/whiff_puff.tscn's convention: nothing is authored as a child here because the shard
+; geometry is generated and tweened per-instance in code, keyed off Tint/ImpactDirection/SparkScale/
+; Crit (exported, set by the caller before AddChild).
+
+[ext_resource type="Script" path="res://scripts/fx/HitSpark.cs" id="1_hitspark"]
+
+[node name="HitSpark" type="Node3D"]
+script = ExtResource("1_hitspark")

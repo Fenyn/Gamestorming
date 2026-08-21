@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot shield/block flash (see scripts/fx/ShieldFlash.cs) — a bare Node3D root, mirroring
+; scenes/fx/whiff_puff.tscn's convention: nothing is authored as a child here because the ring
+; geometry is generated and tweened per-instance in code, keyed off Tint/FlashScale/BlockStrength
+; (exported, set by the caller before AddChild).
+
+[ext_resource type="Script" path="res://scripts/fx/ShieldFlash.cs" id="1_shieldflash"]
+
+[node name="ShieldFlash" type="Node3D"]
+script = ExtResource("1_shieldflash")

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F1E3C4"/>
+      <stop offset="1" stop-color="#DDC796"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="128" height="128" fill="url(#sky)"/>
+
+  <!-- ground mound -->
+  <ellipse cx="64" cy="132" rx="70" ry="26" fill="#B7A374"/>
+
+  <!-- tower body (light face + shadow face) -->
+  <rect x="42" y="30" width="44" height="60" fill="#7A8493"/>
+  <rect x="64" y="30" width="22" height="60" fill="#5E6874"/>
+
+  <!-- battlements -->
+  <rect x="42" y="18" width="10" height="12" fill="#7A8493"/>
+  <rect x="59" y="18" width="10" height="12" fill="#7A8493"/>
+  <rect x="76" y="18" width="10" height="12" fill="#5E6874"/>
+
+  <!-- arrow slit -->
+  <rect x="61" y="42" width="4" height="14" fill="#333940"/>
+
+  <!-- flagpole -->
+  <rect x="63" y="6" width="2" height="14" fill="#4A5560"/>
+  <!-- pennant -->
+  <path d="M65 7 L79 11 L65 15 Z" fill="#2C4870"/>
+
+  <!-- kite shield -->
+  <path d="M64 56
+           C48 56,30 61,30 73
+           C30 95,45 114,64 124
+           C83 114,98 95,98 73
+           C98 61,80 56,64 56
+           Z"
+        fill="#24405F" stroke="#C9B87A" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- shield center spine -->
+  <path d="M64 60 L64 118" stroke="#3E5F82" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- shield boss -->
+  <circle cx="64" cy="74" r="6" fill="#C9B87A" stroke="#8A7A46" stroke-width="1.5"/>
+</svg>

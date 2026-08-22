@@ -1,22 +1,29 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ActionBar.cs" id="1_ab"]
-[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
 
 [node name="ActionBar" type="Control"]
 layout_mode = 3
-anchors_preset = 0
-mouse_filter = 1
-theme = ExtResource("2_theme")
-script = ExtResource("1_ab")
-
-[node name="Stack" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
+offset_left = -500.0
+offset_right = 500.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+script = ExtResource("1_ab")
+
+[node name="Stack" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 6
@@ -25,7 +32,8 @@ theme_override_constants/separation = 6
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_type_variation = &"InnerPanel"
+size_flags_horizontal = 4
+theme_type_variation = &"HudInset"
 
 [node name="PreviewCol" type="VBoxContainer" parent="Stack/PreviewCard"]
 layout_mode = 2
@@ -33,138 +41,344 @@ theme_override_constants/separation = 2
 
 [node name="HeaderRow" type="HBoxContainer" parent="Stack/PreviewCard/PreviewCol"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="PreviewHeaderLabel" type="Label" parent="Stack/PreviewCard/PreviewCol/HeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = ""
-theme_type_variation = &"WoodLabel"
 
 [node name="OffGuardTag" type="Label" parent="Stack/PreviewCard/PreviewCol/HeaderRow"]
 unique_name_in_owner = true
-layout_mode = 2
 visible = false
+layout_mode = 2
 text = "OFF-GUARD"
-theme_type_variation = &"GoldLabel"
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 16
 
 [node name="PreviewStatsLabel" type="Label" parent="Stack/PreviewCard/PreviewCol"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
+theme_type_variation = &"HeadingLabel"
+
+[node name="TargetingHint" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+text = ""
+horizontal_alignment = 1
 theme_type_variation = &"HintLabel"
 
-[node name="Panel" type="PanelContainer" parent="Stack"]
+[node name="Flyout" type="PanelContainer" parent="Stack"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
+theme_type_variation = &"HudInset"
 
-[node name="Col" type="VBoxContainer" parent="Stack/Panel"]
+[node name="FlyoutCol" type="VBoxContainer" parent="Stack/Flyout"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
-[node name="Row" type="HBoxContainer" parent="Stack/Panel/Col"]
+[node name="BarBlock" type="VBoxContainer" parent="Stack"]
 layout_mode = 2
-theme_override_constants/separation = 10
+size_flags_horizontal = 4
+theme_override_constants/separation = 0
 
-[node name="NameCol" type="VBoxContainer" parent="Stack/Panel/Col/Row"]
+[node name="AccentStrip" type="Panel" parent="Stack/BarBlock"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+theme_type_variation = &"AccentStrip"
+
+[node name="Bar" type="PanelContainer" parent="Stack/BarBlock"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Row" type="HBoxContainer" parent="Stack/BarBlock/Bar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Identity" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="ActorLabel" type="Label" parent="Stack/Panel/Col/Row/NameCol"]
+[node name="ActorLabel" type="Label" parent="Stack/BarBlock/Bar/Row/Identity"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 text = "—"
 vertical_alignment = 1
-theme_type_variation = &"FloatingLabel"
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"HeadingLabel"
 
-[node name="VitalsLabel" type="Label" parent="Stack/Panel/Col/Row/NameCol"]
+[node name="VitalsLabel" type="Label" parent="Stack/BarBlock/Bar/Row/Identity"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 text = ""
-theme_override_font_sizes/font_size = 12
 
-[node name="PipRow" type="HBoxContainer" parent="Stack/Panel/Col/Row"]
-layout_mode = 2
-theme_override_constants/separation = 5
-alignment = 1
-
-[node name="Pip0" type="ColorRect" parent="Stack/Panel/Col/Row/PipRow"]
+[node name="ActionPips" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("2_pr")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 size_flags_vertical = 4
+PipSize = Vector2(14, 14)
 
-[node name="Pip1" type="ColorRect" parent="Stack/Panel/Col/Row/PipRow"]
+[node name="MoveButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+focus_mode = 0
+
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/MoveButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/MoveButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Move"
+
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/MoveButton/Content"]
 layout_mode = 2
 size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
 
-[node name="Pip2" type="ColorRect" parent="Stack/Panel/Col/Row/PipRow"]
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/MoveButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "1"
+theme_type_variation = &"HintLabel"
+
+[node name="StepButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+focus_mode = 0
+
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/StepButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StepButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Step"
+
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/StepButton/Content"]
 layout_mode = 2
 size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
 
-[node name="MoveButton" type="Button" parent="Stack/Panel/Col/Row"]
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StepButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "2"
+theme_type_variation = &"HintLabel"
+
+[node name="StrikeButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Move [1]"
+focus_mode = 0
 
-[node name="StepButton" type="Button" parent="Stack/Panel/Col/Row"]
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/StrikeButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StrikeButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Strike"
+
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/StrikeButton/Content"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StrikeButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "3"
+theme_type_variation = &"HintLabel"
+
+[node name="ShieldButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Step [2]"
+focus_mode = 0
 
-[node name="StrikeButton" type="Button" parent="Stack/Panel/Col/Row"]
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/ShieldButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/ShieldButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Shield"
+
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/ShieldButton/Content"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/ShieldButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "4"
+theme_type_variation = &"HintLabel"
+
+[node name="SpellsButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Strike [3]"
+focus_mode = 0
+toggle_mode = true
 
-[node name="ShieldButton" type="Button" parent="Stack/Panel/Col/Row"]
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/SpellsButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SpellsButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Spells"
+
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/SpellsButton/Content"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SpellsButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "Q"
+theme_type_variation = &"HintLabel"
+
+[node name="SkillsButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Raise Shield [4]"
+focus_mode = 0
+toggle_mode = true
 
-[node name="PreviewLabel" type="Label" parent="Stack/Panel/Col/Row"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/SkillsButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SkillsButton/Content"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = ""
-vertical_alignment = 1
-theme_type_variation = &"WoodLabel"
+mouse_filter = 2
+text = "Skills"
 
-[node name="ToggleCol" type="VBoxContainer" parent="Stack/Panel/Col/Row"]
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/SkillsButton/Content"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SkillsButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "E"
+theme_type_variation = &"HintLabel"
+
+[node name="EndButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_type_variation = &"AccentButton"
+
+[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/EndButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/EndButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "End Turn"
+
+[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/EndButton/Content"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/EndButton/Content/Keycap"]
+layout_mode = 2
+mouse_filter = 2
+text = "Space"
+theme_type_variation = &"HintLabel"
+
+[node name="ToggleCol" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row"]
 layout_mode = 2
 theme_override_constants/separation = 0
 alignment = 1
 
-[node name="AiToggle" type="CheckButton" parent="Stack/Panel/Col/Row/ToggleCol"]
+[node name="AiToggle" type="CheckButton" parent="Stack/BarBlock/Bar/Row/ToggleCol"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 0
 text = "AI"
 
-[node name="AutoReactToggle" type="CheckButton" parent="Stack/Panel/Col/Row/ToggleCol"]
+[node name="AutoReactToggle" type="CheckButton" parent="Stack/BarBlock/Bar/Row/ToggleCol"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 0
 tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
 text = "Auto React"
-
-[node name="EndButton" type="Button" parent="Stack/Panel/Col/Row"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 2
-size_flags_vertical = 4
-theme_type_variation = &"AccentButton"
-text = "End Turn [Space]"
-
-[node name="ChipRow" type="HFlowContainer" parent="Stack/Panel/Col"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/h_separation = 5
-theme_override_constants/v_separation = 5

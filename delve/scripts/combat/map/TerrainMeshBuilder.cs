@@ -230,6 +230,10 @@ public static class TerrainMeshBuilder
         int triangleCount = 0;
         int surfaceIndex = 0;
 
+        // One autotiled ground texture spans the board; every non-water top face shares it. Null
+        // (theme with no textured surfaces) keeps the per-surface flat-colour path.
+        var bakedGround = GroundTextureBaker.Bake(layout, theme);
+
         // Empty-surface compaction: Godot's AddSurfaceFromArrays rejects an empty vertex array, so a
         // palette slot that never received geometry (a biome with no water, say) is dropped and the
         // baked materials follow the surviving order.
@@ -238,7 +242,7 @@ public static class TerrainMeshBuilder
             if (buffer.IsEmpty) continue;
 
             visual.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, buffer.ToArrays());
-            visual.SurfaceSetMaterial(surfaceIndex, MaterialFor(theme, key));
+            visual.SurfaceSetMaterial(surfaceIndex, MaterialFor(theme, key, bakedGround));
 
             isTop.Add(key.Kind is FaceKind.Top or FaceKind.TopGridLine or FaceKind.EdgeStrip);
             names.Add(key.Describe());
@@ -264,8 +268,9 @@ public static class TerrainMeshBuilder
         };
     }
 
-    private static Material MaterialFor(MapThemeDefinition theme, PaletteKey key) => key.Kind switch
+    private static Material MaterialFor(MapThemeDefinition theme, PaletteKey key, Material? bakedGround) => key.Kind switch
     {
+        FaceKind.Top when key.Surface != SurfaceType.Water && bakedGround != null => bakedGround,
         FaceKind.Top => MapMaterials.Top(theme, key.Surface),
         FaceKind.Wall => MapMaterials.Wall(theme, key.Surface),
         FaceKind.TopGridLine => MapMaterials.Overlay(theme.TopGridLineColor, "terrain_grid_line"),

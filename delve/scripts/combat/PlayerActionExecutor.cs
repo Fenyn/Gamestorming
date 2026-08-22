@@ -413,6 +413,7 @@ public sealed class PlayerActionExecutor
             for (int i = 0; i < variants.Count; i++)
             {
                 var v = variants[i];
+                bool castable = baseCan && actions >= v.ActionCost;
                 list.Add(new SpellEntryView
                 {
                     SpellId = spell.SpellId,
@@ -422,13 +423,16 @@ public sealed class PlayerActionExecutor
                     CostText = $"{v.ActionCost}a",
                     SlotsText = slotsText,
                     Targeting = KindOf(spell, v),
-                    Castable = baseCan && actions >= v.ActionCost,
+                    Castable = castable,
                     Description = spell.Description ?? "",
+                    UnavailableReason = castable ? ""
+                        : SpellUnavailableReason(c, spell, isCantrip, actions, v.ActionCost),
                 });
             }
         }
         else
         {
+            bool castable = baseCan && actions >= spell.ActionCostCount;
             list.Add(new SpellEntryView
             {
                 SpellId = spell.SpellId,
@@ -438,11 +442,52 @@ public sealed class PlayerActionExecutor
                 CostText = $"{spell.ActionCostCount}a",
                 SlotsText = slotsText,
                 Targeting = KindOf(spell, null),
-                Castable = baseCan && actions >= spell.ActionCostCount,
+                Castable = castable,
                 Description = spell.Description ?? "",
+                UnavailableReason = castable ? ""
+                    : SpellUnavailableReason(c, spell, isCantrip, actions, spell.ActionCostCount),
             });
         }
     }
+
+    /// <summary>
+    /// Player-facing reason a spell chip is greyed out, mirroring the exact gates that computed
+    /// Castable=false: action economy first, then the checks inside SpellAction.CanPerform
+    /// (condition restrictions, focus points, spell slots incl. the divine-font pool). Empty when
+    /// the cause isn't determinable — the tooltip then adds nothing. Derived from the actor's own
+    /// state only; never from bestiary-masked knowledge.
+    /// </summary>
+    private static string SpellUnavailableReason(
+        ICharacter c, SpellCastAction spell, bool isCantrip, int actions, int cost)
+    {
+        if (actions < cost)
+            return NeedsActionsReason(cost, actions);
+
+        string? restriction = c.Conditions?.GetActionRestriction(spell, null);
+        if (restriction != null)
+            return restriction;
+
+        if (spell.Spell.IsFocusSpell)
+            return c.Spellcasting?.HasFocusPoints == true ? "" : "No Focus Points left";
+
+        if (!isCantrip)
+        {
+            var sc = c.Spellcasting;
+            var font = sc?.DivineFont;
+            bool fontPays = font != null && spell.Spell.Identity != null
+                && font.MatchesSpell(spell.Spell.Identity) && font.HasSlots;
+            bool hasSlot = sc != null && (sc.IsPreparedCaster
+                ? sc.HasPreparedSpell(spell)
+                : sc.HasSlotsAvailableAtOrAbove(spell.Spell.SpellLevel));
+            if (!fontPays && !hasSlot)
+                return "No spell slots left";
+        }
+        return "";
+    }
+
+    /// <summary>"Needs 2 actions (1 left)" — the shared action-economy unavailability reason.</summary>
+    private static string NeedsActionsReason(int cost, int remaining)
+        => $"Needs {cost} action{(cost == 1 ? "" : "s")} ({remaining} left)";
 
     /// <summary>The tiles a spell (variant) may be aimed at, plus how the interaction should behave.</summary>
     public TargetingPlan GetSpellTargets(ICharacter caster, string spellId, int variantIndex)
@@ -728,12 +773,9 @@ public sealed class PlayerActionExecutor
             var action = MakeSkillAction(id);
             if (action == null) continue;
 
-            bool castable;
-            if (IsSelfSkill(id))
-                castable = action.CanPerform(character) && actions >= action.ActionCostCount;
-            else
-                castable = action.CanPerform(character) && GetSkillTargets(character, id).Tiles.Count > 0
-                           && actions >= action.ActionCostCount;
+            bool hasTargets = IsSelfSkill(id) || GetSkillTargets(character, id).Tiles.Count > 0;
+            bool castable = action.CanPerform(character) && hasTargets
+                            && actions >= action.ActionCostCount;
 
             list.Add(new SkillEntryView
             {
@@ -743,6 +785,8 @@ public sealed class PlayerActionExecutor
                 Targeting = SkillKind(id),
                 Castable = castable,
                 Description = action.Description ?? "",
+                UnavailableReason = castable ? ""
+                    : SkillUnavailableReason(character, action, id, hasTargets, actions),
             });
         }
 
@@ -757,13 +801,11 @@ public sealed class PlayerActionExecutor
                 string? id = GrantedActionId(action.ActionName);
                 if (id == null) continue;
 
-                bool castable;
-                if (IsMoveSkill(id))
-                    castable = action.CanPerform(character) && actions >= action.ActionCostCount
-                               && GetShieldedStrideTiles(character).Count > 0;
-                else
-                    castable = action.CanPerform(character) && GetSkillTargets(character, id).Tiles.Count > 0
-                               && actions >= action.ActionCostCount;
+                bool hasTargets = IsMoveSkill(id)
+                    ? GetShieldedStrideTiles(character).Count > 0
+                    : GetSkillTargets(character, id).Tiles.Count > 0;
+                bool castable = action.CanPerform(character) && hasTargets
+                                && actions >= action.ActionCostCount;
 
                 list.Add(new SkillEntryView
                 {
@@ -773,6 +815,8 @@ public sealed class PlayerActionExecutor
                     Targeting = SkillKind(id),
                     Castable = castable,
                     Description = action.Description ?? "",
+                    UnavailableReason = castable ? ""
+                        : SkillUnavailableReason(character, action, id, hasTargets, actions),
                 });
             }
         }
@@ -787,6 +831,64 @@ public sealed class PlayerActionExecutor
         "Shielded Stride" => "shielded-stride",
         _ => null,
     };
+
+    /// <summary>
+    /// Player-facing reason a skill chip is greyed out, mirroring the exact gates that computed
+    /// Castable=false: action economy, then the action's own CanPerform (per-encounter use limits,
+    /// condition restrictions, requirements — via the engine's validation message), then an empty
+    /// legal-target set. Empty when the cause isn't determinable. Derived from the actor's own
+    /// state only; never from bestiary-masked knowledge.
+    /// </summary>
+    private string SkillUnavailableReason(
+        ICharacter c, BaseAction action, string id, bool hasTargets, int actions)
+    {
+        if (actions < action.ActionCostCount)
+            return NeedsActionsReason(action.ActionCostCount, actions);
+
+        if (!action.CanPerform(c))
+        {
+            // CanPerform's use-limit gate has no message in GetValidationErrorMessage — cover it.
+            if (action.HasUseLimits && c.CooldownTracker?.HasUsesRemaining(
+                    action.AbilityId, action.UsesPerEncounter, action.UsesPerDay) == false)
+                return "No uses left this encounter";
+            string msg = action.GetValidationErrorMessage(c);
+            // The engine's generic fallback explains nothing — show no reason instead.
+            return msg == "Action cannot be performed" ? "" : msg ?? "";
+        }
+
+        if (!hasTargets)
+            return NoTargetReason(c, id);
+
+        return "";
+    }
+
+    /// <summary>Why a skill's legal-target set is empty, per action. Recall Knowledge and Battle
+    /// Medicine disambiguate "nobody in range" from "everyone in range filtered out" (attempted
+    /// species / already-treated allies) — both facts the player already owns.</summary>
+    private string NoTargetReason(ICharacter actor, string id) => id switch
+    {
+        "trip" or "shove" => "No adjacent foe",
+        "tumble-through" => "No adjacent foe with an open exit tile",
+        "demoralize" => "No foes within 30 ft",
+        "recall-knowledge" => AnyTargetInRange(actor, 6, enemies: true)
+            ? "Already attempted every species in range this fight"
+            : "No foes within 30 ft",
+        "battle-medicine" => AnyTargetInRange(actor, 1, enemies: false)
+            ? "Everyone in reach already treated"
+            : "No ally within reach",
+        "seek" => "No hidden or undetected foes in range",
+        "lunge" => "No foes within extended reach",
+        "sudden-charge" => "No foes within charge range",
+        "shielded-stride" => "No reachable tiles",
+        _ => "No valid targets in range",
+    };
+
+    private bool AnyTargetInRange(ICharacter actor, int rangeTiles, bool enemies)
+    {
+        foreach (var _ in TargetsInRange(actor, rangeTiles, enemies))
+            return true;
+        return false;
+    }
 
     private static TargetingKind SkillKind(string id) => id switch
     {

@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/HelpOverlay.cs" id="1_help"]
+
+[node name="HelpOverlay" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_help")
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Card" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="AccentStrip" type="Panel" parent="Center/Card"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"AccentStrip"
+
+[node name="Panel" type="PanelContainer" parent="Center/Card"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Col" type="VBoxContainer" parent="Center/Card/Panel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Heading" type="Label" parent="Center/Card/Panel/Col"]
+layout_mode = 2
+mouse_filter = 2
+text = "Controls"
+horizontal_alignment = 1
+theme_type_variation = &"HeadingLabel"
+
+[node name="Grid" type="GridContainer" parent="Center/Card/Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+columns = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 4
+
+[node name="Hint" type="Label" parent="Center/Card/Panel/Col"]
+layout_mode = 2
+mouse_filter = 2
+text = "Tab / H  close"
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"

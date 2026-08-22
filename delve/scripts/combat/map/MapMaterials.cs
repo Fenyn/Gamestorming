@@ -31,16 +31,56 @@ public static class MapMaterials
     /// <summary>
     /// Material for the top (walkable) faces of tiles with this surface. Water gets the animated
     /// shader — its surface, its map-edge depth band and its under-bridge fill all share one material
-    /// so they displace together and never open a seam.
+    /// so they displace together and never open a seam. A surface with a theme texture gets the
+    /// pixel-art triplanar material instead of the flat placeholder colour.
     /// </summary>
-    public static Material Top(MapThemeDefinition theme, SurfaceType surface) =>
-        surface == SurfaceType.Water
-            ? Water(theme.TopColor(surface))
+    public static Material Top(MapThemeDefinition theme, SurfaceType surface)
+    {
+        if (surface == SurfaceType.Water)
+            return Water(theme.TopColor(surface));
+        var style = theme.Style(surface);
+        return style?.TopTexture != null
+            ? Textured(style.TopTexture, style.TopTint, theme.TopColor(surface), $"terrain_top_{surface}")
             : Build(theme.TopColor(surface), $"terrain_top_{surface}");
+    }
 
     /// <summary>Material for cliff faces belonging to tiles with this surface. Never animated.</summary>
-    public static Material Wall(MapThemeDefinition theme, SurfaceType surface) =>
-        Build(theme.WallColor(surface), $"terrain_wall_{surface}");
+    public static Material Wall(MapThemeDefinition theme, SurfaceType surface)
+    {
+        var style = theme.Style(surface);
+        return style?.WallTexture != null
+            ? Textured(style.WallTexture, style.WallTint, theme.WallColor(surface), $"terrain_wall_{surface}")
+            : Build(theme.WallColor(surface), $"terrain_wall_{surface}");
+    }
+
+    /// <summary>
+    /// Pixel-art terrain material: nearest-filtered seamless texture projected triplanar in world
+    /// space, one repeat per world metre — a 48px Winlu ground tile lands exactly on each board tile,
+    /// with no mesh UVs needed and cliff faces textured by the same projection. Falls back to the
+    /// theme's flat colour when the texture is missing, so a bad path mis-dresses the map instead of
+    /// crashing it.
+    /// </summary>
+    private static Material Textured(string texturePath, MapColor tint, MapColor fallback, string resourceName)
+    {
+        var texture = ResourceLoader.Load<Texture2D>(texturePath);
+        if (texture == null)
+        {
+            GD.PushError($"[MapMaterials] terrain texture missing at {texturePath}; using flat colour.");
+            return Build(fallback, resourceName);
+        }
+
+        return new StandardMaterial3D
+        {
+            ResourceName = resourceName,
+            AlbedoTexture = texture,
+            AlbedoColor = ToGodot(tint),
+            TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest,
+            Uv1Triplanar = true,
+            Uv1WorldTriplanar = true,
+            Roughness = 1f,
+            Metallic = 0f,
+        };
+    }
 
     /// <summary>
     /// Flat lit material for one palette colour. Alpha below 1 switches on alpha blending — keying

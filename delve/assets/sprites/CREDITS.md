@@ -34,5 +34,16 @@
   your needs. You can NOT redistribute or resell it."
 - Only the Idle frames are vendored here (`rat_vN/idle_1..8.png`). Default art faces right.
 
+## Terrain decor — Winlu Fantasy Exterior
+- Source: Winlu's Fantasy Exterior tileset (https://winlu.itch.io/), local pack:
+  `F:\UnityNVME\Art\Sprites\Winlu\Winlu Fantasy Exterior`.
+- The `decor/forest/*.png` sprites are individual crops from `!Decoration_vegetation.png`,
+  `!$Big_Trees_NoShadow.png`, `!$Cliff_decoration.png`, and `Fantasy_Outside_C.png` — grass tufts,
+  stones, flowers, mushroom, bush, stump, log, and edge trees. Semi-transparent baked drop shadows
+  are stripped (alpha < 200 cleared) so the billboards sit cleanly on 3D terrain; the flat flower
+  patches keep their native pixels.
+- License (Winlu's standard terms): usable in commercial and non-commercial projects; do not
+  redistribute or resell the assets themselves.
+
 These assets are used under their respective licenses for this prototype. Do not redistribute or
 resell the rat sprites.

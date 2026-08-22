@@ -6,8 +6,10 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// Horizontal initiative strip: one name chip per combatant in turn order, the current actor
-/// highlighted and dead combatants grayed. Passive — renders from <see cref="UnitView"/> data.
+/// Horizontal initiative strip: one chip per combatant in turn order — name, a thin team-colored
+/// HP bar, a hard highlight on the current actor, dead combatants dimmed. Passive — renders from
+/// <see cref="UnitView"/> data. All chip styling comes from theme variations
+/// (TurnChipAlly/Enemy/Active, HpBarAlly/Enemy) — no stylebox duplication.
 /// </summary>
 public partial class TurnOrderBar : Control
 {
@@ -30,39 +32,26 @@ public partial class TurnOrderBar : Control
         foreach (var unit in units)
         {
             var chip = _chipScene.Instantiate<PanelContainer>();
-
-            // Per-chip stylebox: duplicate the authored override so each chip owns its colors.
-            // Active = bright bronze, allies = moss, enemies = rust, dead = grayed via modulate.
-            // This cast is why turn_order_chip.tscn keeps a StyleBoxFlat while the rest of the
-            // theme moved to nine-patch StyleBoxTextures — a texture box has no BgColor to write.
-            var style = (StyleBoxFlat)chip.GetThemeStylebox("panel").Duplicate();
-            style.BgColor = unit.IsCurrent
-                ? UiPalette.Gold
-                : unit.TeamId == 1 ? UiPalette.AllyGreen : UiPalette.EnemyRed;
-            style.BorderColor = unit.IsCurrent ? UiPalette.Parchment : UiPalette.DarkWood;
-            chip.AddThemeStyleboxOverride("panel", style);
+            chip.ThemeTypeVariation = unit.IsCurrent
+                ? ThemeNames.TurnChipActive
+                : unit.TeamId == 1 ? ThemeNames.TurnChipAlly : ThemeNames.TurnChipEnemy;
 
             var label = chip.GetNode<Label>("%Label");
             label.Text = unit.Name;
-            Color fg = unit.IsCurrent ? UiPalette.InkDark : UiPalette.Cream;
-            if (unit.IsDead) fg = new Color(fg.R, fg.G, fg.B, 0.35f);
-            label.AddThemeColorOverride("font_color", fg);
-            // Slight enlargement for the active combatant so the current turn pops.
-            label.AddThemeFontSizeOverride("font_size", unit.IsCurrent ? 15 : 13);
-            chip.Modulate = unit.IsDead ? new Color(1, 1, 1, 0.5f) : Colors.White;
+            // The active chip sits on the accent fill, so its text flips to the dark inverse and
+            // grows a step so the current turn pops.
+            label.AddThemeFontSizeOverride("font_size", unit.IsCurrent ? 18 : 16);
+            label.AddThemeColorOverride("font_color",
+                unit.IsCurrent ? UiColors.TextInverse : UiColors.Text);
 
-            // Thin HP fill strip: dark trough, team-colored fill (not HP-fraction tinted — the
-            // team color IS the chip's own color language). Dead chips fade with the rest via
-            // the Modulate above, so no extra dead-state handling is needed here.
             var hpBar = chip.GetNode<ProgressBar>("%HpBar");
+            hpBar.ThemeTypeVariation = unit.TeamId == 1 ? ThemeNames.HpBarAlly : ThemeNames.HpBarEnemy;
             int maxHp = Math.Max(1, unit.MaxHp);
             hpBar.MaxValue = maxHp;
             hpBar.Value = Math.Clamp(unit.Hp, 0, maxHp);
-            hpBar.AddThemeStyleboxOverride("background", new StyleBoxFlat { BgColor = UiPalette.DarkWood });
-            hpBar.AddThemeStyleboxOverride("fill", new StyleBoxFlat
-            {
-                BgColor = unit.TeamId == 1 ? UiPalette.AllyGreen : UiPalette.EnemyRed
-            });
+
+            // Dead chips fade as a whole; the chip keeps its slot so the order stays readable.
+            chip.Modulate = unit.IsDead ? new Color(1, 1, 1, 0.45f) : Colors.White;
 
             _row.AddChild(chip);
         }

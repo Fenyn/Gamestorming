@@ -78,6 +78,17 @@ public partial class OrbitCameraRig : Node3D
         UpdateCameraPose();
     }
 
+    /// <summary>
+    /// Set the orbit pose directly (degrees; pitch clamped to the rig's limits). Capture/dev use —
+    /// the combat shot spike frames a low-pitch horizon angle with it. Play orbiting stays on input.
+    /// </summary>
+    public void SetOrbit(float yawDegrees, float pitchDegrees)
+    {
+        _yaw = yawDegrees;
+        _pitch = Mathf.Clamp(pitchDegrees, PitchMinDegrees, PitchMaxDegrees);
+        UpdateCameraPose();
+    }
+
     public override void _Process(double delta)
     {
         // WASD pans the pivot across the ground plane, camera-relative (W = screen-up).

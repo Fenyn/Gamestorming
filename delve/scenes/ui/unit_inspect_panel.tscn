@@ -1,12 +1,15 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/UnitInspectPanel.cs" id="1_uip"]
-[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="2_theme"]
 
 [node name="UnitInspectPanel" type="PanelContainer"]
-theme = ExtResource("2_theme")
-theme_type_variation = &"InnerPanel"
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_bottom = -12.0
+grow_vertical = 0
 mouse_filter = 2
+theme_type_variation = &"HudPanel"
 script = ExtResource("1_uip")
 
 [node name="Row" type="HBoxContainer" parent="."]
@@ -16,7 +19,7 @@ theme_override_constants/separation = 8
 
 [node name="Accent" type="ColorRect" parent="Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(4, 0)
+custom_minimum_size = Vector2(3, 0)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
@@ -25,28 +28,21 @@ mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
-theme_override_constants/separation = 3
+theme_override_constants/separation = 2
 
-[node name="HeaderRow" type="HBoxContainer" parent="Row/Col"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 10
-
-[node name="NameLabel" type="Label" parent="Row/Col/HeaderRow"]
+[node name="NameLabel" type="Label" parent="Row/Col"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 mouse_filter = 2
 text = "—"
-theme_type_variation = &"WoodLabel"
-theme_override_font_sizes/font_size = 15
+theme_type_variation = &"HeadingLabel"
 
-[node name="AcLabel" type="Label" parent="Row/Col/HeaderRow"]
+[node name="AcLabel" type="Label" parent="Row/Col"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 text = ""
-theme_type_variation = &"HintLabel"
 
 [node name="HpRow" type="HBoxContainer" parent="Row/Col"]
 layout_mode = 2
@@ -55,9 +51,11 @@ theme_override_constants/separation = 8
 
 [node name="HpBar" type="ProgressBar" parent="Row/Col/HpRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 14)
+custom_minimum_size = Vector2(170, 12)
 layout_mode = 2
+size_flags_vertical = 4
 mouse_filter = 2
+theme_type_variation = &"HpBarHigh"
 show_percentage = false
 
 [node name="HpLabel" type="Label" parent="Row/Col/HpRow"]
@@ -65,14 +63,13 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 text = ""
-theme_override_font_sizes/font_size = 13
 
 [node name="ConditionsLabel" type="Label" parent="Row/Col"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+visible = false
+custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 mouse_filter = 2
-visible = false
 text = ""
 autowrap_mode = 3
-theme_type_variation = &"HintLabel"
+theme_override_font_sizes/font_size = 16

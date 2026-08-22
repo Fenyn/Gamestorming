@@ -14,14 +14,30 @@ namespace Delve.Data;
 /// It also carries through to the water shader's colour uniform.</param>
 public readonly record struct MapColor(float R, float G, float B, float A = 1f);
 
-/// <summary>Top-face and cliff-face colours for one <see cref="SurfaceType"/> in a theme.</summary>
+/// <summary>Top-face and cliff-face looks for one <see cref="SurfaceType"/> in a theme.</summary>
 public sealed record MapSurfaceStyle
 {
-    /// <summary>Colour of the tile's walkable top face.</summary>
+    /// <summary>Colour of the tile's walkable top face — the look when <see cref="TopTexture"/> is
+    /// null, and the flat placeholder any headless/diagnostic path reads either way.</summary>
     public required MapColor Top { get; init; }
 
-    /// <summary>Colour of cliff/wall faces belonging to tiles with this surface. Darker by convention.</summary>
+    /// <summary>Colour of cliff/wall faces belonging to tiles with this surface. Darker by convention.
+    /// Flat fallback when <see cref="WallTexture"/> is null.</summary>
     public required MapColor Wall { get; init; }
+
+    /// <summary>Optional res:// path of a seamless pixel-art texture for the top faces, tiled once
+    /// per world metre (one board tile). Plain string so the theme stays engine-free.</summary>
+    public string? TopTexture { get; init; }
+
+    /// <summary>Optional res:// path of a seamless texture for cliff/wall faces.</summary>
+    public string? WallTexture { get; init; }
+
+    /// <summary>Multiplied over <see cref="TopTexture"/> — white leaves the art untinted; a colour
+    /// re-shades a shared texture (e.g. the dirt tile darkened into mud).</summary>
+    public MapColor TopTint { get; init; } = new(1f, 1f, 1f);
+
+    /// <summary>Multiplied over <see cref="WallTexture"/>.</summary>
+    public MapColor WallTint { get; init; } = new(1f, 1f, 1f);
 }
 
 /// <summary>
@@ -84,6 +100,11 @@ public sealed record MapThemeDefinition
     /// <summary>Colour of the top-face lattice.</summary>
     public MapColor TopGridLineColor { get; init; } = new(0f, 0f, 0f, 0.4f);
 
+    /// <summary>The full style entry for a surface, or null when the theme has none (callers then
+    /// fall back to <see cref="FallbackTop"/>/<see cref="FallbackWall"/> via the colour accessors).</summary>
+    public MapSurfaceStyle? Style(SurfaceType surface) =>
+        Surfaces.TryGetValue(surface, out var style) ? style : null;
+
     public MapColor TopColor(SurfaceType surface) =>
         Surfaces.TryGetValue(surface, out var style) ? style.Top : FallbackTop;
 
@@ -108,12 +129,39 @@ public static class MapThemes
         DisplayName = "Woodland",
         Surfaces = new Dictionary<SurfaceType, MapSurfaceStyle>
         {
-            [SurfaceType.Grass] = Style(new(0.33f, 0.55f, 0.24f), new(0.20f, 0.33f, 0.15f)),
-            [SurfaceType.Dirt] = Style(new(0.48f, 0.36f, 0.24f), new(0.30f, 0.22f, 0.15f)),
-            [SurfaceType.Stone] = Style(new(0.55f, 0.55f, 0.57f), new(0.35f, 0.35f, 0.38f)),
-            [SurfaceType.Wood] = Style(new(0.62f, 0.46f, 0.28f), new(0.40f, 0.29f, 0.17f)),
+            // Textured surfaces: seamless 48px Winlu ground tiles (assets/textures/terrain/), one
+            // repeat per board tile. Cliffs share the mossy rock face; mud re-tints the alt dirt.
+            [SurfaceType.Grass] = Style(new(0.33f, 0.55f, 0.24f), new(0.20f, 0.33f, 0.15f)) with
+            {
+                TopTexture = Tex("grass_a"),
+                WallTexture = Tex("rock_b"),
+            },
+            [SurfaceType.Dirt] = Style(new(0.48f, 0.36f, 0.24f), new(0.30f, 0.22f, 0.15f)) with
+            {
+                TopTexture = Tex("dirt_a"),
+                WallTexture = Tex("rock_b"),
+            },
+            [SurfaceType.Stone] = Style(new(0.55f, 0.55f, 0.57f), new(0.35f, 0.35f, 0.38f)) with
+            {
+                TopTexture = Tex("stone_b"),
+                WallTexture = Tex("stone_a"),
+                WallTint = new(0.75f, 0.75f, 0.78f),
+            },
+            // Deck boards carry staggered end-joints (bridge_deck); the slab sides read as stacked
+            // lengthwise beams (bridge_beam = the same boards rotated).
+            [SurfaceType.Wood] = Style(new(0.62f, 0.46f, 0.28f), new(0.40f, 0.29f, 0.17f)) with
+            {
+                TopTexture = Tex("bridge_deck"),
+                WallTexture = Tex("bridge_beam"),
+                WallTint = new(0.78f, 0.74f, 0.70f),
+            },
             [SurfaceType.Water] = Style(new(0.16f, 0.38f, 0.62f, 0.8f), new(0.10f, 0.24f, 0.40f)),
-            [SurfaceType.Mud] = Style(new(0.32f, 0.25f, 0.18f), new(0.20f, 0.16f, 0.11f)),
+            [SurfaceType.Mud] = Style(new(0.32f, 0.25f, 0.18f), new(0.20f, 0.16f, 0.11f)) with
+            {
+                TopTexture = Tex("dirt_b"),
+                TopTint = new(0.70f, 0.64f, 0.58f),
+                WallTexture = Tex("rock_b"),
+            },
             [SurfaceType.Sand] = Style(new(0.80f, 0.72f, 0.50f), new(0.58f, 0.51f, 0.34f)),
             [SurfaceType.Snow] = Style(new(0.90f, 0.92f, 0.95f), new(0.68f, 0.72f, 0.78f)),
             [SurfaceType.Lava] = Style(new(0.90f, 0.35f, 0.10f), new(0.42f, 0.13f, 0.05f)),
@@ -169,4 +217,6 @@ public static class MapThemes
     }
 
     private static MapSurfaceStyle Style(MapColor top, MapColor wall) => new() { Top = top, Wall = wall };
+
+    private static string Tex(string name) => $"res://assets/textures/terrain/{name}.png";
 }

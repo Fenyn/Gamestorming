@@ -1,11 +1,41 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="1_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="1_pr"]
 
 [node name="ActionChip" type="Button"]
-theme = ExtResource("1_theme")
-offset_right = 120.0
-offset_bottom = 26.0
+custom_minimum_size = Vector2(0, 30)
+focus_mode = 0
 theme_type_variation = &"ActionChip"
+
+[node name="Content" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="NameLabel" type="Label" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
 text = "Spell"
-clip_text = true
+theme_override_font_sizes/font_size = 16
+
+[node name="PipRow" parent="Content" instance=ExtResource("1_pr")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+PipSize = Vector2(8, 8)
+
+[node name="SlotLabel" type="Label" parent="Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+text = ""
+theme_type_variation = &"HintLabel"

@@ -8,21 +8,21 @@ namespace Delve.UI;
 /// Modal reaction prompt: "Use Shield Block? (absorb N damage)" with Use / Skip. Passive UI —
 /// renders a <see cref="ReactionPromptView"/> and resolves the awaited choice; it holds no rules
 /// and no engine types. While visible, the full-rect backdrop (MouseFilter.Stop) swallows mouse
-/// events before they reach GridInput3D, and _UnhandledKeyInput consumes Enter/Y (Use) and
-/// Esc/N (Skip), so grid input is blocked for the duration of the prompt.
+/// events before they reach GridInput3D, the panel holds <see cref="HudRoot"/>'s modal state so
+/// sibling hotkeys go inert, and _Input consumes combat_confirm (Use) and combat_decline (Skip) —
+/// a phase ahead of GridInput3D's ui_cancel in _UnhandledInput, so Escape resolves the prompt
+/// instead of cancelling targeting. Gated strictly on Visible so an idle prompt never eats input.
 /// </summary>
 public partial class ReactionPromptPanel : Control
 {
-    /// <summary>Fires true when the modal opens, false when it resolves. Lets sibling UI (the
-    /// action bar's hotkeys) gate input that would otherwise bypass this panel's mouse-blocking
-    /// backdrop.</summary>
-    public event System.Action<bool>? PromptVisibilityChanged;
-
     private Label _titleLabel = null!;
     private Label _reactorLabel = null!;
     private Label _descriptionLabel = null!;
     private Button _useButton = null!;
     private Button _skipButton = null!;
+
+    private HudRoot? _hud;
+    private bool _modalHeld;
 
     private TaskCompletionSource<bool>? _choiceTcs;
 
@@ -33,6 +33,8 @@ public partial class ReactionPromptPanel : Control
         _descriptionLabel = GetNode<Label>("%DescriptionLabel");
         _useButton = GetNode<Button>("%UseButton");
         _skipButton = GetNode<Button>("%SkipButton");
+
+        _hud = GetParentOrNull<HudRoot>();
 
         _useButton.Pressed += () => Resolve(true);
         _skipButton.Pressed += () => Resolve(false);
@@ -53,41 +55,51 @@ public partial class ReactionPromptPanel : Control
         // Async continuations so the combat pipeline resumes outside the button-press callstack.
         _choiceTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         Visible = true;
-        PromptVisibilityChanged?.Invoke(true);
+        HoldModal();
         _useButton.GrabFocus();
         return _choiceTcs.Task;
     }
 
-    public override void _UnhandledKeyInput(InputEvent @event)
+    public override void _Input(InputEvent @event)
     {
-        if (!Visible || @event is not InputEventKey key || !key.Pressed || key.Echo)
-            return;
+        if (!Visible) return;
 
-        switch (key.Keycode)
+        if (@event.IsActionPressed("combat_confirm"))
         {
-            case Key.Enter:
-            case Key.KpEnter:
-            case Key.Y:
-                Resolve(true);
-                GetViewport().SetInputAsHandled();
-                break;
-
-            case Key.Escape:
-            case Key.N:
-                Resolve(false);
-                GetViewport().SetInputAsHandled();
-                break;
+            Resolve(true);
+            GetViewport().SetInputAsHandled();
+        }
+        else if (@event.IsActionPressed("combat_decline"))
+        {
+            Resolve(false);
+            GetViewport().SetInputAsHandled();
         }
     }
+
+    public override void _ExitTree() => ReleaseModal();
 
     private void Resolve(bool use)
     {
         if (_choiceTcs == null) return;
 
         Visible = false;
-        PromptVisibilityChanged?.Invoke(false);
+        ReleaseModal();
         var tcs = _choiceTcs;
         _choiceTcs = null;
         tcs.TrySetResult(use);
+    }
+
+    private void HoldModal()
+    {
+        if (_modalHeld) return;
+        _modalHeld = true;
+        _hud?.PushModal();
+    }
+
+    private void ReleaseModal()
+    {
+        if (!_modalHeld) return;
+        _modalHeld = false;
+        _hud?.PopModal();
     }
 }

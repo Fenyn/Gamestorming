@@ -29,6 +29,12 @@ public partial class CombatScene : Node3D
     private OrbitCameraRig _cameraRig = null!;
     private Node3D _mapRoot = null!;
     private MeshInstance3D _floor = null!;
+    private WorldEnvironment _worldEnvironment = null!;
+    private DirectionalLight3D _sun = null!;
+
+    /// <summary>Biome atmosphere + far scenery around the board. Created on first StartEncounter and
+    /// re-applied (never duplicated) on any later one.</summary>
+    private CombatBackdrop? _backdrop;
 
     /// <summary>Generated terrain for this encounter, added under %MapRoot. Null on a flat board.</summary>
     private MapView3D? _mapView;
@@ -45,13 +51,14 @@ public partial class CombatScene : Node3D
     private TurnOrderBar _turnBar = null!;
     private VictoryBanner _victoryBanner = null!;
     private ReactionPromptPanel _reactionPrompt = null!;
-    private InputLegend _legend = null!;
+    private HelpOverlay _help = null!;
     private UnitInspectPanel _inspectPanel = null!;
 
     /// <summary>
-    /// Upper-left controls legend rows — render data only, mirroring the actual bindings in
-    /// <see cref="OrbitCameraRig"/> (MMB/RMB-drag orbit, wheel zoom, WASD pan) and
-    /// <see cref="GridInput3D"/> (LMB click, Esc / stationary RMB click cancel).
+    /// Help-overlay rows (toggled on Tab/H) — render data only, mirroring the actual bindings in
+    /// <see cref="OrbitCameraRig"/> (MMB/RMB-drag orbit, wheel zoom, WASD pan),
+    /// <see cref="GridInput3D"/> (LMB click, Esc / stationary RMB click cancel), and the HUD's
+    /// combat_* actions.
     /// </summary>
     private static readonly (string Keys, string Action)[] LegendRows =
     {
@@ -60,6 +67,9 @@ public partial class CombatScene : Node3D
         ("MMB / RMB drag", "Orbit camera"),
         ("Wheel / WASD", "Zoom · Pan camera"),
         ("1-4 / Space", "Move·Step·Strike·Shield / End Turn"),
+        ("Q / E", "Spells / Skills"),
+        ("Tab / H", "Controls help"),
+        ("L", "Combat log"),
     };
 
     private CombatSession _session = null!;
@@ -95,20 +105,19 @@ public partial class CombatScene : Node3D
         _cameraRig = GetNode<OrbitCameraRig>("%CameraRig");
         _mapRoot = GetNode<Node3D>("%MapRoot");
         _floor = GetNode<MeshInstance3D>("%PlaceholderFloor");
+        _worldEnvironment = GetNode<WorldEnvironment>("WorldEnvironment");
+        _sun = GetNode<DirectionalLight3D>("DirectionalLight3D");
 
         _turnBar = GetNode<TurnOrderBar>("%TurnOrderBar");
         _log = GetNode<CombatLogPanel>("%CombatLog");
         _actionBar = GetNode<ActionBar>("%ActionBar");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
-        _legend = GetNode<InputLegend>("%ControlsLegend");
-        _legend.SetRows(LegendRows);
+        _help = GetNode<HelpOverlay>("%HelpOverlay");
+        _help.SetRows(LegendRows);
         _inspectPanel = GetNode<UnitInspectPanel>("%UnitInspect");
-
-        // The reaction prompt's backdrop already swallows mouse input; its PromptVisibilityChanged also
-        // gates the action bar's keyboard hotkeys, which _UnhandledKeyInput would otherwise let
-        // bypass the modal.
-        _reactionPrompt.PromptVisibilityChanged += _actionBar.SetModalBlocking;
+        // Modal blocking needs no wiring here: the reaction prompt pushes HudRoot's modal state
+        // and the action bar's hotkeys query it directly through their shared parent.
     }
 
     /// <summary>
@@ -129,6 +138,7 @@ public partial class CombatScene : Node3D
 
         // Board surface first: everything below is positioned against it.
         BuildBoard(setup);
+        BuildBackdrop(setup);
 
         _presenter = new GodotPresenter3D(_popupLayer, _heightMap);
         // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D).
@@ -225,6 +235,24 @@ public partial class CombatScene : Node3D
         _floor.Visible = false;
 
         _heightMap = new TerrainHeightMap(layout, theme.HeightScale);
+    }
+
+    /// <summary>
+    /// Dress the space around the board: biome sky/fog/sun plus far scenery via
+    /// <see cref="CombatBackdrop"/>. The flat checker board carries no biome and gets the neutral
+    /// default theme. Reuses one backdrop node — Apply is idempotent — so a host that calls
+    /// StartEncounter again on this scene never stacks backdrops.
+    /// </summary>
+    private void BuildBackdrop(CombatSetup setup)
+    {
+        if (_backdrop == null)
+        {
+            _backdrop = new CombatBackdrop { Name = "Backdrop" };
+            AddChild(_backdrop);
+        }
+        string? biomeId = _session.MapLayout != null ? setup.BiomeId : null;
+        _backdrop.Apply(biomeId, _session.MapLayout, _heightMap,
+            setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
     }
 
     private void SpawnUnits()
@@ -360,8 +388,8 @@ public partial class CombatScene : Node3D
         // — penalty + day advance — so the banner reads "Defeat" for a draw too rather than lying "Draw".
         string text = result == PF2e.Core.BattleResult.Team1Wins ? "Victory!" : "Defeat";
         Color color = result == PF2e.Core.BattleResult.Team1Wins
-            ? UiPalette.VictoryGold
-            : UiPalette.DefeatRed;
+            ? UiColors.Victory
+            : UiColors.Defeat;
         _victoryBanner.ShowResult(text, color);
         _actionBar.SetInteractable(false);
 

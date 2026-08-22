@@ -39,6 +39,10 @@ public sealed record SpellEntryView
     /// <summary>One-line rules text for the chip tooltip, straight from the spell data. Empty when
     /// the source has none — never invented by the UI.</summary>
     public string Description { get; init; } = "";
+    /// <summary>Why the chip is greyed out ("Needs 2 actions (1 left)", "No spell slots left"),
+    /// derived in the executor from the exact gate that failed. Empty when castable, or when the
+    /// cause isn't determinable — the tooltip then adds nothing.</summary>
+    public string UnavailableReason { get; init; } = "";
 }
 
 /// <summary>UI-facing snapshot of one carried consumable the actor may use this turn (Use Item action bar
@@ -66,6 +70,10 @@ public sealed record SkillEntryView
     /// <summary>One-line rules text for the chip tooltip, straight from the action data. Empty when
     /// the source has none — never invented by the UI.</summary>
     public string Description { get; init; } = "";
+    /// <summary>Why the chip is greyed out ("No adjacent foe", "Needs 2 actions (1 left)"), derived
+    /// in the executor from the exact gate that failed. Empty when castable, or when the cause
+    /// isn't determinable — the tooltip then adds nothing.</summary>
+    public string UnavailableReason { get; init; } = "";
 }
 
 /// <summary>

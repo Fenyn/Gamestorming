@@ -1,0 +1,95 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/RunMapPanel.cs" id="1_map"]
+[ext_resource type="Shader" path="res://assets/shaders/map_backdrop.gdshader" id="2_fog"]
+
+[sub_resource type="ShaderMaterial" id="sm_backdrop"]
+shader = ExtResource("2_fog")
+
+[node name="RunMap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_map")
+
+[node name="Dim" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalDim"
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Strip" type="PanelContainer" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="StripBox" type="VBoxContainer" parent="Layout/Strip"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TopRow" type="HBoxContainer" parent="Layout/Strip/StripBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ClockLabel" type="Label" parent="Layout/Strip/StripBox/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="ShortRestButton" type="Button" parent="Layout/Strip/StripBox/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Take 10 minutes"
+
+[node name="PartyLabel" type="Label" parent="Layout/Strip/StripBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+
+[node name="Board" type="CenterContainer" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MapFrame" type="PanelContainer" parent="Layout/Board"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Backdrop" type="ColorRect" parent="Layout/Board/MapFrame"]
+unique_name_in_owner = true
+material = SubResource("sm_backdrop")
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MapMargin" type="MarginContainer" parent="Layout/Board/MapFrame"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 12
+
+[node name="MapArea" type="Control" parent="Layout/Board/MapFrame/MapMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LegendRow" type="HBoxContainer" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24

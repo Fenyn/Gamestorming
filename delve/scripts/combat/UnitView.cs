@@ -5,6 +5,10 @@ public sealed record UnitView
 {
     public required string Name { get; init; }
     public int TeamId { get; init; }
+
+    /// <summary>True for a party member. Team 1 is always the player's side.</summary>
+    public bool IsAlly => TeamId == 1;
+
     public bool IsCurrent { get; init; }
     public bool IsDead { get; init; }
     public int Initiative { get; init; }

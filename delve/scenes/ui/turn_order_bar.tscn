@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TurnOrderBar.cs" id="1_turn"]
+[ext_resource type="PackedScene" path="res://scenes/ui/turn_order_chip.tscn" id="2_chip"]
 
 [node name="TurnOrderBar" type="Control"]
 layout_mode = 3
@@ -10,6 +11,7 @@ offset_top = 8.0
 grow_horizontal = 2
 mouse_filter = 2
 script = ExtResource("1_turn")
+ChipScene = ExtResource("2_chip")
 
 [node name="Row" type="HBoxContainer" parent="."]
 unique_name_in_owner = true

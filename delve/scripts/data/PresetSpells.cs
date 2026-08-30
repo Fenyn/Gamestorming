@@ -77,126 +77,75 @@ public static class PresetSpells
         SpellDatabase.Instance = db;
     }
 
-    /// <summary>Fetch a canonical preset spell instance by id (registers on first use).</summary>
-    public static SpellCastAction Get(string spellId)
+    /// <summary>Fetch a canonical preset spell instance by id (registers on first use), or null when
+    /// no preset carries that id.</summary>
+    public static SpellCastAction? Get(string spellId)
     {
         EnsureRegistered();
-        return _byId.TryGetValue(spellId, out var spell) ? spell : null!;
+        return _byId.TryGetValue(spellId, out var spell) ? spell : null;
     }
 
     // ─────────────────────────────── Cantrips ───────────────────────────────
 
-    private static SpellCastAction BuildDivineLance() => new()
+    /// <summary>
+    /// The shape every preset cantrip shares: 2 actions, 30 ft range, enemy-targeted, spell level 0.
+    /// Only the damage lane and the tradition list vary, so each cantrip below is one call.
+    /// <paramref name="save"/> is read only when <paramref name="defense"/> is a save.
+    /// </summary>
+    private static SpellCastAction Cantrip(
+        string id, string name, SpellDefenseType defense, DamageType damageType,
+        DiceFormula damage, DiceFormula heightenDamage,
+        List<SpellcastingTradition> traditions,
+        SavingThrow save = default, int maxTargets = 1, int heightenIncrement = 1) => new()
     {
-        SpellId = DivineLanceId,
-        ActionName = "Divine Lance",
+        SpellId = id,
+        ActionName = name,
         ActionCostCount = 2,
         RequiresTarget = true,
         TargetMode = TargetMode.Enemies,
-        MaxTargets = 1,
+        MaxTargets = maxTargets,
         Area = new AreaDefinition { RangeInFeet = 30 }, // range carrier; Type stays None
         Spell = new SpellDefinition
         {
-            SpellLevel = 0, // cantrip
-            Traditions = new List<SpellcastingTradition> { SpellcastingTradition.Divine },
-            DefenseType = SpellDefenseType.SpellAttack,
-            DamageFormula = new DiceFormula(1, 4, 0), // PLACEHOLDER numbers
-            DamageType = DamageType.Spirit,
-            HeightenIncrement = 1,
-            HeightenBonusDamage = new DiceFormula(1, 4, 0),
+            SpellLevel = 0,
+            Traditions = traditions,
+            DefenseType = defense,
+            SaveType = save,
+            DamageFormula = damage,      // PLACEHOLDER numbers
+            DamageType = damageType,
+            HeightenIncrement = heightenIncrement,
+            HeightenBonusDamage = heightenDamage,
         },
     };
 
-    private static SpellCastAction BuildElectricArc() => new()
-    {
-        SpellId = ElectricArcId,
-        ActionName = "Electric Arc",
-        ActionCostCount = 2,
-        RequiresTarget = true,
-        TargetMode = TargetMode.Enemies,
-        MaxTargets = 2, // PF2e: up to two creatures
-        Area = new AreaDefinition { RangeInFeet = 30 },
-        Spell = new SpellDefinition
-        {
-            SpellLevel = 0,
-            Traditions = new List<SpellcastingTradition>
-                { SpellcastingTradition.Arcane, SpellcastingTradition.Primal },
-            DefenseType = SpellDefenseType.BasicSave,
-            SaveType = SavingThrow.Reflex,
-            DamageFormula = new DiceFormula(1, 4, 0), // PLACEHOLDER numbers
-            DamageType = DamageType.Electricity,
-            HeightenIncrement = 1,
-            HeightenBonusDamage = new DiceFormula(1, 4, 0),
-        },
-    };
+    private static SpellCastAction BuildDivineLance() => Cantrip(
+        DivineLanceId, "Divine Lance", SpellDefenseType.SpellAttack, DamageType.Spirit,
+        new DiceFormula(1, 4, 0), new DiceFormula(1, 4, 0),
+        new List<SpellcastingTradition> { SpellcastingTradition.Divine });
 
-    private static SpellCastAction BuildIgnition() => new()
-    {
-        SpellId = IgnitionId,
-        ActionName = "Ignition",
-        ActionCostCount = 2,
-        RequiresTarget = true,
-        TargetMode = TargetMode.Enemies,
-        MaxTargets = 1,
-        Area = new AreaDefinition { RangeInFeet = 30 },
-        Spell = new SpellDefinition
-        {
-            SpellLevel = 0,
-            Traditions = new List<SpellcastingTradition>
-                { SpellcastingTradition.Arcane, SpellcastingTradition.Primal },
-            DefenseType = SpellDefenseType.SpellAttack,
-            DamageFormula = new DiceFormula(2, 4, 0), // PLACEHOLDER numbers (ranged Ignition)
-            DamageType = DamageType.Fire,
-            HeightenIncrement = 1,
-            HeightenBonusDamage = new DiceFormula(1, 4, 0),
-        },
-    };
+    private static SpellCastAction BuildElectricArc() => Cantrip(
+        ElectricArcId, "Electric Arc", SpellDefenseType.BasicSave, DamageType.Electricity,
+        new DiceFormula(1, 4, 0), new DiceFormula(1, 4, 0),
+        new List<SpellcastingTradition> { SpellcastingTradition.Arcane, SpellcastingTradition.Primal },
+        save: SavingThrow.Reflex, maxTargets: 2); // PF2e: up to two creatures
 
-    private static SpellCastAction BuildDaze() => new()
-    {
-        SpellId = DazeId,
-        ActionName = "Daze",
-        ActionCostCount = 2,
-        RequiresTarget = true,
-        TargetMode = TargetMode.Enemies,
-        MaxTargets = 1,
-        Area = new AreaDefinition { RangeInFeet = 30 },
-        Spell = new SpellDefinition
-        {
-            SpellLevel = 0,
-            Traditions = new List<SpellcastingTradition>
-                { SpellcastingTradition.Arcane, SpellcastingTradition.Divine, SpellcastingTradition.Occult },
-            DefenseType = SpellDefenseType.BasicSave,
-            SaveType = SavingThrow.Will,
-            DamageFormula = new DiceFormula(1, 6, 0), // PLACEHOLDER numbers (mental)
-            DamageType = DamageType.Mental,
-            HeightenIncrement = 2,
-            HeightenBonusDamage = new DiceFormula(1, 6, 0),
-        },
-    };
+    private static SpellCastAction BuildIgnition() => Cantrip(
+        IgnitionId, "Ignition", SpellDefenseType.SpellAttack, DamageType.Fire,
+        new DiceFormula(2, 4, 0), new DiceFormula(1, 4, 0), // ranged Ignition
+        new List<SpellcastingTradition> { SpellcastingTradition.Arcane, SpellcastingTradition.Primal });
 
-    private static SpellCastAction BuildFrostbite() => new()
-    {
-        SpellId = FrostbiteId,
-        ActionName = "Frostbite",
-        ActionCostCount = 2,
-        RequiresTarget = true,
-        TargetMode = TargetMode.Enemies,
-        MaxTargets = 1,
-        Area = new AreaDefinition { RangeInFeet = 30 },
-        Spell = new SpellDefinition
-        {
-            SpellLevel = 0,
-            Traditions = new List<SpellcastingTradition>
-                { SpellcastingTradition.Arcane, SpellcastingTradition.Primal },
-            DefenseType = SpellDefenseType.BasicSave,
-            SaveType = SavingThrow.Fortitude,
-            DamageFormula = new DiceFormula(2, 4, 0), // PLACEHOLDER numbers
-            DamageType = DamageType.Cold,
-            HeightenIncrement = 1,
-            HeightenBonusDamage = new DiceFormula(1, 4, 0),
-        },
-    };
+    private static SpellCastAction BuildDaze() => Cantrip(
+        DazeId, "Daze", SpellDefenseType.BasicSave, DamageType.Mental,
+        new DiceFormula(1, 6, 0), new DiceFormula(1, 6, 0),
+        new List<SpellcastingTradition>
+            { SpellcastingTradition.Arcane, SpellcastingTradition.Divine, SpellcastingTradition.Occult },
+        save: SavingThrow.Will, heightenIncrement: 2);
+
+    private static SpellCastAction BuildFrostbite() => Cantrip(
+        FrostbiteId, "Frostbite", SpellDefenseType.BasicSave, DamageType.Cold,
+        new DiceFormula(2, 4, 0), new DiceFormula(1, 4, 0),
+        new List<SpellcastingTradition> { SpellcastingTradition.Arcane, SpellcastingTradition.Primal },
+        save: SavingThrow.Fortitude);
 
     // ─────────────────────────────── Rank 1 ───────────────────────────────
 

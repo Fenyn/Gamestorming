@@ -6,7 +6,7 @@ using PF2e.Spellcasting;
 namespace Delve.Data;
 
 /// <summary>
-/// Code-authored campaign deities. Aveline is a faithful port of the Unity original's
+/// Code-authored preset deities. Aveline is a faithful port of the Unity original's
 /// ScriptableObject asset (Tactics/Assets/ScriptableObjects/Deities/Aveline.asset) — the engine's
 /// DeityDefinition data type was already ported 1:1, so only the asset content lives here.
 ///
@@ -69,22 +69,13 @@ public static class PresetDeities
 
         GrantedSpells = new List<LeveledSpellGrant>
         {
-            new() { SpellRank = 1, Spell = PresetSpells.Get(PresetSpells.BreatheFireId) },
-            new() { SpellRank = 3, Spell = PresetSpells.Get(PresetSpells.FireballId) },
+            new() { SpellRank = 1, Spell = PresetSpells.Get(PresetSpells.BreatheFireId)! },
+            new() { SpellRank = 3, Spell = PresetSpells.Get(PresetSpells.FireballId)! },
         },
 
         Description =
-            "Aveline is the Lady of Dawn, she who kindled the first light when the world lay dark "
-            + "and formless. In the age before the Crown, when men huddled in the long shadow and "
-            + "the dead walked freely, Aveline set her hand against the horizon and the sun came, "
-            + "and with it warmth and the slow green mending of all wounded things. She is patron "
-            + "of healers and of soldiers who fight without cruelty, of those who carry lanterns "
-            + "into dark places and who offer the open hand before the closed fist. Her worship ran "
-            + "through the Crown like a golden thread in the years of Arthur’s reign, and her "
-            + "chapels rose tall in every city and hamlet along the borderlands. Now many of those "
-            + "chapels stand half-ruined, their congregations scattered by war and abandonment, "
-            + "tended by the faithful few who will not leave. Sister Cael keeps a shrine to Aveline "
-            + "in the outpost chapel, and Maren carries her light into battle.",
+            "Goddess of the sun, healing, and mercy. Patron of healers and of soldiers who fight "
+            + "without cruelty.",
         Edicts =
             "Destroy the undead, bring light to dark places, offer mercy to those who surrender",
         Anathema =

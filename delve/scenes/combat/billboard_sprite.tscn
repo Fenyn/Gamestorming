@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+; Billboarded pixel-art sprite: the drawn body of any 2.5D entity. The pixel-art draw rules
+; (unshaded, nearest filtering, alpha scissor) are applied in code by PixelSprite.Configure, which
+; tile decor shares, so the rules exist in one place. Only the billboard mode is authored here,
+; because it is the placement choice that makes this scene a token body rather than ground cover.
+; Sheet, frames and pixel size are per-entity and come from BillboardSpriteAnimator.ConfigureHero /
+; ConfigureEnemy.
+
+[ext_resource type="Script" path="res://scripts/combat/BillboardSpriteAnimator.cs" id="1_anim"]
+
+[node name="BillboardSprite" type="Sprite3D"]
+billboard = 2
+script = ExtResource("1_anim")

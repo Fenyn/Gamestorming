@@ -12,6 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_help")
+Rows = PackedStringArray("LMB|Select · Confirm", "ui_cancel,RMB|Cancel targeting", "MMB,RMB drag|Orbit camera", "Wheel,WASD|Zoom · Pan camera", "combat_action_1,combat_action_2,combat_action_3,combat_action_4|Move · Step · Strike · Shield", "combat_end_turn|End turn", "combat_spells,combat_skills|Spells / Skills", "combat_help|Controls help", "combat_log_toggle|Combat log")
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1

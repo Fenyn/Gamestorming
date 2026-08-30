@@ -30,33 +30,25 @@ public partial class StrikeAuditSpike : SpikeBase
     private int _strikes;
     private int _violations;
 
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== STRIKE AUDIT SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== STRIKE AUDIT SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[Audit] DataManager not loaded — aborting.");
-            return;
-        }
-
-        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => { applyDamage(); return System.Threading.Tasks.Task.CompletedTask; };
-        ReactionEvents.OnDamageReactionCheck += damageHandler;
+        using var reactions = UsePassthroughReactions();
         StrikeResolver.OnStrikeResolved += OnStrike;
-
-        foreach (int seed in new[] { 1234, 777, 42 })
-            await RunEncounter(data, seed);
-
-        StrikeResolver.OnStrikeResolved -= OnStrike;
-        ReactionEvents.OnDamageReactionCheck -= damageHandler;
+        try
+        {
+            foreach (int seed in new[] { 1234, 777, 42 })
+                await RunEncounter(data, seed);
+        }
+        finally
+        {
+            StrikeResolver.OnStrikeResolved -= OnStrike;
+        }
 
         GD.Print($"[Audit] Strikes audited: {_strikes}, range violations: {_violations}");
         Check($"strikes were actually audited ({_strikes})", _strikes > 0);
         Check($"no range violations ({_violations})", _violations == 0);
-        FinishAndQuit("Audit");
     }
 
     private async Task RunEncounter(DataManager data, int seed)

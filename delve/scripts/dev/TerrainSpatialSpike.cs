@@ -63,36 +63,18 @@ public partial class TerrainSpatialSpike : SpikeBase
     /// <summary>Sewer seeds for the generated-map sweep. Sewer macro-shape weights are not in flight.</summary>
     private static readonly int[] SewerSeeds = { 7, 2026, 84105 };
 
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== TERRAIN SPATIAL SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== TERRAIN SPATIAL SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[TerrainSpatialSpike] DataManager not loaded — aborting.");
-            return;
-        }
         PresetSpells.EnsureRegistered();
 
-        try
-        {
-            Scenario_A_WallBarrier(data);
-            await Scenario_B_AreaSpells(data);
-            Scenario_C_CoverPillar(data);
-            Scenario_D_Elevation(data);
-            Scenario_E_FlatEquivalence(data);
-            Scenario_F_GeneratedSewer();
-        }
-        catch (Exception e)
-        {
-            GD.PushError($"[TerrainSpatialSpike] Unhandled exception: {e}");
-            Fail();
-        }
-
-        FinishAndQuit("TerrainSpatialSpike");
+        Scenario_A_WallBarrier(data);
+        await Scenario_B_AreaSpells(data);
+        Scenario_C_CoverPillar(data);
+        Scenario_D_Elevation(data);
+        Scenario_E_FlatEquivalence(data);
+        Scenario_F_GeneratedSewer();
     }
 
     // ─────────────────────────── (a) Wall barrier ───────────────────────────
@@ -110,13 +92,13 @@ public partial class TerrainSpatialSpike : SpikeBase
         var hero = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var target = MakeGoblin(data);
         // Same side, clear line.
-        var scout = PresetCharacters.BuildScout(level: 2, teamId: 1);
+        var elara = PresetCharacters.BuildElara(level: 2, teamId: 1);
         var clearTarget = MakeGoblin(data);
         // Same side, a creature in the way.
         var blocker = MakeGoblin(data);
 
         var session = StartSession(layout, "(a)",
-            party: new() { (hero, new PF2eVec(2, 4)), (scout, new PF2eVec(8, 7)) },
+            party: new() { (hero, new PF2eVec(2, 4)), (elara, new PF2eVec(8, 7)) },
             enemies: new()
             {
                 (target, new PF2eVec(12, 4)),
@@ -137,12 +119,12 @@ public partial class TerrainSpatialSpike : SpikeBase
                 CoverHelper.GetPositionalCover!(hero, target) == CoverLevel.Standard);
 
             Check("(a) clear line on one side has sight and effect",
-                CoverHelper.HasLineOfSight(scout, clearTarget)
-                && CoverHelper.HasLineOfEffect(scout.GridPosition, clearTarget.GridPosition));
+                CoverHelper.HasLineOfSight(elara, clearTarget)
+                && CoverHelper.HasLineOfEffect(elara.GridPosition, clearTarget.GridPosition));
             Check("(a) intervening creature grants lesser cover",
-                CoverHelper.GetPositionalCover(scout, clearTarget) == CoverLevel.Lesser);
+                CoverHelper.GetPositionalCover(elara, clearTarget) == CoverLevel.Lesser);
             Check("(a) intervening creature does NOT block line of sight",
-                CoverHelper.HasLineOfSight(scout, clearTarget));
+                CoverHelper.HasLineOfSight(elara, clearTarget));
 
             // Nothing blocks itself, and nothing at Chebyshev distance <= 1 can be blocked at all.
             var beside = new PF2eVec(5, 4);   // ground tile hard against the wall's west face
@@ -177,12 +159,12 @@ public partial class TerrainSpatialSpike : SpikeBase
         GD.Print("-------------------- (b) area spells across a wall --------------------");
         var layout = BarrierLayout();
 
-        var scholar = PresetCharacters.BuildScholar(level: 2, teamId: 1);
+        var fenwick = PresetCharacters.BuildFenwick(level: 2, teamId: 1);
         var nearGoblin = MakeGoblin(data);  // in front of the wall
         var farGoblin = MakeGoblin(data);   // behind the wall
 
         var session = StartSession(layout, "(b)",
-            party: new() { (scholar, new PF2eVec(8, 4)) },
+            party: new() { (fenwick, new PF2eVec(8, 4)) },
             enemies: new() { (nearGoblin, new PF2eVec(7, 4)), (farGoblin, new PF2eVec(5, 4)) },
             seed: 11);
         try
@@ -191,10 +173,10 @@ public partial class TerrainSpatialSpike : SpikeBase
 
             // ── Burst template: aimed east of the wall, it must lose exactly the tiles west of it.
             var burstOrigin = new PF2eVec(9, 4);
-            var spell = PresetSpells.Get(PresetSpells.FireballId);
+            var spell = PresetSpells.Get(PresetSpells.FireballId)!;
             int radius = spell.Area!.SizeInTiles;
             var unfiltered = AreaCalculator.GetBurstTiles(burstOrigin, radius);
-            var filtered = exec.GetAreaTemplateTiles(scholar, PresetSpells.FireballId, burstOrigin);
+            var filtered = exec.GetAreaTemplateTiles(fenwick, PresetSpells.FireballId, burstOrigin);
             var kept = new HashSet<PF2eVec>(filtered);
 
             int removed = 0;
@@ -223,23 +205,23 @@ public partial class TerrainSpatialSpike : SpikeBase
             // ── Cone template: the shape reaches both goblins, LOE keeps only the near one.
             var coneAim = farGoblin.GridPosition;
             var coneShape = AreaCalculator.GetConeTiles(
-                scholar.GridPosition, coneAim - scholar.GridPosition,
-                PresetSpells.Get(PresetSpells.BreatheFireId).Area!.SizeInTiles);
+                fenwick.GridPosition, coneAim - fenwick.GridPosition,
+                PresetSpells.Get(PresetSpells.BreatheFireId)!.Area!.SizeInTiles);
             var coneShapeSet = new HashSet<PF2eVec>(coneShape);
             Check("(b) the unfiltered cone covers both goblins",
                 coneShapeSet.Contains(nearGoblin.GridPosition) && coneShapeSet.Contains(farGoblin.GridPosition));
 
             var coneTiles = new HashSet<PF2eVec>(
-                exec.GetAreaTemplateTiles(scholar, PresetSpells.BreatheFireId, coneAim));
+                exec.GetAreaTemplateTiles(fenwick, PresetSpells.BreatheFireId, coneAim));
             Check("(b) cone template keeps the goblin in front of the wall",
                 coneTiles.Contains(nearGoblin.GridPosition));
             Check("(b) cone template drops the goblin behind the wall",
                 !coneTiles.Contains(farGoblin.GridPosition));
 
             // ── Live cast: the resolved spell must only touch the reachable goblin.
-            scholar.Actions.RefillActions();
+            fenwick.Actions.RefillActions();
             var resolved = await CaptureCast(() =>
-                exec.ExecuteCast(scholar, PresetSpells.BreatheFireId, -1, coneAim));
+                exec.ExecuteCast(fenwick, PresetSpells.BreatheFireId, -1, coneAim));
 
             var hit = new HashSet<ICharacter>();
             if (resolved?.TargetResults != null)
@@ -266,7 +248,7 @@ public partial class TerrainSpatialSpike : SpikeBase
         PaintCover(layout, 5, 2, LowWall);
 
         var hero = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
-        var beside = PresetCharacters.BuildScout(level: 2, teamId: 1);
+        var beside = PresetCharacters.BuildElara(level: 2, teamId: 1);
         var target = MakeGoblin(data);
 
         var session = StartSession(layout, "(c)",
@@ -312,7 +294,7 @@ public partial class TerrainSpatialSpike : SpikeBase
         }
 
         var lowShooter = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
-        var highShooter = PresetCharacters.BuildScout(level: 2, teamId: 1);
+        var highShooter = PresetCharacters.BuildElara(level: 2, teamId: 1);
         var target = MakeGoblin(data);
 
         var session = StartSession(layout, "(d)",
@@ -379,7 +361,7 @@ public partial class TerrainSpatialSpike : SpikeBase
 
             // The whole point: with the stub in place, no area template loses a tile.
             var origin = new PF2eVec(6, 5);
-            var spell = PresetSpells.Get(PresetSpells.FireballId);
+            var spell = PresetSpells.Get(PresetSpells.FireballId)!;
             int unfiltered = AreaCalculator.GetBurstTiles(origin, spell.Area!.SizeInTiles).Count;
             int filtered = session.PlayerActions
                 .GetAreaTemplateTiles(hero, PresetSpells.FireballId, origin).Count;
@@ -420,7 +402,7 @@ public partial class TerrainSpatialSpike : SpikeBase
                 continue;
             }
 
-            SpatialDelegates.Wire(grid);
+            var spatialHandle = SpatialDelegates.Wire(grid);
             try
             {
                 Check($"(f) seed {seed}: generated grid wires the real delegates",
@@ -463,7 +445,7 @@ public partial class TerrainSpatialSpike : SpikeBase
                 GD.Print($"        · {layout.Width}x{layout.Height}, {walkable.Count} walkable tiles, "
                          + $"{blocked} of {walkable.Count * walkable.Count} ordered pairs blocked");
             }
-            finally { SpatialDelegates.Unwire(); }
+            finally { spatialHandle.Dispose(); }
         }
     }
 

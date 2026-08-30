@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/SheetStatBox.cs" id="1_box"]
+
+[node name="SheetStatBox" type="PanelContainer"]
+offset_right = 150.0
+offset_bottom = 84.0
+theme_type_variation = &"HudInset"
+script = ExtResource("1_box")
+
+[node name="Stack" type="VBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 0
+
+[node name="Caption" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "STR"
+horizontal_alignment = 1
+theme_type_variation = &"CardRoleLabel"
+
+[node name="Value" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+0"
+horizontal_alignment = 1
+theme_type_variation = &"SheetValue"
+
+[node name="Detail" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+theme_type_variation = &"CardRoleLabel"

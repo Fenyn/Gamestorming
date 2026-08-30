@@ -1,55 +1,29 @@
 [gd_scene load_steps=5 format=3]
 
-; 2.5D combat token blockout: the static node structure of a UnitVisual3D (billboard sprite, ground
-; ring, HP bar, name label). An art pass retextures / repositions these nodes here. Everything that
-; varies per unit at runtime — sprite texture/frames/size, team-tinted materials, HP bar/name height —
-; is applied in code by UnitVisual3D.Configure/_Ready, so this scene stays a pure structural skeleton.
+; 2.5D combat token: a thin assembly. The billboard sprite, the team ring and the HP bar are their
+; own scenes, so any entity can reuse them; this scene only puts them together, adds the name label,
+; and gives the four nodes unique names for UnitVisual3D. Everything that varies per unit at runtime
+; (sprite sheet and size, team colour, bar and name height) is applied in code by
+; UnitVisual3D.Configure/_Ready, so this scene stays a structural skeleton.
 
 [ext_resource type="Script" path="res://scripts/combat/UnitVisual3D.cs" id="1_unit"]
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_ring"]
-top_radius = 0.42
-bottom_radius = 0.42
-height = 0.02
-radial_segments = 24
-
-[sub_resource type="QuadMesh" id="QuadMesh_hpbg"]
-size = Vector2(0.84, 0.13)
-
-[sub_resource type="QuadMesh" id="QuadMesh_hpfill"]
-size = Vector2(0.8, 0.09)
+[ext_resource type="PackedScene" path="res://scenes/combat/billboard_sprite.tscn" id="2_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/combat/team_ring.tscn" id="3_ring"]
+[ext_resource type="PackedScene" path="res://scenes/combat/world_hp_bar.tscn" id="4_hpbar"]
 
 [node name="UnitToken" type="Node3D"]
 script = ExtResource("1_unit")
 
-[node name="Sprite" type="Sprite3D" parent="."]
+[node name="Sprite" parent="." instance=ExtResource("2_sprite")]
 unique_name_in_owner = true
-shaded = false
-alpha_cut = 1
-alpha_scissor_threshold = 0.5
-texture_filter = 0
-billboard = 2
 
-[node name="Ring" type="MeshInstance3D" parent="."]
+[node name="Ring" parent="." instance=ExtResource("3_ring")]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
-cast_shadow = 0
-mesh = SubResource("CylinderMesh_ring")
 
-[node name="HpBar" type="Node3D" parent="."]
+[node name="HpBar" parent="." instance=ExtResource("4_hpbar")]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-
-[node name="HpBarBg" type="MeshInstance3D" parent="HpBar"]
-unique_name_in_owner = true
-cast_shadow = 0
-mesh = SubResource("QuadMesh_hpbg")
-
-[node name="HpFill" type="MeshInstance3D" parent="HpBar"]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.001)
-cast_shadow = 0
-mesh = SubResource("QuadMesh_hpfill")
 
 [node name="Name" type="Label3D" parent="."]
 unique_name_in_owner = true

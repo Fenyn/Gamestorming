@@ -7,10 +7,10 @@
 - License (from the packs' readmes): usable commercially or non-commercially; do not redistribute or
   resell the source layers. Only baked composites are vendored here, never the pack's layer files.
 - The `heroes/<name>/*.png` sheets are baked paper-doll composites (body + outfit + hair), one set per
-  preset character, produced by `G:\crocotile-mcp\examples\build_mana_seed_sheets.py`. That script
-  carries the per-character layer recipe and its `--verify` mode re-derives `p1.png` and proves it
-  pixel-identical to what is vendored — run it before baking any new page so a character cannot
-  change hair or clothes between one animation and another.
+  preset character, produced by `G:\crocotile-mcp\examples\build_delve_hero_sheets.py`. That script
+  carries the per-character layer recipe (re-dressed 2026-08-24 to match the bulwark character
+  bios: Aldric farmhand, Tharr stonemason, Elara merchant, Fenwick gastronomancer) and bakes every
+  page from it, so a character cannot change hair or clothes between one animation and another.
 - Every page is 512x512, an 8x8 grid of 64x64 cells, with the same S/N/E/W facing-row order:
   - `p1.png` — movement. Rows 0-3 stand frame at column 0 (columns 1-2 push, 3-4 pull, 5-7 jump —
     art present, unwired); rows 4-7 the 6-frame walk cycle (columns 0-5; 6-7 are run alternates).
@@ -42,6 +42,12 @@
   stones, flowers, mushroom, bush, stump, log, and edge trees. Semi-transparent baked drop shadows
   are stripped (alpha < 200 cleared) so the billboards sit cleanly on 3D terrain; the flat flower
   patches keep their native pixels.
+- The `decor/trees/tree_*.png` sprites are individual crops from `!$Big_Trees_NoShadow.png`,
+  `!$Big_Trees_3.png` (dead snags) and `!$Giant_tree_No_Glowing.png`, produced by
+  `G:\crocotile-mcp\examples\build_delve_trees.py` (2026-08-26). That script records the crop boxes
+  and strips the baked semi-transparent drop shadows (alpha < 200 cleared); the autumn/red
+  recolours are vendored alongside the teal forest set for future biomes. They dress the
+  `scenes/props/tree_*.tscn` HD-2D billboard props and the terrain halo's tree scatter.
 - License (Winlu's standard terms): usable in commercial and non-commercial projects; do not
   redistribute or resell the assets themselves.
 

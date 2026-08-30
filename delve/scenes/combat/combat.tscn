@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
@@ -13,6 +13,12 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/unit_inspect_panel.tscn" id="11_inspect"]
 [ext_resource type="Script" path="res://scripts/combat/ShakePivot.cs" id="12_shake"]
 [ext_resource type="Script" path="res://scripts/ui/HudRoot.cs" id="13_hudroot"]
+[ext_resource type="Script" path="res://scripts/terrain/TerrainStage.cs" id="14_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="15_tree_canopy"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="16_tree_conifer"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="17_tree_bush"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="18_tree_dead"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="19_tree_giant"]
 
 [sub_resource type="Shader" id="Shader_floor"]
 code = "shader_type spatial;
@@ -58,11 +64,19 @@ ambient_light_energy = 1.0
 [node name="Combat" type="Node3D"]
 script = ExtResource("1_scene")
 
-[node name="MapRoot" type="Node3D" parent="."]
+; The board's ground as one component: it owns the generated terrain view, the biome backdrop and
+; the flat placeholder floor below, and CombatScene builds all three through its single Build call.
+[node name="TerrainStage" type="Node3D" parent="."]
 unique_name_in_owner = true
+script = ExtResource("14_terrain")
+PlaceholderFloorPath = NodePath("PlaceholderFloor")
+HaloTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer"), ExtResource("17_tree_bush"), ExtResource("18_tree_dead"), ExtResource("19_tree_giant")]
+HaloTreeWeights = [3.0, 3.0, 1.5, 0.8, 0.2]
+HaloTreeMinRings = [4.0, 4.0, 0.0, 4.0, 6.0]
+BoardTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer")]
+BoardTreeWeights = [3.0, 2.0]
 
-[node name="PlaceholderFloor" type="MeshInstance3D" parent="MapRoot"]
-unique_name_in_owner = true
+[node name="PlaceholderFloor" type="MeshInstance3D" parent="TerrainStage"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
 mesh = SubResource("PlaneMesh_floor")
 surface_material_override/0 = SubResource("ShaderMaterial_floor")
@@ -114,6 +128,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("13_hudroot")
+HelpPath = NodePath("HelpOverlay")
+LogPath = NodePath("CombatLog")
 
 [node name="TurnOrderBar" parent="HUD/HudRoot" instance=ExtResource("5_turn")]
 unique_name_in_owner = true

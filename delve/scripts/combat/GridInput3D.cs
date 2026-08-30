@@ -1,5 +1,5 @@
 using System;
-using Delve.Combat.Map;
+using Delve.Terrain;
 using Godot;
 using PF2eVec = PF2e.Vector2Int;
 
@@ -28,9 +28,22 @@ namespace Delve.Combat;
 /// </summary>
 public partial class GridInput3D : Node3D
 {
+    /// <summary>A tile was left-clicked.</summary>
+    public event Action<PF2eVec>? TileClicked;
+
+    /// <summary>The hovered tile changed. Null means the cursor left the board.</summary>
+    public event Action<PF2eVec?>? TileHovered;
+
+    /// <summary>Esc, or a stationary right-click, asked to cancel targeting.</summary>
+    public event Action? Cancelled;
+
     /// <summary>The rig owns the click-vs-drag gesture threshold; CombatScene pushes the rig's
     /// live value in at Setup so the two stay in agreement.</summary>
     [Export] public float DragThresholdPixels { get; set; } = OrbitCameraRig.DefaultDragThresholdPixels;
+
+    /// <summary>Physics layer the terrain collider sits on. Must match the terrain view's
+    /// <see cref="MapView3D.CollisionLayer"/> — both default to layer 1 ("Terrain").</summary>
+    [Export] public uint TerrainCollisionMask { get; set; } = 1;
 
     /// <summary>How far a picking ray travels. Well past the far side of any board at max zoom.</summary>
     private const float RayLength = 1000f;
@@ -45,9 +58,6 @@ public partial class GridInput3D : Node3D
     private Camera3D _camera = null!;
     private int _gridWidth;
     private int _gridHeight;
-    private Action<PF2eVec>? _onClick;
-    private Action<PF2eVec?>? _onHover;
-    private Action? _onCancel;
 
     private PF2eVec? _lastHover;
     private Vector2 _rightPressPos;
@@ -55,17 +65,21 @@ public partial class GridInput3D : Node3D
     private bool _terrain;
     private Vector2 _pointer;
 
-    public void Setup(Camera3D camera, int gridWidth, int gridHeight,
-        Action<PF2eVec> onClick, Action<PF2eVec?> onHover, Action onCancel,
-        TerrainHeightMap heightMap)
+    /// <summary>Idle until an encounter wires this node up: no camera means every per-frame cast
+    /// would be a null check and nothing else.</summary>
+    public override void _Ready()
+    {
+        SetProcess(false);
+        SetPhysicsProcess(false);
+    }
+
+    public void Setup(Camera3D camera, int gridWidth, int gridHeight, TerrainHeightMap heightMap)
     {
         _camera = camera;
         _gridWidth = gridWidth;
         _gridHeight = gridHeight;
-        _onClick = onClick;
-        _onHover = onHover;
-        _onCancel = onCancel;
         _terrain = heightMap.HasTerrain;
+        SetProcess(true);
         // A flat board must not merely skip the raycast, it must not tick physics at all: leaving the
         // callback enabled would add a per-frame call the flat path never had.
         SetPhysicsProcess(_terrain);
@@ -73,8 +87,6 @@ public partial class GridInput3D : Node3D
 
     public override void _Process(double delta)
     {
-        if (_camera == null) return;
-
         var screen = GetViewport().GetMousePosition();
         if (_terrain)
         {
@@ -88,19 +100,17 @@ public partial class GridInput3D : Node3D
         if (!Equals(cell, _lastHover))
         {
             _lastHover = cell;
-            _onHover?.Invoke(cell);
+            TileHovered?.Invoke(cell);
         }
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!_terrain || _camera == null) return;
-
         PF2eVec? cell = RaycastTile(_pointer);
         if (Equals(cell, _lastHover)) return;
 
         _lastHover = cell;
-        _onHover?.Invoke(cell);
+        TileHovered?.Invoke(cell);
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -110,7 +120,7 @@ public partial class GridInput3D : Node3D
         // Esc (ui_cancel) cancels targeting, mirroring the stationary right-click cancel below.
         if (@event.IsActionPressed("ui_cancel"))
         {
-            _onCancel?.Invoke();
+            Cancelled?.Invoke();
             return;
         }
 
@@ -123,13 +133,13 @@ public partial class GridInput3D : Node3D
                 // Consume the published hover rather than casting here: input runs outside the physics
                 // step, and re-casting would also risk a click landing on a different tile than the one
                 // the player saw highlighted.
-                if (_lastHover.HasValue) _onClick?.Invoke(_lastHover.Value);
+                if (_lastHover.HasValue) TileClicked?.Invoke(_lastHover.Value);
             }
             else
             {
                 var screen = mb.Position;
                 if (GridSpace.TryRayToTile(_camera, screen, _gridWidth, _gridHeight, out var tile))
-                    _onClick?.Invoke(tile);
+                    TileClicked?.Invoke(tile);
             }
         }
         else if (mb.ButtonIndex == MouseButton.Right)
@@ -138,7 +148,7 @@ public partial class GridInput3D : Node3D
             if (mb.Pressed)
                 _rightPressPos = mb.Position;
             else if (mb.Position.DistanceTo(_rightPressPos) <= DragThresholdPixels)
-                _onCancel?.Invoke();
+                Cancelled?.Invoke();
         }
     }
 
@@ -155,7 +165,7 @@ public partial class GridInput3D : Node3D
         Vector3 dir = _camera.ProjectRayNormal(screen);
 
         var query = PhysicsRayQueryParameters3D.Create(origin, origin + dir * RayLength);
-        query.CollisionMask = Map.MapView3D.TerrainCollisionLayer;
+        query.CollisionMask = TerrainCollisionMask;
         var hit = world.DirectSpaceState.IntersectRay(query);
         // An empty dictionary is the miss result — indexing it would throw, so bail before reading.
         if (hit.Count == 0) return null;

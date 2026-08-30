@@ -8,29 +8,48 @@ namespace Delve.UI;
 /// (<see cref="PushModal"/>/<see cref="PopModal"/>, clamped at zero): modal panels push on show
 /// and pop on hide, non-modal panels gate their hotkeys on <see cref="ModalActive"/>. Also owns
 /// the two global HUD toggles — combat_help (help overlay) and combat_log_toggle (log expansion)
-/// — both inert while a modal is up. No scene file: scripted on a plain Control in combat.tscn;
-/// child panels resolve it via GetParentOrNull&lt;HudRoot&gt;() and tolerate null so they still run
-/// standalone in spikes.
+/// — both inert while a modal is up. No scene file: scripted on a plain Control in combat.tscn.
+/// It joins <see cref="Group"/> in _EnterTree, which runs before any child's _Ready, so child
+/// panels can resolve it and still tolerate its absence when they run standalone in a spike.
 /// </summary>
 public partial class HudRoot : Control
 {
+    /// <summary>Scene group a child panel looks the HUD root up through.</summary>
+    public const string Group = "hud_root";
+
     /// <summary>Fires true when the first modal opens, false when the last one resolves.</summary>
     public event Action<bool>? ModalChanged;
 
+    /// <summary>Path to the controls-help overlay this root toggles on combat_help.</summary>
+    [Export] public NodePath HelpPath { get; set; } = new("HelpOverlay");
+
+    /// <summary>Path to the combat log this root expands on combat_log_toggle.</summary>
+    [Export] public NodePath LogPath { get; set; } = new("CombatLog");
+
+    /// <summary>Resolved <see cref="HelpPath"/>. Node-typed exports do not bind from hand-authored
+    /// .tscn text in this project, so the path is resolved in _Ready.</summary>
+    public HelpOverlay? Help { get; private set; }
+
+    /// <summary>Resolved <see cref="LogPath"/>.</summary>
+    public CombatLogPanel? Log { get; private set; }
+
     private int _modalCount;
-    private HelpOverlay? _help;
-    private CombatLogPanel? _log;
 
     /// <summary>True while any modal panel (reaction prompt, victory banner) is up.</summary>
     public bool ModalActive => _modalCount > 0;
 
+    /// <summary>The HUD root of the current scene, or null when a panel runs without one.</summary>
+    public static HudRoot? Find(Node from)
+        => from.GetTree()?.GetFirstNodeInGroup(Group) as HudRoot;
+
+    public override void _EnterTree() => AddToGroup(Group);
+
     public override void _Ready()
     {
-        foreach (var child in GetChildren())
-        {
-            if (child is HelpOverlay help) _help = help;
-            else if (child is CombatLogPanel log) _log = log;
-        }
+        Help = HelpPath.IsEmpty ? null : GetNodeOrNull<HelpOverlay>(HelpPath);
+        Log = LogPath.IsEmpty ? null : GetNodeOrNull<CombatLogPanel>(LogPath);
+        if (Help == null) GD.PushWarning("[HudRoot] HelpPath did not resolve.");
+        if (Log == null) GD.PushWarning("[HudRoot] LogPath did not resolve.");
     }
 
     public void PushModal()
@@ -54,14 +73,14 @@ public partial class HudRoot : Control
     {
         if (ModalActive) return;
 
-        if (@event.IsActionPressed("combat_help"))
+        if (@event.IsActionPressed(InputNames.Help))
         {
-            _help?.Toggle();
+            Help?.Toggle();
             GetViewport().SetInputAsHandled();
         }
-        else if (@event.IsActionPressed("combat_log_toggle"))
+        else if (@event.IsActionPressed(InputNames.LogToggle))
         {
-            _log?.ToggleExpanded();
+            Log?.ToggleExpanded();
             GetViewport().SetInputAsHandled();
         }
     }

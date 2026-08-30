@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/RunMapShotSpike.cs" id="1_mapshot"]
+[ext_resource type="PackedScene" path="res://scenes/run/run_map.tscn" id="2_map"]
+
+[node name="RunMapShotSpike" type="Node"]
+script = ExtResource("1_mapshot")
+MapScene = ExtResource("2_map")

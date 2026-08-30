@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Delve.Combat.Map;
 using Delve.Data;
+using Delve.Terrain;
 using Delve.UI;
 using Godot;
 using PF2e.Core;
@@ -18,7 +18,7 @@ namespace Delve.Combat;
 public partial class CombatScene : Node3D
 {
     // Preloaded token blockout (static subtree authored in the scene); each unit is an instance whose
-    // per-unit visuals are applied via UnitVisual3D.Configure.
+    // per-unit visuals are applied by UnitVisual3D.Spawn.
     private static readonly PackedScene UnitTokenScene =
         GD.Load<PackedScene>("res://scenes/combat/unit_token.tscn");
 
@@ -27,24 +27,16 @@ public partial class CombatScene : Node3D
     private Node3D _popupLayer = null!;
     private GridInput3D _input = null!;
     private OrbitCameraRig _cameraRig = null!;
-    private Node3D _mapRoot = null!;
-    private MeshInstance3D _floor = null!;
     private WorldEnvironment _worldEnvironment = null!;
     private DirectionalLight3D _sun = null!;
-
-    /// <summary>Biome atmosphere + far scenery around the board. Created on first StartEncounter and
-    /// re-applied (never duplicated) on any later one.</summary>
-    private CombatBackdrop? _backdrop;
-
-    /// <summary>Generated terrain for this encounter, added under %MapRoot. Null on a flat board.</summary>
-    private MapView3D? _mapView;
+    private CanvasLayer _hud = null!;
 
     /// <summary>
-    /// The board's surface heights — the one instance every elevation-aware view piece reads (unit
-    /// spawn, presenter tweens, overlay, input, camera pivot). <see cref="TerrainHeightMap.Flat"/> on a
-    /// flat board, which makes both paths run the same code with all-zero heights.
+    /// The ground under the fight: terrain view, backdrop and placeholder floor. Owns the board's
+    /// surface heights, which every elevation-aware view piece reads (unit spawn, presenter tweens,
+    /// overlay, input, camera pivot).
     /// </summary>
-    private TerrainHeightMap _heightMap = TerrainHeightMap.Flat;
+    private TerrainStage _terrain = null!;
 
     private ActionBar _actionBar = null!;
     private CombatLogPanel _log = null!;
@@ -54,24 +46,6 @@ public partial class CombatScene : Node3D
     private HelpOverlay _help = null!;
     private UnitInspectPanel _inspectPanel = null!;
 
-    /// <summary>
-    /// Help-overlay rows (toggled on Tab/H) — render data only, mirroring the actual bindings in
-    /// <see cref="OrbitCameraRig"/> (MMB/RMB-drag orbit, wheel zoom, WASD pan),
-    /// <see cref="GridInput3D"/> (LMB click, Esc / stationary RMB click cancel), and the HUD's
-    /// combat_* actions.
-    /// </summary>
-    private static readonly (string Keys, string Action)[] LegendRows =
-    {
-        ("LMB", "Select · Confirm"),
-        ("Esc / RMB", "Cancel targeting"),
-        ("MMB / RMB drag", "Orbit camera"),
-        ("Wheel / WASD", "Zoom · Pan camera"),
-        ("1-4 / Space", "Move·Step·Strike·Shield / End Turn"),
-        ("Q / E", "Spells / Skills"),
-        ("Tab / H", "Controls help"),
-        ("L", "Combat log"),
-    };
-
     private CombatSession _session = null!;
     private PlayerTurnController _controller = null!;
     private GodotPresenter3D _presenter = null!;
@@ -80,12 +54,19 @@ public partial class CombatScene : Node3D
     // Task.Delay / tween waits observe the same signal (see _ExitTree for the cancel-then-teardown order).
     private CancellationTokenSource? _encounterCts;
 
-    private readonly Dictionary<int, UnitVisual3D> _visuals = new();
     private System.Action<CombatLogEntry>? _logHandler;
 
     /// <summary>
+    /// True once the persistent scene nodes (input, action bar) are subscribed. Those nodes outlive
+    /// every encounter, so their handlers are wired exactly once — a second StartEncounter would
+    /// otherwise stack a duplicate handler per encounter. Handlers that hang off the per-encounter
+    /// session / controller are wired again each time, because those objects are new.
+    /// </summary>
+    private bool _viewWired;
+
+    /// <summary>
     /// Raised once when the encounter result is known (relays the session's EncounterFinished).
-    /// The scene assembler forwards this to GameState.CompleteEncounter for squad attrition/XP.
+    /// No subscriber in the combat proof; a future meta-layer host scores the result from here.
     /// </summary>
     public event System.Action<PF2e.Core.BattleResult>? EncounterFinished;
 
@@ -103,10 +84,10 @@ public partial class CombatScene : Node3D
         _popupLayer = GetNode<Node3D>("%PopupLayer");
         _input = GetNode<GridInput3D>("%GridInput");
         _cameraRig = GetNode<OrbitCameraRig>("%CameraRig");
-        _mapRoot = GetNode<Node3D>("%MapRoot");
-        _floor = GetNode<MeshInstance3D>("%PlaceholderFloor");
+        _terrain = GetNode<TerrainStage>("%TerrainStage");
         _worldEnvironment = GetNode<WorldEnvironment>("WorldEnvironment");
         _sun = GetNode<DirectionalLight3D>("DirectionalLight3D");
+        _hud = GetNode<CanvasLayer>("%HUD");
 
         _turnBar = GetNode<TurnOrderBar>("%TurnOrderBar");
         _log = GetNode<CombatLogPanel>("%CombatLog");
@@ -114,7 +95,6 @@ public partial class CombatScene : Node3D
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
         _help = GetNode<HelpOverlay>("%HelpOverlay");
-        _help.SetRows(LegendRows);
         _inspectPanel = GetNode<UnitInspectPanel>("%UnitInspect");
         // Modal blocking needs no wiring here: the reaction prompt pushes HudRoot's modal state
         // and the action bar's hotkeys query it directly through their shared parent.
@@ -127,39 +107,87 @@ public partial class CombatScene : Node3D
     /// </summary>
     public void SetVictoryRestartVisible(bool visible) => _victoryBanner.SetRestartVisible(visible);
 
-    /// <summary>Entry point: hand an assembled encounter and it plays out.</summary>
+    /// <summary>
+    /// Show or hide the whole fight - the 3D board and the HUD CanvasLayer, which visibility does not
+    /// reach on its own. A run host parks the scene here between fights instead of freeing it: the
+    /// encounter loop keeps its process mode, so a fight that is still unwinding finishes normally.
+    /// </summary>
+    public void SetPresentationVisible(bool visible)
+    {
+        Visible = visible;
+        _hud.Visible = visible;
+    }
+
+    /// <summary>
+    /// Toggle AI control for every player unit of the CURRENT encounter. The session hands off a
+    /// turn that is already parked, so this works whenever it is called. Headless spikes use it to
+    /// play a fight through with no input.
+    /// </summary>
+    public void SetAllPlayerAi(bool aiControlled)
+    {
+        if (_session == null) return;
+        foreach (var unit in _session.Team1)
+            _session.SetAiToggle(unit, aiControlled);
+    }
+
+    /// <summary>
+    /// How many unit visuals the presenter holds. Equals the encounter's unit count while an
+    /// encounter runs, and 0 between encounters — the reset spike asserts on it.
+    /// </summary>
+    public int RegisteredUnitCount => _presenter?.UnitCount ?? 0;
+
+    /// <summary>
+    /// Entry point: hand an assembled encounter and it plays out. Callable again on the same scene —
+    /// the roguelite loop runs encounter after encounter through one CombatScene — because
+    /// <see cref="ResetEncounter"/> drops everything the previous encounter owned first.
+    /// </summary>
     public void StartEncounter(CombatSetup setup)
     {
+        ResetEncounter();
+
         _session = new CombatSession();
         _session.Setup(setup);
         foreach (string correction in _session.SetupCorrections)
             GD.PushWarning($"[CombatScene] {correction}");
         _controller = new PlayerTurnController(_session.PlayerActions);
 
-        // Board surface first: everything below is positioned against it.
-        BuildBoard(setup);
-        BuildBackdrop(setup);
+        // A restart reuses this scene, so the previous encounter's history must not bleed through.
+        _log.ClearLog();
 
-        _presenter = new GodotPresenter3D(_popupLayer, _heightMap);
+        // Board surface first: everything below is positioned against it.
+        _terrain.Build(_session.MapLayout, setup.BiomeId,
+            setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
+
+        _presenter = new GodotPresenter3D(_popupLayer, _terrain.HeightMap);
         // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D).
         _presenter.Shake = _cameraRig.Shake;
-        _overlay.SetHeightMap(_heightMap);
+        _overlay.SetHeightMap(_terrain.HeightMap);
 
-        _cameraRig.FocusOn(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight, _heightMap));
+        _cameraRig.FrameBoard(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight, _terrain.HeightMap),
+            setup.GridWidth, setup.GridHeight);
         SpawnUnits();
 
         _session.SetPresenter(_presenter.Present);
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
         // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
         _session.ReactionPromptHandler = view => _reactionPrompt.ShowAsync(view);
-        _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight,
-            OnTileClicked, OnTileHovered, OnCancel, _heightMap);
+        _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, _terrain.HeightMap);
         // One click-vs-drag threshold for the whole gesture: the rig's value wins.
         _input.DragThresholdPixels = _cameraRig.DragThresholdPixels;
 
+        // Per-encounter objects: wire every time.
         WireControllerToView();
-        WireActionBar();
         WireSession();
+        // Persistent scene nodes: wire once (see _viewWired). Their handlers read the CURRENT
+        // controller / session fields, so they stay correct across encounters.
+        if (!_viewWired)
+        {
+            _viewWired = true;
+            _input.TileClicked += OnTileClicked;
+            _input.TileHovered += OnTileHovered;
+            _input.Cancelled += OnCancel;
+            WireActionBar();
+        }
 
         _logHandler = OnLogEntry;
         CombatLog.OnLogEntry += _logHandler;
@@ -169,6 +197,7 @@ public partial class CombatScene : Node3D
 
         _encounterCts = new CancellationTokenSource();
         _presenter.CancellationToken = _encounterCts.Token;
+        _controller.CancellationToken = _encounterCts.Token;
 
         // Fire-and-forget encounter loop. RunAsync owns its own error/cancellation handling — it logs
         // faults through the engine Log and routes to an abort finish, and treats cancellation as a clean
@@ -179,10 +208,22 @@ public partial class CombatScene : Node3D
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    public override void _ExitTree()
+    public override void _ExitTree() => StopEncounter();
+
+    /// <summary>
+    /// Stop the encounter loop and unwire everything it owns: log subscription, cancellation source,
+    /// and the session (engine globals). Node children are NOT touched — the scene may be leaving
+    /// the tree, where re-parenting children is unsafe; <see cref="ResetEncounter"/> adds that step,
+    /// terrain included.
+    /// Null-tolerant and idempotent, so it is safe before the first encounter and twice in a row.
+    /// </summary>
+    private void StopEncounter()
     {
         if (_logHandler != null)
+        {
             CombatLog.OnLogEntry -= _logHandler;
+            _logHandler = null;
+        }
         // Cancel BEFORE teardown: the loop may be parked in a presenter Task.Delay / tween wait or on the
         // player-turn TCS. Cancelling releases those so it unwinds without resuming on freed nodes;
         // Teardown then clears the engine statics/delegates and completes any still-pending player turn.
@@ -190,70 +231,53 @@ public partial class CombatScene : Node3D
         _session?.Teardown();
         _encounterCts?.Dispose();
         _encounterCts = null;
+    }
+
+    /// <summary>
+    /// Put the scene back in the state <see cref="StartEncounter"/> expects. On top of
+    /// <see cref="StopEncounter"/> it frees the previous encounter's unit tokens, damage popups and
+    /// effect nodes, drops the presenter's unit registry (which would otherwise hold freed visuals),
+    /// releases the controller, and clears the terrain back to the flat placeholder board. Called at
+    /// the top of every StartEncounter, so the first call runs against an empty scene and does nothing.
+    /// </summary>
+    private void ResetEncounter()
+    {
+        StopEncounter();
+
+        _controller?.EndControl();
+        _controller = null!;
+        _session = null!;
+
+        // Registrations first, nodes second: the map must never hand out a freed visual.
+        _presenter?.ClearUnits();
+        _presenter = null!;
+
+        FreeChildren(_unitLayer);
+        FreeChildren(_popupLayer);
 
         // Terrain last, after the loop is released and the session is unwired: nothing may still be
-        // resolving a position against the map when its meshes and collider go away.
-        _mapView?.Clear();
-        _mapView = null;
-        _heightMap = TerrainHeightMap.Flat;
+        // resolving a position against the map when its meshes and collider go away. Clear also shows
+        // the checker plane again, which a generated map hid.
+        _terrain.Clear();
+
+        _victoryBanner.HideResult();
+    }
+
+    /// <summary>
+    /// Free every child of <paramref name="parent"/> NOW. RemoveChild before QueueFree, because
+    /// QueueFree alone leaves the node in the tree until the end of the frame, and the caller
+    /// (and its tests) reads the child count immediately after.
+    /// </summary>
+    private static void FreeChildren(Node parent)
+    {
+        foreach (var child in parent.GetChildren())
+        {
+            parent.RemoveChild(child);
+            child.QueueFree();
+        }
     }
 
     // ---------------------------------------------------------------- Build
-
-    /// <summary>
-    /// Put a surface under the fight and publish its heights into <see cref="_heightMap"/>.
-    ///
-    /// With a generated layout: build the terrain mesh + trimesh collider under %MapRoot and hide the
-    /// placeholder floor. Without one: the original flat board, byte for byte — the checker plane is
-    /// sized and centred exactly as before and the height map is the all-zeros null object, so every
-    /// downstream call resolves to the same Y = 0 it always did.
-    /// </summary>
-    private void BuildBoard(CombatSetup setup)
-    {
-        var layout = _session.MapLayout;
-        if (layout == null)
-        {
-            // The floor mesh is sized from the setup so every board dimension renders correctly —
-            // grid tile (x, y) spans world x..x+1 / y..y+1, so a WxH plane sits at BoardCenter.
-            // The checker shader works in world space and follows automatically.
-            if (_floor.Mesh is PlaneMesh floorPlane)
-                floorPlane.Size = new Vector2(setup.GridWidth, setup.GridHeight);
-            _floor.Position = GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight);
-            _heightMap = TerrainHeightMap.Flat;
-            return;
-        }
-
-        // A biome with no theme is a content bug (DataValidation covers it), not a reason to lose the
-        // encounter — say so loudly and dress the map in the fallback palette.
-        string biomeId = setup.BiomeId ?? MapThemes.Forest.BiomeId;
-        if (!MapThemes.TryGet(biomeId, out var theme))
-            GD.PushWarning($"[CombatScene] No map theme for biome '{biomeId}'; using '{theme.BiomeId}'.");
-
-        _mapView = new MapView3D { Name = "MapView" };
-        _mapRoot.AddChild(_mapView);
-        _mapView.Build(layout, theme);
-        _floor.Visible = false;
-
-        _heightMap = new TerrainHeightMap(layout, theme.HeightScale);
-    }
-
-    /// <summary>
-    /// Dress the space around the board: biome sky/fog/sun plus far scenery via
-    /// <see cref="CombatBackdrop"/>. The flat checker board carries no biome and gets the neutral
-    /// default theme. Reuses one backdrop node — Apply is idempotent — so a host that calls
-    /// StartEncounter again on this scene never stacks backdrops.
-    /// </summary>
-    private void BuildBackdrop(CombatSetup setup)
-    {
-        if (_backdrop == null)
-        {
-            _backdrop = new CombatBackdrop { Name = "Backdrop" };
-            AddChild(_backdrop);
-        }
-        string? biomeId = _session.MapLayout != null ? setup.BiomeId : null;
-        _backdrop.Apply(biomeId, _session.MapLayout, _heightMap,
-            setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
-    }
 
     private void SpawnUnits()
     {
@@ -264,17 +288,15 @@ public partial class CombatScene : Node3D
     private void AddUnitVisual(ICharacter character)
     {
         // Heroes (PC sheets) have no CreatureStatBlock and resolve their sheet from HeroSpriteMap;
-        // enemies do, and get their sprite folder by creature from EnemySpriteMap (all rats today).
+        // enemies do, and get their sprite folder by creature from EnemySpriteMap (real art or the
+        // size-matched missing-art placeholder).
         string? enemyFolder = character.CreatureStats != null
-            ? EnemySpriteMap.FolderForCreature(character.Name)
+            ? EnemySpriteMap.FolderForCreature(character.Name, character.CreatureStats.Size)
             : null;
 
-        var visual = UnitTokenScene.Instantiate<UnitVisual3D>();
-        visual.Configure(character, enemyFolder);
-        visual.Position = GridSpace.GridToWorld(character.GridPosition, _heightMap);
+        var visual = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder);
+        visual.Position = GridSpace.GridToWorld(character.GridPosition, _terrain.HeightMap);
         _unitLayer.AddChild(visual);
-        visual.SetCamera(_cameraRig.Camera);
-        _visuals[character.UniqueId] = visual;
         _presenter.RegisterUnit(character, visual);
     }
 
@@ -323,10 +345,8 @@ public partial class CombatScene : Node3D
         };
         _session.PlayerTurnEnded += () =>
         {
+            // EndControl clears the overlay through the controller's own transient reset.
             _controller.EndControl();
-            _overlay.SetHighlights(System.Array.Empty<PF2e.Vector2Int>(), HighlightKind.None);
-            _overlay.SetPathPreview(null);
-            _overlay.SetAreaPreview(System.Array.Empty<PF2e.Vector2Int>());
             _actionBar.SetInteractable(false);
         };
         _session.TurnChanged += RefreshTurnOrder;

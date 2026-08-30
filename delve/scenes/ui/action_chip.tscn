@@ -1,11 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="1_pr"]
+[ext_resource type="Script" path="res://scripts/ui/CaptionButton.cs" id="2_cap"]
 
 [node name="ActionChip" type="Button"]
 custom_minimum_size = Vector2(0, 30)
 focus_mode = 0
 theme_type_variation = &"ActionChip"
+script = ExtResource("2_cap")
 
 [node name="Content" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -24,7 +26,7 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 text = "Spell"
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"ChipLabel"
 
 [node name="PipRow" parent="Content" instance=ExtResource("1_pr")]
 unique_name_in_owner = true

@@ -31,7 +31,10 @@ public sealed record SpellEntryView
     /// <summary>Index into the spell's CostVariants, or -1 for a fixed-cost spell.</summary>
     public int VariantIndex { get; init; } = -1;
     public required string Name { get; init; }
-    public int Rank { get; init; }
+    /// <summary>True for a cantrip (unlimited casts), false for a slot spell.</summary>
+    public bool IsCantrip { get; init; }
+    /// <summary>Actions this entry costs, as a number. <see cref="CostText"/> is the same value drawn.</summary>
+    public int ActionCost { get; init; }
     public string CostText { get; init; } = "";
     public string SlotsText { get; init; } = "";
     public TargetingKind Targeting { get; init; }
@@ -45,25 +48,16 @@ public sealed record SpellEntryView
     public string UnavailableReason { get; init; } = "";
 }
 
-/// <summary>UI-facing snapshot of one carried consumable the actor may use this turn (Use Item action bar
-/// entry). No engine types — a passive Control renders it; using it raises an intent with <see cref="ItemId"/>.</summary>
-public sealed record ConsumableOptionView
-{
-    public required string ItemId { get; init; }
-    public required string Name { get; init; }
-    /// <summary>Short effect summary (e.g. "restore 8 HP", "+1 item to AC").</summary>
-    public string EffectText { get; init; } = "";
-    /// <summary>Action cost glyph text (potions = "1").</summary>
-    public string CostText { get; init; } = "1";
-    /// <summary>Units of this item the actor is carrying.</summary>
-    public int Quantity { get; init; }
-}
-
 /// <summary>UI-facing snapshot of one castable skill action (Trip / Demoralize / Battle Medicine).</summary>
 public sealed record SkillEntryView
 {
     public required string ActionId { get; init; }
     public required string Name { get; init; }
+    /// <summary>Always false — a skill action is never a cantrip. Present so the chip row can read
+    /// one shape for spell and skill entries alike.</summary>
+    public bool IsCantrip { get; init; }
+    /// <summary>Actions this entry costs, as a number. <see cref="CostText"/> is the same value drawn.</summary>
+    public int ActionCost { get; init; }
     public string CostText { get; init; } = "1";
     public TargetingKind Targeting { get; init; }
     public bool Castable { get; init; }

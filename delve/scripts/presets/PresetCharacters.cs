@@ -21,17 +21,11 @@ namespace Delve.Presets;
 /// </summary>
 public static class PresetCharacters
 {
-    // Squad member ids — the single source the roster, sprite map, save data and daily-casting
-    // switch all key on (SquadRoster re-exposes them as aliases for existing call sites).
+    // Party member ids — the single source the sprite map and the daily-casting switch key on.
     public const string PlayerId = "player";
     public const string RecruitId = "the-recruit";
-    public const string ScoutId = "the-scout";
-    public const string TharrId = "tharr";
-    public const string ScholarId = "the-scholar";
-
-    // The founding cast reuse the scout/scholar stat builds but carry their real character ids/names
-    // (design/characters/README.md) so combat + CharacterProfile lookups resolve "Elara"/"Fenwick".
     public const string ElaraId = "elara";
+    public const string TharrId = "tharr";
     public const string FenwickId = "fenwick";
 
     // Authored daily-casting loadouts, shared by the initial build and the in-place level-up
@@ -40,9 +34,9 @@ public static class PresetCharacters
         { PresetSpells.DivineLanceId, PresetSpells.DazeId };
     private static readonly string[] MedicPreparedSpellIds =
         { PresetSpells.HealId, PresetSpells.HealId, PresetSpells.FearId };
-    private static readonly string[] ScholarCantripIds =
+    private static readonly string[] FenwickCantripIds =
         { PresetSpells.ElectricArcId, PresetSpells.IgnitionId, PresetSpells.FrostbiteId };
-    private static readonly string[] ScholarPreparedSpellIds =
+    private static readonly string[] FenwickPreparedSpellIds =
     {
         // Rank 1 (curriculum first: Breathe Fire and Force Barrage may fill the school slot)
         PresetSpells.BreatheFireId, PresetSpells.ForceBarrageId,
@@ -60,7 +54,7 @@ public static class PresetCharacters
     {
         return BuildFighterSentinel(
             id: PlayerId,
-            name: name ?? "Warden",
+            name: name ?? "Aldric",
             level: level,
             teamId: teamId,
             strength: 18, dexterity: 14, constitution: 14,
@@ -115,21 +109,21 @@ public static class PresetCharacters
         });
     }
 
-    // ══════════════════════════ Rogue (Scout) ══════════════════════════
+    // ══════════════════════════ Rogue (Elara) ══════════════════════════
 
     /// <summary>
-    /// Build "the Scout": a Dex-based Thief-racket Rogue dual-wielding a rapier (finesse) and an
+    /// Build "Elara": a Dex-based Thief-racket Rogue dual-wielding a rapier (finesse) and an
     /// agile finesse shortsword off-hand, in leather armor. Locked combo: Thief subclass overlay +
     /// Dual-Weapon Warrior Free Archetype line (L2 DWW Dedication → grants Double Slice; L4 Dual
     /// Thrower). Built at level 1 then leveled via LevelUpApplicator so every scripted combo
     /// choice takes effect at build — same seam as the Fighter presets.
     /// </summary>
-    public static PF2eCharacter BuildScout(int level, int teamId = 1, string? id = null, string? name = null)
+    public static PF2eCharacter BuildElara(int level, int teamId = 1)
     {
         return BuildChassis(new ChassisSpec
         {
-            Id = id ?? ScoutId,
-            Name = name ?? "the Scout",
+            Id = ElaraId,
+            Name = "Elara",
             Level = level,
             TeamId = teamId,
             BaseClass = PresetClasses.BuildRogue(),
@@ -143,17 +137,12 @@ public static class PresetCharacters
             // not a combo choice. No rogue feature reads ChosenWeaponGroup; set for consistency.
             ChosenWeaponGroup = WeaponGroup.Sword,
             // Stealth comes from the class auto-trained list; Thievery + Intimidation (Demoralize
-            // chip) are the Scout's extra trained picks.
+            // chip) are Elara's extra trained picks.
             ExtraTrainedSkills = new[] { Skill.Thievery, Skill.Intimidation },
         });
     }
 
-    /// <summary>Elara — the founding scout (elf rogue merchant). Same Thief-racket build as
-    /// <see cref="BuildScout"/>, but with her real id/name so combat + CharacterProfile resolve "Elara".</summary>
-    public static PF2eCharacter BuildElara(int level, int teamId = 1)
-        => BuildScout(level, teamId, id: ElaraId, name: "Elara");
-
-    // ══════════════════════════ Casters (Medic / Scholar) ══════════════════════════
+    // ══════════════════════════ Casters (Medic / Fenwick) ══════════════════════════
 
     /// <summary>
     /// Build Tharr: the dwarven stonemason cleric who held the outpost alone. Cleric with the
@@ -193,7 +182,7 @@ public static class PresetCharacters
     }
 
     /// <summary>
-    /// Build "the Scholar": a Wizard of the SCHOOL OF BATTLE MAGIC (Force Bolt focus spell,
+    /// Build "Fenwick": a Wizard of the SCHOOL OF BATTLE MAGIC (Force Bolt focus spell,
     /// curriculum cantrip, +1 curriculum-restricted slot per rank) with the SPELL BLENDING
     /// thesis (static daily-prep config: 2 rank-1 slots → 1 slot at the highest castable rank,
     /// applied once rank 2+ unlocks) and the MEDIC Free Archetype line (L2 Battle Medicine +
@@ -202,11 +191,11 @@ public static class PresetCharacters
     /// the level's actual slots): rank 1 Breathe Fire + Force Barrage (+ Breathe Fire + Fear
     /// while pre-blending slots exist); rank 3 Fireball ×4 once unlocked at L5.
     /// </summary>
-    public static PF2eCharacter BuildScholar(int level, int teamId = 1, string? id = null, string? name = null)
+    public static PF2eCharacter BuildFenwick(int level, int teamId = 1)
     {
         return BuildCaster(
-            id: id ?? ScholarId,
-            name: name ?? "the Scholar",
+            id: FenwickId,
+            name: "Fenwick",
             baseClass: PresetClasses.BuildWizard(),
             combo: PresetCombos.WizardBattleMagic,
             level: level,
@@ -217,18 +206,12 @@ public static class PresetCharacters
             armorSlug: null,
             shieldSlug: null,
             deity: null,
-            cantripIds: ScholarCantripIds,
-            preparedSpellIds: ScholarPreparedSpellIds,
+            cantripIds: FenwickCantripIds,
+            preparedSpellIds: FenwickPreparedSpellIds,
             // Medicine trained at build: prerequisite for the L2 Battle Medicine skill feat and
             // Medic Dedication (which upgrades it to Expert).
             extraTrainedSkills: new[] { Skill.Medicine });
     }
-
-    /// <summary>Fenwick — the founding wizard-cook (halfling gastronomancer). Same School-of-Battle-Magic
-    /// build as <see cref="BuildScholar"/>, but with his real id/name so combat + CharacterProfile
-    /// resolve "Fenwick".</summary>
-    public static PF2eCharacter BuildFenwick(int level, int teamId = 1)
-        => BuildScholar(level, teamId, id: FenwickId, name: "Fenwick");
 
     /// <summary>
     /// Shared prepared-caster assembly on top of <see cref="BuildChassis"/>, with two ordering
@@ -462,12 +445,53 @@ public static class PresetCharacters
     }
 
     /// <summary>
+    /// Level up a LIVE preset member in place, mid-run: replay the member's combo script for the
+    /// new levels, re-resolve features, recompute max HP while PRESERVING damage taken (Initialize
+    /// resets current HP to max), and re-run the daily-casting decisions. Spent spell slots stay
+    /// spent - the rest flow owns refills, per LevelUpApplicator's contract. A member leveled in
+    /// place ends mechanically identical to one built at the new level, minus its wounds.
+    /// </summary>
+    public static void LevelUpInPlace(PF2eCharacter member, int toLevel)
+    {
+        int from = member.Stats?.Level ?? 1;
+        if (toLevel <= from) return;
+
+        var combo = ComboFor(member.Id);
+        var choices = combo?.ChoicesUpTo(toLevel);
+
+        var health = member.Health;
+        int missing = health != null ? health.MaxHP - health.CurrentHP : 0;
+
+        LevelUpApplicator.ApplyLevelUp(member, fromLevel: from, toLevel: toLevel, choices);
+        member.Features?.ResolveAndGrantFeatures();
+
+        if (health != null)
+        {
+            health.Initialize();
+            health.SetCurrentHP(Math.Max(1, health.MaxHP - missing));
+        }
+
+        RefreshDailyCasting(member);
+    }
+
+    /// <summary>The locked combo a preset id levels with; null for an unknown id (levels apply
+    /// with auto-assigned choices only).</summary>
+    private static VariantComboDefinition? ComboFor(string id) => id switch
+    {
+        PlayerId or RecruitId => PresetCombos.FighterSentinel,
+        ElaraId => PresetCombos.RogueThief,
+        TharrId => PresetCombos.ClericWarpriest,
+        FenwickId => PresetCombos.WizardBattleMagic,
+        _ => null,
+    };
+
+    /// <summary>
     /// Re-run the level-dependent daily-casting decisions on a LIVE preset member after an
     /// in-place level-up — the same post-level steps <see cref="BuildCaster"/> runs on a fresh
     /// build, so a member leveled in place ends mechanically identical to one built at that
     /// level: the Spell Blending trade re-targets the new highest castable rank, the divine
     /// font is re-sized per its level table (4 → 5 slots at L5) at the new highest rank, and
-    /// the authored loadout is re-learned/re-prepared into the new slot layout (the Scholar's
+    /// the authored loadout is re-learned/re-prepared into the new slot layout (Fenwick's
     /// rank-3 Fireballs unlock at L5). No-op for non-casters. Does NOT refill slots or focus —
     /// the caller's rest flow owns that (font Configure does reset its own pool, which the
     /// nightly rest refills anyway).
@@ -491,7 +515,7 @@ public static class PresetCharacters
         string[]? loadout = character.Id switch
         {
             TharrId => MedicPreparedSpellIds,
-            ScholarId or FenwickId => ScholarPreparedSpellIds,
+            FenwickId => FenwickPreparedSpellIds,
             _ => null,
         };
         if (loadout != null)

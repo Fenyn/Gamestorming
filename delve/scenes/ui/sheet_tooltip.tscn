@@ -1,0 +1,102 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/SheetTooltip.cs" id="1_tip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
+
+[node name="SheetTooltip" type="PanelContainer"]
+visible = false
+offset_right = 440.0
+offset_bottom = 160.0
+mouse_filter = 2
+theme_type_variation = &"SheetTooltip"
+script = ExtResource("1_tip")
+
+[node name="Stack" type="VBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Stack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Stack/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+text = "Title"
+theme_type_variation = &"HeadingLabel"
+
+[node name="CostPips" parent="Stack/Header" instance=ExtResource("2_pr")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="CostWord" type="Label" parent="Stack/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+text = "reaction"
+theme_type_variation = &"CardRoleLabel"
+
+[node name="TraitBand" type="HBoxContainer" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Traits" type="HBoxContainer" parent="Stack/TraitBand"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Tag" type="Label" parent="Stack/TraitBand"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+text = "FEAT 1"
+theme_type_variation = &"TipTag"
+
+[node name="Subtitle" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Subtitle"
+theme_type_variation = &"CardRoleLabel"
+
+[node name="Meta" type="VBoxContainer" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="BodySep" type="HSeparator" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Body" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Body"
+theme_type_variation = &"TipBody"
+
+[node name="Footer" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "Footer"
+theme_type_variation = &"TipFooter"
+
+[node name="Delay" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.1
+one_shot = true

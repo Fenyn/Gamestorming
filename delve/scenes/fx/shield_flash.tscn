@@ -1,9 +1,8 @@
 [gd_scene load_steps=2 format=3]
 
-; One-shot shield/block flash (see scripts/fx/ShieldFlash.cs) — a bare Node3D root, mirroring
-; scenes/fx/whiff_puff.tscn's convention: nothing is authored as a child here because the ring
-; geometry is generated and tweened per-instance in code, keyed off Tint/FlashScale/BlockStrength
-; (exported, set by the caller before AddChild).
+; One-shot shield/block flash (see scripts/fx/ShieldFlash.cs). A bare Node3D root: the ring geometry is
+; generated and tweened per-instance in code from Tint/FxScale/BlockStrength, which GodotPresenter3D
+; sets before AddChild. Do not author children here.
 
 [ext_resource type="Script" path="res://scripts/fx/ShieldFlash.cs" id="1_shieldflash"]
 

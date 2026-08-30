@@ -1,3 +1,4 @@
+using System;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Grid;
@@ -31,35 +32,86 @@ public static class SpatialDelegates
     /// have none of that and stay bit-identical; generated layouts get the real thing, creature cover
     /// included. Flat boards can opt in later by giving their grid real tiles, not by a flag.</para>
     /// </summary>
-    public static void Wire(BattleGrid grid)
+    /// <returns>
+    /// A handle that removes exactly the delegates this call installed. Dispose it to unwire; there is
+    /// no global unwire, because a second encounter overwrites all five delegates and a stale handle
+    /// must not clear the live encounter's wiring. Each release is identity-guarded.
+    /// </returns>
+    public static IDisposable Wire(BattleGrid grid)
     {
-        OffGuardHelper.IsFlankingAttacker = IsFlankingAttacker;
+        Func<ICharacter, ICharacter, bool> flanking = IsFlankingAttacker;
+        Func<ICharacter, ICharacter, CoverLevel> cover;
+        Func<ICharacter, bool> adjacentCover;
+        Func<ICharacter, ICharacter, bool> lineOfSight;
+        Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> lineOfEffect;
 
         if (TerrainSpatial.HasSpatialFeatures(grid))
         {
             var spatial = new TerrainSpatial(grid);
-            CoverHelper.GetPositionalCover = spatial.GetPositionalCover;
-            CoverHelper.IsAdjacentToTerrainCover = spatial.IsAdjacentToTerrainCover;
-            CoverHelper.HasLineOfSight = spatial.HasLineOfSight;
-            CoverHelper.HasLineOfEffect = spatial.HasLineOfEffect;
-            return;
+            cover = spatial.GetPositionalCover;
+            adjacentCover = spatial.IsAdjacentToTerrainCover;
+            lineOfSight = spatial.HasLineOfSight;
+            lineOfEffect = spatial.HasLineOfEffect;
+        }
+        else
+        {
+            // Flat board — no blocking terrain, so every attack has clear cover/LOS/LOE. Set explicitly
+            // rather than left null so a previous terrain encounter's delegates can never leak in.
+            cover = (attacker, defender) => CoverLevel.None;
+            adjacentCover = _ => false;
+            lineOfSight = (a, b) => true;
+            lineOfEffect = (a, b) => true;
         }
 
-        // Flat board — no blocking terrain, so every attack has clear cover/LOS/LOE. Set explicitly
-        // rather than left null so a previous terrain encounter's delegates can never leak in.
-        CoverHelper.GetPositionalCover = (attacker, defender) => CoverLevel.None;
-        CoverHelper.IsAdjacentToTerrainCover = _ => false;
-        CoverHelper.HasLineOfSight = (a, b) => true;
-        CoverHelper.HasLineOfEffect = (a, b) => true;
+        OffGuardHelper.IsFlankingAttacker = flanking;
+        CoverHelper.GetPositionalCover = cover;
+        CoverHelper.IsAdjacentToTerrainCover = adjacentCover;
+        CoverHelper.HasLineOfSight = lineOfSight;
+        CoverHelper.HasLineOfEffect = lineOfEffect;
+
+        return new Handle(flanking, cover, adjacentCover, lineOfSight, lineOfEffect);
     }
 
-    public static void Unwire()
+    /// <summary>Releases the five delegates one <see cref="Wire"/> call installed, and only those.</summary>
+    private sealed class Handle : IDisposable
     {
-        OffGuardHelper.IsFlankingAttacker = null;
-        CoverHelper.GetPositionalCover = null;
-        CoverHelper.IsAdjacentToTerrainCover = null;
-        CoverHelper.HasLineOfSight = null;
-        CoverHelper.HasLineOfEffect = null;
+        private readonly Func<ICharacter, ICharacter, bool> _flanking;
+        private readonly Func<ICharacter, ICharacter, CoverLevel> _cover;
+        private readonly Func<ICharacter, bool> _adjacentCover;
+        private readonly Func<ICharacter, ICharacter, bool> _lineOfSight;
+        private readonly Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> _lineOfEffect;
+        private bool _disposed;
+
+        public Handle(
+            Func<ICharacter, ICharacter, bool> flanking,
+            Func<ICharacter, ICharacter, CoverLevel> cover,
+            Func<ICharacter, bool> adjacentCover,
+            Func<ICharacter, ICharacter, bool> lineOfSight,
+            Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> lineOfEffect)
+        {
+            _flanking = flanking;
+            _cover = cover;
+            _adjacentCover = adjacentCover;
+            _lineOfSight = lineOfSight;
+            _lineOfEffect = lineOfEffect;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            if (ReferenceEquals(OffGuardHelper.IsFlankingAttacker, _flanking))
+                OffGuardHelper.IsFlankingAttacker = null;
+            if (ReferenceEquals(CoverHelper.GetPositionalCover, _cover))
+                CoverHelper.GetPositionalCover = null;
+            if (ReferenceEquals(CoverHelper.IsAdjacentToTerrainCover, _adjacentCover))
+                CoverHelper.IsAdjacentToTerrainCover = null;
+            if (ReferenceEquals(CoverHelper.HasLineOfSight, _lineOfSight))
+                CoverHelper.HasLineOfSight = null;
+            if (ReferenceEquals(CoverHelper.HasLineOfEffect, _lineOfEffect))
+                CoverHelper.HasLineOfEffect = null;
+        }
     }
 
     // Verbatim port of BattleSimulator.WireFlankingDelegate: a target is flanked when a living

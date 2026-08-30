@@ -1,3 +1,4 @@
+using Delve.Run;
 using Godot;
 
 namespace Delve.UI;
@@ -22,6 +23,56 @@ public static class UiColors
 
     /// <summary>Gold: active states, accent strips, default buttons, available pips.</summary>
     public static Color Accent => Get("accent");
+
+    /// <summary>
+    /// One character's personal accent, keyed by catalog id, for the identity touches the
+    /// hero-select surfaces carry (portrait strip, name rule, roster strip). Unknown ids take
+    /// the base accent, so a new character is never colourless.
+    /// </summary>
+    public static Color CharacterAccent(string id) => id switch
+    {
+        "player" => Get("char_player"),
+        "elara" => Get("char_elara"),
+        "tharr" => Get("char_tharr"),
+        "fenwick" => Get("char_fenwick"),
+        _ => Accent,
+    };
+
+    /// <summary>Identity color of a run-map node kind: the icon tint on the map and the legend.</summary>
+    public static Color NodeKindColor(NodeKind kind) => kind switch
+    {
+        NodeKind.Combat => Get("node_combat"),
+        NodeKind.Elite => Get("node_elite"),
+        NodeKind.Event => Get("node_event"),
+        NodeKind.Rest => Get("node_rest"),
+        NodeKind.Boss => Get("node_boss"),
+        NodeKind.Shop => Get("node_shop"),
+        NodeKind.Treasure => Get("node_treasure"),
+        _ => Get("text"),
+    };
+
+    /// <summary>Ground tone of a floor's map backdrop, keyed by <c>FloorTheme.Id</c>. Unknown ids
+    /// take the first floor's tones, so a new stratum is never colourless.</summary>
+    public static Color MapBase(string themeId) => themeId switch
+    {
+        "deepforest" => Get("map_base_deepforest"),
+        "swamp" => Get("map_base_swamp"),
+        _ => Get("map_base_grassland"),
+    };
+
+    /// <summary>Fog tint of a floor's map backdrop, keyed by <c>FloorTheme.Id</c>.</summary>
+    public static Color MapFog(string themeId) => themeId switch
+    {
+        "deepforest" => Get("map_fog_deepforest"),
+        "swamp" => Get("map_fog_swamp"),
+        _ => Get("map_fog_grassland"),
+    };
+
+    /// <summary>Fill of a run-map medallion.</summary>
+    public static Color NodeFace => Get("node_face");
+
+    /// <summary>Fill of a hovered run-map medallion.</summary>
+    public static Color NodeFaceHover => Get("node_face_hover");
 
     /// <summary>Ally (team 1) identity color.</summary>
     public static Color Ally => Get("ally");

@@ -45,7 +45,7 @@ layout_mode = 2
 mouse_filter = 2
 text = ""
 clip_text = true
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"ChipLabel"
 
 [node name="TickerLine1" type="Label" parent="Col/Ticker/TickerCol"]
 unique_name_in_owner = true
@@ -54,7 +54,7 @@ layout_mode = 2
 mouse_filter = 2
 text = ""
 clip_text = true
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"ChipLabel"
 
 [node name="TickerLine2" type="Label" parent="Col/Ticker/TickerCol"]
 unique_name_in_owner = true
@@ -63,7 +63,7 @@ layout_mode = 2
 mouse_filter = 2
 text = ""
 clip_text = true
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"ChipLabel"
 
 [node name="Expanded" type="PanelContainer" parent="Col"]
 unique_name_in_owner = true

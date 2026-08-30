@@ -30,22 +30,39 @@ public partial class CombatTestScene : Node
     /// <summary>Biome id to generate from when <see cref="UseGeneratedMap"/> is on ("forest", "sewer").</summary>
     [Export] public string Biome { get; set; } = "forest";
 
-    /// <summary>Map seed. Same seed + biome always gives the same terrain.</summary>
+    /// <summary>Map seed. Same seed + biome always gives the same terrain. The DELVE_MAP_SEED
+    /// environment variable overrides it, so shot-spike runs can roll fresh maps without scene
+    /// edits: <c>DELVE_MAP_SEED=42 godot ... combat_shot_spike.tscn</c>.</summary>
     [Export] public int MapSeed { get; set; } = 20260804;
+
+    /// <summary>The combat scene to instance. Assigned in combat_test.tscn.</summary>
+    [Export] public PackedScene? CombatScene { get; set; }
 
     public override void _Ready()
     {
-        var data = GetNode<DataManager>("/root/DataManager");
+        if (int.TryParse(OS.GetEnvironment("DELVE_MAP_SEED"), out int envSeed))
+        {
+            MapSeed = envSeed;
+            GD.Print($"[CombatTest] map seed overridden by DELVE_MAP_SEED: {envSeed}");
+        }
+
+        var data = DataManager.Instance;
         if (data == null || !data.IsLoaded)
         {
             GD.PushError("[CombatTest] DataManager not loaded — aborting.");
             return;
         }
 
+        if (CombatScene == null)
+        {
+            GD.PushError("[CombatTest] CombatScene is not assigned — aborting.");
+            return;
+        }
+
         ICharacter veteran = PresetCharacters.BuildPlayer(level: StartLevel, teamId: 1);
-        ICharacter scout = PresetCharacters.BuildScout(level: StartLevel, teamId: 1);
+        ICharacter elara = PresetCharacters.BuildElara(level: StartLevel, teamId: 1);
         ICharacter medic = PresetCharacters.BuildTharr(level: StartLevel, teamId: 1);
-        ICharacter scholar = PresetCharacters.BuildScholar(level: StartLevel, teamId: 1);
+        ICharacter fenwick = PresetCharacters.BuildFenwick(level: StartLevel, teamId: 1);
 
         var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior);
         if (goblinDef == null)
@@ -58,13 +75,13 @@ public partial class CombatTestScene : Node
         for (int i = 0; i < CombatBoards.EnemyAnchors.Length; i++)
             enemies.Add(CreatureFactory.Create(goblinDef, teamId: 2));
 
-        var partySlots = new[] { veteran, scout, medic, scholar };
+        var partySlots = new[] { veteran, elara, medic, fenwick };
         var setup = UseGeneratedMap
             ? BuildGeneratedSetup(partySlots, enemies)
             : BuildFlatSetup(partySlots, enemies);
         if (setup == null) return;
 
-        var scene = GD.Load<PackedScene>("res://scenes/combat/combat.tscn").Instantiate<CombatScene>();
+        var scene = CombatScene.Instantiate<Combat.CombatScene>();
         AddChild(scene);
         // Standalone dev harness: reloading this scene on Restart is safe (this class rebuilds a
         // fresh preset encounter each run).
@@ -82,15 +99,17 @@ public partial class CombatTestScene : Node
             GridHeight = CombatBoards.StandardHeight,
             RngSeed = 1337,
         };
+        var enemyAnchors = CombatBoards.Anchors(teamId: 2, enemies.Count);
         for (int i = 0; i < enemies.Count; i++)
-            setup.Enemies.Add((enemies[i], CombatBoards.EnemyAnchors[i]));
+            setup.Enemies.Add((enemies[i], enemyAnchors[i]));
 
         // Dead squad members sit the fight out (they only return via a future revival mechanic);
         // each survivor keeps their marching-order anchor.
+        var partyAnchors = CombatBoards.Anchors(teamId: 1, partySlots.Length);
         for (int i = 0; i < partySlots.Length; i++)
         {
             if (partySlots[i].Health == null || !partySlots[i].Health!.IsDead)
-                setup.Party.Add((partySlots[i], CombatBoards.PartyAnchors[i]));
+                setup.Party.Add((partySlots[i], partyAnchors[i]));
         }
         return setup;
     }

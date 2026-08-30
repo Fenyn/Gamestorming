@@ -21,9 +21,6 @@ public static class HeroSpriteMap
         [PresetCharacters.PlayerId] = Root + "veteran",
         [PresetCharacters.RecruitId] = Root + "recruit",
         [PresetCharacters.TharrId] = Root + "cleric",
-        [PresetCharacters.ScholarId] = Root + "wizard",
-        [PresetCharacters.ScoutId] = Root + "rogue",
-        // The founding cast reuse the wizard/rogue sheets under their real ids.
         [PresetCharacters.FenwickId] = Root + "wizard",
         [PresetCharacters.ElaraId] = Root + "rogue",
     };

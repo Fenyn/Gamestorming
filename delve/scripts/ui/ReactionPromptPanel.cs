@@ -64,12 +64,12 @@ public partial class ReactionPromptPanel : Control
     {
         if (!Visible) return;
 
-        if (@event.IsActionPressed("combat_confirm"))
+        if (@event.IsActionPressed(InputNames.Confirm))
         {
             Resolve(true);
             GetViewport().SetInputAsHandled();
         }
-        else if (@event.IsActionPressed("combat_decline"))
+        else if (@event.IsActionPressed(InputNames.Decline))
         {
             Resolve(false);
             GetViewport().SetInputAsHandled();

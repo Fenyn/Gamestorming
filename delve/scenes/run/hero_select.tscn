@@ -1,0 +1,98 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="1_hs"]
+[ext_resource type="PackedScene" path="res://scenes/run/roster_card.tscn" id="2_card"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="3_sheet"]
+
+[node name="HeroSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hs")
+CardScene = ExtResource("2_card")
+
+[node name="Ground" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ScreenGround"
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="Rows" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="Margin/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Titles" type="VBoxContainer" parent="Margin/Rows/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.55
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Margin/Rows/Header/Titles"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Choose your character"
+theme_type_variation = &"TitleLabel"
+
+[node name="HintLabel" type="Label" parent="Margin/Rows/Header/Titles"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pick who enters the depths alone — companions join along the way."
+theme_type_variation = &"ScreenHint"
+
+[node name="RosterHeading" type="Label" parent="Margin/Rows/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "Roster"
+theme_type_variation = &"HeadingLabel"
+
+[node name="Body" type="HBoxContainer" parent="Margin/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="Sheet" parent="Margin/Rows/Body" instance=ExtResource("3_sheet")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.55
+
+[node name="RosterList" type="VBoxContainer" parent="Margin/Rows/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Rows"]
+layout_mode = 2
+alignment = 2
+
+[node name="EmbarkButton" type="Button" parent="Margin/Rows/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 52)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Embark"

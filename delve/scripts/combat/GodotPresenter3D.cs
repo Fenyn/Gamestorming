@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Delve.Combat.Map;
 using Delve.Fx;
+using Delve.Terrain;
 using Godot;
 using PF2e.Core;
 using PF2e.Data;
@@ -42,12 +42,6 @@ public sealed class GodotPresenter3D
     private const float HeroLungeDistance = 0.09f;
     private const float HeroLungeRecovery = 0.16f;
 
-    // One-shot effect blockouts (scenes/fx/*.tscn) — each is configured before AddChild and frees itself.
-    private static readonly PackedScene HitSparkScene = GD.Load<PackedScene>("res://scenes/fx/hit_spark.tscn");
-    private static readonly PackedScene HealMotesScene = GD.Load<PackedScene>("res://scenes/fx/heal_motes.tscn");
-    private static readonly PackedScene ShieldFlashScene = GD.Load<PackedScene>("res://scenes/fx/shield_flash.tscn");
-    private static readonly PackedScene DeathPoofScene = GD.Load<PackedScene>("res://scenes/fx/death_poof.tscn");
-
     private readonly Dictionary<int, UnitVisual3D> _units = new();
     private readonly Node3D _popupLayer;
 
@@ -81,6 +75,18 @@ public sealed class GodotPresenter3D
     }
 
     public void RegisterUnit(ICharacter character, UnitVisual3D visual) => _units[character.UniqueId] = visual;
+
+    /// <summary>How many unit visuals are registered. The reset spike asserts on it.</summary>
+    public int UnitCount => _units.Count;
+
+    /// <summary>Drop one unit's visual. Call before the node is freed.</summary>
+    public void UnregisterUnit(ICharacter character) => _units.Remove(character.UniqueId);
+
+    /// <summary>
+    /// Drop every registration. The scene calls this when it resets for the next encounter, so the
+    /// map never hands out a visual whose node was freed with the previous board.
+    /// </summary>
+    public void ClearUnits() => _units.Clear();
 
     public async Task Present(BattleEvent evt)
     {
@@ -182,26 +188,23 @@ public sealed class GodotPresenter3D
             case BattleEventType.Healed:
                 if (TryGet(evt.Target, out var healUnit))
                 {
-                    SpawnFx(HealMotesScene.Instantiate<HealMotes>(), healUnit.Position);
+                    SpawnFx(FxLibrary.HealMotesScene.Instantiate<HealMotes>(), healUnit, healUnit.Position);
                     healUnit.UpdateHealthBar();
                     SpawnPopup(DamagePopup3D.CreateHeal(evt.IntValue ?? 0), healUnit);
                 }
                 await Delay(PauseDuration);
                 break;
 
-            // NOTE: BattleEventType.ShieldBlocked exists in the engine's enum but NOTHING emits it as a
-            // BattleEvent — the absorbed amount only ever surfaces through ShieldManager.OnShieldBlocked,
-            // a static C# event no view is subscribed to. Wiring a ShieldFlash sized by the absorbed
-            // damage is a one-liner here the day that event is emitted; until then a block reads through
-            // the Raise Shield flash below plus the reduced damage number.
+            // NOTE: nothing emits BattleEventType.ShieldBlocked yet, so a block reads through the Raise
+            // Shield flash below plus the reduced damage number.
             case BattleEventType.ShieldRaised:
                 if (TryGet(evt.Source, out var shieldUnit))
                 {
-                    var flash = ShieldFlashScene.Instantiate<ShieldFlash>();
-                    // Under ShieldFlash's third-ring threshold on purpose: raising a shield is a ward
-                    // going up, not a blow being turned — the bigger read is reserved for an actual block.
+                    var flash = FxLibrary.ShieldFlashScene.Instantiate<ShieldFlash>();
+                    // Under half strength on purpose: raising a shield is a ward going up, not a blow
+                    // being turned — the bigger read is reserved for an actual block.
                     flash.BlockStrength = 0.45f;
-                    SpawnFx(flash, shieldUnit.Position);
+                    SpawnFx(flash, shieldUnit, shieldUnit.Position);
                     shieldUnit.FlashShield();
                 }
                 await Delay(PauseDuration);
@@ -210,11 +213,7 @@ public sealed class GodotPresenter3D
             case BattleEventType.CreatureDied:
                 if (TryGet(evt.Source, out var deadUnit))
                 {
-                    var poof = DeathPoofScene.Instantiate<DeathPoof>();
-                    // DeathPoof's table is authored for a ~1.6 m hero; scale it by how tall THIS unit
-                    // is so a rat dissolves into a rat-sized puff instead of a hero-sized one.
-                    poof.PoofScale = UnitSizeFactor(deadUnit);
-                    SpawnFx(poof, deadUnit.Position);
+                    SpawnFx(FxLibrary.DeathPoofScene.Instantiate<DeathPoof>(), deadUnit, deadUnit.Position);
                     deadUnit.PlayDeath();
                     Shake?.AddTrauma(ShakePivot.DeathTrauma);
                     await Delay(DeathDuration);
@@ -305,29 +304,29 @@ public sealed class GodotPresenter3D
     private void SpawnHitSpark(UnitVisual3D on, Vector3 impactDirection, DamageType? damageType, bool crit)
     {
         if (!GodotObject.IsInstanceValid(on)) return;
-        var spark = HitSparkScene.Instantiate<HitSpark>();
-        spark.Tint = HitSpark.TintFor(damageType);
+        var spark = FxLibrary.HitSparkScene.Instantiate<HitSpark>();
+        // An untyped hit keeps HitSpark's own warm-white default.
+        if (DamageColors.For(damageType) is { } tint) spark.Tint = tint;
         spark.ImpactDirection = impactDirection;
         spark.Crit = crit;
-        // HitSpark's shard table is authored against a hero silhouette; at that size a burst on a
-        // 0.7 m rat is wider than the rat and swallows it whole (the first render pass proved it), so
-        // the burst is scaled to the unit the same way the death poof is.
-        spark.SparkScale = UnitSizeFactor(on);
-        SpawnFx(spark, on.Position + new Vector3(0f, on.HpBarHeight * ImpactHeightFraction, 0f));
+        SpawnFx(spark, on, on.Position + new Vector3(0f, on.HpBarHeight * ImpactHeightFraction, 0f));
     }
 
-    /// <summary>Place a configured one-shot effect and let it run. Position is set BEFORE AddChild —
-    /// every effect in scripts/fx builds its geometry off its own transform in _Ready, so a node added
-    /// at the origin and moved after would burst in the wrong place for one frame.</summary>
-    private void SpawnFx(Node3D fx, Vector3 position)
+    /// <summary>Place a configured one-shot effect and let it run. Scale and position are set BEFORE
+    /// AddChild, because every effect in scripts/fx builds its geometry off its own transform in
+    /// _Ready. A node added at the origin and moved after would burst in the wrong place for one frame.
+    /// Every effect table is authored against a hero silhouette, so <paramref name="on"/> sizes it: a
+    /// hero-sized burst on a 0.7 m rat is wider than the rat and swallows it whole.</summary>
+    private void SpawnFx(OneShotFx fx, UnitVisual3D on, Vector3 position)
     {
         // A continuation can reach here just as the scene tears down; adding a child to a freed popup
-        // layer throws. Drop the orphan effect.
-        if (!GodotObject.IsInstanceValid(_popupLayer))
+        // layer, or reading a freed unit, throws. Drop the orphan effect.
+        if (!GodotObject.IsInstanceValid(_popupLayer) || !GodotObject.IsInstanceValid(on))
         {
             fx.QueueFree();
             return;
         }
+        fx.FxScale = UnitSizeFactor(on);
         fx.Position = position;
         _popupLayer.AddChild(fx);
     }

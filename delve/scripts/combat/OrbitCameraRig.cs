@@ -10,8 +10,8 @@ namespace Delve.Combat;
 /// left unconsumed so <see cref="GridInput3D"/> can treat it as cancel-targeting; only once the
 /// travel exceeds the threshold does the rig start orbiting and consuming the motion. Left clicks
 /// are never consumed here. Thin input adapter: holds only camera tunables and pose, no game rules.
-/// Zoom distance persists across sessions via <see cref="ViewPreferences.CombatCameraDistance"/>
-/// (user://settings.json): read on _Ready, written back on every wheel zoom.
+/// The rig reads <see cref="ViewPreferences.CombatCameraDistance"/> on _Ready and writes it back on
+/// every wheel zoom, so the zoom survives a re-encounter within the session.
 /// </summary>
 public partial class OrbitCameraRig : Node3D
 {
@@ -33,10 +33,17 @@ public partial class OrbitCameraRig : Node3D
 
     [Export] public float InitialYawDegrees { get; set; } = 45f;
     [Export] public float InitialPitchDegrees { get; set; } = 50f;
-    /// <summary>Fallback start distance, used only until the player has ever zoomed in combat.
-    /// Once <see cref="ViewPreferences.CombatCameraDistance"/> exists in the settings file, the
-    /// persisted preference wins so the zoom survives restarts and re-encounters.</summary>
-    [Export] public float InitialDistance { get; set; } = 16f;
+    /// <summary>
+    /// Start distance per tile of the board's longer side (1 tile = 1 m), used only until the player
+    /// has ever zoomed in combat — after that <see cref="ViewPreferences.CombatCameraDistance"/> wins.
+    /// Boards come in any size the biome rolls, so the framing is a ratio rather than a distance:
+    /// 1.15 puts a 14-tile board at the 16 m the FX sprites were sized for.
+    /// </summary>
+    [Export] public float FramingDistancePerTile { get; set; } = 1.15f;
+
+    /// <summary>Zoom ceiling as a multiple of the framing distance, so a big board can still be
+    /// backed off to a full overview.</summary>
+    [Export] public float ZoomOutFactor { get; set; } = 2f;
 
     private Camera3D _camera = null!;
     private ShakePivot _shake = null!;
@@ -64,16 +71,23 @@ public partial class OrbitCameraRig : Node3D
         _camera = _shake.GetNode<Camera3D>("Camera3D");
         _yaw = InitialYawDegrees;
         _pitch = InitialPitchDegrees;
-        _distance = ViewPreferences.HasStoredCombatCameraDistance
-            ? Mathf.Clamp(ViewPreferences.CombatCameraDistance, ZoomMin, ZoomMax)
-            : InitialDistance;
+        _distance = ZoomMin;
         _camera.Current = true;
         UpdateCameraPose();
     }
 
-    /// <summary>Point the orbit pivot at the board center in world space.</summary>
-    public void FocusOn(Vector3 worldPivot)
+    /// <summary>
+    /// Point the orbit pivot at the board center and frame the board: the zoom range and the
+    /// default distance follow the board's longer side, so a 12-tile skirmish and a 30-tile
+    /// sewer both open as a full view. A distance the player chose earlier still wins.
+    /// </summary>
+    public void FrameBoard(Vector3 worldPivot, int boardWidth, int boardHeight)
     {
+        float framing = Mathf.Max(boardWidth, boardHeight) * FramingDistancePerTile;
+        ZoomMax = Mathf.Max(ZoomMax, framing * ZoomOutFactor);
+        _distance = ViewPreferences.HasStoredCombatCameraDistance
+            ? Mathf.Clamp(ViewPreferences.CombatCameraDistance, ZoomMin, ZoomMax)
+            : Mathf.Clamp(framing, ZoomMin, ZoomMax);
         GlobalPosition = worldPivot;
         UpdateCameraPose();
     }

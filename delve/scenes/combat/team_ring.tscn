@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; Ground ring under an entity: the team colour and the current-turn indicator. The mesh is authored
+; here; the material is per-instance and is built in code, because the colour is set and tweened.
+
+[ext_resource type="Script" path="res://scripts/combat/TeamRing.cs" id="1_ring"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ring"]
+top_radius = 0.42
+bottom_radius = 0.42
+height = 0.02
+radial_segments = 24
+
+[node name="TeamRing" type="MeshInstance3D"]
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_ring")
+script = ExtResource("1_ring")

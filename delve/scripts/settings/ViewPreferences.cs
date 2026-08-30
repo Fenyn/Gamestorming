@@ -1,9 +1,8 @@
 namespace Delve.Settings;
 
 /// <summary>
-/// In-memory camera preference stub for the combat proof. bulwark persists these to
-/// user://settings.json; here the zoom distance only survives within a session. Grow into a real
-/// settings store when the meta-layer needs one.
+/// In-memory camera preference store for the combat proof. The zoom distance only survives within a
+/// session; nothing is written to disk. Grow into a real settings store when the meta-layer needs one.
 /// </summary>
 public static class ViewPreferences
 {

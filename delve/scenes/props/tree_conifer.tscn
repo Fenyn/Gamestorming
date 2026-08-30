@@ -1,0 +1,14 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/props/TreeProp.cs" id="1_treeprop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_conifer_tall.png" id="2_tall"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_conifer_mid.png" id="3_mid"]
+[ext_resource type="Shader" path="res://assets/shaders/tree_occluder.gdshader" id="4_occluder"]
+
+[node name="TreeConifer" type="Node3D"]
+script = ExtResource("1_treeprop")
+Variants = [ExtResource("2_tall"), ExtResource("3_mid")]
+OccluderShader = ExtResource("4_occluder")
+
+[node name="Sprite" type="Sprite3D" parent="."]
+unique_name_in_owner = true

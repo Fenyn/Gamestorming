@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ActionBar.cs" id="1_ab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="3_cap"]
+[ext_resource type="PackedScene" path="res://scenes/ui/action_chip.tscn" id="4_chip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/chip_flyout.tscn" id="5_fly"]
 
 [node name="ActionBar" type="Control"]
 layout_mode = 3
@@ -54,7 +57,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "OFF-GUARD"
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"ChipLabel"
 
 [node name="PreviewStatsLabel" type="Label" parent="Stack/PreviewCard/PreviewCol"]
 unique_name_in_owner = true
@@ -70,16 +73,11 @@ text = ""
 horizontal_alignment = 1
 theme_type_variation = &"HintLabel"
 
-[node name="Flyout" type="PanelContainer" parent="Stack"]
+[node name="Flyout" parent="Stack" instance=ExtResource("5_fly")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_type_variation = &"HudInset"
-
-[node name="FlyoutCol" type="VBoxContainer" parent="Stack/Flyout"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 4
+ChipScene = ExtResource("4_chip")
 
 [node name="BarBlock" type="VBoxContainer" parent="Stack"]
 layout_mode = 2
@@ -123,247 +121,51 @@ layout_mode = 2
 size_flags_vertical = 4
 PipSize = Vector2(14, 14)
 
-[node name="MoveButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="MoveButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+ActionText = "Move"
+InputAction = &"combat_action_1"
 
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/MoveButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/MoveButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "Move"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/MoveButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/MoveButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "1"
-theme_type_variation = &"HintLabel"
-
-[node name="StepButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="StepButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+ActionText = "Step"
+InputAction = &"combat_action_2"
 
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/StepButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StepButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "Step"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/StepButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StepButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "2"
-theme_type_variation = &"HintLabel"
-
-[node name="StrikeButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="StrikeButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+ActionText = "Strike"
+InputAction = &"combat_action_3"
 
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/StrikeButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StrikeButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "Strike"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/StrikeButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/StrikeButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "3"
-theme_type_variation = &"HintLabel"
-
-[node name="ShieldButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="ShieldButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+ActionText = "Shield"
+InputAction = &"combat_action_4"
 
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/ShieldButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/ShieldButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "Shield"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/ShieldButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/ShieldButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "4"
-theme_type_variation = &"HintLabel"
-
-[node name="SpellsButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="SpellsButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 toggle_mode = true
+ActionText = "Spells"
+InputAction = &"combat_spells"
 
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/SpellsButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SpellsButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "Spells"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/SpellsButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SpellsButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "Q"
-theme_type_variation = &"HintLabel"
-
-[node name="SkillsButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="SkillsButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 toggle_mode = true
+ActionText = "Skills"
+InputAction = &"combat_skills"
 
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/SkillsButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SkillsButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "Skills"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/SkillsButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/SkillsButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "E"
-theme_type_variation = &"HintLabel"
-
-[node name="EndButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
+[node name="EndButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
-focus_mode = 0
 theme_type_variation = &"AccentButton"
-
-[node name="Content" type="HBoxContainer" parent="Stack/BarBlock/Bar/Row/EndButton"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="ActionLabel" type="Label" parent="Stack/BarBlock/Bar/Row/EndButton/Content"]
-layout_mode = 2
-mouse_filter = 2
-text = "End Turn"
-
-[node name="Keycap" type="PanelContainer" parent="Stack/BarBlock/Bar/Row/EndButton/Content"]
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"Keycap"
-
-[node name="KeyLabel" type="Label" parent="Stack/BarBlock/Bar/Row/EndButton/Content/Keycap"]
-layout_mode = 2
-mouse_filter = 2
-text = "Space"
-theme_type_variation = &"HintLabel"
+ActionText = "End Turn"
+InputAction = &"combat_end_turn"
 
 [node name="ToggleCol" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row"]
 layout_mode = 2

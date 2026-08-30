@@ -16,7 +16,7 @@ using PF2eVec = PF2e.Vector2Int;
 namespace Delve.Dev;
 
 /// <summary>
-/// Headless verification of the preset-chassis batch: proves the Fighter (Veteran) and Rogue (Scout)
+/// Headless verification of the preset-chassis batch: proves the Fighter (Veteran) and Rogue (Elara)
 /// presets are mechanically-true PF2e Remaster characters once ClassFeatures + ProficiencyProgressions
 /// + CharacterBuildChoices are authored. Each check builds fresh presets, exercises one mechanic, and
 /// prints PASS/FAIL; a final SPIKE RESULT line gates the process exit code.
@@ -25,34 +25,23 @@ namespace Delve.Dev;
 ///  (a) Veteran L5 longsword attack bonus == +15 (5 level + 6 Master + 4 Str) — Master weapons @5;
 ///  (b) Veteran L1 longsword attack bonus == +9  (1 level + 4 Expert + 4 Str) — Expert weapons @1;
 ///  (c) Bravery (L3+) reduces an incoming Frightened value by 1 (L1 control does not);
-///  (d) Scout L2 Sneak Attack adds precision damage vs an off-guard foe (non-off-guard control does not);
-///  (e) Scout L1 finesse Strike uses Dex: rapier attack bonus == +7 (Dex +4, not Str +1);
+///  (d) Elara L2 Sneak Attack adds precision damage vs an off-guard foe (non-off-guard control does not);
+///  (e) Elara L1 finesse Strike uses Dex: rapier attack bonus == +7 (Dex +4, not Str +1);
 ///  (f) Weapon Mastery (L5) is granted with ChosenWeaponGroup=Sword, and a forced sword critical
 ///      applies the sword crit-spec Off-Guard rider to the target.
 /// </summary>
 public partial class ChassisSpike : SpikeBase
 {
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== CHASSIS SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== CHASSIS SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[Chassis] DataManager not loaded — aborting.");
-            return;
-        }
-
         CheckA_VeteranL5AttackMaster();
         CheckB_VeteranL1AttackExpert();
         CheckC_BraveryReducesFrightened();
-        CheckD_ScoutSneakAttackPrecision(data);
-        CheckE_ScoutFinesseUsesDex();
+        CheckD_ElaraSneakAttackPrecision(data);
+        CheckE_ElaraFinesseUsesDex();
         await CheckF_WeaponMasteryCritSpec(data);
-
-        FinishAndQuit("Chassis");
     }
 
     // ── (a) Veteran L5: Master martial weapons → +15 with the longsword ──
@@ -123,11 +112,11 @@ public partial class ChassisSpike : SpikeBase
         Check("(c) L1 control keeps Frightened at 1", control == 1);
     }
 
-    // ── (d) Scout L2 Sneak Attack: precision damage vs an off-guard foe, none vs a control ──
+    // ── (d) Elara L2 Sneak Attack: precision damage vs an off-guard foe, none vs a control ──
 
-    private void CheckD_ScoutSneakAttackPrecision(DataManager data)
+    private void CheckD_ElaraSneakAttackPrecision(DataManager data)
     {
-        GD.Print("-------------------- (d) Scout Sneak Attack precision --------------------");
+        GD.Print("-------------------- (d) Elara Sneak Attack precision --------------------");
         var offGuardDef = ConditionDatabase.Instance?.OffGuard;
         if (offGuardDef == null)
         {
@@ -136,19 +125,19 @@ public partial class ChassisSpike : SpikeBase
         }
 
         // Off-guard target: apply the global OffGuard condition (satisfies OffGuardHelper.IsOffGuardTo).
-        var scout = PresetCharacters.BuildScout(level: 2);
-        var rapier = scout.Equipment.MainHandWeapon;
-        Check("(d) Scout has Sneak Attack", scout.Features?.GetFeatureById("sneak-attack") != null);
+        var elara = PresetCharacters.BuildElara(level: 2);
+        var rapier = elara.Equipment.MainHandWeapon;
+        Check("(d) Elara has Sneak Attack", elara.Features?.GetFeatureById("sneak-attack") != null);
 
         var goblin = MakeGoblin(data);
         goblin.Conditions.AddCondition(offGuardDef);
-        var hit = DamageCalculator.CalculateDamage(scout, rapier, isCritical: false, target: goblin);
+        var hit = DamageCalculator.CalculateDamage(elara, rapier, isCritical: false, target: goblin);
         bool precision = HasSneakPrecision(hit);
         GD.Print($"  [info] off-guard hit: total={hit.TotalDamage} sneakPrecision={precision}");
         Check("(d) off-guard Sneak Attack includes precision damage", precision);
 
-        // Control: an identical Scout striking a NON-off-guard goblin gets no precision.
-        var scout2 = PresetCharacters.BuildScout(level: 2);
+        // Control: an identical Elara striking a NON-off-guard goblin gets no precision.
+        var scout2 = PresetCharacters.BuildElara(level: 2);
         var goblin2 = MakeGoblin(data);
         var control = DamageCalculator.CalculateDamage(
             scout2, scout2.Equipment.MainHandWeapon, isCritical: false, target: goblin2);
@@ -157,20 +146,20 @@ public partial class ChassisSpike : SpikeBase
         Check("(d) non-off-guard control has NO precision damage", !controlPrecision);
     }
 
-    // ── (e) Scout L1 finesse Strike uses Dex (not Str): rapier attack bonus == +7 ──
+    // ── (e) Elara L1 finesse Strike uses Dex (not Str): rapier attack bonus == +7 ──
 
-    private void CheckE_ScoutFinesseUsesDex()
+    private void CheckE_ElaraFinesseUsesDex()
     {
-        GD.Print("-------------------- (e) Scout L1 finesse uses Dex --------------------");
-        var scout = PresetCharacters.BuildScout(level: 1);
-        var rapier = scout.Equipment.MainHandWeapon;
+        GD.Print("-------------------- (e) Elara L1 finesse uses Dex --------------------");
+        var elara = PresetCharacters.BuildElara(level: 1);
+        var rapier = elara.Equipment.MainHandWeapon;
 
         Check("(e) rapier is a finesse weapon", rapier != null && rapier.IsFinesse);
 
-        int strMod = scout.Stats.GetAbilityModifier(AbilityScore.Strength);   // 12 → +1
-        int dexMod = scout.Stats.GetAbilityModifier(AbilityScore.Dexterity);  // 18 → +4
-        int attackAbility = WeaponAttackCalculator.GetAttackAbilityModifier(scout.Stats, rapier);
-        int total = WeaponAttackCalculator.CalculateAttackBonus(scout, rapier);
+        int strMod = elara.Stats.GetAbilityModifier(AbilityScore.Strength);   // 12 → +1
+        int dexMod = elara.Stats.GetAbilityModifier(AbilityScore.Dexterity);  // 18 → +4
+        int attackAbility = WeaponAttackCalculator.GetAttackAbilityModifier(elara.Stats, rapier);
+        int total = WeaponAttackCalculator.CalculateAttackBonus(elara, rapier);
 
         GD.Print($"  [info] L1 rapier: strMod={strMod} dexMod={dexMod} attackAbilityMod={attackAbility} total={total} (expect Dex +4, total +7)");
         Check("(e) finesse attack ability mod is Dex (> Str)", attackAbility == dexMod && dexMod > strMod);

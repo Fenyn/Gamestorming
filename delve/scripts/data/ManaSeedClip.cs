@@ -10,13 +10,13 @@ namespace Delve.Data;
 /// all four facings at the same columns — the facing chooses the row, the clip chooses the
 /// columns. <see cref="SheetFrame"/> is the only place that arithmetic lives.
 ///
-/// <see cref="ImpactFrame"/> is what separates a swing that reads as deliberate from one that
-/// reads as a teleporting result: the tilled soil, the poured water and the freed crop all appear
-/// on the frame the art draws them, not on the button press. See <see cref="SpriteActionPlayer"/>.
+/// <see cref="ImpactFrame"/> is what separates a swing that reads as deliberate from one that reads
+/// as a teleporting result: the damage number and the spark appear on the frame the art draws the
+/// strike, not on the button press. See <see cref="TimeToImpact"/>.
 /// </summary>
 public sealed record ManaSeedClip
 {
-    /// <summary>Page file stem the clip's cells live on (e.g. <see cref="ManaSeedSheet.ToolPage"/>).</summary>
+    /// <summary>Page file stem the clip's cells live on (e.g. <see cref="ManaSeedSheet.AxePage"/>).</summary>
     public required string Page { get; init; }
 
     /// <summary>Row of the clip's SOUTH-facing strip; the facing row (0-3) is added to it.</summary>
@@ -46,10 +46,9 @@ public sealed record ManaSeedClip
     }
 
     /// <summary>
-    /// Seconds from <see cref="SpriteActionPlayer.Play"/> until <see cref="ImpactFrame"/> is on screen
-    /// — the wait a caller that has to PACE something against the swing (rather than react to
-    /// <see cref="SpriteActionPlayer.Tick"/>'s impact edge) needs: the combat presenter holds its
-    /// event gate this long so the damage number lands on the strike frame, and the rendered shot
+    /// Seconds from <see cref="SpriteActionPlayer.Play"/> until <see cref="ImpactFrame"/> is on screen.
+    /// A caller that must PACE something against the swing waits this long: the combat presenter holds
+    /// its event gate for it, so the damage number lands on the strike frame, and the rendered shot
     /// spikes time their captures off it.
     /// </summary>
     public float TimeToImpact

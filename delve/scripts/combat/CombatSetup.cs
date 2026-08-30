@@ -63,6 +63,10 @@ public sealed record CombatSetup
     /// <summary>Optional deterministic RNG seed (applied via Rng.Seed before initiative).</summary>
     public int? RngSeed { get; init; }
 
+    /// <summary>XP this fight awards on victory: the encounter's total, relative to the party's
+    /// level at build time (PF2e RAW - the budget IS the award). 0 for spikes that never award.</summary>
+    public int XpAward { get; init; }
+
     /// <summary>
     /// Self-heal the deployment before placement: every anchor must be in-bounds, standable and
     /// unshared, or the unit is remapped to the nearest free legal cell. With a <see cref="Layout"/>,

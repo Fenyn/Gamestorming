@@ -20,10 +20,10 @@ namespace Delve.Dev;
 /// Headless verification of the four LOCKED class combos (user design):
 ///  (a) Medic — Cleric (Warpriest) + Aveline + Marshal line: Shield Block at L1, medium armor AC,
 ///      heal divine-font slots, favored-weapon (scimitar) attack, Marshal aura dedication;
-///  (b) Scholar — Wizard (Battle Magic) + Spell Blending + Medic line: curriculum bonus slot per
+///  (b) Fenwick — Wizard (Battle Magic) + Spell Blending + Medic line: curriculum bonus slot per
 ///      rank (and its non-curriculum rejection), blend trade applied at L5, Force Bolt focus
 ///      spell, Medicine expert via Medic Dedication, Battle Medicine + Treat Condition;
-///  (c) Scout — Rogue (Thief) + Dual-Weapon Warrior line: rapier + agile finesse shortsword,
+///  (c) Elara — Rogue (Thief) + Dual-Weapon Warrior line: rapier + agile finesse shortsword,
 ///      agile MAP on the off-hand, Double Slice granted by the dedication and executable;
 ///  (d) Veteran — Fighter (Sentinel) + Bastion line: dedication grants Reactive Shield at L2,
 ///      Disarming Block lands at L4.
@@ -31,25 +31,14 @@ namespace Delve.Dev;
 /// </summary>
 public partial class ClassComboSpike : SpikeBase
 {
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== CLASS COMBO SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== CLASS COMBO SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[ComboSpike] DataManager not loaded — aborting.");
-            return;
-        }
-
         CheckA_MedicWarpriest();
-        CheckB_ScholarBattleMagic();
-        await CheckC_ScoutDualWielder(data);
+        CheckB_FenwickBattleMagic();
+        await CheckC_ElaraDualWielder(data);
         CheckD_VeteranBastion();
-
-        FinishAndQuit("ComboSpike");
     }
 
     // ── (a) Medic: Warpriest doctrine + Aveline + Marshal ──
@@ -80,8 +69,8 @@ public partial class ClassComboSpike : SpikeBase
         Check("(a) font has 4 slots at L2", font is { MaxSlots: 4, CurrentSlots: 4 });
         Check("(a) font rank == highest castable rank (1)", font?.FontRank == 1);
         // The font pays for Heal casts: the Heal action is castable via font identity.
-        var heal = PresetSpells.Get(PresetSpells.HealId);
-        Check("(a) Heal castable (font identity match)", heal != null && heal.CanPerform(medic));
+        var heal = PresetSpells.Get(PresetSpells.HealId)!;
+        Check("(a) Heal castable (font identity match)", heal.CanPerform(medic));
 
         // Favored weapon: the equipped scimitar IS Aveline's favored weapon (same instance), and
         // the cleric is Trained with it at L1 while ordinary martial weapons stay untrained at L2.
@@ -104,14 +93,14 @@ public partial class ClassComboSpike : SpikeBase
 
         // Deity granted spells (Remaster Cleric "Deity" class feature): Aveline adds Breathe
         // Fire (R1) and Fireball (R3) to the Medic's spell list despite neither being divine.
-        var breatheFire = PresetSpells.Get(PresetSpells.BreatheFireId);
+        var breatheFire = PresetSpells.Get(PresetSpells.BreatheFireId)!;
         Check("(a) Breathe Fire on the rank-1 available list (deity grant)",
             medic.Spellcasting!.GetAvailableSpellsForRank(1).Contains(breatheFire));
         Check("(a) L2 medic can PREPARE granted Breathe Fire in a rank-1 slot",
-            medic.Spellcasting.PrepareSpells(new List<SpellAction> { heal!, breatheFire }));
+            medic.Spellcasting.PrepareSpells(new List<SpellAction> { heal, breatheFire }));
         Check("(a) control: non-granted arcane spell (Force Barrage) rejected",
             !medic.Spellcasting.PrepareSpells(
-                new List<SpellAction> { PresetSpells.Get(PresetSpells.ForceBarrageId) }));
+                new List<SpellAction> { PresetSpells.Get(PresetSpells.ForceBarrageId)! }));
 
         // L5: font scales to 5 slots at rank 3; Second Doctrine martial training (L3) is live.
         var medic5 = PresetCharacters.BuildTharr(level: 5);
@@ -123,7 +112,7 @@ public partial class ClassComboSpike : SpikeBase
             martialProf == ProficiencyLevel.Trained);
 
         // Rank-3 grant lands once rank-3 slots exist (L5); it is rank-locked to its grant rank.
-        var fireball = PresetSpells.Get(PresetSpells.FireballId);
+        var fireball = PresetSpells.Get(PresetSpells.FireballId)!;
         Check("(a) L5 medic can PREPARE granted Fireball in a rank-3 slot",
             medic5.Spellcasting!.PrepareSpells(new List<SpellAction> { fireball }));
         Check("(a) Fireball NOT on the rank-1 available list (grant is rank 3)",
@@ -148,7 +137,7 @@ public partial class ClassComboSpike : SpikeBase
     private void CheckA_InspiringMarshalStance()
     {
         var medic = PresetCharacters.BuildTharr(level: 5);
-        var insideAlly = PresetCharacters.BuildScout(level: 5);
+        var insideAlly = PresetCharacters.BuildElara(level: 5);
         var outsideAlly = PresetCharacters.BuildPlayer(level: 5);
         var enemy = PresetCharacters.BuildPlayer(level: 5, teamId: 2);
 
@@ -214,13 +203,13 @@ public partial class ClassComboSpike : SpikeBase
         return ctx.Modifiers.Total;
     }
 
-    // ── (b) Scholar: Battle Magic school + Spell Blending + Medic line ──
+    // ── (b) Fenwick: Battle Magic school + Spell Blending + Medic line ──
 
-    private void CheckB_ScholarBattleMagic()
+    private void CheckB_FenwickBattleMagic()
     {
-        GD.Print("-------------------- (b) Scholar (Battle Magic, Spell Blending, Medic) --------------------");
-        var scholar = PresetCharacters.BuildScholar(level: 2);
-        var casting = scholar.Spellcasting!;
+        GD.Print("-------------------- (b) Fenwick (Battle Magic, Spell Blending, Medic) --------------------");
+        var fenwick = PresetCharacters.BuildFenwick(level: 2);
+        var casting = fenwick.Spellcasting!;
 
         // School bonus slot: L2 wizard has 3 base rank-1 slots + 1 curriculum slot.
         Check("(b) rank-1 max slots == 4 (3 base + 1 school)", casting.GetMaxSlots(1) == 4);
@@ -229,11 +218,11 @@ public partial class ClassComboSpike : SpikeBase
             casting.LeveledSpells.Count(s => s?.Spell != null && s.Spell.SpellLevel == 1 && !s.Spell.IsFocusSpell) == 4);
 
         // The school slot REJECTS a non-curriculum spell: 4× Fear cannot be prepared.
-        var fear = PresetSpells.Get(PresetSpells.FearId);
+        var fear = PresetSpells.Get(PresetSpells.FearId)!;
         bool rejected = !casting.PrepareSpells(new List<SpellAction> { fear, fear, fear, fear });
         Check("(b) school slot rejects a 4th NON-curriculum preparation", rejected);
         // A curriculum spell in the 4th slot is legal.
-        var breatheFire = PresetSpells.Get(PresetSpells.BreatheFireId);
+        var breatheFire = PresetSpells.Get(PresetSpells.BreatheFireId)!;
         bool accepted = casting.PrepareSpells(new List<SpellAction> { fear, fear, fear, breatheFire });
         Check("(b) school slot accepts a curriculum spell", accepted);
 
@@ -246,14 +235,14 @@ public partial class ClassComboSpike : SpikeBase
 
         // Medic line at L2: Battle Medicine (skill feat) + Medic Dedication → Medicine EXPERT.
         Check("(b) Battle Medicine granted at L2",
-            scholar.Features?.GetFeatureById("battle-medicine") != null);
+            fenwick.Features?.GetFeatureById("battle-medicine") != null);
         Check("(b) Medic Dedication granted at L2",
-            scholar.Features?.GetFeatureById("medic-dedication") != null);
+            fenwick.Features?.GetFeatureById("medic-dedication") != null);
         Check("(b) Medicine is Expert (trained at build, upgraded by Medic Dedication)",
-            scholar.Skills?.GetProficiency(Skill.Medicine) == ProficiencyLevel.Expert);
+            fenwick.Skills?.GetProficiency(Skill.Medicine) == ProficiencyLevel.Expert);
 
         // L5: Spell Blending trade applied (2× rank-1 → 1× rank-3) on top of the school slots.
-        var scholar5 = PresetCharacters.BuildScholar(level: 5);
+        var scholar5 = PresetCharacters.BuildFenwick(level: 5);
         var casting5 = scholar5.Spellcasting!;
         Check("(b) L5 blend trade active", casting5.ActiveBlendTrades.Count == 1);
         GD.Print($"  [info] L5 slots r1={casting5.GetMaxSlots(1)} r2={casting5.GetMaxSlots(2)} r3={casting5.GetMaxSlots(3)}");
@@ -265,60 +254,60 @@ public partial class ClassComboSpike : SpikeBase
             scholar5.Features?.GetFeatureById("treat-condition") != null);
     }
 
-    // ── (c) Scout: Thief racket + dual wield + DWW line ──
+    // ── (c) Elara: Thief racket + dual wield + DWW line ──
 
-    private async Task CheckC_ScoutDualWielder(DataManager data)
+    private async Task CheckC_ElaraDualWielder(DataManager data)
     {
-        GD.Print("-------------------- (c) Scout (Thief, Dual-Weapon Warrior) --------------------");
-        var scout = PresetCharacters.BuildScout(level: 2);
+        GD.Print("-------------------- (c) Elara (Thief, Dual-Weapon Warrior) --------------------");
+        var elara = PresetCharacters.BuildElara(level: 2);
 
-        Check("(c) resolved class is Thief", scout.Stats?.CharacterClass?.ClassName == "Thief");
-        Check("(c) Thief racket granted", scout.Features?.GetFeatureById("thief-racket") != null);
+        Check("(c) resolved class is Thief", elara.Stats?.CharacterClass?.ClassName == "Thief");
+        Check("(c) Thief racket granted", elara.Features?.GetFeatureById("thief-racket") != null);
 
-        var main = scout.Equipment?.MainHandWeapon;
-        var off = scout.Equipment?.OffHandWeapon;
+        var main = elara.Equipment?.MainHandWeapon;
+        var off = elara.Equipment?.OffHandWeapon;
         Check("(c) rapier in main hand", main?.WeaponDef?.ItemName?.ToLower().Contains("rapier") == true);
         Check("(c) shortsword in off hand", off?.WeaponDef?.ItemName?.ToLower().Contains("shortsword") == true);
         Check("(c) off-hand is AGILE and FINESSE", off is { IsAgile: true, IsFinesse: true });
 
         // Agile MAP: after one attack the off-hand (agile) strikes at −4, non-agile at −5.
-        scout.Combat!.IncrementAttackCount();
+        elara.Combat!.IncrementAttackCount();
         Check("(c) agile MAP −4 on the off-hand after one attack",
-            scout.Combat.GetCurrentMAP(off!.IsAgile) == -4);
+            elara.Combat.GetCurrentMAP(off!.IsAgile) == -4);
         Check("(c) non-agile MAP −5 control (main hand rapier)",
-            scout.Combat.GetCurrentMAP(main!.IsAgile) == -5);
-        scout.Combat.ResetTurnState();
+            elara.Combat.GetCurrentMAP(main!.IsAgile) == -5);
+        elara.Combat.ResetTurnState();
 
         // DWW Dedication at L2 grants Double Slice (Remaster: part of the dedication).
         Check("(c) DWW Dedication granted at L2",
-            scout.Features?.GetFeatureById("dual-weapon-warrior-dedication") != null);
+            elara.Features?.GetFeatureById("dual-weapon-warrior-dedication") != null);
         Check("(c) Double Slice granted by the dedication",
-            scout.Features?.GetFeatureById("double-slice") != null);
-        var doubleSlice = scout.Features?.GetAllGrantedActions().OfType<DoubleSliceAction>().FirstOrDefault();
+            elara.Features?.GetFeatureById("double-slice") != null);
+        var doubleSlice = elara.Features?.GetAllGrantedActions().OfType<DoubleSliceAction>().FirstOrDefault();
         Check("(c) Double Slice action surfaced via granted actions", doubleSlice != null);
 
         // Behavioral: Double Slice = two Strikes for 2 actions, both at the frozen (0) MAP,
         // counting as two attacks afterwards. Target is a tanky L5 fighter that survives.
         var target = PresetCharacters.BuildPlayer(level: 5, teamId: 2);
         var (session, _) = StartSession(data,
-            party: new() { (scout, new PF2eVec(5, 5)) },
+            party: new() { (elara, new PF2eVec(5, 5)) },
             enemies: new() { (target, new PF2eVec(6, 5)) }, seed: 11);
         try
         {
-            scout.Actions.RefillActions();
-            int actionsBefore = scout.Actions.TotalActionsRemaining;
+            elara.Actions.RefillActions();
+            int actionsBefore = elara.Actions.TotalActionsRemaining;
             int hpBefore = target.Health.CurrentHP;
 
             DiceRoller.EnqueueD20(20); // main-hand strike: guaranteed crit
             DiceRoller.EnqueueD20(20); // off-hand strike: guaranteed crit
-            await doubleSlice!.ExecuteAsync(scout, target);
+            await doubleSlice!.ExecuteAsync(elara, target);
 
             Check("(c) Double Slice consumed 2 actions",
-                actionsBefore - scout.Actions.TotalActionsRemaining == 2);
+                actionsBefore - elara.Actions.TotalActionsRemaining == 2);
             Check("(c) both strikes landed (target damaged)", target.Health.CurrentHP < hpBefore);
             Check("(c) Double Slice counts as two attacks for MAP",
-                scout.Combat.GetCurrentMAP(false) == -10);
-            var record = DoubleSliceAction.GetLastDoubleSlice(scout.UniqueId);
+                elara.Combat.GetCurrentMAP(false) == -10);
+            var record = DoubleSliceAction.GetLastDoubleSlice(elara.UniqueId);
             Check("(c) double-slice record captured (both hit)", record is { BothHit: true });
         }
         finally
@@ -328,7 +317,7 @@ public partial class ClassComboSpike : SpikeBase
         }
 
         // L5: Dual Thrower (the L4 DWW feat) is granted.
-        var scout5 = PresetCharacters.BuildScout(level: 5);
+        var scout5 = PresetCharacters.BuildElara(level: 5);
         Check("(c) Dual Thrower granted at L4",
             scout5.Features?.GetFeatureById("dual-thrower") != null);
     }

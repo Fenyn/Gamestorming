@@ -111,7 +111,7 @@ public static class PresetClasses
     /// effect to a critical success and reduces any incoming Frightened value by 1. The paired Will
     /// Trained→Expert increase is authored as a ProficiencyProgression on the class (getters read that,
     /// not the feature). Compiled Pf2e.Core feature.</summary>
-    public static BraveryFeature BuildBravery()
+    private static BraveryFeature BuildBravery()
     {
         return new BraveryFeature
         {
@@ -127,7 +127,7 @@ public static class PresetClasses
     /// effect of the character's chosen weapon group (BuildChoices.ChosenWeaponGroup; Sword → the crit
     /// applies Off-Guard). The paired simple/martial/unarmed→Master increase is a ProficiencyProgression
     /// on the class. Compiled Pf2e.Core feature.</summary>
-    public static WeaponMasteryFeature BuildWeaponMastery()
+    private static WeaponMasteryFeature BuildWeaponMastery()
     {
         return new WeaponMasteryFeature
         {
@@ -141,7 +141,7 @@ public static class PresetClasses
 
     /// <summary>Reactive Strike (Fighter core class feature, L1) — the reaction melee Strike on a
     /// foe leaving reach / using a manipulate or ranged action. Compiled Pf2e.Core feature.</summary>
-    public static ReactiveStrikeFeature BuildReactiveStrike()
+    private static ReactiveStrikeFeature BuildReactiveStrike()
     {
         return new ReactiveStrikeFeature
         {
@@ -155,7 +155,7 @@ public static class PresetClasses
 
     /// <summary>Shield Block (Fighter core class feature, L1) — the damage reaction that prevents
     /// damage up to the raised shield's Hardness. Compiled Pf2e.Core feature.</summary>
-    public static ShieldBlockFeature BuildShieldBlock()
+    private static ShieldBlockFeature BuildShieldBlock()
     {
         return new ShieldBlockFeature
         {
@@ -254,12 +254,12 @@ public static class PresetClasses
     ///   L5 Weapon Tricks (Player Core Rogue "Weapon Tricks": "Your proficiency ranks for simple
     ///       weapons and your rogue weapons increase to expert") → simple/martial/unarmed Expert.
     ///       NOTE: the engine models weapons by category, not the tabletop "rapier, sap, shortbow,
-    ///       shortsword" whitelist, so this bumps the whole martial category to Expert (the Scout
+    ///       shortsword" whitelist, so this bumps the whole martial category to Expert (Elara
     ///       only wields a rapier, so the over-grant has no gameplay effect). The crit-spec half of
     ///       Weapon Tricks is granted by WeaponTricksFeature (below).
     ///
     /// The racket is the rogue's subclass: the Thief overlay (<see cref="BuildThiefSubclass"/>)
-    /// is resolved onto this base by the Scout's combo.
+    /// is resolved onto this base by Elara's combo.
     /// </summary>
     public static ClassDefinition BuildRogue()
     {
@@ -267,7 +267,7 @@ public static class PresetClasses
         {
             DefinitionId = "rogue",
             ClassName = "Rogue",
-            Description = "A skilled scout and skirmisher who strikes from advantage.",
+            Description = "A skilled elara and skirmisher who strikes from advantage.",
             HitPointsPerLevel = 8,
             KeyAbility = AbilityScore.Dexterity,
 
@@ -290,14 +290,14 @@ public static class PresetClasses
             ClassDCProficiency = ProficiencyLevel.Trained,
             SpellProficiency = ProficiencyLevel.Untrained,
 
-            AutoTrainedSkills = new List<Skill> { Skill.Stealth }, // rogue signature; Scout adds Thievery + Intimidation
+            AutoTrainedSkills = new List<Skill> { Skill.Stealth }, // rogue signature; Elara adds Thievery + Intimidation
             AdditionalSkillChoices = 7,
         };
 
         // Skill Increases (Player Core Rogue: "You gain a skill increase at 2nd level and every
         // level thereafter"; pack classes/rogue.json skillIncreaseLevels = [2, 3, 4, ..., 20]).
         // Overrides the standard odd-level cadence in LevelUpSchedule/LevelUpApplicator; the
-        // Scout's combo scripts no explicit picks, so ApplyLevelUp auto-assigns each increase.
+        // Elara's combo scripts no explicit picks, so ApplyLevelUp auto-assigns each increase.
         for (int level = 2; level <= 20; level++)
             rogue.SkillIncreaseLevels.Add(level);
 
@@ -352,7 +352,7 @@ public static class PresetClasses
     /// <summary>Sneak Attack (Rogue core, L1) — adds precision dice (1d6 at L1, 2d6 at L5) when the
     /// target is off-guard and the rogue attacks with a finesse/agile melee or a ranged weapon.
     /// Compiled Pf2e.Core feature.</summary>
-    public static SneakAttackFeature BuildSneakAttack()
+    private static SneakAttackFeature BuildSneakAttack()
     {
         return new SneakAttackFeature
         {
@@ -366,7 +366,7 @@ public static class PresetClasses
 
     /// <summary>Surprise Attack (Rogue core, L1) — on round 1, foes that haven't acted yet are
     /// off-guard to the rogue if it rolled Stealth or Deception for initiative. Compiled feature.</summary>
-    public static SurpriseAttackFeature BuildSurpriseAttack()
+    private static SurpriseAttackFeature BuildSurpriseAttack()
     {
         return new SurpriseAttackFeature
         {
@@ -380,7 +380,7 @@ public static class PresetClasses
 
     /// <summary>Deny Advantage (Rogue core, L3) — you aren't off-guard to foes of your level or lower
     /// that would flank you or otherwise make you off-guard by surprise. Compiled feature.</summary>
-    public static DenyAdvantageFeature BuildDenyAdvantage()
+    private static DenyAdvantageFeature BuildDenyAdvantage()
     {
         return new DenyAdvantageFeature
         {
@@ -395,7 +395,7 @@ public static class PresetClasses
     /// <summary>Weapon Tricks (Rogue core, L5) — on a critical hit vs an off-guard target with an
     /// agile or finesse weapon, apply that weapon's critical specialization effect. The paired
     /// simple/rogue-weapon → Expert increase is a ProficiencyProgression on the class. Compiled feature.</summary>
-    public static WeaponTricksFeature BuildWeaponTricks()
+    private static WeaponTricksFeature BuildWeaponTricks()
     {
         return new WeaponTricksFeature
         {
@@ -408,12 +408,12 @@ public static class PresetClasses
     }
 
     /// <summary>
-    /// Thief racket (Rogue subclass feature, L1) — the Scout's LOCKED racket. Adds the (Dex − Str)
+    /// Thief racket (Rogue subclass feature, L1) — Elara's LOCKED racket. Adds the (Dex − Str)
     /// difference as bonus damage on finesse melee Strikes, letting the rogue use Dex for both attack
     /// and damage. The engine's ThiefRacketFeature reads NOTHING from CharacterBuildChoices (there is
     /// no racket field on it); the racket is selected purely by which racket feature is granted.
     /// </summary>
-    public static ThiefRacketFeature BuildThiefRacket()
+    private static ThiefRacketFeature BuildThiefRacket()
     {
         return new ThiefRacketFeature
         {
@@ -511,7 +511,7 @@ public static class PresetClasses
     /// <summary>Divine Font (Cleric core, L1) — configures the DivineFontPool from
     /// BuildChoices.Deity.FontSpellIdentity (Aveline → Heal). Compiled Pf2e.Core feature.
     /// Font slot count and rank are re-synced after level-up in PresetCharacters.BuildCaster.</summary>
-    public static HealingFontFeature BuildHealingFont()
+    private static HealingFontFeature BuildHealingFont()
     {
         return new HealingFontFeature
         {
@@ -577,7 +577,7 @@ public static class PresetClasses
     /// <summary>Third Doctrine (Warpriest, L7) — critical specialization with the deity's favored
     /// weapon (reads BuildChoices.GetFavoredWeapon). Compiled Pf2e.Core feature; the paired
     /// weapon-proficiency bumps are AdditionalProgressions on the overlay.</summary>
-    public static WarpriestThirdDoctrineFeature BuildWarpriestThirdDoctrine()
+    private static WarpriestThirdDoctrineFeature BuildWarpriestThirdDoctrine()
     {
         return new WarpriestThirdDoctrineFeature
         {
@@ -672,7 +672,7 @@ public static class PresetClasses
     /// <summary>School of Battle Magic (Wizard, L1) — grants Force Bolt (+1 focus point), the
     /// curriculum cantrip, and the curriculum-restricted bonus preparation slot per rank
     /// (Spellcasting.SetSchoolSlots). Compiled Pf2e.Core feature + code-authored school data.</summary>
-    public static WizardSchoolFeature BuildBattleMagicSchoolFeature()
+    private static WizardSchoolFeature BuildBattleMagicSchoolFeature()
     {
         return new WizardSchoolFeature
         {
@@ -696,23 +696,23 @@ public static class PresetClasses
     ///   School spells: initial Force Bolt (advanced Energy Absorption deferred).
     /// Curriculum ranks 4+ are beyond the preset ceiling (L5 → rank 3).
     /// </summary>
-    public static WizardSchoolDefinition BuildBattleMagicSchool()
+    private static WizardSchoolDefinition BuildBattleMagicSchool()
     {
         return new WizardSchoolDefinition
         {
             DefinitionId = "battle-magic",
             DisplayName = "School of Battle Magic",
             Description = "Magic is power, and there are always those who will use power for the art of battle.",
-            InitialSpell = PresetSpells.Get(PresetSpells.ForceBoltId),
+            InitialSpell = PresetSpells.Get(PresetSpells.ForceBoltId)!,
             CurriculumCantrips = new List<SpellAction>
             {
-                PresetSpells.Get(PresetSpells.TelekineticProjectileId),
+                PresetSpells.Get(PresetSpells.TelekineticProjectileId)!,
             },
             CurriculumSpells = new List<LeveledSpellGrant>
             {
-                new LeveledSpellGrant { SpellRank = 1, Spell = PresetSpells.Get(PresetSpells.BreatheFireId) },
-                new LeveledSpellGrant { SpellRank = 1, Spell = PresetSpells.Get(PresetSpells.ForceBarrageId) },
-                new LeveledSpellGrant { SpellRank = 3, Spell = PresetSpells.Get(PresetSpells.FireballId) },
+                new LeveledSpellGrant { SpellRank = 1, Spell = PresetSpells.Get(PresetSpells.BreatheFireId)! },
+                new LeveledSpellGrant { SpellRank = 1, Spell = PresetSpells.Get(PresetSpells.ForceBarrageId)! },
+                new LeveledSpellGrant { SpellRank = 3, Spell = PresetSpells.Get(PresetSpells.FireballId)! },
             },
         };
     }
@@ -721,7 +721,7 @@ public static class PresetClasses
 
     /// <summary>Reactive Shield (Fighter Feat 1, granted by Bastion Dedication) — reaction: Raise a
     /// Shield when a melee Strike would hit you. Compiled Pf2e.Core defense reaction.</summary>
-    public static ReactiveShieldFeature BuildReactiveShield()
+    private static ReactiveShieldFeature BuildReactiveShield()
     {
         return new ReactiveShieldFeature
         {
@@ -750,7 +750,7 @@ public static class PresetClasses
     /// <summary>Double Slice (Fighter Feat 1, granted by Dual-Weapon Warrior Dedication) — two
     /// Strikes, one per weapon, at the same MAP; off-hand −2 unless Agile. The feature is a
     /// carrier for the compiled DoubleSliceAction.</summary>
-    public static CharacterFeature BuildDoubleSlice()
+    private static CharacterFeature BuildDoubleSlice()
     {
         return new CharacterFeature
         {
@@ -828,7 +828,7 @@ public static class PresetClasses
 
     /// <summary>Battle Medicine (Skill Feat 1) — 1-action in-combat Medicine patch-up. Carrier for
     /// the compiled BattleMedicineAction (cost/target metadata is construction-site config,
-    /// mirroring PlayerActionExecutor.MakeSkillAction).</summary>
+    /// mirroring SkillActionCatalog).</summary>
     public static BattleMedicineFeature BuildBattleMedicine()
     {
         return new BattleMedicineFeature

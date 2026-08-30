@@ -1,7 +1,9 @@
-[gd_scene format=3 uid="uid://hufa4adaf0vi"]
+[gd_scene load_steps=3 format=3 uid="uid://hufa4adaf0vi"]
 
 [ext_resource type="Script" uid="uid://b4b4usysp7jal" path="res://scripts/dev/CombatTestScene.cs" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="2_combat"]
 
 [node name="CombatTest" type="Node" unique_id=1502981836]
 script = ExtResource("1_test")
 UseGeneratedMap = true
+CombatScene = ExtResource("2_combat")

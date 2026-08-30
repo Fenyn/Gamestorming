@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Generic;
-using Delve.Combat.Map;
+using Delve.Terrain;
 using Godot;
 using PF2e.Grid;
 using PF2eVec = PF2e.Vector2Int;
@@ -156,6 +155,14 @@ public partial class GridOverlay3D : Node3D
     {
         if (!_height.HasTerrain)
         {
+            // Pooled markers are shared between encounters. One that carried a conforming mesh on a
+            // terrain board must go back to the flat quad and its -90 degree rotation, or it would
+            // render the previous map's slope over a flat tile.
+            if (mi.Mesh != _tileMesh)
+            {
+                mi.Mesh = _tileMesh;
+                mi.RotationDegrees = new Vector3(-90f, 0f, 0f);
+            }
             mi.Position = GridSpace.GridToWorld(t) with { Y = SurfaceY + lift };
             return;
         }
@@ -229,7 +236,8 @@ public partial class GridOverlay3D : Node3D
     /// vertices, up normals, split along the shorter diagonal — with two Godot differences.
     ///
     /// 1. Winding is flipped (2nd and 3rd index of each triangle swapped), matching
-    ///    <see cref="Map.TerrainMeshBuilder"/>, so the lit face points up in Godot's convention.
+    ///    <see cref="Map.TerrainGeometry"/>, whose diagonal-split rule this shares, so the lit
+    ///    face points up in Godot's convention and lies on the terrain triangle it marks.
     /// 2. <paramref name="size"/> insets the quad inside its tile (0.9 by default, the same inset the
     ///    flat <see cref="QuadMesh"/> path uses, so the two modes read identically). The inset corner
     ///    heights come from <c>SampleHeight</c>, which reproduces the raw corners exactly at size 1.
@@ -243,34 +251,35 @@ public partial class GridOverlay3D : Node3D
         float hi = 0.5f + half;
         float centerY = corners.CenterHeight * heightScale;
 
+        // Tile-local offsets: 1 tile = 1 m (see GridSpace).
         Vector3 Corner(float u, float v) => new(
-            (u - 0.5f) * GridSpace.TileSize,
+            u - 0.5f,
             corners.SampleHeight(u, v) * heightScale - centerY + yOffset,
-            (v - 0.5f) * GridSpace.TileSize);
+            v - 0.5f);
 
         Vector3 vSW = Corner(lo, lo);
         Vector3 vSE = Corner(hi, lo);
         Vector3 vNE = Corner(hi, hi);
         Vector3 vNW = Corner(lo, hi);
 
-        var verts = new[] { vSW, vSE, vNE, vNW };
-        var norms = new[] { Vector3.Up, Vector3.Up, Vector3.Up, Vector3.Up };
-        var uvs = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
+        var buffer = new MeshBuffer(withColor: false);
+        buffer.Add(vSW, Vector3.Up, new Vector2(0, 0));
+        buffer.Add(vSE, Vector3.Up, new Vector2(1, 0));
+        buffer.Add(vNE, Vector3.Up, new Vector2(1, 1));
+        buffer.Add(vNW, Vector3.Up, new Vector2(0, 1));
 
         // Unity wound (0,2,1)+(0,3,2) / (0,3,1)+(1,3,2); both pairs swapped for Godot's front face.
-        int[] indices = MathF.Abs(vSW.Y - vNE.Y) <= MathF.Abs(vSE.Y - vNW.Y)
-            ? new[] { 0, 1, 2, 0, 2, 3 }
-            : new[] { 0, 1, 3, 1, 2, 3 };
+        if (TerrainGeometry.ShouldSplitAlternate(vSW, vSE, vNE, vNW))
+        {
+            buffer.AddIndices(0, 1, 2);
+            buffer.AddIndices(0, 2, 3);
+        }
+        else
+        {
+            buffer.AddIndices(0, 1, 3);
+            buffer.AddIndices(1, 2, 3);
+        }
 
-        var arrays = new Godot.Collections.Array();
-        arrays.Resize((int)Mesh.ArrayType.Max);
-        arrays[(int)Mesh.ArrayType.Vertex] = verts;
-        arrays[(int)Mesh.ArrayType.Normal] = norms;
-        arrays[(int)Mesh.ArrayType.TexUV] = uvs;
-        arrays[(int)Mesh.ArrayType.Index] = indices;
-
-        var mesh = new ArrayMesh { ResourceName = "tile_highlight" };
-        mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-        return mesh;
+        return buffer.ToArrayMesh("tile_highlight");
     }
 }

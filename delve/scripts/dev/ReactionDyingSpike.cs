@@ -31,27 +31,16 @@ namespace Delve.Dev;
 /// </summary>
 public partial class ReactionDyingSpike : SpikeBase
 {
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== REACTION / DYING SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== REACTION / DYING SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[ReactionSpike] DataManager not loaded — aborting.");
-            return;
-        }
-
         await Check1_ShieldBlock(data);
         await Check2_ReactiveStrike(data);
         await Check3_DyingNotDead(data);
         await Check4_DefeatWhenAllDown(data);
         await Check5_ShoveDisplaces(data);
         Check6_ForcedMovementInstalled(data);
-
-        FinishAndQuit("ReactionSpike");
     }
 
     // ── (1) Shield Block reduces damage by hardness + consumes the reaction ──

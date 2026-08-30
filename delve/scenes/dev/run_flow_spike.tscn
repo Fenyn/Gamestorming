@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/RunFlowSpike.cs" id="1_runflow"]
+[ext_resource type="PackedScene" path="res://scenes/run/run.tscn" id="2_run"]
+
+[node name="RunFlowSpike" type="Node"]
+script = ExtResource("1_runflow")
+RunScene = ExtResource("2_run")

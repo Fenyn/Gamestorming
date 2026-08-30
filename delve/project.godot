@@ -11,13 +11,17 @@ config_version=5
 [application]
 
 config/name="Delve"
-run/main_scene="res://scenes/dev/combat_test.tscn"
+run/main_scene="res://scenes/run/run.tscn"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 DataManager="*res://scripts/autoload/DataManager.cs"
+
+[delve]
+
+pf2e_pack_path="F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e"
 
 [display]
 

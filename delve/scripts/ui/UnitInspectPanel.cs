@@ -37,7 +37,7 @@ public partial class UnitInspectPanel : PanelContainer
         Visible = view != null;
         if (view == null) return;
 
-        _accent.Color = view.TeamId == 1 ? UiColors.Ally : UiColors.Enemy;
+        _accent.Color = view.IsAlly ? UiColors.Ally : UiColors.Enemy;
         _nameLabel.Text = view.Name;
         // Pre-masked by the query (bestiary knowledge) — this Control never decides what is hidden.
         _acLabel.Text = view.AcText;

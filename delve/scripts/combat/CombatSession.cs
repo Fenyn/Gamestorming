@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Delve.Data;
 using PF2e;
 using PF2e.Actions;
 using PF2e.Actions.SkillActions;
@@ -45,8 +46,13 @@ public sealed class CombatSession
 
     private BattleRunner _runner = null!;
     private TurnManager _turnManager = null!;
-    private CombatantRegistry _registry = null!;
     private AITurnExecutor _ai = null!;
+
+    /// <summary>
+    /// Every engine global this encounter claims, in one owner. Disposed by <see cref="Teardown"/>,
+    /// which is what keeps a late teardown from stripping a newer encounter's wiring.
+    /// </summary>
+    private EngineEncounterScope? _scope;
 
     private readonly List<ICharacter> _team1 = new();
     private readonly List<ICharacter> _team2 = new();
@@ -63,7 +69,6 @@ public sealed class CombatSession
     /// </summary>
     private readonly HashSet<(int ActorId, string CreatureId)> _recallAttempts = new();
 
-    private ReactionManager _reactions = null!;
     private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
     private bool _finished;
 
@@ -82,7 +87,7 @@ public sealed class CombatSession
     /// <summary>
     /// Raised when a Recall Knowledge check in THIS encounter actually taught the party something
     /// (Success or Critical Success), with the target's species slug and the degree. The hosting
-    /// scene forwards it to GameState.RecordRecallKnowledge — the session itself owns no journal.
+    /// scene forwards it to the party's bestiary — the session itself owns no journal.
     /// Failures do not fire this (they still consume the attempt).
     /// </summary>
     public event Action<string, DegreeOfSuccess>? RecallKnowledgeLearned;
@@ -99,7 +104,6 @@ public sealed class CombatSession
     // ---------------------------------------------------------------- Pass-throughs
     public ICharacter? CurrentActor => _turnManager?.CurrentTurn?.Character;
     public IReadOnlyList<TurnEntry>? TurnOrder => _turnManager?.TurnOrder;
-    public int Round => _turnManager?.RoundNumber ?? 0;
     public IReadOnlyList<ICharacter> Team1 => _team1;
     public IReadOnlyList<ICharacter> Team2 => _team2;
 
@@ -145,34 +149,14 @@ public sealed class CombatSession
             : BattleGrid.CreateFlat(setup.GridWidth, setup.GridHeight);
         _runner = new BattleRunner();
 
-        // Own the engine singletons for this encounter (mirrors BattleSimulator's constructor).
-        _turnManager = new TurnManager();
-        TurnManager.Instance = _turnManager;
-        _registry = new CombatantRegistry();
-        CombatantRegistry.Instance = _registry;
-
-        Grid.WireDelegates();
-        SpatialDelegates.Wire(Grid);
-
-        // Reactions: a subscribed ReactionManager OWNS damage delivery (its damage handler runs
-        // reactions then calls the applyDamage continuation). It replaces the old pass-through — never
-        // both, or the multicast event would deliver damage twice. It also owns movement/defense/etc.
-        _reactions = new ReactionManager();
-        _reactions.Subscribe();
-        // Player-team members (not toggled to AI) are "player controlled" for reaction decisions.
-        ReactionManager.IsPlayerControlled = IsPlayerControlled;
-        // Interactive reaction policy: prompt through the scene-supplied handler unless the ally
-        // is toggled to auto-reactions (or no UI handler is wired) — then auto-use.
-        ReactionManager.PlayerReactionPolicy = DecidePlayerReaction;
-
-        // Forced movement (Shove push/follow, Tumble Through exit-move, push-strike riders) resolves
-        // through ForcedMovementExecutor against this encounter's grid. Install() routes push-rider
-        // OnPushRequested events so rider displacement actually moves creatures.
-        ForcedMovementExecutor.Grid = Grid;
-        ForcedMovementExecutor.Install();
-
-        // Step destination legality (reject blocked/occupied tiles).
-        StepAction.ValidateDestination = ValidateStepDestination;
+        // One owner for every engine global this encounter claims: the TurnManager /
+        // CombatantRegistry singletons, grid + spatial delegates, the ReactionManager and its two
+        // static policies, forced movement, and Step validation. Player-team members (not toggled to
+        // AI) count as "player controlled" for reactions; the policy prompts through the
+        // scene-supplied handler unless the ally is toggled to auto-reactions.
+        _scope = new EngineEncounterScope(
+            Grid, IsPlayerControlled, DecidePlayerReaction, ValidateStepDestination);
+        _turnManager = _scope.Turns;
 
         // Battle Medicine's per-target immunity set is a STATIC in the engine, cleared only by
         // CombatManager.OnClearFeatureState — and bulwark never constructs a CombatManager, so
@@ -182,7 +166,7 @@ public sealed class CombatSession
         BattleMedicineAction.ResetImmunities();
 
         _ai = new AITurnExecutor(_runner, Grid);
-        PlayerActions = new PlayerActionExecutor(_runner, Grid);
+        PlayerActions = new PlayerActionExecutor(_runner, Grid, PresetSpells.Get);
         PlayerActions.HasRecallAttempted = HasRecallAttempted;
         WireRecallKnowledge();
 
@@ -215,7 +199,7 @@ public sealed class CombatSession
         => !string.IsNullOrEmpty(creatureId) && _recallAttempts.Contains((actorId, creatureId));
 
     /// <summary>Record an actor's spent attempt against a species. Idempotent.</summary>
-    public void MarkRecallAttempted(int actorId, string creatureId)
+    private void MarkRecallAttempted(int actorId, string creatureId)
     {
         if (!string.IsNullOrEmpty(creatureId))
             _recallAttempts.Add((actorId, creatureId));
@@ -331,29 +315,15 @@ public sealed class CombatSession
                 _turnManager.EndEncounter();
         }
 
-        _reactions?.Unsubscribe();
-        ReactionManager.IsPlayerControlled = null;
-        ReactionManager.PlayerReactionPolicy = null;
-
         // Static engine event — leaving this subscribed would keep the whole session (and its teams)
         // alive and let a later encounter's checks re-enter this dead one. Detaching a handler that
         // was never attached (Setup faulted before WireRecallKnowledge) is a harmless no-op.
         RecallKnowledgeAction.OnKnowledgeResolved -= OnKnowledgeResolved;
 
-        ForcedMovementExecutor.Uninstall();
-        ForcedMovementExecutor.Grid = null;
-
-        StepAction.ValidateDestination = null;
-        SpatialDelegates.Unwire();
-
-        // Release the engine singletons Setup claimed — but ONLY if they still point at THIS
-        // encounter. Setup overwrites both unconditionally, so a newer CombatSession may already own
-        // them (e.g. an old scene tearing down after the next encounter began); clobbering those to
-        // null would break the live fight. Identity-guard the clear.
-        if (ReferenceEquals(TurnManager.Instance, _turnManager))
-            TurnManager.Instance = null!;
-        if (ReferenceEquals(CombatantRegistry.Instance, _registry))
-            CombatantRegistry.Instance = null!;
+        // Releases every engine global this encounter still owns, and only those: a session torn down
+        // after the next encounter began leaves the live fight's wiring alone.
+        _scope?.Dispose();
+        _scope = null;
     }
 
     // ---------------------------------------------------------------- Turn loop
@@ -589,13 +559,10 @@ public sealed class CombatSession
         EncounterFinished?.Invoke(result);
     }
 
+    /// <summary>Engine hook for StepAction. The rule itself lives on the executor, so the action bar's
+    /// step tiles and the engine's own validation can never disagree.</summary>
     private string? ValidateStepDestination(ICharacter actor, PF2eVec dest)
-    {
-        var tile = Grid.GetTile(dest);
-        if (tile == null || tile.IsBlocked) return "Blocked.";
-        if (!Grid.CanCreatureFit(dest, actor.TileWidth, ignore: actor)) return "Occupied.";
-        return null;
-    }
+        => PlayerActions.StepBlockedReason(actor, dest);
 
     private void SubscribeCharacter(ICharacter c)
     {

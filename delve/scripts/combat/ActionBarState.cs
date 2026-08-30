@@ -14,7 +14,6 @@ public sealed record ActionBarState
     public bool CanStrike { get; init; }
     public bool CanRaiseShield { get; init; }
     public int Map { get; init; }
-    public PlayerTurnMode Mode { get; init; }
     public string ActorName { get; init; } = "";
 
     /// <summary>Active actor's vitals, rendered next to the name (e.g. "HP 18/24  AC 17").</summary>

@@ -27,24 +27,13 @@ namespace Delve.Dev;
 /// </summary>
 public partial class ReactionPromptSpike : SpikeBase
 {
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== REACTION PROMPT SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== REACTION PROMPT SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[PromptSpike] DataManager not loaded — aborting.");
-            return;
-        }
-
         await Check1_AcceptedPromptSuspendsAndBlocks(data);
         await Check2_DeclinedPromptTakesFullDamage(data);
         await Check3_PromptDuringEnemyTurn(data);
-
-        FinishAndQuit("PromptSpike");
     }
 
     // ── (1) Accepted prompt: combat suspends while pending, then Shield Block applies ──

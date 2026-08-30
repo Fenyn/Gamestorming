@@ -37,24 +37,14 @@ public partial class AiStackSpike : SpikeBase
 
     private Action<string>? _priorInfoSink;
 
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== AI STACK SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== AI STACK SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[Spike] DataManager not loaded — aborting.");
-            return;
-        }
-
         Rng.Seed(1234);
 
-        // Pass-through reaction handler (StrikeResolver.DeliverDamage throws without one).
-        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => { applyDamage(); return System.Threading.Tasks.Task.CompletedTask; };
-        ReactionEvents.OnDamageReactionCheck += damageHandler;
+        // StrikeResolver.DeliverDamage throws without a reaction handler.
+        using var reactions = UsePassthroughReactions();
 
         // Observe engine info logs to confirm the goblins ran the planner. DataManager already
         // routes Log.OnInfo to GD.Print; chain through it so console output is preserved.
@@ -105,7 +95,6 @@ public partial class AiStackSpike : SpikeBase
 
         // Restore the log sink.
         Log.OnInfo = _priorInfoSink;
-        ReactionEvents.OnDamageReactionCheck -= damageHandler;
 
         GD.Print($"[Spike] Result: {result}");
         GD.Print($"[Spike] Movement events checked: {_movementEvents}, turn-end events checked: {_turnEndEvents}");
@@ -117,8 +106,6 @@ public partial class AiStackSpike : SpikeBase
         Check("a goblin ran the planner (\"executing plan\")", _plannerObserved);
         Check($"encounter reached a decisive result ({result})",
             result is BattleResult.Team1Wins or BattleResult.Team2Wins);
-
-        FinishAndQuit("AiStackSpike");
     }
 
     private Task CheckOnEvent(BattleEvent evt)

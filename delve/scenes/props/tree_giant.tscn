@@ -1,0 +1,17 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/props/TreeProp.cs" id="1_treeprop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_giant_a.png" id="2_giant_a"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_giant_b.png" id="3_giant_b"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_giant_c.png" id="4_giant_c"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_giant_dark.png" id="5_giant_dark"]
+[ext_resource type="Shader" path="res://assets/shaders/tree_occluder.gdshader" id="6_occluder"]
+
+[node name="TreeGiant" type="Node3D"]
+script = ExtResource("1_treeprop")
+Variants = [ExtResource("2_giant_a"), ExtResource("3_giant_b"), ExtResource("4_giant_c"), ExtResource("5_giant_dark")]
+PixelsPerTile = 64.0
+OccluderShader = ExtResource("6_occluder")
+
+[node name="Sprite" type="Sprite3D" parent="."]
+unique_name_in_owner = true

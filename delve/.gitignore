@@ -1,0 +1,5 @@
+# Local run artifacts. The repo root .gitignore already covers .godot/, bin/ and obj/.
+
+# Rendered spike captures. combat_shot writes to user://dev_shots now; anything that lands
+# here is a local scratch image, never repo content.
+dev_shots/

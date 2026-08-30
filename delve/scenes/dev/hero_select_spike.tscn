@@ -1,0 +1,10 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/HeroSelectSpike.cs" id="1_hsspike"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="2_hs"]
+[ext_resource type="PackedScene" path="res://scenes/run/sheet_section.tscn" id="3_row"]
+
+[node name="HeroSelectSpike" type="Node"]
+script = ExtResource("1_hsspike")
+PanelScene = ExtResource("2_hs")
+SectionScene = ExtResource("3_row")

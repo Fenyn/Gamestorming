@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Delve.Data;
 using PF2e.Actions;
-using PF2e.Actions.SkillActions;
-using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
-using PF2e.Events;
 using PF2e.Grid;
 using PF2e.Spellcasting;
 using PF2e.Utilities;
@@ -18,1293 +14,183 @@ namespace Delve.Combat;
 /// <summary>
 /// Executes and previews the player actions: the core four (Stride, Step, Strike, Raise a Shield)
 /// plus spells, skill/maneuver/feat actions, and consumables.
-/// The command side mirrors <c>AITurnExecutor</c>'s BattleEvent emission exactly so player and AI
-/// turns animate identically through the shared <see cref="BattleRunner"/>. The query side feeds
-/// the UI/controller (reachable tiles, targets, previews) with no side effects.
+///
+/// This type is a facade. It builds the collaborators once and forwards every call:
+/// <see cref="Movement"/> (Stride/Step + pathfinding), <see cref="Strikes"/> (Strike, Raise a
+/// Shield), <see cref="Spells"/> (the preset spell layer) and <see cref="Skills"/> (the
+/// catalog-driven skill chips). New code may depend on one collaborator instead of the whole
+/// surface; the facade stays for the controller, the session and the spikes.
 ///
 /// Plain C#: the only Godot-free dependency is the engine. Consumes actions from
 /// <c>ICharacter.Actions</c> so the action bar stays in sync.
 /// </summary>
 public sealed class PlayerActionExecutor
 {
-    private const int FeetPerTile = 5;
-
-    private readonly BattleRunner _runner;
+    private readonly MovementActions _movement;
+    private readonly StrikeActions _strikes;
+    private readonly SpellActions _spells;
+    private readonly SkillActions _skills;
     private readonly BattleGrid _grid;
-    private readonly RaiseShieldAction _raiseShield = new();
-    private readonly StepAction _step = new();
 
-    public PlayerActionExecutor(BattleRunner runner, BattleGrid grid)
+    /// <param name="resolveSpell">Spell lookup by id, injected so this type never names a content
+    /// source. Null ids and unknown ids return null.</param>
+    public PlayerActionExecutor(
+        BattleRunner runner, BattleGrid grid, Func<string, SpellCastAction?> resolveSpell)
     {
-        _runner = runner;
         _grid = grid;
+        var events = new BattleEventEmitter(runner);
+        _movement = new MovementActions(grid, events);
+        _strikes = new StrikeActions(events);
+        _spells = new SpellActions(grid, events, resolveSpell);
+        _skills = new SkillActions(grid, events, _movement);
     }
 
-    // ---------------------------------------------------------------- Queries
+    /// <summary>Stride, Step and the pathfinding queries the UI highlights them with.</summary>
+    internal MovementActions Movement => _movement;
+
+    /// <summary>Strike, Raise a Shield and their previews.</summary>
+    internal StrikeActions Strikes => _strikes;
+
+    /// <summary>The preset spell layer: entries, targeting and casting.</summary>
+    internal SpellActions Spells => _spells;
+
+    /// <summary>The skill / maneuver / feat-action chips, driven by SkillActionCatalog.</summary>
+    internal SkillActions Skills => _skills;
+
+    // ---------------------------------------------------------------- Movement
 
     /// <summary>Tiles reachable with a single Stride (unoccupied, creature fits).</summary>
     public HashSet<PF2eVec> GetReachableTiles(ICharacter character)
-        => ReachableTiles(character, SpeedInTiles(character));
+        => _movement.GetReachableTiles(character);
 
     /// <summary>Adjacent tiles a Step can legally land on (unoccupied, fits).</summary>
     public HashSet<PF2eVec> GetStepTiles(ICharacter character)
-    {
-        var result = new HashSet<PF2eVec>();
-        if (character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
-            return result;
+        => _movement.GetStepTiles(character);
 
-        foreach (var neighbor in _grid.GetNeighbors(character.GridPosition))
-        {
-            var tile = _grid.GetTile(neighbor);
-            if (tile == null || tile.IsBlocked) continue;
-            if (!_grid.CanCreatureFit(neighbor, character.TileWidth, ignore: character)) continue;
-            result.Add(neighbor);
-        }
-        return result;
-    }
+    /// <summary>Why a Step to <paramref name="dest"/> is illegal, or null when it is legal.</summary>
+    public string? StepBlockedReason(ICharacter actor, PF2eVec dest)
+        => _movement.StepBlockedReason(actor, dest);
+
+    public List<PF2eVec>? GetPathTo(ICharacter character, PF2eVec dest)
+        => _movement.GetPathTo(character, dest);
+
+    /// <summary>Stride to <paramref name="dest"/> (1 action).</summary>
+    public Task<bool> ExecuteStride(ICharacter character, PF2eVec dest, bool triggersReactions = true)
+        => _movement.ExecuteStride(character, dest, triggersReactions);
+
+    /// <summary>Step to an adjacent tile (1 action, no reactions).</summary>
+    public Task<bool> ExecuteStep(ICharacter character, PF2eVec dest)
+        => _movement.ExecuteStep(character, dest);
+
+    // ---------------------------------------------------------------- Strikes
 
     /// <summary>Living enemies within the character's weapon reach.</summary>
     public List<ICharacter> GetStrikeTargets(ICharacter character)
-    {
-        var targets = new List<ICharacter>();
-        var registry = CombatantRegistry.Instance;
-        if (registry == null) return targets;
-
-        var weapon = WeaponAttackCalculator.ResolveWeapon(character);
-        int reach = weapon.GetRangeInTiles();
-
-        foreach (var other in registry.All)
-        {
-            if (other.TeamId == character.TeamId) continue;
-            if (other.Health == null || other.Health.IsDead) continue;
-            if (FlankingCalculator.IsWithinReach(
-                character.GridPosition, character.TileWidth,
-                other.GridPosition, other.TileWidth, reach))
-                targets.Add(other);
-        }
-        return targets;
-    }
-
-    /// <summary>
-    /// Compact inspection snapshot of the unit occupying <paramref name="tile"/>, or null when the
-    /// tile is empty. Read-only, no side effects — feeds the hover-inspect panel (works for any
-    /// occupied tile, any mode, any team). Conditions come straight from the character's
-    /// ConditionTracker plus a synthesized "Shield Raised" entry (not itself a condition).
-    ///
-    /// KNOWLEDGE-GATED for creatures: an enemy's name, conditions and HP BAR are always readable
-    /// (they are what the board already shows), but the exact AC and HP numbers stay masked until
-    /// Recall Knowledge reveals those fields for its species. Allies are never gated. The masking is
-    /// resolved here, as text, so the panel renders without knowing the rule.
-    /// </summary>
-    public UnitInspectView? GetUnitInspect(PF2eVec tile)
-    {
-        var c = _grid.GetGroundOccupant(tile);
-        return c == null ? null : BuildInspectView(c);
-    }
-
-    /// <summary>
-    /// Whether a creature's stat-block <paramref name="field"/> is known to the player. Reads the
-    /// game's <see cref="ICreatureKnowledgeProvider"/> through the engine locator, which
-    /// <c>GameState</c> is the only thing that ever sets. UNGATED (true) when there is no journal
-    /// wired (standalone combat scene, headless spike) or the subject has no species id — a
-    /// bestiary-less run must not read as "everything unknown".
-    /// </summary>
-    public static bool IsCreatureFieldKnown(string? creatureId, CreatureKnowledgeField field)
-    {
-        var provider = CreatureKnowledgeLocator.Instance;
-        if (provider == null || string.IsNullOrEmpty(creatureId))
-            return true;
-        return provider.IsFieldRevealed(creatureId!, field);
-    }
-
-    private static UnitInspectView BuildInspectView(ICharacter c)
-    {
-        var conditions = new List<string>();
-        foreach (var instance in c.Conditions?.GetAllConditions() ?? new List<ConditionInstance>())
-        {
-            conditions.Add(instance.Definition.HasValue && instance.Value > 0
-                ? $"{instance.Definition.DisplayName} {instance.Value}"
-                : instance.Definition.DisplayName);
-        }
-        if (c.Equipment?.IsShieldRaised == true)
-            conditions.Add("Shield Raised");
-
-        // Only creatures (enemies with a stat block) are gated; PC sheets have no CreatureStats.
-        string? creatureId = c.CreatureStats?.CreatureId;
-        bool isCreature = c.CreatureStats != null;
-        bool acKnown = !isCreature || IsCreatureFieldKnown(creatureId, CreatureKnowledgeField.AC);
-        bool hpKnown = !isCreature || IsCreatureFieldKnown(creatureId, CreatureKnowledgeField.MaxHP);
-
-        int hp = c.Health?.CurrentHP ?? 0;
-        int maxHp = c.Health?.MaxHP ?? 0;
-        int ac = StatsCalculator.CalculateAC(c);
-
-        return new UnitInspectView
-        {
-            Name = c.Name,
-            TeamId = c.TeamId,
-            Hp = hp,
-            MaxHp = maxHp,
-            Ac = ac,
-            Conditions = conditions,
-            AcText = acKnown ? $"AC {ac}" : "AC ?",
-            HpText = hpKnown ? $"{hp}/{maxHp}" : "?/?",
-            KnowledgeGated = !acKnown || !hpKnown,
-        };
-    }
-
-    public List<PF2eVec>? GetPathTo(ICharacter character, PF2eVec dest)
-    {
-        int speed = SpeedInTiles(character);
-        if (speed <= 0) return null;
-        return Pathfinder.FindPath(_grid, character.GridPosition, dest, BuildRequest(character, speed));
-    }
+        => _strikes.GetStrikeTargets(character);
 
     public AttackPreviewData? GetAttackPreview(ICharacter attacker, ICharacter target)
-    {
-        if (attacker == null || target == null) return null;
-        return CombatPreviewCalculator.CalculateAttackPreview(attacker, target);
-    }
+        => _strikes.GetAttackPreview(attacker, target);
 
     /// <summary>Current MAP the character would suffer on their next Strike (0 / -4/-5 / -8/-10).</summary>
     public int GetCurrentMap(ICharacter character)
-    {
-        var weapon = WeaponAttackCalculator.ResolveWeapon(character);
-        return character.Combat?.GetCurrentMAP(weapon.IsAgile) ?? 0;
-    }
+        => _strikes.GetCurrentMap(character);
 
-    /// <summary>Why Raise a Shield is disabled right now (engine-sourced: no shield / already raised /
-    /// destroyed / not in hand), or null when it can be performed. Reuses the shared action instance
-    /// so the UI never has to re-derive shield rules itself.</summary>
+    /// <summary>Why Raise a Shield is disabled right now, or null when it can be performed.</summary>
     public string? GetRaiseShieldDisabledReason(ICharacter character)
-        => _raiseShield.CanPerform(character) ? null : _raiseShield.GetValidationErrorMessage(character);
+        => _strikes.GetRaiseShieldDisabledReason(character);
 
-    // ---------------------------------------------------------------- Commands
-
-    /// <summary>
-    /// Stride to <paramref name="dest"/> (1 action). Mirrors AITurnExecutor.ExecuteMove EXACTLY,
-    /// including the per-tile-exit movement-reaction publish (Reactive Strike). Set
-    /// <paramref name="triggersReactions"/> false for reaction-free strides (Shielded Stride).
-    /// </summary>
-    public async Task<bool> ExecuteStride(ICharacter character, PF2eVec dest, bool triggersReactions = true)
-    {
-        int speed = SpeedInTiles(character);
-        if (speed <= 0) return false;
-
-        var path = Pathfinder.FindPath(_grid, character.GridPosition, dest, BuildRequest(character, speed));
-        if (path == null || path.Count < 2) return false;
-
-        if (character.Actions == null || !character.Actions.TryConsumeActions(1))
-            return false;
-
-        // Walk-animation CUE only — deliberately carries NO Path. The per-tile MovementStep events
-        // in the loop below drive the actual segment-by-segment animation so movement reactions
-        // (Reactive Strike) resolve BETWEEN tiles. Emitting the whole path here would animate the
-        // token to the destination before the first tile-exit prompt could appear, and a
-        // reaction-cancelled stride would then teleport it back on MovementCompleted. The presenter
-        // reads a pathless MovementStarted as SetMoving(true) (lowered by MovementCompleted); a
-        // 2-point Path (Step / EmitPositionSync) still animates immediately as a slide.
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.MovementStarted,
-            Source = character,
-            Description = $"{character.Name} Strides to ({dest.x}, {dest.y})"
-        });
-
-        for (int i = 1; i < path.Count; i++)
-        {
-            var from = path[i - 1];
-            var to = path[i];
-
-            var args = new BeforeMoveEventArgs(character, from, to, path.Count, path.Count * FeetPerTile);
-            MovementEvents.FireBeforeMove(args);
-
-            // Publish the AoO/Reactive-Strike check at the tile-exit point (the FROM tile the reactor
-            // threatens), mirroring AITurnExecutor.ExecuteMove. Gated on an active subscriber so a
-            // stride with no ReactionManager present does not throw. Awaited: an interactive reaction
-            // prompt may suspend the walk here; a reaction that drops the mover (setting
-            // args.Cancelled) has fully resolved when the await completes.
-            if (triggersReactions && !args.Cancelled
-                && ReactionEvents.HasMovementReactionSubscriber)
-            {
-                await ReactionEvents.CheckMovementReactions(args);
-            }
-
-            if (args.Cancelled)
-            {
-                _grid.MoveCreature(character, from);
-                // Reconcile-only: no MovementStep ran for this tile, so the token still sits on `from`.
-                // MovementCompleted snaps to the authoritative GridPosition (== from) — never a
-                // teleport back across the already-animated segments.
-                await _runner.Emit(BattleEventType.MovementCompleted, source: character,
-                    description: $"{character.Name} movement interrupted!");
-                return true;
-            }
-
-            _grid.MoveCreature(character, to);
-
-            // Animate exactly this one segment now that the tile-exit reaction has resolved. The
-            // 2-point Path is the animation payload; the presenter tweens from -> to without toggling
-            // the walk state (raised by MovementStarted, lowered by MovementCompleted).
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.MovementStep,
-                Source = character,
-                Path = new List<PF2eVec> { from, to }
-            });
-        }
-
-        await _runner.Emit(BattleEventType.MovementCompleted, source: character);
-        return true;
-    }
-
-    /// <summary>Step to an adjacent tile (1 action, no reactions).</summary>
-    public async Task<bool> ExecuteStep(ICharacter character, PF2eVec dest)
-    {
-        var from = character.GridPosition;
-        _step.Destination = dest;
-        if (!_step.CanPerform(character))
-            return false;
-
-        // Execute consumes the action and sets GridPosition, but does NOT update grid occupancy.
-        _step.Execute(character);
-
-        // Rewind GridPosition so MoveCreature clears the *old* tile before occupying the new one.
-        character.GridPosition = from;
-        _grid.MoveCreature(character, dest);
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.MovementStarted,
-            Source = character,
-            Path = new List<PF2eVec> { from, dest },
-            Description = $"{character.Name} Steps"
-        });
-        await _runner.Emit(BattleEventType.MovementCompleted, source: character);
-        return true;
-    }
-
-    /// <summary>Strike a target (1 action). Mirrors AITurnExecutor's equipped-weapon branch.</summary>
-    public async Task<bool> ExecuteStrike(ICharacter character, ICharacter target)
-    {
-        if (target?.Health == null || target.Health.IsDead) return false;
-
-        var weapon = WeaponAttackCalculator.ResolveWeapon(character);
-        if (!FlankingCalculator.IsWithinReach(
-            character.GridPosition, character.TileWidth,
-            target.GridPosition, target.TileWidth, weapon.GetRangeInTiles()))
-            return false;
-
-        if (character.Actions == null || !character.Actions.TryConsumeActions(1))
-            return false;
-
-        // Awaited: the strike Task completes when all reactions (possibly an interactive prompt,
-        // e.g. the defender's Shield Block) have resolved, so strikeCtx is fully resolved after.
-        StrikeContext? strikeCtx = null;
-        await StrikeResolver.ExecuteStrike(character, target, sourceAction: null,
-            onComplete: ctx => strikeCtx = ctx);
-
-        if (strikeCtx == null) return true;
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.AttackRolled,
-            Source = character,
-            Target = target,
-            Degree = strikeCtx.Degree,
-            Description = $"{character.Name} Strikes {target.Name} with {strikeCtx.WeaponName}: " +
-                $"d20({strikeCtx.D20Roll})+{strikeCtx.EffectiveBonus}={strikeCtx.Total} vs AC {strikeCtx.TargetAC} → {strikeCtx.Degree}"
-        });
-
-        if (strikeCtx.Hit && strikeCtx.DamageResult != null)
-        {
-            int damage = strikeCtx.DamageResult.TotalDamage;
-            await EmitDamageAndDeath(character, target, damage,
-                type: strikeCtx.DamageResult.DamageType,
-                // The strike's degree rides along so the view can style a crit (bigger red number,
-                // crit spark ring, screen shake). Omitting it is what kept DamagePopup3D's crit path
-                // dead for every weapon strike while spells — which always passed theirs — showed it.
-                degree: strikeCtx.Degree,
-                description: $"{target.Name} takes {damage} {strikeCtx.DamageResult.DamageType} damage",
-                targetKilled: strikeCtx.TargetKilled);
-        }
-
-        return true;
-    }
+    /// <summary>Strike a target (1 action).</summary>
+    public Task<bool> ExecuteStrike(ICharacter character, ICharacter target)
+        => _strikes.ExecuteStrike(character, target);
 
     /// <summary>Raise a Shield (1 action). Emits a ShieldRaised battle event on success.</summary>
-    public async Task<bool> ExecuteRaiseShield(ICharacter character)
-    {
-        if (!_raiseShield.CanPerform(character))
-            return false;
+    public Task<bool> ExecuteRaiseShield(ICharacter character)
+        => _strikes.ExecuteRaiseShield(character);
 
-        _raiseShield.Execute(character);
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.ShieldRaised,
-            Source = character,
-            Description = $"{character.Name} raises a shield"
-        });
-        return true;
-    }
-
-    // ================================================================ Consumables (Use Item)
-    //
-    // Per-fight consumables (potions/elixirs/antidotes) as a combat action. The bulwark ConsumableSystem
-    // owns the rules (engine UseConsumableAction: cost + manipulate + effect, consumed from the member's
-    // carry); this executor is the action-path seam. Delegates are injected by CombatSession so the
-    // executor stays decoupled from the GameState autoload (and unit-testable).
-
-    /// <summary>Injected combat consumable-use: (actor, itemId, target) → consumed?. Runs the engine
-    /// action (spends the action, manipulate-tagged) and consumes from the actor's carry. Null = feature off.</summary>
-    public Func<ICharacter, string, ICharacter?, Task<bool>>? UseConsumable { get; set; }
-
-    /// <summary>Injected query: the consumables the actor is carrying, as action-bar view-models. Null = none.</summary>
-    public Func<ICharacter, List<ConsumableOptionView>>? ConsumableOptions { get; set; }
-
-    /// <summary>Consumables this character is carrying and may use this turn (for the action bar).</summary>
-    public List<ConsumableOptionView> GetConsumableOptions(ICharacter character)
-        => ConsumableOptions?.Invoke(character) ?? new List<ConsumableOptionView>();
-
-    /// <summary>Use a carried consumable as this character's action (drink potion / elixir / antidote).
-    /// Delegates to the injected ConsumableSystem path; false if unwired, not carried, or the id is unknown.</summary>
-    public async Task<bool> ExecuteUseItem(ICharacter character, string itemId, ICharacter? target = null)
-    {
-        if (UseConsumable == null)
-            return false;
-        return await UseConsumable(character, itemId, target);
-    }
-
-    // ================================================================ Spells
-    //
-    // Query + command surface for the preset spell layer. The command side mirrors
-    // AITurnExecutor.ExecuteSpell EXACTLY (SpellCast event before the cast, subscribe
-    // SpellCastAction.OnSpellResolved for the duration, emit DamageDealt/CreatureDied/Healed from the
-    // resolved per-target outcomes) so player and AI casts animate identically. The rules never run
-    // twice — the SpellCastAction owns cost + slot consumption.
+    // ---------------------------------------------------------------- Spells
 
     /// <summary>Every castable spell / cost-variant for the action bar, with UI-facing text + gating.</summary>
     public List<SpellEntryView> GetSpellEntries(ICharacter character)
-    {
-        var list = new List<SpellEntryView>();
-        var sc = character.Spellcasting;
-        if (sc == null) return list;
-
-        foreach (var cantrip in sc.GetUniqueCantrips())
-            AppendSpellEntries(list, character, cantrip as SpellCastAction, isCantrip: true);
-        foreach (var leveled in sc.GetUniqueLeveledSpells())
-            AppendSpellEntries(list, character, leveled as SpellCastAction, isCantrip: false);
-
-        return list;
-    }
-
-    private void AppendSpellEntries(List<SpellEntryView> list, ICharacter c, SpellCastAction? spell, bool isCantrip)
-    {
-        if (spell?.Spell == null || string.IsNullOrEmpty(spell.SpellId)) return;
-
-        int actions = c.Actions?.TotalActionsRemaining ?? 0;
-        string slotsText = isCantrip ? "cantrip" : $"x{c.Spellcasting?.GetPreparedCount(spell) ?? 0}";
-        bool baseCan = spell.CanPerform(c);
-
-        if (spell.Spell.HasCostVariants)
-        {
-            var variants = spell.Spell.CostVariants;
-            for (int i = 0; i < variants.Count; i++)
-            {
-                var v = variants[i];
-                bool castable = baseCan && actions >= v.ActionCost;
-                list.Add(new SpellEntryView
-                {
-                    SpellId = spell.SpellId,
-                    VariantIndex = i,
-                    Name = $"{spell.ActionName} ({v.Label})",
-                    Rank = spell.Spell.SpellLevel,
-                    CostText = $"{v.ActionCost}a",
-                    SlotsText = slotsText,
-                    Targeting = KindOf(spell, v),
-                    Castable = castable,
-                    Description = spell.Description ?? "",
-                    UnavailableReason = castable ? ""
-                        : SpellUnavailableReason(c, spell, isCantrip, actions, v.ActionCost),
-                });
-            }
-        }
-        else
-        {
-            bool castable = baseCan && actions >= spell.ActionCostCount;
-            list.Add(new SpellEntryView
-            {
-                SpellId = spell.SpellId,
-                VariantIndex = -1,
-                Name = spell.ActionName,
-                Rank = spell.Spell.SpellLevel,
-                CostText = $"{spell.ActionCostCount}a",
-                SlotsText = slotsText,
-                Targeting = KindOf(spell, null),
-                Castable = castable,
-                Description = spell.Description ?? "",
-                UnavailableReason = castable ? ""
-                    : SpellUnavailableReason(c, spell, isCantrip, actions, spell.ActionCostCount),
-            });
-        }
-    }
-
-    /// <summary>
-    /// Player-facing reason a spell chip is greyed out, mirroring the exact gates that computed
-    /// Castable=false: action economy first, then the checks inside SpellAction.CanPerform
-    /// (condition restrictions, focus points, spell slots incl. the divine-font pool). Empty when
-    /// the cause isn't determinable — the tooltip then adds nothing. Derived from the actor's own
-    /// state only; never from bestiary-masked knowledge.
-    /// </summary>
-    private static string SpellUnavailableReason(
-        ICharacter c, SpellCastAction spell, bool isCantrip, int actions, int cost)
-    {
-        if (actions < cost)
-            return NeedsActionsReason(cost, actions);
-
-        string? restriction = c.Conditions?.GetActionRestriction(spell, null);
-        if (restriction != null)
-            return restriction;
-
-        if (spell.Spell.IsFocusSpell)
-            return c.Spellcasting?.HasFocusPoints == true ? "" : "No Focus Points left";
-
-        if (!isCantrip)
-        {
-            var sc = c.Spellcasting;
-            var font = sc?.DivineFont;
-            bool fontPays = font != null && spell.Spell.Identity != null
-                && font.MatchesSpell(spell.Spell.Identity) && font.HasSlots;
-            bool hasSlot = sc != null && (sc.IsPreparedCaster
-                ? sc.HasPreparedSpell(spell)
-                : sc.HasSlotsAvailableAtOrAbove(spell.Spell.SpellLevel));
-            if (!fontPays && !hasSlot)
-                return "No spell slots left";
-        }
-        return "";
-    }
-
-    /// <summary>"Needs 2 actions (1 left)" — the shared action-economy unavailability reason.</summary>
-    private static string NeedsActionsReason(int cost, int remaining)
-        => $"Needs {cost} action{(cost == 1 ? "" : "s")} ({remaining} left)";
+        => _spells.GetSpellEntries(character);
 
     /// <summary>The tiles a spell (variant) may be aimed at, plus how the interaction should behave.</summary>
     public TargetingPlan GetSpellTargets(ICharacter caster, string spellId, int variantIndex)
-    {
-        var spell = PresetSpells.Get(spellId);
-        var variant = ResolveVariant(spell, variantIndex);
-        var kind = KindOf(spell, variant);
-        var plan = new TargetingPlan { Kind = kind };
+        => _spells.GetSpellTargets(caster, spellId, variantIndex);
 
-        switch (kind)
-        {
-            case TargetingKind.SingleEnemy:
-            case TargetingKind.MultiEnemy:
-                foreach (var t in TargetsInRange(caster, RangeTiles(spell, variant), enemies: true))
-                    plan.Tiles.Add(t.GridPosition);
-                break;
-
-            case TargetingKind.SingleAlly:
-                foreach (var t in TargetsInRange(caster, RangeTiles(spell, variant), enemies: false))
-                    plan.Tiles.Add(t.GridPosition);
-                break;
-
-            case TargetingKind.AreaAim:
-                foreach (var t in GetAreaOriginTiles(caster, spellId))
-                    plan.Tiles.Add(t);
-                break;
-
-            case TargetingKind.SelfArea:
-                break; // cast fires immediately, no tile selection
-        }
-        return plan;
-    }
-
-    /// <summary>Candidate origin tiles the player can aim an area template at (board tiles near the caster).</summary>
+    /// <summary>Candidate origin tiles the player can aim an area template at.</summary>
     public List<PF2eVec> GetAreaOriginTiles(ICharacter caster, string spellId)
-    {
-        var spell = PresetSpells.Get(spellId);
-        var result = new List<PF2eVec>();
-        if (spell?.Area == null) return result;
+        => _spells.GetAreaOriginTiles(caster, spellId);
 
-        int reach = System.Math.Max(spell.Area.SizeInTiles, 3) + 1;
-        var origin = caster.GridPosition;
-        for (int dx = -reach; dx <= reach; dx++)
-        for (int dy = -reach; dy <= reach; dy++)
-        {
-            if (dx == 0 && dy == 0) continue;
-            var tile = new PF2eVec(origin.x + dx, origin.y + dy);
-            if (_grid.GetTile(tile) != null)
-                result.Add(tile);
-        }
-        return result;
-    }
-
-    /// <summary>The tiles an area template covers when aimed at <paramref name="origin"/> (for hover preview).</summary>
+    /// <summary>The tiles an area template covers when aimed at <paramref name="origin"/>.</summary>
     public List<PF2eVec> GetAreaTemplateTiles(ICharacter caster, string spellId, PF2eVec origin)
-    {
-        var spell = PresetSpells.Get(spellId);
-        if (spell?.Area == null || !spell.Area.HasArea) return new List<PF2eVec>();
-        return AreaCalculator.GetAreaTiles(caster.GridPosition, origin, spell.Area, caster.TileWidth);
-    }
+        => _spells.GetAreaTemplateTiles(caster, spellId, origin);
 
-    /// <summary>
-    /// Cast a preset spell. <paramref name="aim"/> is the clicked target tile (single/multi), the area
-    /// origin (AreaAim), or null (SelfArea). Mirrors AITurnExecutor.ExecuteSpell's emission pattern.
-    /// </summary>
-    public async Task<bool> ExecuteCast(ICharacter caster, string spellId, int variantIndex, PF2eVec? aim)
-    {
-        var spell = PresetSpells.Get(spellId);
-        if (spell?.Spell == null) return false;
+    /// <summary>Cast a preset spell at the clicked tile, area origin, or nothing (SelfArea).</summary>
+    public Task<bool> ExecuteCast(ICharacter caster, string spellId, int variantIndex, PF2eVec? aim)
+        => _spells.ExecuteCast(caster, spellId, variantIndex, aim);
 
-        var variant = ResolveVariant(spell, variantIndex);
-        if (variant != null) spell.ApplyVariant(variant);
-
-        var kind = KindOf(spell, variant);
-
-        // Resolve the primary target character for validation + the SpellCast event.
-        ICharacter? primary = aim.HasValue && (kind == TargetingKind.SingleEnemy
-            || kind == TargetingKind.SingleAlly || kind == TargetingKind.MultiEnemy)
-            ? _grid.GetGroundOccupant(aim.Value)
-            : null;
-
-        if (!spell.CanPerform(caster, primary))
-        {
-            spell.ClearVariant();
-            return false;
-        }
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.SpellCast,
-            Source = caster,
-            Target = primary,
-            Description = $"{caster.Name} casts {spell.ActionName}"
-        });
-
-        // Awaited ExecuteAsync variants: a save-reaction / Shield Block prompt may suspend the cast.
-        SpellContext? resolved = null;
-        void Capture(SpellCompletionEvent e) { if (e.Caster == caster) resolved = e.Context; }
-        SpellCastAction.OnSpellResolved += Capture;
-        try
-        {
-            switch (kind)
-            {
-                case TargetingKind.SelfArea:
-                    await spell.ExecuteAsync(caster, null); // self-centered emanation resolves inside
-                    break;
-
-                case TargetingKind.MultiEnemy:
-                    await spell.ExecuteMultiTargetAsync(caster, BuildMultiTargetList(caster, spell, variant, primary));
-                    break;
-
-                case TargetingKind.AreaAim:
-                    await spell.ExecuteAreaAsync(caster, BuildAreaResult(caster, spell, aim!.Value));
-                    break;
-
-                default: // SingleEnemy / SingleAlly
-                    await spell.ExecuteAsync(caster, primary);
-                    break;
-            }
-        }
-        finally
-        {
-            SpellCastAction.OnSpellResolved -= Capture;
-        }
-
-        await EmitSpellOutcomes(caster, resolved);
-        return true;
-    }
-
-    private async Task EmitSpellOutcomes(ICharacter caster, SpellContext? resolved)
-    {
-        if (resolved?.TargetResults == null) return;
-
-        foreach (var tr in resolved.TargetResults)
-        {
-            var target = tr.Target;
-            if (target == null) continue;
-
-            if (tr.DamageResult != null && tr.DamageResult.TotalDamage > 0)
-            {
-                await EmitDamageAndDeath(caster, target, tr.DamageResult.TotalDamage,
-                    type: tr.DamageResult.DamageType,
-                    degree: tr.Degree,
-                    description: $"{target.Name} takes {tr.DamageResult.TotalDamage} {tr.DamageResult.DamageType} ({tr.Degree})");
-            }
-
-            if (tr.HealingApplied > 0)
-            {
-                await _runner.Emit(new BattleEvent
-                {
-                    Type = BattleEventType.Healed,
-                    Source = caster,
-                    Target = target,
-                    IntValue = tr.HealingApplied,
-                    Description = $"{target.Name} heals {tr.HealingApplied} HP"
-                });
-            }
-        }
-    }
-
-    private List<ICharacter> BuildMultiTargetList(ICharacter caster, SpellCastAction spell,
-        SpellCostVariant? variant, ICharacter? primary)
-    {
-        int max = spell.EffectiveMaxTargets > 0 ? spell.EffectiveMaxTargets : 1;
-        int range = RangeTiles(spell, variant);
-        var list = new List<ICharacter>();
-        if (primary != null) list.Add(primary);
-
-        var anchor = primary?.GridPosition ?? caster.GridPosition;
-        var candidates = new List<ICharacter>(TargetsInRange(caster, range, enemies: true));
-        candidates.Sort((a, b) =>
-            AreaCalculator.GetPF2eDistance(anchor, 1, a.GridPosition, a.TileWidth)
-            .CompareTo(AreaCalculator.GetPF2eDistance(anchor, 1, b.GridPosition, b.TileWidth)));
-
-        foreach (var cand in candidates)
-        {
-            if (list.Count >= max) break;
-            if (!list.Contains(cand)) list.Add(cand);
-        }
-        return list;
-    }
-
-    private AreaTargetResult BuildAreaResult(ICharacter caster, SpellCastAction spell, PF2eVec origin)
-    {
-        var tiles = AreaCalculator.GetAreaTiles(caster.GridPosition, origin, spell.Area, caster.TileWidth);
-        var result = new AreaTargetResult { Origin = origin, AffectedTiles = tiles, AreaType = spell.Area.Type };
-        var seen = new HashSet<ICharacter>();
-        foreach (var tile in tiles)
-        {
-            var occ = _grid.GetGroundOccupant(tile);
-            if (occ != null && occ.Health != null && !occ.Health.IsDead && seen.Add(occ))
-                result.AffectedCharacters.Add(occ);
-        }
-        return result;
-    }
-
-    // ---------------------------------------------------------------- Spell helpers
-
-    private static SpellCostVariant? ResolveVariant(SpellCastAction? spell, int variantIndex)
-    {
-        if (spell?.Spell?.CostVariants == null || variantIndex < 0
-            || variantIndex >= spell.Spell.CostVariants.Count)
-            return null;
-        return spell.Spell.CostVariants[variantIndex];
-    }
-
-    private static TargetingKind KindOf(SpellCastAction spell, SpellCostVariant? variant)
-    {
-        bool area = spell.RequiresAreaTarget || (variant?.IsAreaEffect ?? false);
-        bool selfCentered = variant?.IsSelfCentered ?? false;
-        if (area && selfCentered) return TargetingKind.SelfArea;
-        if (area) return TargetingKind.AreaAim;
-
-        TargetMode mode = variant?.TargetMode ?? spell.TargetMode;
-        if (mode == TargetMode.Allies) return TargetingKind.SingleAlly;
-
-        int max = variant?.MaxTargets > 0 ? variant.MaxTargets : spell.MaxTargets;
-        return max > 1 ? TargetingKind.MultiEnemy : TargetingKind.SingleEnemy;
-    }
-
-    private static int RangeTiles(SpellCastAction spell, SpellCostVariant? variant)
-    {
-        int feet = variant?.RangeInFeet ?? spell.Area?.RangeInFeet ?? 0;
-        int tiles = feet / FeetPerTile;
-        return tiles <= 0 ? 1 : tiles; // 0 ft = touch/adjacent
-    }
-
-    private IEnumerable<ICharacter> TargetsInRange(ICharacter caster, int rangeTiles, bool enemies)
-    {
-        var registry = CombatantRegistry.Instance;
-        if (registry == null) yield break;
-
-        foreach (var other in registry.All)
-        {
-            if (other.Health == null || other.Health.IsDead) continue;
-            bool sameTeam = other.TeamId == caster.TeamId;
-            if (enemies && sameTeam) continue;
-            if (!enemies && !sameTeam) continue;
-
-            int dist = AreaCalculator.GetPF2eDistance(
-                caster.GridPosition, caster.TileWidth, other.GridPosition, other.TileWidth);
-            if (dist <= rangeTiles)
-                yield return other;
-        }
-    }
-
-    // ================================================================ Skill actions
-
-    // Basic actions every combatant may attempt (each still gated by CanPerform + target availability).
-    // Trip/Demoralize/Battle Medicine (skills) + Shove/Tumble Through/Seek (maneuvers) target another
-    // creature; Parry/Reload are self-actions that fire immediately (no target selection).
-    private static readonly string[] BasicSkillIds =
-    {
-        "trip", "demoralize", "battle-medicine", "recall-knowledge",
-        "shove", "tumble-through", "seek", "parry", "reload",
-    };
+    // ---------------------------------------------------------------- Skill actions
 
     /// <summary>
     /// Injected per-encounter gate: has (actor, creature slug) already spent its Recall Knowledge
-    /// attempt this fight? Owned by <see cref="CombatSession"/> (whose instance state dies with the
-    /// encounter, which is the rule's lifetime); null = unwired, nothing filtered.
+    /// attempt this fight? Owned by <see cref="CombatSession"/>; null = unwired, nothing filtered.
     /// </summary>
-    public Func<int, string, bool>? HasRecallAttempted { get; set; }
+    public Func<int, string, bool>? HasRecallAttempted
+    {
+        get => _skills.HasRecallAttempted;
+        set => _skills.HasRecallAttempted = value;
+    }
 
     /// <summary>Self-actions (no target) that execute immediately when their chip is pressed.</summary>
-    public static bool IsSelfSkill(string id) => id == "parry" || id == "reload";
+    public static bool IsSelfSkill(string id)
+        => SkillActionCatalog.Get(id)?.Mode == SkillExecutionMode.Self;
 
     /// <summary>Move-mode chips (enter tile selection, not a target-a-creature flow).</summary>
-    public static bool IsMoveSkill(string id) => id == "shielded-stride";
+    public static bool IsMoveSkill(string id)
+        => SkillActionCatalog.Get(id)?.Mode == SkillExecutionMode.MoveTile;
 
-    /// <summary>
-    /// Every basic + feat-granted action chip for the action bar, with UI text and gating. Basic
-    /// actions are gated by CanPerform + a legal target/exit; feat actions (Lunge, Sudden Charge,
-    /// Shielded Stride) appear only when a feature grants them (FeatureHolder.GetAllGrantedActions).
-    /// </summary>
+    /// <summary>Every basic + feat-granted action chip for the action bar, with UI text and gating.</summary>
     public List<SkillEntryView> GetSkillEntries(ICharacter character)
-    {
-        var list = new List<SkillEntryView>();
-        int actions = character.Actions?.TotalActionsRemaining ?? 0;
-
-        foreach (var id in BasicSkillIds)
-        {
-            var action = MakeSkillAction(id);
-            if (action == null) continue;
-
-            bool hasTargets = IsSelfSkill(id) || GetSkillTargets(character, id).Tiles.Count > 0;
-            bool castable = action.CanPerform(character) && hasTargets
-                            && actions >= action.ActionCostCount;
-
-            list.Add(new SkillEntryView
-            {
-                ActionId = id,
-                Name = action.ActionName,
-                CostText = $"{action.ActionCostCount}a",
-                Targeting = SkillKind(id),
-                Castable = castable,
-                Description = action.Description ?? "",
-                UnavailableReason = castable ? ""
-                    : SkillUnavailableReason(character, action, id, hasTargets, actions),
-            });
-        }
-
-        // Feat-granted actions (Lunge / Sudden Charge / Shielded Stride) surface only when a feature
-        // grants them. GetAllGrantedActions returns non-reaction actions from the character's active
-        // features; we map each by ActionName to its chip id + targeting.
-        var granted = character.Features?.GetAllGrantedActions();
-        if (granted != null)
-        {
-            foreach (var action in granted)
-            {
-                string? id = GrantedActionId(action.ActionName);
-                if (id == null) continue;
-
-                bool hasTargets = IsMoveSkill(id)
-                    ? GetShieldedStrideTiles(character).Count > 0
-                    : GetSkillTargets(character, id).Tiles.Count > 0;
-                bool castable = action.CanPerform(character) && hasTargets
-                                && actions >= action.ActionCostCount;
-
-                list.Add(new SkillEntryView
-                {
-                    ActionId = id,
-                    Name = action.ActionName,
-                    CostText = $"{action.ActionCostCount}a",
-                    Targeting = SkillKind(id),
-                    Castable = castable,
-                    Description = action.Description ?? "",
-                    UnavailableReason = castable ? ""
-                        : SkillUnavailableReason(character, action, id, hasTargets, actions),
-                });
-            }
-        }
-
-        return list;
-    }
-
-    private static string? GrantedActionId(string actionName) => actionName switch
-    {
-        "Lunge" => "lunge",
-        "Sudden Charge" => "sudden-charge",
-        "Shielded Stride" => "shielded-stride",
-        _ => null,
-    };
-
-    /// <summary>
-    /// Player-facing reason a skill chip is greyed out, mirroring the exact gates that computed
-    /// Castable=false: action economy, then the action's own CanPerform (per-encounter use limits,
-    /// condition restrictions, requirements — via the engine's validation message), then an empty
-    /// legal-target set. Empty when the cause isn't determinable. Derived from the actor's own
-    /// state only; never from bestiary-masked knowledge.
-    /// </summary>
-    private string SkillUnavailableReason(
-        ICharacter c, BaseAction action, string id, bool hasTargets, int actions)
-    {
-        if (actions < action.ActionCostCount)
-            return NeedsActionsReason(action.ActionCostCount, actions);
-
-        if (!action.CanPerform(c))
-        {
-            // CanPerform's use-limit gate has no message in GetValidationErrorMessage — cover it.
-            if (action.HasUseLimits && c.CooldownTracker?.HasUsesRemaining(
-                    action.AbilityId, action.UsesPerEncounter, action.UsesPerDay) == false)
-                return "No uses left this encounter";
-            string msg = action.GetValidationErrorMessage(c);
-            // The engine's generic fallback explains nothing — show no reason instead.
-            return msg == "Action cannot be performed" ? "" : msg ?? "";
-        }
-
-        if (!hasTargets)
-            return NoTargetReason(c, id);
-
-        return "";
-    }
-
-    /// <summary>Why a skill's legal-target set is empty, per action. Recall Knowledge and Battle
-    /// Medicine disambiguate "nobody in range" from "everyone in range filtered out" (attempted
-    /// species / already-treated allies) — both facts the player already owns.</summary>
-    private string NoTargetReason(ICharacter actor, string id) => id switch
-    {
-        "trip" or "shove" => "No adjacent foe",
-        "tumble-through" => "No adjacent foe with an open exit tile",
-        "demoralize" => "No foes within 30 ft",
-        "recall-knowledge" => AnyTargetInRange(actor, 6, enemies: true)
-            ? "Already attempted every species in range this fight"
-            : "No foes within 30 ft",
-        "battle-medicine" => AnyTargetInRange(actor, 1, enemies: false)
-            ? "Everyone in reach already treated"
-            : "No ally within reach",
-        "seek" => "No hidden or undetected foes in range",
-        "lunge" => "No foes within extended reach",
-        "sudden-charge" => "No foes within charge range",
-        "shielded-stride" => "No reachable tiles",
-        _ => "No valid targets in range",
-    };
-
-    private bool AnyTargetInRange(ICharacter actor, int rangeTiles, bool enemies)
-    {
-        foreach (var _ in TargetsInRange(actor, rangeTiles, enemies))
-            return true;
-        return false;
-    }
-
-    private static TargetingKind SkillKind(string id) => id switch
-    {
-        "battle-medicine" => TargetingKind.SingleAlly,
-        "parry" or "reload" or "shielded-stride" => TargetingKind.SelfArea,
-        _ => TargetingKind.SingleEnemy,
-    };
+        => _skills.GetSkillEntries(character);
 
     /// <summary>Legal target tiles for a skill / maneuver / feat action.</summary>
     public TargetingPlan GetSkillTargets(ICharacter actor, string actionId)
-    {
-        var plan = new TargetingPlan { Kind = SkillKind(actionId) };
+        => _skills.GetSkillTargets(actor, actionId);
 
-        switch (actionId)
-        {
-            case "trip":
-            case "shove": // Athletics maneuver — adjacent foe.
-                foreach (var t in TargetsInRange(actor, 1, enemies: true))
-                    plan.Tiles.Add(t.GridPosition);
-                break;
-
-            case "demoralize":
-                foreach (var t in TargetsInRange(actor, 6, enemies: true)) // 30 ft
-                    plan.Tiles.Add(t.GridPosition);
-                break;
-
-            case "recall-knowledge":
-                // 30 ft (the Demoralize precedent). RAW gives each character ONE attempt per
-                // creature per encounter, and knowledge is per-SPECIES here, so a foe whose species
-                // this actor already studied this fight drops out of the target set — the Battle
-                // Medicine immunity filter below is the same shape. With every species studied the
-                // plan is empty, which is what greys the chip out in GetSkillEntries.
-                foreach (var t in TargetsInRange(actor, 6, enemies: true))
-                {
-                    string? creatureId = t.CreatureStats?.CreatureId;
-                    if (!string.IsNullOrEmpty(creatureId)
-                        && HasRecallAttempted?.Invoke(actor.UniqueId, creatureId!) == true)
-                        continue;
-                    plan.Tiles.Add(t.GridPosition);
-                }
-                break;
-
-            case "battle-medicine":
-                foreach (var t in TargetsInRange(actor, 1, enemies: false))
-                {
-                    if (BattleMedicineAction.IsImmune(actor.UniqueId, t.UniqueId)) continue;
-                    plan.Tiles.Add(t.GridPosition);
-                }
-                break;
-
-            case "tumble-through":
-                // Adjacent foe with a legal exit tile — the tile continuing the actor->foe straight
-                // line, one full footprint beyond. Simplification: only that single collinear exit is
-                // considered (matches TumbleThroughAction.ComputeExitPosition); diagonal re-routes are
-                // not offered. If that exit is off-grid/blocked/occupied the foe is not a legal target.
-                foreach (var t in TargetsInRange(actor, 1, enemies: true))
-                    if (HasValidTumbleExit(actor, t))
-                        plan.Tiles.Add(t.GridPosition);
-                break;
-
-            case "seek":
-                // Locate a Hidden/Undetected foe. In the current prototype nothing makes enemies
-                // Hidden/Undetected, so this is normally empty (chip disabled) — wired for correctness.
-                foreach (var t in TargetsInRange(actor, 12, enemies: true))
-                    if (t.Conditions?.HasCondition(Condition.Hidden) == true
-                        || t.Conditions?.HasCondition(Condition.Undetected) == true)
-                        plan.Tiles.Add(t.GridPosition);
-                break;
-
-            case "lunge":
-            {
-                var weapon = WeaponAttackCalculator.ResolveWeapon(actor);
-                int reachPlus = weapon.GetRangeInTiles() + 1; // +5 ft of reach
-                foreach (var t in TargetsInRange(actor, reachPlus, enemies: true))
-                    plan.Tiles.Add(t.GridPosition);
-                break;
-            }
-
-            case "sudden-charge":
-            {
-                // Any foe you could plausibly reach with a double Stride (2x Speed) and then Strike.
-                var weapon = WeaponAttackCalculator.ResolveWeapon(actor);
-                int reach = weapon.IsMelee ? weapon.GetRangeInTiles() : 1;
-                int span = SpeedInTiles(actor) * 2 + reach;
-                foreach (var t in TargetsInRange(actor, span, enemies: true))
-                    plan.Tiles.Add(t.GridPosition);
-                break;
-            }
-        }
-        return plan;
-    }
-
-    /// <summary>Tiles a Shielded Stride may reach: a normal Stride capped at half Speed (min 1 tile).</summary>
+    /// <summary>Tiles a Shielded Stride may reach: a normal Stride capped at half Speed.</summary>
     public HashSet<PF2eVec> GetShieldedStrideTiles(ICharacter character)
-    {
-        if (character.Equipment?.IsShieldRaised != true)
-            return new HashSet<PF2eVec>();
-        return ReachableTiles(character, ShieldedStrideAction.GetMaxDistanceTiles(character));
-    }
+        => _skills.GetShieldedStrideTiles(character);
 
-    private bool HasValidTumbleExit(ICharacter actor, ICharacter target)
-    {
-        var dir = target.GridPosition - actor.GridPosition;
-        var unit = new PF2eVec(System.Math.Sign(dir.x), System.Math.Sign(dir.y));
-        if (unit == PF2eVec.zero) return false;
-        var exit = target.GridPosition + unit * target.TileWidth;
-        var tile = _grid.GetTile(exit);
-        if (tile == null || tile.IsBlocked) return false;
-        var occ = _grid.GetGroundOccupant(exit);
-        return occ == null || (occ.Health != null && occ.Health.IsDead);
-    }
+    /// <summary>Perform a skill action against the target on <paramref name="tile"/>.</summary>
+    public Task<bool> ExecuteSkillAction(ICharacter actor, string actionId, PF2eVec tile)
+        => _skills.ExecuteSkillAction(actor, actionId, tile);
 
-    /// <summary>
-    /// Perform a skill action against the target on <paramref name="tile"/>. SkillActionBase resolves
-    /// synchronously and applies its own damage/healing/conditions (Prone, Frightened flow to the log
-    /// via CombatLog). We emit an ActionUsed event plus HP-delta-derived Damage/Heal/Died events so the
-    /// board animates without re-implementing any rules.
-    /// </summary>
-    public async Task<bool> ExecuteSkillAction(ICharacter actor, string actionId, PF2eVec tile)
-    {
-        var action = MakeSkillAction(actionId);
-        if (action == null) return false;
+    /// <summary>Execute a self-targeted action that fires immediately (Parry, Reload).</summary>
+    public Task<bool> ExecuteSelfSkill(ICharacter actor, string actionId)
+        => _skills.ExecuteSelfSkill(actor, actionId);
 
-        var target = _grid.GetGroundOccupant(tile);
-        if (target == null || target.Health == null || target.Health.IsDead) return false;
-        if (!action.CanPerform(actor, target)) return false;
-
-        int preHp = target.Health.CurrentHP;
-        // Capture positions so board-moving maneuvers (Shove pushes the target + follow; Tumble
-        // Through moves the actor) re-sync the 3D presenter after the rules resolve.
-        var actorFrom = actor.GridPosition;
-        var targetFrom = target.GridPosition;
-
-        // Awaited: manipulate-trait maneuvers can provoke a (promptable) Reactive Strike, and Trip
-        // crit damage can offer the target a Shield Block.
-        await action.ExecuteAsync(actor, target);
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.ActionUsed,
-            Source = actor,
-            Target = target,
-            Description = $"{actor.Name} uses {action.ActionName} on {target.Name}"
-        });
-
-        await EmitPositionSync(target, targetFrom);
-        await EmitPositionSync(actor, actorFrom);
-
-        await EmitHpDelta(actor, target, preHp);
-        return true;
-    }
-
-    /// <summary>
-    /// Execute a self-targeted action that fires immediately (Parry, Reload). The engine action owns
-    /// its cost + state (parry AC bonus, reload progress); we emit an ActionUsed event for the board.
-    /// </summary>
-    public async Task<bool> ExecuteSelfSkill(ICharacter actor, string actionId)
-    {
-        var action = MakeSkillAction(actionId);
-        if (action == null || !action.CanPerform(actor)) return false;
-
-        await action.ExecuteAsync(actor);
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.ActionUsed,
-            Source = actor,
-            Description = $"{actor.Name} uses {action.ActionName}"
-        });
-        return true;
-    }
-
-    /// <summary>
-    /// Shielded Stride (feat move token, reaction-free, half-Speed cap). Movement is resolved by this
-    /// executor exactly like a normal Stride — the engine action only carries the gate + cap — so we
-    /// route through ExecuteStride with triggersReactions:false (its TriggersMovementReactions marker).
-    /// </summary>
+    /// <summary>Shielded Stride (feat move token, reaction-free, half-Speed cap).</summary>
     public Task<bool> ExecuteShieldedStride(ICharacter actor, PF2eVec dest)
-    {
-        if (actor.Equipment?.IsShieldRaised != true) return Task.FromResult(false);
-        return ExecuteStride(actor, dest, triggersReactions: false);
-    }
+        => _skills.ExecuteShieldedStride(actor, dest);
 
-    /// <summary>
-    /// Sudden Charge (2 actions, Flourish): Stride twice, then Strike a foe in reach. The engine
-    /// action handles the 2-action cost, Flourish marking and the Strike, but expects the actor to
-    /// have already moved (it strikes only if already within reach). So we first reposition the actor
-    /// adjacent to the target (via pathfind, no action cost — the cost belongs to SuddenChargeAction),
-    /// emit a position-sync move, then run Execute which resolves the Strike.
-    /// </summary>
     /// <summary>Sudden Charge against the foe occupying <paramref name="tile"/>.</summary>
     public Task<bool> ExecuteSuddenChargeTile(ICharacter actor, PF2eVec tile)
-    {
-        var target = _grid.GetGroundOccupant(tile);
-        if (target == null || target.Health == null || target.Health.IsDead)
-            return Task.FromResult(false);
-        return ExecuteSuddenCharge(actor, target);
-    }
+        => _skills.ExecuteSuddenChargeTile(actor, tile);
 
-    public async Task<bool> ExecuteSuddenCharge(ICharacter actor, ICharacter target)
-    {
-        var action = new SuddenChargeAction();
-        if (!action.CanPerform(actor, target)) return false;
-        if (target.Health == null || target.Health.IsDead) return false;
+    /// <summary>Sudden Charge (2 actions, Flourish): Stride twice, then Strike a foe in reach.</summary>
+    public Task<bool> ExecuteSuddenCharge(ICharacter actor, ICharacter target)
+        => _skills.ExecuteSuddenCharge(actor, target);
 
-        var weapon = WeaponAttackCalculator.ResolveWeapon(actor);
-        int reach = weapon.IsMelee ? weapon.GetRangeInTiles() : 1;
-
-        var from = actor.GridPosition;
-        var dest = FindChargeTile(actor, target, reach);
-        if (dest.HasValue && dest.Value != from)
-        {
-            _grid.MoveCreature(actor, dest.Value);
-            await EmitPositionSync(actor, from);
-        }
-
-        int preHp = target.Health.CurrentHP;
-        // Consumes 2 actions, marks Flourish, strikes if in reach. Awaited: the strike may prompt.
-        await action.ExecuteAsync(actor, target);
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.ActionUsed,
-            Source = actor,
-            Target = target,
-            Description = $"{actor.Name} charges {target.Name}"
-        });
-
-        await EmitHpDelta(actor, target, preHp);
-        return true;
-    }
-
-    /// <summary>A tile within melee <paramref name="reach"/> of the target, reachable within 2x Speed.</summary>
-    private PF2eVec? FindChargeTile(ICharacter actor, ICharacter target, int reach)
-    {
-        int span = SpeedInTiles(actor) * 2;
-        if (span <= 0) return null;
-
-        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(actor, span));
-        PF2eVec? best = null;
-        int bestCost = int.MaxValue;
-        foreach (var kvp in map)
-        {
-            var tile = kvp.Key;
-            if (!_grid.CanCreatureFit(tile, actor.TileWidth, ignore: actor)) continue;
-            if (!FlankingCalculator.IsWithinReach(tile, actor.TileWidth,
-                    target.GridPosition, target.TileWidth, reach))
-                continue;
-            if (kvp.Value.Cost < bestCost)
-            {
-                bestCost = kvp.Value.Cost;
-                best = tile;
-            }
-        }
-        // Already in reach (or nothing better found): stay put.
-        return best;
-    }
+    // ---------------------------------------------------------------- Inspect
 
     /// <summary>
-    /// Emit the shared DamageDealt → CreatureDied pair every damage source funnels through (strikes,
-    /// spell outcomes, HP-delta skills). The optional <paramref name="description"/> preserves each
-    /// caller's exact log text; the default is the plain HP-delta line. <paramref name="targetKilled"/>
-    /// lets the strike path honor its StrikeContext.TargetKilled latch in addition to Health.IsDead.
+    /// Compact inspection snapshot of the unit occupying <paramref name="tile"/>, or null when the
+    /// tile is empty. Read-only — feeds the hover-inspect panel.
     /// </summary>
-    private async Task EmitDamageAndDeath(ICharacter source, ICharacter target, int damage,
-        DamageType? type = null, DegreeOfSuccess? degree = null, string? description = null,
-        bool targetKilled = false)
-    {
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.DamageDealt,
-            Source = source,
-            Target = target,
-            IntValue = damage,
-            DamageType = type,
-            Degree = degree,
-            Description = description ?? $"{target.Name} takes {damage} damage"
-        });
+    public UnitInspectView? GetUnitInspect(PF2eVec tile)
+        => UnitInspectFactory.GetUnitInspect(_grid, tile);
 
-        if (targetKilled || target.Health?.IsDead == true)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.CreatureDied,
-                Source = target,
-                Description = $"{target.Name} is slain!"
-            });
-        }
-    }
-
-    /// <summary>
-    /// Emit Damage/Died or Healed events from a target's HP delta since <paramref name="preHp"/> —
-    /// the animation seam for engine actions that apply their own damage/healing internally
-    /// (skill actions, Sudden Charge). No delta, no events.
-    /// </summary>
-    private async Task EmitHpDelta(ICharacter actor, ICharacter target, int preHp)
-    {
-        if (target.Health == null)
-            return;
-
-        int delta = preHp - target.Health.CurrentHP;
-        if (delta > 0)
-        {
-            await EmitDamageAndDeath(actor, target, delta);
-        }
-        else if (delta < 0)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.Healed,
-                Source = actor,
-                Target = target,
-                IntValue = -delta,
-                Description = $"{target.Name} heals {-delta} HP"
-            });
-        }
-    }
-
-    /// <summary>
-    /// Re-sync the presenter after a rules-driven position change (forced movement, tumble, charge).
-    /// Emits a MovementStarted (2-point path for a slide) + MovementCompleted only when the tile
-    /// actually changed, so UnitVisual3D lands on the new GridPosition.
-    /// </summary>
-    private async Task EmitPositionSync(ICharacter character, PF2eVec from)
-    {
-        if (character.GridPosition == from) return;
-
-        await _runner.Emit(new BattleEvent
-        {
-            Type = BattleEventType.MovementStarted,
-            Source = character,
-            Path = new List<PF2eVec> { from, character.GridPosition },
-            Description = $"{character.Name} moves"
-        });
-        await _runner.Emit(BattleEventType.MovementCompleted, source: character);
-    }
-
-    /// <summary>
-    /// Construct a per-call skill-action instance. These SkillActionBase subclasses ship WITHOUT
-    /// cost/target metadata (it's a construction-site concern), so we configure it here: all cost 1;
-    /// Trip/Demoralize target enemies; Battle Medicine targets allies including self.
-    /// </summary>
-    private static BaseAction? MakeSkillAction(string actionId) => actionId switch
-    {
-        "trip" => new TripAction
-        {
-            ActionName = "Trip", ActionCostCount = 1,
-            RequiresTarget = true, TargetMode = TargetMode.Enemies
-        },
-        "demoralize" => new DemoralizeAction
-        {
-            ActionName = "Demoralize", ActionCostCount = 1,
-            RequiresTarget = true, TargetMode = TargetMode.Enemies
-        },
-        "battle-medicine" => new BattleMedicineAction
-        {
-            ActionName = "Battle Medicine", ActionCostCount = 1,
-            RequiresTarget = true, TargetMode = TargetMode.Allies, CanTargetSelf = true
-        },
-        "recall-knowledge" => new RecallKnowledgeAction
-        {
-            ActionName = "Recall Knowledge", ActionCostCount = 1,
-            RequiresTarget = true, TargetMode = TargetMode.Enemies,
-            Description = "Study a foe to fill in its bestiary page. The skill follows the creature's "
-                + "type; one attempt per species each encounter, win or lose.",
-        },
-        // Engine maneuver/feat actions author their own name/cost/traits in their constructors.
-        "shove" => new ShoveAction(),
-        "tumble-through" => new TumbleThroughAction(),
-        "seek" => new SeekAction(),
-        "parry" => new ParryAction(),
-        "reload" => new ReloadAction(),
-        "lunge" => new LungeAction(),
-        "sudden-charge" => new SuddenChargeAction(),
-        _ => null
-    };
-
-    // ---------------------------------------------------------------- Helpers
-
-    /// <summary>
-    /// Tiles reachable within <paramref name="maxDistance"/> where the creature can legally stand
-    /// (excludes the origin and unreachable/zero-cost entries; requires an action remaining).
-    /// FindChargeTile keeps its own map walk — it needs the per-tile costs to pick the cheapest
-    /// in-reach tile and deliberately considers the origin ("already in reach: stay put").
-    /// </summary>
-    private HashSet<PF2eVec> ReachableTiles(ICharacter character, int maxDistance)
-    {
-        var result = new HashSet<PF2eVec>();
-        if (maxDistance <= 0 || character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
-            return result;
-
-        var map = Pathfinder.FindReachableTiles(_grid, BuildRequest(character, maxDistance));
-        foreach (var kvp in map)
-        {
-            var tile = kvp.Key;
-            if (tile == character.GridPosition || kvp.Value.Cost <= 0) continue;
-            if (!_grid.CanCreatureFit(tile, character.TileWidth, ignore: character)) continue;
-            result.Add(tile);
-        }
-        return result;
-    }
-
-    private PathfindingRequest BuildRequest(ICharacter character, int maxDistance) => new()
-    {
-        Origin = character.GridPosition,
-        MaxDistance = maxDistance,
-        TileWidth = character.TileWidth,
-        MaxStepUpElevations = 1,
-        OriginTeamId = character.TeamId
-    };
-
-    private static int SpeedInTiles(ICharacter character)
-    {
-        int feet = character.StatProvider?.BaseSpeedInFeet
-                   ?? character.CreatureStats?.BaseSpeedInFeet
-                   ?? 25;
-        return feet / FeetPerTile;
-    }
+    /// <summary>Whether a creature's stat-block <paramref name="field"/> is known to the player.</summary>
+    public static bool IsCreatureFieldKnown(string? creatureId, CreatureKnowledgeField field)
+        => UnitInspectFactory.IsCreatureFieldKnown(creatureId, field);
 }

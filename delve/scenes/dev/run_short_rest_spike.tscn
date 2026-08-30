@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/RunShortRestSpike.cs" id="1_runshortrest"]
+
+[node name="RunShortRestSpike" type="Node"]
+script = ExtResource("1_runshortrest")

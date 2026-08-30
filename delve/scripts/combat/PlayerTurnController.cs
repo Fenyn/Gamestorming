@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using PF2e;
 using PF2e.Core;
@@ -39,6 +40,14 @@ public sealed class PlayerTurnController
 
     public PlayerTurnController(PlayerActionExecutor exec) => _exec = exec;
 
+    /// <summary>
+    /// The encounter's cancellation token, set by <see cref="CombatScene"/> from the same source it
+    /// cancels on scene exit or encounter reset. <see cref="RunAction"/> observes it after each await
+    /// so a torn-down encounter never publishes state or asks for an end of turn. Defaults to None,
+    /// which keeps a headless / standalone controller behaving exactly as before.
+    /// </summary>
+    public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+
     // ---------------------------------------------------------------- View events
     public event Action<IReadOnlyCollection<PF2eVec>, HighlightKind>? HighlightsChanged;
     public event Action<IReadOnlyList<PF2eVec>?>? PathPreviewChanged;
@@ -48,9 +57,6 @@ public sealed class PlayerTurnController
     public event Action<ActionBarState>? ButtonStateChanged;
     public event Action<PlayerTurnMode>? ModeChanged;
     public event Action? EndTurnRequested;
-
-    public ICharacter? Current => _current;
-    public bool IsBusy => _busy;
 
     // ---------------------------------------------------------------- Turn lifecycle
 
@@ -138,8 +144,7 @@ public sealed class PlayerTurnController
                 if (plan.Tiles.Count == 0) { Cancel(); return; }
                 _spellTiles = plan.Tiles;
                 SetMode(PlayerTurnMode.SelectingSpellTarget);
-                HighlightsChanged?.Invoke(_spellTiles,
-                    plan.Kind == TargetingKind.SingleAlly ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget);
+                HighlightsChanged?.Invoke(_spellTiles, HighlightFor(plan.Kind));
                 break;
         }
     }
@@ -178,9 +183,12 @@ public sealed class PlayerTurnController
         _pendingSkillId = actionId;
         _skillTiles = plan.Tiles;
         SetMode(PlayerTurnMode.SelectingSkillTarget);
-        HighlightsChanged?.Invoke(_skillTiles,
-            plan.Kind == TargetingKind.SingleAlly ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget);
+        HighlightsChanged?.Invoke(_skillTiles, HighlightFor(plan.Kind));
     }
+
+    /// <summary>Highlight colour a target-selection mode paints its legal tiles with.</summary>
+    private static HighlightKind HighlightFor(TargetingKind kind)
+        => kind == TargetingKind.SingleAlly ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget;
 
     public void EndTurn()
     {
@@ -250,15 +258,8 @@ public sealed class PlayerTurnController
                     RunAction(() => _exec.ExecuteStrike(_current!, target));
                 break;
 
+            // A spell target and an area origin are both just the aim tile ExecuteCast takes.
             case PlayerTurnMode.SelectingSpellTarget:
-                if (_spellTiles.Contains(pos))
-                {
-                    string sid = _pendingSpellId;
-                    int vi = _pendingVariant;
-                    RunAction(() => _exec.ExecuteCast(_current!, sid, vi, pos));
-                }
-                break;
-
             case PlayerTurnMode.SelectingAreaOrigin:
                 if (_spellTiles.Contains(pos))
                 {
@@ -274,7 +275,7 @@ public sealed class PlayerTurnController
                     string aid = _pendingSkillId;
                     // Sudden Charge repositions the actor then Strikes (its own executor path);
                     // every other targeted maneuver resolves through the generic skill executor.
-                    if (aid == "sudden-charge")
+                    if (SkillActionCatalog.Get(aid)?.Mode == SkillExecutionMode.ChargeTile)
                         RunAction(() => _exec.ExecuteSuddenChargeTile(_current!, pos));
                     else
                         RunAction(() => _exec.ExecuteSkillAction(_current!, aid, pos));
@@ -285,9 +286,17 @@ public sealed class PlayerTurnController
 
     // ---------------------------------------------------------------- Execution
 
+    /// <summary>
+    /// Run one action to completion, then republish the bar. <c>async void</c> because it is called
+    /// from UI event handlers, so the resumption after the await must prove the controller is still
+    /// on the SAME turn: the encounter can end, the scene can reset, or the next turn can begin while
+    /// the action animates. A changed <see cref="_current"/> or a cancelled encounter means the state
+    /// this continuation would publish belongs to a turn that is over — drop it.
+    /// </summary>
     private async void RunAction(Func<Task<bool>> action)
     {
         if (_busy || _current == null) return;
+        var actor = _current;
         _busy = true;
         SetMode(PlayerTurnMode.Idle);
         ClearTransient();
@@ -297,10 +306,18 @@ public sealed class PlayerTurnController
         {
             await action();
         }
+        catch (OperationCanceledException)
+        {
+            // Encounter cancelled mid-action (scene exit / reset). Nothing left to publish.
+            return;
+        }
         catch (Exception e)
         {
             Log.Error($"[PlayerTurnController] action failed: {e.Message}");
         }
+
+        if (CancellationToken.IsCancellationRequested || !ReferenceEquals(_current, actor))
+            return;
 
         _busy = false;
 
@@ -369,7 +386,6 @@ public sealed class PlayerTurnController
             StrikeDisabledReason = DisabledReason(canStrike, actions, "No targets in reach"),
             ShieldDisabledReason = canRaiseShield ? null : _exec.GetRaiseShieldDisabledReason(_current),
             Map = _exec.GetCurrentMap(_current),
-            Mode = _mode,
             SpellEntries = _current.Spellcasting != null
                 ? _exec.GetSpellEntries(_current)
                 : System.Array.Empty<SpellEntryView>(),
@@ -403,14 +419,9 @@ public sealed class PlayerTurnController
             AttackerName = data.AttackerName,
             TargetName = data.TargetName,
             WeaponName = data.WeaponName,
-            Map = data.MAP,
             TotalAttackBonus = data.TotalAttackBonus,
-            TargetAc = data.TargetAC,
-            HitChancePercent = hit,
-            CritChancePercent = crit,
             DamageFormula = data.DamageFormula ?? "",
             TargetOffGuard = data.TargetIsOffGuard,
-            TargetAcKnown = acKnown,
             TargetAcText = acKnown ? data.TargetAC.ToString() : "?",
             HitChanceText = acKnown ? $"{hit}%" : "?%",
             CritChanceText = acKnown ? $"{crit}%" : "?%",

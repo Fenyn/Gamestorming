@@ -23,7 +23,7 @@ namespace Delve.Dev;
 /// the observable outcome:
 ///   (a) the Medic (Cleric preset) heals the MOST-wounded living ally — not the barely-scratched
 ///       one, never a full-HP one;
-///   (b) the Scholar (Wizard preset) casts a damage cantrip at an enemy while conserving its
+///   (b) Fenwick (Wizard preset) casts a damage cantrip at an enemy while conserving its
 ///       slotted spells (judicious-slot heuristic);
 ///   (c) the Veteran (Fighter preset) plans equipment longsword strikes through the FULL planner
 ///       (probe: the "[AI] ... executing plan" log line names the plan, whose strike nodes carry
@@ -35,37 +35,18 @@ public partial class AiCasterSpike : SpikeBase
 {
     private Action<string>? _priorInfoSink;
 
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== AI CASTER SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== AI CASTER SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[AiCasterSpike] DataManager not loaded — aborting.");
-            return;
-        }
         PresetSpells.EnsureRegistered();
 
-        // Pass-through reaction handler (StrikeResolver/SpellCastAction damage delivery throws
-        // without one). Installed once for the whole spike; removed before quitting.
-        ReactionEvents.DamageReactionHandler damageHandler = (src, tgt, result, applyDamage) => { applyDamage(); return System.Threading.Tasks.Task.CompletedTask; };
-        ReactionEvents.OnDamageReactionCheck += damageHandler;
+        // Damage delivery throws without a reaction handler; this scope installs one for the spike.
+        using var reactions = UsePassthroughReactions();
 
-        try
-        {
-            await Scenario_A_MedicHealsMostWounded(data);
-            await Scenario_B_ScholarCastsCantrip(data);
-            await Scenario_C_VeteranPlansEquipmentStrikes(data);
-        }
-        finally
-        {
-            ReactionEvents.OnDamageReactionCheck -= damageHandler;
-        }
-
-        FinishAndQuit("AiCasterSpike");
+        await Scenario_A_MedicHealsMostWounded(data);
+        await Scenario_B_FenwickCastsCantrip(data);
+        await Scenario_C_VeteranPlansEquipmentStrikes(data);
     }
 
     // ─────────────────── (a) AI Medic heals the most-wounded ally ───────────────────
@@ -128,31 +109,31 @@ public partial class AiCasterSpike : SpikeBase
             $"({veteranBefore} -> {veteran.Health.CurrentHP}/{veteran.Health.MaxHP})");
     }
 
-    // ─────────────────── (b) AI Scholar casts a damage cantrip ───────────────────
+    // ─────────────────── (b) AI Fenwick casts a damage cantrip ───────────────────
 
-    private async Task Scenario_B_ScholarCastsCantrip(DataManager data)
+    private async Task Scenario_B_FenwickCastsCantrip(DataManager data)
     {
-        GD.Print("-- (b) AI Scholar: casts a damage cantrip at an enemy --");
+        GD.Print("-- (b) AI Fenwick: casts a damage cantrip at an enemy --");
 
         var (grid, events, executor) = MakeArena();
 
-        var scholar = PresetCharacters.BuildScholar(level: 2, teamId: 1);
+        var fenwick = PresetCharacters.BuildFenwick(level: 2, teamId: 1);
         var goblin = MakeGoblin(data);
 
-        grid.PlaceCreature(scholar, new PF2eVec(5, 5));
+        grid.PlaceCreature(fenwick, new PF2eVec(5, 5));
         grid.PlaceCreature(goblin, new PF2eVec(9, 5)); // 4 tiles: inside 30 ft, outside melee
-        Register(scholar, goblin);
+        Register(fenwick, goblin);
 
         int goblinBefore = goblin.Health.CurrentHP;
-        int preparedBefore = scholar.Spellcasting!.LeveledSpells.Count;
+        int preparedBefore = fenwick.Spellcasting!.LeveledSpells.Count;
 
-        scholar.Actions.RefillActions();
-        await executor.ExecuteTurn(scholar);
+        fenwick.Actions.RefillActions();
+        await executor.ExecuteTurn(fenwick);
 
         string? castDescription = null;
         foreach (var e in events)
         {
-            if (e.Type == BattleEventType.SpellCast && e.Source == scholar)
+            if (e.Type == BattleEventType.SpellCast && e.Source == fenwick)
                 castDescription = e.Description;
         }
 
@@ -168,7 +149,7 @@ public partial class AiCasterSpike : SpikeBase
         Check("(b) AI turn casts a spell (SpellCast event emitted)", castDescription != null);
         Check($"(b) the cast is a no-slot damage spell ({castDescription ?? "none"})", castNoSlotDamage);
         Check("(b) slotted spells conserved vs a single enemy (judicious-slot heuristic)",
-            scholar.Spellcasting.LeveledSpells.Count == preparedBefore);
+            fenwick.Spellcasting.LeveledSpells.Count == preparedBefore);
         GD.Print($"    goblin HP {goblinBefore} -> {goblin.Health.CurrentHP} " +
             "(damage depends on the save/attack roll; the cast itself is the assertion)");
     }

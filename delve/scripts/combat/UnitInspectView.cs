@@ -18,6 +18,10 @@ public sealed record UnitInspectView
 {
     public required string Name { get; init; }
     public int TeamId { get; init; }
+
+    /// <summary>True for a party member (<see cref="TeamId"/> 1). Allies are never knowledge-gated.</summary>
+    public bool IsAlly { get; init; }
+
     public int Hp { get; init; }
     public int MaxHp { get; init; }
     public int Ac { get; init; }
@@ -28,7 +32,4 @@ public sealed record UnitInspectView
 
     /// <summary>The HP fraction to draw: "4/10", or "?/?" while that species' MaxHP is unrevealed.</summary>
     public required string HpText { get; init; }
-
-    /// <summary>True when any number on this card is masked pending Recall Knowledge.</summary>
-    public bool KnowledgeGated { get; init; }
 }

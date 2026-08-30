@@ -14,9 +14,9 @@ namespace Delve.Presets;
 /// are left unscripted and documented — the level-up seam simply grants nothing there until the
 /// feature is ported (the FA slot is banked, not burned on a dead marker).
 ///
-/// The presets are built at GameState.SquadStartLevel (2) and authored to L5; ChoicesUpTo(level)
-/// replays every scripted decision at build, so all L1-5 choices take effect immediately, and
-/// the L6-10 script is ready for the level-up milestone.
+/// The presets are built at level 2 and authored to L5; ChoicesUpTo(level) replays every scripted
+/// decision at build, so all L1-5 choices take effect immediately, and the L6-10 script is ready
+/// for the level-up milestone.
 /// </summary>
 public static class PresetCombos
 {
@@ -42,12 +42,12 @@ public static class PresetCombos
     };
 
     /// <summary>
-    /// Scout — Rogue "Thief" racket overlay + DUAL-WEAPON WARRIOR Free Archetype line.
+    /// Elara — Rogue "Thief" racket overlay + DUAL-WEAPON WARRIOR Free Archetype line.
     /// L2 DWW Dedication (grants Double Slice per the Remaster pack JSON), L4 Dual Thrower.
     /// L8 Flensing Slice / L10 Dual-Weapon Blitz: compiled marker features exist but their
     /// ACTIONS are not ported yet — deferred (FA slots left unscripted).
     /// Skill increases (rogue cadence: L2 and every level after, rogue.json) are deliberately
-    /// unscripted — LevelUpApplicator auto-assigns them from the Scout's trained skills.
+    /// unscripted — LevelUpApplicator auto-assigns them from Elara's trained skills.
     /// </summary>
     public static VariantComboDefinition RogueThief { get; } = new()
     {
@@ -87,7 +87,7 @@ public static class PresetCombos
     };
 
     /// <summary>
-    /// Scholar — Wizard "Battle Magic" school overlay (+ Spell Blending thesis, which lives on
+    /// Fenwick — Wizard "Battle Magic" school overlay (+ Spell Blending thesis, which lives on
     /// the wizard's SpellcastingSource) + MEDIC Free Archetype line.
     /// L2 Battle Medicine skill feat (Medic Dedication prerequisite) + Medic Dedication
     /// (Medicine → Expert); L4 Treat Condition. L6 Holistic Care / L8 Preventative Treatment:
@@ -129,13 +129,13 @@ public static class PresetCombos
                 // Bastion line (Veteran)
                 PresetClasses.BuildBastionDedication(),
                 PresetClasses.BuildDisarmingBlock(),
-                // Dual-Weapon Warrior line (Scout)
+                // Dual-Weapon Warrior line (Elara)
                 PresetClasses.BuildDualWeaponWarriorDedication(),
                 PresetClasses.BuildDualThrower(),
                 // Marshal line (Medic)
                 PresetClasses.BuildMarshalDedication(),
                 PresetClasses.BuildInspiringMarshalStance(),
-                // Medic line (Scholar)
+                // Medic line (Fenwick)
                 PresetClasses.BuildBattleMedicine(),
                 PresetClasses.BuildMedicDedication(),
                 PresetClasses.BuildTreatCondition(),

@@ -26,15 +26,14 @@ namespace Delve.Dev;
 ///    DamageDealt that follows an AttackRolled must carry that roll's degree. Strikes used to emit
 ///    Degree = null unconditionally (only the spell path passed it), which silently disabled
 ///    DamagePopup3D's crit styling for every weapon hit in the game.
-///  - FX SPAWNS: each event is presented against live tokens and the "Fx" group is counted before and
-///    after — the same introspection seam FxLibrarySpike uses. A miss must spawn NOTHING (a whiff has
-///    no impact to spark).
+///  - FX SPAWNS: each event is presented against live tokens and the one-shot FX group is counted
+///    before and after. A miss must spawn NOTHING (a whiff has no impact to spark).
 ///  - SWING GATE: the hero clip's time-to-impact is what the presenter holds AttackRolled open for, so
 ///    the damage number lands on the strike frame; enemies (no swing art) must refuse the clip.
 ///  - POPUP HEIGHT: a rat's number has to sit over a rat, not at the fixed height a hero's bar used.
 ///  - SHAKE: trauma decays to exactly zero and the pivot returns to exactly the origin.
 ///
-/// Run: Godot_v4.6.2-stable_mono_win64_console.exe --headless --path bulwark
+/// Run: Godot_v4.6.2-stable_mono_win64_console.exe --headless --path delve
 ///      res://scenes/dev/combat_juice_spike.tscn
 /// </summary>
 public partial class CombatJuiceSpike : SpikeBase
@@ -42,37 +41,20 @@ public partial class CombatJuiceSpike : SpikeBase
     private static readonly PackedScene UnitTokenScene =
         GD.Load<PackedScene>("res://scenes/combat/unit_token.tscn");
 
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== COMBAT JUICE SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== COMBAT JUICE SPIKE ====================");
-        try
-        {
-            var data = GetNode<DataManager>("/root/DataManager");
-            if (data == null || !data.IsLoaded)
-            {
-                AbortFail("[CombatJuiceSpike] DataManager not loaded — aborting.");
-                return;
-            }
+        // Settle burn-in: the frame after the synchronous content load reports an inflated delta,
+        // which would hand any Tween created in it a false head start.
+        for (int i = 0; i < 60; i++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-            // Same settle burn-in FxLibrarySpike uses: the frame after the synchronous content load
-            // reports an inflated delta, which would hand any Tween created in it a false head start.
-            for (int i = 0; i < 60; i++)
-                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-
-            await RunCritDegree(data);
-            await RunPresenterFx(data);
-            await RunTokenJuice(data);
-            RunPopupStyling();
-            await RunShake();
-        }
-        catch (Exception e)
-        {
-            GD.PushError($"[CombatJuiceSpike] Unhandled exception: {e}");
-            Fail();
-        }
-        FinishAndQuit("CombatJuiceSpike");
+        await RunCritDegree(data);
+        await RunPresenterFx(data);
+        await RunTokenJuice(data);
+        RunPopupStyling();
+        await RunShake();
     }
 
     // ─────────────────────── crit degree on weapon strikes ───────────────────────
@@ -190,12 +172,12 @@ public partial class CombatJuiceSpike : SpikeBase
         var popupLayer = new Node3D { Name = "PopupLayer" };
         AddChild(popupLayer);
         var heroToken = AddToken(hero, null);
-        var enemyToken = AddToken(enemy, EnemySpriteMap.FolderForCreature(enemy.Name));
+        var enemyToken = AddToken(enemy, EnemySpriteMap.FolderForCreature(enemy.Name, enemy.CreatureStats.Size));
 
         var shake = new ShakePivot { Name = "ShakePivot" };
         AddChild(shake);
 
-        var presenter = new GodotPresenter3D(popupLayer, Delve.Combat.Map.TerrainHeightMap.Flat)
+        var presenter = new GodotPresenter3D(popupLayer, Delve.Terrain.TerrainHeightMap.Flat)
         {
             Shake = shake,
         };
@@ -301,8 +283,7 @@ public partial class CombatJuiceSpike : SpikeBase
 
     private UnitVisual3D AddToken(ICharacter character, string? enemyFolder)
     {
-        var token = UnitTokenScene.Instantiate<UnitVisual3D>();
-        token.Configure(character, enemyFolder);
+        var token = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder);
         token.Position = new Vector3(character.GridPosition.x + 0.5f, 0f, character.GridPosition.y + 0.5f);
         AddChild(token);
         return token;
@@ -321,7 +302,7 @@ public partial class CombatJuiceSpike : SpikeBase
         return found;
     }
 
-    private int FxCount() => GetTree().GetNodesInGroup(HitSpark.FxGroup).Count;
+    private int FxCount() => GetTree().GetNodesInGroup(OneShotFx.FxGroup).Count;
 
     /// <summary>Wait until no one-shot effect is left alive, so the next spawn can be counted absolutely
     /// rather than as a diff. Capped so a hypothetical effect that never frees itself fails the count
@@ -354,9 +335,9 @@ public partial class CombatJuiceSpike : SpikeBase
         var token = AddToken(hero, null);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-        var sprite = token.GetNode<Sprite3D>("%Sprite");
+        var sprite = token.GetNode<BillboardSpriteAnimator>("%Sprite").Sprite;
         var ring = token.GetNode<MeshInstance3D>("%Ring");
-        var fill = token.GetNode<MeshInstance3D>("%HpFill");
+        var fill = token.GetNode<WorldHpBar>("%HpBar").Fill;
         Vector3 spriteRest = sprite.Position;
 
         // --- hurt flinch ---

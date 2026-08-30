@@ -26,18 +26,10 @@ namespace Delve.Dev;
 /// </summary>
 public partial class SpellCastSpike : SpikeBase
 {
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== SPELL CAST SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== SPELL CAST SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[SpellSpike] DataManager not loaded — aborting.");
-            return;
-        }
         PresetSpells.EnsureRegistered();
 
         await Scenario_A_HealTouch(data);
@@ -47,8 +39,6 @@ public partial class SpellCastSpike : SpikeBase
         await Scenario_E_Trip(data);
         await Scenario_F_BattleMedicine(data);
         await Scenario_G_SlotExhaustion(data);
-
-        FinishAndQuit("SpellSpike");
     }
 
     // ─────────────────────────── (a) Heal (1-action touch) ───────────────────────────
@@ -90,30 +80,30 @@ public partial class SpellCastSpike : SpikeBase
 
     private async Task Scenario_B_ElectricArcMulti(DataManager data)
     {
-        var scholar = PresetCharacters.BuildScholar(level: 2, teamId: 1);
+        var fenwick = PresetCharacters.BuildFenwick(level: 2, teamId: 1);
         var g1 = MakeGoblin(data);
         var g2 = MakeGoblin(data);
 
         var (session, exec) = StartSession(data,
-            party: new() { (scholar, new PF2eVec(5, 5)) },
+            party: new() { (fenwick, new PF2eVec(5, 5)) },
             enemies: new() { (g1, new PF2eVec(6, 5)), (g2, new PF2eVec(7, 5)) },
             seed: 5);
         try
         {
-            int leveledBefore = scholar.Spellcasting.LeveledSpells.Count;
+            int leveledBefore = fenwick.Spellcasting.LeveledSpells.Count;
 
             var first = await CaptureCast(() =>
-                exec.ExecuteCast(scholar, PresetSpells.ElectricArcId, -1, g1.GridPosition));
+                exec.ExecuteCast(fenwick, PresetSpells.ElectricArcId, -1, g1.GridPosition));
             Check("(b) Electric Arc resolves against 2 targets",
                 first != null && first.TargetResults != null && first.TargetResults.Count == 2);
             Check("(b) per-target damage is save-degree consistent", first != null && DamageConsistent(first));
             Check("(b) cantrip consumes no leveled slot",
-                scholar.Spellcasting.LeveledSpells.Count == leveledBefore);
+                fenwick.Spellcasting.LeveledSpells.Count == leveledBefore);
 
             // Repeatable.
-            scholar.Actions.RefillActions();
+            fenwick.Actions.RefillActions();
             var second = await CaptureCast(() =>
-                exec.ExecuteCast(scholar, PresetSpells.ElectricArcId, -1, g1.GridPosition));
+                exec.ExecuteCast(fenwick, PresetSpells.ElectricArcId, -1, g1.GridPosition));
             Check("(b) Electric Arc is repeatable (still 2 targets)",
                 second != null && second.TargetResults != null && second.TargetResults.Count == 2);
         }
@@ -147,22 +137,22 @@ public partial class SpellCastSpike : SpikeBase
 
     private async Task Scenario_D_BreatheFireCone(DataManager data)
     {
-        var scholar = PresetCharacters.BuildScholar(level: 2, teamId: 1);
+        var fenwick = PresetCharacters.BuildFenwick(level: 2, teamId: 1);
         var g1 = MakeGoblin(data);
         var g2 = MakeGoblin(data);
         var g3 = MakeGoblin(data);
 
         var (session, exec) = StartSession(data,
-            party: new() { (scholar, new PF2eVec(5, 5)) },
+            party: new() { (fenwick, new PF2eVec(5, 5)) },
             enemies: new()
             {
                 (g1, new PF2eVec(6, 5)), (g2, new PF2eVec(7, 5)), (g3, new PF2eVec(6, 6)),
             }, seed: 9);
         try
         {
-            scholar.Actions.RefillActions();
+            fenwick.Actions.RefillActions();
             var ctx = await CaptureCast(() =>
-                exec.ExecuteCast(scholar, PresetSpells.BreatheFireId, -1, new PF2eVec(7, 5)));
+                exec.ExecuteCast(fenwick, PresetSpells.BreatheFireId, -1, new PF2eVec(7, 5)));
             Check("(d) Breathe Fire cone hits multiple goblins",
                 ctx != null && ctx.TargetResults != null && ctx.TargetResults.Count >= 2);
         }
@@ -238,7 +228,7 @@ public partial class SpellCastSpike : SpikeBase
             enemies: new() { (goblin, new PF2eVec(6, 5)) }, seed: 3);
         try
         {
-            var heal = PresetSpells.Get(PresetSpells.HealId);
+            var heal = PresetSpells.Get(PresetSpells.HealId)!;
             Check("(g) rank-1 spell castable with slots remaining", heal.CanPerform(medic));
 
             // Warpriest Medic heal budget: 4 divine-font slots + 2 prepared Heals = 6 casts.
@@ -255,7 +245,7 @@ public partial class SpellCastSpike : SpikeBase
             Check("(g) Heal not castable once font + preparations are spent", !heal.CanPerform(medic));
 
             // Fear was the third rank-1 preparation and is not a font spell — still castable once.
-            var fear = PresetSpells.Get(PresetSpells.FearId);
+            var fear = PresetSpells.Get(PresetSpells.FearId)!;
             Check("(g) Fear still castable (its preparation is untouched)", fear.CanPerform(medic));
             medic.Actions.RefillActions();
             await exec.ExecuteCast(medic, PresetSpells.FearId, -1, goblin.GridPosition);
@@ -315,5 +305,5 @@ public partial class SpellCastSpike : SpikeBase
     }
 
     private static int PreparedCount(ICharacter c, string spellId)
-        => c.Spellcasting?.GetPreparedCount(PresetSpells.Get(spellId)) ?? 0;
+        => c.Spellcasting?.GetPreparedCount(PresetSpells.Get(spellId)!) ?? 0;
 }

@@ -22,19 +22,10 @@ public partial class PlayerTurnSpike : SpikeBase
 {
     private int _playerTurns;
 
-    public override void _Ready() => _ = RunAsync();
+    protected override string Banner => "==================== PLAYER TURN SPIKE ====================";
 
-    private async Task RunAsync()
+    protected override async Task RunSpikeAsync(DataManager data)
     {
-        GD.Print("==================== PLAYER TURN SPIKE ====================");
-
-        var data = GetNode<DataManager>("/root/DataManager");
-        if (data == null || !data.IsLoaded)
-        {
-            AbortFail("[Spike] DataManager not loaded — aborting.");
-            return;
-        }
-
         var veteran = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
         var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var g1 = CreatureFactory.Create(goblinDef, teamId: 2);
@@ -68,7 +59,6 @@ public partial class PlayerTurnSpike : SpikeBase
         Check("all goblins defeated", !g1.Health.IsAlive && !g2.Health.IsAlive);
 
         GD.Print($"[Spike] Result: {finalResult} | player turns driven: {_playerTurns}");
-        FinishAndQuit("Spike");
     }
 
     private async Task DrivePlayerTurn(ICharacter c, CombatSession session)

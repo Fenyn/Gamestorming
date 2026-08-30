@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/UiShotSpike.cs" id="1_uishot"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="2_hs"]
+
+[node name="UiShotSpike" type="Node"]
+script = ExtResource("1_uishot")
+PanelScene = ExtResource("2_hs")

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/TerrainSkirtSpike.cs" id="1_terrskirt"]
+
+[node name="TerrainSkirtSpike" type="Node"]
+script = ExtResource("1_terrskirt")

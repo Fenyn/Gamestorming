@@ -1,0 +1,26 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/RunDirector.cs" id="1_dir"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="2_combat"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="3_hs"]
+[ext_resource type="PackedScene" path="res://scenes/run/run_map.tscn" id="4_map"]
+[ext_resource type="PackedScene" path="res://scenes/run/event_panel.tscn" id="5_ev"]
+[ext_resource type="PackedScene" path="res://scenes/run/rest_panel.tscn" id="6_rest"]
+[ext_resource type="PackedScene" path="res://scenes/run/short_rest_panel.tscn" id="7_sr"]
+[ext_resource type="PackedScene" path="res://scenes/run/run_end_panel.tscn" id="8_end"]
+
+[node name="Run" type="Node"]
+script = ExtResource("1_dir")
+CombatScene = ExtResource("2_combat")
+HeroSelectScene = ExtResource("3_hs")
+RunMapScene = ExtResource("4_map")
+EventScene = ExtResource("5_ev")
+RestScene = ExtResource("6_rest")
+ShortRestScene = ExtResource("7_sr")
+RunEndScene = ExtResource("8_end")
+
+; The run's screens sit above the combat HUD's own CanvasLayer (layer 1), so a screen shown over a
+; fight covers it instead of fighting it for the same layer.
+[node name="Screens" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 2

@@ -21,6 +21,7 @@ Projects developed with assistance of Claude.
 | [skeleton-crew](skeleton-crew/) | 2–4 player co-op roguelike ship sim. First-person, multiplayer, FTL meets friendslop. | — |
 | [spacefarm](spacefarm/) | 2D top-down sci-fi farming aboard an alien ship. First-contact survival, crew of 16. | — |
 | [the-maw-of-rrrbl](the-maw-of-rrrbl/) | Builder-incremental. Place marble track pieces in 3D, earn Sparks, feed The Maw. | — |
+| [timberline](timberline/) | First-person incremental lumberjack sim. Clear the forest by hand, then automate it down the river. | — |
 | [war-tactics](war-tactics/) | WWII isometric squad-tactics roguelike. Shooting minigames, permadeath, and medal pickups. | [Play in browser](https://fenyn.github.io/Gamestorming/war-tactics/) |
 | [worldseed](worldseed/) | Terraform an alien planet by farming exotic crops. Manage power and deploy nanobot bees. | — |
 

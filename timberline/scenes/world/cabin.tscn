@@ -1,0 +1,590 @@
+[gd_scene format=3 uid="uid://r7si7rwef7ks"]
+
+[sub_resource type="BoxMesh" id="foundation_mesh"]
+size = Vector3(5.6, 0.4, 6.6)
+
+[sub_resource type="StandardMaterial3D" id="stone_mat"]
+albedo_color = Color(0.47, 0.45, 0.42, 1)
+
+[sub_resource type="BoxMesh" id="backing_mesh"]
+size = Vector3(4.8, 2.6, 5.8)
+
+[sub_resource type="StandardMaterial3D" id="backing_mat"]
+albedo_color = Color(0.29, 0.21, 0.14, 1)
+
+[sub_resource type="CylinderMesh" id="log_x_mesh"]
+top_radius = 0.21
+bottom_radius = 0.21
+height = 5.6
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="log_a_mat"]
+albedo_color = Color(0.41, 0.31, 0.21, 1)
+
+[sub_resource type="StandardMaterial3D" id="log_b_mat"]
+albedo_color = Color(0.36, 0.27, 0.18, 1)
+
+[sub_resource type="CylinderMesh" id="log_z_mesh"]
+top_radius = 0.21
+bottom_radius = 0.21
+height = 6.9
+radial_segments = 10
+
+[sub_resource type="PrismMesh" id="roof_mesh"]
+size = Vector3(6.4, 1.7, 5.6)
+
+[sub_resource type="StandardMaterial3D" id="roof_mat"]
+albedo_color = Color(0.32, 0.22, 0.16, 1)
+
+[sub_resource type="PrismMesh" id="gable_fill_mesh"]
+size = Vector3(6.2, 1.65, 5.6)
+
+[sub_resource type="BoxMesh" id="rake_board_mesh"]
+size = Vector3(3.8, 0.28, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="dark_wood_mat"]
+albedo_color = Color(0.28, 0.2, 0.14, 1)
+
+[sub_resource type="CylinderMesh" id="gable_log_long_mesh"]
+top_radius = 0.21
+bottom_radius = 0.21
+height = 4.6
+radial_segments = 10
+
+[sub_resource type="CylinderMesh" id="gable_log_mid_mesh"]
+top_radius = 0.21
+bottom_radius = 0.21
+height = 3.0
+radial_segments = 10
+
+[sub_resource type="CylinderMesh" id="gable_log_short_mesh"]
+top_radius = 0.21
+bottom_radius = 0.21
+height = 1.45
+radial_segments = 10
+
+[sub_resource type="BoxMesh" id="roof_board_mesh"]
+size = Vector3(1.8, 0.1, 1.9)
+
+[sub_resource type="StandardMaterial3D" id="roof_c_mat"]
+albedo_color = Color(0.35, 0.25, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="roof_b_mat"]
+albedo_color = Color(0.28, 0.19, 0.14, 1)
+
+[sub_resource type="CylinderMesh" id="ridge_beam_mesh"]
+top_radius = 0.16
+bottom_radius = 0.16
+height = 7.8
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="door_frame_mesh"]
+size = Vector3(1.3, 2.15, 0.1)
+
+[sub_resource type="BoxMesh" id="door_mesh"]
+size = Vector3(1, 2, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="door_mat"]
+albedo_color = Color(0.35, 0.25, 0.16, 1)
+
+[sub_resource type="BoxMesh" id="knob_mesh"]
+size = Vector3(0.07, 0.07, 0.07)
+
+[sub_resource type="StandardMaterial3D" id="metal_mat"]
+albedo_color = Color(0.38, 0.4, 0.43, 1)
+
+[sub_resource type="BoxMesh" id="window_frame_mesh"]
+size = Vector3(1.1, 1.1, 0.08)
+
+[sub_resource type="BoxMesh" id="window_mesh"]
+size = Vector3(0.9, 0.9, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="glass_mat"]
+albedo_color = Color(0.52, 0.62, 0.66, 1)
+
+[sub_resource type="BoxMesh" id="sill_mesh"]
+size = Vector3(1.24, 0.08, 0.2)
+
+[sub_resource type="BoxMesh" id="chimney_mesh"]
+size = Vector3(0.7, 4.6, 0.7)
+
+[sub_resource type="BoxMesh" id="chimney_cap_mesh"]
+size = Vector3(0.95, 0.25, 0.95)
+
+[sub_resource type="BoxMesh" id="step_mesh"]
+size = Vector3(1.4, 0.25, 0.7)
+
+[sub_resource type="CylinderMesh" id="stump_mesh"]
+top_radius = 0.45
+height = 0.5
+radial_segments = 9
+
+[sub_resource type="CylinderMesh" id="stump_top_mesh"]
+top_radius = 0.4
+bottom_radius = 0.4
+height = 0.05
+radial_segments = 9
+
+[sub_resource type="StandardMaterial3D" id="cut_wood_mat"]
+albedo_color = Color(0.55, 0.44, 0.31, 1)
+
+[sub_resource type="CylinderMesh" id="handle_mesh"]
+top_radius = 0.045
+bottom_radius = 0.045
+height = 0.95
+radial_segments = 7
+
+[sub_resource type="BoxMesh" id="axe_head_mesh"]
+size = Vector3(0.34, 0.17, 0.09)
+
+[sub_resource type="CylinderMesh" id="firewood_mesh"]
+top_radius = 0.13
+bottom_radius = 0.13
+height = 0.55
+radial_segments = 7
+
+[sub_resource type="CylinderMesh" id="barrel_mesh"]
+top_radius = 0.3
+bottom_radius = 0.34
+height = 0.85
+radial_segments = 10
+
+[sub_resource type="BoxMesh" id="crate_mesh"]
+size = Vector3(0.65, 0.65, 0.65)
+
+[sub_resource type="BoxMesh" id="path_stone_mesh"]
+size = Vector3(0.7, 0.08, 0.5)
+
+[sub_resource type="BoxShape3D" id="body_shape"]
+size = Vector3(5.9, 3.4, 7)
+
+[node name="Cabin" type="StaticBody3D" unique_id=1292267704]
+
+[node name="Foundation" type="MeshInstance3D" parent="." unique_id=824792277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("foundation_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="Backing" type="MeshInstance3D" parent="." unique_id=1183032938]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+mesh = SubResource("backing_mesh")
+surface_material_override/0 = SubResource("backing_mat")
+
+[node name="FrontLog1" type="MeshInstance3D" parent="." unique_id=696220113]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0.61, 2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="FrontLog2" type="MeshInstance3D" parent="." unique_id=1309452493]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1.03, 2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="FrontLog3" type="MeshInstance3D" parent="." unique_id=1060039254]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1.45, 2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="FrontLog4" type="MeshInstance3D" parent="." unique_id=759846572]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1.87, 2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="FrontLog5" type="MeshInstance3D" parent="." unique_id=1895762240]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 2.29, 2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="FrontLog6" type="MeshInstance3D" parent="." unique_id=542007448]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 2.71, 2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="BackLog1" type="MeshInstance3D" parent="." unique_id=1706881217]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0.61, -2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="BackLog2" type="MeshInstance3D" parent="." unique_id=1510431695]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1.03, -2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="BackLog3" type="MeshInstance3D" parent="." unique_id=1771868861]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1.45, -2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="BackLog4" type="MeshInstance3D" parent="." unique_id=1387749737]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1.87, -2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="BackLog5" type="MeshInstance3D" parent="." unique_id=1067025525]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 2.29, -2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="BackLog6" type="MeshInstance3D" parent="." unique_id=1065280503]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 2.71, -2.8)
+mesh = SubResource("log_x_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="LeftLog1" type="MeshInstance3D" parent="." unique_id=1846824551]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.4, 0.82, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="LeftLog2" type="MeshInstance3D" parent="." unique_id=251655523]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.4, 1.24, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="LeftLog3" type="MeshInstance3D" parent="." unique_id=538934767]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.4, 1.66, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="LeftLog4" type="MeshInstance3D" parent="." unique_id=522028048]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.4, 2.08, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="LeftLog5" type="MeshInstance3D" parent="." unique_id=1243389476]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.4, 2.5, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="LeftLog6" type="MeshInstance3D" parent="." unique_id=677782788]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -2.4, 2.92, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="RightLog1" type="MeshInstance3D" parent="." unique_id=1505116842]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.4, 0.82, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="RightLog2" type="MeshInstance3D" parent="." unique_id=54656761]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.4, 1.24, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="RightLog3" type="MeshInstance3D" parent="." unique_id=672317229]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.4, 1.66, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="RightLog4" type="MeshInstance3D" parent="." unique_id=223955179]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.4, 2.08, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="RightLog5" type="MeshInstance3D" parent="." unique_id=2115801742]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.4, 2.5, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="RightLog6" type="MeshInstance3D" parent="." unique_id=638328930]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.4, 2.92, 0)
+mesh = SubResource("log_z_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="Roof" type="MeshInstance3D" parent="." unique_id=2070074171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.77, 0)
+mesh = SubResource("roof_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="GableFill" type="MeshInstance3D" parent="." unique_id=295992599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.745, 0)
+mesh = SubResource("gable_fill_mesh")
+surface_material_override/0 = SubResource("backing_mat")
+
+[node name="RakeFrontEast" type="MeshInstance3D" parent="." unique_id=1957436119]
+transform = Transform3D(0.88279307, 0.4693894, 0, -0.4693894, 0.88279307, 0, 0, 0, 1, 1.505, 3.617, 2.95)
+mesh = SubResource("rake_board_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="RakeFrontWest" type="MeshInstance3D" parent="." unique_id=1749899778]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -1.505, 3.617, 2.95)
+mesh = SubResource("rake_board_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="RakeBackEast" type="MeshInstance3D" parent="." unique_id=353476342]
+transform = Transform3D(0.88279307, 0.4693894, 0, -0.4693894, 0.88279307, 0, 0, 0, 1, 1.505, 3.617, -2.95)
+mesh = SubResource("rake_board_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="RakeBackWest" type="MeshInstance3D" parent="." unique_id=1624763793]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -1.505, 3.617, -2.95)
+mesh = SubResource("rake_board_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="GableFrontLog1" type="MeshInstance3D" parent="." unique_id=224240127]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 3.13, 2.8)
+mesh = SubResource("gable_log_long_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="GableFrontLog2" type="MeshInstance3D" parent="." unique_id=1278099610]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 3.55, 2.8)
+mesh = SubResource("gable_log_mid_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="GableFrontLog3" type="MeshInstance3D" parent="." unique_id=1408270106]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 3.97, 2.8)
+mesh = SubResource("gable_log_short_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="GableBackLog1" type="MeshInstance3D" parent="." unique_id=277329173]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 3.13, -2.8)
+mesh = SubResource("gable_log_long_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="GableBackLog2" type="MeshInstance3D" parent="." unique_id=1604309361]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 3.55, -2.8)
+mesh = SubResource("gable_log_mid_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="GableBackLog3" type="MeshInstance3D" parent="." unique_id=449201827]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 3.97, -2.8)
+mesh = SubResource("gable_log_short_mesh")
+surface_material_override/0 = SubResource("log_a_mat")
+
+[node name="RoofBoardETop1" type="MeshInstance3D" parent="." unique_id=1215859561]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 1.018, 4.192, -2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="RoofBoardETop2" type="MeshInstance3D" parent="." unique_id=1558565860]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 1.004, 4.166, -0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_c_mat")
+
+[node name="RoofBoardETop3" type="MeshInstance3D" parent="." unique_id=487438628]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 1.013, 4.183, 0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_b_mat")
+
+[node name="RoofBoardETop4" type="MeshInstance3D" parent="." unique_id=1140016108]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 0.999, 4.157, 2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="RoofBoardEEave1" type="MeshInstance3D" parent="." unique_id=114951713]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 2.619, 3.262, -2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_b_mat")
+
+[node name="RoofBoardEEave2" type="MeshInstance3D" parent="." unique_id=104096293]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 2.628, 3.28, -0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="RoofBoardEEave3" type="MeshInstance3D" parent="." unique_id=1647310736]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 2.614, 3.254, 0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_c_mat")
+
+[node name="RoofBoardEEave4" type="MeshInstance3D" parent="." unique_id=1906836720]
+transform = Transform3D(0.882793, 0.46938938, 0, -0.46938938, 0.882793, 0, 0, 0, 1, 2.624, 3.271, 2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_b_mat")
+
+[node name="RoofBoardWTop1" type="MeshInstance3D" parent="." unique_id=1485731588]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -0.999, 4.157, -2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_c_mat")
+
+[node name="RoofBoardWTop2" type="MeshInstance3D" parent="." unique_id=762784337]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -1.013, 4.183, -0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_b_mat")
+
+[node name="RoofBoardWTop3" type="MeshInstance3D" parent="." unique_id=1224033457]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -1.004, 4.166, 0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="RoofBoardWTop4" type="MeshInstance3D" parent="." unique_id=1891107301]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -1.018, 4.192, 2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_c_mat")
+
+[node name="RoofBoardWEave1" type="MeshInstance3D" parent="." unique_id=101847844]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -2.624, 3.271, -2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="RoofBoardWEave2" type="MeshInstance3D" parent="." unique_id=1093033504]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -2.614, 3.254, -0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_c_mat")
+
+[node name="RoofBoardWEave3" type="MeshInstance3D" parent="." unique_id=1427016789]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -2.628, 3.28, 0.925)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_b_mat")
+
+[node name="RoofBoardWEave4" type="MeshInstance3D" parent="." unique_id=1920197451]
+transform = Transform3D(-0.883, -0.469, 0, -0.469, 0.883, 0, 0, 0, -1, -2.619, 3.262, 2.775)
+mesh = SubResource("roof_board_mesh")
+surface_material_override/0 = SubResource("roof_mat")
+
+[node name="RidgeBeam" type="MeshInstance3D" parent="." unique_id=255269229]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 4.62, 0)
+mesh = SubResource("ridge_beam_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="DoorFrame" type="MeshInstance3D" parent="." unique_id=1553511770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.475, 3.02)
+mesh = SubResource("door_frame_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="Door" type="MeshInstance3D" parent="." unique_id=1829815296]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 3.07)
+mesh = SubResource("door_mesh")
+surface_material_override/0 = SubResource("door_mat")
+
+[node name="DoorKnob" type="MeshInstance3D" parent="." unique_id=25693308]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.32, 1.35, 3.15)
+mesh = SubResource("knob_mesh")
+surface_material_override/0 = SubResource("metal_mat")
+
+[node name="WindowFrameLeft" type="MeshInstance3D" parent="." unique_id=1630636997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.9, 3.03)
+mesh = SubResource("window_frame_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="WindowLeft" type="MeshInstance3D" parent="." unique_id=138936438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.9, 3.06)
+mesh = SubResource("window_mesh")
+surface_material_override/0 = SubResource("glass_mat")
+
+[node name="SillLeft" type="MeshInstance3D" parent="." unique_id=443118447]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.31, 3.06)
+mesh = SubResource("sill_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="WindowFrameRight" type="MeshInstance3D" parent="." unique_id=1375177012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.9, 3.03)
+mesh = SubResource("window_frame_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="WindowRight" type="MeshInstance3D" parent="." unique_id=2114596176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.9, 3.06)
+mesh = SubResource("window_mesh")
+surface_material_override/0 = SubResource("glass_mat")
+
+[node name="SillRight" type="MeshInstance3D" parent="." unique_id=968633461]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.31, 3.06)
+mesh = SubResource("sill_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="Chimney" type="MeshInstance3D" parent="." unique_id=735544832]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 2.3, -1.5)
+mesh = SubResource("chimney_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="ChimneyCap" type="MeshInstance3D" parent="." unique_id=1419421973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 4.7, -1.5)
+mesh = SubResource("chimney_cap_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="Step" type="MeshInstance3D" parent="." unique_id=46895089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.125, 3.55)
+mesh = SubResource("step_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="ChoppingBlock" type="MeshInstance3D" parent="." unique_id=698404444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.25, 4.4)
+mesh = SubResource("stump_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="ChoppingBlockTop" type="MeshInstance3D" parent="." unique_id=623832798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.52, 4.4)
+mesh = SubResource("stump_top_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="AxeHandle" type="MeshInstance3D" parent="." unique_id=1400186652]
+transform = Transform3D(0.766, 0.643, 0, -0.643, 0.766, 0, 0, 0, 1, 2.86, 0.81, 4.4)
+mesh = SubResource("handle_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="AxeHead" type="MeshInstance3D" parent="." unique_id=562715769]
+transform = Transform3D(0.766, 0.643, 0, -0.643, 0.766, 0, 0, 0, 1, 2.62, 0.56, 4.4)
+mesh = SubResource("axe_head_mesh")
+surface_material_override/0 = SubResource("metal_mat")
+
+[node name="Firewood1" type="MeshInstance3D" parent="." unique_id=917551536]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.13, 1.2)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood2" type="MeshInstance3D" parent="." unique_id=1766712847]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.13, 1.47)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood3" type="MeshInstance3D" parent="." unique_id=53618287]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.13, 1.74)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood4" type="MeshInstance3D" parent="." unique_id=1855106036]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.13, 2.01)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood5" type="MeshInstance3D" parent="." unique_id=407633318]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.36, 1.33)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood6" type="MeshInstance3D" parent="." unique_id=19136452]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.36, 1.6)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood7" type="MeshInstance3D" parent="." unique_id=164661301]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.36, 1.87)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood8" type="MeshInstance3D" parent="." unique_id=943064875]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.59, 1.46)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Firewood9" type="MeshInstance3D" parent="." unique_id=72760315]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 2.95, 0.59, 1.73)
+mesh = SubResource("firewood_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="Barrel" type="MeshInstance3D" parent="." unique_id=464389730]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, 0.425, 3.6)
+mesh = SubResource("barrel_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="Crate" type="MeshInstance3D" parent="." unique_id=2102318211]
+transform = Transform3D(0.966, 0, -0.259, 0, 1, 0, 0.259, 0, 0.966, -2.6, 0.325, 4.3)
+mesh = SubResource("crate_mesh")
+surface_material_override/0 = SubResource("log_b_mat")
+
+[node name="PathStone1" type="MeshInstance3D" parent="." unique_id=658438512]
+transform = Transform3D(0.985, 0, -0.174, 0, 1, 0, 0.174, 0, 0.985, 0, 0.04, 4.2)
+mesh = SubResource("path_stone_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="PathStone2" type="MeshInstance3D" parent="." unique_id=1547433631]
+transform = Transform3D(0.978, 0, 0.208, 0, 1, 0, -0.208, 0, 0.978, 0.3, 0.04, 5.1)
+mesh = SubResource("path_stone_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="PathStone3" type="MeshInstance3D" parent="." unique_id=18704407]
+transform = Transform3D(0.99, 0, -0.139, 0, 1, 0, 0.139, 0, 0.99, -0.2, 0.04, 6)
+mesh = SubResource("path_stone_mesh")
+surface_material_override/0 = SubResource("stone_mat")
+
+[node name="BodyCollision" type="CollisionShape3D" parent="." unique_id=1712523820]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+shape = SubResource("body_shape")

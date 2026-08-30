@@ -1,0 +1,209 @@
+[gd_scene format=3 uid="uid://coj4madk105an"]
+
+[ext_resource type="Script" uid="uid://d3uxq2q6b06sf" path="res://scripts/player/player.gd" id="player_script"]
+[ext_resource type="Script" path="res://scripts/player/axe.gd" id="axe_script"]
+[ext_resource type="Script" path="res://scripts/player/carry_system.gd" id="carry_script"]
+[ext_resource type="Script" path="res://scripts/ui/interact_hint.gd" id="hint_script"]
+[ext_resource type="Script" path="res://scripts/ui/money_display.gd" id="money_script"]
+
+[sub_resource type="StyleBoxFlat" id="money_panel_style"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.09, 0.08, 0.06, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="CapsuleShape3D" id="player_capsule"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="axe_wood"]
+albedo_color = Color(0.52, 0.36, 0.22, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="axe_grip"]
+albedo_color = Color(0.28, 0.19, 0.13, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="axe_steel"]
+albedo_color = Color(0.55, 0.57, 0.6, 1)
+metallic = 0.85
+roughness = 0.4
+
+[sub_resource type="CylinderMesh" id="axe_handle"]
+material = SubResource("axe_wood")
+top_radius = 0.019
+bottom_radius = 0.027
+height = 0.6
+
+[sub_resource type="CylinderMesh" id="axe_knob"]
+material = SubResource("axe_wood")
+top_radius = 0.026
+bottom_radius = 0.032
+height = 0.05
+
+[sub_resource type="CylinderMesh" id="axe_grip_wrap"]
+material = SubResource("axe_grip")
+top_radius = 0.029
+bottom_radius = 0.029
+height = 0.16
+
+[sub_resource type="BoxMesh" id="axe_eye"]
+material = SubResource("axe_steel")
+size = Vector3(0.048, 0.075, 0.1)
+
+[sub_resource type="BoxMesh" id="axe_poll"]
+material = SubResource("axe_steel")
+size = Vector3(0.042, 0.06, 0.05)
+
+[sub_resource type="PrismMesh" id="axe_blade_wedge"]
+material = SubResource("axe_steel")
+size = Vector3(0.04, 0.14, 0.18)
+
+[node name="Player" type="CharacterBody3D" unique_id=1648239105]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("player_script")
+walk_speed = 6.5
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=388728802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("player_capsule")
+
+[node name="Head" type="Node3D" parent="." unique_id=558235030]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera" type="Camera3D" parent="Head" unique_id=495771373]
+cull_mask = 1048573
+fov = 80.0
+
+[node name="AimRay" type="RayCast3D" parent="Head/Camera"]
+target_position = Vector3(0, 0, -2.5)
+collision_mask = 5
+collide_with_areas = true
+
+[node name="AxeViewModel" type="Node3D" parent="Head/Camera" node_paths=PackedStringArray("aim_ray")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.36, -0.64, -0.65)
+script = ExtResource("axe_script")
+aim_ray = NodePath("../AimRay")
+
+[node name="SwingPivot" type="Node3D" parent="Head/Camera/AxeViewModel"]
+transform = Transform3D(0.95793, -0.13258, 0.2546, 0.17196, 0.97523, -0.13917, -0.22983, 0.17711, 0.957, 0, 0, 0)
+
+[node name="Model" type="Node3D" parent="Head/Camera/AxeViewModel/SwingPivot"]
+
+[node name="Handle" type="MeshInstance3D" parent="Head/Camera/AxeViewModel/SwingPivot/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("axe_handle")
+
+[node name="Knob" type="MeshInstance3D" parent="Head/Camera/AxeViewModel/SwingPivot/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("axe_knob")
+
+[node name="GripWrap" type="MeshInstance3D" parent="Head/Camera/AxeViewModel/SwingPivot/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("axe_grip_wrap")
+
+[node name="Eye" type="MeshInstance3D" parent="Head/Camera/AxeViewModel/SwingPivot/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, -0.03)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("axe_eye")
+
+[node name="Poll" type="MeshInstance3D" parent="Head/Camera/AxeViewModel/SwingPivot/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0.045)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("axe_poll")
+
+[node name="Blade" type="MeshInstance3D" parent="Head/Camera/AxeViewModel/SwingPivot/Model"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.56, -0.115)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("axe_blade_wedge")
+
+[node name="CarrySystem" type="Node" parent="." node_paths=PackedStringArray("camera", "aim_ray", "axe")]
+script = ExtResource("carry_script")
+camera = NodePath("../Head/Camera")
+aim_ray = NodePath("../Head/Camera/AimRay")
+axe = NodePath("../Head/Camera/AxeViewModel")
+
+[node name="VMCameraSync" type="RemoteTransform3D" parent="Head/Camera"]
+remote_path = NodePath("../../../HUD/ViewModelContainer/ViewModelViewport/ViewModelCamera")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="ViewModelContainer" type="SubViewportContainer" parent="HUD"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+stretch = true
+
+[node name="ViewModelViewport" type="SubViewport" parent="HUD/ViewModelContainer"]
+transparent_bg = true
+handle_input_locally = false
+render_target_update_mode = 4
+
+[node name="ViewModelCamera" type="Camera3D" parent="HUD/ViewModelContainer/ViewModelViewport"]
+cull_mask = 2
+fov = 55.0
+near = 0.02
+
+[node name="Crosshair" type="ColorRect" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.0
+offset_top = -2.0
+offset_right = 2.0
+offset_bottom = 2.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.7)
+
+[node name="InteractHint" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -110.0
+offset_right = 400.0
+offset_bottom = -80.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 0.85)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+script = ExtResource("hint_script")
+
+[node name="MoneyPanel" type="PanelContainer" parent="HUD"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -170.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 56.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("money_panel_style")
+
+[node name="MoneyLabel" type="Label" parent="HUD/MoneyPanel"]
+theme_override_colors/font_color = Color(1, 0.94, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 0.85)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 2
+vertical_alignment = 1
+script = ExtResource("money_script")

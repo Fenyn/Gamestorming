@@ -1,0 +1,142 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/sell_bin.gd" id="sell_bin_script"]
+
+[sub_resource type="BoxShape3D" id="sell_zone_shape"]
+size = Vector3(2, 1.2, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="plank_mat"]
+albedo_color = Color(0.38, 0.29, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="dark_wood_mat"]
+albedo_color = Color(0.28, 0.2, 0.14, 1)
+
+[sub_resource type="StandardMaterial3D" id="cut_wood_mat"]
+albedo_color = Color(0.55, 0.44, 0.31, 1)
+
+[sub_resource type="BoxMesh" id="base_mesh"]
+size = Vector3(2.2, 0.12, 1.4)
+
+[sub_resource type="BoxMesh" id="long_wall_mesh"]
+size = Vector3(2.2, 0.8, 0.1)
+
+[sub_resource type="BoxMesh" id="side_wall_mesh"]
+size = Vector3(0.1, 0.8, 1.2)
+
+[sub_resource type="BoxMesh" id="post_mesh"]
+size = Vector3(0.14, 1, 0.14)
+
+[sub_resource type="BoxMesh" id="sign_post_mesh"]
+size = Vector3(0.1, 1.6, 0.1)
+
+[sub_resource type="BoxMesh" id="sign_plaque_mesh"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="BoxShape3D" id="base_shape"]
+size = Vector3(2.2, 0.12, 1.4)
+
+[sub_resource type="BoxShape3D" id="long_wall_shape"]
+size = Vector3(2.2, 0.8, 0.1)
+
+[sub_resource type="BoxShape3D" id="side_wall_shape"]
+size = Vector3(0.1, 0.8, 1.2)
+
+[sub_resource type="BoxShape3D" id="sign_post_shape"]
+size = Vector3(0.1, 1.6, 0.1)
+
+[sub_resource type="BoxShape3D" id="sign_plaque_shape"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[node name="SellBin" type="StaticBody3D"]
+script = ExtResource("sell_bin_script")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("base_mesh")
+surface_material_override/0 = SubResource("plank_mat")
+
+[node name="WallFront" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.65)
+mesh = SubResource("long_wall_mesh")
+surface_material_override/0 = SubResource("plank_mat")
+
+[node name="WallBack" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -0.65)
+mesh = SubResource("long_wall_mesh")
+surface_material_override/0 = SubResource("plank_mat")
+
+[node name="WallLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.55, 0)
+mesh = SubResource("side_wall_mesh")
+surface_material_override/0 = SubResource("plank_mat")
+
+[node name="WallRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0.55, 0)
+mesh = SubResource("side_wall_mesh")
+surface_material_override/0 = SubResource("plank_mat")
+
+[node name="PostFrontLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.08, 0.5, 0.68)
+mesh = SubResource("post_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="PostFrontRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.08, 0.5, 0.68)
+mesh = SubResource("post_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="PostBackLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.08, 0.5, -0.68)
+mesh = SubResource("post_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="PostBackRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.08, 0.5, -0.68)
+mesh = SubResource("post_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="SignPost" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 0.8, 0)
+mesh = SubResource("sign_post_mesh")
+surface_material_override/0 = SubResource("dark_wood_mat")
+
+[node name="SignPlaque" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 1.35, 0.04)
+mesh = SubResource("sign_plaque_mesh")
+surface_material_override/0 = SubResource("cut_wood_mat")
+
+[node name="BaseCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("base_shape")
+
+[node name="WallFrontCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.65)
+shape = SubResource("long_wall_shape")
+
+[node name="WallBackCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -0.65)
+shape = SubResource("long_wall_shape")
+
+[node name="WallLeftCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.55, 0)
+shape = SubResource("side_wall_shape")
+
+[node name="WallRightCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0.55, 0)
+shape = SubResource("side_wall_shape")
+
+[node name="SignPostCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 0.8, 0)
+shape = SubResource("sign_post_shape")
+
+[node name="SignPlaqueCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 1.35, 0.04)
+shape = SubResource("sign_plaque_shape")
+
+[node name="SellZone" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 5
+
+[node name="SellZoneShape" type="CollisionShape3D" parent="SellZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("sell_zone_shape")

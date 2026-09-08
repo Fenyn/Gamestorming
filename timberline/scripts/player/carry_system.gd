@@ -75,6 +75,14 @@ func _physics_process(_delta: float) -> void:
 		if not captured:
 			_set_hint("")
 			return
+		# Stations offering interact() (the cabin catalog) take priority
+		# over picking things up.
+		var interactable: Object = _aim_interactable()
+		if interactable != null:
+			_set_hint(String(interactable.call("interact_hint")))
+			if Input.is_action_just_pressed("interact"):
+				interactable.call("interact")
+			return
 		var target: RigidBody3D = _aim_target()
 		_update_hint(target)
 		if target != null and Input.is_action_just_pressed("interact") \
@@ -93,6 +101,17 @@ func _physics_process(_delta: float) -> void:
 		_hold()
 
 
+## The aimed collider offering interact() + interact_hint(), if any.
+func _aim_interactable() -> Object:
+	if aim_ray == null or not aim_ray.is_colliding():
+		return null
+	var collider: Object = aim_ray.get_collider()
+	if collider != null and collider.has_method("interact") \
+			and collider.has_method("interact_hint"):
+		return collider
+	return null
+
+
 ## The carryable rigid body under the crosshair, if any.
 func _aim_target() -> RigidBody3D:
 	if aim_ray == null or not aim_ray.is_colliding():
@@ -109,6 +128,8 @@ func _pick_up(body: RigidBody3D) -> void:
 	_saved_can_sleep = body.can_sleep
 	body.can_sleep = false
 	body.sleeping = false
+	# A log frozen on a station comes free when grabbed.
+	body.freeze = false
 	body.add_collision_exception_with(_player)
 	# Stations (the sell bin) skip bodies still in the player's hands.
 	body.set_meta("carried", true)
@@ -224,12 +245,17 @@ func _after_release() -> void:
 func _update_hint(target: RigidBody3D) -> void:
 	if target == null:
 		_set_hint("")
-	elif target.mass > _player.max_drag_mass:
-		_set_hint("Too heavy to budge — %d kg" % roundi(target.mass))
+		return
+	var hint: String
+	if target.mass > _player.max_drag_mass:
+		hint = "Too heavy to budge — %d kg" % roundi(target.mass)
 	elif target.mass > _player.max_carry_mass:
-		_set_hint("E drag  (%d kg)" % roundi(target.mass))
+		hint = "E drag  (%d kg)" % roundi(target.mass)
 	else:
-		_set_hint("E pick up  (%d kg)" % roundi(target.mass))
+		hint = "E pick up  (%d kg)" % roundi(target.mass)
+	if target is TrunkPiece and (target as TrunkPiece).has_active_cut():
+		hint += "  ·  right-click reset cut"
+	_set_hint(hint)
 
 
 func _set_hint(text: String) -> void:

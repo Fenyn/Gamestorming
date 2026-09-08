@@ -100,6 +100,9 @@ func generate() -> void:
 func receive_chop(damage: float, _point: Vector3, normal: Vector3) -> void:
 	if Engine.is_editor_hint() or _felled or _health == null:
 		return
+	if not _position_owned():
+		EventBus.notification_requested.emit("This isn't your land yet — see the cabin catalog")
+		return
 	var away: Vector3 = Vector3(-normal.x, 0.0, -normal.z)
 	var fall_dir: Vector3
 	if away.length_squared() > 0.001:
@@ -112,6 +115,15 @@ func receive_chop(damage: float, _point: Vector3, normal: Vector3) -> void:
 	else:
 		_felled = true
 		_fell(fall_dir)
+
+
+## Chops only land on owned plots; without a ForestManager (tests,
+## isolated scenes) everything is fair game.
+func _position_owned() -> bool:
+	var manager: Node = get_tree().get_first_node_in_group("forest_manager")
+	if manager == null:
+		return true
+	return bool(manager.call("is_position_owned", global_position))
 
 
 ## Small rock in the fall direction so a chop reads without sfx yet.
@@ -172,6 +184,7 @@ func _spawn_stump() -> void:
 	rng.randomize()
 	var stump: StaticBody3D = StaticBody3D.new()
 	stump.name = "Stump"
+	stump.add_to_group("stumps")
 	var mesh: MeshInstance3D = MeshInstance3D.new()
 	mesh.mesh = ConiferMeshBuilder.build_stump_mesh(rng, _spec, STUMP_HEIGHT)
 	stump.add_child(mesh)

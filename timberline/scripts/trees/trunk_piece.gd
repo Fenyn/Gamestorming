@@ -4,10 +4,13 @@ extends RigidBody3D
 ## tree. Bucking is manual: chops build cut progress at the hit point
 ## (a notch ring marks the active cut; moving the aim resets it), and a
 ## finished cut splits the piece in two, emitting EventBus.log_bucked.
-## Pieces at or under MAX_LOG_LENGTH are finished logs and take no
-## further cuts. Every piece is in the "carryable" group; CarrySystem
-## lifts the light ones and ground-drags the heavy ones. Axe damage
-## adds progress per chop, so faster tools shorten the work later.
+## Pieces at or under MAX_LOG_LENGTH count as finished logs (sell id,
+## splitting block), but stay cuttable via can_cut() until further
+## subdivision would drop a segment under MIN_SEGMENT_MASS or
+## MIN_PIECE — so a heavy butt log can always be cut down to something
+## liftable. Every piece is in the "carryable" group; CarrySystem lifts
+## the light ones and ground-drags the heavy ones. Axe damage adds
+## progress per chop, so faster tools shorten the work later.
 
 ## Pieces this short are finished logs.
 const MAX_LOG_LENGTH: float = 1.5
@@ -16,9 +19,13 @@ const CUT_CHOPS: int = 3
 ## A chop within this distance of the active cut adds to it; farther
 ## starts a new cut.
 const CUT_GROUP_RADIUS: float = 0.35
-## Cuts can't land closer than this to either end. Also the smallest
-## chunk a player can make when cutting weight down for carrying.
-const MIN_PIECE: float = 0.4
+## Cuts can't land closer than this to either end. Kept short so that
+## on thick butt wood the weight floor below, not length, is what ends
+## subdivision — dense pieces can always be cut down to liftable.
+const MIN_PIECE: float = 0.25
+## No cut may produce a segment lighter than this, and pieces that
+## can't yield two such segments take no further cuts.
+const MIN_SEGMENT_MASS: float = 8.0
 
 var spec: ConiferMeshBuilder.ConiferSpec = null
 var start_m: float = 0.0
@@ -87,16 +94,50 @@ func is_log() -> bool:
 	return piece_length() <= MAX_LOG_LENGTH + 0.01
 
 
-## Cut position along the piece a chop at this point would land on.
+## Whether another cut is possible: both would-be segments must clear
+## MIN_PIECE in length and MIN_SEGMENT_MASS in weight.
+func can_cut() -> bool:
+	return piece_length() >= 2.0 * MIN_PIECE and mass >= 2.0 * MIN_SEGMENT_MASS
+
+
+## Cut position along the piece a chop at this point would land on,
+## clamped so neither side ends up under MIN_PIECE or MIN_SEGMENT_MASS.
 func projected_cut_m(point: Vector3) -> float:
-	return clampf(to_local(point).y, MIN_PIECE, piece_length() - MIN_PIECE)
+	var length: float = piece_length()
+	var low: float = maxf(MIN_PIECE, _min_length_for_mass(true))
+	var high: float = minf(length - MIN_PIECE, length - _min_length_for_mass(false))
+	if low > high:
+		return length * 0.5
+	return clampf(to_local(point).y, low, high)
+
+
+## Shortest segment length from one end whose wood reaches
+## MIN_SEGMENT_MASS, by bisection on the volume integral.
+func _min_length_for_mass(from_bottom: bool) -> float:
+	var length: float = piece_length()
+	var lo: float = 0.0
+	var hi: float = length
+	for i in 20:
+		var mid: float = (lo + hi) * 0.5
+		var segment_mass: float
+		if from_bottom:
+			segment_mass = ConiferMeshBuilder.trunk_volume(spec, start_m, start_m + mid) \
+				* ConiferMeshBuilder.WOOD_DENSITY
+		else:
+			segment_mass = ConiferMeshBuilder.trunk_volume(spec, end_m - mid, end_m) \
+				* ConiferMeshBuilder.WOOD_DENSITY
+		if segment_mass < MIN_SEGMENT_MASS:
+			lo = mid
+		else:
+			hi = mid
+	return hi
 
 
 ## Diegetic bucking preview while the axe hovers this piece: an amber
 ## ring at the projected cut, and the weights of the two would-be
 ## segments floating over each side. Driven per-frame by the axe.
 func show_cut_preview(point: Vector3) -> void:
-	if is_log():
+	if not can_cut():
 		return
 	_ensure_preview_nodes()
 	var cut: float = projected_cut_m(point)
@@ -118,6 +159,20 @@ func show_cut_preview(point: Vector3) -> void:
 		label.visible = true
 		label.text = "%d kg" % roundi(masses[i])
 		label.position = Vector3(0.0, cut + offsets[i], 0.0) + up_local * (r + 0.3)
+
+
+func has_active_cut() -> bool:
+	return _cut_m >= 0.0
+
+
+## De-buck: abandon the started cut so the line can be moved. Chopping
+## far from the notch also restarts it, but this clears it outright.
+func clear_cut() -> void:
+	_cut_m = -1.0
+	_cut_progress = 0
+	if _notch != null:
+		_notch.queue_free()
+		_notch = null
 
 
 func hide_cut_preview() -> void:
@@ -155,8 +210,14 @@ func _ensure_preview_nodes() -> void:
 
 
 func receive_chop(damage: float, point: Vector3, normal: Vector3) -> void:
+	# Loaded on a splitting block: the station owns the chop.
+	if has_meta("split_station"):
+		var station: Object = get_meta("split_station")
+		if station != null and is_instance_valid(station):
+			station.call("chop_loaded", damage, point, normal)
+			return
 	apply_impulse(-normal * 8.0, point - global_position)
-	if is_log():
+	if not can_cut():
 		return
 	var cut: float = projected_cut_m(point)
 	if _cut_m >= 0.0 and absf(cut - _cut_m) <= CUT_GROUP_RADIUS:

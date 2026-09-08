@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/player/carry_system.gd" id="carry_script"]
 [ext_resource type="Script" path="res://scripts/ui/interact_hint.gd" id="hint_script"]
 [ext_resource type="Script" path="res://scripts/ui/money_display.gd" id="money_script"]
+[ext_resource type="Script" path="res://scripts/ui/notification_label.gd" id="notification_script"]
 
 [sub_resource type="StyleBoxFlat" id="money_panel_style"]
 content_margin_left = 14.0
@@ -187,6 +188,23 @@ theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 script = ExtResource("hint_script")
+
+[node name="NotificationLabel" type="Label" parent="HUD"]
+anchor_left = 0.5
+anchor_top = 0.3
+anchor_right = 0.5
+anchor_bottom = 0.3
+offset_left = -400.0
+offset_top = -16.0
+offset_right = 400.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.05, 0.85)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+script = ExtResource("notification_script")
 
 [node name="MoneyPanel" type="PanelContainer" parent="HUD"]
 anchor_left = 1.0

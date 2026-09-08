@@ -50,10 +50,21 @@ var _player: Player = null
 @onready var swing_pivot: Node3D = $SwingPivot
 
 
+## Chop damage with the sharp_axe upgrade owned.
+const SHARP_AXE_DAMAGE: float = 2.0
+
+
 func _ready() -> void:
 	_rest_position = position
 	_pivot_rest_rotation = swing_pivot.rotation
 	_player = owner as Player
+	_apply_upgrades()
+	EventBus.upgrade_purchased.connect(func(_id: String) -> void: _apply_upgrades())
+
+
+func _apply_upgrades() -> void:
+	if GameManager.has_upgrade("sharp_axe"):
+		damage = SHARP_AXE_DAMAGE
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -68,8 +79,22 @@ func _process(delta: float) -> void:
 	_update_buck_preview()
 	if _swinging or _lowered or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		return
+	if Input.is_action_just_pressed("secondary"):
+		_clear_aimed_cut()
 	if Input.is_action_pressed("primary"):
 		_swing()
+
+
+## De-buck: right-click on a trunk piece with a started cut wipes the
+## notch so the cut line can be placed fresh. (While carrying, the axe
+## is lowered and secondary belongs to the carry toss instead.)
+func _clear_aimed_cut() -> void:
+	if aim_ray == null or not aim_ray.is_colliding():
+		return
+	var collider: Object = aim_ray.get_collider()
+	if collider is TrunkPiece and (collider as TrunkPiece).has_active_cut():
+		(collider as TrunkPiece).clear_cut()
+		Fx.dust_puff(self, aim_ray.get_collision_point(), 0.15)
 
 
 ## CarrySystem stows the axe while something is carried; the lowered
@@ -94,7 +119,7 @@ func _update_buck_preview() -> void:
 		var collider: Object = aim_ray.get_collider()
 		if collider is TrunkPiece:
 			var piece: TrunkPiece = collider
-			if not piece.is_log():
+			if piece.can_cut():
 				target = piece
 	if _hovered_piece != null and is_instance_valid(_hovered_piece) and _hovered_piece != target:
 		_hovered_piece.hide_cut_preview()

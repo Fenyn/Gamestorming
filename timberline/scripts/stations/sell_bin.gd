@@ -8,8 +8,10 @@ extends StaticBody3D
 
 const SELL_DELAY: float = 0.7
 const SCAN_INTERVAL: float = 0.25
-const LOG_PRICE_PER_KG: float = 0.5
-const BRANCH_PRICE_PER_KG: float = 0.3
+const LOG_PRICE_PER_KG: float = 0.15
+const BRANCH_PRICE_PER_KG: float = 0.075
+## Processed wood pays double the raw rate: splitting is worth the work.
+const FIREWOOD_PRICE_PER_KG: float = 0.3
 
 var _pending: Dictionary[RigidBody3D, float] = {}
 var _scan_accum: float = 0.0
@@ -45,6 +47,8 @@ func _physics_process(delta: float) -> void:
 
 ## Sale price in whole dollars; 0 marks the body unsellable.
 func _value_of(body: RigidBody3D) -> int:
+	if body is Firewood:
+		return maxi(1, roundi(body.mass * FIREWOOD_PRICE_PER_KG))
 	if body is TrunkPiece:
 		return maxi(1, roundi(body.mass * LOG_PRICE_PER_KG))
 	if body is LimbDebris and not (body as LimbDebris).foliage:
@@ -55,7 +59,9 @@ func _value_of(body: RigidBody3D) -> int:
 func _sell(body: RigidBody3D) -> void:
 	var value: int = _value_of(body)
 	var product_id: String = "branch"
-	if body is TrunkPiece:
+	if body is Firewood:
+		product_id = "firewood"
+	elif body is TrunkPiece:
 		product_id = "log" if (body as TrunkPiece).is_log() else "timber"
 	Fx.dust_puff(self, body.global_position, 0.5)
 	_spawn_cash_label(body.global_position + Vector3.UP * 0.5, value)

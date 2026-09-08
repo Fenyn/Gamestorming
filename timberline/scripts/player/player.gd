@@ -22,6 +22,16 @@ extends CharacterBody3D
 ## Speed multiplier at a full max_carry_mass load.
 @export_range(0.05, 1.0) var carry_speed_floor: float = 0.25
 
+## Body-pushing: walking into a rigid body (a downed trunk, a big
+## trunk piece) shoves it at the contact point. Effective push force in
+## newtons; heavy bodies barely beat ground friction and creep.
+const PUSH_FORCE: float = 3900.0
+## Acceleration cap just above ground friction (~9.8 m/s^2), so even
+## light bodies only scoot, m/s^2.
+const PUSH_ACCEL_CAP: float = 14.0
+## Never push a body past this speed, m/s.
+const PUSH_MAX_SPEED: float = 0.4
+
 ## Mass of whatever is being carried, kg. Set by CarrySystem.
 var carried_mass: float = 0.0
 
@@ -64,6 +74,29 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target.z, acceleration * speed * delta)
 
 	move_and_slide()
+	_push_bodies(delta)
+
+
+## Shove rigid bodies the capsule slid against this frame, horizontally
+## only. Applied at the contact point so pushing a trunk's end pivots it.
+func _push_bodies(delta: float) -> void:
+	for i in get_slide_collision_count():
+		var collision: KinematicCollision3D = get_slide_collision(i)
+		var body: RigidBody3D = collision.get_collider() as RigidBody3D
+		if body == null or body.freeze:
+			continue
+		var dir: Vector3 = -collision.get_normal()
+		dir.y = 0.0
+		if dir.length_squared() < 0.001:
+			continue
+		dir = dir.normalized()
+		if body.linear_velocity.dot(dir) > PUSH_MAX_SPEED:
+			continue
+		var accel: float = minf(PUSH_FORCE / body.mass, PUSH_ACCEL_CAP)
+		body.apply_impulse(
+			dir * (body.mass * accel * delta),
+			collision.get_position() - body.global_position
+		)
 
 
 ## 1.0 unburdened, carry_speed_floor at a full load.

@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/splitting_block.gd" id="splitting_block_script"]
+
+[sub_resource type="StandardMaterial3D" id="block_bark_mat"]
+albedo_color = Color(0.33, 0.25, 0.17, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="block_cut_mat"]
+albedo_color = Color(0.55, 0.44, 0.31, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="block_mesh"]
+material = SubResource("block_bark_mat")
+top_radius = 0.42
+bottom_radius = 0.5
+height = 0.55
+radial_segments = 9
+
+[sub_resource type="CylinderMesh" id="block_top_mesh"]
+material = SubResource("block_cut_mat")
+top_radius = 0.4
+bottom_radius = 0.4
+height = 0.04
+radial_segments = 9
+
+[sub_resource type="CylinderShape3D" id="block_shape"]
+height = 0.55
+radius = 0.46
+
+[sub_resource type="BoxShape3D" id="load_zone_shape"]
+size = Vector3(1.6, 1, 1)
+
+[node name="SplittingBlock" type="StaticBody3D"]
+script = ExtResource("splitting_block_script")
+
+[node name="BlockMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+mesh = SubResource("block_mesh")
+
+[node name="BlockTopMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+mesh = SubResource("block_top_mesh")
+
+[node name="BlockCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+shape = SubResource("block_shape")
+
+[node name="LoadZone" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="LoadZoneShape" type="CollisionShape3D" parent="LoadZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("load_zone_shape")

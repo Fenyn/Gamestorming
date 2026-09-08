@@ -8,19 +8,14 @@ extends RigidBody3D
 ## penetration recovery snaps the flat trunk base upright against any
 ## starting spin or torque; past TIP_RELEASE_ANGLE the body unfreezes
 ## with matched velocities and dynamics take over. On landing (a
-## contact on the upper trunk) it kills most of its momentum, breaks
-## some of the limbs it lands on loose as debris bodies, and bends the
-## rest toward the ground with a springy settle.
+## contact on the upper trunk) it kills most of its momentum and breaks
+## some of the limbs it lands on loose as debris bodies.
 ##
 ## detach_limb() is public: the delimbing axe chop reuses it.
 
 ## Contact beyond this fraction of tree height from the base counts as
 ## the canopy/upper trunk hitting the ground.
 const LAND_CONTACT_T: float = 0.4
-## Attached limbs compress to this scale along the ground axis.
-const BEND_SCALE: float = 0.8
-## How far bent limbs sink toward the ground, in meters.
-const BEND_SINK: float = 0.06
 ## Chance that a limb in the impact zone snaps off on landing.
 const LAND_DETACH_CHANCE: float = 0.6
 const LAND_DETACH_MAX: int = 4
@@ -242,7 +237,6 @@ func _convert_to_trunk() -> void:
 
 
 func _on_landed() -> void:
-	var down_local: Vector3 = (global_basis.orthonormalized().inverse() * Vector3.DOWN).normalized()
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 	var detached: int = 0
@@ -258,8 +252,6 @@ func _on_landed() -> void:
 			)
 			Fx.needle_burst(self, body.global_position, 0.5)
 			detached += 1
-		else:
-			_bend_limb(limb, down_local, rng)
 
 	# Dust kicked up along the grounded stretch of trunk, needles shaken
 	# out of the canopy.
@@ -268,33 +260,3 @@ func _on_landed() -> void:
 		var t: float = lerpf(0.3, 0.95, float(i) / 3.0)
 		Fx.dust_puff(self, global_position + trunk_axis * (t * spec.height), 0.7)
 	Fx.needle_burst(self, global_position + trunk_axis * (spec.height * 0.7), 1.2)
-
-
-## Springy elastic settle: the limb compresses toward the ground about
-## its attachment point and shakes out a small random twist.
-func _bend_limb(limb: MeshInstance3D, down_local: Vector3, rng: RandomNumberGenerator) -> void:
-	var rest: Transform3D = limb.transform
-	var jitter_axis: Vector3 = Vector3(
-		rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0)
-	).normalized()
-	var jitter: float = rng.randf_range(0.05, 0.14)
-	var apply: Callable = func(f: float) -> void:
-		var squashed: Basis = _squash_basis(down_local, lerpf(1.0, BEND_SCALE, f))
-		limb.transform = Transform3D(
-			squashed.rotated(jitter_axis, jitter * f) * rest.basis,
-			rest.origin + down_local * (BEND_SINK * f)
-		)
-	var tween: Tween = create_tween()
-	tween.tween_method(apply, 0.0, 1.0, rng.randf_range(0.5, 0.9)) \
-		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT) \
-		.set_delay(rng.randf_range(0.0, 0.08))
-
-
-## Basis scaling by k along `axis`, identity across it.
-static func _squash_basis(axis: Vector3, k: float) -> Basis:
-	var s: float = k - 1.0
-	return Basis(
-		Vector3(1.0, 0.0, 0.0) + axis * (s * axis.x),
-		Vector3(0.0, 1.0, 0.0) + axis * (s * axis.y),
-		Vector3(0.0, 0.0, 1.0) + axis * (s * axis.z)
-	)

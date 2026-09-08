@@ -43,7 +43,7 @@ public sealed record SheetTip(
 /// One hoverable fragment of an overview row: the words it prints and what it explains. A text
 /// row prints its entries as a "·"-joined line; a chip row prints one chip each.
 /// </summary>
-public sealed record SheetEntry(string Label, SheetTip? Tip = null);
+public sealed record SheetEntry(string Label, SheetTip? Tip = null, string? ItemId = null);
 
 /// <summary>One of the six ability boxes: the three-letter code, the signed modifier the box
 /// prints large, the raw score under it, and whether this is the class's key ability.</summary>

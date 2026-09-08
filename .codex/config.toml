@@ -1,0 +1,2 @@
+﻿# Use Astra for Codex CLI and the Claude Codex plugin in this repository.
+model = "gpt-6-astra"

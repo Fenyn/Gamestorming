@@ -77,7 +77,7 @@ internal static class HeroSheetLoadout
             $"{definition.ItemName ?? "Strike"} {HeroSheetBuilder.Signed(attack)}",
             HeroSheetGearTips.Strike(
                 character, characterClass, level, weapon, attack, damageMod, damage,
-                Traits(definition)));
+                Traits(definition)), definition.ItemId);
     }
 
     /// <summary>The traits that change how the strike is used, read off the weapon's own trait
@@ -111,12 +111,12 @@ internal static class HeroSheetLoadout
 
         var armor = equipment?.WornArmorDef;
         chips.Add(armor != null
-            ? new SheetEntry(armor.ItemName ?? "Armour", HeroSheetGearTips.Armor(armor))
+            ? new SheetEntry(armor.ItemName ?? "Armour", HeroSheetGearTips.Armor(armor), armor.ItemId)
             : new SheetEntry("Unarmoured", HeroSheetGearTips.Unarmoured()));
 
         var shield = equipment?.Shield?.EquippedShield;
         if (shield != null)
-            chips.Add(new SheetEntry(shield.ItemName ?? "Shield", HeroSheetGearTips.Shield(shield)));
+            chips.Add(new SheetEntry(shield.ItemName ?? "Shield", HeroSheetGearTips.Shield(shield), shield.ItemId));
         return chips;
     }
 

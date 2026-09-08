@@ -36,6 +36,7 @@ project/assembly_name="Delve"
 
 [gui]
 
+timers/tooltip_delay_sec=0.1
 theme/custom="res://assets/ui/ui_theme.tres"
 
 [input]

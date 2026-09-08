@@ -44,6 +44,12 @@ public static class ThemeNames
     public const string SheetCaptionSmall = "SheetCaptionSmall";
     public const string TraitChip = "TraitChip";
     public const string TipFooter = "TipFooter";
+    public const string MapHpHigh = "MapHpHigh";
+    public const string MapHpMid = "MapHpMid";
+    public const string MapHpLow = "MapHpLow";
+
+    public static string MapHpBarFor(float ratio)
+        => ratio > 0.5f ? MapHpHigh : ratio > 0.25f ? MapHpMid : MapHpLow;
 
     /// <summary>HP-bar variation for a remaining-HP ratio — same 0.5 / 0.25 thresholds as
     /// <see cref="UiColors.HpFillColor"/>.</summary>

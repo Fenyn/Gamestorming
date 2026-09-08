@@ -39,7 +39,7 @@ public static class MapNodeShapes
         var closed = new Vector2[points.Length + 1];
         points.CopyTo(closed, 0);
         closed[^1] = points[0];
-        c.DrawPolyline(closed, rim, rimWidth, true);
+        c.DrawPolyline(closed, rim, rimWidth, false);
     }
 
     private static Vector2[] Polygon(Vector2 center, float r, int sides, float startAngle)

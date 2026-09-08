@@ -1,0 +1,95 @@
+[gd_scene format=3 uid="uid://rn7d5nbf5a40"]
+
+[ext_resource type="Script" uid="uid://dl1sk8c3lq1nw" path="res://scripts/flow/RunMapStatus.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/run/map_party_member.tscn" id="2_member"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="map_theme"]
+[ext_resource type="PackedScene" path="res://scenes/run/run_map_recovery.tscn" id="recovery"]
+
+[node name="RunMapStatus" type="VBoxContainer" unique_id=295572526]
+theme = ExtResource("map_theme")
+theme_override_constants/separation = 16
+script = ExtResource("1")
+MemberScene = ExtResource("2_member")
+
+[node name="WardPanel" type="PanelContainer" parent="." unique_id=133232796]
+layout_mode = 2
+theme_type_variation = &"MapWardPanel"
+
+[node name="Content" type="VBoxContainer" parent="WardPanel" unique_id=405204880]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="WardPanel/Content" unique_id=1679048819]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WardHeading" type="Label" parent="WardPanel/Content/Header" unique_id=1683800801]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MapHeading"
+text = "Wardstone"
+
+[node name="WardValue" type="Label" parent="WardPanel/Content" unique_id=1161976227]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapWardValue"
+text = "100 / 100"
+
+[node name="WardBar" type="ProgressBar" parent="WardPanel/Content" unique_id=658707098]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 1
+theme_type_variation = &"MapWardBar"
+show_percentage = false
+
+[node name="RestSegment" type="Panel" parent="WardPanel/Content/WardBar"]
+visible = false
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.85
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_type_variation = &"MapWardRestSegment"
+
+[node name="WardHint" type="Label" parent="WardPanel/Content" unique_id=391686182]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHint"
+text = "The ward holds."
+autowrap_mode = 2
+
+[node name="RestDivider" type="HSeparator" parent="WardPanel/Content"]
+layout_mode = 2
+
+[node name="Recovery" parent="WardPanel/Content" instance=ExtResource("recovery")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PartyPanel" type="PanelContainer" parent="." unique_id=540086925]
+layout_mode = 2
+theme_type_variation = &"MapSidebarPanel"
+
+[node name="Content" type="VBoxContainer" parent="PartyPanel" unique_id=583862172]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PartyHeading" type="Label" parent="PartyPanel/Content" unique_id=2102387370]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHeading"
+text = "Your party"
+
+[node name="PartyLevel" type="Label" parent="PartyPanel/Content" unique_id=1215982004]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHint"
+autowrap_mode = 2
+
+[node name="PartyStatus" type="VBoxContainer" parent="PartyPanel/Content" unique_id=494312639]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+

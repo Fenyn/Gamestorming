@@ -57,15 +57,18 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 ## Node map
 
 - One tree per floor. Slay the Spire shape: `Floors` rows x `Lanes` columns, several upward paths with lane drift of at most 1, merged where they cross.
+- Lines never cross. A walk refuses a lane swap when the opposite edge between those two rows already exists, so two paths trade lanes only by merging.
 - Deterministic per floor from `(runSeed, stratum)`. Same seed, same trees.
-- Kind rules (rows within one tree): row 0 = Combat; last row = Boss; the row before Boss = Rest; no Elite before row 3; no Rest or Elite adjacent on one path; remaining nodes weighted Combat > Event > Rest > Elite.
+- Kind rules (rows within one tree): row 0 = Combat; last row = Boss; the row before Boss = Rest; no Elite before row 3; no Rest before row 3, because a night's rest is a dead pick until the party has spent HP, slots or focus; no Rest on the row feeding the forced Campsite; no Rest or Elite adjacent on one path; remaining nodes weighted Combat > Event > Rest > Elite.
+- Floors carry a minimum: at least one Elite and at least one Rest outside the forced pre-boss row. The weighted roll alone left about 40% of maps with no Elite, so a top-up pass re-kinds Combat or Event nodes that have no neighbour of that kind.
+- At least two entrances. The second walk always starts on a different lane from the first.
 - Kinds: Combat = Skirmish, Elite = Lair, Event = Happenstance, Rest = Campsite, Boss = the floor's boss (the Depths Warden on the last floor).
 
 ## Day and time
 
 - Travel between nodes costs no tracked time.
-- Each day allows 3 ten-minute short rests, taken from the map. Activities, one per block, whole party: Treat Wounds, Refocus, Repair Shield. Short rests also consume ward.
-- A Campsite node = night's rest: heal Con mod x level (min 1) per member, remove Wounded, refresh daily spells and focus, start a new day, reset the short-rest budget.
+- Ten-minute short rests are taken from the map, as many as the ward pays for. Activities, one per block, whole party: Treat Wounds, Refocus, Repair Shield. Ward is the only cost. Each block burns ward and the thinner ward makes every later generated fight harder. A rest that would put the ward out is refused, so the party can never rest itself to death. No daily allowance.
+- A Campsite node = night's rest: heal Con mod x level (min 1) per member, remove Wounded, refresh daily spells and focus, start a new day.
 - Spell slots come back only at a Campsite.
 
 ## After a fight
@@ -89,7 +92,8 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Each floor sets a base threat distribution for generated fights (floor 1 low/moderate with rare severe; deeper floors drop low and add severe and extreme). As the ward burns down, every rolled tier is upshifted, by up to 3 steps, into a custom Lethal tier above the book budgets.
 - A Lair adds a further tier on top of its roll (Slay the Spire elite; the bonus is tunable).
 - Encounter budgets count every party member, dead or alive.
-- Short rests consume ward.
+- Short rests consume ward. That burn is the whole price of resting, so healing up now buys harder fights later. Resting stops once the ward is down to one rest's worth.
+- Ward 0 ends the run in defeat, party alive or not. The fog takes them. Only passive burn can get there, since resting stops short of it (`NodeBurn` is 0 today, so nothing reaches 0 yet).
 - A Campsite night's rest restores part of the ward; beating a floor's boss restores all of it.
 - Outpost upgrades increase ward power and duration.
 - The floor's roster and the depth ramp set which creature levels fill a budget; a party below a floor's roster still fights that roster's nearest levels.
@@ -149,8 +153,8 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Terrain biomes for the floor themes: grassland dress, deep-forest dress, swamp (new); all floors generate forest boards until then.
 - Node roster expansion (proposed: Meeting, Cache; Campsite doubles as extraction point) and extraction flow.
 - Second-character identity in the opening; early join order.
-- Food / fatigue mechanics (seam: DayClock and short-rest budget).
-- Wardstone details: passive burn unit; whether the upshift governs events and guest encounters; replace or layer under the 3-rests-per-day budget.
+- Food / fatigue mechanics (seam: DayClock, which still counts days and blocks).
+- Wardstone details: passive burn unit; whether the upshift governs events and guest encounters.
 - Reputation system mechanics.
 - Guest placement in a run (node type, position).
 - Slot unlock costs; upgrade tracks and currency amounts.

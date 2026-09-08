@@ -1,20 +1,28 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/CombatLogPanel.cs" id="1_log"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_log_entry.tscn" id="2_entry"]
 
 [node name="CombatLogPanel" type="Control"]
 layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -400.0
-offset_top = 64.0
-offset_right = -12.0
-offset_bottom = -170.0
+offset_left = -456.0
+offset_top = 80.0
+offset_right = -16.0
+offset_bottom = -180.0
 grow_horizontal = 0
 grow_vertical = 1
 mouse_filter = 2
 script = ExtResource("1_log")
+CompactWidth = 440.0
+HistoryWidth = 560.0
+CompactActions = 3
+CompactMaxHeight = 360.0
+DetailsMaxHeight = 620.0
+EntryScene = ExtResource("2_entry")
 
 [node name="Col" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -24,61 +32,60 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
 
-[node name="Ticker" type="PanelContainer" parent="Col"]
+[node name="Shell" type="PanelContainer" parent="Col"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
-tooltip_text = "Click (or press L) to expand the combat log"
-theme_type_variation = &"HudInset"
+mouse_filter = 0
+theme_type_variation = &"CombatLogSurface"
 
-[node name="TickerCol" type="VBoxContainer" parent="Col/Ticker"]
+[node name="Content" type="VBoxContainer" parent="Col/Shell"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ToggleLog" type="Button" parent="Col/Shell/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+theme_type_variation = &"CombatLogToggle"
+text = "Combat log    L    Expand +"
+alignment = 0
+
+[node name="DiceToggle" type="CheckButton" parent="Col/Shell/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"CombatLogToggle"
+text = "Dice rolls"
+tooltip_text = "Show the latest resolved d20 roll on screen"
+
+[node name="Rule" type="HSeparator" parent="Col/Shell/Content"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 2
 
-[node name="TickerLine0" type="Label" parent="Col/Ticker/TickerCol"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-mouse_filter = 2
-text = ""
-clip_text = true
-theme_type_variation = &"ChipLabel"
-
-[node name="TickerLine1" type="Label" parent="Col/Ticker/TickerCol"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-mouse_filter = 2
-text = ""
-clip_text = true
-theme_type_variation = &"ChipLabel"
-
-[node name="TickerLine2" type="Label" parent="Col/Ticker/TickerCol"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-mouse_filter = 2
-text = ""
-clip_text = true
-theme_type_variation = &"ChipLabel"
-
-[node name="Expanded" type="PanelContainer" parent="Col"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_vertical = 3
-theme_type_variation = &"HudPanel"
-
-[node name="ExpCol" type="VBoxContainer" parent="Col/Expanded"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="Log" type="RichTextLabel" parent="Col/Expanded/ExpCol"]
+[node name="LogScroll" type="ScrollContainer" parent="Col/Shell/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-bbcode_enabled = true
-scroll_following = true
+horizontal_scroll_mode = 0
+
+[node name="Entries" type="VBoxContainer" parent="Col/Shell/Content/LogScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+[node name="Footer" type="HBoxContainer" parent="Col/Shell/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="EntryCount" type="Label" parent="Col/Shell/Content/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CombatLogCaption"
+text = "No entries yet"
+
+[node name="Latest" type="Button" parent="Col/Shell/Content/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"CombatLogToggle"
+text = "Jump to latest"

@@ -12,8 +12,9 @@ using PF2e.Data;
 namespace Delve.Dev;
 
 /// <summary>
-/// Headless regression for the ten-minute activities. Asserts the day budget (three blocks, the
-/// fourth refused), the two Treat Wounds extremes forced through <c>dcOverride</c> (a guaranteed
+/// Headless regression for the ten-minute activities. Asserts that blocks are priced in ward alone
+/// and refused before one could put the ward out, the two Treat Wounds extremes forced through
+/// <c>dcOverride</c> (a guaranteed
 /// critical success heals and clears Wounded; a guaranteed critical failure damages but can never
 /// push a member below 1 HP), and that Refocus and Repair Shield run over the preset party without
 /// throwing.
@@ -32,23 +33,40 @@ public partial class RunShortRestSpike : SpikeBase
 
         var rules = new RecoveryRules();
 
-        // (1) Budget: three blocks a day, the fourth refused.
-        GD.Print("-------------------- (1) Day budget --------------------");
+        // (1) No daily cap. Ward is the only cost, and resting stops before it puts the ward out.
+        GD.Print("-------------------- (1) Ward is the only cost --------------------");
         var party = BuildParty();
         var clock = new DayClock();
+        var wardstone = new Wardstone();
 
-        var first = ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules);
-        var second = ShortRest.Perform(party, clock, ShortRestKind.RepairShield, null, rules);
-        var third = ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules);
-        var fourth = ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules);
+        var taken = new List<ShortRestResult>();
+        while (wardstone.CanAffordShortRest)
+        {
+            taken.Add(ShortRest.Perform(
+                party, clock, taken.Count % 2 == 0 ? ShortRestKind.Refocus : ShortRestKind.RepairShield,
+                null, rules, wardstone: wardstone));
+        }
+        int affordable = taken.Count;
+        var refused = ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules, wardstone: wardstone);
 
-        Check("(1) three ten-minute blocks are taken",
-            first.Performed && second.Performed && third.Performed);
-        Check("(1) the fourth is refused", !fourth.Performed);
-        Check($"(1) the refusal says why: '{fourth.Reason}'", !string.IsNullOrEmpty(fourth.Reason));
-        Check("(1) the budget is spent, not overspent", clock.ShortRestsUsed == clock.ShortRestsPerDay);
+        bool allAffordablePerformed = true;
+        foreach (var block in taken)
+            allAffordablePerformed &= block.Performed;
+
+        Check($"(1) the {affordable} blocks the ward pays for are taken, past the old three-a-day cap",
+            affordable > 3 && allAffordablePerformed);
+        Check($"(1) the clock counted them ({clock.ShortRestsToday})", clock.ShortRestsToday == affordable);
+        Check("(1) the day did not roll over on its own", clock.Day == 1);
+        Check($"(1) resting never puts the ward out ({wardstone.Ward} left)",
+            wardstone.Ward > 0 && !wardstone.IsSpent);
+        Check($"(1) the ward left is under one rest ({wardstone.Rules.ShortRestBurn})",
+            wardstone.Ward <= wardstone.Rules.ShortRestBurn);
+        Check("(1) the next block is refused", !refused.Performed);
+        Check($"(1) the refusal says why: '{refused.Reason}'", !string.IsNullOrEmpty(refused.Reason));
+        Check("(1) the refused block burns no ward and no time",
+            clock.ShortRestsToday == affordable && wardstone.Ward > 0);
         Check("(1) Refocus and Repair Shield produced report lines",
-            first.Lines.Count > 0 && second.Lines.Count > 0);
+            taken[0].Lines.Count > 0 && taken[1].Lines.Count > 0);
 
         // (2) Treat Wounds, forced critical success.
         GD.Print("-------------------- (2) Treat Wounds, DC 0 --------------------");

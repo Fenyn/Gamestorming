@@ -1,10 +1,14 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/SheetSection.cs" id="1_section"]
+[ext_resource type="PackedScene" path="res://scenes/ui/item_icon_entry.tscn" id="2_item"]
+[ext_resource type="Resource" path="res://assets/ui/item_icons.tres" id="3_icons"]
 
 [node name="SheetSection" type="VBoxContainer"]
 theme_override_constants/separation = 6
 script = ExtResource("1_section")
+ItemEntryScene = ExtResource("2_item")
+ItemIcons = ExtResource("3_icons")
 
 [node name="HeadingBand" type="HBoxContainer" parent="."]
 layout_mode = 2

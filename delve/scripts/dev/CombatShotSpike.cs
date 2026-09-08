@@ -88,6 +88,26 @@ public partial class CombatShotSpike : SpikeBase
         PressToggle("SkillsButton");
         await WaitSeconds(PoseSeconds);
         Capture("combat_shot_skills.png");
+        if (FindChild("SkillsButton", recursive: true, owned: false) is Button skills) skills.ButtonPressed = false;
+        var log = GetNode<CombatScene>("CombatTest/Combat").GetNode<Delve.UI.CombatLogPanel>("%CombatLog");
+        CombatLogSamples.Fill(log);
+        await WaitSeconds(PoseSeconds);
+        Capture("combat_log_compact.png");
+        log.Rows[^1].GetNode<Button>("%Disclosure").ButtonPressed = true;
+        await WaitSeconds(PoseSeconds);
+        Capture("combat_log_entry_expanded.png");
+        log.SetExpanded(true);
+        await WaitSeconds(PoseSeconds);
+        Capture("combat_log_history.png");
+        var diceToggle = log.GetNode<CheckButton>("%DiceToggle");
+        bool diceWasEnabled = diceToggle.ButtonPressed;
+        diceToggle.ButtonPressed = true;
+        log.AppendEntry("Aldric Strikes Hunting Spider with Longsword", 8, false);
+        log.AppendEntry("d20(19)+10=29 vs AC 17 → CriticalSuccess", 2, true);
+        log.Rows[^1].GetNode<Button>("%Disclosure").ButtonPressed = true;
+        await WaitSeconds(PoseSeconds);
+        Capture("combat_dice_roll.png");
+        diceToggle.ButtonPressed = diceWasEnabled;
     }
 
     private OrbitCameraRig? Rig() =>

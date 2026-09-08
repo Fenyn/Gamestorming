@@ -47,6 +47,7 @@ public partial class RunDirector : Node
     private EventPanel _eventPanel = null!;
     private RestPanel _restPanel = null!;
     private ShortRestPanel _shortRestPanel = null!;
+    private bool _shortRestResolved;
     private RunEndPanel _runEndPanel = null!;
 
     private RunState? _state;
@@ -154,6 +155,8 @@ public partial class RunDirector : Node
 
         // Passive ward burn per node. Inert at the default NodeBurn of 0.
         _state.Wardstone.BurnNode();
+        if (EndOnSpentWard()) return;
+
         var node = _state.CurrentNode!;
         switch (node.Kind)
         {
@@ -311,7 +314,8 @@ public partial class RunDirector : Node
     /// <summary>Open the ten-minute activity screen from the map.</summary>
     public void OpenShortRest()
     {
-        if (_state == null) return;
+        if (_state == null || Phase != RunPhase.Map) return;
+        _shortRestResolved = false;
         _shortRestPanel.Show(_state);
         SetPhase(RunPhase.ShortRest);
     }
@@ -319,14 +323,29 @@ public partial class RunDirector : Node
     /// <summary>Spend one ten-minute block. The panel shows the lines it produced.</summary>
     public void TakeShortRest(ShortRestKind kind, PF2eCharacter? target)
     {
-        if (_state == null) return;
-        if (Phase != RunPhase.ShortRest)
-            OpenShortRest();
+        if (_state == null || Phase != RunPhase.ShortRest || _shortRestResolved) return;
+        _shortRestResolved = true;
+        int wardBefore = _state.Wardstone.Ward;
 
         var result = ShortRest.Perform(
             _state.Party, _state.Clock, kind, target, new RecoveryRules(),
             wardstone: _state.Wardstone);
-        _shortRestPanel.ShowResult(result);
+        _shortRestPanel.ShowResult(result, _state, wardBefore);
+        EndOnSpentWard();
+    }
+
+    /// <summary>
+    /// End the run when the ward has gone out (design/core_concept.md, "Wardstone"). Called after
+    /// every burn. True when it ended the run, so the caller stops what it was doing.
+    /// </summary>
+    private bool EndOnSpentWard()
+    {
+        if (_state == null || !_state.Wardstone.IsSpent || _state.Outcome != RunOutcome.InProgress)
+            return false;
+
+        GD.Print("[RunDirector] the ward is out - the run ends.");
+        EndRun(RunOutcome.Defeat);
+        return true;
     }
 
     /// <summary>Leave the ten-minute screen and return to the map.</summary>

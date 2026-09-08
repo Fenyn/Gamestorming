@@ -12,6 +12,7 @@ namespace Delve.Flow;
 /// </summary>
 public partial class MapNodeButton : Button
 {
+    public Color? PartyAccent { get; set; }
     private const float ShapeInset = 8f;
     private const float PulseSpeed = 2.6f;
 
@@ -90,10 +91,11 @@ public partial class MapNodeButton : Button
         {
             // Still ahead on some path, just not pickable yet. A light fade keeps the kind
             // colour readable - the Warden included, so it looms from the entrance.
-            rim = kindColor.Lerp(UiColors.TextDisabled, 0.45f);
+            rim = kindColor.Lerp(UiColors.TextDisabled, 0.20f);
         }
 
         MapNodeShapes.Draw(this, center, _shapeRadius, _kind, face, rim, rimWidth);
+        MapNodeGlyphs.Draw(this, center, _kind, rim);
 
         if (HasFocus())
         {
@@ -105,11 +107,11 @@ public partial class MapNodeButton : Button
             DrawPartyMarker(center);
     }
 
-    /// <summary>Ember chevron floating above the node the party stands on.</summary>
+    /// <summary>Leader-colored chevron floating above the node the party stands on.</summary>
     private void DrawPartyMarker(Vector2 center)
     {
         var tip = center + new Vector2(0f, -_shapeRadius - 12f + Mathf.Sin(_time * PulseSpeed) * 2.5f);
-        var accent = UiColors.Accent;
+        var accent = PartyAccent ?? UiColors.Accent;
         DrawLine(tip + new Vector2(-7f, -7f), tip, accent, 3f, true);
         DrawLine(tip + new Vector2(7f, -7f), tip, accent, 3f, true);
     }

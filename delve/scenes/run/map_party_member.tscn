@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="map_theme"]
+
+[ext_resource type="Script" path="res://scripts/flow/MapPartyMember.cs" id="1"]
+
+[node name="MapPartyMember" type="VBoxContainer"]
+theme = ExtResource("map_theme")
+layout_mode = 2
+theme_override_constants/separation = 6
+script = ExtResource("1")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MemberName" type="Label" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+theme_type_variation = &"MapBody"
+
+[node name="MemberHealth" type="Label" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+
+theme_type_variation = &"MapBody"
+
+[node name="MemberBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 5)
+show_percentage = false
+mouse_filter = 2
+
+[node name="MemberCondition" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHint"

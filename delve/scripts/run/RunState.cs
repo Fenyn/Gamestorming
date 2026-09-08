@@ -130,11 +130,11 @@ public sealed class RunState
 
     /// <summary>Generate floor 1's map for a seed and stand the party at the entrance, before any pick.</summary>
     public static RunState Start(
-        int seed, Party party, RunMapConfig config, int shortRestsPerDay = 3,
+        int seed, Party party, RunMapConfig config,
         WardstoneRules? wardRules = null, LevelingRules? leveling = null)
     {
         return new RunState(
-            seed, party, config, new DayClock(shortRestsPerDay), new Wardstone(wardRules),
+            seed, party, config, new DayClock(), new Wardstone(wardRules),
             leveling ?? new LevelingRules());
     }
 }

@@ -22,4 +22,19 @@ public sealed record RunMapConfig
 
     /// <summary>Earliest floor an Elite may appear on.</summary>
     public int MinEliteFloor { get; init; } = 3;
+
+    /// <summary>
+    /// Earliest floor a Rest may appear on. Below this the party has not spent enough HP, slots or
+    /// focus for a night's rest to be worth a node, so an early Campsite is a dead pick.
+    /// </summary>
+    public int MinRestFloor { get; init; } = 3;
+
+    /// <summary>
+    /// Elites the map must hold. The weighted roll alone leaves a large share of maps with no Elite
+    /// at all, so the generator promotes nodes until it reaches this count.
+    /// </summary>
+    public int MinElites { get; init; } = 1;
+
+    /// <summary>Rests the map must hold on the free floors, on top of the forced pre-boss Campsite.</summary>
+    public int MinMidRests { get; init; } = 1;
 }

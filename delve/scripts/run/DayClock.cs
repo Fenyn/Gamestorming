@@ -1,43 +1,26 @@
 namespace Delve.Run;
 
 /// <summary>
-/// The run's PF2e time layer. Travel between nodes costs nothing tracked; each day allows a fixed
-/// number of ten-minute short rests, and a Campsite node ends the day and refills the budget.
+/// The run's PF2e time layer. Travel costs no tracked time and a ten-minute short rest is paid for
+/// in ward rather than in a daily allowance (design/core_concept.md, "Wardstone"). The clock counts
+/// the day and the blocks taken within it, which gives short-rest dice a stable position to seed
+/// from, and a Campsite node ends the day so the daily PF2e resources refresh.
 /// </summary>
 public sealed class DayClock
 {
-    public DayClock(int shortRestsPerDay = 3)
-    {
-        ShortRestsPerDay = shortRestsPerDay < 0 ? 0 : shortRestsPerDay;
-    }
-
     /// <summary>Days elapsed, starting at 1.</summary>
     public int Day { get; private set; } = 1;
 
-    /// <summary>Ten-minute blocks already spent today.</summary>
-    public int ShortRestsUsed { get; private set; }
+    /// <summary>Ten-minute blocks taken since the day began.</summary>
+    public int ShortRestsToday { get; private set; }
 
-    /// <summary>Ten-minute blocks allowed per day.</summary>
-    public int ShortRestsPerDay { get; }
+    /// <summary>Count one ten-minute block against the current day.</summary>
+    public void SpendShortRest() => ShortRestsToday++;
 
-    /// <summary>Blocks left today.</summary>
-    public int ShortRestsRemaining => ShortRestsPerDay - ShortRestsUsed;
-
-    /// <summary>True while a ten-minute activity can still be taken today.</summary>
-    public bool CanShortRest => ShortRestsUsed < ShortRestsPerDay;
-
-    /// <summary>Consume one block. False, and no change, when the budget is spent.</summary>
-    public bool SpendShortRest()
-    {
-        if (!CanShortRest) return false;
-        ShortRestsUsed++;
-        return true;
-    }
-
-    /// <summary>A night's rest: next day, budget back to full.</summary>
+    /// <summary>A night's rest: next day, block count back to zero.</summary>
     public void NewDay()
     {
         Day++;
-        ShortRestsUsed = 0;
+        ShortRestsToday = 0;
     }
 }

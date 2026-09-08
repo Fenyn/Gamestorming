@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/RunMapRecovery.cs" id="1"]
+
+[node name="RunMapRecovery" type="VBoxContainer"]
+script = ExtResource("1")
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShortRestButton" type="Button" parent="." unique_id=259741291]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_type_variation = &"MapRestButton"
+text = "Short Rest"
+
+[node name="RestCost" type="Label" parent="." unique_id=1915680006]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHint"
+autowrap_mode = 2

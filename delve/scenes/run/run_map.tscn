@@ -1,95 +1,175 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://bc4jtg751w535"]
 
-[ext_resource type="Script" path="res://scripts/flow/RunMapPanel.cs" id="1_map"]
-[ext_resource type="Shader" path="res://assets/shaders/map_backdrop.gdshader" id="2_fog"]
+[ext_resource type="Script" uid="uid://brgtk8iga0hea" path="res://scripts/flow/RunMapPanel.cs" id="1_map"]
+[ext_resource type="PackedScene" uid="uid://rn7d5nbf5a40" path="res://scenes/run/run_map_status.tscn" id="3_status"]
+[ext_resource type="Theme" uid="uid://clsn1ia4xf7iu" path="res://assets/ui/ui_theme.tres" id="map_theme"]
 
-[sub_resource type="ShaderMaterial" id="sm_backdrop"]
-shader = ExtResource("2_fog")
+[ext_resource type="Resource" path="res://assets/ui/run_map_accent.tres" id="5_accent"]
+[ext_resource type="PackedScene" path="res://scenes/run/map_scenery.tscn" id="scenery"]
 
-[node name="RunMap" type="Control"]
+[node name="RunMap" type="Control" unique_id=1456264387]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("map_theme")
 script = ExtResource("1_map")
+AccentTheme = ExtResource("5_accent")
+LaneSpacing = 168.0
+FloorSpacing = 106.0
 
-[node name="Dim" type="Panel" parent="."]
+[node name="Ground" type="Panel" parent="." unique_id=1365377862]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_type_variation = &"ModalDim"
+mouse_filter = 2
+theme_type_variation = &"MapGround"
 
-[node name="Layout" type="VBoxContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=765455592]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
 
-[node name="Strip" type="PanelContainer" parent="Layout"]
+[node name="Layout" type="VBoxContainer" parent="Margin" unique_id=1316468219]
 layout_mode = 2
-theme_type_variation = &"HudPanel"
+theme_override_constants/separation = 20
 
-[node name="StripBox" type="VBoxContainer" parent="Layout/Strip"]
+[node name="Header" type="VBoxContainer" parent="Margin/Layout" unique_id=1004867858]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 24
 
-[node name="TopRow" type="HBoxContainer" parent="Layout/Strip/StripBox"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="ClockLabel" type="Label" parent="Layout/Strip/StripBox/TopRow"]
-unique_name_in_owner = true
+[node name="Identity" type="VBoxContainer" parent="Margin/Layout/Header" unique_id=804253659]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
+theme_override_constants/separation = 2
 
-[node name="ShortRestButton" type="Button" parent="Layout/Strip/StripBox/TopRow"]
+[node name="FloorLabel" type="Label" parent="Margin/Layout/Header/Identity" unique_id=1485122526]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Take 10 minutes"
+theme_type_variation = &"MapScreenHint"
+text = "FLOOR 1 / 3"
+horizontal_alignment = 1
 
-[node name="PartyLabel" type="Label" parent="Layout/Strip/StripBox"]
+[node name="FloorTitle" type="Label" parent="Margin/Layout/Header/Identity" unique_id=716241228]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
+theme_type_variation = &"BannerLabel"
+text = "The Fringe"
+horizontal_alignment = 1
 
-[node name="Board" type="CenterContainer" parent="Layout"]
+[node name="Body" type="HBoxContainer" parent="Margin/Layout" unique_id=2089008257]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 24
 
-[node name="MapFrame" type="PanelContainer" parent="Layout/Board"]
+[node name="SidebarScroll" type="ScrollContainer" parent="Margin/Layout/Body" unique_id=431481160]
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
-theme_type_variation = &"HudPanel"
+horizontal_scroll_mode = 0
 
-[node name="Backdrop" type="ColorRect" parent="Layout/Board/MapFrame"]
+[node name="Sidebar" type="VBoxContainer" parent="Margin/Layout/Body/SidebarScroll" unique_id=1122166632]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="Status" parent="Margin/Layout/Body/SidebarScroll/Sidebar" unique_id=428894023 instance=ExtResource("3_status")]
 unique_name_in_owner = true
-material = SubResource("sm_backdrop")
 layout_mode = 2
-mouse_filter = 2
 
-[node name="MapMargin" type="MarginContainer" parent="Layout/Board/MapFrame"]
+[node name="MapColumn" type="VBoxContainer" parent="Margin/Layout/Body" unique_id=787959317]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="MapFrame" type="PanelContainer" parent="Margin/Layout/Body/MapColumn" unique_id=2044428633]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MapFrame"
+
+[node name="Scenery" parent="Margin/Layout/Body/MapColumn/MapFrame" instance=ExtResource("scenery")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MapScroll" type="ScrollContainer" parent="Margin/Layout/Body/MapColumn/MapFrame" unique_id=875635211]
+unique_name_in_owner = true
+layout_mode = 2
+follow_focus = true
+
+[node name="Center" type="CenterContainer" parent="Margin/Layout/Body/MapColumn/MapFrame/MapScroll" unique_id=1592690796]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MapMargin" type="MarginContainer" parent="Margin/Layout/Body/MapColumn/MapFrame/MapScroll/Center" unique_id=1694103397]
 layout_mode = 2
 theme_override_constants/margin_left = 28
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 12
 
-[node name="MapArea" type="Control" parent="Layout/Board/MapFrame/MapMargin"]
+[node name="MapArea" type="Control" parent="Margin/Layout/Body/MapColumn/MapFrame/MapScroll/Center/MapMargin" unique_id=1048420102]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="LegendRow" type="HBoxContainer" parent="Layout"]
+[node name="LegendRow" type="HBoxContainer" parent="Margin/Layout/Body/MapColumn" unique_id=650894932]
 unique_name_in_owner = true
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 24
+alignment = 1
+
+[node name="DecisionScroll" type="ScrollContainer" parent="Margin/Layout/Body"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Decisions" type="VBoxContainer" parent="Margin/Layout/Body/DecisionScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="RouteDetail" type="PanelContainer" parent="Margin/Layout/Body/DecisionScroll/Decisions" unique_id=2031151639]
+layout_mode = 2
+theme_type_variation = &"MapSidebarPanel"
+
+[node name="Content" type="VBoxContainer" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail" unique_id=226705095]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DetailCaption" type="Label" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail/Content" unique_id=1418336220]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHint"
+text = "Next destination"
+
+[node name="DetailTitle" type="Label" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail/Content" unique_id=1881463389]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHeading"
+text = "Choose your path"
+autowrap_mode = 2
+
+[node name="DetailBody" type="Label" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail/Content" unique_id=116255468]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapBody"
+text = "Choose a lit destination to travel. Hover or focus a node to inspect it."
+autowrap_mode = 2
+
+[node name="DetailState" type="Label" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail/Content" unique_id=1278798673]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MapHint"
+autowrap_mode = 2

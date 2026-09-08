@@ -2,6 +2,22 @@
 
 Project-specific rules live in each project's own CLAUDE.md (`delve/CLAUDE.md`, `bulwark/`). This file governs everything in the repo, and above all how you write to me.
 
+## Codex / Astra access
+
+The `codex@openai-codex` Claude plugin is enabled for this repo. Codex uses
+`gpt-6-astra` by default via `.codex/config.toml` and the existing Codex login.
+
+- From Claude, use `/codex:rescue --model gpt-6-astra <request>` to ask Astra for help.
+- Add `--resume` for a follow-up or `--fresh` for a separate task.
+- Use `/codex:review` for review, `/codex:status` for job status, and `/codex:setup` to check readiness.
+- Use `/codex:transfer` to transfer Claude conversation context to a resumable Codex thread.
+- From PowerShell, `codex -m gpt-6-astra` opens Astra directly in the current directory.
+
+When I ask you to consult Astra, use the Codex plugin with the explicit model
+`gpt-6-astra`. Include relevant context and file paths because a rescue task does
+not automatically share the entire Claude conversation. Request investigation
+only unless I ask for changes. Avoid simultaneous edits to the same files.
+
 ## Messages to me
 
 I am scanning your messages while doing something else. Long messages get skimmed, and the line that needed an answer gets missed. You are writing a status note, not marketing copy.

@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CombatLogEntryView.cs" id="1"]
+
+[node name="CombatLogEntry" type="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+script = ExtResource("1")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Disclosure" type="Button" parent="Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"CombatLogToggle"
+theme_override_font_sizes/font_size = 22
+text = "+"
+toggle_mode = true
+
+[node name="EntryHeader" type="RichTextLabel" parent="Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+theme_type_variation = &"CombatLogText"
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="DetailsInset" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 34
+
+[node name="EntryDetails" type="RichTextLabel" parent="DetailsInset"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 0
+theme_type_variation = &"CombatLogText"
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+selection_enabled = true

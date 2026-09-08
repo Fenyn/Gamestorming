@@ -11,75 +11,79 @@ namespace Delve.Flow;
 /// The run map: one row per floor, the entrance at the bottom and the Depths Warden at the top.
 /// Every node is a <see cref="MapNodeButton"/> medallion jittered off its grid cell so the chart
 /// reads hand-drawn, wired by <see cref="MapEdgeCanvas"/> dashed trails; the walked path burns
-/// ember and the open choices pulse. Only ids <see cref="RunState.Reachable"/> lists are enabled,
+/// in the leader's color and the open choices pulse. Only ids <see cref="RunState.Reachable"/> lists are enabled,
 /// so the panel cannot pick an illegal move. Passive - it renders what it is handed and signals
 /// the pick outward.
 /// </summary>
 public partial class RunMapPanel : Control
 {
-    private const int LaneSpacing = 150;
-    private const int FloorSpacing = 104;
+    [Export] public RunMapAccentTheme AccentTheme { get; set; } = null!;
+    private Theme _baseTheme = null!;
+    private string? _leaderId;
+    private Color _accent;
+    [Export] public float LaneSpacing { get; set; } = 168f;
+    [Export] public float FloorSpacing { get; set; } = 106f;
     private const float JitterX = 26f;
     private const float JitterY = 14f;
 
     /// <summary>Gap between a medallion's bounding edge and where its trail dashes start.</summary>
     private const float EdgePad = 3f;
-
-    /// <summary>Backdrop fog density per stratum: the mist thickens the deeper the run goes.</summary>
-    [Export] public float[] FogDensityByStratum { get; set; } = { 0.5f, 0.68f, 0.8f };
+    private string _guardianTitle = "Floor guardian";
 
     private Control _mapArea = null!;
-    private Label _clockLabel = null!;
-    private Label _partyLabel = null!;
-    private Button _shortRestButton = null!;
+    private Label _floorLabel = null!;
+    private Label _floorTitle = null!;
+    private Label _detailTitle = null!;
+    private Label _detailBody = null!;
+    private Label _detailState = null!;
+    private RunMapStatus _status = null!;
+    private ScrollContainer _mapScroll = null!;
     private BoxContainer _legendRow = null!;
-    private ColorRect _backdrop = null!;
+    private MapScenery _scenery = null!;
 
     public event Action<int>? NodePicked;
     public event Action? ShortRestPressed;
 
     public override void _Ready()
     {
+        _baseTheme = Theme;
         _mapArea = GetNode<Control>("%MapArea");
-        _clockLabel = GetNode<Label>("%ClockLabel");
-        _partyLabel = GetNode<Label>("%PartyLabel");
-        _shortRestButton = GetNode<Button>("%ShortRestButton");
+        _floorLabel = GetNode<Label>("%FloorLabel");
+        _floorTitle = GetNode<Label>("%FloorTitle");
+        _detailTitle = GetNode<Label>("%DetailTitle");
+        _detailBody = GetNode<Label>("%DetailBody");
+        _detailState = GetNode<Label>("%DetailState");
+        _status = GetNode<RunMapStatus>("%Status");
+        _mapScroll = GetNode<ScrollContainer>("%MapScroll");
         _legendRow = GetNode<BoxContainer>("%LegendRow");
-        _backdrop = GetNode<ColorRect>("%Backdrop");
-        _shortRestButton.Pressed += () => ShortRestPressed?.Invoke();
+        _scenery = GetNode<MapScenery>("%Scenery");
+        _mapScroll.GetVScrollBar().ValueChanged += _ => _scenery.QueueRedraw();
+        _mapScroll.GetHScrollBar().ValueChanged += _ => _scenery.QueueRedraw();
+        _status.RestPressed += () => ShortRestPressed?.Invoke();
         BuildLegend();
     }
 
     /// <summary>Redraw the strip and the whole map from the run's current state.</summary>
     public void Render(RunState state)
     {
-        var clock = state.Clock;
-        var ward = state.Wardstone;
+        if (_leaderId != state.Party.LeaderId)
+        {
+            _leaderId = state.Party.LeaderId;
+            _accent = UiColors.CharacterAccent(_leaderId);
+            Theme = AccentTheme.Build(_baseTheme, _accent);
+            _status.Theme = Theme;
+        }
         var theme = FloorThemes.ForStratum(state.Stratum);
-        _clockLabel.Text = $"Floor {state.Stratum + 1}: {theme.DisplayName}"
-            + $"      Level {state.Party.Level}  XP {state.Xp}/{state.Leveling.XpPerLevel}"
-            + $"      Day {clock.Day}      Ten-minute rests {clock.ShortRestsUsed}/{clock.ShortRestsPerDay}"
-            + $"      Ward {ward.Ward}/{ward.Rules.MaxWard}"
-            + (ward.Upshift > 0 ? $" (threat +{ward.Upshift})" : "");
-        _partyLabel.Text = PartyLines.Summary(state.Party);
+        _floorLabel.Text = $"FLOOR {state.Stratum + 1} / {FloorThemes.Count}";
+        _floorTitle.Text = theme.DisplayName;
+        _guardianTitle = state.Stratum == FloorThemes.Count - 1 ? "Depths Warden" : "Floor guardian";
+        _status.Render(state);
+        _detailTitle.Text = "Choose your path";
+        _detailBody.Text = "Choose a lit destination to travel. Hover or focus a node to inspect it.";
+        _detailState.Text = "";
+        _detailState.Visible = false;
 
-        // Glacial information stays out of the combat HUD; the day and the rest budget live here,
-        // where the player summons them between fights (design/ui_guidelines.md section 2.2).
-        _shortRestButton.Disabled = !clock.CanShortRest;
-        _shortRestButton.TooltipText = clock.CanShortRest ? "" : "Unavailable: no time left today";
-
-        TintBackdrop(theme.Id, state.Stratum);
         RebuildMap(state);
-    }
-
-    /// <summary>Point the fog shader at this floor's palette tones and depth.</summary>
-    private void TintBackdrop(string themeId, int stratum)
-    {
-        if (_backdrop.Material is not ShaderMaterial fog) return;
-        fog.SetShaderParameter("base_color", UiColors.MapBase(themeId));
-        fog.SetShaderParameter("fog_color", UiColors.MapFog(themeId));
-        int i = Math.Clamp(stratum, 0, FogDensityByStratum.Length - 1);
-        fog.SetShaderParameter("fog_density", FogDensityByStratum[i]);
     }
 
     private void RebuildMap(RunState state)
@@ -98,19 +102,44 @@ public partial class RunMapPanel : Control
             centers[node.Id] = Center(node, map) + Jitter(state.Seed, node, map);
 
         var live = LiveNodes(state);
+        _scenery.Configure(state, centers, _mapArea);
         _mapArea.AddChild(BuildEdgeCanvas(state, centers, live));
 
         var reachable = new HashSet<int>(state.Reachable());
         int? current = state.CurrentNodeId;
         foreach (var node in map.Nodes)
         {
-            var button = new MapNodeButton();
+            var button = new MapNodeButton { PartyAccent = _accent };
             button.Setup(node, reachable.Contains(node.Id), current == node.Id, live.Contains(node.Id));
+            if (node.Kind == NodeKind.Boss)
+                button.TooltipText = $"{_guardianTitle}\n{NodeKindInfo.Get(node.Kind).Blurb}";
             button.Position = centers[node.Id] - button.Size / 2f;
             int id = node.Id;
             button.Pressed += () => NodePicked?.Invoke(id);
+            button.MouseEntered += () => ShowDestination(node, reachable.Contains(id), live.Contains(id), current == id);
+            button.FocusEntered += () => ShowDestination(node, reachable.Contains(id), live.Contains(id), current == id);
             _mapArea.AddChild(button);
+            if (current == id || (current == null && id == map.StartIds[0]))
+                Callable.From(() =>
+                {
+                    // Several transitions can rebuild the map before this deferred call runs.
+                    if (IsInstanceValid(button) && _mapScroll.IsAncestorOf(button))
+                        _mapScroll.EnsureControlVisible(button);
+                }).CallDeferred();
         }
+    }
+
+    private void ShowDestination(MapNode node, bool reachable, bool live, bool current)
+    {
+        var entry = NodeKindInfo.Get(node.Kind);
+        _detailTitle.Text = node.Kind == NodeKind.Boss ? _guardianTitle : entry.DisplayName;
+        _detailBody.Text = entry.Blurb;
+        _detailState.Visible = true;
+        _detailState.Text = current ? "Your party is here."
+            : node.Visited ? "Already visited."
+            : reachable ? "Click to travel."
+            : live ? "Further along the path."
+            : "This route is no longer reachable.";
     }
 
     /// <summary>Ids the run can still stand on: the current node and everything downstream of it
@@ -136,7 +165,7 @@ public partial class RunMapPanel : Control
         return live;
     }
 
-    /// <summary>The dashed-trail layer: walked history in ember, the current choices bright,
+    /// <summary>The dashed-trail layer: walked history in the leader's color, the current choices bright,
     /// paths still ahead receding, dead paths nearly gone.</summary>
     private MapEdgeCanvas BuildEdgeCanvas(
         RunState state, IReadOnlyDictionary<int, Vector2> centers, HashSet<int> live)
@@ -172,7 +201,7 @@ public partial class RunMapPanel : Control
             }
         }
 
-        var canvas = new MapEdgeCanvas();
+        var canvas = new MapEdgeCanvas { PartyAccent = _accent };
         canvas.SetAnchorsPreset(LayoutPreset.FullRect);
         canvas.SetEdges(edges);
         return canvas;
@@ -198,15 +227,15 @@ public partial class RunMapPanel : Control
             item.AddChild(glyph);
             item.AddChild(new Label
             {
-                Text = entry.DisplayName,
-                ThemeTypeVariation = ThemeNames.HintLabel,
+                Text = kind == NodeKind.Boss ? "Guardian" : entry.DisplayName,
+                ThemeTypeVariation = "MapLegend",
             });
             _legendRow.AddChild(item);
         }
     }
 
     /// <summary>Pixel centre of a node's grid cell: lanes left to right, floor 0 at the bottom.</summary>
-    private static Vector2 Center(MapNode node, RunMap map) => new(
+    private Vector2 Center(MapNode node, RunMap map) => new(
         node.Lane * LaneSpacing + LaneSpacing / 2f,
         (map.Floors - 1 - node.Floor) * FloorSpacing + FloorSpacing / 2f);
 

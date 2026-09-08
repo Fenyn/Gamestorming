@@ -26,7 +26,7 @@ public static class UiColors
 
     /// <summary>
     /// One character's personal accent, keyed by catalog id, for the identity touches the
-    /// hero-select surfaces carry (portrait strip, name rule, roster strip). Unknown ids take
+    /// hero-select and run-map surfaces carry. Unknown ids take
     /// the base accent, so a new character is never colourless.
     /// </summary>
     public static Color CharacterAccent(string id) => id switch
@@ -123,6 +123,8 @@ public static class UiColors
     public static Color ModalDim => Get("modal_dim");
 
     private static Color[]? _logSeverity;
+    public static Color LogAlly => Get("log_ally");
+    public static Color LogEnemy => Get("log_enemy");
 
     /// <summary>
     /// Combat-log entry colors indexed by PF2e.Core.CombatLogSeverity ordinal (kept as ints so the

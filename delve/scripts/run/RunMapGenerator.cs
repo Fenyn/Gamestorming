@@ -28,13 +28,35 @@ public static class RunMapGenerator
         var cells = new HashSet<(int Floor, int Lane)>();
         var edges = new HashSet<((int, int) From, (int, int) To)>();
 
+        int firstLane = -1;
+        var laneChoices = new List<int>(3);
         for (int p = 0; p < cfg.Paths; p++)
         {
             int lane = rng.Next(cfg.Lanes);
+            // The second walk starts elsewhere, so a map always offers at least two entrances.
+            if (p == 1 && cfg.Lanes > 1)
+            {
+                while (lane == firstLane) lane = rng.Next(cfg.Lanes);
+            }
+            if (p == 0) firstLane = lane;
+
             cells.Add((0, lane));
             for (int floor = 0; floor < bossFloor - 1; floor++)
             {
-                int nextLane = Math.Clamp(lane + rng.Next(-1, 2), 0, cfg.Lanes - 1);
+                laneChoices.Clear();
+                for (int drift = -1; drift <= 1; drift++)
+                {
+                    int candidate = lane + drift;
+                    if (candidate < 0 || candidate >= cfg.Lanes) continue;
+                    // Reject the move that would cross an edge already drawn the other way between
+                    // these two floors, i.e. (floor, candidate) -> (floor + 1, lane). Staying in
+                    // lane can never cross, so the list is never empty.
+                    if (candidate != lane && edges.Contains(((floor, candidate), (floor + 1, lane))))
+                        continue;
+                    laneChoices.Add(candidate);
+                }
+
+                int nextLane = laneChoices[rng.Next(laneChoices.Count)];
                 cells.Add((floor + 1, nextLane));
                 edges.Add(((floor, lane), (floor + 1, nextLane)));
                 lane = nextLane;
@@ -87,8 +109,10 @@ public static class RunMapGenerator
     /// <summary>
     /// Kind rules from design/core_concept.md: floor 0 is Combat, the last floor is the Boss, the
     /// floor before it is a Campsite, Elites never appear before <see cref="RunMapConfig.MinEliteFloor"/>,
-    /// and no Rest or Elite ever follows one of its own kind along a path. Floors are assigned in
-    /// order so every predecessor is already known when a node is rolled.
+    /// and no Rest or Elite ever follows one of its own kind along a path. Rests also wait until
+    /// <see cref="RunMapConfig.MinRestFloor"/>, because a night's rest before the party has spent
+    /// anything is a dead pick. Floors are assigned in order so every predecessor is already known
+    /// when a node is rolled; a top-up pass afterwards enforces the minimum Elite and Rest counts.
     /// </summary>
     private static void AssignKinds(List<MapNode> nodes, int bossFloor, RunMapConfig cfg, Random rng)
     {
@@ -123,6 +147,7 @@ public static class RunMapGenerator
             {
                 if (entry.Weight <= 0) continue;
                 if (entry.Kind == NodeKind.Elite && node.Floor < cfg.MinEliteFloor) continue;
+                if (entry.Kind == NodeKind.Rest && node.Floor < cfg.MinRestFloor) continue;
                 // Every node two floors above the boss leads into the forced Campsite floor, so a
                 // Rest here would put two Campsites back to back on every path through it.
                 if (entry.Kind == NodeKind.Rest && node.Floor == bossFloor - 2) continue;
@@ -134,6 +159,60 @@ public static class RunMapGenerator
 
             node.Kind = candidates.Count == 0 ? NodeKind.Combat : Pick(candidates, rng);
         }
+
+        // The weighted roll on its own leaves a large share of maps with no Lair and some with no
+        // Campsite before the forced one, so top both up to the floor set by the config.
+        Guarantee(nodes, predecessors, NodeKind.Elite, cfg.MinElites,
+                  cfg.MinEliteFloor, bossFloor - 2, rng);
+        Guarantee(nodes, predecessors, NodeKind.Rest, cfg.MinMidRests,
+                  cfg.MinRestFloor, bossFloor - 3, rng);
+    }
+
+    /// <summary>
+    /// Raise the count of <paramref name="kind"/> on floors [minFloor, maxFloor] to
+    /// <paramref name="minimum"/> by re-kinding Combat or Event nodes. A node is only eligible when
+    /// no neighbour on either side already holds the kind, so the "never twice in a row on one
+    /// path" rule survives the promotion. Stops early when nothing is eligible.
+    /// </summary>
+    private static void Guarantee(
+        List<MapNode> nodes, Dictionary<int, List<int>> predecessors, NodeKind kind, int minimum,
+        int minFloor, int maxFloor, Random rng)
+    {
+        if (minimum <= 0 || minFloor > maxFloor) return;
+
+        int have = 0;
+        foreach (var node in nodes)
+        {
+            if (node.Kind == kind && node.Floor >= minFloor && node.Floor <= maxFloor) have++;
+        }
+
+        var eligible = new List<int>();
+        while (have < minimum)
+        {
+            eligible.Clear();
+            foreach (var node in nodes)
+            {
+                if (node.Floor < minFloor || node.Floor > maxFloor) continue;
+                if (node.Kind != NodeKind.Combat && node.Kind != NodeKind.Event) continue;
+                if (HasNeighbourOfKind(nodes, predecessors, node, kind)) continue;
+                eligible.Add(node.Id);
+            }
+            if (eligible.Count == 0) return;
+
+            nodes[eligible[rng.Next(eligible.Count)]].Kind = kind;
+            have++;
+        }
+    }
+
+    private static bool HasNeighbourOfKind(
+        List<MapNode> nodes, Dictionary<int, List<int>> predecessors, MapNode node, NodeKind kind)
+    {
+        if (HasPredecessorOfKind(nodes, predecessors, node.Id, kind)) return true;
+        foreach (int next in node.Next)
+        {
+            if (nodes[next].Kind == kind) return true;
+        }
+        return false;
     }
 
     private static bool HasPredecessorOfKind(

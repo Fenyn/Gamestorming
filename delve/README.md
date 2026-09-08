@@ -21,7 +21,7 @@ Headless, each prints `SPIKE RESULT: PASS`:
 ...console.exe --path G:/Godot/Gamestorming/delve --headless res://scenes/dev/<name>_spike.tscn
 ```
 
-for `combat_juice`, `player_turn`, `encounter_reset`, `reaction_dying`, `reaction_prompt`, `spell_cast`, `terrain_spatial`, `terrain_cliff`, `terrain_skirt`, `terrain_skirt_render`, `elevation_move`, `ai_stack`, `ai_caster`, `strike_audit`, `chassis`, `class_combo`, `run_map`, `run_recovery`, `run_short_rest`, `run_event`, `run_encounter`, `run_flow`, `hero_select`.
+for `combat_juice`, `player_turn`, `encounter_reset`, `reaction_dying`, `reaction_prompt`, `spell_cast`, `terrain_spatial`, `terrain_cliff`, `terrain_skirt`, `terrain_skirt_render`, `elevation_move`, `ai_stack`, `ai_caster`, `strike_audit`, `chassis`, `class_combo`, `run_map`, `run_recovery`, `run_short_rest`, `run_event`, `run_encounter`, `run_flow`, `hero_select`, `combat_log`.
 
 `combat_shot` captures the board, `ui_shot` captures the run's menu screens, `run_map_shot`
 captures the run map fresh and mid-run, and `terrain_skirt_shot` captures top-down and oblique
@@ -36,3 +36,5 @@ WITHOUT `--headless`:
 ```
 
 They write their PNGs to `user://dev_shots` and print each file's OS path.
+
+Combat log: click an action or its + button to expand its details in place. L or More history opens the sidebar. Expanded entries stay visible as new actions arrive; Jump to latest resumes following the log.

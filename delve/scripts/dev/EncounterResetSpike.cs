@@ -159,12 +159,7 @@ public partial class EncounterResetSpike : SpikeBase
     /// <summary>Lines the log panel has written so far (its history label is the only record).</summary>
     private static int LogLines(Control log)
     {
-        var history = log.GetNode<RichTextLabel>("%Log");
-        string text = history.GetParsedText();
-        int lines = 0;
-        foreach (char c in text)
-            if (c == '\n') lines++;
-        return lines;
+        return ((Delve.UI.CombatLogPanel)log).EntryCount;
     }
 
     private static CombatSetup BuildSetup(DataManager data, int party, int enemies, int seed)

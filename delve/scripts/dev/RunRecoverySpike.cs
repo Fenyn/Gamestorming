@@ -64,7 +64,7 @@ public partial class RunRecoverySpike : SpikeBase
         // (3) Campsite night's rest.
         GD.Print("-------------------- (3) LongRest --------------------");
         clock.SpendShortRest();
-        Check("(3) a short rest was spent before resting", clock.ShortRestsUsed == 1);
+        Check("(3) a short rest was taken before resting", clock.ShortRestsToday == 1);
 
         int dayBefore = clock.Day;
         int dyingBefore = dying.Health.CurrentHP;
@@ -75,8 +75,7 @@ public partial class RunRecoverySpike : SpikeBase
             dying.Health.CurrentHP > dyingBefore && slain.Health.CurrentHP > slainBefore);
         Check("(3) Wounded is cleared party-wide", Wounded(dying) == 0 && Wounded(slain) == 0);
         Check("(3) the day advanced", clock.Day == dayBefore + 1);
-        Check("(3) the short-rest budget is back to full",
-            clock.ShortRestsUsed == 0 && clock.ShortRestsRemaining == clock.ShortRestsPerDay);
+        Check("(3) the new day starts with no blocks taken", clock.ShortRestsToday == 0);
 
         // The night's rest heals max(1, Con mod) x level, so a level-2 member gains at least 2 HP.
         int expectedFloor = PartyLevel;

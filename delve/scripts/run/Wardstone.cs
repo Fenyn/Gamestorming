@@ -74,10 +74,29 @@ public sealed class Wardstone
 
     /// <summary>Tiers added to every rolled threat tier at the current ward: 0 while the ward
     /// holds, up to 3 when it is nearly spent.</summary>
-    public int Upshift =>
-        Ward >= Rules.SteadyAbove ? 0
-        : Ward >= Rules.FirstShiftAbove ? 1
-        : Ward >= Rules.SecondShiftAbove ? 2
+    public int Upshift => UpshiftAt(Ward, Rules);
+
+    /// <summary>True once the ward is gone. The fog closes in and the run ends
+    /// (design/core_concept.md, "Wardstone").</summary>
+    public bool IsSpent => Ward <= 0;
+
+    /// <summary>Ward left after one more short rest, floored at 0.</summary>
+    public int WardAfterShortRest => Math.Max(0, Ward - Rules.ShortRestBurn);
+
+    /// <summary>The upshift one more short rest would leave. The UI prices a rest with it.</summary>
+    public int UpshiftAfterShortRest => UpshiftAt(WardAfterShortRest, Rules);
+
+    /// <summary>True while a short rest can be paid for and still leave the stone lit. A rest is
+    /// never allowed to put the ward out, because that ends the run.</summary>
+    public bool CanAffordShortRest => Ward > Rules.ShortRestBurn;
+
+    /// <summary>True when ward remains but too little of it to rest on.</summary>
+    public bool ShortRestWouldSpend => !IsSpent && !CanAffordShortRest;
+
+    private static int UpshiftAt(int ward, WardstoneRules rules) =>
+        ward >= rules.SteadyAbove ? 0
+        : ward >= rules.FirstShiftAbove ? 1
+        : ward >= rules.SecondShiftAbove ? 2
         : 3;
 
     /// <summary>Consume the ward one short rest costs.</summary>

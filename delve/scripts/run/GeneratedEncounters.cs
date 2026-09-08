@@ -30,11 +30,21 @@ public static class GeneratedEncounters
     public static ThreatTier RollTier(
         int stratumSeed, MapNode node, TierWeights weights, int upshift, EncounterGenRules rules)
     {
-        var rng = new Random(RunRng.StableSeed(stratumSeed, node.Id, "tier"));
-        int tier = (int)RollBase(rng, weights);
+        int tier = (int)NodeBaseTier(stratumSeed, node, weights);
         tier += upshift;
         if (node.Kind == NodeKind.Elite) tier += rules.LairTierBonus;
         return (ThreatTier)Math.Min(tier, (int)ThreatTier.Lethal);
+    }
+
+    /// <summary>
+    /// The node's base tier before the upshift and the Lair bonus. The clamp in
+    /// <see cref="RollTier"/> makes the base unrecoverable by subtraction, so callers that need it
+    /// ask here.
+    /// </summary>
+    public static ThreatTier NodeBaseTier(int stratumSeed, MapNode node, TierWeights weights)
+    {
+        var rng = new Random(RunRng.StableSeed(stratumSeed, node.Id, "tier"));
+        return RollBase(rng, weights);
     }
 
     /// <summary>The base tier a floor deals before any upshift: weighted over Low..Extreme.</summary>

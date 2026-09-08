@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="ItemIconCatalog" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ItemIconCatalog.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/longsword.png" id="longsword"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/rapier.png" id="rapier"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/shortsword.png" id="shortsword"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/scimitar.png" id="scimitar"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/staff.png" id="staff"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/chain-mail.png" id="chain-mail"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/leather-armor.png" id="leather-armor"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/breastplate.png" id="breastplate"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/steel-shield.png" id="steel-shield"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/wooden-shield.png" id="wooden-shield"]
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/item.png" id="item"]
+
+[resource]
+script = ExtResource("1")
+Icons = Dictionary[String, Texture2D]({
+"LJdbVTOZog39EEbi": ExtResource("longsword"),
+"longsword": ExtResource("longsword"),
+"tH5GirEy7YB3ZgCk": ExtResource("rapier"),
+"rapier": ExtResource("rapier"),
+"7tKkkF8eZ4iCLJtp": ExtResource("shortsword"),
+"shortsword": ExtResource("shortsword"),
+"grmaV4GdoGD7sKbn": ExtResource("scimitar"),
+"scimitar": ExtResource("scimitar"),
+"FVjTuBCIefAgloUU": ExtResource("staff"),
+"staff": ExtResource("staff"),
+"Kf4eJEXnFPuAsseP": ExtResource("chain-mail"),
+"chain-mail": ExtResource("chain-mail"),
+"4tIVTg9wj56RrveA": ExtResource("leather-armor"),
+"leather-armor": ExtResource("leather-armor"),
+"r0ifJfoz8aqf0mwk": ExtResource("breastplate"),
+"breastplate": ExtResource("breastplate"),
+"Yr9yCuJiAlFh3QEB": ExtResource("steel-shield"),
+"steel-shield": ExtResource("steel-shield"),
+"ezVp13Uw8cWW08Da": ExtResource("wooden-shield"),
+"wooden-shield": ExtResource("wooden-shield")
+})
+Fallback = ExtResource("item")

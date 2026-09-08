@@ -159,11 +159,12 @@ public partial class RunEncounterSpike : SpikeBase
                         var tier = GeneratedEncounters.RollTier(
                             state.StratumSeed, node, theme.Weights, upshift, rules);
 
-                        // The un-shifted base must be a tier the floor's weights can deal.
-                        int baseTier = (int)tier - upshift
-                            - (node.Kind == NodeKind.Elite ? rules.LairTierBonus : 0);
-                        if (baseTier <= (int)ThreatTier.Extreme && !BaseAllowed(theme.Weights, baseTier))
-                            badBase++;
+                        // The un-shifted base must be a tier the floor's weights can deal. Read it
+                        // from the generator: RollTier clamps at Lethal, so subtracting the upshift
+                        // and the Lair bonus back off understates the base on an Elite node.
+                        int baseTier = (int)GeneratedEncounters.NodeBaseTier(
+                            state.StratumSeed, node, theme.Weights);
+                        if (!BaseAllowed(theme.Weights, baseTier)) badBase++;
 
                         // More burned ward can never LOWER the tier of the same node.
                         var calm = GeneratedEncounters.RollTier(
@@ -302,7 +303,7 @@ public partial class RunEncounterSpike : SpikeBase
     private void CheckWardBurnAndRefill()
     {
         var party = BuildParty();
-        var clock = new DayClock(shortRestsPerDay: 3);
+        var clock = new DayClock();
         var wardstone = new Wardstone();
         var rules = new RecoveryRules();
         int burn = wardstone.Rules.ShortRestBurn;
@@ -313,8 +314,13 @@ public partial class RunEncounterSpike : SpikeBase
         ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules, wardstone: wardstone);
         ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules, wardstone: wardstone);
         int afterThree = wardstone.Ward;
-        var refused = ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules, wardstone: wardstone);
-        Check("a refused block burns nothing", !refused.Performed && wardstone.Ward == afterThree);
+        Check($"three blocks burn {burn * 3} ward, with no daily cap to stop them",
+            afterThree == wardstone.Rules.MaxWard - burn * 3);
+
+        var lastLight = new Wardstone(new WardstoneRules { MaxWard = burn, ShortRestBurn = burn });
+        var refused = ShortRest.Perform(party, clock, ShortRestKind.Refocus, null, rules, wardstone: lastLight);
+        Check("a rest that would put the ward out is refused, ward untouched",
+            !refused.Performed && lastLight.Ward == burn && !lastLight.IsSpent);
 
         int refill = wardstone.Rules.CampsiteRefill;
         PartyRecovery.LongRest(party, clock, rules, wardstone);

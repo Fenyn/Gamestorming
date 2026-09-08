@@ -104,11 +104,33 @@ public partial class HeroSelectSpike : SpikeBase
         panel.QueueFree();
 
         Overview();
+        EquipmentIcons();
         Explanations();
         await Fit();
     }
 
     // ---------------------------------------------------- (4) the overview
+
+    private void EquipmentIcons()
+    {
+        var section = SectionScene!.Instantiate<SheetSection>();
+        var icons = section.ItemIcons;
+        Check("equipment icon catalog and entry scene are assigned",
+            icons != null && section.ItemEntryScene != null);
+        section.Free();
+        if (icons == null) return;
+        foreach (var def in CharacterCatalog.All)
+        {
+            foreach (var entry in Sheet(def.Id).Entries())
+            {
+                if (string.IsNullOrEmpty(entry.ItemId)) continue;
+                Check($"{def.Id} {entry.Label} has its own icon ({entry.ItemId})",
+                    icons.Icons.TryGetValue(entry.ItemId, out var texture)
+                    && texture != null && texture.GetSize() == new Vector2(32, 32));
+            }
+        }
+        Check("unmapped equipment has a fallback", icons.For("unknown-item") != null);
+    }
 
     /// <summary>What the page is allowed to print. Everything else demotes to a hover.</summary>
     private void Overview()

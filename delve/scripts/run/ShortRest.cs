@@ -37,8 +37,9 @@ public sealed class ShortRestResult
 }
 
 /// <summary>
-/// The short-rest table (CLAUDE.md: per-kind behaviour in one place). One call spends one
-/// <see cref="DayClock"/> block and resolves one activity for the party.
+/// The short-rest table (CLAUDE.md: per-kind behaviour in one place). One call takes one
+/// <see cref="DayClock"/> block, burns the ward it costs, and resolves one activity for the party.
+/// A ward too thin to pay and stay lit refuses the block.
 ///
 /// Dice come from a <see cref="Random"/> seeded through <see cref="RunRng"/> on the clock's own
 /// position in the day, so a spike replaying the same day gets the same dice, and forces a degree of
@@ -55,20 +56,24 @@ public static class ShortRest
         int? dcOverride = null,
         Wardstone? wardstone = null)
     {
-        if (!clock.CanShortRest)
+        // Ward is the whole price of a block, and nothing else rations them
+        // (design/core_concept.md, "Wardstone"). A block that would put the ward out is refused
+        // rather than allowed to end the run. A refused block burns nothing and takes no time.
+        if (wardstone != null && !wardstone.CanAffordShortRest)
         {
             return new ShortRestResult
             {
                 Kind = kind,
                 Performed = false,
-                Reason = "No time left today.",
+                Reason = wardstone.IsSpent
+                    ? "The ward is out. There is nothing left to burn."
+                    : $"Only {wardstone.Ward} ward is left. Resting would put it out.",
             };
         }
 
-        int block = clock.ShortRestsUsed;
+        int block = clock.ShortRestsToday;
         clock.SpendShortRest();
-        // Rest under the ward costs ward (design/core_concept.md, "Wardstone"). A refused block
-        // burns nothing - the refusal returned above.
+        // The thinner the ward, the higher every later encounter's threat tier.
         wardstone?.BurnShortRest();
         var rng = new Random(RunRng.StableSeed(clock.Day, block, "shortrest"));
 

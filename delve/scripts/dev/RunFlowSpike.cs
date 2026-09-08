@@ -12,8 +12,8 @@ namespace Delve.Dev;
 /// Headless walk of the whole run loop. Drives <see cref="RunDirector"/> through its public entry
 /// points - the same methods the screens call - on a fixed seed: confirm a starting character, take
 /// three companions in mid-run, fight a Skirmish with every PC handed to the AI, resolve a
-/// Happenstance, spend a ten-minute block, take a night's rest, then start over. Asserts the phase
-/// after each step and that no member is left down.
+/// Happenstance, spend a ten-minute block, take a night's rest, rest until the ward refuses more,
+/// then start over. Asserts the phase after each step and that no member is left down.
 /// </summary>
 public partial class RunFlowSpike : SpikeBase
 {
@@ -110,12 +110,24 @@ public partial class RunFlowSpike : SpikeBase
         }
 
         // ---------------------------------------------------- (4) ten minutes
-        int blocksBefore = state.Clock.ShortRestsUsed;
+        int blocksBefore = state.Clock.ShortRestsToday;
+        int wardBefore = state.Wardstone.Ward;
+        director.OpenShortRest();
         director.TakeShortRest(ShortRestKind.TreatWounds, null);
         Check("(4) the ten-minute screen opened", director.Phase == RunPhase.ShortRest);
-        Check($"(4) one block was spent ({blocksBefore} -> {state.Clock.ShortRestsUsed})",
-            state.Clock.ShortRestsUsed == blocksBefore + 1);
+        Check($"(4) one block was spent ({blocksBefore} -> {state.Clock.ShortRestsToday})",
+            state.Clock.ShortRestsToday == blocksBefore + 1);
+        director.TakeShortRest(ShortRestKind.TreatWounds, null);
+        director.TakeShortRest(ShortRestKind.Refocus, null);
+        director.OpenShortRest();
+        director.TakeShortRest(ShortRestKind.RepairShield, null);
+        Check("(4) repeated activities and reopen requests cannot spend another block",
+            state.Clock.ShortRestsToday == blocksBefore + 1
+            && state.Wardstone.Ward == wardBefore - state.Wardstone.Rules.ShortRestBurn);
         director.CloseShortRest();
+        director.TakeShortRest(ShortRestKind.TreatWounds, null);
+        Check("(4) stale activity requests on the map cannot spend ward",
+            state.Clock.ShortRestsToday == blocksBefore + 1 && director.Phase == RunPhase.Map);
         Check("(4) Back returns to the map", director.Phase == RunPhase.Map);
 
         // ---------------------------------------------------- (5) a night's rest
@@ -125,17 +137,49 @@ public partial class RunFlowSpike : SpikeBase
         director.Rest();
         Check($"(5) the night's rest advances the day ({day} -> {state.Clock.Day})",
             state.Clock.Day == day + 1);
-        Check("(5) the ten-minute budget is full again", state.Clock.ShortRestsUsed == 0);
+        Check("(5) the new day starts with no blocks taken", state.Clock.ShortRestsToday == 0);
         Check("(5) resting returns to the map", director.Phase == RunPhase.Map);
 
-        // ---------------------------------------------------- (6) run end, then a second run
+        // ---------------------------------------------------- (6) resting stops before the ward goes out
+        var ward = state.Wardstone;
+        int guard = ward.Rules.MaxWard / ward.Rules.ShortRestBurn + 2;
+        while (ward.CanAffordShortRest && guard-- > 0)
+        {
+            director.OpenShortRest();
+            director.TakeShortRest(ShortRestKind.Refocus, null);
+            if (ward.CanAffordShortRest) director.CloseShortRest();
+        }
+
+        Check($"(6) resting stops with the ward still lit ({ward.Ward})",
+            !ward.IsSpent && !ward.CanAffordShortRest);
+        Check("(6) the run is still going", director.Phase == RunPhase.ShortRest
+            && state.Outcome == RunOutcome.InProgress);
+
+        var blocked = ShortRest.Perform(
+            state.Party, state.Clock, ShortRestKind.Refocus, null, new RecoveryRules(),
+            wardstone: ward);
+        Check("(6) one more block is refused", !blocked.Performed);
+        director.CloseShortRest();
+
+        // A ward that does reach 0 (passive burn, once NodeBurn is on) ends the run on the next
+        // node. Burned here directly, because no rest can take it there.
+        while (!ward.IsSpent) ward.BurnShortRest();
+        int? step = null;
+        foreach (int id in state.Reachable()) { step = id; break; }
+        if (step != null) director.PickNode(step.Value);
+
+        Check("(6) travelling on a spent ward ends the run", director.Phase == RunPhase.RunEnd);
+        Check("(6) it ends in defeat with the party alive",
+            state.Outcome == RunOutcome.Defeat && AllStanding(state));
+
+        // ---------------------------------------------------- (7) run end, then a second run
         director.EndRun(RunOutcome.Victory);
-        Check("(6) ending the run shows the summary", director.Phase == RunPhase.RunEnd);
-        Check("(6) the outcome is recorded", state.Outcome == RunOutcome.Victory);
+        Check("(7) ending the run shows the summary", director.Phase == RunPhase.RunEnd);
+        Check("(7) the outcome is recorded", state.Outcome == RunOutcome.Victory);
 
         director.NewRun();
-        Check("(6) a new run reopens hero select", director.Phase == RunPhase.HeroSelect);
-        Check("(6) the finished run is dropped", director.State == null);
+        Check("(7) a new run reopens hero select", director.Phase == RunPhase.HeroSelect);
+        Check("(7) the finished run is dropped", director.State == null);
 
         // Leave the tree the way a host would, so the fight releases the engine globals.
         director.PhaseChanged -= OnPhaseChanged;

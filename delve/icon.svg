@@ -1,45 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F1E3C4"/>
-      <stop offset="1" stop-color="#DDC796"/>
+    <radialGradient id="glow" cx="0.5" cy="0.44" r="0.5">
+      <stop offset="0" stop-color="#FFD07A" stop-opacity="0.95"/>
+      <stop offset="0.3" stop-color="#F0813E" stop-opacity="0.5"/>
+      <stop offset="0.7" stop-color="#C4441F" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#C4441F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.44" r="0.6">
+      <stop offset="0.28" stop-color="#05070A" stop-opacity="0"/>
+      <stop offset="0.75" stop-color="#05070A" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#05070A" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFEDB4"/>
+      <stop offset="0.4" stop-color="#FFB53F"/>
+      <stop offset="1" stop-color="#E2683C"/>
     </linearGradient>
   </defs>
 
-  <rect x="0" y="0" width="128" height="128" fill="url(#sky)"/>
+  <rect x="0" y="0" width="128" height="128" fill="#080A0D"/>
+  <circle cx="64" cy="56" r="62" fill="url(#glow)"/>
 
-  <!-- ground mound -->
-  <ellipse cx="64" cy="132" rx="70" ry="26" fill="#B7A374"/>
+  <!-- the dark, reaching in from every edge -->
+  <g fill="#05070A">
+    <path d="M0 0 L40 0 L16 30 L30 46 L4 42 L18 62 L0 58 Z"/>
+    <path d="M128 0 L128 40 L104 46 L116 26 L94 34 L104 12 L86 0 Z"/>
+    <path d="M0 128 L0 84 L20 96 L14 76 L34 90 L30 68 L46 96 L38 128 Z"/>
+    <path d="M128 128 L128 78 L108 92 L114 70 L94 88 L98 66 L82 94 L92 128 Z"/>
+    <path d="M126 62 L104 70 L128 82 Z"/>
+    <path d="M52 128 L64 104 L74 128 Z"/>
+  </g>
 
-  <!-- tower body (light face + shadow face) -->
-  <rect x="42" y="30" width="44" height="60" fill="#7A8493"/>
-  <rect x="64" y="30" width="22" height="60" fill="#5E6874"/>
+  <!-- torch -->
+  <path d="M59 78 L69 78 L67 124 L61 124 Z" fill="#6A5134"/>
+  <path d="M64 78 L69 78 L67 124 L64 124 Z" fill="#42311E"/>
+  <path d="M56 66 C56 60, 72 60, 72 66 L70 82 C70 86, 58 86, 58 82 Z" fill="#8A6839"/>
+  <path d="M64 62 C72 62, 72 66, 72 66 L70 82 C70 86, 64 86, 64 86 Z" fill="#644923"/>
+  <rect x="57" y="92" width="14" height="5" rx="2" fill="#8A6839"/>
 
-  <!-- battlements -->
-  <rect x="42" y="18" width="10" height="12" fill="#7A8493"/>
-  <rect x="59" y="18" width="10" height="12" fill="#7A8493"/>
-  <rect x="76" y="18" width="10" height="12" fill="#5E6874"/>
+  <!-- flame -->
+  <path d="M64 10 C77 30, 86 42, 80 57 C76 69, 70 76, 64 76
+           C58 76, 52 69, 48 57 C42 42, 51 30, 64 10 Z" fill="url(#flame)"/>
+  <path d="M64 31 C72 43, 75 51, 72 59 C70 66, 66 70, 64 70
+           C62 70, 58 66, 56 59 C53 51, 56 43, 64 31 Z" fill="#FFF3CB"/>
 
-  <!-- arrow slit -->
-  <rect x="61" y="42" width="4" height="14" fill="#333940"/>
+  <!-- embers -->
+  <circle cx="43" cy="32" r="3" fill="#FFB53F" opacity="0.9"/>
+  <circle cx="87" cy="26" r="2.5" fill="#FFB53F" opacity="0.75"/>
+  <circle cx="84" cy="48" r="2" fill="#FFEDB4" opacity="0.6"/>
+  <circle cx="40" cy="56" r="1.8" fill="#FFEDB4" opacity="0.5"/>
 
-  <!-- flagpole -->
-  <rect x="63" y="6" width="2" height="14" fill="#4A5560"/>
-  <!-- pennant -->
-  <path d="M65 7 L79 11 L65 15 Z" fill="#2C4870"/>
-
-  <!-- kite shield -->
-  <path d="M64 56
-           C48 56,30 61,30 73
-           C30 95,45 114,64 124
-           C83 114,98 95,98 73
-           C98 61,80 56,64 56
-           Z"
-        fill="#24405F" stroke="#C9B87A" stroke-width="3" stroke-linejoin="round"/>
-
-  <!-- shield center spine -->
-  <path d="M64 60 L64 118" stroke="#3E5F82" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-
-  <!-- shield boss -->
-  <circle cx="64" cy="74" r="6" fill="#C9B87A" stroke="#8A7A46" stroke-width="1.5"/>
+  <rect x="0" y="0" width="128" height="128" fill="url(#vignette)"/>
 </svg>

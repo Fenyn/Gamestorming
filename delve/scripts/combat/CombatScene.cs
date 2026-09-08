@@ -17,6 +17,8 @@ namespace Delve.Combat;
 /// </summary>
 public partial class CombatScene : Node3D
 {
+    [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.35f;
+    private DiceRollPanel _dice = null!;
     // Preloaded token blockout (static subtree authored in the scene); each unit is an instance whose
     // per-unit visuals are applied by UnitVisual3D.Spawn.
     private static readonly PackedScene UnitTokenScene =
@@ -54,7 +56,7 @@ public partial class CombatScene : Node3D
     // Task.Delay / tween waits observe the same signal (see _ExitTree for the cancel-then-teardown order).
     private CancellationTokenSource? _encounterCts;
 
-    private System.Action<CombatLogEntry>? _logHandler;
+    private CombatLogBridge? _logBridge;
 
     /// <summary>
     /// True once the persistent scene nodes (input, action bar) are subscribed. Those nodes outlive
@@ -91,6 +93,9 @@ public partial class CombatScene : Node3D
 
         _turnBar = GetNode<TurnOrderBar>("%TurnOrderBar");
         _log = GetNode<CombatLogPanel>("%CombatLog");
+        _dice = GetNode<DiceRollPanel>("%DiceRoll");
+        _log.RollObserved += _dice.ShowRoll;
+        _log.DiceVisibilityChanged += _dice.SetEnabled;
         _actionBar = GetNode<ActionBar>("%ActionBar");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
@@ -167,7 +172,17 @@ public partial class CombatScene : Node3D
             setup.GridWidth, setup.GridHeight);
         SpawnUnits();
 
-        _session.SetPresenter(_presenter.Present);
+        var logBridge = new CombatLogBridge(_log, _session.Team1, _session.Team2);
+        _logBridge = logBridge;
+        var presenter = _presenter;
+        var session = _session;
+        _session.SetPresenter(async evt =>
+        {
+            if (evt.Source != null)
+                await AiActionPacing.Wait(evt, session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
+            logBridge.Present(evt);
+            await presenter.Present(evt);
+        });
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
         // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
         _session.ReactionPromptHandler = view => _reactionPrompt.ShowAsync(view);
@@ -188,9 +203,6 @@ public partial class CombatScene : Node3D
             _input.Cancelled += OnCancel;
             WireActionBar();
         }
-
-        _logHandler = OnLogEntry;
-        CombatLog.OnLogEntry += _logHandler;
 
         RefreshTurnOrder();
         _actionBar.SetInteractable(false);
@@ -219,11 +231,9 @@ public partial class CombatScene : Node3D
     /// </summary>
     private void StopEncounter()
     {
-        if (_logHandler != null)
-        {
-            CombatLog.OnLogEntry -= _logHandler;
-            _logHandler = null;
-        }
+        _logBridge?.Dispose();
+        _dice?.ClearRoll();
+        _logBridge = null;
         // Cancel BEFORE teardown: the loop may be parked in a presenter Task.Delay / tween wait or on the
         // player-turn TCS. Cancelling releases those so it unwinds without resuming on freed nodes;
         // Teardown then clears the engine statics/delegates and completes any still-pending player turn.
@@ -416,6 +426,4 @@ public partial class CombatScene : Node3D
         EncounterFinished?.Invoke(result);
     }
 
-    private void OnLogEntry(CombatLogEntry entry)
-        => _log.AppendEntry(entry.Message, (int)entry.Severity, entry.IsDetail);
 }

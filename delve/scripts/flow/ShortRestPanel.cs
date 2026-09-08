@@ -8,7 +8,8 @@ namespace Delve.Flow;
 
 /// <summary>
 /// The ten-minute block taken from the map. One button per activity; Treat Wounds also takes a
-/// target, picked from the member row (unpicked leaves the choice to the rules layer). Passive -
+/// target, picked from the member row (unpicked leaves the choice to the rules layer). The header
+/// prices the block in ward, the only thing a rest costs. Passive -
 /// <see cref="ShortRest.Perform"/> runs in the flow layer and its lines come back through
 /// <see cref="ShowResult"/>.
 /// </summary>
@@ -27,9 +28,11 @@ public partial class ShortRestPanel : Control
     private Label _clockLabel = null!;
     private VBoxContainer _activityBox = null!;
     private HBoxContainer _targetRow = null!;
+    private Label _targetHeading = null!;
     private Label _resultLabel = null!;
     private Button _backButton = null!;
     private ButtonGroup _targetGroup = new();
+    private bool _submitted;
 
     public event Action<ShortRestKind, PF2eCharacter?>? ActivityPicked;
 
@@ -40,6 +43,7 @@ public partial class ShortRestPanel : Control
         _clockLabel = GetNode<Label>("%ClockLabel");
         _activityBox = GetNode<VBoxContainer>("%ActivityBox");
         _targetRow = GetNode<HBoxContainer>("%TargetRow");
+        _targetHeading = GetNode<Label>("%TargetHeading");
         _resultLabel = GetNode<Label>("%ResultLabel");
         _backButton = GetNode<Button>("%BackButton");
         _backButton.Pressed += () => Back?.Invoke();
@@ -48,17 +52,31 @@ public partial class ShortRestPanel : Control
     /// <summary>Rebuild the activity and target rows for the party's current state.</summary>
     public void Show(RunState state)
     {
-        _clockLabel.Text = $"Day {state.Clock.Day}      Ten-minute rests left "
-                           + $"{state.Clock.ShortRestsRemaining}/{state.Clock.ShortRestsPerDay}";
+        _submitted = false;
+        _activityBox.Visible = true;
+        _targetRow.Visible = true;
+        _targetHeading.Visible = true;
+        _backButton.Text = "Back";
+        var ward = state.Wardstone;
+        _clockLabel.Text = $"Day {state.Clock.Day}      Ward {ward.Ward} / {ward.Rules.MaxWard}"
+                           + $"\nChoose one activity · Costs {ward.Rules.ShortRestBurn} ward. {WardLines.RestPreview(ward)}";
         _resultLabel.Text = "";
         BuildTargets(state.Party);
-        BuildActivities(state.Clock);
+        BuildActivities(ward);
         Visible = true;
     }
 
     /// <summary>Print what the block did, then let the player go back to the map.</summary>
-    public void ShowResult(ShortRestResult result)
+    public void ShowResult(ShortRestResult result, RunState state, int wardBefore)
     {
+        _submitted = true;
+        _activityBox.Visible = false;
+        _targetRow.Visible = false;
+        _targetHeading.Visible = false;
+        var ward = state.Wardstone;
+        _clockLabel.Text = $"Ward {ward.Ward} / {ward.Rules.MaxWard} · {wardBefore - ward.Ward} ward spent"
+            + "\nReturn to the map to start another short rest.";
+        _backButton.Text = "Return to map";
         var text = new System.Text.StringBuilder();
         if (!result.Performed && result.Reason != null)
             text.Append(result.Reason);
@@ -70,20 +88,27 @@ public partial class ShortRestPanel : Control
         _resultLabel.Text = text.ToString();
     }
 
-    private void BuildActivities(DayClock clock)
+    private void BuildActivities(Wardstone ward)
     {
         FreeChildren(_activityBox);
+
+        string cost = $"Costs {ward.Rules.ShortRestBurn} ward. {WardLines.RestPreview(ward)}";
 
         foreach (var (kind, label) in Activities)
         {
             var button = new Button
             {
                 Text = label,
-                Disabled = !clock.CanShortRest,
-                TooltipText = clock.CanShortRest ? "" : "Unavailable: no time left today",
+                Disabled = !ward.CanAffordShortRest,
+                TooltipText = ward.CanAffordShortRest ? cost : WardLines.RestUnavailable(ward),
             };
             var picked = kind;
-            button.Pressed += () => ActivityPicked?.Invoke(picked, SelectedTarget());
+            button.Pressed += () =>
+            {
+                if (_submitted || button.Disabled || !IsVisibleInTree()) return;
+                _submitted = true;
+                ActivityPicked?.Invoke(picked, SelectedTarget());
+            };
             _activityBox.AddChild(button);
         }
     }

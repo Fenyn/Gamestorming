@@ -16,6 +16,8 @@ namespace Delve.Flow;
 /// </summary>
 public partial class SheetSection : VBoxContainer
 {
+    [Export] public PackedScene? ItemEntryScene { get; set; }
+    [Export] public ItemIconCatalog? ItemIcons { get; set; }
     /// <summary>An entry line's height, so hover targets stay comfortable.</summary>
     private const int LineHeight = 28;
 
@@ -68,7 +70,15 @@ public partial class SheetSection : VBoxContainer
         int shown = row.Entries.Count <= MaxListItems ? row.Entries.Count : MaxListItems - 1;
         for (int i = 0; i < shown; i++)
         {
-            var item = Item(row.Entries[i].Label, "");
+            var entry = row.Entries[i];
+            Control item;
+            if (!string.IsNullOrEmpty(entry.ItemId) && ItemEntryScene != null && ItemIcons != null)
+            {
+                var gear = ItemEntryScene.Instantiate<ItemIconEntry>();
+                gear.Fill(entry.Label, ItemIcons.For(entry.ItemId));
+                item = gear;
+            }
+            else item = Item(entry.Label, "");
             _items.AddChild(item);
             Hoverable(item, row.Entries[i]);
         }

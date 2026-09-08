@@ -1,0 +1,12 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/CombatLogSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_log_panel.tscn" id="2"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="4"]
+
+[node name="CombatLogSpike" type="Node"]
+script = ExtResource("1")
+LogScene = ExtResource("2")
+UiTheme = ExtResource("3")
+DiceScene = ExtResource("4")

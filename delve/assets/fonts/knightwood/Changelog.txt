@@ -1,0 +1,5 @@
+Knightwood Pixel Font - Changelog
+
+v1.1
+- 	Added support for traditional Irish characters:
+	Ḃḃ Ċċ Ḋḋ Ḟḟ Ġġ Ṁṁ Ṗṗ Ṡṡ Ṫṫ

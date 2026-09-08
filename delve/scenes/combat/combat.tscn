@@ -20,6 +20,8 @@
 [ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="18_tree_dead"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="19_tree_giant"]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="dice_roll"]
+
 [sub_resource type="Shader" id="Shader_floor"]
 code = "shader_type spatial;
 render_mode cull_disabled;
@@ -63,6 +65,7 @@ ambient_light_energy = 1.0
 
 [node name="Combat" type="Node3D"]
 script = ExtResource("1_scene")
+AiActionDelaySeconds = 0.35
 
 ; The board's ground as one component: it owns the generated terrain view, the biome backdrop and
 ; the flat placeholder floor below, and CombatScene builds all three through its single Build call.
@@ -135,6 +138,9 @@ LogPath = NodePath("CombatLog")
 unique_name_in_owner = true
 
 [node name="CombatLog" parent="HUD/HudRoot" instance=ExtResource("6_log")]
+unique_name_in_owner = true
+
+[node name="DiceRoll" parent="HUD/HudRoot" instance=ExtResource("dice_roll")]
 unique_name_in_owner = true
 
 [node name="UnitInspect" parent="HUD/HudRoot" instance=ExtResource("11_inspect")]

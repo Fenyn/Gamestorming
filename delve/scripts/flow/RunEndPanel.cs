@@ -33,8 +33,9 @@ public partial class RunEndPanel : Control
         _outcomeLabel.AddThemeColorOverride("font_color", won ? UiColors.Victory : UiColors.Defeat);
 
         int floorsCleared = state.CurrentNodeId == null ? 0 : state.Floor + 1;
+        string cause = !won && state.Wardstone.IsSpent ? "\nThe ward went out." : "";
         _detailLabel.Text = $"Floors reached {floorsCleared} of {state.Map.Floors}"
-                            + $"      Day {state.Clock.Day}      Gold {state.Gold}";
+                            + $"      Day {state.Clock.Day}      Gold {state.Gold}{cause}";
         Visible = true;
     }
 }

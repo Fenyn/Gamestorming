@@ -9,6 +9,8 @@ using Delve.Run;
 using Godot;
 using PF2e.Core;
 using PF2e.Data;
+using PF2e.MapGen;
+using PF2e.MapGen.Biomes;
 using PF2e.Utilities;
 using RunState = Delve.Run.RunState;
 
@@ -37,6 +39,8 @@ public partial class RunEncounterSpike : SpikeBase
         CheckTables(data);
         CheckDeterminism(data);
         CheckSweep(data);
+        CheckSoloRelief(data);
+        CheckBoardSize(data);
         CheckElitePurity(data);
         CheckBossMath(data);
         CheckBossSetup(data);
@@ -157,7 +161,7 @@ public partial class RunEncounterSpike : SpikeBase
                         fights++;
 
                         var tier = GeneratedEncounters.RollTier(
-                            state.StratumSeed, node, theme.Weights, upshift, rules);
+                            state.StratumSeed, node, theme.Weights, upshift, size, rules);
 
                         // The un-shifted base must be a tier the floor's weights can deal. Read it
                         // from the generator: RollTier clamps at Lethal, so subtracting the upshift
@@ -168,7 +172,7 @@ public partial class RunEncounterSpike : SpikeBase
 
                         // More burned ward can never LOWER the tier of the same node.
                         var calm = GeneratedEncounters.RollTier(
-                            state.StratumSeed, node, theme.Weights, upshift: 0, rules);
+                            state.StratumSeed, node, theme.Weights, upshift: 0, size, rules);
                         if ((int)tier < (int)calm) notMonotonic++;
 
                         var encounter = GeneratedEncounters.Generate(state, node, data.ResolveCreature, rules);
@@ -208,6 +212,102 @@ public partial class RunEncounterSpike : SpikeBase
         Check("floor 1: generated XP lands within one tier of the rolled tier", tolerance == 0);
         Check("floor 1: every spawned creature sits inside the row's level band", bandBreaks == 0);
         Check("floor 1: a Lethal fight reaches its budget or the enemy cap", lethalShort == 0);
+    }
+
+    /// <summary>A party of one drops a tier, and the fight it composes is smaller for it.</summary>
+    private void CheckSoloRelief(DataManager data)
+    {
+        var rules = new EncounterGenRules();
+        Check("a solo party gets relief", rules.TierRelief(1) == rules.UnderstrengthTierRelief);
+        Check("a full party gets none", rules.TierRelief(Party.MaxSize) == 0);
+
+        var full = NewState(SweepSeeds[0], maxWard: 100);
+        var solo = RunState.Start(
+            SweepSeeds[0],
+            Party.Build(PresetCharacters.PlayerId, new List<string>(), new UnlockState(), Party.DefaultLevel),
+            new RunMapConfig());
+
+        var theme = FloorThemes.ForStratum(0);
+        int lowered = 0, raised = 0, cheaper = 0, dearer = 0;
+        foreach (var node in solo.Map.Nodes)
+        {
+            if (node.Kind != NodeKind.Combat && node.Kind != NodeKind.Elite) continue;
+
+            var soloTier = GeneratedEncounters.RollTier(
+                solo.StratumSeed, node, theme.Weights, upshift: 0, partySize: 1, rules);
+            var fullTier = GeneratedEncounters.RollTier(
+                full.StratumSeed, node, theme.Weights, upshift: 0, Party.MaxSize, rules);
+            if ((int)soloTier < (int)fullTier) lowered++;
+            if ((int)soloTier > (int)fullTier) raised++;
+
+            var soloFight = GeneratedEncounters.Generate(solo, node, data.ResolveCreature, rules);
+            var fullFight = GeneratedEncounters.Generate(full, node, data.ResolveCreature, rules);
+            if (soloFight == null || fullFight == null) continue;
+
+            int soloXp = EncounterXPCalculator.CalculateTotalXP(soloFight, solo.Party.Level);
+            int fullXp = EncounterXPCalculator.CalculateTotalXP(fullFight, full.Party.Level);
+            if (soloXp <= fullXp) cheaper++; else dearer++;
+        }
+
+        Check($"a solo party's fights drop a tier ({lowered} nodes)", lowered > 0 && raised == 0);
+        Check($"a solo fight is never bigger than the same node's full-party fight ({dearer} bigger)",
+            cheaper > 0 && dearer == 0);
+    }
+
+    // ------------------------------------------------------------- Board size
+
+    private void CheckBoardSize(DataManager data)
+    {
+        var map = new BattleMapRules();
+        var biome = MapGenRegistry.GetBiome(FloorThemes.ForStratum(0).TerrainBiome);
+
+        Check("a lone character gets the smallest board",
+            map.ScaleFor(1) < map.ScaleFor(2));
+        Check("the board grows with every companion",
+            map.ScaleFor(2) < map.ScaleFor(3) && map.ScaleFor(3) < map.ScaleFor(Party.MaxSize));
+        Check("a full party still fits inside the biome's own size",
+            map.ScaleFor(Party.MaxSize) <= 1f);
+        Check("a party over full size does not keep growing the board",
+            map.ScaleFor(Party.MaxSize + 2) == map.ScaleFor(Party.MaxSize));
+
+        int soloBigger = 0, underMin = 0, unbuildable = 0;
+        var solo = RunState.Start(
+            SweepSeeds[0],
+            Party.Build(PresetCharacters.PlayerId, new List<string>(), new UnlockState(), Party.DefaultLevel),
+            new RunMapConfig());
+
+        foreach (var node in solo.Map.Nodes)
+        {
+            if (node.Kind != NodeKind.Combat && node.Kind != NodeKind.Elite) continue;
+
+            int seed = RunRng.StableSeed(solo.StratumSeed, node.Id, "mapsize");
+            var (soloW, soloH) = map.SizeFor(biome, seed, friendly: 1);
+            var (fullW, fullH) = map.SizeFor(biome, seed, Party.MaxSize);
+
+            if (soloW > fullW || soloH > fullH) soloBigger++;
+            if (soloW < map.MinSide || soloH < map.MinSide) underMin++;
+
+            // The sized board must still deploy both teams: a floor that is too small would leave
+            // one side with no anchors and Normalize would scatter them.
+            var layout = MapGenerator.GenerateValidated(
+                biome.Id, RunRng.StableSeed(solo.StratumSeed, node.Id, "battle"),
+                (biome.DefaultParams ?? new MapGenerationParams()).WithSize(soloW, soloH));
+            if (layout == null
+                || DeploymentPlanner.GetAnchors(layout, teamId: 0, count: 1).Count == 0
+                || DeploymentPlanner.GetAnchors(layout, teamId: 1, count: 4).Count == 0)
+                unbuildable++;
+        }
+
+        Check($"a solo board is never bigger than the full party's ({soloBigger} bigger)",
+            soloBigger == 0);
+        Check($"no board goes under the minimum side ({underMin} under)", underMin == 0);
+        Check($"every solo board still deploys both teams ({unbuildable} bad)", unbuildable == 0);
+
+        var fight = FirstFightNode(solo);
+        var setup = fight == null ? null : EncounterFactory.Build(solo, fight, data.ResolveCreature);
+        int cap = (int)(biome.MaxSize.x * map.ScaleFor(1)) + 1;
+        Check($"a solo fight builds on the smaller board ({setup?.Layout?.Width}x{setup?.Layout?.Height})",
+            setup?.Layout != null && setup.Layout.Width <= cap);
     }
 
     private static bool BaseAllowed(TierWeights weights, int baseTier) => baseTier switch

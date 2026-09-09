@@ -6,6 +6,7 @@
 
 [ext_resource type="Resource" path="res://assets/ui/run_map_accent.tres" id="5_accent"]
 [ext_resource type="PackedScene" path="res://scenes/run/map_scenery.tscn" id="scenery"]
+[ext_resource type="Script" path="res://scripts/flow/MapTravelLight.cs" id="travel"]
 
 [node name="RunMap" type="Control" unique_id=1456264387]
 layout_mode = 3
@@ -123,6 +124,15 @@ theme_override_constants/margin_bottom = 12
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
+
+[node name="TravelLight" type="Control" parent="Margin/Layout/Body/MapColumn/MapFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+clip_contents = true
+script = ExtResource("travel")
+TravelSeconds = 0.65
+ArrivalSeconds = 0.18
 
 [node name="LegendRow" type="HBoxContainer" parent="Margin/Layout/Body/MapColumn" unique_id=650894932]
 unique_name_in_owner = true

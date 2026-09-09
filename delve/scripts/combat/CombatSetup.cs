@@ -28,6 +28,13 @@ public sealed record CombatSetup
     /// <summary>Enemy-team combatants (team 2) with their starting grid anchors.</summary>
     public List<(ICharacter Unit, PF2eVec Pos)> Enemies { get; init; } = new();
 
+    /// <summary>Team-1 combatants the player does not command: AI-run allies who fight beside the
+    /// party but are not in it, and never count toward its defeat check.</summary>
+    public List<(ICharacter Unit, PF2eVec Pos)> Allies { get; init; } = new();
+
+    /// <summary>How carefully the units in <see cref="Allies"/> fight.</summary>
+    public AllyAiRules AllyAi { get; init; } = AllyAiRules.Default;
+
     /// <summary>
     /// Generated battle map, or null for a flat board. Pure Pf2e.Core data — the record stays
     /// engine-free. When set, the session populates its BattleGrid from it instead of
@@ -90,6 +97,7 @@ public sealed record CombatSetup
         }
 
         NormalizeTeam(Party, "party", corrections, occupied);
+        NormalizeTeam(Allies, "ally", corrections, occupied);
         NormalizeTeam(Enemies, "enemy", corrections, occupied);
         return corrections;
     }

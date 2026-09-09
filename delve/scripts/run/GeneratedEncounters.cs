@@ -24,16 +24,19 @@ public static class GeneratedEncounters
 {
     /// <summary>
     /// Threat tier for a node: a weighted roll over the floor's base distribution, plus the ward
-    /// upshift, plus <see cref="EncounterGenRules.LairTierBonus"/> on an Elite node, clamped at
-    /// Lethal. Deterministic per (stratum seed, node).
+    /// upshift, plus <see cref="EncounterGenRules.LairTierBonus"/> on an Elite node, less
+    /// <see cref="EncounterGenRules.TierRelief"/> for an understrength party, clamped to
+    /// Trivial..Lethal. Deterministic per (stratum seed, node).
     /// </summary>
     public static ThreatTier RollTier(
-        int stratumSeed, MapNode node, TierWeights weights, int upshift, EncounterGenRules rules)
+        int stratumSeed, MapNode node, TierWeights weights, int upshift, int partySize,
+        EncounterGenRules rules)
     {
         int tier = (int)NodeBaseTier(stratumSeed, node, weights);
         tier += upshift;
         if (node.Kind == NodeKind.Elite) tier += rules.LairTierBonus;
-        return (ThreatTier)Math.Min(tier, (int)ThreatTier.Lethal);
+        tier -= rules.TierRelief(partySize);
+        return (ThreatTier)Math.Clamp(tier, (int)ThreatTier.Trivial, (int)ThreatTier.Lethal);
     }
 
     /// <summary>
@@ -107,7 +110,8 @@ public static class GeneratedEncounters
         // walking that floor at that level deserves.
         if (pool.Count == 0) pool = NearestByLevel(roster, minLevel, maxLevel);
 
-        var tier = RollTier(state.StratumSeed, node, theme.Weights, state.Wardstone.Upshift, rules);
+        var tier = RollTier(
+            state.StratumSeed, node, theme.Weights, state.Wardstone.Upshift, partySize, rules);
         Rng.Seed(RunRng.StableSeed(state.StratumSeed, node.Id, "encgen"));
 
         // Lethal sits above the book ladder: generate an Extreme fight, then pile on.

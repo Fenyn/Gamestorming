@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using PF2e.Actions;
+using PF2e.AI;
 using PF2e.Core;
+using PF2e.Data;
 using PF2e.Grid;
 using PF2e.TurnManagement;
 using PF2e.Utilities;
@@ -42,6 +44,7 @@ public sealed class EngineEncounterScope : IDisposable
     private readonly Func<ICharacter, bool> _isPlayerControlled;
     private readonly Func<ReactionPromptContext, Task<bool>> _reactionPolicy;
     private readonly Func<ICharacter, PF2eVec, string?> _validateStep;
+    private readonly Func<ICharacter, AIProfile, AIProfile>? _aiProfile;
 
     // Grid delegates: BattleGrid.WireDelegates builds closures over the grid internally, so the scope
     // reads back what it installed instead of building them itself.
@@ -64,11 +67,13 @@ public sealed class EngineEncounterScope : IDisposable
     /// <param name="isPlayerControlled">Reaction ownership test (ReactionManager.IsPlayerControlled).</param>
     /// <param name="reactionPolicy">Player reaction decision (ReactionManager.PlayerReactionPolicy).</param>
     /// <param name="validateStep">Step destination legality (StepAction.ValidateDestination).</param>
+    /// <param name="aiProfile">Per-actor AI profile shaping (AIContextBuilder.ProfileOverride).</param>
     public EngineEncounterScope(
         BattleGrid grid,
         Func<ICharacter, bool> isPlayerControlled,
         Func<ReactionPromptContext, Task<bool>> reactionPolicy,
-        Func<ICharacter, PF2eVec, string?> validateStep)
+        Func<ICharacter, PF2eVec, string?> validateStep,
+        Func<ICharacter, AIProfile, AIProfile>? aiProfile = null)
     {
         _grid = grid;
 
@@ -107,6 +112,11 @@ public sealed class EngineEncounterScope : IDisposable
         // The engine field is un-annotated; the delegate legally returns null for "legal step".
         StepAction.ValidateDestination = _validateStep!;
 
+        // Who plans with which AI profile. Null leaves every actor on the engine's own resolution.
+        _aiProfile = aiProfile;
+        if (_aiProfile != null)
+            AIContextBuilder.ProfileOverride = _aiProfile;
+
         // Claimed last: from here on this scope is the owner, and an older scope's Dispose is a no-op
         // for every shared static below.
         _live = this;
@@ -144,6 +154,9 @@ public sealed class EngineEncounterScope : IDisposable
 
         if (ReferenceEquals(StepAction.ValidateDestination, _validateStep))
             StepAction.ValidateDestination = null;
+
+        if (_aiProfile != null && ReferenceEquals(AIContextBuilder.ProfileOverride, _aiProfile))
+            AIContextBuilder.ProfileOverride = null!;
 
         _spatial.Dispose();
 

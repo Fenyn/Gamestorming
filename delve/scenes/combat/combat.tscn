@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://scripts/combat/ShakePivot.cs" id="12_shake"]
 [ext_resource type="Script" path="res://scripts/ui/HudRoot.cs" id="13_hudroot"]
 [ext_resource type="Script" path="res://scripts/terrain/TerrainStage.cs" id="14_terrain"]
+[ext_resource type="Shader" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="outskirts_mist"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="15_tree_canopy"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="16_tree_conifer"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="17_tree_bush"]
@@ -74,6 +75,7 @@ unique_name_in_owner = true
 script = ExtResource("14_terrain")
 PlaceholderFloorPath = NodePath("PlaceholderFloor")
 HaloTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer"), ExtResource("17_tree_bush"), ExtResource("18_tree_dead"), ExtResource("19_tree_giant")]
+OutskirtsMistShader = ExtResource("outskirts_mist")
 HaloTreeWeights = [3.0, 3.0, 1.5, 0.8, 0.2]
 HaloTreeMinRings = [4.0, 4.0, 0.0, 4.0, 6.0]
 BoardTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer")]

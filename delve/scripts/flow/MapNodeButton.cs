@@ -78,7 +78,7 @@ public partial class MapNodeButton : Button
 
             // The come-hither halo: the same silhouette, swelling and fading just outside the rim.
             var halo = MapNodeShapes.Outline(_kind, center, _shapeRadius + 4f + wave * 2f);
-            MapNodeShapes.DrawRim(this, halo, kindColor with { A = 0.35f + 0.15f * wave }, 2f);
+            MapNodeShapes.DrawRim(this, halo, (PartyAccent ?? UiColors.Accent) with { A = 0.35f + 0.15f * wave }, 2f);
         }
         else if (_dead)
         {

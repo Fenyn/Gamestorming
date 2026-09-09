@@ -33,6 +33,13 @@ public static class MapNodeGlyphs
                 new float[] { -8, 7, 0, -5, 8, 7, -8, 7 },
                 new float[] { 0, -5, 0, 7 },
             },
+            [NodeKind.Meeting] = new[]
+            {
+                new float[] { -9, 0, -2, 0 },
+                new float[] { -5, -4, -2, 0, -5, 4 },
+                new float[] { 9, 0, 2, 0 },
+                new float[] { 5, -4, 2, 0, 5, 4 },
+            },
             [NodeKind.Boss] = new[]
             {
                 new float[] { -9, -5, -6, 6, 6, 6, 9, -5, 4, -1, 0, -8, -4, -1, -9, -5 },

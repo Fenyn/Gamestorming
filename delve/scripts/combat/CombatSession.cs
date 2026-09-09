@@ -57,6 +57,9 @@ public sealed class CombatSession
     private readonly List<ICharacter> _team1 = new();
     private readonly List<ICharacter> _team2 = new();
     private readonly HashSet<ICharacter> _aiControlled = new();
+    // Team 1 but not the party: they fight for free and their survival never decides the encounter.
+    private readonly HashSet<ICharacter> _allies = new();
+    private AllyAiRules _allyAi = AllyAiRules.Default;
     // Allies toggled to auto-use reactions (skip the prompt). Default is empty = everyone PROMPTS.
     private readonly HashSet<ICharacter> _autoReactions = new();
 
@@ -154,8 +157,9 @@ public sealed class CombatSession
         // static policies, forced movement, and Step validation. Player-team members (not toggled to
         // AI) count as "player controlled" for reactions; the policy prompts through the
         // scene-supplied handler unless the ally is toggled to auto-reactions.
+        _allyAi = setup.AllyAi;
         _scope = new EngineEncounterScope(
-            Grid, IsPlayerControlled, DecidePlayerReaction, ValidateStepDestination);
+            Grid, IsPlayerControlled, DecidePlayerReaction, ValidateStepDestination, ShapeAiProfile);
         _turnManager = _scope.Turns;
 
         // Battle Medicine's per-target immunity set is a STATIC in the engine, cleared only by
@@ -174,6 +178,13 @@ public sealed class CombatSession
         {
             Grid.PlaceCreature(unit, pos);
             _team1.Add(unit);
+        }
+        foreach (var (unit, pos) in setup.Allies)
+        {
+            Grid.PlaceCreature(unit, pos);
+            _team1.Add(unit);
+            _allies.Add(unit);
+            _aiControlled.Add(unit);
         }
         foreach (var (unit, pos) in setup.Enemies)
         {
@@ -283,7 +294,7 @@ public sealed class CombatSession
 
         bool anyPlayerActive = false;
         foreach (var c in _team1)
-            if (IsConsciousAndAble(c)) { anyPlayerActive = true; break; }
+            if (!_allies.Contains(c) && IsConsciousAndAble(c)) { anyPlayerActive = true; break; }
 
         if (!anyEnemyAlive && !anyPlayerActive) return BattleResult.Draw;
         if (!anyEnemyAlive) return BattleResult.Team1Wins;
@@ -466,6 +477,13 @@ public sealed class CombatSession
         => character.TeamId == 1 && !_aiControlled.Contains(character);
 
     public bool IsAiToggled(ICharacter character) => _aiControlled.Contains(character);
+
+    /// <summary>A team-1 combatant outside the party. Never handed to the player.</summary>
+    public bool IsAlly(ICharacter character) => _allies.Contains(character);
+
+    /// <summary>Allies plan with the cautious profile; everyone else keeps the engine's own.</summary>
+    private AIProfile ShapeAiProfile(ICharacter character, AIProfile resolved)
+        => _allies.Contains(character) ? _allyAi.Apply(resolved) : resolved;
 
     public void SetAiToggle(ICharacter character, bool aiControlled)
     {

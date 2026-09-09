@@ -4,6 +4,7 @@ using Delve.Combat;
 using Delve.Data;
 using PF2e.Data;
 using PF2e.MapGen;
+using PF2e.MapGen.Biomes;
 using PF2e.Utilities;
 
 namespace Delve.Run;
@@ -24,12 +25,14 @@ public static class EncounterFactory
     /// <summary>
     /// Build the setup, or null when a creature cannot be resolved or the biome cannot generate.
     /// <paramref name="resolve"/> keeps the autoload (and Godot) out of this assembly.
+    /// <paramref name="ally"/> is the Wayfarer fighting on the party's side, deployed on its zone.
     /// </summary>
     public static CombatSetup? Build(
         RunState state,
         MapNode node,
         Func<CreatureRef, EnemyDefinition?> resolve,
-        EncounterGenRules? rules = null)
+        EncounterGenRules? rules = null,
+        PF2e.Core.PF2eCharacter? ally = null)
     {
         var applied = rules ?? new EncounterGenRules();
 
@@ -38,8 +41,19 @@ public static class EncounterFactory
             : GeneratedEncounters.Generate(state, node, resolve, applied);
         if (encounter == null) return null;
 
+        var survivors = state.Party.Living();
+        int friendly = survivors.Count + (ally != null ? 1 : 0);
+
+        // Board size before terrain: the size roll runs on its own seed stream, so scaling the
+        // board for a short party never shifts the terrain the same node generated before.
         string biome = FloorThemes.ForStratum(state.Stratum).TerrainBiome;
-        var layout = MapGenerator.GenerateValidated(biome, RunRng.StableSeed(state.StratumSeed, node.Id, "battle"));
+        var definition = MapGenRegistry.GetBiome(biome);
+        var (width, height) = applied.Map.SizeFor(
+            definition, RunRng.StableSeed(state.StratumSeed, node.Id, "mapsize"), friendly);
+        var sized = (definition.DefaultParams ?? new MapGenerationParams()).WithSize(width, height);
+
+        var layout = MapGenerator.GenerateValidated(
+            biome, RunRng.StableSeed(state.StratumSeed, node.Id, "battle"), sized);
         if (layout == null) return null;
 
         var setup = new CombatSetup
@@ -50,10 +64,11 @@ public static class EncounterFactory
             XpAward = EncounterXPCalculator.CalculateTotalXP(encounter, state.Party.Level),
         };
 
-        var survivors = state.Party.Living();
-        var partyAnchors = DeploymentPlanner.GetAnchors(layout, teamId: 0, count: survivors.Count);
+        var partyAnchors = DeploymentPlanner.GetAnchors(layout, teamId: 0, count: friendly);
         for (int i = 0; i < survivors.Count; i++)
             setup.Party.Add((survivors[i], EncounterSpawner.AnchorAt(partyAnchors, i)));
+        if (ally != null)
+            setup.Allies.Add((ally, EncounterSpawner.AnchorAt(partyAnchors, survivors.Count)));
 
         EncounterSpawner.Spawn(encounter, layout, setup, applied.MaxEnemies);
         return setup.Enemies.Count > 0 ? setup : null;

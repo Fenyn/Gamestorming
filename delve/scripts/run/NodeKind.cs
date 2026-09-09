@@ -12,6 +12,7 @@ public enum NodeKind
     Boss,
     Shop,
     Treasure,
+    Meeting,
 }
 
 /// <summary>Presentation data for one node kind: the delve-fiction name, the one-line tooltip
@@ -44,6 +45,9 @@ public static class NodeKindInfo
                 "Spend gold on gear and supplies.", 60f, false),
             [NodeKind.Treasure] = new(NodeKind.Treasure, "Cache",
                 "A stash of loot.", 60f, false),
+            [NodeKind.Meeting] = new(NodeKind.Meeting, "Wayfarer",
+                "Another traveller is fighting out here. Win with them alive and they join the party.",
+                64f, true),
         };
 
     /// <summary>Table row for a kind.</summary>

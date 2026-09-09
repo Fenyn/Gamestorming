@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using Delve.Autoload;
 using Delve.Run;
@@ -56,6 +57,9 @@ public partial class RunDirector : Node
     /// <summary>XP the fight in progress awards on victory, held from StartFight to the finish.</summary>
     private int _pendingXp;
 
+    /// <summary>The Wayfarer fighting in the current encounter, held from StartFight to the finish.</summary>
+    private (string Id, PF2eCharacter Character)? _pendingRecruit;
+
     /// <summary>Screen the run is on.</summary>
     public RunPhase Phase { get; private set; } = RunPhase.HeroSelect;
 
@@ -107,7 +111,7 @@ public partial class RunDirector : Node
         _runEndPanel = AddScreen<RunEndPanel>(RunEndScene!, RunPhase.RunEnd);
 
         _heroSelect.Confirmed += ConfirmParty;
-        _map.NodePicked += PickNode;
+        _map.NodePicked += async id => await TravelToNode(id);
         _map.ShortRestPressed += OpenShortRest;
         _eventPanel.OptionPicked += PickEventOption;
         _eventPanel.Continued += CloseEvent;
@@ -143,12 +147,19 @@ public partial class RunDirector : Node
     {
         int seed = Seed != 0 ? Seed : (int)(GD.Randi() & 0x7FFFFFFF);
         var party = Party.Build(leaderId, memberIds, _unlocks, StartLevel);
-        _state = RunState.Start(seed, party, new RunMapConfig());
+        _state = RunState.Start(seed, party, new RunMapConfig(), unlocks: _unlocks);
         GD.Print($"[RunDirector] run seed {seed}, party level {StartLevel}, {_state.Map.Floors} floors.");
         GoToMap();
     }
 
     /// <summary>Move onto a node and dispatch by its kind. Ignores an unreachable id.</summary>
+    public async Task TravelToNode(int nodeId)
+    {
+        if (Phase == RunPhase.Map && await _map.PlayTravel(nodeId) && Phase == RunPhase.Map)
+            PickNode(nodeId);
+    }
+
+    /// <summary>Resolve travel immediately, also used by headless encounter harnesses.</summary>
     public void PickNode(int nodeId)
     {
         if (_state == null || !_state.Advance(nodeId)) return;
@@ -163,6 +174,7 @@ public partial class RunDirector : Node
             case NodeKind.Combat:
             case NodeKind.Elite:
             case NodeKind.Boss:
+            case NodeKind.Meeting:
                 StartFight(node);
                 break;
             case NodeKind.Event:
@@ -190,7 +202,10 @@ public partial class RunDirector : Node
     private void StartFight(MapNode node)
     {
         var data = DataManager.Instance;
-        var setup = data == null ? null : EncounterFactory.Build(_state!, node, data.ResolveCreature);
+        _pendingRecruit = node.Kind == NodeKind.Meeting ? _state!.Recruits.Draw(_state.Party) : null;
+        var setup = data == null
+            ? null
+            : EncounterFactory.Build(_state!, node, data.ResolveCreature, ally: _pendingRecruit?.Character);
         if (setup == null)
         {
             GD.PushError($"[RunDirector] Could not build the encounter for node {node.Id} - back to the map.");
@@ -215,6 +230,8 @@ public partial class RunDirector : Node
 
         bool wiped = _state.Party.IsWiped;
         var node = _state.CurrentNode;
+        if (!wiped && result == BattleResult.Team1Wins) JoinPendingRecruit();
+        _pendingRecruit = null;
         PartyRecovery.CompleteEncounter(_state.Party, result);
 
         if (wiped || result != BattleResult.Team1Wins)
@@ -244,6 +261,24 @@ public partial class RunDirector : Node
             AwardPendingXp();
             GoToMap();
         }
+    }
+
+    /// <summary>
+    /// Take the Wayfarer into the party, if there was one and it lived. The instance that fought is
+    /// the instance that joins, so it keeps its wounds; the stabilize step that follows covers it
+    /// like any other member.
+    /// </summary>
+    private void JoinPendingRecruit()
+    {
+        if (_state == null || _pendingRecruit is not { } recruit) return;
+
+        if (recruit.Character.Health is { IsDead: true })
+        {
+            GD.Print($"[RunDirector] the Wayfarer {recruit.Character.Name} did not survive the fight.");
+            return;
+        }
+        if (_state.Party.AddMember(recruit.Id, recruit.Character, _unlocks))
+            GD.Print($"[RunDirector] {recruit.Character.Name} joins the party.");
     }
 
     /// <summary>Pay out the won fight's XP (stabilized party first) and level in place on a
@@ -283,6 +318,7 @@ public partial class RunDirector : Node
     {
         if (_state == null || _openEvent == null) return;
         var result = EventResolver.Resolve(_state, _openEvent, optionIndex, actor);
+        if (result.Resolved) _openEvent = null;
         _eventPanel.ShowResult(result);
     }
 

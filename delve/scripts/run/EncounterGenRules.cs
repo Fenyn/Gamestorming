@@ -28,6 +28,17 @@ public sealed record EncounterGenRules
     /// Lairs are the meaty elite fights (design/core_concept.md "Wardstone").</summary>
     public int LairTierBonus { get; init; } = 1;
 
+    /// <summary>Party size at or below which a generated fight drops a tier. The opening rows are
+    /// walked alone and a book-Moderate fight against one character is not one.</summary>
+    public int UnderstrengthPartySize { get; init; } = 1;
+
+    /// <summary>Tiers taken off for an understrength party.</summary>
+    public int UnderstrengthTierRelief { get; init; } = 1;
+
+    /// <summary>Tiers off a generated fight at this party size. 0 once the party is up to strength.</summary>
+    public int TierRelief(int partySize)
+        => partySize > 0 && partySize <= UnderstrengthPartySize ? UnderstrengthTierRelief : 0;
+
     // ------------------------------------------------ Composition
 
     /// <summary>Hard cap on spawned enemies - the deployment zone's capacity.</summary>
@@ -35,4 +46,9 @@ public sealed record EncounterGenRules
 
     /// <summary>Generated encounter names remembered for the generator's anti-repeat.</summary>
     public int RecentTemplateMemory { get; init; } = 3;
+
+    // ------------------------------------------------ Board
+
+    /// <summary>How big the battle map is for the party that walks onto it.</summary>
+    public BattleMapRules Map { get; init; } = new();
 }

@@ -132,7 +132,10 @@ public partial class CombatScene : Node3D
     {
         if (_session == null) return;
         foreach (var unit in _session.Team1)
+        {
+            if (_session.IsAlly(unit)) continue;
             _session.SetAiToggle(unit, aiControlled);
+        }
     }
 
     /// <summary>

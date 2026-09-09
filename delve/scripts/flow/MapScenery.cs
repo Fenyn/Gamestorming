@@ -16,11 +16,15 @@ public partial class MapScenery : Control
     [Export] public float TrailPatchLength { get; set; } = 14f;
     [Export] public Color TrailColor { get; set; }
     [Export] public Color ShadowColor { get; set; }
+    [Export] public Color LandmarkStone { get; set; }
     private RunState? _state;
     private IReadOnlyDictionary<int, Vector2> _centers = new Dictionary<int, Vector2>();
     private Control? _mapArea;
     private ColorRect _fog = null!;
+    private MapAmbientFx _ambient = null!;
     private MapSceneryTheme? _biome;
+    private Vector2 _lightPosition;
+    public void PreviewLight(Vector2 position) => _lightPosition = position;
     internal Transform2D DrawnMapTransform { get; private set; }
 
     private Transform2D MapTransform => GetGlobalTransform().AffineInverse() * _mapArea!.GetGlobalTransform();
@@ -31,11 +35,18 @@ public partial class MapScenery : Control
         // Redraw only when its transform relative to this scenery has actually changed.
         if (_mapArea != null && IsVisibleInTree() && !DrawnMapTransform.IsEqualApprox(MapTransform))
             QueueRedraw();
+        if (_mapArea != null && _state != null && Size.X > 0 && Size.Y > 0 && _fog.Material is ShaderMaterial fog)
+        {
+            fog.SetShaderParameter("ward_position", (MapTransform * _lightPosition) / Size);
+            fog.SetShaderParameter("aspect", Size.X / Size.Y);
+            _ambient.SetLight(MapTransform * _lightPosition);
+        }
     }
 
     public override void _Ready()
     {
         _fog = GetNode<ColorRect>("%SceneryFog");
+        _ambient = GetNode<MapAmbientFx>("%AmbientFx");
         Resized += QueueRedraw;
     }
 
@@ -44,13 +55,23 @@ public partial class MapScenery : Control
         _state = state;
         _centers = centers;
         _mapArea = mapArea;
+        if (state.CurrentNodeId is int current) _lightPosition = centers[current];
+        else
+        {
+            _lightPosition = Vector2.Zero;
+            foreach (int start in state.Map.StartIds) _lightPosition += centers[start];
+            _lightPosition /= Math.Max(1, state.Map.StartIds.Count);
+        }
         string id = FloorThemes.ForStratum(state.Stratum).Id;
         _biome = Array.Find(Biomes, biome => biome.Id == id);
         if (_biome == null) return;
+        _ambient.Configure(state, mapArea, centers, _biome.FogColor);
         if (_fog.Material is ShaderMaterial fog)
         {
             fog.SetShaderParameter("density", _biome.FogDensity);
             fog.SetShaderParameter("fog_color", _biome.FogColor);
+            fog.SetShaderParameter("ward_strength", (float)state.Wardstone.Ward / Math.Max(1, state.Wardstone.Rules.MaxWard));
+            fog.SetShaderParameter("ward_color", UiColors.CharacterAccent(state.Party.LeaderId));
         }
         QueueRedraw();
         Callable.From(QueueRedraw).CallDeferred();
@@ -113,6 +134,9 @@ public partial class MapScenery : Control
                 float depth = Mathf.Clamp(foot.Y / Size.Y, 0f, 1f);
                 DrawTextureRect(texture, rect, false, _biome.TreeTint * (0.75f + depth * 0.25f));
             }
+        foreach (var node in _state.Map.Nodes)
+            MapLandmarks.Draw(this, DrawnMapTransform * _centers[node.Id], node.Kind,
+                LandmarkStone, ShadowColor with { A = 1 }, UiColors.NodeKindColor(node.Kind));
     }
 
     private void DrawWornTrail(Vector2 from, Vector2 to, int seed)

@@ -24,6 +24,7 @@ namespace Delve.Terrain;
 /// </summary>
 public partial class TerrainStage : Node3D
 {
+    [Export] public Shader? OutskirtsMistShader { get; set; }
     /// <summary>Name of the per-build terrain view child.</summary>
     private const string MapViewName = "MapView";
 
@@ -236,7 +237,7 @@ public partial class TerrainStage : Node3D
             _backdrop = new Backdrop { Name = BackdropName };
             AddChild(_backdrop);
         }
-        _backdrop.Apply(biomeId, Skirt, _skirtHeights, width, height, worldEnvironment, sun);
+        _backdrop.Apply(biomeId, Skirt, _skirtHeights, width, height, worldEnvironment, sun, OutskirtsMistShader);
     }
 
     /// <summary>

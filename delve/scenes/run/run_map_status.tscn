@@ -12,6 +12,7 @@ script = ExtResource("1")
 MemberScene = ExtResource("2_member")
 
 [node name="WardPanel" type="PanelContainer" parent="." unique_id=133232796]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MapWardPanel"
 

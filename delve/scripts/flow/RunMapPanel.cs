@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Delve.Data;
 using Delve.Run;
 using Delve.UI;
@@ -40,6 +41,9 @@ public partial class RunMapPanel : Control
     private ScrollContainer _mapScroll = null!;
     private BoxContainer _legendRow = null!;
     private MapScenery _scenery = null!;
+    private MapTravelLight _travel = null!;
+    private RunState? _state;
+    private readonly Dictionary<int, MapNodeButton> _buttons = new();
 
     public event Action<int>? NodePicked;
     public event Action? ShortRestPressed;
@@ -57,15 +61,19 @@ public partial class RunMapPanel : Control
         _mapScroll = GetNode<ScrollContainer>("%MapScroll");
         _legendRow = GetNode<BoxContainer>("%LegendRow");
         _scenery = GetNode<MapScenery>("%Scenery");
+        _travel = GetNode<MapTravelLight>("%TravelLight");
+        _travel.LightMoved += _scenery.PreviewLight;
         _mapScroll.GetVScrollBar().ValueChanged += _ => _scenery.QueueRedraw();
         _mapScroll.GetHScrollBar().ValueChanged += _ => _scenery.QueueRedraw();
-        _status.RestPressed += () => ShortRestPressed?.Invoke();
+        _status.RestPressed += () => { if (!_travel.Traveling) ShortRestPressed?.Invoke(); };
         BuildLegend();
     }
 
     /// <summary>Redraw the strip and the whole map from the run's current state.</summary>
     public void Render(RunState state)
     {
+        _travel.Cancel();
+        _state = state;
         if (_leaderId != state.Party.LeaderId)
         {
             _leaderId = state.Party.LeaderId;
@@ -88,6 +96,7 @@ public partial class RunMapPanel : Control
 
     private void RebuildMap(RunState state)
     {
+        _buttons.Clear();
         foreach (var child in _mapArea.GetChildren())
         {
             _mapArea.RemoveChild(child);
@@ -119,6 +128,7 @@ public partial class RunMapPanel : Control
             button.MouseEntered += () => ShowDestination(node, reachable.Contains(id), live.Contains(id), current == id);
             button.FocusEntered += () => ShowDestination(node, reachable.Contains(id), live.Contains(id), current == id);
             _mapArea.AddChild(button);
+            _buttons[id] = button;
             if (current == id || (current == null && id == map.StartIds[0]))
                 Callable.From(() =>
                 {
@@ -127,6 +137,23 @@ public partial class RunMapPanel : Control
                         _mapScroll.EnsureControlVisible(button);
                 }).CallDeferred();
         }
+    }
+
+    public async Task<bool> PlayTravel(int nodeId)
+    {
+        if (_state == null || _travel.Traveling || !_buttons.TryGetValue(nodeId, out var target)
+            || target.Disabled || !IsVisibleInTree()) return false;
+        var destination = target.Position + target.Size / 2;
+        var from = _state.CurrentNodeId is int current && _buttons.TryGetValue(current, out var origin)
+            ? origin.Position + origin.Size / 2 : destination + new Vector2(0, 55);
+        foreach (var button in _buttons.Values) button.Disabled = true;
+        bool arrived = await _travel.Play(_mapArea, from, destination, _accent);
+        if (!arrived && IsInsideTree() && _state != null)
+        {
+            var reachable = new HashSet<int>(_state.Reachable());
+            foreach (var (id, button) in _buttons) button.Disabled = !reachable.Contains(id);
+        }
+        return arrived;
     }
 
     private void ShowDestination(MapNode node, bool reachable, bool live, bool current)

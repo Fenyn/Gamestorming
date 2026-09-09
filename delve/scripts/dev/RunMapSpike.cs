@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Delve.Autoload;
 using Delve.Run;
@@ -39,11 +40,13 @@ public partial class RunMapSpike : SpikeBase
         int entrances = 0;
         int totalNodes = 0;
         int earliestRest = int.MaxValue;
-        var kindCounts = new int[8];
+        var kindCounts = new int[System.Enum.GetValues<NodeKind>().Length];
+        var meetingFloors = cfg.MeetingFloorsFor(0);
+        int misplacedMeeting = 0, missingMeeting = 0;
 
         for (int seed = 0; seed < Seeds; seed++)
         {
-            var map = RunMapGenerator.Generate(seed, cfg);
+            var map = RunMapGenerator.Generate(seed, cfg, meetingFloors);
 
             // (1) Every entrance reaches the boss.
             foreach (int start in map.StartIds)
@@ -70,6 +73,9 @@ public partial class RunMapSpike : SpikeBase
                 if (node.Kind == NodeKind.Elite && node.Floor < cfg.MinEliteFloor) earlyElite++;
                 if (node.Kind == NodeKind.Rest && node.Floor < cfg.MinRestFloor) earlyRest++;
                 if (node.Kind == NodeKind.Shop || node.Kind == NodeKind.Treasure) reservedKinds++;
+                bool onMeetingRow = meetingFloors.Contains(node.Floor);
+                if (node.Kind == NodeKind.Meeting && !onMeetingRow) misplacedMeeting++;
+                if (node.Kind != NodeKind.Meeting && onMeetingRow) missingMeeting++;
 
                 if (node.Kind != NodeKind.Rest && node.Kind != NodeKind.Elite) continue;
                 if (!predecessors.TryGetValue(node.Id, out var prev)) continue;
@@ -98,7 +104,7 @@ public partial class RunMapSpike : SpikeBase
             totalNodes += map.Nodes.Count;
 
             // (6) Same seed, same map.
-            var twin = RunMapGenerator.Generate(seed, cfg);
+            var twin = RunMapGenerator.Generate(seed, cfg, meetingFloors);
             if (!SameMap(map, twin)) notDeterministic++;
         }
 
@@ -111,6 +117,8 @@ public partial class RunMapSpike : SpikeBase
         Check($"({Seeds} seeds) no Rest before floor {cfg.MinRestFloor}", earlyRest == 0);
         Check($"({Seeds} seeds) no Rest or Elite follows its own kind on a path", adjacentSameKind == 0);
         Check($"({Seeds} seeds) reserved kinds (Shop/Treasure) are never generated", reservedKinds == 0);
+        Check($"({Seeds} seeds) every node on a Wayfarer row is a Wayfarer", missingMeeting == 0);
+        Check($"({Seeds} seeds) no Wayfarer off its rows", misplacedMeeting == 0);
         Check($"({Seeds} seeds) the same seed yields the identical map", notDeterministic == 0);
 
         Check($"({Seeds} seeds) no two map edges cross", crossings == 0);
@@ -126,7 +134,7 @@ public partial class RunMapSpike : SpikeBase
                 GD.Print($"    {(NodeKind)k}: {kindCounts[k] / (float)Seeds:0.00} per map");
         }
 
-        var sample = RunMapGenerator.Generate(7, cfg);
+        var sample = RunMapGenerator.Generate(7, cfg, meetingFloors);
         Check("boss floor holds exactly one node", CountOnFloor(sample, sample.Floors - 1) == 1);
         Check("Reachable(null) returns the entrances", sample.Reachable(null).Count == sample.StartIds.Count);
         Check("Reachable(boss) is empty", sample.Reachable(sample.BossId).Count == 0);

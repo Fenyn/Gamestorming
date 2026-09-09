@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using PF2e.Conditions;
 using PF2e.Core;
@@ -53,7 +54,7 @@ public static class EventResolver
         }
 
         var check = option.Check;
-        var chosen = (check.AllowPickActor ? actor : null) ?? BestFor(state.Party, check.Skill);
+        var chosen = ActorFor(state.Party, check, actor);
         if (chosen == null)
             return new EventResult { Resolved = false, Reason = "Nobody is standing to attempt it." };
 
@@ -68,13 +69,17 @@ public static class EventResolver
     }
 
     /// <summary>Degree lookup with the documented fallbacks, so an option only authors what differs.</summary>
-    private static EventOutcome OutcomeFor(EventOption option, DegreeOfSuccess degree) => degree switch
+    public static EventOutcome OutcomeFor(EventOption option, DegreeOfSuccess degree) => degree switch
     {
         DegreeOfSuccess.CriticalSuccess => option.CriticalSuccess ?? option.Success,
         DegreeOfSuccess.Failure => option.Failure ?? option.Success,
         DegreeOfSuccess.CriticalFailure => option.CriticalFailure ?? option.Failure ?? option.Success,
         _ => option.Success,
     };
+
+    public static PF2eCharacter? ActorFor(Party party, EventCheck check, PF2eCharacter? actor) =>
+        check.AllowPickActor && actor != null && party.Members.Contains(actor)
+            && actor.Health is { IsDead: false } ? actor : BestFor(party, check.Skill);
 
     private static void Apply(RunState state, PF2eCharacter? actor, EventOutcome outcome, List<string> lines)
     {

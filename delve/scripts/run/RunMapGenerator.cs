@@ -15,7 +15,9 @@ namespace Delve.Run;
 /// </summary>
 public static class RunMapGenerator
 {
-    public static RunMap Generate(int runSeed, RunMapConfig cfg)
+    /// <param name="meetingFloors">Rows taken whole by <see cref="NodeKind.Meeting"/>. Rows outside
+    /// the free middle are ignored.</param>
+    public static RunMap Generate(int runSeed, RunMapConfig cfg, IReadOnlyList<int>? meetingFloors = null)
     {
         if (cfg.Floors < 3) throw new ArgumentOutOfRangeException(nameof(cfg), "Floors must be at least 3.");
         if (cfg.Lanes < 1) throw new ArgumentOutOfRangeException(nameof(cfg), "Lanes must be at least 1.");
@@ -102,7 +104,7 @@ public static class RunMapGenerator
             if (node.Floor == 0) startIds.Add(node.Id);
         }
 
-        AssignKinds(nodes, bossFloor, cfg, rng);
+        AssignKinds(nodes, bossFloor, cfg, meetingFloors, rng);
         return new RunMap(cfg.Floors, cfg.Lanes, nodes, startIds, bossId);
     }
 
@@ -113,9 +115,22 @@ public static class RunMapGenerator
     /// <see cref="RunMapConfig.MinRestFloor"/>, because a night's rest before the party has spent
     /// anything is a dead pick. Floors are assigned in order so every predecessor is already known
     /// when a node is rolled; a top-up pass afterwards enforces the minimum Elite and Rest counts.
+    /// <paramref name="meetingFloors"/> rows are taken before the roll. They are neither Combat nor
+    /// Event, so the top-up passes skip them - leave free rows inside the guarantee windows.
     /// </summary>
-    private static void AssignKinds(List<MapNode> nodes, int bossFloor, RunMapConfig cfg, Random rng)
+    private static void AssignKinds(
+        List<MapNode> nodes, int bossFloor, RunMapConfig cfg,
+        IReadOnlyList<int>? meetingFloors, Random rng)
     {
+        var forcedMeetings = new HashSet<int>();
+        if (meetingFloors != null)
+        {
+            foreach (int floor in meetingFloors)
+            {
+                if (floor > 0 && floor < bossFloor - 1) forcedMeetings.Add(floor);
+            }
+        }
+
         var predecessors = new Dictionary<int, List<int>>();
         foreach (var node in nodes)
         {
@@ -141,6 +156,7 @@ public static class RunMapGenerator
             if (node.Floor == 0) { node.Kind = NodeKind.Combat; continue; }
             if (node.Floor == bossFloor) { node.Kind = NodeKind.Boss; continue; }
             if (node.Floor == bossFloor - 1) { node.Kind = NodeKind.Rest; continue; }
+            if (forcedMeetings.Contains(node.Floor)) { node.Kind = NodeKind.Meeting; continue; }
 
             candidates.Clear();
             foreach (var entry in weighted)

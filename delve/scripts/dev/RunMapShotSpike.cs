@@ -212,6 +212,32 @@ public partial class RunMapShotSpike : SpikeBase
         Check("leader changes leave the shared theme intact",
             sharedTheme.GetStylebox("fill", "MapWardBar") == sharedWard
             && sharedTheme != panel.Theme);
+
+        panel.Render(state);
+        await Settle();
+        int travelId = state.Reachable()[0];
+        int historyBefore = state.History.Count;
+        var journey = panel.PlayTravel(travelId);
+        Check("travel rejects a second selection", !await panel.PlayTravel(travelId));
+        await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
+        await Settle();
+        Capture("run_map_travel.png");
+        Check("travel finishes without mutating run state", await journey && state.History.Count == historyBefore);
+        panel.Render(state);
+        var cancelled = panel.PlayTravel(travelId);
+        panel.Hide();
+        Check("hiding map cancels travel", !await cancelled);
+        panel.Show();
+        panel.Render(state);
+        state.Wardstone.BurnShortRest();
+        panel.Render(state);
+        await ToSignal(GetTree().CreateTimer(0.25), SceneTreeTimer.SignalName.Timeout);
+        await Settle();
+        Capture("run_map_ward_drain.png");
+        await ToSignal(GetTree().CreateTimer(0.7), SceneTreeTimer.SignalName.Timeout);
+        Check("ward spend animation settles on the real ward",
+            status.GetNode<ProgressBar>("%WardBar").Value == state.Wardstone.Ward
+            && status.GetNode<Label>("%WardValue").Text == $"{state.Wardstone.Ward} / {state.Wardstone.Rules.MaxWard}");
     }
 
     private static double Contrast(Color foreground, Color background)

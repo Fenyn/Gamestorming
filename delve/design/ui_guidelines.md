@@ -262,6 +262,14 @@ Inventory surfaces (when the change touches one)
 
 ### Run map color states
 
+Happenstance choices show the acting character, current skill bonus, DC, and base success chance. Best suited uses the same actor selection as the resolver. Changing the actor updates every option; hover or keyboard focus reveals outcome previews and the ability/proficiency breakdown. Base odds enumerate the twenty d20 faces, including natural degree shifts, without rolling or firing character rule events. Resolve-time features can change those odds and the tooltip explains that limit. A choice resolves only once.
+
+Forest combat shares the overworld's damp dusk palette. Two drifting mist layers occupy the outer terrain with a transparent cutout over the playable board. Sparse motes fade in and out, and the far surround stays darker than the battlefield. Check default, orbit, and low camera angles for unit and targeting readability; backdrop rebuilds own and replace their mist and particles.
+
+Ambient map VFX stay sparse: slow motes, short firefly glimmers near ward light, and tiny rising campsite embers. They render beneath navigation on a separate canvas so particle motion never rebuilds scenery. They ignore pointer input, pause while hidden, and use cosmetic seeded randomness without touching gameplay rolls.
+
+Delve's map identity is Arthurian ward light within an occult wilderness. The leader accent marks protection and selection; destination colors still identify encounter kinds. Ward strength controls the size of the clear air around the party and the darkness at the forest edge. Travel carries that light to the destination before dispatching the encounter, rejects duplicate selections, and cancels when the map closes. Paid rest drains the ward display when the player returns to the map. Stone borders, small sword markers, campsite embers, lair mouths, and broken standing stones support the identity without replacing readable node seals. This pass adds no audio.
+
 The route map reuses combat tree sprites and terrain textures at miniature scale. Seeded scenery leaves clearings around nodes and paths. Drifting fog renders above scenery and below navigation, and decoration never accepts pointer input. MapSceneryTheme resources define each biome's tree mix, ground, density, palette, and pools: an open Fringe, dense Deep Wood, and muddy Drowning Dark. These visuals do not change encounter terrain generation.
 
 Each opening of Short Rest allows one activity. After selection, replace activity and target controls with the result, current ward, and ward spent. Return to map is the only next action; starting another paid rest requires opening Short Rest from the map again. Duplicate activity requests must not spend ward or time.

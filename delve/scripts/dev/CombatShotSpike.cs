@@ -47,6 +47,10 @@ public partial class CombatShotSpike : SpikeBase
     {
         var combat = GD.Load<PackedScene>("res://scenes/dev/combat_test.tscn").Instantiate();
         AddChild(combat);
+        await WaitSeconds(0.1f);
+        var terrain = combat.FindChild("TerrainStage", recursive: true, owned: false);
+        Check("forest outskirts have two mist layers",
+            terrain?.GetNodeOrNull<Node3D>("Backdrop/OutskirtsMist")?.GetChildCount() == 2);
         GD.Print("[combatshot] spike ready");
 
         DirAccess.MakeDirRecursiveAbsolute(OutDir);

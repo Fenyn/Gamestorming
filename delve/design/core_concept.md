@@ -39,7 +39,7 @@ Told across runs through the meta progression:
 
 ```
 Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 tree -> Depths Warden -> RunEnd
-           (each tree: Map -> [Combat | Elite | Event | Rest | Boss] -> Map ...; ShortRest from the map)
+           (each tree: Map -> [Combat | Elite | Event | Rest | Meeting | Boss] -> Map ...; ShortRest from the map)
 ```
 
 - A run descends through 3 floors (code: strata). Each floor is one full node tree ending in its authored floor boss; beating it fully recharges the Wardstone and opens the next floor's tree. The last floor's boss is the Depths Warden; beating it wins the run.
@@ -62,7 +62,8 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Kind rules (rows within one tree): row 0 = Combat; last row = Boss; the row before Boss = Rest; no Elite before row 3; no Rest before row 3, because a night's rest is a dead pick until the party has spent HP, slots or focus; no Rest on the row feeding the forced Campsite; no Rest or Elite adjacent on one path; remaining nodes weighted Combat > Event > Rest > Elite.
 - Floors carry a minimum: at least one Elite and at least one Rest outside the forced pre-boss row. The weighted roll alone left about 40% of maps with no Elite, so a top-up pass re-kinds Combat or Event nodes that have no neighbour of that kind.
 - At least two entrances. The second walk always starts on a different lane from the first.
-- Kinds: Combat = Skirmish, Elite = Lair, Event = Happenstance, Rest = Campsite, Boss = the floor's boss (the Depths Warden on the last floor).
+- Kinds: Combat = Skirmish, Elite = Lair, Event = Happenstance, Rest = Campsite, Meeting = Wayfarer, Boss = the floor's boss (the Depths Warden on the last floor).
+- Wayfarer rows are taken whole, the way row 0 is Combat, so every path hits them. Party size is a guarantee, not a lane the player can miss: encounter budgets count every member, so a short party pays for the gap in every fight. Rows are per floor in `RunMapConfig.MeetingFloorsByStratum`.
 
 ## Day and time
 
@@ -92,6 +93,8 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Each floor sets a base threat distribution for generated fights (floor 1 low/moderate with rare severe; deeper floors drop low and add severe and extreme). As the ward burns down, every rolled tier is upshifted, by up to 3 steps, into a custom Lethal tier above the book budgets.
 - A Lair adds a further tier on top of its roll (Slay the Spire elite; the bonus is tunable).
 - Encounter budgets count every party member, dead or alive.
+- A party of one drops a generated fight by one tier. The opening rows are walked alone and a book-Moderate fight against a single character is not one. Size and relief are tunable in `EncounterGenRules`; bosses ignore it like they ignore the ward.
+- Board size scales with the party. The forest biome's 18x18 to 24x24 is a long walk for one character, so a generated fight halves the side at a party of one and rises to 0.85 of it at four, floored at 12 (`BattleMapRules`). The size roll runs on its own seed stream, so it never shifts the terrain a node already generated.
 - Short rests consume ward. That burn is the whole price of resting, so healing up now buys harder fights later. Resting stops once the ward is down to one rest's worth.
 - Ward 0 ends the run in defeat, party alive or not. The fog takes them. Only passive burn can get there, since resting stops short of it (`NodeBurn` is 0 today, so nothing reaches 0 yet).
 - A Campsite night's rest restores part of the ward; beating a floor's boss restores all of it.
@@ -107,6 +110,15 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
   - Floor 1, the Dire Wolf lair: Elite Dire Wolf + three Wolves (4@3, 120 XP).
   - Floor 2, the Regent's grove: Arboreal Regent + Forest Troll (4@6, 110 XP).
   - Floor 3, the Depths Warden: Adult Horned Dragon + two Marsh Giants (4@10, 120 XP). The dragon is unnamed.
+
+## Meetings
+
+- A Wayfarer node is a fight already in progress: one character out of the fog against this floor's creatures. They fight as an AI ally on the party's team and the player does not command them.
+- They join at the end of a won fight, keeping the wounds they took. If they die, nobody joins and they come up again at the next Wayfarer.
+- Draw order is `RecruitPool`: catalog order, minus the leader and anyone already in the party. With the four-character catalog that is the three the player did not lead with, one per meeting.
+- Pacing: floor 1 fills slots 2 and 3, floor 2 fills slot 4. Nothing joins on floor 3. A companion arriving at level 8 gets one floor of play and the party spent two floors under strength to get them.
+- A Wayfarer met with a full party is a plain fight today. Later it becomes the FF Tactics guest unit: an ally for that fight only.
+- Allies fight cautiously, which is a survival check and not a fear of contact. They weigh a round of incoming damage against the HP they have left, and pay a plan score penalty only when that round could kill them (`AllyAiRules.SurvivalMargin`, 0.6 of remaining HP). A healthy ally charges a pack the same way a monster would; the same ally at a third HP strikes and steps back out. Party members standing near a tile take a share of the danger. Enemies keep the old behaviour: caution is off by default in the engine.
 
 ## Recruitment pattern
 
@@ -151,11 +163,9 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Feat attunement mechanics: what counts as "use", attunement progress and thresholds, how attuned feats slot in (extra grants vs pre-unlocked picks), caps; requires the persistence layer.
 - Level-up choice UI (auto-assigned boosts/skills today; combo scripts carry the feats); L6-10 archetype feats without compiled engine features stay unscripted.
 - Terrain biomes for the floor themes: grassland dress, deep-forest dress, swamp (new); all floors generate forest boards until then.
-- Node roster expansion (proposed: Meeting, Cache; Campsite doubles as extraction point) and extraction flow.
-- Second-character identity in the opening; early join order.
+- Node roster expansion (proposed: Cache; Campsite doubles as extraction point) and extraction flow.
 - Food / fatigue mechanics (seam: DayClock, which still counts days and blocks).
 - Wardstone details: passive burn unit; whether the upshift governs events and guest encounters.
 - Reputation system mechanics.
-- Guest placement in a run (node type, position).
 - Slot unlock costs; upgrade tracks and currency amounts.
 - Tone / register (required before narrative content).

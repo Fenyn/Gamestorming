@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Delve.Run;
 
 /// <summary>
@@ -37,4 +40,24 @@ public sealed record RunMapConfig
 
     /// <summary>Rests the map must hold on the free floors, on top of the forced pre-boss Campsite.</summary>
     public int MinMidRests { get; init; } = 1;
+
+    /// <summary>
+    /// Rows taken whole by <see cref="NodeKind.Meeting"/>, one entry per stratum. A whole row, the way
+    /// row 0 is Combat, so every path hits it: party size is a guarantee, not a lane. The default
+    /// fills slot 2 on the run's second node, slot 3 just before floor 1's Campsite, slot 4 early on
+    /// floor 2. Rows 3 and 4 stay free: the Elite and Rest top-up passes need somewhere to land.
+    /// </summary>
+    public IReadOnlyList<IReadOnlyList<int>> MeetingFloorsByStratum { get; init; } =
+        new IReadOnlyList<int>[]
+        {
+            new[] { 1, 5 },
+            new[] { 1 },
+            Array.Empty<int>(),
+        };
+
+    /// <summary>Meeting rows for a stratum. Empty past the end of the table.</summary>
+    public IReadOnlyList<int> MeetingFloorsFor(int stratum)
+        => stratum >= 0 && stratum < MeetingFloorsByStratum.Count
+            ? MeetingFloorsByStratum[stratum]
+            : Array.Empty<int>();
 }

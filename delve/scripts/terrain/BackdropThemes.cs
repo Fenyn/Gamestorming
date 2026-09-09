@@ -102,6 +102,9 @@ public sealed record BackdropThemeDefinition
 
     /// <summary>Mote colour; alpha is the mote opacity.</summary>
     public MapColor MoteColor { get; init; }
+    public int MoteCount { get; init; } = 12;
+    public float OutskirtsMistOpacity { get; init; }
+    public MapColor OutskirtsMistColor { get; init; }
 
     // ── Generated skirt (the halo of synthesized tiles around the board) ──
 
@@ -197,7 +200,7 @@ public static class BackdropThemes
     };
 
     /// <summary>
-    /// Open woodland day: blue sky over pale haze, warm sun, hills and thickening woodland from the
+    /// Damp woodland dusk: cool sky, subdued light, hills and thickening woodland from the
     /// arena edge to the fog line, drifting motes. Every green here is a kin of
     /// <see cref="Delve.Data.MapThemes.Forest"/>'s grass top — the ground surround takes that colour
     /// directly and only dims it, so the playable field stays the brightest surface and the fog does
@@ -206,22 +209,25 @@ public static class BackdropThemes
     public static readonly BackdropThemeDefinition Forest = new()
     {
         BiomeId = "forest",
-        SkyTop = new(0.32f, 0.50f, 0.72f),
-        SkyHorizon = new(0.70f, 0.79f, 0.83f),
-        SkyGround = new(0.24f, 0.30f, 0.24f),
-        FogColor = new(0.64f, 0.74f, 0.78f),
-        FogDensity = 0.010f,
-        FogSkyAffect = 0.06f,
-        AmbientColor = new(0.64f, 0.68f, 0.70f),
-        AmbientEnergy = 1.0f,
-        SunColor = new(1.0f, 0.96f, 0.87f),
-        SunEnergy = 1.2f,
+        SkyTop = new(0.055f, 0.095f, 0.10f),
+        SkyHorizon = new(0.18f, 0.25f, 0.24f),
+        SkyGround = new(0.07f, 0.11f, 0.09f),
+        FogColor = new(0.27f, 0.36f, 0.34f),
+        FogDensity = 0.007f,
+        FogSkyAffect = 0.2f,
+        AmbientColor = new(0.52f, 0.63f, 0.63f),
+        AmbientEnergy = 0.70f,
+        SunColor = new(0.87f, 0.91f, 0.79f),
+        SunEnergy = 0.75f,
         SunElevationDegrees = 47f,
         SunAzimuthDegrees = 40f,
         HasGroundPlane = true,
-        GroundPlaneColor = Shade(MapThemes.Forest, SurfaceType.Grass, 0.91f),
+        GroundPlaneColor = Shade(MapThemes.Forest, SurfaceType.Grass, 0.38f),
         Particles = BackdropParticleKind.Motes,
-        MoteColor = new(1.0f, 0.98f, 0.85f, 0.14f),
+        MoteColor = new(0.76f, 0.87f, 0.73f, 0.24f),
+        MoteCount = 32,
+        OutskirtsMistOpacity = 0.50f,
+        OutskirtsMistColor = new(0.48f, 0.57f, 0.53f),
         Decor = ForestDecor,
         WallsAreTrees = true,
         // Surfaces mirror the forest biome's own defaults (Grass / Dirt / Dirt), so a synthesized

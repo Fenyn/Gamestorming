@@ -83,7 +83,11 @@ public partial class RunFlowSpike : SpikeBase
         if (skirmish != null)
         {
             _leftCombat = new TaskCompletionSource<RunPhase>(TaskCreationOptions.RunContinuationsAsynchronously);
-            director.PickNode(skirmish.Value);
+            var travel = director.TravelToNode(skirmish.Value);
+            Check("(2) travel keeps the map open until arrival", director.Phase == RunPhase.Map
+                && state.CurrentNodeId == null);
+            await director.TravelToNode(skirmish.Value);
+            await travel;
             Check("(2) picking a Skirmish starts the fight", director.Phase == RunPhase.Combat);
 
             var finished = await Task.WhenAny(_leftCombat.Task, Task.Delay(CombatTimeoutMs));

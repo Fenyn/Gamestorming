@@ -94,13 +94,24 @@ public sealed class Party
     /// </summary>
     public bool AddMember(string id, UnlockState unlocks)
     {
-        if (IsFull) return false;
         if (CharacterCatalog.Find(id) is not { } def) return false;
+        return AddMember(id, def.Builder(Level), unlocks);
+    }
+
+    /// <summary>
+    /// Take a companion the run already built - the Wayfarer ally who just fought beside the party -
+    /// keeping that instance and the state it earned. Also refuses a dead character.
+    /// </summary>
+    public bool AddMember(string id, PF2eCharacter character, UnlockState unlocks)
+    {
+        if (IsFull) return false;
+        if (CharacterCatalog.Find(id) == null) return false;
         if (!unlocks.IsUnlocked(id)) return false;
         if (id == LeaderId || _memberIds.Contains(id)) return false;
+        if (character.Health is { IsDead: true }) return false;
 
         _memberIds.Add(id);
-        _members.Add(def.Builder(Level));
+        _members.Add(character);
         return true;
     }
 

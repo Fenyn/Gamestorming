@@ -19,7 +19,8 @@ public static class MapNodeShapes
         NodeKind.Event => Polygon(center, r * 1.08f, 6, 0f),                 // hexagon
         NodeKind.Rest => Polygon(center, r * 1.3f, 3, -Mathf.Pi / 2f),       // tent triangle
         NodeKind.Boss => Polygon(center, r * 1.04f, 8, Mathf.Pi / 8f),       // octagon
-        NodeKind.Shop => Polygon(center, r * 1.12f, 5, -Mathf.Pi / 2f),      // pentagon
+        NodeKind.Meeting => Polygon(center, r * 1.12f, 5, -Mathf.Pi / 2f),   // pentagon
+        NodeKind.Shop => Polygon(center, r * 1.05f, 7, -Mathf.Pi / 2f),      // heptagon
         NodeKind.Treasure => Polygon(center, r * 1.06f, 4, Mathf.Pi / 4f),   // square
         _ => Polygon(center, r, 32, 0f),
     };

@@ -46,6 +46,7 @@ public static class UiColors
         NodeKind.Event => Get("node_event"),
         NodeKind.Rest => Get("node_rest"),
         NodeKind.Boss => Get("node_boss"),
+        NodeKind.Meeting => Get("node_meeting"),
         NodeKind.Shop => Get("node_shop"),
         NodeKind.Treasure => Get("node_treasure"),
         _ => Get("text"),

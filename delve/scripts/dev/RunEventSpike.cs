@@ -20,12 +20,13 @@ namespace Delve.Dev;
 /// </summary>
 public partial class RunEventSpike : SpikeBase
 {
+    [Export] public PackedScene EventScene { get; set; } = null!;
     private const int PartyLevel = 2;
     private const int RunSeed = 4242;
 
     protected override string Banner => "==================== RUN EVENT SPIKE ====================";
 
-    protected override Task RunSpikeAsync(DataManager data)
+    protected override async Task RunSpikeAsync(DataManager data)
     {
         // The d20 behind every check comes from the engine's global Rng; a natural 1 at DC 0 would
         // downgrade a forced success, so the roll is pinned.
@@ -99,7 +100,38 @@ public partial class RunEventSpike : SpikeBase
         var refused = EventResolver.Resolve(quiet, definition, 7, null);
         Check("(4) an unknown option index is refused", !refused.Resolved && refused.Reason != null);
 
-        return Task.CompletedTask;
+        var panel = EventScene.Instantiate<Delve.Flow.EventPanel>();
+        AddChild(panel);
+        var previewRun = NewRun();
+        panel.Show(definition, previewRun);
+        var choices = panel.GetNode<VBoxContainer>("%OptionBox");
+        var first = choices.GetChild<Button>(0);
+        string automatic = first.Text;
+        Check("preview names the skill, DC and base success chance", automatic.Contains("Athletics")
+            && automatic.Contains("DC 15") && automatic.Contains("% base success"));
+        var actors = panel.GetNode<HBoxContainer>("%ActorRow");
+        actors.GetChild<Button>(actors.GetChildCount() - 1).ButtonPressed = true;
+        Check("changing actor updates the check preview", first.Text != automatic);
+        Check("success and critical failure explain their effects",
+            panel.GetNode<Label>("%CheckPreview").Text.Contains("Heal 10%")
+            && panel.GetNode<Label>("%CheckPreview").Text.Contains("Wounded +1"));
+        Check("opening previews spends no resources", previewRun.Gold == 0 && previewRun.Clock.ShortRestsToday == 0);
+        for (int i = 0; i < 5; i++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        if (DisplayServer.GetName() != "headless")
+        {
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            var image = GetViewport().GetTexture().GetImage();
+            image.Convert(Image.Format.Rgba8);
+            image.LinearToSrgb();
+            DirAccess.MakeDirRecursiveAbsolute("user://dev_shots");
+            Check("event preview screenshot saved", image.SavePng("user://dev_shots/event_preview.png") == Error.Ok);
+        }
+        int requests = 0;
+        panel.OptionPicked += (_, _) => requests++;
+        first.EmitSignal(BaseButton.SignalName.Pressed);
+        first.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("repeated selection cannot resolve twice", requests == 1);
+        panel.QueueFree();
     }
 
     private static RunState NewRun()

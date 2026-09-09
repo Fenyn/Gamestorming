@@ -45,9 +45,8 @@ public partial class Backdrop : Node3D
 
     // ── Motes: deliberately sparse, small, and faint — ambience in motion, never readable as
     //    stray white squares in a still frame. ──
-    private const int MoteCount = 12;
     private const float MoteLifetimeSeconds = 12f;
-    private const float MoteQuadSize = 0.035f;
+    private const float MoteQuadSize = 0.055f;
     private const float MoteFieldHalfHeight = 2.2f;
     private const float MoteFieldCenterY = 2.0f;
     private const float MoteFieldPadding = 2f;
@@ -71,7 +70,8 @@ public partial class Backdrop : Node3D
         int gridWidth,
         int gridHeight,
         WorldEnvironment worldEnvironment,
-        DirectionalLight3D sun)
+        DirectionalLight3D sun,
+        Shader? outskirtsMistShader = null)
     {
         var theme = BackdropThemes.Get(biomeId);
 
@@ -93,6 +93,8 @@ public partial class Backdrop : Node3D
 
         if (theme.Particles == BackdropParticleKind.Motes)
             AddMotes(center, gridWidth, gridHeight, theme);
+        if (outskirtsMistShader != null && theme.OutskirtsMistOpacity > 0 && margin > 4)
+            AddChild(OutskirtsMist.Build(outskirtsMistShader, gridWidth, gridHeight, margin, theme));
     }
 
     // ---------------------------------------------------------------- Atmosphere
@@ -205,14 +207,14 @@ public partial class Backdrop : Node3D
         AddChild(new GpuParticles3D
         {
             Name = "Motes",
-            Amount = MoteCount,
+            Amount = theme.MoteCount,
             Lifetime = MoteLifetimeSeconds,
             Preprocess = MoteLifetimeSeconds,
             DrawPass1 = quad,
             Position = new Vector3(boardCenter.X, MoteFieldCenterY, boardCenter.Z),
             // Explicit AABB: the default is far smaller than the emission box, and an undersized one
             // culls the whole system the moment the camera orbits off-centre.
-            VisibilityAabb = new Aabb(-halfExtents, halfExtents * 2f),
+            VisibilityAabb = new Aabb(-halfExtents, halfExtents * 2f).Grow(MoteSpeedMax * MoteLifetimeSeconds),
             ProcessMaterial = new ParticleProcessMaterial
             {
                 EmissionShape = ParticleProcessMaterial.EmissionShapeEnum.Box,
@@ -222,6 +224,14 @@ public partial class Backdrop : Node3D
                 Spread = 180f,
                 InitialVelocityMin = MoteSpeedMin,
                 InitialVelocityMax = MoteSpeedMax,
+                ColorRamp = new GradientTexture1D
+                {
+                    Gradient = new Gradient
+                    {
+                        Offsets = new[] { 0f, 0.25f, 0.75f, 1f },
+                        Colors = new[] { Colors.Transparent, Colors.White, Colors.White, Colors.Transparent },
+                    },
+                },
             },
         });
     }

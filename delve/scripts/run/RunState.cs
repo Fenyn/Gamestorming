@@ -26,7 +26,7 @@ public sealed class RunState
 
     private RunState(
         int seed, Party party, RunMapConfig config, DayClock clock, Wardstone wardstone,
-        LevelingRules leveling)
+        LevelingRules leveling, UnlockState unlocks)
     {
         Seed = seed;
         _config = config;
@@ -34,6 +34,7 @@ public sealed class RunState
         Clock = clock;
         Wardstone = wardstone;
         Leveling = leveling;
+        Recruits = new RecruitPool(party, unlocks);
         Map = GenerateMap();
     }
 
@@ -53,6 +54,9 @@ public sealed class RunState
     public RunMap Map { get; private set; }
 
     public Party Party { get; }
+
+    /// <summary>Who this run can still meet. Wayfarer nodes draw from it.</summary>
+    public RecruitPool Recruits { get; }
 
     public DayClock Clock { get; }
 
@@ -126,15 +130,16 @@ public sealed class RunState
         _history.Clear();
     }
 
-    private RunMap GenerateMap() => RunMapGenerator.Generate(StratumSeed, _config);
+    private RunMap GenerateMap()
+        => RunMapGenerator.Generate(StratumSeed, _config, _config.MeetingFloorsFor(Stratum));
 
     /// <summary>Generate floor 1's map for a seed and stand the party at the entrance, before any pick.</summary>
     public static RunState Start(
         int seed, Party party, RunMapConfig config,
-        WardstoneRules? wardRules = null, LevelingRules? leveling = null)
+        WardstoneRules? wardRules = null, LevelingRules? leveling = null, UnlockState? unlocks = null)
     {
         return new RunState(
             seed, party, config, new DayClock(), new Wardstone(wardRules),
-            leveling ?? new LevelingRules());
+            leveling ?? new LevelingRules(), unlocks ?? new UnlockState());
     }
 }

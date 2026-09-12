@@ -42,7 +42,8 @@ internal sealed class SpellActions
 
     /// <summary>Every castable spell / cost-variant for the action bar, with UI-facing text + gating.</summary>
     internal List<SpellEntryView> GetSpellEntries(ICharacter character)
-        => SpellEntryFactory.GetSpellEntries(character);
+        => SpellEntryFactory.GetSpellEntries(character,
+            (spellId, variantIndex) => GetSpellTargets(character, spellId, variantIndex));
 
     /// <summary>The tiles a spell (variant) may be aimed at, plus how the interaction should behave.</summary>
     internal TargetingPlan GetSpellTargets(ICharacter caster, string spellId, int variantIndex)

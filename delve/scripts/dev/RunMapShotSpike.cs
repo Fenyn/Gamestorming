@@ -197,7 +197,7 @@ public partial class RunMapShotSpike : SpikeBase
             panel.Render(themedRun);
             var accent = Delve.UI.UiColors.CharacterAccent(def.Id);
             var wardFill = (StyleBoxFlat)status.GetNode<ProgressBar>("%WardBar").GetThemeStylebox("fill");
-            Check($"{def.Id} ward uses leader accent", wardFill.BgColor.IsEqualApprox(accent));
+            Check($"{def.Id} ward uses the party accent", wardFill.BgColor.IsEqualApprox(accent));
             Check($"{def.Id} recovery inherits the map theme",
                 recoveryButton.GetThemeStylebox("normal") == panel.Theme.GetStylebox("normal", "MapRestButton"));
             foreach (var (font, surface) in new[] {
@@ -211,7 +211,7 @@ public partial class RunMapShotSpike : SpikeBase
             await Settle();
             Capture($"run_map_{def.Id}.png");
         }
-        Check("leader changes leave the shared theme intact",
+        Check("party changes leave the shared theme intact",
             sharedTheme.GetStylebox("fill", "MapWardBar") == sharedWard
             && sharedTheme != panel.Theme);
 

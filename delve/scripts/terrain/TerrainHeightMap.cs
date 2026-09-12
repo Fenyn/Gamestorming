@@ -60,7 +60,7 @@ public sealed class TerrainHeightMap
     public float MeanCenterY { get; }
 
     /// <summary>
-    /// World Y a unit standing on tile <paramref name="p"/> plants its feet at: the tile's mean corner
+    /// World Y a unit standing on tile <paramref name="p"/> plants its feet at: the tile's triangulated center
     /// height scaled to world units. Out-of-bounds tiles (and every tile of <see cref="Flat"/>) are 0 —
     /// the same answer <see cref="MapLayout.GetCornerHeights"/> gives, so off-board queries during
     /// deployment self-heal or a hover past the map edge degrade to ground level instead of throwing.
@@ -68,8 +68,12 @@ public sealed class TerrainHeightMap
     public float CenterY(PF2eVec p)
     {
         if (_layout == null || !_layout.IsInBounds(p.x, p.y)) return 0f;
-        return _layout.GetCornerHeights(p.x, p.y).CenterHeight * HeightScale;
+        return _layout.GetCornerHeights(p.x, p.y).SampleSurfaceHeight(0.5f, 0.5f) * HeightScale;
     }
+
+    /// <summary>World height on a terrain triangle at tile-local coordinates in [0, 1].</summary>
+    public float SampleY(PF2eVec tile, float u, float v) =>
+        Corners(tile).SampleSurfaceHeight(u, v) * HeightScale;
 
     /// <summary>Lowest occupied tile surface: Delve's standing-height convention for a creature
     /// spanning several elevations. A slope uses its tile center, just as a one-tile creature does.</summary>
@@ -105,7 +109,7 @@ public sealed class TerrainHeightMap
                 // Walls and void are deliberately excluded: a chasm floor at -40 or a 16-unit wall cap
                 // would drag the pivot off the ground the party actually fights on.
                 if (!layout.IsWalkable(x, y)) continue;
-                sum += layout.GetCornerHeights(x, y).CenterHeight;
+                sum += layout.GetCornerHeights(x, y).SampleSurfaceHeight(0.5f, 0.5f);
                 count++;
             }
         }

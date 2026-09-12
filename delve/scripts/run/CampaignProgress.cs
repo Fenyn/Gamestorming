@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Delve.Run;
 
-/// <summary>Save-wide recruitment and outpost progress, with independent personal leader journals.</summary>
+/// <summary>Save-wide recruitment and outpost progress, with independent personal character journals.</summary>
 public sealed class CampaignProgress
 {
     private readonly Dictionary<string, int> _recruitment = new();
@@ -20,35 +20,35 @@ public sealed class CampaignProgress
     public int RecruitmentCount(string characterId, string stepId) =>
         _recruitment.GetValueOrDefault($"{characterId}/{stepId}");
 
-    public bool HasPersonalProgress(string leaderId, string objectiveId) =>
-        _personal.TryGetValue(leaderId, out var objectives) && objectives.Contains(objectiveId);
+    public bool HasPersonalProgress(string characterId, string objectiveId) =>
+        _personal.TryGetValue(characterId, out var objectives) && objectives.Contains(objectiveId);
 
     public bool HasOutpostProgress(string objectiveId) => _outpost.Contains(objectiveId);
 
-    public bool RecordPersonalProgress(string leaderId, string objectiveId)
+    public bool RecordPersonalProgress(string characterId, string objectiveId)
     {
-        if (CharacterCatalog.Find(leaderId) == null || string.IsNullOrWhiteSpace(objectiveId)) return false;
-        if (!_personal.TryGetValue(leaderId, out var objectives))
-            _personal.Add(leaderId, objectives = new HashSet<string>());
+        if (CharacterCatalog.Find(characterId) == null || string.IsNullOrWhiteSpace(objectiveId)) return false;
+        if (!_personal.TryGetValue(characterId, out var objectives))
+            _personal.Add(characterId, objectives = new HashSet<string>());
         return objectives.Add(objectiveId);
     }
 
     public bool RecordOutpostProgress(string objectiveId) =>
         !string.IsNullOrWhiteSpace(objectiveId) && _outpost.Add(objectiveId);
 
-    public void RecordMeeting(string characterId, string leaderId)
+    public void RecordMeeting(string characterId, string storyCharacterId)
     {
         if (CharacterCatalog.Find(characterId) == null) return;
         ApplySignal(characterId, RecruitmentSignal.Meeting);
-        RecordPersonalProgress(leaderId, $"met/{characterId}");
-        ApplyLeaderSignal(leaderId, RecruitmentSignal.Meeting);
+        RecordPersonalProgress(storyCharacterId, $"met/{characterId}");
+        ApplyPersonalSignal(storyCharacterId, RecruitmentSignal.Meeting);
     }
 
     /// <summary>Encounter keys include a unique run id and node id, so replays cannot award twice.</summary>
-    public void RecordVictory(string encounterKey, string leaderId, IEnumerable<string> partyIds, bool floorBoss)
+    public void RecordVictory(string encounterKey, string characterId, IEnumerable<string> partyIds, bool floorBoss)
     {
         if (string.IsNullOrWhiteSpace(encounterKey) || !_recordedEncounters.Add(encounterKey)) return;
-        ApplyLeaderSignal(leaderId, RecruitmentSignal.PartyVictory);
+        ApplyPersonalSignal(characterId, RecruitmentSignal.PartyVictory);
         foreach (string id in partyIds.Distinct())
         {
             // Fighting beside a guest is not membership. Only the supplied four party ids count.
@@ -57,8 +57,8 @@ public sealed class CampaignProgress
         }
         if (floorBoss)
         {
-            RecordPersonalProgress(leaderId, "defeated-floor-boss");
-            ApplyLeaderSignal(leaderId, RecruitmentSignal.FloorBossVictory);
+            RecordPersonalProgress(characterId, "defeated-floor-boss");
+            ApplyPersonalSignal(characterId, RecruitmentSignal.FloorBossVictory);
             RecordOutpostProgress("defeated-floor-boss");
         }
     }
@@ -73,10 +73,10 @@ public sealed class CampaignProgress
     /// <summary>Call only from an explicit overnight stay at the outpost, never from a meetup swap.</summary>
     public bool BindAtOutpost(string characterId) => CanBindAtOutpost(characterId) && Unlocks.Unlock(characterId);
 
-    private void ApplyLeaderSignal(string leaderId, RecruitmentSignal signal)
+    private void ApplyPersonalSignal(string characterId, RecruitmentSignal signal)
     {
-        if (LeaderObjectiveCatalog.Find(leaderId) is { } objective && objective.Signal == signal)
-            RecordPersonalProgress(leaderId, objective.Id);
+        if (PersonalObjectiveCatalog.Find(characterId) is { } objective && objective.Signal == signal)
+            RecordPersonalProgress(characterId, objective.Id);
     }
 
     private void ApplySignal(string characterId, RecruitmentSignal signal)

@@ -44,6 +44,7 @@ public partial class TerrainSkirtRenderSpike : SpikeBase
 
     protected override Task RunSpikeAsync(DataManager data)
     {
+        CheckTextureTransitions();
         int stages = 0;
         var defects = new Dictionary<string, int>();
 

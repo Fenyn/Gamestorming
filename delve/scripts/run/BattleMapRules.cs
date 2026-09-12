@@ -32,15 +32,17 @@ public sealed record BattleMapRules
 
     /// <summary>
     /// The board size for a fight: the biome's own size rolled on <paramref name="seed"/>, scaled
-    /// for the party that walks onto it and floored at <see cref="MinSide"/>.
+    /// for the party that walks onto it, scaled again by the floor's
+    /// <paramref name="floorScale"/> (<c>FloorTheme.BoardScale</c>) and floored at
+    /// <see cref="MinSide"/>.
     /// </summary>
-    public (int Width, int Height) SizeFor(BiomeDefinition biome, int seed, int friendly)
+    public (int Width, int Height) SizeFor(BiomeDefinition biome, int seed, int friendly, float floorScale = 1f)
     {
         var rng = new Random(seed);
         int width = rng.Next(biome.MinSize.x, biome.MaxSize.x + 1);
         int height = rng.Next(biome.MinSize.y, biome.MaxSize.y + 1);
 
-        float scale = ScaleFor(friendly);
+        float scale = ScaleFor(friendly) * floorScale;
         return (Scale(width, scale), Scale(height, scale));
     }
 

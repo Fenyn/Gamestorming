@@ -107,7 +107,7 @@ public partial class MapNodeButton : Button
             DrawPartyMarker(center);
     }
 
-    /// <summary>Leader-colored chevron floating above the node the party stands on.</summary>
+    /// <summary>Run-colored chevron floating above the node the party stands on.</summary>
     private void DrawPartyMarker(Vector2 center)
     {
         var tip = center + new Vector2(0f, -_shapeRadius - 12f + Mathf.Sin(_time * PulseSpeed) * 2.5f);

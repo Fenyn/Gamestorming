@@ -35,6 +35,8 @@ public static class UiColors
         "elara" => Get("char_elara"),
         "tharr" => Get("char_tharr"),
         "fenwick" => Get("char_fenwick"),
+        "raven" => Get("char_raven"),
+        "thistle" => Get("char_thistle"),
         _ => Accent,
     };
 

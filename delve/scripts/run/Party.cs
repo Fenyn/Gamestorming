@@ -5,7 +5,7 @@ using PF2e.Core;
 namespace Delve.Run;
 
 /// <summary>
-/// The live characters of a run. The leader is fixed; companions can be replaced along the way
+/// The live characters of a run. Any member can be replaced along the way
 /// through <see cref="ReplaceCompanion"/>, with <see cref="MaxSize"/> members. The instances are built once - in
 /// <see cref="Build"/> or on the join - and kept for the whole run, so damage, Wounded and spent
 /// slots carry across nodes.
@@ -15,28 +15,24 @@ public sealed class Party
     private readonly List<string> _memberIds;
     private readonly List<PF2eCharacter> _members;
 
-    private Party(string leaderId, List<string> memberIds, List<PF2eCharacter> members, int level)
+    private Party(List<string> memberIds, List<PF2eCharacter> members, int level)
     {
-        LeaderId = leaderId;
         _memberIds = memberIds;
         _members = members;
         Level = level;
     }
 
-    /// <summary>Characters a party may hold, leader included.</summary>
+    /// <summary>Maximum number of party members.</summary>
     public const int MaxSize = 4;
 
     /// <summary>Level a run builds its party at. Hero select previews stats at this level, so the
     /// numbers on the sheet are the numbers the first fight uses.</summary>
     public const int DefaultLevel = 2;
 
-    /// <summary>Catalog id of the leader.</summary>
-    public string LeaderId { get; }
-
-    /// <summary>Catalog ids of the non-leader members, in join order.</summary>
+    /// <summary>Catalog ids of all party members, in join order.</summary>
     public IReadOnlyList<string> MemberIds => _memberIds;
 
-    /// <summary>Every live character, leader first.</summary>
+    /// <summary>Every live character, in join order.</summary>
     public IReadOnlyList<PF2eCharacter> Members => _members;
 
     /// <summary>The party's current level. Members are built at it; newcomers join at it.</summary>
@@ -107,7 +103,7 @@ public sealed class Party
         if (IsFull) return false;
         if (CharacterCatalog.Find(id) == null) return false;
         if (!unlocks.IsUnlocked(id)) return false;
-        if (id == LeaderId || _memberIds.Contains(id)) return false;
+        if (_memberIds.Contains(id)) return false;
         if (character.Id != id || character.Health is { IsDead: true }) return false;
 
         _memberIds.Add(id);
@@ -116,32 +112,36 @@ public sealed class Party
     }
 
     /// <summary>Replace one companion with a surviving guest instance. Permanent unlocks are
-    /// deliberately unrelated to temporary membership. The leader and party size stay fixed.</summary>
+    /// deliberately unrelated to temporary membership. Party size stays fixed.</summary>
     public bool ReplaceCompanion(string outgoingId, string guestId, PF2eCharacter guest)
     {
         int slot = _memberIds.IndexOf(outgoingId);
-        if (slot < 0 || !IsFull || guestId == LeaderId || Find(guestId) != null) return false;
+        if (slot < 0 || !IsFull || Find(guestId) != null) return false;
         if (CharacterCatalog.Find(guestId) == null || guest.Id != guestId) return false;
         if (guest.Health == null || guest.Health.IsDead || guest.TeamId != 1 || guest.Stats?.Level != Level) return false;
 
         _memberIds[slot] = guestId;
-        _members[slot + 1] = guest;
+        _members[slot] = guest;
         return true;
     }
 
     /// <summary>
     /// Build a party. Small parties are supported for combat harnesses; normal runs require four. Throws when the picks are illegal: at most <see cref="MaxSize"/>
     /// characters in all, every id known to <see cref="CharacterCatalog"/>, unlocked and named
-    /// once, and the leader flagged <see cref="CharacterDef.CanLead"/>.
+    /// once.
     /// </summary>
-    public static Party Build(string leaderId, IReadOnlyList<string> memberIds, UnlockState unlocks, int level)
+    public static Party Build(string firstId, IReadOnlyList<string> remainingIds, UnlockState unlocks, int level)
     {
-        if (memberIds.Count > MaxSize - 1)
-            throw new ArgumentException($"A party holds at most {MaxSize} characters.", nameof(memberIds));
+        var ids = new List<string> { firstId };
+        ids.AddRange(remainingIds);
+        return Build(ids, unlocks, level);
+    }
 
-        var ids = new List<string> { leaderId };
-        ids.AddRange(memberIds);
-
+    public static Party Build(IReadOnlyList<string> memberIds, UnlockState unlocks, int level)
+    {
+        if (memberIds.Count is < 1 or > MaxSize)
+            throw new ArgumentException($"A party holds one to {MaxSize} characters.", nameof(memberIds));
+        var ids = new List<string>(memberIds);
         var seen = new HashSet<string>();
         var defs = new List<CharacterDef>(ids.Count);
         foreach (string id in ids)
@@ -156,14 +156,11 @@ public sealed class Party
             defs.Add(def);
         }
 
-        if (!defs[0].CanLead)
-            throw new ArgumentException($"Character '{leaderId}' cannot lead.", nameof(leaderId));
-
         int built = level < 1 ? 1 : level;
         var members = new List<PF2eCharacter>(defs.Count);
         foreach (var def in defs)
             members.Add(def.Builder(built));
 
-        return new Party(leaderId, new List<string>(memberIds), members, built);
+        return new Party(ids, members, built);
     }
 }

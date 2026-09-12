@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/CampResident.cs" id="script"]
+[ext_resource type="Shader" path="res://assets/shaders/camp_resident.gdshader" id="shader"]
+[sub_resource type="ShaderMaterial" id="outline"]
+shader = ExtResource("shader")
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[node name="CampResident" type="Button"]
+custom_minimum_size = Vector2(164, 216)
+offset_right = 164.0
+offset_bottom = 216.0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("empty")
+theme_override_styles/hover = SubResource("empty")
+theme_override_styles/pressed = SubResource("empty")
+theme_override_styles/disabled = SubResource("empty")
+theme_override_styles/focus = SubResource("empty")
+script = ExtResource("script")
+PoseSeconds = 0.18
+
+[node name="Sprite" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(82, 112)
+scale = Vector2(4, 4)
+texture_filter = 1
+material = SubResource("outline")
+
+[node name="NameLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_top = 163.0
+offset_right = 164.0
+offset_bottom = 187.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_colors/font_shadow_color = Color(0.04, 0.04, 0.03, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+
+[node name="CaptionLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_top = 189.0
+offset_right = 164.0
+offset_bottom = 212.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_type_variation = &"HintLabel"

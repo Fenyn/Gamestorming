@@ -1,10 +1,10 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene format=3 uid="uid://bunfducfyvhdd"]
 
-[ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
-[ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
-[ext_resource type="Script" path="res://scripts/combat/MoveBandOverlay3D.cs" id="2_bands"]
-[ext_resource type="Script" path="res://scripts/combat/OrbitCameraRig.cs" id="3_camera"]
-[ext_resource type="Script" path="res://scripts/combat/GridInput3D.cs" id="4_input"]
+[ext_resource type="Script" uid="uid://bjtg3pssqsbl7" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
+[ext_resource type="Script" uid="uid://c76m1vlod31d0" path="res://scripts/combat/MoveBandOverlay3D.cs" id="2_bands"]
+[ext_resource type="Script" uid="uid://ch85xfjhpoypy" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
+[ext_resource type="Script" uid="uid://bf0pbjwkiohre" path="res://scripts/combat/OrbitCameraRig.cs" id="3_camera"]
+[ext_resource type="Script" uid="uid://cor17j03qv2ya" path="res://scripts/combat/GridInput3D.cs" id="4_input"]
 [ext_resource type="PackedScene" path="res://scenes/ui/turn_order_bar.tscn" id="5_turn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_log_panel.tscn" id="6_log"]
 [ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="7_ab"]
@@ -12,19 +12,20 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/reaction_prompt_panel.tscn" id="9_rpp"]
 [ext_resource type="PackedScene" path="res://scenes/ui/help_overlay.tscn" id="10_help"]
 [ext_resource type="PackedScene" path="res://scenes/ui/unit_inspect_panel.tscn" id="11_inspect"]
-[ext_resource type="Script" path="res://scripts/combat/ShakePivot.cs" id="12_shake"]
-[ext_resource type="Script" path="res://scripts/ui/HudRoot.cs" id="13_hudroot"]
-[ext_resource type="Script" path="res://scripts/terrain/TerrainStage.cs" id="14_terrain"]
-[ext_resource type="Shader" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="outskirts_mist"]
+[ext_resource type="Script" uid="uid://ccorx5jxe5ukt" path="res://scripts/combat/ShakePivot.cs" id="12_shake"]
+[ext_resource type="Script" uid="uid://c614ttocjjxif" path="res://scripts/ui/HudRoot.cs" id="13_hudroot"]
+[ext_resource type="Script" uid="uid://8s6gjks5xnc5" path="res://scripts/terrain/TerrainStage.cs" id="14_terrain"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="15_tree_canopy"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="16_tree_conifer"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="17_tree_bush"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="18_tree_dead"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="19_tree_giant"]
-
 [ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="combat_theme"]
-
 [ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="dice_roll"]
+[ext_resource type="Shader" uid="uid://brto6821irko8" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="outskirts_mist"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(12, 10)
 
 [sub_resource type="Shader" id="Shader_floor"]
 code = "shader_type spatial;
@@ -52,90 +53,73 @@ void fragment() {
 "
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
+render_priority = 0
 shader = SubResource("Shader_floor")
 shader_parameter/color_a = Color(0.17, 0.18, 0.22, 1)
 shader_parameter/color_b = Color(0.12, 0.13, 0.16, 1)
 shader_parameter/line_color = Color(0.3, 0.32, 0.38, 1)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
-size = Vector2(12, 10)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
 background_color = Color(0.08, 0.09, 0.12, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.62, 0.64, 0.72, 1)
-ambient_light_energy = 1.0
 
-[node name="Combat" type="Node3D"]
+[node name="Combat" type="Node3D" unique_id=101358353]
 script = ExtResource("1_scene")
-AiActionDelaySeconds = 0.35
 
-; The board's ground as one component: it owns the generated terrain view, the biome backdrop and
-; the flat placeholder floor below, and CombatScene builds all three through its single Build call.
-[node name="TerrainStage" type="Node3D" parent="."]
+[node name="TerrainStage" type="Node3D" parent="." unique_id=1861684916]
 unique_name_in_owner = true
 script = ExtResource("14_terrain")
-PlaceholderFloorPath = NodePath("PlaceholderFloor")
-HaloTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer"), ExtResource("17_tree_bush"), ExtResource("18_tree_dead"), ExtResource("19_tree_giant")]
 OutskirtsMistShader = ExtResource("outskirts_mist")
-HaloTreeWeights = [3.0, 3.0, 1.5, 0.8, 0.2]
-HaloTreeMinRings = [4.0, 4.0, 0.0, 4.0, 6.0]
+HaloTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer"), ExtResource("17_tree_bush"), ExtResource("18_tree_dead"), ExtResource("19_tree_giant")]
 BoardTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer")]
-BoardTreeWeights = [3.0, 2.0]
 
-[node name="PlaceholderFloor" type="MeshInstance3D" parent="TerrainStage"]
+[node name="PlaceholderFloor" type="MeshInstance3D" parent="TerrainStage" unique_id=1699123460]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
 mesh = SubResource("PlaneMesh_floor")
 surface_material_override/0 = SubResource("ShaderMaterial_floor")
 
-; Idle-mode movement bands (own pools) beside the targeting highlights.
-[node name="MoveBands" type="Node3D" parent="."]
+[node name="MoveBands" type="Node3D" parent="." unique_id=406402735]
 unique_name_in_owner = true
 script = ExtResource("2_bands")
-BandEdgeWidth = 0.06
 BandEdgeAlpha = 0.42
 
-[node name="GridOverlay" type="Node3D" parent="."]
+[node name="GridOverlay" type="Node3D" parent="." unique_id=1537565848]
 unique_name_in_owner = true
 script = ExtResource("2_overlay")
 
-[node name="UnitLayer" type="Node3D" parent="."]
+[node name="UnitLayer" type="Node3D" parent="." unique_id=63708946]
 unique_name_in_owner = true
 
-[node name="PopupLayer" type="Node3D" parent="."]
+[node name="PopupLayer" type="Node3D" parent="." unique_id=1021424833]
 unique_name_in_owner = true
 
-[node name="CameraRig" type="Node3D" parent="."]
+[node name="CameraRig" type="Node3D" parent="." unique_id=1598345121]
 unique_name_in_owner = true
 script = ExtResource("3_camera")
-FocusSeconds = 0.35
 
-; Shake seam between the orbit rig and the camera: OrbitCameraRig keeps writing the Camera3D's own
-; orbit position/look-at, ShakePivot only ever writes its own local position, so the two compose.
-[node name="ShakePivot" type="Node3D" parent="CameraRig"]
+[node name="ShakePivot" type="Node3D" parent="CameraRig" unique_id=465050350]
 unique_name_in_owner = true
 script = ExtResource("12_shake")
 
-[node name="Camera3D" type="Camera3D" parent="CameraRig/ShakePivot"]
+[node name="Camera3D" type="Camera3D" parent="CameraRig/ShakePivot" unique_id=1627736919]
 
-[node name="GridInput" type="Node3D" parent="."]
+[node name="GridInput" type="Node3D" parent="." unique_id=1072675196]
 unique_name_in_owner = true
 script = ExtResource("4_input")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1463942010]
 transform = Transform3D(0.766, -0.469, 0.44, 0, 0.685, 0.729, -0.643, -0.558, 0.524, 0, 12, 0)
 shadow_enabled = true
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1624819055]
 environment = SubResource("Environment_1")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1221636320]
 unique_name_in_owner = true
 
-; HudRoot owns the HUD's modal state (reaction prompt / victory banner push, action-bar and
-; help/log hotkeys gate on it). Panels resolve it as their direct parent and tolerate absence.
-[node name="HudRoot" type="Control" parent="HUD"]
+[node name="HudRoot" type="Control" parent="HUD" unique_id=1687985595]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -145,29 +129,57 @@ grow_vertical = 2
 mouse_filter = 2
 theme = ExtResource("combat_theme")
 script = ExtResource("13_hudroot")
-HelpPath = NodePath("HelpOverlay")
-LogPath = NodePath("CombatLog")
 
-[node name="TurnOrderBar" parent="HUD/HudRoot" instance=ExtResource("5_turn")]
+[node name="TurnOrderBar" parent="HUD/HudRoot" unique_id=1094648664 instance=ExtResource("5_turn")]
 unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+offset_top = 0.0
 
-[node name="CombatLog" parent="HUD/HudRoot" instance=ExtResource("6_log")]
+[node name="CombatLog" parent="HUD/HudRoot" unique_id=1673882180 instance=ExtResource("6_log")]
 unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_vertical = 2
 
-[node name="DiceRoll" parent="HUD/HudRoot" instance=ExtResource("dice_roll")]
+[node name="DiceRoll" parent="HUD/HudRoot" unique_id=2036442695 instance=ExtResource("dice_roll")]
 unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -96.5
+offset_bottom = 96.5
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="UnitInspect" parent="HUD/HudRoot" instance=ExtResource("11_inspect")]
+[node name="UnitInspect" parent="HUD/HudRoot" unique_id=1867311933 instance=ExtResource("11_inspect")]
 unique_name_in_owner = true
+layout_mode = 0
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_bottom = 0.0
+grow_vertical = 1
 
-[node name="ActionBar" parent="HUD/HudRoot" instance=ExtResource("7_ab")]
+[node name="ActionBar" parent="HUD/HudRoot" unique_id=1546362475 instance=ExtResource("7_ab")]
 unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
 
-[node name="HelpOverlay" parent="HUD/HudRoot" instance=ExtResource("10_help")]
+[node name="HelpOverlay" parent="HUD/HudRoot" unique_id=1754253256 instance=ExtResource("10_help")]
 unique_name_in_owner = true
+layout_mode = 1
 
-[node name="ReactionPrompt" parent="HUD/HudRoot" instance=ExtResource("9_rpp")]
+[node name="ReactionPrompt" parent="HUD/HudRoot" unique_id=1006102519 instance=ExtResource("9_rpp")]
 unique_name_in_owner = true
+visible = false
+layout_mode = 1
 
-[node name="VictoryBanner" parent="HUD/HudRoot" instance=ExtResource("8_vb")]
+[node name="VictoryBanner" parent="HUD/HudRoot" unique_id=1152030874 instance=ExtResource("8_vb")]
 unique_name_in_owner = true
+layout_mode = 1

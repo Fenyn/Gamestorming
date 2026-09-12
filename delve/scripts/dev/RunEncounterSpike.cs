@@ -270,7 +270,9 @@ public partial class RunEncounterSpike : SpikeBase
         Check("a party over full size does not keep growing the board",
             map.ScaleFor(Party.MaxSize + 2) == map.ScaleFor(Party.MaxSize));
 
-        int soloBigger = 0, underMin = 0, unbuildable = 0;
+        int soloBigger = 0, underMin = 0, unbuildable = 0, fringeNotSmaller = 0, fringeUnbuildable = 0;
+        float fringeScale = FloorThemes.ForStratum(0).BoardScale;
+        float deepScale = FloorThemes.ForStratum(1).BoardScale;
         var solo = RunState.Start(
             SweepSeeds[0],
             Party.Build(PresetCharacters.PlayerId, new List<string>(), new UnlockState(), Party.DefaultLevel),
@@ -296,12 +298,31 @@ public partial class RunEncounterSpike : SpikeBase
                 || DeploymentPlanner.GetAnchors(layout, teamId: 0, count: 1).Count == 0
                 || DeploymentPlanner.GetAnchors(layout, teamId: 1, count: 4).Count == 0)
                 unbuildable++;
+
+            // Floor 1 plays on a smaller board than floor 2 for the same roll, and that board
+            // must still seat a full party plus ally on one edge and the enemy cap on the other.
+            var (fringeW, fringeH) = map.SizeFor(biome, seed, Party.MaxSize, fringeScale);
+            var (deepW, deepH) = map.SizeFor(biome, seed, Party.MaxSize, deepScale);
+            if (fringeW * fringeH >= deepW * deepH) fringeNotSmaller++;
+
+            var fringeLayout = MapGenerator.GenerateValidated(
+                biome.Id, RunRng.StableSeed(solo.StratumSeed, node.Id, "battle"),
+                (biome.DefaultParams ?? new MapGenerationParams()).WithSize(fringeW, fringeH));
+            int enemyCap = new EncounterGenRules().MaxEnemies;
+            if (fringeLayout == null
+                || DeploymentPlanner.GetAnchors(fringeLayout, teamId: 0, count: Party.MaxSize + 1).Count < Party.MaxSize + 1
+                || DeploymentPlanner.GetAnchors(fringeLayout, teamId: 1, count: enemyCap).Count < enemyCap)
+                fringeUnbuildable++;
         }
 
         Check($"a solo board is never bigger than the full party's ({soloBigger} bigger)",
             soloBigger == 0);
         Check($"no board goes under the minimum side ({underMin} under)", underMin == 0);
         Check($"every solo board still deploys both teams ({unbuildable} bad)", unbuildable == 0);
+        Check($"a Fringe board is smaller than a Deep Wood board on the same roll ({fringeNotSmaller} not)",
+            fringeNotSmaller == 0);
+        Check($"every Fringe board seats a full party, ally and the enemy cap ({fringeUnbuildable} bad)",
+            fringeUnbuildable == 0);
 
         var fight = FirstFightNode(solo);
         var setup = fight == null ? null : EncounterFactory.Build(solo, fight, data.ResolveCreature);

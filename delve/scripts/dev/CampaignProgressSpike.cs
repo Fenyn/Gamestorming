@@ -28,9 +28,9 @@ public partial class CampaignProgressSpike : SpikeBase
         campaign.BeginRun();
         Check("new run retains shared progress", campaign.RecruitmentCount(PresetCharacters.RavenId, "trust") == 1);
         campaign.RecordVictory("run-b/1", PresetCharacters.TharrId, party, true);
-        Check("recruitment shared across leaders", campaign.RecruitmentCount(PresetCharacters.RavenId, "trust") == 2);
+        Check("recruitment shared across story anchors", campaign.RecruitmentCount(PresetCharacters.RavenId, "trust") == 2);
         Check("shared outpost progress", campaign.HasOutpostProgress("defeated-floor-boss"));
-        Check("only active leader earned focus", campaign.HasPersonalProgress(PresetCharacters.TharrId, "restore-the-watch")
+        Check("only selected story character earned focus", campaign.HasPersonalProgress(PresetCharacters.TharrId, "restore-the-watch")
             && !campaign.HasPersonalProgress(PresetCharacters.PlayerId, "hold-the-route"));
         Check("boss alone insufficient", !campaign.CanBindAtOutpost(PresetCharacters.RavenId));
         campaign.RecordVictory("run-b/2", PresetCharacters.TharrId, party, false);

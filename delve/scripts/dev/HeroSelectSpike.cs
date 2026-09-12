@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,8 +14,8 @@ namespace Delve.Dev;
 /// <summary>
 /// Walk of the hero-select screen. Instances the panel on its own, drives it through
 /// <see cref="HeroSelectPanel.Pick"/> - the same entry point a card click calls - and asserts the
-/// gates: formation requires a leader and three distinct unlocked companions.
-/// Removing a companion closes the gate; changing the leader clears formation.
+/// gates: formation requires four distinct unlocked members.
+/// Removing any member closes the gate; Clear party removes all selections.
 ///
 /// It then reads every roster entry's featured sheet straight off the character its preset builds
 /// and checks the overview back against the rules engine: four headline numbers and no more, a
@@ -38,7 +39,6 @@ public partial class HeroSelectSpike : SpikeBase
     /// dead space. The ceiling is the panel itself: nothing scrolls.</summary>
     private const float MinFill = 0.85f;
 
-    private string? _leaderSeen;
     private IReadOnlyList<string>? _membersSeen;
 
     protected override string Banner => "==================== HERO SELECT SPIKE ====================";
@@ -53,61 +53,65 @@ public partial class HeroSelectSpike : SpikeBase
 
         var panel = PanelScene.Instantiate<HeroSelectPanel>();
         AddChild(panel);
-        panel.Confirmed += (leader, members) => { _leaderSeen = leader; _membersSeen = members; };
+        panel.Confirmed += members => _membersSeen = members;
+        await CampSelectChecks.Run(panel, Check);
 
         // ---------------------------------------------------- (1) the empty screen
         panel.Setup(new UnlockState());
-        Check("(1) nothing is chosen", panel.Chosen == null);
+        Check("(1) nothing is chosen", panel.SelectedIds.Count == 0);
         Check("(1) Embark is disabled", !panel.CanEmbark);
         Check($"(1) the hint asks for a character ({panel.HintText})",
-            panel.HintText.StartsWith("Choose your leader.", StringComparison.Ordinal));
+            panel.HintText.StartsWith("Assemble your party", StringComparison.Ordinal));
         Check("(1) an id outside the catalog cannot be picked", !panel.CanPick(PresetCharacters.RecruitId));
-        Check("(1) a character who can lead is offered it", panel.CanPick(PresetCharacters.ElaraId));
+        Check("(1) an unlocked character can join", panel.CanPick(PresetCharacters.ElaraId));
 
         panel.Pick(PresetCharacters.RecruitId);
-        Check("(1) picking an unknown id chooses nobody", panel.Chosen == null);
+        Check("(1) picking an unknown id chooses nobody", panel.SelectedIds.Count == 0);
 
         var roster = HeroSelectChecks.Cards(panel);
-        Check($"(1) the roster shows every catalog entry ({roster.Count})",
-            roster.Count == CharacterCatalog.All.Count);
-        Check("(1) a leader card takes clicks",
+        Check($"(1) the camp shows only unlocked residents ({roster.Count})",
+            roster.Count == new UnlockState().UnlockedIds.Count);
+        Check("(1) a resident takes clicks",
             HeroSelectChecks.Card(roster, PresetCharacters.PlayerId) is { Disabled: false });
 
         // ---------------------------------------------------- (2) choosing one
         panel.Pick(PresetCharacters.ElaraId);
-        Check("(2) the pick is the starting character", panel.Chosen == PresetCharacters.ElaraId);
-        Check("(2) a leader alone cannot embark", !panel.CanEmbark);
+        Check("(2) the pick is the selected character", panel.SelectedIds.Contains(PresetCharacters.ElaraId));
+        Check("(2) one member alone cannot embark", !panel.CanEmbark);
         panel.Embark();
-        Check("(2) incomplete formation signals nothing", _leaderSeen == null);
+        Check("(2) incomplete formation signals nothing", _membersSeen == null);
         panel.Pick(PresetCharacters.PlayerId);
         panel.Pick(PresetCharacters.TharrId);
         Check("(2) a trio cannot embark", !panel.CanEmbark);
         panel.Pick(PresetCharacters.FenwickId);
         Check("(2) four members open Embark", panel.CanEmbark);
-        Check("(2) companion selection keeps the chosen leader", panel.Chosen == PresetCharacters.ElaraId);
+        Check("(2) later selections preserve earlier members", panel.SelectedIds.Contains(PresetCharacters.ElaraId));
         panel.Embark();
-        Check("(2) the starting leader is signalled", _leaderSeen == PresetCharacters.ElaraId);
-        Check("(2) three companions are signalled", _membersSeen is { Count: 3 });
-        Check("(2) the payload builds a legal full party", HeroSelectChecks.BuildsAParty(_leaderSeen, _membersSeen));
+        Check("(2) the first selected member is included", _membersSeen?.Contains(PresetCharacters.ElaraId) == true);
+        Check("(2) four party members are signalled", _membersSeen is { Count: 4 });
+        Check("(2) the payload builds a legal full party", HeroSelectChecks.BuildsAParty(_membersSeen));
         panel.Pick(PresetCharacters.TharrId);
-        Check("(2) clicking a companion removes them", !panel.CanEmbark && panel.Companions.Count == 2);
-        Check("(2) confirmed payload is a snapshot", _membersSeen is { Count: 3 });
+        Check("(2) clicking a companion removes them", !panel.CanEmbark && panel.SelectedIds.Count == 3);
+        Check("(2) confirmed payload is a snapshot", _membersSeen is { Count: 4 });
         panel.Pick(PresetCharacters.TharrId);
         Check("(2) a removed companion can be selected again", panel.CanEmbark);
+        panel.Pick(PresetCharacters.ElaraId);
+        Check("(2) removing the first pick preserves the other three", panel.SelectedIds.Count == 3
+            && !panel.SelectedIds.Contains(PresetCharacters.ElaraId));
         panel.Unpick();
-        Check("(2) changing leader clears formation", panel.Chosen == null && panel.Companions.Count == 0 && !panel.CanEmbark);
+        Check("(2) clear party removes all members", panel.SelectedIds.Count == 0 && panel.SelectedIds.Count == 0 && !panel.CanEmbark);
 
         // ---------------------------------------------------- (3) locked characters
         panel.Setup(new UnlockState(new[] { PresetCharacters.PlayerId, PresetCharacters.ElaraId }));
         Check("(3) a locked card cannot be chosen", !panel.CanPick(PresetCharacters.TharrId));
         panel.Pick(PresetCharacters.TharrId);
-        Check("(3) clicking a locked card chooses nobody", panel.Chosen == null);
+        Check("(3) clicking a locked card chooses nobody", panel.SelectedIds.Count == 0);
         Check("(3) an unlocked card still works", panel.CanPick(PresetCharacters.PlayerId));
 
         var locked = HeroSelectChecks.Cards(panel);
-        Check("(3) the locked card is disabled and says why",
-            HeroSelectChecks.Card(locked, PresetCharacters.TharrId) is { Disabled: true, TooltipText: "Unavailable: locked" });
-        Check("(3) an unlocked leader card still takes clicks",
+        Check("(3) locked characters are absent from camp",
+            HeroSelectChecks.Card(locked, PresetCharacters.TharrId) == null);
+        Check("(3) an unlocked resident still takes clicks",
             HeroSelectChecks.Card(locked, PresetCharacters.PlayerId) is { Disabled: false });
 
         HeroSelectChecks.Recruitment(panel, Check);
@@ -257,6 +261,7 @@ public partial class HeroSelectSpike : SpikeBase
         panel.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         panel.Setup(new UnlockState());
 
+        panel.OpenDetails();
         var sheet = panel.GetNode<Control>("%Sheet");
         foreach (var def in CharacterCatalog.All)
         {

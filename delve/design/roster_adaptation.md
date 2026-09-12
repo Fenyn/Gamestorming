@@ -1,6 +1,6 @@
 # Bulwark roster adaptation
 
-The four starters are permanently available before normal expeditions. Every run selects an unlocked leader and three unlocked companions. The leader determines personal objective credit and the intended dialogue POV; authored dialogue and encounter weighting remain future content.
+The four starters are permanently available before normal expeditions. Every run selects four distinct unlocked party members. All four are player-controlled. Personal objective credit uses a seeded random party member per node; authored dialogue and encounter weighting remain future content.
 
 Bulwark supplies character concepts and recruitment stories. Its profiles do not supply finished combat builds. Delve currently supports Fighter, Rogue, Cleric and Wizard builds. Adding an entry to the design roster does not make its class playable.
 
@@ -23,7 +23,7 @@ Raven uses the existing rogue sprite and Thistle uses the recruit sprite. Thistl
 
 The combat steps are an initial playable adaptation of Raven's earned trust and Thistle's return to exploration. They do not replace the longer friendship and character stories below. Failed runs retain completed steps. Guest participation in their meeting fight does not count as companion participation.
 
-`CampaignProgress` owns save-wide recruitment and outpost milestones plus per-leader personal journals. `LeaderObjectiveCatalog` supplies initial focus objectives for each playable leader, credited by existing meeting and victory hooks. Recruitment remains shared when a different character leads the next run. Progress saves contain identifiers and counters, never live combat objects.
+`CampaignProgress` owns save-wide recruitment and outpost milestones plus per-character personal journals. `PersonalObjectiveCatalog` supplies initial focus objectives for each playable character, credited by existing meeting and victory hooks. Recruitment remains shared when the assembled party changes. Progress saves contain identifiers and counters, never live combat objects.
 
 ## Full cast mapping
 
@@ -51,7 +51,7 @@ Delve's existing Aldric is the `player` Fighter. Bulwark's `aldric` is a separat
 ## Remaining content
 
 - Full authored relationship/quest events and reputation gates from the source stories.
-- Leader-biased event selection and character-specific dialogue.
+- Party-aware event selection and character-specific dialogue.
 - Intended classes, archetypes and ancestry mechanics for the wider roster.
 - Character-specific art and combat balance for four members plus a temporary guest.
-- An optional outpost unlock for manual companion control; current default remains leader-only.
+- All four party members are directly controlled from the start; no control upgrade is required.

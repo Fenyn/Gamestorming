@@ -12,7 +12,7 @@ namespace Delve.Flow;
 /// The run map: one row per floor, the entrance at the bottom and the Depths Warden at the top.
 /// Every node is a <see cref="MapNodeButton"/> medallion jittered off its grid cell so the chart
 /// reads hand-drawn, wired by <see cref="MapEdgeCanvas"/> dashed trails; the walked path burns
-/// in the leader's color and the open choices pulse. Only ids <see cref="RunState.Reachable"/> lists are enabled,
+/// in the random party member's color and the open choices pulse. Only ids <see cref="RunState.Reachable"/> lists are enabled,
 /// so the panel cannot pick an illegal move. Passive - it renders what it is handed and signals
 /// the pick outward.
 /// </summary>
@@ -20,7 +20,7 @@ public partial class RunMapPanel : Control
 {
     [Export] public RunMapAccentTheme AccentTheme { get; set; } = null!;
     private Theme _baseTheme = null!;
-    private string? _leaderId;
+    private string? _accentCharacterId;
     private Color _accent;
     [Export] public float LaneSpacing { get; set; } = 168f;
     [Export] public float FloorSpacing { get; set; } = 106f;
@@ -74,10 +74,10 @@ public partial class RunMapPanel : Control
     {
         _travel.Cancel();
         _state = state;
-        if (_leaderId != state.Party.LeaderId)
+        if (_accentCharacterId != state.PresentationCharacterId)
         {
-            _leaderId = state.Party.LeaderId;
-            _accent = UiColors.CharacterAccent(_leaderId);
+            _accentCharacterId = state.PresentationCharacterId;
+            _accent = UiColors.CharacterAccent(_accentCharacterId);
             Theme = AccentTheme.Build(_baseTheme, _accent);
             _status.Theme = Theme;
         }
@@ -192,7 +192,7 @@ public partial class RunMapPanel : Control
         return live;
     }
 
-    /// <summary>The dashed-trail layer: walked history in the leader's color, the current choices bright,
+    /// <summary>The dashed-trail layer: walked history in the random party member's color, the current choices bright,
     /// paths still ahead receding, dead paths nearly gone.</summary>
     private MapEdgeCanvas BuildEdgeCanvas(
         RunState state, IReadOnlyDictionary<int, Vector2> centers, HashSet<int> live)

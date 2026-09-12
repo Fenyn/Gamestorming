@@ -13,7 +13,6 @@ public sealed class RecruitPool
     public RecruitPool(Party party, UnlockState unlocks)
     {
         Unlocks = unlocks;
-        _unavailable.Add(party.LeaderId);
         foreach (string id in party.MemberIds) _unavailable.Add(id);
         foreach (var def in CharacterCatalog.All)
             if (def.CanMeet && !_unavailable.Contains(def.Id)) _order.Add(def.Id);

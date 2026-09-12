@@ -28,7 +28,7 @@ public partial class MapAmbientFx : Control
         _map = map;
         _time = 0;
         _mist = fog.Lerp(Colors.White, 0.3f);
-        _ward = UiColors.CharacterAccent(state.Party.LeaderId).Lerp(Colors.White, 0.35f);
+        _ward = UiColors.CharacterAccent(state.PresentationCharacterId).Lerp(Colors.White, 0.35f);
         _strength = (float)state.Wardstone.Ward / Math.Max(1, state.Wardstone.Rules.MaxWard);
         _motes.Clear();
         _camps.Clear();

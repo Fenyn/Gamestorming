@@ -153,15 +153,21 @@ public partial class RunDirector : Node
         SetPhase(RunPhase.HeroSelect);
     }
 
-    /// <summary>Build the party around the chosen leader, generate the map, and stand at the
-    /// entrance. A normal run requires the leader and three companions.</summary>
-    public void ConfirmParty(string leaderId, IReadOnlyList<string> memberIds)
+    /// <summary>Assemble four equal party members and generate the run map.</summary>
+    public void ConfirmParty(string firstId, IReadOnlyList<string> remainingIds)
+    {
+        var ids = new List<string> { firstId };
+        ids.AddRange(remainingIds);
+        ConfirmParty(ids);
+    }
+
+    public void ConfirmParty(IReadOnlyList<string> memberIds)
     {
         if (Phase != RunPhase.HeroSelect) return;
-        if (memberIds.Count != Party.MaxSize - 1)
-            throw new ArgumentException("Choose a leader and three companions.", nameof(memberIds));
+        if (memberIds.Count != Party.MaxSize)
+            throw new ArgumentException("Choose four party members.", nameof(memberIds));
         int seed = Seed != 0 ? Seed : (int)(GD.Randi() & 0x7FFFFFFF);
-        var party = Party.Build(leaderId, memberIds, _unlocks, StartLevel);
+        var party = Party.Build(memberIds, _unlocks, StartLevel);
         _runId = Guid.NewGuid().ToString("N");
         _campaign.BeginRun();
         _state = RunState.Start(seed, party, new RunMapConfig(), unlocks: _unlocks);

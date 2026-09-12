@@ -12,6 +12,7 @@ public static class InputNames
     public const string Action1 = "combat_action_1";
     public const string Action2 = "combat_action_2";
     public const string EndTurn = "combat_end_turn";
+    public const string Delay = "combat_delay";
     public const string Spells = "combat_spells";
     public const string Skills = "combat_skills";
     public const string Confirm = "combat_confirm";

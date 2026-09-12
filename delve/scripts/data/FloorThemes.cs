@@ -24,6 +24,11 @@ public sealed record FloorTheme
     public required IReadOnlyList<CreatureRef> Roster { get; init; }
 
     public required TierWeights Weights { get; init; }
+
+    /// <summary>Side multiplier on the biome's rolled board size, applied on top of the party
+    /// scale in <c>BattleMapRules</c>. Deployment zones sit on opposite edges, so a smaller board
+    /// is what starts the two groups closer together. 1 keeps the biome's own size.</summary>
+    public float BoardScale { get; init; } = 1f;
 }
 
 /// <summary>
@@ -70,6 +75,8 @@ public static class FloorThemes
         },
         // Low and Moderate country; Severe is the rare bad day.
         Weights = new TierWeights(Low: 4, Moderate: 5, Severe: 1, Extreme: 0),
+        // Half-size boards: a level 1-4 party crosses the open ground in one Stride or two.
+        BoardScale = 0.5f,
     };
 
     private static readonly FloorTheme DeepForest = new()

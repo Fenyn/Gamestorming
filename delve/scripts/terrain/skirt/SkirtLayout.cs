@@ -119,6 +119,7 @@ public static class SkirtLayout
                 skirt.SetFeatureLabel(sx, sy, board.GetFeatureLabel(x, y));
                 skirt.SetPlantTerrain(sx, sy, board.GetPlantTerrain(x, y));
                 skirt.SetBalanceDC(sx, sy, board.GetBalanceDC(x, y));
+                skirt.SetTerrainDifficulty(sx, sy, board.GetTerrainDifficulty(x, y));
             }
         }
     }

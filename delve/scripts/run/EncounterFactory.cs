@@ -46,10 +46,11 @@ public static class EncounterFactory
 
         // Board size before terrain: the size roll runs on its own seed stream, so scaling the
         // board for a short party never shifts the terrain the same node generated before.
-        string biome = FloorThemes.ForStratum(state.Stratum).TerrainBiome;
+        var theme = FloorThemes.ForStratum(state.Stratum);
+        string biome = theme.TerrainBiome;
         var definition = MapGenRegistry.GetBiome(biome);
         var (width, height) = applied.Map.SizeFor(
-            definition, RunRng.StableSeed(state.StratumSeed, node.Id, "mapsize"), friendly);
+            definition, RunRng.StableSeed(state.StratumSeed, node.Id, "mapsize"), friendly, theme.BoardScale);
         var sized = (definition.DefaultParams ?? new MapGenerationParams()).WithSize(width, height);
 
         var layout = MapGenerator.GenerateValidated(
@@ -58,7 +59,7 @@ public static class EncounterFactory
 
         var setup = new CombatSetup
         {
-            Control = new PartyControlPolicy(state.Party.LeaderId),
+            Control = new PartyControlPolicy(),
             Layout = layout,
             BiomeId = biome,
             RngSeed = RunRng.StableSeed(state.StratumSeed, node.Id, "fight"),

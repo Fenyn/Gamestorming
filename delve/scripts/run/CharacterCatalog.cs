@@ -6,12 +6,12 @@ using PF2e.Core;
 namespace Delve.Run;
 
 /// <summary>One roster entry: the id everything keys on, its display name, the role line the
-/// roster card prints, its builder, and whether it may lead a run. Everything the featured sheet
+/// roster card prints, and its builder. Everything the featured sheet
 /// prints comes off the character <see cref="Builder"/> makes, so there is no authored copy
 /// here to drift away from the build.</summary>
 public sealed record CharacterDef(
     string Id, string DisplayName, string Role,
-    Func<int, PF2eCharacter> Builder, bool CanLead,
+    Func<int, PF2eCharacter> Builder,
     bool StartsUnlocked = false, bool CanMeet = true);
 
 /// <summary>
@@ -24,17 +24,17 @@ public static class CharacterCatalog
     public static readonly IReadOnlyList<CharacterDef> All = new List<CharacterDef>
     {
         new(PresetCharacters.PlayerId, "Aldric", "Fighter · front line",
-            lvl => PresetCharacters.BuildPlayer(lvl), true, StartsUnlocked: true),
+            lvl => PresetCharacters.BuildPlayer(lvl), StartsUnlocked: true),
         new(PresetCharacters.ElaraId, "Elara", "Rogue · flanker",
-            lvl => PresetCharacters.BuildElara(lvl), true, StartsUnlocked: true),
+            lvl => PresetCharacters.BuildElara(lvl), StartsUnlocked: true),
         new(PresetCharacters.TharrId, "Tharr", "Cleric · healer",
-            lvl => PresetCharacters.BuildTharr(lvl), true, StartsUnlocked: true),
+            lvl => PresetCharacters.BuildTharr(lvl), StartsUnlocked: true),
         new(PresetCharacters.FenwickId, "Fenwick", "Wizard · artillery",
-            lvl => PresetCharacters.BuildFenwick(lvl), true, StartsUnlocked: true),
+            lvl => PresetCharacters.BuildFenwick(lvl), StartsUnlocked: true),
         new(PresetCharacters.RavenId, "Raven", "Rogue · duelist",
-            PresetCharacters.BuildRaven, true),
+            PresetCharacters.BuildRaven),
         new(PresetCharacters.ThistleId, "Thistle", "Fighter · scout",
-            PresetCharacters.BuildThistle, true),
+            PresetCharacters.BuildThistle),
     };
 
     /// <summary>The entry with this id, or null.</summary>

@@ -53,7 +53,7 @@ public partial class RunMeetingSpike : SpikeBase
         var pool = state.Recruits;
         Check("(1) the pool holds only characters outside the starting party",
             pool.Order.Count == CharacterCatalog.All.Count - Party.MaxSize);
-        Check("(1) the leader is not in the pool", !pool.Order.Contains(PresetCharacters.PlayerId));
+        Check("(1) the first selected member is not in the pool", !pool.Order.Contains(PresetCharacters.PlayerId));
         Check("(1) the first meeting is the first available guest",
             pool.Next(state.Party) == pool.Order[0]);
 
@@ -76,8 +76,9 @@ public partial class RunMeetingSpike : SpikeBase
         string? expected = pool.Next(state.Party);
         if (!await Walk(director, state, NodeKind.Meeting, "(4) the first Wayfarer")) return;
         Check("(4) a surviving guest offers a swap", director.Phase == RunPhase.Meetup);
-        director.ReplaceCompanion(PresetCharacters.PlayerId);
-        Check("(4) leader cannot be replaced", director.Phase == RunPhase.Meetup);
+        string storyteller = state.StoryCharacterId;
+        director.ReplaceCompanion("not-in-party");
+        Check("(4) unknown outgoing member cannot be replaced", director.Phase == RunPhase.Meetup);
         director.ReplaceCompanion(PresetCharacters.ElaraId);
         director.ReplaceCompanion(PresetCharacters.TharrId);
         director.DeclineMeetup();
@@ -97,7 +98,7 @@ public partial class RunMeetingSpike : SpikeBase
             pool.Next(state.Party) != expected);
 
         // Guest membership must not alter the permanent unlock set.
-        Check("(6) meeting follows the leader POV", expected != null && director.Campaign.HasPersonalProgress(state.Party.LeaderId, $"met/{expected}"));
+        Check("(6) meeting credits the random party storyteller", expected != null && director.Campaign.HasPersonalProgress(storyteller, $"met/{expected}"));
         Check("(6) guest fight does not count as party membership", expected != null && RecruitmentCatalog.Find(expected)!.Steps.Where(step => step.Signal == RecruitmentSignal.PartyVictory).All(step => director.Campaign.RecruitmentCount(expected, step.Id) == 0));
         Check("(6) the guest is still locked", expected != null && !pool.Unlocks.IsUnlocked(expected));
         Check("(6) the dismissed companion cannot be met", !pool.Order.Contains(PresetCharacters.ElaraId));
@@ -145,7 +146,7 @@ public partial class RunMeetingSpike : SpikeBase
         var draw = pool.Draw(party);
         Check("(7) a full party draws a locked guest", draw != null && !unlocks.IsUnlocked(draw.Value.Id));
         if (draw is not { } guest) return;
-        var leader = party.Members[0];
+        var firstMember = party.Members[0];
         var def = CharacterCatalog.Find(guest.Id)!;
         var wrongLevel = def.Builder(party.Level + 1);
         Check("(7) wrong level refused without mutation", !party.ReplaceCompanion(PresetCharacters.ElaraId, guest.Id, wrongLevel) && party.Find(PresetCharacters.ElaraId) != null);
@@ -154,10 +155,9 @@ public partial class RunMeetingSpike : SpikeBase
         Check("(7) dead guest refused", dead.Health.IsDead && !party.ReplaceCompanion(PresetCharacters.ElaraId, guest.Id, dead));
         guest.Character.Health!.SetCurrentHP(3);
         Check("(7) invalid outgoing member is refused", !party.ReplaceCompanion("unknown", guest.Id, guest.Character));
-        Check("(7) leader replacement is refused", !party.ReplaceCompanion(party.LeaderId, guest.Id, guest.Character));
-        Check("(7) locked guest can replace companion", party.ReplaceCompanion(PresetCharacters.ElaraId, guest.Id, guest.Character));
+        Check("(7) locked guest can replace the first selected member", party.ReplaceCompanion(PresetCharacters.PlayerId, guest.Id, guest.Character));
         Check("(7) fought instance and wounds retained", ReferenceEquals(party.Find(guest.Id), guest.Character) && guest.Character.Health.CurrentHP == 3);
-        Check("(7) size and leader retained", party.Members.Count == 4 && ReferenceEquals(leader, party.Members[0]));
+        Check("(7) size and remaining members retained", party.Members.Count == 4 && party.Find(firstMember.Id) == null && party.Find(PresetCharacters.ElaraId) != null);
         Check("(7) repeated guest is refused", !party.ReplaceCompanion(PresetCharacters.TharrId, guest.Id, guest.Character));
         Check("(7) swap never unlocks guest", !unlocks.IsUnlocked(guest.Id));
         pool.Resolve(guest.Id);

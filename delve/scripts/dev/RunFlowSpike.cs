@@ -10,7 +10,7 @@ namespace Delve.Dev;
 
 /// <summary>
 /// Headless walk of the whole run loop. Drives <see cref="RunDirector"/> through its public entry
-/// points - the same methods the screens call - on a fixed seed: confirm a leader and three
+/// points - the same methods the screens call - on a fixed seed: confirm four
 /// companions, fight a Skirmish with every PC handed to the AI, resolve a
 /// Happenstance, spend a ten-minute block, take a night's rest, rest until the ward refuses more,
 /// then start over. Asserts the phase after each step and that no member is left down.
@@ -65,7 +65,7 @@ public partial class RunFlowSpike : SpikeBase
             && party.Find(PresetCharacters.FenwickId) != null);
         Check("(1b) the same companion cannot join twice",
             !party.AddMember(PresetCharacters.ElaraId, unlocks));
-        Check("(1b) the leader cannot join as a companion",
+        Check("(1b) an existing member cannot join twice",
             !party.AddMember(PresetCharacters.PlayerId, unlocks));
         Check("(1b) an unknown id is refused", !party.AddMember("nobody", unlocks));
         Check("(1b) a locked character is refused",

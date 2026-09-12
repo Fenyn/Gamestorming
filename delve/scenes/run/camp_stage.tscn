@@ -1,0 +1,1389 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/CampStage.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="tree"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="pine"]
+[ext_resource type="Texture2D" path="res://assets/sprites/camp/campfire.png" id="fire"]
+[ext_resource type="Shader" path="res://assets/shaders/camp_ground.gdshader" id="ground"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/veteran/appearance.tres" id="veteran"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/rogue/appearance.tres" id="rogue"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/cleric/appearance.tres" id="cleric"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/wizard/appearance.tres" id="wizard"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/recruit/appearance.tres" id="recruit"]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/camp/outpost_props.png" id="props"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/forest/grass_mid_a.png" id="grass_sprite"]
+
+[ext_resource type="Shader" path="res://assets/shaders/camp_stone.gdshader" id="stone_shader"]
+
+
+[ext_resource type="Script" path="res://scripts/flow/CampTerrain.cs" id="terrain_script"]
+[ext_resource type="Script" path="res://scripts/flow/CampRuin.cs" id="ruin_script"]
+[ext_resource type="Shader" path="res://assets/shaders/camp_canvas.gdshader" id="cloth_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/grass_a.png" id="grass_tex"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/dirt_b.png" id="dirt_tex"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/rock_b.png" id="rock_tex"]
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 1
+background_color = Color(0.10, 0.15, 0.16, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.68, 0.72, 0.75, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.16, 0.20, 0.22, 1)
+fog_light_energy = 0.6
+fog_density = 0.009
+glow_enabled = true
+glow_intensity = 0.5
+
+[sub_resource type="ShaderMaterial" id="ground_mat"]
+shader = ExtResource("ground")
+shader_parameter/grass_texture = ExtResource("grass_tex")
+shader_parameter/dirt_texture = ExtResource("dirt_tex")
+shader_parameter/rock_texture = ExtResource("rock_tex")
+shader_parameter/contact_patches = PackedVector4Array(-3, 7, 1.5, 0.65, 3.7, 7.8, 1.5, 0.65, -3, -1, 1.5, 0.65, 3, -0.5, 1.5, 0.65, -8, 6.5, 1.5, 0.65, 13.3, 6.7, 1.5, 0.65, -11, -6, 2.4, 2, 11, -6, 2.4, 2, -3, -13.8, 5.7, 1.1, -13, -4, 1.5, 0.75, 13, -4, 1.5, 0.7, -10, 3, 1.4, 0.6, 0, 2.4, 1.2, 1.1, -9, -5, 0.8, 0.65, -6, -15, 1.2, 2, 14, -3.2, 0.6, 0.5)
+
+[sub_resource type="ShaderMaterial" id="stone"]
+shader = ExtResource("stone_shader")
+shader_parameter/masonry = ExtResource("rock_tex")
+
+[sub_resource type="StandardMaterial3D" id="wood"]
+albedo_color = Color(0.20, 0.14, 0.09, 1)
+roughness = 1.0
+
+[sub_resource type="ShaderMaterial" id="canvas"]
+shader = ExtResource("cloth_shader")
+shader_parameter/cloth = Color(0.54, 0.43, 0.29, 1)
+
+[sub_resource type="ShaderMaterial" id="canvas_blue"]
+shader = ExtResource("cloth_shader")
+shader_parameter/cloth = Color(0.40, 0.44, 0.37, 1)
+
+[sub_resource type="BoxMesh" id="block"]
+size = Vector3(1.1, 0.65, 0.8)
+
+[sub_resource type="CylinderMesh" id="log"]
+top_radius = 0.22
+bottom_radius = 0.24
+height = 2.1
+radial_segments = 8
+
+[sub_resource type="PrismMesh" id="tent"]
+size = Vector3(3.4, 2.2, 3.1)
+
+[sub_resource type="SphereMesh" id="rock"]
+radius = 0.3
+height = 0.4
+radial_segments = 7
+rings = 4
+
+[sub_resource type="CylinderMesh" id="barrel"]
+top_radius = 0.38
+bottom_radius = 0.38
+height = 0.9
+radial_segments = 10
+
+[sub_resource type="AtlasTexture" id="fallen_log"]
+atlas = ExtResource("props")
+region = Rect2(432, 144, 96, 48)
+
+[sub_resource type="AtlasTexture" id="crates"]
+atlas = ExtResource("props")
+region = Rect2(144, 192, 48, 96)
+
+
+[sub_resource type="PrismMesh" id="tent_door"]
+size = Vector3(1.25, 1.5, 0.03)
+
+[sub_resource type="StandardMaterial3D" id="interior"]
+albedo_color = Color(0.065, 0.068, 0.055, 1)
+roughness = 1.0
+
+
+[sub_resource type="AtlasTexture" id="tool_rack"]
+atlas = ExtResource("props")
+region = Rect2(0, 288, 96, 96)
+
+[sub_resource type="AtlasTexture" id="camp_table"]
+atlas = ExtResource("props")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="herbs"]
+atlas = ExtResource("props")
+region = Rect2(288, 96, 48, 48)
+
+[sub_resource type="AtlasTexture" id="wood_tools"]
+atlas = ExtResource("props")
+region = Rect2(576, 192, 48, 96)
+
+[sub_resource type="AtlasTexture" id="sacks"]
+atlas = ExtResource("props")
+region = Rect2(240, 480, 96, 96)
+
+
+[sub_resource type="CylinderMesh" id="tent_pole"]
+top_radius = 0.045
+bottom_radius = 0.06
+height = 2.2
+radial_segments = 6
+[sub_resource type="CylinderMesh" id="guy_rope"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 2.65
+radial_segments = 4
+
+[sub_resource type="SphereMesh" id="outcrop"]
+radius = 1.0
+height = 2.0
+radial_segments = 6
+rings = 3
+
+[node name="CampStage" type="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("script")
+Seats = Array[Vector3]([Vector3(-3, 0, 7), Vector3(3.7, 0, 7.8), Vector3(-3, 0, -1), Vector3(3, 0, -0.5), Vector3(-8, 0, 6.5), Vector3(13.3, 0, 6.7), Vector3(-13.5, 0, -1.2), Vector3(-13, 0, 7), Vector3(13, 0, -0.7), Vector3(-7.5, 0, -11), Vector3(8.8, 0, 7), Vector3(8.5, 0, -10), Vector3(-2.8, 0, -9.8), Vector3(3.5, 0, -10.5), Vector3(8.2, 0, -1.5), Vector3(-13, 0, -9.7), Vector3(-8, 0, -1.8), Vector3(13.5, 0, -10.8)])
+FireEnergy = 3.2
+LookTarget = Vector3(0, 0, -2)
+SeatIds = PackedStringArray("player", "elara", "tharr", "fenwick", "raven", "thistle", "arkus", "aldric", "spore", "josen", "grub", "sera", "oskar", "hazel", "wynn", "vasska", "hilde", "flick")
+Appearances = Array[Resource]([ExtResource("veteran"), ExtResource("rogue"), ExtResource("cleric"), ExtResource("wizard"), ExtResource("rogue"), ExtResource("recruit")])
+
+[node name="View" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="CampViewport" type="SubViewport" parent="View"]
+unique_name_in_owner = true
+size = Vector2i(1920, 1080)
+own_world_3d = true
+render_target_update_mode = 2
+msaa_3d = 1
+
+[node name="Outpost" type="Node3D" parent="View/CampViewport"]
+
+
+[node name="CampCamera" type="Camera3D" parent="View/CampViewport/Outpost"]
+unique_name_in_owner = true
+position = Vector3(0, 12, 20)
+projection = 1
+size = 21.0
+current = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="View/CampViewport/Outpost"]
+environment = SubResource("environment")
+
+[node name="Moonlight" type="DirectionalLight3D" parent="View/CampViewport/Outpost"]
+rotation_degrees = Vector3(-38, -35, 0)
+light_color = Color(0.79, 0.84, 0.87, 1)
+light_energy = 0.55
+shadow_enabled = true
+
+[node name="CampTerrain" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+unique_name_in_owner = true
+script = ExtResource("terrain_script")
+GroundedProps = Array[NodePath]([NodePath("../Fire"), NodePath("../HearthStone0"), NodePath("../HearthStone1"), NodePath("../HearthStone2"), NodePath("../HearthStone3"), NodePath("../HearthStone4"), NodePath("../HearthStone5"), NodePath("../HearthStone6"), NodePath("../HearthStone7"), NodePath("../HearthStone8"), NodePath("../HearthStone9"), NodePath("../Seat0"), NodePath("../Seat1"), NodePath("../Seat2"), NodePath("../Seat3"), NodePath("../Seat4"), NodePath("../Seat5"), NodePath("../ShelterWest"), NodePath("../ShelterEast"), NodePath("../Supplies0"), NodePath("../Supplies1"), NodePath("../Supplies2"), NodePath("../Forest0"), NodePath("../Forest1"), NodePath("../Forest2"), NodePath("../Forest3"), NodePath("../Forest4"), NodePath("../Forest5"), NodePath("../Forest6"), NodePath("../Forest7"), NodePath("../Forest8"), NodePath("../Forest9"), NodePath("../Forest10"), NodePath("../Forest11"), NodePath("../Forest12"), NodePath("../Forest13"), NodePath("../Forest14"), NodePath("../Forest15"), NodePath("../Forest16"), NodePath("../Forest17"), NodePath("../Forest18"), NodePath("../Forest19"), NodePath("../Forest20"), NodePath("../Forest21"), NodePath("../Forest22"), NodePath("../Forest23"), NodePath("../Forest24"), NodePath("../Forest25"), NodePath("../Forest26"), NodePath("../Forest27"), NodePath("../Forest28"), NodePath("../Forest29"), NodePath("../Forest30"), NodePath("../Forest31"), NodePath("../Forest32"), NodePath("../Forest33"), NodePath("../CampGrass0"), NodePath("../CampGrass1"), NodePath("../CampGrass2"), NodePath("../CampGrass3"), NodePath("../CampGrass4"), NodePath("../CampGrass5"), NodePath("../CampGrass6"), NodePath("../CampGrass7"), NodePath("../CampGrass8"), NodePath("../CampGrass9"), NodePath("../CampGrass10"), NodePath("../CampGrass11"), NodePath("../CampGrass12"), NodePath("../CampGrass13"), NodePath("../CampGrass14"), NodePath("../CampGrass15"), NodePath("../CampGrass16"), NodePath("../CampGrass17"), NodePath("../CampGrass18"), NodePath("../CampGrass19"), NodePath("../CampGrass20"), NodePath("../CampGrass21"), NodePath("../CampGrass22"), NodePath("../CampGrass23"), NodePath("../CampGrass24"), NodePath("../CampGrass25"), NodePath("../CampGrass26"), NodePath("../CampGrass27"), NodePath("../CampGrass28"), NodePath("../CampGrass29"), NodePath("../CampGrass30"), NodePath("../CampGrass31"), NodePath("../CampGrass32"), NodePath("../CampGrass33"), NodePath("../CampGrass34"), NodePath("../CampGrass35"), NodePath("../CampGrass36"), NodePath("../CampGrass37"), NodePath("../CampGrass38"), NodePath("../CampGrass39"), NodePath("../CampGrass40"), NodePath("../CampGrass41"), NodePath("../CampGrass42"), NodePath("../CampGrass43"), NodePath("../CampGrass44"), NodePath("../CampGrass45"), NodePath("../CampGrass46"), NodePath("../CampGrass47"), NodePath("../CampGrass48"), NodePath("../CampGrass49"), NodePath("../CampGrass50"), NodePath("../CampGrass51"), NodePath("../CampGrass52"), NodePath("../CampGrass53"), NodePath("../CampGrass54"), NodePath("../CampGrass55"), NodePath("../CampGrass56"), NodePath("../CampGrass57"), NodePath("../CampGrass58"), NodePath("../CampGrass59"), NodePath("../CampGrass60"), NodePath("../CampGrass61"), NodePath("../CampGrass62"), NodePath("../CampGrass63"), NodePath("../SharedTools"), NodePath("../Woodpile"), NodePath("../SharedTable"), NodePath("../HerbPots0"), NodePath("../HerbPots1"), NodePath("../TravelSupplies"), NodePath("../ChapelRemnant"), NodePath("../ChapelReturn"), NodePath("../Rubble0"), NodePath("../Rubble1"), NodePath("../Rubble2"), NodePath("../Rubble3"), NodePath("../Rubble4")])
+Banks = Array[Vector4]([Vector4(-18, -5, 9, 2.5), Vector4(18, -8, 10, 3.1), Vector4(-3, -19, 13, 2.6), Vector4(15, 12, 7, 1.3), Vector4(-19, 11, 8, 1.5)])
+material_override = SubResource("ground_mat")
+
+[node name="Fire" type="Sprite3D" parent="View/CampViewport/Outpost"]
+unique_name_in_owner = true
+position = Vector3(0, 0.82, 2.4)
+texture = ExtResource("fire")
+hframes = 4
+pixel_size = 0.048
+billboard = 2
+texture_filter = 0
+shaded = false
+alpha_cut = 1
+
+[node name="Firelight" type="OmniLight3D" parent="View/CampViewport/Outpost"]
+unique_name_in_owner = true
+position = Vector3(0, 1.4, 2.4)
+light_color = Color(1, 0.57, 0.20, 1)
+light_energy = 2.2
+omni_range = 14.0
+shadow_enabled = false
+
+[node name="HearthStone0" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(0.9, 0.12, 2.4)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone1" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(0.728, 0.12, 2.8409999999999997)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone2" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(0.278, 0.12, 3.113)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone3" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.278, 0.12, 3.113)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone4" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.728, 0.12, 2.8409999999999997)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone5" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.9, 0.12, 2.4)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone6" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.728, 0.12, 1.9589999999999999)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone7" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.278, 0.12, 1.6869999999999998)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone8" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(0.278, 0.12, 1.6869999999999998)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="HearthStone9" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(0.728, 0.12, 1.9589999999999999)
+mesh = SubResource("rock")
+material_override = SubResource("stone")
+
+
+[node name="Seat0" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-3, 0.2, 7.05)
+texture = SubResource("fallen_log")
+pixel_size = 0.026
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="Seat1" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(3.7, 0.2, 7.85)
+texture = SubResource("fallen_log")
+pixel_size = 0.026
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="Seat2" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-3, 0.2, -0.95)
+texture = SubResource("fallen_log")
+pixel_size = 0.026
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="Seat3" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(3, 0.2, -0.45)
+texture = SubResource("fallen_log")
+pixel_size = 0.026
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="Seat4" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-8, 0.2, 6.55)
+texture = SubResource("fallen_log")
+pixel_size = 0.026
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="Seat5" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(13.3, 0.2, 6.75)
+texture = SubResource("fallen_log")
+pixel_size = 0.026
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="ShelterWest" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-11, 1.1, -6)
+mesh = SubResource("tent")
+material_override = SubResource("canvas")
+rotation_degrees = Vector3(0, 18, 0)
+
+[node name="ShelterEast" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(11, 1.1, -6)
+mesh = SubResource("tent")
+material_override = SubResource("canvas_blue")
+rotation_degrees = Vector3(0, -25, 0)
+
+[node name="Supplies0" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-10.5, 0.45, -5.8)
+texture = SubResource("crates")
+pixel_size = 0.024
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+
+[node name="Supplies1" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-11.7, 0.45, -6.0)
+texture = SubResource("crates")
+pixel_size = 0.024
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+
+[node name="Supplies2" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(10.5, 0.45, -5.6)
+texture = SubResource("crates")
+pixel_size = 0.024
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+
+[node name="Entrance" type="MeshInstance3D" parent="View/CampViewport/Outpost/ShelterWest"]
+position = Vector3(0, -0.30, 1.565)
+mesh = SubResource("tent_door")
+material_override = SubResource("interior")
+
+[node name="Entrance" type="MeshInstance3D" parent="View/CampViewport/Outpost/ShelterEast"]
+position = Vector3(0, -0.30, 1.565)
+mesh = SubResource("tent_door")
+material_override = SubResource("interior")
+
+[node name="Forest0" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(-21.78, 0, -18.75)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest1" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-17.36, 0, -18.62)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest2" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-14.32, 0, -18.23)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest3" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(-9.2, 0, -17.69)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest4" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-5.46, 0, -17.66)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest5" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-2.49, 0, -18.55)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest6" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(2.64, 0, -17.39)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest7" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(6.7, 0, -18.16)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest8" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(10.07, 0, -18.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest9" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(13.35, 0, -17.48)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest10" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(18.09, 0, -17.27)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest11" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(22.26, 0, -18.72)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest12" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(-22.74, 0, -16.41)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest13" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-18.55, 0, -16.42)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest14" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-14.15, 0, -15.71)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest15" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(-9.53, 0, -16.24)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest16" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-5.25, 0, -15.079999999999998)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest17" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-2.43, 0, -16.2)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest18" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(1.59, 0, -15.96)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest19" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(6.28, 0, -15.11)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest20" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(10.74, 0, -16.96)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest21" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(14.39, 0, -15.84)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest22" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(18.6, 0, -16.36)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest23" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(21.59, 0, -15.21)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest24" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(-18.14, 0, -14.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest25" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-19.82, 0, -8.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest26" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-18.23, 0, -2.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest27" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(-19.61, 0, 5.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest28" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(-20.0, 0, 11.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest29" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(18.66, 0, -14.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 42.0
+
+[node name="Forest30" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(19.28, 0, -8.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="Forest31" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(18.29, 0, -2.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest32" parent="View/CampViewport/Outpost" instance=ExtResource("tree")]
+position = Vector3(18.24, 0, 5.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 46.0
+
+[node name="Forest33" parent="View/CampViewport/Outpost" instance=ExtResource("pine")]
+position = Vector3(19.83, 0, 11.0)
+ReceiveLighting = true
+Tint = Color(0.72, 0.75, 0.58, 1)
+PixelsPerTile = 38.0
+
+[node name="CampGrass0" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(10.56, 0.18, -15.26)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass1" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-1.73, 0.18, -14.78)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass2" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(13.40, 0.18, -14.15)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass3" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-4.17, 0.18, -14.28)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass4" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(5.76, 0.18, -15.08)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass5" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-9.49, 0.18, -15.52)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass6" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(2.25, 0.18, -15.92)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass7" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(2.15, 0.18, -15.79)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass8" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-6.83, 0.18, -15.11)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass9" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-3.89, 0.18, -15.08)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass10" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-8.30, 0.18, -15.56)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass11" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-8.45, 0.18, -14.32)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass12" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(6.77, 0.18, -14.25)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass13" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.29, 0.18, -14.30)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass14" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(2.63, 0.18, -14.71)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass15" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(4.33, 0.18, -14.17)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass16" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-0.63, 0.18, -14.46)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass17" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-9.59, 0.18, -14.64)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass18" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-15.27, 0.18, -0.50)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass19" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.23, 0.18, -8.98)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass20" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.27, 0.18, -3.52)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass21" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.66, 0.18, -6.46)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass22" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.64, 0.18, -11.92)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass23" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.28, 0.18, -2.45)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass24" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.57, 0.18, 9.80)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass25" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.58, 0.18, -1.74)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass26" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.44, 0.18, 1.62)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass27" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-16.38, 0.18, 11.80)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass28" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.78, 0.18, -7.27)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass29" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.87, 0.18, -16.32)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass30" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.18, 0.18, -5.81)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass31" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.02, 0.18, -1.11)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass32" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-15.24, 0.18, -3.11)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass33" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.34, 0.18, -16.30)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass34" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.23, 0.18, 9.49)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass35" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-16.79, 0.18, -15.53)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass36" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-16.74, 0.18, 2.06)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass37" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.56, 0.18, 4.91)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass38" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-15.47, 0.18, 3.44)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass39" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.14, 0.18, 2.25)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass40" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.00, 0.18, 2.72)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass41" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.06, 0.18, 9.75)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass42" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.41, 0.18, 9.04)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass43" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.42, 0.18, -1.59)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass44" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-15.36, 0.18, -8.30)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass45" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.36, 0.18, 1.11)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass46" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-15.95, 0.18, 3.27)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass47" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.66, 0.18, -2.82)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass48" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.81, 0.18, 11.29)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass49" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.86, 0.18, 0.71)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass50" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17.44, 0.18, -3.28)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass51" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.49, 0.18, 0.17)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass52" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-15.52, 0.18, -6.90)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass53" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.09, 0.18, 0.81)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass54" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.97, 0.18, 1.54)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass55" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.01, 0.18, 3.54)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass56" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(15.86, 0.18, -16.09)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass57" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.11, 0.18, -8.27)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass58" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-16.27, 0.18, -1.12)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass59" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.39, 0.18, -10.58)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass60" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.17, 0.18, -6.75)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.018
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass61" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-16.40, 0.18, -14.19)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.022
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass62" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.94, 0.18, 11.27)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="CampGrass63" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.87, 0.18, -8.01)
+texture = ExtResource("grass_sprite")
+pixel_size = 0.014
+billboard = 2
+texture_filter = 0
+shaded = true
+modulate = Color(0.7, 0.77, 0.6, 1)
+alpha_cut = 1
+
+[node name="SharedTools" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-13, 0.7, -4)
+texture = SubResource("tool_rack")
+pixel_size = 0.03
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="Woodpile" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-9, 0.65, -5)
+texture = SubResource("wood_tools")
+pixel_size = 0.027
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="SharedTable" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(13, 0.5, -4)
+texture = SubResource("camp_table")
+pixel_size = 0.032
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="HerbPots0" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(12, 0.2, -3)
+texture = SubResource("herbs")
+pixel_size = 0.021
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="HerbPots1" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(14, 0.2, -3.2)
+texture = SubResource("herbs")
+pixel_size = 0.021
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="TravelSupplies" type="Sprite3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-10, 0.45, 3)
+texture = SubResource("sacks")
+pixel_size = 0.024
+billboard = 2
+texture_filter = 0
+shaded = true
+alpha_cut = 1
+
+[node name="ChapelRemnant" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-6.2, 0, -13.8)
+rotation_degrees = Vector3(0, -12, 0)
+script = ExtResource("ruin_script")
+material_override = SubResource("stone")
+Thickness = 0.95
+Outline = PackedVector2Array(0, 0, 0, 3.3, 0.8, 3.3, 0.8, 3.8, 1.7, 3.7, 2.4, 3.1, 3.2, 3.4, 4.4, 3.2, 4.7, 2.9, 5.6, 2.9, 5.6, 2.4, 6.8, 2.4, 6.8, 1.9, 8.3, 1.7, 8.7, 0.9, 10.0, 0.9, 10.0, 0, 5.0, 0, 5.0, 1.7, 4.6, 2.3, 4.0, 2.7, 3.2, 2.8, 2.5, 2.6, 2.0, 2.1, 1.8, 1.6, 1.8, 0)
+
+[node name="ChapelReturn" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-6.5, 0, -16.2)
+rotation_degrees = Vector3(0, 72, 0)
+script = ExtResource("ruin_script")
+material_override = SubResource("stone")
+Outline = PackedVector2Array(0, 0, 0, 1.1, 1.4, 1.2, 1.7, 2.1, 2.4, 1.8, 3.0, 2.9, 3.8, 3.0, 4.0, 2.4, 4.0, 0)
+
+[node name="Rubble0" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-6.8, 0.19, -12.6)
+rotation_degrees = Vector3(8, 17, 9)
+scale = Vector3(0.8, 0.38, 0.85)
+mesh = SubResource("block")
+material_override = SubResource("stone")
+
+[node name="Rubble1" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-5.7, 0.14, -12.8)
+rotation_degrees = Vector3(8, -21, 9)
+scale = Vector3(0.8, 0.28, 0.85)
+mesh = SubResource("block")
+material_override = SubResource("stone")
+
+[node name="Rubble2" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(3.5, 0.17, -12)
+rotation_degrees = Vector3(8, 28, 9)
+scale = Vector3(0.8, 0.34, 0.85)
+mesh = SubResource("block")
+material_override = SubResource("stone")
+
+[node name="Rubble3" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(4.8, 0.125, -12.3)
+rotation_degrees = Vector3(8, -15, 9)
+scale = Vector3(0.8, 0.25, 0.85)
+mesh = SubResource("block")
+material_override = SubResource("stone")
+
+[node name="Rubble4" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(5.4, 0.2, -13)
+rotation_degrees = Vector3(8, 9, 9)
+scale = Vector3(0.8, 0.4, 0.85)
+mesh = SubResource("block")
+material_override = SubResource("stone")
+
+[node name="RidgePole" type="MeshInstance3D" parent="View/CampViewport/Outpost/ShelterWest"]
+position = Vector3(0, 0, 1.63)
+mesh = SubResource("tent_pole")
+material_override = SubResource("wood")
+
+[node name="GuyRope" type="MeshInstance3D" parent="View/CampViewport/Outpost/ShelterWest"]
+position = Vector3(0, -0.1, 2.3)
+rotation_degrees = Vector3(-31, 0, 0)
+mesh = SubResource("guy_rope")
+material_override = SubResource("wood")
+
+[node name="RidgePole" type="MeshInstance3D" parent="View/CampViewport/Outpost/ShelterEast"]
+position = Vector3(0, 0, 1.63)
+mesh = SubResource("tent_pole")
+material_override = SubResource("wood")
+
+[node name="GuyRope" type="MeshInstance3D" parent="View/CampViewport/Outpost/ShelterEast"]
+position = Vector3(0, -0.1, 2.3)
+rotation_degrees = Vector3(-31, 0, 0)
+mesh = SubResource("guy_rope")
+material_override = SubResource("wood")
+
+[node name="BankOutcrop0" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(16.4, 1.4, -1.8)
+rotation_degrees = Vector3(7, 18, -9)
+scale = Vector3(1.8, 2.0, 1.3)
+mesh = SubResource("outcrop")
+material_override = SubResource("stone")
+
+[node name="BankOutcrop1" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(18, 1.5, 1)
+rotation_degrees = Vector3(7, 47, -9)
+scale = Vector3(2.2, 2.5, 1.6)
+mesh = SubResource("outcrop")
+material_override = SubResource("stone")
+
+[node name="BankOutcrop2" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(17, 0.8, 4.2)
+rotation_degrees = Vector3(7, 5, -9)
+scale = Vector3(1.6, 1.1, 1.4)
+mesh = SubResource("outcrop")
+material_override = SubResource("stone")
+
+[node name="BankOutcrop3" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-18, 1.1, 3.2)
+rotation_degrees = Vector3(7, 38, -9)
+scale = Vector3(1.9, 1.6, 1.5)
+mesh = SubResource("outcrop")
+material_override = SubResource("stone")
+
+[node name="BankOutcrop4" type="MeshInstance3D" parent="View/CampViewport/Outpost"]
+position = Vector3(-17.2, 0.7, 6)
+rotation_degrees = Vector3(7, 21, -9)
+scale = Vector3(1.3, 1, 1.1)
+mesh = SubResource("outcrop")
+material_override = SubResource("stone")

@@ -29,6 +29,8 @@ public partial class TreeProp : Node3D
     /// <summary>How far the sprite sinks into the ground, so baked root pixels nestle into the
     /// surface instead of hovering (same idea as the decor scatter's sink).</summary>
     [Export] public float Sink { get; set; } = 0.05f;
+    [Export] public bool ReceiveLighting { get; set; }
+    [Export] public Color Tint { get; set; } = Colors.White;
 
     /// <summary>Mirror half of the instances (hashed from position) so a repeated variant reads as
     /// two different trees. Off for art with readable asymmetry a designer wants kept.</summary>
@@ -73,6 +75,8 @@ public partial class TreeProp : Node3D
         sprite.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
         sprite.FlipH = HashedFlip && MapHash.Hash01(hx, hz, 0x51C7) < 0.5f;
         PixelSprite.Configure(sprite);
+        sprite.Shaded = ReceiveLighting;
+        sprite.Modulate = Tint;
 
         float worldHeight = tex.GetHeight() / PixelsPerTile;
         sprite.Position = new Vector3(0f, worldHeight * 0.5f - Sink, 0f);

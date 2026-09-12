@@ -9,8 +9,9 @@ namespace Delve.Combat;
 /// 2.5D combat token: the assembly that turns an <see cref="ICharacter"/> into a thing on the board.
 /// It draws nothing itself. A <see cref="BillboardSpriteAnimator"/> child is the body, a
 /// <see cref="TeamRing"/> child is the ground ring and turn indicator, and a <see cref="WorldHpBar"/>
-/// child is the health bar. This script adds the name label, maps the character onto those children,
-/// and owns the hit, dodge, lunge and death juice. Thin presentation adapter — no rules.
+/// child is the health bar, and a <see cref="UnitPickArea"/> child is the click column a picking ray
+/// resolves to this unit's tile. This script adds the name label, maps the character onto those
+/// children, and owns the hit, dodge, lunge and death juice. Thin presentation adapter — no rules.
 ///
 /// The node subtree is authored in scenes/combat/unit_token.tscn. Use <see cref="Spawn"/>, which
 /// configures the token before it enters the tree, as <see cref="_Ready"/> requires.
@@ -53,6 +54,7 @@ public partial class UnitVisual3D : Node3D
     private BillboardSpriteAnimator _sprite = null!;
     private TeamRing _ring = null!;
     private WorldHpBar _hpBar = null!;
+    private UnitPickArea _pick = null!;
     private Label3D _name = null!;
 
     private bool _dead;
@@ -135,6 +137,7 @@ public partial class UnitVisual3D : Node3D
         _sprite = GetNode<BillboardSpriteAnimator>("%Sprite");
         _ring = GetNode<TeamRing>("%Ring");
         _hpBar = GetNode<WorldHpBar>("%HpBar");
+        _pick = GetNode<UnitPickArea>("%PickArea");
         _name = GetNode<Label3D>("%Name");
 
         // Standalone (F6) with no Configure() call: leave the raw blockout token visible, do not crash.
@@ -144,6 +147,8 @@ public partial class UnitVisual3D : Node3D
         _ring.SetTeamColor(_character.TeamId == 1 ? UiColors.Ally : UiColors.Enemy);
         _ring.SetFootprint(_character.TileWidth);
         ConfigureSprite();
+        // The column reaches the HP bar: the one size cue that already separates a hero from a rat.
+        _pick.Configure(_character.TileWidth, _hpBarY);
         _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
         _name.Text = _character.Name;
         _name.Position = new Vector3(0f, _hpBarY + NameLift, 0f);
@@ -276,5 +281,6 @@ public partial class UnitVisual3D : Node3D
         _modulateTween = CreateTween();
         _modulateTween.TweenProperty(_sprite, "modulate", new Color(0.4f, 0.4f, 0.4f, 0.25f), DeathFadeDuration);
         _ring.FadeOut(DeathRingFadeDuration);
+        _pick.SetPickable(false);
     }
 }

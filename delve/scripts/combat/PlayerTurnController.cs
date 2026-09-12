@@ -31,6 +31,13 @@ public sealed class PlayerTurnController
     private PlayerTurnMode _mode = PlayerTurnMode.Idle;
     private bool _busy;
 
+    /// <summary>An action was executed this turn. Delay is a free action as the turn BEGINS, so
+    /// this closes it.</summary>
+    private bool _actedThisTurn;
+
+    /// <summary>Chips offered while picking the Delay slot, by combatant id.</summary>
+    private readonly Dictionary<int, ICharacter> _delayAnchors = new();
+
     /// <summary>The Idle-mode bands; null whenever they are hidden (busy, targeting, no turn).</summary>
     private MovePlan? _plan;
     private HashSet<PF2eVec> _moveTiles = new();
@@ -53,6 +60,12 @@ public sealed class PlayerTurnController
     /// </summary>
     public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
+    /// <summary>Session seam: why the actor cannot Delay now (null = allowed).</summary>
+    public Func<ICharacter, string?>? DelayBlockedReason { get; set; }
+
+    /// <summary>Session seam: the combatants the actor may Delay until after, in turn order.</summary>
+    public Func<ICharacter, IReadOnlyList<ICharacter>>? DelayAnchors { get; set; }
+
     // ---------------------------------------------------------------- View events
     public event Action<IReadOnlyCollection<PF2eVec>, HighlightKind>? HighlightsChanged;
     /// <summary>The Idle movement bands (empty when hidden).</summary>
@@ -68,6 +81,10 @@ public sealed class PlayerTurnController
     public event Action<ActionBarState>? ButtonStateChanged;
     public event Action<PlayerTurnMode>? ModeChanged;
     public event Action? EndTurnRequested;
+    /// <summary>Combatant ids the turn order bar should offer as Delay slots (empty when the pick ends).</summary>
+    public event Action<IReadOnlyCollection<int>>? DelayAnchorsChanged;
+    /// <summary>The actor Delays, returning after the given combatant.</summary>
+    public event Action<ICharacter, ICharacter>? DelayRequested;
 
     // ---------------------------------------------------------------- Turn lifecycle
 
@@ -75,6 +92,7 @@ public sealed class PlayerTurnController
     {
         _current = character;
         _busy = false;
+        _actedThisTurn = false;
         SetMode(PlayerTurnMode.Idle);
         ClearTransient();
         PublishState();
@@ -187,6 +205,50 @@ public sealed class PlayerTurnController
     {
         if (_busy) return;
         EndTurnRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// Delay this turn. Legal only before any action. The turn order bar offers the chips still
+    /// to act this round; a click on one settles the return, and the choice is final.
+    /// </summary>
+    public void BeginDelay()
+    {
+        if (!Ready() || DelayReason() != null) return;
+        var actor = _current!;
+
+        ClearTransient();
+        foreach (var anchor in DelayAnchors?.Invoke(actor) ?? Array.Empty<ICharacter>())
+            _delayAnchors[anchor.UniqueId] = anchor;
+        if (_delayAnchors.Count == 0) { Cancel(); return; }
+        SetMode(PlayerTurnMode.SelectingDelaySlot);
+        DelayAnchorsChanged?.Invoke(new List<int>(_delayAnchors.Keys));
+    }
+
+    /// <summary>A turn order chip was clicked while picking the Delay slot.</summary>
+    public void DelayAnchorClicked(int combatantId)
+    {
+        if (_mode != PlayerTurnMode.SelectingDelaySlot || _current == null) return;
+        if (!_delayAnchors.TryGetValue(combatantId, out var anchor)) return;
+        RequestDelay(_current, anchor);
+    }
+
+    /// <summary>Hand the turn to the session as a Delay. The controller is done with it: the
+    /// session's turn-ended event releases control, exactly as after End Turn.</summary>
+    private void RequestDelay(ICharacter actor, ICharacter after)
+    {
+        _busy = true;
+        SetMode(PlayerTurnMode.Idle);
+        ClearTransient();
+        DelayRequested?.Invoke(actor, after);
+    }
+
+    /// <summary>Why the actor cannot Delay now: acted already (the controller's rule), or the
+    /// session's reason (nobody acts after them). Null when allowed.</summary>
+    private string? DelayReason()
+    {
+        if (_current == null) return "No active turn";
+        if (_actedThisTurn) return "Delay must be the first thing you do this turn";
+        return DelayBlockedReason?.Invoke(_current);
     }
 
     public void Cancel()
@@ -336,7 +398,7 @@ public sealed class PlayerTurnController
 
         try
         {
-            await action();
+            if (await action()) _actedThisTurn = true;
         }
         catch (OperationCanceledException)
         {
@@ -394,6 +456,8 @@ public sealed class PlayerTurnController
         _pendingSpellId = "";
         _pendingVariant = -1;
         _pendingSkillId = "";
+        _delayAnchors.Clear();
+        DelayAnchorsChanged?.Invoke(Array.Empty<int>());
         MoveBandsChanged?.Invoke(EmptyOptions);
         MoveHoverChanged?.Invoke(null);
         HighlightsChanged?.Invoke(Array.Empty<PF2eVec>(), HighlightKind.None);
@@ -405,6 +469,6 @@ public sealed class PlayerTurnController
     private void PublishState()
     {
         if (_current == null) return;
-        ButtonStateChanged?.Invoke(ActionBarStateBuilder.Build(_exec, _current));
+        ButtonStateChanged?.Invoke(ActionBarStateBuilder.Build(_exec, _current, DelayReason()));
     }
 }

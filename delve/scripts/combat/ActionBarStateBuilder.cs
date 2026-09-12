@@ -12,12 +12,15 @@ namespace Delve.Combat;
 /// </summary>
 internal static class ActionBarStateBuilder
 {
-    internal static ActionBarState Build(PlayerActionExecutor exec, ICharacter current)
+    /// <param name="delayBlockedReason">Why Delay is closed (the controller's acted-this-turn rule
+    /// or the session's turn-order reason), null when it is open.</param>
+    internal static ActionBarState Build(PlayerActionExecutor exec, ICharacter current, string? delayBlockedReason = null)
     {
         int actions = current.Actions?.TotalActionsRemaining ?? 0;
 
         bool canStrike = actions > 0 && exec.GetStrikeTargets(current).Count > 0;
         bool canRaiseShield = actions > 0 && current.Equipment?.CanRaiseShield() == true;
+        bool canDelay = actions > 0 && delayBlockedReason == null;
 
         var inspect = exec.GetUnitInspect(current.GridPosition);
 
@@ -28,11 +31,13 @@ internal static class ActionBarStateBuilder
             MaxActions = current.Actions?.MaxBaseActions ?? 3,
             CanStrike = canStrike,
             CanRaiseShield = canRaiseShield,
+            CanDelay = canDelay,
             Hp = inspect?.Hp ?? 0,
             MaxHp = inspect?.MaxHp ?? 0,
             Ac = inspect?.Ac ?? 0,
             StrikeDisabledReason = DisabledReason(canStrike, actions, "No targets in reach"),
             ShieldDisabledReason = canRaiseShield ? null : exec.GetRaiseShieldDisabledReason(current),
+            DelayDisabledReason = DisabledReason(canDelay, actions, delayBlockedReason ?? ""),
             Map = exec.GetCurrentMap(current),
             SpellEntries = current.Spellcasting != null
                 ? exec.GetSpellEntries(current)

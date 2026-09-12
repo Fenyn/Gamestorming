@@ -87,6 +87,7 @@ public static class TileDecor
         for (int x = 0; x < gridWidth; x++)
         {
             TileRole role = layout?.GetTile(x, y) ?? TileRole.Ground;
+            if (layout?.GetSurface(x, y) is SurfaceType.Stone or SurfaceType.Wood) continue;
             float taper = Taper(x, y, gridWidth, gridHeight, margin);
             int count;
             DecorDef[] defs;
@@ -95,6 +96,11 @@ public static class TileDecor
                 case TileRole.Ground:
                     defs = set.Ground;
                     float chance = layout == null ? GroundChance * 0.6f : GroundChance;
+                    // Broad patches leave breathing room around the main landforms.
+                    float phase = (uint)seed % 997 * 0.017f;
+                    float patch = 0.5f + 0.5f * Mathf.Sin(x * 0.41f + y * 0.23f + phase)
+                        * Mathf.Sin(y * 0.33f - x * 0.19f - phase);
+                    chance *= 0.35f + patch * 1.3f;
                     float roll = MapHash.Hash01(x, y, seed + SaltPlace);
                     count = roll < chance ? (MapHash.Hash01(x, y, seed + SaltPlace + 1) < GroundSecondChance ? 2 : 1) : 0;
                     break;
@@ -180,6 +186,8 @@ public static class TileDecor
         var tile = new PF2eVec(x, y);
         Vector3 pos = GridSpace.GridToWorld(tile, heightMap)
             + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+
+        pos.Y = heightMap.SampleY(tile, pos.X - x, pos.Z - y);
 
         var sprite = new Sprite3D
         {

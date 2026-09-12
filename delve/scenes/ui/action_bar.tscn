@@ -178,6 +178,12 @@ toggle_mode = true
 ActionText = "Skills"
 InputAction = &"combat_skills"
 
+[node name="DelayButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+layout_mode = 2
+ActionText = "Delay"
+InputAction = &"combat_delay"
+
 [node name="EndButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2

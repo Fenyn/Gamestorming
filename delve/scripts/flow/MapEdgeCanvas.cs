@@ -6,7 +6,7 @@ namespace Delve.Flow;
 
 /// <summary>
 /// The trail layer under the map nodes: every edge as a dashed walking-path, coloured by what it
-/// means right now. The road already walked uses the leader's accent, the choices open from the party's node
+/// means right now. The road already walked uses the run's accent, the choices open from the party's node
 /// read bright, everything else recedes to the hairline colour.
 /// </summary>
 public partial class MapEdgeCanvas : Control

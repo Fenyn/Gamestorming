@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using PF2e.Core;
 using System.Collections.Generic;
 using Delve.Data;
 
@@ -86,6 +89,19 @@ public sealed class RunState
 
     /// <summary>The run's leveling tunables.</summary>
     public LevelingRules Leveling { get; }
+
+    /// <summary>Stable, order-independent choice from the current party for a single purpose.</summary>
+    public PF2eCharacter? RandomMember(string purpose, bool livingOnly = false, bool perNode = true)
+    {
+        var candidates = Party.Members.Where(member => !livingOnly || member.Health is { IsDead: false, CurrentHP: > 0 })
+            .OrderBy(member => member.Id, StringComparer.Ordinal).ToArray();
+        if (candidates.Length == 0) return null;
+        int seed = RunRng.StableSeed(perNode ? StratumSeed : Seed, perNode ? CurrentNodeId ?? -1 : 0, purpose);
+        return candidates[new Random(seed).Next(candidates.Length)];
+    }
+
+    public string PresentationCharacterId => RandomMember("map-accent", perNode: false)!.Id;
+    public string StoryCharacterId => RandomMember("personal-progress")!.Id;
 
     /// <summary>Ids the party may pick from right now.</summary>
     public IReadOnlyList<int> Reachable() => Map.Reachable(CurrentNodeId);

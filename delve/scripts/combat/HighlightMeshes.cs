@@ -148,53 +148,13 @@ public sealed class HighlightMeshes
     }
 
     /// <summary>
-    /// One rectangle of a tile whose corners follow <paramref name="corners"/>, expressed RELATIVE to
-    /// the tile centre (so the instance is positioned by <c>GridToWorld</c> and the mesh supplies the
-    /// slope). Ported from the Unity Tactics <c>TileMeshBuilder.BuildHighlightMesh</c>: four corner
-    /// vertices, up normals, split along the shorter diagonal — with two Godot differences.
-    ///
-    /// 1. Winding is flipped (2nd and 3rd index of each triangle swapped), matching
-    ///    <see cref="Map.TerrainGeometry"/>, whose diagonal-split rule this shares, so the lit
-    ///    face points up in Godot's convention and lies on the terrain triangle it marks.
-    /// 2. The rectangle is any sub-region of the tile in u/v, so the same builder serves the inset
-    ///    fill, a boundary strip and a route dot. Corner heights come from <c>SampleHeight</c>, which
-    ///    reproduces the raw corners exactly at the tile's own corners.
+    /// A tile-local overlay rectangle clipped at the ground's diagonal. Every marker triangle
+    /// lies on a single terrain face, even when an inset strip crosses a non-planar tile.
     /// </summary>
     private static ArrayMesh BuildMarkerMesh(
         TileCornerHeights corners, float heightScale, float yOffset,
         float u0, float u1, float v0, float v1)
     {
-        float centerY = corners.CenterHeight * heightScale;
-
-        // Tile-local offsets: 1 tile = 1 m (see GridSpace).
-        Vector3 Corner(float u, float v) => new(
-            u - 0.5f,
-            corners.SampleHeight(u, v) * heightScale - centerY + yOffset,
-            v - 0.5f);
-
-        Vector3 vSW = Corner(u0, v0);
-        Vector3 vSE = Corner(u1, v0);
-        Vector3 vNE = Corner(u1, v1);
-        Vector3 vNW = Corner(u0, v1);
-
-        var buffer = new MeshBuffer(withColor: false);
-        buffer.Add(vSW, Vector3.Up, new Vector2(0, 0));
-        buffer.Add(vSE, Vector3.Up, new Vector2(1, 0));
-        buffer.Add(vNE, Vector3.Up, new Vector2(1, 1));
-        buffer.Add(vNW, Vector3.Up, new Vector2(0, 1));
-
-        // Unity wound (0,2,1)+(0,3,2) / (0,3,1)+(1,3,2); both pairs swapped for Godot's front face.
-        if (TerrainGeometry.ShouldSplitAlternate(vSW, vSE, vNE, vNW))
-        {
-            buffer.AddIndices(0, 1, 2);
-            buffer.AddIndices(0, 2, 3);
-        }
-        else
-        {
-            buffer.AddIndices(0, 1, 3);
-            buffer.AddIndices(1, 2, 3);
-        }
-
-        return buffer.ToArrayMesh("board_marker");
+        return SurfacePatch.Build(corners, heightScale, yOffset, u0, u1, v0, v1);
     }
 }

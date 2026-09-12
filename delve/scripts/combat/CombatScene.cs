@@ -59,6 +59,9 @@ public partial class CombatScene : Node3D
 
     private CombatLogBridge? _logBridge;
 
+    /// <summary>Combatant ids the turn order bar offers while the player picks a Delay slot.</summary>
+    private HashSet<int> _delayPickIds = new();
+
     /// <summary>The Idle bands last pushed by the controller (empty while hidden). Dev captures read it.</summary>
     private IReadOnlyDictionary<PF2e.Vector2Int, MoveOption> _lastBands =
         new Dictionary<PF2e.Vector2Int, MoveOption>();
@@ -270,6 +273,7 @@ public partial class CombatScene : Node3D
             _input.TileHovered += OnTileHovered;
             _input.Cancelled += OnCancel;
             _input.FocusRequested += () => _cameraRig.FocusOnActive();
+            _turnBar.ChipPressed += id => _controller.DelayAnchorClicked(id);
             WireActionBar();
         }
 
@@ -397,8 +401,17 @@ public partial class CombatScene : Node3D
         _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
         _controller.AttackPreviewChanged += preview => _actionBar.ShowAttackPreview(preview);
         _controller.ButtonStateChanged += state => _actionBar.Render(state);
-        _controller.ModeChanged += mode => _actionBar.SetTargetingHint(mode != PlayerTurnMode.Idle);
+        _controller.ModeChanged += mode => _actionBar.SetTargetingHint(
+            mode != PlayerTurnMode.Idle, mode == PlayerTurnMode.SelectingDelaySlot);
         _controller.EndTurnRequested += () => _session.RequestEndPlayerTurn();
+        _controller.DelayBlockedReason = character => _session.DelayBlockedReason(character);
+        _controller.DelayAnchors = _ => _session.GetDelayAnchors();
+        _controller.DelayAnchorsChanged += ids =>
+        {
+            _delayPickIds = new HashSet<int>(ids);
+            RefreshTurnOrder();
+        };
+        _controller.DelayRequested += (_, after) => _session.RequestDelay(after);
     }
 
     private void WireActionBar()
@@ -406,6 +419,7 @@ public partial class CombatScene : Node3D
         _actionBar.StrikePressed += () => _controller.BeginStrike();
         _actionBar.RaiseShieldPressed += () => _controller.RaiseShield();
         _actionBar.EndTurnPressed += () => _controller.EndTurn();
+        _actionBar.DelayPressed += () => _controller.BeginDelay();
         _actionBar.SpellChipPressed += (spellId, variant) => _controller.BeginSpell(spellId, variant);
         _actionBar.SkillChipPressed += actionId => _controller.BeginSkill(actionId);
         _actionBar.AiToggled += on =>
@@ -467,20 +481,15 @@ public partial class CombatScene : Node3D
         if (order == null) return;
 
         var current = _session.CurrentActor;
-        var views = new List<UnitView>(order.Count);
+        var delayed = _session.DelayedEntries ?? System.Array.Empty<PF2e.TurnManagement.TurnEntry>();
+        var views = new List<UnitView>(order.Count + delayed.Count);
         foreach (var entry in order)
         {
-            var c = entry.Character;
-            views.Add(new UnitView
-            {
-                Name = c.Name,
-                TeamId = c.TeamId,
-                IsCurrent = c == current,
-                IsDead = c.Health != null && c.Health.IsDead,
-                Initiative = entry.Initiative,
-                Hp = c.Health?.CurrentHP ?? 0,
-                MaxHp = c.Health?.MaxHP ?? 0,
-            });
+            views.Add(UnitViewFor(entry, current));
+            // A delayer shows at the slot it returns to, right after its anchor.
+            foreach (var waiting in delayed)
+                if (waiting.ReturnAfter == entry.Character)
+                    views.Add(UnitViewFor(waiting, current, delayed: true));
         }
         _turnBar.Render(views);
 
@@ -492,6 +501,24 @@ public partial class CombatScene : Node3D
             _actionBar.SetAiToggle(_session.IsAiToggled(current));
             _actionBar.SetAutoReactToggle(_session.IsAutoReactions(current));
         }
+    }
+
+    private UnitView UnitViewFor(PF2e.TurnManagement.TurnEntry entry, PF2e.Core.ICharacter? current, bool delayed = false)
+    {
+        var c = entry.Character;
+        return new UnitView
+        {
+            Name = c.Name,
+            Id = c.UniqueId,
+            TeamId = c.TeamId,
+            IsCurrent = c == current,
+            IsDead = c.Health != null && c.Health.IsDead,
+            IsDelayed = delayed,
+            IsPickable = _delayPickIds.Contains(c.UniqueId),
+            Initiative = entry.Initiative,
+            Hp = c.Health?.CurrentHP ?? 0,
+            MaxHp = c.Health?.MaxHP ?? 0,
+        };
     }
 
     private void ShowResult(PF2e.Core.BattleResult result)

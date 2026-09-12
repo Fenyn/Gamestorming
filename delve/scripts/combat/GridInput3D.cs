@@ -6,25 +6,25 @@ using PF2eVec = PF2e.Vector2Int;
 namespace Delve.Combat;
 
 /// <summary>
-/// Translates mouse input into grid coordinates for the 2.5D board. Per-frame it ray-casts the
-/// cursor onto the board and reports hover; left-click forwards a tile click and both a
+/// Translates mouse input into grid coordinates for the 2.5D board. Every physics tick it casts the
+/// cursor into the world and reports hover; left-click forwards the hovered tile and both a
 /// stationary right-click and Esc (ui_cancel) cancel targeting. Pure input translation — no rules.
-/// Middle-drag / wheel are left untouched so
-/// the <see cref="OrbitCameraRig"/> can consume them. Right-drag also orbits (handled by the rig),
-/// so cancel only fires when the right button is RELEASED after traveling less than
-/// <see cref="DragThresholdPixels"/> — a click, not a drag.
+/// Middle-drag / wheel are left untouched so the <see cref="OrbitCameraRig"/> can consume them.
+/// Right-drag also orbits (handled by the rig), so cancel only fires when the right button is
+/// RELEASED after traveling less than <see cref="DragThresholdPixels"/> — a click, not a drag.
 ///
-/// Two picking modes, chosen once per encounter by <see cref="Setup"/>:
-/// <list type="bullet">
-/// <item><b>Flat</b> (no terrain) — analytic intersection with the y = 0 plane in <c>_Process</c>, and
-/// the click resolves its own ray from the event position. Unchanged, and physics processing is
-/// switched OFF so the frame does exactly what it always did.</item>
-/// <item><b>Terrain</b> — a physics ray against the terrain trimesh. The cast is confined to
-/// <c>_PhysicsProcess</c>: touching <c>DirectSpaceState</c> outside the physics step risks a locked
-/// space, and the first frame's collider is not queryable yet. <c>_Process</c> only caches the pointer
-/// position; clicks consume the tile the last cast published, so hover and click can never disagree
-/// (the cost is that hover resolves one physics tick late, which is imperceptible).</item>
-/// </list>
+/// Picking is one physics ray against two layers: the unit click columns
+/// (<see cref="UnitPickArea"/>) and the terrain trimesh. A column hit resolves to that unit's tile,
+/// so a click anywhere on a drawn sprite targets the unit rather than the ground its body hides
+/// behind it. A terrain hit floors to the tile struck. On a flat board (no terrain collider) a ray
+/// that misses every column falls through to the analytic y = 0 plane.
+///
+/// The cast is confined to <c>_PhysicsProcess</c>: touching <c>DirectSpaceState</c> outside the
+/// physics step risks a locked space, and a collider is not queryable on the frame it enters. The
+/// pointer is cached from motion events in <c>_Input</c>, ahead of the GUI, so it is exact under
+/// the HUD too and needs no per-frame poll. Clicks consume the tile the last cast published, so
+/// hover and click can never disagree (the cost is that hover resolves one physics tick late,
+/// which is imperceptible).
 /// </summary>
 public partial class GridInput3D : Node3D
 {
@@ -48,13 +48,18 @@ public partial class GridInput3D : Node3D
     /// <see cref="MapView3D.CollisionLayer"/> — both default to layer 1 ("Terrain").</summary>
     [Export] public uint TerrainCollisionMask { get; set; } = 1;
 
+    /// <summary>Physics layer the unit click columns sit on. Must match the token scene's
+    /// PickArea — both default to layer 2 ("Units").</summary>
+    [Export] public uint UnitCollisionMask { get; set; } = 2;
+
     /// <summary>How far a picking ray travels. Well past the far side of any board at max zoom.</summary>
     private const float RayLength = 1000f;
 
     /// <summary>
-    /// Distance to advance the hit point ALONG the ray before flooring it to a tile. A ray that lands
-    /// exactly on a cliff face sits on the boundary plane between two tile columns; nudging it forward
-    /// by a hair resolves it into the column that was actually struck rather than the one in front of it.
+    /// Distance to advance a terrain hit point ALONG the ray before flooring it to a tile. A ray that
+    /// lands exactly on a cliff face sits on the boundary plane between two tile columns; nudging it
+    /// forward by a hair resolves it into the column that was actually struck rather than the one in
+    /// front of it.
     /// </summary>
     private const float HitNudge = 0.001f;
 
@@ -68,13 +73,9 @@ public partial class GridInput3D : Node3D
     private bool _terrain;
     private Vector2 _pointer;
 
-    /// <summary>Idle until an encounter wires this node up: no camera means every per-frame cast
+    /// <summary>Idle until an encounter wires this node up: no camera means every per-tick cast
     /// would be a null check and nothing else.</summary>
-    public override void _Ready()
-    {
-        SetProcess(false);
-        SetPhysicsProcess(false);
-    }
+    public override void _Ready() => SetPhysicsProcess(false);
 
     public void Setup(Camera3D camera, int gridWidth, int gridHeight, TerrainHeightMap heightMap)
     {
@@ -82,34 +83,18 @@ public partial class GridInput3D : Node3D
         _gridWidth = gridWidth;
         _gridHeight = gridHeight;
         _terrain = heightMap.HasTerrain;
-        SetProcess(true);
-        // A flat board must not merely skip the raycast, it must not tick physics at all: leaving the
-        // callback enabled would add a per-frame call the flat path never had.
-        SetPhysicsProcess(_terrain);
+        SetPhysicsProcess(true);
     }
 
-    public override void _Process(double delta)
+    /// <summary>Cache the pointer. Runs ahead of the GUI, so motion over a HUD panel counts too.</summary>
+    public override void _Input(InputEvent @event)
     {
-        var screen = GetViewport().GetMousePosition();
-        if (_terrain)
-        {
-            // Cache only. The cast itself belongs to the physics step (see the type doc).
-            _pointer = screen;
-            return;
-        }
-
-        PF2eVec? cell = GridSpace.TryRayToTile(_camera, screen, _gridWidth, _gridHeight, out var tile) ? tile : null;
-
-        if (!Equals(cell, _lastHover))
-        {
-            _lastHover = cell;
-            TileHovered?.Invoke(cell);
-        }
+        if (@event is InputEventMouseMotion motion) _pointer = motion.Position;
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        PF2eVec? cell = RaycastTile(_pointer);
+        PF2eVec? cell = PickTile(_pointer);
         if (Equals(cell, _lastHover)) return;
 
         _lastHover = cell;
@@ -138,19 +123,10 @@ public partial class GridInput3D : Node3D
 
         if (mb.Pressed && mb.ButtonIndex == MouseButton.Left)
         {
-            if (_terrain)
-            {
-                // Consume the published hover rather than casting here: input runs outside the physics
-                // step, and re-casting would also risk a click landing on a different tile than the one
-                // the player saw highlighted.
-                if (_lastHover.HasValue) TileClicked?.Invoke(_lastHover.Value);
-            }
-            else
-            {
-                var screen = mb.Position;
-                if (GridSpace.TryRayToTile(_camera, screen, _gridWidth, _gridHeight, out var tile))
-                    TileClicked?.Invoke(tile);
-            }
+            // Consume the published hover rather than casting here: input runs outside the physics
+            // step, and re-casting would also risk a click landing on a different tile than the one
+            // the player saw highlighted.
+            if (_lastHover.HasValue) TileClicked?.Invoke(_lastHover.Value);
         }
         else if (mb.ButtonIndex == MouseButton.Right)
         {
@@ -163,10 +139,11 @@ public partial class GridInput3D : Node3D
     }
 
     /// <summary>
-    /// Physics ray from the cursor onto the terrain collider, floored to a grid tile. Null when the ray
-    /// misses the terrain entirely or lands off the board. Must only be called from the physics step.
+    /// The tile under a screen point: the unit whose click column the ray strikes first, else the
+    /// terrain tile struck, else (flat board only) the floor-plane tile. Null when the ray misses the
+    /// board or lands off it. Must only be called from the physics step.
     /// </summary>
-    private PF2eVec? RaycastTile(Vector2 screen)
+    private PF2eVec? PickTile(Vector2 screen)
     {
         var world = GetWorld3D();
         if (world == null) return null;
@@ -175,14 +152,22 @@ public partial class GridInput3D : Node3D
         Vector3 dir = _camera.ProjectRayNormal(screen);
 
         var query = PhysicsRayQueryParameters3D.Create(origin, origin + dir * RayLength);
-        query.CollisionMask = TerrainCollisionMask;
+        query.CollisionMask = TerrainCollisionMask | UnitCollisionMask;
+        query.CollideWithAreas = true;
         var hit = world.DirectSpaceState.IntersectRay(query);
         // An empty dictionary is the miss result — indexing it would throw, so bail before reading.
-        if (hit.Count == 0) return null;
+        if (hit.Count > 0)
+        {
+            if (hit["collider"].AsGodotObject() is UnitPickArea unit)
+                return OnBoard(unit.Tile);
+            return OnBoard(GridSpace.WorldToGrid((Vector3)hit["position"] + dir * HitNudge));
+        }
 
-        Vector3 point = (Vector3)hit["position"] + dir * HitNudge;
-        var cell = GridSpace.WorldToGrid(point);
-        if (cell.x < 0 || cell.y < 0 || cell.x >= _gridWidth || cell.y >= _gridHeight) return null;
-        return cell;
+        if (!_terrain && GridSpace.TryRayToTile(_camera, screen, _gridWidth, _gridHeight, out var tile))
+            return tile;
+        return null;
     }
+
+    private PF2eVec? OnBoard(PF2eVec cell)
+        => cell.x < 0 || cell.y < 0 || cell.x >= _gridWidth || cell.y >= _gridHeight ? null : cell;
 }

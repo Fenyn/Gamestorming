@@ -19,7 +19,8 @@ namespace Delve.Dev;
 /// </summary>
 public partial class UiShotSpike : SpikeBase
 {
-    private const string OutDir = "user://dev_shots";
+    private string OutDir => string.IsNullOrEmpty(OS.GetEnvironment("DELVE_SHOT_DIRECTORY"))
+        ? "user://dev_shots" : OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
 
     /// <summary>Capture size. The screens are authored against the project viewport and reviewed at
     /// this reference size.</summary>
@@ -66,6 +67,18 @@ public partial class UiShotSpike : SpikeBase
         await Settle();
         Check("four selected members enable embark", panel.CanEmbark);
         Capture("hero_select_formation.png");
+        panel.Pick(PresetCharacters.PlayerId);
+        await Settle();
+        Capture("camp_companion_resting.png");
+        panel.Pick(PresetCharacters.PlayerId);
+        await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
+        Capture("camp_getting_ready.png");
+        campaign.Unlocks.Unlock(PresetCharacters.RavenId);
+        campaign.Unlocks.Unlock(PresetCharacters.ThistleId);
+        panel.RefreshRecruitment();
+        await Settle();
+        Capture("camp_all_unlocked.png");
+        await CaptureCampCapacity(panel);
         var recruitment = panel.GetNode<RecruitmentPanel>("%Recruitment");
         recruitment.Open();
         await Settle();
@@ -115,6 +128,39 @@ public partial class UiShotSpike : SpikeBase
         Check("a feat card can be summoned", panel.ShowTipForTesting("Reactive Shield"));
         await Settle();
         Capture("hero_select_feat.png");
+
+        panel.Preview(PresetCharacters.ElaraId);
+        await Settle();
+        Check("Sneak Attack tooltip renders", panel.ShowTipForTesting("Sneak Attack"));
+        await Settle();
+        Capture("hero_select_sneak_attack.png");
+        Check("Shortsword tooltip renders", panel.ShowTipForTesting("Shortsword"));
+        await Settle();
+        Capture("hero_select_shortsword.png");
+    }
+
+    private async Task CaptureCampCapacity(HeroSelectPanel panel)
+    {
+        var stage = panel.GetNode<CampStage>("%CampStage");
+        var roster = panel.GetNode<Control>("%RosterList");
+        var hint = panel.GetNode<Label>("%HintLabel");
+        string original = hint.Text;
+        hint.Text = "LAYOUT STUDY / 18 reserved places / placeholder art for future recruits";
+        var samples = new System.Collections.Generic.List<CampResident>();
+        for (int i = 6; i < stage.SeatIds.Length; i++)
+        {
+            string id = stage.SeatIds[i];
+            var def = CharacterCatalog.All[0] with { Id = id, DisplayName = id == "aldric" ? "Sir Aldric*" : char.ToUpperInvariant(id[0]) + id[1..] };
+            var sample = panel.CardScene!.Instantiate<CampResident>();
+            roster.AddChild(sample);
+            sample.Setup(def, stage.AppearanceFor(i % 6), i);
+            sample.Position = stage.SeatPosition(i) - new Vector2(82, 160);
+            samples.Add(sample);
+        }
+        await Settle();
+        Capture("camp_capacity_study.png");
+        foreach (var sample in samples) { roster.RemoveChild(sample); sample.QueueFree(); }
+        hint.Text = original;
     }
 
     private void Capture(string file)
@@ -134,6 +180,7 @@ public partial class UiShotSpike : SpikeBase
     /// and the hover tweens to all be on screen.</summary>
     private async Task Settle()
     {
+        await ToSignal(GetTree().CreateTimer(0.8), SceneTreeTimer.SignalName.Timeout);
         for (int i = 0; i < 4; i++)
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
     }

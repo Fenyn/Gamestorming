@@ -237,7 +237,7 @@ public partial class ElevationMoveSpike : SpikeBase
                 var corners = heights.Corners(tile);
                 if (corners.HeightSpan == 0) continue;
                 slopedTiles++;
-                float centreY = corners.CenterHeight * scale;
+                float centreY = corners.SampleSurfaceHeight(0.5f, 0.5f) * scale;
 
                 foreach (var shape in shapes)
                 {
@@ -248,12 +248,20 @@ public partial class ElevationMoveSpike : SpikeBase
                         continue;
                     }
                     var verts = conforming.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+                    var indices = conforming.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Index].AsInt32Array();
+                    for (int i = 0; i < indices.Length; i += 3)
+                    {
+                        var centroid = (verts[indices[i]] + verts[indices[i + 1]] + verts[indices[i + 2]]) / 3f;
+                        float surface = corners.SampleSurfaceHeight(centroid.X + 0.5f, centroid.Z + 0.5f)
+                            * scale - centreY + HighlightMeshes.SurfaceY;
+                        if (Mathf.Abs(centroid.Y - surface) > 0.0005f) badHeight++;
+                    }
                     foreach (var v in verts)
                     {
                         vertices++;
                         float u = v.X + 0.5f;
                         float w = v.Z + 0.5f;
-                        float expected = corners.SampleHeight(u, w) * scale - centreY + HighlightMeshes.SurfaceY;
+                        float expected = corners.SampleSurfaceHeight(u, w) * scale - centreY + HighlightMeshes.SurfaceY;
                         if (Mathf.Abs(v.Y - expected) > 0.0005f) badHeight++;
                         if (u < -0.001f || u > 1.001f || w < -0.001f || w > 1.001f) badRect++;
                     }

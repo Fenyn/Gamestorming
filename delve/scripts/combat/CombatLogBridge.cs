@@ -40,6 +40,9 @@ internal sealed class CombatLogBridge : IDisposable
             case BattleEventType.TurnStarted when evt.Source != null:
                 _panel.BeginTurn(evt.Source.Name);
                 break;
+            case BattleEventType.TurnDelayed when evt.Source != null && evt.Target != null:
+                _panel.AppendEntry($"{evt.Source.Name} delays until after {evt.Target.Name}.", 8, false);
+                break;
             case BattleEventType.DamageDealt when evt.Target != null && evt.IntValue is int damage:
                 string type = evt.DamageType is { } damageType ? $" {damageType.ToString().ToLowerInvariant()}" : "";
                 _panel.AppendEntry($"{evt.Target.Name} takes {damage}{type} damage.", 0, true);

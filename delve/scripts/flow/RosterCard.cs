@@ -11,7 +11,7 @@ namespace Delve.Flow;
 /// the <c>Unavailable: reason</c> tooltip the guidelines require (section 7).
 /// </summary>
 public sealed record RosterCardState(bool Chosen, string? DisabledReason = null, bool Locked = false,
-    string Caption = "LEADER");
+    string Caption = "IN PARTY");
 
 /// <summary>
 /// One compact roster entry: portrait thumb, name, role, and the caption that names the starting

@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/DelayTurnSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="2_combat"]
+
+[node name="DelayTurnSpike" type="Node"]
+script = ExtResource("1_spike")
+CombatScene = ExtResource("2_combat")

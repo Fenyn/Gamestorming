@@ -14,7 +14,7 @@ script = ExtResource("1_tip")
 [node name="Stack" type="VBoxContainer" parent="."]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
 [node name="Header" type="HBoxContainer" parent="Stack"]
 layout_mode = 2
@@ -75,19 +75,23 @@ theme_type_variation = &"CardRoleLabel"
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 8
 
 [node name="BodySep" type="HSeparator" parent="Stack"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Body" type="Label" parent="Stack"]
+[node name="Body" type="VBoxContainer" parent="Stack"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-text = "Body"
-theme_type_variation = &"TipBody"
+theme_override_constants/separation = 12
+
+[node name="FooterSep" type="HSeparator" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
 
 [node name="Footer" type="Label" parent="Stack"]
 unique_name_in_owner = true

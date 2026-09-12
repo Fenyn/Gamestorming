@@ -20,7 +20,9 @@ namespace Delve.Dev;
 /// </summary>
 public partial class TerrainSkirtShotSpike : SpikeBase
 {
-    private const string OutDir = "user://dev_shots";
+    [Export] public bool ReviewLandmarks { get; set; }
+
+    private string OutDir = "user://dev_shots";
 
     private static readonly int[] Seeds = { 7, 38, 137, 404, 4711, 20260804 };
 
@@ -33,7 +35,10 @@ public partial class TerrainSkirtShotSpike : SpikeBase
 
     protected override async Task RunSpikeAsync(DataManager data)
     {
+        string output = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
+        if (!string.IsNullOrEmpty(output)) OutDir = output;
         DirAccess.MakeDirRecursiveAbsolute(OutDir);
+        if (ReviewLandmarks) { await ReviewLandmarksAsync(); return; }
 
         foreach (string biome in Biomes)
         {

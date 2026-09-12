@@ -120,6 +120,10 @@ public sealed class GodotPresenter3D
                 if (TryGet(evt.Source, out var endUnit)) endUnit.SetActive(false);
                 break;
 
+            case BattleEventType.TurnDelayed:
+                if (TryGet(evt.Source, out var delayedUnit)) delayedUnit.SetActive(false);
+                break;
+
             case BattleEventType.MovementStarted:
                 // Two roles, distinguished by whether a Path rides along:
                 //  • Stride/Fly CUE (no Path): the walk is animated one tile at a time by the

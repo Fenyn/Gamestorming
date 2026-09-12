@@ -33,3 +33,4 @@ Desktop.ini
 # --- Third-party addons kept local (godot_base stays tracked) ---
 /heirloom/addons/*
 !/heirloom/addons/godot_base
+/delve/design

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CampAppearance" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/CampAppearance.cs" id="script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/heroes/wizard/p1.png" id="stand"]
+[ext_resource type="Texture2D" path="res://assets/sprites/camp/wizard/0bas_humn_v03.png" id="l0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/camp/wizard/1out_alch_v04.png" id="l1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/camp/wizard/5hat_pnty_v01.png" id="l2"]
+
+[resource]
+script = ExtResource("script")
+StandSheet = ExtResource("stand")
+RestLayers = Array[Texture2D]([ExtResource("l0"), ExtResource("l1"), ExtResource("l2")])
+RestCell = Vector2i(5, 4)
+RiseCells = Array[Vector2i]([Vector2i(0, 4), Vector2i(1, 4)])

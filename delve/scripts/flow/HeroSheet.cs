@@ -64,6 +64,8 @@ public partial class HeroSheet : PanelContainer
 
     private Color _accent;
 
+    public void HideTips() => _tooltip?.Request(null, null);
+
     /// <summary>
     /// Read one character's sheet. The page is a character-owned surface: every accent role on it
     /// - name rule, portrait strip, headline strips and values, the key ability's border, the

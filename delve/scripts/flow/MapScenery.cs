@@ -71,7 +71,7 @@ public partial class MapScenery : Control
             fog.SetShaderParameter("density", _biome.FogDensity);
             fog.SetShaderParameter("fog_color", _biome.FogColor);
             fog.SetShaderParameter("ward_strength", (float)state.Wardstone.Ward / Math.Max(1, state.Wardstone.Rules.MaxWard));
-            fog.SetShaderParameter("ward_color", UiColors.CharacterAccent(state.Party.LeaderId));
+            fog.SetShaderParameter("ward_color", UiColors.CharacterAccent(state.PresentationCharacterId));
         }
         QueueRedraw();
         Callable.From(QueueRedraw).CallDeferred();

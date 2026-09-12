@@ -1,8 +1,7 @@
 namespace Delve.Combat;
 
-/// <summary>Who may command party members. A null leader keeps standalone combat harnesses manual.</summary>
-public sealed record PartyControlPolicy(string? LeaderId = null, bool ManualCompanions = false)
+/// <summary>Every party member may be commanded. Guests remain AI through their ally status.</summary>
+public sealed record PartyControlPolicy
 {
-    public bool CanCommand(string characterId)
-        => LeaderId == null || ManualCompanions || characterId == LeaderId;
+    public bool CanCommand(string characterId) => true;
 }

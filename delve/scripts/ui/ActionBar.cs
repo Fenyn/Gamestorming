@@ -7,9 +7,10 @@ namespace Delve.UI;
 
 /// <summary>
 /// Passive action bar for the active ally: identity + vitals readout, 3 action pips, the
-/// Strike/Raise-Shield/End-Turn buttons (combat_action_1..2 / combat_end_turn hotkeys), the
-/// Spells/Skills flyout toggles (combat_spells / combat_skills), the AI and auto-react toggles, a
-/// structured attack-preview card, and the hint line that reads the hovered move's cost as pips.
+/// Strike/Raise-Shield/Delay/End-Turn buttons (combat_action_1..2 / combat_delay /
+/// combat_end_turn hotkeys), the Spells/Skills flyout toggles (combat_spells / combat_skills), the
+/// AI and auto-react toggles, a structured attack-preview card, and the hint line that reads the
+/// hovered move's cost as pips. Delay opens a pick on the turn order bar, not here.
 /// Movement has no button: the board's Idle bands take the click. Spell and skill chips live in a
 /// categorized flyout panel above the bar — opened per category, never all at once. Renders from
 /// <see cref="ActionBarState"/> and raises intent events only — it holds no rules and no engine
@@ -20,6 +21,7 @@ public partial class ActionBar : Control
 {
     public event Action? StrikePressed;
     public event Action? RaiseShieldPressed;
+    public event Action? DelayPressed;
     public event Action? EndTurnPressed;
     public event Action<bool>? AiToggled;
     /// <summary>Raised when the per-ally auto-reactions toggle changes (true = auto-use, no prompt).</summary>
@@ -35,6 +37,7 @@ public partial class ActionBar : Control
     private PipRow _moveCostPips = null!;
     private CaptionButton _strikeBtn = null!;
     private CaptionButton _shieldBtn = null!;
+    private CaptionButton _delayBtn = null!;
     private CaptionButton _endBtn = null!;
     private CheckBox _aiToggle = null!;
     private CheckBox _autoReactToggle = null!;
@@ -69,9 +72,12 @@ public partial class ActionBar : Control
     private IReadOnlyList<SkillEntryView> _skills = System.Array.Empty<SkillEntryView>();
 
     private const string TargetingHint = "LMB  confirm · Esc  cancel";
+    private const string DelayPickHint = "LMB  a turn chip to act after · Esc  cancel";
     private const string IdleHint = "LMB  move · hover for cost";
+    private const string DelayTooltip = "Wait and act later this round. Pick whom to act after; the choice is final.";
 
     private bool _targeting;
+    private bool _pickingDelaySlot;
     private MoveHoverView? _moveHover;
 
     public override void _Ready()
@@ -84,6 +90,7 @@ public partial class ActionBar : Control
         _shieldBtn = GetNode<CaptionButton>("%ShieldButton");
         _spellsBtn = GetNode<CaptionButton>("%SpellsButton");
         _skillsBtn = GetNode<CaptionButton>("%SkillsButton");
+        _delayBtn = GetNode<CaptionButton>("%DelayButton");
         _endBtn = GetNode<CaptionButton>("%EndButton");
         _aiToggle = GetNode<CheckBox>("%AiToggle");
         _autoReactToggle = GetNode<CheckBox>("%AutoReactToggle");
@@ -102,12 +109,13 @@ public partial class ActionBar : Control
 
         _captions = new[]
         {
-            _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _endBtn,
+            _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _delayBtn, _endBtn,
         };
         RefreshCaptionColors();
 
         _strikeBtn.Pressed += () => StrikePressed?.Invoke();
         _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
+        _delayBtn.Pressed += () => DelayPressed?.Invoke();
         _endBtn.Pressed += () => EndTurnPressed?.Invoke();
         _spellsBtn.Toggled += on => SetFlyout(on ? FlyoutCategory.Spells : FlyoutCategory.None);
         _skillsBtn.Toggled += on => SetFlyout(on ? FlyoutCategory.Skills : FlyoutCategory.None);
@@ -134,6 +142,7 @@ public partial class ActionBar : Control
         {
             _strikeBtn.Disabled = true;
             _shieldBtn.Disabled = true;
+            _delayBtn.Disabled = true;
             CloseFlyout();
             // Whole-bar disable (another combatant is acting): every button explains itself the
             // same way. The per-action reasons stamped by Render would be stale here; the next
@@ -215,6 +224,7 @@ public partial class ActionBar : Control
 
         _strikeBtn.Disabled = !_interactable || !state.CanStrike;
         _shieldBtn.Disabled = !_interactable || !state.CanRaiseShield;
+        _delayBtn.Disabled = !_interactable || !state.CanDelay;
         _spellsBtn.Disabled = !_interactable;
         _skillsBtn.Disabled = !_interactable;
         _endBtn.Disabled = !_interactable;
@@ -225,6 +235,7 @@ public partial class ActionBar : Control
         // are mouse_filter Ignore, so the button itself still owns the hover).
         _strikeBtn.TooltipText = UnavailableTooltip(state.StrikeDisabledReason);
         _shieldBtn.TooltipText = UnavailableTooltip(state.ShieldDisabledReason);
+        _delayBtn.TooltipText = state.CanDelay ? DelayTooltip : UnavailableTooltip(state.DelayDisabledReason);
         _spellsBtn.TooltipText = "";
         _skillsBtn.TooltipText = "";
         _endBtn.TooltipText = state.ActionsRemaining > 0
@@ -369,11 +380,13 @@ public partial class ActionBar : Control
     /// <summary>
     /// While a targeting mode is active (the host feeds the controller's ModeChanged), the hint
     /// label shows "LMB confirm · Esc cancel" — independent of the attack-preview card, which has
-    /// its own slot above the bar. Off targeting it reads the hovered move (see <see cref="SetMoveHint"/>).
+    /// its own slot above the bar. The Delay slot pick names the turn chips instead. Off targeting
+    /// it reads the hovered move (see <see cref="SetMoveHint"/>).
     /// </summary>
-    public void SetTargetingHint(bool targeting)
+    public void SetTargetingHint(bool targeting, bool pickingDelaySlot = false)
     {
         _targeting = targeting;
+        _pickingDelaySlot = pickingDelaySlot;
         RefreshHint();
     }
 
@@ -395,7 +408,7 @@ public partial class ActionBar : Control
         }
         if (_targeting)
         {
-            _targetingHintLabel.Text = TargetingHint;
+            _targetingHintLabel.Text = _pickingDelaySlot ? DelayPickHint : TargetingHint;
             _moveCostPips.Visible = false;
             return;
         }
@@ -411,7 +424,7 @@ public partial class ActionBar : Control
     }
 
     /// <summary>combat_action_1..2 = Strike/Raise Shield, combat_spells / combat_skills
-    /// = Q/E flyout toggles, combat_end_turn = End Turn. Respects Disabled (a button already
+    /// = Q/E flyout toggles, combat_delay = Delay, combat_end_turn = End Turn. Respects Disabled (a button already
     /// reflects CanX + interactable via Render/SetInteractable) and is fully gated off while a
     /// modal is up (the reaction prompt takes its keys in _Input, a phase ahead of this). Esc
     /// closes an open flyout and is consumed here — the HUD CanvasLayer handles input before
@@ -441,6 +454,8 @@ public partial class ActionBar : Control
         else if (@event.IsActionPressed(InputNames.Skills))
             Activate(_skillsBtn, () => SetFlyout(
                 _openCategory == FlyoutCategory.Skills ? FlyoutCategory.None : FlyoutCategory.Skills));
+        else if (@event.IsActionPressed(InputNames.Delay))
+            Activate(_delayBtn, () => DelayPressed?.Invoke());
         else if (@event.IsActionPressed(InputNames.EndTurn))
             Activate(_endBtn, () => EndTurnPressed?.Invoke());
     }

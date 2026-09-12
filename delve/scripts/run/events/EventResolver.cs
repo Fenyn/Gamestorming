@@ -47,8 +47,9 @@ public static class EventResolver
 
         if (option.Check == null)
         {
-            // No check to pick a specialist for: the caller's actor, else the leader.
-            var actorless = actor ?? FirstLiving(state.Party);
+            // Explicit valid actor, otherwise a seeded choice among standing party members.
+            var actorless = actor != null && state.Party.Members.Contains(actor) && actor.Health is { IsDead: false, CurrentHP: > 0 }
+                ? actor : state.RandomMember("event-actor", livingOnly: true);
             Apply(state, actorless, option.Success, lines);
             return new EventResult { Resolved = true, Actor = actorless, Lines = lines };
         }
@@ -156,16 +157,6 @@ public static class EventResolver
         else
             conditions.AddCondition(wounded, value: value, duration: 0);
         lines.Add($"{actor.Name} is wounded {value}.");
-    }
-
-    /// <summary>The leader, or the first member still standing.</summary>
-    private static PF2eCharacter? FirstLiving(Party party)
-    {
-        foreach (var member in party.Members)
-        {
-            if (member.Health != null && !member.Health.IsDead) return member;
-        }
-        return null;
     }
 
     /// <summary>Living member with the best bonus in a skill.</summary>

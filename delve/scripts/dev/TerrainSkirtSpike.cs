@@ -129,7 +129,8 @@ public partial class TerrainSkirtSpike : SpikeBase
                             && SameCorners(skirt.GetCornerHeights(sx, sy), board.GetCornerHeights(x, y))
                             && skirt.GetFeatureLabel(sx, sy) == board.GetFeatureLabel(x, y)
                             && skirt.GetPlantTerrain(sx, sy) == board.GetPlantTerrain(x, y)
-                            && skirt.GetBalanceDC(sx, sy) == board.GetBalanceDC(x, y);
+                            && skirt.GetBalanceDC(sx, sy) == board.GetBalanceDC(x, y)
+                            && skirt.GetTerrainDifficulty(sx, sy) == board.GetTerrainDifficulty(x, y);
                 if (!same) defects.Add("copy");
             }
         }
@@ -433,7 +434,8 @@ public partial class TerrainSkirtSpike : SpikeBase
                             && SameCorners(a.GetCornerHeights(x, y), b.GetCornerHeights(x, y))
                             && a.GetFeatureLabel(x, y) == b.GetFeatureLabel(x, y)
                             && a.GetPlantTerrain(x, y) == b.GetPlantTerrain(x, y)
-                            && a.GetBalanceDC(x, y) == b.GetBalanceDC(x, y);
+                            && a.GetBalanceDC(x, y) == b.GetBalanceDC(x, y)
+                            && a.GetTerrainDifficulty(x, y) == b.GetTerrainDifficulty(x, y);
                 if (!same) defects.Add("determinism");
             }
     }

@@ -1,131 +1,163 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="1_hs"]
-[ext_resource type="PackedScene" path="res://scenes/run/roster_card.tscn" id="2_card"]
-[ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="3_sheet"]
-[ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="4_recruit"]
+[ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/run/camp_resident.tscn" id="resident"]
+[ext_resource type="PackedScene" path="res://scenes/run/camp_stage.tscn" id="camp"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="sheet"]
+[ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="recruit"]
+[ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="theme"]
 
 [node name="HeroSelect" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("1_hs")
-CardScene = ExtResource("2_card")
-
-[node name="Ground" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_type_variation = &"ScreenGround"
+script = ExtResource("script")
+CardScene = ExtResource("resident")
+theme = ExtResource("theme")
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="CampStage" parent="." instance=ExtResource("camp")]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 32
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 32
+mouse_filter = 2
 
-[node name="Rows" type="VBoxContainer" parent="Margin"]
+[node name="RosterList" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Header" type="VBoxContainer" parent="."]
+offset_left = 40.0
+offset_top = 28.0
+offset_right = 1550.0
+offset_bottom = 140.0
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="Header"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 24
+text = "THE OUTPOST"
+theme_override_font_sizes/font_size = 34
+mouse_filter = 2
 
-[node name="Header" type="HBoxContainer" parent="Margin/Rows"]
+[node name="HintLabel" type="Label" parent="Header"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 24
+text = "Assemble your party."
+mouse_filter = 2
 
-[node name="Titles" type="VBoxContainer" parent="Margin/Rows/Header"]
+[node name="Footer" type="PanelContainer" parent="."]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -152.0
+offset_right = -32.0
+offset_bottom = -28.0
+grow_vertical = 0
+theme_type_variation = &"HudPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Footer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Actions" type="HBoxContainer" parent="Footer/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="PreviewName" type="Label" parent="Footer/Rows/Actions"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.55
-theme_override_constants/separation = 4
-
-[node name="TitleLabel" type="Label" parent="Margin/Rows/Header/Titles"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Form your party"
-theme_type_variation = &"TitleLabel"
-
-[node name="HintLabel" type="Label" parent="Margin/Rows/Header/Titles"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Choose your leader. You control their turns and follow their story."
-theme_type_variation = &"ScreenHint"
-
-[node name="LeaderFocus" type="Label" parent="Margin/Rows/Header/Titles"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
 autowrap_mode = 3
-theme_type_variation = &"ScreenHint"
 
-[node name="RosterHeading" type="Label" parent="Margin/Rows/Header"]
+[node name="DetailsButton" type="Button" parent="Footer/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 8
-text = "Roster"
-theme_type_variation = &"HeadingLabel"
+custom_minimum_size = Vector2(230, 52)
+size_flags_vertical = 4
+text = "Character details"
 
-[node name="Body" type="HBoxContainer" parent="Margin/Rows"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 24
-
-[node name="Sheet" parent="Margin/Rows/Body" instance=ExtResource("3_sheet")]
+[node name="ClearPartyButton" type="Button" parent="Footer/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.55
+custom_minimum_size = Vector2(210, 52)
+size_flags_vertical = 4
+text = "Clear party"
 
-[node name="RosterScroll" type="ScrollContainer" parent="Margin/Rows/Body"]
+[node name="RecruitmentButton" type="Button" parent="Footer/Rows/Actions"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-horizontal_scroll_mode = 0
-
-[node name="RosterList" type="VBoxContainer" parent="Margin/Rows/Body/RosterScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 12
-
-[node name="Footer" type="HBoxContainer" parent="Margin/Rows"]
-layout_mode = 2
-alignment = 2
-theme_override_constants/separation = 24
-
-[node name="ChangeLeaderButton" type="Button" parent="Margin/Rows/Footer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 52)
-layout_mode = 2
-text = "Change leader"
-
-[node name="RecruitmentButton" type="Button" parent="Margin/Rows/Footer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 52)
-layout_mode = 2
+custom_minimum_size = Vector2(200, 52)
+size_flags_vertical = 4
 text = "Recruitment"
 
-[node name="EmbarkButton" type="Button" parent="Margin/Rows/Footer"]
+[node name="EmbarkButton" type="Button" parent="Footer/Rows/Actions"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 52)
 layout_mode = 2
-theme_type_variation = &"AccentButton"
+custom_minimum_size = Vector2(220, 52)
+size_flags_vertical = 4
 text = "Embark"
+theme_type_variation = &"AccentButton"
 
-[node name="Recruitment" parent="." instance=ExtResource("4_recruit")]
+[node name="Details" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="Dim" type="ColorRect" parent="Details"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.025, 0.025, 0.02, 0.8)
+
+[node name="Body" type="VBoxContainer" parent="Details"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -670.0
+offset_top = -460.0
+offset_right = 670.0
+offset_bottom = 460.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="CloseDetails" type="Button" parent="Details/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Return to camp  [Esc]"
+
+[node name="Sheet" parent="Details/Body" instance=ExtResource("sheet")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Recruitment" parent="." instance=ExtResource("recruit")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

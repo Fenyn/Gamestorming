@@ -27,7 +27,7 @@ public partial class RunDirector
 
         if (_pendingRecruit is { } meeting)
         {
-            _campaign.RecordMeeting(meeting.Id, _state!.Party.LeaderId);
+            _campaign.RecordMeeting(meeting.Id, _state!.StoryCharacterId);
             SaveCampaign();
         }
         _pendingXp = setup.XpAward;

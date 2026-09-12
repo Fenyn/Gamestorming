@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -44,54 +45,54 @@ internal static class HeroSelectChecks
             && !campaign.Unlocks.IsUnlocked(PresetCharacters.RavenId));
         campaign.BindAtOutpost(request!);
         panel.RefreshRecruitment();
-        check("binding refreshes availability and preserves leader", panel.CanPick(PresetCharacters.RavenId)
-            && panel.Chosen == PresetCharacters.PlayerId);
+        check("binding refreshes availability and preserves selection", panel.CanPick(PresetCharacters.RavenId)
+            && panel.SelectedIds.Contains(PresetCharacters.PlayerId));
         panel.Pick(PresetCharacters.RavenId);
         panel.Pick(PresetCharacters.TharrId);
         panel.Pick(PresetCharacters.FenwickId);
         check("four members refuse a fifth unlocked member", panel.CanEmbark && !panel.CanPick(PresetCharacters.ElaraId));
         panel.Pick(PresetCharacters.ElaraId);
-        check("refused fifth member preserves formation", panel.Companions.Count == 3);
+        check("refused fifth member preserves formation", panel.SelectedIds.Count == 4);
         menu.Open();
         check("recruitment menu is shown on request", menu.Visible);
         bool embarked = false;
-        void OnEmbark(string leader, IReadOnlyList<string> members) => embarked = true;
+        void OnEmbark(IReadOnlyList<string> members) => embarked = true;
         panel.Confirmed += OnEmbark;
         panel.Embark();
         panel.Unpick();
         panel.Pick(PresetCharacters.RavenId);
         panel.Confirmed -= OnEmbark;
         check("recruitment blocks underlying formation actions", !embarked && panel.CanEmbark
-            && panel.Chosen == PresetCharacters.PlayerId);
+            && panel.SelectedIds.Contains(PresetCharacters.PlayerId));
         menu.Hide();
     }
 
     /// <summary>Every roster card under the panel, so the spike reads the state the player sees.</summary>
-    internal static List<RosterCard> Cards(Node node)
+    internal static List<CampResident> Cards(Node node)
     {
-        var found = new List<RosterCard>();
+        var found = new List<CampResident>();
         Collect(node, found);
         return found;
     }
 
-    private static void Collect(Node node, List<RosterCard> cards)
+    private static void Collect(Node node, List<CampResident> cards)
     {
         foreach (var child in node.GetChildren())
         {
-            if (child is RosterCard card) cards.Add(card);
+            if (child is CampResident card) cards.Add(card);
             Collect(child, cards);
         }
     }
 
-    internal static RosterCard? Card(List<RosterCard> cards, string id) => cards.Find(c => c.Id == id);
+    internal static CampResident? Card(List<CampResident> cards, string id) => cards.Find(c => c.Id == id);
 
     /// <summary>The confirmed payload is only right if <see cref="Party.Build"/> accepts it.</summary>
-    internal static bool BuildsAParty(string? leader, IReadOnlyList<string>? members)
+    internal static bool BuildsAParty(IReadOnlyList<string>? members)
     {
-        if (leader == null || members == null) return false;
+        if (members == null) return false;
         try
         {
-            return Party.Build(leader, members, new UnlockState(), Party.DefaultLevel).Members.Count == Party.MaxSize;
+            return Party.Build(members, new UnlockState(), Party.DefaultLevel).Members.Count == Party.MaxSize;
         }
         catch (ArgumentException e)
         {

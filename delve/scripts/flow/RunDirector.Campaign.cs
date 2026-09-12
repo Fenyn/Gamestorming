@@ -42,7 +42,7 @@ public partial class RunDirector
     private void RecordCampaignVictory()
     {
         if (_state == null) return;
-        _campaign.RecordVictory($"{_runId}/{_state.Stratum}/{_state.CurrentNodeId}", _state.Party.LeaderId,
+        _campaign.RecordVictory($"{_runId}/{_state.Stratum}/{_state.CurrentNodeId}", _state.StoryCharacterId,
             _state.Party.Members.Select(member => member.Id), _state.CurrentNode?.Kind == NodeKind.Boss);
         SaveCampaign();
     }

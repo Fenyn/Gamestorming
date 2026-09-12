@@ -12,6 +12,8 @@ public sealed record ActionBarState
     public int MaxActions { get; init; } = 3;
     public bool CanStrike { get; init; }
     public bool CanRaiseShield { get; init; }
+    /// <summary>Delay is open: nothing done yet this turn and someone still acts after the actor.</summary>
+    public bool CanDelay { get; init; }
     public int Map { get; init; }
     public string ActorName { get; init; } = "";
 
@@ -25,6 +27,7 @@ public sealed record ActionBarState
     /// the action bar only renders them as TooltipText.</summary>
     public string? StrikeDisabledReason { get; init; }
     public string? ShieldDisabledReason { get; init; }
+    public string? DelayDisabledReason { get; init; }
 
     /// <summary>Castable spells / cost-variants for the dynamic chip row (empty for non-casters).</summary>
     public IReadOnlyList<SpellEntryView> SpellEntries { get; init; } = System.Array.Empty<SpellEntryView>();

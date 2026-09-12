@@ -19,6 +19,8 @@ public static class ThemeNames
     public const string TurnChipAlly = "TurnChipAlly";
     public const string TurnChipEnemy = "TurnChipEnemy";
     public const string TurnChipActive = "TurnChipActive";
+    public const string TurnChipDelayed = "TurnChipDelayed";
+    public const string TurnChipPick = "TurnChipPick";
     public const string HpBarAlly = "HpBarAlly";
     public const string HpBarEnemy = "HpBarEnemy";
     public const string HpBarHigh = "HpBarHigh";

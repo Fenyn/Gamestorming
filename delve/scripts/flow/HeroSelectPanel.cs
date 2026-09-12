@@ -8,67 +8,68 @@ using Godot;
 namespace Delve.Flow;
 
 /// <summary>
-/// First screen of a run: one featured character filling the left of the frame and the roster down
-/// the right. Choose a leader, then three AI companions. Selection stays editable until embark.
+/// Party formation at the outpost: choose four party members from residents in camp.
+/// Detailed sheets open on demand. Selection stays editable until embark.
 ///
 /// Reads the roster from <see cref="CharacterCatalog"/> and the <see cref="UnlockState"/> handed to
 /// <see cref="Setup"/>, and signals the pick outward: it builds no party and starts no run.
 /// </summary>
 public partial class HeroSelectPanel : Control
 {
-    /// <summary>The roster card. Assigned in hero_select.tscn.</summary>
+    /// <summary>The selectable camp resident. Assigned in hero_select.tscn.</summary>
     [Export] public PackedScene? CardScene { get; set; }
 
-    private readonly List<string> _companions = new();
+    private readonly List<string> _selected = new();
 
-    private readonly List<RosterCard> _cards = new();
+    private readonly List<CampResident> _cards = new();
     private readonly Dictionary<string, HeroSheetData> _sheets = new();
 
-    private VBoxContainer _list = null!;
+    private Control _list = null!;
     private Label _hint = null!;
-    private Label _focus = null!;
+
     private Button _embark = null!;
-    private Button _changeLeader = null!;
-    private ScrollContainer _scroll = null!;
+    private Button _clearParty = null!;
+    private CampStage _camp = null!;
+    private Control _details = null!;
+    private Label _previewName = null!;
+    private readonly Dictionary<string, int> _seats = new();
     private Button _recruitmentButton = null!;
     private RecruitmentPanel _recruitment = null!;
     private CampaignProgress? _campaign;
     private HeroSheet _sheet = null!;
 
     private UnlockState _unlocks = new();
-    private string? _chosen;
+
     private string? _hovered;
 
-    /// <summary>The leader and three distinct companions selected for this run.</summary>
-    public event Action<string, IReadOnlyList<string>>? Confirmed;
+    /// <summary>The four distinct members selected for this run.</summary>
+    public event Action<IReadOnlyList<string>>? Confirmed;
     public event Action<string>? RecruitmentRequested;
 
-    /// <summary>Catalog id of the starting character, or null.</summary>
-    public string? Chosen => _chosen;
-
-    public IReadOnlyList<string> Companions => _companions.AsReadOnly();
-
-    /// <summary>Normal expeditions require one leader and three companions.</summary>
-    public bool CanEmbark => _chosen != null && _companions.Count == Party.MaxSize - 1;
+    public IReadOnlyList<string> SelectedIds => _selected.AsReadOnly();
+    public bool CanEmbark => _selected.Count == Party.MaxSize;
 
     /// <summary>The gate line under the title - what the screen is waiting for.</summary>
     public string HintText => _hint.Text;
 
     public override void _Ready()
     {
-        _list = GetNode<VBoxContainer>("%RosterList");
+        _list = GetNode<Control>("%RosterList");
         _hint = GetNode<Label>("%HintLabel");
-        _focus = GetNode<Label>("%LeaderFocus");
         _embark = GetNode<Button>("%EmbarkButton");
-        _changeLeader = GetNode<Button>("%ChangeLeaderButton");
-        _scroll = GetNode<ScrollContainer>("%RosterScroll");
+        _clearParty = GetNode<Button>("%ClearPartyButton");
+        _camp = GetNode<CampStage>("%CampStage");
+        _details = GetNode<Control>("%Details");
+        _previewName = GetNode<Label>("%PreviewName");
+        GetNode<Button>("%DetailsButton").Pressed += OpenDetails;
+        GetNode<Button>("%CloseDetails").Pressed += CloseDetails;
         _recruitmentButton = GetNode<Button>("%RecruitmentButton");
         _recruitment = GetNode<RecruitmentPanel>("%Recruitment");
         _recruitmentButton.Pressed += _recruitment.Open;
         _recruitment.StayRequested += id => RecruitmentRequested?.Invoke(id);
         _sheet = GetNode<HeroSheet>("%Sheet");
         _embark.Pressed += Embark;
-        _changeLeader.Pressed += Unpick;
+        _clearParty.Pressed += Unpick;
     }
 
     /// <summary>Build the roster. Safe to call again for a second run.</summary>
@@ -77,10 +78,10 @@ public partial class HeroSelectPanel : Control
         _unlocks = unlocks;
         _campaign = campaign;
         _recruitment.Hide();
+        _details.Hide();
         _recruitmentButton.Disabled = campaign == null;
         _recruitmentButton.TooltipText = campaign == null ? "Unavailable: no campaign loaded" : "Review shared recruitment requirements";
-        _chosen = null;
-        _companions.Clear();
+        _selected.Clear();
         _hovered = null;
 
         BuildRoster();
@@ -90,6 +91,7 @@ public partial class HeroSelectPanel : Control
     public void RefreshRecruitment()
     {
         if (_campaign != null) _recruitment.Setup(_campaign);
+        SyncResidents();
         Refresh();
     }
 
@@ -99,20 +101,17 @@ public partial class HeroSelectPanel : Control
     /// </summary>
     public void Pick(string id)
     {
-        if (_recruitment.Visible || !CanPick(id)) return;
-        if (_chosen == null) _chosen = id;
-        else if (_chosen == id) { Unpick(); return; }
-        else if (!_companions.Remove(id)) _companions.Add(id);
+        if (_recruitment.Visible || _details.Visible || !CanPick(id)) return;
+        if (!_selected.Remove(id)) _selected.Add(id);
         _hovered = id;
         Refresh();
     }
 
-    /// <summary>Clear formation so the next pick chooses a new leader.</summary>
+    /// <summary>Clear the assembled party.</summary>
     public void Unpick()
     {
-        if (_recruitment.Visible) return;
-        _chosen = null;
-        _companions.Clear();
+        if (_recruitment.Visible || _details.Visible) return;
+        _selected.Clear();
         Refresh();
     }
 
@@ -121,20 +120,26 @@ public partial class HeroSelectPanel : Control
 
     /// <summary>Put one of the featured sheet's tooltips on screen with no pointer involved,
     /// addressed by its title. The rendered shot uses it; nothing in the game does.</summary>
-    public bool ShowTipForTesting(string title) => _sheet.ShowTipForTesting(title);
+    public bool ShowTipForTesting(string title) { OpenDetails(); return _sheet.ShowTipForTesting(title); }
 
     /// <summary>See <see cref="HeroSheet.ShowCardForTesting"/>.</summary>
-    public bool ShowCardForTesting(SheetTip tip) => _sheet.ShowCardForTesting(tip);
+    public bool ShowCardForTesting(SheetTip tip) { OpenDetails(); return _sheet.ShowCardForTesting(tip); }
 
     /// <summary>Signal a snapshot of the complete formation.</summary>
     public void Embark()
     {
-        if (CanEmbark && !_recruitment.Visible) Confirmed?.Invoke(_chosen!, _companions.ToArray());
+        if (CanEmbark && !_recruitment.Visible && !_details.Visible) Confirmed?.Invoke(_selected.ToArray());
     }
 
     public override void _Input(InputEvent @event)
     {
-        if (!Visible) return;
+        if (!IsVisibleInTree()) return;
+        if (_details.Visible)
+        {
+            if (@event.IsActionPressed(InputNames.Decline))
+            { CloseDetails(); GetViewport().SetInputAsHandled(); }
+            return;
+        }
         if (_recruitment.Visible)
         {
             if (@event.IsActionPressed(InputNames.Decline))
@@ -150,11 +155,12 @@ public partial class HeroSelectPanel : Control
         else if (@event.IsActionPressed(InputNames.Confirm))
         {
             if (_embark.HasFocus()) Embark();
-            else if (_changeLeader.HasFocus()) Unpick();
+            else if (_clearParty.HasFocus()) Unpick();
             else if (_recruitmentButton.HasFocus() && !_recruitmentButton.Disabled) _recruitment.Open();
+            else if (GetNode<Button>("%DetailsButton").HasFocus()) OpenDetails();
             else if (_hovered != null) Pick(_hovered);
         }
-        else if (@event.IsActionPressed(InputNames.Decline) && _chosen != null) Unpick();
+        else if (@event.IsActionPressed(InputNames.Decline) && _selected.Count > 0) Unpick();
         else return;
 
         GetViewport().SetInputAsHandled();
@@ -176,17 +182,27 @@ public partial class HeroSelectPanel : Control
             return;
         }
 
-        bool dataReady = DataManager.Instance is { IsLoaded: true };
-        foreach (var def in CharacterCatalog.All)
-        {
-            if (!_sheets.ContainsKey(def.Id)) _sheets[def.Id] = ReadSheet(def, dataReady);
+        _seats.Clear();
+        SyncResidents();
+    }
 
-            var card = CardScene.Instantiate<RosterCard>();
-            _list.AddChild(card);
-            card.Setup(def, HeroPortraits.For(def.Id));
-            card.Clicked += Pick;
-            card.Hovered += Preview;
-            _cards.Add(card);
+    private void SyncResidents()
+    {
+        bool dataReady = DataManager.Instance is { IsLoaded: true };
+        for (int seat = 0; seat < CharacterCatalog.All.Count; seat++)
+        {
+            var def = CharacterCatalog.All[seat];
+            if (!_sheets.ContainsKey(def.Id)) _sheets[def.Id] = ReadSheet(def, dataReady);
+            if (!_unlocks.IsUnlocked(def.Id) || _seats.ContainsKey(def.Id)) continue;
+            var resident = CardScene!.Instantiate<CampResident>();
+            _list.AddChild(resident);
+            int place = _camp.SeatFor(def.Id);
+            if (place < 0) place = seat;
+            resident.Setup(def, _camp.AppearanceFor(place), place);
+            resident.Clicked += Pick;
+            resident.Hovered += Preview;
+            _cards.Add(resident);
+            _seats[def.Id] = place;
         }
     }
 
@@ -218,29 +234,13 @@ public partial class HeroSelectPanel : Control
     private void Refresh()
     {
         foreach (var card in _cards)
-        {
-            bool unlocked = _unlocks.IsUnlocked(card.Id);
-            card.SetState(new RosterCardState(
-                card.Id == _chosen || _companions.Contains(card.Id), GateFor(card.Id), Locked: !unlocked,
-                Caption: card.Id == _chosen ? "LEADER" : "AI COMPANION"));
-            if (card.Id == _chosen) card.TooltipText = "Clear this formation and choose a new leader";
-            else if (_companions.Contains(card.Id)) card.TooltipText = "Remove this companion from the formation";
-        }
-
-        _hint.Text = _chosen == null
-            ? "Choose your leader. You control their turns and follow their story."
-            : CanEmbark ? "Party ready. You control the leader; companions act automatically."
-            : $"Choose three AI companions ({_companions.Count}/3). Click a selected companion to remove them.";
-        var objective = _chosen == null ? null : LeaderObjectiveCatalog.Find(_chosen);
-        _focus.Visible = objective != null;
-        _focus.Text = objective == null ? "" : $"Leader focus: {objective.Description}"
-            + (_campaign?.HasPersonalProgress(_chosen!, objective.Id) == true ? " (Completed)" : "");
+            card.SetState(_selected.Contains(card.Id), GateFor(card.Id));
+        _hint.Text = CanEmbark ? "Party ready. You control all four members."
+            : $"Assemble your party ({_selected.Count}/{Party.MaxSize}). Select a resident to add or remove them.";
         _embark.Disabled = !CanEmbark;
-        _embark.TooltipText = CanEmbark ? "" : "Unavailable: choose a leader and three companions";
-        _changeLeader.Disabled = _chosen == null;
-        _changeLeader.TooltipText = _chosen == null ? "Unavailable: no leader chosen" : "Clear this formation and choose a new leader";
-        if (CanEmbark && !_recruitment.Visible) _embark.GrabFocus();
-
+        _embark.TooltipText = CanEmbark ? "" : "Unavailable: choose four party members";
+        _clearParty.Disabled = _selected.Count == 0;
+        _clearParty.TooltipText = "Clear the assembled party";
         RenderSheet();
     }
 
@@ -250,18 +250,18 @@ public partial class HeroSelectPanel : Control
         var def = CharacterCatalog.Find(id);
         if (def == null) return "not on the roster";
         if (!_unlocks.IsUnlocked(id)) return "locked";
-        if (_chosen == null) return def.CanLead ? null : "cannot lead a run";
-        if (id == _chosen || _companions.Contains(id)) return null;
-        return CanEmbark ? "remove a companion to make room" : null;
+        if (_selected.Contains(id)) return null;
+        return CanEmbark ? "remove a party member to make room" : null;
     }
 
     /// <summary>The sheet reads the hovered card, falls back to the choice, then to the first
     /// character the player could take - the frame is never without a hero in it.</summary>
     private void RenderSheet()
     {
-        string? id = _hovered ?? _chosen ?? FirstSelectable();
+        string? id = _hovered ?? (_selected.Count > 0 ? _selected[0] : null) ?? FirstSelectable();
         var def = id == null ? null : CharacterCatalog.Find(id);
-        if (def == null) return;
+        if (def == null) { _previewName.Text = "No companions at camp yet"; return; }
+        _previewName.Text = $"{def.DisplayName}  /  {def.Role}";
         _sheet.Show(
             _sheets.TryGetValue(def.Id, out var sheet) ? sheet : HeroSheetData.Unknown(def.DisplayName),
             HeroPortraits.For(def.Id),
@@ -275,9 +275,8 @@ public partial class HeroSelectPanel : Control
     /// </summary>
     public void Preview(string? id)
     {
-        // A pointer leaving one card and arriving on the next fires exit then enter; only the exit
-        // of the card actually being read should fall back to the choice.
-        if (id == null && _hovered == null) return;
+        // Retain the last resident while the pointer travels to Character details.
+        if (id == _hovered) return;
         _hovered = id;
         RenderSheet();
     }
@@ -293,7 +292,7 @@ public partial class HeroSelectPanel : Control
             if (!CanPick(_cards[index].Id)) continue;
             _embark.ReleaseFocus();
             Preview(_cards[index].Id);
-            _scroll.EnsureControlVisible(_cards[index]);
+            _cards[index].GrabFocus();
             return;
         }
     }

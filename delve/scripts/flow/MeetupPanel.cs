@@ -6,7 +6,7 @@ using PF2e.Core;
 
 namespace Delve.Flow;
 
-/// <summary>Shows the fought guest and three replaceable slots. Signals choices to the run.</summary>
+/// <summary>Shows the fought guest and four replaceable slots. Signals choices to the run.</summary>
 public partial class MeetupPanel : Control
 {
     private HeroSheet _sheet = null!;
@@ -21,7 +21,7 @@ public partial class MeetupPanel : Control
     {
         _sheet = GetNode<HeroSheet>("%GuestSheet");
         _summary = GetNode<Label>("%Summary");
-        _slots = new[] { GetNode<Button>("%SlotOne"), GetNode<Button>("%SlotTwo"), GetNode<Button>("%SlotThree") };
+        _slots = new[] { GetNode<Button>("%SlotOne"), GetNode<Button>("%SlotTwo"), GetNode<Button>("%SlotThree"), GetNode<Button>("%SlotFour") };
         for (int i = 0; i < _slots.Length; i++)
         {
             int slot = i;
@@ -39,11 +39,11 @@ public partial class MeetupPanel : Control
         _party = party;
         _sheet.Show(HeroSheetBuilder.Read(guest), HeroPortraits.For(guest.Id), UiColors.CharacterAccent(guest.Id));
         _summary.Text = $"{guest.Name} can join this expedition with {guest.Health?.CurrentHP}/{guest.Health?.MaxHP} HP. Choose a companion to send home.\n"
-            + $"{party.Members[0].Name} remains your leader. Joining does not permanently unlock a character.";
+            + "Joining does not permanently unlock a character.";
         for (int i = 0; i < _slots.Length; i++)
         {
             _slots[i].Disabled = i >= party.MemberIds.Count;
-            _slots[i].Text = i < party.MemberIds.Count ? $"Send {party.Members[i + 1].Name} home ({party.Members[i + 1].Health?.CurrentHP}/{party.Members[i + 1].Health?.MaxHP} HP)" : "Empty slot";
+            _slots[i].Text = i < party.MemberIds.Count ? $"Send {party.Members[i].Name} home ({party.Members[i].Health?.CurrentHP}/{party.Members[i].Health?.MaxHP} HP)" : "Empty slot";
         }
     }
 }

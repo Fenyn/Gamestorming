@@ -30,7 +30,7 @@ namespace Delve.Combat;
 /// </summary>
 public sealed class CombatSession
 {
-    private enum PlayerTurnResolution { EndTurn, HandOffToAi }
+    private enum PlayerTurnResolution { EndTurn, HandOffToAi, Delay }
 
     // Engine surfaces (created in Setup).
     public BattleGrid Grid { get; private set; } = null!;
@@ -76,6 +76,9 @@ public sealed class CombatSession
     private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
     private bool _finished;
 
+    /// <summary>The combatant a pending Delay returns after.</summary>
+    private ICharacter? _pendingDelayAnchor;
+
     // External presentation sink, wrapped so we can watch the shared event stream for mid-turn
     // deaths. Decisive result latched here the instant it is detected; the turn loop's gate reads it.
     private Func<BattleEvent, Task>? _presenter;
@@ -108,6 +111,9 @@ public sealed class CombatSession
     // ---------------------------------------------------------------- Pass-throughs
     public ICharacter? CurrentActor => _turnManager?.CurrentTurn?.Character;
     public IReadOnlyList<TurnEntry>? TurnOrder => _turnManager?.TurnOrder;
+    /// <summary>Combatants waiting out a Delay, in the order they delayed (see <see cref="TurnEntry.ReturnAfter"/>).</summary>
+    public IReadOnlyList<TurnEntry>? DelayedEntries => _turnManager?.Delayed;
+    public int RoundNumber => _turnManager?.RoundNumber ?? 0;
     public IReadOnlyList<ICharacter> Team1 => _team1;
     public IReadOnlyList<ICharacter> Team2 => _team2;
 
@@ -201,6 +207,8 @@ public sealed class CombatSession
         foreach (var c in _team2) SubscribeCharacter(c);
 
         _turnManager.OnTurnStart += HandleTurnStart;
+        // A delayer coming back resumes rather than starts, so the engine raises this instead.
+        _turnManager.OnTurnResumed += HandleTurnStart;
 
         // Future hook: round-scoped buff ticking (consumable elixirs) subscribed OnRoundEnd here in bulwark.
     }
@@ -323,6 +331,7 @@ public sealed class CombatSession
         if (_turnManager != null)
         {
             _turnManager.OnTurnStart -= HandleTurnStart;
+            _turnManager.OnTurnResumed -= HandleTurnStart;
             foreach (var c in _team1) UnsubscribeCharacter(c);
             foreach (var c in _team2) UnsubscribeCharacter(c);
             if (_turnManager.IsEncounterActive)
@@ -391,6 +400,11 @@ public sealed class CombatSession
                 if (IsPlayerControlled(current))
                 {
                     var resolution = await RunPlayerTurn(current, cancellationToken);
+                    // A Delay hands the order to the engine, which starts the next turn itself.
+                    if (resolution == PlayerTurnResolution.Delay
+                        && _pendingResult == BattleResult.InProgress
+                        && await TryDelay(current))
+                        continue;
                     // A mid-turn death may have already decided the encounter; don't start an AI plan.
                     if (resolution == PlayerTurnResolution.HandOffToAi
                         && _pendingResult == BattleResult.InProgress)
@@ -451,6 +465,22 @@ public sealed class CombatSession
         return true;
     }
 
+    /// <summary>
+    /// The player Delayed as their turn began: announce it, then let the engine pull them out of
+    /// the order and start the next turn. False when the engine refuses (nobody acts after them,
+    /// or the chosen anchor is no longer ahead); the turn then ends normally.
+    /// </summary>
+    private async Task<bool> TryDelay(ICharacter current)
+    {
+        var anchor = _pendingDelayAnchor;
+        _pendingDelayAnchor = null;
+        if (anchor == null || !_turnManager.CanDelay(current, out _)) return false;
+        if (!_turnManager.GetDelayAnchors().Contains(anchor)) return false;
+
+        await _runner.Emit(BattleEventType.TurnDelayed, source: current, target: anchor);
+        return _turnManager.DelayCurrentTurn(anchor);
+    }
+
     private async Task<PlayerTurnResolution> RunPlayerTurn(ICharacter current, CancellationToken cancellationToken)
     {
         // Async continuations so a mid-turn CreatureDied (which completes this from inside an Emit
@@ -503,6 +533,29 @@ public sealed class CombatSession
 
     public void RequestEndPlayerTurn()
         => _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+
+    /// <summary>
+    /// Delay the parked player turn until after <paramref name="actAfter"/>'s turn. The choice is
+    /// final. "Before any action" is the controller's rule.
+    /// </summary>
+    public void RequestDelay(ICharacter actAfter)
+    {
+        _pendingDelayAnchor = actAfter;
+        _playerTurnTcs?.TrySetResult(PlayerTurnResolution.Delay);
+    }
+
+    /// <summary>Why the current actor cannot Delay right now, or null when they can.</summary>
+    public string? DelayBlockedReason(ICharacter character)
+    {
+        if (_turnManager == null) return "Not this combatant's turn";
+        return _turnManager.CanDelay(character, out string reason) ? null : reason;
+    }
+
+    /// <summary>Living combatants still to act after the current one this round, in order.</summary>
+    public IReadOnlyList<ICharacter> GetDelayAnchors()
+        => _turnManager?.GetDelayAnchors() ?? new List<ICharacter>();
+
+    public bool IsDelayed(ICharacter character) => _turnManager?.IsDelayed(character) == true;
 
     // ---------------------------------------------------------------- Reaction prompts
 

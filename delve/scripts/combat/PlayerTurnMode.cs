@@ -1,7 +1,8 @@
 namespace Delve.Combat;
 
 /// <summary>Current interaction mode of the player turn controller. Idle shows the movement bands
-/// and takes smart-move clicks; SelectingMove is the Shielded Stride tile pick.</summary>
+/// and takes smart-move clicks; SelectingMove is the Shielded Stride tile pick; SelectingDelaySlot
+/// picks a turn order chip to Delay until after.</summary>
 public enum PlayerTurnMode
 {
     Idle,
@@ -9,5 +10,6 @@ public enum PlayerTurnMode
     SelectingStrike,
     SelectingSpellTarget,
     SelectingAreaOrigin,
-    SelectingSkillTarget
+    SelectingSkillTarget,
+    SelectingDelaySlot
 }

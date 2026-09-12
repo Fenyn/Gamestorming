@@ -46,7 +46,9 @@ public partial class SheetTooltip : PanelContainer
     private Label _subtitle = null!;
     private VBoxContainer _meta = null!;
     private Control _bodySep = null!;
-    private Label _body = null!;
+    private VBoxContainer _body = null!;
+    private Label _bodyMeasure = null!;
+    private Label _metaMeasure = null!;
     private Label _footer = null!;
     private Timer _delay = null!;
 
@@ -74,7 +76,11 @@ public partial class SheetTooltip : PanelContainer
         _subtitle = GetNode<Label>("%Subtitle");
         _meta = GetNode<VBoxContainer>("%Meta");
         _bodySep = GetNode<Control>("%BodySep");
-        _body = GetNode<Label>("%Body");
+        _body = GetNode<VBoxContainer>("%Body");
+        _bodyMeasure = new Label { ThemeTypeVariation = ThemeNames.TipBody, Visible = false };
+        AddChild(_bodyMeasure);
+        _metaMeasure = new Label { ThemeTypeVariation = ThemeNames.TipMetaLabel, Visible = false };
+        AddChild(_metaMeasure);
         _footer = GetNode<Label>("%Footer");
         _delay = GetNode<Timer>("%Delay");
         _delay.Timeout += Reveal;
@@ -126,10 +132,18 @@ public partial class SheetTooltip : PanelContainer
         _subtitle.Visible = tip.Subtitle.Length > 0;
         _body.Visible = tip.Body.Length > 0;
         _footer.Visible = tip.Footer is { Length: > 0 };
+        GetNode<Control>("%FooterSep").Visible = _footer.Visible;
 
         int labels = MetaLabelWidth(tip);
         int width = Measure(tip, labels);
         FillMeta(tip, width, labels);
+        Clear(_body);
+        foreach (string paragraph in tip.Body.Split(NEWLINE, System.StringSplitOptions.RemoveEmptyEntries))
+        {
+            var text = new Label { ThemeTypeVariation = ThemeNames.TipBody, MouseFilter = MouseFilterEnum.Ignore };
+            _body.AddChild(text);
+            Line(text, paragraph, width);
+        }
         _bodySep.Visible = _body.Visible
             && (_meta.GetChildCount() > 0 || _traitBand.Visible || _subtitle.Visible);
 
@@ -150,7 +164,7 @@ public partial class SheetTooltip : PanelContainer
     {
         float widest = 0f;
         foreach (var row in tip.Meta ?? System.Array.Empty<SheetMetaRow>())
-            widest = Mathf.Max(widest, LineWidth(_subtitle, row.Label));
+            widest = Mathf.Max(widest, LineWidth(_metaMeasure, row.Label));
         return widest > 0f ? (int)Mathf.Ceil(widest) + MetaLabelGap : 0;
     }
 
@@ -159,14 +173,13 @@ public partial class SheetTooltip : PanelContainer
         float headline = LineWidth(_title, tip.Title) + CostWidth(tip);
         float widest = Mathf.Max(
             Mathf.Max(headline, LineWidth(_subtitle, tip.Subtitle)),
-            Mathf.Max(LineWidth(_body, tip.Body), LineWidth(_footer, tip.Footer ?? "")));
+            Mathf.Max(LineWidth(_bodyMeasure, tip.Body), LineWidth(_footer, tip.Footer ?? "")));
         foreach (var row in tip.Meta ?? System.Array.Empty<SheetMetaRow>())
-            widest = Mathf.Max(widest, metaLabels + LineWidth(_body, row.Text));
+            widest = Mathf.Max(widest, metaLabels + LineWidth(_bodyMeasure, row.Text));
 
         int width = Mathf.Clamp((int)Mathf.Ceil(widest), MinWidth, MaxWidth);
-        Line(_title, tip.Title, width);
+        Line(_title, tip.Title, Mathf.Max(1, width - (int)Mathf.Ceil(CostWidth(tip))));
         Line(_subtitle, tip.Subtitle, width);
-        Line(_body, tip.Body, width);
         Line(_footer, tip.Footer ?? "", width);
         return width;
     }
@@ -178,29 +191,35 @@ public partial class SheetTooltip : PanelContainer
         _ => 0f,
     };
 
-    /// <summary>One HBox per meta row: a dim label column, then the wrapped value.</summary>
+    /// <summary>Short values share a label column; prose gets a full-width section below its label.</summary>
     private void FillMeta(SheetTip tip, int width, int metaLabels)
     {
         Clear(_meta);
         foreach (var row in tip.Meta ?? System.Array.Empty<SheetMetaRow>())
         {
-            var line = new HBoxContainer();
-            line.AddThemeConstantOverride("separation", 0);
+            bool stacked = LineWidth(_bodyMeasure, row.Text) > width - metaLabels;
+            BoxContainer line = stacked ? new VBoxContainer() : new HBoxContainer();
+            line.MouseFilter = MouseFilterEnum.Ignore;
+            line.AddThemeConstantOverride("separation", stacked ? 4 : 0);
+            if (stacked && _meta.GetChildCount() > 0)
+                _meta.AddChild(new HSeparator { MouseFilter = MouseFilterEnum.Ignore });
             var metaLabel = new Label
             {
                 Text = row.Label,
                 ThemeTypeVariation = ThemeNames.TipMetaLabel,
-                CustomMinimumSize = new Vector2(metaLabels, 0),
+                CustomMinimumSize = new Vector2(stacked ? 0 : metaLabels, 0),
+                MouseFilter = MouseFilterEnum.Ignore,
                 SizeFlagsVertical = SizeFlags.ShrinkBegin,
             };
             if (_accent is { } accent) metaLabel.AddThemeColorOverride("font_color", accent);
             line.AddChild(metaLabel);
             var value = new Label
             {
-                Text = Wrap(_body, row.Text, width - metaLabels),
+                Text = Wrap(_bodyMeasure, row.Text, stacked ? width : width - metaLabels),
                 ThemeTypeVariation = ThemeNames.TipBody,
+                MouseFilter = MouseFilterEnum.Ignore,
             };
-            value.CustomMinimumSize = new Vector2(width - metaLabels, 0);
+            value.CustomMinimumSize = new Vector2(stacked ? width : width - metaLabels, 0);
             line.AddChild(value);
             _meta.AddChild(line);
         }

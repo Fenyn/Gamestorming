@@ -15,11 +15,11 @@ namespace Delve.Data;
 /// An "Elite " / "Weak " prefix from CreatureFactory's adjustment naming is stripped first, so an
 /// Elite Giant Rat still finds the rat row.
 ///
-/// ASSET REALITY: the only real combat sprites are three rat variants under
+/// Rat variants and the goblin, kobold, and wolf bases live under
 /// res://assets/sprites/enemies/. Every creature without a row here renders as the size-matched
 /// MISSING-ART placeholder (magenta checkerboard with a "?"), so a rat on screen always means rat
 /// and a checkerboard always means the creature needs art. Add a row the day art lands; the call
-/// site never changes. Each folder holds an 8-frame side-view idle sheet (idle_1.png..idle_8.png).
+/// site never changes. Each folder's sprite.tres defines its animation library and placement.
 /// </summary>
 public static class EnemySpriteMap
 {
@@ -29,14 +29,26 @@ public static class EnemySpriteMap
     /// <see cref="FolderForCreature(string, CreatureSize)"/>.</summary>
     public const string DefaultFolder = Root + "placeholder_medium";
 
-    // Only the rat family has real art; each rodent slug points at a distinct variant for a little
-    // visual variety. Non-rat creatures are intentionally absent — they render as the placeholder
-    // until art is authored, at which point they get a row here.
+    // Roles share their unarmed species base until outfit animations are integrated.
     private static readonly Dictionary<string, string> BySlug = new()
     {
         ["giant-rat"] = Root + "rat_v1",
         ["rat-swarm"] = Root + "rat_v2",
         ["wererat"]   = Root + "rat_v3",
+        ["goblin-warrior"] = Root + "goblin_base",
+        ["goblin-commando"] = Root + "goblin_base",
+        ["goblin-war-chanter"] = Root + "goblin_base",
+        ["kobold-warrior"] = Root + "kobold_base",
+        ["kobold-scout"] = Root + "kobold_base",
+        ["wolf"] = Root + "wolf_base",
+        ["viper"] = Root + "viper_base",
+        ["hunting-spider"] = Root + "spider_base",
+        ["boar"] = Root + "boar_base",
+        ["giant-viper"] = Root + "giant_viper_base",
+        ["giant-monitor-lizard"] = Root + "giant_monitor_lizard_base",
+        ["dire-wolf"] = Root + "dire_wolf_base",
+        ["grizzly-bear"] = Root + "grizzly_bear_base",
+        ["giant-stag-beetle"] = Root + "giant_stag_beetle_base",
     };
 
     /// <summary>Resolve the sprite folder for a creature by display name (slugified), else the

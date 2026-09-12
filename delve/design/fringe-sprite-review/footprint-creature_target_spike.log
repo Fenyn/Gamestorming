@@ -1,0 +1,40 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== CreatureTargetSpike ====================
+  [PASS] strike: all four Large footprint cells highlighted
+  [PASS] strike: non-anchor tile resolves actual Large creature
+  [PASS] strike: empty adjacent tile is not a creature target
+  [PASS] strike: non-anchor hover produces attack preview
+  [PASS] strike: empty-cell hover clears preview
+  [PASS] strike: non-anchor click completes action
+  [PASS] strike: emitted action targets the Large creature
+  [PASS] strike: click spends normal action cost
+  [PASS] fear: all four Large footprint cells highlighted
+  [PASS] fear: non-anchor tile resolves actual Large creature
+  [PASS] fear: empty adjacent tile is not a creature target
+  [PASS] fear: non-anchor click completes action
+  [PASS] fear: emitted action targets the Large creature
+  [PASS] fear: click spends normal action cost
+  [PASS] trip: all four Large footprint cells highlighted
+  [PASS] trip: non-anchor tile resolves actual Large creature
+  [PASS] trip: empty adjacent tile is not a creature target
+  [PASS] trip: non-anchor click completes action
+  [PASS] trip: emitted action targets the Large creature
+  [PASS] trip: click spends normal action cost
+  [PASS] heal: all four Large footprint cells highlighted
+  [PASS] heal: non-anchor tile resolves actual Large creature
+  [PASS] heal: empty adjacent tile is not a creature target
+  [PASS] heal: non-anchor click completes action
+  [PASS] heal: emitted action targets the Large creature
+  [PASS] heal: click spends normal action cost
+  [PASS] heal: non-anchor click heals the Large ally
+---------------------------------------------------------
+[CreatureTargetSpike] checks: 27, failures: 0
+SPIKE RESULT: PASS

@@ -9,8 +9,7 @@ namespace Delve.Flow;
 
 /// <summary>
 /// First screen of a run: one featured character filling the left of the frame and the roster down
-/// the right. The player picks exactly one starting character - companions join during the run -
-/// so the whole screen is a single choice, and the featured sheet is where that choice is argued.
+/// the right. Choose a leader, then three AI companions. Selection stays editable until embark.
 ///
 /// Reads the roster from <see cref="CharacterCatalog"/> and the <see cref="UnlockState"/> handed to
 /// <see cref="Setup"/>, and signals the pick outward: it builds no party and starts no run.
@@ -20,28 +19,37 @@ public partial class HeroSelectPanel : Control
     /// <summary>The roster card. Assigned in hero_select.tscn.</summary>
     [Export] public PackedScene? CardScene { get; set; }
 
-    private static readonly string[] NoCompanions = Array.Empty<string>();
+    private readonly List<string> _companions = new();
 
     private readonly List<RosterCard> _cards = new();
     private readonly Dictionary<string, HeroSheetData> _sheets = new();
 
     private VBoxContainer _list = null!;
     private Label _hint = null!;
+    private Label _focus = null!;
     private Button _embark = null!;
+    private Button _changeLeader = null!;
+    private ScrollContainer _scroll = null!;
+    private Button _recruitmentButton = null!;
+    private RecruitmentPanel _recruitment = null!;
+    private CampaignProgress? _campaign;
     private HeroSheet _sheet = null!;
 
     private UnlockState _unlocks = new();
     private string? _chosen;
     private string? _hovered;
 
-    /// <summary>The starting character, and the companions already in the party - none, for now.</summary>
+    /// <summary>The leader and three distinct companions selected for this run.</summary>
     public event Action<string, IReadOnlyList<string>>? Confirmed;
+    public event Action<string>? RecruitmentRequested;
 
     /// <summary>Catalog id of the starting character, or null.</summary>
     public string? Chosen => _chosen;
 
-    /// <summary>True once a character is chosen.</summary>
-    public bool CanEmbark => _chosen != null;
+    public IReadOnlyList<string> Companions => _companions.AsReadOnly();
+
+    /// <summary>Normal expeditions require one leader and three companions.</summary>
+    public bool CanEmbark => _chosen != null && _companions.Count == Party.MaxSize - 1;
 
     /// <summary>The gate line under the title - what the screen is waiting for.</summary>
     public string HintText => _hint.Text;
@@ -50,19 +58,38 @@ public partial class HeroSelectPanel : Control
     {
         _list = GetNode<VBoxContainer>("%RosterList");
         _hint = GetNode<Label>("%HintLabel");
+        _focus = GetNode<Label>("%LeaderFocus");
         _embark = GetNode<Button>("%EmbarkButton");
+        _changeLeader = GetNode<Button>("%ChangeLeaderButton");
+        _scroll = GetNode<ScrollContainer>("%RosterScroll");
+        _recruitmentButton = GetNode<Button>("%RecruitmentButton");
+        _recruitment = GetNode<RecruitmentPanel>("%Recruitment");
+        _recruitmentButton.Pressed += _recruitment.Open;
+        _recruitment.StayRequested += id => RecruitmentRequested?.Invoke(id);
         _sheet = GetNode<HeroSheet>("%Sheet");
         _embark.Pressed += Embark;
+        _changeLeader.Pressed += Unpick;
     }
 
     /// <summary>Build the roster. Safe to call again for a second run.</summary>
-    public void Setup(UnlockState unlocks)
+    public void Setup(UnlockState unlocks, CampaignProgress? campaign = null)
     {
         _unlocks = unlocks;
+        _campaign = campaign;
+        _recruitment.Hide();
+        _recruitmentButton.Disabled = campaign == null;
+        _recruitmentButton.TooltipText = campaign == null ? "Unavailable: no campaign loaded" : "Review shared recruitment requirements";
         _chosen = null;
+        _companions.Clear();
         _hovered = null;
 
         BuildRoster();
+        RefreshRecruitment();
+    }
+
+    public void RefreshRecruitment()
+    {
+        if (_campaign != null) _recruitment.Setup(_campaign);
         Refresh();
     }
 
@@ -72,16 +99,20 @@ public partial class HeroSelectPanel : Control
     /// </summary>
     public void Pick(string id)
     {
-        if (!CanPick(id)) return;
-        _chosen = id;
+        if (_recruitment.Visible || !CanPick(id)) return;
+        if (_chosen == null) _chosen = id;
+        else if (_chosen == id) { Unpick(); return; }
+        else if (!_companions.Remove(id)) _companions.Add(id);
+        _hovered = id;
         Refresh();
     }
 
-    /// <summary>Give the choice back. Esc is the only undo this screen needs - there is nothing
-    /// behind the first screen of a run to go back to.</summary>
+    /// <summary>Clear formation so the next pick chooses a new leader.</summary>
     public void Unpick()
     {
+        if (_recruitment.Visible) return;
         _chosen = null;
+        _companions.Clear();
         Refresh();
     }
 
@@ -95,19 +126,34 @@ public partial class HeroSelectPanel : Control
     /// <summary>See <see cref="HeroSheet.ShowCardForTesting"/>.</summary>
     public bool ShowCardForTesting(SheetTip tip) => _sheet.ShowCardForTesting(tip);
 
-    /// <summary>Signal the choice. Does nothing until a character is chosen.</summary>
+    /// <summary>Signal a snapshot of the complete formation.</summary>
     public void Embark()
     {
-        if (_chosen != null) Confirmed?.Invoke(_chosen, NoCompanions);
+        if (CanEmbark && !_recruitment.Visible) Confirmed?.Invoke(_chosen!, _companions.ToArray());
     }
 
     public override void _Input(InputEvent @event)
     {
         if (!Visible) return;
+        if (_recruitment.Visible)
+        {
+            if (@event.IsActionPressed(InputNames.Decline))
+            {
+                _recruitment.Hide();
+                GetViewport().SetInputAsHandled();
+            }
+            return;
+        }
 
         if (@event.IsActionPressed(InputNames.UiDown)) Step(1);
         else if (@event.IsActionPressed(InputNames.UiUp)) Step(-1);
-        else if (@event.IsActionPressed(InputNames.Confirm) && CanEmbark) Embark();
+        else if (@event.IsActionPressed(InputNames.Confirm))
+        {
+            if (_embark.HasFocus()) Embark();
+            else if (_changeLeader.HasFocus()) Unpick();
+            else if (_recruitmentButton.HasFocus() && !_recruitmentButton.Disabled) _recruitment.Open();
+            else if (_hovered != null) Pick(_hovered);
+        }
         else if (@event.IsActionPressed(InputNames.Decline) && _chosen != null) Unpick();
         else return;
 
@@ -175,15 +221,25 @@ public partial class HeroSelectPanel : Control
         {
             bool unlocked = _unlocks.IsUnlocked(card.Id);
             card.SetState(new RosterCardState(
-                card.Id == _chosen, GateFor(card.Id), Locked: !unlocked));
+                card.Id == _chosen || _companions.Contains(card.Id), GateFor(card.Id), Locked: !unlocked,
+                Caption: card.Id == _chosen ? "LEADER" : "AI COMPANION"));
+            if (card.Id == _chosen) card.TooltipText = "Clear this formation and choose a new leader";
+            else if (_companions.Contains(card.Id)) card.TooltipText = "Remove this companion from the formation";
         }
 
         _hint.Text = _chosen == null
-            ? "Pick who enters the depths alone — companions join along the way."
-            : "Ready to delve.";
-        _embark.Disabled = _chosen == null;
-        _embark.TooltipText = _chosen == null ? "Unavailable: no character chosen" : "";
-        if (_chosen != null) _embark.GrabFocus();
+            ? "Choose your leader. You control their turns and follow their story."
+            : CanEmbark ? "Party ready. You control the leader; companions act automatically."
+            : $"Choose three AI companions ({_companions.Count}/3). Click a selected companion to remove them.";
+        var objective = _chosen == null ? null : LeaderObjectiveCatalog.Find(_chosen);
+        _focus.Visible = objective != null;
+        _focus.Text = objective == null ? "" : $"Leader focus: {objective.Description}"
+            + (_campaign?.HasPersonalProgress(_chosen!, objective.Id) == true ? " (Completed)" : "");
+        _embark.Disabled = !CanEmbark;
+        _embark.TooltipText = CanEmbark ? "" : "Unavailable: choose a leader and three companions";
+        _changeLeader.Disabled = _chosen == null;
+        _changeLeader.TooltipText = _chosen == null ? "Unavailable: no leader chosen" : "Clear this formation and choose a new leader";
+        if (CanEmbark && !_recruitment.Visible) _embark.GrabFocus();
 
         RenderSheet();
     }
@@ -194,7 +250,9 @@ public partial class HeroSelectPanel : Control
         var def = CharacterCatalog.Find(id);
         if (def == null) return "not on the roster";
         if (!_unlocks.IsUnlocked(id)) return "locked";
-        return def.CanLead ? null : "cannot lead a run";
+        if (_chosen == null) return def.CanLead ? null : "cannot lead a run";
+        if (id == _chosen || _companions.Contains(id)) return null;
+        return CanEmbark ? "remove a companion to make room" : null;
     }
 
     /// <summary>The sheet reads the hovered card, falls back to the choice, then to the first
@@ -224,17 +282,18 @@ public partial class HeroSelectPanel : Control
         RenderSheet();
     }
 
-    /// <summary>Move the choice up or down the roster, skipping entries that cannot be taken.</summary>
+    /// <summary>Move the preview without changing formation. Confirm selects the preview.</summary>
     private void Step(int delta)
     {
         if (_cards.Count == 0) return;
-        int start = _chosen == null ? -1 : _cards.FindIndex(c => c.Id == _chosen);
+        int start = _hovered == null ? -1 : _cards.FindIndex(c => c.Id == _hovered);
         for (int step = 1; step <= _cards.Count; step++)
         {
             int index = ((start + delta * step) % _cards.Count + _cards.Count) % _cards.Count;
             if (!CanPick(_cards[index].Id)) continue;
-            _chosen = _cards[index].Id;
-            Refresh();
+            _embark.ReleaseFocus();
+            Preview(_cards[index].Id);
+            _scroll.EnsureControlVisible(_cards[index]);
             return;
         }
     }

@@ -60,13 +60,13 @@ internal sealed class SpellActions
             case TargetingKind.MultiEnemy:
                 foreach (var t in CombatantQuery.TargetsInRange(
                     caster, RangeTiles(spell, variant), enemies: true))
-                    plan.Tiles.Add(t.GridPosition);
+                    plan.Tiles.UnionWith(CreatureTargetTiles.For(t));
                 break;
 
             case TargetingKind.SingleAlly:
                 foreach (var t in CombatantQuery.TargetsInRange(
                     caster, RangeTiles(spell, variant), enemies: false))
-                    plan.Tiles.Add(t.GridPosition);
+                    plan.Tiles.UnionWith(CreatureTargetTiles.For(t));
                 break;
 
             case TargetingKind.AreaAim:

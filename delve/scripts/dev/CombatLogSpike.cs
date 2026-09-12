@@ -75,26 +75,40 @@ public partial class CombatLogSpike : SpikeBase
         var dice = DiceScene.Instantiate<DiceRollPanel>();
         frame.AddChild(dice);
         log.RollObserved += dice.ShowRoll;
-        log.DiceVisibilityChanged += dice.SetEnabled;
-        var toggle = log.GetNode<CheckButton>("%DiceToggle");
-        bool original = Delve.Settings.ViewPreferences.ShowDiceRolls;
-        toggle.ButtonPressed = false;
+        Check("the log panel carries no dice toggle", log.GetNodeOrNull("%DiceToggle") == null);
+        Check("dice display starts hidden with no roll", !dice.Visible);
         log.AppendEntry("Aldric Strikes Hunting Spider with Longsword", 8, false);
         log.AppendEntry("d20(19)+10=29 vs AC 17 → CriticalSuccess", 2, true);
-        Check("dice display is optional", !dice.Visible);
-        toggle.ButtonPressed = true;
-        log.AppendEntry("d20(19)+10=29 vs AC 17 → CriticalSuccess", 2, true);
-        Check("enabled dice display receives the logged roll", dice.Visible);
-        dice._Process(dice.RevealSeconds + 0.01);
-        Check("dice reveal shows the resolved value", dice.GetNode<Label>("%DieValue").Text == "19"
-            && dice.GetNode<Label>("%RollMath").Text.Contains("29 vs AC 17"));
+        Check("the dice display receives the logged roll without any opt-in", dice.Visible);
+        var dieLabel = dice.GetNode<Label>("%DieValue");
+        var mathLabel = dice.GetNode<RichTextLabel>("%RollMath");
+        var outcomeLabel = dice.GetNode<Label>("%RollOutcome");
+        await ToSignal(GetTree().CreateTimer(dice.TumbleSeconds * 0.5f), SceneTreeTimer.SignalName.Timeout);
+        Check("mid-tumble the face shows a number and the sum and outcome are still withheld",
+            dice.Tumbling && int.TryParse(dieLabel.Text, out int face) && face is >= 1 and <= 20
+            && mathLabel.GetParsedText() == "" && outcomeLabel.Text == "");
+        await ToSignal(GetTree().CreateTimer(dice.SettleSeconds), SceneTreeTimer.SignalName.Timeout);
+        Check("the face lands on the rolled value", !dice.Tumbling && dieLabel.Text == "19");
+        Check("then the sum line arrives", mathLabel.GetParsedText().Contains("29 vs AC 17")
+            && Mathf.IsEqualApprox(mathLabel.Modulate.A, 1f) && mathLabel.Scale.IsEqualApprox(Vector2.One));
+        Check("the total wears the crit colour and the target stays neutral, both larger than the arithmetic",
+            mathLabel.Text.Contains($"[font_size={dice.SumFontSize}][b][color=#{UiColors.LogSeverity[2].ToHtml()}]29")
+            && mathLabel.Text.Contains($"[font_size={dice.SumFontSize}][b][color=#{UiColors.Text.ToHtml()}]17")
+            && dice.SumFontSize > dice.SumDetailFontSize);
+        Check("then the outcome word arrives at full size", outcomeLabel.Text == "CRITICAL HIT"
+            && Mathf.IsEqualApprox(outcomeLabel.Modulate.A, 1f) && outcomeLabel.Scale.IsEqualApprox(Vector2.One));
         var details = log.Rows[^1].GetNode<RichTextLabel>("%EntryDetails");
         Check("roll numbers are larger than log text", details.GetParsedText().Contains("29")
             && log.GetThemeConstant("roll_font_size", "CombatLogText") > log.GetThemeFontSize("normal_font_size", "CombatLogText"));
-        toggle.ButtonPressed = false;
-        Check("turning dice off immediately hides the popup", !dice.Visible);
+        log.AppendEntry("Aldric Strikes Hunting Spider with Longsword", 8, false);
+        log.AppendEntry("d20(3)+10=13 vs AC 17 → Failure", 2, true);
+        await ToSignal(GetTree().CreateTimer(dice.SettleSeconds), SceneTreeTimer.SignalName.Timeout);
+        Check("a miss colours its total in the miss tone",
+            mathLabel.Text.Contains($"[color=#{UiColors.LogSeverity[3].ToHtml()}]13")
+            && outcomeLabel.Text == "MISS");
+        dice.ClearRoll();
+        Check("clearing the roll hides the popup", !dice.Visible);
         Check("invalid d20 values never animate", CombatRoll.Parse("d20(25)+10=35 vs AC 17 → Success") == null);
-        toggle.ButtonPressed = original;
         using var cancellation = new System.Threading.CancellationTokenSource();
         var cue = new PF2e.Core.BattleEvent { Type = PF2e.Core.BattleEventType.AttackRolled };
         Check("player actions incur no AI pause", Delve.Combat.AiActionPacing.Wait(cue, true, 0.35f, cancellation.Token).IsCompleted);

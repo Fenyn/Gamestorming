@@ -10,8 +10,8 @@ namespace Delve.Dev;
 
 /// <summary>
 /// Headless walk of the whole run loop. Drives <see cref="RunDirector"/> through its public entry
-/// points - the same methods the screens call - on a fixed seed: confirm a starting character, take
-/// three companions in mid-run, fight a Skirmish with every PC handed to the AI, resolve a
+/// points - the same methods the screens call - on a fixed seed: confirm a leader and three
+/// companions, fight a Skirmish with every PC handed to the AI, resolve a
 /// Happenstance, spend a ten-minute block, take a night's rest, rest until the ward refuses more,
 /// then start over. Asserts the phase after each step and that no member is left down.
 /// </summary>
@@ -45,24 +45,24 @@ public partial class RunFlowSpike : SpikeBase
         // ---------------------------------------------------- (1) hero select
         Check("(1) a fresh director opens on hero select", director.Phase == RunPhase.HeroSelect);
 
-        // A run starts with the leader alone - the screen confirms no companions at all.
-        director.ConfirmParty(PresetCharacters.PlayerId, System.Array.Empty<string>());
+        director.ConfirmParty(PresetCharacters.PlayerId, new[]
+            { PresetCharacters.ElaraId, PresetCharacters.TharrId, PresetCharacters.FenwickId });
         var state = director.State;
         Check("(1) confirming the starting character opens the map", director.Phase == RunPhase.Map);
-        Check("(1) the run carries a state, a party of one and a map",
-            state != null && state.Party.Members.Count == 1 && state.Map.Nodes.Count > 0);
+        Check("(1) the run carries a state, a full party and a map",
+            state != null && state.Party.Members.Count == Party.MaxSize && state.Map.Nodes.Count > 0);
         if (state == null)
         {
             Fail();
             return;
         }
 
-        // ---------------------------------------------------- (1b) companions join mid-run
+        // ---------------------------------------------------- (1b) fixed formation
         var unlocks = new UnlockState();
         var party = state.Party;
-        Check("(1b) a companion joins the party", party.AddMember(PresetCharacters.ElaraId, unlocks));
-        Check("(1b) the newcomer is built and on the roll",
-            party.Members.Count == 2 && party.Find(PresetCharacters.ElaraId) != null);
+        Check("(1b) all selected companions are built at embark",
+            party.Find(PresetCharacters.ElaraId) != null && party.Find(PresetCharacters.TharrId) != null
+            && party.Find(PresetCharacters.FenwickId) != null);
         Check("(1b) the same companion cannot join twice",
             !party.AddMember(PresetCharacters.ElaraId, unlocks));
         Check("(1b) the leader cannot join as a companion",
@@ -71,8 +71,6 @@ public partial class RunFlowSpike : SpikeBase
         Check("(1b) a locked character is refused",
             !party.AddMember(PresetCharacters.TharrId, new UnlockState(new[] { PresetCharacters.PlayerId })));
 
-        party.AddMember(PresetCharacters.TharrId, unlocks);
-        party.AddMember(PresetCharacters.FenwickId, unlocks);
         Check($"(1b) the party fills at {Party.MaxSize}", party.IsFull && party.Members.Count == Party.MaxSize);
         Check("(1b) a full party takes nobody else",
             !party.AddMember(PresetCharacters.RecruitId, unlocks));
@@ -92,6 +90,19 @@ public partial class RunFlowSpike : SpikeBase
 
             var finished = await Task.WhenAny(_leftCombat.Task, Task.Delay(CombatTimeoutMs));
             Check("(2) the fight finished inside the timeout", finished == _leftCombat.Task);
+            Check("(2) combat waits on the reward screen", director.Phase == RunPhase.CombatResults);
+            int earnedXp = state.Xp;
+            int earnedLevel = state.Party.Level;
+            Check("(2) victory awards XP before Continue", earnedXp > 0 || earnedLevel > director.StartLevel);
+            if (DisplayServer.GetName() != "headless")
+            {
+                await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
+                DirAccess.MakeDirRecursiveAbsolute("user://dev_shots");
+                GetViewport().GetTexture().GetImage().SavePng("user://dev_shots/combat_rewards.png");
+            }
+            director.ContinueCombatResults();
+            director.ContinueCombatResults();
+            Check("(2) repeated Continue cannot award XP again", state.Xp == earnedXp && state.Party.Level == earnedLevel);
             Check($"(2) the run returns to the map ({director.Phase})", director.Phase == RunPhase.Map);
             Check("(2) the node is marked visited", state.CurrentNode is { Visited: true });
             Check("(2) every member walks off the field alive on 1 HP or better", AllStanding(state));

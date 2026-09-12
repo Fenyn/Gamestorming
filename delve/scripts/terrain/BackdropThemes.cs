@@ -162,7 +162,6 @@ public static class BackdropThemes
         {
             new("forest/grass_tall_a.png", 6f, 0.60f),
             new("forest/grass_tall_b.png", 6f, 0.60f),
-            new("forest/bush_small.png", 3f, 0.48f),
             new("forest/grass_mid_a.png", 2f, 0.45f),
             new("forest/grass_mid_b.png", 2f, 0.45f),
             new("forest/fireweed_a.png", 1.5f, 0.52f),

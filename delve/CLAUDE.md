@@ -9,6 +9,8 @@ Godot 4.6 C# (.NET 8). Combat proof driven by the Pf2e.Core rules engine (`F:\de
 
 ## Composition
 
+- For creature sprite generation or revision, read [sprite generation guidelines](design/sprite_generation_guidelines.md) before starting. Use the existing rats as the style reference and the refined goblin as the humanoid example.
+
 - Build objects from small child scenes. A unit token = sprite animator + HP bar + team ring.
 - One job per component. The sprite animator knows nothing about characters or HP.
 - Inheritance only for shared lifecycle (`OneShotFx`, `SpikeBase`).

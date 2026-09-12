@@ -5,15 +5,18 @@ namespace Delve.Combat;
 
 /// <summary>
 /// Free-orbit tactical camera. Middle-mouse drag or right-mouse drag orbits (free yaw, pitch
-/// clamped), the mouse wheel zooms (distance clamped), and the pivot sits at the board center.
-/// A right *click* (released within <see cref="DragThresholdPixels"/> of travel) is deliberately
-/// left unconsumed so <see cref="GridInput3D"/> can treat it as cancel-targeting; only once the
-/// travel exceeds the threshold does the rig start orbiting and consuming the motion. Left clicks
-/// are never consumed here. Thin input adapter: holds only camera tunables and pose, no game rules.
+/// clamped), the mouse wheel zooms (distance clamped), and the pivot sits on the acting unit: the
+/// presenter lands it there at every turn start and tracks a walking unit through
+/// <see cref="ICameraFocus"/>. A right *click* (released within <see cref="DragThresholdPixels"/> of
+/// travel) is deliberately left unconsumed so <see cref="GridInput3D"/> can treat it as
+/// cancel-targeting; only once the travel exceeds the threshold does the rig start orbiting and
+/// consuming the motion. Left clicks are never consumed here. WASD pans the pivot and marks the turn
+/// as manually framed, so following stops until the next actor. Thin input adapter: holds only
+/// camera tunables and pose, no game rules.
 /// The rig reads <see cref="ViewPreferences.CombatCameraDistance"/> on _Ready and writes it back on
 /// every wheel zoom, so the zoom survives a re-encounter within the session.
 /// </summary>
-public partial class OrbitCameraRig : Node3D
+public partial class OrbitCameraRig : Node3D, ICameraFocus
 {
     [Export] public float PitchMinDegrees { get; set; } = 15f;
     [Export] public float PitchMaxDegrees { get; set; } = 75f;
@@ -45,6 +48,9 @@ public partial class OrbitCameraRig : Node3D
     /// backed off to a full overview.</summary>
     [Export] public float ZoomOutFactor { get; set; } = 2f;
 
+    /// <summary>How long the pivot takes to glide onto the unit whose turn starts.</summary>
+    [Export] public float FocusSeconds { get; set; } = 0.35f;
+
     private Camera3D _camera = null!;
     private ShakePivot _shake = null!;
     private float _yaw;
@@ -54,6 +60,14 @@ public partial class OrbitCameraRig : Node3D
     private bool _rightHeld;
     private float _rightTravel;
 
+    // Focus state: one tween owns global_position; a manual pan latches follow off for the turn.
+    private Tween? _focusTween;
+    private bool _userPanned;
+    private Vector3? _turnTarget;
+    private Vector3 _boardMin;
+    private Vector3 _boardMax;
+    private bool _hasBoard;
+
     public Camera3D Camera => _camera;
 
     /// <summary>
@@ -61,6 +75,9 @@ public partial class OrbitCameraRig : Node3D
     /// presenter can add trauma on a crit or a death.
     /// </summary>
     public ShakePivot Shake => _shake;
+
+    /// <summary>True while the player's pan has taken over framing for the current turn.</summary>
+    public bool UserPanned => _userPanned;
 
     public override void _Ready()
     {
@@ -79,7 +96,9 @@ public partial class OrbitCameraRig : Node3D
     /// <summary>
     /// Point the orbit pivot at the board center and frame the board: the zoom range and the
     /// default distance follow the board's longer side, so a 12-tile skirmish and a 30-tile
-    /// sewer both open as a full view. A distance the player chose earlier still wins.
+    /// sewer both open as a full view. A distance the player chose earlier still wins. Also
+    /// records the board rect every later focus is clamped to, and drops any glide still in
+    /// flight from the previous encounter.
     /// </summary>
     public void FrameBoard(Vector3 worldPivot, int boardWidth, int boardHeight)
     {
@@ -88,6 +107,12 @@ public partial class OrbitCameraRig : Node3D
         _distance = ViewPreferences.HasStoredCombatCameraDistance
             ? Mathf.Clamp(ViewPreferences.CombatCameraDistance, ZoomMin, ZoomMax)
             : Mathf.Clamp(framing, ZoomMin, ZoomMax);
+        KillFocus();
+        _userPanned = false;
+        _turnTarget = null;
+        _boardMin = new Vector3(0f, 0f, 0f);
+        _boardMax = new Vector3(boardWidth, 0f, boardHeight);
+        _hasBoard = true;
         GlobalPosition = worldPivot;
         UpdateCameraPose();
     }
@@ -103,6 +128,56 @@ public partial class OrbitCameraRig : Node3D
         UpdateCameraPose();
     }
 
+    /// <inheritdoc/>
+    public void FocusOn(Vector3 target, float seconds, bool turnStart)
+    {
+        if (turnStart)
+        {
+            _userPanned = false;
+            _turnTarget = target;
+        }
+        else if (_userPanned)
+        {
+            return;
+        }
+
+        var to = ClampToBoard(target);
+        KillFocus();
+        if (seconds <= 0f)
+        {
+            GlobalPosition = to;
+            return;
+        }
+
+        // Moving the pivot moves the camera with it: the camera's local offset and look basis are
+        // fixed relative to the rig, so no pose update is needed (the WASD pan relies on the same).
+        _focusTween = CreateTween();
+        _focusTween.TweenProperty(this, "global_position", to, seconds)
+            .SetTrans(turnStart ? Tween.TransitionType.Sine : Tween.TransitionType.Linear)
+            .SetEase(Tween.EaseType.Out);
+    }
+
+    /// <summary>Glide back onto the unit whose turn it is (the C hotkey). No-op before the first turn.</summary>
+    public void FocusOnActive()
+    {
+        if (_turnTarget is { } target) FocusOn(target, FocusSeconds, turnStart: true);
+    }
+
+    private Vector3 ClampToBoard(Vector3 target)
+    {
+        if (!_hasBoard) return target;
+        return new Vector3(
+            Mathf.Clamp(target.X, _boardMin.X, _boardMax.X),
+            target.Y,
+            Mathf.Clamp(target.Z, _boardMin.Z, _boardMax.Z));
+    }
+
+    private void KillFocus()
+    {
+        _focusTween?.Kill();
+        _focusTween = null;
+    }
+
     public override void _Process(double delta)
     {
         // WASD pans the pivot across the ground plane, camera-relative (W = screen-up).
@@ -113,7 +188,15 @@ public partial class OrbitCameraRig : Node3D
         if (Input.IsKeyPressed(Key.D)) pan.X += 1f;
         if (pan == Vector2.Zero) return;
 
-        pan = pan.Normalized() * PanSpeed * (float)delta;
+        Pan(pan.Normalized() * PanSpeed * (float)delta);
+    }
+
+    /// <summary>Manual pan by a screen-relative ground offset (X right, Y down). Takes framing away
+    /// from the presenter's follow until the next turn start.</summary>
+    public void Pan(Vector2 pan)
+    {
+        KillFocus();
+        _userPanned = true;
         float yawRad = Mathf.DegToRad(_yaw);
         // Camera looks toward -offset; screen-up on the ground plane is the yaw-forward direction.
         var forward = new Vector3(-Mathf.Sin(yawRad), 0f, -Mathf.Cos(yawRad));

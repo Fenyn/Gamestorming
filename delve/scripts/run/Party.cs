@@ -5,8 +5,8 @@ using PF2e.Core;
 namespace Delve.Run;
 
 /// <summary>
-/// The live characters of a run. A run starts with the leader alone; companions join along the way
-/// through <see cref="AddMember"/>, up to <see cref="MaxSize"/>. The instances are built once - in
+/// The live characters of a run. The leader is fixed; companions can be replaced along the way
+/// through <see cref="ReplaceCompanion"/>, with <see cref="MaxSize"/> members. The instances are built once - in
 /// <see cref="Build"/> or on the join - and kept for the whole run, so damage, Wounded and spent
 /// slots carry across nodes.
 /// </summary>
@@ -108,16 +108,29 @@ public sealed class Party
         if (CharacterCatalog.Find(id) == null) return false;
         if (!unlocks.IsUnlocked(id)) return false;
         if (id == LeaderId || _memberIds.Contains(id)) return false;
-        if (character.Health is { IsDead: true }) return false;
+        if (character.Id != id || character.Health is { IsDead: true }) return false;
 
         _memberIds.Add(id);
         _members.Add(character);
         return true;
     }
 
+    /// <summary>Replace one companion with a surviving guest instance. Permanent unlocks are
+    /// deliberately unrelated to temporary membership. The leader and party size stay fixed.</summary>
+    public bool ReplaceCompanion(string outgoingId, string guestId, PF2eCharacter guest)
+    {
+        int slot = _memberIds.IndexOf(outgoingId);
+        if (slot < 0 || !IsFull || guestId == LeaderId || Find(guestId) != null) return false;
+        if (CharacterCatalog.Find(guestId) == null || guest.Id != guestId) return false;
+        if (guest.Health == null || guest.Health.IsDead || guest.TeamId != 1 || guest.Stats?.Level != Level) return false;
+
+        _memberIds[slot] = guestId;
+        _members[slot + 1] = guest;
+        return true;
+    }
+
     /// <summary>
-    /// Build the starting party. <paramref name="memberIds"/> may be empty - a run normally opens
-    /// with the leader alone. Throws when the picks are illegal: at most <see cref="MaxSize"/>
+    /// Build a party. Small parties are supported for combat harnesses; normal runs require four. Throws when the picks are illegal: at most <see cref="MaxSize"/>
     /// characters in all, every id known to <see cref="CharacterCatalog"/>, unlocked and named
     /// once, and the leader flagged <see cref="CharacterDef.CanLead"/>.
     /// </summary>

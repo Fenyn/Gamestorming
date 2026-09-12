@@ -16,7 +16,9 @@ The single design document. Decisions only; tunable numbers live in code records
 1. A solo traveler rests at a camp. They wake surrounded by fog.
 2. They venture out alone. A wolf fight teaches basic combat.
 3. They find the Dire Wolf. It is juiced far past their level and kills them.
-4. They reawaken at the camp. A second character is there, waiting. They join permanently.
+4. They reawaken at the camp. The four starter characters assemble before the first normal expedition.
+
+The solo sequence is a separate tutorial. Normal runs always form a full party.
 
 ## Soulbinding
 
@@ -48,9 +50,10 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Leveling is XP-based and RAW: a won fight awards its encounter XP total (the budget IS the award), relative to the party's level. The threshold is heavily accelerated (tunable in `LevelingRules`) so three small floors carry the 1-10 flow. The whole party levels together, in place, mid-run; a newcomer joins at the party's current level.
 - One `RunState` per run: seed, stratum, map, current node, party, day clock, Wardstone, history, outcome.
 - One `combat.tscn` instance per run. Every fight goes through `CombatScene.StartEncounter`; the result arrives on `EncounterFinished`.
-- A run has at most 4 characters, total.
-- The player starts with 1 slot. Start slots 2, 3 and 4 are outpost unlocks; slot 2 unlocks early.
-- Open slots fill from random meetings during the run. The characters drawn for a run are the only possible additions that cycle; run end sends them back to idle, and the next run redraws from the pool.
+- A normal run starts with exactly four distinct unlocked characters: one chosen leader and three chosen companions. All four slots are available from the start.
+- The leader fixes the dialogue POV and primary personal progression focus for the run. Only their combat turns and reactions are player-controlled. Companions use AI.
+- Wayfarers are temporary allies during their fight. A surviving guest may replace one companion after victory. The leader cannot be replaced.
+- The player still controls routes, dialogue, equipment, leveling decisions and rest activities. If the leader falls, companions continue fighting; control does not transfer.
 - Run ends on a TPK (defeat), the won Depths Warden fight (victory), or extraction.
 - TPK: bodies destroyed, everything carried is lost, party reawakens at the outpost.
 
@@ -63,7 +66,7 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Floors carry a minimum: at least one Elite and at least one Rest outside the forced pre-boss row. The weighted roll alone left about 40% of maps with no Elite, so a top-up pass re-kinds Combat or Event nodes that have no neighbour of that kind.
 - At least two entrances. The second walk always starts on a different lane from the first.
 - Kinds: Combat = Skirmish, Elite = Lair, Event = Happenstance, Rest = Campsite, Meeting = Wayfarer, Boss = the floor's boss (the Depths Warden on the last floor).
-- Wayfarer rows are taken whole, the way row 0 is Combat, so every path hits them. Party size is a guarantee, not a lane the player can miss: encounter budgets count every member, so a short party pays for the gap in every fight. Rows are per floor in `RunMapConfig.MeetingFloorsByStratum`.
+- Each floor targets one or two Wayfarer nodes, randomly placed among spare Skirmish/Happenstance nodes after Lair and Campsite minimums. Placement preserves a route that skips all Wayfarers. No fixed meeting rows or early-party rescue beats remain; all three floors use this rule. Small maps may offer fewer if no optional placement fits. Counts live in `RunMapConfig`.
 
 ## Day and time
 
@@ -80,11 +83,12 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 
 ## Party
 
-- Starting character: Aldric (Fighter).
-- Early permanent joins in the first runs: Elara (Rogue), Tharr (Cleric), Fenwick (Wizard). Join order open.
+- Four permanent starters: Aldric (`player`, Fighter), Elara (Rogue), Tharr (Cleric), Fenwick (Wizard). Any unlocked eligible character may lead.
+- Raven and Thistle are the first playable locked guests. Their supported prototype classes and the full Bulwark adaptation plan are in [roster_adaptation.md](roster_adaptation.md).
 - The rest of the roster is effort-based: quests, reputation, or camp purchases from extracted currency.
 - Roster target is somewhat large. Source for characters and classes: the Bulwark cast (`bulwark/design/characters/`).
-- `CharacterCatalog` is the single table of characters; `Party.AddMember` joins a newcomer at party level and refuses an unknown, locked, duplicate or overflowing id. Max size 4.
+- `CharacterCatalog` is the playable roster table. Start eligibility reads permanent unlocks; meeting eligibility is independent. Companion replacement preserves the guest instance and combat state, joins at party level, and keeps exactly four members.
+- Sending a companion home removes them from this run. It grants no free extraction of carried loot. Declined, dead, and dismissed characters do not redraw with refreshed resources during the same run.
 - Party members are live `PF2eCharacter` objects for the whole run. Nothing is rebuilt between fights.
 
 ## Wardstone
@@ -93,8 +97,8 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Each floor sets a base threat distribution for generated fights (floor 1 low/moderate with rare severe; deeper floors drop low and add severe and extreme). As the ward burns down, every rolled tier is upshifted, by up to 3 steps, into a custom Lethal tier above the book budgets.
 - A Lair adds a further tier on top of its roll (Slay the Spire elite; the bonus is tunable).
 - Encounter budgets count every party member, dead or alive.
-- A party of one drops a generated fight by one tier. The opening rows are walked alone and a book-Moderate fight against a single character is not one. Size and relief are tunable in `EncounterGenRules`; bosses ignore it like they ignore the ward.
-- Board size scales with the party. The forest biome's 18x18 to 24x24 is a long walk for one character, so a generated fight halves the side at a party of one and rises to 0.85 of it at four, floored at 12 (`BattleMapRules`). The size roll runs on its own seed stream, so it never shifts the terrain a node already generated.
+- Normal encounters budget for four party members from the first node. Legacy solo relief remains in `EncounterGenRules` for isolated/tutorial encounters and is not part of normal run pacing; bosses ignore it.
+- Board size uses the four-member scale during normal runs (`BattleMapRules`). The size roll runs on its own seed stream, so it never shifts terrain a node already generated. Smaller-party scaling remains available to isolated/tutorial encounters.
 - Short rests consume ward. That burn is the whole price of resting, so healing up now buys harder fights later. Resting stops once the ward is down to one rest's worth.
 - Ward 0 ends the run in defeat, party alive or not. The fog takes them. Only passive burn can get there, since resting stops short of it (`NodeBurn` is 0 today, so nothing reaches 0 yet).
 - A Campsite night's rest restores part of the ward; beating a floor's boss restores all of it.
@@ -114,20 +118,23 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 ## Meetings
 
 - A Wayfarer node is a fight already in progress: one character out of the fog against this floor's creatures. They fight as an AI ally on the party's team and the player does not command them.
-- They join at the end of a won fight, keeping the wounds they took. If they die, nobody joins and they come up again at the next Wayfarer.
-- Draw order is `RecruitPool`: catalog order, minus the leader and anyone already in the party. With the four-character catalog that is the three the player did not lead with, one per meeting.
-- Pacing: floor 1 fills slots 2 and 3, floor 2 fills slot 4. Nothing joins on floor 3. A companion arriving at level 8 gets one floor of play and the party spent two floors under strength to get them.
-- A Wayfarer met with a full party is a plain fight today. Later it becomes the FF Tactics guest unit: an ally for that fight only.
+- After a won fight, a surviving guest offers a choice: replace one of three companions or decline. The player inspects the guest before deciding. The leader cannot be sent home.
+- The replacement preserves wounds and spent resources. Temporary membership does not unlock the character.
+- `RecruitPool` draws meetable characters outside the starting party, independently of permanent unlock status. A guest is offered at most once per run; leaving or dying does not reset that offer.
+- The party always has four members. A Wayfarer adds an AI ally for the encounter only until a replacement is accepted.
 - Allies fight cautiously, which is a survival check and not a fear of contact. They weigh a round of incoming damage against the HP they have left, and pay a plan score penalty only when that round could kill them (`AllyAiRules.SurvivalMargin`, 0.6 of remaining HP). A healthy ally charges a pack the same way a monster would; the same ally at a third HP strikes and steps back out. Party members standing near a tile take a share of the danger. Enemies keep the old behaviour: caution is off by default in the engine.
 
 ## Recruitment pattern
 
-1. Meet a character randomly in the delve; they join the party for this run.
+1. Meet a character in the delve. Meeting starts their recruitment arc; joining as a temporary companion is optional.
 2. An event or combat hook prompts their quest or request.
 3. During their quest: some wait at the outpost, others must be found again in the delve (whichever fits their story).
 4. Quest or request complete: the character stays a night, is bound, and becomes start-eligible.
 
 - Some characters gate on a reputation system and require sustained effort to unlock.
+- The initial playable arcs use explicit authored steps in `RecruitmentCatalog`: meet, win multiple fights as a party member, defeat a floor boss together, then choose an overnight outpost stay. The meeting fight does not count as companion participation. These are first playable arcs, not the full Bulwark friendship stories.
+- `CampaignProgress` keeps recruitment and outpost milestones shared across leaders. Personal objectives are stored per leader. Changing leaders or losing a run never clears earned shared progress.
+- Leader-specific encounter weighting and authored dialogue quests remain content work; the progress API separates their journals now.
 
 ## Events
 
@@ -148,7 +155,7 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 ## Meta progression
 
 - Meta currency is extracted from the delve and spent at the outpost.
-- Outpost upgrades unlock: new items, runes and equipment; start slots 2, 3 and 4; character recruitment costs; Wardstone improvements.
+- Outpost upgrades unlock: new items, runes and equipment; character recruitment costs; Wardstone improvements. A later optional unlock may allow manual companion combat control without changing the leader or POV.
 - Character unlocks persist forever regardless of run outcome.
 - Feat attunement: characters permanently master abilities by using them across runs (Final Fantasy 9 skills). Time spent using a feat attunes it; an attuned feat is available forever after, so classes stack up significant bonuses over many runs. Character levels do NOT carry over; attunement is the per-character permanence axis.
 
@@ -160,12 +167,12 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 
 ## Open
 
-- Feat attunement mechanics: what counts as "use", attunement progress and thresholds, how attuned feats slot in (extra grants vs pre-unlocked picks), caps; requires the persistence layer.
+- Feat attunement mechanics: what counts as "use", attunement progress and thresholds, how attuned feats slot in (extra grants vs pre-unlocked picks), caps; requires extending the campaign persistence model.
 - Level-up choice UI (auto-assigned boosts/skills today; combo scripts carry the feats); L6-10 archetype feats without compiled engine features stay unscripted.
 - Terrain biomes for the floor themes: grassland dress, deep-forest dress, swamp (new); all floors generate forest boards until then.
 - Node roster expansion (proposed: Cache; Campsite doubles as extraction point) and extraction flow.
 - Food / fatigue mechanics (seam: DayClock, which still counts days and blocks).
 - Wardstone details: passive burn unit; whether the upshift governs events and guest encounters.
 - Reputation system mechanics.
-- Slot unlock costs; upgrade tracks and currency amounts.
+- Upgrade tracks and currency amounts; optional manual companion control unlock.
 - Tone / register (required before narrative content).

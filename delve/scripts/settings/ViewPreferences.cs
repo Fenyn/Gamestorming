@@ -6,8 +6,6 @@ namespace Delve.Settings;
 /// </summary>
 public static class ViewPreferences
 {
-    /// <summary>Optional resolved-d20 popup. Persists across encounters during this session.</summary>
-    public static bool ShowDiceRolls { get; set; }
     private static float _combatCameraDistance;
 
     /// <summary>True once combat has stored a camera distance this session.</summary>

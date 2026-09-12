@@ -1,4 +1,5 @@
 using Delve.Data;
+using Delve.UI;
 using Godot;
 using PF2e.Core;
 
@@ -38,12 +39,6 @@ public partial class UnitVisual3D : Node3D
 
     /// <summary>Height (m) of the name label above the HP bar.</summary>
     private const float NameLift = 0.22f;
-
-    /// <summary>Ring colour of team 1, the player side.</summary>
-    [Export] public Color Team1Color { get; set; } = new(0.35f, 0.6f, 0.95f);
-
-    /// <summary>Ring colour of team 2, the enemy side.</summary>
-    [Export] public Color Team2Color { get; set; } = new(0.85f, 0.4f, 0.35f);
 
     /// <summary>How long the corpse tint takes.</summary>
     [Export] public float DeathFadeDuration { get; set; } = 0.5f;
@@ -97,6 +92,8 @@ public partial class UnitVisual3D : Node3D
     {
         if (_sprite == null) return;
         _sprite.SetMoving(moving);
+        // A tile-conforming footprint belongs to discrete occupied squares, not the sliding pose.
+        _ring.Visible = !moving;
     }
 
     /// <summary>Pop the ring and start its breath while this unit has the turn.</summary>
@@ -104,6 +101,8 @@ public partial class UnitVisual3D : Node3D
 
     /// <summary>See <see cref="BillboardSpriteAnimator.PlaySwing"/>.</summary>
     public bool PlaySwing() => _sprite.PlaySwing();
+    public bool PlayAttack(out float impactDelay) => _sprite.PlayAttack(out impactDelay);
+    public PackedScene? AttackEffect => _sprite.AttackEffect;
 
     // ------------------------------------------------------------------ Spawn and configure
 
@@ -141,7 +140,9 @@ public partial class UnitVisual3D : Node3D
         // Standalone (F6) with no Configure() call: leave the raw blockout token visible, do not crash.
         if (_character == null) return;
 
-        _ring.SetTeamColor(_character.TeamId == 1 ? Team1Color : Team2Color);
+        // Team identity comes from the palette, so the board ring and the HUD's ally/enemy chips agree.
+        _ring.SetTeamColor(_character.TeamId == 1 ? UiColors.Ally : UiColors.Enemy);
+        _ring.SetFootprint(_character.TileWidth);
         ConfigureSprite();
         _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
         _name.Text = _character.Name;

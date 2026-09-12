@@ -10,7 +10,8 @@ namespace Delve.Flow;
 /// A null <see cref="DisabledReason"/> means the card takes clicks; a non-null one is rendered as
 /// the <c>Unavailable: reason</c> tooltip the guidelines require (section 7).
 /// </summary>
-public sealed record RosterCardState(bool Chosen, string? DisabledReason = null, bool Locked = false);
+public sealed record RosterCardState(bool Chosen, string? DisabledReason = null, bool Locked = false,
+    string Caption = "LEADER");
 
 /// <summary>
 /// One compact roster entry: portrait thumb, name, role, and the caption that names the starting
@@ -97,6 +98,6 @@ public partial class RosterCard : Button
         _name.AddThemeColorOverride("font_color", Disabled ? UiColors.TextDisabled : UiColors.Text);
         _role.AddThemeColorOverride("font_color", Disabled ? UiColors.TextDisabled : UiColors.TextDim);
 
-        _caption.Text = state.Chosen ? "STARTING CHARACTER" : "";
+        _caption.Text = state.Chosen ? state.Caption : "";
     }
 }

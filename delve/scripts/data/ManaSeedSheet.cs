@@ -18,7 +18,7 @@ namespace Delve.Data;
 ///
 /// Frame timings below are the pack's own, from its "animation timing guide"; they are the artist's
 /// calibration for this art and the place to tune if a swing ever reads too slow. Sheets are baked by
-/// <c>G:\crocotile-mcp\examples\build_mana_seed_sheets.py</c>, which carries the per-character
+/// <c>G:\crocotile-mcp\examples\build_delve_hero_sheets.py</c>, which carries the per-character
 /// paper-doll recipe (body + outfit + hair) and can prove it against page 1.
 /// </summary>
 public static class ManaSeedSheet

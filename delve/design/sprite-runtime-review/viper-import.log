@@ -1,0 +1,155 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+[   0% ] _update_scan_actions | Started Scanning actions... (65 steps)
+[   0% ] _update_scan_actions | attack_1.png
+[   1% ] _update_scan_actions | attack_2.png
+[   3% ] _update_scan_actions | attack_3.png
+[   4% ] _update_scan_actions | attack_4.png
+[   6% ] _update_scan_actions | attack_5.png
+[   7% ] _update_scan_actions | attack_6.png
+[   9% ] _update_scan_actions | base.png
+[  10% ] _update_scan_actions | idle_1.png
+[  12% ] _update_scan_actions | idle_2.png
+[  13% ] _update_scan_actions | idle_3.png
+[  15% ] _update_scan_actions | idle_4.png
+[  16% ] _update_scan_actions | idle_5.png
+[  18% ] _update_scan_actions | attack_1.png
+[  19% ] _update_scan_actions | attack_2.png
+[  21% ] _update_scan_actions | attack_3.png
+[  22% ] _update_scan_actions | attack_4.png
+[  24% ] _update_scan_actions | attack_5.png
+[  25% ] _update_scan_actions | attack_6.png
+[  27% ] _update_scan_actions | base.png
+[  28% ] _update_scan_actions | idle_1.png
+[  30% ] _update_scan_actions | idle_2.png
+[  31% ] _update_scan_actions | idle_3.png
+[  33% ] _update_scan_actions | idle_4.png
+[  34% ] _update_scan_actions | idle_5.png
+[  36% ] _update_scan_actions | attack_1.png
+[  37% ] _update_scan_actions | attack_2.png
+[  39% ] _update_scan_actions | attack_3.png
+[  40% ] _update_scan_actions | attack_4.png
+[  42% ] _update_scan_actions | attack_5.png
+[  43% ] _update_scan_actions | attack_6.png
+[  45% ] _update_scan_actions | base.png
+[  46% ] _update_scan_actions | idle_1.png
+[  48% ] _update_scan_actions | idle_2.png
+[  50% ] _update_scan_actions | idle_3.png
+[  51% ] _update_scan_actions | idle_4.png
+[  53% ] _update_scan_actions | idle_5.png
+[  54% ] _update_scan_actions | attack_1.png
+[  56% ] _update_scan_actions | attack_2.png
+[  57% ] _update_scan_actions | attack_3.png
+[  59% ] _update_scan_actions | attack_4.png
+[  60% ] _update_scan_actions | attack_5.png
+[  62% ] _update_scan_actions | attack_6.png
+[  63% ] _update_scan_actions | base.png
+[  65% ] _update_scan_actions | idle_1.png
+[  66% ] _update_scan_actions | idle_2.png
+[  68% ] _update_scan_actions | idle_3.png
+[  69% ] _update_scan_actions | idle_4.png
+[  71% ] _update_scan_actions | idle_5.png
+[  72% ] _update_scan_actions | attack-frames-4x.png
+[  74% ] _update_scan_actions | attack_1.png
+[  75% ] _update_scan_actions | attack_2.png
+[  77% ] _update_scan_actions | attack_3.png
+[  78% ] _update_scan_actions | attack_4.png
+[  80% ] _update_scan_actions | attack_5.png
+[  81% ] _update_scan_actions | attack_6.png
+[  83% ] _update_scan_actions | construction-reference.png
+[  84% ] _update_scan_actions | idle-frames-4x.png
+[  86% ] _update_scan_actions | idle_1.png
+[  87% ] _update_scan_actions | idle_2.png
+[  89% ] _update_scan_actions | idle_3.png
+[  90% ] _update_scan_actions | idle_4.png
+[  92% ] _update_scan_actions | idle_5.png
+[  93% ] _update_scan_actions | reference-lineup-4x.png
+[  95% ] _update_scan_actions | viper-base-8x.png
+[  96% ] _update_scan_actions | viper-base.png
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started (Re)Importing Assets (29 steps)
+[   0% ] reimport | Preparing files to reimport...
+[   3% ] reimport | Preparing files to reimport...
+[   6% ] reimport | Preparing files to reimport...
+[  10% ] reimport | Preparing files to reimport...
+[  13% ] reimport | Preparing files to reimport...
+[  16% ] reimport | Preparing files to reimport...
+[  20% ] reimport | Preparing files to reimport...
+[  23% ] reimport | Preparing files to reimport...
+[  26% ] reimport | Preparing files to reimport...
+[  30% ] reimport | Preparing files to reimport...
+[  33% ] reimport | Preparing files to reimport...
+[  36% ] reimport | Preparing files to reimport...
+[  40% ] reimport | Preparing files to reimport...
+[  43% ] reimport | Preparing files to reimport...
+[  46% ] reimport | Preparing files to reimport...
+[  50% ] reimport | Preparing files to reimport...
+[  53% ] reimport | Preparing files to reimport...
+[  56% ] reimport | Preparing files to reimport...
+[  60% ] reimport | Preparing files to reimport...
+[  63% ] reimport | Preparing files to reimport...
+[  66% ] reimport | Preparing files to reimport...
+[  70% ] reimport | Preparing files to reimport...
+[  73% ] reimport | Preparing files to reimport...
+[  76% ] reimport | Preparing files to reimport...
+[  80% ] reimport | Preparing files to reimport...
+[  83% ] reimport | Preparing files to reimport...
+[  86% ] reimport | Preparing files to reimport...
+[  90% ] reimport | Preparing files to reimport...
+[  93% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Executing pre-reimport operations...
+[   0% ] reimport | viper-base.png
+[   3% ] reimport | viper-base-8x.png
+[   6% ] reimport | reference-lineup-4x.png
+[  10% ] reimport | idle_5.png
+[  13% ] reimport | idle_4.png
+[  16% ] reimport | idle_3.png
+[  20% ] reimport | idle_2.png
+[  23% ] reimport | idle_1.png
+[  26% ] reimport | idle-frames-4x.png
+[  30% ] reimport | construction-reference.png
+[  33% ] reimport | attack_6.png
+[  36% ] reimport | attack_5.png
+[  40% ] reimport | attack_4.png
+[  43% ] reimport | attack_3.png
+[  46% ] reimport | attack_2.png
+[  50% ] reimport | attack_1.png
+[  53% ] reimport | attack-frames-4x.png
+[  56% ] reimport | idle_5.png
+[  60% ] reimport | idle_4.png
+[  63% ] reimport | idle_3.png
+[  66% ] reimport | idle_2.png
+[  70% ] reimport | idle_1.png
+[  73% ] reimport | base.png
+[  76% ] reimport | attack_6.png
+[  80% ] reimport | attack_5.png
+[  83% ] reimport | attack_4.png
+[  86% ] reimport | attack_3.png
+[  90% ] reimport | attack_2.png
+[  93% ] reimport | attack_1.png
+[  96% ] reimport | Finalizing Asset Import...
+[ DONE ] reimport
+
+[   0% ] reimport | Started (Re)Importing Assets (29 steps)
+[   0% ] reimport | Executing post-reimport operations...
+[ DONE ] reimport
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[  33% ] loading_editor_layout | Reopening scenes...
+[  50% ] loading_editor_layout | Loading central editor layout...
+[  66% ] loading_editor_layout | Loading plugin window layout...
+[  83% ] loading_editor_layout | Editor layout ready.
+[ DONE ] loading_editor_layout
+

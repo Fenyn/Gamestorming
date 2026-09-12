@@ -37,6 +37,9 @@ public partial class GridInput3D : Node3D
     /// <summary>Esc, or a stationary right-click, asked to cancel targeting.</summary>
     public event Action? Cancelled;
 
+    /// <summary>The focus hotkey asked to re-centre the camera on the active unit.</summary>
+    public event Action? FocusRequested;
+
     /// <summary>The rig owns the click-vs-drag gesture threshold; CombatScene pushes the rig's
     /// live value in at Setup so the two stay in agreement.</summary>
     [Export] public float DragThresholdPixels { get; set; } = OrbitCameraRig.DefaultDragThresholdPixels;
@@ -118,9 +121,16 @@ public partial class GridInput3D : Node3D
         if (_camera == null) return;
 
         // Esc (ui_cancel) cancels targeting, mirroring the stationary right-click cancel below.
-        if (@event.IsActionPressed("ui_cancel"))
+        if (@event.IsActionPressed(Delve.UI.InputNames.UiCancel))
         {
             Cancelled?.Invoke();
+            return;
+        }
+
+        if (@event.IsActionPressed(Delve.UI.InputNames.Focus))
+        {
+            FocusRequested?.Invoke();
+            GetViewport().SetInputAsHandled();
             return;
         }
 

@@ -9,6 +9,8 @@ public enum RunPhase
     HeroSelect,
     Map,
     Combat,
+    CombatResults,
+    Meetup,
     Event,
     Rest,
     ShortRest,

@@ -1,0 +1,414 @@
+[
+  {
+    "name": "aldric",
+    "folder": "veteran",
+    "page": "p1",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v04.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "pfpn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01c - Peasant Farmer Pants & Hat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_pfpn_v02.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "dap1_v11",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\4har\\char_a_p1_4har_dap1_v11.png"
+      }
+    ]
+  },
+  {
+    "name": "aldric",
+    "folder": "veteran",
+    "page": "p2",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v04.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "pfpn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01c - Peasant Farmer Pants & Hat 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_pfpn_v02.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "dap1_v11",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\4har\\char_a_p2_4har_dap1_v11.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "farm_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_farm_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "aldric",
+    "folder": "veteran",
+    "page": "p2_mine",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v04.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "pfpn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01c - Peasant Farmer Pants & Hat 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_pfpn_v02.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "dap1_v11",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\4har\\char_a_p2_4har_dap1_v11.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "mine_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_mine_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "aldric",
+    "folder": "veteran",
+    "page": "p2_wood",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v04.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "pfpn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01c - Peasant Farmer Pants & Hat 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_pfpn_v02.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "dap1_v11",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\4har\\char_a_p2_4har_dap1_v11.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "wood_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_wood_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "elara",
+    "folder": "rogue",
+    "page": "p1",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v02.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "fstr_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_fstr_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "pon1_v07",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_pon1_v07.png"
+      }
+    ]
+  },
+  {
+    "name": "elara",
+    "folder": "rogue",
+    "page": "p2",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v02.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "fstr_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_fstr_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "pon1_v07",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p2\\4har\\char_a_p2_4har_pon1_v07.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "farm_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_farm_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "elara",
+    "folder": "rogue",
+    "page": "p2_mine",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v02.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "fstr_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_fstr_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "pon1_v07",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p2\\4har\\char_a_p2_4har_pon1_v07.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "mine_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_mine_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "elara",
+    "folder": "rogue",
+    "page": "p2_wood",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v02",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v02.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "fstr_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_fstr_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "pon1_v07",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p2\\4har\\char_a_p2_4har_pon1_v07.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "wood_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_wood_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "tharr",
+    "folder": "cleric",
+    "page": "p1",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v06",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v06.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "bksm_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_bksm_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "flat_v00",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_flat_v00.png"
+      }
+    ]
+  },
+  {
+    "name": "tharr",
+    "folder": "cleric",
+    "page": "p2",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v06",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v06.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "bksm_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_bksm_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "flat_v00",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p2\\4har\\char_a_p2_4har_flat_v00.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "farm_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_farm_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "tharr",
+    "folder": "cleric",
+    "page": "p2_mine",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v06",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v06.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "bksm_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_bksm_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "flat_v00",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p2\\4har\\char_a_p2_4har_flat_v00.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "mine_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_mine_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "tharr",
+    "folder": "cleric",
+    "page": "p2_wood",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v06",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v06.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "bksm_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_bksm_v03.png"
+      },
+      {
+        "slot": "4har",
+        "asset": "flat_v00",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p2\\4har\\char_a_p2_4har_flat_v00.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "wood_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_wood_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "fenwick",
+    "folder": "wizard",
+    "page": "p1",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v03.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "alch_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_alch_v04.png"
+      },
+      {
+        "slot": "5hat",
+        "asset": "pnty_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_pnty_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "fenwick",
+    "folder": "wizard",
+    "page": "p2",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v03.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "alch_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_alch_v04.png"
+      },
+      {
+        "slot": "5hat",
+        "asset": "pnty_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p2\\5hat\\char_a_p2_5hat_pnty_v01.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "farm_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_farm_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "fenwick",
+    "folder": "wizard",
+    "page": "p2_mine",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v03.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "alch_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_alch_v04.png"
+      },
+      {
+        "slot": "5hat",
+        "asset": "pnty_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p2\\5hat\\char_a_p2_5hat_pnty_v01.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "mine_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_mine_v01.png"
+      }
+    ]
+  },
+  {
+    "name": "fenwick",
+    "folder": "wizard",
+    "page": "p2_wood",
+    "layers": [
+      {
+        "slot": "0bas",
+        "asset": "humn_v03",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\char_a_p2_0bas_humn_v03.png"
+      },
+      {
+        "slot": "1out",
+        "asset": "alch_v04",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p2\\1out\\char_a_p2_1out_alch_v04.png"
+      },
+      {
+        "slot": "5hat",
+        "asset": "pnty_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p2\\5hat\\char_a_p2_5hat_pnty_v01.png"
+      },
+      {
+        "slot": "6tla",
+        "asset": "wood_v01",
+        "source": "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p2\\6tla\\char_a_p2_6tla_wood_v01.png"
+      }
+    ]
+  }
+]

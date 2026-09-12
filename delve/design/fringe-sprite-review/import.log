@@ -1,0 +1,670 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+ERROR: res://assets/sprites/enemies/giant_monitor_lizard_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: res://assets/sprites/enemies/giant_monitor_lizard_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: res://assets/sprites/enemies/giant_monitor_lizard_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: res://assets/sprites/enemies/giant_monitor_lizard_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: Condition "error != OK" is true.
+   at: get_dependencies (scene/resources/resource_format_text.cpp:928)
+ERROR: res://assets/sprites/enemies/grizzly_bear_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: res://assets/sprites/enemies/grizzly_bear_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: res://assets/sprites/enemies/grizzly_bear_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: res://assets/sprites/enemies/grizzly_bear_base/sprite.tres:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: Condition "error != OK" is true.
+   at: get_dependencies (scene/resources/resource_format_text.cpp:928)
+[   0% ] _update_scan_actions | Started Scanning actions... (252 steps)
+[   0% ] _update_scan_actions | attack_1.png
+[   0% ] _update_scan_actions | attack_2.png
+[   0% ] _update_scan_actions | attack_3.png
+[   1% ] _update_scan_actions | attack_4.png
+[   1% ] _update_scan_actions | attack_5.png
+[   1% ] _update_scan_actions | attack_6.png
+[   2% ] _update_scan_actions | base.png
+[   2% ] _update_scan_actions | idle_1.png
+[   3% ] _update_scan_actions | idle_2.png
+[   3% ] _update_scan_actions | idle_3.png
+[   3% ] _update_scan_actions | idle_4.png
+[   4% ] _update_scan_actions | idle_5.png
+[   4% ] _update_scan_actions | attack_1.png
+[   5% ] _update_scan_actions | attack_2.png
+[   5% ] _update_scan_actions | attack_3.png
+[   5% ] _update_scan_actions | attack_4.png
+[   6% ] _update_scan_actions | attack_5.png
+[   6% ] _update_scan_actions | attack_6.png
+[   7% ] _update_scan_actions | base.png
+[   7% ] _update_scan_actions | idle_1.png
+[   7% ] _update_scan_actions | idle_2.png
+[   8% ] _update_scan_actions | idle_3.png
+[   8% ] _update_scan_actions | idle_4.png
+[   9% ] _update_scan_actions | idle_5.png
+[   9% ] _update_scan_actions | attack_1.png
+[   9% ] _update_scan_actions | attack_2.png
+[  10% ] _update_scan_actions | attack_3.png
+[  10% ] _update_scan_actions | attack_4.png
+[  11% ] _update_scan_actions | attack_5.png
+[  11% ] _update_scan_actions | attack_6.png
+[  11% ] _update_scan_actions | base.png
+[  12% ] _update_scan_actions | idle_1.png
+[  12% ] _update_scan_actions | idle_2.png
+[  13% ] _update_scan_actions | idle_3.png
+[  13% ] _update_scan_actions | idle_4.png
+[  13% ] _update_scan_actions | idle_5.png
+[  14% ] _update_scan_actions | attack_1.png
+[  14% ] _update_scan_actions | attack_2.png
+[  15% ] _update_scan_actions | attack_3.png
+[  15% ] _update_scan_actions | attack_4.png
+[  15% ] _update_scan_actions | attack_5.png
+[  16% ] _update_scan_actions | attack_6.png
+[  16% ] _update_scan_actions | base.png
+[  16% ] _update_scan_actions | idle_1.png
+[  17% ] _update_scan_actions | idle_2.png
+[  17% ] _update_scan_actions | idle_3.png
+[  18% ] _update_scan_actions | idle_4.png
+[  18% ] _update_scan_actions | idle_5.png
+[  18% ] _update_scan_actions | attack_1.png
+[  19% ] _update_scan_actions | attack_2.png
+[  19% ] _update_scan_actions | attack_3.png
+[  20% ] _update_scan_actions | attack_4.png
+[  20% ] _update_scan_actions | attack_5.png
+[  20% ] _update_scan_actions | attack_6.png
+[  21% ] _update_scan_actions | base.png
+[  21% ] _update_scan_actions | idle_1.png
+[  22% ] _update_scan_actions | idle_2.png
+[  22% ] _update_scan_actions | idle_3.png
+[  22% ] _update_scan_actions | idle_4.png
+[  23% ] _update_scan_actions | idle_5.png
+[  23% ] _update_scan_actions | attack_1.png
+[  24% ] _update_scan_actions | attack_2.png
+[  24% ] _update_scan_actions | attack_3.png
+[  24% ] _update_scan_actions | attack_4.png
+[  25% ] _update_scan_actions | attack_5.png
+[  25% ] _update_scan_actions | attack_6.png
+[  26% ] _update_scan_actions | base.png
+[  26% ] _update_scan_actions | idle_1.png
+[  26% ] _update_scan_actions | idle_2.png
+[  27% ] _update_scan_actions | idle_3.png
+[  27% ] _update_scan_actions | idle_4.png
+[  28% ] _update_scan_actions | idle_5.png
+[  28% ] _update_scan_actions | attack_1.png
+[  28% ] _update_scan_actions | attack_2.png
+[  29% ] _update_scan_actions | attack_3.png
+[  29% ] _update_scan_actions | attack_4.png
+[  30% ] _update_scan_actions | attack_5.png
+[  30% ] _update_scan_actions | attack_6.png
+[  30% ] _update_scan_actions | base.png
+[  31% ] _update_scan_actions | idle_1.png
+[  31% ] _update_scan_actions | idle_2.png
+[  32% ] _update_scan_actions | idle_3.png
+[  32% ] _update_scan_actions | idle_4.png
+[  32% ] _update_scan_actions | idle_5.png
+[  33% ] _update_scan_actions | attack_1.png
+[  33% ] _update_scan_actions | attack_2.png
+[  33% ] _update_scan_actions | attack_3.png
+[  34% ] _update_scan_actions | attack_4.png
+[  34% ] _update_scan_actions | attack_5.png
+[  35% ] _update_scan_actions | attack_6.png
+[  35% ] _update_scan_actions | base.png
+[  35% ] _update_scan_actions | idle_1.png
+[  36% ] _update_scan_actions | idle_2.png
+[  36% ] _update_scan_actions | idle_3.png
+[  37% ] _update_scan_actions | idle_4.png
+[  37% ] _update_scan_actions | idle_5.png
+[  37% ] _update_scan_actions | attack_1.png
+[  38% ] _update_scan_actions | attack_2.png
+[  38% ] _update_scan_actions | attack_3.png
+[  39% ] _update_scan_actions | attack_4.png
+[  39% ] _update_scan_actions | attack_5.png
+[  39% ] _update_scan_actions | attack_6.png
+[  40% ] _update_scan_actions | base.png
+[  40% ] _update_scan_actions | idle_1.png
+[  41% ] _update_scan_actions | idle_2.png
+[  41% ] _update_scan_actions | idle_3.png
+[  41% ] _update_scan_actions | idle_4.png
+[  42% ] _update_scan_actions | idle_5.png
+[  42% ] _update_scan_actions | attack_1.png
+[  43% ] _update_scan_actions | attack_2.png
+[  43% ] _update_scan_actions | attack_3.png
+[  43% ] _update_scan_actions | attack_4.png
+[  44% ] _update_scan_actions | attack_5.png
+[  44% ] _update_scan_actions | attack_6.png
+[  45% ] _update_scan_actions | base.png
+[  45% ] _update_scan_actions | idle_1.png
+[  45% ] _update_scan_actions | idle_2.png
+[  46% ] _update_scan_actions | idle_3.png
+[  46% ] _update_scan_actions | idle_4.png
+[  47% ] _update_scan_actions | idle_5.png
+[  47% ] _update_scan_actions | attack_1.png
+[  47% ] _update_scan_actions | attack_2.png
+[  48% ] _update_scan_actions | attack_3.png
+[  48% ] _update_scan_actions | attack_4.png
+[  49% ] _update_scan_actions | attack_5.png
+[  49% ] _update_scan_actions | attack_6.png
+[  49% ] _update_scan_actions | base.png
+[  50% ] _update_scan_actions | idle_1.png
+[  50% ] _update_scan_actions | idle_2.png
+[  50% ] _update_scan_actions | idle_3.png
+[  51% ] _update_scan_actions | idle_4.png
+[  51% ] _update_scan_actions | idle_5.png
+[  52% ] _update_scan_actions | dire-wolf-base-8x.png
+[  52% ] _update_scan_actions | dire-wolf-base.png
+[  52% ] _update_scan_actions | reference-lineup-4x.png
+[  53% ] _update_scan_actions | attack-frames-4x.png
+[  53% ] _update_scan_actions | attack_1.png
+[  54% ] _update_scan_actions | attack_2.png
+[  54% ] _update_scan_actions | attack_3.png
+[  54% ] _update_scan_actions | attack_4.png
+[  55% ] _update_scan_actions | attack_5.png
+[  55% ] _update_scan_actions | attack_6.png
+[  56% ] _update_scan_actions | construction-reference.png
+[  56% ] _update_scan_actions | dire-wolf-base-8x.png
+[  56% ] _update_scan_actions | dire-wolf-base.png
+[  57% ] _update_scan_actions | idle-frames-4x.png
+[  57% ] _update_scan_actions | idle_1.png
+[  58% ] _update_scan_actions | idle_2.png
+[  58% ] _update_scan_actions | idle_3.png
+[  58% ] _update_scan_actions | idle_4.png
+[  59% ] _update_scan_actions | idle_5.png
+[  59% ] _update_scan_actions | leg-shading-before-after-support-6x.png
+[  60% ] _update_scan_actions | near-legs-hidden.png
+[  60% ] _update_scan_actions | reference-lineup-4x.png
+[  60% ] _update_scan_actions | silhouette-8x.png
+[  61% ] _update_scan_actions | combat_dice_roll.png
+[  61% ] _update_scan_actions | combat_log_compact.png
+[  62% ] _update_scan_actions | combat_log_entry_expanded.png
+[  62% ] _update_scan_actions | combat_log_history.png
+[  62% ] _update_scan_actions | combat_shot.png
+[  63% ] _update_scan_actions | combat_shot_alt.png
+[  63% ] _update_scan_actions | combat_shot_bands_slope.png
+[  64% ] _update_scan_actions | combat_shot_flyout.png
+[  64% ] _update_scan_actions | combat_shot_horizon.png
+[  64% ] _update_scan_actions | combat_shot_low_a.png
+[  65% ] _update_scan_actions | combat_shot_low_b.png
+[  65% ] _update_scan_actions | combat_shot_move_hover.png
+[  66% ] _update_scan_actions | combat_shot_skills.png
+[  66% ] _update_scan_actions | fringe-lineup-4x.png
+[  66% ] _update_scan_actions | fringe-lineup-native.png
+[  67% ] _update_scan_actions | fringe-silhouettes-4x.png
+[  67% ] _update_scan_actions | attack-frames-4x.png
+[  67% ] _update_scan_actions | attack_1.png
+[  68% ] _update_scan_actions | attack_2.png
+[  68% ] _update_scan_actions | attack_3.png
+[  69% ] _update_scan_actions | attack_4.png
+[  69% ] _update_scan_actions | attack_5.png
+[  69% ] _update_scan_actions | attack_6.png
+[  70% ] _update_scan_actions | construction-reference.png
+[  70% ] _update_scan_actions | giant-monitor-lizard-base-8x.png
+[  71% ] _update_scan_actions | giant-monitor-lizard-base.png
+[  71% ] _update_scan_actions | idle-frames-4x.png
+[  71% ] _update_scan_actions | idle_1.png
+[  72% ] _update_scan_actions | idle_2.png
+[  72% ] _update_scan_actions | idle_3.png
+[  73% ] _update_scan_actions | idle_4.png
+[  73% ] _update_scan_actions | idle_5.png
+[  73% ] _update_scan_actions | reference-lineup-4x.png
+[  74% ] _update_scan_actions | silhouette-8x.png
+[  74% ] _update_scan_actions | giant-stag-beetle-base.png
+[  75% ] _update_scan_actions | giant-stag-beetle-base.png
+[  75% ] _update_scan_actions | giant-stag-beetle-base.png
+[  75% ] _update_scan_actions | giant-stag-beetle-base.png
+[  76% ] _update_scan_actions | attack-frames-4x.png
+[  76% ] _update_scan_actions | attack_1.png
+[  77% ] _update_scan_actions | attack_2.png
+[  77% ] _update_scan_actions | attack_3.png
+[  77% ] _update_scan_actions | attack_4.png
+[  78% ] _update_scan_actions | attack_5.png
+[  78% ] _update_scan_actions | attack_6.png
+[  79% ] _update_scan_actions | construction-reference.png
+[  79% ] _update_scan_actions | giant-stag-beetle-base-8x.png
+[  79% ] _update_scan_actions | giant-stag-beetle-base.png
+[  80% ] _update_scan_actions | idle-frames-4x.png
+[  80% ] _update_scan_actions | idle_1.png
+[  81% ] _update_scan_actions | idle_2.png
+[  81% ] _update_scan_actions | idle_3.png
+[  81% ] _update_scan_actions | idle_4.png
+[  82% ] _update_scan_actions | idle_5.png
+[  82% ] _update_scan_actions | reference-lineup-4x.png
+[  83% ] _update_scan_actions | shading-before-after-8x.png
+[  83% ] _update_scan_actions | silhouette-8x.png
+[  83% ] _update_scan_actions | giant-viper-base.png
+[  84% ] _update_scan_actions | attack-frames-4x.png
+[  84% ] _update_scan_actions | attack-frames-4x.png
+[  84% ] _update_scan_actions | attack_1.png
+[  85% ] _update_scan_actions | attack_2.png
+[  85% ] _update_scan_actions | attack_3.png
+[  86% ] _update_scan_actions | attack_4.png
+[  86% ] _update_scan_actions | attack_5.png
+[  86% ] _update_scan_actions | attack_6.png
+[  87% ] _update_scan_actions | construction-reference.png
+[  87% ] _update_scan_actions | giant-viper-base-8x.png
+[  88% ] _update_scan_actions | giant-viper-base.png
+[  88% ] _update_scan_actions | idle-frames-4x.png
+[  88% ] _update_scan_actions | idle_1.png
+[  89% ] _update_scan_actions | idle_2.png
+[  89% ] _update_scan_actions | idle_3.png
+[  90% ] _update_scan_actions | idle_4.png
+[  90% ] _update_scan_actions | idle_5.png
+[  90% ] _update_scan_actions | neck-depth-before-after-6x.png
+[  91% ] _update_scan_actions | reference-lineup-4x.png
+[  91% ] _update_scan_actions | silhouette-8x.png
+[  92% ] _update_scan_actions | attack-frames-4x.png
+[  92% ] _update_scan_actions | attack_1.png
+[  92% ] _update_scan_actions | attack_2.png
+[  93% ] _update_scan_actions | attack_3.png
+[  93% ] _update_scan_actions | attack_4.png
+[  94% ] _update_scan_actions | attack_5.png
+[  94% ] _update_scan_actions | attack_6.png
+[  94% ] _update_scan_actions | construction-reference.png
+[  95% ] _update_scan_actions | foreleg-hidden-8x.png
+[  95% ] _update_scan_actions | grizzly-bear-base-8x.png
+[  96% ] _update_scan_actions | grizzly-bear-base.png
+[  96% ] _update_scan_actions | idle-frames-4x.png
+[  96% ] _update_scan_actions | idle_1.png
+[  97% ] _update_scan_actions | idle_2.png
+[  97% ] _update_scan_actions | idle_3.png
+[  98% ] _update_scan_actions | idle_4.png
+[  98% ] _update_scan_actions | idle_5.png
+[  98% ] _update_scan_actions | reference-lineup-4x.png
+[  99% ] _update_scan_actions | silhouette-8x.png
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started (Re)Importing Assets (180 steps)
+[   0% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Preparing files to reimport...
+[   1% ] reimport | Preparing files to reimport...
+[   1% ] reimport | Preparing files to reimport...
+[   2% ] reimport | Preparing files to reimport...
+[   2% ] reimport | Preparing files to reimport...
+[   3% ] reimport | Preparing files to reimport...
+[   3% ] reimport | Preparing files to reimport...
+[   4% ] reimport | Preparing files to reimport...
+[   4% ] reimport | Preparing files to reimport...
+[   5% ] reimport | Preparing files to reimport...
+[   6% ] reimport | Preparing files to reimport...
+[   6% ] reimport | Preparing files to reimport...
+[   7% ] reimport | Preparing files to reimport...
+[   7% ] reimport | Preparing files to reimport...
+[   8% ] reimport | Preparing files to reimport...
+[   8% ] reimport | Preparing files to reimport...
+[   9% ] reimport | Preparing files to reimport...
+[   9% ] reimport | Preparing files to reimport...
+[  10% ] reimport | Preparing files to reimport...
+[  11% ] reimport | Preparing files to reimport...
+[  11% ] reimport | Preparing files to reimport...
+[  12% ] reimport | Preparing files to reimport...
+[  12% ] reimport | Preparing files to reimport...
+[  13% ] reimport | Preparing files to reimport...
+[  13% ] reimport | Preparing files to reimport...
+[  14% ] reimport | Preparing files to reimport...
+[  14% ] reimport | Preparing files to reimport...
+[  15% ] reimport | Preparing files to reimport...
+[  16% ] reimport | Preparing files to reimport...
+[  16% ] reimport | Preparing files to reimport...
+[  17% ] reimport | Preparing files to reimport...
+[  17% ] reimport | Preparing files to reimport...
+[  18% ] reimport | Preparing files to reimport...
+[  18% ] reimport | Preparing files to reimport...
+[  19% ] reimport | Preparing files to reimport...
+[  19% ] reimport | Preparing files to reimport...
+[  20% ] reimport | Preparing files to reimport...
+[  20% ] reimport | Preparing files to reimport...
+[  21% ] reimport | Preparing files to reimport...
+[  22% ] reimport | Preparing files to reimport...
+[  22% ] reimport | Preparing files to reimport...
+[  23% ] reimport | Preparing files to reimport...
+[  23% ] reimport | Preparing files to reimport...
+[  24% ] reimport | Preparing files to reimport...
+[  24% ] reimport | Preparing files to reimport...
+[  25% ] reimport | Preparing files to reimport...
+[  25% ] reimport | Preparing files to reimport...
+[  26% ] reimport | Preparing files to reimport...
+[  27% ] reimport | Preparing files to reimport...
+[  27% ] reimport | Preparing files to reimport...
+[  28% ] reimport | Preparing files to reimport...
+[  28% ] reimport | Preparing files to reimport...
+[  29% ] reimport | Preparing files to reimport...
+[  29% ] reimport | Preparing files to reimport...
+[  30% ] reimport | Preparing files to reimport...
+[  30% ] reimport | Preparing files to reimport...
+[  31% ] reimport | Preparing files to reimport...
+[  32% ] reimport | Preparing files to reimport...
+[  32% ] reimport | Preparing files to reimport...
+[  33% ] reimport | Preparing files to reimport...
+[  33% ] reimport | Preparing files to reimport...
+[  34% ] reimport | Preparing files to reimport...
+[  34% ] reimport | Preparing files to reimport...
+[  35% ] reimport | Preparing files to reimport...
+[  35% ] reimport | Preparing files to reimport...
+[  36% ] reimport | Preparing files to reimport...
+[  37% ] reimport | Preparing files to reimport...
+[  37% ] reimport | Preparing files to reimport...
+[  38% ] reimport | Preparing files to reimport...
+[  38% ] reimport | Preparing files to reimport...
+[  39% ] reimport | Preparing files to reimport...
+[  39% ] reimport | Preparing files to reimport...
+[  40% ] reimport | Preparing files to reimport...
+[  40% ] reimport | Preparing files to reimport...
+[  41% ] reimport | Preparing files to reimport...
+[  41% ] reimport | Preparing files to reimport...
+[  42% ] reimport | Preparing files to reimport...
+[  43% ] reimport | Preparing files to reimport...
+[  43% ] reimport | Preparing files to reimport...
+[  44% ] reimport | Preparing files to reimport...
+[  44% ] reimport | Preparing files to reimport...
+[  45% ] reimport | Preparing files to reimport...
+[  45% ] reimport | Preparing files to reimport...
+[  46% ] reimport | Preparing files to reimport...
+[  46% ] reimport | Preparing files to reimport...
+[  47% ] reimport | Preparing files to reimport...
+[  48% ] reimport | Preparing files to reimport...
+[  48% ] reimport | Preparing files to reimport...
+[  49% ] reimport | Preparing files to reimport...
+[  49% ] reimport | Preparing files to reimport...
+[  50% ] reimport | Preparing files to reimport...
+[  50% ] reimport | Preparing files to reimport...
+[  51% ] reimport | Preparing files to reimport...
+[  51% ] reimport | Preparing files to reimport...
+[  52% ] reimport | Preparing files to reimport...
+[  53% ] reimport | Preparing files to reimport...
+[  53% ] reimport | Preparing files to reimport...
+[  54% ] reimport | Preparing files to reimport...
+[  54% ] reimport | Preparing files to reimport...
+[  55% ] reimport | Preparing files to reimport...
+[  55% ] reimport | Preparing files to reimport...
+[  56% ] reimport | Preparing files to reimport...
+[  56% ] reimport | Preparing files to reimport...
+[  57% ] reimport | Preparing files to reimport...
+[  58% ] reimport | Preparing files to reimport...
+[  58% ] reimport | Preparing files to reimport...
+[  59% ] reimport | Preparing files to reimport...
+[  59% ] reimport | Preparing files to reimport...
+[  60% ] reimport | Preparing files to reimport...
+[  60% ] reimport | Preparing files to reimport...
+[  61% ] reimport | Preparing files to reimport...
+[  61% ] reimport | Preparing files to reimport...
+[  62% ] reimport | Preparing files to reimport...
+[  62% ] reimport | Preparing files to reimport...
+[  63% ] reimport | Preparing files to reimport...
+[  64% ] reimport | Preparing files to reimport...
+[  64% ] reimport | Preparing files to reimport...
+[  65% ] reimport | Preparing files to reimport...
+[  65% ] reimport | Preparing files to reimport...
+[  66% ] reimport | Preparing files to reimport...
+[  66% ] reimport | Preparing files to reimport...
+[  67% ] reimport | Preparing files to reimport...
+[  67% ] reimport | Preparing files to reimport...
+[  68% ] reimport | Preparing files to reimport...
+[  69% ] reimport | Preparing files to reimport...
+[  69% ] reimport | Preparing files to reimport...
+[  70% ] reimport | Preparing files to reimport...
+[  70% ] reimport | Preparing files to reimport...
+[  71% ] reimport | Preparing files to reimport...
+[  71% ] reimport | Preparing files to reimport...
+[  72% ] reimport | Preparing files to reimport...
+[  72% ] reimport | Preparing files to reimport...
+[  73% ] reimport | Preparing files to reimport...
+[  74% ] reimport | Preparing files to reimport...
+[  74% ] reimport | Preparing files to reimport...
+[  75% ] reimport | Preparing files to reimport...
+[  75% ] reimport | Preparing files to reimport...
+[  76% ] reimport | Preparing files to reimport...
+[  76% ] reimport | Preparing files to reimport...
+[  77% ] reimport | Preparing files to reimport...
+[  77% ] reimport | Preparing files to reimport...
+[  78% ] reimport | Preparing files to reimport...
+[  79% ] reimport | Preparing files to reimport...
+[  79% ] reimport | Preparing files to reimport...
+[  80% ] reimport | Preparing files to reimport...
+[  80% ] reimport | Preparing files to reimport...
+[  81% ] reimport | Preparing files to reimport...
+[  81% ] reimport | Preparing files to reimport...
+[  82% ] reimport | Preparing files to reimport...
+[  82% ] reimport | Preparing files to reimport...
+[  83% ] reimport | Preparing files to reimport...
+[  83% ] reimport | Preparing files to reimport...
+[  84% ] reimport | Preparing files to reimport...
+[  85% ] reimport | Preparing files to reimport...
+[  85% ] reimport | Preparing files to reimport...
+[  86% ] reimport | Preparing files to reimport...
+[  86% ] reimport | Preparing files to reimport...
+[  87% ] reimport | Preparing files to reimport...
+[  87% ] reimport | Preparing files to reimport...
+[  88% ] reimport | Preparing files to reimport...
+[  88% ] reimport | Preparing files to reimport...
+[  89% ] reimport | Preparing files to reimport...
+[  90% ] reimport | Preparing files to reimport...
+[  90% ] reimport | Preparing files to reimport...
+[  91% ] reimport | Preparing files to reimport...
+[  91% ] reimport | Preparing files to reimport...
+[  92% ] reimport | Preparing files to reimport...
+[  92% ] reimport | Preparing files to reimport...
+[  93% ] reimport | Preparing files to reimport...
+[  93% ] reimport | Preparing files to reimport...
+[  94% ] reimport | Preparing files to reimport...
+[  95% ] reimport | Preparing files to reimport...
+[  95% ] reimport | Preparing files to reimport...
+[  96% ] reimport | Preparing files to reimport...
+[  96% ] reimport | Preparing files to reimport...
+[  97% ] reimport | Preparing files to reimport...
+[  97% ] reimport | Preparing files to reimport...
+[  98% ] reimport | Preparing files to reimport...
+[  98% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Executing pre-reimport operations...
+[   0% ] reimport | idle_4.png
+[   0% ] reimport | idle_5.png
+[   1% ] reimport | reference-lineup-4x.png
+[   1% ] reimport | silhouette-8x.png
+[   2% ] reimport | giant-stag-beetle-base.png
+[   2% ] reimport | giant-stag-beetle-base.png
+[   3% ] reimport | giant-stag-beetle-base.png
+[   3% ] reimport | giant-stag-beetle-base.png
+[   4% ] reimport | attack-frames-4x.png
+[   4% ] reimport | attack_1.png
+[   5% ] reimport | attack_2.png
+[   6% ] reimport | attack_3.png
+[   6% ] reimport | attack_4.png
+[   7% ] reimport | attack_5.png
+[   7% ] reimport | attack_6.png
+[   8% ] reimport | construction-reference.png
+[   8% ] reimport | giant-stag-beetle-base-8x.png
+[   9% ] reimport | giant-stag-beetle-base.png
+[   9% ] reimport | idle-frames-4x.png
+[  10% ] reimport | idle_1.png
+[  11% ] reimport | idle_2.png
+[  11% ] reimport | idle_3.png
+[  12% ] reimport | combat_shot_flyout.png
+[  12% ] reimport | combat_shot_horizon.png
+[  13% ] reimport | combat_shot_low_a.png
+[  13% ] reimport | combat_shot_low_b.png
+[  14% ] reimport | combat_shot_move_hover.png
+[  14% ] reimport | combat_shot_skills.png
+[  15% ] reimport | fringe-lineup-4x.png
+[  16% ] reimport | fringe-lineup-native.png
+[  16% ] reimport | fringe-silhouettes-4x.png
+[  17% ] reimport | attack-frames-4x.png
+[  17% ] reimport | attack_1.png
+[  18% ] reimport | attack_2.png
+[  18% ] reimport | attack_3.png
+[  19% ] reimport | attack_4.png
+[  19% ] reimport | attack_5.png
+[  20% ] reimport | attack_6.png
+[  20% ] reimport | construction-reference.png
+[  21% ] reimport | giant-monitor-lizard-base-8x.png
+[  22% ] reimport | giant-monitor-lizard-base.png
+[  22% ] reimport | idle-frames-4x.png
+[  23% ] reimport | idle_1.png
+[  23% ] reimport | idle_2.png
+[  24% ] reimport | idle_3.png
+[  24% ] reimport | neck-depth-before-after-6x.png
+[  25% ] reimport | reference-lineup-4x.png
+[  25% ] reimport | silhouette-8x.png
+[  26% ] reimport | attack-frames-4x.png
+[  27% ] reimport | attack_1.png
+[  27% ] reimport | attack_2.png
+[  28% ] reimport | attack_3.png
+[  28% ] reimport | attack_4.png
+[  29% ] reimport | attack_5.png
+[  29% ] reimport | attack_6.png
+[  30% ] reimport | construction-reference.png
+[  30% ] reimport | foreleg-hidden-8x.png
+[  31% ] reimport | grizzly-bear-base-8x.png
+[  32% ] reimport | grizzly-bear-base.png
+[  32% ] reimport | idle-frames-4x.png
+[  33% ] reimport | idle_1.png
+[  33% ] reimport | idle_2.png
+[  34% ] reimport | idle_3.png
+[  34% ] reimport | idle_4.png
+[  35% ] reimport | idle_5.png
+[  35% ] reimport | reference-lineup-4x.png
+[  36% ] reimport | silhouette-8x.png
+[  37% ] reimport | idle_4.png
+[  37% ] reimport | idle_5.png
+[  38% ] reimport | reference-lineup-4x.png
+[  38% ] reimport | shading-before-after-8x.png
+[  39% ] reimport | silhouette-8x.png
+[  39% ] reimport | giant-viper-base.png
+[  40% ] reimport | attack-frames-4x.png
+[  40% ] reimport | attack-frames-4x.png
+[  41% ] reimport | attack_1.png
+[  41% ] reimport | attack_2.png
+[  42% ] reimport | attack_3.png
+[  43% ] reimport | attack_4.png
+[  43% ] reimport | attack_5.png
+[  44% ] reimport | attack_6.png
+[  44% ] reimport | construction-reference.png
+[  45% ] reimport | giant-viper-base-8x.png
+[  45% ] reimport | giant-viper-base.png
+[  46% ] reimport | idle-frames-4x.png
+[  46% ] reimport | idle_1.png
+[  47% ] reimport | idle_2.png
+[  48% ] reimport | idle_3.png
+[  48% ] reimport | idle_4.png
+[  49% ] reimport | idle_5.png
+[  49% ] reimport | idle_5.png
+[  50% ] reimport | attack_1.png
+[  50% ] reimport | attack_2.png
+[  51% ] reimport | attack_3.png
+[  51% ] reimport | attack_4.png
+[  52% ] reimport | attack_5.png
+[  53% ] reimport | attack_6.png
+[  53% ] reimport | base.png
+[  54% ] reimport | idle_1.png
+[  54% ] reimport | idle_2.png
+[  55% ] reimport | idle_3.png
+[  55% ] reimport | idle_4.png
+[  56% ] reimport | idle_5.png
+[  56% ] reimport | attack_1.png
+[  57% ] reimport | attack_2.png
+[  58% ] reimport | attack_3.png
+[  58% ] reimport | attack_4.png
+[  59% ] reimport | attack_5.png
+[  59% ] reimport | attack_6.png
+[  60% ] reimport | base.png
+[  60% ] reimport | idle_1.png
+[  61% ] reimport | idle_2.png
+[  61% ] reimport | attack_1.png
+[  62% ] reimport | attack_2.png
+[  62% ] reimport | attack_3.png
+[  63% ] reimport | attack_4.png
+[  64% ] reimport | attack_5.png
+[  64% ] reimport | attack_6.png
+[  65% ] reimport | base.png
+[  65% ] reimport | idle_1.png
+[  66% ] reimport | idle_2.png
+[  66% ] reimport | idle_3.png
+[  67% ] reimport | idle_4.png
+[  67% ] reimport | idle_5.png
+[  68% ] reimport | attack_1.png
+[  69% ] reimport | attack_2.png
+[  69% ] reimport | attack_3.png
+[  70% ] reimport | attack_4.png
+[  70% ] reimport | attack_5.png
+[  71% ] reimport | attack_6.png
+[  71% ] reimport | base.png
+[  72% ] reimport | idle_1.png
+[  72% ] reimport | idle_2.png
+[  73% ] reimport | idle_3.png
+[  74% ] reimport | idle_4.png
+[  74% ] reimport | attack_5.png
+[  75% ] reimport | attack_6.png
+[  75% ] reimport | construction-reference.png
+[  76% ] reimport | dire-wolf-base-8x.png
+[  76% ] reimport | dire-wolf-base.png
+[  77% ] reimport | idle-frames-4x.png
+[  77% ] reimport | idle_1.png
+[  78% ] reimport | idle_2.png
+[  79% ] reimport | idle_3.png
+[  79% ] reimport | idle_4.png
+[  80% ] reimport | idle_5.png
+[  80% ] reimport | leg-shading-before-after-support-6x.png
+[  81% ] reimport | near-legs-hidden.png
+[  81% ] reimport | reference-lineup-4x.png
+[  82% ] reimport | silhouette-8x.png
+[  82% ] reimport | combat_dice_roll.png
+[  83% ] reimport | combat_log_compact.png
+[  83% ] reimport | combat_log_entry_expanded.png
+[  84% ] reimport | combat_log_history.png
+[  85% ] reimport | combat_shot.png
+[  85% ] reimport | combat_shot_alt.png
+[  86% ] reimport | combat_shot_bands_slope.png
+[  86% ] reimport | idle_3.png
+[  87% ] reimport | idle_4.png
+[  87% ] reimport | idle_5.png
+[  88% ] reimport | attack_1.png
+[  88% ] reimport | attack_2.png
+[  89% ] reimport | attack_3.png
+[  90% ] reimport | attack_4.png
+[  90% ] reimport | attack_5.png
+[  91% ] reimport | attack_6.png
+[  91% ] reimport | base.png
+[  92% ] reimport | idle_1.png
+[  92% ] reimport | idle_2.png
+[  93% ] reimport | idle_3.png
+[  93% ] reimport | idle_4.png
+[  94% ] reimport | idle_5.png
+[  95% ] reimport | dire-wolf-base-8x.png
+[  95% ] reimport | dire-wolf-base.png
+[  96% ] reimport | reference-lineup-4x.png
+[  96% ] reimport | attack-frames-4x.png
+[  97% ] reimport | attack_1.png
+[  97% ] reimport | attack_2.png
+[  98% ] reimport | attack_3.png
+[  98% ] reimport | attack_4.png
+[  99% ] reimport | Finalizing Asset Import...
+[ DONE ] reimport
+
+[   0% ] reimport | Started (Re)Importing Assets (180 steps)
+[   0% ] reimport | Executing post-reimport operations...
+[ DONE ] reimport
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[  33% ] loading_editor_layout | Reopening scenes...
+[  50% ] loading_editor_layout | Loading central editor layout...
+[  66% ] loading_editor_layout | Loading plugin window layout...
+[  83% ] loading_editor_layout | Editor layout ready.
+[ DONE ] loading_editor_layout
+
+ERROR: Cannot save file 'C:/Users/Midge/AppData/Roaming/Godot/editor_settings-4.6.tres'.
+   at: save (scene/resources/resource_format_text.cpp:1756)
+ERROR: Error saving editor settings to C:/Users/Midge/AppData/Roaming/Godot/editor_settings-4.6.tres
+   at: save (editor/settings/editor_settings.cpp:1404)

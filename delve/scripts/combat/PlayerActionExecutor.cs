@@ -27,6 +27,7 @@ namespace Delve.Combat;
 public sealed class PlayerActionExecutor
 {
     private readonly MovementActions _movement;
+    private readonly MovementPlanner _planner;
     private readonly StrikeActions _strikes;
     private readonly SpellActions _spells;
     private readonly SkillActions _skills;
@@ -40,6 +41,7 @@ public sealed class PlayerActionExecutor
         _grid = grid;
         var events = new BattleEventEmitter(runner);
         _movement = new MovementActions(grid, events);
+        _planner = new MovementPlanner(grid, _movement);
         _strikes = new StrikeActions(events);
         _spells = new SpellActions(grid, events, resolveSpell);
         _skills = new SkillActions(grid, events, _movement);
@@ -58,6 +60,13 @@ public sealed class PlayerActionExecutor
     internal SkillActions Skills => _skills;
 
     // ---------------------------------------------------------------- Movement
+
+    /// <summary>
+    /// The banded smart-move plan the board shows while no action is selected: every tile the
+    /// character can end on with its remaining actions, Step tiles included. See <see cref="MovePlan"/>.
+    /// </summary>
+    public MovePlan GetMovePlan(ICharacter character)
+        => _planner.Plan(character);
 
     /// <summary>Tiles reachable with a single Stride (unoccupied, creature fits).</summary>
     public HashSet<PF2eVec> GetReachableTiles(ICharacter character)

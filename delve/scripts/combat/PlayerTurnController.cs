@@ -14,7 +14,12 @@ namespace Delve.Combat;
 /// Plain-C# state machine translating player intents (from input / action bar) into validated
 /// executor commands, and raising view-model events the presentation layer renders. Owns no Godot
 /// types. Engine types (ICharacter, positions) are internal; everything crossing to UI is a Delve
-/// view model (<see cref="ActionBarState"/>, <see cref="AttackPreviewView"/>).
+/// view model (<see cref="ActionBarState"/>, <see cref="AttackPreviewView"/>, <see cref="MoveHoverView"/>).
+///
+/// Idle owns movement: while no action is selected the board shows the <see cref="MovePlan"/>
+/// bands, hovering a band tile previews the route and cost, and clicking one runs the plan's legs
+/// (a Step, or one Stride per action). Selecting Strike / a spell / a skill hides the bands for
+/// that mode's targets; Cancel or a finished action returns to Idle and shows them again.
 ///
 /// After every executed action it re-checks actions remaining and auto-requests end-of-turn at 0.
 /// </summary>
@@ -26,15 +31,15 @@ public sealed class PlayerTurnController
     private PlayerTurnMode _mode = PlayerTurnMode.Idle;
     private bool _busy;
 
+    /// <summary>The Idle-mode bands; null whenever they are hidden (busy, targeting, no turn).</summary>
+    private MovePlan? _plan;
     private HashSet<PF2eVec> _moveTiles = new();
-    private HashSet<PF2eVec> _stepTiles = new();
     private readonly Dictionary<PF2eVec, ICharacter> _strikeTargets = new();
 
     // Pending spell/skill selection state.
     private string _pendingSpellId = "";
     private int _pendingVariant = -1;
     private string _pendingSkillId = "";
-    private bool _shieldedStride;
     private HashSet<PF2eVec> _spellTiles = new();
     private HashSet<PF2eVec> _skillTiles = new();
 
@@ -50,6 +55,12 @@ public sealed class PlayerTurnController
 
     // ---------------------------------------------------------------- View events
     public event Action<IReadOnlyCollection<PF2eVec>, HighlightKind>? HighlightsChanged;
+    /// <summary>The Idle movement bands (empty when hidden).</summary>
+    public event Action<IReadOnlyDictionary<PF2eVec, MoveOption>>? MoveBandsChanged;
+    /// <summary>Cost readout of the hovered band tile (null when the cursor is off the bands).</summary>
+    public event Action<MoveHoverView?>? MoveHoverChanged;
+    /// <summary>The tile under the cursor in every mode (null off-board), for the board cursor.</summary>
+    public event Action<PF2eVec?>? HoverTileChanged;
     public event Action<IReadOnlyList<PF2eVec>?>? PathPreviewChanged;
     public event Action<AttackPreviewView?>? AttackPreviewChanged;
     /// <summary>Tiles an area template currently covers (hover preview during SelectingAreaOrigin).</summary>
@@ -67,6 +78,7 @@ public sealed class PlayerTurnController
         SetMode(PlayerTurnMode.Idle);
         ClearTransient();
         PublishState();
+        ShowIdleBands();
     }
 
     public void EndControl()
@@ -79,32 +91,14 @@ public sealed class PlayerTurnController
 
     // ---------------------------------------------------------------- Intents
 
-    public void BeginMove()
-    {
-        if (!Ready()) return;
-        _moveTiles = _exec.GetReachableTiles(_current!);
-        if (_moveTiles.Count == 0) return;
-        SetMode(PlayerTurnMode.SelectingMove);
-        HighlightsChanged?.Invoke(_moveTiles, HighlightKind.Move);
-        PathPreviewChanged?.Invoke(null);
-    }
-
-    public void BeginStep()
-    {
-        if (!Ready()) return;
-        _stepTiles = _exec.GetStepTiles(_current!);
-        if (_stepTiles.Count == 0) return;
-        SetMode(PlayerTurnMode.SelectingStep);
-        HighlightsChanged?.Invoke(_stepTiles, HighlightKind.Step);
-    }
-
     public void BeginStrike()
     {
         if (!Ready()) return;
-        _strikeTargets.Clear();
+        ClearTransient();
         foreach (var t in _exec.GetStrikeTargets(_current!))
-            _strikeTargets[t.GridPosition] = t;
-        if (_strikeTargets.Count == 0) return;
+            foreach (var tile in CreatureTargetTiles.For(t))
+                _strikeTargets[tile] = t;
+        if (_strikeTargets.Count == 0) { Cancel(); return; }
         SetMode(PlayerTurnMode.SelectingStrike);
         HighlightsChanged?.Invoke(new List<PF2eVec>(_strikeTargets.Keys), HighlightKind.StrikeTarget);
     }
@@ -170,7 +164,6 @@ public sealed class PlayerTurnController
         {
             _moveTiles = _exec.GetShieldedStrideTiles(_current!);
             if (_moveTiles.Count == 0) { Cancel(); return; }
-            _shieldedStride = true;
             SetMode(PlayerTurnMode.SelectingMove);
             HighlightsChanged?.Invoke(_moveTiles, HighlightKind.Move);
             PathPreviewChanged?.Invoke(null);
@@ -201,14 +194,30 @@ public sealed class PlayerTurnController
         SetMode(PlayerTurnMode.Idle);
         ClearTransient();
         PublishState();
+        ShowIdleBands();
     }
 
     public void TileHovered(PF2eVec? pos)
     {
+        HoverTileChanged?.Invoke(pos);
         if (_current == null) return;
 
         switch (_mode)
         {
+            case PlayerTurnMode.Idle:
+                // The plan is null while busy or off-turn, so a hover mid-walk previews nothing.
+                if (pos.HasValue && _plan != null && _plan.Options.TryGetValue(pos.Value, out var option))
+                {
+                    PathPreviewChanged?.Invoke(_plan.PathTo(pos.Value, out _));
+                    MoveHoverChanged?.Invoke(new MoveHoverView(option.Actions, option.Kind));
+                }
+                else
+                {
+                    PathPreviewChanged?.Invoke(null);
+                    MoveHoverChanged?.Invoke(null);
+                }
+                break;
+
             case PlayerTurnMode.SelectingMove:
                 if (pos.HasValue && _moveTiles.Contains(pos.Value))
                     PathPreviewChanged?.Invoke(_exec.GetPathTo(_current, pos.Value));
@@ -218,7 +227,7 @@ public sealed class PlayerTurnController
 
             case PlayerTurnMode.SelectingStrike:
                 if (pos.HasValue && _strikeTargets.TryGetValue(pos.Value, out var target))
-                    AttackPreviewChanged?.Invoke(BuildPreview(_current, target));
+                    AttackPreviewChanged?.Invoke(ActionBarStateBuilder.BuildPreview(_exec, _current, target));
                 else
                     AttackPreviewChanged?.Invoke(null);
                 break;
@@ -238,19 +247,20 @@ public sealed class PlayerTurnController
 
         switch (_mode)
         {
-            case PlayerTurnMode.SelectingMove:
-                if (_moveTiles.Contains(pos))
+            case PlayerTurnMode.Idle:
+                if (_plan != null && _plan.PathTo(pos, out var legs) != null)
                 {
-                    if (_shieldedStride)
-                        RunAction(() => _exec.ExecuteShieldedStride(_current!, pos));
+                    var actor = _current!;
+                    if (_plan.Options[pos].Kind == MoveKind.Step)
+                        RunAction(() => _exec.ExecuteStep(actor, pos));
                     else
-                        RunAction(() => _exec.ExecuteStride(_current!, pos));
+                        RunAction(() => WalkLegs(actor, legs));
                 }
                 break;
 
-            case PlayerTurnMode.SelectingStep:
-                if (_stepTiles.Contains(pos))
-                    RunAction(() => _exec.ExecuteStep(_current!, pos));
+            case PlayerTurnMode.SelectingMove: // Shielded Stride
+                if (_moveTiles.Contains(pos))
+                    RunAction(() => _exec.ExecuteShieldedStride(_current!, pos));
                 break;
 
             case PlayerTurnMode.SelectingStrike:
@@ -285,6 +295,28 @@ public sealed class PlayerTurnController
     }
 
     // ---------------------------------------------------------------- Execution
+
+    /// <summary>
+    /// Stride one leg at a time to the plan's leg ends. The lifecycle checks sit BETWEEN legs, in
+    /// the controller rather than the executor: a Reactive Strike can drop the mover on leg one, the
+    /// turn can be handed to the AI, or the encounter can be torn down while a leg animates, and
+    /// none of those may start the next Stride. A leg that ends short (a reaction stopped the walk)
+    /// ends the chain too, since the next leg's route assumed the planned tile.
+    /// </summary>
+    private async Task<bool> WalkLegs(ICharacter actor, IReadOnlyList<PF2eVec> legs)
+    {
+        bool moved = false;
+        foreach (var leg in legs)
+        {
+            if (CancellationToken.IsCancellationRequested || !ReferenceEquals(_current, actor)) break;
+            if (actor.Health?.IsAlive != true || (actor.Actions?.TotalActionsRemaining ?? 0) <= 0) break;
+
+            if (!await _exec.ExecuteStride(actor, leg)) break;
+            moved = true;
+            if (actor.GridPosition != leg) break;
+        }
+        return moved;
+    }
 
     /// <summary>
     /// Run one action to completion, then republish the bar. <c>async void</c> because it is called
@@ -326,6 +358,8 @@ public sealed class PlayerTurnController
 
         if (remaining <= 0)
             EndTurnRequested?.Invoke();
+        else
+            ShowIdleBands();
     }
 
     // ---------------------------------------------------------------- Helpers
@@ -340,17 +374,28 @@ public sealed class PlayerTurnController
         ModeChanged?.Invoke(mode);
     }
 
+    /// <summary>Publish the Idle bands when the actor can act, else an empty set.</summary>
+    private void ShowIdleBands()
+    {
+        _plan = Ready() ? _exec.GetMovePlan(_current!) : null;
+        MoveBandsChanged?.Invoke(_plan?.Options ?? EmptyOptions);
+    }
+
+    private static readonly IReadOnlyDictionary<PF2eVec, MoveOption> EmptyOptions =
+        new Dictionary<PF2eVec, MoveOption>();
+
     private void ClearTransient()
     {
+        _plan = null;
         _moveTiles = new();
-        _stepTiles = new();
         _strikeTargets.Clear();
         _spellTiles = new();
         _skillTiles = new();
         _pendingSpellId = "";
         _pendingVariant = -1;
         _pendingSkillId = "";
-        _shieldedStride = false;
+        MoveBandsChanged?.Invoke(EmptyOptions);
+        MoveHoverChanged?.Invoke(null);
         HighlightsChanged?.Invoke(Array.Empty<PF2eVec>(), HighlightKind.None);
         PathPreviewChanged?.Invoke(null);
         AttackPreviewChanged?.Invoke(null);
@@ -360,71 +405,6 @@ public sealed class PlayerTurnController
     private void PublishState()
     {
         if (_current == null) return;
-        int actions = _current.Actions?.TotalActionsRemaining ?? 0;
-
-        bool canMove = actions > 0 && _exec.GetReachableTiles(_current).Count > 0;
-        bool canStep = actions > 0 && _exec.GetStepTiles(_current).Count > 0;
-        bool canStrike = actions > 0 && _exec.GetStrikeTargets(_current).Count > 0;
-        bool canRaiseShield = actions > 0 && _current.Equipment?.CanRaiseShield() == true;
-
-        var inspect = _exec.GetUnitInspect(_current.GridPosition);
-
-        ButtonStateChanged?.Invoke(new ActionBarState
-        {
-            ActorName = _current.Name,
-            ActionsRemaining = actions,
-            MaxActions = _current.Actions?.MaxBaseActions ?? 3,
-            CanMove = canMove,
-            CanStep = canStep,
-            CanStrike = canStrike,
-            CanRaiseShield = canRaiseShield,
-            Hp = inspect?.Hp ?? 0,
-            MaxHp = inspect?.MaxHp ?? 0,
-            Ac = inspect?.Ac ?? 0,
-            MoveDisabledReason = DisabledReason(canMove, actions, "No reachable tiles"),
-            StepDisabledReason = DisabledReason(canStep, actions, "No adjacent tiles"),
-            StrikeDisabledReason = DisabledReason(canStrike, actions, "No targets in reach"),
-            ShieldDisabledReason = canRaiseShield ? null : _exec.GetRaiseShieldDisabledReason(_current),
-            Map = _exec.GetCurrentMap(_current),
-            SpellEntries = _current.Spellcasting != null
-                ? _exec.GetSpellEntries(_current)
-                : System.Array.Empty<SpellEntryView>(),
-            SkillEntries = _exec.GetSkillEntries(_current),
-        });
-    }
-
-    /// <summary>Common "no actions left" reason wins over the button-specific one; null when enabled.</summary>
-    private static string? DisabledReason(bool can, int actionsRemaining, string specificReason)
-        => can ? null : actionsRemaining <= 0 ? "No actions remaining" : specificReason;
-
-    /// <summary>
-    /// Build the hover attack preview, masked for what the bestiary knows about the target. Until
-    /// Recall Knowledge reveals that species' AC, the DEFENDER-derived numbers (its AC, and the hit
-    /// and crit odds computed against it) render "?"; everything the attacker brings — weapon,
-    /// attack bonus, damage formula, off-guard — stays visible, because the player already knows
-    /// their own character sheet. Gating lives here, in plain C#; the action bar just draws text.
-    /// </summary>
-    private AttackPreviewView? BuildPreview(ICharacter attacker, ICharacter target)
-    {
-        AttackPreviewData? data = _exec.GetAttackPreview(attacker, target);
-        if (data == null) return null;
-
-        bool acKnown = PlayerActionExecutor.IsCreatureFieldKnown(
-            data.TargetCreatureId, CreatureKnowledgeField.AC);
-        int hit = (int)Math.Round(data.HitChance);
-        int crit = (int)Math.Round(data.CritChance);
-
-        return new AttackPreviewView
-        {
-            AttackerName = data.AttackerName,
-            TargetName = data.TargetName,
-            WeaponName = data.WeaponName,
-            TotalAttackBonus = data.TotalAttackBonus,
-            DamageFormula = data.DamageFormula ?? "",
-            TargetOffGuard = data.TargetIsOffGuard,
-            TargetAcText = acKnown ? data.TargetAC.ToString() : "?",
-            HitChanceText = acKnown ? $"{hit}%" : "?%",
-            CritChanceText = acKnown ? $"{crit}%" : "?%",
-        };
+        ButtonStateChanged?.Invoke(ActionBarStateBuilder.Build(_exec, _current));
     }
 }

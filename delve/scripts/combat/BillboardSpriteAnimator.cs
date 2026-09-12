@@ -11,7 +11,7 @@ namespace Delve.Combat;
 ///
 /// Two sheet layouts are supported. A HERO uses a baked Mana Seed page (see <see cref="ManaSeedSheet"/>)
 /// with 4 facing rows (S/N/E/W), one static stand frame while idle and a 6-frame walk cycle while
-/// moving. An ENEMY uses a folder of side-view idle frames that cycle continuously and flip
+/// moving. An ENEMY uses its authored SpriteFrames animation library and flips
 /// horizontally to match the facing as the camera sees it.
 ///
 /// The owner sets <see cref="Facing"/> in grid space; this node projects it onto the camera ground
@@ -30,18 +30,9 @@ public partial class BillboardSpriteAnimator : Sprite3D
 
     // --- Sizing (1 tile = 1 m). ---
     private const float HeroPixelSize = 0.05f;     // ~30 px chibi body -> ~1.5 m
-    private const float EnemyPixelSize = 0.02f;    // -> ~0.7 m tall rat
-    private const float EnemyFrameTime = 1f / 6f;  // enemy idle fps
-    private const int EnemyIdleFrames = 8;
-
-    /// <summary>Sprite height in pixels used when the enemy frames fail to load.</summary>
-    private const int EnemyFallbackHeightPx = 44;
-
-    /// <summary>How far an enemy sprite sinks into the ground, so it stands on the tile.</summary>
-    private const float EnemySink = 0.08f;
-
     private bool _isHero;
-    private Texture2D[] _idleFrames = System.Array.Empty<Texture2D>();
+    private EnemySpriteDefinition? _enemyDefinition;
+    private readonly EnemyAnimationPlayer _enemyAnimation = new();
 
     /// <summary>Hero movement page, restored when a swing clip ends. Null for enemies.</summary>
     private Texture2D? _walkSheet;
@@ -88,9 +79,15 @@ public partial class BillboardSpriteAnimator : Sprite3D
         _moving = moving;
         _animFrame = 0;
         _animTimer = 0f;
+        if (!_isHero && _enemyDefinition != null && !Frozen && !_enemyAttacking)
+            PlayEnemyAnimation(moving ? _enemyDefinition.MoveAnimation : _enemyDefinition.IdleAnimation);
     }
 
-    public override void _Ready() => PixelSprite.Configure(this);
+    public override void _Ready()
+    {
+        PixelSprite.Configure(this);
+        ConfigureSilhouette();
+    }
 
     // ------------------------------------------------------------------ Configure
 
@@ -98,7 +95,17 @@ public partial class BillboardSpriteAnimator : Sprite3D
     /// character feet stand at the node origin.</summary>
     public void ConfigureHero(string sheetFolder)
     {
+        Frozen = false;
+        _moving = false;
+        _animFrame = 0;
+        _animTimer = 0;
         _isHero = true;
+        _enemyDefinition = null;
+        _enemyAnimation.Clear();
+        _enemyAttacking = false;
+        _swing.Stop();
+        FlipH = false;
+        Offset = Vector2.Zero;
         _walkSheet = GD.Load<Texture2D>(ManaSeedSheet.SheetPath(sheetFolder, ManaSeedSheet.WalkPage));
         // The swing page is a plain Texture write away from the walk page (every Mana Seed page
         // shares the 8x8 anatomy and facing-row order), so it only has to be resident.
@@ -112,27 +119,74 @@ public partial class BillboardSpriteAnimator : Sprite3D
         Position = new Vector3(0f, centerAboveFeet, 0f);
     }
 
-    /// <summary>Set up a side-view enemy from a folder of idle_1 to idle_8 frames.</summary>
+    /// <summary>Load the folder's authored animation and placement resource.</summary>
     public void ConfigureEnemy(string folder)
+        => ConfigureEnemy(GD.Load<EnemySpriteDefinition>($"{folder}/sprite.tres"));
+
+    public void ConfigureEnemy(EnemySpriteDefinition? definition)
     {
+        Frozen = false;
+        _moving = false;
         _isHero = false;
-        LoadIdleFrames(folder);
-        if (_idleFrames.Length > 0) Texture = _idleFrames[0];
-        PixelSize = EnemyPixelSize;
-        float h = (Texture?.GetHeight() ?? EnemyFallbackHeightPx) * EnemyPixelSize;
-        BodyHeight = h;
-        Position = new Vector3(0f, h * 0.5f - EnemySink, 0f);
+        _walkSheet = null;
+        _swingSheet = null;
+        _swing.Stop();
+        _enemyAnimation.Clear();
+        _enemyAttacking = false;
+        _enemyDefinition = definition;
+        Texture = null;
+        Hframes = Vframes = 1;
+        Frame = 0;
+        BodyHeight = 0;
+        if (definition != null) PixelSize = definition.PixelSize;
+        if (definition == null || definition.PixelSize <= 0 || !PlayEnemyAnimation(definition.IdleAnimation))
+        {
+            GD.PushError("Enemy sprite definition requires a valid idle animation and positive pixel size.");
+            return;
+        }
+        PixelSize = definition.PixelSize;
+        ApplyEnemyTexture();
+        // Transparent headroom is canvas padding, not body height. Use the idle bounds once so
+        // attack poses cannot bounce the HP bar and name.
+        BodyHeight = ((Texture?.GetHeight() ?? 0) - definition.FootMarginPixels) * definition.PixelSize;
+        using var image = Texture?.GetImage();
+        if (image != null && Texture != null)
+            BodyHeight = (Texture.GetHeight() - definition.FootMarginPixels - image.GetUsedRect().Position.Y)
+                * definition.PixelSize;
+        ApplyFacing();
     }
 
-    private void LoadIdleFrames(string folder)
+    /// <summary>Play any authored clip. Missing movement clips fall back to the authored idle.</summary>
+    public bool PlayEnemyAnimation(StringName name)
     {
-        var frames = new System.Collections.Generic.List<Texture2D>(EnemyIdleFrames);
-        for (int i = 1; i <= EnemyIdleFrames; i++)
-        {
-            var tex = GD.Load<Texture2D>($"{folder}/idle_{i}.png");
-            if (tex != null) frames.Add(tex);
-        }
-        _idleFrames = frames.ToArray();
+        if (_isHero || Frozen || _enemyDefinition == null || _enemyAttacking) return false;
+        var definition = _enemyDefinition;
+        if (definition.Frames == null) return false;
+        if (!definition.Frames.HasAnimation(name) || definition.Frames.GetFrameCount(name) == 0)
+            name = definition.IdleAnimation;
+        if (_enemyAnimation.Animation == name && _enemyAnimation.Playing) return true;
+        var previous = Texture;
+        if (!_enemyAnimation.Play(definition.Frames, name)) return false;
+        if (previous?.GetHeight() != _enemyAnimation.Texture?.GetHeight()) ApplyEnemyTexture();
+        else Texture = _enemyAnimation.Texture;
+        return true;
+    }
+
+    private void ApplyEnemyTexture()
+    {
+        Texture = _enemyAnimation.Texture;
+        if (Texture == null || _enemyDefinition == null) return;
+        float margin = _enemyDefinition.FootMarginPixels;
+        Position = new Vector3(0, (Texture.GetHeight() * 0.5f - margin) * _enemyDefinition.PixelSize, 0);
+        ApplyGroundAnchor();
+    }
+
+    private void ApplyGroundAnchor()
+    {
+        float anchor = _enemyDefinition?.GroundAnchorX ?? -1f;
+        float offset = Texture != null && anchor >= 0f ? Texture.GetWidth() * 0.5f - anchor : 0f;
+        // Sprite3D.Offset is in billboard pixel coordinates; FlipH flips UVs, not this offset.
+        Offset = new Vector2(FlipH ? -offset : offset, 0f);
     }
 
     // ------------------------------------------------------------------ Per-frame
@@ -140,7 +194,27 @@ public partial class BillboardSpriteAnimator : Sprite3D
     public override void _Process(double delta)
     {
         // Standalone (F6) blockout: no sheet configured, so there is nothing to animate.
-        if (_walkSheet == null && _idleFrames.Length == 0) return;
+        if (Frozen) return;
+        if (!_isHero)
+        {
+            if (_enemyDefinition == null) return;
+            var previous = _enemyAnimation.Texture;
+            _enemyAnimation.Tick(delta);
+            if (_enemyAttacking && !_enemyAnimation.Playing)
+            {
+                _enemyAttacking = false;
+                PlayEnemyAnimation(_moving ? _enemyDefinition.MoveAnimation : _enemyDefinition.IdleAnimation);
+            }
+            if (_enemyAnimation.Texture != previous)
+            {
+                // Same-size frames must not cancel presenter position effects.
+                if (_enemyAnimation.Texture?.GetHeight() != previous?.GetHeight()) ApplyEnemyTexture();
+                else Texture = _enemyAnimation.Texture;
+            }
+            ApplyFacing();
+            return;
+        }
+        if (_walkSheet == null) return;
 
         // A hero swing clip outranks walk and stand until it finishes. The frame loop below would
         // otherwise overwrite the clip cell with a stand or walk cell every tick. The presenter paces
@@ -159,28 +233,15 @@ public partial class BillboardSpriteAnimator : Sprite3D
         }
 
         // Animation clock: heroes only animate while walking; enemies idle-cycle continuously.
-        float frameTime = _isHero ? ManaSeedSheet.WalkFrameTime : EnemyFrameTime;
+        float frameTime = ManaSeedSheet.WalkFrameTime;
         _animTimer += (float)delta;
         if (_animTimer >= frameTime)
         {
             _animTimer -= frameTime;
-            _animFrame = (_animFrame + 1) % AnimFrameCount;
-            if (!Frozen) AdvanceAnimFrame();
+            _animFrame = (_animFrame + 1) % ManaSeedSheet.WalkFrames;
         }
 
         if (!Frozen) ApplyFacing();
-    }
-
-    /// <summary>Frames in the running cycle: the hero walk cycle, or the loaded enemy idle frames.</summary>
-    private int AnimFrameCount => _isHero ? ManaSeedSheet.WalkFrames : Mathf.Max(_idleFrames.Length, 1);
-
-    private void AdvanceAnimFrame()
-    {
-        // Hero frames are fully resolved in ApplyFacing (stand against walk); nothing to do here.
-        if (!_isHero && _idleFrames.Length > 0)
-        {
-            Texture = _idleFrames[_animFrame];
-        }
     }
 
     /// <summary>The current 3D camera of the viewport, resolved on demand and kept until it goes away.</summary>
@@ -237,8 +298,10 @@ public partial class BillboardSpriteAnimator : Sprite3D
         {
             // Enemy art faces screen-right by default; flip when logical facing points screen-left.
             float sx = ScreenFacing().X;
-            if (sx < -0.1f) FlipH = true;
-            else if (sx > 0.1f) FlipH = false;
+            bool facesRight = _enemyDefinition?.FacesRight ?? true;
+            if (sx < -0.1f) FlipH = facesRight;
+            else if (sx > 0.1f) FlipH = !facesRight;
+            ApplyGroundAnchor();
         }
     }
 

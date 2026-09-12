@@ -46,6 +46,9 @@ public sealed class EngineEncounterScope : IDisposable
     private readonly Func<ICharacter, PF2eVec, string?> _validateStep;
     private readonly Func<ICharacter, AIProfile, AIProfile>? _aiProfile;
 
+    /// <summary>The spatial query object this scope installed for the planner.</summary>
+    public ICombatQueries CombatQueries { get; }
+
     // Grid delegates: BattleGrid.WireDelegates builds closures over the grid internally, so the scope
     // reads back what it installed instead of building them itself.
     private readonly Func<PF2eVec, int> _tileElevation;
@@ -117,6 +120,11 @@ public sealed class EngineEncounterScope : IDisposable
         if (_aiProfile != null)
             AIContextBuilder.ProfileOverride = _aiProfile;
 
+        // Flanking and reactive-strike exposure for the planner. Without it the AI cannot tell a
+        // flanking tile from any other, and walks through free swings.
+        CombatQueries = new DelveCombatQueries();
+        AIContextBuilder.CombatQueries = CombatQueries;
+
         // Claimed last: from here on this scope is the owner, and an older scope's Dispose is a no-op
         // for every shared static below.
         _live = this;
@@ -157,6 +165,9 @@ public sealed class EngineEncounterScope : IDisposable
 
         if (_aiProfile != null && ReferenceEquals(AIContextBuilder.ProfileOverride, _aiProfile))
             AIContextBuilder.ProfileOverride = null!;
+
+        if (ReferenceEquals(AIContextBuilder.CombatQueries, CombatQueries))
+            AIContextBuilder.CombatQueries = null!;
 
         _spatial.Dispose();
 

@@ -114,6 +114,7 @@ public partial class ElevationMoveSpike : SpikeBase
 
             var grid = MapLayoutGridBuilder.Build(layout);
             mapsGenerated++;
+            if (i == 0) CheckMarkerConformance(layout);
 
             var movement = new MovementActions(grid, new BattleEventEmitter(new BattleRunner()));
 
@@ -210,6 +211,68 @@ public partial class ElevationMoveSpike : SpikeBase
             engineStepAccepted == 0);
         Check($"(b) engine StepAction allows open edges ({engineFalsePositives} false positives)",
             engineFalsePositives == 0);
+    }
+
+    /// <summary>
+    /// (d) Board markers. Every overlay shape (fill, route dot, four boundary strips) placed on a
+    /// sloped tile must be a conforming mesh whose vertices lie ON the tile's sampled surface, at
+    /// the overlay lift, inside the shape's rectangle — not a flat quad lifted to the centre height.
+    /// A flat board must keep the shared flat quad. Proved on the first generated map's slopes.
+    /// </summary>
+    private void CheckMarkerConformance(MapLayout layout)
+    {
+        const float scale = 0.5f;
+        var heights = new Delve.Terrain.TerrainHeightMap(layout, scale);
+        var meshes = new HighlightMeshes(0.06f);
+        meshes.SetHeightMap(heights);
+        var marker = HighlightMeshes.NewMarker();
+
+        int slopedTiles = 0, vertices = 0, badHeight = 0, badRect = 0, flatOnSlope = 0;
+        var shapes = Enum.GetValues<MarkerShape>();
+        for (int y = 0; y < layout.Height; y++)
+        {
+            for (int x = 0; x < layout.Width; x++)
+            {
+                var tile = new PF2eVec(x, y);
+                var corners = heights.Corners(tile);
+                if (corners.HeightSpan == 0) continue;
+                slopedTiles++;
+                float centreY = corners.CenterHeight * scale;
+
+                foreach (var shape in shapes)
+                {
+                    meshes.Place(marker, tile, shape, 0f);
+                    if (marker.Mesh is not ArrayMesh conforming || marker.Rotation != Godot.Vector3.Zero)
+                    {
+                        flatOnSlope++;
+                        continue;
+                    }
+                    var verts = conforming.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+                    foreach (var v in verts)
+                    {
+                        vertices++;
+                        float u = v.X + 0.5f;
+                        float w = v.Z + 0.5f;
+                        float expected = corners.SampleHeight(u, w) * scale - centreY + HighlightMeshes.SurfaceY;
+                        if (Mathf.Abs(v.Y - expected) > 0.0005f) badHeight++;
+                        if (u < -0.001f || u > 1.001f || w < -0.001f || w > 1.001f) badRect++;
+                    }
+                }
+            }
+        }
+
+        // Flat boards keep the cheap shared quad, rotated flat.
+        meshes.SetHeightMap(Delve.Terrain.TerrainHeightMap.Flat);
+        meshes.Place(marker, new PF2eVec(0, 0), MarkerShape.EdgeEast, 0f);
+        bool flatQuad = marker.Mesh is QuadMesh && marker.RotationDegrees.IsEqualApprox(new Godot.Vector3(-90f, 0f, 0f));
+        marker.Free();
+
+        Check($"(d) the first map has sloped tiles to test markers on ({slopedTiles})", slopedTiles > 0);
+        Check($"(d) every marker shape on a slope is a conforming mesh ({flatOnSlope} flat)", flatOnSlope == 0);
+        Check($"(d) every conforming vertex sits on the tile's sampled surface ({badHeight} of {vertices} off)",
+            vertices > 0 && badHeight == 0);
+        Check($"(d) every conforming vertex stays inside its tile ({badRect} outside)", badRect == 0);
+        Check("(d) a flat board keeps the shared flat quad", flatQuad);
     }
 
     /// <summary>Delve's host-side step legality for one edge.</summary>

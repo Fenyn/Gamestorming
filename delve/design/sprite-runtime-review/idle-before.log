@@ -1,0 +1,40 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+Vulkan 1.4.341 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 3080 Ti
+
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== COMBAT SHOT SPIKE ====================
+[CombatTest] generated 'forest' map 22x24 seed 20260804 (4 party / 4 enemy anchors).
+  [PASS] forest outskirts have two mist layers
+[combatshot] spike ready
+[combatshot] combat_shot.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot.png)
+  [PASS] combat_shot.png saved
+  [PASS] preview has four enemy species
+[combatshot] enemy_bases_closeup.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/enemy_bases_closeup.png)
+  [PASS] enemy_bases_closeup.png saved
+[combatshot] combat_shot_alt.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot_alt.png)
+  [PASS] combat_shot_alt.png saved
+[combatshot] combat_shot_horizon.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot_horizon.png)
+  [PASS] combat_shot_horizon.png saved
+[combatshot] combat_shot_low_a.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot_low_a.png)
+  [PASS] combat_shot_low_a.png saved
+[combatshot] combat_shot_low_b.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot_low_b.png)
+  [PASS] combat_shot_low_b.png saved
+[combatshot] combat_shot_flyout.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot_flyout.png)
+  [PASS] combat_shot_flyout.png saved
+[combatshot] combat_shot_skills.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_shot_skills.png)
+  [PASS] combat_shot_skills.png saved
+[combatshot] combat_log_compact.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_log_compact.png)
+  [PASS] combat_log_compact.png saved
+[combatshot] combat_log_entry_expanded.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_log_entry_expanded.png)
+  [PASS] combat_log_entry_expanded.png saved
+[combatshot] combat_log_history.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_log_history.png)
+  [PASS] combat_log_history.png saved
+[combatshot] combat_dice_roll.png: Ok (C:/Users/Midge/AppData/Roaming/Godot/app_userdata/Delve/dev_shots/combat_dice_roll.png)
+  [PASS] combat_dice_roll.png saved
+---------------------------------------------------------
+[CombatShotSpike] checks: 14, failures: 0
+SPIKE RESULT: PASS

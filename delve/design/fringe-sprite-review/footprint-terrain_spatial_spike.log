@@ -1,0 +1,80 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== TERRAIN SPATIAL SPIKE ====================
+-------------------- (a) wall barrier --------------------
+  [PASS] (a) deployment needed no correction
+  [PASS] (a) wall grid wires the real spatial delegates
+  [PASS] (a) wall between combatants blocks line of sight
+  [PASS] (a) wall between combatants blocks line of effect
+  [PASS] (a) wall between combatants grants standard cover
+  [PASS] (a) clear line on one side has sight and effect
+  [PASS] (a) intervening creature grants lesser cover
+  [PASS] (a) intervening creature does NOT block line of sight
+  [PASS] (a) same tile always has line of effect
+  [PASS] (a) a tile adjacent to the wall has line of effect INTO the wall's own square
+  [PASS] (a) two tiles adjacent along the wall face have line of effect
+  [PASS] (a) hugging the wall grants no cover along a clear parallel line
+-------------------- (b) area spells across a wall --------------------
+  [PASS] (b) deployment needed no correction
+  [PASS] (b) burst template loses tiles to the wall
+  [PASS] (b) every tile the burst kept is in front of the wall
+  [PASS] (b) every tile the burst dropped is behind the wall
+        · burst r=4 at (9,4): 61 template tiles, 58 kept, 3 dropped
+  [PASS] (b) the unfiltered cone covers both goblins
+  [PASS] (b) cone template keeps the goblin in front of the wall
+  [PASS] (b) cone template drops the goblin behind the wall
+  [PASS] (b) live cone cast resolved
+  [PASS] (b) live cone cast hits the goblin in front of the wall
+  [PASS] (b) live cone cast does NOT hit the goblin behind the wall
+-------------------- (c) cover pillar --------------------
+  [PASS] (c) deployment needed no correction
+  [PASS] (c) cover tile between combatants grants standard cover
+  [PASS] (c) cover tile does not block line of sight
+  [PASS] (c) cover tile does not block line of effect
+  [PASS] (c) creature beside the pillar counts as adjacent to terrain cover
+  [PASS] (c) creature away from the pillar does not
+  [PASS] (c) standing ON the cover tile grants no cover to its occupant
+-------------------- (d) elevation over a low wall --------------------
+  [PASS] (d) deployment needed no correction
+  [PASS] (d) plateau tile really is four elevations up
+  [PASS] (d) the wall really is one elevation tall
+  [PASS] (d) shot from ground level is blocked by the low wall
+  [PASS] (d) shot from ground level takes standard cover from it
+  [PASS] (d) area effect from ground level cannot cross the low wall
+  [PASS] (d) shot from the plateau clears the low wall (line of sight restored)
+  [PASS] (d) shot from the plateau takes no cover from it
+  [PASS] (d) area effect from the plateau clears the low wall
+-------------------- (e) flat board equivalence --------------------
+  [PASS] (e) deployment needed no correction
+  [PASS] (e) CreateFlat grid reports no spatial features
+  [PASS] (e) flat board keeps the open cover stub
+  [PASS] (e) flat board keeps the open line-of-sight stub
+  [PASS] (e) flat board keeps the open line-of-effect stub
+  [PASS] (e) flat board reports no adjacent terrain cover
+  [PASS] (e) flat board loses no area-template tiles to LOE filtering
+  [PASS] (e) terrain queries over a flat grid are provably open (sight)
+  [PASS] (e) terrain queries over a flat grid are provably open (effect)
+  [PASS] (e) but the real implementation WOULD grant creature cover on a flat board — the gate is load-bearing
+-------------------- (f) generated sewer maps --------------------
+  [PASS] (f) seed 7: generated grid wires the real delegates
+  [PASS] (f) seed 7: some pair of walkable tiles has blocked line of effect
+  [PASS] (f) seed 7: no pair of ADJACENT walkable tiles has blocked line of effect
+        · 21x26, 388 walkable tiles, 35749 of 150544 ordered pairs blocked
+  [PASS] (f) seed 2026: generated grid wires the real delegates
+  [PASS] (f) seed 2026: some pair of walkable tiles has blocked line of effect
+  [PASS] (f) seed 2026: no pair of ADJACENT walkable tiles has blocked line of effect
+        · 17x20, 224 walkable tiles, 4685 of 50176 ordered pairs blocked
+  [PASS] (f) seed 84105: generated grid wires the real delegates
+  [PASS] (f) seed 84105: some pair of walkable tiles has blocked line of effect
+  [PASS] (f) seed 84105: no pair of ADJACENT walkable tiles has blocked line of effect
+        · 19x25, 431 walkable tiles, 48120 of 185761 ordered pairs blocked
+---------------------------------------------------------
+[TerrainSpatialSpike] checks: 57, failures: 0
+SPIKE RESULT: PASS

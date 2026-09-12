@@ -1,11 +1,12 @@
 namespace Delve.Combat;
 
-/// <summary>How a set of highlighted tiles should be rendered by the grid view.</summary>
+/// <summary>How a set of targeting highlights should be rendered by the grid view. Ordinary movement
+/// is not a kind here: it renders as the Idle bands (<see cref="MoveOption"/>).</summary>
 public enum HighlightKind
 {
     None,
+    /// <summary>Shielded Stride destination tiles.</summary>
     Move,
-    Step,
     StrikeTarget,
     /// <summary>Enemy tiles targetable by an offensive spell.</summary>
     SpellEnemyTarget,

@@ -1,0 +1,67 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== EnemySpriteSpike ====================
+  [PASS] custom animation names load
+  [PASS] authored FPS advances first frame
+  [PASS] relative duration holds second frame
+  [PASS] authored loop wraps
+  [PASS] large delta retains frame remainder
+  [PASS] missing and empty clips reject without losing state
+  [PASS] non-looping clip holds last frame
+  [PASS] single-frame idle remains valid
+  [PASS] zero FPS holds frame
+  [PASS] placement comes from the sprite resource
+  [PASS] movement selects configured clip
+  [PASS] freeze stops enemy animation clock
+  [PASS] unfreeze resumes rather than catching up
+  [PASS] frame changes preserve presenter position effects
+  [PASS] authored left-facing art flips correctly
+  [PASS] stopping restores authored idle
+  [PASS] missing optional animation falls back to idle
+  [PASS] attack uses configured clip and contact timing
+  [PASS] movement cannot interrupt attack
+  [PASS] frozen attack holds its pose
+  [PASS] attack advances to contact frame
+  [PASS] consecutive attack restarts wind-up
+  [PASS] recovery restores movement and preserves effects
+  [PASS] stationary attack returns to idle
+  [PASS] missing attack retains fallback
+  [PASS] looping attack is rejected
+  [PASS] rat_v1 has a playable authored idle
+  [PASS] rat_v2 has a playable authored idle
+  [PASS] rat_v3 has a playable authored idle
+  [PASS] placeholder_small has a playable authored idle
+  [PASS] placeholder_medium has a playable authored idle
+  [PASS] placeholder_large has a playable authored idle
+  [PASS] goblin_base has a playable authored idle
+  [PASS] goblin_base animated idle keeps its feet at the authored origin
+  [PASS] goblin_base has a timed attack
+  [PASS] goblin_base attack recovers to idle
+  [PASS] kobold_base has a playable authored idle
+  [PASS] kobold_base animated idle keeps its feet at the authored origin
+  [PASS] kobold_base has a timed attack
+  [PASS] kobold_base attack recovers to idle
+  [PASS] wolf_base has a playable authored idle
+  [PASS] wolf_base animated idle keeps its feet at the authored origin
+  [PASS] wolf_base has a timed attack
+  [PASS] wolf_base attack recovers to idle
+  [PASS] viper_base has a playable authored idle
+  [PASS] viper_base animated idle keeps its feet at the authored origin
+  [PASS] viper_base has a timed attack
+  [PASS] viper_base attack recovers to idle
+  [PASS] Goblin Warrior and adjusted variants use base art
+  [PASS] Goblin Commando and adjusted variants use base art
+  [PASS] Goblin War Chanter and adjusted variants use base art
+  [PASS] Kobold Warrior and adjusted variants use base art
+  [PASS] Kobold Scout and adjusted variants use base art
+  [PASS] Wolf and adjusted variants use base art
+  [PASS] Viper and adjusted variants use base art
+  [PASS] unmapped creatures keep size fallback
+---------------------------------------------------------
+[EnemySpriteSpike] checks: 56, failures: 0
+SPIKE RESULT: PASS

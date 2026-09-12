@@ -1,0 +1,19 @@
+{
+  "canvas": [
+    96,
+    64
+  ],
+  "visible_bounds": [
+    3,
+    9,
+    91,
+    60
+  ],
+  "opaque_colors": 8,
+  "frames": 11,
+  "alpha_binary": true,
+  "ground_rows_identical": true,
+  "runtime_images_equal": true,
+  "single_8_connected_component": true,
+  "exact_recovery": true
+}

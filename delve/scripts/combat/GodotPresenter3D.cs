@@ -52,6 +52,12 @@ public sealed class GodotPresenter3D
     public ShakePivot? Shake { get; set; }
 
     /// <summary>
+    /// Camera focus sink: lands on each unit as its turn starts and tracks it while it walks.
+    /// Optional for the same reason as <see cref="Shake"/>.
+    /// </summary>
+    public ICameraFocus? Focus { get; set; }
+
+    /// <summary>
     /// Where the board's surface is. Tokens are tweened to — and snapped to — the tile centre height
     /// from here. <see cref="TerrainHeightMap.Flat"/> reproduces the flat board exactly (every Y is 0).
     /// </summary>
@@ -93,9 +99,22 @@ public sealed class GodotPresenter3D
         switch (evt.Type)
         {
             case BattleEventType.TurnStarted:
-                if (TryGet(evt.Source, out var turnUnit)) turnUnit.SetActive(true);
-                await Delay(PauseDuration);
+            {
+                // The gate holds until the camera has arrived, so a player's bands appear on a
+                // view that is already framing the actor rather than sliding under it.
+                float gate = PauseDuration;
+                if (TryGet(evt.Source, out var turnUnit))
+                {
+                    turnUnit.SetActive(true);
+                    if (Focus != null)
+                    {
+                        Focus.FocusOn(turnUnit.GlobalPosition, Focus.FocusSeconds, turnStart: true);
+                        gate = Mathf.Max(gate, Focus.FocusSeconds);
+                    }
+                }
+                await Delay(gate);
                 break;
+            }
 
             case BattleEventType.TurnEnded:
                 if (TryGet(evt.Source, out var endUnit)) endUnit.SetActive(false);
@@ -133,7 +152,7 @@ public sealed class GodotPresenter3D
                 if (TryGet(evt.Source, out var movedUnit))
                 {
                     movedUnit.SetMoving(false);
-                    movedUnit.Position = GridSpace.GridToWorld(evt.Source.GridPosition, _height);
+                    movedUnit.PlaceOnGround(evt.Source.GridPosition, _height);
                 }
                 break;
 
@@ -146,9 +165,9 @@ public sealed class GodotPresenter3D
                 if (TryGet(evt.Source, out var attacker))
                 {
                     FaceToward(attacker, evt.Source, evt.Target);
-                    if (attacker.PlaySwing())
+                    if (attacker.PlayAttack(out float impactDelay))
                     {
-                        gate = UnitVisual3D.SwingImpactDelay;
+                        gate = impactDelay;
                         attacker.FlashAttack(HeroLungeDistance, gate, HeroLungeRecovery);
                     }
                     else
@@ -157,6 +176,8 @@ public sealed class GodotPresenter3D
                     }
                 }
                 await Delay(gate);
+                if (TryGet(evt.Source, out var strikingUnit))
+                    PlayAttackAccent(strikingUnit, HorizontalDirection(evt.Source, evt.Target));
 
                 // A whiff gets no spark — nothing connected. The defender ducks away on the frame the
                 // blow arrives and takes the MISS/FUMBLE callout instead.
@@ -260,7 +281,10 @@ public sealed class GodotPresenter3D
         // Y is interpolated linearly with X/Z across the segment, so a step onto a ramp walks up it and
         // a hop off a ledge cuts the corner diagonally. Accepted for v1 — a two-stage tween (out, then
         // down) is the polish pass if cliff hops read badly in play.
-        var target = GridSpace.GridToWorld(to, _height);
+        var target = GridSpace.CreatureBodyToWorld(to, unit.Character.TileWidth, _height);
+        // The camera tracks the walker tile for tile at the same pace (strides, steps and slides all
+        // pass through here), unless the player has taken the framing over this turn.
+        Focus?.FocusOn(unit.GlobalPosition - unit.Position + target, MoveDuration, turnStart: false);
         var tween = unit.CreateTween();
         tween.TweenProperty(unit, "position", target, MoveDuration);
 
@@ -272,12 +296,15 @@ public sealed class GodotPresenter3D
         using (CancellationToken.Register(
             static t => ((TaskCompletionSource<bool>)t!).TrySetResult(false), tcs))
             await tcs.Task;
+        if (!CancellationToken.IsCancellationRequested && GodotObject.IsInstanceValid(unit))
+            unit.PlaceOnGround(to, _height);
     }
 
     private static void FaceToward(UnitVisual3D unit, ICharacter? from, ICharacter? target)
     {
         if (from == null || target == null) return;
-        var d = new Vector2(target.GridPosition.x - from.GridPosition.x, target.GridPosition.y - from.GridPosition.y);
+        var direction = HorizontalDirection(from, target);
+        var d = new Vector2(direction.X, direction.Z);
         if (d.LengthSquared() > 0.0001f) unit.Facing = d;
     }
 
@@ -287,7 +314,8 @@ public sealed class GodotPresenter3D
     private static Vector3 HorizontalDirection(ICharacter? from, ICharacter? to)
     {
         if (from == null || to == null) return Vector3.Zero;
-        var d = new Vector3(to.GridPosition.x - from.GridPosition.x, 0f, to.GridPosition.y - from.GridPosition.y);
+        var d = GridSpace.CreatureToWorld(to.GridPosition, to.TileWidth, TerrainHeightMap.Flat)
+            - GridSpace.CreatureToWorld(from.GridPosition, from.TileWidth, TerrainHeightMap.Flat);
         return d.LengthSquared() > 0.0001f ? d.Normalized() : Vector3.Zero;
     }
 
@@ -301,6 +329,20 @@ public sealed class GodotPresenter3D
 
     /// <summary>Burst a <see cref="HitSpark"/> at the struck unit's impact point — up its own
     /// silhouette, tinted for the damage type, thrown away from the attacker, doubled on a crit.</summary>
+    /// <summary>Motion accent at contact; damage sparks remain a separate hit-only effect.</summary>
+    public void PlayAttackAccent(UnitVisual3D on, Vector3 direction)
+    {
+        if (!GodotObject.IsInstanceValid(on) || on.AttackEffect == null) return;
+        var accent = on.AttackEffect.Instantiate<AttackAccent>();
+        accent.Direction = direction;
+        // Match the billboard's screen-space reach; advancing in world X/Z
+        // would lift the marks above the muzzle at oblique camera angles.
+        var right = on.GetViewport().GetCamera3D()?.GlobalBasis.X ?? Vector3.Right;
+        var forward = right * (direction.Dot(right) < 0 ? -1 : 1);
+        SpawnFx(accent, on, on.Position + forward * accent.ForwardDistance * UnitSizeFactor(on)
+            + Vector3.Up * on.HpBarHeight * accent.HeightFraction);
+    }
+
     private void SpawnHitSpark(UnitVisual3D on, Vector3 impactDirection, DamageType? damageType, bool crit)
     {
         if (!GodotObject.IsInstanceValid(on)) return;

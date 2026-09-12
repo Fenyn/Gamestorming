@@ -1,7 +1,8 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
+[ext_resource type="Script" path="res://scripts/combat/MoveBandOverlay3D.cs" id="2_bands"]
 [ext_resource type="Script" path="res://scripts/combat/OrbitCameraRig.cs" id="3_camera"]
 [ext_resource type="Script" path="res://scripts/combat/GridInput3D.cs" id="4_input"]
 [ext_resource type="PackedScene" path="res://scenes/ui/turn_order_bar.tscn" id="5_turn"]
@@ -86,6 +87,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 5)
 mesh = SubResource("PlaneMesh_floor")
 surface_material_override/0 = SubResource("ShaderMaterial_floor")
 
+; Idle-mode movement bands (own pools) beside the targeting highlights.
+[node name="MoveBands" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_bands")
+BandEdgeWidth = 0.06
+BandEdgeAlpha = 0.85
+
 [node name="GridOverlay" type="Node3D" parent="."]
 unique_name_in_owner = true
 script = ExtResource("2_overlay")
@@ -99,6 +107,7 @@ unique_name_in_owner = true
 [node name="CameraRig" type="Node3D" parent="."]
 unique_name_in_owner = true
 script = ExtResource("3_camera")
+FocusSeconds = 0.35
 
 ; Shake seam between the orbit rig and the camera: OrbitCameraRig keeps writing the Camera3D's own
 ; orbit position/look-at, ShakePivot only ever writes its own local position, so the two compose.

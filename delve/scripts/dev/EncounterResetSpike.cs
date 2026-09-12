@@ -7,6 +7,7 @@ using Delve.Data;
 using Delve.Presets;
 using Godot;
 using PF2e.Actions;
+using PF2e.AI;
 using PF2e.Core;
 using PF2e.Grid;
 using PF2e.TurnManagement;
@@ -72,7 +73,10 @@ public partial class EncounterResetSpike : SpikeBase
             && CoverHelper.GetPositionalCover != null
             && CoverHelper.IsAdjacentToTerrainCover != null
             && CoverHelper.HasLineOfSight != null
-            && CoverHelper.HasLineOfEffect != null);
+            && CoverHelper.HasLineOfEffect != null
+            && CoverHelper.GetTileCover != null);
+        Check("(1) stale dispose keeps the AI combat queries",
+            ReferenceEquals(AIContextBuilder.CombatQueries, scopeB.CombatQueries));
         Check("(1) stale dispose keeps the grid delegates",
             AreaCalculator.GetTileElevation != null && TileEffectRules.TileBlockedByZone != null);
         Check("(1) stale dispose keeps StepAction.ValidateDestination",
@@ -89,6 +93,8 @@ public partial class EncounterResetSpike : SpikeBase
         Check("(1) owner dispose releases the delegates",
             OffGuardHelper.IsFlankingAttacker == null
             && CoverHelper.HasLineOfSight == null
+            && CoverHelper.GetTileCover == null
+            && AIContextBuilder.CombatQueries == null
             && StepAction.ValidateDestination == null
             && AreaCalculator.GetTileElevation == null
             && ForcedMovementExecutor.Grid == null);

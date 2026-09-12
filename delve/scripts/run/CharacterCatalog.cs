@@ -11,7 +11,8 @@ namespace Delve.Run;
 /// here to drift away from the build.</summary>
 public sealed record CharacterDef(
     string Id, string DisplayName, string Role,
-    Func<int, PF2eCharacter> Builder, bool CanLead);
+    Func<int, PF2eCharacter> Builder, bool CanLead,
+    bool StartsUnlocked = false, bool CanMeet = true);
 
 /// <summary>
 /// The single table of playable characters (design/core_concept.md). Hero select, unlocks and the
@@ -23,13 +24,17 @@ public static class CharacterCatalog
     public static readonly IReadOnlyList<CharacterDef> All = new List<CharacterDef>
     {
         new(PresetCharacters.PlayerId, "Aldric", "Fighter · front line",
-            lvl => PresetCharacters.BuildPlayer(lvl), true),
+            lvl => PresetCharacters.BuildPlayer(lvl), true, StartsUnlocked: true),
         new(PresetCharacters.ElaraId, "Elara", "Rogue · flanker",
-            lvl => PresetCharacters.BuildElara(lvl), true),
+            lvl => PresetCharacters.BuildElara(lvl), true, StartsUnlocked: true),
         new(PresetCharacters.TharrId, "Tharr", "Cleric · healer",
-            lvl => PresetCharacters.BuildTharr(lvl), true),
+            lvl => PresetCharacters.BuildTharr(lvl), true, StartsUnlocked: true),
         new(PresetCharacters.FenwickId, "Fenwick", "Wizard · artillery",
-            lvl => PresetCharacters.BuildFenwick(lvl), true),
+            lvl => PresetCharacters.BuildFenwick(lvl), true, StartsUnlocked: true),
+        new(PresetCharacters.RavenId, "Raven", "Rogue · duelist",
+            PresetCharacters.BuildRaven, true),
+        new(PresetCharacters.ThistleId, "Thistle", "Fighter · scout",
+            PresetCharacters.BuildThistle, true),
     };
 
     /// <summary>The entry with this id, or null.</summary>
@@ -44,18 +49,17 @@ public static class CharacterCatalog
 }
 
 /// <summary>
-/// Which characters the player may pick. In memory only for now - persistence lands with the save
-/// layer. Everything starts unlocked so the skeleton loop is walkable end to end.
+/// Which characters may start a run. Guest eligibility is independent of this state.
 /// </summary>
 public sealed class UnlockState
 {
     private readonly HashSet<string> _unlocked = new();
 
-    /// <summary>All five characters unlocked.</summary>
+    /// <summary>The four starter characters unlocked.</summary>
     public UnlockState()
     {
         foreach (var def in CharacterCatalog.All)
-            _unlocked.Add(def.Id);
+            if (def.StartsUnlocked) _unlocked.Add(def.Id);
     }
 
     /// <summary>Exactly the given ids unlocked.</summary>
@@ -71,5 +75,5 @@ public sealed class UnlockState
     public bool IsUnlocked(string id) => _unlocked.Contains(id);
 
     /// <summary>True when the id was newly unlocked.</summary>
-    public bool Unlock(string id) => _unlocked.Add(id);
+    public bool Unlock(string id) => CharacterCatalog.Find(id) != null && _unlocked.Add(id);
 }

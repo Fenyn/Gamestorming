@@ -32,6 +32,8 @@ namespace Delve.Dev;
 ///    the damage number lands on the strike frame; enemies (no swing art) must refuse the clip.
 ///  - POPUP HEIGHT: a rat's number has to sit over a rat, not at the fixed height a hero's bar used.
 ///  - SHAKE: trauma decays to exactly zero and the pivot returns to exactly the origin.
+///  - FOCUS: the orbit rig lands on the unit whose turn starts, tracks a walker tile by tile, stays
+///    put after a manual pan until the next turn start, and never leaves the board rect.
 ///
 /// Run: Godot_v4.6.2-stable_mono_win64_console.exe --headless --path delve
 ///      res://scenes/dev/combat_juice_spike.tscn
@@ -55,6 +57,88 @@ public partial class CombatJuiceSpike : SpikeBase
         await RunTokenJuice(data);
         RunPopupStyling();
         await RunShake();
+        await RunCameraFocus(data);
+    }
+
+    // ─────────────────────── camera focus ───────────────────────
+
+    /// <summary>
+    /// A bare rig (rig > ShakePivot > Camera3D, the combat.tscn shape) driven through the presenter's
+    /// focus seam, so the checks cover the same calls play makes.
+    /// </summary>
+    private async Task RunCameraFocus(DataManager data)
+    {
+        GD.Print("-------------------- camera focus --------------------");
+
+        var rig = new OrbitCameraRig { Name = "FocusRig", FocusSeconds = 0.2f };
+        var shake = new ShakePivot { Name = "ShakePivot" };
+        shake.AddChild(new Camera3D { Name = "Camera3D" });
+        rig.AddChild(shake);
+        shake.Owner = rig;
+        shake.UniqueNameInOwner = true;
+        AddChild(rig);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+        var hero = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
+        hero.GridPosition = new PF2eVec(2, 2);
+        var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
+        var enemy = CreatureFactory.Create(goblinDef, teamId: 2);
+        enemy.GridPosition = new PF2eVec(9, 7);
+        var heroToken = AddToken(hero, null);
+        var enemyToken = AddToken(enemy, EnemySpriteMap.FolderForCreature(enemy.Name, enemy.CreatureStats.Size));
+        var popupLayer = new Node3D { Name = "FocusPopups" };
+        AddChild(popupLayer);
+        var presenter = new GodotPresenter3D(popupLayer, Delve.Terrain.TerrainHeightMap.Flat) { Focus = rig };
+        presenter.RegisterUnit(hero, heroToken);
+        presenter.RegisterUnit(enemy, enemyToken);
+
+        var center = new Vector3(6f, 0f, 5f);
+        rig.FrameBoard(center, 12, 10);
+        Check("framing puts the pivot on the board centre", rig.GlobalPosition.IsEqualApprox(center));
+
+        // --- turn start lands on the actor, and the gate holds until it has arrived ---
+        await presenter.Present(new BattleEvent { Type = BattleEventType.TurnStarted, Source = hero });
+        Check($"a turn start glides the pivot onto the actor ({rig.GlobalPosition.X:0.##}, {rig.GlobalPosition.Z:0.##})",
+            rig.GlobalPosition.DistanceTo(heroToken.GlobalPosition) < 0.05f);
+
+        // --- a walk is tracked tile by tile ---
+        await presenter.Present(new BattleEvent
+        {
+            Type = BattleEventType.MovementStep, Source = hero,
+            Path = new List<PF2eVec> { new(2, 2), new(3, 2) },
+        });
+        Check("a stride segment carries the pivot to the new tile",
+            rig.GlobalPosition.DistanceTo(new Vector3(3.5f, 0f, 2.5f)) < 0.05f);
+
+        // --- a manual pan takes framing over for the rest of the turn ---
+        rig.Pan(new Vector2(2f, 0f));
+        Check("a pan marks the turn as user framed", rig.UserPanned);
+        var panned = rig.GlobalPosition;
+        await presenter.Present(new BattleEvent
+        {
+            Type = BattleEventType.MovementStep, Source = hero,
+            Path = new List<PF2eVec> { new(3, 2), new(4, 2) },
+        });
+        Check("a follow after a pan leaves the pivot where the player put it", rig.GlobalPosition.IsEqualApprox(panned));
+
+        // --- the next actor's turn start clears the override ---
+        await presenter.Present(new BattleEvent { Type = BattleEventType.TurnStarted, Source = enemy });
+        Check("the next turn start clears the pan and lands on that actor",
+            !rig.UserPanned && rig.GlobalPosition.DistanceTo(enemyToken.GlobalPosition) < 0.05f);
+
+        // --- C re-centres on the actor, and no focus leaves the board ---
+        rig.Pan(new Vector2(-3f, 1f));
+        rig.FocusOnActive();
+        await WaitSeconds(rig.FocusSeconds + 0.05f);
+        Check("FocusOnActive returns to the current actor", rig.GlobalPosition.DistanceTo(enemyToken.GlobalPosition) < 0.05f);
+        rig.FocusOn(new Vector3(50f, 0f, -50f), 0f, turnStart: true);
+        Check("a focus target is clamped to the board rect", rig.GlobalPosition.IsEqualApprox(new Vector3(12f, 0f, 0f)));
+
+        rig.QueueFree();
+        heroToken.QueueFree();
+        enemyToken.QueueFree();
+        popupLayer.QueueFree();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
     }
 
     // ─────────────────────── crit degree on weapon strikes ───────────────────────
@@ -215,7 +299,8 @@ public partial class CombatJuiceSpike : SpikeBase
             Target = hero,
             Degree = DegreeOfSuccess.Failure,
         });
-        Check("a missed AttackRolled spawns no FX (the defender ducks instead)", FxCount() == 0);
+        Check("a missed enemy strike shows its motion accent without a hit spark",
+            FxCount() == 1 && GetTree().GetNodesInGroup(OneShotFx.FxGroup)[0] is AttackAccent);
 
         // --- heal / shield each get their own effect ---
         await SettleFx();

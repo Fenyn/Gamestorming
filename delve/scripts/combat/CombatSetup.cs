@@ -25,6 +25,9 @@ public sealed record CombatSetup
     /// <summary>Player-team combatants (team 1) with their starting grid anchors.</summary>
     public List<(ICharacter Unit, PF2eVec Pos)> Party { get; init; } = new();
 
+    /// <summary>Run control permissions, applied before initiative and reaction wiring.</summary>
+    public PartyControlPolicy Control { get; init; } = new();
+
     /// <summary>Enemy-team combatants (team 2) with their starting grid anchors.</summary>
     public List<(ICharacter Unit, PF2eVec Pos)> Enemies { get; init; } = new();
 
@@ -75,10 +78,11 @@ public sealed record CombatSetup
     public int XpAward { get; init; }
 
     /// <summary>
-    /// Self-heal the deployment before placement: every anchor must be in-bounds, standable and
-    /// unshared, or the unit is remapped to the nearest free legal cell. With a <see cref="Layout"/>,
-    /// "standable" additionally means the layout calls the tile walkable, so a party anchor can never
-    /// land inside a wall or over a chasm. Returns one human-readable line per correction (empty when
+    /// Self-heal deployment before placement: every cell of a unit's TileWidth-square footprint must
+    /// be in-bounds, standable and unshared, or its anchor is moved to the nearest legal footprint.
+    /// With a <see cref="Layout"/>, every covered tile must be walkable, so even a non-anchor cell
+    /// cannot overlap a wall, chasm or previously deployed unit. Throws when no footprint fits.
+    /// Returns one human-readable line per correction (empty when
     /// the setup was already legal) so callers can surface data/board mismatches loudly instead of
     /// letting units render off the visible board.
     /// </summary>
@@ -111,33 +115,58 @@ public sealed record CombatSetup
         for (int i = 0; i < team.Count; i++)
         {
             var (unit, pos) = team[i];
-            bool inBounds = InBounds(pos);
-            bool standable = inBounds && IsStandable(pos);
-            if (standable && occupied.Add(pos))
+            int width = unit.TileWidth;
+            string? reason = FootprintProblem(pos, width, occupied);
+            if (reason == null)
+            {
+                ReserveFootprint(pos, width, occupied);
                 continue;
+            }
 
-            PF2eVec fixedPos = NearestFreeCell(pos, occupied);
-            occupied.Add(fixedPos);
+            PF2eVec fixedPos = NearestFreeFootprint(pos, width, occupied, unit.Name);
+            ReserveFootprint(fixedPos, width, occupied);
             team[i] = (unit, fixedPos);
-            string reason = !inBounds ? $"outside the {GridWidth}x{GridHeight} board"
-                : !standable ? "not walkable terrain"
-                : "occupied";
             corrections.Add(
-                $"{label} anchor ({pos.x}, {pos.y}) for {unit.Name} is {reason}; moved to ({fixedPos.x}, {fixedPos.y}).");
+                $"{label} {width}x{width} footprint at anchor ({pos.x}, {pos.y}) for {unit.Name} is {reason}; moved to ({fixedPos.x}, {fixedPos.y}).");
         }
     }
-
-    private bool InBounds(PF2eVec p) => p.x >= 0 && p.y >= 0 && p.x < GridWidth && p.y < GridHeight;
 
     /// <summary>In-bounds tiles are all standable on a flat board; a layout also has to call it walkable.</summary>
     private bool IsStandable(PF2eVec p) => Layout == null || Layout.IsWalkable(p.x, p.y);
 
-    /// <summary>Nearest free, standable, in-bounds cell by Chebyshev ring scan from the clamped anchor.</summary>
-    private PF2eVec NearestFreeCell(PF2eVec from, HashSet<PF2eVec> occupied)
+    private string? FootprintProblem(PF2eVec anchor, int width, HashSet<PF2eVec> occupied)
     {
+        if (width < 1)
+            throw new InvalidOperationException($"Invalid creature footprint width {width}.");
+        if (anchor.x < 0 || anchor.y < 0 || width > GridWidth || width > GridHeight
+            || anchor.x > GridWidth - width || anchor.y > GridHeight - width)
+            return $"outside the {GridWidth}x{GridHeight} board";
+        for (int y = 0; y < width; y++)
+            for (int x = 0; x < width; x++)
+            {
+                var cell = new PF2eVec(anchor.x + x, anchor.y + y);
+                if (!IsStandable(cell)) return "not walkable terrain";
+                if (occupied.Contains(cell)) return "occupied";
+            }
+        return null;
+    }
+
+    private static void ReserveFootprint(PF2eVec anchor, int width, HashSet<PF2eVec> occupied)
+    {
+        for (int y = 0; y < width; y++)
+            for (int x = 0; x < width; x++)
+                occupied.Add(new PF2eVec(anchor.x + x, anchor.y + y));
+    }
+
+    /// <summary>Nearest legal square by Chebyshev rings from the clamped legal anchor range.</summary>
+    private PF2eVec NearestFreeFootprint(PF2eVec from, int width, HashSet<PF2eVec> occupied, string unitName)
+    {
+        if (width > GridWidth || width > GridHeight)
+            throw new InvalidOperationException(
+                $"No free standable {width}x{width} footprint for {unitName} on a {GridWidth}x{GridHeight} board.");
         var start = new PF2eVec(
-            Math.Clamp(from.x, 0, GridWidth - 1),
-            Math.Clamp(from.y, 0, GridHeight - 1));
+            Math.Clamp(from.x, 0, GridWidth - width),
+            Math.Clamp(from.y, 0, GridHeight - width));
 
         int maxRadius = Math.Max(GridWidth, GridHeight);
         for (int r = 0; r <= maxRadius; r++)
@@ -149,14 +178,14 @@ public sealed record CombatSetup
                     if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != r)
                         continue;
                     var cell = new PF2eVec(start.x + dx, start.y + dy);
-                    if (InBounds(cell) && IsStandable(cell) && !occupied.Contains(cell))
+                    if (FootprintProblem(cell, width, occupied) == null)
                         return cell;
                 }
             }
         }
 
-        // Board fuller than its standable cell count — impossible for sane setups; fail predictably.
+        // Free cells can remain while no contiguous creature footprint fits.
         throw new InvalidOperationException(
-            $"No free standable cell on a {GridWidth}x{GridHeight} board for {occupied.Count} occupied anchors.");
+            $"No free standable {width}x{width} footprint for {unitName} on a {GridWidth}x{GridHeight} board ({occupied.Count} occupied cells).");
     }
 }

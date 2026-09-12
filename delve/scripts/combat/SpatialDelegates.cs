@@ -9,7 +9,7 @@ namespace Delve.Combat;
 /// <summary>
 /// Wires the engine's static spatial delegates for a combat encounter. The engine ships no
 /// defaults: flanking (off-guard) and cover/line-of-sight/line-of-effect must be supplied by the
-/// client. Flanking is always real (mirrors <c>BattleSimulator.WireFlankingDelegate</c>); the four
+/// client. Flanking is always real (mirrors <c>BattleSimulator.WireFlankingDelegate</c>); the five
 /// <see cref="CoverHelper"/> seams get <see cref="TerrainSpatial"/> on a grid with terrain in it and
 /// open stubs on a flat board.
 /// </summary>
@@ -34,7 +34,7 @@ public static class SpatialDelegates
     /// </summary>
     /// <returns>
     /// A handle that removes exactly the delegates this call installed. Dispose it to unwire; there is
-    /// no global unwire, because a second encounter overwrites all five delegates and a stale handle
+    /// no global unwire, because a second encounter overwrites all six delegates and a stale handle
     /// must not clear the live encounter's wiring. Each release is identity-guarded.
     /// </returns>
     public static IDisposable Wire(BattleGrid grid)
@@ -44,6 +44,7 @@ public static class SpatialDelegates
         Func<ICharacter, bool> adjacentCover;
         Func<ICharacter, ICharacter, bool> lineOfSight;
         Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> lineOfEffect;
+        Func<PF2e.Vector2Int, ICharacter, ICharacter, CoverLevel> tileCover;
 
         if (TerrainSpatial.HasSpatialFeatures(grid))
         {
@@ -52,6 +53,7 @@ public static class SpatialDelegates
             adjacentCover = spatial.IsAdjacentToTerrainCover;
             lineOfSight = spatial.HasLineOfSight;
             lineOfEffect = spatial.HasLineOfEffect;
+            tileCover = spatial.GetTileCover;
         }
         else
         {
@@ -61,6 +63,7 @@ public static class SpatialDelegates
             adjacentCover = _ => false;
             lineOfSight = (a, b) => true;
             lineOfEffect = (a, b) => true;
+            tileCover = (tile, defender, attacker) => CoverLevel.None;
         }
 
         OffGuardHelper.IsFlankingAttacker = flanking;
@@ -68,11 +71,12 @@ public static class SpatialDelegates
         CoverHelper.IsAdjacentToTerrainCover = adjacentCover;
         CoverHelper.HasLineOfSight = lineOfSight;
         CoverHelper.HasLineOfEffect = lineOfEffect;
+        CoverHelper.GetTileCover = tileCover;
 
-        return new Handle(flanking, cover, adjacentCover, lineOfSight, lineOfEffect);
+        return new Handle(flanking, cover, adjacentCover, lineOfSight, lineOfEffect, tileCover);
     }
 
-    /// <summary>Releases the five delegates one <see cref="Wire"/> call installed, and only those.</summary>
+    /// <summary>Releases the six delegates one <see cref="Wire"/> call installed, and only those.</summary>
     private sealed class Handle : IDisposable
     {
         private readonly Func<ICharacter, ICharacter, bool> _flanking;
@@ -80,6 +84,7 @@ public static class SpatialDelegates
         private readonly Func<ICharacter, bool> _adjacentCover;
         private readonly Func<ICharacter, ICharacter, bool> _lineOfSight;
         private readonly Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> _lineOfEffect;
+        private readonly Func<PF2e.Vector2Int, ICharacter, ICharacter, CoverLevel> _tileCover;
         private bool _disposed;
 
         public Handle(
@@ -87,13 +92,15 @@ public static class SpatialDelegates
             Func<ICharacter, ICharacter, CoverLevel> cover,
             Func<ICharacter, bool> adjacentCover,
             Func<ICharacter, ICharacter, bool> lineOfSight,
-            Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> lineOfEffect)
+            Func<PF2e.Vector2Int, PF2e.Vector2Int, bool> lineOfEffect,
+            Func<PF2e.Vector2Int, ICharacter, ICharacter, CoverLevel> tileCover)
         {
             _flanking = flanking;
             _cover = cover;
             _adjacentCover = adjacentCover;
             _lineOfSight = lineOfSight;
             _lineOfEffect = lineOfEffect;
+            _tileCover = tileCover;
         }
 
         public void Dispose()
@@ -111,19 +118,31 @@ public static class SpatialDelegates
                 CoverHelper.HasLineOfSight = null;
             if (ReferenceEquals(CoverHelper.HasLineOfEffect, _lineOfEffect))
                 CoverHelper.HasLineOfEffect = null;
+            if (ReferenceEquals(CoverHelper.GetTileCover, _tileCover))
+                CoverHelper.GetTileCover = null;
         }
     }
 
     // Verbatim port of BattleSimulator.WireFlankingDelegate: a target is flanked when a living
     // ally is within reach on the opposite side of the target from the attacker.
     private static bool IsFlankingAttacker(ICharacter attacker, ICharacter target)
+        => IsFlankedFrom(attacker.GridPosition, attacker.TileWidth, attacker, target);
+
+    /// <summary>
+    /// The flanking test with the attacker's position passed in rather than read off the character,
+    /// so the AI can ask what a tile would be worth before moving to it.
+    /// <see cref="DelveCombatQueries"/> answers that question through here.
+    /// </summary>
+    internal static bool IsFlankedFrom(PF2e.Vector2Int attackerPos, int attackerWidth,
+        ICharacter attacker, ICharacter target)
     {
         var registry = CombatantRegistry.Instance;
-        if (registry == null)
+        if (registry == null || attacker == null || target == null)
             return false;
 
         var (boundsMin, boundsMax) = CreatureSizeHelper.GetSpaceBounds(
             target.GridPosition, target.TileWidth);
+        var attackerCenter = CreatureSizeHelper.GetSpaceCenter(attackerPos, attackerWidth);
 
         foreach (var ally in registry.All)
         {
@@ -139,8 +158,6 @@ public static class SpatialDelegates
                 continue;
 
             var allyCenter = CreatureSizeHelper.GetSpaceCenter(ally.GridPosition, ally.TileWidth);
-            var attackerCenter = CreatureSizeHelper.GetSpaceCenter(
-                attacker.GridPosition, attacker.TileWidth);
 
             if (FlankingCalculator.AreOnOppositeSides(
                 attackerCenter, allyCenter, boundsMin, boundsMax))

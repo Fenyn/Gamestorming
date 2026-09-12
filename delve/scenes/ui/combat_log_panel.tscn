@@ -51,13 +51,6 @@ theme_type_variation = &"CombatLogToggle"
 text = "Combat log    L    Expand +"
 alignment = 0
 
-[node name="DiceToggle" type="CheckButton" parent="Col/Shell/Content"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"CombatLogToggle"
-text = "Dice rolls"
-tooltip_text = "Show the latest resolved d20 roll on screen"
-
 [node name="Rule" type="HSeparator" parent="Col/Shell/Content"]
 layout_mode = 2
 mouse_filter = 2

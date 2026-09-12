@@ -147,7 +147,41 @@ public static class UiColors
     };
 
     /// <summary>Green→amber→red HP fill/text tint by remaining-HP ratio (0..1). Shared by every
-    /// spot that colors a value by HP fraction (action bar vitals, unit inspect).</summary>
+    /// spot that colors a value by HP fraction (action bar vitals, unit inspect, unit-token bars).</summary>
     public static Color HpFillColor(float ratio)
         => ratio > 0.5f ? HpHigh : ratio > 0.25f ? HpMid : HpLow;
+
+    // ---------------------------------------------------------------- Board overlays
+
+    /// <summary>Idle band fill of an adjacent tile a careful Step reaches (safe: no reactions).</summary>
+    public static Color BoardStep => Get("board_step");
+
+    /// <summary>Idle band fill for a tile <paramref name="actions"/> Strides away: distinct colours
+    /// for one and two actions, one faint colour for everything further (quickened included).</summary>
+    public static Color BoardStride(int actions) => actions switch
+    {
+        <= 1 => Get("board_stride_1"),
+        2 => Get("board_stride_2"),
+        _ => Get("board_stride_far"),
+    };
+
+    /// <summary>Frame around the hovered board tile.</summary>
+    public static Color BoardCursor => Get("board_cursor");
+
+    /// <summary>Path-preview dots.</summary>
+    public static Color BoardPath => Get("board_path");
+
+    /// <summary>Area-template fill while aiming an area spell.</summary>
+    public static Color BoardArea => Get("board_area");
+
+    /// <summary>Fill of a targeting-mode highlight, by kind.</summary>
+    public static Color BoardHighlight(Delve.Combat.HighlightKind kind) => kind switch
+    {
+        Delve.Combat.HighlightKind.Move => Get("board_move"),
+        Delve.Combat.HighlightKind.StrikeTarget => Get("board_strike"),
+        Delve.Combat.HighlightKind.SpellEnemyTarget => Get("board_spell_enemy"),
+        Delve.Combat.HighlightKind.AllyTarget => Get("board_ally_target"),
+        Delve.Combat.HighlightKind.AreaOrigin => Get("board_area_origin"),
+        _ => Get("board_move"),
+    };
 }

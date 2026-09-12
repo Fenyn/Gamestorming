@@ -23,6 +23,8 @@ public static class HeroSpriteMap
         [PresetCharacters.TharrId] = Root + "cleric",
         [PresetCharacters.FenwickId] = Root + "wizard",
         [PresetCharacters.ElaraId] = Root + "rogue",
+        [PresetCharacters.RavenId] = Root + "rogue",
+        [PresetCharacters.ThistleId] = Root + "recruit",
     };
 
     /// <summary>Resolve the sprite folder for a hero id, falling back to the default.</summary>

@@ -57,6 +57,7 @@ public sealed class CombatSession
     private readonly List<ICharacter> _team1 = new();
     private readonly List<ICharacter> _team2 = new();
     private readonly HashSet<ICharacter> _aiControlled = new();
+    private readonly HashSet<ICharacter> _commandable = new();
     // Team 1 but not the party: they fight for free and their survival never decides the encounter.
     private readonly HashSet<ICharacter> _allies = new();
     private AllyAiRules _allyAi = AllyAiRules.Default;
@@ -178,6 +179,8 @@ public sealed class CombatSession
         {
             Grid.PlaceCreature(unit, pos);
             _team1.Add(unit);
+            if (setup.Control.CanCommand(unit.Id)) _commandable.Add(unit);
+            else _aiControlled.Add(unit);
         }
         foreach (var (unit, pos) in setup.Allies)
         {
@@ -478,15 +481,18 @@ public sealed class CombatSession
 
     public bool IsAiToggled(ICharacter character) => _aiControlled.Contains(character);
 
+    public bool CanCommand(ICharacter character) => _commandable.Contains(character);
+
     /// <summary>A team-1 combatant outside the party. Never handed to the player.</summary>
     public bool IsAlly(ICharacter character) => _allies.Contains(character);
 
-    /// <summary>Allies plan with the cautious profile; everyone else keeps the engine's own.</summary>
+    /// <summary>Guests use the cautious profile. Party members keep their class AI profiles.</summary>
     private AIProfile ShapeAiProfile(ICharacter character, AIProfile resolved)
         => _allies.Contains(character) ? _allyAi.Apply(resolved) : resolved;
 
     public void SetAiToggle(ICharacter character, bool aiControlled)
     {
+        if (!aiControlled && !_commandable.Contains(character)) return;
         if (aiControlled) _aiControlled.Add(character);
         else _aiControlled.Remove(character);
 

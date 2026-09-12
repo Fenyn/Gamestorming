@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="EnemySpriteDefinition" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemySpriteDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/fx/attack_viper_bite.tscn" id="attack_effect"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/base.png" id="frame_0"]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/idle_1.png" id="idle_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/idle_2.png" id="idle_2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/idle_3.png" id="idle_3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/idle_4.png" id="idle_4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/idle_5.png" id="idle_5"]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/attack_1.png" id="attack_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/attack_2.png" id="attack_2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/attack_3.png" id="attack_3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/attack_4.png" id="attack_4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/attack_5.png" id="attack_5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/viper_base/attack_6.png" id="attack_6"]
+
+[sub_resource type="SpriteFrames" id="Frames"]
+animations = [{
+"frames": [
+{"duration": 0.8, "texture": ExtResource("attack_1")},
+{"duration": 1.0, "texture": ExtResource("attack_2")},
+{"duration": 0.8, "texture": ExtResource("attack_3")},
+{"duration": 1.0, "texture": ExtResource("attack_4")},
+{"duration": 1.2, "texture": ExtResource("attack_5")},
+{"duration": 1.0, "texture": ExtResource("attack_6")}
+],
+"loop": false,
+"name": &"attack",
+"speed": 10.0
+}, {
+"frames": [
+{"duration": 4.0, "texture": ExtResource("idle_1")},
+{"duration": 3.0, "texture": ExtResource("idle_2")},
+{"duration": 2.0, "texture": ExtResource("idle_3")},
+{"duration": 3.0, "texture": ExtResource("idle_4")},
+{"duration": 4.0, "texture": ExtResource("idle_5")}
+],
+"loop": true,
+"name": &"rest",
+"speed": 8.0
+}]
+
+[resource]
+script = ExtResource("script")
+Frames = SubResource("Frames")
+IdleAnimation = &"rest"
+PixelSize = 0.02
+FootMarginPixels = 4.0
+FacesRight = true
+AttackEffect = ExtResource("attack_effect")
+AttackAnimation = &"attack"
+AttackImpactFrame = 2

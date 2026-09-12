@@ -1,0 +1,143 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+Vulkan 1.4.341 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 3080 Ti
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== COMBAT SHOT SPIKE ====================
+[CombatTest] generated 'forest' map 22x24 seed 20260804 (4 party / 5 enemy anchors).
+WARNING: [CombatScene] enemy 2x2 footprint at anchor (19, 11) for Dire Wolf is occupied; moved to (18, 10).
+   at: void Delve.Combat.CombatScene.StartEncounter(Delve.Combat.CombatSetup) (res://scripts/combat/CombatScene.cs:221)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Combat.CombatScene.StartEncounter(Delve.Combat.CombatSetup) (G:\Godot\Gamestorming\delve\scripts\combat\CombatScene.cs:221)
+       [2] void Delve.Dev.CombatTestScene._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\CombatTestScene.cs:112)
+       [3] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [4] bool Delve.Dev.CombatTestScene.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.CombatTestScene_ScriptMethods.generated.cs:40)
+       [5] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+       [6] void Godot.NativeInterop.NativeFuncs.godotsharp_method_bind_ptrcall(nint, nint, System.Void**, System.Void*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Godot.SourceGenerators.Internal/Godot.SourceGenerators.Internal.UnmanagedCallbacksGenerator/Godot.NativeInterop.NativeFuncs.generated.cs:380)
+       [7] void Godot.NativeCalls.godot_icall_3_882(nint, nint, nint, Godot.NativeInterop.godot_bool, int) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:7842)
+       [8] void Godot.Node.AddChild(Godot.Node, bool, Godot.Node+InternalMode) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:835)
+       [9] void Delve.Dev.CombatShotSpike+<RunSpikeAsync>d__36.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\CombatShotSpike.cs:56)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.CombatShotSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [12] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [15] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [16] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [17] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [18] bool Delve.Dev.CombatShotSpike.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.CombatShotSpike_ScriptMethods.generated.cs:60)
+       [19] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+WARNING: [CombatScene] enemy 2x2 footprint at anchor (21, 11) for Grizzly Bear is outside the 22x24 board; moved to (20, 9).
+   at: void Delve.Combat.CombatScene.StartEncounter(Delve.Combat.CombatSetup) (res://scripts/combat/CombatScene.cs:221)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Combat.CombatScene.StartEncounter(Delve.Combat.CombatSetup) (G:\Godot\Gamestorming\delve\scripts\combat\CombatScene.cs:221)
+       [2] void Delve.Dev.CombatTestScene._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\CombatTestScene.cs:112)
+       [3] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [4] bool Delve.Dev.CombatTestScene.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.CombatTestScene_ScriptMethods.generated.cs:40)
+       [5] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+       [6] void Godot.NativeInterop.NativeFuncs.godotsharp_method_bind_ptrcall(nint, nint, System.Void**, System.Void*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Godot.SourceGenerators.Internal/Godot.SourceGenerators.Internal.UnmanagedCallbacksGenerator/Godot.NativeInterop.NativeFuncs.generated.cs:380)
+       [7] void Godot.NativeCalls.godot_icall_3_882(nint, nint, nint, Godot.NativeInterop.godot_bool, int) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:7842)
+       [8] void Godot.Node.AddChild(Godot.Node, bool, Godot.Node+InternalMode) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:835)
+       [9] void Delve.Dev.CombatShotSpike+<RunSpikeAsync>d__36.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\CombatShotSpike.cs:56)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.CombatShotSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [12] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [15] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [16] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [17] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [18] bool Delve.Dev.CombatShotSpike.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.CombatShotSpike_ScriptMethods.generated.cs:60)
+       [19] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+WARNING: [CombatScene] enemy 2x2 footprint at anchor (19, 12) for Giant Stag Beetle is occupied; moved to (18, 12).
+   at: void Delve.Combat.CombatScene.StartEncounter(Delve.Combat.CombatSetup) (res://scripts/combat/CombatScene.cs:221)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Combat.CombatScene.StartEncounter(Delve.Combat.CombatSetup) (G:\Godot\Gamestorming\delve\scripts\combat\CombatScene.cs:221)
+       [2] void Delve.Dev.CombatTestScene._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\CombatTestScene.cs:112)
+       [3] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [4] bool Delve.Dev.CombatTestScene.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.CombatTestScene_ScriptMethods.generated.cs:40)
+       [5] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+       [6] void Godot.NativeInterop.NativeFuncs.godotsharp_method_bind_ptrcall(nint, nint, System.Void**, System.Void*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Godot.SourceGenerators.Internal/Godot.SourceGenerators.Internal.UnmanagedCallbacksGenerator/Godot.NativeInterop.NativeFuncs.generated.cs:380)
+       [7] void Godot.NativeCalls.godot_icall_3_882(nint, nint, nint, Godot.NativeInterop.godot_bool, int) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/NativeCalls.cs:7842)
+       [8] void Godot.Node.AddChild(Godot.Node, bool, Godot.Node+InternalMode) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:835)
+       [9] void Delve.Dev.CombatShotSpike+<RunSpikeAsync>d__36.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\CombatShotSpike.cs:56)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.CombatShotSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [12] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [15] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [16] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [17] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [18] bool Delve.Dev.CombatShotSpike.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.CombatShotSpike_ScriptMethods.generated.cs:60)
+       [19] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+  [PASS] forest outskirts have two mist layers
+[combatshot] spike ready
+[combatshot] combat_shot.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot.png)
+  [PASS] combat_shot.png saved
+  [PASS] movement bands show on the player's Idle turn (603 markers)
+[combatshot] combat_shot_move_hover.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_move_hover.png)
+  [PASS] combat_shot_move_hover.png saved
+[combatshot] combat_shot_bands_slope.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_bands_slope.png)
+  [PASS] combat_shot_bands_slope.png saved
+  [PASS] preview has 5 enemy species
+[combatshot] enemy_bases_closeup.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/enemy_bases_closeup.png)
+  [PASS] enemy_bases_closeup.png saved
+  [PASS] 5 species start attack clips
+  [PASS] 5 attack accents accompany the contact poses
+[combatshot] enemy_attacks_contact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/enemy_attacks_contact.png)
+  [PASS] enemy_attacks_contact.png saved
+  [PASS] attack accents free themselves after recovery
+[combatshot] enemy_attacks_recovered.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/enemy_attacks_recovered.png)
+  [PASS] enemy_attacks_recovered.png saved
+[combatshot] giant_viper_idle.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/giant_viper_idle.png)
+  [PASS] giant_viper_idle.png saved
+[combatshot] giant_viper_contact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/giant_viper_contact.png)
+  [PASS] giant_viper_contact.png saved
+[combatshot] giant_monitor_lizard_idle.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/giant_monitor_lizard_idle.png)
+  [PASS] giant_monitor_lizard_idle.png saved
+[combatshot] giant_monitor_lizard_contact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/giant_monitor_lizard_contact.png)
+  [PASS] giant_monitor_lizard_contact.png saved
+[combatshot] dire_wolf_idle.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/dire_wolf_idle.png)
+  [PASS] dire_wolf_idle.png saved
+[combatshot] dire_wolf_contact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/dire_wolf_contact.png)
+  [PASS] dire_wolf_contact.png saved
+[combatshot] grizzly_bear_idle.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/grizzly_bear_idle.png)
+  [PASS] grizzly_bear_idle.png saved
+[combatshot] grizzly_bear_contact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/grizzly_bear_contact.png)
+  [PASS] grizzly_bear_contact.png saved
+[combatshot] giant_stag_beetle_idle.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/giant_stag_beetle_idle.png)
+  [PASS] giant_stag_beetle_idle.png saved
+[combatshot] giant_stag_beetle_contact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/giant_stag_beetle_contact.png)
+  [PASS] giant_stag_beetle_contact.png saved
+[combatshot] combat_shot_alt.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_alt.png)
+  [PASS] combat_shot_alt.png saved
+[combatshot] combat_shot_horizon.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_horizon.png)
+  [PASS] combat_shot_horizon.png saved
+[combatshot] combat_shot_low_a.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_low_a.png)
+  [PASS] combat_shot_low_a.png saved
+[combatshot] combat_shot_low_b.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_low_b.png)
+  [PASS] combat_shot_low_b.png saved
+[combatshot] combat_shot_flyout.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_flyout.png)
+  [PASS] combat_shot_flyout.png saved
+[combatshot] combat_shot_skills.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_shot_skills.png)
+  [PASS] combat_shot_skills.png saved
+[combatshot] combat_log_compact.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_log_compact.png)
+  [PASS] combat_log_compact.png saved
+[combatshot] combat_log_entry_expanded.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_log_entry_expanded.png)
+  [PASS] combat_log_entry_expanded.png saved
+[combatshot] combat_log_history.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_log_history.png)
+  [PASS] combat_log_history.png saved
+[combatshot] combat_dice_roll.png: Ok (G:/Godot/Gamestorming/delve/design/fringe-sprite-review/footprint-combat/combat_dice_roll.png)
+  [PASS] combat_dice_roll.png saved
+---------------------------------------------------------
+[CombatShotSpike] checks: 32, failures: 0
+SPIKE RESULT: PASS

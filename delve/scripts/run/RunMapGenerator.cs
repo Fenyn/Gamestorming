@@ -15,13 +15,13 @@ namespace Delve.Run;
 /// </summary>
 public static class RunMapGenerator
 {
-    /// <param name="meetingFloors">Rows taken whole by <see cref="NodeKind.Meeting"/>. Rows outside
-    /// the free middle are ignored.</param>
-    public static RunMap Generate(int runSeed, RunMapConfig cfg, IReadOnlyList<int>? meetingFloors = null)
+    public static RunMap Generate(int runSeed, RunMapConfig cfg)
     {
         if (cfg.Floors < 3) throw new ArgumentOutOfRangeException(nameof(cfg), "Floors must be at least 3.");
         if (cfg.Lanes < 1) throw new ArgumentOutOfRangeException(nameof(cfg), "Lanes must be at least 1.");
         if (cfg.Paths < 1) throw new ArgumentOutOfRangeException(nameof(cfg), "Paths must be at least 1.");
+        if (cfg.MinMeetingsPerFloor < 0 || cfg.MaxMeetingsPerFloor < cfg.MinMeetingsPerFloor)
+            throw new ArgumentOutOfRangeException(nameof(cfg), "Meeting counts must form a nonnegative range.");
 
         var rng = new Random(RunRng.StableSeed(runSeed, 0, "map"));
 
@@ -104,7 +104,7 @@ public static class RunMapGenerator
             if (node.Floor == 0) startIds.Add(node.Id);
         }
 
-        AssignKinds(nodes, bossFloor, cfg, meetingFloors, rng);
+        AssignKinds(nodes, bossFloor, cfg, rng);
         return new RunMap(cfg.Floors, cfg.Lanes, nodes, startIds, bossId);
     }
 
@@ -115,22 +115,12 @@ public static class RunMapGenerator
     /// <see cref="RunMapConfig.MinRestFloor"/>, because a night's rest before the party has spent
     /// anything is a dead pick. Floors are assigned in order so every predecessor is already known
     /// when a node is rolled; a top-up pass afterwards enforces the minimum Elite and Rest counts.
-    /// <paramref name="meetingFloors"/> rows are taken before the roll. They are neither Combat nor
-    /// Event, so the top-up passes skip them - leave free rows inside the guarantee windows.
+    /// Optional Wayfarers are placed last without displacing those required nodes.
     /// </summary>
     private static void AssignKinds(
         List<MapNode> nodes, int bossFloor, RunMapConfig cfg,
-        IReadOnlyList<int>? meetingFloors, Random rng)
+        Random rng)
     {
-        var forcedMeetings = new HashSet<int>();
-        if (meetingFloors != null)
-        {
-            foreach (int floor in meetingFloors)
-            {
-                if (floor > 0 && floor < bossFloor - 1) forcedMeetings.Add(floor);
-            }
-        }
-
         var predecessors = new Dictionary<int, List<int>>();
         foreach (var node in nodes)
         {
@@ -156,7 +146,6 @@ public static class RunMapGenerator
             if (node.Floor == 0) { node.Kind = NodeKind.Combat; continue; }
             if (node.Floor == bossFloor) { node.Kind = NodeKind.Boss; continue; }
             if (node.Floor == bossFloor - 1) { node.Kind = NodeKind.Rest; continue; }
-            if (forcedMeetings.Contains(node.Floor)) { node.Kind = NodeKind.Meeting; continue; }
 
             candidates.Clear();
             foreach (var entry in weighted)
@@ -182,6 +171,9 @@ public static class RunMapGenerator
                   cfg.MinEliteFloor, bossFloor - 2, rng);
         Guarantee(nodes, predecessors, NodeKind.Rest, cfg.MinMidRests,
                   cfg.MinRestFloor, bossFloor - 3, rng);
+        int meetings = rng.Next(cfg.MinMeetingsPerFloor, cfg.MaxMeetingsPerFloor + 1);
+        Guarantee(nodes, predecessors, NodeKind.Meeting, meetings,
+                  1, bossFloor - 2, rng, requireBypass: true);
     }
 
     /// <summary>
@@ -192,7 +184,7 @@ public static class RunMapGenerator
     /// </summary>
     private static void Guarantee(
         List<MapNode> nodes, Dictionary<int, List<int>> predecessors, NodeKind kind, int minimum,
-        int minFloor, int maxFloor, Random rng)
+        int minFloor, int maxFloor, Random rng, bool requireBypass = false)
     {
         if (minimum <= 0 || minFloor > maxFloor) return;
 
@@ -210,6 +202,7 @@ public static class RunMapGenerator
             {
                 if (node.Floor < minFloor || node.Floor > maxFloor) continue;
                 if (node.Kind != NodeKind.Combat && node.Kind != NodeKind.Event) continue;
+                if (requireBypass && !HasBypass(nodes, node.Id, kind)) continue;
                 if (HasNeighbourOfKind(nodes, predecessors, node, kind)) continue;
                 eligible.Add(node.Id);
             }
@@ -218,6 +211,20 @@ public static class RunMapGenerator
             nodes[eligible[rng.Next(eligible.Count)]].Kind = kind;
             have++;
         }
+    }
+
+    /// <summary>Preserve a complete route avoiding this kind, including the proposed promotion.
+    /// Node ids increase by row, so successors are already evaluated in this reverse walk.</summary>
+    private static bool HasBypass(List<MapNode> nodes, int proposedId, NodeKind kind)
+    {
+        var reachesBoss = new bool[nodes.Count];
+        for (int i = nodes.Count - 1; i >= 0; i--)
+        {
+            var node = nodes[i];
+            if (node.Id == proposedId || node.Kind == kind) continue;
+            reachesBoss[node.Id] = node.Kind == NodeKind.Boss || node.Next.Exists(id => reachesBoss[id]);
+        }
+        return nodes.Exists(node => node.Floor == 0 && reachesBoss[node.Id]);
     }
 
     private static bool HasNeighbourOfKind(

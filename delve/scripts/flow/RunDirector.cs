@@ -19,7 +19,7 @@ namespace Delve.Flow;
 /// </summary>
 public partial class RunDirector : Node
 {
-    private readonly UnlockState _unlocks = new();
+    private UnlockState _unlocks => _campaign.Unlocks;
     private readonly List<(RunPhase Phase, Control Panel)> _panels = new();
 
     /// <summary>The fight scene. One instance serves the whole run - it is never freed.</summary>
@@ -30,6 +30,7 @@ public partial class RunDirector : Node
     [Export] public PackedScene? EventScene { get; set; }
     [Export] public PackedScene? RestScene { get; set; }
     [Export] public PackedScene? ShortRestScene { get; set; }
+    [Export] public PackedScene? MeetupScene { get; set; }
     [Export] public PackedScene? RunEndScene { get; set; }
 
     /// <summary>Level the party is built at. No levelling yet.</summary>
@@ -49,6 +50,7 @@ public partial class RunDirector : Node
     private RestPanel _restPanel = null!;
     private ShortRestPanel _shortRestPanel = null!;
     private bool _shortRestResolved;
+    private MeetupPanel _meetupPanel = null!;
     private RunEndPanel _runEndPanel = null!;
 
     private RunState? _state;
@@ -56,6 +58,7 @@ public partial class RunDirector : Node
 
     /// <summary>XP the fight in progress awards on victory, held from StartFight to the finish.</summary>
     private int _pendingXp;
+    private bool _combatWon;
 
     /// <summary>The Wayfarer fighting in the current encounter, held from StartFight to the finish.</summary>
     private (string Id, PF2eCharacter Character)? _pendingRecruit;
@@ -85,7 +88,7 @@ public partial class RunDirector : Node
             return;
         }
         if (CombatScene == null || HeroSelectScene == null || RunMapScene == null || EventScene == null
-            || RestScene == null || ShortRestScene == null || RunEndScene == null)
+            || MeetupScene == null || RestScene == null || ShortRestScene == null || RunEndScene == null)
         {
             GD.PushError("[RunDirector] A screen or the combat scene is not assigned - aborting.");
             return;
@@ -96,7 +99,9 @@ public partial class RunDirector : Node
         // The run owns the loop, so the banner's scene-reload Restart never applies here.
         _combat.SetVictoryRestartVisible(false);
         _combat.EncounterFinished += OnEncounterFinished;
+        _combat.ResultsContinued += ContinueCombatResults;
 
+        LoadCampaign();
         BuildScreens();
         NewRun();
     }
@@ -108,9 +113,13 @@ public partial class RunDirector : Node
         _eventPanel = AddScreen<EventPanel>(EventScene!, RunPhase.Event);
         _restPanel = AddScreen<RestPanel>(RestScene!, RunPhase.Rest);
         _shortRestPanel = AddScreen<ShortRestPanel>(ShortRestScene!, RunPhase.ShortRest);
+        _meetupPanel = AddScreen<MeetupPanel>(MeetupScene!, RunPhase.Meetup);
+        _meetupPanel.CompanionPicked += ReplaceCompanion;
+        _meetupPanel.Declined += DeclineMeetup;
         _runEndPanel = AddScreen<RunEndPanel>(RunEndScene!, RunPhase.RunEnd);
 
         _heroSelect.Confirmed += ConfirmParty;
+        _heroSelect.RecruitmentRequested += BindAtOutpost;
         _map.NodePicked += async id => await TravelToNode(id);
         _map.ShortRestPressed += OpenShortRest;
         _eventPanel.OptionPicked += PickEventOption;
@@ -136,17 +145,25 @@ public partial class RunDirector : Node
     public void NewRun()
     {
         _state = null;
+        _pendingRecruit = null;
+        _pendingXp = 0;
+        _combatWon = false;
         _openEvent = null;
-        _heroSelect.Setup(_unlocks);
+        _heroSelect.Setup(_unlocks, _campaign);
         SetPhase(RunPhase.HeroSelect);
     }
 
     /// <summary>Build the party around the chosen leader, generate the map, and stand at the
-    /// entrance. Companions join later through <see cref="Party.AddMember"/>.</summary>
+    /// entrance. A normal run requires the leader and three companions.</summary>
     public void ConfirmParty(string leaderId, IReadOnlyList<string> memberIds)
     {
+        if (Phase != RunPhase.HeroSelect) return;
+        if (memberIds.Count != Party.MaxSize - 1)
+            throw new ArgumentException("Choose a leader and three companions.", nameof(memberIds));
         int seed = Seed != 0 ? Seed : (int)(GD.Randi() & 0x7FFFFFFF);
         var party = Party.Build(leaderId, memberIds, _unlocks, StartLevel);
+        _runId = Guid.NewGuid().ToString("N");
+        _campaign.BeginRun();
         _state = RunState.Start(seed, party, new RunMapConfig(), unlocks: _unlocks);
         GD.Print($"[RunDirector] run seed {seed}, party level {StartLevel}, {_state.Map.Floors} floors.");
         GoToMap();
@@ -162,7 +179,7 @@ public partial class RunDirector : Node
     /// <summary>Resolve travel immediately, also used by headless encounter harnesses.</summary>
     public void PickNode(int nodeId)
     {
-        if (_state == null || !_state.Advance(nodeId)) return;
+        if (_state == null || Phase != RunPhase.Map || !_state.Advance(nodeId)) return;
 
         // Passive ward burn per node. Inert at the default NodeBurn of 0.
         _state.Wardstone.BurnNode();
@@ -195,102 +212,6 @@ public partial class RunDirector : Node
         if (_state == null) return;
         _map.Render(_state);
         SetPhase(RunPhase.Map);
-    }
-
-    // ---------------------------------------------------------------- Combat
-
-    private void StartFight(MapNode node)
-    {
-        var data = DataManager.Instance;
-        _pendingRecruit = node.Kind == NodeKind.Meeting ? _state!.Recruits.Draw(_state.Party) : null;
-        var setup = data == null
-            ? null
-            : EncounterFactory.Build(_state!, node, data.ResolveCreature, ally: _pendingRecruit?.Character);
-        if (setup == null)
-        {
-            GD.PushError($"[RunDirector] Could not build the encounter for node {node.Id} - back to the map.");
-            GoToMap();
-            return;
-        }
-
-        _pendingXp = setup.XpAward;
-        SetPhase(RunPhase.Combat);
-        _combat.StartEncounter(setup);
-        if (AutoPlayCombat)
-            _combat.SetAllPlayerAi(true);
-    }
-
-    /// <summary>
-    /// A fight ended. The wipe test reads the party BEFORE the stabilize step, which puts every
-    /// downed member back on 1 HP - after it, nobody is ever wiped.
-    /// </summary>
-    private void OnEncounterFinished(BattleResult result)
-    {
-        if (_state == null || Phase != RunPhase.Combat) return;
-
-        bool wiped = _state.Party.IsWiped;
-        var node = _state.CurrentNode;
-        if (!wiped && result == BattleResult.Team1Wins) JoinPendingRecruit();
-        _pendingRecruit = null;
-        PartyRecovery.CompleteEncounter(_state.Party, result);
-
-        if (wiped || result != BattleResult.Team1Wins)
-        {
-            _pendingXp = 0;
-            EndRun(RunOutcome.Defeat);
-        }
-        else if (node != null && node.Kind == NodeKind.Boss)
-        {
-            AwardPendingXp();
-            // Beating a floor's boss recharges the stone in full. The last floor's boss is the
-            // Depths Warden and ends the run; any other drops the party onto the next floor.
-            _state.Wardstone.RefillFull();
-            if (_state.OnFinalStratum)
-            {
-                EndRun(RunOutcome.Victory);
-            }
-            else
-            {
-                _state.AdvanceStratum();
-                GD.Print($"[RunDirector] floor beaten - descending to floor {_state.Stratum + 1}.");
-                GoToMap();
-            }
-        }
-        else
-        {
-            AwardPendingXp();
-            GoToMap();
-        }
-    }
-
-    /// <summary>
-    /// Take the Wayfarer into the party, if there was one and it lived. The instance that fought is
-    /// the instance that joins, so it keeps its wounds; the stabilize step that follows covers it
-    /// like any other member.
-    /// </summary>
-    private void JoinPendingRecruit()
-    {
-        if (_state == null || _pendingRecruit is not { } recruit) return;
-
-        if (recruit.Character.Health is { IsDead: true })
-        {
-            GD.Print($"[RunDirector] the Wayfarer {recruit.Character.Name} did not survive the fight.");
-            return;
-        }
-        if (_state.Party.AddMember(recruit.Id, recruit.Character, _unlocks))
-            GD.Print($"[RunDirector] {recruit.Character.Name} joins the party.");
-    }
-
-    /// <summary>Pay out the won fight's XP (stabilized party first) and level in place on a
-    /// threshold cross. RAW award, accelerated threshold (design/core_concept.md "Run flow").</summary>
-    private void AwardPendingXp()
-    {
-        if (_state == null || _pendingXp <= 0) return;
-        int xp = _pendingXp;
-        _pendingXp = 0;
-        int gained = PartyLeveling.Award(_state, xp);
-        if (gained > 0)
-            GD.Print($"[RunDirector] +{xp} XP - the party reaches level {_state.Party.Level}.");
     }
 
     /// <summary>End the run and show the summary. Public: it is a transition like any other.</summary>
@@ -329,64 +250,6 @@ public partial class RunDirector : Node
         GoToMap();
     }
 
-    // ---------------------------------------------------------------- Rest
-
-    /// <summary>Open the Campsite screen. Public so a spike can drive one it did not walk to.</summary>
-    public void OpenRest()
-    {
-        if (_state == null) return;
-        _restPanel.Show(_state);
-        SetPhase(RunPhase.Rest);
-    }
-
-    /// <summary>Take the night's rest at a Campsite: heal, clear Wounded, roll the day over.</summary>
-    public void Rest()
-    {
-        if (_state == null) return;
-        PartyRecovery.LongRest(_state.Party, _state.Clock, wardstone: _state.Wardstone);
-        GoToMap();
-    }
-
-    /// <summary>Open the ten-minute activity screen from the map.</summary>
-    public void OpenShortRest()
-    {
-        if (_state == null || Phase != RunPhase.Map) return;
-        _shortRestResolved = false;
-        _shortRestPanel.Show(_state);
-        SetPhase(RunPhase.ShortRest);
-    }
-
-    /// <summary>Spend one ten-minute block. The panel shows the lines it produced.</summary>
-    public void TakeShortRest(ShortRestKind kind, PF2eCharacter? target)
-    {
-        if (_state == null || Phase != RunPhase.ShortRest || _shortRestResolved) return;
-        _shortRestResolved = true;
-        int wardBefore = _state.Wardstone.Ward;
-
-        var result = ShortRest.Perform(
-            _state.Party, _state.Clock, kind, target, new RecoveryRules(),
-            wardstone: _state.Wardstone);
-        _shortRestPanel.ShowResult(result, _state, wardBefore);
-        EndOnSpentWard();
-    }
-
-    /// <summary>
-    /// End the run when the ward has gone out (design/core_concept.md, "Wardstone"). Called after
-    /// every burn. True when it ended the run, so the caller stops what it was doing.
-    /// </summary>
-    private bool EndOnSpentWard()
-    {
-        if (_state == null || !_state.Wardstone.IsSpent || _state.Outcome != RunOutcome.InProgress)
-            return false;
-
-        GD.Print("[RunDirector] the ward is out - the run ends.");
-        EndRun(RunOutcome.Defeat);
-        return true;
-    }
-
-    /// <summary>Leave the ten-minute screen and return to the map.</summary>
-    public void CloseShortRest() => GoToMap();
-
     // ---------------------------------------------------------------- Screens
 
     /// <summary>Show exactly one screen - or the fight, which is a scene rather than a panel.</summary>
@@ -395,7 +258,7 @@ public partial class RunDirector : Node
         Phase = phase;
         foreach (var (screen, panel) in _panels)
             panel.Visible = screen == phase;
-        _combat.SetPresentationVisible(phase == RunPhase.Combat);
+        _combat.SetPresentationVisible(phase is RunPhase.Combat or RunPhase.CombatResults);
         PhaseChanged?.Invoke(phase);
     }
 }

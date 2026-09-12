@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/dev/combat_test.tscn" id="1"]
+
+[node name="CombatTest" instance=ExtResource("1")]
+CombatSeed = 1706
+PreviewEnemySpacing = 3
+PreviewEnemies = PackedStringArray("Giant Rat", "Goblin Warrior", "Kobold Warrior", "Wolf", "Viper", "Hunting Spider", "Boar", "Giant Viper", "Giant Monitor Lizard", "Dire Wolf", "Grizzly Bear", "Giant Stag Beetle")

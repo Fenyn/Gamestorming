@@ -50,12 +50,13 @@ internal sealed class MovementActions
     }
 
     /// <summary>
-    /// Why a Step to <paramref name="dest"/> is illegal ("Blocked." / "Occupied." / "Too steep."), or
-    /// null when it is legal. The single source of step legality: <see cref="GetStepTiles"/> filters
-    /// neighbors with it, and CombatSession installs it as the engine's StepAction.ValidateDestination.
-    /// The elevation clause mirrors the engine's own StepAction gate, so a highlighted tile and an
-    /// accepted Step never disagree: a Step neither scrambles up a cliff (the one-elevation rise the
-    /// Pathfinder allows a Stride) nor drops off one — falling is not careful movement.
+    /// Why a Step to <paramref name="dest"/> is illegal ("Blocked." / "Occupied." / "Difficult
+    /// terrain." / "Too steep."), or null when it is legal. The single source of step legality:
+    /// <see cref="GetStepTiles"/> filters neighbors with it, and CombatSession installs it as the
+    /// engine's StepAction.ValidateDestination. The terrain and elevation clauses mirror the engine's
+    /// own StepAction gates, so a highlighted tile and an accepted Step never disagree: a Step enters
+    /// no difficult terrain and neither scrambles up a cliff (the one-elevation rise the Pathfinder
+    /// allows a Stride) nor drops off one — falling is not careful movement.
     /// </summary>
     internal string? StepBlockedReason(ICharacter actor, PF2eVec dest)
     {
@@ -65,6 +66,7 @@ internal sealed class MovementActions
         if (!_grid.CanTraverseEdge(actor.GridPosition, dest)) return "Too steep.";
         if (_grid.GetEdgeStepUp(dest, actor.GridPosition) >= TileCornerHeights.FallDamageThreshold)
             return "Too steep.";
+        if (tile.EffectiveMovementCost > 1) return "Difficult terrain.";
         return null;
     }
 

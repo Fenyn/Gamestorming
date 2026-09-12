@@ -11,8 +11,6 @@ public static class InputNames
 {
     public const string Action1 = "combat_action_1";
     public const string Action2 = "combat_action_2";
-    public const string Action3 = "combat_action_3";
-    public const string Action4 = "combat_action_4";
     public const string EndTurn = "combat_end_turn";
     public const string Spells = "combat_spells";
     public const string Skills = "combat_skills";
@@ -20,6 +18,8 @@ public static class InputNames
     public const string Decline = "combat_decline";
     public const string Help = "combat_help";
     public const string LogToggle = "combat_log_toggle";
+    /// <summary>Re-centre the combat camera on the active unit.</summary>
+    public const string Focus = "combat_focus";
 
     /// <summary>Godot's built-in cancel action. Listed here so no script carries the literal.</summary>
     public const string UiCancel = "ui_cancel";

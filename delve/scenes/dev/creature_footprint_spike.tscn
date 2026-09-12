@@ -1,0 +1,12 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/CreatureFootprintSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/combat/unit_token.tscn" id="2"]
+[ext_resource type="Resource" path="res://assets/sprites/enemies/giant_monitor_lizard_base/sprite.tres" id="3"]
+[ext_resource type="Resource" path="res://assets/sprites/enemies/giant_stag_beetle_base/sprite.tres" id="4"]
+
+[node name="CreatureFootprintSpike" type="Node"]
+script = ExtResource("1")
+TokenScene = ExtResource("2")
+MonitorSprite = ExtResource("3")
+BeetleSprite = ExtResource("4")

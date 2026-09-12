@@ -1,4 +1,6 @@
 using Godot;
+using Delve.Terrain;
+using PF2eVec = PF2e.Vector2Int;
 
 namespace Delve.Combat;
 
@@ -12,6 +14,7 @@ namespace Delve.Combat;
 /// </summary>
 public partial class TeamRing : MeshInstance3D
 {
+    [Export] public Shader? FootprintShader { get; set; }
     /// <summary>Ring colour while the entity has the turn.</summary>
     [Export] public Color ActiveColor { get; set; } = new(1f, 0.9f, 0.3f, 0.9f);
 
@@ -34,6 +37,40 @@ public partial class TeamRing : MeshInstance3D
     private Tween? _popTween;
     private Tween? _pulseTween;
     private Tween? _fadeTween;
+    private ShaderMaterial? _surface;
+
+    /// <summary>Attach the marker to the board, independently of body offsets and attack lunges.</summary>
+    public void SetSurface(PF2eVec anchor, int width, TerrainHeightMap height, Transform3D boardTransform)
+    {
+        if (FootprintShader == null) return;
+        bool first = _surface == null;
+        _surface ??= new ShaderMaterial { Shader = FootprintShader };
+        Mesh = TerrainFootprintMesh.Build(anchor, width, height);
+        MaterialOverride = _surface;
+        TopLevel = true;
+        GlobalTransform = boardTransform * new Transform3D(Basis.Identity, new Vector3(anchor.x, 0, anchor.y));
+        ApplyColor(_active ? ActiveColor : RestColor);
+        if (first) SetActive(_active);
+    }
+
+    private void ApplyColor(Color color)
+    {
+        _mat.AlbedoColor = color;
+        _surface?.SetShaderParameter("tint", color);
+    }
+
+    private void SurfacePulse(float value) => _surface?.SetShaderParameter("pulse", value);
+
+    /// <summary>Size the per-instance ground disk to the rules footprint. Animation scale stays
+    /// independent, so ending a turn never shrinks a Large creature back to a one-tile disk.</summary>
+    public void SetFootprint(int tileWidth)
+    {
+        System.ArgumentOutOfRangeException.ThrowIfLessThan(tileWidth, 1);
+        if (Mesh is not CylinderMesh cylinder) return;
+        var mesh = (CylinderMesh)cylinder.Duplicate();
+        mesh.TopRadius = mesh.BottomRadius = 0.42f * tileWidth;
+        Mesh = mesh;
+    }
 
     private Color RestColor => _teamColor with { A = RestAlpha };
 
@@ -54,15 +91,25 @@ public partial class TeamRing : MeshInstance3D
     public void SetActive(bool active)
     {
         _active = active;
-        _mat.AlbedoColor = active ? ActiveColor : RestColor;
+        ApplyColor(active ? ActiveColor : RestColor);
 
         // One writer at a time for scale: kill whichever of the two is live, then snap to rest.
         _popTween?.Kill();
         _popTween = null;
         _pulseTween?.Kill();
         _pulseTween = null;
-        Scale = Vector3.One;
+        if (_surface == null) Scale = Vector3.One;
+        SurfacePulse(1f);
         if (!active) return;
+
+        if (_surface != null)
+        {
+            _popTween = CreateTween();
+            _popTween.TweenMethod(Callable.From<float>(SurfacePulse), 1f, 1.5f, PopDuration);
+            _popTween.TweenMethod(Callable.From<float>(SurfacePulse), 1.5f, 1.1f, SettleDuration);
+            _popTween.TweenCallback(Callable.From(StartPulse));
+            return;
+        }
 
         _popTween = CreateTween();
         _popTween.TweenProperty(this, "scale", PopScale, PopDuration)
@@ -78,6 +125,12 @@ public partial class TeamRing : MeshInstance3D
         _pulseTween?.Kill();
         _pulseTween = CreateTween();
         _pulseTween.SetLoops();
+        if (_surface != null)
+        {
+            _pulseTween.TweenMethod(Callable.From<float>(SurfacePulse), 1.1f, 1.35f, PulseDuration);
+            _pulseTween.TweenMethod(Callable.From<float>(SurfacePulse), 1.35f, 1.1f, PulseDuration);
+            return;
+        }
         _pulseTween.TweenProperty(this, "scale", PulseScale, PulseDuration)
             .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
         _pulseTween.TweenProperty(this, "scale", ActiveScale, PulseDuration)
@@ -89,6 +142,7 @@ public partial class TeamRing : MeshInstance3D
     {
         _fadeTween?.Kill();
         _fadeTween = CreateTween();
-        _fadeTween.TweenProperty(_mat, "albedo_color", _teamColor with { A = 0f }, duration);
+        _fadeTween.TweenMethod(Callable.From<Color>(ApplyColor), _mat.AlbedoColor,
+            _teamColor with { A = 0f }, duration);
     }
 }

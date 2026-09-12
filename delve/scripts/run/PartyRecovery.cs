@@ -28,6 +28,13 @@ public static class PartyRecovery
             Stabilize(member, applied);
     }
 
+    /// <summary>Clean up a surviving guest before offering them a companion slot.</summary>
+    public static void CompleteEncounter(PF2eCharacter guest, RecoveryRules? rules = null)
+    {
+        if (guest.Health is { IsDead: true }) return;
+        Stabilize(guest, rules ?? new RecoveryRules());
+    }
+
     private static void Stabilize(PF2eCharacter member, RecoveryRules rules)
     {
         // Per-turn combat state (MAP, flourish flags, strike follow-ups) must never leak into the

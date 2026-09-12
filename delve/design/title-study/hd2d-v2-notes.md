@@ -1,0 +1,17 @@
+# Delve title study v2
+
+Art direction: HD-2D fantasy scenery with crisp spritework, detailed PSX-era RPG environments, slate and teal fog, and amber watch lights.
+
+The background was generated with the built-in image generation tool. It is a flattened raster illustration, not separately drawn scenery layers or a 3D scene. The four travelers are concept depictions, not exact copies of the game sprites. Pixel consistency and character likeness can still be refined by hand.
+
+`delve-hd2d-source-v2.png` preserves the original generated image. Aseprite resamples it with nearest-neighbor to 960 x 540. `delve-hd2d-background-v2.png` is that background without a title. The `.aseprite` file adds separate pixel Roman lettering, shadow, and watchlight ornament layers. The 1080p PNG is an exact nearest-neighbor 2x export. No game scenes have been changed.
+
+Rebuild from the delve directory using the installed Aseprite executable:
+
+```powershell
+& 'E:\Program Files (x86)\Steam\steamapps\common\Aseprite\Aseprite.exe' --batch --script tools/assemble_title_hd2d.lua
+```
+
+## Generation prompt
+
+Create a premium HD-2D pixel-art title-screen BACKGROUND for DELVE, a fantasy party roguelite. Landscape 16:9, ideally 1536x864. Art direction: beautiful crisp spritework and the density of authored environmental detail of a late-1990s PSX RPG, modern restrained volumetric lighting. Real deliberate pixel clusters, stepped edges, selective outlines, coherent apparent pixel size, carefully shaded materials. NOT a low-detail geometric procedural mockup, NOT a smooth painting with a pixel filter, no blur over sprites, no noisy scattered pixels. Scene: a ruined stone outpost, chapel and watchtower on a rocky shelf within an endless fogbound woodland at blue hour. A small warm amber watch light survives; the order who built the fort is gone. Four small clearly distinct adventurer sprites viewed from behind on the foreground approach: a dusty red-cloaked fighter with travel pack and sword, a purple rogue with short cape and satchel, a stocky pale-teal cleric with hammer, and a blue-robed wizard with wooden staff. Keep them readable and expertly detailed, about 8 percent of image height, walking toward the outpost. Stone stairs and a broken bridge curve from the foreground toward a lamplit arched gateway; a darker stair entrance hints at the delve beneath the chapel. Rich specific construction: varied weathered stone blocks, carved arch voussoirs, narrow leaded windows, broken slate roof tiles, timber braces, iron lantern brackets, a faded hanging pennant, ivy creeping between stones, moss, roots, ferns, rubble and grasses. Strong coherent perspective, layered low-poly-looking architecture rendered as crisp pixel art, textured rock faces, believable scale. Forest has intricate branch silhouettes and layered conifers, dark foreground framing, teal mist behind the building. Tiny warm light reflections on damp stone. Limited harmonious color ramps: blue slate and charcoal, desaturated teal fog, amber and ivory highlights, small character color accents. Mysterious, welcoming and wistful, no horror. Composition: chapel and watchtower centered in middle distance; silhouettes never compete with the lettering space. Reserve upper central 25 percent as dark quiet atmospheric sky for a separate DELVE logo to be added later; bottommost 10 percent quiet dark foreground for future menu controls. NO text, NO logo, NO UI, NO watermark. High artistic finish with detail throughout the environments and characters but clear major shapes and focal hierarchy.

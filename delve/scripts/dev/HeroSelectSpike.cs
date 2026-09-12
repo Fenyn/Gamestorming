@@ -13,8 +13,8 @@ namespace Delve.Dev;
 /// <summary>
 /// Walk of the hero-select screen. Instances the panel on its own, drives it through
 /// <see cref="HeroSelectPanel.Pick"/> - the same entry point a card click calls - and asserts the
-/// gates: nothing embarks until a character is chosen, a character who cannot lead is refused, a
-/// locked character is refused, and the confirmed payload is a legal solo party.
+/// gates: formation requires a leader and three distinct unlocked companions.
+/// Removing a companion closes the gate; changing the leader clears formation.
 ///
 /// It then reads every roster entry's featured sheet straight off the character its preset builds
 /// and checks the overview back against the rules engine: four headline numbers and no more, a
@@ -60,7 +60,7 @@ public partial class HeroSelectSpike : SpikeBase
         Check("(1) nothing is chosen", panel.Chosen == null);
         Check("(1) Embark is disabled", !panel.CanEmbark);
         Check($"(1) the hint asks for a character ({panel.HintText})",
-            panel.HintText == "Pick who enters the depths alone — companions join along the way.");
+            panel.HintText.StartsWith("Choose your leader.", StringComparison.Ordinal));
         Check("(1) an id outside the catalog cannot be picked", !panel.CanPick(PresetCharacters.RecruitId));
         Check("(1) a character who can lead is offered it", panel.CanPick(PresetCharacters.ElaraId));
 
@@ -76,16 +76,26 @@ public partial class HeroSelectSpike : SpikeBase
         // ---------------------------------------------------- (2) choosing one
         panel.Pick(PresetCharacters.ElaraId);
         Check("(2) the pick is the starting character", panel.Chosen == PresetCharacters.ElaraId);
-        Check($"(2) the hint reads as ready ({panel.HintText})", panel.HintText == "Ready to delve.");
-        Check("(2) Embark is open", panel.CanEmbark);
-
+        Check("(2) a leader alone cannot embark", !panel.CanEmbark);
         panel.Embark();
-        Check("(2) the starting character is signalled", _leaderSeen == PresetCharacters.ElaraId);
-        Check("(2) no companions are signalled", _membersSeen is { Count: 0 });
-        Check("(2) the payload builds a legal solo party", HeroSelectChecks.BuildsAParty(_leaderSeen, _membersSeen));
-
+        Check("(2) incomplete formation signals nothing", _leaderSeen == null);
+        panel.Pick(PresetCharacters.PlayerId);
+        panel.Pick(PresetCharacters.TharrId);
+        Check("(2) a trio cannot embark", !panel.CanEmbark);
+        panel.Pick(PresetCharacters.FenwickId);
+        Check("(2) four members open Embark", panel.CanEmbark);
+        Check("(2) companion selection keeps the chosen leader", panel.Chosen == PresetCharacters.ElaraId);
+        panel.Embark();
+        Check("(2) the starting leader is signalled", _leaderSeen == PresetCharacters.ElaraId);
+        Check("(2) three companions are signalled", _membersSeen is { Count: 3 });
+        Check("(2) the payload builds a legal full party", HeroSelectChecks.BuildsAParty(_leaderSeen, _membersSeen));
+        panel.Pick(PresetCharacters.TharrId);
+        Check("(2) clicking a companion removes them", !panel.CanEmbark && panel.Companions.Count == 2);
+        Check("(2) confirmed payload is a snapshot", _membersSeen is { Count: 3 });
+        panel.Pick(PresetCharacters.TharrId);
+        Check("(2) a removed companion can be selected again", panel.CanEmbark);
         panel.Unpick();
-        Check("(2) Esc gives the pick back", panel.Chosen == null && !panel.CanEmbark);
+        Check("(2) changing leader clears formation", panel.Chosen == null && panel.Companions.Count == 0 && !panel.CanEmbark);
 
         // ---------------------------------------------------- (3) locked characters
         panel.Setup(new UnlockState(new[] { PresetCharacters.PlayerId, PresetCharacters.ElaraId }));
@@ -99,6 +109,8 @@ public partial class HeroSelectSpike : SpikeBase
             HeroSelectChecks.Card(locked, PresetCharacters.TharrId) is { Disabled: true, TooltipText: "Unavailable: locked" });
         Check("(3) an unlocked leader card still takes clicks",
             HeroSelectChecks.Card(locked, PresetCharacters.PlayerId) is { Disabled: false });
+
+        HeroSelectChecks.Recruitment(panel, Check);
 
         RemoveChild(panel);
         panel.QueueFree();
@@ -124,6 +136,11 @@ public partial class HeroSelectSpike : SpikeBase
             foreach (var entry in Sheet(def.Id).Entries())
             {
                 if (string.IsNullOrEmpty(entry.ItemId)) continue;
+                if (def.Id == PresetCharacters.ThistleId && entry.ItemId == "hIgqLgH3YcLZBeoT")
+                {
+                    Check("Thistle's shortbow uses the shared fallback until bow art exists", icons.For(entry.ItemId) != null);
+                    continue;
+                }
                 Check($"{def.Id} {entry.Label} has its own icon ({entry.ItemId})",
                     icons.Icons.TryGetValue(entry.ItemId, out var texture)
                     && texture != null && texture.GetSize() == new Vector2(32, 32));

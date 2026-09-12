@@ -65,13 +65,24 @@ layout_mode = 2
 text = ""
 theme_type_variation = &"HeadingLabel"
 
-[node name="TargetingHint" type="Label" parent="Stack"]
-unique_name_in_owner = true
+[node name="HintRow" type="HBoxContainer" parent="Stack"]
 layout_mode = 2
 size_flags_horizontal = 4
+theme_override_constants/separation = 6
+
+[node name="TargetingHint" type="Label" parent="Stack/HintRow"]
+unique_name_in_owner = true
+layout_mode = 2
 text = ""
 horizontal_alignment = 1
 theme_type_variation = &"HintLabel"
+
+[node name="MoveCostPips" parent="Stack/HintRow" instance=ExtResource("2_pr")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+PipSize = Vector2(10, 10)
 
 [node name="Flyout" parent="Stack" instance=ExtResource("5_fly")]
 unique_name_in_owner = true
@@ -121,29 +132,17 @@ layout_mode = 2
 size_flags_vertical = 4
 PipSize = Vector2(14, 14)
 
-[node name="MoveButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
-unique_name_in_owner = true
-layout_mode = 2
-ActionText = "Move"
-InputAction = &"combat_action_1"
-
-[node name="StepButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
-unique_name_in_owner = true
-layout_mode = 2
-ActionText = "Step"
-InputAction = &"combat_action_2"
-
 [node name="StrikeButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
 ActionText = "Strike"
-InputAction = &"combat_action_3"
+InputAction = &"combat_action_1"
 
 [node name="ShieldButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
 ActionText = "Shield"
-InputAction = &"combat_action_4"
+InputAction = &"combat_action_2"
 
 [node name="SpellsButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true

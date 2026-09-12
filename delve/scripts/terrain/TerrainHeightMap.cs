@@ -71,6 +71,18 @@ public sealed class TerrainHeightMap
         return _layout.GetCornerHeights(p.x, p.y).CenterHeight * HeightScale;
     }
 
+    /// <summary>Lowest occupied tile surface: Delve's standing-height convention for a creature
+    /// spanning several elevations. A slope uses its tile center, just as a one-tile creature does.</summary>
+    public float FootprintCenterY(PF2eVec anchor, int tileWidth)
+    {
+        System.ArgumentOutOfRangeException.ThrowIfLessThan(tileWidth, 1);
+        float h = float.PositiveInfinity;
+        for (int y = 0; y < tileWidth; y++)
+            for (int x = 0; x < tileWidth; x++)
+                h = System.Math.Min(h, CenterY(new PF2eVec(anchor.x + x, anchor.y + y)));
+        return h;
+    }
+
     /// <summary>
     /// The tile's four corner heights, in raw corner units (NOT world units — multiply by
     /// <see cref="HeightScale"/>). Out-of-bounds and <see cref="Flat"/> give a flat-zero tile, so a

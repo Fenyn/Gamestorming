@@ -28,8 +28,8 @@ public sealed record EncounterGenRules
     /// Lairs are the meaty elite fights (design/core_concept.md "Wardstone").</summary>
     public int LairTierBonus { get; init; } = 1;
 
-    /// <summary>Party size at or below which a generated fight drops a tier. The opening rows are
-    /// walked alone and a book-Moderate fight against one character is not one.</summary>
+    /// <summary>Party size at or below which a generated fight drops a tier. Reserved for small
+    /// combat harnesses and a separate tutorial; normal expeditions always start with four.</summary>
     public int UnderstrengthPartySize { get; init; } = 1;
 
     /// <summary>Tiers taken off for an understrength party.</summary>

@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/dev/combat_shot_spike.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/dev/fringe_sprite_preview.tscn" id="2"]
+
+[node name="FringeSpriteShotSpike" instance=ExtResource("1")]
+TestScene = ExtResource("2")
+CaptureEnemyCloseup = true
+CaptureIndividualEnemies = true
+ExpectedEnemyCount = 5
+ExpectedAttackCount = 5
+ExpectedAccentCount = 5

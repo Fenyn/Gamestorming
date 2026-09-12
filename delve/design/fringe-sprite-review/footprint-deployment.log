@@ -1,0 +1,25 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== CreatureDeploymentSpike ====================
+  [PASS] loaded Dire Wolf occupies 2x2
+  [PASS] loaded Giant Viper occupies 1x1
+  [PASS] non-anchor cell of Large reserves space against later Medium
+  [PASS] legal Large anchor stays fixed
+  [PASS] normalized deployment is stable
+  [PASS] Large checks occupied non-anchor cell before placement
+  [PASS] repair picks a nearest one-step legal anchor
+  [PASS] Large at board edge repairs full footprint
+  [PASS] Large moves when only non-anchor tile is a wall
+  [PASS] every repaired footprint tile is walkable
+  [PASS] free anchor cannot hide no fitting Large footprint
+  [PASS] board narrower than creature fails clearly
+---------------------------------------------------------
+[CreatureDeploymentSpike] checks: 12, failures: 0
+SPIKE RESULT: PASS

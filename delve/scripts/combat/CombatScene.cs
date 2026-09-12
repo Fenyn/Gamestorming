@@ -25,6 +25,7 @@ public partial class CombatScene : Node3D
         GD.Load<PackedScene>("res://scenes/combat/unit_token.tscn");
 
     private GridOverlay3D _overlay = null!;
+    private MoveBandOverlay3D _moveBands = null!;
     private Node3D _unitLayer = null!;
     private Node3D _popupLayer = null!;
     private GridInput3D _input = null!;
@@ -58,6 +59,10 @@ public partial class CombatScene : Node3D
 
     private CombatLogBridge? _logBridge;
 
+    /// <summary>The Idle bands last pushed by the controller (empty while hidden). Dev captures read it.</summary>
+    private IReadOnlyDictionary<PF2e.Vector2Int, MoveOption> _lastBands =
+        new Dictionary<PF2e.Vector2Int, MoveOption>();
+
     /// <summary>
     /// True once the persistent scene nodes (input, action bar) are subscribed. Those nodes outlive
     /// every encounter, so their handlers are wired exactly once — a second StartEncounter would
@@ -82,6 +87,7 @@ public partial class CombatScene : Node3D
     public override void _Ready()
     {
         _overlay = GetNode<GridOverlay3D>("%GridOverlay");
+        _moveBands = GetNode<MoveBandOverlay3D>("%MoveBands");
         _unitLayer = GetNode<Node3D>("%UnitLayer");
         _popupLayer = GetNode<Node3D>("%PopupLayer");
         _input = GetNode<GridInput3D>("%GridInput");
@@ -95,9 +101,9 @@ public partial class CombatScene : Node3D
         _log = GetNode<CombatLogPanel>("%CombatLog");
         _dice = GetNode<DiceRollPanel>("%DiceRoll");
         _log.RollObserved += _dice.ShowRoll;
-        _log.DiceVisibilityChanged += _dice.SetEnabled;
         _actionBar = GetNode<ActionBar>("%ActionBar");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
+        _victoryBanner.Continued += () => ResultsContinued?.Invoke();
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
         _help = GetNode<HelpOverlay>("%HelpOverlay");
         _inspectPanel = GetNode<UnitInspectPanel>("%UnitInspect");
@@ -111,6 +117,11 @@ public partial class CombatScene : Node3D
     /// host decides, this scene doesn't know which flow it's running in.
     /// </summary>
     public void SetVictoryRestartVisible(bool visible) => _victoryBanner.SetRestartVisible(visible);
+
+    public event System.Action? ResultsContinued;
+
+    public void ShowRewards(string rewards, string progressText, double progress)
+        => _victoryBanner.ShowRewards(rewards, progressText, progress);
 
     /// <summary>
     /// Show or hide the whole fight - the 3D board and the HUD CanvasLayer, which visibility does not
@@ -137,6 +148,57 @@ public partial class CombatScene : Node3D
             _session.SetAiToggle(unit, aiControlled);
         }
     }
+
+    /// <summary>True while the current actor is under player control (its bands are showing).</summary>
+    public bool IsPlayerTurn =>
+        _session != null && _session.CurrentActor is { } actor && _session.IsPlayerControlled(actor);
+
+    /// <summary>
+    /// Capture/dev use — the combat shot spike photographs the route preview with it. Hovers the
+    /// farthest tile in the band that costs <paramref name="actions"/>, as if the mouse were there.
+    /// False when no such tile is showing. Pass through <see cref="ClearHover"/> afterwards.
+    /// </summary>
+    public bool HoverBandTile(int actions)
+    {
+        var from = _session?.CurrentActor?.GridPosition;
+        if (from == null) return false;
+        PF2e.Vector2Int? best = null;
+        int bestDistance = -1;
+        foreach (var (tile, option) in _lastBands)
+        {
+            if (option.Kind != MoveKind.Stride || option.Actions != actions) continue;
+            int distance = System.Math.Abs(tile.x - from.Value.x) + System.Math.Abs(tile.y - from.Value.y);
+            if (distance > bestDistance) { bestDistance = distance; best = tile; }
+        }
+        if (best == null) return false;
+        OnTileHovered(best);
+        return true;
+    }
+
+    /// <summary>
+    /// Capture/dev use — photographs the markers on a slope. Hovers the band tile whose corners
+    /// differ most in height and returns its world centre; false on a flat board or flat bands.
+    /// </summary>
+    public bool HoverSteepestBandTile(out Vector3 world)
+    {
+        world = Vector3.Zero;
+        var heights = _terrain.HeightMap;
+        if (!heights.HasTerrain) return false;
+        PF2e.Vector2Int? best = null;
+        int bestSpan = 0;
+        foreach (var (tile, _) in _lastBands)
+        {
+            int span = heights.Corners(tile).HeightSpan;
+            if (span > bestSpan) { bestSpan = span; best = tile; }
+        }
+        if (best == null) return false;
+        OnTileHovered(best);
+        world = GridSpace.GridToWorld(best.Value, heights);
+        return true;
+    }
+
+    /// <summary>Capture/dev use: end a <see cref="HoverBandTile"/> hover.</summary>
+    public void ClearHover() => OnTileHovered(null);
 
     /// <summary>
     /// How many unit visuals the presenter holds. Equals the encounter's unit count while an
@@ -167,9 +229,12 @@ public partial class CombatScene : Node3D
             setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
 
         _presenter = new GodotPresenter3D(_popupLayer, _terrain.HeightMap);
-        // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D).
+        // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D);
+        // turn starts and walks move the rig itself through its focus seam.
         _presenter.Shake = _cameraRig.Shake;
+        _presenter.Focus = _cameraRig;
         _overlay.SetHeightMap(_terrain.HeightMap);
+        _moveBands.SetHeightMap(_terrain.HeightMap);
 
         _cameraRig.FrameBoard(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight, _terrain.HeightMap),
             setup.GridWidth, setup.GridHeight);
@@ -204,6 +269,7 @@ public partial class CombatScene : Node3D
             _input.TileClicked += OnTileClicked;
             _input.TileHovered += OnTileHovered;
             _input.Cancelled += OnCancel;
+            _input.FocusRequested += () => _cameraRig.FocusOnActive();
             WireActionBar();
         }
 
@@ -308,8 +374,9 @@ public partial class CombatScene : Node3D
             : null;
 
         var visual = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder);
-        visual.Position = GridSpace.GridToWorld(character.GridPosition, _terrain.HeightMap);
+        visual.Position = GridSpace.CreatureToWorld(character.GridPosition, character.TileWidth, _terrain.HeightMap);
         _unitLayer.AddChild(visual);
+        visual.PlaceOnGround(character.GridPosition, _terrain.HeightMap);
         _presenter.RegisterUnit(character, visual);
     }
 
@@ -318,6 +385,14 @@ public partial class CombatScene : Node3D
     private void WireControllerToView()
     {
         _controller.HighlightsChanged += (tiles, kind) => _overlay.SetHighlights(tiles, kind);
+        _controller.MoveBandsChanged += bands =>
+        {
+            _lastBands = bands;
+            _moveBands.SetBands(bands);
+            _overlay.SetPathBands(bands);
+        };
+        _controller.HoverTileChanged += tile => _moveBands.SetHoverTile(tile);
+        _controller.MoveHoverChanged += hover => _actionBar.SetMoveHint(hover);
         _controller.PathPreviewChanged += path => _overlay.SetPathPreview(path);
         _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
         _controller.AttackPreviewChanged += preview => _actionBar.ShowAttackPreview(preview);
@@ -328,8 +403,6 @@ public partial class CombatScene : Node3D
 
     private void WireActionBar()
     {
-        _actionBar.MovePressed += () => _controller.BeginMove();
-        _actionBar.StepPressed += () => _controller.BeginStep();
         _actionBar.StrikePressed += () => _controller.BeginStrike();
         _actionBar.RaiseShieldPressed += () => _controller.RaiseShield();
         _actionBar.EndTurnPressed += () => _controller.EndTurn();
@@ -413,6 +486,12 @@ public partial class CombatScene : Node3D
 
         bool playerTurn = current != null && _session.IsPlayerControlled(current);
         _actionBar.SetInteractable(playerTurn);
+        _actionBar.SetControlOptionsEnabled(current != null && _session.CanCommand(current));
+        if (current != null)
+        {
+            _actionBar.SetAiToggle(_session.IsAiToggled(current));
+            _actionBar.SetAutoReactToggle(_session.IsAutoReactions(current));
+        }
     }
 
     private void ShowResult(PF2e.Core.BattleResult result)

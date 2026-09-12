@@ -47,18 +47,32 @@ public partial class UiShotSpike : SpikeBase
         AddChild(layer);
         var panel = PanelScene.Instantiate<HeroSelectPanel>();
         layer.AddChild(panel);
-        panel.Setup(new UnlockState());
+        var campaign = new CampaignProgress();
+        panel.Setup(campaign.Unlocks, campaign);
         DirAccess.MakeDirRecursiveAbsolute(OutDir);
 
         foreach (var def in CharacterCatalog.All)
         {
             if (!panel.CanPick(def.Id)) continue;
-            panel.Pick(def.Id);
+            panel.Preview(def.Id);
             await Settle();
             Capture($"hero_select_{def.DisplayName.ToLowerInvariant()}.png");
         }
 
+        panel.Pick(PresetCharacters.ElaraId);
+        panel.Pick(PresetCharacters.PlayerId);
+        panel.Pick(PresetCharacters.TharrId);
         panel.Pick(PresetCharacters.FenwickId);
+        await Settle();
+        Check("four selected members enable embark", panel.CanEmbark);
+        Capture("hero_select_formation.png");
+        var recruitment = panel.GetNode<RecruitmentPanel>("%Recruitment");
+        recruitment.Open();
+        await Settle();
+        Capture("hero_select_recruitment.png");
+        recruitment.Hide();
+
+        panel.Preview(PresetCharacters.FenwickId);
         await Settle();
         Check("a sheet tooltip can be summoned", panel.ShowTipForTesting(TooltipUnderTest));
         await Settle();
@@ -84,7 +98,7 @@ public partial class UiShotSpike : SpikeBase
         await Settle();
         Capture("hero_select_card.png");
 
-        panel.Pick(PresetCharacters.PlayerId);
+        panel.Preview(PresetCharacters.PlayerId);
         await Settle();
         Check("a skill card can be summoned", panel.ShowTipForTesting("Intimidation"));
         await Settle();

@@ -41,12 +41,19 @@ public partial class RunMapSpike : SpikeBase
         int totalNodes = 0;
         int earliestRest = int.MaxValue;
         var kindCounts = new int[System.Enum.GetValues<NodeKind>().Length];
-        var meetingFloors = cfg.MeetingFloorsFor(0);
-        int misplacedMeeting = 0, missingMeeting = 0;
+        int misplacedMeeting = 0, badMeetingCount = 0, forcedMeeting = 0;
+        var meetingRows = new HashSet<int>();
+        var meetingCounts = new HashSet<int>();
 
         for (int seed = 0; seed < Seeds; seed++)
         {
-            var map = RunMapGenerator.Generate(seed, cfg, meetingFloors);
+            var map = RunMapGenerator.Generate(seed, cfg);
+            int meetings = map.Nodes.Count(node => node.Kind == NodeKind.Meeting);
+            meetingCounts.Add(meetings);
+            if (meetings < cfg.MinMeetingsPerFloor || meetings > cfg.MaxMeetingsPerFloor) badMeetingCount++;
+            var withoutMeetings = new HashSet<int>();
+            foreach (int start in map.StartIds) Flood(map, start, withoutMeetings, NodeKind.Meeting);
+            if (!withoutMeetings.Contains(map.BossId)) forcedMeeting++;
 
             // (1) Every entrance reaches the boss.
             foreach (int start in map.StartIds)
@@ -73,9 +80,11 @@ public partial class RunMapSpike : SpikeBase
                 if (node.Kind == NodeKind.Elite && node.Floor < cfg.MinEliteFloor) earlyElite++;
                 if (node.Kind == NodeKind.Rest && node.Floor < cfg.MinRestFloor) earlyRest++;
                 if (node.Kind == NodeKind.Shop || node.Kind == NodeKind.Treasure) reservedKinds++;
-                bool onMeetingRow = meetingFloors.Contains(node.Floor);
-                if (node.Kind == NodeKind.Meeting && !onMeetingRow) misplacedMeeting++;
-                if (node.Kind != NodeKind.Meeting && onMeetingRow) missingMeeting++;
+                if (node.Kind == NodeKind.Meeting)
+                {
+                    meetingRows.Add(node.Floor);
+                    if (node.Floor == 0 || node.Floor >= map.Floors - 2) misplacedMeeting++;
+                }
 
                 if (node.Kind != NodeKind.Rest && node.Kind != NodeKind.Elite) continue;
                 if (!predecessors.TryGetValue(node.Id, out var prev)) continue;
@@ -104,7 +113,7 @@ public partial class RunMapSpike : SpikeBase
             totalNodes += map.Nodes.Count;
 
             // (6) Same seed, same map.
-            var twin = RunMapGenerator.Generate(seed, cfg, meetingFloors);
+            var twin = RunMapGenerator.Generate(seed, cfg);
             if (!SameMap(map, twin)) notDeterministic++;
         }
 
@@ -117,8 +126,10 @@ public partial class RunMapSpike : SpikeBase
         Check($"({Seeds} seeds) no Rest before floor {cfg.MinRestFloor}", earlyRest == 0);
         Check($"({Seeds} seeds) no Rest or Elite follows its own kind on a path", adjacentSameKind == 0);
         Check($"({Seeds} seeds) reserved kinds (Shop/Treasure) are never generated", reservedKinds == 0);
-        Check($"({Seeds} seeds) every node on a Wayfarer row is a Wayfarer", missingMeeting == 0);
-        Check($"({Seeds} seeds) no Wayfarer off its rows", misplacedMeeting == 0);
+        Check($"({Seeds} seeds) one or two Wayfarers per default floor tree", badMeetingCount == 0);
+        Check($"({Seeds} seeds) Wayfarers leave the entrance and boss approach intact", misplacedMeeting == 0);
+        Check($"({Seeds} seeds) a route can skip all Wayfarers", forcedMeeting == 0);
+        Check("Wayfarer counts and rows vary across seeds", meetingCounts.SetEquals(new[] { 1, 2 }) && meetingRows.Count > 2);
         Check($"({Seeds} seeds) the same seed yields the identical map", notDeterministic == 0);
 
         Check($"({Seeds} seeds) no two map edges cross", crossings == 0);
@@ -134,13 +145,26 @@ public partial class RunMapSpike : SpikeBase
                 GD.Print($"    {(NodeKind)k}: {kindCounts[k] / (float)Seeds:0.00} per map");
         }
 
-        var sample = RunMapGenerator.Generate(7, cfg, meetingFloors);
+        var sample = RunMapGenerator.Generate(7, cfg);
         Check("boss floor holds exactly one node", CountOnFloor(sample, sample.Floors - 1) == 1);
         Check("Reachable(null) returns the entrances", sample.Reachable(null).Count == sample.StartIds.Count);
         Check("Reachable(boss) is empty", sample.Reachable(sample.BossId).Count == 0);
         GD.Print($"  seed 7: {sample.Nodes.Count} nodes, {sample.StartIds.Count} entrances, "
                  + $"{sample.Floors} floors x {sample.Lanes} lanes.");
 
+        var disabled = RunMapGenerator.Generate(7, cfg with { MinMeetingsPerFloor = 0, MaxMeetingsPerFloor = 0 });
+        Check("meeting placement can be disabled", disabled.Nodes.All(node => node.Kind != NodeKind.Meeting));
+        var narrow = RunMapGenerator.Generate(7, cfg with { Lanes = 1, Paths = 1 });
+        Check("a single route is not forced through a meeting", narrow.Nodes.All(node => node.Kind != NodeKind.Meeting));
+        var tiny = RunMapGenerator.Generate(7, cfg with { Floors = 3 });
+        Check("tiny maps preserve entrance, campsite and boss", tiny.Nodes.All(node => node.Kind != NodeKind.Meeting));
+        var party = Party.Build(Delve.Presets.PresetCharacters.PlayerId, System.Array.Empty<string>(), new UnlockState(), Party.DefaultLevel);
+        var run = RunState.Start(7, party, cfg);
+        for (int stratum = 0; stratum < Delve.Data.FloorThemes.Count; stratum++)
+        {
+            Check($"floor {stratum + 1} can offer Wayfarers", run.Map.Nodes.Any(node => node.Kind == NodeKind.Meeting));
+            if (!run.OnFinalStratum) run.AdvanceStratum();
+        }
         return Task.CompletedTask;
     }
 
@@ -183,11 +207,12 @@ public partial class RunMapSpike : SpikeBase
         return predecessors;
     }
 
-    private static void Flood(RunMap map, int from, HashSet<int> seen)
+    private static void Flood(RunMap map, int from, HashSet<int> seen, NodeKind? skip = null)
     {
+        if (map.Nodes[from].Kind == skip) return;
         if (!seen.Add(from)) return;
         foreach (int next in map.Nodes[from].Next)
-            Flood(map, next, seen);
+            Flood(map, next, seen, skip);
     }
 
     private static bool Reaches(RunMap map, int from, int target)

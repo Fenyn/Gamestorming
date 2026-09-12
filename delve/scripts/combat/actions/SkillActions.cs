@@ -139,7 +139,7 @@ internal sealed class SkillActions
         foreach (var t in CombatantQuery.TargetsInRange(actor, def.RangeTiles(actor), def.TargetsEnemies))
         {
             if (def.TargetFilter == null || def.TargetFilter(this, actor, t))
-                plan.Tiles.Add(t.GridPosition);
+                plan.Tiles.UnionWith(CreatureTargetTiles.For(t));
         }
         return plan;
     }

@@ -115,20 +115,39 @@ public sealed class TerrainSpatial
         if (_grid == null || attacker == null || defender == null)
             return CoverLevel.None;
 
+        return TraceCover(attacker, defender,
+            defender.GridPosition, defender.TileWidth, CharacterLineHeight(defender));
+    }
+
+    /// <summary>
+    /// Cover the defender would have standing on a tile it has not moved to yet. Same trace as
+    /// <see cref="GetPositionalCover"/> with the destination substituted, so a position the AI is
+    /// considering is judged by exactly the rule it will be shot under. Assumes it stands on the
+    /// ground there; a flying creature planning a landing gets the ground line.
+    /// </summary>
+    public CoverLevel GetTileCover(PF2eVec tile, ICharacter defender, ICharacter attacker)
+    {
+        if (_grid == null || attacker == null || defender == null) return CoverLevel.None;
+
+        return TraceCover(attacker, defender, tile, defender.TileWidth,
+            TileSurfaceHeight(tile) + CreatureEyeHeight);
+    }
+
+    private CoverLevel TraceCover(ICharacter attacker, ICharacter defender,
+        PF2eVec defenderAnchor, int defenderWidth, int targetHeight)
+    {
         var attackerAnchor = attacker.GridPosition;
-        var defenderAnchor = defender.GridPosition;
 
         var (startX, startY) = CentreTile(attackerAnchor, attacker.TileWidth);
-        var (endX, endY) = CentreTile(defenderAnchor, defender.TileWidth);
+        var (endX, endY) = CentreTile(defenderAnchor, defenderWidth);
 
         int sourceHeight = CharacterLineHeight(attacker);
-        int targetHeight = CharacterLineHeight(defender);
 
         CreatureSize attackerSize = attacker.StatProvider?.Size ?? CreatureSize.Medium;
         CreatureSize defenderSize = defender.StatProvider?.Size ?? CreatureSize.Medium;
 
         var attackerTiles = OccupiedSet(attackerAnchor, attacker.TileWidth);
-        var defenderTiles = OccupiedSet(defenderAnchor, defender.TileWidth);
+        var defenderTiles = OccupiedSet(defenderAnchor, defenderWidth);
 
         var result = CoverLevel.None;
 

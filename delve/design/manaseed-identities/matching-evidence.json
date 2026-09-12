@@ -1,0 +1,634 @@
+{
+  "aldric": {
+    "0bas": [
+      [
+        0.28565,
+        675,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v04.png"
+      ],
+      [
+        0.28565,
+        675,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v04.png"
+      ],
+      [
+        0.14558,
+        344,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v10.png"
+      ],
+      [
+        0.14558,
+        344,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v09.png"
+      ]
+    ],
+    "1out": [
+      [
+        1.0,
+        1273,
+        1273,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\1out\\char_a_p1_1out_pfpn_v02.png"
+      ],
+      [
+        1.0,
+        1273,
+        1273,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01c - Peasant Farmer Pants & Hat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_pfpn_v02.png"
+      ],
+      [
+        0.36328,
+        457,
+        1258,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04a - Angler Pants and Rain Hat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_angl_v03.png"
+      ],
+      [
+        0.25174,
+        290,
+        1152,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_bksm_v01.png"
+      ]
+    ],
+    "4har": [
+      [
+        1.0,
+        1095,
+        1095,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\4har\\char_a_p1_4har_dap1_v11.png"
+      ],
+      [
+        1.0,
+        1095,
+        1095,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\4har\\char_a_p1_4har_dap1_v11.png"
+      ],
+      [
+        0.3216,
+        265,
+        824,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_fro1_v11.png"
+      ],
+      [
+        0.28263,
+        327,
+        1157,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_spk2_v11.png"
+      ]
+    ],
+    "5hat": [
+      [
+        0.0846,
+        39,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v07.png"
+      ],
+      [
+        0.05206,
+        24,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v05.png"
+      ],
+      [
+        0.03254,
+        15,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v10.png"
+      ],
+      [
+        0.03254,
+        15,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v09.png"
+      ]
+    ],
+    "3fac": [
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v05.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v04.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v03.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v02.png"
+      ]
+    ],
+    "2clo": [
+      [
+        0.12634,
+        106,
+        839,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_lnpl_v07.png"
+      ],
+      [
+        0.09293,
+        46,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v05.png"
+      ],
+      [
+        0.08889,
+        44,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v07.png"
+      ],
+      [
+        0.04444,
+        22,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v10.png"
+      ]
+    ]
+  },
+  "elara": {
+    "0bas": [
+      [
+        0.33094,
+        782,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v02.png"
+      ],
+      [
+        0.33094,
+        782,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v02.png"
+      ],
+      [
+        0.17562,
+        415,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v10.png"
+      ],
+      [
+        0.17562,
+        415,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v09.png"
+      ]
+    ],
+    "1out": [
+      [
+        0.99508,
+        1213,
+        1219,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\1out\\char_a_p1_1out_fstr_v03.png"
+      ],
+      [
+        0.99508,
+        1213,
+        1219,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_fstr_v03.png"
+      ],
+      [
+        0.22477,
+        274,
+        1219,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\1out\\char_a_p1_1out_fstr_v05.png"
+      ],
+      [
+        0.22477,
+        274,
+        1219,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\1out\\char_a_p1_1out_fstr_v04.png"
+      ]
+    ],
+    "4har": [
+      [
+        1.0,
+        1186,
+        1186,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_pon1_v07.png"
+      ],
+      [
+        0.25,
+        145,
+        580,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_flat_v07.png"
+      ],
+      [
+        0.21079,
+        250,
+        1186,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_pon1_v09.png"
+      ],
+      [
+        0.19175,
+        158,
+        824,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_fro1_v07.png"
+      ]
+    ],
+    "5hat": [
+      [
+        0.05857,
+        27,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v10.png"
+      ],
+      [
+        0.05857,
+        27,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v09.png"
+      ],
+      [
+        0.05857,
+        27,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v08.png"
+      ],
+      [
+        0.05857,
+        27,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v07.png"
+      ]
+    ],
+    "3fac": [
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v05.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v04.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v03.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v02.png"
+      ]
+    ],
+    "2clo": [
+      [
+        0.04444,
+        22,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v10.png"
+      ],
+      [
+        0.04444,
+        22,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v09.png"
+      ],
+      [
+        0.04444,
+        22,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v08.png"
+      ],
+      [
+        0.04444,
+        22,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v07.png"
+      ]
+    ]
+  },
+  "tharr": {
+    "0bas": [
+      [
+        0.44054,
+        1041,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v06.png"
+      ],
+      [
+        0.44054,
+        1041,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v06.png"
+      ],
+      [
+        0.17943,
+        424,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v10.png"
+      ],
+      [
+        0.17943,
+        424,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v09.png"
+      ]
+    ],
+    "1out": [
+      [
+        1.0,
+        1152,
+        1152,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_bksm_v03.png"
+      ],
+      [
+        0.31558,
+        397,
+        1258,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04a - Angler Pants and Rain Hat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_angl_v01.png"
+      ],
+      [
+        0.29861,
+        344,
+        1152,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_bksm_v05.png"
+      ],
+      [
+        0.29861,
+        344,
+        1152,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.04b - Blacksmith Apron and Bandana 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_bksm_v04.png"
+      ]
+    ],
+    "4har": [
+      [
+        1.0,
+        580,
+        580,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_flat_v00.png"
+      ],
+      [
+        0.14081,
+        167,
+        1186,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_pon1_v00.png"
+      ],
+      [
+        0.13592,
+        112,
+        824,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_fro1_v00.png"
+      ],
+      [
+        0.12619,
+        146,
+        1157,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_spk2_v00.png"
+      ]
+    ],
+    "5hat": [
+      [
+        0.03254,
+        15,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v10.png"
+      ],
+      [
+        0.03254,
+        15,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v09.png"
+      ],
+      [
+        0.03254,
+        15,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v08.png"
+      ],
+      [
+        0.03254,
+        15,
+        461,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_hddn_v07.png"
+      ]
+    ],
+    "3fac": [
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v05.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v04.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v03.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v02.png"
+      ]
+    ],
+    "2clo": [
+      [
+        0.05253,
+        26,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v10.png"
+      ],
+      [
+        0.05253,
+        26,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v09.png"
+      ],
+      [
+        0.05253,
+        26,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v08.png"
+      ],
+      [
+        0.05253,
+        26,
+        495,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_mnpl_v07.png"
+      ]
+    ]
+  },
+  "fenwick": {
+    "0bas": [
+      [
+        0.28058,
+        663,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v03.png"
+      ],
+      [
+        0.28058,
+        663,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01a - Character Base 2.5c\\char_a_p1\\char_a_p1_0bas_humn_v03.png"
+      ],
+      [
+        0.14177,
+        335,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v10.png"
+      ],
+      [
+        0.14177,
+        335,
+        2363,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\char_a_p1_0bas_humn_v09.png"
+      ]
+    ],
+    "1out": [
+      [
+        1.0,
+        1442,
+        1442,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_alch_v04.png"
+      ],
+      [
+        0.26352,
+        380,
+        1442,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_alch_v05.png"
+      ],
+      [
+        0.26352,
+        380,
+        1442,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_alch_v03.png"
+      ],
+      [
+        0.26352,
+        380,
+        1442,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\1out\\char_a_p1_1out_alch_v02.png"
+      ]
+    ],
+    "4har": [
+      [
+        0.02074,
+        24,
+        1157,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_spk2_v13.png"
+      ],
+      [
+        0.02074,
+        24,
+        1157,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_spk2_v12.png"
+      ],
+      [
+        0.02074,
+        24,
+        1157,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_spk2_v11.png"
+      ],
+      [
+        0.02074,
+        24,
+        1157,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.01a - Hairstyle Pack v0.5.3\\char_a_p1\\4har\\char_a_p1_4har_spk2_v10.png"
+      ]
+    ],
+    "5hat": [
+      [
+        1.0,
+        984,
+        984,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\5hat\\char_a_p1_5hat_pnty_v01.png"
+      ],
+      [
+        1.0,
+        984,
+        984,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\21.10a - Forester Pointed Hat & Tunic 2.1a (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_pnty_v01.png"
+      ],
+      [
+        0.19831,
+        305,
+        1538,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.01d - Peasant Farmer Dress & Bonnet 2.1 (comp. v01)\\char_a_p1\\5hat\\char_a_p1_5hat_pfbn_v03.png"
+      ],
+      [
+        0.02759,
+        36,
+        1305,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\FREE Mana Seed Character Base Demo 2.0\\char_a_p1\\5hat\\char_a_p1_5hat_pfht_v05.png"
+      ]
+    ],
+    "3fac": [
+      [
+        0.13918,
+        54,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v05.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v04.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v03.png"
+      ],
+      [
+        0.00515,
+        2,
+        388,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.11a - Alchemist's Coat 2.1 (comp. v01)\\char_a_p1\\3fac\\char_a_p1_3fac_gogl_v02.png"
+      ]
+    ],
+    "2clo": [
+      [
+        0.05244,
+        44,
+        839,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_lnpl_v10.png"
+      ],
+      [
+        0.05244,
+        44,
+        839,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_lnpl_v09.png"
+      ],
+      [
+        0.05244,
+        44,
+        839,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_lnpl_v08.png"
+      ],
+      [
+        0.05244,
+        44,
+        839,
+        "F:\\UnityNVME\\Art\\Sprites\\Mana Seed\\20.05d - Cloak & Hood 1.3 (comp. v01)\\char_a_p1\\2clo\\char_a_p1_2clo_lnpl_v07.png"
+      ]
+    ]
+  }
+}

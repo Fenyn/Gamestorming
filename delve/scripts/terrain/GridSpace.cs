@@ -30,6 +30,45 @@ public static class GridSpace
     public static Vector3 GridToWorld(PF2eVec p, TerrainHeightMap height) =>
         new(p.x + 0.5f, height.CenterY(p), p.y + 0.5f);
 
+    /// <summary>Center of a creature's square footprint, measured from its grid anchor.</summary>
+    public static Vector3 CreatureToWorld(PF2eVec anchor, int tileWidth, TerrainHeightMap height)
+    {
+        System.ArgumentOutOfRangeException.ThrowIfLessThan(tileWidth, 1);
+        return new(anchor.x + tileWidth * 0.5f, height.FootprintCenterY(anchor, tileWidth),
+            anchor.y + tileWidth * 0.5f);
+    }
+
+    /// <summary>Presentation-only foot position. Favor the centroid of the lowest occupied tiles.
+    /// If that centroid lies over a raised island, choose the nearest low tile instead. Does not
+    /// change the creature's grid anchor, occupied cells, facing or reach.</summary>
+    public static Vector3 CreatureBodyToWorld(PF2eVec anchor, int tileWidth, TerrainHeightMap height)
+    {
+        var center = CreatureToWorld(anchor, tileWidth, height);
+        Vector3 sum = Vector3.Zero;
+        int count = 0;
+        for (int y = 0; y < tileWidth; y++)
+            for (int x = 0; x < tileWidth; x++)
+            {
+                var p = GridToWorld(new PF2eVec(anchor.x + x, anchor.y + y), height);
+                if (!Mathf.IsEqualApprox(p.Y, center.Y)) continue;
+                sum += p;
+                count++;
+            }
+        var target = sum / count;
+        if (Mathf.IsEqualApprox(height.CenterY(WorldToGrid(target)), center.Y)) return target;
+        Vector3 best = center;
+        float distance = float.PositiveInfinity;
+        for (int y = 0; y < tileWidth; y++)
+            for (int x = 0; x < tileWidth; x++)
+            {
+                var p = GridToWorld(new PF2eVec(anchor.x + x, anchor.y + y), height);
+                if (!Mathf.IsEqualApprox(p.Y, center.Y) || p.DistanceSquaredTo(target) >= distance) continue;
+                best = p;
+                distance = p.DistanceSquaredTo(target);
+            }
+        return best;
+    }
+
     /// <summary>Board center in world space, for the orbit camera pivot.</summary>
     public static Vector3 BoardCenter(int width, int height) =>
         new(width * 0.5f, 0f, height * 0.5f);

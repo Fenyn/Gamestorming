@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/dev/combat_shot_spike.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/dev/enemy_sprite_preview.tscn" id="2"]
+
+[node name="EnemySpriteShotSpike" instance=ExtResource("1")]
+TestScene = ExtResource("2")
+CaptureEnemyCloseup = true
+ExpectedEnemyCount = 12
+ExpectedAttackCount = 11
+ExpectedAccentCount = 11

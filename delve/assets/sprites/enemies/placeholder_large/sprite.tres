@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EnemySpriteDefinition" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemySpriteDefinition.cs" id="script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_1.png" id="frame_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_2.png" id="frame_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_3.png" id="frame_2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_4.png" id="frame_3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_5.png" id="frame_4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_6.png" id="frame_5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_7.png" id="frame_6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemies/placeholder_large/idle_8.png" id="frame_7"]
+
+[sub_resource type="SpriteFrames" id="Frames"]
+animations = [{
+"frames": [
+{"duration": 1.0, "texture": ExtResource("frame_0")},
+{"duration": 1.0, "texture": ExtResource("frame_1")},
+{"duration": 1.0, "texture": ExtResource("frame_2")},
+{"duration": 1.0, "texture": ExtResource("frame_3")},
+{"duration": 1.0, "texture": ExtResource("frame_4")},
+{"duration": 1.0, "texture": ExtResource("frame_5")},
+{"duration": 1.0, "texture": ExtResource("frame_6")},
+{"duration": 1.0, "texture": ExtResource("frame_7")}
+],
+"loop": true,
+"name": &"rest",
+"speed": 6.0
+}]
+
+[resource]
+script = ExtResource("script")
+Frames = SubResource("Frames")
+IdleAnimation = &"rest"
+PixelSize = 0.02
+FootMarginPixels = 4.0
+FacesRight = true

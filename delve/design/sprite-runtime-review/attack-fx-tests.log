@@ -1,0 +1,81 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== COMBAT JUICE SPIKE ====================
+-------------------- strike degree --------------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 5) toward (1, 4), goal=(2, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [7.8] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 3) toward (1, 4), goal=(2, 3), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [7.8] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[juice] 7 attack rolls, 3 damage events (3 straight off a roll, 0 critical)
+  [PASS] the fight actually rolled attacks and dealt damage
+  [PASS] every strike's DamageDealt carries the roll's degree (0 degreeless)
+[juice] no crit rolled this seed; the degreeless count above is the load-bearing check
+-------------------- presenter FX --------------------
+  [PASS] hero swing gate matches the chop clip's time to impact (0.24s)
+  [PASS] the chop clip's impact really is mid-swing, not on the press
+  [PASS] a hero token starts the swing clip
+  [PASS] an enemy token refuses it (no swing art)
+  [PASS] DamageDealt spawns a hit spark (1 Fx)
+  [PASS] a missed enemy strike shows its motion accent without a hit spark
+  [PASS] Healed spawns heal motes (1 Fx)
+  [PASS] ShieldRaised spawns a shield flash (1 Fx)
+  [PASS] a critical hit kicks the camera (0.35 trauma)
+  [PASS] and the kick is spent by the time the hit's gate closes
+  [PASS] CreatureDied spawns a death poof (1 Fx)
+  [PASS] a death kicks the camera harder than a crit (0.55 vs 0.35)
+  [PASS] a hero's HP bar sits higher than a rat-scaled enemy's
+  [PASS] a popup spawned over each unit
+  [PASS] each popup clears its OWN unit's HP bar, not a fixed height
+  [PASS] a rat's number therefore floats lower than a hero's (1.8 < 2.31)
+-------------------- token juice --------------------
+  [PASS] a hit flinches the target's sprite
+  [PASS] and the flinch returns it to rest
+  [PASS] a whiffed attack leans the defender away from it
+  [PASS] and the lean springs back to rest
+  [PASS] the HP bar is still on its way down a frame after the hit (it tweens, not snaps)
+  [PASS] and it arrives at the new value (0.25 of 1)
+  [PASS] the active ring pops in past its resting size (1.35)
+  [PASS] and then breathes continuously (1.234 -> 1.255)
+  [PASS] deactivating kills the pulse and snaps the ring back
+  [PASS] and nothing re-grows it afterwards
+-------------------- popup styling --------------------
+  [PASS] a crit's number is bigger than an ordinary hit's (72 vs 52)
+  [PASS] a crit's number is red where an ordinary hit's is white
+  [PASS] a miss reads MISS
+-------------------- camera shake --------------------
+  [PASS] trauma clamps to 1
+  [PASS] a traumatised pivot actually displaces the camera (0.192 m)
+  [PASS] and never further than its authored maximum
+  [PASS] trauma decays (0.98 -> 0.76)
+  [PASS] trauma reaches exactly zero
+  [PASS] and the pivot returns to exactly the origin
+---------------------------------------------------------
+[CombatJuiceSpike] checks: 37, failures: 0
+SPIKE RESULT: PASS

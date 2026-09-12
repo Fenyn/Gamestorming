@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 ; Billboarded pixel-art sprite: the drawn body of any 2.5D entity. The pixel-art draw rules
 ; (unshaded, nearest filtering, alpha scissor) are applied in code by PixelSprite.Configure, which
@@ -8,7 +8,16 @@
 ; ConfigureEnemy.
 
 [ext_resource type="Script" path="res://scripts/combat/BillboardSpriteAnimator.cs" id="1_anim"]
+[ext_resource type="Shader" path="res://assets/shaders/creature_silhouette.gdshader" id="2_silhouette"]
+
+[sub_resource type="ShaderMaterial" id="Silhouette"]
+render_priority = 1
+shader = ExtResource("2_silhouette")
+shader_parameter/silhouette_color = Color(0.82, 0.88, 0.77, 0.3)
+shader_parameter/edge_opacity = 0.5
+shader_parameter/depth_bias = 0.025
 
 [node name="BillboardSprite" type="Sprite3D"]
 billboard = 2
+material_overlay = SubResource("Silhouette")
 script = ExtResource("1_anim")

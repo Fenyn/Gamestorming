@@ -19,7 +19,7 @@ namespace Delve.Presets;
 ///
 /// Requires GameDataLoader to be loaded first (equipment is resolved from the packs).
 /// </summary>
-public static class PresetCharacters
+public static partial class PresetCharacters
 {
     // Party member ids — the single source the sprite map and the daily-casting switch key on.
     public const string PlayerId = "player";
@@ -478,8 +478,8 @@ public static class PresetCharacters
     /// with auto-assigned choices only).</summary>
     private static VariantComboDefinition? ComboFor(string id) => id switch
     {
-        PlayerId or RecruitId => PresetCombos.FighterSentinel,
-        ElaraId => PresetCombos.RogueThief,
+        PlayerId or RecruitId or ThistleId => PresetCombos.FighterSentinel,
+        ElaraId or RavenId => PresetCombos.RogueThief,
         TharrId => PresetCombos.ClericWarpriest,
         FenwickId => PresetCombos.WizardBattleMagic,
         _ => null,

@@ -46,7 +46,7 @@ public static class NodeKindInfo
             [NodeKind.Treasure] = new(NodeKind.Treasure, "Cache",
                 "A stash of loot.", 60f, false),
             [NodeKind.Meeting] = new(NodeKind.Meeting, "Wayfarer",
-                "Another traveller is fighting out here. Win with them alive and they join the party.",
+                "A traveller may be fighting here. If they survive, you may swap a companion for this run.",
                 64f, true),
         };
 

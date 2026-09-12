@@ -1,0 +1,68 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== CreatureFootprintSpike ====================
+  [PASS] width 1 centers over all occupied tiles
+  [PASS] width 2 centers over all occupied tiles
+  [PASS] width 3 centers over all occupied tiles
+  [PASS] width 4 centers over all occupied tiles
+  [PASS] width 2 uses the lowest occupied tile even away from its center
+  [PASS] width 2 body stands on its low supporting tile
+  [PASS] width 2 marks every tile at its own elevation
+  [PASS] width 3 uses the lowest occupied tile even away from its center
+  [PASS] width 3 body stands on its low supporting tile
+  [PASS] width 3 marks every tile at its own elevation
+  [PASS] width 4 uses the lowest occupied tile even away from its center
+  [PASS] width 4 body stands on its low supporting tile
+  [PASS] width 4 marks every tile at its own elevation
+  [PASS] low-tile centroid cannot place body inside a raised island
+  [PASS] one-tile slope keeps its center height
+  [PASS] width 1 ring has independent footprint geometry
+  [PASS] width 2 ring has independent footprint geometry
+  [PASS] width 3 ring has independent footprint geometry
+  [PASS] width 4 ring has independent footprint geometry
+  [PASS] sizing instances does not resize the shared scene mesh
+  [PASS] width 1 turn pulse preserves its base radius
+  [PASS] width 2 turn pulse preserves its base radius
+  [PASS] width 3 turn pulse preserves its base radius
+  [PASS] width 4 turn pulse preserves its base radius
+  [PASS] width 1 deactivation restores scale without shrinking footprint
+  [PASS] width 2 deactivation restores scale without shrinking footprint
+  [PASS] width 3 deactivation restores scale without shrinking footprint
+  [PASS] width 4 deactivation restores scale without shrinking footprint
+  [PASS] monitor retains its authored contact anchor and pixel scale
+  [PASS] monitor unflipped contact lands on root origin
+  [PASS] monitor flipped contact lands on root origin
+  [PASS] monitor reverses its horizontal offset when flipped
+  [PASS] monitor HP reference excludes transparent headroom
+  [PASS] monitor contact row is at ground height
+  [PASS] monitor attack holds HP reference height
+  [PASS] beetle retains its authored contact anchor and pixel scale
+  [PASS] beetle unflipped contact lands on root origin
+  [PASS] beetle flipped contact lands on root origin
+  [PASS] beetle reverses its horizontal offset when flipped
+  [PASS] beetle HP reference excludes transparent headroom
+  [PASS] beetle contact row is at ground height
+  [PASS] beetle attack holds HP reference height
+  [PASS] real Giant Stag Beetle pack entry loads
+  [PASS] real beetle occupies a Large two-tile footprint
+  [PASS] Large body spawns on lower support without changing rules anchor
+  [PASS] Large footprint stays on board at its original anchor
+  [PASS] body motion cannot pull footprint off terrain
+  [PASS] surface pulse changes brightness without moving footprint
+  [PASS] actual HP bar is above visible art, not transparent padding
+  [PASS] Large movement segment lands at destination footprint center and elevation
+  [PASS] movement also relocates the entire terrain footprint
+  [PASS] movement completion does not jump back by half a tile
+  [PASS] Large slide path also uses footprint center
+  [PASS] authoritative reconciliation uses Large center after interrupted or corrected movement
+  [PASS] reconciliation restores the footprint at the authoritative anchor
+---------------------------------------------------------
+[CreatureFootprintSpike] checks: 55, failures: 0
+SPIKE RESULT: PASS

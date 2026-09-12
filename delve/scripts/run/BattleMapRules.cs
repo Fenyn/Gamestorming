@@ -6,9 +6,9 @@ namespace Delve.Run;
 
 /// <summary>
 /// How big the board for a generated fight is. The forest biome ships 18x18 to 24x24, which is a
-/// long walk for the one or two characters a run opens with: two rounds of striding before anyone
-/// swings. The side scales with the number of friendly combatants, so an opening skirmish is close
-/// quarters and a full party still gets room to flank. Boards stay square-ish because the biome's
+/// long walk for small combat harnesses or a solo tutorial. The side scales with the number of
+/// friendly combatants; normal expeditions use the full-party scale and have room to flank.
+/// Boards stay square-ish because the biome's
 /// own range is.
 /// </summary>
 public sealed record BattleMapRules

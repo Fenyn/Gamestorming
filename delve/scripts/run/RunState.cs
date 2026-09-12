@@ -131,7 +131,7 @@ public sealed class RunState
     }
 
     private RunMap GenerateMap()
-        => RunMapGenerator.Generate(StratumSeed, _config, _config.MeetingFloorsFor(Stratum));
+        => RunMapGenerator.Generate(StratumSeed, _config);
 
     /// <summary>Generate floor 1's map for a seed and stand the party at the entrance, before any pick.</summary>
     public static RunState Start(

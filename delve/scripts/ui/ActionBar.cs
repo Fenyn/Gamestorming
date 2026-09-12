@@ -7,18 +7,17 @@ namespace Delve.UI;
 
 /// <summary>
 /// Passive action bar for the active ally: identity + vitals readout, 3 action pips, the
-/// Move/Step/Strike/Raise-Shield/End-Turn buttons (combat_action_1..4 / combat_end_turn hotkeys),
-/// the Spells/Skills flyout toggles (combat_spells / combat_skills), the AI and auto-react
-/// toggles, and a structured attack-preview card. Spell and skill chips live in a categorized
-/// flyout panel above the bar — opened per category, never all at once. Renders from
+/// Strike/Raise-Shield/End-Turn buttons (combat_action_1..2 / combat_end_turn hotkeys), the
+/// Spells/Skills flyout toggles (combat_spells / combat_skills), the AI and auto-react toggles, a
+/// structured attack-preview card, and the hint line that reads the hovered move's cost as pips.
+/// Movement has no button: the board's Idle bands take the click. Spell and skill chips live in a
+/// categorized flyout panel above the bar — opened per category, never all at once. Renders from
 /// <see cref="ActionBarState"/> and raises intent events only — it holds no rules and no engine
 /// types. Hotkeys gate on <see cref="HudRoot.ModalActive"/> so a modal (the reaction prompt)
 /// blocks them; the modal's backdrop already swallows the mouse.
 /// </summary>
 public partial class ActionBar : Control
 {
-    public event Action? MovePressed;
-    public event Action? StepPressed;
     public event Action? StrikePressed;
     public event Action? RaiseShieldPressed;
     public event Action? EndTurnPressed;
@@ -33,8 +32,7 @@ public partial class ActionBar : Control
     private Label _actorLabel = null!;
     private Label _vitalsLabel = null!;
     private PipRow _actionPips = null!;
-    private CaptionButton _moveBtn = null!;
-    private CaptionButton _stepBtn = null!;
+    private PipRow _moveCostPips = null!;
     private CaptionButton _strikeBtn = null!;
     private CaptionButton _shieldBtn = null!;
     private CaptionButton _endBtn = null!;
@@ -69,14 +67,17 @@ public partial class ActionBar : Control
     private IReadOnlyList<SkillEntryView> _skills = System.Array.Empty<SkillEntryView>();
 
     private const string TargetingHint = "LMB  confirm · Esc  cancel";
+    private const string IdleHint = "LMB  move · hover for cost";
+
+    private bool _targeting;
+    private MoveHoverView? _moveHover;
 
     public override void _Ready()
     {
         _actorLabel = GetNode<Label>("%ActorLabel");
         _vitalsLabel = GetNode<Label>("%VitalsLabel");
         _actionPips = GetNode<PipRow>("%ActionPips");
-        _moveBtn = GetNode<CaptionButton>("%MoveButton");
-        _stepBtn = GetNode<CaptionButton>("%StepButton");
+        _moveCostPips = GetNode<PipRow>("%MoveCostPips");
         _strikeBtn = GetNode<CaptionButton>("%StrikeButton");
         _shieldBtn = GetNode<CaptionButton>("%ShieldButton");
         _spellsBtn = GetNode<CaptionButton>("%SpellsButton");
@@ -96,12 +97,10 @@ public partial class ActionBar : Control
 
         _captions = new[]
         {
-            _moveBtn, _stepBtn, _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _endBtn,
+            _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _endBtn,
         };
         RefreshCaptionColors();
 
-        _moveBtn.Pressed += () => MovePressed?.Invoke();
-        _stepBtn.Pressed += () => StepPressed?.Invoke();
         _strikeBtn.Pressed += () => StrikePressed?.Invoke();
         _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
         _endBtn.Pressed += () => EndTurnPressed?.Invoke();
@@ -128,8 +127,6 @@ public partial class ActionBar : Control
         _interactable = interactable;
         if (!interactable)
         {
-            _moveBtn.Disabled = true;
-            _stepBtn.Disabled = true;
             _strikeBtn.Disabled = true;
             _shieldBtn.Disabled = true;
             CloseFlyout();
@@ -144,6 +141,7 @@ public partial class ActionBar : Control
         _skillsBtn.Disabled = !interactable;
         _endBtn.Disabled = !interactable;
         RefreshCaptionColors();
+        RefreshHint();
     }
 
     /// <summary>"Unavailable: reason" tooltip for a disabled control; empty (no tooltip) for null —
@@ -174,6 +172,16 @@ public partial class ActionBar : Control
         _suppressToggle = false;
     }
 
+    /// <summary>Control preferences apply only to a combatant the player may command.</summary>
+    public void SetControlOptionsEnabled(bool enabled)
+    {
+        _aiToggle.Disabled = !enabled;
+        _autoReactToggle.Disabled = !enabled;
+        string reason = enabled ? "" : UnavailableTooltip("This combatant is AI controlled");
+        _aiToggle.TooltipText = reason;
+        _autoReactToggle.TooltipText = reason;
+    }
+
     public void SetAutoReactToggle(bool on)
     {
         _suppressToggle = true;
@@ -200,8 +208,6 @@ public partial class ActionBar : Control
         if (_strikeBtn.ActionLabel != null)
             _strikeBtn.ActionLabel.Text = state.Map < 0 ? $"Strike ({state.Map})" : "Strike";
 
-        _moveBtn.Disabled = !_interactable || !state.CanMove;
-        _stepBtn.Disabled = !_interactable || !state.CanStep;
         _strikeBtn.Disabled = !_interactable || !state.CanStrike;
         _shieldBtn.Disabled = !_interactable || !state.CanRaiseShield;
         _spellsBtn.Disabled = !_interactable;
@@ -212,8 +218,6 @@ public partial class ActionBar : Control
         // Disabled-reason tooltips: empty (no tooltip) when the button is enabled. Godot shows
         // tooltips on disabled buttons (Disabled only blocks presses; the internal Content nodes
         // are mouse_filter Ignore, so the button itself still owns the hover).
-        _moveBtn.TooltipText = UnavailableTooltip(state.MoveDisabledReason);
-        _stepBtn.TooltipText = UnavailableTooltip(state.StepDisabledReason);
         _strikeBtn.TooltipText = UnavailableTooltip(state.StrikeDisabledReason);
         _shieldBtn.TooltipText = UnavailableTooltip(state.ShieldDisabledReason);
         _spellsBtn.TooltipText = "";
@@ -356,12 +360,48 @@ public partial class ActionBar : Control
     /// <summary>
     /// While a targeting mode is active (the host feeds the controller's ModeChanged), the hint
     /// label shows "LMB confirm · Esc cancel" — independent of the attack-preview card, which has
-    /// its own slot above the bar.
+    /// its own slot above the bar. Off targeting it reads the hovered move (see <see cref="SetMoveHint"/>).
     /// </summary>
     public void SetTargetingHint(bool targeting)
-        => _targetingHintLabel.Text = targeting ? TargetingHint : "";
+    {
+        _targeting = targeting;
+        RefreshHint();
+    }
 
-    /// <summary>combat_action_1..4 = Move/Step/Strike/Raise Shield, combat_spells / combat_skills
+    /// <summary>The hovered band tile's cost, or null when the cursor is off the bands. Shown as
+    /// "Step" / "Stride" plus one pip per action — costs never render as inline text.</summary>
+    public void SetMoveHint(MoveHoverView? hover)
+    {
+        _moveHover = hover;
+        RefreshHint();
+    }
+
+    private void RefreshHint()
+    {
+        if (!_interactable)
+        {
+            _targetingHintLabel.Text = "";
+            _moveCostPips.Visible = false;
+            return;
+        }
+        if (_targeting)
+        {
+            _targetingHintLabel.Text = TargetingHint;
+            _moveCostPips.Visible = false;
+            return;
+        }
+        if (_moveHover == null)
+        {
+            _targetingHintLabel.Text = IdleHint;
+            _moveCostPips.Visible = false;
+            return;
+        }
+        _targetingHintLabel.Text = _moveHover.Kind == MoveKind.Step ? "Step" : "Stride";
+        _moveCostPips.SetCost(_moveHover.Actions, enabled: true);
+        _moveCostPips.Visible = true;
+    }
+
+    /// <summary>combat_action_1..2 = Strike/Raise Shield, combat_spells / combat_skills
     /// = Q/E flyout toggles, combat_end_turn = End Turn. Respects Disabled (a button already
     /// reflects CanX + interactable via Render/SetInteractable) and is fully gated off while a
     /// modal is up (the reaction prompt takes its keys in _Input, a phase ahead of this). Esc
@@ -381,12 +421,8 @@ public partial class ActionBar : Control
         }
 
         if (@event.IsActionPressed(InputNames.Action1))
-            Activate(_moveBtn, () => MovePressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.Action2))
-            Activate(_stepBtn, () => StepPressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.Action3))
             Activate(_strikeBtn, () => StrikePressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.Action4))
+        else if (@event.IsActionPressed(InputNames.Action2))
             Activate(_shieldBtn, () => RaiseShieldPressed?.Invoke());
         else if (@event.IsActionPressed(InputNames.Spells))
             Activate(_spellsBtn, () => SetFlyout(

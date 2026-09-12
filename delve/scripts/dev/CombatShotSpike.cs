@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Delve.Autoload;
 using Delve.Combat;
 using Godot;
@@ -20,7 +21,13 @@ namespace Delve.Dev;
 /// </summary>
 public partial class CombatShotSpike : SpikeBase
 {
-    private const string OutDir = "user://dev_shots";
+    [Export] public PackedScene? TestScene { get; set; }
+    [Export] public bool CaptureEnemyCloseup { get; set; }
+    [Export] public bool CaptureIndividualEnemies { get; set; }
+    [Export] public string OutputDirectory { get; set; } = "user://dev_shots";
+    [Export] public int ExpectedEnemyCount { get; set; } = 7;
+    [Export] public int ExpectedAttackCount { get; set; } = 6;
+    [Export] public int ExpectedAccentCount { get; set; } = 6;
 
     /// <summary>Default orbit pose (matches OrbitCameraRig's InitialYawDegrees/InitialPitchDegrees),
     /// restored after the horizon capture.</summary>
@@ -45,7 +52,7 @@ public partial class CombatShotSpike : SpikeBase
 
     protected override async Task RunSpikeAsync(DataManager data)
     {
-        var combat = GD.Load<PackedScene>("res://scenes/dev/combat_test.tscn").Instantiate();
+        var combat = (TestScene ?? GD.Load<PackedScene>("res://scenes/dev/combat_test.tscn")).Instantiate();
         AddChild(combat);
         await WaitSeconds(0.1f);
         var terrain = combat.FindChild("TerrainStage", recursive: true, owned: false);
@@ -53,9 +60,99 @@ public partial class CombatShotSpike : SpikeBase
             terrain?.GetNodeOrNull<Node3D>("Backdrop/OutskirtsMist")?.GetChildCount() == 2);
         GD.Print("[combatshot] spike ready");
 
-        DirAccess.MakeDirRecursiveAbsolute(OutDir);
+        string captureDirectory = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
+        if (!string.IsNullOrEmpty(captureDirectory)) OutputDirectory = captureDirectory;
+        DirAccess.MakeDirRecursiveAbsolute(OutputDirectory);
         await WaitSeconds(BootSeconds);
         Capture("combat_shot.png");
+
+        // The Idle bands are the default board: they must be up on the player's turn, and hovering
+        // a two-action tile draws the route with its second leg in that band's colour.
+        var scene = GetNode<CombatScene>("CombatTest/Combat");
+        int bandTiles = 0;
+        foreach (Node child in scene.GetNode<Node3D>("%MoveBands").GetChildren())
+            if (child is MeshInstance3D { Visible: true }) bandTiles++;
+        Check($"movement bands show on the player's Idle turn ({bandTiles} markers)",
+            scene.IsPlayerTurn && bandTiles > 0);
+        if (scene.HoverBandTile(2))
+        {
+            await WaitSeconds(PoseSeconds);
+            Capture("combat_shot_move_hover.png");
+            scene.ClearHover();
+        }
+        else
+        {
+            Check("a two-action band tile exists to hover", false);
+        }
+
+        // Close-up on the steepest banded tile: fills, boundary strips, route dots and the hover
+        // frame must all lie on the slope, not float as flat quads through it.
+        if (scene.HoverSteepestBandTile(out var slopeTile) && Rig() is { } slopeRig)
+        {
+            var camera = slopeRig.Camera;
+            var previousPose = camera.GlobalTransform;
+            camera.GlobalPosition = slopeTile + new Vector3(2.2f, 1.6f, 2.2f);
+            camera.LookAt(slopeTile);
+            await WaitSeconds(PoseSeconds);
+            Capture("combat_shot_bands_slope.png");
+            camera.GlobalTransform = previousPose;
+            scene.ClearHover();
+        }
+        else
+        {
+            GD.Print("[combatshot] no sloped band tile on this board; slope close-up skipped");
+        }
+
+        if (CaptureEnemyCloseup && Rig() is { } closeupRig)
+        {
+            Vector3 center = Vector3.Zero;
+            var enemies = new List<UnitVisual3D>();
+            int count = 0;
+            foreach (var node in combat.FindChildren("*", "", recursive: true, owned: false))
+            {
+                if (node is UnitVisual3D unit && unit.Character.TeamId == 2)
+                {
+                    center += unit.GlobalPosition;
+                    enemies.Add(unit);
+                    count++;
+                }
+            }
+            Check($"preview has {ExpectedEnemyCount} enemy species", count == ExpectedEnemyCount);
+            if (count > 0)
+            {
+                center /= count;
+                var camera = closeupRig.Camera;
+                var previousPose = camera.GlobalTransform;
+                camera.GlobalPosition = center + new Vector3(3, 2.5f, 4);
+                camera.LookAt(center + Vector3.Up * 0.5f);
+                await WaitSeconds(PoseSeconds);
+                Capture("enemy_bases_closeup.png");
+                int attacks = 0;
+                float contactDelay = 0;
+                foreach (var enemy in enemies)
+                {
+                    if (!enemy.PlayAttack(out float delay)) continue;
+                    attacks++;
+                    contactDelay = Mathf.Max(contactDelay, delay);
+                }
+                Check($"{ExpectedAttackCount} species start attack clips", attacks == ExpectedAttackCount);
+                await WaitSeconds(contactDelay + 0.02f);
+                var accentLayer = new Node3D();
+                combat.AddChild(accentLayer);
+                var accentPresenter = new GodotPresenter3D(accentLayer, Delve.Terrain.TerrainHeightMap.Flat);
+                foreach (var enemy in enemies)
+                    accentPresenter.PlayAttackAccent(enemy, new Vector3(enemy.Facing.X, 0, enemy.Facing.Y));
+                Check($"{ExpectedAccentCount} attack accents accompany the contact poses", accentLayer.GetChildCount() == ExpectedAccentCount);
+                await WaitSeconds(0.025f);
+                Capture("enemy_attacks_contact.png");
+                await WaitSeconds(0.7f);
+                Check("attack accents free themselves after recovery", accentLayer.GetChildCount() == 0);
+                Capture("enemy_attacks_recovered.png");
+                if (CaptureIndividualEnemies)
+                    await CaptureIndividuals(enemies, camera);
+                camera.GlobalTransform = previousPose;
+            }
+        }
 
         // Second angle: swing the whole rig a quarter turn around its pivot. The rig only rewrites
         // the camera pose on input, so the rotation sticks until the next capture.
@@ -103,19 +200,40 @@ public partial class CombatShotSpike : SpikeBase
         log.SetExpanded(true);
         await WaitSeconds(PoseSeconds);
         Capture("combat_log_history.png");
-        var diceToggle = log.GetNode<CheckButton>("%DiceToggle");
-        bool diceWasEnabled = diceToggle.ButtonPressed;
-        diceToggle.ButtonPressed = true;
         log.AppendEntry("Aldric Strikes Hunting Spider with Longsword", 8, false);
         log.AppendEntry("d20(19)+10=29 vs AC 17 → CriticalSuccess", 2, true);
         log.Rows[^1].GetNode<Button>("%Disclosure").ButtonPressed = true;
-        await WaitSeconds(PoseSeconds);
+        // Past the tumble, the landing, the sum and the outcome pop: the finished card, mid-hold.
+        await WaitSeconds(1.4f);
         Capture("combat_dice_roll.png");
-        diceToggle.ButtonPressed = diceWasEnabled;
     }
 
     private OrbitCameraRig? Rig() =>
         GetNodeOrNull<OrbitCameraRig>("CombatTest/Combat/CameraRig");
+
+    private async Task CaptureIndividuals(List<UnitVisual3D> enemies, Camera3D camera)
+    {
+        foreach (var subject in enemies)
+        {
+            foreach (var enemy in enemies) enemy.Visible = enemy == subject;
+            Vector3 target = subject.GlobalPosition + Vector3.Up * 0.55f;
+            camera.GlobalPosition = target + new Vector3(2.3f, 1.7f, 2.8f);
+            camera.LookAt(target);
+            await WaitSeconds(PoseSeconds);
+            string name = subject.Character.Name.ToLowerInvariant().Replace(' ', '_');
+            Capture($"{name}_idle.png");
+            if (subject.PlayAttack(out float delay))
+            {
+                await WaitSeconds(delay + 0.01f);
+                var sprite = subject.GetNode<BillboardSpriteAnimator>("%Sprite");
+                sprite.Frozen = true;
+                Capture($"{name}_contact.png");
+                sprite.Frozen = false;
+                await WaitSeconds(0.7f);
+            }
+        }
+        foreach (var enemy in enemies) enemy.Visible = true;
+    }
 
     private void PressToggle(string buttonName)
     {
@@ -132,7 +250,7 @@ public partial class CombatShotSpike : SpikeBase
         img.Convert(Image.Format.Rgba8);
         img.LinearToSrgb();
         img.Resize(1280, 720, Image.Interpolation.Bilinear);
-        string path = $"{OutDir}/{file}";
+        string path = $"{OutputDirectory}/{file}";
         Error err = img.SavePng(path);
         GD.Print($"[combatshot] {file}: {err} ({ProjectSettings.GlobalizePath(path)})");
         Check($"{file} saved", err == Error.Ok);

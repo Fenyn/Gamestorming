@@ -57,7 +57,9 @@ public partial class RunMapShotSpike : SpikeBase
         var sharedWard = sharedTheme.GetStylebox("fill", "MapWardBar");
 
         var party = Party.Build(
-            PresetCharacters.PlayerId, System.Array.Empty<string>(), new UnlockState(), Party.DefaultLevel);
+            PresetCharacters.PlayerId,
+            new[] { PresetCharacters.ElaraId, PresetCharacters.TharrId, PresetCharacters.FenwickId },
+            new UnlockState(), Party.DefaultLevel);
         var cfg = new RunMapConfig();
         // The generator guarantees a Lair, so BaseSeed needs no search.
         var state = RunState.Start(BaseSeed, party, cfg);
@@ -190,7 +192,7 @@ public partial class RunMapShotSpike : SpikeBase
 
         foreach (var def in CharacterCatalog.All)
         {
-            var themedParty = Party.Build(def.Id, System.Array.Empty<string>(), new UnlockState(), Party.DefaultLevel);
+            var themedParty = Party.Build(def.Id, System.Array.Empty<string>(), new UnlockState(new[] { def.Id }), Party.DefaultLevel);
             var themedRun = RunState.Start(BaseSeed, themedParty, cfg);
             panel.Render(themedRun);
             var accent = Delve.UI.UiColors.CharacterAccent(def.Id);

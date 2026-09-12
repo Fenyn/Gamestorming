@@ -8,7 +8,6 @@ namespace Delve.UI;
 public partial class CombatLogPanel : Control
 {
     public event System.Action<CombatRoll, string>? RollObserved;
-    public event System.Action<bool>? DiceVisibilityChanged;
     private string _actionTitle = "";
     [Export] public PackedScene EntryScene { get; set; } = null!;
     [Export] public float CompactWidth { get; set; } = 440;
@@ -45,13 +44,6 @@ public partial class CombatLogPanel : Control
         _latest = GetNode<Button>("%Latest");
         _count = GetNode<Label>("%EntryCount");
         _format.RollFontSize = GetThemeConstant("roll_font_size", "CombatLogText");
-        var dice = GetNode<CheckButton>("%DiceToggle");
-        dice.SetPressedNoSignal(Delve.Settings.ViewPreferences.ShowDiceRolls);
-        dice.Toggled += enabled =>
-        {
-            Delve.Settings.ViewPreferences.ShowDiceRolls = enabled;
-            DiceVisibilityChanged?.Invoke(enabled);
-        };
         _toggle.Pressed += ToggleExpanded;
         _latest.Pressed += JumpToLatest;
         _scroll.GetVScrollBar().ValueChanged += _ =>

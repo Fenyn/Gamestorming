@@ -1,0 +1,134 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== EnemySpriteSpike ====================
+  [PASS] custom animation names load
+  [PASS] authored FPS advances first frame
+  [PASS] relative duration holds second frame
+  [PASS] authored loop wraps
+  [PASS] large delta retains frame remainder
+  [PASS] missing and empty clips reject without losing state
+  [PASS] non-looping clip holds last frame
+  [PASS] single-frame idle remains valid
+  [PASS] zero FPS holds frame
+  [PASS] placement comes from the sprite resource
+  [PASS] movement selects configured clip
+  [PASS] freeze stops enemy animation clock
+  [PASS] unfreeze resumes rather than catching up
+  [PASS] frame changes preserve presenter position effects
+  [PASS] authored left-facing art flips correctly
+  [PASS] stopping restores authored idle
+  [PASS] missing optional animation falls back to idle
+  [PASS] attack uses configured clip and contact timing
+  [PASS] movement cannot interrupt attack
+  [PASS] frozen attack holds its pose
+  [PASS] attack advances to contact frame
+  [PASS] consecutive attack restarts wind-up
+  [PASS] recovery restores movement and preserves effects
+  [PASS] stationary attack returns to idle
+  [PASS] missing attack retains fallback
+  [PASS] looping attack is rejected
+  [PASS] rat_v1 has a playable authored idle
+  [PASS] rat_v2 has a playable authored idle
+  [PASS] rat_v3 has a playable authored idle
+  [PASS] placeholder_small has a playable authored idle
+  [PASS] placeholder_medium has a playable authored idle
+  [PASS] placeholder_large has a playable authored idle
+  [PASS] goblin_base has a playable authored idle
+  [PASS] goblin_base animated idle keeps its feet at the authored origin
+  [PASS] goblin_base has a timed attack
+  [PASS] goblin_base attack recovers to idle
+  [PASS] kobold_base has a playable authored idle
+  [PASS] kobold_base animated idle keeps its feet at the authored origin
+  [PASS] kobold_base has a timed attack
+  [PASS] kobold_base attack recovers to idle
+  [PASS] wolf_base has a playable authored idle
+  [PASS] wolf_base animated idle keeps its feet at the authored origin
+  [PASS] wolf_base has a timed attack
+  [PASS] wolf_base attack recovers to idle
+  [PASS] viper_base has a playable authored idle
+  [PASS] viper_base animated idle keeps its feet at the authored origin
+  [PASS] viper_base has a timed attack
+  [PASS] viper_base attack recovers to idle
+  [PASS] spider_base has a playable authored idle
+  [PASS] spider_base animated idle keeps its feet at the authored origin
+  [PASS] spider_base has a timed attack
+  [PASS] spider_base attack recovers to idle
+  [PASS] boar_base has a playable authored idle
+  [PASS] boar_base animated idle keeps its feet at the authored origin
+  [PASS] boar_base has a timed attack
+  [PASS] boar_base attack recovers to idle
+  [PASS] giant_viper_base has a playable authored idle
+  [PASS] giant_viper_base animated idle keeps its feet at the authored origin
+  [PASS] giant_viper_base has a timed attack
+  [PASS] giant_viper_base attack recovers to idle
+  [PASS] giant_viper_base uses a fixed canvas and binary alpha
+  [PASS] giant_viper_base final attack pose exactly restores base
+  [PASS] giant_viper_base uses its reviewed world scale
+  [PASS] giant_monitor_lizard_base has a playable authored idle
+  [PASS] giant_monitor_lizard_base animated idle keeps its feet at the authored origin
+  [PASS] giant_monitor_lizard_base has a timed attack
+  [PASS] giant_monitor_lizard_base attack recovers to idle
+  [PASS] giant_monitor_lizard_base uses a fixed canvas and binary alpha
+  [PASS] giant_monitor_lizard_base final attack pose exactly restores base
+  [PASS] giant_monitor_lizard_base uses its reviewed world scale
+  [PASS] dire_wolf_base has a playable authored idle
+  [PASS] dire_wolf_base animated idle keeps its feet at the authored origin
+  [PASS] dire_wolf_base has a timed attack
+  [PASS] dire_wolf_base attack recovers to idle
+  [PASS] dire_wolf_base uses a fixed canvas and binary alpha
+  [PASS] dire_wolf_base final attack pose exactly restores base
+  [PASS] dire_wolf_base uses its reviewed world scale
+  [PASS] grizzly_bear_base has a playable authored idle
+  [PASS] grizzly_bear_base animated idle keeps its feet at the authored origin
+  [PASS] grizzly_bear_base has a timed attack
+  [PASS] grizzly_bear_base attack recovers to idle
+  [PASS] grizzly_bear_base uses a fixed canvas and binary alpha
+  [PASS] grizzly_bear_base final attack pose exactly restores base
+  [PASS] grizzly_bear_base uses its reviewed world scale
+  [PASS] giant_stag_beetle_base has a playable authored idle
+  [PASS] giant_stag_beetle_base animated idle keeps its feet at the authored origin
+  [PASS] giant_stag_beetle_base has a timed attack
+  [PASS] giant_stag_beetle_base attack recovers to idle
+  [PASS] giant_stag_beetle_base uses a fixed canvas and binary alpha
+  [PASS] giant_stag_beetle_base final attack pose exactly restores base
+  [PASS] giant_stag_beetle_base uses its reviewed world scale
+  [PASS] Goblin Warrior and adjusted variants use base art
+  [PASS] Goblin Commando and adjusted variants use base art
+  [PASS] Goblin War Chanter and adjusted variants use base art
+  [PASS] Kobold Warrior and adjusted variants use base art
+  [PASS] Kobold Scout and adjusted variants use base art
+  [PASS] Wolf and adjusted variants use base art
+  [PASS] Viper and adjusted variants use base art
+  [PASS] Hunting Spider and adjusted variants use base art
+  [PASS] Boar and adjusted variants use base art
+  [PASS] Giant Viper and adjusted variants use base art
+  [PASS] Giant Monitor Lizard and adjusted variants use base art
+  [PASS] Dire Wolf and adjusted variants use base art
+  [PASS] Grizzly Bear and adjusted variants use base art
+  [PASS] Giant Stag Beetle and adjusted variants use base art
+  [PASS] unmapped creatures keep size fallback
+  [PASS] Fringe Giant Rat has art
+  [PASS] Fringe Viper has art
+  [PASS] Fringe Kobold Warrior has art
+  [PASS] Fringe Goblin Warrior has art
+  [PASS] Fringe Wolf has art
+  [PASS] Fringe Goblin Commando has art
+  [PASS] Fringe Goblin War Chanter has art
+  [PASS] Fringe Hunting Spider has art
+  [PASS] Fringe Kobold Scout has art
+  [PASS] Fringe Boar has art
+  [PASS] Fringe Giant Viper has art
+  [PASS] Fringe Giant Monitor Lizard has art
+  [PASS] Fringe Dire Wolf has art
+  [PASS] Fringe Grizzly Bear has art
+  [PASS] Fringe Giant Stag Beetle has art
+---------------------------------------------------------
+[EnemySpriteSpike] checks: 121, failures: 0
+SPIKE RESULT: PASS

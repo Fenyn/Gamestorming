@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Delve.Flow;
 using Delve.Run;
+using Delve.Presets;
 using Godot;
 using PF2e.Core;
 using PF2e.Utilities;
@@ -16,6 +17,55 @@ namespace Delve.Dev;
 /// </summary>
 internal static class HeroSelectChecks
 {
+    internal static void Recruitment(HeroSelectPanel panel, Action<string, bool> check)
+    {
+        var campaign = new CampaignProgress();
+        panel.Setup(campaign.Unlocks, campaign);
+        var menu = panel.GetNode<RecruitmentPanel>("%Recruitment");
+        var entries = menu.GetNode<VBoxContainer>("%RecruitEntries");
+        check("recruitment lists each authored arc", entries.GetChildCount() == RecruitmentCatalog.All.Count);
+        check("unmet recruitment cannot stay overnight", entries.GetChild<RecruitmentEntry>(0)
+            .GetNode<Button>("%StayButton").Disabled);
+        campaign.RecordMeeting(PresetCharacters.RavenId, PresetCharacters.PlayerId);
+        for (int i = 0; i < 3; i++)
+            campaign.RecordVictory($"formation-test/{i}", PresetCharacters.PlayerId,
+                new[] { PresetCharacters.PlayerId, PresetCharacters.RavenId }, i == 2);
+        panel.Pick(PresetCharacters.PlayerId);
+        panel.RefreshRecruitment();
+        check("completed quests still leave Raven locked", !panel.CanPick(PresetCharacters.RavenId));
+        var stay = entries.GetChild<RecruitmentEntry>(0).GetNode<Button>("%StayButton");
+        check("completed recruitment offers the explicit stay", !stay.Disabled);
+        string? request = null;
+        void OnStay(string id) => request = id;
+        panel.RecruitmentRequested += OnStay;
+        stay.EmitSignal(Button.SignalName.Pressed);
+        panel.RecruitmentRequested -= OnStay;
+        check("stay requests recruitment without mutating campaign", request == PresetCharacters.RavenId
+            && !campaign.Unlocks.IsUnlocked(PresetCharacters.RavenId));
+        campaign.BindAtOutpost(request!);
+        panel.RefreshRecruitment();
+        check("binding refreshes availability and preserves leader", panel.CanPick(PresetCharacters.RavenId)
+            && panel.Chosen == PresetCharacters.PlayerId);
+        panel.Pick(PresetCharacters.RavenId);
+        panel.Pick(PresetCharacters.TharrId);
+        panel.Pick(PresetCharacters.FenwickId);
+        check("four members refuse a fifth unlocked member", panel.CanEmbark && !panel.CanPick(PresetCharacters.ElaraId));
+        panel.Pick(PresetCharacters.ElaraId);
+        check("refused fifth member preserves formation", panel.Companions.Count == 3);
+        menu.Open();
+        check("recruitment menu is shown on request", menu.Visible);
+        bool embarked = false;
+        void OnEmbark(string leader, IReadOnlyList<string> members) => embarked = true;
+        panel.Confirmed += OnEmbark;
+        panel.Embark();
+        panel.Unpick();
+        panel.Pick(PresetCharacters.RavenId);
+        panel.Confirmed -= OnEmbark;
+        check("recruitment blocks underlying formation actions", !embarked && panel.CanEmbark
+            && panel.Chosen == PresetCharacters.PlayerId);
+        menu.Hide();
+    }
+
     /// <summary>Every roster card under the panel, so the spike reads the state the player sees.</summary>
     internal static List<RosterCard> Cards(Node node)
     {
@@ -41,7 +91,7 @@ internal static class HeroSelectChecks
         if (leader == null || members == null) return false;
         try
         {
-            return Party.Build(leader, members, new UnlockState(), Party.DefaultLevel).Members.Count == 1;
+            return Party.Build(leader, members, new UnlockState(), Party.DefaultLevel).Members.Count == Party.MaxSize;
         }
         catch (ArgumentException e)
         {

@@ -33,7 +33,7 @@ public static class HeroSelectGrid
     {
         var page = new Rect2(Vector2.Zero, canvas);
         var sheet = Rect(panel, "%Sheet");
-        var list = Rect(panel, "%RosterList");
+        var list = Rect(panel, "%RosterScroll");
         var title = Rect(panel, "%TitleLabel");
         var heading = Rect(panel, "%RosterHeading");
         var embark = Rect(panel, "%EmbarkButton");
@@ -43,7 +43,7 @@ public static class HeroSelectGrid
         var plinth = Rect(sheetNode, "%PortraitFrame");
         var rail = Rect(sheetNode, "%AbilityGrid");
         var rows = Rect(sheetNode, "%Columns");
-        var last = LastCard(panel);
+        var last = list;
 
         GD.Print(
             $"[grid] sheet {Say(sheet)}  roster {Say(list)}  headlines {Say(headlines)}  " +
@@ -132,13 +132,6 @@ public static class HeroSelectGrid
 
     private static Rect2 Rect(Node from, string unique) =>
         from.GetNode<Control>(unique).GetGlobalRect();
-
-    private static Rect2 LastCard(HeroSelectPanel panel)
-    {
-        var list = panel.GetNode<Control>("%RosterList");
-        int count = list.GetChildCount();
-        return count == 0 ? new Rect2() : list.GetChild<Control>(count - 1).GetGlobalRect();
-    }
 
     private static bool Same(float a, float b) => Mathf.Abs(a - b) <= Slop;
 

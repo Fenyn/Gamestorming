@@ -58,6 +58,7 @@ public static class EncounterFactory
 
         var setup = new CombatSetup
         {
+            Control = new PartyControlPolicy(state.Party.LeaderId),
             Layout = layout,
             BiomeId = biome,
             RngSeed = RunRng.StableSeed(state.StratumSeed, node.Id, "fight"),

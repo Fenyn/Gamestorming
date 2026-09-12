@@ -38,6 +38,13 @@ public partial class CombatTestScene : Node
     /// <summary>The combat scene to instance. Assigned in combat_test.tscn.</summary>
     [Export] public PackedScene? CombatScene { get; set; }
 
+    /// <summary>Optional roster for art preview scenes; empty preserves the standard goblin encounter.</summary>
+    [Export] public string[] PreviewEnemies { get; set; } = System.Array.Empty<string>();
+    /// <summary>Deterministic initiative seed; art scenes can begin on a waiting player turn.</summary>
+    [Export] public int CombatSeed { get; set; } = 1337;
+    /// <summary>Optional tile spacing for the enemy art preview; zero keeps normal deployment.</summary>
+    [Export] public int PreviewEnemySpacing { get; set; }
+
     public override void _Ready()
     {
         if (int.TryParse(OS.GetEnvironment("DELVE_MAP_SEED"), out int envSeed))
@@ -75,6 +82,21 @@ public partial class CombatTestScene : Node
         for (int i = 0; i < CombatBoards.EnemyAnchors.Length; i++)
             enemies.Add(CreatureFactory.Create(goblinDef, teamId: 2));
 
+        if (PreviewEnemies.Length > 0)
+        {
+            enemies.Clear();
+            foreach (string name in PreviewEnemies)
+            {
+                var definition = data.FindCreature(name);
+                if (definition == null)
+                {
+                    GD.PushError($"[CombatTest] Missing preview creature: {name}");
+                    return;
+                }
+                enemies.Add(CreatureFactory.Create(definition, teamId: 2));
+            }
+        }
+
         var partySlots = new[] { veteran, elara, medic, fenwick };
         var setup = UseGeneratedMap
             ? BuildGeneratedSetup(partySlots, enemies)
@@ -91,13 +113,13 @@ public partial class CombatTestScene : Node
     }
 
     /// <summary>The original flat 14x12 board with its hand-authored marching-order anchors.</summary>
-    private static CombatSetup BuildFlatSetup(ICharacter[] partySlots, List<ICharacter> enemies)
+    private CombatSetup BuildFlatSetup(ICharacter[] partySlots, List<ICharacter> enemies)
     {
         var setup = new CombatSetup
         {
             GridWidth = CombatBoards.StandardWidth,
             GridHeight = CombatBoards.StandardHeight,
-            RngSeed = 1337,
+            RngSeed = CombatSeed,
         };
         var enemyAnchors = CombatBoards.Anchors(teamId: 2, enemies.Count);
         for (int i = 0; i < enemies.Count; i++)
@@ -140,7 +162,7 @@ public partial class CombatTestScene : Node
         {
             Layout = layout,
             BiomeId = Biome,
-            RngSeed = 1337,
+            RngSeed = CombatSeed,
         };
 
         var partyAnchors = DeploymentPlanner.GetAnchors(layout, teamId: 0, count: survivors.Count);
@@ -148,12 +170,52 @@ public partial class CombatTestScene : Node
             setup.Party.Add((survivors[i], AnchorAt(partyAnchors, i)));
 
         var enemyAnchors = DeploymentPlanner.GetAnchors(layout, teamId: 1, count: enemies.Count);
+        if (PreviewEnemySpacing > 1 && PreviewEnemies.Length > 0 && enemyAnchors.Count > 0)
+            enemyAnchors = SpacePreviewAnchors(layout, enemyAnchors[0], enemies);
         for (int i = 0; i < enemies.Count; i++)
             setup.Enemies.Add((enemies[i], AnchorAt(enemyAnchors, i)));
 
         GD.Print($"[CombatTest] generated '{Biome}' map {layout.Width}x{layout.Height} seed {layout.Seed} "
                  + $"({partyAnchors.Count} party / {enemyAnchors.Count} enemy anchors).");
         return setup;
+    }
+
+    private List<PF2eVec> SpacePreviewAnchors(MapLayout layout, PF2eVec origin, List<ICharacter> enemies)
+    {
+        var candidates = new List<PF2eVec>();
+        for (int y = 0; y < layout.Height; y++)
+            for (int x = layout.Width / 2; x < layout.Width; x++)
+                if (layout.IsWalkable(x, y)) candidates.Add(new PF2eVec(x, y));
+        int DistanceSquared(PF2eVec p) =>
+            (p.x - origin.x) * (p.x - origin.x) + (p.y - origin.y) * (p.y - origin.y);
+        candidates.Sort((a, b) =>
+        {
+            int distance = DistanceSquared(a).CompareTo(DistanceSquared(b));
+            if (distance != 0) return distance;
+            int row = a.y.CompareTo(b.y);
+            return row != 0 ? row : a.x.CompareTo(b.x);
+        });
+        var anchors = new List<PF2eVec>();
+        foreach (var enemy in enemies)
+        {
+            bool found = false;
+            foreach (var candidate in candidates)
+            {
+                bool fits = candidate.x + enemy.TileWidth <= layout.Width
+                    && candidate.y + enemy.TileWidth <= layout.Height;
+                for (int dy = 0; fits && dy < enemy.TileWidth; dy++)
+                    for (int dx = 0; fits && dx < enemy.TileWidth; dx++)
+                        fits &= layout.IsWalkable(candidate.x + dx, candidate.y + dy);
+                bool separated = anchors.TrueForAll(p => System.Math.Max(
+                    System.Math.Abs(p.x - candidate.x), System.Math.Abs(p.y - candidate.y)) >= PreviewEnemySpacing);
+                if (!fits || !separated) continue;
+                anchors.Add(candidate);
+                found = true;
+                break;
+            }
+            if (!found) break; // Normalize handles crowded boards using complete footprints.
+        }
+        return anchors;
     }
 
     /// <summary>

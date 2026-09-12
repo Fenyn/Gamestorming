@@ -36,8 +36,10 @@ public partial class ActionBar : Control
     private CaptionButton _strikeBtn = null!;
     private CaptionButton _shieldBtn = null!;
     private CaptionButton _endBtn = null!;
-    private CheckButton _aiToggle = null!;
-    private CheckButton _autoReactToggle = null!;
+    private CheckBox _aiToggle = null!;
+    private CheckBox _autoReactToggle = null!;
+    private Button _controlButton = null!;
+    private Control _controlOptions = null!;
     private Label _targetingHintLabel = null!;
 
     /// <summary>Every caption button on the bar, in bar order. Their action and keycap labels are
@@ -59,7 +61,7 @@ public partial class ActionBar : Control
     private bool _interactable = true;
 
     /// <summary>Which chip category the flyout currently shows (None = closed).</summary>
-    private enum FlyoutCategory { None, Spells, Skills }
+    private enum FlyoutCategory { None, Spells, Skills, Control }
 
     private FlyoutCategory _openCategory = FlyoutCategory.None;
     private string _lastActorName = "";
@@ -83,8 +85,11 @@ public partial class ActionBar : Control
         _spellsBtn = GetNode<CaptionButton>("%SpellsButton");
         _skillsBtn = GetNode<CaptionButton>("%SkillsButton");
         _endBtn = GetNode<CaptionButton>("%EndButton");
-        _aiToggle = GetNode<CheckButton>("%AiToggle");
-        _autoReactToggle = GetNode<CheckButton>("%AutoReactToggle");
+        _aiToggle = GetNode<CheckBox>("%AiToggle");
+        _autoReactToggle = GetNode<CheckBox>("%AutoReactToggle");
+        _controlButton = GetNode<Button>("%ControlButton");
+        _controlOptions = GetNode<Control>("%ControlOptions");
+        _controlButton.Toggled += on => SetFlyout(on ? FlyoutCategory.Control : FlyoutCategory.None);
         _targetingHintLabel = GetNode<Label>("%TargetingHint");
         _flyout = GetNode<ChipFlyout>("%Flyout");
         _previewCard = GetNode<PanelContainer>("%PreviewCard");
@@ -93,7 +98,7 @@ public partial class ActionBar : Control
         _offGuardTag = GetNode<Label>("%OffGuardTag");
 
         _hud = HudRoot.Find(this);
-        _offGuardTag.AddThemeColorOverride("font_color", UiColors.Accent);
+        _offGuardTag.AddThemeColorOverride("font_color", GetThemeColor("accent", "Palette"));
 
         _captions = new[]
         {
@@ -150,16 +155,15 @@ public partial class ActionBar : Control
         => string.IsNullOrEmpty(reason) ? "" : $"Unavailable: {reason}";
 
     /// <summary>Re-apply caption label colors from each button's Disabled state so a disabled
-    /// button visibly dims both the action label and its keycap. Enabled: action text (inverse
-    /// on the accent End Turn), keycap text_dim. Disabled: both text_disabled.</summary>
+    /// button visibly dims both the action label and its keycap. Enabled: parchment text and
+    /// dim keycaps. Disabled: both text_disabled.</summary>
     private void RefreshCaptionColors()
     {
         foreach (var btn in _captions)
         {
-            bool accent = btn == _endBtn;
             btn.ActionLabel?.AddThemeColorOverride("font_color", btn.Disabled
                 ? UiColors.TextDisabled
-                : accent ? UiColors.TextInverse : UiColors.Text);
+                : UiColors.Text);
             btn.KeyLabel?.AddThemeColorOverride("font_color",
                 btn.Disabled ? UiColors.TextDisabled : UiColors.TextDim);
         }
@@ -177,9 +181,10 @@ public partial class ActionBar : Control
     {
         _aiToggle.Disabled = !enabled;
         _autoReactToggle.Disabled = !enabled;
-        string reason = enabled ? "" : UnavailableTooltip("This combatant is AI controlled");
-        _aiToggle.TooltipText = reason;
-        _autoReactToggle.TooltipText = reason;
+        _controlButton.Disabled = !enabled;
+        if (!enabled && _openCategory == FlyoutCategory.Control) CloseFlyout();
+        _aiToggle.TooltipText = enabled ? "Let the AI choose this ally's actions." : UnavailableTooltip("This combatant is AI controlled");
+        _autoReactToggle.TooltipText = enabled ? "Use available reactions automatically. Uncheck to decide each reaction." : UnavailableTooltip("This combatant is AI controlled");
     }
 
     public void SetAutoReactToggle(bool on)
@@ -197,11 +202,11 @@ public partial class ActionBar : Control
         if (state.MaxHp > 0)
         {
             _vitalsLabel.Text = $"HP {state.Hp}/{state.MaxHp}  AC {state.Ac}";
-            _vitalsLabel.AddThemeColorOverride("font_color",
-                UiColors.HpFillColor((float)state.Hp / state.MaxHp));
+            _vitalsLabel.AddThemeColorOverride("font_color", UiColors.Text);
         }
 
         _actionPips.SetActionEconomy(state.ActionsRemaining, state.MaxActions);
+        _actionPips.TooltipText = $"{state.ActionsRemaining} of {state.MaxActions} actions remaining";
 
         // MAP suffix goes on the action label only — the keycap always reads just "3". The button
         // re-fits itself when the label grows (see CaptionButton).
@@ -222,7 +227,8 @@ public partial class ActionBar : Control
         _shieldBtn.TooltipText = UnavailableTooltip(state.ShieldDisabledReason);
         _spellsBtn.TooltipText = "";
         _skillsBtn.TooltipText = "";
-        _endBtn.TooltipText = "";
+        _endBtn.TooltipText = state.ActionsRemaining > 0
+            ? $"End this turn with {state.ActionsRemaining} unused actions." : "End this turn.";
 
         bool actorChanged = state.ActorName != _lastActorName;
         _lastActorName = state.ActorName;
@@ -236,9 +242,10 @@ public partial class ActionBar : Control
         // Keep an open flyout fresh; close it when the actor changed or its category emptied.
         if (_openCategory != FlyoutCategory.None)
         {
-            bool empty = _openCategory == FlyoutCategory.Spells ? _spells.Count == 0 : _skills.Count == 0;
+            bool empty = _openCategory == FlyoutCategory.Spells ? _spells.Count == 0
+                : _openCategory == FlyoutCategory.Skills && _skills.Count == 0;
             if (actorChanged || empty) CloseFlyout();
-            else RebuildFlyout();
+            else if (_openCategory != FlyoutCategory.Control) RebuildFlyout();
         }
     }
 
@@ -249,7 +256,9 @@ public partial class ActionBar : Control
         _openCategory = category;
         _spellsBtn.SetPressedNoSignal(category == FlyoutCategory.Spells);
         _skillsBtn.SetPressedNoSignal(category == FlyoutCategory.Skills);
-        if (category == FlyoutCategory.None)
+        _controlButton.SetPressedNoSignal(category == FlyoutCategory.Control);
+        _controlOptions.Visible = category == FlyoutCategory.Control;
+        if (category is FlyoutCategory.None or FlyoutCategory.Control)
         {
             _flyout.Visible = false;
             _flyout.Clear();
@@ -351,9 +360,9 @@ public partial class ActionBar : Control
         // The AC / hit / crit strings arrive already masked for bestiary knowledge — this Control
         // never decides what the player may see.
         _previewHeaderLabel.Text =
-            $"{preview.WeaponName} vs {preview.TargetName} — +{preview.TotalAttackBonus} vs AC {preview.TargetAcText}";
+            $"{preview.WeaponName} → {preview.TargetName} · Attack {preview.TotalAttackBonus:+0;-0;0}";
         _previewStatsLabel.Text =
-            $"{preview.HitChanceText} hit · {preview.CritChanceText} crit · {preview.DamageFormula}";
+            $"{preview.HitChanceText} hit · {preview.DamageFormula} damage · {preview.CritChanceText} crit";
         _offGuardTag.Visible = preview.TargetOffGuard;
     }
 
@@ -410,7 +419,7 @@ public partial class ActionBar : Control
     /// are camera input and never reach here.</summary>
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (!_interactable || _hud?.ModalActive == true)
+        if (_hud?.ModalActive == true)
             return;
 
         if (_openCategory != FlyoutCategory.None && @event.IsActionPressed(InputNames.UiCancel))
@@ -419,6 +428,8 @@ public partial class ActionBar : Control
             GetViewport().SetInputAsHandled();
             return;
         }
+
+        if (!_interactable) return;
 
         if (@event.IsActionPressed(InputNames.Action1))
             Activate(_strikeBtn, () => StrikePressed?.Invoke());

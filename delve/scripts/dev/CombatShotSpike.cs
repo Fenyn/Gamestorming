@@ -190,6 +190,7 @@ public partial class CombatShotSpike : SpikeBase
         await WaitSeconds(PoseSeconds);
         Capture("combat_shot_skills.png");
         if (FindChild("SkillsButton", recursive: true, owned: false) is Button skills) skills.ButtonPressed = false;
+        await CaptureHudReview(scene);
         var log = GetNode<CombatScene>("CombatTest/Combat").GetNode<Delve.UI.CombatLogPanel>("%CombatLog");
         CombatLogSamples.Fill(log);
         await WaitSeconds(PoseSeconds);

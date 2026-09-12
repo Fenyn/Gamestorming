@@ -1,0 +1,31 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== SPELL CAST SPIKE ====================
+  [PASS] (a) Heal raises HP
+  [PASS] (a) 1-action variant consumes 1 action
+  [PASS] (a) Heal consumed a divine-font slot (font-first)
+  [PASS] (a) rank-1 preparations untouched while font slots remain
+  [PASS] (b) Electric Arc resolves against 2 targets
+  [PASS] (b) per-target damage is save-degree consistent
+  [PASS] (b) cantrip consumes no leveled slot
+  [PASS] (b) Electric Arc is repeatable (still 2 targets)
+  [PASS] (c) Fear applies Frightened on a failed Will save
+  [PASS] (d) Breathe Fire cone hits multiple goblins
+  [PASS] (e) Trip applies Prone on success
+  [PASS] (f) Battle Medicine heals then blocks a repeat on the same target
+  [PASS] (g) rank-1 spell castable with slots remaining
+  [PASS] (g) Heal budget = 4 font slots + 2 preparations (6 casts)
+  [PASS] (g) font pool exhausted
+  [PASS] (g) Heal not castable once font + preparations are spent
+  [PASS] (g) Fear still castable (its preparation is untouched)
+  [PASS] (g) Fear not castable after its preparation is spent
+---------------------------------------------------------
+[SpellCastSpike] checks: 18, failures: 0
+SPIKE RESULT: PASS

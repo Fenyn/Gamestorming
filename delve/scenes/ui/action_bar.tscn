@@ -90,15 +90,35 @@ visible = false
 layout_mode = 2
 ChipScene = ExtResource("4_chip")
 
+[node name="ControlOptions" type="PanelContainer" parent="Stack"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+theme_type_variation = &"HudInset"
+
+[node name="ToggleCol" type="HBoxContainer" parent="Stack/ControlOptions"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="AiToggle" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "AI takes turns"
+
+[node name="AutoReactToggle" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
+text = "Automatic reactions"
+
 [node name="BarBlock" type="VBoxContainer" parent="Stack"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 0
-
-[node name="AccentStrip" type="Panel" parent="Stack/BarBlock"]
-custom_minimum_size = Vector2(0, 2)
-layout_mode = 2
-theme_type_variation = &"AccentStrip"
 
 [node name="Bar" type="PanelContainer" parent="Stack/BarBlock"]
 layout_mode = 2
@@ -166,20 +186,10 @@ theme_type_variation = &"AccentButton"
 ActionText = "End Turn"
 InputAction = &"combat_end_turn"
 
-[node name="ToggleCol" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row"]
-layout_mode = 2
-theme_override_constants/separation = 0
-alignment = 1
-
-[node name="AiToggle" type="CheckButton" parent="Stack/BarBlock/Bar/Row/ToggleCol"]
+[node name="ControlButton" type="Button" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
-text = "AI"
-
-[node name="AutoReactToggle" type="CheckButton" parent="Stack/BarBlock/Bar/Row/ToggleCol"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
-text = "Auto React"
+size_flags_vertical = 4
+text = "Control"
+toggle_mode = true
+tooltip_text = "Automation preferences for the active ally"

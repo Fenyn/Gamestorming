@@ -1,0 +1,73 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== REACTION / DYING SPIKE ====================
+-------------------- (1) Shield Block --------------------
+  [PASS] (1) test shield is raised
+  [PASS] (1) control shield is NOT raised
+  [PASS] (1) shield has non-zero hardness
+  [PASS] (1) control takes full 10 damage (no block)
+  [PASS] (1) raised takes 10-hardness=5 (blocked 5)
+  [PASS] (1) Shield Block consumed the reaction
+  [PASS] (1) second hit unblocked (reaction spent)
+-------------------- (2) Reactive Strike --------------------
+  [PASS] (2) Veteran has Reactive Strike (core fighter feature)
+  [PASS] (2) reaction was available before the stride
+  [PASS] (2) striding out of reach provoked a Reactive Strike
+  [PASS] (2) the Reactive Strike consumed the reaction
+-------------------- (3) Dying, not dead --------------------
+  [PASS] (3) downed PC is at 0 HP
+  [PASS] (3) downed PC has Dying
+  [PASS] (3) downed PC is Unconscious
+  [PASS] (3) downed PC is NOT dead
+  [PASS] (3) ally stays conscious and alive → encounter continues
+-------------------- (4) Defeat when all down --------------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 6) toward (4, 4), goal=(5, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 6) toward (4, 4), goal=(5, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=8.39
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [8.39] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [8.4] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 3) toward (4, 4), goal=(5, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 3) toward (4, 4), goal=(5, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=8.39
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [8.39] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [8.4] Dogslicer(MAP0) > Step > Stride vs the Recruit
+  [PASS] (4) the lone PC ends the fight down (dying/unconscious/dead)
+  [PASS] (4) session reports DEFEAT (Team2Wins)
+-------------------- (5) Shove displaces --------------------
+  [PASS] (5) Shove pushed the goblin at least one tile
+  [PASS] (5) grid occupancy updated (goblin at new tile, left the old tile)
+  [PASS] (5) a Shove eventually landed across the seed sweep
+-------------------- (6) Forced-movement install --------------------
+  [PASS] (6) ForcedMovementExecutor.Grid is the session grid
+  [PASS] (6) direct forced-movement displaces on the installed grid
+  [PASS] (6) teardown clears ForcedMovementExecutor.Grid
+---------------------------------------------------------
+[ReactionDyingSpike] checks: 24, failures: 0
+SPIKE RESULT: PASS

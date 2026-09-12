@@ -1,0 +1,106 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== AI CAUTION SPIKE ====================
+-- (a) risk is a round of incoming damage against the HP that is left --
+  [PASS] (a) three adjacent enemies bear on the tile (3.0)
+  [PASS] (a) the one nearby friend counts as support (1)
+  [PASS] (a) they threaten real damage (6.1 a round)
+  [PASS] (a) a clear tile is worth more than the one inside the pack
+  [PASS] (a) a healthy ally can afford this fight (0.19 risk)
+  [PASS] (a) the same tile is lethal at a quarter HP (0.77 risk)
+  [PASS] (a) and now costs plan score
+  [PASS] (a) an uncautious profile pays nothing (caution 0 = old behaviour)
+-- (b) a cautious ally still engages, until the fight would kill it --
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 5), goal=(12, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 6), goal=(12, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 7), goal=(12, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #2 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #3 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [18.2] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+    reckless: ends at (12, 5), 2 enemies in reach, 32/32 HP
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 5), goal=(12, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 6), goal=(12, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 7), goal=(12, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #2 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #3 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [18.2] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+    cautious: ends at (12, 5), 2 enemies in reach, 32/32 HP
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Defensive
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Defensive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Defensive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 3 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=-50.0, hp=6/6, dist=5)
+[PF2e] [AI] DefensivePlan: generated 1 plan(s) (inMelee=False, hasDef=False, hasRanged=False, hasHeal=False)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 5), goal=(12, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 6), goal=(12, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (8, 6) toward (13, 7), goal=(12, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 4 raw candidate(s) from Defensive tree
+[PF2e] [AI] PlanGenerator: discarding 'Retreat' (2/3 actions)
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Step vs Goblin Warrior': Stride Longsword(MAP0) Step TOTAL=11.51
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Step vs Goblin Warrior': Stride Longsword(MAP0) Step TOTAL=11.51
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Step vs Goblin Warrior': Stride Longsword(MAP0) Step TOTAL=11.51
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [11.51] Stride > Longsword(MAP0) > Step vs Goblin Warrior
+[PF2e] [AI]   #2 [11.51] Stride > Longsword(MAP0) > Step vs Goblin Warrior
+[PF2e] [AI]   #3 [11.51] Stride > Longsword(MAP0) > Step vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [11.5] Stride > Longsword(MAP0) > Step vs Goblin Warrior
+    cautious at a quarter HP: ends at (11, 4), 0 enemies in reach, 8/32 HP
+  [PASS] (b) the reckless ally closes into the pack (2 enemies in reach)
+  [PASS] (b) a healthy cautious ally still engages (2 enemies in reach)
+  [PASS] (b) at a quarter HP it stays out of reach (0 enemies in reach)
+-- (c) the same spot costs more when the enemies all act before any friend --
+    all three goblins first: 0.21 risk, 3 enemy turns before relief
+    friends in between: 0.14 risk, 1 enemy turns before relief
+  [PASS] (c) three enemy turns pass before a friend acts (3)
+  [PASS] (c) one does when the friends are spread through the order (1)
+  [PASS] (c) the same tile is riskier with no friend acting in between
+    at a third HP: massed costs 1.6 score, interleaved costs 0.0
+  [PASS] (c) a wounded ally pays to stand there when nobody relieves it (1.6)
+  [PASS] (c) and pays less when its friends act in between
+---------------------------------------------------------
+[AiCautionSpike] checks: 16, failures: 0
+SPIKE RESULT: PASS

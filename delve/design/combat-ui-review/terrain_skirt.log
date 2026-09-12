@@ -1,0 +1,126 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== TERRAIN SKIRT SPIKE ====================
+-------------------- forest --------------------
+        · seed 1: board 19x18, margin 12, skirt 43x42, halo 0 wall / 120 water / 195 difficult, tallest 8u
+        · seed 3: board 20x22, margin 17, skirt 54x56, halo 0 wall / 0 water / 295 difficult, tallest 24u
+        · seed 7: board 20x24, margin 12, skirt 44x48, halo 0 wall / 0 water / 230 difficult, tallest 6u
+        · seed 11: board 21x18, margin 12, skirt 45x42, halo 0 wall / 84 water / 183 difficult, tallest 8u
+        · seed 19: board 22x20, margin 12, skirt 46x44, halo 0 wall / 0 water / 201 difficult, tallest 7u
+        · seed 38: board 22x24, margin 17, skirt 56x58, halo 0 wall / 0 water / 315 difficult, tallest 24u
+        · seed 42: board 22x18, margin 12, skirt 46x42, halo 0 wall / 0 water / 182 difficult, tallest 6u
+        · seed 63: board 22x20, margin 13, skirt 48x46, halo 0 wall / 0 water / 211 difficult, tallest 17u
+        · seed 99: board 21x24, margin 15, skirt 51x54, halo 0 wall / 0 water / 235 difficult, tallest 20u
+        · seed 128: board 22x20, margin 13, skirt 48x46, halo 0 wall / 0 water / 212 difficult, tallest 14u
+        · seed 137: board 20x18, margin 12, skirt 44x42, halo 4 wall / 132 water / 183 difficult, tallest 12u
+        · seed 256: board 21x24, margin 12, skirt 45x48, halo 0 wall / 0 water / 180 difficult, tallest 8u
+        · seed 311: board 19x18, margin 12, skirt 43x42, halo 0 wall / 0 water / 207 difficult, tallest 12u
+        · seed 404: board 23x20, margin 13, skirt 49x46, halo 0 wall / 0 water / 228 difficult, tallest 12u
+        · seed 512: board 19x18, margin 12, skirt 43x42, halo 0 wall / 0 water / 190 difficult, tallest 9u
+        · seed 777: board 22x23, margin 15, skirt 52x53, halo 0 wall / 0 water / 226 difficult, tallest 20u
+        · seed 1024: board 22x19, margin 12, skirt 46x43, halo 0 wall / 84 water / 153 difficult, tallest 12u
+        · seed 1337: board 19x18, margin 17, skirt 53x52, halo 0 wall / 0 water / 254 difficult, tallest 24u
+        · seed 2026: board 19x19, margin 15, skirt 49x49, halo 0 wall / 0 water / 274 difficult, tallest 20u
+        · seed 3141: board 22x21, margin 17, skirt 56x55, halo 0 wall / 0 water / 296 difficult, tallest 24u
+        · seed 4711: board 24x18, margin 12, skirt 48x42, halo 0 wall / 0 water / 204 difficult, tallest 12u
+        · seed 6180: board 20x19, margin 12, skirt 44x43, halo 0 wall / 108 water / 178 difficult, tallest 9u
+        · seed 8123: board 20x19, margin 12, skirt 44x43, halo 0 wall / 0 water / 211 difficult, tallest 8u
+        · seed 9999: board 21x22, margin 17, skirt 55x56, halo 0 wall / 0 water / 328 difficult, tallest 20u
+        · seed 12345: board 18x18, margin 12, skirt 42x42, halo 4 wall / 0 water / 175 difficult, tallest 9u
+        · seed 20260804: board 22x24, margin 12, skirt 46x48, halo 0 wall / 72 water / 197 difficult, tallest 8u
+        · seed 31337: board 24x22, margin 15, skirt 54x52, halo 3 wall / 0 water / 301 difficult, tallest 20u
+        · seed 44100: board 22x22, margin 15, skirt 52x52, halo 0 wall / 0 water / 250 difficult, tallest 20u
+        · seed 55555: board 18x22, margin 12, skirt 42x46, halo 0 wall / 0 water / 190 difficult, tallest 5u
+        · seed 84105: board 20x23, margin 12, skirt 44x47, halo 0 wall / 0 water / 220 difficult, tallest 13u
+        · seed 909090: board 20x23, margin 12, skirt 44x47, halo 0 wall / 0 water / 193 difficult, tallest 6u
+-------------------- sewer --------------------
+        · seed 1: board 18x19, margin 12, skirt 42x43, halo 1365 wall / 6 water / 0 difficult, tallest 28u
+        · seed 3: board 19x24, margin 12, skirt 43x48, halo 1581 wall / 3 water / 0 difficult, tallest 20u
+        · seed 7: board 21x26, margin 12, skirt 45x50, halo 1674 wall / 6 water / 0 difficult, tallest 16u
+        · seed 11: board 22x18, margin 12, skirt 46x42, halo 1440 wall / 6 water / 0 difficult, tallest 24u
+        · seed 19: board 25x21, margin 12, skirt 49x45, halo 1566 wall / 0 water / 0 difficult, tallest 28u
+        · seed 38: board 24x27, margin 12, skirt 48x51, halo 1650 wall / 6 water / 0 difficult, tallest 24u
+        · seed 42: board 25x19, margin 12, skirt 49x43, halo 1536 wall / 0 water / 0 difficult, tallest 24u
+        · seed 63: board 25x21, margin 12, skirt 49x45, halo 1650 wall / 6 water / 0 difficult, tallest 24u
+        · seed 99: board 22x26, margin 12, skirt 46x50, halo 1698 wall / 6 water / 0 difficult, tallest 20u
+        · seed 128: board 24x21, margin 12, skirt 48x45, halo 1542 wall / 6 water / 0 difficult, tallest 24u
+        · seed 137: board 19x18, margin 12, skirt 43x42, halo 1371 wall / 3 water / 0 difficult, tallest 24u
+        · seed 256: board 22x27, margin 12, skirt 46x51, halo 1722 wall / 6 water / 0 difficult, tallest 16u
+        · seed 311: board 18x18, margin 12, skirt 42x42, halo 1344 wall / 0 water / 0 difficult, tallest 24u
+        · seed 404: board 27x21, margin 12, skirt 51x45, halo 1614 wall / 0 water / 0 difficult, tallest 24u
+        · seed 512: board 18x18, margin 12, skirt 42x42, halo 1413 wall / 6 water / 0 difficult, tallest 24u
+        · seed 777: board 25x26, margin 12, skirt 49x50, halo 1770 wall / 6 water / 0 difficult, tallest 20u
+        · seed 1024: board 26x20, margin 12, skirt 50x44, halo 1572 wall / 6 water / 0 difficult, tallest 24u
+        · seed 1337: board 18x19, margin 12, skirt 42x43, halo 1365 wall / 3 water / 0 difficult, tallest 24u
+        · seed 2026: board 17x20, margin 12, skirt 41x44, halo 1434 wall / 6 water / 0 difficult, tallest 24u
+        · seed 3141: board 25x22, margin 12, skirt 49x46, halo 1584 wall / 6 water / 0 difficult, tallest 28u
+        · seed 4711: board 28x19, margin 12, skirt 52x43, halo 1677 wall / 3 water / 0 difficult, tallest 16u
+WARNING: [PF2e WARN] ValidationPhase: 4 walkable tiles unreachable from deployment zone 0. Biome 'Sewer' seed 6180.
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.MapGen.Phases.ValidationPhase.Run(PF2e.MapGen.MapGenerationContext) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\Pipeline\Phases\ValidationPhase.cs:65)
+       [4] PF2e.MapGen.MapLayout PF2e.MapGen.MapGenerator.Generate(PF2e.MapGen.Biomes.BiomeDefinition, PF2e.MapGen.MapGenerationParams, int) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\MapGenerator.cs:63)
+       [5] PF2e.MapGen.MapLayout PF2e.MapGen.MapGenerator.GenerateValidated(string, int, PF2e.MapGen.MapGenerationParams, int) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\MapGenerator.cs:130)
+       [6] PF2e.MapGen.MapLayout PF2e.MapGen.MapGenerator.GenerateValidated(string, int, int) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\MapGenerator.cs:107)
+       [7] System.Threading.Tasks.Task Delve.Dev.TerrainSkirtSpike.RunSpikeAsync(Delve.Autoload.DataManager) (G:\Godot\Gamestorming\delve\scripts\dev\TerrainSkirtSpike.cs:64)
+       [8] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [9] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [10] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [11] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [12] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [13] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [14] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+        · seed 6180: board 22x20, margin 12, skirt 46x44, halo 1476 wall / 6 water / 0 difficult, tallest 24u
+        · seed 8123: board 21x20, margin 12, skirt 45x44, halo 1530 wall / 6 water / 0 difficult, tallest 24u
+        · seed 9999: board 22x25, margin 12, skirt 46x49, halo 1674 wall / 6 water / 0 difficult, tallest 20u
+WARNING: [PF2e WARN] ValidationPhase: 4 walkable tiles unreachable from deployment zone 0. Biome 'Sewer' seed 12345.
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.MapGen.Phases.ValidationPhase.Run(PF2e.MapGen.MapGenerationContext) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\Pipeline\Phases\ValidationPhase.cs:65)
+       [4] PF2e.MapGen.MapLayout PF2e.MapGen.MapGenerator.Generate(PF2e.MapGen.Biomes.BiomeDefinition, PF2e.MapGen.MapGenerationParams, int) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\MapGenerator.cs:63)
+       [5] PF2e.MapGen.MapLayout PF2e.MapGen.MapGenerator.GenerateValidated(string, int, PF2e.MapGen.MapGenerationParams, int) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\MapGenerator.cs:130)
+       [6] PF2e.MapGen.MapLayout PF2e.MapGen.MapGenerator.GenerateValidated(string, int, int) (F:\dev\Pf2e.Core\Pf2e.Core\MapGen\MapGenerator.cs:107)
+       [7] System.Threading.Tasks.Task Delve.Dev.TerrainSkirtSpike.RunSpikeAsync(Delve.Autoload.DataManager) (G:\Godot\Gamestorming\delve\scripts\dev\TerrainSkirtSpike.cs:64)
+       [8] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [9] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [10] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [11] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [12] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [13] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [14] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+        · seed 12345: board 27x27, margin 12, skirt 51x51, halo 1842 wall / 6 water / 0 difficult, tallest 16u
+        · seed 20260804: board 24x27, margin 12, skirt 48x51, halo 1656 wall / 6 water / 0 difficult, tallest 24u
+        · seed 31337: board 30x24, margin 12, skirt 54x48, halo 1842 wall / 6 water / 0 difficult, tallest 20u
+        · seed 44100: board 25x23, margin 12, skirt 49x47, halo 1602 wall / 0 water / 0 difficult, tallest 24u
+        · seed 55555: board 16x24, margin 12, skirt 40x48, halo 1410 wall / 0 water / 0 difficult, tallest 24u
+        · seed 84105: board 19x25, margin 12, skirt 43x49, halo 1494 wall / 9 water / 0 difficult, tallest 24u
+        · seed 909090: board 20x25, margin 12, skirt 44x49, halo 1626 wall / 6 water / 0 difficult, tallest 24u
+  [PASS] 62 skirts built over 2 biomes
+  [PASS] (a) skirt is (W+2M)x(H+2M) with a margin of at least 8
+  [PASS] (a) every board tile survives the copy in all nine per-tile fields
+  [PASS] (b) the first halo ring's corners equal the board's ground corners
+  [PASS] (c) adjacent halo tiles agree on the corners between them
+  [PASS] (c) no halo ground tile spans more than two corner units
+  [PASS] (d) the outer ring sits flat on the ground plane
+  [PASS] (e) the halo only uses ground, difficult, water, wall and continued void
+  [PASS] (f) every board-edge river continues into the first ring
+  [PASS] (f) every board-edge canyon continues into the first ring
+  [PASS] (f) wide rivers and canyons run all the way onto the rim ring
+  [PASS] (g) the same seed builds the same skirt
+  [PASS] (h) tree spots stand on open ground, ring 2+, away from water
+---------------------------------------------------------
+[TerrainSkirtSpike] checks: 13, failures: 0
+SPIKE RESULT: PASS

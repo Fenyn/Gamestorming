@@ -1,0 +1,47 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== RUN EVENT SPIKE ====================
+  [PASS] the catalog holds the placeholder event
+  [PASS] option 0 carries an Athletics check
+  [PASS] option 1 carries no check
+-------------------- (1) Option 0 at DC 0 --------------------
+    Aldric: Athletics 16 vs DC 0 (CriticalSuccess).
+    The climb goes clean, and the shortcut saves the party an hour of walking.
+    Aldric recovers 3 HP.
+  [PASS] (1) the option resolved
+  [PASS] (1) DC 0 forces a critical success (CriticalSuccess)
+  [PASS] (1) the chosen actor was used
+  [PASS] (1) the climber healed (16 -> 19)
+-------------------- (2) Option 0 at DC 99 --------------------
+    Aldric: Athletics 26 vs DC 99 (CriticalFailure).
+    The whole slope gives way and buries the climber to the waist.
+    Aldric takes 8 damage.
+    Aldric is wounded 1.
+  [PASS] (2) the option resolved
+  [PASS] (2) DC 99 forces a critical failure (CriticalFailure)
+  [PASS] (2) the faller took damage (32 -> 24)
+  [PASS] (2) the faller is Wounded (1)
+  [PASS] (2) the faller is alive and above 0 HP
+  [PASS] (2) event damage never drops a member below 1 HP
+-------------------- (3) Option 1 --------------------
+    The side gallery is long, but it comes out where you need it.
+  [PASS] (3) the option resolved
+  [PASS] (3) no check was rolled
+  [PASS] (3) nothing changed
+  [PASS] (3) it still produced a line to show
+  [PASS] (4) an unknown option index is refused
+  [PASS] preview names the skill, DC and base success chance
+  [PASS] changing actor updates the check preview
+  [PASS] success and critical failure explain their effects
+  [PASS] opening previews spends no resources
+  [PASS] repeated selection cannot resolve twice
+---------------------------------------------------------
+[RunEventSpike] checks: 23, failures: 0
+SPIKE RESULT: PASS

@@ -1,0 +1,53 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== TERRAIN CLIFF SPIKE ====================
+-------------------- forest --------------------
+        · seed 1: 19x18, 112 walls, 73 strips, elevations 0..4
+        · seed 7: 20x24, 123 walls, 123 strips, elevations 0..12
+        · seed 42: 22x18, 105 walls, 105 strips, elevations -4..4
+        · seed 99: 21x24, 201 walls, 201 strips, elevations 0..24
+        · seed 137: 20x18, 139 walls, 102 strips, elevations 0..12
+        · seed 404: 23x20, 162 walls, 162 strips, elevations 0..16
+        · seed 1337: 19x18, 98 walls, 98 strips, elevations 24..28
+        · seed 2026: 19x19, 172 walls, 172 strips, elevations 0..24
+        · seed 4711: 24x18, 116 walls, 116 strips, elevations 0..12
+        · seed 8123: 20x19, 118 walls, 118 strips, elevations -4..8
+        · seed 20260804: 22x24, 164 walls, 118 strips, elevations 0..8
+        · seed 31337: 24x22, 211 walls, 211 strips, elevations 0..24
+        · seed 55555: 18x22, 126 walls, 126 strips, elevations 0..8
+        · seed 84105: 20x23, 183 walls, 183 strips, elevations 0..24
+        · seed 909090: 20x23, 122 walls, 122 strips, elevations -4..8
+-------------------- sewer --------------------
+        · seed 1: 18x19, 197 walls, 163 strips, elevations 0..28
+        · seed 7: 21x26, 250 walls, 216 strips, elevations 0..24
+        · seed 42: 25x19, 193 walls, 193 strips, elevations 0..24
+        · seed 99: 22x26, 252 walls, 208 strips, elevations 0..20
+        · seed 137: 19x18, 206 walls, 170 strips, elevations 0..24
+        · seed 404: 27x21, 162 walls, 158 strips, elevations 0..24
+        · seed 1337: 18x19, 195 walls, 161 strips, elevations 0..24
+        · seed 2026: 17x20, 259 walls, 217 strips, elevations 0..24
+        · seed 4711: 28x19, 274 walls, 230 strips, elevations 0..24
+        · seed 8123: 21x20, 227 walls, 187 strips, elevations 0..24
+        · seed 20260804: 24x27, 264 walls, 224 strips, elevations 0..24
+        · seed 31337: 30x24, 319 walls, 257 strips, elevations 0..20
+        · seed 55555: 16x24, 167 walls, 163 strips, elevations 0..24
+        · seed 84105: 19x25, 170 walls, 165 strips, elevations 0..24
+        · seed 909090: 20x25, 244 walls, 212 strips, elevations 0..24
+  [PASS] 30 maps built over 2 biomes
+  [PASS] (a) every wall bottom equals its cardinal neighbour's edge corner (or the void floor)
+  [PASS] (a) no wall hangs below its own top or below the canyon floor
+  [PASS] (b) no two wall quads share the same four world positions
+  [PASS] (c) an edge with a one-way drop emits exactly one wall
+  [PASS] (c) the two walls of a twisted edge never overlap vertically
+  [PASS] (d) every cliff-lip strip stays inside its own tile
+  [PASS] (d) no two cliff-lip strips overlap
+---------------------------------------------------------
+[TerrainCliffSpike] checks: 8, failures: 0
+SPIKE RESULT: PASS

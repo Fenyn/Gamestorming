@@ -1,0 +1,33 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+================= TERRAIN SKIRT RENDER SPIKE =================
+-------------------- forest --------------------
+        · seed 7: board 20x24, margin 12, MapView at (-12, 0, -12)
+        · seed 137: board 20x18, margin 12, MapView at (-12, 0, -12)
+        · seed 404: board 23x20, margin 13, MapView at (-13, 0, -13)
+        · seed 4711: board 24x18, margin 12, MapView at (-12, 0, -12)
+        · seed 20260804: board 22x24, margin 12, MapView at (-12, 0, -12)
+-------------------- sewer --------------------
+        · seed 7: board 21x26, margin 12, MapView at (-12, 0, -12)
+        · seed 137: board 19x18, margin 12, MapView at (-12, 0, -12)
+        · seed 404: board 27x21, margin 12, MapView at (-12, 0, -12)
+        · seed 4711: board 28x19, margin 12, MapView at (-12, 0, -12)
+        · seed 20260804: board 24x27, margin 12, MapView at (-12, 0, -12)
+  [PASS] 10 stages built over 2 biomes
+  [PASS] (a) the MapView holds a terrain mesh and a collider
+  [PASS] (a) the MapView is translated by -Margin on X and Z
+  [PASS] (b) the published height map is the board's, not the skirt's
+  [PASS] (c) grid lines cover the board exactly, halo included in neither
+  [PASS] (d) tile decor reaches past the board on all four sides
+  [PASS] (e) the ground surround is built
+  [PASS] (f) no node of the retired prop apron survives
+---------------------------------------------------------
+[TerrainSkirtRenderSpike] checks: 8, failures: 0
+SPIKE RESULT: PASS

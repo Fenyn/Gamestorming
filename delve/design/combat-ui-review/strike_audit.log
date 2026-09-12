@@ -1,0 +1,894 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== STRIKE AUDIT SPIKE ====================
+-------------------- encounter, seed 1234 --------------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 7), goal=(10, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 4), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #3 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [14.8] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(11, 6) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 6), goal=(11, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 6), goal=(11, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 5) toward (2, 5), goal=(3, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs Aldric': Stride Stride Dogslicer(MAP0) TOTAL=9.75
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [9.75] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [9.8] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[Audit] Goblin Warrior@(3, 4) -> Aldric@(2, 5) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 8) toward (10, 6), goal=(11, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 8) toward (10, 6), goal=(11, 7), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 7) toward (2, 5), goal=(3, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs Aldric': Stride Stride Dogslicer(MAP0) TOTAL=9.75
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [9.75] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [9.8] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[Audit] Goblin Warrior@(3, 6) -> Aldric@(2, 5) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (1, 4) toward (3, 4), goal=(2, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (1, 4) toward (3, 4), goal=(2, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (1, 4) toward (3, 6), goal=(2, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (1, 4) toward (3, 6), goal=(2, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 4), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI]   #3 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [16.5] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(11, 4) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.RemoveCombatant(PF2e.Core.ICharacter) (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:496)
+       [5] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:578)
+       [6] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [7] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [8] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [9] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [10] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [11] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [12] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [13] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [14] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [15] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [16] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [17] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [18] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [19] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [20] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [21] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [22] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [23] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (10, 6) toward (3, 6), goal=(4, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (10, 6) toward (3, 4), goal=(4, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [14.8] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] the Recruit@(4, 5) -> Goblin Warrior@(3, 6) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (2, 3) toward (4, 5), goal=(3, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (2, 3) toward (4, 5), goal=(3, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (3, 4) toward (10, 4), goal=(9, 3), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs Aldric': Stride Stride Dogslicer(MAP0) TOTAL=9.75
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [9.75] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [9.8] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[Audit] Goblin Warrior@(9, 3) -> Aldric@(10, 4) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 5) toward (9, 3), goal=(10, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 5) toward (9, 3), goal=(10, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [15.7] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(9, 3) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(9, 3) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(9, 3) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (4, 5) toward (9, 3), goal=(8, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=15.50
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [15.50] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [15.5] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[Audit] the Recruit@(8, 4) -> Goblin Warrior@(9, 3) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] seed 1234 result: Team1Wins
+-------------------- encounter, seed 777 --------------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 7), goal=(10, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 4), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #3 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [14.8] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(11, 6) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 4), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 5), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 6), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #3 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [16.5] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(11, 4) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Defensive
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Defensive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Defensive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Aldric' (score=-10.0, hp=32/32, dist=1)
+[PF2e] [AI] DefensivePlan: generated 5 plan(s) (inMelee=True, hasDef=False, hasRanged=True, hasHeal=False)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 3) toward (10, 4), goal=(11, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 3) toward (10, 4), goal=(11, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 4) toward (10, 6), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 7 raw candidate(s) from Defensive tree
+[PF2e] [AI]     Score 'Kite: Step > Ranged > Ranged vs Aldric': Step Shortbow(MAP0) Shortbow(MAP1) TOTAL=3.12
+[PF2e] [AI]     Score 'Kite: Move > Ranged > Ranged vs Aldric': Move Shortbow(MAP0) Shortbow(MAP1) TOTAL=3.12
+[PF2e] [AI]     Score 'FightRetreat: Strike > Strike > Step vs Aldric': Dogslicer(MAP0) Dogslicer(MAP1) Step TOTAL=3.30
+[PF2e] [AI]     Score 'FightRetreat: Strike > 2xMove vs Aldric': Dogslicer(MAP0) Move Move TOTAL=2.75
+[PF2e] [AI]     Score 'Retreat': Move Move Move TOTAL=0.45
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Step vs the Recruit': Stride Dogslicer(MAP0) Step TOTAL=8.25
+[PF2e] [AI] Top 5 of 7 plan(s):
+[PF2e] [AI]   #1 [8.25] Stride > Dogslicer(MAP0) > Step vs the Recruit
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI]   #3 [3.30] FightRetreat: Strike > Strike > Step vs Aldric
+[PF2e] [AI]   #4 [3.12] Kite: Step > Ranged > Ranged vs Aldric
+[PF2e] [AI]   #5 [3.12] Kite: Move > Ranged > Ranged vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [8.2] Stride > Dogslicer(MAP0) > Step vs the Recruit
+[Audit] Goblin Warrior@(10, 5) -> the Recruit@(10, 6) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 8) toward (10, 6), goal=(11, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 8) toward (10, 6), goal=(11, 7), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 7) toward (10, 4), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Step vs Aldric': Stride Dogslicer(MAP0) Step TOTAL=8.25
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [8.25] Stride > Dogslicer(MAP0) > Step vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [8.2] Stride > Dogslicer(MAP0) > Step vs Aldric
+[Audit] Goblin Warrior@(10, 5) -> Aldric@(10, 4) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 4), goal=(11, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 4), goal=(11, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 6), goal=(11, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 6), goal=(11, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [7.25] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [7.2] Dogslicer(MAP0) > Step > Stride vs Aldric
+[Audit] Goblin Warrior@(11, 5) -> Aldric@(10, 4) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 5) toward (10, 6), goal=(11, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 5) toward (10, 6), goal=(11, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 6) toward (10, 4), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=8.25
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [8.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI]   #2 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [8.2] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[Audit] Goblin Warrior@(11, 6) -> the Recruit@(10, 6) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 5), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 5), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (9, 5), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (9, 5), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI]   #2 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI]   #3 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [12.4] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(11, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 3) toward (9, 4), goal=(10, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 3) toward (9, 4), goal=(10, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 3) toward (9, 5), goal=(10, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 3) toward (9, 5), goal=(10, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (10, 4) toward (11, 6), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=23.59
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=18.17
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [23.59] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI]   #2 [18.17] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #3 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [23.6] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(9, 4) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (8, 4) toward (10, 4), goal=(9, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (8, 4) toward (10, 4), goal=(9, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (8, 4) toward (10, 6), goal=(9, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (8, 4) toward (10, 6), goal=(9, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [7.25] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [7.2] Dogslicer(MAP0) > Step > Stride vs Aldric
+[Audit] Goblin Warrior@(9, 5) -> Aldric@(10, 4) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 5) toward (10, 6), goal=(11, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 5) toward (10, 6), goal=(11, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 6) toward (10, 4), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=8.25
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [8.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI]   #2 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [8.2] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[Audit] Goblin Warrior@(11, 6) -> the Recruit@(10, 6) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (9, 5), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (9, 5), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI]   #2 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [12.4] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(11, 6) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 3) toward (9, 5), goal=(10, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 3) toward (9, 5), goal=(10, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [15.7] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(9, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] seed 777 result: Team1Wins
+-------------------- encounter, seed 42 --------------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 4), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 5), goal=(10, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (2, 5) toward (11, 6), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #3 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [16.5] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] Aldric@(10, 4) -> Goblin Warrior@(11, 4) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 6) toward (10, 4), goal=(11, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 6) toward (10, 4), goal=(11, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 5) toward (2, 7), goal=(3, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs the Recruit': Stride Stride Dogslicer(MAP0) TOTAL=9.75
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [9.75] Stride > Stride > Dogslicer(MAP0) vs the Recruit
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [9.8] Stride > Stride > Dogslicer(MAP0) vs the Recruit
+[Audit] Goblin Warrior@(3, 6) -> the Recruit@(2, 7) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (1, 8) toward (3, 6), goal=(2, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (1, 8) toward (3, 6), goal=(2, 7), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 6), goal=(10, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (2, 7) toward (11, 7), goal=(10, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=14.75
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #2 [14.75] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #3 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [14.8] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(11, 6) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 8) toward (10, 6), goal=(11, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 8) toward (10, 6), goal=(11, 7), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 7) toward (10, 4), goal=(11, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [7.8] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[Audit] Goblin Warrior@(11, 5) -> Aldric@(10, 4) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[Audit] Goblin Warrior@(11, 5) -> Aldric@(10, 4) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Defensive
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Defensive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Defensive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'the Recruit' (score=-10.0, hp=32/32, dist=1)
+[PF2e] [AI] DefensivePlan: generated 5 plan(s) (inMelee=True, hasDef=False, hasRanged=True, hasHeal=False)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 5) toward (10, 6), goal=(11, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 5) toward (10, 6), goal=(11, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (11, 6) toward (10, 4), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 7 raw candidate(s) from Defensive tree
+[PF2e] [AI]     Score 'Kite: Step > Ranged > Ranged vs the Recruit': Step Shortbow(MAP0) Shortbow(MAP1) TOTAL=4.12
+[PF2e] [AI]     Score 'Kite: Move > Ranged > Ranged vs the Recruit': Move Shortbow(MAP0) Shortbow(MAP1) TOTAL=3.12
+[PF2e] [AI]     Score 'FightRetreat: Strike > Strike > Step vs the Recruit': Dogslicer(MAP0) Dogslicer(MAP1) Step TOTAL=4.30
+[PF2e] [AI]     Score 'FightRetreat: Strike > 2xMove vs the Recruit': Dogslicer(MAP0) Move Move TOTAL=2.75
+[PF2e] [AI]     Score 'Retreat': Move Move Move TOTAL=0.45
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=8.25
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Step vs Aldric': Stride Dogslicer(MAP0) Step TOTAL=8.25
+[PF2e] [AI] Top 5 of 7 plan(s):
+[PF2e] [AI]   #1 [8.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI]   #2 [8.25] Stride > Dogslicer(MAP0) > Step vs Aldric
+[PF2e] [AI]   #3 [4.30] FightRetreat: Strike > Strike > Step vs the Recruit
+[PF2e] [AI]   #4 [4.12] Kite: Step > Ranged > Ranged vs the Recruit
+[PF2e] [AI]   #5 [3.12] Kite: Move > Ranged > Ranged vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [8.2] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[Audit] Goblin Warrior@(11, 6) -> the Recruit@(10, 6) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (9, 3) toward (11, 5), goal=(10, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (9, 3) toward (11, 5), goal=(10, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (10, 4) toward (11, 6), goal=(10, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (10, 4) toward (3, 6), goal=(4, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Step > Stride vs Goblin Warrior': Longsword(MAP0) Step Stride TOTAL=16.50
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=24.76
+[PF2e] [AI]     Score 'Stride > Stride > Longsword(MAP0) vs Goblin Warrior': Stride Stride Longsword(MAP0) TOTAL=16.50
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [24.76] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #2 [16.50] Longsword(MAP0) > Step > Stride vs Goblin Warrior
+[PF2e] [AI]   #3 [16.50] Stride > Stride > Longsword(MAP0) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [24.8] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin Warrior
+[Audit] Aldric@(10, 5) -> Goblin Warrior@(11, 6) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (3, 6) toward (10, 5), goal=(9, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (3, 6) toward (10, 6), goal=(9, 5), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs Aldric': Stride Stride Dogslicer(MAP0) TOTAL=9.75
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs the Recruit': Stride Stride Dogslicer(MAP0) TOTAL=9.75
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [9.75] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[PF2e] [AI]   #2 [9.75] Stride > Stride > Dogslicer(MAP0) vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [9.8] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[Audit] Goblin Warrior@(9, 5) -> Aldric@(10, 5) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (9, 5), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (9, 5), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 5), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 5), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI]   #2 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [12.4] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(9, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(9, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 5), goal=(11, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 5), goal=(11, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 6), goal=(11, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (12, 4) toward (10, 6), goal=(11, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs the Recruit': Dogslicer(MAP0) Step Stride TOTAL=7.25
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [7.25] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI]   #2 [7.25] Dogslicer(MAP0) > Step > Stride vs the Recruit
+[PF2e] [AI] Goblin Warrior: executing plan [7.2] Dogslicer(MAP0) > Step > Stride vs Aldric
+[Audit] Goblin Warrior@(11, 5) -> Aldric@(10, 5) "Dogslicer" melee dist=1 allowed=1 (melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (9, 4) toward (11, 5), goal=(10, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (9, 4) toward (11, 5), goal=(10, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] Aldric: executing plan [15.7] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] Aldric@(10, 5) -> Goblin Warrior@(11, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] Aldric@(10, 5) -> Goblin Warrior@(11, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] Aldric@(10, 5) -> Goblin Warrior@(11, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Goblin Warrior (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.EndTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:363)
+       [5] void PF2e.Core.BattleSimulator+<RunEncounter>d__19.MoveNext() (F:\dev\Pf2e.Core\Pf2e.Core\Core\BattleSimulator.cs:118)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] void System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Start<TStateMachine>(TStateMachine&)
+       [8] System.Threading.Tasks.Task`1[PF2e.Core.BattleResult] PF2e.Core.BattleSimulator.RunEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter], System.Collections.Generic.List`1[PF2e.Core.ICharacter])
+       [9] void Delve.Dev.StrikeAuditSpike+<RunEncounter>d__6.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:84)
+       [10] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [11] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunEncounter(Delve.Autoload.DataManager, int)
+       [12] void Delve.Dev.StrikeAuditSpike+<RunSpikeAsync>d__5.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\StrikeAuditSpike.cs:42)
+       [13] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [14] System.Threading.Tasks.Task Delve.Dev.StrikeAuditSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [15] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [16] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [17] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [18] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [19] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [20] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [21] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'the Recruit' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 5), goal=(10, 6), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'the Recruit' from (9, 7) toward (11, 5), goal=(10, 6), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=12.38
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [12.38] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[PF2e] [AI] the Recruit: executing plan [12.4] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Goblin Warrior
+[Audit] the Recruit@(10, 6) -> Goblin Warrior@(11, 5) "" melee dist=1 allowed=1 (weapon melee reach 1 tiles)
+[Audit] seed 42 result: Team1Wins
+[Audit] Strikes audited: 37, range violations: 0
+  [PASS] strikes were actually audited (37)
+  [PASS] no range violations (0)
+---------------------------------------------------------
+[StrikeAuditSpike] checks: 2, failures: 0
+SPIKE RESULT: PASS

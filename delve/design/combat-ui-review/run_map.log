@@ -1,0 +1,48 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== RUN MAP SPIKE ====================
+  [PASS] (200 seeds) every entrance reaches the boss
+  [PASS] (200 seeds) every node is reachable from an entrance
+  [PASS] (200 seeds) floor 0 is always Combat
+  [PASS] (200 seeds) the last floor is a single Boss node
+  [PASS] (200 seeds) the floor before the boss is always Rest
+  [PASS] (200 seeds) no Elite before floor 3
+  [PASS] (200 seeds) no Rest before floor 3
+  [PASS] (200 seeds) no Rest or Elite follows its own kind on a path
+  [PASS] (200 seeds) reserved kinds (Shop/Treasure) are never generated
+  [PASS] (200 seeds) one or two Wayfarers per default floor tree
+  [PASS] (200 seeds) Wayfarers leave the entrance and boss approach intact
+  [PASS] (200 seeds) a route can skip all Wayfarers
+  [PASS] Wayfarer counts and rows vary across seeds
+  [PASS] (200 seeds) the same seed yields the identical map
+  [PASS] (200 seeds) no two map edges cross
+  [PASS] (200 seeds) at least 1 Lair per map
+  [PASS] (200 seeds) at least 1 mid-run Campsite per map
+  [PASS] (200 seeds) at least two entrances per map
+  stats: 20.9 nodes, 3.05 entrances per map; 0 maps with no Lair, 0 with no mid-run Campsite; earliest Rest floor 3.
+    Combat: 9.42 per map
+    Elite: 1.18 per map
+    Event: 3.74 per map
+    Rest: 4.06 per map
+    Boss: 1.00 per map
+    Meeting: 1.49 per map
+  [PASS] boss floor holds exactly one node
+  [PASS] Reachable(null) returns the entrances
+  [PASS] Reachable(boss) is empty
+  seed 7: 18 nodes, 3 entrances, 8 floors x 5 lanes.
+  [PASS] meeting placement can be disabled
+  [PASS] a single route is not forced through a meeting
+  [PASS] tiny maps preserve entrance, campsite and boss
+  [PASS] floor 1 can offer Wayfarers
+  [PASS] floor 2 can offer Wayfarers
+  [PASS] floor 3 can offer Wayfarers
+---------------------------------------------------------
+[RunMapSpike] checks: 27, failures: 0
+SPIKE RESULT: PASS

@@ -47,4 +47,6 @@ They write their PNGs to `user://dev_shots` and print each file's OS path.
 
 Movement: with no action selected the board shows the active unit's reach as bands, one colour per action the move costs, green where a Step reaches safely. Hover a tile for the route and its cost pips, click to move. C re-centres the camera on the active unit; WASD pans and stops the camera following until the next turn.
 
-Combat log: click an action or its + button to expand its details in place. L or More history opens the sidebar. Expanded entries stay visible as new actions arrive; Jump to latest resumes following the log.
+Combat UI: the bottom bar groups the active ally, health, armor, remaining actions, and commands. Control opens that ally's AI and automatic reaction preferences. Escape closes an open menu. Hover inspection appears above the lower-left edge; attack forecasts appear above the commands. Resolved dice appear at the upper-left.
+
+Combat log: the compact panel shows two recent actions. Click an action or its + button to expand its details in place. L or the panel heading opens full history, including turn headings. Expanded entries stay visible as new actions arrive; Jump to latest resumes following the log. See [the combat UI review](design/combat-ui-review/review.md) for the rationale and visual comparisons.

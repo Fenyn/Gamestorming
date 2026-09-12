@@ -57,7 +57,10 @@ public partial class ChipFlyout : PanelContainer
     public void Clear()
     {
         foreach (var child in _column.GetChildren())
+        {
+            _column.RemoveChild(child);
             child.QueueFree();
+        }
     }
 
     /// <summary>Add a centered HintLabel header. The owner omits it for an unlabelled flow.</summary>

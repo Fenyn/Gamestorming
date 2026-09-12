@@ -1,0 +1,367 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== RUN FLOW SPIKE ====================
+  [PASS] (1) a fresh director opens on hero select
+[RunDirector] run seed 90210, party level 2, 8 floors.
+[RunFlow] phase -> Map
+  [PASS] (1) confirming the starting character opens the map
+  [PASS] (1) the run carries a state, a full party and a map
+  [PASS] (1b) all selected companions are built at embark
+  [PASS] (1b) the same companion cannot join twice
+  [PASS] (1b) the leader cannot join as a companion
+  [PASS] (1b) an unknown id is refused
+  [PASS] (1b) a locked character is refused
+  [PASS] (1b) the party fills at 4
+  [PASS] (1b) a full party takes nobody else
+  [PASS] (2) a Skirmish is reachable from the entrance
+  [PASS] (2) travel keeps the map open until arrival
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'bless' not in SpellDatabase — skipped
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'courageous-anthem' not in SpellDatabase — skipped
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'figment' not in SpellDatabase — skipped
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'message' not in SpellDatabase — skipped
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'soothe' not in SpellDatabase — skipped
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'telekinetic-hand' not in SpellDatabase — skipped
+[PF2e] [CreatureFactory] Goblin War Chanter: spell 'telekinetic-projectile' not in SpellDatabase — skipped
+[RunFlow] phase -> Combat
+  [PASS] (2) picking a Skirmish starts the fight
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Elara' (intelligence=Moderate)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Elara' from (1, 9) toward (13, 8), goal=(12, 8), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Elara' from (1, 9) toward (13, 9), goal=(12, 8), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Kobold Scout': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Goblin War Chanter': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [3.30] Stride > Stride > Stride vs Kobold Scout
+[PF2e] [AI]   #2 [3.30] Stride > Stride > Stride vs Goblin War Chanter
+[PF2e] [AI] Elara: executing plan [3.3] Stride > Stride > Stride vs Kobold Scout
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (1, 8) toward (13, 8), goal=(12, 7), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (1, 8) toward (13, 9), goal=(12, 9), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Kobold Scout': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Goblin War Chanter': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [3.30] Stride > Stride > Stride vs Kobold Scout
+[PF2e] [AI]   #2 [3.30] Stride > Stride > Stride vs Goblin War Chanter
+[PF2e] [AI] Aldric: executing plan [3.3] Stride > Stride > Stride vs Kobold Scout
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Tharr' (intelligence=Low)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Casting
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Casting
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Casting
+[PF2e] [AI] SpecialAbility: scanning 9 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-130.0, hp=16/16, dist=13)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (5, 8) toward goal (12, 9) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-130.0, hp=16/16, dist=13)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (5, 8) toward goal (12, 9) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-130.0, hp=16/16, dist=13)
+[PF2e] [AI] SpellPlan: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Tharr' from (0, 8) toward (13, 8), goal=(12, 9), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Tharr' from (0, 8) toward (13, 9), goal=(12, 9), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Casting tree
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Kobold Scout': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Goblin War Chanter': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [3.30] Stride > Stride > Stride vs Kobold Scout
+[PF2e] [AI]   #2 [3.30] Stride > Stride > Stride vs Goblin War Chanter
+[PF2e] [AI] Tharr: executing plan [3.3] Stride > Stride > Stride vs Kobold Scout
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Fenwick' (intelligence=High)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Casting
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Casting
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Casting
+[PF2e] [AI] SpecialAbility: scanning 13 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (7, 7) toward goal (13, 7) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (7, 7) toward goal (13, 7) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (7, 7) toward goal (13, 7) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (7, 7) toward goal (13, 7) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AIMovementPlanner.FindBestTileToward: path-based waypoint (7, 7) toward goal (13, 7) (target 'Kobold Scout' at (13, 8))
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (7, 7) toward (13, 8), goal=(13, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-101.5, hp=16/16, dist=11)
+[PF2e] [AI] SpellPlan: generated 5 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (2, 8) toward (13, 8), goal=(13, 7), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (2, 8) toward (13, 9), goal=(12, 10), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 7 raw candidate(s) from Casting tree
+[PF2e] [AI]     Score 'Move > Telekinetic Projectile R1 vs Kobold Scout': Move Telekinetic Projectile R1 TOTAL=10.50
+[PF2e] [AI]     Score 'Move > Electric Arc R1 vs Kobold Scout': Move Electric Arc R1 TOTAL=10.50
+[PF2e] [AI]     Score 'Move > Ignition R1 vs Kobold Scout': Move Ignition R1 TOTAL=10.50
+[PF2e] [AI]     Score 'Move > Frostbite R1 vs Kobold Scout': Move Frostbite R1 TOTAL=10.50
+[PF2e] [AI]     Score 'Move > Force Bolt R1 > Stride vs Kobold Scout': Move Force Bolt R1 Stride TOTAL=13.50
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Kobold Scout': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Goblin War Chanter': Stride Stride Stride TOTAL=3.30
+[PF2e] [AI] Top 5 of 7 plan(s):
+[PF2e] [AI]   #1 [13.50] Move > Force Bolt R1 > Stride vs Kobold Scout
+[PF2e] [AI]   #2 [10.50] Move > Telekinetic Projectile R1 vs Kobold Scout
+[PF2e] [AI]   #3 [10.50] Move > Electric Arc R1 vs Kobold Scout
+[PF2e] [AI]   #4 [10.50] Move > Ignition R1 vs Kobold Scout
+[PF2e] [AI]   #5 [10.50] Move > Frostbite R1 vs Kobold Scout
+[PF2e] [AI] Fenwick: executing plan [13.5] Move > Force Bolt R1 > Stride vs Kobold Scout
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Kobold Scout' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Kobold Scout' from (14, 7) toward (12, 7), goal=(13, 8), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Kobold Scout' from (14, 7) toward (12, 7), goal=(13, 8), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Kobold Scout' from (14, 7) toward (12, 8), goal=(13, 8), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Kobold Scout' from (14, 7) toward (12, 8), goal=(13, 8), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Kobold Scout' from (14, 7) toward (12, 9), goal=(13, 8), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Kobold Scout' from (14, 7) toward (12, 9), goal=(13, 8), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Shortsword(MAP0) > Step > Stride vs Aldric': Shortsword(MAP0) Step Stride TOTAL=7.60
+[PF2e] [AI]     Score 'Shortsword(MAP0) > Step > Stride vs Elara': Shortsword(MAP0) Step Stride TOTAL=7.60
+[PF2e] [AI]     Score 'Shortsword(MAP0) > Step > Stride vs Tharr': Shortsword(MAP0) Step Stride TOTAL=7.60
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [7.60] Shortsword(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI]   #2 [7.60] Shortsword(MAP0) > Step > Stride vs Elara
+[PF2e] [AI]   #3 [7.60] Shortsword(MAP0) > Step > Stride vs Tharr
+[PF2e] [AI] Kobold Scout: executing plan [7.6] Shortsword(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin War Chanter' (intelligence=Moderate)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Flanking
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Flanking
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Flanking
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 5 in-reach tiles (1 flanking) toward 'Elara'. Best=(11, 8) (score=8.0, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Goblin War Chanter' from (14, 8) toward (12, 8), goal=(11, 8), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 5 in-reach tiles (1 flanking) toward 'Elara'. Best=(11, 8) (score=8.0, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Goblin War Chanter' from (14, 8) toward (12, 8), goal=(11, 8), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 6 in-reach tiles (1 flanking) toward 'Tharr'. Best=(11, 10) (score=18.5, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Goblin War Chanter' from (14, 8) toward (12, 9), goal=(11, 10), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 6 in-reach tiles (1 flanking) toward 'Tharr'. Best=(11, 10) (score=18.5, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Goblin War Chanter' from (14, 8) toward (12, 9), goal=(11, 10), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 5 in-reach tiles (1 flanking) toward 'Aldric'. Best=(11, 6) (score=9.3, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Goblin War Chanter' from (13, 9) toward (12, 7), goal=(11, 6), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 3 plan(s) across 3 target(s)
+[PF2e] [AI] PlanGenerator: 3 raw candidate(s) from Flanking tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Dogslicer(MAP1) > Step vs Elara': Dogslicer(MAP0) Dogslicer(MAP1) Step TOTAL=-0.31
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Tharr': Dogslicer(MAP0) Step Stride TOTAL=1.12
+[PF2e] [AI]     Score 'Stride > Stride > Dogslicer(MAP0) vs Aldric': Stride Stride Dogslicer(MAP0) TOTAL=-5.27
+[PF2e] [AI] Top 3 of 3 plan(s):
+[PF2e] [AI]   #1 [1.12] Dogslicer(MAP0) > Step > Stride vs Tharr
+[PF2e] [AI]   #2 [-0.31] Dogslicer(MAP0) > Dogslicer(MAP1) > Step vs Elara
+[PF2e] [AI]   #3 [-5.27] Stride > Stride > Dogslicer(MAP0) vs Aldric
+[PF2e] [AI] Goblin War Chanter: executing plan [1.1] Dogslicer(MAP0) > Step > Stride vs Tharr
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Elara' (intelligence=Moderate)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Flanking
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Flanking
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Flanking
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 6 in-reach tiles (2 flanking) toward 'Kobold Scout'. Best=(14, 9) (score=22.7, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Elara' from (11, 9) toward (13, 8), goal=(14, 9), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 6 in-reach tiles (2 flanking) toward 'Kobold Scout'. Best=(14, 9) (score=22.7, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Elara' from (11, 9) toward (13, 8), goal=(14, 9), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AIMovementPlanner.FindBestFlankingTile: evaluated 7 in-reach tiles (1 flanking) toward 'Goblin War Chanter'. Best=(10, 11) (score=22.4, hasTile=True)
+[PF2e] [AI] FindNextStride: computing for 'Elara' from (12, 8) toward (11, 10), goal=(10, 11), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 2 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Flanking tree
+[PF2e] [AI]     Score 'Rapier(MAP0) > Step > Stride vs Kobold Scout': Rapier(MAP0) Step Stride TOTAL=9.10
+[PF2e] [AI]     Score 'Stride > Rapier(MAP0) > Rapier(MAP1) vs Goblin War Chanter': Stride Rapier(MAP0) Rapier(MAP1) TOTAL=9.95
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [9.95] Stride > Rapier(MAP0) > Rapier(MAP1) vs Goblin War Chanter
+[PF2e] [AI]   #2 [9.10] Rapier(MAP0) > Step > Stride vs Kobold Scout
+[PF2e] [AI] Elara: executing plan [9.9] Stride > Rapier(MAP0) > Rapier(MAP1) vs Goblin War Chanter
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Aldric' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 5 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (11, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Aldric' from (12, 7) toward (11, 10), goal=(11, 9), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Kobold Scout': Longsword(MAP0) Longsword(MAP1) Longsword(MAP2) TOTAL=15.73
+[PF2e] [AI]     Score 'Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin War Chanter': Stride Longsword(MAP0) Longsword(MAP1) TOTAL=16.90
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [16.90] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin War Chanter
+[PF2e] [AI]   #2 [15.73] Longsword(MAP0) > Longsword(MAP1) > Longsword(MAP2) vs Kobold Scout
+[PF2e] [AI] Aldric: executing plan [16.9] Stride > Longsword(MAP0) > Longsword(MAP1) vs Goblin War Chanter
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Tharr' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 9 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Tharr' from (11, 8) toward (13, 8), goal=(12, 9), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Tharr' from (11, 8) toward (13, 8), goal=(12, 9), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Tharr' from (11, 8) toward (11, 10), goal=(12, 9), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Tharr' from (11, 8) toward (11, 10), goal=(12, 9), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 2 plan(s) across 2 target(s)
+[PF2e] [AI] PlanGenerator: 2 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Scimitar(MAP0) > Step > Stride vs Kobold Scout': Scimitar(MAP0) Step Stride TOTAL=7.98
+[PF2e] [AI]     Score 'Scimitar(MAP0) > Step > Stride vs Goblin War Chanter': Scimitar(MAP0) Step Stride TOTAL=8.88
+[PF2e] [AI] Top 2 of 2 plan(s):
+[PF2e] [AI]   #1 [8.88] Scimitar(MAP0) > Step > Stride vs Goblin War Chanter
+[PF2e] [AI]   #2 [7.98] Scimitar(MAP0) > Step > Stride vs Kobold Scout
+[PF2e] [AI] Tharr: executing plan [8.9] Scimitar(MAP0) > Step > Stride vs Goblin War Chanter
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Fenwick' (intelligence=High)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Casting
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Casting
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Casting
+[PF2e] [AI] SpecialAbility: scanning 13 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (12, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (12, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (12, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (12, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Kobold Scout' (score=-11.5, hp=11/16, dist=2)
+[PF2e] [AI] SpellPlan: generated 4 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (12, 6) toward (13, 8), goal=(12, 7), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 5 raw candidate(s) from Casting tree
+[PF2e] [AI]     Score 'Telekinetic Projectile R1 > Stride vs Kobold Scout': Telekinetic Projectile R1 Stride TOTAL=12.50
+[PF2e] [AI]     Score 'Electric Arc R1 > Stride vs Kobold Scout': Electric Arc R1 Stride TOTAL=12.50
+[PF2e] [AI]     Score 'Ignition R1 > Stride vs Kobold Scout': Ignition R1 Stride TOTAL=12.50
+[PF2e] [AI]     Score 'Frostbite R1 > Stride vs Kobold Scout': Frostbite R1 Stride TOTAL=12.50
+[PF2e] [AI]     Score 'Stride > Staff(MAP0) > Staff(MAP1) vs Kobold Scout': Stride Staff(MAP0) Staff(MAP1) TOTAL=6.88
+[PF2e] [AI] Top 5 of 5 plan(s):
+[PF2e] [AI]   #1 [12.50] Telekinetic Projectile R1 > Stride vs Kobold Scout
+[PF2e] [AI]   #2 [12.50] Electric Arc R1 > Stride vs Kobold Scout
+[PF2e] [AI]   #3 [12.50] Ignition R1 > Stride vs Kobold Scout
+[PF2e] [AI]   #4 [12.50] Frostbite R1 > Stride vs Kobold Scout
+[PF2e] [AI]   #5 [6.88] Stride > Staff(MAP0) > Staff(MAP1) vs Kobold Scout
+[PF2e] [AI] Fenwick: executing plan [12.5] Telekinetic Projectile R1 > Stride vs Kobold Scout
+[RunFlow] phase -> CombatResults
+  [PASS] (2) the fight finished inside the timeout
+  [PASS] (2) combat waits on the reward screen
+  [PASS] (2) victory awards XP before Continue
+[RunFlow] phase -> Map
+  [PASS] (2) repeated Continue cannot award XP again
+  [PASS] (2) the run returns to the map (Map)
+  [PASS] (2) the node is marked visited
+  [PASS] (2) every member walks off the field alive on 1 HP or better
+  [PASS] (3) the map holds a Happenstance
+[RunFlow] phase -> Event
+  [PASS] (3) the event screen opens
+  [PASS] (3) the event stays open to show its result
+  [PASS] (3) resolving it leaves nobody down
+[RunFlow] phase -> Map
+  [PASS] (3) Continue returns to the map
+[RunFlow] phase -> ShortRest
+  [PASS] (4) the ten-minute screen opened
+  [PASS] (4) one block was spent (0 -> 1)
+  [PASS] (4) repeated activities and reopen requests cannot spend another block
+[RunFlow] phase -> Map
+  [PASS] (4) stale activity requests on the map cannot spend ward
+  [PASS] (4) Back returns to the map
+[RunFlow] phase -> Rest
+  [PASS] (5) the Campsite screen opens
+[RunFlow] phase -> Map
+  [PASS] (5) the night's rest advances the day (1 -> 2)
+  [PASS] (5) the new day starts with no blocks taken
+  [PASS] (5) resting returns to the map
+[RunFlow] phase -> ShortRest
+[RunFlow] phase -> Map
+[RunFlow] phase -> ShortRest
+[RunFlow] phase -> Map
+[RunFlow] phase -> ShortRest
+[RunFlow] phase -> Map
+[RunFlow] phase -> ShortRest
+[RunFlow] phase -> Map
+[RunFlow] phase -> ShortRest
+[RunFlow] phase -> Map
+[RunFlow] phase -> ShortRest
+  [PASS] (6) resting stops with the ward still lit (10)
+  [PASS] (6) the run is still going
+  [PASS] (6) one more block is refused
+[RunFlow] phase -> Map
+[RunDirector] the ward is out - the run ends.
+[RunFlow] phase -> RunEnd
+  [PASS] (6) travelling on a spent ward ends the run
+  [PASS] (6) it ends in defeat with the party alive
+[RunFlow] phase -> RunEnd
+  [PASS] (7) ending the run shows the summary
+  [PASS] (7) the outcome is recorded
+[RunFlow] phase -> HeroSelect
+  [PASS] (7) a new run reopens hero select
+  [PASS] (7) the finished run is dropped
+---------------------------------------------------------
+[RunFlowSpike] checks: 43, failures: 0
+SPIKE RESULT: PASS

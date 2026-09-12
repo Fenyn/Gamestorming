@@ -1,0 +1,334 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== REACTION PROMPT SPIKE ====================
+---------------- (1) Accept: suspend + Shield Block ----------------
+  [PASS] (1) shield raised with non-zero hardness
+  [PASS] (1) prompt view names the reactor + reaction
+  [PASS] (1) prompt description mentions absorption
+  [PASS] (1) delivery Task is pending while the prompt is unanswered
+  [PASS] (1) the prompt was actually shown
+  [PASS] (1) while pending: no damage applied, reaction unspent
+  [PASS] (1) accepted: damage reduced by hardness (5 taken)
+  [PASS] (1) shield HP dinged by 5
+  [PASS] (1) Shield Block consumed the reaction
+---------------- (2) Decline: full damage ----------------
+  [PASS] (2) declined: full 10 damage delivered
+  [PASS] (2) shield untouched
+  [PASS] (2) reaction NOT spent on decline
+---------------- (3) Prompt during an enemy turn ----------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (7, 4) toward (5, 5), goal=(6, 5), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Dogslicer(MAP0) > Step > Stride vs Aldric': Dogslicer(MAP0) Step Stride TOTAL=6.90
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [6.90] Dogslicer(MAP0) > Step > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [6.9] Dogslicer(MAP0) > Step > Stride vs Aldric
+  [PASS] (3) a Shield Block prompt fired during the encounter
+  [PASS] (3) the prompt fired during the ENEMY's turn
+  [PASS] (3) the enemy's turn stayed current across the suspension
+  [PASS] (3) the turn sequence continued after the prompt resolved
+  [PASS] (3) the encounter still reached a decisive result
+  [PASS] (3) scenario produced a prompt across the seed sweep
+---------------------------------------------------------
+[ReactionPromptSpike] checks: 18, failures: 0
+SPIKE RESULT: PASS

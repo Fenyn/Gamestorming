@@ -23,7 +23,10 @@ public partial class TurnOrderBar : Control
     public void Render(IReadOnlyList<UnitView> units)
     {
         foreach (var child in _row.GetChildren())
+        {
+            _row.RemoveChild(child);
             child.QueueFree();
+        }
 
         if (ChipScene == null)
         {
@@ -39,12 +42,11 @@ public partial class TurnOrderBar : Control
                 : unit.IsAlly ? ThemeNames.TurnChipAlly : ThemeNames.TurnChipEnemy;
 
             var label = chip.GetNode<Label>("%Label");
-            label.Text = unit.Name;
-            // The active chip sits on the accent fill, so its text flips to the dark inverse and
-            // grows a step. Both sizes live in the theme, on the chip's own variation.
-            label.ThemeTypeVariation = unit.IsCurrent ? ThemeNames.TurnChipActive : ThemeNames.ChipLabel;
+            label.Text = unit.IsCurrent ? $"> {unit.Name}" : unit.Name;
+            // The arrow and brass frame identify the actor without relying on a bright fill.
+            label.ThemeTypeVariation = ThemeNames.ChipLabel;
             label.AddThemeColorOverride("font_color",
-                unit.IsCurrent ? UiColors.TextInverse : UiColors.Text);
+                UiColors.Text);
 
             var hpBar = chip.GetNode<ProgressBar>("%HpBar");
             hpBar.ThemeTypeVariation = unit.IsAlly ? ThemeNames.HpBarAlly : ThemeNames.HpBarEnemy;

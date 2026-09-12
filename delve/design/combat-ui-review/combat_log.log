@@ -1,0 +1,47 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== CombatLogSpike ====================
+  [PASS] empty compact log is hidden
+  [PASS] a turn alone does not repeat initiative in the compact log
+  [PASS] turn headings remain available in history
+  [PASS] action details start collapsed
+  [PASS] roll outcome remains in the compact summary
+  [PASS] clicking disclosure expands in place
+  [PASS] expanded entry contains its roll and damage
+  [PASS] each detail occupies its own line
+  [PASS] incoming actions preserve an opened entry
+  [PASS] sidebar shows the full action history
+  [PASS] sidebar preserves disclosure state
+  [PASS] clicking text also collapses details
+  [PASS] new messages do not move a reader away from older history
+  [PASS] new messages are counted while reading history
+  [PASS] latest returns to the bottom
+  [PASS] engine messages cannot inject markup
+  [PASS] compact log stays within its height cap
+  [PASS] encounter reset removes history and disclosure state
+  [PASS] the log panel carries no dice toggle
+  [PASS] dice display starts hidden with no roll
+  [PASS] the dice display receives the logged roll without any opt-in
+  [PASS] mid-tumble the face shows a number and the sum and outcome are still withheld
+  [PASS] the face lands on the rolled value
+  [PASS] then the sum line arrives
+  [PASS] the total wears the crit colour and the target stays neutral, both larger than the arithmetic
+  [PASS] then the outcome word arrives at full size
+  [PASS] roll numbers are larger than log text
+  [PASS] a miss colours its total in the miss tone
+  [PASS] clearing the roll hides the popup
+  [PASS] invalid d20 values never animate
+  [PASS] player actions incur no AI pause
+  [PASS] movement tiles incur no extra pause
+  [PASS] AI action cue waits
+  [PASS] AI pause cancels with encounter
+---------------------------------------------------------
+[CombatLogSpike] checks: 34, failures: 0
+SPIKE RESULT: PASS

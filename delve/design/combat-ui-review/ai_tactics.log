@@ -1,0 +1,46 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== AI TACTICS SPIKE ====================
+-- (a) reactive strikes the planner can actually see --
+  [PASS] (a) exactly one of the two enemies threatens a reaction (1)
+  [PASS] (a) and it is the one with Reactive Strike
+    beside the fighter: 6.0, across the board: 0.0, beside at half fear: 3.0
+  [PASS] (a) a tile inside its reach costs score (6.0)
+  [PASS] (a) a tile outside its reach costs nothing
+  [PASS] (a) fear scales the cost
+  [PASS] (a) a spent reaction stops threatening
+-- (b) the flanking test on a tile the actor has not moved to --
+    opposite the friend: True, beside it: False, far off: False
+  [PASS] (b) the tile opposite an engaged friend flanks
+  [PASS] (b) a tile off to the side does not
+  [PASS] (b) a tile out of reach of the target does not
+-- (c) target choice reads the turn order and where the allies already are --
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=-5.5, hp=6/6, dist=1)
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=-5.5, hp=6/6, dist=1)
+    order [soon, late] picks Goblin Warrior at (6, 5); order [late, soon] picks Goblin Warrior at (6, 4)
+  [PASS] (c) of two equally close enemies it takes the one acting next
+  [PASS] (c) and follows the order when it reverses
+[PF2e] [AI] AITargetSelector: selecting from 2 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=-1.5, hp=6/6, dist=1)
+    with a friend already on one of them, picks Goblin Warrior at (6, 5)
+  [PASS] (c) it piles onto the enemy a friend is already fighting
+-- (d) role defaults --
+  [PASS] (d) a brute plans exactly as before (caution 0)
+  [PASS] (d) an archer minds its skin
+  [PASS] (d) a caster minds it more
+  [PASS] (d) a skirmisher works for the flank
+  [PASS] (d) and both dodge free swings harder than a brute
+    goblin warrior resolves to role=Melee, caution=0.0
+  [PASS] (d) a goblin warrior is still a brute and still reckless
+---------------------------------------------------------
+[AiTacticsSpike] checks: 18, failures: 0
+SPIKE RESULT: PASS

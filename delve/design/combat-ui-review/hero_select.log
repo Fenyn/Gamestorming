@@ -1,0 +1,201 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== HERO SELECT SPIKE ====================
+  [PASS] (1) nothing is chosen
+  [PASS] (1) Embark is disabled
+  [PASS] (1) the hint asks for a character (Choose your leader. You control their turns and follow their story.)
+  [PASS] (1) an id outside the catalog cannot be picked
+  [PASS] (1) a character who can lead is offered it
+  [PASS] (1) picking an unknown id chooses nobody
+  [PASS] (1) the roster shows every catalog entry (6)
+  [PASS] (1) a leader card takes clicks
+  [PASS] (2) the pick is the starting character
+  [PASS] (2) a leader alone cannot embark
+  [PASS] (2) incomplete formation signals nothing
+  [PASS] (2) a trio cannot embark
+  [PASS] (2) four members open Embark
+  [PASS] (2) companion selection keeps the chosen leader
+  [PASS] (2) the starting leader is signalled
+  [PASS] (2) three companions are signalled
+  [PASS] (2) the payload builds a legal full party
+  [PASS] (2) clicking a companion removes them
+  [PASS] (2) confirmed payload is a snapshot
+  [PASS] (2) a removed companion can be selected again
+  [PASS] (2) changing leader clears formation
+  [PASS] (3) a locked card cannot be chosen
+  [PASS] (3) clicking a locked card chooses nobody
+  [PASS] (3) an unlocked card still works
+  [PASS] (3) the locked card is disabled and says why
+  [PASS] (3) an unlocked leader card still takes clicks
+  [PASS] recruitment lists each authored arc
+  [PASS] unmet recruitment cannot stay overnight
+  [PASS] completed quests still leave Raven locked
+  [PASS] completed recruitment offers the explicit stay
+  [PASS] stay requests recruitment without mutating campaign
+  [PASS] binding refreshes availability and preserves leader
+  [PASS] four members refuse a fifth unlocked member
+  [PASS] refused fifth member preserves formation
+  [PASS] recruitment menu is shown on request
+  [PASS] recruitment blocks underlying formation actions
+  [PASS] (4) player headlines exactly four numbers (4)
+  [PASS] (4) player prints six ability boxes
+  [PASS] (4) player flags exactly one key ability
+  [PASS] (4) player HP matches the build (32)
+  [PASS] (4) player AC matches the build (19)
+  [PASS] (4) player headlines its key ability by name alone (STR)
+  [PASS] (4) player keeps every row to one line of words
+  [PASS] (4) player prints no rank letter on the page
+  [PASS] (4) player names a trained skill
+  [PASS] (4) player lists a feature or feat
+  [PASS] (4) player strikes with what it carries
+  [PASS] (4) player lists what it wears
+  [PASS] (4) player shows a spells row only if it casts
+  [PASS] (4) elara headlines exactly four numbers (4)
+  [PASS] (4) elara prints six ability boxes
+  [PASS] (4) elara flags exactly one key ability
+  [PASS] (4) elara HP matches the build (26)
+  [PASS] (4) elara AC matches the build (19)
+  [PASS] (4) elara headlines its key ability by name alone (DEX)
+  [PASS] (4) elara keeps every row to one line of words
+  [PASS] (4) elara prints no rank letter on the page
+  [PASS] (4) elara names a trained skill
+  [PASS] (4) elara lists a feature or feat
+  [PASS] (4) elara strikes with what it carries
+  [PASS] (4) elara lists what it wears
+  [PASS] (4) elara shows a spells row only if it casts
+  [PASS] (4) tharr headlines exactly four numbers (4)
+  [PASS] (4) tharr prints six ability boxes
+  [PASS] (4) tharr flags exactly one key ability
+  [PASS] (4) tharr HP matches the build (28)
+  [PASS] (4) tharr AC matches the build (19)
+  [PASS] (4) tharr headlines its key ability by name alone (WIS)
+  [PASS] (4) tharr keeps every row to one line of words
+  [PASS] (4) tharr prints no rank letter on the page
+  [PASS] (4) tharr names a trained skill
+  [PASS] (4) tharr lists a feature or feat
+  [PASS] (4) tharr strikes with what it carries
+  [PASS] (4) tharr lists what it wears
+  [PASS] (4) tharr shows a spells row only if it casts
+  [PASS] (4) tharr headlines its spell DC
+  [PASS] (4) tharr groups its cantrips and its rank 1 slots
+  [PASS] (4) fenwick headlines exactly four numbers (4)
+  [PASS] (4) fenwick prints six ability boxes
+  [PASS] (4) fenwick flags exactly one key ability
+  [PASS] (4) fenwick HP matches the build (22)
+  [PASS] (4) fenwick AC matches the build (16)
+  [PASS] (4) fenwick headlines its key ability by name alone (INT)
+  [PASS] (4) fenwick keeps every row to one line of words
+  [PASS] (4) fenwick prints no rank letter on the page
+  [PASS] (4) fenwick names a trained skill
+  [PASS] (4) fenwick lists a feature or feat
+  [PASS] (4) fenwick strikes with what it carries
+  [PASS] (4) fenwick lists what it wears
+  [PASS] (4) fenwick shows a spells row only if it casts
+  [PASS] (4) fenwick headlines its spell DC
+  [PASS] (4) fenwick groups its cantrips and its rank 1 slots
+  [PASS] (4) raven headlines exactly four numbers (4)
+  [PASS] (4) raven prints six ability boxes
+  [PASS] (4) raven flags exactly one key ability
+  [PASS] (4) raven HP matches the build (26)
+  [PASS] (4) raven AC matches the build (19)
+  [PASS] (4) raven headlines its key ability by name alone (DEX)
+  [PASS] (4) raven keeps every row to one line of words
+  [PASS] (4) raven prints no rank letter on the page
+  [PASS] (4) raven names a trained skill
+  [PASS] (4) raven lists a feature or feat
+  [PASS] (4) raven strikes with what it carries
+  [PASS] (4) raven lists what it wears
+  [PASS] (4) raven shows a spells row only if it casts
+  [PASS] (4) thistle headlines exactly four numbers (4)
+  [PASS] (4) thistle prints six ability boxes
+  [PASS] (4) thistle flags exactly one key ability
+  [PASS] (4) thistle HP matches the build (30)
+  [PASS] (4) thistle AC matches the build (19)
+  [PASS] (4) thistle headlines its key ability by name alone (STR)
+  [PASS] (4) thistle keeps every row to one line of words
+  [PASS] (4) thistle prints no rank letter on the page
+  [PASS] (4) thistle names a trained skill
+  [PASS] (4) thistle lists a feature or feat
+  [PASS] (4) thistle strikes with what it carries
+  [PASS] (4) thistle lists what it wears
+  [PASS] (4) thistle shows a spells row only if it casts
+  [PASS] (4) Tharr's divine font is a chip of its own
+  [PASS] (4) Fenwick has no divine font
+  [PASS] equipment icon catalog and entry scene are assigned
+  [PASS] player Longsword +10 has its own icon (LJdbVTOZog39EEbi)
+  [PASS] player Chain Mail has its own icon (Kf4eJEXnFPuAsseP)
+  [PASS] player Steel Shield has its own icon (Yr9yCuJiAlFh3QEB)
+  [PASS] elara Rapier +8 has its own icon (tH5GirEy7YB3ZgCk)
+  [PASS] elara Shortsword +8 has its own icon (7tKkkF8eZ4iCLJtp)
+  [PASS] elara Leather Armor has its own icon (4tIVTg9wj56RrveA)
+  [PASS] tharr Scimitar +5 has its own icon (grmaV4GdoGD7sKbn)
+  [PASS] tharr Breastplate has its own icon (r0ifJfoz8aqf0mwk)
+  [PASS] tharr Steel Shield has its own icon (Yr9yCuJiAlFh3QEB)
+  [PASS] fenwick Staff +4 has its own icon (FVjTuBCIefAgloUU)
+  [PASS] raven Rapier +8 has its own icon (tH5GirEy7YB3ZgCk)
+  [PASS] raven Shortsword +8 has its own icon (7tKkkF8eZ4iCLJtp)
+  [PASS] raven Leather Armor has its own icon (4tIVTg9wj56RrveA)
+  [PASS] Thistle's shortbow uses the shared fallback until bow art exists
+  [PASS] thistle Leather Armor has its own icon (4tIVTg9wj56RrveA)
+  [PASS] unmapped equipment has a fallback
+  [PASS] (5) player explains every element it prints
+  [PASS] (5) player titles and writes every tip (25)
+  [PASS] (5) player spells the strike bonus out in its tip
+  [PASS] (5) player describes at least one feat
+  [PASS] (5) elara explains every element it prints
+  [PASS] (5) elara titles and writes every tip (26)
+  [PASS] (5) elara spells the strike bonus out in its tip
+  [PASS] (5) elara describes at least one feat
+  [PASS] (5) tharr explains every element it prints
+  [PASS] (5) tharr titles and writes every tip (27)
+  [PASS] (5) tharr spells the strike bonus out in its tip
+  [PASS] (5) tharr describes at least one feat
+  [PASS] (5) fenwick explains every element it prints
+  [PASS] (5) fenwick titles and writes every tip (25)
+  [PASS] (5) fenwick spells the strike bonus out in its tip
+  [PASS] (5) fenwick describes at least one feat
+  [PASS] (5) raven explains every element it prints
+  [PASS] (5) raven titles and writes every tip (26)
+  [PASS] (5) raven spells the strike bonus out in its tip
+  [PASS] (5) raven describes at least one feat
+  [PASS] (5) thistle explains every element it prints
+  [PASS] (5) thistle titles and writes every tip (26)
+  [PASS] (5) thistle spells the strike bonus out in its tip
+  [PASS] (5) thistle describes at least one feat
+  [PASS] (5) Tharr's Heal is named on a spell chip
+  [PASS] (5) Tharr's Heal reads out of the pack
+  [PASS] (5) Fenwick's Breathe Fire reads out of the pack
+  [PASS] (6) player's sheet fills its panel (743 of 857 px, 87%)
+  [PASS] (6) elara's sheet fills its panel (743 of 857 px, 87%)
+  [PASS] (6) tharr's sheet fills its panel (743 of 857 px, 87%)
+  [PASS] (6) fenwick's sheet fills its panel (743 of 857 px, 87%)
+  [PASS] (6) raven's sheet fills its panel (743 of 857 px, 87%)
+  [PASS] (6) thistle's sheet fills its panel (743 of 857 px, 87%)
+[grid] sheet [32,115 1113x857]  roster [1169,115 719x857]  headlines [384,253 733x96]  plinth [60,143 300x420]  rail [60,590 300x240]  rows [384,369 733x374]  embark [1608,996 280x52]
+  [PASS] (8) the page keeps one 32 px outer margin (l 32, t 32, r 32, b 32)
+  [PASS] (8) the sheet and the roster keep one 24 px gutter (24 px)
+  [PASS] (8) the title starts on the sheet's left edge (32 / 32)
+  [PASS] (8) the roster heading sits one gutter above the sheet's top edge (24 px)
+  [PASS] (8) the headline band and the overview end on one right edge (1117 / 1117)
+  [PASS] (8) the ability rail runs under the plinth on both edges (l 60 / 60, r 360 / 360)
+  [PASS] (8) the overview starts one 24 px gutter past the rail (24 px)
+  [PASS] (8) the rail hangs one gap under the plinth and its accent strip (27 px)
+  [PASS] (8) the columns hang under the headline band (20 px)
+  [PASS] (8) the roster column and Embark end on one right edge (1888 / 1888)
+  [PASS] (8) the roster list spans the sheet's height (top 115 / 115, bottom 972 / 972)
+  [PASS] (8) a headline box outweighs a rail box (96 px over 72 px)
+  [PASS] (8) the rail is two even columns (144 / 144 in 300 px)
+  [PASS] (8) both boxed groups share one 12 px gutter (12 / 12)
+  [PASS] (7) an over-long list drops its tail (8 items of 40)
+  [PASS] (7) the tail collapses into +N more (+33 more)
+  [PASS] (7) the tail's hover names every hidden entry
+---------------------------------------------------------
+[HeroSelectSpike] checks: 187, failures: 0
+SPIKE RESULT: PASS

@@ -108,14 +108,14 @@ public partial class CombatLogPanel : Control
     private void RefreshRows()
     {
         int actions = 0;
-        bool latestTurn = false;
         for (int i = _rows.Count - 1; i >= 0; i--)
         {
             var row = _rows[i];
-            bool recent = row.IsTurn ? !latestTurn : ++actions <= CompactActions;
-            if (row.IsTurn) latestTurn = true;
+            // Initiative already identifies the actor. Turn headings belong to history.
+            bool recent = !row.IsTurn && ++actions <= CompactActions;
             row.Visible = Expanded || recent || row.DetailsExpanded;
         }
+        _shell.Visible = Expanded || _rows.Any(r => r.Visible);
     }
 
     public override void _Process(double delta)
@@ -175,7 +175,7 @@ public partial class CombatLogPanel : Control
         _shell.SizeFlagsVertical = expanded ? SizeFlags.ExpandFill : SizeFlags.ShrinkBegin;
         _scroll.SizeFlagsVertical = expanded ? SizeFlags.ExpandFill : SizeFlags.ShrinkBegin;
         _footer.Visible = expanded;
-        _toggle.Text = $"Combat log    {InputNames.KeyLabelFor(InputNames.LogToggle)}    {(expanded ? "Less history −" : "More history +")}";
+        _toggle.Text = $"{(expanded ? "Combat history" : "Recent actions")}   [{InputNames.KeyLabelFor(InputNames.LogToggle)}] {(expanded ? "−" : "+")}";
         _shell.Visible = expanded || EntryCount > 0;
         RefreshRows();
         JumpToLatest();

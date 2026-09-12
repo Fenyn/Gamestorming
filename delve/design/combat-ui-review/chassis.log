@@ -1,0 +1,46 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== CHASSIS SPIKE ====================
+-------------------- (a) Veteran L5 attack (Master) --------------------
+  [info] L5 longsword: proficiency=Master profBonus=11 strMod=4 total=15 (expect +15)
+  [PASS] (a) L5 martial weapon proficiency is Master
+  [PASS] (a) L5 longsword attack bonus == +15
+-------------------- (b) Veteran L1 attack (Expert) --------------------
+  [info] L1 longsword: proficiency=Expert total=9 (expect +9)
+  [PASS] (b) L1 martial weapon proficiency is Expert
+  [PASS] (b) L1 longsword attack bonus == +9
+-------------------- (c) Bravery vs Frightened --------------------
+  [PASS] (c) L3 Veteran has Bravery
+  [info] L3 applied Frightened 1 → value 0 (Bravery should reduce to 0)
+  [PASS] (c) Bravery reduced Frightened 1 → 0
+  [PASS] (c) L1 Veteran does NOT have Bravery
+  [info] L1 applied Frightened 1 → value 1 (no Bravery, stays 1)
+  [PASS] (c) L1 control keeps Frightened at 1
+-------------------- (d) Elara Sneak Attack precision --------------------
+  [PASS] (d) Elara has Sneak Attack
+  [info] off-guard hit: total=12 sneakPrecision=True
+  [PASS] (d) off-guard Sneak Attack includes precision damage
+  [info] control hit: total=6 sneakPrecision=False
+  [PASS] (d) non-off-guard control has NO precision damage
+-------------------- (e) Elara L1 finesse uses Dex --------------------
+  [PASS] (e) rapier is a finesse weapon
+  [info] L1 rapier: strMod=1 dexMod=4 attackAbilityMod=4 total=7 (expect Dex +4, total +7)
+  [PASS] (e) finesse attack ability mod is Dex (> Str)
+  [PASS] (e) L1 rapier attack bonus == +7
+-------------------- (f) Weapon Mastery crit-spec --------------------
+  [PASS] (f) L5 Veteran has Weapon Mastery
+  [PASS] (f) ChosenWeaponGroup is Sword
+  [info] target off-guard before=False after=True; target alive=True
+  [PASS] (f) target was not off-guard before the strike
+  [PASS] (f) target survived the crit (rider is observable)
+  [PASS] (f) sword critical applied the Off-Guard crit-spec rider
+---------------------------------------------------------
+[ChassisSpike] checks: 19, failures: 0
+SPIKE RESULT: PASS

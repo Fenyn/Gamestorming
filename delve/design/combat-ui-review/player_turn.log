@@ -1,0 +1,104 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== PLAYER TURN SPIKE ====================
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 5) toward (1, 4), goal=(2, 4), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [7.8] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+    [log] Goblin Warrior Strikes Aldric with Dogslicer
+      - d20(14)+7=21 vs AC 19 → Success
+    [log] Goblin Warrior Strikes Aldric with Dogslicer
+      - d20(2)+7 MAP-4=5 vs AC 19 → CriticalFailure
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (6, 3) toward (1, 4), goal=(2, 3), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric': Stride Dogslicer(MAP0) Dogslicer(MAP1) TOTAL=7.80
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [7.80] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [7.8] Stride > Dogslicer(MAP0) > Dogslicer(MAP1) vs Aldric
+    [log] Goblin Warrior Strikes Aldric with Dogslicer
+      - d20(6)+7=13 vs AC 19 → Failure
+    [log] Goblin Warrior Strikes Aldric with Dogslicer
+      - d20(3)+7 MAP-4=6 vs AC 19 → CriticalFailure
+  [PASS] move plan non-empty at turn start
+  [PASS] no band exceeds the actions remaining (3 <= 3)
+  [PASS] Step options are exactly the step-legal neighbours
+  [PASS] band 1 is exactly the one-Stride reach
+  [PASS] MAP is 0 before first Strike
+    [log] Aldric Strikes Goblin Warrior with Longsword
+      - d20(5)+10=15 vs AC 16 → Failure
+  [PASS] MAP is -5 before second Strike
+    [log] Aldric Strikes Goblin Warrior with Longsword
+      - d20(16)+10 MAP-5=21 vs AC 16 → Success
+    [log] Aldric Strikes Goblin Warrior with Longsword
+      - d20(16)+10 MAP-10=16 vs AC 16 → Success
+  [PASS] actions exhausted at end of turn
+  [PASS] encounter reached a decisive result
+  [PASS] Veteran survived
+  [PASS] all goblins defeated
+[Spike] Result: Team1Wins | player turns driven: 1
+-------------------- smart move --------------------
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (22, 2) toward (1, 3), goal=(1, 3), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Aldric': Stride Stride Stride TOTAL=2.70
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [2.70] Stride > Stride > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [2.7] Stride > Stride > Stride vs Aldric
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Goblin Warrior' (intelligence=Low)
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Aggressive
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Aggressive
+[PF2e] [AI] SpecialAbility: scanning 7 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Goblin Warrior' from (22, 4) toward (1, 3), goal=(1, 3), speed=5, maxStrides=3
+[PF2e] [AI] FindNextStride: got 3 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 1 raw candidate(s) from Aggressive tree
+[PF2e] [AI]     Score 'Stride > Stride > Stride vs Aldric': Stride Stride Stride TOTAL=2.70
+[PF2e] [AI] Top 1 of 1 plan(s):
+[PF2e] [AI]   #1 [2.70] Stride > Stride > Stride vs Aldric
+[PF2e] [AI] Goblin Warrior: executing plan [2.7] Stride > Stride > Stride vs Aldric
+  [PASS] plan built one band per action (3 of 3)
+  [PASS] a band-2 tile exists on the long board
+  [PASS] band-2 route has two legs, the first inside band 1
+  [PASS] route starts on the actor and ends on the tile
+  [PASS] both legs executed
+  [PASS] two Strides spent two actions
+  [PASS] and the actor stands on the band-2 tile
+  [PASS] one action left builds one band
+  [PASS] a Step tile is offered beside the actor
+  [PASS] a Step route is two tiles and one leg
+  [PASS] Step executes
+  [PASS] a Step spends the last action and emits no per-tile stride events
+  [PASS] no actions left builds no bands
+---------------------------------------------------------
+[PlayerTurnSpike] checks: 23, failures: 0
+SPIKE RESULT: PASS

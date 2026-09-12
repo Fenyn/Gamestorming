@@ -1,0 +1,97 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== PartyControlSpike ====================
+  [PASS] leader starts under player control
+  [PASS] companion control follows campaign permission
+  [PASS] AI companion retains party membership
+  [PASS] manual toggle cannot bypass companion permission
+  [PASS] guest remains AI even with manual companions
+  [PASS] leader can return from autoplay
+  [PASS] only manual companion reactions prompt
+  [PASS] leader starts under player control
+  [PASS] companion control follows campaign permission
+  [PASS] AI companion retains party membership
+  [PASS] manual toggle cannot bypass companion permission
+  [PASS] guest remains AI even with manual companions
+  [PASS] leader can return from autoplay
+  [PASS] only manual companion reactions prompt
+  [PASS] leader is down before companions fight
+WARNING: [PF2e WARN] TurnManager: Skipping turn for dead character Aldric (should have been removed from turn order)
+   at: void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (res://scripts/autoload/DataManager.cs:131)
+   C# backtrace (most recent call first):
+       [0] void Godot.GD.PushWarning(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:396)
+       [1] void Delve.Autoload.DataManager+<>c.<WireLogging>b__27_1(string) (G:\Godot\Gamestorming\delve\scripts\autoload\DataManager.cs:131)
+       [2] void PF2e.Log.Warn(object) (F:\dev\Pf2e.Core\Pf2e.Core\Core\Log.cs:23)
+       [3] void PF2e.TurnManagement.TurnManager.StartTurn() (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:575)
+       [4] void PF2e.TurnManagement.TurnManager.StartEncounter(System.Collections.Generic.List`1[PF2e.Core.ICharacter]) (F:\dev\Pf2e.Core\Pf2e.Core\TurnManagement\TurnManager.cs:175)
+       [5] void Delve.Combat.CombatSession+<RunAsync>d__71.MoveNext() (G:\Godot\Gamestorming\delve\scripts\combat\CombatSession.cs:366)
+       [6] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [7] System.Threading.Tasks.Task Delve.Combat.CombatSession.RunAsync(System.Threading.CancellationToken)
+       [8] void Delve.Dev.PartyControlSpike+<CheckLeaderDown>d__2.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\PartyControlSpike.cs:97)
+       [9] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [10] System.Threading.Tasks.Task Delve.Dev.PartyControlSpike.CheckLeaderDown(Delve.Autoload.DataManager)
+       [11] void Delve.Dev.PartyControlSpike+<RunSpikeAsync>d__0.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\PartyControlSpike.cs:23)
+       [12] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [13] System.Threading.Tasks.Task Delve.Dev.PartyControlSpike.RunSpikeAsync(Delve.Autoload.DataManager)
+       [14] void Delve.Dev.SpikeBase+<RunAsync>d__10.MoveNext() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:53)
+       [15] void System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start<TStateMachine>(TStateMachine&)
+       [16] System.Threading.Tasks.Task Delve.Dev.SpikeBase.RunAsync()
+       [17] void Delve.Dev.SpikeBase._Ready() (G:\Godot\Gamestorming\delve\scripts\dev\SpikeBase.cs:38)
+       [18] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Generated/GodotObjects/Node.cs:2646)
+       [19] bool Delve.Dev.SpikeBase.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (G:\Godot\Gamestorming\delve\.godot\mono\temp\obj\Debug\Godot.SourceGenerators\Godot.SourceGenerators.ScriptMethodsGenerator\Delve.Dev.SpikeBase_ScriptMethods.generated.cs:80)
+       [20] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/Bridge/CSharpInstanceBridge.cs:24)
+[PF2e] [AI] StrategyEvaluator: evaluating for 'Fenwick' (intelligence=High)
+[PF2e] [AI] AIMemory: ? transitioning Aggressive -> Casting
+[PF2e] [AI] StrategyEvaluator: first evaluation -> Casting
+[PF2e] [AI] PlanGenerator: generating plans for strategy=Casting
+[PF2e] [AI] SpecialAbility: scanning 13 available actions
+[PF2e] [AI] SpecialAbility: generated 0 plan(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (7, 3) toward (5, 5), goal=(6, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] AITargetSelector: selecting from 1 enemies using priority=Nearest
+[PF2e] [AI] AITargetSelector: selected 'Goblin Warrior' (score=1.5, hp=6/6, dist=1)
+[PF2e] [AI] SpellPlan: generated 5 plan(s)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (7, 3) toward (5, 5), goal=(6, 4), speed=5, maxStrides=1
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] FindNextStride: computing for 'Fenwick' from (7, 3) toward (5, 5), goal=(6, 4), speed=5, maxStrides=2
+[PF2e] [AI] FindNextStride: got 1 stride(s)
+[PF2e] [AI] Permutation: generated 1 plan(s) across 1 target(s)
+[PF2e] [AI] PlanGenerator: 6 raw candidate(s) from Casting tree
+[PF2e] [AI]     Score 'Telekinetic Projectile R5 > Staff(MAP0) vs Goblin Warrior': Telekinetic Projectile R5 Staff(MAP0) TOTAL=19.80
+[PF2e] [AI]     Score 'Electric Arc R5 > Staff(MAP0) vs Goblin Warrior': Electric Arc R5 Staff(MAP0) TOTAL=19.80
+[PF2e] [AI]     Score 'Ignition R5 > Staff(MAP0) vs Goblin Warrior': Ignition R5 Staff(MAP0) TOTAL=19.80
+[PF2e] [AI]     Score 'Frostbite R5 > Staff(MAP0) vs Goblin Warrior': Frostbite R5 Staff(MAP0) TOTAL=19.80
+[PF2e] [AI]     Score 'Force Bolt R5 > Staff(MAP0) > Staff(MAP1) vs Goblin Warrior': Force Bolt R5 Staff(MAP0) Staff(MAP1) TOTAL=23.85
+[PF2e] [AI]     Score 'Staff(MAP0) > Staff(MAP1) > Staff(MAP2) vs Goblin Warrior': Staff(MAP0) Staff(MAP1) Staff(MAP2) TOTAL=12.60
+[PF2e] [AI] Top 5 of 6 plan(s):
+[PF2e] [AI]   #1 [23.85] Force Bolt R5 > Staff(MAP0) > Staff(MAP1) vs Goblin Warrior
+[PF2e] [AI]   #2 [19.80] Telekinetic Projectile R5 > Staff(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #3 [19.80] Electric Arc R5 > Staff(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #4 [19.80] Ignition R5 > Staff(MAP0) vs Goblin Warrior
+[PF2e] [AI]   #5 [19.80] Frostbite R5 > Staff(MAP0) vs Goblin Warrior
+[PF2e] [AI] Fenwick: executing plan [23.8] Force Bolt R5 > Staff(MAP0) > Staff(MAP1) vs Goblin Warrior
+  [PASS] AI companions can win with the leader down
+  [PASS] a downed leader never hands manual control to companions
+  [PASS] surviving party recovers the same leader
+---------------------------------------------------------
+[PartyControlSpike] checks: 18, failures: 0
+SPIKE RESULT: PASS

@@ -1,0 +1,41 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== RUN SHORT REST SPIKE ====================
+-------------------- (1) Ward is the only cost --------------------
+  [PASS] (1) the 6 blocks the ward pays for are taken, past the old three-a-day cap
+  [PASS] (1) the clock counted them (6)
+  [PASS] (1) the day did not roll over on its own
+  [PASS] (1) resting never puts the ward out (10 left)
+  [PASS] (1) the ward left is under one rest (15)
+  [PASS] (1) the next block is refused
+  [PASS] (1) the refusal says why: 'Only 10 ward is left. Resting would put it out.'
+  [PASS] (1) the refused block burns no ward and no time
+  [PASS] (1) Refocus and Repair Shield produced report lines
+-------------------- (2) Treat Wounds, DC 0 --------------------
+  [PASS] (2) the patient starts Wounded at 1 HP
+  [PASS] (2) the block was taken
+  [PASS] (2) DC 0 forces a success (CriticalSuccess)
+  [PASS] (2) the patient healed (14 HP)
+  [PASS] (2) Wounded is removed
+-------------------- (3) Treat Wounds, DC 99 --------------------
+  [PASS] (3) the block was taken
+  [PASS] (3) DC 99 forces a critical failure (CriticalFailure)
+  [PASS] (3) the botch never pushes the target below 1 HP
+  [PASS] (3) the target is still alive and not dying
+-------------------- (4) Refocus / Repair Shield --------------------
+  [PASS] (4) Refocus ran
+  [PASS] (4) Repair Shield ran
+  [PASS] (4) the party has a focus caster
+  [PASS] (4) a focus point came back (0 -> 1)
+  [PASS] (4) the party has a shield bearer
+  [PASS] (4) the shield is repaired (20/20)
+---------------------------------------------------------
+[RunShortRestSpike] checks: 24, failures: 0
+SPIKE RESULT: PASS

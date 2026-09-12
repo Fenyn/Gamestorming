@@ -19,6 +19,11 @@ public partial class CombatLogSpike : SpikeBase
         var log = LogScene.Instantiate<CombatLogPanel>();
         frame.AddChild(log);
         Check("empty compact log is hidden", !log.GetNode<Control>("%Shell").Visible);
+        log.BeginTurn("Aldric");
+        Check("a turn alone does not repeat initiative in the compact log", !log.GetNode<Control>("%Shell").Visible);
+        log.SetExpanded(true);
+        Check("turn headings remain available in history", log.Rows.All(r => r.Visible));
+        log.ClearLog();
         CombatLogSamples.Fill(log);
         await Settle();
         var strike = log.Rows.First(r => r.PlainText.Contains("Longsword"));

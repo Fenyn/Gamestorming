@@ -1,0 +1,32 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+[DataManager] PackLoader: loading packs from F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e
+[DataManager] PackLoader: skipped raja-rakshasa.json (JsonException: The JSON value could not be converted to System.Int32. Path: $.splashDamage.value | LineNumber: 64 | BytePositionInLine: 33.)
+[DataManager] PackLoader: skipped 1 malformed creature file(s)
+[DataManager] PackLoader: loaded 40 conditions, 1795 spells, 1268 equipment, 658 creatures
+[DataManager] Ready — 40 conditions, 1795 spells, 1268 equipment, 658 creatures, 6810 feat entries indexed
+==================== ENCOUNTER RESET SPIKE ====================
+  [PASS] (1) stale dispose keeps TurnManager.Instance
+  [PASS] (1) stale dispose keeps CombatantRegistry.Instance
+  [PASS] (1) stale dispose keeps ReactionManager.Instance
+  [PASS] (1) stale dispose keeps the spatial delegates
+  [PASS] (1) stale dispose keeps the AI combat queries
+  [PASS] (1) stale dispose keeps the grid delegates
+  [PASS] (1) stale dispose keeps StepAction.ValidateDestination
+  [PASS] (1) stale dispose keeps ForcedMovementExecutor on the live grid
+  [PASS] (1) stale dispose keeps the reaction-strike bridge
+  [PASS] (1) owner dispose releases the singletons
+  [PASS] (1) owner dispose releases the delegates
+  [PASS] (2) first encounter spawns 4 unit nodes
+  [PASS] (2) first encounter registers 4 unit visuals
+  [PASS] (2) second encounter leaves exactly 3 unit nodes
+  [PASS] (2) second encounter registers 3 unit visuals
+  [PASS] (2) second encounter owns the engine singletons
+  [PASS] (2) 3 log entries reach the panel 3 times (one subscription)
+  [PASS] (2) scene exit releases the engine singletons
+  [PASS] (2) scene exit releases the delegates
+---------------------------------------------------------
+[EncounterResetSpike] checks: 19, failures: 0
+SPIKE RESULT: PASS

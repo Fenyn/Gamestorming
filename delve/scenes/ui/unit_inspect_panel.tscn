@@ -6,7 +6,8 @@
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 12.0
-offset_bottom = -12.0
+offset_right = 342.0
+offset_bottom = -156.0
 grow_vertical = 0
 mouse_filter = 2
 theme_type_variation = &"HudPanel"
@@ -37,6 +38,7 @@ layout_mode = 2
 mouse_filter = 2
 text = "—"
 theme_type_variation = &"HeadingLabel"
+autowrap_mode = 3
 
 [node name="AcLabel" type="Label" parent="Row/Col"]
 unique_name_in_owner = true
@@ -51,7 +53,7 @@ theme_override_constants/separation = 8
 
 [node name="HpBar" type="ProgressBar" parent="Row/Col/HpRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(170, 12)
+custom_minimum_size = Vector2(100, 10)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2

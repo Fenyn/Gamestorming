@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/CombatScene.cs" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/combat/GridOverlay3D.cs" id="2_overlay"]
@@ -21,6 +21,8 @@
 [ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="17_tree_bush"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="18_tree_dead"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="19_tree_giant"]
+
+[ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="combat_theme"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="dice_roll"]
 
@@ -92,7 +94,7 @@ surface_material_override/0 = SubResource("ShaderMaterial_floor")
 unique_name_in_owner = true
 script = ExtResource("2_bands")
 BandEdgeWidth = 0.06
-BandEdgeAlpha = 0.85
+BandEdgeAlpha = 0.42
 
 [node name="GridOverlay" type="Node3D" parent="."]
 unique_name_in_owner = true
@@ -141,6 +143,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("combat_theme")
 script = ExtResource("13_hudroot")
 HelpPath = NodePath("HelpOverlay")
 LogPath = NodePath("CombatLog")

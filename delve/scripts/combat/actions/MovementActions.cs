@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PF2e.Actions;
+using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Events;
 using PF2e.Grid;
@@ -86,6 +87,7 @@ internal sealed class MovementActions
     /// </summary>
     internal async Task<bool> ExecuteStride(ICharacter character, PF2eVec dest, bool triggersReactions = true)
     {
+        using var featGuard=Delve.Rules.FeatEncounter.MovementGuard(character);
         int speed = SpeedInTiles(character);
         if (speed <= 0) return false;
 
@@ -128,9 +130,11 @@ internal sealed class MovementActions
                 await ReactionEvents.CheckMovementReactions(args);
             }
 
-            if (args.Cancelled)
+            if (args.Cancelled || character.Health?.IsAlive != true
+                || character.Conditions?.HasCondition(Condition.Unconscious) == true)
             {
-                _grid.MoveCreature(character, from);
+                // The actor has not left this tile. Re-placing it would restore a slain
+                // creature to occupancy after the reaction's death event removed it.
                 // Reconcile-only: no MovementStep ran for this tile, so the token still sits on the
                 // FROM tile. MovementCompleted snaps to the authoritative GridPosition (== from) —
                 // never a teleport back across the already-animated segments.

@@ -1,5 +1,4 @@
 using System;
-using Delve.Presets;
 
 namespace Delve.Run;
 
@@ -17,15 +16,13 @@ public sealed record LevelingRules
 }
 
 /// <summary>
-/// Run-scoped XP and in-place party leveling. The run holds one XP pool (the party levels
-/// together, PF2e-style); crossing the threshold levels every live member through
-/// <see cref="PresetCharacters.LevelUpInPlace"/>, so newcomers who join later
-/// (<see cref="Party.AddMember"/> builds at party level) stay in step.
+/// Run-scoped XP. Crossing a threshold raises the party's earned level and queues
+/// member promotions. The character sheet applies each level after a player choice.
 /// </summary>
 public static class PartyLeveling
 {
     /// <summary>
-    /// Award XP to the run and apply any level-ups to the whole party. Returns levels gained
+    /// Award XP and queue promotions for the whole party. Returns levels earned
     /// (0 at the cap or below the threshold).
     /// </summary>
     public static int Award(RunState state, int xp)
@@ -47,7 +44,7 @@ public static class PartyLeveling
 
         int to = state.Party.Level + gained;
         foreach (var member in state.Party.Members)
-            PresetCharacters.LevelUpInPlace(member, to);
+            CharacterPromotion.Earn(member, to);
         state.Party.SetLevel(to);
         return gained;
     }

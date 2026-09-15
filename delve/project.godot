@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Delve"
-run/main_scene="res://scenes/run/run.tscn"
+run/main_scene="res://scenes/run/dungeon_run.tscn"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 

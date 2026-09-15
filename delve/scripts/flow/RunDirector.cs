@@ -53,6 +53,15 @@ public partial class RunDirector : Node
     private MeetupPanel _meetupPanel = null!;
     private RunEndPanel _runEndPanel = null!;
 
+    private SceneTransition _transition = null!;
+
+    private async Task PlayRunTransition(string caption, Action covered)
+    {
+        if (_transition.Busy) return;
+        _screenLayer.ProcessMode = ProcessModeEnum.Disabled;
+        try { await _transition.Play(caption, covered, AutoPlayCombat); }
+        finally { if (IsInsideTree()) _screenLayer.ProcessMode = ProcessModeEnum.Inherit; }
+    }
     private RunState? _state;
     private EventDefinition? _openEvent;
 
@@ -75,6 +84,7 @@ public partial class RunDirector : Node
     public override void _Ready()
     {
         _screenLayer = GetNode<CanvasLayer>("%Screens");
+        _transition = GetNode<SceneTransition>("%SceneTransition");
 
         if (int.TryParse(OS.GetEnvironment("DELVE_RUN_SEED"), out int envSeed))
         {
@@ -87,7 +97,7 @@ public partial class RunDirector : Node
             GD.PushError("[RunDirector] DataManager not loaded - aborting.");
             return;
         }
-        if (CombatScene == null || HeroSelectScene == null || RunMapScene == null || EventScene == null
+        if ((UseDungeonMap && DungeonScene == null) || CombatScene == null || HeroSelectScene == null || RunMapScene == null || EventScene == null
             || MeetupScene == null || RestScene == null || ShortRestScene == null || RunEndScene == null)
         {
             GD.PushError("[RunDirector] A screen or the combat scene is not assigned - aborting.");
@@ -103,6 +113,7 @@ public partial class RunDirector : Node
 
         LoadCampaign();
         BuildScreens();
+        BuildDungeon();
         NewRun();
     }
 
@@ -125,9 +136,9 @@ public partial class RunDirector : Node
         _eventPanel.OptionPicked += PickEventOption;
         _eventPanel.Continued += CloseEvent;
         _restPanel.RestPressed += Rest;
-        _shortRestPanel.ActivityPicked += TakeShortRest;
+        _shortRestPanel.SchedulePicked += TakeShortRestSchedule;
         _shortRestPanel.Back += CloseShortRest;
-        _runEndPanel.NewRunPressed += NewRun;
+        _runEndPanel.NewRunPressed += ReturnToOutpost;
     }
 
     private T AddScreen<T>(PackedScene scene, RunPhase phase) where T : Control
@@ -144,6 +155,14 @@ public partial class RunDirector : Node
     /// <summary>Drop the run and go back to hero select.</summary>
     public void NewRun()
     {
+        _transition.Cancel();
+        ResetToOutpost();
+    }
+
+    private void ResetToOutpost()
+    {
+        _dungeon?.StopHosted();
+        _combat.EndHostedEncounter();
         _state = null;
         _pendingRecruit = null;
         _pendingXp = 0;
@@ -163,14 +182,21 @@ public partial class RunDirector : Node
 
     public void ConfirmParty(IReadOnlyList<string> memberIds)
     {
-        if (Phase != RunPhase.HeroSelect) return;
+        if (Phase != RunPhase.HeroSelect || _transition.Busy) return;
         if (memberIds.Count != Party.MaxSize)
             throw new ArgumentException("Choose four party members.", nameof(memberIds));
         int seed = Seed != 0 ? Seed : (int)(GD.Randi() & 0x7FFFFFFF);
         var party = Party.Build(memberIds, _unlocks, StartLevel);
         _runId = Guid.NewGuid().ToString("N");
         _campaign.BeginRun();
-        _state = RunState.Start(seed, party, new RunMapConfig(), unlocks: _unlocks);
+        _campaignAtDeparture = _campaign.Capture();
+        _state = RunState.Start(seed, party, new RunMapConfig(),
+            wardRules: UseDungeonMap ? new WardstoneRules { NodeBurn = _dungeon!.CrossingBurn } : null, unlocks: _unlocks);
+        if (UseDungeonMap)
+        {
+            _ = PlayRunTransition("Leaving the outpost\nFind the guardian in the ward chamber.", StartDungeonFloor);
+            return;
+        }
         GD.Print($"[RunDirector] run seed {seed}, party level {StartLevel}, {_state.Map.Floors} floors.");
         GoToMap();
     }
@@ -178,14 +204,14 @@ public partial class RunDirector : Node
     /// <summary>Move onto a node and dispatch by its kind. Ignores an unreachable id.</summary>
     public async Task TravelToNode(int nodeId)
     {
-        if (Phase == RunPhase.Map && await _map.PlayTravel(nodeId) && Phase == RunPhase.Map)
+        if (!UseDungeonMap && Phase == RunPhase.Map && await _map.PlayTravel(nodeId) && Phase == RunPhase.Map)
             PickNode(nodeId);
     }
 
     /// <summary>Resolve travel immediately, also used by headless encounter harnesses.</summary>
     public void PickNode(int nodeId)
     {
-        if (_state == null || Phase != RunPhase.Map || !_state.Advance(nodeId)) return;
+        if (UseDungeonMap || _state == null || Phase != RunPhase.Map || !_map.CanEnterWithPromotions(nodeId) || !_state.Advance(nodeId)) return;
 
         // Passive ward burn per node. Inert at the default NodeBurn of 0.
         _state.Wardstone.BurnNode();
@@ -216,6 +242,12 @@ public partial class RunDirector : Node
     public void GoToMap()
     {
         if (_state == null) return;
+        if (UseDungeonMap)
+        {
+            _dungeon!.ResumeHosted();
+            SetPhase(RunPhase.Map);
+            return;
+        }
         _map.Render(_state);
         SetPhase(RunPhase.Map);
     }
@@ -224,8 +256,9 @@ public partial class RunDirector : Node
     public void EndRun(RunOutcome outcome)
     {
         if (_state == null) return;
+        _combat.EndHostedEncounter();
         _state.Outcome = outcome;
-        _runEndPanel.Show(_state);
+        _runEndPanel.Show(_state, UseDungeonMap, CampaignSummary.Describe(_campaignAtDeparture, _campaign));
         SetPhase(RunPhase.RunEnd);
     }
 
@@ -263,8 +296,9 @@ public partial class RunDirector : Node
     {
         Phase = phase;
         foreach (var (screen, panel) in _panels)
-            panel.Visible = screen == phase;
+            panel.Visible = screen == phase && !(UseDungeonMap && screen == RunPhase.Map);
         _combat.SetPresentationVisible(phase is RunPhase.Combat or RunPhase.CombatResults);
+        _dungeon?.SetHostedVisible(UseDungeonMap && phase is RunPhase.Map or RunPhase.Combat or RunPhase.CombatResults);
         PhaseChanged?.Invoke(phase);
     }
 }

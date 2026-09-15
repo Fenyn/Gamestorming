@@ -141,7 +141,7 @@ public static class PackText
     {
         if (string.IsNullOrEmpty(html)) return "";
         var m = MetaPattern(label).Match(html);
-        return m.Success ? Plain(m.Groups[1].Value, 300) : "";
+        return m.Success ? Plain(m.Groups[1].Value, 0) : "";
     }
 
     /// <summary>The description with every bold-labelled lead paragraph removed, so the card's

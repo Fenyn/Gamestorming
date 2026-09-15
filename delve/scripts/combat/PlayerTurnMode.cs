@@ -9,6 +9,7 @@ public enum PlayerTurnMode
     SelectingMove,
     SelectingStrike,
     SelectingSpellTarget,
+    SelectingSpellTargets,
     SelectingAreaOrigin,
     SelectingSkillTarget,
     SelectingDelaySlot

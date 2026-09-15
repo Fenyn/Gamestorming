@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Delve.Autoload;
 using Delve.Presets;
@@ -130,7 +131,55 @@ public partial class RunShortRestSpike : SpikeBase
                 shield.CurrentShieldHP == shield.MaxShieldHP);
         }
 
+        CheckSchedule(rules);
         return Task.CompletedTask;
+    }
+
+    private void CheckSchedule(RecoveryRules rules)
+    {
+        var party = BuildParty();
+        var actor = party.Members[0];
+        var patient = party.Members[1];
+        var caster = FindFocusCaster(party)!;
+        var shieldOwner = FindShieldBearer(party)!;
+        patient.Health.SetCurrentHP(1);
+        caster.Spellcasting!.ConsumeFocusPoint();
+        shieldOwner.Equipment!.Shield.SetCurrentShieldHP(1);
+        var clock = new DayClock();
+        var ward = new Wardstone();
+        var schedule = party.Living().Select(m => new RestAssignment(m, ShortRestKind.Rest)).ToArray();
+        schedule[0] = new(actor, ShortRestKind.TreatWounds, patient);
+        int casterIndex = System.Array.FindIndex(schedule, a => a.Actor == caster);
+        if (casterIndex != 0) schedule[casterIndex] = new(caster, ShortRestKind.Refocus);
+        int repairIndex = System.Array.FindIndex(schedule, a => a.Actor != actor && a.Actor != caster);
+        schedule[repairIndex] = new(schedule[repairIndex].Actor, ShortRestKind.RepairShield, shieldOwner);
+        var invalid = schedule.ToArray();
+        invalid[1] = invalid[0];
+        var rejected = ShortRest.PerformSchedule(party, clock, invalid, rules, ward);
+        Check("duplicate actor refuses the whole schedule without spending time or ward",
+            !rejected.Performed && clock.ShortRestsToday == 0 && ward.Ward == ward.Rules.MaxWard && patient.Health.CurrentHP == 1);
+        invalid = schedule.ToArray();
+        invalid[0] = new(actor, ShortRestKind.TreatWounds);
+        Check("treatment requires an explicit patient", ShortRest.Validate(party, invalid) != null);
+        invalid = schedule.ToArray();
+        invalid[repairIndex] = new(invalid[repairIndex].Actor, ShortRestKind.TreatWounds, patient);
+        Check("two medics cannot treat the same patient simultaneously", ShortRest.Validate(party, invalid) != null);
+        int focusBefore = caster.Spellcasting.CurrentFocusPoints;
+        var result = ShortRest.PerformSchedule(party, clock, schedule, rules, ward, dcOverride: 0);
+        Check("mixed schedule spends exactly one block and one ward charge", result.Performed
+            && clock.ShortRestsToday == 1 && ward.Ward == ward.Rules.MaxWard - ward.Rules.ShortRestBurn);
+        Check("the assigned healer treats the assigned patient", patient.Health.CurrentHP > 1
+            && result.Lines.Any(l => l.StartsWith(actor.Name + " treats " + patient.Name)));
+        Check("another actor repairs the selected owner's shield", shieldOwner.Equipment.Shield.CurrentShieldHP == shieldOwner.Equipment.Shield.MaxShieldHP);
+        Check("refocus runs alongside treatment", casterIndex == 0 || caster.Spellcasting.CurrentFocusPoints > focusBefore);
+        // An all-quiet schedule must not silently refocus or repair anybody.
+        caster.Spellcasting.ConsumeFocusPoint();
+        shieldOwner.Equipment.Shield.SetCurrentShieldHP(1);
+        focusBefore = caster.Spellcasting.CurrentFocusPoints;
+        var quiet = party.Living().Select(m => new RestAssignment(m, ShortRestKind.Rest)).ToArray();
+        ShortRest.PerformSchedule(party, clock, quiet, rules, ward);
+        Check("unassigned activities do not affect other characters", caster.Spellcasting.CurrentFocusPoints == focusBefore
+            && shieldOwner.Equipment.Shield.CurrentShieldHP == 1);
     }
 
     private static Party BuildParty() => Party.Build(

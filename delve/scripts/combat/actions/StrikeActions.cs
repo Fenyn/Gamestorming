@@ -24,6 +24,7 @@ internal sealed class StrikeActions
     /// <summary>Living enemies within the character's weapon reach.</summary>
     internal List<ICharacter> GetStrikeTargets(ICharacter character)
     {
+        if (Delve.Rules.WayfarerFeature.State(character).FinisherUsed) return new();
         var weapon = WeaponAttackCalculator.ResolveWeapon(character);
         int reach = weapon.GetRangeInTiles();
         return new List<ICharacter>(CombatantQuery.ScanCombatants(character, enemies: true, other =>
@@ -64,6 +65,7 @@ internal sealed class StrikeActions
             target.GridPosition, target.TileWidth, weapon.GetRangeInTiles()))
             return false;
 
+        if (Delve.Rules.WayfarerFeature.State(character).FinisherUsed) return false;
         if (character.Actions == null || !character.Actions.TryConsumeActions(1))
             return false;
 

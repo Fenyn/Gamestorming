@@ -123,9 +123,9 @@ public static class SpatialDelegates
         }
     }
 
-    // Verbatim port of BattleSimulator.WireFlankingDelegate: a target is flanked when a living
-    // ally is within reach on the opposite side of the target from the attacker.
-    private static bool IsFlankingAttacker(ICharacter attacker, ICharacter target)
+    // OffGuardHelper invokes this callback as (target, attacker), including for its reason text.
+    // Keep that contract separate from the attacker-first positioning query below.
+    private static bool IsFlankingAttacker(ICharacter target, ICharacter attacker)
         => IsFlankedFrom(attacker.GridPosition, attacker.TileWidth, attacker, target);
 
     /// <summary>

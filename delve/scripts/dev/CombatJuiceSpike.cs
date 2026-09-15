@@ -95,6 +95,25 @@ public partial class CombatJuiceSpike : SpikeBase
         var center = new Vector3(6f, 0f, 5f);
         rig.FrameBoard(center, 12, 10);
         Check("framing puts the pivot on the board centre", rig.GlobalPosition.IsEqualApprox(center));
+        var tacticalPose = rig.Camera.GlobalTransform;
+        var incomingPose = tacticalPose;
+        incomingPose.Origin += new Vector3(3, 2, 1);
+        var intro = rig.PlayIntro(incomingPose, rig.Camera.Fov, System.Threading.CancellationToken.None);
+        Check("intro starts at the outgoing camera pose without a cut", rig.IntroPlaying
+            && rig.Camera.GlobalTransform.IsEqualApprox(incomingPose) && !intro.IsCompleted);
+        await WaitSeconds(0.3f);
+        Check("intro interpolates before reaching the tactical view", !intro.IsCompleted
+            && !rig.Camera.GlobalTransform.IsEqualApprox(incomingPose));
+        await intro;
+        Check("intro restores the tactical pose and releases camera input", !rig.IntroPlaying
+            && rig.Camera.GlobalTransform.IsEqualApprox(tacticalPose));
+        using (var cancelIntro = new System.Threading.CancellationTokenSource())
+        {
+            var interrupted = rig.PlayIntro(incomingPose, rig.Camera.Fov, cancelIntro.Token);
+            cancelIntro.Cancel();
+            try { await interrupted; } catch (System.OperationCanceledException) { }
+            Check("cancelled intro releases its tween", !rig.IntroPlaying);
+        }
 
         // --- turn start lands on the actor, and the gate holds until it has arrived ---
         await presenter.Present(new BattleEvent { Type = BattleEventType.TurnStarted, Source = hero });
@@ -292,6 +311,15 @@ public partial class CombatJuiceSpike : SpikeBase
         float enemyPopupY = FindPopupAbove(popupLayer, enemyToken)?.Position.Y ?? float.NaN;
 
         await SettleFx();
+        // The recovery pause can outlast a short accent. Observe creation, not survival
+        // after presentation completes.
+        int missAccents = 0, missSparks = 0;
+        void ObserveMissFx(Node node)
+        {
+            if (node is AttackAccent) missAccents++;
+            if (node is HitSpark) missSparks++;
+        }
+        GetTree().NodeAdded += ObserveMissFx;
         await presenter.Present(new BattleEvent
         {
             Type = BattleEventType.AttackRolled,
@@ -299,8 +327,9 @@ public partial class CombatJuiceSpike : SpikeBase
             Target = hero,
             Degree = DegreeOfSuccess.Failure,
         });
+        GetTree().NodeAdded -= ObserveMissFx;
         Check("a missed enemy strike shows its motion accent without a hit spark",
-            FxCount() == 1 && GetTree().GetNodesInGroup(OneShotFx.FxGroup)[0] is AttackAccent);
+            missAccents == 1 && missSparks == 0);
 
         // --- heal / shield each get their own effect ---
         await SettleFx();
@@ -334,6 +363,11 @@ public partial class CombatJuiceSpike : SpikeBase
         float deathTrauma = shake.Trauma;
         Check($"CreatureDied spawns a death poof ({FxCount()} Fx)", FxCount() == 1);
         await deathTask;
+        Check("death hides the overhead name and health bar",
+            !enemyToken.GetNode<Node3D>("%HpBar").Visible && !enemyToken.GetNode<Label3D>("%Name").Visible);
+        enemyToken.UpdateHealthBar();
+        Check("health refresh does not restore corpse labels",
+            !enemyToken.GetNode<Node3D>("%HpBar").Visible && !enemyToken.GetNode<Label3D>("%Name").Visible);
         Check($"a death kicks the camera harder than a crit ({deathTrauma:0.###} vs {critTrauma:0.###})",
             deathTrauma > critTrauma);
 

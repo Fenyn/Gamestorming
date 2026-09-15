@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PF2e.Actions;
@@ -48,25 +49,26 @@ internal sealed class SpellActions
     /// <summary>The tiles a spell (variant) may be aimed at, plus how the interaction should behave.</summary>
     internal TargetingPlan GetSpellTargets(ICharacter caster, string spellId, int variantIndex)
     {
-        var spell = _resolveSpell(spellId);
+        var spell = caster.Spellcasting?.Cantrips.Concat(caster.Spellcasting.LeveledSpells).OfType<SpellCastAction>().FirstOrDefault(s=>s.SpellId==spellId) ?? _resolveSpell(spellId);
         if (spell == null) return new TargetingPlan();
 
         var variant = ResolveVariant(spell, variantIndex);
         var kind = KindOf(spell, variant);
-        var plan = new TargetingPlan { Kind = kind };
+        var plan = new TargetingPlan { Kind = kind, MaxTargets = Math.Max(1, variant?.MaxTargets > 0 ? variant.MaxTargets : spell.MaxTargets) };
 
         switch (kind)
         {
             case TargetingKind.SingleEnemy:
             case TargetingKind.MultiEnemy:
                 foreach (var t in CombatantQuery.TargetsInRange(
-                    caster, RangeTiles(spell, variant), enemies: true))
+                    caster, RangeTiles(caster, spell, variant), enemies: true))
                     plan.Tiles.UnionWith(CreatureTargetTiles.For(t));
                 break;
 
             case TargetingKind.SingleAlly:
+            case TargetingKind.MultiAlly:
                 foreach (var t in CombatantQuery.TargetsInRange(
-                    caster, RangeTiles(spell, variant), enemies: false))
+                    caster, RangeTiles(caster, spell, variant), enemies: false))
                     plan.Tiles.UnionWith(CreatureTargetTiles.For(t));
                 break;
 
@@ -84,11 +86,13 @@ internal sealed class SpellActions
     /// <summary>Candidate origin tiles the player can aim an area template at (board tiles near the caster).</summary>
     internal List<PF2eVec> GetAreaOriginTiles(ICharacter caster, string spellId)
     {
-        var spell = _resolveSpell(spellId);
+        var spell = caster.Spellcasting?.Cantrips.Concat(caster.Spellcasting.LeveledSpells).OfType<SpellCastAction>().FirstOrDefault(s=>s.SpellId==spellId) ?? _resolveSpell(spellId);
         var result = new List<PF2eVec>();
         if (spell?.Area == null) return result;
 
-        int reach = System.Math.Max(spell.Area.SizeInTiles, 3) + 1;
+        int reach = spell.Area.Type==AreaType.Burst && spell.Area.RangeInFeet>0
+            ? Delve.Rules.SpellReach.Feet(caster,spell.Area.RangeInFeet)/5
+            : System.Math.Max(spell.Area.SizeInTiles, 3) + 1;
         var origin = caster.GridPosition;
         for (int dx = -reach; dx <= reach; dx++)
         for (int dy = -reach; dy <= reach; dy++)
@@ -104,32 +108,77 @@ internal sealed class SpellActions
     /// <summary>The tiles an area template covers when aimed at <paramref name="origin"/> (for hover preview).</summary>
     internal List<PF2eVec> GetAreaTemplateTiles(ICharacter caster, string spellId, PF2eVec origin)
     {
-        var spell = _resolveSpell(spellId);
+        var spell = caster.Spellcasting?.Cantrips.Concat(caster.Spellcasting.LeveledSpells).OfType<SpellCastAction>().FirstOrDefault(s=>s.SpellId==spellId) ?? _resolveSpell(spellId);
         if (spell?.Area == null || !spell.Area.HasArea) return new List<PF2eVec>();
         return AreaCalculator.GetAreaTiles(caster.GridPosition, origin, spell.Area, caster.TileWidth);
     }
 
     // ---------------------------------------------------------------- Commands
 
+    internal AttackPreviewView? GetTargetPreview(ICharacter caster, string spellId, int variantIndex, PF2eVec aim)
+    {
+        if (!GetSpellTargets(caster, spellId, variantIndex).Tiles.Contains(aim)) return null;
+        var spell = caster.Spellcasting?.Cantrips.Concat(caster.Spellcasting.LeveledSpells)
+            .OfType<SpellCastAction>().FirstOrDefault(s => s.SpellId == spellId) ?? _resolveSpell(spellId);
+        if (spell == null) return null;
+        var targets = KindOf(spell, ResolveVariant(spell, variantIndex)) == TargetingKind.AreaAim
+            ? BuildAreaResult(caster, spell, aim).AffectedCharacters
+            : new List<ICharacter>();
+        if (targets.Count == 0 && _grid.GetGroundOccupant(aim) is { } target
+            && KindOf(spell, ResolveVariant(spell, variantIndex)) != TargetingKind.AreaAim) targets.Add(target);
+        var previews = targets.Where(t => t.Health?.IsAlive == true)
+            .Select(t => TargetPreviewFactory.Spell(caster, t, spell, ResolveVariant(spell, variantIndex))).ToList();
+        if (previews.Count == 0) return null;
+        if (previews.Count == 1) return previews[0];
+        return previews[0] with
+        {
+            HeaderText = $"{spell.ActionName} · {previews.Count} targets",
+            OutcomeText = string.Join("\n", previews.Select(p => $"{p.TargetName}: {p.OutcomeText}")),
+            DetailText = $"{spell.Spell.SaveType} vs spell DC {StatsCalculator.CalculateSpellDC(caster)}"
+                + (spell.Spell.IsDamaging ? $" · {spell.Spell.GetEffectiveDamage(spell.GetCastLevel(caster))} damage" : ""),
+            TargetOffGuard = false
+        };
+    }
+
     /// <summary>
     /// Cast a preset spell. <paramref name="aim"/> is the clicked target tile (single/multi), the area
     /// origin (AreaAim), or null (SelfArea). Mirrors AITurnExecutor.ExecuteSpell's emission pattern.
     /// </summary>
-    internal async Task<bool> ExecuteCast(ICharacter caster, string spellId, int variantIndex, PF2eVec? aim)
+    internal async Task<bool> ExecuteCast(ICharacter caster, string spellId, int variantIndex, PF2eVec? aim,
+        IReadOnlyList<ICharacter>? selectedTargets = null)
     {
-        var spell = _resolveSpell(spellId);
+        var spell = caster.Spellcasting?.Cantrips.Concat(caster.Spellcasting.LeveledSpells).OfType<SpellCastAction>().FirstOrDefault(s=>s.SpellId==spellId) ?? _resolveSpell(spellId);
         if (spell?.Spell == null) return false;
 
         var variant = ResolveVariant(spell, variantIndex);
         if (variant != null) spell.ApplyVariant(variant);
+        using var reachShape=Delve.Rules.SpellReach.Apply(caster,spell);
 
         var kind = KindOf(spell, variant);
 
         // Resolve the primary target character for validation + the SpellCast event.
         ICharacter? primary = aim.HasValue && (kind == TargetingKind.SingleEnemy
-            || kind == TargetingKind.SingleAlly || kind == TargetingKind.MultiEnemy)
+            || kind == TargetingKind.SingleAlly || kind == TargetingKind.MultiEnemy || kind == TargetingKind.MultiAlly)
             ? _grid.GetGroundOccupant(aim.Value)
             : null;
+
+        List<ICharacter>? targets = null;
+        if (kind == TargetingKind.MultiEnemy || kind == TargetingKind.MultiAlly)
+        {
+            targets = selectedTargets != null ? new List<ICharacter>(selectedTargets)
+                : primary != null ? new List<ICharacter> { primary } : new List<ICharacter>();
+            var legal = new HashSet<ICharacter>(CombatantQuery.TargetsInRange(
+                caster, RangeTiles(caster, spell, variant), enemies: kind == TargetingKind.MultiEnemy));
+            var seen = new HashSet<ICharacter>();
+            if (targets.Count == 0 || targets.Count > Math.Max(1, spell.EffectiveMaxTargets)
+                || targets.Exists(t => !legal.Contains(t) || t.Health?.IsAlive != true
+                    || !ReferenceEquals(_grid.GetGroundOccupant(t.GridPosition), t) || !seen.Add(t)))
+            {
+                spell.ClearVariant();
+                return false;
+            }
+            primary = targets[0];
+        }
 
         if (!spell.CanPerform(caster, primary))
         {
@@ -158,7 +207,8 @@ internal sealed class SpellActions
                     break;
 
                 case TargetingKind.MultiEnemy:
-                    await spell.ExecuteMultiTargetAsync(caster, BuildMultiTargetList(caster, spell, variant, primary));
+                case TargetingKind.MultiAlly:
+                    await spell.ExecuteMultiTargetAsync(caster, targets!);
                     break;
 
                 case TargetingKind.AreaAim:
@@ -173,6 +223,7 @@ internal sealed class SpellActions
         finally
         {
             SpellCastAction.OnSpellResolved -= Capture;
+            spell.ClearVariant();
         }
 
         await EmitSpellOutcomes(caster, resolved);
@@ -210,29 +261,6 @@ internal sealed class SpellActions
         }
     }
 
-    private List<ICharacter> BuildMultiTargetList(ICharacter caster, SpellCastAction spell,
-        SpellCostVariant? variant, ICharacter? primary)
-    {
-        int max = spell.EffectiveMaxTargets > 0 ? spell.EffectiveMaxTargets : 1;
-        int range = RangeTiles(spell, variant);
-        var list = new List<ICharacter>();
-        if (primary != null) list.Add(primary);
-
-        var anchor = primary?.GridPosition ?? caster.GridPosition;
-        var candidates = new List<ICharacter>(
-            CombatantQuery.TargetsInRange(caster, range, enemies: true));
-        candidates.Sort((a, b) =>
-            AreaCalculator.GetPF2eDistance(anchor, 1, a.GridPosition, a.TileWidth)
-            .CompareTo(AreaCalculator.GetPF2eDistance(anchor, 1, b.GridPosition, b.TileWidth)));
-
-        foreach (var cand in candidates)
-        {
-            if (list.Count >= max) break;
-            if (!list.Contains(cand)) list.Add(cand);
-        }
-        return list;
-    }
-
     private AreaTargetResult BuildAreaResult(ICharacter caster, SpellCastAction spell, PF2eVec origin)
     {
         var tiles = AreaCalculator.GetAreaTiles(caster.GridPosition, origin, spell.Area, caster.TileWidth);
@@ -266,15 +294,15 @@ internal sealed class SpellActions
         if (area) return TargetingKind.AreaAim;
 
         TargetMode mode = variant?.TargetMode ?? spell.TargetMode;
-        if (mode == TargetMode.Allies) return TargetingKind.SingleAlly;
-
         int max = variant?.MaxTargets > 0 ? variant.MaxTargets : spell.MaxTargets;
+        if (mode == TargetMode.Allies) return max > 1 ? TargetingKind.MultiAlly : TargetingKind.SingleAlly;
         return max > 1 ? TargetingKind.MultiEnemy : TargetingKind.SingleEnemy;
     }
 
-    private static int RangeTiles(SpellCastAction spell, SpellCostVariant? variant)
+    private static int RangeTiles(ICharacter caster, SpellCastAction spell, SpellCostVariant? variant)
     {
         int feet = variant?.RangeInFeet ?? spell.Area?.RangeInFeet ?? 0;
+        feet=Delve.Rules.SpellReach.Feet(caster,feet);
         int tiles = feet / MovementActions.FeetPerTile;
         return tiles <= 0 ? 1 : tiles; // 0 ft = touch/adjacent
     }

@@ -20,3 +20,13 @@ Copied unchanged from the user-provided local art pack.
 The shared `assets/ui/item_icons.tres` catalog maps PF2e equipment IDs and slug aliases to textures.
 Add a texture and catalog entry for new items. Unmapped items use the bag icon.
 Unarmoured is a character state and remains text only.
+
+Native roster additions, copied unchanged from Raven Megapack:
+
+| Item | Pack / separated file |
+| --- | --- |
+| greataxe | weapons (800) pack/32x32/tile024.png |
+| dagger | weapons (800) pack/32x32/tile000.png |
+| sickle | weapons (800) pack/32x32/tile033.png |
+| mace | weapons (800) pack/32x32/tile052.png |
+| hide-armor | Armor/32x32/tile016.png |

@@ -21,7 +21,7 @@ namespace Delve.Data;
 /// PLACEHOLDER numbers: approximate PF2e Remaster values at rank 1 / cantrip-heightened-to-1. Exact
 /// fidelity is intentionally NOT required here; these back throwaway placeholder characters.
 /// </summary>
-public static class PresetSpells
+public static partial class PresetSpells
 {
     public const string DivineLanceId = "preset-divine-lance";
     public const string ElectricArcId = "preset-electric-arc";
@@ -60,6 +60,7 @@ public static class PresetSpells
             BuildDaze(),
             BuildFrostbite(),
             BuildHeal(),
+            BuildSoothe(),
             BuildFear(),
             BuildBreatheFire(),
             BuildTelekineticProjectile(),

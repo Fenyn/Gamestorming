@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/guard_hall.tscn" id="base"]
+[node name="checkpoint" instance=ExtResource("base")]
+UsePurpose = true
+Purpose = 1
+InteriorSize = 14
+SizeVariants = PackedInt32Array(12, 14, 16)

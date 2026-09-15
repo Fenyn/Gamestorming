@@ -21,7 +21,7 @@ public sealed class GodotPresenter3D
 {
     private const float MoveDuration = 0.14f;
     private const float AttackDuration = 0.14f;
-    private const float PauseDuration = 0.08f;
+    private const float PauseDuration = 0.25f;
 
     /// <summary>Gate held on CreatureDied. Kept short because <see cref="DeathPoof"/> covers
     /// the beat: the poof outlives the gate on its own tween, so the pipeline does not have to wait
@@ -88,6 +88,16 @@ public sealed class GodotPresenter3D
     /// <summary>Drop one unit's visual. Call before the node is freed.</summary>
     public void UnregisterUnit(ICharacter character) => _units.Remove(character.UniqueId);
 
+    public void RetireUnit(ICharacter character)
+    {
+        if (!_units.TryGetValue(character.UniqueId, out var visual)) return;
+        visual.DisablePicking();
+        if (character.Health?.IsDead == true) return; // retain the pending death animation / corpse
+        visual.Hide();
+        visual.QueueFree();
+        UnregisterUnit(character);
+    }
+
     /// <summary>
     /// Drop every registration. The scene calls this when it resets for the next encounter, so the
     /// map never hands out a visual whose node was freed with the previous board.
@@ -96,6 +106,7 @@ public sealed class GodotPresenter3D
 
     public async Task Present(BattleEvent evt)
     {
+        CancellationToken.ThrowIfCancellationRequested();
         switch (evt.Type)
         {
             case BattleEventType.TurnStarted:
@@ -158,6 +169,7 @@ public sealed class GodotPresenter3D
                     movedUnit.SetMoving(false);
                     movedUnit.PlaceOnGround(evt.Source.GridPosition, _height);
                 }
+                await Delay(PauseDuration);
                 break;
 
             case BattleEventType.AttackRolled:
@@ -191,6 +203,8 @@ public sealed class GodotPresenter3D
                     missTarget.PlayDodgeLean(HorizontalDirection(evt.Source, evt.Target));
                     SpawnPopup(DamagePopup3D.Create(0, null, evt.Degree), missTarget);
                 }
+                if (evt.Degree.HasValue && evt.Degree.Value < DegreeOfSuccess.Success)
+                    await Delay(PauseDuration);
                 break;
             }
 
@@ -257,7 +271,8 @@ public sealed class GodotPresenter3D
     // MovementStep so reactions resolve between tiles (walk state bracketed by Started/Completed).
     private async Task AnimateMovement(UnitVisual3D unit, List<PF2eVec> path)
     {
-        if (!GodotObject.IsInstanceValid(unit)) return;
+        CancellationToken.ThrowIfCancellationRequested();
+        if (!GodotObject.IsInstanceValid(unit) || !unit.IsInsideTree()) return;
         unit.SetMoving(true);
         try
         {
@@ -278,7 +293,8 @@ public sealed class GodotPresenter3D
     {
         // The unit (or the whole scene) can be freed mid-walk on scene exit; creating a tween on — or
         // setting a property of — a disposed node throws. Bail the instant it's gone.
-        if (!GodotObject.IsInstanceValid(unit)) return;
+        CancellationToken.ThrowIfCancellationRequested();
+        if (!GodotObject.IsInstanceValid(unit) || !unit.IsInsideTree()) return;
 
         unit.Facing = new Vector2(to.x - from.x, to.y - from.y);
 
@@ -300,6 +316,7 @@ public sealed class GodotPresenter3D
         using (CancellationToken.Register(
             static t => ((TaskCompletionSource<bool>)t!).TrySetResult(false), tcs))
             await tcs.Task;
+        CancellationToken.ThrowIfCancellationRequested();
         if (!CancellationToken.IsCancellationRequested && GodotObject.IsInstanceValid(unit))
             unit.PlaceOnGround(to, _height);
     }

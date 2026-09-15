@@ -1,10 +1,10 @@
-[gd_scene load_steps=3 format=3]
-
+[gd_scene load_steps=4 format=3]
 [ext_resource type="Script" path="res://scripts/flow/RecruitmentPanel.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/run/recruitment_entry.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/run/journal_step.tscn" id="3"]
 
 [node name="RecruitmentPanel" type="Control"]
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -12,6 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 EntryScene = ExtResource("2")
+StepScene = ExtResource("3")
 
 [node name="Backdrop" type="Panel" parent="."]
 layout_mode = 1
@@ -22,48 +23,187 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"ModalDim"
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 96
+theme_override_constants/margin_right = 96
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_bottom = 60
 
-[node name="Panel" type="PanelContainer" parent="Center"]
+[node name="Panel" type="PanelContainer" parent="Margin"]
 layout_mode = 2
-custom_minimum_size = Vector2(860, 0)
 theme_type_variation = &"ModalPanel"
 
-[node name="Rows" type="VBoxContainer" parent="Center/Panel"]
+[node name="Padding" type="MarginContainer" parent="Margin/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_bottom = 24
 
-[node name="Title" type="Label" parent="Center/Panel/Rows"]
+[node name="Rows" type="VBoxContainer" parent="Margin/Panel/Padding"]
 layout_mode = 2
-text = "Recruitment at the outpost"
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Margin/Panel/Padding/Rows"]
+layout_mode = 2
+text = "Unlock journal"
+autowrap_mode = 3
 theme_type_variation = &"TitleLabel"
 
-[node name="Hint" type="Label" parent="Center/Panel/Rows"]
+[node name="JournalSummary" type="Label" parent="Margin/Panel/Padding/Rows"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Progress is shared across runs. Temporary companions must still complete their requirements."
+text = ""
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
 
-[node name="Scroll" type="ScrollContainer" parent="Center/Panel/Rows"]
+[node name="Body" type="HBoxContainer" parent="Margin/Panel/Padding/Rows"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 420)
+size_flags_vertical = 3
+theme_override_constants/separation = 36
+
+[node name="Index" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body"]
+layout_mode = 2
+custom_minimum_size = Vector2(490, 0)
+theme_override_constants/separation = 16
+
+[node name="JournalFilter" type="OptionButton" parent="Margin/Panel/Padding/Rows/Body/Index"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+
+[node name="IndexScroll" type="ScrollContainer" parent="Margin/Panel/Padding/Rows/Body/Index"]
+layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="RecruitEntries" type="VBoxContainer" parent="Center/Panel/Rows/Scroll"]
+[node name="RecruitEntries" type="GridContainer" parent="Margin/Panel/Padding/Rows/Body/Index/IndexScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 32
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
-[node name="CloseRecruitment" type="Button" parent="Center/Panel/Rows"]
+[node name="JournalEmpty" type="Label" parent="Margin/Panel/Padding/Rows/Body/Index"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No entries in this chapter yet."
+autowrap_mode = 3
+theme_type_variation = &"ScreenHint"
+
+[node name="PageScroll" type="ScrollContainer" parent="Margin/Panel/Padding/Rows/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="JournalPage" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="Header" type="HBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="PortraitFrame" type="Control" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 160)
+
+[node name="JournalPortrait" type="TextureRect" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/PortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 1
+
+[node name="UnknownPortrait" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/PortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 64
+
+[node name="Identity" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="RecruitTitle" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_type_variation = &"TitleLabel"
+
+[node name="JournalRole" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_type_variation = &"ScreenHint"
+
+[node name="JournalStatus" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_type_variation = &"HeadingLabel"
+
+[node name="JournalArc" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_type_variation = &"HeadingLabel"
+
+[node name="JournalStory" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_type_variation = &"ScreenHint"
+
+[node name="JournalSteps" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="JournalNext" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+theme_type_variation = &"ScreenHint"
+
+[node name="StayButton" type="Button" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 54)
+text = "Invite to stay overnight"
+theme_type_variation = &"AccentButton"
+
+[node name="CloseRecruitment" type="Button" parent="Margin/Panel/Padding/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(240, 52)
 size_flags_horizontal = 8
-text = "Back to formation"
+text = "Back to camp"

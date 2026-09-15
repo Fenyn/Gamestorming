@@ -1,0 +1,12 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/PromotionSpike.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
+[ext_resource type="PackedScene" path="res://scenes/run/run_map.tscn" id="map"]
+[ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="victory"]
+
+[node name="PromotionSpike" type="Node"]
+script = ExtResource("script")
+DetailsScene = ExtResource("details")
+MapScene = ExtResource("map")
+VictoryScene = ExtResource("victory")

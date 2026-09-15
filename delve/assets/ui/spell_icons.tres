@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="SpellIconCatalog" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/SpellIconCatalog.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/divine-lance.png" id="divine-lance"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/electric-arc.png" id="electric-arc"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/ignition.png" id="ignition"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/daze.png" id="daze"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/frostbite.png" id="frostbite"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/heal.png" id="heal"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/fear.png" id="fear"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/breathe-fire.png" id="breathe-fire"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/telekinetic-projectile.png" id="telekinetic-projectile"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/force-barrage.png" id="force-barrage"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/force-bolt.png" id="force-bolt"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/fireball.png" id="fireball"]
+[ext_resource type="Texture2D" path="res://assets/icons/spells/spell.png" id="spell"]
+
+[resource]
+script = ExtResource("1")
+Icons = Dictionary[String, Texture2D]({
+"divine-lance": ExtResource("divine-lance"),
+"preset-divine-lance": ExtResource("divine-lance"),
+"electric-arc": ExtResource("electric-arc"),
+"preset-electric-arc": ExtResource("electric-arc"),
+"ignition": ExtResource("ignition"),
+"preset-ignition": ExtResource("ignition"),
+"daze": ExtResource("daze"),
+"preset-daze": ExtResource("daze"),
+"frostbite": ExtResource("frostbite"),
+"preset-frostbite": ExtResource("frostbite"),
+"heal": ExtResource("heal"),
+"preset-heal": ExtResource("heal"),
+"fear": ExtResource("fear"),
+"preset-fear": ExtResource("fear"),
+"breathe-fire": ExtResource("breathe-fire"),
+"preset-breathe-fire": ExtResource("breathe-fire"),
+"telekinetic-projectile": ExtResource("telekinetic-projectile"),
+"preset-telekinetic-projectile": ExtResource("telekinetic-projectile"),
+"force-barrage": ExtResource("force-barrage"),
+"preset-force-barrage": ExtResource("force-barrage"),
+"force-bolt": ExtResource("force-bolt"),
+"preset-force-bolt": ExtResource("force-bolt"),
+"fireball": ExtResource("fireball"),
+"preset-fireball": ExtResource("fireball")
+})
+Fallback = ExtResource("spell")

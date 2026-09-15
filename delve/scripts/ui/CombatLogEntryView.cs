@@ -46,11 +46,10 @@ public partial class CombatLogEntryView : VBoxContainer
 
     public void AddDetail(string fullText, string summary)
     {
-        _details.AppendText((_detailCount++ > 0 ? "\n" : "") + fullText);
+        _details.AppendText((_detailCount++ > 0 ? "\n\n" : "") + fullText);
         if (summary.Length > 0)
         {
             _summaries.Add(summary);
-            if (_summaries.Count > 2) _summaries.RemoveAt(1);
         }
         _toggle.Disabled = false;
         Refresh();
@@ -63,7 +62,7 @@ public partial class CombatLogEntryView : VBoxContainer
             : DetailsExpanded ? "Collapse details" : "Expand details";
         _toggle.TooltipText = hint;
         _header.TooltipText = IsTurn ? "" : hint;
-        _header.Text = _title + (!DetailsExpanded && _summaries.Count > 0 ? "\n" + string.Join(" · ", _summaries) : "");
+        _header.Text = _title + (!DetailsExpanded && _summaries.Count > 0 ? "\n\n" + string.Join("\n", _summaries) : "");
         _details.Visible = DetailsExpanded;
     }
 }

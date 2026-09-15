@@ -19,5 +19,7 @@ public static class PersonalObjectiveCatalog
             [PresetCharacters.ThistleId] = new("a-new-trail", "Meet a Wayfarer.", RecruitmentSignal.Meeting),
         };
 
-    public static PersonalObjective? Find(string characterId) => ByCharacter.GetValueOrDefault(characterId);
+    public static PersonalObjective? Find(string characterId) => ByCharacter.GetValueOrDefault(characterId)
+        ?? (BulwarkWayfarers.Find(characterId) is { } spec
+            ? new PersonalObjective("face-the-guardian", spec.PersonalGoal, RecruitmentSignal.FloorBossVictory) : null);
 }

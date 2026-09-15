@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemIconCatalog" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="ItemIconCatalog" load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ItemIconCatalog.cs" id="1"]
 [ext_resource type="Texture2D" path="res://assets/icons/equipment/longsword.png" id="longsword"]
@@ -13,9 +13,31 @@
 [ext_resource type="Texture2D" path="res://assets/icons/equipment/wooden-shield.png" id="wooden-shield"]
 [ext_resource type="Texture2D" path="res://assets/icons/equipment/item.png" id="item"]
 
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/greataxe.png" id="greataxe"]
+
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/dagger.png" id="dagger"]
+
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/sickle.png" id="sickle"]
+
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/mace.png" id="mace"]
+
+[ext_resource type="Texture2D" path="res://assets/icons/equipment/hide-armor.png" id="hide-armor"]
+
 [resource]
 script = ExtResource("1")
 Icons = Dictionary[String, Texture2D]({
+"rXt4629QSg7KDTgJ": ExtResource("mace"),
+"warhammer": ExtResource("mace"),
+"AnwzlOs0njF9Jqnr": ExtResource("hide-armor"),
+"hide-armor": ExtResource("hide-armor"),
+"9iDqOLNFKxiTcFKE": ExtResource("mace"),
+"mace": ExtResource("mace"),
+"ynnBwzkzsR6B73iO": ExtResource("sickle"),
+"sickle": ExtResource("sickle"),
+"rQWaJhI5Bko5x14Z": ExtResource("dagger"),
+"dagger": ExtResource("dagger"),
+"8COlYvHe6hKCXY8x": ExtResource("greataxe"),
+"greataxe": ExtResource("greataxe"),
 "LJdbVTOZog39EEbi": ExtResource("longsword"),
 "longsword": ExtResource("longsword"),
 "tH5GirEy7YB3ZgCk": ExtResource("rapier"),

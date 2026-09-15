@@ -21,6 +21,9 @@ internal static class CampSelectChecks
         check("camp reserves a distinct place for every Bulwark concept", stage.SeatIds.Length == 18
             && stage.SeatIds.Distinct().Count() == 18 && stage.Seats.Length == 18);
         check("current roster placement is keyed by character identity", CharacterCatalog.All.All(def => stage.SeatFor(def.Id) >= 0));
+        var accents = CharacterCatalog.All.Select(def => UiColors.CharacterAccent(def.Id)).ToArray();
+        check("every roster member has a unique identity color", accents.Distinct().Count() == accents.Length);
+        check("no roster member uses the fallback accent", accents.All(color => color != UiColors.Accent && color.A == 1f));
         var aldric = HeroSelectChecks.Card(HeroSelectChecks.Cards(panel), PresetCharacters.PlayerId)!;
         check("unselected residents start seated", aldric.Resting && !aldric.Selected);
         check("transparent sprite corners do not intercept camp clicks", !aldric._HasPoint(Vector2.Zero));

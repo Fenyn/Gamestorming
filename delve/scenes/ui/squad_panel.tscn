@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/ui/SquadPanel.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/squad_card.tscn" id="card"]
+[node name="SquadPanel" type="VBoxContainer"]
+offset_left = 12.0
+offset_top = 38.0
+offset_right = 352.0
+offset_bottom = 185.0
+script = ExtResource("script")
+CardScene = ExtResource("card")
+[node name="Members" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="Tools" type="HBoxContainer" parent="."]
+layout_mode = 2
+[node name="Overview" type="Button" parent="Tools"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Overview"
+tooltip_text = "Toggle the full battlefield view"
+theme_override_font_sizes/font_size = 13
+[node name="StageOrders" type="CheckBox" parent="Tools"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Plan orders"
+tooltip_text = "Stage a destination or single target before confirming. Escape cancels."
+theme_override_font_sizes/font_size = 13
+[node name="ConfirmOrder" type="Button" parent="Tools"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Confirm"
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 13

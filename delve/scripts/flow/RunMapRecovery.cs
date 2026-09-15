@@ -39,7 +39,7 @@ public partial class RunMapRecovery : VBoxContainer
         _restButton.Disabled = !ward.CanAffordShortRest;
         UpdatePreview();
         _restButton.TooltipText = day + "\n" + (ward.CanAffordShortRest
-            ? "Choose Treat Wounds, Refocus, or Repair Shield. Opening this menu costs nothing."
+            ? "Assign one activity per character for a shared ten-minute rest. Opening this menu costs nothing."
             : WardLines.RestUnavailable(ward));
     }
 

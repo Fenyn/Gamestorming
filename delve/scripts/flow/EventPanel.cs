@@ -63,6 +63,8 @@ public partial class EventPanel : Control
         _result.Text = "";
         _result.Visible = false;
         _continue.Visible = false;
+        _options.Visible = true;
+        GetNode<Label>("%ChoiceHeading").Visible = true;
 
         BuildActors(definition, state.Party);
         BuildOptions(definition);
@@ -75,7 +77,10 @@ public partial class EventPanel : Control
     {
         _resolved = true;
         _preview.Visible = false;
-        _previewHeading.Visible = false;
+        _previewHeading.Text = "OUTCOME";
+        _previewHeading.Visible = true;
+        _options.Visible = false;
+        GetNode<Label>("%ChoiceHeading").Visible = false;
         var text = new System.Text.StringBuilder();
         if (!result.Resolved && result.Reason != null)
             text.Append(result.Reason);
@@ -101,7 +106,12 @@ public partial class EventPanel : Control
         for (int i = 0; i < definition.Options.Count; i++)
         {
             var option = definition.Options[i];
-            var button = new Button { Alignment = HorizontalAlignment.Left, CustomMinimumSize = new Vector2(0, 64) };
+            var button = new Button {
+                Alignment = HorizontalAlignment.Left,
+                ThemeTypeVariation = "EventOption",
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                CustomMinimumSize = new Vector2(0, 48)
+            };
             int index = i;
             button.Pressed += () =>
             {
@@ -124,7 +134,7 @@ public partial class EventPanel : Control
         {
             var option = _definition.Options[i];
             var button = _optionButtons[i];
-            button.Text = option.Label + "\n" + EventCheckPreview.CheckLine(option, _party, SelectedActor());
+            button.Text = option.Label + (option.Check == null ? "" : "\n" + EventCheckPreview.CheckLine(option, _party, SelectedActor()));
             button.Disabled = option.Check is { } check && EventResolver.ActorFor(_party, check, SelectedActor()) == null;
             button.TooltipText = option.Check == null ? "This choice needs no roll."
                 : "Base chance includes natural 1 and 20 degree shifts. Features that adjust a check when it resolves may change the result.";
@@ -136,7 +146,7 @@ public partial class EventPanel : Control
     {
         if (_resolved || _definition == null || _party == null || index >= _definition.Options.Count) return;
         _previewIndex = index;
-        _previewHeading.Text = _definition.Options[index].Label;
+        _previewHeading.Text = _definition.Options[index].Check == null ? "WHAT HAPPENS · NO ROLL" : "CHECK & POSSIBLE OUTCOMES";
         _preview.Text = EventCheckPreview.Details(_definition.Options[index], _party, SelectedActor());
         _preview.Visible = true;
         _previewHeading.Visible = true;

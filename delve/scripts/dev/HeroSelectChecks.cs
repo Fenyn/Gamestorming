@@ -23,10 +23,9 @@ internal static class HeroSelectChecks
         var campaign = new CampaignProgress();
         panel.Setup(campaign.Unlocks, campaign);
         var menu = panel.GetNode<RecruitmentPanel>("%Recruitment");
-        var entries = menu.GetNode<VBoxContainer>("%RecruitEntries");
+        var entries = menu.GetNode<GridContainer>("%RecruitEntries");
         check("recruitment lists each authored arc", entries.GetChildCount() == RecruitmentCatalog.All.Count);
-        check("unmet recruitment cannot stay overnight", entries.GetChild<RecruitmentEntry>(0)
-            .GetNode<Button>("%StayButton").Disabled);
+        check("unmet recruitment cannot stay overnight", menu.GetNode<Button>("%StayButton").Disabled);
         campaign.RecordMeeting(PresetCharacters.RavenId, PresetCharacters.PlayerId);
         for (int i = 0; i < 3; i++)
             campaign.RecordVictory($"formation-test/{i}", PresetCharacters.PlayerId,
@@ -34,7 +33,8 @@ internal static class HeroSelectChecks
         panel.Pick(PresetCharacters.PlayerId);
         panel.RefreshRecruitment();
         check("completed quests still leave Raven locked", !panel.CanPick(PresetCharacters.RavenId));
-        var stay = entries.GetChild<RecruitmentEntry>(0).GetNode<Button>("%StayButton");
+        menu.SelectCharacter(PresetCharacters.RavenId);
+        var stay = menu.GetNode<Button>("%StayButton");
         check("completed recruitment offers the explicit stay", !stay.Disabled);
         string? request = null;
         void OnStay(string id) => request = id;
@@ -210,7 +210,7 @@ internal static class HeroSelectChecks
 
         foreach (var entry in row.Entries)
         {
-            if (entry.Tip is { Body.Length: > 20 }) return true;
+            if (entry.Tip is { FullRules.Length: > 20, Meta.Count: > 0 }) return true;
         }
         return false;
     }

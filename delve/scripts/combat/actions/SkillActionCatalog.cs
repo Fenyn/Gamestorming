@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using Delve.Rules;
 using System.Collections.Generic;
 using PF2e.Actions;
 using PF2e.Actions.SkillActions;
@@ -36,6 +38,7 @@ internal sealed record SkillActionDefinition
     /// every combatant may attempt. <see cref="SkillActionCatalog.IdForGrantedAction"/> maps it back.
     /// </summary>
     internal string? GrantedActionName { get; init; }
+    internal int SignaturePriority { get; init; }
 
     /// <summary>How the player picks what the chip affects.</summary>
     internal required TargetingKind Kind { get; init; }
@@ -86,6 +89,13 @@ internal static class SkillActionCatalog
     {
         new SkillActionDefinition
         {
+            Id="treat-condition",GrantedActionName="Treat Condition",Kind=TargetingKind.SingleAlly,Mode=SkillExecutionMode.Tile,
+            Factory=()=>new TreatConditionAction { ActionName="Treat Condition",ActionCostCount=2,RequiresTarget=true,TargetMode=TargetMode.Allies,CanTargetSelf=true },
+            RangeTiles=_=>1,TargetsEnemies=false,TargetFilter=(_,actor,target)=>target.Conditions.FindHighestCondition(new[]{Condition.Clumsy,Condition.Enfeebled,Condition.Sickened}).Item1!=Condition.None,
+            NoTargetReason=_=>"No ally with a treatable condition in reach",
+        },
+        new SkillActionDefinition
+        {
             Id = "trip",
             Kind = TargetingKind.SingleEnemy,
             Mode = SkillExecutionMode.Tile,
@@ -102,7 +112,7 @@ internal static class SkillActionCatalog
             Id = "demoralize",
             Kind = TargetingKind.SingleEnemy,
             Mode = SkillExecutionMode.Tile,
-            Factory = () => new DemoralizeAction
+            Factory = () => new BraggartDemoralize
             {
                 ActionName = "Demoralize", ActionCostCount = 1,
                 RequiresTarget = true, TargetMode = TargetMode.Enemies
@@ -113,6 +123,7 @@ internal static class SkillActionCatalog
         new SkillActionDefinition
         {
             Id = "battle-medicine",
+            SignaturePriority = 20,
             Kind = TargetingKind.SingleAlly,
             Mode = SkillExecutionMode.Tile,
             Factory = () => new BattleMedicineAction
@@ -208,7 +219,38 @@ internal static class SkillActionCatalog
         },
         new SkillActionDefinition
         {
-            Id = "lunge",
+            Id = "double-slice", GrantedActionName = "Double Slice", SignaturePriority = 10,
+            Kind = TargetingKind.SingleEnemy, Mode = SkillExecutionMode.Tile,
+            Factory = () => new DoubleSliceAction(),
+            RangeTiles = actor => Math.Min(actor.Equipment?.MainHandWeapon?.GetRangeInTiles() ?? 0,
+                actor.Equipment?.OffHandWeapon?.GetRangeInTiles() ?? 0),
+            TargetFilter = (_, actor, target) => new DoubleSliceAction().CanPerform(actor, target),
+            NoTargetReason = _ => "No foe within reach of both weapons",
+        },
+        new SkillActionDefinition
+        {
+            Id = "inspiring-marshal-stance", GrantedActionName = "Inspiring Marshal Stance", SignaturePriority = 20,
+            Kind = TargetingKind.SelfArea, Mode = SkillExecutionMode.Self,
+            Factory = () => new InspiringMarshalStanceAction(),
+            NoTargetReason = _ => "Cannot enter this stance yet",
+        },
+        new SkillActionDefinition
+        {
+            Id = "treat-condition", GrantedActionName = "Treat Condition",
+            Kind = TargetingKind.SingleAlly, Mode = SkillExecutionMode.Tile,
+            Factory = () => new TreatConditionAction
+            {
+                ActionName = "Treat Condition", ActionCostCount = 2, RequiresTarget = true,
+                TargetMode = TargetMode.Allies,
+            },
+            RangeTiles = _ => 1, TargetsEnemies = false,
+            TargetFilter = (_, actor, target) => new TreatConditionAction
+                { ActionCostCount = 2, TargetMode = TargetMode.Allies }.CanPerform(actor, target),
+            NoTargetReason = _ => "No ally in reach with Clumsy, Enfeebled or Sickened",
+        },
+        new SkillActionDefinition
+        {
+            Id = "lunge", SignaturePriority = 20,
             GrantedActionName = "Lunge",
             Kind = TargetingKind.SingleEnemy,
             Mode = SkillExecutionMode.Tile,
@@ -219,7 +261,7 @@ internal static class SkillActionCatalog
         },
         new SkillActionDefinition
         {
-            Id = "sudden-charge",
+            Id = "sudden-charge", SignaturePriority = 10,
             GrantedActionName = "Sudden Charge",
             Kind = TargetingKind.SingleEnemy,
             Mode = SkillExecutionMode.ChargeTile,
@@ -235,7 +277,7 @@ internal static class SkillActionCatalog
         },
         new SkillActionDefinition
         {
-            Id = "shielded-stride",
+            Id = "shielded-stride", SignaturePriority = 30,
             GrantedActionName = "Shielded Stride",
             Kind = TargetingKind.SelfArea,
             Mode = SkillExecutionMode.MoveTile,
@@ -243,7 +285,24 @@ internal static class SkillActionCatalog
             Factory = () => new ShieldedStrideAction(),
             NoTargetReason = _ => "No reachable tiles",
         },
-    };
+    }.Concat(ClassActions.All.Select(spec => new SkillActionDefinition
+    {
+        Id = spec.Id, GrantedActionName = spec.Name,
+        SignaturePriority = SignatureAbilities.Priority(spec.Id),
+        Kind = spec.Range == 0 ? TargetingKind.SelfArea : spec.Ally ? TargetingKind.SingleAlly : TargetingKind.SingleEnemy,
+        Mode = spec.Range == 0 ? SkillExecutionMode.Self : SkillExecutionMode.Tile,
+        Factory = () => new ClassAction(spec), RangeTiles = spec.Range == 0 ? null : actor => SpellReach.ClassRange(actor,spec),
+        TargetsEnemies = !spec.Ally,
+        TargetFilter = (_, actor, target) => new ClassAction(spec).CanPerform(actor,target),
+        NoTargetReason = _ => "No eligible target in range, or class resource unavailable",
+    })).Concat(RosterFeatAction.Ids.Select(id=>new SkillActionDefinition
+    {
+        Id=id, GrantedActionName=new RosterFeatAction(id).ActionName,SignaturePriority=25,
+        Kind=new RosterFeatAction(id).Range==0?TargetingKind.SelfArea:new RosterFeatAction(id).Ally?TargetingKind.SingleAlly:TargetingKind.SingleEnemy,
+        Mode=new RosterFeatAction(id).Range==0?SkillExecutionMode.Self:SkillExecutionMode.Tile,
+        Factory=()=>new RosterFeatAction(id),RangeTiles=_=>new RosterFeatAction(id).Range,TargetsEnemies=!new RosterFeatAction(id).Ally,
+        TargetFilter=(_,actor,target)=>new RosterFeatAction(id).CanPerform(actor,target),NoTargetReason=_=>"No eligible feat target",
+    })).ToArray();
 
     private static readonly Dictionary<string, SkillActionDefinition> ById = BuildById();
 
@@ -259,7 +318,7 @@ internal static class SkillActionCatalog
     {
         foreach (var def in All)
         {
-            if (def.GrantedActionName == actionName) return def.Id;
+            if (def.GrantedActionName == actionName || def.GrantedActionName==null && def.Factory().ActionName==actionName) return def.Id;
         }
         return null;
     }

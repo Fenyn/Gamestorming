@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Presets;
 
 namespace Delve.Run;
@@ -25,7 +26,12 @@ public static class RecruitmentCatalog
             new RecruitmentStep("trail", "Win two fights with Thistle in the party.", RecruitmentSignal.PartyVictory, 2),
             new RecruitmentStep("horizon", "Open the next route with Thistle by defeating a floor boss.", RecruitmentSignal.FloorBossVictory, 1),
         }),
-    };
+    }.Concat(BulwarkWayfarers.All.Select(spec => new RecruitmentArc(spec.Id, spec.ArcTitle, new[]
+    {
+        new RecruitmentStep("meet", $"Meet {spec.Name} in the delve.", RecruitmentSignal.Meeting, 1),
+        new RecruitmentStep("trust", $"Win two fights with {spec.Name} in the party.", RecruitmentSignal.PartyVictory, 2),
+        new RecruitmentStep("guardian", spec.PersonalGoal, RecruitmentSignal.FloorBossVictory, 1),
+    }))).ToArray();
 
     public static RecruitmentArc? Find(string characterId)
     {

@@ -7,24 +7,15 @@ namespace Delve.Combat;
 
 /// <summary>
 /// Translates mouse input into grid coordinates for the 2.5D board. Every physics tick it casts the
-/// cursor into the world and reports hover; left-click forwards the hovered tile and both a
+/// cursor into the world and reports hover; left-click resolves its own position, and both a
 /// stationary right-click and Esc (ui_cancel) cancel targeting. Pure input translation — no rules.
 /// Middle-drag / wheel are left untouched so the <see cref="OrbitCameraRig"/> can consume them.
 /// Right-drag also orbits (handled by the rig), so cancel only fires when the right button is
 /// RELEASED after traveling less than <see cref="DragThresholdPixels"/> — a click, not a drag.
 ///
-/// Picking is one physics ray against two layers: the unit click columns
-/// (<see cref="UnitPickArea"/>) and the terrain trimesh. A column hit resolves to that unit's tile,
-/// so a click anywhere on a drawn sprite targets the unit rather than the ground its body hides
-/// behind it. A terrain hit floors to the tile struck. On a flat board (no terrain collider) a ray
-/// that misses every column falls through to the analytic y = 0 plane.
-///
-/// The cast is confined to <c>_PhysicsProcess</c>: touching <c>DirectSpaceState</c> outside the
-/// physics step risks a locked space, and a collider is not queryable on the frame it enters. The
-/// pointer is cached from motion events in <c>_Input</c>, ahead of the GUI, so it is exact under
-/// the HUD too and needs no per-frame poll. Clicks consume the tile the last cast published, so
-/// hover and click can never disagree (the cost is that hover resolves one physics tick late,
-/// which is imperceptible).
+/// Picking intersects the visible billboard pixels and the terrain. Transparent sprite padding
+/// does not steal a neighboring target. Mouse presses retain their own screen coordinates and are
+/// resolved at the next physics step, even if no motion event preceded the press.
 /// </summary>
 public partial class GridInput3D : Node3D
 {
@@ -72,6 +63,7 @@ public partial class GridInput3D : Node3D
 
     private bool _terrain;
     private Vector2 _pointer;
+    private readonly System.Collections.Generic.Queue<Vector2> _clicks = new();
 
     /// <summary>Idle until an encounter wires this node up: no camera means every per-tick cast
     /// would be a null check and nothing else.</summary>
@@ -83,6 +75,9 @@ public partial class GridInput3D : Node3D
         _gridWidth = gridWidth;
         _gridHeight = gridHeight;
         _terrain = heightMap.HasTerrain;
+        _clicks.Clear();
+        _lastHover = null;
+        _pointer = GetViewport().GetMousePosition();
         SetPhysicsProcess(true);
     }
 
@@ -95,10 +90,16 @@ public partial class GridInput3D : Node3D
     public override void _PhysicsProcess(double delta)
     {
         PF2eVec? cell = PickTile(_pointer);
-        if (Equals(cell, _lastHover)) return;
-
-        _lastHover = cell;
-        TileHovered?.Invoke(cell);
+        if (!Equals(cell, _lastHover))
+        {
+            _lastHover = cell;
+            TileHovered?.Invoke(cell);
+        }
+        while (_clicks.TryDequeue(out var click))
+        {
+            var clicked = PickTile(click);
+            if (clicked.HasValue) TileClicked?.Invoke(clicked.Value);
+        }
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -123,10 +124,9 @@ public partial class GridInput3D : Node3D
 
         if (mb.Pressed && mb.ButtonIndex == MouseButton.Left)
         {
-            // Consume the published hover rather than casting here: input runs outside the physics
-            // step, and re-casting would also risk a click landing on a different tile than the one
-            // the player saw highlighted.
-            if (_lastHover.HasValue) TileClicked?.Invoke(_lastHover.Value);
+            // Resolve the actual button position at the next safe physics step.
+            _pointer = mb.Position;
+            _clicks.Enqueue(mb.Position);
         }
         else if (mb.ButtonIndex == MouseButton.Right)
         {
@@ -139,7 +139,7 @@ public partial class GridInput3D : Node3D
     }
 
     /// <summary>
-    /// The tile under a screen point: the unit whose click column the ray strikes first, else the
+    /// The tile under a screen point: the nearest opaque unit pixel, else the
     /// terrain tile struck, else (flat board only) the floor-plane tile. Null when the ray misses the
     /// board or lands off it. Must only be called from the physics step.
     /// </summary>
@@ -152,9 +152,22 @@ public partial class GridInput3D : Node3D
         Vector3 dir = _camera.ProjectRayNormal(screen);
 
         var query = PhysicsRayQueryParameters3D.Create(origin, origin + dir * RayLength);
-        query.CollisionMask = TerrainCollisionMask | UnitCollisionMask;
+        query.CollisionMask = TerrainCollisionMask;
         query.CollideWithAreas = true;
         var hit = world.DirectSpaceState.IntersectRay(query);
+        float terrainDistance = hit.Count > 0 ? origin.DistanceTo((Vector3)hit["position"]) : RayLength;
+        float distance = RayLength;
+        UnitPickArea? picked = null;
+        foreach (var node in GetTree().GetNodesInGroup(UnitPickArea.PickGroup))
+        {
+            if (node is not UnitPickArea candidate || candidate.GetWorld3D() != world
+                || (candidate.CollisionLayer & UnitCollisionMask) == 0) continue;
+            if (!candidate.HitSprite(_camera, origin, dir, out float depth) || depth >= distance) continue;
+            if (!candidate.PickThroughTerrain && depth >= terrainDistance) continue;
+            distance = depth;
+            picked = candidate;
+        }
+        if (picked != null) return OnBoard(picked.Tile);
         // An empty dictionary is the miss result — indexing it would throw, so bail before reading.
         if (hit.Count > 0)
         {

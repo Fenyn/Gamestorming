@@ -131,6 +131,18 @@ public partial class RunEventSpike : SpikeBase
         first.EmitSignal(BaseButton.SignalName.Pressed);
         first.EmitSignal(BaseButton.SignalName.Pressed);
         Check("repeated selection cannot resolve twice", requests == 1);
+        panel.ShowResult(around);
+        Check("resolved event replaces choices with its outcome", !choices.Visible
+            && panel.GetNode<Label>("%ResultLabel").Visible
+            && panel.GetNode<Label>("%PreviewHeading").Text == "OUTCOME");
+        panel.Show(definition, previewRun);
+        Check("next event restores choices", choices.Visible && !panel.GetNode<Label>("%ResultLabel").Visible);
+        var noRoll = choices.GetChild<Button>(1);
+        noRoll.EmitSignal(Control.SignalName.FocusEntered);
+        Check("no-roll preview avoids duplicate choice and success labels",
+            noRoll.Text == definition.Options[1].Label
+            && panel.GetNode<Label>("%PreviewHeading").Text == "WHAT HAPPENS · NO ROLL"
+            && !panel.GetNode<Label>("%CheckPreview").Text.StartsWith("Success:"));
         panel.QueueFree();
     }
 

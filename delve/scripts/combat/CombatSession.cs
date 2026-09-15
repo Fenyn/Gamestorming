@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Delve.Rules;
 using System.Threading;
 using System.Threading.Tasks;
 using Delve.Data;
@@ -54,11 +56,15 @@ public sealed class CombatSession
     /// </summary>
     private EngineEncounterScope? _scope;
 
+    private readonly HashSet<ICharacter> _removed = new();
+    public event Action<ICharacter>? CombatantRemoved;
+
     private readonly List<ICharacter> _team1 = new();
     private readonly List<ICharacter> _team2 = new();
     private readonly HashSet<ICharacter> _aiControlled = new();
     private readonly HashSet<ICharacter> _commandable = new();
     // Team 1 but not the party: they fight for free and their survival never decides the encounter.
+    private readonly List<EidolonLink> _eidolons = new();
     private readonly HashSet<ICharacter> _allies = new();
     private AllyAiRules _allyAi = AllyAiRules.Default;
     // Allies toggled to auto-use reactions (skip the prompt). Default is empty = everyone PROMPTS.
@@ -168,6 +174,7 @@ public sealed class CombatSession
         _scope = new EngineEncounterScope(
             Grid, IsPlayerControlled, DecidePlayerReaction, ValidateStepDestination, ShapeAiProfile);
         _turnManager = _scope.Turns;
+        StrikeResolver.OnStrikeResolved += PresentReactionStrike;
 
         // Battle Medicine's per-target immunity set is a STATIC in the engine, cleared only by
         // CombatManager.OnClearFeatureState — and bulwark never constructs a CombatManager, so
@@ -201,10 +208,18 @@ public sealed class CombatSession
             _team2.Add(unit);
         }
 
+        foreach (var summoner in _team1.OfType<PF2eCharacter>().Where(c => WayfarerFeature.Find(c)?.Class == "Summoner").ToArray())
+        {
+            var link = new EidolonLink(summoner, Grid, _runner);
+            _scope.SharedHealth.Register(link);
+            _eidolons.Add(link); _team1.Add(link.Eidolon); _allies.Add(link.Eidolon);
+        }
         // Ordering trap: components must be subscribed to the TurnManager (which now exists) so
         // shield auto-lower and condition/cooldown ticking fire on turn boundaries.
-        foreach (var c in _team1) SubscribeCharacter(c);
+        foreach (var c in _team1) if (!_eidolons.Any(e => e.Eidolon == c)) SubscribeCharacter(c);
         foreach (var c in _team2) SubscribeCharacter(c);
+        WayfarerFeature.PrepareEncounter(_team1);
+        FeatEncounter.Prepare(_team1);
 
         _turnManager.OnTurnStart += HandleTurnStart;
         // A delayer coming back resumes rather than starts, so the engine raises this instead.
@@ -263,6 +278,30 @@ public sealed class CombatSession
         _runner.SetPresenter(OnBattleEvent);
     }
 
+    private void PresentReactionStrike(StrikeStatEvent strike)
+    {
+        // Ordinary strikes are presented by their executor. Reactions bypass those executors.
+        if (_scope == null || !ReferenceEquals(CombatantRegistry.Instance, _scope.Registry)
+            || strike.Context.SourceAction?.IsReaction != true) return;
+        ReactionSuspension.Track(PresentReactionStrikeAsync(strike.Context));
+    }
+
+    private async Task PresentReactionStrikeAsync(StrikeContext ctx)
+    {
+        var events = new BattleEventEmitter(_runner);
+        await events.Emit(new BattleEvent
+        {
+            Type = BattleEventType.AttackRolled,
+            Source = ctx.Attacker,
+            Target = ctx.Defender,
+            Degree = ctx.Degree,
+            Description = $"{ctx.Attacker.Name} uses {ctx.SourceAction.ActionName} against {ctx.Defender.Name}"
+        });
+        if (ctx.Hit && ctx.DamageResult != null)
+            await events.EmitDamageAndDeath(ctx.Attacker, ctx.Defender, ctx.DamageResult.TotalDamage,
+                type: ctx.DamageResult.DamageType, degree: ctx.Degree, targetKilled: ctx.TargetKilled);
+    }
+
     /// <summary>
     /// Presenter shim: forwards every event to the real presentation sink, then — for a
     /// <see cref="BattleEventType.CreatureDied"/> — evaluates victory immediately. If the encounter is
@@ -272,6 +311,7 @@ public sealed class CombatSession
     /// </summary>
     private async Task OnBattleEvent(BattleEvent evt)
     {
+        ReconcileOccupancy();
         if (_presenter != null)
             await _presenter(evt);
 
@@ -301,11 +341,11 @@ public sealed class CombatSession
     {
         bool anyEnemyAlive = false;
         foreach (var c in _team2)
-            if (c.Health != null && c.Health.IsAlive) { anyEnemyAlive = true; break; }
+            if (!_removed.Contains(c) && c.Health != null && c.Health.IsAlive) { anyEnemyAlive = true; break; }
 
         bool anyPlayerActive = false;
         foreach (var c in _team1)
-            if (!_allies.Contains(c) && IsConsciousAndAble(c)) { anyPlayerActive = true; break; }
+            if (!_removed.Contains(c) && !_allies.Contains(c) && IsConsciousAndAble(c)) { anyPlayerActive = true; break; }
 
         if (!anyEnemyAlive && !anyPlayerActive) return BattleResult.Draw;
         if (!anyEnemyAlive) return BattleResult.Team1Wins;
@@ -342,9 +382,12 @@ public sealed class CombatSession
         // alive and let a later encounter's checks re-enter this dead one. Detaching a handler that
         // was never attached (Setup faulted before WireRecallKnowledge) is a harmless no-op.
         RecallKnowledgeAction.OnKnowledgeResolved -= OnKnowledgeResolved;
+        StrikeResolver.OnStrikeResolved -= PresentReactionStrike;
 
         // Releases every engine global this encounter still owns, and only those: a session torn down
         // after the next encounter began leaves the live fight's wiring alone.
+        foreach (var link in _eidolons) link.Dispose();
+        _eidolons.Clear();
         _scope?.Dispose();
         _scope = null;
     }
@@ -370,9 +413,11 @@ public sealed class CombatSession
             var all = new List<ICharacter>(_team1.Count + _team2.Count);
             all.AddRange(_team1);
             all.AddRange(_team2);
+            all.RemoveAll(c => _removed.Contains(c) || _eidolons.Any(e => e.Eidolon == c));
 
             await _runner.Emit(BattleEventType.EncounterStarted);
             _turnManager.StartEncounter(all);
+            foreach (var link in _eidolons) _scope!.Registry.Register(link.Eidolon);
 
             while (_turnManager.IsEncounterActive && !_finished)
             {
@@ -408,11 +453,11 @@ public sealed class CombatSession
                     // A mid-turn death may have already decided the encounter; don't start an AI plan.
                     if (resolution == PlayerTurnResolution.HandOffToAi
                         && _pendingResult == BattleResult.InProgress)
-                        await _ai.ExecuteTurn(current);
+                        await RunAiTurn(current);
                 }
                 else
                 {
-                    await _ai.ExecuteTurn(current);
+                    await RunAiTurn(current);
                 }
 
                 await _runner.Emit(BattleEventType.TurnEnded, source: current);
@@ -625,9 +670,48 @@ public sealed class CombatSession
         };
     }
 
+    private async Task RunAiTurn(ICharacter actor)
+    {
+        await ClassAi.Act(actor,PlayerActions);
+        if (actor.Health.IsAlive && actor.Actions.TotalActionsRemaining>0) await _ai.ExecuteTurn(actor);
+    }
+
     // ---------------------------------------------------------------- Helpers
 
-    private void HandleTurnStart(ICharacter _) => TurnChanged?.Invoke();
+    private void HandleTurnStart(ICharacter _)
+    {
+        ReconcileOccupancy();
+        TurnChanged?.Invoke();
+    }
+
+    /// <summary>Retire a despawned combatant from every encounter surface. Death calls this
+    /// synchronously, before another action can query its former footprint.</summary>
+    public void RemoveCombatant(ICharacter character)
+    {
+        if (!_team1.Contains(character) && !_team2.Contains(character)) return;
+        if (!_removed.Add(character)) return;
+        Grid.RemoveCreature(character);
+        bool wasCurrent = ReferenceEquals(CurrentActor, character);
+        _turnManager.RemoveCombatant(character);
+        _scope?.Registry.Unregister(character);
+        CombatantRemoved?.Invoke(character);
+        if (wasCurrent) _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+    }
+
+    /// <summary>Catch silent deaths and removals made directly through the engine registry.
+    /// Before initiative starts, the registry has not been populated yet.</summary>
+    public void ReconcileOccupancy()
+    {
+        if (_scope == null) return;
+        var registered = new HashSet<ICharacter>(_scope.Registry.All);
+        foreach (var c in _team1) Reconcile(c);
+        foreach (var c in _team2) Reconcile(c);
+        void Reconcile(ICharacter c)
+        {
+            if (c.Health?.IsDead == true || (_turnManager.IsEncounterActive && !registered.Contains(c)))
+                RemoveCombatant(c);
+        }
+    }
 
     private void Finish(BattleResult result)
     {
@@ -641,8 +725,15 @@ public sealed class CombatSession
     private string? ValidateStepDestination(ICharacter actor, PF2eVec dest)
         => PlayerActions.StepBlockedReason(actor, dest);
 
+    private readonly Dictionary<ICharacter, IDisposable> _classBindings = new();
+
+    private readonly Dictionary<ICharacter, IDisposable> _featBindings = new();
+
     private void SubscribeCharacter(ICharacter c)
     {
+        _featBindings[c] = FeatEncounter.Bind(c,_turnManager);
+        _classBindings[c] = Delve.Rules.WayfarerFeature.Bind(c, _turnManager);
+        if (c.Health != null) c.Health.OnDeath += RemoveCombatant;
         c.Health?.SubscribeToTurnEvents(_turnManager);
         c.Equipment?.Shield?.SubscribeToTurnEvents(_turnManager);
         c.Conditions?.SubscribeToTurnEvents(_turnManager);
@@ -654,6 +745,9 @@ public sealed class CombatSession
 
     private void UnsubscribeCharacter(ICharacter c)
     {
+        if (_classBindings.Remove(c, out var binding)) binding.Dispose();
+        if (_featBindings.Remove(c,out var featBinding)) featBinding.Dispose();
+        if (c.Health != null) c.Health.OnDeath -= RemoveCombatant;
         c.Health?.UnsubscribeFromTurnEvents(_turnManager);
         c.Equipment?.Shield?.UnsubscribeFromTurnEvents(_turnManager);
         c.Conditions?.UnsubscribeFromTurnEvents(_turnManager);

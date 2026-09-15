@@ -1,6 +1,23 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/VictoryBanner.cs" id="1_vb"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/result_panel.tres" id="report"]
+[ext_resource type="Texture2D" path="res://assets/ui/result_rule.svg" id="rule"]
+[ext_resource type="FontFile" path="res://assets/fonts/alagard/alagard.ttf" id="display"]
+
+[ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
+
+[sub_resource type="StyleBoxFlat" id="dim"]
+bg_color = Color(0.078431, 0.058824, 0.094118, 0.76)
+
+[sub_resource type="StyleBoxFlat" id="xp_track"]
+bg_color = Color(0.129412, 0.098039, 0.145098, 1)
+border_width_bottom = 1
+border_color = Color(0.466667, 0.372549, 0.470588, 1)
+
+[sub_resource type="StyleBoxFlat" id="xp_fill"]
+bg_color = Color(1.000000, 0.584314, 0.490196, 1)
 
 [node name="VictoryBanner" type="Control"]
 visible = false
@@ -21,68 +38,121 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-theme_type_variation = &"ModalDim"
+theme_override_styles/panel = SubResource("dim")
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
-[node name="Frame" type="PanelContainer" parent="Center"]
+[node name="Scroll" type="ScrollContainer" parent="Margin"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Center" type="CenterContainer" parent="Margin/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Frame" type="PanelContainer" parent="Margin/Scroll/Center"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
-theme_type_variation = &"ModalPanel"
+theme_override_styles/panel = ExtResource("report")
 
-[node name="Box" type="VBoxContainer" parent="Center/Frame"]
+[node name="Box" type="VBoxContainer" parent="Margin/Scroll/Center/Frame"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 22
 
-[node name="ResultLabel" type="Label" parent="Center/Frame/Box"]
+[node name="Eyebrow" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
+layout_mode = 2
+text = "AFTER THE BATTLE"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.772549, 0.713725, 0.784314, 1)
+theme_override_fonts/font = ExtResource("display")
+theme_override_font_sizes/font_size = 14
+
+[node name="ResultLabel" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
 horizontal_alignment = 1
-theme_type_variation = &"BannerLabel"
+theme_override_fonts/font = ExtResource("display")
+theme_override_font_sizes/font_size = 40
 
-[node name="RestartButton" type="Button" parent="Center/Frame/Box"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 48)
+[node name="Rule" type="TextureRect" parent="Margin/Scroll/Center/Frame/Box"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_type_variation = &"AccentButton"
-text = "Restart"
+custom_minimum_size = Vector2(0, 20)
+texture = ExtResource("rule")
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
 
-[node name="Rewards" type="Label" parent="Center/Frame/Box"]
+[node name="Rewards" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-horizontal_alignment = 1
 autowrap_mode = 2
-theme_type_variation = &"HeadingLabel"
+theme_type_variation = &"TipBody"
+theme_override_constants/line_spacing = 12
+theme_override_colors/font_color = Color(0.956863, 0.937255, 0.913725, 1)
 
-[node name="XpProgress" type="ProgressBar" parent="Center/Frame/Box"]
+[node name="XpProgress" type="ProgressBar" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 show_percentage = false
+theme_override_styles/background = SubResource("xp_track")
+theme_override_styles/fill = SubResource("xp_fill")
 
-[node name="ProgressText" type="Label" parent="Center/Frame/Box"]
+[node name="ProgressText" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
+autowrap_mode = 2
+theme_type_variation = &"TipFooter"
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="ContinueButton" type="Button" parent="Center/Frame/Box"]
+[node name="PartyDetails" type="HBoxContainer" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+alignment = 1
+
+[node name="PartyMember" type="OptionButton" parent="Margin/Scroll/Center/Frame/Box/PartyDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DetailsButton" type="Button" parent="Margin/Scroll/Center/Frame/Box/PartyDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Character details"
+
+[node name="ContinueButton" type="Button" parent="Margin/Scroll/Center/Frame/Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(240, 52)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
 text = "Continue"
+theme_override_fonts/font = ExtResource("display")
+theme_override_font_sizes/font_size = 20
+[node name="RestartButton" type="Button" parent="Margin/Scroll/Center/Frame/Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+
+text = "Fight again"
+
+[node name="ResultDetails" parent="." instance=ExtResource("details")]
+unique_name_in_owner = true

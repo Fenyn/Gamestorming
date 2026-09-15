@@ -1,4 +1,6 @@
 using Godot;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Delve.Settings;
 namespace Delve.Combat;
@@ -18,6 +20,54 @@ namespace Delve.Combat;
 /// </summary>
 public partial class OrbitCameraRig : Node3D, ICameraFocus
 {
+    private Tween? _introTween;
+    public bool IntroPlaying => _introTween != null;
+
+    public void CancelIntro()
+    {
+        _introTween?.Kill();
+        _introTween = null;
+    }
+
+    /// <summary>Blend from the outgoing view through a lower reveal, then restore the tactical pose.</summary>
+    public async Task PlayIntro(Transform3D from, float fromFov, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        CancelIntro();
+        KillFocus();
+        var tactical = _camera.GlobalTransform;
+        float tacticalFov = _camera.Fov;
+        float yaw = _yaw, pitch = _pitch;
+        SetOrbit(yaw - 12f, Mathf.Max(PitchMinDegrees, pitch - 12f));
+        var reveal = _camera.GlobalTransform;
+        SetOrbit(yaw, pitch);
+        _camera.GlobalTransform = from;
+        _camera.Fov = fromFov;
+        _middleDragging = false;
+        _rightHeld = false;
+        var done = new TaskCompletionSource();
+        var tween = CreateTween();
+        _introTween = tween;
+        tween.TweenMethod(Callable.From<float>(t =>
+        {
+            _camera.GlobalTransform = from.InterpolateWith(reveal, t);
+            _camera.Fov = Mathf.Lerp(fromFov, tacticalFov, t);
+        }), 0f, 1f, 0.65).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+        tween.TweenInterval(0.25);
+        tween.TweenMethod(Callable.From<float>(t => _camera.GlobalTransform = reveal.InterpolateWith(tactical, t)),
+            0f, 1f, 0.65).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+        tween.TweenCallback(Callable.From(() => done.TrySetResult()));
+        try { await done.Task.WaitAsync(token); }
+        finally
+        {
+            if (ReferenceEquals(_introTween, tween))
+            {
+                CancelIntro();
+                _camera.GlobalTransform = tactical;
+                _camera.Fov = tacticalFov;
+            }
+        }
+    }
     [Export] public float PitchMinDegrees { get; set; } = 15f;
     [Export] public float PitchMaxDegrees { get; set; } = 75f;
     [Export] public float ZoomMin { get; set; } = 6f;
@@ -102,11 +152,14 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     /// </summary>
     public void FrameBoard(Vector3 worldPivot, int boardWidth, int boardHeight)
     {
+        RestorePlanningView(true);
         float framing = Mathf.Max(boardWidth, boardHeight) * FramingDistancePerTile;
+        _overviewCenter = worldPivot;
+        _overviewDistance = framing;
         ZoomMax = Mathf.Max(ZoomMax, framing * ZoomOutFactor);
         _distance = ViewPreferences.HasStoredCombatCameraDistance
             ? Mathf.Clamp(ViewPreferences.CombatCameraDistance, ZoomMin, ZoomMax)
-            : Mathf.Clamp(framing, ZoomMin, ZoomMax);
+            : Mathf.Clamp(PlanningDistanceCap > 0 ? Mathf.Min(framing, PlanningDistanceCap) : framing, ZoomMin, ZoomMax);
         KillFocus();
         _userPanned = false;
         _turnTarget = null;
@@ -133,6 +186,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     {
         if (turnStart)
         {
+            RestorePlanningView(true);
             _userPanned = false;
             _turnTarget = target;
         }
@@ -160,6 +214,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     /// <summary>Glide back onto the unit whose turn it is (the C hotkey). No-op before the first turn.</summary>
     public void FocusOnActive()
     {
+        RestorePlanningView(true);
         if (_turnTarget is { } target) FocusOn(target, FocusSeconds, turnStart: true);
     }
 
@@ -180,6 +235,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     public override void _Process(double delta)
     {
+        if (IntroPlaying) return;
         // WASD pans the pivot across the ground plane, camera-relative (W = screen-up).
         var pan = Vector2.Zero;
         if (Input.IsKeyPressed(Key.W)) pan.Y -= 1f;
@@ -195,6 +251,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     /// from the presenter's follow until the next turn start.</summary>
     public void Pan(Vector2 pan)
     {
+        RestorePlanningView(true);
         KillFocus();
         _userPanned = true;
         float yawRad = Mathf.DegToRad(_yaw);
@@ -206,6 +263,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (IntroPlaying) return;
         switch (@event)
         {
             case InputEventMouseButton mb:
@@ -251,6 +309,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     private void Orbit(Vector2 relative)
     {
+        RestorePlanningView(true);
         _yaw -= relative.X * OrbitSensitivity;
         _pitch = Mathf.Clamp(_pitch + relative.Y * OrbitSensitivity, PitchMinDegrees, PitchMaxDegrees);
         UpdateCameraPose();
@@ -258,6 +317,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     private void Zoom(float delta)
     {
+        RestorePlanningView(true);
         _distance = Mathf.Clamp(_distance + delta, ZoomMin, ZoomMax);
         ViewPreferences.CombatCameraDistance = _distance;
         UpdateCameraPose();

@@ -23,6 +23,7 @@ public partial class RunMapStatus : VBoxContainer
     private Tween? _drain;
     private bool _spending;
     public event Action? RestPressed;
+    public event Action<PF2e.Core.PF2eCharacter>? DetailsRequested;
     public override void _Ready()
     {
         _wardValue = GetNode<Label>("%WardValue");
@@ -88,6 +89,7 @@ public partial class RunMapStatus : VBoxContainer
         foreach (var member in state.Party.Members)
         {
             var row = MemberScene.Instantiate<MapPartyMember>();
+            row.DetailsRequested += member => DetailsRequested?.Invoke(member);
             _party.AddChild(row);
             row.Render(member);
         }

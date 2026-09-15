@@ -79,6 +79,8 @@ internal static class SpellEntryFactory
         return new SpellEntryView
         {
             SpellId = spell.SpellId,
+            SignaturePriority = SignatureAbilities.Priority(spell.SpellId),
+            SignatureName = spell.ActionName,
             VariantIndex = variantIndex,
             Name = variant == null ? spell.ActionName : $"{spell.ActionName} ({variant.Label})",
             IsCantrip = isCantrip,

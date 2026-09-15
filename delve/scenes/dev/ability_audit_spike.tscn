@@ -1,0 +1,8 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/dev/AbilityAuditSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="2"]
+[ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="3"]
+[node name="AbilityAuditSpike" type="Node"]
+script = ExtResource("1")
+BarScene = ExtResource("2")
+BarTheme = ExtResource("3")

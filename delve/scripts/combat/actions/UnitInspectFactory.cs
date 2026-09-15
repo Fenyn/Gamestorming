@@ -46,7 +46,7 @@ internal static class UnitInspectFactory
         return provider.IsFieldRevealed(creatureId!, field);
     }
 
-    private static UnitInspectView BuildInspectView(ICharacter c)
+    internal static UnitInspectView BuildInspectView(ICharacter c)
     {
         var conditions = new List<string>();
         foreach (var instance in c.Conditions?.GetAllConditions() ?? new List<ConditionInstance>())

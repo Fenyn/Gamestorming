@@ -1,0 +1,129 @@
+[gd_resource type="Theme" format=3 uid="uid://bmfvjl36nc221"]
+
+[ext_resource type="Texture2D" uid="uid://xbr5vrq3eh7e" path="res://assets/ui/button_accent.svg" id="button_accent"]
+[ext_resource type="Texture2D" uid="uid://bo7343trlhkrc" path="res://assets/ui/button_disabled.svg" id="button_disabled"]
+[ext_resource type="Texture2D" uid="uid://crs1klmkw7k1l" path="res://assets/ui/button_focus.svg" id="button_focus"]
+[ext_resource type="Texture2D" uid="uid://87dt3me7qej4" path="res://assets/ui/button_hover.svg" id="button_hover"]
+[ext_resource type="Texture2D" uid="uid://1pqjf5oqmecp" path="res://assets/ui/button_normal.svg" id="button_normal"]
+[ext_resource type="Texture2D" uid="uid://nqbgg4kobxms" path="res://assets/ui/button_pressed.svg" id="button_pressed"]
+[ext_resource type="FontFile" uid="uid://c661nppyui4xu" path="res://assets/fonts/pixeloid/PixeloidSans.ttf" id="font"]
+[ext_resource type="FontFile" uid="uid://dar0nf3nbx7mq" path="res://assets/fonts/alagard/alagard.ttf" id="title"]
+
+[sub_resource type="StyleBoxTexture" id="disabled"]
+content_margin_left = 28.0
+content_margin_top = 17.0
+content_margin_right = 28.0
+content_margin_bottom = 17.0
+texture = ExtResource("button_disabled")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="focus"]
+texture = ExtResource("button_focus")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="hover"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+texture = ExtResource("button_hover")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="quiet"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+texture = ExtResource("button_normal")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="pressed"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+texture = ExtResource("button_pressed")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="companion"]
+content_margin_left = 22.0
+content_margin_top = 16.0
+content_margin_right = 22.0
+content_margin_bottom = 16.0
+bg_color = Color(0.129412, 0.098039, 0.145098, 0.91)
+border_width_left = 2
+border_color = Color(0.713725, 0.427451, 0.462745, 0.9)
+
+[sub_resource type="StyleBoxTexture" id="depart"]
+content_margin_left = 28.0
+content_margin_top = 17.0
+content_margin_right = 28.0
+content_margin_bottom = 17.0
+texture = ExtResource("button_accent")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="link_focus"]
+content_margin_left = 0.0
+content_margin_top = 8.0
+content_margin_right = 0.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 1
+border_color = Color(0.835294, 0.937255, 0.568627, 1)
+
+[resource]
+default_font = ExtResource("font")
+default_font_size = 18
+Button/colors/font_color = Color(0.956863, 0.937255, 0.913725, 1)
+Button/colors/font_disabled_color = Color(0.701961, 0.643137, 0.721569, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(1, 0.584314, 0.490196, 1)
+Button/styles/disabled = SubResource("disabled")
+Button/styles/focus = SubResource("focus")
+Button/styles/hover = SubResource("hover")
+Button/styles/normal = SubResource("quiet")
+Button/styles/pressed = SubResource("pressed")
+CampCompanion/base_type = &"PanelContainer"
+CampCompanion/styles/panel = SubResource("companion")
+CampDepart/base_type = &"Button"
+CampDepart/font_sizes/font_size = 24
+CampDepart/fonts/font = ExtResource("title")
+CampDepart/styles/disabled = SubResource("disabled")
+CampDepart/styles/normal = SubResource("depart")
+CampLink/base_type = &"Button"
+CampLink/colors/font_focus_color = Color(0.835294, 0.937255, 0.568627, 1)
+CampLink/colors/font_hover_color = Color(1, 0.584314, 0.490196, 1)
+CampLink/colors/font_hover_pressed_color = Color(1, 0.584314, 0.490196, 1)
+CampLink/font_sizes/font_size = 16
+CampLink/styles/disabled = SubResource("empty")
+CampLink/styles/focus = SubResource("link_focus")
+CampLink/styles/hover = SubResource("empty")
+CampLink/styles/hover_pressed = SubResource("empty")
+CampLink/styles/normal = SubResource("empty")
+CampLink/styles/pressed = SubResource("empty")
+Label/colors/font_color = Color(0.956863, 0.937255, 0.913725, 1)
+Label/colors/font_shadow_color = Color(0.078431, 0.058824, 0.094118, 0.9)
+Label/constants/shadow_offset_x = 2
+Label/constants/shadow_offset_y = 2

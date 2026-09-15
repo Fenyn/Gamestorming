@@ -18,7 +18,7 @@ internal static class ActionBarStateBuilder
     {
         int actions = current.Actions?.TotalActionsRemaining ?? 0;
 
-        bool canStrike = actions > 0 && exec.GetStrikeTargets(current).Count > 0;
+        bool canStrike = !Delve.Rules.WayfarerFeature.State(current).FinisherUsed && actions > 0 && exec.GetStrikeTargets(current).Count > 0;
         bool canRaiseShield = actions > 0 && current.Equipment?.CanRaiseShield() == true;
         bool canDelay = actions > 0 && delayBlockedReason == null;
 
@@ -27,6 +27,7 @@ internal static class ActionBarStateBuilder
         return new ActionBarState
         {
             ActorName = current.Name,
+            Resources = Delve.Rules.ClassStatus.Resources(current),
             ActionsRemaining = actions,
             MaxActions = current.Actions?.MaxBaseActions ?? 3,
             CanStrike = canStrike,
@@ -61,6 +62,11 @@ internal static class ActionBarStateBuilder
     {
         AttackPreviewData? data = exec.GetAttackPreview(attacker, target);
         if (data == null) return null;
+        return BuildPreview(data);
+    }
+
+    internal static AttackPreviewView BuildPreview(AttackPreviewData data)
+    {
 
         bool acKnown = PlayerActionExecutor.IsCreatureFieldKnown(
             data.TargetCreatureId, CreatureKnowledgeField.AC);

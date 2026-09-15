@@ -43,6 +43,7 @@ public partial class RunMapPanel : Control
     private MapScenery _scenery = null!;
     private MapTravelLight _travel = null!;
     private RunState? _state;
+    private CharacterDetailsOverlay _details = null!;
     private readonly Dictionary<int, MapNodeButton> _buttons = new();
 
     public event Action<int>? NodePicked;
@@ -58,6 +59,13 @@ public partial class RunMapPanel : Control
         _detailBody = GetNode<Label>("%DetailBody");
         _detailState = GetNode<Label>("%DetailState");
         _status = GetNode<RunMapStatus>("%Status");
+        _details = GetNode<CharacterDetailsOverlay>("%MapCharacterDetails");
+        _details.GetNode<Button>("%CloseDetails").Text = "Return to map  [Esc]";
+        _status.DetailsRequested += member =>
+        {
+            if (!_travel.Traveling) _details.Open(member, HeroPortraits.For(member.Id), UiColors.CharacterAccent(member.Id));
+        };
+        _details.Promoted += () => { if (_state != null) _status.Render(_state); };
         _mapScroll = GetNode<ScrollContainer>("%MapScroll");
         _legendRow = GetNode<BoxContainer>("%LegendRow");
         _scenery = GetNode<MapScenery>("%Scenery");
@@ -141,6 +149,7 @@ public partial class RunMapPanel : Control
 
     public async Task<bool> PlayTravel(int nodeId)
     {
+        if (_details.Visible || !CanEnterWithPromotions(nodeId)) return false;
         if (_state == null || _travel.Traveling || !_buttons.TryGetValue(nodeId, out var target)
             || target.Disabled || !IsVisibleInTree()) return false;
         var destination = target.Position + target.Size / 2;
@@ -154,6 +163,16 @@ public partial class RunMapPanel : Control
             foreach (var (id, button) in _buttons) button.Disabled = !reachable.Contains(id);
         }
         return arrived;
+    }
+
+    public bool CanEnterWithPromotions(int nodeId)
+    {
+        if (_details.Visible) return false;
+        if (_state?.Map.Node(nodeId) is not { } node || !CharacterPromotion.HasPending(_state.Party)) return true;
+        if (node.Kind is not (NodeKind.Combat or NodeKind.Elite or NodeKind.Boss or NodeKind.Meeting)) return true;
+        _detailTitle.Text = "Promotion available";
+        _detailBody.Text = "Open each marked character's sheet and confirm their promotion before the next encounter.";
+        return false;
     }
 
     private void ShowDestination(MapNode node, bool reachable, bool live, bool current)

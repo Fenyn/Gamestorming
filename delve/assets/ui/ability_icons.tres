@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="ItemIconCatalog" load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ItemIconCatalog.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/double-slice.png" id="double-slice"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/inspiring-marshal-stance.png" id="inspiring-marshal-stance"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/treat-condition.png" id="treat-condition"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/battle-medicine.png" id="battle-medicine"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/flurry-of-blows.png" id="flurry-of-blows"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/hunt-prey.png" id="hunt-prey"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/spellstrike.png" id="spellstrike"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/recharge-spellstrike.png" id="recharge-spellstrike"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/dimensional-assault.png" id="dimensional-assault"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/rage.png" id="rage"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/lay-on-hands.png" id="lay-on-hands"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/chalice.png" id="chalice"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/courageous-anthem.png" id="courageous-anthem"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/confident-finisher.png" id="confident-finisher"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/braggarts-boast.png" id="braggarts-boast"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/eidolon-strike.png" id="eidolon-strike"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/eidolon-advance.png" id="eidolon-advance"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/act-together.png" id="act-together"]
+[ext_resource type="Texture2D" path="res://assets/icons/abilities/ability.png" id="ability"]
+
+[resource]
+script = ExtResource("1")
+Icons = Dictionary[String, Texture2D]({
+"double-slice": ExtResource("double-slice"),
+"inspiring-marshal-stance": ExtResource("inspiring-marshal-stance"),
+"treat-condition": ExtResource("treat-condition"),
+"battle-medicine": ExtResource("battle-medicine"),
+"flurry-of-blows": ExtResource("flurry-of-blows"),
+"hunt-prey": ExtResource("hunt-prey"),
+"spellstrike": ExtResource("spellstrike"),
+"recharge-spellstrike": ExtResource("recharge-spellstrike"),
+"dimensional-assault": ExtResource("dimensional-assault"),
+"rage": ExtResource("rage"),
+"lay-on-hands": ExtResource("lay-on-hands"),
+"chalice": ExtResource("chalice"),
+"courageous-anthem": ExtResource("courageous-anthem"),
+"confident-finisher": ExtResource("confident-finisher"),
+"braggarts-boast": ExtResource("braggarts-boast"),
+"eidolon-strike": ExtResource("eidolon-strike"),
+"eidolon-advance": ExtResource("eidolon-advance"),
+"act-together": ExtResource("act-together")
+})
+Fallback = ExtResource("ability")

@@ -42,6 +42,7 @@ public partial class ChassisSpike : SpikeBase
         CheckD_ElaraSneakAttackPrecision(data);
         CheckE_ElaraFinesseUsesDex();
         await CheckF_WeaponMasteryCritSpec(data);
+        await CheckG_FlankingSneakAttack(data);
     }
 
     // ── (a) Veteran L5: Master martial weapons → +15 with the longsword ──
@@ -202,6 +203,48 @@ public partial class ChassisSpike : SpikeBase
     }
 
     // ─────────────────────────── Harness helpers ───────────────────────────
+
+    private async Task CheckG_FlankingSneakAttack(DataManager data)
+    {
+        var elara = PresetCharacters.BuildElara(level: 2);
+        var ally = PresetCharacters.BuildPlayer(level: 2);
+        var target = PresetCharacters.BuildPlayer(level: 5, teamId: 2);
+        var (session, exec) = StartSession(data,
+            party: new() { (elara, new PF2eVec(5, 5)), (ally, new PF2eVec(7, 5)) },
+            enemies: new() { (target, new PF2eVec(6, 5)) }, seed: 17);
+        StrikeContext? resolved = null;
+        try
+        {
+            Check("(g) flank does not require a global off-guard condition",
+                !target.Conditions.HasCondition(Condition.OffGuard));
+            Check("(g) target is off-guard to flanking Elara", OffGuardHelper.IsOffGuardTo(target, elara));
+            Check("(g) flank does not make Elara off-guard to target", !OffGuardHelper.IsOffGuardTo(elara, target));
+            Check("(g) flanking does not grant ranged off-guard",
+                !OffGuardHelper.IsOffGuardTo(target, elara, AttackType.Ranged));
+            elara.Actions.RefillActions();
+            int hp = target.Health.CurrentHP;
+            DiceRoller.EnqueueD20(19);
+            await StrikeResolver.ExecuteStrike(elara, target, sourceAction: null, onComplete: ctx => resolved = ctx);
+            Check("(g) actual rapier hit includes sneak precision",
+                resolved?.Hit == true && HasSneakPrecision(resolved.DamageResult));
+            if (resolved?.DamageResult is { } damage)
+            {
+                Check("(g) full damage reaches target HP", hp - target.Health.CurrentHP == damage.TotalDamage);
+                string log = new PF2e.Events.DamageEvent(target, damage, elara).ToLogMessage();
+                Check("(g) damage log identifies Sneak Attack from flanking", log.Contains("Sneak Attack (flanking)"));
+                GD.Print(log);
+            }
+            ally.GridPosition = new PF2eVec(5, 6);
+            Check("(g) moving ally off opposite side removes flank", !OffGuardHelper.IsOffGuardTo(target, elara));
+            Check("(g) no sneak damage after flank breaks", !HasSneakPrecision(
+                DamageCalculator.CalculateDamage(elara, elara.Equipment.MainHandWeapon, false, target)));
+        }
+        finally
+        {
+            DiceRoller.ClearAllOverrides();
+            session.Teardown();
+        }
+    }
 
     private static bool HasSneakPrecision(DamageResult dr)
     {

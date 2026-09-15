@@ -26,16 +26,19 @@ public partial class RunEndPanel : Control
     }
 
     /// <summary>Show how the run ended. Colors come from the palette, never from a literal.</summary>
-    public void Show(RunState state)
+    public void Show(RunState state, bool dungeon = false, string campaignSummary = "")
     {
         bool won = state.Outcome == RunOutcome.Victory;
         _outcomeLabel.Text = won ? "Victory" : "Defeat";
         _outcomeLabel.AddThemeColorOverride("font_color", won ? UiColors.Victory : UiColors.Defeat);
 
-        int floorsCleared = state.CurrentNodeId == null ? 0 : state.Floor + 1;
+        int floorsCleared = dungeon ? state.Stratum + 1 : state.CurrentNodeId == null ? 0 : state.Floor + 1;
+        int totalFloors = dungeon ? Delve.Data.FloorThemes.Count : state.Map.Floors;
         string cause = !won && state.Wardstone.IsSpent ? "\nThe ward went out." : "";
-        _detailLabel.Text = $"Floors reached {floorsCleared} of {state.Map.Floors}"
-                            + $"      Day {state.Clock.Day}      Gold {state.Gold}{cause}";
+        _detailLabel.Text = $"Floors reached {floorsCleared} of {totalFloors}"
+                            + $"\nDay {state.Clock.Day}     |     Gold {state.Gold}{cause}"
+                            + (campaignSummary.Length > 0 ? "\n\n" + campaignSummary : "");
+        GetNode<Control>("%Frame").CustomMinimumSize = new Vector2(Mathf.Min(620, Mathf.Max(240, Size.X - 64)), 0);
         Visible = true;
     }
 }

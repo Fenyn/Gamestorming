@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Presets;
 using PF2e.Core;
 
@@ -31,11 +32,12 @@ public static class CharacterCatalog
             lvl => PresetCharacters.BuildTharr(lvl), StartsUnlocked: true),
         new(PresetCharacters.FenwickId, "Fenwick", "Wizard · artillery",
             lvl => PresetCharacters.BuildFenwick(lvl), StartsUnlocked: true),
-        new(PresetCharacters.RavenId, "Raven", "Rogue · duelist",
+        new(PresetCharacters.RavenId, "Raven", "Swashbuckler · duelist",
             PresetCharacters.BuildRaven),
-        new(PresetCharacters.ThistleId, "Thistle", "Fighter · scout",
+        new(PresetCharacters.ThistleId, "Thistle", "Ranger · scout",
             PresetCharacters.BuildThistle),
-    };
+    }.Concat(BulwarkWayfarers.All.Select(spec => new CharacterDef(spec.Id, spec.Name,
+        $"{spec.IntendedClass} - {spec.Role}", level => PresetCharacters.BuildWayfarer(spec, level)))).ToArray();
 
     /// <summary>The entry with this id, or null.</summary>
     public static CharacterDef? Find(string id)

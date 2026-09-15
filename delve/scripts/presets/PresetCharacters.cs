@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Data;
+using Delve.Run;
 using PF2e.CharacterComponents;
 using PF2e.Classes;
 using PF2e.Core;
@@ -284,6 +286,8 @@ public static partial class PresetCharacters
         // --- Learn + prepare the authored loadout, trimmed to the final slot layout ---
         PrepareLoadout(spellcasting, preparedSpellIds);
 
+        RosterFeats.Apply(character);
+        FeatCantrips.Apply(character);
         return character;
     }
 
@@ -441,26 +445,32 @@ public static partial class PresetCharacters
             character.Health.Initialize();
         }
 
+        RosterFeats.Apply(character);
+        FeatCantrips.Apply(character);
         return character;
     }
 
     /// <summary>
-    /// Level up a LIVE preset member in place, mid-run: replay the member's combo script for the
-    /// new levels, re-resolve features, recompute max HP while PRESERVING damage taken (Initialize
-    /// resets current HP to max), and re-run the daily-casting decisions. Spent spell slots stay
-    /// spent - the rest flow owns refills, per LevelUpApplicator's contract. A member leveled in
-    /// place ends mechanically identical to one built at the new level, minus its wounds.
+    /// Apply level growth while preserving damage taken. AI/test presets replay their authored
+    /// feats. Player promotion commits pass useScriptedFeats=false: only the dedication and its
+    /// prerequisites remain fixed, and existing prepared spells stay spent until daily rest.
     /// </summary>
-    public static void LevelUpInPlace(PF2eCharacter member, int toLevel)
+    public static void LevelUpInPlace(PF2eCharacter member, int toLevel, bool useScriptedFeats = true)
     {
+        // Player-owned progression must go through the sheet. AI/test presets retain their scripts.
+        if (useScriptedFeats && Delve.Run.CharacterPromotion.IsManaged(member)) return;
         int from = member.Stats?.Level ?? 1;
         if (toLevel <= from) return;
 
         var combo = ComboFor(member.Id);
         var choices = combo?.ChoicesUpTo(toLevel);
+        if (!useScriptedFeats)
+            choices = choices?.Where(c => c.Level == 2).ToList(); // Dedication and authored prerequisites only.
 
         var health = member.Health;
         int missing = health != null ? health.MaxHP - health.CurrentHP : 0;
+        int fontSpent = member.Spellcasting?.DivineFont is { } font ? font.MaxSlots - font.CurrentSlots : 0;
+        int hpBefore = health?.CurrentHP ?? 0;
 
         LevelUpApplicator.ApplyLevelUp(member, fromLevel: from, toLevel: toLevel, choices);
         member.Features?.ResolveAndGrantFeatures();
@@ -468,21 +478,25 @@ public static partial class PresetCharacters
         if (health != null)
         {
             health.Initialize();
-            health.SetCurrentHP(Math.Max(1, health.MaxHP - missing));
+            health.SetCurrentHP(hpBefore <= 0 ? 0 : Math.Max(1, health.MaxHP - missing));
         }
 
-        RefreshDailyCasting(member);
+        if (useScriptedFeats) RosterFeats.Apply(member);
+        RefreshDailyCasting(member, keepPreparations: !useScriptedFeats);
+        if (member.Spellcasting?.DivineFont is { } updatedFont)
+            updatedFont.RestoreState(updatedFont.MaxSlots - fontSpent, updatedFont.FontRank);
+        FeatCantrips.Apply(member);
     }
 
     /// <summary>The locked combo a preset id levels with; null for an unknown id (levels apply
     /// with auto-assigned choices only).</summary>
     private static VariantComboDefinition? ComboFor(string id) => id switch
     {
-        PlayerId or RecruitId or ThistleId => PresetCombos.FighterSentinel,
-        ElaraId or RavenId => PresetCombos.RogueThief,
+        PlayerId or RecruitId => PresetCombos.FighterSentinel,
+        ElaraId => PresetCombos.RogueThief,
         TharrId => PresetCombos.ClericWarpriest,
         FenwickId => PresetCombos.WizardBattleMagic,
-        _ => null,
+        _ => BulwarkWayfarers.Find(id) is { } spec ? WayfarerCombo(spec) : null,
     };
 
     /// <summary>
@@ -496,8 +510,13 @@ public static partial class PresetCharacters
     /// the caller's rest flow owns that (font Configure does reset its own pool, which the
     /// nightly rest refills anyway).
     /// </summary>
-    public static void RefreshDailyCasting(PF2eCharacter character)
+    public static void RefreshDailyCasting(PF2eCharacter character, bool keepPreparations = false)
     {
+        if (BulwarkWayfarers.Find(character.Id) is { } wayfarer)
+        {
+            WayfarerCasting.Configure(character, wayfarer, fresh: false, keepPreparations: keepPreparations);
+            return;
+        }
         var spellcasting = character.Spellcasting;
         if (spellcasting == null)
             return;
@@ -516,10 +535,10 @@ public static partial class PresetCharacters
         {
             TharrId => MedicPreparedSpellIds,
             FenwickId => FenwickPreparedSpellIds,
-            _ => null,
+            _ => BulwarkWayfarers.Find(character.Id)?.Spells,
         };
         if (loadout != null)
-            PrepareLoadout(spellcasting, loadout);
+            PrepareLoadout(spellcasting, loadout, keepPreparations);
     }
 
     /// <summary>
@@ -557,7 +576,7 @@ public static partial class PresetCharacters
     /// are capped at max slots and NON-curriculum preparations at the unrestricted (non-school)
     /// slots. Authored lists put curriculum spells first so school slots are filled greedily.
     /// </summary>
-    private static void PrepareLoadout(Spellcasting spellcasting, string[] preparedSpellIds)
+    private static void PrepareLoadout(Spellcasting spellcasting, string[] preparedSpellIds, bool keepPreparations = false)
     {
         var school = spellcasting.SchoolSlotSchool;
         var prepared = new List<PF2e.Actions.SpellAction>();
@@ -593,7 +612,7 @@ public static partial class PresetCharacters
             prepared.Add(spell);
         }
 
-        spellcasting.PrepareSpells(prepared);
+        if (!keepPreparations) spellcasting.PrepareSpells(prepared);
     }
 
     private static WeaponDefinition? FindWeapon(string slug)

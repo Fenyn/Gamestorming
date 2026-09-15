@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/elite.tscn" id="base"]
+[node name="mess_hall" instance=ExtResource("base")]
+UsePurpose = true
+Purpose = 3
+InteriorSize = 14
+SizeVariants = PackedInt32Array(14, 16)

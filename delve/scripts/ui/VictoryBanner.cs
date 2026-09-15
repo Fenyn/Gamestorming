@@ -44,6 +44,15 @@ public partial class VictoryBanner : Control
         // explicitly via SetRestartVisible.
         _restartButton.Visible = false;
         Visible = false;
+        Resized += FitFrame;
+        FitFrame();
+        WirePartyDetails();
+    }
+
+    private void FitFrame()
+    {
+        var frame = GetNode<Control>("%Frame");
+        frame.CustomMinimumSize = new Vector2(Mathf.Min(620, Mathf.Max(240, Size.X - 64)), 0);
     }
 
     public override void _ExitTree()
@@ -60,6 +69,7 @@ public partial class VictoryBanner : Control
     public void HideResult()
     {
         _reveal?.Kill();
+        GetNode<Delve.Flow.CharacterDetailsOverlay>("%ResultDetails").Close();
         Visible = false;
         if (!_modalHeld) return;
         _modalHeld = false;
@@ -75,7 +85,9 @@ public partial class VictoryBanner : Control
         _rewards.Visible = false;
         _progressText.Visible = false;
         _progress.Visible = false;
-        _resultLabel.Text = text;
+        FitFrame();
+        ShowParty(System.Array.Empty<PF2e.Core.PF2eCharacter>());
+        _resultLabel.Text = text.TrimEnd('!');
         _resultLabel.AddThemeColorOverride("font_color", color);
         Visible = true;
         if (!_modalHeld)

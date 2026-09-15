@@ -28,9 +28,8 @@ public partial class RunMapAccentTheme : Resource
             ("normal", ButtonFillStrength), ("hover", ButtonHoverStrength),
             ("pressed", ButtonPressedStrength), ("focus", ButtonFillStrength) })
         {
-            var button = (StyleBoxFlat)source.GetStylebox(state, "MapRestButton").Duplicate();
-            button.BgColor = ground.Lerp(accent, strength);
-            button.BorderColor = accent;
+            var button = (StyleBoxTexture)source.GetStylebox(state, "MapRestButton").Duplicate();
+            button.ModulateColor = Colors.White.Lerp(accent, strength);
             theme.SetStylebox(state, "MapRestButton", button);
         }
         foreach (var (state, color) in new[] { ("fill", accent), ("background", ground) })

@@ -11,14 +11,29 @@ namespace Delve.Flow;
 public partial class RunDirector
 {
     [Export] public string CampaignSavePath { get; set; } = "";
+    /// <summary>Session-only full roster for playtesting. Campaign saves are not loaded or written.</summary>
+    [Export] public bool TestFullRoster { get; set; }
     private CampaignProgress _campaign = new();
+    private CampaignProgressData _campaignAtDeparture = new();
     private string _runId = "";
+
+    private void ReturnToOutpost()
+    {
+        if (_transition.Busy) return;
+        _ = PlayRunTransition("Returning to the outpost", ResetToOutpost);
+    }
+
     private bool _campaignSaveFailed;
 
     public CampaignProgress Campaign => _campaign;
 
     private void LoadCampaign()
     {
+        if (TestFullRoster)
+        {
+            foreach (var def in CharacterCatalog.All) _campaign.Unlocks.Unlock(def.Id);
+            return;
+        }
         if (AutoPlayCombat || string.IsNullOrWhiteSpace(CampaignSavePath)) return;
         try { _campaign = CampaignProgressStore.Load(ProjectSettings.GlobalizePath(CampaignSavePath)); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
@@ -31,7 +46,7 @@ public partial class RunDirector
 
     private void SaveCampaign()
     {
-        if (AutoPlayCombat || _campaignSaveFailed || string.IsNullOrWhiteSpace(CampaignSavePath)) return;
+        if (TestFullRoster || AutoPlayCombat || _campaignSaveFailed || string.IsNullOrWhiteSpace(CampaignSavePath)) return;
         try { CampaignProgressStore.Save(ProjectSettings.GlobalizePath(CampaignSavePath), _campaign); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

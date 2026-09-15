@@ -47,7 +47,7 @@ public sealed class CombatLogFormat
         if (roll != null)
         {
             string badge = Ink($"[b]{roll.Outcome}[/b]", Severity(severity));
-            if (compact) return badge;
+            if (compact) return $"{Text(roll.Prefix)}{badge} · [b]{roll.Total}[/b] vs {roll.Defense} [b]{roll.DC}[/b]";
             string math = $"{Text(roll.Prefix)}{Number(roll.Die)}{Text(roll.Modifiers)} = {Number(roll.Total)} vs {roll.Defense} {Number(roll.DC)}";
             return $"{badge}  {math}";
         }
@@ -64,6 +64,7 @@ public sealed class CombatLogFormat
     public string Summary(string message, int severity)
     {
         if (CombatRoll.Parse(message) != null) return Entry(message, severity, true, true);
+        if (severity is >= 1 and <= 7 or 9) return Entry(message.TrimEnd('.'), severity, true);
         var effect = Regex.Match(message, @"(?:takes|regains) (\d+.*?)(?:\.|$)");
         return effect.Success ? Text(message.TrimEnd('.')) : "";
     }

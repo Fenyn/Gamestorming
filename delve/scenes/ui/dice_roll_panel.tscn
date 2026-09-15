@@ -6,8 +6,8 @@
 [node name="DiceRoll" type="PanelContainer"]
 offset_left = 16.0
 offset_top = 80.0
-offset_right = 396.0
-offset_bottom = 290.0
+offset_right = 456.0
+offset_bottom = 306.0
 mouse_filter = 2
 theme_type_variation = &"CombatLogSurface"
 script = ExtResource("1")
@@ -25,7 +25,7 @@ FadeSeconds = 0.2
 [node name="Content" type="VBoxContainer" parent="."]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 12
 
 [node name="RollContext" type="Label" parent="Content"]
 unique_name_in_owner = true
@@ -35,24 +35,32 @@ theme_type_variation = &"CombatLogCaption"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="FaceCenter" type="CenterContainer" parent="Content"]
+[node name="Equation" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 18
+
+[node name="FaceCenter" type="CenterContainer" parent="Content/Equation"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Face" type="Control" parent="Content/FaceCenter"]
-custom_minimum_size = Vector2(96, 88)
+[node name="Face" type="Control" parent="Content/Equation/FaceCenter"]
+custom_minimum_size = Vector2(104, 104)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Outline" type="TextureRect" parent="Content/FaceCenter/Face"]
+[node name="Outline" type="TextureRect" parent="Content/Equation/FaceCenter/Face"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="DieValue" type="Label" parent="Content/FaceCenter/Face"]
+[node name="DieValue" type="Label" parent="Content/Equation/FaceCenter/Face"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -60,14 +68,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 theme_type_variation = &"CombatLogCaption"
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 36
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "20"
 
-[node name="RollMath" type="RichTextLabel" parent="Content"]
+[node name="RollMath" type="RichTextLabel" parent="Content/Equation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(270, 122)
+size_flags_horizontal = 3
+size_flags_vertical = 4
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"CombatLogText"
@@ -80,4 +90,6 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"CombatLogCaption"
+theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
+autowrap_mode = 2

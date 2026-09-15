@@ -41,6 +41,9 @@ public partial class ReactionDyingSpike : SpikeBase
         await Check4_DefeatWhenAllDown(data);
         await Check5_ShoveDisplaces(data);
         Check6_ForcedMovementInstalled(data);
+        await Check7_ReactionPresentationAndInterruption(data, playerMover: false);
+        await Check7_ReactionPresentationAndInterruption(data, playerMover: true);
+        await Check8_AiStopsQueuedActions(data);
     }
 
     // ── (1) Shield Block reduces damage by hardness + consumes the reaction ──
@@ -301,6 +304,117 @@ public partial class ReactionDyingSpike : SpikeBase
     {
         var def = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         return CreatureFactory.Create(def, teamId: 2);
+    }
+
+    private async Task Check7_ReactionPresentationAndInterruption(DataManager data, bool playerMover)
+    {
+        string label = playerMover ? "downed player" : "slain enemy";
+        ICharacter mover = playerMover ? PresetCharacters.BuildElara(5) : MakeGoblin(data);
+        var reactor = PresetCharacters.BuildPlayer(2, teamId: playerMover ? 2 : 1);
+        var ally = PresetCharacters.BuildTharr(2);
+        var from = new PF2eVec(6, 5);
+        var party = new List<(ICharacter, PF2eVec)> { (ally, new PF2eVec(2, 2)) };
+        var enemies = new List<(ICharacter, PF2eVec)>();
+        (playerMover ? party : enemies).Add((mover, from));
+        (playerMover ? enemies : party).Add((reactor, new PF2eVec(5, 5)));
+        var (session, exec) = StartSession(data, party, enemies, seed: 27);
+        var releaseAttack = new TaskCompletionSource();
+        var turnEnded = new TaskCompletionSource();
+        var seen = new List<BattleEvent>();
+        try
+        {
+            await ReactionEvents.DeliverDamage(reactor, mover, Physical(mover.Health.CurrentHP - 1));
+            mover.Actions.RefillActions();
+            session.SetPresenter(async evt =>
+            {
+                seen.Add(evt);
+                if (evt.Type == BattleEventType.AttackRolled) await releaseAttack.Task;
+            });
+            DiceRoller.EnqueueD20(20);
+            Task action;
+            PlayerTurnController? controller = null;
+            if (playerMover)
+            {
+                controller = new PlayerTurnController(exec);
+                controller.EndTurnRequested += () => turnEnded.TrySetResult();
+                controller.BeginTurn(mover);
+                controller.TileClicked(new PF2eVec(10, 5));
+                action = turnEnded.Task;
+            }
+            else action = exec.ExecuteStride(mover, new PF2eVec(10, 5));
+
+            Check($"(7 {label}) reactor receives attack animation event",
+                seen.Exists(e => e.Type == BattleEventType.AttackRolled && e.Source == reactor && e.Target == mover));
+            Check($"(7 {label}) action waits for reaction animation", !action.IsCompleted && mover.GridPosition == from);
+            releaseAttack.TrySetResult();
+            await action.WaitAsync(TimeSpan.FromSeconds(3));
+            Check($"(7 {label}) no movement segment after incapacitation",
+                mover.GridPosition == from && !seen.Exists(e => e.Type == BattleEventType.MovementStep));
+            Check($"(7 {label}) reaction damage is presented once",
+                seen.FindAll(e => e.Type == BattleEventType.DamageDealt && e.Source == reactor).Count == 1);
+            int attackIndex = seen.FindIndex(e => e.Type == BattleEventType.AttackRolled);
+            int damageIndex = seen.FindIndex(e => e.Type == BattleEventType.DamageDealt);
+            Check($"(7 {label}) damage follows attack animation", attackIndex >= 0 && damageIndex > attackIndex);
+            if (playerMover)
+            {
+                Check("(7) unconscious player ends turn with actions remaining",
+                    mover.Conditions.HasCondition(Condition.Unconscious) && !mover.Health.IsDead
+                    && mover.Actions.TotalActionsRemaining > 0 && turnEnded.Task.IsCompleted);
+                int count = seen.Count;
+                controller!.BeginStrike();
+                controller.TileClicked(reactor.GridPosition);
+                Check("(7) unconscious player cannot start another attack", seen.Count == count);
+                controller.EndControl();
+            }
+            else
+            {
+                Check("(7) slain enemy gets one death event", mover.Health.IsDead
+                    && seen.FindAll(e => e.Type == BattleEventType.CreatureDied && e.Source == mover).Count == 1);
+                Check("(7) interrupted movement does not restore corpse occupancy",
+                    session.Grid.GetGroundOccupant(from) != mover);
+            }
+        }
+        finally
+        {
+            releaseAttack.TrySetResult();
+            DiceRoller.ClearAllOverrides();
+            session.Teardown();
+        }
+    }
+
+    private async Task Check8_AiStopsQueuedActions(DataManager data)
+    {
+        var actor = MakeGoblin(data);
+        var reactor = PresetCharacters.BuildPlayer(5);
+        var (session, _) = StartSession(data,
+            new() { (reactor, new PF2eVec(5, 5)) }, new() { (actor, new PF2eVec(6, 5)) }, 7);
+        bool reacted = false;
+        int actionsAfterDeath = 0;
+        try
+        {
+            var runner = new BattleRunner();
+            runner.SetPresenter(async evt =>
+            {
+                if (evt.Source != actor) return;
+                if (reacted && evt.Type is BattleEventType.AttackRolled or BattleEventType.MovementStarted)
+                    actionsAfterDeath++;
+                if (!reacted && evt.Type == BattleEventType.AttackRolled)
+                {
+                    reacted = true;
+                    DiceRoller.EnqueueD20(20);
+                    ReactionStrikeBridge.Execute(reactor, actor, isReactiveStrike: true);
+                    await ReactionSuspension.Drain();
+                }
+            });
+            await new PF2e.AI.AITurnExecutor(runner, session.Grid).ExecuteTurn(actor);
+            Check("(8) reaction kills AI actor during its plan", reacted && actor.Health.IsDead);
+            Check("(8) AI does not execute queued actions after death", actionsAfterDeath == 0);
+        }
+        finally
+        {
+            DiceRoller.ClearAllOverrides();
+            session.Teardown();
+        }
     }
 
     private static DamageResult Physical(int amount) =>

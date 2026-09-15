@@ -1,5 +1,9 @@
 # Mana Seed character identities
 
+All 18 characters now have assigned [outline and theme colors](identity-colors.md), with a [color swatch sheet](identity-colors.svg).
+
+The [full roster appearance proposal](roster-direction.md) defines distinct identities for all 18 named characters, maps them to installed Mana Seed part families, and identifies custom ancestry and companion work. It preserves the four starting sprites as continuity anchors.
+
 The current Mana Seed sprites remain the baseline and remain active in Delve. The rejected tall-character experiments and their builders have been removed. These files recover the existing sprites as editable layers; they do not replace gameplay assets.
 
 ## Current editable assets

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Autoload;
 using Delve.Presets;
 using Delve.Run;
@@ -55,7 +56,9 @@ public partial class RunDirector
                 _pendingRecruit = null;
             else PartyRecovery.CompleteEncounter(guest.Character);
         }
+        var before = PartyChangeSummary.Capture(_state.Party);
         PartyRecovery.CompleteEncounter(_state.Party, result);
+        if (_combatWon) rewards.AddRange(PartyChangeSummary.Recovery(_state.Party, before));
 
         string progress = "";
         double fraction = 0;
@@ -67,7 +70,9 @@ public partial class RunDirector
             AwardPendingXp();
             rewards.Add($"+{xp} party XP");
             if (_state.Party.Level > levelBefore)
-                rewards.Add($"Level gained: {levelBefore} to {_state.Party.Level}");
+            {
+                rewards.Add($"Promotion available through level {_state.Party.Level}. Open each character's sheet to choose a feat.");
+            }
             if (_pendingRecruit is { } survivor)
             {
                 PresetCharacters.LevelUpInPlace(survivor.Character, _state.Party.Level);
@@ -89,14 +94,40 @@ public partial class RunDirector
             _pendingXp = 0;
             rewards.Add("No combat rewards gained.");
         }
+        if (_combatWon && _state.Party.Members.Any(m => m.Health!.CurrentHP < m.Health.MaxHP))
+            rewards.Add(_state.Wardstone.CanAffordShortRest
+                ? "The party is still hurt. Choose Short rest after returning to exploration."
+                : "The party is still hurt. There is not enough ward for a short rest.");
+        _combat.ShowResultParty(_combatWon ? _state.Party.Members : System.Array.Empty<PF2eCharacter>());
         _combat.ShowRewards(string.Join("\n", rewards), progress, fraction);
         SetPhase(RunPhase.CombatResults);
     }
 
+    private bool _continuingCombat;
+
     /// <summary>Rewards are already applied. Continue only advances the run, once.</summary>
-    public void ContinueCombatResults()
+    public async void ContinueCombatResults()
     {
-        if (_state == null || Phase != RunPhase.CombatResults) return;
+        if (_state == null || Phase != RunPhase.CombatResults || _continuingCombat) return;
+        if (UseDungeonMap)
+        {
+            var state = _state;
+            var pose = _combat.ActiveCamera.GlobalTransform;
+            float fov = _combat.ActiveCamera.Fov;
+            _combat.EndHostedEncounter();
+            if (!_combatWon) { EndRun(RunOutcome.Defeat); return; }
+            _continuingCombat = true;
+            try { await _dungeon!.ReturnFromHostedCombat(pose, fov); }
+            finally { _continuingCombat = false; }
+            if (!IsInsideTree() || !ReferenceEquals(state, _state)) return;
+            if (_pendingRecruit is { } recruit)
+            {
+                _meetupPanel.Show(_state.Party, recruit.Character);
+                SetPhase(RunPhase.Meetup);
+            }
+            else GoToMap();
+            return;
+        }
         if (!_combatWon)
             EndRun(RunOutcome.Defeat);
         else if (_state.CurrentNode?.Kind == NodeKind.Boss)
@@ -120,20 +151,24 @@ public partial class RunDirector
     public void ReplaceCompanion(string outgoingId)
     {
         if (_state == null || Phase != RunPhase.Meetup || _pendingRecruit is not { } guest) return;
+        string outgoingName = _state.Party.Members.FirstOrDefault(m => m.Id == outgoingId)?.Name ?? outgoingId;
         if (!_state.Party.ReplaceCompanion(outgoingId, guest.Id, guest.Character)) return;
         _state.Recruits.Resolve(outgoingId);
         _pendingRecruit = null;
         GoToMap();
+        _dungeon?.ShowPartyNotice($"{guest.Character.Name} joins this expedition. {outgoingName} heads back to the outpost.");
     }
 
     public void DeclineMeetup()
     {
         if (Phase != RunPhase.Meetup) return;
+        string name = _pendingRecruit?.Character.Name ?? "The Wayfarer";
         _pendingRecruit = null;
         GoToMap();
+        _dungeon?.ShowPartyNotice($"{name} parts ways with the party. Your meeting remains in the unlock journal.");
     }
 
-    /// <summary>Pay out the won fight's XP (stabilized party first) and level in place on a
+    /// <summary>Pay out the won fight's XP (stabilized party first) and queue promotions on a
     /// threshold cross. RAW award, accelerated threshold (design/core_concept.md "Run flow").</summary>
     private void AwardPendingXp()
     {
@@ -142,7 +177,7 @@ public partial class RunDirector
         _pendingXp = 0;
         int gained = PartyLeveling.Award(_state, xp);
         if (gained > 0)
-            GD.Print($"[RunDirector] +{xp} XP - the party reaches level {_state.Party.Level}.");
+            GD.Print($"[RunDirector] +{xp} XP - promotions earned through level {_state.Party.Level}.");
     }
 
 }

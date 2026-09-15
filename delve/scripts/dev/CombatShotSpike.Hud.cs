@@ -11,6 +11,18 @@ public partial class CombatShotSpike
     private async Task CaptureHudReview(CombatScene scene)
     {
         var bar = scene.GetNode<ActionBar>("%ActionBar");
+        var icons = bar.SpellIcons;
+        bool covered = icons != null;
+        foreach (var field in typeof(Delve.Data.PresetSpells).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+            if (field.IsLiteral && field.FieldType == typeof(string) && field.Name.EndsWith("Id"))
+            {
+                var id = (string)field.GetRawConstantValue()!;
+                covered &= icons?.ForSpell(id) != null && icons.ForSpell(id) != icons.Fallback;
+            }
+        Check("every preset spell has dedicated artwork", covered);
+        Check("heightened spells keep their icon", icons != null
+            && icons.ForSpell("preset-fireball-rank-5") == icons.ForSpell("preset-fireball"));
+        Check("unknown spells have a fallback icon", icons?.ForSpell("unknown-spell") != null);
         var controls = bar.GetNode<Button>("%ControlButton");
         var options = bar.GetNode<Control>("%ControlOptions");
         var spells = bar.GetNode<Button>("%SpellsButton");
@@ -48,6 +60,14 @@ public partial class CombatShotSpike
         Check("inspect preserves unknown HP and AC", inspect.GetNode<Label>("%HpLabel").Text == "?/?"
             && inspect.GetNode<Label>("%AcLabel").Text == "AC ?");
         Capture("combat_target_preview.png");
+        bar.ShowAttackPreview(new AttackPreviewView
+        {
+            AttackerName = "Fenwick", TargetName = "Goblin Warrior", WeaponName = "Electric Arc",
+            OutcomeText = "65% target fails · 15% critical failure",
+            DetailText = "Reflex +6 vs spell DC 20 · 3d4 damage · Basic save"
+        });
+        await WaitSeconds(PoseSeconds);
+        Capture("combat_spell_preview.png");
         inspect.Render(null);
         bar.ShowAttackPreview(null);
         bar.SetTargetingHint(false);

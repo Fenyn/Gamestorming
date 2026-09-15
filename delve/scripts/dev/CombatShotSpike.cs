@@ -63,6 +63,8 @@ public partial class CombatShotSpike : SpikeBase
         string captureDirectory = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
         if (!string.IsNullOrEmpty(captureDirectory)) OutputDirectory = captureDirectory;
         DirAccess.MakeDirRecursiveAbsolute(OutputDirectory);
+        await WaitSeconds(0.4f);
+        Capture("combat_encounter_intro.png");
         await WaitSeconds(BootSeconds);
         Capture("combat_shot.png");
 
@@ -207,6 +209,7 @@ public partial class CombatShotSpike : SpikeBase
         // Past the tumble, the landing, the sum and the outcome pop: the finished card, mid-hold.
         await WaitSeconds(1.4f);
         Capture("combat_dice_roll.png");
+        await CaptureSignatures(scene);
     }
 
     private OrbitCameraRig? Rig() =>

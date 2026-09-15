@@ -153,7 +153,7 @@ Seats = Array[Vector3]([Vector3(-3, 0, 7), Vector3(3.7, 0, 7.8), Vector3(-3, 0, 
 FireEnergy = 3.2
 LookTarget = Vector3(0, 0, -2)
 SeatIds = PackedStringArray("player", "elara", "tharr", "fenwick", "raven", "thistle", "arkus", "aldric", "spore", "josen", "grub", "sera", "oskar", "hazel", "wynn", "vasska", "hilde", "flick")
-Appearances = Array[Resource]([ExtResource("veteran"), ExtResource("rogue"), ExtResource("cleric"), ExtResource("wizard"), ExtResource("rogue"), ExtResource("recruit")])
+Appearances = Array[Resource]([ExtResource("veteran"), ExtResource("rogue"), ExtResource("cleric"), ExtResource("wizard"), ExtResource("rogue"), ExtResource("recruit"), ExtResource("veteran"), ExtResource("veteran"), ExtResource("wizard"), ExtResource("recruit"), ExtResource("cleric"), ExtResource("wizard"), ExtResource("cleric"), ExtResource("rogue"), ExtResource("cleric"), ExtResource("wizard"), ExtResource("recruit"), ExtResource("wizard")])
 
 [node name="View" type="SubViewportContainer" parent="."]
 layout_mode = 1
@@ -344,7 +344,7 @@ material_override = SubResource("canvas_blue")
 rotation_degrees = Vector3(0, -25, 0)
 
 [node name="Supplies0" type="Sprite3D" parent="View/CampViewport/Outpost"]
-position = Vector3(-10.5, 0.45, -5.8)
+position = Vector3(-14.8, 0.45, -5.8)
 texture = SubResource("crates")
 pixel_size = 0.024
 billboard = 2
@@ -354,7 +354,7 @@ alpha_cut = 1
 
 
 [node name="Supplies1" type="Sprite3D" parent="View/CampViewport/Outpost"]
-position = Vector3(-11.7, 0.45, -6.0)
+position = Vector3(-14, 0.45, -7.8)
 texture = SubResource("crates")
 pixel_size = 0.024
 billboard = 2
@@ -364,7 +364,7 @@ alpha_cut = 1
 
 
 [node name="Supplies2" type="Sprite3D" parent="View/CampViewport/Outpost"]
-position = Vector3(10.5, 0.45, -5.6)
+position = Vector3(14, 0.45, -7.6)
 texture = SubResource("crates")
 pixel_size = 0.024
 billboard = 2
@@ -1237,7 +1237,7 @@ shaded = true
 alpha_cut = 1
 
 [node name="Woodpile" type="Sprite3D" parent="View/CampViewport/Outpost"]
-position = Vector3(-9, 0.65, -5)
+position = Vector3(-8.2, 0.65, -4.6)
 texture = SubResource("wood_tools")
 pixel_size = 0.027
 billboard = 2

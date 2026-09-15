@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/combat/DestinationPreview.cs" id="script"]
+[sub_resource type="StandardMaterial3D" id="lines"]
+shading_mode = 0
+transparency = 1
+albedo_color = Color(0.95, 0.77, 0.45, 0.5)
+[node name="DestinationPreview" type="Node3D"]
+script = ExtResource("script")
+GhostOpacity = 0.65
+LinkHeight = 0.1
+[node name="Ghost" type="Sprite3D" parent="."]
+unique_name_in_owner = true
+billboard = 2
+shaded = false
+no_depth_test = true
+texture_filter = 0
+[node name="Caption" type="Label3D" parent="."]
+unique_name_in_owner = true
+billboard = 1
+font_size = 24
+outline_size = 6
+pixel_size = 0.008
+no_depth_test = true
+[node name="Links" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
+material_override = SubResource("lines")

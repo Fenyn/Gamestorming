@@ -84,9 +84,9 @@ public static class GeneratedEncounters
         RunState state,
         MapNode node,
         Func<CreatureRef, EnemyDefinition?> resolve,
-        EncounterGenRules rules)
+        EncounterGenRules rules, FloorTheme? themeOverride = null)
     {
-        var theme = FloorThemes.ForStratum(state.Stratum);
+        var theme = themeOverride ?? FloorThemes.ForStratum(state.Stratum);
         int partyLevel = state.Party.Level;
         int partySize = state.Party.Members.Count;
         var (minLevel, maxLevel) = LevelBand(partyLevel, node.Floor, rules);

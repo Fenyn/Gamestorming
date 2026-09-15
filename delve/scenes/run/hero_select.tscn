@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/run/camp_resident.tscn" id="resident"]
@@ -6,6 +6,23 @@
 [ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="sheet"]
 [ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="recruit"]
 [ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="theme"]
+
+[ext_resource type="Theme" path="res://assets/ui/camp_controls.tres" id="camp_ui"]
+[ext_resource type="Shader" path="res://assets/shaders/camp_mist.gdshader" id="mist"]
+[sub_resource type="FastNoiseLite" id="mist_noise"]
+seed = 37
+frequency = 0.006
+fractal_octaves = 3
+
+[sub_resource type="NoiseTexture2D" id="mist_texture"]
+width = 512
+height = 512
+seamless = true
+noise = SubResource("mist_noise")
+
+[sub_resource type="ShaderMaterial" id="mist_mat"]
+shader = ExtResource("mist")
+shader_parameter/noise_map = SubResource("mist_texture")
 
 [node name="HeroSelect" type="Control"]
 layout_mode = 1
@@ -38,7 +55,19 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
+[node name="Mist" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("mist_mat")
+color = Color(1, 1, 1, 1)
+
 [node name="Header" type="VBoxContainer" parent="."]
+theme = ExtResource("camp_ui")
 offset_left = 40.0
 offset_top = 28.0
 offset_right = 1550.0
@@ -59,60 +88,88 @@ layout_mode = 2
 text = "Assemble your party."
 mouse_filter = 2
 
-[node name="Footer" type="PanelContainer" parent="."]
+[node name="RecruitmentButton" type="Button" parent="."]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -272.0
+offset_top = 36.0
+offset_right = -40.0
+offset_bottom = 88.0
+grow_horizontal = 0
+theme = ExtResource("camp_ui")
+text = "Unlock journal"
+mouse_default_cursor_shape = 2
+
+[node name="Companion" type="PanelContainer" parent="."]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -180.0
+offset_right = 480.0
+offset_bottom = -36.0
+grow_vertical = 0
+theme = ExtResource("camp_ui")
+theme_type_variation = &"CampCompanion"
+
+[node name="Rows" type="VBoxContainer" parent="Companion"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PreviewName" type="Label" parent="Companion/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+
+[node name="PreviewRole" type="Label" parent="Companion/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.772549, 0.713725, 0.784314, 1)
+
+[node name="DetailsButton" type="Button" parent="Companion/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Character details  /"
+theme_type_variation = &"CampLink"
+mouse_default_cursor_shape = 2
+
+[node name="Departure" type="VBoxContainer" parent="."]
+anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = -152.0
-offset_right = -32.0
-offset_bottom = -28.0
+offset_left = -350.0
+offset_top = -194.0
+offset_right = -40.0
+offset_bottom = -32.0
+grow_horizontal = 0
 grow_vertical = 0
-theme_type_variation = &"HudPanel"
+theme = ExtResource("camp_ui")
+theme_override_constants/separation = 8
 
-[node name="Rows" type="VBoxContainer" parent="Footer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Actions" type="HBoxContainer" parent="Footer/Rows"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 18
-
-[node name="PreviewName" type="Label" parent="Footer/Rows/Actions"]
+[node name="PartyCount" type="Label" parent="Departure"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-autowrap_mode = 3
+horizontal_alignment = 2
+text = "PARTY  0 / 4"
 
-[node name="DetailsButton" type="Button" parent="Footer/Rows/Actions"]
+[node name="EmbarkButton" type="Button" parent="Departure"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(230, 52)
-size_flags_vertical = 4
-text = "Character details"
-
-[node name="ClearPartyButton" type="Button" parent="Footer/Rows/Actions"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(210, 52)
-size_flags_vertical = 4
-text = "Clear party"
-
-[node name="RecruitmentButton" type="Button" parent="Footer/Rows/Actions"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(200, 52)
-size_flags_vertical = 4
-text = "Recruitment"
-
-[node name="EmbarkButton" type="Button" parent="Footer/Rows/Actions"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(220, 52)
-size_flags_vertical = 4
+custom_minimum_size = Vector2(310, 66)
 text = "Embark"
-theme_type_variation = &"AccentButton"
+theme_type_variation = &"CampDepart"
+mouse_default_cursor_shape = 2
+
+[node name="ClearPartyButton" type="Button" parent="Departure"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Clear party"
+theme_type_variation = &"CampLink"
+mouse_default_cursor_shape = 2
 
 [node name="Details" type="Control" parent="."]
 unique_name_in_owner = true
@@ -131,7 +188,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025, 0.025, 0.02, 0.8)
+color = Color(0.078431, 0.058824, 0.094118, 0.8)
 
 [node name="Body" type="VBoxContainer" parent="Details"]
 anchor_left = 0.5

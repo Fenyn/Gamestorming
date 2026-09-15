@@ -20,7 +20,8 @@ namespace Delve.Dev;
 /// </summary>
 public partial class RunMapShotSpike : SpikeBase
 {
-    private const string OutDir = "user://dev_shots";
+    private string OutDir => string.IsNullOrEmpty(OS.GetEnvironment("DELVE_SHOT_DIRECTORY"))
+        ? "user://dev_shots" : OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
 
     /// <summary>Capture size, matching the other shot spikes' review grid.</summary>
     private const int ShotWidth = 1600;
@@ -125,9 +126,9 @@ public partial class RunMapShotSpike : SpikeBase
             ("font_pressed_color", "pressed"), ("font_hover_pressed_color", "pressed"),
             ("font_focus_color", "normal"), ("font_disabled_color", "disabled") })
         {
-            var fill = (StyleBoxFlat)recoveryButton.GetThemeStylebox(surface);
+            var fill = ButtonSurface(recoveryButton.GetThemeStylebox(surface));
             Check($"recovery {font} contrast >= 4.5:1",
-                Contrast(recoveryButton.GetThemeColor(font), fill.BgColor) >= 4.5);
+                Contrast(recoveryButton.GetThemeColor(font), fill) >= 4.5);
         }
         recoveryButton.GrabFocus();
         await Settle();
@@ -204,7 +205,7 @@ public partial class RunMapShotSpike : SpikeBase
                 ("font_color", "normal"), ("font_hover_color", "hover"),
                 ("font_pressed_color", "pressed"), ("font_disabled_color", "disabled") })
                 Check($"{def.Id} {surface} rest contrast >= 4.5:1",
-                    Contrast(rest.GetThemeColor(font), ((StyleBoxFlat)rest.GetThemeStylebox(surface)).BgColor) >= 4.5);
+                    Contrast(rest.GetThemeColor(font), ButtonSurface(rest.GetThemeStylebox(surface))) >= 4.5);
             var localTheme = panel.Theme;
             panel.Render(themedRun);
             Check($"{def.Id} redraw reuses its theme", panel.Theme == localTheme);
@@ -248,6 +249,14 @@ public partial class RunMapShotSpike : SpikeBase
         static double Luminance(Color c) => 0.2126 * Linear(c.R) + 0.7152 * Linear(c.G) + 0.0722 * Linear(c.B);
         double a = Luminance(foreground), b = Luminance(background);
         return (System.Math.Max(a, b) + 0.05) / (System.Math.Min(a, b) + 0.05);
+    }
+
+    private static Color ButtonSurface(StyleBox style)
+    {
+        if (style is StyleBoxFlat flat) return flat.BgColor;
+        var texture = (StyleBoxTexture)style;
+        using var pixels = texture.Texture.GetImage();
+        return pixels.GetPixel(pixels.GetWidth() / 2, pixels.GetHeight() / 2) * texture.ModulateColor;
     }
 
     private void Capture(string file)

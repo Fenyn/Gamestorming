@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/RunEndPanel.cs" id="1_end"]
+
+[ext_resource type="StyleBox" path="res://assets/ui/result_panel.tres" id="report"]
+[ext_resource type="Texture2D" path="res://assets/ui/result_rule.svg" id="rule"]
+[ext_resource type="FontFile" path="res://assets/fonts/alagard/alagard.ttf" id="display"]
 
 [node name="RunEndPanel" type="Control"]
 layout_mode = 3
@@ -20,7 +24,19 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"ModalDim"
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+horizontal_scroll_mode = 0
+
+[node name="Center" type="CenterContainer" parent="Scroll"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,32 +44,55 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Frame" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(560, 0)
+[node name="Frame" type="PanelContainer" parent="Scroll/Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
-theme_type_variation = &"ModalPanel"
+theme_override_styles/panel = ExtResource("report")
 
-[node name="Box" type="VBoxContainer" parent="Center/Frame"]
+[node name="Box" type="VBoxContainer" parent="Scroll/Center/Frame"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 24
 
-[node name="OutcomeLabel" type="Label" parent="Center/Frame/Box"]
+[node name="Eyebrow" type="Label" parent="Scroll/Center/Frame/Box"]
+layout_mode = 2
+text = "EXPEDITION'S END"
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("display")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.772549, 0.713725, 0.784314, 1)
+
+[node name="OutcomeLabel" type="Label" parent="Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
 horizontal_alignment = 1
-theme_type_variation = &"BannerLabel"
+theme_override_fonts/font = ExtResource("display")
+theme_override_font_sizes/font_size = 40
 
-[node name="DetailLabel" type="Label" parent="Center/Frame/Box"]
+[node name="Rule" type="TextureRect" parent="Scroll/Center/Frame/Box"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+texture = ExtResource("rule")
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
+
+[node name="DetailLabel" type="Label" parent="Scroll/Center/Frame/Box"]
+theme_type_variation = &"TipBody"
+theme_override_constants/line_spacing = 10
+autowrap_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
 horizontal_alignment = 1
 
-[node name="NewRunButton" type="Button" parent="Center/Frame/Box"]
+[node name="NewRunButton" type="Button" parent="Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 48)
+custom_minimum_size = Vector2(240, 52)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
-text = "New run"
+text = "Return to the outpost"
+theme_override_fonts/font = ExtResource("display")
+theme_override_font_sizes/font_size = 20

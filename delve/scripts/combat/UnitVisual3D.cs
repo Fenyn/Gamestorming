@@ -99,7 +99,16 @@ public partial class UnitVisual3D : Node3D
     }
 
     /// <summary>Pop the ring and start its breath while this unit has the turn.</summary>
-    public void SetActive(bool active) => _ring.SetActive(active);
+    private bool _active, _focused;
+    public void SetActive(bool active)
+    {
+        _active = active;
+        _ring.SetActive(active);
+        RefreshSelection();
+    }
+    public void SetFocused(bool focused) { _focused = focused; RefreshSelection(); }
+    private void RefreshSelection() => _sprite.SetHoverHighlight(_active || _focused,
+        _active && _isHero ? UiColors.CharacterAccent(_character.Id) : UiColors.Accent);
 
     /// <summary>See <see cref="BillboardSpriteAnimator.PlaySwing"/>.</summary>
     public bool PlaySwing() => _sprite.PlaySwing();
@@ -149,14 +158,27 @@ public partial class UnitVisual3D : Node3D
         ConfigureSprite();
         // The column reaches the HP bar: the one size cue that already separates a hero from a rat.
         _pick.Configure(_character.TileWidth, _hpBarY);
+        _pick.Sprite = _sprite;
+        _pick.GridTile = () => _character.GridPosition;
         _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
         _name.Text = _character.Name;
         _name.Position = new Vector3(0f, _hpBarY + NameLift, 0f);
         // Snap at spawn: the bar has no previous value to travel from, and a fight that opens with
         // every bar sliding in from empty reads as damage nobody dealt.
         UpdateHealthBar(instant: true);
+        _character.Health.OnHealthChanged += OnLiveHealthChanged;
+        var conditions = GetNode<UnitConditions>("%Conditions");
+        conditions.Configure(_character);
+        conditions.Position = new Vector3(0, _hpBarY + NameLift + 0.3f, 0);
         _sprite.ApplyFacing();
     }
+
+    public override void _ExitTree()
+    {
+        if (_character?.Health != null) _character.Health.OnHealthChanged -= OnLiveHealthChanged;
+    }
+
+    private void OnLiveHealthChanged(int current, int maximum) => UpdateHealthBar();
 
     private void ConfigureSprite()
     {
@@ -267,9 +289,13 @@ public partial class UnitVisual3D : Node3D
         _spriteMoveTween = CreateTween();
     }
 
+    public void DisablePicking() => _pick.SetPickable(false);
+
     public void PlayDeath()
     {
         _dead = true;
+        _hpBar.Visible = false;
+        _name.Visible = false;
         _sprite.Frozen = true;
         // The corpse tint is final, so it takes the modulate handle over from any flash still running
         // (a killing blow FlashHit is always in flight when this lands) and _dead locks out the next.

@@ -1,10 +1,14 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ActionBar.cs" id="1_ab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="3_cap"]
 [ext_resource type="PackedScene" path="res://scenes/ui/action_chip.tscn" id="4_chip"]
 [ext_resource type="PackedScene" path="res://scenes/ui/chip_flyout.tscn" id="5_fly"]
+[ext_resource type="Resource" path="res://assets/ui/spell_icons.tres" id="6_icons"]
+[ext_resource type="Resource" path="res://assets/ui/ability_icons.tres" id="7_icons"]
+
+[sub_resource type="StyleBoxEmpty" id="signature_clear"]
 
 [node name="ActionBar" type="Control"]
 layout_mode = 3
@@ -18,6 +22,8 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 1
 script = ExtResource("1_ab")
+SpellIcons = ExtResource("6_icons")
+AbilityIcons = ExtResource("7_icons")
 
 [node name="Stack" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -36,11 +42,12 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
+custom_minimum_size = Vector2(620, 0)
 theme_type_variation = &"HudInset"
 
 [node name="PreviewCol" type="VBoxContainer" parent="Stack/PreviewCard"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 8
 
 [node name="HeaderRow" type="HBoxContainer" parent="Stack/PreviewCard/PreviewCol"]
 layout_mode = 2
@@ -51,6 +58,8 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = ""
+theme_override_font_sizes/font_size = 20
+autowrap_mode = 3
 
 [node name="OffGuardTag" type="Label" parent="Stack/PreviewCard/PreviewCol/HeaderRow"]
 unique_name_in_owner = true
@@ -64,6 +73,15 @@ unique_name_in_owner = true
 layout_mode = 2
 text = ""
 theme_type_variation = &"HeadingLabel"
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.94, 0.82, 0.57, 1)
+autowrap_mode = 3
+
+[node name="PreviewDetailLabel" type="Label" parent="Stack/PreviewCard/PreviewCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
 
 [node name="HintRow" type="HBoxContainer" parent="Stack"]
 layout_mode = 2
@@ -77,12 +95,26 @@ text = ""
 horizontal_alignment = 1
 theme_type_variation = &"HintLabel"
 
+[node name="ConfirmTargets" type="Button" parent="Stack/HintRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 0
+text = "Cast [Enter]"
+
 [node name="MoveCostPips" parent="Stack/HintRow" instance=ExtResource("2_pr")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
 PipSize = Vector2(10, 10)
+
+[node name="SignatureActions" parent="Stack" instance=ExtResource("5_fly")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("signature_clear")
+ChipScene = ExtResource("4_chip")
 
 [node name="Flyout" parent="Stack" instance=ExtResource("5_fly")]
 unique_name_in_owner = true
@@ -136,7 +168,7 @@ theme_override_constants/separation = 0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-text = "—"
+text = "â€”"
 vertical_alignment = 1
 theme_type_variation = &"HeadingLabel"
 
@@ -175,7 +207,7 @@ InputAction = &"combat_spells"
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-ActionText = "Skills"
+ActionText = "Abilities"
 InputAction = &"combat_skills"
 
 [node name="DelayButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]

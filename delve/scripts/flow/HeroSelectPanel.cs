@@ -90,7 +90,12 @@ public partial class HeroSelectPanel : Control
 
     public void RefreshRecruitment()
     {
-        if (_campaign != null) _recruitment.Setup(_campaign);
+        if (_campaign != null)
+        {
+            _recruitment.Setup(_campaign);
+            int ready = System.Linq.Enumerable.Count(RecruitmentCatalog.All, arc => _campaign.CanBindAtOutpost(arc.CharacterId));
+            _recruitmentButton.Text = ready > 0 ? $"Unlock journal ({ready} ready to join)" : "Unlock journal";
+        }
         SyncResidents();
         Refresh();
     }
@@ -235,8 +240,9 @@ public partial class HeroSelectPanel : Control
     {
         foreach (var card in _cards)
             card.SetState(_selected.Contains(card.Id), GateFor(card.Id));
-        _hint.Text = CanEmbark ? "Party ready. You control all four members."
-            : $"Assemble your party ({_selected.Count}/{Party.MaxSize}). Select a resident to add or remove them.";
+        _hint.Text = CanEmbark ? "Your companions are ready for the road."
+            : "Gather four companions around the fire.";
+        GetNode<Label>("%PartyCount").Text = $"PARTY  {_selected.Count} / {Party.MaxSize}";
         _embark.Disabled = !CanEmbark;
         _embark.TooltipText = CanEmbark ? "" : "Unavailable: choose four party members";
         _clearParty.Disabled = _selected.Count == 0;
@@ -261,7 +267,8 @@ public partial class HeroSelectPanel : Control
         string? id = _hovered ?? (_selected.Count > 0 ? _selected[0] : null) ?? FirstSelectable();
         var def = id == null ? null : CharacterCatalog.Find(id);
         if (def == null) { _previewName.Text = "No companions at camp yet"; return; }
-        _previewName.Text = $"{def.DisplayName}  /  {def.Role}";
+        _previewName.Text = def.DisplayName;
+        GetNode<Label>("%PreviewRole").Text = def.Role;
         _sheet.Show(
             _sheets.TryGetValue(def.Id, out var sheet) ? sheet : HeroSheetData.Unknown(def.DisplayName),
             HeroPortraits.For(def.Id),

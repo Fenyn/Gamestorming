@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using PF2e.Actions;
 using PF2e.Classes;
@@ -157,8 +158,19 @@ internal static class HeroSheetLoadout
 
         var chips = new List<SheetEntry>();
         Group(chips, "Cantrips", cantrips);
-        foreach (var (rank, prepared) in byRank) Group(chips, $"Rank {rank}", prepared);
+        if (casting.IsPreparedCaster)
+            foreach (var (rank, prepared) in byRank) Group(chips, $"Rank {rank}", prepared);
+        else
+            for (int rank=1;rank<=9;rank++)
+                if (casting.GetMaxSlots(rank)>0)
+                    chips.Add(new SheetEntry($"Rank {rank} x{casting.GetMaxSlots(rank)}",new SheetTip($"Rank {rank} spell slots",
+                        "Spontaneous repertoire",string.Join("\n",casting.LeveledSpells.Where(s=>s.Spell.SpellLevel<=rank).Select(s=>s.ActionName)))));
         Group(chips, "Focus", focus);
+        var focusActions = character.Features?.GetAllGrantedActions().OfType<Delve.Rules.ClassAction>()
+            .Where(a=>a.Spec.Focus>0).ToArray();
+        if (focusActions is { Length: > 0 })
+            chips.Add(new SheetEntry($"Focus x{casting.MaxFocusPoints}", new SheetTip("Focus abilities", "Refocus to recover points",
+                string.Join("\n",focusActions.Select(a=>$"{a.ActionName}: {a.Description}")))));
 
         var font = casting.DivineFont;
         string fontSpell = font?.FontSpellIdentity?.SpellName ?? "";

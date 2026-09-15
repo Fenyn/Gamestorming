@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using PF2e.Actions;
 using PF2e.Core;
@@ -46,18 +47,20 @@ internal sealed class SkillActions
     {
         var list = new List<SkillEntryView>();
         int actions = character.Actions?.TotalActionsRemaining ?? 0;
+        var granted = character.Features?.GetAllGrantedActions();
 
         foreach (var def in SkillActionCatalog.Basic)
         {
             bool hasTargets = def.Mode == SkillExecutionMode.Self
                               || GetSkillTargets(character, def.Id).Tiles.Count > 0;
-            list.Add(BuildSkillEntry(character, def.Factory(), def.Id, hasTargets, actions));
+            var action = def.Factory();
+            bool owned = granted?.Any(a => a.ActionName == action.ActionName) == true;
+            list.Add(BuildSkillEntry(character, action, def.Id, hasTargets, actions, owned));
         }
 
         // Feat-granted actions (Lunge / Sudden Charge / Shielded Stride) surface only when a feature
         // grants them. GetAllGrantedActions returns non-reaction actions from the character's active
         // features; we map each by ActionName to its chip id + targeting.
-        var granted = character.Features?.GetAllGrantedActions();
         if (granted != null)
         {
             foreach (var action in granted)
@@ -65,10 +68,11 @@ internal sealed class SkillActions
                 string? id = SkillActionCatalog.IdForGrantedAction(action.ActionName);
                 if (id == null) continue;
 
-                bool hasTargets = SkillActionCatalog.Get(id)?.Mode == SkillExecutionMode.MoveTile
+                bool hasTargets = SkillActionCatalog.Get(id)?.Mode == SkillExecutionMode.Self || (SkillActionCatalog.Get(id)?.Mode == SkillExecutionMode.MoveTile
                     ? GetShieldedStrideTiles(character).Count > 0
-                    : GetSkillTargets(character, id).Tiles.Count > 0;
-                list.Add(BuildSkillEntry(character, action, id, hasTargets, actions));
+                    : GetSkillTargets(character, id).Tiles.Count > 0);
+                if (list.All(e => e.ActionId != id))
+                    list.Add(BuildSkillEntry(character, action, id, hasTargets, actions, true));
             }
         }
 
@@ -77,14 +81,17 @@ internal sealed class SkillActions
 
     /// <summary>One action-bar chip for a skill / maneuver / feat action, with its gating text.</summary>
     private SkillEntryView BuildSkillEntry(
-        ICharacter character, BaseAction action, string id, bool hasTargets, int actions)
+        ICharacter character, BaseAction action, string id, bool hasTargets, int actions, bool owned)
     {
-        bool castable = action.CanPerform(character) && hasTargets
+        bool castable = Delve.Rules.ClassAction.Restriction(character,action)==null && action.CanPerform(character) && hasTargets
                         && actions >= action.ActionCostCount;
 
         return new SkillEntryView
         {
             ActionId = id,
+            IsCharacterAbility = owned,
+            SignaturePriority = owned ? SkillActionCatalog.Get(id)?.SignaturePriority ?? 0 : 0,
+            BadgeText = AbilityBadges.For(character, id),
             Name = action.ActionName,
             ActionCost = action.ActionCostCount,
             CostText = $"{action.ActionCostCount}a",
@@ -106,6 +113,7 @@ internal sealed class SkillActions
     private static string SkillUnavailableReason(
         ICharacter c, BaseAction action, string id, bool hasTargets, int actions)
     {
+        if (Delve.Rules.ClassAction.Restriction(c,action) is { } restriction) return restriction;
         if (actions < action.ActionCostCount)
             return CombatantQuery.NeedsActionsReason(action.ActionCostCount, actions);
 
@@ -178,16 +186,19 @@ internal sealed class SkillActions
     /// </summary>
     internal async Task<bool> ExecuteSkillAction(ICharacter actor, string actionId, PF2eVec tile)
     {
-        var action = SkillActionCatalog.Get(actionId)?.Factory();
+        var action = ResolveOwnedAction(actor, actionId);
         if (action == null) return false;
+        if (!GetSkillTargets(actor, actionId).Tiles.Contains(tile)) return false;
 
         var target = _grid.GetGroundOccupant(tile);
         if (target == null || target.Health == null || target.Health.IsDead) return false;
-        if (!action.CanPerform(actor, target)) return false;
+        if (Delve.Rules.ClassAction.Restriction(actor,action)!=null || !action.CanPerform(actor, target)) return false;
 
         int preHp = target.Health.CurrentHP;
         // Capture positions so board-moving maneuvers (Shove pushes the target + follow; Tumble
         // Through moves the actor) re-sync the 3D presenter after the rules resolve.
+        var eidolon = Delve.Rules.EidolonLink.For(actor)?.Eidolon;
+        var eidolonFrom = eidolon?.GridPosition ?? default;
         var actorFrom = actor.GridPosition;
         var targetFrom = target.GridPosition;
 
@@ -205,6 +216,7 @@ internal sealed class SkillActions
 
         await _events.EmitPositionSync(target, targetFrom);
         await _events.EmitPositionSync(actor, actorFrom);
+        if (eidolon != null) await _events.EmitPositionSync(eidolon, eidolonFrom);
 
         await _events.EmitHpDelta(actor, target, preHp);
         return true;
@@ -216,10 +228,12 @@ internal sealed class SkillActions
     /// </summary>
     internal async Task<bool> ExecuteSelfSkill(ICharacter actor, string actionId)
     {
-        var action = SkillActionCatalog.Get(actionId)?.Factory();
-        if (action == null || !action.CanPerform(actor)) return false;
+        var action = ResolveOwnedAction(actor, actionId);
+        if (action == null || Delve.Rules.ClassAction.Restriction(actor, action) != null || !action.CanPerform(actor)) return false;
 
+        int preHp = actor.Health?.CurrentHP ?? 0;
         await action.ExecuteAsync(actor);
+        await _events.EmitHpDelta(actor, actor, preHp);
 
         await _events.Emit(new BattleEvent
         {
@@ -228,6 +242,14 @@ internal sealed class SkillActions
             Description = $"{actor.Name} uses {action.ActionName}"
         });
         return true;
+    }
+
+    internal static BaseAction? ResolveOwnedAction(ICharacter actor, string id)
+    {
+        var def = SkillActionCatalog.Get(id);
+        if (def == null) return null;
+        return def.GrantedActionName == null ? def.Factory()
+            : actor.Features?.GetAllGrantedActions().FirstOrDefault(a => a.ActionName == def.GrantedActionName);
     }
 
     /// <summary>
@@ -261,7 +283,7 @@ internal sealed class SkillActions
     internal async Task<bool> ExecuteSuddenCharge(ICharacter actor, ICharacter target)
     {
         var action = new SuddenChargeAction();
-        if (!action.CanPerform(actor, target)) return false;
+        if (Delve.Rules.ClassAction.Restriction(actor,action)!=null || !action.CanPerform(actor, target)) return false;
         if (target.Health == null || target.Health.IsDead) return false;
 
         var weapon = WeaponAttackCalculator.ResolveWeapon(actor);

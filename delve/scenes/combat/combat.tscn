@@ -20,9 +20,13 @@
 [ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="17_tree_bush"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="18_tree_dead"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="19_tree_giant"]
-[ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="combat_theme"]
+[ext_resource type="Theme" uid="uid://c1eifvbfehkmj" path="res://assets/ui/combat_theme.tres" id="combat_theme"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="dice_roll"]
+[ext_resource type="PackedScene" path="res://scenes/ui/active_character_panel.tscn" id="active_character"]
 [ext_resource type="Shader" uid="uid://brto6821irko8" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="outskirts_mist"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/squad_panel.tscn" id="squad"]
+[ext_resource type="PackedScene" path="res://scenes/combat/destination_preview.tscn" id="destination"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(12, 10)
@@ -98,6 +102,9 @@ unique_name_in_owner = true
 [node name="CameraRig" type="Node3D" parent="." unique_id=1598345121]
 unique_name_in_owner = true
 script = ExtResource("3_camera")
+InitialPitchDegrees = 40.0
+PlanningDistanceCap = 17.0
+TacticalBlendSeconds = 0.3
 
 [node name="ShakePivot" type="Node3D" parent="CameraRig" unique_id=465050350]
 unique_name_in_owner = true
@@ -120,6 +127,7 @@ environment = SubResource("Environment_1")
 unique_name_in_owner = true
 
 [node name="HudRoot" type="Control" parent="HUD" unique_id=1687985595]
+unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -129,6 +137,9 @@ grow_vertical = 2
 mouse_filter = 2
 theme = ExtResource("combat_theme")
 script = ExtResource("13_hudroot")
+
+[node name="SquadPanel" parent="HUD/HudRoot" instance=ExtResource("squad")]
+unique_name_in_owner = true
 
 [node name="TurnOrderBar" parent="HUD/HudRoot" unique_id=1094648664 instance=ExtResource("5_turn")]
 unique_name_in_owner = true
@@ -149,27 +160,37 @@ grow_vertical = 2
 [node name="DiceRoll" parent="HUD/HudRoot" unique_id=2036442695 instance=ExtResource("dice_roll")]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 8
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -96.5
-offset_bottom = 96.5
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -422.0
+offset_right = 190.0
+offset_bottom = -210.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
 
 [node name="UnitInspect" parent="HUD/HudRoot" unique_id=1867311933 instance=ExtResource("11_inspect")]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
 anchor_top = 0.0
 anchor_bottom = 0.0
-offset_left = 0.0
-offset_bottom = 0.0
+offset_left = 12.0
+offset_top = 196.0
+offset_right = 342.0
+offset_bottom = 196.0
 grow_vertical = 1
 
 [node name="ActionBar" parent="HUD/HudRoot" unique_id=1546362475 instance=ExtResource("7_ab")]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 7
+
+[node name="ActiveCharacter" parent="HUD/HudRoot" instance=ExtResource("active_character")]
+unique_name_in_owner = true
+layout_mode = 1
 
 [node name="HelpOverlay" parent="HUD/HudRoot" unique_id=1754253256 instance=ExtResource("10_help")]
 unique_name_in_owner = true
@@ -183,3 +204,62 @@ layout_mode = 1
 [node name="VictoryBanner" parent="HUD/HudRoot" unique_id=1152030874 instance=ExtResource("8_vb")]
 unique_name_in_owner = true
 layout_mode = 1
+
+[node name="EncounterIntro" type="Control" parent="HUD/HudRoot"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+
+[node name="TopMatte" type="ColorRect" parent="HUD/HudRoot/EncounterIntro"]
+layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 42.0
+mouse_filter = 2
+color = Color(0.025, 0.025, 0.035, 0.9)
+
+[node name="BottomMatte" type="ColorRect" parent="HUD/HudRoot/EncounterIntro"]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -42.0
+mouse_filter = 2
+color = Color(0.025, 0.025, 0.035, 0.9)
+
+[node name="Title" type="Label" parent="HUD/HudRoot/EncounterIntro"]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 78.0
+offset_right = 320.0
+offset_bottom = 134.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.94, 0.82, 0.57, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.04, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 42
+text = "ENCOUNTER"
+horizontal_alignment = 1
+
+[node name="EncounterSubtitle" type="Label" parent="HUD/HudRoot/EncounterIntro"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 136.0
+offset_right = 320.0
+offset_bottom = 170.0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.04, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+
+[node name="DestinationPreview" parent="." instance=ExtResource("destination")]
+unique_name_in_owner = true

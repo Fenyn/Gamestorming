@@ -1,14 +1,24 @@
 using Delve.UI;
 using Godot;
 using PF2e.Core;
+using Delve.Run;
 
 namespace Delve.Flow;
 
 /// <summary>A party member's health at the point where recovery can be chosen.</summary>
 public partial class MapPartyMember : VBoxContainer
 {
+    public event System.Action<PF2eCharacter>? DetailsRequested;
+    private PF2eCharacter? _member;
+    public override void _Ready()
+    {
+        GetNode<Button>("%MemberDetails").Pressed += () => { if (_member != null) DetailsRequested?.Invoke(_member); };
+    }
     public void Render(PF2eCharacter member)
     {
+        _member = member;
+        string promotion = CharacterPromotion.Status(member);
+        GetNode<Button>("%MemberDetails").Text = promotion.Length > 0 ? promotion : "Character sheet";
         GetNode<Label>("%MemberName").Text = member.Name;
         var health = member.Health;
         GetNode<Label>("%MemberHealth").Text = $"{health.CurrentHP} / {health.MaxHP} HP";

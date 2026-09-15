@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/cistern.tscn" id="base"]
+[node name="cistern" instance=ExtResource("base")]
+UsePurpose = true
+Purpose = 6
+InteriorSize = 16
+SizeVariants = PackedInt32Array(14, 16, 18)

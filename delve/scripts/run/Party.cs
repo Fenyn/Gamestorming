@@ -35,11 +35,11 @@ public sealed class Party
     /// <summary>Every live character, in join order.</summary>
     public IReadOnlyList<PF2eCharacter> Members => _members;
 
-    /// <summary>The party's current level. Members are built at it; newcomers join at it.</summary>
+    /// <summary>The party's earned level. Existing members reach it by confirming promotions.</summary>
     public int Level { get; private set; }
 
-    /// <summary>Record the new level after an in-place level-up. <see cref="PartyLeveling"/> owns
-    /// the flow (XP threshold, per-member LevelUpInPlace); this only moves the number the next
+    /// <summary>Record a newly earned level. <see cref="PartyLeveling"/> owns
+    /// XP thresholds and pending promotions; this only moves the number the next
     /// <see cref="AddMember"/> builds at.</summary>
     public void SetLevel(int level) => Level = level;
 
@@ -108,6 +108,7 @@ public sealed class Party
 
         _memberIds.Add(id);
         _members.Add(character);
+        CharacterPromotion.For(character);
         return true;
     }
 
@@ -122,6 +123,7 @@ public sealed class Party
 
         _memberIds[slot] = guestId;
         _members[slot] = guest;
+        CharacterPromotion.For(guest);
         return true;
     }
 

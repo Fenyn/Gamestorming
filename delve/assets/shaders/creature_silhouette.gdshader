@@ -7,6 +7,8 @@ uniform vec4 silhouette_color : source_color = vec4(0.82, 0.88, 0.77, 0.3);
 uniform float edge_opacity = 0.5;
 uniform float depth_bias = 0.025;
 uniform float body_alpha = 1.0;
+uniform bool hovered = false;
+uniform vec4 hover_color : source_color = vec4(1.0);
 varying float body_depth;
 
 void vertex() {
@@ -25,22 +27,30 @@ void vertex() {
 }
 
 void fragment() {
-    if (texture(sprite_tex, UV).a < 0.5 || body_alpha <= 0.0) discard;
-    float depth = texture(scene_depth, SCREEN_UV).r;
-    #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
-        vec3 ndc = vec3(SCREEN_UV, depth) * 2.0 - 1.0;
-    #else
-        vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth);
-    #endif
-    vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
-    float surface_depth = -view.z / view.w;
-    // Visible sprite pixels (including its own depth prepass) receive no overlay at all.
-    if (body_depth <= surface_depth + depth_bias) discard;
+    float body = texture(sprite_tex, UV).a;
     vec2 px = 1.0 / vec2(textureSize(sprite_tex, 0));
-    float neighbor = min(min(texture(sprite_tex, UV + vec2(px.x, 0.0)).a,
-                             texture(sprite_tex, UV - vec2(px.x, 0.0)).a),
-                         min(texture(sprite_tex, UV + vec2(0.0, px.y)).a,
-                             texture(sprite_tex, UV - vec2(0.0, px.y)).a));
-    ALBEDO = silhouette_color.rgb;
-    ALPHA = mix(edge_opacity, silhouette_color.a, step(0.5, neighbor)) * body_alpha;
+    float left = texture(sprite_tex, UV - vec2(px.x, 0.0)).a;
+    float right = texture(sprite_tex, UV + vec2(px.x, 0.0)).a;
+    float above = texture(sprite_tex, UV - vec2(0.0, px.y)).a;
+    float below = texture(sprite_tex, UV + vec2(0.0, px.y)).a;
+    if (body_alpha <= 0.0) discard;
+    if (hovered && body < 0.5 && max(max(left, right), max(above, below)) >= 0.5) {
+        ALBEDO = hover_color.rgb;
+        ALPHA = hover_color.a * body_alpha;
+    } else {
+        if (body < 0.5) discard;
+        float depth = texture(scene_depth, SCREEN_UV).r;
+        #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+            vec3 ndc = vec3(SCREEN_UV, depth) * 2.0 - 1.0;
+        #else
+            vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth);
+        #endif
+        vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
+        float surface_depth = -view.z / view.w;
+        // Visible sprite pixels (including its own depth prepass) receive no overlay at all.
+        if (body_depth <= surface_depth + depth_bias) discard;
+        float neighbor = min(min(left, right), min(above, below));
+        ALBEDO = silhouette_color.rgb;
+        ALPHA = mix(edge_opacity, silhouette_color.a, step(0.5, neighbor)) * body_alpha;
+    }
 }

@@ -22,7 +22,7 @@ namespace Delve.Dev;
 public partial class CombatTestScene : Node
 {
     /// <summary>Level the preset party is built at.</summary>
-    private const int StartLevel = 2;
+    [Export(PropertyHint.Range,"1,10,1")] public int StartLevel { get; set; } = 2;
 
     /// <summary>Fight on a generated battle map instead of the flat board. Off = the original F5 board.</summary>
     [Export] public bool UseGeneratedMap { get; set; }
@@ -44,6 +44,8 @@ public partial class CombatTestScene : Node
     [Export] public int CombatSeed { get; set; } = 1337;
     /// <summary>Optional tile spacing for the enemy art preview; zero keeps normal deployment.</summary>
     [Export] public int PreviewEnemySpacing { get; set; }
+
+    [Export] public string[] PreviewParty { get; set; } = System.Array.Empty<string>();
 
     public override void _Ready()
     {
@@ -98,6 +100,10 @@ public partial class CombatTestScene : Node
         }
 
         var partySlots = new[] { veteran, elara, medic, fenwick };
+        if (PreviewParty.Length > 0)
+            partySlots = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(PreviewParty,
+                id => (ICharacter)(Delve.Run.CharacterCatalog.Find(id)?.Builder(StartLevel)
+                    ?? throw new System.InvalidOperationException($"Unknown preview character: {id}"))));
         var setup = UseGeneratedMap
             ? BuildGeneratedSetup(partySlots, enemies)
             : BuildFlatSetup(partySlots, enemies);

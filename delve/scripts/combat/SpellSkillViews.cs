@@ -13,8 +13,10 @@ public enum TargetingKind
     SingleEnemy,
     /// <summary>Single living ally within range, self included (Heal touch/ranged, Battle Medicine).</summary>
     SingleAlly,
-    /// <summary>A primary enemy is chosen; the executor auto-fans to nearby enemies up to MaxTargets.</summary>
+    /// <summary>Choose one or more enemies explicitly, up to MaxTargets.</summary>
     MultiEnemy,
+    /// <summary>Choose one or more living allies explicitly, up to MaxTargets.</summary>
+    MultiAlly,
     /// <summary>Player aims an origin tile that orients a burst/cone template (Breathe Fire).</summary>
     AreaAim,
     /// <summary>Self-centered emanation — no target selection, cast fires immediately (Heal 3-action).</summary>
@@ -27,6 +29,8 @@ public enum TargetingKind
 /// </summary>
 public sealed record SpellEntryView
 {
+    public string SignatureName { get; init; } = "";
+    public int SignaturePriority { get; init; }
     public required string SpellId { get; init; }
     /// <summary>Index into the spell's CostVariants, or -1 for a fixed-cost spell.</summary>
     public int VariantIndex { get; init; } = -1;
@@ -51,6 +55,9 @@ public sealed record SpellEntryView
 /// <summary>UI-facing snapshot of one castable skill action (Trip / Demoralize / Battle Medicine).</summary>
 public sealed record SkillEntryView
 {
+    public bool IsCharacterAbility { get; init; }
+    public int SignaturePriority { get; init; }
+    public string BadgeText { get; init; } = "";
     public required string ActionId { get; init; }
     public required string Name { get; init; }
     /// <summary>Always false — a skill action is never a cantrip. Present so the chip row can read
@@ -77,5 +84,6 @@ public sealed record SkillEntryView
 public sealed class TargetingPlan
 {
     public TargetingKind Kind { get; init; }
+    public int MaxTargets { get; init; } = 1;
     public HashSet<PF2eVec> Tiles { get; init; } = new();
 }

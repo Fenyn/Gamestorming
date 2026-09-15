@@ -34,10 +34,11 @@ public sealed class RunState
         Seed = seed;
         _config = config;
         Party = party;
+        foreach (var member in party.Members) CharacterPromotion.For(member);
         Clock = clock;
         Wardstone = wardstone;
         Leveling = leveling;
-        Recruits = new RecruitPool(party, unlocks);
+        Recruits = new RecruitPool(party, unlocks, seed);
         Map = GenerateMap();
     }
 
@@ -137,10 +138,15 @@ public sealed class RunState
     /// first pick. The caller (RunDirector) refills the ward and decides victory on the final
     /// floor; this only moves the state down.
     /// </summary>
-    public void AdvanceStratum()
+    public void AdvanceStratum(RunMap? nextMap = null)
     {
         Stratum++;
-        Map = GenerateMap();
+        ReplaceMap(nextMap ?? GenerateMap());
+    }
+
+    public void ReplaceMap(RunMap map)
+    {
+        Map = map;
         CurrentNodeId = null;
         Floor = 0;
         _history.Clear();
@@ -157,5 +163,13 @@ public sealed class RunState
         return new RunState(
             seed, party, config, new DayClock(), new Wardstone(wardRules),
             leveling ?? new LevelingRules(), unlocks ?? new UnlockState());
+    }
+
+    /// <summary>Isolated hosts may supply a graph without changing the normal run generator.</summary>
+    public static RunState StartOnMap(int seed, Party party, RunMap map, WardstoneRules? wardRules = null)
+    {
+        var state = Start(seed, party, new RunMapConfig(), wardRules);
+        state.Map = map;
+        return state;
     }
 }

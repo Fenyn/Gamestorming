@@ -31,11 +31,11 @@ grow_vertical = 2
 [node name="Frame" type="PanelContainer" parent="Center"]
 custom_minimum_size = Vector2(900, 0)
 layout_mode = 2
-theme_type_variation = &"ModalPanel"
+theme_type_variation = &"EventPanel"
 
 [node name="Box" type="VBoxContainer" parent="Center/Frame"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="Center/Frame/Box"]
 unique_name_in_owner = true
@@ -48,40 +48,56 @@ unique_name_in_owner = true
 layout_mode = 2
 text = ""
 autowrap_mode = 3
+theme_type_variation = &"EventBody"
 
 [node name="ActorHeading" type="Label" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Who tries?"
-theme_type_variation = &"HeadingLabel"
+theme_type_variation = &"EventCaption"
 
 [node name="ActorRow" type="HBoxContainer" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
+[node name="ChoiceHeading" type="Label" parent="Center/Frame/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "CHOOSE AN ACTION"
+theme_type_variation = &"EventCaption"
+
 [node name="OptionBox" type="VBoxContainer" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PreviewHeading" type="Label" parent="Center/Frame/Box"]
-unique_name_in_owner = true
+[node name="OutcomePanel" type="PanelContainer" parent="Center/Frame/Box"]
 layout_mode = 2
-theme_type_variation = &"HeadingLabel"
+theme_type_variation = &"EventOutcomePanel"
 
-[node name="CheckPreview" type="Label" parent="Center/Frame/Box"]
+[node name="Content" type="VBoxContainer" parent="Center/Frame/Box/OutcomePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PreviewHeading" type="Label" parent="Center/Frame/Box/OutcomePanel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"EventPreview"
+theme_type_variation = &"EventCaption"
+
+[node name="CheckPreview" type="Label" parent="Center/Frame/Box/OutcomePanel/Content"]
+unique_name_in_owner = true
+layout_mode = 2
 autowrap_mode = 3
+theme_type_variation = &"EventBody"
 
-[node name="ResultLabel" type="Label" parent="Center/Frame/Box"]
+[node name="ResultLabel" type="Label" parent="Center/Frame/Box/OutcomePanel/Content"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = ""
 autowrap_mode = 3
+theme_type_variation = &"EventBody"
 
 [node name="ContinueButton" type="Button" parent="Center/Frame/Box"]
 unique_name_in_owner = true

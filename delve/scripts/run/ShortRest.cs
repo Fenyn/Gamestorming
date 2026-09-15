@@ -13,6 +13,7 @@ public enum ShortRestKind
     TreatWounds,
     Refocus,
     RepairShield,
+    Rest,
 }
 
 /// <summary>Outcome of one ten-minute block: what happened, in lines the UI can print.</summary>
@@ -45,7 +46,7 @@ public sealed class ShortRestResult
 /// position in the day, so a spike replaying the same day gets the same dice, and forces a degree of
 /// success through <c>dcOverride</c> rather than through the dice.
 /// </summary>
-public static class ShortRest
+public static partial class ShortRest
 {
     public static ShortRestResult Perform(
         Party party,
@@ -89,10 +90,10 @@ public static class ShortRest
     // ---------------------------------- Treat Wounds ----------------------------------
 
     private static ShortRestResult TreatWounds(
-        Party party, PF2eCharacter? target, RecoveryRules rules, int? dcOverride, Random rng)
+        Party party, PF2eCharacter? target, RecoveryRules rules, int? dcOverride, Random rng, PF2eCharacter? assignedHealer = null)
     {
         var lines = new List<string>();
-        var healer = BestMedic(party);
+        var healer = assignedHealer ?? BestMedic(party);
         var patient = target ?? MostWounded(party);
 
         if (healer == null || patient == null)
@@ -207,7 +208,7 @@ public static class ShortRest
             if (member.Health == null || member.Health.IsDead) continue;
             if (casting == null || casting.MaxFocusPoints <= 0) continue;
 
-            int restored = casting.RestoreFocusPoints(rules.RefocusPoints);
+            int restored = casting.RestoreFocusPoints(Delve.Rules.WayfarerFeature.Find(member)?.Class == "Psychic" ? 2 : rules.RefocusPoints);
             lines.Add($"{member.Name}: focus {casting.CurrentFocusPoints}/{casting.MaxFocusPoints}"
                       + (restored > 0 ? $" (+{restored})" : " (already full)"));
         }

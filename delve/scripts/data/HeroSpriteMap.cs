@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Delve.Presets;
+using Delve.Run;
 
 namespace Delve.Data;
 
@@ -29,5 +30,6 @@ public static class HeroSpriteMap
 
     /// <summary>Resolve the sprite folder for a hero id, falling back to the default.</summary>
     public static string FolderFor(string characterId) =>
-        ByCharacterId.TryGetValue(characterId, out var folder) ? folder : DefaultFolder;
+        ByCharacterId.TryGetValue(characterId, out var folder) ? folder
+            : BulwarkWayfarers.Find(characterId) is { } spec ? Root + spec.Sprite : DefaultFolder;
 }

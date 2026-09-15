@@ -37,7 +37,8 @@ public sealed record SheetTip(
     IReadOnlyList<string>? Traits = null,
     string? Tag = null,
     IReadOnlyList<SheetMetaRow>? Meta = null,
-    string? Footer = null);
+    string? Footer = null,
+    string? FullRules = null);
 
 /// <summary>
 /// One hoverable fragment of an overview row: the words it prints and what it explains. A text

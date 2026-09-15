@@ -40,6 +40,18 @@ public partial class CampTerrain : MeshInstance3D
         {
             var prop = GetNode<Node3D>(path);
             prop.Position += Vector3.Up * HeightAt(prop.Position);
+            if (prop is Sprite3D sprite && sprite.Texture != null)
+            {
+                // Centered billboard cells contain uneven transparent padding. Place the last
+                // visible pixel on the soil instead of burying the bottom half of the quad.
+                var image = sprite.Texture.GetImage();
+                if (image.IsCompressed()) image.Decompress();
+                var bounds = image.GetUsedRect();
+                float frameHeight = image.GetHeight() / (float)sprite.Vframes;
+                float bottom = bounds.End.Y - frameHeight * 0.5f;
+                sprite.Position = new Vector3(sprite.Position.X,
+                    HeightAt(sprite.Position) + bottom * sprite.PixelSize + 0.035f, sprite.Position.Z);
+            }
         }
     }
 

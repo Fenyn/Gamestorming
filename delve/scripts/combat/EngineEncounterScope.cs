@@ -38,6 +38,7 @@ public sealed class EngineEncounterScope : IDisposable
 
     /// <summary>This encounter's reaction manager, already subscribed to the reaction events.</summary>
     public ReactionManager Reactions { get; }
+    public SharedHealthEffects SharedHealth { get; }
 
     private readonly BattleGrid _grid;
     private readonly IDisposable _spatial;
@@ -99,6 +100,7 @@ public sealed class EngineEncounterScope : IDisposable
         // Reactions: a subscribed ReactionManager OWNS damage delivery (its damage handler runs
         // reactions then calls the applyDamage continuation). It replaces the old pass-through — never
         // both, or the multicast event would deliver damage twice.
+        SharedHealth = new SharedHealthEffects(() => ReferenceEquals(_live,this));
         Reactions = new ReactionManager();
         Reactions.Subscribe();
         _isPlayerControlled = isPlayerControlled;
@@ -138,6 +140,7 @@ public sealed class EngineEncounterScope : IDisposable
 
         // Instance-scoped work runs whatever the ownership: Unsubscribe detaches only THIS manager's
         // handlers, and the two singleton clears below identity-check their own instances.
+        SharedHealth.Dispose();
         Reactions.Unsubscribe();
         // Unsubscribe also clears the shared reaction-strike bridge, which it matches by STATIC method
         // identity — so a stale scope strips it from a manager that is still live. Put it back.

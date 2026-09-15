@@ -37,6 +37,18 @@ public static class UiColors
         "fenwick" => Get("char_fenwick"),
         "raven" => Get("char_raven"),
         "thistle" => Get("char_thistle"),
+        "arkus" => Get("char_arkus"),
+        "aldric" => Get("char_aldric"),
+        "spore" => Get("char_spore"),
+        "josen" => Get("char_josen"),
+        "grub" => Get("char_grub"),
+        "sera" => Get("char_sera"),
+        "oskar" => Get("char_oskar"),
+        "hazel" => Get("char_hazel"),
+        "wynn" => Get("char_wynn"),
+        "vasska" => Get("char_vasska"),
+        "hilde" => Get("char_hilde"),
+        "flick" => Get("char_flick"),
         _ => Accent,
     };
 

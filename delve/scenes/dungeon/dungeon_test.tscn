@@ -1,0 +1,72 @@
+[gd_scene load_steps=33 format=3]
+[ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
+[ext_resource type="Script" path="res://scripts/dungeon/DungeonDirector.cs" id="dir"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="combat"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/event_panel.tscn" id="event"]
+[ext_resource type="PackedScene" path="res://scenes/run/short_rest_panel.tscn" id="rest"]
+[ext_resource type="PackedScene" path="res://scenes/combat/unit_token.tscn" id="unit"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/camera.tscn" id="camera"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/hud.tscn" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/entrance.tscn" id="0"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/guard_hall.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/barracks.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/cistern.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/collapse.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/shrine.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/cache.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/camp.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/elite.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/guardian.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/receiving.tscn" id="purpose0"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/checkpoint.tscn" id="purpose1"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/barracks.tscn" id="purpose2"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/mess_hall.tscn" id="purpose3"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/stores.tscn" id="purpose4"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/kitchen.tscn" id="purpose5"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/cistern.tscn" id="purpose6"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/workshop.tscn" id="purpose7"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/shrine.tscn" id="purpose8"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/maintenance.tscn" id="purpose9"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/refuge.tscn" id="purpose10"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/ward_chamber.tscn" id="purpose11"]
+[ext_resource type="PackedScene" path="res://scenes/run/scene_transition.tscn" id="transition"]
+[sub_resource type="Environment" id="env"]
+background_mode = 1
+background_color = Color(0.018, 0.023, 0.035, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.62, 0.67, 0.79, 1)
+ambient_light_energy = 0.7
+tonemap_mode = 2
+[node name="DungeonTest" type="Node3D"]
+script = ExtResource("dir")
+CombatPrefab = ExtResource("combat")
+EventPrefab = ExtResource("event")
+ShortRestPrefab = ExtResource("rest")
+UnitPrefab = ExtResource("unit")
+RoomPrefabs = Array[PackedScene]([ExtResource("0"), ExtResource("1"), ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9")])
+PurposePrefabs = Array[PackedScene]([ExtResource("purpose0"), ExtResource("purpose1"), ExtResource("purpose2"), ExtResource("purpose3"), ExtResource("purpose4"), ExtResource("purpose5"), ExtResource("purpose6"), ExtResource("purpose7"), ExtResource("purpose8"), ExtResource("purpose9"), ExtResource("purpose10"), ExtResource("purpose11")])
+[node name="DungeonWorld" type="Node3D" parent="."]
+unique_name_in_owner = true
+[node name="TravelParty" type="Node3D" parent="."]
+unique_name_in_owner = true
+[node name="ExploreCamera" parent="." instance=ExtResource("camera")]
+unique_name_in_owner = true
+[node name="Environment" type="WorldEnvironment" parent="."]
+unique_name_in_owner = true
+environment = SubResource("env")
+[node name="Light" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-65, -25, 0)
+light_color = Color(0.7, 0.76, 0.9, 1)
+light_energy = 0.7
+shadow_enabled = true
+[node name="Screens" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 3
+[node name="DungeonHud" parent="Screens" instance=ExtResource("hud")]
+unique_name_in_owner = true
+
+[node name="CharacterDetails" parent="Screens" instance=ExtResource("details")]
+unique_name_in_owner = true
+
+[node name="SceneTransition" parent="." instance=ExtResource("transition")]
+unique_name_in_owner = true

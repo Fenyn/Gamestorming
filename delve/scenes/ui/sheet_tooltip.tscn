@@ -71,34 +71,62 @@ mouse_filter = 2
 text = "Subtitle"
 theme_type_variation = &"CardRoleLabel"
 
-[node name="Meta" type="VBoxContainer" parent="Stack"]
+[node name="Scroll" type="ScrollContainer" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="Content" type="VBoxContainer" parent="Stack/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Meta" type="VBoxContainer" parent="Stack/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="BodySep" type="HSeparator" parent="Stack"]
+[node name="BodySep" type="HSeparator" parent="Stack/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Body" type="VBoxContainer" parent="Stack"]
+[node name="Body" type="VBoxContainer" parent="Stack/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 12
 
-[node name="FooterSep" type="HSeparator" parent="Stack"]
+[node name="FooterSep" type="HSeparator" parent="Stack/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Footer" type="Label" parent="Stack"]
+[node name="Footer" type="Label" parent="Stack/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 text = "Footer"
 theme_type_variation = &"TipFooter"
+
+[node name="FullRules" type="Button" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Full rules"
+visible = false
+mouse_default_cursor_shape = 2
+
+[node name="ScrollHint" type="Label" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Scroll to read more"
+theme_type_variation = &"TipFooter"
+visible = false
+mouse_filter = 2
 
 [node name="Delay" type="Timer" parent="."]
 unique_name_in_owner = true

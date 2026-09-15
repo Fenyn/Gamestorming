@@ -1,0 +1,6 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/dev/UnlockJournalSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="2"]
+[node name="UnlockJournalSpike" type="Node"]
+script = ExtResource("1")
+CampScene = ExtResource("2")

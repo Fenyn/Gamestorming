@@ -125,6 +125,9 @@ public static class PartyRecovery
 
         // Level-dependent daily decisions first (Spell Blending re-target, divine-font resize,
         // re-prepared loadout), then the pools they size.
+        Delve.Rules.WayfarerFeature.State(member).Cursebound=0;
+        Delve.Rules.WayfarerFeature.State(member).ChaliceDrained=false;
+        Delve.Rules.FeatEncounter.State(member).WardedToday.Clear();
         PresetCharacters.RefreshDailyCasting(member);
 
         var spellcasting = member.Spellcasting;

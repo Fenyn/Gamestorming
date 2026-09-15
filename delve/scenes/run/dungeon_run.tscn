@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/run/run.tscn" id="1_run"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/dungeon_test.tscn" id="2_dungeon"]
+
+[node name="DungeonRun" instance=ExtResource("1_run")]
+UseDungeonMap = true
+TestFullRoster = false
+DungeonScene = ExtResource("2_dungeon")

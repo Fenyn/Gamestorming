@@ -121,7 +121,7 @@ public partial class HeroSheet : PanelContainer
 
         target.MouseFilter = MouseFilterEnum.Stop;
         target.MouseEntered += () => _tooltip?.Request(tip, target);
-        target.MouseExited += () => _tooltip?.Request(null, null);
+        target.MouseExited += () => _tooltip?.Request(null, target);
         _tips[tip.Title] = (tip, target);
     }
 

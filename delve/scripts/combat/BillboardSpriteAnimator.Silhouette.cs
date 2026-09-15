@@ -8,6 +8,14 @@ public partial class BillboardSpriteAnimator
     private Texture2D? _silhouetteTexture;
     private float _silhouetteAlpha = -1;
     private bool _silhouetteConnected;
+    public bool HoverHighlighted { get; private set; }
+
+    public void SetHoverHighlight(bool highlighted, Color color)
+    {
+        HoverHighlighted = highlighted;
+        _silhouette?.SetShaderParameter("hovered", highlighted);
+        _silhouette?.SetShaderParameter("hover_color", color);
+    }
 
     private void ConfigureSilhouette()
     {

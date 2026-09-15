@@ -137,6 +137,43 @@ public partial class UiShotSpike : SpikeBase
         Check("Shortsword tooltip renders", panel.ShowTipForTesting("Shortsword"));
         await Settle();
         Capture("hero_select_shortsword.png");
+        Check("Double Slice summary opens", panel.ShowTipForTesting("Double Slice"));
+        await Settle();
+        var tip = panel.GetNode<HeroSheet>("%Sheet").GetNode<CanvasLayer>("%TipLayer").GetChild<Delve.UI.SheetTooltip>(0);
+        Check("Double Slice summary fits without scrolling", !tip.GetNode<Label>("%ScrollHint").Visible);
+        Capture("double_slice_summary.png");
+        tip.GetNode<Button>("%FullRules").EmitSignal(Button.SignalName.Pressed);
+        await Settle();
+        Check("full rules stay within the viewport", GetViewport().GetVisibleRect().Encloses(tip.GetGlobalRect()));
+        var scroll = tip.GetNode<ScrollContainer>("%Scroll");
+        scroll.ScrollVertical = 10000;
+        await Settle();
+        var body = tip.GetNode<VBoxContainer>("%Body");
+        var last = body.GetChild<Label>(body.GetChildCount() - 1);
+        Check("Double Slice retains its final rule", last.Text.Replace("\n", " ").Contains("multiple attack penalty."));
+        Check("the final rule is reachable by scrolling", scroll.GetGlobalRect().Encloses(last.GetGlobalRect()));
+        Capture("double_slice_full_rules.png");
+        tip.GetNode<Button>("%FullRules").EmitSignal(Button.SignalName.Pressed);
+        await Settle();
+        Check("returning to summary resets scrolling", scroll.ScrollVertical == 0 && !tip.GetNode<Label>("%ScrollHint").Visible);
+        var reviewed = new System.Collections.Generic.HashSet<string>();
+        foreach (var def in CharacterCatalog.All)
+        {
+            var sheet = HeroSheetBuilder.Read(def.Builder(Party.DefaultLevel));
+            var features = sheet.Row(HeroSheetBuilder.FeaturesRow);
+            if (features == null) continue;
+            foreach (var entry in features.Entries)
+            {
+                if (entry.Tip is not { } feature || !reviewed.Add(feature.Title)) continue;
+                Check($"{feature.Title} has summary and full rules", feature.Meta is { Count: > 0 }
+                    && feature.Body.Length == 0 && feature.FullRules is { Length: > 0 });
+                panel.ShowCardForTesting(feature);
+                await Settle();
+                Check($"{feature.Title} summary fits without scrolling", !tip.GetNode<Label>("%ScrollHint").Visible
+                    && GetViewport().GetVisibleRect().Encloses(tip.GetGlobalRect()));
+                Capture($"feat_{Delve.Data.PackText.Slug(feature.Title)}.png");
+            }
+        }
     }
 
     private async Task CaptureCampCapacity(HeroSelectPanel panel)
@@ -150,7 +187,7 @@ public partial class UiShotSpike : SpikeBase
         for (int i = 6; i < stage.SeatIds.Length; i++)
         {
             string id = stage.SeatIds[i];
-            var def = CharacterCatalog.All[0] with { Id = id, DisplayName = id == "aldric" ? "Sir Aldric*" : char.ToUpperInvariant(id[0]) + id[1..] };
+            var def = CharacterCatalog.All[0] with { Id = id, DisplayName = id == "aldric" ? "Sir Garran*" : char.ToUpperInvariant(id[0]) + id[1..] };
             var sample = panel.CardScene!.Instantiate<CampResident>();
             roster.AddChild(sample);
             sample.Setup(def, stage.AppearanceFor(i % 6), i);

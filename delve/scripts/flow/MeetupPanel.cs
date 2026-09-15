@@ -38,7 +38,8 @@ public partial class MeetupPanel : Control
     {
         _party = party;
         _sheet.Show(HeroSheetBuilder.Read(guest), HeroPortraits.For(guest.Id), UiColors.CharacterAccent(guest.Id));
-        _summary.Text = $"{guest.Name} can join this expedition with {guest.Health?.CurrentHP}/{guest.Health?.MaxHP} HP. Choose a companion to send home.\n"
+        string introduction = BulwarkWayfarers.Find(guest.Id)?.Introduction ?? "";
+        _summary.Text = (introduction.Length > 0 ? introduction + "\n" : "") + $"{guest.Name} can join this expedition with {guest.Health?.CurrentHP}/{guest.Health?.MaxHP} HP. Choose a companion to send home.\n"
             + "Joining does not permanently unlock a character.";
         for (int i = 0; i < _slots.Length; i++)
         {

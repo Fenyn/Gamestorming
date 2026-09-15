@@ -118,21 +118,53 @@ public partial class TargetClickSpike : SpikeBase
         Click(chip.GetGlobalRect().GetCenter());
         await Frames(2);
         Check($"[{tag}] chip click closes the flyout", !flyout.Visible);
-        Check($"[{tag}] chip click enters targeting (hint = '{hint.Text}')", hint.Text.StartsWith("LMB  confirm"));
+        Check($"[{tag}] chip click enters targeting (hint = '{hint.Text}')", hint.Text.StartsWith("0 / 2 targets"));
 
         var unit = FindUnit(scene, goblin);
         Check($"[{tag}] goblin visual found", unit != null);
         if (unit == null) return;
 
         var camera = GetViewport().GetCamera3D();
-        float bodyTop = unit.HpBarHeight;
-        await ProbeClick(camera, unit.GlobalPosition + Vector3.Up * (bodyTop - 0.05f), goblin.GridPosition, $"[{tag}] click on the goblin's head");
-        await ProbeClick(camera, unit.GlobalPosition + Vector3.Up * (bodyTop * 0.5f), goblin.GridPosition, $"[{tag}] click on the goblin's body");
-        await ProbeClick(camera, unit.GlobalPosition + Vector3.Up * 0.05f, goblin.GridPosition, $"[{tag}] click on the goblin's feet");
+        var sprite = unit.GetNode<BillboardSpriteAnimator>("%Sprite");
+        sprite.Frozen = true;
+        await ProbeClick(camera, VisiblePoint(sprite, camera, 0.15f), goblin.GridPosition, $"[{tag}] click on visible head pixels");
+        await ProbeClick(camera, VisiblePoint(sprite, camera, 0.5f), goblin.GridPosition, $"[{tag}] click on visible body pixels");
+        await ProbeClick(camera, VisiblePoint(sprite, camera, 0.8f), goblin.GridPosition, $"[{tag}] click on visible lower pixels");
 
+        var facing = sprite.Facing;
+        sprite.Facing = -facing;
+        sprite.ApplyFacing();
+        await ProbeClick(camera, VisiblePoint(sprite, camera, 0.35f), goblin.GridPosition, $"[{tag}] click follows mirrored sprite anchor");
+        sprite.Facing = facing;
+        sprite.ApplyFacing();
+        await ProbeClick(camera, VisiblePoint(sprite, camera, 0.35f), goblin.GridPosition, $"[{tag}] click follows restored facing");
+
+        Check($"[{tag}] selection does not spend actions", fenwick.Actions?.TotalActionsRemaining == 3);
+        Check($"[{tag}] five clicks toggle to one target", hint.Text.StartsWith("1 / 2 targets"));
+        var confirm = bar.GetNode<Button>("%ConfirmTargets");
+        Check($"[{tag}] can confirm fewer than the limit", confirm.Visible && !confirm.Disabled);
+        Click(confirm.GetGlobalRect().GetCenter());
         await WaitSeconds(1.5f);
-        Check($"[{tag}] the first click on the goblin cast the spell (actions left {fenwick.Actions?.TotalActionsRemaining})",
+        Check($"[{tag}] confirming the chosen goblin casts the spell (actions left {fenwick.Actions?.TotalActionsRemaining})",
             (fenwick.Actions?.TotalActionsRemaining ?? 3) < 3);
+    }
+
+    private static Vector3 VisiblePoint(Sprite3D sprite, Camera3D camera, float fraction)
+    {
+        using var image = (Image)sprite.Texture.GetImage().Duplicate();
+        var used = image.GetUsedRect();
+        int y = used.Position.Y + (int)(used.Size.Y * fraction);
+        int x = used.Position.X + used.Size.X / 2;
+        for (int radius = 0; radius < used.Size.X; radius++)
+        {
+            int candidate = x + (radius % 2 == 0 ? radius / 2 : -(radius + 1) / 2);
+            if (candidate < 0 || candidate >= image.GetWidth() || image.GetPixel(candidate, y).A < 0.5f) continue;
+            x = candidate;
+            break;
+        }
+        if (sprite.FlipH) x = image.GetWidth() - 1 - x;
+        var pixel = new Vector2(x + 0.5f - image.GetWidth() / 2f, image.GetHeight() / 2f - y - 0.5f) + sprite.Offset;
+        return sprite.GlobalPosition + (Vector3.Up.Cross(camera.GlobalBasis.Z).Normalized() * pixel.X + Vector3.Up * pixel.Y) * sprite.PixelSize;
     }
 
     /// <summary>Hover then click a world point, and check the tile the grid input published.</summary>
@@ -140,10 +172,11 @@ public partial class TargetClickSpike : SpikeBase
     {
         var screen = camera.UnprojectPosition(world);
         _clicks.Clear();
-        Push(new InputEventMouseMotion { Position = screen, GlobalPosition = screen });
+        // Deliberately leave hover elsewhere: a click must use its own event coordinates.
+        Push(new InputEventMouseMotion { Position = Vector2.Zero, GlobalPosition = Vector2.Zero });
         await Frames(3);
         Click(screen);
-        await Frames(2);
+        await WaitSeconds(0.08f);
         string got = _clicks.Count == 0 ? "no tile" : _clicks[0].ToString();
         Check($"{label} resolves to {expected} (got {got})", _clicks.Count > 0 && _clicks[0].Equals(expected));
     }

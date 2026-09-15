@@ -480,9 +480,11 @@ public partial class RunEncounterSpike : SpikeBase
         int gained = PartyLeveling.Award(state, 1); // tips the pool over the threshold
         bool allAtLevel = true;
         foreach (var member in state.Party.Members)
-            allAtLevel &= member.Stats?.Level == startLevel + 1;
-        Check("crossing the threshold levels the whole party in place",
+            allAtLevel &= member.Stats?.Level == startLevel && CharacterPromotion.For(member).PendingLevels(member) == 1;
+        Check("crossing the threshold queues party promotions without applying them",
             gained == 1 && state.Party.Level == startLevel + 1 && allAtLevel && state.Xp == 0);
+        Check("an earned promotion has not changed HP", wounded.Health.MaxHP == hpBefore);
+        PromotionTestDriver.Complete(state.Party);
         Check("the level-up raises max HP and preserves damage taken",
             wounded.Health.MaxHP > hpBefore
             && wounded.Health.CurrentHP == wounded.Health.MaxHP - missing);
@@ -501,6 +503,7 @@ public partial class RunEncounterSpike : SpikeBase
         // The cap: a huge award levels every class (both casters included) to MaxLevel in place
         // and never past it - this exercises the full combo scripts to L10.
         int capGained = PartyLeveling.Award(state, state.Leveling.XpPerLevel * 40);
+        PromotionTestDriver.Complete(state.Party);
         bool allCapped = true;
         foreach (var member in state.Party.Members)
             allCapped &= member.Stats?.Level == state.Leveling.MaxLevel;

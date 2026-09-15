@@ -1,0 +1,21 @@
+Copied unchanged from Raven Megapack / Icons Premium / Separated Files / 64x64.
+
+- double-slice.png: c2753.png
+- inspiring-marshal-stance.png: c3297.png
+- treat-condition.png: c3105.png
+- battle-medicine.png: c3073.png
+- flurry-of-blows.png: c2593.png
+- hunt-prey.png: c2977.png
+- spellstrike.png: c3681.png
+- recharge-spellstrike.png: c2945.png
+- dimensional-assault.png: c3745.png
+- rage.png: c3489.png
+- lay-on-hands.png: c3105.png
+- chalice.png: c385.png
+- courageous-anthem.png: c3329.png
+- confident-finisher.png: c2817.png
+- braggarts-boast.png: c3969.png
+- eidolon-strike.png: c2849.png
+- eidolon-advance.png: c3233.png
+- act-together.png: c2753.png
+- ability.png: c2977.png

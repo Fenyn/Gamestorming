@@ -61,7 +61,7 @@ public partial class HeroSelectSpike : SpikeBase
         Check("(1) nothing is chosen", panel.SelectedIds.Count == 0);
         Check("(1) Embark is disabled", !panel.CanEmbark);
         Check($"(1) the hint asks for a character ({panel.HintText})",
-            panel.HintText.StartsWith("Assemble your party", StringComparison.Ordinal));
+            panel.HintText.Contains("four companions", StringComparison.Ordinal));
         Check("(1) an id outside the catalog cannot be picked", !panel.CanPick(PresetCharacters.RecruitId));
         Check("(1) an unlocked character can join", panel.CanPick(PresetCharacters.ElaraId));
 
@@ -197,6 +197,12 @@ public partial class HeroSelectSpike : SpikeBase
 
             Check($"(4) {def.Id} headlines its spell DC",
                 HeroSelectChecks.Headline(sheet, "SPELL DC") is { Length: > 0 });
+            if (built.Spellcasting!.GetMaxSlots(1)==0)
+            {
+                Check($"(4) {def.Id} shows focus-only casting without invented daily slots",
+                    HeroSelectChecks.HasChip(sheet,HeroSheetBuilder.SpellsRow,"Focus") && !HeroSelectChecks.HasChip(sheet,HeroSheetBuilder.SpellsRow,"Rank 1"));
+                continue;
+            }
             Check($"(4) {def.Id} groups its cantrips and its rank 1 slots",
                 HeroSelectChecks.HasChip(sheet, HeroSheetBuilder.SpellsRow, "Cantrips")
                 && HeroSelectChecks.HasChip(sheet, HeroSheetBuilder.SpellsRow, "Rank 1"));

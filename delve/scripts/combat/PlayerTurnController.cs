@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using PF2e;
+using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Utilities;
@@ -30,6 +31,17 @@ public sealed class PlayerTurnController
     private ICharacter? _current;
     private PlayerTurnMode _mode = PlayerTurnMode.Idle;
     private bool _busy;
+    public PlayerTurnMode Mode => _mode;
+    public bool CanAcceptOrders => Ready();
+    public event Action? ActionCompleted;
+    public bool CanStageOrder(PF2eVec tile) => Ready() && _mode switch
+    {
+        PlayerTurnMode.Idle => _plan?.Options.ContainsKey(tile) == true,
+        PlayerTurnMode.SelectingStrike => _strikeTargets.ContainsKey(tile),
+        PlayerTurnMode.SelectingSpellTarget => _spellTiles.Contains(tile),
+        PlayerTurnMode.SelectingSkillTarget => _skillTiles.Contains(tile),
+        _ => false,
+    };
 
     /// <summary>An action was executed this turn. Delay is a free action as the turn BEGINS, so
     /// this closes it.</summary>
@@ -44,6 +56,10 @@ public sealed class PlayerTurnController
     private readonly Dictionary<PF2eVec, ICharacter> _strikeTargets = new();
 
     // Pending spell/skill selection state.
+    private readonly List<ICharacter> _selectedSpellTargets = new();
+    private int _spellTargetLimit;
+    public event Action<int, int>? SpellTargetsChanged;
+
     private string _pendingSpellId = "";
     private int _pendingVariant = -1;
     private string _pendingSkillId = "";
@@ -152,7 +168,17 @@ public sealed class PlayerTurnController
                 HighlightsChanged?.Invoke(_spellTiles, HighlightKind.AreaOrigin);
                 break;
 
-            default: // SingleEnemy / SingleAlly / MultiEnemy
+            case TargetingKind.MultiEnemy:
+            case TargetingKind.MultiAlly:
+                if (plan.Tiles.Count == 0) { Cancel(); return; }
+                _spellTiles = plan.Tiles;
+                _spellTargetLimit = plan.MaxTargets;
+                SetMode(PlayerTurnMode.SelectingSpellTargets);
+                HighlightsChanged?.Invoke(_spellTiles, HighlightFor(plan.Kind));
+                SpellTargetsChanged?.Invoke(0, _spellTargetLimit);
+                break;
+
+            default: // SingleEnemy / SingleAlly
                 if (plan.Tiles.Count == 0) { Cancel(); return; }
                 _spellTiles = plan.Tiles;
                 SetMode(PlayerTurnMode.SelectingSpellTarget);
@@ -199,7 +225,7 @@ public sealed class PlayerTurnController
 
     /// <summary>Highlight colour a target-selection mode paints its legal tiles with.</summary>
     private static HighlightKind HighlightFor(TargetingKind kind)
-        => kind == TargetingKind.SingleAlly ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget;
+        => (kind == TargetingKind.SingleAlly || kind == TargetingKind.MultiAlly) ? HighlightKind.AllyTarget : HighlightKind.SpellEnemyTarget;
 
     public void EndTurn()
     {
@@ -295,10 +321,22 @@ public sealed class PlayerTurnController
                 break;
 
             case PlayerTurnMode.SelectingAreaOrigin:
+                AttackPreviewChanged?.Invoke(pos.HasValue
+                    ? _exec.GetSpellTargetPreview(_current, _pendingSpellId, _pendingVariant, pos.Value) : null);
                 if (pos.HasValue)
                     AreaPreviewChanged?.Invoke(_exec.GetAreaTemplateTiles(_current, _pendingSpellId, pos.Value));
                 else
                     AreaPreviewChanged?.Invoke(Array.Empty<PF2eVec>());
+                break;
+
+            case PlayerTurnMode.SelectingSpellTarget:
+            case PlayerTurnMode.SelectingSpellTargets:
+                AttackPreviewChanged?.Invoke(pos.HasValue
+                    ? _exec.GetSpellTargetPreview(_current, _pendingSpellId, _pendingVariant, pos.Value) : null);
+                break;
+            case PlayerTurnMode.SelectingSkillTarget:
+                AttackPreviewChanged?.Invoke(pos.HasValue
+                    ? _exec.GetAbilityTargetPreview(_current, _pendingSkillId, pos.Value) : null);
                 break;
         }
     }
@@ -330,6 +368,22 @@ public sealed class PlayerTurnController
                     RunAction(() => _exec.ExecuteStrike(_current!, target));
                 break;
 
+            case PlayerTurnMode.SelectingSpellTargets:
+                if (_spellTiles.Contains(pos) && _exec.GetSpellTargetAt(pos) is { } selected
+                    && selected.Health?.IsAlive == true)
+                {
+                    if (!_selectedSpellTargets.Remove(selected) && _selectedSpellTargets.Count < _spellTargetLimit)
+                        _selectedSpellTargets.Add(selected);
+                    var tiles = new HashSet<PF2eVec>();
+                    foreach (var creature in _selectedSpellTargets)
+                        tiles.UnionWith(CreatureTargetTiles.For(creature));
+                    AreaPreviewChanged?.Invoke(tiles);
+                    SpellTargetsChanged?.Invoke(_selectedSpellTargets.Count, _spellTargetLimit);
+                    if (_selectedSpellTargets.Count == _spellTargetLimit)
+                        ConfirmSpellTargets();
+                }
+                break;
+
             // A spell target and an area origin are both just the aim tile ExecuteCast takes.
             case PlayerTurnMode.SelectingSpellTarget:
             case PlayerTurnMode.SelectingAreaOrigin:
@@ -356,6 +410,16 @@ public sealed class PlayerTurnController
         }
     }
 
+    public void ConfirmSpellTargets()
+    {
+        if (!Ready() || _mode != PlayerTurnMode.SelectingSpellTargets || _selectedSpellTargets.Count == 0) return;
+        var targets = _selectedSpellTargets.ToArray();
+        var actor = _current!;
+        string id = _pendingSpellId;
+        int variant = _pendingVariant;
+        RunAction(() => _exec.ExecuteCastTargets(actor, id, variant, targets));
+    }
+
     // ---------------------------------------------------------------- Execution
 
     /// <summary>
@@ -371,7 +435,7 @@ public sealed class PlayerTurnController
         foreach (var leg in legs)
         {
             if (CancellationToken.IsCancellationRequested || !ReferenceEquals(_current, actor)) break;
-            if (actor.Health?.IsAlive != true || (actor.Actions?.TotalActionsRemaining ?? 0) <= 0) break;
+            if (!CanAct(actor) || (actor.Actions?.TotalActionsRemaining ?? 0) <= 0) break;
 
             if (!await _exec.ExecuteStride(actor, leg)) break;
             moved = true;
@@ -414,11 +478,12 @@ public sealed class PlayerTurnController
             return;
 
         _busy = false;
+        ActionCompleted?.Invoke();
 
         int remaining = _current?.Actions?.TotalActionsRemaining ?? 0;
         PublishState();
 
-        if (remaining <= 0)
+        if (remaining <= 0 || !CanAct(actor))
             EndTurnRequested?.Invoke();
         else
             ShowIdleBands();
@@ -426,7 +491,10 @@ public sealed class PlayerTurnController
 
     // ---------------------------------------------------------------- Helpers
 
-    private bool Ready() => !_busy && _current != null
+    private static bool CanAct(ICharacter actor) => actor.Health?.IsAlive == true
+        && actor.Conditions?.HasCondition(Condition.Unconscious) != true;
+
+    private bool Ready() => !_busy && _current != null && CanAct(_current)
         && (_current.Actions?.TotalActionsRemaining ?? 0) > 0;
 
     private void SetMode(PlayerTurnMode mode)
@@ -452,6 +520,9 @@ public sealed class PlayerTurnController
         _moveTiles = new();
         _strikeTargets.Clear();
         _spellTiles = new();
+        _selectedSpellTargets.Clear();
+        _spellTargetLimit = 0;
+        SpellTargetsChanged?.Invoke(0, 0);
         _skillTiles = new();
         _pendingSpellId = "";
         _pendingVariant = -1;

@@ -11,6 +11,9 @@ namespace Delve.Combat;
 /// </summary>
 public sealed record AttackPreviewView
 {
+    public string? HeaderText { get; init; }
+    public string? OutcomeText { get; init; }
+    public string? DetailText { get; init; }
     public required string AttackerName { get; init; }
     public required string TargetName { get; init; }
     public required string WeaponName { get; init; }

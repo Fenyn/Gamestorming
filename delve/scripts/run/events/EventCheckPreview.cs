@@ -39,7 +39,7 @@ public static class EventCheckPreview
             lines.Add($"{ability} {abilityBonus:+0;-0;0} · {rank} {proficiency:+0;-0;0}"
                 + (other != 0 ? $" · equipment / conditions {other:+0;-0;0}" : ""));
         }
-        lines.Add("Success: " + Describe(option.Success));
+        lines.Add((option.Check == null ? "" : "Success: ") + Describe(option.Success));
         if (option.Check != null)
         {
             var critical = EventResolver.OutcomeFor(option, DegreeOfSuccess.CriticalSuccess);

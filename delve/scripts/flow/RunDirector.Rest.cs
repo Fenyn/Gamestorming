@@ -47,6 +47,17 @@ public partial class RunDirector
         EndOnSpentWard();
     }
 
+    public void TakeShortRestSchedule(System.Collections.Generic.IReadOnlyList<RestAssignment> assignments)
+    {
+        if (_state == null || Phase != RunPhase.ShortRest || _shortRestResolved) return;
+        int before = _state.Wardstone.Ward;
+        var result = ShortRest.PerformSchedule(_state.Party, _state.Clock, assignments,
+            new RecoveryRules(), _state.Wardstone);
+        _shortRestResolved = result.Performed;
+        _shortRestPanel.ShowResult(result, _state, before);
+        EndOnSpentWard();
+    }
+
     /// <summary>
     /// End the run when the ward has gone out (design/core_concept.md, "Wardstone"). Called after
     /// every burn. True when it ended the run, so the caller stops what it was doing.

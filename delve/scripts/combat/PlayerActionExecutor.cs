@@ -59,6 +59,17 @@ public sealed class PlayerActionExecutor
     /// <summary>The skill / maneuver / feat-action chips, driven by SkillActionCatalog.</summary>
     internal SkillActions Skills => _skills;
 
+    public AttackPreviewView? GetSpellTargetPreview(ICharacter actor, string id, int variant, PF2eVec tile)
+        => _spells.GetTargetPreview(actor, id, variant, tile);
+
+    public AttackPreviewView? GetAbilityTargetPreview(ICharacter actor, string id, PF2eVec tile)
+    {
+        if (!_skills.GetSkillTargets(actor, id).Tiles.Contains(tile)) return null;
+        var target = _grid.GetGroundOccupant(tile);
+        var action = SkillActions.ResolveOwnedAction(actor, id);
+        return target == null || action == null ? null : TargetPreviewFactory.Ability(actor, target, action);
+    }
+
     // ---------------------------------------------------------------- Movement
 
     /// <summary>
@@ -135,6 +146,12 @@ public sealed class PlayerActionExecutor
         => _spells.GetAreaTemplateTiles(caster, spellId, origin);
 
     /// <summary>Cast a preset spell at the clicked tile, area origin, or nothing (SelfArea).</summary>
+    public ICharacter? GetSpellTargetAt(PF2eVec tile) => _grid.GetGroundOccupant(tile);
+
+    public Task<bool> ExecuteCastTargets(ICharacter caster, string spellId, int variantIndex,
+        IReadOnlyList<ICharacter> targets)
+        => _spells.ExecuteCast(caster, spellId, variantIndex, null, targets);
+
     public Task<bool> ExecuteCast(ICharacter caster, string spellId, int variantIndex, PF2eVec? aim)
         => _spells.ExecuteCast(caster, spellId, variantIndex, aim);
 

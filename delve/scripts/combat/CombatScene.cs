@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Delve.Data;
@@ -17,7 +18,9 @@ namespace Delve.Combat;
 /// </summary>
 public partial class CombatScene : Node3D
 {
-    [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.35f;
+    [Export] public bool EncounterIntroEnabled { get; set; } = true;
+    private Tween? _introFade;
+    [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.6f;
     private DiceRollPanel _dice = null!;
     // Preloaded token blockout (static subtree authored in the scene); each unit is an instance whose
     // per-unit visuals are applied by UnitVisual3D.Spawn.
@@ -40,8 +43,23 @@ public partial class CombatScene : Node3D
     /// overlay, input, camera pivot).
     /// </summary>
     private TerrainStage _terrain = null!;
+    private TerrainHeightMap? _borrowedHeights;
+    private Godot.Environment? _ownedEnvironment;
+    private TerrainHeightMap SurfaceHeights => _borrowedHeights ?? _terrain.HeightMap;
+    public Camera3D ActiveCamera => _cameraRig.Camera;
+
+    /// <summary>Release combat-owned objects without touching terrain supplied by a dungeon.</summary>
+    public void EndHostedEncounter()
+    {
+        ResetEncounter();
+        SetPresentationVisible(false);
+        ProcessMode = ProcessModeEnum.Disabled;
+        _worldEnvironment.Environment = null;
+        _sun.Visible = false;
+    }
 
     private ActionBar _actionBar = null!;
+    private ActiveCharacterPanel _activeCharacter = null!;
     private CombatLogPanel _log = null!;
     private TurnOrderBar _turnBar = null!;
     private VictoryBanner _victoryBanner = null!;
@@ -97,6 +115,7 @@ public partial class CombatScene : Node3D
         _cameraRig = GetNode<OrbitCameraRig>("%CameraRig");
         _terrain = GetNode<TerrainStage>("%TerrainStage");
         _worldEnvironment = GetNode<WorldEnvironment>("WorldEnvironment");
+        _ownedEnvironment = _worldEnvironment.Environment;
         _sun = GetNode<DirectionalLight3D>("DirectionalLight3D");
         _hud = GetNode<CanvasLayer>("%HUD");
 
@@ -105,11 +124,13 @@ public partial class CombatScene : Node3D
         _dice = GetNode<DiceRollPanel>("%DiceRoll");
         _log.RollObserved += _dice.ShowRoll;
         _actionBar = GetNode<ActionBar>("%ActionBar");
+        _activeCharacter = GetNode<ActiveCharacterPanel>("%ActiveCharacter");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _victoryBanner.Continued += () => ResultsContinued?.Invoke();
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
         _help = GetNode<HelpOverlay>("%HelpOverlay");
         _inspectPanel = GetNode<UnitInspectPanel>("%UnitInspect");
+        BuildTacticalPresentation();
         // Modal blocking needs no wiring here: the reaction prompt pushes HudRoot's modal state
         // and the action bar's hotkeys query it directly through their shared parent.
     }
@@ -122,6 +143,9 @@ public partial class CombatScene : Node3D
     public void SetVictoryRestartVisible(bool visible) => _victoryBanner.SetRestartVisible(visible);
 
     public event System.Action? ResultsContinued;
+
+    public void ShowResultParty(System.Collections.Generic.IReadOnlyList<PF2e.Core.PF2eCharacter> party)
+        => _victoryBanner.ShowParty(party);
 
     public void ShowRewards(string rewards, string progressText, double progress)
         => _victoryBanner.ShowRewards(rewards, progressText, progress);
@@ -185,7 +209,7 @@ public partial class CombatScene : Node3D
     public bool HoverSteepestBandTile(out Vector3 world)
     {
         world = Vector3.Zero;
-        var heights = _terrain.HeightMap;
+        var heights = SurfaceHeights;
         if (!heights.HasTerrain) return false;
         PF2e.Vector2Int? best = null;
         int bestSpan = 0;
@@ -214,9 +238,16 @@ public partial class CombatScene : Node3D
     /// the roguelite loop runs encounter after encounter through one CombatScene — because
     /// <see cref="ResetEncounter"/> drops everything the previous encounter owned first.
     /// </summary>
-    public void StartEncounter(CombatSetup setup)
+    public void StartEncounter(CombatSetup setup, TerrainHeightMap? borrowedHeights = null)
     {
+        var outgoingCamera = GetViewport().GetCamera3D();
+        Transform3D? outgoingPose = outgoingCamera != _cameraRig.Camera || _session != null
+            ? outgoingCamera?.GlobalTransform : null;
+        float outgoingFov = outgoingCamera?.Fov ?? _cameraRig.Camera.Fov;
         ResetEncounter();
+        _borrowedHeights = borrowedHeights;
+        ProcessMode = ProcessModeEnum.Inherit;
+        _cameraRig.Camera.Current = true;
 
         _session = new CombatSession();
         _session.Setup(setup);
@@ -228,20 +259,34 @@ public partial class CombatScene : Node3D
         _log.ClearLog();
 
         // Board surface first: everything below is positioned against it.
-        _terrain.Build(_session.MapLayout, setup.BiomeId,
-            setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
+        _terrain.Visible = borrowedHeights == null;
+        _sun.Visible = borrowedHeights == null;
+        if (borrowedHeights == null)
+        {
+            _worldEnvironment.Environment = _ownedEnvironment;
+            _terrain.Build(_session.MapLayout, setup.BiomeId,
+                setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
+        }
+        else
+        {
+            _terrain.Visible = false;
+            _worldEnvironment.Environment = null;
+            _sun.Visible = false;
+        }
 
-        _presenter = new GodotPresenter3D(_popupLayer, _terrain.HeightMap);
+        _presenter = new GodotPresenter3D(_popupLayer, SurfaceHeights);
         // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D);
         // turn starts and walks move the rig itself through its focus seam.
         _presenter.Shake = _cameraRig.Shake;
         _presenter.Focus = _cameraRig;
-        _overlay.SetHeightMap(_terrain.HeightMap);
-        _moveBands.SetHeightMap(_terrain.HeightMap);
+        _overlay.SetHeightMap(SurfaceHeights);
+        _moveBands.SetHeightMap(SurfaceHeights);
 
-        _cameraRig.FrameBoard(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight, _terrain.HeightMap),
+        _cameraRig.FrameBoard(GridSpace.BoardCenter(setup.GridWidth, setup.GridHeight, SurfaceHeights),
             setup.GridWidth, setup.GridHeight);
         SpawnUnits();
+        _partyMembers = setup.Party.Select(p => p.Unit).ToArray();
+        _squad.Setup(SquadViews());
 
         var logBridge = new CombatLogBridge(_log, _session.Team1, _session.Team2);
         _logBridge = logBridge;
@@ -251,13 +296,27 @@ public partial class CombatScene : Node3D
         {
             if (evt.Source != null)
                 await AiActionPacing.Wait(evt, session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
+            await _dice.WaitForResultsAsync(presenter.CancellationToken);
             logBridge.Present(evt);
+            if (evt.Type is BattleEventType.AttackRolled or BattleEventType.SpellCast
+                && evt.Source != null && evt.Target != null)
+                _cameraRig.FrameAction(GridSpace.CreatureToWorld(evt.Source.GridPosition, evt.Source.TileWidth, SurfaceHeights),
+                    GridSpace.CreatureToWorld(evt.Target.GridPosition, evt.Target.TileWidth, SurfaceHeights));
             await presenter.Present(evt);
+            if (evt.Type is BattleEventType.DamageDealt or BattleEventType.Healed
+                or BattleEventType.CreatureDied
+                || evt.Type == BattleEventType.AttackRolled && evt.Degree < PF2e.Data.DegreeOfSuccess.Success)
+                _cameraRig.RestorePlanningView();
+            _activeCharacter.Render(ActiveCharacterView.From(session.CurrentActor));
         });
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
         // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
-        _session.ReactionPromptHandler = view => _reactionPrompt.ShowAsync(view);
-        _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, _terrain.HeightMap);
+        _session.ReactionPromptHandler = async view =>
+        {
+            await _dice.WaitForResultsAsync(presenter.CancellationToken);
+            return await _reactionPrompt.ShowAsync(view);
+        };
+        _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, SurfaceHeights);
         // One click-vs-drag threshold for the whole gesture: the rig's value wins.
         _input.DragThresholdPixels = _cameraRig.DragThresholdPixels;
 
@@ -272,7 +331,7 @@ public partial class CombatScene : Node3D
             _input.TileClicked += OnTileClicked;
             _input.TileHovered += OnTileHovered;
             _input.Cancelled += OnCancel;
-            _input.FocusRequested += () => _cameraRig.FocusOnActive();
+            _input.FocusRequested += () => { ClearPartyFocus(); _inspectPanel.Render(null); _cameraRig.FocusOnActive(); };
             _turnBar.ChipPressed += id => _controller.DelayAnchorClicked(id);
             WireActionBar();
         }
@@ -288,9 +347,37 @@ public partial class CombatScene : Node3D
         // faults through the engine Log and routes to an abort finish, and treats cancellation as a clean
         // stop — so this continuation is only a last backstop: surface anything that still escapes as a
         // loud editor error instead of a silent unobserved-Task soft-lock. Faulted path only.
-        _session.RunAsync(_encounterCts.Token).ContinueWith(
+        RunIntroAndEncounter(session, setup, outgoingPose, outgoingFov, _encounterCts.Token).ContinueWith(
             t => GD.PushError($"[CombatScene] Encounter loop faulted unexpectedly: {t.Exception}"),
             TaskContinuationOptions.OnlyOnFaulted);
+    }
+
+    private async Task RunIntroAndEncounter(CombatSession session, CombatSetup setup,
+        Transform3D? outgoingPose, float outgoingFov, CancellationToken token)
+    {
+        try
+        {
+            // Headless simulations retain their immediate turn-start contract.
+            if (EncounterIntroEnabled && DisplayServer.GetName() != "headless")
+            {
+                var intro = GetNode<Control>("%EncounterIntro");
+                GetNode<Label>("%EncounterSubtitle").Text = $"{setup.Enemies.Count} {(setup.Enemies.Count == 1 ? "foe" : "foes")} ahead"
+                    + (setup.Allies.Count > 0 ? $"\n{setup.Allies[0].Unit.Name} fights beside you as an ally." : "");
+                intro.Modulate = Colors.Transparent;
+                intro.Show();
+                _input.ProcessMode = ProcessModeEnum.Disabled;
+                _introFade = CreateTween();
+                _introFade.TweenProperty(intro, "modulate", Colors.White, 0.2);
+                _introFade.TweenInterval(1.05);
+                _introFade.TweenProperty(intro, "modulate", Colors.Transparent, 0.3);
+                await _cameraRig.PlayIntro(outgoingPose ?? _cameraRig.Camera.GlobalTransform, outgoingFov, token);
+                token.ThrowIfCancellationRequested();
+                intro.Hide();
+                _input.ProcessMode = ProcessModeEnum.Inherit;
+            }
+            await session.RunAsync(token);
+        }
+        catch (System.OperationCanceledException) { }
     }
 
     public override void _ExitTree() => StopEncounter();
@@ -305,12 +392,20 @@ public partial class CombatScene : Node3D
     private void StopEncounter()
     {
         _logBridge?.Dispose();
+        // Cancel the awaited pipeline before clearing dice can release its presentation gate.
+        _encounterCts?.Cancel();
+        _cameraRig?.CancelIntro();
+        _cameraRig?.RestorePlanningView(true);
+        _introFade?.Kill();
+        _introFade = null;
+        GetNodeOrNull<Control>("%EncounterIntro")?.Hide();
+        if (_input != null) _input.ProcessMode = ProcessModeEnum.Inherit;
         _dice?.ClearRoll();
+        _activeCharacter?.Render(null);
         _logBridge = null;
         // Cancel BEFORE teardown: the loop may be parked in a presenter Task.Delay / tween wait or on the
         // player-turn TCS. Cancelling releases those so it unwinds without resuming on freed nodes;
         // Teardown then clears the engine statics/delegates and completes any still-pending player turn.
-        _encounterCts?.Cancel();
         _session?.Teardown();
         _encounterCts?.Dispose();
         _encounterCts = null;
@@ -326,6 +421,7 @@ public partial class CombatScene : Node3D
     private void ResetEncounter()
     {
         StopEncounter();
+        ResetTacticalPresentation();
 
         _controller?.EndControl();
         _controller = null!;
@@ -342,6 +438,7 @@ public partial class CombatScene : Node3D
         // resolving a position against the map when its meshes and collider go away. Clear also shows
         // the checker plane again, which a generated map hid.
         _terrain.Clear();
+        _borrowedHeights = null;
 
         _victoryBanner.HideResult();
     }
@@ -362,6 +459,12 @@ public partial class CombatScene : Node3D
 
     // ---------------------------------------------------------------- Build
 
+    public override void _Process(double delta)
+    {
+        _session?.ReconcileOccupancy();
+        RefreshSquad(delta);
+    }
+
     private void SpawnUnits()
     {
         foreach (var unit in _session.Team1) AddUnitVisual(unit);
@@ -378,16 +481,23 @@ public partial class CombatScene : Node3D
             : null;
 
         var visual = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder);
-        visual.Position = GridSpace.CreatureToWorld(character.GridPosition, character.TileWidth, _terrain.HeightMap);
+        visual.Position = GridSpace.CreatureToWorld(character.GridPosition, character.TileWidth, SurfaceHeights);
         _unitLayer.AddChild(visual);
-        visual.PlaceOnGround(character.GridPosition, _terrain.HeightMap);
+        visual.PlaceOnGround(character.GridPosition, SurfaceHeights);
         _presenter.RegisterUnit(character, visual);
+        _tacticalUnits[character.UniqueId] = visual;
     }
 
     // ---------------------------------------------------------------- Wiring
 
     private void WireControllerToView()
     {
+        _session.CombatantRemoved += character =>
+        {
+            _tacticalUnits.Remove(character.UniqueId);
+            if (_focusedMember == character.UniqueId) _focusedMember = null;
+            _presenter.RetireUnit(character);
+        };
         _controller.HighlightsChanged += (tiles, kind) => _overlay.SetHighlights(tiles, kind);
         _controller.MoveBandsChanged += bands =>
         {
@@ -397,10 +507,16 @@ public partial class CombatScene : Node3D
         };
         _controller.HoverTileChanged += tile => _moveBands.SetHoverTile(tile);
         _controller.MoveHoverChanged += hover => _actionBar.SetMoveHint(hover);
-        _controller.PathPreviewChanged += path => _overlay.SetPathPreview(path);
+        _controller.PathPreviewChanged += path => { _overlay.SetPathPreview(path); PreviewDestination(path); };
         _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
         _controller.AttackPreviewChanged += preview => _actionBar.ShowAttackPreview(preview);
         _controller.ButtonStateChanged += state => _actionBar.Render(state);
+        _controller.ButtonStateChanged += _ =>
+            _activeCharacter.Render(ActiveCharacterView.From(_session.CurrentActor));
+        _controller.SpellTargetsChanged += _actionBar.SetSpellTargetSelection;
+        _actionBar.ConfirmTargetsPressed += () => _controller.ConfirmSpellTargets();
+        _controller.ModeChanged += _ => { ClearStagedOrder(); ClearPartyFocus(); };
+        _controller.ActionCompleted += () => _cameraRig.RestorePlanningView();
         _controller.ModeChanged += mode => _actionBar.SetTargetingHint(
             mode != PlayerTurnMode.Idle, mode == PlayerTurnMode.SelectingDelaySlot);
         _controller.EndTurnRequested += () => _session.RequestEndPlayerTurn();
@@ -436,8 +552,10 @@ public partial class CombatScene : Node3D
 
     private void WireSession()
     {
+        var session = _session;
         _session.PlayerTurnStarted += character =>
         {
+            if (!ReferenceEquals(_session, session)) return;
             _controller.BeginTurn(character);
             _actionBar.SetInteractable(true);
             _actionBar.SetAiToggle(_session.IsAiToggled(character));
@@ -445,12 +563,13 @@ public partial class CombatScene : Node3D
         };
         _session.PlayerTurnEnded += () =>
         {
+            if (!ReferenceEquals(_session, session)) return;
             // EndControl clears the overlay through the controller's own transient reset.
             _controller.EndControl();
             _actionBar.SetInteractable(false);
         };
-        _session.TurnChanged += RefreshTurnOrder;
-        _session.EncounterFinished += ShowResult;
+        _session.TurnChanged += () => { if (ReferenceEquals(_session, session)) { ClearPartyFocus(); RefreshTurnOrder(); } };
+        _session.EncounterFinished += result => { if (ReferenceEquals(_session, session)) ShowResult(result); };
         // Recall Knowledge that actually taught the party something: re-raise for a hosting scene's
         // monster journal. No subscriber in the combat proof — the executor falls back to
         // all-creature-info-known.
@@ -460,18 +579,21 @@ public partial class CombatScene : Node3D
 
     // ---------------------------------------------------------------- Input handlers
 
-    private void OnTileClicked(PF2e.Vector2Int pos) => _controller.TileClicked(pos);
+    private void OnTileClicked(PF2e.Vector2Int pos) => HandleTacticalClick(pos);
 
     /// <summary>Forwards hover to the targeting controller (path/attack preview) AND, independently,
     /// to the always-on inspect card — the two coexist in every mode, per CLAUDE.md's passive-UI
     /// wiring: this Node3D reads engine occupancy and hands the UI a view model, nothing more.</summary>
     private void OnTileHovered(PF2e.Vector2Int? pos)
     {
-        _controller.TileHovered(pos);
-        _inspectPanel.Render(pos.HasValue ? _session.PlayerActions.GetUnitInspect(pos.Value) : null);
+        if (_stagedTile == null) _controller.TileHovered(pos);
+        var inspected = pos.HasValue ? _session.PlayerActions.GetUnitInspect(pos.Value) : null;
+        if (inspected == null && _focusedMember is { } id && _tacticalUnits.TryGetValue(id, out var focused))
+            inspected = UnitInspectFactory.BuildInspectView(focused.Character);
+        _inspectPanel.Render(inspected);
     }
 
-    private void OnCancel() => _controller.Cancel();
+    private void OnCancel() { ClearStagedOrder(); _controller.Cancel(); }
 
     // ---------------------------------------------------------------- View refresh
 
@@ -481,6 +603,7 @@ public partial class CombatScene : Node3D
         if (order == null) return;
 
         var current = _session.CurrentActor;
+        _activeCharacter.Render(ActiveCharacterView.From(current));
         var delayed = _session.DelayedEntries ?? System.Array.Empty<PF2e.TurnManagement.TurnEntry>();
         var views = new List<UnitView>(order.Count + delayed.Count);
         foreach (var entry in order)
@@ -492,6 +615,8 @@ public partial class CombatScene : Node3D
                     views.Add(UnitViewFor(waiting, current, delayed: true));
         }
         _turnBar.Render(views);
+        _tacticalOrder = views;
+        ClearStagedOrder();
 
         bool playerTurn = current != null && _session.IsPlayerControlled(current);
         _actionBar.SetInteractable(playerTurn);
@@ -529,6 +654,8 @@ public partial class CombatScene : Node3D
         Color color = result == PF2e.Core.BattleResult.Team1Wins
             ? UiColors.Victory
             : UiColors.Defeat;
+        _tacticalFinished = true;
+        ClearStagedOrder();
         _victoryBanner.ShowResult(text, color);
         _actionBar.SetInteractable(false);
 

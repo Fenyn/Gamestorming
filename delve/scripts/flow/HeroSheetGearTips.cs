@@ -124,7 +124,9 @@ internal static class HeroSheetGearTips
     /// </summary>
     internal static SheetTip Feature(CharacterFeature feature)
     {
-        var pack = FeatLookup.Find(PackText.Slug(feature.DisplayName));
+        // Pack filenames retain word separators in names such as Dual-Weapon Warrior.
+        string slug = PackText.Slug(feature.DisplayName?.Replace('-', ' '));
+        var pack = FeatLookup.Find(slug);
 
         string html = pack?.DescriptionHtml is { Length: > 0 } d ? d : feature.Description ?? "";
         var meta = new List<SheetMetaRow>();
@@ -136,12 +138,33 @@ internal static class HeroSheetGearTips
         if (meta.TrueForAll(m => m.Label != "Frequency") && pack?.Frequency is { Length: > 0 } freq)
             meta.Add(new SheetMetaRow("Frequency", freq));
 
-        string body = PackText.Plain(PackText.WithoutMetaBlocks(html));
+        string body = PackText.Plain(PackText.WithoutMetaBlocks(html), 0);
         if (body.Length == 0)
         {
             body = $"A {Category(feature.Category).ToLowerInvariant()} this build gains at level "
                    + $"{feature.LevelRequirement}.";
         }
+
+        string fullRules = PackText.Plain(html, 0);
+        if (fullRules.Length == 0) fullRules = body;
+        var summary = SheetFeatureSummaries.Find(slug);
+        if (summary != null)
+        {
+            meta.Clear();
+            meta.AddRange(summary);
+        }
+        else
+        {
+            // New features inherit the same layout. Prefer the engine's short description;
+            // otherwise show one complete source sentence, never a character-truncated fragment.
+            string overview = PackText.Plain(feature.Description, 0);
+            if (overview.Length == 0 || overview.Length > 260)
+                overview = PackText.Sentence(body, 0);
+            for (int i = 0; i < meta.Count; i++)
+                if (meta[i].Label == "Requirements") meta[i] = meta[i] with { Label = "Requires" };
+            meta.Add(new SheetMetaRow("Effect", overview));
+        }
+        body = "";
 
         return new SheetTip(
             feature.DisplayName ?? "Feature",
@@ -150,7 +173,8 @@ internal static class HeroSheetGearTips
             Cost: FeatureCost(feature, pack),
             Traits: RulesTraits(pack?.Traits),
             Tag: $"{Category(feature.Category).ToUpperInvariant()} {feature.LevelRequirement}",
-            Meta: meta.Count > 0 ? meta : null);
+            Meta: meta.Count > 0 ? meta : null,
+            FullRules: fullRules);
     }
 
     /// <summary>

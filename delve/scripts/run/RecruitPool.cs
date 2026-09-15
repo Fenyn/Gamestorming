@@ -10,12 +10,21 @@ public sealed class RecruitPool
     private readonly List<string> _order = new();
     private readonly HashSet<string> _unavailable = new();
 
-    public RecruitPool(Party party, UnlockState unlocks)
+    public RecruitPool(Party party, UnlockState unlocks, int? seed = null)
     {
         Unlocks = unlocks;
         foreach (string id in party.MemberIds) _unavailable.Add(id);
         foreach (var def in CharacterCatalog.All)
             if (def.CanMeet && !_unavailable.Contains(def.Id)) _order.Add(def.Id);
+        if (seed.HasValue)
+        {
+            var rng = new System.Random(RunRng.StableSeed(seed.Value, 0, "wayfarer-order"));
+            for (int i = _order.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (_order[i], _order[j]) = (_order[j], _order[i]);
+            }
+        }
     }
 
     public IReadOnlyList<string> Order => _order;

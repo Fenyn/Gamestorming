@@ -234,7 +234,11 @@ public sealed class TerrainSpatial
         if (_grid == null || attacker == null || defender == null)
             return true; // no data — default to visible, as Unity did
 
-        var attackerAnchor = attacker.GridPosition;
+        return HasLineOfSightFrom(attacker.GridPosition, attacker, defender);
+    }
+
+    public bool HasLineOfSightFrom(PF2eVec attackerAnchor, ICharacter attacker, ICharacter defender)
+    {
         var defenderAnchor = defender.GridPosition;
 
         var (startX, startY) = CentreTile(attackerAnchor, attacker.TileWidth);
@@ -242,7 +246,7 @@ public sealed class TerrainSpatial
 
         return Trace(
             startX, startY, endX, endY,
-            CharacterLineHeight(attacker), CharacterLineHeight(defender),
+            TileSurfaceHeight(attackerAnchor) + CreatureEyeHeight + attacker.AltitudeFeet * TileCornerHeights.UnitsPerElevation / TileCornerHeights.FeetPerElevation, CharacterLineHeight(defender),
             OccupiedSet(attackerAnchor, attacker.TileWidth),
             OccupiedSet(defenderAnchor, defender.TileWidth),
             terrainMargin: TileCornerHeights.UnitsPerElevation);

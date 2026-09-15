@@ -31,7 +31,7 @@ grow_vertical = 2
 [node name="Frame" type="PanelContainer" parent="Center"]
 custom_minimum_size = Vector2(760, 0)
 layout_mode = 2
-theme_type_variation = &"ModalPanel"
+theme_type_variation = &"HudPanel"
 
 [node name="Box" type="VBoxContainer" parent="Center/Frame"]
 layout_mode = 2
@@ -47,17 +47,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = ""
 
-[node name="TargetHeading" type="Label" parent="Center/Frame/Box"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Treat Wounds target"
-theme_type_variation = &"HeadingLabel"
-
-[node name="TargetRow" type="HBoxContainer" parent="Center/Frame/Box"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 8
-
 [node name="ActivityBox" type="VBoxContainer" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -68,6 +57,12 @@ unique_name_in_owner = true
 layout_mode = 2
 text = ""
 autowrap_mode = 3
+
+[node name="ConfirmButton" type="Button" parent="Center/Frame/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+text = "Begin rest"
 
 [node name="BackButton" type="Button" parent="Center/Frame/Box"]
 unique_name_in_owner = true

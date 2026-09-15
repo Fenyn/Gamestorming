@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scripts/dungeon/DungeonRoomPrefab.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/prop.tscn" id="2"]
+[ext_resource type="Resource" path="res://scenes/dungeon/palettes/stone.tres" id="palette"]
+[node name="elite" type="Node3D"]
+script = ExtResource("1")
+Family = 8
+InteriorSize = 16
+SizeVariants = PackedInt32Array(14, 16, 18)
+PropScene = ExtResource("2")
+MinCover = 3
+MaxCover = 5
+DebrisCount = 10
+
+Palette = ExtResource("palette")
+FeatureCount = 4
+HangingBanners = true

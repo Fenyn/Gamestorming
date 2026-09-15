@@ -16,6 +16,7 @@ public sealed record ChipSpec
     /// <summary>Second payload field for callers whose entries come in variants (-1 = none).</summary>
     public int Variant { get; init; } = -1;
     public required string Name { get; init; }
+    public Texture2D? Icon { get; init; }
     /// <summary>Actions the entry costs, drawn as that many cost pips. 0 or less falls back to
     /// <see cref="CostText"/> drawn as dim text.</summary>
     public int ActionCost { get; init; }
@@ -95,6 +96,10 @@ public partial class ChipFlyout : PanelContainer
         var chip = ChipScene.Instantiate<Button>();
         chip.Disabled = !spec.Enabled;
         chip.TooltipText = BuildChipTooltip(spec);
+        var icon = chip.GetNode<TextureRect>("%ChipIcon");
+        icon.Texture = spec.Icon;
+        icon.Visible = spec.Icon != null;
+        icon.Modulate = new Color(1, 1, 1, spec.Enabled ? 1f : 0.45f);
 
         // Internal labels don't track the button's disabled font color (same as the bar captions)
         // — chips are rebuilt on every state change, so a one-shot override at build time is enough.

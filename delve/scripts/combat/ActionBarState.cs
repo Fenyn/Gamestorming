@@ -21,6 +21,7 @@ public sealed record ActionBarState
     public int Hp { get; init; }
     public int MaxHp { get; init; }
     public int Ac { get; init; }
+    public string Resources { get; init; } = "";
 
     /// <summary>Reasons a disabled button is disabled ("No actions remaining", "No targets in
     /// reach", ...), null when the button is enabled. Rules-derived in ActionBarStateBuilder —

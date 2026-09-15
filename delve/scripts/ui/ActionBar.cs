@@ -19,6 +19,11 @@ namespace Delve.UI;
 /// </summary>
 public partial class ActionBar : Control
 {
+    [Export] public SpellIconCatalog? SpellIcons { get; set; }
+    public event Action? ConfirmTargetsPressed;
+    private Button _confirmTargets = null!;
+    private int _selectedTargets;
+    private int _targetLimit;
     public event Action? StrikePressed;
     public event Action? RaiseShieldPressed;
     public event Action? DelayPressed;
@@ -56,6 +61,7 @@ public partial class ActionBar : Control
     private PanelContainer _previewCard = null!;
     private Label _previewHeaderLabel = null!;
     private Label _previewStatsLabel = null!;
+    private Label _previewDetailLabel = null!;
     private Label _offGuardTag = null!;
 
     private HudRoot? _hud;
@@ -98,10 +104,15 @@ public partial class ActionBar : Control
         _controlOptions = GetNode<Control>("%ControlOptions");
         _controlButton.Toggled += on => SetFlyout(on ? FlyoutCategory.Control : FlyoutCategory.None);
         _targetingHintLabel = GetNode<Label>("%TargetingHint");
+        _confirmTargets = GetNode<Button>("%ConfirmTargets");
+        _confirmTargets.Pressed += () => ConfirmTargetsPressed?.Invoke();
         _flyout = GetNode<ChipFlyout>("%Flyout");
+        _signatures = GetNode<ChipFlyout>("%SignatureActions");
+        _signatures.ChipPressed += OnSignaturePressed;
         _previewCard = GetNode<PanelContainer>("%PreviewCard");
         _previewHeaderLabel = GetNode<Label>("%PreviewHeaderLabel");
         _previewStatsLabel = GetNode<Label>("%PreviewStatsLabel");
+        _previewDetailLabel = GetNode<Label>("%PreviewDetailLabel");
         _offGuardTag = GetNode<Label>("%OffGuardTag");
 
         _hud = HudRoot.Find(this);
@@ -156,6 +167,7 @@ public partial class ActionBar : Control
         _endBtn.Disabled = !interactable;
         RefreshCaptionColors();
         RefreshHint();
+        RebuildSignatures();
     }
 
     /// <summary>"Unavailable: reason" tooltip for a disabled control; empty (no tooltip) for null —
@@ -210,7 +222,7 @@ public partial class ActionBar : Control
         _vitalsLabel.Visible = state.MaxHp > 0;
         if (state.MaxHp > 0)
         {
-            _vitalsLabel.Text = $"HP {state.Hp}/{state.MaxHp}  AC {state.Ac}";
+            _vitalsLabel.Text = $"HP {state.Hp}/{state.MaxHp}  AC {state.Ac}" + (state.Resources.Length > 0 ? "\n" + state.Resources : "");
             _vitalsLabel.AddThemeColorOverride("font_color", UiColors.Text);
         }
 
@@ -245,6 +257,7 @@ public partial class ActionBar : Control
         _lastActorName = state.ActorName;
         _spells = state.SpellEntries;
         _skills = state.SkillEntries;
+        RebuildSignatures();
 
         // Martials get no Spells button at all — an always-disabled category fails kitchen-sink.
         _spellsBtn.Visible = _spells.Count > 0;
@@ -262,9 +275,11 @@ public partial class ActionBar : Control
 
     /// <summary>Open the flyout on one category (None = close). Opening a category closes the
     /// other; the toggle buttons' pressed states mirror it without re-firing Toggled.</summary>
-    private void SetFlyout(FlyoutCategory category)
+    private void SetFlyout(FlyoutCategory category, string? spellFilter = null)
     {
         _openCategory = category;
+        _spellFilter = spellFilter;
+        RebuildSignatures();
         _spellsBtn.SetPressedNoSignal(category == FlyoutCategory.Spells);
         _skillsBtn.SetPressedNoSignal(category == FlyoutCategory.Skills);
         _controlButton.SetPressedNoSignal(category == FlyoutCategory.Control);
@@ -294,25 +309,18 @@ public partial class ActionBar : Control
             var cantrips = new List<SpellEntryView>();
             var slotted = new List<SpellEntryView>();
             foreach (var spell in _spells)
+            {
+                if (_spellFilter != null && SignatureAbilities.BaseId(spell.SpellId) != _spellFilter) continue;
                 (spell.IsCantrip ? cantrips : slotted).Add(spell);
+            }
 
             AddSpellSection("Cantrips", cantrips);
             AddSpellSection("Spells", slotted);
         }
         else if (_openCategory == FlyoutCategory.Skills)
         {
-            var flow = _flyout.AddFlow();
-            foreach (var skill in _skills)
-                _flyout.AddChip(flow, new ChipSpec
-                {
-                    Id = skill.ActionId,
-                    Name = skill.Name,
-                    ActionCost = skill.ActionCost,
-                    CostText = SpellOutCost(skill.ActionCost, skill.CostText),
-                    Enabled = _interactable && skill.Castable,
-                    Description = skill.Description,
-                    UnavailableReason = skill.UnavailableReason,
-                });
+            AddAbilitySection("Character", System.Linq.Enumerable.Where(_skills, s => s.IsCharacterAbility));
+            AddAbilitySection("General", System.Linq.Enumerable.Where(_skills, s => !s.IsCharacterAbility));
         }
     }
 
@@ -328,6 +336,7 @@ public partial class ActionBar : Control
             _flyout.AddChip(flow, new ChipSpec
             {
                 Id = spell.SpellId,
+                Icon = SpellIcons?.ForSpell(spell.SpellId),
                 Variant = spell.VariantIndex,
                 Name = spell.Name,
                 ActionCost = spell.ActionCost,
@@ -370,10 +379,13 @@ public partial class ActionBar : Control
 
         // The AC / hit / crit strings arrive already masked for bestiary knowledge — this Control
         // never decides what the player may see.
-        _previewHeaderLabel.Text =
-            $"{preview.WeaponName} → {preview.TargetName} · Attack {preview.TotalAttackBonus:+0;-0;0}";
-        _previewStatsLabel.Text =
-            $"{preview.HitChanceText} hit · {preview.DamageFormula} damage · {preview.CritChanceText} crit";
+        _previewHeaderLabel.Text = preview.HeaderText ??
+            $"{preview.WeaponName} → {preview.TargetName}";
+        _previewStatsLabel.Text = preview.OutcomeText ??
+            $"{preview.HitChanceText} hit · {preview.CritChanceText} critical hit";
+        _previewDetailLabel.Text = preview.DetailText ??
+            $"Attack {preview.TotalAttackBonus:+0;-0;0} vs AC {preview.TargetAcText} · {preview.DamageFormula} damage";
+        _previewDetailLabel.Visible = _previewDetailLabel.Text.Length > 0;
         _offGuardTag.Visible = preview.TargetOffGuard;
     }
 
@@ -398,8 +410,18 @@ public partial class ActionBar : Control
         RefreshHint();
     }
 
+    public void SetSpellTargetSelection(int count, int limit)
+    {
+        _selectedTargets = count;
+        _targetLimit = limit;
+        RefreshHint();
+    }
+
     private void RefreshHint()
     {
+        _confirmTargets.Visible = _interactable && _targetLimit > 1;
+        _confirmTargets.Disabled = !_interactable || _selectedTargets == 0;
+        _confirmTargets.Text = "Cast [Enter]";
         if (!_interactable)
         {
             _targetingHintLabel.Text = "";
@@ -408,7 +430,8 @@ public partial class ActionBar : Control
         }
         if (_targeting)
         {
-            _targetingHintLabel.Text = _pickingDelaySlot ? DelayPickHint : TargetingHint;
+            _targetingHintLabel.Text = _targetLimit > 1 ? $"{_selectedTargets} / {_targetLimit} targets \u00b7 Casts at {_targetLimit} \u00b7 Enter cast fewer \u00b7 Esc cancel"
+                : _pickingDelaySlot ? DelayPickHint : TargetingHint;
             _moveCostPips.Visible = false;
             return;
         }
@@ -444,7 +467,9 @@ public partial class ActionBar : Control
 
         if (!_interactable) return;
 
-        if (@event.IsActionPressed(InputNames.Action1))
+        if (@event.IsActionPressed(InputNames.Confirm) && _confirmTargets.Visible)
+            Activate(_confirmTargets, () => ConfirmTargetsPressed?.Invoke());
+        else if (@event.IsActionPressed(InputNames.Action1))
             Activate(_strikeBtn, () => StrikePressed?.Invoke());
         else if (@event.IsActionPressed(InputNames.Action2))
             Activate(_shieldBtn, () => RaiseShieldPressed?.Invoke());

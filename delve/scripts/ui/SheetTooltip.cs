@@ -11,8 +11,8 @@ namespace Delve.UI;
 /// footer. Every tip fills only the slots it has; the order never changes, so a feat, a spell and
 /// a strike all read from familiar places.
 ///
-/// Passive. It shows what <see cref="Request"/> hands it, after the hover has lasted long enough
-/// that the reader meant it, and hides the moment the pointer leaves.
+/// Hover cards allow a brief pointer crossing into the card for full rules and scrolling.
+/// Explicit dismissal from the sheet still hides them immediately.
 /// </summary>
 public partial class SheetTooltip : PanelContainer
 {
@@ -51,6 +51,13 @@ public partial class SheetTooltip : PanelContainer
     private Label _metaMeasure = null!;
     private Label _footer = null!;
     private Timer _delay = null!;
+    private ScrollContainer _scroll = null!;
+    private VBoxContainer _content = null!;
+    private Button _fullRules = null!;
+    private Label _scrollHint = null!;
+    private bool _expanded;
+    private bool _leaving;
+    private float _awaySeconds;
 
     private SheetTip? _pending;
     private Control? _source;
@@ -84,6 +91,19 @@ public partial class SheetTooltip : PanelContainer
         _footer = GetNode<Label>("%Footer");
         _delay = GetNode<Timer>("%Delay");
         _delay.Timeout += Reveal;
+        _scroll = GetNode<ScrollContainer>("%Scroll");
+        _content = GetNode<VBoxContainer>("%Content");
+        _fullRules = GetNode<Button>("%FullRules");
+        _scrollHint = GetNode<Label>("%ScrollHint");
+        _fullRules.Pressed += () =>
+        {
+            var at = Position;
+            _expanded = !_expanded;
+            Reveal();
+            var screen = GetViewportRect().Size;
+            Position = new Vector2(Mathf.Clamp(at.X, ScreenMargin, Mathf.Max(ScreenMargin, screen.X - Size.X - ScreenMargin)),
+                Mathf.Clamp(at.Y, ScreenMargin, Mathf.Max(ScreenMargin, screen.Y - Size.Y - ScreenMargin)));
+        };
         Visible = false;
     }
 
@@ -91,6 +111,16 @@ public partial class SheetTooltip : PanelContainer
     public void Request(SheetTip? tip, Control? source)
     {
         _delay.Stop();
+        if (tip == null && source != null && source != _source) return;
+        if (tip == null && source != null && Visible && source == _source)
+        {
+            _leaving = true;
+            _awaySeconds = 0;
+            return;
+        }
+        if (tip != null && tip == _pending && Visible) return;
+        _expanded = false;
+        _leaving = false;
         _pending = tip;
         _source = source;
 
@@ -102,6 +132,8 @@ public partial class SheetTooltip : PanelContainer
     public void ShowNow(SheetTip tip, Control? source)
     {
         _delay.Stop();
+        _expanded = false;
+        _leaving = false;
         _pending = tip;
         _source = source;
         Reveal();
@@ -109,9 +141,32 @@ public partial class SheetTooltip : PanelContainer
 
     // ---------------------------------------------------------------- Render
 
+    public override void _Process(double delta)
+    {
+        if (!Visible || !_leaving) return;
+        var pointer = GetGlobalMousePosition();
+        bool inside = GetGlobalRect().HasPoint(pointer)
+            || (IsInstanceValid(_source) && _source!.GetGlobalRect().HasPoint(pointer));
+        _awaySeconds = inside ? 0 : _awaySeconds + (float)delta;
+        if (_awaySeconds > 0.3f) Request(null, null);
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        // A reader can scroll without moving off the hovered sheet entry.
+        if (!Visible || !_scrollHint.Visible || @event is not InputEventMouseButton { Pressed: true } wheel
+            || !IsInstanceValid(_source) || !_source!.GetGlobalRect().HasPoint(GetGlobalMousePosition())) return;
+        if (wheel.ButtonIndex != MouseButton.WheelDown && wheel.ButtonIndex != MouseButton.WheelUp) return;
+        _scroll.ScrollVertical += wheel.ButtonIndex == MouseButton.WheelDown ? 72 : -72;
+        GetViewport().SetInputAsHandled();
+    }
+
     private void Reveal()
     {
         if (_pending is not { } tip) return;
+        _fullRules.Visible = tip.FullRules is { Length: > 0 };
+        _fullRules.Text = _expanded ? "Back to summary" : "Full rules";
+        if (_expanded) tip = tip with { Body = tip.FullRules!, Meta = null };
 
         _costPips.Visible = tip.Cost is { Actions: > 0 };
         if (tip.Cost is { Actions: > 0 } pips) _costPips.SetCost(pips.Actions, enabled: true);
@@ -147,6 +202,16 @@ public partial class SheetTooltip : PanelContainer
         _bodySep.Visible = _body.Visible
             && (_meta.GetChildCount() > 0 || _traitBand.Visible || _subtitle.Visible);
 
+        _scroll.ScrollVertical = 0;
+        _scroll.CustomMinimumSize = Vector2.Zero;
+        _scrollHint.Visible = false;
+        float overhead = GetNode<Control>("Stack").GetCombinedMinimumSize().Y
+            + GetThemeStylebox("panel").GetMinimumSize().Y;
+        float available = Mathf.Max(48, Mathf.Min(640, GetViewportRect().Size.Y - ScreenMargin * 2) - overhead - 32);
+        float contentHeight = _content.GetCombinedMinimumSize().Y;
+        _scrollHint.Visible = contentHeight > available;
+        _scroll.CustomMinimumSize = new Vector2(width + 16, Mathf.Min(contentHeight, available));
+
         Size = Vector2.Zero;
         ResetSize();
         Visible = true;
@@ -177,7 +242,9 @@ public partial class SheetTooltip : PanelContainer
         foreach (var row in tip.Meta ?? System.Array.Empty<SheetMetaRow>())
             widest = Mathf.Max(widest, metaLabels + LineWidth(_bodyMeasure, row.Text));
 
-        int width = Mathf.Clamp((int)Mathf.Ceil(widest), MinWidth, MaxWidth);
+        int limit = Mathf.Max(80, Mathf.Min(MaxWidth,
+            (int)GetViewportRect().Size.X - ScreenMargin * 2 - 48));
+        int width = Mathf.Clamp((int)Mathf.Ceil(widest), Mathf.Min(MinWidth, limit), limit);
         Line(_title, tip.Title, Mathf.Max(1, width - (int)Mathf.Ceil(CostWidth(tip))));
         Line(_subtitle, tip.Subtitle, width);
         Line(_footer, tip.Footer ?? "", width);
@@ -197,7 +264,7 @@ public partial class SheetTooltip : PanelContainer
         Clear(_meta);
         foreach (var row in tip.Meta ?? System.Array.Empty<SheetMetaRow>())
         {
-            bool stacked = LineWidth(_bodyMeasure, row.Text) > width - metaLabels;
+            bool stacked = tip.FullRules != null || LineWidth(_bodyMeasure, row.Text) > width - metaLabels;
             BoxContainer line = stacked ? new VBoxContainer() : new HBoxContainer();
             line.MouseFilter = MouseFilterEnum.Ignore;
             line.AddThemeConstantOverride("separation", stacked ? 4 : 0);

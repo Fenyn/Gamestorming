@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/card_face_cache.gd" id="1_cache"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="2_face"]
+
+[node name="CardFaceCache" type="Node"]
+script = ExtResource("1_cache")
+
+[node name="Viewport" type="SubViewport" parent="."]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(512, 716)
+render_target_update_mode = 0
+
+[node name="CardFace" parent="Viewport" instance=ExtResource("2_face")]

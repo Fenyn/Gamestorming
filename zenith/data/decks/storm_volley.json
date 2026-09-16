@@ -1,0 +1,178 @@
+{
+  "name": "House Corven",
+  "fighter": "fighter_gamma",
+  "tiers": 3,
+  "focus": "storm",
+  "alignment": "knave",
+  "mastery": "storm_mastery",
+  "master": "master_steadfast",
+  "armory": [
+    "doubt",
+    "grand_sweep",
+    "grand_sweep",
+    "storm_glaring_bolt",
+    "storm_massacre",
+    "lobbed_bolt",
+    "clear_statement",
+    "focused_crushing_dive",
+    "storm_obliteration"
+  ],
+  "cards": [
+    {
+      "id": "henchman_zeta",
+      "count": 1
+    },
+    {
+      "id": "turmoil_square",
+      "count": 3
+    },
+    {
+      "id": "crown_token_1",
+      "count": 1
+    },
+    {
+      "id": "crown_token_3",
+      "count": 1
+    },
+    {
+      "id": "crown_token_5",
+      "count": 1
+    },
+    {
+      "id": "hard_glare",
+      "count": 3
+    },
+    {
+      "id": "interrupt",
+      "count": 3
+    },
+    {
+      "id": "sly_smirk",
+      "count": 1
+    },
+    {
+      "id": "showmans_trick",
+      "count": 2
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "mutual_escalation",
+      "count": 3
+    },
+    {
+      "id": "transformation",
+      "count": 3
+    },
+    {
+      "id": "overwhelming_aura",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "storm_dodge",
+      "count": 4
+    },
+    {
+      "id": "knowing_smile",
+      "count": 3
+    },
+    {
+      "id": "leg_catch",
+      "count": 3
+    },
+    {
+      "id": "storm_energy_guard",
+      "count": 3
+    },
+    {
+      "id": "storm_setup",
+      "count": 1
+    },
+    {
+      "id": "storm_scatter_shot",
+      "count": 2
+    },
+    {
+      "id": "storm_glaring_bolt",
+      "count": 2
+    },
+    {
+      "id": "storm_obliteration",
+      "count": 1
+    },
+    {
+      "id": "storm_rage",
+      "count": 3
+    },
+    {
+      "id": "extreme_assailment",
+      "count": 3
+    },
+    {
+      "id": "captains_volley",
+      "count": 3
+    },
+    {
+      "id": "crashing_dive",
+      "count": 3
+    },
+    {
+      "id": "prepared_stance",
+      "count": 3
+    },
+    {
+      "id": "surging_blast",
+      "count": 3
+    },
+    {
+      "id": "homing_bolt",
+      "count": 3
+    },
+    {
+      "id": "palm_charge",
+      "count": 2
+    },
+    {
+      "id": "breaching_kick",
+      "count": 3
+    },
+    {
+      "id": "relentless_fury",
+      "count": 3
+    },
+    {
+      "id": "storm_massacre",
+      "count": 1
+    },
+    {
+      "id": "storm_uppercut",
+      "count": 1
+    },
+    {
+      "id": "storm_strength",
+      "count": 1
+    },
+    {
+      "id": "counsel",
+      "count": 1
+    },
+    {
+      "id": "focus_of_mind",
+      "count": 1
+    },
+    {
+      "id": "anticipation",
+      "count": 1
+    },
+    {
+      "id": "victors_drill",
+      "count": 1
+    }
+  ]
+}

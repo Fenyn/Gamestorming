@@ -1,0 +1,157 @@
+{
+  "name": "House Vale",
+  "fighter": "fighter_zeta",
+  "tiers": 5,
+  "focus": "freestyle",
+  "alignment": "knight",
+  "mastery": "freestyle_mastery",
+  "master": "master_north",
+  "armory": [
+    "confusion_drill",
+    "ancient_grove",
+    "seekers_eye",
+    "champion_drill"
+  ],
+  "cards": [
+    {
+      "id": "ancient_grove",
+      "count": 2
+    },
+    {
+      "id": "challenge",
+      "count": 3
+    },
+    {
+      "id": "interrupt",
+      "count": 3
+    },
+    {
+      "id": "overwhelming_aura",
+      "count": 1
+    },
+    {
+      "id": "contemplation",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "ironclad_stance",
+      "count": 1
+    },
+    {
+      "id": "swift_counter",
+      "count": 4
+    },
+    {
+      "id": "elbow_block",
+      "count": 3
+    },
+    {
+      "id": "leg_catch",
+      "count": 3
+    },
+    {
+      "id": "swift_flight",
+      "count": 3
+    },
+    {
+      "id": "breaching_kick",
+      "count": 3
+    },
+    {
+      "id": "relentless_fury",
+      "count": 3
+    },
+    {
+      "id": "power_strike",
+      "count": 3
+    },
+    {
+      "id": "sword_slice",
+      "count": 4
+    },
+    {
+      "id": "speedy_flight",
+      "count": 3
+    },
+    {
+      "id": "back_bash",
+      "count": 2
+    },
+    {
+      "id": "focused_sword_strike",
+      "count": 3
+    },
+    {
+      "id": "sword_slash",
+      "count": 3
+    },
+    {
+      "id": "sword_sweep",
+      "count": 3
+    },
+    {
+      "id": "sword_thrust",
+      "count": 3
+    },
+    {
+      "id": "guardians_wrath",
+      "count": 2
+    },
+    {
+      "id": "lobbed_bolt",
+      "count": 1
+    },
+    {
+      "id": "swordplay_drill",
+      "count": 3
+    },
+    {
+      "id": "devastation_drill",
+      "count": 3
+    },
+    {
+      "id": "ambush_drill",
+      "count": 2
+    },
+    {
+      "id": "breakthrough_drill",
+      "count": 1
+    },
+    {
+      "id": "absorbing_drill",
+      "count": 1
+    },
+    {
+      "id": "quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "seek_the_answer",
+      "count": 3
+    },
+    {
+      "id": "anticipation",
+      "count": 1
+    },
+    {
+      "id": "counsel",
+      "count": 1
+    },
+    {
+      "id": "heirloom_blade",
+      "count": 1
+    },
+    {
+      "id": "victors_drill",
+      "count": 1
+    }
+  ]
+}

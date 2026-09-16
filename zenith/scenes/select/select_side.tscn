@@ -1,0 +1,146 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/select/select_side.gd" id="1_side"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="2_tile"]
+
+[node name="SelectSide" type="PanelContainer"]
+offset_right = 700.0
+offset_bottom = 700.0
+size_flags_horizontal = 3
+script = ExtResource("1_side")
+
+[node name="Column" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Tag" type="Label" parent="Column/Header"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "PLAYER 1"
+
+[node name="Name" type="LineEdit" parent="Column/Header"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Player 1"
+placeholder_text = "Name"
+
+[node name="Tiles" type="VBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Empty" type="Label" parent="Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 16
+text = "Pick a house to see its fighter and deck."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Detail" type="PanelContainer" parent="Column"]
+visible = false
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Column/Detail"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Portrait" type="TextureRect" parent="Column/Detail/Row"]
+custom_minimum_size = Vector2(190, 266)
+layout_mode = 2
+size_flags_vertical = 0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Info" type="VBoxContainer" parent="Column/Detail/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Fighter" type="Label" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "Fighter"
+
+[node name="Chips" type="HBoxContainer" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Guild" type="Label" parent="Column/Detail/Row/Info/Chips"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Ember"
+
+[node name="Alignment" type="Label" parent="Column/Detail/Row/Info/Chips"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Knave"
+
+[node name="Focus" type="Label" parent="Column/Detail/Row/Info/Chips"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Mastery"
+
+[node name="Stats" type="HBoxContainer" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Might" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Surge" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Life" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Armory" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="TiersHeader" type="Label" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "FAVOR TIERS"
+
+[node name="Tiers" type="VBoxContainer" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CompHeader" type="Label" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "LIFE DECK"
+
+[node name="CompBar" type="HBoxContainer" parent="Column/Detail/Row/Info"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="CompLegend" type="HFlowContainer" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 4
+
+[node name="SideHeader" type="Label" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "SIDE CARDS"
+
+[node name="SideCards" type="Label" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 3
+
+[node name="Problems" type="Label" parent="Column/Detail/Row/Info"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"WarnLabel"
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 3

@@ -1,0 +1,153 @@
+{
+  "name": "The Draik Company",
+  "fighter": "fighter_delta",
+  "tiers": 3,
+  "focus": "shade",
+  "alignment": "knave",
+  "mastery": "shade_mastery",
+  "master": "master_south",
+  "armory": [
+    "doubt",
+    "shade_pivot_kick",
+    "shade_pivot_kick",
+    "shade_pivot_kick"
+  ],
+  "cards": [
+    {
+      "id": "turmoil_square",
+      "count": 3
+    },
+    {
+      "id": "henchman_alpha",
+      "count": 1
+    },
+    {
+      "id": "henchman_beta",
+      "count": 1
+    },
+    {
+      "id": "henchman_gamma",
+      "count": 1
+    },
+    {
+      "id": "henchman_delta",
+      "count": 1
+    },
+    {
+      "id": "henchman_epsilon",
+      "count": 1
+    },
+    {
+      "id": "crown_token_3",
+      "count": 1
+    },
+    {
+      "id": "crown_token_5",
+      "count": 1
+    },
+    {
+      "id": "hard_glare",
+      "count": 3
+    },
+    {
+      "id": "interrupt",
+      "count": 3
+    },
+    {
+      "id": "sly_smirk",
+      "count": 1
+    },
+    {
+      "id": "muster",
+      "count": 3
+    },
+    {
+      "id": "sudden_reinforcement",
+      "count": 3
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "shade_defensive_aura",
+      "count": 3
+    },
+    {
+      "id": "shade_buffer_block",
+      "count": 3
+    },
+    {
+      "id": "shade_turning_kick",
+      "count": 3
+    },
+    {
+      "id": "shade_chaos_detonation",
+      "count": 3
+    },
+    {
+      "id": "extreme_assailment",
+      "count": 3
+    },
+    {
+      "id": "palm_charge",
+      "count": 1
+    },
+    {
+      "id": "twin_palm_blitz",
+      "count": 3
+    },
+    {
+      "id": "triple_torpedo",
+      "count": 3
+    },
+    {
+      "id": "surging_blast",
+      "count": 3
+    },
+    {
+      "id": "homing_bolt",
+      "count": 3
+    },
+    {
+      "id": "crashing_dive",
+      "count": 3
+    },
+    {
+      "id": "captains_volley",
+      "count": 1
+    },
+    {
+      "id": "breaching_kick",
+      "count": 3
+    },
+    {
+      "id": "relentless_fury",
+      "count": 3
+    },
+    {
+      "id": "shade_body_ruin",
+      "count": 3
+    },
+    {
+      "id": "shade_swivel_kick",
+      "count": 3
+    },
+    {
+      "id": "shade_right_kick",
+      "count": 3
+    },
+    {
+      "id": "henchmans_charge",
+      "count": 3
+    },
+    {
+      "id": "dual_strike",
+      "count": 3
+    },
+    {
+      "id": "leaping_rush",
+      "count": 3
+    }
+  ]
+}

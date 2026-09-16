@@ -24,6 +24,7 @@ Projects developed with assistance of Claude.
 | [the-maw-of-rrrbl](the-maw-of-rrrbl/) | Builder-incremental. Place marble track pieces in 3D, earn Sparks, feed The Maw. | — |
 | [war-tactics](war-tactics/) | WWII isometric squad-tactics roguelike. Shooting minigames, permadeath, and medal pickups. | [Play in browser](https://fenyn.github.io/Gamestorming/war-tactics/) |
 | [worldseed](worldseed/) | Terraform an alien planet by farming exotic crops. Manage power and deploy nanobot bees. | — |
+| [zenith](zenith/) | Dueling card game. Houses vie for the king's favor through spellsword duels. Arena-style 3D client planned. | — |
 
 ## Shared code
 

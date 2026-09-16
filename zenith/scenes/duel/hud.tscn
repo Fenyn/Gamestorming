@@ -1,0 +1,357 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
+[ext_resource type="PackedScene" path="res://scenes/duel/player_panel.tscn" id="2_panel"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
+
+[node name="Hud" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopPanel" parent="Root" instance=ExtResource("2_panel")]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 366.0
+offset_bottom = 200.0
+
+[node name="BottomPanel" parent="Root" instance=ExtResource("2_panel")]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -200.0
+offset_right = 366.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="PhasePanel" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -340.0
+offset_top = 12.0
+offset_right = 340.0
+offset_bottom = 66.0
+grow_horizontal = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/PhasePanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Steps" type="HBoxContainer" parent="Root/PhasePanel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Sub" type="Label" parent="Root/PhasePanel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Player 1's turn"
+horizontal_alignment = 1
+
+[node name="Log" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -396.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 176.0
+grow_horizontal = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/Log"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="Label" parent="Root/Log/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "LOG"
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Log/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Text" type="RichTextLabel" parent="Root/Log/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
+fit_content = true
+scroll_following = true
+
+[node name="Hand" type="HBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -600.0
+offset_top = -198.0
+offset_right = 600.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="PromptPanel" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -396.0
+offset_top = -260.0
+offset_right = -16.0
+offset_bottom = -216.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Who" type="Label" parent="Root/PromptPanel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "PLAYER 1"
+
+[node name="Title" type="Label" parent="Root/PromptPanel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 20
+text = "Waiting"
+autowrap_mode = 3
+
+[node name="Banner" type="Label" parent="Root/PromptPanel/Column"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Incoming Strike"
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Root/PromptPanel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+autowrap_mode = 3
+
+[node name="Primary" type="VBoxContainer" parent="Root/PromptPanel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Tray" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 0.62)
+
+[node name="Center" type="CenterContainer" parent="Root/Tray"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Root/Tray/Center"]
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Tray/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Who" type="Label" parent="Root/Tray/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "PLAYER 1  ·  YOUR DECISION"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="Root/Tray/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "Choose a card"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Root/Tray/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Tray/Center/Panel/Column"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Cards" type="HFlowContainer" parent="Root/Tray/Center/Panel/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Tray/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Zoom" type="Control" parent="Root"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 216.0
+offset_right = 316.0
+offset_bottom = 636.0
+mouse_filter = 1
+
+[node name="Face" parent="Root/Zoom" instance=ExtResource("3_face")]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 512.0
+offset_bottom = 716.0
+scale = Vector2(0.586, 0.586)
+
+[node name="Handoff" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 0.94)
+
+[node name="Center" type="CenterContainer" parent="Root/Handoff"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Handoff/Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Root/Handoff/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Pass the table to Player 2"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Root/Handoff/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 18
+text = "Their hand stays hidden until they are ready."
+horizontal_alignment = 1
+
+[node name="Ready" type="Button" parent="Root/Handoff/Center/Column"]
+custom_minimum_size = Vector2(240, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 18
+text = "I'm ready"
+
+[node name="GameOver" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 0.9)
+
+[node name="Center" type="CenterContainer" parent="Root/GameOver"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/GameOver/Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Root/GameOver/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Player 1 wins"
+horizontal_alignment = 1
+
+[node name="Reason" type="Label" parent="Root/GameOver/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 20
+text = "reason"
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="Root/GameOver/Center/Column"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+
+[node name="Rematch" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 17
+text = "Rematch"
+
+[node name="Select" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Choose fighters"
+
+[node name="Loading" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 1)
+
+[node name="Center" type="CenterContainer" parent="Root/Loading"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Root/Loading/Center"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 26
+text = "Preparing the lists…"

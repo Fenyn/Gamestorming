@@ -1,0 +1,32 @@
+{
+  "name": "Fixture Deck",
+  "fighter": "tf_knight",
+  "tiers": 3,
+  "focus": "ember",
+  "alignment": "knight",
+  "mastery": "t_mastery_ember",
+  "cards": [
+    {"id": "t_strike", "count": 3},
+    {"id": "t_strike_plus2", "count": 3},
+    {"id": "t_strike_acclaim", "count": 3},
+    {"id": "t_strike_endure", "count": 3},
+    {"id": "t_strike_focused", "count": 3},
+    {"id": "t_strike_wound", "count": 3},
+    {"id": "t_strike_end", "count": 3},
+    {"id": "t_taunt", "count": 3},
+    {"id": "t_truce", "count": 3},
+    {"id": "t_drill_strike", "count": 3},
+    {"id": "t_noncombat_draw", "count": 3},
+    {"id": "t_grounds", "count": 3},
+    {"id": "t_noncombat_rest", "count": 1},
+    {"id": "t_drill_free", "count": 1},
+    {"id": "t_token_1", "count": 1},
+    {"id": "t_token_2", "count": 1},
+    {"id": "t_token_3", "count": 1},
+    {"id": "t_token_4", "count": 1},
+    {"id": "t_token_5", "count": 1},
+    {"id": "t_token_6", "count": 1},
+    {"id": "t_token_7", "count": 1},
+    {"id": "t_ally_squire", "count": 1}
+  ]
+}

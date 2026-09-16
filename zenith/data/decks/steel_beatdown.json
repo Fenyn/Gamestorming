@@ -1,0 +1,117 @@
+{
+  "name": "House Quarr",
+  "fighter": "fighter_epsilon",
+  "tiers": 3,
+  "focus": "steel",
+  "alignment": "knave",
+  "mastery": "steel_mastery",
+  "master": "master_north",
+  "armory": [
+    "kings_invitation",
+    "steel_headshot",
+    "mutual_escalation",
+    "mutual_escalation",
+    "mutual_escalation",
+    "steel_youth_bruise",
+    "steel_rapid_slam",
+    "steel_charge",
+    "steel_fist_attack",
+    "steel_direct_strike",
+    "steel_cliff_slam",
+    "steel_wrist_block"
+  ],
+  "cards": [
+    {
+      "id": "turmoil_square",
+      "count": 3
+    },
+    {
+      "id": "signet_token_1",
+      "count": 1
+    },
+    {
+      "id": "signet_token_3",
+      "count": 1
+    },
+    {
+      "id": "signet_token_4",
+      "count": 1
+    },
+    {
+      "id": "hard_glare",
+      "count": 3
+    },
+    {
+      "id": "interrupt",
+      "count": 3
+    },
+    {
+      "id": "truce",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "steel_perfect_defense",
+      "count": 1
+    },
+    {
+      "id": "steel_stop",
+      "count": 3
+    },
+    {
+      "id": "steel_brace",
+      "count": 3
+    },
+    {
+      "id": "steel_supreme_power",
+      "count": 2
+    },
+    {
+      "id": "steel_power_beam",
+      "count": 3
+    },
+    {
+      "id": "steel_might",
+      "count": 3
+    },
+    {
+      "id": "breaching_kick",
+      "count": 3
+    },
+    {
+      "id": "relentless_fury",
+      "count": 3
+    },
+    {
+      "id": "steel_crushing_smash",
+      "count": 4
+    },
+    {
+      "id": "steel_gut_kick",
+      "count": 3
+    },
+    {
+      "id": "backhand",
+      "count": 1
+    },
+    {
+      "id": "steel_dashing_kick",
+      "count": 3
+    },
+    {
+      "id": "steel_destiny",
+      "count": 3
+    },
+    {
+      "id": "steel_bulk",
+      "count": 3
+    },
+    {
+      "id": "steel_face_jab",
+      "count": 3
+    }
+  ]
+}

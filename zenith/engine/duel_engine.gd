@@ -1,0 +1,3036 @@
+class_name DuelEngine
+extends RefCounted
+## Zenith rules engine. Pure state machine with no Nodes.
+## Commands in, GameEvents out. It runs until a player has to decide something,
+## then exposes that decision as `prompt`. Answer it with `submit`.
+## Same seed plus same commands replays the same game.
+##
+## Effects run through a queue that can pause for a choice prompt and resume afterwards,
+## so a card's text can ask its owner (or the target) to pick cards mid-resolution.
+
+const STARTING_VIGOR: int = 5
+const STRONG_BAND: int = 3   # band D of the Strike Table; see _apply_first_player_rule
+const ALLY_STARTING_VIGOR: int = 3
+const LOST_TIER_VIGOR: int = 5
+const DRAW_COUNT: int = 3
+const HAND_KEEP: int = 1
+const ACCLAIM_TO_TIER: int = 5
+const ART_COST: int = 2
+const ART_BASE_LIFE: int = 4
+const WILD_BASE_DAMAGE: int = 2
+const CAPTURE_THRESHOLD: int = 5
+const TOKENS_PER_SET: int = 7
+const ALLY_CONTROL_MAX_VIGOR: int = 1
+const MAX_ADVANCE_ITERATIONS: int = 100000
+
+var state: GameState = GameState.new()
+var library: CardLibrary = null
+var strike_table: StrikeTable = null
+var rng: ZenithRng = null
+var prompt: Prompt = null
+var events: Array[GameEvent] = []
+var shuffle_decks: bool = true
+var _cards: Dictionary = {}   # uid -> CardInstance
+var _next_uid: int = 1
+var _combat_ending: bool = false
+var _armory_swapped: Dictionary = {}
+var _queue: Array[Dictionary] = []   # effect jobs: {effects, index, trigger, owner, ctx, source}
+var _choice: Dictionary = {}         # how to finish the effect that raised the pending prompt
+var _pending_then: Dictionary = {}   # "then" effects waiting on the prompt the current effect raised
+
+
+# --- Public API -----------------------------------------------------------
+
+func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable, seed_value: int) -> void:
+	assert(decks.size() == 2, "Zenith is a two-player duel")
+	library = p_library
+	strike_table = p_table
+	rng = ZenithRng.new(seed_value)
+	state = GameState.new()
+	state.seed_value = seed_value
+	for i in range(2):
+		state.players.append(_build_player(i, decks[i]))
+	_apply_first_player_rule()
+	_emit(&"setup", {"first": state.active, "seed": seed_value})
+
+
+func start() -> void:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
+	state.armory_index = 0
+	_armory_swapped = {}
+	_run()
+
+
+## Answer the pending prompt. Returns false and changes nothing if the command is not one of its options.
+func submit(cmd: Command) -> bool:
+	if prompt == null or state.is_over():
+		push_warning("DuelEngine.submit: nothing pending")
+		return false
+	var chosen: Command = prompt.accept(cmd)
+	if chosen == null:
+		push_warning("DuelEngine.submit: %s is not legal for %s" % [cmd.describe(), prompt.describe()])
+		return false
+	var kind: StringName = prompt.kind
+	var context: Dictionary = prompt.context
+	prompt = null
+	_emit(&"command", {"player": chosen.player, "type": chosen.type, "card": chosen.card, "value": chosen.value})
+	_handle(kind, chosen, context)
+	_run()
+	return true
+
+
+func is_over() -> bool:
+	return state.is_over()
+
+
+## Returns and clears the events accumulated since the last call.
+func take_events() -> Array[GameEvent]:
+	var out: Array[GameEvent] = events
+	events = []
+	return out
+
+
+func card(uid: int) -> CardInstance:
+	return _cards.get(uid)
+
+
+func all_cards() -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	out.assign(_cards.values())
+	return out
+
+
+func player(i: int) -> PlayerState:
+	return state.players[i]
+
+
+## Legal commands in the pending prompt that name this card.
+func options_for_card(uid: int) -> Array[Command]:
+	var out: Array[Command] = []
+	if prompt == null:
+		return out
+	for o in prompt.options:
+		if o.card == uid:
+			out.append(o)
+	return out
+
+
+# --- Setup ----------------------------------------------------------------
+
+func _build_player(index: int, deck: DeckList) -> PlayerState:
+	var p: PlayerState = PlayerState.new()
+	p.index = index
+	p.name = deck.name
+	p.alignment = deck.alignment
+	p.focus = deck.focus
+	var fdef: CardDef = library.get_def(deck.fighter_id)
+	assert(fdef != null and fdef.type == CardDef.Type.FIGHTER, "Deck %s has no fighter" % deck.name)
+	p.fighter = _instance(fdef, index, &"fighter")
+	p.fighter.vigor = STARTING_VIGOR
+	p.highest_tier = clampi(deck.tiers, 1, fdef.highest_tier())
+	p.controlling = p.fighter
+	if deck.mastery_id != "":
+		p.mastery = _instance(library.get_def(deck.mastery_id), index, &"side")
+	if deck.master_id != "":
+		p.master = _instance(library.get_def(deck.master_id), index, &"side")
+		if bool(p.master.def.master_flags.get("no_favor_win", false)):
+			p.no_favor_win = true
+	for id in deck.armory:
+		p.armory.append(_instance(library.get_def(id), index, &"armory"))
+	# Shuffle the ids before instancing so a card's uid says nothing about its place in the deck
+	# list. Instancing first and shuffling after would let a client map face-down uids back to
+	# the deck list it ships with.
+	var ids: Array[String] = deck.cards.duplicate()
+	if shuffle_decks:
+		rng.shuffle(ids)
+	for id in ids:
+		p.life_deck.append(_instance(library.get_def(id), index, &"life_deck"))
+	return p
+
+
+func _instance(def: CardDef, owner: int, zone: StringName) -> CardInstance:
+	assert(def != null, "Cannot instance a missing card")
+	var c: CardInstance = CardInstance.new(_next_uid, def, owner)
+	_next_uid += 1
+	c.zone = zone
+	_cards[c.uid] = c
+	return c
+
+
+## Bracket rule from the later rulings: if only one fighter's starting Might sits in band D or
+## above, the weaker fighter goes first. Otherwise the Knight first, or a coin flip. No stage changes.
+func _apply_first_player_rule() -> void:
+	var a: PlayerState = state.players[0]
+	var b: PlayerState = state.players[1]
+	var wild: bool = a.fighter.is_wild() or b.fighter.is_wild()
+	var a_high: bool = strike_table.band(a.fighter.might()) >= STRONG_BAND
+	var b_high: bool = strike_table.band(b.fighter.might()) >= STRONG_BAND
+	if not wild and a_high != b_high:
+		state.active = 1 if a_high else 0
+		_emit(&"bracket_rule", {"stronger": 0 if a_high else 1})
+	elif a.alignment != b.alignment:
+		state.active = 0 if a.alignment == "knight" else 1
+	else:
+		state.active = rng.randi_range(0, 1)
+
+
+# --- Armory swap (setup) --------------------------------------------------
+
+func _advance_armory() -> void:
+	if state.armory_index >= 2:
+		_start_in_play()
+		_begin_turn()
+		return
+	var order: Array[int] = [state.active, state.opposing()]
+	var p: PlayerState = state.players[order[state.armory_index]]
+	var opts: Array[Command] = []
+	for c in p.armory:
+		if not _armory_swapped.has(c.uid):
+			opts.append(Command.new(p.index, &"armory_in", c.uid))
+	if opts.is_empty():
+		_finish_armory(p)
+		return
+	var batch_max: int = opts.size()
+	opts.append(Command.new(p.index, &"armory_done"))
+	_set_prompt(p.index, &"armory", opts)
+	prompt.set_batch(&"armory_in", 1, batch_max)
+
+
+## One card at a time re-opens the prompt with what is left; a batch swaps them all and finishes.
+func _handle_armory(cmd: Command) -> void:
+	var p: PlayerState = state.players[cmd.player]
+	if cmd.type == &"armory_done":
+		_finish_armory(p)
+		return
+	for uid in Prompt.cards_of(cmd):
+		_armory_swap_in(p, card(uid))
+	if cmd.value is Array:
+		_finish_armory(p)
+
+
+func _armory_swap_in(p: PlayerState, c: CardInstance) -> void:
+	_erase_from_zone(c)
+	c.zone = &"life_deck"
+	p.life_deck.append(c)
+	if p.life_deck.size() > 1:
+		var idx: int = rng.randi_range(0, p.life_deck.size() - 2)
+		var out: CardInstance = p.life_deck[idx]
+		_erase_from_zone(out)
+		out.zone = &"armory"
+		p.armory.append(out)
+		_armory_swapped[out.uid] = true
+		_emit(&"armory_swap", {"player": p.index, "in": c.uid, "out": out.uid})
+
+
+func _finish_armory(p: PlayerState) -> void:
+	if shuffle_decks:
+		rng.shuffle(p.life_deck)
+	_emit(&"armory_done", {"player": p.index})
+	state.armory_index += 1
+
+
+## Cards that may begin the game in play (their text says so) move out of the deck now.
+func _start_in_play() -> void:
+	for p in state.players:
+		var found: Array[CardInstance] = []
+		var seen: Dictionary = {}
+		var pool: Array[CardInstance] = []
+		pool.append_array(p.life_deck)
+		pool.append_array(p.armory)
+		for c in pool:
+			if c.def.start_in_play and _can_place(p, c) and not seen.has(c.def.id):
+				seen[c.def.id] = true
+				found.append(c)
+		for c in found:
+			_place(p, c)
+
+
+# --- Main loop ------------------------------------------------------------
+
+func _run() -> void:
+	var guard: int = 0
+	while prompt == null and not state.is_over():
+		if not _queue.is_empty():
+			_drain()
+		else:
+			_advance()
+		guard += 1
+		assert(guard < MAX_ADVANCE_ITERATIONS, "DuelEngine is stuck in step %d phase %d" % [state.step, state.phase])
+
+
+func _advance() -> void:
+	match state.step:
+		GameState.Step.SETUP:
+			_advance_armory()
+		GameState.Step.DRAW:
+			_draw(state.active, DRAW_COUNT)
+			if not state.is_over():
+				state.step = GameState.Step.NON_COMBAT
+		GameState.Step.NON_COMBAT:
+			_prompt_non_combat()
+		GameState.Step.POWER_UP:
+			_power_up()
+		GameState.Step.DECLARE:
+			_declare()
+		GameState.Step.COMBAT:
+			_advance_combat()
+		GameState.Step.DISCARD:
+			_advance_discard()
+		GameState.Step.RECOVER:
+			_recover()
+		_:
+			assert(false, "DuelEngine._advance in step %d" % state.step)
+
+
+func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
+	match kind:
+		&"armory":
+			_handle_armory(cmd)
+		&"non_combat":
+			_handle_non_combat(cmd)
+		&"declare":
+			_handle_declare(cmd)
+		&"attack_action":
+			_handle_attack_action(cmd)
+		&"respond":
+			_handle_respond(cmd)
+		&"defense":
+			_handle_defense(cmd)
+		&"control":
+			_handle_control(cmd)
+		&"redirect":
+			_handle_redirect(cmd)
+		&"endurance":
+			_handle_endurance(cmd, context)
+		&"capture":
+			_handle_capture(cmd)
+		&"keep":
+			_handle_keep(cmd)
+		&"recover":
+			_handle_recover(cmd)
+		&"pay":
+			_handle_pay(cmd)
+		&"discard_choice", &"pick_in_play", &"name_card", &"pick_option":
+			_handle_choice(cmd)
+		_:
+			assert(false, "Unhandled prompt kind %s" % kind)
+	if prompt == null:
+		_flush_then()
+
+
+func _set_prompt(player_index: int, kind: StringName, options: Array[Command], context: Dictionary = {}) -> void:
+	var p: Prompt = Prompt.new()
+	p.player = player_index
+	p.kind = kind
+	p.options = options
+	p.context = context
+	prompt = p
+	_emit(&"prompt", {"player": player_index, "kind": kind, "options": options.size()})
+
+
+# --- Turn steps -----------------------------------------------------------
+
+func _begin_turn() -> void:
+	state.turn += 1
+	var p: PlayerState = state.active_player()
+	p.reset_turn_flags()
+	state.skip_discard = false
+	state.declare_window_done = false
+	state.step = GameState.Step.DRAW
+	state.phase = GameState.Phase.NONE
+	_emit(&"turn_start", {"turn": state.turn, "player": p.index})
+	# Bonds burn a life card each turn and come apart when the pile is full.
+	for al in p.allies():
+		var timer_max: int = int(al.def.raw.get("bond_timer_max", 0))
+		if timer_max <= 0:
+			continue
+		var c: CardInstance = _flip_life_card(p)
+		if c == null:
+			return
+		if c.def.type == CardDef.Type.TOKEN:
+			_bypass_token(c)
+		else:
+			c.zone = &"under"
+			al.cards_under.append(c)
+		al.bond_timer += 1
+		_emit(&"bond_tick", {"player": p.index, "card": al.uid, "count": al.bond_timer})
+		if al.bond_timer >= timer_max:
+			_unbond(p, al)
+	if p.token_victory_pending:
+		p.token_victory_pending = false
+		if _controls_full_set(p):
+			_win(p.index, "token")
+			return
+	var constant: Dictionary = _constant(p)
+	if constant.has("turn_start"):
+		var effects: Array[Dictionary] = []
+		effects.assign(constant.get("turn_start", []))
+		_enqueue(effects, "turn_start", p.index, {}, p.fighter)
+
+
+func _end_turn() -> void:
+	var p: PlayerState = state.active_player()
+	_emit(&"turn_end", {"turn": state.turn, "player": p.index})
+	_expire_floating("turn")
+	state.active = state.opposing()
+	_begin_turn()
+
+
+func _prompt_non_combat() -> void:
+	var p: PlayerState = state.active_player()
+	var opts: Array[Command] = []
+	for c in p.hand:
+		if _can_place(p, c):
+			opts.append(Command.new(p.index, &"place", c.uid))
+	if p.master != null and _master_available(p) and str(p.master.def.raw.get("master_step", "non_combat")) == "non_combat":
+		opts.append(Command.new(p.index, &"master", p.master.uid))
+	if opts.is_empty():
+		state.step = GameState.Step.POWER_UP
+		return
+	opts.append(Command.new(p.index, &"done"))
+	_set_prompt(p.index, &"non_combat", opts)
+
+
+func _handle_non_combat(cmd: Command) -> void:
+	var p: PlayerState = state.active_player()
+	match cmd.type:
+		&"done":
+			state.step = GameState.Step.POWER_UP
+		&"master":
+			_use_master(p)
+		_:
+			_place(p, card(cmd.card))
+
+
+func _master_available(p: PlayerState) -> bool:
+	if p.master == null:
+		return false
+	var uses: int = int(p.master.def.raw.get("uses_per_game", 0))
+	return uses > 0 and p.master_uses < uses and p.master.def.has_trigger("master_use")
+
+
+func _use_master(p: PlayerState) -> void:
+	p.master_uses += 1
+	_emit(&"master_used", {"player": p.index, "card": p.master.uid})
+	_enqueue(p.master.def.effects, "master_use", p.index, {}, p.master)
+
+
+func _power_up() -> void:
+	var p: PlayerState = state.active_player()
+	var gain: int = p.fighter.surge() + (1 if p.has_focus() else 0)
+	_gain_vigor(p, p.fighter, gain)
+	for a in p.allies():
+		_gain_vigor(p, a, 1)
+	_emit(&"power_up", {"player": p.index, "gain": gain, "vigor": p.fighter.vigor})
+	state.step = GameState.Step.DECLARE
+
+
+func _declare() -> void:
+	var p: PlayerState = state.active_player()
+	if p.placed_grounds or p.cannot_declare_combat:
+		_emit(&"combat_skipped", {"player": p.index, "forced": true})
+		state.step = GameState.Step.DISCARD
+		state.discard_index = 0
+		return
+	if not state.declare_window_done and _open_declare_window(p):
+		return
+	if p.must_declare_combat or _forbidden(p, "skip_combat"):
+		p.combat_declared = true
+		_emit(&"combat_declared", {"player": p.index, "forced": true})
+		state.step = GameState.Step.COMBAT
+		state.phase = GameState.Phase.PREPARE_ACTIVE
+		return
+	var opts: Array[Command] = [Command.new(p.index, &"declare"), Command.new(p.index, &"skip")]
+	_set_prompt(p.index, &"declare", opts)
+
+
+func _handle_declare(cmd: Command) -> void:
+	var p: PlayerState = state.active_player()
+	if cmd.type == &"declare":
+		p.combat_declared = true
+		_emit(&"combat_declared", {"player": p.index})
+		state.step = GameState.Step.COMBAT
+		state.phase = GameState.Phase.PREPARE_ACTIVE
+	else:
+		_emit(&"combat_skipped", {"player": p.index, "forced": false})
+		state.step = GameState.Step.DISCARD
+		state.discard_index = 0
+
+
+func _advance_discard() -> void:
+	if state.skip_discard:
+		state.discard_index = 2
+	if state.discard_index >= 2:
+		state.step = GameState.Step.RECOVER
+		return
+	var order: Array[int] = [state.active, state.opposing()]
+	var p: PlayerState = state.players[order[state.discard_index]]
+	var keep: int = HAND_KEEP
+	if _has_floating(p.index, "keep_hand"):
+		keep = 99
+	if p.hand.size() <= keep:
+		state.discard_index += 1
+		return
+	var opts: Array[Command] = []
+	for c in p.hand:
+		opts.append(Command.new(p.index, &"keep", c.uid))
+	opts.append(Command.new(p.index, &"discard_all"))
+	_set_prompt(p.index, &"keep", opts)
+
+
+func _handle_keep(cmd: Command) -> void:
+	var p: PlayerState = state.players[cmd.player]
+	var keep: CardInstance = card(cmd.card) if cmd.type == &"keep" else null
+	var to_discard: Array[CardInstance] = []
+	for c in p.hand:
+		if c != keep:
+			to_discard.append(c)
+	for c in to_discard:
+		_move_to_discard(c)
+	_emit(&"discard_step", {"player": p.index, "discarded": to_discard.size(), "kept": p.hand.size()})
+	state.discard_index += 1
+
+
+func _recover() -> void:
+	var p: PlayerState = state.active_player()
+	if p.combat_declared or p.discard.is_empty():
+		_end_turn()
+		return
+	var opts: Array[Command] = [Command.new(p.index, &"recover"), Command.new(p.index, &"no_recover")]
+	_set_prompt(p.index, &"recover", opts)
+
+
+func _handle_recover(cmd: Command) -> void:
+	var p: PlayerState = state.active_player()
+	if cmd.type == &"recover":
+		_recover_top(p, 1)
+	_end_turn()
+
+
+# --- Placement ------------------------------------------------------------
+
+func _can_place(p: PlayerState, c: CardInstance) -> bool:
+	var def: CardDef = c.def
+	if def.alignment_only != "" and def.alignment_only != p.alignment:
+		return false
+	match def.type:
+		CardDef.Type.ALLY:
+			if not (def.raw.get("bond_of", []) as Array).is_empty():
+				return false   # Bonds enter play through a Bonding card, never by placement
+			if def.character == p.fighter.def.character or def.character == state.players[1 - p.index].fighter.def.character:
+				return false
+			var tier: int = def.lowest_tier()
+			if tier > p.fighter.tier:
+				return false
+			var own: CardInstance = _ally_of_character(p, def.character)
+			if own != null and own.tier != tier - 1:
+				return false
+			var theirs: CardInstance = _ally_of_character(state.players[1 - p.index], def.character)
+			if theirs != null and theirs.tier == tier:
+				return false
+			return true
+		CardDef.Type.TOKEN:
+			if _forbidden(p, "tokens"):
+				return false
+			return _token_in_play(def.id) == null
+		CardDef.Type.GROUNDS:
+			return state.grounds == null or state.grounds.def.id != def.id
+		CardDef.Type.NON_COMBAT:
+			return true
+		CardDef.Type.DRILL:
+			if def.guild == "":
+				return true
+			var locked: String = p.drill_guild()
+			if locked != "" and locked != def.guild:
+				return false
+			for d in p.drills():
+				if d.def.id == def.id:
+					return false
+			return true
+		_:
+			return false
+
+
+func _place(p: PlayerState, c: CardInstance) -> void:
+	_erase_from_zone(c)
+	c.controller = p.index
+	match c.def.type:
+		CardDef.Type.ALLY:
+			var existing: CardInstance = _ally_of_character(p, c.def.character)
+			if existing != null:
+				_erase_from_zone(existing)
+				existing.zone = &"under"
+				c.cards_under.append(existing)
+				c.vigor = CardInstance.MAX_STAGE
+			else:
+				c.vigor = ALLY_STARTING_VIGOR
+			c.zone = &"in_play"
+			p.in_play.append(c)
+		CardDef.Type.GROUNDS:
+			if state.grounds != null:
+				_remove_from_game(state.grounds)
+			c.zone = &"grounds"
+			state.grounds = c
+			p.placed_grounds = true
+		_:
+			c.zone = &"in_play"
+			p.in_play.append(c)
+	_emit(&"card_placed", {"player": p.index, "card": c.uid, "id": c.def.id})
+	_check_lonely_drills(p)
+	if c.def.has_trigger("on_place"):
+		_enqueue(c.def.effects, "on_place", p.index, {}, c)
+	if c.def.type == CardDef.Type.TOKEN and _controls_full_set(p):
+		_win(p.index, "token")
+
+
+# --- Combat ---------------------------------------------------------------
+
+func _advance_combat() -> void:
+	match state.phase:
+		GameState.Phase.PREPARE_ACTIVE:
+			_resolve_entering(state.active)
+			state.phase = GameState.Phase.PREPARE_OPPOSING
+		GameState.Phase.PREPARE_OPPOSING:
+			_resolve_entering(state.opposing())
+			state.phase = GameState.Phase.OPPOSING_DRAW
+		GameState.Phase.OPPOSING_DRAW:
+			_draw(state.opposing(), DRAW_COUNT)
+			if state.is_over():
+				return
+			state.combat_count += 1
+			for p in state.players:
+				p.reset_combat_flags()
+			state.attacker = state.active
+			state.consecutive_passes = 0
+			_combat_ending = false
+			_emit(&"combat_begin", {"combat": state.combat_count})
+			state.phase = GameState.Phase.ATTACK
+		GameState.Phase.ATTACK:
+			var p: PlayerState = state.players[state.attacker]
+			if p.skip_next_attack_phase:
+				p.skip_next_attack_phase = false
+				_emit(&"attack_phase_skipped", {"player": p.index})
+				state.phase = GameState.Phase.FIGHT_BACK
+			elif p.must_pass:
+				_pass(p, true)
+			else:
+				_prompt_attack_action(p)
+		GameState.Phase.DEFEND:
+			_prompt_defense()
+		GameState.Phase.BATTLE:
+			_advance_battle()
+		GameState.Phase.FIGHT_BACK:
+			for q in state.players:
+				for item in q.pending_fight_back:
+					var list: Array[Dictionary] = [item["effect"]]
+					_queue.append({"effects": list, "index": 0, "trigger": "on_wound", "owner": q.index, "ctx": {}, "source": card(int(item.get("source", -1)))})
+				q.pending_fight_back.clear()
+			state.attacker = 1 - state.attacker
+			state.phase = GameState.Phase.ATTACK
+		_:
+			assert(false, "Bad combat phase %d" % state.phase)
+
+
+func _resolve_entering(player_index: int) -> void:
+	var p: PlayerState = state.players[player_index]
+	var role: String = "active" if player_index == state.active else "opposing"
+	var ctx: Dictionary = {"role": role}
+	var sources: Array[CardInstance] = []
+	sources.append_array(p.drills())
+	sources.append_array(p.non_combats())
+	sources.append_array(p.attachments())
+	if p.mastery != null:
+		sources.append(p.mastery)
+	if state.grounds != null:
+		sources.append(state.grounds)
+	for c in sources:
+		var effects: Array[Dictionary] = []
+		for e in c.def.effects_for("entering_combat"):
+			var wanted: String = str(e.get("role", ""))
+			if wanted == "" or wanted == role:
+				effects.append(e)
+		if c.attached_to != null:
+			for e in c.def.attachment.get("effects", []):
+				if str(e.get("trigger", "")) == "entering_combat":
+					effects.append(e)
+		if not effects.is_empty():
+			if c.def.type == CardDef.Type.NON_COMBAT and c.attached_to == null:
+				# A Non-Combat used on entry is spent.
+				_enqueue(effects, "entering_combat", player_index, ctx, c)
+				_enqueue([{"trigger": "entering_combat", "op": "spend_source"}], "entering_combat", player_index, ctx, c)
+			else:
+				_enqueue(effects, "entering_combat", player_index, ctx, c)
+	# Fighter power or constant with an entering-Combat trigger.
+	var ic: CardInstance = p.fighter
+	var pw: Dictionary = ic.power()
+	var pw_effects: Array[Dictionary] = []
+	for e in pw.get("effects", []):
+		if str(e.get("trigger", "")) == "entering_combat" and (str(e.get("role", "")) == "" or str(e.get("role", "")) == role):
+			pw_effects.append(e)
+	if not pw_effects.is_empty():
+		_enqueue(pw_effects, "entering_combat", player_index, ctx, ic)
+	var constant: Dictionary = _constant(p)
+	if constant.has("entering_combat"):
+		var ce: Array[Dictionary] = []
+		for e in constant.get("entering_combat", []):
+			if str(e.get("role", "")) == "" or str(e.get("role", "")) == role:
+				ce.append(e)
+		_enqueue(ce, "entering_combat", player_index, ctx, ic)
+	_emit(&"entering_combat", {"player": player_index, "role": role})
+
+
+func _pass(p: PlayerState, forced: bool) -> void:
+	state.consecutive_passes += 1
+	_emit(&"pass", {"player": p.index, "forced": forced, "consecutive": state.consecutive_passes})
+	if state.consecutive_passes >= 2:
+		_end_combat()
+	else:
+		state.phase = GameState.Phase.FIGHT_BACK
+
+
+func _end_combat() -> void:
+	_emit(&"combat_end", {"combat": state.combat_count})
+	_expire_floating("combat")
+	for p in state.players:
+		p.reset_combat_flags()
+		for c in p.remain_cards():
+			c.remain = 0
+			if str(c.def.raw.get("unused_return", "")) == "shuffle":
+				_move_to_deck_bottom(c)
+				if shuffle_decks:
+					rng.shuffle(p.life_deck)
+			else:
+				_finish_card(c, false)
+	state.attack = {}
+	state.battle_step = 0
+	state.pending_play = {}
+	_combat_ending = false
+	state.phase = GameState.Phase.NONE
+	state.step = GameState.Step.DISCARD
+	state.discard_index = 0
+
+
+# --- Attacker Attacks -----------------------------------------------------
+
+func _prompt_attack_action(p: PlayerState) -> void:
+	var opts: Array[Command] = []
+	var ic: CardInstance = p.in_control()
+	for c in p.hand:
+		if c.def.is_hand_combat_card() and _can_play(p, c.def):
+			if c.def.is_attack() and _attack_allowed(p, c.def):
+				if _can_pay(ic, p, c.def.attack):
+					opts.append(Command.new(p.index, &"attack", c.uid))
+					if c.def.empower > 0:
+						opts.append(Command.new(p.index, &"attack", c.uid, "empower"))
+			elif not c.def.is_attack() and (not c.def.is_defense() or bool(c.def.raw.get("use_in_attack", false))) and _use_allowed(p, c.def) and not _forbidden(p, "non_attack_actions"):
+				opts.append(Command.new(p.index, &"use", c.uid))
+		if not p.final_strike_used:
+			opts.append(Command.new(p.index, &"final_strike", c.uid))
+	for c in p.remain_cards():
+		if c.def.is_attack() and _attack_allowed(p, c.def) and _can_pay(ic, p, c.def.attack):
+			opts.append(Command.new(p.index, &"attack", c.uid))
+	var only_attacks: bool = _forbidden(p, "non_attack_actions")
+	if not _forbidden(p, "non_combats") and not only_attacks:
+		for c in p.non_combats():
+			if not c.def.effects_for("use").is_empty() and _can_play(p, c.def):
+				opts.append(Command.new(p.index, &"use", c.uid))
+	if not _forbidden(p, "drills") and not only_attacks:
+		for c in p.drills():
+			if not c.def.effects_for("use").is_empty() and _drill_use_available(c):
+				opts.append(Command.new(p.index, &"use", c.uid))
+	if p.mastery != null and not only_attacks and not _forbidden(p, "mastery") and not p.mastery.def.effects_for("use").is_empty() and _drill_use_available(p.mastery):
+		opts.append(Command.new(p.index, &"use", p.mastery.uid))
+	var pw: Dictionary = ic.power()
+	if _power_available(p, ic) and not pw.has("defense") and not _forbidden(p, "powers"):
+		if pw.has("attack"):
+			if _attack_allowed(p, null, str(pw["attack"].get("kind", "strike"))) and _can_pay(ic, p, pw.get("attack", {})):
+				opts.append(Command.new(p.index, &"power", ic.uid))
+		elif pw.has("effects") and not only_attacks and _has_trigger(pw["effects"], "secondary"):
+			opts.append(Command.new(p.index, &"power", ic.uid))
+	if not _forbidden(p, "powers"):
+		for al in p.allies():
+			var apw: Dictionary = al.power()
+			if al == ic or not bool(apw.get("no_control_needed", false)) or not apw.has("attack"):
+				continue
+			if _power_available(p, al) and _attack_allowed(p, null, str(apw["attack"].get("kind", "strike"))) and _can_pay(al, p, apw["attack"]):
+				opts.append(Command.new(p.index, &"power", al.uid))
+	var copied: Dictionary = _floating_first(p.index, "copied_attack")
+	if not copied.is_empty():
+		opts.append(Command.new(p.index, &"copied_attack"))
+	opts.append(Command.new(p.index, &"pass"))
+	_set_prompt(p.index, &"attack_action", opts)
+
+
+func _handle_attack_action(cmd: Command) -> void:
+	var p: PlayerState = state.players[cmd.player]
+	match cmd.type:
+		&"pass":
+			_pass(p, false)
+		&"attack":
+			var c: CardInstance = card(cmd.card)
+			var empowered: bool = cmd.value != null and str(cmd.value) == "empower"
+			if c.zone == &"hand":
+				_erase_from_zone(c)
+				c.zone = &"resolving"
+			elif c.remain > 0:
+				c.remain -= 1
+				if c.remain == 0:
+					_erase_from_zone(c)
+					c.zone = &"resolving"
+			_begin_attack(c, c.def.attack, c.def.effects, false, false, empowered)
+		&"use":
+			var c: CardInstance = card(cmd.card)
+			state.consecutive_passes = 0
+			if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT and _open_counter_window(c, "use"):
+				return
+			_use_card(p, c)
+		&"power":
+			var ic: CardInstance = card(cmd.card)
+			_mark_power_used(ic)
+			var pw: Dictionary = ic.power()
+			_emit(&"power_used", {"player": p.index, "card": ic.uid, "tier": ic.tier})
+			var effects: Array[Dictionary] = []
+			effects.assign(pw.get("effects", []))
+			if pw.has("attack"):
+				_begin_attack(ic, pw.get("attack", {}), effects, true, false, false, ic)
+			else:
+				state.consecutive_passes = 0
+				_enqueue(effects, "secondary", p.index, {}, ic)
+				_enqueue([{"trigger": "secondary", "op": "after_action"}], "secondary", p.index, {}, ic)
+		&"copied_attack":
+			var f: Dictionary = _floating_first(p.index, "copied_attack")
+			state.floating.erase(f)
+			var effects: Array[Dictionary] = []
+			effects.assign(f.get("effects", []))
+			_begin_attack(null, f.get("spec", {}), effects, false, false, false)
+		&"final_strike":
+			var c: CardInstance = card(cmd.card)
+			_move_to_discard(c)
+			p.final_strike_used = true
+			_emit(&"final_strike", {"player": p.index, "discarded": c.uid})
+			_begin_attack(null, {"kind": "strike"}, [], false, true, false)
+		_:
+			assert(false, "Bad attack action %s" % cmd.type)
+
+
+## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery).
+func _use_card(p: PlayerState, c: CardInstance) -> void:
+	if c.zone == &"hand":
+		_erase_from_zone(c)
+		c.zone = &"resolving"
+		_emit(&"card_used", {"player": p.index, "card": c.uid, "id": c.def.id})
+		if c.def.type == CardDef.Type.COMBAT:
+			p.combat_cards_used_combat = state.combat_count
+		_enqueue(c.def.effects, "secondary", p.index, {}, c)
+		_enqueue([{"trigger": "secondary", "op": "finish_source"}], "secondary", p.index, {}, c)
+	else:
+		_emit(&"card_used", {"player": p.index, "card": c.uid, "id": c.def.id})
+		if c.def.type == CardDef.Type.DRILL or c.def.type == CardDef.Type.MASTERY:
+			c.power_used_combat = state.combat_count
+		_enqueue(c.def.effects, "use", p.index, {}, c)
+		if c.def.type == CardDef.Type.NON_COMBAT:
+			_enqueue([{"trigger": "use", "op": "finish_source"}], "use", p.index, {}, c)
+	_enqueue([{"trigger": "secondary", "op": "after_action"}], "secondary", p.index, {}, c)
+
+
+func _has_trigger(effects: Array, trigger: String) -> bool:
+	for e in effects:
+		if e is Dictionary and str(e.get("trigger", "secondary")) == trigger:
+			return true
+	return false
+
+
+func _drill_use_available(c: CardInstance) -> bool:
+	if bool(c.def.raw.get("once_per_combat", false)):
+		return c.power_used_combat != state.combat_count
+	return true
+
+
+func _after_non_attack_action() -> void:
+	if state.is_over():
+		return
+	if _combat_ending:
+		_end_combat()
+	else:
+		state.phase = GameState.Phase.FIGHT_BACK
+
+
+func _begin_attack(source: CardInstance, spec: Dictionary, effects: Array[Dictionary], is_power: bool, is_final: bool, empowered: bool, performer: CardInstance = null) -> void:
+	var att: int = state.attacker
+	var attacker: PlayerState = state.players[att]
+	if performer == null:
+		performer = attacker.in_control()
+	var kind: String = str(spec.get("kind", "strike"))
+	var used: Array[Dictionary] = []
+	for e in effects:
+		if empowered and bool(e.get("after_empower", false)):
+			continue
+		used.append(e)
+	# Conditional lines on the card ("if X is in control, +3 stages and focused").
+	if spec.has("variants"):
+		var merged: Dictionary = spec.duplicate(true)
+		merged.erase("variants")
+		for v in spec["variants"]:
+			if not _cond(v.get("when", {}), att, {}):
+				continue
+			for k in v.keys():
+				if k == "when":
+					continue
+				if k == "effects":
+					for ve in v["effects"]:
+						used.append(ve)
+				elif (k == "stages" or k == "life") and merged.has(k):
+					merged[k] = int(merged[k]) + int(v[k])
+				else:
+					merged[k] = v[k]
+		spec = merged
+	# A Drill can promote "if successful" lines on matching cards to secondary effects.
+	if source != null:
+		for d in attacker.drills():
+			var needle: String = str(d.def.raw.get("promote_if_successful", ""))
+			if needle != "" and source.def.title.contains(needle):
+				var promoted: Array[Dictionary] = []
+				for e in used:
+					if str(e.get("trigger", "secondary")) == "if_successful":
+						var e2: Dictionary = e.duplicate(true)
+						e2["trigger"] = "secondary"
+						promoted.append(e2)
+					else:
+						promoted.append(e)
+				used = promoted
+				break
+	var focused: bool = bool(spec.get("focused", false))
+	var constant: Dictionary = _constant(attacker)
+	if bool(constant.get("attacks_focused", false)):
+		focused = true
+	if source != null and _has_floating_guild(att, "make_focused", source.def.guild):
+		focused = true
+	var unstoppable: bool = bool(spec.get("unstoppable", false))
+	attacker.attack_count_combat += 1
+	if attacker.attack_count_combat == 1 and bool(constant.get("first_styled_unstoppable", false)) and source != null and source.def.guild != "":
+		unstoppable = true
+	state.attack = {
+		"source": source.uid if source != null else -1,
+		"attacker": att,
+		"defender": 1 - att,
+		"kind": kind,
+		"is_power": is_power,
+		"is_final": is_final,
+		"empowered": empowered,
+		"spec": spec,
+		"effects": used,
+		"focused": focused,
+		"unstoppable": unstoppable,
+		"stopped": false,
+		"stop_count": 0,
+		"stops_needed": maxi(1, int(spec.get("stops_needed", 1))),
+		"performer": performer.uid,
+		"stages": 0,
+		"life": 0,
+		"extra_life": 0,
+		"life_remaining": 0,
+		"stages_dealt": 0,
+		"life_dealt": 0,
+		"target": -1,
+		"no_prevent": bool(spec.get("no_prevent", false)) or _has_floating(att, "no_prevent"),
+		"damage_removes": bool(constant.get("damage_removes", false)) or _has_floating(att, "damage_removes") or _attachment_removes(attacker, source),
+	}
+	state.consecutive_passes = 0
+	state.battle_step = 2
+	state.phase = GameState.Phase.BATTLE
+	_emit(&"attack_declared", {
+		"player": att, "kind": kind, "source": state.attack["source"],
+		"is_power": is_power, "is_final": is_final, "focused": focused, "empowered": empowered,
+	})
+	if constant.has("on_attack"):
+		var ce: Array[Dictionary] = []
+		ce.assign(constant.get("on_attack", []))
+		_enqueue(ce, "on_attack", att, {"attack": state.attack}, attacker.in_control())
+
+
+## The personality performing the current attack (an Ally may attack without control).
+func _performer(a: Dictionary) -> CardInstance:
+	var c: CardInstance = card(int(a.get("performer", -1)))
+	if c != null:
+		return c
+	return state.players[int(a.get("attacker", state.attacker))].in_control()
+
+
+## One defense, shield, or standing effect counts toward the stops an attack needs.
+func _register_stop(a: Dictionary) -> void:
+	if bool(a["unstoppable"]):
+		return
+	a["stop_count"] = int(a.get("stop_count", 0)) + 1
+	if int(a["stop_count"]) >= int(a.get("stops_needed", 1)):
+		a["stopped"] = true
+
+
+## Back to the defense prompt when the attack still needs another stop, else on to the shields.
+func _after_defense(a: Dictionary) -> void:
+	if not bool(a["stopped"]) and int(a.get("stop_count", 0)) > 0 and int(a.get("stop_count", 0)) < int(a.get("stops_needed", 1)):
+		state.phase = GameState.Phase.DEFEND
+	else:
+		state.phase = GameState.Phase.BATTLE
+
+
+## An attached card can say "wounds from your Sword attacks are removed from the game".
+func _attachment_removes(p: PlayerState, source: CardInstance) -> bool:
+	for at in p.attachments():
+		if at.attached_to != p.in_control() or not bool(at.def.attachment.get("damage_removes", false)):
+			continue
+		var needle: String = str(at.def.attachment.get("title_contains", ""))
+		if needle == "" or (source != null and source.def.title.contains(needle)):
+			return true
+	return false
+
+
+# --- Counter window ("stops the effects of any Combat card") ---------------
+
+## Returns true when the opponent gets to respond before the Combat card resolves.
+func _open_counter_window(c: CardInstance, mode: String) -> bool:
+	var owner: PlayerState = state.players[c.owner]
+	var opp: PlayerState = state.players[1 - owner.index]
+	var opts: Array[Command] = []
+	for k in opp.hand:
+		if k.def.counter == "combat" and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
+			opts.append(Command.new(opp.index, &"counter", k.uid))
+	if opts.is_empty():
+		return false
+	opts.append(Command.new(opp.index, &"decline"))
+	state.pending_play = {"card": c.uid, "mode": mode}
+	_set_prompt(opp.index, &"respond", opts, {"card": c.uid, "mode": mode})
+	return true
+
+
+func _handle_respond(cmd: Command) -> void:
+	var pending: Dictionary = state.pending_play
+	state.pending_play = {}
+	var mode: String = str(pending.get("mode", "use"))
+	if mode == "declare":
+		# The opponent's Declare-step window (cards used "during your opponent's Declare step").
+		state.declare_window_done = true
+		if cmd.type == &"use":
+			var used: CardInstance = card(cmd.card)
+			var user: PlayerState = state.players[used.owner]
+			_emit(&"card_used", {"player": user.index, "card": used.uid, "id": used.def.id})
+			_enqueue(used.def.effects, "opponent_declare", user.index, {}, used)
+			_enqueue([{"trigger": "opponent_declare", "op": "spend_source"}], "opponent_declare", user.index, {}, used)
+		else:
+			_emit(&"declined_counter", {"player": cmd.player})
+		return
+	var c: CardInstance = card(int(pending.get("card", -1)))
+	var owner: PlayerState = state.players[c.owner]
+	if cmd.type == &"counter":
+		var k: CardInstance = card(cmd.card)
+		_erase_from_zone(k)
+		k.zone = &"resolving"
+		_emit(&"countered", {"player": cmd.player, "card": k.uid, "target": c.uid})
+		_finish_card(k, false)
+		if c.zone == &"hand":
+			_erase_from_zone(c)
+		c.zone = &"resolving"
+		_finish_card(c, false)
+		if mode == "use":
+			owner.combat_cards_used_combat = state.combat_count
+			_after_non_attack_action()
+		else:
+			# Countered defense: the attack goes on as if nothing was played.
+			_emit(&"no_defense", {"player": owner.index, "auto": true})
+			state.battle_step = 7
+			state.phase = GameState.Phase.BATTLE
+		return
+	_emit(&"declined_counter", {"player": cmd.player})
+	if mode == "use":
+		_use_card(owner, c)
+	else:
+		_play_defense(owner, c)
+
+
+# --- Battle sequence ------------------------------------------------------
+
+func _advance_battle() -> void:
+	var a: Dictionary = state.attack
+	var attacker: PlayerState = state.players[int(a["attacker"])]
+	var defender: PlayerState = state.players[int(a["defender"])]
+	match state.battle_step:
+		2:
+			_pay_costs(attacker, a)
+			if prompt != null:
+				return
+			state.battle_step = 3
+		3:
+			_enqueue(a["effects"], "secondary", attacker.index, {"attack": a}, _attack_source())
+			state.battle_step = 4
+		4:
+			var allies: Array[CardInstance] = defender.allies()
+			var may_control: bool = defender.fighter.vigor <= ALLY_CONTROL_MAX_VIGOR or bool(_constant(defender).get("ally_control_any_stage", false))
+			if may_control and not allies.is_empty() and not _has_floating(defender.index, "no_ally_control"):
+				var opts: Array[Command] = [Command.new(defender.index, &"control", defender.fighter.uid)]
+				for al in allies:
+					opts.append(Command.new(defender.index, &"control", al.uid))
+				_set_prompt(defender.index, &"control", opts)
+				state.battle_step = 5
+				return
+			defender.controlling = defender.fighter
+			state.battle_step = 5
+		5:
+			state.phase = GameState.Phase.DEFEND
+			state.battle_step = 7
+		7:
+			_apply_shields(defender, a)
+			state.battle_step = 8
+		8:
+			if bool(a["stopped"]):
+				_emit(&"attack_stopped", {"player": attacker.index})
+				state.battle_step = 16
+			else:
+				_emit(&"attack_successful", {"player": attacker.index})
+				_enqueue(a["effects"], "before_damage", attacker.index, {"attack": a}, _attack_source())
+				state.battle_step = 9
+		9:
+			_base_damage(attacker, defender, a)
+			state.battle_step = 10
+		10:
+			_modify_damage(attacker, defender, a)
+			state.battle_step = 12
+		12:
+			if int(a["target"]) < 0:
+				var allies: Array[CardInstance] = defender.allies()
+				if not allies.is_empty() and (int(a["stages"]) > 0 or int(a["life"]) > 0) and not _has_floating(defender.index, "no_ally_control"):
+					var opts: Array[Command] = [Command.new(defender.index, &"target", defender.in_control().uid)]
+					for al in allies:
+						if al != defender.in_control():
+							opts.append(Command.new(defender.index, &"target", al.uid))
+					_set_prompt(defender.index, &"redirect", opts)
+					return
+				a["target"] = defender.in_control().uid
+			_deal_stage_damage(defender, a)
+			state.battle_step = 13
+		13:
+			_deal_life_damage(defender, a)
+		14:
+			if int(a["life_dealt"]) >= CAPTURE_THRESHOLD and not defender.tokens().is_empty():
+				var opts: Array[Command] = []
+				for t in defender.tokens():
+					opts.append(Command.new(attacker.index, &"capture", t.uid))
+				opts.append(Command.new(attacker.index, &"no_capture"))
+				_set_prompt(attacker.index, &"capture", opts)
+				state.battle_step = 15
+				return
+			state.battle_step = 15
+		15:
+			_enqueue(a["effects"], "if_successful", attacker.index, {"attack": a}, _attack_source())
+			if attacker.mastery != null and not _forbidden(attacker, "mastery"):
+				_enqueue(attacker.mastery.def.effects, "on_success", attacker.index, {"attack": a}, attacker.mastery)
+			state.battle_step = 16
+		16:
+			_finish_attack(attacker, a)
+		_:
+			assert(false, "Bad battle step %d" % state.battle_step)
+
+
+func _attack_source() -> CardInstance:
+	var uid: int = int(state.attack.get("source", -1))
+	return card(uid) if uid >= 0 else null
+
+
+func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
+	var spec: Dictionary = a["spec"]
+	var ic: CardInstance = _performer(a)
+	var cost_stages: int = _cost_stages(spec, attacker)
+	var cost_life: int = int(spec.get("cost_life", 0))
+	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)):
+		cost_stages *= 2
+		cost_life *= 2
+	if cost_stages > 0:
+		ic.vigor = maxi(0, ic.vigor - cost_stages)
+	if cost_life > 0:
+		_discard_life(attacker, cost_life)
+	if cost_stages > 0 or cost_life > 0:
+		_emit(&"cost_paid", {"player": attacker.index, "stages": cost_stages, "life": cost_life, "vigor": ic.vigor})
+	_expire_next_attack_tax(attacker)
+	if spec.has("pay_stages"):
+		# "Pay any number of stages, +1 wound per N paid."
+		var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
+		var opts: Array[Command] = []
+		var amount: int = 0
+		while amount <= ic.vigor:
+			opts.append(Command.new(attacker.index, &"pay", -1, amount))
+			amount += per
+		if opts.size() > 1:
+			_set_prompt(attacker.index, &"pay", opts, {"per": per})
+
+
+func _handle_pay(cmd: Command) -> void:
+	if str(_choice.get("kind", "")) == "pay_vigor":
+		_handle_pay_vigor(cmd)
+		return
+	var a: Dictionary = state.attack
+	var attacker: PlayerState = state.players[int(a["attacker"])]
+	var spec: Dictionary = a["spec"]
+	var paid: int = int(cmd.value)
+	var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
+	var ic: CardInstance = _performer(a)
+	ic.vigor = maxi(0, ic.vigor - paid)
+	a["extra_life"] = int(a["extra_life"]) + int(paid / per) * int(spec["pay_stages"].get("life", 1))
+	_emit(&"cost_paid", {"player": attacker.index, "stages": paid, "life": 0, "vigor": ic.vigor})
+	state.battle_step = 3
+
+
+## "Lose any number of Vigor; for each N lost, do X."
+func _handle_pay_vigor(cmd: Command) -> void:
+	var payer: CardInstance = card(int(_choice.get("payer", -1)))
+	var per: int = maxi(1, int(_choice.get("per", 1)))
+	var paid: int = int(cmd.value)
+	if payer != null:
+		payer.vigor = maxi(0, payer.vigor - paid)
+		_emit(&"cost_paid", {"player": cmd.player, "stages": paid, "life": 0, "vigor": payer.vigor})
+	var times: int = int(paid / per)
+	var list: Array[Dictionary] = []
+	for i in range(times):
+		for e in _choice.get("then", []):
+			list.append(e)
+	var owner: int = int(_choice.get("owner", cmd.player))
+	var ctx: Dictionary = _choice.get("ctx", {})
+	var source: CardInstance = card(int(_choice.get("source", -1)))
+	_choice = {}
+	if not list.is_empty():
+		_queue.insert(0, {"effects": list, "index": 0, "trigger": "then", "owner": owner, "ctx": ctx, "source": source})
+
+
+func _cost_stages(spec: Dictionary, p: PlayerState) -> int:
+	var base: int = 0
+	if spec.has("cost_stages"):
+		base = int(spec["cost_stages"])
+	elif str(spec.get("kind", "")) == "art":
+		base = ART_COST
+	if str(spec.get("kind", "")) == "art":
+		var delta: int = _art_cost_delta(p)
+		base = maxi(1, base + delta) if (delta < 0 and base > 0) else base + delta
+	var tax: Dictionary = _floating_first(p.index, "next_attack_tax")
+	if not tax.is_empty():
+		base += int(tax.get("stages", 0))
+	return maxi(0, base)
+
+
+## Mastery-style discounts on Arts ("cost 1 less to a minimum of 1").
+func _art_cost_delta(p: PlayerState) -> int:
+	var delta: int = 0
+	if p.mastery != null and not _forbidden(p, "mastery"):
+		delta += int(p.mastery.def.raw.get("art_cost_delta", 0))
+	return delta
+
+
+func _expire_next_attack_tax(p: PlayerState) -> void:
+	var tax: Dictionary = _floating_first(p.index, "next_attack_tax")
+	if not tax.is_empty():
+		state.floating.erase(tax)
+
+
+func _can_pay(ic: CardInstance, p: PlayerState, spec: Dictionary) -> bool:
+	var cost: int = _cost_stages(spec, p)
+	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)):
+		cost *= 2
+	if ic.vigor < cost:
+		return false
+	return p.life_deck.size() > int(spec.get("cost_life", 0))
+
+
+func _prompt_defense() -> void:
+	var a: Dictionary = state.attack
+	var d: PlayerState = state.players[int(a["defender"])]
+	var kind: String = str(a["kind"])
+	var focused: bool = bool(a["focused"])
+	if _standing_stop(d, a):
+		# A stop-all or stop-next effect already covers this attack; no card needs spending.
+		_emit(&"no_defense", {"player": d.index, "auto": true})
+		state.phase = GameState.Phase.BATTLE
+		return
+	var opts: Array[Command] = []
+	for c in d.hand:
+		if _defense_usable(d, c, kind, focused):
+			opts.append(Command.new(d.index, &"defend", c.uid))
+	for c in d.remain_cards():
+		if _defense_usable(d, c, kind, focused):
+			opts.append(Command.new(d.index, &"defend", c.uid))
+	for c in d.non_combats():
+		if _defense_usable(d, c, kind, focused):
+			opts.append(Command.new(d.index, &"defend", c.uid))
+	for c in d.drills():
+		if _defense_usable(d, c, kind, focused):
+			opts.append(Command.new(d.index, &"defend", c.uid))
+	var ic: CardInstance = d.in_control()
+	var pw: Dictionary = ic.power()
+	if _power_available(d, ic) and not _forbidden(d, "powers") and CardDef.defense_stops(pw.get("defense", {}), kind, focused):
+		opts.append(Command.new(d.index, &"power_defend", ic.uid))
+	if opts.is_empty():
+		_emit(&"no_defense", {"player": d.index, "auto": true})
+		state.phase = GameState.Phase.BATTLE
+		return
+	opts.append(Command.new(d.index, &"no_defense"))
+	_set_prompt(d.index, &"defense", opts, {"kind": kind, "focused": focused})
+
+
+func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: bool) -> bool:
+	var def: CardDef = c.def
+	if not def.is_defense():
+		return false
+	if not _can_play(d, def):
+		return false
+	if def.type == CardDef.Type.COMBAT and _forbidden(d, "combat_cards"):
+		return false
+	if def.type == CardDef.Type.STRIKE and _forbidden(d, "strike_cards"):
+		return false
+	if def.type == CardDef.Type.ART and _forbidden(d, "art_cards"):
+		return false
+	if def.is_stop_all_card() and _forbidden(d, "stop_all"):
+		return false
+	if def.defense.has("when") and not _cond(def.defense["when"], d.index, {"attack": state.attack}):
+		return false
+	if not def.stops_kind(kind, focused):
+		return false
+	var blocked: String = str(state.attack.get("spec", {}).get("no_stop_by", ""))
+	if blocked != "" and int(CardDef.TYPE_NAMES.get(blocked, -2)) == def.type:
+		return false
+	if focused and str(def.defense.get("stop_focused", "")) == "discard_hand" and d.hand.size() < 2:
+		return false
+	var ic: CardInstance = d.in_control()
+	if int(def.defense.get("cost_stages", 0)) > ic.vigor:
+		return false
+	if int(def.defense.get("cost_life", 0)) >= d.life_deck.size():
+		return false
+	return true
+
+
+func _handle_defense(cmd: Command) -> void:
+	var d: PlayerState = state.players[cmd.player]
+	match cmd.type:
+		&"defend":
+			var c: CardInstance = card(cmd.card)
+			if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT and _open_counter_window(c, "defend"):
+				return
+			_play_defense(d, c)
+		&"power_defend":
+			var a: Dictionary = state.attack
+			var ic: CardInstance = card(cmd.card)
+			_mark_power_used(ic)
+			_register_stop(a)
+			_emit(&"defense_power", {"player": d.index, "card": ic.uid, "stopped": a["stopped"]})
+			var effects: Array[Dictionary] = []
+			effects.assign(ic.power().get("effects", []))
+			_enqueue(effects, "secondary", d.index, {"attack": a}, ic)
+			_after_defense(a)
+		&"no_defense":
+			_emit(&"no_defense", {"player": d.index, "auto": false})
+			state.phase = GameState.Phase.BATTLE
+
+
+func _play_defense(d: PlayerState, c: CardInstance) -> void:
+	var a: Dictionary = state.attack
+	var def: CardDef = c.def
+	var from_hand: bool = c.zone == &"hand"
+	if from_hand:
+		_erase_from_zone(c)
+		c.zone = &"resolving"
+		if def.type == CardDef.Type.COMBAT:
+			d.combat_cards_used_combat = state.combat_count
+	elif c.remain > 0:
+		c.remain -= 1
+		if c.remain == 0:
+			_erase_from_zone(c)
+			c.zone = &"resolving"
+	var ic: CardInstance = d.in_control()
+	var cost_stages: int = int(def.defense.get("cost_stages", 0))
+	if cost_stages > 0:
+		ic.vigor = maxi(0, ic.vigor - cost_stages)
+	if int(def.defense.get("cost_life", 0)) > 0:
+		_discard_life(d, int(def.defense["cost_life"]))
+	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
+		_discard_hand(d, 1, false)
+	_register_stop(a)
+	_emit(&"defense_played", {"player": d.index, "card": c.uid, "id": def.id, "stopped": a["stopped"]})
+	if def.defense.has("copy_attack") and bool(a["stopped"]):
+		_float(d.index, "copied_attack", "combat", {"spec": a["spec"].duplicate(true), "effects": a["effects"].duplicate(true)})
+	if def.defense.has("stop_all"):
+		_float(d.index, "stop_all", "combat", {"kind": str(def.defense["stop_all"])})
+	_enqueue(def.effects, "secondary", d.index, {"attack": a}, c)
+	if from_hand or c.zone == &"resolving":
+		_enqueue([{"trigger": "secondary", "op": "finish_source"}], "secondary", d.index, {"attack": a}, c)
+	_after_defense(a)
+
+
+func _handle_control(cmd: Command) -> void:
+	var d: PlayerState = state.players[cmd.player]
+	d.controlling = card(cmd.card)
+	_emit(&"control", {"player": d.index, "card": d.controlling.uid})
+
+
+func _handle_redirect(cmd: Command) -> void:
+	state.attack["target"] = cmd.card
+	_emit(&"redirect", {"player": cmd.player, "card": cmd.card})
+
+
+## True when a floating stop-all or stop-next effect will stop this attack at the shield step.
+func _standing_stop(defender: PlayerState, a: Dictionary) -> bool:
+	if bool(a["unstoppable"]) or int(a.get("stops_needed", 1)) > 1:
+		return false
+	var kind: String = str(a["kind"])
+	var focused: bool = bool(a["focused"])
+	for f in state.floating:
+		if int(f.get("owner", -1)) != defender.index:
+			continue
+		var op: String = str(f.get("op", ""))
+		if op == "stop_next":
+			return true
+		if op == "stop_all":
+			var fk: String = str(f.get("kind", "any"))
+			if fk == kind or (fk == "any" and not focused):
+				return true
+	return false
+
+
+func _apply_shields(defender: PlayerState, a: Dictionary) -> void:
+	if bool(a["stopped"]):
+		return
+	var kind: String = str(a["kind"])
+	var focused: bool = bool(a["focused"])
+	var unstoppable: bool = bool(a["unstoppable"])
+	for f in state.floating:
+		if int(f.get("owner", -1)) != defender.index or str(f.get("op", "")) != "stop_all":
+			continue
+		var fk: String = str(f.get("kind", "any"))
+		if (fk == kind or (fk == "any" and not focused)) and not unstoppable:
+			_register_stop(a)
+			_emit(&"floating_stop", {"player": defender.index, "kind": fk})
+			if bool(a["stopped"]):
+				return
+	var next_stop: Dictionary = _floating_first(defender.index, "stop_next")
+	if not next_stop.is_empty() and not unstoppable:
+		state.floating.erase(next_stop)
+		_register_stop(a)
+		_emit(&"floating_stop", {"player": defender.index, "kind": "next"})
+		if bool(a["stopped"]):
+			return
+	for s in _available_shields(defender, kind, focused):
+		s.shield_used_combat = state.combat_count
+		_emit(&"shield", {"player": defender.index, "card": s.uid, "focused": focused})
+		if not focused and not unstoppable:
+			_register_stop(a)
+			if bool(a["stopped"]):
+				return
+
+
+func _available_shields(defender: PlayerState, kind: String, focused: bool) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	var ic: CardInstance = defender.in_control()
+	if ic.shield_used_combat != state.combat_count and _shield_matches(ic.tier_shield(), kind, focused):
+		out.append(ic)
+	for d in defender.drills():
+		if d.shield_used_combat != state.combat_count and _shield_matches(d.def.shield, kind, focused):
+			out.append(d)
+	return out
+
+
+func _shield_matches(shield: String, kind: String, focused: bool) -> bool:
+	if shield == "":
+		return false
+	if shield == "any":
+		return not focused
+	return shield == kind
+
+
+func _base_damage(attacker: PlayerState, defender: PlayerState, a: Dictionary) -> void:
+	var spec: Dictionary = a["spec"]
+	var kind: String = str(a["kind"])
+	var ac: CardInstance = _performer(a)
+	var dc: CardInstance = defender.in_control()
+	var table: int = WILD_BASE_DAMAGE if (ac.is_wild() or dc.is_wild()) else strike_table.base_damage(ac.might(), dc.might())
+	if spec.has("printed_stages") or spec.has("printed_life"):
+		a["stages"] = int(spec.get("printed_stages", 0))
+		a["life"] = int(spec.get("printed_life", 0))
+	elif kind == "strike":
+		a["stages"] = table
+		a["life"] = 0
+	else:
+		a["stages"] = 0
+		a["life"] = ART_BASE_LIFE
+	if bool(spec.get("stages_from_table", false)):
+		a["stages"] = int(a["stages"]) + table
+	if bool(a.get("prevented_all", false)) or (_has_floating(defender.index, "prevent_all") and not bool(a["no_prevent"])):
+		a["stages"] = 0
+		a["life"] = 0
+		a["prevented_all"] = true
+	_emit(&"base_damage", {"stages": a["stages"], "life": a["life"]})
+
+
+func _modify_damage(attacker: PlayerState, defender: PlayerState, a: Dictionary) -> void:
+	if bool(a.get("prevented_all", false)):
+		_emit(&"modified_damage", {"stages": 0, "life": 0})
+		return
+	var spec: Dictionary = a["spec"]
+	var kind: String = str(a["kind"])
+	var src: CardInstance = _attack_source()
+	var stages: int = int(a["stages"]) + int(spec.get("stages", 0))
+	var life: int = int(a["life"]) + int(spec.get("life", 0)) + int(a["extra_life"])
+	if bool(a["empowered"]) and src != null:
+		life += src.def.empower
+	if int(spec.get("life_per_ally", 0)) > 0:
+		life += int(spec["life_per_ally"]) * attacker.allies().size()
+	if bool(spec.get("life_from_surge", false)):
+		life += attacker.fighter.surge()
+	if int(spec.get("life_per_opponent_token", 0)) > 0:
+		life += int(spec["life_per_opponent_token"]) * defender.tokens().size()
+	var ctx: Dictionary = {"attack": a}
+	var spent: Array[Dictionary] = []
+	for m in _modifiers_for(attacker, "own", kind, src, ctx):
+		stages += _modifier_amount(m, "stages", attacker)
+		life += _modifier_amount(m, "life", attacker)
+		if bool(m.get("once", false)):
+			spent.append(m)
+	for m in _modifiers_for(defender, "against", kind, src, ctx):
+		stages -= _modifier_amount(m, "stages", defender)
+		life -= _modifier_amount(m, "life", defender)
+	for m in spent:
+		state.floating.erase(m)
+	if kind == "art" and _has_floating(defender.index, "prevent_art_life") and not bool(a["no_prevent"]):
+		life = 0
+	a["stages"] = maxi(0, stages)
+	a["life"] = maxi(0, life)
+	_emit(&"modified_damage", {"stages": a["stages"], "life": a["life"]})
+
+
+func _modifier_amount(m: Dictionary, key: String, p: PlayerState) -> int:
+	var n: int = int(m.get(key, 0))
+	if bool(m.get("per_ally", false)):
+		n *= p.allies().size()
+	return n
+
+
+## Modifiers from Drills, Mastery, Grounds, attachments, floating effects, and constant powers.
+func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstance, ctx: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var pools: Array = []
+	for d in p.drills():
+		pools.append([d.def.modifiers, d])
+	if p.mastery != null and not _forbidden(p, "mastery"):
+		pools.append([p.mastery.def.modifiers, p.mastery])
+	if state.grounds != null:
+		pools.append([state.grounds.def.modifiers, state.grounds])
+	for at in p.attachments():
+		if scope == "own" and at.attached_to == p.in_control():
+			pools.append([at.def.attachment.get("modifiers", []), at])
+	var constant: Dictionary = _constant(p)
+	if constant.has("modifiers"):
+		pools.append([constant.get("modifiers", []), p.fighter])
+	for f in state.floating:
+		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "modifier":
+			pools.append([[f], null])
+	for pool in pools:
+		for m in pool[0]:
+			var mk: String = str(m.get("kind", "any"))
+			if str(m.get("scope", "own")) != scope:
+				continue
+			if not (mk == "any" or mk == kind):
+				continue
+			if m.has("guild") and (src == null or src.def.guild != str(m["guild"])):
+				continue
+			if m.has("title_contains") and (src == null or not src.def.title.contains(str(m["title_contains"]))):
+				continue
+			if m.has("when") and not _cond(m["when"], p.index, ctx):
+				continue
+			out.append(m)
+	return out
+
+
+func _deal_stage_damage(defender: PlayerState, a: Dictionary) -> void:
+	var target: CardInstance = card(int(a["target"]))
+	var stages: int = int(a["stages"])
+	var lost: int = mini(target.vigor, stages)
+	target.vigor -= lost
+	var overflow: int = stages - lost
+	a["stages_dealt"] = lost
+	a["life_remaining"] = int(a["life"]) + overflow
+	if stages > 0:
+		_emit(&"damage_stages", {"player": defender.index, "target": target.uid, "stages": lost, "overflow": overflow, "vigor": target.vigor})
+
+
+## Step 13. Flips one life card at a time; pauses on an Endurance prompt and resumes here.
+func _deal_life_damage(defender: PlayerState, a: Dictionary) -> void:
+	while int(a["life_remaining"]) > 0:
+		if _only_tokens_left(defender):
+			_lose(defender.index, "survival")
+			return
+		var c: CardInstance = _flip_life_card(defender)
+		if c == null:
+			return
+		if c.def.type == CardDef.Type.TOKEN:
+			_bypass_token(c)
+			continue
+		if bool(a["damage_removes"]):
+			_remove_from_game(c)
+		else:
+			_move_to_discard(c)
+		_on_wound(defender, c)
+		a["life_remaining"] = int(a["life_remaining"]) - 1
+		a["life_dealt"] = int(a["life_dealt"]) + 1
+		_emit(&"life_card_flipped", {"player": defender.index, "card": c.uid, "id": c.def.id, "remaining": a["life_remaining"]})
+		var endurance: int = _endurance_value(c, defender)
+		if endurance > 0 and defender.has_focus() and int(a["life_remaining"]) > 0 and not bool(a["no_prevent"]) and not _has_floating(defender.index, "no_endurance"):
+			var opts: Array[Command] = [Command.new(defender.index, &"endure", c.uid), Command.new(defender.index, &"no_endure", c.uid)]
+			_set_prompt(defender.index, &"endurance", opts, {"card": c.uid, "endurance": endurance, "remaining": a["life_remaining"]})
+			return
+	state.battle_step = 14
+
+
+func _endurance_value(c: CardInstance, p: PlayerState) -> int:
+	if not c.def.endurance_when.is_empty():
+		var ew: Dictionary = c.def.endurance_when
+		if _cond(ew.get("value_if", {}), p.index, {}):
+			return int(ew.get("then", c.def.endurance))
+		return int(ew.get("else", c.def.endurance))
+	return c.def.endurance
+
+
+func _handle_endurance(cmd: Command, context: Dictionary) -> void:
+	if cmd.type == &"endure":
+		var c: CardInstance = card(cmd.card)
+		var prevented: int = mini(int(context["endurance"]), int(state.attack["life_remaining"]))
+		var boost: Dictionary = _floating_first(cmd.player, "endurance_boost")
+		if not boost.is_empty():
+			prevented = int(state.attack["life_remaining"])
+			state.floating.erase(boost)
+		state.attack["life_remaining"] = int(state.attack["life_remaining"]) - prevented
+		_remove_from_game(c)
+		_emit(&"endurance_used", {"player": cmd.player, "card": c.uid, "prevented": prevented})
+	# battle_step stays 13; the loop resumes.
+
+
+func _handle_capture(cmd: Command) -> void:
+	if cmd.type == &"capture":
+		_capture_token(cmd.player, card(cmd.card))
+
+
+func _finish_attack(attacker: PlayerState, a: Dictionary) -> void:
+	if bool(a["stopped"]):
+		_enqueue(a["effects"], "if_stopped", attacker.index, {"attack": a}, _attack_source())
+	var src: CardInstance = _attack_source()
+	if src != null and not bool(a["is_power"]):
+		_enqueue([{"trigger": "secondary", "op": "finish_source", "empowered": bool(a["empowered"])}], "secondary", attacker.index, {"attack": a}, src)
+	if bool(a["is_final"]):
+		attacker.must_pass = true
+	_emit(&"attack_end", {"player": attacker.index, "stopped": a["stopped"], "stages_dealt": a["stages_dealt"], "life_dealt": a["life_dealt"]})
+	_enqueue([{"trigger": "secondary", "op": "after_attack"}], "secondary", attacker.index, {}, null)
+	state.battle_step = 0
+
+
+# --- Effect queue ---------------------------------------------------------
+
+func _enqueue(effects: Array, trigger: String, owner: int, ctx: Dictionary, source: CardInstance) -> void:
+	var list: Array[Dictionary] = []
+	for e in effects:
+		if e is Dictionary and str(e.get("trigger", "secondary")) == trigger:
+			list.append(e)
+	if list.is_empty():
+		return
+	_queue.append({"effects": list, "index": 0, "trigger": trigger, "owner": owner, "ctx": ctx, "source": source})
+
+
+func _drain() -> void:
+	while not _queue.is_empty() and prompt == null and not state.is_over():
+		var job: Dictionary = _queue[0]
+		var effects: Array[Dictionary] = job["effects"]
+		while int(job["index"]) < effects.size():
+			var e: Dictionary = effects[int(job["index"])]
+			job["index"] = int(job["index"]) + 1
+			if e.has("when") and not _cond(e["when"], int(job["owner"]), job["ctx"]):
+				continue
+			if bool(e.get("may", false)) and not bool(e.get("_confirmed", false)):
+				_prompt_may(e, int(job["owner"]), job["ctx"], job["source"])
+				return
+			_pending_then = {}
+			if e.has("then"):
+				_pending_then = {"effects": e["then"], "owner": int(job["owner"]), "ctx": job["ctx"], "source": job["source"]}
+			_apply_effect(e, int(job["owner"]), job["ctx"], job["source"])
+			if prompt != null or state.is_over():
+				return
+			if _flush_then():
+				break
+		if not _queue.is_empty() and _queue[0] == job:
+			_queue.pop_front()
+
+
+## "You may ..." lines ask their owner first; a yes re-queues the effect as confirmed.
+func _prompt_may(e: Dictionary, owner: int, ctx: Dictionary, source: CardInstance) -> void:
+	var opts: Array[Command] = [Command.new(owner, &"pick_option", -1, "yes"), Command.new(owner, &"pick_option", -1, "no")]
+	_choice = {"kind": "may", "effect": e, "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+	_set_prompt(owner, &"pick_option", opts, {"may": true, "op": str(e.get("op", ""))})
+
+
+## Runs the "then" list of the effect that just finished, ahead of everything else queued.
+func _flush_then() -> bool:
+	if _pending_then.is_empty():
+		return false
+	var list: Array[Dictionary] = []
+	for e in _pending_then.get("effects", []):
+		if e is Dictionary:
+			list.append(e)
+	var owner: int = int(_pending_then.get("owner", 0))
+	var ctx: Dictionary = _pending_then.get("ctx", {})
+	var source: CardInstance = _pending_then.get("source")
+	_pending_then = {}
+	if list.is_empty():
+		return false
+	_queue.insert(0, {"effects": list, "index": 0, "trigger": "then", "owner": owner, "ctx": ctx, "source": source})
+	return true
+
+
+func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInstance) -> void:
+	var op: String = str(e.get("op", ""))
+	var who_index: int = owner if str(e.get("who", "self")) == "self" else 1 - owner
+	var who: PlayerState = state.players[who_index]
+	var me: PlayerState = state.players[owner]
+	var amount: Variant = e.get("amount", e.get("n", 0))
+	if op != "finish_source" and op != "after_action" and op != "after_attack" and op != "spend_source":
+		_emit(&"effect", {"op": op, "owner": owner, "who": who_index, "amount": amount})
+	if bool(e.get("skip_damage", false)) and not state.attack.is_empty():
+		state.attack["prevented_all"] = true
+	match op:
+		"acclaim":
+			_change_acclaim(who, int(amount), owner)
+		"set_acclaim":
+			_set_acclaim(who, int(amount), owner)
+		"vigor":
+			var target: CardInstance = who.in_control()
+			if str(e.get("target", "")) == "fighter":
+				target = who.fighter
+			elif str(e.get("target", "")) == "last_searched":
+				target = card(who.last_searched)
+				if target == null or target.zone != &"in_play":
+					return
+			if amount is String and str(amount) == "max":
+				if not _has_floating(who_index, "no_gain"):
+					target.vigor = CardInstance.MAX_STAGE
+			elif int(amount) >= 0:
+				_gain_vigor(who, target, int(amount))
+			elif bool(e.get("no_overflow", false)):
+				target.vigor = maxi(0, target.vigor + int(amount))
+			else:
+				_lose_vigor(who, target, -int(amount))
+		"draw":
+			_draw(who_index, int(amount))
+		"draw_until":
+			while who.hand.size() < int(amount) and not state.is_over():
+				if who.life_deck.is_empty():
+					_lose(who_index, "survival")
+					return
+				_draw(who_index, 1)
+		"draw_discard":
+			_draw_discard(who, int(amount), str(e.get("from", "bottom")))
+		"discard_life":
+			_discard_life(who, int(amount))
+		"discard_hand":
+			var chooser: int = owner if str(e.get("chooser", "")) == "owner" else who_index
+			var to: String = str(e.get("to", "discard"))
+			var filter: String = str(e.get("filter", ""))
+			var pool: Array[CardInstance] = _hand_filtered(who, filter)
+			if pool.is_empty():
+				_pending_then = {}
+			elif bool(e.get("random", true)) and to == "discard":
+				for i in range(mini(int(amount), pool.size())):
+					var c: CardInstance = pool[rng.randi_range(0, pool.size() - 1)]
+					pool.erase(c)
+					_move_to_discard(c)
+					_emit(&"hand_discarded", {"player": who.index, "card": c.uid, "random": true})
+			elif pool.size() == 1 and to == "discard":
+				_move_to_discard(pool[0])
+				_emit(&"hand_discarded", {"player": who.index, "card": pool[0].uid, "random": false})
+			else:
+				_prompt_discard_choice(who, int(amount), chooser, to, filter)
+		"pay_vigor":
+			var per: int = maxi(1, int(e.get("per", 1)))
+			var payer: CardInstance = who.in_control()
+			var opts: Array[Command] = []
+			var amt: int = 0
+			while amt <= payer.vigor:
+				opts.append(Command.new(who_index, &"pay", -1, amt))
+				amt += per
+			_pending_then = {}
+			if opts.size() <= 1:
+				return
+			_choice = {"kind": "pay_vigor", "per": per, "payer": payer.uid, "then": e.get("then", []), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+			_set_prompt(who_index, &"pay", opts, {"per": per})
+		"look_at":
+			_look_at(who, e)
+		"choose_forbid_type":
+			var opts: Array[Command] = []
+			for t in ["strike_cards", "art_cards", "combat_cards"]:
+				opts.append(Command.new(owner, &"pick_option", -1, t))
+			_choice = {"kind": "forbid_type", "target": who_index, "unless_vigor_min": int(e.get("unless_vigor_min", 0)), "duration": str(e.get("duration", "combat"))}
+			_set_prompt(owner, &"pick_option", opts)
+		"focus_attack":
+			if not state.attack.is_empty():
+				state.attack["focused"] = true
+		"end_turn":
+			state.skip_discard = true
+		"force_declare":
+			who.must_declare_combat = true
+		"bond":
+			_bond(me, str(e.get("card", "")))
+		"return_removed":
+			var wanted: int = int(CardDef.TYPE_NAMES.get(str(e.get("card_type", "")), -1))
+			var moved: Array[CardInstance] = []
+			for c in who.removed:
+				if wanted < 0 or c.def.type == wanted:
+					moved.append(c)
+			for c in moved:
+				_move_to_deck_bottom(c)
+			if not moved.is_empty() and shuffle_decks:
+				rng.shuffle(who.life_deck)
+		"set_vigor":
+			var target: CardInstance = who.fighter if str(e.get("target", "fighter")) == "fighter" else who.in_control()
+			target.vigor = clampi(int(amount), 0, CardInstance.MAX_STAGE)
+		"advance_tier":
+			if who.fighter.tier < who.highest_tier:
+				_tier_up(who, false)
+		"choose_stop_all_kind":
+			var opts: Array[Command] = [Command.new(owner, &"pick_option", -1, "strike"), Command.new(owner, &"pick_option", -1, "art")]
+			_choice = {"kind": "stop_kind"}
+			_set_prompt(owner, &"pick_option", opts)
+		"draw_check":
+			if who.life_deck.is_empty():
+				_lose(who_index, "survival")
+				return
+			_draw(who_index, 1)
+			var drawn: CardInstance = who.hand.back()
+			if _draw_check_matches(who, drawn, e):
+				_enqueue(e.get("effects", []), "secondary", owner, ctx, source)
+		"remove_hand":
+			_discard_hand(who, int(amount), true, true)
+		"search":
+			_search(who, e)
+		"discard_in_play":
+			_discard_in_play_effect(who, e, owner)
+		"remove_discard":
+			_remove_discard(who, int(amount), bool(e.get("all", false)))
+		"shuffle_discard":
+			var count: int = int(amount) * (who.allies().size() + 1 if bool(e.get("per_personality", false)) else 1)
+			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)))
+		"recover":
+			_recover_top(who, int(amount), str(e.get("from", "top")))
+		"end_combat":
+			if not _forbidden(me, "end_combat"):
+				_combat_ending = true
+		"skip_next_attack_phase":
+			who.skip_next_attack_phase = true
+		"cannot_declare_combat":
+			who.cannot_declare_combat = true
+		"stop_all":
+			_float(owner, "stop_all", str(e.get("duration", "combat")), {"kind": str(e.get("kind", "any"))})
+		"float":
+			_float(who_index, str(e.get("what", "")), str(e.get("duration", "combat")), e.get("params", {}))
+		"forbid":
+			_float(who_index, "forbid", str(e.get("duration", "combat")), {"what": str(e.get("what", ""))})
+		"lose_tier":
+			_lose_tier(who, owner)
+		"set_tier":
+			_set_tier(who, e, owner)
+		"no_favor_win":
+			who.no_favor_win = true
+			_emit(&"no_favor_win", {"player": who_index})
+		"attach":
+			if source != null:
+				_attach(source, me, str(e.get("to", "in_control")))
+		"capture_token":
+			_capture_prompt(me)
+		"name_card":
+			_prompt_name_card(me, source)
+		"next_attack_tax":
+			_float(who_index, "next_attack_tax", "combat", {"stages": int(amount)})
+		"copy_attack":
+			pass
+		"spend_source":
+			if source != null and source.zone == &"in_play" and source.def.type == CardDef.Type.NON_COMBAT:
+				_finish_card(source, false)
+		"finish_source":
+			if source != null and (source.zone == &"resolving"):
+				_finish_card(source, bool(e.get("empowered", false)))
+		"after_action":
+			_after_non_attack_action()
+		"after_attack":
+			state.attack = {}
+			if state.is_over():
+				return
+			if _combat_ending:
+				_end_combat()
+			else:
+				state.phase = GameState.Phase.FIGHT_BACK
+		_:
+			push_warning("DuelEngine: unknown effect op '%s'" % op)
+
+
+# --- Conditions -----------------------------------------------------------
+
+## Evaluates a `when` dictionary. Every key must hold.
+func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
+	if when.is_empty():
+		return true
+	var me: PlayerState = state.players[owner]
+	var opp: PlayerState = state.players[1 - owner]
+	var a: Dictionary = ctx.get("attack", state.attack)
+	for key in when.keys():
+		var v: Variant = when[key]
+		match str(key):
+			"focus":
+				if me.has_focus() != bool(v):
+					return false
+			"character":
+				if me.in_control().def.character != str(v):
+					return false
+			"fighter_character":
+				if me.fighter.def.character != str(v):
+					return false
+			"alignment":
+				if me.alignment != str(v):
+					return false
+			"performed_by":
+				var by_ally: bool = me.in_control() != me.fighter
+				if not a.is_empty() and int(a.get("attacker", -1)) == owner:
+					by_ally = _performer(a) != me.fighter
+				if (str(v) == "ally") != by_ally:
+					return false
+			"opponent_focus":
+				if opp.has_focus() != bool(v):
+					return false
+			"vigor_min":
+				if me.in_control().vigor < int(v):
+					return false
+			"tier_min":
+				if me.fighter.tier < int(v):
+					return false
+			"opponent_acclaim":
+				if opp.acclaim != int(v):
+					return false
+			"allies_min":
+				if me.allies().size() < int(v):
+					return false
+			"ally_present":
+				if _ally_of_character(me, str(v)) == null:
+					return false
+			"opponent_allies_min":
+				if opp.allies().size() < int(v):
+					return false
+			"opponent_non_combats_min":
+				if opp.non_combats().size() < int(v):
+					return false
+			"discard_top_guild":
+				if me.discard.is_empty() or me.discard.back().def.guild != str(v):
+					return false
+			"discard_top_guild_not":
+				if not me.discard.is_empty() and me.discard.back().def.guild == str(v):
+					return false
+			"discard_min":
+				if me.discard.size() < int(v):
+					return false
+			"discard_top2_guild":
+				if me.discard.size() < 2 or me.discard.back().def.guild != str(v) or me.discard[me.discard.size() - 2].def.guild != str(v):
+					return false
+			"higher_might":
+				if (me.in_control().might() > opp.in_control().might()) != bool(v):
+					return false
+			"opponent_used_combat_card":
+				if (opp.combat_cards_used_combat == state.combat_count) != bool(v):
+					return false
+			"first_attack":
+				if (me.attack_count_combat == 1) != bool(v):
+					return false
+			"role":
+				if str(ctx.get("role", "")) != str(v):
+					return false
+			"tokens_min":
+				if me.tokens().size() < int(v):
+					return false
+			"hand_min":
+				if me.hand.size() < int(v):
+					return false
+			"stopped_last_phase":
+				if _has_floating(owner, "stopped_last") != bool(v):
+					return false
+			"source_guild":
+				var src: CardInstance = _attack_source()
+				if src == null or src.def.guild != str(v):
+					return false
+			_:
+				push_warning("DuelEngine: unknown condition '%s'" % key)
+	return true
+
+
+# --- Floating effects, forbids, constants ---------------------------------
+
+func _float(owner: int, op: String, duration: String, params: Dictionary = {}) -> void:
+	var f: Dictionary = {"owner": owner, "op": op, "duration": duration}
+	for k in params.keys():
+		f[k] = params[k]
+	if duration == "next_turn_end":
+		f["expires_turn"] = state.turn + (2 if state.active == owner else 1)
+	state.floating.append(f)
+	_emit(&"floating", {"owner": owner, "op": op, "duration": duration})
+
+
+func _expire_floating(duration: String) -> void:
+	var keep: Array[Dictionary] = []
+	for f in state.floating:
+		var d: String = str(f.get("duration", ""))
+		if d == duration:
+			continue
+		if d == "next_turn_end" and duration == "turn" and int(f.get("expires_turn", 0)) <= state.turn:
+			continue
+		keep.append(f)
+	state.floating = keep
+
+
+func _has_floating(owner: int, op: String) -> bool:
+	for f in state.floating:
+		if int(f.get("owner", -1)) == owner and str(f.get("op", "")) == op:
+			return true
+	return false
+
+
+func _has_floating_guild(owner: int, op: String, guild: String) -> bool:
+	for f in state.floating:
+		if int(f.get("owner", -1)) == owner and str(f.get("op", "")) == op and (str(f.get("guild", "")) == "" or str(f.get("guild", "")) == guild):
+			return true
+	return false
+
+
+func _floating_first(owner: int, op: String) -> Dictionary:
+	for f in state.floating:
+		if int(f.get("owner", -1)) == owner and str(f.get("op", "")) == op:
+			return f
+	return {}
+
+
+## Standing restrictions on a player from floating forbids, Grounds, Drills, and the opponent's constant power.
+func _forbidden(p: PlayerState, what: String) -> bool:
+	for f in state.floating:
+		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "forbid" and str(f.get("what", "")) == what:
+			if int(f.get("unless_vigor_min", 0)) > 0 and p.fighter.vigor >= int(f["unless_vigor_min"]):
+				continue
+			return true
+	var sources: Array[CardInstance] = []
+	if state.grounds != null:
+		sources.append(state.grounds)
+	for q in state.players:
+		sources.append_array(q.drills())
+		sources.append_array(q.non_combats())
+	for c in sources:
+		for rule in c.def.forbid:
+			if str(rule.get("what", "")) != what:
+				continue
+			var who: String = str(rule.get("who", "all"))
+			if who == "all" or (who == "owner" and c.controller == p.index) or (who == "opponent" and c.controller != p.index):
+				return true
+	# The opponent's constant power can forbid things too. Read it raw here: going through
+	# _constant() would ask whether *their* powers are forbidden and recurse forever.
+	if what != "powers":
+		var opp_constant: Dictionary = _raw_constant(state.players[1 - p.index])
+		for w in opp_constant.get("forbid_opponent", []):
+			if str(w) == what:
+				return true
+	return false
+
+
+func _attack_allowed(p: PlayerState, def: CardDef, kind_override: String = "") -> bool:
+	var kind: String = kind_override if def == null else def.attack_kind()
+	if _forbidden(p, kind + "_attacks"):
+		return false
+	if def != null:
+		if bool(def.attack.get("only_first_attack", false)) and p.attack_count_combat > 0:
+			return false
+		if def.type == CardDef.Type.STRIKE and _forbidden(p, "strike_cards"):
+			return false
+		if def.type == CardDef.Type.ART and _forbidden(p, "art_cards"):
+			return false
+		if def.type == CardDef.Type.COMBAT and _forbidden(p, "combat_cards"):
+			return false
+		if _named_forbidden(def):
+			return false
+	return true
+
+
+func _use_allowed(p: PlayerState, def: CardDef) -> bool:
+	if def.type == CardDef.Type.COMBAT and _forbidden(p, "combat_cards"):
+		return false
+	if def.is_end_combat_card() and _forbidden(p, "end_combat"):
+		return false
+	if def.is_stop_all_card() and _forbidden(p, "stop_all"):
+		return false
+	if _named_forbidden(def):
+		return false
+	return true
+
+
+## "Name a card" Drills lock that title out for both players.
+func _named_forbidden(def: CardDef) -> bool:
+	for q in state.players:
+		for d in q.drills():
+			if d.named_card != "" and d.named_card == def.title:
+				return true
+	return false
+
+
+## The constant power in force for a player: the in-control personality's, or the fighter's
+## when its constant says allies share it.
+func _constant(p: PlayerState) -> Dictionary:
+	if _forbidden(p, "powers"):
+		return {}
+	return _raw_constant(p)
+
+
+func _raw_constant(p: PlayerState) -> Dictionary:
+	var fc: Dictionary = p.fighter.tier_data().get("constant", {})
+	if p.in_control() == p.fighter or bool(fc.get("allies_share", false)):
+		return fc
+	return p.in_control().tier_data().get("constant", {})
+
+
+func _can_play(p: PlayerState, def: CardDef) -> bool:
+	if def.alignment_only != "" and def.alignment_only != p.alignment:
+		return false
+	if not def.only.is_empty():
+		if def.only.has("character") and p.in_control().def.character != str(def.only["character"]):
+			return false
+		if def.only.has("fighter_character") and p.fighter.def.character != str(def.only["fighter_character"]):
+			return false
+	return true
+
+
+# --- Choice prompts raised by effects -------------------------------------
+
+func _prompt_discard_choice(target: PlayerState, amount: int, chooser: int = -1, to: String = "discard", filter: String = "") -> void:
+	if chooser < 0:
+		chooser = target.index
+	var opts: Array[Command] = []
+	for c in _hand_filtered(target, filter):
+		opts.append(Command.new(chooser, &"discard_choice", c.uid))
+	if opts.is_empty():
+		return
+	_choice = {"kind": "discard_choice", "remaining": amount, "target": target.index, "chooser": chooser, "to": to, "filter": filter}
+	_set_prompt(chooser, &"discard_choice", opts, {"target": target.index, "amount": mini(amount, opts.size())})
+	if amount > 1 and opts.size() > 1:
+		var n: int = mini(amount, opts.size())
+		prompt.set_batch(&"discard_choice", n, n)
+
+
+## Offers cards in play to discard or remove. `amount` of them may go in one batch; "up to"
+## effects also allow none.
+func _prompt_pick_in_play(chooser: int, cands: Array[CardInstance], amount: int, up_to: bool) -> void:
+	var opts: Array[Command] = []
+	for c in cands:
+		opts.append(Command.new(chooser, &"pick_in_play", c.uid))
+	if up_to:
+		opts.append(Command.new(chooser, &"pick_none"))
+	var n: int = mini(amount, cands.size())
+	_set_prompt(chooser, &"pick_in_play", opts, {"amount": n, "up_to": up_to})
+	if n > 1:
+		prompt.set_batch(&"pick_in_play", 1 if up_to else n, n)
+
+
+## Hand cards an effect may pick from: all, only signature cards, or only non-Tokens.
+func _hand_filtered(p: PlayerState, filter: String) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for c in p.hand:
+		match filter:
+			"signature":
+				if c.def.character != "" and c.def.character == p.fighter.def.character:
+					out.append(c)
+			"non_token":
+				if c.def.type != CardDef.Type.TOKEN:
+					out.append(c)
+			_:
+				out.append(c)
+	return out
+
+
+## A Drill that reads "discard this if you have any other Non-Combat in play".
+func _check_lonely_drills(p: PlayerState) -> void:
+	if _drills_protected(p):
+		return
+	var others: int = p.non_combats().size() + p.drills().size() + p.attachments().size()
+	for d in p.drills():
+		if bool(d.def.raw.get("discard_if_other_non_combats", false)) and others > 1:
+			_emit(&"in_play_discarded", {"player": p.index, "card": d.uid, "removed": false})
+			_move_to_discard(d)
+
+
+## Look at the top or bottom N cards; the owner may take one matching card into hand or play.
+func _look_at(p: PlayerState, e: Dictionary) -> void:
+	var n: int = mini(int(e.get("amount", 1)), p.life_deck.size())
+	var from: String = str(e.get("from", "top"))
+	var to: String = str(e.get("to", "hand"))
+	var pick: Dictionary = e.get("pick", {})
+	var opts: Array[Command] = []
+	for i in range(n):
+		var c: CardInstance = p.life_deck[i] if from == "top" else p.life_deck[p.life_deck.size() - 1 - i]
+		if _search_matches(p, c, pick, to):
+			opts.append(Command.new(p.index, &"pick_option", c.uid))
+	_emit(&"look_at", {"player": p.index, "count": n, "from": from})
+	if opts.is_empty():
+		return
+	opts.append(Command.new(p.index, &"pick_none"))
+	var take: Dictionary = pick.duplicate(true)
+	take["to"] = to
+	take["no_shuffle"] = true
+	if e.has("stages"):
+		take["stages"] = e["stages"]
+	if e.has("play_if"):
+		take["play_if"] = e["play_if"]
+	if bool(e.get("shuffle_after", false)):
+		take["shuffle_after"] = true
+	_choice = {"kind": "look_at", "player": p.index, "effect": take}
+	_set_prompt(p.index, &"pick_option", opts)
+
+
+func _draw_check_matches(p: PlayerState, drawn: CardInstance, e: Dictionary) -> bool:
+	match str(e.get("check", "guild")):
+		"named":
+			return drawn.def.character != ""
+		"signature":
+			return drawn.def.character != "" and drawn.def.character == p.fighter.def.character
+		"title_contains":
+			return drawn.def.title.contains(str(e.get("title_contains", "")))
+		_:
+			return drawn.def.guild == str(e.get("guild", ""))
+
+
+func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> void:
+	var type_name: String = str(e.get("card_type", "non_combat"))
+	var amount: int = maxi(1, int(e.get("amount", 1)))
+	if bool(e.get("all", false)):
+		amount = 99
+	var remove: bool = bool(e.get("remove", false))
+	var candidates: Array[CardInstance] = _in_play_candidates(target, type_name)
+	if candidates.is_empty():
+		return
+	var chooser: int = owner if str(e.get("chooser", "owner")) == "owner" else target.index
+	if bool(e.get("choose", false)) and candidates.size() > amount:
+		_choice = {"kind": "pick_in_play", "remaining": amount, "remove": remove, "type": type_name, "target": target.index, "chooser": chooser, "up_to": bool(e.get("up_to", false))}
+		_prompt_pick_in_play(chooser, candidates, amount, bool(e.get("up_to", false)))
+		return
+	var n: int = 0
+	for i in range(candidates.size() - 1, -1, -1):
+		if n >= amount:
+			break
+		_discard_or_remove_in_play(candidates[i], remove)
+		n += 1
+
+
+func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for c in p.in_play:
+		if c.remain > 0:
+			continue
+		var t: CardDef.Type = c.def.type
+		var ok: bool = false
+		match type_name:
+			"non_combat":
+				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or c.attached_to != null
+			"non_combat_only":
+				ok = t == CardDef.Type.NON_COMBAT and c.attached_to == null
+			"drill":
+				ok = t == CardDef.Type.DRILL and not _drills_protected(p)
+			"freestyle_drill":
+				ok = t == CardDef.Type.DRILL and c.def.guild == ""
+			"ally":
+				ok = t == CardDef.Type.ALLY and not _ally_protected(p)
+			"token":
+				ok = t == CardDef.Type.TOKEN
+			"non_combat_or_ally":
+				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p))
+			"drill_or_ally":
+				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p))
+			_:
+				ok = true
+		if ok:
+			out.append(c)
+	return out
+
+
+func _ally_protected(p: PlayerState) -> bool:
+	return bool(_constant(p).get("protect_allies", false))
+
+
+func _drills_protected(p: PlayerState) -> bool:
+	return p.mastery != null and bool(p.mastery.def.raw.get("protect_drills", false)) and not _forbidden(p, "mastery")
+
+
+func _discard_or_remove_in_play(c: CardInstance, remove: bool) -> void:
+	_emit(&"in_play_discarded", {"player": c.controller, "card": c.uid, "removed": remove})
+	if remove:
+		_remove_from_game(c)
+	else:
+		_move_to_discard(c)
+
+
+func _prompt_name_card(p: PlayerState, source: CardInstance) -> void:
+	var titles: Dictionary = {}
+	for c in _cards.values():
+		if c.owner != p.index and not c.def.is_personality() and c.def.type != CardDef.Type.TOKEN and c.def.type != CardDef.Type.MASTERY and c.def.type != CardDef.Type.MASTER:
+			titles[c.def.title] = true
+	var names: Array = titles.keys()
+	names.sort()
+	if names.is_empty() or source == null:
+		return
+	var opts: Array[Command] = []
+	for n in names:
+		opts.append(Command.new(p.index, &"name_card", source.uid, n))
+	_choice = {"kind": "name_card", "source": source.uid}
+	_set_prompt(p.index, &"name_card", opts)
+
+
+func _capture_prompt(p: PlayerState) -> void:
+	var opp: PlayerState = state.players[1 - p.index]
+	var tokens: Array[CardInstance] = opp.tokens()
+	if tokens.is_empty():
+		return
+	if tokens.size() == 1:
+		_capture_token(p.index, tokens[0])
+		return
+	var opts: Array[Command] = []
+	for t in tokens:
+		opts.append(Command.new(p.index, &"pick_option", t.uid))
+	_choice = {"kind": "capture_choice"}
+	_set_prompt(p.index, &"pick_option", opts)
+
+
+func _handle_choice(cmd: Command) -> void:
+	var kind: String = str(_choice.get("kind", ""))
+	match kind:
+		"may":
+			if str(cmd.value) == "yes":
+				var e2: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
+				e2["_confirmed"] = true
+				var list: Array[Dictionary] = [e2]
+				_queue.insert(0, {"effects": list, "index": 0, "trigger": str(e2.get("trigger", "secondary")), "owner": int(_choice["owner"]), "ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1)))})
+		"look_at":
+			var looker: PlayerState = state.players[int(_choice["player"])]
+			var take: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
+			if cmd.type != &"pick_none":
+				var picked: CardInstance = card(cmd.card)
+				if take.has("play_if") and _search_matches(looker, picked, take["play_if"], "play"):
+					take["to"] = "play"
+				_search_take(looker, picked, take)
+			if bool(take.get("shuffle_after", false)) and shuffle_decks:
+				rng.shuffle(looker.life_deck)
+		"search_pick":
+			if cmd.type != &"pick_none":
+				var p: PlayerState = state.players[int(_choice["player"])]
+				var e: Dictionary = _choice["effect"]
+				var picked: Array[int] = Prompt.cards_of(cmd)
+				for uid in picked:
+					_search_take(p, card(uid), e)
+				var remaining: int = int(_choice.get("remaining", 1)) - picked.size()
+				if remaining > 0:
+					var rest: Array[CardInstance] = _search_distinct(_search_candidates(p, e))
+					if rest.size() > 1:
+						_choice["remaining"] = remaining
+						_prompt_search_pick(p, rest, remaining)
+						return
+					elif rest.size() == 1:
+						_search_take(p, rest[0], e)
+		"forbid_type":
+			var params: Dictionary = {"what": str(cmd.value)}
+			if int(_choice.get("unless_vigor_min", 0)) > 0:
+				params["unless_vigor_min"] = int(_choice["unless_vigor_min"])
+			_float(int(_choice["target"]), "forbid", str(_choice.get("duration", "combat")), params)
+		"discard_choice":
+			var target: PlayerState = state.players[int(_choice.get("target", cmd.player))]
+			var to: String = str(_choice.get("to", "discard"))
+			var picked: Array[int] = Prompt.cards_of(cmd)
+			for uid in picked:
+				var c: CardInstance = card(uid)
+				if to == "deck":
+					_move_to_deck_bottom(c)
+				elif to == "removed":
+					_remove_from_game(c)
+				else:
+					_move_to_discard(c)
+				_emit(&"hand_discarded", {"player": target.index, "card": c.uid, "random": false})
+			if to == "deck" and shuffle_decks:
+				rng.shuffle(target.life_deck)
+			var remaining: int = int(_choice.get("remaining", 1)) - picked.size()
+			if remaining > 0 and not target.hand.is_empty():
+				_prompt_discard_choice(target, remaining, cmd.player, to, str(_choice.get("filter", "")))
+				if prompt != null:
+					return
+		"stop_kind":
+			var k: String = str(cmd.value)
+			_float(cmd.player, "stop_all", "combat", {"kind": k})
+			_float(cmd.player, "forbid", "combat", {"what": k + "_attacks"})
+		"pick_in_play":
+			if cmd.type == &"pick_none":
+				_choice = {}
+				return
+			var picked: Array[int] = Prompt.cards_of(cmd)
+			for uid in picked:
+				_discard_or_remove_in_play(card(uid), bool(_choice.get("remove", false)))
+			var remaining: int = int(_choice.get("remaining", 1)) - picked.size()
+			var target: PlayerState = state.players[int(_choice.get("target", 0))]
+			var rest: Array[CardInstance] = _in_play_candidates(target, str(_choice.get("type", "non_combat")))
+			if remaining > 0 and not rest.is_empty():
+				_choice["remaining"] = remaining
+				_prompt_pick_in_play(cmd.player, rest, remaining, bool(_choice.get("up_to", false)))
+				return
+		"name_card":
+			var src: CardInstance = card(cmd.card)
+			if src != null:
+				src.named_card = str(cmd.value)
+				_emit(&"card_named", {"player": cmd.player, "card": src.uid, "name": src.named_card})
+		"capture_choice":
+			_capture_token(cmd.player, card(cmd.card))
+	_choice = {}
+
+
+# --- Acclaim and tiers ----------------------------------------------------
+
+func _acclaim_threshold(p: PlayerState) -> int:
+	var opp: PlayerState = state.players[1 - p.index]
+	if opp.mastery != null and opp.mastery.def.opponent_tier_threshold > 0 and not _forbidden(opp, "mastery"):
+		return opp.mastery.def.opponent_tier_threshold
+	return ACCLAIM_TO_TIER
+
+
+func _change_acclaim(p: PlayerState, delta: int, source_owner: int) -> void:
+	if delta < 0 and source_owner != p.index and _acclaim_shielded(p):
+		_emit(&"acclaim_shielded", {"player": p.index})
+		return
+	if delta > 0:
+		var mult: int = int(_constant(p).get("acclaim_multiplier", 1))
+		delta *= maxi(1, mult)
+	var before: int = p.acclaim
+	p.acclaim = maxi(0, p.acclaim + delta)
+	_emit(&"acclaim_changed", {"player": p.index, "from": before, "to": p.acclaim})
+	_check_tier_up(p)
+
+
+func _set_acclaim(p: PlayerState, value: int, source_owner: int) -> void:
+	if value < p.acclaim and source_owner != p.index and _acclaim_shielded(p):
+		_emit(&"acclaim_shielded", {"player": p.index})
+		return
+	var before: int = p.acclaim
+	p.acclaim = maxi(0, value)
+	_emit(&"acclaim_changed", {"player": p.index, "from": before, "to": p.acclaim})
+	_check_tier_up(p)
+
+
+func _acclaim_shielded(p: PlayerState) -> bool:
+	return p.master != null and bool(p.master.def.master_flags.get("acclaim_shield", false))
+
+
+func _check_tier_up(p: PlayerState) -> void:
+	if p.acclaim >= _acclaim_threshold(p):
+		p.acclaim = 0
+		if p.fighter.tier < p.highest_tier:
+			_tier_up(p, true)
+		else:
+			p.fighter.vigor = CardInstance.MAX_STAGE
+			_emit(&"acclaim_peak", {"player": p.index, "vigor": p.fighter.vigor})
+
+
+func _tier_up(p: PlayerState, by_acclaim: bool) -> void:
+	p.fighter.tier += 1
+	p.fighter.vigor = CardInstance.MAX_STAGE
+	_discard_drills(p)
+	_emit(&"tier_up", {"player": p.index, "tier": p.fighter.tier})
+	if by_acclaim and p.fighter.tier >= state.highest_tier_in_play() and not p.no_favor_win:
+		_win(p.index, "favor")
+
+
+func _lose_tier(p: PlayerState, source_owner: int) -> void:
+	if p.fighter.tier <= 1:
+		return
+	if source_owner != p.index and p.master != null and bool(p.master.def.master_flags.get("tier_shield", false)):
+		return
+	p.fighter.tier -= 1
+	p.fighter.vigor = LOST_TIER_VIGOR
+	_discard_drills(p)
+	_emit(&"tier_down", {"player": p.index, "tier": p.fighter.tier})
+
+
+## Moves the fighter to an absolute tier ("acclaim" reads the current Acclaim value).
+func _set_tier(p: PlayerState, e: Dictionary, source_owner: int) -> void:
+	var raw: Variant = e.get("tier", 1)
+	var target: int = p.acclaim if (raw is String and str(raw) == "acclaim") else int(raw)
+	target = clampi(target, 1, p.highest_tier)
+	if target == 0:
+		target = 1
+	while p.fighter.tier < target:
+		_tier_up(p, false)
+	while p.fighter.tier > target:
+		var before: int = p.fighter.tier
+		_lose_tier(p, source_owner)
+		if p.fighter.tier == before:
+			break
+
+
+func _discard_drills(p: PlayerState) -> void:
+	for d in p.drills():
+		_move_to_discard(d)
+
+
+func _gain_vigor(p: PlayerState, c: CardInstance, n: int) -> void:
+	if _has_floating(p.index, "no_gain"):
+		return
+	c.vigor = clampi(c.vigor + n, 0, CardInstance.MAX_STAGE)
+
+
+## Vigor loss from card effects. Past 0 it costs life cards, one per stage.
+func _lose_vigor(p: PlayerState, c: CardInstance, n: int) -> void:
+	var lost: int = mini(c.vigor, n)
+	c.vigor -= lost
+	var overflow: int = n - lost
+	if overflow > 0:
+		_discard_life(p, overflow)
+
+
+func _power_available(p: PlayerState, ic: CardInstance) -> bool:
+	var pw: Dictionary = ic.power()
+	if pw.is_empty():
+		return false
+	if pw.has("attack") and pw["attack"].has("only_first_attack") and p.attack_count_combat > 0:
+		return false
+	var uses: int = maxi(1, int(pw.get("uses", 1)))
+	if ic.def.type == CardDef.Type.ALLY:
+		if ic.power_used_combat != state.combat_count:
+			return true
+		return ic.power_uses_combat < uses
+	if not (ic.power_used_turn == state.turn and ic.power_used_tier == ic.tier):
+		return true
+	return ic.power_used_combat == state.combat_count and ic.power_uses_combat < uses
+
+
+func _mark_power_used(ic: CardInstance) -> void:
+	if ic.power_used_combat != state.combat_count or ic.power_used_turn != state.turn or ic.power_used_tier != ic.tier:
+		ic.power_uses_combat = 0
+	ic.power_used_turn = state.turn
+	ic.power_used_tier = ic.tier
+	ic.power_used_combat = state.combat_count
+	ic.power_uses_combat += 1
+
+
+# --- Tokens ---------------------------------------------------------------
+
+func _token_in_play(id: String) -> CardInstance:
+	for p in state.players:
+		for t in p.tokens():
+			if t.def.id == id:
+				return t
+	return null
+
+
+func _controls_full_set(p: PlayerState) -> bool:
+	var sets: Dictionary = {}
+	for t in p.tokens():
+		sets[t.def.token_set] = int(sets.get(t.def.token_set, 0)) + 1
+	for s in sets.keys():
+		if int(sets[s]) >= TOKENS_PER_SET:
+			return true
+	return false
+
+
+## A Token leaving a hand or Life Deck never reaches the discard pile.
+func _bypass_token(c: CardInstance) -> void:
+	var owner: PlayerState = state.players[c.owner]
+	_erase_from_zone(c)
+	if _token_in_play(c.def.id) != null:
+		c.zone = &"removed"
+		owner.removed.append(c)
+		_emit(&"token_bypassed", {"card": c.uid, "to": "removed"})
+	else:
+		c.zone = &"life_deck"
+		owner.life_deck.append(c)
+		_emit(&"token_bypassed", {"card": c.uid, "to": "deck_bottom"})
+
+
+func _capture_token(by: int, t: CardInstance) -> void:
+	var taker: PlayerState = state.players[by]
+	_erase_from_zone(t)
+	t.controller = by
+	t.zone = &"in_play"
+	taker.in_play.append(t)
+	_emit(&"token_captured", {"player": by, "card": t.uid, "id": t.def.id})
+	if _controls_full_set(taker):
+		taker.token_victory_pending = true
+		_emit(&"token_victory_pending", {"player": by})
+
+
+func _only_tokens_left(p: PlayerState) -> bool:
+	if p.life_deck.is_empty():
+		return false
+	for c in p.life_deck:
+		if c.def.type != CardDef.Type.TOKEN:
+			return false
+	return true
+
+
+# --- Search, attach, draw variants ---------------------------------------
+
+## Search the Life Deck (or discard, or Armory) for a matching card and put it in hand or play.
+func _search(p: PlayerState, e: Dictionary) -> void:
+	var n: int = maxi(1, int(e.get("amount", 1)))
+	var cands: Array[CardInstance] = _search_candidates(p, e)
+	if cands.is_empty():
+		return
+	var distinct: Array[CardInstance] = _search_distinct(cands)
+	if bool(e.get("choose", true)) and distinct.size() > 1:
+		_choice = {"kind": "search_pick", "player": p.index, "effect": e, "remaining": n}
+		_prompt_search_pick(p, distinct, n)
+		return
+	for i in range(n):
+		cands = _search_candidates(p, e)
+		if cands.is_empty():
+			return
+		_search_take(p, cands[0], e)
+
+
+## Offers the distinct hits of a search. Up to `n` may be taken at once as a batch.
+func _prompt_search_pick(p: PlayerState, hits: Array[CardInstance], n: int) -> void:
+	var opts: Array[Command] = []
+	for c in hits:
+		opts.append(Command.new(p.index, &"pick_option", c.uid))
+	opts.append(Command.new(p.index, &"pick_none"))
+	_set_prompt(p.index, &"pick_option", opts, {"search": true, "amount": mini(n, hits.size())})
+	if n > 1 and hits.size() > 1:
+		prompt.set_batch(&"pick_option", 1, mini(n, hits.size()))
+
+
+## Every card the search could take, in pool order (deck, then discard when "either").
+func _search_candidates(p: PlayerState, e: Dictionary) -> Array[CardInstance]:
+	var pools: Array = []
+	match str(e.get("source", "deck")):
+		"discard":
+			pools.append(p.discard)
+		"either":
+			pools.append(p.life_deck)
+			pools.append(p.discard)
+		"armory":
+			pools.append(p.armory)
+		_:
+			pools.append(p.life_deck)
+	var out: Array[CardInstance] = []
+	var to: String = str(e.get("to", "hand"))
+	for pool in pools:
+		for c in pool:
+			if _search_matches(p, c, e, to):
+				out.append(c)
+	return out
+
+
+## One instance per distinct card definition, so the pick list has no duplicates.
+func _search_distinct(cands: Array[CardInstance]) -> Array[CardInstance]:
+	var seen: Dictionary = {}
+	var out: Array[CardInstance] = []
+	for c in cands:
+		if not seen.has(c.def.id):
+			seen[c.def.id] = true
+			out.append(c)
+	return out
+
+
+func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String) -> bool:
+	var type_name: String = str(e.get("card_type", ""))
+	var wanted: int = int(CardDef.TYPE_NAMES.get(type_name, -1))
+	if c.def.type == CardDef.Type.TOKEN and type_name != "token":
+		return false
+	if wanted >= 0 and c.def.type != wanted:
+		return false
+	if type_name == "attack" and not c.def.is_attack():
+		return false
+	if type_name == "hand_combat" and not c.def.is_hand_combat_card():
+		return false
+	var tag: String = str(e.get("tag", ""))
+	if tag != "" and not (c.def.raw.get("tags", []) as Array).has(tag):
+		return false
+	var guild: String = str(e.get("guild", "*"))
+	if guild != "*" and c.def.guild != guild:
+		return false
+	var title_contains: String = str(e.get("title_contains", ""))
+	if title_contains != "" and not c.def.title.contains(title_contains):
+		return false
+	var exclude: String = str(e.get("exclude_title", ""))
+	if exclude != "" and c.def.title == exclude:
+		return false
+	if str(e.get("signature_of", "")) == "fighter" and c.def.character != p.fighter.def.character:
+		return false
+	if e.has("has_effect") and not _def_has_effect(c.def, e["has_effect"]):
+		return false
+	if to == "play" and not _can_place(p, c):
+		return false
+	return true
+
+
+## "A card that discards a card from your opponent's hand": any effect line (including nested
+## `then` lists and attack variants) with the given op and, when given, the same `who`.
+func _def_has_effect(def: CardDef, spec: Dictionary) -> bool:
+	var lists: Array = [def.effects]
+	for v in def.attack.get("variants", []):
+		lists.append(v.get("effects", []))
+	while not lists.is_empty():
+		var list: Array = lists.pop_back()
+		for e in list:
+			if not (e is Dictionary):
+				continue
+			if str(e.get("op", "")) == str(spec.get("op", "")) and (not spec.has("who") or str(e.get("who", "self")) == str(spec["who"])):
+				return true
+			if e.has("then"):
+				lists.append(e["then"])
+			if e.has("effects"):
+				lists.append(e["effects"])
+	return false
+
+
+## A life card with "if this card is discarded from your Life Deck" text.
+func _on_wound(p: PlayerState, c: CardInstance) -> void:
+	for e in c.def.effects_for("on_wound"):
+		if str(e.get("at", "")) == "fight_back":
+			if state.step == GameState.Step.COMBAT:
+				p.pending_fight_back.append({"effect": e, "source": c.uid})
+		else:
+			var list: Array[Dictionary] = [e]
+			_queue.append({"effects": list, "index": 0, "trigger": "on_wound", "owner": p.index, "ctx": {}, "source": c})
+
+
+## The opponent may use a "during your opponent's Declare step" card before the active player decides.
+func _open_declare_window(p: PlayerState) -> bool:
+	var opp: PlayerState = state.players[1 - p.index]
+	var opts: Array[Command] = []
+	for c in opp.non_combats():
+		if c.def.has_trigger("opponent_declare") and _can_play(opp, c.def) and not _forbidden(opp, "non_combats"):
+			if _def_has_effect(c.def, {"op": "discard_hand", "who": "self"}) and opp.hand.is_empty():
+				continue
+			opts.append(Command.new(opp.index, &"use", c.uid))
+	if opts.is_empty():
+		return false
+	opts.append(Command.new(opp.index, &"decline"))
+	state.pending_play = {"mode": "declare"}
+	_set_prompt(opp.index, &"respond", opts, {"mode": "declare"})
+	return true
+
+
+# --- Bonds: two Allies fight as one card until the bond burns out -------------
+
+func _find_owned(p: PlayerState, id: String) -> CardInstance:
+	for pool in [p.armory, p.removed, p.discard, p.life_deck, p.hand]:
+		for c in pool:
+			if c.def.id == id:
+				return c
+	return null
+
+
+func _bond(p: PlayerState, id: String) -> void:
+	var bond: CardInstance = _find_owned(p, id)
+	if bond == null:
+		return
+	var parts: Array[CardInstance] = []
+	for name in bond.def.raw.get("bond_of", []):
+		var al: CardInstance = _ally_of_character(p, str(name))
+		if al == null:
+			return
+		parts.append(al)
+	for al in parts:
+		_drop_attachments(al)
+		_erase_from_zone(al)
+		al.zone = &"under"
+	_erase_from_zone(bond)
+	bond.zone = &"in_play"
+	bond.controller = p.index
+	bond.vigor = CardInstance.MAX_STAGE
+	bond.bond_timer = 0
+	bond.cards_under.clear()
+	for al in parts:
+		bond.cards_under.append(al)
+	p.in_play.append(bond)
+	_emit(&"bonded", {"player": p.index, "card": bond.uid, "parts": parts.size()})
+
+
+func _unbond(p: PlayerState, bond: CardInstance) -> void:
+	var names: Array = bond.def.raw.get("bond_of", [])
+	var fusees: Array[CardInstance] = []
+	var rest: Array[CardInstance] = []
+	for c in bond.cards_under:
+		if c.def.type == CardDef.Type.ALLY and names.has(c.def.character):
+			fusees.append(c)
+		else:
+			rest.append(c)
+	bond.cards_under.clear()
+	_erase_from_zone(bond)
+	bond.zone = &"armory"
+	bond.bond_timer = 0
+	p.armory.append(bond)
+	for c in rest:
+		_move_to_discard(c)
+	for al in fusees:
+		al.zone = &"in_play"
+		al.controller = p.index
+		al.vigor = ALLY_STARTING_VIGOR
+		p.in_play.append(al)
+	if p.controlling == bond:
+		p.controlling = p.fighter
+	_emit(&"unbonded", {"player": p.index, "card": bond.uid})
+
+
+## Moves a found card into hand or play and reshuffles the deck it came from.
+func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
+	var to: String = str(e.get("to", "hand"))
+	var was_deck: bool = hit.zone == &"life_deck"
+	if to == "play":
+		_place(p, hit)
+		if hit.def.type == CardDef.Type.ALLY and e.has("stages"):
+			hit.vigor = clampi(int(e["stages"]), 0, CardInstance.MAX_STAGE)
+	else:
+		_erase_from_zone(hit)
+		hit.zone = &"hand"
+		p.hand.append(hit)
+	p.last_searched = hit.uid
+	_emit(&"search", {"player": p.index, "card": hit.uid, "type": str(e.get("card_type", "")), "to": to})
+	if was_deck and shuffle_decks and not bool(e.get("no_shuffle", false)):
+		rng.shuffle(p.life_deck)
+
+
+func _attach(c: CardInstance, p: PlayerState, to: String) -> void:
+	var host: CardInstance = p.in_control() if to == "in_control" else p.fighter
+	if c.zone == &"resolving" or c.zone == &"hand" or c.zone == &"in_play":
+		_erase_from_zone(c)
+	c.zone = &"in_play"
+	c.controller = p.index
+	c.attached_to = host
+	c.remain = 0
+	p.in_play.append(c)
+	_emit(&"attached", {"player": p.index, "card": c.uid, "host": host.uid})
+	_check_lonely_drills(p)
+
+
+func _draw_discard(p: PlayerState, n: int, from: String) -> void:
+	for i in range(n):
+		if p.discard.is_empty():
+			return
+		var c: CardInstance = p.discard.pop_front() if from == "bottom" else p.discard.pop_back()
+		c.zone = &"hand"
+		p.hand.append(c)
+		_emit(&"draw", {"player": p.index, "card": c.uid, "from": "discard"})
+
+
+func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool) -> void:
+	var count: int = p.discard.size() if all else mini(n, p.discard.size())
+	for i in range(count):
+		var c: CardInstance = p.discard.pop_back()
+		c.zone = &"life_deck"
+		p.life_deck.append(c)
+		_emit(&"recover", {"player": p.index, "card": c.uid})
+	if count > 0 and shuffle_decks:
+		rng.shuffle(p.life_deck)
+
+
+# --- Card movement --------------------------------------------------------
+
+func _draw(player_index: int, n: int) -> void:
+	var p: PlayerState = state.players[player_index]
+	for i in range(n):
+		if p.life_deck.is_empty():
+			_lose(player_index, "survival")
+			return
+		var c: CardInstance = p.life_deck.pop_front()
+		c.zone = &"hand"
+		p.hand.append(c)
+		_emit(&"draw", {"player": player_index, "card": c.uid})
+
+
+## Takes the top life card off the deck for damage. Null (and a loss) if there is none.
+func _flip_life_card(p: PlayerState) -> CardInstance:
+	if p.life_deck.is_empty():
+		_lose(p.index, "survival")
+		return null
+	var c: CardInstance = p.life_deck.pop_front()
+	c.zone = &"none"
+	return c
+
+
+## Life cards lost to a cost or effect, not to attack damage. Tokens count but still bypass the discard pile.
+func _discard_life(p: PlayerState, n: int) -> void:
+	for i in range(n):
+		var c: CardInstance = _flip_life_card(p)
+		if c == null:
+			return
+		if c.def.type == CardDef.Type.TOKEN:
+			_bypass_token(c)
+		else:
+			_move_to_discard(c)
+			_on_wound(p, c)
+		_emit(&"life_card_lost", {"player": p.index, "card": c.uid})
+
+
+## Cards leave the hand by the engine's seeded RNG when random, else from the front.
+func _discard_hand(p: PlayerState, n: int, random: bool, remove: bool = false) -> void:
+	for i in range(n):
+		if p.hand.is_empty():
+			return
+		var idx: int = rng.randi_range(0, p.hand.size() - 1) if random else 0
+		var c: CardInstance = p.hand[idx]
+		if remove:
+			_remove_from_game(c)
+		else:
+			_move_to_discard(c)
+		_emit(&"hand_discarded", {"player": p.index, "card": c.uid, "random": random})
+
+
+func _recover_top(p: PlayerState, n: int, from: String = "top") -> void:
+	for i in range(n):
+		if p.discard.is_empty():
+			return
+		var c: CardInstance = p.discard.pop_front() if from == "bottom" else p.discard.pop_back()
+		c.zone = &"life_deck"
+		p.life_deck.append(c)
+		_emit(&"recover", {"player": p.index, "card": c.uid})
+
+
+func _remove_discard(p: PlayerState, n: int, all: bool) -> void:
+	var count: int = p.discard.size() if all else mini(n, p.discard.size())
+	for i in range(count):
+		var c: CardInstance = p.discard.back()
+		_remove_from_game(c)
+
+
+func _move_to_discard(c: CardInstance) -> void:
+	if c.def.type == CardDef.Type.TOKEN:
+		_bypass_token(c)
+		return
+	_erase_from_zone(c)
+	var owner: PlayerState = state.players[c.owner]
+	c.zone = &"discard"
+	c.attached_to = null
+	c.remain = 0
+	owner.discard.append(c)
+	for under in c.cards_under:
+		under.zone = &"discard"
+		owner.discard.append(under)
+	c.cards_under.clear()
+	_drop_attachments(c)
+	_emit(&"card_moved", {"card": c.uid, "to": "discard", "owner": c.owner})
+
+
+func _remove_from_game(c: CardInstance) -> void:
+	_erase_from_zone(c)
+	var owner: PlayerState = state.players[c.owner]
+	c.zone = &"removed"
+	c.attached_to = null
+	c.remain = 0
+	owner.removed.append(c)
+	for under in c.cards_under:
+		under.zone = &"removed"
+		owner.removed.append(under)
+	c.cards_under.clear()
+	_drop_attachments(c)
+	_emit(&"card_moved", {"card": c.uid, "to": "removed", "owner": c.owner})
+
+
+func _move_to_deck_bottom(c: CardInstance) -> void:
+	_erase_from_zone(c)
+	var owner: PlayerState = state.players[c.owner]
+	c.zone = &"life_deck"
+	c.attached_to = null
+	c.remain = 0
+	owner.life_deck.append(c)
+	_emit(&"card_moved", {"card": c.uid, "to": "deck_bottom", "owner": c.owner})
+
+
+## Attachments fall off when their host leaves play.
+func _drop_attachments(host: CardInstance) -> void:
+	if host.def.type != CardDef.Type.ALLY and host.def.type != CardDef.Type.FIGHTER:
+		return
+	for p in state.players:
+		for at in p.attachments():
+			if at.attached_to == host:
+				at.attached_to = null
+				_move_to_discard(at)
+
+
+## Where a used card goes: attach, Remain in play, deck bottom, removed, or discard.
+func _finish_card(c: CardInstance, empowered: bool) -> void:
+	var def: CardDef = c.def
+	if def.type == CardDef.Type.DRILL or def.type == CardDef.Type.MASTERY:
+		return
+	if c.attached_to != null:
+		return
+	var owner: PlayerState = state.players[c.owner]
+	var remain: int = def.remain
+	if not def.remain_when.is_empty() and _cond(def.remain_when.get("when", {}), c.owner, {"attack": state.attack}):
+		remain = maxi(remain, int(def.remain_when.get("remain", 1)))
+	if remain > 0 and c.remain_combat != state.combat_count and state.step == GameState.Step.COMBAT:
+		_erase_from_zone(c)
+		c.zone = &"in_play"
+		c.controller = c.owner
+		c.remain = remain
+		c.remain_combat = state.combat_count
+		owner.in_play.append(c)
+		_emit(&"remain", {"player": c.owner, "card": c.uid, "uses": remain})
+		return
+	if _has_floating_guild(c.owner, "after_use_bottom", def.guild) and def.guild != "":
+		_move_to_deck_bottom(c)
+	elif def.bottom_after_use:
+		_move_to_deck_bottom(c)
+	elif def.remove_after_use and not empowered:
+		_remove_from_game(c)
+	else:
+		_move_to_discard(c)
+
+
+func _erase_from_zone(c: CardInstance) -> void:
+	var owner: PlayerState = state.players[c.owner]
+	match c.zone:
+		&"hand":
+			owner.hand.erase(c)
+		&"life_deck":
+			owner.life_deck.erase(c)
+		&"discard":
+			owner.discard.erase(c)
+		&"removed":
+			owner.removed.erase(c)
+		&"armory":
+			owner.armory.erase(c)
+		&"in_play":
+			state.players[c.controller].in_play.erase(c)
+		&"grounds":
+			if state.grounds == c:
+				state.grounds = null
+		_:
+			pass
+	c.zone = &"none"
+
+
+func _ally_of_character(p: PlayerState, character: String) -> CardInstance:
+	if character == "":
+		return null
+	for a in p.allies():
+		if a.def.character == character:
+			return a
+	return null
+
+
+# --- Outcome --------------------------------------------------------------
+
+func _win(player_index: int, reason: String) -> void:
+	if state.is_over():
+		return
+	state.winner = player_index
+	state.win_reason = reason
+	state.step = GameState.Step.GAME_OVER
+	prompt = null
+	_queue.clear()
+	_emit(&"game_over", {"winner": player_index, "reason": reason})
+
+
+func _lose(player_index: int, reason: String) -> void:
+	_win(1 - player_index, reason)
+
+
+func _emit(type: StringName, data: Dictionary = {}) -> void:
+	events.append(GameEvent.new(type, data))

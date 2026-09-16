@@ -1,0 +1,173 @@
+{
+  "name": "House Rooke",
+  "fighter": "fighter_beta",
+  "tiers": 3,
+  "focus": "tide",
+  "alignment": "knight",
+  "mastery": "tide_mastery",
+  "master": "master_south",
+  "armory": [
+    "supreme_push",
+    "lobbed_bolt",
+    "erasure",
+    "bonded_pair"
+  ],
+  "cards": [
+    {
+      "id": "companion_alpha",
+      "count": 1
+    },
+    {
+      "id": "companion_beta",
+      "count": 1
+    },
+    {
+      "id": "companion_gamma",
+      "count": 1
+    },
+    {
+      "id": "companion_delta",
+      "count": 1
+    },
+    {
+      "id": "turmoil_square",
+      "count": 3
+    },
+    {
+      "id": "challenge",
+      "count": 3
+    },
+    {
+      "id": "interrupt",
+      "count": 3
+    },
+    {
+      "id": "overwhelming_aura",
+      "count": 1
+    },
+    {
+      "id": "dragons_reckoning",
+      "count": 1
+    },
+    {
+      "id": "muster",
+      "count": 3
+    },
+    {
+      "id": "guardians_wrath",
+      "count": 3
+    },
+    {
+      "id": "desperate_ruin",
+      "count": 1
+    },
+    {
+      "id": "oath",
+      "count": 1
+    },
+    {
+      "id": "showmans_trick",
+      "count": 2
+    },
+    {
+      "id": "clash_of_blood",
+      "count": 3
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "ironclad_stance",
+      "count": 1
+    },
+    {
+      "id": "energy_veil",
+      "count": 1
+    },
+    {
+      "id": "tide_energy_guard",
+      "count": 1
+    },
+    {
+      "id": "tide_defensive_flight",
+      "count": 3
+    },
+    {
+      "id": "last_ward",
+      "count": 3
+    },
+    {
+      "id": "breaching_kick",
+      "count": 3
+    },
+    {
+      "id": "tide_round_throw",
+      "count": 3
+    },
+    {
+      "id": "tide_betrayal",
+      "count": 3
+    },
+    {
+      "id": "erasure",
+      "count": 1
+    },
+    {
+      "id": "tide_arm_blast",
+      "count": 3
+    },
+    {
+      "id": "homing_bolt",
+      "count": 3
+    },
+    {
+      "id": "tide_double_blast",
+      "count": 3
+    },
+    {
+      "id": "tide_draining_blast",
+      "count": 3
+    },
+    {
+      "id": "tide_healing_ray",
+      "count": 3
+    },
+    {
+      "id": "tide_terror",
+      "count": 1
+    },
+    {
+      "id": "twin_blow",
+      "count": 3
+    },
+    {
+      "id": "tide_transformation",
+      "count": 3
+    },
+    {
+      "id": "tide_alliance",
+      "count": 3
+    },
+    {
+      "id": "counsel",
+      "count": 1
+    },
+    {
+      "id": "fortune",
+      "count": 1
+    },
+    {
+      "id": "focus_of_mind",
+      "count": 1
+    },
+    {
+      "id": "bonding_rite",
+      "count": 2
+    }
+  ]
+}

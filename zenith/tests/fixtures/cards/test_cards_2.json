@@ -1,0 +1,34 @@
+{
+  "_note": "Fixture cards for the extended mechanics (Remain, Empower, counters, forbids, attachments, constants, Masters). Test names only.",
+  "cards": [
+    {"id": "t_remain_strike", "title": "Test Twin Strike", "type": "strike", "guild": "ember", "attack": {"kind": "strike", "stages": 2}, "remain": 1},
+    {"id": "t_empower_art", "title": "Test Surging Art", "type": "art", "guild": "storm", "attack": {"kind": "art"}, "empower": 2, "effects": [{"op": "acclaim", "amount": 1, "after_empower": true}]},
+    {"id": "t_counter", "title": "Test Counter", "type": "combat", "counter": "combat"},
+    {"id": "t_forbid_arts", "title": "Test Hex", "type": "combat", "effects": [{"op": "forbid", "who": "opponent", "what": "art_attacks"}]},
+    {"id": "t_attach", "title": "Test Charm", "type": "combat", "effects": [{"op": "attach", "to": "in_control"}], "attachment": {"target": "in_control", "modifiers": [{"scope": "own", "kind": "strike", "stages": 2}]}},
+    {"id": "tf_constant", "title": "Test Zealot", "type": "fighter", "character": "Test Zealot", "tiers": [
+      {"tier": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3000000, 3500000, 4000000, 4500000, 5000000, 5500000, 6000000], "constant": {"attacks_focused": true, "modifiers": [{"scope": "own", "kind": "any", "stages": 1}]}},
+      {"tier": 2, "surge": 3, "might": [0, 1900000, 2650000, 3400000, 4150000, 4900000, 5650000, 6400000, 7150000, 7900000, 8650000], "constant": {"attacks_focused": true}},
+      {"tier": 3, "surge": 4, "might": [0, 2600000, 3400000, 4200000, 5000000, 5800000, 6600000, 7400000, 8200000, 9000000, 9800000], "constant": {"attacks_focused": true}}
+    ]},
+    {"id": "t_master_use", "title": "Test Tutor", "type": "master", "armory_size": 4, "uses_per_game": 1, "effects": [{"trigger": "master_use", "op": "draw", "amount": 2}]},
+    {"id": "t_master_shield", "title": "Test Warden Master", "type": "master", "armory_size": 4, "master_flags": {"acclaim_shield": true, "no_favor_win": true, "tier_shield": true}},
+    {"id": "t_start_drill", "title": "Test Opening Drill", "type": "drill", "start_in_play": true, "limit_per_deck": 1, "effects": [{"trigger": "entering_combat", "op": "acclaim", "amount": 1}]},
+    {"id": "t_pay_art", "title": "Test Draining Art", "type": "art", "guild": "tide", "attack": {"kind": "art", "cost_stages": 0, "pay_stages": {"per": 2, "life": 1}}},
+    {"id": "t_name_drill", "title": "Test Naming Drill", "type": "drill", "effects": [{"trigger": "on_place", "op": "name_card"}]},
+    {"id": "t_copy_parry", "title": "Test Mirror Parry", "type": "strike", "guild": "tide", "defense": {"stops": "strike", "copy_attack": true}},
+    {"id": "t_no_prevent_art", "title": "Test Piercing Art", "type": "art", "guild": "storm", "attack": {"kind": "art", "no_prevent": true}},
+    {"id": "t_prevent_all", "title": "Test Bulwark", "type": "combat", "effects": [{"op": "float", "what": "prevent_all", "duration": "combat"}]},
+    {"id": "t_jeer", "title": "Test Jeer", "type": "combat", "effects": [{"op": "acclaim", "who": "opponent", "amount": -1}]},
+    {"id": "t_set_tier", "title": "Test Humbling", "type": "combat", "effects": [{"op": "set_tier", "who": "opponent", "tier": 1}]},
+    {"id": "t_draw_until", "title": "Test Refill", "type": "combat", "effects": [{"op": "draw_until", "amount": 5}]},
+    {"id": "t_draw_discard", "title": "Test Salvage", "type": "combat", "effects": [{"op": "draw_discard", "amount": 1, "from": "bottom"}]},
+    {"id": "t_search_play", "title": "Test Summon Drill", "type": "combat", "effects": [{"op": "search", "card_type": "drill", "to": "play"}]},
+    {"id": "t_variant_strike", "title": "Test Adaptive Strike", "type": "strike", "guild": "ember", "attack": {"kind": "strike", "stages": 1, "variants": [{"when": {"focus": true}, "stages": 3}]}},
+    {"id": "t_owner_glare", "title": "Test Peek", "type": "combat", "effects": [{"op": "discard_hand", "who": "opponent", "amount": 1, "random": false, "chooser": "owner"}]},
+    {"id": "t_stop_next", "title": "Test Afterimage", "type": "combat", "defense": {"stops": "any"}, "effects": [{"op": "float", "what": "stop_next", "duration": "combat"}]},
+    {"id": "t_only_attacks", "title": "Test Frenzy", "type": "combat", "effects": [{"op": "forbid", "what": "non_attack_actions"}, {"op": "forbid", "who": "opponent", "what": "non_attack_actions"}]},
+    {"id": "t_vigor_noover", "title": "Test Drain", "type": "combat", "effects": [{"op": "vigor", "who": "opponent", "amount": -10, "no_overflow": true}]},
+    {"id": "t_use_in_attack", "title": "Test Poise", "type": "combat", "use_in_attack": true, "defense": {"stops": "any"}, "effects": [{"op": "acclaim", "amount": 1}]}
+  ]
+}

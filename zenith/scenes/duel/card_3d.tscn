@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/card_3d.gd" id="1_card"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_card"]
+size = Vector2(0.63, 0.88)
+orientation = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_glow"]
+size = Vector2(0.72, 0.97)
+orientation = 1
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pick"]
+size = Vector3(0.63, 0.03, 0.88)
+
+[node name="Card3D" type="Node3D"]
+script = ExtResource("1_card")
+
+[node name="Glow" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.004, 0)
+visible = false
+mesh = SubResource("QuadMesh_glow")
+
+[node name="Front" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_card")
+
+[node name="Back" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, -0.001, 0)
+mesh = SubResource("QuadMesh_card")
+
+[node name="Pick" type="Area3D" parent="."]
+
+[node name="Shape" type="CollisionShape3D" parent="Pick"]
+shape = SubResource("BoxShape3D_pick")

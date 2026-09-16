@@ -1,0 +1,122 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/player_panel.gd" id="1_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="2_tile"]
+
+[node name="PlayerPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(360, 0)
+offset_right = 360.0
+offset_bottom = 200.0
+script = ExtResource("1_panel")
+
+[node name="Column" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Fighter" type="Label" parent="Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeaderLabel"
+text = "Fighter"
+text_overrun_behavior = 3
+
+[node name="Turn" type="Label" parent="Column/Header"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 11
+text = "TURN"
+
+[node name="Combat" type="Label" parent="Column/Header"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 11
+text = "ATTACKING"
+
+[node name="Sub" type="Label" parent="Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Player · Ember Knave"
+
+[node name="Stats" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Vigor" parent="Column/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Might" parent="Column/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Life" parent="Column/Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="FavorRow" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FavorLabel" type="Label" parent="Column/FavorRow"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 11
+text = "FAVOR"
+
+[node name="FavorPips" type="HBoxContainer" parent="Column/FavorRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+
+[node name="FavorValue" type="Label" parent="Column/FavorRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Noticed · 1 of 3"
+
+[node name="Spacer" type="Control" parent="Column/FavorRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AcclaimLabel" type="Label" parent="Column/FavorRow"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 11
+text = "ACCLAIM"
+
+[node name="AcclaimPips" type="HBoxContainer" parent="Column/FavorRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+
+[node name="AcclaimValue" type="Label" parent="Column/FavorRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "0/5"
+
+[node name="Counts" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Hand" type="Label" parent="Column/Counts"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Hand 0"
+
+[node name="Discard" type="Label" parent="Column/Counts"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Discard 0"
+
+[node name="Removed" type="Label" parent="Column/Counts"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Out 0"
+
+[node name="Flags" type="Label" parent="Column"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = ""

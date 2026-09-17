@@ -58,6 +58,14 @@ func _init() -> void:
 		test_empower,
 		test_counter_window,
 		test_forbid_art_attacks,
+		test_effective_values_in_seat_view,
+		test_damage_breakdown_in_view,
+		test_attach_to_named_character,
+		test_multiplier_cap_and_no_reduce,
+		test_tokens_immune_unless_named,
+		test_end_combat_card_is_no_defense,
+		test_locked_out_drill_shuffles_back,
+		test_look_at_rearrange,
 		test_attachment_modifier,
 		test_constant_power,
 		test_master_use,
@@ -104,6 +112,7 @@ func _init() -> void:
 		test_referee_gates_commands,
 		test_card_text_wording,
 		test_keyword_table,
+		test_dev_effect,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -575,6 +584,10 @@ func test_armory_swap() -> void:
 	var deck_before: int = e.player(0).life_deck.size()
 	answer(e, &"armory_in", art_uid)
 	eq(e.card(art_uid).zone, &"life_deck", "armory card entered the life deck")
+	for ev in e.events:
+		if ev.type == &"armory_swap":
+			check(CardText.event_line(ev, e, 0).contains("Test Art"), "the swapping seat's log names the card")
+			check(CardText.event_line(ev, e, 1) == "%s brings a card in from the Armory." % e.player(0).name, "the other seat's log does not: %s" % CardText.event_line(ev, e, 1))
 	eq(e.player(0).armory.size(), 2, "a random life card took its place")
 	eq(e.player(0).life_deck.size(), deck_before, "deck size unchanged")
 	check(e.prompt.find(&"armory_in", e.player(0).armory[1].uid) == null, "the swapped-out card cannot come straight back")
@@ -833,9 +846,187 @@ func test_forbid_art_attacks() -> void:
 	eq(e.prompt.player, 1, "fight back")
 	check(e.prompt.find(&"attack", uid_in_hand(e, 1, "t_art")) == null, "forbidden art cannot attack")
 	check(e._forbidden(e.player(1), "art_attacks"), "forbid is in force")
+	var logged: String = ""
+	for ev in e.events:
+		if ev.type == &"floating" and str(ev.data.get("op", "")) == "forbid":
+			logged = CardText.event_line(ev, e)
+	check(logged.contains("may not perform Arts for the rest of Combat"), "the forbid is logged as it lands: %s" % logged)
 	answer(e, &"pass")
 	answer(e, &"pass")
 	check(not e._forbidden(e.player(1), "art_attacks"), "forbid expires with Combat")
+
+
+## The attack in the air comes with its damage worked out step by step, before the defense, and
+## the numbers the battle sequence then applies are the same ones.
+func test_damage_breakdown_in_view() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "knight", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
+	to_combat(e)
+	check(not bool(e.prompt.context.get("fight_back", false)), "the active player's attack phase is not a fight back")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"defense", "defense prompt with the attack in the air")
+	var v: SeatView = SeatView.of(e, 1)
+	var a: Dictionary = v.attack
+	eq(int(a["attacker"]), 0, "attacker seat in the summary")
+	check(not bool(a["landed"]), "nothing has landed before the defense")
+	var d: Dictionary = a["damage"]
+	eq(int(d["table"]), 2, "Strike Table base")
+	eq(str(CardText.band_letter(int(d["attacker_band"]))), "F", "attacker band letter")
+	eq((d["adds"] as Array).size(), 2, "the Drill and the Mastery are listed")
+	eq(str((d["adds"] as Array)[0]["source"]), "Test Ember Drill", "the Drill is named")
+	eq(int(d["stages"]), 4, "forecast total")
+	var wire: SeatView = SeatView.from_dict(v.to_dict())
+	eq(int(wire.attack["damage"]["stages"]), 4, "wire form keeps the breakdown")
+	answer(e, &"no_defense")
+	eq(e.player(1).fighter.vigor, 1, "what landed matches the forecast")
+	var base_line: String = ""
+	var mod_line: String = ""
+	for ev in e.events:
+		if ev.type == &"base_damage":
+			base_line = CardText.event_line(ev, e)
+		elif ev.type == &"modified_damage":
+			mod_line = CardText.event_line(ev, e)
+	check(base_line.begins_with("Strike Table: Might"), "base damage log line names the table: %s" % base_line)
+	check(mod_line.contains("Test Ember Drill") and mod_line.ends_with("Total 4 stages."), "modifier log line lists sources and total: %s" % mod_line)
+	eq(prompt_kind(e), &"attack_action", "fight back prompt")
+	check(bool(e.prompt.context.get("fight_back", false)), "the defender's attack phase is flagged as a fight back")
+	eq(CardText.prompt_title(e.prompt), "Fight back", "fight back title")
+	check(e.prompt.find(&"final_strike", uid_in_hand(e, 1, "t_parry")) != null, "a Final Strike is still offered on any hand card")
+
+
+## "X only" on a card that attaches to X: playable while X is on the table, and it lands on X.
+func test_attach_to_named_character() -> void:
+	var alone: DuelEngine = engine(deck(filler(["t_oath", "t_oath", "t_oath"])), deck(filler(), "knave"))
+	to_combat(alone)
+	check(alone.prompt.find(&"use", uid_in_hand(alone, 0, "t_oath")) == null, "no Squire on the table: the oath cannot be used")
+	var e: DuelEngine = engine(deck(filler(["t_oath", "t_oath", "t_oath"])), deck(filler(), "knave"))
+	var squire: CardInstance = inject(e, 0, "t_ally_squire")
+	to_combat(e)
+	var oath: int = uid_in_hand(e, 0, "t_oath")
+	check(oath >= 0 and e.prompt.find(&"use", oath) != null, "with the Squire in play the oath is usable though the fighter is in control")
+	answer(e, &"use", oath)
+	check(e.card(oath).attached_to == squire, "the oath attaches to the Squire, not the fighter")
+	eq(e.player(0).attachments().size(), 1, "one attachment in play")
+
+
+## Step 10: one multiplier at most, caps at deal time, and "cannot be reduced" ignores both
+## reductions and caps.
+func test_multiplier_cap_and_no_reduce() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike_firm"])), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	inject(e, 0, "t_drill_strike")
+	inject(e, 0, "t_drill_double")
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	# table 2, +1 drill, then x2 = 6 stages: 5 absorbed, 1 wound
+	eq(e.player(1).fighter.vigor, 0, "doubled strike empties the fighter")
+	eq(e.player(1).discard.size(), 1, "one stage overflowed")
+	var mod: Dictionary = {}
+	for ev in e.events:
+		if ev.type == &"modified_damage":
+			mod = ev.data
+	eq(int(mod.get("stages", 0)), 6, "modified damage reports the doubled total")
+	check(CardText.modified_damage_line(mod).contains("x2 (Test Doubling Drill)"), "the multiplier is named in the log: %s" % CardText.modified_damage_line(mod))
+	e.player(1).fighter.vigor = 5
+	inject(e, 1, "t_drill_cap")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(e.player(1).fighter.vigor, 2, "the cap holds the doubled strike to 3 stages")
+	e.player(1).fighter.vigor = 5
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_firm"))
+	eq(e.player(1).fighter.vigor, 0, "a strike that cannot be reduced ignores the cap")
+	check(SeatView.of(e, 1).attack.is_empty(), "attack cleared after resolution")
+
+
+## Tokens are immune to card effects that do not name them.
+func test_tokens_immune_unless_named() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
+	inject(e, 1, "t_token_1")
+	inject(e, 1, "t_noncombat_draw")
+	eq(e.player(1).in_play.size(), 2, "a Token and a Non-Combat in play")
+	eq(e.dev_effect(0, {"op": "discard_in_play", "who": "opponent", "card_type": "any", "all": true}), "", "dev effect ran")
+	eq(e.player(1).tokens().size(), 1, "the Token stays")
+	eq(e.player(1).non_combats().size(), 0, "the Non-Combat went")
+	eq(e.dev_effect(0, {"op": "discard_in_play", "who": "opponent", "card_type": "token"}), "", "a named Token effect ran")
+	eq(e.player(1).tokens().size(), 0, "named, the Token goes")
+
+
+## Cards that end Combat are attack actions only, never a defense, even if they could stop.
+func test_end_combat_card_is_no_defense() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_truce_guard", "t_truce_guard", "t_truce_guard"]), "knave"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"attack_action", "no defense possible, straight to the fight back")
+	check(e.prompt.find(&"use", uid_in_hand(e, 1, "t_truce_guard")) != null, "but it can be used in the attack phase")
+
+
+## A guild Drill locked out by the Drill in play may be shown and shuffled back.
+func test_locked_out_drill_shuffles_back() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_guard", "t_drill_guard", "t_drill_guard"])), deck(filler(), "knave"))
+	inject(e, 0, "t_drill_strike")
+	e._prompt_non_combat()   # the prompt was built before the Drill arrived
+	eq(prompt_kind(e), &"non_combat", "non-combat prompt")
+	var guard: int = uid_in_hand(e, 0, "t_drill_guard")
+	check(e.prompt.find(&"place", guard) == null, "a Tide Drill cannot join Ember Drills")
+	check(e.prompt.find(&"shuffle_back", guard) != null, "so it may be shuffled back")
+	var deck_before: int = e.player(0).life_deck.size()
+	answer(e, &"shuffle_back", guard)
+	eq(e.card(guard).zone, &"life_deck", "the Drill is back in the Life Deck")
+	eq(e.player(0).life_deck.size(), deck_before + 1, "deck grew by one")
+	check(has_event(e, &"drill_shuffled_back"), "event logged")
+
+
+## Look at the top three and put them back in any order.
+func test_look_at_rearrange() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_order"])), deck(filler(), "knave"))
+	to_combat(e)
+	var top3: Array[int] = [e.player(0).life_deck[0].uid, e.player(0).life_deck[1].uid, e.player(0).life_deck[2].uid]
+	answer(e, &"use", uid_in_hand(e, 0, "t_order"))
+	eq(prompt_kind(e), &"pick_option", "rearrange prompt")
+	check(bool(e.prompt.context.get("rearrange", false)), "flagged as a rearrange")
+	eq(e.prompt.options.size(), 3, "three cards to order")
+	answer(e, &"pick_option", top3[2])
+	eq(e.prompt.options.size(), 2, "two left")
+	answer(e, &"pick_option", top3[1])
+	eq(prompt_kind(e), &"attack_action", "the last card needs no choice")
+	eq(e.player(0).life_deck[0].uid, top3[2], "chosen first goes on top")
+	eq(e.player(0).life_deck[1].uid, top3[1], "then the second")
+	eq(e.player(0).life_deck[2].uid, top3[0], "the leftover card is third")
+	check(has_event(e, &"rearranged"), "rearranged event")
+
+
+## The seat view carries every effective per-player value, so clients never assume a rules constant.
+func test_effective_values_in_seat_view() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"]), "knight", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art"]), "knave", "tide", "t_mastery_hard"))
+	var v: SeatView = SeatView.of(e, 0)
+	eq(v.player(1).acclaim_needed, DuelEngine.ACCLAIM_TO_TIER, "the plain player needs the rulebook count")
+	eq(v.player(0).acclaim_needed, 6, "opposite a demanding Mastery the view says 6")
+	eq(v.player(0).recover_gain, e.player(0).fighter.surge() + 1, "recover gain includes the Focus bonus")
+	eq(v.player(1).recover_gain, e.recover_gain(e.player(1)), "the view matches the engine getter")
+	e.player(0).acclaim = 4
+	e.dev_effect(0, {"op": "acclaim", "amount": 1})
+	eq(e.player(0).fighter.tier, 1, "5 Acclaim is not enough opposite the Mastery")
+	eq(e.player(0).acclaim, 5, "Acclaim keeps counting")
+	e.dev_effect(0, {"op": "set_acclaim_needed", "amount": 8})
+	eq(SeatView.of(e, 1).player(0).acclaim_needed, 8, "a raised base shows in the view")
+	e.dev_effect(0, {"op": "acclaim_needed", "amount": -3})
+	eq(e.player(0).acclaim_needed, 5, "delta op moves the base")
+	eq(e.player(0).fighter.tier, 1, "a base below the Mastery's demand still needs 6")
+	check(has_event(e, &"acclaim_needed_changed"), "acclaim_needed_changed event")
+	e.dev_effect(0, {"op": "acclaim", "amount": 1})
+	eq(e.player(0).fighter.tier, 2, "6 Acclaim rises a tier opposite the Mastery")
+	eq(e.player(0).acclaim, 0, "and resets")
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_forbid_arts"))
+	var during: SeatView = SeatView.of(e, 1)
+	check(during.player(1).restrictions.has("art_attacks"), "a forbid in force is listed on its target")
+	check(during.player(0).restrictions.is_empty(), "and not on the other player")
+	var back: SeatPlayer = SeatPlayer.from_dict(during.player(1).to_dict())
+	eq(back.restrictions, during.player(1).restrictions, "wire form keeps restrictions")
+	eq(back.acclaim_needed, during.player(1).acclaim_needed, "wire form keeps acclaim needed")
+	eq(during.fighter_owner(e.player(0).fighter.uid).index, 0, "fighter_owner finds the seat")
+	eq(during.live_vigor(e.player(0).fighter.uid), e.player(0).fighter.vigor, "live_vigor reads the card")
+	check(during.fighter_owner(uid_in_hand(e, 0, "t_strike")) == null, "a hand card has no standing")
 
 
 func test_attachment_modifier() -> void:
@@ -875,6 +1066,14 @@ func test_start_in_play() -> void:
 	eq(e.player(0).drills().size(), 1, "drill began the game in play")
 	to_combat(e)
 	eq(e.player(0).acclaim, 1, "entering-combat effect fired")
+	var fired: int = 0
+	var line: String = ""
+	for ev in e.events:
+		if ev.type == &"trigger_fired" and e.card(int(ev.data.get("card", -1))).def.id == "t_start_drill":
+			fired += 1
+			line = CardText.event_line(ev, e)
+	eq(fired, 1, "the drill's trigger is logged once")
+	eq(line, "Test Opening Drill triggers when entering Combat.", "with the card and the moment")
 
 
 func test_pay_stages() -> void:
@@ -1013,6 +1212,11 @@ func test_vigor_without_overflow() -> void:
 	answer(e, &"use", uid_in_hand(e, 0, "t_vigor_noover"))
 	eq(e.player(1).fighter.vigor, 0, "drained to zero")
 	eq(e.player(1).life_deck.size(), deck_before, "no life lost past zero")
+	var logged: bool = false
+	for ev in e.events:
+		if ev.type == &"vigor_changed" and int(ev.data.get("to", -1)) == 0 and e.card(int(ev.data.get("source", -1))).def.id == "t_vigor_noover":
+			logged = true
+	check(logged, "the vigor change is logged with its source card")
 
 
 func test_use_in_attack_phase() -> void:
@@ -1032,6 +1236,15 @@ func test_may_prompt() -> void:
 	answer(no, &"use", uid_in_hand(no, 0, "t_may_search"))
 	eq(prompt_kind(no), &"pick_option", "a 'you may' line asks first")
 	eq(no.prompt.player, 0, "the owner answers")
+	var pv: PromptView = PromptView.of(no.prompt, no)
+	eq(pv.title, "Test Bargain: use the optional effect?", "the prompt names the card")
+	check(no.card(int(pv.context.get("source", -1))).def.id == "t_may_search", "the prompt carries the card that asked")
+	var text: String = str(pv.context.get("text", ""))
+	check(text.contains("Vigor") and text.contains("search"), "the prompt says what a yes does: %s" % text)
+	check(not text.contains(" may "), "without the 'may'")
+	var skip: Dictionary = {"trigger": "before_damage", "may": true, "skip_damage": true, "op": "discard_in_play", "who": "opponent", "card_type": "drill", "all": true}
+	var skip_text: String = CardText.may_text(skip)
+	check(not skip_text.begins_with("Hit") and skip_text.ends_with("The attack then deals no damage."), "a fired trigger drops its head but keeps the damage cost: %s" % skip_text)
 	answer(no, &"pick_option", -1, "no")
 	eq(no.player(0).fighter.vigor, 7, "declined: no cost paid")
 	check(uid_in_hand(no, 0, "t_art") < 0, "declined: no search either")
@@ -1201,6 +1414,17 @@ func test_draw_check_named() -> void:
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_scry"))
 	eq(e.player(0).hand.size(), 4, "named card drawn, so a second draw followed")
+	var line: String = ""
+	var rival_line: String = ""
+	var drawn: String = ""
+	for ev in e.events:
+		if ev.type == &"draw_check":
+			check(bool(ev.data.get("matched", false)), "the check reports a match")
+			drawn = e.card(int(ev.data["card"])).def.title
+			line = CardText.event_line(ev, e, 0)
+			rival_line = CardText.event_line(ev, e, 1)
+	check(line.begins_with("Test Scry: the drawn card is %s" % drawn) and line.ends_with(", a named card."), "the checker's seat sees the card: %s" % line)
+	check(not rival_line.contains(drawn) and rival_line.contains("a named card") and rival_line.contains("effect follows"), "the other seat learns only the result: %s" % rival_line)
 
 
 func test_wound_trigger_at_fight_back() -> void:
@@ -1295,13 +1519,40 @@ func test_declare_window() -> void:
 	eq(herald.zone, &"removed", "the card removed itself after use")
 
 
+## A dev effect runs through the queue with its triggers and the same prompt comes back.
+func test_dev_effect() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
+	to_combat(e)
+	eq(prompt_kind(e), &"attack_action", "at an attack decision")
+	eq(e.dev_effect(0, {"op": "acclaim", "amount": 2}), "", "accepted")
+	eq(e.player(0).acclaim, 2, "acclaim raised")
+	eq(prompt_kind(e), &"attack_action", "the same decision is back")
+	eq(e.dev_effect(0, {"op": "acclaim", "amount": 3}), "", "accepted again")
+	eq(e.player(0).fighter.tier, 2, "reaching 5 Acclaim rose a tier through the normal path")
+	eq(e.player(0).acclaim, 0, "and reset Acclaim")
+	var life_before: int = e.player(1).life_deck.size()
+	eq(e.dev_effect(0, {"op": "discard_life", "amount": 2, "who": "opponent"}), "", "opponent-targeted effect")
+	eq(e.player(1).life_deck.size(), life_before - 2, "the rival took two wounds")
+	check(has_event(e, &"dev"), "the log gets a dev line")
+	eq(e.dev_effect(0, {"op": "end_turn"}), "", "end turn accepted")
+	eq(e.state.active, 1, "the turn passed")
+
+
 ## Generated rules text: conditions stay attached, same-trigger lines fold, both-player effects
 ## read once, and tier cards show constants and every part of a Power.
 func test_card_text_wording() -> void:
 	var focus_gain: Dictionary = {"op": "vigor", "amount": 3, "when": {"focus": true}}
-	eq(CardText.effect_text(focus_gain), "If you declared a Focus, gain 3 Vigor.", "a plain effect keeps its condition")
+	eq(CardText.effect_text(focus_gain), "Focus: Gain 3 Vigor.", "a plain Focus condition is the Focus label")
 	var hit: Dictionary = {"trigger": "if_successful", "op": "acclaim", "amount": 1, "when": {"focus": true}}
-	eq(CardText.effect_text(hit), "If successful and you declared a Focus, raise your Acclaim 1.", "trigger and condition join")
+	eq(CardText.effect_text(hit), "Focus Hit: Raise your Acclaim 1.", "Hit and Focus labels join")
+	var hit_ally: Dictionary = {"trigger": "if_successful", "op": "acclaim", "amount": 1, "when": {"allies_min": 1}}
+	eq(CardText.effect_text(hit_ally), "Hit: If you have an Ally in play, raise your Acclaim 1.", "other conditions stay as sentences")
+	var entering: Dictionary = {"trigger": "entering_combat", "op": "vigor", "amount": 5, "when": {"focus": true}}
+	eq(CardText.effect_text(entering), "Focus: When entering Combat, gain 5 Vigor.", "Focus labels a triggered line too")
+	var remain: CardDef = CardDef.from_dict({"id": "r", "title": "R", "type": "strike", "attack": {"kind": "strike"}, "remain_when": {"when": {"focus": true}, "remain": 1}})
+	eq(CardText.rules_text(remain), "Strike.\nFocus: Remain 1.", "Remain shorthand")
+	var remain2: CardDef = CardDef.from_dict({"id": "r2", "title": "R2", "type": "strike", "attack": {"kind": "strike"}, "remain_when": {"when": {"allies_min": 2}, "remain": 2}})
+	eq(CardText.rules_text(remain2), "Strike.\nIf you have 2 or more Allies in play, Remain 2.", "Remain keeps its capital mid-sentence")
 	var pair: Array = [
 		{"trigger": "entering_combat", "op": "acclaim", "who": "opponent", "amount": -2},
 		{"trigger": "entering_combat", "op": "vigor", "amount": 2, "target": "fighter"},
@@ -1352,10 +1603,12 @@ func test_keyword_table() -> void:
 		check(str(k.get("role", "")) != "" and str(k.get("tip", "")).length() > 20, "role and tip on %s" % key)
 		var r: RegEx = RegEx.new()
 		eq(r.compile(str(k.get("pattern", ""))), OK, "pattern compiles for %s" % key)
-		var phrase_only: Array[String] = ["Stops", "from the game", "Stays in play", "tier", "cannot be prevented", "Cannot be stopped", "Signature", "Limit", "Constant"]
+		var phrase_only: Array[String] = ["Stops", "from the game", "Remain", "Hit", "tier", "cannot be prevented", "Cannot be stopped", "Signature", "Limit", "Constant"]
 		check(r.search(key) != null or key in phrase_only, "pattern finds its own key: %s" % key)
 	var r: RegEx = RegEx.new()
 	r.compile(str(CardText.KEYWORDS[1]["pattern"]))
 	check(r.search("Your opponent removes all Drills in play from the game.") != null, "removal phrase matches a generated sentence")
 	r.compile(str(CardText.KEYWORDS[2]["pattern"]))
-	check(r.search("Stays in play to be used one more time this Combat.") != null, "remain phrase matches")
+	check(r.search("Focus: Remain 1.") != null, "remain phrase matches")
+	r.compile(str(CardText.KEYWORDS[3]["pattern"]))
+	check(r.search("Focus Hit: Raise your Acclaim 1.") != null, "hit label matches")

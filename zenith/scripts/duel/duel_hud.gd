@@ -6,6 +6,7 @@ extends CanvasLayer
 signal option_chosen(opt: OptionView)
 signal card_clicked(uid: int)
 signal card_hovered(uid: int, over: bool)
+signal dev_command(effect: Dictionary)
 signal handoff_confirmed
 signal rematch_requested
 signal select_requested
@@ -14,7 +15,8 @@ const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
 const TRAY_CARD_SIZE: Vector2 = Vector2(160, 224)
-const ZOOM_GRACE: float = 0.3        # seconds the zoom waits for the pointer to reach it
+const LOG_COLLAPSED_BOTTOM: float = 176.0
+const LOG_EXPANDED_FRACTION: float = 0.72
 const TRAY_COLUMNS: int = 7          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
@@ -24,6 +26,7 @@ const TRAY_KINDS: Array[StringName] = [&"armory", &"keep", &"discard_choice", &"
 const TRAY_VERBS: Dictionary = {
 	&"armory_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
 	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture",
+	&"final_strike": "Discard",
 }
 const STEP_LABELS: Array[String] = ["Draw", "Place", "Power Up", "Declare", "Combat", "Discard", "Recover"]
 const STEP_ORDER: Array[int] = [
@@ -33,8 +36,6 @@ const STEP_ORDER: Array[int] = [
 ## Options that move the game along rather than commit a card. They sit under the card list and
 ## the ones here get the accent style; the rest (skip, decline, no capture) stay quiet.
 const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"armory_done", &"decline", &"pick_none"]
-## Prompt kinds answered by the defender while an attack is in the air; they show the attack banner.
-const DEFENDER_KINDS: Array[StringName] = [&"defense", &"endurance", &"redirect", &"control", &"respond"]
 
 @onready var root: Control = $Root
 @onready var top_panel: PlayerPanel = $Root/TopPanel
@@ -42,13 +43,20 @@ const DEFENDER_KINDS: Array[StringName] = [&"defense", &"endurance", &"redirect"
 @onready var steps_box: HBoxContainer = $Root/PhasePanel/Column/Steps
 @onready var phase_sub: Label = $Root/PhasePanel/Column/Sub
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
-@onready var zoom: Control = $Root/Zoom
-@onready var zoom_face: CardFace = $Root/Zoom/Face
+@onready var dev_toggle: Button = $Root/DevToggle
+@onready var dev_panel: DevPanel = $Root/DevPanel
+@onready var peek: Control = $Root/Peek
+@onready var peek_face: CardFace = $Root/Peek/Face
+@onready var log_panel: PanelContainer = $Root/Log
+@onready var log_toggle: Button = $Root/Log/Column/Header/Toggle
+@onready var inspect: ColorRect = $Root/Inspect
+@onready var inspect_face: CardFace = $Root/Inspect/Center/Column/Face
 @onready var hand: HBoxContainer = $Root/Hand
 @onready var prompt_panel: PanelContainer = $Root/PromptPanel
 @onready var prompt_who: Label = $Root/PromptPanel/Column/Who
 @onready var prompt_title: Label = $Root/PromptPanel/Column/Title
 @onready var prompt_banner: Label = $Root/PromptPanel/Column/Banner
+@onready var prompt_damage: RichTextLabel = $Root/PromptPanel/Column/Damage
 @onready var prompt_hint: Label = $Root/PromptPanel/Column/Hint
 @onready var primary_box: VBoxContainer = $Root/PromptPanel/Column/Primary
 @onready var tray: ColorRect = $Root/Tray
@@ -73,7 +81,7 @@ var _current_prompt: PromptView = null
 var _view: SeatView = null
 var _step_labels: Array[Label] = []
 var _faces: CardFaceCache = null
-var _zoom_hide_token: int = 0        # bumps to cancel a pending zoom hide
+var _log_expanded: bool = false
 var _batch: PromptView = null          # the prompt behind a multi-select tray, else null
 var _selected: Array[int] = []
 var _entries: Dictionary = {}          # uid -> {frame, caption, verb} for batch trays
@@ -94,8 +102,11 @@ func _ready() -> void:
 	rematch_button.pressed.connect(func() -> void: rematch_requested.emit())
 	select_button.pressed.connect(func() -> void: select_requested.emit())
 	log_text.add_theme_color_override("default_color", ZenithTheme.MUTED)
-	zoom.visible = false
-	zoom.mouse_exited.connect(_on_zoom_mouse_exited)
+	inspect.visible = false
+	inspect.gui_input.connect(_on_inspect_input)
+	log_toggle.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
+	dev_toggle.pressed.connect(func() -> void: dev_panel.visible = not dev_panel.visible)
+	dev_panel.command.connect(func(effect: Dictionary) -> void: dev_command.emit(effect))
 
 
 func set_loading(on: bool) -> void:
@@ -166,24 +177,33 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
 	prompt_who.add_theme_color_override("font_color", Palette.guild_ui(who.focus))
 	prompt_title.text = p.title
-	var banner: String = _incoming_text(view) if DEFENDER_KINDS.has(p.kind) else ""
-	prompt_banner.visible = banner != ""
-	prompt_banner.text = banner
-	ZenithTheme.chip(prompt_banner, ZenithTheme.ATTACK)
+	_show_attack(view)
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
 	# Cards the player can already click in the hand or on the table stay there, highlighted.
 	# Cards that need browsing (an Armory, a look at the deck, a keep) open in the tray.
+	# A Final Strike is offered on every hand card and commits the rest of the Combat, so it
+	# gets its own button and tray rather than firing from a card click.
 	var browse: Array[OptionView] = []
 	var primaries: Array[OptionView] = []
+	var finals: Array[OptionView] = []
 	for opt in p.options:
-		if opt.card < 0 and opt.type != &"name_card":
+		if opt.type == &"final_strike":
+			finals.append(opt)
+		elif opt.card < 0 and opt.type != &"name_card":
 			primaries.append(opt)
 		elif _needs_tray(p, opt):
 			browse.append(opt)
 	if browse.is_empty():
 		_hide_tray()
 		_fill_buttons(primaries, primary_box, true)
+		if not finals.is_empty():
+			var b: Button = Button.new()
+			b.text = "Final Strike…"
+			b.custom_minimum_size = Vector2(0, 40)
+			b.add_theme_font_size_override("font_size", 16)
+			b.pressed.connect(func() -> void: _show_final_strike(finals))
+			primary_box.add_child(b)
 	else:
 		_fill_buttons([], primary_box, true)
 		_show_tray(prompt_who.text, p.title, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
@@ -196,8 +216,22 @@ func _needs_tray(p: PromptView, opt: OptionView) -> bool:
 	return c == null or c.zone == &"life_deck" or c.zone == &"armory"
 
 
-## One line about the attack the defender is answering: kind, source, and what makes it hard.
-func _incoming_text(view: SeatView) -> String:
+## The attack in the air, when there is one: a headline chip (kind, source, what makes it hard)
+## and the damage worked out step by step. Shown to both seats through every prompt the attack
+## opens, so the defender sees what is coming and the attacker what landed.
+func _show_attack(view: SeatView) -> void:
+	var a: Dictionary = view.attack
+	var head: String = _attack_headline(view)
+	prompt_banner.visible = head != ""
+	prompt_banner.text = head
+	var mine: bool = not a.is_empty() and int(a.get("attacker", -1)) == view.seat
+	ZenithTheme.chip(prompt_banner, ZenithTheme.ATTACK if mine else ZenithTheme.DEFEND)
+	var damage: String = _damage_text(view)
+	prompt_damage.visible = damage != ""
+	prompt_damage.text = damage
+
+
+func _attack_headline(view: SeatView) -> String:
 	var a: Dictionary = view.attack
 	if a.is_empty():
 		return ""
@@ -212,6 +246,8 @@ func _incoming_text(view: SeatView) -> String:
 	elif bool(a.get("is_power", false)):
 		var performer: String = str(a.get("performer_title", ""))
 		head += " from %s's Power" % (performer if performer != "" else "a personality")
+	if bool(a.get("empowered", false)):
+		head += " (Empowered)"
 	parts.append(head)
 	if bool(a.get("unstoppable", false)):
 		parts.append("cannot be stopped")
@@ -219,7 +255,52 @@ func _incoming_text(view: SeatView) -> String:
 		parts.append("needs %d stops" % int(a.get("stops_needed", 1)))
 	if bool(a.get("no_prevent", false)):
 		parts.append("damage cannot be prevented")
-	return "Incoming " + "  ·  ".join(parts)
+	var mine: bool = int(a.get("attacker", -1)) == view.seat
+	return ("Your " if mine else "Incoming ") + "  ·  ".join(parts)
+
+
+## "Table 4 (E vs B)  ·  +4 stages Relentless Fury", the total, then what has been dealt so far.
+func _damage_text(view: SeatView) -> String:
+	var a: Dictionary = view.attack
+	if a.is_empty():
+		return ""
+	var d: Dictionary = a.get("damage", {})
+	var strong: String = ZenithTheme.TEXT.to_html(false)
+	var muted: String = ZenithTheme.MUTED.to_html(false)
+	var lines: PackedStringArray = PackedStringArray()
+	if bool(a.get("stopped", false)):
+		lines.append("[color=%s]Stopped.[/color]" % ZenithTheme.DEFEND.to_html(false))
+	elif not d.is_empty():
+		var landed: bool = bool(a.get("landed", false))
+		var stages: int = int(a.get("stages", 0)) if landed else int(d.get("stages", 0))
+		var life: int = int(a.get("life", 0)) if landed else int(d.get("life", 0))
+		var total: String = CardText.damage_amount(stages, life)
+		lines.append("[color=%s]%s[/color] [color=%s]%s[/color]" % [muted, "Lands for" if landed else "If it lands:", strong, total])
+		var steps: PackedStringArray = PackedStringArray()
+		var base: int = int(d.get("base_stages", 0)) + int(d.get("base_life", 0))
+		if bool(d.get("wild", false)):
+			steps.append("Wild %d" % base)
+		elif bool(d.get("printed", false)):
+			steps.append("Printed %s" % CardText.damage_amount(int(d.get("base_stages", 0)), int(d.get("base_life", 0))))
+		elif str(d.get("kind", "strike")) == "art":
+			steps.append("Art base %d" % base)
+		else:
+			steps.append("Table %d (%s vs %s)" % [int(d.get("table", 0)), CardText.band_letter(int(d.get("attacker_band", 0))), CardText.band_letter(int(d.get("defender_band", 0)))])
+		for add in d.get("adds", []):
+			steps.append("%s %s" % [CardText.add_text(add), str(add.get("source", ""))])
+		if bool(d.get("no_reduce", false)):
+			steps.append("cannot be reduced")
+		if bool(d.get("prevented", false)):
+			steps.append("all prevented")
+		lines.append("[color=%s]%s[/color]" % [muted, "  ·  ".join(steps)])
+	var dealt_stages: int = int(a.get("stages_dealt", 0))
+	var dealt_life: int = int(a.get("life_dealt", 0))
+	if dealt_stages > 0 or dealt_life > 0:
+		var dealt: String = "[color=%s]Dealt[/color] [color=%s]%s[/color]" % [muted, strong, CardText.damage_amount(dealt_stages, dealt_life)]
+		if int(a.get("life_remaining", 0)) > 0:
+			dealt += "[color=%s], %d more to flip[/color]" % [muted, int(a["life_remaining"])]
+		lines.append(dealt)
+	return "\n".join(lines)
 
 
 func _hint_for(p: PromptView) -> String:
@@ -230,7 +311,7 @@ func _hint_for(p: PromptView) -> String:
 		&"non_combat":
 			return "Click a highlighted card to place it, then Done." if card_options > 0 else ""
 		&"attack_action":
-			return "Click a highlighted card, or choose below."
+			return "Click a highlighted card to attack or use it, or choose below."
 		&"defense":
 			return "Click a highlighted card to defend, or take the hit." if card_options > 0 else ""
 		&"keep":
@@ -252,6 +333,11 @@ func _hint_for(p: PromptView) -> String:
 			return "Pick the card in play the effect hits."
 		&"name_card":
 			return "The named card cannot be played or used while the Drill stays in play."
+		&"pick_option":
+			if bool(p.context.get("may", false)):
+				var text: String = str(p.context.get("text", ""))
+				return "%s\nSkip it and the rest of the card still resolves." % text if text != "" else "Skip it and the rest of the card still resolves."
+			return ""
 		_:
 			return ""
 
@@ -263,10 +349,7 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 	prompt_who.text = "%s  ·  DECIDING" % player_name.to_upper()
 	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	prompt_title.text = "Waiting for %s" % player_name
-	var banner: String = _incoming_text(view) if DEFENDER_KINDS.has(kind) else ""
-	prompt_banner.visible = banner != ""
-	prompt_banner.text = banner
-	ZenithTheme.chip(prompt_banner, ZenithTheme.ATTACK)
+	_show_attack(view)
 	prompt_hint.text = _waiting_hint(kind)
 	prompt_hint.visible = prompt_hint.text != ""
 	_hide_tray()
@@ -309,14 +392,51 @@ func show_sending() -> void:
 func show_card_choice(options: Array[OptionView]) -> void:
 	var c: SeatCard = _view.card(options[0].card)
 	var single: Array[OptionView] = [options[0]]
-	_show_tray(prompt_who.text, c.title if c != null else "Choose an action", "", single, options, true)
+	# A card whose only action is a Final Strike says so up front, and the button stays quiet:
+	# the player came here expecting to play the card, not to discard it and pass.
+	var only_final: bool = true
+	for o in options:
+		if o.type != &"final_strike":
+			only_final = false
+	var hint: String = ""
+	if only_final:
+		hint = "This card cannot be played right now. A Final Strike discards it for a bare Strike from the Strike Table, and you pass for the rest of this Combat."
+	await _show_tray(prompt_who.text, c.title if c != null else "Choose an action", hint, single, options, true, null, not only_final)
+	if only_final:
+		tray_hint.add_theme_color_override("font_color", ZenithTheme.WARN)
+	else:
+		tray_hint.remove_theme_color_override("font_color")
+	if c == null or c.hidden():
+		return
+	var def: CardDef = _def(c.def_id)
+	if def == null:
+		return
+	var tier: int = c.tier
+	var uid: int = c.uid
+	var b: Button = Button.new()
+	b.text = "Inspect"
+	b.custom_minimum_size = Vector2(120, 40)
+	b.pressed.connect(func() -> void: show_inspect(def, tier, uid))
+	tray_buttons.add_child(b)
+
+
+## Every hand card as Final Strike fodder, with Back. Reached only through its button.
+func _show_final_strike(finals: Array[OptionView]) -> void:
+	await _show_tray(prompt_who.text, "Final Strike: discard a card", "A bare Strike from the Strike Table, plus your Drills and modifiers. Afterwards you pass for the rest of this Combat.", finals, [], false)
+	var back: Button = Button.new()
+	back.text = "Back"
+	back.custom_minimum_size = Vector2(120, 40)
+	back.pressed.connect(_on_back)
+	tray_buttons.add_child(back)
 
 
 func clear_prompt() -> void:
 	_current_prompt = null
+	hide_peek()
 	prompt_who.text = ""
 	prompt_title.text = "…"
 	prompt_banner.visible = false
+	prompt_damage.visible = false
 	prompt_hint.visible = false
 	_hide_tray()
 	_fill_buttons([], primary_box, true)
@@ -346,7 +466,7 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 ## the no-card options as a button row beneath, and Back when this is a sub-choice. `actions`
 ## become the buttons; with `sub_choice` they act on the single card shown. With `batch`, clicks
 ## toggle cards and one confirm button sends them all at once.
-func _show_tray(who: String, title: String, hint: String, cards: Array[OptionView], actions: Array[OptionView], sub_choice: bool, batch: PromptView = null) -> void:
+func _show_tray(who: String, title: String, hint: String, cards: Array[OptionView], actions: Array[OptionView], sub_choice: bool, batch: PromptView = null, accent_first: bool = true) -> void:
 	_batch = batch
 	_selected.clear()
 	_entries.clear()
@@ -371,7 +491,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	var rows: int = mini(ceili(float(shown) / TRAY_COLUMNS), TRAY_ROWS_SHOWN)
 	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)   # frame pad, caption
 	tray_scroll.custom_minimum_size = Vector2(cols * (cell.x + 12.0) + 12.0, rows * (cell.y + 12.0))
-	_fill_buttons(actions, tray_buttons, false, sub_choice)
+	_fill_buttons(actions, tray_buttons, false, sub_choice and accent_first)
 	if batch != null:
 		_confirm = Button.new()
 		_confirm.theme_type_variation = &"AccentButton"
@@ -419,6 +539,7 @@ func _refresh_selection() -> void:
 
 
 func _hide_tray() -> void:
+	hide_peek()
 	tray.visible = false
 	prompt_panel.visible = true
 	hand.visible = true
@@ -465,18 +586,19 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		if not _selected.has(uid):
 			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.HOVER, 10, 3, 3, 3))
 		_lift(frame, true)
+		show_peek(def, tier, uid)
 		if uid >= 0:
-			card_hovered.emit(uid, true)
-		elif def != null:
-			show_zoom(def, tier))
+			card_hovered.emit(uid, true))
 	b.mouse_exited.connect(func() -> void:
 		if not _selected.has(uid):
 			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 10, 3, 3, 3))
 		_lift(frame, false)
+		hide_peek()
 		if uid >= 0:
-			card_hovered.emit(uid, false)
-		else:
-			hide_zoom())
+			card_hovered.emit(uid, false))
+	b.gui_input.connect(func(event: InputEvent) -> void:
+		if _is_inspect_click(event):
+			show_inspect(def, tier, uid))
 	frame.add_child(b)
 	column.add_child(frame)
 	if not sub_choice:
@@ -530,12 +652,18 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		b.custom_minimum_size = HAND_CARD_SIZE
 		b.modulate = Color(1, 1, 1, 1) if is_legal else Color(0.6, 0.6, 0.6, 1)
 		var uid: int = c.uid
+		var tier: int = c.tier
 		b.pressed.connect(func() -> void: card_clicked.emit(uid))
+		b.gui_input.connect(func(event: InputEvent) -> void:
+			if _is_inspect_click(event):
+				show_inspect(def, tier, uid))
 		b.mouse_entered.connect(func() -> void:
 			card_hovered.emit(uid, true)
+			show_peek(def, tier, uid)
 			_lift(frame, true))
 		b.mouse_exited.connect(func() -> void:
 			card_hovered.emit(uid, false)
+			hide_peek()
 			_lift(frame, false))
 		frame.add_child(b)
 		hand.add_child(frame)
@@ -552,46 +680,87 @@ func clear_hand() -> void:
 		child.queue_free()
 
 
-# --- Zoom and overlays ----------------------------------------------------
+# --- Inspect and overlays -------------------------------------------------
 
-## The zoom is a live face, so its keywords answer to the mouse. It stays open while the pointer is
-## over it and goes when the pointer leaves, so a player can slide from a card onto the zoom.
-func show_zoom(def: CardDef, tier: int = 0) -> void:
-	_zoom_hide_token += 1
+## Full-size live face over a dimmed table, so keyword hover works. Right-click or Inspect opens
+## it; Esc or a click outside closes it.
+func show_inspect(def: CardDef, tier: int = 0, uid: int = -1) -> void:
 	if def == null:
-		zoom.visible = false
 		return
-	zoom_face.show_def(def, tier)
-	zoom.visible = true
+	hide_peek()
+	inspect_face.show_def(def, tier, _live_vigor(uid), _standing(uid))
+	inspect.visible = true
 
 
-func hide_zoom(now: bool = false) -> void:
-	if not zoom.visible:
-		return
-	_zoom_hide_token += 1
-	if now:
-		zoom.visible = false
-		return
-	var token: int = _zoom_hide_token
-	await get_tree().create_timer(ZOOM_GRACE).timeout
-	if token != _zoom_hide_token or not is_inside_tree():
-		return
-	if zoom.get_global_rect().has_point(zoom.get_global_mouse_position()):
-		return
-	zoom.visible = false
+func _live_vigor(uid: int) -> int:
+	if _view == null or uid < 0:
+		return -1
+	return _view.live_vigor(uid)
 
 
-func _on_zoom_mouse_exited() -> void:
-	if zoom.visible:
-		_zoom_hide_token += 1
-		zoom.visible = false
+func _standing(uid: int) -> SeatPlayer:
+	if _view == null or uid < 0:
+		return null
+	return _view.fighter_owner(uid)
+
+
+## Debug builds only, and only where the referee lives (hotseat, host).
+func set_dev_available(on: bool) -> void:
+	dev_toggle.visible = on
+	if not on:
+		dev_panel.visible = false
+
+
+## Drops the log down to most of the screen, or back to its strip.
+func set_log_expanded(on: bool) -> void:
+	_log_expanded = on
+	log_toggle.text = "Less" if on else "More"
+	var bottom: float = root.size.y * LOG_EXPANDED_FRACTION if on else LOG_COLLAPSED_BOTTOM
+	var t: Tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.tween_property(log_panel, "offset_bottom", bottom, 0.18)
+
+
+## Half-size face in a fixed spot on the left, under the top panel, while a card is hovered.
+## It never follows the pointer and never takes the mouse, so the eye always knows where to look.
+func show_peek(def: CardDef, tier: int = 0, uid: int = -1) -> void:
+	if def == null or inspect.visible:
+		return
+	peek_face.show_def(def, tier, _live_vigor(uid), _standing(uid))
+	peek.visible = true
+
+
+func hide_peek() -> void:
+	peek.visible = false
+
+
+func hide_inspect() -> void:
+	inspect.visible = false
+
+
+func _is_inspect_click(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		return mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT
+	return false
+
+
+func _on_inspect_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+		hide_inspect()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if inspect.visible and event.is_action_pressed("ui_cancel"):
+		hide_inspect()
+		get_viewport().set_input_as_handled()
 
 
 func show_handoff(player_name: String) -> void:
 	handoff_title.text = "Pass the table to %s" % player_name
 	handoff.visible = true
 	clear_hand()
-	hide_zoom()
+	hide_peek()
+	hide_inspect()
 
 
 func hide_handoff() -> void:

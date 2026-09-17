@@ -9,6 +9,7 @@ var focus: String = ""               # "" none, "freestyle", or a guild word
 var fighter: CardInstance = null
 var highest_tier: int = 1
 var acclaim: int = 0
+var acclaim_needed: int = DuelEngine.ACCLAIM_TO_TIER   # base; DuelEngine.acclaim_needed layers standing effects on top
 var mastery: CardInstance = null
 var master: CardInstance = null
 var armory: Array[CardInstance] = []

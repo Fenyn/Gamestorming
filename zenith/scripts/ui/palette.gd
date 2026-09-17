@@ -1,15 +1,19 @@
 class_name Palette
 extends RefCounted
 ## Shared colors for card frames and UI accents.
+##
+## Each guild owns a hue with a gap on the wheel to its neighbours, so no two read alike at a
+## glance: Ember scarlet, Root leaf green, Tide sea teal, Storm electric indigo, Shade plum,
+## Steel the one bright silver, Freestyle warm bronze.
 
 const GUILD_COLORS: Dictionary = {
-	"": Color(0.42, 0.37, 0.30),
-	"ember": Color(0.62, 0.20, 0.12),
-	"tide": Color(0.14, 0.36, 0.62),
-	"storm": Color(0.40, 0.26, 0.62),
-	"shade": Color(0.18, 0.18, 0.22),
-	"steel": Color(0.40, 0.44, 0.50),
-	"root": Color(0.20, 0.44, 0.24),
+	"": Color(0.58, 0.44, 0.26),
+	"ember": Color(0.74, 0.20, 0.10),
+	"tide": Color(0.08, 0.44, 0.54),
+	"storm": Color(0.34, 0.26, 0.76),
+	"shade": Color(0.42, 0.12, 0.40),
+	"steel": Color(0.70, 0.74, 0.80),
+	"root": Color(0.20, 0.50, 0.22),
 }
 const FIGHTER_COLOR: Color = Color(0.62, 0.48, 0.14)
 const TOKEN_COLOR: Color = Color(0.55, 0.45, 0.10)
@@ -21,14 +25,23 @@ const HIGHLIGHT: Color = Color(1.0, 0.85, 0.30, 0.55)
 
 ## Guild colour lifted for use as text or a chip on the dark UI. Frame colours are too dark there.
 static func guild_ui(guild: String) -> Color:
-	var base: Color = GUILD_COLORS.get(guild, GUILD_COLORS[""])
-	if guild == "shade":
-		return Color(0.62, 0.58, 0.72)
-	if guild == "":
-		return Color(0.80, 0.72, 0.58)
-	var c: Color = base.lightened(0.28)
-	c.s = minf(c.s * 1.1, 1.0)
-	return c
+	match guild:
+		"":
+			return Color(0.86, 0.72, 0.50)
+		"ember":
+			return Color(0.94, 0.42, 0.32)
+		"tide":
+			return Color(0.34, 0.74, 0.82)
+		"storm":
+			return Color(0.62, 0.56, 0.96)
+		"shade":
+			return Color(0.84, 0.50, 0.82)
+		"steel":
+			return Color(0.84, 0.88, 0.94)
+		"root":
+			return Color(0.50, 0.78, 0.46)
+		_:
+			return GUILD_COLORS.get(guild, GUILD_COLORS[""]).lightened(0.3)
 
 
 ## UI colour for a card type, used for deck composition bars and type icons on the dark UI.

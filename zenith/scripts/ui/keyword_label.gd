@@ -1,11 +1,9 @@
 class_name KeywordLabel
 extends RichTextLabel
-## Rules text with keywords coloured and explained on hover. Give it plain text through set_plain;
-## the BBCode and the tooltip panel are its own business.
+## Rules text with keywords coloured and explained on hover.
 
 const TIP_WIDTH: float = 320.0
 
-## True on the dark HUD, false on a cream card face.
 @export var on_dark: bool = false
 
 

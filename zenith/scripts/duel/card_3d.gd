@@ -4,6 +4,7 @@ extends Node3D
 
 signal clicked(uid: int)
 signal hovered(uid: int, over: bool)
+signal inspected(uid: int)   # right-click: bring the card up to read
 
 const FLIP_DURATION: float = 0.25
 
@@ -59,3 +60,5 @@ func _on_pick_input(_camera: Node, event: InputEvent, _pos: Vector3, _normal: Ve
 		var mb: InputEventMouseButton = event
 		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
 			clicked.emit(uid)
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT:
+			inspected.emit(uid)

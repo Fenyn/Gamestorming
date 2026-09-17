@@ -12,7 +12,7 @@ const CAMERA_SWING: float = 0.7
 const LUNGE_DURATION: float = 0.18
 
 @onready var rig: Node3D = $CameraRig
-@onready var camera: Camera3D = $CameraRig/Camera
+@onready var camera: TableCamera = $CameraRig/Camera
 @onready var zones: TableLayout = $Zones
 @onready var cards_root: Node3D = $Cards
 @onready var faces: CardFaceCache = $CardFaceCache
@@ -22,6 +22,7 @@ var referee: Referee = null          # hotseat and host only
 var view: SeatView = null            # what the viewer may see right now
 var prompt: PromptView = null        # the viewer's pending decision, null when it is not theirs
 var views: Dictionary = {}           # uid -> Card3D
+var _markers: Dictionary = {}        # uid -> StatusMarkers on personalities in play
 var viewer: int = -1
 var busy: bool = false
 var online: bool = false
@@ -33,19 +34,20 @@ var _dev_steps: int = 0
 var _dev_screenshot: String = ""
 var _dev_hide_hud: bool = false
 var _dev_stop_kind: StringName = &""
+var _dev_camera: String = ""         # "dx,dz,notches": pan and zoom before the screenshot
+var _dev_policy: String = ""         # "attack": autoplay fights instead of picking at random
 var _dev_done: bool = false
 
 
 func _ready() -> void:
-	camera.look_at(Vector3(0, 0, 0.2))
 	online = Net.active()
 	_parse_dev_args()
 	hud.option_chosen.connect(_on_option_chosen)
 	hud.card_clicked.connect(_on_card_clicked)
-	hud.card_hovered.connect(_on_card_hovered)
 	hud.handoff_confirmed.connect(_on_handoff_confirmed)
 	hud.rematch_requested.connect(_on_rematch)
 	hud.select_requested.connect(_on_select)
+	hud.dev_command.connect(_on_dev_command)
 	hud.set_loading(true)
 	if online:
 		viewer = Net.local_player
@@ -56,6 +58,7 @@ func _ready() -> void:
 	if not Session.can_start():
 		push_warning("Duel opened without a selection; using the first two shipped decks")
 		Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
+	hud.set_dev_available(OS.is_debug_build() and (not online or Net.is_host()))
 	if online and not Net.is_host():
 		await _ready_joiner()   # presents as soon as the host's first update lands
 	else:
@@ -102,6 +105,8 @@ func _parse_dev_args() -> void:
 			_dev_steps = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--dev-screenshot="):
 			_dev_screenshot = arg.get_slice("=", 1)
+		elif arg.begins_with("--dev-camera="):
+			_dev_camera = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-seed=") and not online:
 			Session.seed_value = int(arg.get_slice("=", 1))
 		elif arg == "--dev-hide-hud":
@@ -110,6 +115,8 @@ func _parse_dev_args() -> void:
 			Engine.time_scale = 8.0
 		elif arg.begins_with("--dev-stop-at="):
 			_dev_stop_kind = StringName(arg.get_slice("=", 1))
+		elif arg.begins_with("--dev-policy="):
+			_dev_policy = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-pick=") and not online:
 			# Online the lobby already agreed on both decks and the seed.
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
@@ -161,12 +168,27 @@ func _on_handoff_confirmed() -> void:
 
 func _show_prompt_for_viewer() -> void:
 	hud.refresh_state(view, viewer)
-	var legal: Dictionary = prompt.card_uids()
+	var legal: Dictionary = _legal_uids()
 	hud.set_hand(_hand_cards(), faces, legal)
 	hud.show_prompt(prompt, view)
 	_highlight(legal)
+	# A decision about one card's effect keeps that card's face in the quick view for context.
+	hud.hide_peek()
+	var source: SeatCard = view.card(int(prompt.context.get("source", -1)))
+	if source != null and not source.hidden():
+		hud.show_peek(_def(source), source.tier, source.uid)
 	if _dev_autoplay:
 		_dev_step()
+
+
+## Cards a click acts on. A Final Strike is offered on every hand card but commits the rest of
+## the Combat, so it is never a bare click; the HUD offers it through its own button.
+func _legal_uids() -> Dictionary:
+	var out: Dictionary = {}
+	for o in prompt.options:
+		if o.card >= 0 and o.type != &"final_strike":
+			out[o.card] = true
+	return out
 
 
 func _hand_cards() -> Array[SeatCard]:
@@ -183,7 +205,7 @@ func _on_option_chosen(opt: OptionView) -> void:
 	if online and not Net.is_host():
 		_awaiting_answer = true
 		hud.clear_prompt()
-		hud.hide_zoom(true)
+		hud.hide_inspect()
 		_clear_highlights()
 		hud.show_sending()
 		Net.send_command(wire)
@@ -191,11 +213,32 @@ func _on_option_chosen(opt: OptionView) -> void:
 	await _apply(view.deciding, wire)
 
 
+## Dev panel: one effect for the viewer through the referee, then the table replays as usual.
+func _on_dev_command(effect: Dictionary) -> void:
+	if referee == null or busy or view == null:
+		return
+	var seat: int = viewer if viewer >= 0 else view.active
+	var problem: String = referee.dev({"player": seat, "effect": effect})
+	hud.dev_panel.report(problem)
+	if problem != "":
+		return
+	busy = true
+	hud.clear_prompt()
+	hud.hide_inspect()
+	_clear_highlights()
+	var updates: Array[SeatUpdate] = referee.take_updates()
+	if online:
+		Net.send_update(updates[1].to_dict())
+	await _play_update(updates[maxi(viewer, 0)])
+	busy = false
+	_present_prompt()
+
+
 ## Hotseat and host: run one command through the referee and show what came of it.
 func _apply(seat: int, wire: Dictionary) -> void:
 	busy = true
 	hud.clear_prompt()
-	hud.hide_zoom(true)
+	hud.hide_inspect()
 	_clear_highlights()
 	var problem: String = referee.submit(seat, wire)
 	if problem != "":
@@ -305,23 +348,37 @@ func _on_select() -> void:
 func _on_card_clicked(uid: int) -> void:
 	if busy or _awaiting_answer or prompt == null:
 		return
-	var opts: Array[OptionView] = prompt.options_for_card(uid)
+	var all: Array[OptionView] = prompt.options_for_card(uid)
+	var opts: Array[OptionView] = []
+	for o in all:
+		if o.type != &"final_strike":
+			opts.append(o)
 	if opts.size() == 1:
 		_on_option_chosen(opts[0])
 	elif opts.size() > 1:
 		hud.show_card_choice(opts)
+	elif not all.is_empty():
+		hud.show_card_choice(all)   # only a Final Strike: it needs a confirming click in the tray
 
 
 func _on_card_hovered(uid: int, over: bool) -> void:
 	if not over or view == null:
-		hud.hide_zoom()
+		hud.hide_peek()
 		return
 	var c: SeatCard = view.card(uid)
-	# A hidden card has no face to zoom; the view never carried one.
 	if c == null or c.hidden():
-		hud.hide_zoom()
+		hud.hide_peek()
 		return
-	hud.show_zoom(_def(c), c.tier)
+	hud.show_peek(_def(c), c.tier, uid)
+
+
+func _on_card_inspected(uid: int) -> void:
+	if view == null:
+		return
+	var c: SeatCard = view.card(uid)
+	if c == null or c.hidden():
+		return
+	hud.show_inspect(_def(c), c.tier, uid)
 
 
 func _def(c: SeatCard) -> CardDef:
@@ -340,6 +397,7 @@ func _adopt_cards() -> void:
 			cards_root.add_child(v)
 			v.set_textures(null, faces.back())
 			v.clicked.connect(_on_card_clicked)
+			v.inspected.connect(_on_card_inspected)
 			v.hovered.connect(_on_card_hovered)
 			views[uid] = v
 		if c.hidden():
@@ -405,9 +463,34 @@ func _targets() -> Dictionary:
 	return out
 
 
+## Vigor marks on fighters and Allies in play, Acclaim on the fighter.
+func _refresh_markers() -> void:
+	var wanted: Dictionary = {}   # uid -> [vigor, SeatPlayer or null]
+	for p in view.players:
+		wanted[p.fighter] = [view.card(p.fighter).vigor, p]
+		for uid in p.allies:
+			wanted[uid] = [view.card(uid).vigor, null]
+	for uid in _markers.keys():
+		if not wanted.has(uid):
+			(_markers[uid] as StatusMarkers).queue_free()
+			_markers.erase(uid)
+	for uid in wanted.keys():
+		var v: Card3D = views.get(uid)
+		if v == null:
+			continue
+		var m: StatusMarkers = _markers.get(uid)
+		if m == null:
+			m = StatusMarkers.new()
+			v.add_child(m)
+			m.setup(faces.ladder_rects())
+			_markers[uid] = m
+		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer)
+
+
 func _sync_layout(animated: bool) -> void:
 	var targets: Dictionary = _targets()
 	zones.set_viewer(viewer if viewer >= 0 else view.active)
+	_refresh_markers()
 	var tween: Tween = null
 	var moved: bool = false
 	for uid in views.keys():
@@ -443,6 +526,7 @@ func _sync_layout(animated: bool) -> void:
 
 func _swing_camera(player: int) -> void:
 	var target: float = 0.0 if player == 0 else PI
+	camera.return_home()
 	if is_equal_approx(rig.rotation.y, target):
 		return
 	var t: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -477,17 +561,38 @@ func _dev_step() -> void:
 	await get_tree().create_timer(0.05).timeout
 	if prompt == null or busy or _awaiting_answer:
 		return
-	if _dev_stop_kind != &"" and prompt.kind == _dev_stop_kind:
+	if _dev_stop_kind != &"" and _dev_stop_matches():
 		for arg in OS.get_cmdline_user_args():
-			# Open the hover zoom so a face can be read at full size: the first hand card, or
-			# `--dev-zoom=fighter` for the viewer's fighter.
+			# Open the inspect view so a face can be read at full size: the first hand card, or
+			# `--dev-zoom=fighter` for the viewer's fighter, `--dev-zoom=rival` for the other one.
 			if arg == "--dev-zoom" and not _hand_cards().is_empty():
-				_on_card_hovered(_hand_cards()[0].uid, true)
+				_on_card_inspected(_hand_cards()[0].uid)
 			elif arg == "--dev-zoom=fighter":
+				_on_card_inspected(view.player(viewer).fighter)
+			elif arg == "--dev-zoom=rival":
+				_on_card_inspected(view.player(1 - viewer).fighter)
+			elif arg.begins_with("--dev-zoom="):
+				# Any visible card by definition id, for face checks of cards not in hand.
+				for c in view.visible_cards():
+					if c.def_id == arg.get_slice("=", 1):
+						_on_card_inspected(c.uid)
+						break
+			elif arg == "--dev-peek" and not _hand_cards().is_empty():
+				_on_card_hovered(_hand_cards()[0].uid, true)
+			elif arg == "--dev-peek=fighter":
 				_on_card_hovered(view.player(viewer).fighter, true)
-		if OS.get_cmdline_user_args().has("--dev-click"):
-			# Open the sub-choice for the first card that has more than one legal action, or in a
-			# batch tray pick the first two cards.
+			elif arg == "--dev-log":
+				hud.set_log_expanded(true)
+			elif arg == "--dev-panel":
+				hud.dev_panel.visible = true
+		var click: String = ""
+		for arg in OS.get_cmdline_user_args():
+			if arg == "--dev-click" or arg.begins_with("--dev-click="):
+				click = arg.get_slice("=", 1) if arg.contains("=") else "any"
+		if click != "":
+			# Open the sub-choice for the first card that has more than one legal action (with
+			# `=final`, the first card whose only action is a Final Strike), or in a batch tray
+			# pick the first two cards.
 			await get_tree().create_timer(0.2).timeout
 			if prompt.has_batch():
 				var picks: int = 0
@@ -496,9 +601,15 @@ func _dev_step() -> void:
 					picks += 1
 					if picks == 2:
 						break
-			for uid in prompt.card_uids().keys():
-				if prompt.options_for_card(uid).size() > 1:
-					hud.show_card_choice(prompt.options_for_card(uid))
+			# The same path a real click takes, on the first hand card that opens a tray.
+			for c in _hand_cards():
+				var direct: int = 0
+				for o in prompt.options_for_card(c.uid):
+					if o.type != &"final_strike":
+						direct += 1
+				var wanted: bool = direct == 0 if click == "final" else direct != 1
+				if wanted and not prompt.options_for_card(c.uid).is_empty():
+					_on_card_clicked(c.uid)
 					break
 		await _dev_finish()
 		return
@@ -508,7 +619,28 @@ func _dev_step() -> void:
 			await _dev_finish()
 			return
 	var opts: Array[OptionView] = prompt.options
-	_on_option_chosen(opts[randi_range(0, opts.size() - 1)])
+	_on_option_chosen(_dev_pick(opts))
+
+
+## Random by default. `--dev-policy=attack` declares Combat, attacks whenever it can, and never
+## defends, so a short run shows damage and a fight back instead of a string of passes.
+func _dev_pick(opts: Array[OptionView]) -> OptionView:
+	if _dev_policy == "attack":
+		for wanted in [&"attack", &"declare", &"no_defense"]:
+			for o in opts:
+				if o.type == wanted:
+					return o
+		for o in opts:
+			if o.type != &"pass":
+				return o
+	return opts[randi_range(0, opts.size() - 1)]
+
+
+## `--dev-stop-at=kind` or `kind:flag`, the latter only for prompts whose context sets that flag.
+func _dev_stop_matches() -> bool:
+	var kind: String = String(_dev_stop_kind).get_slice(":", 0)
+	var flag: String = String(_dev_stop_kind).get_slice(":", 1) if String(_dev_stop_kind).contains(":") else ""
+	return String(prompt.kind) == kind and (flag == "" or bool(prompt.context.get(flag, false)))
 
 
 ## Online the budget counts every update played here, so two clients started with the same
@@ -529,6 +661,9 @@ func _dev_finish() -> void:
 	if _dev_screenshot != "":
 		if _dev_hide_hud:
 			hud.visible = false
+		var cam: PackedStringArray = _dev_camera.split(",")
+		if cam.size() == 3:
+			camera.dev_set(Vector2(float(cam[0]), float(cam[1])), int(cam[2]))
 		await get_tree().create_timer(0.6).timeout
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/player_panel.tscn" id="2_panel"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
+[ext_resource type="PackedScene" path="res://scenes/duel/dev_panel.tscn" id="4_dev"]
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -76,10 +77,20 @@ grow_horizontal = 0
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Header" type="Label" parent="Root/Log/Column"]
+[node name="Header" type="HBoxContainer" parent="Root/Log/Column"]
 layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Log/Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "LOG"
+
+[node name="Toggle" type="Button" parent="Root/Log/Column/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "More"
+flat = true
 
 [node name="Scroll" type="ScrollContainer" parent="Root/Log/Column"]
 layout_mode = 2
@@ -148,6 +159,14 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Incoming Strike"
 autowrap_mode = 3
+
+[node name="Damage" type="RichTextLabel" parent="Root/PromptPanel/Column"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
 [node name="Hint" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
@@ -221,21 +240,82 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="Zoom" type="Control" parent="Root"]
+[node name="DevToggle" type="Button" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 352.0
+offset_top = 16.0
+offset_right = 412.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 12
+text = "Dev"
+flat = true
+
+[node name="DevPanel" parent="Root" instance=ExtResource("4_dev")]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 236.0
+offset_right = 356.0
+offset_bottom = 436.0
+
+[node name="Peek" type="Control" parent="Root"]
+visible = false
 layout_mode = 1
 anchors_preset = 0
 offset_left = 16.0
 offset_top = 216.0
-offset_right = 316.0
-offset_bottom = 636.0
-mouse_filter = 1
+offset_right = 296.0
+offset_bottom = 608.0
+mouse_filter = 2
 
-[node name="Face" parent="Root/Zoom" instance=ExtResource("3_face")]
+[node name="Face" parent="Root/Peek" instance=ExtResource("3_face")]
 layout_mode = 1
 anchors_preset = 0
 offset_right = 512.0
 offset_bottom = 716.0
-scale = Vector2(0.586, 0.586)
+scale = Vector2(0.547, 0.547)
+mouse_filter = 2
+
+[node name="Inspect" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Center" type="CenterContainer" parent="Root/Inspect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Inspect/Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="Root/Inspect/Center/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Hover a coloured word for what it means. Click outside the card or press Esc to close."
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Face" parent="Root/Inspect/Center/Column" instance=ExtResource("3_face")]
+layout_mode = 2
+size_flags_horizontal = 4
 
 [node name="Handoff" type="ColorRect" parent="Root"]
 visible = false

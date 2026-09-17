@@ -10,6 +10,14 @@ var focus: String = ""
 var has_focus: bool = false
 var acclaim: int = 0
 var highest_tier: int = 1
+# Effective values, computed by the engine from base state plus standing effects. Clients show
+# these and never a rules constant, so a card that changes one changes the display.
+var acclaim_needed: int = DuelEngine.ACCLAIM_TO_TIER
+var acclaim_gain: int = 1
+var recover_gain: int = 0
+var acclaim_shield: bool = false
+var tier_shield: bool = false
+var restrictions: Array[String] = []   # forbid `what` words in force; CardText.restriction_name reads them
 var fighter: int = -1
 var mastery: int = -1
 var master: int = -1
@@ -32,7 +40,9 @@ var no_favor_win: bool = false
 func to_dict() -> Dictionary:
 	return {
 		"index": index, "name": name, "alignment": alignment, "focus": focus, "has_focus": has_focus,
-		"acclaim": acclaim, "highest_tier": highest_tier, "fighter": fighter, "mastery": mastery,
+		"acclaim": acclaim, "highest_tier": highest_tier, "acclaim_needed": acclaim_needed,
+		"acclaim_gain": acclaim_gain, "recover_gain": recover_gain, "acclaim_shield": acclaim_shield,
+		"tier_shield": tier_shield, "restrictions": restrictions, "fighter": fighter, "mastery": mastery,
 		"master": master, "controlling": controlling, "armory": armory, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
 		"non_combats": non_combats, "tokens": tokens, "must_pass": must_pass,
@@ -50,6 +60,12 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.has_focus = bool(d.get("has_focus", false))
 	p.acclaim = int(d.get("acclaim", 0))
 	p.highest_tier = int(d.get("highest_tier", 1))
+	p.acclaim_needed = int(d.get("acclaim_needed", DuelEngine.ACCLAIM_TO_TIER))
+	p.acclaim_gain = int(d.get("acclaim_gain", 1))
+	p.recover_gain = int(d.get("recover_gain", 0))
+	p.acclaim_shield = bool(d.get("acclaim_shield", false))
+	p.tier_shield = bool(d.get("tier_shield", false))
+	p.restrictions = strings(d.get("restrictions", []))
 	p.fighter = int(d.get("fighter", -1))
 	p.mastery = int(d.get("mastery", -1))
 	p.master = int(d.get("master", -1))
@@ -78,6 +94,14 @@ static func ints(v: Variant) -> Array[int]:
 	return out
 
 
+static func strings(v: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if v is Array:
+		for x in v:
+			out.append(str(x))
+	return out
+
+
 static func _uids(cards: Array[CardInstance]) -> Array[int]:
 	var out: Array[int] = []
 	for c in cards:
@@ -85,7 +109,7 @@ static func _uids(cards: Array[CardInstance]) -> Array[int]:
 	return out
 
 
-static func of(p: PlayerState) -> SeatPlayer:
+static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	var v: SeatPlayer = SeatPlayer.new()
 	v.index = p.index
 	v.name = p.name
@@ -94,6 +118,12 @@ static func of(p: PlayerState) -> SeatPlayer:
 	v.has_focus = p.has_focus()
 	v.acclaim = p.acclaim
 	v.highest_tier = p.highest_tier
+	v.acclaim_needed = engine.acclaim_needed(p)
+	v.acclaim_gain = engine.acclaim_gain(p)
+	v.recover_gain = engine.recover_gain(p)
+	v.acclaim_shield = engine.acclaim_shielded(p)
+	v.tier_shield = engine.tier_shielded(p)
+	v.restrictions = engine.restrictions(p)
 	v.fighter = p.fighter.uid
 	v.mastery = p.mastery.uid if p.mastery != null else -1
 	v.master = p.master.uid if p.master != null else -1

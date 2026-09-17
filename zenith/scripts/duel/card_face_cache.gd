@@ -8,6 +8,7 @@ extends Node
 
 var _cache: Dictionary = {}   # key -> Texture2D
 var _back: Texture2D = null
+var _ladder: Array[Rect2] = []
 
 
 static func key_for(def: CardDef, tier: int = 0) -> String:
@@ -36,7 +37,14 @@ func render_face(def: CardDef, tier: int = 0) -> Texture2D:
 	face_control.show_def(def, tier)
 	var tex: Texture2D = await _render()
 	_cache[key] = tex
+	if def.is_personality() and _ladder.is_empty():
+		_ladder = face_control.ladder_rects()
 	return tex
+
+
+## Rung rects in face pixels, top first; known once a personality has rendered.
+func ladder_rects() -> Array[Rect2]:
+	return _ladder
 
 
 func render_back() -> Texture2D:

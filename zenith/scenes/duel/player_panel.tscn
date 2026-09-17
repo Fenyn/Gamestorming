@@ -47,73 +47,33 @@ text = "Player · Ember Knave"
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Vigor" parent="Column/Stats" instance=ExtResource("2_tile")]
-layout_mode = 2
-
-[node name="Might" parent="Column/Stats" instance=ExtResource("2_tile")]
-layout_mode = 2
-
 [node name="Life" parent="Column/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
 
-[node name="FavorRow" type="HBoxContainer" parent="Column"]
+[node name="Hand" parent="Column/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
-theme_override_constants/separation = 6
 
-[node name="FavorLabel" type="Label" parent="Column/FavorRow"]
+[node name="Discard" parent="Column/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 11
-text = "FAVOR"
-
-[node name="FavorPips" type="HBoxContainer" parent="Column/FavorRow"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 3
-
-[node name="FavorValue" type="Label" parent="Column/FavorRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "Noticed · 1 of 3"
-
-[node name="Spacer" type="Control" parent="Column/FavorRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="AcclaimLabel" type="Label" parent="Column/FavorRow"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 11
-text = "ACCLAIM"
-
-[node name="AcclaimPips" type="HBoxContainer" parent="Column/FavorRow"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 3
-
-[node name="AcclaimValue" type="Label" parent="Column/FavorRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "0/5"
 
 [node name="Counts" type="HBoxContainer" parent="Column"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Hand" type="Label" parent="Column/Counts"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Hand 0"
-
-[node name="Discard" type="Label" parent="Column/Counts"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Discard 0"
-
 [node name="Removed" type="Label" parent="Column/Counts"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Out 0"
+
+[node name="Armory" type="Label" parent="Column/Counts"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Armory 0"
+
+[node name="Tokens" type="Label" parent="Column/Counts"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Tokens 0"
 
 [node name="Flags" type="Label" parent="Column"]
 visible = false

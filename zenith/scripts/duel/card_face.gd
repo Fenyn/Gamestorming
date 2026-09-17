@@ -5,19 +5,28 @@ extends Control
 ##
 ## Two layouts share the frame. Personalities (Fighters, Allies) get a portrait: tier box and
 ## name across the top, art filling the left, the ten-stage Might ladder down the right with the
-## Surge badge under it, and the tier's power text along the bottom. Everything else gets the
-## standard face: title, type chip, art that takes whatever the rules text leaves, the text box
-## sized to its content, with a Vigor cost badge over the art and Endurance under the text.
-## Long rules step the font down rather than push the art out.
+## Surge badge under it, and the tier's power text in a fixed box along the bottom. Everything
+## else gets the standard face: title, type chip, an art box of a set height for that type, a
+## Vigor cost badge over the art, and the rules text in the fixed box that remains, with
+## Endurance under it. Boxes never move between cards of one type; the text shrinks to fit.
 
 const ART_DIR: String = "res://assets/card_art/"
 const INK: Color = Color(0.10, 0.08, 0.06)
 const CREAM: Color = Color(0.93, 0.90, 0.84)
 const CONTENT_WIDTH: float = 452.0        # face width less the margins
-const TEXT_SIZES: Array[int] = [24, 22, 20, 18, 16]
-const STANDARD_TEXT_MAX: float = 330.0    # room for rules text before the art hits its floor
-const PERSON_TEXT_MAX: float = 200.0
-const STAGES: int = 10
+const CONTENT_HEIGHT: float = 664.0
+const TEXT_SIZES: Array[int] = [24, 22, 20, 18, 17, 16, 15, 14, 13, 12]
+## Art box height per type, twice the art canvas in the roster (226 wide) so pictures fill the
+## box without cropping. Cards that act (Strikes, Arts, Combat, Tokens) carry little text and get
+## the tall picture; cards that stay in play carry rules and get the shorter one.
+const ART_HEIGHTS: Dictionary = {
+	CardDef.Type.STRIKE: 320, CardDef.Type.ART: 320, CardDef.Type.COMBAT: 300, CardDef.Type.TOKEN: 320,
+	CardDef.Type.NON_COMBAT: 240, CardDef.Type.DRILL: 240, CardDef.Type.GROUNDS: 240,
+	CardDef.Type.MASTERY: 200, CardDef.Type.MASTER: 200,
+}
+const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
+const PERSON_TEXT_HEIGHT: float = 150.0
+const STAGES: int = CardInstance.MAX_STAGE
 
 @onready var frame: Panel = $Frame
 @onready var inner: Panel = $Inner
@@ -46,7 +55,8 @@ const STAGES: int = 10
 @onready var p_tier_num: Label = $Person/Column/Head/TierBox/Col/Num
 @onready var p_tier_word: Label = $Person/Column/Head/TierBox/Col/Word
 @onready var p_name: Label = $Person/Column/Head/Names/Name
-@onready var p_tier_name: Label = $Person/Column/Head/Names/TierName
+@onready var p_tier_name: Label = $Person/Column/Head/Names/TierRow/TierName
+@onready var p_acclaim: HBoxContainer = $Person/Column/Head/Names/TierRow/Acclaim
 @onready var p_type_chip: PanelContainer = $Person/Column/Head/TypeChip
 @onready var p_type_icon: TypeIcon = $Person/Column/Head/TypeChip/Row/Icon
 @onready var p_art: Panel = $Person/Column/Body/Art
@@ -59,6 +69,7 @@ const STAGES: int = 10
 @onready var p_text: KeywordLabel = $Person/Column/Text
 
 var _stage_rows: Array[PanelContainer] = []
+var _acclaim_pips: Array[Panel] = []
 var _stage_labels: Array[Label] = []
 var _stage_values: Array[Label] = []
 
@@ -87,7 +98,10 @@ func _ready() -> void:
 		_stage_values.append(value)
 
 
-func show_def(def: CardDef, tier: int = 0) -> void:
+## `vigor` is live Vigor for a personality in play (-1 for none): the rung for the current stage
+## lights up. `standing` is the owning player when the card is a fighter in play: Acclaim pips
+## appear under the name, one per point needed, and the Surge badge shows the live Recover gain.
+func show_def(def: CardDef, tier: int = 0, vigor: int = -1, standing: SeatPlayer = null) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color)
@@ -96,7 +110,7 @@ func show_def(def: CardDef, tier: int = 0) -> void:
 	if def.is_personality():
 		margin.visible = false
 		person.visible = true
-		_show_person(def, tier, color, picture)
+		_show_person(def, tier, color, picture, vigor, standing)
 	else:
 		person.visible = false
 		margin.visible = true
@@ -104,6 +118,8 @@ func show_def(def: CardDef, tier: int = 0) -> void:
 
 
 func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
+	var art_height: float = float(ART_HEIGHTS.get(def.type, 280))
+	art.custom_minimum_size = Vector2(0, art_height)
 	_style(art, color.darkened(0.35), 14)
 	art_image.texture = picture
 	art_image.visible = picture != null
@@ -112,7 +128,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	title_label.add_theme_color_override("font_color", INK)
 	type_rest.text = _type_rest(def)
 	type_rest.add_theme_color_override("font_color", INK)
-	_fit_text(text_label, CardText.rules_text(def), STANDARD_TEXT_MAX)
+	_fit_text(text_label, CardText.rules_text(def), CONTENT_HEIGHT - STANDARD_FIXED - art_height)
 	# Vigor cost as a round badge over the art, where the eye checks it first.
 	var cost: int = 0
 	if def.is_attack():
@@ -124,12 +140,11 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 	left_badge.text = ""
 	right_badge.text = "Endurance %d" % def.endurance if def.endurance > 0 else ""
-	badges.visible = left_badge.text != "" or right_badge.text != ""
 	for l in [left_badge, right_badge]:
 		l.add_theme_color_override("font_color", INK)
 
 
-func _show_person(def: CardDef, tier: int, color: Color, picture: Texture2D) -> void:
+func _show_person(def: CardDef, tier: int, color: Color, picture: Texture2D, vigor: int = -1, standing: SeatPlayer = null) -> void:
 	var t: int = tier if tier > 0 else def.lowest_tier()
 	var td: Dictionary = def.tier_data(t)
 	var dark: Color = color.darkened(0.45)
@@ -154,15 +169,34 @@ func _show_person(def: CardDef, tier: int, color: Color, picture: Texture2D) -> 
 	var might: Array = td.get("might", [])
 	for i in range(STAGES):
 		var stage: int = STAGES - i
-		_round(_stage_rows[i], dark, 8, 8, 2)
-		_stage_labels[i].add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
+		var lit: bool = stage == vigor
+		_round(_stage_rows[i], ZenithTheme.VIGOR.darkened(0.15) if lit else dark, 8, 8, 2)
+		_stage_labels[i].add_theme_color_override("font_color", Color(1, 1, 1, 0.95 if lit else 0.55))
 		_stage_values[i].text = CardText.short_number(int(might[stage])) if might.size() > stage else ""
 		_stage_values[i].add_theme_color_override("font_color", Color.WHITE)
-	_round(p_surge, ZenithTheme.VIGOR.darkened(0.35), 12)
-	p_surge_num.text = str(int(td.get("surge", 0)))
+	var spent: bool = vigor == 0
+	_round(p_surge, (ZenithTheme.WARN if spent else ZenithTheme.VIGOR).darkened(0.35), 12)
+	p_acclaim.visible = standing != null
+	if standing != null:
+		_show_acclaim(standing.acclaim, standing.acclaim_needed)
+	p_surge_num.text = str(standing.recover_gain if standing != null else int(td.get("surge", 0)))
 	p_surge_num.add_theme_color_override("font_color", Color.WHITE)
 	p_surge_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	_fit_text(p_text, "\n".join(CardText.tier_text(def, t)), PERSON_TEXT_MAX)
+	_fit_text(p_text, "\n".join(CardText.tier_text(def, t)), PERSON_TEXT_HEIGHT)
+
+
+## One pip per point of Acclaim needed, on the tier-name line so the head keeps its height and
+## the art box its shape; the row grows or shrinks as effects move the mark.
+func _show_acclaim(acclaim: int, needed: int) -> void:
+	while _acclaim_pips.size() < needed:
+		var pip: Panel = Panel.new()
+		pip.custom_minimum_size = Vector2(14, 14)
+		p_acclaim.add_child(pip)
+		_acclaim_pips.append(pip)
+	for i in range(_acclaim_pips.size()):
+		_acclaim_pips[i].visible = i < needed
+		var style: StyleBoxFlat = ZenithTheme.pip(true, ZenithTheme.ACCENT if i < acclaim else Color(INK, 0.15), true)
+		_acclaim_pips[i].add_theme_stylebox_override("panel", style)
 
 
 ## Card art lives in assets/card_art/<id>.png; fighters may add <id>_t<tier>.png per tier.
@@ -186,14 +220,25 @@ func show_back() -> void:
 	person.visible = false
 
 
-## Sets the text at the largest size from TEXT_SIZES whose wrapped height fits `max_height`,
-## so a wordy card keeps its art and a short one keeps big type.
-func _fit_text(label: KeywordLabel, plain: String, max_height: float) -> void:
+## Rung rects in face pixels, stage 10 first; valid after a personality layout.
+func ladder_rects() -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	var origin: Vector2 = get_global_rect().position
+	for row in _stage_rows:
+		var r: Rect2 = row.get_global_rect()
+		out.append(Rect2(r.position - origin, r.size))
+	return out
+
+
+## Sets the text at the largest size from TEXT_SIZES whose wrapped height fits the box, so a
+## wordy card and a short one share the same layout and only the type size differs. The
+## keyword markup may bold a word or two, so a little headroom is kept in the measure.
+func _fit_text(label: KeywordLabel, plain: String, box_height: float) -> void:
 	var font: Font = label.get_theme_font("normal_font")
 	var chosen: int = TEXT_SIZES[TEXT_SIZES.size() - 1]
 	for size in TEXT_SIZES:
-		var h: float = font.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, CONTENT_WIDTH, size, -1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND).y
-		if h <= max_height:
+		var h: float = font.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, CONTENT_WIDTH - 6.0, size, -1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND).y
+		if h <= box_height - 6.0:
 			chosen = size
 			break
 	label.add_theme_font_size_override("normal_font_size", chosen)

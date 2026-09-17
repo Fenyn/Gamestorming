@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
+[ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
 [ext_resource type="Script" path="res://scripts/duel/table_layout.gd" id="2_layout"]
 [ext_resource type="PackedScene" path="res://scenes/duel/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="4_cache"]
@@ -53,6 +54,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_table")
 [node name="Camera" type="Camera3D" parent="CameraRig"]
 transform = Transform3D(1, 0, 0, 0, 0.681998, 0.731354, 0, -0.731354, 0.681998, 0, 6.4, 5.6)
 fov = 54.0
+script = ExtResource("5_camera")
 
 [node name="Zones" type="Node3D" parent="."]
 script = ExtResource("2_layout")

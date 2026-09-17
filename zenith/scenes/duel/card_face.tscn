@@ -89,9 +89,8 @@ text = "Ember"
 text_overrun_behavior = 3
 
 [node name="Art" type="Panel" parent="Margin/Column"]
-custom_minimum_size = Vector2(0, 150)
+custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
-size_flags_vertical = 3
 clip_contents = true
 
 [node name="Image" type="TextureRect" parent="Margin/Column/Art"]
@@ -102,8 +101,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture_filter = 1
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 5
 
 [node name="Glyph" type="Label" parent="Margin/Column/Art"]
 layout_mode = 1
@@ -185,14 +185,15 @@ horizontal_alignment = 1
 
 [node name="Text" type="RichTextLabel" parent="Margin/Column"]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
 text = "Rules text"
-fit_content = true
 scroll_active = false
 script = ExtResource("3_keyword")
 
 [node name="Badges" type="HBoxContainer" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 theme_override_constants/separation = 14
 
@@ -266,10 +267,20 @@ theme_override_font_sizes/font_size = 30
 text = "Fighter"
 text_overrun_behavior = 3
 
-[node name="TierName" type="Label" parent="Person/Column/Head/Names"]
+[node name="TierRow" type="HBoxContainer" parent="Person/Column/Head/Names"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TierName" type="Label" parent="Person/Column/Head/Names/TierRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "NOTICED"
+
+[node name="Acclaim" type="HBoxContainer" parent="Person/Column/Head/Names/TierRow"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 4
 
 [node name="TypeChip" type="PanelContainer" parent="Person/Column/Head"]
 layout_mode = 2
@@ -304,8 +315,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+texture_filter = 1
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 5
 
 [node name="GlyphIcon" type="Control" parent="Person/Column/Body/Art"]
 layout_mode = 1
@@ -357,10 +369,10 @@ text = "SURGE"
 horizontal_alignment = 1
 
 [node name="Text" type="RichTextLabel" parent="Person/Column"]
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 theme_override_font_sizes/normal_font_size = 22
 bbcode_enabled = true
 text = "Power"
-fit_content = true
 scroll_active = false
 script = ExtResource("3_keyword")

@@ -4,6 +4,12 @@
     {"id": "t_may_search", "title": "Test Bargain", "type": "combat", "effects": [{"may": true, "op": "vigor", "amount": -2, "then": [{"op": "search", "card_type": "art"}]}]},
     {"id": "t_pay_vigor", "title": "Test Exertion", "type": "combat", "effects": [{"op": "pay_vigor", "per": 1, "then": [{"op": "acclaim", "amount": 1}]}]},
     {"id": "t_look", "title": "Test Glimpse", "type": "combat", "effects": [{"op": "look_at", "from": "bottom", "amount": 3, "pick": {"card_type": "art"}, "to": "hand"}]},
+    {"id": "t_order", "title": "Test Foresight", "type": "combat", "effects": [{"op": "look_at", "from": "top", "amount": 3, "rearrange": true}]},
+    {"id": "t_oath", "title": "Test Squire's Oath", "type": "combat", "only": {"character": "Test Squire"}, "effects": [{"op": "attach", "to": "character"}], "attachment": {"target": "character", "modifiers": [{"scope": "own", "kind": "any", "stages": 1}]}},
+    {"id": "t_drill_double", "title": "Test Doubling Drill", "type": "drill", "modifiers": [{"scope": "own", "kind": "strike", "multiply": 2}]},
+    {"id": "t_drill_cap", "title": "Test Capping Drill", "type": "drill", "modifiers": [{"scope": "against", "kind": "strike", "cap_stages": 3}]},
+    {"id": "t_strike_firm", "title": "Test Firm Strike", "type": "strike", "attack": {"kind": "strike", "no_reduce": true}},
+    {"id": "t_truce_guard", "title": "Test Guarded Truce", "type": "combat", "defense": {"stops": "any"}, "effects": [{"op": "end_combat"}]},
     {"id": "t_skip_strike", "title": "Test Sweeping Strike", "type": "strike", "guild": "ember", "attack": {"kind": "strike"}, "effects": [{"trigger": "before_damage", "may": true, "skip_damage": true, "op": "discard_in_play", "who": "opponent", "card_type": "drill", "all": true}]},
     {"id": "tf_double", "title": "Test Duelist", "type": "fighter", "character": "Test Duelist", "tiers": [
       {"tier": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "power": {"attack": {"kind": "strike", "stops_needed": 2}}},

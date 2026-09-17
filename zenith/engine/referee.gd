@@ -44,17 +44,23 @@ func submit(seat: int, wire: Dictionary) -> String:
 	return ""
 
 
+## Dev tool: {"player": seat, "effect": {...}}. Only the process holding the engine can call it.
+func dev(wire: Dictionary) -> String:
+	if engine.is_over():
+		return "The duel is over."
+	return engine.dev_effect(int(wire.get("player", 0)), wire.get("effect", {}))
+
+
 ## The updates owed to both seats since the last call, index by seat.
 func take_updates() -> Array[SeatUpdate]:
 	var events: Array[GameEvent] = engine.take_events()
-	var lines: Array[Dictionary] = []
-	for ev in events:
-		var line: String = CardText.event_line(ev, engine)
-		lines.append({"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line})
 	var out: Array[SeatUpdate] = []
 	for seat in range(2):
 		var u: SeatUpdate = SeatUpdate.new()
-		u.lines = lines.duplicate()
+		# Lines are worded per seat: a card this seat may not see is never named in its log.
+		for ev in events:
+			var line: String = CardText.event_line(ev, engine, seat)
+			u.lines.append({"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line})
 		u.view = view_for(seat)
 		u.prompt = prompt_for(seat)
 		out.append(u)

@@ -37,9 +37,7 @@ const FLOAT_TEXT: Dictionary = {
 }
 
 
-## Keywords in rules text: a regex over the generated wording, a colour role the client maps to a
-## colour, and the tooltip a player reads on hover. Longer phrases are listed before the words they
-## contain so a match takes the longer one.
+## Keywords: regex over the generated wording, colour role, hover tooltip. Longer phrases first.
 const KEYWORDS: Array[Dictionary] = [
 	{"key": "Remove from the game after use", "pattern": "\\bRemove from the game after use\\b", "role": "removed",
 		"tip": "After this card is used it is set aside for the rest of the duel. It does not go to the discard pile and nothing can bring it back."},
@@ -94,7 +92,7 @@ const KEYWORDS: Array[Dictionary] = [
 	{"key": "Surge", "pattern": "\\bSurge(?: Rate)?\\b", "role": "vigor",
 		"tip": "The Vigor a personality regains during the Recover step each turn."},
 	{"key": "Acclaim", "pattern": "\\bAcclaim\\b", "role": "acclaim",
-		"tip": "The crowd's regard, 0 to 5. At 5 the king raises the fighter one Favor tier, Vigor refills, and Acclaim starts again at 0."},
+		"tip": "The crowd's regard. When it reaches the mark, 5 unless a card says otherwise, the king raises the fighter one Favor tier, Vigor refills, and Acclaim starts again at 0."},
 	{"key": "Favor", "pattern": "\\bFavor(?: tiers?)?\\b", "role": "favor",
 		"tip": "The king's regard for this duel, in tiers: Noticed, Regarded, Esteemed, Honored, Chosen. Rising a tier refills Vigor and discards your Drills. Reaching the top tier wins by Favor."},
 	{"key": "tier", "pattern": "\\btier \\d\\b|\\bNoticed\\b|\\bRegarded\\b|\\bEsteemed\\b|\\bHonored\\b|\\bChosen\\b", "role": "favor",
@@ -137,6 +135,20 @@ static func tier_name(tier: int) -> String:
 	return "Tier %d" % tier
 
 
+## Short HUD wording for a standing forbid, keyed by the engine's forbid `what` word.
+const RESTRICTION_NAMES: Dictionary = {
+	"strike_attacks": "No Strike attacks", "art_attacks": "No Art attacks", "strike_cards": "No Strike cards",
+	"art_cards": "No Art cards", "combat_cards": "No Combat cards", "non_combats": "No Non-Combats",
+	"drills": "No Drills", "tokens": "No Tokens", "mastery": "Mastery silenced", "powers": "Powers silenced",
+	"stop_all": "Cannot stop every attack", "end_combat": "Cannot end Combat",
+	"non_attack_actions": "Attacks only", "skip_combat": "Must declare Combat",
+}
+
+
+static func restriction_name(what: String) -> String:
+	return str(RESTRICTION_NAMES.get(what, what.capitalize()))
+
+
 static func guild_name(guild: String) -> String:
 	return str(GUILD_NAMES.get(guild, guild.capitalize()))
 
@@ -154,7 +166,7 @@ static func type_line(def: CardDef) -> String:
 	return " · ".join(parts)
 
 
-## Card-type words as they appear in text: singular, plural. Keys are the engine's card_type values.
+## card_type -> [singular, plural].
 const CARD_TYPE_WORDS: Dictionary = {
 	"card": ["card", "cards"], "ally": ["Ally", "Allies"], "drill": ["Drill", "Drills"],
 	"non_combat": ["Non-Combat card", "Non-Combat cards"], "non_combat_only": ["Non-Combat card", "Non-Combat cards"],
@@ -174,7 +186,10 @@ static func _cap(s: String) -> String:
 	return s.substr(0, 1).to_upper() + s.substr(1)
 
 
+## Mid-sentence case; keyword labels keep their capital.
 static func _lc(s: String) -> String:
+	if s.begins_with("Remain ") or s.begins_with("Hit") or s.begins_with("Focus"):
+		return s
 	return s.substr(0, 1).to_lower() + s.substr(1)
 
 
@@ -182,7 +197,6 @@ static func _a(word: String) -> String:
 	return ("an " if word.substr(0, 1).to_lower() in ["a", "e", "i", "o", "u"] else "a ") + word
 
 
-## "a card", "an Ally", "3 cards".
 static func _plural(n: int, one: String, many: String) -> String:
 	if n == 1:
 		return _a(one)
@@ -193,7 +207,6 @@ static func _focus_only(when: Dictionary) -> bool:
 	return when.size() == 1 and bool(when.get("focus", false))
 
 
-## "Focus: X" for a plain Focus condition, "If cond, x" for anything else, X alone for none.
 static func _conditional(when: Dictionary, body: String) -> String:
 	if when.is_empty():
 		return body
@@ -202,8 +215,7 @@ static func _conditional(when: Dictionary, body: String) -> String:
 	return "If %s, %s" % [cond_text(when), _lc(body)]
 
 
-## The words before an effect's instruction, from its trigger head and condition, plus whether
-## the instruction keeps its capital (after a label) or is lowercased (mid-sentence).
+## [prefix, keep_case] for an effect from its trigger head and condition.
 static func _lead(head: String, when: Dictionary) -> Array:
 	var focus: bool = _focus_only(when)
 	var cond: String = "" if when.is_empty() or focus else cond_text(when)
@@ -230,7 +242,6 @@ static func type_words(card_type: String, plural: bool) -> String:
 	return str(words[1 if plural else 0])
 
 
-## "a Drill", "3 Non-Combat cards", "all Allies", "up to 2 Drills".
 static func _count_of(e: Dictionary, card_type: String) -> String:
 	var n: int = int(e.get("amount", 1))
 	if bool(e.get("all", false)):
@@ -394,7 +405,6 @@ static func attack_text(a: Dictionary) -> String:
 	return s
 
 
-## What an attack variant adds, as a clause: "+3 Vigor and Focused".
 static func variant_text(v: Dictionary) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	if int(v.get("stages", 0)) != 0:
@@ -494,7 +504,6 @@ static func cond_text(when: Dictionary) -> String:
 	return " and ".join(parts)
 
 
-## The instruction part of an effect, as a sentence, without its trigger or condition.
 static func _effect_body(e: Dictionary) -> String:
 	var who: String = _who(e)
 	var opp: bool = who == "your opponent"
@@ -507,6 +516,10 @@ static func _effect_body(e: Dictionary) -> String:
 			body = "%s %s Acclaim %d." % [("Raise" if n >= 0 else "Lower"), owner, absi(n)]
 		"set_acclaim":
 			body = "Set %s Acclaim to %d." % [owner, n]
+		"acclaim_needed":
+			body = "%s the Acclaim %s fighter needs to rise a tier by %d." % [("Raise" if n >= 0 else "Lower"), owner, absi(n)]
+		"set_acclaim_needed":
+			body = "%s fighter needs %d Acclaim to rise a tier." % [_cap(owner), n]
 		"vigor":
 			if amount is String:
 				var target: String = str(e.get("target", ""))
@@ -604,7 +617,13 @@ static func _effect_body(e: Dictionary) -> String:
 		"no_favor_win":
 			body = "%s cannot win by Favor for the rest of the game." % _cap(who)
 		"attach":
-			body = "Attach this card to %s." % ("the personality in control" if str(e.get("to", "in_control")) == "in_control" else "your fighter")
+			match str(e.get("to", "in_control")):
+				"in_control":
+					body = "Attach this card to the personality in control."
+				"character":
+					body = "Attach this card to that personality."
+				_:
+					body = "Attach this card to your fighter."
 		"capture_token":
 			body = "Capture a Royal Token."
 		"name_card":
@@ -686,11 +705,10 @@ const OPPONENT_VERBS: Dictionary = {
 	"draws": "draw", "skips": "skip", "pays": "pay", "must": "",
 }
 
-## Triggers that read as a label followed by an instruction, so their condition sits inside.
+## Label-style triggers; their condition sits inside the instruction.
 const COLON_TRIGGERS: Dictionary = {"use": "Use in Combat", "master_use": "", "opponent_declare": "Use during your opponent's Declare step"}
 
 
-## The lead-in for an effect's trigger, without its condition. "" for a plain secondary effect.
 static func _trigger_head(e: Dictionary) -> String:
 	match str(e.get("trigger", "secondary")):
 		"before_damage":
@@ -721,7 +739,6 @@ static func _trigger_head(e: Dictionary) -> String:
 			return ""
 
 
-## One effect as a full sentence: trigger, condition, instruction.
 static func effect_text(e: Dictionary) -> String:
 	var body: String = _effect_body(e)
 	if body == "":
@@ -736,8 +753,28 @@ static func effect_text(e: Dictionary) -> String:
 	return str(lead[0]) + (body if bool(lead[1]) else _lc(body))
 
 
-## A list of effects as lines, with effects that share a trigger and condition folded into one
-## sentence, and a forbid or clear-the-board that hits both players said once.
+## What an optional effect does once its owner says yes, for the prompt that asks. The trigger
+## and condition have already been met by then, so only the instruction remains, minus the "may".
+static func may_text(e: Dictionary) -> String:
+	var plain: Dictionary = e.duplicate(true)
+	for key in ["may", "trigger", "when", "at"]:
+		plain.erase(key)
+	var text: String = ""
+	if str(plain.get("op", "")) == "" and plain.has("then"):
+		var lines: PackedStringArray = PackedStringArray()
+		for t in plain["then"]:
+			var tt: String = effect_text(t)
+			if tt != "":
+				lines.append(tt)
+		text = " ".join(lines)
+	else:
+		text = effect_text(plain)
+	if bool(e.get("skip_damage", false)):
+		text += " The attack then deals no damage."
+	return text.strip_edges()
+
+
+## Effects as lines; same trigger and condition fold into one sentence.
 static func effects_text(effects: Array) -> PackedStringArray:
 	var merged: Array[Dictionary] = _merge_pairs(effects)
 	var lines: PackedStringArray = PackedStringArray()
@@ -761,10 +798,8 @@ static func effects_text(effects: Array) -> PackedStringArray:
 			var inners: PackedStringArray = PackedStringArray()
 			for g in group:
 				var body: String = _effect_body(g)
-				if body == "":
-					continue
-				var cond: String = cond_text(g.get("when", {})) if g.has("when") else ""
-				inners.append(("If %s, %s" % [cond, _lc(body)]) if cond != "" else body)
+				if body != "":
+					inners.append(_conditional(g.get("when", {}), body))
 			var label: String = str(COLON_TRIGGERS[trigger])
 			lines.append(" ".join(inners) if label == "" else "%s: %s" % [label, " ".join(inners)])
 			continue
@@ -777,20 +812,20 @@ static func effects_text(effects: Array) -> PackedStringArray:
 			if body.contains(". "):
 				simple = false
 			bodies.append(body)
-		var head: String = _trigger_head(e)
-		var cond: String = cond_text(e.get("when", {})) if e.has("when") else ""
-		if cond != "":
-			head += (" and " if head in ["If successful", "If stopped"] else (", if " if head != "" else "If ")) + cond
+		var lead: Array = _lead(_trigger_head(e), e.get("when", {}))
+		var prefix: String = str(lead[0])
+		var keep_case: bool = bool(lead[1])
 		if simple:
 			var clauses: PackedStringArray = PackedStringArray()
-			for b in bodies:
-				clauses.append(_lc(b).trim_suffix("."))
-			lines.append("%s, %s." % [head, _join_and(clauses)])
+			for k in range(bodies.size()):
+				var clause: String = bodies[k].trim_suffix(".")
+				clauses.append(clause if keep_case and k == 0 else _lc(clause))
+			lines.append("%s%s." % [prefix, _join_and(clauses)])
 		else:
 			var rest: PackedStringArray = PackedStringArray()
 			for k in range(1, bodies.size()):
 				rest.append(bodies[k])
-			lines.append("%s, %s %s" % [head, _lc(bodies[0]), " ".join(rest)])
+			lines.append("%s%s %s" % [prefix, (bodies[0] if keep_case else _lc(bodies[0])), " ".join(rest)])
 	return lines
 
 
@@ -803,7 +838,7 @@ static func _join_and(parts: PackedStringArray) -> String:
 	return "%s, and %s" % [", ".join(head), parts[parts.size() - 1]]
 
 
-## Effects fold together when they share a trigger and condition; plain unconditional lines stay apart.
+## "" keeps a plain unconditional line on its own.
 static func _group_key(e: Dictionary) -> String:
 	var trigger: String = str(e.get("trigger", "secondary"))
 	if COLON_TRIGGERS.has(trigger):
@@ -813,8 +848,7 @@ static func _group_key(e: Dictionary) -> String:
 	return "%s|%s|%s|%s" % [trigger, JSON.stringify(e.get("when", {})), str(e.get("role", "")), str(e.get("at", ""))]
 
 
-## A forbid or an all-cards discard aimed at yourself and then at your opponent becomes one effect
-## for both. Forbids on the same player with the same span fold their subjects together.
+## Self-and-opponent forbids or board clears become one "both" effect; forbids on one player fold.
 static func _merge_pairs(effects: Array) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var used: Dictionary = {}
@@ -942,8 +976,7 @@ static func modifier_text(m: Dictionary) -> String:
 	return s
 
 
-## What a personality's tier card says: its Power (attack, defense, effects, uses), then any
-## constant powers, then its Defense Shield. Used by the card face and the roster dump.
+## Power, constants, Defense Shield of one tier.
 static func tier_text(def: CardDef, tier: int = 0) -> PackedStringArray:
 	var t: int = tier if tier > 0 else def.lowest_tier()
 	var td: Dictionary = def.tier_data(t)
@@ -971,7 +1004,6 @@ static func tier_text(def: CardDef, tier: int = 0) -> PackedStringArray:
 	return lines
 
 
-## Constant Combat Powers on a personality tier, one sentence each.
 static func constant_text(c: Dictionary) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	if bool(c.get("first_styled_unstoppable", false)):
@@ -1014,6 +1046,8 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			return "Finish Armory swap"
 		&"place":
 			return "Place %s" % name
+		&"shuffle_back":
+			return "Show %s and shuffle it back" % name
 		&"master":
 			return "Use %s" % name
 		&"done":
@@ -1099,7 +1133,7 @@ static func prompt_title(p: Prompt) -> String:
 		&"declare":
 			return "Declare Combat?"
 		&"attack_action":
-			return "Your attack phase"
+			return "Fight back" if bool(p.context.get("fight_back", false)) else "Your attack phase"
 		&"respond":
 			if str(p.context.get("mode", "")) == "declare":
 				return "Your opponent's Declare step: respond?"
@@ -1132,26 +1166,36 @@ static func prompt_title(p: Prompt) -> String:
 			return "Name a card"
 		&"pick_option":
 			if bool(p.context.get("may", false)):
-				return "Optional effect: use it?"
+				var title: String = str(p.context.get("card_title", ""))
+				return "%s: use the optional effect?" % title if title != "" else "Use the optional effect?"
 			if bool(p.context.get("search", false)):
 				var n: int = int(p.context.get("amount", 1))
 				return "Search: take up to %d cards" % n if n > 1 else "Search: take a card"
+			if bool(p.context.get("rearrange", false)):
+				return "Put back on the %s next" % ("top" if str(p.context.get("from", "top")) == "top" else "bottom")
 			return "Choose"
 		_:
 			return str(p.kind)
 
 
 ## One line per engine event for the log. Empty string means do not log.
-static func event_line(ev: GameEvent, engine: DuelEngine) -> String:
+static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> String:
 	var d: Dictionary = ev.data
+	var actor: int = int(d.get("player", -1))
 	var pname: String = _pname(engine, int(d.get("player", -1)))
 	match ev.type:
 		&"turn_start":
 			return "— Turn %d: %s —" % [int(d.get("turn", 0)), pname]
+		&"dev":
+			return "Dev: %s runs %s on %s." % [pname, str(d.get("op", "")), ("the rival" if str(d.get("who", "self")) == "opponent" else "themselves")]
 		&"draw":
 			return "%s draws." % pname
 		&"card_placed":
-			return "%s places %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s places %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"drill_shuffled_back":
+			return "%s shows %s and shuffles it back into the Life Deck." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"rearranged":
+			return "%s puts %d cards back in a chosen order." % [pname, int(d.get("count", 0))]
 		&"power_up":
 			return "%s powers up %d to Vigor %d." % [pname, int(d.get("gain", 0)), int(d.get("vigor", 0))]
 		&"combat_declared":
@@ -1171,17 +1215,17 @@ static func event_line(ev: GameEvent, engine: DuelEngine) -> String:
 				src = "a copied attack"
 			return "%s attacks with %s%s." % [pname, src, (" (Empowered)" if bool(d.get("empowered", false)) else "")]
 		&"card_used":
-			return "%s uses %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s uses %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"power_used":
-			return "%s uses %s's Power." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s uses %s's Power." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"master_used":
-			return "%s calls on %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s calls on %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"cost_paid":
 			return "%s pays %d Vigor." % [pname, int(d.get("stages", 0))]
 		&"countered":
-			return "%s counters %s with %s." % [pname, _cname(engine, int(d.get("target", -1))), _cname(engine, int(d.get("card", -1)))]
+			return "%s counters %s with %s." % [pname, _cname(engine, int(d.get("target", -1))), _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"defense_played":
-			return "%s defends with %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s defends with %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"defense_power":
 			return "%s defends with a Power." % pname
 		&"no_defense":
@@ -1194,23 +1238,78 @@ static func event_line(ev: GameEvent, engine: DuelEngine) -> String:
 			return "The attack is stopped."
 		&"attack_successful":
 			return "The attack lands."
+		&"base_damage":
+			return base_damage_line(d)
+		&"modified_damage":
+			return modified_damage_line(d)
 		&"damage_stages":
 			var s: String = "%s loses %d Vigor" % [pname, int(d.get("stages", 0))]
 			if int(d.get("overflow", 0)) > 0:
 				s += " and takes %d wounds from the overflow" % int(d["overflow"])
 			return s + "."
 		&"life_card_flipped":
-			return "%s takes a wound: %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s takes a wound: %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"endurance_used":
 			return "%s uses Endurance and prevents %d." % [pname, int(d.get("prevented", 0))]
 		&"token_bypassed":
 			return "A Royal Token surfaces and returns to the deck."
 		&"token_captured":
-			return "%s captures %s!" % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s captures %s!" % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"acclaim_changed":
-			return "%s's Acclaim: %d → %d." % [pname, int(d.get("from", 0)), int(d.get("to", 0))]
+			if int(d.get("from", 0)) == int(d.get("to", 0)):
+				return ""
+			var by: String = _cname(engine, int(d.get("source", -1)))
+			var lead: String = "%s: " % by if by != "a card" else ""
+			return "%s%s's Acclaim %d → %d." % [lead, pname, int(d.get("from", 0)), int(d.get("to", 0))]
+		&"draw_check":
+			var by: String = _cname(engine, int(d.get("source", -1)))
+			var want: String = ""
+			match str(d.get("check", "guild")):
+				"named":
+					want = "a named card"
+				"signature":
+					want = "a Signature card"
+				"title_contains":
+					want = "the card asked for"
+				_:
+					want = "%s" % guild_name(str(d.get("guild", "")))
+			var matched: bool = bool(d.get("matched", false))
+			if _sees(engine, int(d.get("card", -1)), seat, actor):
+				return "%s: the drawn card is %s, %s%s." % [by, _cname(engine, int(d.get("card", -1))), ("" if matched else "not "), want]
+			# The other seat learns the outcome, never the card.
+			return "%s: the drawn card is %s%s%s." % [by, ("" if matched else "not "), want, ("; the effect follows" if matched else "")]
+		&"vigor_changed":
+			var by: String = _cname(engine, int(d.get("source", -1)))
+			return "%s: %s's Vigor %d → %d." % [by if by != "a card" else "Effect", _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("from", 0)), int(d.get("to", 0))]
+		&"trigger_fired":
+			return "%s triggers %s." % [_cname(engine, int(d.get("card", -1)), seat, actor), trigger_phrase(str(d.get("trigger", "")))]
+		&"flag_set":
+			return _flag_line(engine, d)
+		&"floating":
+			return _floating_line(engine, d)
+		&"card_moved":
+			if str(d.get("to", "")) == "removed":
+				return "%s is removed from the game." % _cname(engine, int(d.get("card", -1)), seat, actor)
+			return ""
+		&"attack_phase_skipped":
+			return "%s's attack phase is skipped." % pname
+		&"life_card_lost":
+			# Wounds outside an attack's own damage: Art costs, effects, Vigor overflow.
+			return "%s loses a life card: %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"look_at":
+			return "%s looks at the %s %d cards of their Life Deck." % [pname, str(d.get("from", "top")), int(d.get("count", 0))]
+		&"declined_counter":
+			return "%s lets it stand." % pname
+		&"bonded":
+			return "%s's Allies bond under %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"unbonded":
+			return "%s's bond ends; the Allies stand apart again." % pname
+		&"bond_tick":
+			return "%s places a life card under %s (%d)." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("count", 0))]
 		&"acclaim_shielded":
 			return "%s's Master shields their Acclaim." % pname
+		&"acclaim_needed_changed":
+			return "%s now needs %d Acclaim to rise a tier." % [pname, int(d.get("to", 0))]
 		&"tier_up":
 			return "The king raises %s to %s!" % [pname, tier_name(int(d.get("tier", 1)))]
 		&"tier_down":
@@ -1224,27 +1323,27 @@ static func event_line(ev: GameEvent, engine: DuelEngine) -> String:
 		&"discard_step":
 			return "%s discards %d." % [pname, int(d.get("discarded", 0))]
 		&"hand_discarded":
-			return "%s discards %s from hand." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s discards %s from hand." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"recover":
 			return "%s returns a card to the Life Deck." % pname
 		&"final_strike":
 			return "%s commits to a Final Strike." % pname
 		&"control":
-			return "%s takes control of Combat." % _cname(engine, int(d.get("card", -1)))
+			return "%s takes control of Combat." % _cname(engine, int(d.get("card", -1)), seat, actor)
 		&"redirect":
-			return "%s takes the damage." % _cname(engine, int(d.get("card", -1)))
+			return "%s takes the damage." % _cname(engine, int(d.get("card", -1)), seat, actor)
 		&"bracket_rule":
 			return "The weaker fighter opens the duel."
 		&"armory_swap":
-			return "%s brings %s in from the Armory." % [pname, _cname(engine, int(d.get("in", -1)))]
+			return "%s brings %s in from the Armory." % [pname, _cname(engine, int(d.get("in", -1)), seat, actor)]
 		&"search":
-			return "%s searches out %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s searches out %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"in_play_discarded":
-			return "%s loses %s from play." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s loses %s from play." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"attached":
-			return "%s attaches %s." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s attaches %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"remain":
-			return "%s keeps %s on the table to use again." % [pname, _cname(engine, int(d.get("card", -1)))]
+			return "%s keeps %s on the table to use again." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"card_named":
 			return "%s names %s." % [pname, str(d.get("name", ""))]
 		&"token_victory_pending":
@@ -1263,12 +1362,184 @@ static func event_line(ev: GameEvent, engine: DuelEngine) -> String:
 			return ""
 
 
+## When a card's effect fires, for the "<card> triggers ..." log line.
+static func trigger_phrase(trigger: String) -> String:
+	match trigger:
+		"turn_start":
+			return "at the start of the turn"
+		"on_place":
+			return "on being placed"
+		"entering_combat":
+			return "when entering Combat"
+		"on_attack":
+			return "on the attack"
+		"before_damage":
+			return "before damage"
+		"if_successful":
+			return "on the hit"
+		"on_success":
+			return "after the successful attack"
+		"if_stopped":
+			return "because the attack was stopped"
+		"on_wound":
+			return "on being discarded from the Life Deck"
+		_:
+			return "now"
+
+
+static func _flag_line(engine: DuelEngine, d: Dictionary) -> String:
+	var pname: String = _pname(engine, int(d.get("player", -1)))
+	var by: String = _cname(engine, int(d.get("source", -1)))
+	var lead: String = "%s: " % by if by != "a card" else ""
+	match str(d.get("flag", "")):
+		"skip_next_attack_phase":
+			return "%s%s will skip their next attack phase." % [lead, pname]
+		"cannot_declare_combat":
+			return "%s%s cannot declare Combat this turn." % [lead, pname]
+		"must_declare_combat":
+			return "%s%s must declare Combat this turn." % [lead, pname]
+		"end_combat":
+			return "%s%s ends Combat." % [lead, pname]
+		"end_turn":
+			return "%s%s ends the turn." % [lead, pname]
+		_:
+			return ""
+
+
+static func duration_phrase(duration: String) -> String:
+	match duration:
+		"combat":
+			return " for the rest of Combat"
+		"turn":
+			return " this turn"
+		"next_turn_end":
+			return " until the end of their next turn"
+		"game":
+			return " for the rest of the game"
+		_:
+			return ""
+
+
+## A standing effect coming into force: forbids, stops, gains blocked, and the rest.
+static func _floating_line(engine: DuelEngine, d: Dictionary) -> String:
+	var pname: String = _pname(engine, int(d.get("player", -1)))
+	var span: String = duration_phrase(str(d.get("duration", "")))
+	var by: String = _cname(engine, int(d.get("source", -1)))
+	var lead: String = "%s: " % by if by != "a card" else ""
+	match str(d.get("op", "")):
+		"forbid":
+			var what: String = str(d.get("what", ""))
+			return "%s%s may not %s%s." % [lead, pname, str(FORBID_TEXT.get(what, what.replace("_", " "))), span]
+		"stop_all":
+			var kind: String = str(d.get("kind", "any"))
+			return "%s%s will stop every %s%s." % [lead, pname, ("attack" if kind == "any" else kind.capitalize()), span]
+		"no_gain":
+			return "%s%s cannot gain Vigor%s." % [lead, pname, span]
+		"keep_hand":
+			return "%s%s keeps their whole hand%s." % [lead, pname, span]
+		"prevent_all":
+			return "%s%s prevents all damage%s." % [lead, pname, span]
+		"no_prevent":
+			return "%s%s's damage cannot be prevented%s." % [lead, pname, span]
+		"no_endurance":
+			return "%s%s cannot use Endurance%s." % [lead, pname, span]
+		"no_ally_control":
+			return "%s%s's Allies cannot take control%s." % [lead, pname, span]
+		"damage_removes":
+			return "%s%s's wounds remove cards from the game%s." % [lead, pname, span]
+		"next_attack_tax":
+			return "%s%s's next attack costs %d more Vigor." % [lead, pname, int(d.get("stages", 0))]
+		"modifier", "stopped_last", "prevent_art_life", "copied_attack":
+			return ""
+		_:
+			return "%s%s: %s in effect%s." % [lead, pname, str(d.get("op", "")).replace("_", " "), span]
+
+
+## Strike Table bands are lettered A upward, as on the printed table.
+static func band_letter(band: int) -> String:
+	return char(65 + clampi(band, 0, 25))
+
+
+static func might_band(might: int, band: int) -> String:
+	return "%s (%s)" % [short_number(might), band_letter(band)]
+
+
+## "4 stages, 1 wound" with the right plurals; "no damage" when both are 0.
+static func damage_amount(stages: int, life: int) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if stages != 0:
+		parts.append("%d stage%s" % [stages, "" if absi(stages) == 1 else "s"])
+	if life != 0:
+		parts.append("%d wound%s" % [life, "" if absi(life) == 1 else "s"])
+	return ", ".join(parts) if not parts.is_empty() else "no damage"
+
+
+## Step 9 of the battle sequence as one log line: where the base number came from.
+static func base_damage_line(d: Dictionary) -> String:
+	var stages: int = int(d.get("stages", 0))
+	var life: int = int(d.get("life", 0))
+	if bool(d.get("wild", false)):
+		return "Base damage: a wild personality is in control, so %s." % damage_amount(stages, life)
+	if bool(d.get("printed", false)):
+		return "Base damage: printed %s." % damage_amount(stages, life)
+	if str(d.get("kind", "strike")) == "art":
+		return "Base damage: Arts deal %s." % damage_amount(stages, life)
+	return "Strike Table: Might %s vs %s gives %s." % [
+		might_band(int(d.get("attacker_might", 0)), int(d.get("attacker_band", 0))),
+		might_band(int(d.get("defender_might", 0)), int(d.get("defender_band", 0))),
+		damage_amount(stages, life),
+	]
+
+
+## Step 10: each addition with its card, then the total. Empty when nothing changed the base.
+static func modified_damage_line(d: Dictionary) -> String:
+	var adds: Array = d.get("adds", [])
+	if adds.is_empty():
+		return ""
+	var parts: PackedStringArray = PackedStringArray()
+	for add in adds:
+		parts.append("%s (%s)" % [add_text(add), str(add.get("source", ""))])
+	return "Modifiers: %s. Total %s." % [", ".join(parts), damage_amount(int(d.get("stages", 0)), int(d.get("life", 0)))]
+
+
+## One breakdown entry without its source: "+2 stages", "x2", "cap 3 stages".
+static func add_text(add: Dictionary) -> String:
+	if add.has("multiply"):
+		return "x%d" % int(add["multiply"])
+	if add.has("cap_stages"):
+		return "cap %d stages" % int(add["cap_stages"])
+	if add.has("cap_life"):
+		return "cap %d wounds" % int(add["cap_life"])
+	return signed_damage(int(add.get("stages", 0)), int(add.get("life", 0)))
+
+
+## "+2 stages", "-1 wound", "+1 stage +1 wound"; for breakdown lines.
+static func signed_damage(stages: int, life: int) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if stages != 0:
+		parts.append("%+d stage%s" % [stages, "" if absi(stages) == 1 else "s"])
+	if life != 0:
+		parts.append("%+d wound%s" % [life, "" if absi(life) == 1 else "s"])
+	return " ".join(parts)
+
+
 static func _pname(engine: DuelEngine, i: int) -> String:
 	if i < 0 or i >= engine.state.players.size():
 		return "?"
 	return engine.state.players[i].name
 
 
-static func _cname(engine: DuelEngine, uid: int) -> String:
+## A card's title for a log line. With a `seat`, the title shows only if that seat may see the card
+## where it sits now or is the `actor` whose own play it was; otherwise "a card". Seat -1 sees all.
+static func _cname(engine: DuelEngine, uid: int, seat: int = -1, actor: int = -1) -> String:
 	var c: CardInstance = engine.card(uid)
-	return c.def.title if c != null else "a card"
+	if c == null:
+		return "a card"
+	if seat >= 0 and seat != actor and not SeatCard.visible_to(c, seat):
+		return "a card"
+	return c.def.title
+
+
+static func _sees(engine: DuelEngine, uid: int, seat: int, actor: int) -> bool:
+	var c: CardInstance = engine.card(uid)
+	return c != null and (seat < 0 or seat == actor or SeatCard.visible_to(c, seat))

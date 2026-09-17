@@ -1,0 +1,76 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/dev_panel.gd" id="1_dev"]
+
+[node name="DevPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(340, 0)
+offset_right = 340.0
+offset_bottom = 200.0
+script = ExtResource("1_dev")
+
+[node name="Column" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Dev"
+
+[node name="Target" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="Column/Target"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 0)
+theme_type_variation = &"MutedLabel"
+text = "Target"
+
+[node name="Me" type="Button" parent="Column/Target"]
+layout_mode = 2
+toggle_mode = true
+theme_override_font_sizes/font_size = 12
+text = "Me"
+
+[node name="Rival" type="Button" parent="Column/Target"]
+layout_mode = 2
+toggle_mode = true
+theme_override_font_sizes/font_size = 12
+text = "Rival"
+
+[node name="Rows" type="VBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Search" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="Column/Search"]
+layout_mode = 2
+custom_minimum_size = Vector2(56, 0)
+theme_type_variation = &"MutedLabel"
+text = "Card"
+
+[node name="Title" type="LineEdit" parent="Column/Search"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "title contains"
+
+[node name="ToHand" type="Button" parent="Column/Search"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Hand"
+
+[node name="ToPlay" type="Button" parent="Column/Search"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Play"
+
+[node name="Status" type="Label" parent="Column"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 3

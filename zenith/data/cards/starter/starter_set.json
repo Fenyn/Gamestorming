@@ -1960,7 +1960,7 @@
    "effects": [
     {
      "op": "attach",
-     "to": "fighter"
+     "to": "character"
     }
    ],
    "only": {

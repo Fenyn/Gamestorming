@@ -1,7 +1,7 @@
 class_name KeywordText
 extends RefCounted
-## Turns generated rules text into BBCode: keywords from CardText.KEYWORDS get their role colour
-## and a hover hint. Colours come in two sets, ink for the cream card face and light for the dark UI.
+## Rules text to BBCode: keywords from CardText.KEYWORDS get a role colour and a hover hint.
+## INK is for the cream card face, LIGHT for the dark UI.
 
 const INK: Dictionary = {
 	"vigor": Color(0.12, 0.44, 0.30),
@@ -27,7 +27,6 @@ const LIGHT: Dictionary = {
 	"zone": Color(0.75, 0.70, 0.62),
 	"plain": Color(0.93, 0.91, 0.87),
 }
-## Roles that borrow a card type's colour.
 const TYPE_ROLES: Dictionary = {
 	"strike": CardDef.Type.STRIKE, "art": CardDef.Type.ART, "combat": CardDef.Type.COMBAT,
 	"non_combat": CardDef.Type.NON_COMBAT, "drill": CardDef.Type.DRILL, "ally": CardDef.Type.ALLY,
@@ -56,7 +55,7 @@ static func _regexes() -> Array[RegEx]:
 	return _compiled
 
 
-## Plain rules text to BBCode. Overlapping matches go to the earliest start, then the longest.
+## Overlapping matches go to the earliest start, then the longest.
 static func bbcode(plain: String, on_dark: bool = false) -> String:
 	var found: Array[Dictionary] = []
 	var regexes: Array[RegEx] = _regexes()
@@ -84,7 +83,6 @@ static func bbcode(plain: String, on_dark: bool = false) -> String:
 	return out
 
 
-## The tooltip for a keyword as it appears in text, or "" when it is not one.
 static func tip_for(word: String) -> String:
 	var regexes: Array[RegEx] = _regexes()
 	for i in range(regexes.size()):
@@ -98,6 +96,6 @@ static func _escape(s: String) -> String:
 	return s.replace("[", "[lb]").replace("]", "[rb]")
 
 
-## A hint value with punctuation must be quoted or the tag parser gives up on it.
+## Quoted: an unquoted hint with punctuation is printed raw by the tag parser.
 static func _hint(s: String) -> String:
 	return "\"%s\"" % s.replace("[", "(").replace("]", ")").replace("\"", "'")

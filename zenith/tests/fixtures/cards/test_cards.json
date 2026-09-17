@@ -58,6 +58,7 @@
     {"id": "t_drill_free", "title": "Test Footwork Drill", "type": "drill", "modifiers": [{"scope": "own", "kind": "art", "life": 1}]},
     {"id": "t_scout", "title": "Test Scout", "type": "combat", "effects": [{"op": "discard_hand", "who": "opponent", "amount": 2}]},
     {"id": "t_mastery_tide", "title": "Test Tide Mastery", "type": "mastery", "guild": "tide", "modifiers": [{"scope": "against", "kind": "strike", "stages": 1}]},
+    {"id": "t_mastery_hard", "title": "Test Hard Mastery", "type": "mastery", "guild": "tide", "opponent_tier_threshold": 6},
     {"id": "t_master", "title": "Test Master", "type": "master", "armory_size": 4},
     {"id": "t_seek", "title": "Test Seek", "type": "combat", "effects": [{"op": "search", "card_type": "art", "amount": 1}]},
     {"id": "t_glare", "title": "Test Glare", "type": "combat", "effects": [{"op": "discard_in_play", "who": "opponent", "card_type": "non_combat", "amount": 1}]},

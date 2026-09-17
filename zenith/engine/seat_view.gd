@@ -29,6 +29,26 @@ func player(i: int) -> SeatPlayer:
 	return players[i]
 
 
+## Live Vigor for a personality in play that this seat can see, else -1.
+func live_vigor(uid: int) -> int:
+	var c: SeatCard = card(uid)
+	if c == null or c.hidden():
+		return -1
+	for p in players:
+		if p.fighter == uid or p.allies.has(uid):
+			return c.vigor
+	return -1
+
+
+## The player whose fighter this card is, else null. Faces read Acclaim and the other effective
+## values from it.
+func fighter_owner(uid: int) -> SeatPlayer:
+	for p in players:
+		if p.fighter == uid:
+			return p
+	return null
+
+
 func card(uid: int) -> SeatCard:
 	return cards.get(uid)
 
@@ -96,7 +116,7 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 	v.attack = _attack_summary(engine)
 	v.grounds = s.grounds.uid if s.grounds != null else -1
 	for p in s.players:
-		v.players.append(SeatPlayer.of(p))
+		v.players.append(SeatPlayer.of(p, engine))
 	for c in engine.all_cards():
 		v.cards[c.uid] = SeatCard.of(c, seat)
 		if c.zone == &"resolving":
@@ -115,16 +135,33 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 	var a: Dictionary = engine.state.attack
 	if a.is_empty():
 		return {}
+	var s: GameState = engine.state
 	var out: Dictionary = {
 		"kind": str(a.get("kind", "strike")),
+		"attacker": int(a.get("attacker", 0)),
+		"defender": int(a.get("defender", 1)),
 		"focused": bool(a.get("focused", false)),
 		"is_final": bool(a.get("is_final", false)),
 		"is_power": bool(a.get("is_power", false)),
+		"empowered": bool(a.get("empowered", false)),
 		"unstoppable": bool(a.get("unstoppable", false)),
 		"stops_needed": int(a.get("stops_needed", 1)),
+		"stop_count": int(a.get("stop_count", 0)),
 		"no_prevent": bool(a.get("no_prevent", false)),
+		"stopped": bool(a.get("stopped", false)),
 		"source_title": "",
 		"performer_title": "",
+		# The numbers, step by step: what the table gives, what each card adds, what would land.
+		# `landed` once the battle sequence has fixed them (steps 9 and 10 are done); before that
+		# they are the forecast the defender is answering.
+		"damage": engine.damage_breakdown(a),
+		"landed": s.battle_step >= 12 and not bool(a.get("stopped", false)),
+		"stages": int(a.get("stages", 0)),
+		"life": int(a.get("life", 0)),
+		"stages_dealt": int(a.get("stages_dealt", 0)),
+		"life_dealt": int(a.get("life_dealt", 0)),
+		"life_remaining": int(a.get("life_remaining", 0)),
+		"target": int(a.get("target", -1)),
 	}
 	var src: CardInstance = engine.card(int(a.get("source", -1)))
 	if src != null:

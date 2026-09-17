@@ -183,6 +183,41 @@ theme_override_font_sizes/font_size = 11
 text = "VIGOR"
 horizontal_alignment = 1
 
+[node name="Attack" type="PanelContainer" parent="Margin/Column/Art"]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -84.0
+offset_right = 110.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="Column" type="VBoxContainer" parent="Margin/Column/Art/Attack"]
+layout_mode = 2
+theme_override_constants/separation = -5
+alignment = 1
+
+[node name="Kind" type="Label" parent="Margin/Column/Art/Attack/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "STRIKE"
+horizontal_alignment = 1
+
+[node name="Num" type="Label" parent="Margin/Column/Art/Attack/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "+3"
+horizontal_alignment = 1
+
+[node name="Word" type="Label" parent="Margin/Column/Art/Attack/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "VIGOR"
+horizontal_alignment = 1
+
 [node name="Text" type="RichTextLabel" parent="Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3

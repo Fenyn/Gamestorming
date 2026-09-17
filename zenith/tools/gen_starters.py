@@ -116,54 +116,57 @@ ALPHA, BETA, GAMMA, DELTA, EPSILON, ZETA = "Bram Ashmark", "Dame Alder Rooke", "
 # ============================================================================
 # Fighters
 # ============================================================================
+# Might is on the compact scale of data/strike_table.json (one band per ten points). Each tier
+# keeps the shape of the source ladder (where it crosses a band, how fast it climbs) but the
+# spread between fighters at one tier is at most a band or two, not five.
 fighter("fighter_alpha", ALPHA, [
-    tier(1, 2, 4500000, 100000, power={"attack": {"kind": "strike", "stages": 3}, "effects": [VIG(5), IFSTOP(E("draw", amount=1))]}),
-    tier(2, 6, 11200000, 25000, power={"attack": {"kind": "art", "focused": True, "stages_from_table": True, "cost_stages": 0}, "effects": [OPP_ACC(-2)]}),
-    tier(3, 8, 15000000, 750000, constant={"first_styled_unstoppable": True}),
+    tier(1, 2, 24, 1, power={"attack": {"kind": "strike", "stages": 3}, "effects": [VIG(5), IFSTOP(E("draw", amount=1))]}),
+    tier(2, 5, 34, 1, power={"attack": {"kind": "art", "focused": True, "stages_from_table": True, "cost_stages": 0}, "effects": [OPP_ACC(-2)]}),
+    tier(3, 6, 46, 2, constant={"first_styled_unstoppable": True}),
 ])
 fighter("fighter_beta", BETA, [
-    tier(1, 1, 1000000, 100000, constant={"protect_allies": True, "turn_start": [WHEN(E("advance_tier"), allies_min=5)]}),
-    tier(2, 2, 1400000, 100000, power={"attack": {"kind": "strike", "variants": [{"when": {"ally_present": "Sir Edric Rooke"}, "stages": 4}]}}),
-    tier(3, 1, 7000000, 500000, power={"effects": [ENTER(DISCARD_IN_PLAY("non_combat", all=True, remove=True))]}),
+    tier(1, 1, 12, 1, constant={"protect_allies": True, "turn_start": [WHEN(E("advance_tier"), allies_min=5)]}),
+    tier(2, 2, 16, 1, power={"attack": {"kind": "strike", "variants": [{"when": {"ally_present": "Sir Edric Rooke"}, "stages": 4}]}}),
+    tier(3, 1, 40, 2, power={"effects": [ENTER(DISCARD_IN_PLAY("non_combat", all=True, remove=True))]}),
 ])
 fighter("fighter_gamma", GAMMA, [
-    tier(1, 2, 1200000, 100000, power={"defense": {"stops": "art"}, "effects": [WHEN(VIG(3), focus=True)]}),
-    tier(2, 1, 1250000, 100000, shield="strike", power={"effects": [ENTER(WHEN(VIG(5), focus=True))]}),
-    tier(3, 2, 1300000, 100000, power={"attack": {"kind": "art", "cost_stages": 0}, "effects": [E("draw", amount=1), WHEN(E("draw", amount=1), focus=True)]}),
+    tier(1, 2, 16, 1, power={"defense": {"stops": "art"}, "effects": [VIG(3)]}),
+    tier(2, 1, 20, 1, shield="strike", power={"effects": [ENTER(VIG(5))]}),
+    tier(3, 2, 26, 1, power={"attack": {"kind": "art", "cost_stages": 0}, "effects": [E("draw", amount=2)]}),
 ])
 fighter("fighter_delta", DELTA, [
-    tier(1, 2, 1900000, 50000, constant={"allies_share": True, "ally_control_any_stage": True, "modifiers": [{"scope": "own", "kind": "any", "stages": 1, "per_ally": True}]}),
-    tier(2, 3, 2900000, 100000, constant={"allies_share": True, "ally_control_any_stage": True, "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "stages": 3}]}),
-    tier(3, 5, 4000000, 100000, constant={"allies_share": True, "ally_control_any_stage": True, "attacks_focused": True}),
+    tier(1, 2, 20, 1, constant={"allies_share": True, "ally_control_any_stage": True, "modifiers": [{"scope": "own", "kind": "any", "stages": 1, "per_ally": True}]}),
+    tier(2, 3, 28, 1, constant={"allies_share": True, "ally_control_any_stage": True, "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "stages": 3}]}),
+    tier(3, 5, 36, 1, constant={"allies_share": True, "ally_control_any_stage": True, "attacks_focused": True}),
 ])
 fighter("fighter_epsilon", EPSILON, [
-    tier(1, 1, 340000, 20000, constant={"on_attack": [ACC(1)]}),
-    tier(2, 2, 2800000, 20000, constant={"entering_combat": [WHEN(E("remove_discard", amount=1), discard_top_guild="steel"), WHEN(ACC(2), discard_top_guild="steel"),
-                                                             WHEN(FLOAT("modifier", scope="own", kind="strike", stages=2), discard_top_guild="steel")]}),
-    tier(3, 4, 4100000, 20000, power={"attack": {"kind": "strike", "stages": 4}, "uses": 2,
-                                      "effects": [WHEN(FLOAT("modifier", scope="own", kind="any", life=2), discard_top_guild="steel")]}),
+    tier(1, 1, 18, 1, constant={"on_attack": [ACC(1)]}),
+    tier(2, 2, 30, 1, constant={"entering_combat": [WHEN(E("remove_discard", amount=1), discard_top_guild="steel"), WHEN(ACC(2), discard_top_guild="steel"),
+                                                    WHEN(FLOAT("modifier", scope="own", kind="strike", stages=2), discard_top_guild="steel")]}),
+    tier(3, 4, 40, 1, power={"attack": {"kind": "strike", "stages": 4}, "uses": 2,
+                             "effects": [WHEN(FLOAT("modifier", scope="own", kind="any", life=2), discard_top_guild="steel")]}),
 ])
 fighter("fighter_zeta", ZETA, [
-    tier(1, 2, 1000000, 50000, power={"effects": [ENTER(E("look_at", amount=8, pick={"title_contains": "Sword"}, to="hand", play_if={"title_contains": "Swordplay"}, shuffle_after=True, **{"from": "top"}))]}),
-    tier(2, 2, 1150000, 50000, power={"attack": {"kind": "strike", "only_first_attack": True, "stops_needed": 2}}),
-    tier(3, 3, 3100000, 200000, power={"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(FORBID("art_attacks", "opponent"))]}),
-    tier(4, 4, 4100000, 300000, constant={"forbid_opponent": ["art_attacks"]}),
-    tier(5, 5, 4700000, 100000, power={"effects": [ENTER(E("draw", amount=3), "active")]}),
+    tier(1, 2, 12, 1, power={"effects": [ENTER(E("look_at", amount=8, pick={"title_contains": "Sword"}, to="hand", play_if={"title_contains": "Swordplay"}, shuffle_after=True, **{"from": "top"}))]}),
+    tier(2, 2, 16, 1, power={"attack": {"kind": "strike", "only_first_attack": True, "stops_needed": 2}}),
+    tier(3, 3, 28, 1, power={"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(FORBID("art_attacks", "opponent"))]}),
+    tier(4, 4, 34, 2, constant={"forbid_opponent": ["art_attacks"]}),
+    tier(5, 5, 40, 1, power={"effects": [ENTER(E("draw", amount=3), "active")]}),
 ])
 
 # ============================================================================
 # Allies
 # ============================================================================
-ally("henchman_alpha", "Vesna Draik", "knave", 1400000, 20000, {"attack": {"kind": "art", "printed_life": 6}, "effects": [IFS(DISCARD_IN_PLAY("ally", amount=1, choose=True))]})
-ally("henchman_beta", "Brann Draik", "knave", 1800000, 100000, {"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(DISCARD_IN_PLAY("drill", amount=1, choose=True))]})
-ally("henchman_gamma", "Quill Draik", "knave", 1350000, 25000, {"attack": {"kind": "art", "printed_life": 6}, "effects": [IFS(WHEN({"may": True, "then": [OPP("choose_forbid_type", unless_vigor_min=5)], **E("discard_hand", amount=1, random=False)}, hand_min=1))]})
-ally("henchman_delta", "Halvard Draik", "knave", 1450000, 75000, {"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(OPP("discard_hand", amount=1, random=False))]})
-ally("henchman_epsilon", "Pim", "knave", 50000, 2000, {"attack": {"kind": "strike"}, "effects": [IFS(E("draw_discard", amount=2, **{"from": "bottom"}))]})
-ally("henchman_zeta", "The Fourteenth Vessel", "knave", 1400000, 10000, {"attack": {"kind": "strike", "life": 2}, "effects": [E("discard_hand", amount=1, random=False)], "no_control_needed": True}, tags=["automaton"])
-ally("companion_alpha", "Wren Rooke", "knight", 1000000, 1000, {"effects": [E("shuffle_discard", amount=1, per_personality=True)]})
-ally("companion_beta", "Sir Edric Rooke", "knight", 1100000, 50000, {"attack": {"kind": "strike", "focused": True, "stages": 2, "variants": [{"when": {"opponent_focus": True}, "life_per_opponent_token": 2}]}})
-ally("companion_gamma", "Tavin Vale", "knight", 1200000, 30000, {"attack": {"kind": "art", "printed_life": 6}, "effects": [E("recover", amount=2, **{"from": "bottom"})]}, surge=3)
-ally("companion_delta", "Ansel Rooke", "knight", 800000, 40000, {"attack": {"kind": "strike", "printed_stages": 5}, "effects": [IFSTOP(VIG("max"))]})
+ally("henchman_alpha", "Vesna Draik", "knave", 19, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [IFS(DISCARD_IN_PLAY("ally", amount=1, choose=True))]})
+ally("henchman_beta", "Brann Draik", "knave", 20, 1, {"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(DISCARD_IN_PLAY("drill", amount=1, choose=True))]})
+ally("henchman_gamma", "Quill Draik", "knave", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [IFS(WHEN({"may": True, "then": [OPP("choose_forbid_type", unless_vigor_min=5)], **E("discard_hand", amount=1, random=False)}, hand_min=1))]})
+ally("henchman_delta", "Halvard Draik", "knave", 17, 1, {"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(OPP("discard_hand", amount=1, random=False))]})
+ally("henchman_epsilon", "Pim", "knave", 6, 0, {"attack": {"kind": "strike"}, "effects": [IFS(E("draw_discard", amount=2, **{"from": "bottom"}))]})
+ally("henchman_zeta", "The Fourteenth Vessel", "knave", 19, 1, {"attack": {"kind": "strike", "life": 2}, "effects": [E("discard_hand", amount=1, random=False)], "no_control_needed": True}, tags=["automaton"])
+ally("companion_alpha", "Wren Rooke", "knight", 18, 1, {"effects": [E("shuffle_discard", amount=1, per_personality=True)]})
+ally("companion_beta", "Sir Edric Rooke", "knight", 16, 1, {"attack": {"kind": "strike", "focused": True, "stages": 2, "life_per_opponent_token": 2}})
+ally("companion_gamma", "Tavin Vale", "knight", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [E("recover", amount=2, **{"from": "bottom"})]}, surge=3)
+ally("companion_delta", "Ansel Rooke", "knight", 13, 1, {"attack": {"kind": "strike", "printed_stages": 5}, "effects": [IFSTOP(VIG("max"))]})
 
 # ============================================================================
 # Royal Tokens: two sets of seven
@@ -209,10 +212,16 @@ add(id="master_south", title="Master of the South", type="master", guild="", arm
 add(id="master_steadfast", title="Master Steadfast", type="master", guild="", armory_size=10, limit_per_deck=1,
     master_flags={"no_favor_win": True, "acclaim_shield": True, "tier_shield": True})
 
-add(id="ember_mastery", title="Ember Mastery", type="mastery", guild="ember", limit_per_deck=1, once_per_combat=True,
-    effects=[USE(WHEN(ACC(2), discard_top_guild="ember")), USE(WHEN(ACC(1), discard_top_guild_not="ember", discard_min=1)), USE(WHEN(E("remove_discard", amount=1), discard_min=1))])
+# The latest printing: pay a life card to make an Ember attack Focused, and Ember blocks that stay
+# in the game go under the Life Deck. The fighter's table damage is already high, so the Mastery
+# spends on getting attacks past blocks instead of adding damage.
+add(id="ember_mastery", title="Ember Mastery", type="mastery", guild="ember", limit_per_deck=1, blocks_to_bottom="ember",
+    effects=[{"trigger": "on_attack", "may": True, "op": "discard_life", "amount": 1, "when": {"source_guild": "ember", "attack_focused": False},
+              "then": [{"op": "focus_attack"}]}])
+# The later printing: a life card is thrown away on entering Combat and pays back in cards, two
+# for a Steel card, one otherwise. It suits the 85-card build, which has the Life Deck to spend.
 add(id="steel_mastery", title="Steel Mastery", type="mastery", guild="steel", limit_per_deck=1,
-    effects=[ENTER(E("draw_check", guild="steel", effects=[{"may": True, **OPP("vigor", amount=-4, no_overflow=True)}]))])
+    effects=[ENTER(E("draw_check", guild="steel", discard=True, effects=[E("draw", amount=2)], else_effects=[E("draw", amount=1)]))])
 add(id="shade_mastery", title="Shade Mastery", type="mastery", guild="shade", limit_per_deck=1,
     modifiers=[{"scope": "own", "kind": "any", "stages": 1, "life": 1}, {"scope": "own", "kind": "any", "stages": 1, "life": 1, "guild": "shade"}])
 add(id="tide_mastery", title="Tide Mastery", type="mastery", guild="tide", limit_per_deck=1, opponent_tier_threshold=6,
@@ -227,18 +236,19 @@ add(id="storm_mastery", title="Storm Mastery", type="mastery", guild="storm", li
 # ============================================================================
 strike("breaching_kick", "Breaching Kick", atk={"stages": 3},
        effects=[FORBID("end_combat"), FORBID("end_combat", "opponent"), FORBID("stop_all"), FORBID("stop_all", "opponent")])
-strike("relentless_fury", "Relentless Fury", atk={"stages": 4}, empower=2, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
+# A named card in the source, so the fighter it is named for may run a fourth copy.
+strike("relentless_fury", "Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
 block("stillness", "Stillness", "any", "combat", defense={"stop_all": "any"}, limit_per_deck=1, use_in_attack=True, effects=[E("stop_all", kind="any")])
 block("ironclad_stance", "Ironclad Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
 block("unyielding_guard", "Unyielding Guard", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
-block("bracing_stance", "Bracing Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
 block("energy_veil", "Energy Veil", "art", "art", defense={"stop_all": "art"}, remove_after_use=True, limit_per_deck=1)
 block("mirror_shell", "Mirror Shell", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")], limit_per_deck=1)
 add(id="iron_will", title="Ashmark's Iron Will", type="combat", guild="", only={"fighter_character": ALPHA}, limit_per_deck=1, use_in_attack=True,
     defense={"stops": "any"}, effects=[FLOAT("prevent_all")])
 combat("chosen_wall", "Chosen Wall", [E("choose_stop_all_kind")], alignment_only="knave", remove_after_use=True, limit_per_deck=1)
 block("perfect_guard", "Ashmark's Guard", "any", "strike", defense={"stop_focused": True}, only={"fighter_character": ALPHA}, remove_after_use=True)
-add(id="interrupt", title="Interrupt", type="combat", guild="", counter="combat")
+# A named card in the source, so the fighter it is named for may run a fourth copy and search for it.
+add(id="interrupt", title="Interrupt", type="combat", guild="", counter="combat", character=ZETA)
 combat("hard_glare", "Hard Glare", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="knave")
 combat("threatening_pose", "Threatening Pose", [OPP("set_tier", tier=1)], alignment_only="knave", remove_after_use=True, limit_per_deck=1)
 combat("respite", "Respite", [E("draw_discard", amount=2, **{"from": "top"}), OPP("vigor", amount=5)], limit_per_deck=1)
@@ -247,8 +257,9 @@ combat("overwhelming_aura", "Overwhelming Aura", [FORBID("strike_attacks", "oppo
 combat("dragons_reckoning", "Dragon's Reckoning", [SEARCH(card_type="ally", source="either", to="play", stages=3), DISCARD_IN_PLAY("token", all=True)], limit_per_deck=1)
 combat("guardians_wrath", "Rooke's Wrath", [DISCARD_IN_PLAY("non_combat", all=True)], only={"fighter_character": BETA}, remove_after_use=True)
 combat("desperate_ruin", "Desperate Ruin", [E("set_vigor", amount=0), E("remove_discard", all=True), OPP("discard_life", amount=5)], remove_after_use=True, limit_per_deck=1)
-combat("oath", "Husband's Vow", [E("attach", to="fighter")], only={"character": "Sir Edric Rooke"},
-       attachment={"target": "fighter", "effects": [ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))]}, limit_per_deck=1)
+# Played by Sir Edric while he is in control, onto Dame Alder wherever she stands.
+combat("oath", "Husband's Vow", [E("attach", to="named", character=BETA)], only={"character": "Sir Edric Rooke"},
+       attachment={"target": "named", "limit_attached": 1, "effects": [ENTER({"may": True, **E("draw_discard", amount=1, **{"from": "bottom"})})]})
 combat("showmans_trick", "Showman's Trick", [SEARCH(card_type="attack", source="armory", to="hand")], remove_after_use=True, limit_per_deck=2)
 combat("clash_of_blood", "Clash of Blood", [FLOAT("modifier", scope="own", kind="any", life=2, per_ally=True, once=True), E("draw", amount=1)], remove_after_use=True)
 combat("muster", "Muster", [VIG("max", "fighter"), SEARCH(card_type="ally", source="either", to="play", stages=3)], remove_after_use=True)
@@ -274,7 +285,7 @@ add(id="power_strike", title="Power Strike", type="art", guild="", endurance=3,
 art("lobbed_bolt", "Lobbed Bolt", atk={}, endurance=1,
     effects=[DISCARD_IN_PLAY("non_combat_only", "self", amount=1, choose=True, up_to=True), SEARCH(card_type="non_combat", to="play")], remove_after_use=True)
 strike("erasure", "Erasure", atk={"stages": 6, "cost_stages": 6}, effects=[IFS(DISCARD_IN_PLAY("non_combat", amount=6, up_to=True, choose=True))], remove_after_use=True)
-art("supreme_push", "Supreme Push", atk={"focused": True}, effects=[WHEN({"may": True, "then": [FLOAT("modifier", scope="own", kind="any", life=7, once=True)], **E("lose_tier")}, focus=True, tier_min=2)], remove_after_use=True)
+art("supreme_push", "Supreme Push", atk={"focused": True}, effects=[WHEN({"may": True, "then": [FLOAT("modifier", scope="own", kind="any", life=7, once=True)], **E("lose_tier")}, tier_min=2)], remove_after_use=True)
 art("extreme_assailment", "Draik's Assailment", atk={"focused": True, "printed_life": 5}, effects=[E("set_acclaim", amount=2), OPP("set_acclaim", amount=2), IFS({"may": True, **E("return_removed", card_type="ally")})], remove_after_use=True)
 art("twin_palm_blitz", "Draik's Twin Palm", atk={"printed_life": 6}, only={"fighter_character": DELTA}, effects=[FLOAT("no_prevent")],
     remain_when={"when": {"allies_min": 2}, "remain": 1}, remove_after_use=True)
@@ -310,7 +321,7 @@ block("last_ward", "Last Ward", "any", "strike", defense={"stop_focused": "disca
 block("swift_counter", "Vale's Swift Counter", "strike", "strike", defense={"copy_attack": True}, character=ZETA)
 block("elbow_block", "Elbow Block", "strike", "strike", effects=[SEARCH(card_type="hand_combat", source="discard", to="hand")], remove_after_use=True)
 block("leg_catch", "Leg Catch", "strike", "strike", effects=[VIG("max", "fighter"), E("shuffle_discard", amount=3)])
-block("swift_flight", "Swift Flight", "any", "strike", effects=[ACC(1), WHEN(FLOAT("stop_next"), focus=True)])
+block("swift_flight", "Swift Flight", "any", "strike", effects=[ACC(1), FLOAT("stop_next")])
 block("storm_dodge", "Vessel's Dodge", "strike", "strike", character=GAMMA, effects=[SEARCH(guild="storm", to="hand")], remove_after_use=True, tags=["automaton"])
 add(id="knowing_smile", title="Vessel's Knowing Smile", type="non_combat", guild="", defense={"stops": "strike"},
     effects=[WHEN(SEARCH(tag="automaton", source="discard", to="hand"), fighter_character=GAMMA)], remove_after_use=True, tags=["automaton"])
@@ -322,7 +333,7 @@ noncombat("focus_of_mind", "Focus of Mind", [USE(SEARCH(card_type="combat", to="
 noncombat("anticipation", "Anticipation", [ENTER(SEARCH(card_type="hand_combat", source="discard", to="hand"))], limit_per_deck=1)
 noncombat("fortune", "Fortune", [USE(SEARCH(card_type="non_combat", to="play"))], limit_per_deck=1)
 noncombat("bonding_rite", "Bonding Rite", [USE(E("bond", card="bonded_pair"))])
-ally("bonded_pair", "Ansel and Tavin, Back to Back", "knight", 7000000, 200000,
+ally("bonded_pair", "Ansel and Tavin, Back to Back", "knight", 44, 2,
      {"attack": {"kind": "strike", "printed_stages": 7}, "uses": 2, "effects": [WHEN({"may": True, "then": [E("focus_attack")], **E("discard_hand", amount=1, random=False)}, hand_min=1)]},
      surge=4, bond_of=["Ansel Rooke", "Tavin Vale"], bond_timer_max=5)
 noncombat("seek_the_answer", "Vale Finds the Answer", [USE(SEARCH(signature_of="fighter", amount=2, to="hand"))], remove_after_use=True)
@@ -355,10 +366,10 @@ strike("ember_shattering_leap", "Ember Shattering Leap", "ember", atk={"stages":
 strike("ember_face_upheaval", "Ember Face Upheaval", "ember", atk={}, effects=[IFS(DISCARD_IN_PLAY("non_combat", amount=1, remove=True, choose=True)), ACC(1)])
 strike("ember_lightning_slash", "Ember Lightning Slash", "ember", atk={}, effects=[{"trigger": "before_damage", "may": True, "skip_damage": True, **DISCARD_IN_PLAY("drill_or_ally", all=True)}, ACC(1)])
 strike("ember_power_rush", "Ember Power Rush", "ember", atk={"stages": 3, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
-strike("ember_overbearing_blow", "Ember Overbearing Blow", "ember", atk={"stages": 4}, effects=[WHEN(ACC(2), focus=True)], remove_after_use=True)
-add(id="ember_double_strike", title="Ember Double Strike", type="combat", guild="ember", attack={"kind": "strike"}, effects=[ACC(1)], remain_when={"when": {"focus": True}, "remain": 1})
+strike("ember_overbearing_blow", "Ember Overbearing Blow", "ember", atk={"stages": 4}, effects=[ACC(2)], remove_after_use=True)
+add(id="ember_double_strike", title="Ember Double Strike", type="combat", guild="ember", attack={"kind": "strike"}, effects=[ACC(1)], remain=1)
 strike("ember_face_slap", "Ember Face Slap", "ember", atk={"stages": 3, "variants": [{"when": {"opponent_acclaim": 0}, "no_prevent": True, "effects": [ACC(1)]}]}, effects=[FORBID("powers", "opponent")])
-strike("ember_tilted_punch", "Ember Tilted Punch", "ember", atk={"stages": 3}, remain_when={"when": {"focus": True, "opponent_used_combat_card": True}, "remain": 2}, remove_after_use=True)
+strike("ember_tilted_punch", "Ember Tilted Punch", "ember", atk={"stages": 3}, remain_when={"when": {"opponent_used_combat_card": True}, "remain": 2}, remove_after_use=True)
 strike("ember_whiplash", "Ember Whiplash", "ember", atk={"stages": 4}, endurance=2, empower=2, effects=[AFTER_EMPOWER(ACC(1)), IFSTOP(AFTER_EMPOWER(E("look_at", amount=5, pick={"card_type": "strike"}, to="hand", **{"from": "bottom"})))])
 strike("ember_puppy_slap", "Ember Puppy Slap", "ember", atk={"life": 3}, effects=[ACC(1), FLOAT("make_focused", guild="ember")])
 strike("ember_axe_heel_kick", "Ember Axe Heel Kick", "ember", atk={"stages": 6}, effects=[ACC(1), SEARCH(card_type="attack", guild="ember", source="discard", exclude_title="Ember Axe Heel Kick", to="hand")], remove_after_use=True)
@@ -366,22 +377,24 @@ strike("ember_axe_heel_kick", "Ember Axe Heel Kick", "ember", atk={"stages": 6},
 # ============================================================================
 # Steel
 # ============================================================================
-block("steel_perfect_defense", "Steel Perfect Defense", "strike", "strike", "steel", defense={"when": {"higher_might": True}}, remain_when={"when": {"focus": True}, "remain": 9}, remove_after_use=True, limit_per_deck=1)
+block("steel_perfect_defense", "Steel Perfect Defense", "strike", "strike", "steel", defense={"when": {"higher_might": True}}, remain=9, remove_after_use=True, limit_per_deck=1)
 block("steel_stop", "Steel Stop", "any", "strike", "steel", effects=[VIG(7)])
 block("steel_brace", "Steel Brace", "any", "art", "steel", effects=[ACC(1), SEARCH(title_contains="Truce", to="hand")], remove_after_use=True)
-block("steel_wrist_block", "Steel Wrist Block", "strike", "strike", "steel", effects=[WHEN(OPP("vigor", amount=-3, no_overflow=True), focus=True)])
-art("steel_power_beam", "Steel Power Beam", "steel", atk={}, empower=3, effects=[AFTER_EMPOWER(WHEN(FORBID("mastery", "opponent"), focus=True)), AFTER_EMPOWER(WHEN(FORBID("drills", "opponent"), focus=True))], remove_after_use=True)
+block("steel_wrist_block", "Steel Wrist Block", "strike", "strike", "steel", effects=[OPP("vigor", amount=-3, no_overflow=True)])
+art("steel_power_beam", "Steel Power Beam", "steel", atk={}, empower=3, effects=[AFTER_EMPOWER(FORBID("mastery", "opponent")), AFTER_EMPOWER(FORBID("drills", "opponent"))], remove_after_use=True)
 art("steel_might", "Quarr's Might", "steel", atk={"printed_life": 6}, effects=[WHEN(FORBID("combat_cards", "opponent"), character=EPSILON)], remove_after_use=True)
 strike("steel_crushing_smash", "Quarr's Crushing Smash", "steel", character=EPSILON,
        atk={"life": 2, "variants": [{"when": {"character": EPSILON}, "stages": 3, "effects": [DISCARD_IN_PLAY("non_combat", amount=1, choose=True)]}]},
        endurance_when={"value_if": {"fighter_character": EPSILON}, "then": 6, "else": 3})
-strike("steel_gut_kick", "Steel Gut Kick", "steel", atk={"stages": 3}, endurance=2, effects=[OPP_ACC(-1), IFS(WHEN(SEARCH(card_type="token", to="play"), focus=True))], remove_after_use=True)
+strike("steel_gut_kick", "Steel Gut Kick", "steel", atk={"stages": 3}, endurance=2, effects=[OPP_ACC(-1), IFS(SEARCH(card_type="token", to="play"))], remove_after_use=True)
 strike("steel_dashing_kick", "Steel Dashing Kick", "steel", atk={"stages": 8}, effects=[ACC(1)])
-strike("steel_destiny", "Steel Destiny", "steel", atk={"variants": [{"when": {"focus": True}, "stages": 3}]}, remain_when={"when": {"focus": True}, "remain": 1}, remove_after_use=True)
+strike("steel_destiny", "Steel Destiny", "steel", atk={"stages": 3}, remain=1, remove_after_use=True)
 strike("steel_bulk", "Steel Bulk", "steel", atk={"stages": 3}, empower=2, effects=[AFTER_EMPOWER(FLOAT("no_gain", "opponent", "next_turn_end"))], remove_after_use=True)
 strike("steel_face_jab", "Steel Face Jab", "steel", atk={"stages": 3}, effects=[IFS(OPP("next_attack_tax", amount=2))])
 add(id="steel_youth_bruise", title="Steel Youth Bruise", type="art", guild="steel", endurance=2, attack={"kind": "strike", "stages": 4}, effects=[E("shuffle_discard", amount=3)], remove_after_use=True)
 strike("steel_rapid_slam", "Steel Rapid Slam", "steel", atk={"focused": True, "stages": 5}, effects=[FLOAT("after_use_bottom", guild="steel")])
+art("steel_triple_blast", "Steel Triple Blast", "steel", atk={"focused": True, "printed_life": 3}, effects=[IFS(E("draw", amount=1))])
+strike("steel_heads_up","Steel Heads Up", "steel", atk={}, effects=[IFS(DISCARD_IN_PLAY("non_combat_or_ally", amount=2, choose=True, up_to=True))])
 strike("steel_charge", "Steel Charge", "steel", atk={"printed_stages": 7, "variants": [{"when": {"higher_might": True}, "effects": [FORBID("mastery", "opponent", "turn")]}]})
 strike("steel_fist_attack", "Steel Fist Attack", "steel", atk={"stages": 4}, endurance=3)
 strike("steel_direct_strike", "Steel Direct Strike", "steel", atk={"stages": 3, "life": 2}, endurance=4)
@@ -396,22 +409,22 @@ block("shade_buffer_block", "Shade Buffer Block", "any", "strike", "shade", effe
 add(id="shade_turning_kick", title="Shade Turning Kick", type="art", guild="shade", attack={"kind": "art", "printed_life": 5}, defense={"stops": "strike"}, effects=[ACC(1)])
 art("shade_chaos_detonation", "Shade Chaos Detonation", "shade", atk={"cost_stages": 3}, effects=[IFS(OPP("discard_hand", amount=2, random=False))])
 add(id="shade_body_ruin", title="Shade Body Ruin", type="strike", guild="shade", attack={"kind": "strike", "stages": 4}, defense={"stops": "strike"},
-    effects=[WHEN(OPP("discard_hand", amount=1), focus=True)], remove_after_use=True)
+    effects=[OPP("discard_hand", amount=1)], remove_after_use=True)
 strike("shade_swivel_kick", "Shade Swivel Kick", "shade", atk={"stages": 3}, effects=[OPP("remove_hand", amount=1)])
 strike("shade_right_kick", "Shade Right Kick", "shade", atk={"stages": 2}, endurance=1, empower=3, alignment_only="knave", effects=[AFTER_EMPOWER(OPP("discard_hand", amount=1, random=False))], remove_after_use=True)
 
 # ============================================================================
 # Tide
 # ============================================================================
-block("tide_energy_guard", "Tide Energy Guard", "art", "art", "tide", effects=[WHEN(FLOAT("prevent_art_life"), focus=True)], remove_after_use=True, limit_per_deck=1)
+block("tide_energy_guard", "Tide Energy Guard", "art", "art", "tide", effects=[FLOAT("prevent_art_life")], remove_after_use=True, limit_per_deck=1)
 block("tide_defensive_flight", "Tide Defensive Flight", "strike", "strike", "tide", effects=[E("pay_vigor", per=1, then=[OPP_ACC(-1)])])
 add(id="tide_round_throw", title="Tide Round Throw", type="strike", guild="tide", attack={"kind": "strike", "stages": 5}, defense={"stops": "art"}, effects=[OPP_ACC(-1)])
-strike("tide_betrayal", "Tide Betrayal", "tide", atk={}, effects=[WHEN(DISCARD_IN_PLAY("non_combat_or_ally", amount=1, remove=True, choose=True), focus=True)])
+strike("tide_betrayal", "Tide Betrayal", "tide", atk={}, effects=[DISCARD_IN_PLAY("non_combat_or_ally", amount=1, remove=True, choose=True)])
 add(id="tide_arm_blast", title="Tide Arm Blast", type="art", guild="tide", attack={"kind": "art", "printed_life": 5}, defense={"stops": "strike"})
 art("tide_double_blast", "Tide Double Blast", "tide", atk={"printed_life": 3, "life_from_surge": True}, remain=1)
 art("tide_draining_blast", "Tide Draining Blast", "tide", atk={"cost_stages": 0, "pay_stages": {"per": 2, "life": 1}})
 art("tide_healing_ray", "Tide Healing Ray", "tide", atk={}, effects=[SEARCH(card_type="ally", source="discard", to="play", stages=3), IFS(VIG("max", "last_searched"))], remove_after_use=True)
-art("tide_terror", "Tide Terror", "tide", atk={"printed_life": 3}, effects=[WHEN(SEARCH(to="hand"), focus=True)], remove_after_use=True, limit_per_deck=1)
+art("tide_terror", "Tide Terror", "tide", atk={"printed_life": 3}, effects=[SEARCH(to="hand")], remove_after_use=True, limit_per_deck=1)
 art("tide_transformation", "Tide Transformation", "tide", atk={"printed_life": 5}, effects=[ACC(1), IFS(SEARCH(card_type="grounds", to="play"))])
 art("tide_alliance", "Tide Alliance", "tide", atk={"printed_life": 5, "variants": [{"when": {"performed_by": "ally"}, "focused": True}]}, empower=3,
     effects=[AFTER_EMPOWER(WHEN(DISCARD_IN_PLAY("drill", amount=1, choose=True), allies_min=1))])
@@ -422,13 +435,13 @@ art("twin_blow", "Twin Blow", "tide", atk={"printed_life": 5, "variants": [{"whe
 # Storm
 # ============================================================================
 block("storm_energy_guard", "Storm Energy Guard", "art", "art", "storm", endurance=3, effects=[FLOAT("modifier", scope="own", kind="any", stages=2), ACC(1)])
-add(id="storm_setup", title="Storm Setup", type="art", guild="storm", attack={"kind": "art"}, defense={"stops": "strike", "when": {"focus": True}}, remove_after_use=True)
-art("storm_scatter_shot", "Storm Scatter Shot", "storm", atk={"printed_life": 5}, remain_when={"when": {"focus": True}, "remain": 1}, remove_after_use=True)
-art("storm_glaring_bolt", "Storm Glaring Bolt", "storm", atk={}, effects=[WHEN(DISCARD_IN_PLAY("non_combat_or_ally", amount=1, remove=True, choose=True), focus=True)])
+add(id="storm_setup", title="Storm Setup", type="art", guild="storm", attack={"kind": "art"}, defense={"stops": "strike"}, remove_after_use=True)
+art("storm_scatter_shot", "Storm Scatter Shot", "storm", atk={"printed_life": 5}, remain=1, remove_after_use=True)
+art("storm_glaring_bolt", "Storm Glaring Bolt", "storm", atk={}, effects=[DISCARD_IN_PLAY("non_combat_or_ally", amount=1, remove=True, choose=True)])
 art("storm_obliteration", "Storm Obliteration", "storm", atk={}, empower=3, effects=[AFTER_EMPOWER(DISCARD_IN_PLAY("drill", amount=3, up_to=True, choose=True)), AFTER_EMPOWER(FLOAT("endurance_boost"))])
-art("storm_rage", "Storm Rage", "storm", atk={"printed_life": 5}, effects=[WHEN(ACC(2), focus=True)])
+art("storm_rage", "Storm Rage", "storm", atk={"printed_life": 5}, effects=[ACC(2)])
 strike("storm_massacre", "Storm Massacre", "storm", atk={"stages": 4}, endurance=2, empower=2, effects=[AFTER_EMPOWER(FLOAT("no_prevent")), IFS(AFTER_EMPOWER(DISCARD_IN_PLAY("freestyle_drill", "self", all=True, remove=True))), IFS(AFTER_EMPOWER(DISCARD_IN_PLAY("freestyle_drill", all=True, remove=True)))])
-strike("storm_uppercut", "Storm Uppercut", "storm", atk={"stages": 4}, effects=[WHEN({"may": True, "then": [SEARCH(card_type="art", to="hand")], **E("vigor", amount=-2)}, focus=True, vigor_min=2)], remove_after_use=True, limit_per_deck=1)
+strike("storm_uppercut", "Storm Uppercut", "storm", atk={"stages": 4}, effects=[WHEN({"may": True, "then": [SEARCH(card_type="art", to="hand")], **E("vigor", amount=-2)}, vigor_min=2)], remove_after_use=True, limit_per_deck=1)
 strike("storm_strength", "Storm Strength", "storm", atk={"stages": 2}, endurance=2, effects=[VIG("max", "fighter")])
 
 # ============================================================================
@@ -443,15 +456,23 @@ print("cards:", len(CARDS))
 VALID = {c["id"] for c in CARDS}
 
 
-def deck(fname, name, fighter_id, tiers, focus, alignment, mastery_id, master_id, armory, entries):
+# Playstyle file under data/ai/profiles for an AI playing the deck. Decks not listed play the defaults.
+AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beatdown", "ember_beatdown": "ember_beatdown",
+               "storm_volley": "storm_volley", "tide_companions": "tide_companions",
+               "freestyle_swords": "freestyle_swords"}
+
+
+def deck(fname, name, fighter_id, tiers, style, alignment, mastery_id, master_id, armory, entries):
     for i, _ in entries:
         assert i in VALID, i
     for i in armory:
         assert i in VALID, i
     total = sum(n for _, n in entries)
-    d = {"name": name, "fighter": fighter_id, "tiers": tiers, "focus": focus, "alignment": alignment,
+    d = {"name": name, "fighter": fighter_id, "tiers": tiers, "style": style, "alignment": alignment,
          "mastery": mastery_id, "master": master_id, "armory": armory,
          "cards": [{"id": i, "count": n} for i, n in entries]}
+    if fname in AI_PROFILES:
+        d = {k: v for k, v in list(d.items())[:-1]} | {"ai_profile": AI_PROFILES[fname], "cards": d["cards"]}
     with open("data/decks/%s.json" % fname, "w", encoding="utf-8", newline="\n") as f:
         json.dump(d, f, indent=2)
         f.write("\n")
@@ -460,27 +481,29 @@ def deck(fname, name, fighter_id, tiers, focus, alignment, mastery_id, master_id
 
 deck("ember_beatdown", "House Ashmark", "fighter_alpha", 3, "ember", "knave", "ember_mastery", "master_north",
      ["kings_invitation", "ember_vigor_orb", "ember_vigor_orb", "ember_vigor_orb", "champion_drill", "heel_kick", "heel_kick", "heel_kick", "tollgate_yard",
-      "ember_tilted_punch", "ember_tilted_punch", "ember_tilted_punch"], [
+      "ember_passive_block", "ember_passive_block", "ember_passive_block"], [
     ("turmoil_square", 3),
     ("sweet_ration", 3), ("counsel", 1), ("victors_drill", 1),
     ("hard_glare", 3), ("interrupt", 3), ("threatening_pose", 1),
-    ("stillness", 1), ("iron_will", 1), ("chosen_wall", 1), ("bracing_stance", 1), ("unyielding_guard", 1), ("energy_veil", 1), ("mirror_shell", 1),
-    ("ember_blocking_hand", 3), ("perfect_guard", 3), ("ember_passive_block", 3),
+    ("stillness", 1), ("iron_will", 1), ("chosen_wall", 1), ("ironclad_stance", 1), ("unyielding_guard", 1), ("energy_veil", 1), ("mirror_shell", 1),
+    ("ember_blocking_hand", 3), ("perfect_guard", 3),
     ("ember_blast", 3),
     ("ember_back_kick", 3), ("ember_shattering_leap", 3), ("ember_face_upheaval", 3), ("ember_lightning_slash", 3), ("ember_power_rush", 3),
-    ("ember_overbearing_blow", 3), ("breaching_kick", 3), ("power_hit", 3), ("ember_double_strike", 3), ("relentless_fury", 3), ("frantic_assault", 3),
-    ("ember_face_slap", 3), ("ember_whiplash", 3), ("ember_puppy_slap", 3), ("ember_axe_heel_kick", 3)])
+    ("ember_overbearing_blow", 3), ("breaching_kick", 3), ("power_hit", 3), ("ember_double_strike", 3), ("relentless_fury", 4), ("frantic_assault", 3),
+    ("ember_face_slap", 3), ("ember_tilted_punch", 3), ("ember_whiplash", 3), ("ember_puppy_slap", 3), ("ember_axe_heel_kick", 3)])
 
 deck("steel_beatdown", "House Quarr", "fighter_epsilon", 3, "steel", "knave", "steel_mastery", "master_north",
-     ["kings_invitation", "steel_headshot", "mutual_escalation", "mutual_escalation", "mutual_escalation", "steel_youth_bruise", "steel_rapid_slam", "steel_charge",
-      "steel_fist_attack", "steel_direct_strike", "steel_cliff_slam", "steel_wrist_block"], [
+     ["kings_invitation", "steel_headshot", "mutual_escalation", "mutual_escalation", "mutual_escalation", "doubt", "sly_smirk"], [
     ("turmoil_square", 3),
     ("signet_token_1", 1), ("signet_token_3", 1), ("signet_token_4", 1),
     ("hard_glare", 3), ("interrupt", 3), ("truce", 1),
     ("stillness", 1), ("steel_perfect_defense", 1), ("steel_stop", 3), ("steel_brace", 3), ("steel_supreme_power", 2),
     ("steel_power_beam", 3), ("steel_might", 3),
     ("breaching_kick", 3), ("relentless_fury", 3), ("steel_crushing_smash", 4), ("steel_gut_kick", 3), ("backhand", 1),
-    ("steel_dashing_kick", 3), ("steel_destiny", 3), ("steel_bulk", 3), ("steel_face_jab", 3)])
+    ("steel_dashing_kick", 3), ("steel_destiny", 3), ("steel_bulk", 3), ("steel_face_jab", 3),
+    # The 85-card build: more Steel attacks to feed the Mastery, Endurance in place of blocks.
+    ("steel_youth_bruise", 3), ("steel_rapid_slam", 3), ("steel_heads_up", 2), ("steel_charge", 3),
+    ("steel_fist_attack", 3), ("steel_direct_strike", 3), ("steel_cliff_slam", 3), ("steel_wrist_block", 3), ("steel_triple_blast", 2)])
 
 deck("shade_henchmen", "The Draik Company", "fighter_delta", 3, "shade", "knave", "shade_mastery", "master_south",
      ["doubt", "shade_pivot_kick", "shade_pivot_kick", "shade_pivot_kick"], [
@@ -499,20 +522,20 @@ deck("tide_companions", "House Rooke", "fighter_beta", 3, "tide", "knight", "tid
     ("companion_alpha", 1), ("companion_beta", 1), ("companion_gamma", 1), ("companion_delta", 1),
     ("turmoil_square", 3),
     ("challenge", 3), ("interrupt", 3), ("overwhelming_aura", 1), ("dragons_reckoning", 1), ("muster", 3), ("guardians_wrath", 3),
-    ("desperate_ruin", 1), ("oath", 1), ("showmans_trick", 2), ("clash_of_blood", 3),
-    ("stillness", 1), ("unyielding_guard", 1), ("ironclad_stance", 1), ("energy_veil", 1), ("tide_energy_guard", 1), ("tide_defensive_flight", 3), ("last_ward", 3),
+    ("desperate_ruin", 1), ("oath", 2), ("showmans_trick", 2), ("clash_of_blood", 3),
+    ("stillness", 1), ("unyielding_guard", 1), ("ironclad_stance", 1), ("energy_veil", 1), ("tide_energy_guard", 1), ("tide_defensive_flight", 3), ("last_ward", 2),
     ("breaching_kick", 3), ("tide_round_throw", 3), ("tide_betrayal", 3), ("erasure", 1),
     ("tide_arm_blast", 3), ("homing_bolt", 3), ("tide_double_blast", 3), ("tide_draining_blast", 3), ("tide_healing_ray", 3), ("tide_terror", 1),
     ("twin_blow", 3), ("tide_transformation", 3), ("tide_alliance", 3),
     ("counsel", 1), ("fortune", 1), ("focus_of_mind", 1), ("bonding_rite", 2)])
 
 deck("freestyle_swords", "House Vale", "fighter_zeta", 5, "freestyle", "knight", "freestyle_mastery", "master_north",
-     ["confusion_drill", "ancient_grove", "seekers_eye", "champion_drill"], [
-    ("ancient_grove", 2),
-    ("challenge", 3), ("interrupt", 3), ("overwhelming_aura", 1), ("contemplation", 1),
+     ["kings_invitation", "doubt", "confusion_drill", "champion_drill", "fortune", "sly_smirk"], [
+    ("ancient_grove", 3),
+    ("challenge", 3), ("interrupt", 4), ("seekers_eye", 1), ("overwhelming_aura", 1), ("contemplation", 1),
     ("stillness", 1), ("unyielding_guard", 1), ("ironclad_stance", 1), ("swift_counter", 4), ("elbow_block", 3), ("leg_catch", 3), ("swift_flight", 3),
     ("breaching_kick", 3), ("relentless_fury", 3), ("power_strike", 3), ("sword_slice", 4), ("speedy_flight", 3), ("back_bash", 2),
-    ("focused_sword_strike", 3), ("sword_slash", 3), ("sword_sweep", 3), ("sword_thrust", 3), ("guardians_wrath", 2),
+    ("focused_sword_strike", 3), ("sword_slash", 3), ("sword_sweep", 3), ("sword_thrust", 3),
     ("lobbed_bolt", 1),
     ("swordplay_drill", 3), ("devastation_drill", 3), ("ambush_drill", 2), ("breakthrough_drill", 1), ("absorbing_drill", 1), ("quickness_drill", 1),
     ("seek_the_answer", 3), ("anticipation", 1), ("counsel", 1), ("heirloom_blade", 1), ("victors_drill", 1)])

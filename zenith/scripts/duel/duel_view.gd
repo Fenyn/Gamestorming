@@ -3,18 +3,24 @@ extends Node3D
 ## after every update, and every decision routed through the HUD prompt or a card click.
 ## Hotseat and hosting: a Referee lives here and the viewer's choices go straight to it.
 ## Hotseat: the camera swings to whichever player has to decide, behind a hand-off overlay.
+## Against the AI: the viewer is pinned to the person's seat and an AiPlayer answers for the other.
 ## Online: the viewer is pinned to this client's seat. The host applies the joiner's commands
 ## through its Referee and sends seat 1 its update; the joiner holds no engine at all.
 
 const CARD_SCENE: PackedScene = preload("res://scenes/duel/card_3d.tscn")
 const SYNC_DURATION: float = 0.3
 const CAMERA_SWING: float = 0.7
-const LUNGE_DURATION: float = 0.18
+const FLY_TIME: float = 0.34          # a card's arc from one zone to another
+const FLY_LIFT: float = 0.6
+const BEAT: float = 0.22              # pause after a hit or a flipped card, so each one reads
+const TOAST_BEAT: float = 0.35
+const AI_MIN_THINK: float = 0.45      # seconds the AI appears to think, so its plays do not snap
 
 @onready var rig: Node3D = $CameraRig
 @onready var camera: TableCamera = $CameraRig/Camera
 @onready var zones: TableLayout = $Zones
 @onready var cards_root: Node3D = $Cards
+@onready var fx: DuelFx = $Fx
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var hud: DuelHud = $Hud
 
@@ -26,6 +32,8 @@ var _markers: Dictionary = {}        # uid -> StatusMarkers on personalities in 
 var viewer: int = -1
 var busy: bool = false
 var online: bool = false
+var ai: AiPlayer = null              # drives Session.ai_seat when the duel is against the AI
+var ai_seat: int = -1
 var _face_keys: Dictionary = {}      # uid -> face cache key currently on the quad
 var _inbox: Array[Dictionary] = []   # host: joiner commands; joiner: host updates; waiting for the table to settle
 var _awaiting_answer: bool = false   # joiner: our choice went to the host, its update is not back yet
@@ -36,7 +44,10 @@ var _dev_hide_hud: bool = false
 var _dev_stop_kind: StringName = &""
 var _dev_camera: String = ""         # "dx,dz,notches": pan and zoom before the screenshot
 var _dev_policy: String = ""         # "attack": autoplay fights instead of picking at random
+var _dev_freeze: StringName = &""    # event type whose beat the screenshot catches mid-air
 var _dev_done: bool = false
+var _wounds: int = 0                 # life cards flipped by the attack being replayed
+var _replaying: StringName = &""     # the event whose beat is playing now
 
 
 func _ready() -> void:
@@ -55,6 +66,10 @@ func _ready() -> void:
 		Net.command_rejected.connect(_on_net_rejected)
 		Net.peer_left.connect(_on_peer_left)
 		hud.set_online(Net.is_host())
+	elif Session.ai_seat >= 0:
+		ai_seat = Session.ai_seat
+		viewer = 1 - ai_seat
+		rig.rotation.y = 0.0 if viewer == 0 else PI
 	if not Session.can_start():
 		push_warning("Duel opened without a selection; using the first two shipped decks")
 		Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
@@ -69,6 +84,7 @@ func _ready() -> void:
 ## Hotseat and host: the rules run here.
 func _ready_referee() -> void:
 	referee = Session.build_referee()
+	ai = Session.build_ai() if not online else null
 	for d in Session.chosen:
 		await faces.render_deck(d, Session.library)
 	hud.set_loading(false)
@@ -115,8 +131,15 @@ func _parse_dev_args() -> void:
 			Engine.time_scale = 8.0
 		elif arg.begins_with("--dev-stop-at="):
 			_dev_stop_kind = StringName(arg.get_slice("=", 1))
+		elif arg.begins_with("--dev-ai") and not online:
+			# `--dev-ai` or `--dev-ai=hard`: seat 1 is played by the AI.
+			Session.ai_seat = 1
+			if arg.contains("="):
+				Session.ai_profile = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-policy="):
 			_dev_policy = arg.get_slice("=", 1)
+		elif arg.begins_with("--dev-freeze="):
+			_dev_freeze = StringName(arg.get_slice("=", 1))
 		elif arg.begins_with("--dev-pick=") and not online:
 			# Online the lobby already agreed on both decks and the seed.
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
@@ -144,6 +167,11 @@ func _present_prompt() -> void:
 			hud.show_waiting(view.player(view.deciding).name, view.deciding_kind, view)
 			_drain_inbox()
 			return
+		if ai != null and view.deciding == ai_seat:
+			hud.set_hand(_hand_cards(), faces, {})
+			hud.show_waiting(view.player(view.deciding).name, view.deciding_kind, view)
+			await _ai_turn()
+			return
 		hud.show_handoff(view.player(view.deciding).name)
 		if _dev_autoplay:
 			await get_tree().create_timer(0.05).timeout
@@ -152,6 +180,26 @@ func _present_prompt() -> void:
 	_show_prompt_for_viewer()
 	if online:
 		_drain_inbox()
+
+
+## The AI seat's decision. The search runs on a worker thread so the table keeps drawing; the
+## referee is not touched from here until it returns, because `busy` holds every other input.
+func _ai_turn() -> void:
+	busy = true
+	var started: int = Time.get_ticks_msec()
+	var answer: Array[Dictionary] = [{}]
+	var task: int = WorkerThreadPool.add_task(func() -> void: answer[0] = ai.choose(referee, ai_seat))
+	while not WorkerThreadPool.is_task_completed(task):
+		await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(task)
+	var rest: float = AI_MIN_THINK - (Time.get_ticks_msec() - started) / 1000.0
+	if rest > 0.0:
+		await get_tree().create_timer(rest).timeout
+	busy = false
+	if answer[0].is_empty():
+		push_warning("The AI had no answer for %s" % String(view.deciding_kind))
+		return
+	await _apply(ai_seat, answer[0])
 
 
 ## Hotseat: the next player sits down, so the table re-reads the state from their seat.
@@ -259,21 +307,238 @@ func _apply(seat: int, wire: Dictionary) -> void:
 	_present_prompt()
 
 
-## Replays an update into the log and the table, then adopts its view and prompt.
+## Replays an update into the log and the table, then adopts its view and prompt. Each event
+## line plays its own beat (a card in flight, a hit, a number) against the update's final
+## layout; the sync at the end catches whatever the beats did not move.
 func _play_update(up: SeatUpdate) -> void:
 	view = up.view
 	prompt = up.prompt
 	await faces.render_missing(view, Session.library)
 	_adopt_cards()
+	zones.set_viewer(viewer if viewer >= 0 else view.active)
+	var targets: Dictionary = _targets()
 	for l in up.lines:
 		var line: String = str(l.get("line", ""))
 		if line != "":
 			hud.log_line(line)
-		if str(l.get("type", "")) == "attack_declared":
-			await _sync_layout(true)
-			await _lunge(int(l.get("player", 0)))
+		if l.has("data"):
+			_replaying = StringName(str(l.get("type", "")))
+			await _replay(_replaying, int(l.get("player", -1)), l["data"], targets)
+			_replaying = &""
 	hud.refresh_state(view, viewer)
+	_refresh_roles()
 	await _sync_layout(true)
+
+
+# --- Event beats ----------------------------------------------------------
+
+## One animated event. `data` carries only the public fields the referee lists for its type.
+func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionary) -> void:
+	match type:
+		&"attack_declared":
+			_wounds = 0
+			await _sync_layout(true)   # the attack card rises to the Play slot before the swing
+			_refresh_roles()
+			var kind: String = str(data.get("kind", "strike"))
+			var head: String = "Final Strike" if bool(data.get("is_final", false)) else ("Focused " if bool(data.get("focused", false)) else "") + ("Strike" if kind == "strike" else "Art")
+			var src: SeatCard = view.card(int(data.get("source", -1)))
+			if src != null and not src.hidden():
+				head += ": " + src.title
+			elif bool(data.get("is_power", false)):
+				head += " from a Power"
+			hud.toast(head, ZenithTheme.ATTACK)
+			await _swing(player)
+		&"defense_played", &"defense_power", &"shield":
+			await _sync_layout(true)
+			var defender: int = 1 - view.attacker
+			fx.ring(_card_pos(view.player(defender).controlling), ZenithTheme.DEFEND)
+			if type != &"defense_played":
+				fx.float_text(_card_pos(int(data.get("card", -1))), "Shield", ZenithTheme.DEFEND, 48)
+			await _beat(BEAT)
+		&"attack_stopped":
+			var defender: int = 1 - view.attacker
+			fx.float_text(_card_pos(view.player(defender).controlling), "STOPPED", ZenithTheme.DEFEND, 72)
+			hud.toast("Stopped", ZenithTheme.DEFEND)
+			await _beat(TOAST_BEAT)
+		&"modified_damage":
+			var stages: int = int(data.get("stages", 0))
+			var life: int = int(data.get("life", 0))
+			hud.toast("Hits for %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
+			await _beat(TOAST_BEAT)
+		&"damage_stages":
+			var stages: int = int(data.get("stages", 0))
+			if stages <= 0:
+				return
+			var target: int = int(data.get("target", -1))
+			var v: Card3D = views.get(target)
+			var pos: Vector3 = _card_pos(target)
+			fx.burst(pos, ZenithTheme.ATTACK)
+			fx.float_text(pos, "-%d Vigor" % stages, ZenithTheme.WARN, 80)
+			if v != null:
+				v.flash(ZenithTheme.ATTACK)
+				await v.shake()
+			_refresh_markers()
+			await _beat(BEAT)
+		&"life_card_flipped":
+			_wounds += 1
+			var uid: int = int(data.get("card", -1))
+			await _fly(uid, targets)
+			var pos: Vector3 = _card_pos(uid)
+			fx.burst(pos, ZenithTheme.ATTACK, 14, 1.4)
+			fx.float_text(pos, "Wound %d" % _wounds, ZenithTheme.ATTACK, 56)
+			await _beat(BEAT)
+		&"life_card_lost", &"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved", &"critical_ally":
+			var uid: int = int(data.get("card", data.get("discarded", -1)))
+			await _fly(uid, targets)
+		&"card_used", &"card_placed":
+			await _sync_layout(true)   # the card lands in play before its text does anything
+		&"endurance_used":
+			var defender: int = 1 - view.attacker
+			var pos: Vector3 = _card_pos(view.player(defender).controlling)
+			fx.ring(pos, ZenithTheme.DEFEND, 0.8)
+			fx.float_text(pos, "Endurance %d" % int(data.get("prevented", 0)), ZenithTheme.DEFEND, 56)
+			await _fly(int(data.get("card", -1)), targets)
+		&"token_bypassed":
+			fx.float_text(_card_pos(int(data.get("card", -1))), "Token stays", ZenithTheme.ACCENT, 48)
+			await _beat(BEAT)
+		&"token_captured":
+			var uid: int = int(data.get("card", -1))
+			await _fly(uid, targets)
+			var pos: Vector3 = _card_pos(uid)
+			fx.ring(pos, ZenithTheme.ACCENT, 0.7)
+			fx.burst(pos, ZenithTheme.ACCENT, 20, 1.6)
+			hud.toast("Royal Token captured", ZenithTheme.ACCENT)
+			await _beat(TOAST_BEAT)
+		&"critical_acclaim":
+			hud.toast("Critical damage", ZenithTheme.WARN)
+			await _beat(TOAST_BEAT)
+		&"attack_end":
+			var stages: int = int(data.get("stages_dealt", 0))
+			var life: int = int(data.get("life_dealt", 0))
+			if not bool(data.get("stopped", false)) and (stages > 0 or life > 0):
+				hud.toast("Dealt %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
+				await _beat(TOAST_BEAT)
+			_wounds = 0
+		&"combat_end":
+			_refresh_roles()
+		&"power_up", &"recover":
+			var uid: int = view.player(player).fighter
+			await _number(uid, "+%d Vigor" % int(data.get("gain", 0)), ZenithTheme.VIGOR)
+		&"vigor_changed":
+			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
+			if delta != 0:
+				await _number(int(data.get("card", -1)), "%+d Vigor" % delta, ZenithTheme.VIGOR if delta > 0 else ZenithTheme.WARN)
+		&"acclaim_changed":
+			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
+			if delta != 0:
+				await _number(view.player(player).fighter, "%+d Acclaim" % delta, ZenithTheme.ACCENT if delta > 0 else ZenithTheme.WARN)
+		&"acclaim_shielded":
+			fx.float_text(_card_pos(view.player(player).fighter), "Shielded", ZenithTheme.DEFEND, 48)
+		&"tier_up", &"tier_down":
+			var uid: int = view.player(player).fighter
+			var pos: Vector3 = _card_pos(uid)
+			var up: bool = type == &"tier_up"
+			fx.ring(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, 1.3)
+			fx.burst(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, 36, 2.6)
+			var v: Card3D = views.get(uid)
+			if v != null:
+				v.flash(ZenithTheme.ACCENT if up else ZenithTheme.WARN)
+			hud.toast("%s %s to %s" % [view.player(player).name, "rises" if up else "falls", CardText.tier_name(int(data.get("tier", 1)))], ZenithTheme.ACCENT if up else ZenithTheme.WARN)
+			if v != null:
+				await v.hop(0.2)
+			await _beat(TOAST_BEAT)
+		&"countered":
+			var target: int = int(data.get("target", -1))
+			fx.ring(_card_pos(target), ZenithTheme.DEFEND, 0.8)
+			fx.float_text(_card_pos(target), "Countered", ZenithTheme.DEFEND, 48)
+			await _beat(BEAT)
+
+
+## The attacker's controlling card lunges at the defender's, with a streak between them and
+## sparks where it lands.
+func _swing(attacker: int) -> void:
+	var v: Card3D = views.get(view.player(attacker).controlling)
+	var target: Card3D = views.get(view.player(1 - attacker).controlling)
+	if v == null or not v.visible or target == null:
+		return
+	var from: Vector3 = v.global_position
+	var to: Vector3 = target.global_position
+	var dir: Vector3 = to - from
+	dir.y = 0.0
+	v.lunge(dir)
+	await get_tree().create_timer(Card3D.LUNGE_TIME * 0.8).timeout
+	fx.slash(from + dir.normalized() * 0.3, to - dir.normalized() * 0.3, ZenithTheme.ATTACK)
+	fx.burst(to, ZenithTheme.ATTACK, 18, 1.8)
+	await _beat(Card3D.LUNGE_TIME * 1.2)
+
+
+## A number over a card that just changed, with a hop and a flash in the same colour.
+func _number(uid: int, text: String, color: Color) -> void:
+	var v: Card3D = views.get(uid)
+	if v == null or not v.visible:
+		return
+	fx.float_text(v.global_position, text, color, 60)
+	v.flash(color)
+	_refresh_markers()
+	await v.hop()
+
+
+## A card's arc from where it sits to its slot in the new layout, turning to its new facing on
+## the way. Nothing happens for a card already there, or one this seat may not see land.
+func _fly(uid: int, targets: Dictionary) -> void:
+	var v: Card3D = views.get(uid)
+	if v == null or not targets.has(uid):
+		return
+	var entry: Array = targets[uid]
+	if not bool(entry[2]):
+		return
+	var slot_t: Transform3D = entry[0]
+	var face_up: bool = bool(entry[1])
+	var basis: Basis = slot_t.basis if face_up else slot_t.basis * Basis(Vector3.RIGHT, PI)
+	var target: Transform3D = Transform3D(basis, slot_t.origin)
+	v.face_up = face_up
+	v.visible = true   # a card leaving this seat's hand starts from the hand slot it was kept at
+	if v.transform.origin.distance_to(target.origin) < 0.0005 and v.transform.basis.is_equal_approx(target.basis):
+		return
+	var start: Transform3D = v.transform
+	var mid: Transform3D = start.interpolate_with(target, 0.5)
+	mid.origin.y += FLY_LIFT
+	var t: Tween = create_tween().set_trans(Tween.TRANS_SINE)
+	t.tween_property(v, "transform", mid, FLY_TIME * 0.5).set_ease(Tween.EASE_OUT)
+	t.tween_property(v, "transform", target, FLY_TIME * 0.5).set_ease(Tween.EASE_IN)
+	await t.finished
+
+
+## A pause between beats. `--dev-freeze=<event>` takes the screenshot here instead, with the
+## event's effects still in the air.
+func _beat(seconds: float) -> void:
+	if _dev_freeze != &"" and _replaying == _dev_freeze and not _dev_done:
+		await _dev_finish(0.03)
+		return
+	await get_tree().create_timer(seconds).timeout
+
+
+func _card_pos(uid: int) -> Vector3:
+	var v: Card3D = views.get(uid)
+	if v == null or not v.visible:
+		return Vector3.ZERO
+	return v.global_position
+
+
+## While an attack is in the air its two personalities carry their role glow (attacker red,
+## defender blue); outside one, nothing does.
+func _refresh_roles() -> void:
+	var attacker: int = int(view.attack.get("attacker", -1)) if not view.attack.is_empty() else -1
+	for p in view.players:
+		var color: Color = Color(0, 0, 0, 0)
+		if attacker >= 0:
+			color = ZenithTheme.ATTACK if p.index == attacker else ZenithTheme.DEFEND
+		var personalities: Array[int] = [p.fighter]
+		personalities.append_array(p.allies)
+		for uid in personalities:
+			var v: Card3D = views.get(uid)
+			if v != null:
+				v.set_role(color if uid == p.controlling else Color(0, 0, 0, 0))
 
 
 # --- Online ---------------------------------------------------------------
@@ -411,18 +676,6 @@ func _adopt_cards() -> void:
 			_face_keys[uid] = key
 
 
-func _lunge(attacker: int) -> void:
-	var v: Card3D = views.get(view.player(attacker).controlling)
-	if v == null or not v.visible:
-		return
-	var rest: Transform3D = v.transform
-	var toward: Vector3 = (Vector3.ZERO - rest.origin).normalized() * 0.45 + Vector3(0, 0.15, 0)
-	var t: Tween = create_tween()
-	t.tween_property(v, "transform:origin", rest.origin + toward, LUNGE_DURATION).set_ease(Tween.EASE_OUT)
-	t.tween_property(v, "transform:origin", rest.origin, LUNGE_DURATION).set_ease(Tween.EASE_IN)
-	await t.finished
-
-
 ## Every card's target slot for the current view. Cards not listed are hidden.
 func _targets() -> Dictionary:
 	var out: Dictionary = {}
@@ -481,7 +734,7 @@ func _refresh_markers() -> void:
 		var m: StatusMarkers = _markers.get(uid)
 		if m == null:
 			m = StatusMarkers.new()
-			v.add_child(m)
+			v.body.add_child(m)
 			m.setup(faces.ladder_rects())
 			_markers[uid] = m
 		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer)
@@ -656,7 +909,7 @@ func _dev_count_update() -> bool:
 	return true
 
 
-func _dev_finish() -> void:
+func _dev_finish(settle: float = 0.6) -> void:
 	_dev_done = true
 	if _dev_screenshot != "":
 		if _dev_hide_hud:
@@ -664,7 +917,7 @@ func _dev_finish() -> void:
 		var cam: PackedStringArray = _dev_camera.split(",")
 		if cam.size() == 3:
 			camera.dev_set(Vector2(float(cam[0]), float(cam[1])), int(cam[2]))
-		await get_tree().create_timer(0.6).timeout
+		await get_tree().create_timer(settle).timeout
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var img: Image = get_viewport().get_texture().get_image()

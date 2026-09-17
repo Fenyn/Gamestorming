@@ -25,9 +25,10 @@ const TRAY_KINDS: Array[StringName] = [&"armory", &"keep", &"discard_choice", &"
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
 	&"armory_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
-	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture",
+	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture", &"discard_ally": "Discard",
 	&"final_strike": "Discard",
 }
+const TOAST_HOLD: float = 1.1
 const STEP_LABELS: Array[String] = ["Draw", "Place", "Power Up", "Declare", "Combat", "Discard", "Recover"]
 const STEP_ORDER: Array[int] = [
 	GameState.Step.DRAW, GameState.Step.NON_COMBAT, GameState.Step.POWER_UP, GameState.Step.DECLARE,
@@ -47,6 +48,9 @@ const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure"
 @onready var dev_panel: DevPanel = $Root/DevPanel
 @onready var peek: Control = $Root/Peek
 @onready var peek_face: CardFace = $Root/Peek/Face
+@onready var peek_forecast: PanelContainer = $Root/Peek/Forecast
+@onready var peek_forecast_text: RichTextLabel = $Root/Peek/Forecast/Text
+@onready var toast_label: Label = $Root/Toast
 @onready var log_panel: PanelContainer = $Root/Log
 @onready var log_toggle: Button = $Root/Log/Column/Header/Toggle
 @onready var inspect: ColorRect = $Root/Inspect
@@ -88,6 +92,7 @@ var _entries: Dictionary = {}          # uid -> {frame, caption, verb} for batch
 var _confirm: Button = null
 var _online: bool = false
 var _is_host: bool = false
+var _toast: Tween = null
 
 
 func _ready() -> void:
@@ -157,6 +162,24 @@ func _refresh_phase(view: SeatView) -> void:
 	phase_sub.text = text
 
 
+## A short banner over the table for the beat that just happened: the attack, what it hit for,
+## a stop, a tier. It pops in, holds, and fades; a new one replaces the last at once.
+func toast(text: String, color: Color) -> void:
+	if _toast != null:
+		_toast.kill()
+	toast_label.text = text
+	toast_label.add_theme_stylebox_override("normal", ZenithTheme.box(color, Color(0, 0, 0, 0), 10, 0, 22, 8))
+	toast_label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
+	toast_label.modulate = Color(1, 1, 1, 1)
+	toast_label.scale = Vector2(0.7, 0.7)
+	toast_label.visible = true
+	_toast = create_tween()
+	_toast.tween_property(toast_label, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_toast.tween_interval(TOAST_HOLD)
+	_toast.tween_property(toast_label, "modulate:a", 0.0, 0.3)
+	_toast.tween_callback(func() -> void: toast_label.visible = false)
+
+
 func log_line(text: String) -> void:
 	if _log_lines >= MAX_LOG_LINES:
 		log_text.clear()
@@ -175,7 +198,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	_current_prompt = p
 	var who: SeatPlayer = view.player(p.player)
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
-	prompt_who.add_theme_color_override("font_color", Palette.guild_ui(who.focus))
+	prompt_who.add_theme_color_override("font_color", Palette.guild_ui(who.style))
 	prompt_title.text = p.title
 	_show_attack(view)
 	prompt_hint.text = _hint_for(p)
@@ -194,7 +217,13 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 			primaries.append(opt)
 		elif _needs_tray(p, opt):
 			browse.append(opt)
-	if browse.is_empty():
+	var library: Array = p.context.get("library", [])
+	if not library.is_empty():
+		# A search of the Life Deck: the matches to pick from, then the rest of the deck to read.
+		_fill_buttons([], primary_box, true)
+		await _show_tray(prompt_who.text, p.title, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
+		await _add_library(library, browse)
+	elif browse.is_empty():
 		_hide_tray()
 		_fill_buttons(primaries, primary_box, true)
 		if not finals.is_empty():
@@ -276,23 +305,7 @@ func _damage_text(view: SeatView) -> String:
 		var life: int = int(a.get("life", 0)) if landed else int(d.get("life", 0))
 		var total: String = CardText.damage_amount(stages, life)
 		lines.append("[color=%s]%s[/color] [color=%s]%s[/color]" % [muted, "Lands for" if landed else "If it lands:", strong, total])
-		var steps: PackedStringArray = PackedStringArray()
-		var base: int = int(d.get("base_stages", 0)) + int(d.get("base_life", 0))
-		if bool(d.get("wild", false)):
-			steps.append("Wild %d" % base)
-		elif bool(d.get("printed", false)):
-			steps.append("Printed %s" % CardText.damage_amount(int(d.get("base_stages", 0)), int(d.get("base_life", 0))))
-		elif str(d.get("kind", "strike")) == "art":
-			steps.append("Art base %d" % base)
-		else:
-			steps.append("Table %d (%s vs %s)" % [int(d.get("table", 0)), CardText.band_letter(int(d.get("attacker_band", 0))), CardText.band_letter(int(d.get("defender_band", 0)))])
-		for add in d.get("adds", []):
-			steps.append("%s %s" % [CardText.add_text(add), str(add.get("source", ""))])
-		if bool(d.get("no_reduce", false)):
-			steps.append("cannot be reduced")
-		if bool(d.get("prevented", false)):
-			steps.append("all prevented")
-		lines.append("[color=%s]%s[/color]" % [muted, "  ·  ".join(steps)])
+		lines.append("[color=%s]%s[/color]" % [muted, "  ·  ".join(CardText.breakdown_steps(d))])
 	var dealt_stages: int = int(a.get("stages_dealt", 0))
 	var dealt_life: int = int(a.get("life_dealt", 0))
 	if dealt_stages > 0 or dealt_life > 0:
@@ -514,6 +527,55 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	hand.visible = false
 
 
+## The rest of a searched Life Deck, after the pickable matches: one dimmed face per card title
+## with how many copies are in the deck. They can be read and hovered, not picked.
+func _add_library(library: Array, matches: Array[OptionView]) -> void:
+	var listed: Dictionary = {}
+	for opt in matches:
+		var m: SeatCard = _view.card(opt.card)
+		if m != null and not m.hidden():
+			listed[m.def_id] = true
+	var counts: Dictionary = {}
+	var first: Dictionary = {}
+	var order: Array[String] = []
+	for uid in library:
+		var c: SeatCard = _view.card(int(uid))
+		if c == null or c.hidden():
+			continue
+		if not counts.has(c.def_id):
+			order.append(c.def_id)
+			first[c.def_id] = c
+		counts[c.def_id] = int(counts.get(c.def_id, 0)) + 1
+	for def_id in order:
+		if listed.has(def_id):
+			continue
+		var c: SeatCard = first[def_id]
+		var def: CardDef = _def(def_id)
+		var column: VBoxContainer = VBoxContainer.new()
+		column.add_theme_constant_override("separation", 6)
+		var face: TextureRect = TextureRect.new()
+		face.texture = await _faces.render_face(def, c.tier) if def != null and _faces != null else null
+		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		face.stretch_mode = TextureRect.STRETCH_SCALE
+		face.custom_minimum_size = TRAY_CARD_SIZE
+		face.modulate = Color(1, 1, 1, 0.45)
+		face.mouse_filter = Control.MOUSE_FILTER_STOP
+		face.mouse_entered.connect(func() -> void: show_peek(def, c.tier, c.uid))
+		face.mouse_exited.connect(func() -> void: hide_peek())
+		column.add_child(face)
+		var caption: Label = Label.new()
+		caption.text = "In deck ×%d" % int(counts[def_id])
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.add_theme_color_override("font_color", ZenithTheme.MUTED)
+		column.add_child(caption)
+		tray_cards.add_child(column)
+	var shown: int = tray_cards.get_child_count()
+	var cols: int = mini(shown, TRAY_COLUMNS)
+	var rows: int = mini(ceili(float(shown) / TRAY_COLUMNS), TRAY_ROWS_SHOWN)
+	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)
+	tray_scroll.custom_minimum_size = Vector2(cols * (cell.x + 12.0) + 12.0, rows * (cell.y + 12.0))
+
+
 ## Toggles a card in a batch tray. Full trays ignore further picks until one is removed.
 func tray_toggle(uid: int) -> void:
 	if _batch == null:
@@ -653,6 +715,25 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		b.modulate = Color(1, 1, 1, 1) if is_legal else Color(0.6, 0.6, 0.6, 1)
 		var uid: int = c.uid
 		var tier: int = c.tier
+		# What this attack would deal right now, worked out by the referee: the sum after the
+		# table and every modifier, so the player compares totals rather than printed bonuses.
+		var forecast: Dictionary = _view.forecast(uid) if _view != null else {}
+		if not forecast.is_empty():
+			# A card that can only be thrown away for a Final Strike says so, quietly.
+			var final: bool = bool(forecast.get("is_final", false))
+			var chip: Label = Label.new()
+			chip.text = ("Final: " if final else "") + CardText.short_damage(int(forecast.get("stages", 0)), int(forecast.get("life", 0)))
+			chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			chip.add_theme_font_size_override("font_size", 13)
+			chip.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.RAISED_STRONG if final else ZenithTheme.ATTACK, Color(0, 0, 0, 0), 6, 0, 8, 2))
+			chip.add_theme_color_override("font_color", ZenithTheme.MUTED if final else ZenithTheme.TEXT_DARK)
+			chip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+			chip.offset_left = 8.0
+			chip.offset_right = -8.0
+			chip.offset_top = -30.0
+			chip.offset_bottom = -8.0
+			b.add_child(chip)
 		b.pressed.connect(func() -> void: card_clicked.emit(uid))
 		b.gui_input.connect(func(event: InputEvent) -> void:
 			if _is_inspect_click(event):
@@ -726,7 +807,32 @@ func show_peek(def: CardDef, tier: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible:
 		return
 	peek_face.show_def(def, tier, _live_vigor(uid), _standing(uid))
+	var forecast: String = _forecast_text(uid)
+	peek_forecast.visible = forecast != ""
+	peek_forecast_text.text = forecast
 	peek.visible = true
+
+
+## "Would deal 6 Vigor" with the steps that add up to it, for a card the viewer could attack
+## with now; "" for anything else.
+func _forecast_text(uid: int) -> String:
+	if _view == null or uid < 0:
+		return ""
+	var f: Dictionary = _view.forecast(uid)
+	if f.is_empty():
+		return ""
+	var strong: String = ZenithTheme.TEXT.to_html(false)
+	var muted: String = ZenithTheme.MUTED.to_html(false)
+	var total: String = CardText.short_damage(int(f.get("stages", 0)), int(f.get("life", 0)))
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append("[color=%s]%s would deal[/color] [color=%s]%s[/color]" % [muted, "A Final Strike" if bool(f.get("is_final", false)) else "Now", strong, total])
+	lines.append("[color=%s]%s[/color]" % [muted, "  ·  ".join(CardText.breakdown_steps(f))])
+	if int(f.get("cost_stages", 0)) > 0:
+		lines.append("[color=%s]Costs %d Vigor first[/color]" % [muted, int(f["cost_stages"])])
+	if f.has("empowered"):
+		var emp: Dictionary = f["empowered"]
+		lines.append("[color=%s]Empowered:[/color] [color=%s]%s[/color]" % [muted, strong, CardText.short_damage(int(emp.get("stages", 0)), int(emp.get("life", 0)))])
+	return "\n".join(lines)
 
 
 func hide_peek() -> void:

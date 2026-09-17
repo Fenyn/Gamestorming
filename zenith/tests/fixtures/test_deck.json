@@ -2,7 +2,7 @@
   "name": "Fixture Deck",
   "fighter": "tf_knight",
   "tiers": 3,
-  "focus": "ember",
+  "style": "ember",
   "alignment": "knight",
   "mastery": "t_mastery_ember",
   "cards": [

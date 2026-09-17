@@ -49,12 +49,24 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Portrait" type="TextureRect" parent="Column/Detail/Row"]
-custom_minimum_size = Vector2(190, 266)
+[node name="PortraitBox" type="VBoxContainer" parent="Column/Detail/Row"]
 layout_mode = 2
 size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="Portrait" type="TextureRect" parent="Column/Detail/Row/PortraitBox"]
+custom_minimum_size = Vector2(190, 266)
+layout_mode = 2
+mouse_default_cursor_shape = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="Caption" type="Label" parent="Column/Detail/Row/PortraitBox"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Noticed  ·  click for the next tier"
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Info" type="VBoxContainer" parent="Column/Detail/Row"]
 layout_mode = 2
@@ -81,7 +93,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Knave"
 
-[node name="Focus" type="Label" parent="Column/Detail/Row/Info/Chips"]
+[node name="Mastery" type="Label" parent="Column/Detail/Row/Info/Chips"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Mastery"

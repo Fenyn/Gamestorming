@@ -7,6 +7,27 @@ extends RefCounted
 ## The same object serves hotseat (one process, both seats), a hosting client (seat 0 local,
 ## seat 1 over the wire) and later a headless server (both seats over the wire).
 
+## Events a client animates, with the fields it may have. Everything named here is public once
+## the event has happened (a card that reached a pile, a number both players watched land), so
+## the same data goes to both seats. Any event not listed reaches clients as its line alone.
+const ANIMATED: Dictionary = {
+	&"combat_begin": [], &"combat_end": [],
+	&"attack_declared": ["kind", "source", "is_power", "is_final", "focused", "empowered"],
+	&"defense_played": ["card", "stopped"], &"defense_power": ["card"], &"shield": ["card"],
+	&"attack_stopped": [], &"attack_successful": [],
+	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
+	&"damage_stages": ["target", "stages", "overflow", "vigor"],
+	&"life_card_flipped": ["card", "remaining"], &"life_card_lost": ["card"],
+	&"endurance_used": ["card", "prevented"], &"token_bypassed": ["card"], &"token_captured": ["card"],
+	&"attack_end": ["stopped", "stages_dealt", "life_dealt"],
+	&"critical_ally": ["card"], &"critical_acclaim": [],
+	&"hand_discarded": ["card"], &"in_play_discarded": ["card", "removed"], &"card_moved": ["card", "to"],
+	&"card_used": ["card"], &"card_placed": ["card"], &"final_strike": ["discarded"],
+	&"power_up": ["gain", "vigor"], &"vigor_changed": ["card", "from", "to"], &"recover": ["gain", "vigor"],
+	&"acclaim_changed": ["from", "to"], &"acclaim_shielded": [], &"tier_up": ["tier"], &"tier_down": ["tier"],
+	&"countered": ["card", "target"], &"game_over": ["winner", "reason"],
+}
+
 var engine: DuelEngine = DuelEngine.new()
 var _pending_events: Array[GameEvent] = []
 
@@ -60,11 +81,26 @@ func take_updates() -> Array[SeatUpdate]:
 		# Lines are worded per seat: a card this seat may not see is never named in its log.
 		for ev in events:
 			var line: String = CardText.event_line(ev, engine, seat)
-			u.lines.append({"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line})
+			var entry: Dictionary = {"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line}
+			if ANIMATED.has(ev.type):
+				var data: Dictionary = {}
+				for key in ANIMATED[ev.type]:
+					if ev.data.has(key):
+						data[key] = ev.data[key]
+				entry["data"] = data
+			u.lines.append(entry)
 		u.view = view_for(seat)
 		u.prompt = prompt_for(seat)
 		out.append(u)
 	return out
+
+
+## An engine `seat` may simulate on: the real position with everything `seat` cannot see dealt
+## again at random from `sample_seed`. Nothing hidden survives in it, so an AI can hold it.
+func sim_for(seat: int, sample_seed: int) -> DuelEngine:
+	var sim: DuelEngine = engine.clone()
+	sim.determinize(seat, sample_seed)
+	return sim
 
 
 func view_for(seat: int) -> SeatView:

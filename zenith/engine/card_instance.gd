@@ -12,7 +12,6 @@ var zone: StringName = &"none"   # life_deck, hand, discard, removed, in_play, f
 var tier: int = 1
 var vigor: int = 0
 var power_used_turn: int = -1
-var power_used_tier: int = -1
 var power_used_combat: int = -1
 var shield_used_combat: int = -1
 var power_uses_combat: int = 0    # how many times the Power fired this Combat (for uses > 1)
@@ -31,6 +30,27 @@ func _init(p_uid: int, p_def: CardDef, p_owner: int) -> void:
 	controller = p_owner
 	if def != null and def.is_personality():
 		tier = def.lowest_tier()
+
+
+## A copy for a simulated engine. `cards_under` and `attached_to` still point at the original's
+## cards; DuelEngine.clone re-points them.
+func copy() -> CardInstance:
+	var c: CardInstance = CardInstance.new(uid, def, owner)
+	c.controller = controller
+	c.zone = zone
+	c.tier = tier
+	c.vigor = vigor
+	c.power_used_turn = power_used_turn
+	c.power_used_combat = power_used_combat
+	c.shield_used_combat = shield_used_combat
+	c.power_uses_combat = power_uses_combat
+	c.remain = remain
+	c.remain_combat = remain_combat
+	c.cards_under = cards_under
+	c.attached_to = attached_to
+	c.named_card = named_card
+	c.bond_timer = bond_timer
+	return c
 
 
 func tier_data() -> Dictionary:

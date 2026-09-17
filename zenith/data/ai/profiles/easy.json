@@ -1,0 +1,5 @@
+{
+	"_note": "No lookahead and a little noise: plays the obvious card and misjudges close calls.",
+	"name": "easy",
+	"think": {"search": false, "noise": 1.5}
+}

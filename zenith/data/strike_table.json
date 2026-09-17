@@ -1,5 +1,5 @@
 {
-  "_note": "Final-era table: nine Might bands A to I. Damage = clamp(attackerBand - defenderBand + 1, 0, cap).",
-  "thresholds": [0, 1, 650000, 1900000, 3800000, 5700000, 8000000, 9800000, 11600000],
+  "_note": "Nine Might bands A to I on a compact scale: A is 0, then one band per ten points (B 1-9, C 10-19, ... I 70+). Damage = clamp(attackerBand - defenderBand + 1, 0, cap).",
+  "thresholds": [0, 1, 10, 20, 30, 40, 50, 60, 70],
   "cap": 9
 }

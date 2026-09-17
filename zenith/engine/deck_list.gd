@@ -5,11 +5,12 @@ extends RefCounted
 var name: String = "Deck"
 var fighter_id: String = ""
 var tiers: int = 3
-var focus: String = ""
+var style: String = ""             # "freestyle" or a guild word; must match the Mastery
 var alignment: String = "knight"
 var mastery_id: String = ""
 var master_id: String = ""
 var armory: Array[String] = []
+var ai_profile: String = ""        # playstyle file under data/ai/profiles for an AI playing this deck; "" plays the defaults
 var cards: Array[String] = []   # expanded, one entry per copy
 
 
@@ -18,11 +19,12 @@ static func from_dict(d: Dictionary) -> DeckList:
 	deck.name = str(d.get("name", "Deck"))
 	deck.fighter_id = str(d.get("fighter", ""))
 	deck.tiers = int(d.get("tiers", 3))
-	deck.focus = str(d.get("focus", ""))
+	deck.style = str(d.get("style", ""))
 	deck.alignment = str(d.get("alignment", "knight"))
 	deck.mastery_id = str(d.get("mastery", ""))
 	deck.master_id = str(d.get("master", ""))
 	deck.armory.assign(d.get("armory", []))
+	deck.ai_profile = str(d.get("ai_profile", ""))
 	var entries: Array = d.get("cards", [])
 	for entry in entries:
 		if entry is String:

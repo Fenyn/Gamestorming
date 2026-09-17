@@ -2,20 +2,23 @@
   "name": "House Vale",
   "fighter": "fighter_zeta",
   "tiers": 5,
-  "focus": "freestyle",
+  "style": "freestyle",
   "alignment": "knight",
   "mastery": "freestyle_mastery",
   "master": "master_north",
   "armory": [
+    "kings_invitation",
+    "doubt",
     "confusion_drill",
-    "ancient_grove",
-    "seekers_eye",
-    "champion_drill"
+    "champion_drill",
+    "fortune",
+    "sly_smirk"
   ],
+  "ai_profile": "freestyle_swords",
   "cards": [
     {
       "id": "ancient_grove",
-      "count": 2
+      "count": 3
     },
     {
       "id": "challenge",
@@ -23,7 +26,11 @@
     },
     {
       "id": "interrupt",
-      "count": 3
+      "count": 4
+    },
+    {
+      "id": "seekers_eye",
+      "count": 1
     },
     {
       "id": "overwhelming_aura",
@@ -100,10 +107,6 @@
     {
       "id": "sword_thrust",
       "count": 3
-    },
-    {
-      "id": "guardians_wrath",
-      "count": 2
     },
     {
       "id": "lobbed_bolt",

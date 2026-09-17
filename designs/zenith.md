@@ -6,7 +6,7 @@ A two-player dueling card game. Great houses vie for the king's favor through st
 **Genre:** Collectible card duel, Arena-style client
 **Players:** 2 (hotseat first, online later), plus AI opponents for an adventure mode
 **Presentation target:** a full digital client in the style of MTG Arena: a 3D table, animated card movement, response prompts, combat log
-**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Acclaim leveling) are out of scope.
+**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Favor win at max Acclaim on the top tier, critical damage, and Fighter Powers that do not refresh on a tier change. Nothing else from the relaunch is adopted: deck sizes stay variable, Fighters keep 3 to 5 tiers (mostly 3), and Surge Rates and Might ladders stay varied per fighter. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Acclaim leveling) are out of scope.
 
 **IP rule:** all names, characters, art, styles, and lore are original. No source-material terms appear in code, data, assets, or this doc. Mechanics are emulated; flavor is not.
 
@@ -33,7 +33,7 @@ Grounded chivalric fantasy: heraldry, mud, steel, and magic woven into the swing
 | Royal Tokens, seven per set | Marks the king awards through the tourney. Three sets: Crown, Sword, Scepter. Capture is taking one off a beaten rival |
 | Grounds | The dueling grounds: the Lists, the Melee Field, the Castle Yard |
 | Master, Armory | Your master-at-arms and the side deck they bring |
-| Mastery, Focus | Guild mastery, for a fighter who trains in one guild only |
+| Mastery, Style | The guild a fighter trains in. Every deck follows one Style and carries that guild's Mastery |
 | Alignment | Knight, Knave, or Hedge (declares at setup). See Houses below |
 | Favor win | The king's Favor peaks for your fighter and he ends the duel in their name |
 | Token win | The king crowns the fighter holding all seven Tokens of one set |
@@ -63,7 +63,7 @@ Masters: Master of the North and Master of the South are the two royal fencing s
 
 1. Favor tiers stacked face up, Noticed on top. Announce your highest tier. That tier is your Favor win target.
 2. Hedge fighters declare Knight or Knave.
-3. Place Master, declare Focus (single-guild deck), place Mastery. A Focus requires a Mastery of the same guild, and Endurance only works under a Focus.
+3. Place Master and Mastery. The Mastery's guild is the deck's Style. Nothing is declared.
 4. Fighter starts at Vigor 5 above 0. Acclaim starts at 0.
 5. **Bracket rule.** If only one fighter's starting Might sits in Strike Table band D or above, the weaker fighter goes first. Otherwise the Knight goes first; same alignment goes random. No stage changes.
 6. Shuffle the Life Deck. Opponent may cut.
@@ -74,11 +74,11 @@ Masters: Master of the North and Master of the South are the two royal fencing s
 
 ## Fighter and Favor
 
-- **Fighter card** has 3 to 5 Favor tiers. Each tier lists a Surge Rate, stages 0 to 10 each with a Might rating, a Power (once per turn, Combat only, refreshed when the tier changes), and optionally a Constant Power (mandatory while that personality is in control of Combat).
+- **Fighter card** has 3 to 5 Favor tiers. Each tier lists a Surge Rate, stages 0 to 10 each with a Might rating, a Power (once per turn, Combat only; a tier change mid-Combat does not refresh it), and optionally a Constant Power (mandatory while that personality is in control of Combat).
 - **Vigor stage** is the current position on the stage table. **Might** is the number in that stage. Might feeds the Strike Table.
 - **Wild Might.** A stage showing Wild instead of a number always yields base damage 2 on the Strike Table, attacking or defending. Double Power Rule ignores Wild.
 - **Acclaim** runs 0 to 5, tracked once per player. At 5 or more: put the current tier at the bottom of the stack, reveal the next tier, set Vigor to highest, discard all your Drills, Acclaim to 0. Excess does not carry over.
-- **At top tier** with Acclaim 5 or more: set Vigor to highest, Acclaim to 0, keep Drills, no extra Power use.
+- **At top tier** with Acclaim 5 or more (or the current requirement): Favor win. If a card effect has forbidden your Favor win, instead set Vigor to highest, Acclaim to 0, keep Drills, no extra Power use.
 - **Losing a tier** (card effects only): set Vigor to 5 above 0, Acclaim unchanged, discard Drills.
 - Tier changes by any means other than Acclaim do not change Acclaim.
 
@@ -90,7 +90,7 @@ Masters: Master of the North and Master of the South are the two royal fencing s
 |---|---|---|
 | 1 Draw | Active | Draw 3 |
 | 2 Non-Combat | Active | Place Allies, Tokens, Grounds, Non-Combat cards and Drills into play. Token powers resolve immediately. Any number may be placed |
-| 3 Power Up | Active | Fighter gains Vigor equal to Surge Rate, +1 if a Focus was declared. Each Ally gains exactly 1. Never above highest stage |
+| 3 Power Up | Active | Fighter gains Vigor equal to Surge Rate +1. Each Ally gains exactly 1. Never above highest stage |
 | 4 Declare | Active | Choose Combat or skip. Playing Grounds this turn forces a skip |
 | 5 Combat | Both | See below |
 | 6 Discard | Both | Active player discards down to 1 card, then the opponent does the same |
@@ -113,7 +113,9 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 
 **Attack sources.** Strike and Art cards from hand, Fighter Power, Ally Power if that Ally is in control, or a **Final Strike**: discard any card from hand to perform a bare Strike with Strike Table damage plus Drill and other in-play modifiers, then pass for the rest of Combat. Once per player per Combat. Shields and floating effects still work after it.
 
-**In place of an attack.** Non-attack Combat cards, non-attack Fighter or Ally Powers, Grounds effects, face-up Non-Combat cards in play (discarded after use), Master power.
+**In place of an attack.** Non-attack Combat cards, non-attack Fighter or Ally Powers, Grounds effects, face-up Non-Combat cards in play (discarded after use), Master power (each Master says whether its power is a Non-Combat step action, a Combat action, or either).
+
+**Ally control.** When the Fighter is at Vigor 0 or 1, the player may put an Ally in control at the start of their own attack phase, and must say who is in control when defending (battle sequence step 4). Once the Fighter is back above that, it resumes control. After a Final Strike the player neither attacks nor defends for the rest of Combat. A skipped attack phase never happened, so passes around it are not consecutive.
 
 **Defenses.** A Strike, Art, or Combat card from hand, a Fighter or in-control Ally Power, or a face-up Non-Combat in play, and only if it stops the attack or prevents damage. Then Defense Shields auto-activate on any still-unstopped attack, defender chooses order. Cards that end Combat can only be played as an attack action.
 
@@ -132,7 +134,7 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 11. In-control Ally may choose Token capture instead of life-card damage, if that Ally has the capture trait.
 12. Vigor damage is dealt.
 13. Life card damage is dealt one card at a time. Endurance may be used as each card flips.
-14. If the attack dealt 5 or more life cards, attacker may capture one Token in play.
+14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Token the defender controls, discard an Ally the defender controls, or lower the defender's Acclaim by 1. This is a game rule, so effects that protect Allies or Acclaim from card effects do not stop it.
 15. "If successful" effects resolve, attacker picks the order.
 
 "Use when needed" cards fit between steps, never inside one. Outside Combat they can be used at any time.
@@ -151,7 +153,9 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 
 ### Strike Table
 
-Base damage = clamp(attackerBand - defenderBand + 1, 0, cap). Bands are index ranges over Might. Zenith uses the final-era table, nine bands A to I with cap 9, and fighter Might values sit on that same scale. Thresholds and cap live in `data/strike_table.json` so an earlier era can be swapped in.
+Base damage = clamp(attackerBand - defenderBand + 1, 0, cap). Bands are index ranges over Might. Zenith keeps the final-era shape, nine bands A to I with cap 9, on a compact Might scale: band A is 0 and every ten points is a band (B 1 to 9, C 10 to 19, up to I at 70). Thresholds and cap live in `data/strike_table.json`.
+
+Ladders follow the relaunch's lesson without its four tiers: fighters at the same tier sit within a band or two of each other, so equal-Vigor fights deal 0 to 2 stages and a fully charged fighter over an exhausted one deals 4 at most. Tier 1 tops in C or D, tier 2 in D or E, tier 3 in E or F; a 5-tier fighter climbs the same rungs more slowly. Each fighter keeps its own shape: a brute crosses into the tier's band early, a caster late, and Surge runs the other way.
 
 ---
 
@@ -168,12 +172,12 @@ Base damage = clamp(attackerBand - defenderBand + 1, 0, cap). Bands are index ra
 | Drill | In play | Non-Combat that stays. One guild of Drills per player at a time. No duplicate guild Drill. Freestyle and Signature Drills unrestricted. Restricted Drills (cannot be used with other X Drills). Always-active Drills are mandatory. All Drills discard when the Fighter changes tier. An unplayable drawn Drill may be shown and shuffled back |
 | Token | In play | Three sets of seven. One set per deck, one copy each. Power resolves on play, must be used. Unique in play. Immune to card effects unless named, random effects excepted. Capturable |
 | Grounds | In play, shared | Placed in Non-Combat, forces Combat skip that turn. New Grounds removes the old one from the game. No duplicate Grounds in play |
-| Mastery | Side card | One per deck, requires matching Focus, never discarded or removed. Effects come from the Mastery, not the cards it modifies |
+| Mastery | Side card | Exactly one per deck. Its guild is the deck's Style. Never discarded or removed. Effects come from the Mastery, not the cards it modifies |
 | Master | Side card | One per deck. Holds an Armory up to its printed size, outside deck size. Only "Armory" cards live there. Owner may look through it any time |
 
 ---
 
-## Guilds and Focus
+## Guilds and Style
 
 The first word of a card title sets its guild. Everything else is Freestyle. Signature cards carry a fighter's name anywhere in the title. Every guild has some Arts; the guilds differ in how much magic they weave and what they do with it.
 
@@ -184,23 +188,24 @@ The first word of a card title sets its guild. Everything else is Freestyle. Sig
 | Storm | Evoker | Arts. Cheaper and bigger Arts, Drill support, Focused Arts. Mastery discounts or boosts Arts | Poor Strikes, dry-Vigor weakness |
 | Shade | Rogue | Cunning. Hand peeks, forced and random discards, denial, off-balance Strikes. Mastery taxes the opponent's hand | Modest raw damage |
 | Steel | Juggernaut | Brute Might. Biggest Strike modifiers, Vigor gains, Strikes that also wound. Mastery boosts or shields the first attack each Combat | Little disruption, no recovery |
-| Root | Ranger | Regeneration and foresight. Wounds return from discard to the deck bottom, top-deck looks and reorders, 90-card allowance under Focus. Mastery recovers cards every Combat | Low burst |
+| Root | Ranger | Regeneration and foresight. Wounds return from discard to the deck bottom, top-deck looks and reorders, 90-card allowance. Mastery recovers cards every Combat | Low burst |
 | Freestyle | none | Signature cards, Allies, Tokens, unstyled Drills, Desperation moves. Fits any deck | Weak Mastery |
 
-- **Focus.** All guild cards in the deck share one guild, at least one guild card present. Grants +1 Surge Rate and unlocks that guild's Mastery. Freestyle Focus requires zero guild cards.
-- **No gates.** Any fighter may Focus in any guild. "Guild only" text does not exist; gating comes from alignment and fighter names only.
+- **Style.** Every deck carries exactly one Mastery, and that Mastery's guild is the deck's Style. All guild cards in the deck share that guild. A Freestyle Mastery allows no guild cards. Nothing is declared at setup. The old single-guild Surge bonus stays as a flat +1 at Power Up for every deck.
+- **No gates.** Any fighter may train in any guild. "Guild only" text does not exist; gating comes from alignment and fighter names only.
 - **Alignment.** Knight, Knave, or Hedge. Allies must match the Fighter. "Knights only" and "Knaves only" text.
 
 ---
 
 ## Deck construction
 
-- 50 to 85 cards including Fighter tiers, Mastery, Master. Root Focus allows 90.
+- 50 to 85 cards including Fighter tiers, Mastery, Master. A Root Mastery allows 90.
+- Exactly one Mastery. Its guild is the deck's Style.
 - At least 3 consecutive Fighter tiers from Noticed, up to 5.
 - 3 copies max. 4 for Signature cards matching your Fighter. "Limit N per deck" and the restricted list override.
 - Allies: at least 2 tiers below the Fighter's highest tier, 1 copy of each printing, none sharing the Fighter's character, matching alignment.
 - Tokens: one set, no duplicates.
-- Armory must obey the same Focus and construction rules.
+- Armory must obey the same Style and construction rules.
 
 ---
 
@@ -209,10 +214,10 @@ The first word of a card title sets its guild. Everything else is Freestyle. Sig
 | Win | Condition |
 |---|---|
 | Survival | Opponent cannot flip or draw a life card |
-| Favor | Your Fighter reaches the highest tier in play for this game. If your stack is taller than the opponent's, only you can win this way |
+| Favor | Your Fighter is at your highest tier and reaches Acclaim 5 (or the current requirement). A 3-tier stack needs 15 Acclaim in all, a 5-tier stack 25 |
 | Token | You control all 7 Tokens of one set. If you placed the 7th yourself, instant. If you captured it, you win at the start of your next turn if you still hold all 7 |
 
-Token capture: any single attack dealing 5 or more life cards, an in-control capture-trait Ally choosing capture over damage, or card text. Captured Token powers may be used on capture. Floating effects from a captured Token end.
+Token capture: critical damage (battle sequence step 14), an in-control capture-trait Ally choosing capture over damage, or card text. Captured Token powers may be used on capture. Floating effects from a captured Token end.
 
 ---
 
@@ -220,7 +225,7 @@ Token capture: any single attack dealing 5 or more life cards, an in-control cap
 
 | Keyword | Meaning |
 |---|---|
-| Endurance N | When this card flips as attack damage, may prevent N of the remaining damage and remove this card from the game. Only works if a Focus was declared. Not against unpreventable damage, not for non-damage discards. Endurance X reads a game value |
+| Endurance N | When this card flips as attack damage, may prevent N of the remaining damage and remove this card from the game. Not against unpreventable damage, not for non-damage discards. Endurance X reads a game value |
 | Focused (attack) | Cannot be stopped by Defense Shields, Masteries, or cards that stop both attack types. Triggers all matching Shields |
 | Empower N | On attack, may add N life cards and drop all text after the Empower |
 | Defense Shield | Auto-stops the first unstopped attack of its type. Types: Strike, Art, both |
@@ -283,7 +288,7 @@ Rules engine and presentation are separate so the same engine drives hotseat, AI
 
 - Node map through the tourney season and the houses' intrigues. Each node is a duel against a fixed Fighter and deck.
 - Rewards: cards, packs, new Fighters. Collection and deckbuilder screens.
-- AI is rule-based priority lists per guild, tuned per opponent.
+- AI is one evaluator and a short lookahead search for every deck (`zenith/ai/`). An opponent's playstyle is a weight profile in `data/ai/profiles/`, tuned per opponent; no per-deck scripts.
 - Saves through `godot-base` SaveFileHandler.
 
 ---
@@ -294,7 +299,7 @@ Rules engine and presentation are separate so the same engine drives hotseat, AI
 2. Playspace spike: 3D table, camera, card faces rendered to texture, card flight tweens. Done 2026-09-15 with click-to-play; drag from the 2D hand is still open.
 3. Hotseat duel client on the spike, with deck select and placeholder decks. Done 2026-09-15.
 3b. Full rule support for the six starter decks: effect queue with choice prompts, Remain, Empower, counter window, floating forbids, attachments, constant powers, Master powers, named-card locks, attack variants, "you may" and pay-any-Vigor prompts, look-at-N inspection, chosen searches, instead-of-damage choices, two-stop attacks, Ally powers without control, Drill self-maintenance. Done 2026-09-15; the few remaining approximations are listed in `zenith/README.md`.
-4. AI opponent.
+4. AI opponent. First pass done 2026-09-17: fair AI through `Referee.sim_for`, scorer plus lookahead search, Easy, Normal and Hard, Duel the AI on the title. Open: per-deck playstyle profiles, an offline weight tuner over `tests/ai_arena.gd`, memory of cards the AI has seen.
 5. Online over ENet. Done 2026-09-15: host or join from the title, the select screen as lobby. Reworked 2026-09-16 from lockstep to host-authoritative seat views: the joiner holds no engine. Open: a headless referee process, encrypted transport, matchmaking or relay, reconnects and turn timers.
 6. Deckbuilder and collection.
 7. Adventure mode.
@@ -308,5 +313,7 @@ Starter pool as built 2026-09-15: six Fighters, ten Allies, three Masters, six M
 
 - Portraits and card flavor text. House and champion names for the six starters are approved (see Setting); everything else waits on tone approval.
 - Deck size default for v1 (50 minimum is legal).
+- Favor pacing with unequal stacks: a 3-tier Fighter wins Favor at 15 Acclaim, a 5-tier one at 25. Accepted for now; taller stacks trade a slower Favor win for stronger top tiers.
+- Might ladders were compressed onto the compact scale on 2026-09-16 (Ashmark no longer reaches band H at tier 2, Corven now climbs to D). Per-fighter variety in Surge and Might stays; tune further from play.
 - Restricted list policy: none in v1.
 - Tide or Bastion as the Warden style word.

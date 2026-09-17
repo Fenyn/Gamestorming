@@ -3,6 +3,7 @@ extends Control
 ## the select screen as a lobby once the two clients are connected.
 
 @onready var hotseat_button: Button = $Center/Column/Hotseat
+@onready var vs_ai_button: Button = $Center/Column/VsAi
 @onready var host_button: Button = $Center/Column/Host
 @onready var address_edit: LineEdit = $Center/Column/JoinRow/Address
 @onready var join_button: Button = $Center/Column/JoinRow/Join
@@ -13,7 +14,8 @@ extends Control
 func _ready() -> void:
 	theme = ZenithTheme.get_theme()
 	Net.leave()
-	hotseat_button.pressed.connect(func() -> void: Session.go_to_select())
+	hotseat_button.pressed.connect(func() -> void: _offline(-1))
+	vs_ai_button.pressed.connect(func() -> void: _offline(1))
 	host_button.pressed.connect(_on_host)
 	join_button.pressed.connect(_on_join)
 	address_edit.text_submitted.connect(func(_t: String) -> void: _on_join())
@@ -24,7 +26,14 @@ func _ready() -> void:
 	_dev_args()
 
 
+## Hotseat when `ai_seat` is -1, otherwise that seat is played by the AI.
+func _offline(ai_seat: int) -> void:
+	Session.ai_seat = ai_seat
+	Session.go_to_select()
+
+
 func _on_host() -> void:
+	Session.ai_seat = -1
 	var problem: String = Net.host()
 	if problem != "":
 		status_label.text = problem
@@ -34,6 +43,7 @@ func _on_host() -> void:
 
 
 func _on_join() -> void:
+	Session.ai_seat = -1
 	var problem: String = Net.join(address_edit.text)
 	if problem != "":
 		status_label.text = problem
@@ -53,6 +63,7 @@ func _on_failed(reason: String) -> void:
 
 func _set_buttons(on: bool) -> void:
 	hotseat_button.disabled = not on
+	vs_ai_button.disabled = not on
 	host_button.disabled = not on
 	join_button.disabled = not on
 

@@ -1,0 +1,8 @@
+{
+	"_note": "Playstyle for the Steel beatdown deck: enter Combat every turn because the Mastery pays in cards, keep the hand full and turn it into damage, and strip the opponent's Vigor so they cannot pay for attacks and sit below us on the Strike Table. Endurance stands in for blocks. Strong against Token and Non-Combat decks, so their pieces are worth removing.",
+	"name": "steel_beatdown",
+	"own": {"hand": 1.6, "band": 1.6, "vigor": 0.8, "favor": 35.0, "life": 0.85, "token": 8.0},
+	"foe": {"vigor": 1.5, "band": 1.8, "life": 1.2, "non_combat": 2.5, "token": 30.0},
+	"effect": {"draw": 1.8, "vigor": 1.0, "forbid": 2.2, "discard_in_play": 2.8, "acclaim": 2.4},
+	"play": {"damage_life": 1.2, "damage_stage": 1.0, "declare_bias": 2.5, "defend_card": 1.6, "final_strike_penalty": 6.0}
+}

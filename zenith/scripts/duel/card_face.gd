@@ -40,6 +40,10 @@ const STAGES: int = CardInstance.MAX_STAGE
 @onready var cost_badge: PanelContainer = $Margin/Column/Art/Cost
 @onready var cost_num: Label = $Margin/Column/Art/Cost/Column/Num
 @onready var cost_word: Label = $Margin/Column/Art/Cost/Column/Word
+@onready var attack_badge: PanelContainer = $Margin/Column/Art/Attack
+@onready var attack_kind: Label = $Margin/Column/Art/Attack/Column/Kind
+@onready var attack_num: Label = $Margin/Column/Art/Attack/Column/Num
+@onready var attack_word: Label = $Margin/Column/Art/Attack/Column/Word
 @onready var title_label: Label = $Margin/Column/Title
 @onready var type_chip: PanelContainer = $Margin/Column/TypeRow/TypeChip
 @onready var type_icon: TypeIcon = $Margin/Column/TypeRow/TypeChip/Row/Icon
@@ -135,6 +139,20 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 		cost = int(def.attack.get("cost_stages", 2 if def.attack_kind() == "art" else 0))
 	cost_badge.visible = cost > 0
 	cost_num.text = str(cost)
+	# The base attack in the other corner: what the card adds before the table and the modifiers.
+	var badge: Dictionary = CardText.attack_badge(def)
+	attack_badge.visible = not badge.is_empty()
+	if not badge.is_empty():
+		attack_kind.text = str(badge["kind"]).to_upper()
+		attack_num.text = str(badge["num"])
+		var word: String = str(badge["word"])
+		if str(badge["extra"]) != "":
+			word += "  " + str(badge["extra"])
+		attack_word.text = word.to_upper()
+		_round(attack_badge, Palette.type_ink(def.type), 14, 10, 4)
+		attack_kind.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+		attack_num.add_theme_color_override("font_color", Color.WHITE)
+		attack_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 	_round(cost_badge, ZenithTheme.VIGOR.darkened(0.35), 34)
 	cost_num.add_theme_color_override("font_color", Color.WHITE)
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))

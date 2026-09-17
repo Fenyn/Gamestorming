@@ -20,7 +20,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		problems.append("Fighter must run %d to %d tiers" % [MIN_TIERS, MAX_TIERS])
 	if deck.tiers > fighter.highest_tier():
 		problems.append("Fighter only has %d tiers" % fighter.highest_tier())
-	var max_cards: int = MAX_CARDS_ROOT if deck.focus == "root" else MAX_CARDS
+	var max_cards: int = MAX_CARDS_ROOT if deck.style == "root" else MAX_CARDS
 	var total: int = deck.total_cards()
 	if total < MIN_CARDS or total > max_cards:
 		problems.append("Deck has %d cards, needs %d to %d" % [total, MIN_CARDS, max_cards])
@@ -38,8 +38,8 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("'%s' cannot be in the Life Deck" % id)
 		if def.guild != "":
 			styled_seen = true
-			if deck.focus != "" and deck.focus != def.guild:
-				problems.append("'%s' is %s, deck Focus is %s" % [id, def.guild, deck.focus])
+			if deck.style != def.guild:
+				problems.append("'%s' is %s, deck Style is %s" % [id, def.guild, deck.style])
 		if def.type == CardDef.Type.TOKEN:
 			token_sets[def.token_set] = true
 		if def.type == CardDef.Type.ALLY:
@@ -60,21 +60,20 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("'%s' x%d exceeds limit %d" % [id, counts[id], limit])
 	if token_sets.size() > 1:
 		problems.append("Only one Token set per deck")
-	if deck.focus != "" and deck.focus != "freestyle" and not styled_seen:
-		problems.append("Focus %s needs at least one %s card" % [deck.focus, deck.focus])
-	if deck.focus == "freestyle" and styled_seen:
-		problems.append("Freestyle Focus allows no guild cards")
-	if deck.focus != "" and deck.mastery_id == "":
-		problems.append("A Focus needs a Mastery")
-	if deck.mastery_id != "":
+	# Every deck follows one Style: its Mastery's guild ("freestyle" for a guildless Mastery).
+	if deck.style == "freestyle" and styled_seen:
+		problems.append("A Freestyle Style allows no guild cards")
+	if deck.mastery_id == "":
+		problems.append("Every deck needs a Mastery")
+	else:
 		var mastery: CardDef = library.defs.get(deck.mastery_id)
-		var wanted_guild: String = "" if deck.focus == "freestyle" else deck.focus
+		var wanted_guild: String = "" if deck.style == "freestyle" else deck.style
 		if mastery == null or mastery.type != CardDef.Type.MASTERY:
 			problems.append("Mastery '%s' not found" % deck.mastery_id)
-		elif deck.focus == "":
-			problems.append("Mastery requires a Focus")
+		elif deck.style == "":
+			problems.append("Deck Style must be set to the Mastery's guild")
 		elif mastery.guild != wanted_guild:
-			problems.append("Mastery guild '%s' does not match Focus %s" % [mastery.guild, deck.focus])
+			problems.append("Mastery guild '%s' does not match Style %s" % [mastery.guild, deck.style])
 	if deck.master_id != "":
 		var master: CardDef = library.defs.get(deck.master_id)
 		if master == null or master.type != CardDef.Type.MASTER:
@@ -89,8 +88,8 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		if def == null:
 			problems.append("Unknown Armory card '%s'" % id)
 			continue
-		if def.guild != "" and deck.focus != "" and deck.focus != def.guild:
-			problems.append("Armory card '%s' is %s, deck Focus is %s" % [id, def.guild, deck.focus])
+		if def.guild != "" and deck.style != def.guild:
+			problems.append("Armory card '%s' is %s, deck Style is %s" % [id, def.guild, deck.style])
 		var combined: int = int(counts.get(id, 0)) + deck.armory.count(id)
 		var limit: int = def.limit_per_deck
 		if def.type == CardDef.Type.TOKEN or def.type == CardDef.Type.ALLY:

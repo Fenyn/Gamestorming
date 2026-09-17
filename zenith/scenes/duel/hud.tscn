@@ -62,6 +62,24 @@ theme_type_variation = &"MutedLabel"
 text = "Player 1's turn"
 horizontal_alignment = 1
 
+[node name="Toast" type="Label" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 86.0
+offset_right = 280.0
+offset_bottom = 134.0
+grow_horizontal = 2
+pivot_offset = Vector2(280, 24)
+mouse_filter = 2
+theme_override_font_sizes/font_size = 26
+text = "Strike"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Log" type="PanelContainer" parent="Root"]
 layout_mode = 1
 anchors_preset = 1
@@ -281,6 +299,23 @@ offset_right = 512.0
 offset_bottom = 716.0
 scale = Vector2(0.547, 0.547)
 mouse_filter = 2
+
+[node name="Forecast" type="PanelContainer" parent="Root/Peek"]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_top = 398.0
+offset_right = 280.0
+offset_bottom = 440.0
+mouse_filter = 2
+
+[node name="Text" type="RichTextLabel" parent="Root/Peek/Forecast"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
 [node name="Inspect" type="ColorRect" parent="Root"]
 visible = false

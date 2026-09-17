@@ -2,7 +2,7 @@
   "name": "House Corven",
   "fighter": "fighter_gamma",
   "tiers": 3,
-  "focus": "storm",
+  "style": "storm",
   "alignment": "knave",
   "mastery": "storm_mastery",
   "master": "master_steadfast",
@@ -17,6 +17,7 @@
     "focused_crushing_dive",
     "storm_obliteration"
   ],
+  "ai_profile": "storm_volley",
   "cards": [
     {
       "id": "henchman_zeta",

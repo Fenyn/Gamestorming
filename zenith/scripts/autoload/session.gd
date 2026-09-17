@@ -16,6 +16,8 @@ var chosen: Array[DeckList] = [null, null]
 var player_names: Array[String] = ["Player 1", "Player 2"]
 var seed_value: int = 0   # 0 means pick one at random when the duel starts
 var last_seed: int = 0
+var ai_seat: int = -1               # the seat an AiPlayer drives, -1 for none. Offline only.
+var ai_profile: String = "default"  # level file under AiProfile.DIR, without .json
 
 
 func _ready() -> void:
@@ -63,6 +65,14 @@ func build_referee() -> Referee:
 	var pair: Array[DeckList] = [a, b]
 	referee.setup(pair, library, strike_table, last_seed)
 	return referee
+
+
+## The driver for the AI seat, or null when both seats are people.
+func build_ai() -> AiPlayer:
+	if ai_seat < 0:
+		return null
+	# The deck says what the AI values, the chosen level says how hard it thinks.
+	return AiPlayer.new(AiProfile.for_deck(chosen[ai_seat], ai_profile), last_seed)
 
 
 func go_to_duel() -> void:

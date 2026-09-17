@@ -2,7 +2,7 @@
   "name": "House Ashmark",
   "fighter": "fighter_alpha",
   "tiers": 3,
-  "focus": "ember",
+  "style": "ember",
   "alignment": "knave",
   "mastery": "ember_mastery",
   "master": "master_north",
@@ -16,10 +16,11 @@
     "heel_kick",
     "heel_kick",
     "tollgate_yard",
-    "ember_tilted_punch",
-    "ember_tilted_punch",
-    "ember_tilted_punch"
+    "ember_passive_block",
+    "ember_passive_block",
+    "ember_passive_block"
   ],
+  "ai_profile": "ember_beatdown",
   "cards": [
     {
       "id": "turmoil_square",
@@ -62,7 +63,7 @@
       "count": 1
     },
     {
-      "id": "bracing_stance",
+      "id": "ironclad_stance",
       "count": 1
     },
     {
@@ -83,10 +84,6 @@
     },
     {
       "id": "perfect_guard",
-      "count": 3
-    },
-    {
-      "id": "ember_passive_block",
       "count": 3
     },
     {
@@ -131,7 +128,7 @@
     },
     {
       "id": "relentless_fury",
-      "count": 3
+      "count": 4
     },
     {
       "id": "frantic_assault",
@@ -139,6 +136,10 @@
     },
     {
       "id": "ember_face_slap",
+      "count": 3
+    },
+    {
+      "id": "ember_tilted_punch",
       "count": 3
     },
     {

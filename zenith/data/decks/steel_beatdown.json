@@ -2,7 +2,7 @@
   "name": "House Quarr",
   "fighter": "fighter_epsilon",
   "tiers": 3,
-  "focus": "steel",
+  "style": "steel",
   "alignment": "knave",
   "mastery": "steel_mastery",
   "master": "master_north",
@@ -12,14 +12,10 @@
     "mutual_escalation",
     "mutual_escalation",
     "mutual_escalation",
-    "steel_youth_bruise",
-    "steel_rapid_slam",
-    "steel_charge",
-    "steel_fist_attack",
-    "steel_direct_strike",
-    "steel_cliff_slam",
-    "steel_wrist_block"
+    "doubt",
+    "sly_smirk"
   ],
+  "ai_profile": "steel_beatdown",
   "cards": [
     {
       "id": "turmoil_square",
@@ -112,6 +108,42 @@
     {
       "id": "steel_face_jab",
       "count": 3
+    },
+    {
+      "id": "steel_youth_bruise",
+      "count": 3
+    },
+    {
+      "id": "steel_rapid_slam",
+      "count": 3
+    },
+    {
+      "id": "steel_heads_up",
+      "count": 2
+    },
+    {
+      "id": "steel_charge",
+      "count": 3
+    },
+    {
+      "id": "steel_fist_attack",
+      "count": 3
+    },
+    {
+      "id": "steel_direct_strike",
+      "count": 3
+    },
+    {
+      "id": "steel_cliff_slam",
+      "count": 3
+    },
+    {
+      "id": "steel_wrist_block",
+      "count": 3
+    },
+    {
+      "id": "steel_triple_blast",
+      "count": 2
     }
   ]
 }

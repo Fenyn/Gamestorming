@@ -2,7 +2,7 @@
   "name": "House Rooke",
   "fighter": "fighter_beta",
   "tiers": 3,
-  "focus": "tide",
+  "style": "tide",
   "alignment": "knight",
   "mastery": "tide_mastery",
   "master": "master_south",
@@ -12,6 +12,7 @@
     "erasure",
     "bonded_pair"
   ],
+  "ai_profile": "tide_companions",
   "cards": [
     {
       "id": "companion_alpha",
@@ -63,7 +64,7 @@
     },
     {
       "id": "oath",
-      "count": 1
+      "count": 2
     },
     {
       "id": "showmans_trick",
@@ -99,7 +100,7 @@
     },
     {
       "id": "last_ward",
-      "count": 3
+      "count": 2
     },
     {
       "id": "breaching_kick",

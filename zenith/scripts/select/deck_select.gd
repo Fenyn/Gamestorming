@@ -8,9 +8,14 @@ extends Control
 @onready var matchup_label: Label = $Margin/Column/TitleRow/Matchup
 @onready var seed_label: Label = $Margin/Column/Footer/SeedLabel
 @onready var seed_edit: LineEdit = $Margin/Column/Footer/Seed
+@onready var ai_label: Label = $Margin/Column/Footer/AiLabel
+@onready var ai_level: OptionButton = $Margin/Column/Footer/AiLevel
 @onready var problems_label: Label = $Margin/Column/Footer/Problems
 @onready var start_button: Button = $Margin/Column/Footer/Start
 @onready var back_button: Button = $Margin/Column/Footer/Back
+
+## Profile file names behind the AiLevel items, in item order.
+const AI_LEVELS: Array[String] = ["easy", "default", "hard"]
 
 var _online: bool = false
 var _started: bool = false
@@ -19,6 +24,8 @@ var _started: bool = false
 func _ready() -> void:
 	theme = ZenithTheme.get_theme()
 	_online = Net.active()
+	if not _online and OS.get_cmdline_user_args().has("--dev-ai"):
+		Session.ai_seat = 1   # the select screen opened directly, as against the AI
 	matchup_label.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	seed_edit.text = str(Session.seed_value)
 	seed_edit.text_changed.connect(func(t: String) -> void: Session.seed_value = int(t))
@@ -33,12 +40,26 @@ func _ready() -> void:
 	if _online:
 		_setup_online()
 	else:
+		if Session.ai_seat >= 0:
+			_setup_ai()
 		for i in range(2):
 			var existing: DeckList = Session.chosen[i]
 			if existing != null:
 				sides[i].select(Session.decks.find(existing))
 	_refresh_start()
 	_dev_screenshot()
+
+
+## One person against the AI: the person picks both houses, and how hard the AI thinks.
+func _setup_ai() -> void:
+	var seat: int = Session.ai_seat
+	title_label.text = "Choose your fighter and your opponent"
+	sides[1 - seat].set_locked(false, "YOU  ·  PLAYER %d" % (2 - seat))
+	sides[seat].set_locked(false, "AI OPPONENT  ·  PLAYER %d" % (seat + 1))
+	ai_label.visible = true
+	ai_level.visible = true
+	ai_level.select(maxi(0, AI_LEVELS.find(Session.ai_profile)))
+	ai_level.item_selected.connect(func(i: int) -> void: Session.ai_profile = AI_LEVELS[i])
 
 
 func _setup_online() -> void:
@@ -168,7 +189,7 @@ func _on_back() -> void:
 
 
 ## `--dev-screenshot=<png>` after `--`: saves the screen once laid out, then quits.
-## `--dev-pick=A,B` selects deck A for player 1 and B for player 2 first (online: only this
+## `--dev-ai` shows the screen as it is against the AI. `--dev-pick=A,B` selects deck A for player 1 and B for player 2 first (online: only this
 ## client's seat). `--dev-autoplay` makes an online host start as soon as both seats are set.
 func _dev_screenshot() -> void:
 	for arg in OS.get_cmdline_user_args():
@@ -177,6 +198,12 @@ func _dev_screenshot() -> void:
 			for i in range(mini(2, picks.size())):
 				if not _online or i == Net.local_player:
 					sides[i].select(int(picks[i]))
+	for arg in OS.get_cmdline_user_args():
+		# `--dev-tier=N`: show player 1's fighter at tier N the way a click would, with the
+		# pointer left over the portrait so the hover lift shows too.
+		if arg.begins_with("--dev-tier="):
+			sides[0]._hover_portrait(true)
+			await sides[0].show_tier(int(arg.get_slice("=", 1)), true)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--dev-screenshot=") and not _online:
 			var path: String = arg.get_slice("=", 1)

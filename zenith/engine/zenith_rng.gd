@@ -21,3 +21,11 @@ func shuffle(arr: Array) -> void:
 		var tmp: Variant = arr[i]
 		arr[i] = arr[j]
 		arr[j] = tmp
+
+
+## A generator that will produce the same numbers from here on.
+func copy() -> ZenithRng:
+	var r: ZenithRng = ZenithRng.new(0)
+	r._rng.seed = _rng.seed
+	r._rng.state = _rng.state
+	return r

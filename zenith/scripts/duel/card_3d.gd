@@ -1,24 +1,34 @@
 class_name Card3D
 extends Node3D
-## One card on the table: a textured quad, a back, a glow for legal choices, and a pick area.
+## One card on the table: a textured quad, a back, a glow for legal choices, a wider role glow
+## for the personalities in a fight, and a pick area. The quads sit under `Body`, which shakes
+## and lunges on its own so the table can keep tweening the card's own transform meanwhile.
 
 signal clicked(uid: int)
 signal hovered(uid: int, over: bool)
 signal inspected(uid: int)   # right-click: bring the card up to read
 
 const FLIP_DURATION: float = 0.25
+const FLASH_TIME: float = 0.35
+const SHAKE_TIME: float = 0.32
+const LUNGE_TIME: float = 0.18
 
 var uid: int = -1
 var face_up: bool = true
 
-@onready var front: MeshInstance3D = $Front
-@onready var back: MeshInstance3D = $Back
-@onready var glow: MeshInstance3D = $Glow
+@onready var body: Node3D = $Body
+@onready var front: MeshInstance3D = $Body/Front
+@onready var back: MeshInstance3D = $Body/Back
+@onready var glow: MeshInstance3D = $Body/Glow
+@onready var role: MeshInstance3D = $Body/Role
 @onready var pick: Area3D = $Pick
 
 var _front_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _back_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _glow_mat: StandardMaterial3D = StandardMaterial3D.new()
+var _role_mat: StandardMaterial3D = StandardMaterial3D.new()
+var _flash: Tween = null
+var _motion: Tween = null
 
 
 func _ready() -> void:
@@ -26,12 +36,14 @@ func _ready() -> void:
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		m.cull_mode = BaseMaterial3D.CULL_BACK
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-	_glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_glow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	for m in [_glow_mat, _role_mat]:
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_glow_mat.albedo_color = Palette.HIGHLIGHT
 	front.material_override = _front_mat
 	back.material_override = _back_mat
 	glow.material_override = _glow_mat
+	role.material_override = _role_mat
 	pick.input_event.connect(_on_pick_input)
 	pick.mouse_entered.connect(func() -> void: hovered.emit(uid, true))
 	pick.mouse_exited.connect(func() -> void: hovered.emit(uid, false))
@@ -48,6 +60,65 @@ func set_face_texture(front_tex: Texture2D) -> void:
 
 func set_highlight(on: bool) -> void:
 	glow.visible = on
+
+
+## A standing tint under the card for its part in the fight (attacking red, defending blue);
+## a transparent colour clears it.
+func set_role(color: Color) -> void:
+	role.visible = color.a > 0.0
+	_role_mat.albedo_color = Color(color, 0.45)
+	if role.visible:
+		var t: Tween = create_tween()
+		t.tween_property(_role_mat, "albedo_color:a", 0.28, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+## The face tints toward `color` for a moment, as a hit or a heal.
+func flash(color: Color) -> void:
+	if _flash != null:
+		_flash.kill()
+	_front_mat.albedo_color = color.lerp(Color.WHITE, 0.25)
+	_back_mat.albedo_color = _front_mat.albedo_color
+	_flash = create_tween().set_parallel(true)
+	_flash.tween_property(_front_mat, "albedo_color", Color.WHITE, FLASH_TIME)
+	_flash.tween_property(_back_mat, "albedo_color", Color.WHITE, FLASH_TIME)
+
+
+## A short rattle of the quads, for taking a hit. Awaitable.
+func shake(strength: float = 0.05) -> void:
+	_stop_motion()
+	_motion = create_tween()
+	var steps: int = 5
+	for i in range(steps):
+		var falloff: float = 1.0 - float(i) / steps
+		var off: Vector3 = Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)) * strength * falloff
+		_motion.tween_property(body, "position", off, SHAKE_TIME / (steps + 1))
+	_motion.tween_property(body, "position", Vector3.ZERO, SHAKE_TIME / (steps + 1))
+	await _motion.finished
+
+
+## The quads push out along `direction` (world space) and back, for attacking. Awaitable.
+func lunge(direction: Vector3, distance: float = 0.45) -> void:
+	_stop_motion()
+	var local: Vector3 = global_transform.basis.inverse() * (direction.normalized() * distance) + Vector3(0, 0.15, 0)
+	_motion = create_tween()
+	_motion.tween_property(body, "position", local, LUNGE_TIME).set_ease(Tween.EASE_OUT)
+	_motion.tween_property(body, "position", Vector3.ZERO, LUNGE_TIME).set_ease(Tween.EASE_IN)
+	await _motion.finished
+
+
+## A small hop in place, for a card that just changed (Vigor, Acclaim, a tier). Awaitable.
+func hop(height: float = 0.12) -> void:
+	_stop_motion()
+	_motion = create_tween()
+	_motion.tween_property(body, "position:y", height, 0.12).set_ease(Tween.EASE_OUT)
+	_motion.tween_property(body, "position:y", 0.0, 0.16).set_ease(Tween.EASE_IN)
+	await _motion.finished
+
+
+func _stop_motion() -> void:
+	if _motion != null:
+		_motion.kill()
+	body.position = Vector3.ZERO
 
 
 ## Target basis for the current facing; the view composes it with the zone slot.

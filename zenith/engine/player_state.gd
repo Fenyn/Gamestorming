@@ -5,7 +5,7 @@ extends RefCounted
 var index: int = 0
 var name: String = ""
 var alignment: String = "knight"   # knight | knave
-var focus: String = ""               # "" none, "freestyle", or a guild word
+var style: String = ""               # "freestyle" or a guild word, set by the Mastery
 var fighter: CardInstance = null
 var highest_tier: int = 1
 var acclaim: int = 0
@@ -39,9 +39,52 @@ var pending_fight_back: Array[Dictionary] = []   # wound-triggered effects waiti
 var must_declare_combat: bool = false    # forced by an opponent's card this turn
 
 
-## Focus (and everything that keys off it, like Endurance) needs a Mastery on the table.
-func has_focus() -> bool:
-	return focus != "" and mastery != null
+## A copy for a simulated engine. `cards` maps uid to that engine's own CardInstance.
+func copy(cards: Dictionary) -> PlayerState:
+	var p: PlayerState = PlayerState.new()
+	p.index = index
+	p.name = name
+	p.alignment = alignment
+	p.style = style
+	p.fighter = _mapped(fighter, cards)
+	p.highest_tier = highest_tier
+	p.acclaim = acclaim
+	p.acclaim_needed = acclaim_needed
+	p.mastery = _mapped(mastery, cards)
+	p.master = _mapped(master, cards)
+	p.armory = _mapped_list(armory, cards)
+	p.life_deck = _mapped_list(life_deck, cards)
+	p.hand = _mapped_list(hand, cards)
+	p.discard = _mapped_list(discard, cards)
+	p.removed = _mapped_list(removed, cards)
+	p.in_play = _mapped_list(in_play, cards)
+	p.controlling = _mapped(controlling, cards)
+	p.combat_declared = combat_declared
+	p.placed_grounds = placed_grounds
+	p.cannot_declare_combat = cannot_declare_combat
+	p.final_strike_used = final_strike_used
+	p.must_pass = must_pass
+	p.skip_next_attack_phase = skip_next_attack_phase
+	p.token_victory_pending = token_victory_pending
+	p.no_favor_win = no_favor_win
+	p.master_uses = master_uses
+	p.combat_cards_used_combat = combat_cards_used_combat
+	p.attack_count_combat = attack_count_combat
+	p.last_searched = last_searched
+	p.pending_fight_back = pending_fight_back.duplicate(true)
+	p.must_declare_combat = must_declare_combat
+	return p
+
+
+static func _mapped(c: CardInstance, cards: Dictionary) -> CardInstance:
+	return cards[c.uid] if c != null else null
+
+
+static func _mapped_list(list: Array[CardInstance], cards: Dictionary) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for c in list:
+		out.append(cards[c.uid])
+	return out
 
 
 func in_control() -> CardInstance:

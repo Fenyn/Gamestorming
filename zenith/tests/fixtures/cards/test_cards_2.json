@@ -24,7 +24,7 @@
     {"id": "t_draw_until", "title": "Test Refill", "type": "combat", "effects": [{"op": "draw_until", "amount": 5}]},
     {"id": "t_draw_discard", "title": "Test Salvage", "type": "combat", "effects": [{"op": "draw_discard", "amount": 1, "from": "bottom"}]},
     {"id": "t_search_play", "title": "Test Summon Drill", "type": "combat", "effects": [{"op": "search", "card_type": "drill", "to": "play"}]},
-    {"id": "t_variant_strike", "title": "Test Adaptive Strike", "type": "strike", "guild": "ember", "attack": {"kind": "strike", "stages": 1, "variants": [{"when": {"focus": true}, "stages": 3}]}},
+    {"id": "t_variant_strike", "title": "Test Adaptive Strike", "type": "strike", "guild": "ember", "attack": {"kind": "strike", "stages": 1, "variants": [{"when": {"vigor_min": 1}, "stages": 3}]}},
     {"id": "t_owner_glare", "title": "Test Peek", "type": "combat", "effects": [{"op": "discard_hand", "who": "opponent", "amount": 1, "random": false, "chooser": "owner"}]},
     {"id": "t_stop_next", "title": "Test Afterimage", "type": "combat", "defense": {"stops": "any"}, "effects": [{"op": "float", "what": "stop_next", "duration": "combat"}]},
     {"id": "t_only_attacks", "title": "Test Frenzy", "type": "combat", "effects": [{"op": "forbid", "what": "non_attack_actions"}, {"op": "forbid", "who": "opponent", "what": "non_attack_actions"}]},

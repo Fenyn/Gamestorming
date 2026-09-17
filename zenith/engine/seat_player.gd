@@ -6,8 +6,7 @@ extends RefCounted
 var index: int = 0
 var name: String = ""
 var alignment: String = "knight"
-var focus: String = ""
-var has_focus: bool = false
+var style: String = ""
 var acclaim: int = 0
 var highest_tier: int = 1
 # Effective values, computed by the engine from base state plus standing effects. Clients show
@@ -39,7 +38,7 @@ var no_favor_win: bool = false
 
 func to_dict() -> Dictionary:
 	return {
-		"index": index, "name": name, "alignment": alignment, "focus": focus, "has_focus": has_focus,
+		"index": index, "name": name, "alignment": alignment, "style": style,
 		"acclaim": acclaim, "highest_tier": highest_tier, "acclaim_needed": acclaim_needed,
 		"acclaim_gain": acclaim_gain, "recover_gain": recover_gain, "acclaim_shield": acclaim_shield,
 		"tier_shield": tier_shield, "restrictions": restrictions, "fighter": fighter, "mastery": mastery,
@@ -56,8 +55,7 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.index = int(d.get("index", 0))
 	p.name = str(d.get("name", ""))
 	p.alignment = str(d.get("alignment", "knight"))
-	p.focus = str(d.get("focus", ""))
-	p.has_focus = bool(d.get("has_focus", false))
+	p.style = str(d.get("style", ""))
 	p.acclaim = int(d.get("acclaim", 0))
 	p.highest_tier = int(d.get("highest_tier", 1))
 	p.acclaim_needed = int(d.get("acclaim_needed", DuelEngine.ACCLAIM_TO_TIER))
@@ -114,8 +112,7 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.index = p.index
 	v.name = p.name
 	v.alignment = p.alignment
-	v.focus = p.focus
-	v.has_focus = p.has_focus()
+	v.style = p.style
 	v.acclaim = p.acclaim
 	v.highest_tier = p.highest_tier
 	v.acclaim_needed = engine.acclaim_needed(p)

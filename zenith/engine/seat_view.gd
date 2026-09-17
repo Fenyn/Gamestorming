@@ -15,6 +15,9 @@ var win_reason: String = ""
 var deciding: int = -1                 # who the pending prompt belongs to, -1 when none
 var deciding_kind: StringName = &""
 var attack: Dictionary = {}            # public summary of the attack in the air, {} when none
+var battle_step: int = 0               # where the battle sequence stands while `attack` is in the air
+var last_attack: Dictionary = {}       # outcome of the last attack this Combat, {} until one ends
+var forecasts: Dictionary = {}         # uid -> damage breakdown for each attack this seat may declare now
 var grounds: int = -1
 var resolving: Array[int] = []
 var players: Array[SeatPlayer] = []
@@ -72,8 +75,14 @@ func to_dict() -> Dictionary:
 	return {
 		"seat": seat, "turn": turn, "step": step, "phase": phase, "active": active, "attacker": attacker,
 		"winner": winner, "win_reason": win_reason, "deciding": deciding, "deciding_kind": String(deciding_kind),
-		"attack": attack, "grounds": grounds, "resolving": resolving, "players": ps, "cards": cs,
+		"attack": attack, "battle_step": battle_step, "last_attack": last_attack, "forecasts": forecasts,
+		"grounds": grounds, "resolving": resolving, "players": ps, "cards": cs,
 	}
+
+
+## The forecast for a card this seat could attack with now, {} when there is none.
+func forecast(uid: int) -> Dictionary:
+	return forecasts.get(uid, forecasts.get(str(uid), {}))
 
 
 static func from_dict(d: Dictionary) -> SeatView:
@@ -89,6 +98,10 @@ static func from_dict(d: Dictionary) -> SeatView:
 	v.deciding = int(d.get("deciding", -1))
 	v.deciding_kind = StringName(str(d.get("deciding_kind", "")))
 	v.attack = d.get("attack", {})
+	v.battle_step = int(d.get("battle_step", 0))
+	v.last_attack = d.get("last_attack", {})
+	for k in d.get("forecasts", {}).keys():
+		v.forecasts[int(k)] = d["forecasts"][k]
 	v.grounds = int(d.get("grounds", -1))
 	v.resolving = SeatPlayer.ints(d.get("resolving", []))
 	for pd in d.get("players", []):
@@ -114,6 +127,9 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 		v.deciding = engine.prompt.player
 		v.deciding_kind = engine.prompt.kind
 	v.attack = _attack_summary(engine)
+	v.battle_step = s.battle_step
+	v.last_attack = _last_attack_summary(engine)
+	v.forecasts = engine.attack_forecasts(seat)
 	v.grounds = s.grounds.uid if s.grounds != null else -1
 	for p in s.players:
 		v.players.append(SeatPlayer.of(p, engine))
@@ -127,6 +143,10 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 		for o in engine.prompt.options:
 			if o.card >= 0 and v.cards.has(o.card) and (v.cards[o.card] as SeatCard).hidden():
 				v.cards[o.card] = SeatCard.of(engine.card(o.card), seat, true)
+		# A search of the Life Deck shows the whole deck, not only the cards that match.
+		for uid in engine.prompt.context.get("library", []):
+			if v.cards.has(int(uid)) and (v.cards[int(uid)] as SeatCard).hidden():
+				v.cards[int(uid)] = SeatCard.of(engine.card(int(uid)), seat, true)
 	return v
 
 
@@ -162,6 +182,9 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 		"life_dealt": int(a.get("life_dealt", 0)),
 		"life_remaining": int(a.get("life_remaining", 0)),
 		"target": int(a.get("target", -1)),
+		"stopped_by": a.get("stopped_by", {}),
+		"stopped_by_title": _stopper_title(engine, a.get("stopped_by", {})),
+		"endurance_prevented": int(a.get("endurance_prevented", 0)),
 	}
 	var src: CardInstance = engine.card(int(a.get("source", -1)))
 	if src != null:
@@ -170,3 +193,41 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 	if performer != null:
 		out["performer_title"] = performer.def.title
 	return out
+
+
+## The outcome of the last attack, with titles resolved, so a client can say what happened
+## after the attack itself has left the view.
+static func _last_attack_summary(engine: DuelEngine) -> Dictionary:
+	var la: Dictionary = engine.state.last_attack
+	if la.is_empty():
+		return {}
+	var out: Dictionary = la.duplicate(true)
+	out["source_title"] = ""
+	out["performer_title"] = ""
+	out["target_title"] = ""
+	var src: CardInstance = engine.card(int(la.get("source", -1)))
+	if src != null:
+		out["source_title"] = src.def.title
+	var performer: CardInstance = engine.card(int(la.get("performer", -1)))
+	if performer != null:
+		out["performer_title"] = performer.def.title
+	var target: CardInstance = engine.card(int(la.get("target", -1)))
+	if target != null:
+		out["target_title"] = target.def.title
+	out["stopped_by_title"] = _stopper_title(engine, la.get("stopped_by", {}))
+	return out
+
+
+## "Tide Parry", "Dame Alder Rooke's Power", "a Defense Shield", "a standing defense", or "".
+static func _stopper_title(engine: DuelEngine, by: Dictionary) -> String:
+	var c: CardInstance = engine.card(int(by.get("card", -1)))
+	match str(by.get("how", "")):
+		"card":
+			return c.def.title if c != null else "a card"
+		"power":
+			return "%s's Power" % (c.def.title if c != null else "a personality")
+		"shield":
+			return "a Defense Shield"
+		"floating":
+			return "a standing defense"
+	return ""

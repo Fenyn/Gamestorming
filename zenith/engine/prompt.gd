@@ -14,6 +14,19 @@ var batch_min: int = 0
 var batch_max: int = 0
 
 
+## A copy for a simulated engine. Commands are never changed after they are built, so they are shared.
+func copy() -> Prompt:
+	var p: Prompt = Prompt.new()
+	p.player = player
+	p.kind = kind
+	p.options = options.duplicate()
+	p.context = context.duplicate(true)
+	p.batch_type = batch_type
+	p.batch_min = batch_min
+	p.batch_max = batch_max
+	return p
+
+
 ## Card uids this prompt lets the player pick, in option order.
 func card_options() -> Array[int]:
 	var out: Array[int] = []

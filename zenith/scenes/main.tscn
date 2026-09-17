@@ -57,6 +57,12 @@ theme_type_variation = &"AccentButton"
 theme_override_font_sizes/font_size = 20
 text = "Hotseat duel"
 
+[node name="VsAi" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Duel the AI"
+
 [node name="Host" type="Button" parent="Center/Column"]
 custom_minimum_size = Vector2(280, 44)
 layout_mode = 2

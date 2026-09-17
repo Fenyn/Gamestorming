@@ -1,0 +1,5 @@
+{
+	"_note": "Same values as default, more samples and time.",
+	"name": "hard",
+	"think": {"top_k": 8, "samples": 12, "budget_ms": 1200}
+}

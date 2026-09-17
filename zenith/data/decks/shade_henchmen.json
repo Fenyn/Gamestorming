@@ -2,7 +2,7 @@
   "name": "The Draik Company",
   "fighter": "fighter_delta",
   "tiers": 3,
-  "focus": "shade",
+  "style": "shade",
   "alignment": "knave",
   "mastery": "shade_mastery",
   "master": "master_south",
@@ -12,6 +12,7 @@
     "shade_pivot_kick",
     "shade_pivot_kick"
   ],
+  "ai_profile": "shade_henchmen",
   "cards": [
     {
       "id": "turmoil_square",

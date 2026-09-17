@@ -7,6 +7,8 @@ signal deck_chosen(player: int, deck: DeckList)
 signal name_changed(player: int, player_name: String)
 
 const TIER_ROW_MIN: float = 24.0
+const HOVER_SCALE: float = 1.05
+const FLIP_TIME: float = 0.11
 const TYPE_ORDER: Array[CardDef.Type] = [
 	CardDef.Type.STRIKE, CardDef.Type.ART, CardDef.Type.COMBAT, CardDef.Type.NON_COMBAT,
 	CardDef.Type.DRILL, CardDef.Type.ALLY, CardDef.Type.TOKEN, CardDef.Type.GROUNDS,
@@ -17,11 +19,12 @@ const TYPE_ORDER: Array[CardDef.Type] = [
 @onready var tiles: VBoxContainer = $Column/Tiles
 @onready var empty: Label = $Column/Empty
 @onready var detail: PanelContainer = $Column/Detail
-@onready var portrait: TextureRect = $Column/Detail/Row/Portrait
+@onready var portrait: TextureRect = $Column/Detail/Row/PortraitBox/Portrait
+@onready var portrait_caption: Label = $Column/Detail/Row/PortraitBox/Caption
 @onready var fighter_label: Label = $Column/Detail/Row/Info/Fighter
 @onready var guild_chip: Label = $Column/Detail/Row/Info/Chips/Guild
 @onready var alignment_chip: Label = $Column/Detail/Row/Info/Chips/Alignment
-@onready var focus_chip: Label = $Column/Detail/Row/Info/Chips/Focus
+@onready var mastery_chip: Label = $Column/Detail/Row/Info/Chips/Mastery
 @onready var might_tile: StatTile = $Column/Detail/Row/Info/Stats/Might
 @onready var surge_tile: StatTile = $Column/Detail/Row/Info/Stats/Surge
 @onready var life_tile: StatTile = $Column/Detail/Row/Info/Stats/Life
@@ -39,6 +42,12 @@ var _faces: CardFaceCache = null
 var _might_max: int = 1
 var _group: ButtonGroup = ButtonGroup.new()
 var _tile_buttons: Array[Button] = []
+var _deck: DeckList = null            # the deck on show
+var _tier: int = 1                    # the fighter tier the portrait shows
+var _tier_names: Dictionary = {}      # tier -> its name label in the tier rows
+var _hovered: bool = false
+var _hover_tween: Tween = null
+var _flip_tween: Tween = null
 
 
 func setup(index: int, decks: Array[DeckList], faces: CardFaceCache, might_max: int) -> void:
@@ -61,6 +70,78 @@ func setup(index: int, decks: Array[DeckList], faces: CardFaceCache, might_max: 
 		tiles.add_child(b)
 		_tile_buttons.append(b)
 	detail.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, 12, 1, 16, 14))
+	if not portrait.gui_input.is_connected(_on_portrait_input):
+		portrait.gui_input.connect(_on_portrait_input)
+		portrait.mouse_entered.connect(func() -> void: _hover_portrait(true))
+		portrait.mouse_exited.connect(func() -> void: _hover_portrait(false))
+
+
+## The portrait lifts a little under the pointer, the way a hand card does, so it reads as
+## something to click.
+func _hover_portrait(over: bool) -> void:
+	_hovered = over
+	portrait.pivot_offset = portrait.size * 0.5
+	if _hover_tween != null:
+		_hover_tween.kill()
+	_hover_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_hover_tween.tween_property(portrait, "scale", Vector2.ONE * (HOVER_SCALE if over else 1.0), 0.12)
+	_hover_tween.tween_property(portrait, "modulate", Color(1.08, 1.08, 1.08) if over else Color.WHITE, 0.12)
+	portrait_caption.add_theme_color_override("font_color", ZenithTheme.ACCENT if over else ZenithTheme.MUTED)
+
+
+## The portrait cycles through the fighter's tiers on click, so every face can be read before
+## the duel; the matching row in the tier list lights up.
+func _on_portrait_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		var tiers: Array[int] = _shown_tiers()
+		if tiers.size() < 2:
+			return
+		show_tier(tiers[(tiers.find(_tier) + 1) % tiers.size()], true)
+
+
+## Tiers the deck plays with, lowest first.
+func _shown_tiers() -> Array[int]:
+	var out: Array[int] = []
+	var fighter: CardDef = Session.library.defs.get(_deck.fighter_id) if _deck != null else null
+	if fighter == null:
+		return out
+	for t in fighter.tiers:
+		var tier: int = int(t.get("tier", 0))
+		if tier <= _deck.tiers:
+			out.append(tier)
+	out.sort()
+	return out
+
+
+## With `flip`, the card turns edge-on, swaps its face and turns back, as a card being turned
+## over; a fresh deck pick just shows the face.
+func show_tier(tier: int, flip: bool = false) -> void:
+	var fighter: CardDef = Session.library.defs.get(_deck.fighter_id) if _deck != null else null
+	if fighter == null:
+		portrait.texture = null
+		portrait_caption.text = ""
+		return
+	_tier = tier
+	var tiers: Array[int] = _shown_tiers()
+	var last: bool = tiers.size() < 2
+	portrait_caption.text = CardText.tier_name(tier) + ("" if last else "  ·  click for the next tier")
+	for t in _tier_names.keys():
+		var l: Label = _tier_names[t]
+		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if int(t) == tier else ZenithTheme.TEXT)
+	var face: Texture2D = await _faces.render_face(fighter, tier)
+	if _tier != tier:
+		return   # another click or pick came in while the face rendered
+	if not flip:
+		portrait.texture = face
+		return
+	if _flip_tween != null:
+		_flip_tween.kill()
+	portrait.pivot_offset = portrait.size * 0.5
+	var rest: float = HOVER_SCALE if _hovered else 1.0
+	_flip_tween = create_tween()
+	_flip_tween.tween_property(portrait, "scale:x", 0.0, FLIP_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_flip_tween.tween_callback(func() -> void: portrait.texture = face)
+	_flip_tween.tween_property(portrait, "scale:x", rest, FLIP_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 func select(pos: int) -> void:
@@ -95,7 +176,7 @@ func _make_tile(d: DeckList) -> Button:
 	b.button_group = _group
 	b.custom_minimum_size = Vector2(0, 54)
 	var fighter: CardDef = Session.library.defs.get(d.fighter_id)
-	var guild_color: Color = Palette.guild_ui(d.focus)
+	var guild_color: Color = Palette.guild_ui(d.style)
 	var row: HBoxContainer = HBoxContainer.new()
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	row.offset_left = 12
@@ -121,13 +202,13 @@ func _make_tile(d: DeckList) -> Button:
 	var sub: Label = Label.new()
 	sub.text = "%s  ·  %s %s  ·  %d Favor tiers" % [
 		fighter.title if fighter != null else d.fighter_id,
-		CardText.guild_name(d.focus), d.alignment.capitalize(), d.tiers]
+		CardText.guild_name(d.style), d.alignment.capitalize(), d.tiers]
 	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	sub.theme_type_variation = &"MutedLabel"
 	col.add_child(sub)
 	row.add_child(col)
 	var guild: Label = Label.new()
-	guild.text = CardText.guild_name(d.focus).to_upper()
+	guild.text = CardText.guild_name(d.style).to_upper()
 	guild.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	guild.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	guild.add_theme_font_size_override("font_size", 12)
@@ -142,18 +223,19 @@ func _show(d: DeckList) -> void:
 	var fighter: CardDef = lib.defs.get(d.fighter_id)
 	empty.visible = false
 	detail.visible = true
-	var guild_color: Color = Palette.guild_ui(d.focus)
+	var guild_color: Color = Palette.guild_ui(d.style)
 	fighter_label.text = fighter.title if fighter != null else d.fighter_id
-	guild_chip.text = CardText.guild_name(d.focus)
+	guild_chip.text = CardText.guild_name(d.style)
 	ZenithTheme.chip(guild_chip, guild_color)
 	alignment_chip.text = d.alignment.capitalize()
 	ZenithTheme.chip(alignment_chip, ZenithTheme.MUTED)
-	focus_chip.visible = d.mastery_id != ""
-	focus_chip.text = "Mastery"
-	ZenithTheme.chip(focus_chip, ZenithTheme.ACCENT)
-	portrait.texture = _faces.face(fighter, fighter.lowest_tier()) if fighter != null else null
+	mastery_chip.visible = d.mastery_id != ""
+	mastery_chip.text = "Mastery"
+	ZenithTheme.chip(mastery_chip, ZenithTheme.ACCENT)
+	_deck = d
 	_fill_stats(fighter, d)
 	_fill_tiers(fighter, d.tiers)
+	show_tier(fighter.lowest_tier() if fighter != null else 1)
 	_fill_composition(d, lib)
 	var sides: PackedStringArray = PackedStringArray()
 	if d.mastery_id != "":
@@ -197,6 +279,7 @@ func _fill_stats(fighter: CardDef, d: DeckList) -> void:
 func _fill_tiers(fighter: CardDef, tiers: int) -> void:
 	for child in tiers_box.get_children():
 		child.queue_free()
+	_tier_names.clear()
 	if fighter == null:
 		return
 	for t in fighter.tiers:
@@ -212,6 +295,7 @@ func _fill_tiers(fighter: CardDef, tiers: int) -> void:
 		name_label.text = CardText.tier_name(tier)
 		name_label.custom_minimum_size = Vector2(92, 0)
 		row.add_child(name_label)
+		_tier_names[tier] = name_label
 		var surge: Label = Label.new()
 		surge.text = "Surge %d" % int(t.get("surge", 0))
 		surge.custom_minimum_size = Vector2(64, 0)

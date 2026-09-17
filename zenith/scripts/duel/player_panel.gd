@@ -29,7 +29,7 @@ func _ready() -> void:
 func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool) -> void:
 	var over: bool = view.is_over()
 	var fighter: SeatCard = view.card(p.fighter)
-	add_theme_stylebox_override("panel", ZenithTheme.edged(Palette.guild_ui(p.focus)))
+	add_theme_stylebox_override("panel", ZenithTheme.edged(Palette.guild_ui(p.style)))
 	fighter_label.text = fighter.title
 	turn_chip.visible = view.active == p.index and not over
 	var in_combat: bool = view.step == GameState.Step.COMBAT and not over and view.phase != GameState.Phase.NONE
@@ -40,9 +40,7 @@ func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool) -> void:
 		ZenithTheme.chip(combat_chip, ZenithTheme.ATTACK if attacking else ZenithTheme.DEFEND, true)
 	var who: PackedStringArray = PackedStringArray()
 	who.append("You, %s" % p.name if is_viewer else p.name)
-	who.append("%s %s" % [CardText.guild_name(p.focus), p.alignment.capitalize()])
-	if p.focus != "":
-		who.append("Focus")
+	who.append("%s %s" % [CardText.guild_name(p.style), p.alignment.capitalize()])
 	var ic: SeatCard = view.card(p.controlling)
 	if ic != null and ic.uid != fighter.uid:
 		who.append("%s in control" % ic.title)

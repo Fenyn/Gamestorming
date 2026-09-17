@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://i363ypy8n6s3"
-path="res://.godot/imported/ember_mastery.png-704b361230afae01b898d5f26042a9ee.ctex"
+uid="uid://dvfqjcaclki5v"
+path="res://.godot/imported/pyre_snuffing.png-598d471777587ff0de5cab05180d4893.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_mastery.png"
-dest_files=["res://.godot/imported/ember_mastery.png-704b361230afae01b898d5f26042a9ee.ctex"]
+source_file="res://assets/card_art/pyre_snuffing.png"
+dest_files=["res://.godot/imported/pyre_snuffing.png-598d471777587ff0de5cab05180d4893.ctex"]
 
 [params]
 

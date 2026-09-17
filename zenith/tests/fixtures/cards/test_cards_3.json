@@ -10,7 +10,7 @@
     {"id": "t_drill_cap", "title": "Test Capping Drill", "type": "drill", "modifiers": [{"scope": "against", "kind": "strike", "cap_stages": 3}]},
     {"id": "t_strike_firm", "title": "Test Firm Strike", "type": "strike", "attack": {"kind": "strike", "no_reduce": true}},
     {"id": "t_truce_guard", "title": "Test Guarded Truce", "type": "combat", "defense": {"stops": "any"}, "effects": [{"op": "end_combat"}]},
-    {"id": "t_skip_strike", "title": "Test Sweeping Strike", "type": "strike", "school": "ember", "attack": {"kind": "strike"}, "effects": [{"trigger": "before_damage", "may": true, "skip_damage": true, "op": "discard_in_play", "who": "opponent", "card_type": "drill", "all": true}]},
+    {"id": "t_skip_strike", "title": "Test Sweeping Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike"}, "effects": [{"trigger": "before_damage", "may": true, "skip_damage": true, "op": "discard_in_play", "who": "opponent", "card_type": "drill", "all": true}]},
     {"id": "tf_double", "title": "Test Duelist", "type": "duelist", "character": "Test Duelist", "aspects": [
       {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "power": {"attack": {"kind": "strike", "stops_needed": 2}}},
       {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000]},
@@ -19,7 +19,7 @@
     {"id": "t_ally_free", "title": "Test Skirmisher", "type": "ally", "character": "Test Skirmisher", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [
       {"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike", "life": 1}, "no_control_needed": true}}
     ]},
-    {"id": "t_seal_strike", "title": "Test Covetous Strike", "type": "strike", "school": "ember", "attack": {"kind": "strike", "life_per_opponent_seal": 1}},
+    {"id": "t_seal_strike", "title": "Test Covetous Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike", "life_per_opponent_seal": 1}},
     {"id": "t_lonely_drill", "title": "Test Solitary Drill", "type": "drill", "discard_if_other_non_combats": true, "modifiers": [{"scope": "own", "kind": "strike", "stages": 1}]},
     {"id": "t_returning_block", "title": "Test Patient Block", "type": "strike", "school": "tide", "defense": {"stops": "strike"}, "remain": 1, "unused_return": "shuffle", "remove_after_use": true},
     {"id": "t_recall", "title": "Test Recall", "type": "combat", "effects": [{"op": "return_removed", "card_type": "ally"}]},
@@ -32,7 +32,7 @@
     {"id": "t_grounds_hush", "title": "Test Hushed Court", "type": "grounds", "forbid": [{"who": "all", "what": "non_combats"}]},
     {"id": "t_grounds_forge", "title": "Test Forge Yard", "type": "grounds", "modifiers": [{"scope": "own", "kind": "strike", "stages": 2}]},
     {"id": "t_pledge","title": "Test Squire's Pledge", "type": "combat", "only": {"character": "Test Squire"}, "effects": [{"op": "attach", "to": "named", "character": "Test Vigil"}], "attachment": {"target": "named", "limit_attached": 1, "effects": [{"trigger": "entering_combat", "may": true, "op": "draw_discard", "amount": 1, "from": "bottom"}]}},
-    {"id": "t_mastery_flare", "title": "Test Flare Mastery", "type": "mastery", "school": "ember", "effects": [{"trigger": "on_attack", "may": true, "op": "discard_life", "amount": 1, "when": {"source_school": "ember", "attack_focused": false}, "then": [{"op": "focus_attack"}]}]},
+    {"id": "t_mastery_flare", "title": "Test Flare Mastery", "type": "mastery", "school": "pyre", "effects": [{"trigger": "on_attack", "may": true, "op": "discard_life", "amount": 1, "when": {"source_school": "pyre", "attack_focused": false}, "then": [{"op": "focus_attack"}]}]},
     {"id": "t_mastery_keep", "title": "Test Keeping Mastery", "type": "mastery", "school": "tide", "blocks_to_bottom": "tide"},
     {"id": "t_tithe","title": "Test Tithe", "type": "combat", "effects": [{"op": "draw_check", "check": "named", "discard": true, "effects": [{"op": "draw", "amount": 2}], "else_effects": [{"op": "draw", "amount": 1}]}]},
     {"id": "t_scry","title": "Test Scry", "type": "combat", "effects": [{"op": "draw_check", "check": "named", "effects": [{"op": "draw", "amount": 1}]}]},

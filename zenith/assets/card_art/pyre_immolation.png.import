@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5en6ugcrrew"
-path="res://.godot/imported/ember_power_rush.png-e6b6640b0d5112819a91a8270cd31966.ctex"
+uid="uid://cltukcqnxixmr"
+path="res://.godot/imported/pyre_immolation.png-3e2edf93be6044edb179ccfa9d628bd7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_power_rush.png"
-dest_files=["res://.godot/imported/ember_power_rush.png-e6b6640b0d5112819a91a8270cd31966.ctex"]
+source_file="res://assets/card_art/pyre_immolation.png"
+dest_files=["res://.godot/imported/pyre_immolation.png-3e2edf93be6044edb179ccfa9d628bd7.ctex"]
 
 [params]
 

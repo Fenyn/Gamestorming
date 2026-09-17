@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cg404vydwsaes"
-path="res://.godot/imported/ember_axe_heel_kick.png-4bbdb6b309889164d32e78b3b339ff90.ctex"
+uid="uid://bcsq26l8rtnbq"
+path="res://.godot/imported/pyre_flame_lash.png-5c58238f3a45a6b3a0c60dfa85e43bb8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_axe_heel_kick.png"
-dest_files=["res://.godot/imported/ember_axe_heel_kick.png-4bbdb6b309889164d32e78b3b339ff90.ctex"]
+source_file="res://assets/card_art/pyre_flame_lash.png"
+dest_files=["res://.godot/imported/pyre_flame_lash.png-5c58238f3a45a6b3a0c60dfa85e43bb8.ctex"]
 
 [params]
 

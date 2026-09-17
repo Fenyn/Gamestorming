@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chm2dhtwaj08n"
-path="res://.godot/imported/ember_overbearing_blow.png-89bb3c3618acda94ec20e6ed5d7f2cdf.ctex"
+uid="uid://dedbsx3ekm7eu"
+path="res://.godot/imported/pyre_firestorm.png-282b6a0cc1cf69e0d25621087ae6db88.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_overbearing_blow.png"
-dest_files=["res://.godot/imported/ember_overbearing_blow.png-89bb3c3618acda94ec20e6ed5d7f2cdf.ctex"]
+source_file="res://assets/card_art/pyre_firestorm.png"
+dest_files=["res://.godot/imported/pyre_firestorm.png-282b6a0cc1cf69e0d25621087ae6db88.ctex"]
 
 [params]
 

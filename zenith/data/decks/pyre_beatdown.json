@@ -2,57 +2,57 @@
   "name": "Ashmark the Pyromancer",
   "duelist": "duelist_alpha",
   "aspects": 3,
-  "style": "ember",
+  "style": "pyre",
   "alignment": "pact",
-  "mastery": "ember_mastery",
+  "mastery": "pyre_mastery",
   "relic": "blank_mask",
   "reserve": [
     "open_challenge",
-    "ember_energy_orb",
-    "ember_energy_orb",
-    "ember_energy_orb",
-    "champion_drill",
-    "heel_kick",
-    "heel_kick",
-    "heel_kick",
+    "pyre_ashfall",
+    "pyre_ashfall",
+    "pyre_ashfall",
+    "revision_drill",
+    "scatters_the_ashes",
+    "scatters_the_ashes",
+    "scatters_the_ashes",
     "tollgate_yard",
-    "ember_passive_block",
-    "ember_passive_block",
-    "ember_passive_block"
+    "pyre_searing_guard",
+    "pyre_searing_guard",
+    "pyre_searing_guard"
   ],
   "archetype": "strike_beatdown",
   "difficulty": "easy",
   "subthemes": [
     "fervor"
   ],
-  "ai_profile": "ember_beatdown",
+  "ai_profile": "pyre_beatdown",
   "cards": [
     {
-      "id": "turmoil_square",
+      "id": "trampled_crossroads",
       "count": 3
     },
     {
-      "id": "sweet_ration",
+      "id": "stokes_the_coals",
       "count": 3
     },
     {
-      "id": "counsel",
+      "id": "recalled_lesson",
       "count": 1
     },
     {
-      "id": "victors_drill",
+      "id": "bravado_drill",
       "count": 1
     },
     {
-      "id": "hard_glare",
+      "id": "cold_appraisal",
       "count": 3
     },
     {
-      "id": "interrupt",
+      "id": "cut_short",
       "count": 3
     },
     {
-      "id": "threatening_pose",
+      "id": "sever_the_leyline",
       "count": 1
     },
     {
@@ -60,15 +60,15 @@
       "count": 1
     },
     {
-      "id": "iron_will",
+      "id": "will_not_break",
       "count": 1
     },
     {
-      "id": "chosen_wall",
+      "id": "terms_of_the_pact",
       "count": 1
     },
     {
-      "id": "ironclad_stance",
+      "id": "planted_feet",
       "count": 1
     },
     {
@@ -76,59 +76,59 @@
       "count": 1
     },
     {
-      "id": "energy_veil",
+      "id": "grounding_step",
       "count": 1
     },
     {
-      "id": "mirror_shell",
+      "id": "dead_air",
       "count": 1
     },
     {
-      "id": "ember_blocking_hand",
+      "id": "pyre_cinder_guard",
       "count": 3
     },
     {
-      "id": "perfect_guard",
+      "id": "wall_of_flame",
       "count": 3
     },
     {
-      "id": "ember_blast",
+      "id": "pyre_immolation",
       "count": 3
     },
     {
-      "id": "ember_back_kick",
+      "id": "pyre_backdraft",
       "count": 3
     },
     {
-      "id": "ember_shattering_leap",
+      "id": "pyre_comet_fall",
       "count": 3
     },
     {
-      "id": "ember_face_upheaval",
+      "id": "pyre_scouring_flame",
       "count": 3
     },
     {
-      "id": "ember_lightning_slash",
+      "id": "pyre_firestorm",
       "count": 3
     },
     {
-      "id": "ember_power_rush",
+      "id": "pyre_blazing_charge",
       "count": 3
     },
     {
-      "id": "ember_overbearing_blow",
+      "id": "pyre_furnace_breath",
       "count": 3
     },
     {
-      "id": "breaching_kick",
+      "id": "no_quarter",
       "count": 3
     },
     {
-      "id": "power_hit",
+      "id": "all_or_nothing",
       "count": 3
     },
     {
-      "id": "ember_double_strike",
+      "id": "pyre_twin_flames",
       "count": 3
     },
     {
@@ -136,27 +136,27 @@
       "count": 4
     },
     {
-      "id": "frantic_assault",
+      "id": "reckless_lunge",
       "count": 3
     },
     {
-      "id": "ember_face_slap",
+      "id": "pyre_snuffing",
       "count": 3
     },
     {
-      "id": "ember_tilted_punch",
+      "id": "pyre_flashover",
       "count": 3
     },
     {
-      "id": "ember_whiplash",
+      "id": "pyre_flame_lash",
       "count": 3
     },
     {
-      "id": "ember_puppy_slap",
+      "id": "pyre_kindling",
       "count": 3
     },
     {
-      "id": "ember_axe_heel_kick",
+      "id": "pyre_rekindling",
       "count": 3
     }
   ]

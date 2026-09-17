@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://hwca2r8ouyco"
-path="res://.godot/imported/ember_blast.png-5de4aa9f117de2a42ef77a16fa3832de.ctex"
+uid="uid://ds2ufhy5rsf3i"
+path="res://.godot/imported/pyre_twin_flames.png-cd0bc10ec765d4ca14e031e1710dada1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_blast.png"
-dest_files=["res://.godot/imported/ember_blast.png-5de4aa9f117de2a42ef77a16fa3832de.ctex"]
+source_file="res://assets/card_art/pyre_twin_flames.png"
+dest_files=["res://.godot/imported/pyre_twin_flames.png-cd0bc10ec765d4ca14e031e1710dada1.ctex"]
 
 [params]
 

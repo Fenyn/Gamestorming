@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://urdg2yywljf8"
-path="res://.godot/imported/ember_puppy_slap.png-65fdd6038d97b1eb95f76f8eb96e9075.ctex"
+uid="uid://bv2bc8sxd8hkq"
+path="res://.godot/imported/pyre_rekindling.png-0a99445b1476e36140b0487ec239d6d3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_puppy_slap.png"
-dest_files=["res://.godot/imported/ember_puppy_slap.png-65fdd6038d97b1eb95f76f8eb96e9075.ctex"]
+source_file="res://assets/card_art/pyre_rekindling.png"
+dest_files=["res://.godot/imported/pyre_rekindling.png-0a99445b1476e36140b0487ec239d6d3.ctex"]
 
 [params]
 

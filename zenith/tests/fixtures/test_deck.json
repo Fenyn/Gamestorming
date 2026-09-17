@@ -2,9 +2,9 @@
   "name": "Fixture Deck",
   "duelist": "tf_vigil",
   "aspects": 3,
-  "style": "ember",
+  "style": "pyre",
   "alignment": "vigil",
-  "mastery": "t_mastery_ember",
+  "mastery": "t_mastery_pyre",
   "cards": [
     {"id": "t_strike", "count": 3},
     {"id": "t_strike_plus2", "count": 3},

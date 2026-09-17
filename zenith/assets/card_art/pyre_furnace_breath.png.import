@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bem1nnmr060pj"
-path="res://.godot/imported/ember_double_strike.png-392890995cf3e7d70e9edf36c938b0d3.ctex"
+uid="uid://by5ryq5sump1n"
+path="res://.godot/imported/pyre_furnace_breath.png-16db154df85836576253f12885f79b20.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_double_strike.png"
-dest_files=["res://.godot/imported/ember_double_strike.png-392890995cf3e7d70e9edf36c938b0d3.ctex"]
+source_file="res://assets/card_art/pyre_furnace_breath.png"
+dest_files=["res://.godot/imported/pyre_furnace_breath.png-16db154df85836576253f12885f79b20.ctex"]
 
 [params]
 

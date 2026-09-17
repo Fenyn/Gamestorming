@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cn40miqn2vbbg"
-path="res://.godot/imported/ember_lightning_slash.png-15c7d76b579ea1ae03495f382b785494.ctex"
+uid="uid://3mmvjad6d33f"
+path="res://.godot/imported/pyre_blazing_charge.png-55fb2f79c1a9fb97c3e5314c4eb5eab8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_lightning_slash.png"
-dest_files=["res://.godot/imported/ember_lightning_slash.png-15c7d76b579ea1ae03495f382b785494.ctex"]
+source_file="res://assets/card_art/pyre_blazing_charge.png"
+dest_files=["res://.godot/imported/pyre_blazing_charge.png-55fb2f79c1a9fb97c3e5314c4eb5eab8.ctex"]
 
 [params]
 

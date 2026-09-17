@@ -10,7 +10,7 @@
     "open_challenge",
     "doubt",
     "confusion_drill",
-    "champion_drill",
+    "revision_drill",
     "fortune",
     "mutual_escalation"
   ],
@@ -31,7 +31,7 @@
       "count": 3
     },
     {
-      "id": "interrupt",
+      "id": "cut_short",
       "count": 4
     },
     {
@@ -55,7 +55,7 @@
       "count": 1
     },
     {
-      "id": "ironclad_stance",
+      "id": "planted_feet",
       "count": 1
     },
     {
@@ -75,7 +75,7 @@
       "count": 3
     },
     {
-      "id": "breaching_kick",
+      "id": "no_quarter",
       "count": 3
     },
     {
@@ -151,7 +151,7 @@
       "count": 1
     },
     {
-      "id": "counsel",
+      "id": "recalled_lesson",
       "count": 1
     },
     {
@@ -159,7 +159,7 @@
       "count": 1
     },
     {
-      "id": "victors_drill",
+      "id": "bravado_drill",
       "count": 1
     }
   ]

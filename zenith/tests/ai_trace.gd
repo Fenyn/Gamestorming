@@ -1,11 +1,11 @@
 extends SceneTree
 ## Plays one AI game and tallies what seat 0 did, to see how a playstyle profile behaves.
-## godot --headless --path zenith -s tests/ai_trace.gd -- --deck=tide_companions --foe=ember_beatdown --seed=100 --budget=100
+## godot --headless --path zenith -s tests/ai_trace.gd -- --deck=tide_companions --foe=pyre_beatdown --seed=100 --budget=100
 ## Prints seat 0's command types, the events it caused, and a per-turn line of the table.
 
 
 func _init() -> void:
-	var args: Dictionary = {"deck": "tide_companions", "foe": "ember_beatdown", "seed": "100", "budget": "100", "log-turn": "-1"}
+	var args: Dictionary = {"deck": "tide_companions", "foe": "pyre_beatdown", "seed": "100", "budget": "100", "log-turn": "-1"}
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"

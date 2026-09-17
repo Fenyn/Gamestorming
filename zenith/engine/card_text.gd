@@ -3,7 +3,7 @@ extends RefCounted
 ## Human-readable text for cards, prompts, and the log. Pure functions over engine data.
 
 const SCHOOL_NAMES: Dictionary = {
-	"": "Freestyle", "ember": "Ember", "tide": "Tide", "storm": "Storm",
+	"": "Freestyle", "pyre": "Pyre", "tide": "Tide", "storm": "Storm",
 	"shade": "Shade", "steel": "Steel", "root": "Root",
 }
 const TYPE_LABELS: Dictionary = {
@@ -69,7 +69,7 @@ const KEYWORDS: Array[Dictionary] = [
 	{"key": "in control", "pattern": "\\b(?:in control|takes? control|take control of Combat)\\b", "role": "ally",
 		"tip": "The personality fighting for you this Combat. Your duelist has control unless an Ally steps in, which an Ally may do once your duelist is out of Energy."},
 	{"key": "Vigil only", "pattern": "\\b(?:Vigil|Pact) only\\b", "role": "plain",
-		"tip": "Only a duelist of that side of the court may include and use this card."},
+		"tip": "Only a duelist sworn to that side may include and use this card."},
 	{"key": "Limit", "pattern": "\\bLimit \\d+ per deck\\b", "role": "plain",
 		"tip": "The most copies of this card a deck may hold, Life Deck and Reserve together."},
 	{"key": "Endurance", "pattern": "\\bEndurance(?: \\d+| X)?\\b", "role": "defense",

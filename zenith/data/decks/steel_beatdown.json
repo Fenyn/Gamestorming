@@ -25,7 +25,7 @@
   "ai_profile": "steel_beatdown",
   "cards": [
     {
-      "id": "turmoil_square",
+      "id": "trampled_crossroads",
       "count": 3
     },
     {
@@ -41,11 +41,11 @@
       "count": 1
     },
     {
-      "id": "hard_glare",
+      "id": "cold_appraisal",
       "count": 3
     },
     {
-      "id": "interrupt",
+      "id": "cut_short",
       "count": 3
     },
     {
@@ -81,7 +81,7 @@
       "count": 3
     },
     {
-      "id": "breaching_kick",
+      "id": "no_quarter",
       "count": 3
     },
     {

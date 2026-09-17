@@ -3,12 +3,12 @@ extends RefCounted
 ## Shared colors for card frames and UI accents.
 ##
 ## Each school owns a hue with a gap on the wheel to its neighbours, so no two read alike at a
-## glance: Ember scarlet, Root leaf green, Tide sea teal, Storm electric indigo, Shade plum,
+## glance: Pyre scarlet, Root leaf green, Tide sea teal, Storm electric indigo, Shade plum,
 ## Steel the one bright silver, Freestyle warm bronze.
 
 const SCHOOL_COLORS: Dictionary = {
 	"": Color(0.58, 0.44, 0.26),
-	"ember": Color(0.74, 0.20, 0.10),
+	"pyre": Color(0.74, 0.20, 0.10),
 	"tide": Color(0.08, 0.44, 0.54),
 	"storm": Color(0.34, 0.26, 0.76),
 	"shade": Color(0.42, 0.12, 0.40),
@@ -28,7 +28,7 @@ static func school_ui(school: String) -> Color:
 	match school:
 		"":
 			return Color(0.86, 0.72, 0.50)
-		"ember":
+		"pyre":
 			return Color(0.94, 0.42, 0.32)
 		"tide":
 			return Color(0.34, 0.74, 0.82)

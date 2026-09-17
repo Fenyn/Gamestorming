@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cuq4225crfi6t"
-path="res://.godot/imported/ember_tilted_punch.png-cded50de06fa954da8703b5f6b9097a2.ctex"
+uid="uid://dwfy0rgt2lrrx"
+path="res://.godot/imported/pyre_backdraft.png-c9d225bb835796274663abe3054c2b5a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_tilted_punch.png"
-dest_files=["res://.godot/imported/ember_tilted_punch.png-cded50de06fa954da8703b5f6b9097a2.ctex"]
+source_file="res://assets/card_art/pyre_backdraft.png"
+dest_files=["res://.godot/imported/pyre_backdraft.png-c9d225bb835796274663abe3054c2b5a.ctex"]
 
 [params]
 

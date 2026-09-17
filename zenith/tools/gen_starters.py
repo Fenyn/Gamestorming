@@ -232,7 +232,7 @@ for i, eff in enumerate(MOTH, 1):
 # ============================================================================
 # Grounds
 # ============================================================================
-grounds("turmoil_square", "Turmoil Square", forbid=[{"who": "all", "what": "non_combats"}])
+grounds("trampled_crossroads", "Trampled Crossroads", forbid=[{"who": "all", "what": "non_combats"}])
 grounds("ancient_grove", "Ancient Grove", modifiers=[{"scope": "own", "kind": "any", "stages": 2}],
         effects=[ENTER(SEARCH(card_type="drill", school="", to="play"))])
 grounds("tollgate_yard", "Tollgate Yard", double_costs=True)
@@ -248,11 +248,11 @@ add(id="debtors_ring", title="The Debtor's Ring", type="relic", school="", reser
 add(id="lodestone_heart", title="The Lodestone Heart", type="relic", school="", reserve_size=10, limit_per_deck=1,
     relic_flags={"no_ascension_win": True, "fervor_shield": True, "aspect_shield": True})
 
-# The latest printing: pay a life card to make an Ember attack Focused, and Ember blocks that stay
+# The latest printing: pay a life card to make an Pyre attack Focused, and Pyre blocks that stay
 # in the game go under the Life Deck. The duelist's table damage is already high, so the Mastery
 # spends on getting attacks past blocks instead of adding damage.
-add(id="ember_mastery", title="Ember Mastery", type="mastery", school="ember", limit_per_deck=1, blocks_to_bottom="ember",
-    effects=[{"trigger": "on_attack", "may": True, "op": "discard_life", "amount": 1, "when": {"source_school": "ember", "attack_focused": False},
+add(id="pyre_mastery", title="Pyre Mastery", type="mastery", school="pyre", limit_per_deck=1, blocks_to_bottom="pyre",
+    effects=[{"trigger": "on_attack", "may": True, "op": "discard_life", "amount": 1, "when": {"source_school": "pyre", "attack_focused": False},
               "then": [{"op": "focus_attack"}]}])
 # The later printing: a life card is thrown away on entering Combat and pays back in cards, two
 # for a Steel card, one otherwise. It suits the 85-card build, which has the Life Deck to spend.
@@ -272,23 +272,23 @@ add(id="storm_mastery", title="Storm Mastery", type="mastery", school="storm", l
 # ============================================================================
 # Freestyle staples
 # ============================================================================
-strike("breaching_kick", "Breaching Kick", atk={"stages": 3},
+strike("no_quarter", "No Quarter", atk={"stages": 3},
        effects=[FORBID("end_combat"), FORBID("end_combat", "opponent"), FORBID("stop_all"), FORBID("stop_all", "opponent")])
 # A named card in the source, so the duelist it is named for may run a fourth copy.
 strike("relentless_fury", "Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
 block("stillness", "Stillness", "any", "combat", defense={"stop_all": "any"}, limit_per_deck=1, use_in_attack=True, effects=[E("stop_all", kind="any")])
-block("ironclad_stance", "Ironclad Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
+block("planted_feet", "Planted Feet", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
 block("unyielding_guard", "Unyielding Guard", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
-block("energy_veil", "Energy Veil", "art", "art", defense={"stop_all": "art"}, remove_after_use=True, limit_per_deck=1)
-block("mirror_shell", "Mirror Shell", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")], limit_per_deck=1)
-add(id="iron_will", title="Ashmark's Iron Will", type="combat", school="", only={"duelist_character": ALPHA}, limit_per_deck=1, use_in_attack=True,
+block("grounding_step", "Grounding Step", "art", "art", defense={"stop_all": "art"}, remove_after_use=True, limit_per_deck=1)
+block("dead_air", "Dead Air", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")], limit_per_deck=1)
+add(id="will_not_break", title="Ashmark Will Not Break", type="combat", school="", only={"duelist_character": ALPHA}, limit_per_deck=1, use_in_attack=True,
     defense={"stops": "any"}, effects=[FLOAT("prevent_all")])
-combat("chosen_wall", "Chosen Wall", [E("choose_stop_all_kind")], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
-block("perfect_guard", "Ashmark's Guard", "any", "strike", defense={"stop_focused": True}, only={"duelist_character": ALPHA}, remove_after_use=True)
+combat("terms_of_the_pact", "Terms of the Pact", [E("choose_stop_all_kind")], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
+block("wall_of_flame", "Ashmark's Wall of Flame", "any", "strike", defense={"stop_focused": True}, only={"duelist_character": ALPHA}, remove_after_use=True)
 # A named card in the source, so the duelist it is named for may run a fourth copy and search for it.
-add(id="interrupt", title="Interrupt", type="combat", school="", counter="combat", character=ZETA)
-combat("hard_glare", "Hard Glare", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="pact")
-combat("threatening_pose", "Threatening Pose", [OPP("set_aspect", aspect=1)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
+add(id="cut_short", title="Cut Short", type="combat", school="", counter="combat", character=ZETA)
+combat("cold_appraisal", "Cold Appraisal", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="pact")
+combat("sever_the_leyline", "Sever the Leyline", [OPP("set_aspect", aspect=1)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
 combat("respite", "Respite", [E("draw_discard", amount=2, **{"from": "top"}), OPP("energy", amount=5)], limit_per_deck=1)
 combat("challenge", "Challenge", [OPP("discard_hand", amount=1, random=False, chooser="owner", to="deck")], alignment_only="vigil")
 combat("overwhelming_aura", "Overwhelming Aura", [FORBID("strike_attacks", "opponent")], limit_per_deck=1)
@@ -315,7 +315,7 @@ art("homing_bolt", "Homing Bolt", atk={"unstoppable": True, "no_prevent": True},
 art("crashing_dive", "Crashing Dive", atk={"focused": True}, empower=2,
     effects=[IFS(AFTER_EMPOWER(OPP("remove_discard", all=True))), AFTER_EMPOWER(ACC(1))])
 art("surging_blast", "Surging Blast", atk={}, alignment_only="pact", effects=[DISCARD_IN_PLAY("drill", amount=1, remove=True, choose=True)], tags=["automaton"])
-strike("power_hit", "Power Hit", atk={"focused": True, "stages": 4, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
+strike("all_or_nothing", "All or Nothing", atk={"focused": True, "stages": 4, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
 strike("backhand", "Backhand", atk={}, effects=[E("draw_discard", amount=1, **{"from": "bottom"})], remove_after_use=True)
 add(id="power_strike", title="Power Strike", type="art", school="", endurance=3,
     attack={"kind": "strike", "stages": 4, "variants": [{"when": {"aspect_min": 2}, "life": 4, "focused": True}]},
@@ -350,8 +350,8 @@ add(id="dual_strike", title="Halvard's Dual Strike", type="strike", school="", a
     defense={"stops": "strike", "when": {"character": "Halvard Draik"}}, effects=[IFS(SEARCH(card_type="ally", to="play", stages=4))])
 strike("leaping_rush", "Vesna's Leaping Rush", atk={"focused": True, "stages": 4, "variants": [{"when": {"character": "Vesna Draik"}, "effects": [FLOAT("no_ally_control", "opponent")]}]},
        effects=[IFS(SEARCH(card_type="ally", to="play", stages=4))])
-strike("heel_kick", "Ashmark's Heel Kick", atk={"stages": 4}, endurance=1, effects=[OPP("remove_discard", amount=5), VIG(3)])
-strike("frantic_assault", "Frantic Assault", atk={"stages": 1}, effects=[IFS(ACC(1))], remain=1, remove_after_use=True)
+strike("scatters_the_ashes", "Ashmark Scatters the Ashes", atk={"stages": 4}, endurance=1, effects=[OPP("remove_discard", amount=5), VIG(3)])
+strike("reckless_lunge", "Reckless Lunge", atk={"stages": 1}, effects=[IFS(ACC(1))], remain=1, remove_after_use=True)
 strike("steel_headshot", "Steel Headshot", "steel", atk={"life": 3, "no_prevent": True}, effects=[E("draw", amount=1), ACC(1)], limit_per_deck=1)
 
 # Freestyle defenses
@@ -366,7 +366,7 @@ add(id="knowing_smile", title="Vessel's Knowing Smile", type="non_combat", schoo
 block("steel_supreme_power", "Quarr's Supreme Power", "any", "strike", "steel", only={"duelist_character": EPSILON}, remain=1, remove_after_use=True, limit_per_deck=2, unused_return="shuffle")
 
 # Freestyle non-combats and drills
-noncombat("counsel", "Counsel", [USE(SEARCH(card_type="attack", source="either", to="hand"))], limit_per_deck=1)
+noncombat("recalled_lesson", "Recalled Lesson", [USE(SEARCH(card_type="attack", source="either", to="hand"))], limit_per_deck=1)
 noncombat("focus_of_mind", "Focus of Mind", [USE(SEARCH(card_type="combat", to="hand"))], limit_per_deck=1)
 noncombat("anticipation", "Anticipation", [ENTER(SEARCH(card_type="hand_combat", source="discard", to="hand"))], limit_per_deck=1)
 noncombat("fortune", "Fortune", [USE(SEARCH(card_type="non_combat", to="play"))], limit_per_deck=1)
@@ -375,14 +375,14 @@ ally("bonded_pair", "Ansel and Tavin, Back to Back", "vigil", 44, 2,
      {"attack": {"kind": "strike", "printed_stages": 7}, "uses": 2, "effects": [WHEN({"may": True, "then": [E("focus_attack")], **E("discard_hand", amount=1, random=False)}, hand_min=1)]},
      surge=4, bond_of=["Ansel Rooke", "Tavin Vale"], bond_timer_max=5)
 noncombat("seek_the_answer", "Vale Finds the Answer", [USE(SEARCH(signature_of="duelist", amount=2, to="hand"))], remove_after_use=True)
-noncombat("sweet_ration", "Ashmark's Ration", [USE(VIG("max", "duelist")), USE(E("shuffle_discard", amount=5)), USE(ACC(1))], only={"duelist_character": ALPHA})
+noncombat("stokes_the_coals", "Ashmark Stokes the Coals", [USE(VIG("max", "duelist")), USE(E("shuffle_discard", amount=5)), USE(ACC(1))], only={"duelist_character": ALPHA})
 noncombat("open_challenge", "An Open Challenge", [{"trigger": "opponent_declare", **E("discard_hand", amount=1, random=False)}, {"trigger": "opponent_declare", **OPP("force_declare")}],
           start_in_play=True, limit_per_deck=1, remove_after_use=True)
 noncombat("doubt", "Doubt", [USE(DISCARD_IN_PLAY("seal", amount=1, remove=True, choose=True))], remove_after_use=True, limit_per_deck=1)
 add(id="heirloom_blade", title="The Vale Heirloom", type="non_combat", school="", effects=[USE(E("attach", to="duelist"))], limit_per_deck=1,
     attachment={"target": "duelist", "title_contains": "Sword", "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "life": 3, "title_contains": "Sword"}]})
-drill("victors_drill", "Victor's Drill", start_in_play=True, limit_per_deck=1, effects=[ENTER(OPP_ACC(-2)), ENTER(VIG(2, "duelist"))])
-drill("champion_drill", "Champion's Drill", once_per_combat=True, limit_per_deck=1, effects=[USE(E("discard_hand", amount=1, random=False)), USE(E("draw", amount=2))])
+drill("bravado_drill", "Bravado Drill", start_in_play=True, limit_per_deck=1, effects=[ENTER(OPP_ACC(-2)), ENTER(VIG(2, "duelist"))])
+drill("revision_drill", "Revision Drill", once_per_combat=True, limit_per_deck=1, effects=[USE(E("discard_hand", amount=1, random=False)), USE(E("draw", amount=2))])
 drill("swordplay_drill", "Swordplay Drill", modifiers=[{"scope": "own", "kind": "any", "stages": 2, "title_contains": "Sword"}], promote_if_successful="Sword")
 drill("devastation_drill", "Devastation Drill", modifiers=[{"scope": "own", "kind": "strike", "stages": 5}], discard_if_other_non_combats=True)
 drill("ambush_drill", "Ambush Drill", alignment_only="vigil", limit_per_deck=2, effects=[PLACE(E("name_card"))])
@@ -416,25 +416,25 @@ drill("keepers_drill", "Keeper's Drill", protect_seals=True)
 drill("guardian_drill", "Guardian Drill", alignment_only="vigil", once_per_combat=True, effects=[USE(SEARCH(source="hand", card_type="non_combat_any", to="play"))])
 
 # ============================================================================
-# Ember
+# Pyre
 # ============================================================================
-block("ember_blocking_hand", "Ember Blocking Hand", "strike", "strike", "ember", effects=[ACC(2), VIG(2)])
-block("ember_passive_block", "Ember Passive Block", "strike", "strike", "ember", endurance=1, effects=[OPP("discard_life", amount=1), ACC(1), VIG(5)])
-art("ember_blast", "Ember Blast", "ember", atk={}, effects=[DISCARD_IN_PLAY("drill_or_ally", amount=1, remove=True, choose=True), ACC(1)])
-art("ember_energy_orb", "Ember Energy Orb", "ember", atk={"printed_life": 3}, empower=3,
+block("pyre_cinder_guard", "Pyre Cinder Guard", "strike", "strike", "pyre", effects=[ACC(2), VIG(2)])
+block("pyre_searing_guard", "Pyre Searing Guard", "strike", "strike", "pyre", endurance=1, effects=[OPP("discard_life", amount=1), ACC(1), VIG(5)])
+art("pyre_immolation", "Pyre Immolation", "pyre", atk={}, effects=[DISCARD_IN_PLAY("drill_or_ally", amount=1, remove=True, choose=True), ACC(1)])
+art("pyre_ashfall", "Pyre Ashfall", "pyre", atk={"printed_life": 3}, empower=3,
     effects=[AFTER_EMPOWER(DISCARD_IN_PLAY("drill_or_ally", amount=1, remove=True, choose=True)), AFTER_EMPOWER(OPP_ACC(-2))])
-strike("ember_back_kick", "Ember Back Kick", "ember", atk={"stages": 3}, effects=[E("stop_all", kind="art"), FORBID("art_attacks"), OPP_ACC(-1)])
-strike("ember_shattering_leap", "Ember Shattering Leap", "ember", atk={"stages": 4}, remain=1, remove_after_use=True)
-strike("ember_face_upheaval", "Ember Face Upheaval", "ember", atk={}, effects=[IFS(DISCARD_IN_PLAY("non_combat", amount=1, remove=True, choose=True)), ACC(1)])
-strike("ember_lightning_slash", "Ember Lightning Slash", "ember", atk={}, effects=[{"trigger": "before_damage", "may": True, "skip_damage": True, **DISCARD_IN_PLAY("drill_or_ally", all=True)}, ACC(1)])
-strike("ember_power_rush", "Ember Power Rush", "ember", atk={"stages": 3, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
-strike("ember_overbearing_blow", "Ember Overbearing Blow", "ember", atk={"stages": 4}, effects=[ACC(2)], remove_after_use=True)
-add(id="ember_double_strike", title="Ember Double Strike", type="combat", school="ember", attack={"kind": "strike"}, effects=[ACC(1)], remain=1)
-strike("ember_face_slap", "Ember Face Slap", "ember", atk={"stages": 3, "variants": [{"when": {"opponent_fervor": 0}, "no_prevent": True, "effects": [ACC(1)]}]}, effects=[FORBID("powers", "opponent")])
-strike("ember_tilted_punch", "Ember Tilted Punch", "ember", atk={"stages": 3}, remain_when={"when": {"opponent_used_combat_card": True}, "remain": 2}, remove_after_use=True)
-strike("ember_whiplash", "Ember Whiplash", "ember", atk={"stages": 4}, endurance=2, empower=2, effects=[AFTER_EMPOWER(ACC(1)), IFSTOP(AFTER_EMPOWER(E("look_at", amount=5, pick={"card_type": "strike"}, to="hand", **{"from": "bottom"})))])
-strike("ember_puppy_slap", "Ember Puppy Slap", "ember", atk={"life": 3}, effects=[ACC(1), FLOAT("make_focused", school="ember")])
-strike("ember_axe_heel_kick", "Ember Axe Heel Kick", "ember", atk={"stages": 6}, effects=[ACC(1), SEARCH(card_type="attack", school="ember", source="discard", exclude_title="Ember Axe Heel Kick", to="hand")], remove_after_use=True)
+strike("pyre_backdraft", "Pyre Backdraft", "pyre", atk={"stages": 3}, effects=[E("stop_all", kind="art"), FORBID("art_attacks"), OPP_ACC(-1)])
+strike("pyre_comet_fall", "Pyre Comet Fall", "pyre", atk={"stages": 4}, remain=1, remove_after_use=True)
+strike("pyre_scouring_flame", "Pyre Scouring Flame", "pyre", atk={}, effects=[IFS(DISCARD_IN_PLAY("non_combat", amount=1, remove=True, choose=True)), ACC(1)])
+strike("pyre_firestorm", "Pyre Firestorm", "pyre", atk={}, effects=[{"trigger": "before_damage", "may": True, "skip_damage": True, **DISCARD_IN_PLAY("drill_or_ally", all=True)}, ACC(1)])
+strike("pyre_blazing_charge", "Pyre Blazing Charge", "pyre", atk={"stages": 3, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
+strike("pyre_furnace_breath", "Pyre Furnace Breath", "pyre", atk={"stages": 4}, effects=[ACC(2)], remove_after_use=True)
+add(id="pyre_twin_flames", title="Pyre Twin Flames", type="combat", school="pyre", attack={"kind": "strike"}, effects=[ACC(1)], remain=1)
+strike("pyre_snuffing", "Pyre Snuffing", "pyre", atk={"stages": 3, "variants": [{"when": {"opponent_fervor": 0}, "no_prevent": True, "effects": [ACC(1)]}]}, effects=[FORBID("powers", "opponent")])
+strike("pyre_flashover", "Pyre Flashover", "pyre", atk={"stages": 3}, remain_when={"when": {"opponent_used_combat_card": True}, "remain": 2}, remove_after_use=True)
+strike("pyre_flame_lash", "Pyre Flame Lash", "pyre", atk={"stages": 4}, endurance=2, empower=2, effects=[AFTER_EMPOWER(ACC(1)), IFSTOP(AFTER_EMPOWER(E("look_at", amount=5, pick={"card_type": "strike"}, to="hand", **{"from": "bottom"})))])
+strike("pyre_kindling", "Pyre Kindling", "pyre", atk={"life": 3}, effects=[ACC(1), FLOAT("make_focused", school="pyre")])
+strike("pyre_rekindling", "Pyre Rekindling", "pyre", atk={"stages": 6}, effects=[ACC(1), SEARCH(card_type="attack", school="pyre", source="discard", exclude_title="Pyre Rekindling", to="hand")], remove_after_use=True)
 
 # ============================================================================
 # Steel
@@ -534,7 +534,7 @@ VALID = {c["id"] for c in CARDS}
 
 
 # Playstyle file under data/ai/profiles for an AI playing the deck. Decks not listed play the defaults.
-AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beatdown", "ember_beatdown": "ember_beatdown",
+AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beatdown", "pyre_beatdown": "pyre_beatdown",
                "storm_volley": "storm_volley", "tide_companions": "tide_companions",
                "freestyle_swords": "freestyle_swords", "root_seals": "root_seals"}
 
@@ -543,7 +543,7 @@ AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beat
 # subthemes). Ids are the ones engine/archetype.gd knows. Shown on the select screen and in the
 # duel, and read by the AI's Reserve swap.
 DECK_KINDS = {
-    "ember_beatdown": ("strike_beatdown", "easy", ["fervor"]),
+    "pyre_beatdown": ("strike_beatdown", "easy", ["fervor"]),
     "steel_beatdown": ("strike_beatdown", "easy", ["energy", "draw", "might"]),
     "shade_henchmen": ("allies", "easy", ["disruption"]),
     "tide_companions": ("allies", "medium", ["bond", "arts"]),
@@ -572,27 +572,27 @@ def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, relic_i
     print("%-18s life %d, reserve %d" % (fname, total, len(reserve)))
 
 
-deck("ember_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "ember", "pact", "ember_mastery", "blank_mask",
-     ["open_challenge", "ember_energy_orb", "ember_energy_orb", "ember_energy_orb", "champion_drill", "heel_kick", "heel_kick", "heel_kick", "tollgate_yard",
-      "ember_passive_block", "ember_passive_block", "ember_passive_block"], [
-    ("turmoil_square", 3),
-    ("sweet_ration", 3), ("counsel", 1), ("victors_drill", 1),
-    ("hard_glare", 3), ("interrupt", 3), ("threatening_pose", 1),
-    ("stillness", 1), ("iron_will", 1), ("chosen_wall", 1), ("ironclad_stance", 1), ("unyielding_guard", 1), ("energy_veil", 1), ("mirror_shell", 1),
-    ("ember_blocking_hand", 3), ("perfect_guard", 3),
-    ("ember_blast", 3),
-    ("ember_back_kick", 3), ("ember_shattering_leap", 3), ("ember_face_upheaval", 3), ("ember_lightning_slash", 3), ("ember_power_rush", 3),
-    ("ember_overbearing_blow", 3), ("breaching_kick", 3), ("power_hit", 3), ("ember_double_strike", 3), ("relentless_fury", 4), ("frantic_assault", 3),
-    ("ember_face_slap", 3), ("ember_tilted_punch", 3), ("ember_whiplash", 3), ("ember_puppy_slap", 3), ("ember_axe_heel_kick", 3)])
+deck("pyre_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "pyre", "pact", "pyre_mastery", "blank_mask",
+     ["open_challenge", "pyre_ashfall", "pyre_ashfall", "pyre_ashfall", "revision_drill", "scatters_the_ashes", "scatters_the_ashes", "scatters_the_ashes", "tollgate_yard",
+      "pyre_searing_guard", "pyre_searing_guard", "pyre_searing_guard"], [
+    ("trampled_crossroads", 3),
+    ("stokes_the_coals", 3), ("recalled_lesson", 1), ("bravado_drill", 1),
+    ("cold_appraisal", 3), ("cut_short", 3), ("sever_the_leyline", 1),
+    ("stillness", 1), ("will_not_break", 1), ("terms_of_the_pact", 1), ("planted_feet", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("dead_air", 1),
+    ("pyre_cinder_guard", 3), ("wall_of_flame", 3),
+    ("pyre_immolation", 3),
+    ("pyre_backdraft", 3), ("pyre_comet_fall", 3), ("pyre_scouring_flame", 3), ("pyre_firestorm", 3), ("pyre_blazing_charge", 3),
+    ("pyre_furnace_breath", 3), ("no_quarter", 3), ("all_or_nothing", 3), ("pyre_twin_flames", 3), ("relentless_fury", 4), ("reckless_lunge", 3),
+    ("pyre_snuffing", 3), ("pyre_flashover", 3), ("pyre_flame_lash", 3), ("pyre_kindling", 3), ("pyre_rekindling", 3)])
 
 deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pact", "steel_mastery", "blank_mask",
      ["open_challenge", "steel_headshot", "mutual_escalation", "mutual_escalation", "mutual_escalation", "doubt", "sly_smirk"], [
-    ("turmoil_square", 3),
+    ("trampled_crossroads", 3),
     ("moth_seal_1", 1), ("moth_seal_3", 1), ("moth_seal_4", 1),
-    ("hard_glare", 3), ("interrupt", 3), ("truce", 1),
+    ("cold_appraisal", 3), ("cut_short", 3), ("truce", 1),
     ("stillness", 1), ("steel_perfect_defense", 1), ("steel_stop", 3), ("steel_brace", 3), ("steel_supreme_power", 2),
     ("steel_power_beam", 3), ("steel_might", 3),
-    ("breaching_kick", 3), ("relentless_fury", 3), ("steel_crushing_smash", 4), ("steel_gut_kick", 3), ("backhand", 1),
+    ("no_quarter", 3), ("relentless_fury", 3), ("steel_crushing_smash", 4), ("steel_gut_kick", 3), ("backhand", 1),
     ("steel_dashing_kick", 3), ("steel_destiny", 3), ("steel_bulk", 3), ("steel_face_jab", 3),
     # The 85-card build: more Steel attacks to feed the Mastery, Endurance in place of blocks.
     ("steel_youth_bruise", 3), ("steel_rapid_slam", 3), ("steel_heads_up", 2), ("steel_charge", 3),
@@ -600,50 +600,50 @@ deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pa
 
 deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact", "shade_mastery", "debtors_ring",
      ["doubt", "shade_pivot_kick", "shade_pivot_kick", "shade_pivot_kick"], [
-    ("turmoil_square", 3),
+    ("trampled_crossroads", 3),
     ("henchman_alpha", 1), ("henchman_beta", 1), ("henchman_gamma", 1), ("henchman_delta", 1), ("henchman_epsilon", 1),
     ("sun_seal_3", 1), ("sun_seal_5", 1),
-    ("hard_glare", 3), ("interrupt", 3), ("sly_smirk", 1), ("muster", 3), ("sudden_reinforcement", 3),
+    ("cold_appraisal", 3), ("cut_short", 3), ("sly_smirk", 1), ("muster", 3), ("sudden_reinforcement", 3),
     ("stillness", 1), ("shade_defensive_aura", 3), ("shade_buffer_block", 3),
     ("shade_turning_kick", 3), ("shade_chaos_detonation", 3), ("extreme_assailment", 3), ("palm_charge", 1), ("twin_palm_blitz", 3),
     ("triple_torpedo", 3), ("surging_blast", 3), ("homing_bolt", 3), ("crashing_dive", 3), ("captains_volley", 1),
-    ("breaching_kick", 3), ("relentless_fury", 3), ("shade_body_ruin", 3), ("shade_swivel_kick", 3), ("shade_right_kick", 3),
+    ("no_quarter", 3), ("relentless_fury", 3), ("shade_body_ruin", 3), ("shade_swivel_kick", 3), ("shade_right_kick", 3),
     ("henchmans_charge", 3), ("dual_strike", 3), ("leaping_rush", 3)])
 
 deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "tide_mastery", "debtors_ring",
      ["supreme_push", "lobbed_bolt", "erasure", "bonded_pair"], [
     ("companion_alpha", 1), ("companion_beta", 1), ("companion_gamma", 1), ("companion_delta", 1),
-    ("turmoil_square", 3),
-    ("challenge", 3), ("interrupt", 3), ("overwhelming_aura", 1), ("dragons_reckoning", 1), ("muster", 3), ("guardians_wrath", 3),
+    ("trampled_crossroads", 3),
+    ("challenge", 3), ("cut_short", 3), ("overwhelming_aura", 1), ("dragons_reckoning", 1), ("muster", 3), ("guardians_wrath", 3),
     ("desperate_ruin", 1), ("oath", 2), ("showmans_trick", 2), ("clash_of_blood", 3),
-    ("stillness", 1), ("unyielding_guard", 1), ("ironclad_stance", 1), ("energy_veil", 1), ("tide_energy_guard", 1), ("tide_defensive_flight", 3), ("last_ward", 2),
-    ("breaching_kick", 3), ("tide_round_throw", 3), ("tide_betrayal", 3), ("erasure", 1),
+    ("stillness", 1), ("unyielding_guard", 1), ("planted_feet", 1), ("grounding_step", 1), ("tide_energy_guard", 1), ("tide_defensive_flight", 3), ("last_ward", 2),
+    ("no_quarter", 3), ("tide_round_throw", 3), ("tide_betrayal", 3), ("erasure", 1),
     ("tide_arm_blast", 3), ("homing_bolt", 3), ("tide_double_blast", 3), ("tide_draining_blast", 3), ("tide_healing_ray", 3), ("tide_terror", 1),
     ("twin_blow", 3), ("tide_transformation", 3), ("tide_alliance", 3),
-    ("counsel", 1), ("fortune", 1), ("focus_of_mind", 1), ("bonding_rite", 2)])
+    ("recalled_lesson", 1), ("fortune", 1), ("focus_of_mind", 1), ("bonding_rite", 2)])
 
 deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "blank_mask",
-     ["open_challenge", "doubt", "confusion_drill", "champion_drill", "fortune", "mutual_escalation"], [
+     ["open_challenge", "doubt", "confusion_drill", "revision_drill", "fortune", "mutual_escalation"], [
     ("ancient_grove", 3),
-    ("challenge", 3), ("interrupt", 4), ("seekers_eye", 1), ("overwhelming_aura", 1), ("contemplation", 1),
-    ("stillness", 1), ("unyielding_guard", 1), ("ironclad_stance", 1), ("swift_counter", 4), ("elbow_block", 3), ("leg_catch", 3), ("swift_flight", 3),
-    ("breaching_kick", 3), ("relentless_fury", 3), ("power_strike", 3), ("sword_slice", 4), ("speedy_flight", 3), ("back_bash", 2),
+    ("challenge", 3), ("cut_short", 4), ("seekers_eye", 1), ("overwhelming_aura", 1), ("contemplation", 1),
+    ("stillness", 1), ("unyielding_guard", 1), ("planted_feet", 1), ("swift_counter", 4), ("elbow_block", 3), ("leg_catch", 3), ("swift_flight", 3),
+    ("no_quarter", 3), ("relentless_fury", 3), ("power_strike", 3), ("sword_slice", 4), ("speedy_flight", 3), ("back_bash", 2),
     ("focused_sword_strike", 3), ("sword_slash", 3), ("sword_sweep", 3), ("sword_thrust", 3),
     ("lobbed_bolt", 1),
     ("swordplay_drill", 3), ("devastation_drill", 3), ("ambush_drill", 2), ("breakthrough_drill", 1), ("absorbing_drill", 1), ("quickness_drill", 1),
-    ("seek_the_answer", 3), ("anticipation", 1), ("counsel", 1), ("heirloom_blade", 1), ("victors_drill", 1)])
+    ("seek_the_answer", 3), ("anticipation", 1), ("recalled_lesson", 1), ("heirloom_blade", 1), ("bravado_drill", 1)])
 
 deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "lodestone_heart",
      ["doubt", "grand_sweep", "grand_sweep", "storm_glaring_bolt", "storm_massacre", "lobbed_bolt", "clear_statement", "focused_crushing_dive", "storm_obliteration"], [
     ("henchman_zeta", 1),
-    ("turmoil_square", 3),
+    ("trampled_crossroads", 3),
     ("sun_seal_1", 1), ("sun_seal_3", 1), ("sun_seal_5", 1),
-    ("hard_glare", 3), ("interrupt", 3), ("sly_smirk", 1), ("showmans_trick", 2), ("respite", 1), ("mutual_escalation", 3), ("transformation", 3), ("overwhelming_aura", 1),
+    ("cold_appraisal", 3), ("cut_short", 3), ("sly_smirk", 1), ("showmans_trick", 2), ("respite", 1), ("mutual_escalation", 3), ("transformation", 3), ("overwhelming_aura", 1),
     ("stillness", 1), ("storm_dodge", 4), ("knowing_smile", 3), ("leg_catch", 3), ("storm_energy_guard", 3),
     ("storm_setup", 1), ("storm_scatter_shot", 2), ("storm_glaring_bolt", 2), ("storm_obliteration", 1), ("storm_rage", 3), ("extreme_assailment", 3),
     ("captains_volley", 3), ("crashing_dive", 3), ("prepared_stance", 3), ("surging_blast", 3), ("homing_bolt", 3), ("palm_charge", 2),
-    ("breaching_kick", 3), ("relentless_fury", 3), ("storm_massacre", 1), ("storm_uppercut", 1), ("storm_strength", 1),
-    ("counsel", 1), ("focus_of_mind", 1), ("anticipation", 1), ("victors_drill", 1)])
+    ("no_quarter", 3), ("relentless_fury", 3), ("storm_massacre", 1), ("storm_uppercut", 1), ("storm_strength", 1),
+    ("recalled_lesson", 1), ("focus_of_mind", 1), ("anticipation", 1), ("bravado_drill", 1)])
 # No Relic and no Reserve: the list this follows runs none, and the Root allowance of 90 is
 # spent on 84 life cards.
 deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "root_mastery", "", [], [
@@ -652,8 +652,8 @@ deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "ro
     ("windfall", 1), ("laid_plans", 1), ("thin_smile", 1), ("borrowed_gauge", 1), ("sleight", 1), ("eyes_beyond_the_gate", 1), ("seal_seizure", 3),
     ("fortune", 1), ("dashed_plans", 1), ("gates_boon", 1), ("kins_rescue", 1), ("anticipation", 1),
     ("keepers_drill", 3), ("guardian_drill", 1), ("absorbing_drill", 1), ("quickness_drill", 1), ("root_preparation_drill", 1),
-    ("challenge", 3), ("interrupt", 3), ("dream_duel", 3), ("grand_sweep", 2), ("overwhelming_aura", 1), ("respite", 1), ("root_energy_focus", 1),
-    ("stillness", 1), ("ironclad_stance", 1), ("unyielding_guard", 1), ("energy_veil", 1), ("schooled_block", 2), ("leg_catch", 3),
+    ("challenge", 3), ("cut_short", 3), ("dream_duel", 3), ("grand_sweep", 2), ("overwhelming_aura", 1), ("respite", 1), ("root_energy_focus", 1),
+    ("stillness", 1), ("planted_feet", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("schooled_block", 2), ("leg_catch", 3),
     ("root_energy_deflection", 3), ("root_energy_catch", 3), ("root_firm_stance", 2),
     ("root_bolt", 3), ("root_dash", 3), ("root_destruction_blast", 3), ("root_dragon_blast", 3),
     ("power_burst", 3), ("blinding_flare", 3), ("sun_flare", 3), ("timely_advice", 1)])

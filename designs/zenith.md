@@ -73,7 +73,7 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 
 | Following | Side | School | Duelist | Followers |
 |---|---|---|---|---|
-| none | Pact | Ember | Bram Ashmark, a pyromancer prodigy who rides momentum | none |
+| none | Pact | Pyre | Bram Ashmark, a pyromancer prodigy who rides momentum | none |
 | none | Pact | Steel | Halden Quarr, an Ironblood grinder who reads the last blow | none |
 | The Draik Company, hexers for hire | Pact | Shade | Sable Draik, captain | Vesna, Brann, Quill, Halvard Draik, and Pim |
 | The Rooke coven, an old family of water mages | Vigil | Tide | Dame Alder Rooke, matriarch | Wren, Sir Edric, Ansel Rooke, Tavin Vale |
@@ -243,7 +243,7 @@ The first word of a card title sets its school. Everything else is Freestyle. Si
 
 | Style word | School | Doctrine | Identity | Leans | Plays toward | Trades away |
 |---|---|---|---|---|---|---|
-| Ember | Pyromancy | Fire takes the site's power greedily and burns what it has to | Fervor engine. Strikes that raise Fervor, cards that protect it, fast aspect climbs. Mastery burns a known spell to make an Ember attack Focused | Melee | Ascension win | Thin defense, weak Arts |
+| Pyre | Pyromancy | Fire takes the site's power greedily and burns what it has to | Fervor engine. Strikes that raise Fervor, cards that protect it, fast aspect climbs. Mastery burns a known spell to make an Pyre attack Focused | Melee | Ascension win | Thin defense, weak Arts |
 | Tide | Hydromancy | Ebb and flow. Pull energy out of the rival and return your own | Guard and leverage. Blocks and sidesteps, Energy manipulation on both duelists, stop-all-attacks floats, a coven of Allies. Mastery is a standing block or Energy swing | Ranged | Survival win by attrition | Slow damage, few Fervor gains |
 | Storm | Tempest | Charge is built through ritual and then released | Arts. Cheaper and bigger Arts, Drill support, Focused Arts. Mastery discounts or boosts Arts | Ranged | Survival win by barrage | Poor Strikes, dry-Energy weakness |
 | Shade | Umbramancy | Attack the mind directly | Hand peeks, forced and random discards, removal from the game, denial. These hit the same thing the Life Deck stands for. Mastery taxes the opponent's hand | Mixed | Survival win by denial | Modest raw damage |
@@ -374,7 +374,7 @@ Starter pool as built 2026-09-15: six Duelists, ten Allies, three Relics, six Ma
 ## Open items
 
 - Portraits and card flavor text. Duelist names for the starters are approved (see Setting); everything else waits on tone approval.
-- Retheme follow-ups (2026-09-17). The rename pass is done. Still open: whether the Root deck should run the Marble Seals (Root Wyrmwood Blast counts them) or another set; "Summoning win" in place of "Unsealing win"; place-of-power names for the Grounds cards; a themed card naming pass for Ember, Tide, Storm, Shade and Steel; rewriting the art briefs in `zenith/docs/card_roster.csv` and `.md`, which have the new ids and terms but still describe the old chivalric look (half-plate, heraldry, the king's gold coins).
+- Retheme follow-ups (2026-09-17). The rename pass is done. Still open: whether the Root deck should run the Marble Seals (Root Wyrmwood Blast counts them) or another set; "Summoning win" in place of "Unsealing win"; place-of-power names for the Grounds cards; a themed card naming pass for Pyre, Tide, Storm, Shade and Steel; rewriting the art briefs in `zenith/docs/card_roster.csv` and `.md`, which have the new ids and terms but still describe the old chivalric look (half-plate, heraldry, the king's gold coins).
 - Game name settled 2026-09-17: Eidolarch, applied to the title screen, window title and README. Still to do: a trademark and store check.
 - Deck size default for v1 (50 minimum is legal).
 - Ascension pacing with unequal stacks: a 3-aspect Duelist wins Ascension at 15 Fervor, a 5-aspect one at 25. Accepted for now; taller stacks trade a slower Ascension win for stronger top aspects.

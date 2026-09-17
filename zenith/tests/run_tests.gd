@@ -283,7 +283,7 @@ func test_deck_list_and_validator() -> void:
 	eq(d.total_cards(), 50, "fixture deck size")
 	var problems: Array[String] = DeckValidator.validate(d, lib)
 	eq(problems.size(), 0, "fixture deck legal: %s" % ", ".join(problems))
-	var bad: DeckList = deck(["t_strike", "t_art"], "vigil", "ember", "t_mastery_ember")
+	var bad: DeckList = deck(["t_strike", "t_art"], "vigil", "pyre", "t_mastery_pyre")
 	var bad_problems: Array[String] = DeckValidator.validate(bad, lib)
 	check(bad_problems.size() >= 2, "small mixed-school deck rejected: %s" % ", ".join(bad_problems))
 
@@ -333,9 +333,9 @@ func test_setup_and_first_turn() -> void:
 
 
 func test_surge_has_no_style_bonus() -> void:
-	var e: DuelEngine = engine(deck(filler(), "vigil", "ember", "t_mastery_ember"), deck(filler(), "pact"))
+	var e: DuelEngine = engine(deck(filler(), "vigil", "pyre", "t_mastery_pyre"), deck(filler(), "pact"))
 	eq(e.player(0).duelist.energy, 8, "the Surge bonus is flat, the Mastery adds nothing on top")
-	eq(e.player(0).style, "ember", "the deck's Style reaches the player")
+	eq(e.player(0).style, "pyre", "the deck's Style reaches the player")
 
 
 func test_non_combat_placement() -> void:
@@ -356,7 +356,7 @@ func test_drill_school_lock() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_drill_shield", "t_drill_strike"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	var tide: int = uid_in_hand(e, 0, "t_drill_shield")
-	check(e.prompt.find(&"place", tide) == null, "tide drill locked out by ember drill")
+	check(e.prompt.find(&"place", tide) == null, "tide drill locked out by pyre drill")
 	var dup: int = uid_in_hand(e, 0, "t_drill_strike")
 	check(e.prompt.find(&"place", dup) == null, "duplicate styled drill locked out")
 
@@ -392,7 +392,7 @@ func test_strike_damage_and_fight_back() -> void:
 
 
 func test_drill_and_mastery_modifiers() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art", "t_art"]), "pact"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "vigil", "pyre", "t_mastery_pyre"), deck(filler(["t_art", "t_art", "t_art", "t_art"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
@@ -984,7 +984,7 @@ func test_forbid_art_attacks() -> void:
 ## The attack in the air comes with its damage worked out step by step, before the defense, and
 ## the numbers the battle sequence then applies are the same ones.
 func test_damage_breakdown_in_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "vigil", "pyre", "t_mastery_pyre"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	to_combat(e)
 	check(not bool(e.prompt.context.get("fight_back", false)), "the active player's attack phase is not a fight back")
@@ -998,7 +998,7 @@ func test_damage_breakdown_in_view() -> void:
 	eq(int(d["table"]), 2, "Strike Table base")
 	eq(str(CardText.band_letter(int(d["attacker_band"]))), "F", "attacker band letter")
 	eq((d["adds"] as Array).size(), 2, "the Drill and the Mastery are listed")
-	eq(str((d["adds"] as Array)[0]["source"]), "Test Ember Drill", "the Drill is named")
+	eq(str((d["adds"] as Array)[0]["source"]), "Test Pyre Drill", "the Drill is named")
 	eq(int(d["stages"]), 4, "forecast total")
 	var wire: SeatView = SeatView.from_dict(v.to_dict())
 	eq(int(wire.attack["damage"]["stages"]), 4, "wire form keeps the breakdown")
@@ -1012,7 +1012,7 @@ func test_damage_breakdown_in_view() -> void:
 		elif ev.type == &"modified_damage":
 			mod_line = CardText.event_line(ev, e)
 	check(base_line.begins_with("Strike Table: Might"), "base damage log line names the table: %s" % base_line)
-	check(mod_line.contains("Test Ember Drill") and mod_line.ends_with("Total 4 stages."), "modifier log line lists sources and total: %s" % mod_line)
+	check(mod_line.contains("Test Pyre Drill") and mod_line.ends_with("Total 4 stages."), "modifier log line lists sources and total: %s" % mod_line)
 	eq(prompt_kind(e), &"attack_action", "fight back prompt")
 	check(bool(e.prompt.context.get("fight_back", false)), "the defender's attack phase is flagged as a fight back")
 	eq(CardText.prompt_title(e.prompt), "Fight back", "fight back title")
@@ -1022,7 +1022,7 @@ func test_damage_breakdown_in_view() -> void:
 ## Before an attack is chosen, the view carries what each offered attack would deal right now,
 ## built the same way declaring it would, and the number that then lands is the same one.
 func test_attack_forecasts_in_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_strike_plus2", "t_empower_art"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_strike_plus2", "t_empower_art"]), "vigil", "pyre", "t_mastery_pyre"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	check(SeatView.of(e, 0).forecasts.is_empty(), "no forecasts outside the attack action")
 	to_combat(e)
@@ -1272,7 +1272,7 @@ func test_locked_out_drill_shuffles_back() -> void:
 	e._prompt_non_combat()   # the prompt was built before the Drill arrived
 	eq(prompt_kind(e), &"non_combat", "non-combat prompt")
 	var guard: int = uid_in_hand(e, 0, "t_drill_guard")
-	check(e.prompt.find(&"place", guard) == null, "a Tide Drill cannot join Ember Drills")
+	check(e.prompt.find(&"place", guard) == null, "a Tide Drill cannot join Pyre Drills")
 	check(e.prompt.find(&"shuffle_back", guard) != null, "so it may be shuffled back")
 	var deck_before: int = e.player(0).life_deck.size()
 	answer(e, &"shuffle_back", guard)
@@ -1302,7 +1302,7 @@ func test_look_at_rearrange() -> void:
 
 ## The seat view carries every effective per-player value, so clients never assume a rules constant.
 func test_effective_values_in_seat_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art"]), "pact", "tide", "t_mastery_hard"))
+	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"]), "vigil", "pyre", "t_mastery_pyre"), deck(filler(["t_art", "t_art", "t_art"]), "pact", "tide", "t_mastery_hard"))
 	var v: SeatView = SeatView.of(e, 0)
 	eq(v.player(1).fervor_needed, DuelEngine.FERVOR_TO_ASPECT, "the plain player needs the rulebook count")
 	eq(v.player(0).fervor_needed, 6, "opposite a demanding Mastery the view says 6")
@@ -1470,7 +1470,7 @@ func test_search_to_play() -> void:
 
 
 func test_attack_variants() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_variant_strike", "t_strike", "t_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(), "pact"))
+	var e: DuelEngine = engine(deck(filler(["t_variant_strike", "t_strike", "t_strike"]), "vigil", "pyre", "t_mastery_pyre"), deck(filler(), "pact"))
 	to_combat(e)
 	var deck_before: int = e.player(1).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_variant_strike"))
@@ -1634,7 +1634,7 @@ func test_ally_power_without_control() -> void:
 
 
 func test_life_per_opponent_seal() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_seal_strike", "t_strike", "t_strike"])), deck(filler(), "pact", "ember", "t_mastery_ember"))
+	var e: DuelEngine = engine(deck(filler(["t_seal_strike", "t_strike", "t_strike"])), deck(filler(), "pact", "pyre", "t_mastery_pyre"))
 	inject(e, 1, "t_seal_2")
 	inject(e, 1, "t_seal_3")
 	to_combat(e)
@@ -1763,7 +1763,7 @@ func test_draw_check_discard_and_else() -> void:
 ## used block of that school under the Life Deck.
 func test_mastery_on_attack_and_blocks_to_bottom() -> void:
 	for pay in [true, false]:
-		var e: DuelEngine = engine(deck(filler(), "vigil", "ember", "t_mastery_flare"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact", "tide", "t_mastery_keep"))
+		var e: DuelEngine = engine(deck(filler(), "vigil", "pyre", "t_mastery_flare"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact", "tide", "t_mastery_keep"))
 		to_combat(e)
 		var life_before: int = e.player(0).life_deck.size()
 		answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
@@ -1778,13 +1778,13 @@ func test_mastery_on_attack_and_blocks_to_bottom() -> void:
 		eq(e.card(parry).zone, &"life_deck", "the Tide block went back to the Life Deck")
 		eq(e.player(1).life_deck.back().uid, parry, "at the bottom")
 	# A Focused attack is not asked about.
-	var f: DuelEngine = engine(deck(filler(["t_strike_focused", "t_strike_focused", "t_strike_focused"]), "vigil", "ember", "t_mastery_flare"), deck(filler(), "pact"))
+	var f: DuelEngine = engine(deck(filler(["t_strike_focused", "t_strike_focused", "t_strike_focused"]), "vigil", "pyre", "t_mastery_flare"), deck(filler(), "pact"))
 	to_combat(f)
 	answer(f, &"attack", uid_in_hand(f, 0, "t_strike_focused"))
 	check(prompt_kind(f) != &"pick_option", "no question for an attack that is already Focused")
 	var shipped: CardLibrary = CardLibrary.new()
 	shipped.load_dir("res://data/cards")
-	var text: String = CardText.rules_text(shipped.defs.get("ember_mastery"))
+	var text: String = CardText.rules_text(shipped.defs.get("pyre_mastery"))
 	check(text.contains("When you perform an attack") and text.contains("bottom of your Life Deck"), "the shipped Mastery words both halves: %s" % text)
 
 
@@ -2219,9 +2219,9 @@ func test_discard_draw_check_and_otherwise() -> void:
 	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	to_discard(e, 0, "t_drill_strike")
 	to_discard(e, 0, "t_art")
-	var draw: Dictionary = {"op": "draw_discard", "amount": 1, "from": "bottom", "if_school": "ember", "effects": [{"op": "fervor", "amount": 1}]}
+	var draw: Dictionary = {"op": "draw_discard", "amount": 1, "from": "bottom", "if_school": "pyre", "effects": [{"op": "fervor", "amount": 1}]}
 	e.dev_effect(0, draw)
-	eq(e.player(0).fervor, 1, "the bottom card was Ember, so the follow-up ran")
+	eq(e.player(0).fervor, 1, "the bottom card was Pyre, so the follow-up ran")
 	e.dev_effect(0, draw)
 	eq(e.player(0).fervor, 1, "the next one was not")
 	eq(e.player(0).discard.size(), 0, "both were drawn")
@@ -2321,7 +2321,7 @@ func views_text(e: DuelEngine) -> String:
 ## A clone taken at any prompt, fed the same commands, stays in step with the original. A fresh
 ## clone is taken every few steps so mid-effect and mid-attack positions are covered.
 func test_clone_plays_identically() -> void:
-	for pairing in [["ember_beatdown", "tide_companions"], ["shade_henchmen", "storm_volley"], ["freestyle_swords", "steel_beatdown"]]:
+	for pairing in [["pyre_beatdown", "tide_companions"], ["shade_henchmen", "storm_volley"], ["freestyle_swords", "steel_beatdown"]]:
 		var a: DuelEngine = shipped_engine(pairing[0], pairing[1], 11)
 		var b: DuelEngine = a.clone()
 		var picker: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -2372,7 +2372,7 @@ func test_sim_for_hides_and_keeps() -> void:
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
 	var ref: Referee = Referee.new()
-	var pair: Array[DeckList] = [DeckList.load_from("res://data/decks/ember_beatdown.json"), DeckList.load_from("res://data/decks/storm_volley.json")]
+	var pair: Array[DeckList] = [DeckList.load_from("res://data/decks/pyre_beatdown.json"), DeckList.load_from("res://data/decks/storm_volley.json")]
 	ref.setup(pair, lib, StrikeTable.load_from("res://data/strike_table.json"), 21)
 	ref.start()
 	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -2436,7 +2436,7 @@ func shipped_referee(deck_a: String, deck_b: String, seed_value: int) -> Referee
 ## anything that is not an option, so a finished game means every answer was legal.
 func test_ai_answers_every_prompt() -> void:
 	var kinds: Dictionary = {}
-	var pairings: Array = [["ember_beatdown", "tide_companions"], ["shade_henchmen", "storm_volley"], ["freestyle_swords", "steel_beatdown"]]
+	var pairings: Array = [["pyre_beatdown", "tide_companions"], ["shade_henchmen", "storm_volley"], ["freestyle_swords", "steel_beatdown"]]
 	for pairing in pairings:
 		var ref: Referee = shipped_referee(pairing[0], pairing[1], 31)
 		var profile: AiProfile = AiProfile.default_profile()
@@ -2461,7 +2461,7 @@ func test_ai_answers_every_prompt() -> void:
 ## The search weighs more than one option, leaves the real engine alone, and picks the same
 ## command again from the same seed.
 func test_ai_search_reports_and_is_repeatable() -> void:
-	var ref: Referee = shipped_referee("ember_beatdown", "steel_beatdown", 12)
+	var ref: Referee = shipped_referee("pyre_beatdown", "steel_beatdown", 12)
 	var quick: AiProfile = AiProfile.default_profile()
 	quick.merge({"think": {"search": false}})
 	var driver: AiPlayer = AiPlayer.new(quick, 3)
@@ -2533,25 +2533,25 @@ func reserve_swaps(mine: String, theirs: String) -> Array[String]:
 ## The Reserve swap reads the opponent's duelist, Mastery and Relic, brings in answers that fit,
 ## leaves the rest, and keeps toolbox attacks where the deck can fetch them.
 func test_ai_reserve_swaps() -> void:
-	var tide: DuelEngine = shipped_engine("tide_companions", "ember_beatdown", 1)
+	var tide: DuelEngine = shipped_engine("tide_companions", "pyre_beatdown", 1)
 	var tide_signs: Dictionary = AiReserve.read_setup(tide.player(0))
 	eq(float(tide_signs["ally"]), 1.0, "the Tide setup cards read as an Ally deck")
 	eq(float(tide_signs["camps"]), 1.0, "that sits on its lowest aspect")
 	eq(float(tide_signs["non_combat"]), AiReserve.PRIOR, "and an effect aimed at the opponent is not a sign")
-	var ember_signs: Dictionary = AiReserve.read_setup(tide.player(1))
-	eq(float(ember_signs["ally"]), AiReserve.PRIOR, "the Ember setup cards show no Allies")
-	eq(float(ember_signs["camps"]), AiReserve.PRIOR, "and no reason to sit on an aspect")
-	var vale: DuelEngine = shipped_engine("freestyle_swords", "ember_beatdown", 1)
+	var pyre_signs: Dictionary = AiReserve.read_setup(tide.player(1))
+	eq(float(pyre_signs["ally"]), AiReserve.PRIOR, "the Pyre setup cards show no Allies")
+	eq(float(pyre_signs["camps"]), AiReserve.PRIOR, "and no reason to sit on an aspect")
+	var vale: DuelEngine = shipped_engine("freestyle_swords", "pyre_beatdown", 1)
 	eq(float(AiReserve.read_setup(vale.player(0))["drill"]), 1.0, "the Freestyle Mastery reads as a Drill deck")
-	check(reserve_swaps("ember_beatdown", "tide_companions").has("ember_energy_orb"), "Ember brings its Ally answer in against Tide")
-	check(not reserve_swaps("ember_beatdown", "steel_beatdown").has("ember_energy_orb"), "and leaves it out against Steel")
+	check(reserve_swaps("pyre_beatdown", "tide_companions").has("pyre_ashfall"), "Pyre brings its Ally answer in against Tide")
+	check(not reserve_swaps("pyre_beatdown", "steel_beatdown").has("pyre_ashfall"), "and leaves it out against Steel")
 	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("sly_smirk"), "Steel brings its Drill answer in against Freestyle")
-	check(reserve_swaps("steel_beatdown", "ember_beatdown").has("steel_headshot"), "and its plain strong card every game")
-	check(not reserve_swaps("steel_beatdown", "ember_beatdown").has("open_challenge"), "a card that starts in play from the Reserve stays there")
+	check(reserve_swaps("steel_beatdown", "pyre_beatdown").has("steel_headshot"), "and its plain strong card every game")
+	check(not reserve_swaps("steel_beatdown", "pyre_beatdown").has("open_challenge"), "a card that starts in play from the Reserve stays there")
 	eq(reserve_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")
-	check(not reserve_swaps("storm_volley", "ember_beatdown").has("focused_crushing_dive"), "Storm leaves a toolbox attack where its fetch card can reach it")
+	check(not reserve_swaps("storm_volley", "pyre_beatdown").has("focused_crushing_dive"), "Storm leaves a toolbox attack where its fetch card can reach it")
 	check(reserve_swaps("storm_volley", "tide_companions").has("focused_crushing_dive"), "unless the opponent is what it answers")
-	check(not reserve_swaps("freestyle_swords", "ember_beatdown").has("mutual_escalation"), "an Ascension deck does not bring in the card that gives up the Ascension win")
+	check(not reserve_swaps("freestyle_swords", "pyre_beatdown").has("mutual_escalation"), "an Ascension deck does not bring in the card that gives up the Ascension win")
 
 
 ## A deck's archetype rides from its JSON to both seats' views, the validator knows the
@@ -2575,12 +2575,12 @@ func test_archetype_label() -> void:
 	eq(float(AiReserve.read_setup(plain.player(0))["drill"]), 0.7, "a subtheme can carry a sign too")
 	for word in Archetype.SUBTHEMES.keys():
 		check(not str(word).contains("_") and not str(Archetype.SUBTHEMES[word]).contains(" "), "subtheme '%s' is one word" % word)
-	var bad: DeckList = DeckList.load_from("res://data/decks/ember_beatdown.json")
+	var bad: DeckList = DeckList.load_from("res://data/decks/pyre_beatdown.json")
 	bad.archetype = "midrange"
 	bad.subthemes = ["fervor", "nonsense"]
 	var problems: Array[String] = DeckValidator.validate(bad, shipped_library())
 	check(", ".join(problems).contains("Unknown archetype 'midrange'") and ", ".join(problems).contains("Unknown subtheme 'nonsense'"), "the validator names words it does not know: %s" % ", ".join(problems))
-	for file in ["ember_beatdown", "steel_beatdown", "shade_henchmen", "tide_companions", "freestyle_swords", "storm_volley", "root_seals"]:
+	for file in ["pyre_beatdown", "steel_beatdown", "shade_henchmen", "tide_companions", "freestyle_swords", "storm_volley", "root_seals"]:
 		var d: DeckList = DeckList.load_from("res://data/decks/%s.json" % file)
 		check(Archetype.known(d.archetype) and d.difficulty != "", "%s is labelled %s, %s" % [file, d.archetype, d.difficulty])
 

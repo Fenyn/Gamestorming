@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgab6mx4v78ty"
-path="res://.godot/imported/ember_passive_block.png-170f1cf6ddfb236d5f45fd0e10b64e55.ctex"
+uid="uid://c74ffdos8caau"
+path="res://.godot/imported/pyre_comet_fall.png-12cc1097d0bea0a929b93060e18b3343.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_passive_block.png"
-dest_files=["res://.godot/imported/ember_passive_block.png-170f1cf6ddfb236d5f45fd0e10b64e55.ctex"]
+source_file="res://assets/card_art/pyre_comet_fall.png"
+dest_files=["res://.godot/imported/pyre_comet_fall.png-12cc1097d0bea0a929b93060e18b3343.ctex"]
 
 [params]
 

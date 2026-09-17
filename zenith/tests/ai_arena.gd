@@ -3,7 +3,7 @@ extends SceneTree
 ## long a decision takes. Every pairing is played from both seats.
 ## godot --headless --path zenith -s tests/ai_arena.gd -- --a=search --b=scorer --seeds=1
 ## Policies: random, scorer, search, or a profile name under data/ai/profiles (easy, hard).
-## Options: --seeds=N, --decks=ember_beatdown,storm_volley (default all), --budget=MS and
+## Options: --seeds=N, --decks=pyre_beatdown,storm_volley (default all), --budget=MS and
 ## --samples=N for searching policies, --verbose for a line per game. A deck's own playstyle
 ## profile (`ai_profile` in its JSON) is used unless --styles=a, --styles=b or --styles=none says
 ## which policies get one; that is how a playstyle is measured against the defaults.

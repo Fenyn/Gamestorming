@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://doeybkdacq15f"
-path="res://.godot/imported/ember_whiplash.png-63e625892b8a24a5d8d83900f38895d0.ctex"
+uid="uid://ds0r1sktlvs3j"
+path="res://.godot/imported/pyre_mastery.png-5ebc7d4f9471df3ac23c421695acf8ea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_whiplash.png"
-dest_files=["res://.godot/imported/ember_whiplash.png-63e625892b8a24a5d8d83900f38895d0.ctex"]
+source_file="res://assets/card_art/pyre_mastery.png"
+dest_files=["res://.godot/imported/pyre_mastery.png-5ebc7d4f9471df3ac23c421695acf8ea.ctex"]
 
 [params]
 

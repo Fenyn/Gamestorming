@@ -629,7 +629,7 @@
 	 ],
 	 "constant": {
 	  "forbid_opponent": [
-	   "art_attacks"
+       "art_attacks"
 	  ]
 	 },
 	 "title": "the Quiet Blade"
@@ -1082,7 +1082,7 @@
 	}
    ],
    "tags": [
-	"automaton"
+    "automaton"
    ]
   },
   {
@@ -1646,8 +1646,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "turmoil_square",
-   "title": "Turmoil Square",
+   "id": "trampled_crossroads",
+   "title": "Trampled Crossroads",
    "type": "grounds",
    "school": "",
    "limit_per_deck": 3,
@@ -1747,12 +1747,12 @@
    }
   },
   {
-   "id": "ember_mastery",
-   "title": "Ember Mastery",
+   "id": "pyre_mastery",
+   "title": "Pyre Mastery",
    "type": "mastery",
-   "school": "ember",
+   "school": "pyre",
    "limit_per_deck": 1,
-   "blocks_to_bottom": "ember",
+   "blocks_to_bottom": "pyre",
    "effects": [
 	{
 	 "trigger": "on_attack",
@@ -1760,7 +1760,7 @@
 	 "op": "discard_life",
 	 "amount": 1,
 	 "when": {
-	  "source_school": "ember",
+	  "source_school": "pyre",
 	  "attack_focused": false
 	 },
 	 "then": [
@@ -1907,8 +1907,8 @@
    ]
   },
   {
-   "id": "breaching_kick",
-   "title": "Breaching Kick",
+   "id": "no_quarter",
+   "title": "No Quarter",
    "type": "strike",
    "school": "",
    "attack": {
@@ -1991,8 +1991,8 @@
    ]
   },
   {
-   "id": "ironclad_stance",
-   "title": "Ironclad Stance",
+   "id": "planted_feet",
+   "title": "Planted Feet",
    "type": "strike",
    "school": "",
    "defense": {
@@ -2015,8 +2015,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "energy_veil",
-   "title": "Energy Veil",
+   "id": "grounding_step",
+   "title": "Grounding Step",
    "type": "art",
    "school": "",
    "defense": {
@@ -2027,8 +2027,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "mirror_shell",
-   "title": "Mirror Shell",
+   "id": "dead_air",
+   "title": "Dead Air",
    "type": "art",
    "school": "",
    "defense": {
@@ -2045,8 +2045,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "iron_will",
-   "title": "Ashmark's Iron Will",
+   "id": "will_not_break",
+   "title": "Ashmark Will Not Break",
    "type": "combat",
    "school": "",
    "only": {
@@ -2066,8 +2066,8 @@
    ]
   },
   {
-   "id": "chosen_wall",
-   "title": "Chosen Wall",
+   "id": "terms_of_the_pact",
+   "title": "Terms of the Pact",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2080,8 +2080,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "perfect_guard",
-   "title": "Ashmark's Guard",
+   "id": "wall_of_flame",
+   "title": "Ashmark's Wall of Flame",
    "type": "strike",
    "school": "",
    "defense": {
@@ -2094,16 +2094,16 @@
    "remove_after_use": true
   },
   {
-   "id": "interrupt",
-   "title": "Interrupt",
+   "id": "cut_short",
+   "title": "Cut Short",
    "type": "combat",
    "school": "",
    "counter": "combat",
    "character": "Caedan Vale"
   },
   {
-   "id": "hard_glare",
-   "title": "Hard Glare",
+   "id": "cold_appraisal",
+   "title": "Cold Appraisal",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2118,8 +2118,8 @@
    "alignment_only": "pact"
   },
   {
-   "id": "threatening_pose",
-   "title": "Threatening Pose",
+   "id": "sever_the_leyline",
+   "title": "Sever the Leyline",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2546,12 +2546,12 @@
 	}
    ],
    "tags": [
-	"automaton"
+    "automaton"
    ]
   },
   {
-   "id": "power_hit",
-   "title": "Power Hit",
+   "id": "all_or_nothing",
+   "title": "All or Nothing",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2856,7 +2856,7 @@
    ],
    "remove_after_use": true,
    "tags": [
-	"automaton"
+    "automaton"
    ]
   },
   {
@@ -3181,8 +3181,8 @@
    ]
   },
   {
-   "id": "heel_kick",
-   "title": "Ashmark's Heel Kick",
+   "id": "scatters_the_ashes",
+   "title": "Ashmark Scatters the Ashes",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3203,8 +3203,8 @@
    ]
   },
   {
-   "id": "frantic_assault",
-   "title": "Frantic Assault",
+   "id": "reckless_lunge",
+   "title": "Reckless Lunge",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3340,7 +3340,7 @@
    ],
    "remove_after_use": true,
    "tags": [
-	"automaton"
+    "automaton"
    ]
   },
   {
@@ -3364,7 +3364,7 @@
    ],
    "remove_after_use": true,
    "tags": [
-	"automaton"
+    "automaton"
    ]
   },
   {
@@ -3384,8 +3384,8 @@
    "unused_return": "shuffle"
   },
   {
-   "id": "counsel",
-   "title": "Counsel",
+   "id": "recalled_lesson",
+   "title": "Recalled Lesson",
    "type": "non_combat",
    "school": "",
    "limit_per_deck": 1,
@@ -3510,7 +3510,7 @@
    ],
    "bond_of": [
 	"Ansel Rooke",
-	"Tavin Vale"
+    "Tavin Vale"
    ],
    "bond_timer_max": 5
   },
@@ -3531,8 +3531,8 @@
    ]
   },
   {
-   "id": "sweet_ration",
-   "title": "Ashmark's Ration",
+   "id": "stokes_the_coals",
+   "title": "Ashmark Stokes the Coals",
    "type": "non_combat",
    "school": "",
    "only": {
@@ -3626,8 +3626,8 @@
    }
   },
   {
-   "id": "victors_drill",
-   "title": "Victor's Drill",
+   "id": "bravado_drill",
+   "title": "Bravado Drill",
    "type": "drill",
    "school": "",
    "start_in_play": true,
@@ -3648,8 +3648,8 @@
    ]
   },
   {
-   "id": "champion_drill",
-   "title": "Champion's Drill",
+   "id": "revision_drill",
+   "title": "Revision Drill",
    "type": "drill",
    "school": "",
    "once_per_combat": true,
@@ -4065,10 +4065,10 @@
    ]
   },
   {
-   "id": "ember_blocking_hand",
-   "title": "Ember Blocking Hand",
+   "id": "pyre_cinder_guard",
+   "title": "Pyre Cinder Guard",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "defense": {
 	"stops": "strike"
    },
@@ -4084,10 +4084,10 @@
    ]
   },
   {
-   "id": "ember_passive_block",
-   "title": "Ember Passive Block",
+   "id": "pyre_searing_guard",
+   "title": "Pyre Searing Guard",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "defense": {
 	"stops": "strike"
    },
@@ -4109,10 +4109,10 @@
    ]
   },
   {
-   "id": "ember_blast",
-   "title": "Ember Blast",
+   "id": "pyre_immolation",
+   "title": "Pyre Immolation",
    "type": "art",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "art"
    },
@@ -4132,10 +4132,10 @@
    ]
   },
   {
-   "id": "ember_energy_orb",
-   "title": "Ember Energy Orb",
+   "id": "pyre_ashfall",
+   "title": "Pyre Ashfall",
    "type": "art",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "art",
 	"printed_life": 3
@@ -4160,10 +4160,10 @@
    ]
   },
   {
-   "id": "ember_back_kick",
-   "title": "Ember Back Kick",
+   "id": "pyre_backdraft",
+   "title": "Pyre Backdraft",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 3
@@ -4186,10 +4186,10 @@
    ]
   },
   {
-   "id": "ember_shattering_leap",
-   "title": "Ember Shattering Leap",
+   "id": "pyre_comet_fall",
+   "title": "Pyre Comet Fall",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 4
@@ -4198,10 +4198,10 @@
    "remove_after_use": true
   },
   {
-   "id": "ember_face_upheaval",
-   "title": "Ember Face Upheaval",
+   "id": "pyre_scouring_flame",
+   "title": "Pyre Scouring Flame",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike"
    },
@@ -4222,10 +4222,10 @@
    ]
   },
   {
-   "id": "ember_lightning_slash",
-   "title": "Ember Lightning Slash",
+   "id": "pyre_firestorm",
+   "title": "Pyre Firestorm",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike"
    },
@@ -4246,10 +4246,10 @@
    ]
   },
   {
-   "id": "ember_power_rush",
-   "title": "Ember Power Rush",
+   "id": "pyre_blazing_charge",
+   "title": "Pyre Blazing Charge",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 3,
@@ -4264,10 +4264,10 @@
    "remove_after_use": true
   },
   {
-   "id": "ember_overbearing_blow",
-   "title": "Ember Overbearing Blow",
+   "id": "pyre_furnace_breath",
+   "title": "Pyre Furnace Breath",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 4
@@ -4281,10 +4281,10 @@
    "remove_after_use": true
   },
   {
-   "id": "ember_double_strike",
-   "title": "Ember Double Strike",
+   "id": "pyre_twin_flames",
+   "title": "Pyre Twin Flames",
    "type": "combat",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike"
    },
@@ -4297,10 +4297,10 @@
    "remain": 1
   },
   {
-   "id": "ember_face_slap",
-   "title": "Ember Face Slap",
+   "id": "pyre_snuffing",
+   "title": "Pyre Snuffing",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 3,
@@ -4329,10 +4329,10 @@
    ]
   },
   {
-   "id": "ember_tilted_punch",
-   "title": "Ember Tilted Punch",
+   "id": "pyre_flashover",
+   "title": "Pyre Flashover",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 3
@@ -4346,10 +4346,10 @@
    "remove_after_use": true
   },
   {
-   "id": "ember_whiplash",
-   "title": "Ember Whiplash",
+   "id": "pyre_flame_lash",
+   "title": "Pyre Flame Lash",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 4
@@ -4376,10 +4376,10 @@
    ]
   },
   {
-   "id": "ember_puppy_slap",
-   "title": "Ember Puppy Slap",
+   "id": "pyre_kindling",
+   "title": "Pyre Kindling",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"life": 3
@@ -4394,16 +4394,16 @@
 	 "what": "make_focused",
 	 "duration": "combat",
 	 "params": {
-	  "school": "ember"
+	  "school": "pyre"
 	 }
 	}
    ]
   },
   {
-   "id": "ember_axe_heel_kick",
-   "title": "Ember Axe Heel Kick",
+   "id": "pyre_rekindling",
+   "title": "Pyre Rekindling",
    "type": "strike",
-   "school": "ember",
+   "school": "pyre",
    "attack": {
 	"kind": "strike",
 	"stages": 6
@@ -4416,9 +4416,9 @@
 	{
 	 "op": "search",
 	 "card_type": "attack",
-	 "school": "ember",
+	 "school": "pyre",
 	 "source": "discard",
-	 "exclude_title": "Ember Axe Heel Kick",
+	 "exclude_title": "Pyre Rekindling",
 	 "to": "hand"
 	}
    ],

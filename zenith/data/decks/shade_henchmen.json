@@ -20,7 +20,7 @@
   "ai_profile": "shade_henchmen",
   "cards": [
     {
-      "id": "turmoil_square",
+      "id": "trampled_crossroads",
       "count": 3
     },
     {
@@ -52,11 +52,11 @@
       "count": 1
     },
     {
-      "id": "hard_glare",
+      "id": "cold_appraisal",
       "count": 3
     },
     {
-      "id": "interrupt",
+      "id": "cut_short",
       "count": 3
     },
     {
@@ -124,7 +124,7 @@
       "count": 1
     },
     {
-      "id": "breaching_kick",
+      "id": "no_quarter",
       "count": 3
     },
     {

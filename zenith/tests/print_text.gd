@@ -1,6 +1,6 @@
 extends SceneTree
 ## Prints the generated rules text of shipped cards, for the roster and for a quick read.
-## godot --headless --path zenith -s tests/print_text.gd -- ember_mastery steel_triple_blast
+## godot --headless --path zenith -s tests/print_text.gd -- pyre_mastery steel_triple_blast
 
 
 func _init() -> void:

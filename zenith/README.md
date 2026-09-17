@@ -116,7 +116,7 @@ Each deck file names its **archetype** (`strike_beatdown`, `art_beatdown`, `alli
 
 | Deck | Type | Plan |
 |---|---|---|
-| Ashmark the Pyromancer, Bram Ashmark, Ember Pact (80 + 12 Reserve) | Physical beatdown, easy | High-Might duelist, Strikes that raise Fervor, the single-copy stop-alls, a Mastery that spends a life card to make an Ember attack Focused and sends used Ember blocks under the Life Deck |
+| Ashmark the Pyromancer, Bram Ashmark, Pyre Pact (80 + 12 Reserve) | Physical beatdown, easy | High-Might duelist, Strikes that raise Fervor, the single-copy stop-alls, a Mastery that spends a life card to make an Pyre attack Focused and sends used Pyre blocks under the Life Deck |
 | Quarr the Ironblood, Halden Quarr, Steel Pact (80 + 7 Reserve) | Physical beatdown, easy | Brute Strikes, a Mastery that throws away a life card on entry and draws two for a Steel card or one otherwise, Energy denial (Face Jab, Wrist Block) to lock the opponent out of attacking, Endurance in place of blocks, three Seals, Truce |
 | The Draik Company, Sable Draik, Shade Pact (80 + 4 Reserve) | Ally deck, easy | Five sworn blades who share the captain's constant power, ally search, hand disruption |
 | The Rooke Coven, Dame Alder Rooke, Tide Vigil (79 + 3 Reserve) | Ally deck, medium | Four protected kin, Arts, a Mastery that raises the opponent's aspect threshold |
@@ -124,7 +124,7 @@ Each deck file names its **archetype** (`strike_beatdown`, `art_beatdown`, `alli
 | The Corven Collegium, The Ninth Vessel, Storm Pact (80 + 9 Reserve) | Art beatdown, medium | Cheaper Arts that search more Arts, Fervor ramp, a Relic that shields Fervor and aspect |
 | The Thornwald Grove, Osric Thornwald, Root Vigil (84, no Relic) | Seal deck, medium | The seven Marble Seals with eight ways to fetch or capture them, a Drill that guards the set, Arts for damage, a Mastery and blocks that keep pulling the discard pile back. Follows a separate starter list, not the sample-deck sheet, and uses the Root allowance of 90 cards |
 
-Alignment strings are `vigil` and `pact` (the Chivalry and the Pactry at court; see the design doc's Setting). Vigil open the duel when the bracket rule does not decide it.
+Alignment strings are `vigil` and `pact` (the Vigil and the Pact; see the design doc's Setting). Vigil open the duel when the bracket rule does not decide it.
 
 Later rulings adopted with them: the Reserve swap happens as a prompt before the first turn, and the first player is decided by Strike Table bracket instead of doubling stages.
 
@@ -132,21 +132,21 @@ Structural rules from the 2014 relaunch, adopted 2026-09-16: every deck carries 
 
 Remaining approximations in the starter set:
 
-- Hard Glare and Challenge show the owner the opponent's whole hand as the choice list. Seals 2, 6 and 7 of each set are simple fillers the sheets never use.
+- Cold Appraisal and Challenge show the owner the opponent's whole hand as the choice list. Seals 2, 6 and 7 of each set are simple fillers the sheets never use.
 - Truce ends the turn for both players: nobody takes a Discard step.
 - Bonds (the two-Allies-as-one card): the Bond burns one life card per turn of its owner and ends at five; the two Allies return at 3 Energy and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it.
 
 ## Card JSON
 
 ```json
-{"id": "ember_overhand_cut", "title": "Ember Overhand Cut", "type": "strike", "school": "ember",
+{"id": "pyre_overhand_cut", "title": "Pyre Overhand Cut", "type": "strike", "school": "pyre",
  "endurance": 1,
  "attack": {"kind": "strike", "stages": 2},
  "effects": [{"trigger": "if_successful", "op": "fervor", "amount": 1}]}
 ```
 
 - `type`: duelist, ally, strike, art, combat, non_combat, drill, seal, grounds, mastery, relic
-- `school`: ember, tide, storm, shade, steel, root, or omitted for Freestyle
+- `school`: pyre, tide, storm, shade, steel, root, or omitted for Freestyle
 - `attack`: `kind` strike | art; `stages`, `life` add to base; `printed_stages`, `printed_life` replace it; `cost_stages` (default 2 for arts), `cost_life`; `focused`, `unstoppable`, `no_prevent`, `no_stop_by` (a card type), `stages_from_table`, `life_per_ally`, `life_from_surge`, `only_first_attack`, `pay_stages` `{per, life}`, `variants[]` of `{when, ...overrides, effects}` merged when the condition holds
 - `defense`: `{"stops": "strike" | "art" | "any"}` plus optional `when` (condition), `stop_all` (kind), `stop_focused` (true or `"discard_hand"`), `cost_stages`, `cost_life`, `copy_attack`. A card with both `attack` and `defense` attacks in the attack phase and defends in the defense phase; `use_in_attack` lets a pure defense also be used in place of an attack
 - `effects[]`: `trigger` secondary (default) | if_successful | if_stopped | before_damage (after a successful attack, before damage; with `skip_damage` the attack then deals none) | on_place (a Seal's trigger-less lines count as on_place: they resolve as it enters play, and a captor may run them on capture) | use | relic_use | on_success (Mastery) | entering_combat (optional `role`) | on_wound (this card left the Life Deck as a wound or cost; `at: "fight_back"` delays it to the next fight-back phase of the Combat) | opponent_declare (a Non-Combat in play, offered to its owner during the opponent's Declare step); `who` self | opponent; `when` (condition); `may` asks the owner first; `then` is a list of effects that run right after this one (only on a yes for `may`, once per unit paid for pay_energy); `after_empower` drops the line when Empowered. Ops: fervor, set_fervor, energy (amount or `"max"`, `target` duelist, `no_overflow`), set_energy, draw, draw_until, draw_discard (`from`), draw_check (school, effects), discard_life, discard_hand (`random`, `chooser` owner, `to` deck, `filter` signature | non_seal), remove_hand, pay_energy (`per`, with `then`), look_at (`from` top | bottom, `amount`, `pick` filter, `to`, `play_if` filter for a card that may go into play instead, `shuffle_after`), search (`card_type`, `school`, `title_contains`, `exclude_title`, `tag`, `signature_of` duelist, `source` deck | discard | either | reserve, `to` hand | play, `stages`, `amount`, `has_effect` `{op, who}` to match by what a card does; the searcher picks when several distinct cards match, `choose: false` takes the first), choose_forbid_type (`unless_energy_min`), return_removed (`card_type`), focus_attack (the current attack becomes Focused), end_turn, force_declare, bond (`card`: the Bond Ally id, found anywhere in the owner's zones), discard_in_play (`card_type` non_combat | non_combat_only | drill | freestyle_drill | ally | seal | non_combat_or_ally | drill_or_ally, `amount`, `all`, `remove`, `choose`, `up_to`, `chooser`), remove_discard (`all`), shuffle_discard (`per_personality`), recover, end_combat, skip_next_attack_phase, cannot_declare_combat, stop_all, choose_stop_all_kind, float (`what`, `duration` combat | turn | next_turn_end, `params`), forbid (`what`, `duration`), lose_aspect, advance_aspect, set_aspect (`aspect` or `"fervor"`), no_ascension_win, attach (`to`), capture_seal, name_card, next_attack_tax

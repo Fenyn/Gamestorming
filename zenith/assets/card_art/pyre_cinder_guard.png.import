@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dpbidm5fhptm4"
-path="res://.godot/imported/ember_energy_orb.png-302b439e33a127be8e10bdcd30db45bb.ctex"
+uid="uid://b5k7b2hq7pty4"
+path="res://.godot/imported/pyre_cinder_guard.png-7d434b7051b2577603629d7758f443da.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_energy_orb.png"
-dest_files=["res://.godot/imported/ember_energy_orb.png-302b439e33a127be8e10bdcd30db45bb.ctex"]
+source_file="res://assets/card_art/pyre_cinder_guard.png"
+dest_files=["res://.godot/imported/pyre_cinder_guard.png-7d434b7051b2577603629d7758f443da.ctex"]
 
 [params]
 

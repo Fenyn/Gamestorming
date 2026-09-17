@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dpyv634i5o4h4"
-path="res://.godot/imported/ember_face_upheaval.png-85757f72caa5f73149e4ebbe03d1ea92.ctex"
+uid="uid://sfpuhvaeeka3"
+path="res://.godot/imported/pyre_flashover.png-a326999aac14027fe9196bff59b9ada8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_face_upheaval.png"
-dest_files=["res://.godot/imported/ember_face_upheaval.png-85757f72caa5f73149e4ebbe03d1ea92.ctex"]
+source_file="res://assets/card_art/pyre_flashover.png"
+dest_files=["res://.godot/imported/pyre_flashover.png-a326999aac14027fe9196bff59b9ada8.ctex"]
 
 [params]
 

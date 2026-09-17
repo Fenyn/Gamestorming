@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b6he85f5ujgm6"
-path="res://.godot/imported/ember_shattering_leap.png-dfa4b26d77ff196123b203b0fba582b0.ctex"
+uid="uid://c0cvnih8o1s2b"
+path="res://.godot/imported/pyre_scouring_flame.png-daace63d3359f0f93fc92c1e5373ca8c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_shattering_leap.png"
-dest_files=["res://.godot/imported/ember_shattering_leap.png-dfa4b26d77ff196123b203b0fba582b0.ctex"]
+source_file="res://assets/card_art/pyre_scouring_flame.png"
+dest_files=["res://.godot/imported/pyre_scouring_flame.png-daace63d3359f0f93fc92c1e5373ca8c.ctex"]
 
 [params]
 

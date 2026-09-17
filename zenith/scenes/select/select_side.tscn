@@ -91,7 +91,7 @@ text = "Strike beatdown"
 [node name="School" type="Label" parent="Column/Detail/Row/Info/Chips"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "Ember"
+text = "Pyre"
 
 [node name="Alignment" type="Label" parent="Column/Detail/Row/Info/Chips"]
 layout_mode = 2

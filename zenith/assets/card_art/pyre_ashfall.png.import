@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy7rdddituda7"
-path="res://.godot/imported/ember_face_slap.png-aaa2d1b4b90651e2eea6a94379bac994.ctex"
+uid="uid://ktjbcv5m1i23"
+path="res://.godot/imported/pyre_ashfall.png-dcbe4afa6077b9e2a8d4c7bcfd88fd95.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_face_slap.png"
-dest_files=["res://.godot/imported/ember_face_slap.png-aaa2d1b4b90651e2eea6a94379bac994.ctex"]
+source_file="res://assets/card_art/pyre_ashfall.png"
+dest_files=["res://.godot/imported/pyre_ashfall.png-dcbe4afa6077b9e2a8d4c7bcfd88fd95.ctex"]
 
 [params]
 

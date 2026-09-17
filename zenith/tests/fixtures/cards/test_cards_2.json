@@ -1,7 +1,7 @@
 {
   "_note": "Fixture cards for the extended mechanics (Remain, Empower, counters, forbids, attachments, constants, Relics). Test names only.",
   "cards": [
-    {"id": "t_remain_strike", "title": "Test Twin Strike", "type": "strike", "school": "ember", "attack": {"kind": "strike", "stages": 2}, "remain": 1},
+    {"id": "t_remain_strike", "title": "Test Twin Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike", "stages": 2}, "remain": 1},
     {"id": "t_empower_art", "title": "Test Surging Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "empower": 2, "effects": [{"op": "fervor", "amount": 1, "after_empower": true}]},
     {"id": "t_counter", "title": "Test Counter", "type": "combat", "counter": "combat"},
     {"id": "t_forbid_arts", "title": "Test Hex", "type": "combat", "effects": [{"op": "forbid", "who": "opponent", "what": "art_attacks"}]},
@@ -24,7 +24,7 @@
     {"id": "t_draw_until", "title": "Test Refill", "type": "combat", "effects": [{"op": "draw_until", "amount": 5}]},
     {"id": "t_draw_discard", "title": "Test Salvage", "type": "combat", "effects": [{"op": "draw_discard", "amount": 1, "from": "bottom"}]},
     {"id": "t_search_play", "title": "Test Summon Drill", "type": "combat", "effects": [{"op": "search", "card_type": "drill", "to": "play"}]},
-    {"id": "t_variant_strike", "title": "Test Adaptive Strike", "type": "strike", "school": "ember", "attack": {"kind": "strike", "stages": 1, "variants": [{"when": {"energy_min": 1}, "stages": 3}]}},
+    {"id": "t_variant_strike", "title": "Test Adaptive Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike", "stages": 1, "variants": [{"when": {"energy_min": 1}, "stages": 3}]}},
     {"id": "t_owner_glare", "title": "Test Peek", "type": "combat", "effects": [{"op": "discard_hand", "who": "opponent", "amount": 1, "random": false, "chooser": "owner"}]},
     {"id": "t_stop_next", "title": "Test Afterimage", "type": "combat", "defense": {"stops": "any"}, "effects": [{"op": "float", "what": "stop_next", "duration": "combat"}]},
     {"id": "t_only_attacks", "title": "Test Frenzy", "type": "combat", "effects": [{"op": "forbid", "what": "non_attack_actions"}, {"op": "forbid", "who": "opponent", "what": "non_attack_actions"}]},

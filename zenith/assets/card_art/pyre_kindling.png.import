@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ep6et6opyw04"
-path="res://.godot/imported/ember_back_kick.png-babea3a2e492b46d91618de1934ad6ee.ctex"
+uid="uid://dl7wguvgit2kq"
+path="res://.godot/imported/pyre_kindling.png-664d68dc96f4631f9ce07eadf277f8c6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_back_kick.png"
-dest_files=["res://.godot/imported/ember_back_kick.png-babea3a2e492b46d91618de1934ad6ee.ctex"]
+source_file="res://assets/card_art/pyre_kindling.png"
+dest_files=["res://.godot/imported/pyre_kindling.png-664d68dc96f4631f9ce07eadf277f8c6.ctex"]
 
 [params]
 

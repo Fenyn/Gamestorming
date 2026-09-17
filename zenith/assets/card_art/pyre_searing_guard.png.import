@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dhfxlvyusgw1y"
-path="res://.godot/imported/ember_blocking_hand.png-cba703c80b696e39d1f9d3c40c3f6b9d.ctex"
+uid="uid://cnvlvse0jx8oc"
+path="res://.godot/imported/pyre_searing_guard.png-bb4dd72763b1b443081c685ace438e4d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/ember_blocking_hand.png"
-dest_files=["res://.godot/imported/ember_blocking_hand.png-cba703c80b696e39d1f9d3c40c3f6b9d.ctex"]
+source_file="res://assets/card_art/pyre_searing_guard.png"
+dest_files=["res://.godot/imported/pyre_searing_guard.png-bb4dd72763b1b443081c685ace438e4d.ctex"]
 
 [params]
 

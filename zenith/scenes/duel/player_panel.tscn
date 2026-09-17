@@ -41,7 +41,7 @@ text = "ATTACKING"
 [node name="Sub" type="Label" parent="Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Player · Ember Pact"
+text = "Player · Pyre Pact"
 
 [node name="Stats" type="HBoxContainer" parent="Column"]
 layout_mode = 2

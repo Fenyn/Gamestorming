@@ -5,8 +5,8 @@
   "style": "ember",
   "alignment": "pact",
   "mastery": "ember_mastery",
-  "grimoire": "grimoire_north",
-  "pages": [
+  "relic": "blank_mask",
+  "reserve": [
     "open_challenge",
     "ember_energy_orb",
     "ember_energy_orb",

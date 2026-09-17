@@ -1698,16 +1698,16 @@
    "fervor_gain_cap": 1
   },
   {
-   "id": "grimoire_north",
-   "title": "Grimoire of the North",
-   "type": "grimoire",
+   "id": "blank_mask",
+   "title": "The Blank Mask",
+   "type": "relic",
    "school": "",
-   "pages_size": 13,
+   "reserve_size": 13,
    "uses_per_game": 2,
    "limit_per_deck": 1,
    "effects": [
 	{
-	 "trigger": "grimoire_use",
+	 "trigger": "relic_use",
 	 "op": "forbid",
 	 "who": "opponent",
 	 "what": "mastery",
@@ -1716,16 +1716,16 @@
    ]
   },
   {
-   "id": "grimoire_south",
-   "title": "Grimoire of the South",
-   "type": "grimoire",
+   "id": "debtors_ring",
+   "title": "The Debtor's Ring",
+   "type": "relic",
    "school": "",
-   "pages_size": 5,
+   "reserve_size": 5,
    "uses_per_game": 1,
    "limit_per_deck": 1,
    "effects": [
 	{
-	 "trigger": "grimoire_use",
+	 "trigger": "relic_use",
 	 "op": "search",
 	 "card_type": "ally",
 	 "to": "play",
@@ -1734,13 +1734,13 @@
    ]
   },
   {
-   "id": "grimoire_steadfast",
-   "title": "The Steadfast Grimoire",
-   "type": "grimoire",
+   "id": "lodestone_heart",
+   "title": "The Lodestone Heart",
+   "type": "relic",
    "school": "",
-   "pages_size": 10,
+   "reserve_size": 10,
    "limit_per_deck": 1,
-   "grimoire_flags": {
+   "relic_flags": {
 	"no_ascension_win": true,
 	"fervor_shield": true,
 	"aspect_shield": true
@@ -2285,7 +2285,7 @@
 	{
 	 "op": "search",
 	 "card_type": "attack",
-	 "source": "pages",
+	 "source": "reserve",
 	 "to": "hand"
 	}
    ],

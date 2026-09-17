@@ -42,7 +42,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Unknown card '%s'" % id)
 			continue
 		counts[id] = int(counts.get(id, 0)) + 1
-		if def.type == CardDef.Type.DUELIST or def.type == CardDef.Type.MASTERY or def.type == CardDef.Type.GRIMOIRE:
+		if def.type == CardDef.Type.DUELIST or def.type == CardDef.Type.MASTERY or def.type == CardDef.Type.RELIC:
 			problems.append("'%s' cannot be in the Life Deck" % id)
 		if def.school != "":
 			styled_seen = true
@@ -82,28 +82,28 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Deck Style must be set to the Mastery's school")
 		elif mastery.school != wanted_school:
 			problems.append("Mastery school '%s' does not match Style %s" % [mastery.school, deck.style])
-	if deck.grimoire_id != "":
-		var grimoire: CardDef = library.defs.get(deck.grimoire_id)
-		if grimoire == null or grimoire.type != CardDef.Type.GRIMOIRE:
-			problems.append("Grimoire '%s' not found" % deck.grimoire_id)
-		elif deck.pages.size() > grimoire.pages_size:
-			problems.append("Pages holds %d cards, Grimoire allows %d" % [deck.pages.size(), grimoire.pages_size])
-	elif not deck.pages.is_empty():
-		problems.append("A Pages needs a Grimoire")
-	# Pages cards obey the same copy limits, counted together with the Life Deck.
-	for id in deck.pages:
+	if deck.relic_id != "":
+		var relic: CardDef = library.defs.get(deck.relic_id)
+		if relic == null or relic.type != CardDef.Type.RELIC:
+			problems.append("Relic '%s' not found" % deck.relic_id)
+		elif deck.reserve.size() > relic.reserve_size:
+			problems.append("Reserve holds %d cards, Relic allows %d" % [deck.reserve.size(), relic.reserve_size])
+	elif not deck.reserve.is_empty():
+		problems.append("A Reserve needs a Relic")
+	# Reserve cards obey the same copy limits, counted together with the Life Deck.
+	for id in deck.reserve:
 		var def: CardDef = library.defs.get(id)
 		if def == null:
-			problems.append("Unknown Pages card '%s'" % id)
+			problems.append("Unknown Reserve card '%s'" % id)
 			continue
 		if def.school != "" and deck.style != def.school:
-			problems.append("Pages card '%s' is %s, deck Style is %s" % [id, def.school, deck.style])
-		var combined: int = int(counts.get(id, 0)) + deck.pages.count(id)
+			problems.append("Reserve card '%s' is %s, deck Style is %s" % [id, def.school, deck.style])
+		var combined: int = int(counts.get(id, 0)) + deck.reserve.count(id)
 		var limit: int = def.limit_per_deck
 		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.ALLY:
 			limit = 1
 		elif def.character != "" and def.character == duelist.character:
 			limit = maxi(limit, SIGNATURE_LIMIT)
 		if combined > limit:
-			problems.append("'%s' x%d across deck and Pages exceeds limit %d" % [id, combined, limit])
+			problems.append("'%s' x%d across deck and Reserve exceeds limit %d" % [id, combined, limit])
 	return problems

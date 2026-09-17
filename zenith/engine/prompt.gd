@@ -3,7 +3,7 @@ extends RefCounted
 ## A pending decision. `options` are the only Commands the engine will accept, with one
 ## extension: a prompt may take a batch, one Command of `batch_type` whose value is an Array of
 ## card uids drawn from the options, between `batch_min` and `batch_max` of them, no repeats.
-## That is how a Pages swap or a discard-two lands in one decision instead of a chain.
+## That is how a Reserve swap or a discard-two lands in one decision instead of a chain.
 
 var player: int = 0
 var kind: StringName = &""

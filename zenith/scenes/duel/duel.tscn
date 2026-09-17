@@ -80,7 +80,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.71, 0.0, 2.255)
 [node name="Discard" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.58, 0.0, 2.255)
 
-[node name="Grimoire" type="Marker3D" parent="Zones/P0"]
+[node name="Relic" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.58, 0.0, 0.995)
 
 [node name="DrillStart" type="Marker3D" parent="Zones/P0"]

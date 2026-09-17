@@ -21,9 +21,9 @@ var aspect_shield: bool = false
 var restrictions: Array[String] = []   # forbid `what` words in force; CardText.restriction_name reads them
 var duelist: int = -1
 var mastery: int = -1
-var grimoire: int = -1
+var relic: int = -1
 var controlling: int = -1
-var pages: Array[int] = []
+var reserve: Array[int] = []
 var life_deck: Array[int] = []   # top first
 var hand: Array[int] = []
 var discard: Array[int] = []     # last is the top
@@ -45,7 +45,7 @@ func to_dict() -> Dictionary:
 		"fervor": fervor, "highest_aspect": highest_aspect, "fervor_needed": fervor_needed,
 		"fervor_gain": fervor_gain, "recover_gain": recover_gain, "fervor_shield": fervor_shield,
 		"aspect_shield": aspect_shield, "restrictions": restrictions, "duelist": duelist, "mastery": mastery,
-		"grimoire": grimoire, "controlling": controlling, "pages": pages, "life_deck": life_deck,
+		"relic": relic, "controlling": controlling, "reserve": reserve, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
 		"non_combats": non_combats, "seals": seals, "must_pass": must_pass,
 		"skip_next_attack_phase": skip_next_attack_phase, "seal_victory_pending": seal_victory_pending,
@@ -71,9 +71,9 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.restrictions = strings(d.get("restrictions", []))
 	p.duelist = int(d.get("duelist", -1))
 	p.mastery = int(d.get("mastery", -1))
-	p.grimoire = int(d.get("grimoire", -1))
+	p.relic = int(d.get("relic", -1))
 	p.controlling = int(d.get("controlling", -1))
-	p.pages = ints(d.get("pages", []))
+	p.reserve = ints(d.get("reserve", []))
 	p.life_deck = ints(d.get("life_deck", []))
 	p.hand = ints(d.get("hand", []))
 	p.discard = ints(d.get("discard", []))
@@ -130,9 +130,9 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.restrictions = engine.restrictions(p)
 	v.duelist = p.duelist.uid
 	v.mastery = p.mastery.uid if p.mastery != null else -1
-	v.grimoire = p.grimoire.uid if p.grimoire != null else -1
+	v.relic = p.relic.uid if p.relic != null else -1
 	v.controlling = p.in_control().uid
-	v.pages = _uids(p.pages)
+	v.reserve = _uids(p.reserve)
 	v.life_deck = _uids(p.life_deck)
 	v.hand = _uids(p.hand)
 	v.discard = _uids(p.discard)

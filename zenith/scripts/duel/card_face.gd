@@ -22,7 +22,7 @@ const TEXT_SIZES: Array[int] = [24, 22, 20, 18, 17, 16, 15, 14, 13, 12]
 const ART_HEIGHTS: Dictionary = {
 	CardDef.Type.STRIKE: 320, CardDef.Type.ART: 320, CardDef.Type.COMBAT: 300, CardDef.Type.SEAL: 320,
 	CardDef.Type.NON_COMBAT: 240, CardDef.Type.DRILL: 240, CardDef.Type.GROUNDS: 240,
-	CardDef.Type.MASTERY: 200, CardDef.Type.GRIMOIRE: 200,
+	CardDef.Type.MASTERY: 200, CardDef.Type.RELIC: 200,
 }
 const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0

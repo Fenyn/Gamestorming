@@ -50,13 +50,13 @@ static func from_dict(d: Dictionary) -> SeatCard:
 	return c
 
 
-## What one seat may know about a card: everything on the table, own hand and Pages, nothing
-## about Life Decks or the other seat's hand and Pages.
+## What one seat may know about a card: everything on the table, own hand and Reserve, nothing
+## about Life Decks or the other seat's hand and Reserve.
 static func visible_to(c: CardInstance, seat: int) -> bool:
 	match c.zone:
 		&"life_deck":
 			return false
-		&"hand", &"pages":
+		&"hand", &"reserve":
 			return c.owner == seat
 		_:
 			return true

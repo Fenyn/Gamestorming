@@ -5,8 +5,8 @@
   "style": "tide",
   "alignment": "vigil",
   "mastery": "tide_mastery",
-  "grimoire": "grimoire_south",
-  "pages": [
+  "relic": "debtors_ring",
+  "reserve": [
     "supreme_push",
     "lobbed_bolt",
     "erasure",

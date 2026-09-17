@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://syinatkglaa2"
-path="res://.godot/imported/grimoire_south.png-3ae5b5e72daee23491f244860f99f0fb.ctex"
+path="res://.godot/imported/debtors_ring.png-a4440eacdc3c7b0699ee8281b4ff5a2b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/grimoire_south.png"
-dest_files=["res://.godot/imported/grimoire_south.png-3ae5b5e72daee23491f244860f99f0fb.ctex"]
+source_file="res://assets/card_art/debtors_ring.png"
+dest_files=["res://.godot/imported/debtors_ring.png-a4440eacdc3c7b0699ee8281b4ff5a2b.ctex"]
 
 [params]
 

@@ -2,7 +2,7 @@ class_name CardDef
 extends RefCounted
 ## Immutable card definition loaded from JSON. See zenith/README.md for the schema.
 
-enum Type { DUELIST, ALLY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, SEAL, GROUNDS, MASTERY, GRIMOIRE }
+enum Type { DUELIST, ALLY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, SEAL, GROUNDS, MASTERY, RELIC }
 
 const TYPE_NAMES: Dictionary = {
 	"duelist": Type.DUELIST,
@@ -15,7 +15,7 @@ const TYPE_NAMES: Dictionary = {
 	"seal": Type.SEAL,
 	"grounds": Type.GROUNDS,
 	"mastery": Type.MASTERY,
-	"grimoire": Type.GRIMOIRE,
+	"relic": Type.RELIC,
 }
 
 var id: String = ""
@@ -47,8 +47,8 @@ var aspects: Array[Dictionary] = []     # personalities: {aspect, surge, might: 
 var seal_set: String = ""
 var seal_number: int = 0
 var capture_trait: bool = false
-var pages_size: int = 0
-var grimoire_flags: Dictionary = {}     # Grimoire passives: {"no_ascension_win": true, "fervor_shield": true, "aspect_shield": true}
+var reserve_size: int = 0
+var relic_flags: Dictionary = {}     # Relic passives: {"no_ascension_win": true, "fervor_shield": true, "aspect_shield": true}
 var opponent_aspect_threshold: int = 0  # Mastery: opponent needs this much Fervor to rise an aspect
 var raw: Dictionary = {}
 
@@ -87,8 +87,8 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.seal_set = str(d.get("seal_set", ""))
 	c.seal_number = int(d.get("seal_number", 0))
 	c.capture_trait = bool(d.get("capture_trait", false))
-	c.pages_size = int(d.get("pages_size", 0))
-	c.grimoire_flags = d.get("grimoire_flags", {})
+	c.reserve_size = int(d.get("reserve_size", 0))
+	c.relic_flags = d.get("relic_flags", {})
 	c.opponent_aspect_threshold = int(d.get("opponent_aspect_threshold", 0))
 	return c
 

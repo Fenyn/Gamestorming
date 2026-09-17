@@ -5,8 +5,8 @@
   "style": "steel",
   "alignment": "pact",
   "mastery": "steel_mastery",
-  "grimoire": "grimoire_north",
-  "pages": [
+  "relic": "blank_mask",
+  "reserve": [
     "open_challenge",
     "steel_headshot",
     "mutual_escalation",

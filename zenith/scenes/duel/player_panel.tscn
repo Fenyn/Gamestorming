@@ -65,10 +65,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Out 0"
 
-[node name="Pages" type="Label" parent="Column/Counts"]
+[node name="Reserve" type="Label" parent="Column/Counts"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Pages 0"
+text = "Reserve 0"
 
 [node name="Seals" type="Label" parent="Column/Counts"]
 layout_mode = 2

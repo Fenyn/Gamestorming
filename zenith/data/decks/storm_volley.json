@@ -5,8 +5,8 @@
   "style": "storm",
   "alignment": "pact",
   "mastery": "storm_mastery",
-  "grimoire": "grimoire_steadfast",
-  "pages": [
+  "relic": "lodestone_heart",
+  "reserve": [
     "doubt",
     "grand_sweep",
     "grand_sweep",

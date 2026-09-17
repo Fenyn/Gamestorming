@@ -38,7 +38,7 @@ var shuffle_decks: bool = true
 var _cards: Dictionary = {}   # uid -> CardInstance
 var _next_uid: int = 1
 var _combat_ending: bool = false
-var _pages_swapped: Dictionary = {}
+var _reserve_swapped: Dictionary = {}
 var _queue: Array[Dictionary] = []   # effect jobs: {effects, index, trigger, owner, ctx, source}
 var _choice: Dictionary = {}         # how to finish the effect that raised the pending prompt
 var _pending_then: Dictionary = {}   # "then" effects waiting on the prompt the current effect raised
@@ -62,8 +62,8 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 
 func start() -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
-	state.pages_index = 0
-	_pages_swapped = {}
+	state.reserve_index = 0
+	_reserve_swapped = {}
 	_run()
 
 
@@ -109,7 +109,7 @@ func clone() -> DuelEngine:
 	e.prompt = prompt.copy() if prompt != null else null
 	e._next_uid = _next_uid
 	e._combat_ending = _combat_ending
-	e._pages_swapped = _pages_swapped.duplicate()
+	e._reserve_swapped = _reserve_swapped.duplicate()
 	e._queue.assign(_remap(_queue, e._cards))
 	e._choice = _remap(_choice, e._cards)
 	e._pending_then = _remap(_pending_then, e._cards)
@@ -164,7 +164,7 @@ static func _remap(v: Variant, cards: Dictionary) -> Variant:
 
 ## Prompts that the step machine re-issues unchanged when asked again, so a dev effect can run
 ## in front of them and the same decision comes back afterwards.
-const DEV_SAFE_PROMPTS: Array[StringName] = [&"pages", &"non_combat", &"declare", &"attack_action", &"defense", &"keep", &"recover"]
+const DEV_SAFE_PROMPTS: Array[StringName] = [&"reserve", &"non_combat", &"declare", &"attack_action", &"defense", &"keep", &"recover"]
 
 
 ## Dev tool: runs one effect for `owner` through the normal queue, triggers included, then
@@ -243,12 +243,12 @@ func _build_player(index: int, deck: DeckList) -> PlayerState:
 	p.controlling = p.duelist
 	if deck.mastery_id != "":
 		p.mastery = _instance(library.get_def(deck.mastery_id), index, &"side")
-	if deck.grimoire_id != "":
-		p.grimoire = _instance(library.get_def(deck.grimoire_id), index, &"side")
-		if bool(p.grimoire.def.grimoire_flags.get("no_ascension_win", false)):
+	if deck.relic_id != "":
+		p.relic = _instance(library.get_def(deck.relic_id), index, &"side")
+		if bool(p.relic.def.relic_flags.get("no_ascension_win", false)):
 			p.no_ascension_win = true
-	for id in deck.pages:
-		p.pages.append(_instance(library.get_def(id), index, &"pages"))
+	for id in deck.reserve:
+		p.reserve.append(_instance(library.get_def(id), index, &"reserve"))
 	# Shuffle the ids before instancing so a card's uid says nothing about its place in the deck
 	# list. Instancing first and shuffling after would let a client map face-down uids back to
 	# the deck list it ships with.
@@ -286,41 +286,41 @@ func _apply_first_player_rule() -> void:
 		state.active = rng.randi_range(0, 1)
 
 
-# --- Pages swap (setup) --------------------------------------------------
+# --- Reserve swap (setup) --------------------------------------------------
 
-func _advance_pages() -> void:
-	if state.pages_index >= 2:
+func _advance_reserve() -> void:
+	if state.reserve_index >= 2:
 		_start_in_play()
 		_begin_turn()
 		return
 	var order: Array[int] = [state.active, state.opposing()]
-	var p: PlayerState = state.players[order[state.pages_index]]
+	var p: PlayerState = state.players[order[state.reserve_index]]
 	var opts: Array[Command] = []
-	for c in p.pages:
-		if not _pages_swapped.has(c.uid):
-			opts.append(Command.new(p.index, &"pages_in", c.uid))
+	for c in p.reserve:
+		if not _reserve_swapped.has(c.uid):
+			opts.append(Command.new(p.index, &"reserve_in", c.uid))
 	if opts.is_empty():
-		_finish_pages(p)
+		_finish_reserve(p)
 		return
 	var batch_max: int = opts.size()
-	opts.append(Command.new(p.index, &"pages_done"))
-	_set_prompt(p.index, &"pages", opts)
-	prompt.set_batch(&"pages_in", 1, batch_max)
+	opts.append(Command.new(p.index, &"reserve_done"))
+	_set_prompt(p.index, &"reserve", opts)
+	prompt.set_batch(&"reserve_in", 1, batch_max)
 
 
 ## One card at a time re-opens the prompt with what is left; a batch swaps them all and finishes.
-func _handle_pages(cmd: Command) -> void:
+func _handle_reserve(cmd: Command) -> void:
 	var p: PlayerState = state.players[cmd.player]
-	if cmd.type == &"pages_done":
-		_finish_pages(p)
+	if cmd.type == &"reserve_done":
+		_finish_reserve(p)
 		return
 	for uid in Prompt.cards_of(cmd):
-		_pages_swap_in(p, card(uid))
+		_reserve_swap_in(p, card(uid))
 	if cmd.value is Array:
-		_finish_pages(p)
+		_finish_reserve(p)
 
 
-func _pages_swap_in(p: PlayerState, c: CardInstance) -> void:
+func _reserve_swap_in(p: PlayerState, c: CardInstance) -> void:
 	_erase_from_zone(c)
 	c.zone = &"life_deck"
 	p.life_deck.append(c)
@@ -328,17 +328,17 @@ func _pages_swap_in(p: PlayerState, c: CardInstance) -> void:
 		var idx: int = rng.randi_range(0, p.life_deck.size() - 2)
 		var out: CardInstance = p.life_deck[idx]
 		_erase_from_zone(out)
-		out.zone = &"pages"
-		p.pages.append(out)
-		_pages_swapped[out.uid] = true
-		_emit(&"pages_swap", {"player": p.index, "in": c.uid, "out": out.uid})
+		out.zone = &"reserve"
+		p.reserve.append(out)
+		_reserve_swapped[out.uid] = true
+		_emit(&"reserve_swap", {"player": p.index, "in": c.uid, "out": out.uid})
 
 
-func _finish_pages(p: PlayerState) -> void:
+func _finish_reserve(p: PlayerState) -> void:
 	if shuffle_decks:
 		rng.shuffle(p.life_deck)
-	_emit(&"pages_done", {"player": p.index})
-	state.pages_index += 1
+	_emit(&"reserve_done", {"player": p.index})
+	state.reserve_index += 1
 
 
 ## Cards that may begin the game in play (their text says so) move out of the deck now.
@@ -348,7 +348,7 @@ func _start_in_play() -> void:
 		var seen: Dictionary = {}
 		var pool: Array[CardInstance] = []
 		pool.append_array(p.life_deck)
-		pool.append_array(p.pages)
+		pool.append_array(p.reserve)
 		for c in pool:
 			if c.def.start_in_play and _can_place(p, c) and not seen.has(c.def.id):
 				seen[c.def.id] = true
@@ -373,7 +373,7 @@ func _run() -> void:
 func _advance() -> void:
 	match state.step:
 		GameState.Step.SETUP:
-			_advance_pages()
+			_advance_reserve()
 		GameState.Step.DRAW:
 			_draw(state.active, DRAW_COUNT)
 			if not state.is_over():
@@ -396,8 +396,8 @@ func _advance() -> void:
 
 func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
 	match kind:
-		&"pages":
-			_handle_pages(cmd)
+		&"reserve":
+			_handle_reserve(cmd)
 		&"non_combat":
 			_handle_non_combat(cmd)
 		&"declare":
@@ -496,8 +496,8 @@ func _prompt_non_combat() -> void:
 			opts.append(Command.new(p.index, &"place", c.uid))
 		elif _drill_locked_out(p, c.def):
 			opts.append(Command.new(p.index, &"shuffle_back", c.uid))
-	if _grimoire_usable_in(p, "non_combat"):
-		opts.append(Command.new(p.index, &"grimoire", p.grimoire.uid))
+	if _relic_usable_in(p, "non_combat"):
+		opts.append(Command.new(p.index, &"relic", p.relic.uid))
 	if opts.is_empty():
 		state.step = GameState.Step.POWER_UP
 		return
@@ -510,8 +510,8 @@ func _handle_non_combat(cmd: Command) -> void:
 	match cmd.type:
 		&"done":
 			state.step = GameState.Step.POWER_UP
-		&"grimoire":
-			_use_grimoire(p)
+		&"relic":
+			_use_relic(p)
 		&"shuffle_back":
 			var c: CardInstance = card(cmd.card)
 			_emit(&"drill_shuffled_back", {"player": p.index, "card": c.uid, "id": c.def.id})
@@ -536,26 +536,26 @@ func _drill_locked_out(p: PlayerState, def: CardDef) -> bool:
 	return false
 
 
-func _grimoire_available(p: PlayerState) -> bool:
-	if p.grimoire == null:
+func _relic_available(p: PlayerState) -> bool:
+	if p.relic == null:
 		return false
-	var uses: int = int(p.grimoire.def.raw.get("uses_per_game", 0))
-	return uses > 0 and p.grimoire_uses < uses and p.grimoire.def.has_trigger("grimoire_use")
+	var uses: int = int(p.relic.def.raw.get("uses_per_game", 0))
+	return uses > 0 and p.relic_uses < uses and p.relic.def.has_trigger("relic_use")
 
 
-## A Grimoire's `grimoire_step` says when its power is offered: "non_combat" (the default), "combat"
+## A Relic's `relic_step` says when its power is offered: "non_combat" (the default), "combat"
 ## (in place of an attack) or "any".
-func _grimoire_usable_in(p: PlayerState, step: String) -> bool:
-	if not _grimoire_available(p):
+func _relic_usable_in(p: PlayerState, step: String) -> bool:
+	if not _relic_available(p):
 		return false
-	var when: String = str(p.grimoire.def.raw.get("grimoire_step", "non_combat"))
+	var when: String = str(p.relic.def.raw.get("relic_step", "non_combat"))
 	return when == "any" or when == step
 
 
-func _use_grimoire(p: PlayerState) -> void:
-	p.grimoire_uses += 1
-	_emit(&"grimoire_used", {"player": p.index, "card": p.grimoire.uid})
-	_enqueue(p.grimoire.def.effects, "grimoire_use", p.index, {}, p.grimoire)
+func _use_relic(p: PlayerState) -> void:
+	p.relic_uses += 1
+	_emit(&"relic_used", {"player": p.index, "card": p.relic.uid})
+	_enqueue(p.relic.def.effects, "relic_use", p.index, {}, p.relic)
 
 
 func _power_up() -> void:
@@ -934,8 +934,8 @@ func _prompt_attack_action(p: PlayerState) -> void:
 				opts.append(Command.new(p.index, &"use", c.uid))
 	if p.mastery != null and not only_attacks and not _forbidden(p, "mastery") and not p.mastery.def.effects_for("use").is_empty() and _drill_use_available(p.mastery):
 		opts.append(Command.new(p.index, &"use", p.mastery.uid))
-	if not only_attacks and _grimoire_usable_in(p, "combat"):
-		opts.append(Command.new(p.index, &"use", p.grimoire.uid))
+	if not only_attacks and _relic_usable_in(p, "combat"):
+		opts.append(Command.new(p.index, &"use", p.relic.uid))
 	var pw: Dictionary = ic.power()
 	if _power_available(p, ic) and not pw.has("defense") and not _forbidden(p, "powers"):
 		if pw.has("attack"):
@@ -1009,10 +1009,10 @@ func _handle_attack_action(cmd: Command) -> void:
 			assert(false, "Bad attack action %s" % cmd.type)
 
 
-## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery, Grimoire).
+## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery, Relic).
 func _use_card(p: PlayerState, c: CardInstance) -> void:
-	if c.def.type == CardDef.Type.GRIMOIRE:
-		_use_grimoire(p)
+	if c.def.type == CardDef.Type.RELIC:
+		_use_relic(p)
 	elif c.zone == &"hand":
 		_erase_from_zone(c)
 		c.zone = &"resolving"
@@ -2019,7 +2019,7 @@ func _handle_critical(cmd: Command) -> void:
 		&"lower_fervor":
 			state.attack["critical"] = "fervor"
 			_emit(&"critical_fervor", {"player": cmd.player})
-			# Passed as the rival's own change: a game rule, so the Grimoire's Fervor shield (card effects only) does not apply.
+			# Passed as the rival's own change: a game rule, so the Relic's Fervor shield (card effects only) does not apply.
 			_change_fervor(opp, -1, opp.index)
 
 
@@ -2162,7 +2162,7 @@ func _place_rearranged(p: PlayerState, c: CardInstance, from: String, placed: in
 ## Runs the "then" list of the effect that just finished, ahead of everything else queued.
 ## Triggers whose firing is already told by another line (the card was played or used), or that
 ## continue an effect already announced.
-const SILENT_TRIGGERS: Array[String] = ["secondary", "use", "grimoire_use", "opponent_declare", "then", "dev"]
+const SILENT_TRIGGERS: Array[String] = ["secondary", "use", "relic_use", "opponent_declare", "then", "dev"]
 
 
 ## Logs "<card> triggers <when>" once per job, at the first effect that actually applies, so a
@@ -2889,7 +2889,7 @@ func _discard_or_remove_in_play(c: CardInstance, remove: bool) -> void:
 func _prompt_name_card(p: PlayerState, source: CardInstance) -> void:
 	var titles: Dictionary = {}
 	for c in _cards.values():
-		if c.owner != p.index and not c.def.is_personality() and c.def.type != CardDef.Type.SEAL and c.def.type != CardDef.Type.MASTERY and c.def.type != CardDef.Type.GRIMOIRE:
+		if c.owner != p.index and not c.def.is_personality() and c.def.type != CardDef.Type.SEAL and c.def.type != CardDef.Type.MASTERY and c.def.type != CardDef.Type.RELIC:
 			titles[c.def.title] = true
 	var names: Array = titles.keys()
 	names.sort()
@@ -3063,7 +3063,7 @@ func recover_gain(p: PlayerState) -> int:
 
 
 func aspect_shielded(p: PlayerState) -> bool:
-	return p.grimoire != null and bool(p.grimoire.def.grimoire_flags.get("aspect_shield", false))
+	return p.relic != null and bool(p.relic.def.relic_flags.get("aspect_shield", false))
 
 
 ## Standing forbids in force on the player right now, as forbid `what` words.
@@ -3108,7 +3108,7 @@ func _set_fervor(p: PlayerState, value: int, source_owner: int) -> void:
 
 
 func fervor_shielded(p: PlayerState) -> bool:
-	return p.grimoire != null and bool(p.grimoire.def.grimoire_flags.get("fervor_shield", false))
+	return p.relic != null and bool(p.relic.def.relic_flags.get("fervor_shield", false))
 
 
 ## Full Fervor raises the duelist an aspect. At the duelist's own top aspect it is the Ascension win;
@@ -3137,7 +3137,7 @@ func _aspect_up(p: PlayerState) -> void:
 func _lose_aspect(p: PlayerState, source_owner: int) -> void:
 	if p.duelist.aspect <= 1:
 		return
-	if source_owner != p.index and p.grimoire != null and bool(p.grimoire.def.grimoire_flags.get("aspect_shield", false)):
+	if source_owner != p.index and p.relic != null and bool(p.relic.def.relic_flags.get("aspect_shield", false)):
 		return
 	p.duelist.aspect -= 1
 	p.duelist.energy = LOST_ASPECT_ENERGY
@@ -3273,11 +3273,11 @@ func _only_seals_left(p: PlayerState) -> bool:
 
 # --- Search, attach, draw variants ---------------------------------------
 
-## Search the Life Deck (or discard, or Pages) for a matching card and put it in hand or play.
+## Search the Life Deck (or discard, or Reserve) for a matching card and put it in hand or play.
 ## A search of the Life Deck is a look through it: the searcher is always asked, sees the whole
 ## deck, may take nothing, and the deck is shuffled once when the search is over unless the
 ## effect says `no_shuffle`. That holds with one match and with none. A search of the discard
-## pile or the Pages alone shows nothing new, so it is asked only when there is a real choice.
+## pile or the Reserve alone shows nothing new, so it is asked only when there is a real choice.
 func _search(p: PlayerState, e: Dictionary) -> void:
 	var n: int = maxi(1, int(e.get("amount", 1)))
 	if e.has("amount_per_set_seal"):
@@ -3354,8 +3354,8 @@ func _search_candidates(p: PlayerState, e: Dictionary) -> Array[CardInstance]:
 		"either":
 			pools.append(p.life_deck)
 			pools.append(p.discard)
-		"pages":
-			pools.append(p.pages)
+		"reserve":
+			pools.append(p.reserve)
 		"hand":
 			pools.append(p.hand)
 		_:
@@ -3467,7 +3467,7 @@ func _open_declare_window(p: PlayerState) -> bool:
 # --- Bonds: two Allies fight as one card until the bond burns out -------------
 
 func _find_owned(p: PlayerState, id: String) -> CardInstance:
-	for pool in [p.pages, p.removed, p.discard, p.life_deck, p.hand]:
+	for pool in [p.reserve, p.removed, p.discard, p.life_deck, p.hand]:
 		for c in pool:
 			if c.def.id == id:
 				return c
@@ -3511,9 +3511,9 @@ func _unbond(p: PlayerState, bond: CardInstance) -> void:
 			rest.append(c)
 	bond.cards_under.clear()
 	_erase_from_zone(bond)
-	bond.zone = &"pages"
+	bond.zone = &"reserve"
 	bond.bond_timer = 0
-	p.pages.append(bond)
+	p.reserve.append(bond)
 	for c in rest:
 		_move_to_discard(c)
 	for al in fusees:
@@ -3756,8 +3756,8 @@ func _erase_from_zone(c: CardInstance) -> void:
 			owner.discard.erase(c)
 		&"removed":
 			owner.removed.erase(c)
-		&"pages":
-			owner.pages.erase(c)
+		&"reserve":
+			owner.reserve.erase(c)
 		&"in_play":
 			state.players[c.controller].in_play.erase(c)
 		&"grounds":

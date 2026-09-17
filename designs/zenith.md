@@ -18,7 +18,7 @@ Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code na
 
 Rethemed 2026-09-17 from a king's tournament of spellsword houses to mage duels. There is no court, no king and no tourney. The world is kept abstract: places of power sit on the leylines, and at each one the wall between worlds is thin enough to cut a gate. The Eidolons are otherworldly entities waiting on the far side. Seven seals carved into a gate open it for one of them, and duelists fight each other for the right to carve. Inside the duel, everything is the duelist.
 
-The rename pass ran on 2026-09-17: this doc, the code, the data and the card text all use the terms below. Card ids, deck ids and art file names were renamed the same day (`duelist_alpha`, `sun_seal_3`, `grimoire_north`, `root_seals`; Aspect art is `<id>_a<aspect>.png`).
+The rename pass ran on 2026-09-17: this doc, the code, the data and the card text all use the terms below. Card ids, deck ids and art file names were renamed the same day (`duelist_alpha`, `sun_seal_3`, `blank_mask`, `root_seals`; Aspect art is `<id>_a<aspect>.png`).
 
 | Mechanic | In-world |
 |---|---|
@@ -38,7 +38,7 @@ The rename pass ran on 2026-09-17: this doc, the code, the data and the card tex
 | Drills | Rituals and standing workings |
 | Seals, seven per set | Seals carved into the gate. Placing one is carving a seal. Capture is overwriting a rival's seal with your own mark. Three sets for three Eidolons, each with its own seven seals: Maruth, Ysmere and Korrag (see The Eidolons below) |
 | Grounds | Which place of power this duel is over |
-| Grimoire, Pages | A grimoire and its pages. Swapping cards in from the Pages is re-study. Grimoire powers channel the artifact itself |
+| Relic, Reserve | A relic of great power that the duelist wears, usable by any school or by none. Its Reserve is the spare spells and techniques it lets the wearer hold beyond their own mind. Relic powers channel the artifact itself |
 | Mastery, Style | The school a duelist follows. Every deck follows one Style and carries that school's Mastery |
 | Alignment | Vigil, Pact, or Hedge (declares at setup). See The Vigil and the Pact below |
 | Ascension win | Full attunement. The duelist reaches their last Aspect, the fervor peaks once more, and the site answers to them |
@@ -55,7 +55,7 @@ Term history (all approved and applied 2026-09-17):
 | Token, Token win | Seal, Unsealing win | Approved 2026-09-17 ("fine enough"). Approved before the seals became carvings that open a gate; "Unsealing" now fits poorly and "Summoning win" is the suggested replacement, not yet approved |
 | Survival win | unchanged | |
 | Knight, Knave, Hedge | Vigil, Pact, Hedge | Approved 2026-09-17. "Hedge" covers hedge mages and hedge knights |
-| Master, Armory | Grimoire, Pages | Approved 2026-09-17 |
+| Master, Armory | Relic, Reserve | Approved 2026-09-17. Grimoire and Pages were used for part of that day and then dropped |
 | Vigor | Energy | Approved 2026-09-17, read as approval of the change and not of "unchanged". Must suit mundane duelists too, which rules out Mana |
 | Fighter | Duelist | Approved 2026-09-17. "Mage" does not suit a Freestyle swordmaster |
 | Guild | School | Approved 2026-09-17 |
@@ -115,7 +115,7 @@ Card text builds the set name from the set id ("One of the seven Sun Seals", "fo
 
 Seal 4 of every set discards the opponent's Non-Combat cards in play: the gate's first shudder strips the standing rituals, whichever Eidolon is behind it.
 
-Grimoires: the three Masters (Master of the North, Master of the South, Master Steadfast) become three grimoires. Names pending. Master Steadfast forbids the Favor win, which reads as a jealous book that will not let its reader attune fully.
+Relics: the three Masters become three worn relics, none of them a weapon, so any duelist can carry one. The Blank Mask (`blank_mask`, Reserve 13, two uses) is a featureless face-plate, and whoever it looks at forgets their school for a turn. The Debtor's Ring (`debtors_ring`, Reserve 5, one use) is a signet pressed with someone else's mark, and turning it calls in the debt as an Ally. The Lodestone Heart (`lodestone_heart`, Reserve 10, no use) is a dark stone pendant that pulls the wearer toward the ground and toward themselves, so they cannot be dragged down in Fervor or Aspect and cannot win by Ascension. Names approved 2026-09-17.
 
 ---
 
@@ -123,11 +123,11 @@ Grimoires: the three Masters (Master of the North, Master of the South, Master S
 
 1. Aspects stacked face up, the first Aspect on top. Announce your highest aspect. That aspect is your Ascension win target.
 2. Hedge duelists declare Vigil or Pact.
-3. Place Grimoire and Mastery. The Mastery's school is the deck's Style. Nothing is declared.
+3. Place Relic and Mastery. The Mastery's school is the deck's Style. Nothing is declared.
 4. Duelist starts at Energy 5 above 0. Fervor starts at 0.
 5. **Bracket rule.** If only one duelist's starting Might sits in Strike Table band D or above, the weaker duelist goes first. Otherwise the Vigil goes first; same alignment goes random. No stage changes.
 6. Shuffle the Life Deck. Opponent may cut.
-7. Pages swap: bring any number of Pages cards into the Life Deck; each pushes a random Life Deck card into the Pages. Shuffle.
+7. Reserve swap: bring any number of Reserve cards into the Life Deck; each pushes a random Life Deck card into the Reserve. Shuffle.
 8. No opening hand. First draw happens in the Draw Step.
 
 ---
@@ -173,7 +173,7 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 
 **Attack sources.** Strike and Art cards from hand, Duelist Power, Ally Power if that Ally is in control, or a **Final Strike**: discard any card from hand to perform a bare Strike with Strike Table damage plus Drill and other in-play modifiers, then pass for the rest of Combat. Once per player per Combat. Shields and floating effects still work after it.
 
-**In place of an attack.** Non-attack Combat cards, non-attack Duelist or Ally Powers, Grounds effects, face-up Non-Combat cards in play (discarded after use), Grimoire power (each Grimoire says whether its power is a Non-Combat step action, a Combat action, or either).
+**In place of an attack.** Non-attack Combat cards, non-attack Duelist or Ally Powers, Grounds effects, face-up Non-Combat cards in play (discarded after use), Relic power (each Relic says whether its power is a Non-Combat step action, a Combat action, or either).
 
 **Ally control.** When the Duelist is at Energy 0 or 1, the player may put an Ally in control at the start of their own attack phase, and must say who is in control when defending (battle sequence step 4). Once the Duelist is back above that, it resumes control. After a Final Strike the player neither attacks nor defends for the rest of Combat. A skipped attack phase never happened, so passes around it are not consecutive.
 
@@ -233,7 +233,7 @@ Ladders follow the relaunch's lesson without its four aspects: duelists at the s
 | Seal | In play | Three sets of seven. One set per deck, one copy each. Power resolves on play, must be used. Unique in play. Immune to card effects unless named, random effects excepted. Capturable |
 | Grounds | In play, shared | Placed in Non-Combat, forces Combat skip that turn. New Grounds removes the old one from the game. No duplicate Grounds in play |
 | Mastery | Side card | Exactly one per deck. Its school is the deck's Style. Never discarded or removed. Effects come from the Mastery, not the cards it modifies |
-| Grimoire | Side card | One per deck. Holds Pages up to its printed size, outside deck size. Only "Pages" cards live there. Owner may look through it any time |
+| Relic | Side card | One per deck. Holds Reserve up to its printed size, outside deck size. Only "Reserve" cards live there. Owner may look through it any time |
 
 ---
 
@@ -261,13 +261,13 @@ The old school labels (Berserker, Warden, Evoker, Rogue, Juggernaut, Ranger-Drui
 
 ## Deck construction
 
-- 50 to 85 cards including Duelist aspects, Mastery, Grimoire. A Root Mastery allows 90.
+- 50 to 85 cards including Duelist aspects, Mastery, Relic. A Root Mastery allows 90.
 - Exactly one Mastery. Its school is the deck's Style.
 - At least 3 consecutive Duelist aspects from Aspect 1, up to 5.
 - 3 copies max. 4 for Signature cards matching your Duelist. "Limit N per deck" and the restricted list override.
 - Allies: at least 2 aspects below the Duelist's highest aspect, 1 copy of each printing, none sharing the Duelist's character, matching alignment.
 - Seals: one set, no duplicates.
-- Pages must obey the same Style and construction rules.
+- Reserve must obey the same Style and construction rules.
 
 ---
 
@@ -305,7 +305,7 @@ Seal capture: critical damage (battle sequence step 14), an in-control capture-t
 | Cards under cards | Face-down stacks under an in-play card, discarded when the host leaves play |
 | Copied attacks | A virtual card with the copied text, vanishes after use |
 | Cherry picking | Deck searches reveal the chosen cards and reshuffle |
-| Bond | Two named Allies fight back to back as one. A Bonding card folds them under their Bond card, which enters at full Energy with its own power. At the start of each of the owner's turns a life card goes under it; at 5 the Bond ends, the Allies return at 3 Energy, and the Bond card goes back to the Pages. A Bond that leaves play takes both Allies with it. Implemented 2026-09-15 for House Rooke (Ansel and Tavin) |
+| Bond | Two named Allies fight back to back as one. A Bonding card folds them under their Bond card, which enters at full Energy with its own power. At the start of each of the owner's turns a life card goes under it; at 5 the Bond ends, the Allies return at 3 Energy, and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it. Implemented 2026-09-15 for House Rooke (Ansel and Tavin) |
 
 **Timing rules.** No simultaneous effects: the active player resolves all of theirs first in any order, then the opponent. "Entering Combat" effects resolve before the opposing player draws. Card effects resolve in printed order. Cards discard immediately after their last effect. Skipped phases never happened for "beginning of phase" effects. Only one damage multiplier applies.
 
@@ -336,7 +336,7 @@ Rules engine and presentation are separate so the same engine drives hotseat, AI
 - **Engine** (`engine/`, RefCounted only, no Nodes). Game state, zones, card instances, phase machine, legality checks, effect resolver, seeded RNG. Input is a **Command** (play card, choose, pass). Output is an **Event** stream. Deterministic: same seed plus same commands gives the same game.
 - **Card definitions** are JSON under `data/cards/<set>/`, loaded into `CardDef` at boot. Effects are lists of typed steps bound to the hooks above, with conditions and durations. A `script_hook` field covers the few cards that need custom code.
 - **Card faces** render procedurally in v1: school color frame, name, type line, cost, text, Endurance badge. No art dependency. Each face is drawn once by a 2D `CardFace` control into a `SubViewport` and cached as a texture, so the same face serves the 2D hand and the 3D table.
-- **Playspace** (`scenes/duel/`). A 3D table scene, the way a digital duel client stages a battlefield: fixed perspective `Camera3D` looking down the table toward the opponent, subtle camera drift on mouse position, a themed environment around the table (the Grounds card in play swaps the backdrop), lighting and ambient particles. Cards on the table are quads (`MeshInstance3D` with the cached face texture, unshaded, mipmapped) that tween through 3D space between zones. Zones are `Marker3D` layouts for both players: Duelist, Allies, Drills, Non-Combats, Seals, Grounds, Mastery, Grimoire, Life Deck, discard, removed pile, Fervor meter, Energy gauge. Stacks (Life Deck, discard) render as real stacks whose height tracks card count.
+- **Playspace** (`scenes/duel/`). A 3D table scene, the way a digital duel client stages a battlefield: fixed perspective `Camera3D` looking down the table toward the opponent, subtle camera drift on mouse position, a themed environment around the table (the Grounds card in play swaps the backdrop), lighting and ambient particles. Cards on the table are quads (`MeshInstance3D` with the cached face texture, unshaded, mipmapped) that tween through 3D space between zones. Zones are `Marker3D` layouts for both players: Duelist, Allies, Drills, Non-Combats, Seals, Grounds, Mastery, Relic, Life Deck, discard, removed pile, Fervor meter, Energy gauge. Stacks (Life Deck, discard) render as real stacks whose height tracks card count.
 - **Hand and HUD** are 2D on a `CanvasLayer`: hand fan at the bottom, prompts, combat log, phase tracker, pass button. Dragging a card lifts it off the hand, raycasts onto the table plane, and hands it to the 3D layer when dropped in a legal zone. Hover on any card, 2D or 3D, shows a full-size 2D zoom. Hotseat hides the hand between turns.
 - **Animation queue.** Events from the engine become queued 3D and 2D tweens: card flight, flip, attack lunge toward the target, wound flips off the Life Deck, Energy gauge slide, Fervor meter fill, aspect-up reveal. The queue can be skipped by the player.
 - **Referee and seat views.** `Referee` owns the one engine and speaks to seats only in `SeatView` (zones as uids, hidden cards as uid plus zone), `PromptView` (labelled options) and `SeatUpdate` (lines, view, prompt). Clients render from views and never touch the engine. Uids are dealt after the shuffle. Same object in three placements: in-process for hotseat and AI, in the hosting client for P2P (the host can still read everything, so P2P is friends-only), in a headless process for hosted play.
@@ -360,21 +360,21 @@ Rules engine and presentation are separate so the same engine drives hotseat, AI
 1. Engine plus headless test scene. Full 7-step turn, 6-phase Combat, 15-step battle sequence, all three wins reachable, Strike Table and damage conversion, Allies, Drills, Seals, Grounds. Done 2026-09-15.
 2. Playspace spike: 3D table, camera, card faces rendered to texture, card flight tweens. Done 2026-09-15 with click-to-play; drag from the 2D hand is still open.
 3. Hotseat duel client on the spike, with deck select and placeholder decks. Done 2026-09-15.
-3b. Full rule support for the six starter decks: effect queue with choice prompts, Remain, Empower, counter window, floating forbids, attachments, constant powers, Grimoire powers, named-card locks, attack variants, "you may" and pay-any-Energy prompts, look-at-N inspection, chosen searches, instead-of-damage choices, two-stop attacks, Ally powers without control, Drill self-maintenance. Done 2026-09-15; the few remaining approximations are listed in `zenith/README.md`.
+3b. Full rule support for the six starter decks: effect queue with choice prompts, Remain, Empower, counter window, floating forbids, attachments, constant powers, Relic powers, named-card locks, attack variants, "you may" and pay-any-Energy prompts, look-at-N inspection, chosen searches, instead-of-damage choices, two-stop attacks, Ally powers without control, Drill self-maintenance. Done 2026-09-15; the few remaining approximations are listed in `zenith/README.md`.
 4. AI opponent. First pass done 2026-09-17: fair AI through `Referee.sim_for`, scorer plus lookahead search, Easy, Normal and Hard, Duel the AI on the title. Open: per-deck playstyle profiles, an offline weight tuner over `tests/ai_arena.gd`, memory of cards the AI has seen.
 5. Online over ENet. Done 2026-09-15: host or join from the title, the select screen as lobby. Reworked 2026-09-16 from lockstep to host-authoritative seat views: the joiner holds no engine. Open: a headless referee process, encrypted transport, matchmaking or relay, reconnects and turn timers.
 6. Deckbuilder and collection.
 7. Adventure mode.
 8. Later keywords: Brawl format (Survival only), Bond Duelists (a Bond that replaces the duelist rather than two Allies).
 
-Starter pool as built 2026-09-15: six Duelists, ten Allies, three Grimoires, six Masteries, two Seal sets, and 193 functional-name cards in all, with six starter loadouts modelled card-for-card on a community set of sample decks for the reference game: two physical beatdowns, two ally decks, a Freestyle drill deck, and an energy deck. Counts and roles are kept and each card carries the real mechanics of the card it stands in for, written in the effect schema. The set is generated by `zenith/tools/gen_starters.py`.
+Starter pool as built 2026-09-15: six Duelists, ten Allies, three Relics, six Masteries, two Seal sets, and 193 functional-name cards in all, with six starter loadouts modelled card-for-card on a community set of sample decks for the reference game: two physical beatdowns, two ally decks, a Freestyle drill deck, and an energy deck. Counts and roles are kept and each card carries the real mechanics of the card it stands in for, written in the effect schema. The set is generated by `zenith/tools/gen_starters.py`.
 
 ---
 
 ## Open items
 
 - Portraits and card flavor text. Duelist names for the starters are approved (see Setting); everything else waits on tone approval.
-- Retheme follow-ups (2026-09-17). The rename pass is done. Still open: proper names for the three grimoires (placeholders in data: Grimoire of the North, Grimoire of the South, The Steadfast Grimoire); whether the Root deck should run the Marble Seals (Root Wyrmwood Blast counts them) or another set; "Summoning win" in place of "Unsealing win"; place-of-power names for the Grounds cards; a themed card naming pass for Ember, Tide, Storm, Shade and Steel; rewriting the art briefs in `zenith/docs/card_roster.csv` and `.md`, which have the new ids and terms but still describe the old chivalric look (half-plate, heraldry, the king's gold coins).
+- Retheme follow-ups (2026-09-17). The rename pass is done. Still open: whether the Root deck should run the Marble Seals (Root Wyrmwood Blast counts them) or another set; "Summoning win" in place of "Unsealing win"; place-of-power names for the Grounds cards; a themed card naming pass for Ember, Tide, Storm, Shade and Steel; rewriting the art briefs in `zenith/docs/card_roster.csv` and `.md`, which have the new ids and terms but still describe the old chivalric look (half-plate, heraldry, the king's gold coins).
 - Game name settled 2026-09-17: Eidolarch, applied to the title screen, window title and README. Still to do: a trademark and store check.
 - Deck size default for v1 (50 minimum is legal).
 - Ascension pacing with unequal stacks: a 3-aspect Duelist wins Ascension at 15 Fervor, a 5-aspect one at 25. Accepted for now; taller stacks trade a slower Ascension win for stronger top aspects.

@@ -10,7 +10,7 @@ const TYPE_LABELS: Dictionary = {
 	CardDef.Type.DUELIST: "Duelist", CardDef.Type.ALLY: "Ally", CardDef.Type.STRIKE: "Strike",
 	CardDef.Type.ART: "Art", CardDef.Type.COMBAT: "Combat", CardDef.Type.NON_COMBAT: "Non-Combat",
 	CardDef.Type.DRILL: "Drill", CardDef.Type.SEAL: "Seal", CardDef.Type.GROUNDS: "Grounds",
-	CardDef.Type.MASTERY: "Mastery", CardDef.Type.GRIMOIRE: "Grimoire",
+	CardDef.Type.MASTERY: "Mastery", CardDef.Type.RELIC: "Relic",
 }
 const FORBID_TEXT: Dictionary = {
 	"strike_attacks": "perform Strikes", "art_attacks": "perform Arts", "combat_cards": "use Combat cards",
@@ -71,7 +71,7 @@ const KEYWORDS: Array[Dictionary] = [
 	{"key": "Vigil only", "pattern": "\\b(?:Vigil|Pact) only\\b", "role": "plain",
 		"tip": "Only a duelist of that side of the court may include and use this card."},
 	{"key": "Limit", "pattern": "\\bLimit \\d+ per deck\\b", "role": "plain",
-		"tip": "The most copies of this card a deck may hold, Life Deck and Pages together."},
+		"tip": "The most copies of this card a deck may hold, Life Deck and Reserve together."},
 	{"key": "Endurance", "pattern": "\\bEndurance(?: \\d+| X)?\\b", "role": "defense",
 		"tip": "When this card is discarded as a wound, it soaks that many further wounds from the same attack."},
 	{"key": "Empower", "pattern": "\\bEmpower(?:ed)?(?: \\d+)?\\b", "role": "focus",
@@ -106,8 +106,8 @@ const KEYWORDS: Array[Dictionary] = [
 		"tip": "A companion in play. An Ally can take control of Combat when your duelist is spent, take a wound in the duelist's place, and use its own Power."},
 	{"key": "Grounds", "pattern": "\\bGrounds(?: cards?)?\\b", "role": "grounds",
 		"tip": "The place of power this duel is over. Only one Grounds card is in play at a time; placing one replaces the last and skips Combat that turn."},
-	{"key": "Pages", "pattern": "\\bPages\\b", "role": "grimoire",
-		"tip": "Your Grimoire's side deck. At setup you may swap cards from it into your Life Deck, one for one, before the shuffle."},
+	{"key": "Reserve", "pattern": "\\bReserve\\b", "role": "relic",
+		"tip": "Your Relic's side deck. At setup you may swap cards from it into your Life Deck, one for one, before the shuffle."},
 	{"key": "Mastery", "pattern": "\\bMaster(?:y|ies)\\b", "role": "mastery",
 		"tip": "Your school's standing bonus, in play from the first turn. Every deck carries one, and its school is the deck's Style."},
 	{"key": "Bond", "pattern": "\\bBond(?:ing|ed)?(?: card)?\\b", "role": "plain",
@@ -267,7 +267,7 @@ static func rules_text(def: CardDef) -> String:
 	if def.empower > 0:
 		lines.append("Empower %d." % def.empower)
 	var effect_lines: PackedStringArray = effects_text(def.effects)
-	if def.type == CardDef.Type.GRIMOIRE and int(def.raw.get("uses_per_game", 0)) > 0 and not effect_lines.is_empty():
+	if def.type == CardDef.Type.RELIC and int(def.raw.get("uses_per_game", 0)) > 0 and not effect_lines.is_empty():
 		var uses: int = int(def.raw["uses_per_game"])
 		var often: String = "Once" if uses == 1 else ("Twice" if uses == 2 else "%d times" % uses)
 		effect_lines[0] = "%s per game, during your Non-Combat step: %s" % [often, effect_lines[0]]
@@ -311,15 +311,15 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("Remain %d." % def.remain)
 	if not def.remain_when.is_empty():
 		lines.append(_conditional(def.remain_when.get("when", {}), "Remain %d." % int(def.remain_when.get("remain", 1))))
-	if def.type == CardDef.Type.GRIMOIRE:
+	if def.type == CardDef.Type.RELIC:
 		var flags: PackedStringArray = PackedStringArray()
-		if def.pages_size > 0:
-			flags.append("Pages %d." % def.pages_size)
-		if bool(def.grimoire_flags.get("no_ascension_win", false)):
+		if def.reserve_size > 0:
+			flags.append("Reserve %d." % def.reserve_size)
+		if bool(def.relic_flags.get("no_ascension_win", false)):
 			flags.append("You cannot win by Ascension.")
-		if bool(def.grimoire_flags.get("fervor_shield", false)):
+		if bool(def.relic_flags.get("fervor_shield", false)):
 			flags.append("Your opponent cannot lower your Fervor.")
-		if bool(def.grimoire_flags.get("aspect_shield", false)):
+		if bool(def.relic_flags.get("aspect_shield", false)):
 			flags.append("Your opponent cannot lower your Aspect.")
 		for i in range(flags.size()):
 			lines.insert(i, flags[i])
@@ -747,7 +747,7 @@ const OPPONENT_VERBS: Dictionary = {
 }
 
 ## Label-style triggers; their condition sits inside the instruction.
-const COLON_TRIGGERS: Dictionary = {"use": "Use in Combat", "grimoire_use": "", "opponent_declare": "Use during your opponent's Declare step"}
+const COLON_TRIGGERS: Dictionary = {"use": "Use in Combat", "relic_use": "", "opponent_declare": "Use during your opponent's Declare step"}
 
 
 static func _trigger_head(e: Dictionary) -> String:
@@ -960,8 +960,8 @@ static func search_text(e: Dictionary) -> String:
 			from = "your discard pile"
 		"either":
 			from = "your Life Deck or discard pile"
-		"pages":
-			from = "your Pages"
+		"reserve":
+			from = "your Reserve"
 	var card_type: String = str(e.get("card_type", "card"))
 	var qual: PackedStringArray = PackedStringArray()
 	if str(e.get("school", "*")) != "*":
@@ -1091,15 +1091,15 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		if c != null:
 			name = c.def.title
 	match cmd.type:
-		&"pages_in":
+		&"reserve_in":
 			return "Bring in %s" % name
-		&"pages_done":
-			return "Finish Pages swap"
+		&"reserve_done":
+			return "Finish Reserve swap"
 		&"place":
 			return "Place %s" % name
 		&"shuffle_back":
 			return "Show %s and shuffle it back" % name
-		&"grimoire":
+		&"relic":
 			return "Use %s" % name
 		&"done":
 			return "Done placing"
@@ -1185,8 +1185,8 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 
 static func prompt_title(p: Prompt) -> String:
 	match p.kind:
-		&"pages":
-			return "Pages: bring cards into your Life Deck?"
+		&"reserve":
+			return "Reserve: bring cards into your Life Deck?"
 		&"non_combat":
 			return "Non-Combat step: place cards"
 		&"declare":
@@ -1330,7 +1330,7 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s uses %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"power_used":
 			return "%s uses %s's Power." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
-		&"grimoire_used":
+		&"relic_used":
 			return "%s calls on %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"cost_paid":
 			return "%s pays %d Energy." % [pname, int(d.get("stages", 0))]
@@ -1437,7 +1437,7 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"bond_tick":
 			return "%s places a life card under %s (%d)." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("count", 0))]
 		&"fervor_shielded":
-			return "%s's Grimoire shields their Fervor." % pname
+			return "%s's Relic shields their Fervor." % pname
 		&"fervor_needed_changed":
 			return "%s now needs %d Fervor to rise an aspect." % [pname, int(d.get("to", 0))]
 		&"aspect_up":
@@ -1464,8 +1464,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s takes the damage." % _cname(engine, int(d.get("card", -1)), seat, actor)
 		&"bracket_rule":
 			return "The weaker duelist opens the duel."
-		&"pages_swap":
-			return "%s brings %s in from the Pages." % [pname, _cname(engine, int(d.get("in", -1)), seat, actor)]
+		&"reserve_swap":
+			return "%s brings %s in from the Reserve." % [pname, _cname(engine, int(d.get("in", -1)), seat, actor)]
 		&"search":
 			return "%s searches out %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"deck_shuffled":

@@ -1,6 +1,6 @@
 class_name PlayerPanel
 extends PanelContainer
-## Player-level state for one seat: Life Deck, hand, piles, Pages, Seals, flags. Duelist
+## Player-level state for one seat: Life Deck, hand, piles, Reserve, Seals, flags. Duelist
 ## numbers live on the duelist card.
 
 const LOW_LIFE: int = 10
@@ -13,14 +13,14 @@ const LOW_LIFE: int = 10
 @onready var hand_tile: StatTile = $Column/Stats/Hand
 @onready var discard_tile: StatTile = $Column/Stats/Discard
 @onready var removed_label: Label = $Column/Counts/Removed
-@onready var pages_label: Label = $Column/Counts/Pages
+@onready var reserve_label: Label = $Column/Counts/Reserve
 @onready var seals_label: Label = $Column/Counts/Seals
 @onready var flags_label: Label = $Column/Flags
 
 
 func _ready() -> void:
 	ZenithTheme.chip(turn_chip, ZenithTheme.ACCENT, true)
-	for l in [removed_label, pages_label, seals_label]:
+	for l in [removed_label, reserve_label, seals_label]:
 		l.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.RAISED, Color(0, 0, 0, 0), 5, 0, 7, 2))
 		l.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	flags_label.add_theme_color_override("font_color", ZenithTheme.WARN)
@@ -54,8 +54,8 @@ func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool) -> void:
 	discard_tile.set_stat("Discard", str(p.discard.size()), "cards", ZenithTheme.TEXT)
 	removed_label.text = "Out %d" % p.removed.size()
 	removed_label.visible = p.removed.size() > 0
-	pages_label.text = "Pages %d" % p.pages.size()
-	pages_label.visible = p.pages.size() > 0
+	reserve_label.text = "Reserve %d" % p.reserve.size()
+	reserve_label.visible = p.reserve.size() > 0
 	seals_label.text = "Seals %d" % p.seals.size()
 	seals_label.visible = p.seals.size() > 0
 	var flags: PackedStringArray = PackedStringArray()

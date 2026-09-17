@@ -20,7 +20,7 @@ var last_attack: Dictionary = {}  # public outcome of the last attack this Comba
 var battle_step: int = 0
 var control_asked: bool = false   # the attacker already chose who is in control this attack phase
 var discard_index: int = 0
-var pages_index: int = 0          # which player is swapping Pages cards during setup
+var reserve_index: int = 0          # which player is swapping Reserve cards during setup
 var floating: Array[Dictionary] = []   # {owner, op, duration, ...params}; see DuelEngine._float
 var pending_play: Dictionary = {}      # a Combat card waiting on the opponent's counter window
 var skip_discard: bool = false         # a card ended the turn early: no Discard step
@@ -48,7 +48,7 @@ func copy(cards: Dictionary) -> GameState:
 	s.battle_step = battle_step
 	s.control_asked = control_asked
 	s.discard_index = discard_index
-	s.pages_index = pages_index
+	s.reserve_index = reserve_index
 	s.floating = floating.duplicate(true)
 	s.pending_play = pending_play.duplicate(true)
 	s.skip_discard = skip_discard

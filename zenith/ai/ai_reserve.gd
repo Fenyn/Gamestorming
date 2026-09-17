@@ -1,12 +1,12 @@
-class_name AiPages
+class_name AiReserve
 extends RefCounted
-## The Pages swap. A Pages holds three kinds of card: answers that are strong against one
+## The Reserve swap. A Reserve holds three kinds of card: answers that are strong against one
 ## kind of deck and dead against the rest, plain strong cards, and a toolbox that a card in the
-## main deck can fetch from the Pages later. Each card brought in pushes a random Life Deck card
+## main deck can fetch from the Reserve later. Each card brought in pushes a random Life Deck card
 ## out, so a card comes in only when it is worth more than the average card it replaces.
 ##
 ## What the opponent is playing is read from what both players show before the swap: the deck's
-## declared archetype and subthemes, and their duelist, Mastery and Grimoire. Everything is read
+## declared archetype and subthemes, and their duelist, Mastery and Relic. Everything is read
 ## from data, never from card ids.
 
 ## What an answer card is aimed at, and the matching sign in the opponent's setup cards.
@@ -15,14 +15,14 @@ const KINDS: Array[String] = ["ally", "drill", "non_combat", "seal"]
 const PRIOR: float = 0.25
 
 
-## How much `c` is worth bringing in for `seat`, above zero to swap. `profile.pages` sets how
+## How much `c` is worth bringing in for `seat`, above zero to swap. `profile.reserve` sets how
 ## much an answer counts (`tech`), how much a toolbox target is worth leaving behind
 ## (`toolbox_keep`) and the bar to clear (`threshold`).
 static func score(engine: DuelEngine, seat: int, c: CardInstance, profile: AiProfile) -> float:
 	var me: PlayerState = engine.player(seat)
 	var def: CardDef = c.def
 	if def.start_in_play:
-		return -INF   # it begins the game in play from the Pages; swapping it in only loses a card
+		return -INF   # it begins the game in play from the Reserve; swapping it in only loses a card
 	if def.raw.has("bond_of"):
 		return -INF   # a Bond card is fetched by its Bonding card, never drawn
 	if not _usable_by(def, me):
@@ -56,17 +56,17 @@ static func score(engine: DuelEngine, seat: int, c: CardInstance, profile: AiPro
 		tech += (float(signs.get("camps", PRIOR)) - 0.5) * 2.0 - profile.w("own", "ascension") / 30.0
 	if def.type == CardDef.Type.GROUNDS:
 		value += AiEvaluator.grounds_value(engine, seat, def, profile) * 0.5
-	var total: float = value * 0.5 + tech * profile.w("pages", "tech")
-	if def.is_attack() and fetches_from_pages(me):
-		total -= profile.w("pages", "toolbox_keep")   # reachable where it is; keep the deck slot
-	return total - profile.w("pages", "threshold")
+	var total: float = value * 0.5 + tech * profile.w("reserve", "tech")
+	if def.is_attack() and fetches_from_reserve(me):
+		total -= profile.w("reserve", "toolbox_keep")   # reachable where it is; keep the deck slot
+	return total - profile.w("reserve", "threshold")
 
 
-## Signs of each kind of deck in a player's duelist, Mastery and Grimoire: 0 to 1 per kind, plus
+## Signs of each kind of deck in a player's duelist, Mastery and Relic: 0 to 1 per kind, plus
 ## `camps` for a duelist whose lowest aspect carries a constant power worth staying on.
 static func read_setup(p: PlayerState) -> Dictionary:
 	var words: Dictionary = {}
-	for c in [p.duelist, p.mastery, p.grimoire]:
+	for c in [p.duelist, p.mastery, p.relic]:
 		if c != null and c.def != null:
 			_scan(c.def.raw, words)
 	var out: Dictionary = {}
@@ -98,7 +98,7 @@ static func read_setup(p: PlayerState) -> Dictionary:
 	return out
 
 
-## The share of my own Life Deck and Pages that is each kind, scaled so a deck built around a
+## The share of my own Life Deck and Reserve that is each kind, scaled so a deck built around a
 ## kind reads near 1. Used for cards that hit both sides.
 static func own_shares(p: PlayerState) -> Dictionary:
 	var counts: Dictionary = {"ally": 0, "drill": 0, "non_combat": 0, "seal": 0}
@@ -118,12 +118,12 @@ static func own_shares(p: PlayerState) -> Dictionary:
 	return out
 
 
-## True when the main deck holds a card that searches the Pages, so attacks left there are a
+## True when the main deck holds a card that searches the Reserve, so attacks left there are a
 ## toolbox and not dead weight.
-static func fetches_from_pages(p: PlayerState) -> bool:
+static func fetches_from_reserve(p: PlayerState) -> bool:
 	for c in p.life_deck:
 		for raw in c.def.effects:
-			if str((raw as Dictionary).get("op", "")) == "search" and str((raw as Dictionary).get("source", "")) == "pages":
+			if str((raw as Dictionary).get("op", "")) == "search" and str((raw as Dictionary).get("source", "")) == "reserve":
 				return true
 	return false
 

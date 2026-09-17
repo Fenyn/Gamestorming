@@ -67,18 +67,18 @@ func render_def(def: CardDef) -> void:
 
 
 ## The cards a deck list names. `public_only` renders just the parts anyone can see (duelist,
-## Mastery, Grimoire), which is all a client should assume about the other seat's deck.
+## Mastery, Relic), which is all a client should assume about the other seat's deck.
 func render_deck(deck: DeckList, library: CardLibrary, public_only: bool = false) -> void:
 	await render_back()
 	await render_def(library.defs.get(deck.duelist_id))
 	if deck.mastery_id != "":
 		await render_def(library.defs.get(deck.mastery_id))
-	if deck.grimoire_id != "":
-		await render_def(library.defs.get(deck.grimoire_id))
+	if deck.relic_id != "":
+		await render_def(library.defs.get(deck.relic_id))
 	if public_only:
 		return
 	var seen: Dictionary = {}
-	for id in deck.pages + deck.cards:
+	for id in deck.reserve + deck.cards:
 		if seen.has(id):
 			continue
 		seen[id] = true

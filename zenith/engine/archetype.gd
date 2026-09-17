@@ -5,7 +5,7 @@ extends RefCounted
 ## JSON. The archetype is public, like the duelist and the Mastery; the card list is not.
 
 ## id -> {label, plan, signs}. `signs` are the kinds of card the deck is built around, 0 to 1,
-## in the words AiPages uses: ally, drill, non_combat, seal.
+## in the words AiReserve uses: ally, drill, non_combat, seal.
 const KINDS: Dictionary = {
 	"strike_beatdown": {"label": "Strike beatdown", "plan": "Wins on wounds from a stream of Strikes.", "signs": {}},
 	"art_beatdown": {"label": "Art beatdown", "plan": "Wins on wounds from Arts, paid for in Energy.", "signs": {}},

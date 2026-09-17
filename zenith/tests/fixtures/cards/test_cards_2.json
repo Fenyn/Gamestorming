@@ -1,5 +1,5 @@
 {
-  "_note": "Fixture cards for the extended mechanics (Remain, Empower, counters, forbids, attachments, constants, Grimoires). Test names only.",
+  "_note": "Fixture cards for the extended mechanics (Remain, Empower, counters, forbids, attachments, constants, Relics). Test names only.",
   "cards": [
     {"id": "t_remain_strike", "title": "Test Twin Strike", "type": "strike", "school": "ember", "attack": {"kind": "strike", "stages": 2}, "remain": 1},
     {"id": "t_empower_art", "title": "Test Surging Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "empower": 2, "effects": [{"op": "fervor", "amount": 1, "after_empower": true}]},
@@ -11,8 +11,8 @@
       {"aspect": 2, "surge": 3, "might": [0, 1900000, 2650000, 3400000, 4150000, 4900000, 5650000, 6400000, 7150000, 7900000, 8650000], "constant": {"attacks_focused": true}},
       {"aspect": 3, "surge": 4, "might": [0, 2600000, 3400000, 4200000, 5000000, 5800000, 6600000, 7400000, 8200000, 9000000, 9800000], "constant": {"attacks_focused": true}}
     ]},
-    {"id": "t_grimoire_use", "title": "Test Tutor", "type": "grimoire", "pages_size": 4, "uses_per_game": 1, "effects": [{"trigger": "grimoire_use", "op": "draw", "amount": 2}]},
-    {"id": "t_grimoire_shield", "title": "Test Warden Grimoire", "type": "grimoire", "pages_size": 4, "grimoire_flags": {"fervor_shield": true, "no_ascension_win": true, "aspect_shield": true}},
+    {"id": "t_relic_use", "title": "Test Tutor", "type": "relic", "reserve_size": 4, "uses_per_game": 1, "effects": [{"trigger": "relic_use", "op": "draw", "amount": 2}]},
+    {"id": "t_relic_shield", "title": "Test Warden Relic", "type": "relic", "reserve_size": 4, "relic_flags": {"fervor_shield": true, "no_ascension_win": true, "aspect_shield": true}},
     {"id": "t_start_drill", "title": "Test Opening Drill", "type": "drill", "start_in_play": true, "limit_per_deck": 1, "effects": [{"trigger": "entering_combat", "op": "fervor", "amount": 1}]},
     {"id": "t_pay_art", "title": "Test Draining Art", "type": "art", "school": "tide", "attack": {"kind": "art", "cost_stages": 0, "pay_stages": {"per": 2, "life": 1}}},
     {"id": "t_name_drill", "title": "Test Naming Drill", "type": "drill", "effects": [{"trigger": "on_place", "op": "name_card"}]},

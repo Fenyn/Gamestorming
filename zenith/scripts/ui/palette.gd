@@ -51,7 +51,7 @@ static func type_ui(type: CardDef.Type) -> Color:
 			return Color(0.95, 0.80, 0.40)
 		CardDef.Type.MASTERY:
 			return Color(0.80, 0.62, 0.90)
-		CardDef.Type.GRIMOIRE:
+		CardDef.Type.RELIC:
 			return Color(0.72, 0.60, 0.48)
 		CardDef.Type.STRIKE:
 			return Color(0.88, 0.55, 0.40)

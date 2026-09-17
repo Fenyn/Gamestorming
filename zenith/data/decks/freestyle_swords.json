@@ -5,8 +5,8 @@
   "style": "freestyle",
   "alignment": "vigil",
   "mastery": "freestyle_mastery",
-  "grimoire": "grimoire_north",
-  "pages": [
+  "relic": "blank_mask",
+  "reserve": [
     "open_challenge",
     "doubt",
     "confusion_drill",

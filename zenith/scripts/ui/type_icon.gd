@@ -4,7 +4,7 @@ extends Control
 ## card face, the hand, the tray, and the deck legend, so a Strike looks like a Strike wherever
 ## it shows: sword for Strike, burst for Art, shield for Combat, scroll for Non-Combat, target
 ## for Drill, figure for Ally, crown for Duelist, gem for Seal, hills for Grounds, chevrons for
-## Mastery, open book for Grimoire.
+## Mastery, cut gem for Relic.
 
 @export var type: CardDef.Type = CardDef.Type.COMBAT:
 	set(v):
@@ -66,9 +66,9 @@ func _draw() -> void:
 		CardDef.Type.MASTERY:
 			for y0 in [0.22, 0.46, 0.7]:
 				draw_polyline(_pts([Vector2(0.18, y0 + 0.16), Vector2(0.5, y0 - 0.06), Vector2(0.82, y0 + 0.16)], s, o), color, w)
-		CardDef.Type.GRIMOIRE:
-			draw_polyline(_pts([Vector2(0.12, 0.2), Vector2(0.5, 0.3), Vector2(0.88, 0.2), Vector2(0.88, 0.8), Vector2(0.5, 0.9), Vector2(0.12, 0.8), Vector2(0.12, 0.2)], s, o), color, w)
-			draw_line(_p(0.5, 0.3, s, o), _p(0.5, 0.9, s, o), color, w * 0.8)
+		CardDef.Type.RELIC:
+			draw_polyline(_pts([Vector2(0.3, 0.16), Vector2(0.7, 0.16), Vector2(0.9, 0.4), Vector2(0.5, 0.9), Vector2(0.1, 0.4), Vector2(0.3, 0.16)], s, o), color, w)
+			draw_line(_p(0.1, 0.4, s, o), _p(0.9, 0.4, s, o), color, w * 0.8)
 		_:
 			draw_circle(_p(0.5, 0.5, s, o), 0.3 * s, color)
 

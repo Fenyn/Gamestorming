@@ -8,8 +8,8 @@ var aspects: int = 3
 var style: String = ""             # "freestyle" or a school word; must match the Mastery
 var alignment: String = "vigil"
 var mastery_id: String = ""
-var grimoire_id: String = ""
-var pages: Array[String] = []
+var relic_id: String = ""
+var reserve: Array[String] = []
 var archetype: String = ""         # an Archetype id: what kind of deck this is, shown to both players
 var subthemes: Array[String] = []  # Archetype subtheme ids
 var difficulty: String = ""        # easy | medium | hard to pilot
@@ -25,8 +25,8 @@ static func from_dict(d: Dictionary) -> DeckList:
 	deck.style = str(d.get("style", ""))
 	deck.alignment = str(d.get("alignment", "vigil"))
 	deck.mastery_id = str(d.get("mastery", ""))
-	deck.grimoire_id = str(d.get("grimoire", ""))
-	deck.pages.assign(d.get("pages", []))
+	deck.relic_id = str(d.get("relic", ""))
+	deck.reserve.assign(d.get("reserve", []))
 	deck.archetype = str(d.get("archetype", ""))
 	deck.subthemes.assign(d.get("subthemes", []))
 	deck.difficulty = str(d.get("difficulty", ""))
@@ -50,11 +50,11 @@ static func load_from(path: String) -> DeckList:
 	return DeckList.from_dict(parsed)
 
 
-## Cards that count toward deck size: Life Deck, Duelist aspects, Mastery, Grimoire.
+## Cards that count toward deck size: Life Deck, Duelist aspects, Mastery, Relic.
 func total_cards() -> int:
 	var n: int = cards.size() + aspects
 	if mastery_id != "":
 		n += 1
-	if grimoire_id != "":
+	if relic_id != "":
 		n += 1
 	return n

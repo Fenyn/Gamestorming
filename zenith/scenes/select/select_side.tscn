@@ -123,7 +123,7 @@ layout_mode = 2
 [node name="Life" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
 
-[node name="Pages" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
+[node name="Reserve" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
 
 [node name="AspectsHeader" type="Label" parent="Column/Detail/Row/Info"]

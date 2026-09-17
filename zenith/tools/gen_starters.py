@@ -239,14 +239,14 @@ grounds("tollgate_yard", "Tollgate Yard", double_costs=True)
 grounds("winter_fields", "Winter Fields", fervor_gain_cap=1)
 
 # ============================================================================
-# Grimoires and Masteries
+# Relics and Masteries
 # ============================================================================
-add(id="grimoire_north", title="Grimoire of the North", type="grimoire", school="", pages_size=13, uses_per_game=2, limit_per_deck=1,
-    effects=[{"trigger": "grimoire_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}])
-add(id="grimoire_south", title="Grimoire of the South", type="grimoire", school="", pages_size=5, uses_per_game=1, limit_per_deck=1,
-    effects=[{"trigger": "grimoire_use", "op": "search", "card_type": "ally", "to": "play", "stages": 3}])
-add(id="grimoire_steadfast", title="The Steadfast Grimoire", type="grimoire", school="", pages_size=10, limit_per_deck=1,
-    grimoire_flags={"no_ascension_win": True, "fervor_shield": True, "aspect_shield": True})
+add(id="blank_mask", title="The Blank Mask", type="relic", school="", reserve_size=13, uses_per_game=2, limit_per_deck=1,
+    effects=[{"trigger": "relic_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}])
+add(id="debtors_ring", title="The Debtor's Ring", type="relic", school="", reserve_size=5, uses_per_game=1, limit_per_deck=1,
+    effects=[{"trigger": "relic_use", "op": "search", "card_type": "ally", "to": "play", "stages": 3}])
+add(id="lodestone_heart", title="The Lodestone Heart", type="relic", school="", reserve_size=10, limit_per_deck=1,
+    relic_flags={"no_ascension_win": True, "fervor_shield": True, "aspect_shield": True})
 
 # The latest printing: pay a life card to make an Ember attack Focused, and Ember blocks that stay
 # in the game go under the Life Deck. The duelist's table damage is already high, so the Mastery
@@ -298,7 +298,7 @@ combat("desperate_ruin", "Desperate Ruin", [E("set_energy", amount=0), E("remove
 # Played by Sir Edric while he is in control, onto Dame Alder wherever she stands.
 combat("oath", "Husband's Vow", [E("attach", to="named", character=BETA)], only={"character": "Sir Edric Rooke"},
        attachment={"target": "named", "limit_attached": 1, "effects": [ENTER({"may": True, **E("draw_discard", amount=1, **{"from": "bottom"})})]})
-combat("showmans_trick", "Showman's Trick", [SEARCH(card_type="attack", source="pages", to="hand")], remove_after_use=True, limit_per_deck=2)
+combat("showmans_trick", "Showman's Trick", [SEARCH(card_type="attack", source="reserve", to="hand")], remove_after_use=True, limit_per_deck=2)
 combat("clash_of_blood", "Clash of Blood", [FLOAT("modifier", scope="own", kind="any", life=2, per_ally=True, once=True), E("draw", amount=1)], remove_after_use=True)
 combat("muster", "Muster", [VIG("max", "duelist"), SEARCH(card_type="ally", source="either", to="play", stages=3)], remove_after_use=True)
 combat("sudden_reinforcement", "Sudden Reinforcement", [SEARCH(card_type="ally", source="either", to="play", stages=10)])
@@ -541,7 +541,7 @@ AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beat
 
 # What kind of deck each loadout is, as the sample-deck sheet labels them: (archetype, difficulty,
 # subthemes). Ids are the ones engine/archetype.gd knows. Shown on the select screen and in the
-# duel, and read by the AI's Pages swap.
+# duel, and read by the AI's Reserve swap.
 DECK_KINDS = {
     "ember_beatdown": ("strike_beatdown", "easy", ["fervor"]),
     "steel_beatdown": ("strike_beatdown", "easy", ["energy", "draw", "might"]),
@@ -553,14 +553,14 @@ DECK_KINDS = {
 }
 
 
-def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, grimoire_id, pages, entries):
+def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, relic_id, reserve, entries):
     for i, _ in entries:
         assert i in VALID, i
-    for i in pages:
+    for i in reserve:
         assert i in VALID, i
     total = sum(n for _, n in entries)
     d = {"name": name, "duelist": duelist_id, "aspects": aspects, "style": style, "alignment": alignment,
-         "mastery": mastery_id, "grimoire": grimoire_id, "pages": pages}
+         "mastery": mastery_id, "relic": relic_id, "reserve": reserve}
     if fname in DECK_KINDS:
         d["archetype"], d["difficulty"], d["subthemes"] = DECK_KINDS[fname]
     if fname in AI_PROFILES:
@@ -569,10 +569,10 @@ def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, grimoir
     with open("data/decks/%s.json" % fname, "w", encoding="utf-8", newline="\n") as f:
         json.dump(d, f, indent=2)
         f.write("\n")
-    print("%-18s life %d, pages %d" % (fname, total, len(pages)))
+    print("%-18s life %d, reserve %d" % (fname, total, len(reserve)))
 
 
-deck("ember_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "ember", "pact", "ember_mastery", "grimoire_north",
+deck("ember_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "ember", "pact", "ember_mastery", "blank_mask",
      ["open_challenge", "ember_energy_orb", "ember_energy_orb", "ember_energy_orb", "champion_drill", "heel_kick", "heel_kick", "heel_kick", "tollgate_yard",
       "ember_passive_block", "ember_passive_block", "ember_passive_block"], [
     ("turmoil_square", 3),
@@ -585,7 +585,7 @@ deck("ember_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "ember", "p
     ("ember_overbearing_blow", 3), ("breaching_kick", 3), ("power_hit", 3), ("ember_double_strike", 3), ("relentless_fury", 4), ("frantic_assault", 3),
     ("ember_face_slap", 3), ("ember_tilted_punch", 3), ("ember_whiplash", 3), ("ember_puppy_slap", 3), ("ember_axe_heel_kick", 3)])
 
-deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pact", "steel_mastery", "grimoire_north",
+deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pact", "steel_mastery", "blank_mask",
      ["open_challenge", "steel_headshot", "mutual_escalation", "mutual_escalation", "mutual_escalation", "doubt", "sly_smirk"], [
     ("turmoil_square", 3),
     ("moth_seal_1", 1), ("moth_seal_3", 1), ("moth_seal_4", 1),
@@ -598,7 +598,7 @@ deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pa
     ("steel_youth_bruise", 3), ("steel_rapid_slam", 3), ("steel_heads_up", 2), ("steel_charge", 3),
     ("steel_fist_attack", 3), ("steel_direct_strike", 3), ("steel_cliff_slam", 3), ("steel_wrist_block", 3), ("steel_triple_blast", 2)])
 
-deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact", "shade_mastery", "grimoire_south",
+deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact", "shade_mastery", "debtors_ring",
      ["doubt", "shade_pivot_kick", "shade_pivot_kick", "shade_pivot_kick"], [
     ("turmoil_square", 3),
     ("henchman_alpha", 1), ("henchman_beta", 1), ("henchman_gamma", 1), ("henchman_delta", 1), ("henchman_epsilon", 1),
@@ -610,7 +610,7 @@ deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact",
     ("breaching_kick", 3), ("relentless_fury", 3), ("shade_body_ruin", 3), ("shade_swivel_kick", 3), ("shade_right_kick", 3),
     ("henchmans_charge", 3), ("dual_strike", 3), ("leaping_rush", 3)])
 
-deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "tide_mastery", "grimoire_south",
+deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "tide_mastery", "debtors_ring",
      ["supreme_push", "lobbed_bolt", "erasure", "bonded_pair"], [
     ("companion_alpha", 1), ("companion_beta", 1), ("companion_gamma", 1), ("companion_delta", 1),
     ("turmoil_square", 3),
@@ -622,7 +622,7 @@ deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "
     ("twin_blow", 3), ("tide_transformation", 3), ("tide_alliance", 3),
     ("counsel", 1), ("fortune", 1), ("focus_of_mind", 1), ("bonding_rite", 2)])
 
-deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "grimoire_north",
+deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "blank_mask",
      ["open_challenge", "doubt", "confusion_drill", "champion_drill", "fortune", "mutual_escalation"], [
     ("ancient_grove", 3),
     ("challenge", 3), ("interrupt", 4), ("seekers_eye", 1), ("overwhelming_aura", 1), ("contemplation", 1),
@@ -633,7 +633,7 @@ deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle",
     ("swordplay_drill", 3), ("devastation_drill", 3), ("ambush_drill", 2), ("breakthrough_drill", 1), ("absorbing_drill", 1), ("quickness_drill", 1),
     ("seek_the_answer", 3), ("anticipation", 1), ("counsel", 1), ("heirloom_blade", 1), ("victors_drill", 1)])
 
-deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "grimoire_steadfast",
+deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "lodestone_heart",
      ["doubt", "grand_sweep", "grand_sweep", "storm_glaring_bolt", "storm_massacre", "lobbed_bolt", "clear_statement", "focused_crushing_dive", "storm_obliteration"], [
     ("henchman_zeta", 1),
     ("turmoil_square", 3),
@@ -644,7 +644,7 @@ deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact"
     ("captains_volley", 3), ("crashing_dive", 3), ("prepared_stance", 3), ("surging_blast", 3), ("homing_bolt", 3), ("palm_charge", 2),
     ("breaching_kick", 3), ("relentless_fury", 3), ("storm_massacre", 1), ("storm_uppercut", 1), ("storm_strength", 1),
     ("counsel", 1), ("focus_of_mind", 1), ("anticipation", 1), ("victors_drill", 1)])
-# No Grimoire and no Pages: the list this follows runs none, and the Root allowance of 90 is
+# No Relic and no Reserve: the list this follows runs none, and the Root allowance of 90 is
 # spent on 84 life cards.
 deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "root_mastery", "", [], [
     ("winter_fields", 3),

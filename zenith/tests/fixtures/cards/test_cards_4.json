@@ -1,10 +1,10 @@
 {
-  "_note": "Fixture cards for the timing-window rules: attacker Ally control, a Non-Combat defense, a Grimoire used in Combat, an Ally that captures instead of dealing damage. Test names only.",
+  "_note": "Fixture cards for the timing-window rules: attacker Ally control, a Non-Combat defense, a Relic used in Combat, an Ally that captures instead of dealing damage. Test names only.",
   "cards": [
     {"id": "t_ally_captor", "title": "Test Captor", "type": "ally", "character": "Test Captor", "alignment_only": "vigil", "limit_per_deck": 1, "capture_trait": true, "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike", "life": 1}, "no_control_needed": true}}]},
     {"id": "t_noncombat_parry", "title": "Test Standing Parry", "type": "non_combat", "defense": {"stops": "strike"}, "effects": [{"op": "fervor", "amount": 1}]},
     {"id": "tf_grinder", "title": "Test Grinder", "type": "duelist", "character": "Test Grinder", "aspects": [{"aspect": 1, "surge": 1, "might": [0, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], "constant": {"turn_start": [{"op": "fervor", "amount": 1}], "entering_combat": [{"op": "fervor", "amount": 1, "when": {"role": "active"}}], "on_attack": [{"op": "fervor", "amount": 1}]}}, {"aspect": 2, "surge": 2, "might": [0, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]}, {"aspect": 3, "surge": 3, "might": [0, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]}]},
     {"id": "t_seal_plain", "title": "Test Sword Seal 1", "type": "seal", "seal_set": "sword", "seal_number": 1, "limit_per_deck": 1, "effects": [{"op": "fervor", "amount": 1}, {"op": "draw", "amount": 1}]},
-    {"id": "t_grimoire_combat", "title": "Test Second", "type": "grimoire", "pages_size": 4, "uses_per_game": 1, "grimoire_step": "combat", "effects": [{"trigger": "grimoire_use", "op": "draw", "amount": 2}]}
+    {"id": "t_relic_combat", "title": "Test Second", "type": "relic", "reserve_size": 4, "uses_per_game": 1, "relic_step": "combat", "effects": [{"trigger": "relic_use", "op": "draw", "amount": 2}]}
   ]
 }

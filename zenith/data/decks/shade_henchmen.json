@@ -5,8 +5,8 @@
   "style": "shade",
   "alignment": "pact",
   "mastery": "shade_mastery",
-  "grimoire": "grimoire_south",
-  "pages": [
+  "relic": "debtors_ring",
+  "reserve": [
     "doubt",
     "shade_pivot_kick",
     "shade_pivot_kick",

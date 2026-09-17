@@ -21,8 +21,8 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 	if referee.is_over() or pending == null:
 		return {}
 	var cmd: Command = null
-	# The Pages swap is judged by AiPages; a playout to the end of the turn says nothing about it.
-	if profile.searches() and pending.kind != &"pages":
+	# The Reserve swap is judged by AiReserve; a playout to the end of the turn says nothing about it.
+	if profile.searches() and pending.kind != &"reserve":
 		cmd = search.choose(referee, seat, profile, rng)
 	else:
 		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), profile, rng)

@@ -7,8 +7,8 @@ extends Node3D
 ##
 ## Near side, two rows plus the hand, on a grid with a 0.12 gutter between every outline:
 ##   z 2.26   Mastery | Allies x5 | Duelist | Seals x7 | Life Deck | Discard
-##   z 1.00   Grimoire (Pages under it) | Drills x5 | Play (card in flight) | Non-Combats x5 | Removed
-##   Grounds lies across the centre line. Outer columns line up (Mastery over Grimoire, Discard over
+##   z 1.00   Relic (Reserve under it) | Drills x5 | Play (card in flight) | Non-Combats x5 | Removed
+##   Grounds lies across the centre line. Outer columns line up (Mastery over Relic, Discard over
 ##   Removed, Allies over Drills) so the eye reads the table as a grid.
 ## Each outline holds its cards plus a label strip on the owner's edge, so a label is never
 ## covered by a card.
@@ -40,7 +40,7 @@ const ROWS: Dictionary = {
 const SINGLES: Dictionary = {
 	&"duelist": {"marker": "Duelist", "label": "Duelist"},
 	&"mastery": {"marker": "Mastery", "label": "Mastery"},
-	&"grimoire": {"marker": "Grimoire", "label": "Grimoire · Pages"},
+	&"relic": {"marker": "Relic", "label": "Relic · Reserve"},
 	&"life_deck": {"marker": "LifeDeck", "label": "Life Deck"},
 	&"discard": {"marker": "Discard", "label": "Discard"},
 	&"removed": {"marker": "Removed", "label": "Removed"},
@@ -77,9 +77,9 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 		match zone:
 			&"life_deck", &"discard", &"removed":
 				pos = marker(str(SINGLES[zone]["marker"])) + Vector3(0, STACK_STEP * index, 0)
-			&"grimoire":
-				# Pages cards stack face down under the Grimoire; index 0 is the Grimoire itself.
-				pos = marker("Grimoire") + Vector3(0, STACK_STEP * (count + 1 - index), 0)
+			&"relic":
+				# Reserve cards stack face down under the Relic; index 0 is the Relic itself.
+				pos = marker("Relic") + Vector3(0, STACK_STEP * (count + 1 - index), 0)
 			&"hand":
 				var spread: float = HAND_STEP * (count - 1)
 				pos = marker("HandStart") + Vector3(HAND_STEP * index - spread * 0.5, 0.002 * index, 0)

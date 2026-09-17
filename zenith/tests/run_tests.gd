@@ -50,8 +50,8 @@ func _init() -> void:
 		test_ally_control_and_redirect,
 		test_end_combat_effect,
 		test_random_hand_discard,
-		test_pages_swap,
-		test_pages_batch,
+		test_reserve_swap,
+		test_reserve_batch,
 		test_bracket_first_player,
 		test_search_and_in_play_discard,
 		test_if_stopped,
@@ -71,13 +71,13 @@ func _init() -> void:
 		test_look_at_rearrange,
 		test_attachment_modifier,
 		test_constant_power,
-		test_grimoire_use,
+		test_relic_use,
 		test_start_in_play,
 		test_pay_stages,
 		test_name_card,
 		test_copied_attack,
 		test_prevent_all_and_no_prevent,
-		test_grimoire_shields,
+		test_relic_shields,
 		test_set_aspect,
 		test_draw_until_and_draw_discard,
 		test_search_to_play,
@@ -100,7 +100,7 @@ func _init() -> void:
 		test_return_removed,
 		test_last_searched_target,
 		test_forbid_unless_energy,
-		test_forced_combat_from_pages,
+		test_forced_combat_from_reserve,
 		test_promoted_if_successful,
 		test_draw_check_named,
 		test_search_looks_through_the_deck,
@@ -126,7 +126,7 @@ func _init() -> void:
 		test_non_combat_defense_is_spent,
 		test_no_defense_after_final_strike,
 		test_skipped_phase_does_not_end_combat,
-		test_grimoire_in_combat,
+		test_relic_in_combat,
 		test_capture_instead_of_damage,
 		test_last_attack_in_view,
 		test_outcome_lines_and_titles,
@@ -144,7 +144,7 @@ func _init() -> void:
 		test_ai_answers_every_prompt,
 		test_ai_search_reports_and_is_repeatable,
 		test_ai_evaluator_routes,
-		test_ai_pages_swaps,
+		test_ai_reserve_swaps,
 		test_archetype_label,
 		test_ai_profile_merge,
 	]
@@ -170,10 +170,10 @@ func eq(actual: Variant, expected: Variant, msg: String) -> void:
 	check(actual == expected, "%s: expected %s, got %s" % [msg, str(expected), str(actual)])
 
 
-func deck(cards: Array[String], alignment: String = "vigil", style: String = "", mastery: String = "", aspects: int = 3, duelist: String = "tf_vigil", grimoire: String = "", pages: Array[String] = []) -> DeckList:
+func deck(cards: Array[String], alignment: String = "vigil", style: String = "", mastery: String = "", aspects: int = 3, duelist: String = "tf_vigil", relic: String = "", reserve: Array[String] = []) -> DeckList:
 	var d: DeckList = DeckList.new()
-	d.grimoire_id = grimoire
-	d.pages = pages.duplicate()
+	d.relic_id = relic
+	d.reserve = reserve.duplicate()
 	d.name = "Test %s" % alignment
 	d.duelist_id = duelist
 	d.aspects = aspects
@@ -579,10 +579,10 @@ func test_capture_and_pending_win() -> void:
 
 ## Critical damage (5+ wounds in one attack) offers a Seal, an Ally, or the rival's Fervor.
 func test_critical_damage_choices() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_grimoire_shield"))
+	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_relic_shield"))
 	var squire: CardInstance = inject(e, 1, "t_ally_squire")
 	check(e._ally_protected(e.player(1)), "the rival's constant protects Allies from card effects")
-	check(e.fervor_shielded(e.player(1)), "the rival's Grimoire shields Fervor from card effects")
+	check(e.fervor_shielded(e.player(1)), "the rival's Relic shields Fervor from card effects")
 	e.player(1).fervor = 2
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
@@ -662,41 +662,41 @@ func test_random_hand_discard() -> void:
 	eq(e.player(1).discard.size(), 2, "they went to the discard pile")
 
 
-func test_pages_swap() -> void:
-	var pages: Array[String] = ["t_art", "t_taunt"]
-	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
-	eq(prompt_kind(e), &"pages", "setup opens with the pages prompt")
+func test_reserve_swap() -> void:
+	var reserve: Array[String] = ["t_art", "t_taunt"]
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_relic", reserve), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"reserve", "setup opens with the reserve prompt")
 	eq(e.prompt.player, 0, "active player swaps first")
-	var art_uid: int = e.player(0).pages[0].uid
+	var art_uid: int = e.player(0).reserve[0].uid
 	var deck_before: int = e.player(0).life_deck.size()
-	answer(e, &"pages_in", art_uid)
-	eq(e.card(art_uid).zone, &"life_deck", "pages card entered the life deck")
+	answer(e, &"reserve_in", art_uid)
+	eq(e.card(art_uid).zone, &"life_deck", "reserve card entered the life deck")
 	for ev in e.events:
-		if ev.type == &"pages_swap":
+		if ev.type == &"reserve_swap":
 			check(CardText.event_line(ev, e, 0).contains("Test Art"), "the swapping seat's log names the card")
-			check(CardText.event_line(ev, e, 1) == "%s brings a card in from the Pages." % e.player(0).name, "the other seat's log does not: %s" % CardText.event_line(ev, e, 1))
-	eq(e.player(0).pages.size(), 2, "a random life card took its place")
+			check(CardText.event_line(ev, e, 1) == "%s brings a card in from the Reserve." % e.player(0).name, "the other seat's log does not: %s" % CardText.event_line(ev, e, 1))
+	eq(e.player(0).reserve.size(), 2, "a random life card took its place")
 	eq(e.player(0).life_deck.size(), deck_before, "deck size unchanged")
-	check(e.prompt.find(&"pages_in", e.player(0).pages[1].uid) == null, "the swapped-out card cannot come straight back")
-	answer(e, &"pages_done")
-	eq(e.state.turn, 1, "opponent without Pages is skipped and the first turn begins")
+	check(e.prompt.find(&"reserve_in", e.player(0).reserve[1].uid) == null, "the swapped-out card cannot come straight back")
+	answer(e, &"reserve_done")
+	eq(e.state.turn, 1, "opponent without Reserve is skipped and the first turn begins")
 	eq(e.player(0).hand.size(), 3, "normal draw followed")
 
 
-## Several Pages cards can come in as one batch command; the batch must stay inside the
+## Several Reserve cards can come in as one batch command; the batch must stay inside the
 ## options, and the wire form the referee sees carries the same list.
-func test_pages_batch() -> void:
-	var pages: Array[String] = ["t_art", "t_taunt", "t_parry"]
-	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
-	eq(e.prompt.batch_type, &"pages_in", "the pages prompt takes a batch")
-	eq(e.prompt.batch_max, 3, "up to every pages card")
-	var a: int = e.player(0).pages[0].uid
-	var b: int = e.player(0).pages[1].uid
+func test_reserve_batch() -> void:
+	var reserve: Array[String] = ["t_art", "t_taunt", "t_parry"]
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_relic", reserve), deck(filler(), "pact"))
+	eq(e.prompt.batch_type, &"reserve_in", "the reserve prompt takes a batch")
+	eq(e.prompt.batch_max, 3, "up to every reserve card")
+	var a: int = e.player(0).reserve[0].uid
+	var b: int = e.player(0).reserve[1].uid
 	var stranger: int = e.player(0).life_deck[0].uid
-	check(e.prompt.accept(Command.new(0, &"pages_in", -1, [a, stranger])) == null, "a uid outside the options is refused")
-	check(e.prompt.accept(Command.new(0, &"pages_in", -1, [a, a])) == null, "repeats are refused")
-	check(e.prompt.accept(Command.new(1, &"pages_in", -1, [a])) == null, "the other seat cannot answer")
-	check(e.prompt.accept(Command.new(0, &"pages_in", -1, [])) == null, "an empty batch is not a swap")
+	check(e.prompt.accept(Command.new(0, &"reserve_in", -1, [a, stranger])) == null, "a uid outside the options is refused")
+	check(e.prompt.accept(Command.new(0, &"reserve_in", -1, [a, a])) == null, "repeats are refused")
+	check(e.prompt.accept(Command.new(1, &"reserve_in", -1, [a])) == null, "the other seat cannot answer")
+	check(e.prompt.accept(Command.new(0, &"reserve_in", -1, [])) == null, "an empty batch is not a swap")
 	var view: PromptView = PromptView.of(e.prompt, e)
 	var batch: OptionView = PromptView.from_dict(view.to_dict()).batch_option([a, b])
 	eq(batch.label, "Bring in 2", "the batch option labels itself")
@@ -704,13 +704,13 @@ func test_pages_batch() -> void:
 	check(e.submit(batch.to_command(0)), "the batch is accepted")
 	eq(e.card(a).zone, &"life_deck", "first card entered the deck")
 	eq(e.card(b).zone, &"life_deck", "second card entered the deck")
-	eq(e.player(0).pages.size(), 3, "two random cards came out")
+	eq(e.player(0).reserve.size(), 3, "two random cards came out")
 	eq(e.state.turn, 1, "the batch also finishes the swap")
 	eq(e.player(0).life_deck.size() + e.player(0).hand.size(), deck_before, "two swaps keep the deck size, less the opening draw")
 	var r: Referee = Referee.new()
-	var e2: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
+	var e2: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_relic", reserve), deck(filler(), "pact"))
 	r.engine = e2
-	var uids: Array[int] = [e2.player(0).pages[0].uid, e2.player(0).pages[2].uid]
+	var uids: Array[int] = [e2.player(0).reserve[0].uid, e2.player(0).reserve[2].uid]
 	eq(r.submit(0, r.prompt_for(0).batch_option(uids).to_command(0).to_dict()), "", "the referee takes the batch in wire form")
 	eq(e2.card(uids[1]).zone, &"life_deck", "and applied it")
 
@@ -814,8 +814,8 @@ func test_uids_hide_deck_order() -> void:
 
 
 func test_seat_view_masks_hidden_cards() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact", "", "", 3, "tf_vigil", "t_grimoire", ["t_summons"]))
-	answer(e, &"pages_done")
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact", "", "", 3, "tf_vigil", "t_relic", ["t_summons"]))
+	answer(e, &"reserve_done")
 	var v0: SeatView = SeatView.of(e, 0)
 	var v1: SeatView = SeatView.of(e, 1)
 	eq(v0.cards.size(), e.all_cards().size(), "every card has a row")
@@ -825,9 +825,9 @@ func test_seat_view_masks_hidden_cards() -> void:
 		eq(v1.card(uid).zone, &"hand", "but knows the zone")
 	for uid in v0.player(0).life_deck:
 		check(v0.card(uid).hidden(), "own Life Deck stays face down")
-	for uid in v1.player(1).pages:
-		check(not v1.card(uid).hidden(), "own Pages is visible")
-		check(v0.card(uid).hidden(), "the other seat cannot read the Pages")
+	for uid in v1.player(1).reserve:
+		check(not v1.card(uid).hidden(), "own Reserve is visible")
+		check(v0.card(uid).hidden(), "the other seat cannot read the Reserve")
 	check(not v1.card(v0.player(0).duelist).hidden(), "duelists are public")
 	eq(v0.player(0).life_deck.size(), e.player(0).life_deck.size(), "deck counts are public")
 	eq(v0.deciding, e.prompt.player, "who decides is public")
@@ -849,7 +849,7 @@ func test_seat_view_masks_hidden_cards() -> void:
 	for cd in v1.to_dict()["cards"]:
 		if str(cd["def"]) == "":
 			hidden_in_wire += 1
-	eq(hidden_in_wire, e.player(0).life_deck.size() + e.player(1).life_deck.size() + e.player(0).hand.size() + e.player(0).pages.size(), "exactly the hidden cards go out blank")
+	eq(hidden_in_wire, e.player(0).life_deck.size() + e.player(1).life_deck.size() + e.player(0).hand.size() + e.player(0).reserve.size(), "exactly the hidden cards go out blank")
 
 
 func test_referee_gates_commands() -> void:
@@ -1356,13 +1356,13 @@ func test_constant_power() -> void:
 	eq(e.player(1).duelist.energy, 3, "table 1 (same band) plus the constant +1")
 
 
-func test_grimoire_use() -> void:
-	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire_use"), deck(filler(), "pact"))
-	eq(prompt_kind(e), &"non_combat", "grimoire power offered in the Non-Combat step")
-	var m: int = e.player(0).grimoire.uid
-	answer(e, &"grimoire", m)
-	eq(e.player(0).hand.size(), 5, "grimoire drew two")
-	check(has_event(e, &"grimoire_used"), "grimoire_used event")
+func test_relic_use() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_relic_use"), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"non_combat", "relic power offered in the Non-Combat step")
+	var m: int = e.player(0).relic.uid
+	answer(e, &"relic", m)
+	eq(e.player(0).hand.size(), 5, "relic drew two")
+	check(has_event(e, &"relic_used"), "relic_used event")
 	eq(prompt_kind(e), &"declare", "once per game: no second offer")
 
 
@@ -1427,9 +1427,9 @@ func test_prevent_all_and_no_prevent() -> void:
 	eq(e.player(0).life_deck.size(), deck_before - 4, "unpreventable art still lands")
 
 
-func test_grimoire_shields() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_jeer", "t_set_aspect", "t_strike"])), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_grimoire_shield"))
-	check(e.player(1).no_ascension_win, "grimoire forbids the ascension win")
+func test_relic_shields() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_jeer", "t_set_aspect", "t_strike"])), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_relic_shield"))
+	check(e.player(1).no_ascension_win, "relic forbids the ascension win")
 	e.player(1).fervor = 2
 	e.player(1).duelist.aspect = 2
 	to_combat(e)
@@ -1695,11 +1695,11 @@ func test_forbid_unless_energy() -> void:
 	check(e._forbidden(e.player(1), "strike_cards"), "below 5 Energy it does")
 
 
-func test_forced_combat_from_pages() -> void:
-	var pages: Array[String] = ["t_invite"]
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_grimoire", pages))
-	answer(e, &"pages_done")
-	eq(e.player(1).non_combats().size(), 1, "the summons began the game in play from the Pages")
+func test_forced_combat_from_reserve() -> void:
+	var reserve: Array[String] = ["t_invite"]
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_relic", reserve))
+	answer(e, &"reserve_done")
+	eq(e.player(1).non_combats().size(), 1, "the summons began the game in play from the Reserve")
 	check(has_event(e, &"combat_declared"), "the active player could not skip Combat")
 	eq(prompt_kind(e), &"attack_action", "straight into the attack phase")
 
@@ -1815,9 +1815,9 @@ func test_look_at_play_option() -> void:
 
 
 func test_bond_and_unbond() -> void:
-	var pages: Array[String] = ["t_bonded_hands"]
-	var e: DuelEngine = engine(deck(filler(["t_ally_left", "t_ally_right", "t_bond_rite"]), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
-	answer(e, &"pages_done")
+	var reserve: Array[String] = ["t_bonded_hands"]
+	var e: DuelEngine = engine(deck(filler(["t_ally_left", "t_ally_right", "t_bond_rite"]), "vigil", "", "", 3, "tf_vigil", "t_relic", reserve), deck(filler(), "pact"))
+	answer(e, &"reserve_done")
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_left"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_right"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_bond_rite"))
@@ -1826,14 +1826,14 @@ func test_bond_and_unbond() -> void:
 	answer(e, &"use", rite.uid)
 	eq(e.player(0).allies().size(), 1, "two Allies became one Bond")
 	var bond: CardInstance = e.player(0).allies()[0]
-	eq(bond.def.id, "t_bonded_hands", "the Bond card came from the Pages")
+	eq(bond.def.id, "t_bonded_hands", "the Bond card came from the Reserve")
 	eq(bond.energy, 10, "at full Energy")
 	eq(bond.cards_under.size(), 2, "both Allies under it")
 	check(has_event(e, &"bonded"), "bonded event")
 	skip_to_turn(e, 3)
 	skip_to_turn(e, 5)
 	eq(e.player(0).allies().size(), 2, "after two of the owner's turns the Bond burned out and both returned")
-	eq(bond.zone, &"pages", "the Bond card went back to the Pages")
+	eq(bond.zone, &"reserve", "the Bond card went back to the Reserve")
 
 
 func test_search_by_effect() -> void:
@@ -1858,11 +1858,11 @@ func test_end_turn() -> void:
 
 
 func test_declare_window() -> void:
-	var pages: Array[String] = ["t_summons"]
-	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_taunt", "t_taunt", "t_taunt"]), "pact", "", "", 3, "tf_vigil", "t_grimoire", pages))
-	answer(e, &"pages_done")
+	var reserve: Array[String] = ["t_summons"]
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_taunt", "t_taunt", "t_taunt"]), "pact", "", "", 3, "tf_vigil", "t_relic", reserve))
+	answer(e, &"reserve_done")
 	var herald: CardInstance = e.player(1).non_combats()[0]
-	eq(herald.def.id, "t_summons", "the herald began the game in play from the Pages")
+	eq(herald.def.id, "t_summons", "the herald began the game in play from the Reserve")
 	eq(prompt_kind(e), &"declare", "turn 1: the opponent has no hand to pay with, so no window")
 	var kept: CardInstance = e._instance(lib.get_def("t_taunt"), 1, &"hand")
 	e.player(1).hand.append(kept)
@@ -1944,9 +1944,9 @@ func test_card_text_wording() -> void:
 	eq(lines[0], "Power: Strike doing +3 Energy. Gain 5 Energy. If stopped, draw a card. May be used twice per Combat.", "every part of the Power")
 	eq(lines[1], "Constant: Your first attack each Combat with a school card cannot be stopped. Your opponent may not perform Arts.", "constants render")
 	eq(lines[2], "Defense Shield: stops the first unstopped Strike each Combat.", "shield renders")
-	var grimoire: CardDef = CardDef.from_dict({"id": "m", "title": "M", "type": "grimoire", "pages_size": 13, "uses_per_game": 2, "limit_per_deck": 1,
-		"effects": [{"trigger": "grimoire_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}]})
-	eq(CardText.rules_text(grimoire), "Pages 13.\nTwice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn.\nLimit 1 per deck.", "grimoire text in reading order")
+	var relic: CardDef = CardDef.from_dict({"id": "m", "title": "M", "type": "relic", "reserve_size": 13, "uses_per_game": 2, "limit_per_deck": 1,
+		"effects": [{"trigger": "relic_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}]})
+	eq(CardText.rules_text(relic), "Reserve 13.\nTwice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn.\nLimit 1 per deck.", "relic text in reading order")
 	var stiller: CardDef = CardDef.from_dict({"id": "s", "title": "S", "type": "combat", "defense": {"stops": "any", "stop_all": "any"}, "effects": [{"op": "stop_all", "kind": "any"}]})
 	eq(CardText.rules_text(stiller).count("Stops all attacks"), 1, "a line already said by the defense is not repeated")
 	for id in lib.all_ids():
@@ -2051,16 +2051,16 @@ func test_skipped_phase_does_not_end_combat() -> void:
 	eq(e.state.turn, 2, "and no card returns")
 
 
-## A Grimoire whose power is a Combat action is offered in place of an attack, not in the Non-Combat step.
-func test_grimoire_in_combat() -> void:
-	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire_combat"), deck(filler(), "pact"))
-	eq(prompt_kind(e), &"declare", "nothing to place and no Grimoire offer in the Non-Combat step")
+## A Relic whose power is a Combat action is offered in place of an attack, not in the Non-Combat step.
+func test_relic_in_combat() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_relic_combat"), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"declare", "nothing to place and no Relic offer in the Non-Combat step")
 	answer(e, &"declare")
-	var m: int = e.player(0).grimoire.uid
-	check(e.prompt.find(&"use", m) != null, "the Grimoire is an attack-phase action")
+	var m: int = e.player(0).relic.uid
+	check(e.prompt.find(&"use", m) != null, "the Relic is an attack-phase action")
 	answer(e, &"use", m)
-	eq(e.player(0).hand.size(), 5, "the Grimoire drew two")
-	check(has_event(e, &"grimoire_used"), "grimoire_used event")
+	eq(e.player(0).hand.size(), 5, "the Relic drew two")
+	check(has_event(e, &"relic_used"), "relic_used event")
 	eq(prompt_kind(e), &"attack_action", "used in place of an attack: fight back")
 	eq(e.prompt.player, 1, "the rival's phase")
 	answer(e, &"pass")
@@ -2295,7 +2295,7 @@ func test_success_non_combat_and_set_seal_damage() -> void:
 	eq(eyes.zone, &"discard", "and it spent itself")
 
 
-## The Root house deck is legal at 90 cards with no Grimoire.
+## The Root house deck is legal at 90 cards with no Relic.
 func test_root_deck_is_legal() -> void:
 	var d: DeckList = DeckList.load_from("res://data/decks/root_seals.json")
 	eq(d.total_cards(), 90, "84 life cards, five aspects and the Mastery")
@@ -2406,7 +2406,7 @@ func test_sim_for_hides_and_keeps() -> void:
 func hidden_titles(e: DuelEngine, owner: int) -> Array[String]:
 	var out: Array[String] = []
 	var p: PlayerState = e.player(owner)
-	for list in [p.hand, p.life_deck, p.pages]:
+	for list in [p.hand, p.life_deck, p.reserve]:
 		for c in list:
 			out.append(c.def.id)
 	out.sort()
@@ -2454,7 +2454,7 @@ func test_ai_answers_every_prompt() -> void:
 			ref.engine.take_events()
 		eq(refused, "", "%s vs %s: every AI answer was accepted" % [pairing[0], pairing[1]])
 		check(ref.is_over(), "%s vs %s finished in %d steps" % [pairing[0], pairing[1], steps])
-	for kind in [&"pages", &"non_combat", &"declare", &"attack_action", &"defense", &"keep"]:
+	for kind in [&"reserve", &"non_combat", &"declare", &"attack_action", &"defense", &"keep"]:
 		check(kinds.has(kind), "the AI met a %s prompt" % kind)
 
 
@@ -2511,51 +2511,51 @@ func test_ai_evaluator_routes() -> void:
 	eq(AiEvaluator.evaluate(e, 1, profile), AiEvaluator.WIN, "a won duel is the ceiling")
 
 
-## Which Pages cards seat 0's AI brings in for a shipped matchup, by card id.
-func pages_swaps(mine: String, theirs: String) -> Array[String]:
+## Which Reserve cards seat 0's AI brings in for a shipped matchup, by card id.
+func reserve_swaps(mine: String, theirs: String) -> Array[String]:
 	var ref: Referee = shipped_referee(mine, theirs, 5)
 	var driver: AiPlayer = AiPlayer.new(AiProfile.for_deck(DeckList.load_from("res://data/decks/%s.json" % mine), ""), 1)
 	var steps: int = 0
-	while ref.engine.prompt != null and ref.engine.prompt.kind == &"pages" and steps < 60:
+	while ref.engine.prompt != null and ref.engine.prompt.kind == &"reserve" and steps < 60:
 		steps += 1
 		var seat: int = ref.engine.prompt.player
 		if seat == 0:
 			ref.submit(0, driver.choose(ref, 0))
 		else:
-			ref.submit(1, ref.engine.prompt.find(&"pages_done").to_dict())
+			ref.submit(1, ref.engine.prompt.find(&"reserve_done").to_dict())
 	var out: Array[String] = []
 	for ev in ref.engine.events:
-		if ev.type == &"pages_swap" and int(ev.data.get("player", -1)) == 0:
+		if ev.type == &"reserve_swap" and int(ev.data.get("player", -1)) == 0:
 			out.append(ref.engine.card(int(ev.data["in"])).def.id)
 	return out
 
 
-## The Pages swap reads the opponent's duelist, Mastery and Grimoire, brings in answers that fit,
+## The Reserve swap reads the opponent's duelist, Mastery and Relic, brings in answers that fit,
 ## leaves the rest, and keeps toolbox attacks where the deck can fetch them.
-func test_ai_pages_swaps() -> void:
+func test_ai_reserve_swaps() -> void:
 	var tide: DuelEngine = shipped_engine("tide_companions", "ember_beatdown", 1)
-	var tide_signs: Dictionary = AiPages.read_setup(tide.player(0))
+	var tide_signs: Dictionary = AiReserve.read_setup(tide.player(0))
 	eq(float(tide_signs["ally"]), 1.0, "the Tide setup cards read as an Ally deck")
 	eq(float(tide_signs["camps"]), 1.0, "that sits on its lowest aspect")
-	eq(float(tide_signs["non_combat"]), AiPages.PRIOR, "and an effect aimed at the opponent is not a sign")
-	var ember_signs: Dictionary = AiPages.read_setup(tide.player(1))
-	eq(float(ember_signs["ally"]), AiPages.PRIOR, "the Ember setup cards show no Allies")
-	eq(float(ember_signs["camps"]), AiPages.PRIOR, "and no reason to sit on an aspect")
+	eq(float(tide_signs["non_combat"]), AiReserve.PRIOR, "and an effect aimed at the opponent is not a sign")
+	var ember_signs: Dictionary = AiReserve.read_setup(tide.player(1))
+	eq(float(ember_signs["ally"]), AiReserve.PRIOR, "the Ember setup cards show no Allies")
+	eq(float(ember_signs["camps"]), AiReserve.PRIOR, "and no reason to sit on an aspect")
 	var vale: DuelEngine = shipped_engine("freestyle_swords", "ember_beatdown", 1)
-	eq(float(AiPages.read_setup(vale.player(0))["drill"]), 1.0, "the Freestyle Mastery reads as a Drill deck")
-	check(pages_swaps("ember_beatdown", "tide_companions").has("ember_energy_orb"), "Ember brings its Ally answer in against Tide")
-	check(not pages_swaps("ember_beatdown", "steel_beatdown").has("ember_energy_orb"), "and leaves it out against Steel")
-	check(pages_swaps("steel_beatdown", "freestyle_swords").has("sly_smirk"), "Steel brings its Drill answer in against Freestyle")
-	check(pages_swaps("steel_beatdown", "ember_beatdown").has("steel_headshot"), "and its plain strong card every game")
-	check(not pages_swaps("steel_beatdown", "ember_beatdown").has("open_challenge"), "a card that starts in play from the Pages stays there")
-	eq(pages_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")
-	check(not pages_swaps("storm_volley", "ember_beatdown").has("focused_crushing_dive"), "Storm leaves a toolbox attack where its fetch card can reach it")
-	check(pages_swaps("storm_volley", "tide_companions").has("focused_crushing_dive"), "unless the opponent is what it answers")
-	check(not pages_swaps("freestyle_swords", "ember_beatdown").has("mutual_escalation"), "an Ascension deck does not bring in the card that gives up the Ascension win")
+	eq(float(AiReserve.read_setup(vale.player(0))["drill"]), 1.0, "the Freestyle Mastery reads as a Drill deck")
+	check(reserve_swaps("ember_beatdown", "tide_companions").has("ember_energy_orb"), "Ember brings its Ally answer in against Tide")
+	check(not reserve_swaps("ember_beatdown", "steel_beatdown").has("ember_energy_orb"), "and leaves it out against Steel")
+	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("sly_smirk"), "Steel brings its Drill answer in against Freestyle")
+	check(reserve_swaps("steel_beatdown", "ember_beatdown").has("steel_headshot"), "and its plain strong card every game")
+	check(not reserve_swaps("steel_beatdown", "ember_beatdown").has("open_challenge"), "a card that starts in play from the Reserve stays there")
+	eq(reserve_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")
+	check(not reserve_swaps("storm_volley", "ember_beatdown").has("focused_crushing_dive"), "Storm leaves a toolbox attack where its fetch card can reach it")
+	check(reserve_swaps("storm_volley", "tide_companions").has("focused_crushing_dive"), "unless the opponent is what it answers")
+	check(not reserve_swaps("freestyle_swords", "ember_beatdown").has("mutual_escalation"), "an Ascension deck does not bring in the card that gives up the Ascension win")
 
 
 ## A deck's archetype rides from its JSON to both seats' views, the validator knows the
-## vocabulary, and the Pages read takes the declared signs even when the setup cards are silent.
+## vocabulary, and the Reserve read takes the declared signs even when the setup cards are silent.
 func test_archetype_label() -> void:
 	var e: DuelEngine = shipped_engine("shade_henchmen", "freestyle_swords", 1)
 	eq(e.player(0).archetype, "allies", "the engine carries the deck's archetype")
@@ -2567,12 +2567,12 @@ func test_archetype_label() -> void:
 	eq(Archetype.label("drills"), "Drills", "labels come from one place")
 	check(Archetype.plan("allies") != "", "with a line on how the deck wins")
 	var plain: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
-	eq(float(AiPages.read_setup(plain.player(0))["seal"]), AiPages.PRIOR, "an unlabelled deck reads at the prior")
+	eq(float(AiReserve.read_setup(plain.player(0))["seal"]), AiReserve.PRIOR, "an unlabelled deck reads at the prior")
 	plain.player(0).archetype = "seals"
-	eq(float(AiPages.read_setup(plain.player(0))["seal"]), 1.0, "a declared Seal deck reads as one though no setup card says so")
+	eq(float(AiReserve.read_setup(plain.player(0))["seal"]), 1.0, "a declared Seal deck reads as one though no setup card says so")
 	plain.player(0).archetype = ""
 	plain.player(0).subthemes = ["drills"]
-	eq(float(AiPages.read_setup(plain.player(0))["drill"]), 0.7, "a subtheme can carry a sign too")
+	eq(float(AiReserve.read_setup(plain.player(0))["drill"]), 0.7, "a subtheme can carry a sign too")
 	for word in Archetype.SUBTHEMES.keys():
 		check(not str(word).contains("_") and not str(Archetype.SUBTHEMES[word]).contains(" "), "subtheme '%s' is one word" % word)
 	var bad: DeckList = DeckList.load_from("res://data/decks/ember_beatdown.json")

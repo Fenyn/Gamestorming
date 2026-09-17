@@ -59,7 +59,7 @@
     {"id": "t_scout", "title": "Test Scout", "type": "combat", "effects": [{"op": "discard_hand", "who": "opponent", "amount": 2}]},
     {"id": "t_mastery_tide", "title": "Test Tide Mastery", "type": "mastery", "school": "tide", "modifiers": [{"scope": "against", "kind": "strike", "stages": 1}]},
     {"id": "t_mastery_hard", "title": "Test Hard Mastery", "type": "mastery", "school": "tide", "opponent_aspect_threshold": 6},
-    {"id": "t_grimoire", "title": "Test Grimoire", "type": "grimoire", "pages_size": 4},
+    {"id": "t_relic", "title": "Test Relic", "type": "relic", "reserve_size": 4},
     {"id": "t_seek", "title": "Test Seek", "type": "combat", "effects": [{"op": "search", "card_type": "art", "amount": 1}]},
     {"id": "t_glare", "title": "Test Glare", "type": "combat", "effects": [{"op": "discard_in_play", "who": "opponent", "card_type": "non_combat", "amount": 1}]},
     {"id": "t_art_stubborn", "title": "Test Stubborn Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "effects": [{"trigger": "if_stopped", "op": "draw", "amount": 2}]},

@@ -708,12 +708,12 @@ func _targets() -> Dictionary:
 		out[p.duelist] = [zones.slot(p.index, &"duelist", 0, 1, vw), true, true]
 		if p.mastery >= 0:
 			out[p.mastery] = [zones.slot(p.index, &"mastery", 0, 1, vw), true, true]
-		var pages_n: int = p.pages.size()
-		if p.grimoire >= 0:
-			out[p.grimoire] = [zones.slot(p.index, &"grimoire", 0, pages_n, vw), true, true]
-		for i in range(pages_n):
-			# Pages cards sit face down under the Grimoire; only their owner sees them in the prompt.
-			out[p.pages[i]] = [zones.slot(p.index, &"grimoire", i + 1, pages_n, vw), false, true]
+		var reserve_n: int = p.reserve.size()
+		if p.relic >= 0:
+			out[p.relic] = [zones.slot(p.index, &"relic", 0, reserve_n, vw), true, true]
+		for i in range(reserve_n):
+			# Reserve cards sit face down under the Relic; only their owner sees them in the prompt.
+			out[p.reserve[i]] = [zones.slot(p.index, &"relic", i + 1, reserve_n, vw), false, true]
 	if view.grounds >= 0:
 		out[view.grounds] = [zones.slot(0, &"grounds", 0, 1, vw), true, true]
 	for uid in view.resolving:

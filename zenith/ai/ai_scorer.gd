@@ -6,7 +6,7 @@ extends RefCounted
 ## and decks are scored without new code. Only call it on an engine the seat may hold.
 
 ## Options that mean "do nothing here". AiSearch always keeps one in its shortlist.
-const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"pages_done", &"discard_all", &"deal_damage"]
+const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"reserve_done", &"discard_all", &"deal_damage"]
 
 
 ## One score per option of `engine.prompt`, in option order. Higher is better; 0 is "do nothing".
@@ -49,8 +49,8 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"use":
 			if c == null:
 				return 0.2
-			return effects_value(c.def.effects, profile, ["use", "secondary", "grimoire_use"]) + _aspect_jump_value(c, me, profile) - profile.w("play", "use_cost")
-		&"grimoire":
+			return effects_value(c.def.effects, profile, ["use", "secondary", "relic_use"]) + _aspect_jump_value(c, me, profile) - profile.w("play", "use_cost")
+		&"relic":
 			return 1.0
 		&"defend", &"power_defend":
 			return _defense_score(engine, profile, me, o, c)
@@ -66,12 +66,12 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 			return -0.5
 		&"keep":
 			return 0.5 + hold_value(c, profile)
-		&"pages_in":
-			# Cards already swapped out are in the Pages but not on offer, which counts the swaps.
-			var swaps: int = me.pages.size() - prompt.card_options().size()
-			if c == null or swaps >= int(profile.w("pages", "max_swaps")):
+		&"reserve_in":
+			# Cards already swapped out are in the Reserve but not on offer, which counts the swaps.
+			var swaps: int = me.reserve.size() - prompt.card_options().size()
+			if c == null or swaps >= int(profile.w("reserve", "max_swaps")):
 				return -1.0
-			return AiPages.score(engine, seat, c, profile)
+			return AiReserve.score(engine, seat, c, profile)
 		&"counter":
 			return 1.5
 		&"control":

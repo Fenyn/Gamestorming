@@ -20,11 +20,11 @@ const LOG_EXPANDED_FRACTION: float = 0.72
 const TRAY_COLUMNS: int = 7          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
-## the decision is about the cards themselves, as in a discard-step keep or a Pages swap.
-const TRAY_KINDS: Array[StringName] = [&"pages", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card"]
+## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
+const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card"]
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
-	&"pages_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
+	&"reserve_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
 	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture", &"discard_ally": "Discard",
 	&"final_strike": "Discard",
 }
@@ -36,7 +36,7 @@ const STEP_ORDER: Array[int] = [
 ]
 ## Options that move the game along rather than commit a card. They sit under the card list and
 ## the ones here get the accent style; the rest (skip, decline, no capture) stay quiet.
-const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"pages_done", &"decline", &"pick_none"]
+const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"reserve_done", &"decline", &"pick_none"]
 
 @onready var root: Control = $Root
 @onready var top_panel: PlayerPanel = $Root/TopPanel
@@ -204,7 +204,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
 	# Cards the player can already click in the hand or on the table stay there, highlighted.
-	# Cards that need browsing (a Pages, a look at the deck, a keep) open in the tray.
+	# Cards that need browsing (a Reserve, a look at the deck, a keep) open in the tray.
 	# A Final Strike is offered on every hand card and commits the rest of the Combat, so it
 	# gets its own button and tray rather than firing from a card click.
 	var browse: Array[OptionView] = []
@@ -242,7 +242,7 @@ func _needs_tray(p: PromptView, opt: OptionView) -> bool:
 	if opt.type == &"name_card" or TRAY_KINDS.has(p.kind):
 		return true
 	var c: SeatCard = _view.card(opt.card)
-	return c == null or c.zone == &"life_deck" or c.zone == &"pages"
+	return c == null or c.zone == &"life_deck" or c.zone == &"reserve"
 
 
 ## The attack in the air, when there is one: a headline chip (kind, source, what makes it hard)
@@ -319,7 +319,7 @@ func _damage_text(view: SeatView) -> String:
 func _hint_for(p: PromptView) -> String:
 	var card_options: int = p.card_uids().size()
 	match p.kind:
-		&"pages":
+		&"reserve":
 			return "Each card you bring in swaps with a random card from your Life Deck."
 		&"non_combat":
 			return "Click a highlighted card to place it, then Done." if card_options > 0 else ""
@@ -372,8 +372,8 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 ## What the other player is doing, in terms that give nothing hidden away.
 func _waiting_hint(kind: StringName) -> String:
 	match kind:
-		&"pages":
-			return "They are setting up their Pages."
+		&"reserve":
+			return "They are setting up their Reserve."
 		&"non_combat":
 			return "They may place cards before deciding on Combat."
 		&"declare":

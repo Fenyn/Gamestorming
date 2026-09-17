@@ -30,7 +30,7 @@ const TYPE_ORDER: Array[CardDef.Type] = [
 @onready var might_tile: StatTile = $Column/Detail/Row/Info/Stats/Might
 @onready var surge_tile: StatTile = $Column/Detail/Row/Info/Stats/Surge
 @onready var life_tile: StatTile = $Column/Detail/Row/Info/Stats/Life
-@onready var pages_tile: StatTile = $Column/Detail/Row/Info/Stats/Pages
+@onready var reserve_tile: StatTile = $Column/Detail/Row/Info/Stats/Reserve
 @onready var aspects_box: VBoxContainer = $Column/Detail/Row/Info/Aspects
 @onready var comp_header: Label = $Column/Detail/Row/Info/CompHeader
 @onready var comp_bar: HBoxContainer = $Column/Detail/Row/Info/CompBar
@@ -256,8 +256,8 @@ func _show(d: DeckList) -> void:
 	var sides: PackedStringArray = PackedStringArray()
 	if d.mastery_id != "":
 		sides.append(_title(lib, d.mastery_id))
-	if d.grimoire_id != "":
-		sides.append("%s with %d Pages cards" % [_title(lib, d.grimoire_id), d.pages.size()])
+	if d.relic_id != "":
+		sides.append("%s with %d Reserve cards" % [_title(lib, d.relic_id), d.reserve.size()])
 	side_cards.text = "  ·  ".join(sides) if not sides.is_empty() else "None"
 	var problems: Array[String] = Session.deck_problems(d)
 	problems_label.visible = not problems.is_empty()
@@ -269,7 +269,7 @@ func _title(lib: CardLibrary, id: String) -> String:
 	return def.title if def != null else id
 
 
-## The four numbers that set a deck's ceiling: top Might, starting Surge, deck size, Pages.
+## The four numbers that set a deck's ceiling: top Might, starting Surge, deck size, Reserve.
 func _fill_stats(duelist: CardDef, d: DeckList) -> void:
 	var top_might: int = 0
 	var top_aspect: int = 0
@@ -289,7 +289,7 @@ func _fill_stats(duelist: CardDef, d: DeckList) -> void:
 	might_tile.set_stat("Top Might", CardText.short_number(top_might), "at %s" % CardText.aspect_name(top_aspect, duelist), ZenithTheme.MIGHT)
 	surge_tile.set_stat("Surge", str(first_surge), "Energy per turn", ZenithTheme.ENERGY)
 	life_tile.set_stat("Life Deck", str(d.cards.size()), "cards", ZenithTheme.TEXT)
-	pages_tile.set_stat("Pages", str(d.pages.size()), "swap-in cards", ZenithTheme.TEXT)
+	reserve_tile.set_stat("Reserve", str(d.reserve.size()), "swap-in cards", ZenithTheme.TEXT)
 
 
 func _fill_aspects(duelist: CardDef, aspects: int) -> void:

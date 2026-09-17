@@ -1,7 +1,7 @@
 extends SceneTree
-## Prints what the AI reads in each deck's setup cards and what it would bring in from the Pages
-## against each opponent, with the score of every Pages card.
-## godot --headless --path zenith -s tests/ai_pages_report.gd
+## Prints what the AI reads in each deck's setup cards and what it would bring in from the Reserve
+## against each opponent, with the score of every Reserve card.
+## godot --headless --path zenith -s tests/ai_reserve_report.gd
 
 
 func _init() -> void:
@@ -26,14 +26,14 @@ func _init() -> void:
 			e.setup(decks, lib, table, 1)
 			var profile: AiProfile = AiProfile.for_deck(decks[0], "")
 			if theirs == names[0]:
-				print("   reads as: %s" % str(AiPages.read_setup(e.player(0))))
+				print("   reads as: %s" % str(AiReserve.read_setup(e.player(0))))
 			var parts: PackedStringArray = PackedStringArray()
 			var seen: Dictionary = {}
-			for c in e.player(0).pages:
+			for c in e.player(0).reserve:
 				if seen.has(c.def.id):
 					continue
 				seen[c.def.id] = true
-				var s: float = AiPages.score(e, 0, c, profile)
+				var s: float = AiReserve.score(e, 0, c, profile)
 				parts.append("%s%s %s" % ["+" if s > 0.0 else "", c.def.title, "never" if s == -INF else "%.1f" % s])
 			print("   vs %-18s %s" % [theirs, ", ".join(parts)])
 	quit(0)

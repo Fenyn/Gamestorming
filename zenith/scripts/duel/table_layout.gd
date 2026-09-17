@@ -6,17 +6,17 @@ extends Node3D
 ## use, so they can never disagree.
 ##
 ## Near side, two rows plus the hand, on a grid with a 0.12 gutter between every outline:
-##   z 2.26   Mastery | Allies x5 | Fighter | Tokens x7 | Life Deck | Discard
-##   z 1.00   Master (Armory under it) | Drills x5 | Play (card in flight) | Non-Combats x5 | Removed
-##   Grounds lies across the centre line. Outer columns line up (Mastery over Master, Discard over
+##   z 2.26   Mastery | Allies x5 | Duelist | Seals x7 | Life Deck | Discard
+##   z 1.00   Grimoire (Pages under it) | Drills x5 | Play (card in flight) | Non-Combats x5 | Removed
+##   Grounds lies across the centre line. Outer columns line up (Mastery over Grimoire, Discard over
 ##   Removed, Allies over Drills) so the eye reads the table as a grid.
 ## Each outline holds its cards plus a label strip on the owner's edge, so a label is never
 ## covered by a card.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
 const ROW_STEP: float = 0.71          # card width plus a gap, for a row of full-size cards
-const TOKEN_STEP: float = 0.37
-const TOKEN_SCALE: float = 0.55
+const SEAL_STEP: float = 0.37
+const SEAL_SCALE: float = 0.55
 const HAND_STEP: float = 0.32
 const HAND_SCALE: float = 0.70
 const STACK_STEP: float = 0.0015
@@ -34,13 +34,13 @@ const ROWS: Dictionary = {
 	&"ally": {"marker": "AllyStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Allies"},
 	&"drill": {"marker": "DrillStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Drills"},
 	&"non_combat": {"marker": "NonCombatStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Non-Combat"},
-	&"token": {"marker": "TokenStart", "slots": 7, "step": TOKEN_STEP, "scale": TOKEN_SCALE, "label": "Royal Tokens"},
+	&"seal": {"marker": "SealStart", "slots": 7, "step": SEAL_STEP, "scale": SEAL_SCALE, "label": "Seals"},
 }
 ## Single-card zones: marker and label.
 const SINGLES: Dictionary = {
-	&"fighter": {"marker": "Fighter", "label": "Fighter"},
+	&"duelist": {"marker": "Duelist", "label": "Duelist"},
 	&"mastery": {"marker": "Mastery", "label": "Mastery"},
-	&"master": {"marker": "Master", "label": "Master · Armory"},
+	&"grimoire": {"marker": "Grimoire", "label": "Grimoire · Pages"},
 	&"life_deck": {"marker": "LifeDeck", "label": "Life Deck"},
 	&"discard": {"marker": "Discard", "label": "Discard"},
 	&"removed": {"marker": "Removed", "label": "Removed"},
@@ -77,9 +77,9 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 		match zone:
 			&"life_deck", &"discard", &"removed":
 				pos = marker(str(SINGLES[zone]["marker"])) + Vector3(0, STACK_STEP * index, 0)
-			&"master":
-				# Armory cards stack face down under the Master; index 0 is the Master itself.
-				pos = marker("Master") + Vector3(0, STACK_STEP * (count + 1 - index), 0)
+			&"grimoire":
+				# Pages cards stack face down under the Grimoire; index 0 is the Grimoire itself.
+				pos = marker("Grimoire") + Vector3(0, STACK_STEP * (count + 1 - index), 0)
 			&"hand":
 				var spread: float = HAND_STEP * (count - 1)
 				pos = marker("HandStart") + Vector3(HAND_STEP * index - spread * 0.5, 0.002 * index, 0)

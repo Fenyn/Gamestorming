@@ -11,7 +11,7 @@ script = ExtResource("1_side")
 
 [node name="Column" type="VBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="Header" type="HBoxContainer" parent="Column"]
 layout_mode = 2
@@ -30,14 +30,14 @@ placeholder_text = "Name"
 
 [node name="Tiles" type="VBoxContainer" parent="Column"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 3
 
 [node name="Empty" type="Label" parent="Column"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_type_variation = &"MutedLabel"
 theme_override_font_sizes/font_size = 16
-text = "Pick a house to see its fighter and deck."
+text = "Pick a duelist to see their deck."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -64,7 +64,7 @@ stretch_mode = 5
 [node name="Caption" type="Label" parent="Column/Detail/Row/PortraitBox"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Noticed  ·  click for the next tier"
+text = "Aspect 1  ·  click for the next aspect"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -73,17 +73,22 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="Fighter" type="Label" parent="Column/Detail/Row/Info"]
+[node name="Duelist" type="Label" parent="Column/Detail/Row/Info"]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
-text = "Fighter"
+text = "Duelist"
 
 [node name="Chips" type="HBoxContainer" parent="Column/Detail/Row/Info"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Guild" type="Label" parent="Column/Detail/Row/Info/Chips"]
+[node name="Archetype" type="Label" parent="Column/Detail/Row/Info/Chips"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Strike beatdown"
+
+[node name="School" type="Label" parent="Column/Detail/Row/Info/Chips"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Ember"
@@ -91,12 +96,19 @@ text = "Ember"
 [node name="Alignment" type="Label" parent="Column/Detail/Row/Info/Chips"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "Knave"
+text = "Pact"
 
 [node name="Mastery" type="Label" parent="Column/Detail/Row/Info/Chips"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Mastery"
+
+[node name="Plan" type="Label" parent="Column/Detail/Row/Info"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 13
+text = "Wins on wounds from a stream of Strikes."
+autowrap_mode = 3
 
 [node name="Stats" type="HBoxContainer" parent="Column/Detail/Row/Info"]
 layout_mode = 2
@@ -111,15 +123,15 @@ layout_mode = 2
 [node name="Life" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
 
-[node name="Armory" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
+[node name="Pages" parent="Column/Detail/Row/Info/Stats" instance=ExtResource("2_tile")]
 layout_mode = 2
 
-[node name="TiersHeader" type="Label" parent="Column/Detail/Row/Info"]
+[node name="AspectsHeader" type="Label" parent="Column/Detail/Row/Info"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "FAVOR TIERS"
+text = "ASCENSION ASPECTS"
 
-[node name="Tiers" type="VBoxContainer" parent="Column/Detail/Row/Info"]
+[node name="Aspects" type="VBoxContainer" parent="Column/Detail/Row/Info"]
 layout_mode = 2
 theme_override_constants/separation = 4
 

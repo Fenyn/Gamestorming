@@ -1,16 +1,16 @@
 {
-  "name": "House Ashmark",
-  "fighter": "fighter_alpha",
-  "tiers": 3,
+  "name": "Ashmark the Pyromancer",
+  "duelist": "duelist_alpha",
+  "aspects": 3,
   "style": "ember",
-  "alignment": "knave",
+  "alignment": "pact",
   "mastery": "ember_mastery",
-  "master": "master_north",
-  "armory": [
-    "kings_invitation",
-    "ember_vigor_orb",
-    "ember_vigor_orb",
-    "ember_vigor_orb",
+  "grimoire": "grimoire_north",
+  "pages": [
+    "open_challenge",
+    "ember_energy_orb",
+    "ember_energy_orb",
+    "ember_energy_orb",
     "champion_drill",
     "heel_kick",
     "heel_kick",
@@ -19,6 +19,11 @@
     "ember_passive_block",
     "ember_passive_block",
     "ember_passive_block"
+  ],
+  "archetype": "strike_beatdown",
+  "difficulty": "easy",
+  "subthemes": [
+    "fervor"
   ],
   "ai_profile": "ember_beatdown",
   "cards": [

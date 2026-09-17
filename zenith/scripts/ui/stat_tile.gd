@@ -1,7 +1,7 @@
 class_name StatTile
 extends PanelContainer
 ## One headline number: a small caps name, a big value in its role colour, an optional pip bar,
-## and a one-line note. Used wherever a game fundamental (Vigor, Might, Life) needs to be read
+## and a one-line note. Used wherever a game fundamental (Energy, Might, Life) needs to be read
 ## at a glance rather than found in a list.
 
 const PIP_SIZE: Vector2 = Vector2(7, 9)

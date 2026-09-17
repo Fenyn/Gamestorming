@@ -1,18 +1,24 @@
 {
-  "name": "House Vale",
-  "fighter": "fighter_zeta",
-  "tiers": 5,
+  "name": "Vale the Swordmaster",
+  "duelist": "duelist_zeta",
+  "aspects": 5,
   "style": "freestyle",
-  "alignment": "knight",
+  "alignment": "vigil",
   "mastery": "freestyle_mastery",
-  "master": "master_north",
-  "armory": [
-    "kings_invitation",
+  "grimoire": "grimoire_north",
+  "pages": [
+    "open_challenge",
     "doubt",
     "confusion_drill",
     "champion_drill",
     "fortune",
-    "sly_smirk"
+    "mutual_escalation"
+  ],
+  "archetype": "drills",
+  "difficulty": "medium",
+  "subthemes": [
+    "strikes",
+    "swords"
   ],
   "ai_profile": "freestyle_swords",
   "cards": [

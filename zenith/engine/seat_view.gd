@@ -32,22 +32,22 @@ func player(i: int) -> SeatPlayer:
 	return players[i]
 
 
-## Live Vigor for a personality in play that this seat can see, else -1.
-func live_vigor(uid: int) -> int:
+## Live Energy for a personality in play that this seat can see, else -1.
+func live_energy(uid: int) -> int:
 	var c: SeatCard = card(uid)
 	if c == null or c.hidden():
 		return -1
 	for p in players:
-		if p.fighter == uid or p.allies.has(uid):
-			return c.vigor
+		if p.duelist == uid or p.allies.has(uid):
+			return c.energy
 	return -1
 
 
-## The player whose fighter this card is, else null. Faces read Acclaim and the other effective
+## The player whose duelist this card is, else null. Faces read Fervor and the other effective
 ## values from it.
-func fighter_owner(uid: int) -> SeatPlayer:
+func duelist_owner(uid: int) -> SeatPlayer:
 	for p in players:
-		if p.fighter == uid:
+		if p.duelist == uid:
 			return p
 	return null
 

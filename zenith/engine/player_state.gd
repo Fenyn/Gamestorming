@@ -4,20 +4,22 @@ extends RefCounted
 
 var index: int = 0
 var name: String = ""
-var alignment: String = "knight"   # knight | knave
-var style: String = ""               # "freestyle" or a guild word, set by the Mastery
-var fighter: CardInstance = null
-var highest_tier: int = 1
-var acclaim: int = 0
-var acclaim_needed: int = DuelEngine.ACCLAIM_TO_TIER   # base; DuelEngine.acclaim_needed layers standing effects on top
+var alignment: String = "vigil"   # vigil | pact
+var style: String = ""               # "freestyle" or a school word, set by the Mastery
+var archetype: String = ""           # Archetype id the deck declares; public
+var subthemes: Array[String] = []    # Archetype subtheme ids; public
+var duelist: CardInstance = null
+var highest_aspect: int = 1
+var fervor: int = 0
+var fervor_needed: int = DuelEngine.FERVOR_TO_ASPECT   # base; DuelEngine.fervor_needed layers standing effects on top
 var mastery: CardInstance = null
-var master: CardInstance = null
-var armory: Array[CardInstance] = []
+var grimoire: CardInstance = null
+var pages: Array[CardInstance] = []
 var life_deck: Array[CardInstance] = []   # index 0 is the top
 var hand: Array[CardInstance] = []
 var discard: Array[CardInstance] = []     # last element is the top
 var removed: Array[CardInstance] = []
-var in_play: Array[CardInstance] = []     # allies, drills, non-combats, tokens (by controller)
+var in_play: Array[CardInstance] = []     # allies, drills, non-combats, seals (by controller)
 var controlling: CardInstance = null      # personality in control of Combat
 
 # Per-turn flags
@@ -29,9 +31,9 @@ var final_strike_used: bool = false
 var must_pass: bool = false
 var skip_next_attack_phase: bool = false
 # Cross-turn flags
-var token_victory_pending: bool = false
-var no_favor_win: bool = false          # a card effect forbade the Favor win for the game
-var master_uses: int = 0                # how many times the Master's power has been used
+var seal_victory_pending: bool = false
+var no_ascension_win: bool = false          # a card effect forbade the Ascension win for the game
+var grimoire_uses: int = 0                # how many times the Grimoire's power has been used
 var combat_cards_used_combat: int = -1  # last Combat in which this player used a Combat-type card
 var attack_count_combat: int = 0        # attacks performed this Combat (for "first attack" powers)
 var last_searched: int = -1             # uid of the last card a search put into hand or play
@@ -46,13 +48,15 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.name = name
 	p.alignment = alignment
 	p.style = style
-	p.fighter = _mapped(fighter, cards)
-	p.highest_tier = highest_tier
-	p.acclaim = acclaim
-	p.acclaim_needed = acclaim_needed
+	p.archetype = archetype
+	p.subthemes = subthemes.duplicate()
+	p.duelist = _mapped(duelist, cards)
+	p.highest_aspect = highest_aspect
+	p.fervor = fervor
+	p.fervor_needed = fervor_needed
 	p.mastery = _mapped(mastery, cards)
-	p.master = _mapped(master, cards)
-	p.armory = _mapped_list(armory, cards)
+	p.grimoire = _mapped(grimoire, cards)
+	p.pages = _mapped_list(pages, cards)
 	p.life_deck = _mapped_list(life_deck, cards)
 	p.hand = _mapped_list(hand, cards)
 	p.discard = _mapped_list(discard, cards)
@@ -65,9 +69,9 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.final_strike_used = final_strike_used
 	p.must_pass = must_pass
 	p.skip_next_attack_phase = skip_next_attack_phase
-	p.token_victory_pending = token_victory_pending
-	p.no_favor_win = no_favor_win
-	p.master_uses = master_uses
+	p.seal_victory_pending = seal_victory_pending
+	p.no_ascension_win = no_ascension_win
+	p.grimoire_uses = grimoire_uses
 	p.combat_cards_used_combat = combat_cards_used_combat
 	p.attack_count_combat = attack_count_combat
 	p.last_searched = last_searched
@@ -88,11 +92,11 @@ static func _mapped_list(list: Array[CardInstance], cards: Dictionary) -> Array[
 
 
 func in_control() -> CardInstance:
-	return controlling if controlling != null else fighter
+	return controlling if controlling != null else duelist
 
 
-func vigor() -> int:
-	return fighter.vigor
+func energy() -> int:
+	return duelist.energy
 
 
 func allies() -> Array[CardInstance]:
@@ -107,23 +111,23 @@ func non_combats() -> Array[CardInstance]:
 	return _of_type(CardDef.Type.NON_COMBAT)
 
 
-func tokens() -> Array[CardInstance]:
-	return _of_type(CardDef.Type.TOKEN)
+func seals() -> Array[CardInstance]:
+	return _of_type(CardDef.Type.SEAL)
 
 
-func tokens_of_set(set_name: String) -> int:
+func seals_of_set(set_name: String) -> int:
 	var n: int = 0
-	for c in tokens():
-		if c.def.token_set == set_name:
+	for c in seals():
+		if c.def.seal_set == set_name:
 			n += 1
 	return n
 
 
-## Guild word of the styled Drills in play, or "" if none.
-func drill_guild() -> String:
+## School word of the styled Drills in play, or "" if none.
+func drill_school() -> String:
 	for d in drills():
-		if d.def.guild != "":
-			return d.def.guild
+		if d.def.school != "":
+			return d.def.school
 	return ""
 
 
@@ -139,7 +143,7 @@ func reset_combat_flags() -> void:
 	final_strike_used = false
 	must_pass = false
 	skip_next_attack_phase = false
-	controlling = fighter
+	controlling = duelist
 	attack_count_combat = 0
 
 

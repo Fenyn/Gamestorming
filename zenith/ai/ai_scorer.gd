@@ -6,7 +6,7 @@ extends RefCounted
 ## and decks are scored without new code. Only call it on an engine the seat may hold.
 
 ## Options that mean "do nothing here". AiSearch always keeps one in its shortlist.
-const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"armory_done", &"discard_all", &"deal_damage"]
+const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"pages_done", &"discard_all", &"deal_damage"]
 
 
 ## One score per option of `engine.prompt`, in option order. Higher is better; 0 is "do nothing".
@@ -49,8 +49,8 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"use":
 			if c == null:
 				return 0.2
-			return effects_value(c.def.effects, profile, ["use", "secondary", "master_use"]) + _tier_jump_value(c, me, profile) - profile.w("play", "use_cost")
-		&"master":
+			return effects_value(c.def.effects, profile, ["use", "secondary", "grimoire_use"]) + _aspect_jump_value(c, me, profile) - profile.w("play", "use_cost")
+		&"grimoire":
 			return 1.0
 		&"defend", &"power_defend":
 			return _defense_score(engine, profile, me, o, c)
@@ -66,26 +66,30 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 			return -0.5
 		&"keep":
 			return 0.5 + hold_value(c, profile)
-		&"armory_in":
-			return -0.1
+		&"pages_in":
+			# Cards already swapped out are in the Pages but not on offer, which counts the swaps.
+			var swaps: int = me.pages.size() - prompt.card_options().size()
+			if c == null or swaps >= int(profile.w("pages", "max_swaps")):
+				return -1.0
+			return AiPages.score(engine, seat, c, profile)
 		&"counter":
 			return 1.5
 		&"control":
 			# Hand Combat to whoever hits hardest on the Strike Table.
 			if c == null:
 				return 0.0
-			return float(engine.strike_table.band(c.might())) + (profile.w("play", "control_ally") if c != me.fighter else 0.0)
+			return float(engine.strike_table.band(c.might())) + (profile.w("play", "control_ally") if c != me.duelist else 0.0)
 		&"target":
-			# Send damage at an Ally rather than the Fighter when one can take it.
-			return 1.0 if c != null and c != me.fighter else 0.0
+			# Send damage at an Ally rather than the Duelist when one can take it.
+			return 1.0 if c != null and c != me.duelist else 0.0
 		&"endure":
 			return 1.0
 		&"capture":
-			return profile.w("effect", "capture_token")
+			return profile.w("effect", "capture_seal")
 		&"discard_ally":
 			return profile.w("foe", "ally")
-		&"lower_acclaim":
-			return profile.w("effect", "acclaim") * (1.0 if foe.acclaim > 0 else 0.0)
+		&"lower_fervor":
+			return profile.w("effect", "fervor") * (1.0 if foe.fervor > 0 else 0.0)
 		&"recover":
 			return 1.0
 		&"pay":
@@ -160,17 +164,17 @@ static func _grounds_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 	return gain - _declare_score(profile, me) * profile.w("play", "grounds_skip")
 
 
-## A card that moves the fighter to the tier matching its Acclaim: worth the tiers gained, and a
-## loss when Acclaim is lower than the tier already held.
-static func _tier_jump_value(c: CardInstance, me: PlayerState, profile: AiProfile) -> float:
+## A card that moves the duelist to the aspect matching its Fervor: worth the aspects gained, and a
+## loss when Fervor is lower than the aspect already held.
+static func _aspect_jump_value(c: CardInstance, me: PlayerState, profile: AiProfile) -> float:
 	for raw in c.def.effects:
-		if raw is Dictionary and str((raw as Dictionary).get("op", "")) == "set_tier" and str((raw as Dictionary).get("tier", "")) == "acclaim" and str((raw as Dictionary).get("who", "self")) == "self":
-			var target: int = clampi(me.acclaim, me.fighter.def.lowest_tier(), me.highest_tier)
-			return float(target - me.fighter.tier) * profile.w("own", "tier")
+		if raw is Dictionary and str((raw as Dictionary).get("op", "")) == "set_aspect" and str((raw as Dictionary).get("aspect", "")) == "fervor" and str((raw as Dictionary).get("who", "self")) == "self":
+			var target: int = clampi(me.fervor, me.duelist.def.lowest_aspect(), me.highest_aspect)
+			return float(target - me.duelist.aspect) * profile.w("own", "aspect")
 	return 0.0
 
 
-## Paying Vigor into a card: worth it a few stages deep, not to the point of emptying the gauge.
+## Paying Energy into a card: worth it a few stages deep, not to the point of emptying the gauge.
 static func _pay_score(profile: AiProfile, o: Command) -> float:
 	var amount: int = int(o.value) if o.value != null else 0
 	if amount > 4:
@@ -185,7 +189,7 @@ static func _choice_sign(prompt: Prompt, seat: int) -> float:
 
 static func _pick_option_score(profile: AiProfile, o: Command, c: CardInstance) -> float:
 	if c != null:
-		# A search, a look at the top cards, a Token to capture: take the best card on offer.
+		# A search, a look at the top cards, a Seal to capture: take the best card on offer.
 		return 1.0 + hold_value(c, profile)
 	var word: String = str(o.value) if o.value != null else ""
 	if word == "yes":
@@ -213,8 +217,8 @@ static func hold_value(c: CardInstance, profile: AiProfile) -> float:
 			v += profile.w("own", "drill")
 		CardDef.Type.NON_COMBAT:
 			v += profile.w("own", "non_combat")
-		CardDef.Type.TOKEN:
-			v += profile.w("own", "token") / float(DuelEngine.TOKENS_PER_SET)
+		CardDef.Type.SEAL:
+			v += profile.w("own", "seal") / float(DuelEngine.SEALS_PER_SET)
 		CardDef.Type.GROUNDS:
 			v += 1.0
 	v += effects_value(def.effects, profile, []) * 0.5
@@ -259,14 +263,14 @@ static func _effect_value(e: Dictionary, profile: AiProfile) -> float:
 	if bool(e.get("all", false)):
 		amount = 2.0
 	match op:
-		"vigor":
-			return side * amount * profile.w("effect", "vigor")
-		"acclaim":
-			# A deck that wants to stay on its tier sets `acclaim_self`, often below zero.
+		"energy":
+			return side * amount * profile.w("effect", "energy")
+		"fervor":
+			# A deck that wants to stay on its aspect sets `fervor_self`, often below zero.
 			var effect_weights: Dictionary = profile.data["effect"]
-			if not on_foe and effect_weights.has("acclaim_self"):
-				return amount * profile.w("effect", "acclaim_self")
-			return side * amount * profile.w("effect", "acclaim")
+			if not on_foe and effect_weights.has("fervor_self"):
+				return amount * profile.w("effect", "fervor_self")
+			return side * amount * profile.w("effect", "fervor")
 		"draw", "draw_until", "draw_discard":
 			return side * amount * profile.w("effect", "draw")
 		"search", "look_at", "return_removed":
@@ -289,8 +293,8 @@ static func _effect_value(e: Dictionary, profile: AiProfile) -> float:
 			return profile.w("effect", "stop_all")
 		"attach", "bond":
 			return profile.w("effect", "attach")
-		"capture_token":
-			return profile.w("effect", "capture_token")
-		"set_vigor":
-			return -side * (5.0 - amount) * profile.w("effect", "vigor")
+		"capture_seal":
+			return profile.w("effect", "capture_seal")
+		"set_energy":
+			return -side * (5.0 - amount) * profile.w("effect", "energy")
 	return profile.w("effect", "other")

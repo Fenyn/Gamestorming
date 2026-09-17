@@ -1,0 +1,215 @@
+{
+  "name": "The Thornwald Grove",
+  "duelist": "duelist_eta",
+  "aspects": 5,
+  "style": "root",
+  "alignment": "vigil",
+  "mastery": "root_mastery",
+  "grimoire": "",
+  "pages": [],
+  "archetype": "seals",
+  "difficulty": "medium",
+  "subthemes": [
+    "arts",
+    "drills"
+  ],
+  "ai_profile": "root_seals",
+  "cards": [
+    {
+      "id": "winter_fields",
+      "count": 3
+    },
+    {
+      "id": "marble_seal_1",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_2",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_3",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_4",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_5",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_6",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_7",
+      "count": 1
+    },
+    {
+      "id": "windfall",
+      "count": 1
+    },
+    {
+      "id": "laid_plans",
+      "count": 1
+    },
+    {
+      "id": "thin_smile",
+      "count": 1
+    },
+    {
+      "id": "borrowed_gauge",
+      "count": 1
+    },
+    {
+      "id": "sleight",
+      "count": 1
+    },
+    {
+      "id": "eyes_beyond_the_gate",
+      "count": 1
+    },
+    {
+      "id": "seal_seizure",
+      "count": 3
+    },
+    {
+      "id": "fortune",
+      "count": 1
+    },
+    {
+      "id": "dashed_plans",
+      "count": 1
+    },
+    {
+      "id": "gates_boon",
+      "count": 1
+    },
+    {
+      "id": "kins_rescue",
+      "count": 1
+    },
+    {
+      "id": "anticipation",
+      "count": 1
+    },
+    {
+      "id": "keepers_drill",
+      "count": 3
+    },
+    {
+      "id": "guardian_drill",
+      "count": 1
+    },
+    {
+      "id": "absorbing_drill",
+      "count": 1
+    },
+    {
+      "id": "quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "root_preparation_drill",
+      "count": 1
+    },
+    {
+      "id": "challenge",
+      "count": 3
+    },
+    {
+      "id": "interrupt",
+      "count": 3
+    },
+    {
+      "id": "dream_duel",
+      "count": 3
+    },
+    {
+      "id": "grand_sweep",
+      "count": 2
+    },
+    {
+      "id": "overwhelming_aura",
+      "count": 1
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "root_energy_focus",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "ironclad_stance",
+      "count": 1
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "energy_veil",
+      "count": 1
+    },
+    {
+      "id": "schooled_block",
+      "count": 2
+    },
+    {
+      "id": "leg_catch",
+      "count": 3
+    },
+    {
+      "id": "root_energy_deflection",
+      "count": 3
+    },
+    {
+      "id": "root_energy_catch",
+      "count": 3
+    },
+    {
+      "id": "root_firm_stance",
+      "count": 2
+    },
+    {
+      "id": "root_bolt",
+      "count": 3
+    },
+    {
+      "id": "root_dash",
+      "count": 3
+    },
+    {
+      "id": "root_destruction_blast",
+      "count": 3
+    },
+    {
+      "id": "root_dragon_blast",
+      "count": 3
+    },
+    {
+      "id": "power_burst",
+      "count": 3
+    },
+    {
+      "id": "blinding_flare",
+      "count": 3
+    },
+    {
+      "id": "sun_flare",
+      "count": 3
+    },
+    {
+      "id": "timely_advice",
+      "count": 1
+    }
+  ]
+}

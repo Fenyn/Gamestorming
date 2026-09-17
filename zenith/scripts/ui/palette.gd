@@ -2,11 +2,11 @@ class_name Palette
 extends RefCounted
 ## Shared colors for card frames and UI accents.
 ##
-## Each guild owns a hue with a gap on the wheel to its neighbours, so no two read alike at a
+## Each school owns a hue with a gap on the wheel to its neighbours, so no two read alike at a
 ## glance: Ember scarlet, Root leaf green, Tide sea teal, Storm electric indigo, Shade plum,
 ## Steel the one bright silver, Freestyle warm bronze.
 
-const GUILD_COLORS: Dictionary = {
+const SCHOOL_COLORS: Dictionary = {
 	"": Color(0.58, 0.44, 0.26),
 	"ember": Color(0.74, 0.20, 0.10),
 	"tide": Color(0.08, 0.44, 0.54),
@@ -15,17 +15,17 @@ const GUILD_COLORS: Dictionary = {
 	"steel": Color(0.70, 0.74, 0.80),
 	"root": Color(0.20, 0.50, 0.22),
 }
-const FIGHTER_COLOR: Color = Color(0.62, 0.48, 0.14)
-const TOKEN_COLOR: Color = Color(0.55, 0.45, 0.10)
+const DUELIST_COLOR: Color = Color(0.62, 0.48, 0.14)
+const SEAL_COLOR: Color = Color(0.55, 0.45, 0.10)
 const GROUNDS_COLOR: Color = Color(0.30, 0.34, 0.26)
 const BACK_COLOR: Color = Color(0.12, 0.10, 0.16)
 const TABLE_COLOR: Color = Color(0.16, 0.14, 0.12)
 const HIGHLIGHT: Color = Color(1.0, 0.85, 0.30, 0.55)
 
 
-## Guild colour lifted for use as text or a chip on the dark UI. Frame colours are too dark there.
-static func guild_ui(guild: String) -> Color:
-	match guild:
+## School colour lifted for use as text or a chip on the dark UI. Frame colours are too dark there.
+static func school_ui(school: String) -> Color:
+	match school:
 		"":
 			return Color(0.86, 0.72, 0.50)
 		"ember":
@@ -41,17 +41,17 @@ static func guild_ui(guild: String) -> Color:
 		"root":
 			return Color(0.50, 0.78, 0.46)
 		_:
-			return GUILD_COLORS.get(guild, GUILD_COLORS[""]).lightened(0.3)
+			return SCHOOL_COLORS.get(school, SCHOOL_COLORS[""]).lightened(0.3)
 
 
 ## UI colour for a card type, used for deck composition bars and type icons on the dark UI.
 static func type_ui(type: CardDef.Type) -> Color:
 	match type:
-		CardDef.Type.FIGHTER:
+		CardDef.Type.DUELIST:
 			return Color(0.95, 0.80, 0.40)
 		CardDef.Type.MASTERY:
 			return Color(0.80, 0.62, 0.90)
-		CardDef.Type.MASTER:
+		CardDef.Type.GRIMOIRE:
 			return Color(0.72, 0.60, 0.48)
 		CardDef.Type.STRIKE:
 			return Color(0.88, 0.55, 0.40)
@@ -65,7 +65,7 @@ static func type_ui(type: CardDef.Type) -> Color:
 			return Color(0.40, 0.66, 0.90)
 		CardDef.Type.ALLY:
 			return Color(0.86, 0.69, 0.27)
-		CardDef.Type.TOKEN:
+		CardDef.Type.SEAL:
 			return Color(0.95, 0.85, 0.45)
 		CardDef.Type.GROUNDS:
 			return Color(0.55, 0.62, 0.45)
@@ -82,11 +82,11 @@ static func type_ink(type: CardDef.Type) -> Color:
 
 static func frame_color(def: CardDef) -> Color:
 	match def.type:
-		CardDef.Type.FIGHTER:
-			return FIGHTER_COLOR
-		CardDef.Type.TOKEN:
-			return TOKEN_COLOR
+		CardDef.Type.DUELIST:
+			return DUELIST_COLOR
+		CardDef.Type.SEAL:
+			return SEAL_COLOR
 		CardDef.Type.GROUNDS:
 			return GROUNDS_COLOR
 		_:
-			return GUILD_COLORS.get(def.guild, GUILD_COLORS[""])
+			return SCHOOL_COLORS.get(def.school, SCHOOL_COLORS[""])

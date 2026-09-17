@@ -17,10 +17,12 @@ func _init(p_profile: AiProfile = null, seed_value: int = 1) -> void:
 
 ## The command to submit for `seat`, or {} when the pending decision is not this seat's.
 func choose(referee: Referee, seat: int) -> Dictionary:
-	if referee.is_over() or referee.prompt_for(seat) == null:
+	var pending: PromptView = referee.prompt_for(seat)
+	if referee.is_over() or pending == null:
 		return {}
 	var cmd: Command = null
-	if profile.searches():
+	# The Pages swap is judged by AiPages; a playout to the end of the turn says nothing about it.
+	if profile.searches() and pending.kind != &"pages":
 		cmd = search.choose(referee, seat, profile, rng)
 	else:
 		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), profile, rng)

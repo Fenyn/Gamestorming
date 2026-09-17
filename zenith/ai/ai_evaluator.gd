@@ -2,7 +2,7 @@ class_name AiEvaluator
 extends RefCounted
 ## How good a position is for one seat, as a single number. It reads generic state only, never
 ## card ids, so any deck can be judged. Each win route is its own term (Life Decks for survival,
-## Acclaim and tiers for Favor, Tokens for the set win) and a profile turns routes up or down.
+## Fervor and aspects for Ascension, Seals for the set win) and a profile turns routes up or down.
 ## Only call this on an engine the seat may hold (Referee.sim_for).
 
 const WIN: float = 1000.0
@@ -22,15 +22,15 @@ static func side_value(engine: DuelEngine, p: PlayerState, profile: AiProfile, g
 	v += life * profile.w(group, "life")
 	v -= maxi(0, 10 - life) * profile.w(group, "life_low")
 	v += p.discard.size() * profile.w(group, "discard")
-	v += p.fighter.vigor * profile.w(group, "vigor")
+	v += p.duelist.energy * profile.w(group, "energy")
 	v += engine.strike_table.band(p.in_control().might()) * profile.w(group, "band")
 	v += p.hand.size() * profile.w(group, "hand")
-	v += p.fighter.tier * profile.w(group, "tier")
-	v += favor_progress(engine, p) * profile.w(group, "favor")
-	v += climb_progress(engine, p) * profile.w(group, "acclaim")
-	v += token_progress(p) * profile.w(group, "token")
+	v += p.duelist.aspect * profile.w(group, "aspect")
+	v += ascension_progress(engine, p) * profile.w(group, "ascension")
+	v += climb_progress(engine, p) * profile.w(group, "fervor")
+	v += seal_progress(p) * profile.w(group, "seal")
 	for al in p.allies():
-		v += profile.w(group, "ally") + al.vigor * profile.w(group, "ally_vigor")
+		v += profile.w(group, "ally") + al.energy * profile.w(group, "ally_energy")
 	v += p.drills().size() * profile.w(group, "drill")
 	v += p.non_combats().size() * profile.w(group, "non_combat")
 	v += p.attachments().size() * profile.w(group, "attachment")
@@ -77,7 +77,7 @@ static func _grounds_card_fit(card: CardDef, def: CardDef) -> float:
 			fit -= 1.0
 		elif what == "drills" and card.type == CardDef.Type.DRILL:
 			fit -= 1.0
-		elif what == "tokens" and card.type == CardDef.Type.TOKEN:
+		elif what == "seals" and card.type == CardDef.Type.SEAL:
 			fit -= 1.0
 		elif what == "combat_cards" and card.type == CardDef.Type.COMBAT:
 			fit -= 1.0
@@ -91,42 +91,42 @@ static func _grounds_card_fit(card: CardDef, def: CardDef) -> float:
 	for raw in def.effects:
 		var e: Dictionary = raw
 		if str(e.get("op", "")) == "search" and CardDef.TYPE_NAMES.get(str(e.get("card_type", "")), -1) == card.type:
-			var guild: String = str(e.get("guild", "*"))
-			if guild == "*" or guild == card.guild:
+			var school: String = str(e.get("school", "*"))
+			if school == "*" or school == card.school:
 				fit += 1.0
 	return fit
 
 
-## 0 to 1, how far along the Favor win this player is. Squared so the last steps count most.
-static func favor_progress(engine: DuelEngine, p: PlayerState) -> float:
-	if p.no_favor_win:
+## 0 to 1, how far along the Ascension win this player is. Squared so the last steps count most.
+static func ascension_progress(engine: DuelEngine, p: PlayerState) -> float:
+	if p.no_ascension_win:
 		return 0.0
-	var needed: int = maxi(1, engine.acclaim_needed(p))
-	var lowest: int = p.fighter.def.lowest_tier()
-	var tiers: int = maxi(1, p.highest_tier - lowest + 1)
-	var done: float = float(p.fighter.tier - lowest) + clampf(float(p.acclaim) / float(needed), 0.0, 1.0)
-	var part: float = clampf(done / float(tiers), 0.0, 1.0)
+	var needed: int = maxi(1, engine.fervor_needed(p))
+	var lowest: int = p.duelist.def.lowest_aspect()
+	var aspects: int = maxi(1, p.highest_aspect - lowest + 1)
+	var done: float = float(p.duelist.aspect - lowest) + clampf(float(p.fervor) / float(needed), 0.0, 1.0)
+	var part: float = clampf(done / float(aspects), 0.0, 1.0)
 	return part * part
 
 
-## 0 to 1, how far the Acclaim meter is toward the next tier. 0 at the top tier. Unlike
-## `favor_progress` this still counts for a deck that cannot win by Favor and climbs for the
-## better tier power.
+## 0 to 1, how far the Fervor meter is toward the next aspect. 0 at the top aspect. Unlike
+## `ascension_progress` this still counts for a deck that cannot win by Ascension and climbs for the
+## better aspect power.
 static func climb_progress(engine: DuelEngine, p: PlayerState) -> float:
-	if p.fighter.tier >= p.highest_tier:
+	if p.duelist.aspect >= p.highest_aspect:
 		return 0.0
-	return clampf(float(p.acclaim) / float(maxi(1, engine.acclaim_needed(p))), 0.0, 1.0)
+	return clampf(float(p.fervor) / float(maxi(1, engine.fervor_needed(p))), 0.0, 1.0)
 
 
-## 0 to 1, how close this player is to a full Token set. Squared for the same reason.
-static func token_progress(p: PlayerState) -> float:
-	if p.token_victory_pending:
+## 0 to 1, how close this player is to a full Seal set. Squared for the same reason.
+static func seal_progress(p: PlayerState) -> float:
+	if p.seal_victory_pending:
 		return 1.5
 	var best: int = 0
 	var counted: Dictionary = {}
-	for t in p.tokens():
-		var set_name: String = t.def.token_set
+	for t in p.seals():
+		var set_name: String = t.def.seal_set
 		counted[set_name] = int(counted.get(set_name, 0)) + 1
 		best = maxi(best, int(counted[set_name]))
-	var part: float = float(best) / float(DuelEngine.TOKENS_PER_SET)
+	var part: float = float(best) / float(DuelEngine.SEALS_PER_SET)
 	return part * part

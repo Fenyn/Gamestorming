@@ -224,7 +224,7 @@ func _show_prompt_for_viewer() -> void:
 	hud.hide_peek()
 	var source: SeatCard = view.card(int(prompt.context.get("source", -1)))
 	if source != null and not source.hidden():
-		hud.show_peek(_def(source), source.tier, source.uid)
+		hud.show_peek(_def(source), source.aspect, source.uid)
 	if _dev_autoplay:
 		_dev_step()
 
@@ -373,7 +373,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var v: Card3D = views.get(target)
 			var pos: Vector3 = _card_pos(target)
 			fx.burst(pos, ZenithTheme.ATTACK)
-			fx.float_text(pos, "-%d Vigor" % stages, ZenithTheme.WARN, 80)
+			fx.float_text(pos, "-%d Energy" % stages, ZenithTheme.WARN, 80)
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
 				await v.shake()
@@ -398,18 +398,18 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			fx.ring(pos, ZenithTheme.DEFEND, 0.8)
 			fx.float_text(pos, "Endurance %d" % int(data.get("prevented", 0)), ZenithTheme.DEFEND, 56)
 			await _fly(int(data.get("card", -1)), targets)
-		&"token_bypassed":
-			fx.float_text(_card_pos(int(data.get("card", -1))), "Token stays", ZenithTheme.ACCENT, 48)
+		&"seal_bypassed":
+			fx.float_text(_card_pos(int(data.get("card", -1))), "Seal stays", ZenithTheme.ACCENT, 48)
 			await _beat(BEAT)
-		&"token_captured":
+		&"seal_captured":
 			var uid: int = int(data.get("card", -1))
 			await _fly(uid, targets)
 			var pos: Vector3 = _card_pos(uid)
 			fx.ring(pos, ZenithTheme.ACCENT, 0.7)
 			fx.burst(pos, ZenithTheme.ACCENT, 20, 1.6)
-			hud.toast("Royal Token captured", ZenithTheme.ACCENT)
+			hud.toast("Seal captured", ZenithTheme.ACCENT)
 			await _beat(TOAST_BEAT)
-		&"critical_acclaim":
+		&"critical_fervor":
 			hud.toast("Critical damage", ZenithTheme.WARN)
 			await _beat(TOAST_BEAT)
 		&"attack_end":
@@ -422,28 +422,28 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"combat_end":
 			_refresh_roles()
 		&"power_up", &"recover":
-			var uid: int = view.player(player).fighter
-			await _number(uid, "+%d Vigor" % int(data.get("gain", 0)), ZenithTheme.VIGOR)
-		&"vigor_changed":
+			var uid: int = view.player(player).duelist
+			await _number(uid, "+%d Energy" % int(data.get("gain", 0)), ZenithTheme.ENERGY)
+		&"energy_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
-				await _number(int(data.get("card", -1)), "%+d Vigor" % delta, ZenithTheme.VIGOR if delta > 0 else ZenithTheme.WARN)
-		&"acclaim_changed":
+				await _number(int(data.get("card", -1)), "%+d Energy" % delta, ZenithTheme.ENERGY if delta > 0 else ZenithTheme.WARN)
+		&"fervor_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
-				await _number(view.player(player).fighter, "%+d Acclaim" % delta, ZenithTheme.ACCENT if delta > 0 else ZenithTheme.WARN)
-		&"acclaim_shielded":
-			fx.float_text(_card_pos(view.player(player).fighter), "Shielded", ZenithTheme.DEFEND, 48)
-		&"tier_up", &"tier_down":
-			var uid: int = view.player(player).fighter
+				await _number(view.player(player).duelist, "%+d Fervor" % delta, ZenithTheme.ACCENT if delta > 0 else ZenithTheme.WARN)
+		&"fervor_shielded":
+			fx.float_text(_card_pos(view.player(player).duelist), "Shielded", ZenithTheme.DEFEND, 48)
+		&"aspect_up", &"aspect_down":
+			var uid: int = view.player(player).duelist
 			var pos: Vector3 = _card_pos(uid)
-			var up: bool = type == &"tier_up"
+			var up: bool = type == &"aspect_up"
 			fx.ring(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, 1.3)
 			fx.burst(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, 36, 2.6)
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.ACCENT if up else ZenithTheme.WARN)
-			hud.toast("%s %s to %s" % [view.player(player).name, "rises" if up else "falls", CardText.tier_name(int(data.get("tier", 1)))], ZenithTheme.ACCENT if up else ZenithTheme.WARN)
+			hud.toast("%s %s to %s" % [view.player(player).name, "rises" if up else "falls", CardText.aspect_name(int(data.get("aspect", 1)), _duelist_def(player))], ZenithTheme.ACCENT if up else ZenithTheme.WARN)
 			if v != null:
 				await v.hop(0.2)
 			await _beat(TOAST_BEAT)
@@ -533,7 +533,7 @@ func _refresh_roles() -> void:
 		var color: Color = Color(0, 0, 0, 0)
 		if attacker >= 0:
 			color = ZenithTheme.ATTACK if p.index == attacker else ZenithTheme.DEFEND
-		var personalities: Array[int] = [p.fighter]
+		var personalities: Array[int] = [p.duelist]
 		personalities.append_array(p.allies)
 		for uid in personalities:
 			var v: Card3D = views.get(uid)
@@ -634,7 +634,7 @@ func _on_card_hovered(uid: int, over: bool) -> void:
 	if c == null or c.hidden():
 		hud.hide_peek()
 		return
-	hud.show_peek(_def(c), c.tier, uid)
+	hud.show_peek(_def(c), c.aspect, uid)
 
 
 func _on_card_inspected(uid: int) -> void:
@@ -643,11 +643,17 @@ func _on_card_inspected(uid: int) -> void:
 	var c: SeatCard = view.card(uid)
 	if c == null or c.hidden():
 		return
-	hud.show_inspect(_def(c), c.tier, uid)
+	hud.show_inspect(_def(c), c.aspect, uid)
 
 
 func _def(c: SeatCard) -> CardDef:
 	return Session.library.defs.get(c.def_id)
+
+
+## The duelist card of a seat, for its Aspect titles. Null while the view has no such card.
+func _duelist_def(player: int) -> CardDef:
+	var c: SeatCard = view.card(view.player(player).duelist)
+	return _def(c) if c != null else null
 
 
 ## One Card3D per uid the view knows, with the face the view allows (a back for hidden cards).
@@ -670,9 +676,9 @@ func _adopt_cards() -> void:
 		var def: CardDef = _def(c)
 		if def == null:
 			continue
-		var key: String = CardFaceCache.key_for(def, c.tier)
+		var key: String = CardFaceCache.key_for(def, c.aspect)
 		if str(_face_keys.get(uid, "")) != key:
-			v.set_face_texture(faces.face(def, c.tier))
+			v.set_face_texture(faces.face(def, c.aspect))
 			_face_keys[uid] = key
 
 
@@ -697,17 +703,17 @@ func _targets() -> Dictionary:
 			out[p.drills[i]] = [zones.slot(p.index, &"drill", i, p.drills.size(), vw), true, true]
 		for i in range(p.non_combats.size()):
 			out[p.non_combats[i]] = [zones.slot(p.index, &"non_combat", i, p.non_combats.size(), vw), true, true]
-		for i in range(p.tokens.size()):
-			out[p.tokens[i]] = [zones.slot(p.index, &"token", i, p.tokens.size(), vw), true, true]
-		out[p.fighter] = [zones.slot(p.index, &"fighter", 0, 1, vw), true, true]
+		for i in range(p.seals.size()):
+			out[p.seals[i]] = [zones.slot(p.index, &"seal", i, p.seals.size(), vw), true, true]
+		out[p.duelist] = [zones.slot(p.index, &"duelist", 0, 1, vw), true, true]
 		if p.mastery >= 0:
 			out[p.mastery] = [zones.slot(p.index, &"mastery", 0, 1, vw), true, true]
-		var armory_n: int = p.armory.size()
-		if p.master >= 0:
-			out[p.master] = [zones.slot(p.index, &"master", 0, armory_n, vw), true, true]
-		for i in range(armory_n):
-			# Armory cards sit face down under the Master; only their owner sees them in the prompt.
-			out[p.armory[i]] = [zones.slot(p.index, &"master", i + 1, armory_n, vw), false, true]
+		var pages_n: int = p.pages.size()
+		if p.grimoire >= 0:
+			out[p.grimoire] = [zones.slot(p.index, &"grimoire", 0, pages_n, vw), true, true]
+		for i in range(pages_n):
+			# Pages cards sit face down under the Grimoire; only their owner sees them in the prompt.
+			out[p.pages[i]] = [zones.slot(p.index, &"grimoire", i + 1, pages_n, vw), false, true]
 	if view.grounds >= 0:
 		out[view.grounds] = [zones.slot(0, &"grounds", 0, 1, vw), true, true]
 	for uid in view.resolving:
@@ -716,13 +722,13 @@ func _targets() -> Dictionary:
 	return out
 
 
-## Vigor marks on fighters and Allies in play, Acclaim on the fighter.
+## Energy marks on duelists and Allies in play, Fervor on the duelist.
 func _refresh_markers() -> void:
-	var wanted: Dictionary = {}   # uid -> [vigor, SeatPlayer or null]
+	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null]
 	for p in view.players:
-		wanted[p.fighter] = [view.card(p.fighter).vigor, p]
+		wanted[p.duelist] = [view.card(p.duelist).energy, p]
 		for uid in p.allies:
-			wanted[uid] = [view.card(uid).vigor, null]
+			wanted[uid] = [view.card(uid).energy, null]
 	for uid in _markers.keys():
 		if not wanted.has(uid):
 			(_markers[uid] as StatusMarkers).queue_free()
@@ -800,12 +806,12 @@ func _clear_highlights() -> void:
 
 func _reason_text(reason: String) -> String:
 	match reason:
-		"favor":
-			return "The king's Favor, at its peak, ends the duel."
-		"token":
-			return "All seven Royal Tokens held. The king crowns the victor."
+		"ascension":
+			return "Full Ascension. The site answers to its Eidolarch."
+		"seal":
+			return "All seven Seals carved. The gate opens for its Eidolarch."
 		_:
-			return "The rival can fight no more."
+			return "The rival's mind gives out."
 
 
 # --- Dev driving ----------------------------------------------------------
@@ -817,13 +823,13 @@ func _dev_step() -> void:
 	if _dev_stop_kind != &"" and _dev_stop_matches():
 		for arg in OS.get_cmdline_user_args():
 			# Open the inspect view so a face can be read at full size: the first hand card, or
-			# `--dev-zoom=fighter` for the viewer's fighter, `--dev-zoom=rival` for the other one.
+			# `--dev-zoom=duelist` for the viewer's duelist, `--dev-zoom=rival` for the other one.
 			if arg == "--dev-zoom" and not _hand_cards().is_empty():
 				_on_card_inspected(_hand_cards()[0].uid)
-			elif arg == "--dev-zoom=fighter":
-				_on_card_inspected(view.player(viewer).fighter)
+			elif arg == "--dev-zoom=duelist":
+				_on_card_inspected(view.player(viewer).duelist)
 			elif arg == "--dev-zoom=rival":
-				_on_card_inspected(view.player(1 - viewer).fighter)
+				_on_card_inspected(view.player(1 - viewer).duelist)
 			elif arg.begins_with("--dev-zoom="):
 				# Any visible card by definition id, for face checks of cards not in hand.
 				for c in view.visible_cards():
@@ -832,8 +838,8 @@ func _dev_step() -> void:
 						break
 			elif arg == "--dev-peek" and not _hand_cards().is_empty():
 				_on_card_hovered(_hand_cards()[0].uid, true)
-			elif arg == "--dev-peek=fighter":
-				_on_card_hovered(view.player(viewer).fighter, true)
+			elif arg == "--dev-peek=duelist":
+				_on_card_hovered(view.player(viewer).duelist, true)
 			elif arg == "--dev-log":
 				hud.set_log_expanded(true)
 			elif arg == "--dev-panel":

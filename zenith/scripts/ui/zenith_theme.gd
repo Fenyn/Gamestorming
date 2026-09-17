@@ -5,16 +5,16 @@ extends RefCounted
 ## TileButton, Chip (Panel).
 ##
 ## Colour roles. Gold is reserved for "act here": the current step, legal cards, primary buttons,
-## Acclaim. Green is Vigor. Warm red is an attack in progress, blue a defence. Orange is a warning
-## the player must read (a deck problem, a must-pass flag). Guild colours mark identity only.
+## Fervor. Green is Energy. Warm red is an attack in progress, blue a defence. Orange is a warning
+## the player must read (a deck problem, a must-pass flag). School colours mark identity only.
 
 const BG: Color = Color(0.08, 0.08, 0.10, 0.90)
 const BG_INPUT: Color = Color(0.0, 0.0, 0.0, 0.35)
 const BORDER: Color = Color(1.0, 1.0, 1.0, 0.10)
 const ACCENT: Color = Color(0.86, 0.69, 0.27)
 const ACCENT_SOFT: Color = Color(0.86, 0.69, 0.27, 0.30)
-const VIGOR: Color = Color(0.36, 0.76, 0.58)
-const VIGOR_SOFT: Color = Color(0.36, 0.76, 0.58, 0.22)
+const ENERGY: Color = Color(0.36, 0.76, 0.58)
+const ENERGY_SOFT: Color = Color(0.36, 0.76, 0.58, 0.22)
 const MIGHT: Color = Color(0.78, 0.82, 0.90)
 const ATTACK: Color = Color(0.90, 0.38, 0.30)
 const ATTACK_SOFT: Color = Color(0.90, 0.38, 0.30, 0.22)
@@ -115,7 +115,7 @@ static func build() -> Theme:
 	t.set_stylebox("focus", "RichTextLabel", StyleBoxEmpty.new())
 
 	t.set_stylebox("background", "ProgressBar", box(Color(1, 1, 1, 0.08), Color(0, 0, 0, 0), 4, 0, 0, 0))
-	t.set_stylebox("fill", "ProgressBar", box(VIGOR, Color(0, 0, 0, 0), 4, 0, 0, 0))
+	t.set_stylebox("fill", "ProgressBar", box(ENERGY, Color(0, 0, 0, 0), 4, 0, 0, 0))
 
 	t.set_stylebox("normal", "LineEdit", box(BG_INPUT, BORDER, 6, 1, 10, 6))
 	t.set_stylebox("focus", "LineEdit", box(BG_INPUT, ACCENT, 6, 1, 10, 6))
@@ -137,7 +137,7 @@ static func build() -> Theme:
 	return t
 
 
-## Small rounded square used for Vigor and Acclaim pips.
+## Small rounded square used for Energy and Fervor pips.
 static func pip(filled: bool, color: Color, round: bool = false) -> StyleBoxFlat:
 	var b: StyleBoxFlat = StyleBoxFlat.new()
 	b.bg_color = color if filled else Color(1, 1, 1, 0.10)
@@ -156,7 +156,7 @@ static func chip(label: Label, color: Color, filled: bool = false) -> void:
 		label.add_theme_color_override("font_color", color.lightened(0.15))
 
 
-## Panel style with a coloured left edge, used to tag a block with a guild or a state.
+## Panel style with a coloured left edge, used to tag a block with a school or a state.
 ## StyleBoxFlat has one border colour, so the edge is the only border drawn.
 static func edged(edge: Color, bg: Color = BG, radius: int = 12, pad_x: int = 14, pad_y: int = 12) -> StyleBoxFlat:
 	var b: StyleBoxFlat = box(bg, edge, radius, 0, pad_x, pad_y)

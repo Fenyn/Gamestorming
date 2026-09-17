@@ -3,27 +3,33 @@ extends RefCounted
 ## A deck as a player builds it. Card ids only; the engine instantiates them.
 
 var name: String = "Deck"
-var fighter_id: String = ""
-var tiers: int = 3
-var style: String = ""             # "freestyle" or a guild word; must match the Mastery
-var alignment: String = "knight"
+var duelist_id: String = ""
+var aspects: int = 3
+var style: String = ""             # "freestyle" or a school word; must match the Mastery
+var alignment: String = "vigil"
 var mastery_id: String = ""
-var master_id: String = ""
-var armory: Array[String] = []
-var ai_profile: String = ""        # playstyle file under data/ai/profiles for an AI playing this deck; "" plays the defaults
+var grimoire_id: String = ""
+var pages: Array[String] = []
+var archetype: String = ""         # an Archetype id: what kind of deck this is, shown to both players
+var subthemes: Array[String] = []  # Archetype subtheme ids
+var difficulty: String = ""        # easy | medium | hard to pilot
+var ai_profile: String = ""      # playstyle file under data/ai/profiles for an AI playing this deck; "" plays the defaults
 var cards: Array[String] = []   # expanded, one entry per copy
 
 
 static func from_dict(d: Dictionary) -> DeckList:
 	var deck: DeckList = DeckList.new()
 	deck.name = str(d.get("name", "Deck"))
-	deck.fighter_id = str(d.get("fighter", ""))
-	deck.tiers = int(d.get("tiers", 3))
+	deck.duelist_id = str(d.get("duelist", ""))
+	deck.aspects = int(d.get("aspects", 3))
 	deck.style = str(d.get("style", ""))
-	deck.alignment = str(d.get("alignment", "knight"))
+	deck.alignment = str(d.get("alignment", "vigil"))
 	deck.mastery_id = str(d.get("mastery", ""))
-	deck.master_id = str(d.get("master", ""))
-	deck.armory.assign(d.get("armory", []))
+	deck.grimoire_id = str(d.get("grimoire", ""))
+	deck.pages.assign(d.get("pages", []))
+	deck.archetype = str(d.get("archetype", ""))
+	deck.subthemes.assign(d.get("subthemes", []))
+	deck.difficulty = str(d.get("difficulty", ""))
 	deck.ai_profile = str(d.get("ai_profile", ""))
 	var entries: Array = d.get("cards", [])
 	for entry in entries:
@@ -44,11 +50,11 @@ static func load_from(path: String) -> DeckList:
 	return DeckList.from_dict(parsed)
 
 
-## Cards that count toward deck size: Life Deck, Fighter tiers, Mastery, Master.
+## Cards that count toward deck size: Life Deck, Duelist aspects, Mastery, Grimoire.
 func total_cards() -> int:
-	var n: int = cards.size() + tiers
+	var n: int = cards.size() + aspects
 	if mastery_id != "":
 		n += 1
-	if master_id != "":
+	if grimoire_id != "":
 		n += 1
 	return n

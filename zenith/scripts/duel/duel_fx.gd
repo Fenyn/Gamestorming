@@ -98,7 +98,7 @@ func slash(from: Vector3, to: Vector3, color: Color) -> void:
 	t.tween_callback(m.queue_free)
 
 
-## A ring that spreads out from `pos` and fades: a shield going up, a token changing hands.
+## A ring that spreads out from `pos` and fades: a shield going up, a seal changing hands.
 func ring(pos: Vector3, color: Color, size: float = 1.0) -> void:
 	var torus: TorusMesh = TorusMesh.new()
 	torus.inner_radius = 0.30

@@ -1,16 +1,21 @@
 {
   "name": "The Draik Company",
-  "fighter": "fighter_delta",
-  "tiers": 3,
+  "duelist": "duelist_delta",
+  "aspects": 3,
   "style": "shade",
-  "alignment": "knave",
+  "alignment": "pact",
   "mastery": "shade_mastery",
-  "master": "master_south",
-  "armory": [
+  "grimoire": "grimoire_south",
+  "pages": [
     "doubt",
     "shade_pivot_kick",
     "shade_pivot_kick",
     "shade_pivot_kick"
+  ],
+  "archetype": "allies",
+  "difficulty": "easy",
+  "subthemes": [
+    "disruption"
   ],
   "ai_profile": "shade_henchmen",
   "cards": [
@@ -39,11 +44,11 @@
       "count": 1
     },
     {
-      "id": "crown_token_3",
+      "id": "sun_seal_3",
       "count": 1
     },
     {
-      "id": "crown_token_5",
+      "id": "sun_seal_5",
       "count": 1
     },
     {

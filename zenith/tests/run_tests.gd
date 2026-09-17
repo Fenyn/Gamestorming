@@ -28,7 +28,7 @@ func _init() -> void:
 		test_setup_and_first_turn,
 		test_surge_has_no_style_bonus,
 		test_non_combat_placement,
-		test_drill_guild_lock,
+		test_drill_school_lock,
 		test_grounds_forces_skip_and_recover,
 		test_strike_damage_and_fight_back,
 		test_drill_and_mastery_modifiers,
@@ -38,20 +38,20 @@ func _init() -> void:
 		test_guard_cannot_stop_focused,
 		test_shield_drill_once_per_combat,
 		test_endurance,
-		test_acclaim_tier_up,
-		test_power_not_refreshed_by_tier_change,
-		test_favor_win_and_gating,
+		test_fervor_aspect_up,
+		test_power_not_refreshed_by_aspect_change,
+		test_ascension_win_and_gating,
 		test_pass_flow_discard_and_next_turn,
 		test_deck_out_loses,
-		test_token_bypass_and_instant_win,
+		test_seal_bypass_and_instant_win,
 		test_capture_and_pending_win,
 		test_critical_damage_choices,
 		test_final_strike_forces_pass,
 		test_ally_control_and_redirect,
 		test_end_combat_effect,
 		test_random_hand_discard,
-		test_armory_swap,
-		test_armory_batch,
+		test_pages_swap,
+		test_pages_batch,
 		test_bracket_first_player,
 		test_search_and_in_play_discard,
 		test_if_stopped,
@@ -65,42 +65,42 @@ func _init() -> void:
 		test_attack_forecasts_in_view,
 		test_attach_to_named_character,
 		test_multiplier_cap_and_no_reduce,
-		test_tokens_immune_unless_named,
+		test_seals_immune_unless_named,
 		test_end_combat_card_is_no_defense,
 		test_locked_out_drill_shuffles_back,
 		test_look_at_rearrange,
 		test_attachment_modifier,
 		test_constant_power,
-		test_master_use,
+		test_grimoire_use,
 		test_start_in_play,
 		test_pay_stages,
 		test_name_card,
 		test_copied_attack,
 		test_prevent_all_and_no_prevent,
-		test_master_shields,
-		test_set_tier,
+		test_grimoire_shields,
+		test_set_aspect,
 		test_draw_until_and_draw_discard,
 		test_search_to_play,
 		test_attack_variants,
 		test_owner_chooses_discard,
 		test_stop_next,
 		test_only_attacks,
-		test_vigor_without_overflow,
+		test_energy_without_overflow,
 		test_use_in_attack_phase,
 		test_may_prompt,
-		test_pay_vigor,
+		test_pay_energy,
 		test_look_at,
 		test_search_choice,
 		test_before_damage_skip,
 		test_stops_needed,
 		test_ally_power_without_control,
-		test_life_per_opponent_token,
+		test_life_per_opponent_seal,
 		test_lonely_drill,
 		test_unused_remain_returns,
 		test_return_removed,
 		test_last_searched_target,
-		test_forbid_unless_vigor,
-		test_forced_combat_from_armory,
+		test_forbid_unless_energy,
+		test_forced_combat_from_pages,
 		test_promoted_if_successful,
 		test_draw_check_named,
 		test_search_looks_through_the_deck,
@@ -126,19 +126,26 @@ func _init() -> void:
 		test_non_combat_defense_is_spent,
 		test_no_defense_after_final_strike,
 		test_skipped_phase_does_not_end_combat,
-		test_master_in_combat,
+		test_grimoire_in_combat,
 		test_capture_instead_of_damage,
 		test_last_attack_in_view,
 		test_outcome_lines_and_titles,
 		test_constant_keyed_triggers,
-		test_token_power_on_place_and_capture,
+		test_seal_power_on_place_and_capture,
 		test_used_non_combat_is_spent,
+		test_discard_draw_check_and_otherwise,
+		test_search_to_deck_and_from_hand,
+		test_fervor_cap_seal_guard_and_kept_card,
+		test_success_non_combat_and_set_seal_damage,
+		test_root_deck_is_legal,
 		test_clone_plays_identically,
 		test_clone_is_independent,
 		test_sim_for_hides_and_keeps,
 		test_ai_answers_every_prompt,
 		test_ai_search_reports_and_is_repeatable,
 		test_ai_evaluator_routes,
+		test_ai_pages_swaps,
+		test_archetype_label,
 		test_ai_profile_merge,
 	]
 	for t in tests:
@@ -163,13 +170,13 @@ func eq(actual: Variant, expected: Variant, msg: String) -> void:
 	check(actual == expected, "%s: expected %s, got %s" % [msg, str(expected), str(actual)])
 
 
-func deck(cards: Array[String], alignment: String = "knight", style: String = "", mastery: String = "", tiers: int = 3, fighter: String = "tf_knight", master: String = "", armory: Array[String] = []) -> DeckList:
+func deck(cards: Array[String], alignment: String = "vigil", style: String = "", mastery: String = "", aspects: int = 3, duelist: String = "tf_vigil", grimoire: String = "", pages: Array[String] = []) -> DeckList:
 	var d: DeckList = DeckList.new()
-	d.master_id = master
-	d.armory = armory.duplicate()
+	d.grimoire_id = grimoire
+	d.pages = pages.duplicate()
 	d.name = "Test %s" % alignment
-	d.fighter_id = fighter
-	d.tiers = tiers
+	d.duelist_id = duelist
+	d.aspects = aspects
 	d.style = style
 	d.alignment = alignment
 	d.mastery_id = mastery
@@ -260,7 +267,7 @@ func skip_to_turn(e: DuelEngine, turn: int) -> void:
 
 func test_library_and_strike_table() -> void:
 	check(lib.defs.size() >= 30, "fixture cards loaded")
-	eq(lib.get_def("tf_knight").highest_tier(), 3, "knight tiers")
+	eq(lib.get_def("tf_vigil").highest_aspect(), 3, "vigil aspects")
 	eq(table.band(0), 0, "band A")
 	eq(table.band(1), 1, "band B starts at 1")
 	eq(table.band(4000000), 4, "band E")
@@ -276,9 +283,9 @@ func test_deck_list_and_validator() -> void:
 	eq(d.total_cards(), 50, "fixture deck size")
 	var problems: Array[String] = DeckValidator.validate(d, lib)
 	eq(problems.size(), 0, "fixture deck legal: %s" % ", ".join(problems))
-	var bad: DeckList = deck(["t_strike", "t_art"], "knight", "ember", "t_mastery_ember")
+	var bad: DeckList = deck(["t_strike", "t_art"], "vigil", "ember", "t_mastery_ember")
 	var bad_problems: Array[String] = DeckValidator.validate(bad, lib)
-	check(bad_problems.size() >= 2, "small mixed-guild deck rejected: %s" % ", ".join(bad_problems))
+	check(bad_problems.size() >= 2, "small mixed-school deck rejected: %s" % ", ".join(bad_problems))
 
 
 func test_shipped_decks_are_legal() -> void:
@@ -316,37 +323,37 @@ func test_shipped_decks_are_legal() -> void:
 
 
 func test_setup_and_first_turn() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
-	eq(e.state.active, 0, "knight goes first")
-	eq(e.player(1).fighter.vigor, 5, "opposing starts at 5")
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	eq(e.state.active, 0, "vigil goes first")
+	eq(e.player(1).duelist.energy, 5, "opposing starts at 5")
 	eq(e.player(0).hand.size(), 3, "active drew 3")
 	eq(e.player(1).hand.size(), 0, "opposing has no opening hand")
 	eq(prompt_kind(e), &"declare", "no placeables skips straight to declare")
-	eq(e.player(0).fighter.vigor, 8, "power up by surge 2 plus the flat Style bonus")
+	eq(e.player(0).duelist.energy, 8, "power up by surge 2 plus the flat Style bonus")
 
 
 func test_surge_has_no_style_bonus() -> void:
-	var e: DuelEngine = engine(deck(filler(), "knight", "ember", "t_mastery_ember"), deck(filler(), "knave"))
-	eq(e.player(0).fighter.vigor, 8, "the Surge bonus is flat, the Mastery adds nothing on top")
+	var e: DuelEngine = engine(deck(filler(), "vigil", "ember", "t_mastery_ember"), deck(filler(), "pact"))
+	eq(e.player(0).duelist.energy, 8, "the Surge bonus is flat, the Mastery adds nothing on top")
 	eq(e.player(0).style, "ember", "the deck's Style reaches the player")
 
 
 func test_non_combat_placement() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_token_1", "t_noncombat_draw"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_seal_1", "t_noncombat_draw"])), deck(filler(), "pact"))
 	eq(prompt_kind(e), &"non_combat", "placement prompt")
 	eq(e.prompt.options.size(), 4, "three placeables plus done")
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
-	answer(e, &"place", uid_in_hand(e, 0, "t_token_1"))
-	eq(e.player(0).acclaim, 1, "token power resolved on placement")
+	answer(e, &"place", uid_in_hand(e, 0, "t_seal_1"))
+	eq(e.player(0).fervor, 1, "seal power resolved on placement")
 	answer(e, &"place", uid_in_hand(e, 0, "t_noncombat_draw"))
 	eq(e.player(0).drills().size(), 1, "drill in play")
-	eq(e.player(0).tokens().size(), 1, "token in play")
+	eq(e.player(0).seals().size(), 1, "seal in play")
 	eq(e.player(0).non_combats().size(), 1, "non-combat in play")
 	eq(prompt_kind(e), &"declare", "empty hand moves on to declare")
 
 
-func test_drill_guild_lock() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_drill_shield", "t_drill_strike"])), deck(filler(), "knave"))
+func test_drill_school_lock() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_drill_shield", "t_drill_strike"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	var tide: int = uid_in_hand(e, 0, "t_drill_shield")
 	check(e.prompt.find(&"place", tide) == null, "tide drill locked out by ember drill")
@@ -355,7 +362,7 @@ func test_drill_guild_lock() -> void:
 
 
 func test_grounds_forces_skip_and_recover() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_grounds", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_grounds", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_grounds"))
 	check(e.state.grounds != null, "grounds in play")
 	eq(prompt_kind(e), &"keep", "combat skipped, discard prompt")
@@ -371,74 +378,74 @@ func test_grounds_forces_skip_and_recover() -> void:
 
 
 func test_strike_damage_and_fight_back() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	to_combat(e)
 	eq(e.player(1).hand.size(), 3, "opposing drew 3 at combat")
 	eq(prompt_kind(e), &"attack_action", "attack prompt")
 	eq(e.prompt.player, 0, "active attacks first")
 	var s: int = uid_in_hand(e, 0, "t_strike")
 	answer(e, &"attack", s)
-	eq(e.player(1).fighter.vigor, 3, "vigor 7 vs 5 deals 2 stages")
+	eq(e.player(1).duelist.energy, 3, "energy 7 vs 5 deals 2 stages")
 	eq(prompt_kind(e), &"attack_action", "fight back")
 	eq(e.prompt.player, 1, "defender now attacks")
 	eq(e.card(s).zone, &"discard", "strike discarded after use")
 
 
 func test_drill_and_mastery_modifiers() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "knight", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art", "t_art"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
-	# vigor 8 (surge 2 + 1) -> might 6.5M band F vs 4.0M band E = 2, +1 drill, +1 mastery
-	eq(e.player(1).fighter.vigor, 1, "drill and mastery add 2 stages")
+	# energy 8 (surge 2 + 1) -> might 6.5M band F vs 4.0M band E = 2, +1 drill, +1 mastery
+	eq(e.player(1).duelist.energy, 1, "drill and mastery add 2 stages")
 
 
 func test_stage_overflow_to_life() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	to_combat(e)
-	e.player(1).fighter.vigor = 1
+	e.player(1).duelist.energy = 1
 	var deck_before: int = e.player(1).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
-	# attacker 6.0M band F vs defender at vigor 1 = 900k band C: 4 stages, 1 absorbed, 3 overflow
-	eq(e.player(1).fighter.vigor, 0, "vigor floors at 0")
+	# attacker 6.0M band F vs defender at energy 1 = 900k band C: 4 stages, 1 absorbed, 3 overflow
+	eq(e.player(1).duelist.energy, 0, "energy floors at 0")
 	eq(e.player(1).discard.size(), 3, "three stages overflowed to life cards")
 	eq(e.player(1).life_deck.size(), deck_before - 3, "life deck shrank by three")
 
 
 func test_art_cost_and_damage() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
-	eq(e.player(0).fighter.vigor, 6, "art cost 2 vigor from 8")
+	eq(e.player(0).duelist.energy, 6, "art cost 2 energy from 8")
 	eq(e.player(1).discard.size(), 4, "art dealt 4 wounds")
-	e.player(0).fighter.vigor = 1
+	e.player(0).duelist.energy = 1
 	answer(e, &"pass")
 	eq(e.prompt.player, 0, "back to the active player")
-	check(e.prompt.find(&"attack", uid_in_hand(e, 0, "t_art")) == null, "cannot afford an art at vigor 1")
+	check(e.prompt.find(&"attack", uid_in_hand(e, 0, "t_art")) == null, "cannot afford an art at energy 1")
 
 
 func test_parry_stops_strike() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	eq(prompt_kind(e), &"defense", "defense prompt")
 	var parry: int = uid_in_hand(e, 1, "t_parry")
 	answer(e, &"defend", parry)
 	check(has_event(e, &"attack_stopped"), "attack stopped")
-	eq(e.player(1).fighter.vigor, 5, "no damage")
+	eq(e.player(1).duelist.energy, 5, "no damage")
 	eq(e.card(parry).zone, &"discard", "parry discarded")
 
 
 func test_guard_cannot_stop_focused() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike_focused", "t_strike_focused", "t_strike_focused"])), deck(filler(["t_guard", "t_guard", "t_guard"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike_focused", "t_strike_focused", "t_strike_focused"])), deck(filler(["t_guard", "t_guard", "t_guard"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_focused"))
 	eq(prompt_kind(e), &"attack_action", "no defense possible, straight to fight back")
-	eq(e.player(1).fighter.vigor, 3, "focused strike landed")
+	eq(e.player(1).duelist.energy, 3, "focused strike landed")
 
 
 func test_shield_drill_once_per_combat() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "pact"))
 	inject(e, 1, "t_drill_shield")
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
@@ -450,7 +457,7 @@ func test_shield_drill_once_per_combat() -> void:
 
 
 func test_endurance() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(["t_parry", "t_parry", "t_parry", "t_strike_endure"]), "knave", "tide", "t_mastery_tide"))
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(["t_parry", "t_parry", "t_parry", "t_strike_endure"]), "pact", "tide", "t_mastery_tide"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
 	eq(prompt_kind(e), &"endurance", "endurance prompt on the flipped card")
@@ -460,56 +467,56 @@ func test_endurance() -> void:
 	eq(prompt_kind(e), &"attack_action", "battle finished")
 
 
-func test_acclaim_tier_up() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_taunt", "t_strike"])), deck(filler(), "knave"))
+func test_fervor_aspect_up() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_taunt", "t_strike"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	to_combat(e)
-	e.player(0).acclaim = 4
+	e.player(0).fervor = 4
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
-	eq(e.player(0).fighter.tier, 2, "tier up at 5 acclaim")
-	eq(e.player(0).fighter.vigor, 10, "vigor to full on tier up")
-	eq(e.player(0).acclaim, 0, "acclaim reset, no carry-over")
-	eq(e.player(0).drills().size(), 0, "drills discarded on tier up")
-	check(not e.is_over(), "tier 2 of 3 is not a win")
+	eq(e.player(0).duelist.aspect, 2, "aspect up at 5 fervor")
+	eq(e.player(0).duelist.energy, 10, "energy to full on aspect up")
+	eq(e.player(0).fervor, 0, "fervor reset, no carry-over")
+	eq(e.player(0).drills().size(), 0, "drills discarded on aspect up")
+	check(not e.is_over(), "aspect 2 of 3 is not a win")
 
 
-## A Fighter Power is once per turn; rising a tier mid-Combat does not hand out a second use.
-func test_power_not_refreshed_by_tier_change() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(), "knave"))
+## A Duelist Power is once per turn; rising an aspect mid-Combat does not hand out a second use.
+func test_power_not_refreshed_by_aspect_change() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var me: PlayerState = e.player(0)
-	check(e._power_available(me, me.fighter), "power fresh at the first attack")
-	answer(e, &"power", me.fighter.uid)
-	check(not e._power_available(me, me.fighter), "used this turn")
-	me.acclaim = 4
+	check(e._power_available(me, me.duelist), "power fresh at the first attack")
+	answer(e, &"power", me.duelist.uid)
+	check(not e._power_available(me, me.duelist), "used this turn")
+	me.fervor = 4
 	answer(e, &"pass")
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
-	eq(me.fighter.tier, 2, "rose a tier mid-Combat")
-	check(not e._power_available(me, me.fighter), "the new tier's Power waits for the next turn")
+	eq(me.duelist.aspect, 2, "rose an aspect mid-Combat")
+	check(not e._power_available(me, me.duelist), "the new aspect's Power waits for the next turn")
 	skip_to_turn(e, 3)
-	check(e._power_available(me, me.fighter), "fresh again on the owner's next turn")
+	check(e._power_available(me, me.duelist), "fresh again on the owner's next turn")
 
 
-func test_favor_win_and_gating() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(), "knave"))
+func test_ascension_win_and_gating() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
-	e.player(0).fighter.tier = 2
-	e.player(0).acclaim = 4
-	e.player(1).highest_tier = 5
+	e.player(0).duelist.aspect = 2
+	e.player(0).fervor = 4
+	e.player(1).highest_aspect = 5
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
-	eq(e.player(0).fighter.tier, 3, "reached own top tier")
-	eq(e.player(0).acclaim, 0, "acclaim resets on the climb")
-	check(not e.is_over(), "reaching the top tier is not yet the win")
-	e.player(0).acclaim = 4
+	eq(e.player(0).duelist.aspect, 3, "reached own top aspect")
+	eq(e.player(0).fervor, 0, "fervor resets on the climb")
+	check(not e.is_over(), "reaching the top aspect is not yet the win")
+	e.player(0).fervor = 4
 	answer(e, &"pass")
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
-	check(e.is_over(), "full acclaim at the own top tier ends the duel, whatever the rival's stack")
-	eq(e.state.winner, 0, "favor winner")
-	eq(e.state.win_reason, "favor", "favor reason")
+	check(e.is_over(), "full fervor at the own top aspect ends the duel, whatever the rival's stack")
+	eq(e.state.winner, 0, "ascension winner")
+	eq(e.state.win_reason, "ascension", "ascension reason")
 
 
 func test_pass_flow_discard_and_next_turn() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"pass")
 	eq(e.prompt.player, 1, "opponent's attack phase")
@@ -528,118 +535,118 @@ func test_pass_flow_discard_and_next_turn() -> void:
 
 
 func test_deck_out_loses() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(["t_strike", "t_strike"], "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(["t_strike", "t_strike"], "pact"))
 	to_combat(e)
 	check(e.is_over(), "drawing from an empty deck ends the game")
 	eq(e.state.winner, 0, "player 1 lost by survival")
 	eq(e.state.win_reason, "survival", "survival reason")
 
 
-func test_token_bypass_and_instant_win() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(["t_parry", "t_parry", "t_parry", "t_token_2"]), "knave"))
+func test_seal_bypass_and_instant_win() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(["t_parry", "t_parry", "t_parry", "t_seal_2"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
-	eq(e.player(1).discard.size(), 4, "token did not count as a wound")
-	eq(e.player(1).life_deck.back().def.id, "t_token_2", "token went to the deck bottom")
+	eq(e.player(1).discard.size(), 4, "seal did not count as a wound")
+	eq(e.player(1).life_deck.back().def.id, "t_seal_2", "seal went to the deck bottom")
 	# Instant win on placing the seventh yourself.
-	var e2: DuelEngine = engine(deck(filler(["t_token_7"])), deck(filler(), "knave"))
+	var e2: DuelEngine = engine(deck(filler(["t_seal_7"])), deck(filler(), "pact"))
 	for i in range(1, 7):
-		inject(e2, 0, "t_token_%d" % i)
-	answer(e2, &"place", uid_in_hand(e2, 0, "t_token_7"))
-	check(e2.is_over(), "seventh token placed wins")
-	eq(e2.state.win_reason, "token", "token reason")
+		inject(e2, 0, "t_seal_%d" % i)
+	answer(e2, &"place", uid_in_hand(e2, 0, "t_seal_7"))
+	check(e2.is_over(), "seventh seal placed wins")
+	eq(e2.state.win_reason, "seal", "seal reason")
 
 
 func test_capture_and_pending_win() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "knave"))
-	var t: CardInstance = inject(e, 1, "t_token_7")
+	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
+	var t: CardInstance = inject(e, 1, "t_seal_7")
 	for i in range(1, 7):
-		inject(e, 0, "t_token_%d" % i)
+		inject(e, 0, "t_seal_%d" % i)
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
 	eq(prompt_kind(e), &"critical", "five wounds are critical damage")
 	answer(e, &"capture", t.uid)
-	eq(t.controller, 0, "token changed hands")
+	eq(t.controller, 0, "seal changed hands")
 	if prompt_kind(e) == &"pick_option":
-		answer(e, &"pick_option", -1, "no")   # the captured Token's power is optional
-	eq(e.player(0).tokens().size(), 7, "seven tokens held")
+		answer(e, &"pick_option", -1, "no")   # the captured Seal's power is optional
+	eq(e.player(0).seals().size(), 7, "seven seals held")
 	check(not e.is_over(), "captured seventh does not win at once")
-	check(e.player(0).token_victory_pending, "victory pending")
+	check(e.player(0).seal_victory_pending, "victory pending")
 	skip_to_turn(e, 3)
 	check(e.is_over(), "win at the start of the capturing player's next turn")
-	eq(e.state.win_reason, "token", "token reason")
+	eq(e.state.win_reason, "seal", "seal reason")
 
 
-## Critical damage (5+ wounds in one attack) offers a Token, an Ally, or the rival's Acclaim.
+## Critical damage (5+ wounds in one attack) offers a Seal, an Ally, or the rival's Fervor.
 func test_critical_damage_choices() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "knave", "", "", 3, "tf_shepherd", "t_master_shield"))
+	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_grimoire_shield"))
 	var squire: CardInstance = inject(e, 1, "t_ally_squire")
 	check(e._ally_protected(e.player(1)), "the rival's constant protects Allies from card effects")
-	check(e.acclaim_shielded(e.player(1)), "the rival's Master shields Acclaim from card effects")
-	e.player(1).acclaim = 2
+	check(e.fervor_shielded(e.player(1)), "the rival's Grimoire shields Fervor from card effects")
+	e.player(1).fervor = 2
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
 	eq(prompt_kind(e), &"redirect", "the defender may hand the damage to the ally first")
-	answer(e, &"target", e.player(1).fighter.uid)
-	eq(prompt_kind(e), &"critical", "critical prompt with no Tokens in play")
+	answer(e, &"target", e.player(1).duelist.uid)
+	eq(prompt_kind(e), &"critical", "critical prompt with no Seals in play")
 	var kinds: Array[StringName] = []
 	for o in e.prompt.options:
 		kinds.append(o.type)
-	check(kinds.has(&"discard_ally") and kinds.has(&"lower_acclaim") and kinds.has(&"no_critical"), "ally, acclaim and decline offered; protection is for card effects only")
-	check(not kinds.has(&"capture"), "no Token to capture")
+	check(kinds.has(&"discard_ally") and kinds.has(&"lower_fervor") and kinds.has(&"no_critical"), "ally, fervor and decline offered; protection is for card effects only")
+	check(not kinds.has(&"capture"), "no Seal to capture")
 	answer(e, &"discard_ally", squire.uid)
 	eq(e.player(1).allies().size(), 0, "the ally is discarded")
 	check(has_event(e, &"critical_ally"), "critical_ally event")
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
 	eq(prompt_kind(e), &"critical", "second critical hit")
-	answer(e, &"lower_acclaim")
-	eq(e.player(1).acclaim, 1, "rival acclaim lowered by 1")
+	answer(e, &"lower_fervor")
+	eq(e.player(1).fervor, 1, "rival fervor lowered by 1")
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
 	eq(prompt_kind(e), &"critical", "third critical hit")
-	answer(e, &"lower_acclaim")
-	eq(e.player(1).acclaim, 0, "acclaim floors at 0")
-	var wounded: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "knave"))
+	answer(e, &"lower_fervor")
+	eq(e.player(1).fervor, 0, "fervor floors at 0")
+	var wounded: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
 	to_combat(wounded)
 	answer(wounded, &"attack", uid_in_hand(wounded, 0, "t_strike_wound"))
 	check(prompt_kind(wounded) != &"critical", "nothing to take means no prompt")
 
 
 func test_final_strike_forces_pass() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_taunt"])), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_taunt"])), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	to_combat(e)
 	var fodder: int = uid_in_hand(e, 0, "t_taunt")
 	answer(e, &"final_strike", fodder)
 	eq(e.card(fodder).zone, &"discard", "fodder discarded")
-	eq(e.player(1).fighter.vigor, 3, "final strike used the table")
+	eq(e.player(1).duelist.energy, 3, "final strike used the table")
 	check(e.player(0).must_pass, "must pass afterwards")
 	answer(e, &"pass")
 	check(has_event(e, &"combat_end"), "forced pass ended combat")
 
 
 func test_ally_control_and_redirect() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_ally_squire", "t_taunt", "t_taunt"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire", "t_taunt", "t_taunt"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_squire"))
 	var ally: CardInstance = e.player(0).allies()[0]
-	eq(ally.vigor, 4, "ally enters at 3 and powers up 1")
+	eq(ally.energy, 4, "ally enters at 3 and powers up 1")
 	to_combat(e)
-	e.player(0).fighter.vigor = 1
-	ally.vigor = 3
+	e.player(0).duelist.energy = 1
+	ally.energy = 3
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
-	eq(prompt_kind(e), &"control", "control prompt at vigor 1 with an ally")
+	eq(prompt_kind(e), &"control", "control prompt at energy 1 with an ally")
 	answer(e, &"control", ally.uid)
 	eq(prompt_kind(e), &"redirect", "redirect prompt")
 	answer(e, &"target", ally.uid)
 	# attacker 4.0M band E vs ally might 300k band B = 4 stages: 3 to the ally, 1 wound
-	eq(ally.vigor, 0, "ally absorbed the stages")
+	eq(ally.energy, 0, "ally absorbed the stages")
 	eq(e.player(0).discard.size(), 1, "overflow wound taken from the owner's deck")
-	eq(e.player(0).fighter.vigor, 1, "fighter untouched")
+	eq(e.player(0).duelist.energy, 1, "duelist untouched")
 
 
 func test_end_combat_effect() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_truce", "t_truce", "t_truce"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_truce", "t_truce", "t_truce"])), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_truce"))
 	check(has_event(e, &"combat_end"), "truce ended combat")
@@ -647,7 +654,7 @@ func test_end_combat_effect() -> void:
 
 
 func test_random_hand_discard() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_scout", "t_scout", "t_scout"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_scout", "t_scout", "t_scout"])), deck(filler(), "pact"))
 	to_combat(e)
 	eq(e.player(1).hand.size(), 3, "opponent drew 3")
 	answer(e, &"use", uid_in_hand(e, 0, "t_scout"))
@@ -655,41 +662,41 @@ func test_random_hand_discard() -> void:
 	eq(e.player(1).discard.size(), 2, "they went to the discard pile")
 
 
-func test_armory_swap() -> void:
-	var armory: Array[String] = ["t_art", "t_taunt"]
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_knight", "t_master", armory), deck(filler(), "knave"))
-	eq(prompt_kind(e), &"armory", "setup opens with the armory prompt")
+func test_pages_swap() -> void:
+	var pages: Array[String] = ["t_art", "t_taunt"]
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"pages", "setup opens with the pages prompt")
 	eq(e.prompt.player, 0, "active player swaps first")
-	var art_uid: int = e.player(0).armory[0].uid
+	var art_uid: int = e.player(0).pages[0].uid
 	var deck_before: int = e.player(0).life_deck.size()
-	answer(e, &"armory_in", art_uid)
-	eq(e.card(art_uid).zone, &"life_deck", "armory card entered the life deck")
+	answer(e, &"pages_in", art_uid)
+	eq(e.card(art_uid).zone, &"life_deck", "pages card entered the life deck")
 	for ev in e.events:
-		if ev.type == &"armory_swap":
+		if ev.type == &"pages_swap":
 			check(CardText.event_line(ev, e, 0).contains("Test Art"), "the swapping seat's log names the card")
-			check(CardText.event_line(ev, e, 1) == "%s brings a card in from the Armory." % e.player(0).name, "the other seat's log does not: %s" % CardText.event_line(ev, e, 1))
-	eq(e.player(0).armory.size(), 2, "a random life card took its place")
+			check(CardText.event_line(ev, e, 1) == "%s brings a card in from the Pages." % e.player(0).name, "the other seat's log does not: %s" % CardText.event_line(ev, e, 1))
+	eq(e.player(0).pages.size(), 2, "a random life card took its place")
 	eq(e.player(0).life_deck.size(), deck_before, "deck size unchanged")
-	check(e.prompt.find(&"armory_in", e.player(0).armory[1].uid) == null, "the swapped-out card cannot come straight back")
-	answer(e, &"armory_done")
-	eq(e.state.turn, 1, "opponent without an armory is skipped and the first turn begins")
+	check(e.prompt.find(&"pages_in", e.player(0).pages[1].uid) == null, "the swapped-out card cannot come straight back")
+	answer(e, &"pages_done")
+	eq(e.state.turn, 1, "opponent without Pages is skipped and the first turn begins")
 	eq(e.player(0).hand.size(), 3, "normal draw followed")
 
 
-## Several Armory cards can come in as one batch command; the batch must stay inside the
+## Several Pages cards can come in as one batch command; the batch must stay inside the
 ## options, and the wire form the referee sees carries the same list.
-func test_armory_batch() -> void:
-	var armory: Array[String] = ["t_art", "t_taunt", "t_parry"]
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_knight", "t_master", armory), deck(filler(), "knave"))
-	eq(e.prompt.batch_type, &"armory_in", "the armory prompt takes a batch")
-	eq(e.prompt.batch_max, 3, "up to every armory card")
-	var a: int = e.player(0).armory[0].uid
-	var b: int = e.player(0).armory[1].uid
+func test_pages_batch() -> void:
+	var pages: Array[String] = ["t_art", "t_taunt", "t_parry"]
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
+	eq(e.prompt.batch_type, &"pages_in", "the pages prompt takes a batch")
+	eq(e.prompt.batch_max, 3, "up to every pages card")
+	var a: int = e.player(0).pages[0].uid
+	var b: int = e.player(0).pages[1].uid
 	var stranger: int = e.player(0).life_deck[0].uid
-	check(e.prompt.accept(Command.new(0, &"armory_in", -1, [a, stranger])) == null, "a uid outside the options is refused")
-	check(e.prompt.accept(Command.new(0, &"armory_in", -1, [a, a])) == null, "repeats are refused")
-	check(e.prompt.accept(Command.new(1, &"armory_in", -1, [a])) == null, "the other seat cannot answer")
-	check(e.prompt.accept(Command.new(0, &"armory_in", -1, [])) == null, "an empty batch is not a swap")
+	check(e.prompt.accept(Command.new(0, &"pages_in", -1, [a, stranger])) == null, "a uid outside the options is refused")
+	check(e.prompt.accept(Command.new(0, &"pages_in", -1, [a, a])) == null, "repeats are refused")
+	check(e.prompt.accept(Command.new(1, &"pages_in", -1, [a])) == null, "the other seat cannot answer")
+	check(e.prompt.accept(Command.new(0, &"pages_in", -1, [])) == null, "an empty batch is not a swap")
 	var view: PromptView = PromptView.of(e.prompt, e)
 	var batch: OptionView = PromptView.from_dict(view.to_dict()).batch_option([a, b])
 	eq(batch.label, "Bring in 2", "the batch option labels itself")
@@ -697,27 +704,27 @@ func test_armory_batch() -> void:
 	check(e.submit(batch.to_command(0)), "the batch is accepted")
 	eq(e.card(a).zone, &"life_deck", "first card entered the deck")
 	eq(e.card(b).zone, &"life_deck", "second card entered the deck")
-	eq(e.player(0).armory.size(), 3, "two random cards came out")
+	eq(e.player(0).pages.size(), 3, "two random cards came out")
 	eq(e.state.turn, 1, "the batch also finishes the swap")
 	eq(e.player(0).life_deck.size() + e.player(0).hand.size(), deck_before, "two swaps keep the deck size, less the opening draw")
 	var r: Referee = Referee.new()
-	var e2: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_knight", "t_master", armory), deck(filler(), "knave"))
+	var e2: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
 	r.engine = e2
-	var uids: Array[int] = [e2.player(0).armory[0].uid, e2.player(0).armory[2].uid]
+	var uids: Array[int] = [e2.player(0).pages[0].uid, e2.player(0).pages[2].uid]
 	eq(r.submit(0, r.prompt_for(0).batch_option(uids).to_command(0).to_dict()), "", "the referee takes the batch in wire form")
 	eq(e2.card(uids[1]).zone, &"life_deck", "and applied it")
 
 
 func test_bracket_first_player() -> void:
-	var giant: DeckList = deck(filler(), "knight", "", "", 3, "tf_giant")
-	var e: DuelEngine = engine(giant, deck(filler(), "knight", "", "", 3, "tf_pageboy"))
-	eq(e.state.active, 1, "the fighter below band D opens the duel")
-	eq(e.player(0).fighter.vigor, 5, "no stage penalty under the bracket rule")
+	var giant: DeckList = deck(filler(), "vigil", "", "", 3, "tf_giant")
+	var e: DuelEngine = engine(giant, deck(filler(), "vigil", "", "", 3, "tf_pageboy"))
+	eq(e.state.active, 1, "the duelist below band D opens the duel")
+	eq(e.player(0).duelist.energy, 5, "no stage penalty under the bracket rule")
 	check(has_event(e, &"bracket_rule"), "bracket rule event emitted")
 
 
 func test_search_and_in_play_discard() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_seek", "t_glare", "t_strike", "t_art"])), deck(filler(["t_noncombat_draw", "t_strike", "t_strike"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_seek", "t_glare", "t_strike", "t_art"])), deck(filler(["t_noncombat_draw", "t_strike", "t_strike"]), "pact"))
 	to_combat(e)
 	# opponent places nothing on our turn; inject a non-combat for the glare to hit
 	inject(e, 1, "t_noncombat_draw")
@@ -730,7 +737,7 @@ func test_search_and_in_play_discard() -> void:
 
 
 func test_if_stopped() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art_stubborn", "t_art_stubborn", "t_art_stubborn"])), deck(filler(["t_ward", "t_ward", "t_ward"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_art_stubborn", "t_art_stubborn", "t_art_stubborn"])), deck(filler(["t_ward", "t_ward", "t_ward"]), "pact"))
 	to_combat(e)
 	var hand_before: int = e.player(0).hand.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_art_stubborn"))
@@ -739,8 +746,8 @@ func test_if_stopped() -> void:
 
 
 func test_determinism() -> void:
-	var a: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1"])), deck(filler(["t_guard", "t_ward"]), "knave"), 42, true)
-	var b: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1"])), deck(filler(["t_guard", "t_ward"]), "knave"), 42, true)
+	var a: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact"), 42, true)
+	var b: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact"), 42, true)
 	var ids_a: Array[String] = []
 	var ids_b: Array[String] = []
 	for c in a.player(0).life_deck:
@@ -748,7 +755,7 @@ func test_determinism() -> void:
 	for c in b.player(0).life_deck:
 		ids_b.append(c.def.id)
 	eq(ids_a, ids_b, "same seed, same shuffle")
-	var c: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1"])), deck(filler(["t_guard", "t_ward"]), "knave"), 43, true)
+	var c: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact"), 43, true)
 	var ids_c: Array[String] = []
 	for card in c.player(0).life_deck:
 		ids_c.append(card.def.id)
@@ -758,8 +765,8 @@ func test_determinism() -> void:
 ## Online play: a second engine fed only the wire form of the first one's commands ends every
 ## step in the same state, including the values that ride on commands (pay amounts, option keys).
 func test_command_wire_lockstep() -> void:
-	var a: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1", "t_pay_art", "t_empower_art"])), deck(filler(["t_guard", "t_ward"]), "knave"), 77, true)
-	var b: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1", "t_pay_art", "t_empower_art"])), deck(filler(["t_guard", "t_ward"]), "knave"), 77, true)
+	var a: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1", "t_pay_art", "t_empower_art"])), deck(filler(["t_guard", "t_ward"]), "pact"), 77, true)
+	var b: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1", "t_pay_art", "t_empower_art"])), deck(filler(["t_guard", "t_ward"]), "pact"), 77, true)
 	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
 	picker.seed = 7
 	var steps: int = 0
@@ -777,7 +784,7 @@ func test_command_wire_lockstep() -> void:
 	for i in range(2):
 		eq(b.player(i).life_deck.size(), a.player(i).life_deck.size(), "player %d life deck" % i)
 		eq(b.player(i).hand.size(), a.player(i).hand.size(), "player %d hand" % i)
-		eq(b.player(i).fighter.vigor, a.player(i).fighter.vigor, "player %d vigor" % i)
+		eq(b.player(i).duelist.energy, a.player(i).duelist.energy, "player %d energy" % i)
 	# Values ride along unchanged: option keys, pay amounts, named titles.
 	for sample in [Command.new(1, &"attack", 12, "empower"), Command.new(0, &"pay", -1, 4), Command.new(0, &"name_card", 3, "Test Parry"), Command.new(1, &"pass")]:
 		var back: Command = Command.from_dict(sample.to_dict())
@@ -788,9 +795,9 @@ func test_command_wire_lockstep() -> void:
 ## A face-down card's uid must not give away what it is. Uids are dealt after the shuffle, so
 ## the same deck list under two seeds maps uids to different cards.
 func test_uids_hide_deck_order() -> void:
-	var cards: Array[String] = filler(["t_art", "t_taunt", "t_parry", "t_token_1", "t_guard", "t_ward"])
-	var a: DuelEngine = engine(deck(cards), deck(filler(), "knave"), 11, true)
-	var b: DuelEngine = engine(deck(cards), deck(filler(), "knave"), 12, true)
+	var cards: Array[String] = filler(["t_art", "t_taunt", "t_parry", "t_seal_1", "t_guard", "t_ward"])
+	var a: DuelEngine = engine(deck(cards), deck(filler(), "pact"), 11, true)
+	var b: DuelEngine = engine(deck(cards), deck(filler(), "pact"), 12, true)
 	var differs: bool = false
 	for c in a.player(0).life_deck:
 		var other: CardInstance = b.card(c.uid)
@@ -807,8 +814,8 @@ func test_uids_hide_deck_order() -> void:
 
 
 func test_seat_view_masks_hidden_cards() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1"])), deck(filler(["t_guard", "t_ward"]), "knave", "", "", 3, "tf_knight", "t_master", ["t_summons"]))
-	answer(e, &"armory_done")
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact", "", "", 3, "tf_vigil", "t_grimoire", ["t_summons"]))
+	answer(e, &"pages_done")
 	var v0: SeatView = SeatView.of(e, 0)
 	var v1: SeatView = SeatView.of(e, 1)
 	eq(v0.cards.size(), e.all_cards().size(), "every card has a row")
@@ -818,10 +825,10 @@ func test_seat_view_masks_hidden_cards() -> void:
 		eq(v1.card(uid).zone, &"hand", "but knows the zone")
 	for uid in v0.player(0).life_deck:
 		check(v0.card(uid).hidden(), "own Life Deck stays face down")
-	for uid in v1.player(1).armory:
-		check(not v1.card(uid).hidden(), "own Armory is visible")
-		check(v0.card(uid).hidden(), "the other seat cannot read the Armory")
-	check(not v1.card(v0.player(0).fighter).hidden(), "fighters are public")
+	for uid in v1.player(1).pages:
+		check(not v1.card(uid).hidden(), "own Pages is visible")
+		check(v0.card(uid).hidden(), "the other seat cannot read the Pages")
+	check(not v1.card(v0.player(0).duelist).hidden(), "duelists are public")
 	eq(v0.player(0).life_deck.size(), e.player(0).life_deck.size(), "deck counts are public")
 	eq(v0.deciding, e.prompt.player, "who decides is public")
 	var back: SeatView = SeatView.from_dict(v1.to_dict())
@@ -842,13 +849,13 @@ func test_seat_view_masks_hidden_cards() -> void:
 	for cd in v1.to_dict()["cards"]:
 		if str(cd["def"]) == "":
 			hidden_in_wire += 1
-	eq(hidden_in_wire, e.player(0).life_deck.size() + e.player(1).life_deck.size() + e.player(0).hand.size() + e.player(0).armory.size(), "exactly the hidden cards go out blank")
+	eq(hidden_in_wire, e.player(0).life_deck.size() + e.player(1).life_deck.size() + e.player(0).hand.size() + e.player(0).pages.size(), "exactly the hidden cards go out blank")
 
 
 func test_referee_gates_commands() -> void:
 	var r: Referee = Referee.new()
 	r.engine.shuffle_decks = false
-	r.setup([deck(filler(["t_art", "t_taunt", "t_parry", "t_token_1"])), deck(filler(["t_guard", "t_ward"]), "knave")], lib, table, 5)
+	r.setup([deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1"])), deck(filler(["t_guard", "t_ward"]), "pact")], lib, table, 5)
 	r.start()
 	var first: Array[SeatUpdate] = r.take_updates()
 	eq(first.size(), 2, "one update per seat")
@@ -869,7 +876,7 @@ func test_referee_gates_commands() -> void:
 	# Lines a client animates carry the public fields of their event; the rest carry none.
 	var r2: Referee = Referee.new()
 	r2.engine.shuffle_decks = false
-	r2.setup([deck(filler(["t_strike_plus2"])), deck(filler(), "knave")], lib, table, 5)
+	r2.setup([deck(filler(["t_strike_plus2"])), deck(filler(), "pact")], lib, table, 5)
 	r2.start()
 	r2.take_updates()
 	var att: int = r2.engine.prompt.player
@@ -903,7 +910,7 @@ func test_referee_gates_commands() -> void:
 # --- Extended mechanics ----------------------------------------------------
 
 func test_remain() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_remain_strike", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_remain_strike", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var uid: int = uid_in_hand(e, 0, "t_remain_strike")
 	answer(e, &"attack", uid)
@@ -917,21 +924,21 @@ func test_remain() -> void:
 
 
 func test_empower() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_empower_art", "t_empower_art", "t_strike"])), deck(filler([], 20), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_empower_art", "t_empower_art", "t_strike"])), deck(filler([], 20), "pact"))
 	to_combat(e)
 	var deck_before: int = e.player(1).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_empower_art"), "empower")
 	eq(e.player(1).life_deck.size(), deck_before - 6, "art 4 wounds plus Empower 2")
-	eq(e.player(0).acclaim, 0, "empowered use drops the after-empower effect")
+	eq(e.player(0).fervor, 0, "empowered use drops the after-empower effect")
 	answer(e, &"pass")
 	deck_before = e.player(1).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_empower_art"))
 	eq(e.player(1).life_deck.size(), deck_before - 4, "plain use deals 4")
-	eq(e.player(0).acclaim, 1, "plain use keeps the secondary effect")
+	eq(e.player(0).fervor, 1, "plain use keeps the secondary effect")
 
 
 func test_counter_window() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(["t_counter", "t_counter", "t_counter"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(["t_counter", "t_counter", "t_counter"]), "pact"))
 	to_combat(e)
 	var taunt: int = uid_in_hand(e, 0, "t_taunt")
 	answer(e, &"use", taunt)
@@ -939,7 +946,7 @@ func test_counter_window() -> void:
 	eq(e.prompt.player, 1, "the opponent responds")
 	var k: int = uid_in_hand(e, 1, "t_counter")
 	answer(e, &"counter", k)
-	eq(e.player(0).acclaim, 0, "countered card does nothing")
+	eq(e.player(0).fervor, 0, "countered card does nothing")
 	eq(e.card(taunt).zone, &"discard", "countered card is discarded")
 	eq(e.card(k).zone, &"discard", "counter card is spent")
 	check(has_event(e, &"countered"), "countered event")
@@ -947,7 +954,7 @@ func test_counter_window() -> void:
 	answer(e, &"pass")
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
 	answer(e, &"decline")
-	eq(e.player(0).acclaim, 2, "declined counter lets the card resolve")
+	eq(e.player(0).fervor, 2, "declined counter lets the card resolve")
 	# "Use when needed" is the response window and nothing else: the counter's owner cannot
 	# play it as an action in their own attack phase, where it would do nothing.
 	eq(prompt_kind(e), &"attack_action", "fight back after the declined counter")
@@ -958,7 +965,7 @@ func test_counter_window() -> void:
 
 
 func test_forbid_art_attacks() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"])), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"])), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_forbid_arts"))
 	eq(e.prompt.player, 1, "fight back")
@@ -977,7 +984,7 @@ func test_forbid_art_attacks() -> void:
 ## The attack in the air comes with its damage worked out step by step, before the defense, and
 ## the numbers the battle sequence then applies are the same ones.
 func test_damage_breakdown_in_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "knight", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	to_combat(e)
 	check(not bool(e.prompt.context.get("fight_back", false)), "the active player's attack phase is not a fight back")
@@ -996,7 +1003,7 @@ func test_damage_breakdown_in_view() -> void:
 	var wire: SeatView = SeatView.from_dict(v.to_dict())
 	eq(int(wire.attack["damage"]["stages"]), 4, "wire form keeps the breakdown")
 	answer(e, &"no_defense")
-	eq(e.player(1).fighter.vigor, 1, "what landed matches the forecast")
+	eq(e.player(1).duelist.energy, 1, "what landed matches the forecast")
 	var base_line: String = ""
 	var mod_line: String = ""
 	for ev in e.events:
@@ -1015,7 +1022,7 @@ func test_damage_breakdown_in_view() -> void:
 ## Before an attack is chosen, the view carries what each offered attack would deal right now,
 ## built the same way declaring it would, and the number that then lands is the same one.
 func test_attack_forecasts_in_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_strike_plus2", "t_empower_art"]), "knight", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_strike_plus2", "t_empower_art"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
 	check(SeatView.of(e, 0).forecasts.is_empty(), "no forecasts outside the attack action")
 	to_combat(e)
@@ -1027,8 +1034,8 @@ func test_attack_forecasts_in_view() -> void:
 	check(not fh.is_empty(), "a hand Strike has a forecast")
 	eq(int(fh["table"]), 2, "forecast reads the Strike Table")
 	eq(int(fh["stages"]), 6, "table 2, +2 printed, +1 Drill, +1 Mastery")
-	var fp: Dictionary = v.forecast(e.player(0).fighter.uid)
-	eq(int(fp.get("life", -1)), 3, "the fighter's Power attack forecasts its printed wounds")
+	var fp: Dictionary = v.forecast(e.player(0).duelist.uid)
+	eq(int(fp.get("life", -1)), 3, "the duelist's Power attack forecasts its printed wounds")
 	var fa: Dictionary = v.forecast(art)
 	eq(int(fa["life"]), 4, "an Art forecasts its base wounds")
 	eq(int(fa["cost_stages"]), DuelEngine.ART_COST, "the Art's cost travels with the forecast")
@@ -1036,16 +1043,16 @@ func test_attack_forecasts_in_view() -> void:
 	var steps: PackedStringArray = CardText.breakdown_steps(fh)
 	check(steps[0].begins_with("Table 2"), "steps start with the table: %s" % steps[0])
 	check(steps.size() == 4 and steps[1].contains("Test Heavy Strike"), "the card's own bonus is a step: %s" % ", ".join(steps))
-	eq(CardText.short_damage(6, 0), "6 Vigor", "short damage wording")
+	eq(CardText.short_damage(6, 0), "6 Energy", "short damage wording")
 	eq(CardText.short_damage(0, 4), "4 wounds", "short wounds wording")
 	var wire: SeatView = SeatView.from_dict(v.to_dict())
 	eq(int(wire.forecast(heavy)["stages"]), 6, "wire form keeps the forecasts")
 	answer(e, &"attack", heavy)
 	answer(e, &"no_defense")
-	eq(e.player(1).fighter.vigor, 0, "the forecast Strike lands as forecast: 6 on 5 Vigor")
+	eq(e.player(1).duelist.energy, 0, "the forecast Strike lands as forecast: 6 on 5 Energy")
 	eq(e.player(1).discard.size(), 1, "with one wound overflowing")
 	var badge: Dictionary = CardText.attack_badge(lib.get_def("t_strike_plus2"))
-	eq(str(badge["num"]) + " " + str(badge["word"]), "+2 Vigor", "Strike badge")
+	eq(str(badge["num"]) + " " + str(badge["word"]), "+2 Energy", "Strike badge")
 	badge = CardText.attack_badge(lib.get_def("t_strike"))
 	eq(str(badge["num"]), "Table", "a bare Strike badge points at the table")
 	badge = CardText.attack_badge(lib.get_def("t_art"))
@@ -1054,22 +1061,22 @@ func test_attack_forecasts_in_view() -> void:
 
 ## "X only" on a card that attaches to X: playable while X is on the table, and it lands on X.
 func test_attach_to_named_character() -> void:
-	var alone: DuelEngine = engine(deck(filler(["t_oath", "t_oath", "t_oath"])), deck(filler(), "knave"))
+	var alone: DuelEngine = engine(deck(filler(["t_oath", "t_oath", "t_oath"])), deck(filler(), "pact"))
 	to_combat(alone)
 	check(alone.prompt.find(&"use", uid_in_hand(alone, 0, "t_oath")) == null, "no Squire on the table: the oath cannot be used")
-	var e: DuelEngine = engine(deck(filler(["t_oath", "t_oath", "t_oath"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_oath", "t_oath", "t_oath"])), deck(filler(), "pact"))
 	var squire: CardInstance = inject(e, 0, "t_ally_squire")
 	to_combat(e)
 	var oath: int = uid_in_hand(e, 0, "t_oath")
-	check(oath >= 0 and e.prompt.find(&"use", oath) != null, "with the Squire in play the oath is usable though the fighter is in control")
+	check(oath >= 0 and e.prompt.find(&"use", oath) != null, "with the Squire in play the oath is usable though the duelist is in control")
 	answer(e, &"use", oath)
-	check(e.card(oath).attached_to == squire, "the oath attaches to the Squire, not the fighter")
+	check(e.card(oath).attached_to == squire, "the oath attaches to the Squire, not the duelist")
 	eq(e.player(0).attachments().size(), 1, "one attachment in play")
 
 
 ## "Limit 1 attached" caps copies on the table, not copies in the deck.
 func test_attachment_limit_attached() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_vow", "t_vow", "t_vow"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_vow", "t_vow", "t_vow"])), deck(filler(), "pact"))
 	inject(e, 0, "t_ally_squire")
 	to_combat(e)
 	var first: int = uid_in_hand(e, 0, "t_vow")
@@ -1087,24 +1094,24 @@ func test_attachment_limit_attached() -> void:
 ## An "X only" card that attaches to a different named personality: X must be in control to
 ## play it, it lands on the named one, and that one may hold a single copy.
 func test_attach_to_other_named_personality() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_ally_squire", "t_pledge", "t_pledge"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire", "t_pledge", "t_pledge"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_squire"))
 	var squire: CardInstance = e.player(0).allies()[0]
 	answer(e, &"declare")
 	var first: int = uid_in_hand(e, 0, "t_pledge")
-	check(e.prompt.find(&"use", first) == null, "the fighter is in control, so the Squire's card cannot be used")
-	var f: DuelEngine = engine(deck(filler(["t_ally_squire", "t_pledge", "t_pledge"])), deck(filler(), "knave"))
+	check(e.prompt.find(&"use", first) == null, "the duelist is in control, so the Squire's card cannot be used")
+	var f: DuelEngine = engine(deck(filler(["t_ally_squire", "t_pledge", "t_pledge"])), deck(filler(), "pact"))
 	answer(f, &"place", uid_in_hand(f, 0, "t_ally_squire"))
 	squire = f.player(0).allies()[0]
-	f.player(0).fighter.vigor = 1
+	f.player(0).duelist.energy = 1
 	answer(f, &"declare")
 	answer(f, &"control", squire.uid)
 	first = uid_in_hand(f, 0, "t_pledge")
 	check(f.prompt.find(&"use", first) != null, "with the Squire in control it can")
 	answer(f, &"use", first)
-	eq(f.card(first).attached_to, f.player(0).fighter, "it attaches to the named fighter, not to the Squire")
+	eq(f.card(first).attached_to, f.player(0).duelist, "it attaches to the named duelist, not to the Squire")
 	var text: String = CardText.rules_text(f.card(first).def)
-	check(text.contains("Attach this card to your Test Knight.") and text.contains("Test Knight may have only 1 attached."), "worded: %s" % text)
+	check(text.contains("Attach this card to your Test Vigil.") and text.contains("Test Vigil may have only 1 attached."), "worded: %s" % text)
 	answer(f, &"pass")
 	if prompt_kind(f) == &"control":
 		answer(f, &"control", squire.uid)
@@ -1124,7 +1131,7 @@ func take_search(e: DuelEngine) -> void:
 ## deck shown to the searcher alone, "take nothing" allowed, one shuffle at the end unless the
 ## effect says otherwise.
 func test_search_looks_through_the_deck() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_seek", "t_seek_quiet", "t_strike", "t_art"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_seek", "t_seek_quiet", "t_strike", "t_art"])), deck(filler(), "pact"))
 	to_combat(e)
 	e.shuffle_decks = true
 	answer(e, &"use", uid_in_hand(e, 0, "t_seek"))
@@ -1155,7 +1162,7 @@ func test_search_looks_through_the_deck() -> void:
 	check(uid_in_hand(e, 0, "t_art") < 0, "nothing taken")
 	check(has_event(e, &"deck_shuffled"), "the deck is shuffled after the look")
 	# No match: the look still happens, and still ends in a shuffle.
-	var none: DuelEngine = engine(deck(filler(["t_seek", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var none: DuelEngine = engine(deck(filler(["t_seek", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(none)
 	none.shuffle_decks = true
 	answer(none, &"use", uid_in_hand(none, 0, "t_seek"))
@@ -1165,7 +1172,7 @@ func test_search_looks_through_the_deck() -> void:
 	answer(none, &"pick_none")
 	check(has_event(none, &"deck_shuffled"), "shuffled all the same")
 	# `no_shuffle` leaves the order alone.
-	var quiet: DuelEngine = engine(deck(filler(["t_seek_quiet", "t_strike", "t_strike", "t_art"])), deck(filler(), "knave"))
+	var quiet: DuelEngine = engine(deck(filler(["t_seek_quiet", "t_strike", "t_strike", "t_art"])), deck(filler(), "pact"))
 	to_combat(quiet)
 	quiet.shuffle_decks = true
 	answer(quiet, &"use", uid_in_hand(quiet, 0, "t_seek_quiet"))
@@ -1180,7 +1187,7 @@ func test_ai_weighs_grounds() -> void:
 	var drills: Array[String] = []
 	for i in range(8):
 		drills.append("t_drill_free")
-	var e: DuelEngine = engine(deck(filler(drills)), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(drills)), deck(filler(), "pact"))
 	var profile: AiProfile = AiProfile.default_profile()
 	var hush: CardDef = lib.get_def("t_grounds_hush")
 	var forge: CardDef = lib.get_def("t_grounds_forge")
@@ -1210,13 +1217,13 @@ func shipped_library() -> CardLibrary:
 ## Step 10: one multiplier at most, caps at deal time, and "cannot be reduced" ignores both
 ## reductions and caps.
 func test_multiplier_cap_and_no_reduce() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike_firm"])), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike_firm"])), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	inject(e, 0, "t_drill_strike")
 	inject(e, 0, "t_drill_double")
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	# table 2, +1 drill, then x2 = 6 stages: 5 absorbed, 1 wound
-	eq(e.player(1).fighter.vigor, 0, "doubled strike empties the fighter")
+	eq(e.player(1).duelist.energy, 0, "doubled strike empties the duelist")
 	eq(e.player(1).discard.size(), 1, "one stage overflowed")
 	var mod: Dictionary = {}
 	for ev in e.events:
@@ -1224,43 +1231,43 @@ func test_multiplier_cap_and_no_reduce() -> void:
 			mod = ev.data
 	eq(int(mod.get("stages", 0)), 6, "modified damage reports the doubled total")
 	check(CardText.modified_damage_line(mod).contains("x2 (Test Doubling Drill)"), "the multiplier is named in the log: %s" % CardText.modified_damage_line(mod))
-	e.player(1).fighter.vigor = 5
+	e.player(1).duelist.energy = 5
 	inject(e, 1, "t_drill_cap")
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
-	eq(e.player(1).fighter.vigor, 2, "the cap holds the doubled strike to 3 stages")
-	e.player(1).fighter.vigor = 5
+	eq(e.player(1).duelist.energy, 2, "the cap holds the doubled strike to 3 stages")
+	e.player(1).duelist.energy = 5
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_firm"))
-	eq(e.player(1).fighter.vigor, 0, "a strike that cannot be reduced ignores the cap")
+	eq(e.player(1).duelist.energy, 0, "a strike that cannot be reduced ignores the cap")
 	check(SeatView.of(e, 1).attack.is_empty(), "attack cleared after resolution")
 
 
-## Tokens are immune to card effects that do not name them.
-func test_tokens_immune_unless_named() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
-	inject(e, 1, "t_token_1")
+## Seals are immune to card effects that do not name them.
+func test_seals_immune_unless_named() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	inject(e, 1, "t_seal_1")
 	inject(e, 1, "t_noncombat_draw")
-	eq(e.player(1).in_play.size(), 2, "a Token and a Non-Combat in play")
+	eq(e.player(1).in_play.size(), 2, "a Seal and a Non-Combat in play")
 	eq(e.dev_effect(0, {"op": "discard_in_play", "who": "opponent", "card_type": "any", "all": true}), "", "dev effect ran")
-	eq(e.player(1).tokens().size(), 1, "the Token stays")
+	eq(e.player(1).seals().size(), 1, "the Seal stays")
 	eq(e.player(1).non_combats().size(), 0, "the Non-Combat went")
-	eq(e.dev_effect(0, {"op": "discard_in_play", "who": "opponent", "card_type": "token"}), "", "a named Token effect ran")
-	eq(e.player(1).tokens().size(), 0, "named, the Token goes")
+	eq(e.dev_effect(0, {"op": "discard_in_play", "who": "opponent", "card_type": "seal"}), "", "a named Seal effect ran")
+	eq(e.player(1).seals().size(), 0, "named, the Seal goes")
 
 
 ## Cards that end Combat are attack actions only, never a defense, even if they could stop.
 func test_end_combat_card_is_no_defense() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_truce_guard", "t_truce_guard", "t_truce_guard"]), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_truce_guard", "t_truce_guard", "t_truce_guard"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	eq(prompt_kind(e), &"attack_action", "no defense possible, straight to the fight back")
 	check(e.prompt.find(&"use", uid_in_hand(e, 1, "t_truce_guard")) != null, "but it can be used in the attack phase")
 
 
-## A guild Drill locked out by the Drill in play may be shown and shuffled back.
+## A school Drill locked out by the Drill in play may be shown and shuffled back.
 func test_locked_out_drill_shuffles_back() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_drill_guard", "t_drill_guard", "t_drill_guard"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_drill_guard", "t_drill_guard", "t_drill_guard"])), deck(filler(), "pact"))
 	inject(e, 0, "t_drill_strike")
 	e._prompt_non_combat()   # the prompt was built before the Drill arrived
 	eq(prompt_kind(e), &"non_combat", "non-combat prompt")
@@ -1276,7 +1283,7 @@ func test_locked_out_drill_shuffles_back() -> void:
 
 ## Look at the top three and put them back in any order.
 func test_look_at_rearrange() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_order"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_order"])), deck(filler(), "pact"))
 	to_combat(e)
 	var top3: Array[int] = [e.player(0).life_deck[0].uid, e.player(0).life_deck[1].uid, e.player(0).life_deck[2].uid]
 	answer(e, &"use", uid_in_hand(e, 0, "t_order"))
@@ -1295,25 +1302,25 @@ func test_look_at_rearrange() -> void:
 
 ## The seat view carries every effective per-player value, so clients never assume a rules constant.
 func test_effective_values_in_seat_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"]), "knight", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art"]), "knave", "tide", "t_mastery_hard"))
+	var e: DuelEngine = engine(deck(filler(["t_forbid_arts", "t_strike", "t_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(["t_art", "t_art", "t_art"]), "pact", "tide", "t_mastery_hard"))
 	var v: SeatView = SeatView.of(e, 0)
-	eq(v.player(1).acclaim_needed, DuelEngine.ACCLAIM_TO_TIER, "the plain player needs the rulebook count")
-	eq(v.player(0).acclaim_needed, 6, "opposite a demanding Mastery the view says 6")
-	eq(v.player(0).recover_gain, e.player(0).fighter.surge() + DuelEngine.STYLE_SURGE_BONUS, "recover gain is Surge Rate plus the flat bonus")
+	eq(v.player(1).fervor_needed, DuelEngine.FERVOR_TO_ASPECT, "the plain player needs the rulebook count")
+	eq(v.player(0).fervor_needed, 6, "opposite a demanding Mastery the view says 6")
+	eq(v.player(0).recover_gain, e.player(0).duelist.surge() + DuelEngine.STYLE_SURGE_BONUS, "recover gain is Surge Rate plus the flat bonus")
 	eq(v.player(1).recover_gain, e.recover_gain(e.player(1)), "the view matches the engine getter")
-	e.player(0).acclaim = 4
-	e.dev_effect(0, {"op": "acclaim", "amount": 1})
-	eq(e.player(0).fighter.tier, 1, "5 Acclaim is not enough opposite the Mastery")
-	eq(e.player(0).acclaim, 5, "Acclaim keeps counting")
-	e.dev_effect(0, {"op": "set_acclaim_needed", "amount": 8})
-	eq(SeatView.of(e, 1).player(0).acclaim_needed, 8, "a raised base shows in the view")
-	e.dev_effect(0, {"op": "acclaim_needed", "amount": -3})
-	eq(e.player(0).acclaim_needed, 5, "delta op moves the base")
-	eq(e.player(0).fighter.tier, 1, "a base below the Mastery's demand still needs 6")
-	check(has_event(e, &"acclaim_needed_changed"), "acclaim_needed_changed event")
-	e.dev_effect(0, {"op": "acclaim", "amount": 1})
-	eq(e.player(0).fighter.tier, 2, "6 Acclaim rises a tier opposite the Mastery")
-	eq(e.player(0).acclaim, 0, "and resets")
+	e.player(0).fervor = 4
+	e.dev_effect(0, {"op": "fervor", "amount": 1})
+	eq(e.player(0).duelist.aspect, 1, "5 Fervor is not enough opposite the Mastery")
+	eq(e.player(0).fervor, 5, "Fervor keeps counting")
+	e.dev_effect(0, {"op": "set_fervor_needed", "amount": 8})
+	eq(SeatView.of(e, 1).player(0).fervor_needed, 8, "a raised base shows in the view")
+	e.dev_effect(0, {"op": "fervor_needed", "amount": -3})
+	eq(e.player(0).fervor_needed, 5, "delta op moves the base")
+	eq(e.player(0).duelist.aspect, 1, "a base below the Mastery's demand still needs 6")
+	check(has_event(e, &"fervor_needed_changed"), "fervor_needed_changed event")
+	e.dev_effect(0, {"op": "fervor", "amount": 1})
+	eq(e.player(0).duelist.aspect, 2, "6 Fervor rises an aspect opposite the Mastery")
+	eq(e.player(0).fervor, 0, "and resets")
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_forbid_arts"))
 	var during: SeatView = SeatView.of(e, 1)
@@ -1321,49 +1328,49 @@ func test_effective_values_in_seat_view() -> void:
 	check(during.player(0).restrictions.is_empty(), "and not on the other player")
 	var back: SeatPlayer = SeatPlayer.from_dict(during.player(1).to_dict())
 	eq(back.restrictions, during.player(1).restrictions, "wire form keeps restrictions")
-	eq(back.acclaim_needed, during.player(1).acclaim_needed, "wire form keeps acclaim needed")
-	eq(during.fighter_owner(e.player(0).fighter.uid).index, 0, "fighter_owner finds the seat")
-	eq(during.live_vigor(e.player(0).fighter.uid), e.player(0).fighter.vigor, "live_vigor reads the card")
-	check(during.fighter_owner(uid_in_hand(e, 0, "t_strike")) == null, "a hand card has no standing")
+	eq(back.fervor_needed, during.player(1).fervor_needed, "wire form keeps fervor needed")
+	eq(during.duelist_owner(e.player(0).duelist.uid).index, 0, "duelist_owner finds the seat")
+	eq(during.live_energy(e.player(0).duelist.uid), e.player(0).duelist.energy, "live_energy reads the card")
+	check(during.duelist_owner(uid_in_hand(e, 0, "t_strike")) == null, "a hand card has no standing")
 
 
 func test_attachment_modifier() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_attach", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_attach", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var charm: int = uid_in_hand(e, 0, "t_attach")
 	answer(e, &"use", charm)
 	eq(e.card(charm).zone, &"in_play", "attached card sits in play")
-	eq(e.card(charm).attached_to, e.player(0).fighter, "attached to the fighter")
+	eq(e.card(charm).attached_to, e.player(0).duelist, "attached to the duelist")
 	eq(e.player(0).attachments().size(), 1, "counted as an attachment")
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
-	eq(e.player(1).fighter.vigor, 1, "2 from the table plus 2 from the attachment")
+	eq(e.player(1).duelist.energy, 1, "2 from the table plus 2 from the attachment")
 
 
 func test_constant_power() -> void:
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_constant"), deck(filler(["t_guard", "t_guard", "t_guard"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_constant"), deck(filler(["t_guard", "t_guard", "t_guard"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	check(has_event(e, &"attack_declared"), "attack went out")
 	eq(prompt_kind(e), &"attack_action", "no defense prompt: a stops-any guard cannot stop a focused attack")
-	eq(e.player(1).fighter.vigor, 3, "table 1 (same band) plus the constant +1")
+	eq(e.player(1).duelist.energy, 3, "table 1 (same band) plus the constant +1")
 
 
-func test_master_use() -> void:
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_knight", "t_master_use"), deck(filler(), "knave"))
-	eq(prompt_kind(e), &"non_combat", "master power offered in the Non-Combat step")
-	var m: int = e.player(0).master.uid
-	answer(e, &"master", m)
-	eq(e.player(0).hand.size(), 5, "master drew two")
-	check(has_event(e, &"master_used"), "master_used event")
+func test_grimoire_use() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire_use"), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"non_combat", "grimoire power offered in the Non-Combat step")
+	var m: int = e.player(0).grimoire.uid
+	answer(e, &"grimoire", m)
+	eq(e.player(0).hand.size(), 5, "grimoire drew two")
+	check(has_event(e, &"grimoire_used"), "grimoire_used event")
 	eq(prompt_kind(e), &"declare", "once per game: no second offer")
 
 
 func test_start_in_play() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_start_drill"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_start_drill"])), deck(filler(), "pact"))
 	eq(e.player(0).drills().size(), 1, "drill began the game in play")
 	to_combat(e)
-	eq(e.player(0).acclaim, 1, "entering-combat effect fired")
+	eq(e.player(0).fervor, 1, "entering-combat effect fired")
 	var fired: int = 0
 	var line: String = ""
 	for ev in e.events:
@@ -1375,19 +1382,19 @@ func test_start_in_play() -> void:
 
 
 func test_pay_stages() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_pay_art", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_pay_art", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var deck_before: int = e.player(1).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_pay_art"))
 	eq(prompt_kind(e), &"pay", "pay prompt")
-	eq(e.prompt.options.size(), 5, "0, 2, 4, 6, 8 from 8 vigor")
+	eq(e.prompt.options.size(), 5, "0, 2, 4, 6, 8 from 8 energy")
 	answer(e, &"pay", -1, 4)
-	eq(e.player(0).fighter.vigor, 4, "paid 4")
+	eq(e.player(0).duelist.energy, 4, "paid 4")
 	eq(e.player(1).life_deck.size(), deck_before - 6, "4 base plus 2 bought")
 
 
 func test_name_card() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_name_drill"])), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_name_drill"])), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_name_drill"))
 	eq(prompt_kind(e), &"name_card", "naming prompt")
 	answer(e, &"name_card", e.player(0).drills()[0].uid, "Test Art")
@@ -1398,53 +1405,53 @@ func test_name_card() -> void:
 
 
 func test_copied_attack() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike_plus2", "t_strike_plus2", "t_strike_plus2"])), deck(filler(["t_copy_parry", "t_copy_parry", "t_copy_parry"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike_plus2", "t_strike_plus2", "t_strike_plus2"])), deck(filler(["t_copy_parry", "t_copy_parry", "t_copy_parry"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_plus2"))
 	answer(e, &"defend", uid_in_hand(e, 1, "t_copy_parry"))
 	check(has_event(e, &"attack_stopped"), "parry stopped it")
 	check(e.prompt.find(&"copied_attack") != null, "copied attack offered")
 	answer(e, &"copied_attack")
-	check(e.player(0).fighter.vigor < 7, "copied attack dealt stage damage back")
+	check(e.player(0).duelist.energy < 7, "copied attack dealt stage damage back")
 
 
 func test_prevent_all_and_no_prevent() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_prevent_all", "t_strike", "t_strike"])), deck(filler(["t_strike", "t_no_prevent_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_prevent_all", "t_strike", "t_strike"])), deck(filler(["t_strike", "t_no_prevent_art", "t_art"]), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_prevent_all"))
 	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
-	eq(e.player(0).fighter.vigor, 8, "prevented strike did nothing")
+	eq(e.player(0).duelist.energy, 8, "prevented strike did nothing")
 	answer(e, &"pass")
 	var deck_before: int = e.player(0).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 1, "t_no_prevent_art"))
 	eq(e.player(0).life_deck.size(), deck_before - 4, "unpreventable art still lands")
 
 
-func test_master_shields() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_jeer", "t_set_tier", "t_strike"])), deck(filler(), "knave", "", "", 3, "tf_knight", "t_master_shield"))
-	check(e.player(1).no_favor_win, "master forbids the favor win")
-	e.player(1).acclaim = 2
-	e.player(1).fighter.tier = 2
+func test_grimoire_shields() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_jeer", "t_set_aspect", "t_strike"])), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_grimoire_shield"))
+	check(e.player(1).no_ascension_win, "grimoire forbids the ascension win")
+	e.player(1).fervor = 2
+	e.player(1).duelist.aspect = 2
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_jeer"))
-	eq(e.player(1).acclaim, 2, "acclaim shielded")
-	check(has_event(e, &"acclaim_shielded"), "acclaim_shielded event")
+	eq(e.player(1).fervor, 2, "fervor shielded")
+	check(has_event(e, &"fervor_shielded"), "fervor_shielded event")
 	answer(e, &"pass")
-	answer(e, &"use", uid_in_hand(e, 0, "t_set_tier"))
-	eq(e.player(1).fighter.tier, 2, "tier shielded")
+	answer(e, &"use", uid_in_hand(e, 0, "t_set_aspect"))
+	eq(e.player(1).duelist.aspect, 2, "aspect shielded")
 
 
-func test_set_tier() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_set_tier", "t_strike", "t_strike"])), deck(filler(), "knave"))
-	e.player(1).fighter.tier = 3
+func test_set_aspect() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_set_aspect", "t_strike", "t_strike"])), deck(filler(), "pact"))
+	e.player(1).duelist.aspect = 3
 	to_combat(e)
-	answer(e, &"use", uid_in_hand(e, 0, "t_set_tier"))
-	eq(e.player(1).fighter.tier, 1, "dropped to tier 1")
-	eq(e.player(1).fighter.vigor, 5, "lost tier resets vigor")
+	answer(e, &"use", uid_in_hand(e, 0, "t_set_aspect"))
+	eq(e.player(1).duelist.aspect, 1, "dropped to aspect 1")
+	eq(e.player(1).duelist.energy, 5, "lost aspect resets energy")
 
 
 func test_draw_until_and_draw_discard() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_draw_until", "t_draw_discard", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_draw_until", "t_draw_discard", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var refill: int = uid_in_hand(e, 0, "t_draw_until")
 	answer(e, &"use", refill)
@@ -1455,7 +1462,7 @@ func test_draw_until_and_draw_discard() -> void:
 
 
 func test_search_to_play() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_search_play", "t_strike", "t_strike", "t_drill_free"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_search_play", "t_strike", "t_strike", "t_drill_free"])), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_search_play"))
 	take_search(e)
@@ -1463,16 +1470,16 @@ func test_search_to_play() -> void:
 
 
 func test_attack_variants() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_variant_strike", "t_strike", "t_strike"]), "knight", "ember", "t_mastery_ember"), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_variant_strike", "t_strike", "t_strike"]), "vigil", "ember", "t_mastery_ember"), deck(filler(), "pact"))
 	to_combat(e)
 	var deck_before: int = e.player(1).life_deck.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_variant_strike"))
-	eq(e.player(1).fighter.vigor, 0, "table 2 + 1 + 3 (variant) + 1 (mastery) empties 5 vigor")
+	eq(e.player(1).duelist.energy, 0, "table 2 + 1 + 3 (variant) + 1 (mastery) empties 5 energy")
 	eq(e.player(1).life_deck.size(), deck_before - 2, "overflow of 2 into wounds")
 
 
 func test_owner_chooses_discard() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_owner_glare", "t_strike", "t_strike"])), deck(filler(["t_art", "t_art", "t_art"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_owner_glare", "t_strike", "t_strike"])), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_owner_glare"))
 	eq(prompt_kind(e), &"discard_choice", "choice prompt")
@@ -1485,18 +1492,18 @@ func test_owner_chooses_discard() -> void:
 
 
 func test_stop_next() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(["t_stop_next", "t_stop_next", "t_stop_next"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(["t_stop_next", "t_stop_next", "t_stop_next"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	answer(e, &"defend", uid_in_hand(e, 1, "t_stop_next"))
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	check(has_event(e, &"floating_stop"), "the next attack was stopped by the standing effect")
-	eq(e.player(1).fighter.vigor, 5, "no damage taken")
+	eq(e.player(1).duelist.energy, 5, "no damage taken")
 
 
 func test_only_attacks() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_only_attacks", "t_strike", "t_strike"])), deck(filler(["t_taunt", "t_taunt", "t_taunt"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_only_attacks", "t_strike", "t_strike"])), deck(filler(["t_taunt", "t_taunt", "t_taunt"]), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_only_attacks"))
 	eq(e.prompt.player, 1, "fight back")
@@ -1504,33 +1511,33 @@ func test_only_attacks() -> void:
 	check(e.prompt.find(&"pass") != null, "passing stays legal")
 
 
-func test_vigor_without_overflow() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_vigor_noover", "t_strike", "t_strike"])), deck(filler(), "knave"))
+func test_energy_without_overflow() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_energy_noover", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var deck_before: int = e.player(1).life_deck.size()
-	answer(e, &"use", uid_in_hand(e, 0, "t_vigor_noover"))
-	eq(e.player(1).fighter.vigor, 0, "drained to zero")
+	answer(e, &"use", uid_in_hand(e, 0, "t_energy_noover"))
+	eq(e.player(1).duelist.energy, 0, "drained to zero")
 	eq(e.player(1).life_deck.size(), deck_before, "no life lost past zero")
 	var logged: bool = false
 	for ev in e.events:
-		if ev.type == &"vigor_changed" and int(ev.data.get("to", -1)) == 0 and e.card(int(ev.data.get("source", -1))).def.id == "t_vigor_noover":
+		if ev.type == &"energy_changed" and int(ev.data.get("to", -1)) == 0 and e.card(int(ev.data.get("source", -1))).def.id == "t_energy_noover":
 			logged = true
-	check(logged, "the vigor change is logged with its source card")
+	check(logged, "the energy change is logged with its source card")
 
 
 func test_use_in_attack_phase() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_use_in_attack", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_use_in_attack", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	var uid: int = uid_in_hand(e, 0, "t_use_in_attack")
 	check(e.prompt.find(&"use", uid) != null, "a defense flagged use_in_attack can be used in the attack phase")
 	answer(e, &"use", uid)
-	eq(e.player(0).acclaim, 1, "its effect resolved")
+	eq(e.player(0).fervor, 1, "its effect resolved")
 
 
 # --- Choice prompts, inspection, and the rest -------------------------------
 
 func test_may_prompt() -> void:
-	var no: DuelEngine = engine(deck(filler(["t_may_search", "t_strike", "t_strike", "t_art"])), deck(filler(), "knave"))
+	var no: DuelEngine = engine(deck(filler(["t_may_search", "t_strike", "t_strike", "t_art"])), deck(filler(), "pact"))
 	to_combat(no)
 	answer(no, &"use", uid_in_hand(no, 0, "t_may_search"))
 	eq(prompt_kind(no), &"pick_option", "a 'you may' line asks first")
@@ -1539,37 +1546,37 @@ func test_may_prompt() -> void:
 	eq(pv.title, "Test Bargain: use the optional effect?", "the prompt names the card")
 	check(no.card(int(pv.context.get("source", -1))).def.id == "t_may_search", "the prompt carries the card that asked")
 	var text: String = str(pv.context.get("text", ""))
-	check(text.contains("Vigor") and text.contains("search"), "the prompt says what a yes does: %s" % text)
+	check(text.contains("Energy") and text.contains("search"), "the prompt says what a yes does: %s" % text)
 	check(not text.contains(" may "), "without the 'may'")
 	var skip: Dictionary = {"trigger": "before_damage", "may": true, "skip_damage": true, "op": "discard_in_play", "who": "opponent", "card_type": "drill", "all": true}
 	var skip_text: String = CardText.may_text(skip)
 	check(not skip_text.begins_with("Hit") and skip_text.ends_with("The attack then deals no damage."), "a fired trigger drops its head but keeps the damage cost: %s" % skip_text)
 	answer(no, &"pick_option", -1, "no")
-	eq(no.player(0).fighter.vigor, 8, "declined: no cost paid")
+	eq(no.player(0).duelist.energy, 8, "declined: no cost paid")
 	check(uid_in_hand(no, 0, "t_art") < 0, "declined: no search either")
-	var yes: DuelEngine = engine(deck(filler(["t_may_search", "t_strike", "t_strike", "t_art"])), deck(filler(), "knave"))
+	var yes: DuelEngine = engine(deck(filler(["t_may_search", "t_strike", "t_strike", "t_art"])), deck(filler(), "pact"))
 	to_combat(yes)
 	answer(yes, &"use", uid_in_hand(yes, 0, "t_may_search"))
 	answer(yes, &"pick_option", -1, "yes")
-	eq(yes.player(0).fighter.vigor, 6, "accepted: cost paid")
+	eq(yes.player(0).duelist.energy, 6, "accepted: cost paid")
 	take_search(yes)
 	check(uid_in_hand(yes, 0, "t_art") >= 0, "accepted: the 'then' search ran")
 
 
-func test_pay_vigor() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_pay_vigor", "t_strike", "t_strike"])), deck(filler(), "knave"))
+func test_pay_energy() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_pay_energy", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
-	answer(e, &"use", uid_in_hand(e, 0, "t_pay_vigor"))
+	answer(e, &"use", uid_in_hand(e, 0, "t_pay_energy"))
 	eq(prompt_kind(e), &"pay", "pay prompt")
 	answer(e, &"pay", -1, 3)
-	eq(e.player(0).fighter.vigor, 5, "paid 3")
-	eq(e.player(0).acclaim, 3, "the 'then' line ran once per Vigor")
+	eq(e.player(0).duelist.energy, 5, "paid 3")
+	eq(e.player(0).fervor, 3, "the 'then' line ran once per Energy")
 
 
 func test_look_at() -> void:
 	var cards: Array[String] = filler(["t_look"])
 	cards.append("t_art")
-	var e: DuelEngine = engine(deck(cards), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(cards), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_look"))
 	eq(prompt_kind(e), &"pick_option", "one matching card among the bottom three")
@@ -1580,7 +1587,7 @@ func test_look_at() -> void:
 
 
 func test_search_choice() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_seek", "t_strike", "t_strike", "t_art", "t_art_big"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_seek", "t_strike", "t_strike", "t_art", "t_art_big"])), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_seek"))
 	eq(prompt_kind(e), &"pick_option", "two distinct arts: the searcher chooses")
@@ -1594,50 +1601,50 @@ func test_search_choice() -> void:
 
 
 func test_before_damage_skip() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_skip_strike", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_skip_strike", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	inject(e, 1, "t_drill_free")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_skip_strike"))
 	eq(prompt_kind(e), &"pick_option", "successful attack offers the instead-of-damage choice")
 	answer(e, &"pick_option", -1, "yes")
 	eq(e.player(1).drills().size(), 0, "drill discarded")
-	eq(e.player(1).fighter.vigor, 5, "no damage dealt instead")
+	eq(e.player(1).duelist.energy, 5, "no damage dealt instead")
 
 
 func test_stops_needed() -> void:
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_double"), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_double"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	to_combat(e)
-	answer(e, &"power", e.player(0).fighter.uid)
+	answer(e, &"power", e.player(0).duelist.uid)
 	answer(e, &"defend", uid_in_hand(e, 1, "t_parry"))
 	eq(prompt_kind(e), &"defense", "one stop is not enough: defend again")
 	answer(e, &"defend", uid_in_hand(e, 1, "t_parry"))
 	check(has_event(e, &"attack_stopped"), "two stops end it")
-	eq(e.player(1).fighter.vigor, 5, "no damage")
+	eq(e.player(1).duelist.energy, 5, "no damage")
 
 
 func test_ally_power_without_control() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_ally_free"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_ally_free"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_free"))
 	to_combat(e)
 	var al: CardInstance = e.player(0).allies()[0]
-	check(e.prompt.find(&"power", al.uid) != null, "ally power offered while the fighter is in control")
+	check(e.prompt.find(&"power", al.uid) != null, "ally power offered while the duelist is in control")
 	var deck_before: int = e.player(1).life_deck.size()
 	answer(e, &"power", al.uid)
 	eq(e.player(1).life_deck.size(), deck_before - 1, "the ally's strike dealt its wound")
 
 
-func test_life_per_opponent_token() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_token_strike", "t_strike", "t_strike"])), deck(filler(), "knave", "ember", "t_mastery_ember"))
-	inject(e, 1, "t_token_2")
-	inject(e, 1, "t_token_3")
+func test_life_per_opponent_seal() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_seal_strike", "t_strike", "t_strike"])), deck(filler(), "pact", "ember", "t_mastery_ember"))
+	inject(e, 1, "t_seal_2")
+	inject(e, 1, "t_seal_3")
 	to_combat(e)
 	var deck_before: int = e.player(1).life_deck.size()
-	answer(e, &"attack", uid_in_hand(e, 0, "t_token_strike"))
-	eq(e.player(1).life_deck.size(), deck_before - 2, "one wound per opponent Token")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_seal_strike"))
+	eq(e.player(1).life_deck.size(), deck_before - 2, "one wound per opponent Seal")
 
 
 func test_lonely_drill() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_lonely_drill", "t_drill_free"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_lonely_drill", "t_drill_free"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_lonely_drill"))
 	eq(e.player(0).drills().size(), 1, "alone it stays")
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_free"))
@@ -1646,7 +1653,7 @@ func test_lonely_drill() -> void:
 
 
 func test_unused_remain_returns() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(["t_returning_block", "t_returning_block", "t_returning_block"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(["t_returning_block", "t_returning_block", "t_returning_block"]), "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	var b: int = uid_in_hand(e, 1, "t_returning_block")
@@ -1658,7 +1665,7 @@ func test_unused_remain_returns() -> void:
 
 
 func test_return_removed() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_recall", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_recall", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	var al: CardInstance = inject(e, 0, "t_ally_squire")
 	e._remove_from_game(al)
 	eq(al.zone, &"removed", "ally removed")
@@ -1668,37 +1675,37 @@ func test_return_removed() -> void:
 
 
 func test_last_searched_target() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_heal", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_heal", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	var al: CardInstance = inject(e, 0, "t_ally_squire")
 	e._move_to_discard(al)
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_heal"))
 	eq(al.zone, &"in_play", "ally back from the discard")
-	eq(al.vigor, 10, "then raised to full")
+	eq(al.energy, 10, "then raised to full")
 
 
-func test_forbid_unless_vigor() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_lock", "t_strike", "t_strike"])), deck(filler(), "knave"))
+func test_forbid_unless_energy() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_lock", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_lock"))
 	eq(prompt_kind(e), &"pick_option", "choose the locked type")
 	answer(e, &"pick_option", -1, "strike_cards")
-	check(not e._forbidden(e.player(1), "strike_cards"), "at 5 Vigor the lock does not bite")
-	e.player(1).fighter.vigor = 4
-	check(e._forbidden(e.player(1), "strike_cards"), "below 5 Vigor it does")
+	check(not e._forbidden(e.player(1), "strike_cards"), "at 5 Energy the lock does not bite")
+	e.player(1).duelist.energy = 4
+	check(e._forbidden(e.player(1), "strike_cards"), "below 5 Energy it does")
 
 
-func test_forced_combat_from_armory() -> void:
-	var armory: Array[String] = ["t_invite"]
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave", "", "", 3, "tf_knight", "t_master", armory))
-	answer(e, &"armory_done")
-	eq(e.player(1).non_combats().size(), 1, "the summons began the game in play from the Armory")
+func test_forced_combat_from_pages() -> void:
+	var pages: Array[String] = ["t_invite"]
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_grimoire", pages))
+	answer(e, &"pages_done")
+	eq(e.player(1).non_combats().size(), 1, "the summons began the game in play from the Pages")
 	check(has_event(e, &"combat_declared"), "the active player could not skip Combat")
 	eq(prompt_kind(e), &"attack_action", "straight into the attack phase")
 
 
 func test_promoted_if_successful() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_promote_drill", "t_strike_end", "t_strike"])), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_promote_drill", "t_strike_end", "t_strike"])), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_promote_drill"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_end"))
@@ -1710,7 +1717,7 @@ func test_promoted_if_successful() -> void:
 func test_draw_check_named() -> void:
 	var cards: Array[String] = ["t_scry", "t_strike", "t_strike", "t_ally_squire"]
 	cards.append_array(filler())
-	var e: DuelEngine = engine(deck(cards), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(cards), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_scry"))
 	eq(e.player(0).hand.size(), 4, "named card drawn, so a second draw followed")
@@ -1732,7 +1739,7 @@ func test_draw_check_discard_and_else() -> void:
 	for named in [true, false]:
 		var cards: Array[String] = ["t_tithe", "t_strike", "t_strike", "t_ally_squire" if named else "t_strike"]
 		cards.append_array(filler())
-		var e: DuelEngine = engine(deck(cards), deck(filler(), "knave"))
+		var e: DuelEngine = engine(deck(cards), deck(filler(), "pact"))
 		to_combat(e)
 		var life_before: int = e.player(0).life_deck.size()
 		answer(e, &"use", uid_in_hand(e, 0, "t_tithe"))
@@ -1753,10 +1760,10 @@ func test_draw_check_discard_and_else() -> void:
 
 
 ## A Mastery's `on_attack` line is offered when its owner attacks, and `blocks_to_bottom` sends a
-## used block of that guild under the Life Deck.
+## used block of that school under the Life Deck.
 func test_mastery_on_attack_and_blocks_to_bottom() -> void:
 	for pay in [true, false]:
-		var e: DuelEngine = engine(deck(filler(), "knight", "ember", "t_mastery_flare"), deck(filler(["t_parry", "t_parry", "t_parry"]), "knave", "tide", "t_mastery_keep"))
+		var e: DuelEngine = engine(deck(filler(), "vigil", "ember", "t_mastery_flare"), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact", "tide", "t_mastery_keep"))
 		to_combat(e)
 		var life_before: int = e.player(0).life_deck.size()
 		answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
@@ -1771,7 +1778,7 @@ func test_mastery_on_attack_and_blocks_to_bottom() -> void:
 		eq(e.card(parry).zone, &"life_deck", "the Tide block went back to the Life Deck")
 		eq(e.player(1).life_deck.back().uid, parry, "at the bottom")
 	# A Focused attack is not asked about.
-	var f: DuelEngine = engine(deck(filler(["t_strike_focused", "t_strike_focused", "t_strike_focused"]), "knight", "ember", "t_mastery_flare"), deck(filler(), "knave"))
+	var f: DuelEngine = engine(deck(filler(["t_strike_focused", "t_strike_focused", "t_strike_focused"]), "vigil", "ember", "t_mastery_flare"), deck(filler(), "pact"))
 	to_combat(f)
 	answer(f, &"attack", uid_in_hand(f, 0, "t_strike_focused"))
 	check(prompt_kind(f) != &"pick_option", "no question for an attack that is already Focused")
@@ -1785,7 +1792,7 @@ func test_wound_trigger_at_fight_back() -> void:
 	# P1's deck: the wound card sits on top after the three cards drawn at Combat.
 	var cards: Array[String] = ["t_strike", "t_strike", "t_strike", "t_wound_art"]
 	cards.append_array(filler())
-	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(cards, "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(cards, "pact"))
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
 	var wounded: bool = false
@@ -1793,13 +1800,13 @@ func test_wound_trigger_at_fight_back() -> void:
 		if c.def.id == "t_wound_art":
 			wounded = true
 	check(wounded, "the wound card was flipped")
-	eq(e.player(1).acclaim, 2, "its effect fired at the start of the fight-back phase")
+	eq(e.player(1).fervor, 2, "its effect fired at the start of the fight-back phase")
 
 
 func test_look_at_play_option() -> void:
 	var cards: Array[String] = ["t_peek_top", "t_strike", "t_strike", "t_drill_footwork_named", "t_strike"]
 	cards.append_array(filler())
-	var e: DuelEngine = engine(deck(cards), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(cards), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_peek_top"))
 	eq(prompt_kind(e), &"pick_option", "one matching card in the top three")
@@ -1808,9 +1815,9 @@ func test_look_at_play_option() -> void:
 
 
 func test_bond_and_unbond() -> void:
-	var armory: Array[String] = ["t_bonded_hands"]
-	var e: DuelEngine = engine(deck(filler(["t_ally_left", "t_ally_right", "t_bond_rite"]), "knight", "", "", 3, "tf_knight", "t_master", armory), deck(filler(), "knave"))
-	answer(e, &"armory_done")
+	var pages: Array[String] = ["t_bonded_hands"]
+	var e: DuelEngine = engine(deck(filler(["t_ally_left", "t_ally_right", "t_bond_rite"]), "vigil", "", "", 3, "tf_vigil", "t_grimoire", pages), deck(filler(), "pact"))
+	answer(e, &"pages_done")
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_left"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_right"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_bond_rite"))
@@ -1819,18 +1826,18 @@ func test_bond_and_unbond() -> void:
 	answer(e, &"use", rite.uid)
 	eq(e.player(0).allies().size(), 1, "two Allies became one Bond")
 	var bond: CardInstance = e.player(0).allies()[0]
-	eq(bond.def.id, "t_bonded_hands", "the Bond card came from the Armory")
-	eq(bond.vigor, 10, "at full Vigor")
+	eq(bond.def.id, "t_bonded_hands", "the Bond card came from the Pages")
+	eq(bond.energy, 10, "at full Energy")
 	eq(bond.cards_under.size(), 2, "both Allies under it")
 	check(has_event(e, &"bonded"), "bonded event")
 	skip_to_turn(e, 3)
 	skip_to_turn(e, 5)
 	eq(e.player(0).allies().size(), 2, "after two of the owner's turns the Bond burned out and both returned")
-	eq(bond.zone, &"armory", "the Bond card went back to the Armory")
+	eq(bond.zone, &"pages", "the Bond card went back to the Pages")
 
 
 func test_search_by_effect() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_thief_seek", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_thief_seek", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	var scout: CardInstance = e._instance(lib.get_def("t_scout"), 0, &"discard")
 	e.player(0).discard.append(scout)
 	var taunt: CardInstance = e._instance(lib.get_def("t_taunt"), 0, &"discard")
@@ -1842,7 +1849,7 @@ func test_search_by_effect() -> void:
 
 
 func test_end_turn() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_end_turn", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_end_turn", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_end_turn"))
 	eq(e.state.active, 1, "the turn ended at once")
@@ -1851,11 +1858,11 @@ func test_end_turn() -> void:
 
 
 func test_declare_window() -> void:
-	var armory: Array[String] = ["t_summons"]
-	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_taunt", "t_taunt", "t_taunt"]), "knave", "", "", 3, "tf_knight", "t_master", armory))
-	answer(e, &"armory_done")
+	var pages: Array[String] = ["t_summons"]
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_taunt", "t_taunt", "t_taunt"]), "pact", "", "", 3, "tf_vigil", "t_grimoire", pages))
+	answer(e, &"pages_done")
 	var herald: CardInstance = e.player(1).non_combats()[0]
-	eq(herald.def.id, "t_summons", "the herald began the game in play from the Armory")
+	eq(herald.def.id, "t_summons", "the herald began the game in play from the Pages")
 	eq(prompt_kind(e), &"declare", "turn 1: the opponent has no hand to pay with, so no window")
 	var kept: CardInstance = e._instance(lib.get_def("t_taunt"), 1, &"hand")
 	e.player(1).hand.append(kept)
@@ -1875,15 +1882,15 @@ func test_declare_window() -> void:
 
 ## A dev effect runs through the queue with its triggers and the same prompt comes back.
 func test_dev_effect() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	to_combat(e)
 	eq(prompt_kind(e), &"attack_action", "at an attack decision")
-	eq(e.dev_effect(0, {"op": "acclaim", "amount": 2}), "", "accepted")
-	eq(e.player(0).acclaim, 2, "acclaim raised")
+	eq(e.dev_effect(0, {"op": "fervor", "amount": 2}), "", "accepted")
+	eq(e.player(0).fervor, 2, "fervor raised")
 	eq(prompt_kind(e), &"attack_action", "the same decision is back")
-	eq(e.dev_effect(0, {"op": "acclaim", "amount": 3}), "", "accepted again")
-	eq(e.player(0).fighter.tier, 2, "reaching 5 Acclaim rose a tier through the normal path")
-	eq(e.player(0).acclaim, 0, "and reset Acclaim")
+	eq(e.dev_effect(0, {"op": "fervor", "amount": 3}), "", "accepted again")
+	eq(e.player(0).duelist.aspect, 2, "reaching 5 Fervor rose an aspect through the normal path")
+	eq(e.player(0).fervor, 0, "and reset Fervor")
 	var life_before: int = e.player(1).life_deck.size()
 	eq(e.dev_effect(0, {"op": "discard_life", "amount": 2, "who": "opponent"}), "", "opponent-targeted effect")
 	eq(e.player(1).life_deck.size(), life_before - 2, "the rival took two wounds")
@@ -1893,25 +1900,25 @@ func test_dev_effect() -> void:
 
 
 ## Generated rules text: conditions stay attached, same-trigger lines fold, both-player effects
-## read once, and tier cards show constants and every part of a Power.
+## read once, and aspect cards show constants and every part of a Power.
 func test_card_text_wording() -> void:
-	var plain_gain: Dictionary = {"op": "vigor", "amount": 3}
-	eq(CardText.effect_text(plain_gain), "Gain 3 Vigor.", "an unconditional line reads bare")
-	var hit: Dictionary = {"trigger": "if_successful", "op": "acclaim", "amount": 1}
-	eq(CardText.effect_text(hit), "Hit: Raise your Acclaim 1.", "Hit label")
-	var hit_ally: Dictionary = {"trigger": "if_successful", "op": "acclaim", "amount": 1, "when": {"allies_min": 1}}
-	eq(CardText.effect_text(hit_ally), "Hit: If you have an Ally in play, raise your Acclaim 1.", "other conditions stay as sentences")
-	var entering: Dictionary = {"trigger": "entering_combat", "op": "vigor", "amount": 5}
-	eq(CardText.effect_text(entering), "When entering Combat, gain 5 Vigor.", "a triggered line")
+	var plain_gain: Dictionary = {"op": "energy", "amount": 3}
+	eq(CardText.effect_text(plain_gain), "Gain 3 Energy.", "an unconditional line reads bare")
+	var hit: Dictionary = {"trigger": "if_successful", "op": "fervor", "amount": 1}
+	eq(CardText.effect_text(hit), "Hit: Raise your Fervor 1.", "Hit label")
+	var hit_ally: Dictionary = {"trigger": "if_successful", "op": "fervor", "amount": 1, "when": {"allies_min": 1}}
+	eq(CardText.effect_text(hit_ally), "Hit: If you have an Ally in play, raise your Fervor 1.", "other conditions stay as sentences")
+	var entering: Dictionary = {"trigger": "entering_combat", "op": "energy", "amount": 5}
+	eq(CardText.effect_text(entering), "When entering Combat, gain 5 Energy.", "a triggered line")
 	var remain: CardDef = CardDef.from_dict({"id": "r", "title": "R", "type": "strike", "attack": {"kind": "strike"}, "remain": 1})
 	eq(CardText.rules_text(remain), "Strike.\nRemain 1.", "Remain shorthand")
 	var remain2: CardDef = CardDef.from_dict({"id": "r2", "title": "R2", "type": "strike", "attack": {"kind": "strike"}, "remain_when": {"when": {"allies_min": 2}, "remain": 2}})
 	eq(CardText.rules_text(remain2), "Strike.\nIf you have 2 or more Allies in play, Remain 2.", "Remain keeps its capital mid-sentence")
 	var pair: Array = [
-		{"trigger": "entering_combat", "op": "acclaim", "who": "opponent", "amount": -2},
-		{"trigger": "entering_combat", "op": "vigor", "amount": 2, "target": "fighter"},
+		{"trigger": "entering_combat", "op": "fervor", "who": "opponent", "amount": -2},
+		{"trigger": "entering_combat", "op": "energy", "amount": 2, "target": "duelist"},
 	]
-	eq(CardText.effects_text(pair), PackedStringArray(["When entering Combat, lower your opponent's Acclaim 2 and gain 2 Vigor."]), "same trigger folds into one sentence")
+	eq(CardText.effects_text(pair), PackedStringArray(["When entering Combat, lower your opponent's Fervor 2 and gain 2 Energy."]), "same trigger folds into one sentence")
 	var forbids: Array = [
 		{"op": "forbid", "what": "end_combat"}, {"op": "forbid", "who": "opponent", "what": "end_combat"},
 		{"op": "forbid", "what": "stop_all"}, {"op": "forbid", "who": "opponent", "what": "stop_all"},
@@ -1922,24 +1929,24 @@ func test_card_text_wording() -> void:
 		{"op": "discard_in_play", "card_type": "ally", "all": true, "remove": true, "who": "opponent"},
 	]
 	eq(CardText.effects_text(sweep), PackedStringArray(["All Allies in play are removed from the game."]), "clearing both sides reads once")
-	var may: Dictionary = {"op": "vigor", "who": "opponent", "amount": -4, "may": true}
-	eq(CardText.effect_text(may), "You may have your opponent lose 4 Vigor.", "a may on the opponent reads as a choice")
+	var may: Dictionary = {"op": "energy", "who": "opponent", "amount": -4, "may": true}
+	eq(CardText.effect_text(may), "You may have your opponent lose 4 Energy.", "a may on the opponent reads as a choice")
 	eq(CardText.effect_text({"trigger": "on_place", "op": "name_card"}), "When placed, name a card. Neither player may play or use it while this is in play.", "no doubled lead-in")
 	var uses: Array = [{"trigger": "use", "op": "discard_hand", "amount": 1, "random": false}, {"trigger": "use", "op": "draw", "amount": 2}]
 	eq(CardText.effects_text(uses), PackedStringArray(["Use in Combat: Discard a card from your hand. Draw 2 cards."]), "uses share one label")
-	var f: CardDef = CardDef.from_dict({"id": "x", "title": "X", "type": "fighter", "tiers": [
-		{"tier": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"power": {"attack": {"kind": "strike", "stages": 3}, "effects": [{"op": "vigor", "amount": 5}, {"trigger": "if_stopped", "op": "draw", "amount": 1}], "uses": 2},
+	var f: CardDef = CardDef.from_dict({"id": "x", "title": "X", "type": "duelist", "aspects": [
+		{"aspect": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"power": {"attack": {"kind": "strike", "stages": 3}, "effects": [{"op": "energy", "amount": 5}, {"trigger": "if_stopped", "op": "draw", "amount": 1}], "uses": 2},
 			"constant": {"first_styled_unstoppable": true, "forbid_opponent": ["art_attacks"]}, "shield": "strike"},
 	]})
-	var lines: PackedStringArray = CardText.tier_text(f, 1)
+	var lines: PackedStringArray = CardText.aspect_text(f, 1)
 	eq(lines.size(), 3, "power, constant, and shield lines")
-	eq(lines[0], "Power: Strike doing +3 Vigor. Gain 5 Vigor. If stopped, draw a card. May be used twice per Combat.", "every part of the Power")
-	eq(lines[1], "Constant: Your first attack each Combat with a guild card cannot be stopped. Your opponent may not perform Arts.", "constants render")
+	eq(lines[0], "Power: Strike doing +3 Energy. Gain 5 Energy. If stopped, draw a card. May be used twice per Combat.", "every part of the Power")
+	eq(lines[1], "Constant: Your first attack each Combat with a school card cannot be stopped. Your opponent may not perform Arts.", "constants render")
 	eq(lines[2], "Defense Shield: stops the first unstopped Strike each Combat.", "shield renders")
-	var master: CardDef = CardDef.from_dict({"id": "m", "title": "M", "type": "master", "armory_size": 13, "uses_per_game": 2, "limit_per_deck": 1,
-		"effects": [{"trigger": "master_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}]})
-	eq(CardText.rules_text(master), "Armory 13.\nTwice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn.\nLimit 1 per deck.", "master text in reading order")
+	var grimoire: CardDef = CardDef.from_dict({"id": "m", "title": "M", "type": "grimoire", "pages_size": 13, "uses_per_game": 2, "limit_per_deck": 1,
+		"effects": [{"trigger": "grimoire_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}]})
+	eq(CardText.rules_text(grimoire), "Pages 13.\nTwice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn.\nLimit 1 per deck.", "grimoire text in reading order")
 	var stiller: CardDef = CardDef.from_dict({"id": "s", "title": "S", "type": "combat", "defense": {"stops": "any", "stop_all": "any"}, "effects": [{"op": "stop_all", "kind": "any"}]})
 	eq(CardText.rules_text(stiller).count("Stops all attacks"), 1, "a line already said by the defense is not repeated")
 	for id in lib.all_ids():
@@ -1957,7 +1964,7 @@ func test_keyword_table() -> void:
 		check(str(k.get("role", "")) != "" and str(k.get("tip", "")).length() > 20, "role and tip on %s" % key)
 		var r: RegEx = RegEx.new()
 		eq(r.compile(str(k.get("pattern", ""))), OK, "pattern compiles for %s" % key)
-		var phrase_only: Array[String] = ["Stops", "from the game", "Remain", "Hit", "tier", "cannot be prevented", "Cannot be stopped", "Signature", "Limit", "Constant"]
+		var phrase_only: Array[String] = ["Stops", "from the game", "Remain", "Hit", "aspect", "cannot be prevented", "Cannot be stopped", "Signature", "Limit", "Constant"]
 		check(r.search(key) != null or key in phrase_only, "pattern finds its own key: %s" % key)
 	var r: RegEx = RegEx.new()
 	r.compile(str(CardText.KEYWORDS[1]["pattern"]))
@@ -1965,20 +1972,20 @@ func test_keyword_table() -> void:
 	r.compile(str(CardText.KEYWORDS[2]["pattern"]))
 	check(r.search("Remain 1.") != null, "remain phrase matches")
 	r.compile(str(CardText.KEYWORDS[3]["pattern"]))
-	check(r.search("Hit: Raise your Acclaim 1.") != null, "hit label matches")
+	check(r.search("Hit: Raise your Fervor 1.") != null, "hit label matches")
 
 
 # --- Timing windows and outcome data ------------------------------------------
 
-## A spent Fighter may hand the attack phase to an Ally; the Ally then performs the attack.
+## A spent Duelist may hand the attack phase to an Ally; the Ally then performs the attack.
 func test_attacker_ally_control() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_ally_squire", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_squire"))
 	var ally: CardInstance = e.player(0).allies()[0]
 	eq(prompt_kind(e), &"declare", "nothing else to place: at the Declare step")
-	e.player(0).fighter.vigor = 1
+	e.player(0).duelist.energy = 1
 	answer(e, &"declare")
-	eq(prompt_kind(e), &"control", "the attacker chooses who is in control at Vigor 1")
+	eq(prompt_kind(e), &"control", "the attacker chooses who is in control at Energy 1")
 	eq(e.prompt.player, 0, "it is the attacker's choice")
 	eq(str(e.prompt.context.get("role", "")), "attacker", "context names the role")
 	answer(e, &"control", ally.uid)
@@ -1987,12 +1994,12 @@ func test_attacker_ally_control() -> void:
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	eq(int(e.state.last_attack.get("performer", -1)), ally.uid, "the Ally performed the attack")
 	eq(prompt_kind(e), &"attack_action", "the fight back follows")
-	eq(e.prompt.player, 1, "the rival's phase, no control prompt at Vigor 5")
+	eq(e.prompt.player, 1, "the rival's phase, no control prompt at Energy 5")
 
 
 ## A Non-Combat in play may stop an attack, and is spent by it like any other use.
 func test_non_combat_defense_is_spent() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	var block: CardInstance = inject(e, 1, "t_noncombat_parry")
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
@@ -2000,14 +2007,14 @@ func test_non_combat_defense_is_spent() -> void:
 	check(e.prompt.find(&"defend", block.uid) != null, "the Non-Combat in play is a legal defense")
 	answer(e, &"defend", block.uid)
 	check(has_event(e, &"attack_stopped"), "it stopped the Strike")
-	eq(e.player(1).acclaim, 1, "its own effect resolved")
+	eq(e.player(1).fervor, 1, "its own effect resolved")
 	eq(block.zone, &"discard", "and the card is spent")
 	eq(e.player(1).non_combats().size(), 0, "no longer in play")
 
 
 ## After a Final Strike the player cannot defend either; the attack goes straight to the shields.
 func test_no_defense_after_final_strike() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_parry", "t_parry"])), deck(filler(["t_strike", "t_strike", "t_strike"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_parry", "t_parry"])), deck(filler(["t_strike", "t_strike", "t_strike"]), "pact"))
 	to_combat(e)
 	answer(e, &"final_strike", uid_in_hand(e, 0, "t_taunt"))
 	eq(prompt_kind(e), &"attack_action", "rival's fight back")
@@ -2026,7 +2033,7 @@ func test_no_defense_after_final_strike() -> void:
 
 ## A skipped attack phase never happened, so the passes around it are not consecutive.
 func test_skipped_phase_does_not_end_combat() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	to_combat(e)
 	e.player(1).skip_next_attack_phase = true
 	answer(e, &"pass")
@@ -2044,27 +2051,27 @@ func test_skipped_phase_does_not_end_combat() -> void:
 	eq(e.state.turn, 2, "and no card returns")
 
 
-## A Master whose power is a Combat action is offered in place of an attack, not in the Non-Combat step.
-func test_master_in_combat() -> void:
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_knight", "t_master_combat"), deck(filler(), "knave"))
-	eq(prompt_kind(e), &"declare", "nothing to place and no Master offer in the Non-Combat step")
+## A Grimoire whose power is a Combat action is offered in place of an attack, not in the Non-Combat step.
+func test_grimoire_in_combat() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_grimoire_combat"), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"declare", "nothing to place and no Grimoire offer in the Non-Combat step")
 	answer(e, &"declare")
-	var m: int = e.player(0).master.uid
-	check(e.prompt.find(&"use", m) != null, "the Master is an attack-phase action")
+	var m: int = e.player(0).grimoire.uid
+	check(e.prompt.find(&"use", m) != null, "the Grimoire is an attack-phase action")
 	answer(e, &"use", m)
-	eq(e.player(0).hand.size(), 5, "the Master drew two")
-	check(has_event(e, &"master_used"), "master_used event")
+	eq(e.player(0).hand.size(), 5, "the Grimoire drew two")
+	check(has_event(e, &"grimoire_used"), "grimoire_used event")
 	eq(prompt_kind(e), &"attack_action", "used in place of an attack: fight back")
 	eq(e.prompt.player, 1, "the rival's phase")
 	answer(e, &"pass")
 	check(e.prompt.find(&"use", m) == null, "once per game")
 
 
-## Battle step 11: an attacking Ally with the capture trait may take a Token instead of dealing damage.
+## Battle step 11: an attacking Ally with the capture trait may take a Seal instead of dealing damage.
 func test_capture_instead_of_damage() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_ally_captor"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_ally_captor"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_ally_captor"))
-	var token: CardInstance = inject(e, 1, "t_token_1")
+	var seal: CardInstance = inject(e, 1, "t_seal_1")
 	to_combat(e)
 	var al: CardInstance = e.player(0).allies()[0]
 	var deck_before: int = e.player(1).life_deck.size()
@@ -2072,16 +2079,16 @@ func test_capture_instead_of_damage() -> void:
 	eq(prompt_kind(e), &"capture_instead", "the capturing Ally is asked")
 	eq(e.prompt.player, 0, "by its owner")
 	check(e.prompt.find(&"deal_damage") != null, "dealing the damage stays an option")
-	answer(e, &"capture", token.uid)
+	answer(e, &"capture", seal.uid)
 	if prompt_kind(e) == &"pick_option":
-		answer(e, &"pick_option", -1, "no")   # the captured Token's power is optional
-	eq(e.player(0).tokens().size(), 1, "the Token changed hands")
-	eq(e.player(1).fighter.vigor, 5, "no Vigor damage")
+		answer(e, &"pick_option", -1, "no")   # the captured Seal's power is optional
+	eq(e.player(0).seals().size(), 1, "the Seal changed hands")
+	eq(e.player(1).duelist.energy, 5, "no Energy damage")
 	eq(e.player(1).life_deck.size(), deck_before, "no wounds")
 	check(has_event(e, &"capture_instead"), "capture_instead event")
 	eq(prompt_kind(e), &"attack_action", "battle over")
 	al.power_used_combat = -1   # Ally powers are once per Combat; reopen it to try the other branch
-	inject(e, 1, "t_token_2")
+	inject(e, 1, "t_seal_2")
 	answer(e, &"pass")
 	answer(e, &"power", al.uid)
 	answer(e, &"deal_damage")
@@ -2090,7 +2097,7 @@ func test_capture_instead_of_damage() -> void:
 
 ## The outcome of an attack outlives the attack in the view, on both seats and over the wire.
 func test_last_attack_in_view() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_parry", "t_parry"])), deck(filler(["t_strike", "t_strike", "t_strike"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_parry", "t_parry"])), deck(filler(["t_strike", "t_strike", "t_strike"]), "pact"))
 	to_combat(e)
 	eq(SeatView.of(e, 0).last_attack.size(), 0, "nothing yet")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
@@ -2114,27 +2121,27 @@ func test_last_attack_in_view() -> void:
 
 ## Log lines for the attack's end and Combat's start, and titles that name the card asking.
 func test_outcome_lines_and_titles() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_parry", "t_taunt"])), deck(filler(["t_strike", "t_counter", "t_counter"]), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_parry", "t_taunt"])), deck(filler(["t_strike", "t_counter", "t_counter"]), "pact"))
 	to_combat(e)
 	var begin: String = ""
 	for ev in e.events:
 		if ev.type == &"combat_begin":
 			begin = CardText.event_line(ev, e, 0)
-	eq(begin, "Combat: Test knight attacks first.", "Combat opening line")
+	eq(begin, "Combat: Test vigil attacks first.", "Combat opening line")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	var lines: Array[String] = []
 	for ev in e.events:
 		if ev.type == &"attack_end":
 			lines.append(CardText.event_line(ev, e, 1))
 	eq(lines.size(), 1, "one attack_end line")
-	check(lines[0].begins_with("Test knight's Test Strike lands for "), "landing line names the card and the damage: %s" % lines[0])
+	check(lines[0].begins_with("Test vigil's Test Strike lands for "), "landing line names the card and the damage: %s" % lines[0])
 	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
 	answer(e, &"defend", uid_in_hand(e, 0, "t_parry"))
 	lines.clear()
 	for ev in e.events:
 		if ev.type == &"attack_end":
 			lines.append(CardText.event_line(ev, e, 0))
-	eq(lines[lines.size() - 1], "Test knave's Test Strike is stopped by Test Parry.", "stopped line names the defense")
+	eq(lines[lines.size() - 1], "Test pact's Test Strike is stopped by Test Parry.", "stopped line names the defense")
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
 	eq(prompt_kind(e), &"respond", "counter window")
 	eq(CardText.prompt_title(e.prompt), "Counter Test Taunt?", "the respond prompt names the card")
@@ -2142,7 +2149,7 @@ func test_outcome_lines_and_titles() -> void:
 	var ctrl: Prompt = Prompt.new()
 	ctrl.kind = &"control"
 	ctrl.context = {"role": "attacker"}
-	eq(CardText.prompt_title(ctrl), "Who attacks? Your Fighter is spent", "attacker control title")
+	eq(CardText.prompt_title(ctrl), "Who attacks? Your Duelist is spent", "attacker control title")
 	var crit: Prompt = Prompt.new()
 	crit.kind = &"critical"
 	crit.context = {"life_dealt": 6}
@@ -2150,46 +2157,46 @@ func test_outcome_lines_and_titles() -> void:
 	var pick: Prompt = Prompt.new()
 	pick.kind = &"pick_option"
 	pick.context = {"purpose": "capture", "card_title": "Test Thief"}
-	eq(CardText.prompt_title(pick), "Test Thief: capture which Token?", "purpose-driven pick title")
+	eq(CardText.prompt_title(pick), "Test Thief: capture which Seal?", "purpose-driven pick title")
 
 
 ## A constant power's keyed lists fire at their key: turn start, entering Combat, and each attack.
 func test_constant_keyed_triggers() -> void:
-	var e: DuelEngine = engine(deck(filler(), "knight", "", "", 3, "tf_grinder"), deck(filler(), "knave"))
-	eq(e.player(0).acclaim, 1, "turn-start constant fired on turn 1")
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_grinder"), deck(filler(), "pact"))
+	eq(e.player(0).fervor, 1, "turn-start constant fired on turn 1")
 	to_combat(e)
-	eq(e.player(0).acclaim, 2, "entering-Combat constant fired for the active player")
+	eq(e.player(0).fervor, 2, "entering-Combat constant fired for the active player")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
-	eq(e.player(0).acclaim, 3, "on-attack constant fired with the Strike")
+	eq(e.player(0).fervor, 3, "on-attack constant fired with the Strike")
 	answer(e, &"pass")
 	answer(e, &"pass")
 	skip_to_turn(e, 3)
-	eq(e.player(0).acclaim, 4, "turn-start constant fired again on the owner's next turn, not the rival's")
+	eq(e.player(0).fervor, 4, "turn-start constant fired again on the owner's next turn, not the rival's")
 
 
-## A Token's text (no trigger of its own) is its placement power; a captor may use it on capture.
-func test_token_power_on_place_and_capture() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_token_plain"])), deck(filler(), "knave"))
-	answer(e, &"place", uid_in_hand(e, 0, "t_token_plain"))
-	eq(e.player(0).acclaim, 1, "the placed Token's power fired")
+## A Seal's text (no trigger of its own) is its placement power; a captor may use it on capture.
+func test_seal_power_on_place_and_capture() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_seal_plain"])), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_seal_plain"))
+	eq(e.player(0).fervor, 1, "the placed Seal's power fired")
 	eq(e.player(0).hand.size(), 3, "both lines of it (drew one after placing one)")
-	var c: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "knave"))
-	var t: CardInstance = inject(c, 1, "t_token_plain")
+	var c: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
+	var t: CardInstance = inject(c, 1, "t_seal_plain")
 	to_combat(c)
 	answer(c, &"attack", uid_in_hand(c, 0, "t_strike_wound"))
 	eq(prompt_kind(c), &"critical", "five wounds: critical damage")
 	answer(c, &"capture", t.uid)
 	eq(t.controller, 0, "captured")
-	eq(prompt_kind(c), &"pick_option", "the captor is asked about the Token's power")
+	eq(prompt_kind(c), &"pick_option", "the captor is asked about the Seal's power")
 	check(bool(c.prompt.context.get("may", false)), "as a may question")
 	answer(c, &"pick_option", -1, "yes")
-	eq(c.player(0).acclaim, 1, "the power resolved for the captor")
+	eq(c.player(0).fervor, 1, "the power resolved for the captor")
 	eq(prompt_kind(c), &"attack_action", "and the battle went on")
 
 
 ## A Non-Combat used from play as an attack action does its effect once and is discarded.
 func test_used_non_combat_is_spent() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike", "t_strike"])), deck(filler(), "pact"))
 	var study: CardInstance = inject(e, 0, "t_noncombat_draw")
 	to_combat(e)
 	var hand_before: int = e.player(0).hand.size()
@@ -2198,6 +2205,101 @@ func test_used_non_combat_is_spent() -> void:
 	eq(e.player(0).hand.size(), hand_before + 2, "its effect resolved")
 	eq(study.zone, &"discard", "and the card is spent")
 	eq(e.player(0).non_combats().size(), 0, "no longer in play")
+
+
+func to_discard(e: DuelEngine, player: int, id: String) -> CardInstance:
+	var c: CardInstance = e._instance(lib.get_def(id), player, &"discard")
+	e.player(player).discard.append(c)
+	return c
+
+
+## Drawing from the discard pile can check the card's school, and an either-or effect runs its
+## second half on a no.
+func test_discard_draw_check_and_otherwise() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_discard(e, 0, "t_drill_strike")
+	to_discard(e, 0, "t_art")
+	var draw: Dictionary = {"op": "draw_discard", "amount": 1, "from": "bottom", "if_school": "ember", "effects": [{"op": "fervor", "amount": 1}]}
+	e.dev_effect(0, draw)
+	eq(e.player(0).fervor, 1, "the bottom card was Ember, so the follow-up ran")
+	e.dev_effect(0, draw)
+	eq(e.player(0).fervor, 1, "the next one was not")
+	eq(e.player(0).discard.size(), 0, "both were drawn")
+	e.player(1).fervor = 3
+	e.dev_effect(0, {"may": true, "op": "fervor", "amount": 2, "otherwise": [{"op": "fervor", "who": "opponent", "amount": -2}]})
+	answer(e, &"pick_option", -1, "no")
+	eq(e.player(0).fervor, 1, "a no leaves the first half undone")
+	eq(e.player(1).fervor, 1, "and does the second")
+	check(CardText.effect_text({"may": true, "op": "fervor", "amount": 2, "otherwise": [{"op": "fervor", "who": "opponent", "amount": -2}]}).contains("If you do not"), "the text says so")
+
+
+## Chosen cards go from the discard pile under the Life Deck, and a card can be placed from hand.
+func test_search_to_deck_and_from_hand() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_noncombat_draw", "t_drill_strike"])), deck(filler(), "pact"))
+	var a: CardInstance = to_discard(e, 0, "t_art")
+	to_discard(e, 0, "t_strike")
+	var deck_before: int = e.player(0).life_deck.size()
+	e.dev_effect(0, {"op": "search", "source": "discard", "amount": 2, "to": "deck_bottom"})
+	eq(prompt_kind(e), &"pick_option", "two different cards, so the owner picks")
+	answer(e, &"pick_option", a.uid)
+	if prompt_kind(e) == &"pick_option" and bool(e.prompt.context.get("search", false)):
+		answer(e, &"pick_none")
+	eq(a.zone, &"life_deck", "the picked card went under the Life Deck")
+	eq(e.player(0).life_deck.size(), deck_before + 1, "only the picked one")
+	eq(e.player(0).life_deck.back(), a, "at the bottom")
+	var study: int = uid_in_hand(e, 0, "t_noncombat_draw")
+	e.dev_effect(0, {"op": "search", "source": "hand", "card_type": "non_combat_any", "to": "play"})
+	eq(prompt_kind(e), &"pick_option", "a Non-Combat and a Drill in hand: a choice")
+	answer(e, &"pick_option", study)
+	eq(e.card(study).zone, &"in_play", "placed from hand")
+
+
+## Grounds can cap an Fervor gain, a Drill can guard Seals, and a card can stay out of the
+## removed pile while a Seal is in play.
+func test_fervor_cap_seal_guard_and_kept_card() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var field: CardInstance = e._instance(lib.get_def("t_grounds_cap"), 0, &"grounds")
+	e.state.grounds = field
+	e.dev_effect(0, {"op": "fervor", "amount": 3})
+	eq(e.player(0).fervor, 1, "a gain of 3 under the cap is 1")
+	var t: CardInstance = inject(e, 1, "t_seal_plain")
+	inject(e, 1, "t_drill_keeper")
+	e.dev_effect(0, {"op": "capture_seal"})
+	eq(t.controller, 1, "a guarded Seal is not captured")
+	var kept: CardInstance = inject(e, 0, "t_noncombat_kept")
+	to_combat(e)
+	answer(e, &"use", kept.uid)
+	eq(kept.zone, &"discard", "discarded, not removed, while the Seal is in play")
+
+
+## A Non-Combat in play can answer a successful attack, and an Art can count a set's Seals.
+func test_success_non_combat_and_set_seal_damage() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art_set", "t_art_set", "t_art_set"])), deck(filler([], 30), "pact"))
+	var eyes: CardInstance = inject(e, 0, "t_noncombat_eyes")
+	inject(e, 1, "t_seal_plain")
+	to_combat(e)
+	var life_before: int = e.player(1).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art_set"))
+	var guard: int = 0
+	while e.prompt != null and not bool(e.prompt.context.get("may", false)) and e.prompt.kind != &"attack_action" and guard < 10:
+		guard += 1
+		for quiet in [&"no_defense", &"no_endure", &"no_critical", &"target"]:
+			var opt: Command = e.prompt.find(quiet)
+			if opt != null:
+				e.submit(opt)
+				break
+	eq(life_before - e.player(1).life_deck.size(), 2, "1 printed wound plus 1 for the Seal in play")
+	check(e.prompt != null and bool(e.prompt.context.get("may", false)), "the Non-Combat asks after the Art lands")
+	answer(e, &"pick_option", -1, "yes")
+	eq(e.player(0).fervor, 1, "its effect ran")
+	eq(eyes.zone, &"discard", "and it spent itself")
+
+
+## The Root house deck is legal at 90 cards with no Grimoire.
+func test_root_deck_is_legal() -> void:
+	var d: DeckList = DeckList.load_from("res://data/decks/root_seals.json")
+	eq(d.total_cards(), 90, "84 life cards, five aspects and the Mastery")
+	eq(", ".join(DeckValidator.validate(d, shipped_library())), "", "no validator problems")
 
 
 # --- Simulation support ----------------------------------------------------
@@ -2304,7 +2406,7 @@ func test_sim_for_hides_and_keeps() -> void:
 func hidden_titles(e: DuelEngine, owner: int) -> Array[String]:
 	var out: Array[String] = []
 	var p: PlayerState = e.player(owner)
-	for list in [p.hand, p.life_deck, p.armory]:
+	for list in [p.hand, p.life_deck, p.pages]:
 		for c in list:
 			out.append(c.def.id)
 	out.sort()
@@ -2352,7 +2454,7 @@ func test_ai_answers_every_prompt() -> void:
 			ref.engine.take_events()
 		eq(refused, "", "%s vs %s: every AI answer was accepted" % [pairing[0], pairing[1]])
 		check(ref.is_over(), "%s vs %s finished in %d steps" % [pairing[0], pairing[1], steps])
-	for kind in [&"armory", &"non_combat", &"declare", &"attack_action", &"defense", &"keep"]:
+	for kind in [&"pages", &"non_combat", &"declare", &"attack_action", &"defense", &"keep"]:
 		check(kinds.has(kind), "the AI met a %s prompt" % kind)
 
 
@@ -2383,40 +2485,114 @@ func test_ai_search_reports_and_is_repeatable() -> void:
 	eq(ref.submit(seat, a), "", "the referee accepts the choice")
 
 
-## Each win route moves the evaluation: fewer life cards is worse, Tokens and Favor are better,
+## Each win route moves the evaluation: fewer life cards is worse, Seals and Ascension are better,
 ## and a profile that ignores a route does not count it.
 func test_ai_evaluator_routes() -> void:
-	var e: DuelEngine = engine(deck(filler()), deck(filler(), "knave"))
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	var profile: AiProfile = AiProfile.default_profile()
 	var base: float = AiEvaluator.evaluate(e, 0, profile)
 	var rival_base: float = AiEvaluator.evaluate(e, 1, profile)
-	e.player(0).acclaim = 4
-	var with_acclaim: float = AiEvaluator.evaluate(e, 0, profile)
-	check(with_acclaim > base, "Acclaim toward the Favor win is worth something")
-	e.player(0).acclaim = 0
-	inject(e, 0, "t_token_1")
-	var with_token: float = AiEvaluator.evaluate(e, 0, profile)
-	check(with_token > base, "a Token in play is worth something")
+	e.player(0).fervor = 4
+	var with_fervor: float = AiEvaluator.evaluate(e, 0, profile)
+	check(with_fervor > base, "Fervor toward the Ascension win is worth something")
+	e.player(0).fervor = 0
+	inject(e, 0, "t_seal_1")
+	var with_seal: float = AiEvaluator.evaluate(e, 0, profile)
+	check(with_seal > base, "a Seal in play is worth something")
 	check(AiEvaluator.evaluate(e, 1, profile) < rival_base, "and the other seat sees it as a threat")
 	var deaf: AiProfile = AiProfile.default_profile()
-	deaf.merge({"own": {"token": 0.0}})
-	eq(AiEvaluator.evaluate(e, 0, deaf), base, "a profile with no Token weight ignores it")
+	deaf.merge({"own": {"seal": 0.0}})
+	eq(AiEvaluator.evaluate(e, 0, deaf), base, "a profile with no Seal weight ignores it")
 	var lost: CardInstance = e.player(0).life_deck.pop_back()
 	e.player(0).removed.append(lost)
-	check(AiEvaluator.evaluate(e, 0, profile) < with_token, "a lost life card is worse")
+	check(AiEvaluator.evaluate(e, 0, profile) < with_seal, "a lost life card is worse")
 	e.state.winner = 1
 	eq(AiEvaluator.evaluate(e, 0, profile), -AiEvaluator.WIN, "a lost duel is the floor")
 	eq(AiEvaluator.evaluate(e, 1, profile), AiEvaluator.WIN, "a won duel is the ceiling")
 
 
+## Which Pages cards seat 0's AI brings in for a shipped matchup, by card id.
+func pages_swaps(mine: String, theirs: String) -> Array[String]:
+	var ref: Referee = shipped_referee(mine, theirs, 5)
+	var driver: AiPlayer = AiPlayer.new(AiProfile.for_deck(DeckList.load_from("res://data/decks/%s.json" % mine), ""), 1)
+	var steps: int = 0
+	while ref.engine.prompt != null and ref.engine.prompt.kind == &"pages" and steps < 60:
+		steps += 1
+		var seat: int = ref.engine.prompt.player
+		if seat == 0:
+			ref.submit(0, driver.choose(ref, 0))
+		else:
+			ref.submit(1, ref.engine.prompt.find(&"pages_done").to_dict())
+	var out: Array[String] = []
+	for ev in ref.engine.events:
+		if ev.type == &"pages_swap" and int(ev.data.get("player", -1)) == 0:
+			out.append(ref.engine.card(int(ev.data["in"])).def.id)
+	return out
+
+
+## The Pages swap reads the opponent's duelist, Mastery and Grimoire, brings in answers that fit,
+## leaves the rest, and keeps toolbox attacks where the deck can fetch them.
+func test_ai_pages_swaps() -> void:
+	var tide: DuelEngine = shipped_engine("tide_companions", "ember_beatdown", 1)
+	var tide_signs: Dictionary = AiPages.read_setup(tide.player(0))
+	eq(float(tide_signs["ally"]), 1.0, "the Tide setup cards read as an Ally deck")
+	eq(float(tide_signs["camps"]), 1.0, "that sits on its lowest aspect")
+	eq(float(tide_signs["non_combat"]), AiPages.PRIOR, "and an effect aimed at the opponent is not a sign")
+	var ember_signs: Dictionary = AiPages.read_setup(tide.player(1))
+	eq(float(ember_signs["ally"]), AiPages.PRIOR, "the Ember setup cards show no Allies")
+	eq(float(ember_signs["camps"]), AiPages.PRIOR, "and no reason to sit on an aspect")
+	var vale: DuelEngine = shipped_engine("freestyle_swords", "ember_beatdown", 1)
+	eq(float(AiPages.read_setup(vale.player(0))["drill"]), 1.0, "the Freestyle Mastery reads as a Drill deck")
+	check(pages_swaps("ember_beatdown", "tide_companions").has("ember_energy_orb"), "Ember brings its Ally answer in against Tide")
+	check(not pages_swaps("ember_beatdown", "steel_beatdown").has("ember_energy_orb"), "and leaves it out against Steel")
+	check(pages_swaps("steel_beatdown", "freestyle_swords").has("sly_smirk"), "Steel brings its Drill answer in against Freestyle")
+	check(pages_swaps("steel_beatdown", "ember_beatdown").has("steel_headshot"), "and its plain strong card every game")
+	check(not pages_swaps("steel_beatdown", "ember_beatdown").has("open_challenge"), "a card that starts in play from the Pages stays there")
+	eq(pages_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")
+	check(not pages_swaps("storm_volley", "ember_beatdown").has("focused_crushing_dive"), "Storm leaves a toolbox attack where its fetch card can reach it")
+	check(pages_swaps("storm_volley", "tide_companions").has("focused_crushing_dive"), "unless the opponent is what it answers")
+	check(not pages_swaps("freestyle_swords", "ember_beatdown").has("mutual_escalation"), "an Ascension deck does not bring in the card that gives up the Ascension win")
+
+
+## A deck's archetype rides from its JSON to both seats' views, the validator knows the
+## vocabulary, and the Pages read takes the declared signs even when the setup cards are silent.
+func test_archetype_label() -> void:
+	var e: DuelEngine = shipped_engine("shade_henchmen", "freestyle_swords", 1)
+	eq(e.player(0).archetype, "allies", "the engine carries the deck's archetype")
+	var seen_by_rival: SeatPlayer = SeatView.of(e, 1).player(0)
+	eq(seen_by_rival.archetype, "allies", "and shows it to the other seat")
+	var back: SeatPlayer = SeatPlayer.from_dict(JSON.parse_string(JSON.stringify(seen_by_rival.to_dict())))
+	eq(back.archetype, "allies", "it survives the wire")
+	eq(back.subthemes.has("disruption"), true, "with its subthemes")
+	eq(Archetype.label("drills"), "Drills", "labels come from one place")
+	check(Archetype.plan("allies") != "", "with a line on how the deck wins")
+	var plain: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	eq(float(AiPages.read_setup(plain.player(0))["seal"]), AiPages.PRIOR, "an unlabelled deck reads at the prior")
+	plain.player(0).archetype = "seals"
+	eq(float(AiPages.read_setup(plain.player(0))["seal"]), 1.0, "a declared Seal deck reads as one though no setup card says so")
+	plain.player(0).archetype = ""
+	plain.player(0).subthemes = ["drills"]
+	eq(float(AiPages.read_setup(plain.player(0))["drill"]), 0.7, "a subtheme can carry a sign too")
+	for word in Archetype.SUBTHEMES.keys():
+		check(not str(word).contains("_") and not str(Archetype.SUBTHEMES[word]).contains(" "), "subtheme '%s' is one word" % word)
+	var bad: DeckList = DeckList.load_from("res://data/decks/ember_beatdown.json")
+	bad.archetype = "midrange"
+	bad.subthemes = ["fervor", "nonsense"]
+	var problems: Array[String] = DeckValidator.validate(bad, shipped_library())
+	check(", ".join(problems).contains("Unknown archetype 'midrange'") and ", ".join(problems).contains("Unknown subtheme 'nonsense'"), "the validator names words it does not know: %s" % ", ".join(problems))
+	for file in ["ember_beatdown", "steel_beatdown", "shade_henchmen", "tide_companions", "freestyle_swords", "storm_volley", "root_seals"]:
+		var d: DeckList = DeckList.load_from("res://data/decks/%s.json" % file)
+		check(Archetype.known(d.archetype) and d.difficulty != "", "%s is labelled %s, %s" % [file, d.archetype, d.difficulty])
+
+
 func test_ai_profile_merge() -> void:
 	var p: AiProfile = AiProfile.default_profile()
-	p.merge({"name": "test", "own": {"token": 99.0}, "think": {"search": false}, "nonsense": {"x": 1}})
+	p.merge({"name": "test", "own": {"seal": 99.0}, "think": {"search": false}, "nonsense": {"x": 1}})
 	eq(p.name, "test", "name taken")
-	eq(p.w("own", "token"), 99.0, "the named weight changed")
+	eq(p.w("own", "seal"), 99.0, "the named weight changed")
 	eq(p.w("own", "life"), float(AiProfile.DEFAULTS["own"]["life"]), "the rest kept their defaults")
 	eq(p.searches(), false, "think knobs merge too")
-	eq(AiProfile.default_profile().w("own", "token"), float(AiProfile.DEFAULTS["own"]["token"]), "a merge never writes to the defaults")
+	eq(AiProfile.default_profile().w("own", "seal"), float(AiProfile.DEFAULTS["own"]["seal"]), "a merge never writes to the defaults")
 	for file in ["default", "easy", "hard"]:
 		var loaded: AiProfile = AiProfile.load_from("res://data/ai/profiles/%s.json" % file)
 		eq(loaded.name, file, "%s.json loads" % file)

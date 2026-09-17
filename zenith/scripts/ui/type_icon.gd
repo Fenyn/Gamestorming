@@ -3,8 +3,8 @@ extends Control
 ## One vector glyph per card type, drawn at any size in one colour. The same shapes mark the
 ## card face, the hand, the tray, and the deck legend, so a Strike looks like a Strike wherever
 ## it shows: sword for Strike, burst for Art, shield for Combat, scroll for Non-Combat, target
-## for Drill, figure for Ally, crown for Fighter, gem for Token, hills for Grounds, chevrons for
-## Mastery, open book for Master.
+## for Drill, figure for Ally, crown for Duelist, gem for Seal, hills for Grounds, chevrons for
+## Mastery, open book for Grimoire.
 
 @export var type: CardDef.Type = CardDef.Type.COMBAT:
 	set(v):
@@ -49,11 +49,11 @@ func _draw() -> void:
 				var a: float = PI + PI * i / 16.0
 				body.append(_p(0.5 + 0.36 * cos(a), 0.92 + 0.36 * sin(a), s, o))
 			draw_colored_polygon(body, color)
-		CardDef.Type.FIGHTER:
+		CardDef.Type.DUELIST:
 			draw_colored_polygon(_pts([
 				Vector2(0.12, 0.82), Vector2(0.12, 0.3), Vector2(0.33, 0.52), Vector2(0.5, 0.16),
 				Vector2(0.67, 0.52), Vector2(0.88, 0.3), Vector2(0.88, 0.82)], s, o), color)
-		CardDef.Type.TOKEN:
+		CardDef.Type.SEAL:
 			var gem: PackedVector2Array = _pts([Vector2(0.5, 0.08), Vector2(0.9, 0.4), Vector2(0.5, 0.92), Vector2(0.1, 0.4)], s, o)
 			gem.append(gem[0])
 			draw_polyline(gem, color, w)
@@ -66,7 +66,7 @@ func _draw() -> void:
 		CardDef.Type.MASTERY:
 			for y0 in [0.22, 0.46, 0.7]:
 				draw_polyline(_pts([Vector2(0.18, y0 + 0.16), Vector2(0.5, y0 - 0.06), Vector2(0.82, y0 + 0.16)], s, o), color, w)
-		CardDef.Type.MASTER:
+		CardDef.Type.GRIMOIRE:
 			draw_polyline(_pts([Vector2(0.12, 0.2), Vector2(0.5, 0.3), Vector2(0.88, 0.2), Vector2(0.88, 0.8), Vector2(0.5, 0.9), Vector2(0.12, 0.8), Vector2(0.12, 0.2)], s, o), color, w)
 			draw_line(_p(0.5, 0.3, s, o), _p(0.5, 0.9, s, o), color, w * 0.8)
 		_:

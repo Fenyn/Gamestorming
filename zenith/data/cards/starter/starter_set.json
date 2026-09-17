@@ -2,1347 +2,1646 @@
  "_note": "Starter set. Generated; mechanics follow the reference sample decks, names are original.",
  "cards": [
   {
-   "id": "fighter_alpha",
+   "id": "duelist_alpha",
    "title": "Bram Ashmark",
-   "type": "fighter",
-   "guild": "",
+   "type": "duelist",
+   "school": "",
    "character": "Bram Ashmark",
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 2,
-     "might": [
-      0,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20,
-      21,
-      22,
-      23,
-      24
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "stages": 3
-      },
-      "effects": [
-       {
-        "op": "vigor",
-        "amount": 5
-       },
-       {
-        "trigger": "if_stopped",
-        "op": "draw",
-        "amount": 1
-       }
-      ]
-     }
-    },
-    {
-     "tier": 2,
-     "surge": 5,
-     "might": [
-      0,
-      25,
-      26,
-      27,
-      28,
-      29,
-      30,
-      31,
-      32,
-      33,
-      34
-     ],
-     "power": {
-      "attack": {
-       "kind": "art",
-       "focused": true,
-       "stages_from_table": true,
-       "cost_stages": 0
-      },
-      "effects": [
-       {
-        "op": "acclaim",
-        "who": "opponent",
-        "amount": -2
-       }
-      ]
-     }
-    },
-    {
-     "tier": 3,
-     "surge": 6,
-     "might": [
-      0,
-      28,
-      30,
-      32,
-      34,
-      36,
-      38,
-      40,
-      42,
-      44,
-      46
-     ],
-     "constant": {
-      "first_styled_unstoppable": true
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 3
+	  },
+	  "effects": [
+	   {
+		"op": "energy",
+		"amount": 5
+	   },
+	   {
+		"trigger": "if_stopped",
+		"op": "draw",
+		"amount": 1
+	   }
+	  ]
+	 },
+	 "title": "Kindled"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  25,
+	  26,
+	  27,
+	  28,
+	  29,
+	  30,
+	  31,
+	  32,
+	  33,
+	  34
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "focused": true,
+	   "stages_from_table": true,
+	   "cost_stages": 0
+	  },
+	  "effects": [
+	   {
+		"op": "fervor",
+		"who": "opponent",
+		"amount": -2
+	   }
+	  ]
+	 },
+	 "title": "Wildfire"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 6,
+	 "might": [
+	  0,
+	  28,
+	  30,
+	  32,
+	  34,
+	  36,
+	  38,
+	  40,
+	  42,
+	  44,
+	  46
+	 ],
+	 "constant": {
+	  "first_styled_unstoppable": true
+	 },
+	 "title": "Unquenchable"
+	}
    ]
   },
   {
-   "id": "fighter_beta",
+   "id": "duelist_beta",
    "title": "Dame Alder Rooke",
-   "type": "fighter",
-   "guild": "",
+   "type": "duelist",
+   "school": "",
    "character": "Dame Alder Rooke",
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-     ],
-     "constant": {
-      "protect_allies": true,
-      "turn_start": [
-       {
-        "op": "advance_tier",
-        "when": {
-         "allies_min": 5
-        }
-       }
-      ]
-     }
-    },
-    {
-     "tier": 2,
-     "surge": 2,
-     "might": [
-      0,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "variants": [
-        {
-         "when": {
-          "ally_present": "Sir Edric Rooke"
-         },
-         "stages": 4
-        }
-       ]
-      }
-     }
-    },
-    {
-     "tier": 3,
-     "surge": 1,
-     "might": [
-      0,
-      22,
-      24,
-      26,
-      28,
-      30,
-      32,
-      34,
-      36,
-      38,
-      40
-     ],
-     "power": {
-      "effects": [
-       {
-        "trigger": "entering_combat",
-        "op": "discard_in_play",
-        "who": "opponent",
-        "card_type": "non_combat",
-        "all": true,
-        "remove": true
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  3,
+	  4,
+	  5,
+	  6,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12
+	 ],
+	 "constant": {
+	  "protect_allies": true,
+	  "turn_start": [
+	   {
+		"op": "advance_aspect",
+		"when": {
+		 "allies_min": 5
+		}
+	   }
+	  ]
+	 },
+	 "title": "Matriarch"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "variants": [
+		{
+		 "when": {
+		  "ally_present": "Sir Edric Rooke"
+		 },
+		 "stages": 4
+		}
+	   ]
+	  }
+	 },
+	 "title": "Rising Water"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  22,
+	  24,
+	  26,
+	  28,
+	  30,
+	  32,
+	  34,
+	  36,
+	  38,
+	  40
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "non_combat",
+		"all": true,
+		"remove": true
+	   }
+	  ]
+	 },
+	 "title": "the Flood"
+	}
    ]
   },
   {
-   "id": "fighter_gamma",
+   "id": "duelist_gamma",
    "title": "The Ninth Vessel",
-   "type": "fighter",
-   "guild": "",
+   "type": "duelist",
+   "school": "",
    "character": "The Ninth Vessel",
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 2,
-     "might": [
-      0,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16
-     ],
-     "power": {
-      "defense": {
-       "stops": "art"
-      },
-      "effects": [
-       {
-        "op": "vigor",
-        "amount": 3
-       }
-      ]
-     }
-    },
-    {
-     "tier": 2,
-     "surge": 1,
-     "might": [
-      0,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20
-     ],
-     "power": {
-      "effects": [
-       {
-        "trigger": "entering_combat",
-        "op": "vigor",
-        "amount": 5
-       }
-      ]
-     },
-     "shield": "strike"
-    },
-    {
-     "tier": 3,
-     "surge": 2,
-     "might": [
-      0,
-      17,
-      18,
-      19,
-      20,
-      21,
-      22,
-      23,
-      24,
-      25,
-      26
-     ],
-     "power": {
-      "attack": {
-       "kind": "art",
-       "cost_stages": 0
-      },
-      "effects": [
-       {
-        "op": "draw",
-        "amount": 2
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16
+	 ],
+	 "power": {
+	  "defense": {
+	   "stops": "art"
+	  },
+	  "effects": [
+	   {
+		"op": "energy",
+		"amount": 3
+	   }
+	  ]
+	 },
+	 "title": "Dormant"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "energy",
+		"amount": 5
+	   }
+	  ]
+	 },
+	 "shield": "strike",
+	 "title": "Charged"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  17,
+	  18,
+	  19,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24,
+	  25,
+	  26
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "cost_stages": 0
+	  },
+	  "effects": [
+	   {
+		"op": "draw",
+		"amount": 2
+	   }
+	  ]
+	 },
+	 "title": "Unbound"
+	}
    ]
   },
   {
-   "id": "fighter_delta",
+   "id": "duelist_delta",
    "title": "Sable Draik",
-   "type": "fighter",
-   "guild": "",
+   "type": "duelist",
+   "school": "",
    "character": "Sable Draik",
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 2,
-     "might": [
-      0,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20
-     ],
-     "constant": {
-      "allies_share": true,
-      "ally_control_any_stage": true,
-      "modifiers": [
-       {
-        "scope": "own",
-        "kind": "any",
-        "stages": 1,
-        "per_ally": true
-       }
-      ]
-     }
-    },
-    {
-     "tier": 2,
-     "surge": 3,
-     "might": [
-      0,
-      19,
-      20,
-      21,
-      22,
-      23,
-      24,
-      25,
-      26,
-      27,
-      28
-     ],
-     "constant": {
-      "allies_share": true,
-      "ally_control_any_stage": true,
-      "damage_removes": true,
-      "modifiers": [
-       {
-        "scope": "own",
-        "kind": "any",
-        "stages": 3
-       }
-      ]
-     }
-    },
-    {
-     "tier": 3,
-     "surge": 5,
-     "might": [
-      0,
-      27,
-      28,
-      29,
-      30,
-      31,
-      32,
-      33,
-      34,
-      35,
-      36
-     ],
-     "constant": {
-      "allies_share": true,
-      "ally_control_any_stage": true,
-      "attacks_focused": true
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20
+	 ],
+	 "constant": {
+	  "allies_share": true,
+	  "ally_control_any_stage": true,
+	  "modifiers": [
+	   {
+		"scope": "own",
+		"kind": "any",
+		"stages": 1,
+		"per_ally": true
+	   }
+	  ]
+	 },
+	 "title": "Captain"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  19,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24,
+	  25,
+	  26,
+	  27,
+	  28
+	 ],
+	 "constant": {
+	  "allies_share": true,
+	  "ally_control_any_stage": true,
+	  "damage_removes": true,
+	  "modifiers": [
+	   {
+		"scope": "own",
+		"kind": "any",
+		"stages": 3
+	   }
+	  ]
+	 },
+	 "title": "Shrouded"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  27,
+	  28,
+	  29,
+	  30,
+	  31,
+	  32,
+	  33,
+	  34,
+	  35,
+	  36
+	 ],
+	 "constant": {
+	  "allies_share": true,
+	  "ally_control_any_stage": true,
+	  "attacks_focused": true
+	 },
+	 "title": "Lightless"
+	}
    ]
   },
   {
-   "id": "fighter_epsilon",
+   "id": "duelist_epsilon",
    "title": "Halden Quarr",
-   "type": "fighter",
-   "guild": "",
+   "type": "duelist",
+   "school": "",
    "character": "Halden Quarr",
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18
-     ],
-     "constant": {
-      "on_attack": [
-       {
-        "op": "acclaim",
-        "amount": 1
-       }
-      ]
-     }
-    },
-    {
-     "tier": 2,
-     "surge": 2,
-     "might": [
-      0,
-      21,
-      22,
-      23,
-      24,
-      25,
-      26,
-      27,
-      28,
-      29,
-      30
-     ],
-     "constant": {
-      "entering_combat": [
-       {
-        "op": "remove_discard",
-        "amount": 1,
-        "when": {
-         "discard_top_guild": "steel"
-        }
-       },
-       {
-        "op": "acclaim",
-        "amount": 2,
-        "when": {
-         "discard_top_guild": "steel"
-        }
-       },
-       {
-        "op": "float",
-        "what": "modifier",
-        "duration": "combat",
-        "params": {
-         "scope": "own",
-         "kind": "strike",
-         "stages": 2
-        },
-        "when": {
-         "discard_top_guild": "steel"
-        }
-       }
-      ]
-     }
-    },
-    {
-     "tier": 3,
-     "surge": 4,
-     "might": [
-      0,
-      31,
-      32,
-      33,
-      34,
-      35,
-      36,
-      37,
-      38,
-      39,
-      40
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "stages": 4
-      },
-      "uses": 2,
-      "effects": [
-       {
-        "op": "float",
-        "what": "modifier",
-        "duration": "combat",
-        "params": {
-         "scope": "own",
-         "kind": "any",
-         "life": 2
-        },
-        "when": {
-         "discard_top_guild": "steel"
-        }
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18
+	 ],
+	 "constant": {
+	  "on_attack": [
+	   {
+		"op": "fervor",
+		"amount": 1
+	   }
+	  ]
+	 },
+	 "title": "the Grinder"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  21,
+	  22,
+	  23,
+	  24,
+	  25,
+	  26,
+	  27,
+	  28,
+	  29,
+	  30
+	 ],
+	 "constant": {
+	  "entering_combat": [
+	   {
+		"op": "remove_discard",
+		"amount": 1,
+		"when": {
+		 "discard_top_school": "steel"
+		}
+	   },
+	   {
+		"op": "fervor",
+		"amount": 2,
+		"when": {
+		 "discard_top_school": "steel"
+		}
+	   },
+	   {
+		"op": "float",
+		"what": "modifier",
+		"duration": "combat",
+		"params": {
+		 "scope": "own",
+		 "kind": "strike",
+		 "stages": 2
+		},
+		"when": {
+		 "discard_top_school": "steel"
+		}
+	   }
+	  ]
+	 },
+	 "title": "Tempered"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  31,
+	  32,
+	  33,
+	  34,
+	  35,
+	  36,
+	  37,
+	  38,
+	  39,
+	  40
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 4
+	  },
+	  "uses": 2,
+	  "effects": [
+	   {
+		"op": "float",
+		"what": "modifier",
+		"duration": "combat",
+		"params": {
+		 "scope": "own",
+		 "kind": "any",
+		 "life": 2
+		},
+		"when": {
+		 "discard_top_school": "steel"
+		}
+	   }
+	  ]
+	 },
+	 "title": "Ironheart"
+	}
    ]
   },
   {
-   "id": "fighter_zeta",
+   "id": "duelist_zeta",
    "title": "Caedan Vale",
-   "type": "fighter",
-   "guild": "",
+   "type": "duelist",
+   "school": "",
    "character": "Caedan Vale",
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 2,
-     "might": [
-      0,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12
-     ],
-     "power": {
-      "effects": [
-       {
-        "trigger": "entering_combat",
-        "op": "look_at",
-        "amount": 8,
-        "pick": {
-         "title_contains": "Sword"
-        },
-        "to": "hand",
-        "play_if": {
-         "title_contains": "Swordplay"
-        },
-        "shuffle_after": true,
-        "from": "top"
-       }
-      ]
-     }
-    },
-    {
-     "tier": 2,
-     "surge": 2,
-     "might": [
-      0,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "only_first_attack": true,
-       "stops_needed": 2
-      }
-     }
-    },
-    {
-     "tier": 3,
-     "surge": 3,
-     "might": [
-      0,
-      19,
-      20,
-      21,
-      22,
-      23,
-      24,
-      25,
-      26,
-      27,
-      28
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "stages": 5
-      },
-      "effects": [
-       {
-        "trigger": "if_successful",
-        "op": "forbid",
-        "who": "opponent",
-        "what": "art_attacks",
-        "duration": "combat"
-       }
-      ]
-     }
-    },
-    {
-     "tier": 4,
-     "surge": 4,
-     "might": [
-      0,
-      16,
-      18,
-      20,
-      22,
-      24,
-      26,
-      28,
-      30,
-      32,
-      34
-     ],
-     "constant": {
-      "forbid_opponent": [
-       "art_attacks"
-      ]
-     }
-    },
-    {
-     "tier": 5,
-     "surge": 5,
-     "might": [
-      0,
-      31,
-      32,
-      33,
-      34,
-      35,
-      36,
-      37,
-      38,
-      39,
-      40
-     ],
-     "power": {
-      "effects": [
-       {
-        "trigger": "entering_combat",
-        "op": "draw",
-        "amount": 3,
-        "role": "active"
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  3,
+	  4,
+	  5,
+	  6,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "look_at",
+		"amount": 8,
+		"pick": {
+		 "title_contains": "Sword"
+		},
+		"to": "hand",
+		"play_if": {
+		 "title_contains": "Swordplay"
+		},
+		"shuffle_after": true,
+		"from": "top"
+	   }
+	  ]
+	 },
+	 "title": "Last Heir"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "only_first_attack": true,
+	   "stops_needed": 2
+	  }
+	 },
+	 "title": "Unparried"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  19,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24,
+	  25,
+	  26,
+	  27,
+	  28
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 5
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"op": "forbid",
+		"who": "opponent",
+		"what": "art_attacks",
+		"duration": "combat"
+	   }
+	  ]
+	 },
+	 "title": "Spellcutter"
+	},
+	{
+	 "aspect": 4,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  16,
+	  18,
+	  20,
+	  22,
+	  24,
+	  26,
+	  28,
+	  30,
+	  32,
+	  34
+	 ],
+	 "constant": {
+	  "forbid_opponent": [
+	   "art_attacks"
+	  ]
+	 },
+	 "title": "the Quiet Blade"
+	},
+	{
+	 "aspect": 5,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  31,
+	  32,
+	  33,
+	  34,
+	  35,
+	  36,
+	  37,
+	  38,
+	  39,
+	  40
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "draw",
+		"amount": 3,
+		"role": "active"
+	   }
+	  ]
+	 },
+	 "title": "Peerless"
+	}
+   ]
+  },
+  {
+   "id": "duelist_eta",
+   "title": "Osric Thornwald",
+   "type": "duelist",
+   "school": "",
+   "character": "Osric Thornwald",
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  5,
+	  6,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "draw_discard",
+		"amount": 1,
+		"from": "bottom",
+		"role": "opposing"
+	   }
+	  ]
+	 },
+	 "title": "Greybeard"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "printed_life": 6
+	  }
+	 },
+	 "title": "Overgrown"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  12,
+	  14,
+	  16,
+	  18,
+	  20,
+	  22,
+	  24,
+	  26,
+	  28,
+	  30
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 6
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"op": "draw_discard",
+		"amount": 1,
+		"from": "bottom"
+	   }
+	  ]
+	 },
+	 "title": "Deep-Rooted"
+	},
+	{
+	 "aspect": 4,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  15,
+	  17,
+	  19,
+	  21,
+	  23,
+	  25,
+	  27,
+	  29,
+	  31,
+	  33
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike"
+	  },
+	  "effects": [
+	   {
+		"op": "recover",
+		"amount": 3,
+		"from": "bottom"
+	   }
+	  ]
+	 },
+	 "title": "Heartwood"
+	},
+	{
+	 "aspect": 5,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  31,
+	  32,
+	  33,
+	  34,
+	  35,
+	  36,
+	  37,
+	  38,
+	  39,
+	  40
+	 ],
+	 "constant": {
+	  "modifiers": [
+	   {
+		"scope": "own",
+		"kind": "strike",
+		"stages": 5
+	   }
+	  ]
+	 },
+	 "title": "Grovelord"
+	}
    ]
   },
   {
    "id": "henchman_alpha",
    "title": "Vesna Draik",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Vesna Draik",
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19
-     ],
-     "power": {
-      "attack": {
-       "kind": "art",
-       "printed_life": 6
-      },
-      "effects": [
-       {
-        "trigger": "if_successful",
-        "op": "discard_in_play",
-        "who": "opponent",
-        "card_type": "ally",
-        "amount": 1,
-        "choose": true
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "printed_life": 6
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "ally",
+		"amount": 1,
+		"choose": true
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "henchman_beta",
    "title": "Brann Draik",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Brann Draik",
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "stages": 5
-      },
-      "effects": [
-       {
-        "trigger": "if_successful",
-        "op": "discard_in_play",
-        "who": "opponent",
-        "card_type": "drill",
-        "amount": 1,
-        "choose": true
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 5
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "drill",
+		"amount": 1,
+		"choose": true
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "henchman_gamma",
    "title": "Quill Draik",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Quill Draik",
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18
-     ],
-     "power": {
-      "attack": {
-       "kind": "art",
-       "printed_life": 6
-      },
-      "effects": [
-       {
-        "trigger": "if_successful",
-        "may": true,
-        "then": [
-         {
-          "op": "choose_forbid_type",
-          "who": "opponent",
-          "unless_vigor_min": 5
-         }
-        ],
-        "op": "discard_hand",
-        "amount": 1,
-        "random": false,
-        "when": {
-         "hand_min": 1
-        }
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "printed_life": 6
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"may": true,
+		"then": [
+		 {
+		  "op": "choose_forbid_type",
+		  "who": "opponent",
+		  "unless_energy_min": 5
+		 }
+		],
+		"op": "discard_hand",
+		"amount": 1,
+		"random": false,
+		"when": {
+		 "hand_min": 1
+		}
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "henchman_delta",
    "title": "Halvard Draik",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Halvard Draik",
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "stages": 5
-      },
-      "effects": [
-       {
-        "trigger": "if_successful",
-        "op": "discard_hand",
-        "who": "opponent",
-        "amount": 1,
-        "random": false
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 5
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"op": "discard_hand",
+		"who": "opponent",
+		"amount": 1,
+		"random": false
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "henchman_epsilon",
    "title": "Pim",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Pim",
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      6,
-      6,
-      6,
-      6,
-      6,
-      6,
-      6,
-      6,
-      6,
-      6
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike"
-      },
-      "effects": [
-       {
-        "trigger": "if_successful",
-        "op": "draw_discard",
-        "amount": 2,
-        "from": "bottom"
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  6,
+	  6,
+	  6,
+	  6,
+	  6,
+	  6,
+	  6,
+	  6,
+	  6,
+	  6
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike"
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_successful",
+		"op": "draw_discard",
+		"amount": 2,
+		"from": "bottom"
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "henchman_zeta",
    "title": "The Fourteenth Vessel",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "The Fourteenth Vessel",
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "life": 2
-      },
-      "effects": [
-       {
-        "op": "discard_hand",
-        "amount": 1,
-        "random": false
-       }
-      ],
-      "no_control_needed": true
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "life": 2
+	  },
+	  "effects": [
+	   {
+		"op": "discard_hand",
+		"amount": 1,
+		"random": false
+	   }
+	  ],
+	  "no_control_needed": true
+	 }
+	}
    ],
    "tags": [
-    "automaton"
+	"automaton"
    ]
   },
   {
    "id": "companion_alpha",
    "title": "Wren Rooke",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Wren Rooke",
-   "alignment_only": "knight",
+   "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18
-     ],
-     "power": {
-      "effects": [
-       {
-        "op": "shuffle_discard",
-        "amount": 1,
-        "per_personality": true
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"op": "shuffle_discard",
+		"amount": 1,
+		"per_personality": true
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "companion_beta",
    "title": "Sir Edric Rooke",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Sir Edric Rooke",
-   "alignment_only": "knight",
+   "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "focused": true,
-       "stages": 2,
-       "life_per_opponent_token": 2
-      }
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "focused": true,
+	   "stages": 2,
+	   "life_per_opponent_seal": 2
+	  }
+	 }
+	}
    ]
   },
   {
    "id": "companion_gamma",
    "title": "Tavin Vale",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Tavin Vale",
-   "alignment_only": "knight",
+   "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 3,
-     "might": [
-      0,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18
-     ],
-     "power": {
-      "attack": {
-       "kind": "art",
-       "printed_life": 6
-      },
-      "effects": [
-       {
-        "op": "recover",
-        "amount": 2,
-        "from": "bottom"
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "printed_life": 6
+	  },
+	  "effects": [
+	   {
+		"op": "recover",
+		"amount": 2,
+		"from": "bottom"
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
    "id": "companion_delta",
    "title": "Ansel Rooke",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Ansel Rooke",
-   "alignment_only": "knight",
+   "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 1,
-     "might": [
-      0,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "printed_stages": 5
-      },
-      "effects": [
-       {
-        "trigger": "if_stopped",
-        "op": "vigor",
-        "amount": "max"
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  4,
+	  5,
+	  6,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "printed_stages": 5
+	  },
+	  "effects": [
+	   {
+		"trigger": "if_stopped",
+		"op": "energy",
+		"amount": "max"
+	   }
+	  ]
+	 }
+	}
    ]
   },
   {
-   "id": "crown_token_1",
-   "title": "Crown Token 1",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 1,
+   "id": "marble_seal_1",
+   "title": "Marble Seal 1",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 1,
    "effects": [
-    {
-     "op": "vigor",
-     "amount": "max",
-     "target": "fighter"
-    },
-    {
-     "op": "draw",
-     "amount": 1
-    }
+	{
+	 "op": "draw_until",
+	 "amount": 3
+	},
+	{
+	 "op": "recover",
+	 "amount": 2
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "crown_token_2",
-   "title": "Crown Token 2",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 2,
+   "id": "marble_seal_2",
+   "title": "Marble Seal 2",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 2,
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "op": "vigor",
-     "amount": 3
-    }
+	{
+	 "op": "lose_aspect",
+	 "who": "opponent"
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "crown_token_3",
-   "title": "Crown Token 3",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 3,
+   "id": "marble_seal_3",
+   "title": "Marble Seal 3",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 3,
    "effects": [
-    {
-     "op": "draw",
-     "amount": 3
-    },
-    {
-     "op": "recover",
-     "amount": 1
-    }
+	{
+	 "op": "draw_discard",
+	 "amount": 3,
+	 "from": "bottom"
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "crown_token_4",
-   "title": "Crown Token 4",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 4,
+   "id": "marble_seal_4",
+   "title": "Marble Seal 4",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 4,
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat",
-     "all": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "all": true
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "crown_token_5",
-   "title": "Crown Token 5",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 5,
+   "id": "marble_seal_5",
+   "title": "Marble Seal 5",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 5,
    "effects": [
-    {
-     "op": "vigor",
-     "amount": "max",
-     "target": "fighter"
-    },
-    {
-     "op": "acclaim",
-     "amount": 2
-    },
-    {
-     "op": "draw",
-     "amount": 2
-    },
-    {
-     "op": "recover",
-     "amount": 2
-    }
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "recover",
+	 "amount": 2
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "crown_token_6",
-   "title": "Crown Token 6",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 6,
+   "id": "marble_seal_6",
+   "title": "Marble Seal 6",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 6,
    "effects": [
-    {
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 1
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "may": true,
+	 "op": "fervor",
+	 "amount": 2,
+	 "otherwise": [
+	  {
+	   "op": "fervor",
+	   "who": "opponent",
+	   "amount": -2
+	  }
+	 ]
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "crown_token_7",
-   "title": "Crown Token 7",
-   "type": "token",
-   "guild": "",
-   "token_set": "crown",
-   "token_number": 7,
+   "id": "marble_seal_7",
+   "title": "Marble Seal 7",
+   "type": "seal",
+   "school": "",
+   "seal_set": "marble",
+   "seal_number": 7,
    "effects": [
-    {
-     "op": "draw",
-     "amount": 2
-    },
-    {
-     "op": "acclaim",
-     "amount": 2
-    }
+	{
+	 "op": "capture_seal"
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_1",
-   "title": "Signet Token 1",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 1,
+   "id": "sun_seal_1",
+   "title": "Sun Seal 1",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 1,
    "effects": [
-    {
-     "op": "draw_until",
-     "amount": 3
-    },
-    {
-     "op": "acclaim",
-     "amount": 2
-    },
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -2
-    }
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "draw",
+	 "amount": 1
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_2",
-   "title": "Signet Token 2",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 2,
+   "id": "sun_seal_2",
+   "title": "Sun Seal 2",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 2,
    "effects": [
-    {
-     "op": "vigor",
-     "amount": 5
-    },
-    {
-     "op": "draw",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "energy",
+	 "amount": 3
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_3",
-   "title": "Signet Token 3",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 3,
+   "id": "sun_seal_3",
+   "title": "Sun Seal 3",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 3,
    "effects": [
-    {
-     "op": "draw_discard",
-     "amount": 3,
-     "from": "bottom"
-    },
-    {
-     "op": "vigor",
-     "amount": 5
-    },
-    {
-     "op": "remove_discard",
-     "who": "opponent",
-     "amount": 6
-    }
+	{
+	 "op": "draw",
+	 "amount": 3
+	},
+	{
+	 "op": "recover",
+	 "amount": 1
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_4",
-   "title": "Signet Token 4",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 4,
+   "id": "sun_seal_4",
+   "title": "Sun Seal 4",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 4,
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat",
-     "all": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "all": true
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_5",
-   "title": "Signet Token 5",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 5,
+   "id": "sun_seal_5",
+   "title": "Sun Seal 5",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 5,
    "effects": [
-    {
-     "op": "recover",
-     "amount": 3
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "draw",
+	 "amount": 2
+	},
+	{
+	 "op": "recover",
+	 "amount": 2
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_6",
-   "title": "Signet Token 6",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 6,
+   "id": "sun_seal_6",
+   "title": "Sun Seal 6",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 6,
    "effects": [
-    {
-     "op": "discard_life",
-     "who": "opponent",
-     "amount": 3
-    }
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "limit_per_deck": 1
   },
   {
-   "id": "signet_token_7",
-   "title": "Signet Token 7",
-   "type": "token",
-   "guild": "",
-   "token_set": "signet",
-   "token_number": 7,
+   "id": "sun_seal_7",
+   "title": "Sun Seal 7",
+   "type": "seal",
+   "school": "",
+   "seal_set": "sun",
+   "seal_number": 7,
    "effects": [
-    {
-     "op": "draw",
-     "amount": 3
-    }
+	{
+	 "op": "draw",
+	 "amount": 2
+	},
+	{
+	 "op": "fervor",
+	 "amount": 2
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_1",
+   "title": "Moth Seal 1",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 1,
+   "effects": [
+	{
+	 "op": "draw_until",
+	 "amount": 3
+	},
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_2",
+   "title": "Moth Seal 2",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 2,
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 5
+	},
+	{
+	 "op": "draw",
+	 "amount": 1
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_3",
+   "title": "Moth Seal 3",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 3,
+   "effects": [
+	{
+	 "op": "draw_discard",
+	 "amount": 3,
+	 "from": "bottom"
+	},
+	{
+	 "op": "energy",
+	 "amount": 5
+	},
+	{
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 6
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_4",
+   "title": "Moth Seal 4",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 4,
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "all": true
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_5",
+   "title": "Moth Seal 5",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 5,
+   "effects": [
+	{
+	 "op": "recover",
+	 "amount": 3
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_6",
+   "title": "Moth Seal 6",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 6,
+   "effects": [
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 3
+	}
+   ],
+   "limit_per_deck": 1
+  },
+  {
+   "id": "moth_seal_7",
+   "title": "Moth Seal 7",
+   "type": "seal",
+   "school": "",
+   "seal_set": "moth",
+   "seal_number": 7,
+   "effects": [
+	{
+	 "op": "draw",
+	 "amount": 3
+	}
    ],
    "limit_per_deck": 1
   },
@@ -1350,323 +1649,355 @@
    "id": "turmoil_square",
    "title": "Turmoil Square",
    "type": "grounds",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 3,
    "forbid": [
-    {
-     "who": "all",
-     "what": "non_combats"
-    }
+	{
+	 "who": "all",
+	 "what": "non_combats"
+	}
    ]
   },
   {
    "id": "ancient_grove",
    "title": "Ancient Grove",
    "type": "grounds",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 3,
    "modifiers": [
-    {
-     "scope": "own",
-     "kind": "any",
-     "stages": 2
-    }
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2
+	}
    ],
    "effects": [
-    {
-     "trigger": "entering_combat",
-     "op": "search",
-     "card_type": "drill",
-     "guild": "",
-     "to": "play"
-    }
+	{
+	 "trigger": "entering_combat",
+	 "op": "search",
+	 "card_type": "drill",
+	 "school": "",
+	 "to": "play"
+	}
    ]
   },
   {
    "id": "tollgate_yard",
    "title": "Tollgate Yard",
    "type": "grounds",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 3,
    "double_costs": true
   },
   {
-   "id": "master_north",
-   "title": "Master of the North",
-   "type": "master",
-   "guild": "",
-   "armory_size": 13,
+   "id": "winter_fields",
+   "title": "Winter Fields",
+   "type": "grounds",
+   "school": "",
+   "limit_per_deck": 3,
+   "fervor_gain_cap": 1
+  },
+  {
+   "id": "grimoire_north",
+   "title": "Grimoire of the North",
+   "type": "grimoire",
+   "school": "",
+   "pages_size": 13,
    "uses_per_game": 2,
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "master_use",
-     "op": "forbid",
-     "who": "opponent",
-     "what": "mastery",
-     "duration": "turn"
-    }
+	{
+	 "trigger": "grimoire_use",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "mastery",
+	 "duration": "turn"
+	}
    ]
   },
   {
-   "id": "master_south",
-   "title": "Master of the South",
-   "type": "master",
-   "guild": "",
-   "armory_size": 5,
+   "id": "grimoire_south",
+   "title": "Grimoire of the South",
+   "type": "grimoire",
+   "school": "",
+   "pages_size": 5,
    "uses_per_game": 1,
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "master_use",
-     "op": "search",
-     "card_type": "ally",
-     "to": "play",
-     "stages": 3
-    }
+	{
+	 "trigger": "grimoire_use",
+	 "op": "search",
+	 "card_type": "ally",
+	 "to": "play",
+	 "stages": 3
+	}
    ]
   },
   {
-   "id": "master_steadfast",
-   "title": "Master Steadfast",
-   "type": "master",
-   "guild": "",
-   "armory_size": 10,
+   "id": "grimoire_steadfast",
+   "title": "The Steadfast Grimoire",
+   "type": "grimoire",
+   "school": "",
+   "pages_size": 10,
    "limit_per_deck": 1,
-   "master_flags": {
-    "no_favor_win": true,
-    "acclaim_shield": true,
-    "tier_shield": true
+   "grimoire_flags": {
+	"no_ascension_win": true,
+	"fervor_shield": true,
+	"aspect_shield": true
    }
   },
   {
    "id": "ember_mastery",
    "title": "Ember Mastery",
    "type": "mastery",
-   "guild": "ember",
+   "school": "ember",
    "limit_per_deck": 1,
    "blocks_to_bottom": "ember",
    "effects": [
-    {
-     "trigger": "on_attack",
-     "may": true,
-     "op": "discard_life",
-     "amount": 1,
-     "when": {
-      "source_guild": "ember",
-      "attack_focused": false
-     },
-     "then": [
-      {
-       "op": "focus_attack"
-      }
-     ]
-    }
+	{
+	 "trigger": "on_attack",
+	 "may": true,
+	 "op": "discard_life",
+	 "amount": 1,
+	 "when": {
+	  "source_school": "ember",
+	  "attack_focused": false
+	 },
+	 "then": [
+	  {
+	   "op": "focus_attack"
+	  }
+	 ]
+	}
    ]
   },
   {
    "id": "steel_mastery",
    "title": "Steel Mastery",
    "type": "mastery",
-   "guild": "steel",
+   "school": "steel",
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "entering_combat",
-     "op": "draw_check",
-     "guild": "steel",
-     "discard": true,
-     "effects": [
-      {
-       "op": "draw",
-       "amount": 2
-      }
-     ],
-     "else_effects": [
-      {
-       "op": "draw",
-       "amount": 1
-      }
-     ]
-    }
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw_check",
+	 "school": "steel",
+	 "discard": true,
+	 "effects": [
+	  {
+	   "op": "draw",
+	   "amount": 2
+	  }
+	 ],
+	 "else_effects": [
+	  {
+	   "op": "draw",
+	   "amount": 1
+	  }
+	 ]
+	}
    ]
   },
   {
    "id": "shade_mastery",
    "title": "Shade Mastery",
    "type": "mastery",
-   "guild": "shade",
+   "school": "shade",
    "limit_per_deck": 1,
    "modifiers": [
-    {
-     "scope": "own",
-     "kind": "any",
-     "stages": 1,
-     "life": 1
-    },
-    {
-     "scope": "own",
-     "kind": "any",
-     "stages": 1,
-     "life": 1,
-     "guild": "shade"
-    }
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 1,
+	 "life": 1
+	},
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 1,
+	 "life": 1,
+	 "school": "shade"
+	}
    ]
   },
   {
    "id": "tide_mastery",
    "title": "Tide Mastery",
    "type": "mastery",
-   "guild": "tide",
+   "school": "tide",
    "limit_per_deck": 1,
-   "opponent_tier_threshold": 6,
+   "opponent_aspect_threshold": 6,
    "effects": [
-    {
-     "trigger": "on_success",
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -1,
-     "when": {
-      "source_guild": "tide"
-     }
-    }
+	{
+	 "trigger": "on_success",
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1,
+	 "when": {
+	  "source_school": "tide"
+	 }
+	}
    ]
   },
   {
    "id": "freestyle_mastery",
    "title": "Freestyle Mastery",
    "type": "mastery",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "protect_drills": true,
    "effects": [
-    {
-     "trigger": "entering_combat",
-     "may": true,
-     "then": [
-      {
-       "op": "search",
-       "signature_of": "fighter",
-       "to": "hand"
-      }
-     ],
-     "op": "discard_hand",
-     "amount": 1,
-     "random": false,
-     "filter": "signature",
-     "when": {
-      "hand_min": 1
-     }
-    }
+	{
+	 "trigger": "entering_combat",
+	 "may": true,
+	 "then": [
+	  {
+	   "op": "search",
+	   "signature_of": "duelist",
+	   "to": "hand"
+	  }
+	 ],
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false,
+	 "filter": "signature",
+	 "when": {
+	  "hand_min": 1
+	 }
+	}
+   ]
+  },
+  {
+   "id": "root_mastery",
+   "title": "Root Mastery",
+   "type": "mastery",
+   "school": "root",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "may": true,
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "if_school": "root",
+	 "effects": [
+	  {
+	   "op": "energy",
+	   "amount": "max",
+	   "target": "duelist"
+	  }
+	 ],
+	 "from": "bottom"
+	}
    ]
   },
   {
    "id": "storm_mastery",
    "title": "Storm Mastery",
    "type": "mastery",
-   "guild": "storm",
+   "school": "storm",
    "limit_per_deck": 1,
    "art_cost_delta": -1,
    "modifiers": [
-    {
-     "scope": "own",
-     "kind": "art",
-     "life": 1
-    }
+	{
+	 "scope": "own",
+	 "kind": "art",
+	 "life": 1
+	}
    ]
   },
   {
    "id": "breaching_kick",
    "title": "Breaching Kick",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "effects": [
-    {
-     "op": "forbid",
-     "what": "end_combat",
-     "duration": "combat"
-    },
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "end_combat",
-     "duration": "combat"
-    },
-    {
-     "op": "forbid",
-     "what": "stop_all",
-     "duration": "combat"
-    },
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "stop_all",
-     "duration": "combat"
-    }
+	{
+	 "op": "forbid",
+	 "what": "end_combat",
+	 "duration": "combat"
+	},
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "end_combat",
+	 "duration": "combat"
+	},
+	{
+	 "op": "forbid",
+	 "what": "stop_all",
+	 "duration": "combat"
+	},
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "stop_all",
+	 "duration": "combat"
+	}
    ]
   },
   {
    "id": "relentless_fury",
    "title": "Relentless Fury",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "empower": 2,
    "character": "Bram Ashmark",
    "effects": [
-    {
-     "op": "forbid",
-     "what": "non_attack_actions",
-     "duration": "combat",
-     "after_empower": true
-    },
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "non_attack_actions",
-     "duration": "combat",
-     "after_empower": true
-    },
-    {
-     "op": "acclaim",
-     "amount": 1,
-     "after_empower": true
-    }
+	{
+	 "op": "forbid",
+	 "what": "non_attack_actions",
+	 "duration": "combat",
+	 "after_empower": true
+	},
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "non_attack_actions",
+	 "duration": "combat",
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1,
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "stillness",
    "title": "Stillness",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "any",
-    "stop_all": "any"
+	"stops": "any",
+	"stop_all": "any"
    },
    "limit_per_deck": 1,
    "use_in_attack": true,
    "effects": [
-    {
-     "op": "stop_all",
-     "kind": "any"
-    }
+	{
+	 "op": "stop_all",
+	 "kind": "any"
+	}
    ]
   },
   {
    "id": "ironclad_stance",
    "title": "Ironclad Stance",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike",
-    "stop_all": "strike"
+	"stops": "strike",
+	"stop_all": "strike"
    },
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -1675,10 +2006,10 @@
    "id": "unyielding_guard",
    "title": "Unyielding Guard",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike",
-    "stop_all": "strike"
+	"stops": "strike",
+	"stop_all": "strike"
    },
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -1687,10 +2018,10 @@
    "id": "energy_veil",
    "title": "Energy Veil",
    "type": "art",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "art",
-    "stop_all": "art"
+	"stops": "art",
+	"stop_all": "art"
    },
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -1699,17 +2030,17 @@
    "id": "mirror_shell",
    "title": "Mirror Shell",
    "type": "art",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "art",
-    "stop_all": "art"
+	"stops": "art",
+	"stop_all": "art"
    },
    "effects": [
-    {
-     "op": "forbid",
-     "what": "art_attacks",
-     "duration": "combat"
-    }
+	{
+	 "op": "forbid",
+	 "what": "art_attacks",
+	 "duration": "combat"
+	}
    ],
    "limit_per_deck": 1
   },
@@ -1717,34 +2048,34 @@
    "id": "iron_will",
    "title": "Ashmark's Iron Will",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "only": {
-    "fighter_character": "Bram Ashmark"
+	"duelist_character": "Bram Ashmark"
    },
    "limit_per_deck": 1,
    "use_in_attack": true,
    "defense": {
-    "stops": "any"
+	"stops": "any"
    },
    "effects": [
-    {
-     "op": "float",
-     "what": "prevent_all",
-     "duration": "combat"
-    }
+	{
+	 "op": "float",
+	 "what": "prevent_all",
+	 "duration": "combat"
+	}
    ]
   },
   {
    "id": "chosen_wall",
    "title": "Chosen Wall",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "choose_stop_all_kind"
-    }
+	{
+	 "op": "choose_stop_all_kind"
+	}
    ],
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "remove_after_use": true,
    "limit_per_deck": 1
   },
@@ -1752,13 +2083,13 @@
    "id": "perfect_guard",
    "title": "Ashmark's Guard",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "any",
-    "stop_focused": true
+	"stops": "any",
+	"stop_focused": true
    },
    "only": {
-    "fighter_character": "Bram Ashmark"
+	"duelist_character": "Bram Ashmark"
    },
    "remove_after_use": true
   },
@@ -1766,7 +2097,7 @@
    "id": "interrupt",
    "title": "Interrupt",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "counter": "combat",
    "character": "Caedan Vale"
   },
@@ -1774,31 +2105,31 @@
    "id": "hard_glare",
    "title": "Hard Glare",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 1,
-     "random": false,
-     "chooser": "owner"
-    }
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false,
+	 "chooser": "owner"
+	}
    ],
-   "alignment_only": "knave"
+   "alignment_only": "pact"
   },
   {
    "id": "threatening_pose",
    "title": "Threatening Pose",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "set_tier",
-     "who": "opponent",
-     "tier": 1
-    }
+	{
+	 "op": "set_aspect",
+	 "who": "opponent",
+	 "aspect": 1
+	}
    ],
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "remove_after_use": true,
    "limit_per_deck": 1
   },
@@ -1806,18 +2137,18 @@
    "id": "respite",
    "title": "Respite",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "draw_discard",
-     "amount": 2,
-     "from": "top"
-    },
-    {
-     "op": "vigor",
-     "who": "opponent",
-     "amount": 5
-    }
+	{
+	 "op": "draw_discard",
+	 "amount": 2,
+	 "from": "top"
+	},
+	{
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": 5
+	}
    ],
    "limit_per_deck": 1
   },
@@ -1825,31 +2156,31 @@
    "id": "challenge",
    "title": "Challenge",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 1,
-     "random": false,
-     "chooser": "owner",
-     "to": "deck"
-    }
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false,
+	 "chooser": "owner",
+	 "to": "deck"
+	}
    ],
-   "alignment_only": "knight"
+   "alignment_only": "vigil"
   },
   {
    "id": "overwhelming_aura",
    "title": "Overwhelming Aura",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "strike_attacks",
-     "duration": "combat"
-    }
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "strike_attacks",
+	 "duration": "combat"
+	}
    ],
    "limit_per_deck": 1
   },
@@ -1857,21 +2188,21 @@
    "id": "dragons_reckoning",
    "title": "Dragon's Reckoning",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "search",
-     "card_type": "ally",
-     "source": "either",
-     "to": "play",
-     "stages": 3
-    },
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "token",
-     "all": true
-    }
+	{
+	 "op": "search",
+	 "card_type": "ally",
+	 "source": "either",
+	 "to": "play",
+	 "stages": 3
+	},
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "seal",
+	 "all": true
+	}
    ],
    "limit_per_deck": 1
   },
@@ -1879,17 +2210,17 @@
    "id": "guardians_wrath",
    "title": "Rooke's Wrath",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat",
-     "all": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "all": true
+	}
    ],
    "only": {
-    "fighter_character": "Dame Alder Rooke"
+	"duelist_character": "Dame Alder Rooke"
    },
    "remove_after_use": true
   },
@@ -1897,21 +2228,21 @@
    "id": "desperate_ruin",
    "title": "Desperate Ruin",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "set_vigor",
-     "amount": 0
-    },
-    {
-     "op": "remove_discard",
-     "all": true
-    },
-    {
-     "op": "discard_life",
-     "who": "opponent",
-     "amount": 5
-    }
+	{
+	 "op": "set_energy",
+	 "amount": 0
+	},
+	{
+	 "op": "remove_discard",
+	 "all": true
+	},
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 5
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -1920,43 +2251,43 @@
    "id": "oath",
    "title": "Husband's Vow",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "attach",
-     "to": "named",
-     "character": "Dame Alder Rooke"
-    }
+	{
+	 "op": "attach",
+	 "to": "named",
+	 "character": "Dame Alder Rooke"
+	}
    ],
    "only": {
-    "character": "Sir Edric Rooke"
+	"character": "Sir Edric Rooke"
    },
    "attachment": {
-    "target": "named",
-    "limit_attached": 1,
-    "effects": [
-     {
-      "trigger": "entering_combat",
-      "may": true,
-      "op": "draw_discard",
-      "amount": 1,
-      "from": "bottom"
-     }
-    ]
+	"target": "named",
+	"limit_attached": 1,
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "may": true,
+	  "op": "draw_discard",
+	  "amount": 1,
+	  "from": "bottom"
+	 }
+	]
    }
   },
   {
    "id": "showmans_trick",
    "title": "Showman's Trick",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "search",
-     "card_type": "attack",
-     "source": "armory",
-     "to": "hand"
-    }
+	{
+	 "op": "search",
+	 "card_type": "attack",
+	 "source": "pages",
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 2
@@ -1965,24 +2296,24 @@
    "id": "clash_of_blood",
    "title": "Clash of Blood",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "float",
-     "what": "modifier",
-     "duration": "combat",
-     "params": {
-      "scope": "own",
-      "kind": "any",
-      "life": 2,
-      "per_ally": true,
-      "once": true
-     }
-    },
-    {
-     "op": "draw",
-     "amount": 1
-    }
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 2,
+	  "per_ally": true,
+	  "once": true
+	 }
+	},
+	{
+	 "op": "draw",
+	 "amount": 1
+	}
    ],
    "remove_after_use": true
   },
@@ -1990,20 +2321,20 @@
    "id": "muster",
    "title": "Muster",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "vigor",
-     "amount": "max",
-     "target": "fighter"
-    },
-    {
-     "op": "search",
-     "card_type": "ally",
-     "source": "either",
-     "to": "play",
-     "stages": 3
-    }
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "search",
+	 "card_type": "ally",
+	 "source": "either",
+	 "to": "play",
+	 "stages": 3
+	}
    ],
    "remove_after_use": true
   },
@@ -2011,32 +2342,32 @@
    "id": "sudden_reinforcement",
    "title": "Sudden Reinforcement",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "search",
-     "card_type": "ally",
-     "source": "either",
-     "to": "play",
-     "stages": 10
-    }
+	{
+	 "op": "search",
+	 "card_type": "ally",
+	 "source": "either",
+	 "to": "play",
+	 "stages": 10
+	}
    ]
   },
   {
    "id": "sly_smirk",
    "title": "Sly Smirk",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill",
-     "all": true,
-     "remove": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill",
+	 "all": true,
+	 "remove": true
+	}
    ],
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "remove_after_use": true,
    "limit_per_deck": 1
   },
@@ -2044,19 +2375,19 @@
    "id": "truce",
    "title": "Truce",
    "type": "combat",
-   "guild": "steel",
+   "school": "steel",
    "effects": [
-    {
-     "op": "end_combat"
-    },
-    {
-     "op": "end_turn"
-    },
-    {
-     "op": "float",
-     "what": "keep_hand",
-     "duration": "next_turn_end"
-    }
+	{
+	 "op": "end_combat"
+	},
+	{
+	 "op": "end_turn"
+	},
+	{
+	 "op": "float",
+	 "what": "keep_hand",
+	 "duration": "next_turn_end"
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -2065,53 +2396,53 @@
    "id": "mutual_escalation",
    "title": "Mutual Escalation",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 6
-    },
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": 6
-    },
-    {
-     "op": "no_favor_win"
-    }
+	{
+	 "op": "fervor",
+	 "amount": 6
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": 6
+	},
+	{
+	 "op": "no_ascension_win"
+	}
    ]
   },
   {
    "id": "transformation",
    "title": "Transformation",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "no_favor_win"
-    },
-    {
-     "op": "set_tier",
-     "tier": "acclaim"
-    }
+	{
+	 "op": "no_ascension_win"
+	},
+	{
+	 "op": "set_aspect",
+	 "aspect": "fervor"
+	}
    ]
   },
   {
    "id": "seekers_eye",
    "title": "Seeker's Eye",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "draw_check",
-     "check": "named",
-     "effects": [
-      {
-       "op": "draw",
-       "amount": 1
-      }
-     ]
-    }
+	{
+	 "op": "draw_check",
+	 "check": "named",
+	 "effects": [
+	  {
+	   "op": "draw",
+	   "amount": 1
+	  }
+	 ]
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -2120,18 +2451,18 @@
    "id": "contemplation",
    "title": "Contemplation",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "draw_check",
-     "check": "signature",
-     "effects": [
-      {
-       "op": "draw",
-       "amount": 1
-      }
-     ]
-    }
+	{
+	 "op": "draw_check",
+	 "check": "signature",
+	 "effects": [
+	  {
+	   "op": "draw",
+	   "amount": 1
+	  }
+	 ]
+	}
    ],
    "limit_per_deck": 1
   },
@@ -2139,21 +2470,21 @@
    "id": "grand_sweep",
    "title": "Grand Sweep",
    "type": "combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "op": "discard_in_play",
-     "card_type": "ally",
-     "all": true,
-     "remove": true
-    },
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "ally",
-     "all": true,
-     "remove": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "card_type": "ally",
+	 "all": true,
+	 "remove": true
+	},
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "all": true,
+	 "remove": true
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 2
@@ -2162,11 +2493,11 @@
    "id": "homing_bolt",
    "title": "Homing Bolt",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "unstoppable": true,
-    "no_prevent": true
+	"kind": "art",
+	"unstoppable": true,
+	"no_prevent": true
    },
    "remove_after_use": true
   },
@@ -2174,66 +2505,66 @@
    "id": "crashing_dive",
    "title": "Crashing Dive",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "focused": true
+	"kind": "art",
+	"focused": true
    },
    "empower": 2,
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "remove_discard",
-     "who": "opponent",
-     "all": true,
-     "after_empower": true
-    },
-    {
-     "op": "acclaim",
-     "amount": 1,
-     "after_empower": true
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "all": true,
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1,
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "surging_blast",
    "title": "Surging Blast",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill",
-     "amount": 1,
-     "remove": true,
-     "choose": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	}
    ],
    "tags": [
-    "automaton"
+	"automaton"
    ]
   },
   {
    "id": "power_hit",
    "title": "Power Hit",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "focused": true,
-    "stages": 4,
-    "no_stop_by": "strike"
+	"kind": "strike",
+	"focused": true,
+	"stages": 4,
+	"no_stop_by": "strike"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "remove_after_use": true
   },
@@ -2241,16 +2572,16 @@
    "id": "backhand",
    "title": "Backhand",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike"
+	"kind": "strike"
    },
    "effects": [
-    {
-     "op": "draw_discard",
-     "amount": 1,
-     "from": "bottom"
-    }
+	{
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "bottom"
+	}
    ],
    "remove_after_use": true
   },
@@ -2258,52 +2589,52 @@
    "id": "power_strike",
    "title": "Power Strike",
    "type": "art",
-   "guild": "",
+   "school": "",
    "endurance": 3,
    "attack": {
-    "kind": "strike",
-    "stages": 4,
-    "variants": [
-     {
-      "when": {
-       "tier_min": 2
-      },
-      "life": 4,
-      "focused": true
-     }
-    ]
+	"kind": "strike",
+	"stages": 4,
+	"variants": [
+	 {
+	  "when": {
+	   "aspect_min": 2
+	  },
+	  "life": 4,
+	  "focused": true
+	 }
+	]
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "card_type": "drill",
-     "to": "play"
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "drill",
+	 "to": "play"
+	}
    ]
   },
   {
    "id": "lobbed_bolt",
    "title": "Lobbed Bolt",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "endurance": 1,
    "effects": [
-    {
-     "op": "discard_in_play",
-     "card_type": "non_combat_only",
-     "amount": 1,
-     "choose": true,
-     "up_to": true
-    },
-    {
-     "op": "search",
-     "card_type": "non_combat",
-     "to": "play"
-    }
+	{
+	 "op": "discard_in_play",
+	 "card_type": "non_combat_only",
+	 "amount": 1,
+	 "choose": true,
+	 "up_to": true
+	},
+	{
+	 "op": "search",
+	 "card_type": "non_combat",
+	 "to": "play"
+	}
    ],
    "remove_after_use": true
   },
@@ -2311,22 +2642,22 @@
    "id": "erasure",
    "title": "Erasure",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 6,
-    "cost_stages": 6
+	"kind": "strike",
+	"stages": 6,
+	"cost_stages": 6
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat",
-     "amount": 6,
-     "up_to": true,
-     "choose": true
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 6,
+	 "up_to": true,
+	 "choose": true
+	}
    ],
    "remove_after_use": true
   },
@@ -2334,32 +2665,32 @@
    "id": "supreme_push",
    "title": "Supreme Push",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "focused": true
+	"kind": "art",
+	"focused": true
    },
    "effects": [
-    {
-     "may": true,
-     "then": [
-      {
-       "op": "float",
-       "what": "modifier",
-       "duration": "combat",
-       "params": {
-        "scope": "own",
-        "kind": "any",
-        "life": 7,
-        "once": true
-       }
-      }
-     ],
-     "op": "lose_tier",
-     "when": {
-      "tier_min": 2
-     }
-    }
+	{
+	 "may": true,
+	 "then": [
+	  {
+	   "op": "float",
+	   "what": "modifier",
+	   "duration": "combat",
+	   "params": {
+		"scope": "own",
+		"kind": "any",
+		"life": 7,
+		"once": true
+	   }
+	  }
+	 ],
+	 "op": "lose_aspect",
+	 "when": {
+	  "aspect_min": 2
+	 }
+	}
    ],
    "remove_after_use": true
   },
@@ -2367,28 +2698,28 @@
    "id": "extreme_assailment",
    "title": "Draik's Assailment",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "focused": true,
-    "printed_life": 5
+	"kind": "art",
+	"focused": true,
+	"printed_life": 5
    },
    "effects": [
-    {
-     "op": "set_acclaim",
-     "amount": 2
-    },
-    {
-     "op": "set_acclaim",
-     "who": "opponent",
-     "amount": 2
-    },
-    {
-     "trigger": "if_successful",
-     "may": true,
-     "op": "return_removed",
-     "card_type": "ally"
-    }
+	{
+	 "op": "set_fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "set_fervor",
+	 "who": "opponent",
+	 "amount": 2
+	},
+	{
+	 "trigger": "if_successful",
+	 "may": true,
+	 "op": "return_removed",
+	 "card_type": "ally"
+	}
    ],
    "remove_after_use": true
   },
@@ -2396,26 +2727,26 @@
    "id": "twin_palm_blitz",
    "title": "Draik's Twin Palm",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "printed_life": 6
+	"kind": "art",
+	"printed_life": 6
    },
    "only": {
-    "fighter_character": "Sable Draik"
+	"duelist_character": "Sable Draik"
    },
    "effects": [
-    {
-     "op": "float",
-     "what": "no_prevent",
-     "duration": "combat"
-    }
+	{
+	 "op": "float",
+	 "what": "no_prevent",
+	 "duration": "combat"
+	}
    ],
    "remain_when": {
-    "when": {
-     "allies_min": 2
-    },
-    "remain": 1
+	"when": {
+	 "allies_min": 2
+	},
+	"remain": 1
    },
    "remove_after_use": true
   },
@@ -2423,17 +2754,17 @@
    "id": "triple_torpedo",
    "title": "Triple Torpedo",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "life_per_ally": 2
+	"kind": "art",
+	"life_per_ally": 2
    },
    "endurance": 2,
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "remain": 1,
    "remove_after_use": true
@@ -2442,16 +2773,16 @@
    "id": "captains_volley",
    "title": "Captain's Volley",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "cost_stages": 3
+	"kind": "art",
+	"cost_stages": 3
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 2
-    }
+	{
+	 "op": "fervor",
+	 "amount": 2
+	}
    ],
    "remove_after_use": true
   },
@@ -2459,20 +2790,20 @@
    "id": "clear_statement",
    "title": "Clear Statement",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 2
-    },
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -2
-    }
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -2481,90 +2812,90 @@
    "id": "palm_charge",
    "title": "Draik's Palm Charge",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art",
-    "printed_life": 5
+	"kind": "art",
+	"printed_life": 5
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "attach",
-     "to": "in_control"
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "attach",
+	 "to": "in_control"
+	}
    ],
    "attachment": {
-    "target": "in_control",
-    "modifiers": [
-     {
-      "scope": "own",
-      "kind": "art",
-      "life": 2
-     }
-    ]
+	"target": "in_control",
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "art",
+	  "life": 2
+	 }
+	]
    }
   },
   {
    "id": "prepared_stance",
    "title": "Vessel's Prepared Stance",
    "type": "art",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "effects": [
-    {
-     "op": "search",
-     "tag": "automaton",
-     "exclude_title": "Vessel's Prepared Stance",
-     "to": "hand",
-     "when": {
-      "fighter_character": "The Ninth Vessel"
-     }
-    }
+	{
+	 "op": "search",
+	 "tag": "automaton",
+	 "exclude_title": "Vessel's Prepared Stance",
+	 "to": "hand",
+	 "when": {
+	  "duelist_character": "The Ninth Vessel"
+	 }
+	}
    ],
    "remove_after_use": true,
    "tags": [
-    "automaton"
+	"automaton"
    ]
   },
   {
    "id": "focused_crushing_dive",
    "title": "Crushing Dive",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "focused": true,
-    "stages": 3
+	"kind": "strike",
+	"focused": true,
+	"stages": 3
    },
    "endurance": 2,
    "empower": 3,
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1,
-     "after_empower": true
-    },
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -1,
-     "after_empower": true
-    },
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "ally",
-     "amount": 1,
-     "choose": true,
-     "after_empower": true
-    },
-    {
-     "op": "vigor",
-     "amount": 3,
-     "after_empower": true
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1,
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1,
+	 "after_empower": true
+	},
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true,
+	 "after_empower": true
+	},
+	{
+	 "op": "energy",
+	 "amount": 3,
+	 "after_empower": true
+	}
    ],
    "bottom_after_use": true
   },
@@ -2572,19 +2903,19 @@
    "id": "focused_sword_strike",
    "title": "Focused Sword Strike",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "focused": true,
-    "stages": 3
+	"kind": "strike",
+	"focused": true,
+	"stages": 3
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -3
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -3
+	}
    ],
    "remove_after_use": true
   },
@@ -2592,18 +2923,18 @@
    "id": "sword_slash",
    "title": "Sword Slash",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "focused": true
+	"kind": "strike",
+	"focused": true
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "title_contains": "Swordplay",
-     "to": "play"
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "title_contains": "Swordplay",
+	 "to": "play"
+	}
    ],
    "remove_after_use": true
   },
@@ -2611,95 +2942,95 @@
    "id": "sword_sweep",
    "title": "Sword Sweep",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 2
+	"kind": "strike",
+	"stages": 2
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "ally",
-     "amount": 4,
-     "up_to": true,
-     "choose": true
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 4,
+	 "up_to": true,
+	 "choose": true
+	}
    ]
   },
   {
    "id": "sword_thrust",
    "title": "Sword Thrust",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 2
+	"kind": "strike",
+	"stages": 2
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat",
-     "amount": 2,
-     "choose": true
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 2,
+	 "choose": true
+	}
    ]
   },
   {
    "id": "sword_slice",
    "title": "Vale's Sword Slice",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "character": "Caedan Vale",
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "title_contains": "Sword",
-     "exclude_title": "Vale's Sword Slice",
-     "to": "hand"
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "title_contains": "Sword",
+	 "exclude_title": "Vale's Sword Slice",
+	 "to": "hand"
+	}
    ]
   },
   {
    "id": "speedy_flight",
    "title": "Vale's Speedy Flight",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "character": "Caedan Vale",
    "empower": 2,
    "effects": [
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -2,
-     "after_empower": true
-    },
-    {
-     "op": "search",
-     "signature_of": "fighter",
-     "source": "discard",
-     "to": "hand",
-     "when": {
-      "fighter_character": "Caedan Vale"
-     },
-     "after_empower": true
-    }
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2,
+	 "after_empower": true
+	},
+	{
+	 "op": "search",
+	 "signature_of": "duelist",
+	 "source": "discard",
+	 "to": "hand",
+	 "when": {
+	  "duelist_character": "Caedan Vale"
+	 },
+	 "after_empower": true
+	}
    ],
    "remove_after_use": true
   },
@@ -2707,185 +3038,185 @@
    "id": "back_bash",
    "title": "Vale's Back Bash",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 4,
-    "variants": [
-     {
-      "when": {
-       "fighter_character": "Caedan Vale",
-       "stopped_last_phase": true
-      },
-      "effects": [
-       {
-        "op": "skip_next_attack_phase",
-        "who": "opponent"
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"stages": 4,
+	"variants": [
+	 {
+	  "when": {
+	   "duelist_character": "Caedan Vale",
+	   "stopped_last_phase": true
+	  },
+	  "effects": [
+	   {
+		"op": "skip_next_attack_phase",
+		"who": "opponent"
+	   }
+	  ]
+	 }
+	]
    },
    "character": "Caedan Vale",
    "endurance": 2,
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "henchmans_charge",
    "title": "Brann's Charge",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 4,
-    "variants": [
-     {
-      "when": {
-       "character": "Brann Draik"
-      },
-      "effects": [
-       {
-        "op": "discard_in_play",
-        "who": "opponent",
-        "card_type": "non_combat",
-        "amount": 1,
-        "choose": true
-       },
-       {
-        "op": "capture_token"
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"stages": 4,
+	"variants": [
+	 {
+	  "when": {
+	   "character": "Brann Draik"
+	  },
+	  "effects": [
+	   {
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "non_combat",
+		"amount": 1,
+		"choose": true
+	   },
+	   {
+		"op": "capture_seal"
+	   }
+	  ]
+	 }
+	]
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "card_type": "ally",
-     "to": "play",
-     "stages": 4
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "ally",
+	 "to": "play",
+	 "stages": 4
+	}
    ]
   },
   {
    "id": "dual_strike",
    "title": "Halvard's Dual Strike",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "focused": true,
-    "stages": 4,
-    "variants": [
-     {
-      "when": {
-       "character": "Halvard Draik"
-      },
-      "effects": [
-       {
-        "op": "discard_hand",
-        "who": "opponent",
-        "amount": 1,
-        "random": false
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"focused": true,
+	"stages": 4,
+	"variants": [
+	 {
+	  "when": {
+	   "character": "Halvard Draik"
+	  },
+	  "effects": [
+	   {
+		"op": "discard_hand",
+		"who": "opponent",
+		"amount": 1,
+		"random": false
+	   }
+	  ]
+	 }
+	]
    },
    "defense": {
-    "stops": "strike",
-    "when": {
-     "character": "Halvard Draik"
-    }
+	"stops": "strike",
+	"when": {
+	 "character": "Halvard Draik"
+	}
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "card_type": "ally",
-     "to": "play",
-     "stages": 4
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "ally",
+	 "to": "play",
+	 "stages": 4
+	}
    ]
   },
   {
    "id": "leaping_rush",
    "title": "Vesna's Leaping Rush",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "focused": true,
-    "stages": 4,
-    "variants": [
-     {
-      "when": {
-       "character": "Vesna Draik"
-      },
-      "effects": [
-       {
-        "op": "float",
-        "who": "opponent",
-        "what": "no_ally_control",
-        "duration": "combat"
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"focused": true,
+	"stages": 4,
+	"variants": [
+	 {
+	  "when": {
+	   "character": "Vesna Draik"
+	  },
+	  "effects": [
+	   {
+		"op": "float",
+		"who": "opponent",
+		"what": "no_ally_control",
+		"duration": "combat"
+	   }
+	  ]
+	 }
+	]
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "card_type": "ally",
-     "to": "play",
-     "stages": 4
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "ally",
+	 "to": "play",
+	 "stages": 4
+	}
    ]
   },
   {
    "id": "heel_kick",
    "title": "Ashmark's Heel Kick",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "endurance": 1,
    "effects": [
-    {
-     "op": "remove_discard",
-     "who": "opponent",
-     "amount": 5
-    },
-    {
-     "op": "vigor",
-     "amount": 3
-    }
+	{
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 5
+	},
+	{
+	 "op": "energy",
+	 "amount": 3
+	}
    ]
   },
   {
    "id": "frantic_assault",
    "title": "Frantic Assault",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "attack": {
-    "kind": "strike",
-    "stages": 1
+	"kind": "strike",
+	"stages": 1
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "remain": 1,
    "remove_after_use": true
@@ -2894,21 +3225,21 @@
    "id": "steel_headshot",
    "title": "Steel Headshot",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "life": 3,
-    "no_prevent": true
+	"kind": "strike",
+	"life": 3,
+	"no_prevent": true
    },
    "effects": [
-    {
-     "op": "draw",
-     "amount": 1
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "draw",
+	 "amount": 1
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "limit_per_deck": 1
   },
@@ -2916,20 +3247,20 @@
    "id": "last_ward",
    "title": "Last Ward",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "any",
-    "stop_focused": "discard_hand"
+	"stops": "any",
+	"stop_focused": "discard_hand"
    }
   },
   {
    "id": "swift_counter",
    "title": "Vale's Swift Counter",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike",
-    "copy_attack": true
+	"stops": "strike",
+	"copy_attack": true
    },
    "character": "Caedan Vale"
   },
@@ -2937,17 +3268,17 @@
    "id": "elbow_block",
    "title": "Elbow Block",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "search",
-     "card_type": "hand_combat",
-     "source": "discard",
-     "to": "hand"
-    }
+	{
+	 "op": "search",
+	 "card_type": "hand_combat",
+	 "source": "discard",
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true
   },
@@ -2955,97 +3286,97 @@
    "id": "leg_catch",
    "title": "Leg Catch",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "vigor",
-     "amount": "max",
-     "target": "fighter"
-    },
-    {
-     "op": "shuffle_discard",
-     "amount": 3
-    }
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "shuffle_discard",
+	 "amount": 3
+	}
    ]
   },
   {
    "id": "swift_flight",
    "title": "Swift Flight",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "any"
+	"stops": "any"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "op": "float",
-     "what": "stop_next",
-     "duration": "combat"
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "float",
+	 "what": "stop_next",
+	 "duration": "combat"
+	}
    ]
   },
   {
    "id": "storm_dodge",
    "title": "Vessel's Dodge",
    "type": "strike",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "character": "The Ninth Vessel",
    "effects": [
-    {
-     "op": "search",
-     "guild": "storm",
-     "to": "hand"
-    }
+	{
+	 "op": "search",
+	 "school": "storm",
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true,
    "tags": [
-    "automaton"
+	"automaton"
    ]
   },
   {
    "id": "knowing_smile",
    "title": "Vessel's Knowing Smile",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "search",
-     "tag": "automaton",
-     "source": "discard",
-     "to": "hand",
-     "when": {
-      "fighter_character": "The Ninth Vessel"
-     }
-    }
+	{
+	 "op": "search",
+	 "tag": "automaton",
+	 "source": "discard",
+	 "to": "hand",
+	 "when": {
+	  "duelist_character": "The Ninth Vessel"
+	 }
+	}
    ],
    "remove_after_use": true,
    "tags": [
-    "automaton"
+	"automaton"
    ]
   },
   {
    "id": "steel_supreme_power",
    "title": "Quarr's Supreme Power",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "defense": {
-    "stops": "any"
+	"stops": "any"
    },
    "only": {
-    "fighter_character": "Halden Quarr"
+	"duelist_character": "Halden Quarr"
    },
    "remain": 1,
    "remove_after_use": true,
@@ -3056,130 +3387,130 @@
    "id": "counsel",
    "title": "Counsel",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "use",
-     "op": "search",
-     "card_type": "attack",
-     "source": "either",
-     "to": "hand"
-    }
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "attack",
+	 "source": "either",
+	 "to": "hand"
+	}
    ]
   },
   {
    "id": "focus_of_mind",
    "title": "Focus of Mind",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "use",
-     "op": "search",
-     "card_type": "combat",
-     "to": "hand"
-    }
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "combat",
+	 "to": "hand"
+	}
    ]
   },
   {
    "id": "anticipation",
    "title": "Anticipation",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "entering_combat",
-     "op": "search",
-     "card_type": "hand_combat",
-     "source": "discard",
-     "to": "hand"
-    }
+	{
+	 "trigger": "entering_combat",
+	 "op": "search",
+	 "card_type": "hand_combat",
+	 "source": "discard",
+	 "to": "hand"
+	}
    ]
   },
   {
    "id": "fortune",
    "title": "Fortune",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "use",
-     "op": "search",
-     "card_type": "non_combat",
-     "to": "play"
-    }
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "non_combat",
+	 "to": "play"
+	}
    ]
   },
   {
    "id": "bonding_rite",
    "title": "Bonding Rite",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "trigger": "use",
-     "op": "bond",
-     "card": "bonded_pair"
-    }
+	{
+	 "trigger": "use",
+	 "op": "bond",
+	 "card": "bonded_pair"
+	}
    ]
   },
   {
    "id": "bonded_pair",
    "title": "Ansel and Tavin, Back to Back",
    "type": "ally",
-   "guild": "",
+   "school": "",
    "character": "Ansel and Tavin, Back to Back",
-   "alignment_only": "knight",
+   "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "tiers": [
-    {
-     "tier": 1,
-     "surge": 4,
-     "might": [
-      0,
-      26,
-      28,
-      30,
-      32,
-      34,
-      36,
-      38,
-      40,
-      42,
-      44
-     ],
-     "power": {
-      "attack": {
-       "kind": "strike",
-       "printed_stages": 7
-      },
-      "uses": 2,
-      "effects": [
-       {
-        "may": true,
-        "then": [
-         {
-          "op": "focus_attack"
-         }
-        ],
-        "op": "discard_hand",
-        "amount": 1,
-        "random": false,
-        "when": {
-         "hand_min": 1
-        }
-       }
-      ]
-     }
-    }
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  26,
+	  28,
+	  30,
+	  32,
+	  34,
+	  36,
+	  38,
+	  40,
+	  42,
+	  44
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "printed_stages": 7
+	  },
+	  "uses": 2,
+	  "effects": [
+	   {
+		"may": true,
+		"then": [
+		 {
+		  "op": "focus_attack"
+		 }
+		],
+		"op": "discard_hand",
+		"amount": 1,
+		"random": false,
+		"when": {
+		 "hand_min": 1
+		}
+	   }
+	  ]
+	 }
+	}
    ],
    "bond_of": [
-    "Ansel Rooke",
-    "Tavin Vale"
+	"Ansel Rooke",
+	"Tavin Vale"
    ],
    "bond_timer_max": 5
   },
@@ -3187,168 +3518,168 @@
    "id": "seek_the_answer",
    "title": "Vale Finds the Answer",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "remove_after_use": true,
    "effects": [
-    {
-     "trigger": "use",
-     "op": "search",
-     "signature_of": "fighter",
-     "amount": 2,
-     "to": "hand"
-    }
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "signature_of": "duelist",
+	 "amount": 2,
+	 "to": "hand"
+	}
    ]
   },
   {
    "id": "sweet_ration",
    "title": "Ashmark's Ration",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "only": {
-    "fighter_character": "Bram Ashmark"
+	"duelist_character": "Bram Ashmark"
    },
    "effects": [
-    {
-     "trigger": "use",
-     "op": "vigor",
-     "amount": "max",
-     "target": "fighter"
-    },
-    {
-     "trigger": "use",
-     "op": "shuffle_discard",
-     "amount": 5
-    },
-    {
-     "trigger": "use",
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "trigger": "use",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "trigger": "use",
+	 "op": "shuffle_discard",
+	 "amount": 5
+	},
+	{
+	 "trigger": "use",
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
-   "id": "kings_invitation",
-   "title": "The King's Invitation",
+   "id": "open_challenge",
+   "title": "An Open Challenge",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "start_in_play": true,
    "limit_per_deck": 1,
    "remove_after_use": true,
    "effects": [
-    {
-     "trigger": "opponent_declare",
-     "op": "discard_hand",
-     "amount": 1,
-     "random": false
-    },
-    {
-     "trigger": "opponent_declare",
-     "op": "force_declare",
-     "who": "opponent"
-    }
+	{
+	 "trigger": "opponent_declare",
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false
+	},
+	{
+	 "trigger": "opponent_declare",
+	 "op": "force_declare",
+	 "who": "opponent"
+	}
    ]
   },
   {
    "id": "doubt",
    "title": "Doubt",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "remove_after_use": true,
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "use",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "token",
-     "amount": 1,
-     "remove": true,
-     "choose": true
-    }
+	{
+	 "trigger": "use",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "seal",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	}
    ]
   },
   {
    "id": "heirloom_blade",
    "title": "The Vale Heirloom",
    "type": "non_combat",
-   "guild": "",
+   "school": "",
    "effects": [
-    {
-     "trigger": "use",
-     "op": "attach",
-     "to": "fighter"
-    }
+	{
+	 "trigger": "use",
+	 "op": "attach",
+	 "to": "duelist"
+	}
    ],
    "limit_per_deck": 1,
    "attachment": {
-    "target": "fighter",
-    "title_contains": "Sword",
-    "damage_removes": true,
-    "modifiers": [
-     {
-      "scope": "own",
-      "kind": "any",
-      "life": 3,
-      "title_contains": "Sword"
-     }
-    ]
+	"target": "duelist",
+	"title_contains": "Sword",
+	"damage_removes": true,
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 3,
+	  "title_contains": "Sword"
+	 }
+	]
    }
   },
   {
    "id": "victors_drill",
    "title": "Victor's Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "start_in_play": true,
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "entering_combat",
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -2
-    },
-    {
-     "trigger": "entering_combat",
-     "op": "vigor",
-     "amount": 2,
-     "target": "fighter"
-    }
+	{
+	 "trigger": "entering_combat",
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	},
+	{
+	 "trigger": "entering_combat",
+	 "op": "energy",
+	 "amount": 2,
+	 "target": "duelist"
+	}
    ]
   },
   {
    "id": "champion_drill",
    "title": "Champion's Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "once_per_combat": true,
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "use",
-     "op": "discard_hand",
-     "amount": 1,
-     "random": false
-    },
-    {
-     "trigger": "use",
-     "op": "draw",
-     "amount": 2
-    }
+	{
+	 "trigger": "use",
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false
+	},
+	{
+	 "trigger": "use",
+	 "op": "draw",
+	 "amount": 2
+	}
    ]
   },
   {
    "id": "swordplay_drill",
    "title": "Swordplay Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "modifiers": [
-    {
-     "scope": "own",
-     "kind": "any",
-     "stages": 2,
-     "title_contains": "Sword"
-    }
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2,
+	 "title_contains": "Sword"
+	}
    ],
    "promote_if_successful": "Sword"
   },
@@ -3356,13 +3687,13 @@
    "id": "devastation_drill",
    "title": "Devastation Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "modifiers": [
-    {
-     "scope": "own",
-     "kind": "strike",
-     "stages": 5
-    }
+	{
+	 "scope": "own",
+	 "kind": "strike",
+	 "stages": 5
+	}
    ],
    "discard_if_other_non_combats": true
   },
@@ -3370,196 +3701,498 @@
    "id": "ambush_drill",
    "title": "Ambush Drill",
    "type": "drill",
-   "guild": "",
-   "alignment_only": "knight",
+   "school": "",
+   "alignment_only": "vigil",
    "limit_per_deck": 2,
    "effects": [
-    {
-     "trigger": "on_place",
-     "op": "name_card"
-    }
+	{
+	 "trigger": "on_place",
+	 "op": "name_card"
+	}
    ]
   },
   {
    "id": "breakthrough_drill",
    "title": "Breakthrough Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "forbid": [
-    {
-     "who": "all",
-     "what": "end_combat"
-    }
+	{
+	 "who": "all",
+	 "what": "end_combat"
+	}
    ]
   },
   {
    "id": "absorbing_drill",
    "title": "Absorbing Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "defense": {
-    "stops": "art",
-    "cost_life": 2
+	"stops": "art",
+	"cost_life": 2
    }
   },
   {
    "id": "quickness_drill",
    "title": "Quickness Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "effects": [
-    {
-     "trigger": "entering_combat",
-     "op": "draw_discard",
-     "amount": 1,
-     "from": "bottom"
-    }
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "bottom"
+	}
    ]
   },
   {
    "id": "confusion_drill",
    "title": "Confusion Drill",
    "type": "drill",
-   "guild": "",
+   "school": "",
    "limit_per_deck": 1,
    "forbid": [
-    {
-     "who": "all",
-     "what": "tokens"
-    }
+	{
+	 "who": "all",
+	 "what": "seals"
+	}
+   ]
+  },
+  {
+   "id": "schooled_block",
+   "title": "Schooled Block",
+   "type": "strike",
+   "school": "",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "search",
+	 "card_type": "drill",
+	 "source": "discard",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "dream_duel",
+   "title": "Dream Duel",
+   "type": "combat",
+   "school": "",
+   "effects": [
+	{
+	 "op": "end_combat"
+	},
+	{
+	 "op": "recover",
+	 "amount": 1,
+	 "from": "bottom"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "seal_seizure",
+   "title": "Seal Seizure",
+   "type": "strike",
+   "school": "",
+   "effects": [
+	{
+	 "op": "capture_seal"
+	}
+   ]
+  },
+  {
+   "id": "timely_advice",
+   "title": "Timely Advice",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"printed_life": 8
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -3
+	}
+   ],
+   "remove_after_use": true,
+   "limit_per_deck": 1
+  },
+  {
+   "id": "power_burst",
+   "title": "Power Burst",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "art_attacks",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "blinding_flare",
+   "title": "Blinding Flare",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "strike_cards",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "sun_flare",
+   "title": "Sun Flare",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "end_combat"
+	}
+   ]
+  },
+  {
+   "id": "dashed_plans",
+   "title": "Dashed Plans",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 2,
+	 "remove": true,
+	 "choose": true
+	}
+   ]
+  },
+  {
+   "id": "gates_boon",
+   "title": "The Gate's Boon",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "end_combat"
+	},
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "source": "discard",
+	 "amount": 3,
+	 "to": "deck_shuffle"
+	}
+   ]
+  },
+  {
+   "id": "windfall",
+   "title": "Windfall",
+   "type": "non_combat",
+   "school": "",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "seal",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "laid_plans",
+   "title": "Laid Plans",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "seal",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "thin_smile",
+   "title": "Thin Smile",
+   "type": "non_combat",
+   "school": "",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "seal",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "borrowed_gauge",
+   "title": "Borrowed Gauge",
+   "type": "non_combat",
+   "school": "",
+   "alignment_only": "vigil",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "seal",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "sleight",
+   "title": "Sleight",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "capture_seal"
+	}
+   ]
+  },
+  {
+   "id": "kins_rescue",
+   "title": "Kin's Rescue",
+   "type": "non_combat",
+   "school": "",
+   "alignment_only": "vigil",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
+   "discard_if_seal": "marble_seal_7",
+   "discard_if_seal_title": "Marble Seal 7",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "float",
+	 "what": "prevent_all",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "eyes_beyond_the_gate",
+   "title": "Eyes Beyond the Gate",
+   "type": "non_combat",
+   "school": "",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "may": true,
+	 "when": {
+	  "attack_kind": "art"
+	 },
+	 "op": "search",
+	 "card_type": "seal",
+	 "to": "play",
+	 "then": [
+	  {
+	   "op": "capture_seal"
+	  },
+	  {
+	   "op": "spend_source"
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "keepers_drill",
+   "title": "Keeper's Drill",
+   "type": "drill",
+   "school": "",
+   "protect_seals": true
+  },
+  {
+   "id": "guardian_drill",
+   "title": "Guardian Drill",
+   "type": "drill",
+   "school": "",
+   "alignment_only": "vigil",
+   "once_per_combat": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "source": "hand",
+	 "card_type": "non_combat_any",
+	 "to": "play"
+	}
    ]
   },
   {
    "id": "ember_blocking_hand",
    "title": "Ember Blocking Hand",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 2
-    },
-    {
-     "op": "vigor",
-     "amount": 2
-    }
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "energy",
+	 "amount": 2
+	}
    ]
   },
   {
    "id": "ember_passive_block",
    "title": "Ember Passive Block",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "endurance": 1,
    "effects": [
-    {
-     "op": "discard_life",
-     "who": "opponent",
-     "amount": 1
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "op": "vigor",
-     "amount": 5
-    }
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 1
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "energy",
+	 "amount": 5
+	}
    ]
   },
   {
    "id": "ember_blast",
    "title": "Ember Blast",
    "type": "art",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill_or_ally",
-     "amount": 1,
-     "remove": true,
-     "choose": true
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill_or_ally",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
-   "id": "ember_vigor_orb",
-   "title": "Ember Vigor Orb",
+   "id": "ember_energy_orb",
+   "title": "Ember Energy Orb",
    "type": "art",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "art",
-    "printed_life": 3
+	"kind": "art",
+	"printed_life": 3
    },
    "empower": 3,
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill_or_ally",
-     "amount": 1,
-     "remove": true,
-     "choose": true,
-     "after_empower": true
-    },
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -2,
-     "after_empower": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill_or_ally",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true,
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2,
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "ember_back_kick",
    "title": "Ember Back Kick",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "effects": [
-    {
-     "op": "stop_all",
-     "kind": "art"
-    },
-    {
-     "op": "forbid",
-     "what": "art_attacks",
-     "duration": "combat"
-    },
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -1
-    }
+	{
+	 "op": "stop_all",
+	 "kind": "art"
+	},
+	{
+	 "op": "forbid",
+	 "what": "art_attacks",
+	 "duration": "combat"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
    ]
   },
   {
    "id": "ember_shattering_leap",
    "title": "Ember Shattering Leap",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "remain": 1,
    "remove_after_use": true
@@ -3568,65 +4201,65 @@
    "id": "ember_face_upheaval",
    "title": "Ember Face Upheaval",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike"
+	"kind": "strike"
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat",
-     "amount": 1,
-     "remove": true,
-     "choose": true
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "ember_lightning_slash",
    "title": "Ember Lightning Slash",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike"
+	"kind": "strike"
    },
    "effects": [
-    {
-     "trigger": "before_damage",
-     "may": true,
-     "skip_damage": true,
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill_or_ally",
-     "all": true
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "trigger": "before_damage",
+	 "may": true,
+	 "skip_damage": true,
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill_or_ally",
+	 "all": true
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "ember_power_rush",
    "title": "Ember Power Rush",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 3,
-    "no_stop_by": "strike"
+	"kind": "strike",
+	"stages": 3,
+	"no_stop_by": "strike"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "remove_after_use": true
   },
@@ -3634,16 +4267,16 @@
    "id": "ember_overbearing_blow",
    "title": "Ember Overbearing Blow",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 2
-    }
+	{
+	 "op": "fervor",
+	 "amount": 2
+	}
    ],
    "remove_after_use": true
   },
@@ -3651,15 +4284,15 @@
    "id": "ember_double_strike",
    "title": "Ember Double Strike",
    "type": "combat",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike"
+	"kind": "strike"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ],
    "remain": 1
   },
@@ -3667,48 +4300,48 @@
    "id": "ember_face_slap",
    "title": "Ember Face Slap",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 3,
-    "variants": [
-     {
-      "when": {
-       "opponent_acclaim": 0
-      },
-      "no_prevent": true,
-      "effects": [
-       {
-        "op": "acclaim",
-        "amount": 1
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"stages": 3,
+	"variants": [
+	 {
+	  "when": {
+	   "opponent_fervor": 0
+	  },
+	  "no_prevent": true,
+	  "effects": [
+	   {
+		"op": "fervor",
+		"amount": 1
+	   }
+	  ]
+	 }
+	]
    },
    "effects": [
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "powers",
-     "duration": "combat"
-    }
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "powers",
+	 "duration": "combat"
+	}
    ]
   },
   {
    "id": "ember_tilted_punch",
    "title": "Ember Tilted Punch",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "remain_when": {
-    "when": {
-     "opponent_used_combat_card": true
-    },
-    "remain": 2
+	"when": {
+	 "opponent_used_combat_card": true
+	},
+	"remain": 2
    },
    "remove_after_use": true
   },
@@ -3716,78 +4349,78 @@
    "id": "ember_whiplash",
    "title": "Ember Whiplash",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "endurance": 2,
    "empower": 2,
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1,
-     "after_empower": true
-    },
-    {
-     "trigger": "if_stopped",
-     "op": "look_at",
-     "amount": 5,
-     "pick": {
-      "card_type": "strike"
-     },
-     "to": "hand",
-     "from": "bottom",
-     "after_empower": true
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1,
+	 "after_empower": true
+	},
+	{
+	 "trigger": "if_stopped",
+	 "op": "look_at",
+	 "amount": 5,
+	 "pick": {
+	  "card_type": "strike"
+	 },
+	 "to": "hand",
+	 "from": "bottom",
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "ember_puppy_slap",
    "title": "Ember Puppy Slap",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "life": 3
+	"kind": "strike",
+	"life": 3
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "op": "float",
-     "what": "make_focused",
-     "duration": "combat",
-     "params": {
-      "guild": "ember"
-     }
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "float",
+	 "what": "make_focused",
+	 "duration": "combat",
+	 "params": {
+	  "school": "ember"
+	 }
+	}
    ]
   },
   {
    "id": "ember_axe_heel_kick",
    "title": "Ember Axe Heel Kick",
    "type": "strike",
-   "guild": "ember",
+   "school": "ember",
    "attack": {
-    "kind": "strike",
-    "stages": 6
+	"kind": "strike",
+	"stages": 6
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "op": "search",
-     "card_type": "attack",
-     "guild": "ember",
-     "source": "discard",
-     "exclude_title": "Ember Axe Heel Kick",
-     "to": "hand"
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "search",
+	 "card_type": "attack",
+	 "school": "ember",
+	 "source": "discard",
+	 "exclude_title": "Ember Axe Heel Kick",
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true
   },
@@ -3795,12 +4428,12 @@
    "id": "steel_perfect_defense",
    "title": "Steel Perfect Defense",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "defense": {
-    "stops": "strike",
-    "when": {
-     "higher_might": true
-    }
+	"stops": "strike",
+	"when": {
+	 "higher_might": true
+	}
    },
    "remain": 9,
    "remove_after_use": true,
@@ -3810,35 +4443,35 @@
    "id": "steel_stop",
    "title": "Steel Stop",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "defense": {
-    "stops": "any"
+	"stops": "any"
    },
    "effects": [
-    {
-     "op": "vigor",
-     "amount": 7
-    }
+	{
+	 "op": "energy",
+	 "amount": 7
+	}
    ]
   },
   {
    "id": "steel_brace",
    "title": "Steel Brace",
    "type": "art",
-   "guild": "steel",
+   "school": "steel",
    "defense": {
-    "stops": "any"
+	"stops": "any"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "op": "search",
-     "title_contains": "Truce",
-     "to": "hand"
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "search",
+	 "title_contains": "Truce",
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true
   },
@@ -3846,43 +4479,43 @@
    "id": "steel_wrist_block",
    "title": "Steel Wrist Block",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "vigor",
-     "who": "opponent",
-     "amount": -3,
-     "no_overflow": true
-    }
+	{
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": -3,
+	 "no_overflow": true
+	}
    ]
   },
   {
    "id": "steel_power_beam",
    "title": "Steel Power Beam",
    "type": "art",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "empower": 3,
    "effects": [
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "mastery",
-     "duration": "combat",
-     "after_empower": true
-    },
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "drills",
-     "duration": "combat",
-     "after_empower": true
-    }
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "mastery",
+	 "duration": "combat",
+	 "after_empower": true
+	},
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "drills",
+	 "duration": "combat",
+	 "after_empower": true
+	}
    ],
    "remove_after_use": true
   },
@@ -3890,21 +4523,21 @@
    "id": "steel_might",
    "title": "Quarr's Might",
    "type": "art",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "art",
-    "printed_life": 6
+	"kind": "art",
+	"printed_life": 6
    },
    "effects": [
-    {
-     "op": "forbid",
-     "who": "opponent",
-     "what": "combat_cards",
-     "duration": "combat",
-     "when": {
-      "character": "Halden Quarr"
-     }
-    }
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "combat_cards",
+	 "duration": "combat",
+	 "when": {
+	  "character": "Halden Quarr"
+	 }
+	}
    ],
    "remove_after_use": true
   },
@@ -3912,59 +4545,59 @@
    "id": "steel_crushing_smash",
    "title": "Quarr's Crushing Smash",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "life": 2,
-    "variants": [
-     {
-      "when": {
-       "character": "Halden Quarr"
-      },
-      "stages": 3,
-      "effects": [
-       {
-        "op": "discard_in_play",
-        "who": "opponent",
-        "card_type": "non_combat",
-        "amount": 1,
-        "choose": true
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"life": 2,
+	"variants": [
+	 {
+	  "when": {
+	   "character": "Halden Quarr"
+	  },
+	  "stages": 3,
+	  "effects": [
+	   {
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "non_combat",
+		"amount": 1,
+		"choose": true
+	   }
+	  ]
+	 }
+	]
    },
    "character": "Halden Quarr",
    "endurance_when": {
-    "value_if": {
-     "fighter_character": "Halden Quarr"
-    },
-    "then": 6,
-    "else": 3
+	"value_if": {
+	 "duelist_character": "Halden Quarr"
+	},
+	"then": 6,
+	"else": 3
    }
   },
   {
    "id": "steel_gut_kick",
    "title": "Steel Gut Kick",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "endurance": 2,
    "effects": [
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -1
-    },
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "card_type": "token",
-     "to": "play"
-    }
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "seal",
+	 "to": "play"
+	}
    ],
    "remove_after_use": true
   },
@@ -3972,26 +4605,26 @@
    "id": "steel_dashing_kick",
    "title": "Steel Dashing Kick",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 8
+	"kind": "strike",
+	"stages": 8
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "steel_destiny",
    "title": "Steel Destiny",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "remain": 1,
    "remove_after_use": true
@@ -4000,20 +4633,20 @@
    "id": "steel_bulk",
    "title": "Steel Bulk",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "empower": 2,
    "effects": [
-    {
-     "op": "float",
-     "who": "opponent",
-     "what": "no_gain",
-     "duration": "next_turn_end",
-     "after_empower": true
-    }
+	{
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "no_gain",
+	 "duration": "next_turn_end",
+	 "after_empower": true
+	}
    ],
    "remove_after_use": true
   },
@@ -4021,35 +4654,35 @@
    "id": "steel_face_jab",
    "title": "Steel Face Jab",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "next_attack_tax",
-     "who": "opponent",
-     "amount": 2
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "next_attack_tax",
+	 "who": "opponent",
+	 "amount": 2
+	}
    ]
   },
   {
    "id": "steel_youth_bruise",
    "title": "Steel Youth Bruise",
    "type": "art",
-   "guild": "steel",
+   "school": "steel",
    "endurance": 2,
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "effects": [
-    {
-     "op": "shuffle_discard",
-     "amount": 3
-    }
+	{
+	 "op": "shuffle_discard",
+	 "amount": 3
+	}
    ],
    "remove_after_use": true
   },
@@ -4057,94 +4690,94 @@
    "id": "steel_rapid_slam",
    "title": "Steel Rapid Slam",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "focused": true,
-    "stages": 5
+	"kind": "strike",
+	"focused": true,
+	"stages": 5
    },
    "effects": [
-    {
-     "op": "float",
-     "what": "after_use_bottom",
-     "duration": "combat",
-     "params": {
-      "guild": "steel"
-     }
-    }
+	{
+	 "op": "float",
+	 "what": "after_use_bottom",
+	 "duration": "combat",
+	 "params": {
+	  "school": "steel"
+	 }
+	}
    ]
   },
   {
    "id": "steel_triple_blast",
    "title": "Steel Triple Blast",
    "type": "art",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "art",
-    "focused": true,
-    "printed_life": 3
+	"kind": "art",
+	"focused": true,
+	"printed_life": 3
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "draw",
-     "amount": 1
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "draw",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "steel_heads_up",
    "title": "Steel Heads Up",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike"
+	"kind": "strike"
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat_or_ally",
-     "amount": 2,
-     "choose": true,
-     "up_to": true
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_ally",
+	 "amount": 2,
+	 "choose": true,
+	 "up_to": true
+	}
    ]
   },
   {
    "id": "steel_charge",
    "title": "Steel Charge",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "printed_stages": 7,
-    "variants": [
-     {
-      "when": {
-       "higher_might": true
-      },
-      "effects": [
-       {
-        "op": "forbid",
-        "who": "opponent",
-        "what": "mastery",
-        "duration": "turn"
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"printed_stages": 7,
+	"variants": [
+	 {
+	  "when": {
+	   "higher_might": true
+	  },
+	  "effects": [
+	   {
+		"op": "forbid",
+		"who": "opponent",
+		"what": "mastery",
+		"duration": "turn"
+	   }
+	  ]
+	 }
+	]
    }
   },
   {
    "id": "steel_fist_attack",
    "title": "Steel Fist Attack",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "endurance": 3
   },
@@ -4152,11 +4785,11 @@
    "id": "steel_direct_strike",
    "title": "Steel Direct Strike",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 3,
-    "life": 2
+	"kind": "strike",
+	"stages": 3,
+	"life": 2
    },
    "endurance": 4
   },
@@ -4164,81 +4797,81 @@
    "id": "steel_cliff_slam",
    "title": "Steel Cliff Slam",
    "type": "strike",
-   "guild": "steel",
+   "school": "steel",
    "attack": {
-    "kind": "strike",
-    "stages": 3,
-    "variants": [
-     {
-      "when": {
-       "higher_might": true
-      },
-      "effects": [
-       {
-        "op": "discard_in_play",
-        "who": "opponent",
-        "card_type": "non_combat",
-        "amount": 1,
-        "choose": true
-       }
-      ]
-     }
-    ]
+	"kind": "strike",
+	"stages": 3,
+	"variants": [
+	 {
+	  "when": {
+	   "higher_might": true
+	  },
+	  "effects": [
+	   {
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "non_combat",
+		"amount": 1,
+		"choose": true
+	   }
+	  ]
+	 }
+	]
    }
   },
   {
    "id": "shade_pivot_kick",
    "title": "Shade Pivot Kick",
    "type": "strike",
-   "guild": "shade",
+   "school": "shade",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat_or_ally",
-     "amount": 1,
-     "choose": true
-    },
-    {
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 1,
-     "random": false
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_ally",
+	 "amount": 1,
+	 "choose": true
+	},
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false
+	}
    ]
   },
   {
    "id": "shade_defensive_aura",
    "title": "Shade Defensive Aura",
    "type": "combat",
-   "guild": "shade",
+   "school": "shade",
    "defense": {
-    "stops": "any",
-    "cost_stages": 1
+	"stops": "any",
+	"cost_stages": 1
    }
   },
   {
    "id": "shade_buffer_block",
    "title": "Shade Buffer Block",
    "type": "strike",
-   "guild": "shade",
+   "school": "shade",
    "defense": {
-    "stops": "any"
+	"stops": "any"
    },
    "effects": [
-    {
-     "op": "search",
-     "source": "discard",
-     "has_effect": {
-      "op": "discard_hand",
-      "who": "opponent"
-     },
-     "to": "hand"
-    }
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "has_effect": {
+	  "op": "discard_hand",
+	  "who": "opponent"
+	 },
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true
   },
@@ -4246,58 +4879,58 @@
    "id": "shade_turning_kick",
    "title": "Shade Turning Kick",
    "type": "art",
-   "guild": "shade",
+   "school": "shade",
    "attack": {
-    "kind": "art",
-    "printed_life": 5
+	"kind": "art",
+	"printed_life": 5
    },
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "shade_chaos_detonation",
    "title": "Shade Chaos Detonation",
    "type": "art",
-   "guild": "shade",
+   "school": "shade",
    "attack": {
-    "kind": "art",
-    "cost_stages": 3
+	"kind": "art",
+	"cost_stages": 3
    },
    "effects": [
-    {
-     "trigger": "if_successful",
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 2,
-     "random": false
-    }
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 2,
+	 "random": false
+	}
    ]
   },
   {
    "id": "shade_body_ruin",
    "title": "Shade Body Ruin",
    "type": "strike",
-   "guild": "shade",
+   "school": "shade",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 1
-    }
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1
+	}
    ],
    "remove_after_use": true
   },
@@ -4305,39 +4938,39 @@
    "id": "shade_swivel_kick",
    "title": "Shade Swivel Kick",
    "type": "strike",
-   "guild": "shade",
+   "school": "shade",
    "attack": {
-    "kind": "strike",
-    "stages": 3
+	"kind": "strike",
+	"stages": 3
    },
    "effects": [
-    {
-     "op": "remove_hand",
-     "who": "opponent",
-     "amount": 1
-    }
+	{
+	 "op": "remove_hand",
+	 "who": "opponent",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "shade_right_kick",
    "title": "Shade Right Kick",
    "type": "strike",
-   "guild": "shade",
+   "school": "shade",
    "attack": {
-    "kind": "strike",
-    "stages": 2
+	"kind": "strike",
+	"stages": 2
    },
    "endurance": 1,
    "empower": 3,
-   "alignment_only": "knave",
+   "alignment_only": "pact",
    "effects": [
-    {
-     "op": "discard_hand",
-     "who": "opponent",
-     "amount": 1,
-     "random": false,
-     "after_empower": true
-    }
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false,
+	 "after_empower": true
+	}
    ],
    "remove_after_use": true
   },
@@ -4345,16 +4978,16 @@
    "id": "tide_energy_guard",
    "title": "Tide Energy Guard",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "defense": {
-    "stops": "art"
+	"stops": "art"
    },
    "effects": [
-    {
-     "op": "float",
-     "what": "prevent_art_life",
-     "duration": "combat"
-    }
+	{
+	 "op": "float",
+	 "what": "prevent_art_life",
+	 "duration": "combat"
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -4363,85 +4996,85 @@
    "id": "tide_defensive_flight",
    "title": "Tide Defensive Flight",
    "type": "strike",
-   "guild": "tide",
+   "school": "tide",
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "effects": [
-    {
-     "op": "pay_vigor",
-     "per": 1,
-     "then": [
-      {
-       "op": "acclaim",
-       "who": "opponent",
-       "amount": -1
-      }
-     ]
-    }
+	{
+	 "op": "pay_energy",
+	 "per": 1,
+	 "then": [
+	  {
+	   "op": "fervor",
+	   "who": "opponent",
+	   "amount": -1
+	  }
+	 ]
+	}
    ]
   },
   {
    "id": "tide_round_throw",
    "title": "Tide Round Throw",
    "type": "strike",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "strike",
-    "stages": 5
+	"kind": "strike",
+	"stages": 5
    },
    "defense": {
-    "stops": "art"
+	"stops": "art"
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -1
-    }
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
    ]
   },
   {
    "id": "tide_betrayal",
    "title": "Tide Betrayal",
    "type": "strike",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "strike"
+	"kind": "strike"
    },
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat_or_ally",
-     "amount": 1,
-     "remove": true,
-     "choose": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_ally",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	}
    ]
   },
   {
    "id": "tide_arm_blast",
    "title": "Tide Arm Blast",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "printed_life": 5
+	"kind": "art",
+	"printed_life": 5
    },
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    }
   },
   {
    "id": "tide_double_blast",
    "title": "Tide Double Blast",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "printed_life": 3,
-    "life_from_surge": true
+	"kind": "art",
+	"printed_life": 3,
+	"life_from_surge": true
    },
    "remain": 1
   },
@@ -4449,38 +5082,38 @@
    "id": "tide_draining_blast",
    "title": "Tide Draining Blast",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "cost_stages": 0,
-    "pay_stages": {
-     "per": 2,
-     "life": 1
-    }
+	"kind": "art",
+	"cost_stages": 0,
+	"pay_stages": {
+	 "per": 2,
+	 "life": 1
+	}
    }
   },
   {
    "id": "tide_healing_ray",
    "title": "Tide Healing Ray",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "effects": [
-    {
-     "op": "search",
-     "card_type": "ally",
-     "source": "discard",
-     "to": "play",
-     "stages": 3
-    },
-    {
-     "trigger": "if_successful",
-     "op": "vigor",
-     "amount": "max",
-     "target": "last_searched"
-    }
+	{
+	 "op": "search",
+	 "card_type": "ally",
+	 "source": "discard",
+	 "to": "play",
+	 "stages": 3
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "last_searched"
+	}
    ],
    "remove_after_use": true
   },
@@ -4488,16 +5121,16 @@
    "id": "tide_terror",
    "title": "Tide Terror",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "printed_life": 3
+	"kind": "art",
+	"printed_life": 3
    },
    "effects": [
-    {
-     "op": "search",
-     "to": "hand"
-    }
+	{
+	 "op": "search",
+	 "to": "hand"
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -4506,130 +5139,130 @@
    "id": "tide_transformation",
    "title": "Tide Transformation",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "printed_life": 5
+	"kind": "art",
+	"printed_life": 5
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "trigger": "if_successful",
-     "op": "search",
-     "card_type": "grounds",
-     "to": "play"
-    }
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "grounds",
+	 "to": "play"
+	}
    ]
   },
   {
    "id": "tide_alliance",
    "title": "Tide Alliance",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "printed_life": 5,
-    "variants": [
-     {
-      "when": {
-       "performed_by": "ally"
-      },
-      "focused": true
-     }
-    ]
+	"kind": "art",
+	"printed_life": 5,
+	"variants": [
+	 {
+	  "when": {
+	   "performed_by": "ally"
+	  },
+	  "focused": true
+	 }
+	]
    },
    "empower": 3,
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill",
-     "amount": 1,
-     "choose": true,
-     "when": {
-      "allies_min": 1
-     },
-     "after_empower": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill",
+	 "amount": 1,
+	 "choose": true,
+	 "when": {
+	  "allies_min": 1
+	 },
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "twin_blow",
    "title": "Twin Blow",
    "type": "art",
-   "guild": "tide",
+   "school": "tide",
    "attack": {
-    "kind": "art",
-    "printed_life": 5,
-    "variants": [
-     {
-      "when": {
-       "ally_present": "Sir Edric Rooke"
-      },
-      "focused": true,
-      "life": 4
-     }
-    ]
+	"kind": "art",
+	"printed_life": 5,
+	"variants": [
+	 {
+	  "when": {
+	   "ally_present": "Sir Edric Rooke"
+	  },
+	  "focused": true,
+	  "life": 4
+	 }
+	]
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "who": "opponent",
-     "amount": -2
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    },
-    {
-     "trigger": "on_wound",
-     "at": "fight_back",
-     "may": true,
-     "op": "search",
-     "card_type": "ally",
-     "to": "play"
-    }
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "trigger": "on_wound",
+	 "at": "fight_back",
+	 "may": true,
+	 "op": "search",
+	 "card_type": "ally",
+	 "to": "play"
+	}
    ]
   },
   {
    "id": "storm_energy_guard",
    "title": "Storm Energy Guard",
    "type": "art",
-   "guild": "storm",
+   "school": "storm",
    "defense": {
-    "stops": "art"
+	"stops": "art"
    },
    "endurance": 3,
    "effects": [
-    {
-     "op": "float",
-     "what": "modifier",
-     "duration": "combat",
-     "params": {
-      "scope": "own",
-      "kind": "any",
-      "stages": 2
-     }
-    },
-    {
-     "op": "acclaim",
-     "amount": 1
-    }
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "any",
+	  "stages": 2
+	 }
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
    ]
   },
   {
    "id": "storm_setup",
    "title": "Storm Setup",
    "type": "art",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "defense": {
-    "stops": "strike"
+	"stops": "strike"
    },
    "remove_after_use": true
   },
@@ -4637,10 +5270,10 @@
    "id": "storm_scatter_shot",
    "title": "Storm Scatter Shot",
    "type": "art",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "art",
-    "printed_life": 5
+	"kind": "art",
+	"printed_life": 5
    },
    "remain": 1,
    "remove_after_use": true
@@ -4649,126 +5282,126 @@
    "id": "storm_glaring_bolt",
    "title": "Storm Glaring Bolt",
    "type": "art",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "non_combat_or_ally",
-     "amount": 1,
-     "remove": true,
-     "choose": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_ally",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	}
    ]
   },
   {
    "id": "storm_obliteration",
    "title": "Storm Obliteration",
    "type": "art",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "art"
+	"kind": "art"
    },
    "empower": 3,
    "effects": [
-    {
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "drill",
-     "amount": 3,
-     "up_to": true,
-     "choose": true,
-     "after_empower": true
-    },
-    {
-     "op": "float",
-     "what": "endurance_boost",
-     "duration": "combat",
-     "after_empower": true
-    }
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill",
+	 "amount": 3,
+	 "up_to": true,
+	 "choose": true,
+	 "after_empower": true
+	},
+	{
+	 "op": "float",
+	 "what": "endurance_boost",
+	 "duration": "combat",
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "storm_rage",
    "title": "Storm Rage",
    "type": "art",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "art",
-    "printed_life": 5
+	"kind": "art",
+	"printed_life": 5
    },
    "effects": [
-    {
-     "op": "acclaim",
-     "amount": 2
-    }
+	{
+	 "op": "fervor",
+	 "amount": 2
+	}
    ]
   },
   {
    "id": "storm_massacre",
    "title": "Storm Massacre",
    "type": "strike",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "endurance": 2,
    "empower": 2,
    "effects": [
-    {
-     "op": "float",
-     "what": "no_prevent",
-     "duration": "combat",
-     "after_empower": true
-    },
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "card_type": "freestyle_drill",
-     "all": true,
-     "remove": true,
-     "after_empower": true
-    },
-    {
-     "trigger": "if_successful",
-     "op": "discard_in_play",
-     "who": "opponent",
-     "card_type": "freestyle_drill",
-     "all": true,
-     "remove": true,
-     "after_empower": true
-    }
+	{
+	 "op": "float",
+	 "what": "no_prevent",
+	 "duration": "combat",
+	 "after_empower": true
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "card_type": "freestyle_drill",
+	 "all": true,
+	 "remove": true,
+	 "after_empower": true
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "freestyle_drill",
+	 "all": true,
+	 "remove": true,
+	 "after_empower": true
+	}
    ]
   },
   {
    "id": "storm_uppercut",
    "title": "Storm Uppercut",
    "type": "strike",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "strike",
-    "stages": 4
+	"kind": "strike",
+	"stages": 4
    },
    "effects": [
-    {
-     "may": true,
-     "then": [
-      {
-       "op": "search",
-       "card_type": "art",
-       "to": "hand"
-      }
-     ],
-     "op": "vigor",
-     "amount": -2,
-     "when": {
-      "vigor_min": 2
-     }
-    }
+	{
+	 "may": true,
+	 "then": [
+	  {
+	   "op": "search",
+	   "card_type": "art",
+	   "to": "hand"
+	  }
+	 ],
+	 "op": "energy",
+	 "amount": -2,
+	 "when": {
+	  "energy_min": 2
+	 }
+	}
    ],
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -4777,18 +5410,171 @@
    "id": "storm_strength",
    "title": "Storm Strength",
    "type": "strike",
-   "guild": "storm",
+   "school": "storm",
    "attack": {
-    "kind": "strike",
-    "stages": 2
+	"kind": "strike",
+	"stages": 2
    },
    "endurance": 2,
    "effects": [
-    {
-     "op": "vigor",
-     "amount": "max",
-     "target": "fighter"
-    }
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	}
+   ]
+  },
+  {
+   "id": "root_bolt",
+   "title": "Root Thorn Volley",
+   "type": "combat",
+   "school": "root",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "op": "search",
+	 "card_type": "art",
+	 "to": "hand"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_dash",
+   "title": "Root Boar Rush",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "shuffle_discard",
+	 "amount": 4
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_energy_deflection",
+   "title": "Root Barkskin Deflection",
+   "type": "art",
+   "school": "root",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "shuffle_discard",
+	 "amount": 2,
+	 "from": "top_and_bottom"
+	}
+   ]
+  },
+  {
+   "id": "root_energy_catch",
+   "title": "Root Rain Catch",
+   "type": "art",
+   "school": "root",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "root_firm_stance",
+   "title": "Root Oaken Stance",
+   "type": "strike",
+   "school": "root",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "root_energy_focus",
+   "title": "Root Grove Focus",
+   "type": "combat",
+   "school": "root",
+   "effects": [
+	{
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "if_school": "root",
+	 "effects": [
+	  {
+	   "op": "search",
+	   "card_type": "art",
+	   "to": "hand"
+	  }
+	 ],
+	 "from": "bottom"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_preparation_drill",
+   "title": "Root Tracker's Drill",
+   "type": "drill",
+   "school": "root",
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "look_at",
+	 "amount": 5,
+	 "rearrange": true,
+	 "from": "top",
+	 "role": "opposing"
+	}
+   ]
+  },
+  {
+   "id": "root_destruction_blast",
+   "title": "Root Uprooting Blast",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"printed_life": 7,
+	"cost_stages": 4
+   }
+  },
+  {
+   "id": "root_dragon_blast",
+   "title": "Root Wyrmwood Blast",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"life_per_set_seal": "marble"
+   },
+   "effects": [
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "amount_per_set_seal": "marble",
+	 "to": "deck_bottom"
+	}
    ]
   }
  ]

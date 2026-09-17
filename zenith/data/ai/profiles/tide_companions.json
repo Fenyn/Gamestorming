@@ -1,8 +1,9 @@
 {
-	"_note": "Playstyle for the Tide companion deck: stay on tier 1, whose constant power protects Allies, so our own Acclaim and tier gains are unwanted. Get Allies into play early (the Master's search, Muster, Sudden finds), let the fighter's Vigor fall to 0 or 1 so the Allies take control of Combat, bond the two named Allies when both are out, and win on wounds from Arts performed by Allies. The Mastery and the Arts keep the opponent's Acclaim down, so their Favor win is what we police. More blocks than the beatdown decks, and they are meant to be used.",
+	"_note": "Playstyle for the Tide companion deck: stay on aspect 1, whose constant power protects Allies, so our own Fervor and aspect gains are unwanted. Get Allies into play early (the Grimoire's search, Muster, Sudden finds), let the duelist's Energy fall to 0 or 1 so the Allies take control of Combat, bond the two named Allies when both are out, and win on wounds from Arts performed by Allies. The Mastery and the Arts keep the opponent's Fervor down, so their Ascension win is what we police. More blocks than the beatdown decks, and they are meant to be used.",
 	"name": "tide_companions",
-	"own": {"ally": 6.0, "ally_vigor": 0.8, "vigor": 0.0, "band": 0.4, "tier": -6.0, "favor": 0.0, "acclaim": -4.0, "hand": 1.4, "life": 1.1, "non_combat": 2.0, "attachment": 2.5, "token": 0.0},
-	"foe": {"favor": 40.0, "ally": 3.0, "non_combat": 2.0},
-	"effect": {"acclaim": 2.4, "acclaim_self": -1.5, "search": 2.8, "attach": 3.0, "recover": 1.2, "draw": 1.5, "vigor": 0.3},
+	"own": {"ally": 6.0, "ally_energy": 0.8, "energy": 0.0, "band": 0.4, "aspect": -6.0, "ascension": 0.0, "fervor": -4.0, "hand": 1.4, "life": 1.1, "non_combat": 2.0, "attachment": 2.5, "seal": 0.0},
+	"foe": {"ascension": 40.0, "ally": 3.0, "non_combat": 2.0},
+	"effect": {"fervor": 2.4, "fervor_self": -1.5, "search": 2.8, "attach": 3.0, "recover": 1.2, "draw": 1.5, "energy": 0.3},
+	"pages": {"max_swaps": 0},
 	"play": {"control_ally": 3.0, "damage_life": 1.2, "damage_stage": 0.4, "declare_bias": 1.0, "defend_card": 0.8, "final_strike_penalty": 6.0}
 }

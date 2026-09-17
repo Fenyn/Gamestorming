@@ -1,7 +1,7 @@
 class_name StatusMarkers
 extends Node3D
-## Tracking marks on a personality card, in the card's frame. Vigor lights the rung of the Might
-## ladder printed on the face; a fighter also gets one Acclaim pip per point needed along its top edge.
+## Tracking marks on a personality card, in the card's frame. Energy lights the rung of the Might
+## ladder printed on the face; a duelist also gets one Fervor pip per point needed along its top edge.
 
 const CARD: Vector2 = Vector2(0.63, 0.88)
 const FACE: Vector2 = Vector2(512, 716)   # face pixels the ladder rects are measured in
@@ -14,7 +14,7 @@ const BAR_GROW: float = 1.18
 const PULSE_TIME: float = 0.9
 const OFF_COLOR: Color = Color(0.22, 0.20, 0.18)
 
-var _acclaim_pips: Array[MeshInstance3D] = []
+var _fervor_pips: Array[MeshInstance3D] = []
 var _bar: MeshInstance3D = null
 var _bar_mat: StandardMaterial3D = null
 var _rungs: Array[Vector3] = []           # card-local rung centres, index 0 = stage 10
@@ -29,7 +29,7 @@ func _ready() -> void:
 	_bar_mat = StandardMaterial3D.new()
 	_bar_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_bar_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_bar_mat.albedo_color = Color(ZenithTheme.VIGOR, 0.55)
+	_bar_mat.albedo_color = Color(ZenithTheme.ENERGY, 0.55)
 	_bar.material_override = _bar_mat
 	_bar.visible = false
 	add_child(_bar)
@@ -47,11 +47,11 @@ func setup(ladder: Array[Rect2]) -> void:
 
 ## Lays the pip row out centred along the top edge, rebuilt only when the count changes.
 func _lay_out_pips(count: int) -> void:
-	if _acclaim_pips.size() == count:
+	if _fervor_pips.size() == count:
 		return
-	for m in _acclaim_pips:
+	for m in _fervor_pips:
 		m.queue_free()
-	_acclaim_pips.clear()
+	_fervor_pips.clear()
 	var top: float = -(CARD.y * 0.5 + EDGE_GAP)
 	var span: float = PIP_STEP * (count - 1)
 	for i in range(count):
@@ -62,7 +62,7 @@ func _lay_out_pips(count: int) -> void:
 		m.material_override = _material(OFF_COLOR)
 		m.position = Vector3(-span * 0.5 + PIP_STEP * i, LIFT, top)
 		add_child(m)
-		_acclaim_pips.append(m)
+		_fervor_pips.append(m)
 
 
 func _material(color: Color) -> StandardMaterial3D:
@@ -75,23 +75,23 @@ func _material(color: Color) -> StandardMaterial3D:
 	return mat
 
 
-## Vigor 0 drops the bar one step below the ladder in the warning colour. `standing` is the
-## owning player for a fighter (Acclaim pips), null for an Ally.
-func set_status(vigor: int, standing: SeatPlayer) -> void:
+## Energy 0 drops the bar one step below the ladder in the warning colour. `standing` is the
+## owning player for a duelist (Fervor pips), null for an Ally.
+func set_status(energy: int, standing: SeatPlayer) -> void:
 	var stages: int = CardInstance.MAX_STAGE
 	if _rungs.size() == stages:
 		_bar.visible = true
-		if vigor >= 1:
-			_bar.position = _rungs[stages - clampi(vigor, 1, stages)]
-			_bar_mat.albedo_color = Color(ZenithTheme.VIGOR, 0.55)
+		if energy >= 1:
+			_bar.position = _rungs[stages - clampi(energy, 1, stages)]
+			_bar_mat.albedo_color = Color(ZenithTheme.ENERGY, 0.55)
 		else:
 			var step: Vector3 = _rungs[stages - 1] - _rungs[stages - 2]
 			_bar.position = _rungs[stages - 1] + step
 			_bar_mat.albedo_color = Color(ZenithTheme.WARN, 0.6)
 		_start_pulse()
-	_lay_out_pips(standing.acclaim_needed if standing != null else 0)
-	for i in range(_acclaim_pips.size()):
-		_acclaim_pips[i].material_override = _material(ZenithTheme.ACCENT if i < standing.acclaim else OFF_COLOR)
+	_lay_out_pips(standing.fervor_needed if standing != null else 0)
+	for i in range(_fervor_pips.size()):
+		_fervor_pips[i].material_override = _material(ZenithTheme.ACCENT if i < standing.fervor else OFF_COLOR)
 
 
 func _start_pulse() -> void:

@@ -1,4 +1,4 @@
-# Zenith
+# Eidolarch (code name Zenith)
 
 Duel card game client. Godot 4.6, GDScript. Design doc is `../designs/zenith.md`; read it before rules work.
 

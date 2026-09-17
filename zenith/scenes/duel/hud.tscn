@@ -446,7 +446,7 @@ text = "Rematch"
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
-text = "Choose fighters"
+text = "Choose duelists"
 
 [node name="Loading" type="ColorRect" parent="Root"]
 layout_mode = 1

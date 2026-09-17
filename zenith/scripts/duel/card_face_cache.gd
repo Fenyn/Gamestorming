@@ -1,6 +1,6 @@
 class_name CardFaceCache
 extends Node
-## Renders card faces to textures once per definition (and per tier for personalities).
+## Renders card faces to textures once per definition (and per aspect for personalities).
 ## One SubViewport, reused; each render waits for a frame, so pre-render during a loading overlay.
 
 @onready var viewport: SubViewport = $Viewport
@@ -11,30 +11,30 @@ var _back: Texture2D = null
 var _ladder: Array[Rect2] = []
 
 
-static func key_for(def: CardDef, tier: int = 0) -> String:
+static func key_for(def: CardDef, aspect: int = 0) -> String:
 	if def.is_personality():
-		return "%s#%d" % [def.id, tier if tier > 0 else def.lowest_tier()]
+		return "%s#%d" % [def.id, aspect if aspect > 0 else def.lowest_aspect()]
 	return def.id
 
 
-func has_face(def: CardDef, tier: int = 0) -> bool:
-	return _cache.has(key_for(def, tier))
+func has_face(def: CardDef, aspect: int = 0) -> bool:
+	return _cache.has(key_for(def, aspect))
 
 
 ## Cached texture, or null if it has not been rendered yet.
-func face(def: CardDef, tier: int = 0) -> Texture2D:
-	return _cache.get(key_for(def, tier))
+func face(def: CardDef, aspect: int = 0) -> Texture2D:
+	return _cache.get(key_for(def, aspect))
 
 
 func back() -> Texture2D:
 	return _back
 
 
-func render_face(def: CardDef, tier: int = 0) -> Texture2D:
-	var key: String = key_for(def, tier)
+func render_face(def: CardDef, aspect: int = 0) -> Texture2D:
+	var key: String = key_for(def, aspect)
 	if _cache.has(key):
 		return _cache[key]
-	face_control.show_def(def, tier)
+	face_control.show_def(def, aspect)
 	var tex: Texture2D = await _render()
 	_cache[key] = tex
 	if def.is_personality() and _ladder.is_empty():
@@ -55,30 +55,30 @@ func render_back() -> Texture2D:
 	return _back
 
 
-## Every tier of a personality, or the one face of anything else.
+## Every aspect of a personality, or the one face of anything else.
 func render_def(def: CardDef) -> void:
 	if def == null:
 		return
 	if def.is_personality():
-		for t in def.tiers:
-			await render_face(def, int(t.get("tier", 1)))
+		for t in def.aspects:
+			await render_face(def, int(t.get("aspect", 1)))
 	else:
 		await render_face(def)
 
 
-## The cards a deck list names. `public_only` renders just the parts anyone can see (fighter,
-## Mastery, Master), which is all a client should assume about the other seat's deck.
+## The cards a deck list names. `public_only` renders just the parts anyone can see (duelist,
+## Mastery, Grimoire), which is all a client should assume about the other seat's deck.
 func render_deck(deck: DeckList, library: CardLibrary, public_only: bool = false) -> void:
 	await render_back()
-	await render_def(library.defs.get(deck.fighter_id))
+	await render_def(library.defs.get(deck.duelist_id))
 	if deck.mastery_id != "":
 		await render_def(library.defs.get(deck.mastery_id))
-	if deck.master_id != "":
-		await render_def(library.defs.get(deck.master_id))
+	if deck.grimoire_id != "":
+		await render_def(library.defs.get(deck.grimoire_id))
 	if public_only:
 		return
 	var seen: Dictionary = {}
-	for id in deck.armory + deck.cards:
+	for id in deck.pages + deck.cards:
 		if seen.has(id):
 			continue
 		seen[id] = true
@@ -89,7 +89,7 @@ func render_deck(deck: DeckList, library: CardLibrary, public_only: bool = false
 func render_missing(view: SeatView, library: CardLibrary) -> void:
 	for c in view.visible_cards():
 		var def: CardDef = library.defs.get(c.def_id)
-		if def != null and not has_face(def, c.tier):
+		if def != null and not has_face(def, c.aspect):
 			await render_def(def)
 
 

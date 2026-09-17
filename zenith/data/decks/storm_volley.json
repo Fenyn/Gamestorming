@@ -1,12 +1,12 @@
 {
-  "name": "House Corven",
-  "fighter": "fighter_gamma",
-  "tiers": 3,
+  "name": "The Corven Collegium",
+  "duelist": "duelist_gamma",
+  "aspects": 3,
   "style": "storm",
-  "alignment": "knave",
+  "alignment": "pact",
   "mastery": "storm_mastery",
-  "master": "master_steadfast",
-  "armory": [
+  "grimoire": "grimoire_steadfast",
+  "pages": [
     "doubt",
     "grand_sweep",
     "grand_sweep",
@@ -16,6 +16,13 @@
     "clear_statement",
     "focused_crushing_dive",
     "storm_obliteration"
+  ],
+  "archetype": "art_beatdown",
+  "difficulty": "medium",
+  "subthemes": [
+    "automatons",
+    "draw",
+    "fervor"
   ],
   "ai_profile": "storm_volley",
   "cards": [
@@ -28,15 +35,15 @@
       "count": 3
     },
     {
-      "id": "crown_token_1",
+      "id": "sun_seal_1",
       "count": 1
     },
     {
-      "id": "crown_token_3",
+      "id": "sun_seal_3",
       "count": 1
     },
     {
-      "id": "crown_token_5",
+      "id": "sun_seal_5",
       "count": 1
     },
     {

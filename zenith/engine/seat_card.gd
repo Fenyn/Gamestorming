@@ -9,8 +9,8 @@ var title: String = ""
 var owner: int = 0
 var controller: int = 0
 var zone: StringName = &"none"
-var tier: int = 1
-var vigor: int = 0
+var aspect: int = 1
+var energy: int = 0
 var might: int = 0
 var remain: int = 0
 var attached_to: int = -1
@@ -26,7 +26,7 @@ func hidden() -> bool:
 func to_dict() -> Dictionary:
 	return {
 		"uid": uid, "def": def_id, "title": title, "owner": owner, "controller": controller,
-		"zone": String(zone), "tier": tier, "vigor": vigor, "might": might, "remain": remain,
+		"zone": String(zone), "aspect": aspect, "energy": energy, "might": might, "remain": remain,
 		"attached_to": attached_to, "named": named_card, "under": under, "bond_timer": bond_timer,
 	}
 
@@ -39,8 +39,8 @@ static func from_dict(d: Dictionary) -> SeatCard:
 	c.owner = int(d.get("owner", 0))
 	c.controller = int(d.get("controller", 0))
 	c.zone = StringName(str(d.get("zone", "none")))
-	c.tier = int(d.get("tier", 1))
-	c.vigor = int(d.get("vigor", 0))
+	c.aspect = int(d.get("aspect", 1))
+	c.energy = int(d.get("energy", 0))
 	c.might = int(d.get("might", 0))
 	c.remain = int(d.get("remain", 0))
 	c.attached_to = int(d.get("attached_to", -1))
@@ -50,13 +50,13 @@ static func from_dict(d: Dictionary) -> SeatCard:
 	return c
 
 
-## What one seat may know about a card: everything on the table, own hand and Armory, nothing
-## about Life Decks or the other seat's hand and Armory.
+## What one seat may know about a card: everything on the table, own hand and Pages, nothing
+## about Life Decks or the other seat's hand and Pages.
 static func visible_to(c: CardInstance, seat: int) -> bool:
 	match c.zone:
 		&"life_deck":
 			return false
-		&"hand", &"armory":
+		&"hand", &"pages":
 			return c.owner == seat
 		_:
 			return true
@@ -74,8 +74,8 @@ static func of(c: CardInstance, seat: int, reveal: bool = false) -> SeatCard:
 		return v
 	v.def_id = c.def.id
 	v.title = c.def.title
-	v.tier = c.tier
-	v.vigor = c.vigor
+	v.aspect = c.aspect
+	v.energy = c.energy
 	v.might = c.might() if c.def.is_personality() else 0
 	v.remain = c.remain
 	v.attached_to = c.attached_to.uid if c.attached_to != null else -1

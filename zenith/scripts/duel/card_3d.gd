@@ -106,7 +106,7 @@ func lunge(direction: Vector3, distance: float = 0.45) -> void:
 	await _motion.finished
 
 
-## A small hop in place, for a card that just changed (Vigor, Acclaim, a tier). Awaitable.
+## A small hop in place, for a card that just changed (Energy, Fervor, an aspect). Awaitable.
 func hop(height: float = 0.12) -> void:
 	_stop_motion()
 	_motion = create_tween()

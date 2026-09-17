@@ -1,16 +1,22 @@
 {
-  "name": "House Rooke",
-  "fighter": "fighter_beta",
-  "tiers": 3,
+  "name": "The Rooke Coven",
+  "duelist": "duelist_beta",
+  "aspects": 3,
   "style": "tide",
-  "alignment": "knight",
+  "alignment": "vigil",
   "mastery": "tide_mastery",
-  "master": "master_south",
-  "armory": [
+  "grimoire": "grimoire_south",
+  "pages": [
     "supreme_push",
     "lobbed_bolt",
     "erasure",
     "bonded_pair"
+  ],
+  "archetype": "allies",
+  "difficulty": "medium",
+  "subthemes": [
+    "bond",
+    "arts"
   ],
   "ai_profile": "tide_companions",
   "cards": [

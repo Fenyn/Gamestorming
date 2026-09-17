@@ -20,11 +20,11 @@ const LOG_EXPANDED_FRACTION: float = 0.72
 const TRAY_COLUMNS: int = 7          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
-## the decision is about the cards themselves, as in a discard-step keep or an Armory swap.
-const TRAY_KINDS: Array[StringName] = [&"armory", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card"]
+## the decision is about the cards themselves, as in a discard-step keep or a Pages swap.
+const TRAY_KINDS: Array[StringName] = [&"pages", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card"]
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
-	&"armory_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
+	&"pages_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
 	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture", &"discard_ally": "Discard",
 	&"final_strike": "Discard",
 }
@@ -36,7 +36,7 @@ const STEP_ORDER: Array[int] = [
 ]
 ## Options that move the game along rather than commit a card. They sit under the card list and
 ## the ones here get the accent style; the rest (skip, decline, no capture) stay quiet.
-const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"armory_done", &"decline", &"pick_none"]
+const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"pages_done", &"decline", &"pick_none"]
 
 @onready var root: Control = $Root
 @onready var top_panel: PlayerPanel = $Root/TopPanel
@@ -163,7 +163,7 @@ func _refresh_phase(view: SeatView) -> void:
 
 
 ## A short banner over the table for the beat that just happened: the attack, what it hit for,
-## a stop, a tier. It pops in, holds, and fades; a new one replaces the last at once.
+## a stop, an aspect. It pops in, holds, and fades; a new one replaces the last at once.
 func toast(text: String, color: Color) -> void:
 	if _toast != null:
 		_toast.kill()
@@ -198,13 +198,13 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	_current_prompt = p
 	var who: SeatPlayer = view.player(p.player)
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
-	prompt_who.add_theme_color_override("font_color", Palette.guild_ui(who.style))
+	prompt_who.add_theme_color_override("font_color", Palette.school_ui(who.style))
 	prompt_title.text = p.title
 	_show_attack(view)
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
 	# Cards the player can already click in the hand or on the table stay there, highlighted.
-	# Cards that need browsing (an Armory, a look at the deck, a keep) open in the tray.
+	# Cards that need browsing (a Pages, a look at the deck, a keep) open in the tray.
 	# A Final Strike is offered on every hand card and commits the rest of the Combat, so it
 	# gets its own button and tray rather than firing from a card click.
 	var browse: Array[OptionView] = []
@@ -242,7 +242,7 @@ func _needs_tray(p: PromptView, opt: OptionView) -> bool:
 	if opt.type == &"name_card" or TRAY_KINDS.has(p.kind):
 		return true
 	var c: SeatCard = _view.card(opt.card)
-	return c == null or c.zone == &"life_deck" or c.zone == &"armory"
+	return c == null or c.zone == &"life_deck" or c.zone == &"pages"
 
 
 ## The attack in the air, when there is one: a headline chip (kind, source, what makes it hard)
@@ -319,7 +319,7 @@ func _damage_text(view: SeatView) -> String:
 func _hint_for(p: PromptView) -> String:
 	var card_options: int = p.card_uids().size()
 	match p.kind:
-		&"armory":
+		&"pages":
 			return "Each card you bring in swaps with a random card from your Life Deck."
 		&"non_combat":
 			return "Click a highlighted card to place it, then Done." if card_options > 0 else ""
@@ -338,7 +338,7 @@ func _hint_for(p: PromptView) -> String:
 				return "Your opponent is about to decide on Combat. Use a card now or let them choose."
 			return "Your opponent played a Combat card. Counter it now or let it resolve."
 		&"pay":
-			return "Each step of Vigor paid adds to the wounds dealt."
+			return "Each step of Energy paid adds to the wounds dealt."
 		&"discard_choice":
 			var whose: String = "your opponent's hand" if int(p.context.get("target", p.player)) != p.player else "your hand"
 			return "Pick the cards that leave %s." % whose if p.has_batch() else "Pick the card that leaves %s." % whose
@@ -372,8 +372,8 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 ## What the other player is doing, in terms that give nothing hidden away.
 func _waiting_hint(kind: StringName) -> String:
 	match kind:
-		&"armory":
-			return "They are setting up their Armory."
+		&"pages":
+			return "They are setting up their Pages."
 		&"non_combat":
 			return "They may place cards before deciding on Combat."
 		&"declare":
@@ -424,12 +424,12 @@ func show_card_choice(options: Array[OptionView]) -> void:
 	var def: CardDef = _def(c.def_id)
 	if def == null:
 		return
-	var tier: int = c.tier
+	var aspect: int = c.aspect
 	var uid: int = c.uid
 	var b: Button = Button.new()
 	b.text = "Inspect"
 	b.custom_minimum_size = Vector2(120, 40)
-	b.pressed.connect(func() -> void: show_inspect(def, tier, uid))
+	b.pressed.connect(func() -> void: show_inspect(def, aspect, uid))
 	tray_buttons.add_child(b)
 
 
@@ -554,13 +554,13 @@ func _add_library(library: Array, matches: Array[OptionView]) -> void:
 		var column: VBoxContainer = VBoxContainer.new()
 		column.add_theme_constant_override("separation", 6)
 		var face: TextureRect = TextureRect.new()
-		face.texture = await _faces.render_face(def, c.tier) if def != null and _faces != null else null
+		face.texture = await _faces.render_face(def, c.aspect) if def != null and _faces != null else null
 		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		face.stretch_mode = TextureRect.STRETCH_SCALE
 		face.custom_minimum_size = TRAY_CARD_SIZE
 		face.modulate = Color(1, 1, 1, 0.45)
 		face.mouse_filter = Control.MOUSE_FILTER_STOP
-		face.mouse_entered.connect(func() -> void: show_peek(def, c.tier, c.uid))
+		face.mouse_entered.connect(func() -> void: show_peek(def, c.aspect, c.uid))
 		face.mouse_exited.connect(func() -> void: hide_peek())
 		column.add_child(face)
 		var caption: Label = Label.new()
@@ -615,7 +615,7 @@ func _hide_tray() -> void:
 ## the buttons decide. Named-card options carry a title instead of a uid and draw from the library.
 func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 	var def: CardDef = null
-	var tier: int = 0
+	var aspect: int = 0
 	var uid: int = opt.card
 	if opt.type == &"name_card":
 		def = _def_by_title(str(opt.value))
@@ -623,10 +623,10 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		var c: SeatCard = _view.card(opt.card)
 		if c != null and not c.hidden():
 			def = _def(c.def_id)
-			tier = c.tier
+			aspect = c.aspect
 	var tex: Texture2D = null
 	if def != null and _faces != null:
-		tex = await _faces.render_face(def, tier)
+		tex = await _faces.render_face(def, aspect)
 	elif _faces != null:
 		tex = _faces.back()
 	var column: VBoxContainer = VBoxContainer.new()
@@ -648,7 +648,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		if not _selected.has(uid):
 			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.HOVER, 10, 3, 3, 3))
 		_lift(frame, true)
-		show_peek(def, tier, uid)
+		show_peek(def, aspect, uid)
 		if uid >= 0:
 			card_hovered.emit(uid, true))
 	b.mouse_exited.connect(func() -> void:
@@ -660,7 +660,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 			card_hovered.emit(uid, false))
 	b.gui_input.connect(func(event: InputEvent) -> void:
 		if _is_inspect_click(event):
-			show_inspect(def, tier, uid))
+			show_inspect(def, aspect, uid))
 	frame.add_child(b)
 	column.add_child(frame)
 	if not sub_choice:
@@ -708,13 +708,13 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), border, 10, 3, 3, 3))
 		frame.pivot_offset = Vector2(HAND_CARD_SIZE.x * 0.5 + 3.0, HAND_CARD_SIZE.y + 6.0)
 		var b: TextureButton = TextureButton.new()
-		b.texture_normal = faces.face(def, c.tier)
+		b.texture_normal = faces.face(def, c.aspect)
 		b.ignore_texture_size = true
 		b.stretch_mode = TextureButton.STRETCH_SCALE
 		b.custom_minimum_size = HAND_CARD_SIZE
 		b.modulate = Color(1, 1, 1, 1) if is_legal else Color(0.6, 0.6, 0.6, 1)
 		var uid: int = c.uid
-		var tier: int = c.tier
+		var aspect: int = c.aspect
 		# What this attack would deal right now, worked out by the referee: the sum after the
 		# table and every modifier, so the player compares totals rather than printed bonuses.
 		var forecast: Dictionary = _view.forecast(uid) if _view != null else {}
@@ -737,10 +737,10 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		b.pressed.connect(func() -> void: card_clicked.emit(uid))
 		b.gui_input.connect(func(event: InputEvent) -> void:
 			if _is_inspect_click(event):
-				show_inspect(def, tier, uid))
+				show_inspect(def, aspect, uid))
 		b.mouse_entered.connect(func() -> void:
 			card_hovered.emit(uid, true)
-			show_peek(def, tier, uid)
+			show_peek(def, aspect, uid)
 			_lift(frame, true))
 		b.mouse_exited.connect(func() -> void:
 			card_hovered.emit(uid, false)
@@ -765,24 +765,24 @@ func clear_hand() -> void:
 
 ## Full-size live face over a dimmed table, so keyword hover works. Right-click or Inspect opens
 ## it; Esc or a click outside closes it.
-func show_inspect(def: CardDef, tier: int = 0, uid: int = -1) -> void:
+func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null:
 		return
 	hide_peek()
-	inspect_face.show_def(def, tier, _live_vigor(uid), _standing(uid))
+	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid))
 	inspect.visible = true
 
 
-func _live_vigor(uid: int) -> int:
+func _live_energy(uid: int) -> int:
 	if _view == null or uid < 0:
 		return -1
-	return _view.live_vigor(uid)
+	return _view.live_energy(uid)
 
 
 func _standing(uid: int) -> SeatPlayer:
 	if _view == null or uid < 0:
 		return null
-	return _view.fighter_owner(uid)
+	return _view.duelist_owner(uid)
 
 
 ## Debug builds only, and only where the referee lives (hotseat, host).
@@ -803,17 +803,17 @@ func set_log_expanded(on: bool) -> void:
 
 ## Half-size face in a fixed spot on the left, under the top panel, while a card is hovered.
 ## It never follows the pointer and never takes the mouse, so the eye always knows where to look.
-func show_peek(def: CardDef, tier: int = 0, uid: int = -1) -> void:
+func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible:
 		return
-	peek_face.show_def(def, tier, _live_vigor(uid), _standing(uid))
+	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid))
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast
 	peek.visible = true
 
 
-## "Would deal 6 Vigor" with the steps that add up to it, for a card the viewer could attack
+## "Would deal 6 Energy" with the steps that add up to it, for a card the viewer could attack
 ## with now; "" for anything else.
 func _forecast_text(uid: int) -> String:
 	if _view == null or uid < 0:
@@ -828,7 +828,7 @@ func _forecast_text(uid: int) -> String:
 	lines.append("[color=%s]%s would deal[/color] [color=%s]%s[/color]" % [muted, "A Final Strike" if bool(f.get("is_final", false)) else "Now", strong, total])
 	lines.append("[color=%s]%s[/color]" % [muted, "  ·  ".join(CardText.breakdown_steps(f))])
 	if int(f.get("cost_stages", 0)) > 0:
-		lines.append("[color=%s]Costs %d Vigor first[/color]" % [muted, int(f["cost_stages"])])
+		lines.append("[color=%s]Costs %d Energy first[/color]" % [muted, int(f["cost_stages"])])
 	if f.has("empowered"):
 		var emp: Dictionary = f["empowered"]
 		lines.append("[color=%s]Empowered:[/color] [color=%s]%s[/color]" % [muted, strong, CardText.short_damage(int(emp.get("stages", 0)), int(emp.get("life", 0)))])

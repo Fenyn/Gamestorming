@@ -3,11 +3,11 @@ extends Control
 ## Draws one card face procedurally. Rendered once per definition into a texture by CardFaceCache,
 ## and also used directly for the hover zoom.
 ##
-## Two layouts share the frame. Personalities (Fighters, Allies) get a portrait: tier box and
+## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait: aspect box and
 ## name across the top, art filling the left, the ten-stage Might ladder down the right with the
-## Surge badge under it, and the tier's power text in a fixed box along the bottom. Everything
+## Surge badge under it, and the aspect's power text in a fixed box along the bottom. Everything
 ## else gets the standard face: title, type chip, an art box of a set height for that type, a
-## Vigor cost badge over the art, and the rules text in the fixed box that remains, with
+## Energy cost badge over the art, and the rules text in the fixed box that remains, with
 ## Endurance under it. Boxes never move between cards of one type; the text shrinks to fit.
 
 const ART_DIR: String = "res://assets/card_art/"
@@ -17,12 +17,12 @@ const CONTENT_WIDTH: float = 452.0        # face width less the margins
 const CONTENT_HEIGHT: float = 664.0
 const TEXT_SIZES: Array[int] = [24, 22, 20, 18, 17, 16, 15, 14, 13, 12]
 ## Art box height per type, twice the art canvas in the roster (226 wide) so pictures fill the
-## box without cropping. Cards that act (Strikes, Arts, Combat, Tokens) carry little text and get
+## box without cropping. Cards that act (Strikes, Arts, Combat, Seals) carry little text and get
 ## the tall picture; cards that stay in play carry rules and get the shorter one.
 const ART_HEIGHTS: Dictionary = {
-	CardDef.Type.STRIKE: 320, CardDef.Type.ART: 320, CardDef.Type.COMBAT: 300, CardDef.Type.TOKEN: 320,
+	CardDef.Type.STRIKE: 320, CardDef.Type.ART: 320, CardDef.Type.COMBAT: 300, CardDef.Type.SEAL: 320,
 	CardDef.Type.NON_COMBAT: 240, CardDef.Type.DRILL: 240, CardDef.Type.GROUNDS: 240,
-	CardDef.Type.MASTERY: 200, CardDef.Type.MASTER: 200,
+	CardDef.Type.MASTERY: 200, CardDef.Type.GRIMOIRE: 200,
 }
 const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0
@@ -55,12 +55,12 @@ const STAGES: int = CardInstance.MAX_STAGE
 @onready var right_badge: Label = $Margin/Column/Badges/Right
 
 @onready var person: MarginContainer = $Person
-@onready var p_tier_box: PanelContainer = $Person/Column/Head/TierBox
-@onready var p_tier_num: Label = $Person/Column/Head/TierBox/Col/Num
-@onready var p_tier_word: Label = $Person/Column/Head/TierBox/Col/Word
+@onready var p_aspect_box: PanelContainer = $Person/Column/Head/AspectBox
+@onready var p_aspect_num: Label = $Person/Column/Head/AspectBox/Col/Num
+@onready var p_aspect_word: Label = $Person/Column/Head/AspectBox/Col/Word
 @onready var p_name: Label = $Person/Column/Head/Names/Name
-@onready var p_tier_name: Label = $Person/Column/Head/Names/TierRow/TierName
-@onready var p_acclaim: HBoxContainer = $Person/Column/Head/Names/TierRow/Acclaim
+@onready var p_aspect_name: Label = $Person/Column/Head/Names/AspectRow/AspectName
+@onready var p_fervor: HBoxContainer = $Person/Column/Head/Names/AspectRow/Fervor
 @onready var p_type_chip: PanelContainer = $Person/Column/Head/TypeChip
 @onready var p_type_icon: TypeIcon = $Person/Column/Head/TypeChip/Row/Icon
 @onready var p_art: Panel = $Person/Column/Body/Art
@@ -73,7 +73,7 @@ const STAGES: int = CardInstance.MAX_STAGE
 @onready var p_text: KeywordLabel = $Person/Column/Text
 
 var _stage_rows: Array[PanelContainer] = []
-var _acclaim_pips: Array[Panel] = []
+var _fervor_pips: Array[Panel] = []
 var _stage_labels: Array[Label] = []
 var _stage_values: Array[Label] = []
 
@@ -102,19 +102,19 @@ func _ready() -> void:
 		_stage_values.append(value)
 
 
-## `vigor` is live Vigor for a personality in play (-1 for none): the rung for the current stage
-## lights up. `standing` is the owning player when the card is a fighter in play: Acclaim pips
+## `energy` is live Energy for a personality in play (-1 for none): the rung for the current stage
+## lights up. `standing` is the owning player when the card is a duelist in play: Fervor pips
 ## appear under the name, one per point needed, and the Surge badge shows the live Recover gain.
-func show_def(def: CardDef, tier: int = 0, vigor: int = -1, standing: SeatPlayer = null) -> void:
+func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color)
 	_style(inner, CREAM)
-	var picture: Texture2D = art_texture(def, tier)
+	var picture: Texture2D = art_texture(def, aspect)
 	if def.is_personality():
 		margin.visible = false
 		person.visible = true
-		_show_person(def, tier, color, picture, vigor, standing)
+		_show_person(def, aspect, color, picture, energy, standing)
 	else:
 		person.visible = false
 		margin.visible = true
@@ -133,7 +133,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	type_rest.text = _type_rest(def)
 	type_rest.add_theme_color_override("font_color", INK)
 	_fit_text(text_label, CardText.rules_text(def), CONTENT_HEIGHT - STANDARD_FIXED - art_height)
-	# Vigor cost as a round badge over the art, where the eye checks it first.
+	# Energy cost as a round badge over the art, where the eye checks it first.
 	var cost: int = 0
 	if def.is_attack():
 		cost = int(def.attack.get("cost_stages", 2 if def.attack_kind() == "art" else 0))
@@ -153,7 +153,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 		attack_kind.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 		attack_num.add_theme_color_override("font_color", Color.WHITE)
 		attack_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	_round(cost_badge, ZenithTheme.VIGOR.darkened(0.35), 34)
+	_round(cost_badge, ZenithTheme.ENERGY.darkened(0.35), 34)
 	cost_num.add_theme_color_override("font_color", Color.WHITE)
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 	left_badge.text = ""
@@ -162,19 +162,19 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 		l.add_theme_color_override("font_color", INK)
 
 
-func _show_person(def: CardDef, tier: int, color: Color, picture: Texture2D, vigor: int = -1, standing: SeatPlayer = null) -> void:
-	var t: int = tier if tier > 0 else def.lowest_tier()
-	var td: Dictionary = def.tier_data(t)
+func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, energy: int = -1, standing: SeatPlayer = null) -> void:
+	var t: int = aspect if aspect > 0 else def.lowest_aspect()
+	var td: Dictionary = def.aspect_data(t)
 	var dark: Color = color.darkened(0.45)
-	_round(p_tier_box, dark, 12)
-	p_tier_num.text = str(t)
-	p_tier_num.add_theme_color_override("font_color", Color.WHITE)
-	p_tier_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
+	_round(p_aspect_box, dark, 12)
+	p_aspect_num.text = str(t)
+	p_aspect_num.add_theme_color_override("font_color", Color.WHITE)
+	p_aspect_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	p_name.text = def.title
 	p_name.add_theme_color_override("font_color", INK)
-	p_tier_name.text = CardText.tier_name(t).to_upper()
-	p_tier_name.add_theme_color_override("font_color", Color(INK, 0.65))
-	# Icon-only chip up here; the art glyph and the HUD already say Fighter or Ally in words.
+	p_aspect_name.text = CardText.aspect_name(t, def).to_upper()
+	p_aspect_name.add_theme_color_override("font_color", Color(INK, 0.65))
+	# Icon-only chip up here; the art glyph and the HUD already say Duelist or Ally in words.
 	_round(p_type_chip, Palette.type_ink(def.type), 8, 6, 6)
 	p_type_icon.type = def.type
 	p_type_icon.color = Color.WHITE
@@ -187,43 +187,43 @@ func _show_person(def: CardDef, tier: int, color: Color, picture: Texture2D, vig
 	var might: Array = td.get("might", [])
 	for i in range(STAGES):
 		var stage: int = STAGES - i
-		var lit: bool = stage == vigor
-		_round(_stage_rows[i], ZenithTheme.VIGOR.darkened(0.15) if lit else dark, 8, 8, 2)
+		var lit: bool = stage == energy
+		_round(_stage_rows[i], ZenithTheme.ENERGY.darkened(0.15) if lit else dark, 8, 8, 2)
 		_stage_labels[i].add_theme_color_override("font_color", Color(1, 1, 1, 0.95 if lit else 0.55))
 		_stage_values[i].text = CardText.short_number(int(might[stage])) if might.size() > stage else ""
 		_stage_values[i].add_theme_color_override("font_color", Color.WHITE)
-	var spent: bool = vigor == 0
-	_round(p_surge, (ZenithTheme.WARN if spent else ZenithTheme.VIGOR).darkened(0.35), 12)
-	p_acclaim.visible = standing != null
+	var spent: bool = energy == 0
+	_round(p_surge, (ZenithTheme.WARN if spent else ZenithTheme.ENERGY).darkened(0.35), 12)
+	p_fervor.visible = standing != null
 	if standing != null:
-		_show_acclaim(standing.acclaim, standing.acclaim_needed)
+		_show_fervor(standing.fervor, standing.fervor_needed)
 	p_surge_num.text = str(standing.recover_gain if standing != null else int(td.get("surge", 0)))
 	p_surge_num.add_theme_color_override("font_color", Color.WHITE)
 	p_surge_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	_fit_text(p_text, "\n".join(CardText.tier_text(def, t)), PERSON_TEXT_HEIGHT)
+	_fit_text(p_text, "\n".join(CardText.aspect_text(def, t)), PERSON_TEXT_HEIGHT)
 
 
-## One pip per point of Acclaim needed, on the tier-name line so the head keeps its height and
+## One pip per point of Fervor needed, on the aspect-name line so the head keeps its height and
 ## the art box its shape; the row grows or shrinks as effects move the mark.
-func _show_acclaim(acclaim: int, needed: int) -> void:
-	while _acclaim_pips.size() < needed:
+func _show_fervor(fervor: int, needed: int) -> void:
+	while _fervor_pips.size() < needed:
 		var pip: Panel = Panel.new()
 		pip.custom_minimum_size = Vector2(14, 14)
-		p_acclaim.add_child(pip)
-		_acclaim_pips.append(pip)
-	for i in range(_acclaim_pips.size()):
-		_acclaim_pips[i].visible = i < needed
-		var style: StyleBoxFlat = ZenithTheme.pip(true, ZenithTheme.ACCENT if i < acclaim else Color(INK, 0.15), true)
-		_acclaim_pips[i].add_theme_stylebox_override("panel", style)
+		p_fervor.add_child(pip)
+		_fervor_pips.append(pip)
+	for i in range(_fervor_pips.size()):
+		_fervor_pips[i].visible = i < needed
+		var style: StyleBoxFlat = ZenithTheme.pip(true, ZenithTheme.ACCENT if i < fervor else Color(INK, 0.15), true)
+		_fervor_pips[i].add_theme_stylebox_override("panel", style)
 
 
-## Card art lives in assets/card_art/<id>.png; fighters may add <id>_t<tier>.png per tier.
+## Card art lives in assets/card_art/<id>.png; duelists may add <id>_a<aspect>.png per aspect.
 ## Missing art falls back to the type glyph.
-static func art_texture(def: CardDef, tier: int = 0) -> Texture2D:
+static func art_texture(def: CardDef, aspect: int = 0) -> Texture2D:
 	var candidates: Array[String] = []
 	if def.is_personality():
-		var t: int = tier if tier > 0 else def.lowest_tier()
-		candidates.append("%s%s_t%d.png" % [ART_DIR, def.id, t])
+		var t: int = aspect if aspect > 0 else def.lowest_aspect()
+		candidates.append("%s%s_a%d.png" % [ART_DIR, def.id, t])
 	candidates.append("%s%s.png" % [ART_DIR, def.id])
 	for path in candidates:
 		if ResourceLoader.exists(path, "Texture2D"):
@@ -293,15 +293,15 @@ func _chip(chip: PanelContainer, icon: TypeIcon, name_label: Label, type: CardDe
 
 
 ## Every type mark on the standard face in one place: the chip under the title, the big icon in
-## an art-less art box, and the round badge over real art. Tokens keep their number as the big
+## an art-less art box, and the round badge over real art. Seals keep their number as the big
 ## glyph since the number is what matters at the table.
 func _mark_type(def: CardDef, has_art: bool) -> void:
 	_chip(type_chip, type_icon, type_name, def.type)
-	var token: bool = def.type == CardDef.Type.TOKEN
-	glyph.visible = not has_art and token
-	glyph.text = str(def.token_number)
+	var seal: bool = def.type == CardDef.Type.SEAL
+	glyph.visible = not has_art and seal
+	glyph.text = str(def.seal_number)
 	glyph.add_theme_color_override("font_color", Color(1, 1, 1, 0.3))
-	glyph_icon.visible = not has_art and not token
+	glyph_icon.visible = not has_art and not seal
 	glyph_icon.type = def.type
 	glyph_icon.color = Color(1, 1, 1, 0.3)
 	corner.visible = has_art
@@ -315,10 +315,10 @@ func _mark_type(def: CardDef, has_art: bool) -> void:
 	corner_icon.color = Color.WHITE
 
 
-## What follows the type chip: the guild, and any alignment gate.
+## What follows the type chip: the school, and any alignment gate.
 func _type_rest(def: CardDef) -> String:
 	var parts: PackedStringArray = PackedStringArray()
-	parts.append(CardText.guild_name(def.guild))
+	parts.append(CardText.school_name(def.school))
 	if def.alignment_only != "":
 		parts.append(def.alignment_only.capitalize() + "s only")
 	return " · ".join(parts)

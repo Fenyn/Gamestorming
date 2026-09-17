@@ -6,10 +6,10 @@ extends PanelContainer
 signal command(effect: Dictionary)
 
 const ROWS: Array = [
-	["Acclaim", [["-1", {"op": "acclaim", "amount": -1}], ["+1", {"op": "acclaim", "amount": 1}], ["0", {"op": "set_acclaim", "amount": 0}], ["4", {"op": "set_acclaim", "amount": 4}]]],
-	["Needed", [["-1", {"op": "acclaim_needed", "amount": -1}], ["+1", {"op": "acclaim_needed", "amount": 1}], ["5", {"op": "set_acclaim_needed", "amount": 5}], ["7", {"op": "set_acclaim_needed", "amount": 7}]]],
-	["Vigor", [["-1", {"op": "vigor", "amount": -1}], ["+1", {"op": "vigor", "amount": 1}], ["0", {"op": "set_vigor", "amount": 0}], ["Full", {"op": "vigor", "amount": "max"}]]],
-	["Tier", [["Down", {"op": "lose_tier"}], ["Up", {"op": "advance_tier"}]]],
+	["Fervor", [["-1", {"op": "fervor", "amount": -1}], ["+1", {"op": "fervor", "amount": 1}], ["0", {"op": "set_fervor", "amount": 0}], ["4", {"op": "set_fervor", "amount": 4}]]],
+	["Needed", [["-1", {"op": "fervor_needed", "amount": -1}], ["+1", {"op": "fervor_needed", "amount": 1}], ["5", {"op": "set_fervor_needed", "amount": 5}], ["7", {"op": "set_fervor_needed", "amount": 7}]]],
+	["Energy", [["-1", {"op": "energy", "amount": -1}], ["+1", {"op": "energy", "amount": 1}], ["0", {"op": "set_energy", "amount": 0}], ["Full", {"op": "energy", "amount": "max"}]]],
+	["Aspect", [["Down", {"op": "lose_aspect"}], ["Up", {"op": "advance_aspect"}]]],
 	["Cards", [["Draw", {"op": "draw", "amount": 1}], ["Wound", {"op": "discard_life", "amount": 1}], ["Wound 3", {"op": "discard_life", "amount": 3}], ["Recover", {"op": "recover", "amount": 1, "from": "top"}], ["Discard", {"op": "discard_hand", "amount": 1, "random": true}]]],
 	["Flow", [["End Combat", {"op": "end_combat"}], ["End Turn", {"op": "end_turn"}]]],
 ]

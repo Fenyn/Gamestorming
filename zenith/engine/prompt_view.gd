@@ -30,7 +30,7 @@ func batch_option(uids: Array[int]) -> OptionView:
 
 func batch_verb() -> String:
 	match batch_type:
-		&"armory_in":
+		&"pages_in":
 			return "Bring in"
 		&"discard_choice":
 			return "Discard"

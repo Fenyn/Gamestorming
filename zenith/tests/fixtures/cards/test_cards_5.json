@@ -1,0 +1,10 @@
+{
+  "_note": "Fixtures for the Seal deck rules: discard-pile checks, either-or effects, chosen returns, Seal guards, Fervor caps.",
+  "cards": [
+    {"id": "t_grounds_cap", "title": "Test Quiet Field", "type": "grounds", "limit_per_deck": 3, "fervor_gain_cap": 1},
+    {"id": "t_drill_keeper", "title": "Test Keeper Drill", "type": "drill", "protect_seals": true},
+    {"id": "t_noncombat_eyes", "title": "Test Watcher", "type": "non_combat", "effects": [{"trigger": "on_success", "may": true, "when": {"attack_kind": "art"}, "op": "fervor", "amount": 1, "then": [{"op": "spend_source"}]}]},
+    {"id": "t_art_set", "title": "Test Set Art", "type": "art", "attack": {"kind": "art", "printed_life": 1, "life_per_set_seal": "sword"}},
+    {"id": "t_noncombat_kept", "title": "Test Kept Card", "type": "non_combat", "remove_after_use": true, "discard_if_seal": "t_seal_plain", "effects": [{"trigger": "use", "op": "draw", "amount": 1}]}
+  ]
+}

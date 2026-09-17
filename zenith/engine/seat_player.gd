@@ -5,23 +5,25 @@ extends RefCounted
 
 var index: int = 0
 var name: String = ""
-var alignment: String = "knight"
+var alignment: String = "vigil"
 var style: String = ""
-var acclaim: int = 0
-var highest_tier: int = 1
+var archetype: String = ""           # Archetype id, public like the style
+var subthemes: Array[String] = []
+var fervor: int = 0
+var highest_aspect: int = 1
 # Effective values, computed by the engine from base state plus standing effects. Clients show
 # these and never a rules constant, so a card that changes one changes the display.
-var acclaim_needed: int = DuelEngine.ACCLAIM_TO_TIER
-var acclaim_gain: int = 1
+var fervor_needed: int = DuelEngine.FERVOR_TO_ASPECT
+var fervor_gain: int = 1
 var recover_gain: int = 0
-var acclaim_shield: bool = false
-var tier_shield: bool = false
+var fervor_shield: bool = false
+var aspect_shield: bool = false
 var restrictions: Array[String] = []   # forbid `what` words in force; CardText.restriction_name reads them
-var fighter: int = -1
+var duelist: int = -1
 var mastery: int = -1
-var master: int = -1
+var grimoire: int = -1
 var controlling: int = -1
-var armory: Array[int] = []
+var pages: Array[int] = []
 var life_deck: Array[int] = []   # top first
 var hand: Array[int] = []
 var discard: Array[int] = []     # last is the top
@@ -29,24 +31,25 @@ var removed: Array[int] = []
 var allies: Array[int] = []
 var drills: Array[int] = []
 var non_combats: Array[int] = []
-var tokens: Array[int] = []
+var seals: Array[int] = []
 var must_pass: bool = false
 var skip_next_attack_phase: bool = false
-var token_victory_pending: bool = false
-var no_favor_win: bool = false
+var seal_victory_pending: bool = false
+var no_ascension_win: bool = false
 
 
 func to_dict() -> Dictionary:
 	return {
 		"index": index, "name": name, "alignment": alignment, "style": style,
-		"acclaim": acclaim, "highest_tier": highest_tier, "acclaim_needed": acclaim_needed,
-		"acclaim_gain": acclaim_gain, "recover_gain": recover_gain, "acclaim_shield": acclaim_shield,
-		"tier_shield": tier_shield, "restrictions": restrictions, "fighter": fighter, "mastery": mastery,
-		"master": master, "controlling": controlling, "armory": armory, "life_deck": life_deck,
+		"archetype": archetype, "subthemes": subthemes,
+		"fervor": fervor, "highest_aspect": highest_aspect, "fervor_needed": fervor_needed,
+		"fervor_gain": fervor_gain, "recover_gain": recover_gain, "fervor_shield": fervor_shield,
+		"aspect_shield": aspect_shield, "restrictions": restrictions, "duelist": duelist, "mastery": mastery,
+		"grimoire": grimoire, "controlling": controlling, "pages": pages, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
-		"non_combats": non_combats, "tokens": tokens, "must_pass": must_pass,
-		"skip_next_attack_phase": skip_next_attack_phase, "token_victory_pending": token_victory_pending,
-		"no_favor_win": no_favor_win,
+		"non_combats": non_combats, "seals": seals, "must_pass": must_pass,
+		"skip_next_attack_phase": skip_next_attack_phase, "seal_victory_pending": seal_victory_pending,
+		"no_ascension_win": no_ascension_win,
 	}
 
 
@@ -54,21 +57,23 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	var p: SeatPlayer = SeatPlayer.new()
 	p.index = int(d.get("index", 0))
 	p.name = str(d.get("name", ""))
-	p.alignment = str(d.get("alignment", "knight"))
+	p.alignment = str(d.get("alignment", "vigil"))
 	p.style = str(d.get("style", ""))
-	p.acclaim = int(d.get("acclaim", 0))
-	p.highest_tier = int(d.get("highest_tier", 1))
-	p.acclaim_needed = int(d.get("acclaim_needed", DuelEngine.ACCLAIM_TO_TIER))
-	p.acclaim_gain = int(d.get("acclaim_gain", 1))
+	p.archetype = str(d.get("archetype", ""))
+	p.subthemes.assign(d.get("subthemes", []))
+	p.fervor = int(d.get("fervor", 0))
+	p.highest_aspect = int(d.get("highest_aspect", 1))
+	p.fervor_needed = int(d.get("fervor_needed", DuelEngine.FERVOR_TO_ASPECT))
+	p.fervor_gain = int(d.get("fervor_gain", 1))
 	p.recover_gain = int(d.get("recover_gain", 0))
-	p.acclaim_shield = bool(d.get("acclaim_shield", false))
-	p.tier_shield = bool(d.get("tier_shield", false))
+	p.fervor_shield = bool(d.get("fervor_shield", false))
+	p.aspect_shield = bool(d.get("aspect_shield", false))
 	p.restrictions = strings(d.get("restrictions", []))
-	p.fighter = int(d.get("fighter", -1))
+	p.duelist = int(d.get("duelist", -1))
 	p.mastery = int(d.get("mastery", -1))
-	p.master = int(d.get("master", -1))
+	p.grimoire = int(d.get("grimoire", -1))
 	p.controlling = int(d.get("controlling", -1))
-	p.armory = ints(d.get("armory", []))
+	p.pages = ints(d.get("pages", []))
 	p.life_deck = ints(d.get("life_deck", []))
 	p.hand = ints(d.get("hand", []))
 	p.discard = ints(d.get("discard", []))
@@ -76,11 +81,11 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.allies = ints(d.get("allies", []))
 	p.drills = ints(d.get("drills", []))
 	p.non_combats = ints(d.get("non_combats", []))
-	p.tokens = ints(d.get("tokens", []))
+	p.seals = ints(d.get("seals", []))
 	p.must_pass = bool(d.get("must_pass", false))
 	p.skip_next_attack_phase = bool(d.get("skip_next_attack_phase", false))
-	p.token_victory_pending = bool(d.get("token_victory_pending", false))
-	p.no_favor_win = bool(d.get("no_favor_win", false))
+	p.seal_victory_pending = bool(d.get("seal_victory_pending", false))
+	p.no_ascension_win = bool(d.get("no_ascension_win", false))
 	return p
 
 
@@ -113,19 +118,21 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.name = p.name
 	v.alignment = p.alignment
 	v.style = p.style
-	v.acclaim = p.acclaim
-	v.highest_tier = p.highest_tier
-	v.acclaim_needed = engine.acclaim_needed(p)
-	v.acclaim_gain = engine.acclaim_gain(p)
+	v.archetype = p.archetype
+	v.subthemes = p.subthemes.duplicate()
+	v.fervor = p.fervor
+	v.highest_aspect = p.highest_aspect
+	v.fervor_needed = engine.fervor_needed(p)
+	v.fervor_gain = engine.fervor_gain(p)
 	v.recover_gain = engine.recover_gain(p)
-	v.acclaim_shield = engine.acclaim_shielded(p)
-	v.tier_shield = engine.tier_shielded(p)
+	v.fervor_shield = engine.fervor_shielded(p)
+	v.aspect_shield = engine.aspect_shielded(p)
 	v.restrictions = engine.restrictions(p)
-	v.fighter = p.fighter.uid
+	v.duelist = p.duelist.uid
 	v.mastery = p.mastery.uid if p.mastery != null else -1
-	v.master = p.master.uid if p.master != null else -1
+	v.grimoire = p.grimoire.uid if p.grimoire != null else -1
 	v.controlling = p.in_control().uid
-	v.armory = _uids(p.armory)
+	v.pages = _uids(p.pages)
 	v.life_deck = _uids(p.life_deck)
 	v.hand = _uids(p.hand)
 	v.discard = _uids(p.discard)
@@ -133,11 +140,11 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.allies = _uids(p.allies())
 	v.drills = _uids(p.drills())
 	v.non_combats = _uids(p.non_combats())
-	var tokens: Array[CardInstance] = p.tokens()
-	tokens.sort_custom(func(a: CardInstance, b: CardInstance) -> bool: return a.def.token_number < b.def.token_number)
-	v.tokens = _uids(tokens)
+	var seals: Array[CardInstance] = p.seals()
+	seals.sort_custom(func(a: CardInstance, b: CardInstance) -> bool: return a.def.seal_number < b.def.seal_number)
+	v.seals = _uids(seals)
 	v.must_pass = p.must_pass
 	v.skip_next_attack_phase = p.skip_next_attack_phase
-	v.token_victory_pending = p.token_victory_pending
-	v.no_favor_win = p.no_favor_win
+	v.seal_victory_pending = p.seal_victory_pending
+	v.no_ascension_win = p.no_ascension_win
 	return v

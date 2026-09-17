@@ -34,7 +34,7 @@ func _init() -> void:
 			turn = e.state.turn
 			var p: PlayerState = e.player(0)
 			var q: PlayerState = e.player(1)
-			print("turn %d active %d | me life %d hand %d vigor %d tier %d acclaim %d allies %d | foe life %d vigor %d tier %d acclaim %d" % [turn, e.state.active, p.life_deck.size(), p.hand.size(), p.fighter.vigor, p.fighter.tier, p.acclaim, p.allies().size(), q.life_deck.size(), q.fighter.vigor, q.fighter.tier, q.acclaim])
+			print("turn %d active %d | me life %d hand %d energy %d aspect %d fervor %d allies %d | foe life %d energy %d aspect %d fervor %d" % [turn, e.state.active, p.life_deck.size(), p.hand.size(), p.duelist.energy, p.duelist.aspect, p.fervor, p.allies().size(), q.life_deck.size(), q.duelist.energy, q.duelist.aspect, q.fervor])
 		var seat: int = e.prompt.player
 		var wire: Dictionary = players[seat].choose(ref, seat)
 		if seat == 0:

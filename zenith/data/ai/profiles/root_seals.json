@@ -1,0 +1,8 @@
+{
+	"_note": "Playstyle for the Root Seal deck: the win is the full Marble set, so Seals and the cards that fetch or guard them come first. Drills that protect the set are worth keeping, blocks are cheap to spend because the discard pile comes back, and Arts are the damage. Untuned first pass.",
+	"name": "root_seals",
+	"own": {"seal": 40.0, "drill": 3.5, "non_combat": 2.5, "discard": 0.2, "hand": 1.4},
+	"foe": {"seal": 35.0, "non_combat": 2.0},
+	"effect": {"search": 3.0, "capture_seal": 6.0, "recover": 1.4, "stop_all": 2.0},
+	"play": {"damage_life": 1.1, "defend_card": 0.7, "declare_bias": 0.3}
+}

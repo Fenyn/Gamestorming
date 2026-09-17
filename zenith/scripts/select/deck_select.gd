@@ -1,5 +1,5 @@
 extends Control
-## Deck and fighter selection. Hotseat: both columns are editable here. Online: this screen is
+## Deck and duelist selection. Hotseat: both columns are editable here. Online: this screen is
 ## the lobby; each client edits its own seat, sees the other seat fill in, and the host starts.
 
 @onready var sides: Array[SelectSide] = [$Margin/Column/Players/P0, $Margin/Column/Players/P1]
@@ -50,10 +50,10 @@ func _ready() -> void:
 	_dev_screenshot()
 
 
-## One person against the AI: the person picks both houses, and how hard the AI thinks.
+## One person against the AI: the person picks both duelists, and how hard the AI thinks.
 func _setup_ai() -> void:
 	var seat: int = Session.ai_seat
-	title_label.text = "Choose your fighter and your opponent"
+	title_label.text = "Choose your duelist and your opponent"
 	sides[1 - seat].set_locked(false, "YOU  ·  PLAYER %d" % (2 - seat))
 	sides[seat].set_locked(false, "AI OPPONENT  ·  PLAYER %d" % (seat + 1))
 	ai_label.visible = true
@@ -64,7 +64,7 @@ func _setup_ai() -> void:
 
 func _setup_online() -> void:
 	var me: int = Net.local_player
-	title_label.text = "Choose your fighter"
+	title_label.text = "Choose your duelist"
 	sides[me].set_locked(false, "YOU  ·  PLAYER %d" % (me + 1))
 	sides[1 - me].set_locked(true, "OPPONENT  ·  PLAYER %d" % (2 - me))
 	seed_label.visible = Net.is_host()
@@ -87,21 +87,21 @@ func _setup_online() -> void:
 ## ask for them.
 func _render_portraits() -> void:
 	for d in Session.decks:
-		var def: CardDef = Session.library.defs.get(d.fighter_id)
+		var def: CardDef = Session.library.defs.get(d.duelist_id)
 		if def != null:
-			await faces.render_face(def, def.lowest_tier())
+			await faces.render_face(def, def.lowest_aspect())
 
 
-## Highest Might any shipped fighter reaches within its deck's tiers, so the tier bars compare
+## Highest Might any shipped duelist reaches within its deck's aspects, so the aspect bars compare
 ## across decks rather than within one.
 func _might_max() -> int:
 	var best: int = 1
 	for d in Session.decks:
-		var def: CardDef = Session.library.defs.get(d.fighter_id)
+		var def: CardDef = Session.library.defs.get(d.duelist_id)
 		if def == null:
 			continue
-		for t in def.tiers:
-			if int(t.get("tier", 0)) > d.tiers:
+		for t in def.aspects:
+			if int(t.get("aspect", 0)) > d.aspects:
 				continue
 			var might: Array = t.get("might", [])
 			if might.size() > 0:
@@ -151,7 +151,7 @@ func _refresh_start() -> void:
 	for i in range(2):
 		var d: DeckList = Session.chosen[i]
 		if d == null:
-			problems.append("Player %d has not picked a house." % (i + 1))
+			problems.append("Player %d has not picked a duelist." % (i + 1))
 			continue
 		for p in Session.deck_problems(d):
 			problems.append("Player %d: %s" % [i + 1, p])
@@ -165,7 +165,7 @@ func _refresh_start() -> void:
 		matchup_label.text = "%s  vs  %s" % [Session.chosen[0].name, Session.chosen[1].name]
 		matchup_label.add_theme_color_override("font_color", ZenithTheme.TEXT)
 	else:
-		matchup_label.text = "Each player picks a house"
+		matchup_label.text = "Each player picks a duelist"
 		matchup_label.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	if _online and Net.is_host() and not start_button.disabled and _dev_autostart():
 		_on_start()
@@ -199,11 +199,11 @@ func _dev_screenshot() -> void:
 				if not _online or i == Net.local_player:
 					sides[i].select(int(picks[i]))
 	for arg in OS.get_cmdline_user_args():
-		# `--dev-tier=N`: show player 1's fighter at tier N the way a click would, with the
+		# `--dev-aspect=N`: show player 1's duelist at aspect N the way a click would, with the
 		# pointer left over the portrait so the hover lift shows too.
-		if arg.begins_with("--dev-tier="):
+		if arg.begins_with("--dev-aspect="):
 			sides[0]._hover_portrait(true)
-			await sides[0].show_tier(int(arg.get_slice("=", 1)), true)
+			await sides[0].show_aspect(int(arg.get_slice("=", 1)), true)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--dev-screenshot=") and not _online:
 			var path: String = arg.get_slice("=", 1)

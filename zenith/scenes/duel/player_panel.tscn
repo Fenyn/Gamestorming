@@ -17,11 +17,11 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Fighter" type="Label" parent="Column/Header"]
+[node name="Duelist" type="Label" parent="Column/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"HeaderLabel"
-text = "Fighter"
+text = "Duelist"
 text_overrun_behavior = 3
 
 [node name="Turn" type="Label" parent="Column/Header"]
@@ -41,7 +41,7 @@ text = "ATTACKING"
 [node name="Sub" type="Label" parent="Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Player · Ember Knave"
+text = "Player · Ember Pact"
 
 [node name="Stats" type="HBoxContainer" parent="Column"]
 layout_mode = 2
@@ -65,15 +65,15 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Out 0"
 
-[node name="Armory" type="Label" parent="Column/Counts"]
+[node name="Pages" type="Label" parent="Column/Counts"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Armory 0"
+text = "Pages 0"
 
-[node name="Tokens" type="Label" parent="Column/Counts"]
+[node name="Seals" type="Label" parent="Column/Counts"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Tokens 0"
+text = "Seals 0"
 
 [node name="Flags" type="Label" parent="Column"]
 visible = false

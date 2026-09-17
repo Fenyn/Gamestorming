@@ -1,19 +1,26 @@
 {
-  "name": "House Quarr",
-  "fighter": "fighter_epsilon",
-  "tiers": 3,
+  "name": "Quarr the Ironblood",
+  "duelist": "duelist_epsilon",
+  "aspects": 3,
   "style": "steel",
-  "alignment": "knave",
+  "alignment": "pact",
   "mastery": "steel_mastery",
-  "master": "master_north",
-  "armory": [
-    "kings_invitation",
+  "grimoire": "grimoire_north",
+  "pages": [
+    "open_challenge",
     "steel_headshot",
     "mutual_escalation",
     "mutual_escalation",
     "mutual_escalation",
     "doubt",
     "sly_smirk"
+  ],
+  "archetype": "strike_beatdown",
+  "difficulty": "easy",
+  "subthemes": [
+    "energy",
+    "draw",
+    "might"
   ],
   "ai_profile": "steel_beatdown",
   "cards": [
@@ -22,15 +29,15 @@
       "count": 3
     },
     {
-      "id": "signet_token_1",
+      "id": "moth_seal_1",
       "count": 1
     },
     {
-      "id": "signet_token_3",
+      "id": "moth_seal_3",
       "count": 1
     },
     {
-      "id": "signet_token_4",
+      "id": "moth_seal_4",
       "count": 1
     },
     {

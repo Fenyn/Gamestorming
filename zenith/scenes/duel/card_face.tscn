@@ -180,7 +180,7 @@ horizontal_alignment = 1
 [node name="Word" type="Label" parent="Margin/Column/Art/Cost/Column"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-text = "VIGOR"
+text = "ENERGY"
 horizontal_alignment = 1
 
 [node name="Attack" type="PanelContainer" parent="Margin/Column/Art"]
@@ -215,7 +215,7 @@ horizontal_alignment = 1
 [node name="Word" type="Label" parent="Margin/Column/Art/Attack/Column"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-text = "VIGOR"
+text = "ENERGY"
 horizontal_alignment = 1
 
 [node name="Text" type="RichTextLabel" parent="Margin/Column"]
@@ -269,25 +269,25 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TierBox" type="PanelContainer" parent="Person/Column/Head"]
+[node name="AspectBox" type="PanelContainer" parent="Person/Column/Head"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 
-[node name="Col" type="VBoxContainer" parent="Person/Column/Head/TierBox"]
+[node name="Col" type="VBoxContainer" parent="Person/Column/Head/AspectBox"]
 layout_mode = 2
 theme_override_constants/separation = -6
 alignment = 1
 
-[node name="Num" type="Label" parent="Person/Column/Head/TierBox/Col"]
+[node name="Num" type="Label" parent="Person/Column/Head/AspectBox/Col"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
 text = "1"
 horizontal_alignment = 1
 
-[node name="Word" type="Label" parent="Person/Column/Head/TierBox/Col"]
+[node name="Word" type="Label" parent="Person/Column/Head/AspectBox/Col"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-text = "TIER"
+text = "ASPECT"
 horizontal_alignment = 1
 
 [node name="Names" type="VBoxContainer" parent="Person/Column/Head"]
@@ -299,19 +299,19 @@ theme_override_constants/separation = -2
 [node name="Name" type="Label" parent="Person/Column/Head/Names"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "Fighter"
+text = "Duelist"
 text_overrun_behavior = 3
 
-[node name="TierRow" type="HBoxContainer" parent="Person/Column/Head/Names"]
+[node name="AspectRow" type="HBoxContainer" parent="Person/Column/Head/Names"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TierName" type="Label" parent="Person/Column/Head/Names/TierRow"]
+[node name="AspectName" type="Label" parent="Person/Column/Head/Names/AspectRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "NOTICED"
+text = "ASPECT 1"
 
-[node name="Acclaim" type="HBoxContainer" parent="Person/Column/Head/Names/TierRow"]
+[node name="Fervor" type="HBoxContainer" parent="Person/Column/Head/Names/AspectRow"]
 visible = false
 layout_mode = 2
 size_flags_vertical = 4

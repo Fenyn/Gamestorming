@@ -8,9 +8,9 @@ var uid: int = 0
 var def: CardDef = null
 var owner: int = 0
 var controller: int = 0
-var zone: StringName = &"none"   # life_deck, hand, discard, removed, in_play, fighter, grounds, side, armory, resolving, under
-var tier: int = 1
-var vigor: int = 0
+var zone: StringName = &"none"   # life_deck, hand, discard, removed, in_play, duelist, grounds, side, pages, resolving, under
+var aspect: int = 1
+var energy: int = 0
 var power_used_turn: int = -1
 var power_used_combat: int = -1
 var shield_used_combat: int = -1
@@ -29,7 +29,7 @@ func _init(p_uid: int, p_def: CardDef, p_owner: int) -> void:
 	owner = p_owner
 	controller = p_owner
 	if def != null and def.is_personality():
-		tier = def.lowest_tier()
+		aspect = def.lowest_aspect()
 
 
 ## A copy for a simulated engine. `cards_under` and `attached_to` still point at the original's
@@ -38,8 +38,8 @@ func copy() -> CardInstance:
 	var c: CardInstance = CardInstance.new(uid, def, owner)
 	c.controller = controller
 	c.zone = zone
-	c.tier = tier
-	c.vigor = vigor
+	c.aspect = aspect
+	c.energy = energy
 	c.power_used_turn = power_used_turn
 	c.power_used_combat = power_used_combat
 	c.shield_used_combat = shield_used_combat
@@ -53,33 +53,33 @@ func copy() -> CardInstance:
 	return c
 
 
-func tier_data() -> Dictionary:
-	return def.tier_data(tier)
+func aspect_data() -> Dictionary:
+	return def.aspect_data(aspect)
 
 
 func surge() -> int:
-	return int(tier_data().get("surge", 0))
+	return int(aspect_data().get("surge", 0))
 
 
 func is_wild() -> bool:
-	return bool(tier_data().get("wild", false))
+	return bool(aspect_data().get("wild", false))
 
 
-## Might at the current Vigor stage.
+## Might at the current Energy stage.
 func might() -> int:
-	var arr: Array = tier_data().get("might", [])
+	var arr: Array = aspect_data().get("might", [])
 	if arr.is_empty():
 		return 0
-	var idx: int = clampi(vigor, 0, arr.size() - 1)
+	var idx: int = clampi(energy, 0, arr.size() - 1)
 	return int(arr[idx])
 
 
 func power() -> Dictionary:
-	return tier_data().get("power", {})
+	return aspect_data().get("power", {})
 
 
-func tier_shield() -> String:
-	return str(tier_data().get("shield", ""))
+func aspect_shield() -> String:
+	return str(aspect_data().get("shield", ""))
 
 
 func describe() -> String:

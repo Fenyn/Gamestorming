@@ -8,24 +8,24 @@ extends RefCounted
 ## Effects run through a queue that can pause for a choice prompt and resume afterwards,
 ## so a card's text can ask its owner (or the target) to pick cards mid-resolution.
 
-const STARTING_VIGOR: int = 5
+const STARTING_ENERGY: int = 5
 const STRONG_BAND: int = 3   # band D of the Strike Table; see _apply_first_player_rule
-const ALLY_STARTING_VIGOR: int = 3
-const LOST_TIER_VIGOR: int = 5
+const ALLY_STARTING_ENERGY: int = 3
+const LOST_ASPECT_ENERGY: int = 5
 const DRAW_COUNT: int = 3
 const HAND_KEEP: int = 1
-const ACCLAIM_TO_TIER: int = 5
+const FERVOR_TO_ASPECT: int = 5
 const ART_COST: int = 2
 const ART_BASE_LIFE: int = 4
 const WILD_BASE_DAMAGE: int = 2
 const CRITICAL_THRESHOLD: int = 5   # life cards from one attack that make it critical damage
-const TOKENS_PER_SET: int = 7
-const ALLY_CONTROL_MAX_VIGOR: int = 1
+const SEALS_PER_SET: int = 7
+const ALLY_CONTROL_MAX_ENERGY: int = 1
 const MAX_ADVANCE_ITERATIONS: int = 100000
 ## Every forbid `what` the rules consult; `restrictions` reports which are in force on a player.
 const FORBID_KINDS: Array[String] = [
 	"strike_attacks", "art_attacks", "strike_cards", "art_cards", "combat_cards", "non_combats",
-	"drills", "tokens", "mastery", "powers", "stop_all", "end_combat", "non_attack_actions", "skip_combat",
+	"drills", "seals", "mastery", "powers", "stop_all", "end_combat", "non_attack_actions", "skip_combat",
 ]
 
 var state: GameState = GameState.new()
@@ -38,7 +38,7 @@ var shuffle_decks: bool = true
 var _cards: Dictionary = {}   # uid -> CardInstance
 var _next_uid: int = 1
 var _combat_ending: bool = false
-var _armory_swapped: Dictionary = {}
+var _pages_swapped: Dictionary = {}
 var _queue: Array[Dictionary] = []   # effect jobs: {effects, index, trigger, owner, ctx, source}
 var _choice: Dictionary = {}         # how to finish the effect that raised the pending prompt
 var _pending_then: Dictionary = {}   # "then" effects waiting on the prompt the current effect raised
@@ -62,8 +62,8 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 
 func start() -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
-	state.armory_index = 0
-	_armory_swapped = {}
+	state.pages_index = 0
+	_pages_swapped = {}
 	_run()
 
 
@@ -109,7 +109,7 @@ func clone() -> DuelEngine:
 	e.prompt = prompt.copy() if prompt != null else null
 	e._next_uid = _next_uid
 	e._combat_ending = _combat_ending
-	e._armory_swapped = _armory_swapped.duplicate()
+	e._pages_swapped = _pages_swapped.duplicate()
 	e._queue.assign(_remap(_queue, e._cards))
 	e._choice = _remap(_choice, e._cards)
 	e._pending_then = _remap(_pending_then, e._cards)
@@ -141,7 +141,7 @@ func determinize(seat: int, sample_seed: int) -> void:
 		dealer.shuffle(defs)
 		for i in range(hidden.size()):
 			hidden[i].def = defs[i]
-			hidden[i].tier = defs[i].lowest_tier() if defs[i].is_personality() else 1
+			hidden[i].aspect = defs[i].lowest_aspect() if defs[i].is_personality() else 1
 	rng = dealer
 
 
@@ -164,7 +164,7 @@ static func _remap(v: Variant, cards: Dictionary) -> Variant:
 
 ## Prompts that the step machine re-issues unchanged when asked again, so a dev effect can run
 ## in front of them and the same decision comes back afterwards.
-const DEV_SAFE_PROMPTS: Array[StringName] = [&"armory", &"non_combat", &"declare", &"attack_action", &"defense", &"keep", &"recover"]
+const DEV_SAFE_PROMPTS: Array[StringName] = [&"pages", &"non_combat", &"declare", &"attack_action", &"defense", &"keep", &"recover"]
 
 
 ## Dev tool: runs one effect for `owner` through the normal queue, triggers included, then
@@ -233,20 +233,22 @@ func _build_player(index: int, deck: DeckList) -> PlayerState:
 	p.name = deck.name
 	p.alignment = deck.alignment
 	p.style = deck.style
-	var fdef: CardDef = library.get_def(deck.fighter_id)
-	assert(fdef != null and fdef.type == CardDef.Type.FIGHTER, "Deck %s has no fighter" % deck.name)
-	p.fighter = _instance(fdef, index, &"fighter")
-	p.fighter.vigor = STARTING_VIGOR
-	p.highest_tier = clampi(deck.tiers, 1, fdef.highest_tier())
-	p.controlling = p.fighter
+	p.archetype = deck.archetype
+	p.subthemes = deck.subthemes.duplicate()
+	var fdef: CardDef = library.get_def(deck.duelist_id)
+	assert(fdef != null and fdef.type == CardDef.Type.DUELIST, "Deck %s has no duelist" % deck.name)
+	p.duelist = _instance(fdef, index, &"duelist")
+	p.duelist.energy = STARTING_ENERGY
+	p.highest_aspect = clampi(deck.aspects, 1, fdef.highest_aspect())
+	p.controlling = p.duelist
 	if deck.mastery_id != "":
 		p.mastery = _instance(library.get_def(deck.mastery_id), index, &"side")
-	if deck.master_id != "":
-		p.master = _instance(library.get_def(deck.master_id), index, &"side")
-		if bool(p.master.def.master_flags.get("no_favor_win", false)):
-			p.no_favor_win = true
-	for id in deck.armory:
-		p.armory.append(_instance(library.get_def(id), index, &"armory"))
+	if deck.grimoire_id != "":
+		p.grimoire = _instance(library.get_def(deck.grimoire_id), index, &"side")
+		if bool(p.grimoire.def.grimoire_flags.get("no_ascension_win", false)):
+			p.no_ascension_win = true
+	for id in deck.pages:
+		p.pages.append(_instance(library.get_def(id), index, &"pages"))
 	# Shuffle the ids before instancing so a card's uid says nothing about its place in the deck
 	# list. Instancing first and shuffling after would let a client map face-down uids back to
 	# the deck list it ships with.
@@ -267,58 +269,58 @@ func _instance(def: CardDef, owner: int, zone: StringName) -> CardInstance:
 	return c
 
 
-## Bracket rule from the later rulings: if only one fighter's starting Might sits in band D or
-## above, the weaker fighter goes first. Otherwise the Knight first, or a coin flip. No stage changes.
+## Bracket rule from the later rulings: if only one duelist's starting Might sits in band D or
+## above, the weaker duelist goes first. Otherwise the Vigil first, or a coin flip. No stage changes.
 func _apply_first_player_rule() -> void:
 	var a: PlayerState = state.players[0]
 	var b: PlayerState = state.players[1]
-	var wild: bool = a.fighter.is_wild() or b.fighter.is_wild()
-	var a_high: bool = strike_table.band(a.fighter.might()) >= STRONG_BAND
-	var b_high: bool = strike_table.band(b.fighter.might()) >= STRONG_BAND
+	var wild: bool = a.duelist.is_wild() or b.duelist.is_wild()
+	var a_high: bool = strike_table.band(a.duelist.might()) >= STRONG_BAND
+	var b_high: bool = strike_table.band(b.duelist.might()) >= STRONG_BAND
 	if not wild and a_high != b_high:
 		state.active = 1 if a_high else 0
 		_emit(&"bracket_rule", {"stronger": 0 if a_high else 1})
 	elif a.alignment != b.alignment:
-		state.active = 0 if a.alignment == "knight" else 1
+		state.active = 0 if a.alignment == "vigil" else 1
 	else:
 		state.active = rng.randi_range(0, 1)
 
 
-# --- Armory swap (setup) --------------------------------------------------
+# --- Pages swap (setup) --------------------------------------------------
 
-func _advance_armory() -> void:
-	if state.armory_index >= 2:
+func _advance_pages() -> void:
+	if state.pages_index >= 2:
 		_start_in_play()
 		_begin_turn()
 		return
 	var order: Array[int] = [state.active, state.opposing()]
-	var p: PlayerState = state.players[order[state.armory_index]]
+	var p: PlayerState = state.players[order[state.pages_index]]
 	var opts: Array[Command] = []
-	for c in p.armory:
-		if not _armory_swapped.has(c.uid):
-			opts.append(Command.new(p.index, &"armory_in", c.uid))
+	for c in p.pages:
+		if not _pages_swapped.has(c.uid):
+			opts.append(Command.new(p.index, &"pages_in", c.uid))
 	if opts.is_empty():
-		_finish_armory(p)
+		_finish_pages(p)
 		return
 	var batch_max: int = opts.size()
-	opts.append(Command.new(p.index, &"armory_done"))
-	_set_prompt(p.index, &"armory", opts)
-	prompt.set_batch(&"armory_in", 1, batch_max)
+	opts.append(Command.new(p.index, &"pages_done"))
+	_set_prompt(p.index, &"pages", opts)
+	prompt.set_batch(&"pages_in", 1, batch_max)
 
 
 ## One card at a time re-opens the prompt with what is left; a batch swaps them all and finishes.
-func _handle_armory(cmd: Command) -> void:
+func _handle_pages(cmd: Command) -> void:
 	var p: PlayerState = state.players[cmd.player]
-	if cmd.type == &"armory_done":
-		_finish_armory(p)
+	if cmd.type == &"pages_done":
+		_finish_pages(p)
 		return
 	for uid in Prompt.cards_of(cmd):
-		_armory_swap_in(p, card(uid))
+		_pages_swap_in(p, card(uid))
 	if cmd.value is Array:
-		_finish_armory(p)
+		_finish_pages(p)
 
 
-func _armory_swap_in(p: PlayerState, c: CardInstance) -> void:
+func _pages_swap_in(p: PlayerState, c: CardInstance) -> void:
 	_erase_from_zone(c)
 	c.zone = &"life_deck"
 	p.life_deck.append(c)
@@ -326,17 +328,17 @@ func _armory_swap_in(p: PlayerState, c: CardInstance) -> void:
 		var idx: int = rng.randi_range(0, p.life_deck.size() - 2)
 		var out: CardInstance = p.life_deck[idx]
 		_erase_from_zone(out)
-		out.zone = &"armory"
-		p.armory.append(out)
-		_armory_swapped[out.uid] = true
-		_emit(&"armory_swap", {"player": p.index, "in": c.uid, "out": out.uid})
+		out.zone = &"pages"
+		p.pages.append(out)
+		_pages_swapped[out.uid] = true
+		_emit(&"pages_swap", {"player": p.index, "in": c.uid, "out": out.uid})
 
 
-func _finish_armory(p: PlayerState) -> void:
+func _finish_pages(p: PlayerState) -> void:
 	if shuffle_decks:
 		rng.shuffle(p.life_deck)
-	_emit(&"armory_done", {"player": p.index})
-	state.armory_index += 1
+	_emit(&"pages_done", {"player": p.index})
+	state.pages_index += 1
 
 
 ## Cards that may begin the game in play (their text says so) move out of the deck now.
@@ -346,7 +348,7 @@ func _start_in_play() -> void:
 		var seen: Dictionary = {}
 		var pool: Array[CardInstance] = []
 		pool.append_array(p.life_deck)
-		pool.append_array(p.armory)
+		pool.append_array(p.pages)
 		for c in pool:
 			if c.def.start_in_play and _can_place(p, c) and not seen.has(c.def.id):
 				seen[c.def.id] = true
@@ -371,7 +373,7 @@ func _run() -> void:
 func _advance() -> void:
 	match state.step:
 		GameState.Step.SETUP:
-			_advance_armory()
+			_advance_pages()
 		GameState.Step.DRAW:
 			_draw(state.active, DRAW_COUNT)
 			if not state.is_over():
@@ -394,8 +396,8 @@ func _advance() -> void:
 
 func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
 	match kind:
-		&"armory":
-			_handle_armory(cmd)
+		&"pages":
+			_handle_pages(cmd)
 		&"non_combat":
 			_handle_non_combat(cmd)
 		&"declare":
@@ -459,8 +461,8 @@ func _begin_turn() -> void:
 		var c: CardInstance = _flip_life_card(p)
 		if c == null:
 			return
-		if c.def.type == CardDef.Type.TOKEN:
-			_bypass_token(c)
+		if c.def.type == CardDef.Type.SEAL:
+			_bypass_seal(c)
 		else:
 			c.zone = &"under"
 			al.cards_under.append(c)
@@ -468,14 +470,14 @@ func _begin_turn() -> void:
 		_emit(&"bond_tick", {"player": p.index, "card": al.uid, "count": al.bond_timer})
 		if al.bond_timer >= timer_max:
 			_unbond(p, al)
-	if p.token_victory_pending:
-		p.token_victory_pending = false
+	if p.seal_victory_pending:
+		p.seal_victory_pending = false
 		if _controls_full_set(p):
-			_win(p.index, "token")
+			_win(p.index, "seal")
 			return
 	var constant: Dictionary = _constant(p)
 	if constant.has("turn_start"):
-		_enqueue_keyed(constant.get("turn_start", []), "turn_start", p.index, {}, p.fighter)
+		_enqueue_keyed(constant.get("turn_start", []), "turn_start", p.index, {}, p.duelist)
 
 
 func _end_turn() -> void:
@@ -494,8 +496,8 @@ func _prompt_non_combat() -> void:
 			opts.append(Command.new(p.index, &"place", c.uid))
 		elif _drill_locked_out(p, c.def):
 			opts.append(Command.new(p.index, &"shuffle_back", c.uid))
-	if _master_usable_in(p, "non_combat"):
-		opts.append(Command.new(p.index, &"master", p.master.uid))
+	if _grimoire_usable_in(p, "non_combat"):
+		opts.append(Command.new(p.index, &"grimoire", p.grimoire.uid))
 	if opts.is_empty():
 		state.step = GameState.Step.POWER_UP
 		return
@@ -508,8 +510,8 @@ func _handle_non_combat(cmd: Command) -> void:
 	match cmd.type:
 		&"done":
 			state.step = GameState.Step.POWER_UP
-		&"master":
-			_use_master(p)
+		&"grimoire":
+			_use_grimoire(p)
 		&"shuffle_back":
 			var c: CardInstance = card(cmd.card)
 			_emit(&"drill_shuffled_back", {"player": p.index, "card": c.uid, "id": c.def.id})
@@ -520,13 +522,13 @@ func _handle_non_combat(cmd: Command) -> void:
 			_place(p, card(cmd.card))
 
 
-## A guild Drill in hand that the guild lock or a duplicate in play keeps off the table. Its
+## A school Drill in hand that the school lock or a duplicate in play keeps off the table. Its
 ## owner may show it and shuffle it back into the Life Deck instead of holding it.
 func _drill_locked_out(p: PlayerState, def: CardDef) -> bool:
-	if def.type != CardDef.Type.DRILL or def.guild == "":
+	if def.type != CardDef.Type.DRILL or def.school == "":
 		return false
-	var locked: String = p.drill_guild()
-	if locked != "" and locked != def.guild:
+	var locked: String = p.drill_school()
+	if locked != "" and locked != def.school:
 		return true
 	for d in p.drills():
 		if d.def.id == def.id:
@@ -534,35 +536,35 @@ func _drill_locked_out(p: PlayerState, def: CardDef) -> bool:
 	return false
 
 
-func _master_available(p: PlayerState) -> bool:
-	if p.master == null:
+func _grimoire_available(p: PlayerState) -> bool:
+	if p.grimoire == null:
 		return false
-	var uses: int = int(p.master.def.raw.get("uses_per_game", 0))
-	return uses > 0 and p.master_uses < uses and p.master.def.has_trigger("master_use")
+	var uses: int = int(p.grimoire.def.raw.get("uses_per_game", 0))
+	return uses > 0 and p.grimoire_uses < uses and p.grimoire.def.has_trigger("grimoire_use")
 
 
-## A Master's `master_step` says when its power is offered: "non_combat" (the default), "combat"
+## A Grimoire's `grimoire_step` says when its power is offered: "non_combat" (the default), "combat"
 ## (in place of an attack) or "any".
-func _master_usable_in(p: PlayerState, step: String) -> bool:
-	if not _master_available(p):
+func _grimoire_usable_in(p: PlayerState, step: String) -> bool:
+	if not _grimoire_available(p):
 		return false
-	var when: String = str(p.master.def.raw.get("master_step", "non_combat"))
+	var when: String = str(p.grimoire.def.raw.get("grimoire_step", "non_combat"))
 	return when == "any" or when == step
 
 
-func _use_master(p: PlayerState) -> void:
-	p.master_uses += 1
-	_emit(&"master_used", {"player": p.index, "card": p.master.uid})
-	_enqueue(p.master.def.effects, "master_use", p.index, {}, p.master)
+func _use_grimoire(p: PlayerState) -> void:
+	p.grimoire_uses += 1
+	_emit(&"grimoire_used", {"player": p.index, "card": p.grimoire.uid})
+	_enqueue(p.grimoire.def.effects, "grimoire_use", p.index, {}, p.grimoire)
 
 
 func _power_up() -> void:
 	var p: PlayerState = state.active_player()
 	var gain: int = recover_gain(p)
-	_gain_vigor(p, p.fighter, gain)
+	_gain_energy(p, p.duelist, gain)
 	for a in p.allies():
-		_gain_vigor(p, a, 1)
-	_emit(&"power_up", {"player": p.index, "gain": gain, "vigor": p.fighter.vigor})
+		_gain_energy(p, a, 1)
+	_emit(&"power_up", {"player": p.index, "gain": gain, "energy": p.duelist.energy})
 	state.step = GameState.Step.DECLARE
 
 
@@ -661,31 +663,31 @@ func _can_place(p: PlayerState, c: CardInstance) -> bool:
 		CardDef.Type.ALLY:
 			if not (def.raw.get("bond_of", []) as Array).is_empty():
 				return false   # Bonds enter play through a Bonding card, never by placement
-			if def.character == p.fighter.def.character or def.character == state.players[1 - p.index].fighter.def.character:
+			if def.character == p.duelist.def.character or def.character == state.players[1 - p.index].duelist.def.character:
 				return false
-			var tier: int = def.lowest_tier()
-			if tier > p.fighter.tier:
+			var aspect: int = def.lowest_aspect()
+			if aspect > p.duelist.aspect:
 				return false
 			var own: CardInstance = _ally_of_character(p, def.character)
-			if own != null and own.tier != tier - 1:
+			if own != null and own.aspect != aspect - 1:
 				return false
 			var theirs: CardInstance = _ally_of_character(state.players[1 - p.index], def.character)
-			if theirs != null and theirs.tier == tier:
+			if theirs != null and theirs.aspect == aspect:
 				return false
 			return true
-		CardDef.Type.TOKEN:
-			if _forbidden(p, "tokens"):
+		CardDef.Type.SEAL:
+			if _forbidden(p, "seals"):
 				return false
-			return _token_in_play(def.id) == null
+			return _seal_in_play(def.id) == null
 		CardDef.Type.GROUNDS:
 			return state.grounds == null or state.grounds.def.id != def.id
 		CardDef.Type.NON_COMBAT:
 			return true
 		CardDef.Type.DRILL:
-			if def.guild == "":
+			if def.school == "":
 				return true
-			var locked: String = p.drill_guild()
-			if locked != "" and locked != def.guild:
+			var locked: String = p.drill_school()
+			if locked != "" and locked != def.school:
 				return false
 			for d in p.drills():
 				if d.def.id == def.id:
@@ -705,9 +707,9 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 				_erase_from_zone(existing)
 				existing.zone = &"under"
 				c.cards_under.append(existing)
-				c.vigor = CardInstance.MAX_STAGE
+				c.energy = CardInstance.MAX_STAGE
 			else:
-				c.vigor = ALLY_STARTING_VIGOR
+				c.energy = ALLY_STARTING_ENERGY
 			c.zone = &"in_play"
 			p.in_play.append(c)
 		CardDef.Type.GROUNDS:
@@ -721,17 +723,17 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 			p.in_play.append(c)
 	_emit(&"card_placed", {"player": p.index, "card": c.uid, "id": c.def.id})
 	_check_lonely_drills(p)
-	if c.def.type == CardDef.Type.TOKEN:
-		# A Token's power resolves as it enters play and must be used.
-		_enqueue_keyed(_token_power(c), "on_place", p.index, {}, c)
+	if c.def.type == CardDef.Type.SEAL:
+		# A Seal's power resolves as it enters play and must be used.
+		_enqueue_keyed(_seal_power(c), "on_place", p.index, {}, c)
 	elif c.def.has_trigger("on_place"):
 		_enqueue(c.def.effects, "on_place", p.index, {}, c)
-	if c.def.type == CardDef.Type.TOKEN and _controls_full_set(p):
-		_win(p.index, "token")
+	if c.def.type == CardDef.Type.SEAL and _controls_full_set(p):
+		_win(p.index, "seal")
 
 
-## A Token's text is its placement power: every line with no trigger of its own, or `on_place`.
-func _token_power(t: CardInstance) -> Array[Dictionary]:
+## A Seal's text is its placement power: every line with no trigger of its own, or `on_place`.
+func _seal_power(t: CardInstance) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for e in t.def.effects:
 		var trigger: String = str(e.get("trigger", "on_place"))
@@ -822,8 +824,8 @@ func _resolve_entering(player_index: int) -> void:
 				_enqueue([{"trigger": "entering_combat", "op": "spend_source"}], "entering_combat", player_index, ctx, c)
 			else:
 				_enqueue(effects, "entering_combat", player_index, ctx, c)
-	# Fighter power or constant with an entering-Combat trigger.
-	var ic: CardInstance = p.fighter
+	# Duelist power or constant with an entering-Combat trigger.
+	var ic: CardInstance = p.duelist
 	var pw: Dictionary = ic.power()
 	var pw_effects: Array[Dictionary] = []
 	for e in pw.get("effects", []):
@@ -876,28 +878,28 @@ func _end_combat() -> void:
 
 # --- Attacker Attacks -----------------------------------------------------
 
-## Whether `p` may put an Ally in control right now: the Fighter is spent (Vigor 0 or 1) or a
+## Whether `p` may put an Ally in control right now: the Duelist is spent (Energy 0 or 1) or a
 ## constant power allows it at any stage, an Ally is in play, and nothing forbids the takeover.
 func _may_ally_control(p: PlayerState) -> bool:
 	if p.allies().is_empty() or _has_floating(p.index, "no_ally_control"):
 		return false
-	return p.fighter.vigor <= ALLY_CONTROL_MAX_VIGOR or bool(_constant(p).get("ally_control_any_stage", false))
+	return p.duelist.energy <= ALLY_CONTROL_MAX_ENERGY or bool(_constant(p).get("ally_control_any_stage", false))
 
 
-## Options for the personality in control: the Fighter first, then each Ally.
+## Options for the personality in control: the Duelist first, then each Ally.
 func _control_options(p: PlayerState) -> Array[Command]:
-	var opts: Array[Command] = [Command.new(p.index, &"control", p.fighter.uid)]
+	var opts: Array[Command] = [Command.new(p.index, &"control", p.duelist.uid)]
 	for al in p.allies():
 		opts.append(Command.new(p.index, &"control", al.uid))
 	return opts
 
 
-## At the start of an attack phase the attacker may hand Combat to an Ally when the Fighter is
-## spent; when the Fighter is back above that, it resumes control. True when a prompt opened.
+## At the start of an attack phase the attacker may hand Combat to an Ally when the Duelist is
+## spent; when the Duelist is back above that, it resumes control. True when a prompt opened.
 func _prompt_attacker_control(p: PlayerState) -> bool:
 	state.control_asked = true
 	if not _may_ally_control(p):
-		p.controlling = p.fighter
+		p.controlling = p.duelist
 		return false
 	_set_prompt(p.index, &"control", _control_options(p), {"role": "attacker"})
 	return true
@@ -932,8 +934,8 @@ func _prompt_attack_action(p: PlayerState) -> void:
 				opts.append(Command.new(p.index, &"use", c.uid))
 	if p.mastery != null and not only_attacks and not _forbidden(p, "mastery") and not p.mastery.def.effects_for("use").is_empty() and _drill_use_available(p.mastery):
 		opts.append(Command.new(p.index, &"use", p.mastery.uid))
-	if not only_attacks and _master_usable_in(p, "combat"):
-		opts.append(Command.new(p.index, &"use", p.master.uid))
+	if not only_attacks and _grimoire_usable_in(p, "combat"):
+		opts.append(Command.new(p.index, &"use", p.grimoire.uid))
 	var pw: Dictionary = ic.power()
 	if _power_available(p, ic) and not pw.has("defense") and not _forbidden(p, "powers"):
 		if pw.has("attack"):
@@ -982,7 +984,7 @@ func _handle_attack_action(cmd: Command) -> void:
 			var ic: CardInstance = card(cmd.card)
 			_mark_power_used(ic)
 			var pw: Dictionary = ic.power()
-			_emit(&"power_used", {"player": p.index, "card": ic.uid, "tier": ic.tier})
+			_emit(&"power_used", {"player": p.index, "card": ic.uid, "aspect": ic.aspect})
 			var effects: Array[Dictionary] = []
 			effects.assign(pw.get("effects", []))
 			if pw.has("attack"):
@@ -1007,10 +1009,10 @@ func _handle_attack_action(cmd: Command) -> void:
 			assert(false, "Bad attack action %s" % cmd.type)
 
 
-## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery, Master).
+## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery, Grimoire).
 func _use_card(p: PlayerState, c: CardInstance) -> void:
-	if c.def.type == CardDef.Type.MASTER:
-		_use_master(p)
+	if c.def.type == CardDef.Type.GRIMOIRE:
+		_use_grimoire(p)
 	elif c.zone == &"hand":
 		_erase_from_zone(c)
 		c.zone = &"resolving"
@@ -1122,10 +1124,10 @@ func _build_attack(att: int, source: CardInstance, spec: Dictionary, effects: Ar
 	var constant: Dictionary = _constant(attacker)
 	if bool(constant.get("attacks_focused", false)):
 		focused = true
-	if source != null and _has_floating_guild(att, "make_focused", source.def.guild):
+	if source != null and _has_floating_school(att, "make_focused", source.def.school):
 		focused = true
 	var unstoppable: bool = bool(spec.get("unstoppable", false))
-	if first_attack and bool(constant.get("first_styled_unstoppable", false)) and source != null and source.def.guild != "":
+	if first_attack and bool(constant.get("first_styled_unstoppable", false)) and source != null and source.def.school != "":
 		unstoppable = true
 	return {
 		"source": source.uid if source != null else -1,
@@ -1190,10 +1192,10 @@ func attack_forecasts(seat: int) -> Dictionary:
 		var cost: int = _cost_stages(a["spec"], state.players[seat])
 		if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)):
 			cost *= 2
-		var vigor_before: int = performer.vigor
-		performer.vigor = maxi(0, performer.vigor - cost)
+		var energy_before: int = performer.energy
+		performer.energy = maxi(0, performer.energy - cost)
 		var b: Dictionary = _damage_calc(a)
-		performer.vigor = vigor_before
+		performer.energy = energy_before
 		b.erase("spent")
 		b["is_final"] = bool(a["is_final"])
 		b["cost_stages"] = cost
@@ -1328,7 +1330,7 @@ func _advance_battle() -> void:
 				_set_prompt(defender.index, &"control", _control_options(defender), {"role": "defender", "source": int(a.get("source", -1))})
 				state.battle_step = 5
 				return
-			defender.controlling = defender.fighter
+			defender.controlling = defender.duelist
 			state.battle_step = 5
 		5:
 			state.phase = GameState.Phase.DEFEND
@@ -1351,12 +1353,12 @@ func _advance_battle() -> void:
 			_modify_damage(attacker, defender, a)
 			state.battle_step = 11
 		11:
-			# An in-control Ally with the capture trait may take a Token instead of dealing the damage.
+			# An in-control Ally with the capture trait may take a Seal instead of dealing the damage.
 			var performer: CardInstance = _performer(a)
 			var has_damage: bool = int(a["stages"]) > 0 or int(a["life"]) > 0
-			if performer.def.type == CardDef.Type.ALLY and performer.def.capture_trait and has_damage and not defender.tokens().is_empty():
+			if performer.def.type == CardDef.Type.ALLY and performer.def.capture_trait and has_damage and not _capturable_seals(defender).is_empty():
 				var opts: Array[Command] = []
-				for t in defender.tokens():
+				for t in _capturable_seals(defender):
 					opts.append(Command.new(attacker.index, &"capture", t.uid))
 				opts.append(Command.new(attacker.index, &"deal_damage"))
 				_set_prompt(attacker.index, &"capture_instead", opts, {"source": performer.uid, "card_title": performer.def.title})
@@ -1379,16 +1381,16 @@ func _advance_battle() -> void:
 		13:
 			_deal_life_damage(defender, a)
 		14:
-			# Critical damage: 5+ life cards let the attacker capture a Token, discard an Ally, or lower Acclaim.
+			# Critical damage: 5+ life cards let the attacker capture a Seal, discard an Ally, or lower Fervor.
 			if int(a["life_dealt"]) >= CRITICAL_THRESHOLD:
 				var opts: Array[Command] = []
-				for t in defender.tokens():
+				for t in _capturable_seals(defender):
 					opts.append(Command.new(attacker.index, &"capture", t.uid))
 				# A game rule, not a card effect: Ally protection constants do not apply.
 				for al in defender.allies():
 					opts.append(Command.new(attacker.index, &"discard_ally", al.uid))
-				if defender.acclaim > 0:
-					opts.append(Command.new(attacker.index, &"lower_acclaim"))
+				if defender.fervor > 0:
+					opts.append(Command.new(attacker.index, &"lower_fervor"))
 				if not opts.is_empty():
 					opts.append(Command.new(attacker.index, &"no_critical"))
 					_set_prompt(attacker.index, &"critical", opts, {"life_dealt": int(a["life_dealt"]), "source": int(a.get("source", -1))})
@@ -1399,6 +1401,11 @@ func _advance_battle() -> void:
 			_enqueue(a["effects"], "if_successful", attacker.index, {"attack": a}, _attack_source())
 			if attacker.mastery != null and not _forbidden(attacker, "mastery"):
 				_enqueue(attacker.mastery.def.effects, "on_success", attacker.index, {"attack": a}, attacker.mastery)
+			# A Non-Combat in play that answers a successful attack. It spends itself in its own text.
+			if not _forbidden(attacker, "non_combats"):
+				for nc in attacker.non_combats():
+					if nc.attached_to == null:
+						_enqueue(nc.def.effects, "on_success", attacker.index, {"attack": a}, nc)
 			state.battle_step = 16
 		16:
 			_finish_attack(attacker, a)
@@ -1420,18 +1427,18 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 		cost_stages *= 2
 		cost_life *= 2
 	if cost_stages > 0:
-		ic.vigor = maxi(0, ic.vigor - cost_stages)
+		ic.energy = maxi(0, ic.energy - cost_stages)
 	if cost_life > 0:
 		_discard_life(attacker, cost_life)
 	if cost_stages > 0 or cost_life > 0:
-		_emit(&"cost_paid", {"player": attacker.index, "stages": cost_stages, "life": cost_life, "vigor": ic.vigor})
+		_emit(&"cost_paid", {"player": attacker.index, "stages": cost_stages, "life": cost_life, "energy": ic.energy})
 	_expire_next_attack_tax(attacker)
 	if spec.has("pay_stages"):
 		# "Pay any number of stages, +1 wound per N paid."
 		var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
 		var opts: Array[Command] = []
 		var amount: int = 0
-		while amount <= ic.vigor:
+		while amount <= ic.energy:
 			opts.append(Command.new(attacker.index, &"pay", -1, amount))
 			amount += per
 		if opts.size() > 1:
@@ -1440,8 +1447,8 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 
 
 func _handle_pay(cmd: Command) -> void:
-	if str(_choice.get("kind", "")) == "pay_vigor":
-		_handle_pay_vigor(cmd)
+	if str(_choice.get("kind", "")) == "pay_energy":
+		_handle_pay_energy(cmd)
 		return
 	var a: Dictionary = state.attack
 	var attacker: PlayerState = state.players[int(a["attacker"])]
@@ -1449,20 +1456,20 @@ func _handle_pay(cmd: Command) -> void:
 	var paid: int = int(cmd.value)
 	var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
 	var ic: CardInstance = _performer(a)
-	ic.vigor = maxi(0, ic.vigor - paid)
+	ic.energy = maxi(0, ic.energy - paid)
 	a["extra_life"] = int(a["extra_life"]) + int(paid / per) * int(spec["pay_stages"].get("life", 1))
-	_emit(&"cost_paid", {"player": attacker.index, "stages": paid, "life": 0, "vigor": ic.vigor})
+	_emit(&"cost_paid", {"player": attacker.index, "stages": paid, "life": 0, "energy": ic.energy})
 	state.battle_step = 3
 
 
-## "Lose any number of Vigor; for each N lost, do X."
-func _handle_pay_vigor(cmd: Command) -> void:
+## "Lose any number of Energy; for each N lost, do X."
+func _handle_pay_energy(cmd: Command) -> void:
 	var payer: CardInstance = card(int(_choice.get("payer", -1)))
 	var per: int = maxi(1, int(_choice.get("per", 1)))
 	var paid: int = int(cmd.value)
 	if payer != null:
-		payer.vigor = maxi(0, payer.vigor - paid)
-		_emit(&"cost_paid", {"player": cmd.player, "stages": paid, "life": 0, "vigor": payer.vigor})
+		payer.energy = maxi(0, payer.energy - paid)
+		_emit(&"cost_paid", {"player": cmd.player, "stages": paid, "life": 0, "energy": payer.energy})
 	var times: int = int(paid / per)
 	var list: Array[Dictionary] = []
 	for i in range(times):
@@ -1509,7 +1516,7 @@ func _can_pay(ic: CardInstance, p: PlayerState, spec: Dictionary) -> bool:
 	var cost: int = _cost_stages(spec, p)
 	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)):
 		cost *= 2
-	if ic.vigor < cost:
+	if ic.energy < cost:
 		return false
 	return p.life_deck.size() > int(spec.get("cost_life", 0))
 
@@ -1580,7 +1587,7 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 	if focused and str(def.defense.get("stop_focused", "")) == "discard_hand" and d.hand.size() < 2:
 		return false
 	var ic: CardInstance = d.in_control()
-	if int(def.defense.get("cost_stages", 0)) > ic.vigor:
+	if int(def.defense.get("cost_stages", 0)) > ic.energy:
 		return false
 	if int(def.defense.get("cost_life", 0)) >= d.life_deck.size():
 		return false
@@ -1628,7 +1635,7 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 	var ic: CardInstance = d.in_control()
 	var cost_stages: int = int(def.defense.get("cost_stages", 0))
 	if cost_stages > 0:
-		ic.vigor = maxi(0, ic.vigor - cost_stages)
+		ic.energy = maxi(0, ic.energy - cost_stages)
 	if int(def.defense.get("cost_life", 0)) > 0:
 		_discard_life(d, int(def.defense["cost_life"]))
 	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
@@ -1642,9 +1649,9 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 		_float(d.index, "stop_all", "combat", {"kind": str(def.defense["stop_all"])})
 	_enqueue(def.effects, "secondary", d.index, {"attack": a}, c)
 	if from_hand or c.zone == &"resolving":
-		# A Mastery can send its own guild's blocks under the Life Deck instead of the discard pile.
+		# A Mastery can send its own school's blocks under the Life Deck instead of the discard pile.
 		var keeps: String = str(d.mastery.def.raw.get("blocks_to_bottom", "")) if d.mastery != null and not _forbidden(d, "mastery") else ""
-		var to_bottom: bool = keeps != "" and def.guild == keeps and bool(a["stopped"]) and not def.remove_after_use
+		var to_bottom: bool = keeps != "" and def.school == keeps and bool(a["stopped"]) and not def.remove_after_use
 		_enqueue([{"trigger": "secondary", "op": "finish_source", "bottom": to_bottom}], "secondary", d.index, {"attack": a}, c)
 	elif def.type == CardDef.Type.NON_COMBAT and c.attached_to == null:
 		# A Non-Combat in play is spent by defending with it, like any other use.
@@ -1719,7 +1726,7 @@ func _apply_shields(defender: PlayerState, a: Dictionary) -> void:
 func _available_shields(defender: PlayerState, kind: String, focused: bool) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	var ic: CardInstance = defender.in_control()
-	if ic.shield_used_combat != state.combat_count and _shield_matches(ic.tier_shield(), kind, focused):
+	if ic.shield_used_combat != state.combat_count and _shield_matches(ic.aspect_shield(), kind, focused):
 		out.append(ic)
 	for d in defender.drills():
 		if d.shield_used_combat != state.combat_count and _shield_matches(d.def.shield, kind, focused):
@@ -1801,15 +1808,17 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	if int(spec.get("stages", 0)) != 0 or int(spec.get("life", 0)) != 0:
 		adds.append({"source": src_title, "stages": int(spec.get("stages", 0)), "life": int(spec.get("life", 0))})
 	if int(a.get("extra_life", 0)) > 0:
-		adds.append({"source": "Vigor paid", "stages": 0, "life": int(a["extra_life"])})
+		adds.append({"source": "Energy paid", "stages": 0, "life": int(a["extra_life"])})
 	if bool(a["empowered"]) and src != null and src.def.empower > 0:
 		adds.append({"source": "Empower", "stages": 0, "life": src.def.empower})
 	if int(spec.get("life_per_ally", 0)) > 0 and not attacker.allies().is_empty():
 		adds.append({"source": "%d Allies" % attacker.allies().size(), "stages": 0, "life": int(spec["life_per_ally"]) * attacker.allies().size()})
-	if bool(spec.get("life_from_surge", false)) and attacker.fighter.surge() > 0:
-		adds.append({"source": "Surge", "stages": 0, "life": attacker.fighter.surge()})
-	if int(spec.get("life_per_opponent_token", 0)) > 0 and not defender.tokens().is_empty():
-		adds.append({"source": "Rival Tokens", "stages": 0, "life": int(spec["life_per_opponent_token"]) * defender.tokens().size()})
+	if bool(spec.get("life_from_surge", false)) and attacker.duelist.surge() > 0:
+		adds.append({"source": "Surge", "stages": 0, "life": attacker.duelist.surge()})
+	if int(spec.get("life_per_opponent_seal", 0)) > 0 and not defender.seals().is_empty():
+		adds.append({"source": "Rival Seals", "stages": 0, "life": int(spec["life_per_opponent_seal"]) * defender.seals().size()})
+	if spec.has("life_per_set_seal") and _set_seals_in_play(str(spec["life_per_set_seal"])) > 0:
+		adds.append({"source": "%s Seals in play" % str(spec["life_per_set_seal"]).capitalize(), "stages": 0, "life": _set_seals_in_play(str(spec["life_per_set_seal"]))})
 	var ctx: Dictionary = {"attack": a}
 	var spent: Array[Dictionary] = []
 	# "Cannot be reduced": the defender's reductions and caps are ignored; prevention is separate.
@@ -1912,7 +1921,7 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 			pools.append([at.def.attachment.get("modifiers", []), at])
 	var constant: Dictionary = _constant(p)
 	if constant.has("modifiers"):
-		pools.append([constant.get("modifiers", []), p.fighter])
+		pools.append([constant.get("modifiers", []), p.duelist])
 	for f in state.floating:
 		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "modifier":
 			pools.append([[f], null])
@@ -1923,7 +1932,7 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 				continue
 			if not (mk == "any" or mk == kind):
 				continue
-			if m.has("guild") and (src == null or src.def.guild != str(m["guild"])):
+			if m.has("school") and (src == null or src.def.school != str(m["school"])):
 				continue
 			if m.has("title_contains") and (src == null or not src.def.title.contains(str(m["title_contains"]))):
 				continue
@@ -1936,26 +1945,26 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 func _deal_stage_damage(defender: PlayerState, a: Dictionary) -> void:
 	var target: CardInstance = card(int(a["target"]))
 	var stages: int = int(a["stages"])
-	var lost: int = mini(target.vigor, stages)
-	target.vigor -= lost
+	var lost: int = mini(target.energy, stages)
+	target.energy -= lost
 	var overflow: int = stages - lost
 	a["stages_dealt"] = lost
 	a["life_remaining"] = int(a["life"]) + overflow
 	if stages > 0:
-		_emit(&"damage_stages", {"player": defender.index, "target": target.uid, "stages": lost, "overflow": overflow, "vigor": target.vigor})
+		_emit(&"damage_stages", {"player": defender.index, "target": target.uid, "stages": lost, "overflow": overflow, "energy": target.energy})
 
 
 ## Step 13. Flips one life card at a time; pauses on an Endurance prompt and resumes here.
 func _deal_life_damage(defender: PlayerState, a: Dictionary) -> void:
 	while int(a["life_remaining"]) > 0:
-		if _only_tokens_left(defender):
+		if _only_seals_left(defender):
 			_lose(defender.index, "survival")
 			return
 		var c: CardInstance = _flip_life_card(defender)
 		if c == null:
 			return
-		if c.def.type == CardDef.Type.TOKEN:
-			_bypass_token(c)
+		if c.def.type == CardDef.Type.SEAL:
+			_bypass_seal(c)
 			continue
 		if bool(a["damage_removes"]):
 			_remove_from_game(c)
@@ -2002,19 +2011,19 @@ func _handle_critical(cmd: Command) -> void:
 	match cmd.type:
 		&"capture":
 			state.attack["critical"] = "capture"
-			_capture_token(cmd.player, card(cmd.card))
+			_capture_seal(cmd.player, card(cmd.card))
 		&"discard_ally":
 			state.attack["critical"] = "ally"
 			_emit(&"critical_ally", {"player": cmd.player, "card": cmd.card})
 			_discard_or_remove_in_play(card(cmd.card), false)
-		&"lower_acclaim":
-			state.attack["critical"] = "acclaim"
-			_emit(&"critical_acclaim", {"player": cmd.player})
-			# Passed as the rival's own change: a game rule, so the Master's Acclaim shield (card effects only) does not apply.
-			_change_acclaim(opp, -1, opp.index)
+		&"lower_fervor":
+			state.attack["critical"] = "fervor"
+			_emit(&"critical_fervor", {"player": cmd.player})
+			# Passed as the rival's own change: a game rule, so the Grimoire's Fervor shield (card effects only) does not apply.
+			_change_fervor(opp, -1, opp.index)
 
 
-## Battle step 11: the capturing Ally takes a Token and the attack deals nothing.
+## Battle step 11: the capturing Ally takes a Seal and the attack deals nothing.
 func _handle_capture_instead(cmd: Command) -> void:
 	if cmd.type != &"capture":
 		return
@@ -2024,7 +2033,7 @@ func _handle_capture_instead(cmd: Command) -> void:
 	a["life_remaining"] = 0
 	a["captured_instead"] = true
 	_emit(&"capture_instead", {"player": cmd.player, "card": cmd.card})
-	_capture_token(cmd.player, card(cmd.card))
+	_capture_seal(cmd.player, card(cmd.card))
 
 
 func _finish_attack(attacker: PlayerState, a: Dictionary) -> void:
@@ -2153,7 +2162,7 @@ func _place_rearranged(p: PlayerState, c: CardInstance, from: String, placed: in
 ## Runs the "then" list of the effect that just finished, ahead of everything else queued.
 ## Triggers whose firing is already told by another line (the card was played or used), or that
 ## continue an effect already announced.
-const SILENT_TRIGGERS: Array[String] = ["secondary", "use", "master_use", "opponent_declare", "then", "dev"]
+const SILENT_TRIGGERS: Array[String] = ["secondary", "use", "grimoire_use", "opponent_declare", "then", "dev"]
 
 
 ## Logs "<card> triggers <when>" once per job, at the first effect that actually applies, so a
@@ -2198,35 +2207,35 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 	if bool(e.get("skip_damage", false)) and not state.attack.is_empty():
 		state.attack["prevented_all"] = true
 	match op:
-		"acclaim":
-			_change_acclaim(who, int(amount), owner)
-		"set_acclaim":
-			_set_acclaim(who, int(amount), owner)
-		"acclaim_needed":
-			_change_acclaim_needed(who, who.acclaim_needed + int(amount))
-		"set_acclaim_needed":
-			_change_acclaim_needed(who, int(amount))
-		"vigor":
+		"fervor":
+			_change_fervor(who, int(amount), owner)
+		"set_fervor":
+			_set_fervor(who, int(amount), owner)
+		"fervor_needed":
+			_change_fervor_needed(who, who.fervor_needed + int(amount))
+		"set_fervor_needed":
+			_change_fervor_needed(who, int(amount))
+		"energy":
 			var target: CardInstance = who.in_control()
-			if str(e.get("target", "")) == "fighter":
-				target = who.fighter
+			if str(e.get("target", "")) == "duelist":
+				target = who.duelist
 			elif str(e.get("target", "")) == "last_searched":
 				target = card(who.last_searched)
 				if target == null or target.zone != &"in_play":
 					return
-			var before: int = target.vigor
+			var before: int = target.energy
 			if amount is String and str(amount) == "max":
 				if not _has_floating(who_index, "no_gain"):
-					target.vigor = CardInstance.MAX_STAGE
+					target.energy = CardInstance.MAX_STAGE
 			elif int(amount) >= 0:
-				_gain_vigor(who, target, int(amount))
+				_gain_energy(who, target, int(amount))
 			elif bool(e.get("no_overflow", false)):
-				target.vigor = maxi(0, target.vigor + int(amount))
+				target.energy = maxi(0, target.energy + int(amount))
 			else:
-				_lose_vigor(who, target, -int(amount))
-			if target.vigor != before:
+				_lose_energy(who, target, -int(amount))
+			if target.energy != before:
 				# Logged with its source, so two effects landing in one update read as two lines.
-				_emit(&"vigor_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.vigor, "source": source.uid if source != null else -1})
+				_emit(&"energy_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
 		"draw":
 			_draw(who_index, int(amount))
 		"draw_until":
@@ -2236,7 +2245,10 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					return
 				_draw(who_index, 1)
 		"draw_discard":
-			_draw_discard(who, int(amount), str(e.get("from", "bottom")))
+			var taken: CardInstance = _draw_discard(who, int(amount), str(e.get("from", "bottom")))
+			# `if_school`: the follow-up `effects` run only when the last card drawn is of that school.
+			if e.has("if_school") and taken != null and taken.def.school == str(e["if_school"]):
+				_enqueue(e.get("effects", []), "secondary", owner, ctx, source)
 		"discard_life":
 			_discard_life(who, int(amount))
 		"discard_hand":
@@ -2257,18 +2269,18 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				_emit(&"hand_discarded", {"player": who.index, "card": pool[0].uid, "random": false})
 			else:
 				_prompt_discard_choice(who, int(amount), chooser, to, filter)
-		"pay_vigor":
+		"pay_energy":
 			var per: int = maxi(1, int(e.get("per", 1)))
 			var payer: CardInstance = who.in_control()
 			var opts: Array[Command] = []
 			var amt: int = 0
-			while amt <= payer.vigor:
+			while amt <= payer.energy:
 				opts.append(Command.new(who_index, &"pay", -1, amt))
 				amt += per
 			_pending_then = {}
 			if opts.size() <= 1:
 				return
-			_choice = {"kind": "pay_vigor", "per": per, "payer": payer.uid, "then": e.get("then", []), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+			_choice = {"kind": "pay_energy", "per": per, "payer": payer.uid, "then": e.get("then", []), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
 			_set_prompt(who_index, &"pay", opts, {"per": per, "source": source.uid if source != null else -1, "card_title": source.def.title if source != null else "", "effect": true})
 		"look_at":
 			_look_at(who, e)
@@ -2276,7 +2288,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			var opts: Array[Command] = []
 			for t in ["strike_cards", "art_cards", "combat_cards"]:
 				opts.append(Command.new(owner, &"pick_option", -1, t))
-			_choice = {"kind": "forbid_type", "target": who_index, "unless_vigor_min": int(e.get("unless_vigor_min", 0)), "duration": str(e.get("duration", "combat"))}
+			_choice = {"kind": "forbid_type", "target": who_index, "unless_energy_min": int(e.get("unless_energy_min", 0)), "duration": str(e.get("duration", "combat"))}
 			_set_prompt(owner, &"pick_option", opts, _choice_context(source, "forbid_type"))
 		"focus_attack":
 			if not state.attack.is_empty():
@@ -2299,15 +2311,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				_move_to_deck_bottom(c)
 			if not moved.is_empty() and shuffle_decks:
 				rng.shuffle(who.life_deck)
-		"set_vigor":
-			var target: CardInstance = who.fighter if str(e.get("target", "fighter")) == "fighter" else who.in_control()
-			var before: int = target.vigor
-			target.vigor = clampi(int(amount), 0, CardInstance.MAX_STAGE)
-			if target.vigor != before:
-				_emit(&"vigor_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.vigor, "source": source.uid if source != null else -1})
-		"advance_tier":
-			if who.fighter.tier < who.highest_tier:
-				_tier_up(who)
+		"set_energy":
+			var target: CardInstance = who.duelist if str(e.get("target", "duelist")) == "duelist" else who.in_control()
+			var before: int = target.energy
+			target.energy = clampi(int(amount), 0, CardInstance.MAX_STAGE)
+			if target.energy != before:
+				_emit(&"energy_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
+		"advance_aspect":
+			if who.duelist.aspect < who.highest_aspect:
+				_aspect_up(who)
 		"choose_stop_all_kind":
 			var opts: Array[Command] = [Command.new(owner, &"pick_option", -1, "strike"), Command.new(owner, &"pick_option", -1, "art")]
 			_choice = {"kind": "stop_kind"}
@@ -2325,7 +2337,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			else:
 				_draw(who_index, 1)
 			var matched: bool = _draw_check_matches(who, drawn, e)
-			_emit(&"draw_check", {"player": who_index, "card": drawn.uid, "matched": matched, "discard": discards, "check": str(e.get("check", "guild")), "guild": str(e.get("guild", "")), "source": source.uid if source != null else -1})
+			_emit(&"draw_check", {"player": who_index, "card": drawn.uid, "matched": matched, "discard": discards, "check": str(e.get("check", "school")), "school": str(e.get("school", "")), "source": source.uid if source != null else -1})
 			if state.is_over():
 				return
 			if matched:
@@ -2342,7 +2354,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			_remove_discard(who, int(amount), bool(e.get("all", false)))
 		"shuffle_discard":
 			var count: int = int(amount) * (who.allies().size() + 1 if bool(e.get("per_personality", false)) else 1)
-			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)))
+			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")))
 		"recover":
 			_recover_top(who, int(amount), str(e.get("from", "top")))
 		"end_combat":
@@ -2364,17 +2376,17 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			_float(who_index, str(e.get("what", "")), str(e.get("duration", "combat")), params)
 		"forbid":
 			_float(who_index, "forbid", str(e.get("duration", "combat")), {"what": str(e.get("what", "")), "source": source.uid if source != null else -1})
-		"lose_tier":
-			_lose_tier(who, owner)
-		"set_tier":
-			_set_tier(who, e, owner)
-		"no_favor_win":
-			who.no_favor_win = true
-			_emit(&"no_favor_win", {"player": who_index})
+		"lose_aspect":
+			_lose_aspect(who, owner)
+		"set_aspect":
+			_set_aspect(who, e, owner)
+		"no_ascension_win":
+			who.no_ascension_win = true
+			_emit(&"no_ascension_win", {"player": who_index})
 		"attach":
 			if source != null:
 				_attach(source, me, str(e.get("to", "in_control")))
-		"capture_token":
+		"capture_seal":
 			_capture_prompt(me)
 		"name_card":
 			_prompt_name_card(me, source)
@@ -2420,26 +2432,26 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"character":
 				if me.in_control().def.character != str(v):
 					return false
-			"fighter_character":
-				if me.fighter.def.character != str(v):
+			"duelist_character":
+				if me.duelist.def.character != str(v):
 					return false
 			"alignment":
 				if me.alignment != str(v):
 					return false
 			"performed_by":
-				var by_ally: bool = me.in_control() != me.fighter
+				var by_ally: bool = me.in_control() != me.duelist
 				if not a.is_empty() and int(a.get("attacker", -1)) == owner:
-					by_ally = _performer(a) != me.fighter
+					by_ally = _performer(a) != me.duelist
 				if (str(v) == "ally") != by_ally:
 					return false
-			"vigor_min":
-				if me.in_control().vigor < int(v):
+			"energy_min":
+				if me.in_control().energy < int(v):
 					return false
-			"tier_min":
-				if me.fighter.tier < int(v):
+			"aspect_min":
+				if me.duelist.aspect < int(v):
 					return false
-			"opponent_acclaim":
-				if opp.acclaim != int(v):
+			"opponent_fervor":
+				if opp.fervor != int(v):
 					return false
 			"allies_min":
 				if me.allies().size() < int(v):
@@ -2453,17 +2465,17 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"opponent_non_combats_min":
 				if opp.non_combats().size() < int(v):
 					return false
-			"discard_top_guild":
-				if me.discard.is_empty() or me.discard.back().def.guild != str(v):
+			"discard_top_school":
+				if me.discard.is_empty() or me.discard.back().def.school != str(v):
 					return false
-			"discard_top_guild_not":
-				if not me.discard.is_empty() and me.discard.back().def.guild == str(v):
+			"discard_top_school_not":
+				if not me.discard.is_empty() and me.discard.back().def.school == str(v):
 					return false
 			"discard_min":
 				if me.discard.size() < int(v):
 					return false
-			"discard_top2_guild":
-				if me.discard.size() < 2 or me.discard.back().def.guild != str(v) or me.discard[me.discard.size() - 2].def.guild != str(v):
+			"discard_top2_school":
+				if me.discard.size() < 2 or me.discard.back().def.school != str(v) or me.discard[me.discard.size() - 2].def.school != str(v):
 					return false
 			"higher_might":
 				if (me.in_control().might() > opp.in_control().might()) != bool(v):
@@ -2477,8 +2489,8 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"role":
 				if str(ctx.get("role", "")) != str(v):
 					return false
-			"tokens_min":
-				if me.tokens().size() < int(v):
+			"seals_min":
+				if me.seals().size() < int(v):
 					return false
 			"hand_min":
 				if me.hand.size() < int(v):
@@ -2489,9 +2501,15 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"attack_focused":
 				if bool(a.get("focused", false)) != bool(v):
 					return false
-			"source_guild":
+			"source_school":
 				var src: CardInstance = _attack_source()
-				if src == null or src.def.guild != str(v):
+				if src == null or src.def.school != str(v):
+					return false
+			"attack_kind":
+				if str(a.get("kind", "")) != str(v):
+					return false
+			"opponent_seals_min":
+				if opp.seals().size() < int(v):
 					return false
 			_:
 				push_warning("DuelEngine: unknown condition '%s'" % key)
@@ -2529,9 +2547,9 @@ func _has_floating(owner: int, op: String) -> bool:
 	return false
 
 
-func _has_floating_guild(owner: int, op: String, guild: String) -> bool:
+func _has_floating_school(owner: int, op: String, school: String) -> bool:
 	for f in state.floating:
-		if int(f.get("owner", -1)) == owner and str(f.get("op", "")) == op and (str(f.get("guild", "")) == "" or str(f.get("guild", "")) == guild):
+		if int(f.get("owner", -1)) == owner and str(f.get("op", "")) == op and (str(f.get("school", "")) == "" or str(f.get("school", "")) == school):
 			return true
 	return false
 
@@ -2547,7 +2565,7 @@ func _floating_first(owner: int, op: String) -> Dictionary:
 func _forbidden(p: PlayerState, what: String) -> bool:
 	for f in state.floating:
 		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "forbid" and str(f.get("what", "")) == what:
-			if int(f.get("unless_vigor_min", 0)) > 0 and p.fighter.vigor >= int(f["unless_vigor_min"]):
+			if int(f.get("unless_energy_min", 0)) > 0 and p.duelist.energy >= int(f["unless_energy_min"]):
 				continue
 			return true
 	var sources: Array[CardInstance] = []
@@ -2612,7 +2630,7 @@ func _named_forbidden(def: CardDef) -> bool:
 	return false
 
 
-## The constant power in force for a player: the in-control personality's, or the fighter's
+## The constant power in force for a player: the in-control personality's, or the duelist's
 ## when its constant says allies share it.
 func _constant(p: PlayerState) -> Dictionary:
 	if _forbidden(p, "powers"):
@@ -2621,10 +2639,10 @@ func _constant(p: PlayerState) -> Dictionary:
 
 
 func _raw_constant(p: PlayerState) -> Dictionary:
-	var fc: Dictionary = p.fighter.tier_data().get("constant", {})
-	if p.in_control() == p.fighter or bool(fc.get("allies_share", false)):
+	var fc: Dictionary = p.duelist.aspect_data().get("constant", {})
+	if p.in_control() == p.duelist or bool(fc.get("allies_share", false)):
 		return fc
-	return p.in_control().tier_data().get("constant", {})
+	return p.in_control().aspect_data().get("constant", {})
 
 
 func _can_play(p: PlayerState, def: CardDef) -> bool:
@@ -2636,7 +2654,7 @@ func _can_play(p: PlayerState, def: CardDef) -> bool:
 			# personality: it only needs them on the table.
 			if not (_attaches_to_character(def) and _character_in_play(p, str(def.only["character"])) != null):
 				return false
-		if def.only.has("fighter_character") and p.fighter.def.character != str(def.only["fighter_character"]):
+		if def.only.has("duelist_character") and p.duelist.def.character != str(def.only["duelist_character"]):
 			return false
 	# A card that attaches to a personality named in its text needs that personality on the table.
 	if _attaches_to(def) == "named" and _attach_host(p, def) == null:
@@ -2672,11 +2690,11 @@ func _attach_host(p: PlayerState, def: CardDef) -> CardInstance:
 				return p.in_control()
 			"character":
 				var gated: CardInstance = _character_in_play(p, str(def.only.get("character", "")))
-				return gated if gated != null else p.fighter
+				return gated if gated != null else p.duelist
 			"named":
 				return _character_in_play(p, str(e.get("character", "")))
 			_:
-				return p.fighter
+				return p.duelist
 	return null
 
 
@@ -2711,16 +2729,16 @@ func _prompt_pick_in_play(chooser: int, cands: Array[CardInstance], amount: int,
 		prompt.set_batch(&"pick_in_play", 1 if up_to else n, n)
 
 
-## Hand cards an effect may pick from: all, only signature cards, or only non-Tokens.
+## Hand cards an effect may pick from: all, only signature cards, or only non-Seals.
 func _hand_filtered(p: PlayerState, filter: String) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	for c in p.hand:
 		match filter:
 			"signature":
-				if c.def.character != "" and c.def.character == p.fighter.def.character:
+				if c.def.character != "" and c.def.character == p.duelist.def.character:
 					out.append(c)
-			"non_token":
-				if c.def.type != CardDef.Type.TOKEN:
+			"non_seal":
+				if c.def.type != CardDef.Type.SEAL:
 					out.append(c)
 			_:
 				out.append(c)
@@ -2778,15 +2796,15 @@ func _look_at(p: PlayerState, e: Dictionary) -> void:
 
 
 func _draw_check_matches(p: PlayerState, drawn: CardInstance, e: Dictionary) -> bool:
-	match str(e.get("check", "guild")):
+	match str(e.get("check", "school")):
 		"named":
 			return drawn.def.character != ""
 		"signature":
-			return drawn.def.character != "" and drawn.def.character == p.fighter.def.character
+			return drawn.def.character != "" and drawn.def.character == p.duelist.def.character
 		"title_contains":
 			return drawn.def.title.contains(str(e.get("title_contains", "")))
 		_:
-			return drawn.def.guild == str(e.get("guild", ""))
+			return drawn.def.school == str(e.get("school", ""))
 
 
 func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> void:
@@ -2826,17 +2844,17 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 			"drill":
 				ok = t == CardDef.Type.DRILL and not _drills_protected(p)
 			"freestyle_drill":
-				ok = t == CardDef.Type.DRILL and c.def.guild == ""
+				ok = t == CardDef.Type.DRILL and c.def.school == ""
 			"ally":
 				ok = t == CardDef.Type.ALLY and not _ally_protected(p)
-			"token":
-				ok = t == CardDef.Type.TOKEN
+			"seal":
+				ok = t == CardDef.Type.SEAL
 			"non_combat_or_ally":
 				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p))
 			"drill_or_ally":
 				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p))
 			_:
-				ok = t != CardDef.Type.TOKEN   # Tokens are immune to card effects unless named
+				ok = t != CardDef.Type.SEAL   # Seals are immune to card effects unless named
 		if ok:
 			out.append(c)
 	return out
@@ -2850,6 +2868,16 @@ func _drills_protected(p: PlayerState) -> bool:
 	return p.mastery != null and bool(p.mastery.def.raw.get("protect_drills", false)) and not _forbidden(p, "mastery")
 
 
+## The Seals an opponent may capture from `p`: none while a Drill of theirs guards them.
+func _capturable_seals(p: PlayerState) -> Array[CardInstance]:
+	var none: Array[CardInstance] = []
+	if not _forbidden(p, "drills"):
+		for d in p.drills():
+			if bool(d.def.raw.get("protect_seals", false)):
+				return none
+	return p.seals()
+
+
 func _discard_or_remove_in_play(c: CardInstance, remove: bool) -> void:
 	_emit(&"in_play_discarded", {"player": c.controller, "card": c.uid, "removed": remove})
 	if remove:
@@ -2861,7 +2889,7 @@ func _discard_or_remove_in_play(c: CardInstance, remove: bool) -> void:
 func _prompt_name_card(p: PlayerState, source: CardInstance) -> void:
 	var titles: Dictionary = {}
 	for c in _cards.values():
-		if c.owner != p.index and not c.def.is_personality() and c.def.type != CardDef.Type.TOKEN and c.def.type != CardDef.Type.MASTERY and c.def.type != CardDef.Type.MASTER:
+		if c.owner != p.index and not c.def.is_personality() and c.def.type != CardDef.Type.SEAL and c.def.type != CardDef.Type.MASTERY and c.def.type != CardDef.Type.GRIMOIRE:
 			titles[c.def.title] = true
 	var names: Array = titles.keys()
 	names.sort()
@@ -2876,14 +2904,14 @@ func _prompt_name_card(p: PlayerState, source: CardInstance) -> void:
 
 func _capture_prompt(p: PlayerState) -> void:
 	var opp: PlayerState = state.players[1 - p.index]
-	var tokens: Array[CardInstance] = opp.tokens()
-	if tokens.is_empty():
+	var seals: Array[CardInstance] = _capturable_seals(opp)
+	if seals.is_empty():
 		return
-	if tokens.size() == 1:
-		_capture_token(p.index, tokens[0])
+	if seals.size() == 1:
+		_capture_seal(p.index, seals[0])
 		return
 	var opts: Array[Command] = []
-	for t in tokens:
+	for t in seals:
 		opts.append(Command.new(p.index, &"pick_option", t.uid))
 	_choice = {"kind": "capture_choice"}
 	_set_prompt(p.index, &"pick_option", opts, _choice_context(_effect_source, "capture"))
@@ -2904,6 +2932,11 @@ func _handle_choice(cmd: Command) -> void:
 				e2["_confirmed"] = true
 				var list: Array[Dictionary] = [e2]
 				_queue.insert(0, {"effects": list, "index": 0, "trigger": str(e2.get("trigger", "secondary")), "owner": int(_choice["owner"]), "ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
+			elif (_choice["effect"] as Dictionary).has("otherwise"):
+				# "Do X or do Y": a no to the first half is a yes to the second.
+				var other: Array[Dictionary] = []
+				other.assign((_choice["effect"] as Dictionary)["otherwise"])
+				_queue.insert(0, {"effects": other, "index": 0, "trigger": "then", "owner": int(_choice["owner"]), "ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
 		"look_at":
 			var looker: PlayerState = state.players[int(_choice["player"])]
 			var take: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
@@ -2951,8 +2984,8 @@ func _handle_choice(cmd: Command) -> void:
 			_search_done(searcher, search_effect)
 		"forbid_type":
 			var params: Dictionary = {"what": str(cmd.value)}
-			if int(_choice.get("unless_vigor_min", 0)) > 0:
-				params["unless_vigor_min"] = int(_choice["unless_vigor_min"])
+			if int(_choice.get("unless_energy_min", 0)) > 0:
+				params["unless_energy_min"] = int(_choice["unless_energy_min"])
 			_float(int(_choice["target"]), "forbid", str(_choice.get("duration", "combat")), params)
 		"discard_choice":
 			var target: PlayerState = state.players[int(_choice.get("target", cmd.player))]
@@ -2998,39 +3031,39 @@ func _handle_choice(cmd: Command) -> void:
 				src.named_card = str(cmd.value)
 				_emit(&"card_named", {"player": cmd.player, "card": src.uid, "name": src.named_card})
 		"capture_choice":
-			_capture_token(cmd.player, card(cmd.card))
+			_capture_seal(cmd.player, card(cmd.card))
 	_choice = {}
 
 
-# --- Acclaim and tiers ----------------------------------------------------
+# --- Fervor and aspects ----------------------------------------------------
 
 # Effective values. Every number a client shows about a player comes from one of these getters,
 # so a card that changes the base or a standing effect changes the display in the same update.
 
-## Acclaim the fighter needs to rise a tier: the player's base, or more if the opponent's
+## Fervor the duelist needs to rise an aspect: the player's base, or more if the opponent's
 ## Mastery demands it.
-func acclaim_needed(p: PlayerState) -> int:
+func fervor_needed(p: PlayerState) -> int:
 	var opp: PlayerState = state.players[1 - p.index]
-	if opp.mastery != null and opp.mastery.def.opponent_tier_threshold > 0 and not _forbidden(opp, "mastery"):
-		return maxi(p.acclaim_needed, opp.mastery.def.opponent_tier_threshold)
-	return p.acclaim_needed
+	if opp.mastery != null and opp.mastery.def.opponent_aspect_threshold > 0 and not _forbidden(opp, "mastery"):
+		return maxi(p.fervor_needed, opp.mastery.def.opponent_aspect_threshold)
+	return p.fervor_needed
 
 
-## Each point of Acclaim gained counts this many times.
-func acclaim_gain(p: PlayerState) -> int:
-	return maxi(1, int(_constant(p).get("acclaim_multiplier", 1)))
+## Each point of Fervor gained counts this many times.
+func fervor_gain(p: PlayerState) -> int:
+	return maxi(1, int(_constant(p).get("fervor_multiplier", 1)))
 
 
-const STYLE_SURGE_BONUS: int = 1   # flat Power Up bonus every deck gets (kept from the old single-guild rule)
+const STYLE_SURGE_BONUS: int = 1   # flat Power Up bonus every deck gets (kept from the old single-school rule)
 
 
-## Vigor the fighter regains at the Power Up step: Surge Rate plus the flat Style bonus.
+## Energy the duelist regains at the Power Up step: Surge Rate plus the flat Style bonus.
 func recover_gain(p: PlayerState) -> int:
-	return p.fighter.surge() + STYLE_SURGE_BONUS
+	return p.duelist.surge() + STYLE_SURGE_BONUS
 
 
-func tier_shielded(p: PlayerState) -> bool:
-	return p.master != null and bool(p.master.def.master_flags.get("tier_shield", false))
+func aspect_shielded(p: PlayerState) -> bool:
+	return p.grimoire != null and bool(p.grimoire.def.grimoire_flags.get("aspect_shield", false))
 
 
 ## Standing forbids in force on the player right now, as forbid `what` words.
@@ -3042,86 +3075,89 @@ func restrictions(p: PlayerState) -> Array[String]:
 	return out
 
 
-func _change_acclaim_needed(p: PlayerState, value: int) -> void:
-	var before: int = p.acclaim_needed
-	p.acclaim_needed = maxi(1, value)
-	_emit(&"acclaim_needed_changed", {"player": p.index, "from": before, "to": p.acclaim_needed})
-	_check_tier_up(p)
+func _change_fervor_needed(p: PlayerState, value: int) -> void:
+	var before: int = p.fervor_needed
+	p.fervor_needed = maxi(1, value)
+	_emit(&"fervor_needed_changed", {"player": p.index, "from": before, "to": p.fervor_needed})
+	_check_aspect_up(p)
 
 
-func _change_acclaim(p: PlayerState, delta: int, source_owner: int) -> void:
-	if delta < 0 and source_owner != p.index and acclaim_shielded(p):
-		_emit(&"acclaim_shielded", {"player": p.index})
+func _change_fervor(p: PlayerState, delta: int, source_owner: int) -> void:
+	if delta < 0 and source_owner != p.index and fervor_shielded(p):
+		_emit(&"fervor_shielded", {"player": p.index})
 		return
 	if delta > 0:
-		delta *= acclaim_gain(p)
-	var before: int = p.acclaim
-	p.acclaim = maxi(0, p.acclaim + delta)
-	_emit(&"acclaim_changed", {"player": p.index, "from": before, "to": p.acclaim, "source": _effect_source.uid if _effect_source != null else -1})
-	_check_tier_up(p)
+		delta *= fervor_gain(p)
+		# Grounds may cap what one card or effect can raise.
+		if state.grounds != null and state.grounds.def.raw.has("fervor_gain_cap"):
+			delta = mini(delta, int(state.grounds.def.raw["fervor_gain_cap"]))
+	var before: int = p.fervor
+	p.fervor = maxi(0, p.fervor + delta)
+	_emit(&"fervor_changed", {"player": p.index, "from": before, "to": p.fervor, "source": _effect_source.uid if _effect_source != null else -1})
+	_check_aspect_up(p)
 
 
-func _set_acclaim(p: PlayerState, value: int, source_owner: int) -> void:
-	if value < p.acclaim and source_owner != p.index and acclaim_shielded(p):
-		_emit(&"acclaim_shielded", {"player": p.index})
+func _set_fervor(p: PlayerState, value: int, source_owner: int) -> void:
+	if value < p.fervor and source_owner != p.index and fervor_shielded(p):
+		_emit(&"fervor_shielded", {"player": p.index})
 		return
-	var before: int = p.acclaim
-	p.acclaim = maxi(0, value)
-	_emit(&"acclaim_changed", {"player": p.index, "from": before, "to": p.acclaim, "source": _effect_source.uid if _effect_source != null else -1})
-	_check_tier_up(p)
+	var before: int = p.fervor
+	p.fervor = maxi(0, value)
+	_emit(&"fervor_changed", {"player": p.index, "from": before, "to": p.fervor, "source": _effect_source.uid if _effect_source != null else -1})
+	_check_aspect_up(p)
 
 
-func acclaim_shielded(p: PlayerState) -> bool:
-	return p.master != null and bool(p.master.def.master_flags.get("acclaim_shield", false))
+func fervor_shielded(p: PlayerState) -> bool:
+	return p.grimoire != null and bool(p.grimoire.def.grimoire_flags.get("fervor_shield", false))
 
 
-## Full Acclaim raises the fighter a tier. At the fighter's own top tier it is the Favor win;
-## a forbidden Favor win falls back to the old peak (full Vigor, Acclaim to 0).
-func _check_tier_up(p: PlayerState) -> void:
-	if p.acclaim < acclaim_needed(p):
+## Full Fervor raises the duelist an aspect. At the duelist's own top aspect it is the Ascension win;
+## a forbidden Ascension win falls back to the old peak (full Energy, Fervor to 0).
+func _check_aspect_up(p: PlayerState) -> void:
+	if p.fervor < fervor_needed(p):
 		return
-	if p.fighter.tier < p.highest_tier:
-		p.acclaim = 0
-		_tier_up(p)
-	elif not p.no_favor_win:
-		_win(p.index, "favor")
+	if p.duelist.aspect < p.highest_aspect:
+		p.fervor = 0
+		_aspect_up(p)
+	elif not p.no_ascension_win:
+		_win(p.index, "ascension")
 	else:
-		p.acclaim = 0
-		p.fighter.vigor = CardInstance.MAX_STAGE
-		_emit(&"acclaim_peak", {"player": p.index, "vigor": p.fighter.vigor})
+		p.fervor = 0
+		p.duelist.energy = CardInstance.MAX_STAGE
+		_emit(&"fervor_peak", {"player": p.index, "energy": p.duelist.energy})
 
 
-func _tier_up(p: PlayerState) -> void:
-	p.fighter.tier += 1
-	p.fighter.vigor = CardInstance.MAX_STAGE
+func _aspect_up(p: PlayerState) -> void:
+	p.duelist.aspect += 1
+	p.duelist.energy = CardInstance.MAX_STAGE
 	_discard_drills(p)
-	_emit(&"tier_up", {"player": p.index, "tier": p.fighter.tier})
+	_emit(&"aspect_up", {"player": p.index, "aspect": p.duelist.aspect})
 
 
-func _lose_tier(p: PlayerState, source_owner: int) -> void:
-	if p.fighter.tier <= 1:
+func _lose_aspect(p: PlayerState, source_owner: int) -> void:
+	if p.duelist.aspect <= 1:
 		return
-	if source_owner != p.index and p.master != null and bool(p.master.def.master_flags.get("tier_shield", false)):
+	if source_owner != p.index and p.grimoire != null and bool(p.grimoire.def.grimoire_flags.get("aspect_shield", false)):
 		return
-	p.fighter.tier -= 1
-	p.fighter.vigor = LOST_TIER_VIGOR
+	p.duelist.aspect -= 1
+	p.duelist.energy = LOST_ASPECT_ENERGY
 	_discard_drills(p)
-	_emit(&"tier_down", {"player": p.index, "tier": p.fighter.tier})
+	_emit(&"aspect_down", {"player": p.index, "aspect": p.duelist.aspect})
 
 
-## Moves the fighter to an absolute tier ("acclaim" reads the current Acclaim value).
-func _set_tier(p: PlayerState, e: Dictionary, source_owner: int) -> void:
-	var raw: Variant = e.get("tier", 1)
-	var target: int = p.acclaim if (raw is String and str(raw) == "acclaim") else int(raw)
-	target = clampi(target, 1, p.highest_tier)
+## Moves the duelist to an absolute aspect ("fervor" reads the current Fervor value).
+func _set_aspect(p: PlayerState, e: Dictionary, source_owner: int) -> void:
+	var raw: Variant = e.get("aspect", 1)
+	var target: int = p.fervor if (raw is String and str(raw) == "fervor") else int(raw)
+	target = clampi(target, 1, p.highest_aspect)
 	if target == 0:
 		target = 1
-	while p.fighter.tier < target:
-		_tier_up(p)
-	while p.fighter.tier > target:
-		var before: int = p.fighter.tier
-		_lose_tier(p, source_owner)
-		if p.fighter.tier == before:
+	while p.duelist.aspect < target:
+		_aspect_up(p)
+	while p.duelist.aspect > target:
+		var before: int = p.duelist.aspect
+		_lose_aspect(p, source_owner)
+		if p.duelist.aspect == before:
 			break
 
 
@@ -3130,16 +3166,16 @@ func _discard_drills(p: PlayerState) -> void:
 		_move_to_discard(d)
 
 
-func _gain_vigor(p: PlayerState, c: CardInstance, n: int) -> void:
+func _gain_energy(p: PlayerState, c: CardInstance, n: int) -> void:
 	if _has_floating(p.index, "no_gain"):
 		return
-	c.vigor = clampi(c.vigor + n, 0, CardInstance.MAX_STAGE)
+	c.energy = clampi(c.energy + n, 0, CardInstance.MAX_STAGE)
 
 
-## Vigor loss from card effects. Past 0 it costs life cards, one per stage.
-func _lose_vigor(p: PlayerState, c: CardInstance, n: int) -> void:
-	var lost: int = mini(c.vigor, n)
-	c.vigor -= lost
+## Energy loss from card effects. Past 0 it costs life cards, one per stage.
+func _lose_energy(p: PlayerState, c: CardInstance, n: int) -> void:
+	var lost: int = mini(c.energy, n)
+	c.energy -= lost
 	var overflow: int = n - lost
 	if overflow > 0:
 		_discard_life(p, overflow)
@@ -3156,7 +3192,7 @@ func _power_available(p: PlayerState, ic: CardInstance) -> bool:
 		if ic.power_used_combat != state.combat_count:
 			return true
 		return ic.power_uses_combat < uses
-	# Fighter Powers are once per turn; a tier change mid-Combat does not refresh them.
+	# Duelist Powers are once per turn; an aspect change mid-Combat does not refresh them.
 	if ic.power_used_turn != state.turn:
 		return true
 	return ic.power_used_combat == state.combat_count and ic.power_uses_combat < uses
@@ -3170,11 +3206,11 @@ func _mark_power_used(ic: CardInstance) -> void:
 	ic.power_uses_combat += 1
 
 
-# --- Tokens ---------------------------------------------------------------
+# --- Seals ---------------------------------------------------------------
 
-func _token_in_play(id: String) -> CardInstance:
+func _seal_in_play(id: String) -> CardInstance:
 	for p in state.players:
-		for t in p.tokens():
+		for t in p.seals():
 			if t.def.id == id:
 				return t
 	return null
@@ -3182,40 +3218,40 @@ func _token_in_play(id: String) -> CardInstance:
 
 func _controls_full_set(p: PlayerState) -> bool:
 	var sets: Dictionary = {}
-	for t in p.tokens():
-		sets[t.def.token_set] = int(sets.get(t.def.token_set, 0)) + 1
+	for t in p.seals():
+		sets[t.def.seal_set] = int(sets.get(t.def.seal_set, 0)) + 1
 	for s in sets.keys():
-		if int(sets[s]) >= TOKENS_PER_SET:
+		if int(sets[s]) >= SEALS_PER_SET:
 			return true
 	return false
 
 
-## A Token leaving a hand or Life Deck never reaches the discard pile.
-func _bypass_token(c: CardInstance) -> void:
+## A Seal leaving a hand or Life Deck never reaches the discard pile.
+func _bypass_seal(c: CardInstance) -> void:
 	var owner: PlayerState = state.players[c.owner]
 	_erase_from_zone(c)
-	if _token_in_play(c.def.id) != null:
+	if _seal_in_play(c.def.id) != null:
 		c.zone = &"removed"
 		owner.removed.append(c)
-		_emit(&"token_bypassed", {"card": c.uid, "to": "removed"})
+		_emit(&"seal_bypassed", {"card": c.uid, "to": "removed"})
 	else:
 		c.zone = &"life_deck"
 		owner.life_deck.append(c)
-		_emit(&"token_bypassed", {"card": c.uid, "to": "deck_bottom"})
+		_emit(&"seal_bypassed", {"card": c.uid, "to": "deck_bottom"})
 
 
-func _capture_token(by: int, t: CardInstance) -> void:
+func _capture_seal(by: int, t: CardInstance) -> void:
 	var taker: PlayerState = state.players[by]
 	_erase_from_zone(t)
 	t.controller = by
 	t.zone = &"in_play"
 	taker.in_play.append(t)
-	_emit(&"token_captured", {"player": by, "card": t.uid, "id": t.def.id})
+	_emit(&"seal_captured", {"player": by, "card": t.uid, "id": t.def.id})
 	if _controls_full_set(taker):
-		taker.token_victory_pending = true
-		_emit(&"token_victory_pending", {"player": by})
-	# The captor may use the Token's power on capture: one "may" question for the whole text.
-	var power: Array[Dictionary] = _token_power(t)
+		taker.seal_victory_pending = true
+		_emit(&"seal_victory_pending", {"player": by})
+	# The captor may use the Seal's power on capture: one "may" question for the whole text.
+	var power: Array[Dictionary] = _seal_power(t)
 	if not power.is_empty():
 		var offer: Dictionary = power[0].duplicate(true)
 		offer["may"] = true
@@ -3226,24 +3262,29 @@ func _capture_token(by: int, t: CardInstance) -> void:
 		_enqueue_keyed([offer], "on_place", by, {}, t)
 
 
-func _only_tokens_left(p: PlayerState) -> bool:
+func _only_seals_left(p: PlayerState) -> bool:
 	if p.life_deck.is_empty():
 		return false
 	for c in p.life_deck:
-		if c.def.type != CardDef.Type.TOKEN:
+		if c.def.type != CardDef.Type.SEAL:
 			return false
 	return true
 
 
 # --- Search, attach, draw variants ---------------------------------------
 
-## Search the Life Deck (or discard, or Armory) for a matching card and put it in hand or play.
+## Search the Life Deck (or discard, or Pages) for a matching card and put it in hand or play.
 ## A search of the Life Deck is a look through it: the searcher is always asked, sees the whole
 ## deck, may take nothing, and the deck is shuffled once when the search is over unless the
 ## effect says `no_shuffle`. That holds with one match and with none. A search of the discard
-## pile or the Armory alone shows nothing new, so it is asked only when there is a real choice.
+## pile or the Pages alone shows nothing new, so it is asked only when there is a real choice.
 func _search(p: PlayerState, e: Dictionary) -> void:
 	var n: int = maxi(1, int(e.get("amount", 1)))
+	if e.has("amount_per_set_seal"):
+		# One card for each Seal of the named set in play, on either side.
+		n = _set_seals_in_play(str(e["amount_per_set_seal"]))
+		if n <= 0:
+			return
 	var cands: Array[CardInstance] = _search_candidates(p, e)
 	var looks: bool = _search_looks_at_deck(e)
 	if cands.is_empty() and not looks:
@@ -3256,8 +3297,16 @@ func _search(p: PlayerState, e: Dictionary) -> void:
 	for i in range(n):
 		cands = _search_candidates(p, e)
 		if cands.is_empty():
-			return
+			break
 		_search_take(p, cands[0], e)
+	_search_done(p, e)
+
+
+func _set_seals_in_play(set_name: String) -> int:
+	var n: int = 0
+	for pl in state.players:
+		n += pl.seals_of_set(set_name)
+	return n
 
 
 func _search_looks_at_deck(e: Dictionary) -> bool:
@@ -3290,7 +3339,8 @@ func _prompt_search_pick(p: PlayerState, hits: Array[CardInstance], n: int, e: D
 
 ## The end of a search: the deck that was looked through is shuffled.
 func _search_done(p: PlayerState, e: Dictionary) -> void:
-	if _search_looks_at_deck(e) and shuffle_decks and not bool(e.get("no_shuffle", false)):
+	var shuffled_in: bool = str(e.get("to", "hand")) == "deck_shuffle"
+	if (_search_looks_at_deck(e) or shuffled_in) and shuffle_decks and not bool(e.get("no_shuffle", false)):
 		rng.shuffle(p.life_deck)
 		_emit(&"deck_shuffled", {"player": p.index})
 
@@ -3304,8 +3354,10 @@ func _search_candidates(p: PlayerState, e: Dictionary) -> Array[CardInstance]:
 		"either":
 			pools.append(p.life_deck)
 			pools.append(p.discard)
-		"armory":
-			pools.append(p.armory)
+		"pages":
+			pools.append(p.pages)
+		"hand":
+			pools.append(p.hand)
 		_:
 			pools.append(p.life_deck)
 	var out: Array[CardInstance] = []
@@ -3331,7 +3383,11 @@ func _search_distinct(cands: Array[CardInstance]) -> Array[CardInstance]:
 func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String) -> bool:
 	var type_name: String = str(e.get("card_type", ""))
 	var wanted: int = int(CardDef.TYPE_NAMES.get(type_name, -1))
-	if c.def.type == CardDef.Type.TOKEN and type_name != "token":
+	if type_name == "non_combat_any":
+		# Everything that is placed in the Non-Combat step bar Grounds: Non-Combats, Drills, Seals.
+		if c.def.type != CardDef.Type.NON_COMBAT and c.def.type != CardDef.Type.DRILL and c.def.type != CardDef.Type.SEAL:
+			return false
+	elif c.def.type == CardDef.Type.SEAL and type_name != "seal":
 		return false
 	if wanted >= 0 and c.def.type != wanted:
 		return false
@@ -3342,8 +3398,8 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	var tag: String = str(e.get("tag", ""))
 	if tag != "" and not (c.def.raw.get("tags", []) as Array).has(tag):
 		return false
-	var guild: String = str(e.get("guild", "*"))
-	if guild != "*" and c.def.guild != guild:
+	var school: String = str(e.get("school", "*"))
+	if school != "*" and c.def.school != school:
 		return false
 	var title_contains: String = str(e.get("title_contains", ""))
 	if title_contains != "" and not c.def.title.contains(title_contains):
@@ -3351,7 +3407,7 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	var exclude: String = str(e.get("exclude_title", ""))
 	if exclude != "" and c.def.title == exclude:
 		return false
-	if str(e.get("signature_of", "")) == "fighter" and c.def.character != p.fighter.def.character:
+	if str(e.get("signature_of", "")) == "duelist" and c.def.character != p.duelist.def.character:
 		return false
 	if e.has("has_effect") and not _def_has_effect(c.def, e["has_effect"]):
 		return false
@@ -3411,7 +3467,7 @@ func _open_declare_window(p: PlayerState) -> bool:
 # --- Bonds: two Allies fight as one card until the bond burns out -------------
 
 func _find_owned(p: PlayerState, id: String) -> CardInstance:
-	for pool in [p.armory, p.removed, p.discard, p.life_deck, p.hand]:
+	for pool in [p.pages, p.removed, p.discard, p.life_deck, p.hand]:
 		for c in pool:
 			if c.def.id == id:
 				return c
@@ -3435,7 +3491,7 @@ func _bond(p: PlayerState, id: String) -> void:
 	_erase_from_zone(bond)
 	bond.zone = &"in_play"
 	bond.controller = p.index
-	bond.vigor = CardInstance.MAX_STAGE
+	bond.energy = CardInstance.MAX_STAGE
 	bond.bond_timer = 0
 	bond.cards_under.clear()
 	for al in parts:
@@ -3455,18 +3511,18 @@ func _unbond(p: PlayerState, bond: CardInstance) -> void:
 			rest.append(c)
 	bond.cards_under.clear()
 	_erase_from_zone(bond)
-	bond.zone = &"armory"
+	bond.zone = &"pages"
 	bond.bond_timer = 0
-	p.armory.append(bond)
+	p.pages.append(bond)
 	for c in rest:
 		_move_to_discard(c)
 	for al in fusees:
 		al.zone = &"in_play"
 		al.controller = p.index
-		al.vigor = ALLY_STARTING_VIGOR
+		al.energy = ALLY_STARTING_ENERGY
 		p.in_play.append(al)
 	if p.controlling == bond:
-		p.controlling = p.fighter
+		p.controlling = p.duelist
 	_emit(&"unbonded", {"player": p.index, "card": bond.uid})
 
 
@@ -3476,7 +3532,9 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 	if to == "play":
 		_place(p, hit)
 		if hit.def.type == CardDef.Type.ALLY and e.has("stages"):
-			hit.vigor = clampi(int(e["stages"]), 0, CardInstance.MAX_STAGE)
+			hit.energy = clampi(int(e["stages"]), 0, CardInstance.MAX_STAGE)
+	elif to == "deck_bottom" or to == "deck_shuffle":
+		_move_to_deck_bottom(hit)
 	else:
 		_erase_from_zone(hit)
 		hit.zone = &"hand"
@@ -3485,12 +3543,12 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 	_emit(&"search", {"player": p.index, "card": hit.uid, "type": str(e.get("card_type", "")), "to": to})
 
 
-## `to`: "in_control", "fighter", "character" (the X of the card's "X only" gate, wherever X
+## `to`: "in_control", "duelist", "character" (the X of the card's "X only" gate, wherever X
 ## stands) or "named" (the personality the attach effect names, which may differ from the gate).
 func _attach(c: CardInstance, p: PlayerState, to: String) -> void:
 	var host: CardInstance = _attach_host(p, c.def)
 	if host == null:
-		host = p.in_control() if to == "in_control" else p.fighter
+		host = p.in_control() if to == "in_control" else p.duelist
 	if c.zone == &"resolving" or c.zone == &"hand" or c.zone == &"in_play":
 		_erase_from_zone(c)
 	c.zone = &"in_play"
@@ -3502,20 +3560,25 @@ func _attach(c: CardInstance, p: PlayerState, to: String) -> void:
 	_check_lonely_drills(p)
 
 
-func _draw_discard(p: PlayerState, n: int, from: String) -> void:
+## Returns the last card drawn, null when the pile was empty.
+func _draw_discard(p: PlayerState, n: int, from: String) -> CardInstance:
+	var last: CardInstance = null
 	for i in range(n):
 		if p.discard.is_empty():
-			return
+			return last
 		var c: CardInstance = p.discard.pop_front() if from == "bottom" else p.discard.pop_back()
 		c.zone = &"hand"
 		p.hand.append(c)
+		last = c
 		_emit(&"draw", {"player": p.index, "card": c.uid, "from": "discard"})
+	return last
 
 
-func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool) -> void:
+## `from` "top_and_bottom" alternates ends, top first; anything else takes from the top.
+func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String = "top") -> void:
 	var count: int = p.discard.size() if all else mini(n, p.discard.size())
 	for i in range(count):
-		var c: CardInstance = p.discard.pop_back()
+		var c: CardInstance = p.discard.pop_front() if from == "top_and_bottom" and i % 2 == 1 else p.discard.pop_back()
 		c.zone = &"life_deck"
 		p.life_deck.append(c)
 		_emit(&"recover", {"player": p.index, "card": c.uid})
@@ -3547,14 +3610,14 @@ func _flip_life_card(p: PlayerState) -> CardInstance:
 	return c
 
 
-## Life cards lost to a cost or effect, not to attack damage. Tokens count but still bypass the discard pile.
+## Life cards lost to a cost or effect, not to attack damage. Seals count but still bypass the discard pile.
 func _discard_life(p: PlayerState, n: int) -> void:
 	for i in range(n):
 		var c: CardInstance = _flip_life_card(p)
 		if c == null:
 			return
-		if c.def.type == CardDef.Type.TOKEN:
-			_bypass_token(c)
+		if c.def.type == CardDef.Type.SEAL:
+			_bypass_seal(c)
 		else:
 			_move_to_discard(c)
 			_on_wound(p, c)
@@ -3593,8 +3656,8 @@ func _remove_discard(p: PlayerState, n: int, all: bool) -> void:
 
 
 func _move_to_discard(c: CardInstance) -> void:
-	if c.def.type == CardDef.Type.TOKEN:
-		_bypass_token(c)
+	if c.def.type == CardDef.Type.SEAL:
+		_bypass_seal(c)
 		return
 	_erase_from_zone(c)
 	var owner: PlayerState = state.players[c.owner]
@@ -3637,7 +3700,7 @@ func _move_to_deck_bottom(c: CardInstance) -> void:
 
 ## Attachments fall off when their host leaves play.
 func _drop_attachments(host: CardInstance) -> void:
-	if host.def.type != CardDef.Type.ALLY and host.def.type != CardDef.Type.FIGHTER:
+	if host.def.type != CardDef.Type.ALLY and host.def.type != CardDef.Type.DUELIST:
 		return
 	for p in state.players:
 		for at in p.attachments():
@@ -3666,14 +3729,20 @@ func _finish_card(c: CardInstance, empowered: bool) -> void:
 		owner.in_play.append(c)
 		_emit(&"remain", {"player": c.owner, "card": c.uid, "uses": remain})
 		return
-	if _has_floating_guild(c.owner, "after_use_bottom", def.guild) and def.guild != "":
+	if _has_floating_school(c.owner, "after_use_bottom", def.school) and def.school != "":
 		_move_to_deck_bottom(c)
 	elif def.bottom_after_use:
 		_move_to_deck_bottom(c)
-	elif def.remove_after_use and not empowered:
+	elif def.remove_after_use and not empowered and not _kept_by_seal(def):
 		_remove_from_game(c)
 	else:
 		_move_to_discard(c)
+
+
+## `discard_if_seal`: the card is discarded, not removed, while the named Seal is in play.
+func _kept_by_seal(def: CardDef) -> bool:
+	var id: String = str(def.raw.get("discard_if_seal", ""))
+	return id != "" and _seal_in_play(id) != null
 
 
 func _erase_from_zone(c: CardInstance) -> void:
@@ -3687,8 +3756,8 @@ func _erase_from_zone(c: CardInstance) -> void:
 			owner.discard.erase(c)
 		&"removed":
 			owner.removed.erase(c)
-		&"armory":
-			owner.armory.erase(c)
+		&"pages":
+			owner.pages.erase(c)
 		&"in_play":
 			state.players[c.controller].in_play.erase(c)
 		&"grounds":
@@ -3699,12 +3768,12 @@ func _erase_from_zone(c: CardInstance) -> void:
 	c.zone = &"none"
 
 
-## The fighter or Ally in play with this character name, else null.
+## The duelist or Ally in play with this character name, else null.
 func _character_in_play(p: PlayerState, character: String) -> CardInstance:
 	if character == "":
 		return null
-	if p.fighter.def.character == character:
-		return p.fighter
+	if p.duelist.def.character == character:
+		return p.duelist
 	return _ally_of_character(p, character)
 
 

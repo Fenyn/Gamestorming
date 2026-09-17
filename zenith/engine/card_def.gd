@@ -2,30 +2,30 @@ class_name CardDef
 extends RefCounted
 ## Immutable card definition loaded from JSON. See zenith/README.md for the schema.
 
-enum Type { FIGHTER, ALLY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, TOKEN, GROUNDS, MASTERY, MASTER }
+enum Type { DUELIST, ALLY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, SEAL, GROUNDS, MASTERY, GRIMOIRE }
 
 const TYPE_NAMES: Dictionary = {
-	"fighter": Type.FIGHTER,
+	"duelist": Type.DUELIST,
 	"ally": Type.ALLY,
 	"strike": Type.STRIKE,
 	"art": Type.ART,
 	"combat": Type.COMBAT,
 	"non_combat": Type.NON_COMBAT,
 	"drill": Type.DRILL,
-	"token": Type.TOKEN,
+	"seal": Type.SEAL,
 	"grounds": Type.GROUNDS,
 	"mastery": Type.MASTERY,
-	"master": Type.MASTER,
+	"grimoire": Type.GRIMOIRE,
 }
 
 var id: String = ""
 var title: String = ""
 var type: Type = Type.COMBAT
-var guild: String = ""          # "" is Freestyle
+var school: String = ""          # "" is Freestyle
 var text: String = ""
 var character: String = ""      # personalities: which character this card belongs to
-var alignment_only: String = "" # "", "knight", "knave"
-var only: Dictionary = {}       # play/use gate, e.g. {"character": "Sir Edric Rooke"} or {"fighter_character": ...}
+var alignment_only: String = "" # "", "vigil", "pact"
+var only: Dictionary = {}       # play/use gate, e.g. {"character": "Sir Edric Rooke"} or {"duelist_character": ...}
 var limit_per_deck: int = 3
 var endurance: int = 0
 var endurance_when: Dictionary = {}   # Endurance X: {"value_if": {...cond}, "then": 6, "else": 3}
@@ -39,17 +39,17 @@ var remain_when: Dictionary = {}   # conditional Remain: {"when": cond, "remain"
 var counter: String = ""        # "combat": may be played in response to a Combat card to cancel it
 var start_in_play: bool = false
 var effects: Array[Dictionary] = []   # {trigger, op, who, amount, when, after_empower, ...}
-var modifiers: Array[Dictionary] = [] # {scope: own | against, kind: strike | art | any, stages, life, guild, title_contains, when, per_ally}
+var modifiers: Array[Dictionary] = [] # {scope: own | against, kind: strike | art | any, stages, life, school, title_contains, when, per_ally}
 var shield: String = ""         # Defense Shield on Drills: "", strike, art, any
 var forbid: Array = []          # standing forbids while in play (Grounds, Drills): [{"who": "all"|"owner"|"opponent", "what": "..."}]
-var attachment: Dictionary = {} # {"target": "in_control"|"fighter", "modifiers": [...], "effects": [...], "damage_removes": bool}
-var tiers: Array[Dictionary] = []     # personalities: {tier, surge, might: [11 ints], wild, power, constant, shield}
-var token_set: String = ""
-var token_number: int = 0
+var attachment: Dictionary = {} # {"target": "in_control"|"duelist", "modifiers": [...], "effects": [...], "damage_removes": bool}
+var aspects: Array[Dictionary] = []     # personalities: {aspect, surge, might: [11 ints], wild, power, constant, shield}
+var seal_set: String = ""
+var seal_number: int = 0
 var capture_trait: bool = false
-var armory_size: int = 0
-var master_flags: Dictionary = {}     # Master passives: {"no_favor_win": true, "acclaim_shield": true, "tier_shield": true}
-var opponent_tier_threshold: int = 0  # Mastery: opponent needs this much Acclaim to rise a tier
+var pages_size: int = 0
+var grimoire_flags: Dictionary = {}     # Grimoire passives: {"no_ascension_win": true, "fervor_shield": true, "aspect_shield": true}
+var opponent_aspect_threshold: int = 0  # Mastery: opponent needs this much Fervor to rise an aspect
 var raw: Dictionary = {}
 
 
@@ -61,7 +61,7 @@ static func from_dict(d: Dictionary) -> CardDef:
 	var type_name: String = str(d.get("type", "combat"))
 	assert(TYPE_NAMES.has(type_name), "Unknown card type '%s' on %s" % [type_name, c.id])
 	c.type = TYPE_NAMES[type_name] as Type
-	c.guild = str(d.get("guild", ""))
+	c.school = str(d.get("school", ""))
 	c.text = str(d.get("text", ""))
 	c.character = str(d.get("character", ""))
 	c.alignment_only = str(d.get("alignment_only", ""))
@@ -83,18 +83,18 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.shield = str(d.get("shield", ""))
 	c.forbid = d.get("forbid", [])
 	c.attachment = d.get("attachment", {})
-	c.tiers.assign(d.get("tiers", []))
-	c.token_set = str(d.get("token_set", ""))
-	c.token_number = int(d.get("token_number", 0))
+	c.aspects.assign(d.get("aspects", []))
+	c.seal_set = str(d.get("seal_set", ""))
+	c.seal_number = int(d.get("seal_number", 0))
 	c.capture_trait = bool(d.get("capture_trait", false))
-	c.armory_size = int(d.get("armory_size", 0))
-	c.master_flags = d.get("master_flags", {})
-	c.opponent_tier_threshold = int(d.get("opponent_tier_threshold", 0))
+	c.pages_size = int(d.get("pages_size", 0))
+	c.grimoire_flags = d.get("grimoire_flags", {})
+	c.opponent_aspect_threshold = int(d.get("opponent_aspect_threshold", 0))
 	return c
 
 
 func is_personality() -> bool:
-	return type == Type.FIGHTER or type == Type.ALLY
+	return type == Type.DUELIST or type == Type.ALLY
 
 
 func is_hand_combat_card() -> bool:
@@ -160,22 +160,22 @@ func has_trigger(trigger: String) -> bool:
 	return false
 
 
-func tier_data(tier: int) -> Dictionary:
-	for t in tiers:
-		if int(t.get("tier", 0)) == tier:
+func aspect_data(aspect: int) -> Dictionary:
+	for t in aspects:
+		if int(t.get("aspect", 0)) == aspect:
 			return t
 	return {}
 
 
-func highest_tier() -> int:
+func highest_aspect() -> int:
 	var best: int = 0
-	for t in tiers:
-		best = maxi(best, int(t.get("tier", 0)))
+	for t in aspects:
+		best = maxi(best, int(t.get("aspect", 0)))
 	return best
 
 
-func lowest_tier() -> int:
+func lowest_aspect() -> int:
 	var best: int = 99
-	for t in tiers:
-		best = mini(best, int(t.get("tier", 0)))
+	for t in aspects:
+		best = mini(best, int(t.get("aspect", 0)))
 	return best if best != 99 else 0

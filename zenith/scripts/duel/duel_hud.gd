@@ -327,6 +327,10 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	for opt in p.options:
 		if opt.type == &"final_strike":
 			finals.append(opt)
+		elif opt.type == &"pick_option" and opt.card < 0:
+			# A choice between wordings rather than cards ("all their Allies or all their Drills").
+			# It reads as a card-sized tile in the tray, not as a row of small buttons.
+			browse.append(opt)
 		elif BUTTON_KINDS.has(p.kind) or (opt.card < 0 and opt.type != &"name_card"):
 			primaries.append(opt)
 		elif _needs_tray(p, opt):
@@ -844,7 +848,37 @@ func _hide_tray() -> void:
 
 ## A face with its caption. Clicking the face picks the option unless it is a sub-choice, where
 ## the buttons decide. Named-card options carry a title instead of a uid and draw from the library.
+## A choice with no card behind it, shown at card size with its wording set in the middle, so the
+## two halves of "all their Allies or all their Drills" are read side by side and weighed like cards.
+func _tray_choice_entry(opt: OptionView) -> Control:
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	var frame: PanelContainer = PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, 10, 3, 3, 3))
+	frame.pivot_offset = Vector2(TRAY_CARD_SIZE.x * 0.5 + 3.0, TRAY_CARD_SIZE.y * 0.5 + 3.0)
+	var b: Button = Button.new()
+	b.flat = true
+	b.custom_minimum_size = TRAY_CARD_SIZE
+	b.text = opt.label
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.clip_text = false
+	b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_color_override("font_color", ZenithTheme.TEXT)
+	b.pressed.connect(func() -> void: option_chosen.emit(opt))
+	b.mouse_entered.connect(func() -> void:
+		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.ACCENT, 10, 3, 3, 3))
+		_lift(frame, true))
+	b.mouse_exited.connect(func() -> void:
+		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, 10, 3, 3, 3))
+		_lift(frame, false))
+	frame.add_child(b)
+	column.add_child(frame)
+	return column
+
+
 func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
+	if opt.type == &"pick_option" and opt.card < 0:
+		return _tray_choice_entry(opt)
 	var def: CardDef = null
 	var aspect: int = 0
 	var uid: int = opt.card

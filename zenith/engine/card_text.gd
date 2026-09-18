@@ -173,6 +173,7 @@ const CARD_TYPE_WORDS: Dictionary = {
 	"non_combat": ["Non-Combat card", "Non-Combat cards"], "non_combat_only": ["Non-Combat card", "Non-Combat cards"],
 	"combat": ["Combat card", "Combat cards"], "strike": ["Strike", "Strikes"], "art": ["Art", "Arts"],
 	"attack": ["attack card", "attack cards"], "hand_combat": ["Strike, Art, or Combat card", "Strike, Art, or Combat cards"],
+	"strike_or_art": ["Strike or Art card", "Strike or Art cards"],
 	"seal": ["Seal", "Seals"], "grounds": ["Grounds card", "Grounds cards"],
 	"drill_or_ally": ["Drill or Ally", "Drills and Allies"], "non_combat_or_ally": ["Non-Combat card or Ally", "Non-Combat cards and Allies"],
 	"freestyle_drill": ["Freestyle Drill", "Freestyle Drills"], "duelist": ["Duelist", "Duelists"], "mastery": ["Mastery", "Masteries"],
@@ -442,6 +443,8 @@ static func defense_text(d: Dictionary) -> String:
 			s = "Stops a Strike."
 		"art":
 			s = "Stops an Art."
+		"none":
+			s = "Use during your attack phase or against an attack. Stops nothing."
 		_:
 			s = "Stops a Strike or an Art."
 	if d.has("when"):
@@ -660,6 +663,18 @@ static func _effect_body(e: Dictionary) -> String:
 			body = "Your opponent pays %d more Energy for their next attack this Combat." % n
 		"choose_stop_all_kind":
 			body = "Choose Strikes or Arts: all attacks of that kind are stopped for the remainder of Combat, yours included."
+		"choose_card_type":
+			# One line per choice, each the inner effect read with that card type.
+			var choices: PackedStringArray = PackedStringArray()
+			for t in e.get("choices", []):
+				var inner: Dictionary = (e.get("effect", {}) as Dictionary).duplicate(true)
+				inner["card_type"] = str(t)
+				choices.append(_lc(effect_text(inner).rstrip(".")))
+			body = "Choose one: %s." % " or ".join(choices)
+		"recur_source":
+			var cost: Dictionary = e.get("cost", {})
+			var what: String = "Signature card" if str(cost.get("signature_of", "")) == "duelist" else "card"
+			body = "remove a %s from your discard pile to shuffle this card into your Life Deck." % what
 		"draw_check":
 			var check: String = str(e.get("check", ""))
 			var kind: String = "a %s card" % school_name(str(e.get("school", "")))
@@ -798,6 +813,50 @@ static func effect_text(e: Dictionary) -> String:
 
 ## What an optional effect does once its owner says yes, for the prompt that asks. The trigger
 ## and condition have already been met by then, so only the instruction remains, minus the "may".
+## The two sides of a "you may" named as actions rather than as a yes and a no, so the choice reads
+## "Draw from your discard pile" against "Leave it" instead of "Yes, do it" against "No, skip it".
+## A card that says "otherwise" makes the decline an action of its own, and that is what it says.
+static func may_action(e: Dictionary) -> String:
+	var opp: bool = str(e.get("who", "self")) == "opponent"
+	var n: int = int(e.get("amount", 1))
+	match str(e.get("op", "")):
+		"draw_discard":
+			return "Draw from your discard pile" if str(e.get("from", "top")) != "bottom" else "Draw the bottom of your discard pile"
+		"discard_hand":
+			return "Make them discard" if opp else "Discard from your hand"
+		"discard_life":
+			return "Take %s" % _plural(n, "wound", "wounds")
+		"fervor":
+			if opp:
+				return "Lower their Fervor %d" % absi(n)
+			return "Raise your Fervor %d" % n if n > 0 else "Lower your Fervor %d" % absi(n)
+		"energy":
+			return "Take the Energy"
+		"lose_aspect":
+			return "Drop an aspect"
+		"return_removed":
+			return "Take it back from the removed pile"
+		"recur_source":
+			return "Pay to keep this card"
+		"search":
+			return "Search for it"
+		"choose_card_type":
+			return "Do it instead of the damage"
+	var text: String = may_text(e)
+	return text if text != "" else "Do it"
+
+
+static func may_decline(e: Dictionary) -> String:
+	if e.has("otherwise") and e["otherwise"] is Array:
+		var lines: PackedStringArray = PackedStringArray()
+		for t in e["otherwise"]:
+			if t is Dictionary:
+				lines.append(may_action(t))
+		if not lines.is_empty():
+			return " ".join(lines)
+	return "Leave it"
+
+
 static func may_text(e: Dictionary) -> String:
 	var plain: Dictionary = e.duplicate(true)
 	for key in ["may", "trigger", "when", "at"]:
@@ -1174,11 +1233,12 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"pick_option":
 			if name != "":
 				return name
+			var ctx: Dictionary = engine.prompt.context if engine != null and engine.prompt != null else {}
 			match str(cmd.value):
 				"yes":
-					return "Yes, do it"
+					return str(ctx.get("yes_label", "Do it"))
 				"no":
-					return "No, skip it"
+					return str(ctx.get("no_label", "Leave it"))
 				_:
 					return str(cmd.value).replace("_", " ").capitalize()
 		_:

@@ -1712,8 +1712,9 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 		_discard_life(d, int(def.defense["cost_life"]))
 	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
 		_discard_hand(d, 1, false)
-	_register_stop(a)
-	_note_stop(a, c, "card")
+	if str(def.defense.get("stops", "")) != "none":
+		_register_stop(a)
+		_note_stop(a, c, "card")
 	_emit(&"defense_played", {"player": d.index, "card": c.uid, "id": def.id, "stopped": a["stopped"]})
 	if def.defense.has("copy_attack") and bool(a["stopped"]):
 		_float(d.index, "copied_attack", "combat", {"spec": a["spec"].duplicate(true), "effects": a["effects"].duplicate(true)})
@@ -2214,7 +2215,8 @@ func _prompt_may(e: Dictionary, owner: int, ctx: Dictionary, source: CardInstanc
 	var opts: Array[Command] = [Command.new(owner, &"pick_option", -1, "yes"), Command.new(owner, &"pick_option", -1, "no")]
 	_choice = {"kind": "may", "effect": e, "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
 	# The prompt carries what a yes does and which card asks, so the client can show both.
-	var context: Dictionary = {"may": true, "op": str(e.get("op", "")), "text": CardText.may_text(e)}
+	var context: Dictionary = {"may": true, "op": str(e.get("op", "")), "text": CardText.may_text(e),
+		"yes_label": CardText.may_action(e), "no_label": CardText.may_decline(e)}
 	if source != null:
 		context["source"] = source.uid
 		context["card_title"] = source.def.title
@@ -2410,6 +2412,14 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"advance_aspect":
 			if who.duelist.aspect < who.highest_aspect:
 				_aspect_up(who)
+		"choose_card_type":
+			# "Discard all their Allies or all their Drills": the card names the categories in
+			# `choices`, the player picks one, and `effect` then runs with that `card_type`.
+			var type_opts: Array[Command] = []
+			for t in e.get("choices", []):
+				type_opts.append(Command.new(owner, &"pick_option", -1, str(t)))
+			_choice = {"kind": "card_type", "effect": e.get("effect", {}), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+			_set_prompt(owner, &"pick_option", type_opts, _choice_context(source, "card_type"))
 		"choose_stop_all_kind":
 			var opts: Array[Command] = [Command.new(owner, &"pick_option", -1, "strike"), Command.new(owner, &"pick_option", -1, "art")]
 			_choice = {"kind": "stop_kind"}
@@ -2442,6 +2452,21 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			_discard_in_play_effect(who, e, owner)
 		"remove_discard":
 			_remove_discard(who, int(amount), bool(e.get("all", false)))
+		"recur_source":
+			# "Remove a card from your discard pile to shuffle this card back into your Life Deck
+			# after use." `cost` says which discarded card pays; nothing happens without one.
+			var paid: CardInstance = null
+			for c in who.discard:
+				if c != source and _search_matches(who, c, e.get("cost", {}), "removed"):
+					paid = c
+					break
+			if paid != null and source != null:
+				_remove_from_game(paid)
+				source.zone = &"life_deck"
+				who.life_deck.append(source)
+				if shuffle_decks:
+					rng.shuffle(who.life_deck)
+				_emit(&"recur_source", {"player": who.index, "card": source.uid, "paid": paid.uid})
 		"shuffle_discard":
 			var count: int = int(amount) * (who.allies().size() + 1 if bool(e.get("per_personality", false)) else 1)
 			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")))
@@ -2872,7 +2897,9 @@ func _look_at(p: PlayerState, e: Dictionary) -> void:
 	if rearrange:
 		take["rearrange"] = true
 		take["looked"] = looked
-		take["from"] = from
+		# `rest` sends the cards not taken to the other end, for a card that reads "look at the
+		# bottom N, then put the rest on top in any order".
+		take["from"] = str(e.get("rest", from))
 	if e.has("stages"):
 		take["stages"] = e["stages"]
 	if e.has("play_if"):
@@ -3098,9 +3125,13 @@ func _handle_choice(cmd: Command) -> void:
 				if prompt != null:
 					return
 		"stop_kind":
-			var k: String = str(cmd.value)
-			_float(cmd.player, "stop_all", "combat", {"kind": k})
-			_float(cmd.player, "forbid", "combat", {"what": k + "_attacks"})
+			# Stopping, not forbidding: the attack is still performed and still pays its cost.
+			_float(cmd.player, "stop_all", "combat", {"kind": str(cmd.value)})
+		"card_type":
+			var chosen: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
+			chosen["card_type"] = str(cmd.value)
+			var one: Array[Dictionary] = [chosen]
+			_queue.insert(0, {"effects": one, "index": 0, "trigger": "then", "owner": int(_choice["owner"]), "ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
 		"pick_in_play":
 			if cmd.type == &"pick_none":
 				_choice = {}
@@ -3523,6 +3554,9 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	if wanted >= 0 and c.def.type != wanted:
 		return false
 	if type_name == "attack" and not c.def.is_attack():
+		return false
+	if type_name == "strike_or_art" and c.def.type != CardDef.Type.STRIKE and c.def.type != CardDef.Type.ART:
+		# A Strike or Art card of any use, attack or block, which is how the source card reads.
 		return false
 	if type_name == "hand_combat" and not c.def.is_hand_combat_card():
 		return false

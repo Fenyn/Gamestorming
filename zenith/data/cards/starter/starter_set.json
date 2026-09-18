@@ -2035,13 +2035,6 @@
 	"stops": "art",
 	"stop_all": "art"
    },
-   "effects": [
-	{
-	 "op": "forbid",
-	 "what": "art_attacks",
-	 "duration": "combat"
-	}
-   ],
    "limit_per_deck": 1
   },
   {
@@ -2055,7 +2048,7 @@
    "limit_per_deck": 1,
    "use_in_attack": true,
    "defense": {
-	"stops": "any"
+	"stops": "none"
    },
    "effects": [
 	{
@@ -3393,7 +3386,7 @@
 	{
 	 "trigger": "use",
 	 "op": "search",
-	 "card_type": "attack",
+	 "card_type": "strike_or_art",
 	 "source": "either",
 	 "to": "hand"
 	}
@@ -3554,6 +3547,14 @@
 	 "trigger": "use",
 	 "op": "fervor",
 	 "amount": 1
+	},
+	{
+	 "trigger": "use",
+	 "may": true,
+	 "op": "recur_source",
+	 "cost": {
+	  "signature_of": "duelist"
+	 }
 	}
    ]
   },
@@ -4174,11 +4175,6 @@
 	 "kind": "art"
 	},
 	{
-	 "op": "forbid",
-	 "what": "art_attacks",
-	 "duration": "combat"
-	},
-	{
 	 "op": "fervor",
 	 "who": "opponent",
 	 "amount": -1
@@ -4234,10 +4230,16 @@
 	 "trigger": "before_damage",
 	 "may": true,
 	 "skip_damage": true,
-	 "op": "discard_in_play",
-	 "who": "opponent",
-	 "card_type": "drill_or_ally",
-	 "all": true
+	 "op": "choose_card_type",
+	 "choices": [
+	  "ally",
+	  "drill"
+	 ],
+	 "effect": {
+	  "op": "discard_in_play",
+	  "who": "opponent",
+	  "all": true
+	 }
 	},
 	{
 	 "op": "fervor",
@@ -4253,7 +4255,8 @@
    "attack": {
 	"kind": "strike",
 	"stages": 3,
-	"no_stop_by": "strike"
+	"no_stop_by": "strike",
+	"no_prevent": true
    },
    "effects": [
 	{
@@ -4367,10 +4370,12 @@
 	 "op": "look_at",
 	 "amount": 5,
 	 "pick": {
-	  "card_type": "strike"
+	  "card_type": "strike_or_art"
 	 },
 	 "to": "hand",
 	 "from": "bottom",
+	 "rearrange": true,
+	 "rest": "top",
 	 "after_empower": true
 	}
    ]

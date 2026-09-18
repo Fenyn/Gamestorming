@@ -123,6 +123,10 @@ static func defense_stops(defense_spec: Dictionary, kind: String, focused: bool)
 	if defense_spec.is_empty():
 		return false
 	var stops: String = str(defense_spec.get("stops", ""))
+	if stops == "none":
+		# Playable in the defence window but it stops nothing: a card that prevents the damage
+		# instead, which leaves the attack successful and its "if successful" effects intact.
+		return true
 	if stops == "any":
 		return not focused or defense_spec.has("stop_focused")
 	return stops == kind

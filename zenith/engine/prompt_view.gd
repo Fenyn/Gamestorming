@@ -99,7 +99,9 @@ static func of(prompt: Prompt, engine: DuelEngine) -> PromptView:
 	p.title = CardText.prompt_title(prompt)
 	p.context = prompt.context.duplicate()
 	for o in prompt.options:
-		p.options.append(OptionView.of(o, engine))
+		var ov: OptionView = OptionView.of(o, engine)
+		ov.outcome = engine.option_outcome(prompt, o)
+		p.options.append(ov)
 	p.batch_type = prompt.batch_type
 	p.batch_min = prompt.batch_min
 	p.batch_max = prompt.batch_max

@@ -6,13 +6,15 @@ const CARDS_DIR: String = "res://data/cards"
 const DECKS_DIR: String = "res://data/decks"
 const TABLE_PATH: String = "res://data/strike_table.json"
 const DUEL_SCENE: String = "res://scenes/duel/duel.tscn"
-const SELECT_SCENE: String = "res://scenes/select/deck_select.tscn"
+const SELECT_SCENE: String = "res://scenes/select/duelist_select.tscn"
+const VERSUS_SCENE: String = "res://scenes/select/versus.tscn"
 const TITLE_SCENE: String = "res://scenes/main.tscn"
 
 var library: CardLibrary = CardLibrary.new()
 var strike_table: StrikeTable = null
 var decks: Array[DeckList] = []
 var chosen: Array[DeckList] = [null, null]
+var locked: Array[bool] = [false, false]   # each seat confirmed its pick on the select screen
 var player_names: Array[String] = ["Player 1", "Player 2"]
 var seed_value: int = 0   # 0 means pick one at random when the duel starts
 var last_seed: int = 0
@@ -49,6 +51,10 @@ func can_start() -> bool:
 	return chosen[0] != null and chosen[1] != null
 
 
+func both_locked() -> bool:
+	return can_start() and locked[0] and locked[1]
+
+
 func deck_problems(deck: DeckList) -> Array[String]:
 	return DeckValidator.validate(deck, library)
 
@@ -58,12 +64,9 @@ func deck_problems(deck: DeckList) -> Array[String]:
 func build_referee() -> Referee:
 	var referee: Referee = Referee.new()
 	last_seed = seed_value if seed_value != 0 else randi_range(1, 2147483646)
-	var a: DeckList = chosen[0]
-	var b: DeckList = chosen[1]
-	a.name = player_names[0]
-	b.name = player_names[1]
-	var pair: Array[DeckList] = [a, b]
-	referee.setup(pair, library, strike_table, last_seed)
+	var pair: Array[DeckList] = [chosen[0], chosen[1]]
+	var names: Array[String] = [player_names[0], player_names[1]]
+	referee.setup(pair, library, strike_table, last_seed, names)
 	return referee
 
 
@@ -81,6 +84,10 @@ func go_to_duel() -> void:
 
 func go_to_select() -> void:
 	get_tree().change_scene_to_file(SELECT_SCENE)
+
+
+func go_to_versus() -> void:
+	get_tree().change_scene_to_file(VERSUS_SCENE)
 
 
 func go_to_title() -> void:

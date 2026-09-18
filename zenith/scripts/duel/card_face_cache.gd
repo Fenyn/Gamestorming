@@ -6,9 +6,12 @@ extends Node
 @onready var viewport: SubViewport = $Viewport
 @onready var face_control: CardFace = $Viewport/CardFace
 
+signal _render_done
+
 var _cache: Dictionary = {}   # key -> Texture2D
 var _back: Texture2D = null
 var _ladder: Array[Rect2] = []
+var _rendering: bool = false
 
 
 static func key_for(def: CardDef, aspect: int = 0) -> String:
@@ -30,15 +33,21 @@ func back() -> Texture2D:
 	return _back
 
 
+## Renders run one at a time on the shared viewport; callers that arrive mid-render wait their turn.
 func render_face(def: CardDef, aspect: int = 0) -> Texture2D:
 	var key: String = key_for(def, aspect)
+	while _rendering:
+		await _render_done
 	if _cache.has(key):
 		return _cache[key]
+	_rendering = true
 	face_control.show_def(def, aspect)
 	var tex: Texture2D = await _render()
 	_cache[key] = tex
 	if def.is_personality() and _ladder.is_empty():
 		_ladder = face_control.ladder_rects()
+	_rendering = false
+	_render_done.emit()
 	return tex
 
 
@@ -48,10 +57,15 @@ func ladder_rects() -> Array[Rect2]:
 
 
 func render_back() -> Texture2D:
+	while _rendering:
+		await _render_done
 	if _back != null:
 		return _back
+	_rendering = true
 	face_control.show_back()
 	_back = await _render()
+	_rendering = false
+	_render_done.emit()
 	return _back
 
 

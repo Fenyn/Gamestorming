@@ -1,6 +1,6 @@
 # Eidolarch (code name Zenith)
 
-Duel card game client. Godot 4.6, GDScript. Design doc is `../designs/zenith.md`; read it before rules work.
+Duel card game client. Godot 4.6, GDScript. Design doc is `../designs/zenith.md`; read it before rules work. `docs/strategy.md` is how the game is played well, per deck and per archetype; read it before AI profile or deck balance work.
 
 ## Rules
 

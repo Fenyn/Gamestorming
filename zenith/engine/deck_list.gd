@@ -14,6 +14,8 @@ var archetype: String = ""         # an Archetype id: what kind of deck this is,
 var subthemes: Array[String] = []  # Archetype subtheme ids
 var difficulty: String = ""        # easy | medium | hard to pilot
 var ai_profile: String = ""      # playstyle file under data/ai/profiles for an AI playing this deck; "" plays the defaults
+var tagline: String = ""         # one line under the duelist's name on the select screen
+var blurb: String = ""           # two or three sentences on who they are and how the deck plays
 var cards: Array[String] = []   # expanded, one entry per copy
 
 
@@ -31,6 +33,8 @@ static func from_dict(d: Dictionary) -> DeckList:
 	deck.subthemes.assign(d.get("subthemes", []))
 	deck.difficulty = str(d.get("difficulty", ""))
 	deck.ai_profile = str(d.get("ai_profile", ""))
+	deck.tagline = str(d.get("tagline", ""))
+	deck.blurb = str(d.get("blurb", ""))
 	var entries: Array = d.get("cards", [])
 	for entry in entries:
 		if entry is String:

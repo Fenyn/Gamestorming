@@ -77,7 +77,8 @@ func _material(color: Color) -> StandardMaterial3D:
 
 ## Energy 0 drops the bar one step below the ladder in the warning colour. `standing` is the
 ## owning player for a duelist (Fervor pips), null for an Ally.
-func set_status(energy: int, standing: SeatPlayer) -> void:
+## `fervor` overrides the standing's own count while a beat replays an older state; -1 uses it.
+func set_status(energy: int, standing: SeatPlayer, fervor: int = -1) -> void:
 	var stages: int = CardInstance.MAX_STAGE
 	if _rungs.size() == stages:
 		_bar.visible = true
@@ -90,8 +91,9 @@ func set_status(energy: int, standing: SeatPlayer) -> void:
 			_bar_mat.albedo_color = Color(ZenithTheme.WARN, 0.6)
 		_start_pulse()
 	_lay_out_pips(standing.fervor_needed if standing != null else 0)
+	var lit: int = fervor if fervor >= 0 else (standing.fervor if standing != null else 0)
 	for i in range(_fervor_pips.size()):
-		_fervor_pips[i].material_override = _material(ZenithTheme.ACCENT if i < standing.fervor else OFF_COLOR)
+		_fervor_pips[i].material_override = _material(ZenithTheme.ACCENT if i < lit else OFF_COLOR)
 
 
 func _start_pulse() -> void:

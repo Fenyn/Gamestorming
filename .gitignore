@@ -13,6 +13,7 @@ Desktop.ini
 *.apk
 *.zip
 /coinshot/build/
+/zenith/build/
 /life-magic/android/
 /life-magic/build/
 /life-magic/wear/build/
@@ -38,3 +39,4 @@ Desktop.ini
 zenith/docs/card_roster.csv
 zenith/docs/Card List (GBA)
 /zenith/docs/NewZ Tournament Ready
+/zenith/design

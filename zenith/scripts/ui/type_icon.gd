@@ -3,7 +3,7 @@ extends Control
 ## One vector glyph per card type, drawn at any size in one colour. The same shapes mark the
 ## card face, the hand, the tray, and the deck legend, so a Strike looks like a Strike wherever
 ## it shows: sword for Strike, burst for Art, shield for Combat, scroll for Non-Combat, target
-## for Drill, figure for Ally, crown for Duelist, gem for Seal, hills for Grounds, chevrons for
+## for Drill, figure for Ally, eye for Duelist, gem for Seal, hills for Grounds, chevrons for
 ## Mastery, cut gem for Relic.
 
 @export var type: CardDef.Type = CardDef.Type.COMBAT:
@@ -50,9 +50,12 @@ func _draw() -> void:
 				body.append(_p(0.5 + 0.36 * cos(a), 0.92 + 0.36 * sin(a), s, o))
 			draw_colored_polygon(body, color)
 		CardDef.Type.DUELIST:
-			draw_colored_polygon(_pts([
-				Vector2(0.12, 0.82), Vector2(0.12, 0.3), Vector2(0.33, 0.52), Vector2(0.5, 0.16),
-				Vector2(0.67, 0.52), Vector2(0.88, 0.3), Vector2(0.88, 0.82)], s, o), color)
+			var eye: PackedVector2Array = _pts([
+				Vector2(0.06, 0.5), Vector2(0.24, 0.26), Vector2(0.5, 0.16), Vector2(0.76, 0.26), Vector2(0.94, 0.5),
+				Vector2(0.76, 0.74), Vector2(0.5, 0.84), Vector2(0.24, 0.74)], s, o)
+			eye.append(eye[0])
+			draw_polyline(eye, color, w)
+			draw_circle(_p(0.5, 0.5, s, o), 0.17 * s, color)
 		CardDef.Type.SEAL:
 			var gem: PackedVector2Array = _pts([Vector2(0.5, 0.08), Vector2(0.9, 0.4), Vector2(0.5, 0.92), Vector2(0.1, 0.4)], s, o)
 			gem.append(gem[0])

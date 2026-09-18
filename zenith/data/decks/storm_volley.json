@@ -25,6 +25,8 @@
     "fervor"
   ],
   "ai_profile": "storm_volley",
+  "tagline": "Scholars of the Tempest, and the construct they send to fight.",
+  "blurb": "The Ninth Vessel is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy.",
   "cards": [
     {
       "id": "henchman_zeta",

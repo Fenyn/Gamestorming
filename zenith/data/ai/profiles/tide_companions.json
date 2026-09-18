@@ -5,5 +5,6 @@
 	"foe": {"ascension": 40.0, "ally": 3.0, "non_combat": 2.0},
 	"effect": {"fervor": 2.4, "fervor_self": -1.5, "search": 2.8, "attach": 3.0, "recover": 1.2, "draw": 1.5, "energy": 0.3},
 	"reserve": {"max_swaps": 0},
-	"play": {"control_ally": 3.0, "damage_life": 1.2, "damage_stage": 0.4, "declare_bias": 1.0, "defend_card": 0.8, "final_strike_penalty": 6.0}
+	"play": {"control_ally": 3.0, "damage_life": 1.2, "damage_stage": 0.4, "declare_bias": 1.0, "defend_card": 0.8, "final_strike_penalty": 6.0},
+	"think": {"turns": 3}
 }

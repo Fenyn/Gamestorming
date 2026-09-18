@@ -29,6 +29,7 @@ static func side_value(engine: DuelEngine, p: PlayerState, profile: AiProfile, g
 	v += ascension_progress(engine, p) * profile.w(group, "ascension")
 	v += climb_progress(engine, p) * profile.w(group, "fervor")
 	v += seal_progress(p) * profile.w(group, "seal")
+	v += seal_guard_value(p) * profile.w(group, "seal_guard")
 	for al in p.allies():
 		v += profile.w(group, "ally") + al.energy * profile.w(group, "ally_energy")
 	v += p.drills().size() * profile.w(group, "drill")
@@ -46,7 +47,21 @@ static func grounds_value(engine: DuelEngine, seat: int, def: CardDef, profile: 
 		return 0.0
 	var mine: float = _grounds_fit(engine.player(seat), def, true) * profile.w("own", "grounds")
 	var theirs: float = _grounds_fit(engine.player(1 - seat), def, false) * profile.w("foe", "grounds")
-	return mine - theirs
+	return mine - theirs + _grounds_climb_value(def, profile)
+
+
+## A Fervor cap on the Grounds binds both players, so it is not a per-card matter and `_grounds_fit`
+## cannot see it. It is worth the difference between how much the opponent wants to climb and how
+## much we do, which the profile already states through its Ascension and Fervor weights.
+static func _grounds_climb_value(def: CardDef, profile: AiProfile) -> float:
+	if not def.raw.has("fervor_gain_cap"):
+		return 0.0
+	return (_climb_want(profile, "foe") - _climb_want(profile, "own")) * profile.w("own", "grounds")
+
+
+## 0 to 1, how badly one side of the table wants its Fervor meter to keep rising.
+static func _climb_want(profile: AiProfile, group: String) -> float:
+	return clampf(profile.w(group, "ascension") / 45.0 + profile.w(group, "fervor") / 10.0, 0.0, 1.0)
 
 
 ## -1 to 1: the share of a player's cards these Grounds help, minus the share they hinder. My
@@ -116,6 +131,24 @@ static func climb_progress(engine: DuelEngine, p: PlayerState) -> float:
 	if p.duelist.aspect >= p.highest_aspect:
 		return 0.0
 	return clampf(float(p.fervor) / float(maxi(1, engine.fervor_needed(p))), 0.0, 1.0)
+
+
+## What a Seal-guarding Drill in play is worth, 0 when there is none. A Drill that guards Seals
+## shuts off capture entirely, so it is worth more the more Seals stand behind it, and it is worth
+## a little before the first one because it has to be down first. Linear, not squared, so the guard
+## is already worth landing early.
+static func seal_guard_value(p: PlayerState) -> float:
+	if not seals_guarded(p):
+		return 0.0
+	return 0.25 + float(p.seals().size()) / float(DuelEngine.SEALS_PER_SET)
+
+
+## Whether a Drill this player controls stops the opponent capturing their Seals.
+static func seals_guarded(p: PlayerState) -> bool:
+	for d in p.drills():
+		if bool(d.def.raw.get("protect_seals", false)):
+			return true
+	return false
 
 
 ## 0 to 1, how close this player is to a full Seal set. Squared for the same reason.

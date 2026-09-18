@@ -18,13 +18,16 @@ const ANIMATED: Dictionary = {
 	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
 	&"damage_stages": ["target", "stages", "overflow", "energy"],
 	&"life_card_flipped": ["card", "remaining"], &"life_card_lost": ["card"],
-	&"endurance_used": ["card", "prevented"], &"seal_bypassed": ["card"], &"seal_captured": ["card"],
+	&"endurance_used": ["card", "prevented"], &"endurance_declined": ["card", "endurance", "remaining"],
+	&"seal_bypassed": ["card"], &"seal_captured": ["card"],
 	&"attack_end": ["stopped", "stages_dealt", "life_dealt"],
 	&"critical_ally": ["card"], &"critical_fervor": [],
 	&"hand_discarded": ["card"], &"in_play_discarded": ["card", "removed"], &"card_moved": ["card", "to"],
 	&"card_used": ["card"], &"card_placed": ["card"], &"final_strike": ["discarded"],
-	&"power_up": ["gain", "energy"], &"energy_changed": ["card", "from", "to"], &"recover": ["gain", "energy"],
-	&"fervor_changed": ["from", "to"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],
+	&"power_up": ["gain", "energy", "energies"], &"recover": ["card"],
+	&"energy_changed": ["card", "from", "to", "source"], &"gain_blocked": ["card", "amount"],
+	&"fervor_changed": ["from", "to", "source"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],
+	&"trigger_fired": ["card", "trigger"], &"draw": ["card", "from"],
 	&"countered": ["card", "target"], &"game_over": ["winner", "reason"],
 }
 
@@ -32,8 +35,9 @@ var engine: DuelEngine = DuelEngine.new()
 var _pending_events: Array[GameEvent] = []
 
 
-func setup(decks: Array[DeckList], library: CardLibrary, table: StrikeTable, seed_value: int) -> void:
-	engine.setup(decks, library, table, seed_value)
+func setup(decks: Array[DeckList], library: CardLibrary, table: StrikeTable, seed_value: int, names: Array[String] = []) -> void:
+	engine.record_display_state = true
+	engine.setup(decks, library, table, seed_value, names)
 
 
 func start() -> void:
@@ -50,10 +54,10 @@ func seed_value() -> int:
 
 ## "" when applied, otherwise the reason it was refused. Nothing changes on a refusal.
 func submit(seat: int, wire: Dictionary) -> String:
-	var p: Prompt = engine.prompt
-	if p == null or engine.is_over():
+	if engine.prompt == null or engine.is_over():
 		return "Nothing is waiting on a decision."
-	if p.player != seat:
+	var p: Prompt = engine.prompt_of(seat)
+	if p == null:
 		return "It is not your decision."
 	var cmd: Command = Command.from_dict(wire)
 	if cmd.player != seat:
@@ -88,6 +92,10 @@ func take_updates() -> Array[SeatUpdate]:
 					if ev.data.has(key):
 						data[key] = ev.data[key]
 				entry["data"] = data
+				# What the table read at that moment, so the beat draws the state it belongs to
+				# instead of the state at the end of the whole update.
+				if not ev.state.is_empty():
+					entry["state"] = ev.state
 			u.lines.append(entry)
 		u.view = view_for(seat)
 		u.prompt = prompt_for(seat)
@@ -109,6 +117,5 @@ func view_for(seat: int) -> SeatView:
 
 ## The pending prompt when it is this seat's, else null.
 func prompt_for(seat: int) -> PromptView:
-	if engine.prompt == null or engine.prompt.player != seat:
-		return null
-	return PromptView.of(engine.prompt, engine)
+	var p: Prompt = engine.prompt_of(seat)
+	return PromptView.of(p, engine) if p != null else null

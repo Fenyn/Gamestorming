@@ -11,6 +11,7 @@ signal handoff_confirmed
 signal rematch_requested
 signal select_requested
 
+const STAT_TILE: PackedScene = preload("res://scenes/ui/stat_tile.tscn")
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
@@ -37,12 +38,19 @@ const STEP_ORDER: Array[int] = [
 ## Options that move the game along rather than commit a card. They sit under the card list and
 ## the ones here get the accent style; the rest (skip, decline, no capture) stay quiet.
 const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"reserve_done", &"decline", &"pick_none"]
+## Prompt kinds answered by the buttons in the panel even though their options name a card. An
+## Endurance choice is a yes or no about one card that is already in a pile, so hunting for it on
+## the table to click it is the wrong way to ask.
+const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 
 @onready var root: Control = $Root
 @onready var top_panel: PlayerPanel = $Root/TopPanel
 @onready var bottom_panel: PlayerPanel = $Root/BottomPanel
+@onready var phase_panel: PanelContainer = $Root/PhasePanel
+@onready var turn_counter: Label = $Root/PhasePanel/Column/Turn/Counter
+@onready var turn_who: Label = $Root/PhasePanel/Column/Turn/Who
 @onready var steps_box: HBoxContainer = $Root/PhasePanel/Column/Steps
-@onready var phase_sub: Label = $Root/PhasePanel/Column/Sub
+@onready var phase_sub: RichTextLabel = $Root/PhasePanel/Column/Sub
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
 @onready var dev_toggle: Button = $Root/DevToggle
 @onready var dev_panel: DevPanel = $Root/DevPanel
@@ -60,7 +68,14 @@ const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure"
 @onready var prompt_who: Label = $Root/PromptPanel/Column/Who
 @onready var prompt_title: Label = $Root/PromptPanel/Column/Title
 @onready var prompt_banner: Label = $Root/PromptPanel/Column/Banner
-@onready var prompt_damage: RichTextLabel = $Root/PromptPanel/Column/Damage
+@onready var prompt_hero: HBoxContainer = $Root/PromptPanel/Column/Hero
+@onready var hero_value: Label = $Root/PromptPanel/Column/Hero/Value
+@onready var hero_name: Label = $Root/PromptPanel/Column/Hero/Side/Name
+@onready var hero_delta: Label = $Root/PromptPanel/Column/Hero/Side/Delta
+@onready var prompt_facts: HBoxContainer = $Root/PromptPanel/Column/Facts
+@onready var focus: Control = $Root/Focus
+@onready var focus_caption: Label = $Root/Focus/Caption
+@onready var focus_face: CardFace = $Root/Focus/Face
 @onready var prompt_hint: Label = $Root/PromptPanel/Column/Hint
 @onready var primary_box: VBoxContainer = $Root/PromptPanel/Column/Primary
 @onready var tray: ColorRect = $Root/Tray
@@ -84,6 +99,7 @@ var _log_lines: int = 0
 var _current_prompt: PromptView = null
 var _view: SeatView = null
 var _step_labels: Array[Label] = []
+var _step_bars: Array[ColorRect] = []   # the progress rule under each step chip
 var _faces: CardFaceCache = null
 var _log_expanded: bool = false
 var _batch: PromptView = null          # the prompt behind a multi-select tray, else null
@@ -93,16 +109,28 @@ var _confirm: Button = null
 var _online: bool = false
 var _is_host: bool = false
 var _toast: Tween = null
+var _hero_base: int = -1               # the wound count the hero number sits at with no hover
 
 
 func _ready() -> void:
 	root.theme = ZenithTheme.get_theme()
 	for name in STEP_LABELS:
+		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
+		# the turn: filled behind, gold on the step we are in, empty ahead.
+		var column: VBoxContainer = VBoxContainer.new()
+		column.add_theme_constant_override("separation", 4)
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var l: Label = Label.new()
 		l.text = name
 		l.add_theme_font_size_override("font_size", 13)
-		steps_box.add_child(l)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(l)
+		var bar: ColorRect = ColorRect.new()
+		bar.custom_minimum_size = Vector2(0, 5)
+		column.add_child(bar)
+		steps_box.add_child(column)
 		_step_labels.append(l)
+		_step_bars.append(bar)
 	handoff_ready.pressed.connect(func() -> void: handoff_confirmed.emit())
 	rematch_button.pressed.connect(func() -> void: rematch_requested.emit())
 	select_button.pressed.connect(func() -> void: select_requested.emit())
@@ -125,48 +153,126 @@ func set_online(is_host: bool) -> void:
 	select_button.text = "Back to lobby" if is_host else "Leave duel"
 
 
-func refresh_state(view: SeatView, viewer: int) -> void:
+## `live` is the beat's own state (see GameEvent.state) while an update replays, {} otherwise.
+func refresh_state(view: SeatView, viewer: int, live: Dictionary = {}) -> void:
 	_view = view
-	var me: int = viewer if viewer >= 0 else view.active
-	bottom_panel.refresh(view.player(me), view, viewer >= 0)
-	top_panel.refresh(view.player(1 - me), view, false)
-	_refresh_phase(view)
+	# Hotseat has no fixed viewer: the seat at the table is whoever has to decide.
+	var me: int = viewer
+	if me < 0:
+		me = view.deciding if view.deciding >= 0 else view.active
+	bottom_panel.refresh(view.player(me), view, true, _beat_standing(live, me))
+	top_panel.refresh(view.player(1 - me), view, false, _beat_standing(live, 1 - me))
+	_refresh_phase(view, me, live)
 
 
-func _refresh_phase(view: SeatView) -> void:
-	var current: int = STEP_ORDER.find(view.step)
+## One player's slice of a beat's state (see GameEvent.state), {} when the update has none.
+static func _beat_standing(live: Dictionary, index: int) -> Dictionary:
+	if live.is_empty():
+		return {}
+	var out: Dictionary = {}
+	var fervor: Array = live.get("fervor", [])
+	if index < fervor.size():
+		out["fervor"] = int(fervor[index])
+	# The turn position too, so a panel never flags the next player as active while the beats of
+	# this one are still playing.
+	for key in ["active", "step", "phase", "attacker"]:
+		if live.has(key):
+			out[key] = int(live[key])
+	var zones: Array = live.get("zones", [])
+	if index < zones.size() and (zones[index] as Array).size() >= 4:
+		var z: Array = zones[index]
+		out["life"] = int(z[0])
+		out["hand"] = int(z[1])
+		out["discard"] = int(z[2])
+		out["removed"] = int(z[3])
+	return out
+
+
+## The banner over the table. Whose turn it is and which step of it, both at a size that reads
+## from across the room; the strip under them is the turn as a progress rail, and the line below
+## is the beat inside Combat, in the attack and defence colours.
+func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
+	var over: bool = view.is_over()
+	# While an update replays, the banner reads the beat's own position in the turn. Without this
+	# it draws where the turn ends up, so an update that closes Combat says DISCARD over the
+	# combat beats still playing underneath it.
+	var turn: int = int(live.get("turn", view.turn))
+	var step: int = int(live.get("step", view.step))
+	var active: int = int(live.get("active", view.active))
+	var current: int = STEP_ORDER.find(step)
 	for i in range(_step_labels.size()):
 		var l: Label = _step_labels[i]
-		var on: bool = i == current and not view.is_over()
+		var on: bool = i == current and not over
+		var done: bool = current >= 0 and i < current and not over
 		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if on else ZenithTheme.MUTED)
+		l.add_theme_font_size_override("font_size", 15 if on else 13)
+		var bar: ColorRect = _step_bars[i]
 		if on:
-			l.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.ACCENT_SOFT, Color(0, 0, 0, 0), 5, 0, 8, 2))
+			bar.color = ZenithTheme.ACCENT
+		elif done:
+			bar.color = ZenithTheme.ACCENT_SOFT
 		else:
-			l.add_theme_stylebox_override("normal", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 5, 0, 8, 2))
-	if view.is_over():
-		phase_sub.text = "Duel over"
+			bar.color = ZenithTheme.RAISED_STRONG
+
+	turn_counter.text = "TURN %d" % turn
+	ZenithTheme.chip(turn_counter, ZenithTheme.MUTED)
+	if over:
+		turn_who.text = "DUEL OVER"
+		turn_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
+		phase_sub.visible = false
+		phase_panel.add_theme_stylebox_override("panel", ZenithTheme.get_theme().get_stylebox("panel", "PanelContainer"))
 		return
-	var text: String = "Turn %d  ·  %s's turn" % [view.turn, view.player(view.active).name]
-	if view.step == GameState.Step.COMBAT:
-		match view.phase:
-			GameState.Phase.PREPARE_ACTIVE, GameState.Phase.PREPARE_OPPOSING:
-				text += "  ·  entering Combat"
-			GameState.Phase.OPPOSING_DRAW:
-				text += "  ·  %s draws" % view.player(1 - view.active).name
-			GameState.Phase.ATTACK, GameState.Phase.FIGHT_BACK:
-				text += "  ·  %s to attack" % view.player(view.attacker).name
-			GameState.Phase.DEFEND:
-				text += "  ·  %s defends" % view.player(1 - view.attacker).name
-			GameState.Phase.BATTLE:
-				text += "  ·  %s's attack resolves" % view.player(view.attacker).name
-	phase_sub.text = text
+
+	var mine: bool = active == me
+	turn_who.text = "YOUR TURN" if mine else "ENEMY TURN"
+	turn_who.add_theme_color_override("font_color", ZenithTheme.ACCENT if mine else ZenithTheme.MUTED)
+	# A gold left edge while the viewer acts, so the banner itself says whether to reach for a card.
+	phase_panel.add_theme_stylebox_override("panel", ZenithTheme.edged(ZenithTheme.ACCENT if mine else ZenithTheme.BORDER))
+
+	var beat: String = _combat_beat(view, me, live)
+	phase_sub.visible = beat != ""
+	phase_sub.text = "[center]%s[/center]" % beat
+
+
+## The beat inside Combat as bbcode in the attack and defence colours, "" outside Combat.
+func _combat_beat(view: SeatView, me: int, live: Dictionary = {}) -> String:
+	if int(live.get("step", view.step)) != GameState.Step.COMBAT:
+		return ""
+	var att: int = int(live.get("attacker", view.attacker))
+	var act: int = int(live.get("active", view.active))
+	var attacker: String = "YOU" if att == me else view.player(att).name.to_upper()
+	var defender: String = "YOU" if att != me else view.player(1 - att).name.to_upper()
+	match int(live.get("phase", view.phase)):
+		GameState.Phase.PREPARE_ACTIVE, GameState.Phase.PREPARE_OPPOSING:
+			return _tint("ENTERING COMBAT", ZenithTheme.MUTED)
+		GameState.Phase.OPPOSING_DRAW:
+			var who: String = "YOU DRAW" if act != me else "%s DRAWS" % view.player(1 - act).name.to_upper()
+			return _tint(who, ZenithTheme.MUTED)
+		GameState.Phase.ATTACK:
+			return _tint("%s %s" % [attacker, "ATTACK" if attacker == "YOU" else "ATTACKS"], ZenithTheme.ATTACK)
+		GameState.Phase.FIGHT_BACK:
+			return _tint("%s %s" % [attacker, "FIGHT BACK" if attacker == "YOU" else "FIGHTS BACK"], ZenithTheme.ATTACK)
+		GameState.Phase.DEFEND:
+			# Both halves at once: the question here is who is swinging at whom.
+			return "%s   %s   %s" % [
+				_tint("%s %s" % [attacker, "ATTACK" if attacker == "YOU" else "ATTACKS"], ZenithTheme.ATTACK),
+				_tint("·", ZenithTheme.MUTED),
+				_tint("%s %s" % [defender, "DEFEND" if defender == "YOU" else "DEFENDS"], ZenithTheme.DEFEND),
+			]
+		GameState.Phase.BATTLE:
+			var whose: String = "YOUR" if att == me else attacker + "'S"
+			return _tint("%s ATTACK RESOLVES" % whose, ZenithTheme.ATTACK)
+	return ""
+
+
+func _tint(text: String, color: Color) -> String:
+	return "[color=#%s]%s[/color]" % [color.to_html(false), text]
 
 
 ## A short banner over the table for the beat that just happened: the attack, what it hit for,
 ## a stop, an aspect. It pops in, holds, and fades; a new one replaces the last at once.
 func toast(text: String, color: Color) -> void:
-	if _toast != null:
-		_toast.kill()
+	_clear_toast()
 	toast_label.text = text
 	toast_label.add_theme_stylebox_override("normal", ZenithTheme.box(color, Color(0, 0, 0, 0), 10, 0, 22, 8))
 	toast_label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
@@ -178,6 +284,13 @@ func toast(text: String, color: Color) -> void:
 	_toast.tween_interval(TOAST_HOLD)
 	_toast.tween_property(toast_label, "modulate:a", 0.0, 0.3)
 	_toast.tween_callback(func() -> void: toast_label.visible = false)
+
+
+func _clear_toast() -> void:
+	if _toast != null:
+		_toast.kill()
+		_toast = null
+	toast_label.visible = false
 
 
 func log_line(text: String) -> void:
@@ -200,7 +313,8 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
 	prompt_who.add_theme_color_override("font_color", Palette.school_ui(who.style))
 	prompt_title.text = p.title
-	_show_attack(view)
+	_show_attack(view, p)
+	show_focus(_focus_uid(p), _focus_caption(p))
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
 	# Cards the player can already click in the hand or on the table stay there, highlighted.
@@ -213,7 +327,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	for opt in p.options:
 		if opt.type == &"final_strike":
 			finals.append(opt)
-		elif opt.card < 0 and opt.type != &"name_card":
+		elif BUTTON_KINDS.has(p.kind) or (opt.card < 0 and opt.type != &"name_card"):
 			primaries.append(opt)
 		elif _needs_tray(p, opt):
 			browse.append(opt)
@@ -246,18 +360,122 @@ func _needs_tray(p: PromptView, opt: OptionView) -> bool:
 
 
 ## The attack in the air, when there is one: a headline chip (kind, source, what makes it hard)
-## and the damage worked out step by step. Shown to both seats through every prompt the attack
-## opens, so the defender sees what is coming and the attacker what landed.
-func _show_attack(view: SeatView) -> void:
+## and the two or three numbers the decision actually turns on, as big tiles. The step-by-step
+## damage maths lives under the card in the focus view, not here.
+func _show_attack(view: SeatView, p: PromptView = null) -> void:
 	var a: Dictionary = view.attack
 	var head: String = _attack_headline(view)
 	prompt_banner.visible = head != ""
 	prompt_banner.text = head
 	var mine: bool = not a.is_empty() and int(a.get("attacker", -1)) == view.seat
 	ZenithTheme.chip(prompt_banner, ZenithTheme.ATTACK if mine else ZenithTheme.DEFEND)
-	var damage: String = _damage_text(view)
-	prompt_damage.visible = damage != ""
-	prompt_damage.text = damage
+	_show_hero(view, p)
+	# The hero number already says what the tiles would; they are for prompts that have no
+	# single number to lead with.
+	var facts: Array[Dictionary] = []
+	if not prompt_hero.visible:
+		facts = _facts_for(view, p)
+	_fill_facts(facts)
+
+
+## The one number a damage decision turns on: the life cards about to be lost, counting the
+## Energy that would overflow into them. It leads the panel and changes as the player hovers a
+## choice. An attack that costs no life cards has no number to lead with, so the panel falls
+## back to its tiles rather than showing a large and meaningless zero.
+func _show_hero(view: SeatView, p: PromptView) -> void:
+	_hero_base = -1
+	if not view.attack.is_empty():
+		if p != null:
+			for o in p.options:
+				if o.outcome.has("life"):
+					# The worst of them is where the player stands before choosing.
+					_hero_base = maxi(_hero_base, int(o.outcome["life"]))
+		else:
+			# The seat watching the decision sees the same number, without the options.
+			_hero_base = _incoming_wounds(view)
+	prompt_hero.visible = _hero_base > 0
+	if not prompt_hero.visible:
+		return
+	hero_name.text = "WOUND INCOMING" if _hero_base == 1 else "WOUNDS INCOMING"
+	_preview_outcome({})
+
+
+## Life cards the attack in the air would cost right now: its own wounds plus the Energy that
+## overflows past what the target is standing on, or what is left to flip once it is landing.
+func _incoming_wounds(view: SeatView) -> int:
+	var a: Dictionary = view.attack
+	if a.is_empty() or bool(a.get("stopped", false)):
+		return 0
+	if int(a.get("life_remaining", 0)) > 0:
+		return int(a["life_remaining"])
+	return int((a.get("damage", {}) as Dictionary).get("wounds", 0))
+
+
+## The outcome of the option a hand or table card would take, when it carries one (defending
+## with that card, for instance). {} when the card has no such option.
+func _card_outcome(uid: int) -> Dictionary:
+	if _current_prompt == null:
+		return {}
+	for o in _current_prompt.options_for_card(uid):
+		if not o.outcome.is_empty():
+			return o.outcome
+	return {}
+
+
+## Draws the hero number for an option the player is hovering, or the standing number for {}.
+func _preview_outcome(outcome: Dictionary) -> void:
+	if _hero_base < 0:
+		return
+	var shown: int = int(outcome.get("life", _hero_base))
+	var delta: int = shown - _hero_base
+	hero_value.text = str(shown)
+	hero_value.add_theme_color_override("font_color",
+		ZenithTheme.DEFEND if delta < 0 else (ZenithTheme.TEXT if shown == 0 else ZenithTheme.ATTACK))
+	hero_delta.visible = not outcome.is_empty()
+	hero_delta.text = str(delta) if delta != 0 else "no change"
+	hero_delta.add_theme_color_override("font_color", ZenithTheme.DEFEND if delta < 0 else ZenithTheme.MUTED)
+
+
+## Up to three headline numbers for the decision at hand. Each is {name, value, sub, color}.
+func _facts_for(view: SeatView, p: PromptView) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var a: Dictionary = view.attack
+	if a.is_empty():
+		return out
+	if bool(a.get("stopped", false)):
+		out.append({"name": "Attack", "value": "Stopped", "sub": "", "color": ZenithTheme.DEFEND})
+		return out
+	var d: Dictionary = a.get("damage", {})
+	var landed: bool = bool(a.get("landed", false))
+	var stages: int = int(a.get("stages", 0)) if landed else int(d.get("stages", 0))
+	var life: int = int(a.get("life", 0)) if landed else int(d.get("wounds", d.get("life", 0)))
+	if stages > 0:
+		out.append({"name": "Energy", "value": str(stages), "sub": "off the target", "color": ZenithTheme.ATTACK})
+	if life > 0:
+		var over: int = int(d.get("overflow", 0))
+		out.append({"name": "Wounds", "value": str(life), "sub": "%d from overflow" % over if over > 0 else "life cards", "color": ZenithTheme.ATTACK})
+	var remaining: int = int(a.get("life_remaining", 0))
+	if remaining > 0:
+		out.append({"name": "To flip", "value": str(remaining), "sub": "still coming", "color": ZenithTheme.WARN})
+	if p != null and p.kind == &"endurance":
+		# The one number this choice is about: how much of what is still coming it buys off.
+		var prevents: int = mini(int(p.context.get("endurance", 0)), int(p.context.get("remaining", 0)))
+		out = [{"name": "To flip", "value": str(int(p.context.get("remaining", 0))), "sub": "still coming", "color": ZenithTheme.WARN},
+			{"name": "Prevents", "value": str(prevents), "sub": "if you spend it", "color": ZenithTheme.DEFEND}]
+	elif int(a.get("stops_needed", 1)) > 1:
+		out.append({"name": "Stops", "value": str(int(a.get("stops_needed", 1))), "sub": "needed", "color": ZenithTheme.DEFEND})
+	return out.slice(0, 3)
+
+
+func _fill_facts(facts: Array[Dictionary]) -> void:
+	for child in prompt_facts.get_children():
+		child.queue_free()
+	prompt_facts.visible = not facts.is_empty()
+	for f in facts:
+		var tile: StatTile = STAT_TILE.instantiate()
+		prompt_facts.add_child(tile)
+		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tile.set_stat(str(f["name"]), str(f["value"]), str(f["sub"]), f["color"])
 
 
 func _attack_headline(view: SeatView) -> String:
@@ -320,32 +538,32 @@ func _hint_for(p: PromptView) -> String:
 	var card_options: int = p.card_uids().size()
 	match p.kind:
 		&"reserve":
-			return "Each card you bring in swaps with a random card from your Life Deck."
+			return "Each one swaps with a random card from your Life Deck."
 		&"non_combat":
-			return "Click a highlighted card to place it, then Done." if card_options > 0 else ""
+			return "Click a highlighted card, then Done." if card_options > 0 else ""
 		&"attack_action":
-			return "Click a highlighted card to attack or use it, or choose below."
+			return "Click a highlighted card, or choose below."
 		&"defense":
-			return "Click a highlighted card to defend, or take the hit." if card_options > 0 else ""
+			return "Click a highlighted card to stop it." if card_options > 0 else ""
 		&"keep":
 			return "Everything else goes to the discard pile."
 		&"endurance":
-			return "The flipped card can prevent %d more wounds. It leaves the game if used." % int(p.context.get("endurance", 0))
+			return "Spending it removes it from the game."   # the one thing the number cannot say
 		&"recover":
-			return "No Combat this turn, so one discard card may return to the deck bottom."
+			return "One discard card may go back under the deck."
 		&"respond":
 			if str(p.context.get("mode", "")) == "declare":
-				return "Your opponent is about to decide on Combat. Use a card now or let them choose."
-			return "Your opponent played a Combat card. Counter it now or let it resolve."
+				return "Use a card before they decide on Combat."
+			return "Counter it now, or let it resolve."
 		&"pay":
-			return "Each step of Energy paid adds to the wounds dealt."
+			return "Each step paid adds to the wounds."
 		&"discard_choice":
 			var whose: String = "your opponent's hand" if int(p.context.get("target", p.player)) != p.player else "your hand"
 			return "Pick the cards that leave %s." % whose if p.has_batch() else "Pick the card that leaves %s." % whose
 		&"pick_in_play":
 			return "Pick the card in play the effect hits."
 		&"name_card":
-			return "The named card cannot be played or used while the Drill stays in play."
+			return "It cannot be played while the Drill stays out."
 		&"pick_option":
 			if bool(p.context.get("may", false)):
 				var text: String = str(p.context.get("text", ""))
@@ -362,7 +580,9 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 	prompt_who.text = "%s  ·  DECIDING" % player_name.to_upper()
 	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	prompt_title.text = "Waiting for %s" % player_name
-	_show_attack(view)
+	_show_attack(view, null)
+	# Whatever they are deciding about, this seat is looking at the same card and the same count.
+	show_focus(_focus_uid(null), _focus_caption(null))
 	prompt_hint.text = _waiting_hint(kind)
 	prompt_hint.visible = prompt_hint.text != ""
 	_hide_tray()
@@ -375,12 +595,15 @@ func _waiting_hint(kind: StringName) -> String:
 		&"reserve":
 			return "They are setting up their Reserve."
 		&"non_combat":
-			return "They may place cards before deciding on Combat."
+			return "They may place cards before Combat."
 		&"declare":
 			return "They are deciding whether to enter Combat."
 		&"attack_action":
 			return "They are choosing an attack, or passing."
-		&"defense", &"endurance", &"redirect", &"control":
+		&"endurance":
+			# The flipped card is in a public pile, so naming the decision gives nothing away.
+			return "They are deciding whether to spend it and prevent the rest."
+		&"defense", &"redirect", &"control":
 			return "They are answering your attack."
 		&"respond":
 			return "They may respond before your card resolves."
@@ -449,8 +672,11 @@ func clear_prompt() -> void:
 	prompt_who.text = ""
 	prompt_title.text = "…"
 	prompt_banner.visible = false
-	prompt_damage.visible = false
+	prompt_hero.visible = false
+	_hero_base = -1
+	_fill_facts([])
 	prompt_hint.visible = false
+	hide_focus()
 	_hide_tray()
 	_fill_buttons([], primary_box, true)
 
@@ -470,6 +696,10 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		if ACCENT_TYPES.has(opt.type) or (first_is_default and i == 0):
 			b.theme_type_variation = &"AccentButton"
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
+		if not opt.outcome.is_empty():
+			# Hovering a choice answers "what does this leave me with" on the number itself.
+			b.mouse_entered.connect(func() -> void: _preview_outcome(opt.outcome))
+			b.mouse_exited.connect(func() -> void: _preview_outcome({}))
 		into.add_child(b)
 
 
@@ -483,6 +713,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	_batch = batch
 	_selected.clear()
 	_entries.clear()
+	hide_focus()   # the tray is the middle of the screen while it is open
 	tray_who.text = who
 	tray_who.add_theme_color_override("font_color", prompt_who.get_theme_color("font_color"))
 	tray_title.text = title
@@ -741,8 +972,10 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		b.mouse_entered.connect(func() -> void:
 			card_hovered.emit(uid, true)
 			show_peek(def, aspect, uid)
+			_preview_outcome(_card_outcome(uid))
 			_lift(frame, true))
 		b.mouse_exited.connect(func() -> void:
+			_preview_outcome({})
 			card_hovered.emit(uid, false)
 			hide_peek()
 			_lift(frame, false))
@@ -769,8 +1002,61 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null:
 		return
 	hide_peek()
+	hide_focus()
 	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid))
 	inspect.visible = true
+
+
+## The card a decision is about, held at readable size in the middle of the screen while the
+## decision is open: the attack coming in, the life card that could endure, the card asking a
+## question. Both seats see it, the one deciding and the one waiting, and it never takes the
+## mouse so the table underneath stays clickable.
+func show_focus(uid: int, caption: String) -> void:
+	var c: SeatCard = _view.card(uid) if _view != null else null
+	if c == null or c.hidden() or tray.visible or inspect.visible:
+		hide_focus()
+		return
+	var def: CardDef = Session.library.defs.get(c.def_id)
+	if def == null:
+		hide_focus()
+		return
+	focus_caption.text = caption.to_upper()
+	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid))
+	focus.visible = true
+
+
+func hide_focus() -> void:
+	focus.visible = false
+
+
+## The card the prompt is about: one it names outright, one raised by a card's effect, or the
+## attack in the air. -1 when the decision is not about a single card.
+func _focus_uid(p: PromptView) -> int:
+	if p != null:
+		if p.context.has("card"):
+			return int(p.context["card"])
+		if p.context.has("source"):
+			return int(p.context["source"])
+	if _view != null and not _view.attack.is_empty():
+		return int(_view.attack.get("source", -1))
+	return -1
+
+
+func _focus_caption(p: PromptView) -> String:
+	if p == null:
+		return "Incoming"
+	match p.kind:
+		&"endurance":
+			return "The card you just lost"
+		&"defense", &"redirect", &"control":
+			return "Incoming"
+		&"respond":
+			return "Their card"
+		&"critical", &"capture_instead":
+			return "Your attack"
+	if p.context.has("source"):
+		return "Asking"
+	return "Incoming"
 
 
 func _live_energy(uid: int) -> int:
@@ -783,6 +1069,14 @@ func _standing(uid: int) -> SeatPlayer:
 	if _view == null or uid < 0:
 		return null
 	return _view.duelist_owner(uid)
+
+
+## Dev screenshots: acts as if the pointer were over the nth button in the prompt panel, so the
+## hover preview can be caught in a PNG.
+func hover_primary(index: int) -> void:
+	var buttons: Array[Node] = primary_box.get_children()
+	if index >= 0 and index < buttons.size():
+		(buttons[index] as Button).mouse_entered.emit()
 
 
 ## Debug builds only, and only where the referee lives (hotseat, host).

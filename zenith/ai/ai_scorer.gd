@@ -9,13 +9,14 @@ extends RefCounted
 const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"reserve_done", &"discard_all", &"deal_damage"]
 
 
-## One score per option of `engine.prompt`, in option order. Higher is better; 0 is "do nothing".
-static func scores(engine: DuelEngine, profile: AiProfile) -> Array[float]:
+## One score per option of the pending prompt, in option order. Higher is better; 0 is "do
+## nothing". `seat` picks which prompt when both players hold one; -1 takes the first.
+static func scores(engine: DuelEngine, profile: AiProfile, seat: int = -1) -> Array[float]:
 	var out: Array[float] = []
-	var prompt: Prompt = engine.prompt
+	var prompt: Prompt = engine.prompt_of(seat) if seat >= 0 else engine.prompt
 	if prompt == null:
 		return out
-	var seat: int = prompt.player
+	seat = prompt.player
 	var forecasts: Dictionary = engine.attack_forecasts(seat) if prompt.kind == &"attack_action" else {}
 	for o in prompt.options:
 		out.append(_score(engine, profile, prompt, o, forecasts))
@@ -23,8 +24,9 @@ static func scores(engine: DuelEngine, profile: AiProfile) -> Array[float]:
 
 
 ## The best option by score. `rng` and the profile's noise make a weaker player misjudge.
-static func pick(engine: DuelEngine, profile: AiProfile, rng: RandomNumberGenerator = null) -> Command:
-	var list: Array[float] = scores(engine, profile)
+static func pick(engine: DuelEngine, profile: AiProfile, rng: RandomNumberGenerator = null, seat: int = -1) -> Command:
+	var prompt: Prompt = engine.prompt_of(seat) if seat >= 0 else engine.prompt
+	var list: Array[float] = scores(engine, profile, seat)
 	var noise: float = profile.w("think", "noise")
 	var best: int = 0
 	var best_score: float = -INF
@@ -35,7 +37,7 @@ static func pick(engine: DuelEngine, profile: AiProfile, rng: RandomNumberGenera
 		if s > best_score:
 			best_score = s
 			best = i
-	return engine.prompt.options[best]
+	return prompt.options[best]
 
 
 static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Command, forecasts: Dictionary) -> float:
@@ -215,6 +217,10 @@ static func hold_value(c: CardInstance, profile: AiProfile) -> float:
 			v += profile.w("own", "ally")
 		CardDef.Type.DRILL:
 			v += profile.w("own", "drill")
+			if bool(def.raw.get("protect_seals", false)):
+				# A Drill that guards Seals shuts off capture outright, so it is wanted before the
+				# Seals are and, on the other side of the table, wanted gone.
+				v += profile.w("own", "seal_guard") * 0.5
 		CardDef.Type.NON_COMBAT:
 			v += profile.w("own", "non_combat")
 		CardDef.Type.SEAL:

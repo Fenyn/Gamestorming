@@ -38,10 +38,15 @@ func _init() -> void:
 		test_guard_cannot_stop_focused,
 		test_shield_drill_once_per_combat,
 		test_endurance,
+		test_declined_endurance_is_announced,
+		test_option_outcomes_preview_the_wounds,
+		test_forecast_counts_energy_overflow_as_wounds,
 		test_fervor_aspect_up,
+		test_drill_guard_survives_aspect_change,
 		test_power_not_refreshed_by_aspect_change,
 		test_ascension_win_and_gating,
 		test_pass_flow_discard_and_next_turn,
+		test_discard_step_simultaneous,
 		test_deck_out_loses,
 		test_seal_bypass_and_instant_win,
 		test_capture_and_pending_win,
@@ -49,8 +54,11 @@ func _init() -> void:
 		test_final_strike_forces_pass,
 		test_ally_control_and_redirect,
 		test_end_combat_effect,
+		test_blocked_energy_gain_is_reported,
+		test_events_carry_the_state_they_fired_at,
 		test_random_hand_discard,
 		test_reserve_swap,
+		test_reserve_swap_simultaneous,
 		test_reserve_batch,
 		test_bracket_first_player,
 		test_search_and_in_play_discard,
@@ -144,6 +152,8 @@ func _init() -> void:
 		test_ai_answers_every_prompt,
 		test_ai_search_reports_and_is_repeatable,
 		test_ai_evaluator_routes,
+		test_ai_seal_guard_and_climb_grounds,
+		test_attack_forecast_reports_energy_left,
 		test_ai_reserve_swaps,
 		test_archetype_label,
 		test_ai_profile_merge,
@@ -467,6 +477,71 @@ func test_endurance() -> void:
 	eq(prompt_kind(e), &"attack_action", "battle finished")
 
 
+## Both seats watch the Endurance choice being offered, so turning it down has to be an outcome
+## they can see rather than silence.
+func test_declined_endurance_is_announced() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(["t_parry", "t_parry", "t_parry", "t_strike_endure"]), "pact", "tide", "t_mastery_tide"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	eq(prompt_kind(e), &"endurance", "endurance prompt on the flipped card")
+	var pending: Prompt = e.prompt
+	check(int(pending.context.get("remaining", 0)) > 0, "the prompt says how many wounds are still coming")
+	check(int(pending.context.get("endurance", 0)) > 0, "and how many the card could prevent")
+	e.events.clear()
+	answer(e, &"no_endure")
+	check(has_event(e, &"endurance_declined"), "declining says so")
+	check(not has_event(e, &"endurance_used"), "and claims no prevention")
+	eq(e.player(1).removed.size(), 0, "the card stays in the discard pile")
+
+
+## Each option of a damage decision carries what it would leave, so the client previews the
+## number rather than working the rules out for itself.
+func test_option_outcomes_preview_the_wounds() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(["t_parry", "t_parry", "t_parry", "t_strike_endure"]), "pact", "tide", "t_mastery_tide"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	eq(prompt_kind(e), &"endurance", "endurance prompt on the flipped card")
+	var p: PromptView = PromptView.of(e.prompt, e)
+	var endure: OptionView = p.find(&"endure")
+	var decline: OptionView = p.find(&"no_endure")
+	check(endure != null and decline != null, "both answers are offered")
+	var remaining: int = int(e.state.attack["life_remaining"])
+	eq(int(decline.outcome["life"]), remaining, "declining leaves every wound still coming")
+	var prevents: int = mini(int(e.prompt.context["endurance"]), remaining)
+	eq(int(endure.outcome["life"]), remaining - prevents, "enduring takes that many off")
+	check(int(endure.outcome["life"]) < int(decline.outcome["life"]), "so the preview is worth showing")
+	# The wire carries it, since the joiner previews from the same data.
+	eq(int(OptionView.from_dict(endure.to_dict()).outcome["life"]), int(endure.outcome["life"]), "outcome survives the round trip")
+
+
+## Energy past what the target is standing on becomes wounds. The deal path has always done
+## this; the forecast has to say the same, or a Strike that will cost life cards reads as
+## costing none and the client leads with a zero.
+func test_forecast_counts_energy_overflow_as_wounds() -> void:
+	# The defender holds a stop, so the sequence pauses on their prompt with the attack in the
+	# air and the forecast on show.
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_parry", "t_parry", "t_parry"]), "pact", "tide", "t_mastery_tide"))
+	to_combat(e)
+	e.player(1).duelist.energy = 1
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	var a: Dictionary = e.state.attack
+	check(not a.is_empty(), "an attack is in the air")
+	if a.is_empty():
+		return
+	var d: Dictionary = e.damage_breakdown(a)
+	var stages: int = int(d["stages"])
+	check(stages > 1, "the Strike is bigger than the single Energy the target holds")
+	eq(int(d["overflow"]), stages - 1, "everything past that one Energy overflows")
+	eq(int(d["wounds"]), int(d["life"]) + stages - 1, "and the wound total counts it")
+	# The defender's own preview must agree, so the big number matches what lands.
+	if prompt_kind(e) == &"defense":
+		var p: PromptView = PromptView.of(e.prompt, e)
+		var take: OptionView = p.find(&"no_defense")
+		check(take != null, "taking the hit is offered")
+		if take != null:
+			eq(int(take.outcome["life"]), int(d["wounds"]), "taking it costs the whole wound total")
+
+
 func test_fervor_aspect_up() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_taunt", "t_strike"])), deck(filler(), "pact"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
@@ -478,6 +553,21 @@ func test_fervor_aspect_up() -> void:
 	eq(e.player(0).fervor, 0, "fervor reset, no carry-over")
 	eq(e.player(0).drills().size(), 0, "drills discarded on aspect up")
 	check(not e.is_over(), "aspect 2 of 3 is not a win")
+
+
+## A Mastery that guards Drills reads "cannot be discarded for any reason", so the aspect change
+## clears no Drills either, and losing an aspect keeps them too.
+func test_drill_guard_survives_aspect_change() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_strike", "t_taunt", "t_strike"]), "vigil", "", "t_mastery_drills"), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
+	to_combat(e)
+	e.player(0).fervor = 4
+	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
+	eq(e.player(0).duelist.aspect, 2, "aspect still rises")
+	eq(e.player(0).drills().size(), 1, "but the guarded Drill stays in play")
+	e._lose_aspect(e.player(0), 1)
+	eq(e.player(0).duelist.aspect, 1, "the aspect is lost")
+	eq(e.player(0).drills().size(), 1, "and the guarded Drill still stays")
 
 
 ## A Duelist Power is once per turn; rising an aspect mid-Combat does not hand out a second use.
@@ -532,6 +622,25 @@ func test_pass_flow_discard_and_next_turn() -> void:
 	eq(e.state.turn, 2, "no recover prompt after a declared combat")
 	eq(e.state.active, 1, "turn passed to player 1")
 	eq(e.player(1).hand.size(), 3, "player 1 drew 3 fresh cards")
+
+
+## The Discard step asks both players at once. The opposing player may answer first, the
+## turn does not move until the active player has answered too.
+func test_discard_step_simultaneous() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_combat(e)
+	answer(e, &"pass")
+	answer(e, &"pass")
+	eq(e.prompts.size(), 2, "both players hold a keep prompt")
+	eq(e.prompt.player, 0, "the active player's prompt is first")
+	eq(e.prompt_of(1).kind, &"keep", "the opposing player's is a keep prompt too")
+	check(e.submit(Command.new(1, &"discard_all")), "the opposing player answers first")
+	eq(e.player(1).discard.size(), 3, "their hand went to the discard")
+	eq(e.state.step, GameState.Step.DISCARD, "still the discard step")
+	eq(e.prompts.size(), 1, "only the active player's prompt is left")
+	check(e.submit(Command.new(0, &"keep", e.player(0).hand[0].uid)), "the active player answers")
+	eq(e.player(0).hand.size(), 1, "active kept one")
+	eq(e.state.turn, 2, "the turn moves once both have answered")
 
 
 func test_deck_out_loses() -> void:
@@ -637,8 +746,8 @@ func test_ally_control_and_redirect() -> void:
 	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
 	eq(prompt_kind(e), &"control", "control prompt at energy 1 with an ally")
 	answer(e, &"control", ally.uid)
-	eq(prompt_kind(e), &"redirect", "redirect prompt")
-	answer(e, &"target", ally.uid)
+	# The ally in control is the only Ally, so there is nothing to redirect to and no prompt.
+	check(prompt_kind(e) != &"redirect", "no redirect prompt with a single target")
 	# attacker 4.0M band E vs ally might 300k band B = 4 stages: 3 to the ally, 1 wound
 	eq(ally.energy, 0, "ally absorbed the stages")
 	eq(e.player(0).discard.size(), 1, "overflow wound taken from the owner's deck")
@@ -651,6 +760,58 @@ func test_end_combat_effect() -> void:
 	answer(e, &"use", uid_in_hand(e, 0, "t_truce"))
 	check(has_event(e, &"combat_end"), "truce ended combat")
 	eq(e.state.step, GameState.Step.DISCARD, "moved to discard step")
+
+
+## A gain swallowed by a standing `no_gain` used to change nothing and say nothing, so a card
+## like Root Mastery ("go to full Energy") looked like it had not worked at all.
+func test_blocked_energy_gain_is_reported() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	e.dev_effect(0, {"op": "float", "what": "no_gain", "duration": "turn"})
+	check(e.energy_blocked(e.player(0)), "the player reports that Energy gain is blocked")
+	check(not e.energy_blocked(e.player(1)), "the other player is unaffected")
+	var seat: SeatPlayer = SeatPlayer.of(e.player(0), e)
+	check(seat.energy_blocked, "the seat view carries it, so a client can show the flag")
+	e.events.clear()
+	var before: int = e.player(0).duelist.energy
+	e.dev_effect(0, {"op": "energy", "amount": "max", "target": "duelist"})
+	eq(e.player(0).duelist.energy, before, "the gain really is swallowed")
+	check(has_event(e, &"gain_blocked"), "and it says so instead of passing in silence")
+	check(not has_event(e, &"energy_changed"), "no Energy change is claimed")
+	e.events.clear()
+	e.dev_effect(0, {"op": "energy", "amount": 3, "target": "duelist"})
+	check(has_event(e, &"gain_blocked"), "a plain gain is reported the same way")
+
+
+## Every animated event carries the table numbers as they stood when it fired, so a client can
+## pace an update's beats instead of drawing the end state under all of them.
+func test_events_carry_the_state_they_fired_at() -> void:
+	var r: Referee = Referee.new()
+	var decks: Array[DeckList] = [deck(filler()), deck(filler(), "pact")]
+	r.setup(decks, lib, table, 1)
+	r.start()
+	var updates: Array[SeatUpdate] = r.take_updates()
+	var stamped: int = 0
+	var seen_energy: bool = false
+	for l in updates[0].lines:
+		if not l.has("data"):
+			continue
+		check(l.has("state"), "animated line %s carries its state" % str(l.get("type", "")))
+		var st: Dictionary = l.get("state", {})
+		eq((st.get("fervor", []) as Array).size(), 2, "one Fervor count per player")
+		eq((st.get("zones", []) as Array).size(), 2, "one zone row per player")
+		# Where the turn stood, so the banner over the table cannot run ahead of the beat.
+		for key in ["turn", "step", "phase", "active", "attacker"]:
+			check(st.has(key), "the beat's state carries %s" % key)
+		check(int(st["step"]) != GameState.Step.GAME_OVER, "and it is a step of the turn it fired in")
+		if str(l.get("type", "")) == "power_up":
+			# Allies gain too, and only the event knows what each of them stands at.
+			check((l["data"] as Dictionary).has("energies"), "power up lists what each personality holds")
+			seen_energy = true
+		stamped += 1
+	check(stamped > 0, "the opening update animates something")
+	check(seen_energy, "the opening Power Up is one of them")
+	# The AI's simulations must not pay for any of this.
+	check(not r.sim_for(0, 5).record_display_state, "a simulation records no display state")
 
 
 func test_random_hand_discard() -> void:
@@ -681,6 +842,36 @@ func test_reserve_swap() -> void:
 	answer(e, &"reserve_done")
 	eq(e.state.turn, 1, "opponent without Reserve is skipped and the first turn begins")
 	eq(e.player(0).hand.size(), 3, "normal draw followed")
+
+
+## Both players hold a reserve prompt at once. Either may answer first, each seat's view puts
+## its own decision first, the referee routes each seat to its own prompt, and the turn begins
+## only once both are done.
+func test_reserve_swap_simultaneous() -> void:
+	var reserve: Array[String] = ["t_art", "t_taunt"]
+	var r: Referee = Referee.new()
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_vigil", "t_relic", reserve), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_relic", reserve))
+	r.engine = e
+	eq(e.prompts.size(), 2, "one reserve prompt per player")
+	eq(e.prompt.player, 0, "the active player's prompt comes first")
+	eq(e.prompt_of(1).kind, &"reserve", "the other player has a reserve prompt too")
+	eq(SeatView.of(e, 1).deciding, 1, "seat 1's view says seat 1 is deciding")
+	eq(SeatView.of(e, 0).deciding, 0, "seat 0's view says seat 0 is deciding")
+	check(r.prompt_for(1) != null, "the referee hands seat 1 its prompt")
+	var one_in: int = e.player(1).reserve[0].uid
+	eq(r.submit(1, Command.new(1, &"reserve_in", one_in).to_dict()), "", "seat 1 may answer before seat 0")
+	eq(e.card(one_in).zone, &"life_deck", "seat 1's card entered its deck")
+	eq(e.prompts.size(), 2, "seat 1's prompt reopened with what is left, seat 0's untouched")
+	eq(r.submit(1, Command.new(1, &"reserve_done").to_dict()), "", "seat 1 finishes")
+	eq(e.prompts.size(), 1, "only seat 0 is still swapping")
+	eq(e.state.turn, 0, "the turn waits for seat 0")
+	eq(SeatView.of(e, 1).deciding, 0, "seat 1's view now waits on seat 0")
+	eq(r.submit(1, Command.new(1, &"reserve_done").to_dict()), "It is not your decision.", "a finished seat cannot answer again")
+	var clone: DuelEngine = e.clone()
+	eq(clone.prompts.size(), 1, "a clone carries the open prompts")
+	eq(r.submit(0, Command.new(0, &"reserve_done").to_dict()), "", "seat 0 finishes")
+	eq(e.state.turn, 1, "the first turn begins once both are done")
+	eq(e.prompts.size(), 1, "back to one prompt at a time")
 
 
 ## Several Reserve cards can come in as one batch command; the batch must stay inside the
@@ -2449,6 +2640,8 @@ func test_ai_answers_every_prompt() -> void:
 			var seat: int = ref.engine.prompt.player
 			kinds[ref.engine.prompt.kind] = true
 			if steps == 1:
+				check(not players[1 - seat].choose(ref, 1 - seat).is_empty(), "both seats answer their own reserve swap")
+			elif ref.engine.prompts.size() == 1 and not kinds.has(&"non_combat"):
 				eq(players[1 - seat].choose(ref, 1 - seat).is_empty(), true, "the seat not deciding gets no answer")
 			refused = ref.submit(seat, players[seat].choose(ref, seat))
 			ref.engine.take_events()
@@ -2509,6 +2702,50 @@ func test_ai_evaluator_routes() -> void:
 	e.state.winner = 1
 	eq(AiEvaluator.evaluate(e, 0, profile), -AiEvaluator.WIN, "a lost duel is the floor")
 	eq(AiEvaluator.evaluate(e, 1, profile), AiEvaluator.WIN, "a won duel is the ceiling")
+
+
+## A Drill that guards Seals shuts off capture, so the AI values it above a plain Drill on its own
+## side and as a target on the other. Grounds that cap Fervor are worth the climb they deny.
+func test_ai_seal_guard_and_climb_grounds() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var profile: AiProfile = AiProfile.default_profile()
+	inject(e, 0, "t_seal_1")
+	var with_seal: float = AiEvaluator.evaluate(e, 0, profile)
+	var rival_with_seal: float = AiEvaluator.evaluate(e, 1, profile)
+	var plain: CardInstance = inject(e, 0, "t_drill_free")
+	var with_plain: float = AiEvaluator.evaluate(e, 0, profile)
+	check(with_plain > with_seal, "a plain Drill is worth something")
+	e.player(0).in_play.erase(plain)
+	inject(e, 0, "t_drill_keeper")
+	var with_guard: float = AiEvaluator.evaluate(e, 0, profile)
+	check(with_guard > with_plain, "a Drill that guards the Seal is worth more (%.2f vs %.2f)" % [with_guard, with_plain])
+	check(AiEvaluator.evaluate(e, 1, profile) < rival_with_seal, "and the seat across the table sees Seals it can no longer take")
+	var deaf: AiProfile = AiProfile.default_profile()
+	deaf.merge({"own": {"seal_guard": 0.0}})
+	eq(AiEvaluator.evaluate(e, 0, deaf), with_plain, "a profile with no guard weight scores it as a plain Drill")
+	var keeper: CardInstance = e._instance(lib.get_def("t_drill_keeper"), 0, &"hand")
+	var footwork: CardInstance = e._instance(lib.get_def("t_drill_free"), 0, &"hand")
+	check(AiScorer.hold_value(keeper, profile) > AiScorer.hold_value(footwork, profile), "and it is the Drill to keep out of the two")
+	var cap: CardDef = lib.get_def("t_grounds_cap")
+	var climber: AiProfile = AiProfile.default_profile()
+	climber.merge({"own": {"ascension": 45.0, "fervor": 6.0}, "foe": {"ascension": 10.0}})
+	var patient: AiProfile = AiProfile.default_profile()
+	patient.merge({"own": {"ascension": 5.0, "fervor": 0.0}, "foe": {"ascension": 45.0}})
+	check(AiEvaluator.grounds_value(e, 0, cap, patient) > 0.0, "Grounds that cap Fervor suit a deck that is not climbing")
+	check(AiEvaluator.grounds_value(e, 0, cap, climber) < 0.0, "and hurt one that is")
+
+
+## An attack forecast says what Energy the performer is left on after paying, which is what tells a
+## scorer whether the stages it is spending were going to survive the Combat anyway.
+func test_attack_forecast_reports_energy_left() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art"])), deck(filler(), "pact"))
+	to_combat(e)
+	var forecasts: Dictionary = e.attack_forecasts(e.prompt.player)
+	check(not forecasts.is_empty(), "the attack prompt forecasts something")
+	for key in forecasts:
+		var f: Dictionary = forecasts[key]
+		check(f.has("energy_left"), "and every forecast says what Energy the performer is left on")
+		check(int(f["energy_left"]) >= 0, "which is never below zero")
 
 
 ## Which Reserve cards seat 0's AI brings in for a shipped matchup, by card id.

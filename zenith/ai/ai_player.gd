@@ -25,5 +25,5 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 	if profile.searches() and pending.kind != &"reserve":
 		cmd = search.choose(referee, seat, profile, rng)
 	else:
-		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), profile, rng)
+		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), profile, rng, seat)
 	return cmd.to_dict() if cmd != null else {}

@@ -32,9 +32,23 @@ var state: GameState = GameState.new()
 var library: CardLibrary = null
 var strike_table: StrikeTable = null
 var rng: ZenithRng = null
-var prompt: Prompt = null
+## Pending decisions, one per player at most. Almost always one; the Reserve swap at setup
+## holds one for each player so both swap at once. `prompt` is the first of them, which is what
+## every turn step, the AI playout and the tools read; `prompt_of` is the one for a given seat.
+var prompts: Array[Prompt] = []
+var prompt: Prompt:
+	get:
+		return prompts[0] if not prompts.is_empty() else null
+	set(p):
+		prompts.clear()
+		if p != null:
+			prompts.append(p)
 var events: Array[GameEvent] = []
 var shuffle_decks: bool = true
+## Stamp every event with the table numbers as they stood when it fired, so a client can pace
+## the beats. A Referee turns it on for its own engine; `clone()` leaves it off, so the AI's
+## simulations never pay for it.
+var record_display_state: bool = false
 var _cards: Dictionary = {}   # uid -> CardInstance
 var _next_uid: int = 1
 var _combat_ending: bool = false
@@ -47,7 +61,8 @@ var _effect_source: CardInstance = null   # the card whose effect is being appli
 
 # --- Public API -----------------------------------------------------------
 
-func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable, seed_value: int) -> void:
+## `names` are the players' display names; a seat without one is named after its deck.
+func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable, seed_value: int, names: Array[String] = []) -> void:
 	assert(decks.size() == 2, "Zenith is a two-player duel")
 	library = p_library
 	strike_table = p_table
@@ -56,6 +71,8 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 	state.seed_value = seed_value
 	for i in range(2):
 		state.players.append(_build_player(i, decks[i]))
+		if i < names.size() and names[i] != "":
+			state.players[i].name = names[i]
 	_apply_first_player_rule()
 	_emit(&"setup", {"first": state.active, "seed": seed_value})
 
@@ -63,22 +80,24 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 func start() -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
 	state.reserve_index = 0
+	state.reserve_finished = [false, false]
 	_reserve_swapped = {}
 	_run()
 
 
 ## Answer the pending prompt. Returns false and changes nothing if the command is not one of its options.
 func submit(cmd: Command) -> bool:
-	if prompt == null or state.is_over():
-		push_warning("DuelEngine.submit: nothing pending")
+	var p: Prompt = prompt_of(cmd.player)
+	if p == null or state.is_over():
+		push_warning("DuelEngine.submit: nothing pending for player %d" % cmd.player)
 		return false
-	var chosen: Command = prompt.accept(cmd)
+	var chosen: Command = p.accept(cmd)
 	if chosen == null:
-		push_warning("DuelEngine.submit: %s is not legal for %s" % [cmd.describe(), prompt.describe()])
+		push_warning("DuelEngine.submit: %s is not legal for %s" % [cmd.describe(), p.describe()])
 		return false
-	var kind: StringName = prompt.kind
-	var context: Dictionary = prompt.context
-	prompt = null
+	var kind: StringName = p.kind
+	var context: Dictionary = p.context
+	prompts.erase(p)
 	_emit(&"command", {"player": chosen.player, "type": chosen.type, "card": chosen.card, "value": chosen.value})
 	_handle(kind, chosen, context)
 	_run()
@@ -87,6 +106,14 @@ func submit(cmd: Command) -> bool:
 
 func is_over() -> bool:
 	return state.is_over()
+
+
+## The pending prompt that is `player`'s, or null.
+func prompt_of(player: int) -> Prompt:
+	for p in prompts:
+		if p.player == player:
+			return p
+	return null
 
 
 ## An independent engine in the same position: same cards, same pending prompt, same random
@@ -106,7 +133,8 @@ func clone() -> DuelEngine:
 		c.cards_under = PlayerState._mapped_list(c.cards_under, e._cards)
 		c.attached_to = PlayerState._mapped(c.attached_to, e._cards)
 	e.state = state.copy(e._cards)
-	e.prompt = prompt.copy() if prompt != null else null
+	for p in prompts:
+		e.prompts.append(p.copy())
 	e._next_uid = _next_uid
 	e._combat_ending = _combat_ending
 	e._reserve_swapped = _reserve_swapped.duplicate()
@@ -125,10 +153,11 @@ func clone() -> DuelEngine:
 func determinize(seat: int, sample_seed: int) -> void:
 	var dealer: ZenithRng = ZenithRng.new(sample_seed)
 	var shown: Dictionary = {}
-	if prompt != null and prompt.player == seat:
-		for uid in prompt.card_options():
+	var mine: Prompt = prompt_of(seat)
+	if mine != null:
+		for uid in mine.card_options():
 			shown[uid] = true
-		for uid in prompt.context.get("library", []):
+		for uid in mine.context.get("library", []):
 			shown[int(uid)] = true
 	for owner in range(2):
 		var hidden: Array[CardInstance] = []
@@ -288,13 +317,20 @@ func _apply_first_player_rule() -> void:
 
 # --- Reserve swap (setup) --------------------------------------------------
 
+## Both players swap at the same time: each unfinished player holds a reserve prompt, the
+## active player's first. Nobody waits on the other.
 func _advance_reserve() -> void:
 	if state.reserve_index >= 2:
 		_start_in_play()
 		_begin_turn()
 		return
-	var order: Array[int] = [state.active, state.opposing()]
-	var p: PlayerState = state.players[order[state.reserve_index]]
+	for index in [state.active, state.opposing()]:
+		if not state.reserve_finished[index]:
+			_prompt_reserve(state.players[index])
+
+
+## Adds `p`'s reserve prompt beside any other, or finishes `p` when nothing is left to swap in.
+func _prompt_reserve(p: PlayerState) -> void:
 	var opts: Array[Command] = []
 	for c in p.reserve:
 		if not _reserve_swapped.has(c.uid):
@@ -304,8 +340,13 @@ func _advance_reserve() -> void:
 		return
 	var batch_max: int = opts.size()
 	opts.append(Command.new(p.index, &"reserve_done"))
-	_set_prompt(p.index, &"reserve", opts)
-	prompt.set_batch(&"reserve_in", 1, batch_max)
+	var rp: Prompt = Prompt.new()
+	rp.player = p.index
+	rp.kind = &"reserve"
+	rp.options = opts
+	rp.set_batch(&"reserve_in", 1, batch_max)
+	prompts.append(rp)
+	_emit(&"prompt", {"player": p.index, "kind": &"reserve", "options": opts.size()})
 
 
 ## One card at a time re-opens the prompt with what is left; a batch swaps them all and finishes.
@@ -318,6 +359,8 @@ func _handle_reserve(cmd: Command) -> void:
 		_reserve_swap_in(p, card(uid))
 	if cmd.value is Array:
 		_finish_reserve(p)
+	else:
+		_prompt_reserve(p)
 
 
 func _reserve_swap_in(p: PlayerState, c: CardInstance) -> void:
@@ -338,6 +381,7 @@ func _finish_reserve(p: PlayerState) -> void:
 	if shuffle_decks:
 		rng.shuffle(p.life_deck)
 	_emit(&"reserve_done", {"player": p.index})
+	state.reserve_finished[p.index] = true
 	state.reserve_index += 1
 
 
@@ -561,10 +605,19 @@ func _use_relic(p: PlayerState) -> void:
 func _power_up() -> void:
 	var p: PlayerState = state.active_player()
 	var gain: int = recover_gain(p)
+	var before: int = p.duelist.energy
 	_gain_energy(p, p.duelist, gain)
 	for a in p.allies():
 		_gain_energy(p, a, 1)
-	_emit(&"power_up", {"player": p.index, "gain": gain, "energy": p.duelist.energy})
+	# What was actually gained, not what was asked for: a standing `no_gain` swallows it, and
+	# the log and the table must not claim Energy that never arrived.
+	gain = p.duelist.energy - before
+	# `energies` is what every personality stands at afterwards, so a client can show the step
+	# without knowing what an Ally gains.
+	var energies: Dictionary = {p.duelist.uid: p.duelist.energy}
+	for a in p.allies():
+		energies[a.uid] = a.energy
+	_emit(&"power_up", {"player": p.index, "gain": gain, "energy": p.duelist.energy, "energies": energies})
 	state.step = GameState.Step.DECLARE
 
 
@@ -600,25 +653,41 @@ func _handle_declare(cmd: Command) -> void:
 		state.discard_index = 0
 
 
+## Both players choose what to keep at the same time, the active player's prompt first. Each
+## hand is its own, so neither choice can depend on the other's.
 func _advance_discard() -> void:
 	if state.skip_discard:
 		state.discard_index = 2
 	if state.discard_index >= 2:
 		state.step = GameState.Step.RECOVER
 		return
-	var order: Array[int] = [state.active, state.opposing()]
-	var p: PlayerState = state.players[order[state.discard_index]]
-	var keep: int = HAND_KEEP
-	if _has_floating(p.index, "keep_hand"):
-		keep = 99
-	if p.hand.size() <= keep:
-		state.discard_index += 1
-		return
-	var opts: Array[Command] = []
-	for c in p.hand:
-		opts.append(Command.new(p.index, &"keep", c.uid))
-	opts.append(Command.new(p.index, &"discard_all"))
-	_set_prompt(p.index, &"keep", opts)
+	if state.discard_index == 0 and prompts.is_empty():
+		state.discard_done = [false, false]
+	for index in [state.active, state.opposing()]:
+		if state.discard_done[index]:
+			continue
+		var p: PlayerState = state.players[index]
+		var keep: int = HAND_KEEP
+		if _has_floating(p.index, "keep_hand"):
+			keep = 99
+		if p.hand.size() <= keep:
+			_finish_discard(p.index)
+			continue
+		var opts: Array[Command] = []
+		for c in p.hand:
+			opts.append(Command.new(p.index, &"keep", c.uid))
+		opts.append(Command.new(p.index, &"discard_all"))
+		var kp: Prompt = Prompt.new()
+		kp.player = p.index
+		kp.kind = &"keep"
+		kp.options = opts
+		prompts.append(kp)
+		_emit(&"prompt", {"player": p.index, "kind": &"keep", "options": opts.size()})
+
+
+func _finish_discard(index: int) -> void:
+	state.discard_done[index] = true
+	state.discard_index += 1
 
 
 func _handle_keep(cmd: Command) -> void:
@@ -631,7 +700,7 @@ func _handle_keep(cmd: Command) -> void:
 	for c in to_discard:
 		_move_to_discard(c)
 	_emit(&"discard_step", {"player": p.index, "discarded": to_discard.size(), "kept": p.hand.size()})
-	state.discard_index += 1
+	_finish_discard(p.index)
 
 
 func _recover() -> void:
@@ -1199,6 +1268,7 @@ func attack_forecasts(seat: int) -> Dictionary:
 		b.erase("spent")
 		b["is_final"] = bool(a["is_final"])
 		b["cost_stages"] = cost
+		b["energy_left"] = maxi(0, energy_before - cost)
 		if o.type == &"attack" and str(o.value) == "empower" and out.has(o.card):
 			(out[o.card] as Dictionary)["empowered"] = {"stages": int(b["stages"]), "life": int(b["life"])}
 			continue
@@ -1373,8 +1443,10 @@ func _advance_battle() -> void:
 					for al in allies:
 						if al != defender.in_control():
 							opts.append(Command.new(defender.index, &"target", al.uid))
-					_set_prompt(defender.index, &"redirect", opts, {"source": int(a.get("source", -1))})
-					return
+					# The only Ally is the one in control: nothing to redirect to, so no stop.
+					if opts.size() > 1:
+						_set_prompt(defender.index, &"redirect", opts, {"source": int(a.get("source", -1))})
+						return
 				a["target"] = defender.in_control().uid
 			_deal_stage_damage(defender, a)
 			state.battle_step = 13
@@ -1776,6 +1848,15 @@ func damage_breakdown(a: Dictionary) -> Dictionary:
 		return {}
 	var b: Dictionary = _damage_calc(a)
 	b.erase("spent")
+	# Energy past what the target is standing on becomes wounds. `_deal_stage_damage` works that
+	# out at deal time; a forecast has to say the same thing, or a 5-Energy Strike on a target at
+	# 1 Energy reads as no wounds when it is really four.
+	var target: CardInstance = card(int(a.get("target", -1)))
+	if target == null:
+		target = state.players[int(a["defender"])].in_control()
+	var absorbs: int = target.energy if target != null else 0
+	b["overflow"] = maxi(0, int(b["stages"]) - absorbs)
+	b["wounds"] = int(b["life"]) + int(b["overflow"])
 	return b
 
 
@@ -2003,6 +2084,13 @@ func _handle_endurance(cmd: Command, context: Dictionary) -> void:
 		state.attack["endurance_prevented"] = int(state.attack.get("endurance_prevented", 0)) + prevented
 		_remove_from_game(c)
 		_emit(&"endurance_used", {"player": cmd.player, "card": c.uid, "prevented": prevented})
+	else:
+		# Turning Endurance down is a decision both players watched being made, so it is an
+		# outcome like any other rather than silence.
+		_emit(&"endurance_declined", {
+			"player": cmd.player, "card": cmd.card, "endurance": int(context.get("endurance", 0)),
+			"remaining": int(state.attack.get("life_remaining", 0)),
+		})
 	# battle_step stays 13; the loop resumes.
 
 
@@ -2225,7 +2313,9 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					return
 			var before: int = target.energy
 			if amount is String and str(amount) == "max":
-				if not _has_floating(who_index, "no_gain"):
+				if _has_floating(who_index, "no_gain"):
+					_emit(&"gain_blocked", {"player": who_index, "card": target.uid, "amount": CardInstance.MAX_STAGE - before})
+				else:
 					target.energy = CardInstance.MAX_STAGE
 			elif int(amount) >= 0:
 				_gain_energy(who, target, int(amount))
@@ -3066,6 +3156,39 @@ func aspect_shielded(p: PlayerState) -> bool:
 	return p.relic != null and bool(p.relic.def.relic_flags.get("aspect_shield", false))
 
 
+## A standing effect is swallowing every Energy gain this player would make.
+func energy_blocked(p: PlayerState) -> bool:
+	return _has_floating(p.index, "no_gain")
+
+
+## What taking this option would leave of the attack in the air: `life` is the life cards this
+## player would still lose. Clients preview it against the current number while the player hovers
+## a choice, so the maths is answered here once rather than guessed at on every seat. {} when the
+## outcome is not something that can be promised ahead of the roll of the rest of the sequence.
+func option_outcome(prompt: Prompt, cmd: Command) -> Dictionary:
+	if state.attack.is_empty():
+		return {}
+	var a: Dictionary = state.attack
+	match prompt.kind:
+		&"endurance":
+			var remaining: int = int(a.get("life_remaining", 0))
+			if cmd.type != &"endure":
+				return {"life": remaining}
+			# The same sum `_handle_endurance` will do, including a card that boosts it to all.
+			var boost: Dictionary = _floating_first(cmd.player, "endurance_boost")
+			var prevented: int = remaining if not boost.is_empty() else mini(int(prompt.context.get("endurance", 0)), remaining)
+			return {"life": remaining - prevented}
+		&"defense":
+			# Wounds, counting the Energy that would overflow into them.
+			var life: int = int(damage_breakdown(a).get("wounds", 0))
+			if cmd.type == &"no_defense":
+				return {"life": life}
+			# A stop only takes the attack to nothing when it is the one the attack still needs.
+			var stops: int = int(a.get("stop_count", 0)) + 1
+			return {"life": 0 if stops >= int(a.get("stops_needed", 1)) else life}
+	return {}
+
+
 ## Standing forbids in force on the player right now, as forbid `what` words.
 func restrictions(p: PlayerState) -> Array[String]:
 	var out: Array[String] = []
@@ -3161,13 +3284,21 @@ func _set_aspect(p: PlayerState, e: Dictionary, source_owner: int) -> void:
 			break
 
 
+## Changing aspect clears the Drills. A Mastery that guards Drills stops this too: the guard is
+## "cannot be discarded for any reason", not "cannot be discarded by the opponent".
 func _discard_drills(p: PlayerState) -> void:
+	if _drills_protected(p):
+		return
 	for d in p.drills():
 		_move_to_discard(d)
 
 
 func _gain_energy(p: PlayerState, c: CardInstance, n: int) -> void:
 	if _has_floating(p.index, "no_gain"):
+		# The gain is swallowed by a standing effect. Say so, or the card that asked for it looks
+		# like it did nothing at all.
+		if n > 0:
+			_emit(&"gain_blocked", {"player": p.index, "card": c.uid, "amount": n})
 		return
 	c.energy = clampi(c.energy + n, 0, CardInstance.MAX_STAGE)
 
@@ -3812,4 +3943,26 @@ func _lose(player_index: int, reason: String) -> void:
 
 
 func _emit(type: StringName, data: Dictionary = {}) -> void:
-	events.append(GameEvent.new(type, data))
+	var ev: GameEvent = GameEvent.new(type, data)
+	if record_display_state:
+		ev.state = _display_state()
+	events.append(ev)
+
+
+## The numbers a client shows on the table right now. See `GameEvent.state`.
+func _display_state() -> Dictionary:
+	var energy: Dictionary = {}
+	var fervor: Array[int] = []
+	var zones: Array = []
+	for p in state.players:
+		energy[p.duelist.uid] = p.duelist.energy
+		for a in p.allies():
+			energy[a.uid] = a.energy
+		fervor.append(p.fervor)
+		zones.append([p.life_deck.size(), p.hand.size(), p.discard.size(), p.removed.size()])
+	# Where the turn stood, so the banner over the table never runs ahead of the beat under it.
+	return {
+		"energy": energy, "fervor": fervor, "zones": zones,
+		"turn": state.turn, "step": state.step, "phase": state.phase,
+		"active": state.active, "attacker": state.attacker,
+	}

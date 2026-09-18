@@ -12,6 +12,10 @@ extends Control
 
 
 func _ready() -> void:
+	if OS.get_cmdline_user_args().has("--server"):
+		# The exported binary run as the duel server: no title, no window content.
+		get_tree().change_scene_to_file.call_deferred("res://scenes/server.tscn")
+		return
 	theme = ZenithTheme.get_theme()
 	Net.leave()
 	hotseat_button.pressed.connect(func() -> void: _offline(-1))
@@ -32,27 +36,36 @@ func _offline(ai_seat: int) -> void:
 	Session.go_to_select()
 
 
-func _on_host() -> void:
+## `kind` is "server" (a room on the duel server, with a share code) or "lan" (a plain port
+## with the rules in this process, for dev runs).
+func _on_host(kind: String = "server") -> void:
 	Session.ai_seat = -1
-	var problem: String = Net.host()
+	_set_buttons(false)
+	status_label.text = "Opening a room on the duel server…" if kind == "server" else "Opening a port…"
+	var problem: String = await Net.host(kind)
 	if problem != "":
+		_set_buttons(true)
 		status_label.text = problem
 		return
-	_set_buttons(false)
-	status_label.text = "Hosting on port %d. Waiting for the other player…" % Net.DEFAULT_PORT
+	status_label.text = Net.hosting_text()
 
 
 func _on_join() -> void:
 	Session.ai_seat = -1
-	var problem: String = Net.join(address_edit.text)
+	_set_buttons(false)
+	status_label.text = "Connecting to %s…" % address_edit.text.strip_edges()
+	var problem: String = await Net.join(address_edit.text)
 	if problem != "":
+		_set_buttons(true)
 		status_label.text = problem
 		return
-	_set_buttons(false)
-	status_label.text = "Connecting to %s…" % address_edit.text
 
 
+## Seated. A room's share code is copied for the player here; the select screen shows it too.
 func _on_connected() -> void:
+	print("join code: %s" % Net.join_code())
+	if Net.room_code != "" and Net.local_player == 0:
+		DisplayServer.clipboard_set(Net.room_code)
 	Session.go_to_select()
 
 
@@ -68,11 +81,28 @@ func _set_buttons(on: bool) -> void:
 	join_button.disabled = not on
 
 
-## `--dev-host` or `--dev-join=<address>` after `--` starts an online session without clicks.
+## `--dev-host` opens a plain LAN port with the rules in this process and `--dev-join=<address>`
+## connects to one; `--dev-host-code` opens a room on the duel server and `--dev-join=<code>`
+## joins it.
+## `--dev-screenshot=<png>` alone saves the title once drawn, then quits.
 func _dev_args() -> void:
-	for arg in OS.get_cmdline_user_args():
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var online: bool = false
+	for arg in args:
+		online = online or arg.begins_with("--dev-host") or arg.begins_with("--dev-join=")
 		if arg == "--dev-host":
-			_on_host()
+			_on_host("lan")
+		elif arg == "--dev-host-code":
+			_on_host("server")
 		elif arg.begins_with("--dev-join="):
 			address_edit.text = arg.get_slice("=", 1)
 			_on_join()
+	if not online:
+		for arg in args:
+			if arg.begins_with("--dev-screenshot="):
+				var path: String = arg.get_slice("=", 1)
+				await get_tree().create_timer(0.3).timeout
+				await RenderingServer.frame_post_draw
+				get_viewport().get_texture().get_image().save_png(path)
+				print("screenshot saved to %s" % path)
+				get_tree().quit()

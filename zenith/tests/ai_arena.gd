@@ -3,8 +3,9 @@ extends SceneTree
 ## long a decision takes. Every pairing is played from both seats.
 ## godot --headless --path zenith -s tests/ai_arena.gd -- --a=search --b=scorer --seeds=1
 ## Policies: random, scorer, search, or a profile name under data/ai/profiles (easy, hard).
-## Options: --seeds=N, --decks=pyre_beatdown,storm_volley (default all), --budget=MS and
-## --samples=N for searching policies, --verbose for a line per game. A deck's own playstyle
+## Options: --seeds=N, --decks=pyre_beatdown,storm_volley (default all), --budget=MS,
+## --samples=N, --turns=N (playout horizon) and --steps=N (playout step cap) for searching
+## policies, --verbose for a line per game. A deck's own playstyle
 ## profile (`ai_profile` in its JSON) is used unless --styles=a, --styles=b or --styles=none says
 ## which policies get one; that is how a playstyle is measured against the defaults.
 
@@ -12,7 +13,7 @@ const MAX_STEPS: int = 6000
 
 
 func _init() -> void:
-	var args: Dictionary = {"a": "scorer", "b": "random", "seeds": "1", "decks": "", "budget": "", "samples": "", "verbose": "", "styles": "ab"}
+	var args: Dictionary = {"a": "scorer", "b": "random", "seeds": "1", "decks": "", "budget": "", "samples": "", "turns": "", "steps": "", "verbose": "", "styles": "ab"}
 	for raw in OS.get_cmdline_user_args():
 		var text: String = raw.trim_prefix("--")
 		var parts: PackedStringArray = text.split("=", true, 1)
@@ -126,6 +127,10 @@ func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckLi
 		over["budget_ms"] = int(args["budget"])
 	if str(args["samples"]) != "":
 		over["samples"] = int(args["samples"])
+	if str(args["turns"]) != "":
+		over["turns"] = int(args["turns"])
+	if str(args["steps"]) != "":
+		over["max_steps"] = int(args["steps"])
 	if not over.is_empty():
 		profile.merge({"think": over})
 	return AiPlayer.new(profile, seed_value)

@@ -14,6 +14,9 @@ const FLY_TIME: float = 0.34          # a card's arc from one zone to another
 const FLY_LIFT: float = 0.6
 const BEAT: float = 0.22              # pause after a hit or a flipped card, so each one reads
 const TOAST_BEAT: float = 0.35
+const SPOTLIGHT_BEAT: float = 0.45    # hold on the card whose effect is about to resolve
+const DRAW_BEAT: float = 0.10         # between cards of the same draw, so they arrive one by one
+const WOUND_BEAT: float = 0.5         # between life cards, long enough to read what each one cost
 const AI_MIN_THINK: float = 0.45      # seconds the AI appears to think, so its plays do not snap
 
 @onready var rig: Node3D = $CameraRig
@@ -24,7 +27,7 @@ const AI_MIN_THINK: float = 0.45      # seconds the AI appears to think, so its 
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var hud: DuelHud = $Hud
 
-var referee: Referee = null          # hotseat and host only
+var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
 var view: SeatView = null            # what the viewer may see right now
 var prompt: PromptView = null        # the viewer's pending decision, null when it is not theirs
 var views: Dictionary = {}           # uid -> Card3D
@@ -32,7 +35,7 @@ var _markers: Dictionary = {}        # uid -> StatusMarkers on personalities in 
 var viewer: int = -1
 var busy: bool = false
 var online: bool = false
-var ai: AiPlayer = null              # drives Session.ai_seat when the duel is against the AI
+var authority: bool = true           # the rules run in this process
 var ai_seat: int = -1
 var _face_keys: Dictionary = {}      # uid -> face cache key currently on the quad
 var _inbox: Array[Dictionary] = []   # host: joiner commands; joiner: host updates; waiting for the table to settle
@@ -48,10 +51,15 @@ var _dev_freeze: StringName = &""    # event type whose beat the screenshot catc
 var _dev_done: bool = false
 var _wounds: int = 0                 # life cards flipped by the attack being replayed
 var _replaying: StringName = &""     # the event whose beat is playing now
+## The table numbers as they stood at the beat now playing (`GameEvent.state`). While it holds
+## something, the markers and the player panels read it instead of the update's final view, so a
+## card that charges up and is drained again in the same update reads as two beats, not one jump.
+var _live: Dictionary = {}
 
 
 func _ready() -> void:
 	online = Net.active()
+	authority = not online or Net.is_authority()
 	_parse_dev_args()
 	hud.option_chosen.connect(_on_option_chosen)
 	hud.card_clicked.connect(_on_card_clicked)
@@ -65,7 +73,7 @@ func _ready() -> void:
 		rig.rotation.y = 0.0 if viewer == 0 else PI
 		Net.command_rejected.connect(_on_net_rejected)
 		Net.peer_left.connect(_on_peer_left)
-		hud.set_online(Net.is_host())
+		hud.set_online(authority)
 	elif Session.ai_seat >= 0:
 		ai_seat = Session.ai_seat
 		viewer = 1 - ai_seat
@@ -73,38 +81,38 @@ func _ready() -> void:
 	if not Session.can_start():
 		push_warning("Duel opened without a selection; using the first two shipped decks")
 		Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
-	hud.set_dev_available(OS.is_debug_build() and (not online or Net.is_host()))
-	if online and not Net.is_host():
-		await _ready_joiner()   # presents as soon as the host's first update lands
-	else:
-		await _ready_referee()
+	hud.set_dev_available(OS.is_debug_build() and authority)
+	if authority:
+		await _ready_host()
 		_present_prompt()
+	else:
+		await _ready_joiner()   # presents as soon as the authority's first update lands
 
 
-## Hotseat and host: the rules run here.
-func _ready_referee() -> void:
-	referee = Session.build_referee()
-	ai = Session.build_ai() if not online else null
+## Hotseat and hosting: the rules run here, behind a DuelHost that also serves the remote seat.
+func _ready_host() -> void:
+	duel_host = DuelHost.new()
+	duel_host.setup(Session.build_referee(), Net.remote_seats(), Session.build_ai() if not online else null, Session.ai_seat)
+	duel_host.send = Net.send_update
+	duel_host.reject = Net.reject_command
 	for d in Session.chosen:
 		await faces.render_deck(d, Session.library)
 	hud.set_loading(false)
 	hud.log_line("Seed %d" % Session.last_seed)
 	if online:
-		hud.log_line("Online duel. You are hosting as %s." % Session.player_names[0])
+		hud.log_line("Online duel. You are hosting as %s." % Session.player_names[viewer])
 		Net.command_received.connect(_on_net_command)
-	referee.start()
-	var updates: Array[SeatUpdate] = referee.take_updates()
-	if online:
-		Net.send_update(updates[1].to_dict())
+	var updates: Array[SeatUpdate] = duel_host.start()
 	await _play_update(updates[maxi(viewer, 0)])
 
 
-## Joiner: nothing but views. Faces for the other seat's deck render as cards appear.
+## A client of a host or server: nothing but views. Faces for the other seat's deck render as
+## cards appear.
 func _ready_joiner() -> void:
-	await faces.render_deck(Session.chosen[1], Session.library)
-	await faces.render_deck(Session.chosen[0], Session.library, true)
+	await faces.render_deck(Session.chosen[viewer], Session.library)
+	await faces.render_deck(Session.chosen[1 - viewer], Session.library, true)
 	hud.set_loading(false)
-	hud.log_line("Online duel. You are %s." % Session.player_names[1])
+	hud.log_line("Online duel. You are %s." % Session.player_names[viewer])
 	if _dev_autoplay and _dev_steps > 0:
 		_dev_steps += 1   # the setup update is not a command; the host does not count it either
 	for u in Net.take_pending_updates():
@@ -167,7 +175,7 @@ func _present_prompt() -> void:
 			hud.show_waiting(view.player(view.deciding).name, view.deciding_kind, view)
 			_drain_inbox()
 			return
-		if ai != null and view.deciding == ai_seat:
+		if duel_host.ai != null and view.deciding == ai_seat:
 			hud.set_hand(_hand_cards(), faces, {})
 			hud.show_waiting(view.player(view.deciding).name, view.deciding_kind, view)
 			await _ai_turn()
@@ -183,12 +191,12 @@ func _present_prompt() -> void:
 
 
 ## The AI seat's decision. The search runs on a worker thread so the table keeps drawing; the
-## referee is not touched from here until it returns, because `busy` holds every other input.
+## host is not touched from here until it returns, because `busy` holds every other input.
 func _ai_turn() -> void:
 	busy = true
 	var started: int = Time.get_ticks_msec()
 	var answer: Array[Dictionary] = [{}]
-	var task: int = WorkerThreadPool.add_task(func() -> void: answer[0] = ai.choose(referee, ai_seat))
+	var task: int = WorkerThreadPool.add_task(func() -> void: answer[0] = duel_host.ai_choice())
 	while not WorkerThreadPool.is_task_completed(task):
 		await get_tree().process_frame
 	WorkerThreadPool.wait_for_task_completion(task)
@@ -206,8 +214,8 @@ func _ai_turn() -> void:
 func _on_handoff_confirmed() -> void:
 	hud.hide_handoff()
 	viewer = view.deciding
-	view = referee.view_for(viewer)
-	prompt = referee.prompt_for(viewer)
+	view = duel_host.view_for(viewer)
+	prompt = duel_host.prompt_for(viewer)
 	_adopt_cards()
 	await _swing_camera(viewer)
 	await _sync_layout(true)
@@ -220,11 +228,9 @@ func _show_prompt_for_viewer() -> void:
 	hud.set_hand(_hand_cards(), faces, legal)
 	hud.show_prompt(prompt, view)
 	_highlight(legal)
-	# A decision about one card's effect keeps that card's face in the quick view for context.
+	# The card the decision is about is held in the middle of the screen by the HUD's focus
+	# view, so the quick view on the left stays free for whatever the player hovers.
 	hud.hide_peek()
-	var source: SeatCard = view.card(int(prompt.context.get("source", -1)))
-	if source != null and not source.hidden():
-		hud.show_peek(_def(source), source.aspect, source.uid)
 	if _dev_autoplay:
 		_dev_step()
 
@@ -250,7 +256,7 @@ func _on_option_chosen(opt: OptionView) -> void:
 	if busy or _awaiting_answer or prompt == null:
 		return
 	var wire: Dictionary = opt.to_command(viewer).to_dict()
-	if online and not Net.is_host():
+	if not authority:
 		_awaiting_answer = true
 		hud.clear_prompt()
 		hud.hide_inspect()
@@ -261,12 +267,13 @@ func _on_option_chosen(opt: OptionView) -> void:
 	await _apply(view.deciding, wire)
 
 
-## Dev panel: one effect for the viewer through the referee, then the table replays as usual.
+## Dev panel: one effect for the viewer through the host, then the table replays as usual.
 func _on_dev_command(effect: Dictionary) -> void:
-	if referee == null or busy or view == null:
+	if duel_host == null or busy or view == null:
 		return
 	var seat: int = viewer if viewer >= 0 else view.active
-	var problem: String = referee.dev({"player": seat, "effect": effect})
+	var result: Dictionary = duel_host.dev(seat, effect)
+	var problem: String = str(result["problem"])
 	hud.dev_panel.report(problem)
 	if problem != "":
 		return
@@ -274,32 +281,28 @@ func _on_dev_command(effect: Dictionary) -> void:
 	hud.clear_prompt()
 	hud.hide_inspect()
 	_clear_highlights()
-	var updates: Array[SeatUpdate] = referee.take_updates()
-	if online:
-		Net.send_update(updates[1].to_dict())
+	var updates: Array[SeatUpdate] = result["updates"]
 	await _play_update(updates[maxi(viewer, 0)])
 	busy = false
 	_present_prompt()
 
 
-## Hotseat and host: run one command through the referee and show what came of it.
+## Hotseat and hosting: run one command through the host and show what came of it. A remote
+## seat's refusal goes back to it from the host; a local one lands in the log.
 func _apply(seat: int, wire: Dictionary) -> void:
 	busy = true
 	hud.clear_prompt()
 	hud.hide_inspect()
 	_clear_highlights()
-	var problem: String = referee.submit(seat, wire)
+	var result: Dictionary = duel_host.apply(seat, wire)
+	var problem: String = str(result["problem"])
 	if problem != "":
-		if online and seat != viewer:
-			Net.reject_command(problem)
-		else:
+		if not duel_host.is_remote(seat):
 			hud.log_line(problem)
 		busy = false
 		_present_prompt()
 		return
-	var updates: Array[SeatUpdate] = referee.take_updates()
-	if online:
-		Net.send_update(updates[1].to_dict())
+	var updates: Array[SeatUpdate] = result["updates"]
 	await _play_update(updates[maxi(viewer, 0)])
 	busy = false
 	if await _dev_count_update():
@@ -323,8 +326,12 @@ func _play_update(up: SeatUpdate) -> void:
 			hud.log_line(line)
 		if l.has("data"):
 			_replaying = StringName(str(l.get("type", "")))
+			# The beat draws the table as it stood when the event fired, not as it stands now.
+			_live = l.get("state", {})
+			hud.refresh_state(view, viewer, _live)
 			await _replay(_replaying, int(l.get("player", -1)), l["data"], targets)
 			_replaying = &""
+	_live = {}
 	hud.refresh_state(view, viewer)
 	_refresh_roles()
 	await _sync_layout(true)
@@ -386,18 +393,39 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var pos: Vector3 = _card_pos(uid)
 			fx.burst(pos, ZenithTheme.ATTACK, 14, 1.4)
 			fx.float_text(pos, "Wound %d" % _wounds, ZenithTheme.ATTACK, 56)
-			await _beat(BEAT)
+			var v: Card3D = views.get(uid)
+			if v != null:
+				v.flash(ZenithTheme.ATTACK)
+			# Wounds come in runs, so each one names the card it cost and holds long enough to
+			# read before the next lands.
+			var lost: SeatCard = view.card(uid)
+			var title: String = lost.title if lost != null and not lost.hidden() else "a card"
+			hud.toast("Wound %d  ·  %s" % [_wounds, title], ZenithTheme.ATTACK)
+			await _beat(WOUND_BEAT)
 		&"life_card_lost", &"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved", &"critical_ally":
 			var uid: int = int(data.get("card", data.get("discarded", -1)))
 			await _fly(uid, targets)
 		&"card_used", &"card_placed":
 			await _sync_layout(true)   # the card lands in play before its text does anything
+			await _spotlight(int(data.get("card", -1)))
 		&"endurance_used":
 			var defender: int = 1 - view.attacker
 			var pos: Vector3 = _card_pos(view.player(defender).controlling)
 			fx.ring(pos, ZenithTheme.DEFEND, 0.8)
 			fx.float_text(pos, "Endurance %d" % int(data.get("prevented", 0)), ZenithTheme.DEFEND, 56)
-			await _fly(int(data.get("card", -1)), targets)
+			var card_uid: int = int(data.get("card", -1))
+			var used: SeatCard = view.card(card_uid)
+			var used_title: String = used.title if used != null and not used.hidden() else "the wound"
+			hud.toast("Endurance %d  ·  %s" % [int(data.get("prevented", 0)), used_title], ZenithTheme.DEFEND)
+			await _fly(card_uid, targets)
+			await _beat(TOAST_BEAT)
+		&"endurance_declined":
+			# The other side watched the choice being offered, so it sees the answer too.
+			var uid: int = int(data.get("card", -1))
+			var pos: Vector3 = _card_pos(uid)
+			fx.float_text(pos, "Endurance declined", ZenithTheme.MUTED, 48)
+			hud.toast("Endurance declined  ·  %d to come" % int(data.get("remaining", 0)), ZenithTheme.MUTED)
+			await _beat(TOAST_BEAT)
 		&"seal_bypassed":
 			fx.float_text(_card_pos(int(data.get("card", -1))), "Seal stays", ZenithTheme.ACCENT, 48)
 			await _beat(BEAT)
@@ -421,19 +449,53 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			_wounds = 0
 		&"combat_end":
 			_refresh_roles()
-		&"power_up", &"recover":
+		&"trigger_fired":
+			# The card doing the work holds the table for a moment before its effects land, the
+			# way MTG Arena stops on a trigger. Everything after this beat is that card's doing.
+			await _spotlight(int(data.get("card", -1)))
+		&"draw":
+			await _fly(int(data.get("card", -1)), targets)
+			await _beat(DRAW_BEAT)
+		&"recover":
+			# A card coming back from the discard pile to the Life Deck, not an Energy gain.
+			await _fly(int(data.get("card", -1)), targets)
+			await _beat(DRAW_BEAT)
+		&"power_up":
 			var uid: int = view.player(player).duelist
-			await _number(uid, "+%d Energy" % int(data.get("gain", 0)), ZenithTheme.ENERGY)
+			var gain: int = int(data.get("gain", 0))
+			if gain > 0:
+				await _number(uid, "+%d Energy" % gain, ZenithTheme.ENERGY)
+			# Allies power up too, and only the event knows what each of them gained.
+			for key in data.get("energies", {}).keys():
+				var ally: int = int(key)
+				if ally != uid:
+					fx.float_text(_card_pos(ally), "+1 Energy", ZenithTheme.ENERGY, 44)
+			await _beat(BEAT)
 		&"energy_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
+				_source_pulse(int(data.get("source", -1)))
 				await _number(int(data.get("card", -1)), "%+d Energy" % delta, ZenithTheme.ENERGY if delta > 0 else ZenithTheme.WARN)
+				await _beat(BEAT)
+		&"gain_blocked":
+			# A gain swallowed by a standing effect. Without this the card that asked for it
+			# looks like it did nothing.
+			var uid: int = int(data.get("card", -1))
+			fx.float_text(_card_pos(uid), "Gain blocked", ZenithTheme.WARN, 52)
+			var v: Card3D = views.get(uid)
+			if v != null:
+				v.flash(ZenithTheme.WARN)
+			hud.toast("Cannot gain Energy", ZenithTheme.WARN)
+			await _beat(TOAST_BEAT)
 		&"fervor_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
+				_source_pulse(int(data.get("source", -1)))
 				await _number(view.player(player).duelist, "%+d Fervor" % delta, ZenithTheme.ACCENT if delta > 0 else ZenithTheme.WARN)
+				await _beat(BEAT)
 		&"fervor_shielded":
 			fx.float_text(_card_pos(view.player(player).duelist), "Shielded", ZenithTheme.DEFEND, 48)
+			await _beat(BEAT)
 		&"aspect_up", &"aspect_down":
 			var uid: int = view.player(player).duelist
 			var pos: Vector3 = _card_pos(uid)
@@ -473,6 +535,32 @@ func _swing(attacker: int) -> void:
 
 
 ## A number over a card that just changed, with a hop and a flash in the same colour.
+## The card about to do something holds the table: it lifts, flashes and names itself, so the
+## effects that follow read as its doing rather than as the table changing by itself.
+func _spotlight(uid: int) -> void:
+	var v: Card3D = views.get(uid)
+	var c: SeatCard = view.card(uid)
+	if v == null or not v.visible or c == null or c.hidden():
+		return
+	v.flash(ZenithTheme.ACCENT)
+	fx.ring(v.global_position, ZenithTheme.ACCENT, 0.7)
+	hud.toast(c.title, ZenithTheme.ACCENT)
+	await v.hop(0.16)
+	await _beat(SPOTLIGHT_BEAT)
+
+
+## A quiet pulse on the card an effect came from, while the effect itself lands somewhere else.
+func _source_pulse(uid: int) -> void:
+	if uid < 0:
+		return
+	var v: Card3D = views.get(uid)
+	var c: SeatCard = view.card(uid)
+	if v == null or not v.visible or c == null or c.hidden():
+		return
+	v.flash(ZenithTheme.ACCENT)
+	fx.ring(v.global_position, ZenithTheme.ACCENT, 0.45)
+
+
 func _number(uid: int, text: String, color: Color) -> void:
 	var v: Card3D = views.get(uid)
 	if v == null or not v.visible:
@@ -543,13 +631,13 @@ func _refresh_roles() -> void:
 
 # --- Online ---------------------------------------------------------------
 
-## Host: the joiner asks to apply a command.
-func _on_net_command(d: Dictionary) -> void:
-	_inbox.append(d)
+## Hosting: a remote seat asks to apply a command.
+func _on_net_command(seat: int, d: Dictionary) -> void:
+	_inbox.append({"seat": seat, "cmd": d})
 	_drain_inbox()
 
 
-## Joiner: the host sent what seat 1 may see now.
+## Client: the authority sent what our seat may see now.
 func _on_net_update(d: Dictionary) -> void:
 	_inbox.append(d)
 	_drain_inbox()
@@ -560,18 +648,42 @@ func _drain_inbox() -> void:
 	if busy or _inbox.is_empty():
 		return
 	var d: Dictionary = _inbox.pop_front()
-	if Net.is_host():
-		await _apply(Net.remote_player(), d)
+	if authority:
+		await _apply(int(d["seat"]), d["cmd"])
 		return
+	var update: SeatUpdate = SeatUpdate.from_dict(d)
+	# While both seats decide at once (the Reserve swap, the Discard step), the other seat's
+	# moves arrive as updates too. Only an update carrying our own command answers the one we
+	# sent, and one that leaves our decision as it was plays underneath the open prompt, so the
+	# panel, the tray selection and the highlights stay put.
+	var mine: bool = _carries_command(update, viewer)
+	var same_prompt: bool = not mine and not _awaiting_answer and prompt != null and update.prompt != null \
+		and prompt.to_dict() == update.prompt.to_dict()
 	busy = true
-	hud.clear_prompt()
-	_clear_highlights()
-	_awaiting_answer = false
-	await _play_update(SeatUpdate.from_dict(d))
+	if not same_prompt:
+		hud.clear_prompt()
+		_clear_highlights()
+	if _awaiting_answer and mine:
+		_awaiting_answer = false
+	await _play_update(update)
 	busy = false
 	if await _dev_count_update():
 		return
+	if same_prompt:
+		_drain_inbox()
+		return
+	if _awaiting_answer:
+		hud.refresh_state(view, viewer)
+		hud.show_sending()
+		return
 	_present_prompt()
+
+
+static func _carries_command(update: SeatUpdate, seat: int) -> bool:
+	for line in update.lines:
+		if str(line.get("type", "")) == "command" and int(line.get("player", -1)) == seat:
+			return true
+	return false
 
 
 func _on_net_rejected(reason: String) -> void:
@@ -599,7 +711,7 @@ func _on_rematch() -> void:
 
 func _on_select() -> void:
 	if online:
-		if Net.is_host():
+		if Net.is_authority():
 			Net.back_to_lobby()
 		else:
 			Net.leave()
@@ -724,11 +836,14 @@ func _targets() -> Dictionary:
 
 ## Energy marks on duelists and Allies in play, Fervor on the duelist.
 func _refresh_markers() -> void:
-	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null]
+	var live_energy: Dictionary = _live.get("energy", {})
+	var live_fervor: Array = _live.get("fervor", [])
+	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null, fervor or -1]
 	for p in view.players:
-		wanted[p.duelist] = [view.card(p.duelist).energy, p]
+		var fervor: int = int(live_fervor[p.index]) if p.index < live_fervor.size() else -1
+		wanted[p.duelist] = [_live_energy(live_energy, p.duelist), p, fervor]
 		for uid in p.allies:
-			wanted[uid] = [view.card(uid).energy, null]
+			wanted[uid] = [_live_energy(live_energy, uid), null, -1]
 	for uid in _markers.keys():
 		if not wanted.has(uid):
 			(_markers[uid] as StatusMarkers).queue_free()
@@ -743,7 +858,18 @@ func _refresh_markers() -> void:
 			v.body.add_child(m)
 			m.setup(faces.ladder_rects())
 			_markers[uid] = m
-		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer)
+		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer, int(wanted[uid][2]))
+
+
+## The Energy to draw for a card: what the beat says, else what the view ends on. The map is
+## keyed by uid, and JSON brings its keys back as strings.
+func _live_energy(live: Dictionary, uid: int) -> int:
+	if live.has(uid):
+		return int(live[uid])
+	if live.has(str(uid)):
+		return int(live[str(uid)])
+	var c: SeatCard = view.card(uid)
+	return c.energy if c != null else 0
 
 
 func _sync_layout(animated: bool) -> void:
@@ -840,6 +966,8 @@ func _dev_step() -> void:
 				_on_card_hovered(_hand_cards()[0].uid, true)
 			elif arg == "--dev-peek=duelist":
 				_on_card_hovered(view.player(viewer).duelist, true)
+			elif arg.begins_with("--dev-hover="):
+				hud.hover_primary(int(arg.get_slice("=", 1)))
 			elif arg == "--dev-log":
 				hud.set_log_expanded(true)
 			elif arg == "--dev-panel":
@@ -885,7 +1013,7 @@ func _dev_step() -> void:
 ## defends, so a short run shows damage and a fight back instead of a string of passes.
 func _dev_pick(opts: Array[OptionView]) -> OptionView:
 	if _dev_policy == "attack":
-		for wanted in [&"attack", &"declare", &"no_defense"]:
+		for wanted in [&"attack", &"declare", &"no_defense", &"no_endure"]:
 			for o in opts:
 				if o.type == wanted:
 					return o

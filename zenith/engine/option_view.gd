@@ -7,6 +7,9 @@ var type: StringName = &""
 var card: int = -1
 var value: Variant = null
 var label: String = ""
+## What this option would leave of the attack in the air, for the client's hover preview:
+## `life` is the life cards the player would still lose. {} when there is nothing to promise.
+var outcome: Dictionary = {}
 
 
 func to_command(player: int) -> Command:
@@ -14,7 +17,7 @@ func to_command(player: int) -> Command:
 
 
 func to_dict() -> Dictionary:
-	return {"type": String(type), "card": card, "value": value, "label": label}
+	return {"type": String(type), "card": card, "value": value, "label": label, "outcome": outcome}
 
 
 static func from_dict(d: Dictionary) -> OptionView:
@@ -23,6 +26,7 @@ static func from_dict(d: Dictionary) -> OptionView:
 	o.card = int(d.get("card", -1))
 	o.value = d.get("value", null)
 	o.label = str(d.get("label", ""))
+	o.outcome = d.get("outcome", {})
 	return o
 
 

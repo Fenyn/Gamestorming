@@ -1,0 +1,142 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/select/duelist_select.gd" id="1_select"]
+[ext_resource type="PackedScene" path="res://scenes/select/select_seat.tscn" id="2_seat"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="3_faces"]
+
+[node name="DuelistSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_select")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.055, 0.07, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Back" type="Button" parent="Margin/Column/TitleRow"]
+custom_minimum_size = Vector2(90, 36)
+layout_mode = 2
+text = "Back"
+
+[node name="Title" type="Label" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "Choose your duelist"
+
+[node name="Players" type="HBoxContainer" parent="Margin/Column/TitleRow"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="PlayersTag" type="Label" parent="Margin/Column/TitleRow/Players"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 12
+text = "PLAYERS"
+
+[node name="Seat0" type="PanelContainer" parent="Margin/Column/TitleRow/Players"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat0"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "P1  Player 1"
+horizontal_alignment = 1
+
+[node name="Seat1" type="PanelContainer" parent="Margin/Column/TitleRow/Players"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "P2  waiting"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = ""
+horizontal_alignment = 2
+
+[node name="CodeBanner" type="PanelContainer" parent="Margin/Column"]
+visible = false
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Margin/Column/CodeBanner"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Lead" type="Label" parent="Margin/Column/CodeBanner/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 18
+text = "Waiting for a player to join. Share this room code:"
+
+[node name="Code" type="Label" parent="Margin/Column/CodeBanner/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"AccentLabel"
+theme_override_font_sizes/font_size = 44
+text = "XXXXX"
+
+[node name="Copy" type="Button" parent="Margin/Column/CodeBanner/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Copy"
+
+[node name="Copied" type="Label" parent="Margin/Column/CodeBanner/Row"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 14
+text = "on your clipboard"
+
+[node name="Seat" parent="Margin/Column" instance=ExtResource("2_seat")]
+layout_mode = 2
+
+[node name="Roster" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1

@@ -553,6 +553,33 @@ DECK_KINDS = {
 }
 
 
+# Identity text shown on the duelist select screen: (tagline, blurb). Drafted 2026-09-17 from the
+# design doc's duelist lines; pending tone approval.
+DECK_IDENTITY = {
+    "pyre_beatdown": (
+        "A pyromancer prodigy who rides momentum.",
+        "Bram Ashmark takes the site's power greedily and burns whatever he has to. His Strikes feed his Fervor, and every Aspect he climbs makes the next climb faster. Thin on defense; win before the fire goes out."),
+    "steel_beatdown": (
+        "An Ironblood grinder who reads the last blow.",
+        "Halden Quarr turns magic inward until the body is the spell. He hits harder than anyone at the same Energy and gains it back as he goes. Few tricks and no recovery, only weight."),
+    "shade_henchmen": (
+        "Hexers for hire, under a captain who never pays in full.",
+        "Sable Draik fights with her company beside her. Every hex is aimed at the rival's mind: their hand, their focus, the spells they were counting on. Modest damage, but the rival plays with less and less."),
+    "tide_companions": (
+        "An old family of water mages who hold the line together.",
+        "Dame Alder Rooke ebbs and floods. Her coven takes the wounds, her blocks turn the exchange, and her Arts pull the rival's Energy out and pour it back into hers. Slow to kill, hard to outlast."),
+    "freestyle_swords": (
+        "The last of a line of swordmasters. No magic at all.",
+        "Caedan Vale carries nothing but will, footwork and steel. His Drills stack until every cut lands heavier, and his signature moves punish anyone who blinks. No school means no crutch, and a Mastery that does little."),
+    "storm_volley": (
+        "Scholars of the Tempest, and the construct they send to fight.",
+        "The Ninth Vessel is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy."),
+    "root_seals": (
+        "An old druid who mends as he fights, and outlasts.",
+        "Osric Thornwald regrows what is cut away. Spent spells return to the bottom of his deck, foresight shows him what comes next, and while the rival tires he carves the seven seals. No burst; patience is the plan."),
+}
+
+
 def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, relic_id, reserve, entries):
     for i, _ in entries:
         assert i in VALID, i
@@ -565,6 +592,8 @@ def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, relic_i
         d["archetype"], d["difficulty"], d["subthemes"] = DECK_KINDS[fname]
     if fname in AI_PROFILES:
         d["ai_profile"] = AI_PROFILES[fname]
+    if fname in DECK_IDENTITY:
+        d["tagline"], d["blurb"] = DECK_IDENTITY[fname]
     d["cards"] = [{"id": i, "count": n} for i, n in entries]
     with open("data/decks/%s.json" % fname, "w", encoding="utf-8", newline="\n") as f:
         json.dump(d, f, indent=2)

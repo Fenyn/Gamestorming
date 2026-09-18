@@ -569,6 +569,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "Look at your opponent's hand and choose %s. They discard %s." % [_plural(n, "card", "cards"), "it" if n == 1 else "them"]
 			elif opp:
 				body = "Your opponent discards %s from hand%s." % [_plural(n, "card", "cards"), how]
+			elif str(e.get("filter", "")) == "signature":
+				body = "Discard %s from your hand%s." % [_plural(n, "Signature card", "Signature cards"), how]
 			else:
 				body = "Discard %s from your hand%s." % [_plural(n, "card", "cards"), how]
 		"remove_hand":
@@ -1136,9 +1138,9 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"target":
 			return "%s takes the damage" % name
 		&"endure":
-			return "Use Endurance"
+			return "Spend %s" % name if name != "" else "Use Endurance"
 		&"no_endure":
-			return "Decline Endurance"
+			return "Take the wounds"
 		&"capture":
 			return "Capture %s" % name
 		&"discard_ally":
@@ -1207,7 +1209,7 @@ static func prompt_title(p: Prompt) -> String:
 		&"redirect":
 			return "Who takes the damage?"
 		&"endurance":
-			return "Endurance %d: prevent wounds?" % int(p.context.get("endurance", 0))
+			return "Endurance"
 		&"critical":
 			var wounds: int = int(p.context.get("life_dealt", 0))
 			return "Critical damage (%d wounds): choose one" % wounds if wounds > 0 else "Critical damage: choose one"
@@ -1375,7 +1377,11 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"life_card_flipped":
 			return "%s takes a wound: %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"endurance_used":
-			return "%s uses Endurance and prevents %d." % [pname, int(d.get("prevented", 0))]
+			return "%s uses %s's Endurance and prevents %d." % [
+				pname, _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("prevented", 0))]
+		&"endurance_declined":
+			return "%s keeps %s and takes the remaining %d." % [
+				pname, _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("remaining", 0))]
 		&"seal_bypassed":
 			return "A Seal surfaces and returns to the deck."
 		&"seal_captured":
@@ -1411,6 +1417,9 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"energy_changed":
 			var by: String = _cname(engine, int(d.get("source", -1)))
 			return "%s: %s's Energy %d → %d." % [by if by != "a card" else "Effect", _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("from", 0)), int(d.get("to", 0))]
+		&"gain_blocked":
+			return "%s cannot gain Energy right now, so the %d it would gain is lost." % [
+				_cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("amount", 0))]
 		&"trigger_fired":
 			return "%s triggers %s." % [_cname(engine, int(d.get("card", -1)), seat, actor), trigger_phrase(str(d.get("trigger", "")))]
 		&"flag_set":

@@ -123,9 +123,11 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 	v.attacker = s.attacker
 	v.winner = s.winner
 	v.win_reason = s.win_reason
-	if engine.prompt != null:
-		v.deciding = engine.prompt.player
-		v.deciding_kind = engine.prompt.kind
+	# When both seats hold a decision (the Reserve swap), this seat's own comes first.
+	var pending: Prompt = engine.prompt_of(seat) if engine.prompt_of(seat) != null else engine.prompt
+	if pending != null:
+		v.deciding = pending.player
+		v.deciding_kind = pending.kind
 	v.attack = _attack_summary(engine)
 	v.battle_step = s.battle_step
 	v.last_attack = _last_attack_summary(engine)
@@ -139,12 +141,13 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 			v.resolving.append(c.uid)
 	# A seat choosing among cards may see them, wherever they sit (a search through the Life Deck,
 	# a look at the top cards). Only the deciding seat gets this.
-	if engine.prompt != null and engine.prompt.player == seat:
-		for o in engine.prompt.options:
+	var mine: Prompt = engine.prompt_of(seat)
+	if mine != null:
+		for o in mine.options:
 			if o.card >= 0 and v.cards.has(o.card) and (v.cards[o.card] as SeatCard).hidden():
 				v.cards[o.card] = SeatCard.of(engine.card(o.card), seat, true)
 		# A search of the Life Deck shows the whole deck, not only the cards that match.
-		for uid in engine.prompt.context.get("library", []):
+		for uid in mine.context.get("library", []):
 			if v.cards.has(int(uid)) and (v.cards[int(uid)] as SeatCard).hidden():
 				v.cards[int(uid)] = SeatCard.of(engine.card(int(uid)), seat, true)
 	return v
@@ -169,6 +172,9 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 		"stop_count": int(a.get("stop_count", 0)),
 		"no_prevent": bool(a.get("no_prevent", false)),
 		"stopped": bool(a.get("stopped", false)),
+		# The card the attack came from, public from the moment it is declared, so a client can
+		# put it in front of the defender while they answer it.
+		"source": int(a.get("source", -1)),
 		"source_title": "",
 		"performer_title": "",
 		# The numbers, step by step: what the table gives, what each card adds, what would land.

@@ -30,3 +30,7 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="Zenith"
+
+[zenith]
+
+net/duel_server="198.44.38.215:7777"

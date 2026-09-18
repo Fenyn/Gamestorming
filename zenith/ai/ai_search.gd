@@ -12,12 +12,12 @@ var last_report: Array[Dictionary] = []
 func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGenerator) -> Command:
 	last_report = []
 	var base: DuelEngine = referee.sim_for(seat, rng.randi())
-	var prompt: Prompt = base.prompt
-	if prompt == null or prompt.player != seat:
+	var prompt: Prompt = base.prompt_of(seat)
+	if prompt == null:
 		return null
 	if prompt.options.size() == 1:
 		return prompt.options[0]
-	var prior: Array[float] = AiScorer.scores(base, profile)
+	var prior: Array[float] = AiScorer.scores(base, profile, seat)
 	var shortlist: Array[int] = _shortlist(prompt, prior, profile.think_int("top_k"))
 	if shortlist.size() == 1:
 		return prompt.options[shortlist[0]]
@@ -31,7 +31,7 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 		var deal: int = rng.randi()
 		for k in range(shortlist.size()):
 			var sim: DuelEngine = referee.sim_for(seat, deal)
-			totals[k] += _playout(sim, sim.prompt.options[shortlist[k]], seat, profile, foe_profile)
+			totals[k] += _playout(sim, sim.prompt_of(seat).options[shortlist[k]], seat, profile, foe_profile)
 		samples += 1
 		if Time.get_ticks_msec() >= deadline:
 			break
@@ -67,13 +67,16 @@ static func _shortlist(prompt: Prompt, prior: Array[float], top_k: int) -> Array
 	return out
 
 
-## Plays `first`, then the scorer for both seats until the turn changes hands, and scores it.
+## Plays `first`, then the scorer for both seats to the end of the turn, and scores where that
+## leaves the table. `think.turns` above 1 plays on through that many further turns, which is what
+## it takes to see a plan that builds across turns, such as a Seal the opponent answers next turn.
 static func _playout(sim: DuelEngine, first: Command, seat: int, profile: AiProfile, foe_profile: AiProfile) -> float:
 	var turn: int = sim.state.turn
+	var last: int = turn + maxi(1, profile.think_int("turns")) - 1
 	sim.submit(first)
 	var steps: int = 0
 	var limit: int = profile.think_int("max_steps")
-	while not sim.is_over() and sim.state.turn == turn and steps < limit:
+	while not sim.is_over() and sim.state.turn <= last and steps < limit:
 		steps += 1
 		var who: AiProfile = profile if sim.prompt.player == seat else foe_profile
 		sim.submit(AiScorer.pick(sim, who))

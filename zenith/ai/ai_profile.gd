@@ -9,12 +9,12 @@ const DIR: String = "res://data/ai/profiles"
 const DEFAULTS: Dictionary = {
 	"own": {
 		"life": 1.0, "life_low": 1.5, "discard": 0.05, "energy": 0.6, "band": 1.0, "hand": 1.2,
-		"aspect": 4.0, "ascension": 30.0, "fervor": 0.0, "seal": 25.0, "ally": 2.5, "ally_energy": 0.3, "drill": 2.0,
+		"aspect": 4.0, "ascension": 30.0, "fervor": 0.0, "seal": 25.0, "seal_guard": 6.0, "ally": 2.5, "ally_energy": 0.3, "drill": 2.0,
 		"non_combat": 1.5, "attachment": 1.5, "forbid": 1.0, "grounds": 8.0,
 	},
 	"foe": {
 		"life": 1.0, "life_low": 1.5, "discard": 0.05, "energy": 0.6, "band": 1.0, "hand": 1.0,
-		"aspect": 4.0, "ascension": 30.0, "seal": 25.0, "ally": 2.5, "ally_energy": 0.3, "drill": 2.0,
+		"aspect": 4.0, "ascension": 30.0, "seal": 25.0, "seal_guard": 6.0, "ally": 2.5, "ally_energy": 0.3, "drill": 2.0,
 		"non_combat": 1.5, "attachment": 1.5, "forbid": 1.0, "grounds": 8.0,
 	},
 	"effect": {
@@ -28,7 +28,7 @@ const DEFAULTS: Dictionary = {
 		"defend_card": 1.0, "defend_in_play": 0.3, "use_cost": 0.3, "declare_bias": 0.5, "control_ally": 0.0, "grounds_skip": 0.6,
 	},
 	"reserve": {"tech": 3.0, "threshold": 1.0, "toolbox_keep": 2.0, "max_swaps": 4},
-	"think": {"search": true, "top_k": 6, "samples": 6, "budget_ms": 400, "max_steps": 80, "noise": 0.0, "prior": 0.05},
+	"think": {"search": true, "top_k": 6, "samples": 6, "budget_ms": 400, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05},
 }
 
 var name: String = "default"

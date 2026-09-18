@@ -9,6 +9,7 @@ extends RefCounted
 ## the player must read (a deck problem, a must-pass flag). School colours mark identity only.
 
 const BG: Color = Color(0.08, 0.08, 0.10, 0.90)
+const BG_ACTIVE: Color = Color(0.16, 0.14, 0.09, 0.92)   # panel of the seat taking the turn
 const BG_INPUT: Color = Color(0.0, 0.0, 0.0, 0.35)
 const BORDER: Color = Color(1.0, 1.0, 1.0, 0.10)
 const ACCENT: Color = Color(0.86, 0.69, 0.27)

@@ -1,6 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" fill="#1a1a2e"/>
-  <polygon points="64,20 44,60 84,60" fill="#e94560"/>
-  <rect x="44" y="65" width="40" height="40" fill="#0f3460"/>
-  <circle cx="64" cy="85" r="10" fill="#e94560"/>
+  <!-- Eidolarch: a gate cut into the wall between worlds, seven seals carved around it, light from the far side. -->
+  <rect width="128" height="128" rx="18" fill="#141126"/>
+  <!-- light leaking through the gate -->
+  <path d="M64 22 C40 22 30 44 30 64 L30 112 L98 112 L98 64 C98 44 88 22 64 22 Z" fill="#f2b84b"/>
+  <path d="M64 34 C48 34 42 50 42 66 L42 112 L86 112 L86 66 C86 50 80 34 64 34 Z" fill="#fff1c9"/>
+  <!-- the stone arch -->
+  <path d="M64 12 C34 12 22 38 22 64 L22 116 L36 116 L36 64 C36 46 44 26 64 26 C84 26 92 46 92 64 L92 116 L106 116 L106 64 C106 38 94 12 64 12 Z" fill="#3b3557"/>
+  <!-- seven seals carved into the arch -->
+  <g fill="#f2b84b">
+    <circle cx="29" cy="104" r="3"/>
+    <circle cx="29" cy="82" r="3"/>
+    <circle cx="31" cy="56" r="3"/>
+    <circle cx="64" cy="19" r="3.5"/>
+    <circle cx="97" cy="56" r="3"/>
+    <circle cx="99" cy="82" r="3"/>
+    <circle cx="99" cy="104" r="3"/>
+  </g>
+  <!-- the sill -->
+  <rect x="22" y="112" width="84" height="6" fill="#57507a"/>
 </svg>

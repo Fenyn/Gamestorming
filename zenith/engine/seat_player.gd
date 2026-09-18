@@ -18,6 +18,7 @@ var fervor_gain: int = 1
 var recover_gain: int = 0
 var fervor_shield: bool = false
 var aspect_shield: bool = false
+var energy_blocked: bool = false       # a standing effect swallows every Energy gain
 var restrictions: Array[String] = []   # forbid `what` words in force; CardText.restriction_name reads them
 var duelist: int = -1
 var mastery: int = -1
@@ -44,7 +45,7 @@ func to_dict() -> Dictionary:
 		"archetype": archetype, "subthemes": subthemes,
 		"fervor": fervor, "highest_aspect": highest_aspect, "fervor_needed": fervor_needed,
 		"fervor_gain": fervor_gain, "recover_gain": recover_gain, "fervor_shield": fervor_shield,
-		"aspect_shield": aspect_shield, "restrictions": restrictions, "duelist": duelist, "mastery": mastery,
+		"aspect_shield": aspect_shield, "energy_blocked": energy_blocked, "restrictions": restrictions, "duelist": duelist, "mastery": mastery,
 		"relic": relic, "controlling": controlling, "reserve": reserve, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
 		"non_combats": non_combats, "seals": seals, "must_pass": must_pass,
@@ -68,6 +69,7 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.recover_gain = int(d.get("recover_gain", 0))
 	p.fervor_shield = bool(d.get("fervor_shield", false))
 	p.aspect_shield = bool(d.get("aspect_shield", false))
+	p.energy_blocked = bool(d.get("energy_blocked", false))
 	p.restrictions = strings(d.get("restrictions", []))
 	p.duelist = int(d.get("duelist", -1))
 	p.mastery = int(d.get("mastery", -1))
@@ -127,6 +129,7 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.recover_gain = engine.recover_gain(p)
 	v.fervor_shield = engine.fervor_shielded(p)
 	v.aspect_shield = engine.aspect_shielded(p)
+	v.energy_blocked = engine.energy_blocked(p)
 	v.restrictions = engine.restrictions(p)
 	v.duelist = p.duelist.uid
 	v.mastery = p.mastery.uid if p.mastery != null else -1

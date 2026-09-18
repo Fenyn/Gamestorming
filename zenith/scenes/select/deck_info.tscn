@@ -1,0 +1,68 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/select/deck_info.gd" id="1_info"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="2_tile"]
+
+[node name="DeckInfo" type="VBoxContainer"]
+offset_right = 420.0
+offset_bottom = 500.0
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+script = ExtResource("1_info")
+
+[node name="Stats" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Might" parent="Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Surge" parent="Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Life" parent="Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="Reserve" parent="Stats" instance=ExtResource("2_tile")]
+layout_mode = 2
+
+[node name="AspectsHeader" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "ASCENSION ASPECTS"
+
+[node name="Aspects" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CompHeader" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "LIFE DECK"
+
+[node name="CompBar" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="CompLegend" type="HFlowContainer" parent="."]
+layout_mode = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 4
+
+[node name="KeyHeader" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "KEY CARDS"
+
+[node name="KeyCards" type="HFlowContainer" parent="."]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="Problems" type="Label" parent="."]
+visible = false
+layout_mode = 2
+theme_type_variation = &"WarnLabel"
+text = ""
+autowrap_mode = 3

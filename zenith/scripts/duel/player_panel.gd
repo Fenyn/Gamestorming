@@ -26,16 +26,22 @@ func _ready() -> void:
 	flags_label.add_theme_color_override("font_color", ZenithTheme.WARN)
 
 
-func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool) -> void:
+## `live` overrides the counts and Fervor with the beat now replaying; {} uses the view's own.
+func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool, live: Dictionary = {}) -> void:
 	var over: bool = view.is_over()
 	var duelist: SeatCard = view.card(p.duelist)
-	add_theme_stylebox_override("panel", ZenithTheme.edged(Palette.school_ui(p.style)))
+	var active: bool = int(live.get("active", view.active)) == p.index and not over
+	# The seat taking the turn sits on a lifted, gold-tinted panel; the other one stays flat.
+	add_theme_stylebox_override("panel", ZenithTheme.edged(Palette.school_ui(p.style), ZenithTheme.BG_ACTIVE if active else ZenithTheme.BG))
 	duelist_label.text = duelist.title
-	turn_chip.visible = view.active == p.index and not over
-	var in_combat: bool = view.step == GameState.Step.COMBAT and not over and view.phase != GameState.Phase.NONE
+	turn_chip.text = "YOUR TURN" if is_viewer else "THEIR TURN"
+	turn_chip.visible = active
+	var step: int = int(live.get("step", view.step))
+	var phase: int = int(live.get("phase", view.phase))
+	var in_combat: bool = step == GameState.Step.COMBAT and phase != GameState.Phase.NONE and not over
 	combat_chip.visible = in_combat
 	if in_combat:
-		var attacking: bool = view.attacker == p.index
+		var attacking: bool = int(live.get("attacker", view.attacker)) == p.index
 		combat_chip.text = "ATTACKING" if attacking else "DEFENDING"
 		ZenithTheme.chip(combat_chip, ZenithTheme.ATTACK if attacking else ZenithTheme.DEFEND, true)
 	var who: PackedStringArray = PackedStringArray()
@@ -48,12 +54,13 @@ func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool) -> void:
 		who.append("%s in control" % ic.title)
 	sub_label.text = "  ·  ".join(who)
 
-	var life: int = p.life_deck.size()
+	var life: int = int(live.get("life", p.life_deck.size()))
+	var removed: int = int(live.get("removed", p.removed.size()))
 	life_tile.set_stat("Life", str(life), "cards in deck", ZenithTheme.WARN if life <= LOW_LIFE else ZenithTheme.TEXT)
-	hand_tile.set_stat("Hand", str(p.hand.size()), "cards", ZenithTheme.TEXT)
-	discard_tile.set_stat("Discard", str(p.discard.size()), "cards", ZenithTheme.TEXT)
-	removed_label.text = "Out %d" % p.removed.size()
-	removed_label.visible = p.removed.size() > 0
+	hand_tile.set_stat("Hand", str(int(live.get("hand", p.hand.size()))), "cards", ZenithTheme.TEXT)
+	discard_tile.set_stat("Discard", str(int(live.get("discard", p.discard.size()))), "cards", ZenithTheme.TEXT)
+	removed_label.text = "Out %d" % removed
+	removed_label.visible = removed > 0
 	reserve_label.text = "Reserve %d" % p.reserve.size()
 	reserve_label.visible = p.reserve.size() > 0
 	seals_label.text = "Seals %d" % p.seals.size()
@@ -77,6 +84,8 @@ func refresh(p: SeatPlayer, view: SeatView, is_viewer: bool) -> void:
 		flags.append("Fervor shielded")
 	if p.aspect_shield:
 		flags.append("Aspect shielded")
+	if p.energy_blocked:
+		flags.append("Cannot gain Energy")
 	for what in p.restrictions:
 		flags.append(CardText.restriction_name(what))
 	flags_label.text = "  ·  ".join(flags)

@@ -3,7 +3,8 @@ extends RefCounted
 ## What one seat receives after the referee applied a command: the log lines for what happened,
 ## the seat's new view, and the seat's prompt if the next decision is theirs.
 
-var lines: Array[Dictionary] = []   # {type: String, player: int, line: String}
+## {type, player, line}, plus `data` and `state` on the events a client animates.
+var lines: Array[Dictionary] = []
 var view: SeatView = null
 var prompt: PromptView = null
 

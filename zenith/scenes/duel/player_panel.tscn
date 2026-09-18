@@ -4,8 +4,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="2_tile"]
 
 [node name="PlayerPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(360, 0)
-offset_right = 360.0
+custom_minimum_size = Vector2(408, 0)
+offset_right = 408.0
 offset_bottom = 200.0
 script = ExtResource("1_panel")
 
@@ -28,14 +28,14 @@ text_overrun_behavior = 3
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 11
-text = "TURN"
+theme_override_font_sizes/font_size = 14
+text = "YOUR TURN"
 
 [node name="Combat" type="Label" parent="Column/Header"]
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 14
 text = "ATTACKING"
 
 [node name="Sub" type="Label" parent="Column"]

@@ -1,0 +1,177 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/select/select_seat.gd" id="1_seat"]
+[ext_resource type="PackedScene" path="res://scenes/select/deck_info.tscn" id="2_info"]
+
+[node name="SelectSeat" type="PanelContainer"]
+offset_right = 1550.0
+offset_bottom = 690.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_seat")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="PortraitBox" type="Control" parent="Row"]
+custom_minimum_size = Vector2(453, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Silhouette" type="Label" parent="Row/PortraitBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 160
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Portrait" type="TextureRect" parent="Row/PortraitBox"]
+layout_mode = 1
+mouse_default_cursor_shape = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture_filter = 1
+stretch_mode = 5
+
+[node name="Stamp" type="Label" parent="Row/PortraitBox"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -60.0
+offset_right = 90.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(90, 20)
+theme_override_font_sizes/font_size = 20
+text = "LOCKED IN"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Identity" type="VBoxContainer" parent="Row"]
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Row/Identity"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Tag" type="Label" parent="Row/Identity/Header"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+text = "PLAYER 1"
+
+[node name="Name" type="LineEdit" parent="Row/Identity/Header"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Player 1"
+placeholder_text = "Name"
+
+[node name="Spacer1" type="Control" parent="Row/Identity"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Duelist" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+theme_override_font_sizes/font_size = 48
+text = "Choose a duelist"
+autowrap_mode = 2
+
+[node name="Deck" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_type_variation = &"AccentLabel"
+theme_override_font_sizes/font_size = 22
+text = ""
+
+[node name="Tagline" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 17
+text = "Pick from the roster below."
+autowrap_mode = 3
+
+[node name="Chips" type="HFlowContainer" parent="Row/Identity"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="School" type="Label" parent="Row/Identity/Chips"]
+layout_mode = 2
+text = "School"
+
+[node name="Alignment" type="Label" parent="Row/Identity/Chips"]
+layout_mode = 2
+text = "Vigil"
+
+[node name="Archetype" type="Label" parent="Row/Identity/Chips"]
+layout_mode = 2
+text = "Archetype"
+
+[node name="Difficulty" type="Label" parent="Row/Identity/Chips"]
+layout_mode = 2
+text = "Easy"
+
+[node name="Blurb" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+autowrap_mode = 3
+
+[node name="AspectHeader" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "ASPECT 1 OF 3"
+
+[node name="AspectTitle" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_type_variation = &"AccentLabel"
+theme_override_font_sizes/font_size = 20
+text = "Kindled"
+
+[node name="AspectPower" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = ""
+autowrap_mode = 3
+
+[node name="Fill" type="Control" parent="Row/Identity"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Lock" type="Button" parent="Row/Identity"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+disabled = true
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 20
+text = "Lock in"
+
+[node name="Hint" type="Label" parent="Row/Identity"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+autowrap_mode = 3
+
+[node name="Info" parent="Row" instance=ExtResource("2_info")]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+size_flags_horizontal = 3

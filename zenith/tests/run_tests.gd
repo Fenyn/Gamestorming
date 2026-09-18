@@ -43,6 +43,13 @@ func _init() -> void:
 		test_forecast_counts_energy_overflow_as_wounds,
 		test_fervor_aspect_up,
 		test_drill_guard_survives_aspect_change,
+		test_shuffle_discard_takes_only_its_school,
+		test_recur_source_pays_with_a_signature_card,
+		test_chosen_attach_host_and_discard_side,
+		test_energy_all_and_chosen_personality,
+		test_may_can_ask_the_opponent,
+		test_remove_discard_choice,
+		test_discard_in_play_any_side,
 		test_power_not_refreshed_by_aspect_change,
 		test_ascension_win_and_gating,
 		test_pass_flow_discard_and_next_turn,
@@ -553,6 +560,159 @@ func test_fervor_aspect_up() -> void:
 	eq(e.player(0).fervor, 0, "fervor reset, no carry-over")
 	eq(e.player(0).drills().size(), 0, "drills discarded on aspect up")
 	check(not e.is_over(), "aspect 2 of 3 is not a win")
+
+
+## "Remove a Signature card from your discard pile to shuffle this card into your Life Deck."
+## Signature is our name for a card titled after the duelist, which is the rule the source card
+## uses, so the cost only takes those and does nothing when there are none.
+func test_recur_source_pays_with_a_signature_card() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var spent: CardInstance = e._instance(lib.get_def("t_taunt"), 0, &"discard")
+	p.discard.append(spent)
+	var plain: CardInstance = e._instance(lib.get_def("t_strike"), 0, &"discard")
+	p.discard.append(plain)
+	var deck_before: int = p.life_deck.size()
+	e._apply_effect({"op": "recur_source", "cost": {"signature_of": "duelist"}}, 0, {}, spent)
+	eq(p.life_deck.size(), deck_before, "with no Signature card in the pile, nothing happens")
+	eq(spent.zone, &"discard", "and the card stays where it was")
+	var signature: CardInstance = e._instance(lib.get_def("t_vigil_ray"), 0, &"discard")
+	p.discard.append(signature)
+	e._apply_effect({"op": "recur_source", "cost": {"signature_of": "duelist"}}, 0, {}, spent)
+	eq(signature.zone, &"removed", "the Signature card pays the cost")
+	eq(spent.zone, &"life_deck", "and the card that asked goes back into the Life Deck")
+	eq(plain.zone, &"discard", "the card with no character on it was never a candidate")
+
+
+## "Attach this card to one of your personalities" asks which, and the attachment only helps while
+## that personality is the one attacking. "Choose a player and remove his discard pile" asks whose.
+func test_chosen_attach_host_and_discard_side() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var ally: CardInstance = inject(e, 0, "t_ally_squire")
+	var curse: CardInstance = e._instance(lib.get_def("t_strike"), 0, &"resolving")
+	e._apply_effect({"op": "attach", "to": "choose"}, 0, {}, curse)
+	check(e.prompt != null and e.prompt.kind == &"pick_option", "the host is asked for")
+	eq(e.prompt.card_options().size(), 2, "the duelist and the Ally are both offered")
+	e.submit(Command.new(0, &"pick_option", ally.uid))
+	eq(curse.attached_to, ally, "it lands on the personality that was picked")
+	# With only the duelist there is nobody to pick between, so it attaches without asking.
+	p.in_play.erase(ally)
+	var second: CardInstance = e._instance(lib.get_def("t_strike"), 0, &"resolving")
+	e._apply_effect({"op": "attach", "to": "choose"}, 0, {}, second)
+	eq(second.attached_to, p.duelist, "and with no Ally it goes straight to the duelist")
+	e.player(1).discard.append(e._instance(lib.get_def("t_strike"), 1, &"discard"))
+	p.discard.append(e._instance(lib.get_def("t_strike"), 0, &"discard"))
+	e.prompt = null
+	e._enqueue([{"op": "remove_discard", "who": "opponent", "choose_player": true, "all": true}], "secondary", 0, {}, null)
+	e._drain()
+	check(e.prompt != null and e.prompt.kind == &"pick_option", "the pile is asked for")
+	eq(e.prompt.options.size(), 2, "either player's pile may go")
+	e.submit(Command.new(0, &"pick_option", -1, "self"))
+	eq(p.discard.size(), 0, "picking yourself burns your own pile")
+	eq(e.player(1).discard.size(), 1, "and leaves theirs alone")
+
+
+## "Raise all of your personalities" lifts the Duelist and every Ally; "raise any of them" asks,
+## unless the Duelist is the only one there to pick.
+func test_energy_all_and_chosen_personality() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var ally: CardInstance = inject(e, 0, "t_ally_squire")
+	p.duelist.energy = 2
+	ally.energy = 1
+	e._apply_effect({"op": "energy", "amount": "max", "target": "all"}, 0, {}, null)
+	eq(p.duelist.energy, CardInstance.MAX_STAGE, "the duelist is full")
+	eq(ally.energy, CardInstance.MAX_STAGE, "and so is the Ally")
+	p.duelist.energy = 2
+	ally.energy = 1
+	e._apply_effect({"op": "energy", "amount": "max", "target": "choose"}, 0, {}, null)
+	check(e.prompt != null and e.prompt.kind == &"pick_option", "with an Ally out, the pick is asked")
+	eq(e.prompt.card_options().size(), 2, "the duelist and the Ally are both on offer")
+	e.submit(Command.new(0, &"pick_option", ally.uid))
+	eq(ally.energy, CardInstance.MAX_STAGE, "the chosen personality is raised")
+	eq(p.duelist.energy, 2, "and the other is left alone")
+	p.in_play.erase(ally)
+	p.duelist.energy = 3
+	e._apply_effect({"op": "energy", "amount": "max", "target": "choose"}, 0, {}, null)
+	eq(p.duelist.energy, CardInstance.MAX_STAGE, "with no Ally there is nothing to ask about")
+
+
+## "Unless your opponent discards a card from hand, ..." is their call, so the prompt crosses the
+## table while the effect stays with the card's owner.
+func test_may_can_ask_the_opponent() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	e.player(1).hand.append(e._instance(lib.get_def("t_strike"), 1, &"hand"))
+	var ask: Dictionary = {"may": true, "asks": "opponent", "op": "discard_hand", "who": "opponent",
+		"amount": 1, "random": false, "otherwise": [{"op": "fervor", "amount": 2}]}
+	# A "you may" is raised while the queue drains, not by applying the effect straight off, and the
+	# queue only drains with nothing else being asked.
+	e.prompt = null
+	e._enqueue([ask], "secondary", 0, {}, null)
+	e._drain()
+	check(e.prompt != null, "the question is raised")
+	eq(e.prompt.player, 1, "and it is the opponent who answers it")
+	var before: int = e.player(0).fervor
+	e.submit(Command.new(1, &"pick_option", -1, "no"))
+	eq(e.player(0).fervor, before + 2, "a refusal runs the otherwise, which belongs to the card's owner")
+
+
+## "Remove up to N cards in your opponent's discard pile" puts the pile in front of the chooser
+## rather than skimming the top, and taking nothing is a legal answer.
+func test_remove_discard_choice() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var foe: PlayerState = e.player(1)
+	for i in range(5):
+		foe.discard.append(e._instance(lib.get_def("t_strike"), 1, &"discard"))
+	e._apply_effect({"op": "remove_discard", "who": "opponent", "amount": 3, "choose": true, "up_to": true}, 0, {}, null)
+	check(e.prompt != null, "the pile is offered")
+	eq(e.prompt.kind, &"pick_discard", "as a discard-pile pick")
+	eq(e.prompt.player, 0, "to the player whose card it is")
+	eq(e.prompt.card_options().size(), 5, "every card in the pile is on offer, not just the top 3")
+	check(e.prompt.find(&"pick_none") != null, "and taking none is allowed")
+	var picked: Array[int] = [e.prompt.card_options()[1], e.prompt.card_options()[3]]
+	e.submit(Command.new(0, e.prompt.batch_type, -1, picked))
+	eq(foe.discard.size(), 3, "the two chosen cards left the pile")
+	for uid in picked:
+		eq(e.card(uid).zone, &"removed", "and are out of the game")
+	# Without `choose` it still skims the top, which is what every other card that reads it wants.
+	e._apply_effect({"op": "remove_discard", "who": "opponent", "amount": 2}, 0, {}, null)
+	check(e.prompt == null or e.prompt.kind != &"pick_discard", "no pick when the card does not offer a choice")
+	eq(foe.discard.size(), 1, "and two more are gone")
+
+
+## "Remove a Seal in play from the game" names no side, so both players' Seals are on offer.
+func test_discard_in_play_any_side() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	inject(e, 0, "t_seal_1")
+	inject(e, 1, "t_seal_1")
+	e._apply_effect({"op": "discard_in_play", "who": "any", "card_type": "seal", "amount": 1, "remove": true, "choose": true}, 0, {}, null)
+	check(e.prompt != null, "the pick is offered")
+	eq(e.prompt.card_options().size(), 2, "both Seals are on offer, mine as well as theirs")
+
+
+## "Shuffle 3 Steel cards in your discard pile into your Life Deck" takes only that school, and
+## takes as many of them as it can find rather than stopping at the first card of another school.
+func test_shuffle_discard_takes_only_its_school() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var mine: Array[String] = ["t_strike", "t_parry", "t_strike", "t_parry", "t_strike"]
+	for id in mine:
+		var c: CardInstance = e._instance(lib.get_def(id), 0, &"discard")
+		p.discard.append(c)
+	var before: int = p.life_deck.size()
+	e._shuffle_discard_into_deck(p, 2, false, "top", "pyre")
+	eq(p.life_deck.size(), before + 2, "two cards came back")
+	for c in p.life_deck.slice(before):
+		eq(c.def.school, "pyre", "and both were Pyre, past the Tide cards in the way")
+	eq(p.discard.size(), 3, "the rest of the pile stays put")
+	var tide: int = 0
+	for c in p.discard:
+		if c.def.school == "tide":
+			tide += 1
+	eq(tide, 2, "including every Tide card")
+	e._shuffle_discard_into_deck(p, 9, false, "top", "pyre")
+	eq(p.discard.size(), 2, "asking for more than the pile holds takes what there is")
 
 
 ## A Mastery that guards Drills reads "cannot be discarded for any reason", so the aspect change

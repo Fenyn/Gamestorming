@@ -22,7 +22,7 @@ const TRAY_COLUMNS: int = 7          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
-const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card"]
+const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard"]
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
 	&"reserve_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
@@ -566,6 +566,8 @@ func _hint_for(p: PromptView) -> String:
 			return "Pick the cards that leave %s." % whose if p.has_batch() else "Pick the card that leaves %s." % whose
 		&"pick_in_play":
 			return "Pick the card in play the effect hits."
+		&"pick_discard":
+			return "Cards removed here are out of the game for good."
 		&"name_card":
 			return "It cannot be played while the Drill stays out."
 		&"pick_option":

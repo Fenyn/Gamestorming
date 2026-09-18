@@ -1031,6 +1031,7 @@
 	  "effects": [
 	   {
 		"trigger": "if_successful",
+		"may": true,
 		"op": "draw_discard",
 		"amount": 2,
 		"from": "bottom"
@@ -1454,7 +1455,7 @@
 	{
 	 "op": "energy",
 	 "amount": "max",
-	 "target": "duelist"
+	 "target": "choose"
 	},
 	{
 	 "op": "fervor",
@@ -1573,7 +1574,9 @@
 	{
 	 "op": "remove_discard",
 	 "who": "opponent",
-	 "amount": 6
+	 "amount": 6,
+	 "choose": true,
+	 "up_to": true
 	}
    ],
    "limit_per_deck": 1
@@ -1726,8 +1729,10 @@
    "effects": [
 	{
 	 "trigger": "relic_use",
+	 "may": true,
 	 "op": "search",
 	 "card_type": "ally",
+	 "aspect": 1,
 	 "to": "play",
 	 "stages": 3
 	}
@@ -1999,8 +2004,7 @@
 	"stops": "strike",
 	"stop_all": "strike"
    },
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "unyielding_guard",
@@ -2011,8 +2015,7 @@
 	"stops": "strike",
 	"stop_all": "strike"
    },
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "grounding_step",
@@ -2023,8 +2026,7 @@
 	"stops": "art",
 	"stop_all": "art"
    },
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "dead_air",
@@ -2319,7 +2321,7 @@
 	{
 	 "op": "energy",
 	 "amount": "max",
-	 "target": "duelist"
+	 "target": "all"
 	},
 	{
 	 "op": "search",
@@ -2509,6 +2511,7 @@
 	 "trigger": "if_successful",
 	 "op": "remove_discard",
 	 "who": "opponent",
+	 "choose_player": true,
 	 "all": true,
 	 "after_empower": true
 	},
@@ -2760,6 +2763,7 @@
 	}
    ],
    "remain": 1,
+   "remain_by": "ally",
    "remove_after_use": true
   },
   {
@@ -2814,7 +2818,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "attach",
-	 "to": "in_control"
+	 "to": "choose"
 	}
    ],
    "attachment": {
@@ -3591,7 +3595,7 @@
 	{
 	 "trigger": "use",
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "seal",
 	 "amount": 1,
 	 "remove": true,
@@ -4440,7 +4444,7 @@
 	 "higher_might": true
 	}
    },
-   "remain": 9,
+   "remain": 99,
    "remove_after_use": true,
    "limit_per_deck": 1
   },
@@ -4473,6 +4477,7 @@
 	 "amount": 1
 	},
 	{
+	 "may": true,
 	 "op": "search",
 	 "title_contains": "Steel Standoff",
 	 "to": "hand"
@@ -4492,6 +4497,7 @@
 	{
 	 "op": "energy",
 	 "who": "opponent",
+	 "target": "duelist",
 	 "amount": -3,
 	 "no_overflow": true
 	}
@@ -4686,7 +4692,8 @@
    "effects": [
 	{
 	 "op": "shuffle_discard",
-	 "amount": 3
+	 "amount": 3,
+	 "school": "steel"
 	}
    ],
    "remove_after_use": true
@@ -4842,10 +4849,22 @@
 	 "choose": true
 	},
 	{
+	 "may": true,
+	 "asks": "opponent",
 	 "op": "discard_hand",
 	 "who": "opponent",
 	 "amount": 1,
-	 "random": false
+	 "random": false,
+	 "otherwise": [
+	  {
+	   "op": "discard_in_play",
+	   "who": "opponent",
+	   "card_type": "non_combat_or_ally",
+	   "amount": 1,
+	   "remove": true,
+	   "choose": true
+	  }
+	 ]
 	}
    ]
   },

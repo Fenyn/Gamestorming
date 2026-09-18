@@ -468,7 +468,7 @@ func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
 			_handle_recover(cmd)
 		&"pay":
 			_handle_pay(cmd)
-		&"discard_choice", &"pick_in_play", &"name_card", &"pick_option":
+		&"discard_choice", &"pick_in_play", &"name_card", &"pick_option", &"pick_discard":
 			_handle_choice(cmd)
 		_:
 			assert(false, "Unhandled prompt kind %s" % kind)
@@ -990,6 +990,10 @@ func _prompt_attack_action(p: PlayerState) -> void:
 		if not p.final_strike_used:
 			opts.append(Command.new(p.index, &"final_strike", c.uid))
 	for c in p.remain_cards():
+		# `remain_by` names who the extra uses belong to, for a card that stays out "to be used one
+		# more time by an Ally".
+		if str(c.def.raw.get("remain_by", "")) == "ally" and ic.def.type != CardDef.Type.ALLY:
+			continue
 		if c.def.is_attack() and _attack_allowed(p, c.def) and _can_pay(ic, p, c.def.attack):
 			opts.append(Command.new(p.index, &"attack", c.uid))
 	var only_attacks: bool = _forbidden(p, "non_attack_actions")
@@ -2135,10 +2139,19 @@ func _finish_attack(attacker: PlayerState, a: Dictionary) -> void:
 		attacker.must_pass = true
 	# The outcome outlives `state.attack`, which the after_attack op clears before the next prompt.
 	var stopped_by: Dictionary = a.get("stopped_by", {})
+	# The titles are taken now, while the cards are still on the table. Read later off the card they
+	# would drift, because the source may be back in a hidden zone by then and a simulation gives a
+	# hidden card a different identity.
+	var src_card: CardInstance = card(int(a.get("source", -1)))
+	var perf_card: CardInstance = card(int(a.get("performer", -1)))
+	var tgt_card: CardInstance = card(int(a.get("target", -1)))
 	state.last_attack = {
 		"attacker": attacker.index,
 		"kind": str(a["kind"]),
 		"source": int(a.get("source", -1)),
+		"source_title": src_card.def.title if src_card != null else "",
+		"performer_title": perf_card.def.title if perf_card != null else "",
+		"target_title": tgt_card.def.title if tgt_card != null else "",
 		"performer": int(a.get("performer", -1)),
 		"is_power": bool(a["is_power"]),
 		"is_final": bool(a["is_final"]),
@@ -2212,7 +2225,10 @@ func _drain() -> void:
 
 ## "You may ..." lines ask their owner first; a yes re-queues the effect as confirmed.
 func _prompt_may(e: Dictionary, owner: int, ctx: Dictionary, source: CardInstance) -> void:
-	var opts: Array[Command] = [Command.new(owner, &"pick_option", -1, "yes"), Command.new(owner, &"pick_option", -1, "no")]
+	# `asks` hands the decision across the table, for "unless your opponent discards a card, ...".
+	# The effect still belongs to `owner`; only the question moves.
+	var asked: int = 1 - owner if str(e.get("asks", "")) == "opponent" else owner
+	var opts: Array[Command] = [Command.new(asked, &"pick_option", -1, "yes"), Command.new(asked, &"pick_option", -1, "no")]
 	_choice = {"kind": "may", "effect": e, "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
 	# The prompt carries what a yes does and which card asks, so the client can show both.
 	var context: Dictionary = {"may": true, "op": str(e.get("op", "")), "text": CardText.may_text(e),
@@ -2220,7 +2236,7 @@ func _prompt_may(e: Dictionary, owner: int, ctx: Dictionary, source: CardInstanc
 	if source != null:
 		context["source"] = source.uid
 		context["card_title"] = source.def.title
-	_set_prompt(owner, &"pick_option", opts, context)
+	_set_prompt(asked, &"pick_option", opts, context)
 
 
 ## The looked-at cards go back in the order their owner picks: each pick is the next one from
@@ -2307,12 +2323,28 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			_change_fervor_needed(who, int(amount))
 		"energy":
 			var target: CardInstance = who.in_control()
-			if str(e.get("target", "")) == "duelist":
+			var aim: String = str(e.get("target", ""))
+			if aim == "duelist":
 				target = who.duelist
-			elif str(e.get("target", "")) == "last_searched":
+			elif aim == "last_searched":
 				target = card(who.last_searched)
 				if target == null or target.zone != &"in_play":
 					return
+			elif aim == "all" or aim == "choose":
+				# "Raise all of your personalities" / "raise any one of them": the Duelist and every
+				# Ally. A choice with only the Duelist to choose from is not worth a prompt.
+				var crew: Array[CardInstance] = [who.duelist]
+				crew.append_array(who.allies())
+				if aim == "all" or crew.size() == 1:
+					for c in crew:
+						_set_personality_energy(who, c, e, amount, source)
+					return
+				_choice = {"kind": "energy_target", "player": who_index, "effect": e.duplicate(true), "owner": owner}
+				var crew_opts: Array[Command] = []
+				for c in crew:
+					crew_opts.append(Command.new(who_index, &"pick_option", c.uid))
+				_set_prompt(who_index, &"pick_option", crew_opts, _choice_context(source, "energy_target"))
+				return
 			var before: int = target.energy
 			if amount is String and str(amount) == "max":
 				if _has_floating(who_index, "no_gain"):
@@ -2451,6 +2483,20 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"discard_in_play":
 			_discard_in_play_effect(who, e, owner)
 		"remove_discard":
+			# "Choose a player and remove his discard pile": either pile may be the one that goes.
+			if bool(e.get("choose_player", false)):
+				var sides: Array[Command] = [Command.new(owner, &"pick_option", -1, "opponent"), Command.new(owner, &"pick_option", -1, "self")]
+				var without: Dictionary = e.duplicate(true)
+				without.erase("choose_player")
+				_choice = {"kind": "discard_side", "effect": without, "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+				_set_prompt(owner, &"pick_option", sides, _choice_context(source, "discard_side"))
+				return
+			# "Remove up to N cards in your opponent's discard pile": `choose` puts the pile in
+			# front of the chooser rather than taking the top N off the back.
+			if bool(e.get("choose", false)) and not who.discard.is_empty() and not bool(e.get("all", false)):
+				_choice = {"kind": "pick_discard", "target": who_index, "remaining": int(amount)}
+				_prompt_pick_discard(owner, who, int(amount), bool(e.get("up_to", false)))
+				return
 			_remove_discard(who, int(amount), bool(e.get("all", false)))
 		"recur_source":
 			# "Remove a card from your discard pile to shuffle this card back into your Life Deck
@@ -2469,7 +2515,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				_emit(&"recur_source", {"player": who.index, "card": source.uid, "paid": paid.uid})
 		"shuffle_discard":
 			var count: int = int(amount) * (who.allies().size() + 1 if bool(e.get("per_personality", false)) else 1)
-			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")))
+			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")), str(e.get("school", "")))
 		"recover":
 			_recover_top(who, int(amount), str(e.get("from", "top")))
 		"end_combat":
@@ -2500,6 +2546,14 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			_emit(&"no_ascension_win", {"player": who_index})
 		"attach":
 			if source != null:
+				if str(e.get("to", "")) == "choose" and not me.allies().is_empty():
+					# "Attach this card to one of your personalities": the Duelist or any Ally.
+					var hosts: Array[Command] = [Command.new(owner, &"pick_option", me.duelist.uid)]
+					for al in me.allies():
+						hosts.append(Command.new(owner, &"pick_option", al.uid))
+					_choice = {"kind": "attach_host", "player": owner, "source": source.uid}
+					_set_prompt(owner, &"pick_option", hosts, _choice_context(source, "attach_host"))
+					return
 				_attach(source, me, str(e.get("to", "in_control")))
 		"capture_seal":
 			_capture_prompt(me)
@@ -2801,7 +2855,7 @@ func _attach_host(p: PlayerState, def: CardDef) -> CardInstance:
 		if str(e.get("op", "")) != "attach":
 			continue
 		match str(e.get("to", "in_control")):
-			"in_control":
+			"in_control", "choose":
 				return p.in_control()
 			"character":
 				var gated: CardInstance = _character_in_play(p, str(def.only.get("character", "")))
@@ -2842,6 +2896,38 @@ func _prompt_pick_in_play(chooser: int, cands: Array[CardInstance], amount: int,
 	_set_prompt(chooser, &"pick_in_play", opts, {"amount": n, "up_to": up_to})
 	if n > 1:
 		prompt.set_batch(&"pick_in_play", 1 if up_to else n, n)
+
+
+## One personality's Energy moved by an `energy` effect, shared by the single, "all" and chosen
+## forms so they cannot drift apart.
+func _set_personality_energy(p: PlayerState, target: CardInstance, e: Dictionary, amount: Variant, source: CardInstance) -> void:
+	var before: int = target.energy
+	if amount is String and str(amount) == "max":
+		if _has_floating(p.index, "no_gain"):
+			_emit(&"gain_blocked", {"player": p.index, "card": target.uid, "amount": CardInstance.MAX_STAGE - before})
+		else:
+			target.energy = CardInstance.MAX_STAGE
+	elif int(amount) >= 0:
+		_gain_energy(p, target, int(amount))
+	elif bool(e.get("no_overflow", false)):
+		target.energy = maxi(0, target.energy + int(amount))
+	else:
+		_lose_energy(p, target, -int(amount))
+	if target.energy != before:
+		_emit(&"energy_changed", {"player": p.index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
+
+
+## Cards picked out of a discard pile, which both players can read, so nothing is hidden by asking.
+func _prompt_pick_discard(chooser: int, target: PlayerState, amount: int, up_to: bool) -> void:
+	var opts: Array[Command] = []
+	for c in target.discard:
+		opts.append(Command.new(chooser, &"pick_option", c.uid))
+	if up_to:
+		opts.append(Command.new(chooser, &"pick_none"))
+	var n: int = mini(amount, target.discard.size())
+	_set_prompt(chooser, &"pick_discard", opts, {"amount": n, "up_to": up_to, "target": target.index})
+	if n > 1:
+		prompt.set_batch(&"pick_option", 0 if up_to else n, n)
 
 
 ## Hand cards an effect may pick from: all, only signature cards, or only non-Seals.
@@ -2931,6 +3017,10 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 		amount = 99
 	var remove: bool = bool(e.get("remove", false))
 	var candidates: Array[CardInstance] = _in_play_candidates(target, type_name)
+	if str(e.get("who", "")) == "any":
+		# "Remove a Seal in play": either side's, so the pool is both and the chooser decides.
+		candidates = _in_play_candidates(state.players[owner], type_name)
+		candidates.append_array(_in_play_candidates(state.players[1 - owner], type_name))
 	if candidates.is_empty():
 		return
 	var chooser: int = owner if str(e.get("chooser", "owner")) == "owner" else target.index
@@ -3127,6 +3217,23 @@ func _handle_choice(cmd: Command) -> void:
 		"stop_kind":
 			# Stopping, not forbidding: the attack is still performed and still pays its cost.
 			_float(cmd.player, "stop_all", "combat", {"kind": str(cmd.value)})
+		"discard_side":
+			var side: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
+			side["who"] = str(cmd.value)
+			var one_side: Array[Dictionary] = [side]
+			_queue.insert(0, {"effects": one_side, "index": 0, "trigger": "then", "owner": int(_choice["owner"]), "ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
+		"attach_host":
+			var attaching: CardInstance = card(int(_choice["source"]))
+			if attaching != null:
+				_attach_to_host(attaching, state.players[int(_choice["player"])], card(cmd.card))
+		"energy_target":
+			var lifted: PlayerState = state.players[int(_choice["player"])]
+			var e2: Dictionary = _choice["effect"]
+			_set_personality_energy(lifted, card(cmd.card), e2, e2.get("amount", 0), null)
+		"pick_discard":
+			if cmd.type != &"pick_none":
+				for uid in Prompt.cards_of(cmd):
+					_remove_from_game(card(uid))
 		"card_type":
 			var chosen: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
 			chosen["card_type"] = str(cmd.value)
@@ -3558,6 +3665,9 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	if type_name == "strike_or_art" and c.def.type != CardDef.Type.STRIKE and c.def.type != CardDef.Type.ART:
 		# A Strike or Art card of any use, attack or block, which is how the source card reads.
 		return false
+	if e.has("aspect") and c.def.lowest_aspect() != int(e["aspect"]):
+		# "Search for a level 1 Ally": the aspect the personality would come into play at.
+		return false
 	if type_name == "hand_combat" and not c.def.is_hand_combat_card():
 		return false
 	var tag: String = str(e.get("tag", ""))
@@ -3714,6 +3824,13 @@ func _attach(c: CardInstance, p: PlayerState, to: String) -> void:
 	var host: CardInstance = _attach_host(p, c.def)
 	if host == null:
 		host = p.in_control() if to == "in_control" else p.duelist
+	_attach_to_host(c, p, host)
+
+
+## The move itself, once the host is settled, whether the card named it or the player picked it.
+func _attach_to_host(c: CardInstance, p: PlayerState, host: CardInstance) -> void:
+	if host == null:
+		host = p.in_control()
 	if c.zone == &"resolving" or c.zone == &"hand" or c.zone == &"in_play":
 		_erase_from_zone(c)
 	c.zone = &"in_play"
@@ -3740,10 +3857,16 @@ func _draw_discard(p: PlayerState, n: int, from: String) -> CardInstance:
 
 
 ## `from` "top_and_bottom" alternates ends, top first; anything else takes from the top.
-func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String = "top") -> void:
-	var count: int = p.discard.size() if all else mini(n, p.discard.size())
+## `school` takes only cards of that school, for a card that recovers its own kind and nothing else.
+func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String = "top", school: String = "") -> void:
+	var pool: Array[CardInstance] = []
+	for c in p.discard:
+		if school == "" or c.def.school == school:
+			pool.append(c)
+	var count: int = pool.size() if all else mini(n, pool.size())
 	for i in range(count):
-		var c: CardInstance = p.discard.pop_front() if from == "top_and_bottom" and i % 2 == 1 else p.discard.pop_back()
+		var c: CardInstance = pool[i] if from == "top_and_bottom" and i % 2 == 1 else pool[pool.size() - 1 - i]
+		p.discard.erase(c)
 		c.zone = &"life_deck"
 		p.life_deck.append(c)
 		_emit(&"recover", {"player": p.index, "card": c.uid})

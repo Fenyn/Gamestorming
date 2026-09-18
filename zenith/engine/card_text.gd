@@ -26,7 +26,7 @@ const FLOAT_TEXT: Dictionary = {
 	"make_focused": "your attacks are Focused",
 	"after_use_bottom": "your school attacks go to the bottom of your Life Deck after use",
 	"damage_removes": "wounds from your attacks are removed from the game",
-	"no_gain": "your opponent's duelists cannot gain Energy",
+	"no_gain": "your opponent's duelist and Allies cannot gain Energy",
 	"no_ally_control": "your opponent's Allies cannot take control or take damage",
 	"keep_hand": "you keep your hand through the Discard step",
 	"endurance_boost": "your next Endurance prevents all remaining damage",
@@ -280,7 +280,7 @@ static func rules_text(def: CardDef) -> String:
 		if not said:
 			lines.append(t)
 	for m in def.modifiers:
-		lines.append(modifier_text(m))
+		lines.append(modifier_text(_rolled_up(m, def.modifiers)))
 	if def.shield != "":
 		lines.append("Defense Shield: stops the first unstopped %s each Combat." % ("attack" if def.shield == "any" else def.shield.capitalize()))
 	for rule in def.forbid:
@@ -299,8 +299,14 @@ static func rules_text(def: CardDef) -> String:
 		for e in def.effects:
 			if str(e.get("op", "")) == "attach" and str(e.get("to", "")) == "named":
 				named_host = str(e.get("character", ""))
-		if named_host != "":
-			lines.append("While attached: %s" % " ".join(parts))
+		var chosen_host: bool = false
+		for e in def.effects:
+			if str(e.get("op", "")) == "attach" and str(e.get("to", "")) == "choose":
+				chosen_host = true
+		if named_host != "" or chosen_host:
+			# The host is whoever it landed on, so the line speaks of the attached personality
+			# rather than naming a seat on the table.
+			lines.append("While attached, the attached personality's %s" % _lc(" ".join(parts)).trim_prefix("your "))
 		else:
 			lines.append("While attached to %s: %s" % [host, " ".join(parts)])
 		var limit_attached: int = int(def.attachment.get("limit_attached", 0))
@@ -309,7 +315,7 @@ static func rules_text(def: CardDef) -> String:
 		elif limit_attached > 0:
 			lines.append("Limit %d attached." % limit_attached)
 	if def.remain > 0:
-		lines.append("Remain %d." % def.remain)
+		lines.append("Remain %d.%s" % [def.remain, (" The extra uses are an Ally's." if str(def.raw.get("remain_by", "")) == "ally" else "")])
 	if not def.remain_when.is_empty():
 		lines.append(_conditional(def.remain_when.get("when", {}), "Remain %d." % int(def.remain_when.get("remain", 1))))
 	if def.type == CardDef.Type.RELIC:
@@ -327,7 +333,7 @@ static func rules_text(def: CardDef) -> String:
 	if def.opponent_aspect_threshold > 0:
 		lines.append("Your opponent needs %d Fervor to rise an aspect." % def.opponent_aspect_threshold)
 	if bool(def.raw.get("protect_drills", false)):
-		lines.append("Your Drills cannot be discarded by card effects.")
+		lines.append("Your Drills cannot be discarded for any reason, an aspect change included.")
 	if str(def.raw.get("blocks_to_bottom", "")) != "":
 		lines.append("After you stop an attack with %s card that does not remove itself from the game, place it on the bottom of your Life Deck." % _a(school_name(str(def.raw.get("blocks_to_bottom", "")))))
 	if int(def.raw.get("art_cost_delta", 0)) != 0:
@@ -541,10 +547,20 @@ static func _effect_body(e: Dictionary) -> String:
 		"energy":
 			if amount is String:
 				var target: String = str(e.get("target", ""))
-				var whose: String = "your duelist's" if target == "duelist" else ("its" if target == "last_searched" else owner)
+				var whose: String = owner
+				match target:
+					"duelist":
+						whose = "your duelist's"
+					"last_searched":
+						whose = "its"
+					"all":
+						whose = "your duelist's and every Ally's"
+					"choose":
+						whose = "one of your personalities'"
 				body = "Raise %s Energy to full." % whose
 			elif opp:
-				body = "Your opponent %s %d Energy." % [("gains" if n >= 0 else "loses"), absi(n)]
+				var whom: String = "Your opponent's duelist" if str(e.get("target", "")) == "duelist" else "Your opponent"
+				body = "%s %s %d Energy." % [whom, ("gains" if n >= 0 else "loses"), absi(n)]
 			else:
 				body = "%s %d Energy." % [("Gain" if n >= 0 else "Lose"), absi(n)]
 		"set_energy":
@@ -583,7 +599,10 @@ static func _effect_body(e: Dictionary) -> String:
 		"discard_in_play":
 			var card_type: String = str(e.get("card_type", "non_combat"))
 			var remove: bool = bool(e.get("remove", false))
-			if opp:
+			if str(e.get("who", "")) == "any":
+				# Either side's, so it names neither.
+				body = "%s %s in play%s." % [("Remove" if remove else "Discard"), _count_of(e, card_type), (" from the game" if remove else "")]
+			elif opp:
 				var choice: String = " of your choice" if bool(e.get("choose", false)) else ""
 				var count: String = _count_of(e, card_type)
 				body = "Your opponent %s %s in play%s%s." % [("removes" if remove else "discards"), count, choice, (" from the game" if remove else "")]
@@ -598,11 +617,24 @@ static func _effect_body(e: Dictionary) -> String:
 					mine = "%d of your %s" % [n, plural]
 				body = "%s %s in play%s." % [("Remove" if remove else "Discard"), mine, (" from the game" if remove else "")]
 		"remove_discard":
-			body = "Remove %s %s discard pile from the game." % [("all of" if bool(e.get("all", false)) else ("the top card of" if n == 1 else "the top %d cards of" % n)), owner]
+			var how_many: String = "all of"
+			if not bool(e.get("all", false)):
+				if bool(e.get("choose", false)):
+					how_many = "up to %d cards of" % n if bool(e.get("up_to", false)) else ("a card of" if n == 1 else "%d cards of" % n)
+				else:
+					how_many = "the top card of" if n == 1 else "the top %d cards of" % n
+			if bool(e.get("choose_player", false)):
+				var share: String = "their whole discard pile" if bool(e.get("all", false)) else "%s their discard pile" % how_many
+				body = "Choose a player and remove %s from the game." % share
+			else:
+				body = "Remove %s %s discard pile from the game." % [how_many, owner]
 		"shuffle_discard" when str(e.get("from", "top")) == "top_and_bottom":
 			body = "Shuffle the top and bottom cards of your discard pile into your Life Deck."
 		"shuffle_discard":
-			body ="Shuffle %s from your discard pile into your Life Deck%s." % [("every card" if bool(e.get("all", false)) else _plural(n, "card", "cards")), (" for each personality you have in play" if bool(e.get("per_personality", false)) else "")]
+			var kind: String = str(e.get("school", ""))
+			var noun_one: String = "card" if kind == "" else "%s card" % school_name(kind)
+			var noun_many: String = "cards" if kind == "" else "%s cards" % school_name(kind)
+			body ="Shuffle %s from your discard pile into your Life Deck%s." % [("every %s" % noun_one if bool(e.get("all", false)) else _plural(n, noun_one, noun_many)), (" for each personality you have in play" if bool(e.get("per_personality", false)) else "")]
 		"recover":
 			body = "Place the %s %s of your discard pile at the bottom of your Life Deck." % [str(e.get("from", "top")), ("card" if n == 1 else "%d cards" % n)]
 		"end_combat":
@@ -649,6 +681,8 @@ static func _effect_body(e: Dictionary) -> String:
 			match str(e.get("to", "in_control")):
 				"in_control":
 					body = "Attach this card to the personality in control."
+				"choose":
+					body = "Attach this card to one of your personalities."
 				"character":
 					body = "Attach this card to that personality."
 				"named":
@@ -731,7 +765,12 @@ static func _effect_body(e: Dictionary) -> String:
 		_:
 			body = str(e.get("op", "?"))
 	if bool(e.get("may", false)):
-		if body.begins_with("Your opponent "):
+		if str(e.get("asks", "")) == "opponent" and body.begins_with("Your opponent "):
+			# The choice is theirs, so the line reads as theirs rather than as something you do.
+			var theirs: String = body.substr(14)
+			var their_verb: String = theirs.get_slice(" ", 0)
+			body = "Your opponent may %s%s" % [str(OPPONENT_VERBS.get(their_verb, their_verb)), theirs.substr(their_verb.length())]
+		elif body.begins_with("Your opponent "):
 			var rest: String = body.substr(14)
 			var verb: String = rest.get_slice(" ", 0)
 			body = "You may have your opponent %s%s" % [str(OPPONENT_VERBS.get(verb, verb)), rest.substr(verb.length())]
@@ -754,7 +793,7 @@ static func _effect_body(e: Dictionary) -> String:
 			if tt != "":
 				other.append(_lc(tt))
 		if not other.is_empty():
-			body += " If you do not, " + " ".join(other)
+			body += (" If they do not, " if str(e.get("asks", "")) == "opponent" else " If you do not, ") + " ".join(other)
 	return body
 
 
@@ -1033,9 +1072,12 @@ static func search_text(e: Dictionary) -> String:
 		qual.append(str(e["tag"]).capitalize())
 	if str(e.get("signature_of", "")) == "duelist":
 		qual.append("Signature")
+	if e.has("aspect"):
+		qual.append("aspect %d" % int(e["aspect"]))
 	var n: int = int(e.get("amount", 1))
 	var noun: String = (" ".join(qual) + " " if not qual.is_empty() else "") + type_words(card_type, n != 1)
-	var what: String = _a(noun) if n == 1 else "%d %s" % [n, noun]
+	# A search of the Life Deck always allows taking nothing, so asking for several is "up to".
+	var what: String = _a(noun) if n == 1 else "up to %d %s" % [n, noun]
 	if e.has("has_effect"):
 		var spec: Dictionary = e["has_effect"]
 		if str(spec.get("op", "")) == "discard_hand" and str(spec.get("who", "")) == "opponent":
@@ -1060,6 +1102,26 @@ static func search_text(e: Dictionary) -> String:
 	return"Search %s for %s and put %s into %s." % [from, what, ("it" if n == 1 else "them"), dest]
 
 
+## A school modifier that sits beside a matching one for every attack stacks with it in play, so
+## the card reads it as the total and says "instead" rather than printing two separate bonuses the
+## player has to add up. Anything without that pairing comes back untouched.
+static func _rolled_up(m: Dictionary, all: Array) -> Dictionary:
+	if not m.has("school"):
+		return m
+	var rolled: Dictionary = m.duplicate(true)
+	var stacked: bool = false
+	for other in all:
+		var o: Dictionary = other
+		if o.has("school") or str(o.get("scope", "own")) != str(m.get("scope", "own")) or str(o.get("kind", "any")) != str(m.get("kind", "any")):
+			continue
+		rolled["stages"] = int(rolled.get("stages", 0)) + int(o.get("stages", 0))
+		rolled["life"] = int(rolled.get("life", 0)) + int(o.get("life", 0))
+		stacked = true
+	if stacked:
+		rolled["instead"] = true
+	return rolled
+
+
 static func modifier_text(m: Dictionary) -> String:
 	var kind: String = str(m.get("kind", "any"))
 	var scope: String = str(m.get("scope", "own"))
@@ -1080,7 +1142,7 @@ static func modifier_text(m: Dictionary) -> String:
 	if bool(m.get("once", false)):
 		s = "Your next attack does %s." % amount
 	elif scope == "own":
-		s = "Your %s do %s." % [what, amount]
+		s = "Your %s do %s%s." % [what, amount, (" instead" if bool(m.get("instead", false)) else "")]
 	else:
 		s = "%s against you do %s." % [_cap(what), amount.replace("+", "-")]
 	if m.has("when"):
@@ -1290,6 +1352,12 @@ static func prompt_title(p: Prompt) -> String:
 			if n > 1:
 				return "Choose up to %d cards in play" % n if bool(p.context.get("up_to", false)) else "Choose %d cards in play" % n
 			return "Choose a card in play"
+		&"pick_discard":
+			var many: int = int(p.context.get("amount", 1))
+			var whose: String = "their" if int(p.context.get("target", p.player)) != p.player else "your"
+			if many > 1:
+				return "Remove up to %d cards from %s discard pile" % [many, whose] if bool(p.context.get("up_to", false)) else "Remove %d cards from %s discard pile" % [many, whose]
+			return "Remove a card from %s discard pile" % whose
 		&"name_card":
 			return "Name a card"
 		&"pick_option":

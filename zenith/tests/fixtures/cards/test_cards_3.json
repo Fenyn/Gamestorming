@@ -35,6 +35,7 @@
     {"id": "t_mastery_flare", "title": "Test Flare Mastery", "type": "mastery", "school": "pyre", "effects": [{"trigger": "on_attack", "may": true, "op": "discard_life", "amount": 1, "when": {"source_school": "pyre", "attack_focused": false}, "then": [{"op": "focus_attack"}]}]},
     {"id": "t_mastery_keep", "title": "Test Keeping Mastery", "type": "mastery", "school": "tide", "blocks_to_bottom": "tide"},
     {"id": "t_mastery_drills", "title": "Test Drill Warden Mastery", "type": "mastery", "school": "", "protect_drills": true},
+    {"id": "t_vigil_ray", "title": "Test Vigil's Ray", "type": "art", "school": "", "character": "Test Vigil", "attack": {"kind": "art"}},
     {"id": "t_tithe","title": "Test Tithe", "type": "combat", "effects": [{"op": "draw_check", "check": "named", "discard": true, "effects": [{"op": "draw", "amount": 2}], "else_effects": [{"op": "draw", "amount": 1}]}]},
     {"id": "t_scry","title": "Test Scry", "type": "combat", "effects": [{"op": "draw_check", "check": "named", "effects": [{"op": "draw", "amount": 1}]}]},
     {"id": "t_wound_art", "title": "Test Grudge Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "effects": [{"trigger": "on_wound", "at": "fight_back", "op": "fervor", "amount": 2}]},

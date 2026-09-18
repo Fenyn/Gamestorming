@@ -207,19 +207,12 @@ static func _last_attack_summary(engine: DuelEngine) -> Dictionary:
 	var la: Dictionary = engine.state.last_attack
 	if la.is_empty():
 		return {}
+	# The titles were taken when the attack resolved, not read off the cards now: by this point the
+	# source may be back in a hidden zone, where a simulation would give it another identity.
 	var out: Dictionary = la.duplicate(true)
-	out["source_title"] = ""
-	out["performer_title"] = ""
-	out["target_title"] = ""
-	var src: CardInstance = engine.card(int(la.get("source", -1)))
-	if src != null:
-		out["source_title"] = src.def.title
-	var performer: CardInstance = engine.card(int(la.get("performer", -1)))
-	if performer != null:
-		out["performer_title"] = performer.def.title
-	var target: CardInstance = engine.card(int(la.get("target", -1)))
-	if target != null:
-		out["target_title"] = target.def.title
+	out["source_title"] = str(la.get("source_title", ""))
+	out["performer_title"] = str(la.get("performer_title", ""))
+	out["target_title"] = str(la.get("target_title", ""))
 	out["stopped_by_title"] = _stopper_title(engine, la.get("stopped_by", {}))
 	return out
 

@@ -7,9 +7,9 @@
   "mastery": "tide_mastery",
   "relic": "debtors_ring",
   "reserve": [
-    "supreme_push",
+    "overreach",
     "lobbed_bolt",
-    "erasure",
+    "clean_sweep",
     "bonded_pair"
   ],
   "archetype": "allies",
@@ -41,7 +41,7 @@
       "count": 3
     },
     {
-      "id": "challenge",
+      "id": "watchful_eye",
       "count": 3
     },
     {
@@ -49,35 +49,35 @@
       "count": 3
     },
     {
-      "id": "overwhelming_aura",
+      "id": "kept_at_bay",
       "count": 1
     },
     {
-      "id": "dragons_reckoning",
+      "id": "warding_call",
       "count": 1
     },
     {
-      "id": "muster",
+      "id": "rallying_call",
       "count": 3
     },
     {
-      "id": "guardians_wrath",
+      "id": "rookes_deluge",
       "count": 3
     },
     {
-      "id": "desperate_ruin",
+      "id": "last_gasp",
       "count": 1
     },
     {
-      "id": "oath",
+      "id": "edrics_vow",
       "count": 2
     },
     {
-      "id": "showmans_trick",
+      "id": "old_trick",
       "count": 2
     },
     {
-      "id": "clash_of_blood",
+      "id": "closing_ranks",
       "count": 3
     },
     {
@@ -97,11 +97,11 @@
       "count": 1
     },
     {
-      "id": "tide_energy_guard",
+      "id": "tide_breakwater",
       "count": 1
     },
     {
-      "id": "tide_defensive_flight",
+      "id": "tide_ebb",
       "count": 3
     },
     {
@@ -113,51 +113,51 @@
       "count": 3
     },
     {
-      "id": "tide_round_throw",
+      "id": "tide_undertow",
       "count": 3
     },
     {
-      "id": "tide_betrayal",
+      "id": "tide_drowning",
       "count": 3
     },
     {
-      "id": "erasure",
+      "id": "clean_sweep",
       "count": 1
     },
     {
-      "id": "tide_arm_blast",
+      "id": "tide_surge",
       "count": 3
     },
     {
-      "id": "homing_bolt",
+      "id": "unerring_bolt",
       "count": 3
     },
     {
-      "id": "tide_double_blast",
+      "id": "tide_twin_swell",
       "count": 3
     },
     {
-      "id": "tide_draining_blast",
+      "id": "tide_torrent",
       "count": 3
     },
     {
-      "id": "tide_healing_ray",
+      "id": "tide_springwater",
       "count": 3
     },
     {
-      "id": "tide_terror",
+      "id": "tide_depths",
       "count": 1
     },
     {
-      "id": "twin_blow",
+      "id": "tide_twin_breaker",
       "count": 3
     },
     {
-      "id": "tide_transformation",
+      "id": "tide_high_water",
       "count": 3
     },
     {
-      "id": "tide_alliance",
+      "id": "tide_confluence",
       "count": 3
     },
     {
@@ -165,11 +165,11 @@
       "count": 1
     },
     {
-      "id": "fortune",
+      "id": "lucky_find",
       "count": 1
     },
     {
-      "id": "focus_of_mind",
+      "id": "clear_mind",
       "count": 1
     },
     {

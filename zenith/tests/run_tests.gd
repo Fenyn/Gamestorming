@@ -2545,12 +2545,12 @@ func test_ai_reserve_swaps() -> void:
 	eq(float(AiReserve.read_setup(vale.player(0))["drill"]), 1.0, "the Freestyle Mastery reads as a Drill deck")
 	check(reserve_swaps("pyre_beatdown", "tide_companions").has("pyre_ashfall"), "Pyre brings its Ally answer in against Tide")
 	check(not reserve_swaps("pyre_beatdown", "steel_beatdown").has("pyre_ashfall"), "and leaves it out against Steel")
-	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("sly_smirk"), "Steel brings its Drill answer in against Freestyle")
-	check(reserve_swaps("steel_beatdown", "pyre_beatdown").has("steel_headshot"), "and its plain strong card every game")
+	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("broken_rites"), "Steel brings its Drill answer in against Freestyle")
+	check(reserve_swaps("steel_beatdown", "pyre_beatdown").has("steel_skull_crack"), "and its plain strong card every game")
 	check(not reserve_swaps("steel_beatdown", "pyre_beatdown").has("open_challenge"), "a card that starts in play from the Reserve stays there")
 	eq(reserve_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")
-	check(not reserve_swaps("storm_volley", "pyre_beatdown").has("focused_crushing_dive"), "Storm leaves a toolbox attack where its fetch card can reach it")
-	check(reserve_swaps("storm_volley", "tide_companions").has("focused_crushing_dive"), "unless the opponent is what it answers")
+	check(not reserve_swaps("storm_volley", "pyre_beatdown").has("headlong_plunge"), "Storm leaves a toolbox attack where its fetch card can reach it")
+	check(reserve_swaps("storm_volley", "tide_companions").has("headlong_plunge"), "unless the opponent is what it answers")
 	check(not reserve_swaps("freestyle_swords", "pyre_beatdown").has("mutual_escalation"), "an Ascension deck does not bring in the card that gives up the Ascension win")
 
 

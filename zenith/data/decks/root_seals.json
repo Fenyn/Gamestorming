@@ -16,7 +16,7 @@
   "ai_profile": "root_seals",
   "cards": [
     {
-      "id": "winter_fields",
+      "id": "frostbound_moor",
       "count": 3
     },
     {
@@ -48,19 +48,19 @@
       "count": 1
     },
     {
-      "id": "windfall",
+      "id": "first_cut",
       "count": 1
     },
     {
-      "id": "laid_plans",
+      "id": "steady_hand",
       "count": 1
     },
     {
-      "id": "thin_smile",
+      "id": "chisel_work",
       "count": 1
     },
     {
-      "id": "borrowed_gauge",
+      "id": "wardens_measure",
       "count": 1
     },
     {
@@ -76,11 +76,11 @@
       "count": 3
     },
     {
-      "id": "fortune",
+      "id": "lucky_find",
       "count": 1
     },
     {
-      "id": "dashed_plans",
+      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -92,7 +92,7 @@
       "count": 1
     },
     {
-      "id": "anticipation",
+      "id": "foresight",
       "count": 1
     },
     {
@@ -116,7 +116,7 @@
       "count": 1
     },
     {
-      "id": "challenge",
+      "id": "watchful_eye",
       "count": 3
     },
     {
@@ -124,15 +124,15 @@
       "count": 3
     },
     {
-      "id": "dream_duel",
+      "id": "parley",
       "count": 3
     },
     {
-      "id": "grand_sweep",
+      "id": "dismissal",
       "count": 2
     },
     {
-      "id": "overwhelming_aura",
+      "id": "kept_at_bay",
       "count": 1
     },
     {
@@ -160,11 +160,11 @@
       "count": 1
     },
     {
-      "id": "schooled_block",
+      "id": "practiced_guard",
       "count": 2
     },
     {
-      "id": "leg_catch",
+      "id": "second_wind",
       "count": 3
     },
     {
@@ -196,7 +196,7 @@
       "count": 3
     },
     {
-      "id": "power_burst",
+      "id": "suppressing_shot",
       "count": 3
     },
     {
@@ -204,11 +204,11 @@
       "count": 3
     },
     {
-      "id": "sun_flare",
+      "id": "smoke_screen",
       "count": 3
     },
     {
-      "id": "timely_advice",
+      "id": "sharp_rebuke",
       "count": 1
     }
   ]

@@ -3,7 +3,7 @@
 A two-player dueling card game. Two duelists, mages or plain fighters, contest a place of power where a gate can be opened for an otherworldly Eidolon; the winner becomes its Eidolarch. The folder and code name are still `zenith`. Design: `../designs/zenith.md`.
 
 - **Engine:** Godot 4.6 (Forward Plus), GDScript
-- **Status:** playable hotseat and online prototype. Rules engine with headless tests, 3D playspace, deck select, seven starter decks whose cards carry their full mechanics (functional names, no flavor yet).
+- **Status:** playable hotseat and online prototype. Rules engine with headless tests, 3D playspace, deck select, seven starter decks whose cards carry their full mechanics (themed titles, no flavor text yet).
 - **Run:** Open `zenith/project.godot` in Godot 4.6 and press F5. Title → Hotseat duel → pick two decks → play. The table swings to whoever has to decide, behind a hand-off screen.
 - **Against the AI:** Title → Duel the AI → pick your duelist and the AI's, and Easy, Normal or Hard in the footer. You sit at seat 1 and the AI's hand stays face down.
 - **Online:** one player presses Host online duel (port 7777), the other types the host's address and presses Join. The select screen becomes the lobby: each client picks its own duelist, the host starts. The host runs the rules; the joiner receives only what its seat may see and sits at its own side of the table.
@@ -16,7 +16,7 @@ A two-player dueling card game. Two duelists, mages or plain fighters, contest a
 | `ai/` | AI opponent. RefCounted only, same purity rules as `engine/`. See the AI section |
 | `data/ai/profiles/` | AI weight profiles: `default`, `easy`, `hard`. A profile lists only the weights it changes |
 | `data/strike_table.json` | Might bands and cap for Strike base damage. Compact scale: band A is 0, then one band per ten points (B 1-9 … I 70+) |
-| `data/cards/starter/` | Starter set: 233 cards with functional names and real mechanics. Generated; not final content |
+| `data/cards/starter/` | Starter set: 233 cards with themed titles and real mechanics. Generated from `tools/gen_starters.py` |
 | `data/decks/` | Seven starter loadouts (78 to 84 life cards plus Armories), validated and self-played by the tests |
 | `assets/card_art/` | Card art, one PNG per card id (`<id>_a<aspect>.png` for a duelist aspect). Loaded by id at face render time; missing art shows the type glyph |
 | `docs/card_roster.csv` | Every starter card, one row per art image: section, id, name, type, Aseprite canvas size, rules text, art brief, source card, deck usage. The one file allowed to name source cards |
@@ -117,7 +117,7 @@ Each deck file names its **archetype** (`strike_beatdown`, `art_beatdown`, `alli
 | Deck | Type | Plan |
 |---|---|---|
 | Ashmark the Pyromancer, Bram Ashmark, Pyre Pact (80 + 12 Reserve) | Physical beatdown, easy | High-Might duelist, Strikes that raise Fervor, the single-copy stop-alls, a Mastery that spends a life card to make an Pyre attack Focused and sends used Pyre blocks under the Life Deck |
-| Quarr the Ironblood, Halden Quarr, Steel Pact (80 + 7 Reserve) | Physical beatdown, easy | Brute Strikes, a Mastery that throws away a life card on entry and draws two for a Steel card or one otherwise, Energy denial (Face Jab, Wrist Block) to lock the opponent out of attacking, Endurance in place of blocks, three Seals, Truce |
+| Quarr the Ironblood, Halden Quarr, Steel Pact (80 + 7 Reserve) | Physical beatdown, easy | Brute Strikes, a Mastery that throws away a life card on entry and draws two for a Steel card or one otherwise, Energy denial (Face Jab, Wrist Block) to lock the opponent out of attacking, Endurance in place of blocks, three Seals, Steel Standoff |
 | The Draik Company, Sable Draik, Shade Pact (80 + 4 Reserve) | Ally deck, easy | Five sworn blades who share the captain's constant power, ally search, hand disruption |
 | The Rooke Coven, Dame Alder Rooke, Tide Vigil (79 + 3 Reserve) | Ally deck, medium | Four protected kin, Arts, a Mastery that raises the opponent's aspect threshold |
 | Vale the Swordmaster, Caedan Vale, Freestyle Vigil (78 + 6 Reserve) | Drill deck, medium | Five-aspect swordsman, "Sword" title synergies, protected Drills, a named-card lock |
@@ -132,8 +132,8 @@ Structural rules from the 2014 relaunch, adopted 2026-09-16: every deck carries 
 
 Remaining approximations in the starter set:
 
-- Cold Appraisal and Challenge show the owner the opponent's whole hand as the choice list. Seals 2, 6 and 7 of each set are simple fillers the sheets never use.
-- Truce ends the turn for both players: nobody takes a Discard step.
+- Cold Appraisal and Watchful Eye show the owner the opponent's whole hand as the choice list. Seals 2, 6 and 7 of each set are simple fillers the sheets never use.
+- Steel Standoff ends the turn for both players: nobody takes a Discard step.
 - Bonds (the two-Allies-as-one card): the Bond burns one life card per turn of its owner and ends at five; the two Allies return at 3 Energy and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it.
 
 ## Card JSON

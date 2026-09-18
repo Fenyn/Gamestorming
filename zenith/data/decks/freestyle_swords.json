@@ -8,10 +8,10 @@
   "relic": "blank_mask",
   "reserve": [
     "open_challenge",
-    "doubt",
-    "confusion_drill",
+    "defacement",
+    "warding_drill",
     "revision_drill",
-    "fortune",
+    "lucky_find",
     "mutual_escalation"
   ],
   "archetype": "drills",
@@ -27,7 +27,7 @@
       "count": 3
     },
     {
-      "id": "challenge",
+      "id": "watchful_eye",
       "count": 3
     },
     {
@@ -35,15 +35,15 @@
       "count": 4
     },
     {
-      "id": "seekers_eye",
+      "id": "keen_eye",
       "count": 1
     },
     {
-      "id": "overwhelming_aura",
+      "id": "kept_at_bay",
       "count": 1
     },
     {
-      "id": "contemplation",
+      "id": "quiet_study",
       "count": 1
     },
     {
@@ -59,19 +59,19 @@
       "count": 1
     },
     {
-      "id": "swift_counter",
+      "id": "vales_riposte",
       "count": 4
     },
     {
-      "id": "elbow_block",
+      "id": "hilt_guard",
       "count": 3
     },
     {
-      "id": "leg_catch",
+      "id": "second_wind",
       "count": 3
     },
     {
-      "id": "swift_flight",
+      "id": "quick_retreat",
       "count": 3
     },
     {
@@ -83,27 +83,27 @@
       "count": 3
     },
     {
-      "id": "power_strike",
+      "id": "committed_cut",
       "count": 3
     },
     {
-      "id": "sword_slice",
+      "id": "vales_sword_draw",
       "count": 4
     },
     {
-      "id": "speedy_flight",
+      "id": "vales_quickstep",
       "count": 3
     },
     {
-      "id": "back_bash",
+      "id": "vales_pommel_bash",
       "count": 2
     },
     {
-      "id": "focused_sword_strike",
+      "id": "sword_lunge",
       "count": 3
     },
     {
-      "id": "sword_slash",
+      "id": "sword_flourish",
       "count": 3
     },
     {
@@ -123,15 +123,15 @@
       "count": 3
     },
     {
-      "id": "devastation_drill",
+      "id": "lone_blade_drill",
       "count": 3
     },
     {
-      "id": "ambush_drill",
+      "id": "counterplay_drill",
       "count": 2
     },
     {
-      "id": "breakthrough_drill",
+      "id": "no_retreat_drill",
       "count": 1
     },
     {
@@ -143,11 +143,11 @@
       "count": 1
     },
     {
-      "id": "seek_the_answer",
+      "id": "vales_insight",
       "count": 3
     },
     {
-      "id": "anticipation",
+      "id": "foresight",
       "count": 1
     },
     {

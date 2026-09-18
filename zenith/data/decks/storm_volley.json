@@ -7,15 +7,15 @@
   "mastery": "storm_mastery",
   "relic": "lodestone_heart",
   "reserve": [
-    "doubt",
-    "grand_sweep",
-    "grand_sweep",
-    "storm_glaring_bolt",
-    "storm_massacre",
+    "defacement",
+    "dismissal",
+    "dismissal",
+    "storm_smiting_bolt",
+    "storm_maelstrom",
     "lobbed_bolt",
-    "clear_statement",
-    "focused_crushing_dive",
-    "storm_obliteration"
+    "declaration",
+    "headlong_plunge",
+    "storm_thunderhead"
   ],
   "archetype": "art_beatdown",
   "difficulty": "medium",
@@ -55,11 +55,11 @@
       "count": 3
     },
     {
-      "id": "sly_smirk",
+      "id": "broken_rites",
       "count": 1
     },
     {
-      "id": "showmans_trick",
+      "id": "old_trick",
       "count": 2
     },
     {
@@ -71,11 +71,11 @@
       "count": 3
     },
     {
-      "id": "transformation",
+      "id": "reckless_ascent",
       "count": 3
     },
     {
-      "id": "overwhelming_aura",
+      "id": "kept_at_bay",
       "count": 1
     },
     {
@@ -83,67 +83,67 @@
       "count": 1
     },
     {
-      "id": "storm_dodge",
+      "id": "vessels_sidestep",
       "count": 4
     },
     {
-      "id": "knowing_smile",
+      "id": "porcelain_smile",
       "count": 3
     },
     {
-      "id": "leg_catch",
+      "id": "second_wind",
       "count": 3
     },
     {
-      "id": "storm_energy_guard",
+      "id": "storm_charged_ward",
       "count": 3
     },
     {
-      "id": "storm_setup",
+      "id": "storm_static_field",
       "count": 1
     },
     {
-      "id": "storm_scatter_shot",
+      "id": "storm_chain_lightning",
       "count": 2
     },
     {
-      "id": "storm_glaring_bolt",
+      "id": "storm_smiting_bolt",
       "count": 2
     },
     {
-      "id": "storm_obliteration",
+      "id": "storm_thunderhead",
       "count": 1
     },
     {
-      "id": "storm_rage",
+      "id": "storm_arc_bolt",
       "count": 3
     },
     {
-      "id": "extreme_assailment",
+      "id": "draiks_reckoning",
       "count": 3
     },
     {
-      "id": "captains_volley",
+      "id": "captains_barrage",
       "count": 3
     },
     {
-      "id": "crashing_dive",
+      "id": "scattered_ashes",
       "count": 3
     },
     {
-      "id": "prepared_stance",
+      "id": "vessels_calibration",
       "count": 3
     },
     {
-      "id": "surging_blast",
+      "id": "sabotage",
       "count": 3
     },
     {
-      "id": "homing_bolt",
+      "id": "unerring_bolt",
       "count": 3
     },
     {
-      "id": "palm_charge",
+      "id": "lingering_curse",
       "count": 2
     },
     {
@@ -155,15 +155,15 @@
       "count": 3
     },
     {
-      "id": "storm_massacre",
+      "id": "storm_maelstrom",
       "count": 1
     },
     {
-      "id": "storm_uppercut",
+      "id": "storm_overcharge",
       "count": 1
     },
     {
-      "id": "storm_strength",
+      "id": "storm_recharge",
       "count": 1
     },
     {
@@ -171,11 +171,11 @@
       "count": 1
     },
     {
-      "id": "focus_of_mind",
+      "id": "clear_mind",
       "count": 1
     },
     {
-      "id": "anticipation",
+      "id": "foresight",
       "count": 1
     },
     {

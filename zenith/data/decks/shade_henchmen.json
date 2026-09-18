@@ -7,10 +7,10 @@
   "mastery": "shade_mastery",
   "relic": "debtors_ring",
   "reserve": [
-    "doubt",
-    "shade_pivot_kick",
-    "shade_pivot_kick",
-    "shade_pivot_kick"
+    "defacement",
+    "shade_unraveling",
+    "shade_unraveling",
+    "shade_unraveling"
   ],
   "archetype": "allies",
   "difficulty": "easy",
@@ -60,15 +60,15 @@
       "count": 3
     },
     {
-      "id": "sly_smirk",
+      "id": "broken_rites",
       "count": 1
     },
     {
-      "id": "muster",
+      "id": "rallying_call",
       "count": 3
     },
     {
-      "id": "sudden_reinforcement",
+      "id": "hired_blades",
       "count": 3
     },
     {
@@ -76,51 +76,51 @@
       "count": 1
     },
     {
-      "id": "shade_defensive_aura",
+      "id": "shade_veil",
       "count": 3
     },
     {
-      "id": "shade_buffer_block",
+      "id": "shade_hex_recall",
       "count": 3
     },
     {
-      "id": "shade_turning_kick",
+      "id": "shade_umbral_lash",
       "count": 3
     },
     {
-      "id": "shade_chaos_detonation",
+      "id": "shade_mind_rot",
       "count": 3
     },
     {
-      "id": "extreme_assailment",
+      "id": "draiks_reckoning",
       "count": 3
     },
     {
-      "id": "palm_charge",
+      "id": "lingering_curse",
       "count": 1
     },
     {
-      "id": "twin_palm_blitz",
+      "id": "black_hands",
       "count": 3
     },
     {
-      "id": "triple_torpedo",
+      "id": "knife_volley",
       "count": 3
     },
     {
-      "id": "surging_blast",
+      "id": "sabotage",
       "count": 3
     },
     {
-      "id": "homing_bolt",
+      "id": "unerring_bolt",
       "count": 3
     },
     {
-      "id": "crashing_dive",
+      "id": "scattered_ashes",
       "count": 3
     },
     {
-      "id": "captains_volley",
+      "id": "captains_barrage",
       "count": 1
     },
     {
@@ -132,27 +132,27 @@
       "count": 3
     },
     {
-      "id": "shade_body_ruin",
+      "id": "shade_dread_grip",
       "count": 3
     },
     {
-      "id": "shade_swivel_kick",
+      "id": "shade_oblivion_touch",
       "count": 3
     },
     {
-      "id": "shade_right_kick",
+      "id": "shade_nightmare_hold",
       "count": 3
     },
     {
-      "id": "henchmans_charge",
+      "id": "branns_shakedown",
       "count": 3
     },
     {
-      "id": "dual_strike",
+      "id": "halvards_twin_cut",
       "count": 3
     },
     {
-      "id": "leaping_rush",
+      "id": "vesnas_ambush",
       "count": 3
     }
   ]

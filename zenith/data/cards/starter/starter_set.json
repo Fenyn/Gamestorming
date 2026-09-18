@@ -1690,8 +1690,8 @@
    "double_costs": true
   },
   {
-   "id": "winter_fields",
-   "title": "Winter Fields",
+   "id": "frostbound_moor",
+   "title": "Frostbound Moor",
    "type": "grounds",
    "school": "",
    "limit_per_deck": 3,
@@ -2153,8 +2153,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "challenge",
-   "title": "Challenge",
+   "id": "watchful_eye",
+   "title": "Watchful Eye",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2170,8 +2170,8 @@
    "alignment_only": "vigil"
   },
   {
-   "id": "overwhelming_aura",
-   "title": "Overwhelming Aura",
+   "id": "kept_at_bay",
+   "title": "Kept at Bay",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2185,8 +2185,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "dragons_reckoning",
-   "title": "Dragon's Reckoning",
+   "id": "warding_call",
+   "title": "Warding Call",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2207,8 +2207,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "guardians_wrath",
-   "title": "Rooke's Wrath",
+   "id": "rookes_deluge",
+   "title": "Rooke's Deluge",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2225,8 +2225,8 @@
    "remove_after_use": true
   },
   {
-   "id": "desperate_ruin",
-   "title": "Desperate Ruin",
+   "id": "last_gasp",
+   "title": "Last Gasp",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2248,8 +2248,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "oath",
-   "title": "Husband's Vow",
+   "id": "edrics_vow",
+   "title": "Edric's Vow",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2277,8 +2277,8 @@
    }
   },
   {
-   "id": "showmans_trick",
-   "title": "Showman's Trick",
+   "id": "old_trick",
+   "title": "Old Trick",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2293,8 +2293,8 @@
    "limit_per_deck": 2
   },
   {
-   "id": "clash_of_blood",
-   "title": "Clash of Blood",
+   "id": "closing_ranks",
+   "title": "Closing Ranks",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2318,8 +2318,8 @@
    "remove_after_use": true
   },
   {
-   "id": "muster",
-   "title": "Muster",
+   "id": "rallying_call",
+   "title": "Rallying Call",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2339,8 +2339,8 @@
    "remove_after_use": true
   },
   {
-   "id": "sudden_reinforcement",
-   "title": "Sudden Reinforcement",
+   "id": "hired_blades",
+   "title": "Hired Blades",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2354,8 +2354,8 @@
    ]
   },
   {
-   "id": "sly_smirk",
-   "title": "Sly Smirk",
+   "id": "broken_rites",
+   "title": "Broken Rites",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2372,8 +2372,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "truce",
-   "title": "Truce",
+   "id": "steel_standoff",
+   "title": "Steel Standoff",
    "type": "combat",
    "school": "steel",
    "effects": [
@@ -2413,8 +2413,8 @@
    ]
   },
   {
-   "id": "transformation",
-   "title": "Transformation",
+   "id": "reckless_ascent",
+   "title": "Reckless Ascent",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2428,8 +2428,8 @@
    ]
   },
   {
-   "id": "seekers_eye",
-   "title": "Seeker's Eye",
+   "id": "keen_eye",
+   "title": "Keen Eye",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2448,8 +2448,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "contemplation",
-   "title": "Contemplation",
+   "id": "quiet_study",
+   "title": "Quiet Study",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2467,8 +2467,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "grand_sweep",
-   "title": "Grand Sweep",
+   "id": "dismissal",
+   "title": "Dismissal",
    "type": "combat",
    "school": "",
    "effects": [
@@ -2490,8 +2490,8 @@
    "limit_per_deck": 2
   },
   {
-   "id": "homing_bolt",
-   "title": "Homing Bolt",
+   "id": "unerring_bolt",
+   "title": "Unerring Bolt",
    "type": "art",
    "school": "",
    "attack": {
@@ -2502,8 +2502,8 @@
    "remove_after_use": true
   },
   {
-   "id": "crashing_dive",
-   "title": "Crashing Dive",
+   "id": "scattered_ashes",
+   "title": "Scattered Ashes",
    "type": "art",
    "school": "",
    "attack": {
@@ -2527,8 +2527,8 @@
    ]
   },
   {
-   "id": "surging_blast",
-   "title": "Surging Blast",
+   "id": "sabotage",
+   "title": "Sabotage",
    "type": "art",
    "school": "",
    "attack": {
@@ -2569,8 +2569,8 @@
    "remove_after_use": true
   },
   {
-   "id": "backhand",
-   "title": "Backhand",
+   "id": "old_habit",
+   "title": "Old Habit",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2586,8 +2586,8 @@
    "remove_after_use": true
   },
   {
-   "id": "power_strike",
-   "title": "Power Strike",
+   "id": "committed_cut",
+   "title": "Committed Cut",
    "type": "art",
    "school": "",
    "endurance": 3,
@@ -2639,8 +2639,8 @@
    "remove_after_use": true
   },
   {
-   "id": "erasure",
-   "title": "Erasure",
+   "id": "clean_sweep",
+   "title": "Clean Sweep",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2662,8 +2662,8 @@
    "remove_after_use": true
   },
   {
-   "id": "supreme_push",
-   "title": "Supreme Push",
+   "id": "overreach",
+   "title": "Overreach",
    "type": "art",
    "school": "",
    "attack": {
@@ -2695,8 +2695,8 @@
    "remove_after_use": true
   },
   {
-   "id": "extreme_assailment",
-   "title": "Draik's Assailment",
+   "id": "draiks_reckoning",
+   "title": "Draik's Reckoning",
    "type": "art",
    "school": "",
    "attack": {
@@ -2724,8 +2724,8 @@
    "remove_after_use": true
   },
   {
-   "id": "twin_palm_blitz",
-   "title": "Draik's Twin Palm",
+   "id": "black_hands",
+   "title": "Draik's Black Hands",
    "type": "art",
    "school": "",
    "attack": {
@@ -2751,8 +2751,8 @@
    "remove_after_use": true
   },
   {
-   "id": "triple_torpedo",
-   "title": "Triple Torpedo",
+   "id": "knife_volley",
+   "title": "Knife Volley",
    "type": "art",
    "school": "",
    "attack": {
@@ -2770,8 +2770,8 @@
    "remove_after_use": true
   },
   {
-   "id": "captains_volley",
-   "title": "Captain's Volley",
+   "id": "captains_barrage",
+   "title": "Captain's Barrage",
    "type": "art",
    "school": "",
    "attack": {
@@ -2787,8 +2787,8 @@
    "remove_after_use": true
   },
   {
-   "id": "clear_statement",
-   "title": "Clear Statement",
+   "id": "declaration",
+   "title": "Declaration",
    "type": "art",
    "school": "",
    "attack": {
@@ -2809,8 +2809,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "palm_charge",
-   "title": "Draik's Palm Charge",
+   "id": "lingering_curse",
+   "title": "Draik's Lingering Curse",
    "type": "art",
    "school": "",
    "attack": {
@@ -2836,8 +2836,8 @@
    }
   },
   {
-   "id": "prepared_stance",
-   "title": "Vessel's Prepared Stance",
+   "id": "vessels_calibration",
+   "title": "Vessel's Calibration",
    "type": "art",
    "school": "",
    "attack": {
@@ -2847,7 +2847,7 @@
 	{
 	 "op": "search",
 	 "tag": "automaton",
-	 "exclude_title": "Vessel's Prepared Stance",
+	 "exclude_title": "Vessel's Calibration",
 	 "to": "hand",
 	 "when": {
 	  "duelist_character": "The Ninth Vessel"
@@ -2860,8 +2860,8 @@
    ]
   },
   {
-   "id": "focused_crushing_dive",
-   "title": "Crushing Dive",
+   "id": "headlong_plunge",
+   "title": "Headlong Plunge",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2900,8 +2900,8 @@
    "bottom_after_use": true
   },
   {
-   "id": "focused_sword_strike",
-   "title": "Focused Sword Strike",
+   "id": "sword_lunge",
+   "title": "Sword Lunge",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2920,8 +2920,8 @@
    "remove_after_use": true
   },
   {
-   "id": "sword_slash",
-   "title": "Sword Slash",
+   "id": "sword_flourish",
+   "title": "Sword Flourish",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2980,8 +2980,8 @@
    ]
   },
   {
-   "id": "sword_slice",
-   "title": "Vale's Sword Slice",
+   "id": "vales_sword_draw",
+   "title": "Vale's Sword Draw",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2998,14 +2998,14 @@
 	 "trigger": "if_successful",
 	 "op": "search",
 	 "title_contains": "Sword",
-	 "exclude_title": "Vale's Sword Slice",
+	 "exclude_title": "Vale's Sword Draw",
 	 "to": "hand"
 	}
    ]
   },
   {
-   "id": "speedy_flight",
-   "title": "Vale's Speedy Flight",
+   "id": "vales_quickstep",
+   "title": "Vale's Quickstep",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3035,8 +3035,8 @@
    "remove_after_use": true
   },
   {
-   "id": "back_bash",
-   "title": "Vale's Back Bash",
+   "id": "vales_pommel_bash",
+   "title": "Vale's Pommel Bash",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3067,8 +3067,8 @@
    ]
   },
   {
-   "id": "henchmans_charge",
-   "title": "Brann's Charge",
+   "id": "branns_shakedown",
+   "title": "Brann's Shakedown",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3105,8 +3105,8 @@
    ]
   },
   {
-   "id": "dual_strike",
-   "title": "Halvard's Dual Strike",
+   "id": "halvards_twin_cut",
+   "title": "Halvard's Twin Cut",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3146,8 +3146,8 @@
    ]
   },
   {
-   "id": "leaping_rush",
-   "title": "Vesna's Leaping Rush",
+   "id": "vesnas_ambush",
+   "title": "Vesna's Ambush",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3222,8 +3222,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_headshot",
-   "title": "Steel Headshot",
+   "id": "steel_skull_crack",
+   "title": "Steel Skull Crack",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -3254,8 +3254,8 @@
    }
   },
   {
-   "id": "swift_counter",
-   "title": "Vale's Swift Counter",
+   "id": "vales_riposte",
+   "title": "Vale's Riposte",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3265,8 +3265,8 @@
    "character": "Caedan Vale"
   },
   {
-   "id": "elbow_block",
-   "title": "Elbow Block",
+   "id": "hilt_guard",
+   "title": "Hilt Guard",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3283,8 +3283,8 @@
    "remove_after_use": true
   },
   {
-   "id": "leg_catch",
-   "title": "Leg Catch",
+   "id": "second_wind",
+   "title": "Second Wind",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3303,8 +3303,8 @@
    ]
   },
   {
-   "id": "swift_flight",
-   "title": "Swift Flight",
+   "id": "quick_retreat",
+   "title": "Quick Retreat",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3323,8 +3323,8 @@
    ]
   },
   {
-   "id": "storm_dodge",
-   "title": "Vessel's Dodge",
+   "id": "vessels_sidestep",
+   "title": "Vessel's Sidestep",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3344,8 +3344,8 @@
    ]
   },
   {
-   "id": "knowing_smile",
-   "title": "Vessel's Knowing Smile",
+   "id": "porcelain_smile",
+   "title": "Vessel's Porcelain Smile",
    "type": "non_combat",
    "school": "",
    "defense": {
@@ -3368,8 +3368,8 @@
    ]
   },
   {
-   "id": "steel_supreme_power",
-   "title": "Quarr's Supreme Power",
+   "id": "shrugs_it_off",
+   "title": "Quarr Shrugs It Off",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -3400,8 +3400,8 @@
    ]
   },
   {
-   "id": "focus_of_mind",
-   "title": "Focus of Mind",
+   "id": "clear_mind",
+   "title": "Clear Mind",
    "type": "non_combat",
    "school": "",
    "limit_per_deck": 1,
@@ -3415,8 +3415,8 @@
    ]
   },
   {
-   "id": "anticipation",
-   "title": "Anticipation",
+   "id": "foresight",
+   "title": "Foresight",
    "type": "non_combat",
    "school": "",
    "limit_per_deck": 1,
@@ -3431,8 +3431,8 @@
    ]
   },
   {
-   "id": "fortune",
-   "title": "Fortune",
+   "id": "lucky_find",
+   "title": "Lucky Find",
    "type": "non_combat",
    "school": "",
    "limit_per_deck": 1,
@@ -3515,8 +3515,8 @@
    "bond_timer_max": 5
   },
   {
-   "id": "seek_the_answer",
-   "title": "Vale Finds the Answer",
+   "id": "vales_insight",
+   "title": "Vale's Insight",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -3580,8 +3580,8 @@
    ]
   },
   {
-   "id": "doubt",
-   "title": "Doubt",
+   "id": "defacement",
+   "title": "Defacement",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -3684,8 +3684,8 @@
    "promote_if_successful": "Sword"
   },
   {
-   "id": "devastation_drill",
-   "title": "Devastation Drill",
+   "id": "lone_blade_drill",
+   "title": "Lone Blade Drill",
    "type": "drill",
    "school": "",
    "modifiers": [
@@ -3698,8 +3698,8 @@
    "discard_if_other_non_combats": true
   },
   {
-   "id": "ambush_drill",
-   "title": "Ambush Drill",
+   "id": "counterplay_drill",
+   "title": "Counterplay Drill",
    "type": "drill",
    "school": "",
    "alignment_only": "vigil",
@@ -3712,8 +3712,8 @@
    ]
   },
   {
-   "id": "breakthrough_drill",
-   "title": "Breakthrough Drill",
+   "id": "no_retreat_drill",
+   "title": "No Retreat Drill",
    "type": "drill",
    "school": "",
    "limit_per_deck": 1,
@@ -3750,8 +3750,8 @@
    ]
   },
   {
-   "id": "confusion_drill",
-   "title": "Confusion Drill",
+   "id": "warding_drill",
+   "title": "Warding Drill",
    "type": "drill",
    "school": "",
    "limit_per_deck": 1,
@@ -3763,8 +3763,8 @@
    ]
   },
   {
-   "id": "schooled_block",
-   "title": "Schooled Block",
+   "id": "practiced_guard",
+   "title": "Practiced Guard",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3784,8 +3784,8 @@
    ]
   },
   {
-   "id": "dream_duel",
-   "title": "Dream Duel",
+   "id": "parley",
+   "title": "Parley",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3812,8 +3812,8 @@
    ]
   },
   {
-   "id": "timely_advice",
-   "title": "Timely Advice",
+   "id": "sharp_rebuke",
+   "title": "Sharp Rebuke",
    "type": "art",
    "school": "",
    "attack": {
@@ -3831,8 +3831,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "power_burst",
-   "title": "Power Burst",
+   "id": "suppressing_shot",
+   "title": "Suppressing Shot",
    "type": "art",
    "school": "",
    "attack": {
@@ -3867,8 +3867,8 @@
    ]
   },
   {
-   "id": "sun_flare",
-   "title": "Sun Flare",
+   "id": "smoke_screen",
+   "title": "Smoke Screen",
    "type": "art",
    "school": "",
    "attack": {
@@ -3882,8 +3882,8 @@
    ]
   },
   {
-   "id": "dashed_plans",
-   "title": "Dashed Plans",
+   "id": "spoiled_rite",
+   "title": "Spoiled Rite",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -3922,8 +3922,8 @@
    ]
   },
   {
-   "id": "windfall",
-   "title": "Windfall",
+   "id": "first_cut",
+   "title": "First Cut",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -3936,8 +3936,8 @@
    ]
   },
   {
-   "id": "laid_plans",
-   "title": "Laid Plans",
+   "id": "steady_hand",
+   "title": "Steady Hand",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -3951,8 +3951,8 @@
    ]
   },
   {
-   "id": "thin_smile",
-   "title": "Thin Smile",
+   "id": "chisel_work",
+   "title": "Chisel Work",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -3965,8 +3965,8 @@
    ]
   },
   {
-   "id": "borrowed_gauge",
-   "title": "Borrowed Gauge",
+   "id": "wardens_measure",
+   "title": "Warden's Measure",
    "type": "non_combat",
    "school": "",
    "alignment_only": "vigil",
@@ -4425,8 +4425,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_perfect_defense",
-   "title": "Steel Perfect Defense",
+   "id": "steel_immovable_guard",
+   "title": "Steel Immovable Guard",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -4440,8 +4440,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "steel_stop",
-   "title": "Steel Stop",
+   "id": "steel_ironhide",
+   "title": "Steel Ironhide",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -4455,8 +4455,8 @@
    ]
   },
   {
-   "id": "steel_brace",
-   "title": "Steel Brace",
+   "id": "steel_bracing",
+   "title": "Steel Bracing",
    "type": "art",
    "school": "steel",
    "defense": {
@@ -4469,15 +4469,15 @@
 	},
 	{
 	 "op": "search",
-	 "title_contains": "Truce",
+	 "title_contains": "Steel Standoff",
 	 "to": "hand"
 	}
    ],
    "remove_after_use": true
   },
   {
-   "id": "steel_wrist_block",
-   "title": "Steel Wrist Block",
+   "id": "steel_forearm_guard",
+   "title": "Steel Forearm Guard",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -4493,8 +4493,8 @@
    ]
   },
   {
-   "id": "steel_power_beam",
-   "title": "Steel Power Beam",
+   "id": "steel_shockwave",
+   "title": "Steel Shockwave",
    "type": "art",
    "school": "steel",
    "attack": {
@@ -4520,8 +4520,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_might",
-   "title": "Quarr's Might",
+   "id": "quarrs_roar",
+   "title": "Quarr's Roar",
    "type": "art",
    "school": "steel",
    "attack": {
@@ -4542,8 +4542,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_crushing_smash",
-   "title": "Quarr's Crushing Smash",
+   "id": "quarrs_crushing_blow",
+   "title": "Quarr's Crushing Blow",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4577,8 +4577,8 @@
    }
   },
   {
-   "id": "steel_gut_kick",
-   "title": "Steel Gut Kick",
+   "id": "steel_iron_knee",
+   "title": "Steel Iron Knee",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4602,8 +4602,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_dashing_kick",
-   "title": "Steel Dashing Kick",
+   "id": "steel_battering_ram",
+   "title": "Steel Battering Ram",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4618,8 +4618,8 @@
    ]
   },
   {
-   "id": "steel_destiny",
-   "title": "Steel Destiny",
+   "id": "steel_tempering",
+   "title": "Steel Tempering",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4630,8 +4630,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_bulk",
-   "title": "Steel Bulk",
+   "id": "steel_dead_weight",
+   "title": "Steel Dead Weight",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4651,8 +4651,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_face_jab",
-   "title": "Steel Face Jab",
+   "id": "steel_iron_jab",
+   "title": "Steel Iron Jab",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4669,8 +4669,8 @@
    ]
   },
   {
-   "id": "steel_youth_bruise",
-   "title": "Steel Youth Bruise",
+   "id": "steel_scar_tissue",
+   "title": "Steel Scar Tissue",
    "type": "art",
    "school": "steel",
    "endurance": 2,
@@ -4687,8 +4687,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_rapid_slam",
-   "title": "Steel Rapid Slam",
+   "id": "steel_piston_slam",
+   "title": "Steel Piston Slam",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4708,8 +4708,8 @@
    ]
   },
   {
-   "id": "steel_triple_blast",
-   "title": "Steel Triple Blast",
+   "id": "steel_triple_shock",
+   "title": "Steel Triple Shock",
    "type": "art",
    "school": "steel",
    "attack": {
@@ -4726,8 +4726,8 @@
    ]
   },
   {
-   "id": "steel_heads_up",
-   "title": "Steel Heads Up",
+   "id": "steel_headbutt",
+   "title": "Steel Headbutt",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4746,8 +4746,8 @@
    ]
   },
   {
-   "id": "steel_charge",
-   "title": "Steel Charge",
+   "id": "steel_bull_charge",
+   "title": "Steel Bull Charge",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4771,8 +4771,8 @@
    }
   },
   {
-   "id": "steel_fist_attack",
-   "title": "Steel Fist Attack",
+   "id": "steel_iron_fist",
+   "title": "Steel Iron Fist",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4782,8 +4782,8 @@
    "endurance": 3
   },
   {
-   "id": "steel_direct_strike",
-   "title": "Steel Direct Strike",
+   "id": "steel_hammer_blow",
+   "title": "Steel Hammer Blow",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4794,8 +4794,8 @@
    "endurance": 4
   },
   {
-   "id": "steel_cliff_slam",
-   "title": "Steel Cliff Slam",
+   "id": "steel_crushing_weight",
+   "title": "Steel Crushing Weight",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4820,8 +4820,8 @@
    }
   },
   {
-   "id": "shade_pivot_kick",
-   "title": "Shade Pivot Kick",
+   "id": "shade_unraveling",
+   "title": "Shade Unraveling",
    "type": "strike",
    "school": "shade",
    "attack": {
@@ -4845,8 +4845,8 @@
    ]
   },
   {
-   "id": "shade_defensive_aura",
-   "title": "Shade Defensive Aura",
+   "id": "shade_veil",
+   "title": "Shade Veil",
    "type": "combat",
    "school": "shade",
    "defense": {
@@ -4855,8 +4855,8 @@
    }
   },
   {
-   "id": "shade_buffer_block",
-   "title": "Shade Buffer Block",
+   "id": "shade_hex_recall",
+   "title": "Shade Hex Recall",
    "type": "strike",
    "school": "shade",
    "defense": {
@@ -4876,8 +4876,8 @@
    "remove_after_use": true
   },
   {
-   "id": "shade_turning_kick",
-   "title": "Shade Turning Kick",
+   "id": "shade_umbral_lash",
+   "title": "Shade Umbral Lash",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -4895,8 +4895,8 @@
    ]
   },
   {
-   "id": "shade_chaos_detonation",
-   "title": "Shade Chaos Detonation",
+   "id": "shade_mind_rot",
+   "title": "Shade Mind Rot",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -4914,8 +4914,8 @@
    ]
   },
   {
-   "id": "shade_body_ruin",
-   "title": "Shade Body Ruin",
+   "id": "shade_dread_grip",
+   "title": "Shade Dread Grip",
    "type": "strike",
    "school": "shade",
    "attack": {
@@ -4935,8 +4935,8 @@
    "remove_after_use": true
   },
   {
-   "id": "shade_swivel_kick",
-   "title": "Shade Swivel Kick",
+   "id": "shade_oblivion_touch",
+   "title": "Shade Oblivion Touch",
    "type": "strike",
    "school": "shade",
    "attack": {
@@ -4952,8 +4952,8 @@
    ]
   },
   {
-   "id": "shade_right_kick",
-   "title": "Shade Right Kick",
+   "id": "shade_nightmare_hold",
+   "title": "Shade Nightmare Hold",
    "type": "strike",
    "school": "shade",
    "attack": {
@@ -4975,8 +4975,8 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_energy_guard",
-   "title": "Tide Energy Guard",
+   "id": "tide_breakwater",
+   "title": "Tide Breakwater",
    "type": "art",
    "school": "tide",
    "defense": {
@@ -4993,8 +4993,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "tide_defensive_flight",
-   "title": "Tide Defensive Flight",
+   "id": "tide_ebb",
+   "title": "Tide Ebb",
    "type": "strike",
    "school": "tide",
    "defense": {
@@ -5015,8 +5015,8 @@
    ]
   },
   {
-   "id": "tide_round_throw",
-   "title": "Tide Round Throw",
+   "id": "tide_undertow",
+   "title": "Tide Undertow",
    "type": "strike",
    "school": "tide",
    "attack": {
@@ -5035,8 +5035,8 @@
    ]
   },
   {
-   "id": "tide_betrayal",
-   "title": "Tide Betrayal",
+   "id": "tide_drowning",
+   "title": "Tide Drowning",
    "type": "strike",
    "school": "tide",
    "attack": {
@@ -5054,8 +5054,8 @@
    ]
   },
   {
-   "id": "tide_arm_blast",
-   "title": "Tide Arm Blast",
+   "id": "tide_surge",
+   "title": "Tide Surge",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5067,8 +5067,8 @@
    }
   },
   {
-   "id": "tide_double_blast",
-   "title": "Tide Double Blast",
+   "id": "tide_twin_swell",
+   "title": "Tide Twin Swell",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5079,8 +5079,8 @@
    "remain": 1
   },
   {
-   "id": "tide_draining_blast",
-   "title": "Tide Draining Blast",
+   "id": "tide_torrent",
+   "title": "Tide Torrent",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5093,8 +5093,8 @@
    }
   },
   {
-   "id": "tide_healing_ray",
-   "title": "Tide Healing Ray",
+   "id": "tide_springwater",
+   "title": "Tide Springwater",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5118,8 +5118,8 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_terror",
-   "title": "Tide Terror",
+   "id": "tide_depths",
+   "title": "Tide Depths",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5136,8 +5136,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "tide_transformation",
-   "title": "Tide Transformation",
+   "id": "tide_high_water",
+   "title": "Tide High Water",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5158,8 +5158,8 @@
    ]
   },
   {
-   "id": "tide_alliance",
-   "title": "Tide Alliance",
+   "id": "tide_confluence",
+   "title": "Tide Confluence",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5190,8 +5190,8 @@
    ]
   },
   {
-   "id": "twin_blow",
-   "title": "Twin Blow",
+   "id": "tide_twin_breaker",
+   "title": "Tide Twin Breaker",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -5228,8 +5228,8 @@
    ]
   },
   {
-   "id": "storm_energy_guard",
-   "title": "Storm Energy Guard",
+   "id": "storm_charged_ward",
+   "title": "Storm Charged Ward",
    "type": "art",
    "school": "storm",
    "defense": {
@@ -5254,8 +5254,8 @@
    ]
   },
   {
-   "id": "storm_setup",
-   "title": "Storm Setup",
+   "id": "storm_static_field",
+   "title": "Storm Static Field",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -5267,8 +5267,8 @@
    "remove_after_use": true
   },
   {
-   "id": "storm_scatter_shot",
-   "title": "Storm Scatter Shot",
+   "id": "storm_chain_lightning",
+   "title": "Storm Chain Lightning",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -5279,8 +5279,8 @@
    "remove_after_use": true
   },
   {
-   "id": "storm_glaring_bolt",
-   "title": "Storm Glaring Bolt",
+   "id": "storm_smiting_bolt",
+   "title": "Storm Smiting Bolt",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -5298,8 +5298,8 @@
    ]
   },
   {
-   "id": "storm_obliteration",
-   "title": "Storm Obliteration",
+   "id": "storm_thunderhead",
+   "title": "Storm Thunderhead",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -5325,8 +5325,8 @@
    ]
   },
   {
-   "id": "storm_rage",
-   "title": "Storm Rage",
+   "id": "storm_arc_bolt",
+   "title": "Storm Arc Bolt",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -5341,8 +5341,8 @@
    ]
   },
   {
-   "id": "storm_massacre",
-   "title": "Storm Massacre",
+   "id": "storm_maelstrom",
+   "title": "Storm Maelstrom",
    "type": "strike",
    "school": "storm",
    "attack": {
@@ -5378,8 +5378,8 @@
    ]
   },
   {
-   "id": "storm_uppercut",
-   "title": "Storm Uppercut",
+   "id": "storm_overcharge",
+   "title": "Storm Overcharge",
    "type": "strike",
    "school": "storm",
    "attack": {
@@ -5407,8 +5407,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "storm_strength",
-   "title": "Storm Strength",
+   "id": "storm_recharge",
+   "title": "Storm Recharge",
    "type": "strike",
    "school": "storm",
    "attack": {

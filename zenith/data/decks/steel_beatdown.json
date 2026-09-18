@@ -8,12 +8,12 @@
   "relic": "blank_mask",
   "reserve": [
     "open_challenge",
-    "steel_headshot",
+    "steel_skull_crack",
     "mutual_escalation",
     "mutual_escalation",
     "mutual_escalation",
-    "doubt",
-    "sly_smirk"
+    "defacement",
+    "broken_rites"
   ],
   "archetype": "strike_beatdown",
   "difficulty": "easy",
@@ -49,7 +49,7 @@
       "count": 3
     },
     {
-      "id": "truce",
+      "id": "steel_standoff",
       "count": 1
     },
     {
@@ -57,27 +57,27 @@
       "count": 1
     },
     {
-      "id": "steel_perfect_defense",
+      "id": "steel_immovable_guard",
       "count": 1
     },
     {
-      "id": "steel_stop",
+      "id": "steel_ironhide",
       "count": 3
     },
     {
-      "id": "steel_brace",
+      "id": "steel_bracing",
       "count": 3
     },
     {
-      "id": "steel_supreme_power",
+      "id": "shrugs_it_off",
       "count": 2
     },
     {
-      "id": "steel_power_beam",
+      "id": "steel_shockwave",
       "count": 3
     },
     {
-      "id": "steel_might",
+      "id": "quarrs_roar",
       "count": 3
     },
     {
@@ -89,67 +89,67 @@
       "count": 3
     },
     {
-      "id": "steel_crushing_smash",
+      "id": "quarrs_crushing_blow",
       "count": 4
     },
     {
-      "id": "steel_gut_kick",
+      "id": "steel_iron_knee",
       "count": 3
     },
     {
-      "id": "backhand",
+      "id": "old_habit",
       "count": 1
     },
     {
-      "id": "steel_dashing_kick",
+      "id": "steel_battering_ram",
       "count": 3
     },
     {
-      "id": "steel_destiny",
+      "id": "steel_tempering",
       "count": 3
     },
     {
-      "id": "steel_bulk",
+      "id": "steel_dead_weight",
       "count": 3
     },
     {
-      "id": "steel_face_jab",
+      "id": "steel_iron_jab",
       "count": 3
     },
     {
-      "id": "steel_youth_bruise",
+      "id": "steel_scar_tissue",
       "count": 3
     },
     {
-      "id": "steel_rapid_slam",
+      "id": "steel_piston_slam",
       "count": 3
     },
     {
-      "id": "steel_heads_up",
+      "id": "steel_headbutt",
       "count": 2
     },
     {
-      "id": "steel_charge",
+      "id": "steel_bull_charge",
       "count": 3
     },
     {
-      "id": "steel_fist_attack",
+      "id": "steel_iron_fist",
       "count": 3
     },
     {
-      "id": "steel_direct_strike",
+      "id": "steel_hammer_blow",
       "count": 3
     },
     {
-      "id": "steel_cliff_slam",
+      "id": "steel_crushing_weight",
       "count": 3
     },
     {
-      "id": "steel_wrist_block",
+      "id": "steel_forearm_guard",
       "count": 3
     },
     {
-      "id": "steel_triple_blast",
+      "id": "steel_triple_shock",
       "count": 2
     }
   ]

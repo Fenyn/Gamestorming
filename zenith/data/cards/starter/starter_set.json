@@ -2291,6 +2291,9 @@
   {
    "id": "closing_ranks",
    "title": "Closing Ranks",
+   "only": {
+    "bloodline": "draconic"
+   },
    "type": "combat",
    "school": "",
    "effects": [
@@ -3755,7 +3758,6 @@
    "title": "Quickness Drill",
    "type": "drill",
    "school": "",
-   "limit_per_deck": 1,
    "effects": [
 	{
 	 "trigger": "entering_combat",
@@ -3810,6 +3812,7 @@
 	},
 	{
 	 "op": "recover",
+	 "who": "defender",
 	 "amount": 1,
 	 "from": "bottom"
 	}
@@ -3911,6 +3914,7 @@
 	 "who": "opponent",
 	 "card_type": "non_combat",
 	 "amount": 2,
+	 "up_to": true,
 	 "remove": true,
 	 "choose": true
 	}
@@ -4023,9 +4027,8 @@
    "effects": [
 	{
 	 "trigger": "use",
-	 "op": "float",
-	 "what": "prevent_all",
-	 "duration": "combat"
+	 "op": "stop_all",
+	 "kind": "any"
 	}
    ]
   },
@@ -4045,6 +4048,7 @@
 	 "op": "search",
 	 "card_type": "seal",
 	 "to": "play",
+	 "then_as": "and",
 	 "then": [
 	  {
 	   "op": "capture_seal"
@@ -4075,7 +4079,7 @@
 	 "trigger": "use",
 	 "op": "search",
 	 "source": "hand",
-	 "card_type": "non_combat_any",
+	 "card_type": "non_combat_or_drill",
 	 "to": "play"
 	}
    ]
@@ -5452,17 +5456,20 @@
    "title": "Root Thorn Volley",
    "type": "combat",
    "school": "root",
+   "only": {
+	"character": "Osric Thornwald"
+   },
    "attack": {
 	"kind": "art"
    },
    "effects": [
 	{
+	 "may": true,
 	 "op": "search",
 	 "card_type": "art",
 	 "to": "hand"
 	}
-   ],
-   "remove_after_use": true
+   ]
   },
   {
    "id": "root_dash",
@@ -5548,6 +5555,7 @@
 	 "if_school": "root",
 	 "effects": [
 	  {
+	   "may": true,
 	   "op": "search",
 	   "card_type": "art",
 	   "to": "hand"

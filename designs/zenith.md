@@ -67,7 +67,7 @@ Tone: earnest, a little grim, no jokes on the cards. Nothing with a voice gets w
 
 Approved 2026-09-17 as the replacement for Knights and Knaves.
 
-Two sides, open to mages and mundane duelists alike. Both want their own duelist made Eidolarch, for opposite reasons: the Vigil so that whatever comes through answers to someone who will hold it in check, the Pact so that it answers to them. **The Vigil** stands watch over the places where a gate can be cut. It would rather no gate opened at all, and when a Vigil duelist carves the seals it is because the gate will open either way and the Eidolon must not answer to the Pact. A watch needs swords as much as spells. **The Pact** has struck bargains with the Eidolons across the wall, passage in return for power, and fights to deliver on them. Anyone can sign. The Vigil goes first because it already stands at the site and the Pact comes to it. "Vigil only" cards are rites handed down with the watch; "Pact only" cards are workings the Vigil's edrics_vow forbids. A following shares its leader's edrics_vow or bargain, which is why Allies match alignment. **Hedge** duelists are hedge mages and hedge knights sworn to neither; they take a side for the duel at setup.
+Two sides, open to mages and mundane duelists alike. Both want their own duelist made Eidolarch, for opposite reasons: the Vigil so that whatever comes through answers to someone who will hold it in check, the Pact so that it answers to them. **The Vigil** stands watch over the places where a gate can be cut. It would rather no gate opened at all, and when a Vigil duelist carves the seals it is because the gate will open either way and the Eidolon must not answer to the Pact. A watch needs swords as much as spells. **The Pact** has struck bargains with the Eidolons across the wall, passage in return for power, and fights to deliver on them. Anyone can sign. The Vigil goes first because it already stands at the site and the Pact comes to it. "Vigil only" cards are rites handed down with the watch; "Pact only" cards are workings the Vigil's vow forbids. A following shares its leader's vow or bargain, which is why Allies match alignment. **Hedge** duelists are hedge mages and hedge knights sworn to neither; they take a side for the duel at setup.
 
 Starter duelists (names approved 2026-09-15; descriptions reworked for the retheme and pending approval; deck names in data: Ashmark the Pyromancer, Quarr the Ironblood, The Draik Company, The Rooke Coven, Vale the Swordmaster, The Corven Collegium, The Thornwald Grove):
 
@@ -80,6 +80,18 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 | none | Vigil | Freestyle | Caedan Vale, the last of a line of swordmasters, no magic at all | none |
 | The Corven Collegium, scholars of the Tempest | Pact | Storm | The Ninth Vessel, a warded construct | The Fourteenth Vessel |
 | The Thornwald Grove, druids whose rites regrow what is cut away (added 2026-09-17) | Vigil | Root | Osric Thornwald, an old druid who mends as he fights and outlasts | none |
+
+### Bloodlines
+
+Approved 2026-09-18. A third axis under the other two, and the parallel for the reference game's Heritage.
+
+The Vigil is power studied and the Pact is power bargained for. A **bloodline** is neither: it is power an ancestor's bargain left in the blood, so it descends whether or not the descendant wants it. That is why it cuts across both sides, and why a Vigil duelist can carry one. It is a property of the personality, not of the player and not of the school they trained in. A duelist and their following need not share it.
+
+Two lines exist. **Draconic** is the fighting line, hot-blooded and hard to put down. **Verdant** is the old line that cut the first seals, patient, and regrows what is taken away.
+
+In the data it is `bloodline` on a personality's card definition, `only: {"bloodline": ...}` to gate a card, `per_bloodline` on a modifier or a shuffle effect to count personalities carrying it, and `protect_allies: "<bloodline>"` to guard only kin. A gate reads the personality **in control of Combat**, not the duelist, so a leader of no line can still use a gated card while a kinsman holds the fight. The reference game kept this in a rulebook table and never printed it on the card, which is why it was invisible; here it goes on the type line of every personality that has one.
+
+Carriers: Draconic are Halden Quarr, Caedan Vale, Sir Edric Rooke, Wren Rooke, Ansel Rooke, Tavin Vale and the bonded pair. Verdant is Osric Thornwald alone. Nobody else has one, Dame Alder Rooke included, though every one of her Allies does.
 
 Aspect titles (2026-09-17; in the data as `title` on each Aspect, set in `ASPECT_TITLES` in `gen_starters.py`). Each Aspect card carries its own title, as in "Bram Ashmark, Unquenchable". Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
 
@@ -256,6 +268,7 @@ The old school labels (Berserker, Warden, Evoker, Rogue, Juggernaut, Ranger-Drui
 - **Style.** Every deck carries exactly one Mastery, and that Mastery's school is the deck's Style. All school cards in the deck share that school. A Freestyle Mastery allows no school cards. Nothing is declared at setup. The old single-school Surge bonus stays as a flat +1 at Power Up for every deck.
 - **No gates.** Any duelist may train in any school. "School only" text does not exist; gating comes from alignment and duelist names only.
 - **Alignment.** Vigil, Pact, or Hedge. Allies must match the Duelist. "Vigil only" and "Pact only" text.
+- **Bloodline.** Draconic, Verdant, or none. Sits on the personality, not the deck, so Allies need not match the Duelist. "Draconic only" and "Verdant only" text, read off whoever is in control of Combat. See Bloodlines above.
 
 ---
 

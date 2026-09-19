@@ -45,6 +45,8 @@ func _init() -> void:
 		test_drill_guard_survives_aspect_change,
 		test_shuffle_discard_takes_only_its_school,
 		test_draw_discard_up_to,
+		test_search_then_runs_even_when_nothing_was_taken,
+		test_place_from_hand_takes_drills_but_not_seals,
 		test_bloodline_gates_on_the_personality_in_control,
 		test_bloodline_counts_only_its_own,
 		test_deck_loss_guard,
@@ -607,6 +609,41 @@ func test_draw_discard_up_to() -> void:
 	e._apply_effect({"op": "draw_discard", "amount": 2, "from": "bottom"}, 0, {}, null)
 	check(e.prompt == null or e.prompt.kind != &"pick_option", "no count is asked")
 	eq(p.discard.size(), 1, "and two came straight out")
+
+
+## "After a successful energy attack, pick a Dragon Ball out of your deck and capture a Dragon Ball
+## from the damaged foe." Two things under one yes, not one conditional on the other: with no Seal
+## left to fetch, the capture still happens.
+func test_search_then_runs_even_when_nothing_was_taken() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var theirs: CardInstance = inject(e, 1, "t_seal_2")
+	eq(theirs.controller, 1, "the rival holds a Seal")
+	var fetch: Dictionary = {"op": "search", "card_type": "seal", "to": "play", "then": [{"op": "capture_seal"}]}
+	e.prompt = null
+	e._enqueue([fetch], "secondary", 0, {}, null)
+	e._drain()
+	check(e.prompt != null and bool(e.prompt.context.get("search", false)), "the deck is searched")
+	e.submit(e.prompt.find(&"pick_none"))
+	eq(e.player(0).seals().size(), 1, "taking nothing from the deck still captured theirs")
+	eq(theirs.controller, 0, "and it is the rival's Seal that moved")
+
+
+## "In place of an attack, you may place in play a Non-Combat card from your hand." A Drill is a
+## Non-Combat card and a Seal is not, so the Seal in hand is never on the list.
+func test_place_from_hand_takes_drills_but_not_seals() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var drill: CardInstance = to_hand(e, 0, "t_drill_strike")
+	var seal: CardInstance = to_hand(e, 0, "t_seal_1")
+	var study: CardInstance = to_hand(e, 0, "t_noncombat_draw")
+	e._apply_effect({"op": "search", "source": "hand", "card_type": "non_combat_or_drill", "to": "play"}, 0, {}, null)
+	check(e.prompt != null, "the hand is offered")
+	var offered: Array[int] = e.prompt.card_options()
+	check(offered.has(drill.uid), "the Drill is on the list")
+	check(offered.has(study.uid), "so is the Non-Combat")
+	check(not offered.has(seal.uid), "the Seal is not")
+	e.submit(e.prompt.find(&"pick_none"))
+	eq(p.seals().size(), 0, "and nothing was placed")
 
 
 ## A bloodline is inherited, so it sits on the personality, not on the player. A "Draconic only"

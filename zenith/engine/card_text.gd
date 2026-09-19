@@ -689,7 +689,11 @@ static func _effect_body(e: Dictionary) -> String:
 				each = " for each personality you have in play"
 			body ="Shuffle %s from %s into your Life Deck%s." % [("every %s" % noun_one if bool(e.get("all", false)) else _plural(n, noun_one, noun_many)), pile, each]
 		"recover":
-			body = "Place the %s %s of your discard pile at the bottom of your Life Deck." % [str(e.get("from", "top")), ("card" if n == 1 else "%d cards" % n)]
+			var moved: String = "%s %s" % [str(e.get("from", "top")), ("card" if n == 1 else "%d cards" % n)]
+			if role:
+				body = "%s places the %s of their discard pile at the bottom of their Life Deck." % [_cap(who), moved]
+			else:
+				body = "Place the %s of your discard pile at the bottom of your Life Deck." % moved
 		"end_combat":
 			body = "End Combat."
 		"skip_next_attack_phase":
@@ -838,7 +842,15 @@ static func _effect_body(e: Dictionary) -> String:
 			if tt != "":
 				follow.append(_lc(tt))
 		if not follow.is_empty():
-			body += (" For each Energy lost, " if str(e.get("op", "")) == "pay_energy" else " If you do, ") + " ".join(follow)
+			# "If you do" is the usual join, but a card whose halves both happen on one yes needs
+			# "and" instead, or its text tells the player the second half is conditional.
+			var join: String = str(e.get("then_as", ""))
+			if join == "":
+				join = "For each Energy lost," if str(e.get("op", "")) == "pay_energy" else "If you do,"
+			elif body.ends_with("."):
+				# A plain conjunction continues the sentence instead of starting a new one.
+				body = body.substr(0, body.length() - 1)
+			body += " %s " % join + " ".join(follow)
 	if e.has("otherwise"):
 		var other: PackedStringArray = PackedStringArray()
 		for t in e["otherwise"]:

@@ -3,13 +3,25 @@ render_mode unshaded, cull_disabled, blend_add, depth_draw_never;
 
 uniform vec4 tint : source_color = vec4(0.5, 0.9, 1.0, 0.8);
 uniform float selected = 0.0;
+uniform float motion = 1.0;
+uniform vec2 plane_size = vec2(0.693, 0.968);
+uniform vec2 border_extent = vec2(0.318, 0.443);
 
 void fragment() {
-	// A quiet edged silhouette, with bright corners instead of a filled rectangular slab.
-	vec2 p = abs(UV - vec2(0.5));
-	float edge = max(p.x, p.y);
-	float rim = smoothstep(0.40, 0.455, edge) * (1.0 - smoothstep(0.475, 0.5, edge));
-	float corners = smoothstep(0.30, 0.43, min(p.x, p.y));
-	ALBEDO = tint.rgb;
-	ALPHA = rim * tint.a * (0.4 + 0.6 * corners + selected * 0.25);
+    // A narrow rounded filament at the card edge, with localized traveling highlights.
+    vec2 p = (UV - vec2(0.5)) * plane_size;
+    float radius = 0.025;
+    vec2 q = abs(p) - (border_extent - vec2(radius));
+    float distance_to_edge = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - radius;
+    float phase = atan(p.y, p.x);
+    float clock = TIME * motion;
+    float ripple = sin(phase * 19.0 - clock * 5.0) * sin(phase * 7.0 + clock * 3.0) * 0.0012 * motion;
+    float d = distance_to_edge + ripple;
+    float core = exp(-pow(d / 0.0023, 2.0));
+    float aura = exp(-pow(d / 0.007, 2.0)) * 0.19;
+    float runner = pow(0.5 + 0.5 * sin(phase * 2.0 - clock * 2.8), 24.0);
+    float strength = core * (0.8 + runner * 0.8 + selected * 0.15) + aura;
+    ALBEDO = tint.rgb;
+    EMISSION = tint.rgb * (0.5 + runner);
+    ALPHA = clamp(strength * tint.a, 0.0, 1.0);
 }

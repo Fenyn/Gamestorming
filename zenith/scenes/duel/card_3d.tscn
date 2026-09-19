@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/card_3d.gd" id="1_card"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_border_fx.tscn" id="2_fx"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_card"]
 size = Vector2(0.63, 0.88)
@@ -36,6 +37,9 @@ mesh = SubResource("QuadMesh_glow")
 
 [node name="Front" type="MeshInstance3D" parent="Body/Surface"]
 mesh = SubResource("QuadMesh_card")
+
+[node name="BorderFx" parent="Body/Surface" instance=ExtResource("2_fx")]
+rotation = Vector3(-1.5707963, 0, 0)
 
 [node name="Back" type="MeshInstance3D" parent="Body/Surface"]
 transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, -0.001, 0)

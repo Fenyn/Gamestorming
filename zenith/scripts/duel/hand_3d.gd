@@ -14,9 +14,21 @@ const EXPANDED_WIDTH: float = 390.0
 const REVEAL_FRACTION: float = 0.15
 const RESTING_VISIBLE_FRACTION: float = 0.15
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
+const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
+const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
 
-@export var reduced_motion: bool = false
-var enabled: bool = true
+@export var reduced_motion: bool = false:
+	set(value):
+		if reduced_motion == value:
+			return
+		reduced_motion = value
+		_layout(value)
+var enabled: bool = true:
+	set(value):
+		if enabled == value:
+			return
+		enabled = value
+		_layout()
 var keyboard_active: bool = false
 var revealed: bool = false
 var _camera: Camera3D
@@ -108,6 +120,8 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	edge.material_override = aura
 	edge.position.z = -0.003
 	holder.add_child(edge)
+	var border_fx: Node3D = BORDER_FX.instantiate()
+	holder.add_child(border_fx)
 	# The edge is a slightly enlarged silhouette behind the actual face.
 	var title: Label3D = _label(22, ZenithTheme.TEXT)
 	title.text = card.title
@@ -116,7 +130,7 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	holder.add_child(title)
 	var summary: Label3D = _label(23, ZenithTheme.MUTED)
 	holder.add_child(summary)
-	return {"uid": card.uid, "node": holder, "face": face, "edge": edge,
+	return {"uid": card.uid, "node": holder, "face": face, "edge": edge, "border_fx": border_fx, "effect_tint": ZenithTheme.ACCENT,
 		"title": title, "summary": summary, "legal": legal.has(card.uid), "rect": Rect2(),
 		"target": Vector3.ZERO, "scale": 1.0, "angle": 0.0}
 
@@ -124,6 +138,14 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView) -> void:
 	var playable: bool = legal.has(card.uid)
 	item["legal"] = playable
+	item["effect_tint"] = ZenithTheme.ACCENT
+	if prompt != null:
+		for option in prompt.options_for_card(card.uid):
+			if option.type in [&"defend", &"power_defend", &"counter"]:
+				item["effect_tint"] = ZenithTheme.DEFEND
+				break
+			if option.type in [&"attack", &"final_strike"]:
+				item["effect_tint"] = ZenithTheme.ATTACK
 	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect)
 	(item["title"] as Label3D).text = card.title
 	var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
@@ -271,13 +293,22 @@ func _layout(snap: bool = false) -> void:
 		var item: Dictionary = _items[i]
 		var node: Node3D = item["node"]
 		node.visible = i >= first and i < first + count
+		var over: bool = revealed and i == _hovered
+		var lit: bool = visible and node.visible and revealed and (over or (enabled and bool(item["legal"])))
+		var effect_tint: Color = HOVER_TINT if over else (item["effect_tint"] as Color)
+		var border_fx: Node3D = item["border_fx"]
+		border_fx.scale = Vector3(width * units / 0.63, height * units / 0.88, 1.0)
+		border_fx.set_effect(effect_tint, lit, reduced_motion)
+		var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
+		aura.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
+		aura.set_shader_parameter("selected", 1.0 if over else 0.0)
+		aura.set_shader_parameter("tint", Color(effect_tint, 1.0) if lit else Color(0.15, 0.20, 0.26, 0.16))
 		if not node.visible:
 			item["rect"] = Rect2()
 			continue
 		var offset: float = i - first - (count - 1) * 0.5
 		var center: Vector2 = Vector2(_size.x * 0.52 + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0)
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
-		var over: bool = revealed and i == _hovered
 		var scale_factor: float = minf(EXPANDED_WIDTH / width, (_size.y * 0.58) / height) if over else 1.0
 		if over:
 			center.y = _size.y - height * scale_factor * 0.5 - 58.0

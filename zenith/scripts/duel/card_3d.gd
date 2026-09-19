@@ -15,7 +15,11 @@ const LUNGE_TIME: float = 0.18
 
 var uid: int = -1
 var face_up: bool = true
-@export var reduced_motion: bool = false
+@export var reduced_motion: bool = false:
+	set(value):
+		reduced_motion = value
+		if is_node_ready():
+			_update_border()
 
 @onready var body: Node3D = $Body
 @onready var surface: Node3D = $Body/Surface
@@ -24,6 +28,7 @@ var face_up: bool = true
 @onready var glow: MeshInstance3D = $Body/Surface/Glow
 @onready var role: MeshInstance3D = $Body/Surface/Role
 @onready var pick: Area3D = $Pick
+@onready var border_fx: Node3D = $Body/Surface/BorderFx
 
 var _front_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _back_mat: StandardMaterial3D = StandardMaterial3D.new()
@@ -34,6 +39,7 @@ var _motion: Tween = null
 var _hover_motion: Tween = null
 var _highlighted: bool = false
 var _hovering: bool = false
+var _role_color: Color = Color.TRANSPARENT
 
 
 func _ready() -> void:
@@ -43,6 +49,9 @@ func _ready() -> void:
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	for m in [_glow_mat, _role_mat]:
 		m.shader = preload("res://scripts/duel/card_aura.gdshader")
+	_glow_mat.set_shader_parameter("plane_size", Vector2(0.72, 0.97))
+	_role_mat.set_shader_parameter("plane_size", Vector2(0.80, 1.05))
+	_role_mat.set_shader_parameter("border_extent", Vector2(0.337, 0.462))
 	_glow_mat.set_shader_parameter("tint", Palette.HIGHLIGHT)
 	front.material_override = _front_mat
 	back.material_override = _back_mat
@@ -73,7 +82,8 @@ func set_ghost(on: bool) -> void:
 func set_highlight(on: bool) -> void:
 	_highlighted = on
 	glow.visible = on or _hovering
-	_glow_mat.set_shader_parameter("tint", Palette.HIGHLIGHT if on else Color(0.8, 0.85, 0.9, 0.65))
+	_glow_mat.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 1.0) if on else Color(0.55, 0.85, 1.0, 0.85))
+	_update_border()
 
 
 ## Visual lift does not move the picking area, or contend with resolution motion on Body.
@@ -93,8 +103,18 @@ func set_hovered(on: bool) -> void:
 ## A standing tint under the card for its part in the fight (attacking red, defending blue);
 ## a transparent colour clears it.
 func set_role(color: Color) -> void:
+	_role_color = color
 	role.visible = color.a > 0.0
-	_role_mat.set_shader_parameter("tint", Color(color, 0.65))
+	_role_mat.set_shader_parameter("tint", Color(color, 0.9))
+	_update_border()
+
+
+func _update_border() -> void:
+	var active: bool = face_up and (_highlighted or _hovering or _role_color.a > 0.0)
+	var color: Color = _role_color if _role_color.a > 0.0 else (ZenithTheme.ACCENT if _highlighted else Color(0.55, 0.85, 1.0))
+	border_fx.set_effect(Color(color, 1.0), active, reduced_motion)
+	_glow_mat.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
+	_role_mat.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
 
 
 ## The face tints toward `color` for a moment, as a hit or a heal.

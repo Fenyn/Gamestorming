@@ -1,0 +1,28 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/card_border_fx.gd" id="1"]
+[ext_resource type="Shader" path="res://scripts/duel/border_particles.gdshader" id="2"]
+[ext_resource type="Shader" path="res://scripts/duel/border_spark.gdshader" id="3"]
+
+[sub_resource type="ShaderMaterial" id="Process"]
+shader = ExtResource("2")
+
+[sub_resource type="ShaderMaterial" id="Spark"]
+shader = ExtResource("3")
+
+[sub_resource type="QuadMesh" id="Quad"]
+size = Vector2(0.032, 0.008)
+
+[node name="CardBorderFx" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Sparks" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 12
+lifetime = 1.8
+preprocess = 0.6
+visibility_aabb = AABB(-0.5, -0.6, -0.1, 1, 1.2, 0.5)
+local_coords = true
+process_material = SubResource("Process")
+material_override = SubResource("Spark")
+draw_pass_1 = SubResource("Quad")

@@ -180,7 +180,7 @@ func _play(entry: Dictionary, lib: CardLibrary, table: StrikeTable) -> Dictionar
 		policies.append("search" if searching else "scorer")
 		statistics.append({"decisions": 0, "total_usec": 0, "max_usec": 0, "timings_ms": [], "search_decisions": 0, "branching_decisions": 0, "completed_depth_total": 0, "max_completed_depth": 0, "fallbacks": 0, "stop_reasons": {}})
 	var ref: Referee = Referee.new()
-	ref.setup(decks, lib, table, int(entry["engine_seed"]))
+	ref.setup(decks, lib, table, int(entry["engine_seed"]), [], false)
 	ref.start()
 	ref.engine.take_events()
 	var steps: int = 0

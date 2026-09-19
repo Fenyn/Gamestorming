@@ -42,7 +42,7 @@ static func parse(p_spec: Dictionary, raw: PackedStringArray) -> SimArgs:
 		if not out.error.is_empty():
 			return out
 	for pair in typed:
-		out._set(str(pair[0]), str(pair[1]))
+		out._set_arg(str(pair[0]), str(pair[1]))
 		if not out.error.is_empty():
 			return out
 	out._validate()
@@ -133,12 +133,12 @@ func _apply_scenario(path: String) -> void:
 			text = "1" if raw else "0"
 		elif raw is float and is_equal_approx(raw, roundf(raw)):
 			text = str(int(raw))
-		_set(name, text)
+		_set_arg(name, text)
 		if not error.is_empty():
 			return
 
 
-func _set(key: String, text: String) -> void:
+func _set_arg(key: String, text: String) -> void:
 	values[key] = text
 	given[key] = true
 

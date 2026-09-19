@@ -13,7 +13,7 @@ func _init() -> void:
 	lib.load_dir("res://data/cards")
 	var decks: Array[DeckList] = [DeckList.load_from("res://data/decks/%s.json" % args["deck"]), DeckList.load_from("res://data/decks/%s.json" % args["foe"])]
 	var ref: Referee = Referee.new()
-	ref.setup(decks, lib, StrikeTable.load_from("res://data/strike_table.json"), int(args["seed"]))
+	ref.setup(decks, lib, StrikeTable.load_from("res://data/strike_table.json"), int(args["seed"]), [], false)
 	ref.start()
 	var mine: AiProfile = fresh(decks[0], str(args["policy"]), args)
 	var theirs: AiProfile = fresh(decks[1], str(args["foe-policy"]), args)

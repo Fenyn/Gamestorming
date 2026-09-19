@@ -2,9 +2,9 @@
 
 The latest recovered full tournament is [the September 19 report](deck_tournament_2026-09-19.txt), completed at 12:11 local time. It contains 1,320 completed matches, 240 appearances per deck, and no unfinished games. The bottom four were Steel Heir (46/240, 19.2%), Pyre Ascent (59/240, 24.6%), Tide Companions (65/240, 27.1%), and Shade Salvage (65/240, 27.1%). Storm Volley was 49.2%; Storm Unbound was 52.9%.
 
-The original output came from the project's temporary tournament task output and is preserved verbatim here. It identifies Godot 4.4.1, but does not record its command line, policy, seed, or input hashes. The tournament scripts default to `scorer`. Treat these historical standings as target selection, not as a controlled baseline for the current build.
+The original output came from the project's temporary tournament task output and is preserved verbatim here. It identifies Godot 4.4.1, but does not record its command line, policy, seed, or input hashes. At the time, the tournament scripts defaulted to `scorer`. Treat these historical standings as target selection, not as a controlled baseline for the current build.
 
-Normal and Hard already enable sequence search through `AiProfile`. There is no deck-specific implementation switch to install. The tournament scripts intentionally default to the faster scorer; `--search-decks` enables sequence search only for the named decks while leaving the rest on the selected base policy.
+At the time of this experiment, Normal and Hard already enabled sequence search through `AiProfile`, while ordinary tournament scripts defaulted to the scorer. A subsequent integration pass made the planner the default for all shipped difficulties and ordinary simulations. The paired runner still explicitly selects scorer and planner arms to preserve the experiment design. For a mixed-policy tournament, pass `--policy=scorer --search-decks=<names>`.
 
 ## Controlled experiment
 

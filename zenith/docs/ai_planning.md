@@ -4,7 +4,7 @@ Implemented 2026-09-19. See [the design review](ai_strategy_review.md) for the o
 
 ## Core behavior
 
-`AiPlayer` remains the seat driver. It resolves public matchup preferences, then passes both the current profile and the unpivoted matchup profile into `AiSearch`. Easy and Reserve decisions continue to use the scorer. Normal and Hard use sequence search automatically; no client or host integration switch is required.
+`AiPlayer` remains the seat driver. It resolves public matchup preferences, then passes both the current profile and the unpivoted matchup profile into `AiSearch`. Easy, Normal and Hard use sequence search automatically; no client or host integration switch is required. Reserve decisions use the specialized `AiReserve` valuation through the scorer because short combat lookahead does not evaluate pregame deck swaps.
 
 Search samples possible worlds through `Referee.sim_for`, selects a diverse set of legal root options, and explores alternative continuations with iterative deepening. The branching width is bounded, and a quiet option survives pruning. Forced decisions advance without spending an additional strategic depth. Every simulated submission still comes from a pending prompt.
 
@@ -62,6 +62,7 @@ Run these with the Godot 4.6 executable from the repository README:
 
 ```text
 --headless --path zenith -s tests/run_tests.gd
+--headless --path zenith -s tests/ai_routing_tests.gd
 --headless --path zenith -s tests/ai_strategy_tests.gd -- --budget-ms=400 --samples=2
 --headless --path zenith -s tests/ai_feature_tests.gd
 --headless --path zenith -s tests/ai_information_tests.gd
@@ -73,6 +74,8 @@ Strategy puzzles execute the full tutor/Bond chain; preserve scarce pieces; choo
 The simultaneous-keep regression also answers the second player's pending decision first. Simulated commands resolve against their own player's prompt, so simultaneous decisions do not silently fall back to the scorer.
 
 Recorded checks: engine suite 2,834; strategy puzzles 124 at 400 ms/two samples; feature tests 25; information consistency 18; existing UI smoke 113. All passed. The environment prints an unrelated certificate-store warning during headless startup.
+
+Core-routing follow-up: 85 routing checks cover every shipped deck and difficulty, default simulation settings, explicit comparison policies, and actual Session → DuelHost → AiPlayer decisions. These pass alongside the 2,834 engine checks and 124 strategy checks. The Easy planner also completed a two-game arena smoke at its shipped 80 ms budget; this verifies legal integration, not relative playing strength. Tournament, ally-probe, trace and matchlab entry points passed small-budget smoke runs.
 
 The [normal arena report](ai_strategy_benchmark_normal.json) covers both seats, two seeds and all four pairings of Steel beatdown and Tide companions: 16 completed games, no illegal commands or unfinished games. Sequence search won 11/16 against the historical rollout baseline. Its per-deck results were 8/8 for Steel and 3/8 for Tide; the aggregate should not be read as proof that ally piloting is solved. Both policies requested 400 ms and two samples, but actual average decision times differed: about 374 ms for sequence versus 190 ms for rollout. Sequence median/p95/max were 406/416/434 ms; the baseline's were 158/500/754 ms. The new search completed about 1.14 branching levels per measured decision on average and used scorer fallback 70 times. Tiny scenarios can reach much deeper than full-deck positions under the same timer.
 

@@ -47,8 +47,9 @@ func _init() -> void:
 				decks[seat] = DeckList.load_from("res://data/decks/%s.json" % me)
 				decks[1 - seat] = DeckList.load_from("res://data/decks/%s.json" % foe)
 				var ref: Referee = Referee.new()
-				ref.setup(decks, lib, table, rng.randi())
+				ref.setup(decks, lib, table, rng.randi(), [], false)
 				ref.start()
+				ref.engine.take_events()
 				var players: Array[AiPlayer] = [
 					AiPlayer.new(fresh(decks[0], args), games * 2),
 					AiPlayer.new(fresh(decks[1], args), games * 2 + 1),
@@ -93,6 +94,7 @@ func _init() -> void:
 						if played != null:
 							bump(n, "played_%s" % played.def.id)
 					ref.submit(who, chosen)
+					ref.engine.take_events()
 					# One sample per turn of how many Allies we have out and who holds Combat.
 					if st.turn != last_turn:
 						last_turn = st.turn

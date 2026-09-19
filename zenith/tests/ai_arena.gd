@@ -44,7 +44,7 @@ func _init() -> void:
 					decks[a_seat] = DeckList.load_from("res://data/decks/%s.json" % deck_a)
 					decks[1 - a_seat] = DeckList.load_from("res://data/decks/%s.json" % deck_b)
 					var ref: Referee = Referee.new()
-					ref.setup(decks, lib, table, 100 + s)
+					ref.setup(decks, lib, table, 100 + s, [], false)
 					ref.start()
 					var seats: Array[int] = [a_seat, 1 - a_seat]
 					var players: Array[AiPlayer] = [null, null]

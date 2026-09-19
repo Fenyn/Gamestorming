@@ -26,13 +26,15 @@ func _init(p_profile: AiProfile = null, seed_value: int = 1) -> void:
 
 ## The command to submit for `seat`, or {} when the pending decision is not this seat's.
 func choose(referee: Referee, seat: int) -> Dictionary:
-	var pending: PromptView = referee.prompt_for(seat)
-	if referee.is_over() or pending == null:
+	if referee.is_over():
+		return {}
+	var pending_kind: StringName = referee.prompt_kind_for(seat)
+	if pending_kind == &"":
 		return {}
 	var playing: AiProfile = _matchup_profile(referee, seat)
 	var cmd: Command = null
 	# The Reserve swap is judged by AiReserve; a playout to the end of the turn says nothing about it.
-	if playing.searches() and pending.kind != &"reserve":
+	if playing.searches() and pending_kind != &"reserve":
 		cmd = search.choose(referee, seat, playing, rng, _matchup)
 	else:
 		search.metrics = {}
@@ -44,7 +46,8 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 ## The profile to play with now: the base, pivoted on who is across the table (fixed at setup, so
 ## resolved once), then pivoted on where the duel stands (recomputed, cached per distinct state).
 func _matchup_profile(referee: Referee, seat: int) -> AiProfile:
-	var view: SeatView = referee.view_for(seat)
+	# Profile pivots read public standings, never client attack previews.
+	var view: SeatView = referee.view_for(seat, false)
 	if view == null or view.players.size() < 2:
 		return profile
 	if _matchup == null:

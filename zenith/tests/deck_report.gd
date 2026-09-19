@@ -62,7 +62,7 @@ func _init() -> void:
 			decks[seat] = DeckList.load_from("res://data/decks/%s.json" % pilot)
 			decks[1 - seat] = DeckList.load_from("res://data/decks/%s.json" % foe)
 			var ref: Referee = Referee.new()
-			ref.setup(decks, lib, table, rng.randi())
+			ref.setup(decks, lib, table, rng.randi(), [], false)
 			ref.start()
 			ref.engine.take_events()
 			games += 1

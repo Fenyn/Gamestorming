@@ -37,9 +37,10 @@ var _pending_events: Array[GameEvent] = []
 var _belief_candidate_cache: Dictionary = {}
 
 
-func setup(decks: Array[DeckList], library: CardLibrary, table: StrikeTable, seed_value: int, names: Array[String] = []) -> void:
+## Headless drivers omit animation snapshots; live clients keep them by default.
+func setup(decks: Array[DeckList], library: CardLibrary, table: StrikeTable, seed_value: int, names: Array[String] = [], capture_display: bool = true) -> void:
 	_belief_candidate_cache.clear()
-	engine.record_display_state = true
+	engine.record_display_state = capture_display
 	engine.setup(decks, library, table, seed_value, names)
 
 
@@ -116,8 +117,14 @@ func sim_for(seat: int, sample_seed: int) -> DuelEngine:
 	return sim
 
 
-func view_for(seat: int) -> SeatView:
-	return SeatView.of(engine, seat)
+func view_for(seat: int, include_forecasts: bool = true) -> SeatView:
+	return SeatView.of(engine, seat, include_forecasts)
+
+
+## Decision metadata without constructing labels and outcome previews for every option.
+func prompt_kind_for(seat: int) -> StringName:
+	var p: Prompt = engine.prompt_of(seat)
+	return p.kind if p != null else &""
 
 
 ## The pending prompt when it is this seat's, else null.

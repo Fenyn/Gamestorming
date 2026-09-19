@@ -9,7 +9,7 @@ signal aspect_clicked(aspect: int)
 const ASPECT_ROW_MIN: float = 24.0
 const TYPE_ORDER: Array[CardDef.Type] = [
 	CardDef.Type.STRIKE, CardDef.Type.ART, CardDef.Type.COMBAT, CardDef.Type.NON_COMBAT,
-	CardDef.Type.DRILL, CardDef.Type.ALLY, CardDef.Type.SEAL, CardDef.Type.GROUNDS,
+	CardDef.Type.DRILL, CardDef.Type.PERSONALITY, CardDef.Type.SEAL, CardDef.Type.GROUNDS,
 ]
 
 @onready var might_tile: StatTile = $Stats/Might

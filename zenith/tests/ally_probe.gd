@@ -76,7 +76,8 @@ func _init() -> void:
 							bump(n, "control_%s" % str(ref.engine.prompt.context.get("role", "?")))
 						if kind == &"attack_action" and st.attacker == seat:
 							var holder: CardInstance = st.players[seat].in_control()
-							if holder != null and holder.def.type == CardDef.Type.ALLY:
+							# Ally is a role, not a type: whoever holds Combat and is not the Duelist.
+							if holder != null and holder != st.players[seat].duelist:
 								bump(n, "phase_with_ally_in_control")
 						if kind == &"redirect":
 							bump(n, "redirect_prompt")
@@ -173,7 +174,7 @@ func _init() -> void:
 							seen_ally[al.def.id] = true
 							bump(n, "ally_%s" % al.def.id)
 					var ic: CardInstance = st.players[seat].controlling
-					if ic != null and ic.def.type == CardDef.Type.ALLY:
+					if ic != null and ic != st.players[seat].duelist:
 						ally_turns += 1
 					# Each attack record counted once, as it opens, by who performs it.
 					if st.attack.is_empty():
@@ -182,7 +183,7 @@ func _init() -> void:
 						in_attack = true
 						var perf: CardInstance = ref.engine.card(int(st.attack.get("performer", -1)))
 						if perf != null and int(st.attack.get("attacker", -1)) == seat:
-							bump(n, "ally_attack" if perf.def.type == CardDef.Type.ALLY else "duelist_attack")
+							bump(n, "duelist_attack" if perf == st.players[seat].duelist else "ally_attack")
 				if ref.is_over() and ref.engine.state.winner == seat:
 					wins += 1
 

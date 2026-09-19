@@ -9,18 +9,19 @@ STYLE clause, a FRAMING clause per card type, a PALETTE clause per school, a fix
 string per character (CAST) and a short slot brief per card (ART). The generator assembles them
 into the Prompt column: style, framing, palette, identity, brief.
 """
+import collections
 import csv
 import glob
 import json
 import sys
 
-CANVAS = {"Duelist": "151x217", "Ally": "151x217", "Strike": "226x160", "Art": "226x160", "Seal": "226x160",
+CANVAS = {"Personality": "151x217", "Strike": "226x160", "Art": "226x160", "Seal": "226x160",
           "Combat": "150x150", "Non-Combat": "120x120", "Drill": "120x120", "Grounds": "120x120",
           "Mastery": "100x100", "Relic": "100x100"}
 
-SCHOOL_SECTION = {"pyre": "Pyre (Ashmark)", "steel": "Steel (Quarr)", "shade": "Shade (Draik and Salvage)",
+SCHOOL_SECTION = {"pyre": "Pyre (Ashmark and Rooke)", "steel": "Steel (Quarr)", "shade": "Shade (Draik and Salvage)",
                   "tide": "Tide (Rooke)", "storm": "Storm (Corven)", "root": "Root (Thornwald)"}
-SECTION_ORDER = ["Duelists", "Allies", "Relics and Masteries", "Pyre (Ashmark)", "Steel (Quarr)",
+SECTION_ORDER = ["Duelists", "Allies", "Relics and Masteries", "Pyre (Ashmark and Rooke)", "Steel (Quarr)",
                  "Shade (Draik and Salvage)", "Tide (Rooke)", "Storm (Corven)", "Root (Thornwald)",
                  "Freestyle: Strikes and Arts", "Freestyle: Combat cards", "Freestyle: Non-Combats and Drills",
                  "Seals", "Grounds"]
@@ -33,8 +34,7 @@ STYLE = ("Painted fantasy card illustration, grounded and earnest, muted palette
 
 # Framing per card type: what the picture is, its shape, where the subject sits.
 FRAMING = {
-    "Duelist": "Portrait, three-quarter view, waist up, looking past the camera, plain dark background.",
-    "Ally": "Portrait, three-quarter view, waist up, looking past the camera, plain dark background.",
+    "Personality": "Portrait, three-quarter view, waist up, looking past the camera, plain dark background.",
     "Strike": "Landscape action shot, the caster mid-strike at close range, motion blur on the blow, the rival implied at the frame edge.",
     "Art": "Landscape action shot, the spell mid-flight between the caster's hands and the frame edge, the rival implied, not shown.",
     "Seal": "Landscape close-up of a carved stone gate, one seal cut into it, torchlight from one side.",
@@ -78,7 +78,11 @@ CAST = [
      "Dame Alder Rooke: woman in her sixties, straight-backed, long grey hair, red gown over grey mail, round shield and longsword.",
      "The Vigil shows as water: climbing her, filling her, then she is the flood."),
     ("Wren Rooke", "Tide · Vigil", "The Rooke Coven", "Wren Rooke: teenage girl, red-brown hair, blue coat, satchel of loose pages.", "Youngest of the coven."),
-    ("Sir Edric Rooke", "Tide · Vigil", "The Rooke Coven", "Sir Edric Rooke: knight in grey mail, blue tabard, sword sheathed in a lance of water.", "The knight."),
+    # The element is the printing's, not the man's: he carries water in his wife's line and fire in
+    # his own, and each card's art takes it from that card's effects. See docs/cast_backlog.md.
+    ("Sir Edric Rooke", "Vigil", "Edric the Ember Knight", "Sir Edric Rooke: knight in grey mail, plain longsword, open helm under one arm, weathered and unhurried.", "The knight. Fields Pyre in his own list and Tide beside the coven."),
+    ("Emrys Rooke", "Vigil", "(no deck yet)", "Emrys Rooke: serious young man, dark hair, grey fencing doublet over mail, longsword held two-handed.", "The eldest son, and a swordsman where his parents are casters."),
+    ("Torvan Hask", "Pact", "(no deck yet)", "Torvan Hask: heavy-shouldered man in scarred riding leathers, long unbound hair, a hand axe at the belt, Edric's face ten years harder.", "Edric's elder brother, from the line Edric left."),
     ("Ansel Rooke", "Tide · Vigil", "The Rooke Coven", "Ansel Rooke: young man, broad shoulders, blue-grey gambeson, round shield.", "The middle son."),
     ("Tavin Vale", "Tide · Vigil", "The Rooke Coven", "Tavin Vale: slim young man, dark hair tied back, blue robe over a fencing doublet, hands open for casting.", "A Vale cousin fostered with the Rookes."),
     ("Ansel and Tavin, Back to Back", "Tide · Vigil", "The Rooke Coven", "Ansel Rooke and Tavin Vale standing back to back, shield and water between them.", "The Bond."),
@@ -150,6 +154,12 @@ SHOWS = {
     "mourne_takes_measure": "Gideon Mourne", "mournes_frantic_rush": "Gideon Mourne", "mournes_smirk": "Gideon Mourne",
     "mournes_plans": "Gideon Mourne",
     "salvage_alpha": "Cull", "salvage_beta": "Orvath Kell", "salvage_gamma": "Gideon Mourne",
+    "scattered_ashes": "Bram Ashmark", "sabotage": "Siphon", "absorbing_drill": "Cull",
+    "committed_cut": "Sir Edric Rooke", "quick_retreat": "Sir Edric Rooke",
+    "first_cut": "Sir Edric Rooke", "keepers_drill": "Sir Edric Rooke",
+    "duelist_iota": "Sir Edric Rooke", "edrics_truce": "Sir Edric Rooke",
+    "edrics_opening_strike": "Sir Edric Rooke", "edrics_training": "Sir Edric Rooke",
+    "companion_epsilon": "Dame Alder Rooke", "hasks_flying_kick": "Torvan Hask",
 }
 
 # Slot brief per card: subject, action, two or three concrete details, mood. Short, visual, no rules.
@@ -164,6 +174,11 @@ ART = {
     "duelist_delta_a1": "Captain. Coat open, boot on a crate, a torn company flag behind her, crew silhouettes at the edges, amused.",
     "duelist_delta_a2": "Shrouded. Shadow pooled at her feet and climbing her coat, half her face in darkness, one hand out.",
     "duelist_delta_a3": "Lightless. Eyes fully black, the light in the frame dying toward her, shadow streaming off her arms.",
+    "duelist_iota_a1": "The Hero. Standing easy, sword point down, hand raised to hold a line back, no fire on him yet.",
+    "duelist_iota_a2": "The Stranger. Helm off, looking at his own hands, a thin orange seam of heat along one forearm, the Hask axe on the ground behind him.",
+    "duelist_iota_a3": "The Realm's Hero. Mid-stride into a burning street, coals under his boots, shield arm shielding somebody out of frame.",
+    "duelist_iota_a4": "Kindled Through. Fire running up the blade and along the mail seams, teeth set, one fist cocked.",
+    "duelist_iota_a5": "The All Powerful. Wreathed to the shoulders, the sword a bar of white heat, everything around him going to ash.",
     "duelist_beta_a1": "Matriarch. Shield up, sword low, three hooded coven figures behind her, stern.",
     "duelist_beta_a2": "Rising Water. Water climbing her mail to the waist, eyes gone sea-glass green, a knight at her shoulder.",
     "duelist_beta_a3": "The Flood. A wave rising off her shoulders, face calm as deep water, the ground at her feet awash.",
@@ -194,6 +209,7 @@ ART = {
     "companion_alpha": "Gathering loose pages into her satchel, some floating back to her.",
     "companion_beta": "Sword raised, a focused jet of water along the blade.",
     "companion_delta": "Shield braced, water refilling a cracked flask at his hip.",
+    "companion_epsilon": "Stepping in front of a blow meant for someone else, shield up, no water raised at all, furious.",
     "companion_gamma": "Hands open, a globe of water between them, pages settling into a deck at his feet.",
     "bonded_pair": "Back to back, water curling around the shield, both looking outward.",
     "salvage_alpha": "Selecting an instrument from the open roll without looking down, mild and unhurried.",
@@ -437,6 +453,25 @@ def load_cards(path):
 # The printed card each new id stands in for, seeded here the first time so the CSV has something
 # to carry forward. The CSV wins once it has a value, which is where corrections go.
 NEW_SOURCES = {
+    # Red Goku v1.1, read off the sheet 2026-09-19.
+    "duelist_iota_a1": "Goku, the Hero (Lv 1, Cell Saga)",
+    "duelist_iota_a2": "Goku, the Saiyan (Lv 2, Cell Saga)",
+    "duelist_iota_a3": "Goku, Earth's Hero (Lv 3, Cell Saga)",
+    "duelist_iota_a4": "Goku (Lv 4, Cell Saga)",
+    "duelist_iota_a5": "Goku, the All Powerful (Lv 5, Cell Saga)",
+    "companion_epsilon": "Chi-Chi (Lv 1, Saiyan Saga)",
+    "pyre_ember_mastery": "Red Style Mastery (Trunks Saga)",
+    "braced_guard": "Prepared Dodge (Cell Games Saga)",
+    "pyre_bellows_guard": "Red Offensive Stance (Cell Saga)",
+    "pyre_ashen_veil": "Red Dodge (Cell Saga)",
+    "pyre_hearthguard": "Red Energy Shield (Trunks Saga)",
+    "pyre_flashpoint": "Red Eye Laser Assault (Trunks Saga)",
+    "pyre_updraft": "Red Flight (Cell Saga)",
+    "pyre_ember_strike": "Red Power Strike (Cell Saga)",
+    "hasks_flying_kick": "Raditz Flying Kick (Saiyan Saga)",
+    "edrics_opening_strike": "Goku's Physical Attack (Saiyan Saga)",
+    "edrics_training": "Goku's Training (Androids Saga)",
+    "edrics_truce": "Goku's Truce (Saiyan Saga)",
     "mournes_stance": "Vegeta's Physical Stance (Saiyan Saga)",
     "mournes_quickness_drill": "Vegeta's Quickness Drill (Saiyan Saga)",
     "mournes_jolting_arc": "Vegeta's Jolting Slash (Frieza Saga)",
@@ -516,12 +551,23 @@ def load_decks():
     return used
 
 
+# Which personalities a deck names as its Duelist. There is no Duelist card type any more, so the
+# roster reads the role off the decks: a personality a deck names leads it, and every other
+# personality is an Ally in whatever deck runs it.
+def duelist_ids():
+    out = set()
+    for f in sorted(glob.glob("data/decks/*.json")):
+        out.add(json.load(open(f, encoding="utf-8"))["duelist"])
+    return out
+
+
+DUELIST_IDS = duelist_ids()
+
+
 def section_of(card):
     t = card["type"]
-    if t == "Duelist":
-        return "Duelists"
-    if t == "Ally":
-        return "Allies"
+    if t == "Personality":
+        return "Duelists" if card["base"] in DUELIST_IDS else "Allies"
     if t in ("Relic", "Mastery"):
         return "Relics and Masteries"
     if t == "Seal":
@@ -574,9 +620,11 @@ def main(dump):
     sources = load_sources("docs/card_roster.csv")
     used = load_decks()
     rows = []
+    aspect_count = collections.Counter(c["base"] for c in cards if c["aspect"])
     for c in cards:
-        if c["type"] == "Ally" and c["aspect"] == 1:
-            # Allies have one Aspect and one art file, named by the bare id.
+        if c["type"] == "Personality" and aspect_count[c["base"]] == 1:
+            # A personality printed at a single Aspect gets one art file, named by the bare id.
+            # One printed at several gets `<id>_a<n>` per Aspect, whichever role it fills.
             c["id"] = c["base"]
             c["title"] = c["title"].removesuffix(", Aspect 1")
         brief = brief_of(c)

@@ -11,12 +11,12 @@
     {"id": "t_strike_firm", "title": "Test Firm Strike", "type": "strike", "attack": {"kind": "strike", "no_reduce": true}},
     {"id": "t_truce_guard", "title": "Test Guarded Truce", "type": "combat", "defense": {"stops": "any"}, "effects": [{"op": "end_combat"}]},
     {"id": "t_skip_strike", "title": "Test Sweeping Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike"}, "effects": [{"trigger": "before_damage", "may": true, "skip_damage": true, "op": "discard_in_play", "who": "opponent", "card_type": "drill", "all": true}]},
-    {"id": "tf_double", "title": "Test Duelist", "type": "duelist", "character": "Test Duelist", "aspects": [
+    {"id": "tf_double", "title": "Test Duelist", "type": "personality", "character": "Test Duelist", "aspects": [
       {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "power": {"attack": {"kind": "strike", "stops_needed": 2}}},
       {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000]},
       {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000]}
     ]},
-    {"id": "t_ally_free", "title": "Test Skirmisher", "type": "ally", "character": "Test Skirmisher", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [
+    {"id": "t_ally_free", "title": "Test Skirmisher", "type": "personality", "character": "Test Skirmisher", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [
       {"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike", "life": 1}, "no_control_needed": true}}
     ]},
     {"id": "t_seal_strike", "title": "Test Covetous Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike", "life_per_opponent_seal": 1}},
@@ -39,14 +39,14 @@
     {"id": "t_tithe","title": "Test Tithe", "type": "combat", "effects": [{"op": "draw_check", "check": "named", "discard": true, "effects": [{"op": "draw", "amount": 2}], "else_effects": [{"op": "draw", "amount": 1}]}]},
     {"id": "t_scry","title": "Test Scry", "type": "combat", "effects": [{"op": "draw_check", "check": "named", "effects": [{"op": "draw", "amount": 1}]}]},
     {"id": "t_wound_art", "title": "Test Grudge Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "effects": [{"trigger": "on_wound", "at": "fight_back", "op": "fervor", "amount": 2}]},
-    {"id": "t_ally_twin_a", "title": "Test Twin A", "type": "ally", "character": "Test Twin A", "alignment_only": "vigil",
+    {"id": "t_ally_twin_a", "title": "Test Twin A", "type": "personality", "character": "Test Twin A", "alignment_only": "vigil",
      "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]}]},
-    {"id": "t_ally_twin_b", "title": "Test Twin B", "type": "ally", "character": "Test Twin B", "alignment_only": "vigil",
+    {"id": "t_ally_twin_b", "title": "Test Twin B", "type": "personality", "character": "Test Twin B", "alignment_only": "vigil",
      "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]}]},
-    {"id": "t_bonded_twins", "title": "Test Bonded Twins", "type": "ally", "character": "Test Bonded Twins", "alignment_only": "vigil",
+    {"id": "t_bonded_twins", "title": "Test Bonded Twins", "type": "personality", "character": "Test Bonded Twins", "alignment_only": "vigil",
      "bond_of": ["Test Twin A", "Test Twin B"], "bond_timer_max": 5,
      "aspects": [{"aspect": 1, "surge": 4, "might": [0, 5000000, 5200000, 5400000, 5600000, 5800000, 6000000, 6200000, 6400000, 6600000, 6800000]}]},
-    {"id": "tf_warden", "title": "Test Warden", "type": "duelist", "character": "Test Warden", "aspects": [
+    {"id": "tf_warden", "title": "Test Warden", "type": "personality", "character": "Test Warden", "aspects": [
       {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "constant": {"protect_allies": true}},
       {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000]},
       {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000]}]},
@@ -57,11 +57,11 @@
     {"id": "t_late_art", "title": "Test Late Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "effects": [{"trigger": "on_wound", "at": "turn_end", "op": "fervor", "amount": 2}]},
     {"id": "t_peek_top", "title": "Test Foresight", "type": "combat", "effects": [{"op": "look_at", "from": "top", "amount": 3, "pick": {"title_contains": "Test Drill"}, "to": "hand", "play_if": {"title_contains": "Footwork"}, "shuffle_after": true}]},
     {"id": "t_drill_footwork_named", "title": "Test Drill Footwork", "type": "drill", "modifiers": [{"scope": "own", "kind": "art", "life": 1}]},
-    {"id": "t_ally_left", "title": "Test Left Hand", "type": "ally", "character": "Test Left Hand", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike"}}}]},
-    {"id": "t_ally_right", "title": "Test Right Hand", "type": "ally", "character": "Test Right Hand", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike"}}}]},
-    {"id": "t_bonded_hands", "title": "Test Both Hands", "type": "ally", "character": "Test Both Hands", "alignment_only": "vigil", "limit_per_deck": 1, "bond_of": ["Test Left Hand", "Test Right Hand"], "bond_timer_max": 2, "aspects": [{"aspect": 1, "surge": 3, "might": [0, 1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000], "power": {"attack": {"kind": "strike", "printed_stages": 7}, "uses": 2, "effects": [{"may": true, "op": "discard_hand", "amount": 1, "random": false, "then": [{"op": "focus_attack"}], "when": {"hand_min": 1}}]}}]},
+    {"id": "t_ally_left", "title": "Test Left Hand", "type": "personality", "character": "Test Left Hand", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike"}}}]},
+    {"id": "t_ally_right", "title": "Test Right Hand", "type": "personality", "character": "Test Right Hand", "alignment_only": "vigil", "limit_per_deck": 1, "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000], "power": {"attack": {"kind": "strike"}}}]},
+    {"id": "t_bonded_hands", "title": "Test Both Hands", "type": "personality", "character": "Test Both Hands", "alignment_only": "vigil", "limit_per_deck": 1, "bond_of": ["Test Left Hand", "Test Right Hand"], "bond_timer_max": 2, "aspects": [{"aspect": 1, "surge": 3, "might": [0, 1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000], "power": {"attack": {"kind": "strike", "printed_stages": 7}, "uses": 2, "effects": [{"may": true, "op": "discard_hand", "amount": 1, "random": false, "then": [{"op": "focus_attack"}], "when": {"hand_min": 1}}]}}]},
     {"id": "t_bond_rite", "title": "Test Clasp", "type": "non_combat", "effects": [{"trigger": "use", "op": "bond", "card": "t_bonded_hands"}]},
-    {"id": "tf_shepherd", "title": "Test Shepherd", "type": "duelist", "character": "Test Shepherd", "aspects": [
+    {"id": "tf_shepherd", "title": "Test Shepherd", "type": "personality", "character": "Test Shepherd", "aspects": [
       {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "constant": {"protect_allies": true}},
       {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000], "constant": {"protect_allies": true}},
       {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000], "constant": {"protect_allies": true}}

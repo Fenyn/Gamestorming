@@ -107,7 +107,7 @@ static func own_shares(p: PlayerState) -> Dictionary:
 	var counts: Dictionary = {"ally": 0, "drill": 0, "non_combat": 0, "seal": 0}
 	for c in p.life_deck:
 		match c.def.type:
-			CardDef.Type.ALLY:
+			CardDef.Type.PERSONALITY:
 				counts["ally"] = int(counts["ally"]) + 1
 			CardDef.Type.DRILL:
 				counts["drill"] = int(counts["drill"]) + 1

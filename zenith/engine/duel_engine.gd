@@ -18,6 +18,8 @@ const FERVOR_TO_ASPECT: int = 5
 const ART_COST: int = 2
 const ART_BASE_LIFE: int = 4
 const WILD_BASE_DAMAGE: int = 2
+## `use_at` on a defense card that answers an attack only once it is already through.
+const LATE_STOP: String = "successful_attack"
 const CRITICAL_THRESHOLD: int = 5   # life cards from one attack that make it critical damage
 const SEALS_PER_SET: int = 7
 const ALLY_CONTROL_MAX_ENERGY: int = 1
@@ -268,7 +270,7 @@ func _build_player(index: int, deck: DeckList) -> PlayerState:
 	p.archetype = deck.archetype
 	p.subthemes = deck.subthemes.duplicate()
 	var fdef: CardDef = library.get_def(deck.duelist_id)
-	assert(fdef != null and fdef.type == CardDef.Type.DUELIST, "Deck %s has no duelist" % deck.name)
+	assert(fdef != null and fdef.type == CardDef.Type.PERSONALITY, "Deck %s has no duelist" % deck.name)
 	p.duelist = _instance(fdef, index, &"duelist")
 	p.duelist.energy = STARTING_ENERGY
 	p.highest_aspect = clampi(deck.aspects, 1, fdef.highest_aspect())
@@ -815,7 +817,7 @@ func _can_place(p: PlayerState, c: CardInstance) -> bool:
 	if def.alignment_only != "" and def.alignment_only != p.alignment:
 		return false
 	match def.type:
-		CardDef.Type.ALLY:
+		CardDef.Type.PERSONALITY:
 			if not (def.raw.get("bond_of", []) as Array).is_empty():
 				return false   # Bonds enter play through a Bonding card, never by placement
 			if _forbidden(p, "allies"):
@@ -858,7 +860,7 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 	_erase_from_zone(c)
 	c.controller = p.index
 	match c.def.type:
-		CardDef.Type.ALLY:
+		CardDef.Type.PERSONALITY:
 			var existing: CardInstance = _ally_of_character(p, c.def.character)
 			if existing != null:
 				_erase_from_zone(existing)
@@ -1156,7 +1158,7 @@ func _prompt_attack_action(p: PlayerState) -> void:
 	for c in p.remain_cards():
 		# `remain_by` names who the extra uses belong to, for a card that stays out "to be used one
 		# more time by an Ally".
-		if str(c.def.raw.get("remain_by", "")) == "ally" and ic.def.type != CardDef.Type.ALLY:
+		if str(c.def.raw.get("remain_by", "")) == "ally" and ic == p.duelist:
 			continue
 		if c.def.is_attack() and _attack_allowed(p, c.def) and _can_pay(ic, p, c.def.attack):
 			opts.append(Command.new(p.index, &"attack", c.uid))
@@ -1632,6 +1634,10 @@ func _advance_battle() -> void:
 				_emit(&"attack_stopped", {"player": attacker.index})
 				state.battle_step = 16
 			else:
+				# "Stops a successful attack" waits until here, after every ordinary defense has
+				# failed. Declining leaves `late_stop_done` set, so this step falls through next time.
+				if _prompt_late_stop():
+					return
 				_emit(&"attack_successful", {"player": attacker.index})
 				_enqueue(a["effects"], "before_damage", attacker.index, {"attack": a}, _attack_source())
 				state.battle_step = 9
@@ -1645,7 +1651,7 @@ func _advance_battle() -> void:
 			# An in-control Ally with the capture trait may take a Seal instead of dealing the damage.
 			var performer: CardInstance = _performer(a)
 			var has_damage: bool = int(a["stages"]) > 0 or int(a["life"]) > 0
-			if performer.def.type == CardDef.Type.ALLY and performer.def.capture_trait and has_damage and not _capturable_seals(defender).is_empty():
+			if performer.def.type == CardDef.Type.PERSONALITY and performer.def.capture_trait and has_damage and not _capturable_seals(defender).is_empty():
 				var opts: Array[Command] = []
 				for t in _capturable_seals(defender):
 					opts.append(Command.new(attacker.index, &"capture", t.uid))
@@ -1866,9 +1872,12 @@ func _prompt_defense() -> void:
 	if d.mastery != null and not _forbidden(d, "mastery") and _drill_use_available(d.mastery) and _defense_usable(d, d.mastery, kind, focused):
 		opts.append(Command.new(d.index, &"defend", d.mastery.uid))
 	var ic: CardInstance = d.in_control()
-	var pw: Dictionary = ic.power()
-	if _power_available(d, ic) and not _forbidden(d, "powers") and CardDef.defense_stops(pw.get("defense", {}), kind, focused):
+	if _power_defends(d, ic, kind, focused):
 		opts.append(Command.new(d.index, &"power_defend", ic.uid))
+	# "She does not have to be in control to use this power": an Ally may answer from the side.
+	for al in d.allies():
+		if al != ic and bool(al.power().get("no_control_needed", false)) and _power_defends(d, al, kind, focused):
+			opts.append(Command.new(d.index, &"power_defend", al.uid))
 	if opts.is_empty():
 		_emit(&"no_defense", {"player": d.index, "auto": true, "reason": "none"})
 		state.phase = GameState.Phase.BATTLE
@@ -1877,13 +1886,50 @@ func _prompt_defense() -> void:
 	_set_prompt(d.index, &"defense", opts, {"kind": kind, "focused": focused, "source": int(a.get("source", -1))})
 
 
-func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: bool) -> bool:
+## Whether a personality's own Power can answer this attack. A Power's defense may carry a `when`,
+## the way a card's does: "stops a Strike performed against Edric or Emrys".
+func _power_defends(d: PlayerState, ic: CardInstance, kind: String, focused: bool) -> bool:
+	if not _power_available(d, ic) or _forbidden(d, "powers"):
+		return false
+	var dd: Dictionary = ic.power().get("defense", {})
+	if not CardDef.defense_stops(dd, kind, focused):
+		return false
+	return not dd.has("when") or _cond(dd["when"], d.index, {"attack": state.attack})
+
+
+## The window a card that "stops a successful attack" is played in: after the attack is already
+## through, and only then. Returns true when it is open and waiting on the defender.
+func _prompt_late_stop() -> bool:
+	var a: Dictionary = state.attack
+	var d: PlayerState = state.players[int(a["defender"])]
+	if bool(a.get("late_stop_done", false)) or d.must_pass:
+		return false
+	a["late_stop_done"] = true
+	var kind: String = str(a["kind"])
+	var focused: bool = bool(a["focused"])
+	var opts: Array[Command] = []
+	for c in d.hand:
+		if _defense_usable(d, c, kind, focused, true):
+			opts.append(Command.new(d.index, &"defend", c.uid))
+	if opts.is_empty():
+		return false
+	opts.append(Command.new(d.index, &"no_defense"))
+	state.phase = GameState.Phase.DEFEND
+	_set_prompt(d.index, &"defense", opts, {"kind": kind, "focused": focused, "late": true, "source": int(a.get("source", -1))})
+	return true
+
+
+func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: bool, late: bool = false) -> bool:
 	var def: CardDef = c.def
 	if not def.is_defense():
 		return false
 	if def.is_end_combat_card():
 		return false   # cards that end Combat can only be played as an attack action
-	if str(def.raw.get("use_at", "")) != "":
+	var timing: String = str(def.raw.get("use_at", ""))
+	if late:
+		if timing != LATE_STOP:
+			return false
+	elif timing != "":
 		return false   # and a card that names its own timing waits for that moment
 	if not _can_play(d, def):
 		return false
@@ -2167,8 +2213,10 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	var spent: Array[Dictionary] = []
 	# "Cannot be reduced": the defender's reductions and caps are ignored; prevention is separate.
 	var no_reduce: bool = bool(spec.get("no_reduce", false)) or _has_floating(attacker.index, "no_reduce")
-	var multiply: int = 1
-	var multiply_source: String = ""
+	# "Three times the Base Damage": the attack carries its own multiplier, and it competes with
+	# any from a modifier on the same terms, biggest wins.
+	var multiply: int = maxi(1, int(spec.get("multiply", 1)))
+	var multiply_source: String = src_title if multiply > 1 else ""
 	# "No modifiers are added to Strikes performed against her": read off the defending
 	# personality's own card, because the text names that personality and not their side.
 	var blind: String = str((dc.aspect_data().get("constant", {}) as Dictionary).get("no_modifiers_against", ""))
@@ -2679,6 +2727,22 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				target = card(who.last_searched)
 				if target == null or target.zone != &"in_play":
 					return
+			elif aim == "any":
+				# "Raise any personality to their highest Energy": the card does not say whose, so
+				# every personality on the table is on the list and the player using it decides.
+				var board: Array[CardInstance] = []
+				for pl in state.players:
+					board.append(pl.duelist)
+					board.append_array(pl.allies())
+				if board.size() == 1:
+					_set_personality_energy(state.players[board[0].owner], board[0], e, amount, source)
+					return
+				_choice = {"kind": "energy_target", "player": who_index, "effect": e.duplicate(true), "owner": owner, "board": true}
+				var board_opts: Array[Command] = []
+				for c in board:
+					board_opts.append(Command.new(owner, &"pick_option", c.uid))
+				_set_prompt(owner, &"pick_option", board_opts, _choice_context(source, "energy_target"))
+				return
 			elif aim == "all" or aim == "choose":
 				# "Raise all of your personalities" / "raise any one of them": the Duelist and every
 				# Ally. A choice with only the Duelist to choose from is not worth a prompt.
@@ -2883,7 +2947,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				_choice = {"kind": "pick_discard", "target": who_index, "remaining": int(amount)}
 				_prompt_pick_discard(owner, who, int(amount), bool(e.get("up_to", false)))
 				return
+			# "Remove the top card of your discard pile to raise your Fervor 1, or 2 if it is a
+			# Pyre card": the card that burns decides which branch runs, so it is read first.
+			var burned: CardInstance = who.discard.back() if not who.discard.is_empty() else null
 			_remove_discard(who, int(amount), bool(e.get("all", false)))
+			if burned != null and (e.has("effects") or e.has("else_effects")):
+				if _draw_check_matches(who, burned, e):
+					_enqueue(e.get("effects", []), "secondary", owner, ctx, source)
+				else:
+					_enqueue(e.get("else_effects", []), "secondary", owner, ctx, source)
 		"recur_source":
 			# "Remove a card from your discard pile to shuffle this card back into your Life Deck
 			# after use." `cost` says which discarded card pays; nothing happens without one.
@@ -3032,6 +3104,20 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					return false
 			"ally_present":
 				if _ally_of_character(me, str(v)) == null:
+					return false
+			"allies_present":
+				# "if Chi-Chi and Gohan are in play": every name on the list, not any of them.
+				for name in (v as Array):
+					if _ally_of_character(me, str(name)) == null:
+						return false
+			"defender_character":
+				# Who the attack is aimed at, for a card that answers only on one personality's
+				# behalf. A String names one; an Array names any of several.
+				var aimed: CardInstance = _defender_personality(ctx)
+				if aimed == null:
+					return false
+				var names: Array = v if v is Array else [v]
+				if not names.has(aimed.def.character):
 					return false
 			"opponent_allies_min":
 				if opp.allies().size() < int(v):
@@ -3437,6 +3523,9 @@ func _look_at(p: PlayerState, e: Dictionary) -> void:
 
 func _draw_check_matches(p: PlayerState, drawn: CardInstance, e: Dictionary) -> bool:
 	match str(e.get("check", "school")):
+		"attack":
+			# "if it is a Physical or Energy Combat card": a card that attacks, either kind.
+			return drawn.def.type == CardDef.Type.STRIKE or drawn.def.type == CardDef.Type.ART
 		"named":
 			return drawn.def.character != ""
 		"signature":
@@ -3491,20 +3580,20 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 			"freestyle_drill":
 				ok = t == CardDef.Type.DRILL and c.def.school == ""
 			"ally":
-				ok = t == CardDef.Type.ALLY and not _ally_protected(p, c)
+				ok = t == CardDef.Type.PERSONALITY and not _ally_protected(p, c)
 			"seal":
 				ok = t == CardDef.Type.SEAL
 			"non_combat_or_ally":
-				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p, c))
+				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.PERSONALITY and not _ally_protected(p, c))
 			"drill_or_ally":
-				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p, c))
+				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.PERSONALITY and not _ally_protected(p, c))
 			_:
 				# Seals are immune to card effects unless named, and a card type this match has
 				# not met yet still has to respect what guards the board, or the next one added
 				# quietly walks past every protection.
 				ok = t != CardDef.Type.SEAL \
 					and not (t == CardDef.Type.DRILL and _drills_protected(p)) \
-					and not (t == CardDef.Type.ALLY and _ally_protected(p, c))
+					and not (t == CardDef.Type.PERSONALITY and _ally_protected(p, c))
 		if ok:
 			out.append(c)
 	return out
@@ -3741,9 +3830,12 @@ func _handle_choice(cmd: Command) -> void:
 			if attaching != null:
 				_attach_to_host(attaching, state.players[int(_choice["player"])], card(cmd.card))
 		"energy_target":
-			var lifted: PlayerState = state.players[int(_choice["player"])]
+			var picked: CardInstance = card(cmd.card)
+			# A board-wide choice may land on the other side, so the pile it belongs to is the
+			# card's own owner rather than whoever played the effect.
+			var lifted: PlayerState = state.players[picked.owner] if bool(_choice.get("board", false)) else state.players[int(_choice["player"])]
 			var e2: Dictionary = _choice["effect"]
-			_set_personality_energy(lifted, card(cmd.card), e2, e2.get("amount", 0), null)
+			_set_personality_energy(lifted, picked, e2, e2.get("amount", 0), null)
 		"pick_discard":
 			if cmd.type != &"pick_none":
 				for uid in Prompt.cards_of(cmd):
@@ -3990,7 +4082,9 @@ func _power_available(p: PlayerState, ic: CardInstance) -> bool:
 	if pw.has("attack") and pw["attack"].has("only_first_attack") and p.attack_count_combat > 0:
 		return false
 	var uses: int = maxi(1, int(pw.get("uses", 1)))
-	if ic.def.type == CardDef.Type.ALLY:
+	# Ally and Duelist are one card type, so which one this is comes from the seat, not the type:
+	# anyone who is not the Main Personality is an Ally, and an Ally's Power refreshes each Combat.
+	if ic != p.duelist:
 		if ic.power_used_combat != state.combat_count:
 			return true
 		return ic.power_uses_combat < uses
@@ -4342,7 +4436,7 @@ func _unbond(p: PlayerState, bond: CardInstance) -> void:
 	var fusees: Array[CardInstance] = []
 	var rest: Array[CardInstance] = []
 	for c in bond.cards_under:
-		if c.def.type == CardDef.Type.ALLY and names.has(c.def.character):
+		if c.def.type == CardDef.Type.PERSONALITY and names.has(c.def.character):
 			fusees.append(c)
 		else:
 			rest.append(c)
@@ -4368,7 +4462,7 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 	var to: String = str(e.get("to", "hand"))
 	if to == "play":
 		_place(p, hit)
-		if hit.def.type == CardDef.Type.ALLY and e.has("stages"):
+		if hit.def.type == CardDef.Type.PERSONALITY and e.has("stages"):
 			# "at their highest Energy" comes through as the string, not a number.
 			var at: Variant = e["stages"]
 			hit.energy = CardInstance.MAX_STAGE if at is String and str(at) == "max" else clampi(int(at), 0, CardInstance.MAX_STAGE)
@@ -4568,7 +4662,7 @@ func _move_to_deck_bottom(c: CardInstance) -> void:
 
 ## Attachments fall off when their host leaves play.
 func _drop_attachments(host: CardInstance) -> void:
-	if host.def.type != CardDef.Type.ALLY and host.def.type != CardDef.Type.DUELIST:
+	if host.def.type != CardDef.Type.PERSONALITY:
 		return
 	for p in state.players:
 		for at in p.attachments():
@@ -4651,6 +4745,18 @@ func _attaches_to_character(def: CardDef) -> bool:
 		if str(e.get("op", "")) == "attach" and str(e.get("to", "")) == "character":
 			return true
 	return false
+
+
+## The personality an attack is aimed at: the named target once one is chosen, otherwise whoever
+## is in control on the defending side. Empty when there is no attack in the air.
+func _defender_personality(ctx: Dictionary) -> CardInstance:
+	var a: Dictionary = ctx.get("attack", state.attack)
+	if a.is_empty():
+		return null
+	var aimed: CardInstance = card(int(a.get("target", -1)))
+	if aimed != null:
+		return aimed
+	return state.players[int(a["defender"])].in_control()
 
 
 func _ally_of_character(p: PlayerState, character: String) -> CardInstance:

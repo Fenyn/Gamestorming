@@ -141,7 +141,7 @@ aspect all the way up; the aspect powers feed on the discard pile instead.
 
 - **Lever.** The discard pile is a second Life Deck. The Mastery, Second Wind, the Root blocks and
   the aspect 4 power all pull cards back out of it, so spent blocks are not really spent.
-- **Line.** Keeper's Drill down before Seals go down. Fetch Seals with the Non-Combat package, take
+- **Line.** Edric's Retaining Drill down before Seals go down. Fetch Seals with the Non-Combat package, take
   the opponent's with Seal Seizure and Sleight, keep their Fervor at 0 with the stripping blocks and
   Seals 2 and 6. Arts are both the damage and half the Seal engine, since a successful Art turns
   Eyes Beyond the Gate into a free Seal.

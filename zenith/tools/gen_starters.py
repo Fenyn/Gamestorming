@@ -92,7 +92,7 @@ def seal(id, title, seal_set, number, effects):
 
 
 def ally(id, title, alignment, top, step, power, surge=1, **k):
-    add(id=id, title=title, type="ally", school="", character=title, alignment_only=alignment, limit_per_deck=1,
+    add(id=id, title=title, type="personality", school="", character=title, alignment_only=alignment, limit_per_deck=1,
         aspects=[{"aspect": 1, "surge": surge, "might": might(top, step), "power": power}], **k)
 
 
@@ -109,13 +109,16 @@ ASPECT_TITLES = {
     # Crude, then properly put back together, then built past what any of the parts were for, then
     # all of it at once. "Overwrought" is doing both its jobs: over-made, and worked up.
     "duelist_theta": ["Patchwork", "Rebuilt", "Overwrought", "Fury Amalgam"],
+    # The ladder the printed one climbs: the man they count on, then the stranger under it, then
+    # the realm's, then burning, then everything at once.
+    "duelist_iota": ["the Hero", "the Stranger", "the Realm's Hero", "Kindled Through", "the All Powerful"],
 }
 
 
 def duelist(id, title, aspects, **k):
     for a, name in zip(aspects, ASPECT_TITLES[id]):
         a["title"] = name
-    add(id=id, title=title, type="duelist", school="", character=title, aspects=aspects, **k)
+    add(id=id, title=title, type="personality", school="", character=title, aspects=aspects, **k)
 
 
 def aspect(n, surge, top, step, power=None, constant=None, shield=None):
@@ -132,6 +135,11 @@ def aspect(n, surge, top, step, power=None, constant=None, shield=None):
 ALPHA, BETA, GAMMA, DELTA, EPSILON, ZETA = "Bram Ashmark", "Dame Alder Rooke", "Siphon", "Sable Draik", "Halden Quarr", "Caedan Vale"
 ETA = "Osric Thornwald"
 THETA = "Marrow"
+# The Rooke Coven's knight, who already fights beside his wife as an Ally. These are his own cards
+# and his own Style, the same man at other points; see docs/cast_backlog.md.
+IOTA = "Sir Edric Rooke"
+EMRYS = "Emrys Rooke"     # the eldest son
+HASK = "Torvan Hask"      # the elder brother Edric left behind
 
 # ============================================================================
 # Duelists
@@ -191,6 +199,17 @@ duelist("duelist_theta", THETA, [
     aspect(3, 3, 30, 1, power={"attack": {"kind": "art", "printed_life": 7, "variants": [{"when": {"card_in_play": "The Breaker's Yard"}, "printed_stages": 3}]}}),
     aspect(4, 4, 38, 2, power={"attack": {"kind": "strike", "stages": 6, "variants": [{"when": {"card_in_play": "The Breaker's Yard"}, "life": 5}]}, "effects": [OPP_ACC(-3)]}),
 ], tags=["construct"])
+# The knight's own ladder. Aspects 1 and 3 read the top of the Life Deck rather than adding damage,
+# which is why the Might stays modest until Kindled Through.
+duelist("duelist_iota", IOTA, [
+    aspect(1, 2, 14, 1, power={"effects": [ENTER(E("draw_check", check="signature",
+                                                   effects=[WHEN(E("draw", amount=1), allies_present=[BETA, EMRYS])]))]}),
+    aspect(2, 3, 20, 1, power={"effects": [OPP_ACC(-1), E("draw_discard", amount=1, **{"from": "bottom"})]}),
+    aspect(3, 3, 28, 1, power={"effects": [ENTER(E("draw_check", check="attack", reveal=True,
+                                                   effects=[OPP("discard_life", amount=3)]))]}),
+    aspect(4, 4, 34, 2, power={"attack": {"kind": "strike", "printed_stages": 5, "printed_life": 3}}),
+    aspect(5, 5, 42, 1, power={"attack": {"kind": "strike", "stages": 5, "life": 5}}),
+], bloodline="draconic")
 
 # ============================================================================
 # Allies
@@ -208,6 +227,12 @@ ally("companion_alpha", "Wren Rooke", "vigil", 18, 1, {"effects": [E("shuffle_di
 ally("companion_beta", "Sir Edric Rooke", "vigil", 16, 1, {"attack": {"kind": "strike", "focused": True, "stages": 2, "life_per_opponent_seal": 2}}, bloodline="draconic")
 ally("companion_gamma", "Tavin Vale", "vigil", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [E("recover", amount=2, **{"from": "bottom"})]}, surge=3, bloodline="draconic")
 ally("companion_delta", "Ansel Rooke", "vigil", 13, 1, {"attack": {"kind": "strike", "printed_stages": 5}, "effects": [IFSTOP(VIG("max"))]}, bloodline="draconic")
+# The matriarch as her husband's Ally rather than as a duelist: the same woman, a different card,
+# and the weakest Might in the set. She answers a Strike aimed at her husband or her eldest, and
+# she does it from the side, without being in control.
+ally("companion_epsilon", BETA, "vigil", 5, 0,
+     {"defense": {"stops": "strike", "when": {"defender_character": [IOTA, EMRYS]}}, "no_control_needed": True},
+     bloodline="draconic")
 
 # ============================================================================
 # Seals: two sets of seven
@@ -286,6 +311,11 @@ add(id="pyre_mastery", title="Pyre Mastery", type="mastery", school="pyre", limi
               "then": [{"op": "focus_attack"}]}])
 # The later printing: a life card is thrown away on entering Combat and pays back in cards, two
 # for a Steel card, one otherwise. It suits the 85-card build, which has the Life Deck to spend.
+# The earlier printing, and the one the knight's list runs: once a Combat, burn the top of the
+# discard pile for Fervor, worth double when what burns is Pyre. A second Mastery for one school is
+# the source's own doing; the two were printed in different sets and play nothing alike.
+add(id="pyre_ember_mastery", title="Pyre Ember Mastery", type="mastery", school="pyre", limit_per_deck=1, once_per_combat=True,
+    effects=[USE(E("remove_discard", amount=1, check="school", school="pyre", effects=[ACC(2)], else_effects=[ACC(1)]))])
 add(id="steel_mastery", title="Steel Mastery", type="mastery", school="steel", limit_per_deck=1,
     effects=[ENTER(E("draw_check", school="steel", discard=True, effects=[E("draw", amount=2)], else_effects=[E("draw", amount=1)]))])
 add(id="shade_mastery", title="Shade Mastery", type="mastery", school="shade", limit_per_deck=1,
@@ -305,18 +335,31 @@ add(id="storm_mastery", title="Storm Mastery", type="mastery", school="storm", l
 strike("no_quarter", "No Quarter", atk={"stages": 3},
        effects=[FORBID("end_combat"), FORBID("end_combat", "opponent"), FORBID("stop_all"), FORBID("stop_all", "opponent")])
 # A named card in the source, so the duelist it is named for may run a fourth copy.
-strike("relentless_fury", "Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
+strike("relentless_fury", "Ashmark's Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
 block("stillness", "Stillness", "any", "combat", defense={"stop_all": "any"}, limit_per_deck=1, use_in_attack=True, effects=[E("stop_all", kind="any")])
 block("mournes_stance", "Mourne's Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True)
 block("unyielding_guard", "Unyielding Guard", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True)
 block("grounding_step", "Grounding Step", "art", "art", defense={"stop_all": "art"}, remove_after_use=True)
 block("dead_air", "Dead Air", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")])
+block("braced_guard", "Braced Guard", "any", "combat", effects=[OPP_ACC(-1)], remove_after_use=True)
+# "Stops a successful attack": it waits until the attack is already through, so it is barred from
+# the ordinary defense window and offered in its own one. See DuelEngine._prompt_late_stop.
+add(id="edrics_truce", title="Edric's Truce", type="combat", school="", character=IOTA,
+    defense={"stops": "any"}, use_at="successful_attack")
+# A named card in the source, so the duelist it is named for may run a fourth copy. The printed
+# limit on the first one is 2, and a printed limit beats the signature allowance.
+strike("edrics_opening_strike", "Edric's Opening Strike", atk={}, character=IOTA, limit_per_deck=2,
+       effects=[IFS(E("draw_discard", amount=1, **{"from": "bottom"}))],
+       remain_when={"when": {"duelist_character": IOTA}, "remain": 1}, remove_after_use=True)
+strike("edrics_training", "Edric's Training", atk={"stages": 2}, character=IOTA,
+       effects=[IFS(E("draw_discard", amount=1, **{"from": "bottom"}))], remove_after_use=True)
+strike("hasks_flying_kick", "Hask's Flying Kick", atk={"multiply": 3}, character=HASK)
 add(id="will_not_break", title="Ashmark Will Not Break", type="combat", school="", only={"duelist_character": ALPHA}, limit_per_deck=1, use_in_attack=True,
     defense={"stops": "any"}, effects=[FLOAT("prevent_all")])
 combat("terms_of_the_pact", "Terms of the Pact", [E("choose_stop_all_kind")], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
 block("wall_of_flame", "Ashmark's Wall of Flame", "any", "strike", defense={"stop_focused": True}, only={"duelist_character": ALPHA}, remove_after_use=True)
 # A named card in the source, so the duelist it is named for may run a fourth copy and search for it.
-add(id="cut_short", title="Cut Short", type="combat", school="", counter="combat", character=ZETA)
+add(id="cut_short", title="Vale Cuts It Short", type="combat", school="", counter="combat", character=ZETA)
 # A named card in the source, so the duelist it is named for may run a fourth copy.
 combat("cold_appraisal", "Marrow's Appraisal", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="pact", character=THETA)
 combat("sever_the_leyline", "Sever the Leyline", [OPP("set_aspect", aspect=1)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
@@ -346,12 +389,12 @@ combat("marrows_retinue", "Marrow's Retinue", [SEARCH(card_type="ally", amount=2
 
 # Freestyle attacks
 art("unerring_bolt", "Unerring Bolt", atk={"unstoppable": True, "no_prevent": True}, remove_after_use=True)
-art("scattered_ashes", "Scattered Ashes", atk={"focused": True}, empower=2,
+art("scattered_ashes", "Ashmark Leaves Nothing", atk={"focused": True}, empower=2,
     effects=[IFS(AFTER_EMPOWER(OPP("remove_discard", all=True))), AFTER_EMPOWER(ACC(1))])
-art("sabotage", "Sabotage", atk={}, alignment_only="pact", effects=[DISCARD_IN_PLAY("drill", amount=1, remove=True, choose=True)], tags=["construct"])
+art("sabotage", "Siphon's Drain", atk={}, alignment_only="pact", effects=[DISCARD_IN_PLAY("drill", amount=1, remove=True, choose=True)], tags=["construct"])
 strike("all_or_nothing", "All or Nothing", atk={"focused": True, "stages": 4, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
 strike("old_habit", "Old Habit", atk={}, effects=[E("draw_discard", amount=1, **{"from": "bottom"})], remove_after_use=True)
-add(id="committed_cut", title="Committed Cut", type="art", school="", endurance=3,
+add(id="committed_cut", title="Edric's Committed Cut", type="art", school="", endurance=3,
     attack={"kind": "strike", "stages": 4, "variants": [{"when": {"aspect_min": 2}, "life": 4, "focused": True}]},
     effects=[IFS(SEARCH(card_type="drill", to="play"))])
 art("lobbed_bolt", "Lobbed Bolt", atk={}, endurance=1,
@@ -398,7 +441,7 @@ block("last_ward", "Last Ward", "any", "strike", defense={"stop_focused": "disca
 block("vales_riposte", "Vale's Riposte", "strike", "strike", defense={"copy_attack": True}, character=ZETA)
 block("hilt_guard", "Hilt Guard", "strike", "strike", effects=[SEARCH(card_type="hand_combat", source="discard", to="hand")], remove_after_use=True)
 block("second_wind", "Second Wind", "strike", "strike", effects=[VIG("max", "duelist"), E("shuffle_discard", amount=3)])
-block("quick_retreat", "Quick Retreat", "any", "strike", effects=[ACC(1), FLOAT("stop_next")])
+block("quick_retreat", "Edric Gives Ground", "any", "strike", effects=[ACC(1), FLOAT("stop_next")])
 # "<name> only" on the printed card, which we had dropped.
 block("siphons_sidestep", "Siphon's Sidestep", "strike", "strike", character=GAMMA, only={"duelist_character": GAMMA}, effects=[SEARCH(school="storm", to="hand")], remove_after_use=True, tags=["construct"])
 # The printed card reads off the defending personality's own keyword, not off whose deck it is,
@@ -428,7 +471,7 @@ noncombat("mourne_takes_measure", "Mourne Takes the Measure", [USE(OPP("lose_asp
 # "Remove an Ally in play from the game. If your Main Personality is Construct, remove 2 instead."
 noncombat("breakers_yard", "The Breaker's Yard", [USE(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True)),
           USE(WHEN(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True), duelist_character=["Scorn", THETA]))])
-add(id="heirloom_blade", title="The Vale Heirloom", type="non_combat", school="", effects=[USE(E("attach", to="duelist"))],
+add(id="heirloom_blade", title="Vale's Heirloom Blade", type="non_combat", school="", effects=[USE(E("attach", to="duelist"))],
     attachment={"target": "duelist", "title_contains": "Sword", "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "life": 3, "title_contains": "Sword"}]})
 drill("bravado_drill", "Bravado Drill", start_in_play=True, limit_per_deck=1, effects=[ENTER(OPP_ACC(-2)), ENTER(VIG(2, "duelist"))])
 drill("revision_drill", "Revision Drill", once_per_combat=True, limit_per_deck=1, effects=[USE(E("discard_hand", amount=1, random=False)), USE(E("draw", amount=2))])
@@ -436,7 +479,7 @@ drill("swordplay_drill", "Swordplay Drill", modifiers=[{"scope": "own", "kind": 
 drill("lone_blade_drill", "Lone Blade Drill", modifiers=[{"scope": "own", "kind": "strike", "stages": 5}], discard_if_other_non_combats=True)
 drill("counterplay_drill", "Counterplay Drill", alignment_only="vigil", limit_per_deck=2, effects=[PLACE(E("name_card"))])
 drill("no_retreat_drill", "No Retreat Drill", forbid=[{"who": "all", "what": "end_combat"}])
-drill("absorbing_drill", "Absorbing Drill", defense={"stops": "art", "cost_life": 2})
+drill("absorbing_drill", "Cull's Absorbing Drill", defense={"stops": "art", "cost_life": 2})
 drill("mournes_quickness_drill", "Mourne's Quickness Drill", effects=[ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))])
 drill("warding_drill", "Warding Drill", limit_per_deck=1, forbid=[{"who": "all", "what": "seals"}])
 drill("locked_gate_drill", "Locked Gate Drill", limit_per_deck=1, forbid=[{"who": "opponent", "what": "allies"}])
@@ -456,7 +499,7 @@ art("blinding_flare", "Blinding Flare", atk={}, effects=[IFS(FORBID("strike_card
 art("smoke_screen", "Smoke Screen", atk={}, effects=[IFS(E("end_combat"))])
 noncombat("spoiled_rite", "Spoiled Rite", [USE(DISCARD_IN_PLAY("non_combat", amount=2, remove=True, choose=True))], remove_after_use=True, limit_per_deck=1)
 noncombat("gates_boon", "The Gate's Boon", [USE(E("end_combat")), USE(SEARCH(source="discard", amount=3, to="deck_shuffle"))], remove_after_use=True, limit_per_deck=1)
-noncombat("first_cut", "First Cut", [USE(SEARCH(card_type="seal", to="play"))])
+noncombat("first_cut", "Edric Carves First", [USE(SEARCH(card_type="seal", to="play"))])
 noncombat("mournes_plans", "Mourne's Plans", [USE(SEARCH(card_type="seal", to="play"))], remove_after_use=True)
 noncombat("mournes_smirk", "Mourne's Smirk", [USE(SEARCH(card_type="seal", to="play"))])
 noncombat("wardens_measure", "Warden's Measure", [USE(SEARCH(card_type="seal", to="play"))], alignment_only="vigil", remove_after_use=True, limit_per_deck=1)
@@ -466,7 +509,7 @@ noncombat("kins_rescue", "Kin's Rescue", [USE(FLOAT("prevent_all"))], alignment_
 # Waits in play for an Art to land, then spends itself.
 noncombat("eyes_beyond_the_gate", "Eyes Beyond the Gate", [{"trigger": "on_success", "may": True, "when": {"attack_kind": "art"},
           **SEARCH(card_type="seal", to="play"), "then": [E("capture_seal"), E("spend_source")]}], limit_per_deck=1)
-drill("keepers_drill", "Keeper's Drill", protect_seals=True)
+drill("keepers_drill", "Edric's Retaining Drill", protect_seals=True)
 drill("guardian_drill", "Guardian Drill", alignment_only="vigil", once_per_combat=True, effects=[USE(SEARCH(source="hand", card_type="non_combat_any", to="play"))])
 
 # ============================================================================
@@ -489,6 +532,14 @@ strike("pyre_flashover", "Pyre Flashover", "pyre", atk={"stages": 3}, remain_whe
 strike("pyre_flame_lash", "Pyre Flame Lash", "pyre", atk={"stages": 4}, endurance=2, empower=2, effects=[AFTER_EMPOWER(ACC(1)), IFSTOP(AFTER_EMPOWER(E("look_at", amount=5, pick={"card_type": "strike"}, to="hand", **{"from": "bottom"})))])
 strike("pyre_kindling", "Pyre Kindling", "pyre", atk={"life": 3}, effects=[ACC(1), FLOAT("make_focused", school="pyre")])
 strike("pyre_rekindling", "Pyre Rekindling", "pyre", atk={"stages": 6}, effects=[ACC(1), SEARCH(card_type="attack", school="pyre", source="discard", exclude_title="Pyre Rekindling", to="hand")], remove_after_use=True)
+# The knight's list. Every one of these pays Fervor, which is the whole reason the Style reads as
+# a climb: the block is not a pause, it is a rung.
+block("pyre_bellows_guard", "Pyre Bellows Guard", "strike", "strike", "pyre", effects=[VIG(5), ACC(1)])
+block("pyre_ashen_veil", "Pyre Ashen Veil", "strike", "strike", "pyre", effects=[OPP("remove_discard", amount=10), ACC(1)])
+block("pyre_hearthguard", "Pyre Hearthguard", "art", "art", "pyre", effects=[VIG("max", "any")], remove_after_use=True)
+strike("pyre_flashpoint", "Pyre Flashpoint", "pyre", atk={"stages": 3, "cost_stages": 4}, effects=[ACC(2)])
+strike("pyre_updraft", "Pyre Updraft", "pyre", atk={"stages": 3}, effects=[ACC(1)])
+strike("pyre_ember_strike", "Pyre Ember Strike", "pyre", atk={"stages": 3}, effects=[ACC(1)])
 
 # ============================================================================
 # Steel
@@ -600,7 +651,7 @@ VALID = {c["id"] for c in CARDS}
 AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beatdown", "pyre_beatdown": "pyre_beatdown",
                "storm_volley": "storm_volley", "tide_companions": "tide_companions",
                "freestyle_swords": "freestyle_swords", "root_seals": "root_seals",
-               "shade_salvage": "shade_salvage"}
+               "shade_salvage": "shade_salvage", "pyre_ascent": "pyre_ascent"}
 
 
 # What kind of deck each loadout is, as the sample-deck sheet labels them: (archetype, difficulty,
@@ -615,6 +666,7 @@ DECK_KINDS = {
     "storm_volley": ("art_beatdown", "medium", ["construct", "draw", "fervor"]),
     "root_seals": ("seals", "medium", ["arts", "drills"]),
     "shade_salvage": ("art_beatdown", "medium", ["arts", "allies", "disruption"]),
+    "pyre_ascent": ("strike_beatdown", "easy", ["fervor", "strikes"]),
 }
 
 
@@ -642,6 +694,9 @@ DECK_IDENTITY = {
     "shade_salvage": (
         "Walked together out of a field of broken constructs, and still collecting.",
         "Marrow is not one construct and never was. She reads six moves ahead because some of her has already been here, nothing a spell fastens to stays fastened, and every made thing still standing makes the rest of them hit harder. Her crew picks the field over and keeps what is worth keeping. Slow to start, and the hand runs thin."),
+    "pyre_ascent": (
+        "The coven's knight, fighting his own fight.",
+        "Sir Edric Rooke blocks and climbs. Almost everything in the list pays Fervor, so the defense is a rung rather than a pause, and the last two Aspects hit harder than anything else in the set. No Drills at all, and the early Aspects add nothing to the damage, so the first half is spent reading the deck and staying alive."),
     "root_seals": (
         "An old druid who mends as he fights, and outlasts.",
         "Osric Thornwald regrows what is cut away. Spent spells return to the bottom of his deck, foresight shows him what comes next, and while the rival tires he carves the seven seals. No burst; patience is the plan."),
@@ -735,6 +790,21 @@ deck("shade_salvage", "Marrow the Amalgam", "duelist_theta", 4, "shade", "pact",
     ("shade_takedown_drill", 1), ("shade_composure_drill", 1),
     ("salt_seal_4", 1),
     ("spoiled_rite", 1), ("mourne_takes_measure", 1), ("breakers_yard", 1), ("lucky_find", 1), ("foresight", 1)])
+
+# 79 life cards, five Aspects, no Relic, no Reserve and not one Drill: the list the sheet runs.
+deck("pyre_ascent", "Edric the Ember Knight", "duelist_iota", 5, "pyre", "vigil", "pyre_ember_mastery", "", [], [
+    ("trampled_crossroads", 3),
+    ("companion_epsilon", 1),
+    ("marble_seal_4", 1),
+    ("braced_guard", 3), ("pyre_bellows_guard", 3), ("pyre_ashen_veil", 3), ("pyre_hearthguard", 3), ("pyre_cinder_guard", 3),
+    ("mournes_stance", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("stillness", 1), ("kept_at_bay", 1),
+    ("edrics_truce", 2),
+    ("pyre_furnace_breath", 3), ("pyre_comet_fall", 3), ("pyre_blazing_charge", 3), ("pyre_flashpoint", 3),
+    ("pyre_firestorm", 3), ("pyre_updraft", 3), ("pyre_ember_strike", 3), ("pyre_backdraft", 3),
+    ("hasks_flying_kick", 3), ("edrics_training", 4), ("edrics_opening_strike", 2),
+    ("pyre_immolation", 3), ("captains_barrage", 3),
+    ("cut_short", 3), ("watchful_eye", 3), ("dismissal", 2),
+    ("foresight", 1), ("respite", 1), ("declaration", 1), ("rites_unmade", 1), ("spoiled_rite", 1)])
 
 deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "blank_mask",
      ["open_challenge", "defacement", "warding_drill", "revision_drill", "lucky_find", "mutual_escalation"], [

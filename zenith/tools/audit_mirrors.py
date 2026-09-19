@@ -23,6 +23,12 @@ import collections
 
 ROSTER = "docs/card_roster.csv"
 
+# Rule 3 does not reach Relics. The three Relics stand in for printed cards that carried a name,
+# and they were de-personalised on purpose (designs/zenith.md, Setting): a Relic is worn, not
+# owned, so any duelist can carry one. Attributing them would undo that. Their names were
+# approved 2026-09-17 and the exemption was the user's call on 2026-09-19.
+EXEMPT_TYPE = re.compile(r"\bRelic\b")
+
 # Source titles that open with a word that is not a personality. Without this the parser reads
 # "Cookie..." or "Saiyan..." as people and reports noise.
 SOURCE_DB = "tools/source_cards.tsv"
@@ -102,7 +108,7 @@ def _words(s):
 
 def leads_with(title, character):
     """True when the title opens with the character's full name or either part of it, possessive
-    or not. "Ashmark's Wall of Flame" and "Brann's Shakedown" both lead; "Cut Short" does not."""
+    or not. "Ashmark's Wall of Flame" and "Brann's Shakedown" both lead; "Old Habit" does not."""
     t = _words(title)
     # Any part of the name will do, so an honorific in front of it ("Sir Edric Rooke") does not
     # force the card to carry the honorific too.
@@ -161,10 +167,15 @@ def main():
             if p:
                 mirror_of.setdefault(p, set()).add(who)
     gap = collections.defaultdict(list)
+    exempt = []
     for r in rows:
         p = source_person(r["Source card"])
-        if p and not (r["Shows"] or "").strip():
-            gap[p].append(r["id"])
+        if not p or (r["Shows"] or "").strip():
+            continue
+        if EXEMPT_TYPE.search(r["Type"] or ""):
+            exempt.append((r["id"], r["Name"], p))
+            continue
+        gap[p].append(r["id"])
     known = sorted(p for p in gap if p in mirror_of)
     fresh = sorted(p for p in gap if p not in mirror_of)
     gap_fails = sum(len(v) for v in gap.values())
@@ -180,6 +191,8 @@ def main():
         print("  ok")
 
     print("\nNOTES  not failures, listed so they stay deliberate")
+    for cid, name, p in sorted(exempt):
+        print("  %s (%s) is a Relic, exempt from Rule 3; it stands in for a %s card" % (name, cid, p))
     for p in sorted(mirror_of):
         if len(mirror_of[p]) > 1:
             print("  %s is mirrored by %s" % (p, " and ".join(sorted(mirror_of[p]))))

@@ -2,11 +2,20 @@ class_name CardDef
 extends RefCounted
 ## Immutable card definition loaded from JSON. See zenith/README.md for the schema.
 
-enum Type { DUELIST, ALLY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, SEAL, GROUNDS, MASTERY, RELIC }
+## There is one personality type, not a Duelist type and an Ally type. Which personality is the
+## Duelist is a property of the deck (`DeckList.duelist_id`), not of the card: every other
+## personality in the Life Deck is an Ally, and the same card can be either in different decks.
+## Deck construction is what limits it, through the aspect rules in DeckValidator.
+enum Type { PERSONALITY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, SEAL, GROUNDS, MASTERY, RELIC }
 
+## Card types, plus two role words. A card's own `type` field is always one of the canonical
+## names. `ally` and `duelist` are what card text calls a personality by the role it is filling
+## ("search your Life Deck for an Ally"), so effects keep using them and they resolve to the one
+## personality type. Only the effect vocabulary may use them; a card typed "ally" is a leftover.
 const TYPE_NAMES: Dictionary = {
-	"duelist": Type.DUELIST,
-	"ally": Type.ALLY,
+	"personality": Type.PERSONALITY,
+	"ally": Type.PERSONALITY,
+	"duelist": Type.PERSONALITY,
 	"strike": Type.STRIKE,
 	"art": Type.ART,
 	"combat": Type.COMBAT,
@@ -62,6 +71,8 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.title = str(d.get("title", c.id))
 	var type_name: String = str(d.get("type", "combat"))
 	assert(TYPE_NAMES.has(type_name), "Unknown card type '%s' on %s" % [type_name, c.id])
+	assert(type_name != "ally" and type_name != "duelist",
+		"'%s' is typed '%s'; personalities are typed 'personality' and the role comes from the deck" % [c.id, type_name])
 	c.type = TYPE_NAMES[type_name] as Type
 	c.school = str(d.get("school", ""))
 	c.text = str(d.get("text", ""))
@@ -99,7 +110,7 @@ static func from_dict(d: Dictionary) -> CardDef:
 
 
 func is_personality() -> bool:
-	return type == Type.DUELIST or type == Type.ALLY
+	return type == Type.PERSONALITY
 
 
 func is_hand_combat_card() -> bool:

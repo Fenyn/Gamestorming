@@ -8,12 +8,14 @@ const MAX_CARDS_ROOT: int = 90
 const MIN_ASPECTS: int = 3
 const MAX_ASPECTS: int = 5
 const SIGNATURE_LIMIT: int = 4
+## What a card allows when it prints no limit of its own; see CardDef.limit_per_deck.
+const DEFAULT_LIMIT: int = 3
 
 
 static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 	var problems: Array[String] = []
 	var duelist: CardDef = library.defs.get(deck.duelist_id)
-	if duelist == null or duelist.type != CardDef.Type.DUELIST:
+	if duelist == null or duelist.type != CardDef.Type.PERSONALITY:
 		problems.append("Duelist '%s' not found" % deck.duelist_id)
 		return problems
 	if deck.aspects < MIN_ASPECTS or deck.aspects > MAX_ASPECTS:
@@ -42,7 +44,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Unknown card '%s'" % id)
 			continue
 		counts[id] = int(counts.get(id, 0)) + 1
-		if def.type == CardDef.Type.DUELIST or def.type == CardDef.Type.MASTERY or def.type == CardDef.Type.RELIC:
+		if def.type == CardDef.Type.MASTERY or def.type == CardDef.Type.RELIC:
 			problems.append("'%s' cannot be in the Life Deck" % id)
 		if def.school != "":
 			styled_seen = true
@@ -50,20 +52,27 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 				problems.append("'%s' is %s, deck Style is %s" % [id, def.school, deck.style])
 		if def.type == CardDef.Type.SEAL:
 			seal_sets[def.seal_set] = true
-		if def.type == CardDef.Type.ALLY:
+		# A personality in the Life Deck is an Ally. There is no Ally card type: the deck names
+		# one personality as its Duelist and every other one it runs fights as an Ally.
+		if def.type == CardDef.Type.PERSONALITY:
 			if def.character == duelist.character:
 				problems.append("Ally '%s' is the same character as the Duelist" % id)
 			if def.alignment_only != "" and def.alignment_only != deck.alignment:
 				problems.append("Ally '%s' does not match alignment %s" % [id, deck.alignment])
-			if def.lowest_aspect() > deck.aspects - 2:
+			# The rule is about how far an Ally can climb, so it reads the printing's top aspect.
+			# Reading the lowest let an Ally printed at aspects 3 and 4 pass in a 5-aspect deck on
+			# the strength of its 3 while its 4 broke the rule.
+			if def.highest_aspect() > deck.aspects - 2:
 				problems.append("Ally '%s' must be at least 2 aspects below the Duelist's highest" % id)
 	for id in counts.keys():
 		var def: CardDef = library.defs[id]
 		var limit: int = def.limit_per_deck
-		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.ALLY:
+		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 			limit = 1
-		elif def.character != "" and def.character == duelist.character:
-			limit = maxi(limit, SIGNATURE_LIMIT)
+		elif def.character != "" and def.character == duelist.character and limit >= DEFAULT_LIMIT:
+			# A card naming your Main Personality allows a fourth copy, unless the card prints a
+			# limit of its own. A printed limit is the tighter rule and wins.
+			limit = SIGNATURE_LIMIT
 		if int(counts[id]) > limit:
 			problems.append("'%s' x%d exceeds limit %d" % [id, counts[id], limit])
 	if seal_sets.size() > 1:
@@ -100,10 +109,12 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Reserve card '%s' is %s, deck Style is %s" % [id, def.school, deck.style])
 		var combined: int = int(counts.get(id, 0)) + deck.reserve.count(id)
 		var limit: int = def.limit_per_deck
-		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.ALLY:
+		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 			limit = 1
-		elif def.character != "" and def.character == duelist.character:
-			limit = maxi(limit, SIGNATURE_LIMIT)
+		elif def.character != "" and def.character == duelist.character and limit >= DEFAULT_LIMIT:
+			# A card naming your Main Personality allows a fourth copy, unless the card prints a
+			# limit of its own. A printed limit is the tighter rule and wins.
+			limit = SIGNATURE_LIMIT
 		if combined > limit:
 			problems.append("'%s' x%d across deck and Reserve exceeds limit %d" % [id, combined, limit])
 	return problems

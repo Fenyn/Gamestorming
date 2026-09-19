@@ -4,7 +4,7 @@
   {
    "id": "duelist_alpha",
    "title": "Bram Ashmark",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
    "aspects": [
@@ -102,7 +102,7 @@
   {
    "id": "duelist_beta",
    "title": "Dame Alder Rooke",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Dame Alder Rooke",
    "aspects": [
@@ -201,7 +201,7 @@
   {
    "id": "duelist_gamma",
    "title": "Siphon",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Siphon",
    "aspects": [
@@ -300,7 +300,7 @@
   {
    "id": "duelist_delta",
    "title": "Sable Draik",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Sable Draik",
    "aspects": [
@@ -392,7 +392,7 @@
   {
    "id": "duelist_epsilon",
    "title": "Halden Quarr",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Halden Quarr",
    "aspects": [
@@ -517,7 +517,7 @@
   {
    "id": "duelist_zeta",
    "title": "Caedan Vale",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Caedan Vale",
    "aspects": [
@@ -672,7 +672,7 @@
   {
    "id": "duelist_eta",
    "title": "Osric Thornwald",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Osric Thornwald",
    "aspects": [
@@ -824,7 +824,7 @@
   {
    "id": "duelist_theta",
    "title": "Marrow",
-   "type": "duelist",
+   "type": "personality",
    "school": "",
    "character": "Marrow",
    "aspects": [
@@ -962,9 +962,175 @@
    ]
   },
   {
+   "id": "duelist_iota",
+   "title": "Sir Edric Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  5,
+	  6,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13,
+	  14
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "draw_check",
+		"check": "signature",
+		"effects": [
+		 {
+		  "op": "draw",
+		  "amount": 1,
+		  "when": {
+		   "allies_present": [
+			"Dame Alder Rooke",
+            "Emrys Rooke"
+		   ]
+		  }
+		 }
+		]
+	   }
+	  ]
+	 },
+	 "title": "the Hero"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"op": "fervor",
+		"who": "opponent",
+		"amount": -1
+	   },
+	   {
+		"op": "draw_discard",
+		"amount": 1,
+		"from": "bottom"
+	   }
+	  ]
+	 },
+	 "title": "the Stranger"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  19,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24,
+	  25,
+	  26,
+	  27,
+	  28
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "draw_check",
+		"check": "attack",
+		"reveal": true,
+		"effects": [
+		 {
+		  "op": "discard_life",
+		  "who": "opponent",
+		  "amount": 3
+		 }
+		]
+	   }
+	  ]
+	 },
+	 "title": "the Realm's Hero"
+	},
+	{
+	 "aspect": 4,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  16,
+	  18,
+	  20,
+	  22,
+	  24,
+	  26,
+	  28,
+	  30,
+	  32,
+	  34
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "printed_stages": 5,
+	   "printed_life": 3
+	  }
+	 },
+	 "title": "Kindled Through"
+	},
+	{
+	 "aspect": 5,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  33,
+	  34,
+	  35,
+	  36,
+	  37,
+	  38,
+	  39,
+	  40,
+	  41,
+	  42
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 5,
+	   "life": 5
+	  }
+	 },
+	 "title": "the All Powerful"
+	}
+   ],
+   "bloodline": "draconic"
+  },
+  {
    "id": "henchman_alpha",
    "title": "Vesna Draik",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Vesna Draik",
    "alignment_only": "pact",
@@ -1008,7 +1174,7 @@
   {
    "id": "henchman_beta",
    "title": "Brann Draik",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Brann Draik",
    "alignment_only": "pact",
@@ -1052,7 +1218,7 @@
   {
    "id": "henchman_gamma",
    "title": "Quill Draik",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Quill Draik",
    "alignment_only": "pact",
@@ -1105,7 +1271,7 @@
   {
    "id": "henchman_delta",
    "title": "Halvard Draik",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Halvard Draik",
    "alignment_only": "pact",
@@ -1148,7 +1314,7 @@
   {
    "id": "henchman_epsilon",
    "title": "Pim",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Pim",
    "alignment_only": "pact",
@@ -1189,7 +1355,7 @@
   {
    "id": "henchman_zeta",
    "title": "Tithe",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Tithe",
    "alignment_only": "pact",
@@ -1234,7 +1400,7 @@
   {
    "id": "salvage_alpha",
    "title": "Cull",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Cull",
    "alignment_only": "pact",
@@ -1271,7 +1437,7 @@
   {
    "id": "salvage_beta",
    "title": "Orvath Kell",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Orvath Kell",
    "alignment_only": "pact",
@@ -1306,7 +1472,7 @@
   {
    "id": "salvage_gamma",
    "title": "Gideon Mourne",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Gideon Mourne",
    "alignment_only": "pact",
@@ -1341,7 +1507,7 @@
   {
    "id": "companion_alpha",
    "title": "Wren Rooke",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Wren Rooke",
    "alignment_only": "vigil",
@@ -1379,7 +1545,7 @@
   {
    "id": "companion_beta",
    "title": "Sir Edric Rooke",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
    "alignment_only": "vigil",
@@ -1416,7 +1582,7 @@
   {
    "id": "companion_gamma",
    "title": "Tavin Vale",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Tavin Vale",
    "alignment_only": "vigil",
@@ -1458,7 +1624,7 @@
   {
    "id": "companion_delta",
    "title": "Ansel Rooke",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Ansel Rooke",
    "alignment_only": "vigil",
@@ -1492,6 +1658,47 @@
 		"amount": "max"
 	   }
 	  ]
+	 }
+	}
+   ],
+   "bloodline": "draconic"
+  },
+  {
+   "id": "companion_epsilon",
+   "title": "Dame Alder Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Dame Alder Rooke",
+   "alignment_only": "vigil",
+   "limit_per_deck": 1,
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 1,
+	 "might": [
+	  0,
+	  5,
+	  5,
+	  5,
+	  5,
+	  5,
+	  5,
+	  5,
+	  5,
+	  5,
+	  5
+	 ],
+	 "power": {
+	  "defense": {
+	   "stops": "strike",
+	   "when": {
+		"defender_character": [
+		 "Sir Edric Rooke",
+         "Emrys Rooke"
+		]
+	   }
+	  },
+	  "no_control_needed": true
 	 }
 	}
    ],
@@ -2186,6 +2393,35 @@
    ]
   },
   {
+   "id": "pyre_ember_mastery",
+   "title": "Pyre Ember Mastery",
+   "type": "mastery",
+   "school": "pyre",
+   "limit_per_deck": 1,
+   "once_per_combat": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "remove_discard",
+	 "amount": 1,
+	 "check": "school",
+	 "school": "pyre",
+	 "effects": [
+	  {
+	   "op": "fervor",
+	   "amount": 2
+	  }
+	 ],
+	 "else_effects": [
+	  {
+	   "op": "fervor",
+	   "amount": 1
+	  }
+	 ]
+	}
+   ]
+  },
+  {
    "id": "steel_mastery",
    "title": "Steel Mastery",
    "type": "mastery",
@@ -2356,7 +2592,7 @@
   },
   {
    "id": "relentless_fury",
-   "title": "Relentless Fury",
+   "title": "Ashmark's Relentless Fury",
    "type": "strike",
    "school": "",
    "attack": {
@@ -2455,6 +2691,91 @@
    ]
   },
   {
+   "id": "braced_guard",
+   "title": "Braced Guard",
+   "type": "combat",
+   "school": "",
+   "defense": {
+	"stops": "any"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "edrics_truce",
+   "title": "Edric's Truce",
+   "type": "combat",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "defense": {
+	"stops": "any"
+   },
+   "use_at": "successful_attack"
+  },
+  {
+   "id": "edrics_opening_strike",
+   "title": "Edric's Opening Strike",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike"
+   },
+   "character": "Sir Edric Rooke",
+   "limit_per_deck": 2,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "bottom"
+	}
+   ],
+   "remain_when": {
+	"when": {
+	 "duelist_character": "Sir Edric Rooke"
+	},
+	"remain": 1
+   },
+   "remove_after_use": true
+  },
+  {
+   "id": "edrics_training",
+   "title": "Edric's Training",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 2
+   },
+   "character": "Sir Edric Rooke",
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "bottom"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "hasks_flying_kick",
+   "title": "Hask's Flying Kick",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"multiply": 3
+   },
+   "character": "Torvan Hask"
+  },
+  {
    "id": "will_not_break",
    "title": "Ashmark Will Not Break",
    "type": "combat",
@@ -2505,7 +2826,7 @@
   },
   {
    "id": "cut_short",
-   "title": "Cut Short",
+   "title": "Vale Cuts It Short",
    "type": "combat",
    "school": "",
    "counter": "combat",
@@ -2944,7 +3265,7 @@
   },
   {
    "id": "scattered_ashes",
-   "title": "Scattered Ashes",
+   "title": "Ashmark Leaves Nothing",
    "type": "art",
    "school": "",
    "attack": {
@@ -2969,7 +3290,7 @@
   },
   {
    "id": "sabotage",
-   "title": "Sabotage",
+   "title": "Siphon's Drain",
    "type": "art",
    "school": "",
    "attack": {
@@ -3028,7 +3349,7 @@
   },
   {
    "id": "committed_cut",
-   "title": "Committed Cut",
+   "title": "Edric's Committed Cut",
    "type": "art",
    "school": "",
    "endurance": 3,
@@ -3780,7 +4101,7 @@
   },
   {
    "id": "quick_retreat",
-   "title": "Quick Retreat",
+   "title": "Edric Gives Ground",
    "type": "strike",
    "school": "",
    "defense": {
@@ -3938,7 +4259,7 @@
   {
    "id": "bonded_pair",
    "title": "Ansel and Tavin, Back to Back",
-   "type": "ally",
+   "type": "personality",
    "school": "",
    "character": "Ansel and Tavin, Back to Back",
    "alignment_only": "vigil",
@@ -4126,7 +4447,7 @@
   },
   {
    "id": "heirloom_blade",
-   "title": "The Vale Heirloom",
+   "title": "Vale's Heirloom Blade",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -4250,7 +4571,7 @@
   },
   {
    "id": "absorbing_drill",
-   "title": "Absorbing Drill",
+   "title": "Cull's Absorbing Drill",
    "type": "drill",
    "school": "",
    "defense": {
@@ -4480,7 +4801,7 @@
   },
   {
    "id": "first_cut",
-   "title": "First Cut",
+   "title": "Edric Carves First",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -4599,7 +4920,7 @@
   },
   {
    "id": "keepers_drill",
-   "title": "Keeper's Drill",
+   "title": "Edric's Retaining Drill",
    "type": "drill",
    "school": "",
    "protect_seals": true
@@ -4980,6 +5301,111 @@
 	}
    ],
    "remove_after_use": true
+  },
+  {
+   "id": "pyre_bellows_guard",
+   "title": "Pyre Bellows Guard",
+   "type": "strike",
+   "school": "pyre",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 5
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "pyre_ashen_veil",
+   "title": "Pyre Ashen Veil",
+   "type": "strike",
+   "school": "pyre",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 10
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "pyre_hearthguard",
+   "title": "Pyre Hearthguard",
+   "type": "art",
+   "school": "pyre",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "any"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "pyre_flashpoint",
+   "title": "Pyre Flashpoint",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 3,
+	"cost_stages": 4
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "pyre_updraft",
+   "title": "Pyre Updraft",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "pyre_ember_strike",
+   "title": "Pyre Ember Strike",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
   },
   {
    "id": "steel_immovable_guard",

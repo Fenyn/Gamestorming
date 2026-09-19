@@ -6,7 +6,7 @@
     {"id": "t_counter", "title": "Test Counter", "type": "combat", "counter": "combat"},
     {"id": "t_forbid_arts", "title": "Test Hex", "type": "combat", "effects": [{"op": "forbid", "who": "opponent", "what": "art_attacks"}]},
     {"id": "t_attach", "title": "Test Charm", "type": "combat", "effects": [{"op": "attach", "to": "in_control"}], "attachment": {"target": "in_control", "modifiers": [{"scope": "own", "kind": "strike", "stages": 2}]}},
-    {"id": "tf_constant", "title": "Test Zealot", "type": "duelist", "character": "Test Zealot", "aspects": [
+    {"id": "tf_constant", "title": "Test Zealot", "type": "personality", "character": "Test Zealot", "aspects": [
       {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3000000, 3500000, 4000000, 4500000, 5000000, 5500000, 6000000], "constant": {"attacks_focused": true, "modifiers": [{"scope": "own", "kind": "any", "stages": 1}]}},
       {"aspect": 2, "surge": 3, "might": [0, 1900000, 2650000, 3400000, 4150000, 4900000, 5650000, 6400000, 7150000, 7900000, 8650000], "constant": {"attacks_focused": true}},
       {"aspect": 3, "surge": 4, "might": [0, 2600000, 3400000, 4200000, 5000000, 5800000, 6600000, 7400000, 8200000, 9000000, 9800000], "constant": {"attacks_focused": true}}

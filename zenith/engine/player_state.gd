@@ -108,7 +108,7 @@ func energy() -> int:
 
 
 func allies() -> Array[CardInstance]:
-	return _of_type(CardDef.Type.ALLY)
+	return _of_type(CardDef.Type.PERSONALITY)
 
 
 func drills() -> Array[CardInstance]:

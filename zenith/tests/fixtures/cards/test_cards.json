@@ -1,7 +1,7 @@
 {
   "cards": [
     {
-      "id": "tf_vigil", "title": "Test Vigil", "type": "duelist", "character": "Test Vigil",
+      "id": "tf_vigil", "title": "Test Vigil", "type": "personality", "character": "Test Vigil",
       "aspects": [
         {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000],
          "power": {"attack": {"kind": "art", "printed_life": 3}}},
@@ -12,7 +12,7 @@
       ]
     },
     {
-      "id": "tf_titan", "title": "Test Titan", "type": "duelist", "character": "Test Titan",
+      "id": "tf_titan", "title": "Test Titan", "type": "personality", "character": "Test Titan",
       "aspects": [
         {"aspect": 1, "surge": 2, "might": [0, 2000000, 3000000, 4000000, 6000000, 8500000, 9000000, 9500000, 10000000, 10500000, 11000000]},
         {"aspect": 2, "surge": 3, "might": [0, 3000000, 4000000, 5000000, 7000000, 9000000, 9500000, 10000000, 10500000, 11000000, 11500000]},
@@ -55,11 +55,11 @@
     {"id": "t_seal_5", "title": "Test Seal 5", "type": "seal", "seal_set": "sun", "seal_number": 5},
     {"id": "t_seal_6", "title": "Test Seal 6", "type": "seal", "seal_set": "sun", "seal_number": 6},
     {"id": "t_seal_7", "title": "Test Seal 7", "type": "seal", "seal_set": "sun", "seal_number": 7},
-    {"id": "t_ally_squire", "title": "Test Squire", "type": "ally", "character": "Test Squire", "alignment_only": "vigil",
+    {"id": "t_ally_squire", "title": "Test Squire", "type": "personality", "character": "Test Squire", "alignment_only": "vigil",
      "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]}]},
-    {"id": "t_ally_squire_2", "title": "Test Squire, Grown", "type": "ally", "character": "Test Squire", "alignment_only": "vigil",
+    {"id": "t_ally_squire_2", "title": "Test Squire, Grown", "type": "personality", "character": "Test Squire", "alignment_only": "vigil",
      "aspects": [{"aspect": 2, "surge": 1, "might": [0, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000]}]},
-    {"id": "t_ally_kin", "title": "Test Kin", "type": "ally", "character": "Test Kin", "bloodline": "draconic", "alignment_only": "vigil",
+    {"id": "t_ally_kin", "title": "Test Kin", "type": "personality", "character": "Test Kin", "bloodline": "draconic", "alignment_only": "vigil",
      "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]}]},
     {"id": "t_kin_rite", "title": "Test Kin Rite", "type": "combat", "only": {"bloodline": "draconic"}, "effects": [{"op": "draw", "amount": 1}]},
     {"id": "t_kin_count", "title": "Test Kin Count", "type": "combat", "effects": [{"op": "shuffle_discard", "amount": 1, "per_bloodline": "draconic"}]},
@@ -73,11 +73,11 @@
     {"id": "t_seek", "title": "Test Seek", "type": "combat", "effects": [{"op": "search", "card_type": "art", "amount": 1}]},
     {"id": "t_glare", "title": "Test Glare", "type": "combat", "effects": [{"op": "discard_in_play", "who": "opponent", "card_type": "non_combat", "amount": 1}]},
     {"id": "t_art_stubborn", "title": "Test Stubborn Art", "type": "art", "school": "storm", "attack": {"kind": "art"}, "effects": [{"trigger": "if_stopped", "op": "draw", "amount": 2}]},
-    {"id": "tf_giant", "title": "Test Giant", "type": "duelist", "character": "Test Giant",
+    {"id": "tf_giant", "title": "Test Giant", "type": "personality", "character": "Test Giant",
      "aspects": [{"aspect": 1, "surge": 2, "might": [0, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000, 11000000, 12000000]},
                {"aspect": 2, "surge": 3, "might": [0, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000, 11000000, 12000000, 13000000]},
                {"aspect": 3, "surge": 4, "might": [0, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000, 11000000, 12000000, 13000000, 14000000]}]},
-    {"id": "tf_pageboy", "title": "Test Pageboy", "type": "duelist", "character": "Test Pageboy",
+    {"id": "tf_pageboy", "title": "Test Pageboy", "type": "personality", "character": "Test Pageboy",
      "aspects": [{"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]},
                {"aspect": 2, "surge": 3, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
                {"aspect": 3, "surge": 4, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]}]}

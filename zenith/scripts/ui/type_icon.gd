@@ -42,20 +42,13 @@ func _draw() -> void:
 			draw_arc(_p(0.5, 0.5, s, o), 0.42 * s, 0.0, TAU, 32, color, w)
 			draw_arc(_p(0.5, 0.5, s, o), 0.24 * s, 0.0, TAU, 24, color, w)
 			draw_circle(_p(0.5, 0.5, s, o), 0.09 * s, color)
-		CardDef.Type.ALLY:
+		CardDef.Type.PERSONALITY:
 			draw_circle(_p(0.5, 0.3, s, o), 0.17 * s, color)
 			var body: PackedVector2Array = PackedVector2Array()
 			for i in range(17):
 				var a: float = PI + PI * i / 16.0
 				body.append(_p(0.5 + 0.36 * cos(a), 0.92 + 0.36 * sin(a), s, o))
 			draw_colored_polygon(body, color)
-		CardDef.Type.DUELIST:
-			var eye: PackedVector2Array = _pts([
-				Vector2(0.06, 0.5), Vector2(0.24, 0.26), Vector2(0.5, 0.16), Vector2(0.76, 0.26), Vector2(0.94, 0.5),
-				Vector2(0.76, 0.74), Vector2(0.5, 0.84), Vector2(0.24, 0.74)], s, o)
-			eye.append(eye[0])
-			draw_polyline(eye, color, w)
-			draw_circle(_p(0.5, 0.5, s, o), 0.17 * s, color)
 		CardDef.Type.SEAL:
 			var gem: PackedVector2Array = _pts([Vector2(0.5, 0.08), Vector2(0.9, 0.4), Vector2(0.5, 0.92), Vector2(0.1, 0.4)], s, o)
 			gem.append(gem[0])

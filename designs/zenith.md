@@ -252,10 +252,12 @@ Ladders follow the relaunch's lesson without its four aspects: duelists at the s
 
 ## Card types
 
+There is one **Personality** type, not a Duelist type and an Ally type (merged 2026-09-19). A personality is a personality; the deck names one of them as its Duelist and every other one it runs fights as an Ally, so the same card can lead one deck and serve in another. Duelist and Ally below are roles, and the only thing separating them is deck construction.
+
 | Type | Zone | Rules |
 |---|---|---|
-| Duelist | Aspect stack | Not in the Life Deck. Counts toward deck size |
-| Ally | In play | Placed in Non-Combat at Energy 3. Aspect must be at most the Duelist's current aspect. Overlay next aspect directly, set to highest stage. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase, at battle step 4, and once per card whenever the opponent plays or uses a card outside their Defender Defends phase. Then uses its own Might. Power once per Combat. Fervor never applies to Allies. No same-aspect duplicate of an Ally in play across both players |
+| Personality as Duelist | Aspect stack | Not in the Life Deck. Counts toward deck size |
+| Personality as Ally | In play | Placed in Non-Combat at Energy 3. Aspect must be at most the Duelist's current aspect. Overlay next aspect directly, set to highest stage. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase, at battle step 4, and once per card whenever the opponent plays or uses a card outside their Defender Defends phase. Then uses its own Might. Power once per Combat. Fervor never applies to Allies. No same-aspect duplicate of an Ally in play across both players |
 | Strike | Hand | Performs or stops a Strike, or a utility. Endurance often printed |
 | Art | Hand | Performs or stops an Art. Non-attack uses cost no Energy |
 | Combat | Hand | Utility. All effects are secondary. Used in place of an attack or as a defense if it stops or prevents |

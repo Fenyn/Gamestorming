@@ -7,7 +7,7 @@ const SCHOOL_NAMES: Dictionary = {
 	"shade": "Shade", "steel": "Steel", "root": "Root",
 }
 const TYPE_LABELS: Dictionary = {
-	CardDef.Type.DUELIST: "Duelist", CardDef.Type.ALLY: "Ally", CardDef.Type.STRIKE: "Strike",
+	CardDef.Type.PERSONALITY: "Personality", CardDef.Type.STRIKE: "Strike",
 	CardDef.Type.ART: "Art", CardDef.Type.COMBAT: "Combat", CardDef.Type.NON_COMBAT: "Non-Combat",
 	CardDef.Type.DRILL: "Drill", CardDef.Type.SEAL: "Seal", CardDef.Type.GROUNDS: "Grounds",
 	CardDef.Type.MASTERY: "Mastery", CardDef.Type.RELIC: "Relic",
@@ -284,6 +284,8 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("Use at the end of Combat.")
 	if str(def.raw.get("use_at", "")) == "ascension_win":
 		lines.append("Use this card when your opponent would win by Ascension.")
+	if str(def.raw.get("use_at", "")) == "successful_attack":
+		lines.append("Use this card after an attack against you succeeds.")
 	if def.is_attack():
 		lines.append(attack_text(def.attack))
 		for v in def.attack.get("variants", []):
@@ -413,6 +415,37 @@ static func rules_text(def: CardDef) -> String:
 	return "\n".join(lines)
 
 
+## "A, B and C", for a list a card reads out in full.
+static func _and_join(names: PackedStringArray) -> String:
+	if names.size() <= 1:
+		return "" if names.is_empty() else names[0]
+	var head: PackedStringArray = names.slice(0, names.size() - 1)
+	return "%s and %s" % [", ".join(head), names[names.size() - 1]]
+
+
+## What a card that looks at one card is looking for, shared by `draw_check` and the branching
+## form of `remove_discard`.
+static func _check_name(e: Dictionary) -> String:
+	match str(e.get("check", "school")):
+		"attack":
+			return "a Strike or an Art"
+		"signature":
+			return "one of your duelist's Signature cards"
+		"named":
+			return "a Signature card"
+		"title_contains":
+			return "a \"%s\" card" % str(e.get("title_contains", ""))
+		_:
+			return "a %s card" % school_name(str(e.get("school", "")))
+
+
+static func _times_word(n: int) -> String:
+	match n:
+		2: return "double"
+		3: return "triple"
+		_: return "%d times" % n
+
+
 static func attack_text(a: Dictionary) -> String:
 	var kind: String = str(a.get("kind", "strike"))
 	var s: String = ("Focused " if bool(a.get("focused", false)) else "") + ("Strike" if kind == "strike" else "Art")
@@ -441,6 +474,8 @@ static func attack_text(a: Dictionary) -> String:
 		s += ", plus 1 wound for each %s Seal in play" % str(a["life_per_set_seal"]).capitalize()
 	if str(a.get("life_per_tag", "")) != "":
 		s += ", plus 1 wound for each %s personality in play" % str(a["life_per_tag"]).capitalize()
+	if int(a.get("multiply", 1)) > 1:
+		s += " doing %s the Base Damage" % _times_word(int(a["multiply"]))
 	s += "."
 	if a.has("cost_stages") or int(a.get("cost_life", 0)) > 0 or int(a.get("cost_hand", 0)) > 0:
 		var costs: PackedStringArray = PackedStringArray()
@@ -584,8 +619,19 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("the attack is %s" % ("a Strike" if str(v) == "strike" else "an Art"))
 			"opponent_seals_min":
 				parts.append("your opponent has a Seal in play")
-			"ally_min", "allies_present":
+			"ally_min":
 				parts.append("you have %s in play" % _plural(int(v), "Ally", "Allies"))
+			"allies_present":
+				# A list of names, not a count: "if Dame Alder Rooke and Emrys Rooke are in play".
+				var present: PackedStringArray = PackedStringArray()
+				for nm in (v as Array):
+					present.append(str(nm))
+				parts.append("%s %s in play" % [_and_join(present), "is" if present.size() == 1 else "are"])
+			"defender_character":
+				var aimed: PackedStringArray = PackedStringArray()
+				for nm in (v if v is Array else [v]):
+					aimed.append(str(nm))
+				parts.append("the attack is against %s" % " or ".join(aimed))
 			"performer_tag":
 				parts.append("the attack is performed by %s" % _tag_name(str(v)))
 			"in_control_tag":
@@ -634,6 +680,8 @@ static func _effect_body(e: Dictionary) -> String:
 						whose = "your duelist's and every Ally's"
 					"choose":
 						whose = "one of your personalities'"
+					"any":
+						whose = "any one personality's"
 				body = "Raise %s Energy to full." % whose
 			elif role:
 				body = "%s %s %d Energy." % [_cap(who), ("gains" if n >= 0 else "loses"), absi(n)]
@@ -725,6 +773,12 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "Choose a player and remove %s from the game." % share
 			else:
 				body = "Remove %s %s discard pile from the game." % [how_many, owner]
+			# "...to raise your Fervor 1, or 2 if it is a Pyre card": the card that burns picks
+			# the branch, so both read off the same removal.
+			if e.has("effects") or e.has("else_effects"):
+				body += " If it is %s, %s" % [_check_name(e), _lc(" ".join(PackedStringArray(_texts(e.get("effects", [])))))]
+				if e.has("else_effects"):
+					body += " Otherwise, %s" % _lc(" ".join(PackedStringArray(_texts(e.get("else_effects", [])))))
 		"shuffle_discard" when str(e.get("from", "top")) == "top_and_bottom":
 			body = "Shuffle the top and bottom cards of your discard pile into your Life Deck."
 		"shuffle_discard":
@@ -821,14 +875,10 @@ static func _effect_body(e: Dictionary) -> String:
 			var what: String = "Signature card" if str(cost.get("signature_of", "")) == "duelist" else "card"
 			body = "remove a %s from your discard pile to shuffle this card into your Life Deck." % what
 		"draw_check":
-			var check: String = str(e.get("check", ""))
-			var kind: String = "a %s card" % school_name(str(e.get("school", "")))
-			if check == "signature":
-				kind = "one of your duelist's Signature cards"
-			elif check == "named":
-				kind = "a Signature card"
 			var lead: String = "Discard the top card of your Life Deck." if bool(e.get("discard", false)) else "Draw a card."
-			body = "%s If it is %s, %s" % [lead, kind, _lc(" ".join(PackedStringArray(_texts(e.get("effects", [])))))]
+			if bool(e.get("reveal", false)):
+				lead = "Draw a card and show it to your opponent."
+			body = "%s If it is %s, %s" % [lead, _check_name(e), _lc(" ".join(PackedStringArray(_texts(e.get("effects", [])))))]
 			if e.has("else_effects"):
 				body += " Otherwise, %s" % _lc(" ".join(PackedStringArray(_texts(e.get("else_effects", [])))))
 		"pay_energy":

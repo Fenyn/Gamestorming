@@ -29,7 +29,7 @@ const LIGHT: Dictionary = {
 }
 const TYPE_ROLES: Dictionary = {
 	"strike": CardDef.Type.STRIKE, "art": CardDef.Type.ART, "combat": CardDef.Type.COMBAT,
-	"non_combat": CardDef.Type.NON_COMBAT, "drill": CardDef.Type.DRILL, "ally": CardDef.Type.ALLY,
+	"non_combat": CardDef.Type.NON_COMBAT, "drill": CardDef.Type.DRILL, "ally": CardDef.Type.PERSONALITY,
 	"seal": CardDef.Type.SEAL, "grounds": CardDef.Type.GROUNDS, "mastery": CardDef.Type.MASTERY,
 	"relic": CardDef.Type.RELIC,
 }

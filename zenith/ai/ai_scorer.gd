@@ -370,7 +370,7 @@ static func _combo_value(engine: DuelEngine, me: PlayerState, c: CardInstance, p
 		if str(e.get("op", "")) == "bond":
 			var own_bond: CardDef = engine.library.get_def(str(e.get("card", "")))
 			return _bond_prospect(engine, me, own_bond, profile) if own_bond != null else 0.0
-	if c.def.type != CardDef.Type.ALLY:
+	if c.def.type != CardDef.Type.PERSONALITY:
 		return 0.0
 	for pool in [me.life_deck, me.hand, me.discard, me.reserve, me.in_play]:
 		for held in pool:
@@ -408,7 +408,7 @@ static func hold_value(c: CardInstance, profile: AiProfile) -> float:
 	if def.is_defense():
 		v += 2.0
 	match def.type:
-		CardDef.Type.ALLY:
+		CardDef.Type.PERSONALITY:
 			v += profile.w("own", "ally")
 			# Allies differ mostly in what their power does, and a deck that searches for one wants
 			# the one that can swing, not whichever the list happens to offer first.

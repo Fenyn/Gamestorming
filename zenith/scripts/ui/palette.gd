@@ -47,7 +47,7 @@ static func school_ui(school: String) -> Color:
 ## UI colour for a card type, used for deck composition bars and type icons on the dark UI.
 static func type_ui(type: CardDef.Type) -> Color:
 	match type:
-		CardDef.Type.DUELIST:
+		CardDef.Type.PERSONALITY:
 			return Color(0.95, 0.80, 0.40)
 		CardDef.Type.MASTERY:
 			return Color(0.80, 0.62, 0.90)
@@ -63,8 +63,6 @@ static func type_ui(type: CardDef.Type) -> Color:
 			return Color(0.45, 0.72, 0.62)
 		CardDef.Type.DRILL:
 			return Color(0.40, 0.66, 0.90)
-		CardDef.Type.ALLY:
-			return Color(0.86, 0.69, 0.27)
 		CardDef.Type.SEAL:
 			return Color(0.95, 0.85, 0.45)
 		CardDef.Type.GROUNDS:
@@ -82,7 +80,7 @@ static func type_ink(type: CardDef.Type) -> Color:
 
 static func frame_color(def: CardDef) -> Color:
 	match def.type:
-		CardDef.Type.DUELIST:
+		CardDef.Type.PERSONALITY:
 			return DUELIST_COLOR
 		CardDef.Type.SEAL:
 			return SEAL_COLOR

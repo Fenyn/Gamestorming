@@ -26,6 +26,10 @@ const AI_MIN_THINK: float = 0.45      # seconds the AI appears to think, so its 
 @onready var fx: DuelFx = $Fx
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var hud: DuelHud = $Hud
+@onready var hand_3d: Hand3D = $CameraRig/Camera/Hand3D
+@onready var near_duelist: DuelistDisplay = $NearDuelist
+@onready var far_duelist: DuelistDisplay = $FarDuelist
+@onready var focus_card: Sprite3D = $CameraRig/Camera/FocusCard
 
 var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
 var view: SeatView = null            # what the viewer may see right now
@@ -55,12 +59,26 @@ var _replaying: StringName = &""     # the event whose beat is playing now
 ## something, the markers and the player panels read it instead of the update's final view, so a
 ## card that charges up and is drained again in the same update reads as two beats, not one jump.
 var _live: Dictionary = {}
+var _focus_key: String = ""
+var _reduced_motion: bool = false
 
 
 func _ready() -> void:
 	online = Net.active()
 	authority = not online or Net.is_authority()
 	_parse_dev_args()
+	hud.external_hand = true
+	hud.scene_flags = true
+	hud.reduced_motion_changed.connect(_set_reduced_motion)
+	hud.focus_face.visible = false
+	hand_3d.clicked.connect(_on_card_clicked)
+	hand_3d.inspected.connect(_on_card_inspected)
+	hand_3d.hovered.connect(_on_hand_hovered)
+	for fixture in [near_duelist, far_duelist]:
+		fixture.clicked.connect(_on_card_clicked)
+		fixture.inspected.connect(_on_card_inspected)
+		fixture.hovered.connect(_on_card_hovered)
+	_set_reduced_motion(OS.get_cmdline_user_args().has("--reduced-motion"))
 	hud.option_chosen.connect(_on_option_chosen)
 	hud.card_clicked.connect(_on_card_clicked)
 	hud.handoff_confirmed.connect(_on_handoff_confirmed)
@@ -87,6 +105,84 @@ func _ready() -> void:
 		_present_prompt()
 	else:
 		await _ready_joiner()   # presents as soon as the authority's first update lands
+
+
+func _set_reduced_motion(on: bool) -> void:
+	_reduced_motion = on
+	fx.reduced_motion = on
+	hand_3d.reduced_motion = on
+	near_duelist.reduced_motion = on
+	far_duelist.reduced_motion = on
+	hud.reduced_motion_toggle.set_pressed_no_signal(on)
+	for card in views.values():
+		(card as Card3D).reduced_motion = on
+
+
+func _process(_delta: float) -> void:
+	if not is_instance_valid(hud):
+		return
+	var overlay: bool = hud.tray.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible
+	hand_3d.set_available(view != null and viewer >= 0 and not overlay)
+	hand_3d.enabled = not busy and not _awaiting_answer and prompt != null
+	camera.hand_navigation = hand_3d.keyboard_active or overlay
+	near_duelist.interactive = not overlay and not busy
+	far_duelist.interactive = not overlay and not busy
+	_layout_fixtures()
+	focus_card.visible = hud.focus.visible and not overlay
+	if focus_card.visible and view != null:
+		var uid: int = hud._focus_uid(prompt)
+		var card: SeatCard = view.card(uid)
+		if card != null and not card.hidden():
+			var key: String = CardFaceCache.key_for(_def(card), card.aspect)
+			if _focus_key != key:
+				focus_card.texture = faces.face(_def(card), card.aspect)
+				_focus_key = key
+		else:
+			focus_card.visible = false
+
+
+## Resource fixtures follow the actual field cards, with a clear opening over each face.
+func _layout_fixtures() -> void:
+	var size: Vector2 = get_viewport().get_visible_rect().size
+	var depth: float = 3.0
+	var units: float = camera.project_position(Vector2(1, 0), depth).distance_to(camera.project_position(Vector2.ZERO, depth))
+	var width: float = minf(460.0, size.x * 0.275)
+	for fixture: DuelistDisplay in [near_duelist, far_duelist]:
+		var card: Card3D = views.get(fixture.duelist_uid)
+		fixture.visible = card != null and card.visible
+		if not fixture.visible:
+			continue
+		fixture.global_position = card.global_position
+		var card_depth: float = -camera.to_local(card.global_position).z
+		var card_units: float = camera.project_position(Vector2(1, 0), card_depth).distance_to(camera.project_position(Vector2.ZERO, card_depth))
+		fixture.surface.pixel_size = width / 760.0 * card_units
+	var focus_rect: Rect2 = hud.focus.get_global_rect()
+	var focus_width: float = focus_rect.size.x
+	focus_card.position = camera.to_local(camera.project_position(Vector2(focus_rect.get_center().x, focus_rect.position.y + 32.0 + focus_width * 716.0 / 512.0 * 0.5), depth))
+	focus_card.pixel_size = focus_width / 512.0 * units
+
+
+func _refresh_displays() -> void:
+	if view == null:
+		return
+	var me: int = viewer if viewer >= 0 else (view.deciding if view.deciding >= 0 else view.active)
+	near_duelist.refresh(view, me, me, _live)
+	far_duelist.refresh(view, 1 - me, me, _live)
+	# Status exceptions are already part of the fixtures; keep HUD copies for inspection only.
+	hud.near_flags.hide()
+	hud.far_flags.hide()
+
+
+func _set_hand(legal: Dictionary) -> void:
+	var cards: Array[SeatCard] = _hand_cards()
+	hud.set_hand(cards, faces, legal)
+	hand_3d.set_hand(cards, faces, legal, view, prompt)
+
+
+func _on_hand_hovered(uid: int, on: bool) -> void:
+	hud.preview_hand_card(uid, on)
+	var forecast: Dictionary = view.forecast(uid) if on and view != null else {}
+	near_duelist.preview_energy(int(forecast.get("cost_stages", 0)))
 
 
 ## Hotseat and hosting: the rules run here, behind a DuelHost that also serves the remote seat.
@@ -171,12 +267,12 @@ func _present_prompt() -> void:
 		hud.refresh_state(view, viewer)
 		_clear_highlights()
 		if online:
-			hud.set_hand(_hand_cards(), faces, {})
+			_set_hand({})
 			hud.show_waiting(view.player(view.deciding).name, view.deciding_kind, view)
 			_drain_inbox()
 			return
 		if duel_host.ai != null and view.deciding == ai_seat:
-			hud.set_hand(_hand_cards(), faces, {})
+			_set_hand({})
 			hud.show_waiting(view.player(view.deciding).name, view.deciding_kind, view)
 			await _ai_turn()
 			return
@@ -212,20 +308,24 @@ func _ai_turn() -> void:
 
 ## Hotseat: the next player sits down, so the table re-reads the state from their seat.
 func _on_handoff_confirmed() -> void:
-	hud.hide_handoff()
+	busy = true
 	viewer = view.deciding
 	view = duel_host.view_for(viewer)
 	prompt = duel_host.prompt_for(viewer)
+	# Replace private textures before uncovering the new seat, including during camera motion.
+	_set_hand({})
+	hud.hide_handoff()
 	_adopt_cards()
 	await _swing_camera(viewer)
 	await _sync_layout(true)
+	busy = false
 	_show_prompt_for_viewer()
 
 
 func _show_prompt_for_viewer() -> void:
 	hud.refresh_state(view, viewer)
 	var legal: Dictionary = _legal_uids()
-	hud.set_hand(_hand_cards(), faces, legal)
+	_set_hand(legal)
 	hud.show_prompt(prompt, view)
 	_highlight(legal)
 	# The card the decision is about is held in the middle of the screen by the HUD's focus
@@ -329,10 +429,12 @@ func _play_update(up: SeatUpdate) -> void:
 			# The beat draws the table as it stood when the event fired, not as it stands now.
 			_live = l.get("state", {})
 			hud.refresh_state(view, viewer, _live)
+			_refresh_displays()
 			await _replay(_replaying, int(l.get("player", -1)), l["data"], targets)
 			_replaying = &""
 	_live = {}
 	hud.refresh_state(view, viewer)
+	_refresh_displays()
 	_refresh_roles()
 	await _sync_layout(true)
 
@@ -341,6 +443,15 @@ func _play_update(up: SeatUpdate) -> void:
 
 ## One animated event. `data` carries only the public fields the referee lists for its type.
 func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionary) -> void:
+	# A card leaving the hand should not remain as a second copy during its board animation.
+	var leaving: int = int(data.get("card", data.get("source", data.get("discarded", -1))))
+	if viewer >= 0 and leaving >= 0 and not view.player(viewer).hand.has(leaving):
+		var pose: Variant = hand_3d.world_card_transform(leaving)
+		var moving: Card3D = views.get(leaving)
+		if pose is Transform3D and moving != null:
+			moving.global_transform = pose
+			moving.visible = true
+		hand_3d.remove_uid(leaving)
 	match type:
 		&"attack_declared":
 			_wounds = 0
@@ -357,14 +468,15 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			await _swing(player)
 		&"defense_played", &"defense_power", &"shield":
 			await _sync_layout(true)
-			var defender: int = 1 - view.attacker
-			fx.ring(_card_pos(view.player(defender).controlling), ZenithTheme.DEFEND)
+			var defender: int = 1 - int(_live.get("attacker", view.attacker))
+			fx.ward(_card_pos(_controlling_uid(defender)), ZenithTheme.DEFEND)
 			if type != &"defense_played":
 				fx.float_text(_card_pos(int(data.get("card", -1))), "Shield", ZenithTheme.DEFEND, 48)
 			await _beat(BEAT)
 		&"attack_stopped":
-			var defender: int = 1 - view.attacker
-			fx.float_text(_card_pos(view.player(defender).controlling), "STOPPED", ZenithTheme.DEFEND, 72)
+			var defender: int = 1 - int(_live.get("attacker", view.attacker))
+			fx.ward(_card_pos(_controlling_uid(defender)), ZenithTheme.DEFEND)
+			fx.float_text(_card_pos(_controlling_uid(defender)), "STOPPED", ZenithTheme.DEFEND, 72)
 			hud.toast("Stopped", ZenithTheme.DEFEND)
 			await _beat(TOAST_BEAT)
 		&"modified_damage":
@@ -379,7 +491,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var target: int = int(data.get("target", -1))
 			var v: Card3D = views.get(target)
 			var pos: Vector3 = _card_pos(target)
-			fx.burst(pos, ZenithTheme.ATTACK)
+			fx.impact(pos, ZenithTheme.ATTACK, 1.0)
 			fx.float_text(pos, "-%d Energy" % stages, ZenithTheme.WARN, 80)
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
@@ -391,7 +503,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var uid: int = int(data.get("card", -1))
 			await _fly(uid, targets)
 			var pos: Vector3 = _card_pos(uid)
-			fx.burst(pos, ZenithTheme.ATTACK, 14, 1.4)
+			fx.impact(pos, ZenithTheme.ATTACK, 0.55)
 			fx.float_text(pos, "Wound %d" % _wounds, ZenithTheme.ATTACK, 56)
 			var v: Card3D = views.get(uid)
 			if v != null:
@@ -409,9 +521,9 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			await _sync_layout(true)   # the card lands in play before its text does anything
 			await _spotlight(int(data.get("card", -1)))
 		&"endurance_used":
-			var defender: int = 1 - view.attacker
-			var pos: Vector3 = _card_pos(view.player(defender).controlling)
-			fx.ring(pos, ZenithTheme.DEFEND, 0.8)
+			var defender: int = 1 - int(_live.get("attacker", view.attacker))
+			var pos: Vector3 = _card_pos(_controlling_uid(defender))
+			fx.ward(pos, ZenithTheme.DEFEND, 0.8)
 			fx.float_text(pos, "Endurance %d" % int(data.get("prevented", 0)), ZenithTheme.DEFEND, 56)
 			var card_uid: int = int(data.get("card", -1))
 			var used: SeatCard = view.card(card_uid)
@@ -454,7 +566,12 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			# way MTG Arena stops on a trigger. Everything after this beat is that card's doing.
 			await _spotlight(int(data.get("card", -1)))
 		&"draw":
-			await _fly(int(data.get("card", -1)), targets)
+			var uid: int = int(data.get("card", -1))
+			if player == viewer and view.player(viewer).hand.has(uid):
+				var origin: Vector3 = zones.slot(viewer, &"life_deck").origin
+				hand_3d.receive_card(view.card(uid), faces, view, zones.to_global(origin))
+			else:
+				await _fly(uid, targets)
 			await _beat(DRAW_BEAT)
 		&"recover":
 			# A card coming back from the discard pile to the Life Deck, not an Energy gain.
@@ -474,6 +591,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"energy_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
+				fx.resource_pulse(_card_pos(int(data.get("card", -1))), ZenithTheme.ENERGY, delta > 0)
 				_source_pulse(int(data.get("source", -1)))
 				await _number(int(data.get("card", -1)), "%+d Energy" % delta, ZenithTheme.ENERGY if delta > 0 else ZenithTheme.WARN)
 				await _beat(BEAT)
@@ -490,6 +608,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"fervor_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
+				fx.resource_pulse(_card_pos(view.player(player).duelist), ZenithTheme.ACCENT, delta > 0)
 				_source_pulse(int(data.get("source", -1)))
 				await _number(view.player(player).duelist, "%+d Fervor" % delta, ZenithTheme.ACCENT if delta > 0 else ZenithTheme.WARN)
 				await _beat(BEAT)
@@ -500,8 +619,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var uid: int = view.player(player).duelist
 			var pos: Vector3 = _card_pos(uid)
 			var up: bool = type == &"aspect_up"
-			fx.ring(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, 1.3)
-			fx.burst(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, 36, 2.6)
+			fx.ascend(pos, ZenithTheme.ACCENT if up else ZenithTheme.WARN, up)
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.ACCENT if up else ZenithTheme.WARN)
@@ -511,7 +629,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			await _beat(TOAST_BEAT)
 		&"countered":
 			var target: int = int(data.get("target", -1))
-			fx.ring(_card_pos(target), ZenithTheme.DEFEND, 0.8)
+			fx.ward(_card_pos(target), ZenithTheme.DEFEND, 0.8)
 			fx.float_text(_card_pos(target), "Countered", ZenithTheme.DEFEND, 48)
 			await _beat(BEAT)
 
@@ -519,8 +637,8 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 ## The attacker's controlling card lunges at the defender's, with a streak between them and
 ## sparks where it lands.
 func _swing(attacker: int) -> void:
-	var v: Card3D = views.get(view.player(attacker).controlling)
-	var target: Card3D = views.get(view.player(1 - attacker).controlling)
+	var v: Card3D = views.get(_controlling_uid(attacker))
+	var target: Card3D = views.get(_controlling_uid(1 - attacker))
 	if v == null or not v.visible or target == null:
 		return
 	var from: Vector3 = v.global_position
@@ -530,8 +648,12 @@ func _swing(attacker: int) -> void:
 	v.lunge(dir)
 	await get_tree().create_timer(Card3D.LUNGE_TIME * 0.8).timeout
 	fx.slash(from + dir.normalized() * 0.3, to - dir.normalized() * 0.3, ZenithTheme.ATTACK)
-	fx.burst(to, ZenithTheme.ATTACK, 18, 1.8)
 	await _beat(Card3D.LUNGE_TIME * 1.2)
+
+
+func _controlling_uid(seat: int) -> int:
+	var controlling: Array = _live.get("controlling", [])
+	return int(controlling[seat]) if seat >= 0 and seat < controlling.size() else view.player(seat).controlling
 
 
 ## A number over a card that just changed, with a hop and a flash in the same colour.
@@ -565,7 +687,7 @@ func _number(uid: int, text: String, color: Color) -> void:
 	var v: Card3D = views.get(uid)
 	if v == null or not v.visible:
 		return
-	fx.float_text(v.global_position, text, color, 60)
+	fx.float_text(_card_pos(uid), text, color, 60)
 	v.flash(color)
 	_refresh_markers()
 	await v.hop()
@@ -586,6 +708,9 @@ func _fly(uid: int, targets: Dictionary) -> void:
 	var target: Transform3D = Transform3D(basis, slot_t.origin)
 	v.face_up = face_up
 	v.visible = true   # a card leaving this seat's hand starts from the hand slot it was kept at
+	if _reduced_motion:
+		v.transform = target
+		return
 	if v.transform.origin.distance_to(target.origin) < 0.0005 and v.transform.basis.is_equal_approx(target.basis):
 		return
 	var start: Transform3D = v.transform
@@ -610,6 +735,10 @@ func _card_pos(uid: int) -> Vector3:
 	var v: Card3D = views.get(uid)
 	if v == null or not v.visible:
 		return Vector3.ZERO
+	# Personality effects rise above the foreground hand while staying over their source.
+	var card: SeatCard = view.card(uid)
+	if card != null and card.controller == viewer and card.zone in [&"duelist", &"ally"]:
+		return v.global_position + Vector3.UP * 1.0
 	return v.global_position
 
 
@@ -776,6 +905,7 @@ func _adopt_cards() -> void:
 		if v == null:
 			v = CARD_SCENE.instantiate()
 			v.uid = uid
+			v.reduced_motion = _reduced_motion
 			v.visible = false
 			cards_root.add_child(v)
 			v.set_textures(null, faces.back())
@@ -875,6 +1005,8 @@ func _live_energy(live: Dictionary, uid: int) -> int:
 func _sync_layout(animated: bool) -> void:
 	var targets: Dictionary = _targets()
 	zones.set_viewer(viewer if viewer >= 0 else view.active)
+	zones.refresh_occupancy(view)
+	_refresh_displays()
 	_refresh_markers()
 	var tween: Tween = null
 	var moved: bool = false
@@ -912,6 +1044,9 @@ func _sync_layout(animated: bool) -> void:
 func _swing_camera(player: int) -> void:
 	var target: float = 0.0 if player == 0 else PI
 	camera.return_home()
+	if _reduced_motion:
+		rig.rotation.y = target
+		return
 	if is_equal_approx(rig.rotation.y, target):
 		return
 	var t: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -963,7 +1098,7 @@ func _dev_step() -> void:
 						_on_card_inspected(c.uid)
 						break
 			elif arg == "--dev-peek" and not _hand_cards().is_empty():
-				_on_card_hovered(_hand_cards()[0].uid, true)
+				hand_3d.preview_index(0)
 			elif arg == "--dev-peek=duelist":
 				_on_card_hovered(view.player(viewer).duelist, true)
 			elif arg.begins_with("--dev-hover="):
@@ -1012,8 +1147,11 @@ func _dev_step() -> void:
 ## Random by default. `--dev-policy=attack` declares Combat, attacks whenever it can, and never
 ## defends, so a short run shows damage and a fight back instead of a string of passes.
 func _dev_pick(opts: Array[OptionView]) -> OptionView:
-	if _dev_policy == "attack":
-		for wanted in [&"attack", &"declare", &"no_defense", &"no_endure"]:
+	if _dev_policy == "attack" or _dev_policy == "showcase":
+		var choices: Array[StringName] = [&"attack", &"declare", &"no_defense", &"no_endure"]
+		if _dev_policy == "showcase":
+			choices = [&"attack", &"declare", &"defend", &"power_defend", &"endure", &"no_defense", &"no_endure"]
+		for wanted in choices:
 			for o in opts:
 				if o.type == wanted:
 					return o
@@ -1038,7 +1176,7 @@ func _dev_count_update() -> bool:
 	_dev_steps -= 1
 	if _dev_steps > 0:
 		return false
-	hud.set_hand(_hand_cards(), faces, {})
+	_set_hand({})
 	await _dev_finish()
 	return true
 
@@ -1052,6 +1190,15 @@ func _dev_finish(settle: float = 0.6) -> void:
 		if cam.size() == 3:
 			camera.dev_set(Vector2(float(cam[0]), float(cam[1])), int(cam[2]))
 		await get_tree().create_timer(settle).timeout
+		# Window startup can deliver late pointer motion after the requested hand preview.
+		# Freeze only this screenshot's presentation after settling; normal input is unchanged.
+		for arg in OS.get_cmdline_user_args():
+			var hand_preview: bool = arg == "--dev-peek" or (arg.begins_with("--dev-peek=") and arg.get_slice("=", 1).is_valid_int())
+			if hand_preview and hand_3d.visible:
+				hand_3d.preview_index(int(arg.get_slice("=", 1)) if arg.contains("=") else 0)
+				hand_3d._layout(true)
+				hand_3d.set_process(false)
+				hand_3d.set_process_unhandled_input(false)
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var img: Image = get_viewport().get_texture().get_image()

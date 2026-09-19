@@ -332,7 +332,7 @@ add(id="storm_mastery", title="Storm Mastery", type="mastery", school="storm", l
 # ============================================================================
 # Freestyle staples
 # ============================================================================
-strike("no_quarter", "No Quarter", atk={"stages": 3},
+strike("no_quarter", "Emrys Gives No Quarter", atk={"stages": 3},
        effects=[FORBID("end_combat"), FORBID("end_combat", "opponent"), FORBID("stop_all"), FORBID("stop_all", "opponent")])
 # A named card in the source, so the duelist it is named for may run a fourth copy.
 strike("relentless_fury", "Ashmark's Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
@@ -394,7 +394,7 @@ art("unerring_bolt", "Unerring Bolt", atk={"unstoppable": True, "no_prevent": Tr
 art("scattered_ashes", "Ashmark Leaves Nothing", atk={"focused": True}, empower=2,
     effects=[IFS(AFTER_EMPOWER(OPP("remove_discard", all=True))), AFTER_EMPOWER(ACC(1))])
 art("sabotage", "Siphon's Drain", atk={}, alignment_only="pact", effects=[DISCARD_IN_PLAY("drill", amount=1, remove=True, choose=True)], tags=["construct"])
-strike("all_or_nothing", "All or Nothing", atk={"focused": True, "stages": 4, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
+strike("all_or_nothing", "Emrys Risks It All", atk={"focused": True, "stages": 4, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
 strike("old_habit", "Old Habit", atk={}, effects=[E("draw_discard", amount=1, **{"from": "bottom"})], remove_after_use=True)
 add(id="committed_cut", title="Edric's Committed Cut", type="art", school="", endurance=3,
     attack={"kind": "strike", "stages": 4, "variants": [{"when": {"aspect_min": 2}, "life": 4, "focused": True}]},
@@ -420,9 +420,9 @@ art("sledges_stance", "Sledge's Set Stance", atk={}, effects=[WHEN(SEARCH(tag="c
 strike("headlong_plunge", "Headlong Plunge", atk={"focused": True, "stages": 3}, endurance=2, empower=3,
        effects=[AFTER_EMPOWER(ACC(1)), AFTER_EMPOWER(OPP_ACC(-1)), AFTER_EMPOWER(DISCARD_IN_PLAY("ally", amount=1, choose=True)), AFTER_EMPOWER(VIG(3))], bottom_after_use=True)
 strike("sword_lunge", "Sword Lunge", atk={"focused": True, "stages": 3}, effects=[IFS(OPP_ACC(-3))], remove_after_use=True)
-strike("sword_flourish", "Sword Flourish", atk={"focused": True}, effects=[IFS(SEARCH(title_contains="Swordplay", to="play"))], remove_after_use=True)
-strike("sword_sweep", "Sword Sweep", atk={"stages": 2}, effects=[IFS(DISCARD_IN_PLAY("ally", amount=4, up_to=True, choose=True))])
-strike("sword_thrust", "Sword Thrust", atk={"stages": 2}, effects=[IFS(DISCARD_IN_PLAY("non_combat", amount=2, choose=True))])
+strike("sword_flourish", "Emrys' Sword Flourish", atk={"focused": True}, effects=[IFS(SEARCH(title_contains="Swordplay", to="play"))], remove_after_use=True)
+strike("sword_sweep", "Emrys' Sword Sweep", atk={"stages": 2}, effects=[IFS(DISCARD_IN_PLAY("ally", amount=4, up_to=True, choose=True))])
+strike("sword_thrust", "Emrys' Sword Thrust", atk={"stages": 2}, effects=[IFS(DISCARD_IN_PLAY("non_combat", amount=2, choose=True))])
 strike("vales_sword_draw", "Vale's Sword Draw", atk={"stages": 4}, character=ZETA, effects=[ACC(1), IFS(SEARCH(title_contains="Sword", exclude_title="Vale's Sword Draw", to="hand"))])
 strike("vales_quickstep", "Vale's Quickstep", atk={"stages": 4}, character=ZETA, empower=2,
        effects=[AFTER_EMPOWER(OPP_ACC(-2)), AFTER_EMPOWER(WHEN(SEARCH(signature_of="duelist", source="discard", to="hand"), duelist_character=ZETA))], remove_after_use=True)
@@ -441,7 +441,7 @@ strike("steel_skull_crack", "Steel Skull Crack", "steel", atk={"life": 3, "no_pr
 # Freestyle defenses
 block("last_ward", "Last Ward", "any", "strike", defense={"stop_focused": "discard_hand"})
 block("vales_riposte", "Vale's Riposte", "strike", "strike", defense={"copy_attack": True}, character=ZETA)
-block("hilt_guard", "Hilt Guard", "strike", "strike", effects=[SEARCH(card_type="hand_combat", source="discard", to="hand")], remove_after_use=True)
+block("hilt_guard", "Emrys' Hilt Guard", "strike", "strike", effects=[SEARCH(card_type="hand_combat", source="discard", to="hand")], remove_after_use=True)
 block("second_wind", "Second Wind", "strike", "strike", effects=[VIG("max", "duelist"), E("shuffle_discard", amount=3)])
 block("quick_retreat", "Edric Gives Ground", "any", "strike", effects=[ACC(1), FLOAT("stop_next")])
 # "<name> only" on the printed card, which we had dropped.
@@ -477,14 +477,14 @@ add(id="heirloom_blade", title="Vale's Heirloom Blade", type="non_combat", schoo
     attachment={"target": "duelist", "title_contains": "Sword", "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "life": 3, "title_contains": "Sword"}]})
 drill("bravado_drill", "Bravado Drill", start_in_play=True, limit_per_deck=1, effects=[ENTER(OPP_ACC(-2)), ENTER(VIG(2, "duelist"))])
 drill("revision_drill", "Revision Drill", once_per_combat=True, limit_per_deck=1, effects=[USE(E("discard_hand", amount=1, random=False)), USE(E("draw", amount=2))])
-drill("swordplay_drill", "Swordplay Drill", modifiers=[{"scope": "own", "kind": "any", "stages": 2, "title_contains": "Sword"}], promote_if_successful="Sword")
+drill("swordplay_drill", "Emrys' Swordplay Drill", modifiers=[{"scope": "own", "kind": "any", "stages": 2, "title_contains": "Sword"}], promote_if_successful="Sword")
 drill("lone_blade_drill", "Lone Blade Drill", modifiers=[{"scope": "own", "kind": "strike", "stages": 5}], discard_if_other_non_combats=True)
 drill("counterplay_drill", "Counterplay Drill", alignment_only="vigil", limit_per_deck=2, effects=[PLACE(E("name_card"))])
 drill("no_retreat_drill", "No Retreat Drill", forbid=[{"who": "all", "what": "end_combat"}])
 drill("absorbing_drill", "Cull's Absorbing Drill", defense={"stops": "art", "cost_life": 2})
 drill("mournes_quickness_drill", "Mourne's Quickness Drill", effects=[ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))])
 drill("warding_drill", "Warding Drill", limit_per_deck=1, forbid=[{"who": "all", "what": "seals"}])
-drill("locked_gate_drill", "Locked Gate Drill", limit_per_deck=1, forbid=[{"who": "opponent", "what": "allies"}])
+drill("locked_gate_drill", "Emrys Spots the Fraud Drill", limit_per_deck=1, forbid=[{"who": "opponent", "what": "allies"}])
 # +1 wound on everything you swing, and the second line stacks for a Construct personality, so hers do +2.
 drill("assembly_drill", "Assembly Drill",
       modifiers=[{"scope": "own", "kind": "any", "life": 1},

@@ -15,7 +15,14 @@ const BURST_LIFE: float = 0.7
 
 ## A number or word that pops in over `pos`, drifts up and fades.
 func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> void:
+	# A new beat replaces lingering text at this source instead of printing over it.
+	for child in get_children():
+		if child is Label3D and child.has_meta("float_anchor"):
+			var anchor: Vector3 = child.get_meta("float_anchor")
+			if anchor.distance_to(pos) < 0.6:
+				(child as Label3D).hide()
 	var l: Label3D = Label3D.new()
+	l.set_meta("float_anchor", pos)
 	l.text = text
 	l.font_size = size
 	l.pixel_size = 0.004

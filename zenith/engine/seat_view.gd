@@ -19,6 +19,7 @@ var battle_step: int = 0               # where the battle sequence stands while 
 var last_attack: Dictionary = {}       # outcome of the last attack this Combat, {} until one ends
 var forecasts: Dictionary = {}         # uid -> damage breakdown for each attack this seat may declare now
 var grounds: int = -1
+var standing: Array[Dictionary] = []   # effects that outlast the Combat: {owner, source, op, kind, stages, life}
 var resolving: Array[int] = []
 var players: Array[SeatPlayer] = []
 var cards: Dictionary = {}             # uid -> SeatCard
@@ -76,7 +77,7 @@ func to_dict() -> Dictionary:
 		"seat": seat, "turn": turn, "step": step, "phase": phase, "active": active, "attacker": attacker,
 		"winner": winner, "win_reason": win_reason, "deciding": deciding, "deciding_kind": String(deciding_kind),
 		"attack": attack, "battle_step": battle_step, "last_attack": last_attack, "forecasts": forecasts,
-		"grounds": grounds, "resolving": resolving, "players": ps, "cards": cs,
+		"grounds": grounds, "standing": standing, "resolving": resolving, "players": ps, "cards": cs,
 	}
 
 
@@ -103,6 +104,8 @@ static func from_dict(d: Dictionary) -> SeatView:
 	for k in d.get("forecasts", {}).keys():
 		v.forecasts[int(k)] = d["forecasts"][k]
 	v.grounds = int(d.get("grounds", -1))
+	for sd in d.get("standing", []):
+		v.standing.append(sd)
 	v.resolving = SeatPlayer.ints(d.get("resolving", []))
 	for pd in d.get("players", []):
 		v.players.append(SeatPlayer.from_dict(pd))
@@ -133,6 +136,14 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 	v.last_attack = _last_attack_summary(engine)
 	v.forecasts = engine.attack_forecasts(seat)
 	v.grounds = s.grounds.uid if s.grounds != null else -1
+	# Effects that outlast the Combat have no card left on the table, so the seat is told about
+	# them separately and the client stands a ghost of the source card in for them.
+	for f in s.floating:
+		if str(f.get("duration", "")) != "game":
+			continue
+		v.standing.append({"owner": int(f.get("owner", -1)), "source": int(f.get("source", -1)),
+				"op": str(f.get("op", "")), "kind": str(f.get("kind", "any")),
+				"stages": int(f.get("stages", 0)), "life": int(f.get("life", 0))})
 	for p in s.players:
 		v.players.append(SeatPlayer.of(p, engine))
 	for c in engine.all_cards():

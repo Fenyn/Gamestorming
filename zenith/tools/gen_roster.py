@@ -164,6 +164,9 @@ SHOWS = {
     "duelist_iota": "Sir Edric Rooke", "edrics_truce": "Sir Edric Rooke",
     "edrics_opening_strike": "Sir Edric Rooke", "edrics_training": "Sir Edric Rooke",
     "companion_epsilon": "Dame Alder Rooke", "hasks_flying_kick": "Torvan Hask",
+    "all_or_nothing": "Emrys Rooke", "hilt_guard": "Emrys Rooke", "no_quarter": "Emrys Rooke",
+    "sword_flourish": "Emrys Rooke", "sword_sweep": "Emrys Rooke", "sword_thrust": "Emrys Rooke",
+    "locked_gate_drill": "Emrys Rooke", "swordplay_drill": "Emrys Rooke",
 }
 
 # Slot brief per card: subject, action, two or three concrete details, mood. Short, visual, no rules.

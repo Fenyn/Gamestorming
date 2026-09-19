@@ -26,8 +26,8 @@ const ZONE_PAD: float = 0.06          # felt outline sits this far outside the c
 const LABEL_STRIP: float = 0.14       # room under the cards for the zone name
 const LINE_HEIGHT: float = 0.004
 const LABEL_HEIGHT: float = 0.003
-const LABEL_COLOR: Color = Color(1.0, 1.0, 1.0, 0.34)
-const LINE_COLOR: Color = Color(1.0, 1.0, 1.0, 0.18)
+const LABEL_COLOR: Color = Color(0.66, 0.75, 0.81, 0.65)
+const LINE_COLOR: Color = Color(0.68, 0.54, 0.29, 0.14)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
@@ -96,7 +96,9 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 		pos = Vector3(-pos.x, pos.y, -pos.z)
 	if viewer == 1:
 		yaw += PI
-	var basis: Basis = Basis(Vector3.UP, yaw).scaled(Vector3.ONE * scale_factor)
+	# A narrower playing field leaves the portrait fixtures and decision rail clear.
+	pos.x *= 0.72
+	var basis: Basis = Basis(Vector3.UP, yaw).scaled(Vector3.ONE * scale_factor * 0.92)
 	return Transform3D(basis, pos + Vector3(0, CARD_LIFT, 0))
 
 
@@ -104,6 +106,33 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 func set_viewer(viewer: int) -> void:
 	for l in _labels:
 		l.rotation.y = PI if viewer == 1 else 0.0
+
+
+## Empty zones do not compete with playable objects. Counts stay with their physical piles.
+func refresh_occupancy(view: SeatView) -> void:
+	for label in _labels:
+		var zone: StringName = label.get_meta("zone")
+		var index: int = int(label.get_meta("player"))
+		var p: SeatPlayer = view.player(index)
+		var count: int = 0
+		match zone:
+			&"ally": count = p.allies.size()
+			&"drill": count = p.drills.size()
+			&"non_combat": count = p.non_combats.size()
+			&"seal": count = p.seals.size()
+			&"life_deck": count = p.life_deck.size()
+			&"discard": count = p.discard.size()
+			&"removed": count = p.removed.size()
+			&"mastery": count = int(p.mastery >= 0)
+			&"relic": count = int(p.relic >= 0)
+			&"duelist": count = 1
+			&"resolving": count = view.resolving.size()
+			&"grounds": count = int(view.grounds >= 0)
+		label.visible = count > 0 and zone != &"duelist" and zone != &"resolving"
+		label.text = str(label.get_meta("title"))
+		if zone in [&"life_deck", &"discard", &"removed"]:
+			var title: String = "LIFE" if zone == &"life_deck" else ("OUT" if zone == &"removed" else "DISCARD")
+			label.text = "%s %d" % [title, count]
 
 
 ## X offset of card `index` in a row. Past the zone's slot count the row squeezes so the last
@@ -147,10 +176,11 @@ func _draw_marks() -> void:
 	for zone in zones:
 		var r: Rect2 = _zone_rect(zone)
 		for player in range(2):
-			_add_rect(mesh, r, player == 1)
+			# Small inlaid ticks replace the full rectangular zone grid.
+			if SINGLES.has(zone) and zone != &"resolving":
+				_add_tick(mesh, r, player == 1)
 			_add_label(zone, r, player == 1)
 			placed.append(_mirrored(r) if player == 1 else r)
-	_add_rect(mesh, _zone_rect(&"grounds"), false)
 	_add_label(&"grounds", _zone_rect(&"grounds"), false)
 	placed.append(_zone_rect(&"grounds"))
 	mesh.surface_end()
@@ -165,6 +195,13 @@ func _draw_marks() -> void:
 	lines.material_override = mat
 	lines.position.y = LINE_HEIGHT
 	add_child(lines)
+
+
+func _add_tick(mesh: ImmediateMesh, r: Rect2, mirror: bool) -> void:
+	var s: float = -1.0 if mirror else 1.0
+	var center: Vector2 = r.get_center()
+	mesh.surface_add_vertex(Vector3((center.x - 0.08) * s * 0.72, 0, r.end.y * s))
+	mesh.surface_add_vertex(Vector3((center.x + 0.08) * s * 0.72, 0, r.end.y * s))
 
 
 func _mirrored(r: Rect2) -> Rect2:
@@ -197,8 +234,11 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	var text: String = "Grounds" if zone == &"grounds" else str((ROWS[zone] if ROWS.has(zone) else SINGLES[zone])["label"])
 	var l: Label3D = Label3D.new()
 	l.text = text.to_upper()
-	l.font_size = 26
-	l.pixel_size = 0.004
+	l.set_meta("zone", zone)
+	l.set_meta("player", 1 if mirror else 0)
+	l.set_meta("title", l.text)
+	l.font_size = 32
+	l.pixel_size = 0.0032 if zone in [&"life_deck", &"discard", &"removed"] else 0.004
 	l.modulate = LABEL_COLOR
 	l.shaded = false
 	l.double_sided = false
@@ -206,7 +246,10 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	# Centred in the label strip on the owner's edge; Grounds has no strip, so it sits inside.
 	var s: float = -1.0 if mirror else 1.0
 	var z: float = r.end.y - (LABEL_STRIP * 0.5 if zone != &"grounds" else 0.1)
-	l.position = Vector3(r.get_center().x * s, LABEL_HEIGHT, z * s)
+	if ROWS.has(zone):
+		# Keep row captions toward the arena center, clear of the duelist's stat crests.
+		z = r.position.y + 0.02
+	l.position = Vector3(r.get_center().x * s * 0.72, LABEL_HEIGHT, z * s)
 	# Lying flat with no yaw, a Label3D reads upright for the unrotated camera; set_viewer turns
 	# every label with the camera, so both sides always read the same way up.
 	l.rotation = Vector3(-PI * 0.5, 0, 0)

@@ -1,6 +1,6 @@
 # Player information and interface audit
 
-Reviewed 2026-09-19. Analysis only; no game behavior or layout changed.
+Reviewed 2026-09-19. This records the original analysis; subsequent implementation is documented in [the in-scene redesign](ui_redesign.md).
 
 ## Evidence and scope
 

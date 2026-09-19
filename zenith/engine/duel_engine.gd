@@ -1759,11 +1759,23 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 		if opts.size() > 1:
 			var src: CardInstance = _attack_source()
 			_set_prompt(attacker.index, &"pay", opts, {"per": per, "source": src.uid if src != null else -1, "card_title": src.def.title if src != null else ""})
+	elif spec.has("pay_life") and not attacker.life_deck.is_empty():
+		# "You may discard the top card of your Life Deck to do more damage": an optional cost, so
+		# it asks yes or no and the answer is how many cards go.
+		var life_src: CardInstance = _attack_source()
+		var life_opts: Array[Command] = [Command.new(attacker.index, &"pay", -1, 0), Command.new(attacker.index, &"pay", -1, 1)]
+		_choice["kind"] = "pay_life"
+		_set_prompt(attacker.index, &"pay", life_opts, {"per": 1, "life_cost": true,
+				"source": life_src.uid if life_src != null else -1,
+				"card_title": life_src.def.title if life_src != null else ""})
 
 
 func _handle_pay(cmd: Command) -> void:
 	if str(_choice.get("kind", "")) == "pay_energy":
 		_handle_pay_energy(cmd)
+		return
+	if str(_choice.get("kind", "")) == "pay_life":
+		_handle_pay_life(cmd)
 		return
 	var a: Dictionary = state.attack
 	var attacker: PlayerState = state.players[int(a["attacker"])]
@@ -1776,6 +1788,21 @@ func _handle_pay(cmd: Command) -> void:
 	a["extra_life"] = int(a["extra_life"]) + int(paid / per) * int(spec["pay_stages"].get("life", 0))
 	a["extra_stages"] = int(a["extra_stages"]) + int(paid / per) * int(spec["pay_stages"].get("stages", 0))
 	_emit(&"cost_paid", {"player": attacker.index, "stages": paid, "life": 0, "energy": ic.energy})
+	state.battle_step = 3
+
+
+## "Discard the top card of your Life Deck to do more damage." The answer is 0 or 1 cards.
+func _handle_pay_life(cmd: Command) -> void:
+	var a: Dictionary = state.attack
+	var attacker: PlayerState = state.players[int(a["attacker"])]
+	var spec: Dictionary = a["spec"]
+	_choice = {}
+	if int(cmd.value) > 0:
+		_discard_life(attacker, 1)
+		a["extra_life"] = int(a["extra_life"]) + int(spec["pay_life"].get("life", 0))
+		a["extra_stages"] = int(a["extra_stages"]) + int(spec["pay_life"].get("stages", 0))
+		a["extra_source"] = "Life card paid"
+		_emit(&"cost_paid", {"player": attacker.index, "stages": 0, "life": 1, "energy": _performer(a).energy})
 	state.battle_step = 3
 
 
@@ -2193,7 +2220,7 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	if int(spec.get("stages", 0)) != 0 or int(spec.get("life", 0)) != 0:
 		adds.append({"source": src_title, "stages": int(spec.get("stages", 0)), "life": int(spec.get("life", 0))})
 	if int(a.get("extra_life", 0)) > 0 or int(a.get("extra_stages", 0)) > 0:
-		adds.append({"source": "Energy paid", "stages": int(a.get("extra_stages", 0)), "life": int(a.get("extra_life", 0))})
+		adds.append({"source": str(a.get("extra_source", "Energy paid")), "stages": int(a.get("extra_stages", 0)), "life": int(a.get("extra_life", 0))})
 	if bool(a["empowered"]) and src != null and src.def.empower > 0:
 		adds.append({"source": "Empower", "stages": 0, "life": src.def.empower})
 	if int(spec.get("life_per_ally", 0)) > 0 and not attacker.allies().is_empty():
@@ -3131,6 +3158,10 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"discard_top_school_not":
 				if not me.discard.is_empty() and me.discard.back().def.school == str(v):
 					return false
+			"discard_bottom_school":
+				# The oldest card in the pile, which is index 0 because the top is the back.
+				if me.discard.is_empty() or me.discard[0].def.school != str(v):
+					return false
 			"discard_min":
 				if me.discard.size() < int(v):
 					return false
@@ -3335,19 +3366,8 @@ func _raw_constant(p: PlayerState) -> Dictionary:
 func _can_play(p: PlayerState, def: CardDef) -> bool:
 	if def.alignment_only != "" and def.alignment_only != p.alignment:
 		return false
-	if not def.only.is_empty():
-		if def.only.has("character") and p.in_control().def.character != str(def.only["character"]):
-			# The gated personality must be in control, except for a card that attaches to that
-			# personality: it only needs them on the table.
-			if not (_attaches_to_character(def) and _character_in_play(p, str(def.only["character"])) != null):
-				return false
-		if def.only.has("duelist_character") and p.duelist.def.character != str(def.only["duelist_character"]):
-			return false
-		# "Draconic only": the bloodline gates by who is in control, the way a named personality
-		# does. A duelist and their Allies can differ, so it is read off the personality, not the
-		# player.
-		if def.only.has("bloodline") and p.in_control().def.bloodline != str(def.only["bloodline"]):
-			return false
+	if not def.only.is_empty() and not _gate_ok(p, def, def.only):
+		return false
 	# A card that attaches to a personality named in its text needs that personality on the table.
 	if _attaches_to(def) == "named" and _attach_host(p, def) == null:
 		return false
@@ -3361,6 +3381,30 @@ func _can_play(p: PlayerState, def: CardDef) -> bool:
 				attached += 1
 		if attached >= attach_limit:
 			return false
+	return true
+
+
+## One "X only" gate. `any_of` holds a list of gates and passes when any one of them does, which
+## is how a card reads that allows a side or either of two named personalities.
+func _gate_ok(p: PlayerState, def: CardDef, gate: Dictionary) -> bool:
+	if gate.has("any_of"):
+		for sub in gate["any_of"]:
+			if _gate_ok(p, def, sub):
+				return true
+		return false
+	if gate.has("alignment") and p.alignment != str(gate["alignment"]):
+		return false
+	if gate.has("character") and p.in_control().def.character != str(gate["character"]):
+		# The gated personality must be in control, except for a card that attaches to that
+		# personality: it only needs them on the table.
+		if not (_attaches_to_character(def) and _character_in_play(p, str(gate["character"])) != null):
+			return false
+	if gate.has("duelist_character") and p.duelist.def.character != str(gate["duelist_character"]):
+		return false
+	# "Draconic only": the bloodline gates by who is in control, the way a named personality does.
+	# A duelist and their Allies can differ, so it is read off the personality, not the player.
+	if gate.has("bloodline") and p.in_control().def.bloodline != str(gate["bloodline"]):
+		return false
 	return true
 
 
@@ -3923,6 +3967,7 @@ func energy_blocked(p: PlayerState) -> bool:
 ## player would still lose. Clients preview it against the current number while the player hovers
 ## a choice, so the maths is answered here once rather than guessed at on every seat. {} when the
 ## outcome is not something that can be promised ahead of the roll of the rest of the sequence.
+## Defense also includes incoming `stages` (overflow already counted in `life`) and `stopped`.
 func option_outcome(prompt: Prompt, cmd: Command) -> Dictionary:
 	if state.attack.is_empty():
 		return {}
@@ -3938,12 +3983,15 @@ func option_outcome(prompt: Prompt, cmd: Command) -> Dictionary:
 			return {"life": remaining - prevented}
 		&"defense":
 			# Wounds, counting the Energy that would overflow into them.
-			var life: int = int(damage_breakdown(a).get("wounds", 0))
+			var damage: Dictionary = damage_breakdown(a)
+			var life: int = int(damage.get("wounds", 0))
+			var stages: int = int(damage.get("stages", 0))
 			if cmd.type == &"no_defense":
-				return {"life": life}
+				return {"life": life, "stages": stages, "stopped": false}
 			# A stop only takes the attack to nothing when it is the one the attack still needs.
 			var stops: int = int(a.get("stop_count", 0)) + 1
-			return {"life": 0 if stops >= int(a.get("stops_needed", 1)) else life}
+			var stopped: bool = stops >= int(a.get("stops_needed", 1))
+			return {"life": 0 if stopped else life, "stages": 0 if stopped else stages, "stopped": stopped}
 	return {}
 
 
@@ -4827,17 +4875,26 @@ func _emit(type: StringName, data: Dictionary = {}) -> void:
 ## The numbers a client shows on the table right now. See `GameEvent.state`.
 func _display_state() -> Dictionary:
 	var energy: Dictionary = {}
+	var might: Dictionary = {}
+	var aspect: Dictionary = {}
+	var controlling: Array[int] = []
 	var fervor: Array[int] = []
 	var zones: Array = []
 	for p in state.players:
 		energy[p.duelist.uid] = p.duelist.energy
+		might[p.duelist.uid] = p.duelist.might()
+		aspect[p.duelist.uid] = p.duelist.aspect
 		for a in p.allies():
 			energy[a.uid] = a.energy
+			might[a.uid] = a.might()
+			aspect[a.uid] = a.aspect
+		controlling.append(p.controlling.uid if p.controlling != null else p.duelist.uid)
 		fervor.append(p.fervor)
 		zones.append([p.life_deck.size(), p.hand.size(), p.discard.size(), p.removed.size()])
 	# Where the turn stood, so the banner over the table never runs ahead of the beat under it.
 	return {
-		"energy": energy, "fervor": fervor, "zones": zones,
+		"energy": energy, "might": might, "aspect": aspect, "controlling": controlling,
+		"fervor": fervor, "zones": zones,
 		"turn": state.turn, "step": state.step, "phase": state.phase,
 		"active": state.active, "attacker": state.attacker,
 	}

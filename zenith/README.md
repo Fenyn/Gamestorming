@@ -1,5 +1,7 @@
 # Eidolarch
 
+The [in-scene interface redesign](docs/ui_redesign.md) documents the 3D hand, portrait displays, combat effects, controls, and review screenshots.
+
 A two-player dueling card game. Two duelists, mages or plain fighters, contest a place of power where a gate can be opened for an otherworldly Eidolon; the winner becomes its Eidolarch. The folder and code name are still `zenith`. Design: `../designs/zenith.md`.
 
 - **Engine:** Godot 4.6 (Forward Plus), GDScript

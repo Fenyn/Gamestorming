@@ -8,6 +8,7 @@ extends Control
 @onready var status_label: Label = $Margin/Column/TitleRow/Status
 @onready var seed_label: Label = $Margin/Column/Footer/SeedLabel
 @onready var seed_edit: LineEdit = $Margin/Column/Footer/Seed
+@onready var advanced: CheckButton = $Margin/Column/Footer/Advanced
 @onready var ai_label: Label = $Margin/Column/Footer/AiLabel
 @onready var ai_level: OptionButton = $Margin/Column/Footer/AiLevel
 @onready var problems_label: Label = $Margin/Column/Footer/Problems
@@ -33,14 +34,16 @@ func _ready() -> void:
 		return
 	seed_edit.text = str(Session.seed_value)
 	seed_edit.text_changed.connect(func(t: String) -> void: Session.seed_value = int(t))
+	advanced.toggled.connect(func(on: bool) -> void:
+		seed_label.visible = on
+		seed_edit.visible = on)
 	start_button.pressed.connect(_on_start)
 	back_button.pressed.connect(_on_back)
 	for i in range(2):
 		sheets[i].setup(i, faces)
 		sheets[i].show_deck(Session.chosen[i], _tag(i))
 	if _online:
-		seed_label.visible = Net.is_host()
-		seed_edit.visible = Net.is_host()
+		advanced.visible = Net.is_host()
 		start_button.visible = Net.is_host()
 		Net.lobby_changed.connect(_on_lobby_changed)
 		Net.peer_left.connect(_on_peer_left)

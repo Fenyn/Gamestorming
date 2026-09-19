@@ -177,7 +177,7 @@ offset_top = 210.0
 offset_right = -18.0
 offset_bottom = 260.0
 grow_horizontal = 0
-grow_vertical = 0
+grow_vertical = 1
 
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
@@ -239,6 +239,13 @@ visible = false
 layout_mode = 2
 theme_override_constants/separation = 18
 
+[node name="Outcome" type="Label" parent="Root/PromptPanel/Column"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+autowrap_mode = 3
+
+
 [node name="Hint" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
@@ -273,6 +280,21 @@ mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.78, 0.38, 1)
 theme_override_font_sizes/font_size = 22
 autowrap_mode = 3
+
+[node name="ReducedMotion" type="CheckButton" parent="Root"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -340.0
+offset_top = 22.0
+offset_right = -18.0
+offset_bottom = 78.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 21
+text = "Reduced motion"
+tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
+
 
 [node name="Tray" type="ColorRect" parent="Root"]
 visible = false
@@ -333,7 +355,7 @@ theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 alignment = 1
 
-[node name="Buttons" type="HBoxContainer" parent="Root/Tray/Center/Panel/Column"]
+[node name="Buttons" type="HFlowContainer" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
@@ -341,11 +363,13 @@ alignment = 1
 [node name="DevToggle" type="Button" parent="Root"]
 visible = false
 layout_mode = 1
-anchors_preset = 0
-offset_left = 16.0
-offset_top = 246.0
-offset_right = 76.0
-offset_bottom = 274.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -84.0
+offset_top = 86.0
+offset_right = -16.0
+offset_bottom = 114.0
 theme_override_font_sizes/font_size = 12
 text = "Dev"
 flat = true
@@ -453,7 +477,7 @@ mouse_filter = 2
 
 [node name="Hint" type="Label" parent="Root/Inspect/Center/Column"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 21
 text = "Hover a coloured word for what it means. Click outside the card or press Esc to close."
 horizontal_alignment = 1
 mouse_filter = 2
@@ -461,6 +485,23 @@ mouse_filter = 2
 [node name="Face" parent="Root/Inspect/Center/Column" instance=ExtResource("3_face")]
 layout_mode = 2
 size_flags_horizontal = 4
+
+[node name="StatusScroll" type="ScrollContainer" parent="Root/Inspect/Center/Column"]
+visible = false
+custom_minimum_size = Vector2(760, 160)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 0
+horizontal_scroll_mode = 0
+
+[node name="Status" type="RichTextLabel" parent="Root/Inspect/Center/Column/StatusScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+theme_override_font_sizes/normal_font_size = 24
+fit_content = true
+scroll_active = false
+
 
 [node name="Handoff" type="ColorRect" parent="Root"]
 visible = false

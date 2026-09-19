@@ -7,162 +7,162 @@
   "mastery": "freestyle_mastery",
   "relic": "blank_mask",
   "reserve": [
-    "open_challenge",
-    "defacement",
-    "warding_drill",
-    "revision_drill",
-    "lucky_find",
+	"open_challenge",
+	"defacement",
+	"warding_drill",
+	"revision_drill",
+	"lucky_find",
     "mutual_escalation"
   ],
   "archetype": "drills",
   "difficulty": "medium",
   "subthemes": [
-    "strikes",
+	"strikes",
     "swords"
   ],
   "ai_profile": "freestyle_swords",
   "tagline": "The last of a line of swordmasters. No magic at all.",
   "blurb": "Caedan Vale carries nothing but will, footwork and steel. His Drills stack until every cut lands heavier, and his signature moves punish anyone who blinks. No school means no crutch, and a Mastery that does little.",
   "cards": [
-    {
-      "id": "ancient_grove",
-      "count": 3
-    },
-    {
-      "id": "watchful_eye",
-      "count": 3
-    },
-    {
-      "id": "cut_short",
-      "count": 4
-    },
-    {
-      "id": "keen_eye",
-      "count": 1
-    },
-    {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "quiet_study",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
-    },
-    {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "vales_riposte",
-      "count": 4
-    },
-    {
-      "id": "hilt_guard",
-      "count": 3
-    },
-    {
-      "id": "second_wind",
-      "count": 3
-    },
-    {
-      "id": "quick_retreat",
-      "count": 3
-    },
-    {
-      "id": "no_quarter",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
-      "count": 3
-    },
-    {
-      "id": "committed_cut",
-      "count": 3
-    },
-    {
-      "id": "vales_sword_draw",
-      "count": 4
-    },
-    {
-      "id": "vales_quickstep",
-      "count": 3
-    },
-    {
-      "id": "vales_pommel_bash",
-      "count": 2
-    },
-    {
-      "id": "sword_lunge",
-      "count": 3
-    },
-    {
-      "id": "sword_flourish",
-      "count": 3
-    },
-    {
-      "id": "sword_sweep",
-      "count": 3
-    },
-    {
-      "id": "sword_thrust",
-      "count": 3
-    },
-    {
-      "id": "lobbed_bolt",
-      "count": 1
-    },
-    {
-      "id": "swordplay_drill",
-      "count": 3
-    },
-    {
-      "id": "lone_blade_drill",
-      "count": 3
-    },
-    {
-      "id": "counterplay_drill",
-      "count": 2
-    },
-    {
-      "id": "no_retreat_drill",
-      "count": 1
-    },
-    {
-      "id": "absorbing_drill",
-      "count": 1
-    },
-    {
-      "id": "mournes_quickness_drill",
-      "count": 1
-    },
-    {
-      "id": "vales_insight",
-      "count": 3
-    },
-    {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "recalled_lesson",
-      "count": 1
-    },
-    {
-      "id": "heirloom_blade",
-      "count": 1
-    },
-    {
-      "id": "bravado_drill",
-      "count": 1
-    }
+	{
+	  "id": "ancient_grove",
+	  "count": 3
+	},
+	{
+	  "id": "watchful_eye",
+	  "count": 3
+	},
+	{
+	  "id": "cut_short",
+	  "count": 4
+	},
+	{
+	  "id": "keen_eye",
+	  "count": 1
+	},
+	{
+	  "id": "kept_at_bay",
+	  "count": 1
+	},
+	{
+	  "id": "quiet_study",
+	  "count": 1
+	},
+	{
+	  "id": "stillness",
+	  "count": 1
+	},
+	{
+	  "id": "unyielding_guard",
+	  "count": 1
+	},
+	{
+	  "id": "mournes_stance",
+	  "count": 1
+	},
+	{
+	  "id": "vales_riposte",
+	  "count": 4
+	},
+	{
+	  "id": "hilt_guard",
+	  "count": 3
+	},
+	{
+	  "id": "second_wind",
+	  "count": 3
+	},
+	{
+	  "id": "quick_retreat",
+	  "count": 3
+	},
+	{
+	  "id": "no_quarter",
+	  "count": 3
+	},
+	{
+	  "id": "relentless_fury",
+	  "count": 3
+	},
+	{
+	  "id": "committed_cut",
+	  "count": 3
+	},
+	{
+	  "id": "vales_sword_draw",
+	  "count": 4
+	},
+	{
+	  "id": "vales_quickstep",
+	  "count": 3
+	},
+	{
+	  "id": "vales_pommel_bash",
+	  "count": 2
+	},
+	{
+	  "id": "sword_lunge",
+	  "count": 3
+	},
+	{
+	  "id": "sword_flourish",
+	  "count": 3
+	},
+	{
+	  "id": "sword_sweep",
+	  "count": 3
+	},
+	{
+	  "id": "sword_thrust",
+	  "count": 3
+	},
+	{
+	  "id": "lobbed_bolt",
+	  "count": 1
+	},
+	{
+	  "id": "swordplay_drill",
+	  "count": 3
+	},
+	{
+	  "id": "lone_blade_drill",
+	  "count": 3
+	},
+	{
+	  "id": "counterplay_drill",
+	  "count": 2
+	},
+	{
+	  "id": "no_retreat_drill",
+	  "count": 1
+	},
+	{
+	  "id": "absorbing_drill",
+	  "count": 1
+	},
+	{
+	  "id": "mournes_quickness_drill",
+	  "count": 1
+	},
+	{
+	  "id": "vales_insight",
+	  "count": 3
+	},
+	{
+	  "id": "foresight",
+	  "count": 1
+	},
+	{
+	  "id": "recalled_lesson",
+	  "count": 1
+	},
+	{
+	  "id": "heirloom_blade",
+	  "count": 1
+	},
+	{
+	  "id": "bravado_drill",
+	  "count": 1
+	}
   ]
 }

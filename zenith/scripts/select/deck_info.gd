@@ -23,9 +23,9 @@ const TYPE_ORDER: Array[CardDef.Type] = [
 @onready var key_cards: HFlowContainer = $KeyCards
 @onready var problems_label: Label = $Problems
 
-const KEY_CARD_SIZE: Vector2 = Vector2(128, 179)
-const KEY_CARD_ZOOM: Vector2 = Vector2(300, 420)
-const KEY_CARD_MAX: int = 8
+const KEY_CARD_SIZE: Vector2 = Vector2(160, 224)
+const KEY_CARD_ZOOM: Vector2 = Vector2(380, 532)
+const KEY_CARD_MAX: int = 3
 const NAME_SKIP: Array[String] = ["the", "dame", "sir"]
 
 var _aspect_names: Dictionary = {}      # aspect -> its name label in the aspect chips
@@ -33,6 +33,45 @@ var _aspect_chips: Dictionary = {}      # aspect -> its chip button
 var _chip_group: ButtonGroup = ButtonGroup.new()
 var _key_generation: int = 0            # bumps per show_deck so a slow render never lands on a newer deck
 var _zoom: TextureRect = null           # the hovered key card at readable size, following the pointer
+var _duelist: CardDef = null
+
+
+func _ready() -> void:
+	# Reuse the stat API, but let the resources read as emblems on the character sheet.
+	for tile: StatTile in [might_tile, surge_tile, life_tile, reserve_tile]:
+		var space: StyleBoxEmpty = StyleBoxEmpty.new()
+		space.content_margin_left = 6
+		space.content_margin_right = 6
+		space.content_margin_top = 4
+		space.content_margin_bottom = 5
+		tile.add_theme_stylebox_override("panel", space)
+		tile.name_label.add_theme_font_size_override("font_size", 13)
+		tile.value_label.add_theme_font_size_override("font_size", 34 if tile == might_tile or tile == surge_tile else 24)
+		tile.sub_label.add_theme_font_size_override("font_size", 13)
+		tile.name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tile.value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tile.sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		(tile.get_node("Column") as VBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
+		if tile == life_tile or tile == reserve_tile:
+			tile.size_flags_stretch_ratio = 0.8
+		else:
+			tile.size_flags_stretch_ratio = 1.2
+	might_tile.draw.connect(_draw_might_crest)
+	might_tile.resized.connect(might_tile.queue_redraw)
+	might_tile.value_label.resized.connect(might_tile.queue_redraw)
+	surge_tile.pips_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	surge_tile.pips_box.add_theme_constant_override("separation", 4)
+
+
+func _draw_might_crest() -> void:
+	var value: Label = might_tile.value_label
+	var center: Vector2 = value.position + (value.get_parent() as Control).position + value.size * 0.5
+	var half_width: float = minf(might_tile.size.x * 0.44, 62.0)
+	var half_height: float = value.size.y * 0.46
+	var points: PackedVector2Array = PackedVector2Array([center + Vector2(0, -half_height), center + Vector2(half_width, 0), center + Vector2(0, half_height), center + Vector2(-half_width, 0)])
+	might_tile.draw_colored_polygon(points, Color(ZenithTheme.MIGHT, 0.07))
+	points.append(points[0])
+	might_tile.draw_polyline(points, Color(ZenithTheme.MIGHT, 0.6), 1.5, true)
 
 
 ## Mirrors the flowing rows for a sheet that reads right to left.
@@ -46,6 +85,7 @@ func set_mirrored(on: bool) -> void:
 func show_deck(d: DeckList, might_max: int, faces: CardFaceCache = null, key_max: int = KEY_CARD_MAX) -> void:
 	var lib: CardLibrary = Session.library
 	var duelist: CardDef = lib.defs.get(d.duelist_id)
+	_duelist = duelist
 	_fill_stats(duelist, d)
 	_fill_aspects(duelist, d.aspects, maxi(1, might_max))
 	_fill_composition(d, lib)
@@ -57,6 +97,7 @@ func show_deck(d: DeckList, might_max: int, faces: CardFaceCache = null, key_max
 
 ## Lights the chip of the Aspect on show.
 func highlight_aspect(aspect: int) -> void:
+	_show_aspect_stats(aspect)
 	for t in _aspect_names.keys():
 		var l: Label = _aspect_names[t]
 		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if int(t) == aspect else ZenithTheme.TEXT)
@@ -109,6 +150,7 @@ func _key_card_ids(d: DeckList, duelist: CardDef, lib: CardLibrary, key_max: int
 
 
 func _fill_key_cards(d: DeckList, duelist: CardDef, lib: CardLibrary, faces: CardFaceCache, key_max: int) -> void:
+	_hide_zoom()
 	_key_generation += 1
 	var generation: int = _key_generation
 	for child in key_cards.get_children():
@@ -120,13 +162,26 @@ func _fill_key_cards(d: DeckList, duelist: CardDef, lib: CardLibrary, faces: Car
 		return
 	for id in ids:
 		var def: CardDef = lib.defs.get(id)
+		var column: VBoxContainer = VBoxContainer.new()
+		column.custom_minimum_size.x = KEY_CARD_SIZE.x
+		key_cards.add_child(column)
 		var rect: TextureRect = TextureRect.new()
 		rect.custom_minimum_size = KEY_CARD_SIZE
 		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rect.focus_mode = Control.FOCUS_ALL
+		rect.focus_entered.connect(func() -> void: _show_zoom(rect))
+		rect.focus_exited.connect(_hide_zoom)
 		rect.mouse_entered.connect(func() -> void: _show_zoom(rect))
 		rect.mouse_exited.connect(_hide_zoom)
-		key_cards.add_child(rect)
+		column.add_child(rect)
+		var caption: Label = Label.new()
+		caption.text = def.title
+		caption.custom_minimum_size.x = KEY_CARD_SIZE.x
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		caption.add_theme_font_size_override("font_size", 16)
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(caption)
 		var face: Texture2D = await faces.render_face(def)
 		if generation != _key_generation:
 			return   # a newer deck took over while this face rendered
@@ -155,7 +210,8 @@ func _place_zoom(rect: TextureRect) -> void:
 	var pos: Vector2 = Vector2(origin.x + rect.size.x + 8, origin.y + rect.size.y * 0.5 - KEY_CARD_ZOOM.y * 0.5)
 	if pos.x + KEY_CARD_ZOOM.x > view.x:
 		pos.x = origin.x - KEY_CARD_ZOOM.x - 8
-	pos.y = clampf(pos.y, 8.0, view.y - KEY_CARD_ZOOM.y - 8.0)
+	pos.x = clampf(pos.x, 8.0, maxf(8.0, view.x - KEY_CARD_ZOOM.x - 8.0))
+	pos.y = clampf(pos.y, 8.0, maxf(8.0, view.y - KEY_CARD_ZOOM.y - 8.0))
 	_zoom.global_position = pos
 
 
@@ -164,27 +220,22 @@ func _hide_zoom() -> void:
 		_zoom.visible = false
 
 
-## The four numbers that set a deck's ceiling: top Might, starting Surge, deck size, Reserve.
+## Resource statistics always describe the Aspect currently selected for inspection.
 func _fill_stats(duelist: CardDef, d: DeckList) -> void:
-	var top_might: int = 0
-	var top_aspect: int = 0
-	var first_surge: int = 0
-	if duelist != null:
-		for t in duelist.aspects:
-			var aspect: int = int(t.get("aspect", 0))
-			if aspect > d.aspects:
-				continue
-			var might: Array = t.get("might", [])
-			var top: int = int(might[might.size() - 1]) if might.size() > 0 else 0
-			if top > top_might:
-				top_might = top
-				top_aspect = aspect
-			if aspect == duelist.lowest_aspect():
-				first_surge = int(t.get("surge", 0))
-	might_tile.set_stat("Top Might", CardText.short_number(top_might), "at %s" % CardText.aspect_name(top_aspect, duelist), ZenithTheme.MIGHT)
-	surge_tile.set_stat("Surge", str(first_surge), "Energy per turn", ZenithTheme.ENERGY)
-	life_tile.set_stat("Life Deck", str(d.cards.size()), "cards", ZenithTheme.TEXT)
-	reserve_tile.set_stat("Reserve", str(d.reserve.size()), "swap-in cards", ZenithTheme.TEXT)
+	_show_aspect_stats(duelist.lowest_aspect() if duelist != null else 1)
+	life_tile.set_stat("Life Deck", "%d cards" % d.cards.size(), "", ZenithTheme.MUTED)
+	reserve_tile.set_stat("Reserve", "%d cards" % d.reserve.size(), "swap before play", ZenithTheme.MUTED)
+
+
+func _show_aspect_stats(aspect: int) -> void:
+	var data: Dictionary = _duelist.aspect_data(aspect) if _duelist != null else {}
+	var might: Array = data.get("might", [])
+	var top: int = int(might[might.size() - 1]) if not might.is_empty() else 0
+	might_tile.set_stat("Peak Might", CardText.short_number(top), "selected Aspect", ZenithTheme.MIGHT)
+	var surge: int = int(data.get("surge", 0))
+	surge_tile.set_stat("Surge", "+%d" % surge, "Energy per turn", ZenithTheme.ENERGY)
+	surge_tile.set_pips(surge, surge, ZenithTheme.ENERGY)
+	might_tile.queue_redraw()
 
 
 ## One chip per Aspect the deck plays with: the title, then Surge and top Might beneath it.
@@ -208,6 +259,7 @@ func _fill_aspects(duelist: CardDef, aspects: int, _might_max: int) -> void:
 		chip.button_group = _chip_group
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		chip.custom_minimum_size = Vector2(72, 44)   # the labels clip, so five chips always fit the column
+		chip.tooltip_text = "%s\nSurge %d · Peak Might %s" % [CardText.aspect_name(aspect, duelist), int(t.get("surge", 0)), CardText.short_number(top)]
 		chip.pressed.connect(func() -> void: aspect_clicked.emit(aspect))
 		var col: VBoxContainer = VBoxContainer.new()
 		col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

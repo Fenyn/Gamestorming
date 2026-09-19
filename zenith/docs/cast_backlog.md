@@ -20,8 +20,8 @@ Rule 3 does not reach Relics. The three Relics stand in for printed cards that c
 were de-personalised on purpose, because a Relic is worn rather than owned. `audit_mirrors.py`
 reports them as a note (exemption added 2026-09-19).
 
-Rules 1 and 2 are clean as of 2026-09-19: 25 characters, every attributed card leading with its
-name. Rule 3 has **31 cards** left, every one blocked on a character who does not exist yet. Where
+Rules 1 and 2 are clean as of 2026-09-19: 27 characters, every attributed card leading with its
+name. Rule 3 has **23 cards** left, every one blocked on a character who does not exist yet. Where
 each of those characters sits is already settled in `world.md`; only the names are missing.
 
 ## Naming conventions in force
@@ -59,6 +59,14 @@ each of those characters sits is already settled in `world.md`; only the names a
   like comes from that card, not from a fixed element on the person.
 - **Torvan Hask** (approved 2026-09-19), Edric's elder brother from the line he left, closes the
   Raditz row: one card, `hasks_flying_kick`.
+- **Emrys Rooke** (approved 2026-09-19), the eldest son, a swordsman where his parents are
+  casters, closes the Gohan row: eight cards. `no_quarter` Emrys Gives No Quarter,
+  `all_or_nothing` Emrys Risks It All, `hilt_guard` Emrys' Hilt Guard, `sword_flourish`,
+  `sword_sweep` and `sword_thrust` Emrys' Sword Flourish / Sweep / Thrust, `swordplay_drill`
+  Emrys' Swordplay Drill, `locked_gate_drill` Emrys Spots the Fraud Drill. His name is now on
+  a card in six decks, which is the rule working as intended. **The sword titles are
+  load-bearing**: Vale's Aspect 1, `vales_sword_draw`, `swordplay_drill` and the Vale Heirloom
+  all match on the substrings "Sword" and "Swordplay", so any future retitle has to keep them.
 
 ## 3. Named cards with no mirror character yet
 
@@ -67,7 +75,6 @@ say what kind of person the cards imply.
 
 | source character | n | cards | card types |
 |---|---|---|---|
-| **Gohan** (name approved: **Emrys Rooke**, the eldest son; the eight titles are still to write) | 8 | `all_or_nothing`, `hilt_guard`, `no_quarter`, `sword_flourish`, `sword_sweep`, `sword_thrust`, `locked_gate_drill`, `swordplay_drill` | Drill, Strike |
 | **Krillin** | 5 | `blinding_flare`, `unerring_bolt`, `keen_eye`, `clear_mind`, `sleight` | Art, Combat, Non-Combat |
 | **Cell** | 4 | `old_habit`, `dismissal`, `sever_the_leyline`, `terms_of_the_pact` | Combat, Pacts only, Strike |
 | **Tien** | 4 | `practiced_guard`, `smoke_screen`, `suppressing_shot`, `threefold_bolt` | Art, Strike |
@@ -83,9 +90,6 @@ say what kind of person the cards imply.
 
 ### Notes on the ones with the most to say
 
-- **Gohan** is the largest gap and every card of his is a Sword card or a Sword Drill, so his
-  mirror is a swordsman, and Caedan Vale's whole deck is built out of them. They belong to the same
-  tradition.
 - **Dende** needs a healer. Namekian is our Root school and Piccolo is already Osric Thornwald, so
   Dende belongs near the Thornwald Grove. He is a child in the source and we have no young Vigil
   character at all. He is **not** Thessa: Thessa is an Eidolon, a summoned force behind the gate,
@@ -95,8 +99,9 @@ say what kind of person the cards imply.
 
 ### Where each of them already sits
 
-Placed in `world.md` on 2026-09-19, so only the name is outstanding: Gohan is a Rooke by blood,
-Vale-trained in the sword and Thornwald-taught in the rest. Krillin and Tien are the Kingsguard's
+Placed in `world.md` on 2026-09-19, so only the name is outstanding. (Gohan is placed there as a
+Rooke by blood, Vale-trained in the sword and Thornwald-taught in the rest; that is Emrys Rooke
+and it is done.) Krillin and Tien are the Kingsguard's
 two rival forms, at contact and at distance. Bulma is a Vale and Caedan's mother. Nappa is the
 broken company's third survivor. Ginyu captains the retained guard. Babidi lays the demons' mark
 and works the toll gate. Supreme Kai holds the Vigil's highest office, which is what `overreach`

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
@@ -6,10 +6,13 @@
 [ext_resource type="Script" path="res://scripts/duel/table_layout.gd" id="2_layout"]
 [ext_resource type="PackedScene" path="res://scenes/duel/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="4_cache"]
+[ext_resource type="PackedScene" path="res://scenes/duel/hand_3d.tscn" id="7_hand"]
+[ext_resource type="PackedScene" path="res://scenes/duel/duelist_display.tscn" id="8_display"]
+[ext_resource type="Shader" path="res://assets/arena_surface.gdshader" id="9_surface"]
 
 [sub_resource type="Environment" id="Environment_duel"]
-background_mode = 1
-background_color = Color(0.05, 0.045, 0.06, 1)
+background_mode = 2
+background_color = Color(0.012, 0.019, 0.032, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.75, 0.72, 0.7, 1)
 ambient_light_energy = 0.6
@@ -19,14 +22,20 @@ tonemap_mode = 2
 size = Vector3(10.4, 0.2, 7.4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
-albedo_color = Color(0.16, 0.14, 0.12, 1)
+albedo_color = Color(0.045, 0.065, 0.085, 1)
 roughness = 0.9
+
+[sub_resource type="PlaneMesh" id="Plane_surface"]
+size = Vector2(10.4, 7.4)
+
+[sub_resource type="ShaderMaterial" id="Material_surface"]
+shader = ExtResource("9_surface")
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.1, 40)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.07, 0.065, 0.08, 1)
+albedo_color = Color(0.014, 0.022, 0.035, 1)
 roughness = 1.0
 
 [node name="Duel" type="Node3D"]
@@ -41,6 +50,7 @@ light_energy = 1.2
 shadow_enabled = true
 
 [node name="Floor" type="MeshInstance3D" parent="."]
+visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
@@ -50,12 +60,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 mesh = SubResource("BoxMesh_table")
 surface_material_override/0 = SubResource("StandardMaterial3D_table")
 
+[node name="Inlay" type="MeshInstance3D" parent="Table"]
+position = Vector3(0, 0.102, 0)
+mesh = SubResource("Plane_surface")
+material_override = SubResource("Material_surface")
+
 [node name="CameraRig" type="Node3D" parent="."]
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
 transform = Transform3D(1, 0, 0, 0, 0.681998, 0.731354, 0, -0.731354, 0.681998, 0, 6.4, 5.6)
 fov = 54.0
 script = ExtResource("5_camera")
+
+[node name="Hand3D" parent="CameraRig/Camera" instance=ExtResource("7_hand")]
+
+[node name="NearDuelist" parent="." instance=ExtResource("8_display")]
+
+[node name="FarDuelist" parent="." instance=ExtResource("8_display")]
+
+[node name="FocusCard" type="Sprite3D" parent="CameraRig/Camera"]
+visible = false
+shaded = false
+texture_filter = 3
 
 [node name="Zones" type="Node3D" parent="."]
 script = ExtResource("2_layout")

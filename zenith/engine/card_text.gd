@@ -174,6 +174,31 @@ static func bloodline_name(bloodline: String) -> String:
 	return bloodline.capitalize()
 
 
+## Who a card's "X only" gate lets play it, without the trailing "only". An `any_of` gate lists
+## each way in, because a card that names a side and two personalities allows all three.
+static func gate_text(gate: Dictionary) -> String:
+	if gate.has("any_of"):
+		var ways: PackedStringArray = PackedStringArray()
+		for sub in gate["any_of"]:
+			var one: String = gate_text(sub)
+			if one != "":
+				ways.append(one)
+		if ways.is_empty():
+			return ""
+		if ways.size() == 1:
+			return ways[0]
+		return "%s and %s" % [", ".join(ways.slice(0, ways.size() - 1)), ways[ways.size() - 1]]
+	if gate.has("alignment"):
+		return str(gate["alignment"]).capitalize() + "s"
+	if gate.has("character"):
+		return str(gate["character"])
+	if gate.has("duelist_character"):
+		return str(gate["duelist_character"])
+	if gate.has("bloodline"):
+		return bloodline_name(str(gate["bloodline"]))
+	return ""
+
+
 ## card_type -> [singular, plural].
 const CARD_TYPE_WORDS: Dictionary = {
 	"card": ["card", "cards"], "ally": ["Ally", "Allies"], "drill": ["Drill", "Drills"],
@@ -266,12 +291,9 @@ static func rules_text(def: CardDef) -> String:
 		return def.text
 	var lines: PackedStringArray = PackedStringArray()
 	if not def.only.is_empty():
-		if def.only.has("character"):
-			lines.append("%s only." % str(def.only["character"]))
-		elif def.only.has("duelist_character"):
-			lines.append("%s only." % str(def.only["duelist_character"]))
-		elif def.only.has("bloodline"):
-			lines.append("%s only." % bloodline_name(str(def.only["bloodline"])))
+		var gate: String = gate_text(def.only)
+		if gate != "":
+			lines.append("%s only." % gate)
 	if def.endurance > 0 and def.endurance_when.is_empty():
 		lines.append("Endurance %d." % def.endurance)
 	elif not def.endurance_when.is_empty():
@@ -815,7 +837,8 @@ static func _effect_body(e: Dictionary) -> String:
 			var what: String = str(e.get("what", ""))
 			var params: Dictionary = e.get("params", {})
 			if what == "modifier":
-				body = modifier_text(params) if bool(params.get("once", false)) else "For the remainder of Combat, %s" % _lc(modifier_text(params))
+				var mspan: String = "For the rest of the game" if str(e.get("duration", "combat")) == "game" else "For the remainder of Combat"
+				body = modifier_text(params) if bool(params.get("once", false)) else "%s, %s" % [mspan, _lc(modifier_text(params))]
 			elif what == "make_focused" and params.has("school"):
 				body = "For the remainder of Combat, your other %s attacks are Focused." % school_name(str(params["school"]))
 			elif what == "after_use_bottom":

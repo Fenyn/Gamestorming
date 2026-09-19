@@ -20,6 +20,7 @@ var _home: Transform3D
 var _target: Vector3
 var _idle: float = 0.0
 var _dragging: bool = false
+var hand_navigation: bool = false
 
 
 func _ready() -> void:
@@ -83,7 +84,7 @@ func dev_set(pan: Vector2, notches: int) -> void:
 
 
 func _key_axis() -> Vector2:
-	if get_viewport().gui_get_focus_owner() != null:
+	if hand_navigation or get_viewport().gui_get_focus_owner() != null:
 		return Vector2.ZERO
 	var axis: Vector2 = Vector2.ZERO
 	if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):

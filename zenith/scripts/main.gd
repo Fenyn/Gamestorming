@@ -26,7 +26,7 @@ func _ready() -> void:
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
 	Net.connected.connect(_on_connected)
 	Net.connection_failed.connect(_on_failed)
-	status_label.text = "%d card definitions · %d decks" % [Session.library.defs.size(), Session.decks.size()]
+	status_label.text = ""
 	_dev_args()
 
 

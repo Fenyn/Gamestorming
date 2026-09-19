@@ -1,5 +1,5 @@
 {
-  "name": "Quarr the Ironblood",
+  "name": "Ironblood Onslaught",
   "duelist": "duelist_epsilon",
   "aspects": 3,
   "style": "steel",
@@ -23,7 +23,7 @@
     "might"
   ],
   "ai_profile": "steel_beatdown",
-  "tagline": "An Ironblood grinder who reads the last blow.",
+  "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
   "blurb": "Halden Quarr turns magic inward until the body is the spell. He hits harder than anyone at the same Energy and gains it back as he goes. Few tricks and no recovery, only weight.",
   "cards": [
     {

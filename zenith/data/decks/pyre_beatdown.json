@@ -1,5 +1,5 @@
 {
-  "name": "Ashmark the Pyromancer",
+  "name": "Wildfire Rush",
   "duelist": "duelist_alpha",
   "aspects": 3,
   "style": "pyre",
@@ -26,7 +26,7 @@
     "fervor"
   ],
   "ai_profile": "pyre_beatdown",
-  "tagline": "A pyromancer prodigy who rides momentum.",
+  "tagline": "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",
   "blurb": "Bram Ashmark takes the site's power greedily and burns whatever he has to. His Strikes feed his Fervor, and every Aspect he climbs makes the next climb faster. Thin on defense; win before the fire goes out.",
   "cards": [
     {

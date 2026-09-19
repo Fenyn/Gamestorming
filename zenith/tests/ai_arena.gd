@@ -2,7 +2,7 @@ extends SceneTree
 ## Plays AI policies against each other across the starter decks and reports who wins and how
 ## long a decision takes. Every pairing is played from both seats.
 ## godot --headless --path zenith -s tests/ai_arena.gd -- --a=search --b=scorer --seeds=1
-## Policies: random, scorer, search, or a profile name under data/ai/profiles (easy, hard).
+## Policies: random, scorer, search, rollout (historical search), or a difficulty profile.
 ## Options: --seeds=N, --decks=pyre_beatdown,storm_volley (default all), --budget=MS,
 ## --samples=N, --turns=N (playout horizon) and --steps=N (playout step cap) for searching
 ## policies, --verbose for a line per game. A deck's own playstyle
@@ -31,6 +31,10 @@ func _init() -> void:
 	var think_usec: Array[int] = [0, 0]
 	var decisions: Array[int] = [0, 0]
 	var slowest_usec: Array[int] = [0, 0]
+	var timings: Array = [[], []]
+	var search_depths: Array[int] = [0, 0]
+	var search_decisions: Array[int] = [0, 0]
+	var fallbacks: Array[int] = [0, 0]
 	for deck_a in names:
 		for deck_b in names:
 			for s in range(int(args["seeds"])):
@@ -62,6 +66,13 @@ func _init() -> void:
 						else:
 							wire = players[seat].choose(ref, seat)
 						var spent: int = Time.get_ticks_usec() - t0
+						(timings[who] as Array).append(spent / 1000.0)
+						if players[seat] != null and str(players[seat].search.metrics.get("algorithm", "")) == "sequence":
+							var depth: int = int(players[seat].search.metrics["completed_depth"])
+							search_depths[who] += depth
+							search_decisions[who] += 1
+							if depth == 0 and ref.engine.prompt.options.size() > 1:
+								fallbacks[who] += 1
 						think_usec[who] += spent
 						decisions[who] += 1
 						slowest_usec[who] = maxi(slowest_usec[who], spent)
@@ -90,11 +101,30 @@ func _init() -> void:
 	print("games %d, unfinished %d" % [games, unfinished])
 	for i in range(2):
 		print("%s: %d wins (%.1f%%), %.2f ms per decision, slowest %.0f ms" % [policies[i], wins[i], 100.0 * wins[i] / maxi(1, games), think_usec[i] / 1000.0 / maxi(1, decisions[i]), slowest_usec[i] / 1000.0])
+		(timings[i] as Array).sort()
+		print("  median %.2f ms, p95 %.2f ms; mean completed depth %.2f, scorer fallbacks %d" % [percentile(timings[i], 0.5), percentile(timings[i], 0.95), float(search_depths[i]) / maxi(1, search_decisions[i]), fallbacks[i]])
 	print("win reasons %s" % str(reasons))
 	for d in names:
 		var t: Array = by_deck.get(d, [0, 0])
 		print("  %s as %s: %d of %d" % [d, policies[0], int(t[0]), int(t[1])])
+	if args.has("report"):
+		var summary: Dictionary = {"arguments": args, "games": games, "unfinished": unfinished,
+			"policies": policies, "wins": wins, "by_deck": by_deck, "win_reasons": reasons,
+			"decisions": decisions, "total_usec": think_usec, "max_usec": slowest_usec,
+			"median_ms": [percentile(timings[0], 0.5), percentile(timings[1], 0.5)],
+			"p95_ms": [percentile(timings[0], 0.95), percentile(timings[1], 0.95)],
+			"search_depth_totals": search_depths, "search_decisions": search_decisions, "fallbacks": fallbacks}
+		var output: FileAccess = FileAccess.open(str(args["report"]), FileAccess.WRITE)
+		if output == null:
+			push_error("Cannot write arena report: %s" % args["report"])
+			quit(1)
+			return
+		output.store_string(JSON.stringify(summary, "\t") + "\n")
 	quit(1 if unfinished > 0 else 0)
+
+
+func percentile(sorted: Array, fraction: float) -> float:
+	return float(sorted[mini(sorted.size() - 1, int(ceil(fraction * sorted.size())) - 1)]) if not sorted.is_empty() else 0.0
 
 
 func deck_names(wanted: String) -> Array[String]:
@@ -118,10 +148,12 @@ func deck_names(wanted: String) -> Array[String]:
 func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckList) -> AiPlayer:
 	if policy == "random":
 		return null
-	var level: String = "" if policy == "scorer" or policy == "search" else policy
+	var level: String = "" if policy in ["scorer", "search", "rollout"] else policy
 	var profile: AiProfile = AiProfile.for_deck(deck, level)
 	if policy == "scorer":
 		profile.merge({"think": {"search": false}})
+	elif policy == "rollout":
+		profile.merge({"think": {"algorithm": "rollout"}})
 	var over: Dictionary = {}
 	if str(args["budget"]) != "":
 		over["budget_ms"] = int(args["budget"])
@@ -131,6 +163,9 @@ func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckLi
 		over["turns"] = int(args["turns"])
 	if str(args["steps"]) != "":
 		over["max_steps"] = int(args["steps"])
+	for mapping in [["nodes", "node_budget"], ["depth", "sequence_depth"], ["branches", "branch_width"], ["responses", "response_width"], ["rollout_steps", "rollout_steps"]]:
+		if args.has(mapping[0]):
+			over[mapping[1]] = int(args[mapping[0]])
 	if not over.is_empty():
 		profile.merge({"think": over})
 	return AiPlayer.new(profile, seed_value)

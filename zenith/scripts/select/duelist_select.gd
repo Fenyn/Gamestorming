@@ -1,6 +1,5 @@
 extends Control
-## Duelist select, one seat at a time: a roster strip along the bottom and the choosing
-## player's panel filling the rest. Nothing about the other seat shows here; the matchup screen
+## Deck selection, one seat at a time: a searchable library beside a tabbed preview. Nothing about the other seat shows here; the matchup screen
 ## comes after both lock in. Hotseat: Player 1 locks in, then Player 2 on the same screen. Vs AI:
 ## the person picks their own duelist, then the AI's. Online: this client's seat only, and the
 ## lobby waits for the other client's lock.
@@ -8,9 +7,9 @@ extends Control
 const ROSTER_TILE: PackedScene = preload("res://scenes/select/roster_tile.tscn")
 const ADVANCE_DELAY: float = 0.6
 
-@onready var seat_panel: SelectSeat = $Margin/Column/Seat
+@onready var seat_panel: SelectSeat = $Margin/Column/Body/Seat
 @onready var faces: CardFaceCache = $CardFaceCache
-@onready var roster: HBoxContainer = $Margin/Column/Roster
+@onready var roster: GridContainer = $Margin/Column/Body/Library/Scroll/Roster
 @onready var title_label: Label = $Margin/Column/TitleRow/Title
 @onready var status_label: Label = $Margin/Column/TitleRow/Status
 @onready var back_button: Button = $Margin/Column/TitleRow/Back
@@ -21,6 +20,16 @@ const ADVANCE_DELAY: float = 0.6
 @onready var copy_button: Button = $Margin/Column/CodeBanner/Row/Copy
 @onready var copied_label: Label = $Margin/Column/CodeBanner/Row/Copied
 
+@onready var search: LineEdit = $Margin/Column/Body/Library/Tools/Search
+@onready var school_filter: OptionButton = $Margin/Column/Body/Library/Tools/School
+@onready var count_label: Label = $Margin/Column/Body/Library/Count
+@onready var empty_label: Label = $Margin/Column/Body/Library/Empty
+@onready var reset_button: Button = $Margin/Column/Body/Library/Reset
+@onready var roster_scroll: ScrollContainer = $Margin/Column/Body/Library/Scroll
+
+var _schools: Array[String] = [""]
+var _visible_indices: Array[int] = []
+
 var _online: bool = false
 var _order: Array[int] = [0, 1]   # seats this client chooses for, in turn
 var _seat: int = 0                # the seat choosing now
@@ -29,7 +38,14 @@ var _advancing: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = ZenithTheme.get_theme().duplicate()
+	theme.set_stylebox("focus", "Button", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 8, 2, 0, 0))
+	theme.set_stylebox("focus", "TileButton", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 8, 2, 0, 0))
+	theme.set_stylebox("panel", "TabContainer", ZenithTheme.box(Color.TRANSPARENT, Color.TRANSPARENT, 0, 0, 0, 12))
+	for state: String in ["tab_unselected", "tab_hovered", "tab_selected"]:
+		theme.set_stylebox(state, "TabContainer", ZenithTheme.box(ZenithTheme.RAISED if state == "tab_selected" else Color.TRANSPARENT, Color.TRANSPARENT, 6, 0, 18, 10))
+	theme.set_color("font_selected_color", "TabContainer", ZenithTheme.ACCENT)
+	theme.set_color("font_unselected_color", "TabContainer", ZenithTheme.MUTED)
 	_online = Net.active()
 	if not _online and OS.get_cmdline_user_args().has("--dev-ai"):
 		Session.ai_seat = 1   # the select screen opened directly, as against the AI
@@ -41,6 +57,17 @@ func _ready() -> void:
 		tile.setup(i, Session.decks[i])
 		tile.picked.connect(_pick)
 		_tiles.append(tile)
+	school_filter.add_item("All schools")
+	for d: DeckList in Session.decks:
+		if not _schools.has(d.style):
+			_schools.append(d.style)
+			school_filter.add_item(CardText.school_name(d.style))
+	search.text_changed.connect(func(_text: String) -> void: _filter_decks())
+	school_filter.item_selected.connect(func(_index: int) -> void: _filter_decks())
+	reset_button.pressed.connect(_reset_filters)
+	roster_scroll.resized.connect(_resize_grid)
+	_filter_decks()
+	_resize_grid()
 	seat_panel.faces = faces
 	seat_panel.lock_toggled.connect(_on_lock_toggled)
 	seat_panel.name_changed.connect(_on_name_changed)
@@ -88,12 +115,13 @@ func _tag(seat: int) -> String:
 func _show_seat(seat: int) -> void:
 	_seat = seat
 	seat_panel.set_seat(seat, _tag(seat))
+	_reset_filters()
 	if seat == Session.ai_seat:
-		title_label.text = "Choose the AI's duelist"
+		title_label.text = "Choose the opponent's deck"
 	elif _online or Session.ai_seat >= 0:
-		title_label.text = "Choose your duelist"
+		title_label.text = "Choose your deck"
 	else:
-		title_label.text = "Player %d, choose your duelist" % (seat + 1)
+		title_label.text = "Player %d, choose your deck" % (seat + 1)
 	_refresh()
 
 
@@ -239,19 +267,55 @@ func _on_back() -> void:
 	Session.go_to_title()
 
 
-## Arrow keys move through the roster; Enter locks in.
-func _unhandled_input(event: InputEvent) -> void:
-	if Session.locked[_seat] or not (event is InputEventKey) or not (event as InputEventKey).pressed:
+## Filters never change the player's current choice or expose another seat's pick.
+func _filter_decks() -> void:
+	_visible_indices.clear()
+	var query: String = search.text.strip_edges().to_lower()
+	var school: String = _schools[school_filter.selected] if school_filter.selected >= 0 else ""
+	for tile: RosterTile in _tiles:
+		var d: DeckList = Session.decks[tile.index]
+		var def: CardDef = Session.library.defs.get(d.duelist_id)
+		var haystack: String = "%s %s %s %s %s" % [d.name, def.title if def != null else d.duelist_id, Archetype.label(d.archetype), d.tagline, d.difficulty]
+		tile.visible = (school == "" or d.style == school) and (query == "" or haystack.to_lower().contains(query))
+		if tile.visible:
+			_visible_indices.append(tile.index)
+	count_label.text = "STARTER DECKS   /   %d OF %d" % [_visible_indices.size(), _tiles.size()]
+	empty_label.visible = _visible_indices.is_empty()
+	reset_button.visible = query != "" or school != ""
+	roster_scroll.scroll_vertical = 0
+
+
+func _reset_filters() -> void:
+	search.text = ""
+	school_filter.select(0)
+	_filter_decks()
+
+
+func _resize_grid() -> void:
+	roster.columns = maxi(1, mini(4, int((roster_scroll.size.x + 16) / 236)))
+
+
+## Arrows browse the filtered grid. Confirmation is an explicit, focused button action.
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not event.is_pressed() or event.is_echo() or not event is InputEventKey:
+		return
+	if get_viewport().gui_get_focus_owner() is LineEdit or Session.locked[_seat]:
 		return
 	var key: Key = (event as InputEventKey).keycode
-	var current: int = Session.decks.find(Session.chosen[_seat]) if Session.chosen[_seat] != null else -1
-	if key == KEY_LEFT or key == KEY_RIGHT:
-		var step: int = 1 if key == KEY_RIGHT else -1
-		_pick(posmod(current + step, Session.decks.size()) if current >= 0 else 0)
-		accept_event()
-	elif key == KEY_ENTER or key == KEY_KP_ENTER:
-		_on_lock_toggled(_seat, true)
-		accept_event()
+	if not key in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN] or _visible_indices.is_empty():
+		return
+	var current: int = _visible_indices.find(Session.decks.find(Session.chosen[_seat]))
+	var step: int = 1
+	if key == KEY_LEFT:
+		step = -1
+	elif key == KEY_UP:
+		step = -roster.columns
+	elif key == KEY_DOWN:
+		step = roster.columns
+	var index: int = _visible_indices[posmod(current + step, _visible_indices.size()) if current >= 0 else 0]
+	_pick(index)
+	roster_scroll.ensure_control_visible(_tiles[index])
+	accept_event()
 
 
 ## `--dev-pick=A,B` picks deck A for player 1 and B for player 2 (online: only this client's

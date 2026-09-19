@@ -1,0 +1,21 @@
+{
+  "cards": [
+    {"id":"ai_strategy_duelist","title":"Test Strategy Duelist","type":"personality","character":"Test Strategy Duelist","aspects":[
+      {"aspect":1,"surge":1,"might":[1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000]},
+      {"aspect":2,"surge":1,"might":[1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000]},
+      {"aspect":3,"surge":1,"might":[1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000]}
+    ]},
+    {"id":"ai_strategy_caster","title":"Test Strategy Caster","type":"personality","character":"Test Strategy Caster","aspects":[
+      {"aspect":1,"surge":1,"might":[100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000],"power":{"attack":{"kind":"art","printed_life":12,"cost_stages":0}}}
+    ]},
+    {"id":"ai_strategy_attack","title":"Test Strategy Tempting Attack","type":"art","attack":{"kind":"art","printed_life":4,"cost_stages":0}},
+    {"id":"ai_strategy_distraction","title":"Test Strategy Costly Attack","type":"art","attack":{"kind":"art","printed_life":4,"cost_stages":3}},
+    {"id":"ai_strategy_battery","title":"Test Strategy Small Battery","type":"combat","effects":[{"op":"energy","amount":1}]},
+    {"id":"ai_strategy_battery_two","title":"Test Strategy Large Battery","type":"combat","effects":[{"op":"energy","amount":2}]},
+    {"id":"ai_strategy_costly_finish","title":"Test Strategy Charged Finisher","type":"art","attack":{"kind":"art","printed_life":12,"cost_stages":3}},
+    {"id":"ai_strategy_closer","title":"Test Strategy Closing Attack","type":"art","attack":{"kind":"art","printed_life":4,"cost_stages":0},"effects":[{"trigger":"if_successful","op":"end_combat"}]},
+    {"id":"ai_strategy_lethal","title":"Test Strategy Finisher","type":"art","attack":{"kind":"art","printed_life":12,"cost_stages":0}},
+    {"id":"ai_strategy_block","title":"Test Strategy Ward","type":"combat","defense":{"stops":"any"}},
+    {"id":"ai_strategy_charge","title":"Test Strategy Charge","type":"combat","effects":[{"op":"fervor","amount":1},{"op":"energy","amount":2}]}
+  ]
+}

@@ -1,5 +1,5 @@
 {
-	"_note": "Same values as default, more samples and time.",
+	"_note": "Same strategic values, deeper sequence search with more alternatives and sampled deals.",
 	"name": "hard",
-	"think": {"top_k": 8, "samples": 12, "budget_ms": 1200}
+	"think": {"top_k": 8, "samples": 3, "budget_ms": 1600, "node_budget": 6000, "sequence_depth": 10, "branch_width": 4}
 }

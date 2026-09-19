@@ -1,0 +1,2680 @@
+{
+	"by_deck": {
+		"shade_salvage": {
+			"baseline_wins": 10,
+			"both_lost": 7,
+			"both_won": 6,
+			"completed_pairs": 20,
+			"gained_wins": 3,
+			"lost_wins": 4,
+			"net_wins": -1,
+			"search_wins": 9
+		}
+	},
+	"config": {
+		"budget_ms": 400.0,
+		"max_steps": 6000.0,
+		"opponents": [
+			"freestyle_swords",
+			"pyre_ascent",
+			"pyre_beatdown",
+			"root_seals",
+			"shade_henchmen",
+			"shade_salvage",
+			"steel_beatdown",
+			"steel_heir",
+			"storm_unbound",
+			"storm_volley",
+			"tide_companions"
+		],
+		"samples": 2.0,
+		"seed": 77.0,
+		"seeds": 1.0,
+		"targets": [
+			"shade_salvage"
+		]
+	},
+	"expected_matches": 40,
+	"godot_version": "4.6.2-stable (official)",
+	"input_sha256": {
+		"res://ai/ai_evaluator.gd": "16fd0028a9414d4ef3a6eb621084bd22e92cc234332e7a3215815a4e54587e37",
+		"res://ai/ai_observation.gd": "f04f7bfd0c1e9441abb33182482c38dda99616aa81da0fca4e86322ef2b8395a",
+		"res://ai/ai_player.gd": "94e90c65b8a9d5bf8761e1141500b388e45e0688f22a97d5812367da5c5550cc",
+		"res://ai/ai_profile.gd": "761bce4cb5868a9a5883680440c7c963907f305866b5e107f30d72a58e3863da",
+		"res://ai/ai_reserve.gd": "c78eb1caff658f4543e4f29d78f495f0627038aa35a3926b7acaf700ee15e255",
+		"res://ai/ai_scorer.gd": "d262be5d2c0b7ca8c0fc5e757c6fa9bb3179414ac4d36089af5677e12b5d75a2",
+		"res://ai/ai_search.gd": "08c5fa009c137bff3b554d65ae4f3186cb765a85a37d10af3a7e9dd686297939",
+		"res://data/ai/profiles/default.json": "846ac6909542e79f31d2d05633af28911cfc679e8a33539399ee6a2d904fa100",
+		"res://data/ai/profiles/easy.json": "e811d20393e70fc22c3de389f43f6d6e0219feb78795cd4c1a8b39b031e8931e",
+		"res://data/ai/profiles/freestyle_swords.json": "5413a846def0a4c8e080f980097b714a92b73b2cf91f9597222d41d9bdc6f053",
+		"res://data/ai/profiles/hard.json": "67fa9386ea5d4be6e440f220412f0c7b9186dc1bbd829fb433ce90886db16bf2",
+		"res://data/ai/profiles/pyre_ascent.json": "940f0de2f1ace29eca90c36e42cbfa49f7f7527154080cefb24af5fc575bffc5",
+		"res://data/ai/profiles/pyre_beatdown.json": "d33eee935c24b22e98402e8d209030a7406af10310e066ec3f1ede67f9d748bf",
+		"res://data/ai/profiles/root_seals.json": "40a08e09d594b7529353ff12004ef139a8186102682f05bc23ac0fb446629d3c",
+		"res://data/ai/profiles/shade_henchmen.json": "1cb1517439b8536fb3b6b4cafe1e36eccbaccbfaf33581f7040ebf8232087679",
+		"res://data/ai/profiles/shade_salvage.json": "a5d63e03f61ba2a4cc43458cc49969987696af2031e87f8baf7914bc0e41432b",
+		"res://data/ai/profiles/steel_beatdown.json": "ff0312320ae2d31f844877d8dc4521591b17402dc194b30942e7708c3b7307d4",
+		"res://data/ai/profiles/steel_heir.json": "2652384695bffd3ed35b654b166d70a0a48dabdf7cc626edae89c9b8a9a5e27d",
+		"res://data/ai/profiles/storm_unbound.json": "21504c48bf553d4e07f3dd69e09cfe81db9ebc82c86669b337fec3f0619d704a",
+		"res://data/ai/profiles/storm_volley.json": "2204ccf547bc9f43c779bb35d8ae313ae922fc32c0188f12f77438492776209e",
+		"res://data/ai/profiles/tide_companions.json": "c3d33452ae6775630daeab5e286c7086977b6dc8d70ba3aadcfc11bf0267c88f",
+		"res://data/cards/starter/starter_set.json": "ad1b8edd8bfc07d1b99e5c00570f1290572d77d19dad1e1b29994cd0e9b779a9",
+		"res://data/decks/freestyle_swords.json": "047bfac486024ed1a7b71ec7c6cf66a7412c4757cd78532e9b2c3c6313a33b9f",
+		"res://data/decks/pyre_ascent.json": "d1aa6ee546c0a185b1b0a412b462171a8fe4accad2ae7c4698a31fc80ef7f86e",
+		"res://data/decks/pyre_beatdown.json": "a19e04d60b7bd4069d0fee162d13741cb4a5c0692432a097195426e41ab73f1b",
+		"res://data/decks/root_seals.json": "2890194dd95659f5384b16dfb27b15758a59a732a7e6a4552ca7cb85e15cd801",
+		"res://data/decks/shade_henchmen.json": "aeab7e9e2605d3d1c656fc90f4e526804674c416c94303dd37fd67f97208b3aa",
+		"res://data/decks/shade_salvage.json": "2c122185d0ba7d205971d56fd6c7faa783d175b7dbdc5d76a9a7314d1064a184",
+		"res://data/decks/steel_beatdown.json": "c6ddfa2e769ec6e827c833676998cc0df1b4a460a7bad9a6f1a69c8e6b953126",
+		"res://data/decks/steel_heir.json": "8071e6587417bd7480f49b8bcfcdb442c1565b835cded48d4760fb212a4bc185",
+		"res://data/decks/storm_unbound.json": "d72082f0075bfed85972320697f812d3dec79b68c20e0a28f61acaa51c3d806a",
+		"res://data/decks/storm_volley.json": "31280a195eb458a3748ee02d3d389fb45e6821c4b47beeaab9b2c45e82a04da8",
+		"res://data/decks/tide_companions.json": "d7364c7533428292390e21f67aa2c08048941b530e6e77aeb8821a6bb60b52ff",
+		"res://data/strike_table.json": "8ac86e59121a1cd8086b2de13c05281794fba3333356e72dfcdf5e95eb4f0f24",
+		"res://engine/archetype.gd": "a8fa2e88a40c96dd7ab7b97f368bb07fd6d2b226d8b6e55fa5617844a566c35f",
+		"res://engine/card_def.gd": "ba959701db56ea86ecc6950273b8e7ab9178c710eacced20ec25a9556abc23d5",
+		"res://engine/card_instance.gd": "19630147b13a5398cab4b3c1b29d41d3e1ba175d938f3811f8505bf967325c05",
+		"res://engine/card_library.gd": "00a031b8cb81d750061bdd7aad2389b8468e762dd2aa3b5eb5803f6f76ddb014",
+		"res://engine/card_text.gd": "e7f853d7d98c1d5c435df0dc9b3e2d435f0726495a0b2f3723b008d563514329",
+		"res://engine/command.gd": "fa201a55d325fa3fc032aea298991add4e1fa76724967cd7e7ad456752670ce3",
+		"res://engine/deck_list.gd": "3132419011d551560584836535e9c2dbb3dc29ceea183f4a8c8a05a976de3996",
+		"res://engine/deck_validator.gd": "bd1d0bcb833e3674b87cae7783b429f408c28122a773f8133e822ab8b84c34b9",
+		"res://engine/duel_engine.gd": "dadf693f9131a044f4015356498530c90b43ff0f9fa4709657fb60ab0758df8e",
+		"res://engine/game_event.gd": "74741e6df0172c8427839db11f144c93bbcfcb2663c2eb63ade82c89d1aebcad",
+		"res://engine/game_state.gd": "51683bd265ce7984af37dc6f9d39d3a1ac513e81433be8d374705319241cb4ab",
+		"res://engine/option_view.gd": "9ebce99062b1420d82be997cb5823d66820e16fbcd3bad0c8b50d572c08d0515",
+		"res://engine/player_state.gd": "1c296901d8f5db1d8a1abfe1747cd2b87f0ffde1d9223d5ccf28a93082cd0992",
+		"res://engine/prompt.gd": "9c822c8eaade3e58a0971982d2891f54078405d06a8981845329717bd3be4c46",
+		"res://engine/prompt_view.gd": "f47489c36e7d0c4d375972bae37a5a80455f9b1e0431af276e1a019157ce3e27",
+		"res://engine/referee.gd": "ea61411951abab886d202e4b0f78c7b8bdb59b513c44531a1e38907f317818a2",
+		"res://engine/seat_card.gd": "94106355b58219b1a4b5a14c9c2adf3dd1166ae2e483a6afa04e811aaec2d090",
+		"res://engine/seat_player.gd": "0d2a63008a8b9aba96b512ef620e66ac99db8378ace4577f693a668b231a8abf",
+		"res://engine/seat_update.gd": "9740353175811bb8f78029d5a03c067299fcf935c272e2690196e0a94fe7311a",
+		"res://engine/seat_view.gd": "b0b26556331592960326c4e930f0f2f149fbfa64f0b647aa0b10b70eb1f0437b",
+		"res://engine/strike_table.gd": "8971e7fd7f5ff7056ce00e8c189a5a13c5b3f004e727d3986932c5d0f868bb21",
+		"res://engine/zenith_rng.gd": "ce52c2295ae3c0e54eccae5b58867a7788792340bca6de2eb308fbb6700fa08a",
+		"res://project.godot": "fbd8557c7d474ae03eedf1ae9f48a8f536b19ed48422bcef7d1f2e702cdf32e7",
+		"res://tests/deck_ai_comparison.gd": "d1eaabd966e44df246b88b77195b431118a8ccfdc86d8b8bafe39fc21237d3be"
+	},
+	"matches": [
+		{
+			"arm": "baseline",
+			"engine_seed": 875109067,
+			"error": "",
+			"id": "shade_salvage/freestyle_swords/0/0/baseline",
+			"opponent": "freestyle_swords",
+			"pair_id": "shade_salvage/freestyle_swords/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 0,
+			"seat_seeds": [
+				1743617484,
+				1977531753
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 85,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 11072,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.11727058823529,
+					"median_ms": 7.032,
+					"p95_ms": 8.75,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 604968
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 99,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 12090,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.99079797979798,
+					"median_ms": 6.887,
+					"p95_ms": 9.347,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 692089
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 184,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 8,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 875109067,
+			"error": "",
+			"id": "shade_salvage/freestyle_swords/0/0/treatment",
+			"opponent": "freestyle_swords",
+			"pair_id": "shade_salvage/freestyle_swords/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 1,
+			"seat_seeds": [
+				1743617484,
+				1977531753
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 78,
+					"branching_mean_completed_depth": 0.782051282051282,
+					"completed_depth_total": 61,
+					"decisions": 80,
+					"fallbacks": 19,
+					"max_completed_depth": 2,
+					"max_usec": 413986,
+					"mean_completed_depth": 0.7625,
+					"mean_ms": 395.5837125,
+					"median_ms": 407.212,
+					"p95_ms": 412.065,
+					"search_decisions": 80,
+					"stop_reasons": {
+						"completed": 3,
+						"time_budget": 77
+					},
+					"total_usec": 31646697
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 96,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 11296,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.16363541666667,
+					"median_ms": 6.998,
+					"p95_ms": 10.724,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 687709
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 176,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 8,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 55644791,
+			"error": "",
+			"id": "shade_salvage/freestyle_swords/0/1/baseline",
+			"opponent": "freestyle_swords",
+			"pair_id": "shade_salvage/freestyle_swords/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 2,
+			"seat_seeds": [
+				2917017807,
+				4141877200
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 86,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 14374,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.89491860465116,
+					"median_ms": 6.688,
+					"p95_ms": 9.673,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 592963
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 94,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 12834,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.77640425531915,
+					"median_ms": 6.674,
+					"p95_ms": 9.306,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 636982
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 180,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 9,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 55644791,
+			"error": "",
+			"id": "shade_salvage/freestyle_swords/0/1/treatment",
+			"opponent": "freestyle_swords",
+			"pair_id": "shade_salvage/freestyle_swords/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 3,
+			"seat_seeds": [
+				2917017807,
+				4141877200
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 106,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 12252,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.12239622641509,
+					"median_ms": 6.955,
+					"p95_ms": 9.816,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 754974
+				},
+				{
+					"branching_decisions": 106,
+					"branching_mean_completed_depth": 0.830188679245283,
+					"completed_depth_total": 88,
+					"decisions": 106,
+					"fallbacks": 18,
+					"max_completed_depth": 1,
+					"max_usec": 418706,
+					"mean_completed_depth": 0.830188679245283,
+					"mean_ms": 405.230481132075,
+					"median_ms": 407.354,
+					"p95_ms": 410.639,
+					"search_decisions": 106,
+					"stop_reasons": {
+						"completed": 1,
+						"time_budget": 105
+					},
+					"total_usec": 42954431
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 212,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 9,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 492647841,
+			"error": "",
+			"id": "shade_salvage/pyre_ascent/0/0/baseline",
+			"opponent": "pyre_ascent",
+			"pair_id": "shade_salvage/pyre_ascent/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 4,
+			"seat_seeds": [
+				2836141519,
+				3231577432
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 73,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8984,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.28469863013699,
+					"median_ms": 6.196,
+					"p95_ms": 8.34,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 458783
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 47,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9726,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.77995744680851,
+					"median_ms": 6.856,
+					"p95_ms": 9.138,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 318658
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 120,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 8,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 492647841,
+			"error": "",
+			"id": "shade_salvage/pyre_ascent/0/0/treatment",
+			"opponent": "pyre_ascent",
+			"pair_id": "shade_salvage/pyre_ascent/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 5,
+			"seat_seeds": [
+				2836141519,
+				3231577432
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 105,
+					"branching_mean_completed_depth": 1.01904761904762,
+					"completed_depth_total": 107,
+					"decisions": 106,
+					"fallbacks": 5,
+					"max_completed_depth": 2,
+					"max_usec": 415471,
+					"mean_completed_depth": 1.00943396226415,
+					"mean_ms": 392.709622641509,
+					"median_ms": 406.196,
+					"p95_ms": 409.646,
+					"search_decisions": 106,
+					"stop_reasons": {
+						"completed": 5,
+						"time_budget": 101
+					},
+					"total_usec": 41627220
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 71,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9329,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.50081690140845,
+					"median_ms": 6.547,
+					"p95_ms": 8.39,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 461558
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 177,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 12,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 205727694,
+			"error": "",
+			"id": "shade_salvage/pyre_ascent/0/1/baseline",
+			"opponent": "pyre_ascent",
+			"pair_id": "shade_salvage/pyre_ascent/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 6,
+			"seat_seeds": [
+				2812406852,
+				2308721551
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 53,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9047,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.99956603773585,
+					"median_ms": 5.869,
+					"p95_ms": 7.831,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 317977
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 98,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9513,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.33776530612245,
+					"median_ms": 6.23,
+					"p95_ms": 8.354,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 621101
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 151,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 10,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 205727694,
+			"error": "",
+			"id": "shade_salvage/pyre_ascent/0/1/treatment",
+			"opponent": "pyre_ascent",
+			"pair_id": "shade_salvage/pyre_ascent/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 7,
+			"seat_seeds": [
+				2812406852,
+				2308721551
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 75,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9274,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.54717333333333,
+					"median_ms": 6.429,
+					"p95_ms": 8.713,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 491038
+				},
+				{
+					"branching_decisions": 131,
+					"branching_mean_completed_depth": 1.01526717557252,
+					"completed_depth_total": 133,
+					"decisions": 131,
+					"fallbacks": 7,
+					"max_completed_depth": 2,
+					"max_usec": 417574,
+					"mean_completed_depth": 1.01526717557252,
+					"mean_ms": 398.47458778626,
+					"median_ms": 406.388,
+					"p95_ms": 412.071,
+					"search_decisions": 131,
+					"stop_reasons": {
+						"completed": 4,
+						"time_budget": 127
+					},
+					"total_usec": 52200171
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 206,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 11,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3135825148,
+			"error": "",
+			"id": "shade_salvage/pyre_beatdown/0/0/baseline",
+			"opponent": "pyre_beatdown",
+			"pair_id": "shade_salvage/pyre_beatdown/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 8,
+			"seat_seeds": [
+				2736776171,
+				1535442739
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 68,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10282,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.92863235294118,
+					"median_ms": 7.02,
+					"p95_ms": 9.141,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 471147
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 54,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 22655,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.54514814814815,
+					"median_ms": 6.458,
+					"p95_ms": 18.842,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 407438
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 122,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 5,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3135825148,
+			"error": "",
+			"id": "shade_salvage/pyre_beatdown/0/0/treatment",
+			"opponent": "pyre_beatdown",
+			"pair_id": "shade_salvage/pyre_beatdown/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 9,
+			"seat_seeds": [
+				2736776171,
+				1535442739
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 51,
+					"branching_mean_completed_depth": 0.941176470588235,
+					"completed_depth_total": 48,
+					"decisions": 53,
+					"fallbacks": 4,
+					"max_completed_depth": 2,
+					"max_usec": 412631,
+					"mean_completed_depth": 0.905660377358491,
+					"mean_ms": 392.131377358491,
+					"median_ms": 406.673,
+					"p95_ms": 411.824,
+					"search_decisions": 53,
+					"stop_reasons": {
+						"completed": 2,
+						"time_budget": 51
+					},
+					"total_usec": 20782963
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 52,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 22016,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.74511538461538,
+					"median_ms": 7.022,
+					"p95_ms": 18.653,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 402746
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 105,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 4,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 4157910876,
+			"error": "",
+			"id": "shade_salvage/pyre_beatdown/0/1/baseline",
+			"opponent": "pyre_beatdown",
+			"pair_id": "shade_salvage/pyre_beatdown/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 10,
+			"seat_seeds": [
+				4293974032,
+				878360452
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 73,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 22351,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.41019178082192,
+					"median_ms": 6.997,
+					"p95_ms": 14.81,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 540944
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 118,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10322,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.03152542372881,
+					"median_ms": 7.108,
+					"p95_ms": 9.524,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 829720
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 191,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 10,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 4157910876,
+			"error": "",
+			"id": "shade_salvage/pyre_beatdown/0/1/treatment",
+			"opponent": "pyre_beatdown",
+			"pair_id": "shade_salvage/pyre_beatdown/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 11,
+			"seat_seeds": [
+				4293974032,
+				878360452
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 59,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 19998,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.02676271186441,
+					"median_ms": 6.383,
+					"p95_ms": 15.996,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 414579
+				},
+				{
+					"branching_decisions": 54,
+					"branching_mean_completed_depth": 0.925925925925926,
+					"completed_depth_total": 50,
+					"decisions": 54,
+					"fallbacks": 9,
+					"max_completed_depth": 2,
+					"max_usec": 414294,
+					"mean_completed_depth": 0.925925925925926,
+					"mean_ms": 407.277055555556,
+					"median_ms": 406.668,
+					"p95_ms": 411.792,
+					"search_decisions": 54,
+					"stop_reasons": {
+						"time_budget": 54
+					},
+					"total_usec": 21992961
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 113,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 8,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3081885926,
+			"error": "",
+			"id": "shade_salvage/root_seals/0/0/baseline",
+			"opponent": "root_seals",
+			"pair_id": "shade_salvage/root_seals/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 12,
+			"seat_seeds": [
+				2065168982,
+				2221220868
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 162,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 12130,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.79286419753086,
+					"median_ms": 6.739,
+					"p95_ms": 8.837,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 1100444
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 123,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10525,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 7.00345528455285,
+					"median_ms": 6.938,
+					"p95_ms": 9.083,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 861425
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 285,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 16,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3081885926,
+			"error": "",
+			"id": "shade_salvage/root_seals/0/0/treatment",
+			"opponent": "root_seals",
+			"pair_id": "shade_salvage/root_seals/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 13,
+			"seat_seeds": [
+				2065168982,
+				2221220868
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 154,
+					"branching_mean_completed_depth": 0.896103896103896,
+					"completed_depth_total": 138,
+					"decisions": 154,
+					"fallbacks": 27,
+					"max_completed_depth": 6,
+					"max_usec": 416648,
+					"mean_completed_depth": 0.896103896103896,
+					"mean_ms": 405.618324675325,
+					"median_ms": 407.121,
+					"p95_ms": 411.761,
+					"search_decisions": 154,
+					"stop_reasons": {
+						"completed": 1,
+						"time_budget": 153
+					},
+					"total_usec": 62465222
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 126,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10463,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.57662698412698,
+					"median_ms": 6.295,
+					"p95_ms": 9.295,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 828655
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 280,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 20,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 1057409139,
+			"error": "",
+			"id": "shade_salvage/root_seals/0/1/baseline",
+			"opponent": "root_seals",
+			"pair_id": "shade_salvage/root_seals/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 14,
+			"seat_seeds": [
+				3583576986,
+				89827978
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 68,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10045,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.32135294117647,
+					"median_ms": 6.403,
+					"p95_ms": 8.837,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 429852
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 93,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9002,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.11883870967742,
+					"median_ms": 6.142,
+					"p95_ms": 7.866,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 569052
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 161,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 12,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 1057409139,
+			"error": "",
+			"id": "shade_salvage/root_seals/0/1/treatment",
+			"opponent": "root_seals",
+			"pair_id": "shade_salvage/root_seals/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 15,
+			"seat_seeds": [
+				3583576986,
+				89827978
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 81,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9712,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.75928395061728,
+					"median_ms": 6.77,
+					"p95_ms": 8.709,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 547502
+				},
+				{
+					"branching_decisions": 80,
+					"branching_mean_completed_depth": 0.8125,
+					"completed_depth_total": 65,
+					"decisions": 80,
+					"fallbacks": 17,
+					"max_completed_depth": 2,
+					"max_usec": 418000,
+					"mean_completed_depth": 0.8125,
+					"mean_ms": 407.562075,
+					"median_ms": 406.683,
+					"p95_ms": 414.418,
+					"search_decisions": 80,
+					"stop_reasons": {
+						"time_budget": 80
+					},
+					"total_usec": 32604966
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 161,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 13,
+			"win_reason": "seal",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 2705626295,
+			"error": "",
+			"id": "shade_salvage/shade_henchmen/0/0/baseline",
+			"opponent": "shade_henchmen",
+			"pair_id": "shade_salvage/shade_henchmen/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 16,
+			"seat_seeds": [
+				2058973374,
+				4201114618
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 57,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10397,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.67105263157895,
+					"median_ms": 6.481,
+					"p95_ms": 9.01,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 380250
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 72,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 14735,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.631625,
+					"median_ms": 6.541,
+					"p95_ms": 9.309,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 477477
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 129,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 5,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 2705626295,
+			"error": "",
+			"id": "shade_salvage/shade_henchmen/0/0/treatment",
+			"opponent": "shade_henchmen",
+			"pair_id": "shade_salvage/shade_henchmen/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 17,
+			"seat_seeds": [
+				2058973374,
+				4201114618
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 45,
+					"branching_mean_completed_depth": 0.777777777777778,
+					"completed_depth_total": 35,
+					"decisions": 45,
+					"fallbacks": 12,
+					"max_completed_depth": 2,
+					"max_usec": 411402,
+					"mean_completed_depth": 0.777777777777778,
+					"mean_ms": 407.452711111111,
+					"median_ms": 407.485,
+					"p95_ms": 410.086,
+					"search_decisions": 45,
+					"stop_reasons": {
+						"time_budget": 45
+					},
+					"total_usec": 18335372
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 84,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 11108,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.63529761904762,
+					"median_ms": 6.382,
+					"p95_ms": 8.619,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 557365
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 129,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 5,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3309382070,
+			"error": "",
+			"id": "shade_salvage/shade_henchmen/0/1/baseline",
+			"opponent": "shade_henchmen",
+			"pair_id": "shade_salvage/shade_henchmen/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 18,
+			"seat_seeds": [
+				2386756793,
+				824173683
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 48,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 12508,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.9296875,
+					"median_ms": 5.833,
+					"p95_ms": 8.362,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 284625
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 34,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8868,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.22758823529412,
+					"median_ms": 6.275,
+					"p95_ms": 8.313,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 211738
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 82,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 4,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3309382070,
+			"error": "",
+			"id": "shade_salvage/shade_henchmen/0/1/treatment",
+			"opponent": "shade_henchmen",
+			"pair_id": "shade_salvage/shade_henchmen/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 19,
+			"seat_seeds": [
+				2386756793,
+				824173683
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 47,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9315,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.75448936170213,
+					"median_ms": 5.317,
+					"p95_ms": 8.742,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 270461
+				},
+				{
+					"branching_decisions": 37,
+					"branching_mean_completed_depth": 1.24324324324324,
+					"completed_depth_total": 46,
+					"decisions": 40,
+					"fallbacks": 2,
+					"max_completed_depth": 2,
+					"max_usec": 411430,
+					"mean_completed_depth": 1.15,
+					"mean_ms": 376.40315,
+					"median_ms": 405.959,
+					"p95_ms": 408.85,
+					"search_decisions": 40,
+					"stop_reasons": {
+						"completed": 3,
+						"time_budget": 37
+					},
+					"total_usec": 15056126
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 87,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 4,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 4078385759,
+			"error": "",
+			"id": "shade_salvage/steel_beatdown/0/0/baseline",
+			"opponent": "steel_beatdown",
+			"pair_id": "shade_salvage/steel_beatdown/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 20,
+			"seat_seeds": [
+				3881408409,
+				1808138725
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 87,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 17171,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.92109195402299,
+					"median_ms": 6.273,
+					"p95_ms": 11.433,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 602135
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 61,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 14112,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.51722950819672,
+					"median_ms": 6.019,
+					"p95_ms": 9.987,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 397551
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 148,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 5,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 4078385759,
+			"error": "",
+			"id": "shade_salvage/steel_beatdown/0/0/treatment",
+			"opponent": "steel_beatdown",
+			"pair_id": "shade_salvage/steel_beatdown/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 21,
+			"seat_seeds": [
+				3881408409,
+				1808138725
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 79,
+					"branching_mean_completed_depth": 1.0126582278481,
+					"completed_depth_total": 80,
+					"decisions": 81,
+					"fallbacks": 4,
+					"max_completed_depth": 2,
+					"max_usec": 412575,
+					"mean_completed_depth": 0.987654320987654,
+					"mean_ms": 384.322543209877,
+					"median_ms": 405.847,
+					"p95_ms": 410.184,
+					"search_decisions": 81,
+					"stop_reasons": {
+						"completed": 6,
+						"time_budget": 75
+					},
+					"total_usec": 31130126
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 55,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 13944,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.73010909090909,
+					"median_ms": 6.258,
+					"p95_ms": 9.818,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 370156
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 136,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 6,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3784476593,
+			"error": "",
+			"id": "shade_salvage/steel_beatdown/0/1/baseline",
+			"opponent": "steel_beatdown",
+			"pair_id": "shade_salvage/steel_beatdown/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 22,
+			"seat_seeds": [
+				1206493635,
+				2589945214
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 38,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10701,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.65026315789474,
+					"median_ms": 5.384,
+					"p95_ms": 8.105,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 214710
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 57,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7595,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.29071929824561,
+					"median_ms": 5.055,
+					"p95_ms": 7.516,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 301571
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 95,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 6,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3784476593,
+			"error": "",
+			"id": "shade_salvage/steel_beatdown/0/1/treatment",
+			"opponent": "steel_beatdown",
+			"pair_id": "shade_salvage/steel_beatdown/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 23,
+			"seat_seeds": [
+				1206493635,
+				2589945214
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 27,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10117,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.2592962962963,
+					"median_ms": 5.812,
+					"p95_ms": 9.281,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 169001
+				},
+				{
+					"branching_decisions": 30,
+					"branching_mean_completed_depth": 1.1,
+					"completed_depth_total": 33,
+					"decisions": 30,
+					"fallbacks": 1,
+					"max_completed_depth": 2,
+					"max_usec": 415608,
+					"mean_completed_depth": 1.1,
+					"mean_ms": 406.141766666667,
+					"median_ms": 406.261,
+					"p95_ms": 407.841,
+					"search_decisions": 30,
+					"stop_reasons": {
+						"time_budget": 30
+					},
+					"total_usec": 12184253
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 57,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 4,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3279522033,
+			"error": "",
+			"id": "shade_salvage/steel_heir/0/0/baseline",
+			"opponent": "steel_heir",
+			"pair_id": "shade_salvage/steel_heir/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 24,
+			"seat_seeds": [
+				3293348062,
+				1166755331
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 90,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8381,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.49557777777778,
+					"median_ms": 5.166,
+					"p95_ms": 7.515,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 494602
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 65,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9161,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.45327692307692,
+					"median_ms": 5.24,
+					"p95_ms": 7.264,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 354463
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 155,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 10,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3279522033,
+			"error": "",
+			"id": "shade_salvage/steel_heir/0/0/treatment",
+			"opponent": "steel_heir",
+			"pair_id": "shade_salvage/steel_heir/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 25,
+			"seat_seeds": [
+				3293348062,
+				1166755331
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 93,
+					"branching_mean_completed_depth": 1.18279569892473,
+					"completed_depth_total": 110,
+					"decisions": 94,
+					"fallbacks": 0,
+					"max_completed_depth": 2,
+					"max_usec": 413965,
+					"mean_completed_depth": 1.17021276595745,
+					"mean_ms": 371.167861702128,
+					"median_ms": 404.93,
+					"p95_ms": 408.598,
+					"search_decisions": 94,
+					"stop_reasons": {
+						"completed": 13,
+						"time_budget": 81
+					},
+					"total_usec": 34889779
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 59,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8227,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.54545762711864,
+					"median_ms": 5.489,
+					"p95_ms": 7.169,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 327182
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 153,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 10,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 331393797,
+			"error": "",
+			"id": "shade_salvage/steel_heir/0/1/baseline",
+			"opponent": "steel_heir",
+			"pair_id": "shade_salvage/steel_heir/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 26,
+			"seat_seeds": [
+				2658463184,
+				68001390
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 34,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7722,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.44788235294118,
+					"median_ms": 5.41,
+					"p95_ms": 7.268,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 185228
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 59,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7297,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.04535593220339,
+					"median_ms": 4.783,
+					"p95_ms": 6.814,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 297676
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 93,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 7,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 331393797,
+			"error": "",
+			"id": "shade_salvage/steel_heir/0/1/treatment",
+			"opponent": "steel_heir",
+			"pair_id": "shade_salvage/steel_heir/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 27,
+			"seat_seeds": [
+				2658463184,
+				68001390
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 34,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8552,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.61108823529412,
+					"median_ms": 5.552,
+					"p95_ms": 7.575,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 190777
+				},
+				{
+					"branching_decisions": 56,
+					"branching_mean_completed_depth": 1.28571428571429,
+					"completed_depth_total": 72,
+					"decisions": 56,
+					"fallbacks": 0,
+					"max_completed_depth": 2,
+					"max_usec": 412090,
+					"mean_completed_depth": 1.28571428571429,
+					"mean_ms": 389.429875,
+					"median_ms": 405.649,
+					"p95_ms": 409.413,
+					"search_decisions": 56,
+					"stop_reasons": {
+						"completed": 4,
+						"time_budget": 52
+					},
+					"total_usec": 21808073
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 90,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 6,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3700392153,
+			"error": "",
+			"id": "shade_salvage/storm_unbound/0/0/baseline",
+			"opponent": "storm_unbound",
+			"pair_id": "shade_salvage/storm_unbound/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 28,
+			"seat_seeds": [
+				3168980450,
+				686695235
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 42,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7617,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.47073809523809,
+					"median_ms": 5.136,
+					"p95_ms": 7.463,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 229771
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 35,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8063,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.16477142857143,
+					"median_ms": 4.982,
+					"p95_ms": 7.271,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 180767
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 77,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 5,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3700392153,
+			"error": "",
+			"id": "shade_salvage/storm_unbound/0/0/treatment",
+			"opponent": "storm_unbound",
+			"pair_id": "shade_salvage/storm_unbound/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 29,
+			"seat_seeds": [
+				3168980450,
+				686695235
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 37,
+					"branching_mean_completed_depth": 1.05405405405405,
+					"completed_depth_total": 39,
+					"decisions": 39,
+					"fallbacks": 2,
+					"max_completed_depth": 2,
+					"max_usec": 410122,
+					"mean_completed_depth": 1.0,
+					"mean_ms": 372.804179487179,
+					"median_ms": 405.483,
+					"p95_ms": 409.557,
+					"search_decisions": 39,
+					"stop_reasons": {
+						"completed": 4,
+						"time_budget": 35
+					},
+					"total_usec": 14539363
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 29,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7221,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.27093103448276,
+					"median_ms": 5.234,
+					"p95_ms": 6.543,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 152857
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 68,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": true,
+			"turn": 4,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 2122055180,
+			"error": "",
+			"id": "shade_salvage/storm_unbound/0/1/baseline",
+			"opponent": "storm_unbound",
+			"pair_id": "shade_salvage/storm_unbound/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 30,
+			"seat_seeds": [
+				4174839843,
+				2839095442
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 51,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7513,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.53272549019608,
+					"median_ms": 5.33,
+					"p95_ms": 7.427,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 282169
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 89,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 7819,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.37832584269663,
+					"median_ms": 5.155,
+					"p95_ms": 7.34,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 478671
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 140,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 9,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 2122055180,
+			"error": "",
+			"id": "shade_salvage/storm_unbound/0/1/treatment",
+			"opponent": "storm_unbound",
+			"pair_id": "shade_salvage/storm_unbound/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 31,
+			"seat_seeds": [
+				4174839843,
+				2839095442
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 43,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 19331,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.15081395348837,
+					"median_ms": 5.238,
+					"p95_ms": 11.833,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 264485
+				},
+				{
+					"branching_decisions": 74,
+					"branching_mean_completed_depth": 1.2027027027027,
+					"completed_depth_total": 89,
+					"decisions": 74,
+					"fallbacks": 1,
+					"max_completed_depth": 2,
+					"max_usec": 448370,
+					"mean_completed_depth": 1.2027027027027,
+					"mean_ms": 400.189054054054,
+					"median_ms": 405.141,
+					"p95_ms": 409.163,
+					"search_decisions": 74,
+					"stop_reasons": {
+						"completed": 2,
+						"time_budget": 72
+					},
+					"total_usec": 29613990
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 117,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 8,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 2214857459,
+			"error": "",
+			"id": "shade_salvage/storm_volley/0/0/baseline",
+			"opponent": "storm_volley",
+			"pair_id": "shade_salvage/storm_volley/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 32,
+			"seat_seeds": [
+				1933335825,
+				1300925852
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 91,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9058,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.82314285714286,
+					"median_ms": 5.66,
+					"p95_ms": 8.134,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 529906
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 63,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 13945,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.93080952380952,
+					"median_ms": 5.472,
+					"p95_ms": 7.933,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 373641
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 154,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 9,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 2214857459,
+			"error": "",
+			"id": "shade_salvage/storm_volley/0/0/treatment",
+			"opponent": "storm_volley",
+			"pair_id": "shade_salvage/storm_volley/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 33,
+			"seat_seeds": [
+				1933335825,
+				1300925852
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 71,
+					"branching_mean_completed_depth": 1.12676056338028,
+					"completed_depth_total": 80,
+					"decisions": 72,
+					"fallbacks": 8,
+					"max_completed_depth": 6,
+					"max_usec": 410113,
+					"mean_completed_depth": 1.11111111111111,
+					"mean_ms": 396.223763888889,
+					"median_ms": 406.031,
+					"p95_ms": 409.259,
+					"search_decisions": 72,
+					"stop_reasons": {
+						"completed": 2,
+						"time_budget": 70
+					},
+					"total_usec": 28528111
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 56,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 15900,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.44126785714286,
+					"median_ms": 5.966,
+					"p95_ms": 11.787,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 360711
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 128,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 7,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 2492012808,
+			"error": "",
+			"id": "shade_salvage/storm_volley/0/1/baseline",
+			"opponent": "storm_volley",
+			"pair_id": "shade_salvage/storm_volley/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 34,
+			"seat_seeds": [
+				2469800637,
+				387539225
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 53,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 16363,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.83918867924528,
+					"median_ms": 5.334,
+					"p95_ms": 8.127,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 309477
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 73,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 8252,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.1743698630137,
+					"median_ms": 4.95,
+					"p95_ms": 7.131,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 377729
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 126,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 7,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 2492012808,
+			"error": "",
+			"id": "shade_salvage/storm_volley/0/1/treatment",
+			"opponent": "storm_volley",
+			"pair_id": "shade_salvage/storm_volley/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 35,
+			"seat_seeds": [
+				2469800637,
+				387539225
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 48,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 19359,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.97952083333333,
+					"median_ms": 5.327,
+					"p95_ms": 8.18,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 287017
+				},
+				{
+					"branching_decisions": 36,
+					"branching_mean_completed_depth": 1.30555555555556,
+					"completed_depth_total": 47,
+					"decisions": 36,
+					"fallbacks": 0,
+					"max_completed_depth": 2,
+					"max_usec": 415269,
+					"mean_completed_depth": 1.30555555555556,
+					"mean_ms": 406.503305555556,
+					"median_ms": 405.641,
+					"p95_ms": 414.62,
+					"search_decisions": 36,
+					"stop_reasons": {
+						"time_budget": 36
+					},
+					"total_usec": 14634119
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 84,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 7,
+			"win_reason": "survival",
+			"winner_seat": 0
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 3451999797,
+			"error": "",
+			"id": "shade_salvage/tide_companions/0/0/baseline",
+			"opponent": "tide_companions",
+			"pair_id": "shade_salvage/tide_companions/0/0",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 36,
+			"seat_seeds": [
+				620374306,
+				1675728508
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 65,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9244,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.40212307692308,
+					"median_ms": 5.135,
+					"p95_ms": 7.383,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 351138
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 81,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10192,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 5.58411111111111,
+					"median_ms": 5.324,
+					"p95_ms": 7.299,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 452313
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 146,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 8,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 3451999797,
+			"error": "",
+			"id": "shade_salvage/tide_companions/0/0/treatment",
+			"opponent": "tide_companions",
+			"pair_id": "shade_salvage/tide_companions/0/0",
+			"policies": [
+				"search",
+				"scorer"
+			],
+			"schedule_index": 37,
+			"seat_seeds": [
+				620374306,
+				1675728508
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 77,
+					"branching_mean_completed_depth": 1.02597402597403,
+					"completed_depth_total": 79,
+					"decisions": 80,
+					"fallbacks": 6,
+					"max_completed_depth": 2,
+					"max_usec": 418082,
+					"mean_completed_depth": 0.9875,
+					"mean_ms": 391.58775,
+					"median_ms": 405.728,
+					"p95_ms": 410.622,
+					"search_decisions": 80,
+					"stop_reasons": {
+						"completed": 3,
+						"time_budget": 77
+					},
+					"total_usec": 31327020
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 90,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 10323,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.17275555555556,
+					"median_ms": 6.002,
+					"p95_ms": 8.506,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 555548
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 170,
+			"target": "shade_salvage",
+			"target_seat": 0,
+			"target_won": false,
+			"turn": 6,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "baseline",
+			"engine_seed": 659270019,
+			"error": "",
+			"id": "shade_salvage/tide_companions/0/1/baseline",
+			"opponent": "tide_companions",
+			"pair_id": "shade_salvage/tide_companions/0/1",
+			"policies": [
+				"scorer",
+				"scorer"
+			],
+			"schedule_index": 38,
+			"seat_seeds": [
+				3740104187,
+				2132612374
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 115,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 14118,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.16714782608696,
+					"median_ms": 5.736,
+					"p95_ms": 9.131,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 709222
+				},
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 84,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 9387,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.00953571428571,
+					"median_ms": 5.723,
+					"p95_ms": 7.971,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 504801
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 199,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 9,
+			"win_reason": "survival",
+			"winner_seat": 1
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 659270019,
+			"error": "",
+			"id": "shade_salvage/tide_companions/0/1/treatment",
+			"opponent": "tide_companions",
+			"pair_id": "shade_salvage/tide_companions/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 39,
+			"seat_seeds": [
+				3740104187,
+				2132612374
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 100,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 18327,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.57398,
+					"median_ms": 5.969,
+					"p95_ms": 12.681,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 657398
+				},
+				{
+					"branching_decisions": 69,
+					"branching_mean_completed_depth": 1.04347826086957,
+					"completed_depth_total": 72,
+					"decisions": 69,
+					"fallbacks": 3,
+					"max_completed_depth": 2,
+					"max_usec": 414196,
+					"mean_completed_depth": 1.04347826086957,
+					"mean_ms": 406.495231884058,
+					"median_ms": 406.348,
+					"p95_ms": 412.729,
+					"search_decisions": 69,
+					"stop_reasons": {
+						"completed": 1,
+						"time_budget": 68
+					},
+					"total_usec": 28048171
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 169,
+			"target": "shade_salvage",
+			"target_seat": 1,
+			"target_won": true,
+			"turn": 9,
+			"win_reason": "survival",
+			"winner_seat": 1
+		}
+	],
+	"note": "Baseline is the current scorer without sequence search; paired seeds do not guarantee identical random draws after policies diverge.",
+	"status": "complete",
+	"updated_unix": 1789849320.929,
+	"version": 1
+}

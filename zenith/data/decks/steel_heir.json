@@ -1,5 +1,5 @@
 {
-  "name": "Emrys the Eldest",
+  "name": "Steel Inheritance",
   "duelist": "duelist_kappa",
   "aspects": 5,
   "style": "steel",
@@ -14,7 +14,7 @@
     "draw"
   ],
   "ai_profile": "steel_heir",
-  "tagline": "The coven's eldest, fighting with no sword at all.",
+  "tagline": "Draw deep and spend life cards to power crushing blows as Emrys ascends to even stronger Aspects.",
   "blurb": "Emrys Rooke was taught the blade by the Vales and everything else by the Grove, and none of it is what wins here. Steel is the magic turned inward, so the list is him putting metal on and then hitting with it, harder at every Aspect. He draws deep, spends life cards to make a blow land bigger, and by the last rung he swings twice a Combat. Nothing in it defends for long.",
   "cards": [
     {

@@ -115,7 +115,7 @@ static func from_dict(d: Dictionary) -> SeatView:
 	return v
 
 
-static func of(engine: DuelEngine, seat: int) -> SeatView:
+static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) -> SeatView:
 	var s: GameState = engine.state
 	var v: SeatView = SeatView.new()
 	v.seat = seat
@@ -134,7 +134,8 @@ static func of(engine: DuelEngine, seat: int) -> SeatView:
 	v.attack = _attack_summary(engine)
 	v.battle_step = s.battle_step
 	v.last_attack = _last_attack_summary(engine)
-	v.forecasts = engine.attack_forecasts(seat)
+	if include_forecasts:
+		v.forecasts = engine.attack_forecasts(seat)
 	v.grounds = s.grounds.uid if s.grounds != null else -1
 	# Effects that outlast the Combat have no card left on the table, so the seat is told about
 	# them separately and the client stands a ghost of the source card in for them.

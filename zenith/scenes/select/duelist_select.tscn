@@ -20,7 +20,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.06, 0.055, 0.07, 1)
+color = Color(0.035, 0.043, 0.06, 1)
 
 [node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
 
@@ -31,10 +31,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 28
 
 [node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
@@ -133,10 +133,76 @@ theme_type_variation = &"MutedLabel"
 theme_override_font_sizes/font_size = 14
 text = "on your clipboard"
 
-[node name="Seat" parent="Margin/Column" instance=ExtResource("2_seat")]
+[node name="Subtitle" type="Label" parent="Margin/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 18
+text = "Find your playstyle. Choose a deck, meet its duelist, and make it yours."
+
+[node name="Body" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 28
+
+[node name="Library" type="VBoxContainer" parent="Margin/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="Tools" type="HBoxContainer" parent="Margin/Column/Body/Library"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Search" type="LineEdit" parent="Margin/Column/Body/Library/Tools"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search decks, duelists, or playstyles"
+clear_button_enabled = true
+
+[node name="School" type="OptionButton" parent="Margin/Column/Body/Library/Tools"]
+custom_minimum_size = Vector2(185, 48)
 layout_mode = 2
 
-[node name="Roster" type="HBoxContainer" parent="Margin/Column"]
+[node name="Count" type="Label" parent="Margin/Column/Body/Library"]
+visible = false
 layout_mode = 2
-theme_override_constants/separation = 8
-alignment = 1
+theme_type_variation = &"MutedLabel"
+text = "STARTER DECKS"
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Library"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Roster" type="GridContainer" parent="Margin/Column/Body/Library/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+
+[node name="Empty" type="Label" parent="Margin/Column/Body/Library"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "No matching decks. Try another name or school."
+
+[node name="Reset" type="Button" parent="Margin/Column/Body/Library"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Clear filters"
+
+[node name="Help" type="Label" parent="Margin/Column/Body/Library"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Browse with arrow keys   /   Enter to select a deck   /   Confirm when ready"
+
+[node name="Seat" parent="Margin/Column/Body" instance=ExtResource("2_seat")]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+size_flags_horizontal = 0

@@ -1,5 +1,5 @@
 {
-  "name": "Siphon the Unbound",
+  "name": "Stormlock",
   "duelist": "duelist_gamma",
   "aspects": 3,
   "style": "storm",
@@ -15,7 +15,7 @@
     "construct"
   ],
   "ai_profile": "storm_unbound",
-  "tagline": "The same construct, wound the other way.",
+  "tagline": "Make enemy attacks costly and land disruptive Arts to shut down Strikes while building your own Fervor.",
   "blurb": "Siphon here is not built to charge and release; it is built to make swinging at it expensive. The ground is heavy, its Arts climb its own Fervor, and a landed Art shuts the rival's Strikes out of the exchange. Slow to threaten, and it folds to anything that fights back with spells.",
   "cards": [
     {

@@ -43,7 +43,10 @@ const DEFAULTS: Dictionary = {
 	# `aspect_min:N`, `fervor_min:N`, `seals_min:N`, `life_below:N`. Laid on after the matchup
 	# pivots, so a deck can hold back until its plan is on the table and then press.
 	"when": {},
-	"think": {"search": true, "top_k": 6, "samples": 6, "budget_ms": 400, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05},
+	"think": {"search": true, "algorithm": "sequence", "top_k": 6, "samples": 2,
+		"budget_ms": 400, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05,
+		"sequence_depth": 6, "branch_width": 3, "response_width": 2, "node_budget": 1500,
+		"rollout_steps": 4, "settle_steps": 8, "intent_margin": 0.15, "cache": false},
 }
 
 var name: String = "default"

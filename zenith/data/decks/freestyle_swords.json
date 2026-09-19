@@ -1,5 +1,5 @@
 {
-  "name": "Vale the Swordmaster",
+  "name": "Blade Legacy",
   "duelist": "duelist_zeta",
   "aspects": 5,
   "style": "freestyle",
@@ -21,7 +21,7 @@
     "swords"
   ],
   "ai_profile": "freestyle_swords",
-  "tagline": "The last of a line of swordmasters. No magic at all.",
+  "tagline": "Build a foundation of Drills, then chain signature sword techniques into increasingly powerful strikes.",
   "blurb": "Caedan Vale carries nothing but will, footwork and steel. His Drills stack until every cut lands heavier, and his signature moves punish anyone who blinks. No school means no crutch, and a Mastery that does little.",
   "cards": [
 	{

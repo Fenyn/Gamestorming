@@ -10,16 +10,59 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_seat")
 
-[node name="Row" type="HBoxContainer" parent="."]
+[node name="Row" type="VBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 28
+theme_override_constants/separation = 12
 
-[node name="PortraitBox" type="Control" parent="Row"]
-custom_minimum_size = Vector2(453, 0)
+[node name="Header" type="HBoxContainer" parent="Row"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Tag" type="Label" parent="Row/Header"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+text = "PLAYER 1"
+
+[node name="Name" type="LineEdit" parent="Row/Header"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Player 1"
+placeholder_text = "Name"
+
+[node name="Scroll" type="VBoxContainer" parent="Row"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Silhouette" type="Label" parent="Row/PortraitBox"]
+[node name="Content" type="VBoxContainer" parent="Row/Scroll"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="Tabs" type="TabContainer" parent="Row/Scroll/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+tabs_visible = false
+size_flags_horizontal = 3
+
+[node name="Overview" type="VBoxContainer" parent="Row/Scroll/Content/Tabs"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Hero" type="HBoxContainer" parent="Row/Scroll/Content/Tabs/Overview"]
+layout_mode = 2
+alignment = 1
+size_flags_vertical = 3
+
+[node name="PortraitBox" type="Control" parent="Row/Scroll/Content/Tabs/Overview/Hero"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Silhouette" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Hero/PortraitBox"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,7 +75,7 @@ text = "?"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Portrait" type="TextureRect" parent="Row/PortraitBox"]
+[node name="Portrait" type="TextureRect" parent="Row/Scroll/Content/Tabs/Overview/Hero/PortraitBox"]
 layout_mode = 1
 mouse_default_cursor_shape = 2
 anchors_preset = 15
@@ -41,9 +84,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture_filter = 1
+expand_mode = 1
 stretch_mode = 5
 
-[node name="Stamp" type="Label" parent="Row/PortraitBox"]
+[node name="Stamp" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Hero/PortraitBox"]
 visible = false
 layout_mode = 1
 anchors_preset = 7
@@ -63,101 +107,143 @@ text = "LOCKED IN"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Identity" type="VBoxContainer" parent="Row"]
-custom_minimum_size = Vector2(440, 0)
+[node name="Summary" type="HBoxContainer" parent="Row/Scroll/Content/Tabs/Overview"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Identity" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary"]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="Header" type="HBoxContainer" parent="Row/Identity"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Tag" type="Label" parent="Row/Identity/Header"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_type_variation = &"MutedLabel"
-text = "PLAYER 1"
-
-[node name="Name" type="LineEdit" parent="Row/Identity/Header"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-text = "Player 1"
-placeholder_text = "Name"
-
-[node name="Spacer1" type="Control" parent="Row/Identity"]
+[node name="Spacer1" type="Control" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+visible = false
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="Duelist" type="Label" parent="Row/Identity"]
+[node name="Deck" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 40
+text = ""
+autowrap_mode = 3
+
+[node name="Duelist" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 18
 text = "Choose a duelist"
 autowrap_mode = 2
 
-[node name="Deck" type="Label" parent="Row/Identity"]
-layout_mode = 2
-theme_type_variation = &"AccentLabel"
-theme_override_font_sizes/font_size = 22
-text = ""
-
-[node name="Tagline" type="Label" parent="Row/Identity"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 17
-text = "Pick from the roster below."
-autowrap_mode = 3
-
-[node name="Chips" type="HFlowContainer" parent="Row/Identity"]
+[node name="Chips" type="HFlowContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
 layout_mode = 2
 theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 6
 
-[node name="School" type="Label" parent="Row/Identity/Chips"]
+[node name="School" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips"]
 layout_mode = 2
 text = "School"
 
-[node name="Alignment" type="Label" parent="Row/Identity/Chips"]
+[node name="Alignment" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips"]
+visible = false
 layout_mode = 2
 text = "Vigil"
 
-[node name="Archetype" type="Label" parent="Row/Identity/Chips"]
+[node name="Archetype" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips"]
 layout_mode = 2
 text = "Archetype"
 
-[node name="Difficulty" type="Label" parent="Row/Identity/Chips"]
+[node name="Difficulty" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips"]
+visible = false
 layout_mode = 2
 text = "Easy"
 
-[node name="Blurb" type="Label" parent="Row/Identity"]
+[node name="FlavorSpace" type="Control" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Tagline" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 17
+theme_override_constants/line_spacing = 4
+text = "Pick from the roster below."
+autowrap_mode = 3
+
+[node name="Blurb" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = ""
 autowrap_mode = 3
 
-[node name="AspectHeader" type="Label" parent="Row/Identity"]
+[node name="AspectHeader" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+visible = false
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "ASPECT 1 OF 3"
 
-[node name="AspectTitle" type="Label" parent="Row/Identity"]
+[node name="AspectTitle" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+visible = false
 layout_mode = 2
 theme_type_variation = &"AccentLabel"
 theme_override_font_sizes/font_size = 20
 text = "Kindled"
 
-[node name="AspectPower" type="Label" parent="Row/Identity"]
+[node name="AspectPower" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Identity"]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = ""
 autowrap_mode = 3
 
-[node name="Fill" type="Control" parent="Row/Identity"]
+[node name="Mastery" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary"]
+visible = false
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = 6
 
-[node name="Lock" type="Button" parent="Row/Identity"]
+[node name="Caption" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/Mastery"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 12
+text = "MASTERY"
+horizontal_alignment = 1
+
+[node name="Card" type="TextureRect" parent="Row/Scroll/Content/Tabs/Overview/Summary/Mastery"]
+custom_minimum_size = Vector2(160, 224)
+layout_mode = 2
+focus_mode = 2
+mouse_default_cursor_shape = 16
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Details" type="ScrollContainer" parent="Row/Scroll/Content/Tabs"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Cards & Aspects" parent="Row/Scroll/Content/Tabs/Details" instance=ExtResource("2_info")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+[node name="Selection" type="Label" parent="Row"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="Details" type="Button" parent="Row"]
+layout_mode = 2
+flat = true
+text = "Deck details"
+
+[node name="Lock" type="Button" parent="Row"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 disabled = true
@@ -165,13 +251,20 @@ theme_type_variation = &"AccentButton"
 theme_override_font_sizes/font_size = 20
 text = "Lock in"
 
-[node name="Hint" type="Label" parent="Row/Identity"]
+[node name="Hint" type="Label" parent="Row"]
+visible = false
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = ""
 autowrap_mode = 3
 
-[node name="Info" parent="Row" instance=ExtResource("2_info")]
-custom_minimum_size = Vector2(520, 0)
-layout_mode = 2
-size_flags_horizontal = 3
+[node name="MasteryZoom" type="TextureRect" parent="."]
+visible = false
+top_level = true
+z_index = 100
+layout_mode = 0
+offset_right = 380.0
+offset_bottom = 532.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

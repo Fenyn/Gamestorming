@@ -12,9 +12,11 @@ extends SceneTree
 ## field down, --seed=N for a different run, --budget=MS and --samples=N for searching policies,
 ## --styles=off to play every deck on the default profile, and --verbose for a line per match.
 
+## --search-decks=a,b forces only those field decks onto the sequence planner.
 const MAX_STEPS: int = 6000
 const REASONS: Array[String] = ["survival", "seal", "ascension"]
 
+var search_decks: Array[String] = []
 
 func _init() -> void:
 	var args: Dictionary = {"games": "200", "policy": "scorer", "decks": "", "seed": "1", "budget": "", "samples": "", "styles": "on", "verbose": ""}
@@ -25,6 +27,18 @@ func _init() -> void:
 	lib.load_dir("res://data/cards")
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
 	var names: Array[String] = deck_names(str(args["decks"]))
+	for target in str(args.get("search-decks", "")).split(",", false):
+		var target_name: String = target.strip_edges()
+		if not names.has(target_name):
+			push_error("Search override deck is not in the field: %s" % target_name)
+			quit(1)
+			return
+		if not search_decks.has(target_name):
+			search_decks.append(target_name)
+	print("Base policy: %s; sequence search overrides: %s; styles: %s; search budget: %s ms; samples: %s" % [
+		str(args["policy"]), ", ".join(search_decks) if not search_decks.is_empty() else "(none)",
+		str(args["styles"]), str(args["budget"]) if str(args["budget"]) != "" else "profile",
+		str(args["samples"]) if str(args["samples"]) != "" else "profile"])
 	if names.size() < 2:
 		print("need at least two decks")
 		quit(1)
@@ -50,19 +64,27 @@ func _init() -> void:
 			var ref: Referee = Referee.new()
 			ref.setup(decks, lib, table, rng.randi())
 			ref.start()
+			ref.engine.take_events()
 			games += 1
 			var players: Array[AiPlayer] = [null, null]
 			for i in range(2):
-				players[i] = make_player(str(args["policy"]), args, games * 2 + i, decks[i] if str(args["styles"]) != "off" else null)
+				players[i] = make_player(str(args["policy"]), args, games * 2 + i, decks[i] if str(args["styles"]) != "off" else null, pilot if i == seat else foe)
 			var steps: int = 0
 			while not ref.is_over() and steps < MAX_STEPS:
 				steps += 1
 				var who: int = ref.engine.prompt.player
+				var command: Dictionary
 				if players[who] == null:
 					var opts: Array[Command] = ref.engine.prompt.options
-					ref.submit(who, opts[rng.randi_range(0, opts.size() - 1)].to_dict())
+					command = opts[rng.randi_range(0, opts.size() - 1)].to_dict()
 				else:
-					ref.submit(who, players[who].choose(ref, who))
+					command = players[who].choose(ref, who)
+				var error: String = ref.submit(who, command)
+				if error != "":
+					push_error("Rejected action in %s vs %s, seat %d, step %d: %s (%s)" % [pilot, foe, who, steps, error, command])
+					quit(1)
+					return
+				ref.engine.take_events()
 			var mine: Dictionary = tally[pilot]
 			var theirs: Dictionary = tally[foe]
 			mine["played"] = int(mine["played"]) + 1
@@ -142,13 +164,16 @@ func deck_names(wanted: String) -> Array[String]:
 
 
 ## null means uniform random play.
-func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckList) -> AiPlayer:
-	if policy == "random":
+func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckList, deck_name: String = "") -> AiPlayer:
+	var force_sequence: bool = search_decks.has(deck_name)
+	if policy == "random" and not force_sequence:
 		return null
-	var level: String = "" if policy == "scorer" or policy == "search" else policy
+	var level: String = "" if policy in ["scorer", "search", "random"] else policy
 	var profile: AiProfile = AiProfile.for_deck(deck, level)
 	if policy == "scorer":
 		profile.merge({"think": {"search": false}})
+	if force_sequence:
+		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
 	var over: Dictionary = {}
 	if str(args["budget"]) != "":
 		over["budget_ms"] = int(args["budget"])

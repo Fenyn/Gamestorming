@@ -1,0 +1,72 @@
+{
+	"arguments": {
+		"a": "search",
+		"b": "rollout",
+		"budget": "400",
+		"decks": "root_seals,shade_henchmen",
+		"report": "res://docs/ai_strategy_benchmark_strategic.json",
+		"samples": "2",
+		"seeds": "1",
+		"steps": "",
+		"styles": "ab",
+		"turns": "",
+		"verbose": "1"
+	},
+	"by_deck": {
+		"root_seals": [
+			3,
+			4
+		],
+		"shade_henchmen": [
+			3,
+			4
+		]
+	},
+	"decisions": [
+		675,
+		604
+	],
+	"fallbacks": [
+		64,
+		0
+	],
+	"games": 8,
+	"max_usec": [
+		429049,
+		725973
+	],
+	"median_ms": [
+		406.627,
+		162.965
+	],
+	"p95_ms": [
+		414.283,
+		502.701
+	],
+	"policies": [
+		"search",
+		"rollout"
+	],
+	"search_decisions": [
+		659,
+		0
+	],
+	"search_depth_totals": [
+		665,
+		0
+	],
+	"total_usec": [
+		260842206,
+		125186699
+	],
+	"unfinished": 0,
+	"win_reasons": {
+		"rollout:survival": 2,
+		"search:seal": 1,
+		"search:survival": 5
+	},
+	"wins": [
+		6,
+		2
+	]
+}

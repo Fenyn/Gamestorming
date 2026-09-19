@@ -33,9 +33,12 @@ const ANIMATED: Dictionary = {
 
 var engine: DuelEngine = DuelEngine.new()
 var _pending_events: Array[GameEvent] = []
+# Eligible definitions depend only on immutable rules and public setup declarations.
+var _belief_candidate_cache: Dictionary = {}
 
 
 func setup(decks: Array[DeckList], library: CardLibrary, table: StrikeTable, seed_value: int, names: Array[String] = []) -> void:
+	_belief_candidate_cache.clear()
 	engine.record_display_state = true
 	engine.setup(decks, library, table, seed_value, names)
 
@@ -103,11 +106,13 @@ func take_updates() -> Array[SeatUpdate]:
 	return out
 
 
-## An engine `seat` may simulate on: the real position with everything `seat` cannot see dealt
-## again at random from `sample_seed`. Nothing hidden survives in it, so an AI can hold it.
+## A simulation keeps the seat's own known composition, randomizes unknown placement, and
+## replaces the rival's undisclosed composition with a public-information library prior.
+## This is a broad belief, not knowledge of a custom decklist or a learned archetype model.
 func sim_for(seat: int, sample_seed: int) -> DuelEngine:
 	var sim: DuelEngine = engine.clone()
 	sim.determinize(seat, sample_seed)
+	_sample_opponent_pool(sim, seat, sample_seed, _belief_candidate_cache)
 	return sim
 
 
@@ -119,3 +124,114 @@ func view_for(seat: int) -> SeatView:
 func prompt_for(seat: int) -> PromptView:
 	var p: Prompt = engine.prompt_of(seat)
 	return PromptView.of(p, engine) if p != null else null
+
+
+## Hidden slots keep their UIDs/zones. Only the acting seat's visible cards and explicitly
+## revealed search/choice cards contribute counts; no authoritative unseen definition enters
+## the prior. Opponent Reserve commands enumerate these same UIDs and remain valid.
+static func _sample_opponent_pool(sim: DuelEngine, seat: int, sample_seed: int, candidate_cache: Dictionary) -> void:
+	# Use the same SeatCard reveal policy without constructing unrelated attack forecasts.
+	var rival: SeatPlayer = SeatPlayer.of(sim.player(1 - seat), sim)
+	var duelist: CardDef = sim.card(rival.duelist).def
+	var shown: Dictionary = {}
+	var pending: Prompt = sim.prompt_of(seat)
+	if pending != null:
+		for uid in pending.card_options():
+			shown[uid] = true
+		for uid in pending.context.get("library", []):
+			shown[int(uid)] = true
+	var unknown: Array[int] = []
+	var counts: Dictionary = {}
+	var seal_set: String = ""
+	for card in sim.all_cards():
+		var visible: SeatCard = SeatCard.of(card, seat, shown.has(card.uid))
+		if visible.owner != rival.index:
+			continue
+		if visible.hidden():
+			unknown.append(visible.uid)
+		else:
+			counts[visible.def_id] = int(counts.get(visible.def_id, 0)) + 1
+			var def: CardDef = sim.library.defs.get(visible.def_id)
+			if def != null and def.type == CardDef.Type.SEAL:
+				seal_set = def.seal_set
+	if unknown.is_empty():
+		return
+	unknown.sort()
+	var cache_key: String = JSON.stringify([sim.library.get_instance_id(), sim.library.defs.hash(), rival.style, rival.alignment, rival.highest_aspect, duelist.character])
+	var ids: Array = []
+	var allowed: Array[CardDef] = []
+	var sets: Array[String] = []
+	if candidate_cache.has(cache_key):
+		var cached: Dictionary = candidate_cache[cache_key]
+		ids = cached["ids"]
+		allowed.assign(cached["allowed"])
+		sets.assign(cached["sets"])
+	else:
+		ids = sim.library.defs.keys()
+		ids.sort()
+		for id in ids:
+			var def: CardDef = sim.library.defs[id]
+			if not _belief_card_allowed(def, rival, duelist):
+				continue
+			allowed.append(def)
+			if def.type == CardDef.Type.SEAL and not sets.has(def.seal_set):
+				sets.append(def.seal_set)
+		if candidate_cache.size() >= 16:
+			candidate_cache.clear()
+		candidate_cache[cache_key] = {"ids": ids, "allowed": allowed, "sets": sets}
+	var dealer: ZenithRng = ZenithRng.new(sample_seed ^ 0x51A7BEEF)
+	if seal_set == "" and not sets.is_empty():
+		seal_set = sets[dealer.randi_range(0, sets.size() - 1)]
+	var pool: Array[CardDef] = []
+	var fallback: Array[CardDef] = []
+	for def in allowed:
+		if def.type == CardDef.Type.SEAL and def.seal_set != seal_set:
+			continue
+		fallback.append(def)
+		var limit: int = def.limit_per_deck
+		if def.type in [CardDef.Type.PERSONALITY, CardDef.Type.SEAL]:
+			limit = 1
+		elif duelist != null and def.character != "" and def.character == duelist.character and limit >= DeckValidator.DEFAULT_LIMIT:
+			limit = DeckValidator.SIGNATURE_LIMIT
+		for copy_index in range(maxi(0, limit - int(counts.get(def.id, 0)))):
+			pool.append(def)
+	# Small rule-test libraries may not contain enough legal copies for their intentionally
+	# invalid fixture decks. Relax copy limits in that case, never consult the hidden truth.
+	if fallback.is_empty():
+		for id in ids:
+			var def: CardDef = sim.library.defs[id]
+			if def.type not in [CardDef.Type.MASTERY, CardDef.Type.RELIC]:
+				fallback.append(def)
+	if fallback.is_empty():
+		# An invalid fixture may contain only setup definitions; keep even that fallback
+		# independent of its authoritative hidden identities. Valid decks never use it.
+		for id in ids:
+			fallback.append(sim.library.defs[id])
+	if fallback.is_empty():
+		return  # A library with no definitions cannot contain a valid hidden card.
+	for uid in unknown:
+		var def: CardDef
+		if pool.is_empty():
+			def = fallback[dealer.randi_range(0, fallback.size() - 1)]
+		else:
+			var index: int = dealer.randi_range(0, pool.size() - 1)
+			def = pool[index]
+			pool.remove_at(index)
+		var card: CardInstance = sim.card(uid)
+		card.def = def
+		card.aspect = def.lowest_aspect() if def.is_personality() else 1
+
+
+static func _belief_card_allowed(def: CardDef, player: SeatPlayer, duelist: CardDef) -> bool:
+	if def.type in [CardDef.Type.MASTERY, CardDef.Type.RELIC]:
+		return false
+	if def.school != "" and def.school != player.style:
+		return false
+	if def.is_personality():
+		if duelist != null and def.character == duelist.character:
+			return false
+		if def.alignment_only != "" and def.alignment_only != player.alignment:
+			return false
+		if def.highest_aspect() > player.highest_aspect - 2:
+			return false
+	return true

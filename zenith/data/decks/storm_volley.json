@@ -1,5 +1,5 @@
 {
-  "name": "The Corven Collegium",
+  "name": "Tempest Engine",
   "duelist": "duelist_gamma",
   "aspects": 3,
   "style": "storm",
@@ -25,7 +25,7 @@
     "fervor"
   ],
   "ai_profile": "storm_volley",
-  "tagline": "Scholars of the Tempest, and the construct they send to fight.",
+  "tagline": "Build your engine with Drills, charge your Energy, and unleash a barrage of discounted Arts.",
   "blurb": "The Ninth Vessel is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy.",
   "cards": [
     {

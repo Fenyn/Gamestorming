@@ -12,8 +12,8 @@ const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"de
 ## that does the thing", which is as long as the shipped decks get.
 const TUTOR_DEPTH: int = 3
 
-## Card values while one prompt is being scored, keyed by def id and remaining depth. The table is
-## only valid for one board state, so `scores` clears it before every prompt.
+## Legacy compatibility for callers that cleared the old cache. Evaluation never reads or writes
+## this shared dictionary: every contextual valuation owns its recursion context.
 static var _value_cache: Dictionary = {}
 
 
@@ -21,7 +21,6 @@ static var _value_cache: Dictionary = {}
 ## nothing". `seat` picks which prompt when both players hold one; -1 takes the first.
 static func scores(engine: DuelEngine, profile: AiProfile, seat: int = -1) -> Array[float]:
 	var out: Array[float] = []
-	_value_cache.clear()
 	var prompt: Prompt = engine.prompt_of(seat) if seat >= 0 else engine.prompt
 	if prompt == null:
 		return out
@@ -63,7 +62,7 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 			var handover: float = AiEvaluator.handover_progress(engine, me)
 			return effects_value(c.def.effects, profile, ["use", "secondary", "relic_use"], handover) \
 				+ _aspect_jump_value(c, me, profile) + _bond_use_value(engine, me, c.def, profile) \
-				+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH) \
+				+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c) \
 				- profile.w("play", "use_cost")
 		&"relic":
 			# The Relic fires once a game, so it is worth what it actually fetches rather than a
@@ -71,7 +70,7 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 			if c == null:
 				return 1.0
 			return 1.0 + effects_value(c.def.effects, profile, ["relic_use"]) \
-				+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH)
+				+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
 		&"defend", &"power_defend":
 			return _defense_score(engine, profile, me, o, c)
 		&"declare":
@@ -85,7 +84,7 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"shuffle_back":
 			return -0.5
 		&"keep":
-			return 0.5 + hold_value(c, profile)
+			return 0.5 + card_value(engine, me, c, profile, TUTOR_DEPTH)
 		&"reserve_in":
 			# Cards already swapped out are in the Reserve but not on offer, which counts the swaps.
 			var swaps: int = me.reserve.size() - prompt.card_options().size()
@@ -98,7 +97,8 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 			# Hand Combat to whoever hits hardest on the Strike Table.
 			if c == null:
 				return 0.0
-			return float(engine.strike_table.band(c.might())) + (profile.w("play", "control_ally") if c != me.duelist else 0.0)
+			return float(engine.strike_table.band(c.might())) + usable_power_value(engine, me, c, profile) \
+				+ (profile.w("play", "control_ally") if c != me.duelist else 0.0)
 		&"target":
 			return _redirect_score(engine, profile, me, c)
 		&"endure":
@@ -114,7 +114,10 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"pay":
 			return _pay_score(profile, o)
 		&"discard_choice":
-			return _choice_sign(prompt, seat) * hold_value(c, profile)
+			var owner: PlayerState = engine.player(c.controller) if c != null else me
+			# Revealing an opposing discard option does not reveal that player's tutor pool.
+			var value: float = card_value(engine, owner, c, profile, TUTOR_DEPTH) if owner.index == seat else hold_value(c, profile)
+			return _choice_sign(prompt, seat) * value
 		&"pick_in_play":
 			var mine: bool = c != null and c.controller == seat
 			return (-1.0 if mine else 1.0) * (1.0 + hold_value(c, profile))
@@ -145,7 +148,7 @@ static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerStat
 			v += effects_value(effects, profile, ["secondary", "if_successful", "use"], handover)
 		else:
 			v += effects_value(c.def.effects, profile, ["secondary", "if_successful", "use"], handover)
-		v += _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH)
+		v += _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
 	return v + 0.1
 
 
@@ -238,13 +241,27 @@ static func _choice_sign(prompt: Prompt, seat: int) -> float:
 ## number the tutor chain is built on: nothing here knows what a card is called, only what it is
 ## worth and what it can reach, so a deck's tutor priorities fall out of the weights it already has.
 static func card_value(engine: DuelEngine, me: PlayerState, c: CardInstance, profile: AiProfile, depth: int) -> float:
-	var key: String = "%s|%d" % [c.def.id, depth]
-	if _value_cache.has(key):
-		return float(_value_cache[key])
+	if c == null or c.def == null:
+		return 0.0
+	if depth <= 0 or profile.w("play", "tutor_decay") <= 0.0:
+		return hold_value(c, profile) + _combo_value(engine, me, c, profile)
+	return _context_card_value(engine, me, c, profile, maxi(0, depth), {}, {})
+
+
+static func _context_card_value(engine: DuelEngine, me: PlayerState, c: CardInstance, profile: AiProfile, depth: int, cache: Dictionary, path: Dictionary) -> float:
+	if c == null or c.def == null or path.has(c.def.id):
+		return 0.0
+	var ancestors: Array = path.keys()
+	ancestors.sort()
+	var key: String = "%d|%d|%s" % [c.uid, depth, str(ancestors)]
+	if cache.has(key):
+		return float(cache[key])
 	var v: float = hold_value(c, profile) + _combo_value(engine, me, c, profile)
 	if depth > 0:
-		v += _tutor_value(engine, me, c.def, profile, depth)
-	_value_cache[key] = v
+		var next_path: Dictionary = path.duplicate()
+		next_path[c.def.id] = true
+		v += _reachable_value(engine, me, c, profile, depth, cache, next_path)
+	cache[key] = v
 	return v
 
 
@@ -252,23 +269,107 @@ static func card_value(engine: DuelEngine, me: PlayerState, c: CardInstance, pro
 ## link by `play.tutor_decay`, so a three-card chain still reads above an ordinary play but never
 ## above simply holding the card at the end of it. Zero decay turns the whole thing off, which is
 ## the default: a deck opts in.
-static func _tutor_value(engine: DuelEngine, me: PlayerState, def: CardDef, profile: AiProfile, depth: int) -> float:
+static func _tutor_value(engine: DuelEngine, me: PlayerState, def: CardDef, profile: AiProfile, depth: int, source: CardInstance = null) -> float:
+	if depth <= 0 or profile.w("play", "tutor_decay") <= 0.0:
+		return 0.0
+	if source == null:
+		for pool in [me.hand, me.in_play, me.life_deck, me.discard, me.reserve]:
+			for c: CardInstance in pool:
+				if c.def == def:
+					source = c
+					break
+			if source != null:
+				break
+	if source == null or depth <= 0:
+		return 0.0
+	return _reachable_value(engine, me, source, profile, depth, {}, {source.def.id: true})
+
+
+## An optimistic, bounded hint, not a substitute for executing a chain in search. Conditions and
+## payment gates use the engine; later placements and contingent hits are explicitly discounted.
+static func _reachable_value(engine: DuelEngine, me: PlayerState, source: CardInstance, profile: AiProfile, depth: int, cache: Dictionary, path: Dictionary) -> float:
 	var decay: float = profile.w("play", "tutor_decay")
-	if decay <= 0.0:
+	if decay <= 0.0 or not engine._can_play(me, source.def):
 		return 0.0
 	var best: float = 0.0
-	for e in _searching_effects(def):
+	for route in _available_searches(engine, me, source, profile):
+		var e: Dictionary = route["effect"]
+		var reliability: float = float(route["factor"])
+		var seen: Dictionary = {}
 		for cand in engine.search_candidates(me, e):
-			best = maxf(best, card_value(engine, me, cand, profile, depth - 1) * decay)
+			if path.has(cand.def.id) or seen.has(cand.def.id):
+				continue
+			seen[cand.def.id] = true
+			var value: float = _context_card_value(engine, me, cand, profile, depth - 1, cache, path)
+			# A card returned to the deck is recovery, not an immediately held combo piece.
+			var destination: String = str(e.get("to", "hand"))
+			var access: float = 0.35 if destination == "deck" or destination == "top" or destination == "bottom" else 1.0
+			best = maxf(best, value * decay * reliability * access)
 	return best
+
+
+static func _available_searches(engine: DuelEngine, me: PlayerState, source: CardInstance, profile: AiProfile) -> Array[Dictionary]:
+	var pending: Array[Dictionary] = []
+	var out: Array[Dictionary] = []
+	var attack: Dictionary = source.def.attack
+	var payment: float = 1.0
+	if source.def.is_attack() and not engine._can_pay(me.in_control(), me, attack):
+		payment = 0.25 # retain future value, but do not price it as a ready chain
+	for e in source.def.effects:
+		pending.append({"effect": e, "factor": payment})
+	if source.def.is_personality():
+		var power: Dictionary = source.power()
+		var readiness: float = 1.0 if source == me.duelist or me.allies().has(source) else 0.6
+		if readiness == 1.0 and (not engine._power_available(me, source) or engine._forbidden(me, "powers")):
+			readiness = 0.0
+		if readiness == 1.0 and source != me.in_control() and not bool(power.get("no_control_needed", false)) and not engine.may_ally_control(me):
+			readiness = 0.25
+		if power.has("attack") and not engine._can_pay(source, me, power["attack"]):
+			readiness *= 0.25
+		for e in power.get("effects", []):
+			pending.append({"effect": e, "factor": readiness})
+	while not pending.is_empty():
+		var route: Dictionary = pending.pop_back()
+		var e: Dictionary = route["effect"]
+		var factor: float = float(route["factor"])
+		if factor <= 0.0:
+			continue
+		if not engine._cond(e.get("when", {}), me.index, {}):
+			for branch in e.get("else_effects", []):
+				pending.append({"effect": branch, "factor": factor})
+			continue
+		var trigger: String = str(e.get("trigger", "secondary"))
+		if trigger == "if_successful":
+			factor *= profile.w("effect", "if_successful")
+		elif trigger == "if_stopped":
+			factor *= profile.w("effect", "if_stopped")
+		elif trigger == "on_wound" or trigger == "on_discard":
+			factor *= 0.25
+		var op: String = str(e.get("op", ""))
+		var amount: Variant = e.get("amount", 1)
+		if amount is int or amount is float:
+			var after_play: int = me.hand.size() - (1 if source.zone == &"hand" else 0)
+			if op == "discard_hand" and str(e.get("who", "self")) == "self" and int(amount) > after_play:
+				continue
+			if op == "remove_discard" and str(e.get("who", "self")) == "self" and int(amount) > me.discard.size():
+				continue
+			if op == "discard_life" and str(e.get("who", "self")) == "self" and int(amount) >= me.life_deck.size():
+				continue
+			if op == "energy" and str(e.get("who", "self")) == "self" and int(amount) < 0 and maxi(0, -int(amount) - me.in_control().energy) >= me.life_deck.size():
+				continue
+		if op == "search":
+			out.append({"effect": e, "factor": factor})
+		for child in e.get("then", []):
+			pending.append({"effect": child, "factor": factor})
+	return out
 
 
 ## Every `search` a card can perform, wherever it sits on the card: its own effects, the `then`
 ## chains hanging off them, and the effects of a personality's power.
-static func _searching_effects(def: CardDef) -> Array[Dictionary]:
+static func _searching_effects(def: CardDef, aspect: int = -1) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var pending: Array = def.effects.duplicate()
-	var power: Dictionary = def.aspect_data(1).get("power", {}) if not def.aspects.is_empty() else {}
+	var power: Dictionary = def.aspect_data(def.lowest_aspect() if aspect < 0 else aspect).get("power", {}) if not def.aspects.is_empty() else {}
 	pending.append_array(power.get("effects", []))
 	while not pending.is_empty():
 		var e: Variant = pending.pop_back()
@@ -336,7 +437,7 @@ static func _bond_payoff(engine: DuelEngine, me: PlayerState, bond: CardDef, als
 	if found < names.size():
 		return 0.0
 	# The fused card enters at full Energy, so it is judged at the top of its own ladder.
-	var ladder: Array = bond.aspect_data(1).get("might", [])
+	var ladder: Array = bond.aspect_data(bond.lowest_aspect()).get("might", [])
 	if ladder.is_empty():
 		return 0.0
 	var gain: int = engine.strike_table.band(int(ladder[ladder.size() - 1])) - best
@@ -351,21 +452,35 @@ static func _bond_prospect(engine: DuelEngine, me: PlayerState, bond: CardDef, p
 	var names: Array = bond.raw.get("bond_of", [])
 	if names.is_empty() or profile.w("play", "bond_band") <= 0.0:
 		return 0.0
-	var ladder: Array = bond.aspect_data(1).get("might", [])
+	var ladder: Array = bond.aspect_data(bond.lowest_aspect()).get("might", [])
 	if ladder.is_empty():
 		return 0.0
 	var present: int = 0
 	var best: int = 0
+	var access: float = 1.0
 	for n in names:
+		var found: bool = false
 		for al in me.allies():
 			if al.def.character == str(n):
 				present += 1
+				found = true
 				best = maxi(best, engine.strike_table.band(al.might()))
 				break
+		if found:
+			continue
+		for pool in [me.hand, me.life_deck, me.reserve]:
+			for candidate: CardInstance in pool:
+				found = found or candidate.def.character == str(n)
+		if not found:
+			for candidate in me.discard:
+				found = found or candidate.def.character == str(n)
+			if not found:
+				return 0.0 # no known remaining instance can supply this prerequisite
+			access *= 0.35 # recovery is another required action, not a ready partner
 	var gain: int = engine.strike_table.band(int(ladder[ladder.size() - 1])) - best
 	# The pieces are the partners plus the card that fuses them, and this is one of them.
 	var share: float = float(present + 1) / float(names.size() + 1)
-	return maxf(0.0, float(gain)) * profile.w("play", "bond_band") * share
+	return maxf(0.0, float(gain)) * profile.w("play", "bond_band") * share * access
 
 
 ## What a card is worth as a piece of a fusion: the Bonding card itself, or an Ally it names.
@@ -378,6 +493,10 @@ static func _combo_value(engine: DuelEngine, me: PlayerState, c: CardInstance, p
 			return _bond_prospect(engine, me, own_bond, profile) if own_bond != null else 0.0
 	if c.def.type != CardDef.Type.PERSONALITY:
 		return 0.0
+	# A second copy of an already present partner cannot advance this assembly.
+	for ally in me.allies():
+		if ally != c and ally.def.character == c.def.character:
+			return 0.0
 	for pool in [me.life_deck, me.hand, me.discard, me.reserve, me.in_play]:
 		for held in pool:
 			for e in held.def.effects:
@@ -387,6 +506,101 @@ static func _combo_value(engine: DuelEngine, me: PlayerState, c: CardInstance, p
 				if bond != null and (bond.raw.get("bond_of", []) as Array).has(c.def.character):
 					return _bond_prospect(engine, me, bond, profile)
 	return 0.0
+
+
+## Remaining usable power, with rule-engine affordability, restrictions, control eligibility and
+## damage math. No simulated commands or authoritative hidden information are introduced here.
+static func usable_power_value(engine: DuelEngine, me: PlayerState, c: CardInstance, profile: AiProfile) -> float:
+	if engine.state.step != GameState.Step.COMBAT or me.final_strike_used:
+		return 0.0
+	if c == null or not engine._power_available(me, c) or engine._forbidden(me, "powers"):
+		return 0.0
+	var power: Dictionary = c.power()
+	if not engine._cond(power.get("when", {}), me.index, {}):
+		return 0.0
+	var controls: bool = c == me.in_control() or bool(power.get("no_control_needed", false))
+	if not controls and c != me.duelist and not engine.may_ally_control(me):
+		return 0.0
+	var effects: Array[Dictionary] = []
+	effects.assign(power.get("effects", []))
+	var value: float = 0.0
+	if power.has("attack"):
+		var attack: Dictionary = power["attack"]
+		if not engine._attack_allowed(me, null, str(attack.get("kind", "strike"))) or not engine._can_pay(c, me, attack):
+			return 0.0
+		var built: Dictionary = engine._build_attack(me.index, c, attack, effects, true, false, false, c, me.attack_count_combat == 0)
+		var damage: Dictionary = engine.damage_breakdown(built)
+		value += float(damage.get("life", 0)) * profile.w("play", "damage_life")
+		value += float(damage.get("stages", 0)) * profile.w("play", "damage_stage")
+		value -= float(engine._cost_stages(attack, me)) * profile.w("play", "attack_cost")
+		if int(damage.get("life", 0)) >= engine.player(1 - me.index).life_deck.size() and int(damage.get("life", 0)) > 0:
+			value += AiEvaluator.WIN * 0.1
+	elif power.has("defense"):
+		# Defensive utility is reusable material, not an attack action.
+		if not engine._can_pay(c, me, power["defense"]):
+			return 0.0
+		value += profile.w("play", "defend_card")
+	elif engine._forbidden(me, "non_attack_actions"):
+		return 0.0
+	var active_effects: Array = []
+	for e in effects:
+		if engine._cond(e.get("when", {}), me.index, {}):
+			active_effects.append(e)
+	value += effects_value(active_effects, profile, ["secondary", "use", "if_successful", "if_stopped"], AiEvaluator.handover_progress(engine, me))
+	var remaining: int = maxi(1, int(power.get("uses", 1)))
+	if c.power_used_combat == engine.state.combat_count:
+		remaining = maxi(1, remaining - c.power_uses_combat)
+	return maxf(0.0, value) * (1.0 + 0.35 * (remaining - 1)) * (1.0 if controls else 0.8)
+
+
+## Normalized progress of the best assembly, not another copy of its payoff valuation. A completed
+## fusion retains progress 1 after consuming its partners; its usable power is valued separately.
+static func combo_progress(engine: DuelEngine, me: PlayerState, profile: AiProfile, public_only: bool = false) -> float:
+	if profile.w("play", "bond_band") <= 0.0:
+		return 0.0
+	for ally in me.allies():
+		if not (ally.def.raw.get("bond_of", []) as Array).is_empty():
+			return 1.0
+	var pool: Array[CardInstance] = me.in_play.duplicate()
+	if not public_only:
+		pool.append_array(me.hand)
+		pool.append_array(me.life_deck)
+		pool.append_array(me.discard)
+	var plans: Dictionary = {}
+	for c in pool:
+		for e in c.def.effects:
+			if str(e.get("op", "")) != "bond":
+				continue
+			var bond: CardDef = engine.library.get_def(str(e.get("card", "")))
+			if bond == null:
+				continue
+			var names: Array = bond.raw.get("bond_of", [])
+			var present: int = 0
+			var accessible: int = 0
+			for name in names:
+				var on_board: bool = false
+				var in_hand: bool = false
+				for partner in me.allies():
+					on_board = on_board or partner.def.character == str(name)
+				if not public_only and not on_board:
+					for partner in me.hand:
+						in_hand = in_hand or partner.def.character == str(name)
+				present += 1 if on_board else 0
+				accessible += 1 if in_hand else 0
+			if present + accessible == 0:
+				continue
+			var ready: bool = me.in_play.has(c) or me.hand.has(c)
+			# A discarded enabler has no assumed route back. A deck copy retains discounted
+			# future access, but cannot count as an immediately executable finish.
+			var access: float = 1.0 if ready else (0.25 if me.life_deck.has(c) else 0.0)
+			var progress: float = float(present) + 0.4 * accessible + (1.0 if ready else 0.0)
+			progress /= maxf(1.0, float(names.size() + 1))
+			var value: float = clampf(progress * access, 0.0, 1.0)
+			plans[bond.id] = maxf(float(plans.get(bond.id, 0.0)), value)
+	var best: float = 0.0
+	for value in plans.values():
+		best = maxf(best, float(value))
+	return best
 
 
 static func _pick_option_score(engine: DuelEngine, me: PlayerState, profile: AiProfile, o: Command, c: CardInstance) -> float:
@@ -418,7 +632,7 @@ static func hold_value(c: CardInstance, profile: AiProfile) -> float:
 			v += profile.w("own", "ally")
 			# Allies differ mostly in what their power does, and a deck that searches for one wants
 			# the one that can swing, not whichever the list happens to offer first.
-			var pw: Dictionary = def.aspect_data(1).get("power", {})
+			var pw: Dictionary = c.power()
 			if pw.has("attack"):
 				var pa: Dictionary = pw["attack"]
 				v += 1.5

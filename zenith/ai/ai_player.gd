@@ -33,8 +33,10 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 	var cmd: Command = null
 	# The Reserve swap is judged by AiReserve; a playout to the end of the turn says nothing about it.
 	if playing.searches() and pending.kind != &"reserve":
-		cmd = search.choose(referee, seat, playing, rng)
+		cmd = search.choose(referee, seat, playing, rng, _matchup)
 	else:
+		search.metrics = {}
+		search.last_report.clear()
 		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), playing, rng, seat)
 	return cmd.to_dict() if cmd != null else {}
 

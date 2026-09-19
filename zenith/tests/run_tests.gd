@@ -3818,8 +3818,8 @@ func test_clone_is_independent() -> void:
 	eq(a.events.size() > 0, true, "the original kept its events")
 
 
-## Referee.sim_for: the seat's own view of the simulated engine is exactly its view of the real
-## one, the hidden cards are the same cards in a new deal, and the deal changes with the seed.
+## Referee.sim_for preserves all permitted observations and our known composition, while
+## inferring the rival's undisclosed cards from a reproducible public-information prior.
 func test_sim_for_hides_and_keeps() -> void:
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
@@ -3830,29 +3830,49 @@ func test_sim_for_hides_and_keeps() -> void:
 	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
 	picker.seed = 4
 	var compared: int = 0
-	var hands_differ: int = 0
+	var deals_differ: int = 0
 	var steps: int = 0
 	while not ref.is_over() and steps < 300:
 		steps += 1
 		var seat: int = ref.engine.prompt.player
 		if steps % 10 == 0:
+			var visible: SeatView = ref.view_for(seat)
+			var original: String = views_text(ref.engine)
+			var original_rng: int = ref.engine.rng._rng.state
 			var sim: DuelEngine = ref.sim_for(seat, steps)
-			eq(JSON.stringify(SeatView.of(sim, seat).to_dict()), JSON.stringify(ref.view_for(seat).to_dict()), "step %d: the seat sees the same table in the simulation" % steps)
-			var foe: int = 1 - seat
-			eq(hidden_titles(sim, foe), hidden_titles(ref.engine, foe), "step %d: the opponent's hidden cards are the same cards" % steps)
+			eq(JSON.stringify(SeatView.of(sim, seat).to_dict()), JSON.stringify(visible.to_dict()), "step %d: every permitted observation survives sampling" % steps)
+			eq(JSON.stringify(PromptView.of(sim.prompt_of(seat), sim).to_dict()), JSON.stringify(ref.prompt_for(seat).to_dict()), "step %d: the seat keeps its revealed legal decision" % steps)
+			eq(hidden_titles(sim, seat), hidden_titles(ref.engine, seat), "step %d: our known deck/hand/Reserve composition is preserved" % steps)
+			var repeated: DuelEngine = ref.sim_for(seat, steps)
 			var other: DuelEngine = ref.sim_for(seat, steps + 1000)
-			if hand_titles(sim, foe) != hand_titles(ref.engine, foe) or hand_titles(other, foe) != hand_titles(ref.engine, foe):
-				hands_differ += 1
+			var same_slots: bool = true
+			var different_slots: bool = false
+			var preserved_reveals: bool = true
+			for value in visible.cards.values():
+				var card: SeatCard = value
+				if not card.hidden():
+					preserved_reveals = preserved_reveals and sim.card(card.uid).def.id == card.def_id
+				elif card.owner == 1 - seat:
+					same_slots = same_slots and sim.card(card.uid).def.id == repeated.card(card.uid).def.id
+					different_slots = different_slots or sim.card(card.uid).def.id != other.card(card.uid).def.id
+			eq(same_slots, true, "step %d: identical seeds infer identical enemy identities at every hidden UID" % steps)
+			eq(preserved_reveals, true, "step %d: own hand and every explicitly revealed choice retain identity" % steps)
+			eq(sim.rng._rng.state, repeated.rng._rng.state, "step %d: the sampled future random stream is reproducible" % steps)
+			check(sim.rng._rng.state != other.rng._rng.state, "step %d: another sample gets an independent future random stream" % steps)
+			if different_slots:
+				deals_differ += 1
 			compared += 1
 			var guard: int = 0
 			while not sim.is_over() and guard < 4000:
 				guard += 1
 				sim.submit(sim.prompt.options[picker.randi_range(0, sim.prompt.options.size() - 1)])
-			check(sim.is_over(), "step %d: the simulation plays to the end" % steps)
+			check(sim.is_over(), "step %d: the inferred simulation plays to the end" % steps)
+			eq(views_text(ref.engine), original, "step %d: sampling and playout cannot mutate the real position" % steps)
+			eq(ref.engine.rng._rng.state, original_rng, "step %d: sampling and playout cannot consume real randomness" % steps)
 		var opts: Array[Command] = ref.engine.prompt.options
 		ref.submit(seat, opts[picker.randi_range(0, opts.size() - 1)].to_dict())
 	check(compared >= 5, "compared %d simulations" % compared)
-	check(hands_differ >= compared / 2, "the opponent's hand was dealt again in %d of %d simulations" % [hands_differ, compared])
+	check(deals_differ >= compared / 2, "different seeds inferred different opposing deals in %d of %d simulations" % [deals_differ, compared])
 
 
 func hidden_titles(e: DuelEngine, owner: int) -> Array[String]:

@@ -1,5 +1,5 @@
 {
-  "name": "The Draik Company",
+  "name": "Hexbound Company",
   "duelist": "duelist_delta",
   "aspects": 3,
   "style": "shade",
@@ -18,7 +18,7 @@
     "disruption"
   ],
   "ai_profile": "shade_henchmen",
-  "tagline": "Hexers for hire, under a captain who never pays in full.",
+  "tagline": "Rally a company of hexers and strip away your rival's hand while your allies keep the pressure on.",
   "blurb": "Sable Draik fights with her company beside her. Every hex is aimed at the rival's mind: their hand, their focus, the spells they were counting on. Modest damage, but the rival plays with less and less.",
   "cards": [
     {

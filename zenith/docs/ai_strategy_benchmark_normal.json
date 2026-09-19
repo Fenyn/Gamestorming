@@ -1,0 +1,71 @@
+{
+	"arguments": {
+		"a": "search",
+		"b": "rollout",
+		"budget": "400",
+		"decks": "steel_beatdown,tide_companions",
+		"report": "res://docs/ai_strategy_benchmark_normal.json",
+		"samples": "2",
+		"seeds": "2",
+		"steps": "",
+		"styles": "ab",
+		"turns": "",
+		"verbose": "1"
+	},
+	"by_deck": {
+		"steel_beatdown": [
+			8,
+			8
+		],
+		"tide_companions": [
+			3,
+			8
+		]
+	},
+	"decisions": [
+		1036,
+		942
+	],
+	"fallbacks": [
+		70,
+		0
+	],
+	"games": 16,
+	"max_usec": [
+		434215,
+		754083
+	],
+	"median_ms": [
+		406.299,
+		158.279
+	],
+	"p95_ms": [
+		416.144,
+		499.861
+	],
+	"policies": [
+		"search",
+		"rollout"
+	],
+	"search_decisions": [
+		1012,
+		0
+	],
+	"search_depth_totals": [
+		1151,
+		0
+	],
+	"total_usec": [
+		387395327,
+		178672711
+	],
+	"unfinished": 0,
+	"win_reasons": {
+		"rollout:survival": 5,
+		"search:survival": 11
+	},
+	"wins": [
+		11,
+		5
+	]
+}

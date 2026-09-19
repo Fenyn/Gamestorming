@@ -3,33 +3,44 @@
 [ext_resource type="Script" path="res://scripts/select/roster_tile.gd" id="1_tile"]
 
 [node name="RosterTile" type="Button"]
-custom_minimum_size = Vector2(184, 120)
+custom_minimum_size = Vector2(220, 400)
 offset_right = 184.0
 offset_bottom = 120.0
 theme_type_variation = &"TileButton"
+size_flags_horizontal = 3
 script = ExtResource("1_tile")
 
-[node name="Row" type="HBoxContainer" parent="."]
+[node name="Row" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 6.0
-offset_right = -8.0
-offset_bottom = -6.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
 [node name="Thumb" type="TextureRect" parent="Row"]
-custom_minimum_size = Vector2(56, 80)
+custom_minimum_size = Vector2(0, 280)
 layout_mode = 2
 mouse_filter = 2
 texture_filter = 1
 expand_mode = 1
 stretch_mode = 5
+
+[node name="Fallback" type="Label" parent="Row/Thumb"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 54
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Column" type="VBoxContainer" parent="Row"]
 layout_mode = 2
@@ -40,10 +51,12 @@ theme_override_constants/separation = 2
 
 [node name="Deck" type="Label" parent="Row/Column"]
 layout_mode = 2
+theme_type_variation = &"HeaderLabel"
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 21
 text = "Deck"
-autowrap_mode = 2
+max_lines_visible = 2
+autowrap_mode = 3
 text_overrun_behavior = 3
 
 [node name="Duelist" type="Label" parent="Row/Column"]
@@ -52,13 +65,15 @@ mouse_filter = 2
 theme_type_variation = &"MutedLabel"
 theme_override_font_sizes/font_size = 14
 text = "Duelist"
-autowrap_mode = 2
+max_lines_visible = 1
+text_overrun_behavior = 3
 
 [node name="School" type="Label" parent="Row/Column"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 12
 text = "SCHOOL"
 
 [node name="Badge" type="Label" parent="."]
@@ -67,12 +82,19 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -60.0
-offset_top = -8.0
-offset_right = -6.0
-offset_bottom = 12.0
+offset_left = -106.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 36.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 11
 text = "P1"
 horizontal_alignment = 2
+
+[node name="Difficulty" type="Label" parent="Row/Column"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 13

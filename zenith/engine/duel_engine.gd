@@ -52,6 +52,7 @@ var record_display_state: bool = false
 var _cards: Dictionary = {}   # uid -> CardInstance
 var _next_uid: int = 1
 var _combat_ending: bool = false
+var _pending_attack: int = -1        # a card fetched to be performed in this same attack phase
 var _reserve_swapped: Dictionary = {}
 var _queue: Array[Dictionary] = []   # effect jobs: {effects, index, trigger, owner, ctx, source}
 var _choice: Dictionary = {}         # how to finish the effect that raised the pending prompt
@@ -137,6 +138,7 @@ func clone() -> DuelEngine:
 		e.prompts.append(p.copy())
 	e._next_uid = _next_uid
 	e._combat_ending = _combat_ending
+	e._pending_attack = _pending_attack
 	e._reserve_swapped = _reserve_swapped.duplicate()
 	e._queue.assign(_remap(_queue, e._cards))
 	e._choice = _remap(_choice, e._cards)
@@ -193,7 +195,7 @@ static func _remap(v: Variant, cards: Dictionary) -> Variant:
 
 ## Prompts that the step machine re-issues unchanged when asked again, so a dev effect can run
 ## in front of them and the same decision comes back afterwards.
-const DEV_SAFE_PROMPTS: Array[StringName] = [&"reserve", &"non_combat", &"declare", &"attack_action", &"defense", &"keep", &"recover"]
+const DEV_SAFE_PROMPTS: Array[StringName] = [&"reserve", &"non_combat", &"declare", &"attack_action", &"defense", &"keep", &"recover", &"combat_end", &"start_play"]
 
 
 ## Dev tool: runs one effect for `owner` through the normal queue, triggers included, then
@@ -321,7 +323,8 @@ func _apply_first_player_rule() -> void:
 ## active player's first. Nobody waits on the other.
 func _advance_reserve() -> void:
 	if state.reserve_index >= 2:
-		_start_in_play()
+		if _prompt_start_in_play():
+			return
 		_begin_turn()
 		return
 	for index in [state.active, state.opposing()]:
@@ -383,22 +386,63 @@ func _finish_reserve(p: PlayerState) -> void:
 	_emit(&"reserve_done", {"player": p.index})
 	state.reserve_finished[p.index] = true
 	state.reserve_index += 1
+	_start_in_play(p)
 
 
-## Cards that may begin the game in play (their text says so) move out of the deck now.
-func _start_in_play() -> void:
-	for p in state.players:
-		var found: Array[CardInstance] = []
-		var seen: Dictionary = {}
-		var pool: Array[CardInstance] = []
-		pool.append_array(p.life_deck)
-		pool.append_array(p.reserve)
-		for c in pool:
-			if c.def.start_in_play and _can_place(p, c) and not seen.has(c.def.id):
-				seen[c.def.id] = true
-				found.append(c)
-		for c in found:
-			_place(p, c)
+## Cards that begin the game in play move out of the deck as soon as their owner's Reserve is
+## settled. A card whose text reads "you may search your Life Deck for this and place it into play"
+## is left for `_prompt_start_in_play` instead, because that one is a decision.
+func _start_in_play(p: PlayerState) -> void:
+	var seen: Dictionary = {}
+	for c in _start_in_play_candidates(p):
+		if str(c.def.raw.get("start_in_play", "")) == "may" or seen.has(c.def.id):
+			continue
+		seen[c.def.id] = true
+		_place(p, c)
+
+
+func _start_in_play_candidates(p: PlayerState, optional_only: bool = false) -> Array[CardInstance]:
+	var pool: Array[CardInstance] = []
+	pool.append_array(p.life_deck)
+	pool.append_array(p.reserve)
+	var out: Array[CardInstance] = []
+	var seen: Dictionary = {}
+	for c in pool:
+		if not c.def.start_in_play or seen.has(c.def.id) or not _can_place(p, c):
+			continue
+		if optional_only and str(c.def.raw.get("start_in_play", "")) != "may":
+			continue
+		seen[c.def.id] = true
+		out.append(c)
+	return out
+
+
+## "Before the first turn begins, you may search your Life Deck for this Drill and place it into
+## play." Each player is asked in turn; true when a prompt is open.
+func _prompt_start_in_play() -> bool:
+	for index in [state.active, state.opposing()]:
+		if state.start_play_done[index]:
+			continue
+		var p: PlayerState = state.players[index]
+		var cands: Array[CardInstance] = _start_in_play_candidates(p, true)
+		if cands.is_empty():
+			state.start_play_done[index] = true
+			continue
+		var opts: Array[Command] = []
+		for c in cands:
+			opts.append(Command.new(index, &"place", c.uid))
+		opts.append(Command.new(index, &"done"))
+		_set_prompt(index, &"start_play", opts)
+		return true
+	return false
+
+
+func _handle_start_play(cmd: Command) -> void:
+	var p: PlayerState = state.players[cmd.player]
+	if cmd.type == &"done":
+		state.start_play_done[cmd.player] = true
+		return
+	_place(p, card(cmd.card))
 
 
 # --- Main loop ------------------------------------------------------------
@@ -444,6 +488,10 @@ func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
 			_handle_reserve(cmd)
 		&"non_combat":
 			_handle_non_combat(cmd)
+		&"combat_end":
+			_handle_combat_end(cmd)
+		&"start_play":
+			_handle_start_play(cmd)
 		&"declare":
 			_handle_declare(cmd)
 		&"attack_action":
@@ -851,6 +899,8 @@ func _advance_combat() -> void:
 			_prompt_defense()
 		GameState.Phase.BATTLE:
 			_advance_battle()
+		GameState.Phase.COMBAT_END:
+			_prompt_combat_end()
 		GameState.Phase.FIGHT_BACK:
 			for q in state.players:
 				for item in q.pending_fight_back:
@@ -868,15 +918,7 @@ func _resolve_entering(player_index: int) -> void:
 	var p: PlayerState = state.players[player_index]
 	var role: String = "active" if player_index == state.active else "opposing"
 	var ctx: Dictionary = {"role": role}
-	var sources: Array[CardInstance] = []
-	sources.append_array(p.drills())
-	sources.append_array(p.non_combats())
-	sources.append_array(p.attachments())
-	if p.mastery != null:
-		sources.append(p.mastery)
-	if state.grounds != null:
-		sources.append(state.grounds)
-	for c in sources:
+	for c in _in_play_sources(p, true):
 		var effects: Array[Dictionary] = []
 		for e in c.def.effects_for("entering_combat"):
 			var wanted: String = str(e.get("role", ""))
@@ -916,9 +958,71 @@ func _pass(p: PlayerState, forced: bool) -> void:
 	state.consecutive_passes += 1
 	_emit(&"pass", {"player": p.index, "forced": forced, "consecutive": state.consecutive_passes})
 	if state.consecutive_passes >= 2:
-		_end_combat()
+		_begin_combat_end()
 	else:
 		state.phase = GameState.Phase.FIGHT_BACK
+
+
+## Combat is over, but "at the end of Combat" effects and the cards that name that timing still get
+## their window. The player whose turn it is takes theirs first, in any order, then the opponent.
+func _begin_combat_end() -> void:
+	state.end_combat_done = [false, false]
+	state.attack = {}
+	state.phase = GameState.Phase.COMBAT_END
+	for seat in [state.active, 1 - state.active]:
+		var p: PlayerState = state.players[seat]
+		for c in _in_play_sources(p):
+			var timed: Array[Dictionary] = c.def.effects_for("end_of_combat")
+			if not timed.is_empty():
+				_enqueue(timed, "end_of_combat", seat, {}, c)
+
+
+## Whose end-of-Combat window is open, or -1 when both are finished.
+func _end_combat_turn() -> int:
+	if not state.end_combat_done[state.active]:
+		return state.active
+	if not state.end_combat_done[1 - state.active]:
+		return 1 - state.active
+	return -1
+
+
+func _prompt_combat_end() -> void:
+	var seat: int = _end_combat_turn()
+	if seat < 0:
+		_end_combat()
+		return
+	var p: PlayerState = state.players[seat]
+	var opts: Array[Command] = []
+	for c in p.hand:
+		if str(c.def.raw.get("use_at", "")) == "end_of_combat" and _use_allowed(p, c.def) and _can_play(p, c.def):
+			opts.append(Command.new(seat, &"use", c.uid))
+	if opts.is_empty():
+		state.end_combat_done[seat] = true
+		return
+	opts.append(Command.new(seat, &"done"))
+	_set_prompt(seat, &"combat_end", opts)
+
+
+func _handle_combat_end(cmd: Command) -> void:
+	var p: PlayerState = state.players[cmd.player]
+	if cmd.type == &"done":
+		state.end_combat_done[cmd.player] = true
+		return
+	_use_card(p, card(cmd.card), false)
+
+
+## Everything of a player's that can carry a timed trigger: Drills, Non-Combats, attachments,
+## their Mastery and the Grounds.
+func _in_play_sources(p: PlayerState, any_mastery: bool = false) -> Array[CardInstance]:
+	var sources: Array[CardInstance] = []
+	sources.append_array(p.drills())
+	sources.append_array(p.non_combats())
+	sources.append_array(p.attachments())
+	if p.mastery != null and (any_mastery or not _forbidden(p, "mastery")):
+		sources.append(p.mastery)
+	if state.grounds != null:
+		sources.append(state.grounds)
+	return sources
 
 
 func _end_combat() -> void:
@@ -940,6 +1044,7 @@ func _end_combat() -> void:
 	state.pending_play = {}
 	state.control_asked = false
 	_combat_ending = false
+	_pending_attack = -1
 	state.phase = GameState.Phase.NONE
 	state.step = GameState.Step.DISCARD
 	state.discard_index = 0
@@ -983,7 +1088,7 @@ func _prompt_attack_action(p: PlayerState) -> void:
 					opts.append(Command.new(p.index, &"attack", c.uid))
 					if c.def.empower > 0:
 						opts.append(Command.new(p.index, &"attack", c.uid, "empower"))
-			elif not c.def.is_attack() and _has_trigger(c.def.effects, "secondary") and (not c.def.is_defense() or bool(c.def.raw.get("use_in_attack", false)) or c.def.is_end_combat_card()) and _use_allowed(p, c.def) and not _forbidden(p, "non_attack_actions"):
+			elif not c.def.is_attack() and str(c.def.raw.get("use_at", "")) == "" and _has_trigger(c.def.effects, "secondary") and (not c.def.is_defense() or bool(c.def.raw.get("use_in_attack", false)) or c.def.is_end_combat_card()) and _use_allowed(p, c.def) and not _forbidden(p, "non_attack_actions"):
 				# Only a card with something to do when played: a pure counter ("use when needed")
 				# waits for the response window instead of being an attack-phase action.
 				opts.append(Command.new(p.index, &"use", c.uid))
@@ -1082,8 +1187,10 @@ func _handle_attack_action(cmd: Command) -> void:
 			assert(false, "Bad attack action %s" % cmd.type)
 
 
-## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery, Relic).
-func _use_card(p: PlayerState, c: CardInstance) -> void:
+## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery,
+## Relic). `advance` is false in the end-of-Combat window, where using a card does not take the
+## place of an attack and so does not hand the phase over.
+func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
 	if c.def.type == CardDef.Type.RELIC:
 		_use_relic(p)
 	elif c.zone == &"hand":
@@ -1102,7 +1209,8 @@ func _use_card(p: PlayerState, c: CardInstance) -> void:
 		if c.def.type == CardDef.Type.NON_COMBAT and c.attached_to == null:
 			# Used from play, so it is in_play, not resolving: spend_source is the op that discards it.
 			_enqueue([{"trigger": "use", "op": "spend_source"}], "use", p.index, {}, c)
-	_enqueue([{"trigger": "secondary", "op": "after_action"}], "secondary", p.index, {}, c)
+	if advance:
+		_enqueue([{"trigger": "secondary", "op": "after_action"}], "secondary", p.index, {}, c)
 
 
 func _has_trigger(effects: Array, trigger: String) -> bool:
@@ -1122,7 +1230,18 @@ func _after_non_attack_action() -> void:
 	if state.is_over():
 		return
 	if _combat_ending:
-		_end_combat()
+		_begin_combat_end()
+	elif _pending_attack >= 0:
+		# The card that fetched it said to play it this phase, so the phase stays open for it.
+		var fetched: CardInstance = card(_pending_attack)
+		_pending_attack = -1
+		var p: PlayerState = state.players[state.attacker]
+		if fetched != null and fetched.zone == &"hand" and _attack_allowed(p, fetched.def) and _can_pay(p.in_control(), p, fetched.def.attack):
+			_erase_from_zone(fetched)
+			fetched.zone = &"resolving"
+			_begin_attack(fetched, fetched.def.attack, fetched.def.effects, false, false, false)
+		else:
+			state.phase = GameState.Phase.FIGHT_BACK
 	else:
 		state.phase = GameState.Phase.FIGHT_BACK
 
@@ -1499,6 +1618,9 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 	var ic: CardInstance = _performer(a)
 	var cost_stages: int = _cost_stages(spec, attacker)
 	var cost_life: int = int(spec.get("cost_life", 0))
+	# "You may discard a card from your hand to perform this attack": a cost, so it is paid before
+	# the attack and the attack is not offered at all with too few cards in hand.
+	var cost_hand: int = int(spec.get("cost_hand", 0))
 	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)):
 		cost_stages *= 2
 		cost_life *= 2
@@ -1509,6 +1631,15 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 	if cost_stages > 0 or cost_life > 0:
 		_emit(&"cost_paid", {"player": attacker.index, "stages": cost_stages, "life": cost_life, "energy": ic.energy})
 	_expire_next_attack_tax(attacker)
+	if cost_hand > 0:
+		if attacker.hand.size() > cost_hand:
+			# Which card goes is the attacker's call, so this opens a prompt. The battle sequence
+			# resumes at the step after costs once the card is picked.
+			assert(not spec.has("pay_stages"), "an attack cannot ask for both a hand cost and a stage payment")
+			_prompt_discard_choice(attacker, cost_hand)
+			_choice["battle_step"] = 3
+			return
+		_discard_hand(attacker, cost_hand, false)
 	if spec.has("pay_stages"):
 		# "Pay any number of stages, +1 wound per N paid."
 		var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
@@ -1594,6 +1725,8 @@ func _can_pay(ic: CardInstance, p: PlayerState, spec: Dictionary) -> bool:
 		cost *= 2
 	if ic.energy < cost:
 		return false
+	if p.hand.size() < int(spec.get("cost_hand", 0)):
+		return false
 	return p.life_deck.size() > int(spec.get("cost_life", 0))
 
 
@@ -1643,6 +1776,8 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 		return false
 	if def.is_end_combat_card():
 		return false   # cards that end Combat can only be played as an attack action
+	if str(def.raw.get("use_at", "")) != "":
+		return false   # and a card that names its own timing waits for that moment
 	if not _can_play(d, def):
 		return false
 	if def.type == CardDef.Type.COMBAT and _forbidden(d, "combat_cards"):
@@ -1714,8 +1849,6 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 		ic.energy = maxi(0, ic.energy - cost_stages)
 	if int(def.defense.get("cost_life", 0)) > 0:
 		_discard_life(d, int(def.defense["cost_life"]))
-	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
-		_discard_hand(d, 1, false)
 	if str(def.defense.get("stops", "")) != "none":
 		_register_stop(a)
 		_note_stop(a, c, "card")
@@ -1724,6 +1857,11 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 		_float(d.index, "copied_attack", "combat", {"spec": a["spec"].duplicate(true), "effects": a["effects"].duplicate(true)})
 	if def.defense.has("stop_all"):
 		_float(d.index, "stop_all", "combat", {"kind": str(def.defense["stop_all"])})
+	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
+		# "Discard a card from your hand to have this card stop a Focused attack." Which card goes
+		# is the defender's call, and every effect on a card used as a defence is a secondary
+		# effect, so it is queued rather than taken off the top of the hand here.
+		_enqueue([{"trigger": "secondary", "op": "discard_hand", "amount": 1, "random": false}], "secondary", d.index, {"attack": a}, c)
 	_enqueue(def.effects, "secondary", d.index, {"attack": a}, c)
 	if from_hand or c.zone == &"resolving":
 		# A Mastery can send its own school's blocks under the Life Deck instead of the discard pile.
@@ -2301,9 +2439,24 @@ func _flush_then() -> bool:
 	return true
 
 
+## Who an effect lands on. "self" and "opponent" read from the card's owner; "attacker" and
+## "defender" read from the current Combat role instead, so a card either player can use in Combat
+## ("the attacker draws 2, the defender gains 5 Energy") lands the same way whoever played it.
+func _who_index(who: String, owner: int) -> int:
+	match who:
+		"attacker":
+			return state.attacker
+		"defender":
+			return 1 - state.attacker
+		"self":
+			return owner
+		_:
+			return 1 - owner
+
+
 func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInstance) -> void:
 	var op: String = str(e.get("op", ""))
-	var who_index: int = owner if str(e.get("who", "self")) == "self" else 1 - owner
+	var who_index: int = _who_index(str(e.get("who", "self")), owner)
 	var who: PlayerState = state.players[who_index]
 	var me: PlayerState = state.players[owner]
 	var amount: Variant = e.get("amount", e.get("n", 0))
@@ -2369,6 +2522,17 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					return
 				_draw(who_index, 1)
 		"draw_discard":
+			# "Draw up to N cards from the bottom of your discard pile": which cards is settled by
+			# the pile, so only the count is asked, and none is a legal answer.
+			if bool(e.get("up_to", false)) and not who.discard.is_empty() and int(amount) > 1:
+				var most: int = mini(int(amount), who.discard.size())
+				var counts: Array[Command] = []
+				for k in range(most, 0, -1):
+					counts.append(Command.new(owner, &"pick_option", -1, str(k)))
+				counts.append(Command.new(owner, &"pick_none"))
+				_choice = {"kind": "draw_count", "player": who_index, "effect": e.duplicate(true), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+				_set_prompt(owner, &"pick_option", counts, _choice_context(source, "draw_count"))
+				return
 			var taken: CardInstance = _draw_discard(who, int(amount), str(e.get("from", "bottom")))
 			# `if_school`: the follow-up `effects` run only when the last card drawn is of that school.
 			if e.has("if_school") and taken != null and taken.def.school == str(e["if_school"]):
@@ -2508,6 +2672,9 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					break
 			if paid != null and source != null:
 				_remove_from_game(paid)
+				# The card can be mid-resolution from hand or still sitting in play, so it leaves
+				# wherever it is before it joins the Life Deck.
+				_erase_from_zone(source)
 				source.zone = &"life_deck"
 				who.life_deck.append(source)
 				if shuffle_decks:
@@ -2579,7 +2746,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			if state.is_over():
 				return
 			if _combat_ending:
-				_end_combat()
+				_begin_combat_end()
 			else:
 				state.phase = GameState.Phase.FIGHT_BACK
 		_:
@@ -3217,6 +3384,13 @@ func _handle_choice(cmd: Command) -> void:
 		"stop_kind":
 			# Stopping, not forbidding: the attack is still performed and still pays its cost.
 			_float(cmd.player, "stop_all", "combat", {"kind": str(cmd.value)})
+		"draw_count":
+			if cmd.type != &"pick_none":
+				var drawer: PlayerState = state.players[int(_choice["player"])]
+				var want: Dictionary = _choice["effect"]
+				var got: CardInstance = _draw_discard(drawer, int(str(cmd.value)), str(want.get("from", "bottom")))
+				if want.has("if_school") and got != null and got.def.school == str(want["if_school"]):
+					_enqueue(want.get("effects", []), "secondary", int(_choice["owner"]), _choice["ctx"], card(int(_choice.get("source", -1))))
 		"discard_side":
 			var side: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
 			side["who"] = str(cmd.value)
@@ -3260,6 +3434,10 @@ func _handle_choice(cmd: Command) -> void:
 				_emit(&"card_named", {"player": cmd.player, "card": src.uid, "name": src.named_card})
 		"capture_choice":
 			_capture_seal(cmd.player, card(cmd.card))
+	# A choice opened while paying an attack's costs holds the battle sequence where it was; the
+	# answer moves it on, the way paying Energy does.
+	if _choice.has("battle_step"):
+		state.battle_step = int(_choice["battle_step"])
 	_choice = {}
 
 
@@ -3349,8 +3527,10 @@ func _change_fervor(p: PlayerState, delta: int, source_owner: int) -> void:
 		return
 	if delta > 0:
 		delta *= fervor_gain(p)
-		# Grounds may cap what one card or effect can raise.
-		if state.grounds != null and state.grounds.def.raw.has("fervor_gain_cap"):
+		# Grounds may cap what one card or effect can raise. The Fervor shield covers this too: it
+		# reads "your opponent cannot reduce the amount of Fervor you would gain", not just "cannot
+		# lower it", so a capping Grounds does not touch a shielded player.
+		if state.grounds != null and state.grounds.def.raw.has("fervor_gain_cap") and not fervor_shielded(p):
 			delta = mini(delta, int(state.grounds.def.raw["fervor_gain_cap"]))
 	var before: int = p.fervor
 	p.fervor = maxi(0, p.fervor + delta)
@@ -3808,6 +3988,14 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 		_place(p, hit)
 		if hit.def.type == CardDef.Type.ALLY and e.has("stages"):
 			hit.energy = clampi(int(e["stages"]), 0, CardInstance.MAX_STAGE)
+	elif to == "attack":
+		# "Search for a card that performs an attack and play it during this attack phase." It
+		# goes to hand first so it is performed from a legal place, and the phase does not hand
+		# over until it has been performed.
+		_erase_from_zone(hit)
+		hit.zone = &"hand"
+		p.hand.append(hit)
+		_pending_attack = hit.uid
 	elif to == "deck_bottom" or to == "deck_shuffle":
 		_move_to_deck_bottom(hit)
 	else:
@@ -3865,7 +4053,9 @@ func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String 
 			pool.append(c)
 	var count: int = pool.size() if all else mini(n, pool.size())
 	for i in range(count):
-		var c: CardInstance = pool[i] if from == "top_and_bottom" and i % 2 == 1 else pool[pool.size() - 1 - i]
+		# The pile runs oldest first, so its top is the end of the array and its bottom is the front.
+		var from_front: bool = from == "bottom" or (from == "top_and_bottom" and i % 2 == 1)
+		var c: CardInstance = pool[i] if from_front else pool[pool.size() - 1 - i]
 		p.discard.erase(c)
 		c.zone = &"life_deck"
 		p.life_deck.append(c)

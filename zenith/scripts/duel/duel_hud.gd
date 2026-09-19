@@ -262,6 +262,8 @@ func _combat_beat(view: SeatView, me: int, live: Dictionary = {}) -> String:
 		GameState.Phase.BATTLE:
 			var whose: String = "YOUR" if att == me else attacker + "'S"
 			return _tint("%s ATTACK RESOLVES" % whose, ZenithTheme.ATTACK)
+		GameState.Phase.COMBAT_END:
+			return _tint("COMBAT ENDS", ZenithTheme.MUTED)
 	return ""
 
 
@@ -545,6 +547,10 @@ func _hint_for(p: PromptView) -> String:
 			return "Each one swaps with a random card from your Life Deck."
 		&"non_combat":
 			return "Click a highlighted card, then Done." if card_options > 0 else ""
+		&"combat_end":
+			return "Combat is over. These may still be used."
+		&"start_play":
+			return "This may start the game on the table."
 		&"attack_action":
 			return "Click a highlighted card, or choose below."
 		&"defense":
@@ -602,6 +608,10 @@ func _waiting_hint(kind: StringName) -> String:
 			return "They are setting up their Reserve."
 		&"non_combat":
 			return "They may place cards before Combat."
+		&"combat_end":
+			return "They may use a card as Combat ends."
+		&"start_play":
+			return "They are setting up the table."
 		&"declare":
 			return "They are deciding whether to enter Combat."
 		&"attack_action":

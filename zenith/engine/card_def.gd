@@ -77,7 +77,9 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.remain = int(d.get("remain", 0))
 	c.remain_when = d.get("remain_when", {})
 	c.counter = str(d.get("counter", ""))
-	c.start_in_play = bool(d.get("start_in_play", false))
+	# `true` begins the game in play; `"may"` offers it before the first turn instead.
+	var starts: Variant = d.get("start_in_play", false)
+	c.start_in_play = str(starts) == "may" if starts is String else bool(starts)
 	c.effects.assign(d.get("effects", []))
 	c.modifiers.assign(d.get("modifiers", []))
 	c.shield = str(d.get("shield", ""))

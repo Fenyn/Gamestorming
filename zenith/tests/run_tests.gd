@@ -44,6 +44,13 @@ func _init() -> void:
 		test_fervor_aspect_up,
 		test_drill_guard_survives_aspect_change,
 		test_shuffle_discard_takes_only_its_school,
+		test_draw_discard_up_to,
+		test_optional_start_in_play,
+		test_search_to_attack_performs_it_now,
+		test_end_of_combat_window,
+		test_effects_can_target_by_combat_role,
+		test_attack_cost_from_hand,
+		test_shuffle_discard_from_bottom,
 		test_recur_source_pays_with_a_signature_card,
 		test_chosen_attach_host_and_discard_side,
 		test_energy_all_and_chosen_personality,
@@ -153,6 +160,7 @@ func _init() -> void:
 		test_fervor_cap_seal_guard_and_kept_card,
 		test_success_non_combat_and_set_seal_damage,
 		test_root_deck_is_legal,
+		test_card_zones_stay_consistent,
 		test_clone_plays_identically,
 		test_clone_is_independent,
 		test_sim_for_hides_and_keeps,
@@ -560,6 +568,151 @@ func test_fervor_aspect_up() -> void:
 	eq(e.player(0).fervor, 0, "fervor reset, no carry-over")
 	eq(e.player(0).drills().size(), 0, "drills discarded on aspect up")
 	check(not e.is_over(), "aspect 2 of 3 is not a win")
+
+
+## "Draw up to N cards from the bottom of your discard pile": the pile settles which cards, so only
+## the count is asked, and drawing none is allowed.
+func test_draw_discard_up_to() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	for i in range(5):
+		p.discard.append(e._instance(lib.get_def("t_strike"), 0, &"discard"))
+	var hand_before: int = p.hand.size()
+	e._apply_effect({"op": "draw_discard", "amount": 3, "from": "bottom", "up_to": true}, 0, {}, null)
+	check(e.prompt != null and e.prompt.kind == &"pick_option", "the count is asked for")
+	eq(e.prompt.options.size(), 4, "three counts and a none")
+	check(e.prompt.find(&"pick_none") != null, "drawing none is allowed")
+	e.submit(Command.new(0, &"pick_option", -1, "2"))
+	eq(p.hand.size(), hand_before + 2, "only the chosen number is drawn")
+	eq(p.discard.size(), 3, "and the rest stay in the pile")
+	# A pile shorter than the card asks for offers only what is there.
+	e.prompt = null
+	e._apply_effect({"op": "draw_discard", "amount": 9, "from": "bottom", "up_to": true}, 0, {}, null)
+	eq(e.prompt.options.size(), 4, "three cards left means three counts and a none")
+	e.submit(e.prompt.find(&"pick_none"))
+	eq(p.discard.size(), 3, "a refusal draws nothing")
+	# Without `up_to` it still takes the lot, which is what every other card that reads it wants.
+	e.prompt = null
+	e._apply_effect({"op": "draw_discard", "amount": 2, "from": "bottom"}, 0, {}, null)
+	check(e.prompt == null or e.prompt.kind != &"pick_option", "no count is asked")
+	eq(p.discard.size(), 1, "and two came straight out")
+
+
+## "Before the first turn begins, you may search your Life Deck for this Drill and place it into
+## play." It is an offer, not an automatic placement, so the game opens by asking.
+func test_optional_start_in_play() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_setup"])), deck(filler(), "pact"))
+	eq(prompt_kind(e), &"start_play", "the offer comes before the first turn")
+	eq(e.prompt.player, e.state.active, "the active player is asked first")
+	eq(e.player(0).drills().size(), 0, "and nothing is on the table until they say so")
+	answer(e, &"done")
+	eq(e.player(0).drills().size(), 0, "declining leaves the Drill in the Life Deck")
+	eq(e.state.turn, 1, "and the first turn begins")
+	var f: DuelEngine = engine(deck(filler(["t_drill_setup"])), deck(filler(), "pact"))
+	var offered: int = f.prompt.options[0].card
+	answer(f, &"place", offered)
+	eq(f.player(0).drills().size(), 1, "accepting puts it into play")
+	eq(f.state.turn, 1, "with no second offer, the first turn begins")
+
+
+## "Search your Reserve for a card that performs an attack and play it during this attack phase."
+## The fetched card is performed now rather than going to hand for later.
+func test_search_to_attack_performs_it_now() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_call_to_arms"]), "vigil", "", "", 3, "tf_vigil", "", ["t_art"]), deck(filler(), "pact"))
+	answer(e, &"reserve_done")
+	var fetcher: int = uid_in_hand(e, 0, "t_call_to_arms")
+	to_combat(e)
+	answer(e, &"use", fetcher)
+	eq(prompt_kind(e), &"pick_option", "the Reserve is searched")
+	check(bool(e.prompt.context.get("search", false)), "and the prompt is that search")
+	e.submit(e.prompt.options[0])
+	eq(uid_in_hand(e, 0, "t_art"), -1, "it never waited in hand")
+	eq(e.player(0).attack_count_combat, 1, "the fetched card was performed as this phase's attack")
+	check(has_event(e, &"attack_declared"), "an attack really started")
+
+
+## "Use at the end of Combat." Combat is over once both players pass, but the CRD gives that moment
+## its own window: the player whose turn it is resolves their end-of-Combat effects first, then the
+## opponent. A card that names that timing is not offered during the attack phase.
+func test_end_of_combat_window() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_aftermath"])), deck(filler(), "pact"))
+	var after: CardInstance = e.player(0).hand[0]
+	for c in e.player(0).hand:
+		if c.def.id == "t_aftermath":
+			after = c
+	var drill: CardInstance = inject(e, 1, "t_drill_aftermath")
+	to_combat(e)
+	eq(prompt_kind(e), &"attack_action", "the attacker is asked for an attack")
+	check(e.prompt.find(&"use", after.uid) == null, "a card that reads 'at the end of Combat' is not an attack-phase action")
+	var opp_hand: int = e.player(1).hand.size()
+	var fervor: int = e.player(0).fervor
+	answer(e, &"pass")
+	answer(e, &"pass")
+	eq(prompt_kind(e), &"combat_end", "both passing opens the end-of-Combat window")
+	eq(e.prompt.player, e.state.active, "and the active player goes first")
+	eq(e.player(1).hand.size(), opp_hand + 1, "a Drill's end-of-Combat trigger already fired")
+	answer(e, &"use", after.uid)
+	eq(e.player(0).fervor, fervor + 2, "the card resolved")
+	eq(after.zone, &"discard", "and was spent")
+	eq(e.state.step, GameState.Step.DISCARD, "with nothing left for either player to use, Combat ends")
+	eq(drill.zone, &"in_play", "the Drill stayed in play")
+
+
+## "The attacker draws 2 cards from his discard pile. The defender raises 5 stages." A Combat card
+## either player may use, so its two halves read by Combat role, not by who owns the card.
+func test_effects_can_target_by_combat_role() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	e.state.attacker = 1
+	eq(e._who_index("attacker", 0), 1, "the attacker is the attacker whoever played the card")
+	eq(e._who_index("defender", 0), 0, "and so is the defender")
+	eq(e._who_index("self", 0), 0, "self and opponent still read from the owner")
+	eq(e._who_index("opponent", 0), 1, "the other way round")
+	var att: PlayerState = e.player(1)
+	for i in range(3):
+		att.discard.append(e._instance(lib.get_def("t_strike"), 1, &"discard"))
+	var hand_before: int = att.hand.size()
+	att.duelist.energy = 0
+	e.player(0).duelist.energy = 0
+	e._apply_effect({"op": "draw_discard", "who": "attacker", "amount": 2, "from": "top"}, 0, {}, null)
+	e._apply_effect({"op": "energy", "who": "defender", "amount": 5}, 0, {}, null)
+	eq(att.hand.size(), hand_before + 2, "the attacker drew, though the defender played the card")
+	eq(e.player(0).duelist.energy, 5, "and the defender took the Energy")
+	eq(att.duelist.energy, 0, "the attacker got none")
+
+
+## "You may discard a card from your hand to perform a physical attack": a cost, so the power is
+## not offered with an empty hand and the card goes before the attack rather than after it.
+func test_attack_cost_from_hand() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var spec: Dictionary = {"kind": "strike", "life": 2, "cost_hand": 1}
+	check(e._can_pay(p.duelist, p, spec), "with cards in hand the attack is payable")
+	var held: Array[CardInstance] = p.hand.duplicate()
+	for c in held:
+		p.hand.erase(c)
+		c.zone = &"life_deck"
+		p.life_deck.append(c)
+	check(not e._can_pay(p.duelist, p, spec), "with an empty hand it is not")
+	check(e._can_pay(p.duelist, p, {"kind": "strike", "life": 2}), "an attack with no hand cost still is")
+
+
+## "Shuffle the bottom 3 cards of your discard pile into your Life Deck" takes them from the
+## bottom, which is the front of the pile, not the cards just discarded.
+func test_shuffle_discard_from_bottom() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	e.shuffle_decks = false
+	var p: PlayerState = e.player(0)
+	var order: Array[CardInstance] = []
+	for i in range(5):
+		var c: CardInstance = e._instance(lib.get_def("t_strike"), 0, &"discard")
+		p.discard.append(c)
+		order.append(c)
+	e._shuffle_discard_into_deck(p, 2, false, "bottom")
+	eq(order[0].zone, &"life_deck", "the oldest card went back")
+	eq(order[1].zone, &"life_deck", "and the one above it")
+	eq(order[4].zone, &"discard", "the newest card stayed in the pile")
+	e._shuffle_discard_into_deck(p, 1, false, "top")
+	eq(order[4].zone, &"life_deck", "from the top it is the newest that goes back")
 
 
 ## "Remove a Signature card from your discard pile to shuffle this card into your Life Deck."
@@ -2667,6 +2820,46 @@ func shipped_engine(deck_a: String, deck_b: String, seed_value: int) -> DuelEngi
 
 func views_text(e: DuelEngine) -> String:
 	return JSON.stringify([SeatView.of(e, 0).to_dict(), SeatView.of(e, 1).to_dict()])
+
+
+## Every card's `zone` has to agree with the pile it is actually sitting in. An effect that moves
+## a card by hand and forgets to take it out of its old pile leaves it in two places, which shows
+## up as phantom cards in a seat's view rather than as an error. Swept over a whole shipped game.
+func test_card_zones_stay_consistent() -> void:
+	var shipped: CardLibrary = CardLibrary.new()
+	shipped.load_dir("res://data/cards")
+	var ref: Referee = Referee.new()
+	var pair: Array[DeckList] = [DeckList.load_from("res://data/decks/pyre_beatdown.json"), DeckList.load_from("res://data/decks/storm_volley.json")]
+	ref.setup(pair, shipped, StrikeTable.load_from("res://data/strike_table.json"), 21)
+	ref.start()
+	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
+	picker.seed = 4
+	var steps: int = 0
+	var bad: String = ""
+	while not ref.is_over() and steps < 300 and bad == "":
+		steps += 1
+		bad = zone_mismatch(ref.engine)
+		var seat: int = ref.engine.prompt.player
+		var opts: Array[Command] = ref.engine.prompt.options
+		ref.submit(seat, opts[picker.randi_range(0, opts.size() - 1)].to_dict())
+	eq(bad, "", "no card is in a pile its zone does not name")
+	check(steps > 20, "the sweep got a real game, not an early exit")
+
+
+## The name of the first card whose zone and pile disagree, or "" when they all agree.
+func zone_mismatch(e: DuelEngine) -> String:
+	for uid in e._cards:
+		var c: CardInstance = e._cards[uid]
+		for p in e.state.players:
+			var piles: Dictionary = {
+				&"life_deck": p.life_deck, &"hand": p.hand, &"discard": p.discard,
+				&"in_play": p.in_play, &"removed": p.removed, &"reserve": p.reserve,
+			}
+			for zone in piles:
+				var pile: Array[CardInstance] = piles[zone]
+				if pile.has(c) and c.zone != zone:
+					return "%s is in %s with zone %s" % [c.def.id, zone, c.zone]
+	return ""
 
 
 ## A clone taken at any prompt, fed the same commands, stays in step with the original. A fresh

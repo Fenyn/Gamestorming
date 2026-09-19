@@ -1,3 +1,4 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
 
 absorbing_drill: Stops an Art. Costs 2 life cards to use.
 all_or_nothing: Focused Strike doing +4 Energy. Cannot be stopped by Strike cards. Raise your Fervor 1. Remove from the game after use.
@@ -8,12 +9,12 @@ blinding_flare: Art. Hit: Your opponent may not use Strike cards for the remaind
 bonded_pair: Bond of Ansel Rooke and Tavin Vale. Enters play only through a Bonding card, at full Energy, with both under it. At the start of each of your turns a life card goes under it; at 5 the Bond ends and both return at 3 Energy. Limit 1 per deck.
 bonding_rite: Use in Combat: Bond the two named Allies: they leave play under their Bond card, which fights as one Ally at full Energy.
 branns_shakedown: Strike doing +4 Energy. If Brann Draik is in control, your opponent discards a Non-Combat card in play of your choice and capture a Seal. Hit: Search your Life Deck for an Ally and put it into play at Energy 4.
-bravado_drill: When entering Combat, lower your opponent's Fervor 2 and gain 2 Energy. May begin the game in play. Limit 1 per deck.
+bravado_drill: When entering Combat, lower your opponent's Fervor 2 and gain 2 Energy. Before the first turn begins, you may search your Life Deck for this card and place it into play. Limit 1 per deck.
 broken_rites: Your opponent removes all Drills in play from the game. Remove from the game after use. Limit 1 per deck.
 captains_barrage: Art. Costs 3 Energy to perform. Raise your Fervor 2. Remove from the game after use.
 chisel_work: Use in Combat: Search your Life Deck for a Seal and put it into play.
 clean_sweep: Strike doing +6 Energy. Costs 6 Energy to perform. Hit: Your opponent discards up to 6 Non-Combat cards in play of your choice. Remove from the game after use.
-clear_mind: Use in Combat: Search your Life Deck for a Combat card and put it into your hand. Limit 1 per deck.
+clear_mind: Use in Combat: Search your Life Deck for a Combat card and put it into your hand.
 closing_ranks: Your next attack does +2 wounds for each Ally you have in play. Draw a card. Remove from the game after use.
 cold_appraisal: Look at your opponent's hand and choose a card. They discard it.
 committed_cut: Endurance 3. Strike doing +4 Energy. If your duelist is aspect 2 or higher, +4 wounds and Focused. Hit: Search your Life Deck for a Drill and put it into play.
@@ -40,13 +41,13 @@ edrics_vow: Sir Edric Rooke only. Attach this card to your Dame Alder Rooke. Whi
 eyes_beyond_the_gate: After a successful attack, if the attack is an Art, you may search your Life Deck for a Seal and put it into play. If you do, capture a Seal. Limit 1 per deck.
 first_cut: Use in Combat: Search your Life Deck for a Seal and put it into play.
 foresight: When entering Combat, search your discard pile for a Strike, Art, or Combat card and put it into your hand. Limit 1 per deck.
-freestyle_mastery: When entering Combat, if you have a card in hand, you may discard a Signature card from your hand. If you do, search your Life Deck for a Signature card and put it into your hand. Your Drills cannot be discarded for any reason. Limit 1 per deck.
+freestyle_mastery: When entering Combat, if you have a card in hand, you may discard a Signature card from your hand. If you do, search your Life Deck for a Signature card and put it into your hand. Your Drills cannot be discarded for any reason, an aspect change included. Limit 1 per deck.
 frostbound_moor: A card or effect that would raise a duelist's Fervor by more than 1 raises it by 1.
 gates_boon: Use in Combat: End Combat. Choose up to 3 cards from your discard pile and shuffle them into your Life Deck. Remove from the game after use. Limit 1 per deck.
 grounding_step: Stops an Art. Stops all Arts for the remainder of Combat. Remove from the game after use.
 guardian_drill: Use in Combat: Place a Non-Combat card, Drill, or Seal from your hand into play. Once per Combat.
 halvards_twin_cut: Focused Strike doing +4 Energy. If Halvard Draik is in control, your opponent discards a card from hand. If Halvard Draik is in control, stops a Strike. Hit: Search your Life Deck for an Ally and put it into play at Energy 4.
-headlong_plunge: Endurance 2. Focused Strike doing +3 Energy. Empower 3. Raise your Fervor 1. Lower your opponent's Fervor 1. Your opponent discards an Ally in play of your choice. Gain 3 Energy. Place at the bottom of your Life Deck after use.
+headlong_plunge: Endurance 2. Focused Strike doing +3 Energy. Empower 3. Raise your Fervor 1. Lower your opponent's Fervor 1. Discard an Ally in play. Gain 3 Energy. Place at the bottom of your Life Deck after use.
 heirloom_blade: Use in Combat: Attach this card to your duelist. While attached to your duelist: Your "Sword" attacks do +3 wounds. Wounds from those attacks are removed from the game. Limit 1 per deck.
 henchman_alpha: Limit 1 per deck.
 henchman_beta: Limit 1 per deck.
@@ -58,19 +59,19 @@ hilt_guard: Stops a Strike. Search your discard pile for a Strike, Art, or Comba
 hired_blades: Search your Life Deck or discard pile for an Ally and put it into play at Energy 10.
 keen_eye: Draw a card. If it is a Signature card, draw a card. Remove from the game after use. Limit 1 per deck.
 keepers_drill: Your Seals cannot be captured.
-kept_at_bay: Your opponent may not perform Strikes for the remainder of Combat. Limit 1 per deck.
+kept_at_bay: Your opponent may not perform Strikes for the remainder of Combat.
 kins_rescue: Use in Combat: For the remainder of Combat, all damage from attacks against you is prevented. If Marble Seal 7 is in play, discard this card after use instead. Remove from the game after use. Limit 1 per deck.
 knife_volley: Endurance 2. Art, plus 2 wounds for each Ally you have in play. Raise your Fervor 1. Remain 1. The extra uses are an Ally's. Remove from the game after use.
 last_gasp: Set your Energy to 0. Remove all of your discard pile from the game. Your opponent takes 5 wounds. Remove from the game after use. Limit 1 per deck.
 last_ward: Stops a Strike or an Art. You may discard a card from your hand to stop a Focused attack.
 lingering_curse: Art dealing 5 wounds. Hit: Attach this card to one of your personalities. While attached, the attached personality's Arts do +2 wounds.
-lobbed_bolt: Endurance 1. Art. Discard up to 1 of your Non-Combat cards in play. Search your Life Deck for a Non-Combat card and put it into play. Remove from the game after use.
+lobbed_bolt: Endurance 1. Art. You may discard one of your Non-Combat cards in play. If you do, search your Life Deck for a Non-Combat card and put it into play. Remove from the game after use.
 lodestone_heart: Reserve 10. You cannot win by Ascension. Your opponent cannot lower your Fervor. Your opponent cannot lower your Aspect. Limit 1 per deck.
 lone_blade_drill: Your Strikes do +5 Energy. Discard this Drill if you have any other Non-Combat card in play.
 lucky_find: Use in Combat: Search your Life Deck for a Non-Combat card and put it into play. Limit 1 per deck.
 marble_seal_1: Draw until you have 3 cards in hand. Place the top 2 cards of your discard pile at the bottom of your Life Deck. Limit 1 per deck.
 marble_seal_2: Your opponent loses one Aspect. Limit 1 per deck.
-marble_seal_3: Draw the bottom 3 cards of your discard pile. Limit 1 per deck.
+marble_seal_3: Draw up to 3 cards from the bottom of your discard pile. Limit 1 per deck.
 marble_seal_4: Your opponent discards all Non-Combat cards in play. Limit 1 per deck.
 marble_seal_5: Raise your duelist's Energy to full. Raise your Fervor 1. Place the top 2 cards of your discard pile at the bottom of your Life Deck. Limit 1 per deck.
 marble_seal_6: You may raise your Fervor 2. If you do not, lower your opponent's Fervor 2. Limit 1 per deck.
@@ -86,8 +87,8 @@ mutual_escalation: Raise your Fervor 6. Raise your opponent's Fervor 6. You cann
 no_quarter: Strike doing +3 Energy. Neither player may use cards that end Combat or use cards that stop all attacks for the remainder of Combat.
 no_retreat_drill: Neither player may use cards that end Combat. Limit 1 per deck.
 old_habit: Strike. Draw the bottom card of your discard pile. Remove from the game after use.
-old_trick: Search your Reserve for an attack card and put it into your hand. Remove from the game after use. Limit 2 per deck.
-open_challenge: Use during your opponent's Declare step: Discard a card from your hand. Your opponent must declare Combat this turn. May begin the game in play. Remove from the game after use. Limit 1 per deck.
+old_trick: Search your Reserve for an attack card and perform it during this attack phase. Remove from the game after use.
+open_challenge: Use during your opponent's Declare step: Discard a card from your hand. Your opponent must declare Combat this turn. Begins the game in play. Remove from the game after use. Limit 1 per deck.
 overreach: Focused Art. If your duelist is aspect 2 or higher, you may lose one Aspect. If you do, your next attack does +7 wounds. Remove from the game after use.
 parley: End Combat. Place the bottom card of your discard pile at the bottom of your Life Deck. Remove from the game after use.
 planted_feet: Stops a Strike. Stops all Strikes for the remainder of Combat. Remove from the game after use.
@@ -117,10 +118,10 @@ quickness_drill: When entering Combat, draw the bottom card of your discard pile
 quiet_study: Draw a card. If it is one of your duelist's Signature cards, draw a card. Limit 1 per deck.
 rallying_call: Raise your duelist's and every Ally's Energy to full. Search your Life Deck or discard pile for an Ally and put it into play at Energy 3. Remove from the game after use.
 recalled_lesson: Use in Combat: Search your Life Deck or discard pile for a Strike or Art card and put it into your hand. Limit 1 per deck.
-reckless_ascent: You cannot win by Ascension for the rest of the game. Move your duelist to the aspect equal to your Fervor.
+reckless_ascent: Use at the end of Combat. You cannot win by Ascension for the rest of the game. Move your duelist to the aspect equal to your Fervor.
 reckless_lunge: Strike doing +1 Energy. Hit: Raise your Fervor 1. Remain 1. Remove from the game after use.
-relentless_fury: Strike doing +4 Energy. Empower 2. Neither player may do anything but attack or pass for the remainder of Combat. Raise your Fervor 1.
-respite: Draw the top 2 cards of your discard pile. Your opponent gains 5 Energy. Limit 1 per deck.
+relentless_fury: Strike doing +4 Energy. Empower 2. Neither player may do anything but attack or pass in their attack phase for the remainder of Combat. Raise your Fervor 1.
+respite: The attacker draws the top 2 cards of their discard pile. The defender gains 5 Energy.
 revision_drill: Use in Combat: Discard a card from your hand. Draw 2 cards. Once per Combat. Limit 1 per deck.
 rookes_deluge: Dame Alder Rooke only. Your opponent discards all Non-Combat cards in play. Remove from the game after use.
 root_bolt: Art. Search your Life Deck for an Art and put it into your hand. Remove from the game after use.
@@ -137,7 +138,7 @@ sabotage: Art. Your opponent removes a Drill in play of your choice from the gam
 scattered_ashes: Focused Art. Empower 2. Hit: Choose a player and remove their whole discard pile from the game. Raise your Fervor 1.
 scatters_the_ashes: Endurance 1. Strike doing +4 Energy. Remove the top 5 cards of your opponent's discard pile from the game. Gain 3 Energy.
 seal_seizure: Capture a Seal.
-second_wind: Stops a Strike. Raise your duelist's Energy to full. Shuffle 3 cards from your discard pile into your Life Deck.
+second_wind: Stops a Strike. Raise your duelist's Energy to full. Shuffle 3 cards from the bottom of your discard pile into your Life Deck.
 sever_the_leyline: Set your opponent's duelist to aspect 1. Remove from the game after use. Limit 1 per deck.
 shade_dread_grip: Strike doing +4 Energy. Stops a Strike. Your opponent discards a card from hand at random. Remove from the game after use.
 shade_hex_recall: Stops a Strike or an Art. Search your discard pile for a card that makes your opponent discard from hand and put it into your hand. Remove from the game after use.
@@ -182,7 +183,7 @@ storm_chain_lightning: Art dealing 5 wounds. Remain 1. Remove from the game afte
 storm_charged_ward: Endurance 3. Stops an Art. For the remainder of Combat, your attacks do +2 Energy. Raise your Fervor 1.
 storm_maelstrom: Endurance 2. Strike doing +4 Energy. Empower 2. For the remainder of Combat, damage from your attacks cannot be prevented. Hit: All Freestyle Drills in play are removed from the game.
 storm_mastery: Your Arts do +1 wound. Your Arts cost 1 less Energy, to a minimum of 1. Limit 1 per deck.
-storm_overcharge: Strike doing +4 Energy. If your duelist has 2 or more Energy, you may lose 2 Energy. If you do, search your Life Deck for an Art and put it into your hand. Remove from the game after use. Limit 1 per deck.
+storm_overcharge: Strike doing +4 Energy. If your duelist has 2 or more Energy, you may lose 2 Energy. If you do, search your Life Deck for an Art and put it into your hand. Remove from the game after use.
 storm_recharge: Endurance 2. Strike doing +2 Energy. Raise your duelist's Energy to full.
 storm_smiting_bolt: Art. Your opponent removes a Non-Combat card or Ally in play of your choice from the game.
 storm_static_field: Art. Stops a Strike. Remove from the game after use.
@@ -225,7 +226,7 @@ vales_riposte: Stops a Strike. In your next attack phase you may repeat the atta
 vales_sword_draw: Strike doing +4 Energy. Raise your Fervor 1. Hit: Search your Life Deck for a "Sword" card other than "Vale's Sword Draw" and put it into your hand.
 vesnas_ambush: Focused Strike doing +4 Energy. If Vesna Draik is in control, for the remainder of Combat, your opponent's Allies cannot take control or take damage. Hit: Search your Life Deck for an Ally and put it into play at Energy 4.
 vessels_calibration: Art. If The Ninth Vessel is your duelist, search your Life Deck for an Automaton card other than "Vessel's Calibration" and put it into your hand. Remove from the game after use.
-vessels_sidestep: Stops a Strike. Search your Life Deck for a Storm card and put it into your hand. Remove from the game after use.
+vessels_sidestep: The Ninth Vessel only. Stops a Strike. Search your Life Deck for a Storm card and put it into your hand. Remove from the game after use.
 wall_of_flame: Bram Ashmark only. Stops a Strike or an Art. Can stop a Focused attack. Remove from the game after use.
 wardens_measure: Use in Combat: Search your Life Deck for a Seal and put it into play. Remove from the game after use. Limit 1 per deck.
 warding_call: Search your Life Deck or discard pile for an Ally and put it into play at Energy 3. Your opponent discards all Seals in play. Limit 1 per deck.

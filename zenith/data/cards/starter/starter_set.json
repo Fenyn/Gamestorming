@@ -1069,15 +1069,9 @@
 	 "power": {
 	  "attack": {
 	   "kind": "strike",
-	   "life": 2
+	   "life": 2,
+	   "cost_hand": 1
 	  },
-	  "effects": [
-	   {
-		"op": "discard_hand",
-		"amount": 1,
-		"random": false
-	   }
-	  ],
 	  "no_control_needed": true
 	 }
 	}
@@ -1286,7 +1280,8 @@
 	{
 	 "op": "draw_discard",
 	 "amount": 3,
-	 "from": "bottom"
+	 "from": "bottom",
+	 "up_to": true
 	}
    ],
    "limit_per_deck": 1
@@ -2136,16 +2131,16 @@
    "effects": [
 	{
 	 "op": "draw_discard",
+	 "who": "attacker",
 	 "amount": 2,
 	 "from": "top"
 	},
 	{
 	 "op": "energy",
-	 "who": "opponent",
+	 "who": "defender",
 	 "amount": 5
 	}
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "watchful_eye",
@@ -2176,8 +2171,7 @@
 	 "what": "strike_attacks",
 	 "duration": "combat"
 	}
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "warding_call",
@@ -2281,11 +2275,10 @@
 	 "op": "search",
 	 "card_type": "attack",
 	 "source": "reserve",
-	 "to": "hand"
+	 "to": "attack"
 	}
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 2
+   "remove_after_use": true
   },
   {
    "id": "closing_ranks",
@@ -2412,6 +2405,7 @@
    "title": "Reckless Ascent",
    "type": "combat",
    "school": "",
+   "use_at": "end_of_combat",
    "effects": [
 	{
 	 "op": "no_ascension_win"
@@ -2624,12 +2618,14 @@
 	 "card_type": "non_combat_only",
 	 "amount": 1,
 	 "choose": true,
-	 "up_to": true
-	},
-	{
-	 "op": "search",
-	 "card_type": "non_combat",
-	 "to": "play"
+	 "may": true,
+	 "then": [
+	  {
+	   "op": "search",
+	   "card_type": "non_combat",
+	   "to": "play"
+	  }
+	 ]
 	}
    ],
    "remove_after_use": true
@@ -2882,7 +2878,7 @@
 	},
 	{
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "ally",
 	 "amount": 1,
 	 "choose": true,
@@ -3295,7 +3291,8 @@
 	},
 	{
 	 "op": "shuffle_discard",
-	 "amount": 3
+	 "amount": 3,
+	 "from": "bottom"
 	}
    ]
   },
@@ -3328,6 +3325,9 @@
 	"stops": "strike"
    },
    "character": "The Ninth Vessel",
+   "only": {
+	"character": "The Ninth Vessel"
+   },
    "effects": [
 	{
 	 "op": "search",
@@ -3401,7 +3401,6 @@
    "title": "Clear Mind",
    "type": "non_combat",
    "school": "",
-   "limit_per_deck": 1,
    "effects": [
 	{
 	 "trigger": "use",
@@ -3635,7 +3634,7 @@
    "title": "Bravado Drill",
    "type": "drill",
    "school": "",
-   "start_in_play": true,
+   "start_in_play": "may",
    "limit_per_deck": 1,
    "effects": [
 	{
@@ -5427,8 +5426,7 @@
 	 }
 	}
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "storm_recharge",

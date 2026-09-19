@@ -39,7 +39,10 @@ static func score(engine: DuelEngine, seat: int, c: CardInstance, profile: AiPro
 			continue
 		aimed = true
 		var reach: float = 2.0 if bool(e.get("all", false)) else 1.0
-		if str(e.get("who", "self")) == "opponent":
+		# "Discard an Ally in play" with no side named still lets the user pick, so it reads as an
+		# answer aimed at the opponent rather than as something that costs the user a card.
+		var side: String = str(e.get("who", "self"))
+		if side == "opponent" or (side == "any" and bool(e.get("choose", false))):
 			tech += (_sign(signs, kind) - 0.5) * 2.0 * reach
 		else:
 			tech -= _sign(own, kind) * 2.0 * reach   # it hits my own cards of that kind too

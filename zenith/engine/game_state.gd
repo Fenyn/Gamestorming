@@ -3,7 +3,7 @@ extends RefCounted
 ## Plain data for one duel. DuelEngine mutates it; nothing else should.
 
 enum Step { SETUP, DRAW, NON_COMBAT, POWER_UP, DECLARE, COMBAT, DISCARD, RECOVER, GAME_OVER }
-enum Phase { NONE, PREPARE_ACTIVE, PREPARE_OPPOSING, OPPOSING_DRAW, ATTACK, DEFEND, BATTLE, FIGHT_BACK }
+enum Phase { NONE, PREPARE_ACTIVE, PREPARE_OPPOSING, OPPOSING_DRAW, ATTACK, DEFEND, BATTLE, FIGHT_BACK, COMBAT_END }
 
 var seed_value: int = 0
 var players: Array[PlayerState] = []
@@ -23,6 +23,8 @@ var discard_index: int = 0
 var reserve_index: int = 0          # players done swapping Reserve cards during setup
 var reserve_finished: Array[bool] = [false, false]
 var discard_done: Array[bool] = [false, false]   # per player, within the current Discard step
+var end_combat_done: Array[bool] = [false, false]  # per player, within the end-of-Combat window
+var start_play_done: Array[bool] = [false, false]  # per player, the pre-game "place this in play" offer
 var floating: Array[Dictionary] = []   # {owner, op, duration, ...params}; see DuelEngine._float
 var pending_play: Dictionary = {}      # a Combat card waiting on the opponent's counter window
 var skip_discard: bool = false         # a card ended the turn early: no Discard step
@@ -53,6 +55,8 @@ func copy(cards: Dictionary) -> GameState:
 	s.reserve_index = reserve_index
 	s.reserve_finished = reserve_finished.duplicate()
 	s.discard_done = discard_done.duplicate()
+	s.end_combat_done = end_combat_done.duplicate()
+	s.start_play_done = start_play_done.duplicate()
 	s.floating = floating.duplicate(true)
 	s.pending_play = pending_play.duplicate(true)
 	s.skip_discard = skip_discard

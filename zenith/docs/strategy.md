@@ -66,7 +66,7 @@ less than the swing.
 hitting a Seal deck churns its set. A Drill that guards Seals turns capture off completely, so it is
 the piece to land first and the piece to remove first.
 
-## 3. The eight decks
+## 3. The nine decks
 
 Each entry is: what it is trying to do, the lever that makes it work, the line to play, and the
 mistake that loses the game.
@@ -202,6 +202,29 @@ itself, and the bodies on the table are there to make its numbers bigger.
   0.5, and the Allies reach play in most games. Re-pointing the profile from Allies to Arts halved
   its Ally-held attack phases (4.9 to 2.4 a game) without moving the win rate, which is the profile
   doing what it now says.
+
+### Pyre — the ninth deck, Sir Edric Rooke, `pyre_ascent` (strike_beatdown)
+
+Added 2026-09-19 from the Red Goku sheet. Same school as Ashmark and a different Mastery: this one
+burns the top of the discard pile once a Combat for Fervor, double when what burns is Pyre. **The
+distinguishing fact is that it has no Drills at all**, one Ally and one Seal, and that almost every
+card in it pays Fervor, blocks included. Ashmark climbs by attacking; this deck climbs whatever
+happens in the Combat.
+
+- **Lever.** Fervor on defense. Four of the five block types raise it, so a Combat you spend
+  entirely on your back foot still advances the Aspect ladder. That is what pays for a duelist
+  whose first three Aspects add nothing at all to the damage.
+- **Second lever.** Aspects 4 and 5. Aspect 4 is a flat 5 Energy and 3 wounds that ignores the
+  Strike Table, and Aspect 5 is +5 and +5 on top of it. Everything before them is setup, so the
+  win route is the climb and the Ascension win is live.
+- **Third lever.** The Life Deck is a resource. Two of the Aspects and both of Edric's own attacks
+  draw off the discard pile, and the Mastery eats it. Do not treat a wound taken as pure loss.
+- **Line.** Block early and bank Fervor, keep Edric's Opening Strike for a Combat where the extra
+  use matters (it stays out only while he is your duelist), and hold the Truce: it answers an
+  attack that has already got through, which no other card in the set does.
+- **Mistake.** Racing at Aspect 1 or 2. The damage is not there yet and the deck has no Drills to
+  make it appear. The other mistake is spending the Ember Mastery on an empty or non-Pyre discard
+  pile early, when one Pyre card on top later is two Fervor.
 
 ## 4. Where each principle lives in an AI profile
 

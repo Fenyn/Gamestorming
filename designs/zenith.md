@@ -81,6 +81,7 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 | The Corven Collegium, scholars of the Tempest | Pact | Storm | Siphon, a warded construct | Tithe |
 | The Thornwald Grove, druids whose rites regrow what is cut away (added 2026-09-17) | Vigil | Root | Osric Thornwald, an old druid who mends as he fights and outlasts | none |
 | Marrow the Amalgam, a construct assembled from fallen ones and the crew that picks the field over (added 2026-09-18) | Pact | Shade | Marrow, who is not one construct and never was | Cull, Orvath Kell, Gideon Mourne, Pim |
+| none (added 2026-09-19) | Vigil | Pyre | Sir Edric Rooke, the Rooke coven's knight fighting his own fight | Dame Alder Rooke |
 
 ### Bloodlines
 
@@ -107,6 +108,8 @@ Two rules follow from that, and both matter more than the word itself:
 - **A keyword is not a faction.** The Corven Collegium builds Constructs; so do other people, by other methods, for other reasons. A card that says "Construct" reads what a personality *is*, never whose side it is on. That is why `life_per_tag` counts personalities in play on both sides.
 - **A keyword is not a school.** The Collegium's Constructs happen to field Storm today and Marrow's happen to field Shade, and neither of those facts belongs to the keyword. The same goes for followings in general: the table below records what a following currently fields, not what it is. A house may field more than one school later, and nothing in the data should assume otherwise.
 
+**Theming follows the printing, not the person.** Ruled 2026-09-19. A character may field more than one school across their cards, so what a card looks like is read off that card's own effects and the deck it is fielded in, never off a fixed element attached to the character. Sir Edric Rooke is the case that forced it: he carries water as his wife's Ally and fire in his own list, and both are correct. In the data this means `CAST` in `tools/gen_roster.py` holds only a side and an identity, and the palette comes from the card's school or, for a schoolless card, from the one Style it is fielded in.
+
 In the data it is `tags: ["construct"]`, and cards reach it four ways: `search` with `tag`, a `when` of `performer_tag` (the personality swinging), `in_control_tag` (whoever holds Combat on that side) or `duelist_tag`, and an attack's `life_per_tag`.
 
 Aspect titles (2026-09-17; in the data as `title` on each Aspect, set in `ASPECT_TITLES` in `gen_starters.py`). Each Aspect card carries its own title, as in "Bram Ashmark, Unquenchable". Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
@@ -121,6 +124,7 @@ Aspect titles (2026-09-17; in the data as `title` on each Aspect, set in `ASPECT
 | Osric Thornwald | Greybeard, Overgrown, Deep-Rooted, Heartwood, Grovelord |
 | Caedan Vale | Last Heir, Unparried, Spellcutter, the Quiet Blade, Peerless |
 | Marrow | Patchwork, Rebuilt, Overwrought, Fury Amalgam |
+| Sir Edric Rooke | the Hero, the Stranger, the Realm's Hero, Kindled Through, the All Powerful |
 
 ### The Eidolons
 

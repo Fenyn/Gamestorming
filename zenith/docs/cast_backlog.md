@@ -53,6 +53,12 @@ each of those characters sits is already settled in `world.md`; only the names a
 - **The Goku row is closed.** Sir Edric Rooke was already that mirror, through
   `companion_beta`. Four of the five cards are his now and the fifth, `lodestone_heart`, is the
   Relic exemption.
+- **2026-09-19, the Red sheet.** Sir Edric Rooke became the ninth duelist (`pyre_ascent`), which
+  is the first case of one character fielding two schools: Pyre in his own list, Tide as his
+  wife's Ally. That settled the theming rule in `designs/zenith.md`, Keywords: what a card looks
+  like comes from that card, not from a fixed element on the person.
+- **Torvan Hask** (approved 2026-09-19), Edric's elder brother from the line he left, closes the
+  Raditz row: one card, `hasks_flying_kick`.
 
 ## 3. Named cards with no mirror character yet
 
@@ -61,7 +67,7 @@ say what kind of person the cards imply.
 
 | source character | n | cards | card types |
 |---|---|---|---|
-| **Gohan** | 8 | `all_or_nothing`, `hilt_guard`, `no_quarter`, `sword_flourish`, `sword_sweep`, `sword_thrust`, `locked_gate_drill`, `swordplay_drill` | Drill, Strike |
+| **Gohan** (name approved: **Emrys Rooke**, the eldest son; the eight titles are still to write) | 8 | `all_or_nothing`, `hilt_guard`, `no_quarter`, `sword_flourish`, `sword_sweep`, `sword_thrust`, `locked_gate_drill`, `swordplay_drill` | Drill, Strike |
 | **Krillin** | 5 | `blinding_flare`, `unerring_bolt`, `keen_eye`, `clear_mind`, `sleight` | Art, Combat, Non-Combat |
 | **Cell** | 4 | `old_habit`, `dismissal`, `sever_the_leyline`, `terms_of_the_pact` | Combat, Pacts only, Strike |
 | **Tien** | 4 | `practiced_guard`, `smoke_screen`, `suppressing_shot`, `threefold_bolt` | Art, Strike |

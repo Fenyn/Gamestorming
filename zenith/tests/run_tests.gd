@@ -201,6 +201,15 @@ func _init() -> void:
 		test_set_energy_can_reach_every_personality,
 		test_a_search_can_stack_the_deck,
 		test_beginning_of_turn_runs_for_both_players_when_the_card_says_so,
+		test_an_attack_can_multiply_the_base_damage,
+		test_a_card_can_stop_an_attack_that_already_succeeded,
+		test_a_mastery_can_read_the_card_it_burns,
+		test_a_power_can_check_whether_the_drawn_card_attacks,
+		test_a_power_can_need_two_named_allies,
+		test_energy_can_reach_any_personality_on_the_table,
+		test_an_ally_can_block_for_one_named_personality,
+		test_a_printed_limit_beats_the_signature_allowance,
+		test_an_ally_power_refreshes_each_combat,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -3328,6 +3337,187 @@ func test_beginning_of_turn_runs_for_both_players_when_the_card_says_so() -> voi
 	eq(e.player(0).fervor, after_place + 1, "it fired on the rival's turn too")
 	skip_to_turn(e, 3)
 	eq(e.player(0).fervor, after_place + 2, "and again on its owner's")
+
+
+## "Physical attack doing three times the Base Damage." The multiplier rides on the attack itself,
+## not on a modifier, and it lands after the additions the way a modifier's would.
+func test_an_attack_can_multiply_the_base_damage() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_triple_kick", "t_strike"])), deck(filler(), "pact"))
+	to_combat(e)
+	var forecasts: Dictionary = e.attack_forecasts(0)
+	var plain: Dictionary = forecasts.get(uid_in_hand(e, 0, "t_strike"), {})
+	var tripled: Dictionary = forecasts.get(uid_in_hand(e, 0, "t_triple_kick"), {})
+	check(not plain.is_empty() and not tripled.is_empty(), "both attacks are forecast")
+	if plain.is_empty() or tripled.is_empty():
+		return
+	var base: int = int(plain.get("stages", 0))
+	check(base > 0, "the plain Strike does Energy damage to multiply")
+	eq(int(tripled.get("stages", 0)), base * 3, "three times the Base Damage")
+
+
+## "Stops a successful energy or physical attack." It is barred from the ordinary defense window
+## and offered in its own, after the attack is already through.
+func test_a_card_can_stop_an_attack_that_already_succeeded() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_parry"]), "pact"))
+	to_combat(e)
+	var truce: CardInstance = to_hand(e, 1, "t_late_truce")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	# The ordinary window must not offer it: it names its own timing. A real block is in hand, so
+	# that window opens on its own account.
+	eq(prompt_kind(e), &"defense", "the ordinary defense window opens first")
+	check(not bool(e.prompt.context.get("late", false)), "and it is the ordinary one")
+	check(e.prompt.find(&"defend", truce.uid) == null, "the truce is not offered before the attack resolves")
+	answer(e, &"no_defense")
+	eq(prompt_kind(e), &"defense", "the late window opens once the attack is through")
+	check(bool(e.prompt.context.get("late", false)), "and it says it is the late one")
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"defend", truce.uid)
+	check(has_event(e, &"attack_stopped"), "the successful attack was stopped after all")
+	eq(e.player(1).life_deck.size(), before, "so no wounds landed")
+	# Declining instead lets it through, and the window does not reopen on the same attack.
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_combat(f)
+	to_hand(f, 1, "t_late_truce")
+	answer(f, &"attack", uid_in_hand(f, 0, "t_strike"))
+	eq(prompt_kind(f), &"defense", "with nothing else to play the late window is the only one")
+	check(bool(f.prompt.context.get("late", false)), "and it is the late one")
+	answer(f, &"no_defense")
+	check(has_event(f, &"attack_successful"), "declining leaves the attack standing")
+	check(prompt_kind(f) != &"defense", "and it does not reopen on the same attack")
+
+
+## "Remove the top card of your discard pile to raise your Fervor 1, or 2 if it is a Pyre card."
+## The card that burns picks the branch, and it is read before it leaves.
+func test_a_mastery_can_read_the_card_it_burns() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "pyre", "t_ember_mastery"), deck(filler(), "pact"))
+	to_combat(e)
+	var me: PlayerState = e.player(0)
+	me.discard.append(e._instance(lib.get_def("t_pyre_jab"), 0, &"discard"))
+	var start: int = me.fervor
+	answer(e, &"use", me.mastery.uid)
+	eq(me.fervor, start + 2, "a Pyre card on top pays double")
+	eq(me.discard.size(), 0, "and it left the game")
+	# Once per Combat, so the second read waits; a plain card pays one.
+	var f: DuelEngine = engine(deck(filler(), "vigil", "pyre", "t_ember_mastery"), deck(filler(), "pact"))
+	to_combat(f)
+	var mine: PlayerState = f.player(0)
+	mine.discard.append(f._instance(lib.get_def("t_late_truce"), 0, &"discard"))
+	var began: int = mine.fervor
+	answer(f, &"use", mine.mastery.uid)
+	eq(mine.fervor, began + 1, "anything else pays one")
+	check(f.prompt.find(&"use", mine.mastery.uid) == null, "and it is spent for the Combat")
+
+
+## "Draw a card and show it to your opponent. If it is a Physical or Energy Combat card, your
+## opponent discards 3 from the top of his Life Deck."
+func test_a_power_can_check_whether_the_drawn_card_attacks() -> void:
+	# Two runs that differ only in what the knight's own Life Deck has on top, so the gap between
+	# the rival's remaining cards is the Power and nothing else.
+	var attacks: Array[String] = ["t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike", "t_strike"]
+	var quiet: Array[String] = ["t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt", "t_taunt"]
+	var left: Array[int] = []
+	for list in [attacks, quiet]:
+		var e: DuelEngine = engine(deck(list, "vigil", "", "", 3, "tf_knight"), deck(filler(), "pact"))
+		e.player(0).duelist.aspect = 2
+		to_combat(e)
+		left.append(e.player(1).life_deck.size())
+	eq(left[1] - left[0], 3, "an attack card on top costs the rival three, a Combat card nothing")
+
+
+## "If that card is a Goku named card, and if Chi-Chi and Gohan are in play, draw another card."
+## Both names, not either: one Ally is not enough.
+func test_a_power_can_need_two_named_allies() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_knights_oath"]), "vigil", "", "", 3, "tf_knight"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	me.life_deck.insert(0, e._instance(lib.get_def("t_knights_oath"), 0, &"life_deck"))
+	inject(e, 0, "t_ally_squire")
+	var one_ally: int = me.hand.size()
+	to_combat(e)
+	eq(me.hand.size(), one_ally + 1, "the Signature card is drawn, but only that one")
+	var f: DuelEngine = engine(deck(filler(["t_knights_oath"]), "vigil", "", "", 3, "tf_knight"), deck(filler(), "pact"))
+	var mine: PlayerState = f.player(0)
+	mine.life_deck.insert(0, f._instance(lib.get_def("t_knights_oath"), 0, &"life_deck"))
+	inject(f, 0, "t_ally_squire")
+	inject(f, 0, "t_ally_herald")
+	var both: int = mine.hand.size()
+	to_combat(f)
+	eq(mine.hand.size(), both + 2, "with both named Allies out it draws again")
+
+
+## "Raise any personality to their highest power stage." The card does not say whose, so the whole
+## table is on the list and the chooser decides, the other side included.
+func test_energy_can_reach_any_personality_on_the_table() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_rally_any"])), deck(filler(), "pact"))
+	inject(e, 1, "t_ally_squire")
+	to_combat(e)
+	var theirs: PlayerState = e.player(1)
+	var squire: CardInstance = theirs.allies()[0]
+	squire.energy = 1
+	e.player(0).duelist.energy = 1
+	answer(e, &"use", uid_in_hand(e, 0, "t_rally_any"))
+	eq(prompt_kind(e), &"pick_option", "the table is offered")
+	check(e.prompt.find(&"pick_option", squire.uid) != null, "the rival's Ally is on the list too")
+	check(e.prompt.find(&"pick_option", e.player(0).duelist.uid) != null, "and so is your own duelist")
+	answer(e, &"pick_option", squire.uid)
+	eq(squire.energy, CardInstance.MAX_STAGE, "the chosen personality went to full Energy")
+	eq(e.player(0).duelist.energy, 1, "and nobody else moved")
+
+
+## "Stop a physical attack performed against Gohan or Goku. Your Main Personality does not have to
+## be in control for her to use this power."
+func test_an_ally_can_block_for_one_named_personality() -> void:
+	for pair in [["tf_knight", true], ["tf_vigil", false]]:
+		var e: DuelEngine = engine(deck(filler(), "pact"), deck(filler(), "vigil", "", "", 3, str(pair[0])))
+		inject(e, 1, "t_ally_shieldmother")
+		to_combat(e)
+		# Whoever the bracket hands the first attack phase to, the guarded side has to be defending.
+		if e.state.attacker == 1:
+			answer(e, &"pass")
+		var mother: CardInstance = e.player(1).allies()[0]
+		answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+		# With nothing else to block with, the window opens only when her Power can answer.
+		var offered: bool = prompt_kind(e) == &"defense" and e.prompt.find(&"power_defend", mother.uid) != null
+		eq(offered, bool(pair[1]), "she answers from the side only for a personality she names")
+		if not bool(pair[1]):
+			continue
+		answer(e, &"power_defend", mother.uid)
+		check(has_event(e, &"attack_stopped"), "and the Strike is stopped")
+
+
+## The fourth copy is what naming your Main Personality buys, but a card that prints its own limit
+## keeps it: "Limit 2 per deck" on a Signature card means two.
+func test_a_printed_limit_beats_the_signature_allowance() -> void:
+	var four: Array[String] = filler(["t_knights_oath", "t_knights_oath", "t_knights_oath", "t_knights_oath"])
+	var problems: Array[String] = DeckValidator.validate(deck(four, "vigil", "", "", 3, "tf_knight"), lib)
+	var named: bool = false
+	for p in problems:
+		if p.contains("t_knights_oath"):
+			named = true
+	check(named, "four copies of a limit-2 Signature card is illegal")
+	var two: Array[String] = filler(["t_knights_oath", "t_knights_oath"])
+	for p in DeckValidator.validate(deck(two, "vigil", "", "", 3, "tf_knight"), lib):
+		check(not p.contains("t_knights_oath"), "two is fine: %s" % p)
+	# A Signature card with no printed limit still gets the fourth copy.
+	var four_plain: Array[String] = filler(["t_vigil_ray", "t_vigil_ray", "t_vigil_ray", "t_vigil_ray"])
+	for p in DeckValidator.validate(deck(four_plain, "vigil", "", "", 3, "tf_vigil"), lib):
+		check(not p.contains("t_vigil_ray"), "the allowance still applies where nothing is printed: %s" % p)
+
+
+## Ally and Duelist are one card type now, so "whose Power refreshes when" comes from the seat:
+## an Ally's Power is once a Combat, the Main Personality's is once a turn.
+func test_an_ally_power_refreshes_each_combat() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt"])), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var ally: CardInstance = inject(e, 0, "t_ally_free")
+	to_combat(e)
+	check(e._power_available(me, ally), "the Ally's Power is fresh")
+	e._mark_power_used(ally)
+	check(not e._power_available(me, ally), "and spent once used")
+	# A second Combat in the same turn is a fresh Combat for the Ally.
+	e.state.combat_count += 1
+	check(e._power_available(me, ally), "an Ally refreshes each Combat")
+	e.state.combat_count -= 1
+	check(not e._power_available(me, ally), "and not otherwise")
 
 
 # --- Simulation support ----------------------------------------------------

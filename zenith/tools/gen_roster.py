@@ -5,7 +5,8 @@ Run tools/dump_cards.gd first (it writes cards.jsonl from the engine's own rules
 
 Rules text, types, sections and deck usage come from the data. The source-card column is kept
 from the existing CSV by id. Everything an image generator needs lives in this file: the shared
-STYLE clause, a FRAMING clause per card type, a PALETTE clause per school, a fixed identity
+STYLE clause, a FRAMING clause per card type, a PALETTE clause per school (personality cards
+have one colour of their own and take no school's), a fixed identity
 string per character (CAST) and a short slot brief per card (ART). The generator assembles them
 into the Prompt column: style, framing, palette, identity, brief.
 """
@@ -57,72 +58,75 @@ PALETTE = {
     "": "Accent warm bronze, leather brown, plain steel, candle light.",
 }
 
+# One colour for every card that carries a character's name, portraits and signature cards alike,
+# tied to no school. It matches the gold the client gives the personality type in Palette.type_ui.
+PERSONALITY_PALETTE = "Accent warm gold and pale ivory, deep umber shadow, one warm key light."
+
 # Character identities: a fixed string reused verbatim on every card that shows the character,
 # so a generator keeps them consistent. (name, school/side, deck, identity, note for the md)
 CAST = [
-    ("Bram Ashmark", "Pyre · Pact", "Ashmark the Pyromancer",
+    ("Bram Ashmark", "Pact", "Ashmark the Pyromancer",
      "Bram Ashmark: man in his early twenties, lean, soot-streaked pale skin, singed short dark hair, half-plate over a scorched gambeson, plain longsword with a heat shimmer.",
      "The Pact shows as light under the skin: faint at Kindled, cracks by Unquenchable."),
-    ("Halden Quarr", "Steel · Pact", "Quarr the Ironblood",
+    ("Halden Quarr", "Pact", "Quarr the Ironblood",
      "Halden Quarr: huge man in his forties, shaved head, brawler's build, bare arms, skin greying to iron in patches, black knuckles, raised welded scars, no armour.",
      "The Pact shows as iron spreading over more of him each Aspect."),
-    ("Sable Draik", "Shade · Pact", "The Draik Company",
+    ("Sable Draik", "Pact", "The Draik Company",
      "Sable Draik: woman in her thirties, brown skin, tattooed forearms, long dark coat, a bottle at her hip, sardonic half-smile.",
      "The Pact shows as shadow pooling around her and the light leaving her eyes."),
-    ("Vesna Draik", "Shade · Pact", "The Draik Company", "Vesna Draik: wiry hooded woman, two knives, face half hidden.", "The ambusher."),
-    ("Brann Draik", "Shade · Pact", "The Draik Company", "Brann Draik: broad bald man, leather vest, heavy hands, easy menace.", "The muscle."),
-    ("Halvard Draik", "Shade · Pact", "The Draik Company", "Halvard Draik: tall man, red cloak, twin curved swords, duellist's poise.", "The swordsman."),
-    ("Quill Draik", "Shade · Pact", "The Draik Company", "Quill Draik: thin young man, spectacles, ink-stained fingers, satchel of pages.", "The hexer proper."),
-    ("Pim", "Shade · Pact", "The Draik Company", "Pim: small quick youth, patched clothes, sack over one shoulder.", "The scavenger, no surname."),
-    ("Dame Alder Rooke", "Tide · Vigil", "The Rooke Coven",
+    ("Vesna Draik", "Pact", "The Draik Company", "Vesna Draik: wiry hooded woman, two knives, face half hidden.", "The ambusher."),
+    ("Brann Draik", "Pact", "The Draik Company", "Brann Draik: broad bald man, leather vest, heavy hands, easy menace.", "The muscle."),
+    ("Halvard Draik", "Pact", "The Draik Company", "Halvard Draik: tall man, red cloak, twin curved swords, duellist's poise.", "The swordsman."),
+    ("Quill Draik", "Pact", "The Draik Company", "Quill Draik: thin young man, spectacles, ink-stained fingers, satchel of pages.", "The hexer proper."),
+    ("Pim", "Pact", "The Draik Company", "Pim: small quick youth, patched clothes, sack over one shoulder.", "The scavenger, no surname."),
+    ("Dame Alder Rooke", "Vigil", "The Rooke Coven",
      "Dame Alder Rooke: woman in her sixties, straight-backed, long grey hair, red gown over grey mail, round shield and longsword.",
      "The Vigil shows as water: climbing her, filling her, then she is the flood."),
-    ("Wren Rooke", "Tide · Vigil", "The Rooke Coven", "Wren Rooke: teenage girl, red-brown hair, blue coat, satchel of loose pages.", "Youngest of the coven."),
+    ("Wren Rooke", "Vigil", "The Rooke Coven", "Wren Rooke: teenage girl, red-brown hair, blue coat, satchel of loose pages.", "Youngest of the coven."),
     # The element is the printing's, not the man's: he carries water in his wife's line and fire in
     # his own, and each card's art takes it from that card's effects. See docs/cast_backlog.md.
     ("Sir Edric Rooke", "Vigil", "Edric the Ember Knight", "Sir Edric Rooke: knight in grey mail, plain longsword, open helm under one arm, weathered and unhurried.", "The knight. Fields Pyre in his own list and Tide beside the coven."),
     ("Emrys Rooke", "Vigil", "(no deck yet)", "Emrys Rooke: serious young man, dark hair, grey fencing doublet over mail, longsword held two-handed.", "The eldest son, and a swordsman where his parents are casters."),
     ("Torvan Hask", "Pact", "(no deck yet)", "Torvan Hask: heavy-shouldered man in scarred riding leathers, long unbound hair, a hand axe at the belt, Edric's face ten years harder.", "Edric's elder brother, from the line Edric left."),
-    ("Ansel Rooke", "Tide · Vigil", "The Rooke Coven", "Ansel Rooke: young man, broad shoulders, blue-grey gambeson, round shield.", "The middle son."),
-    ("Tavin Vale", "Tide · Vigil", "The Rooke Coven", "Tavin Vale: slim young man, dark hair tied back, blue robe over a fencing doublet, hands open for casting.", "A Vale cousin fostered with the Rookes."),
-    ("Ansel and Tavin, Back to Back", "Tide · Vigil", "The Rooke Coven", "Ansel Rooke and Tavin Vale standing back to back, shield and water between them.", "The Bond."),
-    ("Caedan Vale", "Freestyle · Vigil", "Vale the Swordmaster",
+    ("Ansel Rooke", "Vigil", "The Rooke Coven", "Ansel Rooke: young man, broad shoulders, blue-grey gambeson, round shield.", "The middle son."),
+    ("Tavin Vale", "Vigil", "The Rooke Coven", "Tavin Vale: slim young man, dark hair tied back, blue robe over a fencing doublet, hands open for casting.", "A Vale cousin fostered with the Rookes."),
+    ("Ansel and Tavin, Back to Back", "Vigil", "The Rooke Coven", "Ansel Rooke and Tavin Vale standing back to back, shield and water between them.", "The Bond."),
+    ("Caedan Vale", "Vigil", "Vale the Swordmaster",
      "Caedan Vale: slight man in his late twenties, dark hair, grey fencing doublet, one longsword, no magic.",
      "Aspects stay human: stiller each time, grey at the temples by Peerless."),
-    ("Siphon", "Storm · Pact", "The Corven Collegium",
+    ("Siphon", "Pact", "The Corven Collegium",
      "Siphon: humanoid construct of grey stone and copper wire, sigils cut into its chest, a smooth faceless head, a glass core at the sternum.",
      "Dormant it is a statue, charged it hums, unbound it arcs."),
-    ("Tithe", "Storm · Pact", "The Corven Collegium",
+    ("Tithe", "Pact", "The Corven Collegium",
      "Tithe: smaller stone-and-copper construct, cruder sigils than Siphon's, a cracked shoulder never repaired, a slot in its chest where cards go in.",
      "Works from the side and never asks to lead. It takes one, and it is paid."),
     # Constructs from outside the Collegium. One word each, naming what they are for.
-    ("Sledge", "Freestyle · Pact", "(unaffiliated construct)",
+    ("Sledge", "Pact", "(unaffiliated construct)",
      "Sledge: broad pit-fighting construct of riveted plate over a squat frame, one arm heavier than the other, dents never beaten out.",
      "Built to win bouts, and named by the crowd that bet on him."),
-    ("Mercy", "Freestyle · Pact", "(unaffiliated construct)",
+    ("Mercy", "Pact", "(unaffiliated construct)",
      "Mercy: very tall construct of pale stone and worn brass, a broad blunt face, hands too big and too careful, no weapon anywhere on it.",
      "Made for work rather than war, and slow to agree to this."),
-    ("Scorn", "Freestyle · Pact", "(unaffiliated construct)",
+    ("Scorn", "Pact", "(unaffiliated construct)",
      "Scorn: lean construct of blackened iron, hands in its pockets, head tilted, a face cast with a permanent half-smile.",
      "Kin to Marrow, and bored by all of it."),
-    ("Marrow", "Shade · Pact", "Marrow the Amalgam",
+    ("Marrow", "Pact", "Marrow the Amalgam",
      "Marrow: a construct assembled out of several older ones, no two pieces matching: a war-frame torso in scorched plate, one slender arm and one heavy, a face-plate of pale stone with the old owner's name still stamped under the jaw.",
      "Not one construct and never was. The Pact shows as more of her each Aspect: crude at Patchwork, past what any part was built for by Overwrought, all of it at once at the end."),
-    ("Cull", "Shade · Pact", "Marrow the Amalgam",
+    ("Cull", "Pact", "Marrow the Amalgam",
      "Cull: elderly wright in a construct's body, a stooped brass frame over a spine of copper, spectacles wired to the face-plate, a roll of instruments open at the hip.",
      "Collegium-trained, and put himself in a frame rather than keep building them for other people. They do not claim him."),
-    ("Orvath Kell", "Shade · Pact", "Marrow the Amalgam",
+    ("Orvath Kell", "Pact", "Marrow the Amalgam",
      "Orvath Kell: gaunt man in a high-collared grey coat, shaven head, an officer's gorget he has not taken off, both hands bare and raised.",
      "Not a construct. Last officer of a company that fielded them and left them where they fell, walking the same ground for his own reasons."),
-    ("Gideon Mourne", "Shade · Pact", "Marrow the Amalgam",
+    ("Gideon Mourne", "Pact", "Marrow the Amalgam",
      "Gideon Mourne: proud man in his thirties, scarred brow, black brigandine with a broken crest still riveted to the chest, a signet he has not sold, hands crackling.",
      "Not a construct. A lord who was stripped of it, still signs himself Lord Mourne, and nobody corrects him to his face. Sells the craft cheap now, to whoever is going somewhere."),
-    ("Osric Thornwald", "Root · Vigil", "The Thornwald Grove",
+    ("Osric Thornwald", "Vigil", "The Thornwald Grove",
      "Osric Thornwald: old man, long grey beard, ranger's leathers gone green with moss, a staff strung as a bow, bark growing over one hand.",
      "The Vigil shows as the grove taking him: more tree and less man each Aspect."),
 ]
 IDENTITY = {c[0]: c[3] for c in CAST}
-CAST_SCHOOL = {c[0]: c[1].split(" ")[0].lower() for c in CAST}   # a Freestyle character keeps ""
 SEAL_PALETTE = {
     "sun": "Accent old gold, a thin line of green seawater, warm torchlight.",
     "moth": "Accent bone white and silver, pale dust, cold torchlight.",
@@ -221,6 +225,7 @@ ART = {
     "lodestone_heart": "A dark magnetic stone on a chain, iron filings drawn to it, on grey cloth.",
     "freestyle_mastery": "A worn leather training manual, spine cracked, a single steel pin holding a page.",
     "pyre_mastery": "A brazier of coals with a single tongue of flame, a burnt page curling in it.",
+    "pyre_ember_mastery": "A single ember lifted off a spent pile on a knife point, the pile going cold behind it.",
     "steel_mastery": "A clenched iron fist with a single card turned face up beneath it.",
     "shade_mastery": "A hand of cards seen through a black veil, one card rotting at the corner.",
     "tide_mastery": "A tide line on stone, water drawing back, a single coin left behind.",
@@ -239,6 +244,17 @@ ART = {
     "pyre_immolation": "A rune circle wrapped in flame, burning down to nothing.",
     "pyre_kindling": "A small sharp fire lit at the tip of a blade, lighting the whole edge.",
     "pyre_rekindling": "Coals stirred back to flame, a burnt card lifting from the ash whole.",
+    "pyre_bellows_guard": "A blow caught on a bracer and the impact blown back out as a gout of flame.",
+    "pyre_ashen_veil": "A wall of ash thrown up between two fighters, old burnt pages whirling away in it.",
+    "pyre_hearthguard": "A low banked hearth flaring up as a spell breaks on it, a figure straightening in the light.",
+    "pyre_flashpoint": "Air going over all at once at a single point, the fighter already through it.",
+    "pyre_updraft": "A rising column of heat carrying a fighter off the ground mid-strike.",
+    "pyre_ember_strike": "A plain punch landing, embers thrown off the knuckles on impact.",
+    "braced_guard": "Both feet set, weight low, a blow turning aside off a raised guard, no magic anywhere.",
+    "edrics_truce": "A blade stopped a hand's width short, both fighters' eyes meeting over it.",
+    "edrics_opening_strike": "The first blow of a long fight, thrown flat and hard, a burnt card lifting out of the ash behind him.",
+    "edrics_training": "A practice yard at dawn, a post splintering under a strike, breath fogging.",
+    "hasks_flying_kick": "A flying kick landing full in the chest, the ground cracking away under the man taking it.",
     "pyre_scouring_flame": "A tongue of fire scouring a rune circle off a stone floor.",
     "pyre_searing_guard": "A raised forearm glowing red, a blade stopping against it and smoking.",
     "pyre_snuffing": "A fist closing on a small flame, the smoke of it.",
@@ -600,10 +616,15 @@ def shows(card):
 def palette_of(card, who):
     if card["type"] == "Seal":
         return SEAL_PALETTE[card["base"].rsplit("_seal_", 1)[0]]
-    school = card["school"] or CAST_SCHOOL.get(who, "")
-    if school == "freestyle":
-        school = ""
-    return PALETTE[school]
+    # Three cases, in order. A card carrying a school takes that school's colour. A card carrying
+    # a character's name takes the personality colour, which belongs to no school. Anything else
+    # is Freestyle. A character is not a school, so the character never supplies one.
+    school = card["school"]
+    if school not in ("", "freestyle"):
+        return PALETTE[school]
+    if who:
+        return PERSONALITY_PALETTE
+    return PALETTE[""]
 
 
 def prompt_of(card, brief):
@@ -667,10 +688,11 @@ def write_md(rows):
     out += ["", "**Palette by school:**", ""]
     for s, p in PALETTE.items():
         out.append("- %s: %s" % (s or "Freestyle", p))
+    out.append("- Cards carrying a character's name: %s" % PERSONALITY_PALETTE)
     for s, p in SEAL_PALETTE.items():
         out.append("- %s seals: %s" % (s.capitalize(), p))
     out += ["", "## Cast", "", "Identity strings are reused verbatim on every card that shows the character.", "",
-            "| Character | School · Side | Deck | Identity | Across Aspects |", "|---|---|---|---|---|"]
+            "| Character | Side | Deck | Identity | Across Aspects |", "|---|---|---|---|---|"]
     for name, side, deck, identity, note in CAST:
         out.append("| %s | %s | %s | %s | %s |" % (name, side, deck, esc(identity), esc(note)))
     out.append("")

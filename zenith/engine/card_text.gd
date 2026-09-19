@@ -161,15 +161,24 @@ static func type_line(def: CardDef) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	parts.append(school_name(def.school))
 	parts.append(type_label(def))
+	if def.bloodline != "":
+		# The reference game left this in a rulebook table and never printed it on the card, which
+		# is exactly why nobody could see it. It goes on the type line here.
+		parts.append(bloodline_name(def.bloodline))
 	if def.alignment_only != "":
 		parts.append(def.alignment_only.capitalize() + "s only")
 	return " · ".join(parts)
+
+
+static func bloodline_name(bloodline: String) -> String:
+	return bloodline.capitalize()
 
 
 ## card_type -> [singular, plural].
 const CARD_TYPE_WORDS: Dictionary = {
 	"card": ["card", "cards"], "ally": ["Ally", "Allies"], "drill": ["Drill", "Drills"],
 	"non_combat_any": ["Non-Combat card, Drill, or Seal", "Non-Combat cards, Drills, or Seals"],
+	"non_combat_or_drill": ["Non-Combat card or Drill", "Non-Combat cards and Drills"],
 	"non_combat": ["Non-Combat card", "Non-Combat cards"], "non_combat_only": ["Non-Combat card", "Non-Combat cards"],
 	"combat": ["Combat card", "Combat cards"], "strike": ["Strike", "Strikes"], "art": ["Art", "Arts"],
 	"attack": ["attack card", "attack cards"], "hand_combat": ["Strike, Art, or Combat card", "Strike, Art, or Combat cards"],
@@ -261,10 +270,14 @@ static func rules_text(def: CardDef) -> String:
 			lines.append("%s only." % str(def.only["character"]))
 		elif def.only.has("duelist_character"):
 			lines.append("%s only." % str(def.only["duelist_character"]))
+		elif def.only.has("bloodline"):
+			lines.append("%s only." % bloodline_name(str(def.only["bloodline"])))
 	if def.endurance > 0 and def.endurance_when.is_empty():
 		lines.append("Endurance %d." % def.endurance)
 	elif not def.endurance_when.is_empty():
 		lines.append("Endurance X. X = %d if %s, otherwise %d." % [int(def.endurance_when.get("then", 0)), cond_text(def.endurance_when.get("value_if", {})), int(def.endurance_when.get("else", 0))])
+	if def.raw.has("deck_loss_guard"):
+		lines.append("(When a card effect other than damage would take cards off the top of your Life Deck, you may discard this card from your hand to take %d fewer, to a minimum of 0.)" % int((def.raw["deck_loss_guard"] as Dictionary).get("amount", 0)))
 	if def.counter == "combat":
 		lines.append("Use when needed. Stops the effects of any Combat card.")
 	if str(def.raw.get("use_at", "")) == "end_of_combat":
@@ -315,13 +328,18 @@ static func rules_text(def: CardDef) -> String:
 				chosen_host = true
 		if named_host != "" or chosen_host:
 			# The host is whoever it landed on, so the line speaks of the attached personality
-			# rather than naming a seat on the table.
-			lines.append("While attached, the attached personality's %s" % _lc(" ".join(parts)).trim_prefix("your "))
+			# rather than naming a seat on the table. Only a modifier reads as something the host
+			# owns ("your Arts do +2 wounds"); a timed effect is just a thing that happens.
+			var joined: String = " ".join(parts)
+			if joined.begins_with("Your "):
+				lines.append("While attached, the attached personality's %s" % _lc(joined).trim_prefix("your "))
+			else:
+				lines.append("While attached, %s" % _lc(joined))
 		else:
 			lines.append("While attached to %s: %s" % [host, " ".join(parts)])
 		var limit_attached: int = int(def.attachment.get("limit_attached", 0))
 		if limit_attached > 0 and named_host != "":
-			lines.append("%s may have only %d attached." % [named_host, limit_attached])
+			lines.append("%s may have only %d \"%s\" attached." % [named_host, limit_attached, def.title])
 		elif limit_attached > 0:
 			lines.append("Limit %d attached." % limit_attached)
 	if def.remain > 0:
@@ -621,6 +639,10 @@ static func _effect_body(e: Dictionary) -> String:
 			body = ("Your opponent removes %s in hand from the game." if opp else "Remove %s in your hand from the game.") % _plural(n, "card", "cards")
 		"search":
 			body = search_text(e)
+		"discard_in_play" when str(e.get("to", "")) == "deck_shuffle":
+			# Not a discard at all: the cards go back into their owner's Life Deck.
+			var shuffled: String = str(e.get("card_type", "non_combat"))
+			body = "Shuffle %s %s in play into %s Life Deck." % [("all of your opponent's" if opp else "all of your"), type_words(shuffled, true), ("their" if opp else "your")]
 		"discard_in_play":
 			var card_type: String = str(e.get("card_type", "non_combat"))
 			var remove: bool = bool(e.get("remove", false))
@@ -660,7 +682,12 @@ static func _effect_body(e: Dictionary) -> String:
 			var noun_one: String = "card" if kind == "" else "%s card" % school_name(kind)
 			var noun_many: String = "cards" if kind == "" else "%s cards" % school_name(kind)
 			var pile: String = "your discard pile" if str(e.get("from", "top")) == "top" else "the bottom of your discard pile"
-			body ="Shuffle %s from %s into your Life Deck%s." % [("every %s" % noun_one if bool(e.get("all", false)) else _plural(n, noun_one, noun_many)), pile, (" for each personality you have in play" if bool(e.get("per_personality", false)) else "")]
+			var each: String = ""
+			if str(e.get("per_bloodline", "")) != "":
+				each = " for each %s personality you have in play" % bloodline_name(str(e["per_bloodline"]))
+			elif bool(e.get("per_personality", false)):
+				each = " for each personality you have in play"
+			body ="Shuffle %s from %s into your Life Deck%s." % [("every %s" % noun_one if bool(e.get("all", false)) else _plural(n, noun_one, noun_many)), pile, each]
 		"recover":
 			body = "Place the %s %s of your discard pile at the bottom of your Life Deck." % [str(e.get("from", "top")), ("card" if n == 1 else "%d cards" % n)]
 		"end_combat":
@@ -1168,6 +1195,10 @@ static func modifier_text(m: Dictionary) -> String:
 	var amount: String = " and ".join(parts)
 	if bool(m.get("per_ally", false)):
 		amount += " for each Ally you have in play"
+	if bool(m.get("per_personality", false)):
+		amount += " for each personality you have in play"
+	if str(m.get("per_bloodline", "")) != "":
+		amount += " for each %s personality you have in play" % bloodline_name(str(m["per_bloodline"]))
 	var s: String = ""
 	if bool(m.get("once", false)):
 		s = "Your next attack does %s." % amount
@@ -1216,7 +1247,10 @@ static func constant_text(c: Dictionary) -> PackedStringArray:
 		lines.append("All of your attacks are Focused.")
 	if bool(c.get("damage_removes", false)):
 		lines.append("Wounds from your attacks are removed from the game.")
-	if bool(c.get("protect_allies", false)):
+	var guard: Variant = c.get("protect_allies", false)
+	if guard is String and str(guard) != "":
+		lines.append("Your %s Allies cannot be discarded or removed by your opponent's card effects." % bloodline_name(str(guard)))
+	elif bool(guard):
 		lines.append("Your Allies cannot be discarded or removed by your opponent's card effects.")
 	if bool(c.get("ally_control_any_stage", false)):
 		lines.append("Your Allies may take control of Combat at any Energy.")
@@ -1319,13 +1353,17 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"pick_none":
 			if engine.prompt != null and bool(engine.prompt.context.get("search", false)):
 				return "Done looking" if int(engine.prompt.context.get("amount", 1)) <= 0 else "Take nothing"
+			if engine.prompt != null and str(engine.prompt.context.get("purpose", "")) == "deck_loss_guard":
+				return "Keep the card and lose them all"
 			return "Choose none"
 		&"name_card":
 			return "Name %s" % str(cmd.value)
 		&"pick_option":
+			var ctx: Dictionary = engine.prompt.context if engine != null and engine.prompt != null else {}
+			if str(ctx.get("purpose", "")) == "deck_loss_guard":
+				return "Discard it and lose %d fewer" % int(ctx.get("reduce", 0))
 			if name != "":
 				return name
-			var ctx: Dictionary = engine.prompt.context if engine != null and engine.prompt != null else {}
 			if str(ctx.get("purpose", "")) == "draw_count":
 				return "Draw %s" % str(cmd.value)
 			match str(cmd.value):

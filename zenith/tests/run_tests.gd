@@ -45,6 +45,10 @@ func _init() -> void:
 		test_drill_guard_survives_aspect_change,
 		test_shuffle_discard_takes_only_its_school,
 		test_draw_discard_up_to,
+		test_bloodline_gates_on_the_personality_in_control,
+		test_bloodline_counts_only_its_own,
+		test_deck_loss_guard,
+		test_in_play_can_shuffle_into_the_deck,
 		test_optional_start_in_play,
 		test_search_to_attack_performs_it_now,
 		test_end_of_combat_window,
@@ -243,6 +247,13 @@ func uid_in_hand(e: DuelEngine, player: int, id: String) -> int:
 		if c.def.id == id:
 			return c.uid
 	return -1
+
+
+## Puts a fresh copy of `id` straight into a player's hand, for a card the opening draw may miss.
+func to_hand(e: DuelEngine, player: int, id: String) -> CardInstance:
+	var c: CardInstance = e._instance(lib.get_def(id), player, &"hand")
+	e.player(player).hand.append(c)
+	return c
 
 
 func inject(e: DuelEngine, player: int, id: String) -> CardInstance:
@@ -596,6 +607,93 @@ func test_draw_discard_up_to() -> void:
 	e._apply_effect({"op": "draw_discard", "amount": 2, "from": "bottom"}, 0, {}, null)
 	check(e.prompt == null or e.prompt.kind != &"pick_option", "no count is asked")
 	eq(p.discard.size(), 1, "and two came straight out")
+
+
+## A bloodline is inherited, so it sits on the personality, not on the player. A "Draconic only"
+## card asks who is in control of Combat: a duelist without the blood cannot use it, but an Ally
+## who has it can, which is how the source card works for a leader whose kin carry the line.
+func test_bloodline_gates_on_the_personality_in_control() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_ally_kin", "t_kin_rite"])), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_ally_kin"))
+	var kin: CardInstance = e.player(0).allies()[0]
+	eq(kin.def.bloodline, "draconic", "the Ally carries the line")
+	eq(e.player(0).duelist.def.bloodline, "", "the duelist does not")
+	var rite: int = uid_in_hand(e, 0, "t_kin_rite")
+	answer(e, &"declare")
+	check(e.prompt.find(&"use", rite) == null, "with the duelist in control the rite cannot be used")
+	var f: DuelEngine = engine(deck(filler(["t_ally_kin", "t_kin_rite"])), deck(filler(), "pact"))
+	answer(f, &"place", uid_in_hand(f, 0, "t_ally_kin"))
+	kin = f.player(0).allies()[0]
+	f.player(0).duelist.energy = 1
+	answer(f, &"declare")
+	answer(f, &"control", kin.uid)
+	check(f.prompt.find(&"use", uid_in_hand(f, 0, "t_kin_rite")) != null, "with the kin in control it can")
+
+
+## "For each personality with that blood you have in play." The duelist counts only when the blood
+## is theirs, so a leader of another line adds nothing while their kin each add one.
+func test_bloodline_counts_only_its_own() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	eq(e.bloodline_count(p, "draconic"), 0, "a duelist of no line counts nobody")
+	inject(e, 0, "t_ally_kin")
+	inject(e, 0, "t_ally_squire")
+	eq(e.bloodline_count(p, "draconic"), 1, "only the Ally with the line counts")
+	eq(e.bloodline_count(p, "verdant"), 0, "and not for another line")
+	e.shuffle_decks = false
+	for i in range(4):
+		p.discard.append(e._instance(lib.get_def("t_strike"), 0, &"discard"))
+	var deck_before: int = p.life_deck.size()
+	e._apply_effect({"op": "shuffle_discard", "amount": 1, "per_bloodline": "draconic"}, 0, {}, null)
+	eq(p.life_deck.size(), deck_before + 1, "one card back for the one kin in play")
+
+
+## "When your opponent uses a card effect besides damage that makes you discard the top cards of
+## your Life Deck, you may discard this card from your hand to reduce the amount by 10, to a
+## minimum of 0." The offer goes to the player losing the cards, before any of them turn over.
+func test_deck_loss_guard() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_hand(e, 1, "t_last_ward")
+	var foe: PlayerState = e.player(1)
+	var deck_before: int = foe.life_deck.size()
+	e._apply_effect({"op": "discard_life", "who": "opponent", "amount": 4}, 0, {}, null)
+	check(e.prompt != null and e.prompt.kind == &"pick_option", "the loser is asked")
+	eq(e.prompt.player, 1, "and it is their choice, not the attacker's")
+	eq(foe.life_deck.size(), deck_before, "nothing has left the deck yet")
+	var guard: Command = e.prompt.options[0]
+	e.submit(guard)
+	eq(foe.life_deck.size(), deck_before, "4 reduced by 10 is none at all")
+	eq(uid_in_hand(e, 1, "t_last_ward"), -1, "the guard was discarded to pay for it")
+	# Declining takes the cards, and the guard stays in hand.
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_hand(f, 1, "t_last_ward")
+	var other: PlayerState = f.player(1)
+	var before: int = other.life_deck.size()
+	f._apply_effect({"op": "discard_life", "who": "opponent", "amount": 4}, 0, {}, null)
+	f.submit(f.prompt.find(&"pick_none"))
+	eq(other.life_deck.size(), before - 4, "all four came off")
+	check(uid_in_hand(f, 1, "t_last_ward") >= 0, "and the guard is still in hand")
+	# Your own effect is not "your opponent's", so it is never offered.
+	var g: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_hand(g, 0, "t_last_ward")
+	var mine: PlayerState = g.player(0)
+	var own: int = mine.life_deck.size()
+	g._apply_effect({"op": "discard_life", "amount": 2}, 0, {}, null)
+	eq(mine.life_deck.size(), own - 2, "a cost you pay yourself is not guarded")
+
+
+## "Shuffle all of your opponent's Dragon Balls back into his Life Deck" takes them off the table
+## without discarding them, which matters because the discard pile is a resource.
+func test_in_play_can_shuffle_into_the_deck() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var foe: PlayerState = e.player(1)
+	var seal: CardInstance = inject(e, 1, "t_seal_1")
+	var deck_before: int = foe.life_deck.size()
+	e.shuffle_decks = false
+	e._apply_effect({"op": "discard_in_play", "who": "opponent", "card_type": "seal", "to": "deck_shuffle", "all": true}, 0, {}, null)
+	eq(seal.zone, &"life_deck", "the Seal went back into the Life Deck")
+	eq(foe.life_deck.size(), deck_before + 1, "the deck grew by it")
+	eq(foe.discard.size(), 0, "and nothing reached the discard pile")
 
 
 ## "Before the first turn begins, you may search your Life Deck for this Drill and place it into
@@ -1003,7 +1101,7 @@ func test_capture_and_pending_win() -> void:
 func test_critical_damage_choices() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_relic_shield"))
 	var squire: CardInstance = inject(e, 1, "t_ally_squire")
-	check(e._ally_protected(e.player(1)), "the rival's constant protects Allies from card effects")
+	check(e._ally_protected(e.player(1), squire), "the rival's constant protects Allies from card effects")
 	check(e.fervor_shielded(e.player(1)), "the rival's Relic shields Fervor from card effects")
 	e.player(1).fervor = 2
 	to_combat(e)
@@ -1615,7 +1713,7 @@ func test_attach_to_other_named_personality() -> void:
 	answer(f, &"use", first)
 	eq(f.card(first).attached_to, f.player(0).duelist, "it attaches to the named duelist, not to the Squire")
 	var text: String = CardText.rules_text(f.card(first).def)
-	check(text.contains("Attach this card to your Test Vigil.") and text.contains("Test Vigil may have only 1 attached."), "worded: %s" % text)
+	check(text.contains("Attach this card to your Test Vigil.") and text.contains("Test Vigil may have only 1 \"Test Squire's Pledge\" attached."), "worded: %s" % text)
 	answer(f, &"pass")
 	if prompt_kind(f) == &"control":
 		answer(f, &"control", squire.uid)

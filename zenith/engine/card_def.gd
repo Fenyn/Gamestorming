@@ -24,6 +24,8 @@ var type: Type = Type.COMBAT
 var school: String = ""          # "" is Freestyle
 var text: String = ""
 var character: String = ""      # personalities: which character this card belongs to
+var bloodline: String = ""      # personalities: "", "draconic", "verdant". Inherited, so it is
+                                # not the school they trained in nor the side they took
 var alignment_only: String = "" # "", "vigil", "pact"
 var only: Dictionary = {}       # play/use gate, e.g. {"character": "Sir Edric Rooke"} or {"duelist_character": ...}
 var limit_per_deck: int = 3
@@ -64,6 +66,7 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.school = str(d.get("school", ""))
 	c.text = str(d.get("text", ""))
 	c.character = str(d.get("character", ""))
+	c.bloodline = str(d.get("bloodline", ""))
 	c.alignment_only = str(d.get("alignment_only", ""))
 	c.only = d.get("only", {})
 	c.limit_per_deck = int(d.get("limit_per_deck", 3))

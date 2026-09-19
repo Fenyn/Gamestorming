@@ -2126,6 +2126,21 @@ func _modifier_amount(m: Dictionary, key: String, p: PlayerState) -> int:
 	var n: int = int(m.get(key, 0))
 	if bool(m.get("per_ally", false)):
 		n *= p.allies().size()
+	if bool(m.get("per_personality", false)):
+		# "For each personality card you have in play": the duelist counts, so this is never 0.
+		n *= p.allies().size() + 1
+	if str(m.get("per_bloodline", "")) != "":
+		n *= bloodline_count(p, str(m["per_bloodline"]))
+	return n
+
+
+## Personalities in play carrying a bloodline: the duelist when it is theirs, plus each Ally with
+## it. A duelist can lead a following that does not share their blood, and often does.
+func bloodline_count(p: PlayerState, bloodline: String) -> int:
+	var n: int = 1 if p.duelist.def.bloodline == bloodline else 0
+	for a in p.allies():
+		if a.def.bloodline == bloodline:
+			n += 1
 	return n
 
 
@@ -2538,6 +2553,10 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			if e.has("if_school") and taken != null and taken.def.school == str(e["if_school"]):
 				_enqueue(e.get("effects", []), "secondary", owner, ctx, source)
 		"discard_life":
+			# A card effect taking cards off the top of a Life Deck, not damage. A card in the
+			# loser's hand may answer it, so they get the offer before any card is turned over.
+			if _offer_deck_loss_guard(who, int(amount), owner):
+				return
 			_discard_life(who, int(amount))
 		"discard_hand":
 			var chooser: int = owner if str(e.get("chooser", "")) == "owner" else who_index
@@ -2681,7 +2700,11 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					rng.shuffle(who.life_deck)
 				_emit(&"recur_source", {"player": who.index, "card": source.uid, "paid": paid.uid})
 		"shuffle_discard":
-			var count: int = int(amount) * (who.allies().size() + 1 if bool(e.get("per_personality", false)) else 1)
+			var count: int = int(amount)
+			if str(e.get("per_bloodline", "")) != "":
+				count *= bloodline_count(who, str(e["per_bloodline"]))
+			elif bool(e.get("per_personality", false)):
+				count *= who.allies().size() + 1
 			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")), str(e.get("school", "")))
 		"recover":
 			_recover_top(who, int(amount), str(e.get("from", "top")))
@@ -2992,6 +3015,11 @@ func _can_play(p: PlayerState, def: CardDef) -> bool:
 				return false
 		if def.only.has("duelist_character") and p.duelist.def.character != str(def.only["duelist_character"]):
 			return false
+		# "Draconic only": the bloodline gates by who is in control, the way a named personality
+		# does. A duelist and their Allies can differ, so it is read off the personality, not the
+		# player.
+		if def.only.has("bloodline") and p.in_control().def.bloodline != str(def.only["bloodline"]):
+			return false
 	# A card that attaches to a personality named in its text needs that personality on the table.
 	if _attaches_to(def) == "named" and _attach_host(p, def) == null:
 		return false
@@ -3190,16 +3218,17 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 		candidates.append_array(_in_play_candidates(state.players[1 - owner], type_name))
 	if candidates.is_empty():
 		return
+	var to: String = str(e.get("to", "discard"))
 	var chooser: int = owner if str(e.get("chooser", "owner")) == "owner" else target.index
 	if bool(e.get("choose", false)) and candidates.size() > amount:
-		_choice = {"kind": "pick_in_play", "remaining": amount, "remove": remove, "type": type_name, "target": target.index, "chooser": chooser, "up_to": bool(e.get("up_to", false))}
+		_choice = {"kind": "pick_in_play", "remaining": amount, "remove": remove, "to": to, "type": type_name, "target": target.index, "chooser": chooser, "up_to": bool(e.get("up_to", false))}
 		_prompt_pick_in_play(chooser, candidates, amount, bool(e.get("up_to", false)))
 		return
 	var n: int = 0
 	for i in range(candidates.size() - 1, -1, -1):
 		if n >= amount:
 			break
-		_discard_or_remove_in_play(candidates[i], remove)
+		_discard_or_remove_in_play(candidates[i], remove, to)
 		n += 1
 
 
@@ -3220,13 +3249,13 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 			"freestyle_drill":
 				ok = t == CardDef.Type.DRILL and c.def.school == ""
 			"ally":
-				ok = t == CardDef.Type.ALLY and not _ally_protected(p)
+				ok = t == CardDef.Type.ALLY and not _ally_protected(p, c)
 			"seal":
 				ok = t == CardDef.Type.SEAL
 			"non_combat_or_ally":
-				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p))
+				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p, c))
 			"drill_or_ally":
-				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p))
+				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p, c))
 			_:
 				ok = t != CardDef.Type.SEAL   # Seals are immune to card effects unless named
 		if ok:
@@ -3234,8 +3263,14 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 	return out
 
 
-func _ally_protected(p: PlayerState) -> bool:
-	return bool(_constant(p).get("protect_allies", false))
+## "Your Allies cannot be discarded or removed by your opponent's card effects." A constant that
+## names a bloodline guards only the Allies carrying it, which is how the source card reads: the
+## duelist shields her kin, not every hireling she happens to lead.
+func _ally_protected(p: PlayerState, ally: CardInstance) -> bool:
+	var guard: Variant = _constant(p).get("protect_allies", false)
+	if guard is String:
+		return str(guard) != "" and ally.def.bloodline == str(guard)
+	return bool(guard)
 
 
 func _drills_protected(p: PlayerState) -> bool:
@@ -3252,9 +3287,42 @@ func _capturable_seals(p: PlayerState) -> Array[CardInstance]:
 	return p.seals()
 
 
-func _discard_or_remove_in_play(c: CardInstance, remove: bool) -> void:
-	_emit(&"in_play_discarded", {"player": c.controller, "card": c.uid, "removed": remove})
-	if remove:
+## "When your opponent uses a card effect besides damage that makes you discard the top cards of
+## your Life Deck, you may discard this card from your hand to reduce the amount by N." The offer
+## goes to the player losing the cards, and only for someone else's effect. True when it opened.
+func _offer_deck_loss_guard(loser: PlayerState, amount: int, owner: int) -> bool:
+	if loser.index == owner or amount <= 0:
+		return false
+	var guard: CardInstance = null
+	for c in loser.hand:
+		if c.def.raw.has("deck_loss_guard"):
+			guard = c
+			break
+	if guard == null:
+		return false
+	var reduce: int = int((guard.def.raw["deck_loss_guard"] as Dictionary).get("amount", 0))
+	_choice = {"kind": "deck_loss_guard", "guard": guard.uid, "loser": loser.index, "amount": amount, "reduce": reduce}
+	var opts: Array[Command] = [
+		Command.new(loser.index, &"pick_option", guard.uid, "guard"),
+		Command.new(loser.index, &"pick_none"),
+	]
+	var context: Dictionary = _choice_context(guard, "deck_loss_guard")
+	context["reduce"] = reduce
+	context["amount"] = amount
+	_set_prompt(loser.index, &"pick_option", opts, context)
+	return true
+
+
+## Takes a card off the table. `to` is "discard" unless the card says otherwise; "deck_shuffle"
+## is the "shuffle them back into his Life Deck" wording, which is not a discard at all.
+func _discard_or_remove_in_play(c: CardInstance, remove: bool, to: String = "discard") -> void:
+	_emit(&"in_play_discarded", {"player": c.controller, "card": c.uid, "removed": remove, "to": to})
+	if to == "deck_shuffle":
+		var owner: PlayerState = state.players[c.owner]
+		_move_to_deck_bottom(c)
+		if shuffle_decks:
+			rng.shuffle(owner.life_deck)
+	elif remove:
 		_remove_from_game(c)
 	else:
 		_move_to_discard(c)
@@ -3419,7 +3487,7 @@ func _handle_choice(cmd: Command) -> void:
 				return
 			var picked: Array[int] = Prompt.cards_of(cmd)
 			for uid in picked:
-				_discard_or_remove_in_play(card(uid), bool(_choice.get("remove", false)))
+				_discard_or_remove_in_play(card(uid), bool(_choice.get("remove", false)), str(_choice.get("to", "discard")))
 			var remaining: int = int(_choice.get("remaining", 1)) - picked.size()
 			var target: PlayerState = state.players[int(_choice.get("target", 0))]
 			var rest: Array[CardInstance] = _in_play_candidates(target, str(_choice.get("type", "non_combat")))
@@ -3432,6 +3500,16 @@ func _handle_choice(cmd: Command) -> void:
 			if src != null:
 				src.named_card = str(cmd.value)
 				_emit(&"card_named", {"player": cmd.player, "card": src.uid, "name": src.named_card})
+		"deck_loss_guard":
+			var loser: PlayerState = state.players[int(_choice["loser"])]
+			var losing: int = int(_choice["amount"])
+			if cmd.type != &"pick_none":
+				var guard: CardInstance = card(int(_choice["guard"]))
+				_move_to_discard(guard)
+				_emit(&"hand_discarded", {"player": loser.index, "card": guard.uid, "random": false})
+				losing = maxi(0, losing - int(_choice["reduce"]))
+			_choice = {}
+			_discard_life(loser, losing)
 		"capture_choice":
 			_capture_seal(cmd.player, card(cmd.card))
 	# A choice opened while paying an attack's costs holds the battle sequence where it was; the
@@ -3835,6 +3913,10 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	if type_name == "non_combat_any":
 		# Everything that is placed in the Non-Combat step bar Grounds: Non-Combats, Drills, Seals.
 		if c.def.type != CardDef.Type.NON_COMBAT and c.def.type != CardDef.Type.DRILL and c.def.type != CardDef.Type.SEAL:
+			return false
+	elif type_name == "non_combat_or_drill":
+		# The source card's "Non-Combat, non-Seal" wording: a Drill is a Non-Combat card too.
+		if c.def.type != CardDef.Type.NON_COMBAT and c.def.type != CardDef.Type.DRILL:
 			return false
 	elif c.def.type == CardDef.Type.SEAL and type_name != "seal":
 		return false

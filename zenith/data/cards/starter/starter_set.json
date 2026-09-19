@@ -123,7 +123,7 @@
 	  12
 	 ],
 	 "constant": {
-	  "protect_allies": true,
+	  "protect_allies": "draconic",
 	  "turn_start": [
 	   {
 		"op": "advance_aspect",
@@ -392,6 +392,7 @@
    "type": "duelist",
    "school": "",
    "character": "Halden Quarr",
+   "bloodline": "draconic",
    "aspects": [
 	{
 	 "aspect": 1,
@@ -516,6 +517,7 @@
    "type": "duelist",
    "school": "",
    "character": "Caedan Vale",
+   "bloodline": "draconic",
    "aspects": [
 	{
 	 "aspect": 1,
@@ -670,6 +672,7 @@
    "type": "duelist",
    "school": "",
    "character": "Osric Thornwald",
+   "bloodline": "verdant",
    "aspects": [
 	{
 	 "aspect": 1,
@@ -1086,6 +1089,7 @@
    "type": "ally",
    "school": "",
    "character": "Wren Rooke",
+   "bloodline": "draconic",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
    "aspects": [
@@ -1110,7 +1114,7 @@
 	   {
 		"op": "shuffle_discard",
 		"amount": 1,
-		"per_personality": true
+		"per_bloodline": "draconic"
 	   }
 	  ]
 	 }
@@ -1123,6 +1127,7 @@
    "type": "ally",
    "school": "",
    "character": "Sir Edric Rooke",
+   "bloodline": "draconic",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
    "aspects": [
@@ -1159,6 +1164,7 @@
    "type": "ally",
    "school": "",
    "character": "Tavin Vale",
+   "bloodline": "draconic",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
    "aspects": [
@@ -1200,6 +1206,7 @@
    "type": "ally",
    "school": "",
    "character": "Ansel Rooke",
+   "bloodline": "draconic",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
    "aspects": [
@@ -2190,6 +2197,7 @@
 	 "op": "discard_in_play",
 	 "who": "opponent",
 	 "card_type": "seal",
+	 "to": "deck_shuffle",
 	 "all": true
 	}
    ],
@@ -2294,7 +2302,7 @@
 	  "scope": "own",
 	  "kind": "any",
 	  "life": 2,
-	  "per_ally": true,
+	  "per_bloodline": "draconic",
 	  "once": true
 	 }
 	},
@@ -2644,7 +2652,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "non_combat",
 	 "amount": 6,
 	 "up_to": true,
@@ -3241,6 +3249,9 @@
    "title": "Last Ward",
    "type": "strike",
    "school": "",
+   "deck_loss_guard": {
+	"amount": 10
+   },
    "defense": {
 	"stops": "any",
 	"stop_focused": "discard_hand"
@@ -3436,7 +3447,7 @@
 	{
 	 "trigger": "use",
 	 "op": "search",
-	 "card_type": "non_combat",
+	 "card_type": "non_combat_or_drill",
 	 "to": "play"
 	}
    ]
@@ -3460,6 +3471,7 @@
    "type": "ally",
    "school": "",
    "character": "Ansel and Tavin, Back to Back",
+   "bloodline": "draconic",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
    "aspects": [
@@ -4505,6 +4517,9 @@
   {
    "id": "steel_shockwave",
    "title": "Steel Shockwave",
+   "only": {
+    "bloodline": "draconic"
+   },
    "type": "art",
    "school": "steel",
    "attack": {
@@ -5125,8 +5140,10 @@
    },
    "effects": [
 	{
+	 "may": true,
 	 "op": "search",
 	 "card_type": "ally",
+	 "aspect": 1,
 	 "source": "discard",
 	 "to": "play",
 	 "stages": 3
@@ -5174,6 +5191,7 @@
 	},
 	{
 	 "trigger": "if_successful",
+	 "may": true,
 	 "op": "search",
 	 "card_type": "grounds",
 	 "to": "play"
@@ -5219,34 +5237,17 @@
    "school": "tide",
    "attack": {
 	"kind": "art",
-	"printed_life": 5,
-	"variants": [
-	 {
-	  "when": {
-	   "ally_present": "Sir Edric Rooke"
-	  },
-	  "focused": true,
-	  "life": 4
-	 }
-	]
+	"printed_life": 5
    },
    "effects": [
-	{
-	 "op": "fervor",
-	 "who": "opponent",
-	 "amount": -2
-	},
 	{
 	 "op": "fervor",
 	 "amount": 1
 	},
 	{
-	 "trigger": "on_wound",
-	 "at": "fight_back",
-	 "may": true,
-	 "op": "search",
-	 "card_type": "ally",
-	 "to": "play"
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
 	}
    ]
   },
@@ -5488,6 +5489,9 @@
   {
    "id": "root_energy_deflection",
    "title": "Root Barkskin Deflection",
+   "only": {
+    "bloodline": "verdant"
+   },
    "type": "art",
    "school": "root",
    "defense": {
@@ -5584,6 +5588,9 @@
   {
    "id": "root_dragon_blast",
    "title": "Root Wyrmwood Blast",
+   "only": {
+    "bloodline": "verdant"
+   },
    "type": "art",
    "school": "root",
    "attack": {

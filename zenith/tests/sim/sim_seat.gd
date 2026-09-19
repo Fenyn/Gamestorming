@@ -21,6 +21,8 @@ const KNOBS: Dictionary = {
 	"rollout-steps": ["rollout_steps", true],
 	"noise": ["noise", false],
 	"prior": ["prior", false],
+	"settle-plies": ["settle_plies", true],
+	"settle-lead": ["settle_lead", false],
 }
 
 ## Policies that are not the name of a level file under `data/ai/profiles`.
@@ -33,15 +35,43 @@ var think: Dictionary = {}       # `think` overrides laid over the profile
 var error: String = ""
 
 
+static func policy_error(value: String) -> String:
+	if BUILT_IN.has(value):
+		return ""
+	if value.is_empty() or value.contains("/") or value.contains("\\") or not FileAccess.file_exists(AiProfile.DIR.path_join(value + ".json")):
+		return "Unknown policy '%s'; expected %s or a profile under %s" % [value, ", ".join(PackedStringArray(BUILT_IN)), AiProfile.DIR]
+	return ""
+
+
+## Adapter for older runners' string dictionaries, preserving their optional empty knobs.
+static func from_legacy(policy_name: String, args: Dictionary, use_styles: bool = true) -> SimSeat:
+	var out: SimSeat = SimSeat.new()
+	out.policy = policy_name
+	out.styles = use_styles
+	out.error = policy_error(policy_name)
+	if not out.error.is_empty():
+		return out
+	for suffix in KNOBS:
+		if not args.has(suffix) or str(args[suffix]).is_empty():
+			continue
+		var mapping: Array = KNOBS[suffix]
+		out.think[mapping[0]] = int(args[suffix]) if bool(mapping[1]) else float(args[suffix])
+	# ai_arena historically used an underscore for this one option.
+	if args.has("rollout_steps") and not str(args["rollout_steps"]).is_empty():
+		out.think["rollout_steps"] = int(args["rollout_steps"])
+	return out
+
+
 ## Reads the `a` or `b` side out of parsed flags.
 static func from_args(args: SimArgs, p_label: String) -> SimSeat:
 	var out: SimSeat = SimSeat.new()
 	out.label = p_label
-	out.policy = args.str_of(p_label) if args.has(p_label) else args.str_of("policy")
+	var policy_key: String = p_label if args.has(p_label) else "policy"
+	out.policy = args.str_of(policy_key)
 	out.styles = args.bool_of("%s-styles" % p_label) if args.has("%s-styles" % p_label) else args.bool_of("styles")
-	if not BUILT_IN.has(out.policy) and not FileAccess.file_exists(AiProfile.DIR.path_join(out.policy + ".json")):
-		out.error = "--%s=%s is neither a built-in policy (%s) nor a profile under %s" % [
-			p_label, out.policy, ", ".join(PackedStringArray(BUILT_IN)), AiProfile.DIR]
+	out.error = policy_error(out.policy)
+	if not out.error.is_empty():
+		out.error = "--%s: %s" % [policy_key, out.error]
 		return out
 	for suffix in KNOBS.keys():
 		var pair: Array = KNOBS[suffix]
@@ -58,6 +88,16 @@ static func from_args(args: SimArgs, p_label: String) -> SimSeat:
 
 ## The driver for `deck`, or null when this side plays uniformly at random.
 func make_player(deck: DeckList, seed_value: int) -> AiPlayer:
+	var profile: AiProfile = make_profile(deck)
+	return AiPlayer.new(profile, seed_value) if profile != null else null
+
+
+## Diagnostics can inspect exactly the same resolved profile as the normal seat driver.
+func make_profile(deck: DeckList) -> AiProfile:
+	error = policy_error(policy)
+	if not error.is_empty():
+		push_error(error)
+		return null
 	if policy == "random":
 		return null
 	var level: String = "" if BUILT_IN.has(policy) else policy
@@ -71,7 +111,7 @@ func make_player(deck: DeckList, seed_value: int) -> AiPlayer:
 			profile.merge({"think": {"search": true, "algorithm": "rollout"}})
 	if not think.is_empty():
 		profile.merge({"think": think.duplicate()})
-	return AiPlayer.new(profile, seed_value)
+	return profile
 
 
 func describe() -> String:

@@ -1,10 +1,8 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
-[ext_resource type="PackedScene" path="res://scenes/duel/player_panel.tscn" id="2_panel"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
 [ext_resource type="PackedScene" path="res://scenes/duel/dev_panel.tscn" id="4_dev"]
-[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="5_tile"]
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -17,25 +15,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="TopPanel" parent="Root" instance=ExtResource("2_panel")]
-layout_mode = 1
-anchors_preset = 0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 424.0
-offset_bottom = 200.0
-
-[node name="BottomPanel" parent="Root" instance=ExtResource("2_panel")]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = -200.0
-offset_right = 424.0
-offset_bottom = -16.0
-grow_vertical = 0
 
 [node name="PhasePanel" type="PanelContainer" parent="Root"]
 layout_mode = 1

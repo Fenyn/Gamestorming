@@ -36,6 +36,7 @@ func add(result: Dictionary, a_deck: String, b_deck: String) -> void:
 	var reason: String = str(result["reason"])
 	var turn: int = int(result["turn"])
 	var distance: Array = result["distance"]
+	var full_life: Array = result["full_life"]
 
 	for side in range(2):
 		var row: Dictionary = _row(side, names[side])
@@ -54,7 +55,7 @@ func add(result: Dictionary, a_deck: String, b_deck: String) -> void:
 		else:
 			_bump(row["loss"], reason)
 			_fold(row["shortfall"], mine)
-			_bump(row["closest"], SimMatch.closest_route(mine))
+			_bump(row["closest"], SimMatch.closest_route(mine, int(full_life[side])))
 
 	var key: String = "%s|%s" % [a_deck, b_deck]
 	var grid: Array = matchup.get(key, [0, 0])
@@ -65,6 +66,7 @@ func add(result: Dictionary, a_deck: String, b_deck: String) -> void:
 	var timing: Array = result["timing"]
 	tsv_rows.append("\t".join(PackedStringArray([
 		a_deck, b_deck, str(int(result["a_seat"])), "a" if a_won else "b", reason, str(turn),
+		str(int(full_life[0])), str(int(full_life[1])),
 		str(int(distance[0]["survival"])), str(int(distance[0]["seal"])), "%.3f" % float(distance[0]["ascension"]),
 		str(int(distance[1]["survival"])), str(int(distance[1]["seal"])), "%.3f" % float(distance[1]["ascension"]),
 		str(int(timing[0]["decisions"])), "%.1f" % (float(timing[0]["total_usec"]) / 1000.0),
@@ -180,11 +182,15 @@ func _print_timing(a_side: SimSeat, b_side: SimSeat) -> void:
 # --- Files ----------------------------------------------------------------
 
 func write_tsv(path: String) -> bool:
+	var folder_error: Error = DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	if folder_error != OK:
+		push_error("Cannot create %s: %s" % [path.get_base_dir(), error_string(folder_error)])
+		return false
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("Cannot write %s: %s" % [path, error_string(FileAccess.get_open_error())])
 		return false
-	file.store_line("a_deck\tb_deck\ta_seat\twinner_side\treason\tturn\ta_life\ta_seals_missing\ta_asc_left\tb_life\tb_seals_missing\tb_asc_left\ta_decisions\ta_ms\tb_decisions\tb_ms")
+	file.store_line("a_deck\tb_deck\ta_seat\twinner_side\treason\tturn\ta_life_start\tb_life_start\ta_life\ta_seals_missing\ta_asc_left\tb_life\tb_seals_missing\tb_asc_left\ta_decisions\ta_ms\tb_decisions\tb_ms")
 	for r in tsv_rows:
 		file.store_line(r)
 	file.close()
@@ -206,6 +212,8 @@ func write_json(path: String, config: Dictionary) -> bool:
 		"decks": {"a": _json_rows(side_rows[0]), "b": _json_rows(side_rows[1])},
 		"matchups": _json_matchups(),
 		"timing": [_json_timing(0), _json_timing(1)],
+		# The mergeable form, for `tools/merge_matchlab.gd`. Everything above it is for reading.
+		"state": to_state(),
 	}
 	var folder_error: Error = DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	if folder_error != OK:
@@ -219,6 +227,55 @@ func write_json(path: String, config: Dictionary) -> bool:
 	file.close()
 	print("wrote %s" % path)
 	return true
+
+
+# --- Merging --------------------------------------------------------------
+
+## Everything this report counted, in a form another report can absorb. This is what lets a run be
+## split across processes with `--shard` and folded back into one exact report afterwards. The raw
+## timing samples travel with it, so the merged median and p95 are the true ones and not an average
+## of averages.
+func to_state() -> Dictionary:
+	for side in range(2):
+		(side_timing[side]["samples_ms"] as Array).sort()
+	return {
+		"games": games, "failures": failures, "failure_notes": failure_notes,
+		"side_wins": side_wins, "side_rows": side_rows, "side_timing": side_timing,
+		"matchup": matchup,
+	}
+
+
+## Folds another run's state into this one. Counts add, the two timing streams join.
+func absorb(state: Dictionary) -> void:
+	games += int(state["games"])
+	failures += int(state["failures"])
+	for note in state["failure_notes"]:
+		if failure_notes.size() < 20:
+			failure_notes.append(str(note))
+	for side in range(2):
+		side_wins[side] += int((state["side_wins"] as Array)[side])
+		_fold_timing(side_timing[side], (state["side_timing"] as Array)[side])
+		var incoming: Dictionary = (state["side_rows"] as Array)[side]
+		for name in incoming.keys():
+			var source: Dictionary = incoming[name]
+			var target: Dictionary = _row(side, str(name))
+			for key in ["played", "won", "turns"]:
+				target[key] = int(target[key]) + int(source[key])
+			for key in ["win", "loss", "closest"]:
+				for r in (source[key] as Dictionary).keys():
+					(target[key] as Dictionary)[r] = int((target[key] as Dictionary).get(r, 0)) + int((source[key] as Dictionary)[r])
+			for key in ["margin", "shortfall"]:
+				var t_acc: Dictionary = target[key]
+				var s_acc: Dictionary = source[key]
+				t_acc["n"] = int(t_acc["n"]) + int(s_acc["n"])
+				for r in REASONS:
+					t_acc[r] = float(t_acc[r]) + float(s_acc[r])
+	for key in (state.get("matchup", {}) as Dictionary).keys():
+		var incoming_grid: Array = (state["matchup"] as Dictionary)[key]
+		var grid: Array = matchup.get(key, [0, 0])
+		grid[0] = int(grid[0]) + int(incoming_grid[0])
+		grid[1] = int(grid[1]) + int(incoming_grid[1])
+		matchup[key] = grid
 
 
 func _json_rows(rows: Dictionary) -> Dictionary:

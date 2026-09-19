@@ -4,6 +4,8 @@ extends RefCounted
 ## action. Iterative deepening publishes only balanced, completed comparisons. Intent is a
 ## revalidated ordering hint, never a command queue.
 
+const FREE_ENGINES: int = 256
+
 var last_report: Array[Dictionary] = []
 var metrics: Dictionary = {}
 var intent: Dictionary = {}
@@ -23,6 +25,9 @@ var _transpositions: Dictionary = {}
 var _old_intent: Dictionary = {}
 var _weights: Dictionary = {}
 var _perspective: Referee = Referee.new()
+## Engines recycled between nodes. `_visit` is depth-first, so a node's successors are dead once
+## its call returns and can go back on the stack; allocating them was two thirds of a clone.
+var _free: Array[DuelEngine] = []
 
 
 func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGenerator, policy_base: AiProfile = null) -> Command:
@@ -87,13 +92,17 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 		if prior[i] > prior[best_index]:
 			best_index = i
 	var completed: Array[Dictionary] = []
+	var settled_for: int = 0
+	var settled_on: int = -1
 	for depth in range(1, maxi(1, profile.think_int("sequence_depth")) + 1):
 		var round_results: Array[Dictionary] = []
 		for i in candidates:
 			var next: Array[DuelEngine] = _advance(worlds, prompt.options[i].to_dict())
 			if _aborted:
+				_recycle(next)
 				break
 			var result: Dictionary = _visit(next, depth - 1, 1)
+			_recycle(next)
 			if _aborted:
 				break
 			result["index"] = i
@@ -120,6 +129,14 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 					best_index = i
 					metrics["intent_status"] = "retained"
 		if best >= AiEvaluator.WIN:
+			break
+		if best_index == settled_on:
+			settled_for += 1
+		else:
+			settled_for = 1
+			settled_on = best_index
+		if _has_settled(profile, depth, settled_for, completed):
+			metrics["cutoff"] = "settled"
 			break
 	if completed.is_empty():
 		last_report.append({"option": prompt.options[best_index].describe(), "prior": prior[best_index],
@@ -149,6 +166,26 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	return prompt.options[best_index]
 
 
+## Stop deepening once the answer has stopped moving: the same option has come out best for
+## `settle_plies` completed depths running and leads the runner-up by `settle_lead`. Deeper plies
+## then only sharpen a choice already made. `settle_plies` of 0 searches to the budget as before.
+func _has_settled(profile: AiProfile, depth: int, settled_for: int, completed: Array[Dictionary]) -> bool:
+	var plies: int = profile.think_int("settle_plies")
+	# Depth 1 agreeing with depth 2 says little; two shallow reads are one read.
+	if plies <= 0 or depth < 2 or settled_for < plies:
+		return false
+	var best: float = -INF
+	var second: float = -INF
+	for result in completed:
+		var value: float = float(result["value"])
+		if value > best:
+			second = best
+			best = value
+		elif value > second:
+			second = value
+	return second == -INF or best - second >= profile.w("think", "settle_lead")
+
+
 func _finish() -> void:
 	metrics["nodes"] = _nodes
 	metrics["elapsed_ms"] = Time.get_ticks_msec() - _started
@@ -157,6 +194,9 @@ func _finish() -> void:
 	_old_intent = {}
 	_weights.clear()
 	_perspective.engine = null
+	# Kept between decisions, but each engine pins a whole board, so do not hoard them.
+	if _free.size() > FREE_ENGINES:
+		_free.resize(FREE_ENGINES)
 
 
 func _available() -> bool:
@@ -194,7 +234,7 @@ func _advance(worlds: Array[DuelEngine], wire: Dictionary) -> Array[DuelEngine]:
 			_aborted = true
 			metrics["cutoff"] = "inconsistent_options"
 			return next
-		var sim: DuelEngine = world.clone()
+		var sim: DuelEngine = world.clone_into(_free.pop_back()) if not _free.is_empty() else world.clone()
 		_weights[sim.get_instance_id()] = _weight(world)
 		_nodes += 1
 		if not sim.submit(cmd):
@@ -204,6 +244,14 @@ func _advance(worlds: Array[DuelEngine], wire: Dictionary) -> Array[DuelEngine]:
 		sim.take_events()
 		next.append(sim)
 	return next
+
+
+## Hands engines from `_advance` back for reuse. Their weights go too: the pool reuses instance
+## ids, and a stale entry would silently reweight whatever engine landed on that id next.
+func _recycle(worlds: Array[DuelEngine]) -> void:
+	for sim in worlds:
+		_weights.erase(sim.get_instance_id())
+		_free.append(sim)
 
 
 func _visit(worlds: Array[DuelEngine], depth: int, steps: int) -> Dictionary:
@@ -259,17 +307,24 @@ func _opponent(worlds: Array[DuelEngine], depth: int, steps: int) -> Dictionary:
 		for rank in range(choices.size()):
 			var next: Array[DuelEngine] = _advance(single, world.prompt.options[choices[rank]].to_dict())
 			if _aborted:
+				_recycle(next)
+				_recycle(successors)
 				return _result(0.0)
 			_weights[next[0].get_instance_id()] = _weight(world) / float(rank + 1) / normalizer
 			successors.append(next[0])
-	return _visit(successors, depth if forced else depth - 1, steps + 1)
+	var answer: Dictionary = _visit(successors, depth if forced else depth - 1, steps + 1)
+	_recycle(successors)
+	return answer
 
 
 func _group(worlds: Array[DuelEngine], depth: int, steps: int, observation: String) -> Dictionary:
 	var sim: DuelEngine = worlds[0]
 	var prompt: Prompt = sim.prompt
 	if prompt.options.size() == 1:
-		return _visit(_advance(worlds, prompt.options[0].to_dict()), depth, steps + 1)
+		var only: Array[DuelEngine] = _advance(worlds, prompt.options[0].to_dict())
+		var forced_result: Dictionary = _visit(only, depth, steps + 1)
+		_recycle(only)
+		return forced_result
 	var cache_key: String = ""
 	if bool((_profile.data["think"] as Dictionary).get("cache", false)):
 		var keys: Array[String] = []
@@ -292,7 +347,9 @@ func _group(worlds: Array[DuelEngine], depth: int, steps: int, observation: Stri
 	var best: Dictionary = _result(-INF)
 	for rank in range(candidates.size()):
 		var i: int = candidates[rank]
-		var result: Dictionary = _visit(_advance(worlds, prompt.options[i].to_dict()), depth - 1, steps + 1)
+		var branch: Array[DuelEngine] = _advance(worlds, prompt.options[i].to_dict())
+		var result: Dictionary = _visit(branch, depth - 1, steps + 1)
+		_recycle(branch)
 		if _aborted:
 			return _result(0.0)
 		if float(result["value"]) > float(best["value"]):
@@ -372,8 +429,10 @@ func _rollout(worlds: Array[DuelEngine], remaining: int) -> Dictionary:
 						choice = i
 				successors.append_array(_advance(single, world.prompt.options[choice].to_dict()))
 				if _aborted:
+					_recycle(successors)
 					return _result(0.0)
 			var reply: Dictionary = _rollout(successors, remaining - 1)
+			_recycle(successors)
 			if _aborted:
 				return _result(0.0)
 			total += float(reply["value"]) * _mass(group)
@@ -388,7 +447,9 @@ func _rollout(worlds: Array[DuelEngine], remaining: int) -> Dictionary:
 			if scores[i] > scores[best]:
 				best = i
 		var cmd: Command = group[0].prompt.options[best]
-		var result: Dictionary = _rollout(_advance(group, cmd.to_dict()), remaining - 1)
+		var played: Array[DuelEngine] = _advance(group, cmd.to_dict())
+		var result: Dictionary = _rollout(played, remaining - 1)
+		_recycle(played)
 		if _aborted:
 			return _result(0.0)
 		total += float(result["value"]) * _mass(group)

@@ -1,7 +1,7 @@
 {
 	"_note": "The same sequence planner with a small budget, fewer alternatives and noisy close calls.",
 	"name": "easy",
-	"think": {"search": true, "algorithm": "sequence", "budget_ms": 80, "samples": 1,
+	"think": {"search": true, "algorithm": "sequence", "budget_ms": 200, "samples": 1,
 		"top_k": 3, "sequence_depth": 2, "branch_width": 2, "response_width": 1,
-		"node_budget": 300, "rollout_steps": 2, "settle_steps": 4, "noise": 1.5}
+		"node_budget": 750, "rollout_steps": 2, "settle_steps": 4, "noise": 1.5}
 }

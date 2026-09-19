@@ -30,7 +30,12 @@ func _ready() -> void:
 ## Both seats locked: deal from the room's picks. Decks are shared, read-only objects; the
 ## players' names go to the engine beside them.
 func _on_room_started(code: String) -> void:
-	var room: DuelRoom = Net.rooms[code]
+	var room: DuelRoom = Net.rooms.get(code)
+	if room == null:
+		return
+	for pick in room.lobby:
+		if not Net.valid_deck_pick(int(pick.get("deck", -1)), str(pick.get("deck_name", ""))):
+			return
 	var referee: Referee = Referee.new()
 	var decks: Array[DeckList] = [Session.decks[int(room.lobby[0]["deck"])], Session.decks[int(room.lobby[1]["deck"])]]
 	var names: Array[String] = [str(room.lobby[0]["name"]), str(room.lobby[1]["name"])]

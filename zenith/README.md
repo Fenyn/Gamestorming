@@ -98,7 +98,7 @@ The integrated sequence planner, tuning controls, diagnostics, and behavioral te
 - **`AiSearch`** explores alternative sequences over shared sampled worlds. Candidate selection preserves different mechanical roles. Iterative deepening retains the last fully compared root round; hypothetical state pivots update the continuation policy while leaf evaluation keeps a common scale. Opponent replies create weighted successor worlds, regrouped by the AI's own observations before it chooses again. Legal semantic plan hints preserve intention across prompts and are re-evaluated after disruption. `last_report` records alternatives and representative continuations; `metrics` reports budget use, completed depth, intent reuse, cutoffs, and evaluation terms. `think.algorithm = "rollout"` retains the historical root-only search for arena comparisons.
 - **`AiPlayer.choose(referee, seat)`** returns the wire form of one of the prompt's options, or `{}` when the decision is not that seat's.
 - **Fair play.** Simulations originate at `Referee.sim_for`. Own known composition and all currently revealed cards are preserved; unknown placement and future randomness change. Undisclosed opponent composition is sampled from a broad library prior compatible with public declarations, rather than copied from the true hidden list. Opponent response models pass through the same boundary in the opposite perspective. Tests preserve exact real/public views, prompts, and authoritative state. The prior does not yet learn archetype frequencies or retain a complete history of earlier reveals.
-- **Cost.** Normal uses two initial samples, a 400 ms budget and 1,500 simulated submissions; Hard allows three samples, 1,600 ms and 6,000 submissions. Budgets are checked inside search, including response expansion and rollouts. An individual engine operation cannot be interrupted, so small time overruns remain possible. Fixed node limits with `budget_ms = 0` provide deterministic regression runs. Exact transposition caching is available but off by default because serialization cost can outweigh its benefit. The client continues to run AI on a worker task.
+- **Cost.** Easy allows 200 ms and 750 simulated submissions with one initial sample; Normal uses two samples, 1,600 ms and 6,000 submissions; Hard allows three samples, 4,000 ms and 16,000 submissions. Budgets are checked inside search, including response expansion and rollouts. An individual engine operation cannot be interrupted, so small time overruns remain possible. Fixed node limits with `budget_ms = 0` provide deterministic regression runs. Exact transposition caching is available but off by default because serialization cost can outweigh its benefit. The client continues to run AI on a worker task.
 
 ## Client
 
@@ -196,6 +196,33 @@ Run the import once after adding a `class_name` script, or headless runs will no
 & $godot --headless --path zenith -s tests/ai_arena.gd -- --a=search --b=scorer --seeds=1 --budget=150
 ```
 
+`tests/matchlab.gd` is the deck and AI bench, and the one to reach for. The two sides of the table are configured independently, so the same runner answers "which deck wins", "does Hard beat Easy" and "does another 400 ms of search buy anything". Side `a` is the pilot and side `b` the field it is measured against. Win rates carry a 95% Wilson interval, which is the number to read when asking whether a balance change did anything; at 100 matches a 55% win rate still spans about 45-64%.
+
+```powershell
+# the standing balance matrix, every deck against every deck from both seats
+& $godot --headless --path zenith -s tests/matchlab.gd -- --scenario=res://tests/scenarios/balance.json
+
+# one deck against one archetype, with a JSON report
+& $godot --headless --path zenith -s tests/matchlab.gd -- --policy=scorer --repeats=30 `
+    --a-field=tide_companions --b-field=@strike_beatdown --json=res://reports/tide.json
+
+# a weighted metagame rather than a flat field
+& $godot --headless --path zenith -s tests/matchlab.gd -- --mode=sample --games=600 `
+    --field=@strike_beatdown:4,@allies:2,@art_beatdown:2,@seals:1,@drills:1
+
+# difficulty and think time, one axis at a time
+& $godot --headless --path zenith -s tests/matchlab.gd -- --a=hard --b=easy --repeats=3
+& $godot --headless --path zenith -s tests/matchlab.gd -- --a=search --a-budget=800 --b=search --b-budget=200 --repeats=2
+```
+
+Fields are selectors, not just names: `*` every deck, `@archetype`, `+subtheme`, `#difficulty` (the pilot difficulty in the deck file), a deck name, `!name` to remove one, and `:N` after any of them to weight it. `--field` sets both sides; `--a-field` and `--b-field` override one. Weights only matter in `--mode=sample`, where opponents are drawn at random; `--mode=matrix` (the default) plays every pair `--repeats` times from both seats.
+
+Side flags: `--policy` for both sides, `--a` and `--b` for one (`random`, `scorer`, `search`, `rollout`, or a level file under `data/ai/profiles` such as `easy` or `hard`); `--styles=off` to drop each deck's own playstyle profile; and the think knobs `--budget`, `--samples`, `--turns`, `--steps`, `--depth`, `--nodes`, `--branches`, `--responses`, `--top-k`, `--rollout-steps`, `--noise`, `--prior`, each of which also takes an `--a-` or `--b-` prefix. `--a-think=budget_ms=800;cache=1` reaches any knob without its own flag. Also `--seed`, `--limit` to cut a run short, `--progress=N` for a line every N matches, `--verbose`, `--tsv=` for one row per match and `--json=` for the machine-readable summary.
+
+An unknown flag stops the run and says so, so `--repeat=20` no longer quietly runs the default. Any set of flags can live in a scenario file under `tests/scenarios/`, loaded with `--scenario=`; anything on the command line overrides it, which is how you vary one axis against a fixed baseline. Four ship: `balance.json`, `difficulty.json`, `think_time.json`, `beatdown_bracket.json`.
+
+`tests/deck_report.gd` and `tests/deck_outcomes.gd` are the older, narrower versions of the same run and are superseded by `matchlab`.
+
 `tests/deck_report.gd` asks the other question: how the shipped decks fare against each other. Every deck pilots the same share of the matches against a random other deck from a random seat, and the report lines up each deck's win rate, which route its wins took, which route beat it, and its average game length. `--games=N` (default 200), `--policy=` (default `search`, the shipped sequence planner; use `scorer` explicitly for fast heuristic-only runs), `--decks=`, `--seed=`, `--styles=off` to play every deck on the default profile, `--verbose` for a line per match.
 
 ```powershell
@@ -220,7 +247,7 @@ Both tournament runners accept `--search-decks=steel_heir,pyre_ascent,tide_compa
 
 `tests/ai_trace.gd` plays one game (`--deck=`, `--foe=`, `--seed=`, `--budget=`) with the search AI in seat 0 and prints a line of table state per turn plus a tally of seat 0's commands and events, which shows whether a playstyle profile does what it says. `tests/print_text.gd -- <card ids>` prints generated rules text. `tools/prompt_census.gd` plays random duels between the shipped decks and counts prompts by kind and how many had a single option (`-- --detail` lists those), to find needless stops in the flow.
 
-The core route is `AiPlayer` → `AiSearch` for Easy, Normal and Hard and for ordinary simulation runs. Easy uses an 80 ms, one-sample, shallow/noisy planner; Normal uses 400 ms/two samples; Hard uses 1600 ms/three samples. The pregame Reserve swap keeps its specialized `AiReserve` valuation. Scorer fallback remains available when a decision exhausts its search budget.
+The core route is `AiPlayer` → `AiSearch` for Easy, Normal and Hard and for ordinary simulation runs. Easy uses a 200 ms, one-sample, shallow/noisy planner; Normal uses 1600 ms/two samples; Hard uses 4000 ms/three samples. The pregame Reserve swap keeps its specialized `AiReserve` valuation. Scorer fallback remains available when a decision exhausts its search budget.
 
 `tests/matchlab.gd`, its balance and beatdown scenarios, both tournament runners, ally diagnostics and decision traces default to sequence search. Large default tournaments therefore take longer; select `--policy=scorer` explicitly for a fast baseline. The paired AI comparison and arena's explicitly labeled opponent policy remain comparison tools.
 

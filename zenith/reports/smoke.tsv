@@ -1,5 +1,0 @@
-a_deck	b_deck	a_seat	winner_side	reason	turn	a_life	a_seals_missing	a_asc_left	b_life	b_seals_missing	b_asc_left	a_decisions	a_ms	b_decisions	b_ms
-steel_heir	tide_companions	0	b	survival	6	0	7	0.967	17	6	1.000	46	247.4	84	449.7
-steel_heir	tide_companions	1	b	survival	5	0	6	0.967	22	7	1.000	41	229.0	90	486.8
-steel_heir	pyre_ascent	0	b	survival	5	0	6	1.000	59	7	0.520	37	172.8	33	169.6
-steel_heir	pyre_ascent	1	b	survival	10	0	7	0.960	16	6	0.200	64	320.9	61	308.1

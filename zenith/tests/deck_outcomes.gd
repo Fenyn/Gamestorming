@@ -22,6 +22,13 @@ func _init() -> void:
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
+	for policy_key in ["policy"]:
+		var policy_name: String = str(args[policy_key])
+		var policy_problem: String = SimSeat.policy_error(policy_name)
+		if not policy_problem.is_empty():
+			push_error("--%s: %s" % [policy_key, policy_problem])
+			quit(1)
+			return
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
@@ -68,6 +75,8 @@ func _init() -> void:
 					ref.setup(decks, lib, table, rng.randi(), [], false)
 					ref.start()
 					ref.engine.take_events()
+					# The survival denominator, per seat: the starters hold 78 to 84 life cards.
+					var full_life: Array[int] = [decks[0].cards.size(), decks[1].cards.size()]
 					var players: Array[AiPlayer] = [null, null]
 					for i in range(2):
 						players[i] = make_player(str(args["policy"]), args, games * 2 + i, decks[i] if str(args["styles"]) != "off" else null, pilot if i == seat else foe)
@@ -91,7 +100,7 @@ func _init() -> void:
 						unfinished += 1
 						print("UNFINISHED %s vs %s at turn %d" % [pilot, foe, ref.engine.state.turn])
 						continue
-					record(tally, matchup, rows, ref, pilot, foe, seat)
+					record(tally, matchup, rows, ref, pilot, foe, seat, full_life)
 	report(names, tally, matchup, games, unfinished)
 	if str(args["tsv"]) != "":
 		write_tsv(str(args["tsv"]), rows)
@@ -101,7 +110,7 @@ func _init() -> void:
 # --- Recording ------------------------------------------------------------
 
 ## One finished match, folded into both decks' rows and into the matchup grid. `pilot` sat in `seat`.
-func record(tally: Dictionary, matchup: Dictionary, rows: Array[String], ref: Referee, pilot: String, foe: String, seat: int) -> void:
+func record(tally: Dictionary, matchup: Dictionary, rows: Array[String], ref: Referee, pilot: String, foe: String, seat: int, full_life: Array[int]) -> void:
 	var engine: DuelEngine = ref.engine
 	var reason: String = engine.state.win_reason
 	var turn: int = engine.state.turn
@@ -126,7 +135,7 @@ func record(tally: Dictionary, matchup: Dictionary, rows: Array[String], ref: Re
 			bump(row["loss"], reason)
 			# How much this deck had left when it died: how close it came, and by which route.
 			fold(row["shortfall"], near[my_seat])
-			bump(row["closest"], closest_route(near[my_seat]))
+			bump(row["closest"], closest_route(near[my_seat], full_life[my_seat]))
 
 	var key: String = "%s|%s" % [pilot, foe]
 	var grid: Array = matchup.get(key, [0, 0])
@@ -165,9 +174,9 @@ func distances(engine: DuelEngine, seat: int) -> Dictionary:
 
 ## The route a seat was nearest to finishing, on a common scale: each distance as a share of a full
 ## run from nothing. Ascension is already a fraction; the other two are divided by their full climb.
-func closest_route(d: Dictionary) -> String:
+func closest_route(d: Dictionary, full_life: int) -> String:
 	var scaled: Dictionary = {
-		"survival": float(int(d["survival"])) / 40.0,
+		"survival": float(int(d["survival"])) / float(maxi(1, full_life)),
 		"seal": float(int(d["seal"])) / float(DuelEngine.SEALS_PER_SET),
 		"ascension": float(d["ascension"]),
 	}
@@ -304,19 +313,7 @@ func deck_names(wanted: String) -> Array[String]:
 ## null means uniform random play.
 func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckList, deck_name: String = "") -> AiPlayer:
 	var force_sequence: bool = search_decks.has(deck_name)
-	if policy == "random" and not force_sequence:
-		return null
-	var level: String = "" if policy in ["scorer", "search", "random"] else policy
-	var profile: AiProfile = AiProfile.for_deck(deck, level)
-	if policy == "scorer":
-		profile.merge({"think": {"search": false}})
-	if force_sequence or policy == "search":
-		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
-	var over: Dictionary = {}
-	if str(args["budget"]) != "":
-		over["budget_ms"] = int(args["budget"])
-	if str(args["samples"]) != "":
-		over["samples"] = int(args["samples"])
-	if not over.is_empty():
-		profile.merge({"think": over})
-	return AiPlayer.new(profile, seed_value)
+	var seat: SimSeat = SimSeat.from_legacy("search" if force_sequence and policy == "random" else policy, args)
+	if force_sequence:
+		seat.think.merge({"search": true, "algorithm": "sequence"})
+	return seat.make_player(deck, seed_value)

@@ -4,8 +4,6 @@ extends RefCounted
 ## This is the only match loop in the harness; every report is built out of its results.
 
 const REASONS: Array[String] = ["survival", "seal", "ascension"]
-## A full Life Deck, the denominator that puts a survival distance on the same scale as the others.
-const FULL_LIFE: float = 40.0
 
 var library: CardLibrary = null
 var table: StrikeTable = null
@@ -29,7 +27,7 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 	decks[a_seat] = a_deck
 	decks[1 - a_seat] = b_deck
 	var referee: Referee = Referee.new()
-	referee.setup(decks, library, table, seeds[0])
+	referee.setup(decks, library, table, seeds[0], [], false)
 	referee.start()
 	referee.engine.take_events()
 
@@ -37,6 +35,9 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 	var seat_side: Array[int] = [0, 0]
 	seat_side[a_seat] = 0
 	seat_side[1 - a_seat] = 1
+	# The survival denominator, per side: the starters hold 78 to 84 life cards. Read off the
+	# DeckList, not the table, where seat 1 has drawn its opening hand by now and seat 0 has not.
+	var full_life: Array[int] = [a_deck.cards.size(), b_deck.cards.size()]
 	var players: Array[AiPlayer] = [null, null]
 	players[a_seat] = a_side.make_player(a_deck, seeds[1])
 	players[1 - a_seat] = b_side.make_player(b_deck, seeds[2])
@@ -90,6 +91,7 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 		"turn": referee.engine.state.turn,
 		"steps": steps,
 		"timing": timing,
+		"full_life": full_life,
 		"distance": [
 			distances(referee.engine, a_seat) if finished else {},
 			distances(referee.engine, 1 - a_seat) if finished else {},
@@ -120,9 +122,11 @@ static func distances(engine: DuelEngine, seat: int) -> Dictionary:
 
 
 ## The route a seat was nearest to finishing, each distance taken as a share of a full run.
-static func closest_route(d: Dictionary) -> String:
+## `full_life` is that seat's own starting Life Deck, not a fixed number: the starters run from the
+## high seventies to the mid eighties, so a shared constant would flatter the larger decks.
+static func closest_route(d: Dictionary, full_life: int) -> String:
 	var scaled: Dictionary = {
-		"survival": float(int(d["survival"])) / FULL_LIFE,
+		"survival": float(int(d["survival"])) / float(maxi(1, full_life)),
 		"seal": float(int(d["seal"])) / float(DuelEngine.SEALS_PER_SET),
 		"ascension": float(d["ascension"]),
 	}

@@ -1,21 +1,10 @@
 class_name TableLayout
 extends Node3D
-## Zone slots on the table. Markers under P0 anchor the near side; the far side is the same
-## layout mirrored through the table centre. Every zone owns a rectangle that no other zone
-## touches, and the outlines and labels drawn on the felt come from the same numbers the slots
-## use, so they can never disagree.
-##
-## Near side, two rows plus the hand, on a grid with a 0.12 gutter between every outline:
-##   z 2.26   Mastery | Allies x5 | Duelist | Seals x7 | Life Deck | Discard
-##   z 1.00   Relic (Reserve under it) | Drills x5 | Play (card in flight) | Non-Combats x5 | Removed
-##   Grounds lies across the centre line. Outer columns line up (Mastery over Relic, Discard over
-##   Removed, Allies over Drills) so the eye reads the table as a grid.
-## Each outline holds its cards plus a label strip on the owner's edge, so a label is never
-## covered by a card.
+## Mirrored arena slots: enlarged duelists face each other in the center, with Life Decks
+## beside them. Smaller support rows occupy the flanks; outer piles sit toward the rear.
+## Zone bounds use the same scales as card slots so placement checks include the hero cards.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
-const ROW_STEP: float = 0.71          # card width plus a gap, for a row of full-size cards
-const SEAL_STEP: float = 0.37
 const SEAL_SCALE: float = 0.55
 const STANDING_STEP: float = 0.42
 const STANDING_SCALE: float = 0.55
@@ -33,10 +22,10 @@ const LINE_COLOR: Color = Color(0.68, 0.54, 0.29, 0.14)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
-	&"ally": {"marker": "AllyStart", "slots": 4, "step": 0.60, "scale": 1.0, "label": "Allies"},
-	&"drill": {"marker": "DrillStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Drills"},
-	&"non_combat": {"marker": "NonCombatStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Non-Combat"},
-	&"seal": {"marker": "SealStart", "slots": 7, "step": SEAL_STEP, "scale": SEAL_SCALE, "label": "Seals"},
+	&"ally": {"marker": "AllyStart", "slots": 4, "step": 0.53, "direction": -1, "scale": 0.68, "label": "Allies"},
+	&"drill": {"marker": "DrillStart", "slots": 5, "step": 0.45, "direction": -1, "scale": 0.60, "label": "Drills"},
+	&"non_combat": {"marker": "NonCombatStart", "slots": 5, "step": 0.45, "scale": 0.60, "label": "Non-Combat"},
+	&"seal": {"marker": "SealStart", "slots": 7, "step": 0.34, "scale": SEAL_SCALE, "label": "Seals"},
 }
 ## Single-card zones: marker and label.
 const SINGLES: Dictionary = {
@@ -54,6 +43,12 @@ const SINGLES: Dictionary = {
 var _labels: Array[Label3D] = []
 
 
+func _card_scale(zone: StringName) -> float:
+	if ROWS.has(zone):
+		return float(ROWS[zone]["scale"])
+	return 1.7 if zone == &"duelist" else (0.65 if zone == &"grounds" else 0.85)
+
+
 func _ready() -> void:
 	_draw_marks()
 
@@ -69,7 +64,7 @@ func marker(name: String) -> Vector3:
 ## client does, rather than facing its owner as on a physical table.
 func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer: int = 0) -> Transform3D:
 	var pos: Vector3 = Vector3.ZERO
-	var scale_factor: float = 1.0
+	var scale_factor: float = _card_scale(zone)
 	var yaw: float = 0.0
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
@@ -89,7 +84,7 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			&"resolving":
 				pos = marker("Resolving") + Vector3(0, RESOLVING_LIFT, 0)
 			&"grounds":
-				pos = Vector3(0, 0.001, 0)
+				pos = Vector3(1.5, 0.001, 0)
 				yaw = PI * 0.5
 			&"standing":
 				# An effect that outlasts the Combat has no card left on the table, so its source
@@ -143,10 +138,11 @@ func refresh_occupancy(view: SeatView) -> void:
 
 
 ## X offset of card `index` in a row. Past the zone's slot count the row squeezes so the last
-## card still sits inside the outline, fanned over its neighbours.
+## card still sits inside the outline, fanned over its neighbours. Rows grow away from
+## the fighter: left-side rows have their first card at the right edge.
 func _row_offset(row: Dictionary, index: int, count: int) -> float:
 	var slots: int = int(row["slots"])
-	var step: float = float(row["step"])
+	var step: float = float(row["step"]) * float(row.get("direction", 1))
 	if count <= slots:
 		return step * index
 	return step * (slots - 1) * float(index) / float(count - 1)
@@ -155,15 +151,18 @@ func _row_offset(row: Dictionary, index: int, count: int) -> float:
 ## Felt rectangle for a zone on the near side: the cards it holds, padding, and a label strip on
 ## the owner's (high z) edge. Every zone in a row is the same height, so rows read as bands.
 func _zone_rect(zone: StringName) -> Rect2:
-	var size: Vector2 = CARD_SIZE
+	# Rectangles account for the same card scale and horizontal compression as slot().
+	var size: Vector2 = CARD_SIZE * _card_scale(zone) * 0.92
+	size.x /= 0.72
 	var center: Vector3 = Vector3.ZERO
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
 		var span: float = float(row["step"]) * (int(row["slots"]) - 1)
-		size.x = CARD_SIZE.x * float(row["scale"]) + span
-		center = marker(str(row["marker"])) + Vector3(span * 0.5, 0, 0)
+		size.x += span
+		center = marker(str(row["marker"])) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
 	elif zone == &"grounds":
-		size = Vector2(CARD_SIZE.y, CARD_SIZE.x)
+		size = Vector2(CARD_SIZE.y / 0.72, CARD_SIZE.x) * _card_scale(zone) * 0.92
+		center = Vector3(1.5, 0, 0)
 	else:
 		center = marker(str(SINGLES[zone]["marker"]))
 	size += Vector2.ONE * ZONE_PAD * 2.0
@@ -244,7 +243,7 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	l.set_meta("zone", zone)
 	l.set_meta("player", 1 if mirror else 0)
 	l.set_meta("title", l.text)
-	l.font_size = 32
+	l.font_size = 24 if ROWS.has(zone) else 32
 	l.pixel_size = 0.0032 if zone in [&"life_deck", &"discard", &"removed"] else 0.004
 	l.modulate = LABEL_COLOR
 	l.shaded = false

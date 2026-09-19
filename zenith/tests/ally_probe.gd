@@ -15,6 +15,15 @@ func _init() -> void:
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
+	for policy_key in ["policy"]:
+		var policy_name: String = str(args[policy_key])
+		var policy_problem: String = SimSeat.policy_error(policy_name)
+		if policy_name == "random":
+			policy_problem = "This diagnostic requires an AI policy; random is unsupported"
+		if not policy_problem.is_empty():
+			push_error("--%s: %s" % [policy_key, policy_problem])
+			quit(1)
+			return
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
@@ -232,15 +241,7 @@ func _init() -> void:
 
 
 func fresh(deck: DeckList, args: Dictionary) -> AiProfile:
-	var policy: String = str(args["policy"])
-	var profile: AiProfile = AiProfile.for_deck(deck, "" if policy in ["search", "scorer", "rollout"] else policy)
-	if policy == "scorer":
-		profile.merge({"think": {"search": false}})
-	elif policy in ["search", "rollout"]:
-		profile.merge({"think": {"search": true, "algorithm": "sequence" if policy == "search" else "rollout"}})
-	if str(args["budget"]) != "":
-		profile.merge({"think": {"budget_ms": int(args["budget"])}})
-	return profile
+	return SimSeat.from_legacy(str(args["policy"]), args).make_profile(deck)
 
 
 func per(n: Dictionary, key: String, games: int) -> float:

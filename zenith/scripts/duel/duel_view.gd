@@ -44,6 +44,7 @@ var ai_seat: int = -1
 var _face_keys: Dictionary = {}      # uid -> face cache key currently on the quad
 var _inbox: Array[Dictionary] = []   # host: joiner commands; joiner: host updates; waiting for the table to settle
 var _awaiting_answer: bool = false   # joiner: our choice went to the host, its update is not back yet
+var _draining_inbox: bool = false
 var _dev_autoplay: bool = false
 var _dev_steps: int = 0
 var _dev_screenshot: String = ""
@@ -131,7 +132,8 @@ func _process(_delta: float) -> void:
 	far_duelist.interactive = board_interactive
 	for value in views.values():
 		var board_card: Card3D = value
-		board_card.pick.input_ray_pickable = board_interactive
+		if board_card.pick.input_ray_pickable != board_interactive:
+			board_card.pick.input_ray_pickable = board_interactive
 		if not board_interactive and board_card._hovering:
 			board_card.set_hovered(false)
 	if hand_blocks:
@@ -169,6 +171,8 @@ func _layout_fixtures() -> void:
 		var count: int = view.player(owner).life_deck.size()
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
 		fixture.anchor_to_card(card, camera)
+	if not hud.focus.visible:
+		return
 	var focus_rect: Rect2 = hud.focus.get_global_rect()
 	var focus_width: float = focus_rect.size.x
 	focus_card.position = camera.to_local(camera.project_position(Vector2(focus_rect.get_center().x, focus_rect.position.y + 32.0 + focus_width * 716.0 / 512.0 * 0.5), depth))
@@ -795,8 +799,15 @@ func _on_net_update(d: Dictionary) -> void:
 
 ## Works through queued network traffic once the table is idle.
 func _drain_inbox() -> void:
-	if busy or _inbox.is_empty():
+	if busy or _draining_inbox:
 		return
+	_draining_inbox = true
+	while not busy and not _dev_done and not _inbox.is_empty():
+		await _drain_one_message()
+	_draining_inbox = false
+
+
+func _drain_one_message() -> void:
 	var d: Dictionary = _inbox.pop_front()
 	if authority:
 		await _apply(int(d["seat"]), d["cmd"])
@@ -820,7 +831,6 @@ func _drain_inbox() -> void:
 	if await _dev_count_update():
 		return
 	if same_prompt:
-		_drain_inbox()
 		return
 	if _awaiting_answer:
 		hud.refresh_state(view, viewer)

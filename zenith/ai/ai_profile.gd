@@ -44,9 +44,12 @@ const DEFAULTS: Dictionary = {
 	# pivots, so a deck can hold back until its plan is on the table and then press.
 	"when": {},
 	"think": {"search": true, "algorithm": "sequence", "top_k": 6, "samples": 2,
-		"budget_ms": 400, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05,
-		"sequence_depth": 6, "branch_width": 3, "response_width": 2, "node_budget": 1500,
-		"rollout_steps": 4, "settle_steps": 8, "intent_margin": 0.15, "cache": false},
+		"budget_ms": 1600, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05,
+		"sequence_depth": 6, "branch_width": 3, "response_width": 2, "node_budget": 6000,
+		"rollout_steps": 4, "settle_steps": 8, "intent_margin": 0.15, "cache": false,
+		# Stop deepening once the same option has been best for this many completed depths running
+		# and leads the next by `settle_lead`. 0 spends the whole budget every time.
+		"settle_plies": 0, "settle_lead": 0.0},
 }
 
 var name: String = "default"

@@ -39,8 +39,8 @@ Exact transposition keys include mutable card state, ordered zones, usage flags,
 | `algorithm` | `sequence` | `rollout` selects the historical comparison baseline |
 | `top_k` | 6 | Root candidate capacity, with quiet/remembered choices retained |
 | `samples` | 2 | Initial sampled worlds shared by root alternatives |
-| `budget_ms` | 400 | Whole-decision time allowance; 0 disables the timer for deterministic tests |
-| `node_budget` | 1500 | Maximum simulated submissions |
+| `budget_ms` | 1600 | Whole-decision time allowance; 0 disables the timer for deterministic tests |
+| `node_budget` | 6000 | Maximum simulated submissions |
 | `sequence_depth` | 6 | Maximum branching depth reached by iterative deepening |
 | `branch_width` | 3 | Own continuation alternatives, plus quiet |
 | `response_width` | 2 | Ranked opponent alternatives, plus quiet |
@@ -50,9 +50,13 @@ Exact transposition keys include mutable card state, ordered zones, usage flags,
 | `intent_margin` | 0.15 | Near-tie tolerance for an independently evaluated plan hint |
 | `cache` | false | Exact, search-local transposition caching |
 
-Hard raises candidate capacity to 8, samples to 3, time to 1600 ms, submissions to 6000, depth to 10 and own width to 4. Easy uses the same planner with 80 ms, one sample, 300 submissions, depth 2, three root candidates and noisy scoring. Difficulty settings still layer over each deck's strategic profile. All shipped difficulty levels and ordinary simulation/diagnostic entry points now default to sequence planning; scorer-only and historical rollout policies require explicit selection. Pregame Reserve decisions retain the specialized `AiReserve` valuation.
+Hard raises candidate capacity to 8, samples to 3, time to 4000 ms, submissions to 16000, depth to 10 and own width to 4. Easy uses the same planner with 200 ms, one sample, 750 submissions, depth 2, three root candidates and noisy scoring. Difficulty settings still layer over each deck's strategic profile. All shipped difficulty levels and ordinary simulation/diagnostic entry points now default to sequence planning; scorer-only and historical rollout policies require explicit selection. Pregame Reserve decisions retain the specialized `AiReserve` valuation.
 
 ## Diagnostics and verification
+
+Thinking limits were raised from Easy 80 → 200 ms, Normal 400 → 1600 ms, and Hard 1600 → 4000 ms. Submission limits increased from 300/1500/6000 to 750/6000/16000 respectively. Samples, candidate widths and maximum branching depths were retained so additional work can extend the search rather than immediately expand its breadth. These are per-decision ceilings, not a per-turn allowance or mandatory delay. A turn containing several substantive decisions can take considerably longer. Client thinking remains on its worker task, so rendering and browsing can continue. More completed search improves the opportunity to find combinations, but does not establish a stronger win rate or correct poor evaluation.
+
+The [budget probe](ai_budget_probe.json), reproducible with `tests/ai_budget_probe.gd`, compares eight identical real-deck positions from seeded Steel Heir, Tide Companions and Pyre Ascent games. Mean completed branching depth increased from 1.25 to 2.375, simulated submissions from 73.4 to 304.3, and elapsed time from 405.3 to 1607.6 ms. Every position gained depth; two attack choices changed. Neither cap required a scorer fallback in these selected positions. A separate Hard smoke used its shipped 4000 ms/16000-submission limits, completed depth 2 in 4012.3 ms and returned a legal choice. All probes preserved authoritative state. This is a latency/depth check, not a win-rate estimate. Routing checks (85), strategy checks at 1600 ms (119), and a two-game Easy arena smoke passed after the increase.
 
 `AiEvaluator.explain(sim, seat, profile)` returns signed named contributions and a total equal to ordinary evaluation. `search.metrics.position` contains the initial position breakdown. `last_report` contains the completed candidate scores, common sample count, completed depth and representative line. A line is a hypothetical continuation, not a guaranteed command script or a full contingent strategy tree.
 
@@ -76,6 +80,8 @@ The simultaneous-keep regression also answers the second player's pending decisi
 Recorded checks: engine suite 2,834; strategy puzzles 124 at 400 ms/two samples; feature tests 25; information consistency 18; existing UI smoke 113. All passed. The environment prints an unrelated certificate-store warning during headless startup.
 
 Core-routing follow-up: 85 routing checks cover every shipped deck and difficulty, default simulation settings, explicit comparison policies, and actual Session → DuelHost → AiPlayer decisions. These pass alongside the 2,834 engine checks and 124 strategy checks. The Easy planner also completed a two-game arena smoke at its shipped 80 ms budget; this verifies legal integration, not relative playing strength. Tournament, ally-probe, trace and matchlab entry points passed small-budget smoke runs.
+
+Headless runners have no artificial turn delays or animation waits. They pass `capture_display=false` to `Referee.setup` to omit event animation snapshots while retaining rule events and outcome reporting. Live clients retain snapshots by default. `AiPlayer` reads pending-decision metadata without constructing option labels/outcome previews, omits unused attack forecasts from its public profile-pivot view, and reuses static matchup profiles without rebuilding a view. Ally diagnostics drain unused events after each action. These changes leave search budgets, legal options and hidden-information boundaries intact.
 
 The [normal arena report](ai_strategy_benchmark_normal.json) covers both seats, two seeds and all four pairings of Steel beatdown and Tide companions: 16 completed games, no illegal commands or unfinished games. Sequence search won 11/16 against the historical rollout baseline. Its per-deck results were 8/8 for Steel and 3/8 for Tide; the aggregate should not be read as proof that ally piloting is solved. Both policies requested 400 ms and two samples, but actual average decision times differed: about 374 ms for sequence versus 190 ms for rollout. Sequence median/p95/max were 406/416/434 ms; the baseline's were 158/500/754 ms. The new search completed about 1.14 branching levels per measured decision on average and used scorer fallback 70 times. Tiny scenarios can reach much deeper than full-deck positions under the same timer.
 

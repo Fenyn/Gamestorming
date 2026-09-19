@@ -22,6 +22,7 @@ var revealed: bool = false
 var _camera: Camera3D
 var _items: Array[Dictionary] = []
 var _hovered: int = -1
+var _viewer: int = -2
 var _size: Vector2 = Vector2.ZERO
 var _pointer: Vector2 = Vector2.ZERO
 var _expanded_rect: Rect2
@@ -38,67 +39,112 @@ func _ready() -> void:
 
 func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView = null) -> void:
 	var old_uid: int = int(_items[_hovered]["uid"]) if _hovered >= 0 and _hovered < _items.size() else -1
-	_set_hover(-1)
+	var viewer_changed: bool = _viewer != view.seat
+	var retained: Dictionary = {}
 	for item in _items:
-		(item["node"] as Node3D).hide()
-		(item["node"] as Node3D).queue_free()
-	_items.clear()
+		retained[int(item["uid"])] = item
+	var next_items: Array[Dictionary] = []
+	var created: Array[Dictionary] = []
 	for card in cards:
 		if card.hidden():
 			continue
 		var def: CardDef = Session.library.defs.get(card.def_id)
 		if def == null:
 			continue
-		var holder: Node3D = Node3D.new()
-		add_child(holder)
-		var face: Sprite3D = Sprite3D.new()
-		face.texture = cache.face(def, card.aspect)
-		face.shaded = false
-		face.no_depth_test = true
-		face.double_sided = false
-		face.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		holder.add_child(face)
-		var edge: MeshInstance3D = MeshInstance3D.new()
-		edge.mesh = QuadMesh.new()
-		var aura: ShaderMaterial = ShaderMaterial.new()
-		aura.shader = AURA
-		aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if legal.has(card.uid) else Color(0.15, 0.20, 0.26, 0.22))
-		edge.material_override = aura
-		edge.position.z = -0.003
-		holder.add_child(edge)
-		# The edge is a slightly enlarged silhouette behind the actual face.
-		var title: Label3D = _label(22, ZenithTheme.TEXT)
-		title.text = card.title
-		title.width = CARD_WIDTH * 2.0 - 12.0
-		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		holder.add_child(title)
-		var forecast: Dictionary = view.forecast(card.uid)
-		var summary: Label3D = _label(23, ZenithTheme.ATTACK if legal.has(card.uid) else ZenithTheme.MUTED)
-		if not forecast.is_empty():
-			summary.text = ("Final: " if bool(forecast.get("is_final", false)) else "") + CardText.short_damage(int(forecast.get("stages", 0)), int(forecast.get("life", 0)))
+		var item: Dictionary
+		if not viewer_changed and retained.has(card.uid):
+			item = retained[card.uid]
+			retained.erase(card.uid)
 		else:
-			summary.text = CardText.TYPE_LABELS[def.type]
-			if prompt != null:
-				for option in prompt.options_for_card(card.uid):
-					if option.type == &"defend" or option.type == &"power_defend":
-						summary.text = "Defend"
-						break
-					elif option.type == &"counter":
-						summary.text = "Counter"
-						break
-		if int(forecast.get("cost_stages", 0)) > 0:
-			summary.text += " · Cost %d" % int(forecast["cost_stages"])
-		holder.add_child(summary)
-		_items.append({"uid": card.uid, "node": holder, "face": face, "edge": edge,
-			"title": title, "summary": summary, "legal": legal.has(card.uid), "rect": Rect2(),
-			"target": Vector3.ZERO, "scale": 1.0, "angle": 0.0})
+			item = _create_item(card, def, cache, legal)
+			created.append(item)
+		_refresh_item(item, card, def, cache, legal, view, prompt)
+		next_items.append(item)
+	var next_hover: int = -1
+	if not viewer_changed:
+		for i in range(next_items.size()):
+			if int(next_items[i]["uid"]) == old_uid:
+				next_hover = i
+	if old_uid >= 0 and next_hover < 0:
+		hovered.emit(old_uid, false)
+	for item in retained.values():
+		# Remove private faces synchronously, before deferred deletion can render a frame.
+		(item["node"] as Node3D).hide()
+		(item["node"] as Node3D).queue_free()
+	_items = next_items
+	_hovered = next_hover
+	_viewer = view.seat
+	if viewer_changed or _items.is_empty():
+		keyboard_active = false
+		revealed = false
+		_page = 0
 	_page = clampi(_page, 0, maxi(0, ceili(float(_items.size()) / _per_page) - 1))
-	_layout(true)
-	if keyboard_active:
-		for i in range(_items.size()):
-			if int(_items[i]["uid"]) == old_uid:
-				_set_hover(i)
-				return
+	_layout(viewer_changed or reduced_motion)
+	for item in created:
+		var node: Node3D = item["node"]
+		node.position = item["target"]
+		node.scale = Vector3.ONE * float(item["scale"])
+		node.rotation.z = float(item["angle"])
+	if _hovered >= 0:
+		# Revalidate the same inspected card against the new prompt/forecast.
+		hovered.emit(old_uid, true)
+
+
+func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dictionary) -> Dictionary:
+	var holder: Node3D = Node3D.new()
+	add_child(holder)
+	var face: Sprite3D = Sprite3D.new()
+	face.texture = cache.face(def, card.aspect)
+	face.shaded = false
+	face.no_depth_test = true
+	face.double_sided = false
+	face.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	holder.add_child(face)
+	var edge: MeshInstance3D = MeshInstance3D.new()
+	edge.mesh = QuadMesh.new()
+	var aura: ShaderMaterial = ShaderMaterial.new()
+	aura.shader = AURA
+	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if legal.has(card.uid) else Color(0.15, 0.20, 0.26, 0.22))
+	edge.material_override = aura
+	edge.position.z = -0.003
+	holder.add_child(edge)
+	# The edge is a slightly enlarged silhouette behind the actual face.
+	var title: Label3D = _label(22, ZenithTheme.TEXT)
+	title.text = card.title
+	title.width = CARD_WIDTH * 2.0 - 12.0
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	holder.add_child(title)
+	var summary: Label3D = _label(23, ZenithTheme.MUTED)
+	holder.add_child(summary)
+	return {"uid": card.uid, "node": holder, "face": face, "edge": edge,
+		"title": title, "summary": summary, "legal": legal.has(card.uid), "rect": Rect2(),
+		"target": Vector3.ZERO, "scale": 1.0, "angle": 0.0}
+
+
+func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView) -> void:
+	var playable: bool = legal.has(card.uid)
+	item["legal"] = playable
+	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect)
+	(item["title"] as Label3D).text = card.title
+	var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
+	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if playable else Color(0.15, 0.20, 0.26, 0.22))
+	var summary: Label3D = item["summary"]
+	summary.modulate = ZenithTheme.ATTACK if playable else ZenithTheme.MUTED
+	var forecast: Dictionary = view.forecast(card.uid)
+	if not forecast.is_empty():
+		summary.text = ("Final: " if bool(forecast.get("is_final", false)) else "") + CardText.short_damage(int(forecast.get("stages", 0)), int(forecast.get("life", 0)))
+	else:
+		summary.text = CardText.TYPE_LABELS[def.type]
+		if prompt != null:
+			for option in prompt.options_for_card(card.uid):
+				if option.type == &"defend" or option.type == &"power_defend":
+					summary.text = "Defend"
+					break
+				elif option.type == &"counter":
+					summary.text = "Counter"
+					break
+	if int(forecast.get("cost_stages", 0)) > 0:
+		summary.text += " | Cost %d" % int(forecast["cost_stages"])
 
 
 func set_available(on: bool) -> void:
@@ -125,9 +171,16 @@ func preview_index(index: int) -> void:
 func remove_uid(uid: int) -> void:
 	for i in range(_items.size()):
 		if int(_items[i]["uid"]) == uid:
-			_set_hover(-1)
+			if _hovered == i:
+				_set_hover(-1)
+			elif _hovered > i:
+				_hovered -= 1
+			(_items[i]["node"] as Node3D).hide()
 			(_items[i]["node"] as Node3D).queue_free()
 			_items.remove_at(i)
+			if _items.is_empty():
+				keyboard_active = false
+				revealed = false
 			_layout()
 			return
 

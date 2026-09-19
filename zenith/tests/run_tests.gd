@@ -3947,7 +3947,8 @@ func test_ai_search_reports_and_is_repeatable() -> void:
 	var seat: int = ref.engine.prompt.player
 	var before: String = views_text(ref.engine)
 	var profile: AiProfile = AiProfile.default_profile()
-	profile.merge({"think": {"samples": 3, "budget_ms": 60000}})
+	# Repeatability must depend on a fixed amount of work, not machine speed or live difficulty.
+	profile.merge({"think": {"samples": 3, "budget_ms": 0, "node_budget": 600}})
 	var first: AiPlayer = AiPlayer.new(profile, 77)
 	var second: AiPlayer = AiPlayer.new(profile, 77)
 	var a: Dictionary = first.choose(ref, seat)

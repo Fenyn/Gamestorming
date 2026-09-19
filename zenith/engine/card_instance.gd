@@ -36,6 +36,16 @@ func _init(p_uid: int, p_def: CardDef, p_owner: int) -> void:
 ## cards; DuelEngine.clone re-points them.
 func copy() -> CardInstance:
 	var c: CardInstance = CardInstance.new(uid, def, owner)
+	copy_into(c)
+	return c
+
+
+## The same, over a card that already exists. `DuelEngine.clone_into` recycles cards this way;
+## allocating them was two thirds of a clone.
+func copy_into(c: CardInstance) -> void:
+	c.uid = uid
+	c.def = def
+	c.owner = owner
 	c.controller = controller
 	c.zone = zone
 	c.aspect = aspect
@@ -50,7 +60,6 @@ func copy() -> CardInstance:
 	c.attached_to = attached_to
 	c.named_card = named_card
 	c.bond_timer = bond_timer
-	return c
 
 
 func aspect_data() -> Dictionary:

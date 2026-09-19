@@ -9,7 +9,7 @@ script = ExtResource("1")
 [node name="ReadoutViewport" type="SubViewport" parent="."]
 transparent_bg = true
 size = Vector2i(1600, 1600)
-render_target_update_mode = 4
+render_target_update_mode = 1
 
 [node name="Readout" type="Control" parent="ReadoutViewport"]
 layout_mode = 0

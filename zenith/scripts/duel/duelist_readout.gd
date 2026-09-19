@@ -2,6 +2,9 @@ class_name DuelistReadout
 extends Control
 ## Transparent resource ornaments surrounding the actual duelist card in the scene.
 
+signal redraw_requested
+
+const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
 const INK: Color = Color(0.025, 0.038, 0.065, 0.97)
 const TEXT: Color = Color(0.96, 0.94, 0.86)
 const MUTED: Color = Color(0.68, 0.74, 0.79)
@@ -13,16 +16,21 @@ var preview_cost: int = 0
 ## Projected front-face bounds, in texture pixels relative to the card's world anchor.
 var card_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 	set(value):
+		if card_bounds.is_equal_approx(value):
+			return
 		card_bounds = value
 		update_layout()
-		queue_redraw()
+		request_redraw()
 var stat_hit_rects: Array[Rect2] = []
 var duelist_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 	set(value):
+		if duelist_bounds.is_equal_approx(value):
+			return
 		duelist_bounds = value
 		update_layout()
-		queue_redraw()
+		request_redraw()
 var _life: int = 0
+var _hand: int = 0
 var _energy: int = 0
 var _might: int = 0
 var _fervor: int = 0
@@ -84,10 +92,10 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 		_control = "%s IN CONTROL" % controller.title
 	_accent = Palette.school_ui(p.style)
 	_active = int(live.get("active", view.active)) == player_index and not view.is_over()
-	var hand: int = int(counts[1]) if counts.size() > 1 else p.hand.size()
+	_hand = maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
 	var discard: int = int(counts[2]) if counts.size() > 2 else p.discard.size()
 	var removed: int = int(counts[3]) if counts.size() > 3 else p.removed.size()
-	_piles = "Hand %d   Discard %d" % [hand, discard]
+	_piles = "Discard %d" % discard if player_index != viewer else "Hand %d   Discard %d" % [_hand, discard]
 	if removed > 0:
 		_piles += "   Out %d" % removed
 	_reserve = p.reserve.size()
@@ -105,25 +113,7 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 		if not held.has(seal_def.seal_number):
 			held.append(seal_def.seal_number)
 		_seal_sets[seal_def.seal_set] = held
-	_flags.clear()
-	if p.must_pass:
-		_flags.append("Must pass")
-	if p.skip_next_attack_phase:
-		_flags.append("Skips next attack")
-	if p.energy_blocked:
-		_flags.append("Cannot gain Energy")
-	if p.fervor_shield:
-		_flags.append("Fervor shielded")
-	if p.aspect_shield:
-		_flags.append("Aspect shielded")
-	if p.no_ascension_win:
-		_flags.append("Cannot win by Ascension")
-	if p.fervor_gain > 1:
-		_flags.append("Fervor gain x%d" % p.fervor_gain)
-	if p.seal_victory_pending:
-		_flags.append("Seal victory pending")
-	for restriction in p.restrictions:
-		_flags.append(CardText.restriction_name(restriction))
+	_flags = PLAYER_STATUS.flags(p)
 	if _initialized and same_identity and old_values != [_life, _energy, _fervor, _aspect] and not reduced_motion:
 		if _tween != null:
 			_tween.kill()
@@ -132,12 +122,12 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 		_tween.tween_method(_set_flash, 1.0, 0.0, 0.55)
 	_initialized = true
 	update_layout()
-	queue_redraw()
+	request_redraw()
 
 
 func _set_flash(value: float) -> void:
 	_flash = value
-	queue_redraw()
+	request_redraw()
 
 
 ## All combat resources share one fixture outside both the duelist and Life Deck.
@@ -150,15 +140,18 @@ func update_layout() -> Dictionary:
 	var title_y: float = tracker_y - 78.0 if far_side else minf(duelist_bounds.position.y, card_bounds.position.y) - 88.0
 	var piles_y: float = title_y - 56.0 if far_side else tracker.end.y + 46.0
 	var first_row: float = piles_y - 84.0 if far_side else piles_y + 40.0
+	var text_width: float = 690.0
 	stat_hit_rects.append(tracker)
-	stat_hit_rects.append(Rect2(middle_x - 350, title_y - 44, 700, 84))
-	stat_hit_rects.append(Rect2(middle_x - 345, piles_y - 29, 690, 34))
+	if far_side:
+		stat_hit_rects.append(Rect2(tracker.position + Vector2(-225, 0), Vector2(205, 160)))
+	stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, title_y - 44, text_width, 84))
+	stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, piles_y - 29, text_width, 34))
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		stat_hit_rects.append(Rect2(middle_x - 345, first_row - 28, 690, 34))
-	var lines: PackedStringArray = _wrap_flags(690, 27)
+		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row - 28, text_width, 34))
+	var lines: PackedStringArray = _wrap_flags(text_width, 27)
 	for i in range(mini(lines.size(), flag_rows)):
-		stat_hit_rects.append(Rect2(middle_x - 345, first_row + (i + 2 - flag_rows) * 36.0 - 28, 690, 34))
+		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0 - 28, text_width, 34))
 	return {"tracker": tracker, "title": title_y, "control": title_y + 42.0,
 		"piles": piles_y, "flags": first_row, "middle": middle_x}
 
@@ -172,8 +165,11 @@ func _draw() -> void:
 	var origin: Vector2 = tracker.position
 	var middle_x: float = float(layout["middle"])
 	var first_row: float = float(layout["flags"])
-	_text(_title, Vector2(middle_x - 350, float(layout["title"])), 700, 42, TEXT, true)
-	_text(_control, Vector2(middle_x - 350, float(layout["control"])), 700, 32, _accent, true)
+	var text_width: float = 690.0
+	if _player_index != _viewer:
+		_draw_opponent_hand(origin + Vector2(-225, 0))
+	_text(_title, Vector2(middle_x - text_width * 0.5, float(layout["title"])), text_width, 42, TEXT, true)
+	_text(_control, Vector2(middle_x - text_width * 0.5, float(layout["control"])), text_width, 32, _accent, true)
 	var corners: PackedVector2Array = PackedVector2Array([
 		origin + Vector2(18, 0), origin + Vector2(522, 0),
 		origin + Vector2(540, 18), origin + Vector2(540, 142),
@@ -205,20 +201,22 @@ func _draw() -> void:
 	var rune_start: float = origin.x + 450.0 - step * (_threshold - 1) * 0.5
 	for i in range(_threshold):
 		_diamond(Vector2(rune_start + step * i, origin.y + 133), Vector2(minf(7, step * 0.3), 8), FERVOR if i < _fervor else INK, FERVOR if i < _fervor else Color(MUTED, 0.4))
-	_text(_piles, Vector2(middle_x - 343, float(layout["piles"])), 686, 27, MUTED, true)
-	var lines: PackedStringArray = _wrap_flags(690, 27)
+	_text(_piles, Vector2(middle_x - text_width * 0.5, float(layout["piles"])), text_width, 27, MUTED, true)
+	var lines: PackedStringArray = _wrap_flags(text_width, 27)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		_draw_seals(first_row, middle_x)
+		_draw_seals(first_row, middle_x, text_width)
 	for i in range(mini(lines.size(), flag_rows)):
 		var value: String = lines[i]
 		if i == flag_rows - 1 and lines.size() > flag_rows:
 			value = "%s · +%d more" % [lines[i].left(26), lines.size() - flag_rows]
-		_text(value, Vector2(middle_x - 345, first_row + (i + 2 - flag_rows) * 36.0), 690, 27, FERVOR, true)
+		_text(value, Vector2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0), text_width, 27, FERVOR, true)
 
 
 func status_text() -> String:
 	var lines: PackedStringArray = PackedStringArray([_title, _control, _piles])
+	if _player_index != _viewer:
+		lines.append("Hand %d" % _hand)
 	for set_id in _seal_sets:
 		var held: Array = _seal_sets[set_id]
 		lines.append("%s Seals: %d / %d" % [str(set_id).capitalize(), held.size(), DuelEngine.SEALS_PER_SET])
@@ -226,7 +224,26 @@ func status_text() -> String:
 	return "\n".join(lines)
 
 
-func _draw_seals(baseline: float, middle_x: float = 0.0) -> void:
+## Only the public count is used; card faces and identities never enter this display.
+func _draw_opponent_hand(origin: Vector2) -> void:
+	var shown: int = mini(_hand, 7)
+	for i in range(shown):
+		var offset: float = i - (shown - 1) * 0.5
+		var center: Vector2 = origin + Vector2(102 + offset * 18, 56 + absf(offset) * 3)
+		draw_set_transform(size * 0.5 + center, offset * 0.09)
+		var back: Rect2 = Rect2(-27, -38, 54, 76)
+		draw_rect(back, INK)
+		draw_rect(back, _accent, false, 2.5)
+		draw_rect(back.grow(-6), Color(_accent, 0.35), false, 1.5)
+		_diamond(Vector2.ZERO, Vector2(9, 13), Color(_accent, 0.2), _accent)
+	draw_set_transform(size * 0.5)
+	if shown == 0:
+		_text("EMPTY", origin + Vector2(0, 69), 205, 27, MUTED, true)
+	_text(str(_hand), origin + Vector2(0, 132), 205, 42, TEXT, true)
+	_text("IN HAND", origin + Vector2(0, 160), 205, 23, MUTED, true)
+
+
+func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -> void:
 	var set_ids: Array = _seal_sets.keys()
 	set_ids.sort()
 	# Each set gets its own count. Never add unrelated sets into one victory track.
@@ -235,13 +252,14 @@ func _draw_seals(baseline: float, middle_x: float = 0.0) -> void:
 		for set_id in set_ids:
 			var held: Array = _seal_sets[set_id]
 			parts.append("%s %d/%d" % [str(set_id).capitalize(), held.size(), DuelEngine.SEALS_PER_SET])
-		_text("Seals: " + " · ".join(parts), Vector2(middle_x - 345, baseline), 690, 27, GOLD, true)
+		_text("Seals: " + " · ".join(parts), Vector2(middle_x - width * 0.5, baseline), width, 27, GOLD, true)
 		return
 	var set_id: String = str(set_ids[0])
 	var held: Array = _seal_sets[set_id]
-	_text("%s Seals %d/%d" % [set_id.capitalize(), held.size(), DuelEngine.SEALS_PER_SET], Vector2(middle_x - 345, baseline), 350, 27, GOLD)
+	var ratio: float = width / 690.0
+	_text("%s Seals %d/%d" % [set_id.capitalize(), held.size(), DuelEngine.SEALS_PER_SET], Vector2(middle_x - width * 0.5, baseline), 350 * ratio, 27, GOLD)
 	for i in range(DuelEngine.SEALS_PER_SET):
-		var center: Vector2 = Vector2(middle_x + 34 + i * 36, baseline - 12)
+		var center: Vector2 = Vector2(middle_x + (34 + i * 36) * ratio, baseline - 12)
 		var filled: bool = held.has(i + 1)
 		_diamond(center, Vector2(10, 11), GOLD if filled else INK, GOLD if filled else GOLD.darkened(0.55))
 
@@ -277,3 +295,8 @@ func _wrap_flags(width: float, font_size: int) -> PackedStringArray:
 	if not line.is_empty():
 		lines.append(line)
 	return lines
+
+
+func request_redraw() -> void:
+	queue_redraw()
+	redraw_requested.emit()

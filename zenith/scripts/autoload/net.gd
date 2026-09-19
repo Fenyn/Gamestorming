@@ -366,6 +366,11 @@ func _close_room_of(id: int) -> void:
 
 ## Server: deal a room whose seats are both locked. The seed stays here.
 func _start_room(room: DuelRoom) -> void:
+	if room.started or not room.both_locked():
+		return
+	for pick in room.lobby:
+		if not valid_deck_pick(int(pick.get("deck", -1)), str(pick.get("deck_name", ""))):
+			return
 	room.started = true
 	room.seed_value = _rng.randi_range(1, 2147483646)
 	for peer in room.seat_peer:
@@ -406,8 +411,20 @@ func set_local_pick(deck_index: int, player_name: String, ready: bool = false) -
 
 
 func _apply_pick(seat: int, deck_index: int, deck_name: String, player_name: String, ready: bool) -> void:
+	if seat < 0 or seat >= lobby.size() or not _valid_lobby_pick(deck_index, deck_name, ready):
+		return
 	lobby[seat] = {"name": player_name, "deck": deck_index, "deck_name": deck_name, "ready": ready}
 	lobby_changed.emit()
+
+
+## Authorities validate the shared catalog before accepting readiness or indexing a deck.
+func valid_deck_pick(deck_index: int, deck_name: String) -> bool:
+	return deck_index >= 0 and deck_index < Session.decks.size() \
+		and Session.decks[deck_index].name == deck_name
+
+
+func _valid_lobby_pick(deck_index: int, deck_name: String, ready: bool) -> bool:
+	return valid_deck_pick(deck_index, deck_name) or (deck_index == -1 and deck_name == "" and not ready)
 
 
 ## A seat's pick. A hosting client takes it from its joiner, a client takes the other seat's
@@ -422,6 +439,9 @@ func _rpc_lobby_pick(seat: int, deck_index: int, deck_name: String, player_name:
 		var room: DuelRoom = _room_of(sender)
 		if room == null or room.seat_of(sender) != seat or room.started:
 			return
+		if not _valid_lobby_pick(deck_index, deck_name, ready):
+			_rpc_room_failed.rpc_id(sender, "The selected deck does not match the server's catalog (%s)." % deck_name)
+			return
 		room.lobby[seat] = {"name": player_name, "deck": deck_index, "deck_name": deck_name, "ready": ready and deck_index >= 0}
 		var other: int = room.other_peer(seat)
 		if other != 0:
@@ -434,6 +454,14 @@ func _rpc_lobby_pick(seat: int, deck_index: int, deck_name: String, player_name:
 	if is_host() and sender != peer_id:
 		return
 	if mode == "client" and sender != HOST_ID:
+		return
+	if not _valid_lobby_pick(deck_index, deck_name, ready):
+		var reason: String = "The other side's deck list does not match this build (%s)." % deck_name
+		if is_host():
+			_rpc_room_failed.rpc_id(sender, reason)
+		elif mode == "client":
+			leave()
+			connection_failed.emit(reason)
 		return
 	_apply_pick(seat, deck_index, deck_name, player_name, ready)
 
@@ -455,7 +483,8 @@ func _rpc_lobby(full: Array, filled: bool) -> void:
 
 
 func lobby_ready() -> bool:
-	return seats_filled() and int(lobby[0]["deck"]) >= 0 and int(lobby[1]["deck"]) >= 0
+	return seats_filled() and valid_deck_pick(int(lobby[0]["deck"]), str(lobby[0]["deck_name"])) \
+		and valid_deck_pick(int(lobby[1]["deck"]), str(lobby[1]["deck_name"]))
 
 
 ## Both seats locked their picks, so both clients move to the versus screen.

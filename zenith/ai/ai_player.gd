@@ -46,6 +46,10 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 ## The profile to play with now: the base, pivoted on who is across the table (fixed at setup, so
 ## resolved once), then pivoted on where the duel stands (recomputed, cached per distinct state).
 func _matchup_profile(referee: Referee, seat: int) -> AiProfile:
+	if _matchup != null:
+		var pivots: Dictionary = _matchup.data.get("when", {})
+		if pivots.is_empty():
+			return _matchup
 	# Profile pivots read public standings, never client attack previews.
 	var view: SeatView = referee.view_for(seat, false)
 	if view == null or view.players.size() < 2:

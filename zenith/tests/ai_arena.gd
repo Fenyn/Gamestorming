@@ -18,6 +18,13 @@ func _init() -> void:
 		var text: String = raw.trim_prefix("--")
 		var parts: PackedStringArray = text.split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
+	for policy_key in ["a", "b"]:
+		var policy_name: String = str(args[policy_key])
+		var policy_problem: String = SimSeat.policy_error(policy_name)
+		if not policy_problem.is_empty():
+			push_error("--%s: %s" % [policy_key, policy_problem])
+			quit(1)
+			return
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
@@ -146,28 +153,4 @@ func deck_names(wanted: String) -> Array[String]:
 
 ## null means uniform random play.
 func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckList) -> AiPlayer:
-	if policy == "random":
-		return null
-	var level: String = "" if policy in ["scorer", "search", "rollout"] else policy
-	var profile: AiProfile = AiProfile.for_deck(deck, level)
-	if policy == "scorer":
-		profile.merge({"think": {"search": false}})
-	elif policy == "search":
-		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
-	elif policy == "rollout":
-		profile.merge({"think": {"search": true, "algorithm": "rollout"}})
-	var over: Dictionary = {}
-	if str(args["budget"]) != "":
-		over["budget_ms"] = int(args["budget"])
-	if str(args["samples"]) != "":
-		over["samples"] = int(args["samples"])
-	if str(args["turns"]) != "":
-		over["turns"] = int(args["turns"])
-	if str(args["steps"]) != "":
-		over["max_steps"] = int(args["steps"])
-	for mapping in [["nodes", "node_budget"], ["depth", "sequence_depth"], ["branches", "branch_width"], ["responses", "response_width"], ["rollout_steps", "rollout_steps"]]:
-		if args.has(mapping[0]):
-			over[mapping[1]] = int(args[mapping[0]])
-	if not over.is_empty():
-		profile.merge({"think": over})
-	return AiPlayer.new(profile, seed_value)
+	return SimSeat.from_legacy(policy, args).make_player(deck, seed_value)

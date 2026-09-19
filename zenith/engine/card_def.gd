@@ -55,6 +55,11 @@ var shield: String = ""         # Defense Shield on Drills: "", strike, art, any
 var forbid: Array = []          # standing forbids while in play (Grounds, Drills): [{"who": "all"|"owner"|"opponent", "what": "..."}]
 var attachment: Dictionary = {} # {"target": "in_control"|"duelist", "modifiers": [...], "effects": [...], "damage_removes": bool}
 var aspects: Array[Dictionary] = []     # personalities: {aspect, surge, might: [11 ints], wild, power, constant, shield}
+
+# Derived from `aspects` in from_dict; nothing writes `aspects` after load.
+var _lowest_aspect: int = 0
+var _highest_aspect: int = 0
+var _aspect_rows: Dictionary = {}       # aspect number -> its row in `aspects`
 var seal_set: String = ""
 var seal_number: int = 0
 var capture_trait: bool = false
@@ -106,7 +111,25 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.reserve_size = int(d.get("reserve_size", 0))
 	c.relic_flags = d.get("relic_flags", {})
 	c.opponent_aspect_threshold = int(d.get("opponent_aspect_threshold", 0))
+	c._index_aspects()
 	return c
+
+
+## Walks `aspects` once, since the three lookups over it run per simulated node.
+func _index_aspects() -> void:
+	_lowest_aspect = 0
+	_highest_aspect = 0
+	_aspect_rows.clear()
+	if aspects.is_empty():
+		return
+	var lowest: int = 99
+	for t in aspects:
+		var n: int = int(t.get("aspect", 0))
+		lowest = mini(lowest, n)
+		_highest_aspect = maxi(_highest_aspect, n)
+		if not _aspect_rows.has(n):
+			_aspect_rows[n] = t
+	_lowest_aspect = lowest if lowest != 99 else 0
 
 
 func is_personality() -> bool:
@@ -181,21 +204,12 @@ func has_trigger(trigger: String) -> bool:
 
 
 func aspect_data(aspect: int) -> Dictionary:
-	for t in aspects:
-		if int(t.get("aspect", 0)) == aspect:
-			return t
-	return {}
+	return _aspect_rows.get(aspect, {})
 
 
 func highest_aspect() -> int:
-	var best: int = 0
-	for t in aspects:
-		best = maxi(best, int(t.get("aspect", 0)))
-	return best
+	return _highest_aspect
 
 
 func lowest_aspect() -> int:
-	var best: int = 99
-	for t in aspects:
-		best = mini(best, int(t.get("aspect", 0)))
-	return best if best != 99 else 0
+	return _lowest_aspect

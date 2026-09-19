@@ -125,18 +125,40 @@ func prompt_of(player: int) -> Prompt:
 ## to them. The copy starts with no events. For simulation; a seat must get one through
 ## Referee.sim_for so it never learns what it may not see.
 func clone() -> DuelEngine:
-	var e: DuelEngine = DuelEngine.new()
+	return clone_into(DuelEngine.new())
+
+
+## `clone()` over an engine that already exists, reusing its CardInstances rather than allocating
+## fresh ones. `e` must be an engine no one is still reading; the AI search recycles its own.
+func clone_into(e: DuelEngine) -> DuelEngine:
 	e.library = library
 	e.strike_table = strike_table
 	e.rng = rng.copy()
 	e.shuffle_decks = shuffle_decks
+	e.record_display_state = false
+	e.events.clear()
+	var spare: Dictionary = e._cards
+	e._cards = {}
 	for uid in _cards:
-		e._cards[uid] = (_cards[uid] as CardInstance).copy()
+		var source: CardInstance = _cards[uid]
+		var target: CardInstance = spare.get(uid, null)
+		if target == null:
+			e._cards[uid] = source.copy()
+		else:
+			source.copy_into(target)
+			e._cards[uid] = target
+	# `copy()` leaves these pointing at the original's cards, so re-point them. Nearly every card
+	# has neither, but each still needs its own array, since `cards_under` is mutated in place.
 	for uid in e._cards:
 		var c: CardInstance = e._cards[uid]
-		c.cards_under = PlayerState._mapped_list(c.cards_under, e._cards)
-		c.attached_to = PlayerState._mapped(c.attached_to, e._cards)
+		if c.attached_to != null:
+			c.attached_to = e._cards[c.attached_to.uid]
+		if c.cards_under.is_empty():
+			c.cards_under = [] as Array[CardInstance]
+		else:
+			c.cards_under = PlayerState._mapped_list(c.cards_under, e._cards)
 	e.state = state.copy(e._cards)
+	e.prompts.clear()
 	for p in prompts:
 		e.prompts.append(p.copy())
 	e._next_uid = _next_uid
@@ -4022,9 +4044,34 @@ func option_outcome(prompt: Prompt, cmd: Command) -> Dictionary:
 
 ## Standing forbids in force on the player right now, as forbid `what` words.
 func restrictions(p: PlayerState) -> Array[String]:
+	# One sweep of the sources for all fifteen kinds. Asking `_forbidden` per kind rebuilt the same
+	# Drill and Non-Combat lists fifteen times, which the AI paid for on every position it scored.
+	var hit: Dictionary = {}
+	for f in state.floating:
+		if int(f.get("owner", -1)) != p.index or str(f.get("op", "")) != "forbid":
+			continue
+		if int(f.get("unless_energy_min", 0)) > 0 and p.duelist.energy >= int(f["unless_energy_min"]):
+			continue
+		hit[str(f.get("what", ""))] = true
+	var sources: Array[CardInstance] = []
+	if state.grounds != null:
+		sources.append(state.grounds)
+	for q in state.players:
+		sources.append_array(q.drills())
+		sources.append_array(q.non_combats())
+	for c in sources:
+		for rule in c.def.forbid:
+			var who: String = str(rule.get("who", "all"))
+			if who == "all" or (who == "owner" and c.controller == p.index) or (who == "opponent" and c.controller != p.index):
+				hit[str(rule.get("what", ""))] = true
+	# As in `_forbidden`, the opponent's constant is read raw and may not forbid powers, or asking
+	# whether their powers are forbidden would recurse.
+	for w in _raw_constant(state.players[1 - p.index]).get("forbid_opponent", []):
+		if str(w) != "powers":
+			hit[str(w)] = true
 	var out: Array[String] = []
 	for what in FORBID_KINDS:
-		if _forbidden(p, what):
+		if hit.has(what):
 			out.append(what)
 	return out
 

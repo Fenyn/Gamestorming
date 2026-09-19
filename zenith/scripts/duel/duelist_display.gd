@@ -17,10 +17,17 @@ var _hovering: bool = false
 @onready var life_value: Label3D = $LifeValue
 @onready var life_caption: Label3D = $LifeCaption
 var life_transform: Transform3D = Transform3D.IDENTITY
+var _anchor_inputs: Array = []
 
 
 func _ready() -> void:
 	surface.texture = viewport.get_texture()
+	readout.redraw_requested.connect(_request_render)
+	_request_render()
+
+
+func _request_render() -> void:
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = {}) -> void:
@@ -39,8 +46,10 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 
 ## Preview only: outlined Energy segments distinguish projected spending from resolution.
 func preview_energy(cost: int = 0) -> void:
-	readout.preview_cost = maxi(0, cost)
-	readout.queue_redraw()
+	var next_cost: int = maxi(0, cost)
+	if readout.preview_cost != next_cost:
+		readout.preview_cost = next_cost
+		readout.request_redraw()
 
 
 func status_text() -> String:
@@ -50,6 +59,13 @@ func status_text() -> String:
 ## Measure the animated face itself, including perspective, hover lift and camera zoom.
 ## The canvas stays legible while its components move outside these projected edges.
 func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
+	# Static fixtures retain their texture and layout until the camera or card moves.
+	var inputs: Array = [global_transform, card.front.global_transform, life_transform,
+		camera.global_transform, camera.get_camera_projection(),
+		camera.get_viewport().get_visible_rect().size, surface.pixel_size]
+	if inputs == _anchor_inputs:
+		return
+	_anchor_inputs = inputs
 	var center: Vector2 = camera.unproject_position(global_position)
 	var pixel_scale: float = surface.pixel_size * global_basis.get_scale().x
 	var unit: float = center.distance_to(camera.unproject_position(global_position + camera.global_basis.x * pixel_scale))
@@ -75,15 +91,16 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 	life_caption.global_position = life_transform.origin - camera.global_basis.y * (31.0 * pixel_scale)
 	life_value.pixel_size = pixel_scale
 	life_caption.pixel_size = pixel_scale
+	readout.card_bounds = bounds
 	# Expand the transparent canvas as the cluster grows; fixed textures clip wide zooms.
+	for rect: Rect2 in readout.stat_hit_rects:
+		bounds = bounds.merge(rect)
 	var extent: Vector2 = Vector2(maxf(absf(bounds.position.x), absf(bounds.end.x)), maxf(absf(bounds.position.y), absf(bounds.end.y))) + Vector2(400, 400)
 	var canvas_size: Vector2i = Vector2i(maxi(1600, ceili(extent.x * 2.0 / 128.0) * 128), maxi(1600, ceili(extent.y * 2.0 / 128.0) * 128))
 	if viewport.size != canvas_size:
 		viewport.size = canvas_size
 		readout.size = Vector2(canvas_size)
-	if not readout.card_bounds.is_equal_approx(bounds):
-		readout.card_bounds = bounds
-		readout.queue_redraw()
+		readout.request_redraw()
 
 
 func _unhandled_input(event: InputEvent) -> void:

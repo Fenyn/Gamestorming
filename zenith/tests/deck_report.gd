@@ -23,6 +23,13 @@ func _init() -> void:
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
+	for policy_key in ["policy"]:
+		var policy_name: String = str(args[policy_key])
+		var policy_problem: String = SimSeat.policy_error(policy_name)
+		if not policy_problem.is_empty():
+			push_error("--%s: %s" % [policy_key, policy_problem])
+			quit(1)
+			return
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
@@ -166,19 +173,7 @@ func deck_names(wanted: String) -> Array[String]:
 ## null means uniform random play.
 func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckList, deck_name: String = "") -> AiPlayer:
 	var force_sequence: bool = search_decks.has(deck_name)
-	if policy == "random" and not force_sequence:
-		return null
-	var level: String = "" if policy in ["scorer", "search", "random"] else policy
-	var profile: AiProfile = AiProfile.for_deck(deck, level)
-	if policy == "scorer":
-		profile.merge({"think": {"search": false}})
-	if force_sequence or policy == "search":
-		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
-	var over: Dictionary = {}
-	if str(args["budget"]) != "":
-		over["budget_ms"] = int(args["budget"])
-	if str(args["samples"]) != "":
-		over["samples"] = int(args["samples"])
-	if not over.is_empty():
-		profile.merge({"think": over})
-	return AiPlayer.new(profile, seed_value)
+	var seat: SimSeat = SimSeat.from_legacy("search" if force_sequence and policy == "random" else policy, args)
+	if force_sequence:
+		seat.think.merge({"search": true, "algorithm": "sequence"})
+	return seat.make_player(deck, seed_value)

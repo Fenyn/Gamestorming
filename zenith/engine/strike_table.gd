@@ -22,11 +22,11 @@ static func load_from(path: String) -> StrikeTable:
 
 
 func band(might: int) -> int:
-	var b: int = 0
-	for i in range(thresholds.size()):
+	# Thresholds ascend, so the first one met from the top is the answer.
+	for i in range(thresholds.size() - 1, -1, -1):
 		if might >= thresholds[i]:
-			b = i
-	return b
+			return i
+	return 0
 
 
 func base_damage(attacker_might: int, defender_might: int) -> int:

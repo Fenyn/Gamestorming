@@ -1,6 +1,8 @@
 class_name DuelHud
 extends CanvasLayer
-## 2D layer over the table: player panels, phase strip, log, hand, prompt, overlays. Everything
+
+const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
+## 2D layer over the table: phase strip, log, prompt and overlays. Everything
 ## it shows comes from a SeatView and a PromptView, never from the engine.
 
 signal reduced_motion_changed(on: bool)
@@ -43,8 +45,6 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 
 @onready var reduced_motion_toggle: CheckButton = $Root/ReducedMotion
 @onready var root: Control = $Root
-@onready var top_panel: PlayerPanel = $Root/TopPanel
-@onready var bottom_panel: PlayerPanel = $Root/BottomPanel
 @onready var phase_panel: PanelContainer = $Root/PhasePanel
 @onready var turn_counter: Label = $Root/PhasePanel/Column/Turn/Counter
 @onready var turn_who: Label = $Root/PhasePanel/Column/Turn/Who
@@ -123,8 +123,6 @@ var _hero_base: int = -1               # the wound count the hero number sits at
 func _ready() -> void:
 	root.theme = ZenithTheme.get_theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
-	top_panel.hide()
-	bottom_panel.hide()
 	prompt_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.88), Color(0.34, 0.48, 0.6, 0.3), 20, 1, 20, 16))
 	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.7), Color.TRANSPARENT, 14, 0, 14, 10))
 	for name in STEP_LABELS:
@@ -174,36 +172,11 @@ func refresh_state(view: SeatView, viewer: int, live: Dictionary = {}) -> void:
 	if me < 0:
 		me = view.deciding if view.deciding >= 0 else view.active
 	_viewer_seat = me
-	bottom_panel.refresh(view.player(me), view, true, _beat_standing(live, me))
-	top_panel.refresh(view.player(1 - me), view, false, _beat_standing(live, 1 - me))
-	near_flags.text = bottom_panel.flags_label.text
-	far_flags.text = top_panel.flags_label.text
+	near_flags.text = " | ".join(PLAYER_STATUS.flags(view.player(me)))
+	far_flags.text = " | ".join(PLAYER_STATUS.flags(view.player(1 - me)))
 	near_flags.visible = not scene_flags and not near_flags.text.is_empty()
 	far_flags.visible = not scene_flags and not far_flags.text.is_empty()
 	_refresh_phase(view, me, live)
-
-
-## One player's slice of a beat's state (see GameEvent.state), {} when the update has none.
-static func _beat_standing(live: Dictionary, index: int) -> Dictionary:
-	if live.is_empty():
-		return {}
-	var out: Dictionary = {}
-	var fervor: Array = live.get("fervor", [])
-	if index < fervor.size():
-		out["fervor"] = int(fervor[index])
-	# The turn position too, so a panel never flags the next player as active while the beats of
-	# this one are still playing.
-	for key in ["active", "step", "phase", "attacker"]:
-		if live.has(key):
-			out[key] = int(live[key])
-	var zones: Array = live.get("zones", [])
-	if index < zones.size() and (zones[index] as Array).size() >= 4:
-		var z: Array = zones[index]
-		out["life"] = int(z[0])
-		out["hand"] = int(z[1])
-		out["discard"] = int(z[2])
-		out["removed"] = int(z[3])
-	return out
 
 
 ## The banner over the table. Whose turn it is and which step of it, both at a size that reads
@@ -1137,7 +1110,7 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 				standing = player
 	inspect_status_scroll.visible = standing != null
 	if standing != null:
-		var flags: String = bottom_panel.flags_label.text if standing.index == _viewer_seat else top_panel.flags_label.text
+		var flags: String = "\n".join(PLAYER_STATUS.flags(standing))
 		var controller: SeatCard = _view.card(standing.controlling)
 		var lines: PackedStringArray = PackedStringArray()
 		if controller != null:

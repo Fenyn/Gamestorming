@@ -47,11 +47,20 @@ const SPEC_BASE: Dictionary = {
 	"a-think": {"type": "str", "default": ""},
 	"b-think": {"type": "str", "default": ""},
 
+	# `--shard=2/8` plays only every eighth match, starting at the third. The whole schedule is
+	# built first and then sifted, so the seeds a shard plays are the ones it would have played in
+	# the full run, and `tools/merge_matchlab.gd` folds the shards back into one exact report.
+	"shard": {"type": "str", "default": ""},
+
 	"tsv": {"type": "str", "default": ""},
 	"json": {"type": "str", "default": ""},
 	"verbose": {"type": "bool", "default": "off"},
 	"progress": {"type": "int", "default": 0, "min": 0, "max": 1000000},
 }
+
+
+var shard_error: String = ""
+var shard_label: String = ""
 
 
 func _init() -> void:
@@ -84,12 +93,17 @@ func _init() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = args.int_of("seed")
 	var schedule: Array[Array] = _schedule(args, roster, rng)
+	if not shard_error.is_empty():
+		push_error(shard_error)
+		print("matchlab: %s" % shard_error)
+		quit(2)
+		return
 	if schedule.is_empty():
-		print("matchlab: the schedule came out empty; check --a-field and --b-field")
+		print("matchlab: the schedule came out empty; check --a-field, --b-field and --shard")
 		quit(2)
 		return
 
-	print("matchlab %s: %d matches" % [args.str_of("mode"), schedule.size()])
+	print("matchlab %s%s: %d matches" % [args.str_of("mode"), shard_label, schedule.size()])
 	print("  a field: %s" % roster.describe(roster.a_names, roster.a_weights))
 	print("  b field: %s" % roster.describe(roster.b_names, roster.b_weights))
 	print("  a side : %s" % a_side.describe())
@@ -178,6 +192,29 @@ func _schedule(args: SimArgs, roster: SimRoster, rng: RandomNumberGenerator) -> 
 	var limit: int = args.int_of("limit")
 	if limit > 0 and out.size() > limit:
 		out.resize(limit)
+	return _sift(args, out)
+
+
+## `--shard=i/n` keeps every nth match starting at i, after the full schedule and its seeds exist.
+## Running all n shards covers the schedule exactly once, with no match played twice.
+func _sift(args: SimArgs, full: Array[Array]) -> Array[Array]:
+	var spec: String = args.str_of("shard").strip_edges()
+	if spec.is_empty():
+		return full
+	var parts: PackedStringArray = spec.split("/", true)
+	if parts.size() != 2 or not parts[0].is_valid_int() or not parts[1].is_valid_int():
+		shard_error = "--shard takes i/n, for example 0/8; got %s" % spec
+		return []
+	var index: int = int(parts[0])
+	var count: int = int(parts[1])
+	if count < 1 or index < 0 or index >= count:
+		shard_error = "--shard=i/n needs n at least 1 and i from 0 to n-1; got %s" % spec
+		return []
+	shard_label = " shard %d of %d" % [index + 1, count]
+	var out: Array[Array] = []
+	for i in range(full.size()):
+		if i % count == index:
+			out.append(full[i])
 	return out
 
 

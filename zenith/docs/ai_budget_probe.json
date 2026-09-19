@@ -1,0 +1,697 @@
+{
+	"godot": "4.6.2-stable (official)",
+	"hard_smoke": {
+		"ai_seed": 9900,
+		"choice": {
+			"card": 58,
+			"player": 0,
+			"type": "attack",
+			"value": null
+		},
+		"completed_depth": 2,
+		"cutoff": "time_budget",
+		"elapsed_ms": 4012.309,
+		"legal": true,
+		"nodes": 740,
+		"position_index": 0,
+		"root_unchanged": true,
+		"think": {
+			"algorithm": "sequence",
+			"branch_width": 4.0,
+			"budget_ms": 4000.0,
+			"cache": false,
+			"intent_margin": 0.15,
+			"max_steps": 80,
+			"node_budget": 16000.0,
+			"noise": 0.0,
+			"prior": 0.05,
+			"response_width": 2,
+			"rollout_steps": 4,
+			"samples": 3.0,
+			"search": true,
+			"sequence_depth": 10.0,
+			"settle_steps": 8,
+			"top_k": 8.0,
+			"turns": 3.0
+		}
+	},
+	"new_caps": {
+		"budget_ms": 1600,
+		"node_budget": 6000
+	},
+	"note": "Eight selected positions from seeded scorer games. Same per-position root, AI seed and profile except Normal time/node caps. Wall-clock timing is illustrative; no win-rate or strength claim.",
+	"old_caps": {
+		"budget_ms": 400,
+		"node_budget": 1500
+	},
+	"positions": [
+		{
+			"ai_seed": 9900,
+			"category": "attack",
+			"choice_changed": false,
+			"deck_id": "steel_heir",
+			"engine_seed": 731,
+			"kind": "attack_action",
+			"move": 2,
+			"new": {
+				"choice": {
+					"card": 58,
+					"player": 0,
+					"type": "attack",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1604.604,
+				"fallback": false,
+				"nodes": 302,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 58,
+					"player": 0,
+					"type": "attack",
+					"value": null
+				},
+				"completed_depth": 1,
+				"cutoff": "time_budget",
+				"elapsed_ms": 405.916,
+				"fallback": false,
+				"nodes": 67,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 8,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 1
+		},
+		{
+			"ai_seed": 9901,
+			"category": "setup",
+			"choice_changed": false,
+			"deck_id": "steel_heir",
+			"engine_seed": 731,
+			"kind": "non_combat",
+			"move": 31,
+			"new": {
+				"choice": {
+					"card": 10,
+					"player": 0,
+					"type": "place",
+					"value": null
+				},
+				"completed_depth": 3,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1604.743,
+				"fallback": false,
+				"nodes": 264,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 10,
+					"player": 0,
+					"type": "place",
+					"value": null
+				},
+				"completed_depth": 1,
+				"cutoff": "time_budget",
+				"elapsed_ms": 405.298,
+				"fallback": false,
+				"nodes": 64,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 3,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 3
+		},
+		{
+			"ai_seed": 9902,
+			"category": "defense",
+			"choice_changed": false,
+			"deck_id": "steel_heir",
+			"engine_seed": 731,
+			"kind": "defense",
+			"move": 5,
+			"new": {
+				"choice": {
+					"card": 74,
+					"player": 0,
+					"type": "defend",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1620.795,
+				"fallback": false,
+				"nodes": 271,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 74,
+					"player": 0,
+					"type": "defend",
+					"value": null
+				},
+				"completed_depth": 1,
+				"cutoff": "time_budget",
+				"elapsed_ms": 405.17,
+				"fallback": false,
+				"nodes": 69,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 2,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 1
+		},
+		{
+			"ai_seed": 9903,
+			"category": "attack",
+			"choice_changed": true,
+			"deck_id": "tide_companions",
+			"engine_seed": 731,
+			"kind": "attack_action",
+			"move": 17,
+			"new": {
+				"choice": {
+					"card": 22,
+					"player": 0,
+					"type": "attack",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1608.26,
+				"fallback": false,
+				"nodes": 292,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"old": {
+				"choice": {
+					"card": -1,
+					"player": 0,
+					"type": "pass",
+					"value": null
+				},
+				"completed_depth": 1,
+				"cutoff": "time_budget",
+				"elapsed_ms": 405.185,
+				"fallback": false,
+				"nodes": 75,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 6,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 2
+		},
+		{
+			"ai_seed": 9904,
+			"category": "tutor",
+			"choice_changed": false,
+			"deck_id": "tide_companions",
+			"engine_seed": 731,
+			"kind": "pick_option",
+			"move": 6,
+			"new": {
+				"choice": {
+					"card": 23,
+					"player": 0,
+					"type": "pick_option",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1605.193,
+				"fallback": false,
+				"nodes": 361,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 23,
+					"player": 0,
+					"type": "pick_option",
+					"value": null
+				},
+				"completed_depth": 1,
+				"cutoff": "time_budget",
+				"elapsed_ms": 405.129,
+				"fallback": false,
+				"nodes": 87,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 5,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 1
+		},
+		{
+			"ai_seed": 9905,
+			"category": "setup",
+			"choice_changed": false,
+			"deck_id": "tide_companions",
+			"engine_seed": 731,
+			"kind": "non_combat",
+			"move": 5,
+			"new": {
+				"choice": {
+					"card": 3,
+					"player": 0,
+					"type": "relic",
+					"value": null
+				},
+				"completed_depth": 3,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1604.742,
+				"fallback": false,
+				"nodes": 323,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 3,
+					"player": 0,
+					"type": "relic",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 404.122,
+				"fallback": false,
+				"nodes": 77,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 3.0
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 2,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 1
+		},
+		{
+			"ai_seed": 9906,
+			"category": "attack",
+			"choice_changed": true,
+			"deck_id": "pyre_ascent",
+			"engine_seed": 731,
+			"kind": "attack_action",
+			"move": 2,
+			"new": {
+				"choice": {
+					"card": -1,
+					"player": 0,
+					"type": "pass",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1608.206,
+				"fallback": false,
+				"nodes": 309,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 1
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 44,
+					"player": 0,
+					"type": "attack",
+					"value": null
+				},
+				"completed_depth": 1,
+				"cutoff": "time_budget",
+				"elapsed_ms": 407.353,
+				"fallback": false,
+				"nodes": 78,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 1
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 8,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 1
+		},
+		{
+			"ai_seed": 9907,
+			"category": "setup",
+			"choice_changed": false,
+			"deck_id": "pyre_ascent",
+			"engine_seed": 731,
+			"kind": "non_combat",
+			"move": 37,
+			"new": {
+				"choice": {
+					"card": 38,
+					"player": 0,
+					"type": "place",
+					"value": null
+				},
+				"completed_depth": 3,
+				"cutoff": "time_budget",
+				"elapsed_ms": 1604.17,
+				"fallback": false,
+				"nodes": 312,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 1600,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 6000,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 1
+				}
+			},
+			"old": {
+				"choice": {
+					"card": 38,
+					"player": 0,
+					"type": "place",
+					"value": null
+				},
+				"completed_depth": 2,
+				"cutoff": "time_budget",
+				"elapsed_ms": 403.937,
+				"fallback": false,
+				"nodes": 70,
+				"think": {
+					"algorithm": "sequence",
+					"branch_width": 3,
+					"budget_ms": 400,
+					"cache": false,
+					"intent_margin": 0.15,
+					"max_steps": 80,
+					"node_budget": 1500,
+					"noise": 0.0,
+					"prior": 0.05,
+					"response_width": 2,
+					"rollout_steps": 4,
+					"samples": 2,
+					"search": true,
+					"sequence_depth": 6,
+					"settle_steps": 8,
+					"top_k": 6,
+					"turns": 1
+				}
+			},
+			"opponent": "pyre_beatdown",
+			"options": 2,
+			"root_unchanged": true,
+			"scorer_seeds": [
+				445,
+				446
+			],
+			"turn": 3
+		}
+	]
+}

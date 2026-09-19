@@ -93,9 +93,11 @@ static func _mapped(c: CardInstance, cards: Dictionary) -> CardInstance:
 
 
 static func _mapped_list(list: Array[CardInstance], cards: Dictionary) -> Array[CardInstance]:
+	# Sized once rather than grown a card at a time; Life Decks run to eighty entries.
 	var out: Array[CardInstance] = []
-	for c in list:
-		out.append(cards[c.uid])
+	out.resize(list.size())
+	for i in range(list.size()):
+		out[i] = cards[list[i].uid]
 	return out
 
 
@@ -124,9 +126,10 @@ func seals() -> Array[CardInstance]:
 
 
 func seals_of_set(set_name: String) -> int:
+	# Reads `in_play` directly; seals() would build and throw away a filtered array per call.
 	var n: int = 0
-	for c in seals():
-		if c.def.seal_set == set_name:
+	for c in in_play:
+		if c.def.type == CardDef.Type.SEAL and c.def.seal_set == set_name:
 			n += 1
 	return n
 

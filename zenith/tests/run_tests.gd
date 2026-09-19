@@ -45,6 +45,7 @@ func _init() -> void:
 		test_drill_guard_survives_aspect_change,
 		test_shuffle_discard_takes_only_its_school,
 		test_draw_discard_up_to,
+		test_stopping_an_attack_is_remembered_and_forces_a_pass,
 		test_search_then_runs_even_when_nothing_was_taken,
 		test_place_from_hand_takes_drills_but_not_seals,
 		test_bloodline_gates_on_the_personality_in_control,
@@ -609,6 +610,32 @@ func test_draw_discard_up_to() -> void:
 	e._apply_effect({"op": "draw_discard", "amount": 2, "from": "bottom"}, 0, {}, null)
 	check(e.prompt == null or e.prompt.kind != &"pick_option", "no count is asked")
 	eq(p.discard.size(), 1, "and two came straight out")
+
+
+## "If you stopped an opponent's attack during his previous attack phase, your opponent must pass
+## during his next attack phase." Two rules: the condition is about a block you made, not about
+## your own attack being stopped, and a forced pass is a pass, so it counts toward ending Combat.
+func test_stopping_an_attack_is_remembered_and_forces_a_pass() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_parry"]), "pact"))
+	var them: PlayerState = e.player(1)
+	check(not them.stopped_last_phase and not them.stopped_this_phase, "nobody has stopped anything yet")
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	answer(e, &"defend", uid_in_hand(e, 1, "t_parry"))
+	# The block lands in the attacker's phase; by the time the defender is the attacker, the
+	# record has rolled forward, which is what "his previous attack phase" means.
+	eq(e.state.attacker, them.index, "the phase handed over to the player who blocked")
+	check(them.stopped_last_phase, "and their block is remembered as last phase's")
+	check(not them.stopped_this_phase, "the running record is clear again")
+	check(not e.player(0).stopped_last_phase, "the attacker stopped nothing")
+	# A forced pass is a real pass: it counts toward the two consecutive passes that end Combat.
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	to_combat(f)
+	var defender: PlayerState = f.player(1 - f.state.attacker)
+	defender.pass_next_phase = true
+	answer(f, &"pass")
+	check(not defender.pass_next_phase, "the forced pass was spent")
+	eq(f.state.step, GameState.Step.DISCARD, "two passes in a row ended Combat")
 
 
 ## "After a successful energy attack, pick a Dragon Ball out of your deck and capture a Dragon Ball
@@ -2450,7 +2477,19 @@ func test_look_at_play_option() -> void:
 	answer(e, &"use", uid_in_hand(e, 0, "t_peek_top"))
 	eq(prompt_kind(e), &"pick_option", "one matching card in the top three")
 	answer(e, &"pick_option", e.prompt.options[0].card)
-	eq(e.player(0).drills().size(), 1, "the matching card went straight into play")
+	# "You may place it into play instead": taking it is not the same as playing it, so it asks.
+	eq(prompt_kind(e), &"pick_option", "where it goes is a second question")
+	eq(e.player(0).drills().size(), 0, "nothing is in play until that is answered")
+	answer(e, &"pick_option", e.prompt.options[0].card, "play")
+	eq(e.player(0).drills().size(), 1, "a yes puts the matching card into play")
+	# The same look with a no leaves it in hand instead.
+	var f: DuelEngine = engine(deck(cards), deck(filler(), "pact"))
+	to_combat(f)
+	answer(f, &"use", uid_in_hand(f, 0, "t_peek_top"))
+	answer(f, &"pick_option", f.prompt.options[0].card)
+	answer(f, &"pick_option", f.prompt.options[1].card, "hand")
+	eq(f.player(0).drills().size(), 0, "a no keeps it off the table")
+	check(uid_in_hand(f, 0, "t_drill_footwork_named") >= 0, "and puts it in hand")
 
 
 func test_bond_and_unbond() -> void:

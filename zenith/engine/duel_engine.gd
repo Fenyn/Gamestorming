@@ -889,6 +889,9 @@ func _advance_combat() -> void:
 				state.consecutive_passes = 0
 				_emit(&"attack_phase_skipped", {"player": p.index})
 				state.phase = GameState.Phase.FIGHT_BACK
+			elif p.pass_next_phase:
+				p.pass_next_phase = false
+				_pass(p, true)
 			elif p.must_pass:
 				_pass(p, true)
 			elif not state.control_asked and _prompt_attacker_control(p):
@@ -907,6 +910,9 @@ func _advance_combat() -> void:
 					var list: Array[Dictionary] = [item["effect"]]
 					_queue.append({"effects": list, "index": 0, "trigger": "on_wound", "owner": q.index, "ctx": {}, "source": card(int(item.get("source", -1)))})
 				q.pending_fight_back.clear()
+			for q in state.players:
+				q.stopped_last_phase = q.stopped_this_phase
+				q.stopped_this_phase = false
 			state.attacker = 1 - state.attacker
 			state.control_asked = false
 			state.phase = GameState.Phase.ATTACK
@@ -1414,6 +1420,7 @@ func _register_stop(a: Dictionary) -> void:
 	a["stop_count"] = int(a.get("stop_count", 0)) + 1
 	if int(a["stop_count"]) >= int(a.get("stops_needed", 1)):
 		a["stopped"] = true
+		state.players[1 - int(a["attacker"])].stopped_this_phase = true
 
 
 ## Back to the defense prompt when the attack still needs another stop, else on to the shields.
@@ -2480,6 +2487,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		_emit(&"effect", {"op": op, "owner": owner, "who": who_index, "amount": amount})
 	if bool(e.get("skip_damage", false)) and not state.attack.is_empty():
 		state.attack["prevented_all"] = true
+	# "Raise your or your opponent's Fervor 1": the side is the user's to pick, so the pick comes
+	# first and the effect runs again with `who` settled.
+	if bool(e.get("choose_side", false)):
+		var sides: Array[Command] = [Command.new(owner, &"pick_option", -1, "self"), Command.new(owner, &"pick_option", -1, "opponent")]
+		var settled: Dictionary = e.duplicate(true)
+		settled.erase("choose_side")
+		_choice = {"kind": "discard_side", "effect": settled, "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+		_set_prompt(owner, &"pick_option", sides, _choice_context(source, "choose_side"))
+		return
 	match op:
 		"fervor":
 			_change_fervor(who, int(amount), owner)
@@ -2529,6 +2545,17 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				# Logged with its source, so two effects landing in one update read as two lines.
 				_emit(&"energy_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
 		"draw":
+			# "You may draw up to 3 cards": which cards is settled by the deck, so only the count
+			# is asked, and none is a legal answer.
+			if bool(e.get("up_to", false)) and int(amount) > 1 and not who.life_deck.is_empty():
+				var most: int = mini(int(amount), who.life_deck.size())
+				var counts: Array[Command] = []
+				for k in range(most, 0, -1):
+					counts.append(Command.new(who_index, &"pick_option", -1, str(k)))
+				counts.append(Command.new(who_index, &"pick_none"))
+				_choice = {"kind": "draw_deck_count", "player": who_index}
+				_set_prompt(who_index, &"pick_option", counts, _choice_context(source, "draw_count"))
+				return
 			_draw(who_index, int(amount))
 		"draw_until":
 			while who.hand.size() < int(amount) and not state.is_over():
@@ -2712,6 +2739,9 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			if not _forbidden(me, "end_combat"):
 				_combat_ending = true
 				_emit(&"flag_set", {"player": owner, "flag": "end_combat", "source": source.uid if source != null else -1})
+		"pass_next_phase":
+			who.pass_next_phase = true
+			_emit(&"flag_set", {"player": who_index, "flag": "pass_next_phase", "source": source.uid if source != null else -1})
 		"skip_next_attack_phase":
 			who.skip_next_attack_phase = true
 			_emit(&"flag_set", {"player": who_index, "flag": "skip_next_attack_phase", "source": source.uid if source != null else -1})
@@ -2855,7 +2885,7 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 				if me.hand.size() < int(v):
 					return false
 			"stopped_last_phase":
-				if _has_floating(owner, "stopped_last") != bool(v):
+				if me.stopped_last_phase != bool(v):
 					return false
 			"attack_focused":
 				if bool(a.get("focused", false)) != bool(v):
@@ -3365,6 +3395,20 @@ func _choice_context(source: CardInstance, purpose: String) -> Dictionary:
 	return {"purpose": purpose, "source": source.uid if source != null else -1, "card_title": source.def.title if source != null else ""}
 
 
+## What a "look at the top N" effect does once the card is taken: shuffle the rest back, or hand
+## them to their owner to reorder. True when a prompt opened.
+func _look_at_finish(looker: PlayerState, take: Dictionary) -> bool:
+	if bool(take.get("shuffle_after", false)) and shuffle_decks:
+		rng.shuffle(looker.life_deck)
+	elif bool(take.get("rearrange", false)):
+		var looked: Array[int] = []
+		looked.assign(take.get("looked", []))
+		_choice = {}
+		_prompt_rearrange(looker, looked, str(take.get("from", "top")))
+		return prompt != null
+	return false
+
+
 func _handle_choice(cmd: Command) -> void:
 	var kind: String = str(_choice.get("kind", ""))
 	match kind:
@@ -3385,17 +3429,25 @@ func _handle_choice(cmd: Command) -> void:
 			if cmd.type != &"pick_none":
 				var picked: CardInstance = card(cmd.card)
 				if take.has("play_if") and _search_matches(looker, picked, take["play_if"], "play"):
-					take["to"] = "play"
-				_search_take(looker, picked, take)
-			if bool(take.get("shuffle_after", false)) and shuffle_decks:
-				rng.shuffle(looker.life_deck)
-			elif bool(take.get("rearrange", false)):
-				var looked: Array[int] = []
-				looked.assign(take.get("looked", []))
-				_choice = {}
-				_prompt_rearrange(looker, looked, str(take.get("from", "top")))
-				if prompt != null:
+					# "You may place it into play instead": worth asking, because a Drill already
+					# in play can carry a clause that punishes a second one.
+					_choice = {"kind": "play_or_hand", "player": looker.index, "card": picked.uid, "effect": take}
+					var where: Array[Command] = [
+						Command.new(looker.index, &"pick_option", picked.uid, "play"),
+						Command.new(looker.index, &"pick_option", picked.uid, "hand"),
+					]
+					_set_prompt(looker.index, &"pick_option", where, _choice_context(picked, "play_or_hand"))
 					return
+				_search_take(looker, picked, take)
+			if _look_at_finish(looker, take):
+				return
+		"play_or_hand":
+			var seeker: PlayerState = state.players[int(_choice["player"])]
+			var chosen: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
+			chosen["to"] = "play" if str(cmd.value) == "play" else "hand"
+			_search_take(seeker, card(int(_choice["card"])), chosen)
+			if _look_at_finish(seeker, chosen):
+				return
 		"rearrange":
 			var p: PlayerState = state.players[int(_choice["player"])]
 			var placed: int = int(_choice["placed"])
@@ -3459,6 +3511,9 @@ func _handle_choice(cmd: Command) -> void:
 				var got: CardInstance = _draw_discard(drawer, int(str(cmd.value)), str(want.get("from", "bottom")))
 				if want.has("if_school") and got != null and got.def.school == str(want["if_school"]):
 					_enqueue(want.get("effects", []), "secondary", int(_choice["owner"]), _choice["ctx"], card(int(_choice.get("source", -1))))
+		"draw_deck_count":
+			if cmd.type != &"pick_none":
+				_draw(int(_choice["player"]), int(str(cmd.value)))
 		"discard_side":
 			var side: Dictionary = (_choice["effect"] as Dictionary).duplicate(true)
 			side["who"] = str(cmd.value)

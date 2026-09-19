@@ -658,6 +658,7 @@
 		"trigger": "entering_combat",
 		"op": "draw",
 		"amount": 3,
+		"up_to": true,
 		"role": "active"
 	   }
 	  ]
@@ -1679,6 +1680,7 @@
    "effects": [
 	{
 	 "trigger": "entering_combat",
+	 "may": true,
 	 "op": "search",
 	 "card_type": "drill",
 	 "school": "",
@@ -2444,8 +2446,7 @@
 	 ]
 	}
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "quiet_study",
@@ -2463,8 +2464,7 @@
 	  }
 	 ]
 	}
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "dismissal",
@@ -3054,7 +3054,7 @@
 	  },
 	  "effects": [
 	   {
-		"op": "skip_next_attack_phase",
+		"op": "pass_next_phase",
 		"who": "opponent"
 	   }
 	  ]
@@ -3282,7 +3282,7 @@
    "effects": [
 	{
 	 "op": "search",
-	 "card_type": "hand_combat",
+	 "signature_of": "duelist",
 	 "source": "discard",
 	 "to": "hand"
 	}
@@ -3321,7 +3321,8 @@
    "effects": [
 	{
 	 "op": "fervor",
-	 "amount": 1
+	 "amount": 1,
+	 "choose_side": true
 	},
 	{
 	 "op": "float",
@@ -3629,9 +3630,9 @@
 	 "to": "duelist"
 	}
    ],
-   "limit_per_deck": 1,
    "attachment": {
 	"target": "duelist",
+	"limit_attached": 1,
 	"title_contains": "Sword",
 	"damage_removes": true,
 	"modifiers": [
@@ -3735,7 +3736,6 @@
    "title": "No Retreat Drill",
    "type": "drill",
    "school": "",
-   "limit_per_deck": 1,
    "forbid": [
 	{
 	 "who": "all",

@@ -2,7 +2,7 @@ Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
 
 absorbing_drill: Stops an Art. Costs 2 life cards to use.
 all_or_nothing: Focused Strike doing +4 Energy. Cannot be stopped by Strike cards. Raise your Fervor 1. Remove from the game after use.
-ancient_grove: When entering Combat, search your Life Deck for a Freestyle Drill and put it into play. Your attacks do +2 Energy.
+ancient_grove: When entering Combat, you may search your Life Deck for a Freestyle Drill and put it into play. Your attacks do +2 Energy.
 black_hands: Sable Draik only. Art dealing 6 wounds. For the remainder of Combat, damage from your attacks cannot be prevented. If you have 2 or more Allies in play, Remain 1. Remove from the game after use.
 blank_mask: Reserve 13. Twice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn. Limit 1 per deck.
 blinding_flare: Art. Hit: Your opponent may not use Strike cards for the remainder of Combat.
@@ -48,16 +48,16 @@ grounding_step: Stops an Art. Stops all Arts for the remainder of Combat. Remove
 guardian_drill: Use in Combat: Place a Non-Combat card or Drill from your hand into play. Once per Combat.
 halvards_twin_cut: Focused Strike doing +4 Energy. If Halvard Draik is in control, your opponent discards a card from hand. If Halvard Draik is in control, stops a Strike. Hit: Search your Life Deck for an Ally and put it into play at Energy 4.
 headlong_plunge: Endurance 2. Focused Strike doing +3 Energy. Empower 3. Raise your Fervor 1. Lower your opponent's Fervor 1. Discard an Ally in play. Gain 3 Energy. Place at the bottom of your Life Deck after use.
-heirloom_blade: Use in Combat: Attach this card to your duelist. While attached to your duelist: Your "Sword" attacks do +3 wounds. Wounds from those attacks are removed from the game. Limit 1 per deck.
+heirloom_blade: Use in Combat: Attach this card to your duelist. While attached to your duelist: Your "Sword" attacks do +3 wounds. Wounds from those attacks are removed from the game. Limit 1 attached.
 henchman_alpha: Limit 1 per deck.
 henchman_beta: Limit 1 per deck.
 henchman_delta: Limit 1 per deck.
 henchman_epsilon: Limit 1 per deck.
 henchman_gamma: Limit 1 per deck.
 henchman_zeta: Limit 1 per deck.
-hilt_guard: Stops a Strike. Search your discard pile for a Strike, Art, or Combat card and put it into your hand. Remove from the game after use.
+hilt_guard: Stops a Strike. Search your discard pile for a Signature card and put it into your hand. Remove from the game after use.
 hired_blades: Search your Life Deck or discard pile for an Ally and put it into play at Energy 10.
-keen_eye: Draw a card. If it is a Signature card, draw a card. Remove from the game after use. Limit 1 per deck.
+keen_eye: Draw a card. If it is a Signature card, draw a card. Remove from the game after use.
 keepers_drill: Your Seals cannot be captured.
 kept_at_bay: Your opponent may not perform Strikes for the remainder of Combat.
 kins_rescue: Use in Combat: Stops all attacks for the remainder of Combat. If Marble Seal 7 is in play, discard this card after use instead. Remove from the game after use. Limit 1 per deck.
@@ -85,7 +85,7 @@ moth_seal_6: Your opponent takes 3 wounds. Limit 1 per deck.
 moth_seal_7: Draw 3 cards. Limit 1 per deck.
 mutual_escalation: Raise your Fervor 6. Raise your opponent's Fervor 6. You cannot win by Ascension for the rest of the game.
 no_quarter: Strike doing +3 Energy. Neither player may use cards that end Combat or use cards that stop all attacks for the remainder of Combat.
-no_retreat_drill: Neither player may use cards that end Combat. Limit 1 per deck.
+no_retreat_drill: Neither player may use cards that end Combat.
 old_habit: Strike. Draw the bottom card of your discard pile. Remove from the game after use.
 old_trick: Search your Reserve for an attack card and perform it during this attack phase. Remove from the game after use.
 open_challenge: Use during your opponent's Declare step: Discard a card from your hand. Your opponent must declare Combat this turn. Begins the game in play. Remove from the game after use. Limit 1 per deck.
@@ -113,9 +113,9 @@ pyre_snuffing: Strike doing +3 Energy. If your opponent's Fervor is 0, damage ca
 pyre_twin_flames: Strike. Raise your Fervor 1. Remain 1.
 quarrs_crushing_blow: Endurance X. X = 6 if Halden Quarr is your duelist, otherwise 3. Strike doing +2 wounds. If Halden Quarr is in control, +3 Energy and your opponent discards a Non-Combat card in play of your choice.
 quarrs_roar: Art dealing 6 wounds. If Halden Quarr is in control, your opponent may not use Combat cards for the remainder of Combat. Remove from the game after use.
-quick_retreat: Stops a Strike or an Art. Raise your Fervor 1. For the remainder of Combat, the next attack against you is stopped.
+quick_retreat: Stops a Strike or an Art. Raise your or your opponent's Fervor 1. For the remainder of Combat, the next attack against you is stopped.
 quickness_drill: When entering Combat, draw the bottom card of your discard pile.
-quiet_study: Draw a card. If it is one of your duelist's Signature cards, draw a card. Limit 1 per deck.
+quiet_study: Draw a card. If it is one of your duelist's Signature cards, draw a card.
 rallying_call: Raise your duelist's and every Ally's Energy to full. Search your Life Deck or discard pile for an Ally and put it into play at Energy 3. Remove from the game after use.
 recalled_lesson: Use in Combat: Search your Life Deck or discard pile for a Strike or Art card and put it into your hand. Limit 1 per deck.
 reckless_ascent: Use at the end of Combat. You cannot win by Ascension for the rest of the game. Move your duelist to the aspect equal to your Fervor.
@@ -220,7 +220,7 @@ trampled_crossroads: Neither player may use Non-Combat cards.
 unerring_bolt: Art. Cannot be stopped. Damage cannot be prevented. Remove from the game after use.
 unyielding_guard: Stops a Strike. Stops all Strikes for the remainder of Combat. Remove from the game after use.
 vales_insight: Use in Combat: Search your Life Deck for up to 2 Signature cards and put them into your hand. Remove from the game after use.
-vales_pommel_bash: Endurance 2. Strike doing +4 Energy. If Caedan Vale is your duelist and your previous attack was stopped, your opponent skips their next attack phase. Raise your Fervor 1.
+vales_pommel_bash: Endurance 2. Strike doing +4 Energy. If Caedan Vale is your duelist and you stopped an attack in their last attack phase, your opponent must pass during their next attack phase. Raise your Fervor 1.
 vales_quickstep: Strike doing +4 Energy. Empower 2. Lower your opponent's Fervor 2. If Caedan Vale is your duelist, search your discard pile for a Signature card and put it into your hand. Remove from the game after use.
 vales_riposte: Stops a Strike. In your next attack phase you may repeat the attack it stopped.
 vales_sword_draw: Strike doing +4 Energy. Raise your Fervor 1. Hit: Search your Life Deck for a "Sword" card other than "Vale's Sword Draw" and put it into your hand.

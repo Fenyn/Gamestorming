@@ -29,6 +29,9 @@ var cannot_declare_combat: bool = false
 # Per-Combat flags
 var final_strike_used: bool = false
 var must_pass: bool = false
+var pass_next_phase: bool = false      # "your opponent must pass during his next attack phase"
+var stopped_this_phase: bool = false   # this player stopped an attack in the phase now running
+var stopped_last_phase: bool = false   # ...and in the one before it, which some cards ask about
 var skip_next_attack_phase: bool = false
 # Cross-turn flags
 var seal_victory_pending: bool = false
@@ -68,6 +71,9 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.cannot_declare_combat = cannot_declare_combat
 	p.final_strike_used = final_strike_used
 	p.must_pass = must_pass
+	p.pass_next_phase = pass_next_phase
+	p.stopped_this_phase = stopped_this_phase
+	p.stopped_last_phase = stopped_last_phase
 	p.skip_next_attack_phase = skip_next_attack_phase
 	p.seal_victory_pending = seal_victory_pending
 	p.no_ascension_win = no_ascension_win
@@ -142,6 +148,9 @@ func reset_combat_flags() -> void:
 	pending_fight_back.clear()
 	final_strike_used = false
 	must_pass = false
+	pass_next_phase = false
+	stopped_this_phase = false
+	stopped_last_phase = false
 	skip_next_attack_phase = false
 	controlling = duelist
 	attack_count_combat = 0

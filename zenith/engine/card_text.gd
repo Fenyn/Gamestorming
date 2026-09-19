@@ -545,7 +545,7 @@ static func cond_text(when: Dictionary) -> String:
 			"hand_min":
 				parts.append("you have a card in hand" if int(v) <= 1 else "you have %d or more cards in hand" % int(v))
 			"stopped_last_phase":
-				parts.append("your previous attack was stopped" if bool(v) else "your previous attack was not stopped")
+				parts.append("you stopped an attack in their last attack phase" if bool(v) else "you stopped no attack in their last attack phase")
 			"attack_focused":
 				parts.append("the attack is Focused" if bool(v) else "the attack is not Focused")
 			"source_school":
@@ -572,6 +572,9 @@ static func _effect_body(e: Dictionary) -> String:
 	var n: int = int(amount) if not (amount is String) else 0
 	var body: String = ""
 	match str(e.get("op", "")):
+		"fervor" when bool(e.get("choose_side", false)):
+			# The side is the user's to pick, so neither is named.
+			body = "%s your or your opponent's Fervor %d." % [("Raise" if n >= 0 else "Lower"), absi(n)]
 		"fervor":
 			body = "%s %s Fervor %d." % [("Raise" if n >= 0 else "Lower"), owner, absi(n)]
 		"set_fervor":
@@ -603,6 +606,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "%s %d Energy." % [("Gain" if n >= 0 else "Lose"), absi(n)]
 		"set_energy":
 			body = "Set %s Energy to %d." % [owner, n]
+		"draw" when bool(e.get("up_to", false)) and n > 1:
+			body = ("Your opponent may draw up to %d cards." if opp else "You may draw up to %d cards.") % n
 		"draw":
 			body = ("Your opponent draws %s." if opp else "Draw %s.") % _plural(n, "card", "cards")
 		"draw_until":
@@ -696,6 +701,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "Place the %s of your discard pile at the bottom of your Life Deck." % moved
 		"end_combat":
 			body = "End Combat."
+		"pass_next_phase":
+			body = "Your opponent must pass during their next attack phase." if opp else "You must pass during your next attack phase."
 		"skip_next_attack_phase":
 			body = "Your opponent skips their next attack phase." if opp else "Skip your next attack phase."
 		"cannot_declare_combat":
@@ -1374,6 +1381,10 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			var ctx: Dictionary = engine.prompt.context if engine != null and engine.prompt != null else {}
 			if str(ctx.get("purpose", "")) == "deck_loss_guard":
 				return "Discard it and lose %d fewer" % int(ctx.get("reduce", 0))
+			if str(ctx.get("purpose", "")) == "choose_side":
+				return "Yourself" if str(cmd.value) == "self" else "Your opponent"
+			if str(ctx.get("purpose", "")) == "play_or_hand":
+				return "Put it into play" if str(cmd.value) == "play" else "Put it into your hand"
 			if name != "":
 				return name
 			if str(ctx.get("purpose", "")) == "draw_count":
@@ -1743,6 +1754,8 @@ static func _flag_line(engine: DuelEngine, d: Dictionary) -> String:
 	var by: String = _cname(engine, int(d.get("source", -1)))
 	var lead: String = "%s: " % by if by != "a card" else ""
 	match str(d.get("flag", "")):
+		"pass_next_phase":
+			return "%s%s must pass in their next attack phase." % [lead, pname]
 		"skip_next_attack_phase":
 			return "%s%s will skip their next attack phase." % [lead, pname]
 		"cannot_declare_combat":

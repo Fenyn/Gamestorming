@@ -33,7 +33,7 @@ const LINE_COLOR: Color = Color(0.68, 0.54, 0.29, 0.14)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
-	&"ally": {"marker": "AllyStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Allies"},
+	&"ally": {"marker": "AllyStart", "slots": 4, "step": 0.60, "scale": 1.0, "label": "Allies"},
 	&"drill": {"marker": "DrillStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Drills"},
 	&"non_combat": {"marker": "NonCombatStart", "slots": 5, "step": ROW_STEP, "scale": 1.0, "label": "Non-Combat"},
 	&"seal": {"marker": "SealStart", "slots": 7, "step": SEAL_STEP, "scale": SEAL_SCALE, "label": "Seals"},
@@ -135,7 +135,7 @@ func refresh_occupancy(view: SeatView) -> void:
 			&"duelist": count = 1
 			&"resolving": count = view.resolving.size()
 			&"grounds": count = int(view.grounds >= 0)
-		label.visible = count > 0 and zone != &"duelist" and zone != &"resolving"
+		label.visible = count > 0 and zone not in [&"duelist", &"resolving", &"life_deck"]
 		label.text = str(label.get_meta("title"))
 		if zone in [&"life_deck", &"discard", &"removed"]:
 			var title: String = "LIFE" if zone == &"life_deck" else ("OUT" if zone == &"removed" else "DISCARD")

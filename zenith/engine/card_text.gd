@@ -1696,7 +1696,11 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"combat_declared":
 			return "%s declares Combat!" % pname
 		&"combat_skipped":
-			return "%s skips Combat." % pname
+			if not bool(d.get("forced", false)):
+				return "%s skips Combat." % pname
+			if str(d.get("reason", "")) == "grounds":
+				return "%s placed Grounds this turn, so Combat is skipped." % pname
+			return "%s cannot declare Combat, so it is skipped." % pname
 		&"pass":
 			return "%s passes." % pname
 		&"attack_declared":

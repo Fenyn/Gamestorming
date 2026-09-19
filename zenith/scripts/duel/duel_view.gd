@@ -123,10 +123,19 @@ func _process(_delta: float) -> void:
 		return
 	var overlay: bool = hud.tray.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible
 	hand_3d.set_available(view != null and viewer >= 0 and not overlay)
-	hand_3d.enabled = not busy and not _awaiting_answer and prompt != null
+	hand_3d.enabled = _can_choose()
 	camera.hand_navigation = hand_3d.keyboard_active or overlay
-	near_duelist.interactive = not overlay and not busy
-	far_duelist.interactive = not overlay and not busy
+	var hand_blocks: bool = _hand_blocks_board()
+	var board_interactive: bool = not overlay and not hand_blocks
+	near_duelist.interactive = board_interactive
+	far_duelist.interactive = board_interactive
+	for value in views.values():
+		var board_card: Card3D = value
+		board_card.pick.input_ray_pickable = board_interactive
+		if not board_interactive and board_card._hovering:
+			board_card.set_hovered(false)
+	if hand_blocks:
+		hud.hide_peek()
 	_layout_fixtures()
 	focus_card.visible = hud.focus.visible and not overlay
 	if focus_card.visible and view != null:
@@ -156,6 +165,9 @@ func _layout_fixtures() -> void:
 		var card_depth: float = -camera.to_local(card.global_position).z
 		var card_units: float = camera.project_position(Vector2(1, 0), card_depth).distance_to(camera.project_position(Vector2.ZERO, card_depth))
 		fixture.surface.pixel_size = width / 760.0 * card_units
+		var owner: int = view.card(fixture.duelist_uid).owner
+		var count: int = view.player(owner).life_deck.size()
+		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
 		fixture.anchor_to_card(card, camera)
 	var focus_rect: Rect2 = hud.focus.get_global_rect()
 	var focus_width: float = focus_rect.size.x
@@ -181,6 +193,8 @@ func _set_hand(legal: Dictionary) -> void:
 
 
 func _on_hand_hovered(uid: int, on: bool) -> void:
+	if on:
+		hud.hide_peek()
 	hud.preview_hand_card(uid, on)
 	var forecast: Dictionary = view.forecast(uid) if on and view != null else {}
 	near_duelist.preview_energy(int(forecast.get("cost_stages", 0)))
@@ -288,7 +302,7 @@ func _present_prompt() -> void:
 
 
 ## The AI seat's decision. The search runs on a worker thread so the table keeps drawing; the
-## host is not touched from here until it returns, because `busy` holds every other input.
+## host is not mutated from here until it returns. Browsing uses the client's public view.
 func _ai_turn() -> void:
 	busy = true
 	var started: int = Time.get_ticks_msec()
@@ -353,8 +367,13 @@ func _hand_cards() -> Array[SeatCard]:
 	return out
 
 
+func _can_choose() -> bool:
+	return not busy and not _awaiting_answer and view != null and not view.is_over() \
+		and prompt != null and viewer >= 0 and view.deciding == viewer and prompt.player == viewer
+
+
 func _on_option_chosen(opt: OptionView) -> void:
-	if busy or _awaiting_answer or prompt == null:
+	if not _can_choose():
 		return
 	var wire: Dictionary = opt.to_command(viewer).to_dict()
 	if not authority:
@@ -393,7 +412,8 @@ func _on_dev_command(effect: Dictionary) -> void:
 func _apply(seat: int, wire: Dictionary) -> void:
 	busy = true
 	hud.clear_prompt()
-	hud.hide_inspect()
+	if seat == viewer:
+		hud.hide_inspect()
 	_clear_highlights()
 	var result: Dictionary = duel_host.apply(seat, wire)
 	var problem: String = str(result["problem"])
@@ -852,8 +872,14 @@ func _on_select() -> void:
 
 # --- Cards ----------------------------------------------------------------
 
+func _hand_blocks_board() -> bool:
+	return hand_3d.visible and (hand_3d.keyboard_active or hand_3d.blocks_pointer(get_viewport().get_mouse_position()))
+
+
 func _on_card_clicked(uid: int) -> void:
-	if busy or _awaiting_answer or prompt == null:
+	if _hand_blocks_board() and (view == null or viewer < 0 or not view.player(viewer).hand.has(uid)):
+		return
+	if not _can_choose():
 		return
 	var all: Array[OptionView] = prompt.options_for_card(uid)
 	var opts: Array[OptionView] = []
@@ -869,6 +895,12 @@ func _on_card_clicked(uid: int) -> void:
 
 
 func _on_card_hovered(uid: int, over: bool) -> void:
+	if _hand_blocks_board():
+		hud.hide_peek()
+		var board_card: Card3D = views.get(uid)
+		if board_card != null and board_card._hovering:
+			board_card.set_hovered(false)
+		return
 	if not over or view == null:
 		hud.hide_peek()
 		return
@@ -881,6 +913,8 @@ func _on_card_hovered(uid: int, over: bool) -> void:
 
 func _on_card_inspected(uid: int) -> void:
 	if view == null:
+		return
+	if _hand_blocks_board() and (viewer < 0 or not view.player(viewer).hand.has(uid)):
 		return
 	var c: SeatCard = view.card(uid)
 	if c == null or c.hidden():

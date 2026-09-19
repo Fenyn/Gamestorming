@@ -12,6 +12,7 @@ const FACE_SIZE: Vector2 = Vector2(512, 716)
 const CARD_WIDTH: float = 192.0
 const EXPANDED_WIDTH: float = 390.0
 const REVEAL_FRACTION: float = 0.15
+const RESTING_VISIBLE_FRACTION: float = 0.15
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 
 @export var reduced_motion: bool = false
@@ -53,6 +54,7 @@ func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, v
 		var face: Sprite3D = Sprite3D.new()
 		face.texture = cache.face(def, card.aspect)
 		face.shaded = false
+		face.no_depth_test = true
 		face.double_sided = false
 		face.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		holder.add_child(face)
@@ -174,6 +176,7 @@ func _label(font_size: int, color: Color) -> Label3D:
 	label.outline_size = 12
 	label.outline_modulate = Color(0.025, 0.03, 0.045, 0.95)
 	label.shaded = false
+	label.no_depth_test = true
 	label.double_sided = false
 	return label
 
@@ -228,23 +231,27 @@ func _layout(snap: bool = false) -> void:
 			center.x = clampf(center.x, 280.0, _size.x - 455.0)
 			_expanded_rect = Rect2(center - Vector2(width, height) * scale_factor * 0.5, Vector2(width, height) * scale_factor)
 		if not revealed:
-			# The complete card, its title, and its aura rest below the viewport.
-			center.y = _size.y + height * 0.5 + 110.0 + absf(offset) * 5.0
+			# A shallow strip of real card tops advertises the tucked hand.
+			center.y = _size.y + height * (0.5 - RESTING_VISIBLE_FRACTION)
 		var depth: float = DEPTH - (0.2 if over else 0.001 * i)
 		item["target"] = _camera.to_local(_camera.project_position(center, depth))
 		item["scale"] = scale_factor * depth / DEPTH
 		item["angle"] = 0.0 if over else deg_to_rad(-offset * 2.0)
 		var face: Sprite3D = item["face"]
 		face.pixel_size = width / FACE_SIZE.x * units
+		face.render_priority = 30 if over else 10 + i % _per_page
 		face.modulate = Color.WHITE if bool(item["legal"]) or over else Color(0.84, 0.85, 0.89)
 		var edge: MeshInstance3D = item["edge"]
 		(edge.mesh as QuadMesh).size = Vector2(width, height) * units * 1.10
 		var title: Label3D = item["title"]
+		title.render_priority = face.render_priority
 		title.pixel_size = units * 0.5
 		title.width = width * 2.0 - 12.0
 		title.position = Vector3(0, height * units * 0.5 + 24.0 * units, 0.004)
-		title.visible = not over
+		title.visible = revealed and not over
 		var summary: Label3D = item["summary"]
+		summary.render_priority = face.render_priority + 1
+		summary.visible = revealed
 		summary.pixel_size = units * 0.5 / scale_factor
 		summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units / scale_factor, 0.005)
 		if snap:
@@ -254,10 +261,10 @@ func _layout(snap: bool = false) -> void:
 	var pages: int = maxi(1, ceili(float(_items.size()) / _per_page))
 	_hint.text = "H · browse hand   Right-click · inspect" if pages == 1 else "Hand %d / %d   Wheel · browse   H · select" % [_page + 1, pages]
 	if not revealed:
-		_hint.text = "Hand %d  |  Move here or press H" % _items.size()
+		_hint.text = "Hand %d  |  H" % _items.size()
 	_hint.pixel_size = units * 0.5
 	_hint.position = _camera.to_local(_camera.project_position(Vector2(_size.x * 0.52, _size.y - 15.0), DEPTH - 0.25))
-	_hint.visible = not _items.is_empty() and _hovered < 0
+	_hint.visible = revealed and not _items.is_empty() and _hovered < 0
 
 
 func _units_per_pixel() -> float:
@@ -314,11 +321,22 @@ func _update_pointer(point: Vector2) -> void:
 	_set_hover(_hit(point))
 
 
+## The table uses this same footprint to suppress ray picking and background tooltips.
+func blocks_pointer(point: Vector2) -> bool:
+	if not visible or _items.is_empty():
+		return false
+	var bottom: bool = point.y >= _size.y * (1.0 - REVEAL_FRACTION) and Rect2(Vector2.ZERO, _size).has_point(point)
+	return bottom or (revealed and _hit(point, true) >= 0)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
 	if event is InputEventMouseMotion:
-		_update_pointer((event as InputEventMouseMotion).position)
+		var point: Vector2 = (event as InputEventMouseMotion).position
+		_update_pointer(point)
+		if blocks_pointer(point):
+			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event
 		var hit: int = _hit(mb.position, true)

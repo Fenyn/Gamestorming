@@ -1,8 +1,9 @@
 {
-	"_note": "Beatdown that pays in cards: the list spends life cards for damage and draws deep, so life is cheap and the hand is dear. Fervor is the ramp to the twice-a-Combat Power, so it is worth more than Pyre's plain climb.",
+	"_note": "docs/strategy.md, Steel - Emrys Rooke. A stage-damage beatdown with three subthemes hanging off it. Only one of its 34 attacks deals printed life (Steel Reverse), so `damage_stage` is level with `damage_life`: stages past the target's Energy overflow into wounds one for one, and the permanents (2 Conditioning Drill at +2, 3 Long Year at +1) push every Strike past that buffer. Subtheme one, Energy denial: 9 blocks strip 3 or 4 Energy while they stop the attack, which also drops the rival's Might band and so raises our own table damage, hence `foe.energy` and `foe.band` high. Subtheme two, board removal: Headbutt, two Dismissals, Rites Unmade, Spoiled Rite, Marble Seal 4, the Locked Gate Drill and the Aspect 3 power all take permanents off, so `effect.discard_in_play` and the `foe` permanent weights are up. Subtheme three, card flow, all of it on entering_combat, which is why `declare_bias` stays high. Fervor is a by-product of four attacks it would play anyway: `fervor_self` prices our own gain low while `effect.fervor` stays high for Declaration and the critical-damage option, because policing their climb is the plan (Mourne Takes the Measure answers the win outright). 19 defense cards, several of which strip Energy or copy the attack back, so `defend_card` is well above the old 0.9.",
 	"name": "steel_heir",
-	"own": {"ascension": 9.0, "aspect": 9.0, "band": 1.8, "energy": 0.9, "life": 0.8, "hand": 1.8, "seal": 0.0, "ally": 1.0},
-	"foe": {"life": 1.7, "energy": 1.1, "band": 1.5, "ascension": 20.0},
-	"effect": {"fervor": 2.8, "draw": 2.0, "forbid": 1.6, "energy": 0.8},
-	"play": {"damage_life": 1.4, "damage_stage": 1.0, "declare_bias": 2.6, "defend_card": 0.9, "final_strike_penalty": 5.0}
+	"own": {"life": 1.0, "energy": 1.0, "band": 2.2, "hand": 1.6, "aspect": 2.0, "ascension": 3.0, "seal": 0.0, "ally": 1.5, "drill": 4.0, "non_combat": 2.2, "grounds": 10.0},
+	"foe": {"life": 1.3, "energy": 1.7, "band": 2.0, "ascension": 32.0, "ally": 3.0, "non_combat": 2.5, "drill": 3.0},
+	"effect": {"fervor": 2.4, "fervor_self": 0.8, "draw": 2.0, "search": 2.2, "float": 3.0, "forbid": 2.0, "energy": 1.3, "discard_in_play": 3.0, "stop_all": 2.8},
+	"play": {"damage_life": 1.2, "damage_stage": 1.4, "attack_cost": 0.7, "declare_bias": 2.6, "defend_card": 1.5, "final_strike_penalty": 5.0, "grounds_skip": 0.3},
+	"think": {"turns": 3}
 }

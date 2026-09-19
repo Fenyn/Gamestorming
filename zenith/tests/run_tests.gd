@@ -160,6 +160,7 @@ func _init() -> void:
 		test_a_restriction_can_last_one_attack_phase_not_the_whole_combat,
 		test_a_profile_can_pivot_on_the_matchup,
 		test_a_profile_can_pivot_on_where_the_duel_stands,
+		test_a_forced_combat_skip_says_why,
 		test_command_wire_lockstep,
 		test_uids_hide_deck_order,
 		test_seat_view_masks_hidden_cards,
@@ -2042,6 +2043,27 @@ func test_a_profile_can_pivot_on_the_matchup() -> void:
 	var both: AiProfile = base.for_matchup("strike_beatdown", ["seals"])
 	eq(both.w("play", "declare_bias"), 5.0, "and the subtheme is the finer statement, so it wins")
 	eq(both.w("own", "ally"), 9.0, "while the archetype's other weights still apply")
+
+
+## Placing Grounds costs you the Combat that turn, so the turn can end without Combat ever being
+## offered. The log has to say why, or it reads as the game skipping your turn for no reason.
+func test_a_forced_combat_skip_says_why() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_grounds_weight"])), deck(filler(), "pact"))
+	var uid: int = uid_in_hand(e, 0, "t_grounds_weight")
+	check(uid >= 0, "the Grounds are in the opening hand")
+	eq(prompt_kind(e), &"non_combat", "a turn opens on the Non-Combat step")
+	answer(e, &"place", uid)
+	check(e.player(0).placed_grounds, "the seat is marked as having placed Grounds")
+	while prompt_kind(e) == &"non_combat":
+		answer(e, &"done")
+	check(not has_event(e, &"combat_declared"), "Combat was never offered")
+	var said: String = ""
+	for ev in e.events:
+		if ev.type == &"combat_skipped":
+			check(bool(ev.data.get("forced", false)), "the skip was forced, not chosen")
+			eq(str(ev.data.get("reason", "")), "grounds", "and the reason names the Grounds")
+			said = CardText.event_line(ev, e, 0)
+	check(said.contains("placed Grounds"), "the log explains the missing Combat: '%s'" % said)
 
 
 ## The other pivot axis: a deck can hold back until its plan is on the table and then press. The

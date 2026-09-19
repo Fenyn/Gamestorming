@@ -25,3 +25,17 @@ shaded = false
 no_depth_test = true
 double_sided = true
 texture_filter = 1
+
+[node name="LifeValue" type="Label3D" parent="."]
+billboard = 1
+no_depth_test = true
+font_size = 64
+outline_size = 14
+modulate = Color(0.97, 0.76, 0.39, 1)
+
+[node name="LifeCaption" type="Label3D" parent="."]
+billboard = 1
+no_depth_test = true
+font_size = 28
+outline_size = 10
+text = "LIFE"

@@ -17,6 +17,11 @@ var card_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 		update_layout()
 		queue_redraw()
 var stat_hit_rects: Array[Rect2] = []
+var duelist_bounds: Rect2 = Rect2(-80, -90, 160, 180):
+	set(value):
+		duelist_bounds = value
+		update_layout()
+		queue_redraw()
 var _life: int = 0
 var _energy: int = 0
 var _might: int = 0
@@ -135,92 +140,81 @@ func _set_flash(value: float) -> void:
 	queue_redraw()
 
 
-## Pure layout calculation also updates picking bounds without requiring a render frame.
+## All combat resources share one fixture outside both the duelist and Life Deck.
 func update_layout() -> Dictionary:
 	stat_hit_rects.clear()
-	# Every ornament follows the actual projected edges, including during camera zoom.
-	var top: float = card_bounds.position.y
-	var left_x: float = card_bounds.position.x - 160.0
-	var right_x: float = card_bounds.end.x + 160.0
-	var title_y: float = top - 88.0
-	var control_y: float = top - 45.0
-	var middle_y: float = card_bounds.get_center().y
-	var center: Vector2 = Vector2(left_x, middle_y - 10.0)
-	var might_center: Vector2 = Vector2(right_x, middle_y - 20.0)
-	var aspect_y: float = center.y + 119.0
-	var fervor_y: float = might_center.y + 92.0
-	var rune_y: float = fervor_y + 26.0
-	var stats_bottom: float = maxf(card_bounds.end.y, maxf(aspect_y, rune_y + 10.0))
 	var far_side: bool = _player_index != _viewer
-	var piles_y: float = title_y - 68.0 if far_side else stats_bottom + 68.0
-	var first_row: float = piles_y - 92.0 if far_side else piles_y + 44.0
-	stat_hit_rects.append(Rect2(-350, title_y - 44, 700, 87))
-	stat_hit_rects.append(Rect2(left_x - 115, center.y - 143, 230, aspect_y - center.y + 151))
-	stat_hit_rects.append(Rect2(right_x - 115, might_center.y - 60, 230, rune_y - might_center.y + 80))
-	stat_hit_rects.append(Rect2(-345, piles_y - 32, 690, 38))
+	var middle_x: float = duelist_bounds.get_center().x
+	var tracker_y: float = card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0
+	var tracker: Rect2 = Rect2(middle_x - 270.0, tracker_y, 540.0, 160.0)
+	var title_y: float = tracker_y - 78.0 if far_side else minf(duelist_bounds.position.y, card_bounds.position.y) - 88.0
+	var piles_y: float = title_y - 56.0 if far_side else tracker.end.y + 46.0
+	var first_row: float = piles_y - 84.0 if far_side else piles_y + 40.0
+	stat_hit_rects.append(tracker)
+	stat_hit_rects.append(Rect2(middle_x - 350, title_y - 44, 700, 84))
+	stat_hit_rects.append(Rect2(middle_x - 345, piles_y - 29, 690, 34))
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		stat_hit_rects.append(Rect2(-345, first_row - 28, 690, 34))
-	var lines: PackedStringArray = _wrap_flags(690, 30)
+		stat_hit_rects.append(Rect2(middle_x - 345, first_row - 28, 690, 34))
+	var lines: PackedStringArray = _wrap_flags(690, 27)
 	for i in range(mini(lines.size(), flag_rows)):
-		stat_hit_rects.append(Rect2(-345, first_row + (i + 2 - flag_rows) * 36.0 - 28, 690, 34))
-	return {"top": top, "left": left_x, "right": right_x, "title": title_y,
-		"control": control_y, "energy": center, "might": might_center,
-		"aspect": aspect_y, "fervor": fervor_y, "runes": rune_y, "piles": piles_y, "flags": first_row}
+		stat_hit_rects.append(Rect2(middle_x - 345, first_row + (i + 2 - flag_rows) * 36.0 - 28, 690, 34))
+	return {"tracker": tracker, "title": title_y, "control": title_y + 42.0,
+		"piles": piles_y, "flags": first_row, "middle": middle_x}
 
 
 func _draw() -> void:
 	if not _initialized:
 		return
-	draw_set_transform(Vector2(800, 800))
+	draw_set_transform(size * 0.5)
 	var layout: Dictionary = update_layout()
-	var top: float = float(layout["top"])
-	var left_x: float = float(layout["left"])
-	var right_x: float = float(layout["right"])
-	var center: Vector2 = layout["energy"]
-	var might_center: Vector2 = layout["might"]
-	var aspect_y: float = float(layout["aspect"])
-	var fervor_y: float = float(layout["fervor"])
-	var rune_y: float = float(layout["runes"])
-	var piles_y: float = float(layout["piles"])
+	var tracker: Rect2 = layout["tracker"]
+	var origin: Vector2 = tracker.position
+	var middle_x: float = float(layout["middle"])
 	var first_row: float = float(layout["flags"])
-	_text(_title, Vector2(-350, float(layout["title"])), 700, 42, TEXT, true)
-	_text(_control, Vector2(-350, float(layout["control"])), 700, 32, _accent, true)
-	if _flash > 0:
-		draw_arc(center, 85 + 9 * (1.0 - _flash), deg_to_rad(135), deg_to_rad(405), 48, Color(ENERGY, _flash * 0.7), 4, true)
+	_text(_title, Vector2(middle_x - 350, float(layout["title"])), 700, 42, TEXT, true)
+	_text(_control, Vector2(middle_x - 350, float(layout["control"])), 700, 32, _accent, true)
+	var corners: PackedVector2Array = PackedVector2Array([
+		origin + Vector2(18, 0), origin + Vector2(522, 0),
+		origin + Vector2(540, 18), origin + Vector2(540, 142),
+		origin + Vector2(522, 160), origin + Vector2(18, 160),
+		origin + Vector2(0, 142), origin + Vector2(0, 18)])
+	draw_colored_polygon(corners, INK)
+	corners.append(corners[0])
+	draw_polyline(corners, _accent.lightened(_flash * 0.25), 2.0 + _flash * 2.0, true)
+	_text("ASPECT %d" % _aspect, origin + Vector2(180, 27), 180, 25, GOLD, true)
+	if _active:
+		_diamond(origin + Vector2(174, 18), Vector2(4, 4), GOLD, GOLD)
+	for x in [180.0, 360.0]:
+		draw_line(origin + Vector2(x, 44), origin + Vector2(x, 142), Color(MUTED, 0.22), 1, true)
+	_text("ENERGY", origin + Vector2(10, 61), 160, 25, ENERGY, true)
+	_text("MIGHT", origin + Vector2(190, 61), 160, 25, TEXT, true)
+	_text("FERVOR", origin + Vector2(370, 61), 160, 25, FERVOR, true)
+	_text("%d / 10" % _energy, origin + Vector2(10, 109), 160, 40, TEXT, true)
+	_text(CardText.short_number(_might), origin + Vector2(190, 109), 160, 44, TEXT, true)
+	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 109), 160, 40, TEXT, true)
 	for i in range(10):
-		var start: float = deg_to_rad(135 + i * 27)
 		var on: bool = i < _energy
 		var ghost: bool = on and i >= _energy - preview_cost
-		var color: Color = ENERGY if on else Color(0.12, 0.23, 0.29)
-		draw_arc(center, 79, start, start + deg_to_rad(21), 10, color, 9 if not ghost else 2, true)
-	_text("ENERGY", Vector2(left_x - 95, center.y - 110), 190, 36, ENERGY, true)
-	_text(str(_energy), center + Vector2(-65, 9), 130, 64, TEXT, true)
-	_text("/ 10", center + Vector2(-60, 43), 120, 32, MUTED, true)
-	_diamond(might_center, Vector2(101, 50), INK, _accent)
-	_text("MIGHT", might_center + Vector2(-91, -13), 182, 32, _accent, true)
-	_text(CardText.short_number(_might), might_center + Vector2(-99, 31), 198, 48, TEXT, true)
-	_text("ASPECT %d" % _aspect, Vector2(left_x - 110, aspect_y), 220, 32, GOLD, true)
-	_text("FERVOR %d / %d" % [_fervor, _threshold], Vector2(right_x - 115, fervor_y), 230, 30, MUTED, true)
-	var rune_count: int = _threshold
-	var step: float = minf(28.0, 200.0 / float(rune_count))
-	var rune_start: float = right_x - step * (rune_count - 1) * 0.5
-	for i in range(rune_count):
-		_diamond(Vector2(rune_start + step * i, rune_y), Vector2(minf(8, step * 0.3), 9), FERVOR if i < _fervor else INK, FERVOR.darkened(0.2) if i < _fervor else MUTED.darkened(0.55))
-	_text(_piles, Vector2(-343, piles_y), 686, 27, MUTED, true)
-	# Preserve the full standing text through status_text() for an anchored hover readout.
-	var lines: PackedStringArray = _wrap_flags(690, 30)
+		var segment: Rect2 = Rect2(origin + Vector2(16 + 15 * i, 128), Vector2(11, 10))
+		if ghost:
+			draw_rect(segment, ENERGY, false, 2)
+		else:
+			draw_rect(segment, ENERGY if on else Color(ENERGY, 0.18))
+	var step: float = minf(24.0, 150.0 / float(_threshold))
+	var rune_start: float = origin.x + 450.0 - step * (_threshold - 1) * 0.5
+	for i in range(_threshold):
+		_diamond(Vector2(rune_start + step * i, origin.y + 133), Vector2(minf(7, step * 0.3), 8), FERVOR if i < _fervor else INK, FERVOR if i < _fervor else Color(MUTED, 0.4))
+	_text(_piles, Vector2(middle_x - 343, float(layout["piles"])), 686, 27, MUTED, true)
+	var lines: PackedStringArray = _wrap_flags(690, 27)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		_draw_seals(first_row)
+		_draw_seals(first_row, middle_x)
 	for i in range(mini(lines.size(), flag_rows)):
 		var value: String = lines[i]
 		if i == flag_rows - 1 and lines.size() > flag_rows:
 			value = "%s · +%d more" % [lines[i].left(26), lines.size() - flag_rows]
-		var row_y: float = first_row + (i + 2 - flag_rows) * 36.0
-		_text(value, Vector2(-345, row_y), 690, 27, FERVOR, true)
-	if _active:
-		_diamond(Vector2(0, top - 20), Vector2(6, 6), GOLD, GOLD)
+		_text(value, Vector2(middle_x - 345, first_row + (i + 2 - flag_rows) * 36.0), 690, 27, FERVOR, true)
 
 
 func status_text() -> String:
@@ -232,7 +226,7 @@ func status_text() -> String:
 	return "\n".join(lines)
 
 
-func _draw_seals(baseline: float) -> void:
+func _draw_seals(baseline: float, middle_x: float = 0.0) -> void:
 	var set_ids: Array = _seal_sets.keys()
 	set_ids.sort()
 	# Each set gets its own count. Never add unrelated sets into one victory track.
@@ -241,13 +235,13 @@ func _draw_seals(baseline: float) -> void:
 		for set_id in set_ids:
 			var held: Array = _seal_sets[set_id]
 			parts.append("%s %d/%d" % [str(set_id).capitalize(), held.size(), DuelEngine.SEALS_PER_SET])
-		_text("Seals: " + " · ".join(parts), Vector2(-345, baseline), 690, 27, GOLD, true)
+		_text("Seals: " + " · ".join(parts), Vector2(middle_x - 345, baseline), 690, 27, GOLD, true)
 		return
 	var set_id: String = str(set_ids[0])
 	var held: Array = _seal_sets[set_id]
-	_text("%s Seals %d/%d" % [set_id.capitalize(), held.size(), DuelEngine.SEALS_PER_SET], Vector2(-345, baseline), 350, 27, GOLD)
+	_text("%s Seals %d/%d" % [set_id.capitalize(), held.size(), DuelEngine.SEALS_PER_SET], Vector2(middle_x - 345, baseline), 350, 27, GOLD)
 	for i in range(DuelEngine.SEALS_PER_SET):
-		var center: Vector2 = Vector2(34 + i * 36, baseline - 12)
+		var center: Vector2 = Vector2(middle_x + 34 + i * 36, baseline - 12)
 		var filled: bool = held.has(i + 1)
 		_diamond(center, Vector2(10, 11), GOLD if filled else INK, GOLD if filled else GOLD.darkened(0.55))
 

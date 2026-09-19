@@ -14,6 +14,9 @@ var _hovering: bool = false
 @onready var surface: Sprite3D = $Surface
 @onready var viewport: SubViewport = $ReadoutViewport
 @onready var readout: DuelistReadout = $ReadoutViewport/Readout
+@onready var life_value: Label3D = $LifeValue
+@onready var life_caption: Label3D = $LifeCaption
+var life_transform: Transform3D = Transform3D.IDENTITY
 
 
 func _ready() -> void:
@@ -29,6 +32,9 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	duelist_uid = view.player(player_index).duelist
 	readout.reduced_motion = reduced_motion
 	readout.refresh(view, player_index, viewer, live)
+	var counts: Array = live.get("zones", [])
+	var player_counts: Array = counts[player_index] if player_index < counts.size() else []
+	life_value.text = str(int(player_counts[0]) if not player_counts.is_empty() else view.player(player_index).life_deck.size())
 
 
 ## Preview only: outlined Energy segments distinguish projected spending from resolution.
@@ -59,9 +65,24 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 				first = false
 			else:
 				bounds = bounds.expand(point)
+	readout.duelist_bounds = bounds
+	# Reserve the neighbouring Life Deck too; its single counter lives on the pile.
+	for x: float in [-0.315, 0.315]:
+		for z: float in [-0.44, 0.44]:
+			var point: Vector2 = (camera.unproject_position(life_transform * Vector3(x, 0, z)) - center) / unit
+			bounds = bounds.expand(point)
+	life_value.global_position = life_transform.origin + camera.global_basis.y * (18.0 * pixel_scale)
+	life_caption.global_position = life_transform.origin - camera.global_basis.y * (31.0 * pixel_scale)
+	life_value.pixel_size = pixel_scale
+	life_caption.pixel_size = pixel_scale
+	# Expand the transparent canvas as the cluster grows; fixed textures clip wide zooms.
+	var extent: Vector2 = Vector2(maxf(absf(bounds.position.x), absf(bounds.end.x)), maxf(absf(bounds.position.y), absf(bounds.end.y))) + Vector2(400, 400)
+	var canvas_size: Vector2i = Vector2i(maxi(1600, ceili(extent.x * 2.0 / 128.0) * 128), maxi(1600, ceili(extent.y * 2.0 / 128.0) * 128))
+	if viewport.size != canvas_size:
+		viewport.size = canvas_size
+		readout.size = Vector2(canvas_size)
 	if not readout.card_bounds.is_equal_approx(bounds):
 		readout.card_bounds = bounds
-		readout.update_layout()
 		readout.queue_redraw()
 
 

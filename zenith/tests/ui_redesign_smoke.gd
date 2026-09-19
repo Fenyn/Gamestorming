@@ -81,8 +81,14 @@ func _run() -> void:
 	var viewport_size: Vector2 = root.get_visible_rect().size
 	var bottom_pointer: Vector2 = Vector2(viewport_size.x * 0.52, viewport_size.y - 20.0)
 	_check(hand._hit(bottom_pointer, true) == -1, "Retracted hand must have no invisible picking regions")
+	_check(hand.blocks_pointer(bottom_pointer), "Hand activation band must suppress board tooltips before cards expand")
+	_check(not hand.blocks_pointer(Vector2(viewport_size.x * 0.5, 100.0)), "Tucked hand must not suppress unrelated board picking")
 	var hidden_center: Vector2 = duel.camera.unproject_position(hand._items[0]["node"].global_position)
-	_check(hidden_center.y > viewport_size.y, "Retracted physical cards must sit below the viewport")
+	_check(hidden_center.y > viewport_size.y, "Tucked hand card centers must stay below the viewport")
+	var card_height: float = minf(hand.CARD_WIDTH, viewport_size.x * 0.105) * hand.FACE_SIZE.y / hand.FACE_SIZE.x
+	var exposed_fraction: float = (viewport_size.y - hidden_center.y + card_height * 0.5) / card_height
+	_check(exposed_fraction >= 0.10 and exposed_fraction <= 0.20, "Tucked hand must expose only the top ten to twenty percent as an affordance")
+	_check(not hand._items[0]["title"].visible and not hand._items[0]["summary"].visible, "Tucked card tops must not retain floating title or forecast clutter")
 	hand._update_pointer(bottom_pointer)
 	_check(hand.revealed, "Entering the bottom fifteen percent must reveal the hand")
 	var rest_center: Vector2 = hand._items[0]["rect"].get_center()
@@ -91,9 +97,12 @@ func _run() -> void:
 	var expanded_point: Vector2 = hand._expanded_rect.get_center()
 	hand._update_pointer(expanded_point)
 	_check(hand.revealed and hand._hovered >= 0, "Expanded face must keep the hand open above its reveal band")
+	_check(hand.blocks_pointer(expanded_point), "Expanded hand face must suppress board picking above the activation band")
 	hand._update_pointer(Vector2(viewport_size.x * 0.5, 100.0))
 	_check(not hand.revealed and hand._hovered == -1, "Leaving the hand and bottom band must retract it and clear preview")
 	_check(hand._hit(rest_center, true) == -1, "Former hand slots must stop intercepting the board immediately on retraction")
+	var board_point: Vector2 = Vector2(rest_center.x, minf(rest_center.y, viewport_size.y * 0.85 - 1.0))
+	_check(not hand.blocks_pointer(board_point), "Retracted hand must restore board tooltip access outside the bottom band")
 	var browse_key: InputEventKey = InputEventKey.new()
 	browse_key.pressed = true
 	browse_key.keycode = KEY_H
@@ -112,6 +121,13 @@ func _run() -> void:
 		_check(duel.view.card(uid).hidden(), "Opponent hand identities must remain hidden")
 	var readout: Control = duel.near_duelist.readout
 	_check(readout._life == duel.view.player(0).life_deck.size(), "Medallion Life must match the displayed seat")
+	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must display the actual remaining deck size")
+	for seat in range(2):
+		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
+		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
+		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
+		_check(is_equal_approx(life_slot.origin.z, identity_slot.origin.z), "Each Life Deck must share its duelist's table row")
+		_check(life_slot.origin.distance_to(identity_slot.origin) < discard_slot.origin.distance_to(identity_slot.origin), "Each Life Deck must sit closer to its duelist than the discard pile")
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
 	# Camera zoom changes the projected card footprint; attached resource crests must move
@@ -146,8 +162,10 @@ func _run() -> void:
 		"zones": [[17, 4, 2, 0]], "fervor": [2]}
 	duel.near_duelist.refresh(duel.view, 0, 0, live)
 	_check(readout._life == 17 and readout._energy == 3 and readout._fervor == 2, "Intermediate event counts must override final counts together")
+	_check(duel.near_duelist.life_value.text == "17", "Life Deck counter must show the current event snapshot rather than the final deck count")
 	_check(readout._might == 27 and readout._aspect == 2, "Readout must trust replay Might and Aspect instead of inferring them from the final card")
 	duel.near_duelist.refresh(duel.view, 0, 0)
+	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must return to the settled count after replay")
 	# A real newly drawn public card joins the existing hand without snapping its neighbours.
 	var poses: Dictionary = {}
 	for item in hand._items:
@@ -214,6 +232,15 @@ func _run() -> void:
 	var overlap: Rect2 = hand._expanded_rect.intersection(hand._items[2]["rect"])
 	_check(overlap.has_area(), "Expanded-card fixture must cover part of its neighbour")
 	_check(hand._hit(overlap.get_center(), true) == 1, "Clicking the expanded face must pick that face, not its covered neighbour")
+	var under_card: Node3D = duel.views[duel.view.player(0).duelist]
+	under_card.set_hovered(true)
+	duel.hud.peek.show()
+	duel._process(0.0)
+	_check(not under_card.pick.input_ray_pickable and not under_card._hovering, "Browsing the hand must disable board picking and clear existing hover lift")
+	duel._on_card_hovered(under_card.uid, true)
+	_check(not duel.hud.peek.visible, "Late board hover signals must not show a tooltip through the hand")
+	duel._on_card_inspected(under_card.uid)
+	_check(not duel.hud.inspect.visible, "Board inspection must not bleed through the hand")
 	duel.hud.inspect.show()
 	duel._process(0.0)
 	_check(not hand.visible and not duel.near_duelist.interactive and not duel.far_duelist.interactive, "Inspection overlay must disable hand and medallion picking")
@@ -223,6 +250,43 @@ func _run() -> void:
 	hand._unhandled_input(key)
 	_check(clicks == 0, "Hidden hand must not accept keyboard activation behind inspection")
 	duel.hud.inspect.hide()
+	# Thinking, resolution and network waits restrict commands, not public observation.
+	hand.keyboard_active = false
+	hand._set_revealed(false)
+	var saved_prompt: PromptView = duel.prompt
+	var saved_deciding: int = duel.view.deciding
+	var saved_active: int = duel.view.active
+	duel.prompt = host.prompt_for(0)
+	var choice_for_test: OptionView = duel.prompt.options[0]
+	var state_before_observing: Dictionary = host.view_for(0).to_dict()
+	duel.busy = true
+	duel._process(0.0)
+	_check(under_card.pick.input_ray_pickable and duel.near_duelist.interactive, "AI thinking and replay must retain public board hover and inspection")
+	_check(not hand.enabled, "Replay must disable hand plays without hiding the hand")
+	duel._on_card_hovered(under_card.uid, true)
+	_check(duel.hud.peek.visible, "Public hover previews must open while the opponent is acting")
+	duel._on_card_inspected(under_card.uid)
+	_check(duel.hud.inspect.visible, "Full inspection must remain available during resolution")
+	duel._on_option_chosen(choice_for_test)
+	_check(host.view_for(0).to_dict() == state_before_observing, "Browsing during resolution must not submit a game command")
+	duel.hud.hide_inspect()
+	duel.busy = false
+	duel.view.deciding = 1
+	duel._process(0.0)
+	_check(under_card.pick.input_ray_pickable and not hand.enabled, "Opponent decisions must keep observation available without enabling plays")
+	duel._on_option_chosen(choice_for_test)
+	_check(host.view_for(0).to_dict() == state_before_observing, "A stale local option must not submit during the opponent's decision")
+	duel.view.deciding = 0
+	duel.view.active = 1
+	_check(duel._can_choose(), "A local response is allowed during the opponent's turn when the referee asks this viewer")
+	duel._awaiting_answer = true
+	duel._process(0.0)
+	_check(under_card.pick.input_ray_pickable and not duel._can_choose(), "Network acknowledgement waits must preserve browsing and reject duplicate commands")
+	duel._awaiting_answer = false
+	duel.view.deciding = saved_deciding
+	duel.view.active = saved_active
+	duel.prompt = saved_prompt
+	duel.hud.hide_peek()
 	# Advance through real offered choices until the next seat is asked to decide.
 	for step in range(120):
 		if host.deciding() == 1 or host.is_over():
@@ -262,9 +326,15 @@ func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	_check(readout.card_bounds.has_area(), "Readout must measure a real projected card footprint")
 	_check(not readout.stat_hit_rects.is_empty(), "Headless layout must produce resource click regions without a draw callback")
 	var separated: bool = true
+	var fits_canvas: bool = true
+	var canvas: Rect2 = Rect2(-Vector2(fixture.viewport.size) * 0.5, Vector2(fixture.viewport.size))
 	for rect: Rect2 in readout.stat_hit_rects:
 		separated = separated and not rect.intersects(readout.card_bounds)
+		fits_canvas = fits_canvas and canvas.encloses(rect)
 	_check(separated, "Resource click regions must stay outside the projected card face")
+	_check(fits_canvas, "Dynamic resource canvas must contain every stat region without clipping at this zoom")
 	var physical: Node3D = duel.views[fixture.duelist_uid]
 	var card_center: Vector2 = duel.camera.unproject_position(physical.front.global_position)
 	_check(not fixture.hit_test(card_center, duel.camera), "A click on the actual card center must never be intercepted by its resource display")
+	var life_center: Vector2 = duel.camera.unproject_position(fixture.life_transform.origin)
+	_check(not fixture.hit_test(life_center, duel.camera), "Life Deck center must remain clear of surrounding resource hit regions")

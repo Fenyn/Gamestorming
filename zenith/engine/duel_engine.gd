@@ -696,7 +696,10 @@ func _power_up() -> void:
 func _declare() -> void:
 	var p: PlayerState = state.active_player()
 	if p.placed_grounds or p.cannot_declare_combat:
-		_emit(&"combat_skipped", {"player": p.index, "forced": true})
+		# Say which of the two it was, so the log can explain a turn that ended without a Combat
+		# the player never got offered.
+		_emit(&"combat_skipped", {"player": p.index, "forced": true,
+			"reason": "grounds" if p.placed_grounds else "forbidden"})
 		state.step = GameState.Step.DISCARD
 		state.discard_index = 0
 		return

@@ -70,7 +70,7 @@ less than the swing.
 hitting a Seal deck churns its set. A Drill that guards Seals turns capture off completely, so it is
 the piece to land first and the piece to remove first.
 
-## 3. The ten decks
+## 3. The eleven decks
 
 Each entry is: what it is trying to do, the lever that makes it work, the line to play, and the
 mistake that loses the game.
@@ -246,6 +246,43 @@ happens in the Combat.
 - **Mistake.** Racing at Aspect 1 or 2. The damage is not there yet and the deck has no Drills to
   make it appear. The other mistake is spending the Ember Mastery on an empty or non-Pyre discard
   pile early, when one Pyre card on top later is two Fervor.
+
+### Steel — the eleventh deck, Emrys Rooke, `steel_heir` (strike_beatdown)
+
+Added 2026-09-19 from the Saiyan Gohan sheet. The same school and the same Mastery as Quarr, and a
+completely different deck around them. Quarr grinds with the Mastery's two cards a Combat; this
+list stacks permanent damage and then cashes it in with a duelist Power that swings twice. Five
+Aspects, 79 life cards, no Relic, no Reserve, one Ally, one Seal. **The distinguishing fact is that
+its damage does not come from its cards, it comes from what is already on the table** by the time
+the cards are played.
+
+- **Lever.** Permanent stacking. Three copies of The Long Year at +1 Energy each never expire and
+  never come off, and two Conditioning Drills add +2 Energy to every Strike. A deck that lands all
+  five is swinging at +7 Energy before it looks at the card in hand. Nothing else in the set builds
+  a floor like that.
+- **Second lever.** Card flow from three directions at once: the Mastery draws one a Combat and two
+  on a Steel flip, three copies of The High Watch draw on entering Combat, and Aspect 1 draws again
+  whenever he is the attacker. Aspect 2 then fetches the exact Strike or Art it wants. It sees more
+  of its deck per turn than anything except `steel_beatdown`.
+- **Third lever.** Life cards are ammunition, not life. Steel Stamp buys +3 wounds and Steel Tackle
+  buys +3 Energy, each for the top card of the Life Deck, and the Mastery eats one more every
+  Combat. With 79 cards it can afford that and the rival usually cannot punish it.
+- **Fourth lever.** Aspect 5 is a Strike doing 5 wounds usable **twice per Combat**, the only Power
+  in the set with a second use. By then the stacked modifiers are on top of both of them.
+- **Line.** Spend the early turns getting the floor down: The Long Year and a Conditioning Drill
+  before anything clever, The High Watch when the ground is free. Enter Combat every turn for the
+  draws even when the attack is poor. Save Steel Cross, which deals a flat 10 Energy and leaves the
+  game, for a turn where a full drain means the rival cannot answer at all, not for a turn where
+  they were already empty. From Aspect 4 on, the Power is the main attack and the hand is
+  support.
+- **Mistake.** Holding The Long Year. It is worth the most on turn two and nothing on the last turn,
+  and the instinct to keep a removed-after-use card back is exactly wrong here. The second mistake
+  is paying a life card on an attack that was going to land anyway, the same trap as Ashmark, made
+  worse because the Mastery is eating the deck from the other end. The third is racing at Aspects 1
+  and 2, where the Power adds no damage at all and the stack is not built yet.
+- **Note on the gates.** Steel Rake, Steel Talon and Steel Plating are Draconic only. Emrys carries
+  the line and so does his one Ally, so the gate never actually bites in this deck; it matters only
+  if those cards are reused elsewhere.
 
 ## 4. Where each principle lives in an AI profile
 

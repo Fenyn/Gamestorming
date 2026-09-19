@@ -1,0 +1,9 @@
+{
+	"_note": "Does Hard actually beat Easy? Same field on both sides, different level profiles, so the only difference across the table is how the AI thinks. Side a should sit well above 50%.",
+	"mode": "matrix",
+	"repeats": 3,
+	"a": "hard",
+	"b": "easy",
+	"seed": 77,
+	"progress": 100
+}

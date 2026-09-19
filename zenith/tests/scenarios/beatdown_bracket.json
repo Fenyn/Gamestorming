@@ -1,0 +1,9 @@
+{
+	"_note": "A weighted field rather than a flat one: a metagame that is mostly beatdown, with allies and art decks answering it. Sample mode draws opponents in proportion to the weights, so a deck's record is read against the field you expect players to meet.",
+	"mode": "sample",
+	"games": 600,
+	"field": "@strike_beatdown:4,@allies:2,@art_beatdown:2,@seals:1,@drills:1",
+	"policy": "search",
+	"seed": 77,
+	"progress": 100
+}

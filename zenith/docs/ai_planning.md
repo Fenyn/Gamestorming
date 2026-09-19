@@ -50,7 +50,7 @@ Exact transposition keys include mutable card state, ordered zones, usage flags,
 | `intent_margin` | 0.15 | Near-tie tolerance for an independently evaluated plan hint |
 | `cache` | false | Exact, search-local transposition caching |
 
-Hard raises candidate capacity to 8, samples to 3, time to 1600 ms, submissions to 6000, depth to 10 and own width to 4. Difficulty settings still layer over each deck's strategic profile.
+Hard raises candidate capacity to 8, samples to 3, time to 1600 ms, submissions to 6000, depth to 10 and own width to 4. Easy uses the same planner with 80 ms, one sample, 300 submissions, depth 2, three root candidates and noisy scoring. Difficulty settings still layer over each deck's strategic profile. All shipped difficulty levels and ordinary simulation/diagnostic entry points now default to sequence planning; scorer-only and historical rollout policies require explicit selection. Pregame Reserve decisions retain the specialized `AiReserve` valuation.
 
 ## Diagnostics and verification
 
@@ -79,3 +79,5 @@ The [normal arena report](ai_strategy_benchmark_normal.json) covers both seats, 
 The [strategic arena report](ai_strategy_benchmark_strategic.json) adds eight completed games across both seats and all pairings of Root Seals and Shade henchmen, at the same configured budget and sample count. Search won 6/8, including an Unsealing victory, with no illegal commands or unfinished games. Each deck won 3/4 as the search policy. Search median/p95/max were 407/414/429 ms. Together the two reports record 17/24 wins, across four decks; they do not constitute an exhaustive matchup study.
 
 The historical rollout baseline shares the current scorer, evaluator and fair sampler. Comparisons therefore isolate search behavior rather than reproduce the old executable exactly. Small arena runs are integration evidence, not proof of superiority across every archetype. No neural training or learned opponent model is required for this implementation; those remain possible later developments if measured failures warrant them.
+
+A subsequent [weak-deck comparison](deck_ai_comparison.md) tests the four lowest-ranked decks from the latest full tournament against all ten opposing decks. Across 160 paired games at Normal's budget, the planner won 24/80 target appearances versus the current scorer's 25/80. Steel Heir and Pyre Ascent each gained one net win; Tide Companions lost two and Shade Salvage lost one. This limits the earlier positive arena result: the planner is integrated, but improved strategic piloting is not established across the weak decks. The paired runner and selective tournament policy flags preserve these cases for further diagnosis.

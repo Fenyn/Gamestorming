@@ -5,7 +5,7 @@ extends SceneTree
 
 
 func _init() -> void:
-	var args: Dictionary = {"deck": "tide_companions", "foe": "pyre_beatdown", "seed": "100", "budget": "100", "log-turn": "-1"}
+	var args: Dictionary = {"deck": "tide_companions", "foe": "pyre_beatdown", "seed": "100", "budget": "100", "log-turn": "-1", "policy": "search", "foe-policy": "search"}
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
@@ -15,13 +15,8 @@ func _init() -> void:
 	var ref: Referee = Referee.new()
 	ref.setup(decks, lib, StrikeTable.load_from("res://data/strike_table.json"), int(args["seed"]))
 	ref.start()
-	var mine: AiProfile = AiProfile.for_deck(decks[0], "")
-	# `--samples=N` with a large budget makes a run repeatable: the search stops on count, not time.
-	mine.merge({"think": {"budget_ms": int(args["budget"])}})
-	if args.has("samples"):
-		mine.merge({"think": {"samples": int(args["samples"]), "budget_ms": 600000}})
-	var theirs: AiProfile = AiProfile.for_deck(decks[1], "")
-	theirs.merge({"think": {"search": false}})
+	var mine: AiProfile = fresh(decks[0], str(args["policy"]), args)
+	var theirs: AiProfile = fresh(decks[1], str(args["foe-policy"]), args)
 	var players: Array[AiPlayer] = [AiPlayer.new(mine, 1), AiPlayer.new(theirs, 2)]
 	var commands: Dictionary = {}
 	var events: Dictionary = {}
@@ -53,3 +48,15 @@ func _init() -> void:
 	print("seat 0 commands: %s" % str(commands))
 	print("seat 0 events: %s" % str(events))
 	quit(0)
+
+
+func fresh(deck: DeckList, policy: String, args: Dictionary) -> AiProfile:
+	var profile: AiProfile = AiProfile.for_deck(deck, "" if policy in ["search", "scorer", "rollout"] else policy)
+	if policy == "scorer":
+		profile.merge({"think": {"search": false}})
+	elif policy in ["search", "rollout"]:
+		profile.merge({"think": {"search": true, "algorithm": "sequence" if policy == "search" else "rollout"}})
+	profile.merge({"think": {"budget_ms": int(args["budget"])}})
+	if args.has("samples"):
+		profile.merge({"think": {"samples": int(args["samples"])}})
+	return profile

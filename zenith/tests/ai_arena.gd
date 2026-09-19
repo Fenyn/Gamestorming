@@ -13,7 +13,7 @@ const MAX_STEPS: int = 6000
 
 
 func _init() -> void:
-	var args: Dictionary = {"a": "scorer", "b": "random", "seeds": "1", "decks": "", "budget": "", "samples": "", "turns": "", "steps": "", "verbose": "", "styles": "ab"}
+	var args: Dictionary = {"a": "search", "b": "random", "seeds": "1", "decks": "", "budget": "", "samples": "", "turns": "", "steps": "", "verbose": "", "styles": "ab"}
 	for raw in OS.get_cmdline_user_args():
 		var text: String = raw.trim_prefix("--")
 		var parts: PackedStringArray = text.split("=", true, 1)
@@ -152,8 +152,10 @@ func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckLi
 	var profile: AiProfile = AiProfile.for_deck(deck, level)
 	if policy == "scorer":
 		profile.merge({"think": {"search": false}})
+	elif policy == "search":
+		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
 	elif policy == "rollout":
-		profile.merge({"think": {"algorithm": "rollout"}})
+		profile.merge({"think": {"search": true, "algorithm": "rollout"}})
 	var over: Dictionary = {}
 	if str(args["budget"]) != "":
 		over["budget_ms"] = int(args["budget"])

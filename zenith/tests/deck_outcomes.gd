@@ -7,7 +7,7 @@ extends SceneTree
 ## godot --headless --path zenith -s tests/deck_outcomes.gd -- --repeats=9
 ##
 ## Options: --repeats=N matches per ordered pair per seat (default 9, so 7 decks give 108 matches per
-## pilot and 756 in all), --policy=random|scorer|search (default scorer), --decks=a,b to cut the field,
+## pilot and 756 in all), --policy=random|scorer|search (default search), --decks=a,b to cut the field,
 ## --seed=N, --budget=MS and --samples=N for searching policies, --styles=off for the default profile
 ## on every deck, and --tsv=path to dump one row per match for your own analysis.
 
@@ -18,7 +18,7 @@ const REASONS: Array[String] = ["survival", "seal", "ascension"]
 var search_decks: Array[String] = []
 
 func _init() -> void:
-	var args: Dictionary = {"repeats": "9", "policy": "scorer", "decks": "", "seed": "1", "budget": "", "samples": "", "styles": "on", "tsv": ""}
+	var args: Dictionary = {"repeats": "9", "policy": "search", "decks": "", "seed": "1", "budget": "", "samples": "", "styles": "on", "tsv": ""}
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
@@ -310,7 +310,7 @@ func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckLi
 	var profile: AiProfile = AiProfile.for_deck(deck, level)
 	if policy == "scorer":
 		profile.merge({"think": {"search": false}})
-	if force_sequence:
+	if force_sequence or policy == "search":
 		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
 	var over: Dictionary = {}
 	if str(args["budget"]) != "":

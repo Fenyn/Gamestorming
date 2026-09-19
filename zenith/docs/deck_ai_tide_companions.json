@@ -2,9 +2,9 @@
 	"by_deck": {
 		"tide_companions": {
 			"baseline_wins": 7,
-			"both_lost": 11,
+			"both_lost": 12,
 			"both_won": 4,
-			"completed_pairs": 19,
+			"completed_pairs": 20,
 			"gained_wins": 1,
 			"lost_wins": 3,
 			"net_wins": -2,
@@ -2611,10 +2611,75 @@
 			"turn": 8,
 			"win_reason": "survival",
 			"winner_seat": 0
+		},
+		{
+			"arm": "treatment",
+			"engine_seed": 659270019,
+			"error": "",
+			"id": "tide_companions/storm_volley/0/1/treatment",
+			"opponent": "storm_volley",
+			"pair_id": "tide_companions/storm_volley/0/1",
+			"policies": [
+				"scorer",
+				"search"
+			],
+			"schedule_index": 39,
+			"seat_seeds": [
+				3740104187,
+				2132612374
+			],
+			"seat_statistics": [
+				{
+					"branching_decisions": 0,
+					"branching_mean_completed_depth": 0.0,
+					"completed_depth_total": 0,
+					"decisions": 70,
+					"fallbacks": 0,
+					"max_completed_depth": 0,
+					"max_usec": 16904,
+					"mean_completed_depth": 0.0,
+					"mean_ms": 6.0764,
+					"median_ms": 5.508,
+					"p95_ms": 9.673,
+					"search_decisions": 0,
+					"stop_reasons": {
+
+					},
+					"total_usec": 425348
+				},
+				{
+					"branching_decisions": 125,
+					"branching_mean_completed_depth": 1.016,
+					"completed_depth_total": 127,
+					"decisions": 129,
+					"fallbacks": 11,
+					"max_completed_depth": 6,
+					"max_usec": 411375,
+					"mean_completed_depth": 0.9921875,
+					"mean_ms": 390.805635658915,
+					"median_ms": 405.627,
+					"p95_ms": 408.64,
+					"search_decisions": 128,
+					"stop_reasons": {
+						"completed": 4,
+						"time_budget": 124
+					},
+					"total_usec": 50413927
+				}
+			],
+			"seed_index": 0,
+			"status": "complete",
+			"steps": 199,
+			"target": "tide_companions",
+			"target_seat": 1,
+			"target_won": false,
+			"turn": 10,
+			"win_reason": "survival",
+			"winner_seat": 0
 		}
 	],
 	"note": "Baseline is the current scorer without sequence search; paired seeds do not guarantee identical random draws after policies diverge.",
-	"status": "running",
-	"updated_unix": 1789849482.77,
+	"status": "complete",
+	"updated_unix": 1789849533.773,
 	"version": 1
 }

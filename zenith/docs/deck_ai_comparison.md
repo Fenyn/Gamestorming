@@ -21,3 +21,31 @@ To reproduce a target's exact schedule, run it separately rather than combining 
 ```
 
 Replace the target and output name for the other decks. The report refuses to overwrite an existing file; `--resume` continues it only when its configuration and input hashes match. Use the same Godot executable when resuming. Partial pairs do not count toward win-rate deltas. Invalid or unfinished games abort the experiment rather than silently becoming losses.
+
+## Results
+
+All 160 games completed legally. All four reports have identical source/data fingerprints. Each row compares 20 paired starting conditions, with opponents remaining on the scorer.
+
+| Target / raw report | Scorer wins | Planner wins | Change | Losses turned into wins | Wins turned into losses |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| [Steel Heir](deck_ai_steel_heir.json) | 2/20 (10%) | 3/20 (15%) | +5 points | 3 | 2 |
+| [Pyre Ascent](deck_ai_pyre_ascent.json) | 6/20 (30%) | 7/20 (35%) | +5 points | 5 | 4 |
+| [Tide Companions](deck_ai_tide_companions.json) | 7/20 (35%) | 5/20 (25%) | -10 points | 1 | 3 |
+| [Shade Salvage](deck_ai_shade_salvage.json) | 10/20 (50%) | 9/20 (45%) | -5 points | 3 | 4 |
+
+The planner won 24/80 target appearances versus the scorer's 25/80. This sample does not establish a general improvement. Steel Heir and Pyre each gained only one net win; Tide and Shade Salvage need further investigation. The historical tournament percentages differ from this current-build baseline because the sample, seeds, executable and potentially inputs differ. Only the paired columns above isolate the planner change in this experiment.
+
+Pyre's win route changed substantially: its scorer won five games by survival and one by Ascension, while its planner won one by survival and six by Ascension. That is evidence of different strategic choices despite the small net gain. Both policies' wins for Steel Heir and Shade Salvage were by survival.
+
+| Target | Branching decisions | Mean completed branching depth | Scorer fallbacks | Mean target decision ms | Maximum target decision ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Steel Heir | 850 | 0.91 | 138 (16.2%) | 401.4 | 418.1 |
+| Pyre Ascent | 837 | 1.70 | 120 (14.3%) | 371.5 | 415.2 |
+| Tide Companions | 1,974 | 0.94 | 277 (14.0%) | 388.5 | 425.6 |
+| Shade Salvage | 1,463 | 1.01 | 145 (9.9%) | 396.2 | 448.4 |
+
+Depth and fallback percentages exclude forced single-option choices. Zero-depth fallbacks remain in the depth average. Timing includes all target decisions, including forced choices and Reserve selection; individual engine operations may run beyond the 400 ms deadline. Search depth is measured in branching levels, not turns or cards in a guaranteed combo.
+
+The next diagnostic should replay Tide's lost matchups and measure whether its assembly and controller choices improve with more completed search depth. A larger-budget comparison can distinguish a budget limitation from poor evaluation or candidate selection. These results alone do not identify the cause. Keep this seed set for regression checks and use additional seeds to validate any tuning; do not tune solely to these 20 starts.
+
+Runner verification also covered small selective-policy tournaments, malformed arguments and completed-report resume. Interrupted-report handling received a code review. No gameplay rules, deck lists or strategic profile weights were changed for this comparison.

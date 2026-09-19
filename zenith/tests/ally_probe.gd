@@ -11,7 +11,7 @@ const MAX_STEPS: int = 6000
 
 
 func _init() -> void:
-	var args: Dictionary = {"deck": "tide_companions", "repeats": "6", "seed": "77"}
+	var args: Dictionary = {"deck": "tide_companions", "repeats": "6", "seed": "77", "policy": "search", "budget": ""}
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
@@ -50,8 +50,8 @@ func _init() -> void:
 				ref.setup(decks, lib, table, rng.randi())
 				ref.start()
 				var players: Array[AiPlayer] = [
-					AiPlayer.new(fresh(decks[0]), games * 2),
-					AiPlayer.new(fresh(decks[1]), games * 2 + 1),
+					AiPlayer.new(fresh(decks[0], args), games * 2),
+					AiPlayer.new(fresh(decks[1], args), games * 2 + 1),
 				]
 				var in_attack: bool = false
 				var bonded: bool = false
@@ -229,9 +229,15 @@ func _init() -> void:
 	quit()
 
 
-func fresh(deck: DeckList) -> AiProfile:
-	var profile: AiProfile = AiProfile.for_deck(deck, "")
-	profile.merge({"think": {"search": false}})
+func fresh(deck: DeckList, args: Dictionary) -> AiProfile:
+	var policy: String = str(args["policy"])
+	var profile: AiProfile = AiProfile.for_deck(deck, "" if policy in ["search", "scorer", "rollout"] else policy)
+	if policy == "scorer":
+		profile.merge({"think": {"search": false}})
+	elif policy in ["search", "rollout"]:
+		profile.merge({"think": {"search": true, "algorithm": "sequence" if policy == "search" else "rollout"}})
+	if str(args["budget"]) != "":
+		profile.merge({"think": {"budget_ms": int(args["budget"])}})
 	return profile
 
 

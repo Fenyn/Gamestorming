@@ -1,0 +1,11 @@
+{
+	"_note": "What another 600 ms of search buys. Both sides plan; side a gets 800 ms and side b 200. Read the DECISION COST table with the win rate, since a gain that costs 4x the time may not be worth shipping.",
+	"mode": "matrix",
+	"repeats": 2,
+	"a": "search",
+	"b": "search",
+	"a-budget": 800,
+	"b-budget": 200,
+	"seed": 77,
+	"progress": 40
+}

@@ -7,8 +7,8 @@ extends SceneTree
 ## godot --headless --path zenith -s tests/deck_report.gd -- --games=350
 ##
 ## Options: --games=N matches in total (default 200, rounded up to a whole pass over the decks),
-## --policy=random|scorer|search or a level name under data/ai/profiles (default scorer, which is
-## fast; search is the shipped opponent and far slower), --decks=root_seals,storm_volley to cut the
+## --policy=random|scorer|search or a level name under data/ai/profiles (default search),
+## --decks=root_seals,storm_volley to cut the
 ## field down, --seed=N for a different run, --budget=MS and --samples=N for searching policies,
 ## --styles=off to play every deck on the default profile, and --verbose for a line per match.
 
@@ -19,7 +19,7 @@ const REASONS: Array[String] = ["survival", "seal", "ascension"]
 var search_decks: Array[String] = []
 
 func _init() -> void:
-	var args: Dictionary = {"games": "200", "policy": "scorer", "decks": "", "seed": "1", "budget": "", "samples": "", "styles": "on", "verbose": ""}
+	var args: Dictionary = {"games": "200", "policy": "search", "decks": "", "seed": "1", "budget": "", "samples": "", "styles": "on", "verbose": ""}
 	for raw in OS.get_cmdline_user_args():
 		var parts: PackedStringArray = raw.trim_prefix("--").split("=", true, 1)
 		args[parts[0]] = parts[1] if parts.size() > 1 else "1"
@@ -172,7 +172,7 @@ func make_player(policy: String, args: Dictionary, seed_value: int, deck: DeckLi
 	var profile: AiProfile = AiProfile.for_deck(deck, level)
 	if policy == "scorer":
 		profile.merge({"think": {"search": false}})
-	if force_sequence:
+	if force_sequence or policy == "search":
 		profile.merge({"think": {"search": true, "algorithm": "sequence"}})
 	var over: Dictionary = {}
 	if str(args["budget"]) != "":

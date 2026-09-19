@@ -1,0 +1,9 @@
+{
+	"_note": "The standing balance baseline. Full matrix, every deck, sequence planner on both sides, deck playstyles on. Use policy=scorer explicitly for fast heuristic-only comparisons.",
+	"mode": "matrix",
+	"repeats": 9,
+	"policy": "search",
+	"styles": true,
+	"seed": 77,
+	"progress": 200
+}

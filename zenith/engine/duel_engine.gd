@@ -26,6 +26,7 @@ const MAX_ADVANCE_ITERATIONS: int = 100000
 const FORBID_KINDS: Array[String] = [
 	"strike_attacks", "art_attacks", "strike_cards", "art_cards", "combat_cards", "non_combats",
 	"drills", "seals", "mastery", "powers", "stop_all", "end_combat", "non_attack_actions", "skip_combat",
+	"allies",
 ]
 
 var state: GameState = GameState.new()
@@ -569,9 +570,28 @@ func _begin_turn() -> void:
 		if _controls_full_set(p):
 			_win(p.index, "seal")
 			return
-	var constant: Dictionary = _constant(p)
-	if constant.has("turn_start"):
-		_enqueue_keyed(constant.get("turn_start", []), "turn_start", p.index, {}, p.duelist)
+	# Beginning-of-turn effects belong to both players, active first, the same order every other
+	# shared window uses. Today only the active player's own cards say "your turn", but a card
+	# that does not should still fire here rather than be silently skipped.
+	for index in [p.index, 1 - p.index]:
+		var side: PlayerState = state.players[index]
+		var own_turn: bool = index == p.index
+		var constant: Dictionary = _constant(side)
+		if constant.has("turn_start"):
+			_enqueue_keyed(_turn_start_lines(constant.get("turn_start", []), own_turn), "turn_start", index, {}, side.duelist)
+		for c in side.in_play:
+			if c.def.has_trigger("turn_start"):
+				_enqueue(_turn_start_lines(c.def.effects_for("turn_start"), own_turn), "turn_start", index, {}, c)
+
+
+## "At the beginning of your turn" is the default and fires only for the turn's owner; a line
+## marked `each_turn` reads "at the beginning of each turn" and fires on both.
+func _turn_start_lines(lines: Array, own_turn: bool) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for e in lines:
+		if own_turn or bool((e as Dictionary).get("each_turn", false)):
+			out.append(e)
+	return out
 
 
 func _end_turn() -> void:
@@ -717,7 +737,7 @@ func _advance_discard() -> void:
 		if state.discard_done[index]:
 			continue
 		var p: PlayerState = state.players[index]
-		var keep: int = HAND_KEEP
+		var keep: int = _hand_keep(p)
 		if _has_floating(p.index, "keep_hand"):
 			keep = 99
 		if p.hand.size() <= keep:
@@ -798,6 +818,8 @@ func _can_place(p: PlayerState, c: CardInstance) -> bool:
 		CardDef.Type.ALLY:
 			if not (def.raw.get("bond_of", []) as Array).is_empty():
 				return false   # Bonds enter play through a Bonding card, never by placement
+			if _forbidden(p, "allies"):
+				return false
 			if def.character == p.duelist.def.character or def.character == state.players[1 - p.index].duelist.def.character:
 				return false
 			var aspect: int = def.lowest_aspect()
@@ -1377,6 +1399,7 @@ func _build_attack(att: int, source: CardInstance, spec: Dictionary, effects: Ar
 		"stages": 0,
 		"life": 0,
 		"extra_life": 0,
+		"extra_stages": 0,
 		"life_remaining": 0,
 		"stages_dealt": 0,
 		"life_dealt": 0,
@@ -1514,6 +1537,18 @@ func _handle_respond(cmd: Command) -> void:
 	var pending: Dictionary = state.pending_play
 	state.pending_play = {}
 	var mode: String = str(pending.get("mode", "use"))
+	if mode == "ascension":
+		var winner: int = int(pending.get("winner", 0))
+		if cmd.type != &"use":
+			_emit(&"declined_counter", {"player": cmd.player})
+			_win(winner, "ascension")
+			return
+		# The answer resolves first; the win is checked again once the queue is empty, which is
+		# where it stands or falls on whether the card actually moved them off their top Aspect.
+		state.pending_ascension = winner
+		var answer: CardInstance = card(cmd.card)
+		_use_card(state.players[answer.owner], answer, false)
+		return
 	if mode == "declare":
 		# The opponent's Declare-step window (cards used "during your opponent's Declare step").
 		state.declare_window_done = true
@@ -1662,6 +1697,13 @@ func _advance_battle() -> void:
 				for nc in attacker.non_combats():
 					if nc.attached_to == null:
 						_enqueue(nc.def.effects, "on_success", attacker.index, {"attack": a}, nc)
+			# A Drill that answers a successful attack. `once_per_combat` is spent when the
+			# trigger fires, not when the player accepts it, so declining a "may" still costs it.
+			if not _forbidden(attacker, "drills"):
+				for dr in attacker.drills():
+					if dr.def.has_trigger("on_success") and _drill_use_available(dr):
+						dr.power_used_combat = state.combat_count
+						_enqueue(dr.def.effects, "on_success", attacker.index, {"attack": a}, dr)
 			state.battle_step = 16
 		16:
 			_finish_attack(attacker, a)
@@ -1725,7 +1767,9 @@ func _handle_pay(cmd: Command) -> void:
 	var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
 	var ic: CardInstance = _performer(a)
 	ic.energy = maxi(0, ic.energy - paid)
-	a["extra_life"] = int(a["extra_life"]) + int(paid / per) * int(spec["pay_stages"].get("life", 1))
+	# A payment buys wounds, Energy damage, or both, whichever the card prints.
+	a["extra_life"] = int(a["extra_life"]) + int(paid / per) * int(spec["pay_stages"].get("life", 0))
+	a["extra_stages"] = int(a["extra_stages"]) + int(paid / per) * int(spec["pay_stages"].get("stages", 0))
 	_emit(&"cost_paid", {"player": attacker.index, "stages": paid, "life": 0, "energy": ic.energy})
 	state.battle_step = 3
 
@@ -2103,12 +2147,17 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	var adds: Array[Dictionary] = []   # {source, stages, life}; against-modifiers carry negatives
 	if int(spec.get("stages", 0)) != 0 or int(spec.get("life", 0)) != 0:
 		adds.append({"source": src_title, "stages": int(spec.get("stages", 0)), "life": int(spec.get("life", 0))})
-	if int(a.get("extra_life", 0)) > 0:
-		adds.append({"source": "Energy paid", "stages": 0, "life": int(a["extra_life"])})
+	if int(a.get("extra_life", 0)) > 0 or int(a.get("extra_stages", 0)) > 0:
+		adds.append({"source": "Energy paid", "stages": int(a.get("extra_stages", 0)), "life": int(a.get("extra_life", 0))})
 	if bool(a["empowered"]) and src != null and src.def.empower > 0:
 		adds.append({"source": "Empower", "stages": 0, "life": src.def.empower})
 	if int(spec.get("life_per_ally", 0)) > 0 and not attacker.allies().is_empty():
 		adds.append({"source": "%d Allies" % attacker.allies().size(), "stages": 0, "life": int(spec["life_per_ally"]) * attacker.allies().size()})
+	if str(spec.get("life_per_tag", "")) != "":
+		# "for every Construct personality in play": the card does not say whose, so both sides count.
+		var kin: int = tag_count(str(spec["life_per_tag"]))
+		if kin > 0:
+			adds.append({"source": "%d %s" % [kin, str(spec["life_per_tag"]).capitalize()], "stages": 0, "life": kin})
 	if bool(spec.get("life_from_surge", false)) and attacker.duelist.surge() > 0:
 		adds.append({"source": "Surge", "stages": 0, "life": attacker.duelist.surge()})
 	if int(spec.get("life_per_opponent_seal", 0)) > 0 and not defender.seals().is_empty():
@@ -2121,7 +2170,13 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	var no_reduce: bool = bool(spec.get("no_reduce", false)) or _has_floating(attacker.index, "no_reduce")
 	var multiply: int = 1
 	var multiply_source: String = ""
-	for entry in _modifiers_for(attacker, "own", kind, src, ctx):
+	# "No modifiers are added to Strikes performed against her": read off the defending
+	# personality's own card, because the text names that personality and not their side.
+	var blind: String = str((dc.aspect_data().get("constant", {}) as Dictionary).get("no_modifiers_against", ""))
+	var own_mods: Array[Dictionary] = []
+	if blind != kind and blind != "any":
+		own_mods = _modifiers_for(attacker, "own", kind, src, ctx)
+	for entry in own_mods:
 		var m: Dictionary = entry["m"]
 		if m.has("multiply"):
 			# One multiplier at most: the biggest one applies.
@@ -2204,6 +2259,47 @@ func _modifier_amount(m: Dictionary, key: String, p: PlayerState) -> int:
 	if str(m.get("per_bloodline", "")) != "":
 		n *= bloodline_count(p, str(m["per_bloodline"]))
 	return n
+
+
+## Personalities in play on either side carrying a tag, the way a card that counts by what a
+## personality *is* rather than by who owns it reads. Duelists and Allies both count.
+func tag_count(tag: String) -> int:
+	var n: int = 0
+	for p in state.players:
+		if has_tag(p.duelist, tag):
+			n += 1
+		for a in p.allies():
+			if has_tag(a, tag):
+				n += 1
+	return n
+
+
+static func has_tag(c: CardInstance, tag: String) -> bool:
+	return c != null and (c.def.raw.get("tags", []) as Array).has(tag)
+
+
+## How many cards this player may hold through the discard step. One by default; a card in play
+## that raises the limit replaces that number rather than adding to it, and the most generous wins.
+func _hand_keep(p: PlayerState) -> int:
+	var keep: int = HAND_KEEP
+	var sources: Array[CardInstance] = []
+	sources.append_array(p.drills())
+	sources.append_array(p.non_combats())
+	if p.mastery != null and not _forbidden(p, "mastery"):
+		sources.append(p.mastery)
+	for c in sources:
+		keep = maxi(keep, int(c.def.raw.get("hand_keep", 0)))
+	return keep
+
+
+## The first card with this title anywhere in play, on either side; null when nobody has one out.
+## Matched by title because that is how the card names it, and how its own text reads it back.
+func card_in_play_titled(title: String) -> CardInstance:
+	for p in state.players:
+		for c in p.in_play:
+			if c.def.title == title:
+				return c
+	return null
 
 
 ## Personalities in play carrying a bloodline: the duelist when it is theirs, plus each Ally with
@@ -2446,6 +2542,11 @@ func _drain() -> void:
 				break
 		if not _queue.is_empty() and _queue[0] == job:
 			_queue.pop_front()
+	# An answered Ascension win: the answer has now resolved, so ask the question again.
+	if _queue.is_empty() and prompt == null and not state.is_over() and state.pending_ascension >= 0:
+		var waiting: int = state.pending_ascension
+		state.pending_ascension = -1
+		_check_aspect_up(state.players[waiting])
 
 
 ## "You may ..." lines ask their owner first; a yes re-queues the effect as confirmed.
@@ -2711,11 +2812,22 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			if not moved.is_empty() and shuffle_decks:
 				rng.shuffle(who.life_deck)
 		"set_energy":
-			var target: CardInstance = who.duelist if str(e.get("target", "duelist")) == "duelist" else who.in_control()
-			var before: int = target.energy
-			target.energy = clampi(int(amount), 0, CardInstance.MAX_STAGE)
-			if target.energy != before:
-				_emit(&"energy_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
+			# "Set all of their personalities to N": the Duelist and every Ally, not just whoever
+			# holds Combat.
+			var crew: Array[CardInstance] = []
+			match str(e.get("target", "duelist")):
+				"all":
+					crew.append(who.duelist)
+					crew.append_array(who.allies())
+				"duelist":
+					crew.append(who.duelist)
+				_:
+					crew.append(who.in_control())
+			for target in crew:
+				var before: int = target.energy
+				target.energy = clampi(int(amount), 0, CardInstance.MAX_STAGE)
+				if target.energy != before:
+					_emit(&"energy_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
 		"advance_aspect":
 			if who.duelist.aspect < who.highest_aspect:
 				_aspect_up(who)
@@ -2964,6 +3076,20 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					return false
 			"opponent_seals_min":
 				if opp.seals().size() < int(v):
+					return false
+			"performer_tag":
+				# The personality swinging, which is the Ally when one holds Combat.
+				if a.is_empty() or not has_tag(_performer(a), str(v)):
+					return false
+			"in_control_tag":
+				if not has_tag(me.in_control(), str(v)):
+					return false
+			"duelist_tag":
+				if not has_tag(me.duelist, str(v)):
+					return false
+			"card_in_play":
+				# "while <card> is in play": the card does not say whose, so either side's counts.
+				if card_in_play_titled(str(v)) == null:
 					return false
 			_:
 				push_warning("DuelEngine: unknown condition '%s'" % key)
@@ -3777,6 +3903,9 @@ func _check_aspect_up(p: PlayerState) -> void:
 		p.fervor = 0
 		_aspect_up(p)
 	elif not p.no_ascension_win:
+		# A card may answer the win itself ("use this when your opponent would win by Ascension").
+		if _open_ascension_window(p):
+			return
 		_win(p.index, "ascension")
 	else:
 		p.fervor = 0
@@ -4129,6 +4258,24 @@ func _on_wound(p: PlayerState, c: CardInstance) -> void:
 			_queue.append({"effects": list, "index": 0, "trigger": "on_wound", "owner": p.index, "ctx": {}, "source": c})
 
 
+## The rival may answer an Ascension win with a card that says so ("use this card when your
+## opponent would win by Ascension"). Such a card carries its own timing, which beats the rule that
+## a Non-Combat is only used in Combat, so this window opens wherever the Fervor was gained. It
+## offers each answer once, and every one of them spends itself, so the win lands on the next pass.
+func _open_ascension_window(p: PlayerState) -> bool:
+	var opp: PlayerState = state.players[1 - p.index]
+	var opts: Array[Command] = []
+	for c in opp.non_combats():
+		if str(c.def.raw.get("use_at", "")) == "ascension_win" and _can_play(opp, c.def) and not _forbidden(opp, "non_combats"):
+			opts.append(Command.new(opp.index, &"use", c.uid))
+	if opts.is_empty():
+		return false
+	opts.append(Command.new(opp.index, &"decline"))
+	state.pending_play = {"mode": "ascension", "winner": p.index}
+	_set_prompt(opp.index, &"respond", opts, {"mode": "ascension", "winner": p.index})
+	return true
+
+
 ## The opponent may use a "during your opponent's Declare step" card before the active player decides.
 func _open_declare_window(p: PlayerState) -> bool:
 	var opp: PlayerState = state.players[1 - p.index]
@@ -4214,7 +4361,9 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 	if to == "play":
 		_place(p, hit)
 		if hit.def.type == CardDef.Type.ALLY and e.has("stages"):
-			hit.energy = clampi(int(e["stages"]), 0, CardInstance.MAX_STAGE)
+			# "at their highest Energy" comes through as the string, not a number.
+			var at: Variant = e["stages"]
+			hit.energy = CardInstance.MAX_STAGE if at is String and str(at) == "max" else clampi(int(at), 0, CardInstance.MAX_STAGE)
 	elif to == "attack":
 		# "Search for a card that performs an attack and play it during this attack phase." It
 		# goes to hand first so it is performed from a legal place, and the phase does not hand
@@ -4225,6 +4374,12 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 		_pending_attack = hit.uid
 	elif to == "deck_bottom" or to == "deck_shuffle":
 		_move_to_deck_bottom(hit)
+	elif to == "deck_top":
+		# "Place them on top of your Life Deck": each pick goes above the last, so the card taken
+		# last is the one drawn first.
+		_erase_from_zone(hit)
+		hit.zone = &"life_deck"
+		p.life_deck.insert(0, hit)
 	else:
 		_erase_from_zone(hit)
 		hit.zone = &"hand"

@@ -205,10 +205,12 @@ func _init() -> void:
 	print("  games the Bonding card reached play  %4.0f%%" % (100.0 * per(n, "rite_in_play", games)))
 	print("  games both gates were open at once   %4.0f%%   (%.1f attack phases to take it)" % [100.0 * per(n, "both_ready", games), per(n, "chance_offered", games)])
 	print("  Bonding cards spent for nothing      %5.2f per game" % per(n, "rite_wasted", games))
-	for id in ["old_trick", "lobbed_bolt", "lucky_find", "bonding_rite", "rallying_call", "warding_call", "open_challenge"]:
+	for id in ["old_trick", "lobbed_bolt", "lucky_find", "bonding_rite", "rallying_call", "warding_call", "open_challenge",
+			"marrows_retinue", "dismissal", "breakers_yard", "locked_gate_drill", "assembly_drill"]:
 		if n.has("played_%s" % id):
 			print("    played %-18s %5.2f per game" % [id, per(n, "played_%s" % id, games)])
-	for id in ["companion_alpha", "companion_beta", "companion_gamma", "companion_delta", "bonded_pair"]:
+	for id in ["companion_alpha", "companion_beta", "companion_gamma", "companion_delta", "bonded_pair",
+			"salvage_alpha", "salvage_beta", "salvage_gamma", "henchman_epsilon"]:
 		if n.has("ally_%s" % id):
 			print("    %-18s reached play in %3.0f%% of games" % [id, 100.0 * per(n, "ally_%s" % id, games)])
 	print("  Allies lost off the table            %5.2f per game (critical %.2f, in an attack %.2f, elsewhere %.2f)" % [

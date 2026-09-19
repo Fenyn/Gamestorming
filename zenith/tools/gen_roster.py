@@ -18,10 +18,10 @@ CANVAS = {"Duelist": "151x217", "Ally": "151x217", "Strike": "226x160", "Art": "
           "Combat": "150x150", "Non-Combat": "120x120", "Drill": "120x120", "Grounds": "120x120",
           "Mastery": "100x100", "Relic": "100x100"}
 
-SCHOOL_SECTION = {"pyre": "Pyre (Ashmark)", "steel": "Steel (Quarr)", "shade": "Shade (Draik Company)",
+SCHOOL_SECTION = {"pyre": "Pyre (Ashmark)", "steel": "Steel (Quarr)", "shade": "Shade (Draik and Salvage)",
                   "tide": "Tide (Rooke)", "storm": "Storm (Corven)", "root": "Root (Thornwald)"}
 SECTION_ORDER = ["Duelists", "Allies", "Relics and Masteries", "Pyre (Ashmark)", "Steel (Quarr)",
-                 "Shade (Draik Company)", "Tide (Rooke)", "Storm (Corven)", "Root (Thornwald)",
+                 "Shade (Draik and Salvage)", "Tide (Rooke)", "Storm (Corven)", "Root (Thornwald)",
                  "Freestyle: Strikes and Arts", "Freestyle: Combat cards", "Freestyle: Non-Combats and Drills",
                  "Seals", "Grounds"]
 SEAL_RENAMES = {"crown_seal": "sun_seal", "signet_seal": "moth_seal", "scepter_seal": "marble_seal"}
@@ -85,10 +85,34 @@ CAST = [
     ("Caedan Vale", "Freestyle · Vigil", "Vale the Swordmaster",
      "Caedan Vale: slight man in his late twenties, dark hair, grey fencing doublet, one longsword, no magic.",
      "Aspects stay human: stiller each time, grey at the temples by Peerless."),
-    ("The Ninth Vessel", "Storm · Pact", "The Corven Collegium",
-     "The Ninth Vessel: humanoid construct of grey stone and copper wire, sigils cut into its chest, a smooth faceless head, a glass core at the sternum.",
+    ("Siphon", "Storm · Pact", "The Corven Collegium",
+     "Siphon: humanoid construct of grey stone and copper wire, sigils cut into its chest, a smooth faceless head, a glass core at the sternum.",
      "Dormant it is a statue, charged it hums, unbound it arcs."),
-    ("The Fourteenth Vessel", "Storm · Pact", "The Corven Collegium", "The Fourteenth Vessel: smaller stone-and-copper construct, cruder sigils, cracked shoulder.", "A newer model."),
+    ("Tithe", "Storm · Pact", "The Corven Collegium",
+     "Tithe: smaller stone-and-copper construct, cruder sigils than Siphon's, a cracked shoulder never repaired, a slot in its chest where cards go in.",
+     "Works from the side and never asks to lead. It takes one, and it is paid."),
+    # Constructs from outside the Collegium. One word each, naming what they are for.
+    ("Sledge", "Freestyle · Pact", "(unaffiliated construct)",
+     "Sledge: broad pit-fighting construct of riveted plate over a squat frame, one arm heavier than the other, dents never beaten out.",
+     "Built to win bouts, and named by the crowd that bet on him."),
+    ("Mercy", "Freestyle · Pact", "(unaffiliated construct)",
+     "Mercy: very tall construct of pale stone and worn brass, a broad blunt face, hands too big and too careful, no weapon anywhere on it.",
+     "Made for work rather than war, and slow to agree to this."),
+    ("Scorn", "Freestyle · Pact", "(unaffiliated construct)",
+     "Scorn: lean construct of blackened iron, hands in its pockets, head tilted, a face cast with a permanent half-smile.",
+     "Kin to Marrow, and bored by all of it."),
+    ("Marrow", "Shade · Pact", "Marrow the Amalgam",
+     "Marrow: a construct assembled out of several older ones, no two pieces matching: a war-frame torso in scorched plate, one slender arm and one heavy, a face-plate of pale stone with the old owner's name still stamped under the jaw.",
+     "Not one construct and never was. The Pact shows as more of her each Aspect: crude at Patchwork, past what any part was built for by Overwrought, all of it at once at the end."),
+    ("Cull", "Shade · Pact", "Marrow the Amalgam",
+     "Cull: elderly wright in a construct's body, a stooped brass frame over a spine of copper, spectacles wired to the face-plate, a roll of instruments open at the hip.",
+     "Collegium-trained, and put himself in a frame rather than keep building them for other people. They do not claim him."),
+    ("Orvath Kell", "Shade · Pact", "Marrow the Amalgam",
+     "Orvath Kell: gaunt man in a high-collared grey coat, shaven head, an officer's gorget he has not taken off, both hands bare and raised.",
+     "Not a construct. Last officer of a company that fielded them and left them where they fell, walking the same ground for his own reasons."),
+    ("Gideon Mourne", "Shade · Pact", "Marrow the Amalgam",
+     "Gideon Mourne: proud man in his thirties, scarred brow, black brigandine with a broken crest still riveted to the chest, a signet he has not sold, hands crackling.",
+     "Not a construct. A lord who was stripped of it, still signs himself Lord Mourne, and nobody corrects him to his face. Sells the craft cheap now, to whoever is going somewhere."),
     ("Osric Thornwald", "Root · Vigil", "The Thornwald Grove",
      "Osric Thornwald: old man, long grey beard, ranger's leathers gone green with moss, a staff strung as a bow, bark growing over one hand.",
      "The Vigil shows as the grove taking him: more tree and less man each Aspect."),
@@ -99,16 +123,17 @@ SEAL_PALETTE = {
     "sun": "Accent old gold, a thin line of green seawater, warm torchlight.",
     "moth": "Accent bone white and silver, pale dust, cold torchlight.",
     "marble": "Accent veined grey marble, raw scaffold wood, neutral torchlight.",
+    "salt": "Accent salt white and dull steel, damp grey stone, a low clean light.",
 }
 
 # Which named character each character-bound card shows. Cards not listed take the character
 # from their data (`character`) or none.
 SHOWS = {
     "duelist_alpha": "Bram Ashmark", "duelist_epsilon": "Halden Quarr", "duelist_delta": "Sable Draik",
-    "duelist_beta": "Dame Alder Rooke", "duelist_eta": "Osric Thornwald", "duelist_gamma": "The Ninth Vessel",
+    "duelist_beta": "Dame Alder Rooke", "duelist_eta": "Osric Thornwald", "duelist_gamma": "Siphon",
     "duelist_zeta": "Caedan Vale",
     "henchman_alpha": "Vesna Draik", "henchman_beta": "Brann Draik", "henchman_delta": "Halvard Draik",
-    "henchman_epsilon": "Pim", "henchman_gamma": "Quill Draik", "henchman_zeta": "The Fourteenth Vessel",
+    "henchman_epsilon": "Pim", "henchman_gamma": "Quill Draik", "henchman_zeta": "Tithe",
     "companion_alpha": "Wren Rooke", "companion_beta": "Sir Edric Rooke", "companion_delta": "Ansel Rooke",
     "companion_gamma": "Tavin Vale", "bonded_pair": "Ansel and Tavin, Back to Back",
     "black_hands": "Sable Draik", "draiks_reckoning": "Sable Draik", "lingering_curse": "Sable Draik",
@@ -119,7 +144,12 @@ SHOWS = {
     "will_not_break": "Bram Ashmark",
     "vales_pommel_bash": "Caedan Vale", "vales_quickstep": "Caedan Vale", "vales_riposte": "Caedan Vale",
     "vales_sword_draw": "Caedan Vale", "vales_insight": "Caedan Vale", "heirloom_blade": "Caedan Vale",
-    "vessels_calibration": "The Ninth Vessel", "vessels_sidestep": "The Ninth Vessel", "porcelain_smile": "The Ninth Vessel",
+    "sledges_stance": "Sledge", "siphons_sidestep": "Siphon", "mercy_smiles": "Mercy", "scorn_smirks": "Scorn",
+    "duelist_theta": "Marrow", "marrows_retinue": "Marrow", "cold_appraisal": "Marrow",
+    "mournes_stance": "Gideon Mourne", "mournes_quickness_drill": "Gideon Mourne", "mournes_jolting_arc": "Gideon Mourne",
+    "mourne_takes_measure": "Gideon Mourne", "mournes_frantic_rush": "Gideon Mourne", "mournes_smirk": "Gideon Mourne",
+    "mournes_plans": "Gideon Mourne",
+    "salvage_alpha": "Cull", "salvage_beta": "Orvath Kell", "salvage_gamma": "Gideon Mourne",
 }
 
 # Slot brief per card: subject, action, two or three concrete details, mood. Short, visual, no rules.
@@ -150,6 +180,10 @@ ART = {
     "duelist_zeta_a3": "Spellcutter. A cut finishing through a fading spell, the rival's hand at the frame edge pinned.",
     "duelist_zeta_a4": "The Quiet Blade. Standing still, point steady, grey at the temples, the air around him clear while spells break at a distance.",
     "duelist_zeta_a5": "Peerless. Older, sword lowered, walking forward unhurried, three faint ghost images of the next moves ahead of him.",
+    "duelist_theta_a1": "Patchwork. Standing square in a field of broken constructs, held together with strap and wire, the stamped name under her jaw catching the light.",
+    "duelist_theta_a2": "Rebuilt. Properly seated joints and beaten-out plate, a struck blade skidding off her shoulder without leaving a mark on it.",
+    "duelist_theta_a3": "Overwrought. Built past what any part was for: too many plates, too much arm, a seam glowing where it should not.",
+    "duelist_theta_a4": "Fury Amalgam. All of it moving at once, mid-swing, pieces of a dozen constructs in one shape and none of them idle.",
     # Allies
     "henchman_alpha": "Coming in from the frame edge, knives out, hood up.",
     "henchman_beta": "Cracking his knuckles, leaning over the viewer.",
@@ -162,6 +196,9 @@ ART = {
     "companion_delta": "Shield braced, water refilling a cracked flask at his hip.",
     "companion_gamma": "Hands open, a globe of water between them, pages settling into a deck at his feet.",
     "bonded_pair": "Back to back, water curling around the shield, both looking outward.",
+    "salvage_alpha": "Selecting an instrument from the open roll without looking down, mild and unhurried.",
+    "salvage_beta": "Both palms raised over a fallen construct, the hex uncoiling between them, the gorget still buckled on.",
+    "salvage_gamma": "Mid-cast, the broken crest on his chest turned to the viewer, light bleeding off his knuckles.",
     # Relics and Masteries
     "blank_mask": "A featureless white porcelain mask, no eye holes, on black cloth.",
     "debtors_ring": "A heavy iron ring pressed with someone else's mark, a wax seal beside it.",
@@ -215,6 +252,13 @@ ART = {
     "quarrs_roar": "Roaring, chest out, the shout visible as a shockwave.",
     "shrugs_it_off": "Taking a blow to the shoulder and rolling it off, unbothered.",
     # Shade
+    "shade_composure_drill": "A row of cards laid face down on iron, one hand resting flat across them.",
+    "shade_cutting_hand": "A flat hand cutting through a bolt of light, the bolt splitting around it.",
+    "shade_gathering_dark": "Shadow drawn in from the whole frame toward one closed fist.",
+    "shade_rending_palm": "An open palm driven forward, the air torn in a ring around it.",
+    "shade_snaring_web": "A web of black filament strung across the frame, a bolt tangled and dying in it.",
+    "shade_takedown_drill": "A felled figure and a hand already reaching past them for a card.",
+    "shade_warding_burst": "A short shove of dark force at close range, the rival's guard thrown wide.",
     "shade_dread_grip": "A hand of shadow closing on a throat, a card slipping from the victim's fingers.",
     "shade_hex_recall": "A veil of shadow thrown up, a card drawn back through it.",
     "shade_mind_rot": "Dark threads reaching into a figure's temples, two cards blackening in their hand.",
@@ -254,9 +298,9 @@ ART = {
     "storm_smiting_bolt": "A bolt from above striking a rune circle.",
     "storm_static_field": "A field of static, a blade stopping in it, hair standing up.",
     "storm_thunderhead": "A thunderhead building over a duelling floor, rune circles lifting in the wind.",
-    "vessels_calibration": "Its own chest open, adjusting the sigils with a copper key.",
-    "vessels_sidestep": "Stepping aside mechanically, a blade passing where it stood.",
-    "porcelain_smile": "A close crop of its faceless head with a painted-on smile, cracked, a blade sliding off.",
+    "sledges_stance": "Squaring up in a fighting pit, weight set, the heavier arm cocked back.",
+    "siphons_sidestep": "Stepping aside mechanically, a blade passing where it stood.",
+    "mercy_smiles": "A huge blunt face looking down, almost apologetic, one big hand raised and a blade stopping against it.",
     # Root
     "root_bolt": "A volley of thorns from a swung staff.",
     "root_dash": "A boar's rush through undergrowth, leaves flying.",
@@ -284,10 +328,10 @@ ART = {
     "no_quarter": "A strike thrown with a snarl, nothing held back, no exit in the frame.",
     "old_habit": "A backhand thrown without looking, a page fluttering back into a hand.",
     "overreach": "A figure reaching past their own light, the halo behind them tearing.",
-    "planted_feet": "Feet planted wide, a blade stopped, another blade stopping behind it.",
+    "mournes_stance": "Feet planted wide, a blade stopped, another blade stopping behind it.",
     "practiced_guard": "A drilled guard, a shield brace lifting from the floor as it holds.",
     "quick_retreat": "A step back out of reach, the blade passing a hand's width off.",
-    "reckless_lunge": "A lunge past the point of balance, landing anyway.",
+    "mournes_frantic_rush": "A lunge past the point of balance, landing anyway.",
     "relentless_fury": "A strike thrown mid-flurry, three more already in motion.",
     "sabotage": "A gloved hand cutting the threads of a rune circle.",
     "scattered_ashes": "A bolt of light hitting a pile of cards, the ash blowing away.",
@@ -301,6 +345,8 @@ ART = {
     "sword_lunge": "A long lunge, the point at a figure's chest, their light dimming.",
     "sword_sweep": "A low sweeping cut through a line of standing figures.",
     "sword_thrust": "A thrust through two rune circles at once.",
+    "mournes_jolting_arc": "An arc of light thrown low, a rival's blade arm dropping out of the guard.",
+    "threefold_bolt": "One bolt already landed, a second in flight, a third still forming at the hand.",
     "unerring_bolt": "A bolt of light flying dead straight through a guard.",
     "unyielding_guard": "A guard that does not move, blade after blade stopping on it.",
     "vales_pommel_bash": "The pommel driven into a face after a parry, the rival reeling.",
@@ -309,11 +355,13 @@ ART = {
     "vales_sword_draw": "A draw cut from the scabbard, the blade catching light.",
     "wall_of_flame": "A wall of fire raised with one hand, a blade and a bolt both stopping in it.",
     # Freestyle: Combat cards
-    "broken_rites": "Every rune circle on a floor cracking and going dark at once.",
+    "scorn_smirks": "Hands in pockets, head tilted, every rune circle on the floor cracking and going dark behind him.",
     "closing_ranks": "A line of allies closing shoulder to shoulder behind a duelist.",
     "cold_appraisal": "A gloved hand fanning another's cards, one pulled out.",
     "cut_short": "A hand catching a wrist mid-gesture.",
     "dismissal": "Every figure but two fading from a duelling floor.",
+    "marrows_retinue": "Two made figures stepping out of the dark at once, already at full light.",
+    "rites_unmade": "A floor of chalked rites scuffed through in one long drag.",
     "hired_blades": "A purse of coins handed over, a sellsword stepping into the frame.",
     "keen_eye": "A close eye reading the top card of a deck.",
     "kept_at_bay": "A sword point held level at a rival's chest, keeping them at a distance.",
@@ -336,7 +384,7 @@ ART = {
     "absorbing_drill": "A sponge-like stone drinking a bolt of light, two pages burning beside it.",
     "bonding_rite": "Two cards laid face to face under a third, a cord tied round them.",
     "bravado_drill": "A tankard slammed on a table, coins jumping.",
-    "chisel_work": "A chisel and mallet on a stone gate, a fresh seal cut.",
+    "mournes_smirk": "A chisel and mallet on a stone gate, a fresh seal cut.",
     "clear_mind": "A still bowl of water with one card floating in it.",
     "counterplay_drill": "A card pinned to a board with a dagger.",
     "defacement": "A seal on a stone gate chiselled out, dust falling.",
@@ -350,17 +398,21 @@ ART = {
     "lucky_find": "A card found under a loose flagstone.",
     "no_retreat_drill": "A door barred with a sword through the handles.",
     "open_challenge": "A gauntlet thrown down on stone, a card beside it.",
-    "quickness_drill": "A card snatched from the bottom of a pile mid-fall.",
+    "mournes_quickness_drill": "A card snatched from the bottom of a pile mid-fall.",
     "recalled_lesson": "A page of sword diagrams, one figure circled.",
     "revision_drill": "A card torn in half, two fresh ones beneath it.",
     "sleight": "A seal palmed in a gloved hand.",
     "spoiled_rite": "A rune circle scuffed out with a boot.",
-    "steady_hand": "A hand on a chisel, steady, a seal half cut.",
+    "mournes_plans": "A hand on a chisel, steady, a seal half cut.",
     "stokes_the_coals": "Crouched at a brazier, stirring coals, burnt cards lifting whole from the fire.",
     "swordplay_drill": "A page of sword drills pinned to a post, a practice blade below.",
     "vales_insight": "Reading a family sword manual, two pages glowing.",
     "wardens_measure": "A measuring cord stretched across a stone gate, a seal marked.",
     "warding_drill": "A stone gate with a chain across it.",
+    "assembly_drill": "A workbench of jointed parts laid out in order, one limb already fitted and tested.",
+    "breakers_yard": "A yard of broken constructs stacked against a wall, one frame already stripped to the spine, tools laid out on a block.",
+    "mourne_takes_measure": "A ledger closed on a duelling floor, a figure's light dropping a rung.",
+    "locked_gate_drill": "A side gate barred from the inside, figures waiting beyond it.",
     "kins_rescue": "A shield arm thrown across a kneeling figure, a blow landing on it.",
     # Grounds
     "ancient_grove": "A grove of old trees ringing a standing stone, a line of pale light in the roots.",
@@ -374,6 +426,7 @@ SEAL_SETS = {
     "sun": "Sun seal %d of 7: a sun disc cut into the stone, %d of seven rays finished, a thin line of seawater in the grooves.",
     "moth": "Moth seal %d of 7: a moth wing cut into the stone, %d of seven pattern rings finished, white dust in the grooves.",
     "marble": "Marble seal %d of 7: a chiselled block cut into the stone, %d of seven faces finished, the chisel left in the last cut.",
+    "salt": "Salt seal %d of 7: an open hand cut into the stone, %d of seven fingers and marks finished, salt crusting white in the grooves.",
 }
 
 
@@ -381,8 +434,54 @@ def load_cards(path):
     return [json.loads(line) for line in open(path, encoding="utf-8")]
 
 
+# The printed card each new id stands in for, seeded here the first time so the CSV has something
+# to carry forward. The CSV wins once it has a value, which is where corrections go.
+NEW_SOURCES = {
+    "mournes_stance": "Vegeta's Physical Stance (Saiyan Saga)",
+    "mournes_quickness_drill": "Vegeta's Quickness Drill (Saiyan Saga)",
+    "mournes_jolting_arc": "Vegeta's Jolting Slash (Frieza Saga)",
+    "mourne_takes_measure": "Vegeta Scans the City (Trunks Saga)",
+    "mournes_frantic_rush": "Majin Vegeta's Frantic Attack (Babidi Saga)",
+    "mournes_smirk": "Vegeta's Smirk (BK Promo BK7)",
+    "mournes_plans": "Vegeta's Plans (Saiyan Saga)",
+    "sledges_stance": "Android 13's Prepared Stance (BSMovie Promo)",
+    "siphons_sidestep": "Android 19's Dodge (BSMovie Promo)",
+    "mercy_smiles": "Android 16 Smiles (AS Promo)",
+    "scorn_smirks": "Android 17 Smirks (Androids Saga)",
+    "duelist_theta_a1": "Android 18 (Lv 1, Cell Saga)",
+    "duelist_theta_a2": "Android 18, the Model (Lv 2, Cell Saga)",
+    "duelist_theta_a3": "Android 18, the Machine (Lv 3, Cell Saga)",
+    "duelist_theta_a4": "Android 18 (Lv 4, Cell Saga)",
+    "salvage_alpha": "Android 20 (Lv 1, Cell Saga)",
+    "salvage_beta": "Piccolo, the Avenger (Lv 1, Trunks Saga)",
+    "salvage_gamma": "Vegeta, the Powerful (Lv 1, Cell Saga)",
+    "salt_seal_1": "Dende Dragon Ball 1 (Cell Saga)",
+    "salt_seal_2": "Dende Dragon Ball 2 (Cell Saga)",
+    "salt_seal_3": "Dende Dragon Ball 3 (Cell Saga)",
+    "salt_seal_4": "Dende Dragon Ball 4 (Cell Saga)",
+    "salt_seal_5": "Dende Dragon Ball 5 (Cell Saga)",
+    "salt_seal_6": "Dende Dragon Ball 6 (Cell Saga)",
+    "salt_seal_7": "Dende Dragon Ball 7 (Cell Saga)",
+    "marrows_retinue": "Looking Good (Cell Saga promo P9)",
+    "rites_unmade": "Drills are for the Weak (Trunks Saga)",
+    "mourne_takes_measure": "Vegeta Scans the City (Trunks Saga)",
+    "breakers_yard": "The Car (Cell Saga)",
+    "mournes_jolting_arc": "Vegeta's Jolting Slash (Frieza Saga)",
+    "threefold_bolt": "Tien's Tri-Beam (Cell Saga)",
+    "assembly_drill": "Android Attack Drill (Androids Saga)",
+    "locked_gate_drill": "Gohan Spots the Imposter Drill (Trunks Saga)",
+    "shade_rending_palm": "Black Fore Fist Punch (Saiyan Saga)",
+    "shade_cutting_hand": "Black Knife Hand Strike (Saiyan Saga)",
+    "shade_gathering_dark": "Black Physical Focus (Trunks Saga)",
+    "shade_snaring_web": "Black Energy Web (Trunks Saga)",
+    "shade_warding_burst": "Black Defensive Burst (Trunks Saga)",
+    "shade_takedown_drill": "Black Takedown Drill (Saiyan Saga)",
+    "shade_composure_drill": "Black Smoothness Drill (Trunks Saga)",
+}
+
+
 def load_sources(path):
-    out = {}
+    out = dict(NEW_SOURCES)
     try:
         rows = list(csv.DictReader(open(path, encoding="utf-8")))
     except FileNotFoundError:
@@ -392,7 +491,8 @@ def load_sources(path):
         for old, new in SEAL_RENAMES.items():
             if cid.startswith(old):
                 cid = new + cid[len(old):]
-        out[cid] = r.get("Source card", "")
+        if r.get("Source card", ""):
+            out[cid] = r["Source card"]
     return out
 
 

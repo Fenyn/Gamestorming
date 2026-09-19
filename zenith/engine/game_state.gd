@@ -28,6 +28,7 @@ var start_play_done: Array[bool] = [false, false]  # per player, the pre-game "p
 var floating: Array[Dictionary] = []   # {owner, op, duration, ...params}; see DuelEngine._float
 var pending_play: Dictionary = {}      # a Combat card waiting on the opponent's counter window
 var skip_discard: bool = false         # a card ended the turn early: no Discard step
+var pending_ascension: int = -1        # an Ascension win the opponent answered; re-checked once their card resolves
 var declare_window_done: bool = false  # the opponent already had their Declare-step response this turn
 var winner: int = -1
 var win_reason: String = ""
@@ -60,6 +61,7 @@ func copy(cards: Dictionary) -> GameState:
 	s.floating = floating.duplicate(true)
 	s.pending_play = pending_play.duplicate(true)
 	s.skip_discard = skip_discard
+	s.pending_ascension = pending_ascension
 	s.declare_window_done = declare_window_done
 	s.winner = winner
 	s.win_reason = win_reason

@@ -21,7 +21,7 @@ const KINDS: Dictionary = {
 ## `disruption` is stripping the opponent's hand and table. A subtheme may also imply signs.
 const SUBTHEMES: Dictionary = {
 	"fervor": "Fervor", "energy": "Energy", "draw": "Draw", "might": "Might", "disruption": "Disruption",
-	"bond": "Bond", "arts": "Arts", "strikes": "Strikes", "swords": "Swords", "automatons": "Automatons",
+	"bond": "Bond", "arts": "Arts", "strikes": "Strikes", "swords": "Swords", "construct": "Construct",
 	"seals": "Seals", "allies": "Allies", "drills": "Drills",
 }
 const SUBTHEME_SIGNS: Dictionary = {"seals": {"seal": 0.7}, "allies": {"ally": 0.7}, "drills": {"drill": 0.7}}

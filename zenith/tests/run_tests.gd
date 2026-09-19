@@ -186,6 +186,20 @@ func _init() -> void:
 		test_ai_reserve_swaps,
 		test_archetype_label,
 		test_ai_profile_merge,
+		test_automaton_deck_is_legal,
+		test_a_drill_can_pay_more_for_its_own_kind,
+		test_a_keyword_count_reads_both_sides,
+		test_a_drill_can_lock_allies_out,
+		test_a_search_can_arrive_at_full_energy,
+		test_energy_paid_can_buy_energy_damage,
+		test_a_drill_can_raise_the_hand_limit,
+		test_a_drill_answers_one_successful_attack_a_combat,
+		test_no_modifiers_are_added_against_the_machine,
+		test_a_power_can_read_another_card_by_title,
+		test_a_card_can_answer_an_ascension_win,
+		test_set_energy_can_reach_every_personality,
+		test_a_search_can_stack_the_deck,
+		test_beginning_of_turn_runs_for_both_players_when_the_card_says_so,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -3091,6 +3105,198 @@ func test_root_deck_is_legal() -> void:
 	eq(", ".join(DeckValidator.validate(d, shipped_library())), "", "no validator problems")
 
 
+## The Construct deck runs four aspects and no Relic.
+func test_automaton_deck_is_legal() -> void:
+	var d: DeckList = DeckList.load_from("res://data/decks/shade_salvage.json")
+	eq(d.total_cards(), 85, "80 life cards, four aspects and the Mastery")
+	eq(", ".join(DeckValidator.validate(d, shipped_library())), "", "no validator problems")
+
+
+# --- Construct rules ------------------------------------------------------
+
+## The Drill pays +1 wound to anyone and +2 to a personality carrying the keyword.
+func test_a_drill_can_pay_more_for_its_own_kind() -> void:
+	for pair in [["tf_vigil", 5], ["tf_machine", 6]]:
+		var e: DuelEngine = engine(deck(filler(["t_drill_assembly", "t_art", "t_art", "t_art"]), "vigil", "", "", 3, str(pair[0])), deck(filler(), "pact"))
+		answer(e, &"place", uid_in_hand(e, 0, "t_drill_assembly"))
+		to_combat(e)
+		var before: int = e.player(1).life_deck.size()
+		answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+		eq(before - e.player(1).life_deck.size(), int(pair[1]), "%s took %d wounds" % [str(pair[0]), int(pair[1])])
+
+
+## "+1 wound for each Construct personality in play" counts both sides, because the card says
+## what a personality is, not whose it is.
+func test_a_keyword_count_reads_both_sides() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_machine"), deck(filler(), "pact"))
+	eq(e.tag_count("construct"), 1, "one Construct personality to start")
+	inject(e, 0, "t_ally_cog")
+	eq(e.tag_count("construct"), 2, "the Ally is one too")
+	to_combat(e)
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"power", e.player(0).duelist.uid)
+	eq(before - e.player(1).life_deck.size(), 3, "1 printed plus 2 Construct")
+
+
+## A Drill that shuts the rival's following out of play.
+func test_a_drill_can_lock_allies_out() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_lockout"])), deck(filler(["t_ally_squire"]), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_lockout"))
+	to_combat(e)
+	answer(e, &"pass")
+	answer(e, &"pass")
+	skip_to_turn(e, 2)
+	check(e.prompt.find(&"place", uid_in_hand(e, 1, "t_ally_squire")) == null, "the Drill keeps the Ally out")
+
+
+## "Put them into play at their highest Energy": the search takes two and both arrive full.
+func test_a_search_can_arrive_at_full_energy() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_retinue"])), deck(filler(), "pact"))
+	var squire: CardInstance = to_deck(e, 0, "t_ally_squire")
+	var kin: CardInstance = to_deck(e, 0, "t_ally_kin")
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_retinue"))
+	eq(prompt_kind(e), &"pick_option", "the search asks")
+	answer(e, &"pick_option", squire.uid)
+	answer(e, &"pick_option", kin.uid)
+	eq(e.player(0).allies().size(), 2, "both came into play")
+	eq(squire.energy, CardInstance.MAX_STAGE, "at full Energy")
+	eq(kin.energy, CardInstance.MAX_STAGE, "both of them")
+
+
+## A payment can buy Energy damage instead of wounds.
+func test_energy_paid_can_buy_energy_damage() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_gathering_dark"])), deck(filler(), "pact"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_gathering_dark"))
+	eq(prompt_kind(e), &"pay", "pay prompt")
+	answer(e, &"pay", -1, 3)
+	eq(e.player(0).duelist.energy, 5, "paid 3 of 8")
+	# 1 printed Energy of damage and 3 bought, off a defender sitting at 5.
+	eq(e.player(1).duelist.energy, 1, "1 printed and 3 bought")
+
+
+## A Drill that raises the end-of-turn hand limit.
+func test_a_drill_can_raise_the_hand_limit() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_composure"])), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_composure"))
+	to_combat(e)
+	answer(e, &"pass")
+	answer(e, &"pass")
+	while e.prompt != null and e.prompt.kind == &"keep" and e.prompt.player == 1:
+		answer(e, &"discard_all")
+	check(e.player(0).hand.size() <= 2, "kept no more than two")
+	check(e.player(0).hand.size() == mini(2, e.player(0).hand.size()), "and was not asked to cut to one")
+
+
+## A Drill answers a successful attack, and only once in a Combat.
+func test_a_drill_answers_one_successful_attack_a_combat() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_takedown"])), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_takedown"))
+	to_combat(e)
+	var before: int = e.player(0).hand.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(e.player(0).hand.size(), before, "the Strike left the hand and the Drill put one back")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(e.player(0).hand.size(), before - 1, "the second attack got nothing")
+
+
+## "No modifiers are added to Strikes performed against her": the attacker's own bonuses drop,
+## and only for that kind.
+func test_no_modifiers_are_added_against_the_machine() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_assembly", "t_strike", "t_art"])), deck(filler(), "pact", "", "", 3, "tf_machine"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_assembly"))
+	e.player(1).duelist.aspect = 2
+	to_combat(e)
+	var forecasts: Dictionary = e.attack_forecasts(0)
+	var strike: Dictionary = forecasts.get(uid_in_hand(e, 0, "t_strike"), {})
+	var art: Dictionary = forecasts.get(uid_in_hand(e, 0, "t_art"), {})
+	check(not strike.is_empty() and not art.is_empty(), "both attacks are forecast")
+	eq(int(strike.get("life", -1)), 0, "the Drill's wound was blanked on the Strike")
+	eq(int(art.get("life", -1)), 5, "and still applies to an Art, which the constant does not name")
+
+
+## A card may read another card by title, wherever it sits in play.
+func test_a_power_can_read_another_card_by_title() -> void:
+	for pair in [[false, 2], [true, 6]]:
+		var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_machine"), deck(filler(), "pact"))
+		e.player(0).duelist.aspect = 3
+		if bool(pair[0]):
+			inject(e, 0, "t_relay")
+		to_combat(e)
+		var before: int = e.player(1).life_deck.size()
+		answer(e, &"power", e.player(0).duelist.uid)
+		eq(before - e.player(1).life_deck.size(), int(pair[1]), "%s the named card in play" % ("with" if bool(pair[0]) else "without"))
+
+
+## The CRD errata for "Vegeta Scans The City" makes the card an answer to the win itself, so the
+## Ascension win opens a window for it and falls through when nothing answers.
+func test_a_card_can_answer_an_ascension_win() -> void:
+	for pair in [[true, -1], [false, 0]]:
+		var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+		if bool(pair[0]):
+			inject(e, 1, "t_reckoning")
+		e.player(0).duelist.aspect = 3
+		e.player(0).fervor = 4
+		e._change_fervor(e.player(0), 1, 0)
+		if bool(pair[0]):
+			eq(prompt_kind(e), &"respond", "the rival is asked before the win lands")
+			eq(str(e.prompt.context.get("mode", "")), "ascension", "and told what it is answering")
+			answer(e, &"use", e.player(1).non_combats()[0].uid)
+			eq(e.player(0).duelist.aspect, 3, "knocked off the top Aspect, then climbed straight back")
+		eq(e.state.winner, int(pair[1]), "won by Ascension only when nothing answered")
+	# Declining the window is still a win.
+	var d: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	inject(d, 1, "t_reckoning")
+	d.player(0).duelist.aspect = 3
+	d.player(0).fervor = 4
+	d._change_fervor(d.player(0), 1, 0)
+	answer(d, &"decline")
+	eq(d.state.winner, 0, "declining lets it through")
+
+
+## "Set all of their personalities to N" reaches the Allies, not only whoever holds Combat.
+func test_set_energy_can_reach_every_personality() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_levelling"])), deck(filler(), "pact"))
+	var ally: CardInstance = inject(e, 1, "t_ally_squire")
+	ally.energy = 9
+	e.player(1).duelist.energy = 9
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_levelling"))
+	eq(e.player(1).duelist.energy, 4, "the duelist was set")
+	eq(ally.energy, 4, "and so was the Ally")
+
+
+## "Place them on top of your Life Deck": the last card picked is the one drawn first.
+func test_a_search_can_stack_the_deck() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_levelling", "t_recall_top"])), deck(filler(), "pact"))
+	var first: CardInstance = e._instance(lib.get_def("t_art"), 0, &"discard")
+	var second: CardInstance = e._instance(lib.get_def("t_parry"), 0, &"discard")
+	e.player(0).discard.append(first)
+	e.player(0).discard.append(second)
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_recall_top"))
+	answer(e, &"pick_option", first.uid)
+	answer(e, &"pick_option", second.uid)
+	eq(e.player(0).life_deck[0].uid, second.uid, "the last pick sits on top")
+	eq(e.player(0).life_deck[1].uid, first.uid, "the first pick under it")
+
+
+## Beginning-of-turn lines belong to their own turn unless the card says every turn.
+func test_beginning_of_turn_runs_for_both_players_when_the_card_says_so() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_drill_every_turn"])), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_every_turn"))
+	var after_place: int = e.player(0).fervor
+	to_combat(e)
+	answer(e, &"pass")
+	answer(e, &"pass")
+	skip_to_turn(e, 2)
+	eq(e.player(0).fervor, after_place + 1, "it fired on the rival's turn too")
+	skip_to_turn(e, 3)
+	eq(e.player(0).fervor, after_place + 2, "and again on its owner's")
+
+
 # --- Simulation support ----------------------------------------------------
 
 func shipped_engine(deck_a: String, deck_b: String, seed_value: int) -> DuelEngine:
@@ -3486,7 +3692,7 @@ func test_ai_reserve_swaps() -> void:
 	eq(float(AiReserve.read_setup(vale.player(0))["drill"]), 1.0, "the Freestyle Mastery reads as a Drill deck")
 	check(reserve_swaps("pyre_beatdown", "tide_companions").has("pyre_ashfall"), "Pyre brings its Ally answer in against Tide")
 	check(not reserve_swaps("pyre_beatdown", "steel_beatdown").has("pyre_ashfall"), "and leaves it out against Steel")
-	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("broken_rites"), "Steel brings its Drill answer in against Freestyle")
+	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("scorn_smirks"), "Steel brings its Drill answer in against Freestyle")
 	check(reserve_swaps("steel_beatdown", "pyre_beatdown").has("steel_skull_crack"), "and its plain strong card every game")
 	check(not reserve_swaps("steel_beatdown", "pyre_beatdown").has("open_challenge"), "a card that starts in play from the Reserve stays there")
 	eq(reserve_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")

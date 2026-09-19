@@ -20,7 +20,7 @@
   "archetype": "art_beatdown",
   "difficulty": "medium",
   "subthemes": [
-    "automatons",
+    "construct",
     "draw",
     "fervor"
   ],
@@ -57,7 +57,7 @@
       "count": 3
     },
     {
-      "id": "broken_rites",
+      "id": "scorn_smirks",
       "count": 1
     },
     {
@@ -85,11 +85,11 @@
       "count": 1
     },
     {
-      "id": "vessels_sidestep",
+      "id": "siphons_sidestep",
       "count": 4
     },
     {
-      "id": "porcelain_smile",
+      "id": "mercy_smiles",
       "count": 3
     },
     {
@@ -133,7 +133,7 @@
       "count": 3
     },
     {
-      "id": "vessels_calibration",
+      "id": "sledges_stance",
       "count": 3
     },
     {

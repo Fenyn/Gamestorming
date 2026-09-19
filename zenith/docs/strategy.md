@@ -66,7 +66,7 @@ less than the swing.
 hitting a Seal deck churns its set. A Drill that guards Seals turns capture off completely, so it is
 the piece to land first and the piece to remove first.
 
-## 3. The seven decks
+## 3. The eight decks
 
 Each entry is: what it is trying to do, the lever that makes it work, the line to play, and the
 mistake that loses the game.
@@ -172,6 +172,36 @@ spent is a Tide card. It is not a damage engine; it is the reason the deck survi
   what kept the fusion at 4%; with the guard actually holding it loses 0.25 and fuses in 33%. The
   residual is real and not a bug: a Constant Combat Power is a power, so an opponent card that
   forbids powers switches the guard off, and the guard is on aspect 1 only.
+
+### Shade — the eighth deck, `shade_salvage` (art_beatdown)
+
+Added 2026-09-18 from the second Shade sample deck; the duelist and following are placeholders
+until the Construct rework lands. Same school and the same Mastery as the Draik Company, and a
+different plan. **It is an Art beatdown, not an Ally deck**, which is the easiest thing to get
+wrong about it: twenty-three of its twenty-nine attacks are Arts, and the Allies are a subtheme.
+The Draiks empty their Duelist and fight from the board; this one stays in control and fights
+itself, and the bodies on the table are there to make its numbers bigger.
+
+- **Lever.** The **Construct** keyword. The Assembly Drill pays every attack +1 wound and a
+  Construct personality's +2, and the second Ally's Art pays +1 for every Construct personality in
+  play on either side. The Duelist is one, so the count is never zero, and each extra body raises
+  the ceiling of every other.
+- **Second lever.** Aspect 2's constant: no modifiers at all are added to Strikes aimed at the
+  Duelist. Against Steel and Pyre, whose damage is almost entirely modifiers, that is the whole
+  matchup. Aspects 3 and 4 hit harder while The Breaker's Yard is in play, so the Coach is worth
+  keeping out and not spending on an empty board.
+- **Line.** Assembly Drill down, a body or two out, the rival's following removed, then Arts. Hold
+  Energy: Arts cost it and the deck has no way to make it back in bulk. The hand empties fast,
+  which is what the Composure Drill and the Takedown Drill are for.
+- **Mistake.** Playing it like the Draik deck and handing Combat to an Ally. Its Might ladder is
+  better than theirs and the Drill pays the Duelist the most. Also spending The Breaker's Yard or
+  Dismissal with nothing worth removing; both are limited, and the Coach is a condition two of the
+  Aspects read.
+- **Measured 2026-09-18.** 18 to 24% depending on the sample, bottom of the field alongside Tide,
+  and untuned. It does do its thing: the Retinue lands 0.7 times a game, the Assembly Drill about
+  0.5, and the Allies reach play in most games. Re-pointing the profile from Allies to Arts halved
+  its Ally-held attack phases (4.9 to 2.4 a game) without moving the win rate, which is the profile
+  doing what it now says.
 
 ## 4. Where each principle lives in an AI profile
 

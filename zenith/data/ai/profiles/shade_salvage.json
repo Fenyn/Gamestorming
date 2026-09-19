@@ -1,0 +1,9 @@
+{
+	"_note": "Playstyle for Marrow's deck. It is an Art beatdown first: twenty-three of its twenty-nine attacks are Arts, so Energy is fuel and worth holding, and the win is wounds. Allies are a subtheme, not the plan: they are extra bodies that raise what the Hollowing Drill and Erasmus Cull pay out, and the Duelist stays in control rather than emptying herself to hand Combat over. Removal goes at the rival's following and Drills, because her own numbers scale off who is standing. Blocks are plentiful and cheap to spend.",
+	"name": "shade_salvage",
+	"own": {"ally": 2.6, "ally_energy": 0.4, "energy": 1.1, "hand": 1.7, "seal": 5.0, "life": 0.9, "drill": 2.4, "non_combat": 0.8},
+	"foe": {"life": 1.4, "drill": 3.0, "ally": 3.8, "non_combat": 2.2, "ascension": 30.0},
+	"effect": {"discard_in_play": 3.0, "forbid": 2.2, "search": 2.8, "discard_hand": 1.4, "energy": 0.9},
+	"play": {"damage_life": 1.4, "damage_stage": 0.4, "attack_cost": 0.4, "declare_bias": 2.0, "defend_card": 1.0, "final_strike_penalty": 7.0, "control_ally": 0.6, "tutor_decay": 0.5},
+	"think": {"turns": 3}
+}

@@ -36,7 +36,7 @@ The rename pass ran on 2026-09-17: this doc, the code, the data and the card tex
 | Discard pile, removed pile | Spells shaken loose, and spells forgotten for the rest of the duel |
 | Allies | Apprentices, familiars, constructs and hired blades who take a wound for you or step in when your Energy is spent |
 | Drills | Rituals and standing workings |
-| Seals, seven per set | Seals carved into the gate. Placing one is carving a seal. Capture is overwriting a rival's seal with your own mark. Three sets for three Eidolons, each with its own seven seals: Maruth, Ysmere and Korrag (see The Eidolons below) |
+| Seals, seven per set | Seals carved into the gate. Placing one is carving a seal. Capture is overwriting a rival's seal with your own mark. Four sets for four Eidolons, each with its own seven seals: Maruth, Ysmere, Korrag and Thessa (see The Eidolons below) |
 | Grounds | Which place of power this duel is over |
 | Relic, Reserve | A relic of great power that the duelist wears, usable by any school or by none. Its Reserve is the spare spells and techniques it lets the wearer hold beyond their own mind. Relic powers channel the artifact itself |
 | Mastery, Style | The school a duelist follows. Every deck follows one Style and carries that school's Mastery |
@@ -78,8 +78,9 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 | The Draik Company, hexers for hire | Pact | Shade | Sable Draik, captain | Vesna, Brann, Quill, Halvard Draik, and Pim |
 | The Rooke coven, an old family of water mages | Vigil | Tide | Dame Alder Rooke, matriarch | Wren, Sir Edric, Ansel Rooke, Tavin Vale |
 | none | Vigil | Freestyle | Caedan Vale, the last of a line of swordmasters, no magic at all | none |
-| The Corven Collegium, scholars of the Tempest | Pact | Storm | The Ninth Vessel, a warded construct | The Fourteenth Vessel |
+| The Corven Collegium, scholars of the Tempest | Pact | Storm | Siphon, a warded construct | Tithe |
 | The Thornwald Grove, druids whose rites regrow what is cut away (added 2026-09-17) | Vigil | Root | Osric Thornwald, an old druid who mends as he fights and outlasts | none |
+| Marrow the Amalgam, a construct assembled from fallen ones and the crew that picks the field over (added 2026-09-18) | Pact | Shade | Marrow, who is not one construct and never was | Cull, Orvath Kell, Sarn Vayne, Pim |
 
 ### Bloodlines
 
@@ -93,6 +94,19 @@ In the data it is `bloodline` on a personality's card definition, `only: {"blood
 
 Carriers: Draconic are Halden Quarr, Caedan Vale, Sir Edric Rooke, Wren Rooke, Ansel Rooke, Tavin Vale and the bonded pair. Verdant is Osric Thornwald alone. Nobody else has one, Dame Alder Rooke included, though every one of her Allies does.
 
+### Keywords
+
+Documented 2026-09-18. A keyword is a word a group of cards share, and which other cards read off them. The reference game keyed these off a word in the card title; here the word goes in `tags` on the card definition, so nothing depends on how a title happens to be spelled.
+
+**Construct** is the only one so far (chosen 2026-09-18 over "automaton", which was too narrow, and "Hollowed", which was tried and dropped the same day). A Construct is anything walking around that was made rather than born, by any tradition and out of anything: golems of clay and stone, clockwork automata, animate armour, wax and bone effigies, and whatever else later sets need. The word is deliberately wide, because it is a category and not a roster.
+
+Two rules follow from that, and both matter more than the word itself:
+
+- **A keyword is not a faction.** The Corven Collegium builds Constructs; so do other people, by other methods, for other reasons. A card that says "Construct" reads what a personality *is*, never whose side it is on. That is why `life_per_tag` counts personalities in play on both sides.
+- **A keyword is not a school.** The Collegium's Constructs happen to field Storm today and Marrow's happen to field Shade, and neither of those facts belongs to the keyword. The same goes for followings in general: the table below records what a following currently fields, not what it is. A house may field more than one school later, and nothing in the data should assume otherwise.
+
+In the data it is `tags: ["construct"]`, and cards reach it four ways: `search` with `tag`, a `when` of `performer_tag` (the personality swinging), `in_control_tag` (whoever holds Combat on that side) or `duelist_tag`, and an attack's `life_per_tag`.
+
 Aspect titles (2026-09-17; in the data as `title` on each Aspect, set in `ASPECT_TITLES` in `gen_starters.py`). Each Aspect card carries its own title, as in "Bram Ashmark, Unquenchable". Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
 
 | Duelist | Tier titles |
@@ -100,20 +114,22 @@ Aspect titles (2026-09-17; in the data as `title` on each Aspect, set in `ASPECT
 | Bram Ashmark | Kindled, Wildfire, Unquenchable |
 | Halden Quarr | the Grinder, Tempered, Ironheart |
 | Sable Draik | Captain, Shrouded, Lightless |
-| The Ninth Vessel | Dormant, Charged, Unbound |
+| Siphon | Dormant, Charged, Unbound |
 | Dame Alder Rooke | Matriarch, Rising Water, the Flood |
 | Osric Thornwald | Greybeard, Overgrown, Deep-Rooted, Heartwood, Grovelord |
 | Caedan Vale | Last Heir, Unparried, Spellcutter, the Quiet Blade, Peerless |
+| Marrow | Patchwork, Rebuilt, Overwrought, Fury Amalgam |
 
 ### The Eidolons
 
-Chosen 2026-09-17. Physical, demigod-scale beings from elsewhere, one behind each set of seven seals. They are flavored by vibe, not by what their seals do. The pairing of Eidolon to set is a loose fit; it went into the data with the rename pass and can still be moved. The names are coined and unchecked.
+Chosen 2026-09-17. Physical, demigod-scale beings from elsewhere, one behind each set of seven seals (three at first, four since 2026-09-18). They are flavored by vibe, not by what their seals do. The pairing of Eidolon to set is a loose fit; it went into the data with the rename pass and can still be moved. The names are coined and unchecked.
 
 | Eidolon | Set id in data | Body | Temperament |
 |---|---|---|---|
 | Maruth, the Drowned Sun | sun | A giant in gold plate, twice the height of a gate tower. The armor is full of seawater and there is no body inside. Light pours out of the visor and every joint | Regal and warm, and certain that everything it shines on belongs to it |
 | Ysmere, the Moth Queen | moth | A tall pale woman-shape in a mantle of living white moths, with feathered antennae for a crown. Where the mantle brushes something, that thing fades | Soft-spoken, patient and tender, and always hungry |
 | Korrag the Unfinished | marble | A titan that is half made. One side is flawless marble muscle; the other is scaffold, bare bone and gold wire. It carries the chisel that is carving it | Proud and restless. It wants to be completed and takes material wherever it finds it |
+| Thessa, the Kind Hand (added 2026-09-18, name pending approval) | salt | A stooped surgeon's shape in a clean apron, taller than it should be, with more arms than it should have, each ending in an instrument instead of a hand. There is a low steady lamp where the face belongs | Gentle, tireless and entirely certain it is helping. It makes you well by taking out whatever in you was aching, and it does not distinguish between the ache and the part of you that was doing the aching |
 
 Seal names (applied 2026-09-17; Marble is the user's pick over Chisel). Each set is named loosely after its Eidolon, numbered 1 to 7, the way the old sets were "Crown Token 3":
 
@@ -122,10 +138,11 @@ Seal names (applied 2026-09-17; Marble is the user's pick over Chisel). Each set
 | Maruth, the Drowned Sun | Sun Seal 1 to 7 | sun | Gilded Seal, Brine Seal |
 | Ysmere, the Moth Queen | Moth Seal 1 to 7 | moth | Pale Seal, Mantle Seal |
 | Korrag the Unfinished | Marble Seal 1 to 7 | marble | Chisel Seal, Scaffold Seal |
+| Thessa, the Kind Hand | Salt Seal 1 to 7 | salt | Linen Seal, Lamp Seal |
 
-Card text builds the set name from the set id ("One of the seven Sun Seals", "for each Marble Seal in play"). The card ids are `sun_seal_N`, `moth_seal_N` and `marble_seal_N`, and the art files are named to match.
+Card text builds the set name from the set id ("One of the seven Sun Seals", "for each Marble Seal in play"). The card ids are `sun_seal_N`, `moth_seal_N`, `marble_seal_N` and `salt_seal_N`, and the art files are named to match.
 
-Seal 4 of every set discards the opponent's Non-Combat cards in play: the gate's first shudder strips the standing rituals, whichever Eidolon is behind it.
+Seal 4 of the first three sets discards the opponent's Non-Combat cards in play: the gate's first shudder strips the standing rituals. **Thessa's set breaks that pattern**, and does so on purpose, because the source sets are not uniform either: every Salt Seal instead puts the carver back on their feet at full Energy, which is the one thing she does. Salt Seal 4 sweeps Allies off the table rather than Non-Combats.
 
 Relics: the three Masters become three worn relics, none of them a weapon, so any duelist can carry one. The Blank Mask (`blank_mask`, Reserve 13, two uses) is a featureless face-plate, and whoever it looks at forgets their school for a turn. The Debtor's Ring (`debtors_ring`, Reserve 5, one use) is a signet pressed with someone else's mark, and turning it calls in the debt as an Ally. The Lodestone Heart (`lodestone_heart`, Reserve 10, no use) is a dark stone pendant that pulls the wearer toward the ground and toward themselves, so they cannot be dragged down in Fervor or Aspect and cannot win by Ascension. Names approved 2026-09-17.
 

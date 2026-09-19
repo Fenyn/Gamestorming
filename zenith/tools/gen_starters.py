@@ -106,13 +106,16 @@ ASPECT_TITLES = {
     "duelist_epsilon": ["the Grinder", "Tempered", "Ironheart"],
     "duelist_zeta": ["Last Heir", "Unparried", "Spellcutter", "the Quiet Blade", "Peerless"],
     "duelist_eta": ["Greybeard", "Overgrown", "Deep-Rooted", "Heartwood", "Grovelord"],
+    # Crude, then properly put back together, then built past what any of the parts were for, then
+    # all of it at once. "Overwrought" is doing both its jobs: over-made, and worked up.
+    "duelist_theta": ["Patchwork", "Rebuilt", "Overwrought", "Fury Amalgam"],
 }
 
 
-def duelist(id, title, aspects):
+def duelist(id, title, aspects, **k):
     for a, name in zip(aspects, ASPECT_TITLES[id]):
         a["title"] = name
-    add(id=id, title=title, type="duelist", school="", character=title, aspects=aspects)
+    add(id=id, title=title, type="duelist", school="", character=title, aspects=aspects, **k)
 
 
 def aspect(n, surge, top, step, power=None, constant=None, shield=None):
@@ -126,8 +129,9 @@ def aspect(n, surge, top, step, power=None, constant=None, shield=None):
     return d
 
 
-ALPHA, BETA, GAMMA, DELTA, EPSILON, ZETA = "Bram Ashmark", "Dame Alder Rooke", "The Ninth Vessel", "Sable Draik", "Halden Quarr", "Caedan Vale"
+ALPHA, BETA, GAMMA, DELTA, EPSILON, ZETA = "Bram Ashmark", "Dame Alder Rooke", "Siphon", "Sable Draik", "Halden Quarr", "Caedan Vale"
 ETA = "Osric Thornwald"
+THETA = "Marrow"
 
 # ============================================================================
 # Duelists
@@ -149,7 +153,7 @@ duelist("duelist_gamma", GAMMA, [
     aspect(1, 2, 16, 1, power={"defense": {"stops": "art"}, "effects": [VIG(3)]}),
     aspect(2, 1, 20, 1, shield="strike", power={"effects": [ENTER(VIG(5))]}),
     aspect(3, 2, 26, 1, power={"attack": {"kind": "art", "cost_stages": 0}, "effects": [E("draw", amount=2)]}),
-])
+], tags=["construct"])
 duelist("duelist_delta", DELTA, [
     aspect(1, 2, 20, 1, constant={"allies_share": True, "ally_control_any_stage": True, "modifiers": [{"scope": "own", "kind": "any", "stages": 1, "per_ally": True}]}),
     aspect(2, 3, 28, 1, constant={"allies_share": True, "ally_control_any_stage": True, "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "stages": 3}]}),
@@ -177,6 +181,14 @@ duelist("duelist_eta", ETA, [
     aspect(4, 4, 33, 2, power={"attack": {"kind": "strike"}, "effects": [E("recover", amount=3, **{"from": "bottom"})]}),
     aspect(5, 5, 40, 1, constant={"modifiers": [{"scope": "own", "kind": "strike", "stages": 5}]}),
 ])
+# Construct, so the keyword cards read her as kin, and her last two aspects hit harder while The
+# Black Coach is out.
+duelist("duelist_theta", THETA, [
+    aspect(1, 1, 20, 1, power={"effects": [ENTER(E("look_at", amount=6, rearrange=True, **{"from": "top"}), "active"), ENTER(E("draw", amount=1), "active")]}),
+    aspect(2, 2, 24, 1, constant={"no_modifiers_against": "strike"}),
+    aspect(3, 3, 30, 1, power={"attack": {"kind": "art", "printed_life": 7, "variants": [{"when": {"card_in_play": "The Breaker's Yard"}, "printed_stages": 3}]}}),
+    aspect(4, 4, 38, 2, power={"attack": {"kind": "strike", "stages": 6, "variants": [{"when": {"card_in_play": "The Breaker's Yard"}, "life": 5}]}, "effects": [OPP_ACC(-3)]}),
+], tags=["construct"])
 
 # ============================================================================
 # Allies
@@ -186,7 +198,10 @@ ally("henchman_beta", "Brann Draik", "pact", 20, 1, {"attack": {"kind": "strike"
 ally("henchman_gamma", "Quill Draik", "pact", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [IFS(WHEN({"may": True, "then": [OPP("choose_forbid_type", unless_energy_min=5)], **E("discard_hand", amount=1, random=False)}, hand_min=1))]})
 ally("henchman_delta", "Halvard Draik", "pact", 17, 1, {"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(OPP("discard_hand", amount=1, random=False))]})
 ally("henchman_epsilon", "Pim", "pact", 6, 0, {"attack": {"kind": "strike"}, "effects": [IFS(E("draw_discard", amount=2, **{"from": "bottom"}))]})
-ally("henchman_zeta", "The Fourteenth Vessel", "pact", 19, 1, {"attack": {"kind": "strike", "life": 2}, "effects": [E("discard_hand", amount=1, random=False)], "no_control_needed": True}, tags=["automaton"])
+ally("henchman_zeta", "Tithe", "pact", 19, 1, {"attack": {"kind": "strike", "life": 2}, "effects": [E("discard_hand", amount=1, random=False)], "no_control_needed": True}, tags=["construct"])
+ally("salvage_alpha", "Cull", "pact", 18, 1, {"attack": {"kind": "art", "life_per_tag": "construct"}}, tags=["construct"])
+ally("salvage_beta", "Orvath Kell", "pact", 17, 1, {"attack": {"kind": "art", "printed_life": 6}})
+ally("salvage_gamma", "Gideon Mourne", "pact", 19, 1, {"attack": {"kind": "art", "cost_stages": 1}})
 ally("companion_alpha", "Wren Rooke", "vigil", 18, 1, {"effects": [E("shuffle_discard", amount=1, per_personality=True)]})
 ally("companion_beta", "Sir Edric Rooke", "vigil", 16, 1, {"attack": {"kind": "strike", "focused": True, "stages": 2, "life_per_opponent_seal": 2}})
 ally("companion_gamma", "Tavin Vale", "vigil", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [E("recover", amount=2, **{"from": "bottom"})]}, surge=3)
@@ -222,6 +237,19 @@ MARBLE = [
     [{"may": True, **ACC(2), "otherwise": [OPP_ACC(-2)]}],
     [E("capture_seal")],
 ]
+# Thessa's set. Every one of them puts the duelist back on their feet, because that is what she
+# does: she makes you well by taking out whatever in you was aching.
+SALT = [
+    [VIG("max", "duelist"), OPP_ACC(-3)],
+    [VIG("max", "duelist"), {"may": True, **E("discard_in_play", "any", card_type="seal", amount=1, choose=True, to="deck_shuffle")}],
+    [VIG("max", "duelist"), E("draw_discard", amount=3, **{"from": "top"})],
+    [VIG("max", "duelist"), E("discard_in_play", "any", card_type="ally", amount=3, up_to=True, choose=True)],
+    [VIG("max", "duelist"), SEARCH(source="discard", amount=5, to="deck_shuffle")],
+    [VIG("max", "duelist"), OPP("set_energy", amount=4, target="all")],
+    [VIG("max", "duelist"), SEARCH(source="discard", amount=3, to="deck_top")],
+]
+for i, eff in enumerate(SALT, 1):
+    seal("salt_seal_%d" % i, "Salt Seal %d" % i, "salt", i, eff)
 for i, eff in enumerate(MARBLE, 1):
     seal("marble_seal_%d" % i, "Marble Seal %d" % i, "marble", i, eff)
 for i, eff in enumerate(SUN, 1):
@@ -277,7 +305,7 @@ strike("no_quarter", "No Quarter", atk={"stages": 3},
 # A named card in the source, so the duelist it is named for may run a fourth copy.
 strike("relentless_fury", "Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
 block("stillness", "Stillness", "any", "combat", defense={"stop_all": "any"}, limit_per_deck=1, use_in_attack=True, effects=[E("stop_all", kind="any")])
-block("planted_feet", "Planted Feet", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
+block("mournes_stance", "Mourne's Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
 block("unyielding_guard", "Unyielding Guard", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
 block("grounding_step", "Grounding Step", "art", "art", defense={"stop_all": "art"}, remove_after_use=True, limit_per_deck=1)
 block("dead_air", "Dead Air", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")], limit_per_deck=1)
@@ -287,7 +315,8 @@ combat("terms_of_the_pact", "Terms of the Pact", [E("choose_stop_all_kind")], al
 block("wall_of_flame", "Ashmark's Wall of Flame", "any", "strike", defense={"stop_focused": True}, only={"duelist_character": ALPHA}, remove_after_use=True)
 # A named card in the source, so the duelist it is named for may run a fourth copy and search for it.
 add(id="cut_short", title="Cut Short", type="combat", school="", counter="combat", character=ZETA)
-combat("cold_appraisal", "Cold Appraisal", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="pact")
+# A named card in the source, so the duelist it is named for may run a fourth copy.
+combat("cold_appraisal", "Marrow's Appraisal", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="pact", character=THETA)
 combat("sever_the_leyline", "Sever the Leyline", [OPP("set_aspect", aspect=1)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
 combat("respite", "Respite", [E("draw_discard", amount=2, **{"from": "top"}), OPP("energy", amount=5)], limit_per_deck=1)
 combat("watchful_eye", "Watchful Eye", [OPP("discard_hand", amount=1, random=False, chooser="owner", to="deck")], alignment_only="vigil")
@@ -302,19 +331,22 @@ combat("old_trick", "Old Trick", [SEARCH(card_type="attack", source="reserve", t
 combat("closing_ranks", "Closing Ranks", [FLOAT("modifier", scope="own", kind="any", life=2, per_ally=True, once=True), E("draw", amount=1)], remove_after_use=True)
 combat("rallying_call", "Rallying Call", [VIG("max", "duelist"), SEARCH(card_type="ally", source="either", to="play", stages=3)], remove_after_use=True)
 combat("hired_blades", "Hired Blades", [SEARCH(card_type="ally", source="either", to="play", stages=10)])
-combat("broken_rites", "Broken Rites", [DISCARD_IN_PLAY("drill", all=True, remove=True)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
+combat("scorn_smirks", "Scorn Smirks", [DISCARD_IN_PLAY("drill", all=True, remove=True)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
 combat("steel_standoff", "Steel Standoff", [E("end_combat"), E("end_turn"), FLOAT("keep_hand", duration="next_turn_end")], school="steel", remove_after_use=True, limit_per_deck=1)
 combat("mutual_escalation", "Mutual Escalation", [ACC(6), OPP_ACC(6), E("no_ascension_win")])
 combat("reckless_ascent", "Reckless Ascent", [E("no_ascension_win"), E("set_aspect", aspect="fervor")])
 combat("keen_eye", "Keen Eye", [E("draw_check", check="named", effects=[E("draw", amount=1)])], remove_after_use=True, limit_per_deck=1)
 combat("quiet_study", "Quiet Study", [E("draw_check", check="signature", effects=[E("draw", amount=1)])], limit_per_deck=1)
 combat("dismissal", "Dismissal", [DISCARD_IN_PLAY("ally", "self", all=True, remove=True), DISCARD_IN_PLAY("ally", all=True, remove=True)], remove_after_use=True, limit_per_deck=2)
+combat("rites_unmade", "Rites Unmade", [DISCARD_IN_PLAY("drill", all=True)], remove_after_use=True, limit_per_deck=1)
+# "Choose 2 Allies from your Life Deck and put them into play at their highest power stage."
+combat("marrows_retinue", "Marrow's Retinue", [SEARCH(card_type="ally", amount=2, to="play", stages="max")], only={"duelist_character": THETA}, limit_per_deck=2)
 
 # Freestyle attacks
 art("unerring_bolt", "Unerring Bolt", atk={"unstoppable": True, "no_prevent": True}, remove_after_use=True)
 art("scattered_ashes", "Scattered Ashes", atk={"focused": True}, empower=2,
     effects=[IFS(AFTER_EMPOWER(OPP("remove_discard", all=True))), AFTER_EMPOWER(ACC(1))])
-art("sabotage", "Sabotage", atk={}, alignment_only="pact", effects=[DISCARD_IN_PLAY("drill", amount=1, remove=True, choose=True)], tags=["automaton"])
+art("sabotage", "Sabotage", atk={}, alignment_only="pact", effects=[DISCARD_IN_PLAY("drill", amount=1, remove=True, choose=True)], tags=["construct"])
 strike("all_or_nothing", "All or Nothing", atk={"focused": True, "stages": 4, "no_stop_by": "strike"}, effects=[ACC(1)], remove_after_use=True)
 strike("old_habit", "Old Habit", atk={}, effects=[E("draw_discard", amount=1, **{"from": "bottom"})], remove_after_use=True)
 add(id="committed_cut", title="Committed Cut", type="art", school="", endurance=3,
@@ -328,11 +360,16 @@ art("draiks_reckoning", "Draik's Reckoning", atk={"focused": True, "printed_life
 art("black_hands", "Draik's Black Hands", atk={"printed_life": 6}, only={"duelist_character": DELTA}, effects=[FLOAT("no_prevent")],
     remain_when={"when": {"allies_min": 2}, "remain": 1}, remove_after_use=True)
 art("knife_volley", "Knife Volley", atk={"life_per_ally": 2}, endurance=2, effects=[ACC(1)], remain=1, remove_after_use=True)
+art("mournes_jolting_arc", "Mourne's Jolting Arc", atk={}, alignment_only="pact", effects=[FORBID("strike_attacks", "opponent"), OPP_ACC(-2)], remove_after_use=True)
+art("threefold_bolt", "Threefold Bolt", atk={"printed_life": 2}, remain=2, remove_after_use=True)
 art("captains_barrage", "Captain's Barrage", atk={"cost_stages": 3}, effects=[ACC(2)], remove_after_use=True)
 art("declaration", "Declaration", atk={}, effects=[ACC(2), OPP_ACC(-2)], remove_after_use=True, limit_per_deck=1)
 art("lingering_curse", "Draik's Lingering Curse", atk={"printed_life": 5}, effects=[IFS(E("attach", to="in_control"))],
     attachment={"target": "in_control", "modifiers": [{"scope": "own", "kind": "art", "life": 2}]})
-art("vessels_calibration", "Vessel's Calibration", atk={}, effects=[WHEN(SEARCH(tag="automaton", exclude_title="Vessel's Calibration", to="hand"), duelist_character=GAMMA)], remove_after_use=True, tags=["automaton"])
+# The printed card gates on the keyword ("if performed by a Main Personality with the keyword"),
+# not on one named duelist, so any Construct duelist may use it. CHARACTER PENDING: it is named
+# for a character we have not built yet, and the title is a placeholder until then.
+art("sledges_stance", "Sledge's Set Stance", atk={}, effects=[WHEN(SEARCH(tag="construct", exclude_title="Sledge's Set Stance", to="hand"), duelist_tag="construct")], remove_after_use=True, tags=["construct"])
 strike("headlong_plunge", "Headlong Plunge", atk={"focused": True, "stages": 3}, endurance=2, empower=3,
        effects=[AFTER_EMPOWER(ACC(1)), AFTER_EMPOWER(OPP_ACC(-1)), AFTER_EMPOWER(DISCARD_IN_PLAY("ally", amount=1, choose=True)), AFTER_EMPOWER(VIG(3))], bottom_after_use=True)
 strike("sword_lunge", "Sword Lunge", atk={"focused": True, "stages": 3}, effects=[IFS(OPP_ACC(-3))], remove_after_use=True)
@@ -351,7 +388,7 @@ add(id="halvards_twin_cut", title="Halvard's Twin Cut", type="strike", school=""
 strike("vesnas_ambush", "Vesna's Ambush", atk={"focused": True, "stages": 4, "variants": [{"when": {"character": "Vesna Draik"}, "effects": [FLOAT("no_ally_control", "opponent")]}]},
        effects=[IFS(SEARCH(card_type="ally", to="play", stages=4))])
 strike("scatters_the_ashes", "Ashmark Scatters the Ashes", atk={"stages": 4}, endurance=1, effects=[OPP("remove_discard", amount=5), VIG(3)])
-strike("reckless_lunge", "Reckless Lunge", atk={"stages": 1}, effects=[IFS(ACC(1))], remain=1, remove_after_use=True)
+strike("mournes_frantic_rush", "Mourne's Frantic Rush", atk={"stages": 1}, effects=[IFS(ACC(1))], remain=1, remove_after_use=True)
 strike("steel_skull_crack", "Steel Skull Crack", "steel", atk={"life": 3, "no_prevent": True}, effects=[E("draw", amount=1), ACC(1)], limit_per_deck=1)
 
 # Freestyle defenses
@@ -360,9 +397,12 @@ block("vales_riposte", "Vale's Riposte", "strike", "strike", defense={"copy_atta
 block("hilt_guard", "Hilt Guard", "strike", "strike", effects=[SEARCH(card_type="hand_combat", source="discard", to="hand")], remove_after_use=True)
 block("second_wind", "Second Wind", "strike", "strike", effects=[VIG("max", "duelist"), E("shuffle_discard", amount=3)])
 block("quick_retreat", "Quick Retreat", "any", "strike", effects=[ACC(1), FLOAT("stop_next")])
-block("vessels_sidestep", "Vessel's Sidestep", "strike", "strike", character=GAMMA, effects=[SEARCH(school="storm", to="hand")], remove_after_use=True, tags=["automaton"])
-add(id="porcelain_smile", title="Vessel's Porcelain Smile", type="non_combat", school="", defense={"stops": "strike"},
-    effects=[WHEN(SEARCH(tag="automaton", source="discard", to="hand"), duelist_character=GAMMA)], remove_after_use=True, tags=["automaton"])
+# "<name> only" on the printed card, which we had dropped.
+block("siphons_sidestep", "Siphon's Sidestep", "strike", "strike", character=GAMMA, only={"duelist_character": GAMMA}, effects=[SEARCH(school="storm", to="hand")], remove_after_use=True, tags=["construct"])
+# The printed card reads off the defending personality's own keyword, not off whose deck it is,
+# so it works for any Construct personality in control and not only for the Collegium's Vessel.
+add(id="mercy_smiles", title="Mercy Smiles", type="non_combat", school="", defense={"stops": "strike"},
+    effects=[WHEN(SEARCH(tag="construct", source="discard", to="hand"), in_control_tag="construct")], remove_after_use=True, tags=["construct"])
 block("shrugs_it_off", "Quarr Shrugs It Off", "any", "strike", "steel", only={"duelist_character": EPSILON}, remain=1, remove_after_use=True, limit_per_deck=2, unused_return="shuffle")
 
 # Freestyle non-combats and drills
@@ -379,6 +419,13 @@ noncombat("stokes_the_coals", "Ashmark Stokes the Coals", [USE(VIG("max", "dueli
 noncombat("open_challenge", "An Open Challenge", [{"trigger": "opponent_declare", **E("discard_hand", amount=1, random=False)}, {"trigger": "opponent_declare", **OPP("force_declare")}],
           start_in_play=True, limit_per_deck=1, remove_after_use=True)
 noncombat("defacement", "Defacement", [USE(DISCARD_IN_PLAY("seal", amount=1, remove=True, choose=True))], remove_after_use=True, limit_per_deck=1)
+# CRD errata (#126): the printed "can be used to stop a Most Powerful Personality victory" becomes
+# the card's only timing, so it waits for the Ascension win instead of being a Combat play.
+noncombat("mourne_takes_measure", "Mourne Takes the Measure", [USE(OPP("lose_aspect"))], remove_after_use=True, limit_per_deck=1,
+          use_at="ascension_win")
+# "Remove an Ally in play from the game. If your Main Personality is Construct, remove 2 instead."
+noncombat("breakers_yard", "The Breaker's Yard", [USE(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True)),
+          USE(WHEN(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True), duelist_tag="construct"))], limit_per_deck=1)
 add(id="heirloom_blade", title="The Vale Heirloom", type="non_combat", school="", effects=[USE(E("attach", to="duelist"))], limit_per_deck=1,
     attachment={"target": "duelist", "title_contains": "Sword", "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "life": 3, "title_contains": "Sword"}]})
 drill("bravado_drill", "Bravado Drill", start_in_play=True, limit_per_deck=1, effects=[ENTER(OPP_ACC(-2)), ENTER(VIG(2, "duelist"))])
@@ -388,8 +435,13 @@ drill("lone_blade_drill", "Lone Blade Drill", modifiers=[{"scope": "own", "kind"
 drill("counterplay_drill", "Counterplay Drill", alignment_only="vigil", limit_per_deck=2, effects=[PLACE(E("name_card"))])
 drill("no_retreat_drill", "No Retreat Drill", limit_per_deck=1, forbid=[{"who": "all", "what": "end_combat"}])
 drill("absorbing_drill", "Absorbing Drill", defense={"stops": "art", "cost_life": 2})
-drill("quickness_drill", "Quickness Drill", limit_per_deck=1, effects=[ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))])
+drill("mournes_quickness_drill", "Mourne's Quickness Drill", limit_per_deck=1, effects=[ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))])
 drill("warding_drill", "Warding Drill", limit_per_deck=1, forbid=[{"who": "all", "what": "seals"}])
+drill("locked_gate_drill", "Locked Gate Drill", limit_per_deck=1, forbid=[{"who": "opponent", "what": "allies"}])
+# +1 wound on everything you swing, and the second line stacks for a Construct personality, so hers do +2.
+drill("assembly_drill", "Assembly Drill",
+      modifiers=[{"scope": "own", "kind": "any", "life": 1},
+                 {"scope": "own", "kind": "any", "life": 1, "when": {"performer_tag": "construct"}}])
 
 # Freestyle cards of the Seal deck
 block("practiced_guard", "Practiced Guard", "strike", "strike", effects=[ACC(1), SEARCH(card_type="drill", source="discard", to="play")])
@@ -403,8 +455,8 @@ art("smoke_screen", "Smoke Screen", atk={}, effects=[IFS(E("end_combat"))])
 noncombat("spoiled_rite", "Spoiled Rite", [USE(DISCARD_IN_PLAY("non_combat", amount=2, remove=True, choose=True))], remove_after_use=True, limit_per_deck=1)
 noncombat("gates_boon", "The Gate's Boon", [USE(E("end_combat")), USE(SEARCH(source="discard", amount=3, to="deck_shuffle"))], remove_after_use=True, limit_per_deck=1)
 noncombat("first_cut", "First Cut", [USE(SEARCH(card_type="seal", to="play"))])
-noncombat("steady_hand", "Steady Hand", [USE(SEARCH(card_type="seal", to="play"))], remove_after_use=True)
-noncombat("chisel_work", "Chisel Work", [USE(SEARCH(card_type="seal", to="play"))])
+noncombat("mournes_plans", "Mourne's Plans", [USE(SEARCH(card_type="seal", to="play"))], remove_after_use=True)
+noncombat("mournes_smirk", "Mourne's Smirk", [USE(SEARCH(card_type="seal", to="play"))])
 noncombat("wardens_measure", "Warden's Measure", [USE(SEARCH(card_type="seal", to="play"))], alignment_only="vigil", remove_after_use=True, limit_per_deck=1)
 noncombat("sleight", "Sleight", [USE(E("capture_seal"))], remove_after_use=True)
 noncombat("kins_rescue", "Kin's Rescue", [USE(FLOAT("prevent_all"))], alignment_only="vigil", remove_after_use=True, limit_per_deck=1,
@@ -474,6 +526,15 @@ add(id="shade_dread_grip", title="Shade Dread Grip", type="strike", school="shad
     effects=[OPP("discard_hand", amount=1)], remove_after_use=True)
 strike("shade_oblivion_touch", "Shade Oblivion Touch", "shade", atk={"stages": 3}, effects=[OPP("remove_hand", amount=1)])
 strike("shade_nightmare_hold", "Shade Nightmare Hold", "shade", atk={"stages": 2}, endurance=1, empower=3, alignment_only="pact", effects=[AFTER_EMPOWER(OPP("discard_hand", amount=1, random=False))], remove_after_use=True)
+art("shade_rending_palm", "Shade Rending Palm", "shade", atk={"printed_life": 6}, effects=[OPP("energy", amount=-3)])
+add(id="shade_cutting_hand", title="Shade Cutting Hand", type="art", school="shade", attack={"kind": "art", "printed_life": 4}, defense={"stops": "art"})
+art("shade_snaring_web", "Shade Snaring Web", "shade", atk={"printed_life": 6}, effects=[IFS(FORBID("art_attacks", "opponent"))])
+strike("shade_warding_burst", "Shade Warding Burst", "shade", atk={"printed_life": 3}, effects=[IFS(FORBID("strike_attacks", "opponent"))])
+# "Pay any amount of Energy from your duelist; each 1 paid adds 1 Energy of damage."
+strike("shade_gathering_dark", "Shade Gathering Dark", "shade", atk={"pay_stages": {"per": 1, "stages": 1}})
+drill("shade_takedown_drill", "Shade Takedown Drill", "shade", once_per_combat=True,
+      effects=[{"trigger": "on_success", "may": True, **E("draw", amount=1)}])
+drill("shade_composure_drill", "Shade Composure Drill", "shade", hand_keep=2)
 
 # ============================================================================
 # Tide
@@ -536,7 +597,8 @@ VALID = {c["id"] for c in CARDS}
 # Playstyle file under data/ai/profiles for an AI playing the deck. Decks not listed play the defaults.
 AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beatdown", "pyre_beatdown": "pyre_beatdown",
                "storm_volley": "storm_volley", "tide_companions": "tide_companions",
-               "freestyle_swords": "freestyle_swords", "root_seals": "root_seals"}
+               "freestyle_swords": "freestyle_swords", "root_seals": "root_seals",
+               "shade_salvage": "shade_salvage"}
 
 
 # What kind of deck each loadout is, as the sample-deck sheet labels them: (archetype, difficulty,
@@ -548,8 +610,9 @@ DECK_KINDS = {
     "shade_henchmen": ("allies", "easy", ["disruption"]),
     "tide_companions": ("allies", "medium", ["bond", "arts"]),
     "freestyle_swords": ("drills", "medium", ["strikes", "swords"]),
-    "storm_volley": ("art_beatdown", "medium", ["automatons", "draw", "fervor"]),
+    "storm_volley": ("art_beatdown", "medium", ["construct", "draw", "fervor"]),
     "root_seals": ("seals", "medium", ["arts", "drills"]),
+    "shade_salvage": ("art_beatdown", "medium", ["arts", "allies", "disruption"]),
 }
 
 
@@ -574,6 +637,9 @@ DECK_IDENTITY = {
     "storm_volley": (
         "Scholars of the Tempest, and the construct they send to fight.",
         "The Ninth Vessel is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy."),
+    "shade_salvage": (
+        "Walked together out of a field of broken constructs, and still collecting.",
+        "Marrow is not one construct and never was. She reads six moves ahead because some of her has already been here, nothing a spell fastens to stays fastened, and every made thing still standing makes the rest of them hit harder. Her crew picks the field over and keeps what is worth keeping. Slow to start, and the hand runs thin."),
     "root_seals": (
         "An old druid who mends as he fights, and outlasts.",
         "Osric Thornwald regrows what is cut away. Spent spells return to the bottom of his deck, foresight shows him what comes next, and while the rival tires he carves the seven seals. No burst; patience is the plan."),
@@ -607,15 +673,15 @@ deck("pyre_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "pyre", "pac
     ("trampled_crossroads", 3),
     ("stokes_the_coals", 3), ("recalled_lesson", 1), ("bravado_drill", 1),
     ("cold_appraisal", 3), ("cut_short", 3), ("sever_the_leyline", 1),
-    ("stillness", 1), ("will_not_break", 1), ("terms_of_the_pact", 1), ("planted_feet", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("dead_air", 1),
+    ("stillness", 1), ("will_not_break", 1), ("terms_of_the_pact", 1), ("mournes_stance", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("dead_air", 1),
     ("pyre_cinder_guard", 3), ("wall_of_flame", 3),
     ("pyre_immolation", 3),
     ("pyre_backdraft", 3), ("pyre_comet_fall", 3), ("pyre_scouring_flame", 3), ("pyre_firestorm", 3), ("pyre_blazing_charge", 3),
-    ("pyre_furnace_breath", 3), ("no_quarter", 3), ("all_or_nothing", 3), ("pyre_twin_flames", 3), ("relentless_fury", 4), ("reckless_lunge", 3),
+    ("pyre_furnace_breath", 3), ("no_quarter", 3), ("all_or_nothing", 3), ("pyre_twin_flames", 3), ("relentless_fury", 4), ("mournes_frantic_rush", 3),
     ("pyre_snuffing", 3), ("pyre_flashover", 3), ("pyre_flame_lash", 3), ("pyre_kindling", 3), ("pyre_rekindling", 3)])
 
 deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pact", "steel_mastery", "blank_mask",
-     ["open_challenge", "steel_skull_crack", "mutual_escalation", "mutual_escalation", "mutual_escalation", "defacement", "broken_rites"], [
+     ["open_challenge", "steel_skull_crack", "mutual_escalation", "mutual_escalation", "mutual_escalation", "defacement", "scorn_smirks"], [
     ("trampled_crossroads", 3),
     ("moth_seal_1", 1), ("moth_seal_3", 1), ("moth_seal_4", 1),
     ("cold_appraisal", 3), ("cut_short", 3), ("steel_standoff", 1),
@@ -632,7 +698,7 @@ deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact",
     ("trampled_crossroads", 3),
     ("henchman_alpha", 1), ("henchman_beta", 1), ("henchman_gamma", 1), ("henchman_delta", 1), ("henchman_epsilon", 1),
     ("sun_seal_3", 1), ("sun_seal_5", 1),
-    ("cold_appraisal", 3), ("cut_short", 3), ("broken_rites", 1), ("rallying_call", 3), ("hired_blades", 3),
+    ("cold_appraisal", 3), ("cut_short", 3), ("scorn_smirks", 1), ("rallying_call", 3), ("hired_blades", 3),
     ("stillness", 1), ("shade_veil", 3), ("shade_hex_recall", 3),
     ("shade_umbral_lash", 3), ("shade_mind_rot", 3), ("draiks_reckoning", 3), ("lingering_curse", 1), ("black_hands", 3),
     ("knife_volley", 3), ("sabotage", 3), ("unerring_bolt", 3), ("scattered_ashes", 3), ("captains_barrage", 1),
@@ -640,26 +706,43 @@ deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact",
     ("branns_shakedown", 3), ("halvards_twin_cut", 3), ("vesnas_ambush", 3)])
 
 deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "tide_mastery", "debtors_ring",
-     ["overreach", "lobbed_bolt", "clean_sweep", "bonded_pair"], [
+     ["open_challenge", "overreach", "lobbed_bolt", "clean_sweep", "bonded_pair"], [
     ("companion_alpha", 1), ("companion_beta", 1), ("companion_gamma", 1), ("companion_delta", 1),
     ("trampled_crossroads", 3),
     ("watchful_eye", 3), ("cut_short", 3), ("kept_at_bay", 1), ("warding_call", 1), ("rallying_call", 3), ("rookes_deluge", 3),
     ("last_gasp", 1), ("edrics_vow", 2), ("old_trick", 2), ("closing_ranks", 3),
-    ("stillness", 1), ("unyielding_guard", 1), ("planted_feet", 1), ("grounding_step", 1), ("tide_breakwater", 1), ("tide_ebb", 3), ("last_ward", 2),
+    ("stillness", 1), ("unyielding_guard", 1), ("mournes_stance", 1), ("grounding_step", 1), ("tide_breakwater", 1), ("tide_ebb", 3), ("last_ward", 2),
     ("no_quarter", 3), ("tide_undertow", 3), ("tide_drowning", 3), ("clean_sweep", 1),
     ("tide_surge", 3), ("unerring_bolt", 3), ("tide_twin_swell", 3), ("tide_torrent", 3), ("tide_springwater", 3), ("tide_depths", 1),
     ("tide_twin_breaker", 3), ("tide_high_water", 3), ("tide_confluence", 3),
     ("recalled_lesson", 1), ("lucky_find", 1), ("clear_mind", 1), ("bonding_rite", 2)])
 
+# No Relic and no Reserve: the list this follows runs neither. One card of that list has no
+# parallel here yet, the Seal 4 of a fourth set, so the Life Deck is 79 rather than 80.
+deck("shade_salvage", "Marrow the Amalgam", "duelist_theta", 4, "shade", "pact", "shade_mastery", "", [], [
+    ("frostbound_moor", 3),
+    ("henchman_epsilon", 1), ("salvage_beta", 1), ("salvage_gamma", 1), ("salvage_alpha", 1),
+    ("cold_appraisal", 4), ("cut_short", 3), ("scorn_smirks", 1), ("rites_unmade", 1), ("respite", 1),
+    ("terms_of_the_pact", 1), ("sever_the_leyline", 1), ("kept_at_bay", 1), ("stillness", 1),
+    ("marrows_retinue", 2), ("rallying_call", 2), ("dismissal", 2),
+    ("mournes_stance", 1), ("grounding_step", 1), ("unyielding_guard", 1), ("second_wind", 3), ("mercy_smiles", 3),
+    ("shade_umbral_lash", 3), ("shade_cutting_hand", 3), ("shade_rending_palm", 3), ("shade_snaring_web", 3),
+    ("shade_warding_burst", 3), ("shade_gathering_dark", 3),
+    ("unerring_bolt", 3), ("mournes_jolting_arc", 3), ("threefold_bolt", 3), ("sabotage", 2),
+    ("assembly_drill", 3), ("absorbing_drill", 2), ("mournes_quickness_drill", 1), ("locked_gate_drill", 1),
+    ("shade_takedown_drill", 1), ("shade_composure_drill", 1),
+    ("salt_seal_4", 1),
+    ("spoiled_rite", 1), ("mourne_takes_measure", 1), ("breakers_yard", 1), ("lucky_find", 1), ("foresight", 1)])
+
 deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "blank_mask",
      ["open_challenge", "defacement", "warding_drill", "revision_drill", "lucky_find", "mutual_escalation"], [
     ("ancient_grove", 3),
     ("watchful_eye", 3), ("cut_short", 4), ("keen_eye", 1), ("kept_at_bay", 1), ("quiet_study", 1),
-    ("stillness", 1), ("unyielding_guard", 1), ("planted_feet", 1), ("vales_riposte", 4), ("hilt_guard", 3), ("second_wind", 3), ("quick_retreat", 3),
+    ("stillness", 1), ("unyielding_guard", 1), ("mournes_stance", 1), ("vales_riposte", 4), ("hilt_guard", 3), ("second_wind", 3), ("quick_retreat", 3),
     ("no_quarter", 3), ("relentless_fury", 3), ("committed_cut", 3), ("vales_sword_draw", 4), ("vales_quickstep", 3), ("vales_pommel_bash", 2),
     ("sword_lunge", 3), ("sword_flourish", 3), ("sword_sweep", 3), ("sword_thrust", 3),
     ("lobbed_bolt", 1),
-    ("swordplay_drill", 3), ("lone_blade_drill", 3), ("counterplay_drill", 2), ("no_retreat_drill", 1), ("absorbing_drill", 1), ("quickness_drill", 1),
+    ("swordplay_drill", 3), ("lone_blade_drill", 3), ("counterplay_drill", 2), ("no_retreat_drill", 1), ("absorbing_drill", 1), ("mournes_quickness_drill", 1),
     ("vales_insight", 3), ("foresight", 1), ("recalled_lesson", 1), ("heirloom_blade", 1), ("bravado_drill", 1)])
 
 deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "lodestone_heart",
@@ -667,10 +750,10 @@ deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact"
     ("henchman_zeta", 1),
     ("trampled_crossroads", 3),
     ("sun_seal_1", 1), ("sun_seal_3", 1), ("sun_seal_5", 1),
-    ("cold_appraisal", 3), ("cut_short", 3), ("broken_rites", 1), ("old_trick", 2), ("respite", 1), ("mutual_escalation", 3), ("reckless_ascent", 3), ("kept_at_bay", 1),
-    ("stillness", 1), ("vessels_sidestep", 4), ("porcelain_smile", 3), ("second_wind", 3), ("storm_charged_ward", 3),
+    ("cold_appraisal", 3), ("cut_short", 3), ("scorn_smirks", 1), ("old_trick", 2), ("respite", 1), ("mutual_escalation", 3), ("reckless_ascent", 3), ("kept_at_bay", 1),
+    ("stillness", 1), ("siphons_sidestep", 4), ("mercy_smiles", 3), ("second_wind", 3), ("storm_charged_ward", 3),
     ("storm_static_field", 1), ("storm_chain_lightning", 2), ("storm_smiting_bolt", 2), ("storm_thunderhead", 1), ("storm_arc_bolt", 3), ("draiks_reckoning", 3),
-    ("captains_barrage", 3), ("scattered_ashes", 3), ("vessels_calibration", 3), ("sabotage", 3), ("unerring_bolt", 3), ("lingering_curse", 2),
+    ("captains_barrage", 3), ("scattered_ashes", 3), ("sledges_stance", 3), ("sabotage", 3), ("unerring_bolt", 3), ("lingering_curse", 2),
     ("no_quarter", 3), ("relentless_fury", 3), ("storm_maelstrom", 1), ("storm_overcharge", 1), ("storm_recharge", 1),
     ("recalled_lesson", 1), ("clear_mind", 1), ("foresight", 1), ("bravado_drill", 1)])
 # No Relic and no Reserve: the list this follows runs none, and the Root allowance of 90 is
@@ -678,11 +761,11 @@ deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact"
 deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "root_mastery", "", [], [
     ("frostbound_moor", 3),
     ("marble_seal_1", 1), ("marble_seal_2", 1), ("marble_seal_3", 1), ("marble_seal_4", 1), ("marble_seal_5", 1), ("marble_seal_6", 1), ("marble_seal_7", 1),
-    ("first_cut", 1), ("steady_hand", 1), ("chisel_work", 1), ("wardens_measure", 1), ("sleight", 1), ("eyes_beyond_the_gate", 1), ("seal_seizure", 3),
+    ("first_cut", 1), ("mournes_plans", 1), ("mournes_smirk", 1), ("wardens_measure", 1), ("sleight", 1), ("eyes_beyond_the_gate", 1), ("seal_seizure", 3),
     ("lucky_find", 1), ("spoiled_rite", 1), ("gates_boon", 1), ("kins_rescue", 1), ("foresight", 1),
-    ("keepers_drill", 3), ("guardian_drill", 1), ("absorbing_drill", 1), ("quickness_drill", 1), ("root_preparation_drill", 1),
+    ("keepers_drill", 3), ("guardian_drill", 1), ("absorbing_drill", 1), ("mournes_quickness_drill", 1), ("root_preparation_drill", 1),
     ("watchful_eye", 3), ("cut_short", 3), ("parley", 3), ("dismissal", 2), ("kept_at_bay", 1), ("respite", 1), ("root_energy_focus", 1),
-    ("stillness", 1), ("planted_feet", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("practiced_guard", 2), ("second_wind", 3),
+    ("stillness", 1), ("mournes_stance", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("practiced_guard", 2), ("second_wind", 3),
     ("root_energy_deflection", 3), ("root_energy_catch", 3), ("root_firm_stance", 2),
     ("root_bolt", 3), ("root_dash", 3), ("root_destruction_blast", 3), ("root_dragon_blast", 3),
     ("suppressing_shot", 3), ("blinding_flare", 3), ("smoke_screen", 3), ("sharp_rebuke", 1)])

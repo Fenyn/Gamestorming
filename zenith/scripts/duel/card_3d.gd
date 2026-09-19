@@ -15,20 +15,25 @@ const LUNGE_TIME: float = 0.18
 
 var uid: int = -1
 var face_up: bool = true
+@export var reduced_motion: bool = false
 
 @onready var body: Node3D = $Body
-@onready var front: MeshInstance3D = $Body/Front
-@onready var back: MeshInstance3D = $Body/Back
-@onready var glow: MeshInstance3D = $Body/Glow
-@onready var role: MeshInstance3D = $Body/Role
+@onready var surface: Node3D = $Body/Surface
+@onready var front: MeshInstance3D = $Body/Surface/Front
+@onready var back: MeshInstance3D = $Body/Surface/Back
+@onready var glow: MeshInstance3D = $Body/Surface/Glow
+@onready var role: MeshInstance3D = $Body/Surface/Role
 @onready var pick: Area3D = $Pick
 
 var _front_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _back_mat: StandardMaterial3D = StandardMaterial3D.new()
-var _glow_mat: StandardMaterial3D = StandardMaterial3D.new()
-var _role_mat: StandardMaterial3D = StandardMaterial3D.new()
+var _glow_mat: ShaderMaterial = ShaderMaterial.new()
+var _role_mat: ShaderMaterial = ShaderMaterial.new()
 var _flash: Tween = null
 var _motion: Tween = null
+var _hover_motion: Tween = null
+var _highlighted: bool = false
+var _hovering: bool = false
 
 
 func _ready() -> void:
@@ -37,16 +42,15 @@ func _ready() -> void:
 		m.cull_mode = BaseMaterial3D.CULL_BACK
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	for m in [_glow_mat, _role_mat]:
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glow_mat.albedo_color = Palette.HIGHLIGHT
+		m.shader = preload("res://scripts/duel/card_aura.gdshader")
+	_glow_mat.set_shader_parameter("tint", Palette.HIGHLIGHT)
 	front.material_override = _front_mat
 	back.material_override = _back_mat
 	glow.material_override = _glow_mat
 	role.material_override = _role_mat
 	pick.input_event.connect(_on_pick_input)
-	pick.mouse_entered.connect(func() -> void: hovered.emit(uid, true))
-	pick.mouse_exited.connect(func() -> void: hovered.emit(uid, false))
+	pick.mouse_entered.connect(func() -> void: set_hovered(true); hovered.emit(uid, true))
+	pick.mouse_exited.connect(func() -> void: set_hovered(false); hovered.emit(uid, false))
 
 
 func set_textures(front_tex: Texture2D, back_tex: Texture2D) -> void:
@@ -59,17 +63,30 @@ func set_face_texture(front_tex: Texture2D) -> void:
 
 
 func set_highlight(on: bool) -> void:
-	glow.visible = on
+	_highlighted = on
+	glow.visible = on or _hovering
+	_glow_mat.set_shader_parameter("tint", Palette.HIGHLIGHT if on else Color(0.8, 0.85, 0.9, 0.65))
+
+
+## Visual lift does not move the picking area, or contend with resolution motion on Body.
+## Keyboard focus can use this same feedback without synthesizing pointer events.
+func set_hovered(on: bool) -> void:
+	_hovering = on and face_up
+	set_highlight(_highlighted)
+	_glow_mat.set_shader_parameter("selected", 1.0 if _hovering else 0.0)
+	if _hover_motion != null:
+		_hover_motion.kill()
+	_hover_motion = create_tween().set_parallel(true)
+	var duration: float = 0.06 if reduced_motion else 0.14
+	_hover_motion.tween_property(surface, "position:y", 0.025 if _hovering and not reduced_motion else 0.0, duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_hover_motion.tween_property(surface, "scale", Vector3.ONE * (1.035 if _hovering and not reduced_motion else 1.0), duration)
 
 
 ## A standing tint under the card for its part in the fight (attacking red, defending blue);
 ## a transparent colour clears it.
 func set_role(color: Color) -> void:
 	role.visible = color.a > 0.0
-	_role_mat.albedo_color = Color(color, 0.45)
-	if role.visible:
-		var t: Tween = create_tween()
-		t.tween_property(_role_mat, "albedo_color:a", 0.28, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_role_mat.set_shader_parameter("tint", Color(color, 0.65))
 
 
 ## The face tints toward `color` for a moment, as a hit or a heal.
@@ -86,6 +103,8 @@ func flash(color: Color) -> void:
 ## A short rattle of the quads, for taking a hit. Awaitable.
 func shake(strength: float = 0.05) -> void:
 	_stop_motion()
+	if reduced_motion:
+		return
 	_motion = create_tween()
 	var steps: int = 5
 	for i in range(steps):
@@ -99,6 +118,8 @@ func shake(strength: float = 0.05) -> void:
 ## The quads push out along `direction` (world space) and back, for attacking. Awaitable.
 func lunge(direction: Vector3, distance: float = 0.45) -> void:
 	_stop_motion()
+	if reduced_motion:
+		return
 	var local: Vector3 = global_transform.basis.inverse() * (direction.normalized() * distance) + Vector3(0, 0.15, 0)
 	_motion = create_tween()
 	_motion.tween_property(body, "position", local, LUNGE_TIME).set_ease(Tween.EASE_OUT)
@@ -109,6 +130,8 @@ func lunge(direction: Vector3, distance: float = 0.45) -> void:
 ## A small hop in place, for a card that just changed (Energy, Fervor, an aspect). Awaitable.
 func hop(height: float = 0.12) -> void:
 	_stop_motion()
+	if reduced_motion:
+		return
 	_motion = create_tween()
 	_motion.tween_property(body, "position:y", height, 0.12).set_ease(Tween.EASE_OUT)
 	_motion.tween_property(body, "position:y", 0.0, 0.16).set_ease(Tween.EASE_IN)

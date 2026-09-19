@@ -10,6 +10,7 @@ const TEXT_LIFT: float = 0.3
 const SLASH_TIME: float = 0.4
 const RING_TIME: float = 0.55
 const BURST_LIFE: float = 0.7
+@export var reduced_motion: bool = false
 
 
 ## A number or word that pops in over `pos`, drifts up and fades.
@@ -25,11 +26,11 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 	l.no_depth_test = true
 	l.shaded = false
 	l.position = pos + Vector3(0, TEXT_LIFT, 0)
-	l.scale = Vector3.ONE * 0.35
+	l.scale = Vector3.ONE if reduced_motion else Vector3.ONE * 0.65
 	add_child(l)
 	var t: Tween = create_tween()
 	t.tween_property(l, "scale", Vector3.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(l, "position:y", l.position.y + TEXT_RISE, TEXT_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(l, "position:y", l.position.y + (0.0 if reduced_motion else TEXT_RISE), TEXT_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(l, "modulate:a", 0.0, TEXT_TIME * 0.45).set_delay(TEXT_TIME * 0.55)
 	t.parallel().tween_property(l, "outline_modulate:a", 0.0, TEXT_TIME * 0.45).set_delay(TEXT_TIME * 0.55)
 	t.tween_callback(l.queue_free)
@@ -37,6 +38,8 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 
 ## Sparks thrown out from `pos` that fall and fade.
 func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> void:
+	if reduced_motion:
+		return
 	var p: CPUParticles3D = CPUParticles3D.new()
 	p.amount = count
 	p.one_shot = true
@@ -55,8 +58,11 @@ func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> v
 	ramp.set_color(0, color)
 	ramp.set_color(1, Color(color, 0.0))
 	p.color_ramp = ramp
-	var mesh: BoxMesh = BoxMesh.new()
-	mesh.size = Vector3(0.045, 0.045, 0.045)
+	var mesh: SphereMesh = SphereMesh.new()
+	mesh.radius = 0.019
+	mesh.height = 0.038
+	mesh.radial_segments = 6
+	mesh.rings = 3
 	var mat: StandardMaterial3D = StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.vertex_color_use_as_albedo = true
@@ -77,7 +83,7 @@ func slash(from: Vector3, to: Vector3, color: Color) -> void:
 	if length < 0.01:
 		return
 	var quad: QuadMesh = QuadMesh.new()
-	quad.size = Vector2(length, 0.09)
+	quad.size = Vector2(length, 0.055)
 	quad.orientation = PlaneMesh.FACE_Y
 	var m: MeshInstance3D = MeshInstance3D.new()
 	m.mesh = quad
@@ -87,14 +93,21 @@ func slash(from: Vector3, to: Vector3, color: Color) -> void:
 	mat.albedo_color = Color(color, 0.9)
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.material_override = mat
-	var mid: Vector3 = (from + to) * 0.5
-	m.position = Vector3(mid.x, maxf(from.y, to.y) + 0.12, mid.z)
+	var origin: Vector3 = Vector3(from.x, maxf(from.y, to.y) + 0.12, from.z)
+	m.position = origin + dir * 0.025
 	m.basis = Basis(Vector3.UP, atan2(-dir.z, dir.x)).scaled(Vector3(0.05, 1.0, 1.0))
 	add_child(m)
 	var t: Tween = create_tween()
-	t.tween_property(m, "scale:x", 1.0, SLASH_TIME * 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(m, "scale:z", 1.6, SLASH_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(mat, "albedo_color:a", 0.0, SLASH_TIME).set_delay(SLASH_TIME * 0.3)
+	if reduced_motion:
+		m.position = origin + dir * 0.5
+		m.scale.x = 1.0
+		t.tween_property(mat, "albedo_color:a", 0.0, SLASH_TIME)
+	else:
+		# The leading edge leaves the source and arrives at the target; it does not grow
+		# backwards through the attacker as a centre-scaled rectangle would.
+		t.tween_property(m, "scale:x", 1.0, SLASH_TIME * 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t.parallel().tween_property(m, "position", origin + dir * 0.5, SLASH_TIME * 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t.tween_property(mat, "albedo_color:a", 0.0, SLASH_TIME * 0.45)
 	t.tween_callback(m.queue_free)
 
 
@@ -111,9 +124,98 @@ func ring(pos: Vector3, color: Color, size: float = 1.0) -> void:
 	mat.albedo_color = Color(color, 0.85)
 	m.material_override = mat
 	m.position = pos + Vector3(0, 0.08, 0)
-	m.scale = Vector3(0.3, 0.3, 0.3)
+	m.scale = Vector3(1.7, 0.6, 1.7) * size if reduced_motion else Vector3(0.3, 0.3, 0.3)
 	add_child(m)
 	var t: Tween = create_tween()
 	t.tween_property(m, "scale", Vector3(1.7, 0.6, 1.7) * size, RING_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(mat, "albedo_color:a", 0.0, RING_TIME).set_delay(RING_TIME * 0.25)
 	t.tween_callback(m.queue_free)
+
+
+## Successful protection closes inward, distinct from an outward damage shock.
+func ward(pos: Vector3, color: Color, size: float = 1.0) -> void:
+	var crest: MeshInstance3D = _halo(pos, color, 0.58 * size, 0.035)
+	crest.scale = Vector3.ONE * (1.0 if reduced_motion else 1.28)
+	var mat: StandardMaterial3D = crest.material_override as StandardMaterial3D
+	var t: Tween = create_tween()
+	t.tween_property(crest, "scale", Vector3.ONE, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_interval(0.15)
+	t.tween_property(mat, "albedo_color:a", 0.0, 0.22)
+	t.tween_callback(crest.queue_free)
+	if not reduced_motion:
+		var inner: MeshInstance3D = _halo(pos + Vector3(0, 0.015, 0), color.lightened(0.3), 0.49 * size, 0.012)
+		_fade_mesh(inner, 0.45)
+
+
+## Only call for resolved damage, never merely declaring an attack.
+func impact(pos: Vector3, color: Color, strength: float = 1.0) -> void:
+	var weight: float = clampf(strength, 0.5, 1.8)
+	ring(pos, color, 0.65 * weight)
+	burst(pos, color, int(12 * weight), 1.5 * weight)
+
+
+## Brief ordered rings make a rank change larger than routine resource feedback.
+func ascend(pos: Vector3, color: Color, rising: bool = true) -> void:
+	if reduced_motion:
+		ring(pos, color, 1.2)
+		return
+	for i in range(3):
+		var halo: MeshInstance3D = _halo(pos, color, 0.45 + i * 0.13, 0.018)
+		var mat: StandardMaterial3D = halo.material_override as StandardMaterial3D
+		var t: Tween = create_tween().set_parallel(true)
+		t.tween_property(halo, "position:y", halo.position.y + (0.35 + i * 0.12 if rising else -0.04), 0.6).set_delay(i * 0.075).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		t.tween_property(halo, "scale", Vector3.ONE * (1.25 if rising else 0.45), 0.6).set_delay(i * 0.075)
+		t.tween_property(mat, "albedo_color:a", 0.0, 0.4).set_delay(0.2 + i * 0.075)
+		t.chain().tween_callback(halo.queue_free)
+	burst(pos, color, 18, 1.8)
+
+
+## Gains gather inward; spending releases an outward pulse. Exact values belong to UI.
+func resource_pulse(pos: Vector3, color: Color, gain: bool = true) -> void:
+	var halo: MeshInstance3D = _halo(pos, color, 0.42, 0.018)
+	var mat: StandardMaterial3D = halo.material_override as StandardMaterial3D
+	halo.scale = Vector3.ONE * (1.0 if reduced_motion else (1.3 if gain else 0.8))
+	var t: Tween = create_tween().set_parallel(true)
+	if not reduced_motion:
+		t.tween_property(halo, "scale", Vector3.ONE * (0.8 if gain else 1.3), 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(mat, "albedo_color:a", 0.0, 0.38)
+	t.chain().tween_callback(halo.queue_free)
+
+
+## A small travelling mote connects the public source to the affected personality.
+func resource_transfer(from: Vector3, to: Vector3, color: Color) -> void:
+	if reduced_motion or from.distance_squared_to(to) < 0.02:
+		resource_pulse(to, color)
+		return
+	var mote: MeshInstance3D = _halo(from, color, 0.055, 0.025)
+	var mid: Vector3 = (from + to) * 0.5 + Vector3(0, 0.4, 0)
+	var t: Tween = create_tween()
+	t.tween_property(mote, "position", mid, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_property(mote, "position", to + Vector3(0, 0.08, 0), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	t.tween_callback(resource_pulse.bind(to, color, true))
+	t.tween_callback(mote.queue_free)
+
+
+func _halo(pos: Vector3, color: Color, radius: float, width: float) -> MeshInstance3D:
+	var mesh: TorusMesh = TorusMesh.new()
+	mesh.inner_radius = maxf(0.005, radius - width)
+	mesh.outer_radius = radius + width
+	mesh.rings = 32
+	mesh.ring_segments = 8
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(color, 0.85)
+	var node: MeshInstance3D = MeshInstance3D.new()
+	node.mesh = mesh
+	node.material_override = mat
+	node.position = pos + Vector3(0, 0.08, 0)
+	add_child(node)
+	return node
+
+
+func _fade_mesh(node: MeshInstance3D, duration: float) -> void:
+	var mat: StandardMaterial3D = node.material_override as StandardMaterial3D
+	var t: Tween = create_tween()
+	t.tween_property(mat, "albedo_color:a", 0.0, duration)
+	t.tween_callback(node.queue_free)

@@ -363,7 +363,9 @@ add(id="cut_short", title="Vale Cuts It Short", type="combat", school="", counte
 # A named card in the source, so the duelist it is named for may run a fourth copy.
 combat("cold_appraisal", "Marrow's Appraisal", [OPP("discard_hand", amount=1, random=False, chooser="owner")], alignment_only="pact", character=THETA)
 combat("sever_the_leyline", "Sever the Leyline", [OPP("set_aspect", aspect=1)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
-combat("respite", "Respite", [E("draw_discard", amount=2, **{"from": "top"}), OPP("energy", amount=5)], limit_per_deck=1)
+# The printed card gives the Energy to the opponent's Main Personality by name, not to whoever
+# happens to be holding Combat for them, so it names the duelist.
+combat("respite", "Respite", [E("draw_discard", amount=2, **{"from": "top"}), OPP("energy", amount=5, target="duelist")], limit_per_deck=1)
 combat("watchful_eye", "Watchful Eye", [OPP("discard_hand", amount=1, random=False, chooser="owner", to="deck")], alignment_only="vigil")
 combat("kept_at_bay", "Kept at Bay", [FORBID("strike_attacks", "opponent")])
 combat("warding_call", "Warding Call", [SEARCH(card_type="ally", source="either", to="play", stages=3), DISCARD_IN_PLAY("seal", all=True)], limit_per_deck=1)

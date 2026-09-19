@@ -22,20 +22,22 @@ script = ExtResource("1_card")
 
 [node name="Body" type="Node3D" parent="."]
 
-[node name="Role" type="MeshInstance3D" parent="Body"]
+[node name="Surface" type="Node3D" parent="Body"]
+
+[node name="Role" type="MeshInstance3D" parent="Body/Surface"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.006, 0)
 visible = false
 mesh = SubResource("QuadMesh_role")
 
-[node name="Glow" type="MeshInstance3D" parent="Body"]
+[node name="Glow" type="MeshInstance3D" parent="Body/Surface"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.004, 0)
 visible = false
 mesh = SubResource("QuadMesh_glow")
 
-[node name="Front" type="MeshInstance3D" parent="Body"]
+[node name="Front" type="MeshInstance3D" parent="Body/Surface"]
 mesh = SubResource("QuadMesh_card")
 
-[node name="Back" type="MeshInstance3D" parent="Body"]
+[node name="Back" type="MeshInstance3D" parent="Body/Surface"]
 transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, -0.001, 0)
 mesh = SubResource("QuadMesh_card")
 

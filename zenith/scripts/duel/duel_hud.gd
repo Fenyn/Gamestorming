@@ -11,14 +11,13 @@ signal handoff_confirmed
 signal rematch_requested
 signal select_requested
 
-const STAT_TILE: PackedScene = preload("res://scenes/ui/stat_tile.tscn")
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
-const TRAY_CARD_SIZE: Vector2 = Vector2(160, 224)
-const LOG_COLLAPSED_BOTTOM: float = 176.0
+const TRAY_CARD_SIZE: Vector2 = Vector2(204, 285)
+const LOG_COLLAPSED_BOTTOM: float = 158.0
 const LOG_EXPANDED_FRACTION: float = 0.72
-const TRAY_COLUMNS: int = 7          # cards per row before the tray wraps
+const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
@@ -35,9 +34,7 @@ const STEP_ORDER: Array[int] = [
 	GameState.Step.DRAW, GameState.Step.NON_COMBAT, GameState.Step.POWER_UP, GameState.Step.DECLARE,
 	GameState.Step.COMBAT, GameState.Step.DISCARD, GameState.Step.RECOVER,
 ]
-## Options that move the game along rather than commit a card. They sit under the card list and
-## the ones here get the accent style; the rest (skip, decline, no capture) stay quiet.
-const ACCENT_TYPES: Array[StringName] = [&"declare", &"pass", &"done", &"endure", &"recover", &"no_defense", &"reserve_done", &"decline", &"pick_none"]
+## Only explicit batch confirmation gets a filled accent. Routine alternatives stay equal.
 ## Prompt kinds answered by the buttons in the panel even though their options name a card. An
 ## Endurance choice is a yes or no about one card that is already in a pile, so hunting for it on
 ## the table to click it is the wrong way to ask.
@@ -51,6 +48,9 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var turn_who: Label = $Root/PhasePanel/Column/Turn/Who
 @onready var steps_box: HBoxContainer = $Root/PhasePanel/Column/Steps
 @onready var phase_sub: RichTextLabel = $Root/PhasePanel/Column/Sub
+@onready var log_scroll: ScrollContainer = $Root/Log/Column/Scroll
+@onready var near_flags: Label = $Root/NearFlags
+@onready var far_flags: Label = $Root/FarFlags
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
 @onready var dev_toggle: Button = $Root/DevToggle
 @onready var dev_panel: DevPanel = $Root/DevPanel
@@ -95,6 +95,7 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var select_button: Button = $Root/GameOver/Center/Column/Buttons/Select
 @onready var loading: ColorRect = $Root/Loading
 
+var external_hand: bool = false
 var _log_lines: int = 0
 var _current_prompt: PromptView = null
 var _view: SeatView = null
@@ -114,6 +115,10 @@ var _hero_base: int = -1               # the wound count the hero number sits at
 
 func _ready() -> void:
 	root.theme = ZenithTheme.get_theme()
+	top_panel.hide()
+	bottom_panel.hide()
+	prompt_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.88), Color(0.34, 0.48, 0.6, 0.3), 20, 1, 20, 16))
+	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.7), Color.TRANSPARENT, 14, 0, 14, 10))
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
 		# the turn: filled behind, gold on the step we are in, empty ahead.
@@ -162,6 +167,10 @@ func refresh_state(view: SeatView, viewer: int, live: Dictionary = {}) -> void:
 		me = view.deciding if view.deciding >= 0 else view.active
 	bottom_panel.refresh(view.player(me), view, true, _beat_standing(live, me))
 	top_panel.refresh(view.player(1 - me), view, false, _beat_standing(live, 1 - me))
+	near_flags.text = bottom_panel.flags_label.text
+	far_flags.text = top_panel.flags_label.text
+	near_flags.visible = not near_flags.text.is_empty()
+	far_flags.visible = not far_flags.text.is_empty()
 	_refresh_phase(view, me, live)
 
 
@@ -224,10 +233,10 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 		return
 
 	var mine: bool = active == me
-	turn_who.text = "YOUR TURN" if mine else "ENEMY TURN"
+	turn_who.text = ("YOUR TURN" if mine else "THEIR TURN") + "  /  " + (STEP_LABELS[current].to_upper() if current >= 0 else "")
 	turn_who.add_theme_color_override("font_color", ZenithTheme.ACCENT if mine else ZenithTheme.MUTED)
 	# A gold left edge while the viewer acts, so the banner itself says whether to reach for a card.
-	phase_panel.add_theme_stylebox_override("panel", ZenithTheme.edged(ZenithTheme.ACCENT if mine else ZenithTheme.BORDER))
+	phase_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.72), Color.TRANSPARENT, 18, 0, 18, 8))
 
 	var beat: String = _combat_beat(view, me, live)
 	phase_sub.visible = beat != ""
@@ -296,6 +305,8 @@ func _clear_toast() -> void:
 
 
 func log_line(text: String) -> void:
+	var bar: VScrollBar = log_scroll.get_v_scroll_bar()
+	var following: bool = not _log_expanded or bar.value >= bar.max_value - bar.page - 8.0
 	if _log_lines >= MAX_LOG_LINES:
 		log_text.clear()
 		_log_lines = 0
@@ -304,6 +315,13 @@ func log_line(text: String) -> void:
 	else:
 		log_text.append_text(text + "\n")
 	_log_lines += 1
+	if following:
+		_follow_log.call_deferred()
+
+
+func _follow_log() -> void:
+	await get_tree().process_frame
+	log_scroll.scroll_vertical = int(log_scroll.get_v_scroll_bar().max_value)
 
 
 # --- Prompt ---------------------------------------------------------------
@@ -350,7 +368,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 			var b: Button = Button.new()
 			b.text = "Final Strike…"
 			b.custom_minimum_size = Vector2(0, 40)
-			b.add_theme_font_size_override("font_size", 16)
+			b.add_theme_font_size_override("font_size", 24)
 			b.pressed.connect(func() -> void: _show_final_strike(finals))
 			primary_box.add_child(b)
 	else:
@@ -376,11 +394,10 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 	var mine: bool = not a.is_empty() and int(a.get("attacker", -1)) == view.seat
 	ZenithTheme.chip(prompt_banner, ZenithTheme.ATTACK if mine else ZenithTheme.DEFEND)
 	_show_hero(view, p)
-	# The hero number already says what the tiles would; they are for prompts that have no
-	# single number to lead with.
-	var facts: Array[Dictionary] = []
-	if not prompt_hero.visible:
-		facts = _facts_for(view, p)
+	# Keep Energy and stop requirements visible alongside wound previews.
+	var facts: Array[Dictionary] = _facts_for(view, p)
+	if prompt_hero.visible:
+		facts = facts.filter(func(f: Dictionary) -> bool: return str(f["name"]) != "Wounds")
 	_fill_facts(facts)
 
 
@@ -438,7 +455,7 @@ func _preview_outcome(outcome: Dictionary) -> void:
 	hero_value.add_theme_color_override("font_color",
 		ZenithTheme.DEFEND if delta < 0 else (ZenithTheme.TEXT if shown == 0 else ZenithTheme.ATTACK))
 	hero_delta.visible = not outcome.is_empty()
-	hero_delta.text = str(delta) if delta != 0 else "no change"
+	hero_delta.text = "From %d ? %d" % [_hero_base, shown] if delta != 0 else "Same as incoming"
 	hero_delta.add_theme_color_override("font_color", ZenithTheme.DEFEND if delta < 0 else ZenithTheme.MUTED)
 
 
@@ -478,10 +495,12 @@ func _fill_facts(facts: Array[Dictionary]) -> void:
 		child.queue_free()
 	prompt_facts.visible = not facts.is_empty()
 	for f in facts:
-		var tile: StatTile = STAT_TILE.instantiate()
-		prompt_facts.add_child(tile)
-		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tile.set_stat(str(f["name"]), str(f["value"]), str(f["sub"]), f["color"])
+		var detail: Label = Label.new()
+		detail.text = "%s %s" % [str(f["value"]), str(f["name"])]
+		detail.tooltip_text = str(f["sub"])
+		detail.add_theme_font_size_override("font_size", 24)
+		detail.add_theme_color_override("font_color", f["color"])
+		prompt_facts.add_child(detail)
 
 
 func _attack_headline(view: SeatView) -> String:
@@ -671,7 +690,7 @@ func show_card_choice(options: Array[OptionView]) -> void:
 	var uid: int = c.uid
 	var b: Button = Button.new()
 	b.text = "Inspect"
-	b.custom_minimum_size = Vector2(120, 40)
+	b.custom_minimum_size = Vector2(140, 60)
 	b.pressed.connect(func() -> void: show_inspect(def, aspect, uid))
 	tray_buttons.add_child(b)
 
@@ -681,7 +700,7 @@ func _show_final_strike(finals: Array[OptionView]) -> void:
 	await _show_tray(prompt_who.text, "Final Strike: discard a card", "A bare Strike from the Strike Table, plus your Drills and modifiers. Afterwards you pass for the rest of this Combat.", finals, [], false)
 	var back: Button = Button.new()
 	back.text = "Back"
-	back.custom_minimum_size = Vector2(120, 40)
+	back.custom_minimum_size = Vector2(140, 60)
 	back.pressed.connect(_on_back)
 	tray_buttons.add_child(back)
 
@@ -701,9 +720,9 @@ func clear_prompt() -> void:
 	_fill_buttons([], primary_box, true)
 
 
-## Options without a card (pass, declare, done, pay N). The ones that move the game on get the
-## accent; skips and declines stay quiet. Vertical in the side panel, a row in the tray.
-func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, first_is_default: bool = false) -> void:
+## Alternatives without a card use equal emphasis; neither passing nor accepting a hit is
+## presented as a recommendation. Vertical in the side panel, a row in the tray.
+func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, _first_is_default: bool = false) -> void:
 	for child in into.get_children():
 		into.remove_child(child)
 		child.queue_free()
@@ -711,15 +730,15 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		var opt: OptionView = options[i]
 		var b: Button = Button.new()
 		b.text = opt.label
-		b.custom_minimum_size = Vector2(0 if vertical else 150, 40)
-		b.add_theme_font_size_override("font_size", 16)
-		if ACCENT_TYPES.has(opt.type) or (first_is_default and i == 0):
-			b.theme_type_variation = &"AccentButton"
+		b.custom_minimum_size = Vector2(0 if vertical else 180, 60)
+		b.add_theme_font_size_override("font_size", 24)
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
 		if not opt.outcome.is_empty():
 			# Hovering a choice answers "what does this leave me with" on the number itself.
 			b.mouse_entered.connect(func() -> void: _preview_outcome(opt.outcome))
 			b.mouse_exited.connect(func() -> void: _preview_outcome({}))
+			b.focus_entered.connect(func() -> void: _preview_outcome(opt.outcome))
+			b.focus_exited.connect(func() -> void: _preview_outcome({}))
 		into.add_child(b)
 
 
@@ -751,16 +770,17 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 			tray_cards.add_child(entry)
 	# Wide enough for a full row, tall enough for two; anything past that scrolls down.
 	var shown: int = tray_cards.get_child_count()
-	var cols: int = mini(shown, TRAY_COLUMNS)
-	var rows: int = mini(ceili(float(shown) / TRAY_COLUMNS), TRAY_ROWS_SHOWN)
+	var columns: int = maxi(1, mini(TRAY_COLUMNS, int((root.size.x - 180.0) / (TRAY_CARD_SIZE.x + 18.0))))
+	var cols: int = mini(shown, columns)
+	var rows: int = mini(ceili(float(shown) / columns), TRAY_ROWS_SHOWN)
 	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)   # frame pad, caption
-	tray_scroll.custom_minimum_size = Vector2(cols * (cell.x + 12.0) + 12.0, rows * (cell.y + 12.0))
+	tray_scroll.custom_minimum_size = Vector2(cols * (cell.x + 12.0) + 12.0, minf(rows * (cell.y + 12.0), root.size.y * 0.57))
 	_fill_buttons(actions, tray_buttons, false, sub_choice and accent_first)
 	if batch != null:
 		_confirm = Button.new()
 		_confirm.theme_type_variation = &"AccentButton"
-		_confirm.custom_minimum_size = Vector2(180, 40)
-		_confirm.add_theme_font_size_override("font_size", 16)
+		_confirm.custom_minimum_size = Vector2(200, 60)
+		_confirm.add_theme_font_size_override("font_size", 24)
 		_confirm.pressed.connect(func() -> void:
 			if _selected.size() >= _batch.batch_min:
 				option_chosen.emit(_batch.batch_option(_selected)))
@@ -770,7 +790,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	if sub_choice:
 		var back: Button = Button.new()
 		back.text = "Back"
-		back.custom_minimum_size = Vector2(120, 40)
+		back.custom_minimum_size = Vector2(140, 60)
 		back.pressed.connect(_on_back)
 		tray_buttons.add_child(back)
 	tray.visible = true
@@ -821,10 +841,11 @@ func _add_library(library: Array, matches: Array[OptionView]) -> void:
 		column.add_child(caption)
 		tray_cards.add_child(column)
 	var shown: int = tray_cards.get_child_count()
-	var cols: int = mini(shown, TRAY_COLUMNS)
-	var rows: int = mini(ceili(float(shown) / TRAY_COLUMNS), TRAY_ROWS_SHOWN)
+	var columns: int = maxi(1, mini(TRAY_COLUMNS, int((root.size.x - 180.0) / (TRAY_CARD_SIZE.x + 18.0))))
+	var cols: int = mini(shown, columns)
+	var rows: int = mini(ceili(float(shown) / columns), TRAY_ROWS_SHOWN)
 	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)
-	tray_scroll.custom_minimum_size = Vector2(cols * (cell.x + 12.0) + 12.0, rows * (cell.y + 12.0))
+	tray_scroll.custom_minimum_size = Vector2(cols * (cell.x + 12.0) + 12.0, minf(rows * (cell.y + 12.0), root.size.y * 0.57))
 
 
 ## Toggles a card in a batch tray. Full trays ignore further picks until one is removed.
@@ -855,7 +876,7 @@ func _hide_tray() -> void:
 	hide_peek()
 	tray.visible = false
 	prompt_panel.visible = true
-	hand.visible = true
+	hand.visible = not external_hand
 	_batch = null
 	_confirm = null
 	_selected.clear()
@@ -874,11 +895,11 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	frame.pivot_offset = Vector2(TRAY_CARD_SIZE.x * 0.5 + 3.0, TRAY_CARD_SIZE.y * 0.5 + 3.0)
 	var b: Button = Button.new()
 	b.flat = true
-	b.custom_minimum_size = TRAY_CARD_SIZE
+	b.custom_minimum_size = Vector2(TRAY_CARD_SIZE.x, 100)
 	b.text = opt.label
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.clip_text = false
-	b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_font_size_override("font_size", 24)
 	b.add_theme_color_override("font_color", ZenithTheme.TEXT)
 	b.pressed.connect(func() -> void: option_chosen.emit(opt))
 	b.mouse_entered.connect(func() -> void:
@@ -939,6 +960,8 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		hide_peek()
 		if uid >= 0:
 			card_hovered.emit(uid, false))
+	b.focus_entered.connect(func() -> void: b.mouse_entered.emit())
+	b.focus_exited.connect(func() -> void: b.mouse_exited.emit())
 	b.gui_input.connect(func(event: InputEvent) -> void:
 		if _is_inspect_click(event):
 			show_inspect(def, aspect, uid))
@@ -949,7 +972,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		var caption: Label = Label.new()
 		caption.text = verb
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.add_theme_font_size_override("font_size", 13)
+		caption.add_theme_font_size_override("font_size", 22)
 		caption.add_theme_color_override("font_color", ZenithTheme.MUTED if batch else ZenithTheme.ACCENT)
 		column.add_child(caption)
 		if batch:
@@ -977,6 +1000,9 @@ func _def(def_id: String) -> CardDef:
 
 func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -> void:
 	_faces = faces
+	if external_hand:
+		hand.hide()
+		return
 	for child in hand.get_children():
 		child.queue_free()
 	for c in cards:
@@ -1031,6 +1057,22 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 			_lift(frame, false))
 		frame.add_child(b)
 		hand.add_child(frame)
+
+
+## The in-scene hand owns expansion; this keeps its outcome preview in the decision area.
+func preview_hand_card(uid: int, over: bool) -> void:
+	card_hovered.emit(uid, over)
+	_preview_outcome(_card_outcome(uid) if over else {})
+	if not external_hand and over and _view != null:
+		var card: SeatCard = _view.card(uid)
+		if card != null and not card.hidden():
+			show_peek(_def(card.def_id), card.aspect, uid)
+	elif not over:
+		hide_peek()
+
+
+func hand_forecast(uid: int) -> String:
+	return _forecast_text(uid)
 
 
 func _lift(frame: Control, up: bool) -> void:
@@ -1139,14 +1181,13 @@ func set_dev_available(on: bool) -> void:
 ## Drops the log down to most of the screen, or back to its strip.
 func set_log_expanded(on: bool) -> void:
 	_log_expanded = on
-	log_toggle.text = "Less" if on else "More"
+	log_toggle.text = "Close" if on else "History"
 	var bottom: float = root.size.y * LOG_EXPANDED_FRACTION if on else LOG_COLLAPSED_BOTTOM
 	var t: Tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	t.tween_property(log_panel, "offset_bottom", bottom, 0.18)
 
 
-## Half-size face in a fixed spot on the left, under the top panel, while a card is hovered.
-## It never follows the pointer and never takes the mouse, so the eye always knows where to look.
+## Expanded rules beside the object being inspected, bounded away from the decision actions.
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible:
 		return
@@ -1154,6 +1195,9 @@ func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast
+	# Place expanded details next to the hovered object, clamped above the hand.
+	var pointer: Vector2 = root.get_local_mouse_position()
+	peek.position = Vector2(clampf(pointer.x - 390.0, 20.0, root.size.x - 800.0), clampf(pointer.y - 560.0, 116.0, root.size.y - 660.0))
 	peek.visible = true
 
 

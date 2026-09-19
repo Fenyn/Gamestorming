@@ -142,9 +142,11 @@ Some history is worth carrying and is not a clan. These people are unattached an
 is what they bring.
 
 **The broken company.** A mercenary company that fielded constructs and left them where they fell.
-Orvath Kell was its last officer and still wears the gorget. Gideon Mourne fought in it and had
-standing once. A third survivor exists and is unnamed: a heavy fighter whose whole method is
-planting himself and not moving.
+Orvath Kell was its last officer and still wears the gorget. He carries Verdant, the same line as
+the Thornwald Grove, and has nothing else in common with it. Gideon Mourne was a lord before he
+was stripped of it, still signs himself Lord Mourne, and nobody corrects him to his face. He
+sells the craft cheap now, to whoever is going somewhere. A third survivor exists and is unnamed:
+a heavy fighter whose whole method is planting himself and not moving.
 
 **Marrow's crew.** Marrow is a construct assembled out of several older ones, and Cull is an
 elderly wright who put himself into a frame rather than keep building them for other people. The
@@ -168,7 +170,7 @@ deserve it. Pim came from there. Its captain is unnamed. What retains it is unna
 | Tavin Vale | Draconic | The Vale line, fostered with the Rookes | Tide, Vigil |
 | Caedan Vale | Draconic | The Vale line | Freestyle, Vigil |
 | Osric Thornwald | Verdant | The Thornwald Grove | Root, Vigil |
-| Orvath Kell | none | The broken company | Shade, Pact |
+| Orvath Kell | Verdant | The broken company | Shade, Pact |
 | Gideon Mourne | Draconic | The broken company | Shade, Pact |
 | Siphon, Tithe | `construct` | The Collegium | Storm, Pact |
 | Marrow | `construct` | Marrow's crew | Shade, Pact |
@@ -204,10 +206,9 @@ Slots agreed and not yet named:
 
 Recorded 2026-09-19, not fixed here.
 
-- No card in `data/` carries a `bloodline` value. The engine reads it (`card_def.gd:27`,
-  `duel_engine.gd:2307`) and the design doc lists carriers, but the data is empty, so every
-  bloodline gate and `per_bloodline` count currently evaluates against nothing.
-- Gideon Mourne is named here and appears everywhere else in the repo under his old name.
+- Ten personalities now carry a `bloodline`, set 2026-09-19. Only one card reads one: Dame Alder
+  Rooke's first Aspect guards Draconic Allies. No card in the set uses `only: {"bloodline"}` or
+  `per_bloodline` yet, so for everyone else the line is a type-line fact and nothing more.
 - `CAST_SCHOOL` in `tools/gen_roster.py` derives one school per character, so a character
   fielding a second school cannot be expressed yet. Section 3 assumes they eventually can.
 - The Collegium is still "The Corven Collegium" in `data/decks/storm_*.json`,

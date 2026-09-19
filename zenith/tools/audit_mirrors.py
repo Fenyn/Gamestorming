@@ -42,6 +42,13 @@ SAME_PERSON = {
     "Chi": "Chi-Chi",
 }
 
+# The database also names a personality by the form they are in, so "Super Saiyan Goku" and "Goku"
+# are one man and "Future Gohan" is Gohan later. Strip the form and keep the result only when what
+# is left is itself a personality, which leaves "Majin Buu" and "Kid Buu" alone (there is no
+# personality called "Buu") and leaves "Broly, Super Saiyan" alone (the form is not a prefix).
+FORMS = ("Super Saiyan ", "Future ", "Ultimate ", "Great ")
+FORM_SUFFIXES = (" on Namek",)
+
 
 def _source_people():
     """Every personality name in the reference card database, so "is this a person" is answered
@@ -75,7 +82,18 @@ def source_person(source):
             who = p
     if who.lower() in NOT_PEOPLE:
         return ""
-    return SAME_PERSON.get(who, who)
+    return SAME_PERSON.get(who, _base_form(who))
+
+
+def _base_form(who):
+    """The personality behind a form name: "Super Saiyan Goku" is Goku, "Goku on Namek" is Goku."""
+    for f in FORMS:
+        if who.startswith(f) and who[len(f):] in PEOPLE:
+            return who[len(f):]
+    for f in FORM_SUFFIXES:
+        if who.endswith(f) and who[: -len(f)] in PEOPLE:
+            return who[: -len(f)]
+    return who
 
 
 def _words(s):

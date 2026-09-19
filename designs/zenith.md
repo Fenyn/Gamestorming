@@ -80,7 +80,7 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 | none | Vigil | Freestyle | Caedan Vale, the last of a line of swordmasters, no magic at all | none |
 | The Corven Collegium, scholars of the Tempest | Pact | Storm | Siphon, a warded construct | Tithe |
 | The Thornwald Grove, druids whose rites regrow what is cut away (added 2026-09-17) | Vigil | Root | Osric Thornwald, an old druid who mends as he fights and outlasts | none |
-| Marrow the Amalgam, a construct assembled from fallen ones and the crew that picks the field over (added 2026-09-18) | Pact | Shade | Marrow, who is not one construct and never was | Cull, Orvath Kell, Sarn Vayne, Pim |
+| Marrow the Amalgam, a construct assembled from fallen ones and the crew that picks the field over (added 2026-09-18) | Pact | Shade | Marrow, who is not one construct and never was | Cull, Orvath Kell, Gideon Mourne, Pim |
 
 ### Bloodlines
 
@@ -92,7 +92,9 @@ Two lines exist. **Draconic** is the fighting line, hot-blooded and hard to put 
 
 In the data it is `bloodline` on a personality's card definition, `only: {"bloodline": ...}` to gate a card, `per_bloodline` on a modifier or a shuffle effect to count personalities carrying it, and `protect_allies: "<bloodline>"` to guard only kin. A gate reads the personality **in control of Combat**, not the duelist, so a leader of no line can still use a gated card while a kinsman holds the fight. The reference game kept this in a rulebook table and never printed it on the card, which is why it was invisible; here it goes on the type line of every personality that has one.
 
-Carriers: Draconic are Halden Quarr, Caedan Vale, Sir Edric Rooke, Wren Rooke, Ansel Rooke, Tavin Vale and the bonded pair. Verdant is Osric Thornwald alone. Nobody else has one, Dame Alder Rooke included, though every one of her Allies does.
+Carriers (in the data since 2026-09-19): Draconic are Halden Quarr, Caedan Vale, Sir Edric Rooke, Wren Rooke, Ansel Rooke, Tavin Vale, the bonded pair and Gideon Mourne. Verdant are Osric Thornwald and Orvath Kell, who share a line. Nobody else has one, Dame Alder Rooke included, though every one of her Allies does.
+
+Dame Alder Rooke's first Aspect is the only card that reads a bloodline so far. Its `protect_allies` names Draconic rather than guarding everyone, so she shields kin and not every hireling she happens to lead. It covers the same four Allies either way, because all four are Draconic.
 
 ### Keywords
 

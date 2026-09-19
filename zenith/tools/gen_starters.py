@@ -145,7 +145,9 @@ duelist("duelist_alpha", ALPHA, [
     aspect(3, 6, 46, 2, constant={"first_styled_unstoppable": True}),
 ])
 duelist("duelist_beta", BETA, [
-    aspect(1, 1, 12, 1, constant={"protect_allies": True, "turn_start": [WHEN(E("advance_aspect"), allies_min=5)]}),
+    # Guards kin, not every hireling: the string names the bloodline it shields, and all four of
+    # her Allies carry Draconic.
+    aspect(1, 1, 12, 1, constant={"protect_allies": "draconic", "turn_start": [WHEN(E("advance_aspect"), allies_min=5)]}),
     aspect(2, 2, 16, 1, power={"attack": {"kind": "strike", "variants": [{"when": {"ally_present": "Sir Edric Rooke"}, "stages": 4}]}}),
     aspect(3, 1, 40, 2, power={"effects": [ENTER(DISCARD_IN_PLAY("non_combat", all=True, remove=True))]}),
 ])
@@ -165,14 +167,14 @@ duelist("duelist_epsilon", EPSILON, [
                                                     WHEN(FLOAT("modifier", scope="own", kind="strike", stages=2), discard_top_school="steel")]}),
     aspect(3, 4, 40, 1, power={"attack": {"kind": "strike", "stages": 4}, "uses": 2,
                              "effects": [WHEN(FLOAT("modifier", scope="own", kind="any", life=2), discard_top_school="steel")]}),
-])
+], bloodline="draconic")
 duelist("duelist_zeta", ZETA, [
     aspect(1, 2, 12, 1, power={"effects": [ENTER(E("look_at", amount=8, pick={"title_contains": "Sword"}, to="hand", play_if={"title_contains": "Swordplay"}, shuffle_after=True, **{"from": "top"}))]}),
     aspect(2, 2, 16, 1, power={"attack": {"kind": "strike", "only_first_attack": True, "stops_needed": 2}}),
     aspect(3, 3, 28, 1, power={"attack": {"kind": "strike", "stages": 5}, "effects": [IFS(FORBID("art_attacks", "opponent"))]}),
     aspect(4, 4, 34, 2, constant={"forbid_opponent": ["art_attacks"]}),
     aspect(5, 5, 40, 1, power={"effects": [ENTER(E("draw", amount=3), "active")]}),
-])
+], bloodline="draconic")
 # Low Might for its aspect all the way up; the powers feed on the discard pile instead.
 duelist("duelist_eta", ETA, [
     aspect(1, 1, 14, 1, power={"effects": [ENTER(E("draw_discard", amount=1, **{"from": "bottom"}), "opposing")]}),
@@ -180,7 +182,7 @@ duelist("duelist_eta", ETA, [
     aspect(3, 3, 30, 2, power={"attack": {"kind": "strike", "stages": 6}, "effects": [IFS(E("draw_discard", amount=1, **{"from": "bottom"}))]}),
     aspect(4, 4, 33, 2, power={"attack": {"kind": "strike"}, "effects": [E("recover", amount=3, **{"from": "bottom"})]}),
     aspect(5, 5, 40, 1, constant={"modifiers": [{"scope": "own", "kind": "strike", "stages": 5}]}),
-])
+], bloodline="verdant")
 # Construct, so the keyword cards read her as kin, and her last two aspects hit harder while The
 # Black Coach is out.
 duelist("duelist_theta", THETA, [
@@ -200,12 +202,12 @@ ally("henchman_delta", "Halvard Draik", "pact", 17, 1, {"attack": {"kind": "stri
 ally("henchman_epsilon", "Pim", "pact", 6, 0, {"attack": {"kind": "strike"}, "effects": [IFS(E("draw_discard", amount=2, **{"from": "bottom"}))]})
 ally("henchman_zeta", "Tithe", "pact", 19, 1, {"attack": {"kind": "strike", "life": 2}, "effects": [E("discard_hand", amount=1, random=False)], "no_control_needed": True}, tags=["construct"])
 ally("salvage_alpha", "Cull", "pact", 18, 1, {"attack": {"kind": "art", "life_per_tag": "construct"}}, tags=["construct"])
-ally("salvage_beta", "Orvath Kell", "pact", 17, 1, {"attack": {"kind": "art", "printed_life": 6}})
-ally("salvage_gamma", "Gideon Mourne", "pact", 19, 1, {"attack": {"kind": "art", "cost_stages": 1}})
-ally("companion_alpha", "Wren Rooke", "vigil", 18, 1, {"effects": [E("shuffle_discard", amount=1, per_personality=True)]})
-ally("companion_beta", "Sir Edric Rooke", "vigil", 16, 1, {"attack": {"kind": "strike", "focused": True, "stages": 2, "life_per_opponent_seal": 2}})
-ally("companion_gamma", "Tavin Vale", "vigil", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [E("recover", amount=2, **{"from": "bottom"})]}, surge=3)
-ally("companion_delta", "Ansel Rooke", "vigil", 13, 1, {"attack": {"kind": "strike", "printed_stages": 5}, "effects": [IFSTOP(VIG("max"))]})
+ally("salvage_beta", "Orvath Kell", "pact", 17, 1, {"attack": {"kind": "art", "printed_life": 6}}, bloodline="verdant")
+ally("salvage_gamma", "Gideon Mourne", "pact", 19, 1, {"attack": {"kind": "art", "cost_stages": 1}}, bloodline="draconic")
+ally("companion_alpha", "Wren Rooke", "vigil", 18, 1, {"effects": [E("shuffle_discard", amount=1, per_personality=True)]}, bloodline="draconic")
+ally("companion_beta", "Sir Edric Rooke", "vigil", 16, 1, {"attack": {"kind": "strike", "focused": True, "stages": 2, "life_per_opponent_seal": 2}}, bloodline="draconic")
+ally("companion_gamma", "Tavin Vale", "vigil", 18, 1, {"attack": {"kind": "art", "printed_life": 6}, "effects": [E("recover", amount=2, **{"from": "bottom"})]}, surge=3, bloodline="draconic")
+ally("companion_delta", "Ansel Rooke", "vigil", 13, 1, {"attack": {"kind": "strike", "printed_stages": 5}, "effects": [IFSTOP(VIG("max"))]}, bloodline="draconic")
 
 # ============================================================================
 # Seals: two sets of seven
@@ -413,7 +415,7 @@ noncombat("lucky_find", "Lucky Find", [USE(SEARCH(card_type="non_combat", to="pl
 noncombat("bonding_rite", "Bonding Rite", [USE(E("bond", card="bonded_pair"))])
 ally("bonded_pair", "Ansel and Tavin, Back to Back", "vigil", 44, 2,
      {"attack": {"kind": "strike", "printed_stages": 7}, "uses": 2, "effects": [WHEN({"may": True, "then": [E("focus_attack")], **E("discard_hand", amount=1, random=False)}, hand_min=1)]},
-     surge=4, bond_of=["Ansel Rooke", "Tavin Vale"], bond_timer_max=5)
+     surge=4, bond_of=["Ansel Rooke", "Tavin Vale"], bond_timer_max=5, bloodline="draconic")
 noncombat("vales_insight", "Vale's Insight", [USE(SEARCH(signature_of="duelist", amount=2, to="hand"))], remove_after_use=True)
 noncombat("stokes_the_coals", "Ashmark Stokes the Coals", [USE(VIG("max", "duelist")), USE(E("shuffle_discard", amount=5)), USE(ACC(1))], only={"duelist_character": ALPHA})
 noncombat("open_challenge", "An Open Challenge", [{"trigger": "opponent_declare", **E("discard_hand", amount=1, random=False)}, {"trigger": "opponent_declare", **OPP("force_declare")}],

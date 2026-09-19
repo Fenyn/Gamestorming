@@ -23,6 +23,11 @@
     {"id": "t_levelling", "title": "Test Levelling", "type": "combat", "effects": [{"op": "set_energy", "who": "opponent", "target": "all", "amount": 4}]},
     {"id": "t_recall_top", "title": "Test Recall", "type": "combat", "effects": [{"op": "search", "source": "discard", "amount": 2, "to": "deck_top"}]},
     {"id": "t_drill_every_turn", "title": "Test Vigil Drill", "type": "drill",
-     "effects": [{"trigger": "turn_start", "each_turn": true, "op": "fervor", "amount": 1}]}
+     "effects": [{"trigger": "turn_start", "each_turn": true, "op": "fervor", "amount": 1}]},
+    {"id": "tf_kinwarden", "title": "Test Kin Warden", "type": "duelist", "character": "Test Kin Warden", "aspects": [
+      {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "constant": {"protect_allies": "draconic"}},
+      {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000]},
+      {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000]}
+    ]}
   ]
 }

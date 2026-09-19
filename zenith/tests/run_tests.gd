@@ -49,6 +49,7 @@ func _init() -> void:
 		test_search_then_runs_even_when_nothing_was_taken,
 		test_place_from_hand_takes_drills_but_not_seals,
 		test_bloodline_gates_on_the_personality_in_control,
+		test_ally_guard_named_for_a_bloodline_covers_only_kin,
 		test_bloodline_counts_only_its_own,
 		test_deck_loss_guard,
 		test_in_play_can_shuffle_into_the_deck,
@@ -721,6 +722,23 @@ func test_bloodline_gates_on_the_personality_in_control() -> void:
 	answer(f, &"declare")
 	answer(f, &"control", kin.uid)
 	check(f.prompt.find(&"use", uid_in_hand(f, 0, "t_kin_rite")) != null, "with the kin in control it can")
+
+
+## A guard that names a bloodline shields only the Allies carrying it. The duelist need not carry
+## it herself, which is the whole point: she guards her kin, not every hireling she happens to
+## lead. A guard with no bloodline named still covers everyone.
+func test_ally_guard_named_for_a_bloodline_covers_only_kin() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_kinwarden"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	eq(me.duelist.def.bloodline, "", "the warden carries no line of her own")
+	var kin: CardInstance = inject(e, 0, "t_ally_kin")
+	var hireling: CardInstance = inject(e, 0, "t_ally_squire")
+	check(e._ally_protected(me, kin), "the kin is guarded")
+	check(not e._ally_protected(me, hireling), "the hireling of no line is not")
+
+	var open_guard: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_warden"), deck(filler(), "pact"))
+	check(open_guard._ally_protected(open_guard.player(0), inject(open_guard, 0, "t_ally_squire")),
+		"a guard that names no line still covers a hireling")
 
 
 ## "For each personality with that blood you have in play." The duelist counts only when the blood

@@ -20,9 +20,10 @@ Rule 3 does not reach Relics. The three Relics stand in for printed cards that c
 were de-personalised on purpose, because a Relic is worn rather than owned. `audit_mirrors.py`
 reports them as a note (exemption added 2026-09-19).
 
-Rules 1 and 2 are clean as of 2026-09-19: 27 characters, every attributed card leading with its
-name. Rule 3 has **23 cards** left, every one blocked on a character who does not exist yet. Where
-each of those characters sits is already settled in `world.md`; only the names are missing.
+Rules 1 and 2 are clean as of 2026-09-19: 28 characters, every attributed card leading with its
+name. Rule 3 has **20 cards** left, every one blocked on a character who does not exist yet. The
+audit counts 19 of them; the twentieth is Kami, whom it cannot see. Where most of those characters
+sit is already settled in `world.md`; only the names are missing.
 
 ## Naming conventions in force
 
@@ -67,6 +68,13 @@ each of those characters sits is already settled in `world.md`; only the names a
   a card in six decks, which is the rule working as intended. **The sword titles are
   load-bearing**: Vale's Aspect 1, `vales_sword_draw`, `swordplay_drill` and the Vale Heirloom
   all match on the substrings "Sword" and "Swordplay", so any future retitle has to keep them.
+- **Corin Thrace** (approved 2026-09-19), an ascetic of no house who teaches a discipline rather
+  than a school, closes the Tien row: five cards. `practiced_guard` Corin's Practiced Guard,
+  `smoke_screen` Corin Throws Smoke, `suppressing_shot` Corin's Suppressing Shot, `threefold_bolt`
+  Corin's Threefold Bolt, and the new `corins_conditioning` Corin's Conditioning. He pilots no deck,
+  which is why his forms turn up in other people's hands across the field. Checked before
+  retitling: nothing in the generator matches any of those titles as a substring, unlike the sword
+  cards.
 
 ## 3. Named cards with no mirror character yet
 
@@ -77,7 +85,6 @@ say what kind of person the cards imply.
 |---|---|---|---|
 | **Krillin** | 5 | `blinding_flare`, `unerring_bolt`, `keen_eye`, `clear_mind`, `sleight` | Art, Combat, Non-Combat |
 | **Cell** | 4 | `old_habit`, `dismissal`, `sever_the_leyline`, `terms_of_the_pact` | Combat, Pacts only, Strike |
-| **Tien** | 4 | `practiced_guard`, `smoke_screen`, `suppressing_shot`, `threefold_bolt` | Art, Strike |
 | **Nappa** | 2 | `grounding_step`, `unyielding_guard` | Art, Strike |
 | **Bulma** | 1 | `wardens_measure` | Vigils only |
 | **Captain Ginyu** | 1 | `captains_barrage` | Art |
@@ -87,8 +94,16 @@ say what kind of person the cards imply.
 | **Pikkon** | 1 | `second_wind` | Strike |
 | **Supreme Kai** | 1 | `overreach` | Art |
 | **Uub** | 1 | `headlong_plunge` | Strike |
+| **Kami** | 1 | `the_high_watch` | Grounds |
 
 ### Notes on the ones with the most to say
+
+- **Kami is invisible to `audit_mirrors.py`** and has to be tracked by hand. The tool builds its
+  list of source people from the card database's personality cards, and Kami is never printed as
+  one; his name only appears inside other cards' titles. Added 2026-09-19 with `the_high_watch`
+  (Kami's Floating Island), a watchpost above the cloud line where you see what is coming. Whoever
+  holds that office in our world is unplaced; the Vigil's highest office, already reserved for the
+  Supreme Kai row, is the obvious neighbour but not the same person.
 
 - **Dende** needs a healer. Namekian is our Root school and Piccolo is already Osric Thornwald, so
   Dende belongs near the Thornwald Grove. He is a child in the source and we have no young Vigil
@@ -101,8 +116,8 @@ say what kind of person the cards imply.
 
 Placed in `world.md` on 2026-09-19, so only the name is outstanding. (Gohan is placed there as a
 Rooke by blood, Vale-trained in the sword and Thornwald-taught in the rest; that is Emrys Rooke
-and it is done.) Krillin and Tien are the Kingsguard's
-two rival forms, at contact and at distance. Bulma is a Vale and Caedan's mother. Nappa is the
+and it is done.) Krillin is the Kingsguard's form at
+contact; Corin Thrace, who is done, was its form at distance. Bulma is a Vale and Caedan's mother. Nappa is the
 broken company's third survivor. Ginyu captains the retained guard. Babidi lays the demons' mark
 and works the toll gate. Supreme Kai holds the Vigil's highest office, which is what `overreach`
 reaches past. Uub ties back to Bram Ashmark. Hercule claims a Kingsguard form he was never taught.

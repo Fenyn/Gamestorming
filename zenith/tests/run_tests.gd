@@ -49,6 +49,12 @@ func _init() -> void:
 		test_search_then_runs_even_when_nothing_was_taken,
 		test_place_from_hand_takes_drills_but_not_seals,
 		test_bloodline_gates_on_the_personality_in_control,
+		test_an_only_gate_can_name_a_side_or_a_person,
+		test_a_card_can_read_the_bottom_of_the_discard_pile,
+		test_a_life_card_can_buy_more_damage,
+		test_a_bought_life_card_is_a_requirement_not_a_cost,
+		test_a_modifier_can_outlast_the_card_that_made_it,
+		test_a_duelist_power_can_swing_twice_in_one_combat,
 		test_ally_guard_named_for_a_bloodline_covers_only_kin,
 		test_bloodline_counts_only_its_own,
 		test_deck_loss_guard,
@@ -149,6 +155,11 @@ func _init() -> void:
 		test_search_by_effect,
 		test_end_turn,
 		test_declare_window,
+		test_a_deck_that_never_attacks_still_declares_to_spend_what_it_carries,
+		test_grounds_can_tax_one_kind_of_attack,
+		test_a_restriction_can_last_one_attack_phase_not_the_whole_combat,
+		test_a_profile_can_pivot_on_the_matchup,
+		test_a_profile_can_pivot_on_where_the_duel_stands,
 		test_command_wire_lockstep,
 		test_uids_hide_deck_order,
 		test_seat_view_masks_hidden_cards,
@@ -2005,6 +2016,115 @@ func test_ai_weighs_grounds() -> void:
 	var downgrade_score: float = AiScorer._grounds_score(e, profile, me, card_hush)
 	check(replace_score > downgrade_score, "replacing bad Grounds with good ones scores above the reverse (%.2f vs %.2f)" % [replace_score, downgrade_score])
 	check(downgrade_score < 0.0, "swapping good Grounds for bad ones is worse than doing nothing")
+
+
+## A deck should be able to play one way into a beatdown and another into a slow deck. The pivot
+## keys off what the rival declares itself to be, which both players can see.
+func test_a_profile_can_pivot_on_the_matchup() -> void:
+	var base: AiProfile = AiProfile.default_profile()
+	base.merge({"play": {"declare_bias": 1.0}, "own": {"ally": 2.0},
+		"vs": {
+			"strike_beatdown": {"play": {"declare_bias": -4.0}, "own": {"ally": 9.0}},
+			"+seals": {"play": {"declare_bias": 5.0}},
+		}})
+	eq(base.w("play", "declare_bias"), 1.0, "with no opponent named, the base profile stands")
+	var vs_none: AiProfile = base.for_matchup("art_beatdown", [])
+	eq(vs_none.w("play", "declare_bias"), 1.0, "an archetype it names no pivot for changes nothing")
+	var vs_beat: AiProfile = base.for_matchup("strike_beatdown", ["fervor"])
+	eq(vs_beat.w("play", "declare_bias"), -4.0, "against a beatdown it pulls back")
+	eq(vs_beat.w("own", "ally"), 9.0, "and values what keeps it alive")
+	eq(vs_beat.w("own", "life"), base.w("own", "life"), "weights the pivot does not name are left alone")
+	eq(base.w("play", "declare_bias"), 1.0, "and the base profile is not modified in place")
+	var vs_seal: AiProfile = base.for_matchup("seals", ["arts", "drills"])
+	eq(vs_seal.w("play", "declare_bias"), 1.0, "an archetype with no entry leaves the base")
+	var vs_sealed: AiProfile = base.for_matchup("art_beatdown", ["seals"])
+	eq(vs_sealed.w("play", "declare_bias"), 5.0, "a subtheme pivot fires on its own")
+	var both: AiProfile = base.for_matchup("strike_beatdown", ["seals"])
+	eq(both.w("play", "declare_bias"), 5.0, "and the subtheme is the finer statement, so it wins")
+	eq(both.w("own", "ally"), 9.0, "while the archetype's other weights still apply")
+
+
+## The other pivot axis: a deck can hold back until its plan is on the table and then press. The
+## facts are read off the seat's own view, so the AI sees only what the table shows.
+func test_a_profile_can_pivot_on_where_the_duel_stands() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var r: Referee = Referee.new()
+	r.engine = e
+	var profile: AiProfile = AiProfile.default_profile()
+	profile.merge({"play": {"declare_bias": -3.0},
+		"when": {"bonded": {"play": {"declare_bias": 5.0}}, "life_below:20": {"own": {"life_low": 9.0}}}})
+	var view: SeatView = r.view_for(0)
+	var quiet: String = profile.state_key(view, 0)
+	check(not quiet.contains("bonded"), "nothing is fused yet, so the pivot is off: '%s'" % quiet)
+	eq(profile.for_state(quiet).w("play", "declare_bias"), -3.0, "and it plays the held-back weight")
+	var me: PlayerState = e.player(0)
+	var fused: CardInstance = me.allies()[0] if not me.allies().is_empty() else null
+	if fused == null:
+		fused = e._instance(lib.get_def("t_ally_herald"), 0, &"in_play")
+		me.in_play.append(fused)
+	fused.cards_under.append(e._instance(lib.get_def("t_ally_herald"), 0, &"under"))
+	var loud: String = profile.state_key(r.view_for(0), 0)
+	check(loud.contains("bonded"), "partners stacked underneath is what a fusion looks like: '%s'" % loud)
+	eq(profile.for_state(loud).w("play", "declare_bias"), 5.0, "so now it presses")
+	eq(profile.w("play", "declare_bias"), -3.0, "and the base profile is untouched")
+
+
+## Combat runs many attack phases back and forth, so a restriction aimed at one of them is a far
+## smaller thing than one that lasts the whole Combat. It lifts when the phase it was aimed at ends,
+## and never outlives the Combat if that phase never came.
+func test_a_restriction_can_last_one_attack_phase_not_the_whole_combat() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var foe: PlayerState = e.player(1)
+	e._float(1, "forbid", "next_attack_phase", {"what": "strike_cards", "source": -1})
+	check(e._forbidden(foe, "strike_cards"), "the restriction is on")
+	e._expire_attack_phase_floats(0)
+	check(e._forbidden(foe, "strike_cards"), "the other player's phase ending does not lift it")
+	e._expire_attack_phase_floats(1)
+	check(not e._forbidden(foe, "strike_cards"), "their own phase ending lifts it")
+	e._float(1, "forbid", "next_attack_phase", {"what": "strike_cards", "source": -1})
+	check(e._forbidden(foe, "strike_cards"), "set again, with the phase still to come")
+	e._expire_floating("combat")
+	check(not e._forbidden(foe, "strike_cards"), "and Combat ending clears one that never fired")
+
+
+## Grounds could only ever double every cost at once. A place can now be heavy for one kind of
+## attack and ordinary for the other, which is how a hall taxes a swing but not a spell.
+func test_grounds_can_tax_one_kind_of_attack() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var strike_spec: Dictionary = {"kind": "strike"}
+	var art_spec: Dictionary = {"kind": "art"}
+	var strike_before: int = e._cost_stages(strike_spec, me)
+	var art_before: int = e._cost_stages(art_spec, me)
+	var heavy: CardDef = lib.get_def("t_grounds_weight")
+	e.state.grounds = e._instance(heavy, 0, &"grounds")
+	eq(e._cost_stages(strike_spec, me), strike_before + 2, "the Grounds tax the Strike by 2")
+	eq(e._cost_stages(art_spec, me), art_before, "and leave the Art untouched")
+	check(CardText.rules_text(heavy).contains("Strikes cost 2 more Energy"), "the card says so: %s" % CardText.rules_text(heavy))
+	e.state.grounds = null
+	eq(e._cost_stages(strike_spec, me), strike_before, "and the tax goes with them")
+
+
+## A deck can be built to never attack and still need Combat open, because some of its cards only
+## work once it is. Attacks alone cannot speak for that hand, so `declare_use` weighs what it carries.
+func test_a_deck_that_never_attacks_still_declares_to_spend_what_it_carries() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var profile: AiProfile = AiProfile.default_profile()
+	profile.merge({"play": {"declare_bias": -12.0}})
+	me.hand.clear()
+	var empty: float = AiScorer._declare_score(profile, me)
+	check(empty < 1.0, "nothing in hand scores under skipping, which is a flat 1.0 (%.2f)" % empty)
+	var carried: CardDef = lib.get_def("t_noncombat_draw")
+	for i in range(3):
+		me.hand.append(e._instance(carried, 0, &"hand"))
+	eq(AiScorer._declare_score(profile, me), empty, "while declare_use is off, carrying them counts for nothing")
+	profile.merge({"play": {"declare_use": 2.0}})
+	var holding: float = AiScorer._declare_score(profile, me)
+	check(holding > empty, "with declare_use on, a hand of Combat-only cards is a reason to open one (%.2f over %.2f)" % [holding, empty])
+	check(holding > 1.0, "and enough of them outweighs skipping (%.2f)" % holding)
+	me.hand.clear()
+	eq(AiScorer._declare_score(profile, me), empty, "spend them and it goes quiet again")
 
 
 func shipped_library() -> CardLibrary:
@@ -4018,3 +4138,93 @@ func test_ai_profile_merge() -> void:
 	for file in ["default", "easy", "hard"]:
 		var loaded: AiProfile = AiProfile.load_from("res://data/ai/profiles/%s.json" % file)
 		eq(loaded.name, file, "%s.json loads" % file)
+
+
+## "Villains, and these two by name, only." The gate lets a side in and also names people from
+## outside it, so it passes when any one way in is met, not all of them.
+func test_an_only_gate_can_name_a_side_or_a_person() -> void:
+	var gated: CardDef = lib.get_def("t_sided_ward")
+	var pact: DuelEngine = engine(deck(filler(), "pact"), deck(filler(), "vigil"))
+	check(pact._can_play(pact.player(0), gated), "the named side gets in")
+	var vigil: DuelEngine = engine(deck(filler(), "vigil"), deck(filler(), "pact"))
+	check(not vigil._can_play(vigil.player(0), gated), "a stranger from the other side does not")
+	var named: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_twice"), deck(filler(), "pact"))
+	check(named._can_play(named.player(0), gated), "but a duelist the card names does, on either side")
+	eq(CardText.gate_text(gated.only), "Pacts, Test Twice-Swinger and Test Dragonblood",
+		"and the card says every way in")
+
+
+## "If the bottom card of your discard pile is a Steel card." The bottom is the oldest card, which
+## is the front of the pile, not the card just discarded.
+func test_a_card_can_read_the_bottom_of_the_discard_pile() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var cond: Dictionary = {"discard_bottom_school": "steel"}
+	check(not e._cond(cond, 0, {}), "an empty pile reads as no")
+	p.discard.append(e._instance(lib.get_def("t_steel_jab"), 0, &"discard"))
+	p.discard.append(e._instance(lib.get_def("t_strike"), 0, &"discard"))
+	check(e._cond(cond, 0, {}), "the oldest card is the one read, not the newest")
+	p.discard.push_front(e._instance(lib.get_def("t_strike"), 0, &"discard"))
+	check(not e._cond(cond, 0, {}), "and a card slid under it takes its place")
+
+
+## "You may discard the top card of your Life Deck to do more damage." The cost is optional, it is
+## asked before the attack swings, and saying no costs nothing.
+func test_a_life_card_can_buy_more_damage() -> void:
+	var paid: DuelEngine = engine(deck(filler(["t_paid_tackle"])), deck(filler(), "pact"))
+	to_combat(paid)
+	var before: int = paid.player(0).life_deck.size()
+	answer(paid, &"attack", uid_in_hand(paid, 0, "t_paid_tackle"))
+	eq(prompt_kind(paid), &"pay", "the card asks before it swings")
+	answer(paid, &"pay_life", -1, 1)
+	eq(paid.player(0).life_deck.size(), before - 1, "the top of the Life Deck paid for it")
+
+	var free: DuelEngine = engine(deck(filler(["t_paid_tackle"])), deck(filler(), "pact"))
+	to_combat(free)
+	var kept: int = free.player(0).life_deck.size()
+	answer(free, &"attack", uid_in_hand(free, 0, "t_paid_tackle"))
+	answer(free, &"pay_life", -1, 0)
+	eq(free.player(0).life_deck.size(), kept, "saying no spends nothing")
+	# Both swings empty the defender's Energy, so the extra shows up as the overflow in wounds.
+	check(paid.player(1).life_deck.size() < free.player(1).life_deck.size(),
+		"and the paid swing lands harder than the free one")
+
+
+## "Until the end of the game." The card leaves play and its modifier stays, so the seat is told
+## about it separately and the client can stand a ghost of the card in for it.
+func test_a_modifier_can_outlast_the_card_that_made_it() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var src: CardInstance = e._instance(lib.get_def("t_long_training"), 0, &"removed")
+	e.player(0).removed.append(src)
+	e._apply_effect({"op": "float", "what": "modifier", "duration": "game",
+		"params": {"scope": "own", "kind": "any", "stages": 1}}, 0, {}, src)
+	e._expire_floating("combat")
+	e._expire_floating("turn")
+	eq(e.state.floating.size(), 1, "the effect stands after Combat and after the turn")
+	var v: SeatView = SeatView.of(e, 0)
+	eq(v.standing.size(), 1, "and the seat is told about it")
+	eq(int(v.standing[0]["source"]), src.uid, "naming the card that made it, for the ghost on the table")
+
+
+## "This power may be used twice per Combat." A duelist Power is once a turn, so the second use
+## has to come out of the same Combat, and there is no third.
+func test_a_duelist_power_can_swing_twice_in_one_combat() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_twice"), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	check(e._power_available(p, p.duelist), "the first swing is there")
+	e._mark_power_used(p.duelist)
+	check(e._power_available(p, p.duelist), "and so is the second")
+	e._mark_power_used(p.duelist)
+	check(not e._power_available(p, p.duelist), "the third is not")
+
+
+## The rulings call the life card bought by an attack a requirement, not a cost, and Grounds that
+## double costs do not reach a requirement. One card goes either way.
+func test_a_bought_life_card_is_a_requirement_not_a_cost() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_paid_tackle"])), deck(filler(), "pact"))
+	e.state.grounds = e._instance(lib.get_def("t_tollgate"), 0, &"grounds")
+	to_combat(e)
+	var before: int = e.player(0).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "t_paid_tackle"))
+	answer(e, &"pay_life", -1, 1)
+	eq(e.player(0).life_deck.size(), before - 1, "the tollgate does not double what is not a cost")

@@ -55,6 +55,14 @@ def SEARCH(**k): return E("search", **k)
 def DISCARD_IN_PLAY(card_type, who="opponent", **k): return E("discard_in_play", who, card_type=card_type, **k)
 
 
+# A born line as a play gate, for the cards the source prints as "<Heritage> only". The gate reads
+# the personality holding Combat, not the player, so a following can reach a card its duelist
+# cannot. Only a minority of a school's cards carry one, and the source stopped printing them
+# after the middle sets, so add it per card from the scan and never by school.
+DRACONIC = {"bloodline": "draconic"}
+VERDANT = {"bloodline": "verdant"}
+
+
 # --- card helpers ---------------------------------------------------------
 def strike(id, title, school="", atk=None, **k):
     add(id=id, title=title, type="strike", school=school, attack={"kind": "strike", **(atk or {})}, **k)
@@ -112,6 +120,9 @@ ASPECT_TITLES = {
     # The ladder the printed one climbs: the man they count on, then the stranger under it, then
     # the realm's, then burning, then everything at once.
     "duelist_iota": ["the Hero", "the Stranger", "the Realm's Hero", "Kindled Through", "the All Powerful"],
+    # A mage turning the magic inward on himself, rung by rung: no metal, the first of it, an edge
+    # on it, then it moves where he wants. Only the last rung shows the blood.
+    "duelist_kappa": ["the Eldest", "First Plate", "Edged", "Shaped", "Scaleclad"],
 }
 
 
@@ -140,6 +151,9 @@ THETA = "Marrow"
 IOTA = "Sir Edric Rooke"
 EMRYS = "Emrys Rooke"     # the eldest son
 HASK = "Torvan Hask"      # the elder brother Edric left behind
+# An ascetic of no house, who teaches the discipline his cards are all forms of. He pilots no deck
+# of his own; his five cards are spread across the field. See docs/cast_backlog.md.
+CORIN = "Corin Thrace"
 
 # ============================================================================
 # Duelists
@@ -209,6 +223,18 @@ duelist("duelist_iota", IOTA, [
                                                    effects=[OPP("discard_life", amount=3)]))]}),
     aspect(4, 4, 34, 2, power={"attack": {"kind": "strike", "printed_stages": 5, "printed_life": 3}}),
     aspect(5, 5, 42, 1, power={"attack": {"kind": "strike", "stages": 5, "life": 5}}),
+], bloodline="draconic")
+# The eldest Rooke son, a swordsman among casters, here fighting with no sword at all. Steel is
+# the magic turned inward, so his ladder is the metal arriving and then becoming his to move; the
+# last rung is the only place the Draconic line shows. Surge stays under his father's at the top
+# because his Power swings twice a Combat.
+duelist("duelist_kappa", EMRYS, [
+    aspect(1, 2, 13, 1, power={"effects": [ENTER({"may": True, **E("draw", amount=1)}, role="attacker")]}),
+    aspect(2, 2, 21, 1, power={"effects": [ENTER(SEARCH(card_type="strike_or_art", to="hand"))]}),
+    aspect(3, 3, 29, 1, power={"attack": {"kind": "strike", "stages": 5},
+                               "effects": [{"may": True, **DISCARD_IN_PLAY("non_combat", who="any", amount=1, choose=True, remove=True)}]}),
+    aspect(4, 3, 35, 2, power={"attack": {"kind": "art", "printed_life": 4, "printed_stages": 4, "cost_stages": 0}}),
+    aspect(5, 4, 41, 1, power={"attack": {"kind": "strike", "printed_life": 5}, "uses": 2}),
 ], bloodline="draconic")
 
 # ============================================================================
@@ -292,6 +318,8 @@ grounds("ancient_grove", "Ancient Grove", modifiers=[{"scope": "own", "kind": "a
         effects=[ENTER(SEARCH(card_type="drill", school="", to="play"))])
 grounds("tollgate_yard", "Tollgate Yard", double_costs=True)
 grounds("frostbound_moor", "Frostbound Moor", fervor_gain_cap=1)
+grounds("weighted_hollow", "Weighted Hollow", strike_cost_delta=2)
+grounds("the_high_watch", "The High Watch", effects=[ENTER(E("draw", amount=1))])
 
 # ============================================================================
 # Relics and Masteries
@@ -328,6 +356,9 @@ add(id="root_mastery", title="Root Mastery", type="mastery", school="root", limi
     effects=[ENTER({"may": True, **E("draw_discard", amount=1, if_school="root", effects=[VIG("max", "duelist")], **{"from": "bottom"})})])
 add(id="storm_mastery", title="Storm Mastery", type="mastery", school="storm", limit_per_deck=1, art_cost_delta=-1,
     modifiers=[{"scope": "own", "kind": "art", "life": 1}])
+add(id="storm_squall_mastery", title="Storm Squall Mastery", type="mastery", school="storm", limit_per_deck=1,
+    modifiers=[{"scope": "own", "kind": "art", "life": 1}],
+    effects=[IFS(WHEN(FORBID("strike_cards", "opponent", duration="next_attack_phase"), source_school="storm", attack_kind="art"))])
 
 # ============================================================================
 # Freestyle staples
@@ -375,7 +406,9 @@ combat("last_gasp", "Last Gasp", [E("set_energy", amount=0), E("remove_discard",
 combat("edrics_vow", "Edric's Vow", [E("attach", to="named", character=BETA)], only={"character": "Sir Edric Rooke"},
        attachment={"target": "named", "limit_attached": 1, "effects": [ENTER({"may": True, **E("draw_discard", amount=1, **{"from": "bottom"})})]})
 combat("old_trick", "Old Trick", [SEARCH(card_type="attack", source="reserve", to="hand")], remove_after_use=True)
-combat("closing_ranks", "Closing Ranks", [FLOAT("modifier", scope="own", kind="any", life=2, per_ally=True, once=True), E("draw", amount=1)], remove_after_use=True)
+# The printed card is "Saiyan Heritage only", which is our Draconic gate. It is read off whoever
+# holds Combat, so the Rooke Coven reaches it through its Allies and not through its matriarch.
+combat("closing_ranks", "Closing Ranks", [FLOAT("modifier", scope="own", kind="any", life=2, per_ally=True, once=True), E("draw", amount=1)], remove_after_use=True, only=DRACONIC)
 combat("rallying_call", "Rallying Call", [VIG("max", "all"), SEARCH(card_type="ally", source="either", to="play", stages=3)], remove_after_use=True)
 combat("hired_blades", "Hired Blades", [SEARCH(card_type="ally", source="either", to="play", stages=10)])
 combat("scorn_smirks", "Scorn Smirks", [DISCARD_IN_PLAY("drill", all=True, remove=True)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
@@ -408,7 +441,7 @@ art("black_hands", "Draik's Black Hands", atk={"printed_life": 6}, only={"duelis
     remain_when={"when": {"allies_min": 2}, "remain": 1}, remove_after_use=True)
 art("knife_volley", "Knife Volley", atk={"life_per_ally": 2}, endurance=2, effects=[ACC(1)], remain=1, remove_after_use=True)
 art("mournes_jolting_arc", "Mourne's Jolting Arc", atk={}, alignment_only="pact", effects=[FORBID("strike_attacks", "opponent"), OPP_ACC(-2)], remove_after_use=True)
-art("threefold_bolt", "Threefold Bolt", atk={"printed_life": 2}, remain=2, remove_after_use=True)
+art("threefold_bolt", "Corin's Threefold Bolt", atk={"printed_life": 2}, remain=2, remove_after_use=True)
 art("captains_barrage", "Captain's Barrage", atk={"cost_stages": 3}, effects=[ACC(2)], remove_after_use=True)
 art("declaration", "Declaration", atk={}, effects=[ACC(2), OPP_ACC(-2)], remove_after_use=True, limit_per_deck=1)
 art("lingering_curse", "Draik's Lingering Curse", atk={"printed_life": 5}, effects=[IFS(E("attach", to="in_control"))],
@@ -456,7 +489,13 @@ block("shrugs_it_off", "Quarr Shrugs It Off", "any", "strike", "steel", only={"d
 noncombat("recalled_lesson", "Recalled Lesson", [USE(SEARCH(card_type="attack", source="either", to="hand"))], limit_per_deck=1)
 noncombat("clear_mind", "Clear Mind", [USE(SEARCH(card_type="combat", to="hand"))])
 noncombat("foresight", "Foresight", [ENTER(SEARCH(card_type="hand_combat", source="discard", to="hand"))])
+# The card leaves the game and the modifier does not, which is the only standing effect in the set.
+noncombat("the_long_year", "The Long Year", [USE(FLOAT("modifier", duration="game", scope="own", kind="any", stages=1))], remove_after_use=True)
 noncombat("lucky_find", "Lucky Find", [USE(SEARCH(card_type="non_combat", to="play"))], limit_per_deck=1)
+noncombat("corins_conditioning", "Corin's Conditioning",
+          [ENTER(ACC(1)), ENTER(VIG("max", "duelist")), ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))],
+          remove_after_use=True)
+noncombat("provocation", "Provocation", [ACC(2), SEARCH(source="discard", amount=2, to="deck_bottom")], remove_after_use=True)
 noncombat("bonding_rite", "Bonding Rite", [USE(E("bond", card="bonded_pair"))])
 ally("bonded_pair", "Ansel and Tavin, Back to Back", "vigil", 44, 2,
      {"attack": {"kind": "strike", "printed_stages": 7}, "uses": 2, "effects": [WHEN({"may": True, "then": [E("focus_attack")], **E("discard_hand", amount=1, random=False)}, hand_min=1)]},
@@ -491,14 +530,14 @@ drill("assembly_drill", "Assembly Drill",
                  {"scope": "own", "kind": "any", "life": 1, "when": {"performer_tag": "construct"}}])
 
 # Freestyle cards of the Seal deck
-block("practiced_guard", "Practiced Guard", "strike", "strike", effects=[ACC(1), SEARCH(card_type="drill", source="discard", to="play")])
+block("practiced_guard", "Corin's Practiced Guard", "strike", "strike", effects=[ACC(1), SEARCH(card_type="drill", source="discard", to="play")])
 combat("parley", "Parley", [E("end_combat"), E("recover", amount=1, **{"from": "bottom"})], remove_after_use=True)
 # A Strike-type card that is no attack: playing it is the whole action.
 add(id="seal_seizure", title="Seal Seizure", type="strike", school="", effects=[E("capture_seal")])
 art("sharp_rebuke", "Sharp Rebuke", atk={"printed_life": 8}, effects=[OPP_ACC(-3)], remove_after_use=True, limit_per_deck=1)
-art("suppressing_shot", "Suppressing Shot", atk={}, effects=[IFS(FORBID("art_attacks", "opponent"))])
+art("suppressing_shot", "Corin's Suppressing Shot", atk={}, effects=[IFS(FORBID("art_attacks", "opponent"))])
 art("blinding_flare", "Blinding Flare", atk={}, effects=[IFS(FORBID("strike_cards", "opponent"))])
-art("smoke_screen", "Smoke Screen", atk={}, effects=[IFS(E("end_combat"))])
+art("smoke_screen", "Corin Throws Smoke", atk={}, effects=[IFS(E("end_combat"))])
 noncombat("spoiled_rite", "Spoiled Rite", [USE(DISCARD_IN_PLAY("non_combat", amount=2, remove=True, choose=True))], remove_after_use=True, limit_per_deck=1)
 noncombat("gates_boon", "The Gate's Boon", [USE(E("end_combat")), USE(SEARCH(source="discard", amount=3, to="deck_shuffle"))], remove_after_use=True, limit_per_deck=1)
 noncombat("first_cut", "Edric Carves First", [USE(SEARCH(card_type="seal", to="play"))])
@@ -550,7 +589,7 @@ block("steel_immovable_guard", "Steel Immovable Guard", "strike", "strike", "ste
 block("steel_ironhide", "Steel Ironhide", "any", "strike", "steel", effects=[VIG(7)])
 block("steel_bracing", "Steel Bracing", "any", "art", "steel", effects=[ACC(1), SEARCH(title_contains="Steel Standoff", to="hand")], remove_after_use=True)
 block("steel_forearm_guard", "Steel Forearm Guard", "strike", "strike", "steel", effects=[OPP("energy", amount=-3, no_overflow=True)])
-art("steel_shockwave", "Steel Shockwave", "steel", atk={}, empower=3, effects=[AFTER_EMPOWER(FORBID("mastery", "opponent")), AFTER_EMPOWER(FORBID("drills", "opponent"))], remove_after_use=True)
+art("steel_shockwave", "Steel Shockwave", "steel", atk={}, empower=3, effects=[AFTER_EMPOWER(FORBID("mastery", "opponent")), AFTER_EMPOWER(FORBID("drills", "opponent"))], remove_after_use=True, only=DRACONIC)
 art("quarrs_roar", "Quarr's Roar", "steel", atk={"printed_life": 6}, effects=[WHEN(FORBID("combat_cards", "opponent"), character=EPSILON)], remove_after_use=True)
 strike("quarrs_crushing_blow", "Quarr's Crushing Blow", "steel", character=EPSILON,
        atk={"life": 2, "variants": [{"when": {"character": EPSILON}, "stages": 3, "effects": [DISCARD_IN_PLAY("non_combat", amount=1, choose=True)]}]},
@@ -568,6 +607,23 @@ strike("steel_bull_charge", "Steel Bull Charge", "steel", atk={"printed_stages":
 strike("steel_iron_fist", "Steel Iron Fist", "steel", atk={"stages": 4}, endurance=3)
 strike("steel_hammer_blow", "Steel Hammer Blow", "steel", atk={"stages": 3, "life": 2}, endurance=4)
 strike("steel_crushing_weight", "Steel Crushing Weight", "steel", atk={"stages": 3, "variants": [{"when": {"higher_might": True}, "effects": [DISCARD_IN_PLAY("non_combat", amount=1, choose=True)]}]})
+
+# The Heir's list. The three Draconic-gated cards are the only ones where the metal takes a shape
+# it was not worked into; the rest is a mage reinforcing himself and hitting with it.
+strike("steel_cross", "Steel Cross", "steel", atk={"printed_stages": 10}, remove_after_use=True)
+strike("steel_rake", "Steel Rake", "steel", atk={"stages": 5}, only=DRACONIC)
+strike("steel_talon", "Steel Talon", "steel", atk={"stages": 5}, only=DRACONIC, effects=[IFS(OPP("discard_life", amount=2))])
+block("steel_slip", "Steel Slip", "strike", "strike", "steel", effects=[OPP("energy", amount=-4, no_overflow=True)])
+strike("steel_stamp", "Steel Stamp", "steel", atk={"stages": 4, "pay_life": {"life": 3}})
+strike("steel_reverse", "Steel Reverse", "steel", atk={"life": 4}, effects=[IFS(ACC(1))])
+strike("steel_tackle", "Steel Tackle", "steel", atk={"stages": 3, "pay_life": {"stages": 3}})
+block("steel_sink", "Steel Sink", "art", "art", "steel",
+      effects=[WHEN(OPP("energy", amount=-4, target="duelist", no_overflow=True), discard_bottom_school="steel")])
+# Printed as "Villains, Goku, and Gohan only", which the CRD glossary reads as the Heritage gate.
+block("steel_plating", "Steel Plating", "art", "art", "steel", defense={"stop_all": "art"}, only=DRACONIC)
+# The errata drops the printed "power draining damage" for a plain +2 on every Strike.
+drill("steel_conditioning_drill", "Steel Conditioning Drill", "steel",
+      modifiers=[{"scope": "own", "kind": "strike", "stages": 2}])
 
 # ============================================================================
 # Shade
@@ -622,12 +678,21 @@ strike("storm_maelstrom", "Storm Maelstrom", "storm", atk={"stages": 4}, enduran
 strike("storm_overcharge", "Storm Overcharge", "storm", atk={"stages": 4}, effects=[WHEN({"may": True, "then": [SEARCH(card_type="art", to="hand")], **E("energy", amount=-2)}, energy_min=2)], remove_after_use=True)
 strike("storm_recharge", "Storm Recharge", "storm", atk={"stages": 2}, endurance=2, effects=[VIG("max", "duelist")])
 
+# The Squall list. A second Storm Mastery and the cards around it, from a later printing of the
+# school that taxes the rival's Strikes instead of discounting its own Arts.
+art("storm_lash", "Storm Lash", "storm", atk={"printed_life": 5}, effects=[ACC(1)])
+art("storm_palm_surge", "Storm Palm Surge", "storm", atk={"printed_life": 5}, effects=[ACC(1)])
+block("storm_earthing_rod", "Storm Earthing Rod", "art", "art", "storm", effects=[ACC(1)])
+# The printed card restricts the rival's next attack phase; a Combat gives each side one, so this
+# reads it as the remainder of the Combat. Noted in docs/card_roster.csv.
+art("storm_plasma_beam", "Storm Plasma Beam", "storm", atk={}, effects=[IFS(OPP("skip_next_attack_phase"))], remove_after_use=True)
+
 # ============================================================================
 # Root
 # ============================================================================
 add(id="root_bolt", title="Root Thorn Volley", type="combat", school="root", attack={"kind": "art"}, effects=[SEARCH(card_type="art", to="hand")], remove_after_use=True)
 strike("root_dash", "Root Boar Rush", "root", atk={"stages": 5}, effects=[VIG("max", "duelist"), E("shuffle_discard", amount=4)], remove_after_use=True)
-block("root_energy_deflection", "Root Barkskin Deflection", "art", "art", "root", effects=[E("shuffle_discard", amount=2, **{"from": "top_and_bottom"})])
+block("root_energy_deflection", "Root Barkskin Deflection", "art", "art", "root", effects=[E("shuffle_discard", amount=2, **{"from": "top_and_bottom"})], only=VERDANT)
 block("root_energy_catch", "Root Rain Catch", "art", "art", "root", effects=[VIG(3)])
 block("root_firm_stance", "Root Oaken Stance", "strike", "strike", "root", effects=[OPP_ACC(-1)])
 combat("root_energy_focus", "Root Grove Focus", [E("draw_discard", amount=1, if_school="root", effects=[SEARCH(card_type="art", to="hand")], **{"from": "bottom"})],
@@ -635,7 +700,7 @@ combat("root_energy_focus", "Root Grove Focus", [E("draw_discard", amount=1, if_
 drill("root_preparation_drill", "Root Tracker's Drill", "root", effects=[ENTER(E("look_at", amount=5, rearrange=True, **{"from": "top"}), "opposing")])
 art("root_destruction_blast", "Root Uprooting Blast", "root", atk={"printed_life": 7, "cost_stages": 4})
 art("root_dragon_blast", "Root Wyrmwood Blast", "root", atk={"life_per_set_seal": "marble"},
-    effects=[SEARCH(source="discard", amount_per_set_seal="marble", to="deck_bottom")])
+    effects=[SEARCH(source="discard", amount_per_set_seal="marble", to="deck_bottom")], only=VERDANT)
 
 # ============================================================================
 # Decks
@@ -653,7 +718,8 @@ VALID = {c["id"] for c in CARDS}
 AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beatdown", "pyre_beatdown": "pyre_beatdown",
                "storm_volley": "storm_volley", "tide_companions": "tide_companions",
                "freestyle_swords": "freestyle_swords", "root_seals": "root_seals",
-               "shade_salvage": "shade_salvage", "pyre_ascent": "pyre_ascent"}
+               "shade_salvage": "shade_salvage", "pyre_ascent": "pyre_ascent",
+               "storm_unbound": "storm_unbound", "steel_heir": "steel_heir"}
 
 
 # What kind of deck each loadout is, as the sample-deck sheet labels them: (archetype, difficulty,
@@ -669,6 +735,8 @@ DECK_KINDS = {
     "root_seals": ("seals", "medium", ["arts", "drills"]),
     "shade_salvage": ("art_beatdown", "medium", ["arts", "allies", "disruption"]),
     "pyre_ascent": ("strike_beatdown", "easy", ["fervor", "strikes"]),
+    "storm_unbound": ("art_beatdown", "medium", ["fervor", "disruption", "construct"]),
+    "steel_heir": ("strike_beatdown", "medium", ["strikes", "draw"]),
 }
 
 
@@ -699,6 +767,12 @@ DECK_IDENTITY = {
     "pyre_ascent": (
         "The coven's knight, fighting his own fight.",
         "Sir Edric Rooke blocks and climbs. Almost everything in the list pays Fervor, so the defense is a rung rather than a pause, and the last two Aspects hit harder than anything else in the set. No Drills at all, and the early Aspects add nothing to the damage, so the first half is spent reading the deck and staying alive."),
+    "storm_unbound": (
+        "The same construct, wound the other way.",
+        "Siphon here is not built to charge and release; it is built to make swinging at it expensive. The ground is heavy, its Arts climb its own Fervor, and a landed Art shuts the rival's Strikes out of the exchange. Slow to threaten, and it folds to anything that fights back with spells."),
+    "steel_heir": (
+        "The coven's eldest, fighting with no sword at all.",
+        "Emrys Rooke was taught the blade by the Vales and everything else by the Grove, and none of it is what wins here. Steel is the magic turned inward, so the list is him putting metal on and then hitting with it, harder at every Aspect. He draws deep, spends life cards to make a blow land bigger, and by the last rung he swings twice a Combat. Nothing in it defends for long."),
     "root_seals": (
         "An old druid who mends as he fights, and outlasts.",
         "Osric Thornwald regrows what is cut away. Spent spells return to the bottom of his deck, foresight shows him what comes next, and while the rival tires he carves the seven seals. No burst; patience is the plan."),
@@ -819,6 +893,20 @@ deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle",
     ("swordplay_drill", 3), ("lone_blade_drill", 3), ("counterplay_drill", 2), ("no_retreat_drill", 1), ("absorbing_drill", 1), ("mournes_quickness_drill", 1),
     ("vales_insight", 3), ("foresight", 1), ("recalled_lesson", 1), ("heirloom_blade", 1), ("bravado_drill", 1)])
 
+deck("storm_unbound", "Siphon the Unbound", "duelist_gamma", 3, "storm", "pact", "storm_squall_mastery", "", [], [
+    ("weighted_hollow", 3),
+    ("henchman_epsilon", 1), ("salvage_alpha", 1), ("salvage_beta", 1),
+    ("sun_seal_5", 1),
+    ("braced_guard", 3), ("storm_earthing_rod", 3), ("practiced_guard", 3), ("second_wind", 3), ("mercy_smiles", 3),
+    ("mournes_stance", 1), ("unyielding_guard", 1), ("grounding_step", 1), ("stillness", 1), ("terms_of_the_pact", 1),
+    ("storm_lash", 3), ("storm_palm_surge", 3), ("storm_arc_bolt", 3), ("storm_plasma_beam", 3),
+    ("storm_smiting_bolt", 3), ("storm_chain_lightning", 3), ("mournes_jolting_arc", 3), ("threefold_bolt", 3),
+    ("captains_barrage", 3), ("sabotage", 3),
+    ("assembly_drill", 3), ("mournes_quickness_drill", 1),
+    ("corins_conditioning", 3), ("provocation", 3), ("rallying_call", 3),
+    ("cold_appraisal", 3), ("scorn_smirks", 1), ("sever_the_leyline", 1),
+    ("respite", 1), ("declaration", 1), ("rites_unmade", 1), ("mourne_takes_measure", 1), ("spoiled_rite", 1), ("foresight", 1)])
+
 deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "lodestone_heart",
      ["defacement", "dismissal", "dismissal", "storm_smiting_bolt", "storm_maelstrom", "lobbed_bolt", "declaration", "headlong_plunge", "storm_thunderhead"], [
     ("henchman_zeta", 1),
@@ -843,4 +931,21 @@ deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "ro
     ("root_energy_deflection", 3), ("root_energy_catch", 3), ("root_firm_stance", 2),
     ("root_bolt", 3), ("root_dash", 3), ("root_destruction_blast", 3), ("root_dragon_blast", 3),
     ("suppressing_shot", 3), ("blinding_flare", 3), ("smoke_screen", 3), ("sharp_rebuke", 1)])
+
+# 79 life cards, five Aspects, no Relic and no Reserve: the list the sheet runs. The Ally is his
+# own mother, the same card the coven's knight brings, which is the sheet's doing and not ours.
+deck("steel_heir", "Emrys the Eldest", "duelist_kappa", 5, "steel", "vigil", "steel_mastery", "", [], [
+    ("the_high_watch", 3),
+    ("companion_epsilon", 1),
+    ("marble_seal_4", 1),
+    ("mournes_stance", 1), ("grounding_step", 1), ("unyielding_guard", 1), ("stillness", 1), ("kept_at_bay", 1),
+    ("steel_forearm_guard", 3), ("steel_slip", 3), ("steel_plating", 3), ("steel_sink", 3),
+    ("steel_standoff", 1), ("vales_riposte", 3), ("cut_short", 3),
+    ("steel_cross", 3), ("steel_rake", 3), ("steel_talon", 3), ("steel_stamp", 3), ("steel_reverse", 3),
+    ("steel_tackle", 3), ("steel_headbutt", 3), ("steel_battering_ram", 3), ("steel_tempering", 3),
+    ("edrics_training", 3), ("captains_barrage", 3),
+    ("watchful_eye", 3), ("dismissal", 2), ("rites_unmade", 1),
+    ("steel_conditioning_drill", 2), ("mournes_quickness_drill", 1), ("locked_gate_drill", 1),
+    ("the_long_year", 3),
+    ("declaration", 1), ("foresight", 1), ("spoiled_rite", 1), ("mourne_takes_measure", 1)])
 print("decks written")

@@ -86,7 +86,9 @@ CAST = [
     # The element is the printing's, not the man's: he carries water in his wife's line and fire in
     # his own, and each card's art takes it from that card's effects. See docs/cast_backlog.md.
     ("Sir Edric Rooke", "Vigil", "Edric the Ember Knight", "Sir Edric Rooke: knight in grey mail, plain longsword, open helm under one arm, weathered and unhurried.", "The knight. Fields Pyre in his own list and Tide beside the coven."),
-    ("Emrys Rooke", "Vigil", "(no deck yet)", "Emrys Rooke: serious young man, dark hair, grey fencing doublet over mail, longsword held two-handed.", "The eldest son, and a swordsman where his parents are casters."),
+    # The sword is his Freestyle self. In his own list he fields Steel, which is the magic turned
+    # inward, so his Aspect art is the metal arriving and never the blade.
+    ("Emrys Rooke", "Vigil", "Emrys the Eldest", "Emrys Rooke: serious young man, dark hair, grey fencing doublet over mail, bare forearms plated in fitted grey metal that grows across him each Aspect.", "The eldest son, a swordsman where his parents are casters, who fights his own duels with no sword at all."),
     ("Torvan Hask", "Pact", "(no deck yet)", "Torvan Hask: heavy-shouldered man in scarred riding leathers, long unbound hair, a hand axe at the belt, Edric's face ten years harder.", "Edric's elder brother, from the line Edric left."),
     ("Ansel Rooke", "Vigil", "The Rooke Coven", "Ansel Rooke: young man, broad shoulders, blue-grey gambeson, round shield.", "The middle son."),
     ("Tavin Vale", "Vigil", "The Rooke Coven", "Tavin Vale: slim young man, dark hair tied back, blue robe over a fencing doublet, hands open for casting.", "A Vale cousin fostered with the Rookes."),
@@ -125,6 +127,9 @@ CAST = [
     ("Osric Thornwald", "Vigil", "The Thornwald Grove",
      "Osric Thornwald: old man, long grey beard, ranger's leathers gone green with moss, a staff strung as a bow, bark growing over one hand.",
      "The Vigil shows as the grove taking him: more tree and less man each Aspect."),
+    ("Corin Thrace", "Vigil", "(unaffiliated)",
+     "Corin Thrace: spare, severe man in his forties, shaven head, a plain undyed wrap belted at the waist, bare feet, a third scar across the brow where a mark was cut out, hands open and empty.",
+     "Pilots no deck of his own. An ascetic who teaches a discipline rather than a school, so his forms turn up in other people's hands all over the field."),
 ]
 IDENTITY = {c[0]: c[3] for c in CAST}
 SEAL_PALETTE = {
@@ -144,6 +149,8 @@ SHOWS = {
     "henchman_epsilon": "Pim", "henchman_gamma": "Quill Draik", "henchman_zeta": "Tithe",
     "companion_alpha": "Wren Rooke", "companion_beta": "Sir Edric Rooke", "companion_delta": "Ansel Rooke",
     "companion_gamma": "Tavin Vale", "bonded_pair": "Ansel and Tavin, Back to Back",
+    "practiced_guard": "Corin Thrace", "smoke_screen": "Corin Thrace", "suppressing_shot": "Corin Thrace",
+    "threefold_bolt": "Corin Thrace", "corins_conditioning": "Corin Thrace",
     "black_hands": "Sable Draik", "draiks_reckoning": "Sable Draik", "lingering_curse": "Sable Draik",
     "branns_shakedown": "Brann Draik", "halvards_twin_cut": "Halvard Draik", "vesnas_ambush": "Vesna Draik",
     "quarrs_crushing_blow": "Halden Quarr", "quarrs_roar": "Halden Quarr", "shrugs_it_off": "Halden Quarr",
@@ -167,6 +174,7 @@ SHOWS = {
     "all_or_nothing": "Emrys Rooke", "hilt_guard": "Emrys Rooke", "no_quarter": "Emrys Rooke",
     "sword_flourish": "Emrys Rooke", "sword_sweep": "Emrys Rooke", "sword_thrust": "Emrys Rooke",
     "locked_gate_drill": "Emrys Rooke", "swordplay_drill": "Emrys Rooke",
+    "duelist_kappa": "Emrys Rooke",
 }
 
 # Slot brief per card: subject, action, two or three concrete details, mood. Short, visual, no rules.
@@ -186,6 +194,11 @@ ART = {
     "duelist_iota_a3": "The Realm's Hero. Mid-stride into a burning street, coals under his boots, shield arm shielding somebody out of frame.",
     "duelist_iota_a4": "Kindled Through. Fire running up the blade and along the mail seams, teeth set, one fist cocked.",
     "duelist_iota_a5": "The All Powerful. Wreathed to the shoulders, the sword a bar of white heat, everything around him going to ash.",
+    "duelist_kappa_a1": "The Eldest. Empty-handed and still, sleeves pushed up, bare forearms, borrowed stances in the set of his feet, no metal anywhere.",
+    "duelist_kappa_a2": "First Plate. Fitted grey metal closed over both forearms like bracers he grew, flexing one hand to test it, surprised at it.",
+    "duelist_kappa_a3": "Edged. The forearm plate drawn out into a working edge along the ulna, held low and ready, one clean cut in the air behind it.",
+    "duelist_kappa_a4": "Shaped. Metal running to the shoulders and moving where he looks, a plate sliding across his chest mid-step, hands open and unhurried.",
+    "duelist_kappa_a5": "Scaleclad. Plated head to boot in overlapping grey scale, the pattern finally reading as a dragon's, one gauntlet cocked, calm.",
     "duelist_beta_a1": "Matriarch. Shield up, sword low, three hooded coven figures behind her, stern.",
     "duelist_beta_a2": "Rising Water. Water climbing her mail to the waist, eyes gone sea-glass green, a knight at her shoulder.",
     "duelist_beta_a3": "The Flood. A wave rising off her shoulders, face calm as deep water, the ground at her feet awash.",
@@ -264,6 +277,16 @@ ART = {
     "pyre_twin_flames": "Two flames from one motion, a sword and an open hand both lit.",
     # Steel
     "steel_battering_ram": "A shoulder charge, iron skin, the impact ringing.",
+    "steel_cross": "A plated fist landing square, the whole arm grey metal to the shoulder, the air split behind it.",
+    "steel_rake": "Four drawn-out scale edges raking across a guard, three bright scores left in it.",
+    "steel_talon": "A boot coming down from above, the toes grown into hooked grey talons, the ground cratering.",
+    "steel_slip": "A head turning aside by an inch, the blow sliding off a cheek of grey plate.",
+    "steel_stamp": "A plated heel driven down onto a fallen guard, weight fully committed.",
+    "steel_reverse": "A back kick turned out of nowhere, the heel plated, the twist carrying everything.",
+    "steel_tackle": "A low charge under a spell, shoulder first, both arms closing.",
+    "steel_sink": "A bolt of light going into a plated chest and not coming out, the metal dulling where it landed.",
+    "steel_plating": "Plates closing over a raised forearm and across the body, a spell breaking apart on them.",
+    "steel_conditioning_drill": "A set of graded iron weights on a worn bench, one lifted clear of its slot.",
     "steel_bracing": "Iron forearms crossed, feet set, a blow absorbed.",
     "steel_bull_charge": "Head down, charging, a shockwave off the brow.",
     "steel_crushing_weight": "A grapple bringing a heavy body down on a rune circle, the stone cracking.",
@@ -325,6 +348,11 @@ ART = {
     "edrics_vow": "Kneeling, sword offered hilt first to a gauntleted hand, water running off the blade.",
     # Storm
     "storm_arc_bolt": "A single bright arc from a fingertip to the frame edge.",
+    "storm_squall_mastery": "A squall line rolling in over flat ground, rain already falling in a wall.",
+    "storm_lash": "A whip of white light cracking out level with the ground.",
+    "storm_palm_surge": "An open palm held out, the air in front of it going white.",
+    "storm_earthing_rod": "An iron rod driven into wet ground, a bolt running harmlessly down it.",
+    "storm_plasma_beam": "A narrow beam punching through the rain, the target already turning away.",
     "storm_chain_lightning": "Lightning forking from one target to the next.",
     "storm_charged_ward": "A ward of static around a figure, a bolt dissolving on it.",
     "storm_maelstrom": "A storm brought down bodily onto a stone floor, rune circles blown away.",
@@ -426,11 +454,14 @@ ART = {
     "eyes_beyond_the_gate": "A crack in a stone gate, a pale light and a shape on the far side.",
     "first_cut": "A chisel's first cut into a blank stone gate.",
     "foresight": "A card seen in a bowl of dark water before it is drawn.",
+    "the_long_year": "A worn practice floor under a ring of burnt-down candles, twelve months of scuffs in one night's dust.",
     "gates_boon": "A stone gate with three cards resting on its threshold, light from the crack.",
     "guardian_drill": "A hand placing a card on a stone floor, a shield propped behind.",
     "heirloom_blade": "An old longsword with a worn sword-school crest on the pommel, laid on a doublet.",
     "lone_blade_drill": "A single sword on an otherwise bare stone floor.",
     "lucky_find": "A card found under a loose flagstone.",
+    "corins_conditioning": "A shaven-headed ascetic seated on bare stone before dawn, breath steady, eyes shut.",
+    "provocation": "A struck face turning back into the blow, teeth bared.",
     "no_retreat_drill": "A door barred with a sword through the handles.",
     "open_challenge": "A gauntlet thrown down on stone, a card beside it.",
     "mournes_quickness_drill": "A card snatched from the bottom of a pile mid-fall.",
@@ -451,7 +482,9 @@ ART = {
     "kins_rescue": "A shield arm thrown across a kneeling figure, a blow landing on it.",
     # Grounds
     "ancient_grove": "A grove of old trees ringing a standing stone, a line of pale light in the roots.",
+    "the_high_watch": "A watchpost on a spur above the cloud line, one cold lamp lit, the whole valley laid out below it.",
     "frostbound_moor": "A frozen moor under low cloud, a standing stone rimed with frost, the leyline dim.",
+    "weighted_hollow": "A shallow stone hollow where the air visibly presses down, dust hanging low and refusing to rise.",
     "tollgate_yard": "A walled yard with an iron gate, a toll box, the leyline running under the gate.",
     "trampled_crossroads": "A crossroads trampled to bare mud, no grass, the leyline showing through.",
 }
@@ -472,6 +505,33 @@ def load_cards(path):
 # The printed card each new id stands in for, seeded here the first time so the CSV has something
 # to carry forward. The CSV wins once it has a value, which is where corrections go.
 NEW_SOURCES = {
+    # Saiyan Gohan, read off the sheet 2026-09-19.
+    "duelist_kappa_a1": "Super Saiyan Gohan (Lv 1, Cell Saga IR2)",
+    "duelist_kappa_a2": "Gohan, the Swift (Lv 2, Cell Saga)",
+    "duelist_kappa_a3": "Gohan, Super Saiyan (Lv 3, Cell Saga)",
+    "duelist_kappa_a4": "Gohan, Ascendant (Lv 4, Cell Saga)",
+    "duelist_kappa_a5": "Gohan, the Winner (Lv 5, Cell Saga)",
+    "steel_cross": "Saiyan Cross Punch (Capsule Corp Power Pack)",
+    "steel_rake": "Saiyan Triple Kick (Cell Saga 41)",
+    "steel_talon": "Saiyan Flying Kick (Cell Saga 60)",
+    "steel_slip": "Saiyan Lightning Dodge (Androids Saga 111)",
+    "steel_stamp": "Saiyan Face Stomp (Androids Saga 110)",
+    "steel_reverse": "Saiyan Left Kick (Androids Saga 79)",
+    "steel_tackle": "Saiyan Flying Tackle (Androids Saga 76)",
+    "steel_sink": "Saiyan Focus (Androids Saga 77)",
+    "steel_plating": "Saiyan Planet Explosion (Frieza Saga 34)",
+    "steel_conditioning_drill": "Saiyan Power Drill (Saiyan Saga 236)",
+    "the_high_watch": "Kami's Floating Island (Androids Saga 94)",
+    "the_long_year": "Time Chamber Training (Cell Saga 79)",
+    # Orange Android 19, read off the sheet 2026-09-19.
+    "storm_squall_mastery": "Orange Style Mastery (Cell Saga 140)",
+    "weighted_hollow": "Gravity Chamber (Androids Saga 8)",
+    "storm_lash": "Orange Strike (Cell Saga 29)",
+    "storm_palm_surge": "Orange Palm Blast (Androids Saga 28)",
+    "storm_earthing_rod": "Orange Energy Deflection (Cell Saga 31)",
+    "storm_plasma_beam": "Orange Power Beam (Androids Saga 69)",
+    "corins_conditioning": "Tien's Mental Condition (Androids Saga 86)",
+    "provocation": "Enraged! (Saiyan Saga 190)",
     # Red Goku v1.1, read off the sheet 2026-09-19.
     "duelist_iota_a1": "Goku, the Hero (Lv 1, Cell Saga)",
     "duelist_iota_a2": "Goku, the Saiyan (Lv 2, Cell Saga)",

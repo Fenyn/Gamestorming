@@ -17,6 +17,8 @@ const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
 const ROW_STEP: float = 0.71          # card width plus a gap, for a row of full-size cards
 const SEAL_STEP: float = 0.37
 const SEAL_SCALE: float = 0.55
+const STANDING_STEP: float = 0.42
+const STANDING_SCALE: float = 0.55
 const HAND_STEP: float = 0.32
 const HAND_SCALE: float = 0.70
 const STACK_STEP: float = 0.0015
@@ -89,6 +91,11 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			&"grounds":
 				pos = Vector3(0, 0.001, 0)
 				yaw = PI * 0.5
+			&"standing":
+				# An effect that outlasts the Combat has no card left on the table, so its source
+				# stands as a small ghost on its owner's inner edge, clear of every other zone.
+				pos = Vector3(-4.58 + STANDING_STEP * index, 0.001, 0.36)
+				scale_factor = STANDING_SCALE
 			_:
 				assert(SINGLES.has(zone), "TableLayout has no zone %s" % zone)
 				pos = marker(str(SINGLES[zone]["marker"]))

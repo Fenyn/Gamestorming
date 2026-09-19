@@ -1128,6 +1128,159 @@
    "bloodline": "draconic"
   },
   {
+   "id": "duelist_kappa",
+   "title": "Emrys Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Emrys Rooke",
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  4,
+	  5,
+	  6,
+	  7,
+	  8,
+	  9,
+	  10,
+	  11,
+	  12,
+	  13
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"may": true,
+		"op": "draw",
+		"amount": 1,
+		"role": "attacker"
+	   }
+	  ]
+	 },
+	 "title": "the Eldest"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20,
+	  21
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"trigger": "entering_combat",
+		"op": "search",
+		"card_type": "strike_or_art",
+		"to": "hand"
+	   }
+	  ]
+	 },
+	 "title": "First Plate"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24,
+	  25,
+	  26,
+	  27,
+	  28,
+	  29
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 5
+	  },
+	  "effects": [
+	   {
+		"may": true,
+		"op": "discard_in_play",
+		"who": "any",
+		"card_type": "non_combat",
+		"amount": 1,
+		"choose": true,
+		"remove": true
+	   }
+	  ]
+	 },
+	 "title": "Edged"
+	},
+	{
+	 "aspect": 4,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  17,
+	  19,
+	  21,
+	  23,
+	  25,
+	  27,
+	  29,
+	  31,
+	  33,
+	  35
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "printed_life": 4,
+	   "printed_stages": 4,
+	   "cost_stages": 0
+	  }
+	 },
+	 "title": "Shaped"
+	},
+	{
+	 "aspect": 5,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  32,
+	  33,
+	  34,
+	  35,
+	  36,
+	  37,
+	  38,
+	  39,
+	  40,
+	  41
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "printed_life": 5
+	  },
+	  "uses": 2
+	 },
+	 "title": "Scaleclad"
+	}
+   ],
+   "bloodline": "draconic"
+  },
+  {
    "id": "henchman_alpha",
    "title": "Vesna Draik",
    "type": "personality",
@@ -2319,6 +2472,28 @@
    "fervor_gain_cap": 1
   },
   {
+   "id": "weighted_hollow",
+   "title": "Weighted Hollow",
+   "type": "grounds",
+   "school": "",
+   "limit_per_deck": 3,
+   "strike_cost_delta": 2
+  },
+  {
+   "id": "the_high_watch",
+   "title": "The High Watch",
+   "type": "grounds",
+   "school": "",
+   "limit_per_deck": 3,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw",
+	 "amount": 1
+	}
+   ]
+  },
+  {
    "id": "blank_mask",
    "title": "The Blank Mask",
    "type": "relic",
@@ -2553,6 +2728,33 @@
 	 "scope": "own",
 	 "kind": "art",
 	 "life": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_squall_mastery",
+   "title": "Storm Squall Mastery",
+   "type": "mastery",
+   "school": "storm",
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "art",
+	 "life": 1
+	}
+   ],
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "strike_cards",
+	 "duration": "next_attack_phase",
+	 "when": {
+	  "source_school": "storm",
+	  "attack_kind": "art"
+	 }
 	}
    ]
   },
@@ -3046,7 +3248,10 @@
 	 "amount": 1
 	}
    ],
-   "remove_after_use": true
+   "remove_after_use": true,
+   "only": {
+	"bloodline": "draconic"
+   }
   },
   {
    "id": "rallying_call",
@@ -3558,7 +3763,7 @@
   },
   {
    "id": "threefold_bolt",
-   "title": "Threefold Bolt",
+   "title": "Corin's Threefold Bolt",
    "type": "art",
    "school": "",
    "attack": {
@@ -4230,6 +4435,26 @@
    ]
   },
   {
+   "id": "the_long_year",
+   "title": "The Long Year",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "game",
+	 "params": {
+	  "scope": "own",
+	  "kind": "any",
+	  "stages": 1
+	 }
+	}
+   ]
+  },
+  {
    "id": "lucky_find",
    "title": "Lucky Find",
    "type": "non_combat",
@@ -4241,6 +4466,51 @@
 	 "op": "search",
 	 "card_type": "non_combat",
 	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "corins_conditioning",
+   "title": "Corin's Conditioning",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "trigger": "entering_combat",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "provocation",
+   "title": "Provocation",
+   "type": "non_combat",
+   "school": "",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "amount": 2,
+	 "to": "deck_bottom"
 	}
    ]
   },
@@ -4643,7 +4913,7 @@
   },
   {
    "id": "practiced_guard",
-   "title": "Practiced Guard",
+   "title": "Corin's Practiced Guard",
    "type": "strike",
    "school": "",
    "defense": {
@@ -4711,7 +4981,7 @@
   },
   {
    "id": "suppressing_shot",
-   "title": "Suppressing Shot",
+   "title": "Corin's Suppressing Shot",
    "type": "art",
    "school": "",
    "attack": {
@@ -4747,7 +5017,7 @@
   },
   {
    "id": "smoke_screen",
-   "title": "Smoke Screen",
+   "title": "Corin Throws Smoke",
    "type": "art",
    "school": "",
    "attack": {
@@ -5501,7 +5771,10 @@
 	 "after_empower": true
 	}
    ],
-   "remove_after_use": true
+   "remove_after_use": true,
+   "only": {
+	"bloodline": "draconic"
+   }
   },
   {
    "id": "quarrs_roar",
@@ -5802,6 +6075,158 @@
 	 }
 	]
    }
+  },
+  {
+   "id": "steel_cross",
+   "title": "Steel Cross",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"printed_stages": 10
+   },
+   "remove_after_use": true
+  },
+  {
+   "id": "steel_rake",
+   "title": "Steel Rake",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "only": {
+	"bloodline": "draconic"
+   }
+  },
+  {
+   "id": "steel_talon",
+   "title": "Steel Talon",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "only": {
+	"bloodline": "draconic"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "steel_slip",
+   "title": "Steel Slip",
+   "type": "strike",
+   "school": "steel",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": -4,
+	 "no_overflow": true
+	}
+   ]
+  },
+  {
+   "id": "steel_stamp",
+   "title": "Steel Stamp",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 4,
+	"pay_life": {
+	 "life": 3
+	}
+   }
+  },
+  {
+   "id": "steel_reverse",
+   "title": "Steel Reverse",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"life": 4
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "steel_tackle",
+   "title": "Steel Tackle",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 3,
+	"pay_life": {
+	 "stages": 3
+	}
+   }
+  },
+  {
+   "id": "steel_sink",
+   "title": "Steel Sink",
+   "type": "art",
+   "school": "steel",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": -4,
+	 "target": "duelist",
+	 "no_overflow": true,
+	 "when": {
+	  "discard_bottom_school": "steel"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "steel_plating",
+   "title": "Steel Plating",
+   "type": "art",
+   "school": "steel",
+   "defense": {
+	"stops": "art",
+	"stop_all": "art"
+   },
+   "only": {
+	"bloodline": "draconic"
+   }
+  },
+  {
+   "id": "steel_conditioning_drill",
+   "title": "Steel Conditioning Drill",
+   "type": "drill",
+   "school": "steel",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "strike",
+	 "stages": 2
+	}
+   ]
   },
   {
    "id": "shade_unraveling",
@@ -6515,6 +6940,70 @@
    ]
   },
   {
+   "id": "storm_lash",
+   "title": "Storm Lash",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_palm_surge",
+   "title": "Storm Palm Surge",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_earthing_rod",
+   "title": "Storm Earthing Rod",
+   "type": "art",
+   "school": "storm",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_plasma_beam",
+   "title": "Storm Plasma Beam",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "skip_next_attack_phase",
+	 "who": "opponent"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
    "id": "root_bolt",
    "title": "Root Thorn Volley",
    "type": "combat",
@@ -6567,7 +7056,10 @@
 	 "amount": 2,
 	 "from": "top_and_bottom"
 	}
-   ]
+   ],
+   "only": {
+	"bloodline": "verdant"
+   }
   },
   {
    "id": "root_energy_catch",
@@ -6665,7 +7157,10 @@
 	 "amount_per_set_seal": "marble",
 	 "to": "deck_bottom"
 	}
-   ]
+   ],
+   "only": {
+	"bloodline": "verdant"
+   }
   }
  ]
 }

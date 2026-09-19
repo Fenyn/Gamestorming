@@ -947,6 +947,9 @@ func _advance_combat() -> void:
 		GameState.Phase.COMBAT_END:
 			_prompt_combat_end()
 		GameState.Phase.FIGHT_BACK:
+			# A restriction aimed at one attack phase ends when that phase is over. Combat runs
+			# many phases back and forth, so this is far shorter than "the rest of Combat".
+			_expire_attack_phase_floats(state.attacker)
 			for q in state.players:
 				for item in q.pending_fight_back:
 					var list: Array[Dictionary] = [item["effect"]]
@@ -1763,7 +1766,7 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 		# "You may discard the top card of your Life Deck to do more damage": an optional cost, so
 		# it asks yes or no and the answer is how many cards go.
 		var life_src: CardInstance = _attack_source()
-		var life_opts: Array[Command] = [Command.new(attacker.index, &"pay", -1, 0), Command.new(attacker.index, &"pay", -1, 1)]
+		var life_opts: Array[Command] = [Command.new(attacker.index, &"pay_life", -1, 0), Command.new(attacker.index, &"pay_life", -1, 1)]
 		_choice["kind"] = "pay_life"
 		_set_prompt(attacker.index, &"pay", life_opts, {"per": 1, "life_cost": true,
 				"source": life_src.uid if life_src != null else -1,
@@ -1836,6 +1839,10 @@ func _cost_stages(spec: Dictionary, p: PlayerState) -> int:
 	if str(spec.get("kind", "")) == "art":
 		var delta: int = _art_cost_delta(p)
 		base = maxi(1, base + delta) if (delta < 0 and base > 0) else base + delta
+	# Grounds can tax one kind of attack on their own, so a place where swinging a blade costs
+	# more than casting does. Stated per kind, as `strike_cost_delta` or `art_cost_delta`.
+	if state.grounds != null:
+		base += int(state.grounds.def.raw.get("%s_cost_delta" % str(spec.get("kind", "")), 0))
 	var tax: Dictionary = _floating_first(p.index, "next_attack_tax")
 	if not tax.is_empty():
 		base += int(tax.get("stages", 0))
@@ -3240,6 +3247,21 @@ func _expire_floating(duration: String) -> void:
 		if d == duration:
 			continue
 		if d == "next_turn_end" and duration == "turn" and int(f.get("expires_turn", 0)) <= state.turn:
+			continue
+		# A phase-long restriction never outlives the Combat it was set in, even if the phase it
+		# was waiting for never came.
+		if d == "next_attack_phase" and duration == "combat":
+			continue
+		keep.append(f)
+	state.floating = keep
+
+
+## Ends restrictions that were aimed at one player's next attack phase, now that it is over. Called
+## as that phase closes, while `state.attacker` still names the player whose phase it was.
+func _expire_attack_phase_floats(who: int) -> void:
+	var keep: Array[Dictionary] = []
+	for f in state.floating:
+		if str(f.get("duration", "")) == "next_attack_phase" and int(f.get("owner", -1)) == who:
 			continue
 		keep.append(f)
 	state.floating = keep

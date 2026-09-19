@@ -76,9 +76,11 @@ func _process(delta: float) -> void:
 ## Dev flags: pan by (dx, dz) table units and zoom `notches` toward the screen centre, then snap.
 func dev_set(pan: Vector2, notches: int) -> void:
 	_pan(pan.x, pan.y)
+	position = _target
 	var centre: Vector2 = get_viewport().get_visible_rect().size * 0.5
 	for i in range(absi(notches)):
 		_zoom(signf(notches), centre)
+		position = _target
 	position = _target
 	_idle = -1e9
 

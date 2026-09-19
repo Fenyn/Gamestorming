@@ -119,6 +119,9 @@ static func _grounds_card_fit(card: CardDef, def: CardDef) -> float:
 			fit -= 1.0
 	if bool(def.raw.get("double_costs", false)) and card.is_attack() and card.attack_kind() == "art":
 		fit -= 0.7
+	# Grounds that tax one kind of attack hurt exactly the decks built on that kind.
+	if card.is_attack():
+		fit -= 0.35 * float(int(def.raw.get("%s_cost_delta" % card.attack_kind(), 0)))
 	for raw in def.modifiers:
 		var m: Dictionary = raw
 		var kind: String = str(m.get("kind", "any"))

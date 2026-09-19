@@ -174,6 +174,11 @@ static func bloodline_name(bloodline: String) -> String:
 	return bloodline.capitalize()
 
 
+## The side of Combat a card asks about. "Active" needs the noun, attacker and defender do not.
+static func role_name(role: String) -> String:
+	return "active player" if role == "active" else role
+
+
 ## Who a card's "X only" gate lets play it, without the trailing "only". An `any_of` gate lists
 ## each way in, because a card that names a side and two personalities allows all three.
 static func gate_text(gate: Dictionary) -> String:
@@ -419,6 +424,10 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("If %s is in play, discard this card after use instead." % str(def.raw.get("discard_if_seal_title", "that Seal")))
 	if bool(def.raw.get("double_costs", false)):
 		lines.append("All Energy and life card costs are doubled.")
+	for kind in ["strike", "art"]:
+		var kind_tax: int = int(def.raw.get("%s_cost_delta" % kind, 0))
+		if kind_tax > 0 and def.type == CardDef.Type.GROUNDS:
+			lines.append("%ss cost %d more Energy to perform." % [("Strike" if kind == "strike" else "Art"), kind_tax])
 	if def.start_in_play:
 		if str(def.raw.get("start_in_play", "")) == "may":
 			lines.append("Before the first turn begins, you may search your Life Deck for this card and place it into play.")
@@ -516,6 +525,14 @@ static func attack_text(a: Dictionary) -> String:
 		if int(pay.get("stages", 0)) != 0:
 			gains.append("%d Energy of damage" % int(pay["stages"]))
 		s += " You may pay any amount of Energy; each %d paid adds %s." % [int(pay.get("per", 2)), " and ".join(gains)]
+	if a.has("pay_life"):
+		var plife: Dictionary = a["pay_life"]
+		var adds: PackedStringArray = PackedStringArray()
+		if int(plife.get("life", 0)) != 0:
+			adds.append(_plural(int(plife["life"]), "wound", "wounds"))
+		if int(plife.get("stages", 0)) != 0:
+			adds.append("%d Energy of damage" % int(plife["stages"]))
+		s += " You may discard the top card of your Life Deck to add %s." % " and ".join(adds)
 	if bool(a.get("unstoppable", false)):
 		s += " Cannot be stopped."
 	if bool(a.get("no_prevent", false)):
@@ -615,6 +632,8 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("the top card of your discard pile is %s" % school_name(str(v)))
 			"discard_top_school_not":
 				parts.append("the top card of your discard pile is not %s" % school_name(str(v)))
+			"discard_bottom_school":
+				parts.append("the bottom card of your discard pile is %s" % school_name(str(v)))
 			"discard_top2_school":
 				parts.append("the top two cards of your discard pile are %s" % school_name(str(v)))
 			"higher_might":
@@ -624,7 +643,7 @@ static func cond_text(when: Dictionary) -> String:
 			"first_attack":
 				parts.append("this is your first attack this Combat")
 			"role":
-				parts.append("entering Combat as the %s player" % str(v))
+				parts.append("entering Combat as the %s" % role_name(str(v)))
 			"discard_min":
 				parts.append("your discard pile has a card")
 			"energy_min":
@@ -848,7 +867,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "%s, %s." % [span, str(FLOAT_TEXT.get(what, what))]
 		"forbid":
 			var subject: String = "Your opponent may not" if opp else "You may not"
-			var span: String = " for the remainder of Combat" if str(e.get("duration", "combat")) == "combat" else " this turn"
+			var forbid_span: String = str(e.get("duration", "combat"))
+			var span: String = " for the remainder of Combat" if forbid_span == "combat" else (" during their next attack phase" if forbid_span == "next_attack_phase" else " this turn")
 			var whats: PackedStringArray = PackedStringArray()
 			for w in e.get("whats", [e.get("what", "")]):
 				whats.append(str(FORBID_TEXT.get(str(w), str(w))))
@@ -1024,7 +1044,7 @@ static func _trigger_head(e: Dictionary) -> String:
 		"entering_combat":
 			var head: String = "When entering Combat"
 			if str(e.get("role", "")) != "":
-				head += " as the %s player" % str(e["role"])
+				head += " as the %s" % role_name(str(e["role"]))
 			return head
 		_:
 			return ""
@@ -1498,6 +1518,8 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			return "Skip recovery"
 		&"pay":
 			return "Pay %d Energy" % int(cmd.value)
+		&"pay_life":
+			return "Discard a life card" if int(cmd.value) > 0 else "Pay nothing"
 		&"discard_choice":
 			return "Discard %s" % name
 		&"pick_in_play":
@@ -1572,6 +1594,8 @@ static func prompt_title(p: Prompt) -> String:
 			return "Recover a card from your discard?"
 		&"pay":
 			var payer: String = str(p.context.get("card_title", ""))
+			if bool(p.context.get("life_cost", false)):
+				return "%s: spend a life card?" % payer if payer != "" else "Spend a life card?"
 			return "%s: pay Energy?" % payer if payer != "" else "Pay extra Energy?"
 		&"discard_choice":
 			var n: int = int(p.context.get("amount", 1))
@@ -1914,6 +1938,8 @@ static func duration_phrase(duration: String) -> String:
 			return " this turn"
 		"next_turn_end":
 			return " until the end of their next turn"
+		"next_attack_phase":
+			return " during their next attack phase"
 		"game":
 			return " for the rest of the game"
 		_:

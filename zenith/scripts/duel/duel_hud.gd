@@ -610,6 +610,8 @@ func _hint_for(p: PromptView) -> String:
 				return "Counter it, or put one Ally in control first."
 			return "Counter it now, or let it resolve."
 		&"pay":
+			if bool(p.context.get("life_cost", false)):
+				return "The extra damage costs the top card of your Life Deck."
 			return "Each step paid adds to the wounds."
 		&"discard_choice":
 			var whose: String = "your opponent's hand" if int(p.context.get("target", p.player)) != p.player else "your hand"

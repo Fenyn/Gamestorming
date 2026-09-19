@@ -114,6 +114,26 @@ func _run() -> void:
 	_check(readout._life == duel.view.player(0).life_deck.size(), "Medallion Life must match the displayed seat")
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
+	# Camera zoom changes the projected card footprint; attached resource crests must move
+	# outside that footprint and leave the physical card available for its own picking.
+	var home_camera: Transform3D = duel.camera.transform
+	var home_target: Vector3 = duel.camera._target
+	var home_idle: float = duel.camera._idle
+	duel._layout_fixtures()
+	var footprint_areas: Array[float] = []
+	for fixture in [duel.near_duelist, duel.far_duelist]:
+		footprint_areas.append(fixture.readout.card_bounds.get_area())
+		_check_fixture_geometry(duel, fixture)
+	duel.camera.dev_set(Vector2.ZERO, 4)
+	duel._layout_fixtures()
+	for i in range(2):
+		var fixture: Node3D = duel.near_duelist if i == 0 else duel.far_duelist
+		_check(fixture.readout.card_bounds.get_area() > footprint_areas[i], "Zooming in must expand each measured physical card footprint")
+		_check_fixture_geometry(duel, fixture)
+	duel.camera.transform = home_camera
+	duel.camera._target = home_target
+	duel.camera._idle = home_idle
+	duel._layout_fixtures()
 	var duelist_uid: int = duel.view.player(0).duelist
 	duel._layout_fixtures()
 	var field_duelist: Card3D = duel.views.get(duelist_uid)
@@ -235,3 +255,16 @@ func _run() -> void:
 	await process_frame
 	print("UI redesign smoke: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
+
+
+func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
+	var readout: Control = fixture.readout
+	_check(readout.card_bounds.has_area(), "Readout must measure a real projected card footprint")
+	_check(not readout.stat_hit_rects.is_empty(), "Headless layout must produce resource click regions without a draw callback")
+	var separated: bool = true
+	for rect: Rect2 in readout.stat_hit_rects:
+		separated = separated and not rect.intersects(readout.card_bounds)
+	_check(separated, "Resource click regions must stay outside the projected card face")
+	var physical: Node3D = duel.views[fixture.duelist_uid]
+	var card_center: Vector2 = duel.camera.unproject_position(physical.front.global_position)
+	_check(not fixture.hit_test(card_center, duel.camera), "A click on the actual card center must never be intercepted by its resource display")

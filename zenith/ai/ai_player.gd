@@ -8,6 +8,15 @@ var profile: AiProfile = AiProfile.default_profile()
 var search: AiSearch = AiSearch.new()
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
+## The profile actually played, once the deck across the table is known: `profile` with its `vs`
+## pivots for that opponent laid on. Resolved on the first decision and kept, because a deck's
+## declared archetype is fixed at setup. Both seats do this, so it holds for AI against AI.
+var _matchup: AiProfile = null
+
+## Matchup profiles keyed by which `when` facts hold, so a profile is built once per distinct board
+## state rather than once per decision.
+var _by_state: Dictionary = {}
+
 
 func _init(p_profile: AiProfile = null, seed_value: int = 1) -> void:
 	if p_profile != null:
@@ -20,10 +29,28 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 	var pending: PromptView = referee.prompt_for(seat)
 	if referee.is_over() or pending == null:
 		return {}
+	var playing: AiProfile = _matchup_profile(referee, seat)
 	var cmd: Command = null
 	# The Reserve swap is judged by AiReserve; a playout to the end of the turn says nothing about it.
-	if profile.searches() and pending.kind != &"reserve":
-		cmd = search.choose(referee, seat, profile, rng)
+	if playing.searches() and pending.kind != &"reserve":
+		cmd = search.choose(referee, seat, playing, rng)
 	else:
-		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), profile, rng, seat)
+		cmd = AiScorer.pick(referee.sim_for(seat, rng.randi()), playing, rng, seat)
 	return cmd.to_dict() if cmd != null else {}
+
+
+## The profile to play with now: the base, pivoted on who is across the table (fixed at setup, so
+## resolved once), then pivoted on where the duel stands (recomputed, cached per distinct state).
+func _matchup_profile(referee: Referee, seat: int) -> AiProfile:
+	var view: SeatView = referee.view_for(seat)
+	if view == null or view.players.size() < 2:
+		return profile
+	if _matchup == null:
+		var rival: SeatPlayer = view.player(1 - seat)
+		_matchup = profile.for_matchup(rival.archetype, rival.subthemes)
+	var key: String = _matchup.state_key(view, seat)
+	if key == "":
+		return _matchup
+	if not _by_state.has(key):
+		_by_state[key] = _matchup.for_state(key)
+	return _by_state[key]

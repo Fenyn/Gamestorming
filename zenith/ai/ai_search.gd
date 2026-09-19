@@ -26,7 +26,11 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	totals.fill(0.0)
 	var samples: int = 0
 	var deadline: int = Time.get_ticks_msec() + profile.think_int("budget_ms")
-	var foe_profile: AiProfile = AiProfile.default_profile()
+	# The opponent is modelled generically, because how they weigh things is their own business and
+	# not on the table. What is on the table is our declared archetype, so the model at least
+	# assumes they know what they are facing and pivot against it the way we do.
+	var foe_profile: AiProfile = AiProfile.default_profile().for_matchup(
+		base.player(seat).archetype, base.player(seat).subthemes)
 	for n in range(profile.think_int("samples")):
 		var deal: int = rng.randi()
 		for k in range(shortlist.size()):

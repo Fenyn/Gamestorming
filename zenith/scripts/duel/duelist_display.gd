@@ -41,6 +41,30 @@ func status_text() -> String:
 	return readout.status_text() if is_node_ready() else ""
 
 
+## Measure the animated face itself, including perspective, hover lift and camera zoom.
+## The canvas stays legible while its components move outside these projected edges.
+func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
+	var center: Vector2 = camera.unproject_position(global_position)
+	var pixel_scale: float = surface.pixel_size * global_basis.get_scale().x
+	var unit: float = center.distance_to(camera.unproject_position(global_position + camera.global_basis.x * pixel_scale))
+	if unit <= 0.0:
+		return
+	var bounds: Rect2 = Rect2()
+	var first: bool = true
+	for x: float in [-0.315, 0.315]:
+		for z: float in [-0.44, 0.44]:
+			var point: Vector2 = (camera.unproject_position(card.front.to_global(Vector3(x, 0, z))) - center) / unit
+			if first:
+				bounds = Rect2(point, Vector2.ZERO)
+				first = false
+			else:
+				bounds = bounds.expand(point)
+	if not readout.card_bounds.is_equal_approx(bounds):
+		readout.card_bounds = bounds
+		readout.update_layout()
+		readout.queue_redraw()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not interactive or not visible or duelist_uid < 0:
 		return
@@ -73,5 +97,8 @@ func hit_test(point: Vector2, camera: Camera3D) -> bool:
 	var scale_pixels: float = center_screen.distance_to(edge_screen)
 	if scale_pixels <= 0.0:
 		return false
-	var local: Vector2 = (point - center_screen) / scale_pixels + Vector2(380, 220)
-	return Rect2(60, 100, 210, 185).has_point(local) or Rect2(490, 100, 210, 185).has_point(local)
+	var local: Vector2 = (point - center_screen) / scale_pixels
+	for rect: Rect2 in readout.stat_hit_rects:
+		if rect.has_point(local):
+			return true
+	return false

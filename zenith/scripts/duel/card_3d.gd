@@ -62,6 +62,14 @@ func set_face_texture(front_tex: Texture2D) -> void:
 	_front_mat.albedo_texture = front_tex
 
 
+## A card that is not on the table any more but whose effect still stands. It reads as a faded
+## marker and still answers hover and inspect, so the passive can be read like any other card.
+func set_ghost(on: bool) -> void:
+	for m in [_front_mat, _back_mat]:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if on else BaseMaterial3D.TRANSPARENCY_DISABLED
+		m.albedo_color = Color(0.72, 0.82, 0.92, 0.55) if on else Color.WHITE
+
+
 func set_highlight(on: bool) -> void:
 	_highlighted = on
 	glow.visible = on or _hovering

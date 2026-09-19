@@ -1,28 +1,251 @@
 {
-  "_note": "Fixtures for the Ember Knight rules: an attack that multiplies the Base Damage, a card that stops an attack only after it has succeeded, a Mastery that reads the card it burns, a Power that checks whether the drawn card attacks, a Power gated on two named personalities being in play, raising any personality on the table, an Ally who blocks for one named personality without being in control, and a Signature card that prints a limit tighter than the Signature allowance.",
-  "cards": [
-    {"id": "tf_knight", "title": "Test Knight", "type": "personality", "character": "Test Knight", "aspects": [
-      {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000],
-       "power": {"effects": [{"trigger": "entering_combat", "op": "draw_check", "check": "signature",
-                              "effects": [{"op": "draw", "amount": 1, "when": {"allies_present": ["Test Squire", "Test Herald"]}}]}]}},
-      {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000],
-       "power": {"effects": [{"trigger": "entering_combat", "op": "draw_check", "check": "attack", "reveal": true,
-                              "effects": [{"op": "discard_life", "who": "opponent", "amount": 3}]}]}},
-      {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000]}
-    ]},
-    {"id": "t_ally_herald", "title": "Test Herald", "type": "personality", "character": "Test Herald", "alignment_only": "vigil",
-     "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]}]},
-    {"id": "t_ally_shieldmother", "title": "Test Shieldmother", "type": "personality", "character": "Test Shieldmother", "alignment_only": "vigil",
-     "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000],
-                  "power": {"defense": {"stops": "strike", "when": {"defender_character": ["Test Knight"]}}, "no_control_needed": true}}]},
-    {"id": "t_triple_kick", "title": "Test Triple Kick", "type": "strike", "attack": {"kind": "strike", "multiply": 3}},
-    {"id": "t_late_truce", "title": "Test Late Truce", "type": "combat", "defense": {"stops": "any"}, "use_at": "successful_attack"},
-    {"id": "t_ember_mastery", "title": "Test Ember Mastery", "type": "mastery", "school": "pyre", "limit_per_deck": 1, "once_per_combat": true,
-     "effects": [{"trigger": "use", "op": "remove_discard", "amount": 1, "check": "school", "school": "pyre",
-                  "effects": [{"op": "fervor", "amount": 2}], "else_effects": [{"op": "fervor", "amount": 1}]}]},
-    {"id": "t_pyre_jab", "title": "Test Pyre Jab", "type": "strike", "school": "pyre", "attack": {"kind": "strike", "stages": 1}},
-    {"id": "t_rally_any", "title": "Test Rally", "type": "combat", "effects": [{"op": "energy", "amount": "max", "target": "any"}]},
-    {"id": "t_knights_oath", "title": "Test Knight's Oath", "type": "strike", "character": "Test Knight", "limit_per_deck": 2,
-     "attack": {"kind": "strike", "stages": 1}}
-  ]
+ "_note": "Fixtures for the Ember Knight rules: an attack that multiplies the Base Damage, a card that stops an attack only after it has succeeded, a Mastery that reads the card it burns, a Power that checks whether the drawn card attacks, a Power gated on two named personalities being in play, raising any personality on the table, an Ally who blocks for one named personality without being in control, and a Signature card that prints a limit tighter than the Signature allowance.",
+ "cards": [
+  {
+   "id": "tf_knight",
+   "title": "Test Knight",
+   "type": "personality",
+   "character": "Test Knight",
+   "aspects": [
+    {
+     "aspect": 1,
+     "surge": 2,
+     "might": [
+      0,
+      900000,
+      1500000,
+      2500000,
+      3200000,
+      4000000,
+      5000000,
+      6000000,
+      6500000,
+      7000000,
+      7500000
+     ],
+     "power": {
+      "effects": [
+       {
+        "trigger": "entering_combat",
+        "op": "draw_check",
+        "check": "signature",
+        "effects": [
+         {
+          "op": "draw",
+          "amount": 1,
+          "when": {
+           "allies_present": [
+            "Test Squire",
+            "Test Herald"
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "aspect": 2,
+     "surge": 3,
+     "might": [
+      0,
+      1500000,
+      2500000,
+      3500000,
+      4200000,
+      5000000,
+      6000000,
+      7000000,
+      7500000,
+      8000000,
+      8500000
+     ],
+     "power": {
+      "effects": [
+       {
+        "trigger": "entering_combat",
+        "op": "draw_check",
+        "check": "attack",
+        "reveal": true,
+        "effects": [
+         {
+          "op": "discard_life",
+          "who": "opponent",
+          "amount": 3
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "aspect": 3,
+     "surge": 4,
+     "might": [
+      0,
+      2500000,
+      3500000,
+      4500000,
+      5200000,
+      6000000,
+      7000000,
+      8000000,
+      8500000,
+      9000000,
+      9500000
+     ]
+    }
+   ]
+  },
+  {
+   "id": "t_ally_herald",
+   "title": "Test Herald",
+   "type": "personality",
+   "character": "Test Herald",
+   "alignment_only": "vigil",
+   "aspects": [
+    {
+     "aspect": 1,
+     "surge": 1,
+     "might": [
+      0,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000
+     ]
+    }
+   ]
+  },
+  {
+   "id": "t_ally_shieldmother",
+   "title": "Test Shieldmother",
+   "type": "personality",
+   "character": "Test Shieldmother",
+   "alignment_only": "vigil",
+   "aspects": [
+    {
+     "aspect": 1,
+     "surge": 1,
+     "might": [
+      0,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000
+     ],
+     "power": {
+      "defense": {
+       "stops": "strike",
+       "when": {
+        "defender_character": [
+         "Test Knight"
+        ]
+       }
+      },
+      "no_control_needed": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "t_triple_kick",
+   "title": "Test Triple Kick",
+   "type": "strike",
+   "attack": {
+    "kind": "strike",
+    "multiply": 3
+   }
+  },
+  {
+   "id": "t_late_truce",
+   "title": "Test Late Truce",
+   "type": "combat",
+   "defense": {
+    "stops": "any"
+   },
+   "use_at": "successful_attack"
+  },
+  {
+   "id": "t_ember_mastery",
+   "title": "Test Ember Mastery",
+   "type": "mastery",
+   "school": "pyre",
+   "limit_per_deck": 1,
+   "once_per_combat": true,
+   "effects": [
+    {
+     "trigger": "use",
+     "op": "remove_discard",
+     "amount": 1,
+     "check": "school",
+     "school": "pyre",
+     "effects": [
+      {
+       "op": "fervor",
+       "amount": 2
+      }
+     ],
+     "else_effects": [
+      {
+       "op": "fervor",
+       "amount": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "t_pyre_jab",
+   "title": "Test Pyre Jab",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+    "kind": "strike",
+    "stages": 1
+   }
+  },
+  {
+   "id": "t_rally_any",
+   "title": "Test Rally",
+   "type": "combat",
+   "effects": [
+    {
+     "op": "energy",
+     "amount": "max",
+     "target": "any"
+    }
+   ]
+  },
+  {
+   "id": "t_knights_oath",
+   "title": "Test Knight's Oath",
+   "type": "strike",
+   "character": "Test Knight",
+   "limit_per_deck": 2,
+   "attack": {
+    "kind": "strike",
+    "stages": 1
+   }
+  },
+  {
+   "id": "t_grounds_weight",
+   "title": "Test Leaden Ground",
+   "type": "grounds",
+   "strike_cost_delta": 2
+  }
+ ]
 }

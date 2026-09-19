@@ -1,0 +1,178 @@
+{
+  "name": "Siphon the Unbound",
+  "duelist": "duelist_gamma",
+  "aspects": 3,
+  "style": "storm",
+  "alignment": "pact",
+  "mastery": "storm_squall_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "art_beatdown",
+  "difficulty": "medium",
+  "subthemes": [
+    "fervor",
+    "disruption",
+    "construct"
+  ],
+  "ai_profile": "storm_unbound",
+  "tagline": "The same construct, wound the other way.",
+  "blurb": "Siphon here is not built to charge and release; it is built to make swinging at it expensive. The ground is heavy, its Arts climb its own Fervor, and a landed Art shuts the rival's Strikes out of the exchange. Slow to threaten, and it folds to anything that fights back with spells.",
+  "cards": [
+    {
+      "id": "weighted_hollow",
+      "count": 3
+    },
+    {
+      "id": "henchman_epsilon",
+      "count": 1
+    },
+    {
+      "id": "salvage_alpha",
+      "count": 1
+    },
+    {
+      "id": "salvage_beta",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_5",
+      "count": 1
+    },
+    {
+      "id": "braced_guard",
+      "count": 3
+    },
+    {
+      "id": "storm_earthing_rod",
+      "count": 3
+    },
+    {
+      "id": "practiced_guard",
+      "count": 3
+    },
+    {
+      "id": "second_wind",
+      "count": 3
+    },
+    {
+      "id": "mercy_smiles",
+      "count": 3
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "grounding_step",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "terms_of_the_pact",
+      "count": 1
+    },
+    {
+      "id": "storm_lash",
+      "count": 3
+    },
+    {
+      "id": "storm_palm_surge",
+      "count": 3
+    },
+    {
+      "id": "storm_arc_bolt",
+      "count": 3
+    },
+    {
+      "id": "storm_plasma_beam",
+      "count": 3
+    },
+    {
+      "id": "storm_smiting_bolt",
+      "count": 3
+    },
+    {
+      "id": "storm_chain_lightning",
+      "count": 3
+    },
+    {
+      "id": "mournes_jolting_arc",
+      "count": 3
+    },
+    {
+      "id": "threefold_bolt",
+      "count": 3
+    },
+    {
+      "id": "captains_barrage",
+      "count": 3
+    },
+    {
+      "id": "sabotage",
+      "count": 3
+    },
+    {
+      "id": "assembly_drill",
+      "count": 3
+    },
+    {
+      "id": "mournes_quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "corins_conditioning",
+      "count": 3
+    },
+    {
+      "id": "provocation",
+      "count": 3
+    },
+    {
+      "id": "rallying_call",
+      "count": 3
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 3
+    },
+    {
+      "id": "scorn_smirks",
+      "count": 1
+    },
+    {
+      "id": "sever_the_leyline",
+      "count": 1
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "declaration",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "spoiled_rite",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    }
+  ]
+}

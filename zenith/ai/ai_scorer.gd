@@ -184,17 +184,23 @@ static func _defense_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 	return threat - cost
 
 
+## Whether to open Combat. Attacks are the obvious reason, but a hand can also be carrying cards
+## that only work once Combat is open, and a deck that never attacks still has to declare to spend
+## them. `declare_use` is off by default, so only a profile that asks for it weighs what it carries.
 static func _declare_score(profile: AiProfile, me: PlayerState) -> float:
 	var attackers: int = 0
+	var carried: float = 0.0
 	for c in me.hand:
 		if c.def.is_attack():
 			attackers += 1
+		elif not c.def.effects_for("use").is_empty():
+			carried += effects_value(c.def.effects, profile, ["use"])
 	if me.in_control().power().has("attack"):
 		attackers += 1
 	for al in me.allies():
 		if al.power().has("attack"):
 			attackers += 1
-	return attackers * 1.0 + profile.w("play", "declare_bias")
+	return attackers * 1.0 + carried * profile.w("play", "declare_use") + profile.w("play", "declare_bias")
 
 
 ## Placing Grounds: what the new Grounds are worth to me against the ones they replace (or none),

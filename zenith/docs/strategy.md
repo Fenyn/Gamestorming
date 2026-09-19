@@ -70,7 +70,7 @@ less than the swing.
 hitting a Seal deck churns its set. A Drill that guards Seals turns capture off completely, so it is
 the piece to land first and the piece to remove first.
 
-## 3. The nine decks
+## 3. The ten decks
 
 Each entry is: what it is trying to do, the lever that makes it work, the line to play, and the
 mistake that loses the game.
@@ -137,6 +137,23 @@ every Combat. The Mastery makes Arts cost 1 instead of 2 and adds a life card to
   Blocks that search replace themselves, so defend freely. Stage damage is not the goal; wounds are.
 - **Mistake.** Hoarding Energy. At Surge 1 to 2 it is never going to out-Energy anyone, and stages
   held back are stages a Strike takes for free. Spend them on Arts.
+
+### Storm — Siphon the Unbound, `storm_unbound` (art_beatdown)
+
+The same construct as the Collegium list, wound the other way, and the first two decks in the set to
+share a duelist. No Relic, so unlike `storm_volley` its Ascension win is live and aspect 3 is worth
+climbing for itself. It wins by making the rival's Strikes unaffordable and then out-trading.
+
+- **Lever.** Three ways to shut a Strike down at once. Weighted Hollow taxes every Strike 2 Energy,
+  the Squall Mastery locks Strike cards out of the rest of the Combat after any landed Storm Art,
+  and Terms of the Pact and Stillness cover what gets through. Against a Strike deck that is the
+  whole game.
+- **Line.** Hollow down early, then land any Storm Art to spring the Mastery. Every Art in the list
+  pays Fervor, so damage and the climb are one action; Provocation and Corin's Conditioning top the
+  Fervor up out of the discard pile.
+- **Mistake.** Treating it like `storm_volley` and hoarding for a barrage. It has no Relic shielding
+  its Fervor and no discount on its Arts, so held Energy is wasted. Also playing the Hollow against
+  an Art deck, where it does nothing at all and costs a turn of Combat.
 
 ### Root — Osric Thornwald, `root_seals` (seals)
 

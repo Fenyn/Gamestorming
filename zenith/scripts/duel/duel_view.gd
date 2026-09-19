@@ -149,13 +149,14 @@ func _layout_fixtures() -> void:
 	var width: float = minf(460.0, size.x * 0.275)
 	for fixture: DuelistDisplay in [near_duelist, far_duelist]:
 		var card: Card3D = views.get(fixture.duelist_uid)
-		fixture.visible = card != null and card.visible
+		fixture.visible = card != null and card.visible and not camera.is_position_behind(card.global_position)
 		if not fixture.visible:
 			continue
 		fixture.global_position = card.global_position
 		var card_depth: float = -camera.to_local(card.global_position).z
 		var card_units: float = camera.project_position(Vector2(1, 0), card_depth).distance_to(camera.project_position(Vector2.ZERO, card_depth))
 		fixture.surface.pixel_size = width / 760.0 * card_units
+		fixture.anchor_to_card(card, camera)
 	var focus_rect: Rect2 = hud.focus.get_global_rect()
 	var focus_width: float = focus_rect.size.x
 	focus_card.position = camera.to_local(camera.project_position(Vector2(focus_rect.get_center().x, focus_rect.position.y + 32.0 + focus_width * 716.0 / 512.0 * 0.5), depth))
@@ -899,6 +900,7 @@ func _duelist_def(player: int) -> CardDef:
 
 ## One Card3D per uid the view knows, with the face the view allows (a back for hidden cards).
 func _adopt_cards() -> void:
+	var ghosts: Dictionary = _standing_uids()
 	for uid in view.cards.keys():
 		var c: SeatCard = view.card(uid)
 		var v: Card3D = views.get(uid)
@@ -913,6 +915,7 @@ func _adopt_cards() -> void:
 			v.inspected.connect(_on_card_inspected)
 			v.hovered.connect(_on_card_hovered)
 			views[uid] = v
+		v.set_ghost(ghosts.has(uid))
 		if c.hidden():
 			continue
 		var def: CardDef = _def(c)
@@ -922,6 +925,21 @@ func _adopt_cards() -> void:
 		if str(_face_keys.get(uid, "")) != key:
 			v.set_face_texture(faces.face(def, c.aspect))
 			_face_keys[uid] = key
+
+
+## Source card uid -> [owner, index within that owner's ghosts] for every effect that outlasts
+## the Combat. One card can carry more than one standing effect, so it takes only one slot.
+func _standing_uids() -> Dictionary:
+	var out: Dictionary = {}
+	var per_owner: Array[int] = [0, 0]
+	for s in view.standing:
+		var uid: int = int(s.get("source", -1))
+		var owner: int = int(s.get("owner", -1))
+		if uid < 0 or owner < 0 or out.has(uid) or view.card(uid) == null:
+			continue
+		out[uid] = [owner, per_owner[owner]]
+		per_owner[owner] += 1
+	return out
 
 
 ## Every card's target slot for the current view. Cards not listed are hidden.
@@ -956,6 +974,11 @@ func _targets() -> Dictionary:
 		for i in range(reserve_n):
 			# Reserve cards sit face down under the Relic; only their owner sees them in the prompt.
 			out[p.reserve[i]] = [zones.slot(p.index, &"relic", i + 1, reserve_n, vw), false, true]
+	# A standing effect's source card is in the Removed pile; it is lifted out of that stack and
+	# stood beside its owner instead, so the passive has something on the table to hover.
+	var ghosts: Dictionary = _standing_uids()
+	for uid in ghosts:
+		out[uid] = [zones.slot(int(ghosts[uid][0]), &"standing", int(ghosts[uid][1]), 1, vw), true, true]
 	if view.grounds >= 0:
 		out[view.grounds] = [zones.slot(0, &"grounds", 0, 1, vw), true, true]
 	for uid in view.resolving:

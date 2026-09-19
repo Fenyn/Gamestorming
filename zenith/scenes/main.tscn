@@ -30,7 +30,7 @@ grow_vertical = 2
 
 [node name="Column" type="VBoxContainer" parent="Center" unique_id=747642818]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 28
 
 [node name="Title" type="Label" parent="Center/Column" unique_id=1138640804]
 layout_mode = 2

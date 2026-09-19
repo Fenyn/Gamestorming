@@ -26,11 +26,23 @@ const DEFAULTS: Dictionary = {
 	"play": {
 		"damage_life": 1.0, "damage_stage": 0.5, "attack_cost": 0.5, "final_strike_penalty": 4.0,
 		"defend_card": 1.0, "defend_in_play": 0.3, "use_cost": 0.3, "declare_bias": 0.5, "control_ally": 0.0, "grounds_skip": 0.6,
+		# Off by default. Above zero, a hand holding cards that only work inside Combat is a reason
+		# to declare one, which is the only reason a deck that never attacks would ever open Combat.
+		"declare_use": 0.0,
 		# Off by default. Above zero, a searching card is worth this share of the best card it can
 		# reach, compounding down a chain, so a deck built around a combo goes and assembles it.
 		"tutor_decay": 0.0, "bond_band": 0.0,
 	},
 	"reserve": {"tech": 3.0, "threshold": 1.0, "toolbox_keep": 2.0, "max_swaps": 4},
+	# Matchup pivots, keyed by what the deck across the table declares itself to be. An archetype id
+	# on its own, or "+<subtheme>" for one of its subthemes. Each value is a partial profile laid
+	# over this one when that opponent is faced. Empty here: a deck opts in by listing its own.
+	"vs": {},
+	# Pivots that turn on partway through a duel, keyed by a fact about our own side of the table,
+	# all of it public: `bonded` (a personality of ours has cards stacked under it), `allies_min:N`,
+	# `aspect_min:N`, `fervor_min:N`, `seals_min:N`, `life_below:N`. Laid on after the matchup
+	# pivots, so a deck can hold back until its plan is on the table and then press.
+	"when": {},
 	"think": {"search": true, "top_k": 6, "samples": 6, "budget_ms": 400, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05},
 }
 
@@ -63,6 +75,92 @@ static func for_deck(deck: DeckList, level: String) -> AiProfile:
 		if parsed is Dictionary:
 			p.merge(parsed)
 	return p
+
+
+## A copy of this profile with its `vs` entries for the deck across the table laid on top, so one
+## deck can turtle against a beatdown and press against a slow one. The archetype and its subthemes
+## are declared to both players, so reading them is fair; nothing here looks at their cards.
+##
+## The archetype is applied first and the subthemes after, in the order the deck declares them, so
+## the finer statement wins. Returns this profile untouched when it names no pivots.
+func for_matchup(archetype: String, subthemes: Array) -> AiProfile:
+	var pivots: Dictionary = data.get("vs", {})
+	if pivots.is_empty():
+		return self
+	var keys: Array[String] = [archetype]
+	for s in subthemes:
+		keys.append("+" + str(s))
+	var applied: Array[String] = []
+	for k in keys:
+		if pivots.has(k) and pivots[k] is Dictionary:
+			applied.append(k)
+	if applied.is_empty():
+		return self
+	var out: AiProfile = AiProfile.new()
+	out.name = name
+	out.data = data.duplicate(true)
+	for k in applied:
+		out.merge(pivots[k])
+	return out
+
+
+## Which `when` facts hold right now, as a stable key. "" when the profile names no state pivots,
+## which is the common case and costs nothing.
+func state_key(view: SeatView, seat: int) -> String:
+	var pivots: Dictionary = data.get("when", {})
+	if pivots.is_empty():
+		return ""
+	var hit: PackedStringArray = PackedStringArray()
+	for k in pivots.keys():
+		if _fact_holds(str(k), view, seat):
+			hit.append(str(k))
+	return "|".join(hit)
+
+
+## A copy with the `when` pivots named by `key` laid on, in the order the profile lists them.
+func for_state(key: String) -> AiProfile:
+	if key == "":
+		return self
+	var pivots: Dictionary = data.get("when", {})
+	var wanted: PackedStringArray = key.split("|")
+	var out: AiProfile = AiProfile.new()
+	out.name = name
+	out.data = data.duplicate(true)
+	for k in pivots.keys():
+		if wanted.has(str(k)) and pivots[k] is Dictionary:
+			out.merge(pivots[k])
+	return out
+
+
+## One `when` fact, read off the seat's own view so it sees only what the table shows.
+static func _fact_holds(key: String, view: SeatView, seat: int) -> bool:
+	var fact: String = key
+	var n: int = 0
+	var colon: int = key.find(":")
+	if colon >= 0:
+		fact = key.substr(0, colon)
+		n = int(key.substr(colon + 1))
+	var me: SeatPlayer = view.player(seat)
+	match fact:
+		"bonded":
+			# Card-agnostic: a fused personality is one with its partners stacked underneath.
+			for uid in me.allies:
+				var c: SeatCard = view.card(uid)
+				if c != null and c.under > 0:
+					return true
+			return false
+		"allies_min":
+			return me.allies.size() >= n
+		"aspect_min":
+			var d: SeatCard = view.card(me.duelist)
+			return d != null and d.aspect >= n
+		"fervor_min":
+			return me.fervor >= n
+		"seals_min":
+			return me.seals.size() >= n
+		"life_below":
+			return me.life_deck.size() < n
+	return false
 
 
 ## Lays `over` on top of what is here, group by group.

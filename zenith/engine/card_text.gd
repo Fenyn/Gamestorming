@@ -508,7 +508,7 @@ static func defense_text(d: Dictionary) -> String:
 	if d.has("when"):
 		s = _conditional(d["when"], s)
 	if d.has("stop_all"):
-		s += " Stops all %s for the remainder of Combat." % ("attacks" if str(d["stop_all"]) == "any" else str(d["stop_all"]).capitalize() + "s")
+		s += " Stops all %s performed against you for the remainder of Combat." % ("attacks" if str(d["stop_all"]) == "any" else str(d["stop_all"]).capitalize() + "s")
 	if str(d.get("stop_focused", "")) == "discard_hand":
 		s += " You may discard a card from your hand to stop a Focused attack."
 	elif d.has("stop_focused"):
@@ -535,7 +535,13 @@ static func cond_text(when: Dictionary) -> String:
 			"character":
 				parts.append("%s is in control" % str(v))
 			"duelist_character":
-				parts.append("%s is your duelist" % str(v))
+				if v is Array:
+					var names: PackedStringArray = PackedStringArray()
+					for nm in v:
+						names.append(str(nm))
+					parts.append("your duelist is %s" % " or ".join(names))
+				else:
+					parts.append("%s is your duelist" % str(v))
 			"performed_by":
 				parts.append("performed by an Ally" if str(v) == "ally" else "performed by your duelist")
 			"aspect_min":
@@ -747,8 +753,10 @@ static func _effect_body(e: Dictionary) -> String:
 		"cannot_declare_combat":
 			body = "%s cannot declare Combat this turn." % _cap(who)
 		"stop_all":
+			# The float sits on its owner and is read when they are the defender, so it stops the
+			# attacks aimed at them and not their own.
 			var kind: String = str(e.get("kind", "any"))
-			body = "Stops all %s for the remainder of Combat." % ("attacks" if kind == "any" else kind.capitalize() + "s")
+			body = "Stops all %s performed against you for the remainder of Combat." % ("attacks" if kind == "any" else kind.capitalize() + "s")
 		"float":
 			var what: String = str(e.get("what", ""))
 			var params: Dictionary = e.get("params", {})
@@ -863,7 +871,7 @@ static func _effect_body(e: Dictionary) -> String:
 		"discard_in_play_both":
 			var card_type: String = str(e.get("card_type", "non_combat"))
 			body = "All %s in play are %s." % [type_words(card_type, true), ("removed from the game" if bool(e.get("remove", false)) else "discarded")]
-		"spend_source", "finish_source", "after_action", "after_attack":
+		"spend_source", "finish_source", "after_action", "after_attack", "mark_used":
 			return ""
 		_:
 			body = str(e.get("op", "?"))
@@ -1229,13 +1237,15 @@ static func search_text(e: Dictionary) -> String:
 ## the card reads it as the total and says "instead" rather than printing two separate bonuses the
 ## player has to add up. Anything without that pairing comes back untouched.
 static func _rolled_up(m: Dictionary, all: Array) -> Dictionary:
-	if not m.has("school"):
+	# A `when` narrows a modifier the same way a school does, so it rolls up the same way: the
+	# Drill that pays +1 to anyone and +1 more to a keyword prints as "+2 instead", as its card does.
+	if not m.has("school") and not m.has("when"):
 		return m
 	var rolled: Dictionary = m.duplicate(true)
 	var stacked: bool = false
 	for other in all:
 		var o: Dictionary = other
-		if o.has("school") or str(o.get("scope", "own")) != str(m.get("scope", "own")) or str(o.get("kind", "any")) != str(m.get("kind", "any")):
+		if o.has("school") or o.has("when") or str(o.get("scope", "own")) != str(m.get("scope", "own")) or str(o.get("kind", "any")) != str(m.get("kind", "any")):
 			continue
 		rolled["stages"] = int(rolled.get("stages", 0)) + int(o.get("stages", 0))
 		rolled["life"] = int(rolled.get("life", 0)) + int(o.get("life", 0))

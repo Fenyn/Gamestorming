@@ -305,10 +305,10 @@ strike("no_quarter", "No Quarter", atk={"stages": 3},
 # A named card in the source, so the duelist it is named for may run a fourth copy.
 strike("relentless_fury", "Relentless Fury", atk={"stages": 4}, empower=2, character=ALPHA, effects=[AFTER_EMPOWER(FORBID("non_attack_actions")), AFTER_EMPOWER(FORBID("non_attack_actions", "opponent")), AFTER_EMPOWER(ACC(1))])
 block("stillness", "Stillness", "any", "combat", defense={"stop_all": "any"}, limit_per_deck=1, use_in_attack=True, effects=[E("stop_all", kind="any")])
-block("mournes_stance", "Mourne's Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
-block("unyielding_guard", "Unyielding Guard", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True, limit_per_deck=1)
-block("grounding_step", "Grounding Step", "art", "art", defense={"stop_all": "art"}, remove_after_use=True, limit_per_deck=1)
-block("dead_air", "Dead Air", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")], limit_per_deck=1)
+block("mournes_stance", "Mourne's Stance", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True)
+block("unyielding_guard", "Unyielding Guard", "strike", "strike", defense={"stop_all": "strike"}, remove_after_use=True)
+block("grounding_step", "Grounding Step", "art", "art", defense={"stop_all": "art"}, remove_after_use=True)
+block("dead_air", "Dead Air", "art", "art", defense={"stop_all": "art"}, effects=[FORBID("art_attacks")])
 add(id="will_not_break", title="Ashmark Will Not Break", type="combat", school="", only={"duelist_character": ALPHA}, limit_per_deck=1, use_in_attack=True,
     defense={"stops": "any"}, effects=[FLOAT("prevent_all")])
 combat("terms_of_the_pact", "Terms of the Pact", [E("choose_stop_all_kind")], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
@@ -320,27 +320,27 @@ combat("cold_appraisal", "Marrow's Appraisal", [OPP("discard_hand", amount=1, ra
 combat("sever_the_leyline", "Sever the Leyline", [OPP("set_aspect", aspect=1)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
 combat("respite", "Respite", [E("draw_discard", amount=2, **{"from": "top"}), OPP("energy", amount=5)], limit_per_deck=1)
 combat("watchful_eye", "Watchful Eye", [OPP("discard_hand", amount=1, random=False, chooser="owner", to="deck")], alignment_only="vigil")
-combat("kept_at_bay", "Kept at Bay", [FORBID("strike_attacks", "opponent")], limit_per_deck=1)
+combat("kept_at_bay", "Kept at Bay", [FORBID("strike_attacks", "opponent")])
 combat("warding_call", "Warding Call", [SEARCH(card_type="ally", source="either", to="play", stages=3), DISCARD_IN_PLAY("seal", all=True)], limit_per_deck=1)
 combat("rookes_deluge", "Rooke's Deluge", [DISCARD_IN_PLAY("non_combat", all=True)], only={"duelist_character": BETA}, remove_after_use=True)
 combat("last_gasp", "Last Gasp", [E("set_energy", amount=0), E("remove_discard", all=True), OPP("discard_life", amount=5)], remove_after_use=True, limit_per_deck=1)
 # Played by Sir Edric while he is in control, onto Dame Alder wherever she stands.
 combat("edrics_vow", "Edric's Vow", [E("attach", to="named", character=BETA)], only={"character": "Sir Edric Rooke"},
        attachment={"target": "named", "limit_attached": 1, "effects": [ENTER({"may": True, **E("draw_discard", amount=1, **{"from": "bottom"})})]})
-combat("old_trick", "Old Trick", [SEARCH(card_type="attack", source="reserve", to="hand")], remove_after_use=True, limit_per_deck=2)
+combat("old_trick", "Old Trick", [SEARCH(card_type="attack", source="reserve", to="hand")], remove_after_use=True)
 combat("closing_ranks", "Closing Ranks", [FLOAT("modifier", scope="own", kind="any", life=2, per_ally=True, once=True), E("draw", amount=1)], remove_after_use=True)
-combat("rallying_call", "Rallying Call", [VIG("max", "duelist"), SEARCH(card_type="ally", source="either", to="play", stages=3)], remove_after_use=True)
+combat("rallying_call", "Rallying Call", [VIG("max", "all"), SEARCH(card_type="ally", source="either", to="play", stages=3)], remove_after_use=True)
 combat("hired_blades", "Hired Blades", [SEARCH(card_type="ally", source="either", to="play", stages=10)])
 combat("scorn_smirks", "Scorn Smirks", [DISCARD_IN_PLAY("drill", all=True, remove=True)], alignment_only="pact", remove_after_use=True, limit_per_deck=1)
-combat("steel_standoff", "Steel Standoff", [E("end_combat"), E("end_turn"), FLOAT("keep_hand", duration="next_turn_end")], school="steel", remove_after_use=True, limit_per_deck=1)
+combat("steel_standoff", "Steel Standoff", [E("end_combat"), E("end_turn"), FLOAT("keep_hand", duration="next_turn_end")], school="steel", remove_after_use=True)
 combat("mutual_escalation", "Mutual Escalation", [ACC(6), OPP_ACC(6), E("no_ascension_win")])
 combat("reckless_ascent", "Reckless Ascent", [E("no_ascension_win"), E("set_aspect", aspect="fervor")])
-combat("keen_eye", "Keen Eye", [E("draw_check", check="named", effects=[E("draw", amount=1)])], remove_after_use=True, limit_per_deck=1)
-combat("quiet_study", "Quiet Study", [E("draw_check", check="signature", effects=[E("draw", amount=1)])], limit_per_deck=1)
+combat("keen_eye", "Keen Eye", [E("draw_check", check="named", effects=[E("draw", amount=1)])], remove_after_use=True)
+combat("quiet_study", "Quiet Study", [E("draw_check", check="signature", effects=[E("draw", amount=1)])])
 combat("dismissal", "Dismissal", [DISCARD_IN_PLAY("ally", "self", all=True, remove=True), DISCARD_IN_PLAY("ally", all=True, remove=True)], remove_after_use=True, limit_per_deck=2)
 combat("rites_unmade", "Rites Unmade", [DISCARD_IN_PLAY("drill", all=True)], remove_after_use=True, limit_per_deck=1)
 # "Choose 2 Allies from your Life Deck and put them into play at their highest power stage."
-combat("marrows_retinue", "Marrow's Retinue", [SEARCH(card_type="ally", amount=2, to="play", stages="max")], only={"duelist_character": THETA}, limit_per_deck=2)
+combat("marrows_retinue", "Marrow's Retinue", [SEARCH(card_type="ally", amount=2, to="play", stages="max")], only={"duelist_character": THETA}, character=THETA)
 
 # Freestyle attacks
 art("unerring_bolt", "Unerring Bolt", atk={"unstoppable": True, "no_prevent": True}, remove_after_use=True)
@@ -389,7 +389,7 @@ strike("vesnas_ambush", "Vesna's Ambush", atk={"focused": True, "stages": 4, "va
        effects=[IFS(SEARCH(card_type="ally", to="play", stages=4))])
 strike("scatters_the_ashes", "Ashmark Scatters the Ashes", atk={"stages": 4}, endurance=1, effects=[OPP("remove_discard", amount=5), VIG(3)])
 strike("mournes_frantic_rush", "Mourne's Frantic Rush", atk={"stages": 1}, effects=[IFS(ACC(1))], remain=1, remove_after_use=True)
-strike("steel_skull_crack", "Steel Skull Crack", "steel", atk={"life": 3, "no_prevent": True}, effects=[E("draw", amount=1), ACC(1)], limit_per_deck=1)
+strike("steel_skull_crack", "Steel Skull Crack", "steel", atk={"life": 3, "no_prevent": True}, effects=[E("draw", amount=1), ACC(1)])
 
 # Freestyle defenses
 block("last_ward", "Last Ward", "any", "strike", defense={"stop_focused": "discard_hand"})
@@ -407,8 +407,8 @@ block("shrugs_it_off", "Quarr Shrugs It Off", "any", "strike", "steel", only={"d
 
 # Freestyle non-combats and drills
 noncombat("recalled_lesson", "Recalled Lesson", [USE(SEARCH(card_type="attack", source="either", to="hand"))], limit_per_deck=1)
-noncombat("clear_mind", "Clear Mind", [USE(SEARCH(card_type="combat", to="hand"))], limit_per_deck=1)
-noncombat("foresight", "Foresight", [ENTER(SEARCH(card_type="hand_combat", source="discard", to="hand"))], limit_per_deck=1)
+noncombat("clear_mind", "Clear Mind", [USE(SEARCH(card_type="combat", to="hand"))])
+noncombat("foresight", "Foresight", [ENTER(SEARCH(card_type="hand_combat", source="discard", to="hand"))])
 noncombat("lucky_find", "Lucky Find", [USE(SEARCH(card_type="non_combat", to="play"))], limit_per_deck=1)
 noncombat("bonding_rite", "Bonding Rite", [USE(E("bond", card="bonded_pair"))])
 ally("bonded_pair", "Ansel and Tavin, Back to Back", "vigil", 44, 2,
@@ -425,17 +425,17 @@ noncombat("mourne_takes_measure", "Mourne Takes the Measure", [USE(OPP("lose_asp
           use_at="ascension_win")
 # "Remove an Ally in play from the game. If your Main Personality is Construct, remove 2 instead."
 noncombat("breakers_yard", "The Breaker's Yard", [USE(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True)),
-          USE(WHEN(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True), duelist_tag="construct"))], limit_per_deck=1)
-add(id="heirloom_blade", title="The Vale Heirloom", type="non_combat", school="", effects=[USE(E("attach", to="duelist"))], limit_per_deck=1,
+          USE(WHEN(E("discard_in_play", "any", card_type="ally", amount=1, remove=True, choose=True), duelist_character=["Scorn", THETA]))])
+add(id="heirloom_blade", title="The Vale Heirloom", type="non_combat", school="", effects=[USE(E("attach", to="duelist"))],
     attachment={"target": "duelist", "title_contains": "Sword", "damage_removes": True, "modifiers": [{"scope": "own", "kind": "any", "life": 3, "title_contains": "Sword"}]})
 drill("bravado_drill", "Bravado Drill", start_in_play=True, limit_per_deck=1, effects=[ENTER(OPP_ACC(-2)), ENTER(VIG(2, "duelist"))])
 drill("revision_drill", "Revision Drill", once_per_combat=True, limit_per_deck=1, effects=[USE(E("discard_hand", amount=1, random=False)), USE(E("draw", amount=2))])
 drill("swordplay_drill", "Swordplay Drill", modifiers=[{"scope": "own", "kind": "any", "stages": 2, "title_contains": "Sword"}], promote_if_successful="Sword")
 drill("lone_blade_drill", "Lone Blade Drill", modifiers=[{"scope": "own", "kind": "strike", "stages": 5}], discard_if_other_non_combats=True)
 drill("counterplay_drill", "Counterplay Drill", alignment_only="vigil", limit_per_deck=2, effects=[PLACE(E("name_card"))])
-drill("no_retreat_drill", "No Retreat Drill", limit_per_deck=1, forbid=[{"who": "all", "what": "end_combat"}])
+drill("no_retreat_drill", "No Retreat Drill", forbid=[{"who": "all", "what": "end_combat"}])
 drill("absorbing_drill", "Absorbing Drill", defense={"stops": "art", "cost_life": 2})
-drill("mournes_quickness_drill", "Mourne's Quickness Drill", limit_per_deck=1, effects=[ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))])
+drill("mournes_quickness_drill", "Mourne's Quickness Drill", effects=[ENTER(E("draw_discard", amount=1, **{"from": "bottom"}))])
 drill("warding_drill", "Warding Drill", limit_per_deck=1, forbid=[{"who": "all", "what": "seals"}])
 drill("locked_gate_drill", "Locked Gate Drill", limit_per_deck=1, forbid=[{"who": "opponent", "what": "allies"}])
 # +1 wound on everything you swing, and the second line stacks for a Construct personality, so hers do +2.
@@ -533,7 +533,7 @@ strike("shade_warding_burst", "Shade Warding Burst", "shade", atk={"printed_life
 # "Pay any amount of Energy from your duelist; each 1 paid adds 1 Energy of damage."
 strike("shade_gathering_dark", "Shade Gathering Dark", "shade", atk={"pay_stages": {"per": 1, "stages": 1}})
 drill("shade_takedown_drill", "Shade Takedown Drill", "shade", once_per_combat=True,
-      effects=[{"trigger": "on_success", "may": True, **E("draw", amount=1)}])
+      effects=[{"trigger": "on_success", "may": True, **E("draw", amount=1), "then": [E("mark_used")]}])
 drill("shade_composure_drill", "Shade Composure Drill", "shade", hand_keep=2)
 
 # ============================================================================
@@ -547,7 +547,7 @@ add(id="tide_surge", title="Tide Surge", type="art", school="tide", attack={"kin
 art("tide_twin_swell", "Tide Twin Swell", "tide", atk={"printed_life": 3, "life_from_surge": True}, remain=1)
 art("tide_torrent", "Tide Torrent", "tide", atk={"cost_stages": 0, "pay_stages": {"per": 2, "life": 1}})
 art("tide_springwater", "Tide Springwater", "tide", atk={}, effects=[SEARCH(card_type="ally", source="discard", to="play", stages=3), IFS(VIG("max", "last_searched"))], remove_after_use=True)
-art("tide_depths", "Tide Depths", "tide", atk={"printed_life": 3}, effects=[SEARCH(to="hand")], remove_after_use=True, limit_per_deck=1)
+art("tide_depths", "Tide Depths", "tide", atk={"printed_life": 3}, effects=[SEARCH(to="hand")], remove_after_use=True)
 art("tide_high_water", "Tide High Water", "tide", atk={"printed_life": 5}, effects=[ACC(1), IFS(SEARCH(card_type="grounds", to="play"))])
 art("tide_confluence", "Tide Confluence", "tide", atk={"printed_life": 5, "variants": [{"when": {"performed_by": "ally"}, "focused": True}]}, empower=3,
     effects=[AFTER_EMPOWER(WHEN(DISCARD_IN_PLAY("drill", amount=1, choose=True), allies_min=1))])
@@ -564,7 +564,7 @@ art("storm_smiting_bolt", "Storm Smiting Bolt", "storm", atk={}, effects=[DISCAR
 art("storm_thunderhead", "Storm Thunderhead", "storm", atk={}, empower=3, effects=[AFTER_EMPOWER(DISCARD_IN_PLAY("drill", amount=3, up_to=True, choose=True)), AFTER_EMPOWER(FLOAT("endurance_boost"))])
 art("storm_arc_bolt", "Storm Arc Bolt", "storm", atk={"printed_life": 5}, effects=[ACC(2)])
 strike("storm_maelstrom", "Storm Maelstrom", "storm", atk={"stages": 4}, endurance=2, empower=2, effects=[AFTER_EMPOWER(FLOAT("no_prevent")), IFS(AFTER_EMPOWER(DISCARD_IN_PLAY("freestyle_drill", "self", all=True, remove=True))), IFS(AFTER_EMPOWER(DISCARD_IN_PLAY("freestyle_drill", all=True, remove=True)))])
-strike("storm_overcharge", "Storm Overcharge", "storm", atk={"stages": 4}, effects=[WHEN({"may": True, "then": [SEARCH(card_type="art", to="hand")], **E("energy", amount=-2)}, energy_min=2)], remove_after_use=True, limit_per_deck=1)
+strike("storm_overcharge", "Storm Overcharge", "storm", atk={"stages": 4}, effects=[WHEN({"may": True, "then": [SEARCH(card_type="art", to="hand")], **E("energy", amount=-2)}, energy_min=2)], remove_after_use=True)
 strike("storm_recharge", "Storm Recharge", "storm", atk={"stages": 2}, endurance=2, effects=[VIG("max", "duelist")])
 
 # ============================================================================

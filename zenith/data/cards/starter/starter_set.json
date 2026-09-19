@@ -2404,8 +2404,7 @@
     "stops": "strike",
     "stop_all": "strike"
    },
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "unyielding_guard",
@@ -2416,8 +2415,7 @@
     "stops": "strike",
     "stop_all": "strike"
    },
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "grounding_step",
@@ -2428,8 +2426,7 @@
     "stops": "art",
     "stop_all": "art"
    },
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "dead_air",
@@ -2446,8 +2443,7 @@
      "what": "art_attacks",
      "duration": "combat"
     }
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "will_not_break",
@@ -2587,8 +2583,7 @@
      "what": "strike_attacks",
      "duration": "combat"
     }
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "warding_call",
@@ -2695,8 +2690,7 @@
      "to": "hand"
     }
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 2
+   "remove_after_use": true
   },
   {
    "id": "closing_ranks",
@@ -2732,7 +2726,7 @@
     {
      "op": "energy",
      "amount": "max",
-     "target": "duelist"
+     "target": "all"
     },
     {
      "op": "search",
@@ -2795,8 +2789,7 @@
      "duration": "next_turn_end"
     }
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "mutual_escalation",
@@ -2850,8 +2843,7 @@
      ]
     }
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "quiet_study",
@@ -2869,8 +2861,7 @@
       }
      ]
     }
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "dismissal",
@@ -2928,7 +2919,7 @@
    "only": {
     "duelist_character": "Marrow"
    },
-   "limit_per_deck": 2
+   "character": "Marrow"
   },
   {
    "id": "unerring_bolt",
@@ -3717,8 +3708,7 @@
      "op": "fervor",
      "amount": 1
     }
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "last_ward",
@@ -3884,7 +3874,6 @@
    "title": "Clear Mind",
    "type": "non_combat",
    "school": "",
-   "limit_per_deck": 1,
    "effects": [
     {
      "trigger": "use",
@@ -3899,7 +3888,6 @@
    "title": "Foresight",
    "type": "non_combat",
    "school": "",
-   "limit_per_deck": 1,
    "effects": [
     {
      "trigger": "entering_combat",
@@ -4099,7 +4087,6 @@
    "title": "The Breaker's Yard",
    "type": "non_combat",
    "school": "",
-   "limit_per_deck": 1,
    "effects": [
     {
      "trigger": "use",
@@ -4119,7 +4106,10 @@
      "remove": true,
      "choose": true,
      "when": {
-      "duelist_tag": "construct"
+      "duelist_character": [
+       "Scorn",
+       "Marrow"
+      ]
      }
     }
    ]
@@ -4136,7 +4126,6 @@
      "to": "duelist"
     }
    ],
-   "limit_per_deck": 1,
    "attachment": {
     "target": "duelist",
     "title_contains": "Sword",
@@ -4242,7 +4231,6 @@
    "title": "No Retreat Drill",
    "type": "drill",
    "school": "",
-   "limit_per_deck": 1,
    "forbid": [
     {
      "who": "all",
@@ -4265,7 +4253,6 @@
    "title": "Mourne's Quickness Drill",
    "type": "drill",
    "school": "",
-   "limit_per_deck": 1,
    "effects": [
     {
      "trigger": "entering_combat",
@@ -5626,7 +5613,12 @@
      "trigger": "on_success",
      "may": true,
      "op": "draw",
-     "amount": 1
+     "amount": 1,
+     "then": [
+      {
+       "op": "mark_used"
+      }
+     ]
     }
    ]
   },
@@ -5795,8 +5787,7 @@
      "to": "hand"
     }
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "tide_high_water",
@@ -6066,8 +6057,7 @@
      }
     }
    ],
-   "remove_after_use": true,
-   "limit_per_deck": 1
+   "remove_after_use": true
   },
   {
    "id": "storm_recharge",

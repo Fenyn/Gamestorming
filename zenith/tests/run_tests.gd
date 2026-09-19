@@ -3196,10 +3196,25 @@ func test_a_drill_answers_one_successful_attack_a_combat() -> void:
 	to_combat(e)
 	var before: int = e.player(0).hand.size()
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"pick_option", "the Drill asks first")
+	answer(e, &"pick_option", -1, "yes")
 	eq(e.player(0).hand.size(), before, "the Strike left the hand and the Drill put one back")
 	answer(e, &"pass")
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	eq(e.player(0).hand.size(), before - 1, "the second attack got nothing")
+	# Declining does not spend the Combat's one use: the card says "you may", and the once only
+	# goes when it is taken.
+	var d: DuelEngine = engine(deck(filler(["t_drill_takedown"])), deck(filler(), "pact"))
+	answer(d, &"place", uid_in_hand(d, 0, "t_drill_takedown"))
+	to_combat(d)
+	answer(d, &"attack", uid_in_hand(d, 0, "t_strike"))
+	answer(d, &"pick_option", -1, "no")
+	answer(d, &"pass")
+	var held: int = d.player(0).hand.size()
+	answer(d, &"attack", uid_in_hand(d, 0, "t_strike"))
+	eq(prompt_kind(d), &"pick_option", "still on offer after a decline")
+	answer(d, &"pick_option", -1, "yes")
+	eq(d.player(0).hand.size(), held, "and it draws this time")
 
 
 ## "No modifiers are added to Strikes performed against her": the attacker's own bonuses drop,

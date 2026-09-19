@@ -13,7 +13,7 @@
      "modifiers": [{"scope": "own", "kind": "any", "life": 1}, {"scope": "own", "kind": "any", "life": 1, "when": {"performer_tag": "construct"}}]},
     {"id": "t_drill_composure", "title": "Test Composure Drill", "type": "drill", "hand_keep": 2},
     {"id": "t_drill_takedown", "title": "Test Takedown Drill", "type": "drill", "once_per_combat": true,
-     "effects": [{"trigger": "on_success", "op": "draw", "amount": 1}]},
+     "effects": [{"trigger": "on_success", "may": true, "op": "draw", "amount": 1, "then": [{"op": "mark_used"}]}]},
     {"id": "t_retinue", "title": "Test Retinue", "type": "combat",
      "effects": [{"op": "search", "card_type": "ally", "amount": 2, "to": "play", "stages": "max"}]},
     {"id": "t_gathering_dark", "title": "Test Gathering Dark", "type": "strike", "attack": {"kind": "strike", "printed_stages": 1, "pay_stages": {"per": 1, "stages": 1}}},

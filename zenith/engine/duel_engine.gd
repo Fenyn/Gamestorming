@@ -1697,12 +1697,11 @@ func _advance_battle() -> void:
 				for nc in attacker.non_combats():
 					if nc.attached_to == null:
 						_enqueue(nc.def.effects, "on_success", attacker.index, {"attack": a}, nc)
-			# A Drill that answers a successful attack. `once_per_combat` is spent when the
-			# trigger fires, not when the player accepts it, so declining a "may" still costs it.
+			# A Drill that answers a successful attack. A `once_per_combat` one spends itself with
+			# a `mark_used` line in its own text, so declining an optional answer does not cost it.
 			if not _forbidden(attacker, "drills"):
 				for dr in attacker.drills():
 					if dr.def.has_trigger("on_success") and _drill_use_available(dr):
-						dr.power_used_combat = state.combat_count
 						_enqueue(dr.def.effects, "on_success", attacker.index, {"attack": a}, dr)
 			state.battle_step = 16
 		16:
@@ -2963,6 +2962,11 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"spend_source":
 			if source != null and source.zone == &"in_play" and source.def.type == CardDef.Type.NON_COMBAT:
 				_finish_card(source, false)
+		"mark_used":
+			# A "once per Combat" that is spent by taking it, not by being offered it. Put this in
+			# a `then` so a declined "may" leaves the card still available this Combat.
+			if source != null:
+				source.power_used_combat = state.combat_count
 		"finish_source":
 			if source != null and (source.zone == &"resolving"):
 				if bool(e.get("bottom", false)) and source.def.remain == 0:
@@ -2999,7 +3003,11 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 				if me.in_control().def.character != str(v):
 					return false
 			"duelist_character":
-				if me.duelist.def.character != str(v):
+				# A list is "X or Y", which is how a card that names two personalities reads.
+				if v is Array:
+					if not (v as Array).has(me.duelist.def.character):
+						return false
+				elif me.duelist.def.character != str(v):
 					return false
 			"alignment":
 				if me.alignment != str(v):

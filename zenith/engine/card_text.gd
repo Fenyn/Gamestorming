@@ -477,15 +477,18 @@ static func variant_text(v: Dictionary) -> String:
 
 static func defense_text(d: Dictionary) -> String:
 	var s: String = ""
+	var cost_hand: int = int(d.get("cost_hand", 0))
+	# A block that is paid for reads as the payment first, because that is the decision.
+	var pay: String = "" if cost_hand == 0 else "Discard %s from your hand to stop" % ("a card" if cost_hand == 1 else "%d cards" % cost_hand)
 	match str(d.get("stops", "")):
 		"strike":
-			s = "Stops a Strike."
+			s = "Stops a Strike." if pay == "" else "%s a Strike." % pay
 		"art":
-			s = "Stops an Art."
+			s = "Stops an Art." if pay == "" else "%s an Art." % pay
 		"none":
 			s = "Use during your attack phase or against an attack. Stops nothing."
 		_:
-			s = "Stops a Strike or an Art."
+			s = "Stops a Strike or an Art." if pay == "" else "%s a Strike or an Art." % pay
 	if d.has("when"):
 		s = _conditional(d["when"], s)
 	if d.has("stop_all"):
@@ -898,6 +901,8 @@ static func _trigger_head(e: Dictionary) -> String:
 			var head: String = "If this card is discarded from your Life Deck"
 			if str(e.get("at", "")) == "fight_back":
 				head += ", at the start of the next fight-back phase this turn"
+			elif str(e.get("at", "")) == "turn_end":
+				head += ", at the end of the turn"
 			return head
 		"entering_combat":
 			var head: String = "When entering Combat"
@@ -1414,7 +1419,10 @@ static func prompt_title(p: Prompt) -> String:
 			if str(p.context.get("mode", "")) == "declare":
 				return "Your opponent's Declare step: respond?"
 			var countered: String = str(p.context.get("card_title", ""))
-			return "Counter %s?" % countered if countered != "" else "Counter the Combat card?"
+			var named: String = countered if countered != "" else "the card"
+			if not bool(p.context.get("can_counter", true)):
+				return "%s is about to resolve" % named
+			return "Counter %s?" % named
 		&"defense":
 			return "Defend against the %s?" % str(p.context.get("kind", "attack")).capitalize()
 		&"control":

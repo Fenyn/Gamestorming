@@ -399,16 +399,16 @@
 	 "surge": 1,
 	 "might": [
 	  0,
+	  3,
+	  4,
+	  5,
+	  6,
+	  7,
+	  8,
 	  9,
 	  10,
 	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18
+	  12
 	 ],
 	 "constant": {
 	  "on_attack": [
@@ -1835,15 +1835,19 @@
    "type": "mastery",
    "school": "tide",
    "limit_per_deck": 1,
-   "opponent_aspect_threshold": 6,
+   "once_per_combat": true,
+   "defense": {
+	"stops": "any",
+	"cost_hand": 1
+   },
    "effects": [
 	{
-	 "trigger": "on_success",
+	 "trigger": "secondary",
 	 "op": "fervor",
 	 "who": "opponent",
-	 "amount": -1,
+	 "amount": -2,
 	 "when": {
-	  "source_school": "tide"
+	  "discard_top_school": "tide"
 	 }
 	}
    ]
@@ -5241,7 +5245,16 @@
    "school": "tide",
    "attack": {
 	"kind": "art",
-	"printed_life": 5
+	"printed_life": 5,
+	"variants": [
+	 {
+	  "when": {
+	   "ally_present": "Sir Edric Rooke"
+	  },
+	  "focused": true,
+	  "life": 4
+	 }
+	]
    },
    "effects": [
 	{
@@ -5252,6 +5265,15 @@
 	 "op": "fervor",
 	 "who": "opponent",
 	 "amount": -2
+	},
+	{
+	 "trigger": "on_wound",
+	 "at": "fight_back",
+	 "may": true,
+	 "op": "search",
+	 "card_type": "ally",
+	 "aspect": 1,
+	 "to": "play"
 	}
    ]
   },

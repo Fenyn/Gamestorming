@@ -564,6 +564,10 @@ func _hint_for(p: PromptView) -> String:
 		&"respond":
 			if str(p.context.get("mode", "")) == "declare":
 				return "Use a card before they decide on Combat."
+			if bool(p.context.get("ally_window", false)):
+				if not bool(p.context.get("can_counter", true)):
+					return "One Ally may take control before any of it happens."
+				return "Counter it, or put one Ally in control first."
 			return "Counter it now, or let it resolve."
 		&"pay":
 			return "Each step paid adds to the wounds."

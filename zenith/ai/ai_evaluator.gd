@@ -30,6 +30,7 @@ static func side_value(engine: DuelEngine, p: PlayerState, profile: AiProfile, g
 	v += climb_progress(engine, p) * profile.w(group, "fervor")
 	v += seal_progress(p) * profile.w(group, "seal")
 	v += seal_guard_value(p) * profile.w(group, "seal_guard")
+	v += handover_progress(engine, p) * profile.w(group, "ally_handover")
 	for al in p.allies():
 		v += profile.w(group, "ally") + al.energy * profile.w(group, "ally_energy")
 	v += p.drills().size() * profile.w(group, "drill")
@@ -37,6 +38,26 @@ static func side_value(engine: DuelEngine, p: PlayerState, profile: AiProfile, g
 	v += p.attachments().size() * profile.w(group, "attachment")
 	v -= engine.restrictions(p).size() * profile.w(group, "forbid")
 	return v
+
+
+## 0 to 1: how close this side is to fighting through an Ally instead of its Duelist. An Ally only
+## takes over once the Duelist is spent, so for a deck built that way the Duelist's own Energy is
+## something to spend rather than hoard, and this term prices that. Zero when no Ally is out and
+## zero when no Ally would swing harder than the Duelist, so a deck that simply happens to have an
+## Ally in play is not pushed into wrecking its own Energy.
+static func handover_progress(engine: DuelEngine, p: PlayerState) -> float:
+	if p.allies().is_empty():
+		return 0.0
+	var mine: int = engine.strike_table.band(p.duelist.might())
+	var best: int = -1
+	for al in p.allies():
+		best = maxi(best, engine.strike_table.band(al.might()))
+	if best <= mine:
+		return 0.0
+	if engine.may_ally_control(p):
+		return 1.0
+	var gap: int = p.duelist.energy - DuelEngine.ALLY_CONTROL_MAX_ENERGY
+	return clampf(1.0 - float(gap) / float(CardInstance.MAX_STAGE), 0.0, 1.0)
 
 
 ## What the Grounds `def` are worth to `seat` while they are in play: how much of my deck they

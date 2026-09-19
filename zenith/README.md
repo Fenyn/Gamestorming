@@ -197,6 +197,14 @@ Run the import once after adding a `class_name` script, or headless runs will no
 & $godot --headless --path zenith -s tests/deck_report.gd -- --games=420 --seed=4
 ```
 
+`tests/deck_outcomes.gd` runs the same field as a full matrix and attaches the endgame state. Every deck pilots the same number of matches against every other deck from both seats, and when a game ends it records how far each side still had to go on all three routes: life cards left to lose, Seals missing from its best set, and the share of the Fervor climb still unclimbed. On top of the win record it prints how close each deck came when it lost and which route it was nearest to, what the winner still had in hand, and the full matchup grid. `--repeats=N` matches per ordered pair per seat (default 9, so seven decks give 108 matches per pilot and 756 in all), plus `--policy=`, `--decks=`, `--seed=`, `--budget=`, `--samples=`, `--styles=off`, and `--tsv=<absolute path>` for one row per match.
+
+```powershell
+& $godot --headless --path zenith -s tests/deck_outcomes.gd -- --repeats=9 --seed=77
+```
+
+`tests/ally_probe.gd -- --deck=<name> --repeats=N` plays one deck against the whole field and counts what happens to its Allies: turns with one in play, turns with the Duelist spent enough for a takeover, turns with both at once, control prompts split by attacker and defender, attack phases an Ally held, and who actually performed the attacks. It separates an Ally deck losing on its cards from one losing because the takeover condition never comes up.
+
 `tests/ai_trace.gd` plays one game (`--deck=`, `--foe=`, `--seed=`, `--budget=`) with the search AI in seat 0 and prints a line of table state per turn plus a tally of seat 0's commands and events, which shows whether a playstyle profile does what it says. `tests/print_text.gd -- <card ids>` prints generated rules text. `tools/prompt_census.gd` plays random duels between the shipped decks and counts prompts by kind and how many had a single option (`-- --detail` lists those), to find needless stops in the flow.
 
 Policies are `random`, `scorer`, `search`, or a profile name (`easy`, `hard`). `--decks=a,b` limits the decks, `--samples=N` and `--budget=MS` override the profile, `--verbose` prints a line per game.

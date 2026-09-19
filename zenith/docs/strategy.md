@@ -151,15 +151,27 @@ aspect all the way up; the aspect powers feed on the discard pile instead.
 ### Tide — Dame Alder Rooke, `tide_companions` (allies)
 
 Wins by survival, by attrition. Aspect 1 carries `protect_allies`, so the deck wants to stay there;
-Fervor and aspect gains are actively unwanted.
+Fervor and aspect gains are actively unwanted. Its own aspect 1 also advances on 5 Allies in play,
+which is a hazard to stay under, not a goal: the deck ships four Ally cards on purpose. The Mastery
+is a free block every Combat, paid for with a card from hand, and paid back double when the card
+spent is a Tide card. It is not a damage engine; it is the reason the deck survives to assemble.
 
-- **Lever.** Allies take control of Combat once the Duelist is at Energy 0 or 1, and then use their
-  own Might rather than the Duelist's 3-to-12 ladder.
-- **Line.** Allies out early, let the Duelist's Energy fall, hand Combat to the Ally, bond the two
-  named Allies when both are out, win on wounds from Allies' Arts. The Mastery and the Arts keep the
-  opponent's Fervor down, so Ascension is the clock to police.
+- **Lever.** The Bond. Two named Allies fuse into one card that enters at full Energy in band F,
+  three bands above either partner and above anything else the deck fields. Everything else is
+  setup for it.
+- **Second lever.** Allies take control of Combat once the Duelist is at Energy 0 or 1, and then use
+  their own Might rather than the Duelist's 3-to-12 ladder.
+- **Line.** Allies out early, the Bonding card into play, fuse the moment both partners are there.
+  Let the Duelist's Energy fall, hand Combat over, win on wounds from Allies' Arts. The Mastery and
+  the Arts keep the opponent's Fervor down, so Ascension is the clock to police.
 - **Mistake.** Defending the Duelist's Energy. Unlike every other deck, going to 0 is this deck's
-  plan, not its failure state.
+  plan, not its failure state. Also climbing: the aspect 1 constant is the deck.
+- **Measured 2026-09-18 with `tests/ally_probe.gd`.** Allies are not held back: the first lands on
+  turn 2.5 in 99% of games and the Sensei is spent in 100%, which is right, because the aspect 1
+  constant is what keeps them safe. The deck was losing 2.5 Allies a game out of four, which is
+  what kept the fusion at 4%; with the guard actually holding it loses 0.25 and fuses in 33%. The
+  residual is real and not a bug: a Constant Combat Power is a power, so an opponent card that
+  forbids powers switches the guard off, and the guard is on aspect 1 only.
 
 ## 4. Where each principle lives in an AI profile
 
@@ -180,6 +192,23 @@ is usually one of these rather than new code.
 | Guard the Seals, or remove their guard | `own.seal_guard`, `foe.seal_guard` |
 | A plan that pays off after the opponent answers | `think.turns` above 1 |
 | Energy is worth keeping | `own.energy`, `play.attack_cost` |
+| Ally control is where the damage comes from | `own.ally_handover` up, `effect.energy_self` below zero |
+| The payoff is a combo, so go and assemble it | `play.tutor_decay` above 0, plus whatever prices the payoff (`play.bond_band` for a fusion) |
+
+**Never spend a card for no effect.** This is AI guidance, not a rule: a Bonding card played
+without its partners is legal and resolves into nothing, so `AiScorer._bond_use_value` rules the
+option out rather than merely discounting it. Before that the AI burned 0.29 Bonding cards a game
+against 0.15 fusions landed. Keep this kind of thing in the scorer. Card text and the options the
+engine offers are the printed rules, and inventing a restriction to make the AI play better is the
+wrong trade.
+
+**Tutor chains are derived, not listed.** `play.tutor_decay` above zero makes a searching card worth
+a share of the best card it can reach, and that card's value includes its own search, three links
+deep (`AiScorer.TUTOR_DEPTH`). Nothing anywhere names a card: a deck's tutor priorities fall out of
+the weights it already has, so pricing the payoff is enough to make the AI go and fetch it. The
+search prompt itself picks by the same number, so each link of the chain chooses the card that
+carries it furthest. `DuelEngine.search_candidates` is public for this, and it is fair: a player
+knows the contents of their own Life Deck, just not the order.
 
 Two things the profile cannot currently say, and which need code if we want them:
 
@@ -188,8 +217,12 @@ Two things the profile cannot currently say, and which need code if we want them
   `attack_forecasts` now reports `energy_left` per option, which is the input a better rule needs;
   the rule itself is not written. Any rule here must not punish an Art from a low gauge, which is
   correct play for Storm, Root and Tide.
-- **"Ally control is where my damage comes from."** `play.control_ally` biases the handover, but
-  nothing values *getting* the Duelist to Energy 0 or 1 so that Tide's handover is legal at all.
+
+Closed 2026-09-18: **"Ally control is where my damage comes from."** `AiEvaluator.handover_progress`
+is 0 to 1 for how close a side is to fighting through an Ally that out-bands its Duelist, `own.ally_handover`
+prices it, and `effect.energy_self` (blended in by that same 0-to-1, so it never fires with no Ally
+out) makes the Duelist's own Energy something to spend. It moved Tide's Allies in play from 0.66 to
+1.02 per turn and its Ally attacks from 0.65 to 1.01 per game, and its win rate not at all.
 
 ## Sources
 

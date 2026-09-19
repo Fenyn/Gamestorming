@@ -26,6 +26,9 @@ const DEFAULTS: Dictionary = {
 	"play": {
 		"damage_life": 1.0, "damage_stage": 0.5, "attack_cost": 0.5, "final_strike_penalty": 4.0,
 		"defend_card": 1.0, "defend_in_play": 0.3, "use_cost": 0.3, "declare_bias": 0.5, "control_ally": 0.0, "grounds_skip": 0.6,
+		# Off by default. Above zero, a searching card is worth this share of the best card it can
+		# reach, compounding down a chain, so a deck built around a combo goes and assembles it.
+		"tutor_decay": 0.0, "bond_band": 0.0,
 	},
 	"reserve": {"tech": 3.0, "threshold": 1.0, "toolbox_keep": 2.0, "max_swaps": 4},
 	"think": {"search": true, "top_k": 6, "samples": 6, "budget_ms": 400, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05},

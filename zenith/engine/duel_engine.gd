@@ -478,6 +478,8 @@ func _advance() -> void:
 			_advance_discard()
 		GameState.Step.RECOVER:
 			_recover()
+		GameState.Step.TURN_END:
+			_turn_end_step()
 		_:
 			assert(false, "DuelEngine._advance in step %d" % state.step)
 
@@ -757,7 +759,7 @@ func _recover() -> void:
 	var eligible: bool = not p.combat_declared and not p.discard.is_empty()
 	_emit(&"recover_step", {"player": p.index, "eligible": eligible})
 	if not eligible:
-		_end_turn()
+		state.step = GameState.Step.TURN_END
 		return
 	var opts: Array[Command] = [Command.new(p.index, &"recover"), Command.new(p.index, &"no_recover")]
 	_set_prompt(p.index, &"recover", opts)
@@ -767,6 +769,22 @@ func _handle_recover(cmd: Command) -> void:
 	var p: PlayerState = state.active_player()
 	if cmd.type == &"recover":
 		_recover_top(p, 1)
+	state.step = GameState.Step.TURN_END
+
+
+## Cards that were flipped as damage this turn and say "at the end of the turn" get their say here,
+## the active player's first, before the turn changes hands. Queued rather than run inline, so an
+## effect that needs a prompt still resolves inside the turn it belongs to.
+func _turn_end_step() -> void:
+	for seat in [state.active, 1 - state.active]:
+		var q: PlayerState = state.players[seat]
+		if q.pending_turn_end.is_empty():
+			continue
+		for item in q.pending_turn_end:
+			var list: Array[Dictionary] = [item["effect"]]
+			_queue.append({"effects": list, "index": 0, "trigger": "on_wound", "owner": seat, "ctx": {}, "source": card(int(item.get("source", -1)))})
+		q.pending_turn_end.clear()
+		return
 	_end_turn()
 
 
@@ -1060,10 +1078,23 @@ func _end_combat() -> void:
 
 ## Whether `p` may put an Ally in control right now: the Duelist is spent (Energy 0 or 1) or a
 ## constant power allows it at any stage, an Ally is in play, and nothing forbids the takeover.
-func _may_ally_control(p: PlayerState) -> bool:
+func may_ally_control(p: PlayerState) -> bool:
 	if p.allies().is_empty() or _has_floating(p.index, "no_ally_control"):
 		return false
 	return p.duelist.energy <= ALLY_CONTROL_MAX_ENERGY or bool(_constant(p).get("ally_control_any_stage", false))
+
+
+## Who can absorb one attack's damage, the one in control first. The whole attack lands on a single
+## personality, and any of them may take it: an Ally can cover the Duelist, and an Ally holding
+## Combat can push the hit back onto the Duelist.
+func _damage_targets(p: PlayerState) -> Array[CardInstance]:
+	var out: Array[CardInstance] = [p.in_control()]
+	if p.duelist != p.in_control():
+		out.append(p.duelist)
+	for al in p.allies():
+		if al != p.in_control():
+			out.append(al)
+	return out
 
 
 ## Options for the personality in control: the Duelist first, then each Ally.
@@ -1078,7 +1109,7 @@ func _control_options(p: PlayerState) -> Array[Command]:
 ## spent; when the Duelist is back above that, it resumes control. True when a prompt opened.
 func _prompt_attacker_control(p: PlayerState) -> bool:
 	state.control_asked = true
-	if not _may_ally_control(p):
+	if not may_ally_control(p):
 		p.controlling = p.duelist
 		return false
 	_set_prompt(p.index, &"control", _control_options(p), {"role": "attacker"})
@@ -1161,7 +1192,7 @@ func _handle_attack_action(cmd: Command) -> void:
 		&"use":
 			var c: CardInstance = card(cmd.card)
 			state.consecutive_passes = 0
-			if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT and _open_counter_window(c, "use"):
+			if _open_counter_window(c, "use"):
 				return
 			_use_card(p, c)
 		&"power":
@@ -1450,19 +1481,32 @@ func _attachment_removes(p: PlayerState, source: CardInstance) -> bool:
 
 # --- Counter window ("stops the effects of any Combat card") ---------------
 
-## Returns true when the opponent gets to respond before the Combat card resolves.
-func _open_counter_window(c: CardInstance, mode: String) -> bool:
+## Returns true when the opponent gets to respond before the card resolves. Two things can happen
+## in this window: a counter card that stops a Combat card played from hand, and, for a card used in
+## place of an attack, one Ally taking control of Combat before any effect occurs.
+func _open_counter_window(c: CardInstance, mode: String, control_taken: bool = false) -> bool:
 	var owner: PlayerState = state.players[c.owner]
 	var opp: PlayerState = state.players[1 - owner.index]
 	var opts: Array[Command] = []
-	for k in opp.hand:
-		if k.def.counter == "combat" and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
-			opts.append(Command.new(opp.index, &"counter", k.uid))
+	if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT:
+		for k in opp.hand:
+			if k.def.counter == "combat" and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
+				opts.append(Command.new(opp.index, &"counter", k.uid))
+	# "Whenever your opponent plays or uses a card outside of their Defender Defends phase, you may
+	# have one Ally take control of Combat before any effects occur." One Ally, once per card.
+	var counters: int = opts.size()
+	if mode == "use" and not control_taken and may_ally_control(opp):
+		for al in opp.allies():
+			if al != opp.in_control():
+				opts.append(Command.new(opp.index, &"control", al.uid))
 	if opts.is_empty():
 		return false
 	opts.append(Command.new(opp.index, &"decline"))
-	state.pending_play = {"card": c.uid, "mode": mode}
-	_set_prompt(opp.index, &"respond", opts, {"card": c.uid, "mode": mode, "source": c.uid, "card_title": c.def.title})
+	state.pending_play = {"card": c.uid, "mode": mode, "control_taken": control_taken}
+	_set_prompt(opp.index, &"respond", opts, {
+		"card": c.uid, "mode": mode, "source": c.uid, "card_title": c.def.title,
+		"can_counter": counters > 0, "ally_window": opts.size() - 1 > counters,
+	})
 	return true
 
 
@@ -1484,6 +1528,16 @@ func _handle_respond(cmd: Command) -> void:
 		return
 	var c: CardInstance = card(int(pending.get("card", -1)))
 	var owner: PlayerState = state.players[c.owner]
+	if cmd.type == &"control":
+		# One Ally steps in front of the card. The window stays open for a counter, but no second
+		# Ally may take control off the same card.
+		var opp: PlayerState = state.players[1 - owner.index]
+		opp.controlling = card(cmd.card)
+		_emit(&"control", {"player": opp.index, "card": opp.controlling.uid})
+		if _open_counter_window(c, mode, true):
+			return
+		_use_card(owner, c)
+		return
 	if cmd.type == &"counter":
 		var k: CardInstance = card(cmd.card)
 		_erase_from_zone(k)
@@ -1526,7 +1580,7 @@ func _advance_battle() -> void:
 			_enqueue(a["effects"], "secondary", attacker.index, {"attack": a}, _attack_source())
 			state.battle_step = 4
 		4:
-			if _may_ally_control(defender):
+			if may_ally_control(defender):
 				_set_prompt(defender.index, &"control", _control_options(defender), {"role": "defender", "source": int(a.get("source", -1))})
 				state.battle_step = 5
 				return
@@ -1567,13 +1621,11 @@ func _advance_battle() -> void:
 			state.battle_step = 12
 		12:
 			if int(a["target"]) < 0:
-				var allies: Array[CardInstance] = defender.allies()
-				if not allies.is_empty() and (int(a["stages"]) > 0 or int(a["life"]) > 0) and not _has_floating(defender.index, "no_ally_control"):
-					var opts: Array[Command] = [Command.new(defender.index, &"target", defender.in_control().uid)]
-					for al in allies:
-						if al != defender.in_control():
-							opts.append(Command.new(defender.index, &"target", al.uid))
-					# The only Ally is the one in control: nothing to redirect to, so no stop.
+				if not defender.allies().is_empty() and (int(a["stages"]) > 0 or int(a["life"]) > 0) and not _has_floating(defender.index, "no_ally_control"):
+					var opts: Array[Command] = []
+					for t in _damage_targets(defender):
+						opts.append(Command.new(defender.index, &"target", t.uid))
+					# Only one personality can take it: nothing to redirect to, so no stop.
 					if opts.size() > 1:
 						_set_prompt(defender.index, &"redirect", opts, {"source": int(a.get("source", -1))})
 						return
@@ -1588,10 +1640,12 @@ func _advance_battle() -> void:
 				var opts: Array[Command] = []
 				for t in _capturable_seals(defender):
 					opts.append(Command.new(attacker.index, &"capture", t.uid))
-				# A game rule, not a card effect: Ally protection constants do not apply.
+				# "Your Allies cannot be discarded" is absolute, and card text beats the rulebook,
+				# so a constant that guards them stops this too.
 				for al in defender.allies():
-					opts.append(Command.new(attacker.index, &"discard_ally", al.uid))
-				if defender.fervor > 0:
+					if not _ally_protected(defender, al):
+						opts.append(Command.new(attacker.index, &"discard_ally", al.uid))
+				if defender.fervor > 0 and not fervor_shielded(defender):
 					opts.append(Command.new(attacker.index, &"lower_fervor"))
 				if not opts.is_empty():
 					opts.append(Command.new(attacker.index, &"no_critical"))
@@ -1765,6 +1819,9 @@ func _prompt_defense() -> void:
 	for c in d.drills():
 		if _defense_usable(d, c, kind, focused):
 			opts.append(Command.new(d.index, &"defend", c.uid))
+	# A Mastery can itself be the block ("once per Combat, discard a card to stop an attack").
+	if d.mastery != null and not _forbidden(d, "mastery") and _drill_use_available(d.mastery) and _defense_usable(d, d.mastery, kind, focused):
+		opts.append(Command.new(d.index, &"defend", d.mastery.uid))
 	var ic: CardInstance = d.in_control()
 	var pw: Dictionary = ic.power()
 	if _power_available(d, ic) and not _forbidden(d, "powers") and CardDef.defense_stops(pw.get("defense", {}), kind, focused):
@@ -1803,6 +1860,8 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 	if blocked != "" and int(CardDef.TYPE_NAMES.get(blocked, -2)) == def.type:
 		return false
 	if focused and str(def.defense.get("stop_focused", "")) == "discard_hand" and d.hand.size() < 2:
+		return false
+	if d.hand.size() < int(def.defense.get("cost_hand", 0)):
 		return false
 	var ic: CardInstance = d.in_control()
 	if int(def.defense.get("cost_stages", 0)) > ic.energy:
@@ -1864,6 +1923,12 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 		_float(d.index, "copied_attack", "combat", {"spec": a["spec"].duplicate(true), "effects": a["effects"].duplicate(true)})
 	if def.defense.has("stop_all"):
 		_float(d.index, "stop_all", "combat", {"kind": str(def.defense["stop_all"])})
+	if def.type == CardDef.Type.MASTERY or def.type == CardDef.Type.DRILL:
+		c.power_used_combat = state.combat_count
+	if int(def.defense.get("cost_hand", 0)) > 0:
+		# "Discard a card from your hand to stop an attack." The discard is queued ahead of the
+		# card's own lines, so a line that asks what was discarded reads it off the discard pile.
+		_enqueue([{"trigger": "secondary", "op": "discard_hand", "amount": int(def.defense["cost_hand"]), "random": false}], "secondary", d.index, {"attack": a}, c)
 	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
 		# "Discard a card from your hand to have this card stop a Focused attack." Which card goes
 		# is the defender's call, and every effect on a card used as a defence is a secondary
@@ -3027,11 +3092,24 @@ func _constant(p: PlayerState) -> Dictionary:
 	return _raw_constant(p)
 
 
+## The constant powers in force for this player. The Duelist's own keeps working while an Ally holds
+## Combat: the CRD is explicit that a Main Personality's Constant Combat Power "works even if [they
+## are] no longer in control of Combat". A static effect like "your Allies cannot be discarded" must
+## not switch itself off the moment an Ally steps up, which is exactly when the Allies are exposed.
+## The personality in control adds its own on top and wins where the two name the same key.
 func _raw_constant(p: PlayerState) -> Dictionary:
 	var fc: Dictionary = p.duelist.aspect_data().get("constant", {})
-	if p.in_control() == p.duelist or bool(fc.get("allies_share", false)):
+	if p.in_control() == p.duelist:
 		return fc
-	return p.in_control().aspect_data().get("constant", {})
+	var theirs: Dictionary = p.in_control().aspect_data().get("constant", {})
+	if theirs.is_empty():
+		return fc
+	if fc.is_empty():
+		return theirs
+	var merged: Dictionary = fc.duplicate(true)
+	for k in theirs.keys():
+		merged[k] = theirs[k]
+	return merged
 
 
 func _can_play(p: PlayerState, def: CardDef) -> bool:
@@ -3287,7 +3365,12 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 			"drill_or_ally":
 				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.ALLY and not _ally_protected(p, c))
 			_:
-				ok = t != CardDef.Type.SEAL   # Seals are immune to card effects unless named
+				# Seals are immune to card effects unless named, and a card type this match has
+				# not met yet still has to respect what guards the board, or the next one added
+				# quietly walks past every protection.
+				ok = t != CardDef.Type.SEAL \
+					and not (t == CardDef.Type.DRILL and _drills_protected(p)) \
+					and not (t == CardDef.Type.ALLY and _ally_protected(p, c))
 		if ok:
 			out.append(c)
 	return out
@@ -3470,7 +3553,7 @@ func _handle_choice(cmd: Command) -> void:
 					_search_take(searcher, card(uid), search_effect)
 				var remaining: int = int(_choice.get("remaining", 1)) - picked.size()
 				if remaining > 0:
-					var rest: Array[CardInstance] = _search_distinct(_search_candidates(searcher, search_effect))
+					var rest: Array[CardInstance] = _search_distinct(search_candidates(searcher, search_effect))
 					if not rest.is_empty():
 						_choice["remaining"] = remaining
 						_prompt_search_pick(searcher, rest, remaining, search_effect)
@@ -3867,7 +3950,7 @@ func _search(p: PlayerState, e: Dictionary) -> void:
 		n = _set_seals_in_play(str(e["amount_per_set_seal"]))
 		if n <= 0:
 			return
-	var cands: Array[CardInstance] = _search_candidates(p, e)
+	var cands: Array[CardInstance] = search_candidates(p, e)
 	var looks: bool = _search_looks_at_deck(e)
 	if cands.is_empty() and not looks:
 		return
@@ -3877,7 +3960,7 @@ func _search(p: PlayerState, e: Dictionary) -> void:
 		_prompt_search_pick(p, distinct, n, e)
 		return
 	for i in range(n):
-		cands = _search_candidates(p, e)
+		cands = search_candidates(p, e)
 		if cands.is_empty():
 			break
 		_search_take(p, cands[0], e)
@@ -3928,7 +4011,11 @@ func _search_done(p: PlayerState, e: Dictionary) -> void:
 
 
 ## Every card the search could take, in pool order (deck, then discard when "either").
-func _search_candidates(p: PlayerState, e: Dictionary) -> Array[CardInstance]:
+## Every card this search could legally take. Public because a player knows the contents of their
+## own Life Deck even before searching it, so an AI deciding whether a tutor is worth playing may
+## ask the same question its owner could. It says nothing about order, and nothing about the
+## opponent's hidden cards.
+func search_candidates(p: PlayerState, e: Dictionary) -> Array[CardInstance]:
 	var pools: Array = []
 	match str(e.get("source", "deck")):
 		"discard":
@@ -4031,9 +4118,12 @@ func _def_has_effect(def: CardDef, spec: Dictionary) -> bool:
 ## A life card with "if this card is discarded from your Life Deck" text.
 func _on_wound(p: PlayerState, c: CardInstance) -> void:
 	for e in c.def.effects_for("on_wound"):
-		if str(e.get("at", "")) == "fight_back":
+		var at: String = str(e.get("at", ""))
+		if at == "fight_back":
 			if state.step == GameState.Step.COMBAT:
 				p.pending_fight_back.append({"effect": e, "source": c.uid})
+		elif at == "turn_end":
+			p.pending_turn_end.append({"effect": e, "source": c.uid})
 		else:
 			var list: Array[Dictionary] = [e]
 			_queue.append({"effects": list, "index": 0, "trigger": "on_wound", "owner": p.index, "ctx": {}, "source": c})

@@ -41,6 +41,7 @@ var combat_cards_used_combat: int = -1  # last Combat in which this player used 
 var attack_count_combat: int = 0        # attacks performed this Combat (for "first attack" powers)
 var last_searched: int = -1             # uid of the last card a search put into hand or play
 var pending_fight_back: Array[Dictionary] = []   # wound-triggered effects waiting for the next fight-back phase
+var pending_turn_end: Array[Dictionary] = []     # ...and the ones that wait for the end of the turn
 var must_declare_combat: bool = false    # forced by an opponent's card this turn
 
 
@@ -82,6 +83,7 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.attack_count_combat = attack_count_combat
 	p.last_searched = last_searched
 	p.pending_fight_back = pending_fight_back.duplicate(true)
+	p.pending_turn_end = pending_turn_end.duplicate(true)
 	p.must_declare_combat = must_declare_combat
 	return p
 

@@ -2,7 +2,7 @@ class_name GameState
 extends RefCounted
 ## Plain data for one duel. DuelEngine mutates it; nothing else should.
 
-enum Step { SETUP, DRAW, NON_COMBAT, POWER_UP, DECLARE, COMBAT, DISCARD, RECOVER, GAME_OVER }
+enum Step { SETUP, DRAW, NON_COMBAT, POWER_UP, DECLARE, COMBAT, DISCARD, RECOVER, TURN_END, GAME_OVER }
 enum Phase { NONE, PREPARE_ACTIVE, PREPARE_OPPOSING, OPPOSING_DRAW, ATTACK, DEFEND, BATTLE, FIGHT_BACK, COMBAT_END }
 
 var seed_value: int = 0

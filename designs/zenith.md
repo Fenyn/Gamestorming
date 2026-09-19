@@ -165,7 +165,7 @@ Relics: the three Masters become three worn relics, none of them a weapon, so an
 | 3 Power Up | Active | Duelist gains Energy equal to Surge Rate +1. Each Ally gains exactly 1. Never above highest stage |
 | 4 Declare | Active | Choose Combat or skip. Playing Grounds this turn forces a skip |
 | 5 Combat | Both | See below |
-| 6 Discard | Both | Active player discards down to 1 card, then the opponent does the same |
+| 6 Discard | Both | Active player discards down to 1 card, then the opponent does the same. **Deliberate exception to "the later revision wins":** the 2003 rulebook says keep 1, Score's CRD v11.24.04 says keep 2, and we keep 1 as canonical for the period we are modelling (user's call, 2026-09-18). Measured at 756 matches, keep 2 narrows the top of the field and costs the Ally deck about 4 points. `DuelEngine.HAND_KEEP` |
 | 7 Recover | Active | If Combat was not declared, may move the top discard card to the bottom of the Life Deck. The step always occurs; effects can hook it |
 
 ---
@@ -206,7 +206,7 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 11. In-control Ally may choose Seal capture instead of life-card damage, if that Ally has the capture trait.
 12. Energy damage is dealt.
 13. Life card damage is dealt one card at a time. Endurance may be used as each card flips.
-14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, discard an Ally the defender controls, or lower the defender's Fervor by 1. This is a game rule, so effects that protect Allies or Fervor from card effects do not stop it.
+14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, discard an Ally the defender controls, or lower the defender's Fervor by 1. Card text beats the rulebook, so a card that says an Ally cannot be discarded, or that Fervor cannot be lowered, stops that option here as it does anywhere else; the attacker picks from whatever is left. (Corrected 2026-09-18: this used to be treated as a game rule that overrode printed immunity, which contradicted the Golden Rule and was costing House Rooke 2.2 Allies a game.)
 15. "If successful" effects resolve, attacker picks the order.
 
 "Use when needed" cards fit between steps, never inside one. Outside Combat they can be used at any time.
@@ -236,7 +236,7 @@ Ladders follow the relaunch's lesson without its four aspects: duelists at the s
 | Type | Zone | Rules |
 |---|---|---|
 | Duelist | Aspect stack | Not in the Life Deck. Counts toward deck size |
-| Ally | In play | Placed in Non-Combat at Energy 3. Aspect must be at most the Duelist's current aspect. Overlay next aspect directly, set to highest stage. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation. Takes over Combat when the Duelist is at Energy 0 or 1, then uses its own Might. Power once per Combat. Fervor never applies to Allies. No same-aspect duplicate of an Ally in play across both players |
+| Ally | In play | Placed in Non-Combat at Energy 3. Aspect must be at most the Duelist's current aspect. Overlay next aspect directly, set to highest stage. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase, at battle step 4, and once per card whenever the opponent plays or uses a card outside their Defender Defends phase. Then uses its own Might. Power once per Combat. Fervor never applies to Allies. No same-aspect duplicate of an Ally in play across both players |
 | Strike | Hand | Performs or stops a Strike, or a utility. Endurance often printed |
 | Art | Hand | Performs or stops an Art. Non-attack uses cost no Energy |
 | Combat | Hand | Utility. All effects are secondary. Used in place of an attack or as a defense if it stops or prevents |
@@ -392,5 +392,6 @@ Starter pool as built 2026-09-15: six Duelists, ten Allies, three Relics, six Ma
 - Deck size default for v1 (50 minimum is legal).
 - Ascension pacing with unequal stacks: a 3-aspect Duelist wins Ascension at 15 Fervor, a 5-aspect one at 25. Accepted for now; taller stacks trade a slower Ascension win for stronger top aspects.
 - Might ladders were compressed onto the compact scale on 2026-09-16 (Ashmark no longer reaches band H at aspect 2, Corven now climbs to D). Per-duelist variety in Surge and Might stays; tune further from play.
+- Quarr's aspect 1 was pulled back to 3-12 on 2026-09-18, off the hand-raised 9-18 and onto the rung his source card sits at (it is the lowest aspect-1 ladder of the seven, as the printed card is). Over 756 matches it cost Steel 0.5 points of win rate, so Steel's lead is not coming from the Strike Table.
 - Restricted list policy: none in v1.
 - Tide or Bastion as the water school's style word.

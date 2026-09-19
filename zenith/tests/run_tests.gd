@@ -74,6 +74,9 @@ func _init() -> void:
 		test_critical_damage_choices,
 		test_final_strike_forces_pass,
 		test_ally_control_and_redirect,
+		test_ally_takes_control_when_the_opponent_uses_a_card,
+		test_only_one_ally_takes_control_per_card,
+		test_mastery_can_block_for_a_hand_card,
 		test_end_combat_effect,
 		test_blocked_energy_gain_is_reported,
 		test_events_carry_the_state_they_fired_at,
@@ -139,6 +142,7 @@ func _init() -> void:
 		test_draw_check_discard_and_else,
 		test_mastery_on_attack_and_blocks_to_bottom,
 		test_wound_trigger_at_fight_back,
+		test_wound_trigger_at_turn_end,
 		test_look_at_play_option,
 		test_bond_and_unbond,
 		test_search_by_effect,
@@ -173,6 +177,9 @@ func _init() -> void:
 		test_sim_for_hides_and_keeps,
 		test_ai_answers_every_prompt,
 		test_ai_search_reports_and_is_repeatable,
+		test_ai_values_a_fusion_by_what_it_gains,
+		test_duelist_constant_holds_while_an_ally_leads,
+		test_ai_follows_a_tutor_chain,
 		test_ai_evaluator_routes,
 		test_ai_seal_guard_and_climb_grounds,
 		test_attack_forecast_reports_energy_left,
@@ -256,6 +263,14 @@ func uid_in_hand(e: DuelEngine, player: int, id: String) -> int:
 func to_hand(e: DuelEngine, player: int, id: String) -> CardInstance:
 	var c: CardInstance = e._instance(lib.get_def(id), player, &"hand")
 	e.player(player).hand.append(c)
+	return c
+
+
+## A card put straight into the Life Deck, where a search can reach it. `deck()` cards near the
+## front are drawn into the opening hand instead, which a search of the deck cannot see.
+func to_deck(e: DuelEngine, player: int, id: String) -> CardInstance:
+	var c: CardInstance = e._instance(lib.get_def(id), player, &"life_deck")
+	e.player(player).life_deck.append(c)
 	return c
 
 
@@ -1161,36 +1176,46 @@ func test_capture_and_pending_win() -> void:
 	eq(e.state.win_reason, "seal", "seal reason")
 
 
-## Critical damage (5+ wounds in one attack) offers a Seal, an Ally, or the rival's Fervor.
+## Critical damage (5+ wounds in one attack) offers a Seal, an Ally, or the rival's Fervor. Card
+## text beats the rulebook, so a printed "cannot be discarded" or a Fervor shield takes that option
+## off the list here exactly as it would anywhere else, and a rival guarded on both gets no prompt.
 func test_critical_damage_choices() -> void:
-	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_relic_shield"))
+	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_relic_shield"))
 	var squire: CardInstance = inject(e, 1, "t_ally_squire")
-	check(e._ally_protected(e.player(1), squire), "the rival's constant protects Allies from card effects")
-	check(e.fervor_shielded(e.player(1)), "the rival's Relic shields Fervor from card effects")
+	check(e._ally_protected(e.player(1), squire), "the rival's constant protects Allies")
+	check(e.fervor_shielded(e.player(1)), "the rival's Relic shields Fervor")
 	e.player(1).fervor = 2
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
 	eq(prompt_kind(e), &"redirect", "the defender may hand the damage to the ally first")
 	answer(e, &"target", e.player(1).duelist.uid)
-	eq(prompt_kind(e), &"critical", "critical prompt with no Seals in play")
+	check(prompt_kind(e) != &"critical", "guarded on every count, so nothing is on offer")
+	eq(e.player(1).allies().size(), 1, "the ally is still there")
+	eq(e.player(1).fervor, 2, "and the Fervor is untouched")
+
+	# An unguarded rival still loses the Ally, or the Fervor, at the attacker's choice.
+	var open_field: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
+	var exposed: CardInstance = inject(open_field, 1, "t_ally_squire")
+	check(not open_field._ally_protected(open_field.player(1), exposed), "nothing guards this one")
+	open_field.player(1).fervor = 2
+	to_combat(open_field)
+	answer(open_field, &"attack", uid_in_hand(open_field, 0, "t_strike_wound"))
+	if prompt_kind(open_field) == &"redirect":
+		answer(open_field, &"target", open_field.player(1).duelist.uid)
+	eq(prompt_kind(open_field), &"critical", "critical prompt with no Seals in play")
 	var kinds: Array[StringName] = []
-	for o in e.prompt.options:
+	for o in open_field.prompt.options:
 		kinds.append(o.type)
-	check(kinds.has(&"discard_ally") and kinds.has(&"lower_fervor") and kinds.has(&"no_critical"), "ally, fervor and decline offered; protection is for card effects only")
+	check(kinds.has(&"discard_ally") and kinds.has(&"lower_fervor") and kinds.has(&"no_critical"), "ally, fervor and decline offered")
 	check(not kinds.has(&"capture"), "no Seal to capture")
-	answer(e, &"discard_ally", squire.uid)
-	eq(e.player(1).allies().size(), 0, "the ally is discarded")
-	check(has_event(e, &"critical_ally"), "critical_ally event")
-	answer(e, &"pass")
-	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
-	eq(prompt_kind(e), &"critical", "second critical hit")
-	answer(e, &"lower_fervor")
-	eq(e.player(1).fervor, 1, "rival fervor lowered by 1")
-	answer(e, &"pass")
-	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
-	eq(prompt_kind(e), &"critical", "third critical hit")
-	answer(e, &"lower_fervor")
-	eq(e.player(1).fervor, 0, "fervor floors at 0")
+	answer(open_field, &"discard_ally", exposed.uid)
+	eq(open_field.player(1).allies().size(), 0, "the unguarded ally is discarded")
+	check(has_event(open_field, &"critical_ally"), "critical_ally event")
+	answer(open_field, &"pass")
+	answer(open_field, &"attack", uid_in_hand(open_field, 0, "t_strike_wound"))
+	eq(prompt_kind(open_field), &"critical", "second critical hit")
+	answer(open_field, &"lower_fervor")
+	eq(open_field.player(1).fervor, 1, "rival fervor lowered by 1")
 	var wounded: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
 	to_combat(wounded)
 	answer(wounded, &"attack", uid_in_hand(wounded, 0, "t_strike_wound"))
@@ -1221,12 +1246,78 @@ func test_ally_control_and_redirect() -> void:
 	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
 	eq(prompt_kind(e), &"control", "control prompt at energy 1 with an ally")
 	answer(e, &"control", ally.uid)
-	# The ally in control is the only Ally, so there is nothing to redirect to and no prompt.
-	check(prompt_kind(e) != &"redirect", "no redirect prompt with a single target")
+	# An Ally holding Combat can still push the hit onto the Duelist, so the choice is offered.
+	eq(prompt_kind(e), &"redirect", "redirect prompt with the Duelist behind the Ally in control")
+	var targets: Array[int] = []
+	for o in e.prompt.options:
+		targets.append(o.card)
+	check(targets.has(e.player(0).duelist.uid), "the Duelist is one of the targets")
+	check(targets.has(ally.uid), "so is the Ally in control")
+	answer(e, &"target", ally.uid)
 	# attacker 4.0M band E vs ally might 300k band B = 4 stages: 3 to the ally, 1 wound
 	eq(ally.energy, 0, "ally absorbed the stages")
 	eq(e.player(0).discard.size(), 1, "overflow wound taken from the owner's deck")
 	eq(e.player(0).duelist.energy, 1, "duelist untouched")
+
+
+## "Whenever your opponent plays or uses a card outside of their Defender Defends phase, you may
+## have one Ally take control of Combat before any effects occur." The printed use is getting an
+## Ally in front of a card that is about to hit your Allies or your spent Duelist.
+func test_ally_takes_control_when_the_opponent_uses_a_card() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire"])), deck(filler(["t_taunt"]), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_ally_squire"))
+	var ally: CardInstance = e.player(0).allies()[0]
+	to_combat(e)
+	# Pass the phase over and let seat 1 use a card in place of an attack.
+	e.player(0).duelist.energy = 1
+	answer(e, &"pass")
+	answer(e, &"use", uid_in_hand(e, 1, "t_taunt"))
+	eq(prompt_kind(e), &"respond", "the card opens a window before any of it resolves")
+	eq(e.prompt.player, 0, "and the window belongs to the other player")
+	answer(e, &"control", ally.uid)
+	eq(e.player(0).in_control(), ally, "the Ally stepped in before the card resolved")
+	eq(e.player(1).fervor, 2, "and the card then resolved as normal")
+
+
+func test_only_one_ally_takes_control_per_card() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire"])), deck(filler(["t_taunt"]), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_ally_squire"))
+	var first: CardInstance = e.player(0).allies()[0]
+	var second: CardInstance = inject(e, 0, "t_ally_squire")
+	second.energy = 3
+	to_combat(e)
+	e.player(0).duelist.energy = 1
+	answer(e, &"pass")
+	answer(e, &"use", uid_in_hand(e, 1, "t_taunt"))
+	answer(e, &"control", first.uid)
+	check(prompt_kind(e) != &"respond", "the window does not reopen for the second Ally")
+	eq(e.player(0).in_control(), first, "the first Ally keeps control")
+	check(e.player(0).in_control() != second, "the second never got the offer")
+
+
+## A Mastery can be the block itself: "once per Combat, discard a card from your hand to stop an
+## attack, and if that card is one of yours, lower their Fervor". The discard is queued before the
+## Mastery's own lines, so the line that asks what was discarded reads it off the discard pile.
+func test_mastery_can_block_for_a_hand_card() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "tide", "t_mastery_block"), deck(filler(["t_strike"]), "pact"))
+	to_combat(e)
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
+	var mastery: CardInstance = e.player(0).mastery
+	eq(prompt_kind(e), &"defense", "the defender is asked")
+	var offered: bool = false
+	for o in e.prompt.options:
+		if o.card == mastery.uid:
+			offered = true
+	check(offered, "the Mastery is on the list of blocks")
+	var hand_before: int = e.player(0).hand.size()
+	answer(e, &"defend", mastery.uid)
+	if prompt_kind(e) == &"discard_choice":
+		answer(e, &"discard_choice", e.prompt.options[0].card)
+	eq(e.player(0).hand.size(), hand_before - 1, "it cost a card from hand")
+	check(has_event(e, &"attack_stopped"), "and it stopped the attack")
+	eq(mastery.power_used_combat, e.state.combat_count, "spent for this Combat")
+	check(e.player(0).mastery != null, "the Mastery itself stays in play")
 
 
 func test_end_combat_effect() -> void:
@@ -2469,6 +2560,26 @@ func test_wound_trigger_at_fight_back() -> void:
 	eq(e.player(1).fervor, 2, "its effect fired at the start of the fight-back phase")
 
 
+## The other wound timing: the CRD errata moves some of these to the end of the turn, after Combat
+## and the Discard step, which is its own window rather than a late fight-back.
+func test_wound_trigger_at_turn_end() -> void:
+	var cards: Array[String] = ["t_strike", "t_strike", "t_strike", "t_late_art"]
+	cards.append_array(filler())
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(cards, "pact"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	var wounded: bool = false
+	for c in e.player(1).discard:
+		if c.def.id == "t_late_art":
+			wounded = true
+	check(wounded, "the wound card was flipped")
+	eq(e.player(1).fervor, 0, "it has not fired yet: this is not a fight-back trigger")
+	eq(e.state.turn, 1, "still the first turn")
+	while e.state.turn == 1 and e.prompt != null:
+		answer(e, e.prompt.options[e.prompt.options.size() - 1].type, e.prompt.options[e.prompt.options.size() - 1].card)
+	eq(e.player(1).fervor, 2, "it fired as the turn ended")
+
+
 func test_look_at_play_option() -> void:
 	var cards: Array[String] = ["t_peek_top", "t_strike", "t_strike", "t_drill_footwork_named", "t_strike"]
 	cards.append_array(filler())
@@ -3203,6 +3314,72 @@ func test_ai_search_reports_and_is_repeatable() -> void:
 	eq(int(first.search.last_report[0]["samples"]), 3, "every option met all three deals")
 	eq(views_text(ref.engine), before, "thinking did not move the real duel")
 	eq(ref.submit(seat, a), "", "the referee accepts the choice")
+
+
+## A deck that runs two Allies for the card they fuse into should read the fusion as the plan, not
+## as one more Non-Combat to spend. The card is worth the bands the fused personality gains over the
+## partners it eats, and worth nothing at all until both partners are on the table.
+func test_ai_values_a_fusion_by_what_it_gains() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_bonding_rite"])), deck(filler(), "pact"))
+	var profile: AiProfile = AiProfile.default_profile()
+	profile.merge({"play": {"bond_band": 4.0}})
+	var rite: CardInstance = inject(e, 0, "t_bonding_rite")
+	var me: PlayerState = e.player(0)
+	eq(AiScorer._bond_value(e, me, rite.def, profile), 0.0, "nothing to fuse, nothing to value")
+	var first: CardInstance = inject(e, 0, "t_ally_twin_a")
+	first.energy = 3
+	eq(AiScorer._bond_value(e, me, rite.def, profile), 0.0, "one partner is still nothing")
+	var second: CardInstance = inject(e, 0, "t_ally_twin_b")
+	second.energy = 3
+	# Partners sit in band B on the fixture table; the fused card at 6.8M is band F.
+	var paid: float = AiScorer._bond_value(e, me, rite.def, profile)
+	check(paid >= 12.0, "both partners out makes the fusion worth the bands it gains: %.1f" % paid)
+	var plain: CardInstance = inject(e, 0, "t_drill_footwork_named")
+	eq(AiScorer._bond_value(e, me, plain.def, profile), 0.0, "a card that fuses nothing is not a fusion")
+
+
+## A Duelist's constant power does not switch itself off when an Ally takes over Combat. The CRD is
+## explicit about it, and it matters most for a constant that guards the Allies: they are exposed
+## exactly when one of them steps up to fight.
+func test_duelist_constant_holds_while_an_ally_leads() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire"]), "vigil", "", "", 3, "tf_warden"), deck(filler(), "pact"))
+	answer(e, &"place", uid_in_hand(e, 0, "t_ally_squire"))
+	var ally: CardInstance = e.player(0).allies()[0]
+	var me: PlayerState = e.player(0)
+	check(e._ally_protected(me, ally), "the Duelist guards them while she leads")
+	me.controlling = ally
+	check(e._ally_protected(me, ally), "and still guards them once the Ally leads")
+	eq(e._constant(me).get("protect_allies", false), true, "the Duelist's constant is still in force")
+
+
+## A deck whose payoff sits two searches away should read the first search as worth playing. Nothing
+## here names a card: the chain's value is the payoff's value, stepped down once per link, so a
+## deck's tutor priorities fall out of the weights it already has.
+func test_ai_follows_a_tutor_chain() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	to_deck(e, 0, "t_tutor_rite")
+	to_deck(e, 0, "t_bonding_rite")
+	var first: CardInstance = inject(e, 0, "t_ally_twin_a")
+	var second: CardInstance = inject(e, 0, "t_ally_twin_b")
+	first.energy = 3
+	second.energy = 3
+	var tutor: CardInstance = to_hand(e, 0, "t_tutor_tutor")
+	var flat: AiProfile = AiProfile.default_profile()
+	flat.merge({"play": {"bond_band": 4.0, "tutor_decay": 0.0}})
+	var chaining: AiProfile = AiProfile.default_profile()
+	chaining.merge({"play": {"bond_band": 4.0, "tutor_decay": 0.6}})
+	# The cache is only valid for one profile and one board, which is all `scores` ever asks of it.
+	AiScorer._value_cache.clear()
+	var plain: float = AiScorer.card_value(e, me, tutor, flat, AiScorer.TUTOR_DEPTH)
+	AiScorer._value_cache.clear()
+	var chained: float = AiScorer.card_value(e, me, tutor, chaining, AiScorer.TUTOR_DEPTH)
+	check(chained > plain + 4.0, "two links away, the fusion still pulls the first search: %.1f against %.1f" % [chained, plain])
+	# And the far end is worth more than the road to it, so nothing prefers the tutor to the payoff.
+	AiScorer._value_cache.clear()
+	var rite: CardInstance = to_hand(e, 0, "t_bonding_rite")
+	var payoff: float = AiScorer.card_value(e, me, rite, chaining, AiScorer.TUTOR_DEPTH)
+	check(payoff > chained, "the fusion itself outranks the card that goes to find it")
 
 
 ## Each win route moves the evaluation: fewer life cards is worse, Seals and Ascension are better,

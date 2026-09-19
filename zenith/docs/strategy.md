@@ -34,6 +34,10 @@ Strike lands.
 
 ## 2. Tactics that hold for every deck
 
+**Count the two ladders before turn one.** The Most Powerful Personality rule (house rule, 2026-09-19) means a duelist whose announced Aspect ladder is taller than the rival's wins by entering the first Aspect above the rival's top one, with no second Fervor peak. Five Aspects against three wins on Aspect 4. This makes the Aspect count a matchup fact rather than a deck stat: the same five-Aspect deck has a live Ascension route against every three-Aspect deck in the field and none at all against another five-Aspect one, where the old top-Aspect-plus-a-meter road is all there is.
+
+The two roads cost about the same, so this rewards no one by default: five against three is three climbs (15 Fervor) and three against three is two climbs and a last meter (also 15). What it changes is *which* deck is racing. When your ladder is taller, Fervor is a win route and should be spent climbing; when it is level or shorter, Fervor is only a damage ramp toward the better Aspect Powers, and a profile that chases Ascension anyway will throw games away. Check `own.ascension` against the deck's Aspect count before anything else.
+
 **Spend stages that were leaving anyway.** If the incoming attack cannot be stopped, the Energy
 in your gauge is already the opponent's. Converting it into an Art first is free damage. The wrong
 question is "how much Energy will I have left"; the right one is "will I still hold this Energy when

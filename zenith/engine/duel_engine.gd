@@ -3996,21 +3996,48 @@ func fervor_shielded(p: PlayerState) -> bool:
 
 ## Full Fervor raises the duelist an aspect. At the duelist's own top aspect it is the Ascension win;
 ## a forbidden Ascension win falls back to the old peak (full Energy, Fervor to 0).
+## The Aspect that wins outright by standing above everything the rival can field, or 0 when there
+## is no such Aspect. A duelist whose ladder is taller than their rival's only has to reach the
+## first rung above the rival's top one; when the two ladders are the same height nothing is above
+## theirs and the Fervor route is the only one. Read off what each side may reach, not where they
+## currently stand, so it does not move during the duel.
+func mppv_aspect(p: PlayerState) -> int:
+	var needed: int = state.players[1 - p.index].highest_aspect + 1
+	return needed if needed <= p.highest_aspect else 0
+
+
+## Both ways the climb ends the duel. True when the duel is over or the question is waiting on the
+## rival's answer.
+func _try_ascension_win(p: PlayerState) -> bool:
+	if p.no_ascension_win:
+		return false
+	var mppv: int = mppv_aspect(p)
+	var by_mppv: bool = mppv > 0 and p.duelist.aspect >= mppv
+	var by_fervor: bool = p.duelist.aspect >= p.highest_aspect and p.fervor >= fervor_needed(p)
+	if not by_mppv and not by_fervor:
+		return false
+	# A card may answer the win itself ("use this when your opponent would win by Ascension").
+	if _open_ascension_window(p):
+		return true
+	_win(p.index, "ascension")
+	return true
+
+
 func _check_aspect_up(p: PlayerState) -> void:
+	# Standing above the rival's whole ladder is the win on its own and does not wait for Fervor.
+	if mppv_aspect(p) > 0 and p.duelist.aspect >= mppv_aspect(p) and _try_ascension_win(p):
+		return
 	if p.fervor < fervor_needed(p):
 		return
 	if p.duelist.aspect < p.highest_aspect:
 		p.fervor = 0
 		_aspect_up(p)
-	elif not p.no_ascension_win:
-		# A card may answer the win itself ("use this when your opponent would win by Ascension").
-		if _open_ascension_window(p):
-			return
-		_win(p.index, "ascension")
-	else:
-		p.fervor = 0
-		p.duelist.energy = CardInstance.MAX_STAGE
-		_emit(&"fervor_peak", {"player": p.index, "energy": p.duelist.energy})
+		return
+	if _try_ascension_win(p):
+		return
+	p.fervor = 0
+	p.duelist.energy = CardInstance.MAX_STAGE
+	_emit(&"fervor_peak", {"player": p.index, "energy": p.duelist.energy})
 
 
 func _aspect_up(p: PlayerState) -> void:
@@ -4018,6 +4045,8 @@ func _aspect_up(p: PlayerState) -> void:
 	p.duelist.energy = CardInstance.MAX_STAGE
 	_discard_drills(p)
 	_emit(&"aspect_up", {"player": p.index, "aspect": p.duelist.aspect})
+	# Entering the Aspect is itself the Most Powerful Personality win, however the climb was paid for.
+	_try_ascension_win(p)
 
 
 func _lose_aspect(p: PlayerState, source_owner: int) -> void:
@@ -4040,6 +4069,9 @@ func _set_aspect(p: PlayerState, e: Dictionary, source_owner: int) -> void:
 		target = 1
 	while p.duelist.aspect < target:
 		_aspect_up(p)
+		# A climb can end the duel partway up, or stop for the rival's answer to it.
+		if state.is_over() or prompt != null:
+			return
 	while p.duelist.aspect > target:
 		var before: int = p.duelist.aspect
 		_lose_aspect(p, source_owner)

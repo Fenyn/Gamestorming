@@ -210,6 +210,7 @@ func _init() -> void:
 		test_an_ally_can_block_for_one_named_personality,
 		test_a_printed_limit_beats_the_signature_allowance,
 		test_an_ally_power_refreshes_each_combat,
+		test_the_taller_ladder_wins_by_standing_above_it,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -3518,6 +3519,57 @@ func test_an_ally_power_refreshes_each_combat() -> void:
 	check(e._power_available(me, ally), "an Ally refreshes each Combat")
 	e.state.combat_count -= 1
 	check(not e._power_available(me, ally), "and not otherwise")
+
+
+## Most Powerful Personality: a duelist whose ladder is taller than the rival's wins the moment
+## they enter the first Aspect above everything the rival can reach. Level ladders leave no such
+## Aspect, and then the Fervor route is the only one.
+func test_the_taller_ladder_wins_by_standing_above_it() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
+	eq(e.player(0).highest_aspect, 5, "five Aspects")
+	eq(e.player(1).highest_aspect, 3, "against three")
+	eq(e.mppv_aspect(e.player(0)), 4, "so Aspect 4 is the winning rung")
+	eq(e.mppv_aspect(e.player(1)), 0, "and the shorter ladder has no rung above the taller one")
+	to_combat(e)
+	e.player(0).duelist.aspect = 3
+	e.player(0).fervor = 4
+	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
+	eq(e.player(0).duelist.aspect, 4, "the climb lands on Aspect 4")
+	check(e.is_over(), "and entering it ends the duel outright, with the Fervor meter empty")
+	eq(e.state.winner, 0, "the taller ladder won")
+	eq(e.state.win_reason, "ascension", "recorded as an Ascension win")
+
+	# Level ladders: climbing the same Aspect proves nothing.
+	var f: DuelEngine = engine(deck(filler(["t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact", "", "", 5, "tf_titan"))
+	eq(f.mppv_aspect(f.player(0)), 0, "level ladders leave no rung above")
+	to_combat(f)
+	f.player(0).duelist.aspect = 3
+	f.player(0).fervor = 4
+	answer(f, &"use", uid_in_hand(f, 0, "t_taunt"))
+	eq(f.player(0).duelist.aspect, 4, "it still climbs")
+	check(not f.is_over(), "but climbing is not the win when the rival can match the Aspect")
+
+	# The relic that gives up the Ascension win gives up this route with it.
+	var g: DuelEngine = engine(deck(filler(["t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
+	to_combat(g)
+	g.player(0).no_ascension_win = true
+	g.player(0).duelist.aspect = 3
+	g.player(0).fervor = 4
+	answer(g, &"use", uid_in_hand(g, 0, "t_taunt"))
+	eq(g.player(0).duelist.aspect, 4, "the climb still happens")
+	check(not g.is_over(), "but a duelist who cannot win by Ascension cannot win this way either")
+
+	# And the card that answers an Ascension win answers this one: it drops the Aspect back under.
+	var h: DuelEngine = engine(deck(filler(["t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
+	inject(h, 1, "t_reckoning")
+	to_combat(h)
+	h.player(0).duelist.aspect = 3
+	h.player(0).fervor = 4
+	answer(h, &"use", uid_in_hand(h, 0, "t_taunt"))
+	eq(prompt_kind(h), &"respond", "the rival is asked before the win stands")
+	answer(h, &"use", h.player(1).non_combats()[0].uid)
+	eq(h.player(0).duelist.aspect, 3, "the answer knocked them back down a rung")
+	check(not h.is_over(), "so the win does not stand")
 
 
 # --- Simulation support ----------------------------------------------------

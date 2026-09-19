@@ -8,7 +8,7 @@ Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code na
 **Genre:** Collectible card duel, Arena-style client
 **Players:** 2 (hotseat first, online later), plus AI opponents for an adventure mode
 **Presentation target:** a full digital client in the style of MTG Arena: a 3D table, animated card movement, response prompts, combat log
-**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
+**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. One house rule on top of those: the Most Powerful Personality win (see Winning). Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
 
 **IP rule:** all names, characters, art, styles, and lore are original. No source-material terms appear in code, data, assets, or this doc. Mechanics are emulated; flavor is not.
 
@@ -41,7 +41,7 @@ The rename pass ran on 2026-09-17: this doc, the code, the data and the card tex
 | Relic, Reserve | A relic of great power that the duelist wears, usable by any school or by none. Its Reserve is the spare spells and techniques it lets the wearer hold beyond their own mind. Relic powers channel the artifact itself |
 | Mastery, Style | The school a duelist follows. Every deck follows one Style and carries that school's Mastery |
 | Alignment | Vigil, Pact, or Hedge (declares at setup). See The Vigil and the Pact below |
-| Ascension win | Full attunement. The duelist reaches their last Aspect, the fervor peaks once more, and the site answers to them |
+| Ascension win | Full attunement, by either road. The duelist reaches their last Aspect and the fervor peaks once more; **or** they stand on an Aspect above everything the rival can reach, and the site answers to them |
 | Unsealing win | All seven seals of one set are carved, the gate opens, and the Eidolon comes through answering to the one who carved them |
 | Survival win | The rival's mind gives out and they have nothing left to cast |
 
@@ -156,7 +156,7 @@ Relics: the three Masters become three worn relics, none of them a weapon, so an
 
 ## Setup
 
-1. Aspects stacked face up, the first Aspect on top. Announce your highest aspect. That aspect is your Ascension win target.
+1. Aspects stacked face up, the first Aspect on top. Announce your highest aspect. That aspect is your Ascension win target, and both announcements together fix the Most Powerful Personality target for the duel.
 2. Hedge duelists declare Vigil or Pact.
 3. Place Relic and Mastery. The Mastery's school is the deck's Style. Nothing is declared.
 4. Duelist starts at Energy 5 above 0. Fervor starts at 0.
@@ -174,6 +174,8 @@ Relics: the three Masters become three worn relics, none of them a weapon, so an
 - **Wild Might.** A stage showing Wild instead of a number always yields base damage 2 on the Strike Table, attacking or defending. Double Power Rule ignores Wild.
 - **Fervor** runs 0 to 5, tracked once per player. At 5 or more: put the current aspect at the bottom of the stack, reveal the next aspect, set Energy to highest, discard all your Drills, Fervor to 0. Excess does not carry over.
 - **At top aspect** with Fervor 5 or more (or the current requirement): Ascension win. If a card effect has forbidden your Ascension win, instead set Energy to highest, Fervor to 0, keep Drills, no extra Power use.
+- **Most Powerful Personality.** House rule, 2026-09-19. Entering an Aspect above every Aspect the rival can reach is itself an Ascension win, with no second Fervor peak. It is only available to a duelist whose announced ladder is taller than the rival's: with five Aspects against three, Aspect 4 wins. Level ladders leave no such Aspect and the Fervor road is the only one. It reads off what each side announced at setup, not where they stand, so the target does not move during the duel. It is the same win, so the same things gate it: a duelist forbidden the Ascension win cannot take this road, and a card that answers an Ascension win answers this one.
+- The two roads cost about the same, which is why the rule balances rather than rewarding tall ladders. Five Aspects against three is three climbs, 15 Fervor; three Aspects against three is two climbs and a last full meter, also 15. Five against five is four climbs and a meter, 25, for both.
 - **Losing an aspect** (card effects only): set Energy to 5 above 0, Fervor unchanged, discard Drills.
 - Aspect changes by any means other than Fervor do not change Fervor.
 

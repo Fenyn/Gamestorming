@@ -278,6 +278,8 @@ There is one **Personality** type, not a Duelist type and an Ally type (merged 2
 
 ## Schools and Style
 
+Signature identity is recorded in a card's `character` metadata regardless of card type. Named Drills and Non-Combats qualify for their Duelist's signature discard and search effects, including Freestyle Mastery. Searching into hand does not require the card to be playable in the current phase.
+
 The first word of a card title sets its school. Everything else is Freestyle. Signature cards carry a duelist's name anywhere in the title. Each school is a school of magic (retheme 2026-09-17), and the six read as six elements: fire, water, storm, shadow, metal and wood. Every school has both melee and ranged spellwork; the schools differ in how they lean and in which win they play toward. Freestyle is mundane skill with no magic in it.
 
 | Style word | School | Doctrine | Identity | Leans | Plays toward | Trades away |

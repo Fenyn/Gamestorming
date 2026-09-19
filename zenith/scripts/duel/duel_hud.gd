@@ -71,18 +71,20 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var prompt_panel: PanelContainer = $Root/PromptPanel
 @onready var prompt_who: Label = $Root/PromptPanel/Column/Who
 @onready var prompt_title: Label = $Root/PromptPanel/Column/Title
-@onready var prompt_banner: Label = $Root/PromptPanel/Column/Banner
-@onready var prompt_hero: HBoxContainer = $Root/PromptPanel/Column/Hero
-@onready var hero_value: Label = $Root/PromptPanel/Column/Hero/Value
-@onready var hero_name: Label = $Root/PromptPanel/Column/Hero/Side/Name
-@onready var hero_delta: Label = $Root/PromptPanel/Column/Hero/Side/Delta
-@onready var prompt_facts: HBoxContainer = $Root/PromptPanel/Column/Facts
+@onready var exchange_rail: HBoxContainer = $Root/PromptPanel/Column/Exchange
+@onready var exchange_state: Label = $Root/PromptPanel/Column/Exchange/Lines/State
+@onready var exchange_route: Label = $Root/PromptPanel/Column/Exchange/Lines/Route
+@onready var exchange_response: Label = $Root/PromptPanel/Column/Exchange/Lines/Response
+@onready var exchange_damage: Label = $Root/PromptPanel/Column/Exchange/Lines/Damage
+@onready var exchange_stops: Label = $Root/PromptPanel/Column/Exchange/Lines/Stops
 @onready var focus: Control = $Root/Focus
 @onready var focus_caption: Label = $Root/Focus/Caption
 @onready var focus_face: CardFace = $Root/Focus/Face
-@onready var prompt_outcome: Label = $Root/PromptPanel/Column/Outcome
+@onready var prompt_outcome: Label = $Root/PromptPanel/Column/Exchange/Lines/Outcome
 @onready var prompt_hint: Label = $Root/PromptPanel/Column/Hint
-@onready var primary_box: VBoxContainer = $Root/PromptPanel/Column/Primary
+@onready var primary_box: VBoxContainer = $Root/PromptPanel/Column/Actions/Primary
+@onready var actions_scroll: ScrollContainer = $Root/PromptPanel/Column/Actions
+@onready var prompt_column: VBoxContainer = $Root/PromptPanel/Column
 @onready var tray: ColorRect = $Root/Tray
 @onready var tray_who: Label = $Root/Tray/Center/Panel/Column/Who
 @onready var tray_title: Label = $Root/Tray/Center/Panel/Column/Title
@@ -117,13 +119,15 @@ var _confirm: Button = null
 var _online: bool = false
 var _is_host: bool = false
 var _toast: Tween = null
-var _hero_base: int = -1               # the wound count the hero number sits at with no hover
+var _fitting_actions: bool = false
+var _damage_available: bool = false
+var _exchange_before_preview: bool = false
 
 
 func _ready() -> void:
 	root.theme = ZenithTheme.get_theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
-	prompt_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.88), Color(0.34, 0.48, 0.6, 0.3), 20, 1, 20, 16))
+	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.7), Color.TRANSPARENT, 14, 0, 14, 10))
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
@@ -151,6 +155,45 @@ func _ready() -> void:
 	log_toggle.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
 	dev_toggle.pressed.connect(func() -> void: dev_panel.visible = not dev_panel.visible)
 	dev_panel.command.connect(func(effect: Dictionary) -> void: dev_command.emit(effect))
+	root.resized.connect(_layout_prompt_column)
+	primary_box.minimum_size_changed.connect(_fit_actions)
+	prompt_column.minimum_size_changed.connect(_fit_actions)
+	_compact_prompt()
+
+
+## One column: a real card, computed consequences, then offered controls. Printed card
+## identity and rules remain on the face; ordinary response prose does not repeat them.
+func _compact_prompt() -> void:
+	prompt_who.hide()
+	prompt_title.visible = not focus.visible or (_current_prompt != null and _current_prompt.kind not in [&"defense", &"respond", &"endurance", &"attack_action"])
+	prompt_hint.hide()
+	exchange_state.hide()
+	exchange_route.hide()
+	exchange_response.hide()
+	_layout_prompt_column()
+
+
+func _layout_prompt_column() -> void:
+	if focus == null or prompt_panel == null:
+		return
+	prompt_panel.offset_left = focus.offset_left
+	prompt_panel.offset_right = focus.offset_right
+	prompt_panel.offset_top = focus.offset_top + 32.0 + focus.size.x * 716.0 / 512.0 + 12.0 if focus.visible else 210.0
+	# Let the VBox determine height again after a larger prior decision.
+	prompt_panel.offset_bottom = prompt_panel.offset_top
+	_fit_actions()
+
+
+func _fit_actions() -> void:
+	if _fitting_actions or actions_scroll == null:
+		return
+	_fitting_actions = true
+	var outside: float = maxf(0.0, prompt_column.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
+	var available: float = maxf(60.0, root.size.y - prompt_panel.offset_top - outside - 24.0)
+	var desired: float = minf(primary_box.get_combined_minimum_size().y, minf(260.0, available))
+	actions_scroll.custom_minimum_size.y = desired
+	actions_scroll.visible = primary_box.get_child_count() > 0
+	_fitting_actions = false
 
 
 func set_loading(on: bool) -> void:
@@ -321,9 +364,11 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	prompt_who.add_theme_color_override("font_color", Palette.school_ui(who.style))
 	prompt_title.text = p.title
 	_show_attack(view, p)
+	prompt_who.visible = not exchange_rail.visible
 	show_focus(_focus_uid(p), _focus_caption(p))
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
+	_compact_prompt()
 	# Cards the player can already click in the hand or on the table stay there, highlighted.
 	# Cards that need browsing (a Reserve, a look at the deck, a keep) open in the tray.
 	# A Final Strike is offered on every hand card and commits the rest of the Combat, so it
@@ -370,56 +415,140 @@ func _needs_tray(p: PromptView, opt: OptionView) -> bool:
 	return c == null or c.zone == &"life_deck" or c.zone == &"reserve"
 
 
-## The attack in the air, when there is one: a headline chip (kind, source, what makes it hard)
-## and the two or three numbers the decision actually turns on, as big tiles. The step-by-step
-## damage maths lives under the card in the focus view, not here.
+## A public exchange, not a simulated stack. Pending and resolved quantities stay separate.
 func _show_attack(view: SeatView, p: PromptView = null) -> void:
 	prompt_outcome.hide()
+	_damage_available = false
 	var a: Dictionary = view.attack
-	var head: String = _attack_headline(view)
-	prompt_banner.visible = head != ""
-	prompt_banner.text = head
-	var mine: bool = not a.is_empty() and int(a.get("attacker", -1)) == view.seat
-	ZenithTheme.chip(prompt_banner, ZenithTheme.ATTACK if mine else ZenithTheme.DEFEND)
-	_show_hero(view, p)
-	# Keep Energy and stop requirements visible alongside wound previews.
-	var facts: Array[Dictionary] = _facts_for(view, p)
-	if prompt_hero.visible:
-		facts = facts.filter(func(f: Dictionary) -> bool: return str(f["name"]) != "Wounds")
-	_fill_facts(facts)
-
-
-## The one number a damage decision turns on: the life cards about to be lost, counting the
-## Energy that would overflow into them. It leads the panel and changes as the player hovers a
-## choice. An attack that costs no life cards has no number to lead with, so the panel falls
-## back to its tiles rather than showing a large and meaningless zero.
-func _show_hero(view: SeatView, p: PromptView) -> void:
-	_hero_base = -1
-	if not view.attack.is_empty():
-		if p != null:
-			for o in p.options:
-				if o.outcome.has("life"):
-					# The worst of them is where the player stands before choosing.
-					_hero_base = maxi(_hero_base, int(o.outcome["life"]))
-		else:
-			# The seat watching the decision sees the same number, without the options.
-			_hero_base = _incoming_wounds(view)
-	prompt_hero.visible = _hero_base > 0
-	if not prompt_hero.visible:
+	var source: String = str(a.get("source_title", ""))
+	if source.is_empty() and not a.is_empty():
+		source = str(a.get("performer_title", "Attack")) + (" power" if bool(a.get("is_power", false)) else "")
+	if source.is_empty() and not a.is_empty():
+		source = "Attack"
+	var announced: SeatCard = view.card(view.pending_card)
+	if source.is_empty() and announced != null and not announced.hidden():
+		source = announced.title
+	var resolving: PackedStringArray = PackedStringArray()
+	for uid in view.resolving:
+		var card: SeatCard = view.card(uid)
+		if card != null and not card.hidden():
+			resolving.append(card.title)
+	if source.is_empty() and not resolving.is_empty():
+		source = resolving[0] if resolving.size() == 1 else "%d cards resolving" % resolving.size()
+	if source.is_empty() and p != null:
+		var pending: SeatCard = view.card(int(p.context.get("source", p.context.get("card", -1))))
+		if pending != null and not pending.hidden():
+			source = pending.title
+	if source.is_empty() and a.is_empty() and view.step == GameState.Step.COMBAT and not view.last_attack.is_empty():
+		_show_last_exchange(view.last_attack)
 		return
-	hero_name.text = "WOUND INCOMING" if _hero_base == 1 else "WOUNDS INCOMING"
-	_preview_outcome({})
+	exchange_rail.visible = not source.is_empty() or not a.is_empty()
+	if not exchange_rail.visible:
+		return
+	var stopped: bool = bool(a.get("stopped", false))
+	var landed: bool = bool(a.get("landed", false))
+	var kind: String = "Final Strike" if bool(a.get("is_final", false)) else ("Strike" if str(a.get("kind", "strike")) == "strike" else "Art")
+	if bool(a.get("focused", false)):
+		kind = "Focused " + kind
+	exchange_state.text = "RESPONSE WINDOW" if a.is_empty() else ("STOPPED" if stopped else ("DAMAGE RESOLVING" if landed else kind.to_upper()))
+	exchange_state.add_theme_color_override("font_color", ZenithTheme.DEFEND if stopped else ZenithTheme.ACCENT)
+	var target: SeatCard = view.card(int(a.get("target", -1)))
+	var defender: int = int(a.get("defender", -1))
+	if target == null and defender >= 0 and defender < view.players.size():
+		target = view.card(view.player(defender).controlling)
+	exchange_route.text = source
+	exchange_route.tooltip_text = "\n".join(resolving) if a.is_empty() and announced == null else ""
+	if target != null and not target.hidden():
+		exchange_route.text += "\n" + String.chr(0x2192) + " " + target.title
+	var responder: int = p.player if p != null else view.deciding
+	var decision: StringName = p.kind if p != null else view.deciding_kind
+	if a.is_empty():
+		exchange_state.text = "RESPONSE WINDOW" if decision == &"respond" else "RESOLVING"
+	exchange_response.visible = responder >= 0 and responder < view.players.size()
+	if exchange_response.visible:
+		var who: String = "You" if responder == view.seat else view.player(responder).name
+		match decision:
+			&"defense":
+				exchange_response.text = who + " may defend"
+			&"respond":
+				exchange_response.text = who + " may respond"
+				if not a.is_empty() and announced != null and not announced.hidden() and announced.uid != int(a.get("source", -1)):
+					exchange_response.text += " to " + announced.title
+			&"endurance":
+				exchange_response.text = who + " may use Endurance"
+			_:
+				exchange_response.text = who + " choosing"
+		exchange_response.add_theme_color_override("font_color", ZenithTheme.DEFEND if responder == view.seat else ZenithTheme.MUTED)
+	_damage_available = not a.is_empty() and not (decision == &"respond" and announced != null and announced.uid != int(a.get("source", -1)))
+	exchange_damage.visible = _damage_available
+	if stopped:
+		var stopper: String = str(a.get("stopped_by_title", ""))
+		exchange_damage.text = "Stopped" + (" by " + stopper if not stopper.is_empty() else "")
+	elif landed:
+		exchange_damage.text = "Dealt %d Energy / %s" % [int(a.get("stages_dealt", 0)), _wounds(int(a.get("life_dealt", 0)))]
+		var remaining: int = int(a.get("life_remaining", 0))
+		if remaining > 0:
+			exchange_damage.text += "\n%s still to resolve" % _wounds(remaining)
+	else:
+		var damage: Dictionary = a.get("damage", {})
+		exchange_damage.text = "%d Energy / %s" % [int(damage.get("stages", 0)), _wounds(int(damage.get("wounds", damage.get("life", 0))))]
+	exchange_damage.add_theme_color_override("font_color", ZenithTheme.DEFEND if stopped else ZenithTheme.TEXT)
+	var details: PackedStringArray = PackedStringArray()
+	if not a.is_empty() and not stopped and not landed:
+		if bool(a.get("empowered", false)):
+			details.append("Empowered")
+		if bool(a.get("unstoppable", false)):
+			details.append("Cannot be stopped")
+		else:
+			var needed: int = int(a.get("stops_needed", 1))
+			var done: int = int(a.get("stop_count", 0))
+			if needed > 1 or done > 0:
+				details.append("Stops %d / %d | %d more needed" % [done, needed, maxi(0, needed - done)])
+		if bool(a.get("no_prevent", false)):
+			details.append("Damage cannot be prevented")
+	if stopped and int(a.get("stop_count", 0)) > 0:
+		details.append("Stops %d / %d | complete" % [int(a.get("stop_count", 0)), int(a.get("stops_needed", 1))])
+	if not _damage_available:
+		details.clear()
+	exchange_stops.text = "\n".join(details)
+	exchange_stops.visible = not details.is_empty()
+	_reserve_status_height()
+	_compact_prompt()
 
 
-## Life cards the attack in the air would cost right now: its own wounds plus the Energy that
-## overflows past what the target is standing on, or what is left to flip once it is landing.
-func _incoming_wounds(view: SeatView) -> int:
-	var a: Dictionary = view.attack
-	if a.is_empty() or bool(a.get("stopped", false)):
-		return 0
-	if int(a.get("life_remaining", 0)) > 0:
-		return int(a["life_remaining"])
-	return int((a.get("damage", {}) as Dictionary).get("wounds", 0))
+func _reserve_status_height() -> void:
+	# Both labels occupy one slot. Hover must not move the button being pointed at.
+	exchange_damage.custom_minimum_size.y = 0.0
+	var height: float = maxf(54.0, exchange_damage.get_combined_minimum_size().y)
+	exchange_damage.custom_minimum_size.y = height
+	prompt_outcome.custom_minimum_size.y = height
+
+
+func _wounds(amount: int) -> String:
+	return tr_n("%d wound", "%d wounds", amount) % amount
+
+
+func _show_last_exchange(result: Dictionary) -> void:
+	exchange_rail.show()
+	exchange_state.text = "LAST EXCHANGE / RESOLVED"
+	exchange_state.add_theme_color_override("font_color", ZenithTheme.MUTED)
+	exchange_route.text = str(result.get("source_title", ""))
+	if exchange_route.text.is_empty():
+		exchange_route.text = str(result.get("performer_title", "Attack")) + (" power" if bool(result.get("is_power", false)) else "")
+	exchange_route.tooltip_text = str(result.get("target_title", ""))
+	exchange_response.hide()
+	exchange_stops.hide()
+	_damage_available = true
+	exchange_damage.show()
+	if bool(result.get("stopped", false)):
+		var stopper: String = str(result.get("stopped_by_title", ""))
+		exchange_damage.text = "Last: stopped"
+		exchange_damage.tooltip_text = "Stopped by " + stopper if not stopper.is_empty() else ""
+		exchange_damage.add_theme_color_override("font_color", ZenithTheme.DEFEND)
+	else:
+		exchange_damage.text = "Last: %d Energy / %s dealt" % [int(result.get("stages_dealt", 0)), _wounds(int(result.get("life_dealt", 0)))]
+		exchange_damage.add_theme_color_override("font_color", ZenithTheme.MUTED)
+	_compact_prompt()
 
 
 ## The outcome of the option a hand or table card would take, when it carries one (defending
@@ -433,96 +562,23 @@ func _card_outcome(uid: int) -> Dictionary:
 	return {}
 
 
-## Draws the hero number for an option the player is hovering, or the standing number for {}.
+## Referee-provided choice outcomes are previews, never replacements for public damage.
 func _preview_outcome(outcome: Dictionary) -> void:
-	# These are referee-provided remaining damage values, not a client simulation of effects.
-	prompt_outcome.visible = outcome.has("stages") or outcome.has("stopped")
-	if prompt_outcome.visible:
-		var stopped: bool = bool(outcome.get("stopped", false))
-		prompt_outcome.text = "After choice: Stopped" if stopped else "After choice: %d Energy, %d wounds" % [int(outcome.get("stages", 0)), int(outcome.get("life", 0))]
-		prompt_outcome.add_theme_color_override("font_color", ZenithTheme.DEFEND if stopped else ZenithTheme.TEXT)
-	if _hero_base < 0:
+	if not prompt_outcome.visible:
+		_exchange_before_preview = exchange_rail.visible
+	prompt_outcome.visible = outcome.has("stages") or outcome.has("stopped") or outcome.has("life")
+	exchange_rail.visible = true if prompt_outcome.visible else _exchange_before_preview
+	exchange_damage.visible = _damage_available and not prompt_outcome.visible
+	if not prompt_outcome.visible:
 		return
-	var shown: int = int(outcome.get("life", _hero_base))
-	var delta: int = shown - _hero_base
-	hero_value.text = str(shown)
-	hero_value.add_theme_color_override("font_color",
-		ZenithTheme.DEFEND if delta < 0 else (ZenithTheme.TEXT if shown == 0 else ZenithTheme.ATTACK))
-	hero_delta.visible = not outcome.is_empty()
-	hero_delta.text = "From %d to %d" % [_hero_base, shown] if delta != 0 else "Same as incoming"
-	hero_delta.add_theme_color_override("font_color", ZenithTheme.DEFEND if delta < 0 else ZenithTheme.MUTED)
-
-
-## Up to three headline numbers for the decision at hand. Each is {name, value, sub, color}.
-func _facts_for(view: SeatView, p: PromptView) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	var a: Dictionary = view.attack
-	if a.is_empty():
-		return out
-	if bool(a.get("stopped", false)):
-		out.append({"name": "Attack", "value": "Stopped", "sub": "", "color": ZenithTheme.DEFEND})
-		return out
-	var d: Dictionary = a.get("damage", {})
-	var landed: bool = bool(a.get("landed", false))
-	var stages: int = int(a.get("stages", 0)) if landed else int(d.get("stages", 0))
-	var life: int = int(a.get("life", 0)) if landed else int(d.get("wounds", d.get("life", 0)))
-	if stages > 0:
-		out.append({"name": "Energy", "value": str(stages), "sub": "off the target", "color": ZenithTheme.ATTACK})
-	if life > 0:
-		var over: int = int(d.get("overflow", 0))
-		out.append({"name": "Wounds", "value": str(life), "sub": "%d from overflow" % over if over > 0 else "life cards", "color": ZenithTheme.ATTACK})
-	var remaining: int = int(a.get("life_remaining", 0))
-	if remaining > 0:
-		out.append({"name": "To flip", "value": str(remaining), "sub": "still coming", "color": ZenithTheme.WARN})
-	if p != null and p.kind == &"endurance":
-		# The one number this choice is about: how much of what is still coming it buys off.
-		var prevents: int = mini(int(p.context.get("endurance", 0)), int(p.context.get("remaining", 0)))
-		out = [{"name": "To flip", "value": str(int(p.context.get("remaining", 0))), "sub": "still coming", "color": ZenithTheme.WARN},
-			{"name": "Prevents", "value": str(prevents), "sub": "if you spend it", "color": ZenithTheme.DEFEND}]
-	elif int(a.get("stops_needed", 1)) > 1:
-		out.append({"name": "Stops", "value": str(int(a.get("stops_needed", 1))), "sub": "needed", "color": ZenithTheme.DEFEND})
-	return out.slice(0, 3)
-
-
-func _fill_facts(facts: Array[Dictionary]) -> void:
-	for child in prompt_facts.get_children():
-		child.queue_free()
-	prompt_facts.visible = not facts.is_empty()
-	for f in facts:
-		var detail: Label = Label.new()
-		detail.text = "%s %s" % [str(f["value"]), str(f["name"])] + (" incoming" if str(f["name"]) == "Energy" else "")
-		detail.tooltip_text = str(f["sub"])
-		detail.add_theme_font_size_override("font_size", 24)
-		detail.add_theme_color_override("font_color", f["color"])
-		prompt_facts.add_child(detail)
-
-
-func _attack_headline(view: SeatView) -> String:
-	var a: Dictionary = view.attack
-	if a.is_empty():
-		return ""
-	var kind: String = str(a.get("kind", "strike"))
-	var parts: PackedStringArray = PackedStringArray()
-	var head: String = ("Focused " if bool(a.get("focused", false)) else "") + ("Strike" if kind == "strike" else "Art")
-	if bool(a.get("is_final", false)):
-		head = "Final Strike"
-	var source_title: String = str(a.get("source_title", ""))
-	if source_title != "":
-		head += ": " + source_title
-	elif bool(a.get("is_power", false)):
-		var performer: String = str(a.get("performer_title", ""))
-		head += " from %s's Power" % (performer if performer != "" else "a personality")
-	if bool(a.get("empowered", false)):
-		head += " (Empowered)"
-	parts.append(head)
-	if bool(a.get("unstoppable", false)):
-		parts.append("cannot be stopped")
-	elif int(a.get("stops_needed", 1)) > 1:
-		parts.append("needs %d stops" % int(a.get("stops_needed", 1)))
-	if bool(a.get("no_prevent", false)):
-		parts.append("damage cannot be prevented")
-	var mine: bool = int(a.get("attacker", -1)) == view.seat
-	return ("Your " if mine else "Incoming ") + "  ·  ".join(parts)
+	var stopped: bool = bool(outcome.get("stopped", false))
+	if stopped:
+		prompt_outcome.text = "Preview: attack stopped"
+	elif outcome.has("stages"):
+		prompt_outcome.text = "Preview: %d Energy / %s" % [int(outcome.get("stages", 0)), _wounds(int(outcome.get("life", 0)))]
+	else:
+		prompt_outcome.text = "Preview: %s" % _wounds(int(outcome.get("life", 0)))
+	prompt_outcome.add_theme_color_override("font_color", ZenithTheme.DEFEND)
 
 
 ## "Table 4 (E vs B)  ·  +4 stages Relentless Fury", the total, then what has been dealt so far.
@@ -613,10 +669,14 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	prompt_title.text = "Waiting for %s" % player_name
 	_show_attack(view, null)
+	prompt_who.visible = not exchange_rail.visible
+	if exchange_rail.visible:
+		prompt_title.text = "Opponent deciding"
 	# Whatever they are deciding about, this seat is looking at the same card and the same count.
 	show_focus(_focus_uid(null), _focus_caption(null))
 	prompt_hint.text = _waiting_hint(kind)
 	prompt_hint.visible = prompt_hint.text != ""
+	_compact_prompt()
 	_hide_tray()
 	_fill_buttons([], primary_box, true)
 
@@ -653,7 +713,11 @@ func _waiting_hint(kind: StringName) -> String:
 
 ## Online joiner: the choice went to the host and its answer is not back yet.
 func show_sending() -> void:
+	for child in primary_box.get_children():
+		(child as Control).hide()
+	_fill_buttons([], primary_box, true)
 	prompt_panel.show()
+	exchange_rail.hide()
 	prompt_outcome.hide()
 	_hide_tray()
 	prompt_who.text = ""
@@ -711,10 +775,7 @@ func clear_prompt() -> void:
 	hide_peek()
 	prompt_who.text = ""
 	prompt_title.text = "…"
-	prompt_banner.visible = false
-	prompt_hero.visible = false
-	_hero_base = -1
-	_fill_facts([])
+	exchange_rail.hide()
 	prompt_hint.visible = false
 	hide_focus()
 	_hide_tray()
@@ -731,6 +792,12 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		var opt: OptionView = options[i]
 		var b: Button = Button.new()
 		b.text = opt.label
+		if into == primary_box and _current_prompt != null and _current_prompt.kind == &"endurance" and opt.type == &"endure":
+			b.text = "Use Endurance"
+			b.tooltip_text = opt.label + "\nRemove this card from play."
+			if opt.outcome.has("life"):
+				var prevented: int = maxi(0, int(_current_prompt.context.get("remaining", 0)) - int(opt.outcome["life"]))
+				b.tooltip_text += "\nPrevents " + _wounds(prevented) + "."
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var text_width: float = root.get_theme_font("font", "Button").get_string_size(opt.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x + 48.0
 		b.custom_minimum_size = Vector2(0.0 if vertical else clampf(text_width, 300.0, minf(520.0, root.size.x - 180.0)), 60)
@@ -1140,10 +1207,12 @@ func show_focus(uid: int, caption: String) -> void:
 	focus_caption.text = caption.to_upper()
 	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid))
 	focus.visible = true
+	_compact_prompt()
 
 
 func hide_focus() -> void:
 	focus.visible = false
+	_compact_prompt()
 
 
 ## The card the prompt is about: one it names outright, one raised by a card's effect, or the
@@ -1154,21 +1223,33 @@ func _focus_uid(p: PromptView) -> int:
 			return int(p.context["card"])
 		if p.context.has("source"):
 			return int(p.context["source"])
-	if _view != null and not _view.attack.is_empty():
-		return int(_view.attack.get("source", -1))
+	if _view != null:
+		if _view.pending_card >= 0:
+			return _view.pending_card
+		if not _view.attack.is_empty():
+			return int(_view.attack.get("source", -1))
+		# This list is unordered. Only a single public source is unambiguous to focus.
+		if _view.resolving.size() == 1:
+			var resolving_card: SeatCard = _view.card(_view.resolving[0])
+			if resolving_card != null and not resolving_card.hidden():
+				return resolving_card.uid
 	return -1
 
 
 func _focus_caption(p: PromptView) -> String:
 	if p == null:
+		if _view != null and _view.deciding_kind == &"respond":
+			return "Awaiting response"
+		if _view != null and int(_view.attack.get("attacker", -1)) == _view.seat:
+			return "Your attack"
 		return "Incoming"
 	match p.kind:
 		&"endurance":
-			return "The card you just lost"
+			return "Endurance"
 		&"defense", &"redirect", &"control":
 			return "Incoming"
 		&"respond":
-			return "Their card"
+			return "Respond"
 		&"critical", &"capture_instead":
 			return "Your attack"
 	if p.context.has("source"):

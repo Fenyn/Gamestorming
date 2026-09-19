@@ -1,8 +1,8 @@
 class_name DuelFx
 extends Node3D
-## Transient effects over the table: floating numbers, bursts of sparks, a slash between two
-## cards, and rings. Everything here is built in code from primitive meshes, frees itself when
-## its tween ends, and holds no state between updates. Colours come from ZenithTheme roles.
+## Table feedback: transient impacts and one reusable attack filament. Transient meshes
+## free themselves after their tweens; the filament holds the public response state.
+## Colours come from ZenithTheme roles.
 
 const TEXT_RISE: float = 0.5
 const TEXT_TIME: float = 1.2
@@ -11,6 +11,86 @@ const SLASH_TIME: float = 0.4
 const RING_TIME: float = 0.55
 const BURST_LIFE: float = 0.7
 @export var reduced_motion: bool = false
+var _attack_link: MeshInstance3D = null
+var _link_state: StringName = &""
+var _link_from: Vector3
+var _link_to: Vector3
+
+
+## A quiet, static filament while a public attack is awaiting a response. Geometry
+## carries direction and result even with reduced motion; it never intercepts input.
+func show_attack_link(from: Vector3, to: Vector3, state: StringName = &"pending") -> void:
+	if _attack_link != null and _attack_link.visible and _link_state == state \
+		and _link_from.is_equal_approx(from) and _link_to.is_equal_approx(to):
+		return
+	var travel: Vector3 = to - from
+	travel.y = 0.0
+	if travel.length() < 1.1:
+		clear_attack_link()
+		return
+	_link_from = from
+	_link_to = to
+	_link_state = state
+	if _attack_link == null:
+		_attack_link = MeshInstance3D.new()
+		_attack_link.name = "AttackFilament"
+		_attack_link.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.vertex_color_use_as_albedo = true
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_attack_link.material_override = material
+		add_child(_attack_link)
+	_attack_link.show()
+	var direction: Vector3 = travel.normalized()
+	var side: Vector3 = direction.cross(Vector3.UP).normalized()
+	var start: Vector3 = from + direction * 0.48
+	var end: Vector3 = to - direction * 0.32
+	var height: float = maxf(from.y, to.y) + 0.12
+	start.y = height
+	end.y = height
+	var middle: Vector3 = (start + end) * 0.5 + side * 0.28 + Vector3.UP * 0.14
+	var color: Color = ZenithTheme.ATTACK.lightened(0.25)
+	if state == &"stopped":
+		color = ZenithTheme.DEFEND
+	elif state == &"landed":
+		color = ZenithTheme.ACCENT
+	var mesh: ImmediateMesh = ImmediateMesh.new()
+	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	var previous: Vector3 = start
+	for i in range(1, 25):
+		var ratio: float = float(i) / 24.0
+		var point: Vector3 = start.lerp(middle, ratio).lerp(middle.lerp(end, ratio), ratio)
+		_link_segment(mesh, previous, point, 0.021, Color(color, 0.38 if state == &"stopped" else 0.64))
+		previous = point
+	if state == &"stopped":
+		# A transverse ward closes the path; a stopped attack never gets an arrowhead.
+		_link_segment(mesh, end - side * 0.13, end + side * 0.13, 0.022, Color(color, 0.9))
+	else:
+		_link_chevron(mesh, end, direction, side, color)
+		if state == &"landed":
+			_link_chevron(mesh, end - direction * 0.14, direction, side, color)
+	mesh.surface_end()
+	_attack_link.mesh = mesh
+
+
+func clear_attack_link() -> void:
+	_link_state = &""
+	if _attack_link != null:
+		_attack_link.hide()
+
+
+func _link_chevron(mesh: ImmediateMesh, tip: Vector3, direction: Vector3, side: Vector3, color: Color) -> void:
+	_link_segment(mesh, tip - direction * 0.17 + side * 0.09, tip, 0.026, Color(color, 0.95))
+	_link_segment(mesh, tip - direction * 0.17 - side * 0.09, tip, 0.026, Color(color, 0.95))
+
+
+func _link_segment(mesh: ImmediateMesh, from: Vector3, to: Vector3, width: float, color: Color) -> void:
+	var side: Vector3 = (to - from).cross(Vector3.UP).normalized() * width * 0.5
+	mesh.surface_set_color(color)
+	for point in [from - side, from + side, to + side, from - side, to + side, to - side]:
+		mesh.surface_add_vertex(to_local(point))
 
 
 ## A number or word that pops in over `pos`, drifts up and fades.

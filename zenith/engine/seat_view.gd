@@ -21,6 +21,7 @@ var forecasts: Dictionary = {}         # uid -> damage breakdown for each attack
 var grounds: int = -1
 var standing: Array[Dictionary] = []   # effects that outlast the Combat: {owner, source, op, kind, stages, life}
 var resolving: Array[int] = []
+var pending_card: int = -1             # announced card awaiting a response, before its effects begin
 var players: Array[SeatPlayer] = []
 var cards: Dictionary = {}             # uid -> SeatCard
 
@@ -77,7 +78,7 @@ func to_dict() -> Dictionary:
 		"seat": seat, "turn": turn, "step": step, "phase": phase, "active": active, "attacker": attacker,
 		"winner": winner, "win_reason": win_reason, "deciding": deciding, "deciding_kind": String(deciding_kind),
 		"attack": attack, "battle_step": battle_step, "last_attack": last_attack, "forecasts": forecasts,
-		"grounds": grounds, "standing": standing, "resolving": resolving, "players": ps, "cards": cs,
+		"grounds": grounds, "standing": standing, "resolving": resolving, "pending_card": pending_card, "players": ps, "cards": cs,
 	}
 
 
@@ -107,6 +108,7 @@ static func from_dict(d: Dictionary) -> SeatView:
 	for sd in d.get("standing", []):
 		v.standing.append(sd)
 	v.resolving = SeatPlayer.ints(d.get("resolving", []))
+	v.pending_card = int(d.get("pending_card", -1))
 	for pd in d.get("players", []):
 		v.players.append(SeatPlayer.from_dict(pd))
 	for cd in d.get("cards", []):
@@ -132,6 +134,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 		v.deciding = pending.player
 		v.deciding_kind = pending.kind
 	v.attack = _attack_summary(engine)
+	v.pending_card = int(s.pending_play.get("card", -1))
 	v.battle_step = s.battle_step
 	v.last_attack = _last_attack_summary(engine)
 	if include_forecasts:
@@ -148,7 +151,9 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	for p in s.players:
 		v.players.append(SeatPlayer.of(p, engine))
 	for c in engine.all_cards():
-		v.cards[c.uid] = SeatCard.of(c, seat)
+		# An announced play is public during its response window even while its physical
+		# card remains in hand. Reveal only that card, never the rest of the owner's hand.
+		v.cards[c.uid] = SeatCard.of(c, seat, c.uid == v.pending_card)
 		if c.zone == &"resolving":
 			v.resolving.append(c.uid)
 	# A seat choosing among cards may see them, wherever they sit (a search through the Life Deck,
@@ -187,6 +192,7 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 		# The card the attack came from, public from the moment it is declared, so a client can
 		# put it in front of the defender while they answer it.
 		"source": int(a.get("source", -1)),
+		"performer": int(a.get("performer", -1)),
 		"source_title": "",
 		"performer_title": "",
 		# The numbers, step by step: what the table gives, what each card adds, what would land.

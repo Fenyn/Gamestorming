@@ -25,6 +25,7 @@ func _init() -> void:
 		test_library_and_strike_table,
 		test_deck_list_and_validator,
 		test_shipped_decks_are_legal,
+		test_freestyle_mastery_searches_named_support_cards,
 		test_setup_and_first_turn,
 		test_surge_has_no_style_bonus,
 		test_non_combat_placement,
@@ -377,6 +378,44 @@ func test_deck_list_and_validator() -> void:
 	var bad: DeckList = deck(["t_strike", "t_art"], "vigil", "pyre", "t_mastery_pyre")
 	var bad_problems: Array[String] = DeckValidator.validate(bad, lib)
 	check(bad_problems.size() >= 2, "small mixed-school deck rejected: %s" % ", ".join(bad_problems))
+
+
+func test_freestyle_mastery_searches_named_support_cards() -> void:
+	var shipped: CardLibrary = CardLibrary.new()
+	shipped.load_dir("res://data/cards")
+	for target_id in ["keepers_drill", "first_cut"]:
+		var cards: Array[String] = []
+		for i in range(30):
+			cards.append("sword_lunge")
+		var decks: Array[DeckList] = [deck(cards, "vigil", "freestyle", "freestyle_mastery", 3, "duelist_iota"), deck(cards, "pact", "", "", 3, "duelist_zeta")]
+		var e: DuelEngine = DuelEngine.new()
+		e.shuffle_decks = false
+		e.setup(decks, shipped, StrikeTable.load_from("res://data/strike_table.json"), 5)
+		e.start()
+		# Pay with a named support card, then search for the other support type.
+		var payment: CardInstance = e._instance(shipped.get_def("first_cut" if target_id == "keepers_drill" else "keepers_drill"), 0, &"hand")
+		e.player(0).hand.append(payment)
+		var target: CardInstance = e._instance(shipped.get_def(target_id), 0, &"life_deck")
+		e.player(0).life_deck.append(target)
+		var foreign: CardInstance = e._instance(shipped.get_def("vales_insight"), 0, &"life_deck")
+		e.player(0).life_deck.append(foreign)
+		to_combat(e)
+		check(e.prompt != null and bool(e.prompt.context.get("may", false)), "Freestyle Mastery offers its entering-combat exchange")
+		answer(e, &"pick_option", -1, "yes")
+		eq(payment.zone, &"discard", "named support can pay the signature discard")
+		check(e.prompt != null and bool(e.prompt.context.get("search", false)), "signature payment opens the search")
+		if e.prompt == null or not bool(e.prompt.context.get("search", false)):
+			continue
+		check(e.prompt.find(&"pick_option", target.uid) != null, "search offers the Duelist's named %s" % target_id)
+		check(e.prompt.find(&"pick_option", foreign.uid) == null, "another Duelist's named support is not this Duelist's signature")
+		check(e.prompt.find(&"pick_option", e.player(0).life_deck[0].uid) == null, "generic cards are visible but cannot be selected as signatures")
+		check(e.prompt.find(&"pick_none") != null, "signature search still allows taking nothing")
+		var public_prompt: PromptView = PromptView.of(e.prompt, e)
+		check(public_prompt.find(&"pick_option", target.uid) != null, "client receives a selectable support card")
+		eq((e.prompt.context.get("library", []) as Array).size(), e.player(0).life_deck.size(), "search shows the whole Life Deck")
+		answer(e, &"pick_option", target.uid)
+		eq(target.zone, &"hand", "chosen signature support goes to hand, without requiring it to be playable now")
+		check(not e.player(0).in_play.has(target), "search to hand never places the support automatically")
 
 
 func test_shipped_decks_are_legal() -> void:
@@ -3119,6 +3158,18 @@ func test_outcome_lines_and_titles() -> void:
 	eq(prompt_kind(e), &"respond", "counter window")
 	eq(CardText.prompt_title(e.prompt), "Counter Test Taunt?", "the respond prompt names the card")
 	eq(int(e.prompt.context.get("source", -1)), e.card(int(e.prompt.context["card"])).uid, "and carries it as the source")
+	var pending_uid: int = int(e.prompt.context["card"])
+	for seat in range(2):
+		var pending_view: SeatView = SeatView.of(e, seat)
+		eq(pending_view.pending_card, pending_uid, "both seats see the announced pending card")
+		check(not pending_view.card(pending_uid).hidden(), "announced card face is public during its response window")
+		eq(SeatView.from_dict(pending_view.to_dict()).pending_card, pending_uid, "pending card survives network serialization")
+		for other_uid in pending_view.player(1 - seat).hand:
+			if other_uid != pending_uid:
+				check(pending_view.card(other_uid).hidden(), "unannounced opponent hand cards remain private")
+	answer(e, &"decline")
+	eq(SeatView.of(e, 0).pending_card, -1, "pending card clears after the response")
+	eq(SeatView.from_dict({}).pending_card, -1, "older views default to no pending card")
 	var ctrl: Prompt = Prompt.new()
 	ctrl.kind = &"control"
 	ctrl.context = {"role": "attacker"}

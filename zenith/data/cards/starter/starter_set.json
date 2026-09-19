@@ -2760,6 +2760,7 @@
   },
   {
    "id": "no_quarter",
+   "character": "Emrys Rooke",
    "title": "Emrys Gives No Quarter",
    "type": "strike",
    "school": "",
@@ -2844,6 +2845,7 @@
   },
   {
    "id": "mournes_stance",
+   "character": "Gideon Mourne",
    "title": "Mourne's Stance",
    "type": "strike",
    "school": "",
@@ -2979,6 +2981,7 @@
   },
   {
    "id": "will_not_break",
+   "character": "Bram Ashmark",
    "title": "Ashmark Will Not Break",
    "type": "combat",
    "school": "",
@@ -3014,6 +3017,7 @@
   },
   {
    "id": "wall_of_flame",
+   "character": "Bram Ashmark",
    "title": "Ashmark's Wall of Flame",
    "type": "strike",
    "school": "",
@@ -3142,6 +3146,7 @@
   },
   {
    "id": "rookes_deluge",
+   "character": "Dame Alder Rooke",
    "title": "Rooke's Deluge",
    "type": "combat",
    "school": "",
@@ -3183,6 +3188,7 @@
   },
   {
    "id": "edrics_vow",
+   "character": "Sir Edric Rooke",
    "title": "Edric's Vow",
    "type": "combat",
    "school": "",
@@ -3291,6 +3297,7 @@
   },
   {
    "id": "scorn_smirks",
+   "character": "Scorn",
    "title": "Scorn Smirks",
    "type": "combat",
    "school": "",
@@ -3471,6 +3478,7 @@
   },
   {
    "id": "scattered_ashes",
+   "character": "Bram Ashmark",
    "title": "Ashmark Leaves Nothing",
    "type": "art",
    "school": "",
@@ -3496,6 +3504,7 @@
   },
   {
    "id": "sabotage",
+   "character": "Siphon",
    "title": "Siphon's Drain",
    "type": "art",
    "school": "",
@@ -3519,6 +3528,7 @@
   },
   {
    "id": "all_or_nothing",
+   "character": "Emrys Rooke",
    "title": "Emrys Risks It All",
    "type": "strike",
    "school": "",
@@ -3555,6 +3565,7 @@
   },
   {
    "id": "committed_cut",
+   "character": "Sir Edric Rooke",
    "title": "Edric's Committed Cut",
    "type": "art",
    "school": "",
@@ -3664,6 +3675,7 @@
   },
   {
    "id": "draiks_reckoning",
+   "character": "Sable Draik",
    "title": "Draik's Reckoning",
    "type": "art",
    "school": "",
@@ -3693,6 +3705,7 @@
   },
   {
    "id": "black_hands",
+   "character": "Sable Draik",
    "title": "Draik's Black Hands",
    "type": "art",
    "school": "",
@@ -3739,6 +3752,7 @@
   },
   {
    "id": "mournes_jolting_arc",
+   "character": "Gideon Mourne",
    "title": "Mourne's Jolting Arc",
    "type": "art",
    "school": "",
@@ -3763,6 +3777,7 @@
   },
   {
    "id": "threefold_bolt",
+   "character": "Corin Thrace",
    "title": "Corin's Threefold Bolt",
    "type": "art",
    "school": "",
@@ -3814,6 +3829,7 @@
   },
   {
    "id": "lingering_curse",
+   "character": "Sable Draik",
    "title": "Draik's Lingering Curse",
    "type": "art",
    "school": "",
@@ -3841,6 +3857,7 @@
   },
   {
    "id": "sledges_stance",
+   "character": "Sledge",
    "title": "Sledge's Set Stance",
    "type": "art",
    "school": "",
@@ -3925,6 +3942,7 @@
   },
   {
    "id": "sword_flourish",
+   "character": "Emrys Rooke",
    "title": "Emrys' Sword Flourish",
    "type": "strike",
    "school": "",
@@ -3944,6 +3962,7 @@
   },
   {
    "id": "sword_sweep",
+   "character": "Emrys Rooke",
    "title": "Emrys' Sword Sweep",
    "type": "strike",
    "school": "",
@@ -3965,6 +3984,7 @@
   },
   {
    "id": "sword_thrust",
+   "character": "Emrys Rooke",
    "title": "Emrys' Sword Thrust",
    "type": "strike",
    "school": "",
@@ -4072,6 +4092,7 @@
   },
   {
    "id": "branns_shakedown",
+   "character": "Brann Draik",
    "title": "Brann's Shakedown",
    "type": "strike",
    "school": "",
@@ -4110,6 +4131,7 @@
   },
   {
    "id": "halvards_twin_cut",
+   "character": "Halvard Draik",
    "title": "Halvard's Twin Cut",
    "type": "strike",
    "school": "",
@@ -4151,6 +4173,7 @@
   },
   {
    "id": "vesnas_ambush",
+   "character": "Vesna Draik",
    "title": "Vesna's Ambush",
    "type": "strike",
    "school": "",
@@ -4186,6 +4209,7 @@
   },
   {
    "id": "scatters_the_ashes",
+   "character": "Bram Ashmark",
    "title": "Ashmark Scatters the Ashes",
    "type": "strike",
    "school": "",
@@ -4208,6 +4232,7 @@
   },
   {
    "id": "mournes_frantic_rush",
+   "character": "Gideon Mourne",
    "title": "Mourne's Frantic Rush",
    "type": "strike",
    "school": "",
@@ -4269,6 +4294,7 @@
   },
   {
    "id": "hilt_guard",
+   "character": "Emrys Rooke",
    "title": "Emrys' Hilt Guard",
    "type": "strike",
    "school": "",
@@ -4307,6 +4333,7 @@
   },
   {
    "id": "quick_retreat",
+   "character": "Sir Edric Rooke",
    "title": "Edric Gives Ground",
    "type": "strike",
    "school": "",
@@ -4351,6 +4378,7 @@
   },
   {
    "id": "mercy_smiles",
+   "character": "Mercy",
    "title": "Mercy Smiles",
    "type": "non_combat",
    "school": "",
@@ -4375,6 +4403,7 @@
   },
   {
    "id": "shrugs_it_off",
+   "character": "Halden Quarr",
    "title": "Quarr Shrugs It Off",
    "type": "strike",
    "school": "steel",
@@ -4471,6 +4500,7 @@
   },
   {
    "id": "corins_conditioning",
+   "character": "Corin Thrace",
    "title": "Corin's Conditioning",
    "type": "non_combat",
    "school": "",
@@ -4586,6 +4616,7 @@
   },
   {
    "id": "vales_insight",
+   "character": "Caedan Vale",
    "title": "Vale's Insight",
    "type": "non_combat",
    "school": "",
@@ -4602,6 +4633,7 @@
   },
   {
    "id": "stokes_the_coals",
+   "character": "Bram Ashmark",
    "title": "Ashmark Stokes the Coals",
    "type": "non_combat",
    "school": "",
@@ -4670,6 +4702,7 @@
   },
   {
    "id": "mourne_takes_measure",
+   "character": "Gideon Mourne",
    "title": "Mourne Takes the Measure",
    "type": "non_combat",
    "school": "",
@@ -4718,6 +4751,7 @@
   },
   {
    "id": "heirloom_blade",
+   "character": "Caedan Vale",
    "title": "Vale's Heirloom Blade",
    "type": "non_combat",
    "school": "",
@@ -4787,6 +4821,7 @@
   },
   {
    "id": "swordplay_drill",
+   "character": "Emrys Rooke",
    "title": "Emrys' Swordplay Drill",
    "type": "drill",
    "school": "",
@@ -4842,6 +4877,7 @@
   },
   {
    "id": "absorbing_drill",
+   "character": "Cull",
    "title": "Cull's Absorbing Drill",
    "type": "drill",
    "school": "",
@@ -4852,6 +4888,7 @@
   },
   {
    "id": "mournes_quickness_drill",
+   "character": "Gideon Mourne",
    "title": "Mourne's Quickness Drill",
    "type": "drill",
    "school": "",
@@ -4879,6 +4916,7 @@
   },
   {
    "id": "locked_gate_drill",
+   "character": "Emrys Rooke",
    "title": "Emrys Spots the Fraud Drill",
    "type": "drill",
    "school": "",
@@ -4913,6 +4951,7 @@
   },
   {
    "id": "practiced_guard",
+   "character": "Corin Thrace",
    "title": "Corin's Practiced Guard",
    "type": "strike",
    "school": "",
@@ -4981,6 +5020,7 @@
   },
   {
    "id": "suppressing_shot",
+   "character": "Corin Thrace",
    "title": "Corin's Suppressing Shot",
    "type": "art",
    "school": "",
@@ -5017,6 +5057,7 @@
   },
   {
    "id": "smoke_screen",
+   "character": "Corin Thrace",
    "title": "Corin Throws Smoke",
    "type": "art",
    "school": "",
@@ -5072,6 +5113,7 @@
   },
   {
    "id": "first_cut",
+   "character": "Sir Edric Rooke",
    "title": "Edric Carves First",
    "type": "non_combat",
    "school": "",
@@ -5086,6 +5128,7 @@
   },
   {
    "id": "mournes_plans",
+   "character": "Gideon Mourne",
    "title": "Mourne's Plans",
    "type": "non_combat",
    "school": "",
@@ -5101,6 +5144,7 @@
   },
   {
    "id": "mournes_smirk",
+   "character": "Gideon Mourne",
    "title": "Mourne's Smirk",
    "type": "non_combat",
    "school": "",
@@ -5191,6 +5235,7 @@
   },
   {
    "id": "keepers_drill",
+   "character": "Sir Edric Rooke",
    "title": "Edric's Retaining Drill",
    "type": "drill",
    "school": "",
@@ -5778,6 +5823,7 @@
   },
   {
    "id": "quarrs_roar",
+   "character": "Halden Quarr",
    "title": "Quarr's Roar",
    "type": "art",
    "school": "steel",

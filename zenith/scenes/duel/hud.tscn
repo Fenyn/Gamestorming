@@ -151,9 +151,9 @@ anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
-offset_left = -378.0
+offset_left = -342.0
 offset_top = 210.0
-offset_right = -18.0
+offset_right = -22.0
 offset_bottom = 260.0
 grow_horizontal = 0
 grow_vertical = 1
@@ -172,58 +172,56 @@ autowrap_mode = 3
 [node name="Title" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "Waiting"
 autowrap_mode = 3
 
-[node name="Banner" type="Label" parent="Root/PromptPanel/Column"]
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "Incoming Strike"
-autowrap_mode = 3
-
-[node name="Hero" type="HBoxContainer" parent="Root/PromptPanel/Column"]
+[node name="Exchange" type="HBoxContainer" parent="Root/PromptPanel/Column"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Value" type="Label" parent="Root/PromptPanel/Column/Hero"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 54
-text = "3"
-
-[node name="Side" type="VBoxContainer" parent="Root/PromptPanel/Column/Hero"]
+[node name="Lines" type="VBoxContainer" parent="Root/PromptPanel/Column/Exchange"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_constants/separation = 2
+theme_override_constants/separation = 6
 
-[node name="Name" type="Label" parent="Root/PromptPanel/Column/Hero/Side"]
+[node name="State" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "WOUNDS INCOMING"
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="Route" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 23
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="Response" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="Damage" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="Outcome" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
+visible = false
+layout_mode = 2
 theme_override_font_sizes/font_size = 21
 autowrap_mode = 3
 
-[node name="Delta" type="Label" parent="Root/PromptPanel/Column/Hero/Side"]
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 21
-text = "-3"
 
-[node name="Facts" type="HBoxContainer" parent="Root/PromptPanel/Column"]
-visible = false
+[node name="Stops" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="Outcome" type="Label" parent="Root/PromptPanel/Column"]
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 19
 autowrap_mode = 3
-
+mouse_filter = 2
 
 [node name="Hint" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
@@ -232,8 +230,14 @@ text = ""
 autowrap_mode = 3
 theme_override_font_sizes/font_size = 21
 
-[node name="Primary" type="VBoxContainer" parent="Root/PromptPanel/Column"]
+[node name="Actions" type="ScrollContainer" parent="Root/PromptPanel/Column"]
 layout_mode = 2
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Primary" type="VBoxContainer" parent="Root/PromptPanel/Column/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
 [node name="FarFlags" type="Label" parent="Root"]
@@ -404,30 +408,31 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -660.0
-offset_top = 210.0
-offset_right = -400.0
-offset_bottom = 660.0
+offset_left = -342.0
+offset_top = 140.0
+offset_right = -22.0
+offset_bottom = 620.0
 grow_horizontal = 2
 mouse_filter = 2
 
 [node name="Caption" type="Label" parent="Root/Focus"]
 layout_mode = 1
-anchors_preset = 0
-offset_right = 300.0
+anchor_right = 1.0
 offset_bottom = 24.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 22
 text = "INCOMING"
 horizontal_alignment = 1
+clip_text = true
+text_overrun_behavior = 3
 
 [node name="Face" parent="Root/Focus" instance=ExtResource("3_face")]
 layout_mode = 1
 anchors_preset = 0
-offset_top = 30.0
+offset_top = 32.0
 offset_right = 512.0
 offset_bottom = 746.0
-scale = Vector2(0.5859375, 0.5859375)
+scale = Vector2(0.625, 0.625)
 mouse_filter = 2
 
 [node name="Inspect" type="ColorRect" parent="Root"]

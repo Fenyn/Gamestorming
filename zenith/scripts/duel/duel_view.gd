@@ -60,6 +60,7 @@ var _replaying: StringName = &""     # the event whose beat is playing now
 ## something, the markers and the player panels read it instead of the update's final view, so a
 ## card that charges up and is drained again in the same update reads as two beats, not one jump.
 var _live: Dictionary = {}
+var _attack_cue: Dictionary = {}   # public attack currently replaying, never the future update outcome
 var _focus_key: String = ""
 var _reduced_motion: bool = false
 
@@ -127,7 +128,8 @@ func _process(_delta: float) -> void:
 	hand_3d.enabled = _can_choose()
 	camera.hand_navigation = hand_3d.keyboard_active or overlay
 	var hand_blocks: bool = _hand_blocks_board()
-	var board_interactive: bool = not overlay and not hand_blocks
+	var preview_blocks: bool = _preview_blocks_point(hud.root.get_global_mouse_position())
+	var board_interactive: bool = not overlay and not hand_blocks and not preview_blocks
 	near_duelist.interactive = board_interactive
 	far_duelist.interactive = board_interactive
 	for value in views.values():
@@ -136,7 +138,7 @@ func _process(_delta: float) -> void:
 			board_card.pick.input_ray_pickable = board_interactive
 		if not board_interactive and board_card._hovering:
 			board_card.set_hovered(false)
-	if hand_blocks:
+	if hand_blocks or preview_blocks:
 		hud.hide_peek()
 	_layout_fixtures()
 	focus_card.visible = hud.focus.visible and not overlay
@@ -458,6 +460,7 @@ func _play_update(up: SeatUpdate) -> void:
 			await _replay(_replaying, int(l.get("player", -1)), l["data"], targets)
 			_replaying = &""
 	_live = {}
+	_attack_cue = view.attack.duplicate(true)
 	hud.refresh_state(view, viewer)
 	_refresh_displays()
 	_refresh_roles()
@@ -480,6 +483,9 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 	match type:
 		&"attack_declared":
 			_wounds = 0
+			_attack_cue = {"attacker": player, "defender": 1 - player,
+				"source": int(data.get("source", -1)), "performer": _controlling_uid(player),
+				"target": _controlling_uid(1 - player)}
 			await _sync_layout(true)   # the attack card rises to the Play slot before the swing
 			_refresh_roles()
 			var kind: String = str(data.get("kind", "strike"))
@@ -499,6 +505,8 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				fx.float_text(_card_pos(int(data.get("card", -1))), "Shield", ZenithTheme.DEFEND, 48)
 			await _beat(BEAT)
 		&"attack_stopped":
+			_attack_cue["stopped"] = true
+			_refresh_attack_link()
 			var defender: int = 1 - int(_live.get("attacker", view.attacker))
 			fx.ward(_card_pos(_controlling_uid(defender)), ZenithTheme.DEFEND)
 			fx.float_text(_card_pos(_controlling_uid(defender)), "STOPPED", ZenithTheme.DEFEND, 72)
@@ -511,9 +519,12 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			await _beat(TOAST_BEAT)
 		&"damage_stages":
 			var stages: int = int(data.get("stages", 0))
+			var target: int = int(data.get("target", -1))
+			_attack_cue["target"] = target
+			_attack_cue["landed"] = true
+			_refresh_attack_link()
 			if stages <= 0:
 				return
-			var target: int = int(data.get("target", -1))
 			var v: Card3D = views.get(target)
 			var pos: Vector3 = _card_pos(target)
 			fx.impact(pos, ZenithTheme.ATTACK, 1.0)
@@ -525,6 +536,8 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			await _beat(BEAT)
 		&"life_card_flipped":
 			_wounds += 1
+			_attack_cue["landed"] = true
+			_refresh_attack_link()
 			var uid: int = int(data.get("card", -1))
 			await _fly(uid, targets)
 			var pos: Vector3 = _card_pos(uid)
@@ -584,7 +597,11 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				hud.toast("Dealt %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
 				await _beat(TOAST_BEAT)
 			_wounds = 0
+			_attack_cue.clear()
+			fx.clear_attack_link()
 		&"combat_end":
+			_attack_cue.clear()
+			fx.clear_attack_link()
 			_refresh_roles()
 		&"trigger_fired":
 			# The card doing the work holds the table for a moment before its effects land, the
@@ -783,6 +800,44 @@ func _refresh_roles() -> void:
 				v.set_role(color if uid == p.controlling else Color(0, 0, 0, 0))
 
 
+## Endpoints come only from visible public cards; an unavailable source falls back
+## to its named performer, then the controller. An explicit redirected target wins.
+static func attack_link_cards(state: SeatView, attack: Dictionary, controlling: Array = []) -> Vector2i:
+	if state == null or attack.is_empty() or state.players.size() != 2:
+		return Vector2i(-1, -1)
+	var attacker: int = int(attack.get("attacker", -1))
+	var defender: int = int(attack.get("defender", 1 - attacker))
+	if attacker not in [0, 1] or defender not in [0, 1]:
+		return Vector2i(-1, -1)
+	var source: int = int(attack.get("source", -1))
+	var card: SeatCard = state.card(source)
+	if card == null or card.hidden():
+		source = int(attack.get("performer", -1))
+		card = state.card(source)
+	if card == null or card.hidden():
+		source = int(controlling[attacker]) if controlling.size() == 2 else state.player(attacker).controlling
+	var target: int = int(attack.get("target", -1))
+	card = state.card(target)
+	if card == null or card.hidden():
+		target = int(controlling[defender]) if controlling.size() == 2 else state.player(defender).controlling
+	for uid in [source, target]:
+		card = state.card(uid)
+		if card == null or card.hidden():
+			return Vector2i(-1, -1)
+	return Vector2i(source, target)
+
+
+func _refresh_attack_link() -> void:
+	var endpoints: Vector2i = attack_link_cards(view, _attack_cue, _live.get("controlling", []))
+	var source: Card3D = views.get(endpoints.x)
+	var target: Card3D = views.get(endpoints.y)
+	if source == null or target == null or not source.visible or not target.visible:
+		fx.clear_attack_link()
+		return
+	var state: StringName = &"stopped" if bool(_attack_cue.get("stopped", false)) else (&"landed" if bool(_attack_cue.get("landed", false)) else &"pending")
+	fx.show_attack_link(source.global_position, target.global_position, state)
+
+
 # --- Online ---------------------------------------------------------------
 
 ## Hosting: a remote seat asks to apply a command.
@@ -886,7 +941,18 @@ func _hand_blocks_board() -> bool:
 	return hand_3d.visible and (hand_3d.keyboard_active or hand_3d.blocks_pointer(get_viewport().get_mouse_position()))
 
 
+## The camera-facing preview and its attached choices own this patch of the screen.
+## Transparent presentation must not let the field underneath produce hover tooltips.
+func _preview_blocks_point(point: Vector2) -> bool:
+	if hud.tray.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible:
+		return false
+	return (hud.focus.is_visible_in_tree() and hud.focus.get_global_rect().has_point(point)) \
+		or (hud.prompt_panel.is_visible_in_tree() and hud.prompt_panel.get_global_rect().has_point(point))
+
+
 func _on_card_clicked(uid: int) -> void:
+	if _preview_blocks_point(hud.root.get_global_mouse_position()) and not (hand_3d.keyboard_active and view != null and viewer >= 0 and view.player(viewer).hand.has(uid)):
+		return
 	if _hand_blocks_board() and (view == null or viewer < 0 or not view.player(viewer).hand.has(uid)):
 		return
 	if not _can_choose():
@@ -905,7 +971,7 @@ func _on_card_clicked(uid: int) -> void:
 
 
 func _on_card_hovered(uid: int, over: bool) -> void:
-	if _hand_blocks_board():
+	if _hand_blocks_board() or _preview_blocks_point(hud.root.get_global_mouse_position()):
 		hud.hide_peek()
 		var board_card: Card3D = views.get(uid)
 		if board_card != null and board_card._hovering:
@@ -923,6 +989,8 @@ func _on_card_hovered(uid: int, over: bool) -> void:
 
 func _on_card_inspected(uid: int) -> void:
 	if view == null:
+		return
+	if _preview_blocks_point(hud.root.get_global_mouse_position()) and not (hand_3d.keyboard_active and viewer >= 0 and view.player(viewer).hand.has(uid)):
 		return
 	if _hand_blocks_board() and (viewer < 0 or not view.player(viewer).hand.has(uid)):
 		return
@@ -1106,6 +1174,7 @@ func _sync_layout(animated: bool) -> void:
 		moved = true
 	if moved:
 		await tween.finished
+	_refresh_attack_link()
 
 
 func _swing_camera(player: int) -> void:

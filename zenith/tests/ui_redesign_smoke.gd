@@ -251,6 +251,17 @@ func _run() -> void:
 	_check(clicks == 0, "Hidden hand must not accept keyboard activation behind inspection")
 	duel.hud.inspect.hide()
 	# Thinking, resolution and network waits restrict commands, not public observation.
+	var focus_was_visible: bool = duel.hud.focus.visible
+	var actions_were_visible: bool = duel.hud.prompt_panel.visible
+	duel.hud.focus.show()
+	duel.hud.prompt_panel.show()
+	_check(duel._preview_blocks_point(duel.hud.focus.get_global_rect().get_center()), "Preview card must shield the field underneath from hover and picking")
+	_check(duel._preview_blocks_point(duel.hud.prompt_panel.get_global_rect().get_center()), "Attached choices must shield the field underneath")
+	duel.hud.focus.hide()
+	duel.hud.prompt_panel.hide()
+	_check(not duel._preview_blocks_point(duel.hud.focus.get_global_rect().get_center()), "Hidden previews must release their picking region")
+	duel.hud.focus.visible = focus_was_visible
+	duel.hud.prompt_panel.visible = actions_were_visible
 	hand.keyboard_active = false
 	hand._set_revealed(false)
 	var saved_prompt: PromptView = duel.prompt

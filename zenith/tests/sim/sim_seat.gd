@@ -62,6 +62,15 @@ static func from_legacy(policy_name: String, args: Dictionary, use_styles: bool 
 	return out
 
 
+## Rebuilds a side from what `to_dict` wrote into a report, for the shard merge.
+static func from_dict(d: Dictionary) -> SimSeat:
+	var out: SimSeat = SimSeat.new()
+	out.policy = str(d.get("policy", "scorer"))
+	out.styles = bool(d.get("styles", true))
+	out.think = (d.get("think", {}) as Dictionary).duplicate()
+	return out
+
+
 ## Reads the `a` or `b` side out of parsed flags.
 static func from_args(args: SimArgs, p_label: String) -> SimSeat:
 	var out: SimSeat = SimSeat.new()

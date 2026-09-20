@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Root Uprooting Blast. The stump comes out of the ground and goes outward
+       in pieces, roots and all. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="76%">
+      <stop offset="0" stop-color="#3b3d1c"/><stop offset="1" stop-color="#080905"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c39a5e"/><stop offset="1" stop-color="#6b4f32"/>
+    </linearGradient>
+    <radialGradient id="flash" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff3c8"/><stop offset="1" stop-color="#fff3c8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect y="470" width="904" height="170" fill="#1e2413"/>
+  <circle cx="452" cy="400" r="300" fill="url(#flash)" fill-opacity="0.55"/>
+  <!-- the hole it came out of -->
+  <ellipse cx="452" cy="486" rx="200" ry="56" fill="#100d07"/>
+  <!-- the stump, coming apart -->
+  <g fill="url(#wood)" stroke="#2c1f12" stroke-width="6">
+    <path d="M356,290 h96 l22,190 h-140 Z" transform="rotate(-14 410 386)"/>
+    <path d="M472,300 h92 l16,180 h-132 Z" transform="rotate(16 518 390)"/>
+    <path d="M300,394 l84,-30 l50,96 l-84,32 Z" transform="rotate(-26 358 428)"/>
+    <path d="M548,376 l86,26 l-46,98 l-86,-28 Z" transform="rotate(22 570 438)"/>
+  </g>
+  <!-- roots, torn and still moving -->
+  <g fill="none" stroke="#6b4f32" stroke-width="16" stroke-linecap="round">
+    <path d="M330,470 C262,486 206,532 172,592"/>
+    <path d="M574,470 C642,486 698,532 732,592"/>
+    <path d="M406,486 C376,540 370,574 380,606"/>
+    <path d="M506,486 C536,540 542,574 532,606"/>
+  </g>
+  <!-- splinters -->
+  <g fill="#e6cf9a">
+    <path d="M198,238 l52,-22 l8,46 Z"/>
+    <path d="M700,268 l54,16 l-24,42 Z"/>
+    <path d="M284,140 l44,-30 l16,44 Z"/>
+    <path d="M626,142 l46,26 l-34,34 Z"/>
+    <path d="M452,96 l30,-46 l24,48 Z"/>
+    <path d="M120,392 l48,-6 l-16,44 Z"/>
+    <path d="M790,414 l46,14 l-30,36 Z"/>
+  </g>
+</svg>

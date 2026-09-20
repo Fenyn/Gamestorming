@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Placeholder crest: House Mourne. The crest is the point: a lord's arms broken across the
+       middle and riveted back on anyway, the signet he has not sold worn above it. -->
+  <defs>
+    <radialGradient id="field" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#2b1b3a"/>
+      <stop offset="1" stop-color="#090510"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0d489"/>
+      <stop offset="1" stop-color="#9a7a2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="604" height="868" fill="url(#field)"/>
+  <path d="M0,740 C140,716 240,758 340,742 C440,726 520,758 604,738" fill="none" stroke="#b98cd6" stroke-opacity="0.2" stroke-width="4"/>
+  <g transform="translate(-466.4,-12.8) scale(1.7)">
+    <!-- upper half, still in place -->
+    <path d="M312,84 H592 V232 L452,254 L312,232 Z" fill="#1b1026" stroke="url(#gold)" stroke-width="5"/>
+    <!-- lower half, set back slightly out of true -->
+    <g transform="translate(14,28) rotate(4 452 320)">
+      <path d="M312,244 L452,266 L592,244 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#1b1026" stroke="url(#gold)" stroke-width="5"/>
+    </g>
+    <path d="M452,132 L486,206 L566,214 L506,266 L522,344 L452,304 L382,344 L398,266 L338,214 L418,206 Z" fill="none" stroke="#b98cd6" stroke-opacity="0.8" stroke-width="6" stroke-linejoin="round"/>
+    <!-- rivets, where he put it back together -->
+    <g fill="url(#gold)">
+      <circle cx="356" cy="246" r="7"/><circle cx="412" cy="252" r="7"/>
+      <circle cx="492" cy="252" r="7"/><circle cx="548" cy="246" r="7"/>
+    </g>
+    <g transform="translate(452,116)">
+      <circle cx="0" cy="0" r="26" fill="url(#gold)" stroke="#3a2a12" stroke-width="3"/>
+      <circle cx="0" cy="0" r="13" fill="#1b1026"/>
+    </g>
+  </g>
+</svg>

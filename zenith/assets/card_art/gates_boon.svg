@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: The Gate's Boon. Three pages left on the threshold, lit by the crack. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#1e2330"/><stop offset="1" stop-color="#06070c"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bdb8ab"/><stop offset="1" stop-color="#6f6a5d"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6efdc"/><stop offset="1" stop-color="#c9bd9d"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf6ff"/><stop offset="1" stop-color="#9fc6e0"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect x="112" y="0" width="680" height="368" fill="url(#marble)"/>
+  <!-- the crack, and the light that comes out of it low across the floor -->
+  <path d="M452,0 L474,96 L440,168 L486,238 L444,368 L420,368 L448,240 L410,166 L440,94 L426,0 Z" fill="url(#glow)"/>
+  <path d="M452,368 L740,462 L164,462 Z" fill="#cfe6f7" fill-opacity="0.16"/>
+  <rect y="368" width="904" height="112" fill="#2b2d31"/>
+  <path d="M0,368 H904" stroke="#14161a" stroke-width="6"/>
+  <!-- three pages on the threshold -->
+  <g stroke="#8e7f5e" stroke-width="4">
+    <g transform="translate(300,406) rotate(-9)">
+      <rect x="-62" y="-44" width="124" height="88" rx="6" fill="url(#page)"/>
+      <path d="M-38,-14 h76 M-38,10 h58" stroke="#8e7f5e" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(452,418) rotate(4)">
+      <rect x="-62" y="-44" width="124" height="88" rx="6" fill="url(#page)"/>
+      <path d="M-38,-14 h76 M-38,10 h58" stroke="#8e7f5e" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(604,406) rotate(11)">
+      <rect x="-62" y="-44" width="124" height="88" rx="6" fill="url(#page)"/>
+      <path d="M-38,-14 h76 M-38,10 h58" stroke="#8e7f5e" stroke-width="6" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

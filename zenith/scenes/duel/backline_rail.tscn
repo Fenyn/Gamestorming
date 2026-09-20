@@ -1,0 +1,104 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/backline_rail.gd" id="1_rail"]
+
+[node name="BacklineRail" type="PanelContainer"]
+offset_right = 250.0
+offset_bottom = 308.0
+mouse_filter = 2
+script = ExtResource("1_rail")
+
+[node name="Column" type="VBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 17
+text = "BACKLINE"
+
+[node name="Rows" type="GridContainer" parent="Column"]
+layout_mode = 2
+mouse_filter = 2
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+
+[node name="Mastery" type="VBoxContainer" parent="Column/Rows"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Frame" type="Panel" parent="Column/Rows/Mastery"]
+layout_mode = 2
+mouse_filter = 2
+custom_minimum_size = Vector2(84, 117)
+
+[node name="Caption" type="Label" parent="Column/Rows/Mastery"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_alignment = 1
+clip_text = true
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = "MASTERY"
+
+[node name="Relic" type="VBoxContainer" parent="Column/Rows"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Frame" type="Panel" parent="Column/Rows/Relic"]
+layout_mode = 2
+mouse_filter = 2
+custom_minimum_size = Vector2(84, 117)
+
+[node name="Caption" type="Label" parent="Column/Rows/Relic"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_alignment = 1
+clip_text = true
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = "RELIC"
+
+[node name="Discard" type="VBoxContainer" parent="Column/Rows"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Frame" type="Panel" parent="Column/Rows/Discard"]
+layout_mode = 2
+mouse_filter = 2
+custom_minimum_size = Vector2(84, 117)
+
+[node name="Caption" type="Label" parent="Column/Rows/Discard"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_alignment = 1
+clip_text = true
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = "DISCARD"
+
+[node name="Removed" type="VBoxContainer" parent="Column/Rows"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Frame" type="Panel" parent="Column/Rows/Removed"]
+layout_mode = 2
+mouse_filter = 2
+custom_minimum_size = Vector2(84, 117)
+
+[node name="Caption" type="Label" parent="Column/Rows/Removed"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_alignment = 1
+clip_text = true
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = "OUT"

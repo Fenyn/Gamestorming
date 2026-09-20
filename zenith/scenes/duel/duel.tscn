@@ -92,23 +92,17 @@ script = ExtResource("2_layout")
 [node name="Duelist" type="Marker3D" parent="Zones/P0"]
 position = Vector3(0, 0, 0.85)
 
-[node name="Mastery" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-4.45, 0, 2.65)
-
 [node name="AllyStart" type="Marker3D" parent="Zones/P0"]
 position = Vector3(-2.86, 0, 1.55)
 
 [node name="SealStart" type="Marker3D" parent="Zones/P0"]
 position = Vector3(2.6, 0, 1.55)
 
+[node name="RemainStart" type="Marker3D" parent="Zones/P0"]
+position = Vector3(2.45, 0, 2.4)
+
 [node name="LifeDeck" type="Marker3D" parent="Zones/P0"]
 position = Vector3(-1.55, 0, 0.85)
-
-[node name="Discard" type="Marker3D" parent="Zones/P0"]
-position = Vector3(3.2, 0, 2.65)
-
-[node name="Relic" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-3.2, 0, 2.65)
 
 [node name="DrillStart" type="Marker3D" parent="Zones/P0"]
 position = Vector3(-2.65, 0, 0.5)
@@ -118,9 +112,6 @@ position = Vector3(1.5, 0, 1.15)
 
 [node name="NonCombatStart" type="Marker3D" parent="Zones/P0"]
 position = Vector3(2.65, 0, 0.5)
-
-[node name="Removed" type="Marker3D" parent="Zones/P0"]
-position = Vector3(4.45, 0, 2.65)
 
 [node name="HandStart" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.35)

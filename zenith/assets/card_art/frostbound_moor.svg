@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Frostbound Moor. A frozen moor under low cloud, one standing stone rimed
+       with frost, the leyline barely lit in the ground. Grounds box is 452x240. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3644"/><stop offset="1" stop-color="#4a5464"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#20262c"/><stop offset="1" stop-color="#0a0d10"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9fb0bd"/><stop offset="0.55" stop-color="#65727d"/>
+      <stop offset="1" stop-color="#3c454e"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#sky)"/>
+  <!-- low cloud, pressing down -->
+  <g fill="#1d2530" fill-opacity="0.85">
+    <path d="M0,0 H904 V128 C780,168 700,120 592,146 C470,176 380,126 250,152 C150,172 70,140 0,158 Z"/>
+  </g>
+  <rect y="300" width="904" height="180" fill="url(#ground)"/>
+  <path d="M0,300 C160,286 250,312 400,302 C560,292 680,314 904,298 V480 H0 Z" fill="#161b20"/>
+  <!-- the leyline, dim under the frost -->
+  <path d="M0,398 C200,382 330,410 500,392 C660,376 780,402 904,388" fill="none" stroke="#8fd0c8" stroke-opacity="0.28" stroke-width="6"/>
+  <!-- the standing stone -->
+  <path d="M398,116 L486,132 L498,372 L392,372 Z" fill="url(#stone)"/>
+  <path d="M398,116 L486,132 L482,186 L400,174 Z" fill="#dfe9ef" fill-opacity="0.55"/>
+  <path d="M404,214 L478,224 M402,266 L480,274" stroke="#dfe9ef" stroke-opacity="0.35" stroke-width="6"/>
+  <ellipse cx="444" cy="372" rx="88" ry="16" fill="#0a0d10" fill-opacity="0.7"/>
+  <!-- frost on the heather -->
+  <g stroke="#b9cdd6" stroke-opacity="0.4" stroke-width="4" stroke-linecap="round">
+    <g transform="translate(120,352)"><path d="M0,-18 V18 M-16,-9 L16,9 M-16,9 L16,-9"/></g>
+    <g transform="translate(742,344)"><path d="M0,-16 V16 M-14,-8 L14,8 M-14,8 L14,-8"/></g>
+    <g transform="translate(636,392)"><path d="M0,-14 V14 M-12,-7 L12,7 M-12,7 L12,-7"/></g>
+    <g transform="translate(232,410)"><path d="M0,-14 V14 M-12,-7 L12,7 M-12,7 L12,-7"/></g>
+    <g transform="translate(812,410)"><path d="M0,-12 V12 M-10,-6 L10,6 M-10,6 L10,-6"/></g>
+  </g>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Parley. Both points dropped, one palm up between them. Neither has put
+       anything away. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="75%">
+      <stop offset="0" stop-color="#2a2620"/><stop offset="1" stop-color="#080706"/>
+    </radialGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2f5f7"/><stop offset="1" stop-color="#7d848a"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9c2a2"/><stop offset="1" stop-color="#8d7455"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <rect y="488" width="904" height="112" fill="#161310"/>
+  <!-- both blades, points to the floor -->
+  <g transform="translate(180,150) rotate(-9)">
+    <rect x="-20" y="0" width="40" height="330" fill="url(#blade)"/>
+    <path d="M-20,330 L20,330 L0,378 Z" fill="url(#blade)"/>
+    <rect x="-70" y="-24" width="140" height="26" rx="12" fill="#8b6a3f"/>
+    <rect x="-17" y="-96" width="34" height="76" rx="12" fill="#3a2b1c"/>
+  </g>
+  <g transform="translate(724,150) rotate(9)">
+    <rect x="-20" y="0" width="40" height="330" fill="url(#blade)"/>
+    <path d="M-20,330 L20,330 L0,378 Z" fill="url(#blade)"/>
+    <rect x="-70" y="-24" width="140" height="26" rx="12" fill="#8b6a3f"/>
+    <rect x="-17" y="-96" width="34" height="76" rx="12" fill="#3a2b1c"/>
+  </g>
+  <!-- the hand between them, palm out -->
+  <ellipse cx="452" cy="286" rx="190" ry="180" fill="#ffd9a0" fill-opacity="0.1"/>
+  <g fill="url(#skin)" stroke="#3a2b1c" stroke-width="6">
+    <rect x="352" y="120" width="48" height="178" rx="24"/>
+    <rect x="410" y="96" width="48" height="202" rx="24"/>
+    <rect x="468" y="104" width="48" height="194" rx="24"/>
+    <rect x="526" y="134" width="48" height="164" rx="24"/>
+    <path d="M344,268 h238 v92 a70,70 0 0 1 -70,70 h-98 a70,70 0 0 1 -70,-70 Z"/>
+    <g transform="translate(344,330) rotate(28)">
+      <rect x="-44" y="-30" width="140" height="60" rx="30"/>
+    </g>
+    <path d="M394,424 h154 v88 h-154 Z"/>
+  </g>
+</svg>

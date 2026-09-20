@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Respite. Sat down on the stone, breath back, and two pages coming up off
+       the floor to the hand. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#2a2a26"/><stop offset="1" stop-color="#070706"/>
+    </radialGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b665b"/><stop offset="1" stop-color="#2d2a24"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3ecd8"/><stop offset="1" stop-color="#bdb298"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <rect y="486" width="904" height="114" fill="#171613"/>
+  <!-- the block they are sitting on -->
+  <path d="M232,380 h304 v106 h-304 Z" fill="url(#stone)" stroke="#15130f" stroke-width="6"/>
+  <path d="M232,380 h304 l40,-34 h-304 Z" fill="#7d776a" stroke="#15130f" stroke-width="6"/>
+  <!-- the figure, sat, head down, elbows on knees -->
+  <g fill="#0b0d10">
+    <circle cx="372" cy="196" r="46"/>
+    <path d="M316,244 h116 l26,140 h-166 Z"/>
+    <path d="M292,384 h164 v34 h-164 Z"/>
+    <path d="M456,384 h128 v40 h-128 Z"/>
+    <path d="M556,392 h44 l14,96 h-58 Z"/>
+    <path d="M318,262 l-58,120 l50,20 l58,-120 Z"/>
+  </g>
+  <!-- breath -->
+  <g fill="none" stroke="#cfe6f7" stroke-opacity="0.28" stroke-width="7" stroke-linecap="round">
+    <path d="M414,168 C452,150 470,166 500,148"/>
+    <path d="M420,126 C462,108 486,124 516,106"/>
+  </g>
+  <!-- and the two pages coming back up -->
+  <g stroke="#8e7f5e" stroke-width="5">
+    <g transform="translate(692,300) rotate(-16)">
+      <rect x="-76" y="-104" width="152" height="208" rx="10" fill="url(#page)"/>
+      <path d="M-46,-40 h92 M-46,0 h72" stroke="#8e7f5e" stroke-width="8" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(790,412) rotate(12)">
+      <rect x="-68" y="-92" width="136" height="184" rx="10" fill="url(#page)"/>
+      <path d="M-40,-34 h80 M-40,4 h60" stroke="#8e7f5e" stroke-width="8" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g stroke="#e6dcc2" stroke-opacity="0.4" stroke-width="6" stroke-linecap="round">
+    <path d="M700,452 v58 M790,530 v46 M642,410 v46"/>
+  </g>
+</svg>

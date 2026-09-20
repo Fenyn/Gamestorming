@@ -127,6 +127,16 @@ static func short_number(n: int) -> String:
 
 
 ## An Aspect's own title ("Unquenchable") when the duelist's card gives one, else "Aspect N".
+## What to call a personality card. A character with one printing is just their name; where there
+## are several, the variant is what tells them apart, because the character is shared on purpose.
+static func personality_name(def: CardDef) -> String:
+	if def == null:
+		return ""
+	if def.variant == "":
+		return def.title
+	return "%s, %s" % [def.title, def.variant]
+
+
 static func aspect_name(aspect: int, def: CardDef = null) -> String:
 	if def != null:
 		var title: String = str(def.aspect_data(aspect).get("title", ""))
@@ -174,6 +184,16 @@ static func bloodline_name(bloodline: String) -> String:
 	return bloodline.capitalize()
 
 
+## A keyword a personality carries, as a card says it: "Construct", "Marked".
+static func keyword_name(tag: String) -> String:
+	return tag.capitalize()
+
+
+## A side, as a card names it: "a Vigil duelist", "a Pact duelist".
+static func alignment_name(alignment: String) -> String:
+	return "a %s duelist" % alignment.capitalize()
+
+
 ## The side of Combat a card asks about. "Active" needs the noun, attacker and defender do not.
 static func role_name(role: String) -> String:
 	return "active player" if role == "active" else role
@@ -201,6 +221,8 @@ static func gate_text(gate: Dictionary) -> String:
 		return str(gate["duelist_character"])
 	if gate.has("bloodline"):
 		return bloodline_name(str(gate["bloodline"]))
+	if gate.has("tag"):
+		return keyword_name(str(gate["tag"]))
 	return ""
 
 
@@ -299,6 +321,9 @@ static func rules_text(def: CardDef) -> String:
 		var gate: String = gate_text(def.only)
 		if gate != "":
 			lines.append("%s only." % gate)
+		# A price to use, not a restriction on who may: worded as the cost it is.
+		if def.only.has("energy_min"):
+			lines.append("Your duelist must have %d Energy to use this." % int(def.only["energy_min"]))
 	if def.endurance > 0 and def.endurance_when.is_empty():
 		lines.append("Endurance %d." % def.endurance)
 	elif not def.endurance_when.is_empty():
@@ -329,7 +354,9 @@ static func rules_text(def: CardDef) -> String:
 	if def.type == CardDef.Type.RELIC and int(def.raw.get("uses_per_game", 0)) > 0 and not effect_lines.is_empty():
 		var uses: int = int(def.raw["uses_per_game"])
 		var often: String = "Once" if uses == 1 else ("Twice" if uses == 2 else "%d times" % uses)
-		effect_lines[0] = "%s per game, during your Non-Combat step: %s" % [often, effect_lines[0]]
+		var step: String = str(def.raw.get("relic_step", "non_combat"))
+		var when_used: String = "during Combat" if step == "combat" else ("at any time" if step == "any" else "during your Non-Combat step")
+		effect_lines[0] = "%s per game, %s: %s" % [often, when_used, effect_lines[0]]
 	for t in effect_lines:
 		var said: bool = false
 		for l in lines:
@@ -353,6 +380,11 @@ static func rules_text(def: CardDef) -> String:
 		parts.append_array(effects_text(def.attachment.get("effects", [])))
 		if bool(def.attachment.get("damage_removes", false)):
 			parts.append("Wounds from those attacks are removed from the game.")
+		for t in def.attachment.get("grants_tags", []):
+			parts.append("They count as %s while this is attached." % keyword_name(str(t)))
+		var lent_line: String = str(def.attachment.get("grants_bloodline", ""))
+		if lent_line != "":
+			parts.append("They count as %s while this is attached." % bloodline_name(lent_line))
 		var named_host: String = ""
 		for e in def.effects:
 			if str(e.get("op", "")) == "attach" and str(e.get("to", "")) == "named":
@@ -618,6 +650,8 @@ static func cond_text(when: Dictionary) -> String:
 					parts.append("%s is your duelist" % str(v))
 			"performed_by":
 				parts.append("performed by an Ally" if str(v) == "ally" else "performed by your duelist")
+			"defender_alignment":
+				parts.append("performed against %s" % alignment_name(str(v)))
 			"aspect_min":
 				parts.append("your duelist is aspect %d or higher" % int(v))
 			"opponent_fervor":
@@ -787,7 +821,8 @@ static func _effect_body(e: Dictionary) -> String:
 			var remove: bool = bool(e.get("remove", false))
 			if str(e.get("who", "")) == "any":
 				# Either side's, so it names neither.
-				body = "%s %s in play%s." % [("Remove" if remove else "Discard"), _count_of(e, card_type), (" from the game" if remove else "")]
+				var reach: String = " and in both Life Decks" if bool(e.get("life_decks", false)) else ""
+				body = "%s %s in play%s%s." % [("Remove" if remove else "Discard"), _count_of(e, card_type), reach, (" from the game" if remove else "")]
 			elif opp:
 				var choice: String = " of your choice" if bool(e.get("choose", false)) else ""
 				var count: String = _count_of(e, card_type)
@@ -839,6 +874,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "%s places the %s of their discard pile at the bottom of their Life Deck." % [_cap(who), moved]
 			else:
 				body = "Place the %s of your discard pile at the bottom of your Life Deck." % moved
+		"discard_grounds":
+			body = "Discard the Grounds in play."
 		"end_combat":
 			body = "End Combat."
 		"pass_next_phase":
@@ -860,6 +897,10 @@ static func _effect_body(e: Dictionary) -> String:
 				body = modifier_text(params) if bool(params.get("once", false)) else "%s, %s" % [mspan, _lc(modifier_text(params))]
 			elif what == "make_focused" and params.has("school"):
 				body = "For the remainder of Combat, your other %s attacks are Focused." % school_name(str(params["school"]))
+			elif what == "counts_as_title":
+				var lent_school: String = str(params.get("school", ""))
+				body = "For the remainder of Combat, the %s attacks you perform from your hand count as having \"%s\" in the title." % [
+					school_name(lent_school) if lent_school != "" else "", str(params.get("title", ""))]
 			elif what == "after_use_bottom":
 				body = "For the remainder of Combat, %s attacks you use go to the bottom of your Life Deck instead." % school_name(str(params.get("school", "")))
 			else:
@@ -1397,8 +1438,22 @@ static func aspect_text(def: CardDef, aspect: int = 0) -> PackedStringArray:
 	var uses: int = int(pw.get("uses", 1))
 	if uses > 1:
 		power.append("May be used %s per Combat." % ("twice" if uses == 2 else "%d times" % uses))
+	if bool(pw.get("no_control_needed", false)) and not power.is_empty():
+		# The one thing a player cannot work out from the table: an Ally who answers from the side.
+		power.append("This personality does not have to be in control to use this Power.")
 	if not power.is_empty():
 		lines.append("Power: " + " ".join(power))
+	# An Aspect that prints two Powers offers one or the other, so the second gets its own line.
+	var alt: Dictionary = td.get("power_alt", {})
+	if not alt.is_empty():
+		var alt_lines: PackedStringArray = PackedStringArray()
+		if alt.has("attack"):
+			alt_lines.append(attack_text(alt["attack"]))
+		if alt.has("defense"):
+			alt_lines.append(defense_text(alt["defense"]))
+		alt_lines.append_array(effects_text(alt.get("effects", [])))
+		if not alt_lines.is_empty():
+			lines.append("Power, instead: " + " ".join(alt_lines))
 	var constant: PackedStringArray = constant_text(td.get("constant", {}))
 	if not constant.is_empty():
 		lines.append("Constant: " + " ".join(constant))
@@ -1426,6 +1481,12 @@ static func constant_text(c: Dictionary) -> PackedStringArray:
 	var blind: String = str(c.get("no_modifiers_against", ""))
 	if blind != "":
 		lines.append("No modifiers are added to %s performed against this personality." % ("attacks" if blind == "any" else ("Strikes" if blind == "strike" else "Arts")))
+	var energy_mult: int = int(c.get("energy_gain_multiplier", 1))
+	if energy_mult > 1:
+		lines.append("Energy this duelist gains from a card effect is %s." % ("doubled" if energy_mult == 2 else "multiplied by %d" % energy_mult))
+	var fervor_bonus: int = int(c.get("fervor_gain_bonus", 0))
+	if fervor_bonus > 0:
+		lines.append("When you gain Fervor, increase that amount by %d." % fervor_bonus)
 	for m in c.get("modifiers", []):
 		lines.append(modifier_text(m))
 	if bool(c.get("allies_share", false)):

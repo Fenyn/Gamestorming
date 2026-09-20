@@ -105,12 +105,14 @@ func show_deck(d: DeckList) -> void:
 		_paint()
 		return
 	var duelist: CardDef = Session.library.defs.get(d.duelist_id)
-	_color = Palette.school_ui(d.style)
+	# The panel edge and stamp carry the player colour for this battle; the chip below still
+	# names the school.
+	_color = Session.seat_color(seat)
 	duelist_label.text = duelist.title if duelist != null else d.duelist_id
 	deck_label.text = d.name
 	tagline_label.text = d.tagline
 	school_chip.text = CardText.school_name(d.style)
-	ZenithTheme.chip(school_chip, _color)
+	ZenithTheme.chip(school_chip, Palette.school_ui(d.style))
 	alignment_chip.text = d.alignment.capitalize()
 	ZenithTheme.chip(alignment_chip, ZenithTheme.MUTED)
 	archetype_chip.visible = Archetype.label(d.archetype) != ""
@@ -180,7 +182,7 @@ func set_locked(on: bool) -> void:
 	_paint()
 
 
-## The panel edge and tint follow the school.
+## The panel edge and tint follow the seat's player colour.
 func _paint() -> void:
 	var edge: Color = _color if deck != null else ZenithTheme.BORDER
 	add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.065, 0.075, 0.095), Color(edge, 0.35), 16, 1, 24, 20))

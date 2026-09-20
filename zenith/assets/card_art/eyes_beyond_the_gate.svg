@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Eyes Beyond the Gate. A crack in the stone, pale light through it, and a
+       shape on the far side that is looking back. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#1d2230"/><stop offset="1" stop-color="#06070c"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c6c1b4"/><stop offset="1" stop-color="#7d7869"/>
+    </linearGradient>
+    <linearGradient id="through" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf6ff"/><stop offset="1" stop-color="#7fa8c8"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect x="112" y="24" width="680" height="432" fill="url(#marble)"/>
+  <!-- the light first, so the crack is cut out of the stone over it -->
+  <ellipse cx="452" cy="240" rx="210" ry="220" fill="#cfe6f7" fill-opacity="0.18"/>
+  <path d="M430,24 L470,132 L438,206 L486,262 L444,330 L478,456 L406,456 L432,332 L392,258 L428,196 L396,120 Z" fill="url(#through)"/>
+  <!-- the shape on the far side: shoulders, a head, and two lights where eyes would be -->
+  <g fill="#0d1218" fill-opacity="0.92">
+    <path d="M424,196 a30,34 0 0 1 60,0 v34 h-60 Z"/>
+    <path d="M404,244 h104 l16,96 h-136 Z"/>
+  </g>
+  <g fill="#eaf6ff">
+    <circle cx="438" cy="210" r="7"/>
+    <circle cx="468" cy="210" r="7"/>
+  </g>
+  <g stroke="#6f6a5d" stroke-opacity="0.55" stroke-width="4" fill="none">
+    <path d="M112,150 C220,130 300,168 360,154"/>
+    <path d="M548,318 C640,338 710,300 792,320"/>
+  </g>
+</svg>

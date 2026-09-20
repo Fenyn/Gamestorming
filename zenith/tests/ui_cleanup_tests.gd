@@ -14,6 +14,24 @@ func _check(ok: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+## Per-battle seat colours: the same seed repeats, Player 1 never moves, and the two seats stay
+## far enough apart to tell at a glance even when both picked the same style.
+func _check_seat_colors() -> void:
+	var seed_value: int = 4242
+	var pair: Array[Color] = SeatColors.roll(["root", "tide"], seed_value)
+	_check(pair == SeatColors.roll(["root", "tide"], seed_value), "A seat colour seed must repeat, or two clients draw different colours")
+	_check(SeatColors.roll(["root", "root"], seed_value)[0] == SeatColors.roll(["root", "pyre"], seed_value)[0],
+		"Player 1's colour must not move when the other seat changes its style")
+	_check(SeatColors.arc(pair[0].h * 360.0, pair[1].h * 360.0) >= SeatColors.APART_DEGREES - 0.1,
+		"Two styles on separate hues must end up at least 45 degrees apart")
+	for s in [7, 99, 4242, 123456]:
+		var same: Array[Color] = SeatColors.roll(["root", "root"], s)
+		_check(SeatColors.arc(same[0].h * 360.0, same[1].h * 360.0) >= SeatColors.SAME_STYLE_DEGREES - 0.1,
+			"Two seats on one style must still be pulled apart on the wheel (seed %d)" % s)
+		_check(absf(same[0].v - same[1].v) >= SeatColors.SAME_STYLE_VALUE - 0.01,
+			"Two seats on one style must also split their brightness (seed %d)" % s)
+
+
 func _run() -> void:
 	var session: Node = root.get_node("Session")
 	var def: CardDef = session.library.defs.values()[0]
@@ -76,6 +94,7 @@ func _run() -> void:
 	_check(redraws == 0, "Unchanged projected bounds must not redraw a paused resource viewport")
 	readout.card_bounds = Rect2(10, 20, 100, 140)
 	_check(redraws == 1, "Changed projected bounds must request a resource viewport redraw")
+	_check_seat_colors()
 	var hud: Node = load("res://scenes/duel/hud.tscn").instantiate()
 	_check(not hud.has_node("Root/TopPanel") and not hud.has_node("Root/BottomPanel"), "HUD must not instantiate hidden legacy player panels")
 	hud.free()

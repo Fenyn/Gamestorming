@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Mourne's Quickness Drill. The pile is still falling and the bottom card
+       is already gone. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#241a26"/><stop offset="1" stop-color="#0a0710"/>
+    </radialGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3ecd8"/><stop offset="1" stop-color="#bdb298"/>
+    </linearGradient>
+    <linearGradient id="taken" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d7c8ea"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <!-- the pile, coming apart on the way down -->
+  <g stroke="#8e7f5e" stroke-width="4">
+    <g transform="translate(360,116) rotate(-16)"><rect x="-84" y="-56" width="168" height="112" rx="8" fill="url(#page)"/></g>
+    <g transform="translate(430,196) rotate(7)"><rect x="-84" y="-56" width="168" height="112" rx="8" fill="url(#page)"/></g>
+    <g transform="translate(378,286) rotate(-9)"><rect x="-84" y="-56" width="168" height="112" rx="8" fill="url(#page)"/></g>
+    <g transform="translate(444,376) rotate(14)"><rect x="-84" y="-56" width="168" height="112" rx="8" fill="url(#page)"/></g>
+  </g>
+  <!-- the motion they are falling through -->
+  <g stroke="#b98cd6" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round">
+    <path d="M250,60 V196 M300,120 V300 M560,90 V230 M600,160 V330"/>
+  </g>
+  <!-- the one taken out from under them, already clear -->
+  <g transform="translate(716,262) rotate(24)">
+    <rect x="-92" y="-62" width="184" height="124" rx="8" fill="url(#taken)" stroke="#7a3fa6" stroke-width="5"/>
+    <g stroke="#7a3fa6" stroke-opacity="0.7" stroke-width="8" stroke-linecap="round">
+      <path d="M-60,-20 h120 M-60,12 h92"/>
+    </g>
+  </g>
+  <g stroke="#e0ccf2" stroke-opacity="0.75" stroke-width="7" stroke-linecap="round">
+    <path d="M560,320 L636,296 M578,362 L650,332 M540,278 L616,262"/>
+  </g>
+</svg>

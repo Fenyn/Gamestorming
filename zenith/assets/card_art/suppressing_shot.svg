@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Corin's Suppressing Shot. The casting hand is pinned open against a wall
+       of light. Nothing is being cast with that hand for a while. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#2a2620"/><stop offset="1" stop-color="#080706"/>
+    </radialGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffd9a0" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffd9a0" stop-opacity="0.5"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9c2a2"/><stop offset="1" stop-color="#8d7455"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff3c8"/><stop offset="1" stop-color="#e09a3a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <!-- the wall of light -->
+  <rect x="580" y="0" width="324" height="640" fill="url(#wall)"/>
+  <g stroke="#ffd9a0" stroke-opacity="0.7" stroke-width="8">
+    <path d="M640,0 V640"/>
+  </g>
+  <g stroke="#ffd9a0" stroke-opacity="0.3" stroke-width="5">
+    <path d="M706,0 V640 M772,0 V640 M838,0 V640"/>
+  </g>
+  <!-- the bolt that put it there -->
+  <path d="M0,398 L196,352 L120,326 L330,272 L250,248 L470,196" fill="none" stroke="url(#bolt)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- the hand, open and held flat on the wall -->
+  <g fill="url(#skin)" stroke="#3a2b1c" stroke-width="6">
+    <rect x="432" y="96" width="50" height="170" rx="25" transform="rotate(-18 457 181)"/>
+    <rect x="496" y="70" width="50" height="196" rx="25" transform="rotate(-7 521 168)"/>
+    <rect x="558" y="78" width="50" height="188" rx="25" transform="rotate(4 583 172)"/>
+    <rect x="618" y="112" width="50" height="154" rx="25" transform="rotate(14 643 189)"/>
+    <path d="M430,246 h244 v64 a60,60 0 0 1 -60,60 h-124 a60,60 0 0 1 -60,-60 Z"/>
+    <g transform="translate(440,318) rotate(26)"><rect x="-44" y="-30" width="142" height="60" rx="30"/></g>
+    <path d="M488,370 h156 l24,160 h-204 Z"/>
+  </g>
+  <!-- where it hit -->
+  <g stroke="#fff3c8" stroke-width="9" stroke-linecap="round">
+    <path d="M520,166 l-38,-48 M576,150 l6,-58 M626,176 l50,-40"/>
+  </g>
+</svg>

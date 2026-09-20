@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Vale's Sword Draw. The cut and the draw are the same motion. Storyboard
+       style, matching the Wildfire Rush set: grey field, white line, one metal accent. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the swordsman, weight already moving forward -->
+    <circle cx="316" cy="146" r="46"/>
+    <path d="M316,192 C322,264 318,330 312,392"/>
+    <path d="M312,392 C266,442 236,494 218,556"/>
+    <path d="M312,392 C368,436 410,488 436,552"/>
+    <path d="M206,556 L246,566"/>
+    <path d="M426,556 L470,562"/>
+    <!-- both arms out along the draw -->
+    <path d="M318,238 C376,246 432,262 486,290"/>
+    <path d="M318,246 C360,282 402,306 448,318"/>
+    <!-- the scabbard, still at the hip -->
+    <path d="M270,352 C220,392 186,424 156,470"/>
+    <path d="M292,368 C244,406 212,438 182,482"/>
+    <path d="M156,470 C166,486 174,492 182,482"/>
+  </g>
+  <!-- the blade coming out of it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M486,290 C580,258 672,220 800,166"/>
+    <path d="M492,306 C582,274 674,236 796,182"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M452,300 L502,278"/>
+    <path d="M436,326 L470,336"/>
+  </g>
+  <!-- the arc it travelled to get there -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M236,470 C300,432 396,392 520,354"/>
+    <path d="M262,504 C334,470 438,428 566,388"/>
+    <path d="M640,300 C700,276 744,254 790,226"/>
+  </g>
+</svg>

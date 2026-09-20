@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Placeholder crest: the Amalgam, Cull. Marrow's mismatched gear, differenced by the
+       spectacles wired to the face-plate and the roll of instruments open at the hip. -->
+  <defs>
+    <radialGradient id="field" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#232a33"/>
+      <stop offset="1" stop-color="#07090c"/>
+    </radialGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d6dbe0"/>
+      <stop offset="1" stop-color="#7d868f"/>
+    </linearGradient>
+    <linearGradient id="copper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3a862"/>
+      <stop offset="1" stop-color="#8a5322"/>
+    </linearGradient>
+  </defs>
+  <rect width="604" height="868" fill="url(#field)"/>
+  <path d="M0,730 C140,706 240,748 340,732 C440,716 520,748 604,728" fill="none" stroke="#c98a42" stroke-opacity="0.18" stroke-width="4"/>
+  <g transform="translate(-466.4,-12.8) scale(1.7)">
+    <path d="M312,84 H592 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#11151a" stroke="#b6c2cc" stroke-opacity="0.5" stroke-width="5"/>
+    <g transform="translate(452,228) scale(0.86)">
+      <path d="M-110,-18 h24 l6,-26 l26,-10 l18,20 l26,-6 V-18 H0 V18 H-10 l-4,28 l-26,10 l-18,-20 l-26,6 V18 h-26 Z" fill="url(#stone)" stroke="#0b0e12" stroke-width="3"/>
+      <path d="M110,-18 h-24 l-6,-26 l-26,-10 l-18,20 l-26,-6 V-18 H0 V18 h10 l4,28 l26,10 l18,-20 l26,6 V18 h26 Z" fill="url(#copper)" stroke="#0b0e12" stroke-width="3"/>
+      <circle cx="0" cy="0" r="40" fill="#11151a" stroke="#b6c2cc" stroke-width="5"/>
+      <path d="M0,-118 V118" stroke="#0b0e12" stroke-width="5"/>
+      <!-- spectacles in place of Marrow's glass core -->
+      <g fill="none" stroke="#e3c072" stroke-width="5">
+        <circle cx="-17" cy="0" r="14"/><circle cx="17" cy="0" r="14"/>
+        <path d="M-3,0 h6"/><path d="M-31,-4 l-16,-10"/><path d="M31,-4 l16,-10"/>
+      </g>
+    </g>
+    <g stroke="#0b0e12" stroke-width="3">
+      <rect x="376" y="322" width="152" height="28" rx="6" fill="#6b5030"/>
+      <g fill="url(#stone)">
+        <rect x="388" y="314" width="8" height="36" rx="3"/>
+        <rect x="408" y="308" width="8" height="42" rx="3"/>
+        <rect x="428" y="314" width="8" height="36" rx="3"/>
+        <rect x="448" y="306" width="8" height="44" rx="3"/>
+        <rect x="468" y="314" width="8" height="36" rx="3"/>
+        <rect x="488" y="310" width="8" height="40" rx="3"/>
+        <rect x="508" y="316" width="8" height="34" rx="3"/>
+      </g>
+    </g>
+  </g>
+</svg>

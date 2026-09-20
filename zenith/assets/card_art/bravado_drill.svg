@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Bravado Drill. Blade up, chin up, and a salute nobody asked for. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="410" cy="120" r="44"/>
+    <!-- chest out, shoulders back -->
+    <path d="M410,164 C424,212 426,258 420,300"/>
+    <path d="M420,300 C388,342 372,388 370,432"/>
+    <path d="M420,300 C462,336 484,382 490,432"/>
+    <path d="M356,438 L404,444"/>
+    <path d="M478,434 L526,440"/>
+    <!-- sword arm straight up -->
+    <path d="M414,190 C444,150 464,112 476,78"/>
+    <!-- the other hand on the hip -->
+    <path d="M412,204 C376,220 352,242 344,268"/>
+    <path d="M344,268 C368,286 392,294 414,290"/>
+  </g>
+  <!-- the blade, up and showing -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M492,56 C512,36 534,22 560,12"/>
+    <path d="M468,40 C490,20 514,6 542,-4"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M446,110 L502,60"/>
+    <path d="M456,52 L492,96"/>
+  </g>
+  <!-- the flourish he put on it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M556,126 C614,96 656,64 682,30"/>
+    <path d="M594,186 C666,166 722,136 760,98"/>
+    <path d="M608,248 C690,244 758,226 806,196"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M588,32 L622,12"/>
+    <path d="M552,60 L560,22"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M250,450 C330,442 420,440 520,446"/>
+  </g>
+</svg>

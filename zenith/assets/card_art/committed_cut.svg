@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Edric's Committed Cut. Everything goes into it, including his balance.
+       There is no version of this that he can call back. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head already past the front foot -->
+    <circle cx="470" cy="238" r="48"/>
+    <path d="M470,286 C428,318 396,344 372,368"/>
+    <!-- front leg deep, back leg trailing off the ground -->
+    <path d="M372,368 C348,432 336,494 338,560"/>
+    <path d="M326,566 L376,574"/>
+    <path d="M372,368 C438,384 502,406 558,440"/>
+    <path d="M558,440 C596,450 624,448 646,436"/>
+    <!-- both arms following the blade down -->
+    <path d="M436,312 C378,344 326,374 282,402"/>
+    <path d="M444,330 C390,364 342,396 302,426"/>
+  </g>
+  <!-- the blade, finishing low on the far side -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M250,428 C186,470 124,514 62,562"/>
+    <path d="M268,452 C204,494 142,538 80,586"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M286,388 L318,442"/>
+    <path d="M310,406 L338,388"/>
+  </g>
+  <!-- the whole arc it came through -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M842,116 C820,264 720,392 560,450 C474,482 384,486 300,466"/>
+    <path d="M884,178 C866,332 760,466 596,520 C512,548 426,548 348,528"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M788,84 C776,214 690,330 556,384"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M160,520 L118,486"/>
+    <path d="M132,560 L84,548"/>
+  </g>
+</svg>

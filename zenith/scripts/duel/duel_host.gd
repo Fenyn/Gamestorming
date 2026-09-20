@@ -79,12 +79,40 @@ func dev(seat: int, effect: Dictionary) -> Dictionary:
 	return {"problem": "", "updates": _flush()}
 
 
+## Options to fall back on, quietest first: a seat answering by default should not attack or
+## spend anything it did not choose to.
+const QUIET: Array[StringName] = [&"pass", &"no_defense", &"no_endure", &"no_critical", &"skip",
+	&"done", &"no_recover", &"reserve_done", &"discard_all"]
+
+
 ## The AI seat's choice in wire form, or empty. Safe on a worker thread: nothing else may touch
 ## the referee until it returns.
+##
+## The AI yields nothing when its search finds no prompt in the world it sampled. Left at that
+## the duel stands still forever with no decision on screen and no way to make one, so the host
+## answers for it from the prompt's own options rather than letting the table lock up.
 func ai_choice() -> Dictionary:
 	if ai == null:
 		return {}
-	return ai.choose(referee, ai_seat)
+	var chosen: Dictionary = ai.choose(referee, ai_seat)
+	if not chosen.is_empty():
+		return chosen
+	return fallback_choice(ai_seat)
+
+
+## One of the seat's own pending options, never a command built by hand. Empty when that seat
+## owes no decision, which is the one case where answering nothing is correct.
+func fallback_choice(seat: int) -> Dictionary:
+	if seat < 0 or referee.is_over():
+		return {}
+	var p: PromptView = referee.prompt_for(seat)
+	if p == null or p.player != seat or p.options.is_empty():
+		return {}
+	for quiet in QUIET:
+		for o in p.options:
+			if o.type == quiet:
+				return o.to_command(seat).to_dict()
+	return p.options[0].to_command(seat).to_dict()
 
 
 func _flush() -> Array[SeatUpdate]:

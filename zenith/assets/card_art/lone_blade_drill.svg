@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Lone Blade Drill. One sword standing in an empty yard. Nobody is coming to
+       hold the other end. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the yard -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M40,404 C280,386 620,384 872,402"/>
+    <path d="M110,444 C330,428 620,426 830,442"/>
+    <path d="M60,352 C300,340 600,338 852,350"/>
+  </g>
+  <!-- the sword, point in the ground -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M434,156 C432,244 432,330 436,398"/>
+    <path d="M470,156 C472,244 472,330 468,398"/>
+    <path d="M436,398 C446,414 456,414 468,398"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="10" stroke-linecap="round">
+    <path d="M356,148 C412,136 490,136 548,148"/>
+    <path d="M452,132 C450,96 450,66 452,42"/>
+    <path d="M430,36 C444,26 462,26 476,36"/>
+  </g>
+  <!-- the scuffed marks of the work already done round it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M256,414 C310,398 368,392 420,392"/>
+    <path d="M486,392 C540,394 596,402 646,418"/>
+    <path d="M300,448 C360,434 420,428 470,428"/>
+  </g>
+  <!-- the shadow, alone -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M472,404 C560,414 640,428 712,448"/>
+  </g>
+</svg>

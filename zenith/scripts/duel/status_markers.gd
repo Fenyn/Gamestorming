@@ -2,6 +2,7 @@ class_name StatusMarkers
 extends Node3D
 ## Tracking marks on a personality card, in the card's frame. Energy lights the rung of the Might
 ## ladder printed on the face; a duelist also gets one Fervor pip per point needed along its top edge.
+## An Ally has no stat crest of its own, so its Energy and Might are also spelled out under the card.
 
 const CARD: Vector2 = Vector2(0.63, 0.88)
 const FACE: Vector2 = Vector2(512, 716)   # face pixels the ladder rects are measured in
@@ -14,7 +15,12 @@ const BAR_GROW: float = 1.18
 const PULSE_TIME: float = 0.9
 const OFF_COLOR: Color = Color(0.22, 0.20, 0.18)
 
+const STAT_GAP: float = 0.13              # clear of the card's outer edge
+const STAT_STEP: float = 0.20             # caption beyond the number, clear of its own line
+
 var _fervor_pips: Array[MeshInstance3D] = []
+var _stat_value: Label3D = null
+var _stat_caption: Label3D = null
 var _bar: MeshInstance3D = null
 var _bar_mat: StandardMaterial3D = null
 var _rungs: Array[Vector3] = []           # card-local rung centres, index 0 = stage 10
@@ -33,6 +39,35 @@ func _ready() -> void:
 	_bar.material_override = _bar_mat
 	_bar.visible = false
 	add_child(_bar)
+	_stat_value = _stat_label(60, ZenithTheme.ENERGY)
+	_stat_caption = _stat_label(30, ZenithTheme.MUTED)
+	_place_stats()
+
+
+## A billboarded line beside the card. The card's own scale carries through, so the ladder and
+## these numbers keep their proportions at every row scale.
+func _stat_label(size: int, color: Color) -> Label3D:
+	var l: Label3D = Label3D.new()
+	l.font_size = size
+	l.pixel_size = 0.0042
+	l.modulate = color
+	l.outline_size = 14
+	l.outline_modulate = Color(0.025, 0.03, 0.045, 0.95)
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.shaded = false
+	l.no_depth_test = true
+	l.double_sided = true
+	l.visible = false
+	add_child(l)
+	return l
+
+
+## The Ally's numbers sit beyond the card edge nearest the viewer, on both sides of the table,
+## so reading the opponent's Allies never means looking past their cards. Card local +z faces
+## the viewer whichever seat holds the table, because `TableLayout.slot` yaws by viewer.
+func _place_stats() -> void:
+	_stat_value.position = Vector3(0.0, LIFT, CARD.y * 0.5 + STAT_GAP)
+	_stat_caption.position = Vector3(0.0, LIFT, CARD.y * 0.5 + STAT_GAP + STAT_STEP)
 
 
 ## Rung rects in face pixels, top rung first, from the face layout.
@@ -78,7 +113,9 @@ func _material(color: Color) -> StandardMaterial3D:
 ## Energy 0 drops the bar one step below the ladder in the warning colour. `standing` is the
 ## owning player for a duelist (Fervor pips), null for an Ally.
 ## `fervor` overrides the standing's own count while a beat replays an older state; -1 uses it.
-func set_status(energy: int, standing: SeatPlayer, fervor: int = -1) -> void:
+## `might` turns on the Ally's Energy and Might line beside the card; a duelist's stat crest
+## already carries both, so it stays off there.
+func set_status(energy: int, standing: SeatPlayer, fervor: int = -1, might: int = -1) -> void:
 	var stages: int = CardInstance.MAX_STAGE
 	if _rungs.size() == stages:
 		_bar.visible = true
@@ -94,6 +131,15 @@ func set_status(energy: int, standing: SeatPlayer, fervor: int = -1) -> void:
 	var lit: int = fervor if fervor >= 0 else (standing.fervor if standing != null else 0)
 	for i in range(_fervor_pips.size()):
 		_fervor_pips[i].material_override = _material(ZenithTheme.ACCENT if i < lit else OFF_COLOR)
+	var spell_out: bool = standing == null and might >= 0
+	_stat_value.visible = spell_out
+	_stat_caption.visible = spell_out
+	if spell_out:
+		# Energy only: it decides whether the Ally can take control, attack or be spent, and it is
+		# the one number the row is too tight to spell out twice. Might stays on the hover view.
+		_stat_value.text = str(energy)
+		_stat_value.modulate = ZenithTheme.WARN if energy <= 0 else ZenithTheme.ENERGY
+		_stat_caption.text = "ENERGY"
 
 
 func _start_pulse() -> void:

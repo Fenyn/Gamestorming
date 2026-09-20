@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Emrys Gives No Quarter. The same cut three times without stopping, coming
+       forward on every one. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the two before this one -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.38" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="176" cy="200" r="44"/>
+    <path d="M176,244 V406"/>
+    <path d="M176,406 L140,548 M176,406 L216,548"/>
+    <path d="M176,272 L236,208"/>
+    <circle cx="322" cy="186" r="44"/>
+    <path d="M322,230 V400"/>
+    <path d="M322,400 L286,544 M322,400 L364,544"/>
+    <path d="M322,258 L392,228"/>
+  </g>
+  <!-- and this one, landing -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="486" cy="176" r="46"/>
+    <path d="M486,222 C496,288 494,344 488,398"/>
+    <path d="M488,398 C446,450 420,500 412,558"/>
+    <path d="M488,398 C548,434 588,484 604,546"/>
+    <path d="M400,562 L444,570"/>
+    <path d="M592,550 L638,562"/>
+    <path d="M490,250 C556,268 616,296 668,336"/>
+    <path d="M482,262 C444,290 418,318 404,348"/>
+  </g>
+  <!-- the blade, down through it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M694,354 C750,404 800,456 844,512"/>
+    <path d="M714,336 C770,386 820,438 864,494"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M652,354 L706,306"/>
+    <path d="M660,314 L680,332"/>
+  </g>
+  <!-- the arcs of the three -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M250,140 C400,120 560,180 680,304"/>
+    <path d="M356,110 C490,110 630,180 736,300"/>
+    <path d="M460,88 C580,100 700,180 790,296"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M812,532 L862,560"/>
+    <path d="M776,548 L800,592"/>
+  </g>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: No Retreat Drill. A line scratched on the stone and both heels against it.
+       Everything after this has to go forward. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the line -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round">
+    <path d="M40,384 C260,368 620,366 866,382"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M58,406 C280,390 626,388 858,404"/>
+    <path d="M120,432 C320,418 600,416 800,430"/>
+  </g>
+  <!-- the figure, heels on it, leaning in -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="470" cy="104" r="42"/>
+    <path d="M470,146 C478,200 476,244 470,286"/>
+    <path d="M470,286 C440,318 424,348 420,376"/>
+    <path d="M470,286 C508,314 528,346 534,376"/>
+    <path d="M418,376 L392,376"/>
+    <path d="M534,376 L562,376"/>
+    <path d="M474,172 C520,170 562,176 598,190"/>
+    <path d="M466,180 C428,196 400,214 382,232"/>
+  </g>
+  <!-- the sword, out in front -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M618,186 C688,190 754,198 824,212"/>
+    <path d="M616,206 C686,210 752,218 820,232"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M604,166 L604,228"/>
+  </g>
+  <!-- no ground behind him -->
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M300,330 L256,330"/>
+    <path d="M280,308 L256,330 L280,352"/>
+  </g>
+</svg>

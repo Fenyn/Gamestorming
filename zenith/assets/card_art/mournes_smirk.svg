@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Mourne's Smirk. Chisel and mallet set down on the gate, the seal freshly
+       cut and still lit. The work is done and he is pleased with it. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#241a26"/><stop offset="1" stop-color="#0a0710"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c6c1b4"/><stop offset="1" stop-color="#85806f"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e6e9ec"/><stop offset="1" stop-color="#8b9197"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect x="152" y="36" width="600" height="408" fill="url(#marble)"/>
+  <g stroke="#7e7a70" stroke-opacity="0.45" fill="none" stroke-width="3">
+    <path d="M152,124 C300,102 430,146 600,116 C680,102 720,118 752,108"/>
+  </g>
+  <!-- the fresh seal -->
+  <rect x="344" y="150" width="216" height="216" rx="12" fill="#2b2620"/>
+  <rect x="380" y="186" width="144" height="144" rx="8" fill="none" stroke="#c9a3e6" stroke-width="10"/>
+  <circle cx="452" cy="258" r="34" fill="#b98cd6" fill-opacity="0.55"/>
+  <!-- mallet and chisel, laid across the work -->
+  <g transform="translate(250,392) rotate(-8)">
+    <rect x="0" y="-14" width="230" height="28" rx="12" fill="#8a6a42"/>
+    <rect x="-96" y="-44" width="104" height="88" rx="12" fill="#6b4f32"/>
+    <rect x="-96" y="-44" width="24" height="88" rx="10" fill="#54402a"/>
+  </g>
+  <g transform="translate(648,384) rotate(12)">
+    <rect x="-18" y="-160" width="36" height="112" rx="9" fill="#8a6a42"/>
+    <rect x="-14" y="-52" width="28" height="34" fill="url(#steel)"/>
+    <path d="M-14,-18 L14,-18 L0,8 Z" fill="url(#steel)"/>
+  </g>
+</svg>

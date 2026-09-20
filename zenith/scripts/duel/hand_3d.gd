@@ -16,6 +16,8 @@ const RESTING_VISIBLE_FRACTION: float = 0.15
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
+const DULL_FACE: Color = Color(0.50, 0.52, 0.58)   # a card this prompt has no option for
+const BACKLINE_CLEAR: float = 292.0                # right edge of the backline rail, plus a margin
 
 @export var reduced_motion: bool = false:
 	set(value):
@@ -303,6 +305,7 @@ func _layout(snap: bool = false) -> void:
 		aura.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
 		aura.set_shader_parameter("selected", 1.0 if over else 0.0)
 		aura.set_shader_parameter("tint", Color(effect_tint, 1.0) if lit else Color(0.15, 0.20, 0.26, 0.16))
+		aura.set_shader_parameter("highlight", 1.0 if enabled and bool(item["legal"]) else 0.0)
 		if not node.visible:
 			item["rect"] = Rect2()
 			continue
@@ -312,7 +315,8 @@ func _layout(snap: bool = false) -> void:
 		var scale_factor: float = minf(EXPANDED_WIDTH / width, (_size.y * 0.58) / height) if over else 1.0
 		if over:
 			center.y = _size.y - height * scale_factor * 0.5 - 58.0
-			center.x = clampf(center.x, 280.0, _size.x - 455.0)
+			# Kept clear of the backline rail on the left, which holds real cards to hover.
+			center.x = clampf(center.x, BACKLINE_CLEAR + width * scale_factor * 0.5, _size.x - 455.0)
 			_expanded_rect = Rect2(center - Vector2(width, height) * scale_factor * 0.5, Vector2(width, height) * scale_factor)
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
@@ -324,10 +328,20 @@ func _layout(snap: bool = false) -> void:
 		var face: Sprite3D = item["face"]
 		face.pixel_size = width / FACE_SIZE.x * units
 		face.render_priority = 30 if over else 10 + i % _per_page
-		face.modulate = Color.WHITE if bool(item["legal"]) or over else Color(0.84, 0.85, 0.89)
+		# A card the pending prompt has no option for greys out, so the hand says what this phase
+		# will take without being read card by card. While the decision is not ours there is no
+		# option list to judge against, so the whole hand stays in colour.
+		var dulled: bool = enabled and not over and not bool(item["legal"])
+		face.modulate = DULL_FACE if dulled else Color.WHITE
 		var edge: MeshInstance3D = item["edge"]
-		(edge.mesh as QuadMesh).size = Vector2(width, height) * units * 1.10
+		# The rim sits on the card's own edge, which follows the hand's actual size rather than
+		# the shader's nominal card, so a narrow viewport keeps the filament on the border.
+		var world: Vector2 = Vector2(width, height) * units
+		(edge.mesh as QuadMesh).size = world * 1.10
+		aura.set_shader_parameter("plane_size", world * 1.10)
+		aura.set_shader_parameter("border_extent", world * 0.504)
 		var title: Label3D = item["title"]
+		title.modulate = ZenithTheme.MUTED if dulled else ZenithTheme.TEXT
 		title.render_priority = face.render_priority
 		title.pixel_size = units * 0.5
 		title.width = width * 2.0 - 12.0

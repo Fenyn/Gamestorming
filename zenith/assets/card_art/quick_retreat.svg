@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Edric Gives Ground. Back two steps with the point still up, and the cut
+       goes through the air he left. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the cut that missed -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M96,96 C206,204 300,300 372,372"/>
+    <path d="M62,130 C172,238 266,334 338,406"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M150,66 C258,168 348,262 420,336"/>
+    <path d="M40,190 C146,290 234,380 302,450"/>
+  </g>
+  <!-- where he was -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="426" cy="186" r="44"/>
+    <path d="M426,230 V400"/>
+    <path d="M426,400 L390,544 M426,400 L466,544"/>
+  </g>
+  <!-- and where he is now -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="616" cy="180" r="46"/>
+    <path d="M616,226 C624,292 622,348 616,402"/>
+    <path d="M616,402 C578,456 560,506 556,562"/>
+    <path d="M616,402 C674,436 712,484 726,544"/>
+    <path d="M544,566 L588,574"/>
+    <path d="M714,548 L760,560"/>
+    <path d="M612,254 C570,272 534,290 504,312"/>
+    <path d="M620,262 C664,284 700,304 730,324"/>
+  </g>
+  <!-- point still up, between them -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M488,322 C462,254 440,188 424,124"/>
+    <path d="M512,314 C486,246 464,180 448,116"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M470,352 L534,330"/>
+    <path d="M498,370 L512,396"/>
+  </g>
+  <!-- the ground he gave -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M430,596 C530,584 640,578 760,580"/>
+    <path d="M480,616 C570,606 670,600 780,602"/>
+  </g>
+</svg>

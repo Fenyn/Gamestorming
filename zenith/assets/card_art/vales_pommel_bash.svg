@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Vale's Pommel Bash. Too close for the edge, so he uses the other end. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- him, stepped right in -->
+    <circle cx="256" cy="200" r="46"/>
+    <path d="M256,246 C266,310 264,360 258,412"/>
+    <path d="M258,412 C216,462 192,510 182,566"/>
+    <path d="M258,412 C316,450 352,498 366,556"/>
+    <path d="M260,274 C330,262 398,250 462,244"/>
+    <path d="M254,286 C300,316 342,336 382,346"/>
+    <!-- the other one, head going back -->
+    <path d="M700,236 C700,174 656,140 604,150 C560,158 540,196 552,238 C562,276 604,296 646,288"/>
+    <path d="M646,288 C660,332 668,382 668,430"/>
+    <path d="M668,430 C650,486 644,532 648,580"/>
+    <path d="M668,430 C712,470 740,522 750,578"/>
+    <path d="M660,330 C620,356 588,376 556,388"/>
+  </g>
+  <!-- the sword, held short, pommel first -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M436,300 C372,336 306,368 236,396"/>
+    <path d="M446,318 C382,354 316,386 246,414"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M462,236 L494,290"/>
+    <path d="M480,252 C500,262 514,272 524,284"/>
+    <path d="M524,284 C546,278 560,268 566,254"/>
+  </g>
+  <!-- where it landed -->
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M588,206 L560,158"/>
+    <path d="M622,196 L622,146"/>
+    <path d="M656,206 L688,166"/>
+    <path d="M572,244 L522,232"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M716,180 C750,150 782,132 816,122"/>
+    <path d="M730,240 C768,226 802,220 838,220"/>
+    <path d="M708,120 C728,96 748,80 770,68"/>
+  </g>
+</svg>

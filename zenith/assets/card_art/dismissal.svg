@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Dismissal. Everyone else goes off the floor. Two are left, and the floor
+       is suddenly very large. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#22262e"/><stop offset="1" stop-color="#06070a"/>
+    </radialGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#333a44"/><stop offset="1" stop-color="#12151a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <path d="M96,330 H808 L904,600 H0 Z" fill="url(#floor)"/>
+  <g stroke="#0d1014" stroke-width="5" stroke-opacity="0.8">
+    <path d="M172,330 L104,600 M324,330 L300,600 M580,330 L604,600 M732,330 L800,600"/>
+    <path d="M78,432 H826 M40,522 H864"/>
+  </g>
+  <!-- the two who stay -->
+  <g fill="#0a0d11">
+    <circle cx="300" cy="268" r="40"/>
+    <path d="M254,316 h92 l28,168 h-148 Z"/>
+    <path d="M262,484 h34 l6,84 h-40 Z"/>
+    <path d="M330,484 h34 l6,84 h-40 Z"/>
+  </g>
+  <g fill="#0a0d11">
+    <circle cx="604" cy="268" r="40"/>
+    <path d="M558,316 h92 l28,168 h-148 Z"/>
+    <path d="M566,484 h34 l6,84 h-40 Z"/>
+    <path d="M634,484 h34 l6,84 h-40 Z"/>
+  </g>
+  <!-- the rest, going -->
+  <g fill="#0a0d11" fill-opacity="0.32">
+    <g transform="translate(-150,44) scale(0.8)">
+      <circle cx="300" cy="268" r="40"/><path d="M254,316 h92 l28,168 h-148 Z"/>
+    </g>
+    <g transform="translate(300,64) scale(0.72)" fill-opacity="0.22">
+      <circle cx="300" cy="268" r="40"/><path d="M254,316 h92 l28,168 h-148 Z"/>
+    </g>
+    <g transform="translate(520,40) scale(0.78)" fill-opacity="0.16">
+      <circle cx="300" cy="268" r="40"/><path d="M254,316 h92 l28,168 h-148 Z"/>
+    </g>
+  </g>
+  <g fill="#8fb4c8" fill-opacity="0.18">
+    <path d="M96,470 h120 l-16,40 h-120 Z"/>
+    <path d="M700,486 h120 l16,40 h-120 Z"/>
+  </g>
+</svg>

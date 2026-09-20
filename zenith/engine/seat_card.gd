@@ -17,6 +17,9 @@ var attached_to: int = -1
 var named_card: String = ""
 var under: int = 0             # cards stacked beneath (Bond partners, overlays)
 var bond_timer: int = 0
+var variant: String = ""       # personalities: which printing of the character this card is
+var tags: Array[String] = []   # personalities: the keywords they carry right now, printed or lent
+                               # by an attachment. Clients read this, never the card's own `tags`
 
 
 func hidden() -> bool:
@@ -28,6 +31,7 @@ func to_dict() -> Dictionary:
 		"uid": uid, "def": def_id, "title": title, "owner": owner, "controller": controller,
 		"zone": String(zone), "aspect": aspect, "energy": energy, "might": might, "remain": remain,
 		"attached_to": attached_to, "named": named_card, "under": under, "bond_timer": bond_timer,
+		"variant": variant, "tags": tags,
 	}
 
 
@@ -47,6 +51,8 @@ static func from_dict(d: Dictionary) -> SeatCard:
 	c.named_card = str(d.get("named", ""))
 	c.under = int(d.get("under", 0))
 	c.bond_timer = int(d.get("bond_timer", 0))
+	c.variant = str(d.get("variant", ""))
+	c.tags.assign(d.get("tags", []))
 	return c
 
 
@@ -63,7 +69,9 @@ static func visible_to(c: CardInstance, seat: int) -> bool:
 
 
 ## `reveal` shows a card the seat could not otherwise see, for a card the seat is choosing among.
-static func of(c: CardInstance, seat: int, reveal: bool = false) -> SeatCard:
+## `tags` is what a personality carries right now, which only the engine can work out, so the
+## caller hands it in rather than the view reading the printed list.
+static func of(c: CardInstance, seat: int, reveal: bool = false, tags: Array[String] = []) -> SeatCard:
 	var v: SeatCard = SeatCard.new()
 	v.uid = c.uid
 	v.owner = c.owner
@@ -81,4 +89,6 @@ static func of(c: CardInstance, seat: int, reveal: bool = false) -> SeatCard:
 	v.attached_to = c.attached_to.uid if c.attached_to != null else -1
 	v.named_card = c.named_card
 	v.bond_timer = c.bond_timer
+	v.variant = c.def.variant
+	v.tags = tags
 	return v

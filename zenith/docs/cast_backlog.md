@@ -126,7 +126,7 @@ Cell, Pikkon and Frieza have no placement yet.
 ## How to work it
 
 One source character at a time. For each: agree the name first, then write their CAST entry in
-`tools/gen_roster.py`, add their cards to `SHOWS`, retitle those cards in `tools/gen_starters.py`
+`tools/gen_roster.py`, add their cards to `SHOWS`, retitle those cards in `data/cards/starter/starter_set.json`
 so the title leads with the name, regenerate, and re-run `tools/audit_mirrors.py`. Renaming a card
 id means adding its printed source to `NEW_SOURCES` in `tools/gen_roster.py`, or the roster loses
 the join and the audit goes blind.

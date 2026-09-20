@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Ancient Grove. Old trunks, a worn circle of ground, and the practice post
+       somebody set in it long enough ago that the bark grew round it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- trunks -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M70,0 C62,120 60,240 66,360"/>
+    <path d="M168,0 C176,120 178,242 172,364"/>
+    <path d="M40,360 C88,348 146,348 196,362"/>
+    <path d="M760,0 C752,116 750,232 756,344"/>
+    <path d="M858,0 C866,116 868,234 862,348"/>
+    <path d="M732,346 C780,334 838,334 886,348"/>
+    <path d="M330,40 C324,134 324,224 328,306"/>
+    <path d="M398,40 C404,134 404,226 400,310"/>
+    <path d="M310,306 C346,296 384,296 418,308"/>
+  </g>
+  <!-- bark -->
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M92,90 C100,150 100,220 94,290"/>
+    <path d="M138,74 C146,140 146,214 140,286"/>
+    <path d="M788,86 C796,148 796,218 790,282"/>
+    <path d="M354,96 C360,158 360,220 356,272"/>
+  </g>
+  <!-- the ground worn bare in a ring -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M200,412 C300,376 460,364 600,384 C672,394 716,412 730,432"/>
+    <path d="M232,446 C330,414 468,406 592,422"/>
+  </g>
+  <!-- the post -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M496,206 C492,282 492,350 496,404"/>
+    <path d="M546,206 C550,282 550,350 546,404"/>
+    <path d="M496,206 C514,198 530,198 546,206"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M500,254 L544,266"/>
+    <path d="M500,302 L542,314"/>
+  </g>
+  <!-- light coming down between them -->
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M600,20 C588,120 574,236 564,340"/>
+    <path d="M672,26 C660,124 648,236 640,336"/>
+    <path d="M252,30 C244,124 236,228 230,320"/>
+  </g>
+</svg>

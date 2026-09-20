@@ -125,9 +125,15 @@ func _run() -> void:
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
-		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
 		_check(is_equal_approx(life_slot.origin.z, identity_slot.origin.z), "Each Life Deck must share its duelist's table row")
-		_check(life_slot.origin.distance_to(identity_slot.origin) < discard_slot.origin.distance_to(identity_slot.origin), "Each Life Deck must sit closer to its duelist than the discard pile")
+		_check(life_slot.origin.distance_to(identity_slot.origin) < 2.0, "Each Life Deck must sit beside its own duelist")
+	# The backline left the felt: the piles and the two used cards are rail rows, and the table
+	# keeps no zone for them at all.
+	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
+		_check(not TableLayout.SINGLES.has(zone) and not TableLayout.ROWS.has(zone), "The table must hold no %s zone" % zone)
+	for rail in [duel.hud.near_backline, duel.hud.far_backline]:
+		for zone in BacklineRail.ROWS:
+			_check(rail.row_anchor(zone) != Vector2.ZERO, "The rail must anchor its %s row" % zone)
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
 	# Camera zoom changes the projected card footprint; attached resource crests must move

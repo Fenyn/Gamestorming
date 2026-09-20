@@ -26,15 +26,14 @@ const ROWS: Dictionary = {
 	&"drill": {"marker": "DrillStart", "slots": 5, "step": 0.45, "direction": -1, "scale": 0.60, "label": "Drills"},
 	&"non_combat": {"marker": "NonCombatStart", "slots": 5, "step": 0.45, "scale": 0.60, "label": "Non-Combat"},
 	&"seal": {"marker": "SealStart", "slots": 7, "step": 0.34, "scale": SEAL_SCALE, "label": "Seals"},
+	# Cards kept out by Remain. Set outboard of the duelist, clear of the stat crest the
+	# duelist fixture draws over that side of the table for both seats.
+	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.35, "direction": -1, "scale": 0.60, "label": "Remain"},
 }
 ## Single-card zones: marker and label.
 const SINGLES: Dictionary = {
 	&"duelist": {"marker": "Duelist", "label": "Duelist"},
-	&"mastery": {"marker": "Mastery", "label": "Mastery"},
-	&"relic": {"marker": "Relic", "label": "Relic · Reserve"},
 	&"life_deck": {"marker": "LifeDeck", "label": "Life Deck"},
-	&"discard": {"marker": "Discard", "label": "Discard"},
-	&"removed": {"marker": "Removed", "label": "Removed"},
 	&"resolving": {"marker": "Resolving", "label": "Play"},
 }
 
@@ -72,11 +71,8 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 		scale_factor = float(row["scale"])
 	else:
 		match zone:
-			&"life_deck", &"discard", &"removed":
+			&"life_deck":
 				pos = marker(str(SINGLES[zone]["marker"])) + Vector3(0, STACK_STEP * index, 0)
-			&"relic":
-				# Reserve cards stack face down under the Relic; index 0 is the Relic itself.
-				pos = marker("Relic") + Vector3(0, STACK_STEP * (count + 1 - index), 0)
 			&"hand":
 				var spread: float = HAND_STEP * (count - 1)
 				pos = marker("HandStart") + Vector3(HAND_STEP * index - spread * 0.5, 0.002 * index, 0)
@@ -122,19 +118,13 @@ func refresh_occupancy(view: SeatView) -> void:
 			&"drill": count = p.drills.size()
 			&"non_combat": count = p.non_combats.size()
 			&"seal": count = p.seals.size()
+			&"remain": count = p.remain.size()
 			&"life_deck": count = p.life_deck.size()
-			&"discard": count = p.discard.size()
-			&"removed": count = p.removed.size()
-			&"mastery": count = int(p.mastery >= 0)
-			&"relic": count = int(p.relic >= 0)
 			&"duelist": count = 1
 			&"resolving": count = view.resolving.size()
 			&"grounds": count = int(view.grounds >= 0)
 		label.visible = count > 0 and zone not in [&"duelist", &"resolving", &"life_deck"]
 		label.text = str(label.get_meta("title"))
-		if zone in [&"life_deck", &"discard", &"removed"]:
-			var title: String = "LIFE" if zone == &"life_deck" else ("OUT" if zone == &"removed" else "DISCARD")
-			label.text = "%s %d" % [title, count]
 
 
 ## X offset of card `index` in a row. Past the zone's slot count the row squeezes so the last
@@ -244,7 +234,7 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	l.set_meta("player", 1 if mirror else 0)
 	l.set_meta("title", l.text)
 	l.font_size = 24 if ROWS.has(zone) else 32
-	l.pixel_size = 0.0032 if zone in [&"life_deck", &"discard", &"removed"] else 0.004
+	l.pixel_size = 0.0032 if zone == &"life_deck" else 0.004
 	l.modulate = LABEL_COLOR
 	l.shaded = false
 	l.double_sided = false

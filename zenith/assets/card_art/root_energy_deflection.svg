@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Root Barkskin Deflection. Bark over the forearm, and the bolt goes past
+       at the angle the arm gave it. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="76%">
+      <stop offset="0" stop-color="#28381c"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="bark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a6a42"/><stop offset="1" stop-color="#3a2a1a"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d9f2ff"/><stop offset="1" stop-color="#5fb4e6"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <!-- the bolt: in low from the left, out high to the right -->
+  <path d="M0,420 L196,360 L286,332" fill="none" stroke="url(#bolt)" stroke-width="20" stroke-linecap="round"/>
+  <path d="M420,286 L560,180 L680,150 L904,84" fill="none" stroke="url(#bolt)" stroke-width="20" stroke-linecap="round"/>
+  <ellipse cx="352" cy="310" rx="170" ry="150" fill="#8fd6ff" fill-opacity="0.16"/>
+  <!-- the forearm it came onto, bark side out -->
+  <g transform="translate(400,352) rotate(-34)">
+    <rect x="-230" y="-62" width="460" height="124" rx="62" fill="url(#bark)" stroke="#170f08" stroke-width="7"/>
+    <g fill="none" stroke="#2c1f12" stroke-opacity="0.7" stroke-width="7" stroke-linecap="round">
+      <path d="M-180,-30 h340 M-190,0 h360 M-180,30 h340"/>
+      <path d="M-120,-46 v92 M-20,-46 v92 M80,-46 v92"/>
+    </g>
+    <path d="M150,-62 c44,-30 78,4 74,46 c-40,14 -66,-10 -74,-46 Z" fill="#4d6b3c"/>
+  </g>
+  <!-- what it took off the bark on the way past -->
+  <g fill="#cfe8a8">
+    <path d="M330,196 l30,-16 l6,30 Z"/>
+    <path d="M410,166 l28,-20 l10,30 Z"/>
+    <path d="M286,248 l26,-22 l14,28 Z"/>
+  </g>
+</svg>

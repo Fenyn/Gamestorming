@@ -18,6 +18,11 @@ const SPOTLIGHT_BEAT: float = 0.45    # hold on the card whose effect is about t
 const DRAW_BEAT: float = 0.10         # between cards of the same draw, so they arrive one by one
 const WOUND_BEAT: float = 0.5         # between life cards, long enough to read what each one cost
 const AI_MIN_THINK: float = 0.45      # seconds the AI appears to think, so its plays do not snap
+const STALL_MS: int = 1200            # a hidden decision panel this long is a stall, not a beat
+const ATTACH_OFFSET: Vector3 = Vector3(0.30, 0.004, -0.22)   # a corner of the attachment peeks past its host
+const ATTACH_SCALE: float = 0.78
+const RAIL_DEPTH: float = 3.2         # camera distance the backline cards are pinned at
+const RAIL_STACK_PX: float = 0.7      # a pile's cards fan by this much so a stack reads as one
 
 @onready var rig: Node3D = $CameraRig
 @onready var camera: TableCamera = $CameraRig/Camera
@@ -63,6 +68,7 @@ var _live: Dictionary = {}
 var _attack_cue: Dictionary = {}   # public attack currently replaying, never the future update outcome
 var _focus_key: String = ""
 var _reduced_motion: bool = false
+var _stall_since: int = 0            # when the viewer was first owed a decision with no panel up
 
 
 func _ready() -> void:
@@ -87,6 +93,7 @@ func _ready() -> void:
 	hud.rematch_requested.connect(_on_rematch)
 	hud.select_requested.connect(_on_select)
 	hud.dev_command.connect(_on_dev_command)
+	hud.pile_opened.connect(_on_pile_clicked)
 	hud.set_loading(true)
 	if online:
 		viewer = Net.local_player
@@ -123,7 +130,7 @@ func _set_reduced_motion(on: bool) -> void:
 func _process(_delta: float) -> void:
 	if not is_instance_valid(hud):
 		return
-	var overlay: bool = hud.tray.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible
+	var overlay: bool = hud.tray.visible or hud.pile.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible
 	hand_3d.set_available(view != null and viewer >= 0 and not overlay)
 	hand_3d.enabled = _can_choose()
 	camera.hand_navigation = hand_3d.keyboard_active or overlay
@@ -140,6 +147,7 @@ func _process(_delta: float) -> void:
 			board_card.set_hovered(false)
 	if hand_blocks or preview_blocks:
 		hud.hide_peek()
+	_watch_for_stall(overlay)
 	_layout_fixtures()
 	focus_card.visible = hud.focus.visible and not overlay
 	if focus_card.visible and view != null:
@@ -152,6 +160,25 @@ func _process(_delta: float) -> void:
 				_focus_key = key
 		else:
 			focus_card.visible = false
+
+
+## Safety net, not a mechanism. The table runs on awaits, and a decision panel that never comes
+## back reads as a softlock: the viewer owes a move and there is nothing on screen to make it
+## with. Nothing should reach this, so it says so and puts the prompt back rather than leaving
+## the duel stuck.
+func _watch_for_stall(overlay: bool) -> void:
+	var owed: bool = view != null and not view.is_over() and prompt != null and viewer >= 0 		and view.deciding == viewer and prompt.player == viewer
+	if not owed or busy or _awaiting_answer or overlay or _dev_done or hud.prompt_panel.visible:
+		_stall_since = 0
+		return
+	if _stall_since == 0:
+		_stall_since = Time.get_ticks_msec()
+		return
+	if Time.get_ticks_msec() - _stall_since < STALL_MS:
+		return
+	_stall_since = 0
+	push_warning("Decision panel was missing for a %s prompt; showing it again" % String(prompt.kind))
+	_show_prompt_for_viewer()
 
 
 ## Resource fixtures follow the actual field cards, with a clear opening over each face.
@@ -322,7 +349,10 @@ func _ai_turn() -> void:
 		await get_tree().create_timer(rest).timeout
 	busy = false
 	if answer[0].is_empty():
+		# The host answers for a stuck AI, so an empty answer here means the decision moved on
+		# while we were thinking. Present whatever is pending now instead of standing still.
 		push_warning("The AI had no answer for %s" % String(view.deciding_kind))
+		_present_prompt()
 		return
 	await _apply(ai_seat, answer[0])
 
@@ -503,6 +533,13 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			fx.ward(_card_pos(_controlling_uid(defender)), ZenithTheme.DEFEND)
 			if type != &"defense_played":
 				fx.float_text(_card_pos(int(data.get("card", -1))), "Shield", ZenithTheme.DEFEND, 48)
+			await _beat(BEAT)
+		&"remain":
+			# The card stays on the table instead of going to the discard pile. Without a beat it
+			# would slide into the Remain row during the closing sync with nothing said about it.
+			await _sync_layout(true)
+			var uses: int = int(data.get("uses", 1))
+			fx.float_text(_card_pos(int(data.get("card", -1))), "Remain %d" % uses, ZenithTheme.ACCENT, 48)
 			await _beat(BEAT)
 		&"attack_stopped":
 			_attack_cue["stopped"] = true
@@ -944,7 +981,7 @@ func _hand_blocks_board() -> bool:
 ## The camera-facing preview and its attached choices own this patch of the screen.
 ## Transparent presentation must not let the field underneath produce hover tooltips.
 func _preview_blocks_point(point: Vector2) -> bool:
-	if hud.tray.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible:
+	if hud.tray.visible or hud.pile.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible:
 		return false
 	return (hud.focus.is_visible_in_tree() and hud.focus.get_global_rect().has_point(point)) \
 		or (hud.prompt_panel.is_visible_in_tree() and hud.prompt_panel.get_global_rect().has_point(point))
@@ -954,6 +991,13 @@ func _on_card_clicked(uid: int) -> void:
 	if _preview_blocks_point(hud.root.get_global_mouse_position()) and not (hand_3d.keyboard_active and view != null and viewer >= 0 and view.player(viewer).hand.has(uid)):
 		return
 	if _hand_blocks_board() and (view == null or viewer < 0 or not view.player(viewer).hand.has(uid)):
+		return
+	# A card sitting in a public pile with nothing to choose about it opens that whole pile to
+	# be read, the way a Life Deck search shows a deck. A pile card that is part of the pending
+	# decision stays a choice, so the decision wins.
+	var pile: Vector2i = _pile_of(uid)
+	if pile.x >= 0 and (not _can_choose() or prompt.options_for_card(uid).is_empty()):
+		hud.show_pile(view, pile.x, &"removed" if pile.y == 1 else &"discard")
 		return
 	if not _can_choose():
 		return
@@ -968,6 +1012,36 @@ func _on_card_clicked(uid: int) -> void:
 		hud.show_card_choice(opts)
 	elif not all.is_empty():
 		hud.show_card_choice(all)   # only a Final Strike: it needs a confirming click in the tray
+
+
+## A click on the felt of a Discard or Removed pile, including its count label: read the pile.
+## A pile whose cards the pending decision offers keeps its cards as choices, so the click is
+## left to the card under the pointer.
+func _on_pile_clicked(player: int, zone: StringName) -> void:
+	if view == null or hud.pile.visible:
+		return
+	if _hand_blocks_board() or _preview_blocks_point(hud.root.get_global_mouse_position()):
+		return
+	var p: SeatPlayer = view.player(player)
+	if _can_choose():
+		for uid in (p.removed if zone == &"removed" else p.discard):
+			if not prompt.options_for_card(uid).is_empty():
+				return
+	hud.show_pile(view, player, zone)
+
+
+## Which public pile a card is sitting in: (player, 0) for a Discard, (player, 1) for Removed,
+## (-1, -1) for anywhere else. A standing effect's source is lifted out of the Removed pile and
+## stood beside its owner, so it answers for itself rather than for the pile it came from.
+func _pile_of(uid: int) -> Vector2i:
+	if view == null or _standing_uids().has(uid):
+		return Vector2i(-1, -1)
+	for p in view.players:
+		if p.discard.has(uid):
+			return Vector2i(p.index, 0)
+		if p.removed.has(uid):
+			return Vector2i(p.index, 1)
+	return Vector2i(-1, -1)
 
 
 func _on_card_hovered(uid: int, over: bool) -> void:
@@ -1054,6 +1128,26 @@ func _standing_uids() -> Dictionary:
 	return out
 
 
+## Where a backline card sits: pinned over its row in the screen-edge rail rather than on the
+## felt. The transform is built in camera space, so the card keeps its size at any window size
+## and the table underneath is left to the fighters.
+func _rail_slot(player: int, zone: StringName, index: int) -> Transform3D:
+	var rail: BacklineRail = hud.near_backline if player == (viewer if viewer >= 0 else view.active) else hud.far_backline
+	var anchor: Vector2 = rail.row_anchor(zone) + Vector2(RAIL_STACK_PX, -RAIL_STACK_PX) * index
+	var units: float = _units_per_pixel(RAIL_DEPTH)
+	var origin: Vector3 = camera.project_position(anchor, RAIL_DEPTH)
+	var scale_factor: float = rail.well_height() * units / TableLayout.CARD_SIZE.y
+	# A table card's face points along its own +Y because it lies flat. Turning the camera basis
+	# a quarter turn about X stands it up to face the lens instead of showing its edge.
+	var facing: Basis = camera.global_basis * Basis(Vector3.RIGHT, PI * 0.5)
+	return Transform3D(facing.scaled(Vector3.ONE * scale_factor), origin)
+
+
+## World units one screen pixel covers at `depth`, the same measure the hand lays itself out with.
+func _units_per_pixel(depth: float) -> float:
+	return camera.project_position(Vector2.ZERO, depth).distance_to(camera.project_position(Vector2(1, 0), depth))
+
+
 ## Every card's target slot for the current view. Cards not listed are hidden.
 func _targets() -> Dictionary:
 	var out: Dictionary = {}
@@ -1062,10 +1156,13 @@ func _targets() -> Dictionary:
 		var n: int = p.life_deck.size()
 		for i in range(n):
 			out[p.life_deck[i]] = [zones.slot(p.index, &"life_deck", n - 1 - i, 1, vw), false, true]
+		# The piles and the two used cards live in the screen-edge rail, not on the felt, so the
+		# table is left to the fighters. They are still real cards pinned over their rail row,
+		# which keeps every arc and stack reading the way it did on the table.
 		for i in range(p.discard.size()):
-			out[p.discard[i]] = [zones.slot(p.index, &"discard", i, 1, vw), true, true]
+			out[p.discard[i]] = [_rail_slot(p.index, &"discard", i), true, true]
 		for i in range(p.removed.size()):
-			out[p.removed[i]] = [zones.slot(p.index, &"removed", i, 1, vw), true, true]
+			out[p.removed[i]] = [_rail_slot(p.index, &"removed", i), true, true]
 		var hn: int = p.hand.size()
 		for i in range(hn):
 			out[p.hand[i]] = [zones.slot(p.index, &"hand", i, hn, vw), false, p.index != viewer]
@@ -1077,15 +1174,30 @@ func _targets() -> Dictionary:
 			out[p.non_combats[i]] = [zones.slot(p.index, &"non_combat", i, p.non_combats.size(), vw), true, true]
 		for i in range(p.seals.size()):
 			out[p.seals[i]] = [zones.slot(p.index, &"seal", i, p.seals.size(), vw), true, true]
+		for i in range(p.remain.size()):
+			out[p.remain[i]] = [zones.slot(p.index, &"remain", i, p.remain.size(), vw), true, true]
 		out[p.duelist] = [zones.slot(p.index, &"duelist", 0, 1, vw), true, true]
 		if p.mastery >= 0:
-			out[p.mastery] = [zones.slot(p.index, &"mastery", 0, 1, vw), true, true]
+			out[p.mastery] = [_rail_slot(p.index, &"mastery", 0), true, true]
 		var reserve_n: int = p.reserve.size()
 		if p.relic >= 0:
-			out[p.relic] = [zones.slot(p.index, &"relic", 0, reserve_n, vw), true, true]
+			out[p.relic] = [_rail_slot(p.index, &"relic", 0), true, true]
 		for i in range(reserve_n):
 			# Reserve cards sit face down under the Relic; only their owner sees them in the prompt.
-			out[p.reserve[i]] = [zones.slot(p.index, &"relic", i + 1, reserve_n, vw), false, true]
+			out[p.reserve[i]] = [_rail_slot(p.index, &"relic", i + 1), false, true]
+	# An attachment has no zone of its own: it rides the card it is attached to, tucked behind it
+	# and a little smaller. Without this it is in play and drawn nowhere, so an effect that asks
+	# the player to pick it has nothing to click.
+	for p in view.players:
+		for uid in p.attachments:
+			var host: SeatCard = view.card(uid)
+			if host == null or not out.has(host.attached_to):
+				continue
+			var seat_entry: Array = out[host.attached_to]
+			var base: Transform3D = seat_entry[0]
+			var tucked: Transform3D = Transform3D(base.basis.scaled(Vector3.ONE * ATTACH_SCALE), base.origin)
+			tucked.origin += base.basis * ATTACH_OFFSET
+			out[uid] = [tucked, true, bool(seat_entry[2])]
 	# A standing effect's source card is in the Removed pile; it is lifted out of that stack and
 	# stood beside its owner instead, so the passive has something on the table to hover.
 	var ghosts: Dictionary = _standing_uids()
@@ -1102,13 +1214,14 @@ func _targets() -> Dictionary:
 ## Energy marks on duelists and Allies in play, Fervor on the duelist.
 func _refresh_markers() -> void:
 	var live_energy: Dictionary = _live.get("energy", {})
+	var live_might: Dictionary = _live.get("might", {})
 	var live_fervor: Array = _live.get("fervor", [])
-	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null, fervor or -1]
+	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null, fervor or -1, might]
 	for p in view.players:
 		var fervor: int = int(live_fervor[p.index]) if p.index < live_fervor.size() else -1
-		wanted[p.duelist] = [_live_energy(live_energy, p.duelist), p, fervor]
+		wanted[p.duelist] = [_live_energy(live_energy, p.duelist), p, fervor, -1]
 		for uid in p.allies:
-			wanted[uid] = [_live_energy(live_energy, uid), null, -1]
+			wanted[uid] = [_live_energy(live_energy, uid), null, -1, _live_might(live_might, uid)]
 	for uid in _markers.keys():
 		if not wanted.has(uid):
 			(_markers[uid] as StatusMarkers).queue_free()
@@ -1123,7 +1236,7 @@ func _refresh_markers() -> void:
 			v.body.add_child(m)
 			m.setup(faces.ladder_rects())
 			_markers[uid] = m
-		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer, int(wanted[uid][2]))
+		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer, int(wanted[uid][2]), int(wanted[uid][3]))
 
 
 ## The Energy to draw for a card: what the beat says, else what the view ends on. The map is
@@ -1135,6 +1248,16 @@ func _live_energy(live: Dictionary, uid: int) -> int:
 		return int(live[str(uid)])
 	var c: SeatCard = view.card(uid)
 	return c.energy if c != null else 0
+
+
+## The same for Might, which the beat carries whenever a modifier moved it.
+func _live_might(live: Dictionary, uid: int) -> int:
+	if live.has(uid):
+		return int(live[uid])
+	if live.has(str(uid)):
+		return int(live[str(uid)])
+	var c: SeatCard = view.card(uid)
+	return c.might if c != null else 0
 
 
 func _sync_layout(animated: bool) -> void:
@@ -1325,6 +1448,14 @@ func _dev_finish(settle: float = 0.6) -> void:
 		var cam: PackedStringArray = _dev_camera.split(",")
 		if cam.size() == 3:
 			camera.dev_set(Vector2(float(cam[0]), float(cam[1])), int(cam[2]))
+		# `--dev-pile=mine:discard` (or `theirs`, `removed`) opens the pile browser for the shot,
+		# the same view a click on that pile gives.
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--dev-pile=") and view != null:
+				var parts: PackedStringArray = arg.get_slice("=", 1).split(":")
+				var seat: int = viewer if viewer >= 0 else view.active
+				var player: int = seat if parts[0] != "theirs" else 1 - seat
+				await hud.show_pile(view, player, &"removed" if parts.size() > 1 and parts[1] == "removed" else &"discard")
 		await get_tree().create_timer(settle).timeout
 		# Window startup can deliver late pointer motion after the requested hand preview.
 		# Freeze only this screenshot's presentation after settling; normal input is unchanged.

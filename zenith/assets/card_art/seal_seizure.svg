@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Seal Seizure. A blade levered in behind a cut seal, prying it off the
+       gate whole. Strike box is 452x320. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#2b2620"/><stop offset="1" stop-color="#080706"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c6c1b4"/><stop offset="1" stop-color="#7d7869"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2f5f7"/><stop offset="1" stop-color="#7d848a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect x="92" y="40" width="720" height="560" fill="url(#marble)"/>
+  <!-- the socket it is coming out of -->
+  <rect x="300" y="196" width="280" height="280" rx="10" fill="#241f1a"/>
+  <!-- the seal itself, tipped out of true and still lit -->
+  <g transform="translate(452,320) rotate(-13)">
+    <rect x="-140" y="-140" width="280" height="280" rx="12" fill="#b9b6ae" stroke="#6f6a5d" stroke-width="6"/>
+    <rect x="-86" y="-86" width="172" height="172" rx="8" fill="none" stroke="#ffc47a" stroke-width="12"/>
+    <circle cx="0" cy="0" r="34" fill="#ffd9a0" fill-opacity="0.8"/>
+  </g>
+  <!-- the blade under it, taking the weight -->
+  <g transform="translate(232,470) rotate(-34)">
+    <rect x="-22" y="-300" width="44" height="300" fill="url(#blade)"/>
+    <path d="M-22,-300 L22,-300 L0,-348 Z" fill="url(#blade)"/>
+    <rect x="-76" y="0" width="152" height="28" rx="12" fill="#8b6a3f"/>
+    <rect x="-18" y="28" width="36" height="96" rx="12" fill="#3a2b1c"/>
+  </g>
+  <!-- stone giving way -->
+  <g fill="#e8e3d6">
+    <path d="M330,168 l26,-14 l8,24 Z"/>
+    <path d="M604,214 l28,6 l-12,22 Z"/>
+    <path d="M620,470 l24,16 l-24,14 Z"/>
+  </g>
+</svg>

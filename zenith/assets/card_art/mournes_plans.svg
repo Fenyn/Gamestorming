@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Mourne's Plans. The seal drawn out before it is cut: a sheet of working
+       lines weighted down on the gate, the chisel laid across it, half the seal already carved. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#241a26"/><stop offset="1" stop-color="#0a0710"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c6c1b4"/><stop offset="1" stop-color="#85806f"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e6e9ec"/><stop offset="1" stop-color="#8b9197"/>
+    </linearGradient>
+    <linearGradient id="sheet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9e1cc"/><stop offset="1" stop-color="#bfb59a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect x="112" y="24" width="680" height="432" fill="url(#marble)"/>
+  <!-- half the seal, cut into the stone at the left -->
+  <path d="M156,132 h132 v216 h-132 Z" fill="#2b2620"/>
+  <g fill="none" stroke="#c9a3e6" stroke-width="10" stroke-linecap="round">
+    <circle cx="222" cy="240" r="46"/>
+    <path d="M222,160 v44 M222,276 v44 M142,240 h44 M258,240 h44"/>
+  </g>
+  <!-- the plan for the rest of it, weighted down -->
+  <g transform="translate(560,240) rotate(-4)">
+    <rect x="-196" y="-150" width="392" height="300" rx="6" fill="url(#sheet)" stroke="#8a7f66" stroke-width="4"/>
+    <g fill="none" stroke="#6f6448" stroke-opacity="0.5" stroke-width="3">
+      <path d="M-160,-108 H160 M-160,-36 H160 M-160,36 H160 M-160,108 H160"/>
+      <path d="M-120,-150 V150 M-40,-150 V150 M40,-150 V150 M120,-150 V150"/>
+    </g>
+    <rect x="-96" y="-88" width="192" height="192" rx="8" fill="none" stroke="#7a3fa6" stroke-width="7"/>
+    <g fill="none" stroke="#7a3fa6" stroke-width="9" stroke-linecap="round">
+      <circle cx="0" cy="8" r="40"/>
+      <path d="M0,-64 v20 M0,60 v20 M-72,8 h20 M52,8 h20"/>
+    </g>
+    <g fill="none" stroke="#7a3fa6" stroke-opacity="0.45" stroke-width="4">
+      <path d="M-96,-118 H96 M-96,-126 v16 M96,-126 v16"/>
+    </g>
+    <circle cx="150" cy="118" r="26" fill="#4a4036" stroke="#241f19" stroke-width="4"/>
+    <circle cx="-158" cy="-112" r="22" fill="#4a4036" stroke="#241f19" stroke-width="4"/>
+  </g>
+  <!-- the chisel, set down across the work -->
+  <g transform="translate(356,392) rotate(-14)">
+    <rect x="-20" y="-170" width="40" height="118" rx="10" fill="#8a6a42"/>
+    <rect x="-16" y="-56" width="32" height="38" fill="url(#steel)"/>
+    <path d="M-16,-18 L16,-18 L0,10 Z" fill="url(#steel)"/>
+  </g>
+</svg>

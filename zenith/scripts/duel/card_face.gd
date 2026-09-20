@@ -218,13 +218,18 @@ func _show_fervor(fervor: int, needed: int) -> void:
 
 
 ## Card art lives in assets/card_art/<id>.png; duelists may add <id>_a<aspect>.png per aspect.
-## Missing art falls back to the type glyph.
+## An .svg of the same name is taken when no painting is there yet, which is how the placeholder
+## house crests are picked up. Missing art falls back to the type glyph.
 static func art_texture(def: CardDef, aspect: int = 0) -> Texture2D:
-	var candidates: Array[String] = []
+	var stems: Array[String] = []
 	if def.is_personality():
 		var t: int = aspect if aspect > 0 else def.lowest_aspect()
-		candidates.append("%s%s_a%d.png" % [ART_DIR, def.id, t])
-	candidates.append("%s%s.png" % [ART_DIR, def.id])
+		stems.append("%s_a%d" % [def.id, t])
+	stems.append(def.id)
+	var candidates: Array[String] = []
+	for stem in stems:
+		candidates.append("%s%s.png" % [ART_DIR, stem])
+		candidates.append("%s%s.svg" % [ART_DIR, stem])
 	for path in candidates:
 		if ResourceLoader.exists(path, "Texture2D"):
 			return load(path) as Texture2D

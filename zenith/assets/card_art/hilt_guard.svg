@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Emrys' Hilt Guard. The cut comes onto the cross and stops there, close
+       enough to see the grain of the grip. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- both hands closed on the grip, held high -->
+    <path d="M300,392 C300,344 340,320 386,326 C424,332 442,362 436,398"/>
+    <path d="M316,344 C346,334 378,336 404,350"/>
+    <path d="M312,378 C344,366 380,368 408,382"/>
+    <path d="M320,412 C352,400 388,402 416,416"/>
+    <path d="M300,392 C282,412 280,436 292,458 C312,492 366,500 408,482"/>
+  </g>
+  <!-- the sword, upright, cross across the frame -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M392,246 C390,180 390,116 392,54"/>
+    <path d="M428,246 C426,180 426,116 428,54"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="11" stroke-linecap="round">
+    <path d="M228,262 C348,248 474,248 594,262"/>
+    <path d="M232,290 C352,276 470,276 588,290"/>
+    <path d="M404,306 C402,376 402,444 406,506"/>
+    <path d="M374,516 C386,542 420,546 438,524"/>
+  </g>
+  <!-- the blade that arrived on it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.95" stroke-linecap="round">
+    <path d="M556,222 C648,166 742,116 856,72"/>
+    <path d="M578,254 C670,198 764,148 876,104"/>
+  </g>
+  <!-- the stop -->
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M540,236 L586,188"/>
+    <path d="M562,282 L620,266"/>
+    <path d="M514,212 L520,160"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M642,300 C704,286 760,278 818,278"/>
+    <path d="M660,346 C716,336 768,332 820,334"/>
+  </g>
+</svg>

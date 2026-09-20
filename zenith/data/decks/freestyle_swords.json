@@ -12,13 +12,13 @@
 	"warding_drill",
 	"revision_drill",
 	"lucky_find",
-    "mutual_escalation"
+	"mutual_escalation"
   ],
   "archetype": "drills",
   "difficulty": "medium",
   "subthemes": [
 	"strikes",
-    "swords"
+	"swords"
   ],
   "ai_profile": "freestyle_swords",
   "tagline": "Build a foundation of Drills, then chain signature sword techniques into increasingly powerful strikes.",

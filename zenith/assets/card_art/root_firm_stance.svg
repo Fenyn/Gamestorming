@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Root Oaken Stance. Roots out of the boots and into the stone, and a blade
+       that arrived at the staff and got no further. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="76%">
+      <stop offset="0" stop-color="#26351c"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="staff" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a6a42"/><stop offset="1" stop-color="#3f2e1c"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2f5f7"/><stop offset="1" stop-color="#7d848a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect y="470" width="904" height="170" fill="#1b2414"/>
+  <path d="M0,470 H904" stroke="#3c4a2c" stroke-width="6"/>
+  <!-- the boots, and what has come out of them -->
+  <g fill="#0e1409">
+    <path d="M276,398 h96 v72 h-124 v-30 Z"/>
+    <path d="M540,398 h96 l28,42 v30 h-124 Z"/>
+  </g>
+  <g fill="none" stroke="#6b4f32" stroke-width="16" stroke-linecap="round">
+    <path d="M300,470 C282,522 236,548 172,556"/>
+    <path d="M340,470 C352,528 396,560 452,572"/>
+    <path d="M588,470 C606,522 652,548 716,556"/>
+    <path d="M552,470 C540,528 500,556 448,570"/>
+  </g>
+  <g fill="none" stroke="#4d6b3c" stroke-width="9" stroke-linecap="round">
+    <path d="M232,540 C206,560 180,566 152,566"/>
+    <path d="M664,540 C690,560 716,566 744,566"/>
+  </g>
+  <!-- the staff, braced across -->
+  <g transform="translate(452,266) rotate(-24)">
+    <rect x="-300" y="-30" width="600" height="60" rx="30" fill="url(#staff)"/>
+    <path d="M-220,-30 c44,-22 66,10 62,48 c-34,10 -56,-10 -62,-48 Z" fill="#4d6b3c"/>
+    <path d="M236,30 c-44,22 -66,-10 -62,-48 c34,-10 56,10 62,48 Z" fill="#4d6b3c"/>
+  </g>
+  <!-- the blade that stopped on it -->
+  <g transform="translate(212,66) rotate(40)">
+    <rect x="-18" y="0" width="36" height="230" fill="url(#blade)"/>
+    <path d="M-18,230 L18,230 L0,272 Z" fill="url(#blade)"/>
+    <rect x="-58" y="-20" width="116" height="24" rx="11" fill="#8b6a3f"/>
+  </g>
+  <g stroke="#cfe8a8" stroke-width="9" stroke-linecap="round">
+    <path d="M400,244 l-54,-30 M418,290 l-58,10 M392,196 l-26,-54"/>
+  </g>
+</svg>

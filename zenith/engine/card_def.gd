@@ -32,9 +32,16 @@ var title: String = ""
 var type: Type = Type.COMBAT
 var school: String = ""          # "" is Freestyle
 var text: String = ""
-var character: String = ""      # personalities: which character this card belongs to
+var character: String = ""      # personalities: which character this card belongs to. The identity,
+                                # and the only thing a character owns: see `variant`
+var variant: String = ""        # personalities: which printing of that character this is, for the
+                                # cases where one person has more than one. Everything mechanical
+                                # (side, bloodline, keywords, ladder, powers) belongs to the
+                                # variant, because a person changes between printings and a card
+                                # can change them again mid-duel
 var bloodline: String = ""      # personalities: "", "draconic", "verdant". Inherited, so it is
-                                # not the school they trained in nor the side they took
+                                # not the school they trained in nor the side they took. Printed
+                                # here; ask DuelEngine.bloodline_of() for what it is right now
 var alignment_only: String = "" # "", "vigil", "pact"
 var only: Dictionary = {}       # play/use gate, e.g. {"character": "Sir Edric Rooke"} or {"duelist_character": ...}
 var limit_per_deck: int = 3
@@ -82,6 +89,7 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.school = str(d.get("school", ""))
 	c.text = str(d.get("text", ""))
 	c.character = str(d.get("character", ""))
+	c.variant = str(d.get("variant", ""))
 	c.bloodline = str(d.get("bloodline", ""))
 	c.alignment_only = str(d.get("alignment_only", ""))
 	c.only = d.get("only", {})

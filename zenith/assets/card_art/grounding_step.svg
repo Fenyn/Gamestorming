@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Grounding Step. One foot put down hard, and the bolt goes into the stone
+       instead of into you. Art box is 452x320. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="75%">
+      <stop offset="0" stop-color="#262a31"/><stop offset="1" stop-color="#06070a"/>
+    </radialGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9f2ff"/><stop offset="1" stop-color="#5fb4e6"/>
+    </linearGradient>
+    <linearGradient id="boot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a3a2a"/><stop offset="1" stop-color="#151009"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect y="470" width="904" height="170" fill="#191d22"/>
+  <path d="M0,470 H904" stroke="#2e353d" stroke-width="6"/>
+  <!-- the bolt, coming down the leg and out into the floor -->
+  <path d="M604,40 L500,210 L566,220 L432,398 L502,408 L404,540" fill="none" stroke="url(#bolt)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="404" cy="520" rx="240" ry="70" fill="#8fd6ff" fill-opacity="0.18"/>
+  <!-- the leg and the boot that put it there -->
+  <g fill="url(#boot)" stroke="#0b0906" stroke-width="6">
+    <path d="M352,150 h116 l24,240 h-164 Z"/>
+    <path d="M328,390 h164 l20,56 h-204 Z"/>
+    <path d="M290,446 h228 l14,42 h-256 Z"/>
+    <path d="M268,488 h272 a20,20 0 0 1 0,40 h-272 a20,20 0 0 1 0,-40 Z"/>
+  </g>
+  <!-- what the floor did about it -->
+  <g stroke="#8fd6ff" stroke-width="8" stroke-linecap="round">
+    <path d="M268,528 L164,584 M340,534 L292,606 M470,534 L520,604 M540,526 L650,578"/>
+  </g>
+  <g stroke="#2e353d" stroke-width="7">
+    <path d="M232,470 L142,470 M604,470 L700,470"/>
+  </g>
+</svg>

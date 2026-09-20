@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Vale's Heirloom Blade. Older than him, on the cloth, with the notches
+       nobody has ground out. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the cloth it is laid on -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M70,150 C300,118 620,116 846,146 C852,246 850,318 842,378 C614,410 292,412 62,380 C56,318 58,244 70,150 Z"/>
+    <path d="M98,186 C316,158 606,158 818,184"/>
+    <path d="M104,344 C318,368 594,368 810,342"/>
+  </g>
+  <!-- the blade -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M362,238 C480,230 608,224 760,222"/>
+    <path d="M362,268 C480,262 608,258 758,256"/>
+    <path d="M760,222 C800,232 812,242 758,256"/>
+  </g>
+  <!-- and what it has been through -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M452,238 L442,224"/>
+    <path d="M540,234 L530,220"/>
+    <path d="M622,262 L634,276"/>
+    <path d="M690,230 L682,216"/>
+  </g>
+  <!-- grip, cross and pommel, worn -->
+  <g fill="none" stroke="#8b4513" stroke-width="11" stroke-linecap="round">
+    <path d="M340,178 C336,224 336,282 340,326"/>
+    <path d="M330,252 C286,248 240,248 200,252"/>
+    <path d="M182,230 C166,240 164,262 180,274"/>
+  </g>
+  <!-- the ribbon on it -->
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M262,252 C258,288 250,318 238,344"/>
+    <path d="M286,252 C290,288 296,316 306,340"/>
+    <path d="M238,344 L222,332"/>
+    <path d="M306,340 L322,328"/>
+  </g>
+</svg>

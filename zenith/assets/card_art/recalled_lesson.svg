@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Recalled Lesson. The grip he is making now, and the older hand that set it
+       there years ago, drawn faint because it is only remembered. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the grip, in close -->
+  <g fill="none" stroke="#8b4513" stroke-width="11" stroke-linecap="round">
+    <path d="M306,68 C302,168 302,270 306,368"/>
+    <path d="M186,150 C286,136 396,136 494,150"/>
+    <path d="M276,392 C300,412 328,410 346,388"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M272,120 C266,92 262,64 262,34"/>
+    <path d="M344,120 C350,92 354,64 354,34"/>
+  </g>
+  <!-- his hand -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232,206 C232,186 258,176 286,180 C318,184 334,200 330,222"/>
+    <path d="M230,242 C234,224 260,216 288,220 C318,224 334,238 330,258"/>
+    <path d="M234,280 C238,262 262,254 290,258 C318,262 334,276 330,294"/>
+    <path d="M244,318 C248,302 270,296 294,300 C318,304 332,316 328,332"/>
+    <path d="M232,206 C210,222 202,258 208,296 C214,334 236,356 266,362"/>
+  </g>
+  <!-- and the hand that taught it -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M580,196 C580,176 554,166 526,170 C494,174 478,190 482,212"/>
+    <path d="M582,232 C578,214 552,206 524,210 C494,214 478,228 482,248"/>
+    <path d="M578,270 C574,252 550,244 522,248 C494,252 478,266 482,284"/>
+    <path d="M568,308 C564,292 542,286 518,290 C494,294 480,306 484,322"/>
+    <path d="M580,196 C602,212 610,248 604,286 C598,324 576,346 546,352"/>
+    <path d="M604,286 C660,300 712,312 764,320"/>
+  </g>
+  <!-- the years between them -->
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.7" stroke-dasharray="20 18" stroke-linecap="round">
+    <path d="M392,268 C428,262 452,260 476,262"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Guardian Drill. A page set down on the stone floor and left face up, the
+       shield propped against the wall behind it. The watch is the work. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#16242e"/><stop offset="1" stop-color="#05090c"/>
+    </radialGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9fb8c4"/><stop offset="1" stop-color="#43596a"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3ecd8"/><stop offset="1" stop-color="#c3b89a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect width="904" height="268" fill="#1a2a34"/>
+  <g stroke="#10202a" stroke-width="5">
+    <path d="M0,120 H904 M0,268 H904 M200,0 V268 M452,0 V268 M704,0 V268"/>
+  </g>
+  <rect y="268" width="904" height="212" fill="#232d34"/>
+  <g stroke="#131a1f" stroke-width="5">
+    <path d="M0,360 H904 M140,268 V480 M452,268 V480 M764,268 V480"/>
+  </g>
+  <!-- the shield, propped -->
+  <g transform="translate(636,236) rotate(9)">
+    <path d="M-120,-150 h240 v146 c0,74 -62,112 -120,134 c-58,-22 -120,-60 -120,-134 Z" fill="url(#shield)" stroke="#0d161c" stroke-width="6"/>
+    <circle cx="0" cy="-6" r="38" fill="#cfe0e8"/>
+    <path d="M-120,-90 h240" stroke="#2c4552" stroke-width="10"/>
+  </g>
+  <!-- the page, set down flat -->
+  <g transform="translate(316,376) rotate(-6) skewX(-14)">
+    <rect x="-116" y="-72" width="232" height="144" rx="8" fill="url(#page)" stroke="#8e7f5e" stroke-width="5"/>
+    <g stroke="#8e7f5e" stroke-width="9" stroke-linecap="round">
+      <path d="M-76,-26 h152 M-76,12 h122 M-76,48 h92"/>
+    </g>
+  </g>
+  <ellipse cx="316" cy="392" rx="150" ry="44" fill="#000000" fill-opacity="0.25"/>
+</svg>

@@ -48,10 +48,13 @@ reach through. What they can do from there is limited and specific: they can lay
 person who lets them, and afterwards that person carries some of what they are. It does not need
 seals and nobody can see it being done.
 
-Bram Ashmark carries a demon's flame. That is where the fire comes from, and it is why his
-Aspects read as the bargain coming due rather than as skill improving. Somewhere behind him is
-the agent who laid the mark, a man with a toll gate and a yard, who does this for others and takes
-payment in the usual way.
+Bram Ashmark traded his humanity for power. The demon took the traded part and left the mark. The
+trade was honoured in full: he has the power, and the part of him that could be satisfied by it is
+gone. What remains is a hollow shell that hungers for more strength and cannot be filled, so he
+takes it wherever he can. That is why his Aspects read as the bargain coming due rather than as
+skill improving, and why he fields no Allies. The agent who laid the mark is a man with a toll gate
+and a yard, who does this for others and takes payment in the usual way. What Ashmark traded away
+still exists elsewhere.
 
 ## 3. Clans
 
@@ -191,7 +194,7 @@ Slots agreed and not yet named:
 | The agent who lays the demon's mark | none | none, works a toll gate |
 | Highest office of the Vigil | none | The Vigil |
 | The healer the grove wants, a child who carved a set of seals | Verdant | The Thornwald Grove |
-| The one who comes back after Ashmark | undecided | none |
+| The humanity Ashmark traded away, returned as a person | undecided | none |
 
 ## 6. Open
 

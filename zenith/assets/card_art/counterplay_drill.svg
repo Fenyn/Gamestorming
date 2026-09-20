@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Counterplay Drill. Their line, and the line that answers it, drawn out as
+       the drill itself: two blades and the arrow between them. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- their cut, coming in -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M60,74 C170,142 266,206 344,256"/>
+    <path d="M40,106 C150,174 246,238 324,288"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M36,48 L82,120"/>
+  </g>
+  <!-- the answer, going back the other way -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M560,236 C662,190 760,144 862,94"/>
+    <path d="M572,262 C674,216 772,170 872,122"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M528,210 L552,286"/>
+    <path d="M512,268 L480,290"/>
+  </g>
+  <!-- the meeting point -->
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M400,240 L372,192"/>
+    <path d="M438,234 L442,184"/>
+    <path d="M466,250 L508,220"/>
+    <path d="M396,292 L352,312"/>
+  </g>
+  <!-- the drill drawn as a diagram under it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-dasharray="24 18" stroke-linecap="round">
+    <path d="M150,400 C300,352 420,328 540,336"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M540,336 L500,314"/>
+    <path d="M540,336 L502,362"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M124,340 C160,346 190,358 214,376"/>
+    <path d="M628,300 C664,300 698,304 728,312"/>
+  </g>
+</svg>

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
 [ext_resource type="PackedScene" path="res://scenes/duel/dev_panel.tscn" id="4_dev"]
+[ext_resource type="PackedScene" path="res://scenes/duel/backline_rail.tscn" id="5_rail"]
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -240,6 +241,22 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
+[node name="FarBackline" parent="Root" instance=ExtResource("5_rail")]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 168.0
+offset_right = 268.0
+offset_bottom = 168.0
+
+[node name="NearBackline" parent="Root" instance=ExtResource("5_rail")]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 512.0
+offset_right = 268.0
+offset_bottom = 512.0
+
 [node name="FarFlags" type="Label" parent="Root"]
 layout_mode = 1
 offset_left = 18.0
@@ -342,6 +359,76 @@ alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
+
+[node name="Pile" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 0.62)
+
+[node name="Center" type="CenterContainer" parent="Root/Pile"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Root/Pile/Center"]
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Pile/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Who" type="Label" parent="Root/Pile/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "PLAYER 1"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 21
+
+[node name="Title" type="Label" parent="Root/Pile/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 30
+text = "Discard"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Root/Pile/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 22
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Pile/Center/Panel/Column"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Cards" type="HFlowContainer" parent="Root/Pile/Center/Panel/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+alignment = 1
+
+[node name="Buttons" type="HFlowContainer" parent="Root/Pile/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Close" type="Button" parent="Root/Pile/Center/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(140, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Close"
 
 [node name="DevToggle" type="Button" parent="Root"]
 visible = false

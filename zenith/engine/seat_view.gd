@@ -4,6 +4,10 @@ extends RefCounted
 ## table where cards this seat may not see carry only uid and zone. This is the only thing a
 ## client renders from, so a client never holds information its player could not have.
 
+## Handed to SeatCard for a card that carries no keywords, so the typed array is not rebuilt once
+## per card per view.
+const NO_TAGS: Array[String] = []
+
 var seat: int = 0
 var turn: int = 0
 var step: int = GameState.Step.SETUP
@@ -153,7 +157,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	for c in engine.all_cards():
 		# An announced play is public during its response window even while its physical
 		# card remains in hand. Reveal only that card, never the rest of the owner's hand.
-		v.cards[c.uid] = SeatCard.of(c, seat, c.uid == v.pending_card)
+		v.cards[c.uid] = SeatCard.of(c, seat, c.uid == v.pending_card, engine.tags_of(c) if c.def.is_personality() else NO_TAGS)
 		if c.zone == &"resolving":
 			v.resolving.append(c.uid)
 	# A seat choosing among cards may see them, wherever they sit (a search through the Life Deck,
@@ -162,11 +166,13 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	if mine != null:
 		for o in mine.options:
 			if o.card >= 0 and v.cards.has(o.card) and (v.cards[o.card] as SeatCard).hidden():
-				v.cards[o.card] = SeatCard.of(engine.card(o.card), seat, true)
+				var shown: CardInstance = engine.card(o.card)
+				v.cards[o.card] = SeatCard.of(shown, seat, true, engine.tags_of(shown) if shown.def.is_personality() else NO_TAGS)
 		# A search of the Life Deck shows the whole deck, not only the cards that match.
 		for uid in mine.context.get("library", []):
 			if v.cards.has(int(uid)) and (v.cards[int(uid)] as SeatCard).hidden():
-				v.cards[int(uid)] = SeatCard.of(engine.card(int(uid)), seat, true)
+				var in_deck: CardInstance = engine.card(int(uid))
+				v.cards[int(uid)] = SeatCard.of(in_deck, seat, true, engine.tags_of(in_deck) if in_deck.def.is_personality() else NO_TAGS)
 	return v
 
 

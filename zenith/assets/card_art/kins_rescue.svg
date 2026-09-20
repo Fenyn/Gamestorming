@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Kin's Rescue. Someone down on one knee, and a shield put between them and
+       the blow. Vigil work: the blow was never going to be theirs. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#16242e"/><stop offset="1" stop-color="#05090c"/>
+    </radialGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9fb8c4"/><stop offset="1" stop-color="#43596a"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2f5f7"/><stop offset="1" stop-color="#7d848a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect y="396" width="904" height="84" fill="#0d161c"/>
+  <!-- the one who is down: head, bowed back, the knee on the stone, an arm braced -->
+  <g fill="#0b1116">
+    <circle cx="676" cy="214" r="44"/>
+    <path d="M636,258 C712,242 768,282 762,346 L688,346 C690,306 664,290 628,300 Z"/>
+    <path d="M628,300 L700,346 L700,396 L560,396 L560,352 Z"/>
+    <path d="M560,352 h168 v44 h-168 Z"/>
+    <path d="M642,268 L570,330 L540,312 L618,244 Z"/>
+  </g>
+  <!-- the blade coming down, stopped short -->
+  <g transform="translate(286,96) rotate(38)">
+    <rect x="-18" y="0" width="36" height="224" fill="url(#blade)"/>
+    <path d="M-18,224 L18,224 L0,266 Z" fill="url(#blade)"/>
+    <rect x="-62" y="-22" width="124" height="24" rx="11" fill="#8b6a3f"/>
+    <rect x="-15" y="-92" width="30" height="74" rx="11" fill="#3a2b1c"/>
+  </g>
+  <!-- the shield, in the way of it -->
+  <g transform="translate(424,268) rotate(-10)">
+    <path d="M-132,-152 h264 v152 c0,78 -68,118 -132,140 c-64,-22 -132,-62 -132,-140 Z" fill="url(#shield)" stroke="#16242e" stroke-width="6"/>
+    <circle cx="0" cy="-8" r="42" fill="#cfe0e8"/>
+    <path d="M-132,-92 h264" stroke="#2c4552" stroke-width="10"/>
+  </g>
+  <!-- where it landed -->
+  <g stroke="#ffe6a8" stroke-width="9" stroke-linecap="round">
+    <path d="M330,128 l-48,-38 M366,96 l-16,-54 M408,92 l30,-48"/>
+  </g>
+</svg>

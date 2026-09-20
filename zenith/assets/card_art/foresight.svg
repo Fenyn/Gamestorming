@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Foresight. The next page seen in a bowl of dark water before it is drawn.
+       The card is the reflection, not the thing. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#1a2230"/><stop offset="1" stop-color="#05070c"/>
+    </radialGradient>
+    <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6d6152"/><stop offset="1" stop-color="#2b251d"/>
+    </linearGradient>
+    <radialGradient id="water" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#25404f"/><stop offset="1" stop-color="#0a161e"/>
+    </radialGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <!-- the bowl -->
+  <path d="M212,196 h480 l-58,212 a40,40 0 0 1 -38,28 h-288 a40,40 0 0 1 -38,-28 Z" fill="url(#bowl)"/>
+  <ellipse cx="452" cy="196" rx="240" ry="64" fill="#4a4235"/>
+  <ellipse cx="452" cy="200" rx="216" ry="54" fill="url(#water)"/>
+  <!-- the page, seen in it -->
+  <g transform="translate(452,200) rotate(-6)">
+    <rect x="-66" y="-36" width="132" height="76" rx="6" fill="#cfe0e8" fill-opacity="0.55"/>
+    <g stroke="#eaf6ff" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round">
+      <path d="M-40,-14 h80 M-40,4 h62 M-40,22 h44"/>
+    </g>
+  </g>
+  <!-- the water's own rings, so it reads as a surface -->
+  <g fill="none" stroke="#8fc2d8" stroke-opacity="0.3" stroke-width="4">
+    <ellipse cx="452" cy="200" rx="160" ry="38"/>
+    <ellipse cx="452" cy="200" rx="196" ry="48"/>
+  </g>
+  <!-- one drop still to fall -->
+  <path d="M452,84 a14,20 0 1 0 0.1,0 Z" fill="#8fc2d8" fill-opacity="0.8"/>
+  <path d="M452,66 l0,-30" stroke="#8fc2d8" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"/>
+</svg>

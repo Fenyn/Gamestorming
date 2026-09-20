@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Lobbed Bolt. Not aimed so much as thrown over, in a high slow arc, to
+       land somewhere behind the guard. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the one who threw it, hand still up -->
+    <circle cx="196" cy="304" r="46"/>
+    <path d="M196,350 C204,410 202,460 196,510"/>
+    <path d="M196,510 C166,552 150,586 144,616"/>
+    <path d="M196,510 C238,542 262,578 272,614"/>
+    <path d="M200,376 C242,340 278,312 310,292"/>
+    <path d="M192,384 C160,410 140,438 130,464"/>
+    <!-- the one it is going over, guard up and useless -->
+    <circle cx="758" cy="356" r="42"/>
+    <path d="M758,398 C764,452 762,498 758,542"/>
+    <path d="M758,542 C736,580 726,606 722,630"/>
+    <path d="M758,542 C790,572 806,602 812,628"/>
+    <path d="M756,420 C724,392 700,368 684,344"/>
+    <path d="M760,420 C792,398 814,378 828,360"/>
+  </g>
+  <!-- the arc, lazy and high -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.75" stroke-dasharray="26 22" stroke-linecap="round">
+    <path d="M330,278 C440,88 630,64 760,190 C820,248 838,332 826,420"/>
+  </g>
+  <!-- the bolt itself, mid flight -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M520,80 L566,110 L534,124 L584,152"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M498,64 L466,46"/>
+    <path d="M512,44 L508,14"/>
+    <path d="M606,166 L644,180"/>
+  </g>
+  <!-- and where it is going to land -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M820,470 C846,470 868,472 890,476"/>
+    <path d="M806,502 C838,502 864,504 888,508"/>
+  </g>
+</svg>

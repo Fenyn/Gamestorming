@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Root Rain Catch. Hands cupped for the rain, and what came down in it was
+       not only rain. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="76%">
+      <stop offset="0" stop-color="#24331e"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="bark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a6a42"/><stop offset="1" stop-color="#3a2a1a"/>
+    </linearGradient>
+    <linearGradient id="caught" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9f2ff"/><stop offset="1" stop-color="#4fb8c8"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <!-- rain -->
+  <g stroke="#a8e6ef" stroke-opacity="0.45" stroke-width="7" stroke-linecap="round">
+    <path d="M110,40 l-24,120 M210,10 l-24,140 M320,50 l-24,110 M600,20 l-24,130
+             M712,46 l-24,116 M818,12 l-24,138 M452,0 l-20,96"/>
+  </g>
+  <!-- the bolt that came down with it -->
+  <path d="M520,40 L452,170 L520,186 L442,306" fill="none" stroke="#d9f2ff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- what is being held -->
+  <ellipse cx="452" cy="386" rx="180" ry="112" fill="url(#caught)" fill-opacity="0.45"/>
+  <ellipse cx="452" cy="386" rx="180" ry="112" fill="none" stroke="#d9f2ff" stroke-opacity="0.7" stroke-width="7"/>
+  <!-- the two hands, bark-backed, cupped -->
+  <g fill="url(#bark)" stroke="#170f08" stroke-width="7">
+    <path d="M232,336 C232,458 322,548 452,548 C470,548 470,596 452,596 C286,596 172,486 172,336 Z"/>
+    <path d="M672,336 C672,458 582,548 452,548 C434,548 434,596 452,596 C618,596 732,486 732,336 Z"/>
+    <g>
+      <rect x="150" y="268" width="56" height="150" rx="28" transform="rotate(-22 178 343)"/>
+      <rect x="216" y="240" width="56" height="150" rx="28" transform="rotate(-14 244 315)"/>
+      <rect x="632" y="240" width="56" height="150" rx="28" transform="rotate(14 660 315)"/>
+      <rect x="698" y="268" width="56" height="150" rx="28" transform="rotate(22 726 343)"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#cfe8a8" stroke-opacity="0.6" stroke-width="7" stroke-linecap="round">
+    <path d="M300,470 C286,510 292,546 316,572"/>
+    <path d="M604,470 C618,510 612,546 588,572"/>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Placeholder crest: Ashmark. A plain longsword held through the fire, over the cracks of
+       light the Pact puts under his skin. -->
+  <defs>
+    <radialGradient id="field" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#4a1608"/>
+      <stop offset="1" stop-color="#0d0402"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd27a"/>
+      <stop offset="0.55" stop-color="#ff7a33"/>
+      <stop offset="1" stop-color="#b52d12"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8e2da"/>
+      <stop offset="1" stop-color="#7c736a"/>
+    </linearGradient>
+  </defs>
+  <rect width="604" height="868" fill="url(#field)"/>
+  <path d="M0,736 C140,712 240,754 340,738 C440,722 520,754 604,734" fill="none" stroke="#ff7a33" stroke-opacity="0.2" stroke-width="4"/>
+  <g transform="translate(-466.4,-12.8) scale(1.7)">
+    <path d="M312,84 H592 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#200803" stroke="#ff7a33" stroke-opacity="0.6" stroke-width="5"/>
+    <!-- cracks of light under the skin, the Pact showing -->
+    <path d="M352,150 L392,214 L366,252 L404,318" fill="none" stroke="#ff7a33" stroke-opacity="0.35" stroke-width="5" stroke-linecap="round"/>
+    <path d="M556,158 L516,220 L544,258 L508,324" fill="none" stroke="#ff7a33" stroke-opacity="0.35" stroke-width="5" stroke-linecap="round"/>
+    <path d="M452,132 C492,192 520,214 520,262 C520,306 490,336 452,336 C414,336 384,306 384,262 C384,214 412,192 452,132 Z" fill="url(#flame)" fill-opacity="0.85"/>
+    <path d="M452,212 C472,248 480,258 480,280 C480,302 468,316 452,316 C436,316 424,302 424,280 C424,258 432,248 452,212 Z" fill="#ffe9b0" fill-opacity="0.85"/>
+    <rect x="445" y="104" width="14" height="248" rx="4" fill="url(#steel)" stroke="#2a1b12" stroke-width="2"/>
+    <rect x="404" y="252" width="96" height="12" rx="6" fill="url(#steel)" stroke="#2a1b12" stroke-width="2"/>
+    <circle cx="452" cy="370" r="12" fill="#c9a24a" stroke="#2a1b12" stroke-width="2"/>
+  </g>
+</svg>

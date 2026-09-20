@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Spoiled Rite. A boot dragged through the circle. Half of it still holds
+       its light; the half that was scuffed is chalk dust on flagstone. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="75%">
+      <stop offset="0" stop-color="#2c251b"/><stop offset="1" stop-color="#090705"/>
+    </radialGradient>
+    <linearGradient id="leather" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a3a2a"/><stop offset="1" stop-color="#1a1410"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect y="96" width="904" height="384" fill="#2d2820"/>
+  <g stroke="#191611" stroke-width="5">
+    <path d="M0,224 H904 M0,352 H904 M216,96 V480 M540,96 V480 M812,96 V480"/>
+  </g>
+  <!-- the half that still holds -->
+  <g fill="none" stroke="#f0e2b0" stroke-width="10">
+    <path d="M500,100 A184,146 0 0 1 500,392"/>
+    <path d="M500,146 A138,110 0 0 1 500,346"/>
+  </g>
+  <g fill="#f0e2b0">
+    <path d="M648,186 l32,-14 l-6,34 Z"/>
+    <path d="M672,300 l32,10 l-26,24 Z"/>
+    <path d="M606,128 l26,-24 l10,32 Z"/>
+  </g>
+  <!-- the half that was taken out: a smear where the line was -->
+  <path d="M500,100 A184,146 0 0 0 500,392" fill="none" stroke="#9a8f75" stroke-opacity="0.22" stroke-width="10"/>
+  <g fill="#cdc0a0" fill-opacity="0.3">
+    <path d="M300,168 C372,148 432,190 408,232 C382,278 288,272 276,232 Z"/>
+    <path d="M334,300 C398,290 444,324 424,352 C402,384 330,376 320,348 Z"/>
+  </g>
+  <!-- the print it left, dragged through where the line was -->
+  <g transform="translate(276,252) rotate(-24)">
+    <path d="M-72,-58 a78,72 0 0 1 140,44 l-12,52 a64,56 0 0 1 -118,0 Z" fill="url(#leather)" stroke="#0d0a07" stroke-width="5"/>
+    <ellipse cx="-16" cy="132" rx="62" ry="48" fill="url(#leather)" stroke="#0d0a07" stroke-width="5"/>
+    <g fill="#0d0a07">
+      <circle cx="-86" cy="-96" r="20"/><circle cx="-40" cy="-122" r="20"/>
+      <circle cx="8" cy="-126" r="20"/><circle cx="52" cy="-110" r="18"/>
+      <circle cx="86" cy="-80" r="15"/>
+    </g>
+  </g>
+  <g stroke="#cdc0a0" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round">
+    <path d="M360,336 C420,330 460,322 496,306"/>
+    <path d="M352,362 C416,360 464,350 504,336"/>
+  </g>
+</svg>

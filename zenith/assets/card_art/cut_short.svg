@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Vale Cuts It Short. The gesture was halfway made when somebody took the
+       wrist. The light is still in the fingers and is not going anywhere. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#232a33"/><stop offset="1" stop-color="#06080b"/>
+    </radialGradient>
+    <linearGradient id="caster" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a6b7b"/><stop offset="1" stop-color="#2a343e"/>
+    </linearGradient>
+    <linearGradient id="grip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2e3a45"/><stop offset="1" stop-color="#0e151b"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <!-- the spell that was coming -->
+  <ellipse cx="392" cy="240" rx="230" ry="200" fill="#9fd8ff" fill-opacity="0.13"/>
+  <g stroke="#9fd8ff" stroke-opacity="0.5" stroke-width="9" stroke-linecap="round">
+    <path d="M300,120 l-40,-56 M228,196 l-62,-24 M232,300 l-64,26"/>
+  </g>
+  <!-- the casting arm, from the right, and its open hand -->
+  <g fill="url(#caster)" stroke="#0d1319" stroke-width="6">
+    <g transform="translate(700,330) rotate(-10)">
+      <rect x="-210" y="-52" width="420" height="104" rx="52"/>
+    </g>
+    <rect x="292" y="132" width="52" height="170" rx="26" transform="rotate(-14 318 217)"/>
+    <rect x="352" y="106" width="52" height="196" rx="26" transform="rotate(-6 378 204)"/>
+    <rect x="414" y="112" width="52" height="190" rx="26" transform="rotate(3 440 207)"/>
+    <rect x="476" y="146" width="52" height="156" rx="26" transform="rotate(10 502 224)"/>
+    <path d="M286,282 h250 v58 a58,58 0 0 1 -58,58 h-134 a58,58 0 0 1 -58,-58 Z"/>
+    <g transform="translate(294,344) rotate(24)">
+      <rect x="-44" y="-30" width="140" height="60" rx="30"/>
+    </g>
+  </g>
+  <!-- and the hand that closed on the wrist -->
+  <g fill="url(#grip)" stroke="#05090d" stroke-width="6">
+    <g transform="translate(790,470) rotate(-52)">
+      <rect x="-40" y="-40" width="230" height="140" rx="60"/>
+    </g>
+    <g transform="translate(646,338) rotate(-10)">
+      <rect x="-66" y="-68" width="52" height="150" rx="26"/>
+      <rect x="-6" y="-80" width="52" height="166" rx="26"/>
+      <rect x="54" y="-72" width="52" height="154" rx="26"/>
+      <rect x="112" y="-56" width="52" height="128" rx="26"/>
+      <g transform="translate(-30,96) rotate(-16)">
+        <rect x="-30" y="-28" width="180" height="56" rx="28"/>
+      </g>
+    </g>
+  </g>
+</svg>

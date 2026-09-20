@@ -123,6 +123,11 @@ ASPECT_TITLES = {
     # A mage turning the magic inward on himself, rung by rung: no metal, the first of it, an edge
     # on it, then it moves where he wants. Only the last rung shows the blood.
     "duelist_kappa": ["the Eldest", "First Plate", "Edged", "Shaped", "Scaleclad"],
+    # The same pyromancer on a second, longer printing, titled off what each rung does rather than
+    # off fire, because the ladder is the man and not the school he happens to field. Nothing he
+    # throws is glancing, then he fights with both hands, then the fight itself winds him up, then
+    # what he spent comes back, and at the top he can end it or refill at the same size.
+    "duelist_lambda": ["Mauler", "Armsman", "Roused", "Renewed", "Unstoppable"],
 }
 
 
@@ -132,10 +137,14 @@ def duelist(id, title, aspects, **k):
     add(id=id, title=title, type="personality", school="", character=title, aspects=aspects, **k)
 
 
-def aspect(n, surge, top, step, power=None, constant=None, shield=None):
+def aspect(n, surge, top, step, power=None, constant=None, shield=None, power_alt=None):
     d = {"aspect": n, "surge": surge, "might": might(top, step)}
     if power:
         d["power"] = power
+    if power_alt:
+        # An Aspect the source prints with two Powers. The duelist uses one or the other, and the
+        # Power is still once a turn either way.
+        d["power_alt"] = power_alt
     if constant:
         d["constant"] = constant
     if shield:
@@ -166,6 +175,20 @@ duelist("duelist_alpha", ALPHA, [
     aspect(2, 5, 34, 1, power={"attack": {"kind": "art", "focused": True, "stages_from_table": True, "cost_stages": 0}, "effects": [OPP_ACC(-2)]}),
     aspect(3, 6, 46, 2, constant={"first_styled_unstoppable": True}),
 ])
+# The same man on a second printing: five rungs instead of three, and a longer fight. The fight
+# feeds him, what he spends comes back, and the top rung is a choice between ending it and
+# refilling. See docs/tournament_import.md.
+duelist("duelist_lambda", ALPHA, [
+    aspect(1, 2, 20, 1, power={"attack": {"kind": "strike", "stages": 3}, "effects": [ACC(1)]},
+           constant={"modifiers": [{"scope": "own", "kind": "any", "life": 1}]}),
+    aspect(2, 3, 26, 1, power={"attack": {"kind": "strike", "stages": 3}},
+           power_alt={"attack": {"kind": "art", "printed_life": 5}}),
+    aspect(3, 3, 32, 1, constant={"modifiers": [{"scope": "own", "kind": "any", "life": 3}],
+                                  "energy_gain_multiplier": 2, "fervor_gain_bonus": 1}),
+    aspect(4, 4, 38, 2, power={"effects": [E("shuffle_discard", amount=8)]}),
+    aspect(5, 5, 42, 1, power={"attack": {"kind": "strike", "focused": True, "printed_stages": 10}},
+           power_alt={"effects": [E("shuffle_discard", amount=10)]}),
+], tags=["marked"])
 duelist("duelist_beta", BETA, [
     # Guards kin, not every hireling: the string names the bloodline it shields, and all four of
     # her Allies carry Draconic.
@@ -330,6 +353,11 @@ add(id="debtors_ring", title="The Debtor's Ring", type="relic", school="", reser
     effects=[{"trigger": "relic_use", "op": "search", "card_type": "ally", "to": "play", "stages": 3}])
 add(id="lodestone_heart", title="The Lodestone Heart", type="relic", school="", reserve_size=10, limit_per_deck=1,
     relic_flags={"no_ascension_win": True, "fervor_shield": True, "aspect_shield": True})
+# Worn like the other three and named for what it takes: two standing workings, off the table and
+# out of the duel, once. Used in Combat rather than at the Non-Combat step.
+add(id="severing_clasp", title="The Severing Clasp", type="relic", school="", reserve_size=7, uses_per_game=1,
+    limit_per_deck=1, relic_step="combat",
+    effects=[{"trigger": "relic_use", **DISCARD_IN_PLAY("non_combat", who="any", amount=2, choose=True, up_to=True, remove=True)}])
 
 # The latest printing: pay a life card to make an Pyre attack Focused, and Pyre blocks that stay
 # in the game go under the Life Deck. The duelist's table damage is already high, so the Mastery
@@ -582,6 +610,33 @@ strike("pyre_flashpoint", "Pyre Flashpoint", "pyre", atk={"stages": 3, "cost_sta
 strike("pyre_updraft", "Pyre Updraft", "pyre", atk={"stages": 3}, effects=[ACC(1)])
 strike("pyre_ember_strike", "Pyre Ember Strike", "pyre", atk={"stages": 3}, effects=[ACC(1)])
 
+# --- The attrition list (Last Standing) -----------------------------------
+# Titles here are mine and not yet approved; see docs/tournament_import.md.
+strike("pyre_knee_bash", "Pyre Knee Bash", "pyre", atk={"stages": 4}, effects=[ACC(1)])
+# A Strike card that answers an Art, which is how the printed one is banded.
+block("pyre_warding_stance", "Pyre Warding Stance", "art", "strike", "pyre", endurance=2, effects=[ACC(1)])
+# The cleave lends the rest of your school's attacks the word "Sword" for the Combat, so a list
+# that reads sword titles can be fed by a school that has none.
+strike("pyre_sword_cleave", "Pyre Sword Cleave", "pyre", atk={"stages": 4}, endurance=2,
+       effects=[FLOAT("counts_as_title", school="pyre", title="Sword"), ACC(1), OPP_ACC(-1)])
+# "If performed against a villain, this attack stays on the table to be used 1 more time."
+strike("emrys_rising_blow", "Emrys' Rising Blow", atk={"stages": 3}, character=EMRYS,
+       remain_when={"when": {"defender_alignment": "pact"}, "remain": 1}, effects=[ACC(1)], remove_after_use=True)
+# "Majin only": the mark, not the school. It finds another marked Art in the discard on a hit.
+art("ashmarks_ember_spray", "Ashmark's Ember Spray", atk={"printed_life": 5}, character=ALPHA,
+    only={"duelist_tag": "marked"}, tags=["marked"], remove_after_use=True,
+    effects=[ACC(2), IFS(SEARCH(card_type="art", tag="marked", source="discard", to="hand"))])
+# Every Seal, on the table and in both Life Decks. The Unsealing win stops existing for the duel.
+noncombat("the_watch_goes_dark", "The Watch Goes Dark",
+          [USE(DISCARD_IN_PLAY("seal", who="any", all=True, remove=True, life_decks=True))])
+# The price is the gate: it needs 5 Energy to use and leaves the duelist on none.
+combat("spent_to_the_last", "Spent to the Last",
+       [DISCARD_IN_PLAY("non_combat_or_ally", who="any", all=True), E("set_energy", amount=0), ACC(1)],
+       only={"energy_min": 5}, limit_per_deck=1)
+# An Art that takes the Grounds away instead of wounding, and stirs the marked duelist who uses it.
+add(id="riftcry", title="Riftcry", type="art", school="",
+    effects=[E("discard_grounds"), WHEN(ACC(1), duelist_character=ALPHA)])
+
 # ============================================================================
 # Steel
 # ============================================================================
@@ -705,6 +760,34 @@ art("root_dragon_blast", "Root Wyrmwood Blast", "root", atk={"life_per_set_seal"
 # ============================================================================
 # Decks
 # ============================================================================
+# Attributions that were added straight to the generated data rather than here, and so were lost
+# the next time this ran. A named card leads with its character (docs/cast_backlog.md, rule 2);
+# this table is the restoration, and each line belongs on its card's own definition above.
+ATTRIBUTION = {
+    "no_quarter": EMRYS, "all_or_nothing": EMRYS, "hilt_guard": EMRYS, "sword_flourish": EMRYS,
+    "sword_sweep": EMRYS, "sword_thrust": EMRYS, "swordplay_drill": EMRYS, "locked_gate_drill": EMRYS,
+    "will_not_break": ALPHA, "wall_of_flame": ALPHA, "scattered_ashes": ALPHA,
+    "scatters_the_ashes": ALPHA, "stokes_the_coals": ALPHA,
+    "committed_cut": IOTA, "quick_retreat": IOTA, "first_cut": IOTA, "keepers_drill": IOTA,
+    "edrics_vow": IOTA,
+    "mournes_stance": "Gideon Mourne", "mournes_jolting_arc": "Gideon Mourne",
+    "mournes_frantic_rush": "Gideon Mourne", "mourne_takes_measure": "Gideon Mourne",
+    "mournes_quickness_drill": "Gideon Mourne", "mournes_plans": "Gideon Mourne",
+    "mournes_smirk": "Gideon Mourne",
+    "threefold_bolt": CORIN, "corins_conditioning": CORIN, "practiced_guard": CORIN,
+    "suppressing_shot": CORIN, "smoke_screen": CORIN,
+    "draiks_reckoning": DELTA, "black_hands": DELTA, "lingering_curse": DELTA,
+    "branns_shakedown": "Brann Draik", "halvards_twin_cut": "Halvard Draik",
+    "vesnas_ambush": "Vesna Draik",
+    "rookes_deluge": BETA, "shrugs_it_off": EPSILON, "quarrs_roar": EPSILON,
+    "vales_insight": ZETA, "heirloom_blade": ZETA,
+    "sabotage": GAMMA, "scorn_smirks": "Scorn", "sledges_stance": "Sledge",
+    "mercy_smiles": "Mercy", "absorbing_drill": "Cull",
+}
+for _c in CARDS:
+    if _c["id"] in ATTRIBUTION:
+        _c["character"] = ATTRIBUTION[_c["id"]]
+
 os.makedirs("data/cards/starter", exist_ok=True)
 with open("data/cards/starter/starter_set.json", "w", encoding="utf-8", newline="\n") as f:
     json.dump({"_note": "Starter set. Generated; mechanics follow the reference sample decks, names are original.", "cards": CARDS}, f, indent=1)
@@ -719,7 +802,8 @@ AI_PROFILES = {"shade_henchmen": "shade_henchmen", "steel_beatdown": "steel_beat
                "storm_volley": "storm_volley", "tide_companions": "tide_companions",
                "freestyle_swords": "freestyle_swords", "root_seals": "root_seals",
                "shade_salvage": "shade_salvage", "pyre_ascent": "pyre_ascent",
-               "storm_unbound": "storm_unbound", "steel_heir": "steel_heir"}
+               "storm_unbound": "storm_unbound", "steel_heir": "steel_heir",
+               "pyre_attrition": "pyre_attrition"}
 
 
 # What kind of deck each loadout is, as the sample-deck sheet labels them: (archetype, difficulty,
@@ -737,6 +821,7 @@ DECK_KINDS = {
     "pyre_ascent": ("strike_beatdown", "easy", ["fervor", "strikes"]),
     "storm_unbound": ("art_beatdown", "medium", ["fervor", "disruption", "construct"]),
     "steel_heir": ("strike_beatdown", "medium", ["strikes", "draw"]),
+    "pyre_attrition": ("strike_beatdown", "medium", ["fervor", "disruption", "strikes"]),
 }
 
 
@@ -744,37 +829,40 @@ DECK_KINDS = {
 # design doc's duelist lines; pending tone approval.
 DECK_IDENTITY = {
     "pyre_beatdown": (
-        "A pyromancer prodigy who rides momentum.",
+        "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",
         "Bram Ashmark takes the site's power greedily and burns whatever he has to. His Strikes feed his Fervor, and every Aspect he climbs makes the next climb faster. Thin on defense; win before the fire goes out."),
     "steel_beatdown": (
-        "An Ironblood grinder who reads the last blow.",
+        "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
         "Halden Quarr turns magic inward until the body is the spell. He hits harder than anyone at the same Energy and gains it back as he goes. Few tricks and no recovery, only weight."),
     "shade_henchmen": (
-        "Hexers for hire, under a captain who never pays in full.",
+        "Rally a company of hexers and strip away your rival's hand while your allies keep the pressure on.",
         "Sable Draik fights with her company beside her. Every hex is aimed at the rival's mind: their hand, their focus, the spells they were counting on. Modest damage, but the rival plays with less and less."),
     "tide_companions": (
-        "An old family of water mages who hold the line together.",
+        "Let your coven absorb the wounds, turn aside attacks, and drain your rival's Energy to replenish your own.",
         "Dame Alder Rooke ebbs and floods. Her coven takes the wounds, her blocks turn the exchange, and her Arts pull the rival's Energy out and pour it back into hers. Slow to kill, hard to outlast."),
     "freestyle_swords": (
-        "The last of a line of swordmasters. No magic at all.",
+        "Build a foundation of Drills, then chain signature sword techniques into increasingly powerful strikes.",
         "Caedan Vale carries nothing but will, footwork and steel. His Drills stack until every cut lands heavier, and his signature moves punish anyone who blinks. No school means no crutch, and a Mastery that does little."),
     "storm_volley": (
-        "Scholars of the Tempest, and the construct they send to fight.",
+        "Build your engine with Drills, charge your Energy, and unleash a barrage of discounted Arts.",
         "The Ninth Vessel is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy."),
     "shade_salvage": (
-        "Walked together out of a field of broken constructs, and still collecting.",
+        "Assemble a crew of constructs that strengthen one another, then unleash powerful Arts to overwhelm your rival.",
         "Marrow is not one construct and never was. She reads six moves ahead because some of her has already been here, nothing a spell fastens to stays fastened, and every made thing still standing makes the rest of them hit harder. Her crew picks the field over and keeps what is worth keeping. Slow to start, and the hand runs thin."),
+    "pyre_attrition": (
+        "Strip the table bare, climb past your rival's last Aspect, and refill your Life Deck while they run out.",
+        "Bram Ashmark on a longer road. He takes the table apart first, the Allies, the standing workings, the Seals in both Life Decks, and then wears the rival down with attacks that all bite a little deeper than they read. Five Aspects, so he can climb past anyone with three, and the top two put what he spent back in the deck. Slow, and it asks the rival to run out of something."),
     "pyre_ascent": (
-        "The coven's knight, fighting his own fight.",
+        "Weather the early assault and stoke your Fervor to unleash the Ember Knight's strongest Aspects.",
         "Sir Edric Rooke blocks and climbs. Almost everything in the list pays Fervor, so the defense is a rung rather than a pause, and the last two Aspects hit harder than anything else in the set. No Drills at all, and the early Aspects add nothing to the damage, so the first half is spent reading the deck and staying alive."),
     "storm_unbound": (
-        "The same construct, wound the other way.",
+        "Make enemy attacks costly and land disruptive Arts to shut down Strikes while building your own Fervor.",
         "Siphon here is not built to charge and release; it is built to make swinging at it expensive. The ground is heavy, its Arts climb its own Fervor, and a landed Art shuts the rival's Strikes out of the exchange. Slow to threaten, and it folds to anything that fights back with spells."),
     "steel_heir": (
-        "The coven's eldest, fighting with no sword at all.",
+        "Draw deep and spend life cards to power crushing blows as Emrys ascends to even stronger Aspects.",
         "Emrys Rooke was taught the blade by the Vales and everything else by the Grove, and none of it is what wins here. Steel is the magic turned inward, so the list is him putting metal on and then hitting with it, harder at every Aspect. He draws deep, spends life cards to make a blow land bigger, and by the last rung he swings twice a Combat. Nothing in it defends for long."),
     "root_seals": (
-        "An old druid who mends as he fights, and outlasts.",
+        "Recycle your spent spells and outlast your rival while gathering all seven Seals to claim victory.",
         "Osric Thornwald regrows what is cut away. Spent spells return to the bottom of his deck, foresight shows him what comes next, and while the rival tires he carves the seven seals. No burst; patience is the plan."),
 }
 
@@ -800,7 +888,7 @@ def deck(fname, name, duelist_id, aspects, style, alignment, mastery_id, relic_i
     print("%-18s life %d, reserve %d" % (fname, total, len(reserve)))
 
 
-deck("pyre_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "pyre", "pact", "pyre_mastery", "blank_mask",
+deck("pyre_beatdown", "Wildfire Rush", "duelist_alpha", 3, "pyre", "pact", "pyre_mastery", "blank_mask",
      ["open_challenge", "pyre_ashfall", "pyre_ashfall", "pyre_ashfall", "revision_drill", "scatters_the_ashes", "scatters_the_ashes", "scatters_the_ashes", "tollgate_yard",
       "pyre_searing_guard", "pyre_searing_guard", "pyre_searing_guard"], [
     ("trampled_crossroads", 3),
@@ -813,7 +901,7 @@ deck("pyre_beatdown", "Ashmark the Pyromancer", "duelist_alpha", 3, "pyre", "pac
     ("pyre_furnace_breath", 3), ("no_quarter", 3), ("all_or_nothing", 3), ("pyre_twin_flames", 3), ("relentless_fury", 4), ("mournes_frantic_rush", 3),
     ("pyre_snuffing", 3), ("pyre_flashover", 3), ("pyre_flame_lash", 3), ("pyre_kindling", 3), ("pyre_rekindling", 3)])
 
-deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pact", "steel_mastery", "blank_mask",
+deck("steel_beatdown", "Ironblood Onslaught", "duelist_epsilon", 3, "steel", "pact", "steel_mastery", "blank_mask",
      ["open_challenge", "steel_skull_crack", "mutual_escalation", "mutual_escalation", "mutual_escalation", "defacement", "scorn_smirks"], [
     ("trampled_crossroads", 3),
     ("moth_seal_1", 1), ("moth_seal_3", 1), ("moth_seal_4", 1),
@@ -826,7 +914,7 @@ deck("steel_beatdown", "Quarr the Ironblood", "duelist_epsilon", 3, "steel", "pa
     ("steel_scar_tissue", 3), ("steel_piston_slam", 3), ("steel_headbutt", 2), ("steel_bull_charge", 3),
     ("steel_iron_fist", 3), ("steel_hammer_blow", 3), ("steel_crushing_weight", 3), ("steel_forearm_guard", 3), ("steel_triple_shock", 2)])
 
-deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact", "shade_mastery", "debtors_ring",
+deck("shade_henchmen", "Hexbound Company", "duelist_delta", 3, "shade", "pact", "shade_mastery", "debtors_ring",
      ["defacement", "shade_unraveling", "shade_unraveling", "shade_unraveling"], [
     ("trampled_crossroads", 3),
     ("henchman_alpha", 1), ("henchman_beta", 1), ("henchman_gamma", 1), ("henchman_delta", 1), ("henchman_epsilon", 1),
@@ -838,7 +926,7 @@ deck("shade_henchmen", "The Draik Company", "duelist_delta", 3, "shade", "pact",
     ("no_quarter", 3), ("relentless_fury", 3), ("shade_dread_grip", 3), ("shade_oblivion_touch", 3), ("shade_nightmare_hold", 3),
     ("branns_shakedown", 3), ("halvards_twin_cut", 3), ("vesnas_ambush", 3)])
 
-deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "tide_mastery", "debtors_ring",
+deck("tide_companions", "Tidesworn Coven", "duelist_beta", 3, "tide", "vigil", "tide_mastery", "debtors_ring",
      ["open_challenge", "overreach", "lobbed_bolt", "clean_sweep", "bonded_pair"], [
     ("companion_alpha", 1), ("companion_beta", 1), ("companion_gamma", 1), ("companion_delta", 1),
     ("trampled_crossroads", 3),
@@ -852,7 +940,7 @@ deck("tide_companions", "The Rooke Coven", "duelist_beta", 3, "tide", "vigil", "
 
 # No Relic and no Reserve: the list this follows runs neither. One card of that list has no
 # parallel here yet, the Seal 4 of a fourth set, so the Life Deck is 79 rather than 80.
-deck("shade_salvage", "Marrow the Amalgam", "duelist_theta", 4, "shade", "pact", "shade_mastery", "", [], [
+deck("shade_salvage", "Scrap Requiem", "duelist_theta", 4, "shade", "pact", "shade_mastery", "", [], [
     ("frostbound_moor", 3),
     ("henchman_epsilon", 1), ("salvage_beta", 1), ("salvage_gamma", 1), ("salvage_alpha", 1),
     ("cold_appraisal", 4), ("cut_short", 3), ("scorn_smirks", 1), ("rites_unmade", 1), ("respite", 1),
@@ -868,7 +956,7 @@ deck("shade_salvage", "Marrow the Amalgam", "duelist_theta", 4, "shade", "pact",
     ("spoiled_rite", 1), ("mourne_takes_measure", 1), ("breakers_yard", 1), ("lucky_find", 1), ("foresight", 1)])
 
 # 79 life cards, five Aspects, no Relic, no Reserve and not one Drill: the list the sheet runs.
-deck("pyre_ascent", "Edric the Ember Knight", "duelist_iota", 5, "pyre", "vigil", "pyre_ember_mastery", "", [], [
+deck("pyre_ascent", "Ember Ascendant", "duelist_iota", 5, "pyre", "vigil", "pyre_ember_mastery", "", [], [
     ("trampled_crossroads", 3),
     ("companion_epsilon", 1),
     ("marble_seal_4", 1),
@@ -882,7 +970,23 @@ deck("pyre_ascent", "Edric the Ember Knight", "duelist_iota", 5, "pyre", "vigil"
     ("cut_short", 3), ("watchful_eye", 3), ("dismissal", 2),
     ("foresight", 1), ("respite", 1), ("declaration", 1), ("rites_unmade", 1), ("spoiled_rite", 1)])
 
-deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "blank_mask",
+# The second Ashmark list. 83 life cards, and a Reserve the sheet only names two cards for; the
+# other five slots the Clasp allows are open. See docs/tournament_import.md.
+deck("pyre_attrition", "Last Standing", "duelist_lambda", 5, "pyre", "pact", "pyre_ember_mastery", "severing_clasp",
+     ["open_challenge", "defacement"], [
+    ("trampled_crossroads", 3),
+    ("the_watch_goes_dark", 3),
+    ("pyre_cinder_guard", 3), ("pyre_searing_guard", 3), ("pyre_warding_stance", 3),
+    ("mournes_stance", 1), ("unyielding_guard", 1), ("stillness", 1), ("will_not_break", 1), ("quick_retreat", 2),
+    ("cut_short", 3), ("kept_at_bay", 1), ("cold_appraisal", 3),
+    ("pyre_rekindling", 3), ("pyre_knee_bash", 3), ("pyre_twin_flames", 3), ("pyre_flashpoint", 2),
+    ("pyre_snuffing", 3), ("pyre_scouring_flame", 3), ("pyre_firestorm", 3), ("pyre_furnace_breath", 3),
+    ("pyre_flame_lash", 3), ("pyre_sword_cleave", 3), ("emrys_rising_blow", 3), ("headlong_plunge", 3),
+    ("relentless_fury", 4), ("vales_sword_draw", 3), ("no_quarter", 3),
+    ("pyre_immolation", 3), ("ashmarks_ember_spray", 4), ("riftcry", 1), ("declaration", 1),
+    ("spent_to_the_last", 1)])
+
+deck("freestyle_swords", "Blade Legacy", "duelist_zeta", 5, "freestyle", "vigil", "freestyle_mastery", "blank_mask",
      ["open_challenge", "defacement", "warding_drill", "revision_drill", "lucky_find", "mutual_escalation"], [
     ("ancient_grove", 3),
     ("watchful_eye", 3), ("cut_short", 4), ("keen_eye", 1), ("kept_at_bay", 1), ("quiet_study", 1),
@@ -893,7 +997,7 @@ deck("freestyle_swords", "Vale the Swordmaster", "duelist_zeta", 5, "freestyle",
     ("swordplay_drill", 3), ("lone_blade_drill", 3), ("counterplay_drill", 2), ("no_retreat_drill", 1), ("absorbing_drill", 1), ("mournes_quickness_drill", 1),
     ("vales_insight", 3), ("foresight", 1), ("recalled_lesson", 1), ("heirloom_blade", 1), ("bravado_drill", 1)])
 
-deck("storm_unbound", "Siphon the Unbound", "duelist_gamma", 3, "storm", "pact", "storm_squall_mastery", "", [], [
+deck("storm_unbound", "Stormlock", "duelist_gamma", 3, "storm", "pact", "storm_squall_mastery", "", [], [
     ("weighted_hollow", 3),
     ("henchman_epsilon", 1), ("salvage_alpha", 1), ("salvage_beta", 1),
     ("sun_seal_5", 1),
@@ -907,7 +1011,7 @@ deck("storm_unbound", "Siphon the Unbound", "duelist_gamma", 3, "storm", "pact",
     ("cold_appraisal", 3), ("scorn_smirks", 1), ("sever_the_leyline", 1),
     ("respite", 1), ("declaration", 1), ("rites_unmade", 1), ("mourne_takes_measure", 1), ("spoiled_rite", 1), ("foresight", 1)])
 
-deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "lodestone_heart",
+deck("storm_volley", "Tempest Engine", "duelist_gamma", 3, "storm", "pact", "storm_mastery", "lodestone_heart",
      ["defacement", "dismissal", "dismissal", "storm_smiting_bolt", "storm_maelstrom", "lobbed_bolt", "declaration", "headlong_plunge", "storm_thunderhead"], [
     ("henchman_zeta", 1),
     ("trampled_crossroads", 3),
@@ -920,7 +1024,7 @@ deck("storm_volley", "The Corven Collegium", "duelist_gamma", 3, "storm", "pact"
     ("recalled_lesson", 1), ("clear_mind", 1), ("foresight", 1), ("bravado_drill", 1)])
 # No Relic and no Reserve: the list this follows runs none, and the Root allowance of 90 is
 # spent on 84 life cards.
-deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "root_mastery", "", [], [
+deck("root_seals", "Sevenfold Grove", "duelist_eta", 5, "root", "vigil", "root_mastery", "", [], [
     ("frostbound_moor", 3),
     ("marble_seal_1", 1), ("marble_seal_2", 1), ("marble_seal_3", 1), ("marble_seal_4", 1), ("marble_seal_5", 1), ("marble_seal_6", 1), ("marble_seal_7", 1),
     ("first_cut", 1), ("mournes_plans", 1), ("mournes_smirk", 1), ("wardens_measure", 1), ("sleight", 1), ("eyes_beyond_the_gate", 1), ("seal_seizure", 3),
@@ -934,7 +1038,7 @@ deck("root_seals", "The Thornwald Grove", "duelist_eta", 5, "root", "vigil", "ro
 
 # 79 life cards, five Aspects, no Relic and no Reserve: the list the sheet runs. The Ally is his
 # own mother, the same card the coven's knight brings, which is the sheet's doing and not ours.
-deck("steel_heir", "Emrys the Eldest", "duelist_kappa", 5, "steel", "vigil", "steel_mastery", "", [], [
+deck("steel_heir", "Steel Inheritance", "duelist_kappa", 5, "steel", "vigil", "steel_mastery", "", [], [
     ("the_high_watch", 3),
     ("companion_epsilon", 1),
     ("marble_seal_4", 1),

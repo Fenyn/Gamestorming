@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Quiet Study. Sat with the page and the sword across the knees, working out
+       what happens next before it does. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- sat, head bent over the page -->
+    <circle cx="352" cy="176" r="46"/>
+    <path d="M352,222 C364,278 368,320 366,354"/>
+    <path d="M366,354 C420,362 474,368 524,370"/>
+    <path d="M524,370 C534,420 534,462 526,500"/>
+    <path d="M366,354 C332,396 316,442 312,492"/>
+    <path d="M300,496 L348,502"/>
+    <path d="M514,504 L562,510"/>
+    <!-- arms holding the page up -->
+    <path d="M360,256 C400,272 434,286 462,296"/>
+    <path d="M356,268 C388,300 418,320 444,332"/>
+  </g>
+  <!-- the page -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M452,232 C512,218 570,212 626,216 C622,284 622,336 628,378 C572,372 514,374 456,388 C458,336 458,282 452,232 Z"/>
+    <path d="M498,268 C536,262 574,260 608,262"/>
+    <path d="M500,300 C534,294 566,292 596,294"/>
+    <path d="M502,332 C530,328 556,326 580,328"/>
+  </g>
+  <!-- the sword, across the knees and not in the way -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M236,436 C154,444 82,452 24,462"/>
+    <path d="M238,458 C156,466 84,474 26,484"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M268,418 L262,478"/>
+    <path d="M290,440 C336,436 386,436 432,440"/>
+  </g>
+  <!-- the candle -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M744,338 C744,404 744,452 746,486 C778,492 806,492 834,486 C836,450 836,402 836,338 Z"/>
+    <path d="M744,338 C776,330 806,330 836,338"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M790,330 C772,304 778,278 790,258 C804,278 810,304 790,330 Z"/>
+    <path d="M790,232 L790,206"/>
+    <path d="M742,268 L716,250"/>
+    <path d="M838,268 L864,250"/>
+  </g>
+</svg>

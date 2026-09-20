@@ -1203,13 +1203,18 @@ func _prompt_attack_action(p: PlayerState) -> void:
 		opts.append(Command.new(p.index, &"use", p.mastery.uid))
 	if not only_attacks and _relic_usable_in(p, "combat"):
 		opts.append(Command.new(p.index, &"use", p.relic.uid))
-	var pw: Dictionary = ic.power()
-	if _power_available(p, ic) and not pw.has("defense") and not _forbidden(p, "powers"):
-		if pw.has("attack"):
-			if _attack_allowed(p, null, str(pw["attack"].get("kind", "strike"))) and _can_pay(ic, p, pw.get("attack", {})):
-				opts.append(Command.new(p.index, &"power", ic.uid))
-		elif pw.has("effects") and not only_attacks and _has_trigger(pw["effects"], "secondary"):
-			opts.append(Command.new(p.index, &"power", ic.uid))
+	if _power_available(p, ic) and not _forbidden(p, "powers"):
+		# An Aspect may print two Powers, and the duelist picks one of them; both arrive as their
+		# own option so a client and the AI never have to know the shape.
+		for choice in [["", ic.power()], ["alt", ic.power_alt()]]:
+			var pw: Dictionary = choice[1]
+			if pw.is_empty() or pw.has("defense"):
+				continue
+			if pw.has("attack"):
+				if _attack_allowed(p, null, str(pw["attack"].get("kind", "strike"))) and _can_pay(ic, p, pw.get("attack", {})):
+					opts.append(Command.new(p.index, &"power", ic.uid, choice[0] if choice[0] != "" else null))
+			elif pw.has("effects") and not only_attacks and _has_trigger(pw["effects"], "secondary"):
+				opts.append(Command.new(p.index, &"power", ic.uid, choice[0] if choice[0] != "" else null))
 	if not _forbidden(p, "powers"):
 		for al in p.allies():
 			var apw: Dictionary = al.power()
@@ -1250,7 +1255,7 @@ func _handle_attack_action(cmd: Command) -> void:
 		&"power":
 			var ic: CardInstance = card(cmd.card)
 			_mark_power_used(ic)
-			var pw: Dictionary = ic.power()
+			var pw: Dictionary = ic.power_alt() if cmd.value != null and str(cmd.value) == "alt" else ic.power()
 			_emit(&"power_used", {"player": p.index, "card": ic.uid, "aspect": ic.aspect})
 			var effects: Array[Dictionary] = []
 			effects.assign(pw.get("effects", []))
@@ -1458,11 +1463,12 @@ func attack_forecasts(seat: int) -> Dictionary:
 				var empowered: bool = o.value != null and str(o.value) == "empower"
 				a = _build_attack(seat, c, c.def.attack, c.def.effects, false, false, empowered, null, first)
 			&"power":
-				if c == null or not c.power().has("attack"):
+				var pw: Dictionary = c.power_alt() if c != null and o.value != null and str(o.value) == "alt" else (c.power() if c != null else {})
+				if c == null or not pw.has("attack"):
 					continue
 				var effects: Array[Dictionary] = []
-				effects.assign(c.power().get("effects", []))
-				a = _build_attack(seat, c, c.power()["attack"], effects, true, false, false, c, first)
+				effects.assign(pw.get("effects", []))
+				a = _build_attack(seat, c, pw["attack"], effects, true, false, false, c, first)
 			&"final_strike":
 				if out.has(o.card):
 					continue   # the card's own attack is the number that matters
@@ -1484,6 +1490,11 @@ func attack_forecasts(seat: int) -> Dictionary:
 		b["energy_left"] = maxi(0, energy_before - cost)
 		if o.type == &"attack" and str(o.value) == "empower" and out.has(o.card):
 			(out[o.card] as Dictionary)["empowered"] = {"stages": int(b["stages"]), "life": int(b["life"])}
+			continue
+		# The second Power of an Aspect that prints two, forecast beside the first rather than
+		# over the top of it.
+		if o.type == &"power" and o.value != null and str(o.value) == "alt" and out.has(o.card):
+			(out[o.card] as Dictionary)["alt"] = {"stages": int(b["stages"]), "life": int(b["life"])}
 			continue
 		out[o.card] = b
 	return out
@@ -1527,9 +1538,24 @@ func _attachment_removes(p: PlayerState, source: CardInstance) -> bool:
 		if at.attached_to != p.in_control() or not bool(at.def.attachment.get("damage_removes", false)):
 			continue
 		var needle: String = str(at.def.attachment.get("title_contains", ""))
-		if needle == "" or (source != null and source.def.title.contains(needle)):
+		if needle == "" or _title_matches(p.index, source, needle):
 			return true
 	return false
+
+
+## Does this card's title carry the word a matching effect is looking for? A card can lend its
+## own attacks a word for the rest of Combat ("your Pyre attacks count as having Sword in the
+## title"), so the question is asked here instead of reading the title directly.
+func _title_matches(owner: int, src: CardInstance, needle: String) -> bool:
+	if src == null:
+		return false
+	if src.def.title.contains(needle):
+		return true
+	var f: Dictionary = _floating_first(owner, "counts_as_title")
+	if f.is_empty() or str(f.get("title", "")) != needle:
+		return false
+	var school: String = str(f.get("school", ""))
+	return school == "" or src.def.school == school
 
 
 # --- Counter window ("stops the effects of any Combat card") ---------------
@@ -2380,8 +2406,57 @@ func tag_count(tag: String) -> int:
 	return n
 
 
-static func has_tag(c: CardInstance, tag: String) -> bool:
-	return c != null and (c.def.raw.get("tags", []) as Array).has(tag)
+## A keyword this personality carries right now: printed on their card, or lent to them by a card
+## attached to them. The source's mark works the second way, so a personality can gain a keyword
+## mid-duel and lose it again when the card leaves. Never read `tags` off the def to answer this.
+func has_tag(c: CardInstance, tag: String) -> bool:
+	if c == null:
+		return false
+	if (c.def.raw.get("tags", []) as Array).has(tag):
+		return true
+	for at in _attachments_on(c):
+		if (at.def.attachment.get("grants_tags", []) as Array).has(tag):
+			return true
+	return false
+
+
+## Every keyword the personality carries right now, printed and lent, for a seat view to show.
+func tags_of(c: CardInstance) -> Array[String]:
+	var out: Array[String] = []
+	if c == null:
+		return out
+	for t in c.def.raw.get("tags", []):
+		out.append(str(t))
+	for at in _attachments_on(c):
+		for t in at.def.attachment.get("grants_tags", []):
+			if not out.has(str(t)):
+				out.append(str(t))
+	return out
+
+
+## The line this personality counts as carrying right now. Printed unless a card attached to them
+## says otherwise, the same way a keyword can be lent.
+func bloodline_of(c: CardInstance) -> String:
+	if c == null:
+		return ""
+	for at in _attachments_on(c):
+		var lent: String = str(at.def.attachment.get("grants_bloodline", ""))
+		if lent != "":
+			return lent
+	return c.def.bloodline
+
+
+## Cards in play riding on this personality, from either side: an attachment is played by its
+## owner but may sit on anybody.
+func _attachments_on(c: CardInstance) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	if c == null:
+		return out
+	for p in state.players:
+		for at in p.attachments():
+			if at.attached_to == c:
+				out.append(at)
+	return out
 
 
 ## How many cards this player may hold through the discard step. One by default; a card in play
@@ -2411,9 +2486,9 @@ func card_in_play_titled(title: String) -> CardInstance:
 ## Personalities in play carrying a bloodline: the duelist when it is theirs, plus each Ally with
 ## it. A duelist can lead a following that does not share their blood, and often does.
 func bloodline_count(p: PlayerState, bloodline: String) -> int:
-	var n: int = 1 if p.duelist.def.bloodline == bloodline else 0
+	var n: int = 1 if bloodline_of(p.duelist) == bloodline else 0
 	for a in p.allies():
-		if a.def.bloodline == bloodline:
+		if bloodline_of(a) == bloodline:
 			n += 1
 	return n
 
@@ -2447,7 +2522,7 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 				continue
 			if m.has("school") and (src == null or src.def.school != str(m["school"])):
 				continue
-			if m.has("title_contains") and (src == null or not src.def.title.contains(str(m["title_contains"]))):
+			if m.has("title_contains") and not _title_matches(p.index, src, str(m["title_contains"])):
 				continue
 			if m.has("when") and not _cond(m["when"], p.index, ctx):
 				continue
@@ -2824,7 +2899,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				else:
 					target.energy = CardInstance.MAX_STAGE
 			elif int(amount) >= 0:
-				_gain_energy(who, target, int(amount))
+				_gain_energy_from_card(who, target, int(amount))
 			elif bool(e.get("no_overflow", false)):
 				target.energy = maxi(0, target.energy + int(amount))
 			else:
@@ -3033,6 +3108,14 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				if shuffle_decks:
 					rng.shuffle(who.life_deck)
 				_emit(&"recur_source", {"player": who.index, "card": source.uid, "paid": paid.uid})
+		"discard_grounds":
+			# The Grounds is one card for the whole table rather than either player's, so it is
+			# not reachable through discard_in_play.
+			if state.grounds != null:
+				var g: CardInstance = state.grounds
+				state.grounds = null
+				_emit(&"in_play_discarded", {"player": g.controller, "card": g.uid, "removed": false, "to": "discard"})
+				_move_to_discard(g)
 		"shuffle_discard":
 			var count: int = int(amount)
 			if str(e.get("per_bloodline", "")) != "":
@@ -3142,6 +3225,17 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					return false
 			"alignment":
 				if me.alignment != str(v):
+					return false
+			"defender_alignment":
+				# "If performed against a Pact duelist": the side of the personality the attack is
+				# aimed at. An Ally may only be fielded by its own side, so this matches the
+				# defending player today; it is read off the personality because that is what the
+				# card names.
+				var aimed_side: CardInstance = _defender_personality(ctx)
+				var side: String = opp.alignment
+				if aimed_side != null and aimed_side.def.alignment_only != "":
+					side = aimed_side.def.alignment_only
+				if side != str(v):
 					return false
 			"performed_by":
 				var by_ally: bool = me.in_control() != me.duelist
@@ -3448,9 +3542,17 @@ func _gate_ok(p: PlayerState, def: CardDef, gate: Dictionary) -> bool:
 			return false
 	if gate.has("duelist_character") and p.duelist.def.character != str(gate["duelist_character"]):
 		return false
+	# "Your duelist pays 5 Energy to use this": the price is checked here and taken by the card's
+	# own effects, so a card that cannot afford itself is never offered.
+	if gate.has("energy_min") and p.in_control().energy < int(gate["energy_min"]):
+		return false
+	# A keyword gate, "Marked only". Like the bloodline gate it reads the personality in control,
+	# not the player, so a following can reach a card its duelist cannot.
+	if gate.has("tag") and not has_tag(p.in_control(), str(gate["tag"])):
+		return false
 	# "Draconic only": the bloodline gates by who is in control, the way a named personality does.
 	# A duelist and their Allies can differ, so it is read off the personality, not the player.
-	if gate.has("bloodline") and p.in_control().def.bloodline != str(gate["bloodline"]):
+	if gate.has("bloodline") and bloodline_of(p.in_control()) != str(gate["bloodline"]):
 		return false
 	return true
 
@@ -3522,7 +3624,7 @@ func _set_personality_energy(p: PlayerState, target: CardInstance, e: Dictionary
 		else:
 			target.energy = CardInstance.MAX_STAGE
 	elif int(amount) >= 0:
-		_gain_energy(p, target, int(amount))
+		_gain_energy_from_card(p, target, int(amount))
 	elif bool(e.get("no_overflow", false)):
 		target.energy = maxi(0, target.energy + int(amount))
 	else:
@@ -3633,6 +3735,10 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 	if bool(e.get("all", false)):
 		amount = 99
 	var remove: bool = bool(e.get("remove", false))
+	# "...in play and in all Life Decks": the deck half runs first and on its own, because a card
+	# that finds nothing on the table still has to empty the decks.
+	if bool(e.get("life_decks", false)):
+		_purge_life_decks(type_name, remove)
 	var candidates: Array[CardInstance] = _in_play_candidates(target, type_name)
 	if str(e.get("who", "")) == "any":
 		# "Remove a Seal in play": either side's, so the pool is both and the chooser decides.
@@ -3652,6 +3758,23 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 			break
 		_discard_or_remove_in_play(candidates[i], remove, to)
 		n += 1
+
+
+## Takes every card of one type out of both Life Decks, for a card that reaches past the table.
+## The decks are not shuffled afterwards: nothing is learned about the order by pulling a known
+## type out of a deck the searcher never sees.
+func _purge_life_decks(type_name: String, remove: bool) -> void:
+	var wanted: int = int(CardDef.TYPE_NAMES.get(type_name, -1))
+	if wanted < 0:
+		return
+	for p in state.players:
+		for c in p.life_deck.duplicate():
+			if c.def.type != wanted:
+				continue
+			if remove:
+				_remove_from_game(c)
+			else:
+				_move_to_discard(c)
 
 
 func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstance]:
@@ -3696,7 +3819,7 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 func _ally_protected(p: PlayerState, ally: CardInstance) -> bool:
 	var guard: Variant = _constant(p).get("protect_allies", false)
 	if guard is String:
-		return str(guard) != "" and ally.def.bloodline == str(guard)
+		return str(guard) != "" and bloodline_of(ally) == str(guard)
 	return bool(guard)
 
 
@@ -4089,6 +4212,9 @@ func _change_fervor(p: PlayerState, delta: int, source_owner: int) -> void:
 		return
 	if delta > 0:
 		delta *= fervor_gain(p)
+		# "When you gain Fervor, increase that amount by 1": added after the multiplier, so a
+		# duelist carrying both gets the doubling on the printed number and the bonus once.
+		delta += int(_constant(p).get("fervor_gain_bonus", 0))
 		# Grounds may cap what one card or effect can raise. The Fervor shield covers this too: it
 		# reads "your opponent cannot reduce the amount of Fervor you would gain", not just "cannot
 		# lower it", so a capping Grounds does not touch a shielded player.
@@ -4206,6 +4332,15 @@ func _discard_drills(p: PlayerState) -> void:
 		return
 	for d in p.drills():
 		_move_to_discard(d)
+
+
+## Energy a card effect hands a personality. A constant may double what the duelist gains this
+## way, which is why the Power Up step calls _gain_energy directly and card effects come here.
+func _gain_energy_from_card(p: PlayerState, c: CardInstance, n: int) -> void:
+	var mult: int = maxi(1, int(_constant(p).get("energy_gain_multiplier", 1)))
+	if mult > 1 and c == p.duelist:
+		n *= mult
+	_gain_energy(p, c, n)
 
 
 func _gain_energy(p: PlayerState, c: CardInstance, n: int) -> void:

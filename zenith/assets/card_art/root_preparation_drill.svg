@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Root Tracker's Drill. Sign read off the ground and five stones set down
+       in a row for what was found. Nothing happens yet; that is the drill. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#1d2c18"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f3222"/><stop offset="1" stop-color="#150f09"/>
+    </linearGradient>
+    <linearGradient id="pebble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9b3a4"/><stop offset="1" stop-color="#6a6558"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <path d="M0,172 C180,152 320,184 452,170 C600,154 740,186 904,164 V480 H0 Z" fill="url(#soil)"/>
+  <!-- the sign: a print in the soil, and the bent stems beside it -->
+  <g fill="#120d08">
+    <path d="M286,268 a54,50 0 0 1 96,30 l-8,36 a44,38 0 0 1 -80,0 Z"/>
+    <circle cx="276" cy="242" r="14"/><circle cx="308" cy="226" r="14"/>
+    <circle cx="342" cy="226" r="14"/><circle cx="374" cy="240" r="14"/>
+  </g>
+  <g fill="none" stroke="#6fae4e" stroke-opacity="0.8" stroke-width="7" stroke-linecap="round">
+    <path d="M196,380 C214,320 210,272 190,236"/>
+    <path d="M232,388 C256,334 258,290 242,254"/>
+    <path d="M436,384 C462,330 470,288 456,250"/>
+  </g>
+  <!-- five stones, set out for what the sign said -->
+  <g fill="url(#pebble)" stroke="#231f18" stroke-width="5">
+    <ellipse cx="552" cy="352" rx="42" ry="30"/>
+    <ellipse cx="640" cy="358" rx="38" ry="28"/>
+    <ellipse cx="722" cy="350" rx="42" ry="30"/>
+    <ellipse cx="806" cy="358" rx="36" ry="26"/>
+    <ellipse cx="866" cy="348" rx="30" ry="22"/>
+  </g>
+  <!-- the line they were set along -->
+  <path d="M510,392 C620,404 760,398 896,386" fill="none" stroke="#6fae4e" stroke-opacity="0.3" stroke-width="6"/>
+  <!-- leaf litter -->
+  <g fill="#4d6b3c">
+    <path d="M120,430 c26,-22 62,-18 78,6 c-26,20 -60,16 -78,-6 Z"/>
+    <path d="M330,446 c24,-20 58,-16 72,6 c-24,18 -56,14 -72,-6 Z"/>
+    <path d="M660,438 c22,-18 54,-14 66,6 c-22,16 -52,12 -66,-6 Z"/>
+  </g>
+</svg>

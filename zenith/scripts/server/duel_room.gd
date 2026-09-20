@@ -11,6 +11,7 @@ var seat_peer: Array[int] = [0, 0]
 var lobby: Array[Dictionary] = []
 var host: DuelHost = null
 var seed_value: int = 0
+var color_seed: int = 0   # cosmetic only: the seat colours both clients draw
 var started: bool = false
 
 

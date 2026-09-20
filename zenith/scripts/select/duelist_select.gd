@@ -204,7 +204,7 @@ func _refresh() -> void:
 		var state: int = 0
 		if d != null and Session.decks[tile.index] == d:
 			state = 2 if Session.locked[_seat] else 1
-		tile.set_badge(state, "P%d" % (_seat + 1), Palette.school_ui(d.style) if d != null else ZenithTheme.MUTED)
+		tile.set_badge(state, "P%d" % (_seat + 1), Session.seat_color(_seat) if d != null else ZenithTheme.MUTED)
 		tile.disabled = Session.locked[_seat]
 	if _online:
 		_refresh_players()
@@ -237,9 +237,12 @@ func _refresh_players() -> void:
 		var who: String = str(Net.lobby[seat]["name"]) if present else "empty seat"
 		if seat == me:
 			who += " (you)"
+		var picked: bool = present and int(Net.lobby[seat]["deck"]) >= 0
 		chip.text = "P%d  %s  ·  %s" % [seat + 1, who, state]
-		chip.add_theme_color_override("font_color", ZenithTheme.TEXT if present else ZenithTheme.MUTED)
-		var border: Color = ZenithTheme.ACCENT if state == "locked in" else ZenithTheme.BORDER
+		chip.add_theme_color_override("font_color", Session.seat_color(seat) if picked else (ZenithTheme.TEXT if present else ZenithTheme.MUTED))
+		var border: Color = ZenithTheme.BORDER
+		if picked:
+			border = Session.seat_color(seat) if state == "locked in" else Color(Session.seat_color(seat), 0.45)
 		var fill: Color = ZenithTheme.RAISED if present else Color(1, 1, 1, 0.02)
 		(chip.get_parent() as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(fill, border, 6, 1, 10, 4))
 	code_banner.visible = not filled and Net.room_code != ""

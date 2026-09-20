@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Root Thorn Volley. A staff swung through, and the thorns it threw off it
+       still crossing the frame. -->
+  <defs>
+    <radialGradient id="bg" cx="40%" cy="42%" r="76%">
+      <stop offset="0" stop-color="#2a3c1c"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="staff" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6a42"/><stop offset="1" stop-color="#3f2e1c"/>
+    </linearGradient>
+    <linearGradient id="thorn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cfe8a8"/><stop offset="1" stop-color="#4d6b3c"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <!-- the arc the staff came round on -->
+  <path d="M120,520 A330,330 0 0 1 402,110" fill="none" stroke="#cfe8a8" stroke-opacity="0.22" stroke-width="16" stroke-linecap="round"/>
+  <path d="M170,536 A300,300 0 0 1 430,168" fill="none" stroke="#cfe8a8" stroke-opacity="0.12" stroke-width="12" stroke-linecap="round"/>
+  <!-- the staff, at the end of the swing -->
+  <g transform="translate(330,330) rotate(-38)">
+    <rect x="-28" y="-290" width="56" height="580" rx="28" fill="url(#staff)"/>
+    <path d="M-28,-200 c40,-20 60,10 56,44 c-30,10 -50,-8 -56,-44 Z" fill="#4d6b3c"/>
+    <path d="M28,60 c-40,-20 -60,10 -56,44 c30,10 50,-8 56,-44 Z" fill="#4d6b3c"/>
+  </g>
+  <!-- the volley -->
+  <g fill="url(#thorn)">
+    <g transform="translate(560,120) rotate(18)"><path d="M0,0 L132,22 L0,44 Z"/></g>
+    <g transform="translate(620,220) rotate(6)"><path d="M0,0 L150,24 L0,48 Z"/></g>
+    <g transform="translate(560,330) rotate(-6)"><path d="M0,0 L166,26 L0,52 Z"/></g>
+    <g transform="translate(608,438) rotate(-16)"><path d="M0,0 L140,22 L0,44 Z"/></g>
+    <g transform="translate(672,520) rotate(-26)"><path d="M0,0 L116,18 L0,36 Z"/></g>
+  </g>
+  <g stroke="#cfe8a8" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round">
+    <path d="M520,142 h-70 M576,232 h-84 M512,356 h-90 M568,452 h-76 M640,534 h-60"/>
+  </g>
+</svg>

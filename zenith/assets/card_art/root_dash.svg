@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Root Boar Rush. Head down through the undergrowth, and the undergrowth
+       going with it. -->
+  <defs>
+    <radialGradient id="bg" cx="45%" cy="42%" r="76%">
+      <stop offset="0" stop-color="#2b3a1c"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="hide" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b4a34"/><stop offset="1" stop-color="#20180f"/>
+    </linearGradient>
+    <linearGradient id="tusk" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f4eddc"/><stop offset="1" stop-color="#b8ac91"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect y="500" width="904" height="140" fill="#1b2414"/>
+  <!-- the line it came along -->
+  <g stroke="#cfe8a8" stroke-opacity="0.22" stroke-width="14" stroke-linecap="round">
+    <path d="M888,232 H600 M872,320 H560 M888,412 H620"/>
+  </g>
+  <!-- the boar, head low, going left -->
+  <g fill="url(#hide)" stroke="#120d08" stroke-width="6">
+    <path d="M700,214 C784,214 848,268 848,340 C848,420 772,462 680,462 L470,462 C398,462 350,420 350,368 C350,318 396,286 452,282 L520,276 C560,232 630,214 700,214 Z"/>
+    <path d="M350,368 C300,352 268,332 244,300 C286,296 322,306 352,324 Z"/>
+    <path d="M452,282 C438,236 452,200 486,178 C506,214 500,254 478,284 Z"/>
+    <path d="M520,276 C534,230 566,206 604,200 C598,240 572,270 540,282 Z"/>
+    <path d="M756,462 h64 v122 h-64 Z"/>
+    <path d="M628,462 h64 v122 h-64 Z"/>
+    <path d="M470,462 h60 v110 h-60 Z"/>
+  </g>
+  <!-- the tusks -->
+  <g fill="url(#tusk)" stroke="#120d08" stroke-width="5">
+    <path d="M330,346 C286,330 262,296 260,258 C296,282 322,312 338,344 Z"/>
+    <path d="M356,392 C312,382 286,356 278,322 C316,340 344,364 362,390 Z"/>
+  </g>
+  <circle cx="404" cy="326" r="12" fill="#ffd9a0"/>
+  <!-- the undergrowth going up -->
+  <g fill="#4d6b3c">
+    <g transform="translate(240,180) rotate(-24)"><path d="M0,0 c40,-34 96,-26 120,10 c-40,30 -94,22 -120,-10 Z"/></g>
+    <g transform="translate(180,480) rotate(28)"><path d="M0,0 c36,-30 86,-24 108,8 c-36,28 -84,20 -108,-8 Z"/></g>
+    <g transform="translate(300,104) rotate(14)"><path d="M0,0 c30,-26 74,-20 92,8 c-30,24 -72,18 -92,-8 Z"/></g>
+    <g transform="translate(120,326) rotate(-10)"><path d="M0,0 c32,-28 78,-22 98,8 c-32,26 -76,20 -98,-8 Z"/></g>
+    <g transform="translate(430,566) rotate(-16)"><path d="M0,0 c30,-26 74,-20 92,8 c-30,24 -72,18 -92,-8 Z"/></g>
+  </g>
+</svg>

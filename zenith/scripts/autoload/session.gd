@@ -18,6 +18,9 @@ var locked: Array[bool] = [false, false]   # each seat confirmed its pick on the
 var player_names: Array[String] = ["Player 1", "Player 2"]
 var seed_value: int = 0   # 0 means pick one at random when the duel starts
 var last_seed: int = 0
+## Seed for cosmetics only (the per-battle seat colours). Derived from the duel seed so both
+## sides of an online duel agree, but it does not hand a client the shuffle order.
+var color_seed: int = 0
 var ai_seat: int = -1               # the seat an AiPlayer drives, -1 for none. Offline only.
 var ai_profile: String = "default"  # level file under AiProfile.DIR, without .json
 
@@ -64,10 +67,43 @@ func deck_problems(deck: DeckList) -> Array[String]:
 func build_referee() -> Referee:
 	var referee: Referee = Referee.new()
 	last_seed = seed_value if seed_value != 0 else randi_range(1, 2147483646)
+	if color_seed == 0:
+		# A dev run that opens the duel scene directly never passed a select screen.
+		roll_colors()
 	var pair: Array[DeckList] = [chosen[0], chosen[1]]
 	var names: Array[String] = [player_names[0], player_names[1]]
 	referee.setup(pair, library, strike_table, last_seed, names)
 	return referee
+
+
+## A fresh roll of the seat colours, for a new battle. Offline the select screen does it; online
+## the authority does it and shares the number, since both sides have to draw the same pair.
+func roll_colors() -> void:
+	color_seed = randi_range(1, 2147483646)
+
+
+## The player colour for a seat in the matchup being chosen or played. Every screen outside the
+## duel calls this, so the colour a player sees in the lobby is the one on their side of the
+## table.
+func seat_color(index: int) -> Color:
+	if color_seed == 0:
+		# A dev run that opened a screen directly; roll once so the colours hold still.
+		roll_colors()
+	return SeatColors.of_styles(match_styles(), index, color_seed)
+
+
+## The two styles the colours are rolled from: the locked-in decks online, the chosen decks
+## otherwise. A seat that has not picked yet counts as Freestyle.
+func match_styles() -> Array[String]:
+	var out: Array[String] = ["", ""]
+	for i in range(2):
+		var d: DeckList = chosen[i]
+		if Net.mode != "" and Net.lobby.size() > i:
+			var index: int = int(Net.lobby[i]["deck"])
+			d = decks[index] if index >= 0 and index < decks.size() else null
+		if d != null:
+			out[i] = d.style
+	return out
 
 
 ## The driver for the AI seat, or null when both seats are people.
@@ -83,6 +119,10 @@ func go_to_duel() -> void:
 
 
 func go_to_select() -> void:
+	# Online the authority owns the roll and has already shared it; rolling here would give the
+	# two sides different colours.
+	if Net.mode == "":
+		roll_colors()
 	get_tree().change_scene_to_file(SELECT_SCENE)
 
 

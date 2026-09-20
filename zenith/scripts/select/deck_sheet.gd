@@ -51,9 +51,10 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 	_deck = d
 	var duelist: CardDef = Session.library.defs.get(d.duelist_id)
 	var school_color: Color = Palette.school_ui(d.style)
-	var panel: StyleBoxFlat = ZenithTheme.edged(school_color, Color(school_color, 0.08), 14, 18, 16)
+	var seat_color: Color = Session.seat_color(seat)
+	var panel: StyleBoxFlat = ZenithTheme.edged(seat_color, Color(seat_color, 0.08), 14, 18, 16)
 	if seat == 1:
-		# The school stripe sits on each panel's outer edge.
+		# The player stripe sits on each panel's outer edge.
 		panel.border_width_right = panel.border_width_left
 		panel.border_width_left = 0
 		panel.content_margin_right = panel.content_margin_left

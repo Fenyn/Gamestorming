@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Vale's Riposte. Two beats in one frame: their blade going off to the side,
+       his point already coming back down the line. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="272" cy="176" r="46"/>
+    <path d="M272,222 C280,288 278,342 272,396"/>
+    <path d="M272,396 C228,448 200,498 186,558"/>
+    <path d="M272,396 C330,438 366,490 382,552"/>
+    <path d="M174,558 L216,566"/>
+    <path d="M370,552 L416,560"/>
+    <path d="M276,250 C346,254 414,266 476,288"/>
+    <path d="M268,262 C228,296 204,328 192,364"/>
+  </g>
+  <!-- his blade, back on line -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M500,282 C592,278 692,278 830,286"/>
+    <path d="M500,302 C592,298 692,298 826,304"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M488,262 L492,322"/>
+    <path d="M462,286 L488,290"/>
+  </g>
+  <!-- the blade he put aside, going up and out -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M566,196 C650,148 728,110 828,78"/>
+    <path d="M578,212 C660,164 738,126 836,94"/>
+  </g>
+  <!-- the beat that sent it there -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M540,300 C568,254 600,214 638,180"/>
+    <path d="M572,318 C602,270 636,230 676,196"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M534,254 L512,214"/>
+    <path d="M566,246 L560,204"/>
+    <path d="M600,254 L618,216"/>
+  </g>
+</svg>

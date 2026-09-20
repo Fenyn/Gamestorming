@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Watchful Eye. An open eye over a fan of held cards. Nothing is played;
+       it is being read. Combat box is 452x300. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#16242e"/><stop offset="1" stop-color="#04080b"/>
+    </radialGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1e9d5"/><stop offset="1" stop-color="#bcb197"/>
+    </linearGradient>
+    <radialGradient id="iris" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#9fe2f0"/><stop offset="1" stop-color="#1f6d86"/>
+    </radialGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <!-- the fan, held low -->
+  <g stroke="#8e7f5e" stroke-width="5">
+    <g transform="translate(276,470) rotate(-26)"><rect x="-92" y="-134" width="184" height="268" rx="10" fill="url(#page)"/></g>
+    <g transform="translate(364,442) rotate(-13)"><rect x="-92" y="-134" width="184" height="268" rx="10" fill="url(#page)"/></g>
+    <g transform="translate(452,432)"><rect x="-92" y="-134" width="184" height="268" rx="10" fill="url(#page)"/></g>
+    <g transform="translate(540,442) rotate(13)"><rect x="-92" y="-134" width="184" height="268" rx="10" fill="url(#page)"/></g>
+    <g transform="translate(628,470) rotate(26)"><rect x="-92" y="-134" width="184" height="268" rx="10" fill="url(#page)"/></g>
+  </g>
+  <!-- the eye over them -->
+  <ellipse cx="452" cy="212" rx="280" ry="200" fill="#8fd6ff" fill-opacity="0.08"/>
+  <path d="M212,212 C300,96 604,96 692,212 C604,328 300,328 212,212 Z" fill="#0b1a22" stroke="#cfe6f7" stroke-width="8"/>
+  <circle cx="452" cy="212" r="84" fill="url(#iris)"/>
+  <circle cx="452" cy="212" r="36" fill="#05121a"/>
+  <circle cx="424" cy="182" r="16" fill="#eaf6ff" fill-opacity="0.85"/>
+  <g fill="none" stroke="#cfe6f7" stroke-opacity="0.5" stroke-width="6" stroke-linecap="round">
+    <path d="M452,92 v-42 M262,132 l-30,-34 M642,132 l30,-34 M452,332 v34"/>
+  </g>
+</svg>

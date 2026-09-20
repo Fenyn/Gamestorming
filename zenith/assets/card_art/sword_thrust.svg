@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Emrys' Sword Thrust. Straight down the line at the viewer, so the blade is
+       all point and no length. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the swordsman, small behind his own arm -->
+    <circle cx="276" cy="196" r="44"/>
+    <path d="M276,240 C284,300 282,352 276,404"/>
+    <path d="M276,404 C240,460 216,508 204,566"/>
+    <path d="M276,404 C318,452 346,502 358,558"/>
+    <path d="M280,268 C348,276 418,290 486,312"/>
+    <path d="M274,278 C240,318 218,352 206,388"/>
+  </g>
+  <!-- the guard and grip, square on -->
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M486,312 C518,306 548,304 578,306"/>
+    <path d="M546,232 C552,300 552,368 546,436"/>
+  </g>
+  <!-- the blade, coming at the lens -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M578,306 C640,290 712,282 806,286"/>
+    <path d="M578,346 C640,360 712,368 806,364"/>
+    <path d="M806,286 C856,300 872,318 806,364"/>
+  </g>
+  <!-- the air going past it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M636,160 C700,196 750,234 790,272"/>
+    <path d="M636,500 C700,462 750,424 790,382"/>
+    <path d="M700,120 C744,150 780,182 810,216"/>
+    <path d="M700,540 C744,510 780,478 810,442"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M846,326 L896,326"/>
+    <path d="M834,292 L878,268"/>
+    <path d="M834,360 L878,384"/>
+  </g>
+</svg>

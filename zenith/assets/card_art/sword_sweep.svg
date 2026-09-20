@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Emrys' Sword Sweep. One flat cut across the middle, taken all the way
+       through with the hips. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="150" r="46"/>
+    <path d="M452,196 C446,262 444,318 448,372"/>
+    <path d="M448,372 C396,424 362,478 344,548"/>
+    <path d="M448,372 C512,414 556,466 578,536"/>
+    <path d="M330,552 L376,560"/>
+    <path d="M566,540 L612,552"/>
+    <!-- both arms swung through to the left -->
+    <path d="M452,244 C392,268 330,288 268,298"/>
+    <path d="M452,258 C398,288 342,310 288,322"/>
+  </g>
+  <!-- the blade at the end of the sweep -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M240,300 C176,306 110,312 44,320"/>
+    <path d="M242,320 C178,326 112,332 46,340"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M268,278 L262,342"/>
+    <path d="M288,300 L320,310"/>
+  </g>
+  <!-- the arc, waist high, all the way round -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M860,262 C740,214 560,216 420,286 C336,330 276,338 210,330"/>
+    <path d="M868,320 C748,272 566,276 428,346 C348,388 286,394 224,386"/>
+    <path d="M840,378 C736,342 590,344 470,402"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M796,240 L828,206"/>
+    <path d="M700,214 L714,176"/>
+  </g>
+</svg>

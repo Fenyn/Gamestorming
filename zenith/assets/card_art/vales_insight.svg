@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Vale's Insight. He can see the cut before it is thrown, drawn in dotted
+       line because it has not happened yet. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- him, watching -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="206" cy="126" r="44"/>
+    <path d="M206,170 C214,226 212,270 206,312"/>
+    <path d="M206,312 C176,354 160,396 156,438"/>
+    <path d="M206,312 C244,344 266,390 272,438"/>
+    <path d="M144,442 L190,448"/>
+    <path d="M262,440 L308,446"/>
+    <path d="M210,198 C254,200 292,210 324,226"/>
+    <path d="M202,206 C170,224 148,244 138,266"/>
+  </g>
+  <!-- the other one, real, mid wind-up -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="700" cy="134" r="40"/>
+    <path d="M700,174 C706,226 704,266 700,304"/>
+    <path d="M700,304 C674,344 660,384 658,424"/>
+    <path d="M700,304 C734,336 754,380 758,424"/>
+    <path d="M698,202 C734,180 762,158 782,138"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M796,124 C826,98 850,72 868,44"/>
+  </g>
+  <!-- the cut he has already seen -->
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-dasharray="22 18" stroke-linecap="round">
+    <path d="M820,80 C716,140 590,200 452,240 C392,258 330,264 272,258"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-dasharray="18 16" stroke-linecap="round">
+    <path d="M828,126 C726,190 598,250 456,290"/>
+  </g>
+  <!-- the line of his own eye -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M254,122 C400,116 546,118 664,128"/>
+  </g>
+</svg>

@@ -133,6 +133,7 @@ func host(kind: String = "server") -> String:
 		seat_peer = [0, 0]
 		reset_lobby()
 		lobby[0]["name"] = Session.player_names[0]
+		Session.roll_colors()   # the authority owns the seat colours and shares them
 		return ""
 	return await _connect_to_server("")
 
@@ -238,7 +239,7 @@ func _on_peer_connected(id: int) -> void:
 	peer_id = id
 	seat_peer[1] = id
 	_rpc_assign_seat.rpc_id(id, 1, "")
-	_rpc_lobby.rpc_id(id, lobby, true)
+	_rpc_lobby.rpc_id(id, lobby, true, Session.color_seed)
 	connected.emit()
 
 
@@ -325,6 +326,7 @@ func _rpc_room_request(code: String) -> void:
 		room.code = DuelRoom.new_code(_rng)
 		while rooms.has(room.code):
 			room.code = DuelRoom.new_code(_rng)
+		room.color_seed = _rng.randi_range(1, 2147483646)
 		rooms[room.code] = room
 	elif rooms.has(code):
 		room = rooms[code]
@@ -341,7 +343,7 @@ func _rpc_room_request(code: String) -> void:
 	_rpc_assign_seat.rpc_id(id, seat, room.code)
 	for peer in room.seat_peer:
 		if peer != 0:
-			_rpc_lobby.rpc_id(peer, room.lobby, room.filled())
+			_rpc_lobby.rpc_id(peer, room.lobby, room.filled(), room.color_seed)
 	connected.emit()
 
 
@@ -376,7 +378,7 @@ func _start_room(room: DuelRoom) -> void:
 	for peer in room.seat_peer:
 		_rpc_start.rpc_id(peer, int(room.lobby[0]["deck"]), int(room.lobby[1]["deck"]),
 			str(room.lobby[0]["deck_name"]), str(room.lobby[1]["deck_name"]),
-			str(room.lobby[0]["name"]), str(room.lobby[1]["name"]))
+			str(room.lobby[0]["name"]), str(room.lobby[1]["name"]), room.color_seed)
 	room_started.emit(room.code)
 
 
@@ -445,7 +447,7 @@ func _rpc_lobby_pick(seat: int, deck_index: int, deck_name: String, player_name:
 		room.lobby[seat] = {"name": player_name, "deck": deck_index, "deck_name": deck_name, "ready": ready and deck_index >= 0}
 		var other: int = room.other_peer(seat)
 		if other != 0:
-			_rpc_lobby.rpc_id(other, room.lobby, true)
+			_rpc_lobby.rpc_id(other, room.lobby, true, room.color_seed)
 		if room.both_locked():
 			_start_room(room)
 		return
@@ -467,9 +469,11 @@ func _rpc_lobby_pick(seat: int, deck_index: int, deck_name: String, player_name:
 
 
 @rpc("authority", "call_remote", "reliable")
-func _rpc_lobby(full: Array, filled: bool) -> void:
+func _rpc_lobby(full: Array, filled: bool, color_seed: int = 0) -> void:
 	if multiplayer.get_remote_sender_id() != HOST_ID:
 		return
+	if color_seed != 0:
+		Session.color_seed = color_seed
 	for i in range(mini(2, full.size())):
 		var entry: Dictionary = full[i]
 		lobby[i] = {
@@ -502,7 +506,8 @@ func start_duel() -> void:
 	if Session.seed_value == 0:
 		Session.seed_value = randi_range(1, 2147483646)
 	_rpc_start.rpc(int(lobby[0]["deck"]), int(lobby[1]["deck"]),
-		str(lobby[0]["deck_name"]), str(lobby[1]["deck_name"]), str(lobby[0]["name"]), str(lobby[1]["name"]))
+		str(lobby[0]["deck_name"]), str(lobby[1]["deck_name"]), str(lobby[0]["name"]), str(lobby[1]["name"]),
+		Session.color_seed)
 
 
 ## Hosting client only. A fresh seed, same seats and decks.
@@ -510,17 +515,19 @@ func rematch() -> void:
 	if not is_host():
 		return
 	Session.seed_value = 0
+	Session.roll_colors()   # a new battle, so new seat colours; _rpc_start carries them
 	start_duel()
 
 
 ## Hosting client only. Both clients return to the lobby.
 func back_to_lobby() -> void:
 	if is_host():
-		_rpc_to_lobby.rpc()
+		Session.roll_colors()
+		_rpc_to_lobby.rpc(Session.color_seed)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String) -> void:
+func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int = 0) -> void:
 	var picks: Array[int] = [deck0, deck1]
 	var names: Array[String] = [name0, name1]
 	for i in range(2):
@@ -530,12 +537,16 @@ func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: S
 			return
 		Session.chosen[i] = Session.decks[picks[i]]
 	Session.player_names = [player0, player1]
+	# The hosting client rolls its own in build_referee; a joiner has no seed, so it takes this.
+	Session.color_seed = color_seed
 	_pending_updates.clear()
 	Session.go_to_duel()
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_to_lobby() -> void:
+func _rpc_to_lobby(color_seed: int = 0) -> void:
+	if color_seed != 0:
+		Session.color_seed = color_seed
 	Session.go_to_select()
 
 

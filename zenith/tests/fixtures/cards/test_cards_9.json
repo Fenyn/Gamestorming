@@ -1,0 +1,27 @@
+{
+  "_note": "Fixtures for the character/variant split: a keyword and a bloodline are properties of a printing, not of the person, and a card attached to a personality can lend them either one for as long as it rides there.",
+  "cards": [
+    {"id": "tf_marked_short", "title": "Test Two-Faced", "type": "personality", "character": "Test Two-Faced", "variant": "the Short Road", "tags": ["marked"], "aspects": [
+      {"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]},
+      {"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
+      {"aspect": 3, "surge": 3, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]}
+    ]},
+    {"id": "tf_marked_long", "title": "Test Two-Faced", "type": "personality", "character": "Test Two-Faced", "variant": "the Long Road", "aspects": [
+      {"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]},
+      {"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
+      {"aspect": 3, "surge": 2, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]},
+      {"aspect": 4, "surge": 3, "might": [0, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000]},
+      {"aspect": 5, "surge": 4, "might": [0, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000]}
+    ]},
+    {"id": "t_marked_rite", "title": "Test Marked Rite", "type": "combat", "only": {"tag": "marked"},
+     "effects": [{"op": "draw", "amount": 1}]},
+    {"id": "t_the_mark", "title": "Test Mark", "type": "non_combat",
+     "effects": [{"trigger": "use", "op": "attach", "to": "duelist"}],
+     "attachment": {"target": "duelist", "grants_tags": ["marked"]}},
+    {"id": "t_blood_rite", "title": "Test Blood Rite", "type": "non_combat",
+     "effects": [{"trigger": "use", "op": "attach", "to": "duelist"}],
+     "attachment": {"target": "duelist", "grants_bloodline": "draconic"}},
+    {"id": "t_marked_count", "title": "Test Marked Count", "type": "art",
+     "attack": {"kind": "art", "life_per_tag": "marked"}}
+  ]
+}

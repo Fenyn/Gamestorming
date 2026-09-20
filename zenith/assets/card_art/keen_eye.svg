@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Keen Eye. Sighting down the edge with one eye shut, checking the line
+       before anything happens. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the head, in close, three quarters on -->
+    <path d="M196,148 C300,120 386,180 388,290 C390,396 316,470 226,462 C150,456 108,386 110,300 C112,222 140,162 196,148 Z"/>
+    <!-- the shut eye -->
+    <path d="M148,268 C176,250 208,250 234,266"/>
+    <!-- the open one, looking down the blade -->
+    <path d="M272,262 C302,238 340,240 364,266 C340,296 300,300 272,262 Z"/>
+    <path d="M316,248 C332,252 340,264 336,280"/>
+    <!-- brow and jaw -->
+    <path d="M140,224 C176,204 216,204 246,218"/>
+    <path d="M268,222 C300,206 340,208 366,224"/>
+    <path d="M196,356 C230,362 268,360 296,352"/>
+  </g>
+  <!-- the blade, held up along the line of sight -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M386,282 C520,262 664,246 872,232"/>
+    <path d="M388,310 C522,292 666,278 874,266"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M414,222 L410,372"/>
+    <path d="M400,296 L348,302"/>
+  </g>
+  <!-- the line he is checking -->
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.9" stroke-dasharray="22 18" stroke-linecap="round">
+    <path d="M356,268 C520,236 700,214 890,202"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M470,392 C600,374 730,364 868,362"/>
+    <path d="M520,440 C640,424 754,416 874,414"/>
+  </g>
+</svg>

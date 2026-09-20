@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Stillness. Every blade and every bolt on the floor, stopped where it was.
+       Nothing lands and nothing is taken back. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#242833"/><stop offset="1" stop-color="#05060a"/>
+    </radialGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#eef2f5"/><stop offset="1" stop-color="#79818a"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9fd8ff"/><stop offset="1" stop-color="#e6f5ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <rect y="500" width="904" height="100" fill="#11141b"/>
+  <!-- a held ring of air, so the stop reads as one thing and not a pile -->
+  <circle cx="452" cy="300" r="250" fill="#cfe6f7" fill-opacity="0.07"/>
+  <circle cx="452" cy="300" r="250" fill="none" stroke="#cfe6f7" stroke-opacity="0.22" stroke-width="5"/>
+  <!-- blades, stopped pointing in -->
+  <g>
+    <g transform="translate(150,170) rotate(42)">
+      <rect x="-16" y="0" width="32" height="190" fill="url(#blade)"/>
+      <path d="M-16,190 L16,190 L0,228 Z" fill="url(#blade)"/>
+      <rect x="-52" y="-18" width="104" height="22" rx="10" fill="#8b6a3f"/>
+    </g>
+    <g transform="translate(772,196) rotate(-52)">
+      <rect x="-16" y="0" width="32" height="190" fill="url(#blade)"/>
+      <path d="M-16,190 L16,190 L0,228 Z" fill="url(#blade)"/>
+      <rect x="-52" y="-18" width="104" height="22" rx="10" fill="#8b6a3f"/>
+    </g>
+    <g transform="translate(452,74) rotate(182)">
+      <rect x="-16" y="0" width="32" height="170" fill="url(#blade)"/>
+      <path d="M-16,170 L16,170 L0,208 Z" fill="url(#blade)"/>
+      <rect x="-52" y="-18" width="104" height="22" rx="10" fill="#8b6a3f"/>
+    </g>
+  </g>
+  <!-- bolts, stopped in the middle of their own line -->
+  <g stroke="url(#bolt)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M132,452 L214,424 L176,406 L268,378"/>
+    <path d="M780,470 L698,442 L736,422 L644,394"/>
+    <path d="M452,548 L452,500 L426,486 L452,440"/>
+  </g>
+  <!-- and the dust that stopped with them -->
+  <g fill="#cfe6f7" fill-opacity="0.5">
+    <circle cx="330" cy="248" r="7"/><circle cx="560" cy="226" r="6"/>
+    <circle cx="392" cy="406" r="6"/><circle cx="548" cy="392" r="7"/>
+    <circle cx="452" cy="196" r="5"/><circle cx="286" cy="330" r="5"/>
+    <circle cx="622" cy="330" r="5"/>
+  </g>
+</svg>

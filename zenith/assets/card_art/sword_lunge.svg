@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Sword Lunge. Everything behind the point, front knee over the foot, back
+       leg locked straight. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="316" cy="216" r="46"/>
+    <path d="M316,262 C336,308 348,340 356,372"/>
+    <!-- front leg, bent and loaded -->
+    <path d="M356,372 C424,398 476,438 500,502"/>
+    <path d="M500,502 C534,520 562,524 592,520"/>
+    <!-- back leg, straight to the heel -->
+    <path d="M356,372 C286,414 226,462 162,522"/>
+    <path d="M162,522 C136,532 116,540 100,554"/>
+    <!-- the sword arm, all the way out -->
+    <path d="M330,286 C404,282 470,272 536,254"/>
+    <!-- the off hand trailing behind for balance -->
+    <path d="M324,292 C270,318 226,338 188,344"/>
+  </g>
+  <!-- the blade, level, leading -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M556,244 C650,230 748,220 866,214"/>
+    <path d="M556,266 C650,252 748,240 862,232"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M540,226 L548,286"/>
+    <path d="M512,250 L540,254"/>
+  </g>
+  <!-- the line it came down -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M180,232 C260,232 344,234 430,238"/>
+    <path d="M206,300 C278,300 352,302 424,306"/>
+    <path d="M150,374 C212,374 268,376 320,378"/>
+  </g>
+  <path d="M60,584 C280,572 560,568 880,576" fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7"/>
+</svg>

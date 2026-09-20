@@ -87,6 +87,12 @@ func power() -> Dictionary:
 	return aspect_data().get("power", {})
 
 
+## The second Power on an Aspect that prints two. It is used instead of the first, never as well
+## as it: the Power itself is still once per turn.
+func power_alt() -> Dictionary:
+	return aspect_data().get("power_alt", {})
+
+
 func aspect_shield() -> String:
 	return str(aspect_data().get("shield", ""))
 

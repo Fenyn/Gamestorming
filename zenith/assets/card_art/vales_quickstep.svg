@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Vale's Quickstep. He is not where the cut is going. Two ghosts of where he
+       was and the feet doing the work. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- where he was, twice -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="228" cy="176" r="44"/>
+    <path d="M228,220 V392"/>
+    <path d="M228,392 L186,540 M228,392 L272,540"/>
+    <path d="M228,250 L300,270"/>
+    <circle cx="360" cy="172" r="44"/>
+    <path d="M360,216 V392"/>
+    <path d="M360,392 L318,540 M360,392 L404,540"/>
+    <path d="M360,246 L434,266"/>
+  </g>
+  <!-- where he is -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="518" cy="166" r="46"/>
+    <path d="M518,212 C526,280 524,336 518,390"/>
+    <path d="M518,390 C480,440 458,492 452,548"/>
+    <path d="M518,390 C578,424 618,472 636,532"/>
+    <path d="M440,552 L484,560"/>
+    <path d="M624,536 L670,548"/>
+    <path d="M522,240 C588,250 650,268 706,294"/>
+    <path d="M514,254 C470,282 442,308 428,338"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M726,288 C782,274 840,256 890,232"/>
+    <path d="M732,306 C788,292 844,274 894,250"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M712,268 L718,326"/>
+  </g>
+  <!-- the cut that went through where he was -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M60,120 C160,206 250,290 330,360"/>
+  </g>
+  <!-- and the footwork -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M200,586 C300,570 410,562 520,562"/>
+    <path d="M250,606 C350,590 450,582 560,582"/>
+    <path d="M330,542 C380,528 424,520 470,518"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M318,378 L288,414"/>
+    <path d="M352,352 L332,394"/>
+  </g>
+</svg>

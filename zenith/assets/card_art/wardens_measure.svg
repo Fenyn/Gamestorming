@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Warden's Measure. A cord stretched across the gate and pegged, one seal
+       marked out before any of it is cut. Vigil work: measure first. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#16242e"/><stop offset="1" stop-color="#05090c"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c6c1b4"/><stop offset="1" stop-color="#85806f"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect x="152" y="36" width="600" height="408" fill="url(#marble)"/>
+  <g stroke="#7e7a70" stroke-opacity="0.45" fill="none" stroke-width="3">
+    <path d="M152,360 C290,386 440,342 600,376 C680,392 720,372 752,384"/>
+  </g>
+  <!-- the marked-out seal, chalked and not yet cut -->
+  <rect x="352" y="150" width="200" height="200" rx="8" fill="none" stroke="#e8f3f6" stroke-opacity="0.8" stroke-width="6" stroke-dasharray="26 18"/>
+  <path d="M352,150 L552,350 M552,150 L352,350" stroke="#e8f3f6" stroke-opacity="0.35" stroke-width="5"/>
+  <!-- the cord, taut between two pegs -->
+  <path d="M176,238 C330,258 574,258 728,238" fill="none" stroke="#d8c9a6" stroke-width="7"/>
+  <g fill="#4a6b7a" stroke="#0b1116" stroke-width="4">
+    <path d="M168,206 h26 v64 l-13,22 l-13,-22 Z"/>
+    <path d="M710,206 h26 v64 l-13,22 l-13,-22 Z"/>
+  </g>
+  <!-- the measure marks along it -->
+  <g stroke="#0b1116" stroke-opacity="0.5" stroke-width="5">
+    <path d="M276,244 v22 M376,250 v22 M476,250 v22 M576,248 v22 M656,240 v22"/>
+  </g>
+</svg>

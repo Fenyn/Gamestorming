@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Marble Seal 7 of 7. All seven faces cut and lit, the chisel set down in
+       the last one. The gate answers: the light runs between the seals. -->
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="35%" r="80%">
+      <stop offset="0" stop-color="#2e2a25"/><stop offset="1" stop-color="#0a0908"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfcabd"/><stop offset="1" stop-color="#8d887c"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e6e9ec"/><stop offset="1" stop-color="#8b9197"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect x="92" y="60" width="720" height="500" fill="url(#marble)"/>
+  <g stroke="#7e7a70" stroke-opacity="0.5" fill="none" stroke-width="3">
+    <path d="M92,180 C260,150 420,210 592,168 C700,142 770,166 812,150"/>
+    <path d="M92,430 C240,470 430,400 600,452 C700,482 770,452 812,470"/>
+  </g>
+  <rect x="92" y="60" width="720" height="500" fill="#ffc47a" fill-opacity="0.12"/>
+  <path d="M176,320 H728" stroke="#ffc47a" stroke-opacity="0.55" stroke-width="10"/>
+  <g>
+    <rect x="140" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="154" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+    <rect x="232" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="246" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+    <rect x="324" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="338" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+    <rect x="416" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="430" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+    <rect x="508" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="522" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+    <rect x="600" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="614" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+    <rect x="692" y="284" width="72" height="72" rx="6" fill="#2b2620"/>
+    <rect x="706" y="298" width="44" height="44" rx="4" fill="none" stroke="#ffd9a0" stroke-width="5"/>
+  </g>
+  <g transform="translate(728,250) rotate(28)">
+    <rect x="-13" y="-150" width="26" height="110" rx="6" fill="#8a6a42"/>
+    <rect x="-11" y="-46" width="22" height="46" fill="url(#steel)"/>
+    <path d="M-11,0 L11,0 L0,22 Z" fill="url(#steel)"/>
+  </g>
+</svg>

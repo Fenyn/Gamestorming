@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Kept at Bay. The point held level and steady at the chest. Nobody has to
+       move for this to be working. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#232a33"/><stop offset="1" stop-color="#06080b"/>
+    </radialGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2f5f7"/><stop offset="1" stop-color="#8d949a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <rect y="500" width="904" height="100" fill="#12161b"/>
+  <!-- the one being held off, leaning back from the point -->
+  <g fill="#0a0d11" transform="translate(724,60) rotate(9 0 440)">
+    <circle cx="0" cy="184" r="46"/>
+    <path d="M-56,236 h112 l22,190 h-156 Z"/>
+    <path d="M-48,426 h44 l4,110 h-52 Z"/>
+    <path d="M18,426 h44 l6,110 h-54 Z"/>
+    <path d="M56,258 h108 a26,26 0 0 1 0,52 h-108 Z"/>
+  </g>
+  <!-- the arm that is holding it there, from the left -->
+  <g fill="#1b232c" stroke="#05090d" stroke-width="6">
+    <path d="M0,286 h196 a44,44 0 0 1 0,88 h-196 Z"/>
+    <path d="M178,276 h84 a40,40 0 0 1 0,108 h-84 Z"/>
+  </g>
+  <!-- the sword, level -->
+  <g transform="translate(262,330)">
+    <rect x="0" y="-20" width="404" height="40" fill="url(#blade)"/>
+    <path d="M404,-20 L452,0 L404,20 Z" fill="url(#blade)"/>
+    <rect x="-16" y="-70" width="28" height="140" rx="12" fill="#8b6a3f"/>
+    <rect x="-84" y="-18" width="70" height="36" rx="14" fill="#3a2b1c"/>
+  </g>
+  <!-- the distance it is buying -->
+  <g stroke="#9fd8ff" stroke-opacity="0.3" stroke-width="5" stroke-dasharray="20 16">
+    <path d="M452,150 H700"/>
+  </g>
+</svg>

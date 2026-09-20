@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Root Wyrmwood Blast. A spear of old growth thrown flat, with the cut
+       seals lit on the gate behind it. -->
+  <defs>
+    <radialGradient id="bg" cx="46%" cy="44%" r="76%">
+      <stop offset="0" stop-color="#2a3a1e"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="marble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9c968a"/><stop offset="1" stop-color="#57534a"/>
+    </linearGradient>
+    <linearGradient id="heart" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a2a1a"/><stop offset="0.5" stop-color="#a97f45"/>
+      <stop offset="1" stop-color="#e6cf9a"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <!-- the gate behind, and the seals answering -->
+  <rect x="120" y="30" width="664" height="580" fill="url(#marble)"/>
+  <g>
+    <rect x="200" y="120" width="96" height="96" rx="8" fill="#241f1a"/>
+    <rect x="222" y="142" width="52" height="52" rx="5" fill="none" stroke="#ffc47a" stroke-width="8"/>
+    <rect x="200" y="424" width="96" height="96" rx="8" fill="#241f1a"/>
+    <rect x="222" y="446" width="52" height="52" rx="5" fill="none" stroke="#ffc47a" stroke-width="8"/>
+    <rect x="608" y="120" width="96" height="96" rx="8" fill="#241f1a"/>
+    <rect x="630" y="142" width="52" height="52" rx="5" fill="none" stroke="#ffc47a" stroke-width="8"/>
+    <rect x="608" y="424" width="96" height="96" rx="8" fill="#241f1a"/>
+    <rect x="630" y="446" width="52" height="52" rx="5" fill="none" stroke="#ffc47a" stroke-width="8"/>
+  </g>
+  <ellipse cx="452" cy="320" rx="330" ry="200" fill="#cfe8a8" fill-opacity="0.12"/>
+  <!-- the spear of heartwood, thrown flat -->
+  <g transform="translate(452,320) rotate(-8)">
+    <rect x="-400" y="-34" width="700" height="68" rx="34" fill="url(#heart)" stroke="#221708" stroke-width="7"/>
+    <path d="M300,-34 L440,0 L300,34 Z" fill="#e6cf9a" stroke="#221708" stroke-width="7"/>
+    <g fill="none" stroke="#221708" stroke-opacity="0.6" stroke-width="6" stroke-linecap="round">
+      <path d="M-330,-12 h560 M-330,14 h560"/>
+    </g>
+    <path d="M-160,-34 c50,-32 88,6 82,50 c-46,14 -74,-12 -82,-50 Z" fill="#4d6b3c"/>
+    <path d="M60,34 c-50,32 -88,-6 -82,-50 c46,-14 74,12 82,50 Z" fill="#4d6b3c"/>
+  </g>
+  <!-- the air it opened -->
+  <g stroke="#cfe8a8" stroke-opacity="0.5" stroke-width="8" stroke-linecap="round">
+    <path d="M60,200 h150 M40,420 h170 M90,310 h130"/>
+  </g>
+</svg>

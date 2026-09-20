@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Root Grove Focus. Nothing in the grove is moving except one page coming
+       up out of the leaf litter. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="34%" r="76%">
+      <stop offset="0" stop-color="#31431f"/><stop offset="1" stop-color="#060a05"/>
+    </radialGradient>
+    <linearGradient id="bark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6b4f32"/><stop offset="1" stop-color="#3a2a1a"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6f0dc"/><stop offset="1" stop-color="#c8bc9c"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="600" fill="url(#bg)"/>
+  <!-- trunks -->
+  <g fill="url(#bark)">
+    <path d="M60,0 h104 l14,560 h-132 Z"/>
+    <path d="M232,60 h70 l10,500 h-90 Z"/>
+    <path d="M620,40 h84 l12,520 h-108 Z"/>
+    <path d="M782,0 h96 l10,560 h-116 Z"/>
+  </g>
+  <!-- light down through the canopy, one shaft -->
+  <path d="M398,0 h132 l90,560 h-312 Z" fill="#cfe8a8" fill-opacity="0.12"/>
+  <rect y="486" width="904" height="114" fill="#1b2414"/>
+  <!-- leaf litter -->
+  <g fill="#4d6b3c">
+    <path d="M120,540 c34,-28 80,-22 100,8 c-34,26 -78,20 -100,-8 Z"/>
+    <path d="M300,568 c30,-26 72,-20 90,8 c-30,24 -70,18 -90,-8 Z"/>
+    <path d="M600,548 c30,-26 72,-20 90,8 c-30,24 -70,18 -90,-8 Z"/>
+    <path d="M770,576 c28,-24 66,-18 82,8 c-28,22 -64,16 -82,-8 Z"/>
+  </g>
+  <!-- the page, coming up out of it -->
+  <g transform="translate(464,318) rotate(-5)">
+    <rect x="-92" y="-128" width="184" height="256" rx="10" fill="url(#page)" stroke="#8e7f5e" stroke-width="5"/>
+    <g stroke="#8e7f5e" stroke-width="9" stroke-linecap="round">
+      <path d="M-58,-56 h116 M-58,-8 h92 M-58,40 h70"/>
+    </g>
+  </g>
+  <g stroke="#cfe8a8" stroke-opacity="0.45" stroke-width="6" stroke-linecap="round">
+    <path d="M380,472 v64 M464,500 v62 M552,470 v66"/>
+  </g>
+</svg>

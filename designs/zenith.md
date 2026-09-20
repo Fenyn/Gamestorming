@@ -73,7 +73,7 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 
 | Following | Side | School | Duelist | Followers |
 |---|---|---|---|---|
-| none | Pact | Pyre | Bram Ashmark, a pyromancer prodigy who rides momentum | none |
+| none | Pact | Pyre | Bram Ashmark, a warlock who traded his humanity for power and is left hollow and hungry | none |
 | none | Pact | Steel | Halden Quarr, an Ironblood grinder who reads the last blow | none |
 | The Draik Company, hexers for hire | Pact | Shade | Sable Draik, captain | Vesna, Brann, Quill, Halvard Draik, and Pim |
 | The Rooke coven, an old family of water mages | Vigil | Tide | Dame Alder Rooke, matriarch | Wren, Sir Edric, Ansel Rooke, Tavin Vale |
@@ -112,11 +112,12 @@ Two rules follow from that, and both matter more than the word itself:
 
 In the data it is `tags: ["construct"]`, and cards reach it four ways: `search` with `tag`, a `when` of `performer_tag` (the personality swinging), `in_control_tag` (whoever holds Combat on that side) or `duelist_tag`, and an attack's `life_per_tag`.
 
-Aspect titles (2026-09-17; in the data as `title` on each Aspect, set in `ASPECT_TITLES` in `gen_starters.py`). Each Aspect card carries its own title, as in "Bram Ashmark, Unquenchable". Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
+Aspect titles (2026-09-17; in the data as `title` on each Aspect of a personality card). Each Aspect card carries its own title, as in "Bram Ashmark, Insatiable". A character with more than one printing carries a `variant` as well, which names the printing and is what tells two cards of one person apart. Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
 
 | Duelist | Tier titles |
 |---|---|
-| Bram Ashmark | Kindled, Wildfire, Unquenchable |
+| Bram Ashmark, the Hollow | Starved, Leeching, Unstoppable |
+| Bram Ashmark, the Glut | Starved, Gnawing, Gorging, Consuming, Insatiable |
 | Halden Quarr | the Grinder, Tempered, Ironheart |
 | Sable Draik | Captain, Shrouded, Lightless |
 | Siphon | Dormant, Charged, Unbound |

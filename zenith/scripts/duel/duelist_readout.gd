@@ -90,7 +90,7 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	_control = "YOU" if player_index == viewer else "OPPONENT"
 	if controller.uid != duelist.uid:
 		_control = "%s IN CONTROL" % controller.title
-	_accent = Palette.school_ui(p.style)
+	_accent = SeatColors.accent(view, player_index, Session.color_seed)
 	_active = int(live.get("active", view.active)) == player_index and not view.is_over()
 	_hand = maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
 	var discard: int = int(counts[2]) if counts.size() > 2 else p.discard.size()

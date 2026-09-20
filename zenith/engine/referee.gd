@@ -24,6 +24,7 @@ const ANIMATED: Dictionary = {
 	&"critical_ally": ["card"], &"critical_fervor": [],
 	&"hand_discarded": ["card"], &"in_play_discarded": ["card", "removed"], &"card_moved": ["card", "to"],
 	&"card_used": ["card"], &"card_placed": ["card"], &"final_strike": ["discarded"],
+	&"remain": ["card", "uses"],
 	&"power_up": ["gain", "energy", "energies"], &"recover": ["card"],
 	&"energy_changed": ["card", "from", "to", "source"], &"gain_blocked": ["card", "amount"],
 	&"fervor_changed": ["from", "to", "source"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],

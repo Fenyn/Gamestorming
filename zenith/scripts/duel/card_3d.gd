@@ -83,6 +83,7 @@ func set_highlight(on: bool) -> void:
 	_highlighted = on
 	glow.visible = on or _hovering
 	_glow_mat.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 1.0) if on else Color(0.55, 0.85, 1.0, 0.85))
+	_glow_mat.set_shader_parameter("highlight", 1.0 if on else 0.0)
 	_update_border()
 
 

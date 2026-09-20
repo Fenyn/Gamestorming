@@ -33,6 +33,8 @@ var allies: Array[int] = []
 var drills: Array[int] = []
 var non_combats: Array[int] = []
 var seals: Array[int] = []
+var remain: Array[int] = []      # cards kept in play this Combat to be used again
+var attachments: Array[int] = [] # cards in play riding on another card; each names its host
 var must_pass: bool = false
 var skip_next_attack_phase: bool = false
 var seal_victory_pending: bool = false
@@ -48,7 +50,8 @@ func to_dict() -> Dictionary:
 		"aspect_shield": aspect_shield, "energy_blocked": energy_blocked, "restrictions": restrictions, "duelist": duelist, "mastery": mastery,
 		"relic": relic, "controlling": controlling, "reserve": reserve, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
-		"non_combats": non_combats, "seals": seals, "must_pass": must_pass,
+		"non_combats": non_combats, "seals": seals, "remain": remain, "attachments": attachments,
+		"must_pass": must_pass,
 		"skip_next_attack_phase": skip_next_attack_phase, "seal_victory_pending": seal_victory_pending,
 		"no_ascension_win": no_ascension_win,
 	}
@@ -84,6 +87,8 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.drills = ints(d.get("drills", []))
 	p.non_combats = ints(d.get("non_combats", []))
 	p.seals = ints(d.get("seals", []))
+	p.remain = ints(d.get("remain", []))
+	p.attachments = ints(d.get("attachments", []))
 	p.must_pass = bool(d.get("must_pass", false))
 	p.skip_next_attack_phase = bool(d.get("skip_next_attack_phase", false))
 	p.seal_victory_pending = bool(d.get("seal_victory_pending", false))
@@ -146,6 +151,8 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	var seals: Array[CardInstance] = p.seals()
 	seals.sort_custom(func(a: CardInstance, b: CardInstance) -> bool: return a.def.seal_number < b.def.seal_number)
 	v.seals = _uids(seals)
+	v.remain = _uids(p.remain_cards())
+	v.attachments = _uids(p.attachments())
 	v.must_pass = p.must_pass
 	v.skip_next_attack_phase = p.skip_next_attack_phase
 	v.seal_victory_pending = p.seal_victory_pending

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Second Wind. The blow went into the guard, the breath came back, and the
+       flask is filling again on its own. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="75%">
+      <stop offset="0" stop-color="#1d2a30"/><stop offset="1" stop-color="#05080a"/>
+    </radialGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2f5f7"/><stop offset="1" stop-color="#7d848a"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#4fb8c8"/><stop offset="1" stop-color="#a8e6ef"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect y="540" width="904" height="100" fill="#0e1417"/>
+  <!-- the guard that took it -->
+  <g fill="#27333c" stroke="#0a1013" stroke-width="6">
+    <g transform="translate(300,300) rotate(-64)">
+      <rect x="-190" y="-44" width="380" height="88" rx="44"/>
+    </g>
+  </g>
+  <!-- the blade, stopped on it -->
+  <g transform="translate(160,120) rotate(46)">
+    <rect x="-18" y="0" width="36" height="226" fill="url(#blade)"/>
+    <path d="M-18,226 L18,226 L0,268 Z" fill="url(#blade)"/>
+    <rect x="-58" y="-20" width="116" height="24" rx="11" fill="#8b6a3f"/>
+  </g>
+  <g stroke="#ffe6a8" stroke-width="9" stroke-linecap="round">
+    <path d="M352,246 l-52,-34 M372,294 l-58,6"/>
+  </g>
+  <!-- the breath -->
+  <g fill="none" stroke="#cfe6f7" stroke-opacity="0.3" stroke-width="9" stroke-linecap="round">
+    <path d="M436,168 C506,138 548,180 620,146"/>
+    <path d="M448,106 C522,74 570,118 644,82"/>
+  </g>
+  <!-- and the flask, filling -->
+  <g transform="translate(672,410)">
+    <path d="M-44,-160 h88 v56 l58,96 v148 a30,30 0 0 1 -30,30 h-144 a30,30 0 0 1 -30,-30 v-148 l58,-96 Z"
+          fill="#1a2429" stroke="#7d9aa6" stroke-width="7"/>
+    <path d="M-102,52 h204 v88 a30,30 0 0 1 -30,30 h-144 a30,30 0 0 1 -30,-30 Z" fill="url(#water)"/>
+    <path d="M-102,52 c30,-22 56,18 84,-4 c30,-22 56,18 84,-4 c14,-10 26,-6 36,2" fill="none" stroke="#a8e6ef" stroke-width="8"/>
+    <rect x="-50" y="-178" width="100" height="26" rx="12" fill="#8b6a3f"/>
+  </g>
+  <g stroke="#a8e6ef" stroke-opacity="0.6" stroke-width="7" stroke-linecap="round">
+    <path d="M672,196 v54 M606,226 v40 M738,226 v40"/>
+  </g>
+</svg>

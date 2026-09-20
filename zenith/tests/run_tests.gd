@@ -54,6 +54,9 @@ func _init() -> void:
 		test_a_card_can_read_the_bottom_of_the_discard_pile,
 		test_a_life_card_can_buy_more_damage,
 		test_a_bought_life_card_is_a_requirement_not_a_cost,
+		test_a_keyword_can_be_lent_by_an_attachment,
+		test_a_bloodline_can_be_lent_by_an_attachment,
+		test_two_variants_of_one_character_are_one_person,
 		test_a_modifier_can_outlast_the_card_that_made_it,
 		test_a_duelist_power_can_swing_twice_in_one_combat,
 		test_ally_guard_named_for_a_bloodline_covers_only_kin,
@@ -1767,6 +1770,12 @@ func test_remain() -> void:
 	eq(e.card(uid).zone, &"in_play", "card stays on the table")
 	eq(e.card(uid).remain, 1, "one more use")
 	check(has_event(e, &"remain"), "remain event")
+	# The client draws from the seat view alone, so a card it is about to be offered has to be in
+	# one of the view's zones or it is invisible and unclickable however the prompt reads.
+	var seat: SeatPlayer = SeatView.of(e, 0, false).player(0)
+	check(seat.remain.has(uid), "the seat view puts the kept card in its own zone")
+	check(not seat.non_combats.has(uid) and not seat.allies.has(uid) and not seat.drills.has(uid),
+		"and only there, so it is drawn once")
 	answer(e, &"pass")
 	check(e.prompt.find(&"attack", uid) != null, "the table copy can attack again")
 	answer(e, &"attack", uid)
@@ -2956,6 +2965,13 @@ func test_card_text_wording() -> void:
 	eq(lines[0], "Power: Strike doing +3 Energy. Gain 5 Energy. If stopped, draw a card. May be used twice per Combat.", "every part of the Power")
 	eq(lines[1], "Constant: Your first attack each Combat with a school card cannot be stopped. Your opponent may not perform Arts.", "constants render")
 	eq(lines[2], "Defense Shield: stops the first unstopped Strike each Combat.", "shield renders")
+	# An Ally who answers from the side has no other way to tell the player she may be used.
+	var aside: CardDef = CardDef.from_dict({"id": "y", "title": "Y", "type": "personality", "aspects": [
+		{"aspect": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"power": {"defense": {"stops": "strike"}, "no_control_needed": true}},
+	]})
+	check(CardText.aspect_text(aside, 1)[0].ends_with("This personality does not have to be in control to use this Power."),
+		"a Power usable from the side says so: %s" % CardText.aspect_text(aside, 1)[0])
 	var relic: CardDef = CardDef.from_dict({"id": "m", "title": "M", "type": "relic", "reserve_size": 13, "uses_per_game": 2, "limit_per_deck": 1,
 		"effects": [{"trigger": "relic_use", "op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}]})
 	eq(CardText.rules_text(relic), "Reserve 13.\nTwice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn.\nLimit 1 per deck.", "relic text in reading order")
@@ -4322,3 +4338,59 @@ func test_a_bought_life_card_is_a_requirement_not_a_cost() -> void:
 	answer(e, &"attack", uid_in_hand(e, 0, "t_paid_tackle"))
 	answer(e, &"pay_life", -1, 1)
 	eq(e.player(0).life_deck.size(), before - 1, "the tollgate does not double what is not a cost")
+
+
+## A keyword belongs to the printing, not to the person, and a card attached to a personality can
+## lend them one for as long as it rides there. The source's mark works exactly that way, so
+## "Marked only" has to read what the personality carries now, never what their card was printed
+## with. Two printings of one person are free to disagree about it.
+func test_a_keyword_can_be_lent_by_an_attachment() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_long"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var rite: CardDef = lib.get_def("t_marked_rite")
+	check(not e.has_tag(me.duelist, "marked"), "this printing carries no mark")
+	check(not e._can_play(me, rite), "so a Marked only card is out of reach")
+	var mark: CardInstance = inject(e, 0, "t_the_mark")
+	mark.attached_to = me.duelist
+	check(e.has_tag(me.duelist, "marked"), "the mark laid on them counts")
+	check(e.tags_of(me.duelist).has("marked"), "and the seat is told")
+	check(e._can_play(me, rite), "now the rite is theirs to use")
+	e._remove_from_game(mark)
+	check(not e.has_tag(me.duelist, "marked"), "and it leaves when the card does")
+
+	var other: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_short"), deck(filler(), "pact"))
+	check(other.has_tag(other.player(0).duelist, "marked"), "the other printing of the same person has it printed")
+
+
+## The same for a born line: a card can lend one, and everything that reads a bloodline reads the
+## lent one, including the count a card multiplies by.
+func test_a_bloodline_can_be_lent_by_an_attachment() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_long"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var rite: CardDef = lib.get_def("t_kin_rite")
+	eq(e.bloodline_of(me.duelist), "", "this printing carries no line")
+	check(not e._can_play(me, rite), "so a Draconic only card is out of reach")
+	var blood: CardInstance = inject(e, 0, "t_blood_rite")
+	blood.attached_to = me.duelist
+	eq(e.bloodline_of(me.duelist), "draconic", "the rite lends them the line")
+	check(e._can_play(me, rite), "and the gated card opens")
+	eq(e.bloodline_count(me, "draconic"), 1, "the count reads the lent line too")
+
+
+## Two printings of one character. The character is the identity and is shared, so the deck rules
+## read them as one person; the ladder, the keywords and the line belong to the printing and are
+## free to differ, which is why the variant is what tells the cards apart.
+func test_two_variants_of_one_character_are_one_person() -> void:
+	var short_road: CardDef = lib.get_def("tf_marked_short")
+	var long_road: CardDef = lib.get_def("tf_marked_long")
+	eq(short_road.character, long_road.character, "the same person")
+	check(short_road.variant != long_road.variant, "and two printings of them")
+	eq(short_road.highest_aspect(), 3, "one climbs three aspects")
+	eq(long_road.highest_aspect(), 5, "the other five")
+	check(short_road.raw.get("tags", []).has("marked"), "one is marked")
+	check(not long_road.raw.get("tags", []).has("marked"), "and the other is not, which is allowed")
+	eq(CardText.personality_name(short_road), "Test Two-Faced, the Short Road", "the variant names the card")
+	eq(CardText.personality_name(lib.get_def("t_ally_squire")), "Test Squire", "one printing needs no variant")
+	var d: DeckList = deck(filler(["tf_marked_short"]), "vigil", "", "t_mastery_pyre", 3, "tf_marked_long")
+	var problems: Array[String] = DeckValidator.validate(d, lib)
+	check(str(problems).contains("same character as the Duelist"), "and one printing cannot be the other's Ally")

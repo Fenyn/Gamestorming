@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Corin's Practiced Guard. No weapon in it. Open hands in a form he has made
+       ten thousand times, and the brace coming up out of the floor to meet them. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#2a2620"/><stop offset="1" stop-color="#080706"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9c2a2"/><stop offset="1" stop-color="#8d7455"/>
+    </linearGradient>
+    <linearGradient id="brace" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd9a0"/><stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="640" fill="url(#bg)"/>
+  <rect y="520" width="904" height="120" fill="#141210"/>
+  <path d="M0,520 H904" stroke="#3a3228" stroke-width="6"/>
+  <!-- the brace, lifting out of the stone -->
+  <g>
+    <path d="M196,520 h512 l-60,-330 h-392 Z" fill="url(#brace)" fill-opacity="0.35"/>
+    <g fill="none" stroke="#ffd9a0" stroke-opacity="0.6" stroke-width="7">
+      <path d="M232,520 l46,-300 M672,520 l-46,-300 M452,520 V214"/>
+      <path d="M266,400 h372 M290,310 h324"/>
+    </g>
+  </g>
+  <!-- the two hands of the form, one high and one low -->
+  <g fill="url(#skin)" stroke="#3a2b1c" stroke-width="6">
+    <g transform="translate(340,258) rotate(-12)">
+      <rect x="-90" y="-150" width="44" height="152" rx="22"/>
+      <rect x="-40" y="-172" width="44" height="174" rx="22"/>
+      <rect x="10" y="-166" width="44" height="168" rx="22"/>
+      <rect x="60" y="-140" width="44" height="142" rx="22"/>
+      <path d="M-96,-16 h206 v70 a56,56 0 0 1 -56,56 h-94 a56,56 0 0 1 -56,-56 Z"/>
+      <g transform="translate(-96,42) rotate(26)"><rect x="-40" y="-28" width="130" height="56" rx="28"/></g>
+    </g>
+    <g transform="translate(612,412) rotate(168)">
+      <rect x="-90" y="-136" width="42" height="140" rx="21"/>
+      <rect x="-42" y="-156" width="42" height="160" rx="21"/>
+      <rect x="6" y="-150" width="42" height="154" rx="21"/>
+      <rect x="54" y="-128" width="42" height="132" rx="21"/>
+      <path d="M-94,-12 h194 v64 a52,52 0 0 1 -52,52 h-90 a52,52 0 0 1 -52,-52 Z"/>
+      <g transform="translate(-94,38) rotate(26)"><rect x="-38" y="-26" width="120" height="52" rx="26"/></g>
+    </g>
+  </g>
+</svg>

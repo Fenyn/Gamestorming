@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Lucky Find. A flagstone lifted off a page somebody left under it. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="75%">
+      <stop offset="0" stop-color="#2a2318"/><stop offset="1" stop-color="#0a0806"/>
+    </radialGradient>
+    <linearGradient id="slab" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9c968a"/><stop offset="1" stop-color="#5d584e"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3ead6"/><stop offset="1" stop-color="#c9bd9d"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <!-- the floor it came out of -->
+  <g fill="#3a352c" stroke="#191611" stroke-width="5">
+    <path d="M40,352 L300,312 L300,412 L40,462 Z"/>
+    <path d="M604,312 L864,352 L864,462 L604,412 Z"/>
+    <path d="M300,396 L604,396 L604,456 L300,456 Z"/>
+  </g>
+  <!-- the hollow, and the page in it -->
+  <path d="M300,312 L604,312 L604,396 L300,396 Z" fill="#100d09"/>
+  <g transform="translate(452,352) rotate(-7)">
+    <rect x="-84" y="-58" width="168" height="120" rx="8" fill="url(#page)"/>
+    <g stroke="#8e7f5e" stroke-width="7" stroke-linecap="round">
+      <path d="M-54,-24 h108 M-54,4 h92 M-54,32 h70"/>
+    </g>
+  </g>
+  <ellipse cx="452" cy="336" rx="170" ry="52" fill="#ffd9a0" fill-opacity="0.16"/>
+  <!-- the stone, tipped up on edge and held -->
+  <g transform="translate(600,214) rotate(-24)">
+    <rect x="-150" y="-52" width="300" height="104" rx="10" fill="url(#slab)" stroke="#201d18" stroke-width="5"/>
+    <rect x="-150" y="-52" width="300" height="26" rx="10" fill="#b6b0a2" fill-opacity="0.6"/>
+  </g>
+</svg>

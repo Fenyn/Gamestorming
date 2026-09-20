@@ -13,6 +13,7 @@ signal dev_command(effect: Dictionary)
 signal handoff_confirmed
 signal rematch_requested
 signal select_requested
+signal pile_opened(player: int, zone: StringName)
 
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
@@ -22,6 +23,7 @@ const LOG_COLLAPSED_BOTTOM: float = 158.0
 const LOG_EXPANDED_FRACTION: float = 0.72
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
+const PILE_ROWS_SHOWN: int = 3       # a browsed pile is only read, so it may be taller
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
 const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard"]
@@ -51,6 +53,8 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var steps_box: HBoxContainer = $Root/PhasePanel/Column/Steps
 @onready var phase_sub: RichTextLabel = $Root/PhasePanel/Column/Sub
 @onready var log_scroll: ScrollContainer = $Root/Log/Column/Scroll
+@onready var near_backline: BacklineRail = $Root/NearBackline
+@onready var far_backline: BacklineRail = $Root/FarBackline
 @onready var near_flags: Label = $Root/NearFlags
 @onready var far_flags: Label = $Root/FarFlags
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
@@ -92,6 +96,13 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var tray_scroll: ScrollContainer = $Root/Tray/Center/Panel/Column/Scroll
 @onready var tray_cards: HFlowContainer = $Root/Tray/Center/Panel/Column/Scroll/Cards
 @onready var tray_buttons: HFlowContainer = $Root/Tray/Center/Panel/Column/Buttons
+@onready var pile: ColorRect = $Root/Pile
+@onready var pile_who: Label = $Root/Pile/Center/Panel/Column/Who
+@onready var pile_title: Label = $Root/Pile/Center/Panel/Column/Title
+@onready var pile_hint: Label = $Root/Pile/Center/Panel/Column/Hint
+@onready var pile_scroll: ScrollContainer = $Root/Pile/Center/Panel/Column/Scroll
+@onready var pile_cards: HFlowContainer = $Root/Pile/Center/Panel/Column/Scroll/Cards
+@onready var pile_close: Button = $Root/Pile/Center/Panel/Column/Buttons/Close
 @onready var handoff: ColorRect = $Root/Handoff
 @onready var handoff_title: Label = $Root/Handoff/Center/Column/Title
 @onready var handoff_ready: Button = $Root/Handoff/Center/Column/Ready
@@ -122,12 +133,18 @@ var _toast: Tween = null
 var _fitting_actions: bool = false
 var _damage_available: bool = false
 var _exchange_before_preview: bool = false
+var _pile_player: int = -1             # whose pile the browser is showing
+var _pile_zone: StringName = &""       # &"discard" or &"removed", &"" when the browser is closed
+var _pile_uids: Array[int] = []        # the pile as the browser last drew it, top first
+var _pile_fill: int = 0                # guards against two fills racing over the same container
 
 
 func _ready() -> void:
 	root.theme = ZenithTheme.get_theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	for rail in [near_backline, far_backline]:
+		rail.pile_opened.connect(func(player: int, zone: StringName) -> void: pile_opened.emit(player, zone))
 	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.7), Color.TRANSPARENT, 14, 0, 14, 10))
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
@@ -152,6 +169,8 @@ func _ready() -> void:
 	log_text.add_theme_color_override("default_color", ZenithTheme.MUTED)
 	inspect.visible = false
 	inspect.gui_input.connect(_on_inspect_input)
+	pile.visible = false
+	pile_close.pressed.connect(hide_pile)
 	log_toggle.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
 	dev_toggle.pressed.connect(func() -> void: dev_panel.visible = not dev_panel.visible)
 	dev_panel.command.connect(func(effect: Dictionary) -> void: dev_command.emit(effect))
@@ -219,7 +238,10 @@ func refresh_state(view: SeatView, viewer: int, live: Dictionary = {}) -> void:
 	far_flags.text = " | ".join(PLAYER_STATUS.flags(view.player(1 - me)))
 	near_flags.visible = not scene_flags and not near_flags.text.is_empty()
 	far_flags.visible = not scene_flags and not far_flags.text.is_empty()
+	near_backline.refresh(view, me, me, _current_prompt, SeatColors.accent(view, me, Session.color_seed))
+	far_backline.refresh(view, 1 - me, me, _current_prompt, SeatColors.accent(view, 1 - me, Session.color_seed))
 	_refresh_phase(view, me, live)
+	_sync_pile()
 
 
 ## The banner over the table. Whose turn it is and which step of it, both at a size that reads
@@ -355,13 +377,40 @@ func _follow_log() -> void:
 
 # --- Prompt ---------------------------------------------------------------
 
+## Where each option of a prompt is offered. Four buckets: `primary` buttons in the side panel,
+## `browse` tiles in the tray, `finals` behind the Final Strike button, and `click` for options
+## the player takes on the card itself, wherever it is drawn. An option in `click` is only
+## reachable if the table actually draws that card, so `tests/prompt_reach_tests.gd` checks
+## every one of them against the client's own layout. Pure: it reads the views and nothing else.
+func routes(p: PromptView, view: SeatView) -> Dictionary:
+	var browse: Array[OptionView] = []
+	var primary: Array[OptionView] = []
+	var finals: Array[OptionView] = []
+	var click: Array[OptionView] = []
+	for opt in p.options:
+		if opt.type == &"final_strike":
+			finals.append(opt)
+		elif opt.type == &"pick_option" and opt.card < 0:
+			# A choice between wordings rather than cards ("all their Allies or all their Drills").
+			# It reads as a card-sized tile in the tray, not as a row of small buttons.
+			browse.append(opt)
+		elif BUTTON_KINDS.has(p.kind) or (opt.card < 0 and opt.type != &"name_card"):
+			primary.append(opt)
+		elif _needs_tray_in(p, opt, view):
+			browse.append(opt)
+		else:
+			click.append(opt)
+	return {"primary": primary, "browse": browse, "finals": finals, "click": click}
+
+
 func show_prompt(p: PromptView, view: SeatView) -> void:
+	hide_pile()   # a decision arrived; the browser is not what the player needs to be looking at
 	prompt_panel.show()
 	_view = view
 	_current_prompt = p
 	var who: SeatPlayer = view.player(p.player)
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
-	prompt_who.add_theme_color_override("font_color", Palette.school_ui(who.style))
+	prompt_who.add_theme_color_override("font_color", SeatColors.accent(view, p.player, Session.color_seed))
 	prompt_title.text = p.title
 	_show_attack(view, p)
 	prompt_who.visible = not exchange_rail.visible
@@ -373,20 +422,10 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	# Cards that need browsing (a Reserve, a look at the deck, a keep) open in the tray.
 	# A Final Strike is offered on every hand card and commits the rest of the Combat, so it
 	# gets its own button and tray rather than firing from a card click.
-	var browse: Array[OptionView] = []
-	var primaries: Array[OptionView] = []
-	var finals: Array[OptionView] = []
-	for opt in p.options:
-		if opt.type == &"final_strike":
-			finals.append(opt)
-		elif opt.type == &"pick_option" and opt.card < 0:
-			# A choice between wordings rather than cards ("all their Allies or all their Drills").
-			# It reads as a card-sized tile in the tray, not as a row of small buttons.
-			browse.append(opt)
-		elif BUTTON_KINDS.has(p.kind) or (opt.card < 0 and opt.type != &"name_card"):
-			primaries.append(opt)
-		elif _needs_tray(p, opt):
-			browse.append(opt)
+	var routed: Dictionary = routes(p, view)
+	var browse: Array[OptionView] = routed["browse"]
+	var primaries: Array[OptionView] = routed["primary"]
+	var finals: Array[OptionView] = routed["finals"]
 	var library: Array = p.context.get("library", [])
 	if not library.is_empty():
 		# A search of the Life Deck: the matches to pick from, then the rest of the deck to read.
@@ -409,9 +448,13 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 
 
 func _needs_tray(p: PromptView, opt: OptionView) -> bool:
+	return _needs_tray_in(p, opt, _view)
+
+
+func _needs_tray_in(p: PromptView, opt: OptionView, view: SeatView) -> bool:
 	if opt.type == &"name_card" or TRAY_KINDS.has(p.kind):
 		return true
-	var c: SeatCard = _view.card(opt.card)
+	var c: SeatCard = view.card(opt.card)
 	return c == null or c.zone == &"life_deck" or c.zone == &"reserve"
 
 
@@ -769,6 +812,7 @@ func _show_final_strike(finals: Array[OptionView]) -> void:
 
 
 func clear_prompt() -> void:
+	hide_pile()
 	prompt_panel.hide()
 	prompt_outcome.hide()
 	_current_prompt = null
@@ -822,6 +866,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	_batch = batch
 	_selected.clear()
 	_entries.clear()
+	hide_pile()
 	hide_peek()
 	hide_focus()   # the tray is the middle of the screen while it is open
 	tray_who.text = who
@@ -945,6 +990,12 @@ func _refresh_selection() -> void:
 
 func _hide_tray() -> void:
 	hide_peek()
+	# Opening the tray hid the decision panel behind it. Closing it has to put the panel back
+	# while a decision is still pending, or the player is left with a prompt and nothing on
+	# screen to answer it with. It only ever turns the panel on: the callers that mean to leave
+	# it hidden clear the prompt first.
+	if tray.visible and _current_prompt != null:
+		prompt_panel.visible = true
 	tray.visible = false
 	hand.visible = not external_hand
 	_batch = null
@@ -1064,6 +1115,105 @@ func _on_back() -> void:
 
 func _def(def_id: String) -> CardDef:
 	return Session.library.defs.get(def_id)
+
+
+# --- Pile browser ---------------------------------------------------------
+
+## Reads a public pile the way a Life Deck search reads a deck: every card in it, top first,
+## with nothing to pick. Discard and Removed are open to both seats, so either seat may open
+## either player's pile at any time.
+func show_pile(view: SeatView, player: int, zone: StringName) -> void:
+	_view = view
+	_pile_player = player
+	_pile_zone = zone
+	var p: SeatPlayer = view.player(player)
+	_pile_uids = pile_contents(p, zone)
+	pile_who.text = "%s  ·  %s" % [p.name.to_upper(), "YOU" if player == _viewer_seat else "OPPONENT"]
+	pile_who.add_theme_color_override("font_color", SeatColors.accent(view, player, Session.color_seed))
+	pile_title.text = "Removed from play" if zone == &"removed" else "Discard pile"
+	var n: int = _pile_uids.size()
+	if n == 0:
+		pile_hint.text = "This pile is empty."
+	else:
+		pile_hint.text = "%d card%s, top of the pile first.  Right-click a card to read it." % [n, "" if n == 1 else "s"]
+	pile.visible = true
+	await _fill_pile()
+
+
+func hide_pile() -> void:
+	pile.visible = false
+	_pile_zone = &""
+	_pile_player = -1
+	_pile_uids.clear()
+	hide_peek()
+
+
+## A pile top first: Discard keeps its top at the end of the list, Removed has no order that
+## matters, and both read most recent first.
+func pile_contents(p: SeatPlayer, zone: StringName) -> Array[int]:
+	var uids: Array[int] = (p.removed if zone == &"removed" else p.discard).duplicate()
+	uids.reverse()
+	return uids
+
+
+## Redraws an open browser when its pile changes under it, and leaves it alone when it has not.
+func _sync_pile() -> void:
+	if not pile.visible or _pile_zone == &"" or _view == null or _pile_player < 0:
+		return
+	if pile_contents(_view.player(_pile_player), _pile_zone) == _pile_uids:
+		return
+	show_pile(_view, _pile_player, _pile_zone)
+
+
+func _fill_pile() -> void:
+	_pile_fill += 1
+	var fill: int = _pile_fill
+	for child in pile_cards.get_children():
+		pile_cards.remove_child(child)
+		child.queue_free()
+	for i in range(_pile_uids.size()):
+		var c: SeatCard = _view.card(_pile_uids[i])
+		if c == null or c.hidden():
+			continue
+		var entry: Control = await _pile_entry(c, i == 0)
+		if fill != _pile_fill:
+			return   # a newer fill owns the container now
+		pile_cards.add_child(entry)
+	var shown: int = pile_cards.get_child_count()
+	var columns: int = maxi(1, mini(TRAY_COLUMNS, int((root.size.x - 180.0) / (TRAY_CARD_SIZE.x + 18.0))))
+	var cols: int = mini(maxi(shown, 1), columns)
+	var rows: int = mini(maxi(ceili(float(shown) / columns), 1), PILE_ROWS_SHOWN)
+	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)
+	pile_scroll.custom_minimum_size = Vector2(maxf(720.0, cols * (cell.x + 12.0) + 12.0), minf(rows * (cell.y + 12.0), root.size.y * 0.57))
+
+
+## One card in a browsed pile: the face at full strength, hover for the expanded rules,
+## right-click to bring it up. Nothing here is clickable, because nothing here is a choice.
+func _pile_entry(c: SeatCard, is_top: bool) -> Control:
+	var def: CardDef = _def(c.def_id)
+	var aspect: int = c.aspect
+	var uid: int = c.uid
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	var face: TextureRect = TextureRect.new()
+	face.texture = await _faces.render_face(def, aspect) if def != null and _faces != null else null
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_SCALE
+	face.custom_minimum_size = TRAY_CARD_SIZE
+	face.mouse_filter = Control.MOUSE_FILTER_STOP
+	face.mouse_entered.connect(func() -> void: show_peek(def, aspect, uid))
+	face.mouse_exited.connect(func() -> void: hide_peek())
+	face.gui_input.connect(func(event: InputEvent) -> void:
+		if _is_inspect_click(event):
+			show_inspect(def, aspect, uid))
+	column.add_child(face)
+	var caption: Label = Label.new()
+	caption.text = "Top" if is_top else ""
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.add_theme_font_size_override("font_size", 20)
+	caption.add_theme_color_override("font_color", ZenithTheme.ACCENT if is_top else ZenithTheme.MUTED)
+	column.add_child(caption)
+	return column
 
 
 # --- Hand -----------------------------------------------------------------
@@ -1356,12 +1506,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if inspect.visible and event.is_action_pressed("ui_cancel"):
 		hide_inspect()
 		get_viewport().set_input_as_handled()
+	elif pile.visible and event.is_action_pressed("ui_cancel"):
+		hide_pile()
+		get_viewport().set_input_as_handled()
 
 
 func show_handoff(player_name: String) -> void:
 	handoff_title.text = "Pass the table to %s" % player_name
 	handoff.visible = true
 	clear_hand()
+	hide_pile()
 	hide_peek()
 	hide_inspect()
 

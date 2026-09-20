@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Emrys' Swordplay Drill. The same cut into the same post, over and over,
+       until it is not a decision any more. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the post -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M678,84 C674,196 674,308 678,412"/>
+    <path d="M742,84 C746,196 746,308 742,412"/>
+    <path d="M678,84 C700,76 722,76 742,84"/>
+    <path d="M660,412 C700,404 726,404 762,412"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M684,150 L738,166"/>
+    <path d="M684,214 L738,228"/>
+    <path d="M686,286 L736,298"/>
+  </g>
+  <!-- the drilling figure, and the two repetitions before -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="248" cy="128" r="36"/>
+    <path d="M248,164 V300"/>
+    <path d="M248,300 L216,412 M248,300 L286,412"/>
+    <path d="M248,186 L326,146"/>
+    <circle cx="326" cy="136" r="36"/>
+    <path d="M326,172 V304"/>
+    <path d="M326,304 L294,414 M326,304 L364,414"/>
+    <path d="M326,196 L404,176"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="416" cy="132" r="40"/>
+    <path d="M416,172 C422,228 420,270 416,308"/>
+    <path d="M416,308 C388,354 372,392 368,424"/>
+    <path d="M416,308 C452,344 474,384 482,420"/>
+    <path d="M358,428 L400,434"/>
+    <path d="M472,424 L512,430"/>
+    <path d="M420,200 C468,196 512,192 552,190"/>
+    <path d="M414,210 C450,232 482,246 510,254"/>
+  </g>
+  <!-- the blade, arriving on the post -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M572,182 C608,182 640,186 666,194"/>
+    <path d="M570,204 C606,204 638,208 664,216"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M556,166 L554,222"/>
+  </g>
+  <!-- the arcs of the reps -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M330,70 C440,56 550,96 636,166"/>
+    <path d="M382,44 C490,42 592,90 664,150"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M680,164 L706,138"/>
+    <path d="M676,226 L700,252"/>
+  </g>
+</svg>

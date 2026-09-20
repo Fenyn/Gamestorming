@@ -18,8 +18,9 @@ A two-player dueling card game. Two duelists, mages or plain fighters, contest a
 | `ai/` | AI opponent. RefCounted only, same purity rules as `engine/`. See the AI section |
 | `data/ai/profiles/` | AI weight profiles: `default`, `easy`, `hard`. A profile lists only the weights it changes |
 | `data/strike_table.json` | Might bands and cap for Strike base damage. Compact scale: band A is 0, then one band per ten points (B 1-9 … I 70+) |
-| `data/cards/starter/` | Starter set: 233 cards with themed titles and real mechanics. Generated from `tools/gen_starters.py` |
-| `data/decks/` | Seven starter loadouts (78 to 84 life cards plus Armories), validated and self-played by the tests |
+| `data/cards/starter/` | Starter set: the card pool, with themed titles and real mechanics. **Hand-maintained; this file is the source of truth.** Add cards with `python tools/add_cards.py decks/<name>`, which writes only the ids that module defines and leaves every other card alone |
+| `tools/cardlib.py`, `tools/decks/` | The card-authoring shorthand, and one module per deck holding the cards that deck introduced |
+| `data/decks/` | The starter loadouts (78 to 84 life cards plus Reserves), hand-edited, validated and self-played by the tests |
 | `assets/card_art/` | Card art, one PNG per card id (`<id>_a<aspect>.png` for a duelist aspect). Loaded by id at face render time; missing art shows the type glyph |
 | `docs/card_roster.csv` | Every starter card, one row per art image: section, id, name, type, Aseprite canvas size, rules text, art brief, source card, deck usage. The one file allowed to name source cards. Regenerate with `tools/dump_cards.gd` (engine rules text) then `tools/gen_roster.py`, which holds the prompt pieces (style, framing per type, palette per school, cast identity strings, a slot brief per card) and assembles the `Prompt` column, writing both the CSV and `card_roster.md` |
 | `scripts/ui/zenith_theme.gd` | The runtime-built dark theme, applied to every screen. Gold means "act here", green is Energy, red an attack, blue a defence, orange a warning; school colours mark identity only |

@@ -41,7 +41,7 @@
 	   }
 	  ]
 	 },
-	 "title": "Kindled"
+	 "title": "Starved"
 	},
 	{
 	 "aspect": 2,
@@ -74,7 +74,7 @@
 	   }
 	  ]
 	 },
-	 "title": "Wildfire"
+	 "title": "Leeching"
 	},
 	{
 	 "aspect": 3,
@@ -95,8 +95,12 @@
 	 "constant": {
 	  "first_styled_unstoppable": true
 	 },
-	 "title": "Unquenchable"
+	 "title": "Unstoppable"
 	}
+   ],
+   "variant": "the Hollow",
+   "tags": [
+	"marked"
    ]
   },
   {
@@ -294,7 +298,7 @@
 	}
    ],
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -633,7 +637,7 @@
 	 ],
 	 "constant": {
 	  "forbid_opponent": [
-       "art_attacks"
+	   "art_attacks"
 	  ]
 	 },
 	 "title": "the Quiet Blade"
@@ -958,7 +962,7 @@
 	}
    ],
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -997,7 +1001,7 @@
 		  "when": {
 		   "allies_present": [
 			"Dame Alder Rooke",
-            "Emrys Rooke"
+			"Emrys Rooke"
 		   ]
 		  }
 		 }
@@ -1547,7 +1551,7 @@
 	}
    ],
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -1584,7 +1588,7 @@
 	}
    ],
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -1847,7 +1851,7 @@
 	   "when": {
 		"defender_character": [
 		 "Sir Edric Rooke",
-         "Emrys Rooke"
+		 "Emrys Rooke"
 		]
 	   }
 	  },
@@ -3523,7 +3527,7 @@
 	}
    ],
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -3877,7 +3881,7 @@
    ],
    "remove_after_use": true,
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -4373,7 +4377,7 @@
    ],
    "remove_after_use": true,
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -4398,7 +4402,7 @@
    ],
    "remove_after_use": true,
    "tags": [
-    "construct"
+	"construct"
    ]
   },
   {
@@ -4609,7 +4613,7 @@
    ],
    "bond_of": [
 	"Ansel Rooke",
-    "Tavin Vale"
+	"Tavin Vale"
    ],
    "bond_timer_max": 5,
    "bloodline": "draconic"
@@ -4743,7 +4747,7 @@
 	 "when": {
 	  "duelist_character": [
 	   "Scorn",
-       "Marrow"
+	   "Marrow"
 	  ]
 	 }
 	}
@@ -7207,6 +7211,383 @@
    "only": {
 	"bloodline": "verdant"
    }
+  },
+  {
+   "id": "duelist_lambda",
+   "title": "Bram Ashmark",
+   "type": "personality",
+   "school": "",
+   "character": "Bram Ashmark",
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20,
+	  21,
+	  22,
+	  23,
+	  24
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 3
+	  },
+	  "effects": [
+	   {
+		"op": "energy",
+		"amount": 5
+	   },
+	   {
+		"trigger": "if_stopped",
+		"op": "draw",
+		"amount": 1
+	   }
+	  ]
+	 },
+	 "title": "Starved"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  11,
+	  12,
+	  13,
+	  14,
+	  15,
+	  16,
+	  17,
+	  18,
+	  19,
+	  20
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "stages": 3
+	  },
+	  "effects": [
+	   {
+		"op": "fervor",
+		"amount": 1
+	   }
+	  ]
+	 },
+	 "constant": {
+	  "modifiers": [
+	   {
+		"scope": "own",
+		"kind": "any",
+		"life": 1
+	   }
+	  ]
+	 },
+	 "title": "Gnawing"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  23,
+	  24,
+	  25,
+	  26,
+	  27,
+	  28,
+	  29,
+	  30,
+	  31,
+	  32
+	 ],
+	 "constant": {
+	  "modifiers": [
+	   {
+		"scope": "own",
+		"kind": "any",
+		"life": 3
+	   }
+	  ],
+	  "energy_gain_multiplier": 2,
+	  "fervor_gain_bonus": 1
+	 },
+	 "title": "Gorging"
+	},
+	{
+	 "aspect": 4,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  20,
+	  22,
+	  24,
+	  26,
+	  28,
+	  30,
+	  32,
+	  34,
+	  36,
+	  38
+	 ],
+	 "power": {
+	  "effects": [
+	   {
+		"op": "shuffle_discard",
+		"amount": 8
+	   }
+	  ]
+	 },
+	 "title": "Consuming"
+	},
+	{
+	 "aspect": 5,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  33,
+	  34,
+	  35,
+	  36,
+	  37,
+	  38,
+	  39,
+	  40,
+	  41,
+	  42
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "strike",
+	   "focused": true,
+	   "printed_stages": 10
+	  }
+	 },
+	 "power_alt": {
+	  "effects": [
+	   {
+		"op": "shuffle_discard",
+		"amount": 10
+	   }
+	  ]
+	 },
+	 "title": "Insatiable"
+	}
+   ],
+   "variant": "the Glut",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "severing_clasp",
+   "title": "The Severing Clasp",
+   "type": "relic",
+   "school": "",
+   "reserve_size": 7,
+   "uses_per_game": 1,
+   "limit_per_deck": 1,
+   "relic_step": "combat",
+   "effects": [
+	{
+	 "trigger": "relic_use",
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "non_combat",
+	 "amount": 2,
+	 "choose": true,
+	 "up_to": true,
+	 "remove": true
+	}
+   ]
+  },
+  {
+   "id": "pyre_knee_bash",
+   "title": "Pyre Knee Bash",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "pyre_warding_stance",
+   "title": "Pyre Warding Stance",
+   "type": "strike",
+   "school": "pyre",
+   "defense": {
+	"stops": "art"
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "pyre_sword_cleave",
+   "title": "Pyre Sword Cleave",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "counts_as_title",
+	 "duration": "combat",
+	 "params": {
+	  "school": "pyre",
+	  "title": "Sword"
+	 }
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "emrys_rising_blow",
+   "title": "Emrys' Rising Blow",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "character": "Emrys Rooke",
+   "remain_when": {
+	"when": {
+	 "defender_alignment": "pact"
+	},
+	"remain": 1
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "ashmarks_ember_spray",
+   "title": "Ashmark's Ember Spray",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "character": "Bram Ashmark",
+   "only": {
+	"tag": "marked"
+   },
+   "tags": [
+	"marked"
+   ],
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "art",
+	 "tag": "marked",
+	 "source": "discard",
+	 "to": "hand"
+	}
+   ]
+  },
+  {
+   "id": "the_watch_goes_dark",
+   "title": "The Watch Goes Dark",
+   "type": "non_combat",
+   "school": "",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "seal",
+	 "all": true,
+	 "remove": true,
+	 "life_decks": true
+	}
+   ]
+  },
+  {
+   "id": "spent_to_the_last",
+   "title": "Spent to the Last",
+   "type": "combat",
+   "school": "",
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "non_combat_or_ally",
+	 "all": true
+	},
+	{
+	 "op": "set_energy",
+	 "amount": 0
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "only": {
+	"energy_min": 5
+   },
+   "limit_per_deck": 1
+  },
+  {
+   "id": "riftcry",
+   "title": "Riftcry",
+   "type": "art",
+   "school": "",
+   "effects": [
+	{
+	 "op": "discard_grounds"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1,
+	 "when": {
+	  "duelist_character": "Bram Ashmark"
+	 }
+	}
+   ]
   }
  ]
 }

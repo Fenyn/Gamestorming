@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Placeholder crest: House Rooke, Dame Alder as an Ally. Base Rooke tower over water,
+       differenced by the matriarch's coronet and the shield she puts in the way. -->
+  <defs>
+    <radialGradient id="field" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#17384f"/>
+      <stop offset="1" stop-color="#050a11"/>
+    </radialGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6f2f5"/>
+      <stop offset="1" stop-color="#75919d"/>
+    </linearGradient>
+  </defs>
+  <rect width="604" height="868" fill="url(#field)"/>
+  <path d="M0,724 C140,700 240,742 340,726 C440,710 520,742 604,722" fill="none" stroke="#4fb8c8" stroke-opacity="0.22" stroke-width="4"/>
+  <path d="M0,776 C150,754 250,792 350,776 C450,760 530,790 604,772" fill="none" stroke="#4fb8c8" stroke-opacity="0.12" stroke-width="4"/>
+  <g transform="translate(-466.4,-12.8) scale(1.7)">
+    <path d="M312,84 H592 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#0d2438" stroke="#4fb8c8" stroke-opacity="0.65" stroke-width="5"/>
+    <path d="M312,84 H592 V132 H312 Z" fill="#4fb8c8" fill-opacity="0.18"/>
+    <!-- the coronet: eldest of the coven -->
+    <path d="M372,124 l16,-32 l20,22 l24,-32 l24,32 l20,-22 l16,32 Z" fill="#d8c07a" stroke="#8e7736" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M402,180 h20 v-22 h22 v22 h16 v-22 h22 v22 h20 V300 h18 l-10,22 h-116 l-10,-22 h18 Z" fill="url(#metal)" stroke="#0a1a26" stroke-width="3"/>
+    <path d="M436,258 a16,16 0 0 1 32,0 V300 h-32 Z" fill="#0d2438"/>
+    <rect x="444" y="196" width="16" height="30" rx="8" fill="#0d2438"/>
+    <!-- a round shield across the tower: she steps in front of blows meant for someone else -->
+    <circle cx="452" cy="292" r="54" fill="#12405c" stroke="#d8c07a" stroke-width="5"/>
+    <circle cx="452" cy="292" r="14" fill="#d8c07a" fill-opacity="0.8"/>
+    <path d="M356,346 q24,-14 48,0 t48,0 t48,0 t48,0" fill="none" stroke="#4fb8c8" stroke-width="6" stroke-linecap="round"/>
+  </g>
+</svg>

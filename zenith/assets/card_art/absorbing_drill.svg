@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Cull's Absorbing Drill. A porous stone drinking a bolt out of the air,
+       and two pages going up beside it to pay for it. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#242a31"/><stop offset="1" stop-color="#07090c"/>
+    </radialGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b3aa9c"/><stop offset="1" stop-color="#5d574c"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#d9f2ff"/>
+    </linearGradient>
+    <linearGradient id="fire" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#c2400f"/>
+    </linearGradient>
+  </defs>
+  <rect width="904" height="480" fill="url(#bg)"/>
+  <rect y="384" width="904" height="96" fill="#15181c"/>
+  <!-- the bolt, going in and not coming out -->
+  <path d="M40,138 L232,196 L120,214 L318,254 L176,272 L392,300" fill="none" stroke="url(#bolt)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="452" cy="288" rx="150" ry="120" fill="#8fd6ff" fill-opacity="0.14"/>
+  <!-- the stone, full of holes -->
+  <path d="M368,152 C452,116 566,140 588,216 C610,292 578,372 500,388 C416,406 348,360 340,286 C334,226 336,170 368,152 Z" fill="url(#stone)" stroke="#2b2721" stroke-width="6"/>
+  <g fill="#3a352c">
+    <circle cx="410" cy="216" r="20"/><circle cx="486" cy="192" r="14"/>
+    <circle cx="524" cy="252" r="22"/><circle cx="430" cy="300" r="26"/>
+    <circle cx="500" cy="338" r="16"/><circle cx="384" cy="262" r="12"/>
+  </g>
+  <g fill="#8fd6ff" fill-opacity="0.65">
+    <circle cx="410" cy="216" r="10"/><circle cx="430" cy="300" r="13"/><circle cx="524" cy="252" r="11"/>
+  </g>
+  <!-- the two pages it cost -->
+  <g transform="translate(700,300) rotate(10)">
+    <rect x="-64" y="-84" width="128" height="168" rx="8" fill="#e7dcc0" stroke="#8e7f5e" stroke-width="4"/>
+    <path d="M-64,-84 C-30,-140 20,-120 48,-168 C64,-118 30,-96 64,-84 Z" fill="url(#fire)"/>
+  </g>
+  <g transform="translate(818,340) rotate(-8)">
+    <rect x="-52" y="-68" width="104" height="136" rx="8" fill="#e7dcc0" stroke="#8e7f5e" stroke-width="4"/>
+    <path d="M-52,-68 C-24,-114 16,-98 38,-138 C52,-96 24,-78 52,-68 Z" fill="url(#fire)"/>
+  </g>
+</svg>

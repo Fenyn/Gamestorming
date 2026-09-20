@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Ashmark's Relentless Fury. One body, too many arms, none of them stopping.
+       Only the arms are ghosted, so the figure stays put and the flurry moves. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="330" cy="176" r="48"/>
+    <path d="M330,224 C340,296 338,352 332,408"/>
+    <path d="M332,408 C288,460 262,510 254,568"/>
+    <path d="M332,408 C392,444 430,494 444,556"/>
+    <path d="M242,572 L286,580"/>
+    <path d="M432,560 L478,572"/>
+  </g>
+  <!-- the arms, all of them -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M336,252 C408,214 476,190 540,182"/>
+    <path d="M336,262 C404,294 468,322 524,342"/>
+    <path d="M336,256 C410,254 482,258 544,268"/>
+    <path d="M334,248 C396,198 452,160 500,134"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M336,258 C412,272 484,294 548,324"/>
+  </g>
+  <!-- blades, the same blade at four moments -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M556,176 C640,148 722,124 820,104"/>
+    <path d="M552,266 C640,258 728,252 828,250"/>
+    <path d="M512,130 C588,94 660,66 736,44"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M572,326 C656,344 740,368 836,400"/>
+    <path d="M568,346 C652,364 736,388 830,420"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M548,306 L544,368"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M700,462 L742,498"/>
+    <path d="M620,468 L634,516"/>
+    <path d="M778,440 L828,464"/>
+  </g>
+</svg>

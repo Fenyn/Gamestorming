@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Hired Blades. The purse changes hands and somebody else's problem becomes
+       yours. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the two hands, and the purse between them -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,214 C110,220 176,236 230,262"/>
+    <path d="M230,262 C258,244 292,244 316,262"/>
+    <path d="M40,286 C112,286 180,296 236,314"/>
+    <path d="M236,314 C260,336 294,340 320,326"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M320,262 C356,244 400,246 428,266 C456,286 462,328 442,356 C420,386 374,392 346,370"/>
+    <path d="M336,268 C332,240 344,218 366,210"/>
+    <path d="M412,258 C420,232 414,212 396,202"/>
+    <path d="M366,210 C378,200 392,200 396,202"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M362,312 C382,300 406,302 420,316"/>
+    <path d="M364,344 C384,334 406,336 418,348"/>
+  </g>
+  <!-- and the sellsword stepping in -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="668" cy="182" r="46"/>
+    <path d="M668,228 C680,290 678,340 672,386"/>
+    <path d="M672,386 C636,438 616,488 612,542"/>
+    <path d="M672,386 C722,424 752,476 762,540"/>
+    <path d="M598,552 L644,560"/>
+    <path d="M750,546 L798,554"/>
+    <path d="M672,258 C712,272 746,292 772,314"/>
+    <path d="M664,270 C632,296 610,322 600,346"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M790,306 C824,272 852,238 874,206"/>
+    <path d="M812,326 C846,292 874,258 896,226"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M520,220 C548,264 548,336 520,380"/>
+  </g>
+</svg>

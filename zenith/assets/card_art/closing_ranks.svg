@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Closing Ranks. The line shuts behind the duelist, shoulder to shoulder,
+       without being asked. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the line behind -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="190" cy="222" r="40"/>
+    <path d="M190,262 V420"/>
+    <path d="M190,420 L162,548 M190,420 L220,548"/>
+    <circle cx="310" cy="212" r="40"/>
+    <path d="M310,252 V416"/>
+    <path d="M310,416 L282,548 M310,416 L340,548"/>
+    <circle cx="596" cy="212" r="40"/>
+    <path d="M596,252 V416"/>
+    <path d="M596,416 L568,548 M596,416 L626,548"/>
+    <circle cx="716" cy="222" r="40"/>
+    <path d="M716,262 V420"/>
+    <path d="M716,420 L688,548 M716,420 L746,548"/>
+  </g>
+  <!-- their shoulders touching -->
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-linecap="round">
+    <path d="M160,296 C220,282 280,282 340,296"/>
+    <path d="M566,296 C626,282 686,282 746,296"/>
+  </g>
+  <!-- the duelist in front -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="186" r="48"/>
+    <path d="M452,234 C466,300 466,352 460,400"/>
+    <path d="M460,400 C420,452 396,506 390,562"/>
+    <path d="M460,400 C512,440 544,494 552,556"/>
+    <path d="M376,572 L422,580"/>
+    <path d="M540,564 L588,572"/>
+    <path d="M454,266 C412,288 384,312 368,336"/>
+    <path d="M458,266 C500,288 530,312 546,336"/>
+  </g>
+  <!-- and the water between them -->
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M356,470 C300,456 240,452 190,456"/>
+    <path d="M556,470 C612,456 672,452 722,456"/>
+  </g>
+</svg>

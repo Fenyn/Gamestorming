@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Hex Recall. The veil goes up, and a page comes back through it the
+       wrong way. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="216" cy="206" r="46"/>
+    <path d="M216,252 C228,314 226,362 220,408"/>
+    <path d="M220,408 C184,460 162,510 156,566"/>
+    <path d="M220,408 C272,446 304,498 316,562"/>
+    <path d="M142,576 L188,584"/>
+    <path d="M304,568 L352,576"/>
+    <path d="M220,282 C278,286 328,296 368,310"/>
+    <path d="M210,296 C180,324 160,350 150,374"/>
+  </g>
+  <!-- the veil -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M520,40 C500,190 520,340 492,490 C478,560 486,602 510,636"/>
+    <path d="M620,20 C600,176 620,330 592,480 C578,550 586,594 610,630"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M570,30 C552,184 572,334 544,484"/>
+    <path d="M668,50 C650,198 670,342 642,486"/>
+  </g>
+  <!-- the page, coming back through -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M388,286 C428,262 472,258 498,274 C484,316 440,326 388,286 Z"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-dasharray="22 18" stroke-linecap="round">
+    <path d="M540,290 C500,282 466,280 436,284"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M548,252 L584,228"/>
+    <path d="M546,332 L584,354"/>
+  </g>
+</svg>

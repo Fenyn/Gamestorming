@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Mercy Smiles. A very large blunt face looking down at you, one hand up,
+       and the blade stops against it. Her card, and she is sorry about it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the face, filling the left -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M130,40 C270,20 384,96 386,236 C388,376 282,462 158,452 C64,444 20,350 24,232 C28,118 64,50 130,40 Z"/>
+    <path d="M78,222 C110,206 150,208 176,228"/>
+    <path d="M232,230 C260,212 300,214 324,234"/>
+    <path d="M96,326 C152,354 236,352 292,322"/>
+    <path d="M72,178 C108,160 152,160 184,176"/>
+    <path d="M228,182 C260,164 304,166 332,184"/>
+  </g>
+  <!-- the hand, up but not making a fist -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,168 C470,120 512,120 512,168 L512,262"/>
+    <path d="M530,146 C530,96 574,96 574,146 L574,258"/>
+    <path d="M592,158 C592,110 634,110 634,158 L634,266"/>
+    <path d="M650,190 C650,146 690,146 690,190 L690,282"/>
+    <path d="M466,258 C466,340 520,398 594,398 C666,398 706,340 700,268"/>
+    <path d="M466,286 C436,286 418,310 422,338 C426,366 450,382 476,378"/>
+  </g>
+  <!-- the blade, stopped on the palm -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M880,60 C816,110 756,158 704,200"/>
+    <path d="M898,98 C836,148 778,194 728,234"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M660,206 L700,176"/>
+    <path d="M672,252 L712,262"/>
+    <path d="M640,164 L648,124"/>
+  </g>
+</svg>

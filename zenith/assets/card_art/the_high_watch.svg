@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: The High Watch. A post on a spur above the cloud, one cold lamp lit, and
+       the whole valley underneath it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- far peaks above the cloud -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,214 L146,120 L232,214"/>
+    <path d="M636,206 L740,96 L858,206"/>
+  </g>
+  <!-- the cloud line -->
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M0,268 C130,244 240,286 372,266 C500,246 620,284 760,262 C820,252 866,258 904,268"/>
+    <path d="M0,312 C140,292 260,326 392,308 C520,290 640,320 780,302 C836,294 874,300 904,308"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M60,364 C200,346 330,376 470,358 C610,340 740,368 880,352"/>
+  </g>
+  <!-- the spur, and the post on it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,270 C346,250 402,240 452,242 C520,244 580,260 620,282"/>
+    <path d="M300,270 C316,324 340,382 372,438"/>
+    <path d="M620,282 C608,336 586,392 556,444"/>
+    <path d="M398,236 C394,196 394,166 398,142"/>
+    <path d="M520,236 C524,196 524,166 520,142"/>
+    <path d="M382,142 C424,128 494,128 536,142"/>
+    <path d="M382,142 C392,124 398,110 400,96"/>
+    <path d="M536,142 C526,124 520,110 518,96"/>
+    <path d="M400,96 C426,86 492,86 518,96"/>
+  </g>
+  <!-- the lamp, cold light -->
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M436,176 C436,162 482,162 482,176 L486,214 L432,214 Z"/>
+    <path d="M448,152 C458,144 470,144 478,152"/>
+    <path d="M414,196 L386,190"/>
+    <path d="M504,196 L532,190"/>
+    <path d="M459,146 L459,122"/>
+  </g>
+</svg>

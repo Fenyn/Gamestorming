@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Salt Seal 2 of 7. Two of the seven marks finished. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M110,60 C340,36 570,36 796,62 C806,240 806,400 796,578 C566,604 338,604 110,580 C100,400 100,240 110,60 Z"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M330,242 C330,196 376,196 376,242 L376,344"/>
+    <path d="M396,210 C396,160 444,160 444,210 L444,340"/>
+    <path d="M464,204 C464,154 512,154 512,204 L512,340"/>
+    <path d="M532,238 C532,194 576,194 576,238 L576,348"/>
+    <path d="M326,340 C326,438 390,500 456,500 C524,500 584,438 580,344"/>
+    <path d="M326,366 C290,364 268,388 272,418 C276,448 302,464 332,458"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M336,278 L370,278"/>
+    <path d="M402,246 L438,246"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.3" stroke-linecap="round">
+    <path d="M470,240 L506,240"/>
+    <path d="M538,272 L570,272"/>
+    <path d="M350,404 L536,404"/>
+    <path d="M360,444 L522,444"/>
+    <path d="M384,478 L498,478"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M200,534 C280,522 372,518 452,520"/>
+    <path d="M520,522 C606,522 686,532 744,546"/>
+  </g>
+</svg>

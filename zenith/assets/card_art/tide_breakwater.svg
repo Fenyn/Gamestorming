@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Breakwater. A wall of standing water, and the bolt breaks on it and
+       goes nowhere. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the wall -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round">
+    <path d="M470,620 C450,478 470,340 520,224 C548,158 562,100 560,44"/>
+    <path d="M580,628 C562,486 582,348 632,232 C660,166 674,108 672,52"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M524,624 C506,490 526,358 574,248"/>
+    <path d="M640,632 C624,500 644,372 690,268"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M712,626 C698,510 716,400 754,308"/>
+  </g>
+  <!-- the caster, holding it up -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="820" cy="300" r="44"/>
+    <path d="M820,344 C828,400 826,444 820,482"/>
+    <path d="M820,482 C796,524 782,562 778,604"/>
+    <path d="M820,482 C856,514 878,556 886,602"/>
+    <path d="M812,376 C786,398 768,420 758,442"/>
+  </g>
+  <!-- the bolt breaking on it -->
+  <g fill="none" stroke="#fffafa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,288 L154,318 L96,348 L216,378 L160,406 L280,438"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-opacity="0.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M280,438 L360,414 L326,444 L420,422"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M440,388 L392,344"/>
+    <path d="M444,452 L396,486"/>
+    <path d="M432,306 L444,258"/>
+  </g>
+</svg>

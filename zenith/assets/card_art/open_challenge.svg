@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: An Open Challenge. The gauntlet on the stone, and the card beside it so
+       everyone can read the terms. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the flagstones -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M0,200 C240,186 660,186 904,200"/>
+    <path d="M0,360 C240,346 660,346 904,360"/>
+    <path d="M230,190 V470 M600,190 V470"/>
+  </g>
+  <!-- the gauntlet, thrown down -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(300,300) rotate(-16)">
+      <path d="M-120,-30 C-60,-46 20,-46 80,-30"/>
+      <path d="M-120,30 C-60,46 20,46 80,30"/>
+      <path d="M-120,-30 C-146,-20 -150,18 -120,30"/>
+      <path d="M80,-30 C112,-38 138,-22 138,0 C138,22 112,38 80,30"/>
+      <path d="M-70,-38 L-70,38"/>
+      <path d="M-14,-42 L-14,42"/>
+      <path d="M42,-38 L42,38"/>
+    </g>
+  </g>
+  <!-- and the card beside it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(660,290) rotate(9)">
+      <path d="M-74,-108 h148 v216 h-148 Z"/>
+      <path d="M-46,-52 h92 M-46,-6 h72 M-46,40 h56"/>
+    </g>
+  </g>
+  <!-- the dust it landed in -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M160,386 C240,372 340,372 420,384"/>
+    <path d="M540,412 C620,400 720,400 790,410"/>
+  </g>
+</svg>

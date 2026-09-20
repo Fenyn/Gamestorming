@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Ironhide. The chest has gone to plate and the edge finds nothing to
+       bite on. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="420" cy="150" r="48"/>
+    <path d="M420,198 C434,264 434,318 428,366"/>
+    <path d="M428,366 C384,420 358,476 350,544"/>
+    <path d="M428,366 C484,406 518,462 528,540"/>
+    <path d="M334,550 L382,558"/>
+    <path d="M516,548 L566,556"/>
+    <path d="M422,238 C372,250 332,266 302,286"/>
+    <path d="M426,250 C470,270 506,292 532,314"/>
+  </g>
+  <!-- the plate across the chest -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M362,238 C412,222 464,228 496,254 C506,306 502,354 488,396 C440,412 398,410 364,392 C352,344 350,288 362,238 Z"/>
+    <path d="M360,292 C404,280 448,284 484,298"/>
+    <path d="M358,344 C402,332 446,336 482,350"/>
+  </g>
+  <!-- the blade, skating across it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M100,420 C220,384 350,344 470,306"/>
+    <path d="M124,456 C244,420 374,380 494,342"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M520,300 L562,272"/>
+    <path d="M534,340 L578,336"/>
+    <path d="M498,264 L508,220"/>
+    <path d="M556,382 L600,398"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M90,354 C200,326 310,296 404,266"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Mourne Takes the Measure. The ledger shuts on the duelling floor and
+       somebody's light drops a rung. His card: no school in it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the ledger, closing -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96,306 C204,272 318,264 412,282 C414,326 414,358 410,384 C316,368 204,376 100,406 C96,378 94,342 96,306 Z"/>
+    <path d="M412,282 C462,238 520,220 572,224 C578,268 578,302 574,330 C520,326 464,344 410,384"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M150,318 C230,296 314,290 382,300"/>
+    <path d="M150,352 C226,332 306,326 376,334"/>
+    <path d="M448,280 C486,258 522,248 554,248"/>
+  </g>
+  <!-- the floor it is sitting on -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M40,438 C240,414 560,410 870,430"/>
+  </g>
+  <!-- the ladder, and the rung it dropped -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M700,60 C694,180 694,300 700,412"/>
+    <path d="M828,60 C834,180 834,300 828,412"/>
+    <path d="M702,110 L830,110"/>
+    <path d="M700,170 L832,170"/>
+    <path d="M698,232 L832,232"/>
+    <path d="M698,294 L832,294"/>
+    <path d="M700,356 L830,356"/>
+  </g>
+  <!-- where the mark was, and where it is now -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M714,140 C740,128 792,128 818,140"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M712,204 C740,190 792,190 820,204"/>
+    <path d="M766,152 L766,190"/>
+    <path d="M748,172 L766,192 L786,172"/>
+  </g>
+</svg>

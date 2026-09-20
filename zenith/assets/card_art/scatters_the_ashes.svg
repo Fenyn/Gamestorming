@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Ashmark Scatters the Ashes. Straight through the burnt pile, and what was
+       left in it goes into the blade. His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, mid swing -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="216" cy="200" r="46"/>
+    <path d="M216,246 C228,308 226,356 220,402"/>
+    <path d="M220,402 C186,454 166,502 160,556"/>
+    <path d="M220,402 C270,440 302,492 314,556"/>
+    <path d="M146,566 L192,574"/>
+    <path d="M302,562 L350,570"/>
+    <path d="M222,276 C284,296 338,324 380,358"/>
+    <path d="M212,292 C180,320 158,346 148,370"/>
+  </g>
+  <!-- the blade, through the pile -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M404,376 C486,414 570,446 656,472"/>
+    <path d="M396,398 C478,436 562,468 648,494"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M372,344 L382,406"/>
+  </g>
+  <!-- the pile, coming apart -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M520,524 C594,504 676,502 742,518"/>
+    <path d="M534,566 C602,548 674,546 730,558"/>
+  </g>
+  <!-- the ash going up -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M630,330 C664,310 700,306 722,318 C712,352 676,362 630,330 Z"/>
+    <path d="M736,224 C768,204 802,202 822,214 C812,246 778,254 736,224 Z"/>
+    <path d="M550,254 C580,236 612,234 630,244 C622,272 592,280 550,254 Z"/>
+  </g>
+  <!-- and what the blade kept -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M470,392 C520,410 574,428 630,442"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M500,376 C548,392 600,410 652,424"/>
+    <path d="M582,318 L604,282"/>
+    <path d="M690,410 L724,384"/>
+  </g>
+</svg>

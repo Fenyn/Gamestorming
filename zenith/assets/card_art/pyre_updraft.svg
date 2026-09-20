@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Updraft. The heat goes up in a column and takes the striker with it,
+       mid-blow. School card: the fighter is anyone. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the column -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M330,610 C310,470 336,330 398,200 C430,134 448,80 450,30"/>
+    <path d="M578,610 C598,470 572,332 512,204 C480,138 462,84 460,34"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M388,612 C376,486 398,368 444,262 C470,200 484,146 486,98"/>
+    <path d="M520,612 C532,486 512,370 468,266 C442,204 428,150 426,102"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M266,614 C252,502 274,398 322,308"/>
+    <path d="M642,614 C656,502 634,400 588,312"/>
+  </g>
+  <!-- the striker, off the ground -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="146" r="46"/>
+    <path d="M452,192 C462,252 460,296 454,338"/>
+    <path d="M454,338 C412,376 386,414 374,456"/>
+    <path d="M454,338 C500,368 528,408 540,452"/>
+    <path d="M362,462 L400,478"/>
+    <path d="M534,458 L574,476"/>
+    <!-- the blow still going in -->
+    <path d="M456,220 C516,196 574,180 626,176"/>
+    <path d="M448,232 C404,242 368,256 342,272"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M646,162 C712,142 776,126 848,114"/>
+    <path d="M650,186 C716,166 780,150 850,138"/>
+  </g>
+  <!-- the ground going away below -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M120,610 C240,596 340,592 424,596"/>
+    <path d="M540,596 C640,592 736,598 836,612"/>
+  </g>
+</svg>

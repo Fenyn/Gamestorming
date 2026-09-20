@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="400" viewBox="0 0 904 400">
+  <!-- Placeholder art: Tide Fathom Mastery. A sounding line let down until the marks run out.
+       School emblem: no figure. -->
+  <rect width="904" height="400" fill="#696969"/>
+  <!-- the surface -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M0,96 C180,72 360,110 540,86 C680,68 800,98 904,82"/>
+  </g>
+  <!-- the line down -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M452,60 C448,150 448,250 452,330"/>
+  </g>
+  <!-- the marks on it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round">
+    <path d="M424,128 L480,128"/>
+    <path d="M424,176 L480,176"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M428,224 L476,224"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M432,272 L472,272"/>
+  </g>
+  <!-- the weight on the end -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M430,330 C430,316 474,316 474,330 L466,374 L438,374 Z"/>
+  </g>
+  <!-- the depth around it -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M60,170 C200,152 320,182 400,168"/>
+    <path d="M504,200 C620,184 740,212 860,196"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.3" stroke-linecap="round">
+    <path d="M80,276 C220,260 330,286 404,274"/>
+    <path d="M500,300 C620,286 740,310 850,296"/>
+  </g>
+</svg>

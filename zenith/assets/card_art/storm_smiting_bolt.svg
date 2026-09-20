@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Smiting Bolt. Down out of the cloud onto the circle, and the circle
+       does not survive it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the cloud -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M60,110 C160,60 300,58 400,100 C500,58 640,64 740,112 C800,140 840,164 866,190"/>
+    <path d="M100,160 C220,124 360,126 470,160 C580,192 700,196 800,176"/>
+  </g>
+  <!-- the bolt -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M424,176 L494,286 L420,306 L520,436"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="9" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M350,190 L404,276 L350,294 L420,392"/>
+    <path d="M560,204 L602,290 L548,306 L604,398"/>
+  </g>
+  <!-- the circle under it -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M250,486 C330,440 470,432 576,464"/>
+    <path d="M646,510 C664,560 616,606 528,620"/>
+    <path d="M238,540 C244,584 300,616 382,622"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,452 L512,520 L450,552 L494,620"/>
+    <path d="M300,470 L254,440"/>
+    <path d="M628,470 L676,442"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-linecap="round">
+    <path d="M556,474 L604,452"/>
+    <path d="M384,470 L338,448"/>
+  </g>
+</svg>

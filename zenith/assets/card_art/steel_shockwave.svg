@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Shockwave. An open palm, and everything loose in the room goes the
+       other way. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="220" cy="204" r="46"/>
+    <path d="M220,250 C232,314 230,362 224,408"/>
+    <path d="M224,408 C186,460 164,510 158,566"/>
+    <path d="M224,408 C276,446 310,498 322,562"/>
+    <path d="M144,572 L190,580"/>
+    <path d="M310,568 L358,576"/>
+    <path d="M224,280 C282,286 330,298 368,314"/>
+    <path d="M214,296 C182,322 160,348 150,372"/>
+  </g>
+  <!-- the palm -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M368,254 C384,270 386,292 374,308"/>
+    <path d="M382,286 C400,300 402,322 390,338"/>
+    <path d="M372,322 C392,334 396,356 384,372"/>
+    <path d="M368,314 C388,344 386,378 362,398 C338,418 302,412 286,388"/>
+  </g>
+  <!-- the pulse -->
+  <g fill="none" stroke="#4682b4" stroke-width="11" stroke-linecap="round">
+    <path d="M460,150 C520,256 520,394 460,500"/>
+    <path d="M560,110 C632,240 632,410 560,540"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M668,80 C752,232 752,420 668,570"/>
+  </g>
+  <!-- pages and dust going with it -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M714,196 C752,172 794,168 820,182 C806,222 764,232 714,196 Z"/>
+    <path d="M760,424 C796,404 834,402 856,416 C844,452 806,460 760,424 Z"/>
+    <path d="M846,290 C868,276 890,274 902,282"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M700,306 C760,300 820,302 872,310"/>
+  </g>
+</svg>

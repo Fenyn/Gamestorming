@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Dead Air. The bolt runs out halfway across the room. The dust it disturbed
+       is still hanging where it stopped. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the room, quiet -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M0,134 C240,118 660,118 904,134"/>
+    <path d="M0,524 C240,508 660,508 904,524"/>
+    <path d="M132,136 C126,268 126,396 134,522"/>
+    <path d="M770,136 C776,268 776,396 768,522"/>
+  </g>
+  <!-- the bolt, strong then not -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96,300 L204,336 L146,360 L268,396"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M268,396 L360,366 L318,392 L404,368"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="5" stroke-opacity="0.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M404,368 L468,352 L442,368 L494,356"/>
+  </g>
+  <!-- and nothing after that -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.35" stroke-linecap="round">
+    <circle cx="560" cy="344" r="5"/>
+    <circle cx="614" cy="300" r="5"/>
+    <circle cx="592" cy="404" r="5"/>
+    <circle cx="668" cy="358" r="5"/>
+    <circle cx="646" cy="248" r="5"/>
+    <circle cx="700" cy="430" r="5"/>
+    <circle cx="722" cy="296" r="5"/>
+    <circle cx="536" cy="238" r="5"/>
+    <circle cx="512" cy="444" r="5"/>
+    <circle cx="756" cy="378" r="5"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.25" stroke-linecap="round">
+    <path d="M540,196 C556,236 556,286 542,330"/>
+    <path d="M660,186 C676,230 676,286 660,332"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M212,538 C280,528 348,528 408,538"/>
+  </g>
+</svg>

@@ -19,6 +19,7 @@ var attack: Dictionary = {}       # current attack context, see DuelEngine._begi
 var last_attack: Dictionary = {}  # public outcome of the last attack this Combat, see DuelEngine._finish_attack
 var battle_step: int = 0
 var control_asked: bool = false   # the attacker already chose who is in control this attack phase
+var attack_phase_count: int = 0   # attack phases begun this duel; stamps effects that fire once per phase
 var discard_index: int = 0
 var reserve_index: int = 0          # players done swapping Reserve cards during setup
 var reserve_finished: Array[bool] = [false, false]
@@ -52,6 +53,7 @@ func copy(cards: Dictionary) -> GameState:
 	s.last_attack = last_attack.duplicate(true)
 	s.battle_step = battle_step
 	s.control_asked = control_asked
+	s.attack_phase_count = attack_phase_count
 	s.discard_index = discard_index
 	s.reserve_index = reserve_index
 	s.reserve_finished = reserve_finished.duplicate()

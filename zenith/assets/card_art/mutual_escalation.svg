@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Mutual Escalation. Both of them going up at once, and the floor between
+       them is the first thing to give. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- left -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="200" r="46"/>
+    <path d="M200,246 C212,308 210,356 204,402"/>
+    <path d="M204,402 C170,454 150,502 144,556"/>
+    <path d="M204,402 C254,440 286,492 298,556"/>
+    <path d="M204,276 C170,246 146,220 132,198"/>
+    <path d="M206,282 C246,258 278,234 300,212"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="9" stroke-linecap="round">
+    <path d="M120,178 C104,120 110,72 136,36"/>
+    <path d="M310,192 C336,140 340,94 322,56"/>
+    <path d="M96,300 C60,280 36,250 26,216"/>
+    <path d="M318,300 C356,286 384,260 398,228"/>
+  </g>
+  <!-- right -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="704" cy="200" r="46"/>
+    <path d="M704,246 C692,308 694,356 700,402"/>
+    <path d="M700,402 C734,454 754,502 760,556"/>
+    <path d="M700,402 C650,440 618,492 606,556"/>
+    <path d="M700,276 C734,246 758,220 772,198"/>
+    <path d="M698,282 C658,258 626,234 604,212"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="9" stroke-linecap="round">
+    <path d="M784,178 C800,120 794,72 768,36"/>
+    <path d="M594,192 C568,140 564,94 582,56"/>
+    <path d="M808,300 C844,280 868,250 878,216"/>
+    <path d="M586,300 C548,286 520,260 506,228"/>
+  </g>
+  <!-- the floor between them -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M340,566 C400,552 500,550 566,564"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M452,468 L488,528 L430,552 L468,600"/>
+    <path d="M392,504 L344,528"/>
+    <path d="M520,512 L568,534"/>
+  </g>
+</svg>

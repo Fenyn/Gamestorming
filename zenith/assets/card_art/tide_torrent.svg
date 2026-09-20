@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Torrent. An open channel out of both hands, and no sign of it
+       stopping. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- both hands, cupped into a channel -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,226 C130,238 196,262 250,296"/>
+    <path d="M60,326 C130,326 198,338 254,360"/>
+    <path d="M250,296 C280,286 310,290 330,306"/>
+    <path d="M254,360 C284,362 314,358 332,346"/>
+    <path d="M330,306 C352,320 356,340 332,346"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M176,258 L178,342"/>
+    <path d="M118,240 L120,330"/>
+  </g>
+  <!-- the torrent -->
+  <g fill="none" stroke="#20b2aa" stroke-width="15" stroke-linecap="round">
+    <path d="M350,306 C470,290 600,300 720,336 C790,356 848,372 894,380"/>
+    <path d="M350,350 C470,368 600,398 716,444 C784,470 842,488 890,498"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M370,322 C490,318 620,340 736,382"/>
+    <path d="M370,336 C490,344 616,372 730,418"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M400,270 C520,254 640,262 748,290"/>
+    <path d="M410,392 C520,412 634,446 730,494"/>
+  </g>
+  <!-- the far end, still going -->
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M800,262 C842,266 874,274 898,284"/>
+    <path d="M790,540 C834,552 868,566 894,582"/>
+  </g>
+</svg>

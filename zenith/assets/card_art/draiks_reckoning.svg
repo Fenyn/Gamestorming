@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Draik's Reckoning. The ledger open, both columns brought level, and the
+       crew standing behind her while she does it. Her card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the crew, back in the dark -->
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="660" cy="150" r="34"/>
+    <path d="M660,184 V330"/>
+    <path d="M660,330 L628,452 M660,330 L694,452"/>
+    <circle cx="768" cy="168" r="32"/>
+    <path d="M768,200 V336"/>
+    <path d="M768,336 L740,450 M768,336 L798,450"/>
+    <circle cx="856" cy="146" r="30"/>
+    <path d="M856,176 V320"/>
+  </g>
+  <!-- her -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="286" cy="170" r="48"/>
+    <path d="M286,218 C298,282 298,332 292,378"/>
+    <path d="M292,378 C256,436 234,492 230,556"/>
+    <path d="M292,378 C342,420 374,478 384,552"/>
+    <path d="M216,568 L262,576"/>
+    <path d="M372,558 L420,566"/>
+    <path d="M290,252 C334,268 372,290 400,312"/>
+    <path d="M280,264 C246,288 222,312 208,336"/>
+  </g>
+  <!-- the ledger -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M392,314 C438,286 490,272 536,274 C540,342 540,398 534,444 C488,442 438,456 394,484 C390,430 390,368 392,314 Z"/>
+    <path d="M466,286 C464,354 464,412 468,462"/>
+  </g>
+  <!-- the two columns, level -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M410,364 C428,352 448,346 460,346"/>
+    <path d="M478,346 C496,346 514,352 526,362"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-linecap="round">
+    <path d="M414,330 C430,320 446,316 458,316"/>
+    <path d="M480,316 C496,316 512,320 524,328"/>
+    <path d="M414,400 C430,390 446,386 458,386"/>
+    <path d="M480,386 C496,386 512,390 524,398"/>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Corin's Threefold Bolt. One landed, one in the air, one still forming at
+       the hand. His card: open hands, no weapon. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, open hand out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="164" cy="234" r="46"/>
+    <path d="M164,280 C176,342 174,390 168,436"/>
+    <path d="M168,436 C134,488 114,536 108,590"/>
+    <path d="M168,436 C218,474 250,526 262,590"/>
+    <path d="M94,600 L140,608"/>
+    <path d="M250,596 L298,604"/>
+    <path d="M168,310 C218,316 260,326 294,338"/>
+    <path d="M158,324 C128,352 108,378 98,402"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M294,300 C316,308 324,328 316,346"/>
+    <path d="M310,336 C332,344 340,364 330,382"/>
+    <path d="M294,338 C316,364 312,396 288,412 C264,428 232,422 220,400"/>
+  </g>
+  <!-- the third, still forming -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M356,300 C388,306 408,326 412,354"/>
+    <path d="M352,392 C386,384 406,364 410,338"/>
+  </g>
+  <!-- the second, in flight -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,336 L556,314 L512,344 L610,320"/>
+  </g>
+  <!-- the first, already landed -->
+  <g fill="none" stroke="#da70d6" stroke-width="10" stroke-linecap="round">
+    <path d="M760,300 L812,244"/>
+    <path d="M770,340 L836,336"/>
+    <path d="M762,380 L818,418"/>
+    <path d="M736,266 L750,212"/>
+    <path d="M740,414 L756,466"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <path d="M700,296 C726,282 756,286 772,308 C790,332 782,366 756,378 C728,390 700,374 696,346"/>
+  </g>
+</svg>

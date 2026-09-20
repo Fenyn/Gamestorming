@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Surge. The same water that hits them is the water that turns the
+       blade. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the surge -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M60,540 C140,430 260,346 400,320 C500,302 580,268 636,212"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M80,596 C170,482 300,398 448,374 C548,358 626,326 680,276"/>
+    <path d="M140,420 C220,348 320,300 430,282"/>
+  </g>
+  <!-- the fork of it: one part to the blade -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M400,320 C470,282 540,238 592,184"/>
+  </g>
+  <!-- and one part to them -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M400,320 C500,332 594,354 668,390"/>
+  </g>
+  <!-- the blade, turned -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M636,150 C688,110 738,74 786,44"/>
+    <path d="M656,176 C708,136 758,100 806,70"/>
+  </g>
+  <!-- them, taking the rest -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="768" cy="300" r="44"/>
+    <path d="M768,344 C760,398 750,438 738,470"/>
+    <path d="M738,470 C752,520 768,562 788,598"/>
+    <path d="M738,470 C716,512 702,554 698,598"/>
+    <path d="M756,376 C726,396 704,416 690,436"/>
+    <path d="M780,374 C812,394 838,414 854,434"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-linecap="round">
+    <path d="M690,344 L650,320"/>
+    <path d="M700,404 L662,424"/>
+    <path d="M626,214 L590,236"/>
+  </g>
+</svg>

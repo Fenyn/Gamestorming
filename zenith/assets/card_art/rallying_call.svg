@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Rallying Call. A fist up and a shout, and somebody comes in at the edge of
+       the frame who was not there a moment ago. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the one calling -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="300" cy="196" r="48"/>
+    <path d="M272,208 C288,222 316,222 330,208"/>
+    <path d="M300,244 C312,308 312,356 306,404"/>
+    <path d="M306,404 C272,456 252,506 248,560"/>
+    <path d="M306,404 C354,442 384,494 394,558"/>
+    <path d="M234,570 L280,578"/>
+    <path d="M382,564 L430,572"/>
+    <path d="M304,286 C270,254 246,226 232,202"/>
+    <path d="M306,292 C344,312 374,332 396,350"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232,202 C216,178 218,156 234,144 C252,130 278,138 286,158"/>
+  </g>
+  <!-- the shout -->
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <path d="M400,150 C444,232 444,354 400,436"/>
+    <path d="M482,116 C540,220 540,372 482,476"/>
+  </g>
+  <!-- and the one coming in -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="742" cy="214" r="44"/>
+    <path d="M742,258 C752,314 750,356 744,396"/>
+    <path d="M744,396 C706,440 686,486 682,534"/>
+    <path d="M744,396 C786,430 812,478 820,534"/>
+    <path d="M746,288 C706,298 676,312 656,328"/>
+    <path d="M744,292 C778,314 804,336 822,356"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M846,216 C872,214 890,216 902,222"/>
+    <path d="M840,300 C868,298 888,302 900,308"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M600,170 L636,146"/>
+    <path d="M600,430 L636,454"/>
+  </g>
+</svg>

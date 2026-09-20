@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Umbral Lash. A whip of shadow takes the blade mid-swing and it does
+       not finish the swing. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="230" r="46"/>
+    <path d="M180,276 C192,338 190,386 184,432"/>
+    <path d="M184,432 C150,484 130,532 124,586"/>
+    <path d="M184,432 C234,470 266,522 278,586"/>
+    <path d="M110,596 L156,604"/>
+    <path d="M266,592 L314,600"/>
+    <path d="M184,306 C240,312 288,324 326,340"/>
+    <path d="M174,320 C144,348 124,374 114,398"/>
+  </g>
+  <!-- the lash -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M330,330 C424,286 528,266 606,292 C664,312 690,360 660,406"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M336,364 C428,326 522,310 592,332"/>
+  </g>
+  <!-- the blade it caught -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M700,180 C736,238 766,296 790,352"/>
+    <path d="M736,162 C772,220 802,278 826,334"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M676,150 C702,134 730,126 756,124"/>
+  </g>
+  <!-- wound round it -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round">
+    <path d="M660,406 C700,382 742,378 772,396"/>
+    <path d="M676,346 C714,324 754,322 784,340"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M636,438 L602,474"/>
+    <path d="M800,414 L840,436"/>
+  </g>
+</svg>

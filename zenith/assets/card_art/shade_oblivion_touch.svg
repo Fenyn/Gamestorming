@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Oblivion Touch. One fingertip on the card and the card stops being
+       anywhere. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the hand, one finger out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,388 C120,368 180,354 234,346"/>
+    <path d="M60,470 C124,456 186,446 240,442"/>
+    <path d="M234,346 C280,330 330,322 372,320"/>
+    <path d="M240,442 C286,424 336,412 380,408"/>
+    <path d="M372,320 C410,312 444,310 474,312"/>
+    <path d="M380,408 C412,392 442,384 466,380"/>
+    <path d="M474,312 C506,306 534,306 556,310"/>
+  </g>
+  <!-- the card, going -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M584,190 C620,182 656,180 688,184"/>
+    <path d="M584,190 C580,268 580,344 586,414"/>
+    <path d="M586,414 C620,422 656,424 688,420"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M688,184 C720,190 750,198 776,210"/>
+    <path d="M688,420 C720,414 750,406 776,396"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.2" stroke-linecap="round">
+    <path d="M776,210 C804,224 826,242 842,264"/>
+    <path d="M776,396 C804,382 826,364 842,342"/>
+  </g>
+  <!-- where the finger is -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round">
+    <path d="M556,310 C578,300 600,300 618,308"/>
+    <path d="M600,262 C620,244 646,238 668,244"/>
+    <path d="M600,352 C622,368 648,374 670,368"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M604,214 L618,176"/>
+    <path d="M660,306 L706,304"/>
+    <path d="M606,398 L622,436"/>
+  </g>
+</svg>

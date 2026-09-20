@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Tollgate Yard. A walled yard, an iron gate, a box for the toll, and the
+       leyline running under all of it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the walls -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,300 C80,286 180,282 260,286"/>
+    <path d="M644,286 C724,282 824,286 904,300"/>
+    <path d="M40,300 C36,340 36,380 40,420"/>
+    <path d="M864,300 C868,340 868,380 864,420"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M0,342 C80,330 180,328 258,330"/>
+    <path d="M646,330 C724,328 824,330 904,342"/>
+  </g>
+  <!-- the iron gate -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M280,150 C276,260 276,360 280,440"/>
+    <path d="M624,150 C628,260 628,360 624,440"/>
+    <path d="M280,150 C376,132 528,132 624,150"/>
+    <path d="M330,146 C326,256 326,360 330,440"/>
+    <path d="M404,140 C400,254 400,358 404,440"/>
+    <path d="M500,140 C504,254 504,358 500,440"/>
+    <path d="M574,146 C578,256 578,360 574,440"/>
+    <path d="M276,262 C376,248 528,248 628,262"/>
+  </g>
+  <!-- the toll box -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,352 C700,336 812,336 812,352 L812,438 L700,438 Z"/>
+    <path d="M700,352 C740,342 772,342 812,352"/>
+    <path d="M736,376 L776,376"/>
+  </g>
+  <!-- the leyline under the gate -->
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M0,452 C200,436 660,434 904,450"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M60,470 C260,456 640,454 850,468"/>
+  </g>
+</svg>

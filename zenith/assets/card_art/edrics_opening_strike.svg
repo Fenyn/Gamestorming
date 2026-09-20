@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Edric's Opening Strike. The first blow of a long fight, thrown flat and
+       hard, with a burnt page lifting out of the ash behind him. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the ash he is standing in -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M40,556 C240,534 620,532 868,554"/>
+    <path d="M90,596 C300,574 640,572 856,594"/>
+  </g>
+  <!-- Edric, flat and committed -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="300" cy="230" r="46"/>
+    <path d="M300,276 C318,330 324,368 322,400"/>
+    <path d="M322,400 C382,432 430,470 456,524"/>
+    <path d="M456,524 C492,540 522,542 550,534"/>
+    <path d="M322,400 C258,428 200,466 148,516"/>
+    <path d="M148,516 C120,528 98,540 82,556"/>
+    <path d="M308,300 C380,296 448,288 512,276"/>
+    <path d="M300,310 C252,330 214,346 184,354"/>
+  </g>
+  <!-- the blade, flat and level -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M540,258 C632,248 726,242 862,242"/>
+    <path d="M540,282 C632,272 726,266 858,264"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M524,238 L528,302"/>
+    <path d="M494,264 L522,266"/>
+  </g>
+  <!-- the line it came along -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M120,236 C220,230 320,228 412,230"/>
+    <path d="M150,306 C244,300 338,298 424,300"/>
+  </g>
+  <!-- and the page coming up out of the ash -->
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M110,466 C146,430 190,420 218,432 C206,472 166,492 110,466 Z"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M140,448 C158,434 178,428 196,430"/>
+    <path d="M96,502 L72,528"/>
+    <path d="M236,420 L262,398"/>
+  </g>
+</svg>

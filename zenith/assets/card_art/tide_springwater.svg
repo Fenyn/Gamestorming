@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Springwater. Clean water up out of a crack in the floor, and somebody
+       standing up out of it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the cracked floor -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,520 C200,494 660,492 904,518"/>
+    <path d="M300,520 L336,584 L284,612"/>
+    <path d="M610,522 L582,586 L634,614"/>
+  </g>
+  <!-- the water coming up -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M330,516 C304,428 316,344 366,282"/>
+    <path d="M572,518 C598,430 586,344 536,282"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M394,514 C378,430 392,356 430,304"/>
+    <path d="M510,516 C526,432 512,358 474,306"/>
+  </g>
+  <!-- them, standing up out of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="160" r="46"/>
+    <path d="M452,206 C464,266 462,314 456,356"/>
+    <path d="M456,356 C428,404 412,452 408,500"/>
+    <path d="M456,356 C494,392 518,440 526,496"/>
+    <path d="M450,236 C412,262 386,290 370,318"/>
+    <path d="M458,236 C496,262 522,290 538,318"/>
+  </g>
+  <!-- and what it is doing around them -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M260,480 C242,420 250,366 284,326"/>
+    <path d="M644,482 C662,422 654,368 620,328"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M370,252 L340,214"/>
+    <path d="M534,254 L564,216"/>
+  </g>
+</svg>

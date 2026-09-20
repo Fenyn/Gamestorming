@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Captain's Barrage. A line of hands you cannot see throws everything it has
+       at once. The Captain's card: it is the crew, not a school. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the hands, out of the dark at the left edge -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,116 C48,110 92,118 124,136 C110,160 78,170 40,164"/>
+    <path d="M0,268 C52,262 98,272 132,292 C116,316 82,326 42,318"/>
+    <path d="M0,424 C50,418 94,428 126,448 C112,472 78,482 40,474"/>
+    <path d="M0,562 C44,556 84,564 112,582 C100,604 70,612 36,606"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M0,192 C40,188 74,194 100,208"/>
+    <path d="M0,348 C42,344 78,352 104,366"/>
+    <path d="M0,498 C38,494 70,500 94,512"/>
+  </g>
+  <!-- the knives, all in the air at once -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M250,104 L372,84 L404,96 L372,108 Z"/>
+    <path d="M318,222 L442,206 L474,218 L442,230 Z"/>
+    <path d="M232,300 L354,290 L386,302 L354,314 Z"/>
+    <path d="M356,394 L478,382 L510,394 L478,406 Z"/>
+    <path d="M268,486 L390,478 L422,490 L390,502 Z"/>
+    <path d="M382,566 L500,556 L532,568 L500,580 Z"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round">
+    <path d="M228,104 L250,104"/>
+    <path d="M296,222 L318,222"/>
+    <path d="M210,300 L232,300"/>
+    <path d="M334,394 L356,394"/>
+    <path d="M246,486 L268,486"/>
+    <path d="M360,566 L382,566"/>
+  </g>
+  <!-- the lines they are riding -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M430,96 C540,92 640,94 730,100"/>
+    <path d="M500,218 C600,216 690,220 768,228"/>
+    <path d="M412,302 C520,300 616,304 700,312"/>
+    <path d="M536,394 C630,394 714,400 786,410"/>
+    <path d="M448,490 C548,490 638,496 716,506"/>
+    <path d="M558,568 C648,568 730,574 800,584"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M832,172 L868,152"/>
+    <path d="M846,344 L884,352"/>
+    <path d="M820,456 L856,478"/>
+  </g>
+</svg>

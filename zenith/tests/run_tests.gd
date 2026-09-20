@@ -55,6 +55,12 @@ func _init() -> void:
 		test_a_life_card_can_buy_more_damage,
 		test_a_bought_life_card_is_a_requirement_not_a_cost,
 		test_a_keyword_can_be_lent_by_an_attachment,
+		test_a_mastery_can_buy_wounds_off_with_the_discard_pile,
+		test_a_hold_drains_them_at_the_start_of_each_of_their_phases,
+		test_remain_can_count_the_aspect_and_read_either_of_two_cards,
+		test_a_reveal_can_take_every_match_at_once,
+		test_a_seal_can_turn_their_removal_into_a_discard,
+		test_a_card_can_lock_out_what_would_drag_an_aspect_down,
 		test_a_bloodline_can_be_lent_by_an_attachment,
 		test_two_variants_of_one_character_are_one_person,
 		test_a_modifier_can_outlast_the_card_that_made_it,
@@ -4394,3 +4400,116 @@ func test_two_variants_of_one_character_are_one_person() -> void:
 	var d: DeckList = deck(filler(["tf_marked_short"]), "vigil", "", "t_mastery_pyre", 3, "tf_marked_long")
 	var problems: Array[String] = DeckValidator.validate(d, lib)
 	check(str(problems).contains("same character as the Duelist"), "and one printing cannot be the other's Ally")
+
+
+## "Instead of using a Defense, remove any number of your school's cards in your discard pile from
+## the game. Prevent 2 wounds from the attack for each one removed." The pile is the armour, so the
+## option only appears when there is something in it to burn, and it never costs more than the
+## wounds are worth.
+func test_a_mastery_can_buy_wounds_off_with_the_discard_pile() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "tide", "t_mastery_burn"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	eq(e._burn_fuel(me, "tide"), 0, "an empty pile is no armour")
+	for i in range(3):
+		me.discard.append(e._instance(lib.get_def("t_tide_filler"), 0, &"discard"))
+	me.discard.append(e._instance(lib.get_def("t_strike"), 0, &"discard"))
+	eq(e._burn_fuel(me, "tide"), 3, "only the school's own cards are fuel")
+	eq(e._burn_from_discard(me, "tide", 2), 2, "two of them go")
+	eq(e._burn_fuel(me, "tide"), 1, "leaving one")
+	eq(me.discard.size(), 2, "and the card of another school stays put")
+	eq(me.removed.size(), 2, "what was burned is out of the game, not back in the pile")
+
+func test_a_card_can_lock_out_what_would_drag_an_aspect_down() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_aspect_lock"])), deck(filler(["t_drop_them"]), "pact"))
+	var foe: PlayerState = e.player(1)
+	e.player(0).duelist.aspect = 3
+	e._apply_effect({"op": "lose_aspect", "who": "opponent"}, 1, {}, null)
+	eq(e.player(0).duelist.aspect, 2, "without the lock they drag him down a rung")
+	e.player(0).duelist.aspect = 3
+	e._apply_effect({"op": "forbid", "who": "opponent", "what": "lower_aspect", "duration": "combat"}, 0, {}, null)
+	e._apply_effect({"op": "lose_aspect", "who": "opponent"}, 1, {}, null)
+	eq(e.player(0).duelist.aspect, 3, "with it in force he stays where he is")
+	e._apply_effect({"op": "lose_aspect", "who": "self"}, 0, {}, null)
+	eq(e.player(0).duelist.aspect, 2, "and it never stops him stepping down himself")
+
+
+## "Their duelist loses 1 Energy at the beginning of each of their attack phases for the remainder
+## of Combat." It bites on their phases and not on yours, and once per phase however many times
+## the phase is re-entered.
+func test_a_hold_drains_them_at_the_start_of_each_of_their_phases() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var foe: PlayerState = e.player(1)
+	foe.duelist.energy = 8
+	e._apply_effect({"op": "float", "who": "opponent", "what": "phase_drain", "duration": "combat",
+			"params": {"energy": 1}}, 0, {}, null)
+	e.state.attacker = 0
+	e._phase_start_drain(e.player(0))
+	eq(foe.duelist.energy, 8, "your own phase costs them nothing")
+	e.state.attacker = 1
+	e.state.attack_phase_count += 1
+	e._phase_start_drain(foe)
+	eq(foe.duelist.energy, 7, "the start of their phase does")
+	e._phase_start_drain(foe)
+	eq(foe.duelist.energy, 7, "and it only bites once in the one phase")
+	e.state.attack_phase_count += 1
+	e._phase_start_drain(foe)
+	eq(foe.duelist.energy, 6, "the next phase costs them again")
+
+
+## "If either of two named cards is in play, this stays on the table to be used X more times this
+## Combat, X = your duelist's Aspect." Both halves are read at the moment the attack resolves.
+func test_remain_can_count_the_aspect_and_read_either_of_two_cards() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_ride_it"])), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var ctx: Dictionary = {}
+	check(not e._cond({"card_in_play": ["Test Marker A", "Test Marker B"]}, 0, ctx), "neither marker is out")
+	inject(e, 0, "t_marker_b")
+	check(e._cond({"card_in_play": ["Test Marker A", "Test Marker B"]}, 0, ctx), "the second one counts")
+	me.duelist.aspect = 3
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_ride_it"))
+	while e.prompt != null and e.prompt.kind != &"attack_action":
+		e.submit(e.prompt.options[e.prompt.options.size() - 1])
+	var kept: CardInstance = null
+	for c in me.remain_cards():
+		if c.def.id == "t_ride_it":
+			kept = c
+	check(kept != null, "it stayed on the table")
+	if kept != null:
+		eq(kept.remain, 3, "for as many more uses as he has Aspects")
+
+
+## "Put every Non-Combat card revealed into play." There is no choice in it, so nothing is asked.
+func test_a_reveal_can_take_every_match_at_once() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_reveal_all"])), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	e.shuffle_decks = false
+	for i in range(3):
+		me.life_deck.insert(0, e._instance(lib.get_def("t_marker_b"), 0, &"life_deck"))
+	var before: int = me.in_play.size()
+	e._apply_effect({"op": "look_at", "amount": 7, "from": "top", "to": "play",
+			"pick": {"card_type": "non_combat"}, "all_matches": true}, 0, {}, null)
+	eq(me.in_play.size(), before + 3, "all three went into play")
+	check(e.prompt == null or e.prompt.kind != &"pick_option", "and nobody was asked to choose")
+
+
+## "While you control this Seal, cards of yours in play that your opponent would remove from the
+## game are discarded instead." It softens their removal and not your own, and the cards land in
+## the discard pile where they can still be reached.
+func test_a_seal_can_turn_their_removal_into_a_discard() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var wipe: Dictionary = {"op": "discard_in_play", "who": "opponent", "card_type": "non_combat", "all": true, "remove": true}
+	inject(e, 0, "t_drill_free")
+	check(not e._removal_becomes_discard(me), "no guard yet")
+	e._apply_effect(wipe, 1, {}, null)
+	eq(me.removed.size(), 1, "so their card effect takes it out of the game")
+
+	inject(e, 0, "t_seal_guard")
+	inject(e, 0, "t_drill_free")
+	check(e._removal_becomes_discard(me), "the Seal guards the board")
+	var discard_before: int = me.discard.size()
+	var removed_before: int = me.removed.size()
+	e._apply_effect(wipe, 1, {}, null)
+	eq(me.removed.size(), removed_before, "nothing more leaves the game")
+	eq(me.discard.size(), discard_before + 1, "it is discarded instead")

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Static Field. The blade stops in the field and everybody's hair
+       stands up. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the field -->
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M120,120 L160,158 L120,184"/>
+    <path d="M300,90 L340,128 L300,154"/>
+    <path d="M480,120 L520,158 L480,184"/>
+    <path d="M660,92 L700,130 L660,156"/>
+    <path d="M820,124 L860,162 L820,188"/>
+    <path d="M200,266 L240,304 L200,330"/>
+    <path d="M760,268 L800,306 L760,332"/>
+    <path d="M140,430 L180,468 L140,494"/>
+    <path d="M330,470 L370,508 L330,534"/>
+    <path d="M540,470 L580,508 L540,534"/>
+    <path d="M740,432 L780,470 L740,496"/>
+  </g>
+  <!-- the one in it, hair up -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="470" cy="292" r="46"/>
+    <path d="M470,338 C482,398 480,440 474,480"/>
+    <path d="M474,480 C446,524 428,562 424,600"/>
+    <path d="M474,480 C512,516 536,558 544,598"/>
+    <path d="M472,368 C438,388 416,410 404,432"/>
+    <path d="M476,368 C510,388 532,410 544,432"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="7" stroke-linecap="round">
+    <path d="M436,258 L418,214"/>
+    <path d="M458,250 L448,204"/>
+    <path d="M482,250 L494,204"/>
+    <path d="M504,258 L524,216"/>
+  </g>
+  <!-- the blade, stopped in it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M60,214 C140,252 216,290 278,322"/>
+    <path d="M42,252 C124,290 202,328 264,360"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-linecap="round">
+    <path d="M310,300 L296,258"/>
+    <path d="M312,378 L292,416"/>
+  </g>
+</svg>

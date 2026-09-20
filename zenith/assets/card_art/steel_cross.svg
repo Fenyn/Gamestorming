@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Cross. Straight across, plated to the shoulder, and the air splits
+       behind it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="244" cy="204" r="46"/>
+    <path d="M244,250 C256,312 254,362 248,408"/>
+    <path d="M248,408 C210,460 188,510 182,566"/>
+    <path d="M248,408 C302,446 336,498 348,562"/>
+    <path d="M168,572 L214,580"/>
+    <path d="M336,568 L384,576"/>
+    <path d="M240,264 C206,290 184,316 172,342"/>
+  </g>
+  <!-- the arm, grey the whole way -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M248,278 C336,282 416,292 486,308"/>
+    <path d="M254,312 C340,316 418,326 486,342"/>
+    <path d="M300,276 L302,314"/>
+    <path d="M360,282 L362,320"/>
+    <path d="M420,290 L422,328"/>
+  </g>
+  <!-- the fist -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M486,278 C540,272 578,294 580,328 C582,364 544,388 496,380 C458,374 438,348 442,318 C446,292 466,280 486,278 Z"/>
+    <path d="M504,300 C528,296 550,302 560,318"/>
+    <path d="M500,338 C524,334 546,340 556,354"/>
+  </g>
+  <!-- the air behind it -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M626,266 C688,254 752,250 816,254"/>
+    <path d="M634,330 C696,332 758,342 816,360"/>
+    <path d="M618,200 C676,178 736,164 796,158"/>
+    <path d="M620,398 C678,418 734,446 784,482"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M660,300 C724,296 786,300 842,312"/>
+  </g>
+</svg>

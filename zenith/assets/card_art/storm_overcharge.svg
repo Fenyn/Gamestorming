@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Overcharge. More in the punch than it can hold, and the rest bleeds
+       off the knuckles on the way. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="216" cy="230" r="46"/>
+    <path d="M216,276 C228,338 226,386 220,432"/>
+    <path d="M220,432 C186,484 166,532 160,586"/>
+    <path d="M220,432 C270,470 302,522 314,586"/>
+    <path d="M146,596 L192,604"/>
+    <path d="M302,592 L350,600"/>
+    <path d="M220,306 C296,312 364,326 420,344"/>
+    <path d="M210,320 C180,348 160,374 150,398"/>
+  </g>
+  <!-- the fist -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M420,308 C474,298 518,322 522,364 C526,406 486,436 438,428 C400,422 378,394 384,360 C390,328 402,312 420,308 Z"/>
+    <path d="M404,338 C436,324 476,330 498,352"/>
+    <path d="M410,388 C442,374 482,380 504,402"/>
+  </g>
+  <!-- what will not stay in it -->
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M540,300 L600,262 L566,300 L638,268"/>
+    <path d="M556,432 L618,462 L580,466 L652,500"/>
+    <path d="M552,366 L624,352 L586,376 L666,364"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,254 L760,226 L728,258 L796,232"/>
+    <path d="M708,490 L772,518 L736,522 L806,552"/>
+    <path d="M710,364 L782,352 L746,376 L828,366"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M470,262 L478,216"/>
+    <path d="M462,464 L456,510"/>
+  </g>
+</svg>

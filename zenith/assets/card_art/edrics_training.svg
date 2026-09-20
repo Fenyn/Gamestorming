@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Edric's Training. A yard at first light, a post giving way, breath showing
+       in the cold. His card: the work, not the fire. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- first light along the wall behind -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M40,168 C260,150 640,148 872,166"/>
+    <path d="M40,214 C260,198 640,196 872,212"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M60,124 C280,106 640,104 866,122"/>
+  </g>
+  <!-- the post, splitting -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M660,180 C656,300 656,420 660,534"/>
+    <path d="M740,180 C744,300 744,420 740,534"/>
+    <path d="M660,180 C686,170 714,170 740,180"/>
+    <path d="M634,538 C684,528 720,528 768,538"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M664,306 C700,296 728,300 748,316"/>
+    <path d="M668,340 C702,334 728,340 744,356"/>
+  </g>
+  <!-- splinters coming off it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M756,292 L812,264"/>
+    <path d="M760,330 L822,326"/>
+    <path d="M752,366 L806,388"/>
+  </g>
+  <!-- Edric, mid strike -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="266" cy="224" r="46"/>
+    <path d="M266,270 C278,332 276,380 270,426"/>
+    <path d="M270,426 C230,478 206,528 200,584"/>
+    <path d="M270,426 C328,462 364,514 378,578"/>
+    <path d="M188,588 L232,596"/>
+    <path d="M366,582 L412,592"/>
+    <path d="M270,298 C336,300 396,310 448,328"/>
+    <path d="M262,310 C226,338 204,366 194,394"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M472,318 C532,316 590,314 642,316"/>
+    <path d="M472,340 C532,338 590,336 640,338"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M458,296 L458,364"/>
+  </g>
+  <!-- breath -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M312,206 C352,190 382,196 414,182"/>
+    <path d="M316,166 C360,148 392,156 426,140"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M140,606 C300,594 560,592 780,604"/>
+  </g>
+</svg>

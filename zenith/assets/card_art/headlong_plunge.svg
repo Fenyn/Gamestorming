@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Headlong Plunge. Straight into a raised guard with no plan for what
+       happens after, and the guard is the thing that gives. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the diver, nearly horizontal -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="352" cy="264" r="46"/>
+    <path d="M320,286 C260,312 206,340 164,368"/>
+    <path d="M164,368 C118,364 82,352 56,332"/>
+    <path d="M164,368 C128,398 104,428 92,456"/>
+    <path d="M336,300 C300,346 276,388 266,424"/>
+    <path d="M388,282 C440,272 486,266 524,266"/>
+    <path d="M382,304 C430,306 474,312 510,322"/>
+  </g>
+  <!-- the guard, breaking -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="742" cy="222" r="46"/>
+    <path d="M742,268 C736,326 728,372 716,410"/>
+    <path d="M716,410 C728,468 744,520 764,566"/>
+    <path d="M716,410 C688,458 672,512 668,568"/>
+    <path d="M654,572 L700,580"/>
+    <path d="M756,570 L800,578"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M700,310 C664,308 634,314 612,326"/>
+    <path d="M702,352 C666,356 638,366 618,380"/>
+  </g>
+  <!-- the arms going wide, because they are not holding any more -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M612,326 C584,296 566,268 558,240"/>
+    <path d="M618,380 C592,408 576,436 570,462"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M560,276 L522,240"/>
+    <path d="M578,332 L534,330"/>
+    <path d="M566,388 L526,414"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M120,238 C200,244 276,256 336,272"/>
+    <path d="M96,420 C172,406 246,398 306,398"/>
+  </g>
+</svg>

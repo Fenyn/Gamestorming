@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Unerring Bolt. Dead straight, through the middle of a guard that is doing
+       everything right. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the caster -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="150" cy="248" r="44"/>
+    <path d="M150,292 C160,348 158,392 152,432"/>
+    <path d="M152,432 C122,478 104,520 100,566"/>
+    <path d="M152,432 C194,466 220,510 230,562"/>
+    <path d="M154,318 C204,320 248,326 284,336"/>
+    <path d="M144,330 C118,354 100,378 92,400"/>
+  </g>
+  <!-- the guard, correct and irrelevant -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M612,110 C654,198 664,318 646,420 C636,472 620,514 600,546"/>
+    <path d="M736,128 C776,214 786,330 768,430 C758,480 742,520 722,550"/>
+    <path d="M612,110 C654,96 696,102 736,128"/>
+    <path d="M600,546 C640,566 684,568 722,550"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M622,216 C666,206 712,210 750,224"/>
+    <path d="M628,430 C670,420 714,424 752,438"/>
+  </g>
+  <!-- the bolt, straight through -->
+  <g fill="none" stroke="#9370db" stroke-width="14" stroke-linecap="round">
+    <path d="M300,332 C460,330 640,330 880,332"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M330,300 C480,298 660,298 860,300"/>
+    <path d="M330,364 C480,362 660,362 860,364"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M600,296 L566,266"/>
+    <path d="M604,368 L570,398"/>
+  </g>
+</svg>

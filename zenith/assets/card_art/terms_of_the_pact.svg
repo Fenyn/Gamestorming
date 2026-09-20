@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Terms of the Pact. The contract held up, and one line through it. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the sheet, held up at the corners -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M258,92 C440,64 620,66 736,96 C744,232 744,376 736,510 C616,540 434,538 252,508 C244,376 246,228 258,92 Z"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M308,168 C436,152 588,152 688,168"/>
+    <path d="M308,228 C428,214 560,214 652,226"/>
+    <path d="M308,354 C436,342 588,344 688,358"/>
+    <path d="M308,412 C420,400 540,402 624,414"/>
+    <path d="M308,466 C412,456 520,458 596,468"/>
+  </g>
+  <!-- the clause that is out -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M308,290 C436,276 588,278 688,292"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="12" stroke-linecap="round">
+    <path d="M278,304 C420,282 584,282 712,300"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="7" stroke-linecap="round">
+    <path d="M712,300 C736,290 750,282 756,272"/>
+    <path d="M712,300 C736,310 750,318 756,330"/>
+  </g>
+  <!-- held up at both corners, fingers over the front edge -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M236,86 C218,86 206,100 208,116 C210,134 226,144 244,142"/>
+    <path d="M250,96 C228,98 218,110 220,124"/>
+    <path d="M272,92 C250,94 240,106 242,120"/>
+    <path d="M196,110 C170,112 150,124 140,142"/>
+    <path d="M758,90 C776,90 788,104 786,120 C784,138 768,148 750,146"/>
+    <path d="M744,100 C766,102 776,114 774,128"/>
+    <path d="M722,96 C744,98 754,110 752,124"/>
+    <path d="M798,114 C824,116 844,128 854,146"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M154,246 L112,236"/>
+    <path d="M836,250 L878,240"/>
+  </g>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Crushing Weight. Taken down and held down on the circle, and the
+       stone is what cracks. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the circle, under both of them -->
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-linecap="round">
+    <path d="M180,470 C300,410 500,400 650,442"/>
+    <path d="M714,500 C726,554 680,600 600,614"/>
+    <path d="M168,530 C176,578 236,610 320,616"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M430,430 L470,506 L406,540 L452,616"/>
+    <path d="M600,464 L652,522"/>
+    <path d="M276,470 L226,520"/>
+  </g>
+  <!-- the one underneath -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="678" cy="382" r="44"/>
+    <path d="M636,404 C560,420 486,436 428,450"/>
+    <path d="M640,420 C580,456 540,486 516,510"/>
+    <path d="M550,436 C548,478 552,514 562,542"/>
+    <path d="M424,440 C398,420 380,406 368,396"/>
+  </g>
+  <!-- and the weight on top -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="308" cy="216" r="50"/>
+    <path d="M308,266 C346,306 388,342 424,370"/>
+    <path d="M424,370 C468,380 512,382 550,376"/>
+    <path d="M308,290 C260,326 228,362 210,396"/>
+    <path d="M196,402 L238,418"/>
+    <path d="M362,336 C368,388 372,430 372,462"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M352,282 C400,272 442,294 448,332 C454,372 420,402 376,398 C340,394 320,368 322,336 C324,306 334,286 352,282 Z"/>
+  </g>
+</svg>

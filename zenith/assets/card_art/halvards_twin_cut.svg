@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Halvard's Twin Cut. Two swords, one motion: one turns the blade, the other
+       takes a page out of the hand. His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, both blades out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="272" cy="200" r="46"/>
+    <path d="M272,246 C284,308 282,356 276,402"/>
+    <path d="M276,402 C238,454 216,504 210,560"/>
+    <path d="M276,402 C328,440 360,492 372,556"/>
+    <path d="M196,570 L242,578"/>
+    <path d="M360,562 L408,570"/>
+    <path d="M276,276 C336,264 390,256 436,256"/>
+    <path d="M272,296 C330,302 382,314 424,330"/>
+  </g>
+  <!-- the high blade, turning theirs -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M460,240 C534,214 606,192 676,176"/>
+    <path d="M464,260 C538,234 610,212 678,196"/>
+  </g>
+  <!-- the low blade, taking the page -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M448,338 C520,354 590,374 656,398"/>
+    <path d="M444,358 C516,374 586,394 652,418"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M436,232 L444,276"/>
+    <path d="M424,322 L418,368"/>
+  </g>
+  <!-- theirs, going up and away -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M712,142 C766,106 818,76 866,54"/>
+  </g>
+  <!-- and the page, leaving -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,430 C738,410 780,408 804,422 C792,462 750,470 700,430 Z"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-linecap="round">
+    <path d="M690,184 L716,222"/>
+    <path d="M676,404 L706,370"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M824,466 L860,494"/>
+  </g>
+</svg>

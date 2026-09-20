@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Declaration. Said out loud, with a hand up, and the air moves for it. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one saying it, close and shouting -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M172,180 C268,152 348,210 352,314 C356,418 290,492 204,486 C132,480 94,414 96,330 C98,256 122,194 172,180 Z"/>
+    <!-- open mouth -->
+    <path d="M186,376 C224,356 268,362 288,394 C272,436 216,442 186,376 Z"/>
+    <!-- eyes, set hard -->
+    <path d="M132,268 C158,250 190,250 214,266"/>
+    <path d="M254,268 C278,252 308,254 328,272"/>
+    <path d="M126,232 C158,214 196,214 224,228"/>
+    <path d="M250,230 C280,214 314,216 338,232"/>
+  </g>
+  <!-- the hand up beside it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M420,212 C420,158 428,116 440,88"/>
+    <path d="M466,212 C464,152 470,110 482,80"/>
+    <path d="M512,218 C512,160 520,120 532,94"/>
+    <path d="M556,232 C560,182 570,148 582,126"/>
+    <path d="M402,228 C404,286 420,332 452,364 C496,406 560,398 592,354 C616,320 620,270 604,226"/>
+    <path d="M402,250 C374,264 358,290 362,318 C366,346 388,362 414,360"/>
+  </g>
+  <!-- and the air going out with it -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M656,96 C728,190 748,318 700,442"/>
+    <path d="M736,60 C822,176 844,330 786,478"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M600,140 C656,216 670,318 634,414"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M820,120 C884,216 892,340 848,462"/>
+    <path d="M330,536 C440,512 560,508 660,522"/>
+  </g>
+</svg>

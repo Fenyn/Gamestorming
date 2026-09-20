@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Marrow's Appraisal. Somebody else's hand goes through your cards and takes
+       one, and the hand is not made of anything soft. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the fan, held open by the owner -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(250,402) rotate(-24)"><path d="M-88,-130 h176 v260 h-176 Z"/></g>
+    <g transform="translate(330,372) rotate(-12)"><path d="M-88,-130 h176 v260 h-176 Z"/></g>
+    <g transform="translate(414,362)"><path d="M-88,-130 h176 v260 h-176 Z"/></g>
+    <g transform="translate(498,372) rotate(12)"><path d="M-88,-130 h176 v260 h-176 Z"/></g>
+  </g>
+  <!-- the one being taken, already clear of the rest -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(628,190) rotate(18)">
+      <path d="M-84,-124 h168 v248 h-168 Z"/>
+      <path d="M-52,-60 h104 M-52,-12 h80 M-52,36 h60"/>
+    </g>
+  </g>
+  <!-- the hand doing the taking: plates and rivets, not fingers -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <!-- forearm in from the edge, then the wrist plate -->
+    <path d="M904,392 L800,368"/>
+    <path d="M800,340 L800,396 L744,384 L744,332 Z"/>
+    <!-- three straight fingers closing on the card edge -->
+    <path d="M744,340 L668,316 L650,268"/>
+    <path d="M744,364 L664,346 L642,300"/>
+    <path d="M744,388 L668,378 L650,336"/>
+    <!-- and the thumb under it -->
+    <path d="M772,398 L742,432 L690,424"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M772,348 L772,388"/>
+    <path d="M700,320 L692,338"/>
+    <path d="M846,376 L846,396"/>
+  </g>
+  <!-- nothing warm about it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M600,404 C680,392 760,390 840,398"/>
+    <path d="M640,448 C712,438 784,438 852,446"/>
+  </g>
+</svg>

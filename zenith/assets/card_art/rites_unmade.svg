@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Rites Unmade. A whole floor of chalked work taken out in one drag. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the flagstones -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M0,180 H904 M0,330 H904 M0,470 H904"/>
+    <path d="M180,60 V600 M452,60 V600 M724,60 V600"/>
+  </g>
+  <!-- the rites, where they survive -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M100,120 C180,96 268,120 296,196"/>
+    <path d="M140,150 C196,134 254,152 274,202"/>
+    <path d="M804,436 C726,464 640,440 612,368"/>
+    <path d="M766,406 C712,422 656,404 634,358"/>
+    <path d="M132,486 C178,466 226,470 258,496"/>
+    <path d="M700,140 C736,118 776,118 806,138"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M180,242 L214,216 L238,250"/>
+    <path d="M690,392 L656,418 L632,384"/>
+    <path d="M746,178 L778,196"/>
+  </g>
+  <!-- and the drag through the middle of them -->
+  <g fill="none" stroke="#fffafa" stroke-width="12" stroke-opacity="0.95" stroke-linecap="round">
+    <path d="M60,404 C240,340 460,282 700,240"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M70,438 C250,376 470,316 712,276"/>
+    <path d="M66,364 C244,300 464,242 704,202"/>
+    <path d="M110,466 C280,410 490,356 716,318"/>
+  </g>
+  <!-- the chalk it took with it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M736,232 C772,222 806,220 838,226"/>
+    <path d="M748,266 C786,256 820,254 850,260"/>
+    <path d="M760,196 C790,186 818,184 842,188"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-linecap="round">
+    <path d="M356,306 L336,336"/>
+    <path d="M478,278 L462,310"/>
+  </g>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Deep Guard. Standing in it up to the chest, and the water is the
+       guard. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- them, in to the chest -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="186" r="48"/>
+    <path d="M452,234 C466,292 466,330 460,362"/>
+    <path d="M454,264 C412,286 384,310 368,336"/>
+    <path d="M458,264 C500,286 528,310 544,336"/>
+  </g>
+  <!-- the water at chest height -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M0,380 C180,352 360,394 540,368 C680,348 800,382 904,362"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M0,442 C180,416 360,456 540,430 C680,410 800,444 904,424"/>
+    <path d="M40,512 C220,486 400,526 580,500 C700,484 810,512 890,498"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M80,584 C260,558 440,596 620,572 C740,556 830,580 894,572"/>
+  </g>
+  <!-- the blow arriving, and stopping in it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M60,168 C150,212 232,258 300,302"/>
+    <path d="M36,208 C128,252 212,298 282,342"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M330,318 L300,276"/>
+    <path d="M336,388 L302,420"/>
+    <path d="M370,350 L342,354"/>
+  </g>
+</svg>

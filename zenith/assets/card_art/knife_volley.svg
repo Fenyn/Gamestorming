@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Knife Volley. From every side at once, and none of them from anyone you
+       can see. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one in the middle of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="252" r="46"/>
+    <path d="M452,298 C464,358 462,404 456,448"/>
+    <path d="M456,448 C424,494 406,536 402,576"/>
+    <path d="M456,448 C498,484 522,528 530,574"/>
+    <path d="M454,330 C416,346 388,364 370,384"/>
+    <path d="M458,332 C496,350 524,370 542,390"/>
+  </g>
+  <!-- the knives -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,120 L150,164 L176,180 L146,186 Z"/>
+    <path d="M844,120 L754,164 L728,180 L758,186 Z"/>
+    <path d="M60,540 L150,496 L176,480 L146,474 Z"/>
+    <path d="M844,540 L754,496 L728,480 L758,474 Z"/>
+    <path d="M452,36 L452,132 L460,160 L444,160 Z"/>
+    <path d="M140,330 L240,330 L268,340 L268,320 Z"/>
+    <path d="M764,330 L664,330 L636,340 L636,320 Z"/>
+  </g>
+  <!-- the lines they came in on -->
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M196,200 C240,224 280,248 316,272"/>
+    <path d="M708,200 C664,224 624,248 588,272"/>
+    <path d="M196,460 C240,436 280,412 316,388"/>
+    <path d="M708,460 C664,436 624,412 588,388"/>
+    <path d="M452,180 L452,220"/>
+    <path d="M296,330 L360,330"/>
+    <path d="M608,330 L544,330"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M356,306 L326,286"/>
+    <path d="M548,306 L578,286"/>
+    <path d="M452,238 L452,206"/>
+  </g>
+</svg>

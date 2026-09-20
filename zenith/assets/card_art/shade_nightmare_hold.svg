@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Nightmare Hold. Held upright by nothing, eyes open, and not enjoying
+       what is behind them. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one held -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="176" r="48"/>
+    <path d="M452,224 C462,290 462,348 456,400"/>
+    <path d="M456,400 C428,456 414,512 412,566"/>
+    <path d="M456,400 C490,450 508,506 512,562"/>
+    <path d="M398,574 L444,582"/>
+    <path d="M500,570 L546,578"/>
+    <path d="M454,256 C416,278 390,300 376,322"/>
+    <path d="M458,256 C496,278 522,300 536,322"/>
+    <!-- eyes open -->
+    <path d="M424,166 C436,158 448,160 454,170"/>
+    <path d="M462,170 C472,160 486,160 494,170"/>
+  </g>
+  <!-- the hold -->
+  <g fill="none" stroke="#9370db" stroke-width="11" stroke-linecap="round">
+    <path d="M300,116 C258,200 254,330 292,442 C312,502 330,548 350,580"/>
+    <path d="M604,116 C646,200 650,330 612,442 C592,502 574,548 554,580"/>
+    <path d="M330,220 C400,244 500,246 574,224"/>
+    <path d="M330,376 C400,400 500,402 574,380"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M232,152 C182,256 180,410 226,528"/>
+    <path d="M672,152 C722,256 724,410 678,528"/>
+  </g>
+  <!-- what he is seeing -->
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M398,96 L376,52"/>
+    <path d="M452,84 L452,36"/>
+    <path d="M506,96 L528,52"/>
+  </g>
+</svg>

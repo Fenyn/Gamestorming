@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Ashmark's Wall of Flame. Up with one hand, and both the blade and the bolt
+       end at it. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, one hand up -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="228" r="46"/>
+    <path d="M180,274 C190,338 188,390 182,440"/>
+    <path d="M182,440 C148,494 130,544 126,596"/>
+    <path d="M182,440 C226,480 252,532 262,592"/>
+    <path d="M114,600 L158,608"/>
+    <path d="M250,596 L296,604"/>
+    <path d="M184,306 C244,292 296,282 340,282"/>
+    <path d="M340,282 C352,250 368,224 388,204"/>
+    <path d="M176,318 C142,346 122,376 114,404"/>
+  </g>
+  <!-- the wall -->
+  <g fill="none" stroke="#a52a2a" stroke-width="10" stroke-linecap="round">
+    <path d="M470,624 C444,494 474,368 548,254 C590,188 610,124 608,52"/>
+    <path d="M572,628 C548,498 576,376 646,266 C686,204 704,142 702,76"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="9" stroke-linecap="round">
+    <path d="M520,626 C498,506 526,392 594,288 C632,228 650,170 648,110"/>
+    <path d="M436,614 C416,504 440,404 498,312"/>
+    <path d="M620,628 C600,514 624,410 682,320"/>
+  </g>
+  <!-- the blade that stopped in it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M886,168 C816,196 756,222 706,246"/>
+    <path d="M896,206 C828,234 770,260 722,284"/>
+  </g>
+  <!-- and the bolt -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M890,500 L790,466 L840,444 L716,410"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M676,254 L712,214"/>
+    <path d="M686,404 L722,376"/>
+  </g>
+</svg>

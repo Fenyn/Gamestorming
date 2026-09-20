@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Arc Bolt. One arc, fingertip to the edge of the frame. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="168" cy="252" r="46"/>
+    <path d="M168,298 C180,358 178,404 172,448"/>
+    <path d="M172,448 C140,498 122,542 118,592"/>
+    <path d="M172,448 C220,484 250,532 262,592"/>
+    <path d="M104,602 L150,610"/>
+    <path d="M250,598 L298,606"/>
+    <path d="M172,328 C224,326 270,328 308,334"/>
+    <path d="M162,342 C134,368 116,392 108,414"/>
+  </g>
+  <!-- one finger out -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M308,334 C336,326 362,326 382,332"/>
+    <path d="M308,352 C328,364 352,370 374,368"/>
+  </g>
+  <!-- the arc -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M394,332 L492,300 L440,340 L560,304 L510,346 L640,306 L588,350 L720,308 L676,352 L880,296"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M404,372 L500,344 L452,380 L570,346 L524,384 L650,348 L604,388 L736,350 L864,340"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M520,250 L560,222"/>
+    <path d="M700,250 L740,222"/>
+    <path d="M600,412 L636,440"/>
+  </g>
+</svg>

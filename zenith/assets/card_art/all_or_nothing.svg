@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Emrys Risks It All. Both feet off the floor and nothing held back, which
+       also means nothing left if it misses. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, airborne and fully extended -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="288" cy="252" r="46"/>
+    <path d="M288,298 C316,332 342,358 362,376"/>
+    <!-- both legs trailing behind -->
+    <path d="M362,376 C304,412 254,446 216,478"/>
+    <path d="M216,478 C190,486 170,494 154,506"/>
+    <path d="M362,376 C318,428 288,472 270,510"/>
+    <path d="M270,510 C244,522 226,534 214,548"/>
+    <!-- the striking arm, all the way through -->
+    <path d="M316,290 C400,282 480,278 552,282"/>
+    <!-- the other arm cocked back -->
+    <path d="M300,310 C258,332 226,352 204,368"/>
+  </g>
+  <!-- the fist -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M552,244 C602,238 640,258 642,292 C644,328 608,352 564,346 C526,340 506,314 510,284 C514,258 532,246 552,244 Z"/>
+    <path d="M568,264 C590,260 610,266 618,280"/>
+    <path d="M564,296 C586,292 606,296 616,310"/>
+  </g>
+  <!-- everything he put into it -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M100,196 C200,192 300,196 388,208"/>
+    <path d="M78,300 C180,296 282,300 368,312"/>
+    <path d="M110,404 C210,394 306,392 384,398"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M684,244 L740,212"/>
+    <path d="M702,294 L768,290"/>
+    <path d="M688,348 L744,378"/>
+    <path d="M654,206 L672,156"/>
+    <path d="M648,388 L664,440"/>
+  </g>
+</svg>

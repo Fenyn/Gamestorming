@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide High Water. The mark on the gate, the water at it, and the ground
+       under it is not the same ground any more. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the gate -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M200,40 C194,220 194,420 200,600"/>
+    <path d="M704,40 C710,220 710,420 704,600"/>
+    <path d="M200,40 C360,20 544,20 704,40"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M240,160 C360,148 540,148 660,160"/>
+    <path d="M240,290 C360,278 540,278 660,290"/>
+  </g>
+  <!-- the mark -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round">
+    <path d="M160,376 C200,370 240,370 276,376"/>
+    <path d="M628,376 C664,370 704,370 744,376"/>
+  </g>
+  <!-- the water at it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round">
+    <path d="M0,392 C180,366 360,406 540,380 C680,360 800,392 904,374"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M0,446 C180,422 360,460 540,436 C680,418 800,448 904,430"/>
+    <path d="M40,514 C220,490 400,528 580,504 C700,488 810,514 890,502"/>
+  </g>
+  <!-- and the ground changing under it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M80,588 C260,566 440,600 620,580 C730,568 830,588 894,580"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M300,624 C420,610 560,610 680,622"/>
+  </g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Full Weight. Everything it has, delivered at once, straight down.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the column -->
+  <g fill="none" stroke="#20b2aa" stroke-width="18" stroke-linecap="round">
+    <path d="M330,20 C322,160 326,320 348,470"/>
+    <path d="M574,20 C582,160 578,320 556,470"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="12" stroke-linecap="round">
+    <path d="M400,20 C394,160 398,320 414,460"/>
+    <path d="M504,20 C510,160 506,320 490,460"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M250,40 C240,170 246,310 266,440"/>
+    <path d="M654,40 C664,170 658,310 638,440"/>
+  </g>
+  <!-- where it lands -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round">
+    <path d="M150,520 C260,478 420,462 560,478 C660,490 740,512 800,540"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M100,586 C240,536 420,518 580,538 C690,552 780,580 850,614"/>
+    <path d="M210,470 C270,444 340,432 404,432"/>
+    <path d="M500,432 C566,434 632,448 690,474"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M132,470 L88,436"/>
+    <path d="M772,478 L818,444"/>
+  </g>
+</svg>

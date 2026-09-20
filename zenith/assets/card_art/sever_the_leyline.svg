@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Sever the Leyline. The line in the ground is cut, and everything past the
+       cut goes out. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the ground -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M0,232 C220,216 640,214 904,230"/>
+    <path d="M0,492 C220,476 640,474 904,490"/>
+  </g>
+  <!-- the live half -->
+  <g fill="none" stroke="#ffd700" stroke-width="12" stroke-linecap="round">
+    <path d="M0,378 C120,362 260,356 396,354"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M40,332 C150,320 260,314 372,312"/>
+    <path d="M30,424 C146,412 262,406 376,404"/>
+  </g>
+  <!-- the dead half -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M500,352 C620,352 760,358 880,372"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.25" stroke-linecap="round">
+    <path d="M520,312 C640,312 770,318 880,330"/>
+  </g>
+  <!-- the cut -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M382,148 C412,238 434,320 448,392"/>
+    <path d="M414,140 C444,230 466,312 480,384"/>
+    <path d="M448,392 C462,412 474,414 480,384"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M352,132 C382,124 414,120 444,122"/>
+    <path d="M370,88 C384,102 390,116 390,130"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M418,414 L386,448"/>
+    <path d="M462,420 L470,462"/>
+    <path d="M400,342 L358,330"/>
+  </g>
+</svg>

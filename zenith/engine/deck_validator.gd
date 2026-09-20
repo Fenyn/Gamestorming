@@ -95,8 +95,16 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		var relic: CardDef = library.defs.get(deck.relic_id)
 		if relic == null or relic.type != CardDef.Type.RELIC:
 			problems.append("Relic '%s' not found" % deck.relic_id)
-		elif deck.reserve.size() > relic.reserve_size:
-			problems.append("Reserve holds %d cards, Relic allows %d" % [deck.reserve.size(), relic.reserve_size])
+		else:
+			# A card that goes into play at the start is out of the Reserve before the first
+			# turn, so it does not take one of the Relic's slots.
+			var held: int = 0
+			for id in deck.reserve:
+				var rd: CardDef = library.defs.get(id)
+				if rd == null or not rd.start_in_play:
+					held += 1
+			if held > relic.reserve_size:
+				problems.append("Reserve holds %d cards, Relic allows %d" % [held, relic.reserve_size])
 	elif not deck.reserve.is_empty():
 		problems.append("A Reserve needs a Relic")
 	# Reserve cards obey the same copy limits, counted together with the Life Deck.

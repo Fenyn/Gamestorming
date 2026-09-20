@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Quarr Shrugs It Off. It lands on the shoulder, he rolls the shoulder, and
+       that is the end of it. His card: no school effect on it. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, big and unbothered -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="520" cy="178" r="52"/>
+    <path d="M520,230 C534,296 534,348 528,396"/>
+    <path d="M528,396 C480,448 454,504 448,568"/>
+    <path d="M528,396 C588,436 624,492 634,562"/>
+    <path d="M432,574 L484,582"/>
+    <path d="M620,570 L672,578"/>
+    <!-- the shoulder, rolled forward -->
+    <path d="M522,266 C470,258 428,266 400,286"/>
+    <path d="M400,286 C382,318 378,352 386,382"/>
+    <path d="M526,280 C572,300 610,322 638,344"/>
+  </g>
+  <!-- and the blow arriving on it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M70,120 C160,168 246,216 320,262"/>
+    <path d="M42,164 C134,212 222,260 296,306"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M96,76 C190,126 276,176 346,222"/>
+    <path d="M40,242 C130,282 214,320 282,352"/>
+  </g>
+  <!-- what it achieved -->
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M360,244 L376,202"/>
+    <path d="M344,306 L302,326"/>
+  </g>
+  <!-- his face, entirely unmoved -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M492,166 C504,160 516,162 522,170"/>
+    <path d="M538,168 C548,160 560,160 568,168"/>
+    <path d="M498,208 C516,214 540,214 556,208"/>
+  </g>
+</svg>

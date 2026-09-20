@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Triple Shock. Three pulses out of the chest, one after another, each
+       one a little wider than the last. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the figure, square on, arms down -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="260" cy="176" r="46"/>
+    <path d="M260,222 C272,288 272,340 266,388"/>
+    <path d="M266,388 C226,442 202,494 196,556"/>
+    <path d="M266,388 C318,428 350,482 360,552"/>
+    <path d="M182,562 L228,570"/>
+    <path d="M348,558 L396,566"/>
+    <path d="M262,258 C226,282 202,308 190,332"/>
+    <path d="M266,262 C302,288 330,314 348,338"/>
+  </g>
+  <!-- the plate it came out of -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214,258 C256,244 300,250 326,272 C334,318 330,358 318,392 C276,404 240,402 212,388 C204,346 204,298 214,258 Z"/>
+    <path d="M212,310 C250,300 288,304 318,316"/>
+  </g>
+  <!-- the three -->
+  <g fill="none" stroke="#4682b4" stroke-width="12" stroke-linecap="round">
+    <path d="M430,208 C476,290 476,388 430,468"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M560,160 C622,268 622,418 560,522"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M700,112 C780,250 780,434 700,570"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M828,80 C876,230 876,428 828,600"/>
+  </g>
+</svg>

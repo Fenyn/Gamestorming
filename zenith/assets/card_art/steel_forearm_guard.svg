@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Forearm Guard. The blade arrives on the plate and leaves with
+       nothing to show for it but sparks. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="536" cy="200" r="46"/>
+    <path d="M536,246 C548,308 546,358 540,404"/>
+    <path d="M540,404 C500,456 476,508 470,566"/>
+    <path d="M540,404 C596,442 630,496 642,562"/>
+    <path d="M456,572 L502,580"/>
+    <path d="M630,568 L678,576"/>
+    <path d="M538,276 C486,268 442,256 408,240"/>
+    <path d="M542,290 C580,312 612,330 638,340"/>
+  </g>
+  <!-- the plate on the forearm -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M404,196 C370,214 348,244 344,276 C340,310 356,340 386,356"/>
+    <path d="M420,222 C396,236 382,256 380,278"/>
+    <path d="M430,262 C408,272 396,288 394,306"/>
+  </g>
+  <!-- the blade, skating off it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M60,150 C144,182 220,212 288,240"/>
+    <path d="M300,232 C302,186 314,146 338,112"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M90,98 C176,132 252,164 316,192"/>
+    <path d="M54,212 C134,238 204,262 262,284"/>
+  </g>
+  <!-- sparks -->
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M330,186 L344,140"/>
+    <path d="M296,200 L252,184"/>
+    <path d="M338,232 L382,228"/>
+    <path d="M308,268 L278,304"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M362,158 L386,120"/>
+    <path d="M280,240 L236,248"/>
+  </g>
+</svg>

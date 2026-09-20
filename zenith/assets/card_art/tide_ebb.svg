@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Ebb. The water goes back off their feet and takes the glow with it.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- them, standing in what is left -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="672" cy="196" r="46"/>
+    <path d="M672,242 C682,304 680,352 674,398"/>
+    <path d="M674,398 C642,452 622,502 618,556"/>
+    <path d="M674,398 C716,436 742,488 750,552"/>
+    <path d="M604,566 L650,574"/>
+    <path d="M738,560 L786,568"/>
+    <path d="M668,276 C636,300 614,324 602,348"/>
+    <path d="M678,276 C710,300 732,324 744,348"/>
+  </g>
+  <!-- the water going out -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M40,520 C200,490 420,492 600,520"/>
+    <path d="M60,576 C220,548 440,550 620,576"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M110,548 C260,522 420,522 560,546"/>
+  </g>
+  <!-- and the glow going with it -->
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M560,440 C460,432 350,438 250,456"/>
+    <path d="M250,456 L296,434"/>
+    <path d="M250,456 L294,480"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M580,382 C480,378 380,388 290,406"/>
+  </g>
+  <!-- what is left around the feet: nothing -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M620,600 C690,592 760,592 820,600"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Thunderhead. It builds directly over the floor and the drawn circles
+       start lifting in the wind. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the head -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round">
+    <path d="M40,214 C100,120 220,74 330,102 C400,26 540,20 620,96 C720,84 812,152 830,250"/>
+    <path d="M60,286 C180,236 330,244 440,290 C550,336 700,336 820,296"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M160,180 C240,140 340,144 410,180"/>
+    <path d="M500,150 C580,120 668,138 720,190"/>
+  </g>
+  <!-- the floor -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M0,570 C240,552 660,550 904,568"/>
+  </g>
+  <!-- the circles lifting -->
+  <g fill="none" stroke="#7b68ee" stroke-width="9" stroke-linecap="round">
+    <g transform="translate(220,470) rotate(-22)">
+      <path d="M-96,0 C-96,-36 -40,-58 0,-58 C44,-58 96,-36 96,0"/>
+      <path d="M96,26 C96,58 44,78 0,78 C-40,78 -96,58 -96,26"/>
+    </g>
+    <g transform="translate(560,502) rotate(16)">
+      <path d="M-90,0 C-90,-34 -36,-54 0,-54 C40,-54 90,-34 90,0"/>
+      <path d="M90,24 C90,54 40,72 0,72 C-36,72 -90,54 -90,24"/>
+    </g>
+    <g transform="translate(790,428) rotate(-34)">
+      <path d="M-72,0 C-72,-28 -30,-44 0,-44 C32,-44 72,-28 72,0"/>
+    </g>
+  </g>
+  <!-- the wind -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="7" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M80,398 C200,376 340,378 440,400"/>
+    <path d="M140,346 C260,326 400,328 500,350"/>
+    <path d="M300,590 C420,570 560,572 660,594"/>
+  </g>
+</svg>

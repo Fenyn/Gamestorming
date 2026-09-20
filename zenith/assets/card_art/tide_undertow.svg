@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Undertow. Up out of the water from underneath, and the bolt goes back
+       down with it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the surface -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M0,386 C180,358 360,398 540,372 C680,352 800,384 904,366"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M0,440 C180,414 360,452 540,428 C680,410 800,440 904,422"/>
+  </g>
+  <!-- the strike coming up through it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,600 C316,520 336,452 360,400"/>
+    <path d="M360,400 C398,340 444,288 494,248"/>
+    <path d="M494,248 C520,232 548,232 568,244"/>
+    <path d="M360,400 C324,384 292,376 264,376"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M568,244 C602,234 632,246 640,272 C650,302 628,330 596,332 C570,334 552,318 552,296"/>
+  </g>
+  <!-- the water coming with it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round">
+    <path d="M404,372 C440,304 492,244 552,208"/>
+    <path d="M330,394 C344,320 376,254 424,206"/>
+  </g>
+  <!-- and the bolt being dragged down -->
+  <g fill="none" stroke="#87ceeb" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M760,150 L700,244 L764,262 L676,380"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M676,380 L700,470 L640,492 L676,584"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M736,420 C752,480 748,528 724,566"/>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Stamp. A plated heel put straight down on a guard that is already on
+       the floor, with all the weight behind it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one doing it, straight up over the leg -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="380" cy="122" r="44"/>
+    <path d="M380,166 C392,222 392,266 386,306"/>
+    <path d="M386,306 C400,364 412,414 420,456"/>
+    <path d="M386,306 C346,340 322,378 314,418"/>
+    <path d="M300,424 L342,436"/>
+    <path d="M384,196 C428,210 464,228 492,250"/>
+    <path d="M374,206 C336,226 306,248 288,270"/>
+  </g>
+  <!-- the heel -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M420,456 C458,448 500,452 528,470 C534,500 530,526 516,546 C476,558 436,556 404,540 C398,512 404,482 420,456 Z"/>
+    <path d="M410,500 C444,490 486,492 520,504"/>
+  </g>
+  <!-- the guard under it, flattening -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M560,560 C620,540 690,538 752,556"/>
+    <path d="M556,594 C620,576 692,574 756,592"/>
+    <path d="M560,560 C548,574 548,584 556,594"/>
+    <path d="M752,556 C766,570 768,580 756,592"/>
+  </g>
+  <!-- the arm it belongs to, gone limp -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M770,572 C812,566 848,568 880,578"/>
+  </g>
+  <!-- the weight going through -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M300,578 C360,552 420,542 470,544"/>
+    <path d="M540,548 C600,538 660,542 710,556"/>
+    <path d="M466,598 L444,630"/>
+    <path d="M540,596 L560,628"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M160,608 C280,586 420,578 560,584"/>
+  </g>
+</svg>

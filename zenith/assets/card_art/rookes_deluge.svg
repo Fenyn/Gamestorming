@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Rooke's Deluge. Arms up, and everything the coven was holding comes down
+       across the floor at once. Her card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- her, arms raised -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="176" r="48"/>
+    <path d="M452,224 C466,286 466,336 460,382"/>
+    <path d="M460,382 C424,434 402,484 398,540"/>
+    <path d="M460,382 C512,420 546,472 556,536"/>
+    <path d="M384,550 L430,558"/>
+    <path d="M544,542 L592,550"/>
+    <path d="M452,254 C404,212 368,172 344,136"/>
+    <path d="M458,254 C506,212 542,172 566,136"/>
+  </g>
+  <!-- the water coming off both hands -->
+  <g fill="none" stroke="#20b2aa" stroke-width="11" stroke-linecap="round">
+    <path d="M330,120 C246,168 180,254 150,364 C136,414 128,462 126,506"/>
+    <path d="M580,120 C664,168 730,254 760,364 C774,414 782,462 784,506"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-linecap="round">
+    <path d="M300,166 C238,214 190,288 168,374"/>
+    <path d="M610,166 C672,214 720,288 742,374"/>
+  </g>
+  <!-- and running across the floor -->
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round">
+    <path d="M60,540 C220,512 680,512 848,542"/>
+    <path d="M110,576 C280,552 640,552 800,578"/>
+  </g>
+  <!-- circles going with it -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round">
+    <g transform="translate(180,470) rotate(-26)">
+      <path d="M-70,0 C-70,-26 -30,-42 0,-42 C32,-42 70,-26 70,0"/>
+    </g>
+    <g transform="translate(736,456) rotate(30)">
+      <path d="M-66,0 C-66,-24 -28,-40 0,-40 C30,-40 66,-24 66,0"/>
+    </g>
+  </g>
+</svg>

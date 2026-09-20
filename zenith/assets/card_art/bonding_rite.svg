@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Bonding Rite. Two laid face to face, a third laid over them, and a cord
+       tied round the lot. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the two underneath, face to face -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(400,300) rotate(-8)"><path d="M-130,-92 h260 v184 h-260 Z"/></g>
+    <g transform="translate(470,286) rotate(7)"><path d="M-130,-92 h260 v184 h-260 Z"/></g>
+  </g>
+  <!-- and the third across them -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(440,226) rotate(-2)">
+      <path d="M-140,-100 h280 v200 h-280 Z"/>
+      <path d="M-96,-44 h192 M-96,4 h150"/>
+    </g>
+  </g>
+  <!-- the cord -->
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round">
+    <path d="M250,150 C330,128 560,128 640,152"/>
+    <path d="M250,150 C226,210 226,300 250,364"/>
+    <path d="M640,152 C664,212 664,300 640,362"/>
+    <path d="M250,364 C330,388 560,388 640,362"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-linecap="round">
+    <path d="M440,120 C420,100 420,74 442,62 C464,50 490,64 490,88 C490,110 470,124 448,120"/>
+    <path d="M448,120 L410,86"/>
+    <path d="M462,118 L504,92"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M160,434 C300,418 600,416 740,432"/>
+  </g>
+</svg>

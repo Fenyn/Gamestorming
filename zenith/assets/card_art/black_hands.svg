@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Draik's Black Hands. Black to the elbow, and six knives of shadow already
+       leaving. Her card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- both arms out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="226" r="46"/>
+    <path d="M180,272 C192,334 190,382 184,428"/>
+    <path d="M184,428 C150,480 130,528 124,582"/>
+    <path d="M184,428 C234,466 266,518 278,582"/>
+    <path d="M110,592 L156,600"/>
+    <path d="M266,588 L314,596"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M186,300 C248,288 306,282 356,286"/>
+    <path d="M182,338 C242,342 296,352 340,368"/>
+    <path d="M356,286 C382,274 408,272 430,278"/>
+    <path d="M340,368 C366,364 392,366 412,374"/>
+  </g>
+  <!-- six knives -->
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,150 L580,166 L610,178 L580,190 Z"/>
+    <path d="M488,242 L598,254 L628,266 L598,278 Z"/>
+    <path d="M478,336 L588,344 L618,356 L588,368 Z"/>
+    <path d="M492,424 L602,428 L632,440 L602,452 Z"/>
+    <path d="M462,508 L572,506 L602,518 L572,530 Z"/>
+    <path d="M500,74 L606,92 L636,104 L606,116 Z"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M660,178 C716,182 770,190 820,204"/>
+    <path d="M676,266 C730,272 782,282 828,296"/>
+    <path d="M666,356 C722,360 776,368 824,380"/>
+    <path d="M680,440 C734,446 786,456 830,470"/>
+    <path d="M650,518 C706,522 760,530 808,542"/>
+    <path d="M684,104 C738,110 790,120 836,134"/>
+  </g>
+</svg>

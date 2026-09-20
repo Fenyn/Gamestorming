@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Shade Composure Drill. Cards face down on an iron bench with a hand laid
+       flat across them. Nothing is being played. School card. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the iron -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,356 C280,340 620,340 866,358"/>
+    <path d="M40,356 C44,378 46,394 46,406"/>
+    <path d="M866,358 C862,380 860,396 860,408"/>
+    <path d="M46,406 C280,390 620,390 860,408"/>
+  </g>
+  <!-- the row, face down -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M108,180 L228,180 L228,346 L108,346 Z"/>
+    <path d="M250,180 L370,180 L370,346 L250,346 Z"/>
+    <path d="M392,180 L512,180 L512,346 L392,346 Z"/>
+    <path d="M534,180 L654,180 L654,346 L534,346 Z"/>
+    <path d="M676,180 L796,180 L796,346 L676,346 Z"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M136,212 L200,212"/>
+    <path d="M278,212 L342,212"/>
+    <path d="M420,212 L484,212"/>
+    <path d="M562,212 L626,212"/>
+    <path d="M704,212 L768,212"/>
+  </g>
+  <!-- the hand across them -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M150,262 C300,246 460,242 600,250"/>
+    <path d="M150,296 C300,284 460,282 604,290"/>
+    <path d="M600,250 C640,250 672,258 694,272"/>
+    <path d="M604,290 C644,290 674,284 694,272"/>
+    <path d="M150,262 C120,268 104,280 104,292 C104,304 122,300 150,296"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M260,254 L260,292"/>
+    <path d="M400,250 L400,288"/>
+    <path d="M540,250 L540,288"/>
+  </g>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Ashmark Will Not Break. Fire all round him, a blade stopped on the
+       forearm, and he has not moved his feet. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the fire he is standing in -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M120,560 C104,452 140,358 206,282"/>
+    <path d="M784,560 C800,452 764,358 698,282"/>
+    <path d="M240,566 C230,486 252,420 296,368"/>
+    <path d="M664,566 C674,486 652,420 608,368"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M176,566 C166,478 194,402 248,342"/>
+    <path d="M728,566 C738,478 710,402 656,342"/>
+    <path d="M296,572 C290,510 306,462 338,424"/>
+    <path d="M608,572 C614,510 598,462 566,424"/>
+  </g>
+  <!-- him, planted -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="152" r="46"/>
+    <path d="M452,198 C462,262 462,312 456,358"/>
+    <path d="M456,358 C412,406 386,456 378,520"/>
+    <path d="M456,358 C510,400 544,452 554,518"/>
+    <path d="M364,526 L410,534"/>
+    <path d="M542,524 L590,532"/>
+    <!-- the forearm taking it -->
+    <path d="M454,232 C398,226 350,216 312,200"/>
+    <path d="M312,200 C296,230 288,262 290,292"/>
+    <path d="M458,246 C500,268 534,284 560,292"/>
+  </g>
+  <!-- the blade, stopped on it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M70,58 C150,106 222,152 282,190"/>
+    <path d="M44,96 C126,142 198,188 258,226"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M318,168 L322,124"/>
+    <path d="M286,180 L246,160"/>
+    <path d="M330,214 L370,200"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M330,566 C420,554 520,554 604,564"/>
+  </g>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Ashen Veil. A wall of ash put up between the two of them, with burnt
+       pages going up in it. School card: both fighters are outlines. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one who threw it, hand still out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="162" cy="236" r="44"/>
+    <path d="M162,280 C170,342 168,392 162,440"/>
+    <path d="M162,440 C132,492 116,540 112,590"/>
+    <path d="M162,440 C202,486 224,540 230,590"/>
+    <path d="M166,308 C216,296 260,290 300,292"/>
+  </g>
+  <!-- and the one on the far side, already hard to see -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.35" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="768" cy="244" r="42"/>
+    <path d="M768,286 V442"/>
+    <path d="M768,442 L738,588 M768,442 L800,588"/>
+    <path d="M768,318 L700,296"/>
+  </g>
+  <!-- the veil -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M376,600 C340,478 372,352 456,246 C512,176 556,110 560,36"/>
+    <path d="M470,608 C436,486 462,358 540,254 C596,180 640,112 644,40"/>
+    <path d="M566,612 C534,494 556,372 628,272 C680,200 722,136 726,68"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M420,604 C392,494 420,378 494,282"/>
+    <path d="M518,610 C490,500 514,388 584,296"/>
+  </g>
+  <!-- burnt pages going up in it -->
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M444,352 C466,334 490,330 508,340 C498,364 474,374 444,352 Z"/>
+    <path d="M578,214 C598,196 622,194 638,204 C628,226 606,234 578,214 Z"/>
+    <path d="M486,474 C506,458 528,456 544,466 C534,488 512,494 486,474 Z"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="6" stroke-linecap="round">
+    <path d="M462,338 C474,326 488,322 500,326"/>
+    <path d="M596,202 C608,192 622,190 632,194"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M400,530 L376,556"/>
+    <path d="M660,300 L688,276"/>
+    <path d="M540,150 L560,122"/>
+  </g>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Battering Ram. A shoulder charge with iron skin, and it rings. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the run-up -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M40,220 C120,214 192,216 250,224"/>
+    <path d="M28,330 C110,324 186,326 246,334"/>
+    <path d="M52,440 C134,430 208,428 264,432"/>
+  </g>
+  <!-- him, low and driving -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="322" cy="238" r="46"/>
+    <path d="M354,270 C398,304 430,334 452,358"/>
+    <path d="M452,358 C438,416 428,468 424,514"/>
+    <path d="M410,520 L456,528"/>
+    <path d="M452,358 C400,392 362,428 340,462"/>
+    <path d="M326,468 L372,478"/>
+    <path d="M300,284 C266,312 244,340 232,366"/>
+    <path d="M356,300 C392,326 420,348 440,364"/>
+  </g>
+  <!-- the shoulder, plated -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360,224 C412,212 458,230 472,264 C486,300 462,336 418,342 C376,348 340,328 334,294 C328,262 342,230 360,224 Z"/>
+    <path d="M362,262 C398,252 438,258 456,278"/>
+  </g>
+  <!-- the one it hit, going off their feet -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="728" cy="196" r="44"/>
+    <path d="M728,240 C716,292 704,334 690,366"/>
+    <path d="M690,366 C726,404 760,440 786,474"/>
+    <path d="M690,366 C660,396 638,430 626,466"/>
+    <path d="M712,270 C678,286 654,302 638,318"/>
+    <path d="M744,268 C780,288 808,310 826,332"/>
+  </g>
+  <!-- the ring -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M540,236 C566,304 566,382 540,448"/>
+    <path d="M598,196 C634,290 634,404 598,494"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M656,168 C700,278 700,414 656,522"/>
+  </g>
+</svg>

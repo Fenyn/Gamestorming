@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Draik's Lingering Curse. It settles on the shoulders like spilled ink and
+       then it runs down. Her card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one wearing it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="164" r="48"/>
+    <path d="M452,212 C464,278 464,332 458,382"/>
+    <path d="M458,382 C420,442 398,502 394,566"/>
+    <path d="M458,382 C510,424 544,484 554,562"/>
+    <path d="M380,578 L426,586"/>
+    <path d="M542,568 L590,576"/>
+    <path d="M454,246 C406,266 372,290 350,314"/>
+    <path d="M458,248 C506,270 542,296 564,322"/>
+  </g>
+  <!-- the ink on the shoulders -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M356,262 C398,238 460,232 516,248 C544,256 566,268 580,282"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <path d="M372,290 C376,344 372,392 360,430"/>
+    <path d="M430,282 C432,346 428,404 416,448"/>
+    <path d="M492,288 C496,350 494,406 484,448"/>
+    <path d="M552,300 C558,354 556,402 546,438"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M400,300 C404,354 400,400 390,436"/>
+    <path d="M462,292 C464,352 462,404 452,444"/>
+    <path d="M522,298 C526,352 524,398 514,434"/>
+  </g>
+  <!-- and it is not stopping -->
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M366,470 C368,502 366,528 360,548"/>
+    <path d="M482,476 C486,508 484,534 478,554"/>
+  </g>
+  <!-- where it came from -->
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M180,150 C244,178 306,206 356,236"/>
+    <path d="M160,200 C226,224 288,250 340,278"/>
+  </g>
+</svg>

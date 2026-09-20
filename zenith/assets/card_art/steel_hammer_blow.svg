@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Hammer Blow. Both fists locked together and brought down, and the
+       floor under the target opens. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="300" cy="150" r="46"/>
+    <path d="M300,196 C312,254 310,296 304,334"/>
+    <path d="M304,334 C270,386 250,434 244,482"/>
+    <path d="M304,334 C352,368 382,416 392,468"/>
+    <path d="M230,488 L276,496"/>
+    <path d="M380,474 L426,482"/>
+    <!-- both arms together -->
+    <path d="M306,224 C362,252 408,286 444,324"/>
+    <path d="M300,252 C352,280 396,314 430,350"/>
+  </g>
+  <!-- the two fists, one shape -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M444,324 C500,318 546,348 548,396 C550,444 504,478 452,470 C410,464 386,430 392,388 C398,348 420,328 444,324 Z"/>
+    <path d="M430,366 C470,350 516,358 538,382"/>
+    <path d="M436,420 C476,404 520,412 542,434"/>
+  </g>
+  <!-- the floor opening -->
+  <g fill="none" stroke="#4682b4" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,506 L520,566 L466,600"/>
+    <path d="M556,516 L620,556 L590,608"/>
+    <path d="M400,530 L330,566 L360,612"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M212,592 C300,556 400,540 500,544 C610,548 706,574 780,614"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M640,470 L692,434"/>
+    <path d="M310,478 L256,444"/>
+  </g>
+</svg>

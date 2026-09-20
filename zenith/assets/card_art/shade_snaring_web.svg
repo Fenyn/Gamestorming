@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Snaring Web. Black filament strung corner to corner, and the bolt
+       goes into it and stops being a bolt. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the web -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M452,40 C452,220 452,420 452,600"/>
+    <path d="M120,80 C260,230 640,410 780,560"/>
+    <path d="M784,80 C644,230 264,410 124,560"/>
+    <path d="M60,320 C240,320 664,320 844,320"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M452,150 C520,180 560,242 566,320 C572,404 524,468 452,494"/>
+    <path d="M452,150 C384,180 344,242 338,320 C332,404 380,468 452,494"/>
+    <path d="M452,232 C494,250 514,282 516,320 C518,362 492,392 452,406"/>
+    <path d="M452,232 C410,250 390,282 388,320 C386,362 412,392 452,406"/>
+  </g>
+  <!-- the bolt, tangled and going out -->
+  <g fill="none" stroke="#da70d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,168 L150,204 L96,232 L212,268"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="9" stroke-opacity="0.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M212,268 L306,292 L262,312 L352,330"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.35" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M352,330 L412,342 L384,352 L436,360"/>
+  </g>
+  <!-- and what it is doing to the strands -->
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M300,250 L286,214"/>
+    <path d="M340,352 L318,386"/>
+  </g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Riftcry. A shout with a tear in it, and the air behind the shout comes
+       apart along the line. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one shouting, head back -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M152,256 C152,192 196,152 250,158 C304,164 336,214 330,272 C324,332 282,368 232,362 C184,356 152,314 152,256 Z"/>
+    <path d="M264,296 C294,284 322,292 334,318 C318,352 274,352 264,296 Z"/>
+    <path d="M178,230 C202,214 232,214 254,228"/>
+    <path d="M194,382 C204,440 208,496 206,552"/>
+    <path d="M206,552 C170,566 142,578 122,592"/>
+    <path d="M206,552 C246,566 276,578 296,592"/>
+    <path d="M200,420 C158,438 126,458 106,478"/>
+  </g>
+  <!-- the tear it opened -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M446,84 L500,208 L446,262 L524,376 L456,432 L528,566"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M478,106 L520,212 L474,266 L544,368"/>
+  </g>
+  <!-- the sound going out around it -->
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M598,120 C660,232 664,410 606,540"/>
+    <path d="M690,80 C766,216 770,428 700,580"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M788,58 C874,208 878,436 800,604"/>
+    <path d="M372,176 C352,244 352,404 376,480"/>
+  </g>
+</svg>

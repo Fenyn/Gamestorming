@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Reverse. A back kick turned out of the blind side, the heel plated,
+       and the whole twist behind it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the turn -->
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M166,486 C110,400 128,292 212,236"/>
+    <path d="M232,556 C144,470 152,330 256,268"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M198,196 L240,180"/>
+    <path d="M160,244 L124,222"/>
+  </g>
+  <!-- him, back turned, looking over the shoulder -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="298" cy="188" r="46"/>
+    <path d="M298,234 C310,296 308,346 302,392"/>
+    <path d="M302,392 C270,446 252,496 248,552"/>
+    <path d="M234,558 L280,566"/>
+    <!-- the kicking leg, straight out behind -->
+    <path d="M302,392 C374,384 444,372 508,356"/>
+    <!-- arms crossed in front of the turn -->
+    <path d="M300,268 C266,292 244,318 234,342"/>
+    <path d="M304,260 C340,264 372,274 396,288"/>
+  </g>
+  <!-- the heel -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M508,320 C548,312 584,324 596,350 C608,378 588,406 552,412 C514,418 484,400 480,372 C476,346 490,326 508,320 Z"/>
+    <path d="M520,344 C548,338 576,344 588,360"/>
+  </g>
+  <!-- the one it found -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="716" cy="252" r="44"/>
+    <path d="M716,296 C708,348 698,388 684,420"/>
+    <path d="M684,420 C696,470 712,514 732,552"/>
+    <path d="M684,420 C660,464 646,510 642,556"/>
+    <path d="M706,326 C676,344 654,362 640,380"/>
+    <path d="M726,324 C760,342 786,362 802,382"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M628,318 L596,282"/>
+    <path d="M642,372 L602,376"/>
+    <path d="M636,264 L648,220"/>
+  </g>
+</svg>

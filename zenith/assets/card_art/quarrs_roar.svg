@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Quarr's Roar. Chest out, head back, and the shout arrives before he does.
+       His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head back -->
+    <path d="M240,200 C240,144 284,108 340,116 C396,124 424,176 412,232 C400,288 356,316 306,306 C260,296 240,254 240,200 Z"/>
+    <path d="M330,240 C368,228 404,240 418,272 C398,308 342,306 330,240 Z"/>
+    <path d="M268,180 C296,162 330,164 354,182"/>
+    <!-- chest and arms wide -->
+    <path d="M316,320 C330,388 332,444 326,492"/>
+    <path d="M326,492 C284,540 262,580 256,620"/>
+    <path d="M326,492 C376,528 406,570 416,616"/>
+    <path d="M320,356 C266,340 220,332 186,334"/>
+    <path d="M330,370 C382,366 428,368 462,378"/>
+  </g>
+  <!-- the shout -->
+  <g fill="none" stroke="#4682b4" stroke-width="12" stroke-linecap="round">
+    <path d="M520,138 C592,252 592,412 520,528"/>
+    <path d="M634,96 C724,238 724,428 634,572"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M756,60 C860,226 860,442 756,606"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M472,206 C500,268 500,378 472,442"/>
+  </g>
+</svg>

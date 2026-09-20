@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Welling Deep. It comes up out of the floor with no source anybody can
+       point to. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the floor, and the seam it is coming through -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,500 C200,476 660,474 904,498"/>
+    <path d="M352,500 L388,562 L340,596"/>
+    <path d="M556,502 L524,566 L574,598"/>
+  </g>
+  <!-- the welling -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M356,498 C330,404 344,310 398,238"/>
+    <path d="M552,500 C578,406 564,310 510,238"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M414,494 C396,410 408,332 448,276"/>
+    <path d="M494,496 C512,412 500,334 460,278"/>
+  </g>
+  <!-- the crest at the top -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M398,238 C420,206 458,196 486,208"/>
+    <path d="M510,238 C494,204 460,190 430,200"/>
+    <path d="M440,166 C466,150 496,152 516,166"/>
+  </g>
+  <!-- and it spreading across the floor -->
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M320,540 C220,548 140,566 80,592"/>
+    <path d="M586,542 C686,550 766,568 826,594"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M300,596 C220,604 150,616 100,632"/>
+    <path d="M606,598 C686,606 756,618 806,634"/>
+  </g>
+</svg>

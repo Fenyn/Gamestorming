@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Earthing Rod. Iron into wet ground, and the bolt takes the easy way
+       down it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the wet ground -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M0,468 C200,452 620,450 904,466"/>
+    <path d="M60,528 C260,512 660,510 880,526"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M140,500 C220,492 300,492 366,498"/>
+    <path d="M540,498 C620,492 700,494 764,502"/>
+  </g>
+  <!-- the rod -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round">
+    <path d="M430,90 C428,228 428,362 432,466"/>
+    <path d="M474,90 C476,228 476,362 472,466"/>
+    <path d="M430,90 C444,80 462,80 474,90"/>
+  </g>
+  <!-- the bolt coming down it -->
+  <g fill="none" stroke="#7b68ee" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,20 L400,60 L340,84 L452,120"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="9" stroke-linecap="round">
+    <path d="M452,150 C450,240 450,340 452,440"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M410,200 C404,270 404,344 410,414"/>
+    <path d="M494,200 C500,270 500,344 494,414"/>
+  </g>
+  <!-- and into the floor, harmlessly -->
+  <g fill="none" stroke="#7b68ee" stroke-width="9" stroke-linecap="round">
+    <path d="M452,470 C400,486 340,496 280,500"/>
+    <path d="M452,470 C506,486 566,496 626,500"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M380,478 L342,462"/>
+    <path d="M524,478 L562,462"/>
+  </g>
+</svg>

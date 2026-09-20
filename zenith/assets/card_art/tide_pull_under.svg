@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Pull Under. It takes the feet first and the rest follows. School
+       card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the surface -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round">
+    <path d="M0,372 C180,346 360,386 540,360 C680,340 800,372 904,354"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M40,430 C200,406 380,442 540,420 C660,404 780,430 880,416"/>
+  </g>
+  <!-- them, going in -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="176" r="46"/>
+    <path d="M452,222 C464,278 462,320 456,356"/>
+    <path d="M456,356 C438,404 428,448 426,486"/>
+    <path d="M456,356 C480,400 494,442 498,480"/>
+    <path d="M448,250 C406,224 376,194 358,166"/>
+    <path d="M458,250 C500,224 530,194 548,166"/>
+  </g>
+  <!-- the pull -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M330,420 C346,490 380,552 430,600"/>
+    <path d="M574,420 C558,490 524,552 474,600"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M250,450 C270,520 306,576 356,616"/>
+    <path d="M654,450 C634,520 598,576 548,616"/>
+  </g>
+  <!-- the ring where they went in -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M330,368 C380,356 524,356 574,368"/>
+    <path d="M280,398 C350,382 554,382 624,398"/>
+  </g>
+</svg>

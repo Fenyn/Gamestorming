@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Hask's Flying Kick. Off the ground, leaning back behind the heel, the
+       other leg folded under. His card, so there is no magic in it. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- Hask, in the air -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="164" cy="212" r="46"/>
+    <!-- torso, laid back behind the kick -->
+    <path d="M196,246 C240,282 274,310 302,330"/>
+    <!-- the kicking leg, straight out at chest height -->
+    <path d="M302,330 C376,320 448,312 520,306"/>
+    <path d="M520,306 C540,292 558,296 566,314"/>
+    <path d="M520,306 C534,320 546,328 560,332"/>
+    <!-- the other leg, folded under -->
+    <path d="M302,330 C306,382 300,422 282,450"/>
+    <path d="M282,450 C252,448 232,432 226,408"/>
+    <!-- both arms back for the line -->
+    <path d="M204,264 C158,302 126,334 106,360"/>
+    <path d="M196,240 C154,222 120,212 92,208"/>
+  </g>
+  <!-- the man taking it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="734" cy="188" r="46"/>
+    <path d="M734,234 C726,294 716,342 702,382"/>
+    <path d="M702,382 C708,440 718,494 734,544"/>
+    <path d="M702,382 C662,428 638,480 630,540"/>
+    <path d="M722,264 C686,288 660,312 642,336"/>
+    <path d="M740,262 C780,282 812,304 832,326"/>
+    <path d="M618,548 L662,556"/>
+    <path d="M724,548 L768,556"/>
+  </g>
+  <!-- where the heel went in -->
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M598,268 L570,222"/>
+    <path d="M634,278 L630,228"/>
+    <path d="M656,306 L698,276"/>
+    <path d="M602,344 L566,376"/>
+  </g>
+  <!-- and the ground going out from under him -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M540,586 C640,572 760,570 876,582"/>
+    <path d="M688,586 L668,626"/>
+    <path d="M744,584 L760,624"/>
+    <path d="M634,590 L610,622"/>
+  </g>
+  <!-- the air he came through -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M40,300 C96,290 150,286 200,288"/>
+    <path d="M28,380 C88,364 146,356 196,356"/>
+    <path d="M64,222 C114,214 160,212 200,216"/>
+  </g>
+</svg>

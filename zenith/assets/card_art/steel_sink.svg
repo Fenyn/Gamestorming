@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Sink. The bolt goes into the plate and stays there. The metal goes
+       dull where it landed and nothing else happens. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="600" cy="168" r="46"/>
+    <path d="M600,214 C612,280 610,334 604,384"/>
+    <path d="M604,384 C566,442 544,498 538,560"/>
+    <path d="M604,384 C660,426 694,484 704,556"/>
+    <path d="M524,566 L570,574"/>
+    <path d="M692,562 L740,570"/>
+    <path d="M598,246 C556,262 524,282 502,302"/>
+    <path d="M606,250 C648,268 682,288 706,308"/>
+  </g>
+  <!-- the plated chest -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M548,246 C592,232 638,238 664,262 C672,316 668,364 654,404 C608,418 570,416 540,400 C530,354 532,296 548,246 Z"/>
+    <path d="M548,300 C588,290 624,294 652,308"/>
+    <path d="M544,352 C584,342 620,346 650,360"/>
+  </g>
+  <!-- where it went in, gone dull -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M560,300 C588,288 618,290 638,304"/>
+    <path d="M556,326 C588,314 618,318 640,332"/>
+    <path d="M566,352 C592,344 616,346 634,356"/>
+  </g>
+  <!-- the bolt, arriving and not leaving -->
+  <g fill="none" stroke="#4682b4" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,250 L188,290 L124,320 L262,362 L204,392 L340,430 L540,332"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M110,196 C190,226 264,258 330,290"/>
+    <path d="M90,442 C180,414 266,388 342,368"/>
+  </g>
+  <!-- nothing coming out the far side -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M760,300 C800,296 838,298 872,306"/>
+    <path d="M766,350 C804,346 840,348 872,356"/>
+  </g>
+</svg>

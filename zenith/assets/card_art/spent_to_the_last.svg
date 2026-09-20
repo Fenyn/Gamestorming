@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Spent to the Last. Hand turned out, nothing in it, the last page going up,
+       and he is still on his feet. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- standing, just about -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="326" cy="166" r="46"/>
+    <path d="M326,212 C342,272 344,320 338,364"/>
+    <path d="M338,364 C304,418 286,470 282,528"/>
+    <path d="M338,364 C384,404 410,458 418,524"/>
+    <path d="M268,534 L314,542"/>
+    <path d="M406,530 L452,538"/>
+    <path d="M332,242 C392,254 444,272 486,296"/>
+    <path d="M320,258 C282,284 258,310 246,334"/>
+  </g>
+  <!-- the empty hand, turned out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M498,286 C534,268 570,272 588,294"/>
+    <path d="M504,312 C544,298 580,302 598,322"/>
+    <path d="M506,338 C544,328 578,334 594,352"/>
+    <path d="M492,296 C476,318 476,346 492,364 C510,384 542,384 560,368"/>
+  </g>
+  <!-- the last page, going up -->
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M660,246 C698,214 744,206 772,222 C758,268 712,282 660,246 Z"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="7" stroke-linecap="round">
+    <path d="M680,228 C702,212 726,208 746,214"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M700,184 L694,146"/>
+    <path d="M762,190 L786,158"/>
+    <path d="M644,286 L614,314"/>
+  </g>
+  <!-- what is left of the floor under him -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M180,556 C320,542 520,540 680,552"/>
+    <path d="M240,582 C380,570 560,568 700,578"/>
+  </g>
+</svg>

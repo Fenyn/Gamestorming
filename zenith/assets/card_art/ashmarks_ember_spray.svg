@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Ashmark's Ember Spray. One sweep of the arm and the whole width of the
+       frame is full of embers. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, at the end of the sweep -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="196" cy="212" r="46"/>
+    <path d="M196,258 C208,318 206,366 200,412"/>
+    <path d="M200,412 C164,464 144,512 138,566"/>
+    <path d="M200,412 C252,450 284,500 296,562"/>
+    <path d="M124,572 L170,580"/>
+    <path d="M284,568 L332,576"/>
+    <!-- the arm thrown across -->
+    <path d="M202,288 C266,268 324,254 376,248"/>
+    <path d="M192,300 C160,326 140,352 132,376"/>
+  </g>
+  <!-- the spray -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M420,222 C520,186 620,166 720,160"/>
+    <path d="M424,284 C526,272 624,272 716,284"/>
+    <path d="M420,350 C518,364 610,388 694,424"/>
+    <path d="M414,420 C500,452 576,496 640,552"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M436,250 C534,224 630,210 722,208"/>
+    <path d="M436,318 C534,318 628,328 714,350"/>
+    <path d="M430,386 C520,408 602,442 672,490"/>
+    <path d="M430,188 C512,148 600,122 690,110"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-linecap="round">
+    <path d="M760,146 L802,134"/>
+    <path d="M760,286 L806,290"/>
+    <path d="M736,432 L780,452"/>
+    <path d="M672,560 L706,592"/>
+    <path d="M732,102 L770,84"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M846,180 L878,170"/>
+    <path d="M844,318 L884,324"/>
+    <path d="M812,480 L850,502"/>
+  </g>
+</svg>

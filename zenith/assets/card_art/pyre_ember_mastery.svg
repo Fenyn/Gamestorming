@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="400" viewBox="0 0 904 400">
+  <!-- Placeholder art: Pyre Ember Mastery. One ember lifted off a spent pile on a knife point,
+       and the pile goes cold behind it. School emblem: no figure. -->
+  <rect width="904" height="400" fill="#696969"/>
+  <!-- the spent pile, going out -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M556,352 C588,296 646,266 712,268 C778,270 830,304 856,354"/>
+    <path d="M520,360 C620,340 776,340 886,362"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M622,322 C654,306 690,302 722,310"/>
+    <path d="M736,314 C766,308 796,312 818,326"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M640,290 C664,278 690,276 710,282"/>
+    <path d="M744,288 C768,282 790,286 806,298"/>
+  </g>
+  <!-- the knife -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M598,216 C520,190 440,166 366,148"/>
+    <path d="M594,238 C516,212 436,188 362,170"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M352,136 C316,126 282,118 250,112"/>
+  </g>
+  <!-- and the one ember on the point -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M638,168 C664,138 700,132 724,152 C748,174 742,214 712,230 C678,248 640,226 638,192"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M664,188 C674,166 696,162 710,176 C724,190 718,214 700,220 C680,226 662,210 664,188 Z"/>
+    <path d="M690,120 L694,82"/>
+    <path d="M744,148 L780,124"/>
+    <path d="M628,140 L604,108"/>
+  </g>
+</svg>

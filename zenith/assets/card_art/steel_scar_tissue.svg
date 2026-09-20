@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Scar Tissue. Every old cut has come back as plate. School card:
+       close on the arm, no face. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the forearm and raised fist -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,608 C306,470 320,352 344,256"/>
+    <path d="M560,608 C556,470 546,352 526,256"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M344,256 C380,182 500,182 526,256 C556,336 548,404 500,436 C450,468 398,458 364,412 C332,368 330,308 344,256 Z"/>
+    <path d="M356,306 C404,288 470,290 516,310"/>
+    <path d="M354,364 C402,346 468,348 514,368"/>
+  </g>
+  <!-- the fist at the top -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M362,222 C382,166 490,160 520,214"/>
+    <path d="M370,174 C406,150 470,148 506,170"/>
+  </g>
+  <!-- the old scars, now seams -->
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M372,280 C404,300 440,306 476,298"/>
+    <path d="M368,338 C402,356 442,358 478,346"/>
+    <path d="M378,398 C408,414 442,416 472,406"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M404,262 L428,246"/>
+    <path d="M462,322 L488,306"/>
+    <path d="M400,378 L424,362"/>
+  </g>
+  <!-- cold light off the plate -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M588,242 L644,214"/>
+    <path d="M600,326 L660,322"/>
+    <path d="M592,410 L648,428"/>
+  </g>
+</svg>

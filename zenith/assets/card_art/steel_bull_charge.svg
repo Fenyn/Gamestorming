@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Bull Charge. Head down, going through rather than at, with the
+       shockwave coming off the brow. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the run-up -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M30,200 C110,196 180,200 236,210"/>
+    <path d="M20,320 C104,314 180,316 240,324"/>
+    <path d="M44,438 C128,428 204,424 260,426"/>
+  </g>
+  <!-- him, folded over the charge -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M274,236 C324,240 374,258 412,288"/>
+    <path d="M412,288 C400,350 390,404 386,448"/>
+    <path d="M386,448 C352,482 330,514 320,546"/>
+    <path d="M306,552 L352,560"/>
+    <path d="M386,448 C424,482 446,518 456,554"/>
+    <path d="M444,560 L490,568"/>
+    <path d="M300,272 C262,300 236,330 222,358"/>
+    <path d="M330,320 C292,352 266,386 252,416"/>
+  </g>
+  <!-- the head, plated and lowered -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M418,196 C470,188 512,216 516,262 C520,310 484,344 434,340 C388,336 358,302 362,258 C366,218 392,200 418,196 Z"/>
+    <path d="M382,240 C420,224 470,228 500,250"/>
+  </g>
+  <!-- the wave off the brow -->
+  <g fill="none" stroke="#4682b4" stroke-width="11" stroke-linecap="round">
+    <path d="M580,142 C640,244 640,392 580,494"/>
+    <path d="M676,106 C752,228 752,412 676,532"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M776,74 C864,218 864,424 776,566"/>
+  </g>
+</svg>

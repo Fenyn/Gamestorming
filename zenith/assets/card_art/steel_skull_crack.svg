@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Skull Crack. Iron onto a helm, and the helm is what opens. School
+       card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the helm -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M540,182 C650,160 740,236 744,352 C748,460 676,528 582,516 C500,506 468,428 472,332 C476,244 500,190 540,182 Z"/>
+    <path d="M492,330 C560,314 668,316 736,336"/>
+    <path d="M512,404 C580,392 664,394 726,408"/>
+  </g>
+  <!-- the crack -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M556,180 L596,268 L548,306 L604,390 L558,438"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M636,192 L668,266 L628,300 L672,372"/>
+  </g>
+  <!-- the fist that did it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,240 C120,244 190,256 250,276"/>
+    <path d="M40,368 C120,362 190,358 250,362"/>
+    <path d="M250,276 C310,266 356,290 362,336 C368,384 326,420 268,414 C220,410 194,380 198,342"/>
+    <path d="M232,308 C272,292 320,300 344,326"/>
+    <path d="M238,368 C278,352 326,360 350,386"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M404,282 L444,246"/>
+    <path d="M414,344 L458,344"/>
+    <path d="M406,404 L446,438"/>
+  </g>
+</svg>

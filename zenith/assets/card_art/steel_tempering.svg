@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Tempering. The knuckles come up to heat and the steam comes off
+       them. School card: the metal is the subject. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the arm, held out and steady -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,470 C90,452 176,428 254,396"/>
+    <path d="M0,556 C96,538 188,512 270,476"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M254,396 C316,368 376,344 430,326"/>
+    <path d="M270,476 C330,448 388,422 440,400"/>
+    <path d="M300,384 L318,438"/>
+    <path d="M370,356 L388,410"/>
+  </g>
+  <!-- the fist -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M430,326 C486,296 550,306 574,352 C600,402 566,458 502,470 C444,480 396,452 388,406 C382,368 402,340 430,326 Z"/>
+    <path d="M440,364 C474,346 514,348 536,368"/>
+    <path d="M452,412 C486,394 524,396 546,416"/>
+  </g>
+  <!-- the heat in the knuckles -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M462,352 C492,336 526,338 546,356"/>
+    <path d="M470,400 C500,384 532,386 552,404"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M476,372 C502,360 528,362 544,376"/>
+  </g>
+  <!-- and the steam off it -->
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M556,290 C576,240 566,198 538,168"/>
+    <path d="M620,320 C664,282 678,236 664,196"/>
+    <path d="M600,390 C654,382 692,354 706,314"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M600,236 C620,190 612,150 588,124"/>
+    <path d="M684,364 C736,350 770,318 778,278"/>
+  </g>
+</svg>

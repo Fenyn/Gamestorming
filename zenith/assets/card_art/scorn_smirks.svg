@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Scorn Smirks. Hands in pockets, head tilted, and every circle on the floor
+       behind him cracking as he goes past. His card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- him, doing nothing in particular -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="rotate(-10 250 180)">
+      <circle cx="250" cy="180" r="48"/>
+      <path d="M214,178 C226,170 240,172 246,182"/>
+      <path d="M258,184 C270,174 286,176 294,186"/>
+      <path d="M216,214 C244,226 274,224 294,212"/>
+    </g>
+    <path d="M250,242 C262,306 262,356 256,404"/>
+    <path d="M256,404 C222,458 202,510 198,566"/>
+    <path d="M256,404 C304,444 334,498 344,562"/>
+    <path d="M184,576 L230,584"/>
+    <path d="M332,568 L380,576"/>
+    <!-- hands in the pockets -->
+    <path d="M254,290 C216,306 194,330 190,360"/>
+    <path d="M190,360 C206,378 228,386 248,382"/>
+    <path d="M258,294 C296,310 318,334 322,364"/>
+    <path d="M322,364 C306,382 284,390 264,386"/>
+  </g>
+  <!-- the circles going out behind him -->
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M470,462 C520,438 586,436 638,458"/>
+    <path d="M662,486 C670,518 646,546 604,558"/>
+    <path d="M462,504 C466,534 498,556 542,562"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M700,380 C740,362 792,362 832,380"/>
+    <path d="M848,400 C854,424 834,446 800,454"/>
+    <path d="M694,412 C698,436 722,452 756,456"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M540,436 L568,492 L520,520"/>
+    <path d="M756,356 L778,398 L742,420"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M420,430 L386,414"/>
+    <path d="M876,352 L896,338"/>
+  </g>
+</svg>

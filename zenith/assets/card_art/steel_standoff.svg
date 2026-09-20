@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Steel Standoff. Two heavy men a pace apart, both plated, neither of them
+       moving, and the dust coming down between them. School card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- left -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="238" cy="150" r="48"/>
+    <path d="M238,198 C252,264 252,318 246,366"/>
+    <path d="M246,366 C208,424 190,482 186,546"/>
+    <path d="M246,366 C292,412 316,472 322,542"/>
+    <path d="M172,552 L220,560"/>
+    <path d="M310,548 L358,556"/>
+    <path d="M242,234 C286,242 324,256 354,274"/>
+    <path d="M234,244 C196,266 168,290 150,314"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M204,228 C244,216 284,220 310,238"/>
+    <path d="M200,278 C240,266 280,270 308,288"/>
+  </g>
+  <!-- right -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="666" cy="150" r="48"/>
+    <path d="M666,198 C652,264 652,318 658,366"/>
+    <path d="M658,366 C696,424 714,482 718,546"/>
+    <path d="M658,366 C612,412 588,472 582,542"/>
+    <path d="M546,548 L594,556"/>
+    <path d="M684,552 L732,560"/>
+    <path d="M662,234 C618,242 580,256 550,274"/>
+    <path d="M670,244 C708,266 736,290 754,314"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M700,228 C660,216 620,220 594,238"/>
+    <path d="M704,278 C664,266 624,270 596,288"/>
+  </g>
+  <!-- the pace between them, and the dust settling in it -->
+  <g fill="none" stroke="#4682b4" stroke-width="5" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M452,196 L452,238"/>
+    <path d="M428,272 L428,306"/>
+    <path d="M476,300 L476,334"/>
+    <path d="M452,360 L452,398"/>
+    <path d="M420,420 L420,448"/>
+    <path d="M486,430 L486,462"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M380,566 C430,558 478,558 524,566"/>
+  </g>
+</svg>

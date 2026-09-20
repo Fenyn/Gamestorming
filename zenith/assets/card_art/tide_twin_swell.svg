@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Twin Swell. One, and then the other, and the second is the larger.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the first swell -->
+  <g fill="none" stroke="#87ceeb" stroke-width="12" stroke-linecap="round">
+    <path d="M60,560 C160,470 280,424 400,436 C468,442 510,430 540,400"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M100,600 C200,514 320,472 434,486"/>
+  </g>
+  <!-- the second, behind and bigger -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M40,430 C160,268 340,180 520,196 C620,204 680,176 716,116"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round">
+    <path d="M80,494 C200,340 370,258 542,272"/>
+  </g>
+  <!-- the crests -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M540,400 C566,384 592,382 610,390"/>
+    <path d="M716,116 C744,96 776,92 800,100"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M600,420 C630,408 658,408 678,416"/>
+    <path d="M784,140 C812,124 842,122 862,130"/>
+  </g>
+  <!-- the trough between -->
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M300,398 C380,356 470,332 560,330"/>
+  </g>
+</svg>

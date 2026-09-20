@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Confluence. Two currents meet head on, and what was drawn on the
+       floor between them goes into the join. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the two currents -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M20,180 C140,192 260,236 352,296"/>
+    <path d="M884,180 C764,192 644,236 552,296"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M20,468 C140,456 260,412 352,352"/>
+    <path d="M884,468 C764,456 644,412 552,352"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M60,250 C170,264 270,300 344,344"/>
+    <path d="M844,250 C734,264 634,300 560,344"/>
+    <path d="M60,400 C170,388 270,356 344,312"/>
+    <path d="M844,400 C734,388 634,356 560,312"/>
+  </g>
+  <!-- the join -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round">
+    <path d="M452,230 C476,258 488,296 488,324 C488,356 474,392 452,420"/>
+    <path d="M452,230 C428,258 416,296 416,324 C416,356 430,392 452,420"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M452,190 L452,152"/>
+    <path d="M452,458 L452,496"/>
+  </g>
+  <!-- the circle going into it -->
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <g transform="translate(452,548) rotate(18)">
+      <path d="M-74,0 C-74,-28 -32,-44 0,-44 C34,-44 74,-28 74,0"/>
+      <path d="M62,32 C48,52 18,62 -8,58"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M380,560 L338,584"/>
+    <path d="M540,548 L584,566"/>
+  </g>
+</svg>

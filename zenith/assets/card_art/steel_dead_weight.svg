@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Dead Weight. It lands flat on the chest and the air comes out where
+       everyone can see it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one throwing it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="222" r="46"/>
+    <path d="M200,268 C212,330 210,378 204,424"/>
+    <path d="M204,424 C168,474 148,522 142,576"/>
+    <path d="M204,424 C254,462 286,512 298,572"/>
+    <path d="M128,582 L174,590"/>
+    <path d="M286,578 L334,586"/>
+    <path d="M204,298 C266,306 318,320 360,338"/>
+    <path d="M194,312 C164,338 144,364 134,388"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360,304 C404,296 440,318 444,352 C448,388 414,412 374,406 C342,402 324,380 326,354 C328,326 342,308 360,304 Z"/>
+  </g>
+  <!-- the one taking it, folding round the hit -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="616" cy="204" r="46"/>
+    <path d="M616,250 C600,300 584,336 566,362"/>
+    <path d="M566,362 C588,418 610,468 632,510"/>
+    <path d="M566,362 C536,406 516,456 508,510"/>
+    <path d="M494,518 L540,526"/>
+    <path d="M622,516 L668,524"/>
+    <path d="M602,286 C568,304 544,322 528,340"/>
+    <path d="M628,282 C664,302 692,324 712,346"/>
+  </g>
+  <!-- the air leaving -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M660,208 C700,180 748,176 780,196 C812,216 816,258 788,282 C758,308 710,300 686,272"/>
+    <path d="M700,150 C736,126 776,124 800,140"/>
+    <path d="M760,318 C792,334 826,332 848,316"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M828,220 C856,208 880,210 896,224"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Ashmark's Choke Hold. In behind them, arm across the throat, and no
+       intention of letting go. His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one caught -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="208" r="48"/>
+    <path d="M452,256 C464,320 462,370 456,416"/>
+    <path d="M456,416 C420,468 398,518 392,572"/>
+    <path d="M456,416 C500,456 528,506 536,568"/>
+    <path d="M378,584 L424,592"/>
+    <path d="M524,578 L572,586"/>
+    <!-- their hands, on the arm, achieving nothing -->
+    <path d="M410,300 C372,326 346,352 332,376"/>
+    <path d="M500,296 C538,322 564,348 578,372"/>
+  </g>
+  <!-- him, behind -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="596" cy="164" r="44"/>
+    <path d="M596,208 C606,254 604,290 598,320"/>
+    <path d="M598,320 C626,372 644,424 650,478"/>
+  </g>
+  <!-- the arm across -->
+  <g fill="none" stroke="#fffafa" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M596,240 C520,266 448,282 382,286"/>
+    <path d="M382,286 C356,300 352,326 370,344 C390,364 424,360 440,340"/>
+  </g>
+  <!-- what it is doing -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M300,250 L258,224"/>
+    <path d="M296,318 L252,336"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M452,150 L452,110"/>
+    <path d="M404,166 L376,134"/>
+    <path d="M500,166 L528,134"/>
+  </g>
+</svg>

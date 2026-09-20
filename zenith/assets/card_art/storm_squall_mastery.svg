@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="400" viewBox="0 0 904 400">
+  <!-- Placeholder art: Storm Squall Mastery. The line comes in over flat ground with the rain
+       already down in a wall under it. School emblem: no figure. -->
+  <rect width="904" height="400" fill="#696969"/>
+  <!-- flat ground -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M0,332 C240,318 660,318 904,334"/>
+    <path d="M60,372 C280,358 660,358 860,372"/>
+  </g>
+  <!-- the squall line -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M0,84 C100,36 220,30 320,66 C420,28 560,32 660,80 C730,114 800,132 904,126"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M40,140 C170,104 320,108 440,142 C560,176 700,180 830,160"/>
+  </g>
+  <!-- the wall of rain under it -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M110,176 l-26,150 M180,170 l-26,156 M250,174 l-26,152 M320,166 l-26,160
+             M390,178 l-26,148 M460,172 l-26,154 M530,180 l-26,146 M600,186 l-26,140
+             M670,192 l-26,134 M740,186 l-26,140 M810,180 l-26,146"/>
+  </g>
+  <!-- and one bolt in it -->
+  <g fill="none" stroke="#7b68ee" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M404,150 L452,224 L400,244 L458,322"/>
+  </g>
+</svg>

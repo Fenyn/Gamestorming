@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Charged Ward. A shell of static, and the bolt comes apart on the
+       outside of it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one inside it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="500" cy="230" r="46"/>
+    <path d="M500,276 C512,338 510,386 504,432"/>
+    <path d="M504,432 C472,484 452,530 448,580"/>
+    <path d="M504,432 C548,470 576,518 586,578"/>
+    <path d="M434,590 L480,598"/>
+    <path d="M574,584 L622,592"/>
+    <path d="M502,306 C466,328 442,352 428,376"/>
+    <path d="M506,306 C542,328 566,352 580,376"/>
+  </g>
+  <!-- the ward -->
+  <g fill="none" stroke="#7b68ee" stroke-width="11" stroke-linecap="round">
+    <path d="M362,128 C464,84 594,116 654,220 C716,328 684,466 588,528"/>
+    <path d="M520,568 C414,586 306,514 282,404 C260,306 302,200 376,152"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M400,178 C480,150 574,182 614,258"/>
+    <path d="M540,520 C460,540 380,492 352,412"/>
+  </g>
+  <!-- the bolt coming apart on it -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,286 L150,318 L92,346 L214,378"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214,378 L262,348 L252,384"/>
+    <path d="M214,378 L256,414 L216,428"/>
+    <path d="M240,300 L206,258"/>
+    <path d="M244,448 L208,486"/>
+  </g>
+</svg>

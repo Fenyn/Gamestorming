@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Sword Cleave. Straight down, with the fire trailing off the edge the
+       whole way. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="310" cy="176" r="46"/>
+    <path d="M310,222 C322,286 320,340 314,390"/>
+    <path d="M314,390 C270,442 244,492 236,552"/>
+    <path d="M314,390 C374,428 412,480 426,548"/>
+    <path d="M222,558 L268,566"/>
+    <path d="M414,554 L462,562"/>
+    <!-- both hands down and through -->
+    <path d="M316,250 C382,272 440,300 488,334"/>
+    <path d="M308,268 C360,300 406,330 442,356"/>
+  </g>
+  <!-- the blade, finishing low -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M512,356 C576,412 638,470 696,532"/>
+    <path d="M536,336 C600,392 662,450 720,512"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M472,322 C494,306 516,296 538,292"/>
+  </g>
+  <!-- the arc, on fire -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M700,58 C776,168 776,314 700,432 C666,484 640,522 626,556"/>
+    <path d="M620,34 C700,148 702,300 624,420"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M664,46 C740,158 742,306 664,426"/>
+    <path d="M744,96 C808,200 808,330 744,442"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M736,556 L784,586"/>
+    <path d="M660,570 L676,614"/>
+  </g>
+</svg>

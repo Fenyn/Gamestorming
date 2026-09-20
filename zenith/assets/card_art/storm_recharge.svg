@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Recharge. The blow lands, and what went out of it comes back into
+       the open hand. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="300" cy="216" r="46"/>
+    <path d="M300,262 C312,324 310,372 304,418"/>
+    <path d="M304,418 C270,470 250,518 244,572"/>
+    <path d="M304,418 C354,456 386,508 398,572"/>
+    <path d="M230,582 L276,590"/>
+    <path d="M386,578 L434,586"/>
+    <!-- the striking arm, out -->
+    <path d="M306,292 C376,300 440,314 490,332"/>
+    <!-- the open hand, back and low -->
+    <path d="M294,308 C258,332 232,358 218,382"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M218,382 C196,376 176,384 170,400"/>
+    <path d="M214,404 C194,402 176,412 172,426"/>
+    <path d="M216,426 C198,428 184,440 182,454"/>
+  </g>
+  <!-- the hit -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="9" stroke-linecap="round">
+    <path d="M540,300 L596,262"/>
+    <path d="M552,344 L618,342"/>
+    <path d="M544,388 L600,420"/>
+  </g>
+  <!-- and the loop coming back -->
+  <g fill="none" stroke="#7b68ee" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M620,340 C700,400 700,504 600,548 C480,600 320,560 236,468"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M236,468 L280,470"/>
+    <path d="M236,468 L262,430"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M640,430 C664,474 656,516 620,542"/>
+  </g>
+</svg>

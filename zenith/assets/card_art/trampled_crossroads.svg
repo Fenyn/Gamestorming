@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Trampled Crossroads. Two roads crossing, walked down to bare mud, with the
+       leyline showing through where nothing will grow over it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the horizon and the two roads meeting -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M40,186 C260,172 640,172 868,188"/>
+    <path d="M300,190 C332,268 292,368 216,470"/>
+    <path d="M430,190 C440,270 434,376 416,470"/>
+    <path d="M540,190 C556,268 600,368 690,470"/>
+    <path d="M28,340 C220,312 660,310 880,338"/>
+    <path d="M60,420 C260,392 640,390 856,418"/>
+  </g>
+  <!-- ruts and hoof marks, no grass left -->
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M150,382 C210,370 268,366 318,368"/>
+    <path d="M540,360 C600,354 660,356 712,366"/>
+    <path d="M250,444 C312,432 372,428 426,430"/>
+    <path d="M482,436 C546,432 606,436 660,448"/>
+    <path d="M356,306 C396,300 436,300 472,306"/>
+  </g>
+  <!-- the leyline, worn through -->
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M60,286 C240,262 460,266 640,244 C716,234 800,238 872,252"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="4" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M120,318 C300,296 500,300 668,282"/>
+  </g>
+  <!-- a bare post at the meeting, nothing on it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M462,104 C458,178 458,258 462,330"/>
+    <path d="M440,336 C462,346 486,344 502,332"/>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: The Breaker's Yard. Broken frames stacked against a wall, one stripped to
+       the spine, and the tools laid out on a block. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the wall -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M0,120 C240,104 660,104 904,122"/>
+    <path d="M0,220 C240,206 660,206 904,222"/>
+    <path d="M180,110 V300 M452,108 V300 M724,110 V300"/>
+  </g>
+  <!-- the stack of frames -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M90,196 C90,166 134,166 134,196 L134,300 L90,300 Z"/>
+    <path d="M150,220 C150,192 192,192 192,220 L192,300 L150,300 Z"/>
+    <path d="M208,178 C208,148 252,148 252,178 L252,300 L208,300 Z"/>
+    <path d="M60,250 L282,250"/>
+    <path d="M60,300 C140,290 220,290 300,300"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M96,228 L130,228"/>
+    <path d="M214,210 L248,210"/>
+  </g>
+  <!-- the one stripped to the spine -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,120 C470,92 514,92 514,120 L514,340"/>
+    <path d="M452,170 L532,170"/>
+    <path d="M448,214 L536,214"/>
+    <path d="M452,258 L532,258"/>
+    <path d="M460,302 L524,302"/>
+    <path d="M492,340 C458,346 432,362 420,384"/>
+    <path d="M492,340 C526,346 552,362 564,384"/>
+  </g>
+  <!-- the tools on the block -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M660,336 C730,326 810,326 878,338 L878,400 L660,400 Z"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M684,318 L724,282"/>
+    <path d="M736,316 L742,276"/>
+    <path d="M788,316 L816,282"/>
+    <path d="M840,318 L866,290"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M40,438 C240,420 620,418 876,436"/>
+  </g>
+</svg>

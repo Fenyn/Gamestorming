@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Deadweight. The water goes into them and stays there, and they get
+       slower. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- them, weighed down -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="176" r="46"/>
+    <path d="M452,222 C464,286 462,336 456,382"/>
+    <path d="M456,382 C424,438 406,492 402,548"/>
+    <path d="M456,382 C500,424 528,478 536,544"/>
+    <path d="M388,558 L434,566"/>
+    <path d="M524,554 L570,562"/>
+    <!-- arms hanging, not held -->
+    <path d="M452,254 C414,296 390,344 378,392"/>
+    <path d="M458,254 C498,296 524,344 538,392"/>
+  </g>
+  <!-- the weight in them -->
+  <g fill="none" stroke="#20b2aa" stroke-width="11" stroke-linecap="round">
+    <path d="M404,300 C430,290 476,290 504,300"/>
+    <path d="M400,344 C428,334 478,334 508,344"/>
+    <path d="M404,388 C430,378 476,378 504,388"/>
+  </g>
+  <!-- and the pull downward -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M240,340 L240,480 M200,450 L240,490 L280,450"/>
+    <path d="M664,340 L664,480 M624,450 L664,490 L704,450"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M140,280 C160,360 160,440 140,512"/>
+    <path d="M764,280 C744,360 744,440 764,512"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M280,598 C380,584 520,584 620,598"/>
+  </g>
+</svg>

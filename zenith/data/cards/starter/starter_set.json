@@ -2367,11 +2367,12 @@
 	{
 	 "op": "discard_in_play",
 	 "who": "opponent",
-	 "card_type": "non_combat",
+	 "card_type": "ally",
 	 "all": true
 	}
    ],
-   "limit_per_deck": 1
+   "limit_per_deck": 1,
+   "protect_from_removal": true
   },
   {
    "id": "moth_seal_5",
@@ -2415,13 +2416,14 @@
    "school": "",
    "seal_set": "moth",
    "seal_number": 7,
-   "effects": [
+   "effects": [],
+   "limit_per_deck": 1,
+   "forbid": [
 	{
-	 "op": "draw",
-	 "amount": 3
+	 "who": "opponent",
+	 "what": "mastery"
 	}
-   ],
-   "limit_per_deck": 1
+   ]
   },
   {
    "id": "trampled_crossroads",
@@ -6583,7 +6585,7 @@
   },
   {
    "id": "tide_undertow",
-   "title": "Tide Undertow",
+   "title": "Tide Wide Sweep",
    "type": "strike",
    "school": "tide",
    "attack": {
@@ -7586,6 +7588,381 @@
 	 "when": {
 	  "duelist_character": "Bram Ashmark"
 	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_fathom_mastery",
+   "title": "Tide Fathom Mastery",
+   "type": "mastery",
+   "school": "tide",
+   "limit_per_deck": 1,
+   "defense_burn": {
+	"school": "tide",
+	"prevent_per": 2
+   },
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "strike",
+	 "school": "tide",
+	 "life": 2
+	}
+   ]
+  },
+  {
+   "id": "tide_pull_under",
+   "title": "Tide Pull Under",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_ally",
+	 "amount": 1,
+	 "choose": true
+	}
+   ],
+   "remain_when": {
+	"when": {
+	 "card_in_play": [
+	  "Moth Seal 3",
+	  "Moth Seal 4"
+	 ]
+	},
+	"remain": "aspect"
+   },
+   "remove_after_use": true
+  },
+  {
+   "id": "tide_welling_deep",
+   "title": "Tide Welling Deep",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	}
+   ],
+   "bottom_after_use": true
+  },
+  {
+   "id": "tide_deep_anchor",
+   "title": "Tide Deep Anchor",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 1
+   },
+   "remain": 1,
+   "effects": [
+	{
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "lower_aspect",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "tide_dredge",
+   "title": "Tide Dredge",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "op": "look_at",
+	 "amount": 5,
+	 "pick": {
+	  "card_type": "non_combat"
+	 },
+	 "to": "play",
+	 "rest": "bottom",
+	 "rearrange": true,
+	 "from": "top"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "tide_deadweight",
+   "title": "Tide Deadweight",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "strike_attacks",
+	 "duration": "combat"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "tide_crushing_depth",
+   "title": "Tide Crushing Depth",
+   "type": "art",
+   "school": "tide",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "card_type": "attached",
+	 "all": true
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "ashmarks_choke_hold",
+   "title": "Ashmark's Choke Hold",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "empower": 2,
+   "effects": [
+	{
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "phase_drain",
+	 "duration": "combat",
+	 "params": {
+	  "energy": 1
+	 }
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "title_contains": "Sweep",
+	 "to": "hand"
+	}
+   ]
+  },
+  {
+   "id": "edrics_low_water",
+   "title": "Edric Waits for Low Water",
+   "type": "non_combat",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "look_at",
+	 "amount": 7,
+	 "pick": {
+	  "card_type": "non_combat"
+	 },
+	 "to": "play",
+	 "all_matches": true,
+	 "shuffle_after": true,
+	 "from": "top"
+	}
+   ]
+  },
+  {
+   "id": "tide_bearing_down",
+   "title": "Tide Bearing Down",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "tide_pressure_wave",
+   "title": "Tide Pressure Wave",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "tide_deep_guard",
+   "title": "Tide Deep Guard",
+   "type": "strike",
+   "school": "tide",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "tide_black_water",
+   "title": "Tide Black Water",
+   "type": "art",
+   "school": "tide",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -3
+	}
+   ]
+  },
+  {
+   "id": "tide_full_weight",
+   "title": "Tide Full Weight",
+   "type": "art",
+   "school": "tide",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "tide_held_under",
+   "title": "Tide Held Under",
+   "type": "combat",
+   "school": "tide",
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	},
+	{
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "tide_heavy_water",
+   "title": "Tide Heavy Water",
+   "type": "non_combat",
+   "school": "tide",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "strike",
+	 "stages": 1
+	}
+   ]
+  },
+  {
+   "id": "tide_undersweep",
+   "title": "Tide Undersweep",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 2
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "stop_next",
+	 "duration": "combat"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "tide_sweep_aside",
+   "title": "Tide Sweep Aside",
+   "type": "strike",
+   "school": "tide",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "tide_deep_sweep",
+   "title": "Tide Deep Sweep",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
 	}
    ]
   }

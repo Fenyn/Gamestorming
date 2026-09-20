@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Assembly Drill. Parts laid out in the order they go together, and the
+       first limb already fitted and swung once to check. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the bench -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,332 C280,316 620,316 866,334"/>
+    <path d="M40,332 C44,354 46,368 46,380"/>
+    <path d="M866,334 C862,356 860,370 860,382"/>
+    <path d="M46,380 C280,364 620,364 860,382"/>
+    <path d="M130,382 C128,414 128,440 130,462"/>
+    <path d="M786,382 C788,414 788,440 786,462"/>
+  </g>
+  <!-- the parts, in order -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M108,236 C108,212 148,212 148,236 L148,316 L108,316 Z"/>
+    <path d="M196,254 C196,232 232,232 232,254 L232,316 L196,316 Z"/>
+    <path d="M280,264 C280,244 312,244 312,264 L312,316 L280,316 Z"/>
+    <path d="M360,276 C360,258 388,258 388,276 L388,316 L360,316 Z"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M108,270 L148,270"/>
+    <path d="M196,282 L232,282"/>
+  </g>
+  <!-- the one already fitted -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M600,300 C600,252 650,252 650,300 L650,120 C650,84 700,84 700,120 L700,204"/>
+    <path d="M600,300 C562,304 536,288 528,262"/>
+    <path d="M700,204 C736,202 762,216 772,240"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M626,140 C626,116 674,116 674,140"/>
+  </g>
+  <!-- the arc it was swung through to test it -->
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M754,124 C800,158 818,212 806,264"/>
+    <path d="M718,90 C778,126 806,192 794,262"/>
+  </g>
+</svg>

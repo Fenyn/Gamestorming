@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Bracing. Forearms crossed, feet set, and the blow goes nowhere.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="500" cy="164" r="48"/>
+    <path d="M500,212 C512,276 512,324 506,370"/>
+    <path d="M506,370 C452,420 418,476 406,546"/>
+    <path d="M506,370 C566,408 604,462 616,538"/>
+    <path d="M390,552 L440,560"/>
+    <path d="M602,546 L652,554"/>
+  </g>
+  <!-- the two forearms, crossed -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M336,196 C388,236 440,274 486,306"/>
+    <path d="M336,376 C388,338 440,300 486,270"/>
+    <path d="M370,226 L358,266"/>
+    <path d="M412,258 L400,296"/>
+    <path d="M370,348 L358,310"/>
+    <path d="M412,318 L400,282"/>
+  </g>
+  <!-- the blow, stopped on the cross -->
+  <g fill="none" stroke="#4682b4" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,200 L166,244 L100,276 L236,322 L312,290"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M318,236 L294,192"/>
+    <path d="M300,344 L266,382"/>
+    <path d="M346,194 L354,150"/>
+  </g>
+  <!-- the feet, set -->
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M360,578 C440,566 560,564 650,574"/>
+    <path d="M420,604 C486,596 560,594 620,600"/>
+  </g>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Iron Jab. Short, straight, iron at the end of it, and the guard
+       folds in on itself. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="250" cy="238" r="46"/>
+    <path d="M250,284 C262,344 260,390 254,434"/>
+    <path d="M254,434 C220,482 200,528 194,578"/>
+    <path d="M254,434 C302,470 334,518 344,574"/>
+    <path d="M180,584 L226,592"/>
+    <path d="M332,580 L380,588"/>
+    <!-- the jab, elbow still bent -->
+    <path d="M256,312 C310,308 356,310 396,320"/>
+    <!-- rear hand at the chin -->
+    <path d="M246,326 C222,346 206,368 200,388"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M396,286 C444,278 482,300 486,336 C490,374 454,400 410,394 C374,390 354,366 358,338 C362,308 378,290 396,286 Z"/>
+    <path d="M378,314 C410,304 448,310 466,330"/>
+  </g>
+  <!-- the guard buckling -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M600,150 C640,220 652,300 636,372 C628,410 614,442 596,466"/>
+    <path d="M714,166 C752,238 762,320 746,392 C738,430 724,460 706,482"/>
+    <path d="M600,150 C640,138 678,142 714,166"/>
+    <path d="M596,466 C634,486 672,488 706,482"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-linecap="round">
+    <path d="M596,300 C636,324 682,330 724,318"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M540,300 L500,272"/>
+    <path d="M548,352 L512,382"/>
+    <path d="M540,248 L546,208"/>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Dredge. Whatever went down comes back up with the water, whether it
+       was wanted or not. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the surface -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M0,180 C180,154 360,194 540,168 C680,148 800,180 904,162"/>
+  </g>
+  <!-- the column coming up -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round">
+    <path d="M330,600 C316,470 338,336 396,232"/>
+    <path d="M574,600 C588,470 566,336 508,232"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M396,600 C386,480 400,368 436,280"/>
+    <path d="M508,600 C518,480 504,368 468,280"/>
+  </g>
+  <!-- and what came up in it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(452,250) rotate(-10)"><path d="M-64,-94 h128 v188 h-128 Z"/></g>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(300,352) rotate(24)"><path d="M-54,-80 h108 v160 h-108 Z"/></g>
+    <g transform="translate(604,392) rotate(-26)"><path d="M-54,-80 h108 v160 h-108 Z"/></g>
+  </g>
+  <!-- and the silt with it -->
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M250,480 C290,458 330,450 366,452"/>
+    <path d="M660,500 C620,476 580,466 544,466"/>
+    <path d="M214,560 C264,534 314,522 360,520"/>
+  </g>
+</svg>

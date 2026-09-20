@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Defacement. A cut seal chiselled back out of the gate, and the dust still
+       coming off it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the gate face -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M120,30 C340,10 570,10 786,32 C794,180 794,300 786,446 C566,468 338,468 120,448 C112,300 112,180 120,30 Z"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M150,120 C320,104 580,104 756,122"/>
+    <path d="M150,370 C320,386 580,386 756,368"/>
+  </g>
+  <!-- what is left of the seal -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-opacity="0.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M336,170 L568,170 L568,318 L336,318 Z"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round">
+    <path d="M360,196 C420,222 470,250 500,276"/>
+    <path d="M388,290 C430,262 468,234 498,208"/>
+    <path d="M336,244 C380,252 420,258 452,260"/>
+  </g>
+  <!-- the chisel taking it out -->
+  <g fill="none" stroke="#8b4513" stroke-width="10" stroke-linecap="round">
+    <path d="M700,54 C660,94 622,132 590,166"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M590,166 L548,208 L572,232 L614,190 Z"/>
+  </g>
+  <!-- the dust coming off -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M520,252 C500,294 490,330 488,362"/>
+    <path d="M470,268 C446,310 432,348 428,380"/>
+    <path d="M566,258 C556,300 552,334 554,362"/>
+  </g>
+</svg>

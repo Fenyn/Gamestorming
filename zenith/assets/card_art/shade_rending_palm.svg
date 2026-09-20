@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Rending Palm. The palm goes out and the air tears in a ring round
+       it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="216" r="46"/>
+    <path d="M200,262 C212,324 210,372 204,418"/>
+    <path d="M204,418 C170,470 150,518 144,572"/>
+    <path d="M204,418 C254,456 286,508 298,572"/>
+    <path d="M130,582 L176,590"/>
+    <path d="M286,578 L334,586"/>
+    <path d="M204,292 C260,300 308,312 346,328"/>
+    <path d="M194,306 C164,334 144,360 134,384"/>
+  </g>
+  <!-- the palm -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M346,270 C368,282 374,306 364,326"/>
+    <path d="M360,300 C382,312 388,336 378,356"/>
+    <path d="M352,338 C374,350 380,374 370,392"/>
+    <path d="M346,328 C368,358 366,392 342,412 C318,432 282,426 266,402"/>
+  </g>
+  <!-- the ring it tore -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M470,168 C570,148 664,202 682,300"/>
+    <path d="M676,382 C648,470 552,522 460,498"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M498,104 C630,86 754,158 776,288"/>
+    <path d="M770,394 C740,514 618,584 494,558"/>
+  </g>
+  <!-- and where it tore through -->
+  <g fill="none" stroke="#da70d6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,318 L764,340 L712,360 L790,382"/>
+    <path d="M436,300 L380,322 L432,344 L366,368"/>
+  </g>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: The Long Year. A ring of candles burnt down to stubs round a practice
+       floor with a year of scuffs on it, all of it done in one night. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the floor, worn through in a ring -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M180,342 C280,288 420,262 560,272 C660,280 738,304 786,340"/>
+    <path d="M240,376 C330,330 450,310 570,318 C652,324 718,344 758,372"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M320,352 C380,330 452,320 520,322"/>
+    <path d="M360,394 C430,372 510,364 580,368"/>
+    <path d="M286,314 C340,292 404,280 464,278"/>
+    <path d="M478,404 C540,388 604,382 660,384"/>
+  </g>
+  <!-- the candles, all of them nearly gone -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M140,300 L140,346 L182,346 L182,300 Z"/>
+    <path d="M232,252 L232,286 L270,286 L270,252 Z"/>
+    <path d="M370,222 L370,250 L404,250 L404,222 Z"/>
+    <path d="M520,214 L520,244 L556,244 L556,214 Z"/>
+    <path d="M660,240 L660,276 L698,276 L698,240 Z"/>
+    <path d="M770,294 L770,340 L812,340 L812,294 Z"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-linecap="round">
+    <path d="M161,296 C154,282 158,270 166,262"/>
+    <path d="M251,248 C244,236 248,226 256,218"/>
+    <path d="M387,218 C380,206 384,196 392,190"/>
+    <path d="M538,210 C531,198 535,188 543,182"/>
+    <path d="M679,236 C672,224 676,214 684,208"/>
+    <path d="M791,290 C784,278 788,266 796,260"/>
+  </g>
+  <!-- the wax that ran -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M140,346 C132,368 128,386 128,400"/>
+    <path d="M812,340 C820,362 824,380 824,394"/>
+    <path d="M404,250 C412,268 416,282 416,294"/>
+  </g>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Warding Burst. A short shove at arm's length and the guard goes
+       wide. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="228" cy="222" r="46"/>
+    <path d="M228,268 C240,330 238,376 232,422"/>
+    <path d="M232,422 C198,474 178,522 172,576"/>
+    <path d="M232,422 C282,460 314,512 326,576"/>
+    <path d="M158,586 L204,594"/>
+    <path d="M314,582 L362,590"/>
+    <path d="M232,298 C286,300 332,308 368,318"/>
+    <path d="M222,312 C192,340 172,366 162,390"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M368,282 C392,292 400,314 392,334"/>
+    <path d="M388,318 C412,328 420,350 410,370"/>
+    <path d="M368,318 C392,348 388,382 364,400 C338,418 304,410 290,386"/>
+  </g>
+  <!-- the burst, short and close -->
+  <g fill="none" stroke="#9370db" stroke-width="13" stroke-linecap="round">
+    <path d="M470,220 C510,268 510,372 470,420"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M534,188 C584,252 584,388 534,452"/>
+  </g>
+  <!-- the guard thrown wide -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="726" cy="228" r="46"/>
+    <path d="M726,274 C724,332 718,380 708,418"/>
+    <path d="M708,418 C724,470 744,516 766,556"/>
+    <path d="M708,418 C678,462 660,510 654,560"/>
+    <path d="M640,568 L686,576"/>
+    <path d="M756,564 L802,572"/>
+    <path d="M714,308 C672,308 638,300 614,286"/>
+    <path d="M738,306 C782,308 818,300 844,284"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="8" stroke-linecap="round">
+    <path d="M606,262 L572,232"/>
+    <path d="M610,380 L574,406"/>
+  </g>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Iron Fist. Solid iron, mid-flight, nothing in front of it yet.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the body, small behind the arm -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="190" cy="250" r="44"/>
+    <path d="M190,294 C200,350 198,394 192,434"/>
+    <path d="M192,434 C160,480 142,524 138,570"/>
+    <path d="M192,434 C236,468 264,512 274,566"/>
+    <path d="M124,576 L170,584"/>
+    <path d="M262,572 L310,580"/>
+    <path d="M186,324 C160,348 142,372 134,394"/>
+  </g>
+  <!-- the arm, plated the whole way -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M196,300 C296,294 396,294 486,302"/>
+    <path d="M200,346 C300,344 398,346 486,356"/>
+    <path d="M254,294 L256,344"/>
+    <path d="M322,294 L324,344"/>
+    <path d="M394,296 L396,350"/>
+  </g>
+  <!-- the fist -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M486,266 C566,256 632,296 636,360 C640,426 574,470 496,458 C438,450 406,410 412,360 C418,308 452,272 486,266 Z"/>
+    <path d="M470,308 C516,290 578,298 606,328"/>
+    <path d="M470,378 C516,360 578,368 606,398"/>
+  </g>
+  <!-- the air it is opening -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M700,268 C752,254 806,250 864,254"/>
+    <path d="M706,362 C760,364 814,372 868,386"/>
+    <path d="M690,182 C744,158 798,142 852,134"/>
+    <path d="M690,452 C744,476 796,506 842,544"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M718,316 C778,312 836,316 884,326"/>
+  </g>
+</svg>

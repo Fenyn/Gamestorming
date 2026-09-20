@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Old Trick. Out of the sleeve, into the hand, and nobody is watching the
+       wrist. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the arm and the cuff -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,180 C120,192 240,220 340,262"/>
+    <path d="M0,320 C120,320 240,332 340,358"/>
+    <path d="M340,262 C360,246 384,240 404,244"/>
+    <path d="M340,358 C362,366 386,366 404,358"/>
+    <path d="M404,244 C440,250 470,268 488,294"/>
+    <path d="M404,358 C440,352 470,336 488,312"/>
+    <path d="M488,294 C502,304 506,316 498,326"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M300,248 C296,300 296,336 300,370"/>
+    <path d="M244,232 C240,290 240,330 244,362"/>
+  </g>
+  <!-- the card, halfway out -->
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,168 C540,146 620,138 688,144 C692,206 692,252 688,292 C622,290 544,302 476,328"/>
+    <path d="M520,206 C576,192 636,188 678,190"/>
+    <path d="M524,246 C576,234 630,230 670,232"/>
+  </g>
+  <!-- the sleeve it came from -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="7" stroke-opacity="0.7" stroke-dasharray="20 16" stroke-linecap="round">
+    <path d="M404,220 C440,186 470,172 498,166"/>
+  </g>
+  <!-- and nothing in the other hand -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,430 C740,412 784,412 812,430"/>
+    <path d="M700,470 C742,456 786,456 816,470"/>
+    <path d="M700,430 C674,442 662,466 668,488 C674,510 700,520 724,512"/>
+  </g>
+</svg>

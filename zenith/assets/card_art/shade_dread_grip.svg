@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Dread Grip. A hand that is not there closes on the throat, and what
+       they were holding goes on the floor. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one being held, on their toes -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="620" cy="182" r="46"/>
+    <path d="M620,228 C632,290 630,340 624,386"/>
+    <path d="M624,386 C594,440 578,492 574,548"/>
+    <path d="M624,386 C670,424 700,478 710,544"/>
+    <path d="M562,556 L606,566"/>
+    <path d="M698,550 L744,560"/>
+    <path d="M618,258 C580,280 554,302 540,324"/>
+    <path d="M626,260 C664,284 692,308 710,332"/>
+  </g>
+  <!-- the grip -->
+  <g fill="none" stroke="#9370db" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M560,224 C596,208 640,210 668,228"/>
+    <path d="M556,254 C594,238 640,240 670,258"/>
+    <path d="M562,284 C598,270 640,272 668,288"/>
+    <path d="M560,224 C528,244 516,290 528,330 C540,370 578,392 616,386"/>
+  </g>
+  <!-- the arm it came out of -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M60,344 C180,314 300,290 420,274 C470,268 510,258 540,244"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M60,404 C180,374 306,346 424,326"/>
+  </g>
+  <!-- and the page going down -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(790,466) rotate(28)"><path d="M-62,-92 h124 v184 h-124 Z"/></g>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.8" stroke-dasharray="18 16" stroke-linecap="round">
+    <path d="M742,358 C766,392 782,414 792,436"/>
+  </g>
+</svg>

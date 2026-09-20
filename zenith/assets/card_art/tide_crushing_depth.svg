@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Crushing Depth. Not a wave. Just the weight of everything above,
+       closing in from all sides. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the pressure, inward -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M452,40 L452,180 M412,150 L452,190 L492,150"/>
+    <path d="M452,600 L452,460 M412,490 L452,450 L492,490"/>
+    <path d="M60,320 L200,320 M170,280 L210,320 L170,360"/>
+    <path d="M844,320 L704,320 M734,280 L694,320 L734,360"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M170,110 L268,208 M238,170 L276,216 L230,206"/>
+    <path d="M734,110 L636,208 M666,170 L628,216 L674,206"/>
+    <path d="M170,530 L268,432 M238,470 L276,424 L230,434"/>
+    <path d="M734,530 L636,432 M666,470 L628,424 L674,434"/>
+  </g>
+  <!-- what is in the middle of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M380,258 C420,244 486,244 526,258 C536,296 536,344 526,382 C486,396 420,396 380,382 C370,344 370,296 380,258 Z"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M400,300 C440,290 468,290 506,300"/>
+    <path d="M400,342 C440,332 468,332 506,342"/>
+  </g>
+  <!-- and it is starting to go -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-linecap="round">
+    <path d="M356,236 L322,204"/>
+    <path d="M548,236 L582,204"/>
+    <path d="M356,404 L322,436"/>
+    <path d="M548,404 L582,436"/>
+  </g>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Ashmark Leaves Nothing. The bolt lands in the pile and the pile goes
+       downwind. His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the bolt -->
+  <g fill="none" stroke="#ffd700" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,140 L196,196 L128,228 L276,288 L212,324 L352,384"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M96,102 C190,146 276,192 348,238"/>
+  </g>
+  <!-- what is left of the pile -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360,466 C440,436 540,432 620,456"/>
+    <path d="M380,506 C452,486 536,484 606,500"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M300,540 C420,514 570,512 690,538"/>
+  </g>
+  <!-- and the ash going -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M600,352 C636,330 676,326 700,340 C688,378 648,388 600,352 Z"/>
+    <path d="M706,232 C740,212 776,210 798,222 C788,258 750,266 706,232 Z"/>
+    <path d="M770,410 C802,392 836,390 856,402 C846,434 810,442 770,410 Z"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M628,336 C650,322 674,320 690,326"/>
+    <path d="M730,218 C752,206 774,204 790,210"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M660,428 C712,414 764,406 812,404"/>
+    <path d="M640,290 C696,272 750,262 800,260"/>
+    <path d="M700,478 C748,464 796,456 840,454"/>
+  </g>
+</svg>

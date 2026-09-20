@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Overreach. Reaching past what they have, and the ring behind them tears
+       where it is asked for too much. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- them, stretched out -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="380" cy="256" r="46"/>
+    <path d="M380,302 C398,352 412,390 424,418"/>
+    <path d="M424,418 C398,470 382,518 378,568"/>
+    <path d="M424,418 C466,452 492,500 500,562"/>
+    <path d="M364,576 L410,584"/>
+    <path d="M488,572 L536,580"/>
+    <!-- the reaching arm, too far -->
+    <path d="M400,318 C476,310 548,296 612,274"/>
+    <path d="M612,274 C640,262 664,262 680,272"/>
+    <!-- the other arm dragging behind -->
+    <path d="M366,330 C324,352 292,376 272,398"/>
+  </g>
+  <!-- the ring behind, tearing -->
+  <g fill="none" stroke="#ffd700" stroke-width="11" stroke-linecap="round">
+    <path d="M232,196 C268,160 328,142 386,148"/>
+    <path d="M470,188 C506,214 526,252 526,292"/>
+    <path d="M222,268 C218,238 222,214 232,196"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M420,110 L456,74"/>
+    <path d="M558,318 L604,332"/>
+    <path d="M198,300 L156,316"/>
+  </g>
+  <!-- what they were reaching for, still out of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(806,236) rotate(10)"><path d="M-54,-80 h108 v160 h-108 Z"/></g>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-dasharray="18 16" stroke-linecap="round">
+    <path d="M700,262 L744,250"/>
+  </g>
+</svg>

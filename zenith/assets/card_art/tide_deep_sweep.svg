@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Deep Sweep. A low arm of water across the whole floor, taking legs
+       out from under. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the sweep -->
+  <g fill="none" stroke="#20b2aa" stroke-width="16" stroke-linecap="round">
+    <path d="M20,436 C180,388 400,394 560,438 C680,470 790,486 890,482"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="11" stroke-linecap="round">
+    <path d="M40,494 C200,448 420,456 576,498 C688,528 794,542 886,538"/>
+    <path d="M60,380 C200,344 390,350 520,388"/>
+  </g>
+  <!-- the one it is taking -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="650" cy="188" r="46"/>
+    <path d="M650,234 C662,290 664,332 662,366"/>
+    <path d="M662,366 C700,398 740,418 780,424"/>
+    <path d="M662,366 C620,392 592,414 576,434"/>
+    <path d="M644,266 C606,284 578,304 560,326"/>
+    <path d="M660,262 C700,280 730,300 750,320"/>
+  </g>
+  <!-- and the crest at the end of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M540,430 C566,414 596,412 616,420"/>
+    <path d="M620,468 C646,452 676,450 696,458"/>
+  </g>
+  <!-- what it already passed -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M60,578 C220,548 420,556 580,590"/>
+  </g>
+</svg>

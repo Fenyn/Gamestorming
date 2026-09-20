@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Last Ward. Sword up, other hand up, and nothing else left to put in the
+       way. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- them, both arms up -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="420" cy="266" r="46"/>
+    <path d="M420,312 C432,372 430,418 424,462"/>
+    <path d="M424,462 C388,512 366,558 360,606"/>
+    <path d="M424,462 C474,498 504,546 514,604"/>
+    <path d="M346,614 L392,622"/>
+    <path d="M502,610 L550,618"/>
+    <!-- sword arm -->
+    <path d="M424,342 C466,312 500,282 526,254"/>
+    <!-- empty hand -->
+    <path d="M414,352 C376,324 346,298 326,276"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M326,276 C310,256 288,248 270,254"/>
+    <path d="M316,290 C296,276 276,272 262,276"/>
+    <path d="M312,306 C294,296 276,294 264,298"/>
+  </g>
+  <!-- the sword -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M548,232 C586,178 622,124 652,72"/>
+    <path d="M572,248 C610,194 646,140 676,88"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M510,222 L566,266"/>
+  </g>
+  <!-- what is coming -->
+  <g fill="none" stroke="#20b2aa" stroke-width="11" stroke-linecap="round">
+    <path d="M60,100 C150,158 226,214 286,264"/>
+    <path d="M40,200 C130,246 210,290 270,326"/>
+    <path d="M60,320 C150,344 230,366 288,384"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M110,60 C200,124 274,182 330,232"/>
+    <path d="M90,398 C176,404 250,414 300,428"/>
+  </g>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Vesna's Ambush. Down from above with both knives while the people below
+       are still mid-step. Her card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- her, dropping -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="430" cy="128" r="44"/>
+    <path d="M400,152 C388,134 380,112 380,90"/>
+    <path d="M460,152 C474,134 484,112 486,90"/>
+    <path d="M430,172 C440,228 440,268 436,300"/>
+    <path d="M436,300 C398,332 372,364 358,396"/>
+    <path d="M436,300 C478,330 506,362 520,394"/>
+    <path d="M424,212 C378,232 344,252 322,272"/>
+    <path d="M438,214 C482,236 516,258 538,280"/>
+  </g>
+  <!-- both knives -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M322,272 L262,336 L238,364 L262,364 Z"/>
+    <path d="M538,280 L600,342 L624,370 L600,370 Z"/>
+  </g>
+  <!-- the ones below, mid-step -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="228" cy="446" r="38"/>
+    <path d="M228,484 V566"/>
+    <path d="M228,566 L196,630 M228,566 L262,630"/>
+    <path d="M228,506 L282,492"/>
+    <circle cx="656" cy="462" r="38"/>
+    <path d="M656,500 V578"/>
+    <path d="M656,578 L622,638 M656,578 L690,638"/>
+    <path d="M656,522 L604,510"/>
+  </g>
+  <!-- the drop -->
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M330,40 C334,120 336,190 334,250"/>
+    <path d="M540,40 C536,120 534,190 536,250"/>
+    <path d="M232,90 C238,164 240,224 238,272"/>
+    <path d="M644,90 C638,164 636,224 638,272"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M236,392 L200,414"/>
+    <path d="M630,396 L668,420"/>
+  </g>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Warding Drill. A chain across the gate, and nobody standing by it. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the gate -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M220,40 C214,180 214,320 220,444"/>
+    <path d="M684,40 C690,180 690,320 684,444"/>
+    <path d="M220,40 C370,20 534,20 684,40"/>
+    <path d="M452,44 C448,180 448,320 452,442"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M256,136 C300,128 380,126 430,128"/>
+    <path d="M474,128 C524,126 604,130 648,138"/>
+    <path d="M256,336 C300,330 380,328 430,330"/>
+    <path d="M474,330 C524,328 604,332 648,340"/>
+  </g>
+  <!-- the chain -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M186,222 C220,244 250,256 282,260"/>
+    <path d="M282,260 C314,268 340,276 362,286"/>
+    <path d="M362,286 C398,296 432,300 464,300"/>
+    <path d="M464,300 C506,298 546,290 580,278"/>
+    <path d="M580,278 C614,266 646,250 676,230"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M276,242 C296,242 306,252 306,262 C306,274 294,282 278,280"/>
+    <path d="M358,268 C378,268 388,278 388,288 C388,300 376,308 360,306"/>
+    <path d="M460,282 C480,282 490,292 490,302 C490,314 478,322 462,320"/>
+    <path d="M576,262 C596,262 606,272 606,282 C606,294 594,302 578,300"/>
+  </g>
+  <!-- the rings it is hooked to -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round">
+    <path d="M186,222 C168,212 166,192 182,182 C198,172 218,182 218,200"/>
+    <path d="M676,230 C694,220 698,200 682,190 C666,180 646,190 646,208"/>
+  </g>
+</svg>

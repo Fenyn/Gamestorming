@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Lash. A whip of white light, cracked out level with the floor.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="224" r="46"/>
+    <path d="M180,270 C192,332 190,380 184,426"/>
+    <path d="M184,426 C150,478 130,526 124,580"/>
+    <path d="M184,426 C234,464 266,516 278,580"/>
+    <path d="M110,590 L156,598"/>
+    <path d="M266,586 L314,594"/>
+    <path d="M184,300 C226,314 262,334 290,356"/>
+    <path d="M174,314 C144,342 124,368 114,392"/>
+  </g>
+  <!-- the lash -->
+  <g fill="none" stroke="#7b68ee" stroke-width="13" stroke-linecap="round">
+    <path d="M300,362 C400,414 512,428 620,404 C704,386 770,344 812,286"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-linecap="round">
+    <path d="M312,388 C410,440 520,452 622,428 C700,410 762,372 802,320"/>
+  </g>
+  <!-- the crack at the end -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="9" stroke-linecap="round">
+    <path d="M812,286 L864,228"/>
+    <path d="M812,286 L878,290"/>
+    <path d="M812,286 L848,346"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M360,470 C450,504 550,514 640,498"/>
+    <path d="M420,300 C520,318 616,314 700,290"/>
+  </g>
+</svg>

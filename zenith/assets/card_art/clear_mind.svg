@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Clear Mind. One bowl, one page on the surface, and the water is not
+       moving at all. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the bowl -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232,196 C232,150 672,150 672,196 L620,406 C610,432 294,432 284,406 Z"/>
+    <path d="M232,196 C232,242 672,242 672,196"/>
+  </g>
+  <!-- the surface, flat -->
+  <g fill="none" stroke="#7b68ee" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M280,206 C360,222 546,222 626,206"/>
+  </g>
+  <!-- the page on it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M380,190 C420,180 484,180 524,190 C528,212 528,226 524,238 C484,248 420,248 380,238 C376,226 376,212 380,190 Z"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M410,212 L494,212"/>
+  </g>
+  <!-- and its reflection, undisturbed -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M392,256 C432,264 480,264 516,256"/>
+    <path d="M404,282 C440,288 474,288 504,282"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M160,446 C320,432 600,430 748,444"/>
+  </g>
+</svg>

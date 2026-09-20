@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Cutting Hand. A flat hand into the bolt, and the bolt goes round
+       both sides of it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the bolt, coming in whole -->
+  <g fill="none" stroke="#9370db" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,320 L160,320 L100,352 L260,352"/>
+  </g>
+  <!-- the hand, edge on -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,300 C380,286 464,278 536,276"/>
+    <path d="M300,368 C380,368 462,372 534,380"/>
+    <path d="M536,276 C566,276 588,284 600,298"/>
+    <path d="M534,380 C564,378 586,368 598,352"/>
+    <path d="M600,298 C612,312 614,334 600,352"/>
+    <path d="M300,300 C274,306 258,320 256,336 C254,354 270,368 300,368"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M380,294 L382,372"/>
+    <path d="M460,286 L462,378"/>
+  </g>
+  <!-- and the two halves going round it -->
+  <g fill="none" stroke="#9370db" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M260,352 C320,270 420,208 540,190 L660,178 L620,208 L760,192"/>
+    <path d="M260,352 C316,436 416,494 536,510 L656,520 L616,546 L756,556"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M800,176 C836,172 866,174 892,180"/>
+    <path d="M796,556 C832,558 862,562 888,570"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M296,296 L282,254"/>
+    <path d="M296,376 L280,416"/>
+  </g>
+</svg>

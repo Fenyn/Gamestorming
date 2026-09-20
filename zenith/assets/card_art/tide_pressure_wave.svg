@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Pressure Wave. Not the water, the push in front of it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the caster -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="238" r="46"/>
+    <path d="M180,284 C192,346 190,392 184,438"/>
+    <path d="M184,438 C150,490 130,538 124,592"/>
+    <path d="M184,438 C234,476 266,528 278,592"/>
+    <path d="M110,602 L156,610"/>
+    <path d="M266,598 L314,606"/>
+    <path d="M184,314 C232,318 274,326 308,338"/>
+    <path d="M174,328 C144,356 124,382 114,406"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M308,300 C330,310 336,332 328,350"/>
+    <path d="M326,338 C348,348 354,368 344,386"/>
+    <path d="M308,338 C330,366 326,398 302,414 C278,430 248,424 236,402"/>
+  </g>
+  <!-- the front of the wave, ahead of the water -->
+  <g fill="none" stroke="#87ceeb" stroke-width="14" stroke-linecap="round">
+    <path d="M450,168 C512,268 512,392 450,492"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M540,136 C614,254 614,406 540,524"/>
+  </g>
+  <!-- the water behind it, still arriving -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round">
+    <path d="M370,200 C424,288 424,372 370,460"/>
+    <path d="M300,240 C344,308 344,364 300,428"/>
+  </g>
+  <!-- and what it reached first -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M640,244 C672,238 706,240 734,250"/>
+    <path d="M640,404 C672,410 706,410 734,402"/>
+    <path d="M660,324 C700,320 740,322 776,330"/>
+  </g>
+</svg>

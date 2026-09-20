@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Siphon's Sidestep. One step sideways, made rather than judged, and the
+       blade goes through where it was standing. Its card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- where it was -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.35" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,166 C300,134 348,134 348,166 L348,222 L300,222 Z"/>
+    <path d="M294,230 C316,220 334,220 356,230 L364,392 L286,392 Z"/>
+    <path d="M286,392 L276,548 M364,392 L376,548"/>
+  </g>
+  <!-- and where it is -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M540,166 C540,132 592,132 592,166 L592,222 L540,222 Z"/>
+    <path d="M532,230 C556,218 576,218 600,230 L610,392 L522,392 Z"/>
+    <path d="M522,392 L510,548 M610,392 L622,548"/>
+    <path d="M532,272 C500,292 478,316 466,342"/>
+    <path d="M600,272 C632,292 654,316 666,342"/>
+    <path d="M492,556 L538,564"/>
+    <path d="M596,556 L642,564"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-linecap="round">
+    <path d="M540,286 C558,276 576,276 592,286"/>
+    <path d="M554,186 L578,186"/>
+  </g>
+  <!-- the blade, through the gap -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M60,146 C140,214 216,280 284,336"/>
+    <path d="M36,182 C118,250 196,316 264,372"/>
+  </g>
+  <!-- the step -->
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.8" stroke-dasharray="22 18" stroke-linecap="round">
+    <path d="M390,520 C440,508 494,506 540,512"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-linecap="round">
+    <path d="M540,512 L506,492"/>
+    <path d="M540,512 L508,534"/>
+  </g>
+</svg>

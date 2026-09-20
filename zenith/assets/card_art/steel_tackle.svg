@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Tackle. Under the spell, shoulder first, both arms closing. School
+       card: the spell goes over the top and is no longer anybody's business. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the spell, passing over -->
+  <g fill="none" stroke="#4682b4" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M840,120 L700,86 L756,60 L600,26"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M840,176 C720,148 616,122 540,102"/>
+  </g>
+  <!-- him, low and already through -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="352" cy="298" r="46"/>
+    <path d="M320,324 C268,364 228,406 202,444"/>
+    <path d="M202,444 C168,466 140,478 116,482"/>
+    <path d="M202,444 C186,486 180,524 184,556"/>
+    <path d="M170,562 L216,570"/>
+    <!-- both arms out and closing -->
+    <path d="M390,306 C448,298 502,296 546,300"/>
+    <path d="M382,336 C440,342 492,352 532,366"/>
+  </g>
+  <!-- the shoulder -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M374,262 C420,254 458,268 470,296 C482,326 462,354 424,360 C388,366 356,350 350,322 C344,296 356,268 374,262 Z"/>
+    <path d="M370,292 C398,284 430,290 444,306"/>
+  </g>
+  <!-- the one going over his back -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="668" cy="222" r="44"/>
+    <path d="M636,254 C612,300 596,340 588,372"/>
+    <path d="M588,372 C630,400 676,420 720,432"/>
+    <path d="M588,372 C608,414 622,452 628,486"/>
+    <path d="M700,254 C736,268 766,286 788,306"/>
+    <path d="M652,282 C620,300 596,318 580,336"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M540,322 L500,300"/>
+    <path d="M544,368 L506,386"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M140,588 C300,572 520,570 700,582"/>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: The Watch Goes Dark. The lamp on the tower goes out and the ridge behind
+       it stops being anybody's problem. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the ridge -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M0,338 C120,300 220,318 320,292 C420,266 520,286 620,268 C720,250 820,272 904,254"/>
+    <path d="M0,412 C160,384 320,400 460,382 C620,362 760,380 904,362"/>
+  </g>
+  <!-- the tower -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M362,180 C356,264 356,336 362,404"/>
+    <path d="M478,180 C484,264 484,336 478,404"/>
+    <path d="M340,180 C382,164 456,164 500,180"/>
+    <path d="M340,180 C348,158 352,142 354,126"/>
+    <path d="M500,180 C492,158 488,142 486,126"/>
+    <path d="M354,126 C382,116 456,116 486,126"/>
+    <path d="M336,408 C392,396 450,396 504,408"/>
+    <path d="M398,272 C398,238 442,238 442,272 L442,340 L398,340 Z"/>
+  </g>
+  <!-- the lamp, just out -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M400,74 C400,56 442,56 442,74 L448,120 L394,120 Z"/>
+    <path d="M414,42 C424,34 440,36 446,48"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M412,96 C422,86 434,86 442,94"/>
+  </g>
+  <!-- the last of the smoke off it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M436,64 C458,44 456,24 444,8"/>
+    <path d="M462,88 C490,70 496,46 486,26"/>
+  </g>
+  <!-- and one lamp still lit, a long way off -->
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M796,228 C802,222 812,222 818,228"/>
+    <path d="M790,244 L772,254"/>
+    <path d="M824,244 L842,254"/>
+  </g>
+</svg>

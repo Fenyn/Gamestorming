@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Knee Bash. The knee comes up into it and the embers come off the
+       joint. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the one throwing it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="196" r="46"/>
+    <path d="M256,242 C266,302 264,348 258,388"/>
+    <!-- the standing leg -->
+    <path d="M258,388 C238,448 226,510 224,570"/>
+    <path d="M210,576 L256,584"/>
+    <!-- the knee, driven up -->
+    <path d="M258,388 C316,374 366,352 402,320"/>
+    <path d="M402,320 C428,344 442,374 442,404"/>
+    <!-- both hands pulling down -->
+    <path d="M260,268 C320,276 372,290 414,308"/>
+    <path d="M252,286 C294,308 332,326 364,338"/>
+  </g>
+  <!-- the one taking it, folding -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="600" cy="252" r="44"/>
+    <path d="M600,296 C592,338 580,368 564,390"/>
+    <path d="M564,390 C578,444 596,492 618,534"/>
+    <path d="M564,390 C540,438 528,488 526,540"/>
+    <path d="M590,326 C556,346 532,364 516,380"/>
+    <path d="M612,322 C650,340 680,358 700,374"/>
+  </g>
+  <!-- what came off the knee -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M472,300 C520,274 566,258 612,252"/>
+    <path d="M470,376 C518,388 562,404 600,426"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M466,328 C516,314 562,308 606,310"/>
+    <path d="M462,272 C502,244 542,224 582,212"/>
+    <path d="M464,404 C506,424 542,448 572,476"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-linecap="round">
+    <path d="M660,208 L700,190"/>
+    <path d="M676,466 L712,490"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M160,582 C300,568 480,566 640,578"/>
+  </g>
+</svg>

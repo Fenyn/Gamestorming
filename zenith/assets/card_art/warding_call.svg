@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Warding Call. One shout, somebody arrives, and the seals come off the
+       gate behind them. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the gate, losing its seals -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.65" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M660,30 C656,190 656,400 660,570"/>
+    <path d="M880,30 C884,190 884,400 880,570"/>
+    <path d="M660,30 C740,16 800,16 880,30"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,120 L780,120 L780,200 L700,200 Z"/>
+    <g transform="translate(820,262) rotate(24)"><path d="M-40,-40 L40,-40 L40,40 L-40,40 Z"/></g>
+    <g transform="translate(748,368) rotate(-34)"><path d="M-36,-36 L36,-36 L36,36 L-36,36 Z"/></g>
+    <g transform="translate(838,472) rotate(48)"><path d="M-32,-32 L32,-32 L32,32 L-32,32 Z"/></g>
+  </g>
+  <!-- the one calling -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="186" r="46"/>
+    <path d="M152,198 C166,212 194,212 208,198"/>
+    <path d="M180,232 C192,294 190,344 184,392"/>
+    <path d="M184,392 C150,446 130,498 126,554"/>
+    <path d="M184,392 C232,430 262,484 272,552"/>
+    <path d="M184,268 C150,238 128,212 116,190"/>
+    <path d="M186,274 C222,292 252,312 274,330"/>
+  </g>
+  <!-- the call -->
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-linecap="round">
+    <path d="M280,140 C324,224 324,352 280,436"/>
+    <path d="M360,104 C418,212 418,368 360,472"/>
+  </g>
+  <!-- and the one arriving -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="500" cy="222" r="44"/>
+    <path d="M500,266 C510,324 508,366 502,406"/>
+    <path d="M502,406 C468,450 448,496 444,546"/>
+    <path d="M502,406 C544,442 570,490 578,546"/>
+    <path d="M504,296 C466,306 436,320 416,336"/>
+    <path d="M502,300 C538,322 564,344 582,364"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M612,210 C640,206 664,208 682,214"/>
+    <path d="M608,304 C638,302 662,306 680,312"/>
+  </g>
+</svg>

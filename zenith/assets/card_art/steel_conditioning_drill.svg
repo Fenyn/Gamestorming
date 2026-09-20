@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Steel Conditioning Drill. Graded weights in their slots on a worn bench,
+       one already lifted out. School card. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the bench -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,346 C300,328 620,328 850,346"/>
+    <path d="M60,346 C64,368 66,382 66,394"/>
+    <path d="M850,346 C846,368 844,382 844,394"/>
+    <path d="M66,394 C300,378 620,378 844,394"/>
+    <path d="M140,396 C138,428 138,452 140,470"/>
+    <path d="M770,396 C772,428 772,452 770,470"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M180,362 C320,352 520,352 660,362"/>
+  </g>
+  <!-- the weights, in their slots, graded -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M150,286 C150,252 200,252 200,286 L200,336 L150,336 Z"/>
+    <path d="M232,264 C232,226 288,226 288,264 L288,336 L232,336 Z"/>
+    <path d="M320,240 C320,198 384,198 384,240 L384,336 L320,336 Z"/>
+    <path d="M512,214 C512,166 586,166 586,214 L586,336 L512,336 Z"/>
+    <path d="M618,192 C618,140 700,140 700,192 L700,336 L618,336 Z"/>
+  </g>
+  <!-- the empty slot -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M414,336 L414,306 M486,336 L486,306 M414,306 L486,306"/>
+  </g>
+  <!-- the one lifted clear -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M414,140 C414,96 486,96 486,140 L486,250 L414,250 Z"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-linecap="round">
+    <path d="M450,88 L450,48"/>
+    <path d="M396,110 L364,84"/>
+    <path d="M504,110 L536,84"/>
+  </g>
+</svg>

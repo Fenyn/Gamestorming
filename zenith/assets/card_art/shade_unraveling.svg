@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Unraveling. The circle and the card both come apart into the same
+       black thread. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the circle, unpicking -->
+  <g fill="none" stroke="#9370db" stroke-width="11" stroke-linecap="round">
+    <path d="M200,300 C258,232 366,206 452,232"/>
+    <path d="M560,290 C600,354 578,436 508,476"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M214,382 C224,434 268,474 326,488"/>
+  </g>
+  <!-- the thread it is becoming -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M452,232 C500,214 542,224 566,258"/>
+    <path d="M566,258 C596,248 622,256 636,276"/>
+    <path d="M636,276 C670,268 700,278 716,300"/>
+    <path d="M716,300 C756,292 790,304 810,330"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M508,476 C548,494 588,492 616,470"/>
+    <path d="M616,470 C652,478 684,470 704,448"/>
+    <path d="M704,448 C744,452 778,440 796,414"/>
+  </g>
+  <!-- the card, going the same way -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M330,330 C372,318 418,318 456,328"/>
+    <path d="M330,330 C326,382 326,424 330,458"/>
+    <path d="M330,458 C368,468 412,468 450,458"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-linecap="round">
+    <path d="M456,328 C486,330 508,340 520,356"/>
+    <path d="M450,458 C482,452 506,440 518,424"/>
+    <path d="M520,356 C548,360 570,368 584,380"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M846,346 C868,352 884,362 894,376"/>
+    <path d="M828,402 C852,400 870,404 884,412"/>
+  </g>
+</svg>

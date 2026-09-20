@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Braced Guard. Feet set, weight down, the blow turned off the forearm.
+       No magic in it anywhere, which is the point. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="470" cy="164" r="46"/>
+    <!-- shoulders square, weight low -->
+    <path d="M470,210 C482,270 482,318 476,362"/>
+    <path d="M476,362 C420,410 386,462 372,528"/>
+    <path d="M476,362 C540,404 582,458 600,524"/>
+    <path d="M358,534 L406,542"/>
+    <path d="M588,530 L638,540"/>
+    <!-- the guard arm up and across -->
+    <path d="M474,244 C420,236 374,224 336,204"/>
+    <path d="M336,204 C316,232 306,262 306,292"/>
+    <!-- the other hand tucked in -->
+    <path d="M476,258 C516,282 550,300 578,310"/>
+  </g>
+  <!-- the blow, turning off it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M60,52 C146,106 226,158 296,206"/>
+    <path d="M304,198 C324,150 352,110 388,76"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M110,28 C186,78 256,126 318,170"/>
+    <path d="M40,110 C118,158 188,206 246,250"/>
+    <path d="M336,140 C362,106 392,80 426,60"/>
+  </g>
+  <!-- everything going into the floor -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M300,566 C430,552 560,550 690,562"/>
+    <path d="M352,588 C464,576 576,574 676,584"/>
+    <path d="M404,506 C420,530 424,550 422,568"/>
+    <path d="M556,502 C544,528 540,548 542,566"/>
+  </g>
+</svg>

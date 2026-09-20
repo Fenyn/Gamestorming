@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Emrys' Rising Blow. Up from under the guard, driven off the back foot.
+       His card, so there is no school in it. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="284" cy="272" r="46"/>
+    <path d="M284,318 C298,372 300,412 296,446"/>
+    <path d="M296,446 C256,492 234,536 228,584"/>
+    <path d="M296,446 C350,478 382,522 392,578"/>
+    <path d="M214,590 L260,598"/>
+    <path d="M380,584 L428,592"/>
+    <!-- the rising arm -->
+    <path d="M292,344 C348,314 400,278 442,238"/>
+    <!-- the guard hand still up -->
+    <path d="M280,356 C242,364 212,376 190,392"/>
+  </g>
+  <!-- the fist at the top of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M442,238 C462,204 496,194 522,212 C550,232 550,272 522,294 C494,316 458,306 444,278 C436,262 436,248 442,238 Z"/>
+    <path d="M462,236 C480,224 500,226 510,240"/>
+    <path d="M472,266 C490,256 510,258 520,272"/>
+  </g>
+  <!-- the head going back with it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="628" cy="150" r="46"/>
+    <path d="M628,196 C644,252 654,300 656,344"/>
+    <path d="M656,344 C640,406 632,464 634,520"/>
+    <path d="M656,344 C696,396 718,450 724,508"/>
+    <path d="M636,228 C604,254 582,280 570,306"/>
+    <path d="M648,224 C686,246 716,270 736,294"/>
+  </g>
+  <!-- the line it travelled -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M250,540 C314,470 388,398 464,330"/>
+    <path d="M320,566 C382,492 454,420 528,354"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M556,222 L590,186"/>
+    <path d="M540,182 L554,140"/>
+    <path d="M580,256 L624,246"/>
+  </g>
+</svg>

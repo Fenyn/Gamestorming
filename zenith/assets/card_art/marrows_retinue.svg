@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Marrow's Retinue. Two of them step out of the dark at once, and both are
+       already lit all the way up. Her card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the dark they came out of -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M110,40 C90,170 92,330 116,470"/>
+    <path d="M200,20 C178,160 180,340 206,494"/>
+    <path d="M790,40 C812,170 810,330 786,470"/>
+    <path d="M700,20 C724,160 722,340 696,494"/>
+  </g>
+  <!-- the two of them, made things -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,152 C300,118 356,118 356,152 L356,214 L300,214 Z"/>
+    <path d="M292,222 C316,210 340,210 364,222 L376,382 L280,382 Z"/>
+    <path d="M280,382 L268,534"/>
+    <path d="M376,382 L390,534"/>
+    <path d="M292,266 C260,286 238,310 226,336"/>
+    <path d="M364,266 C396,286 418,310 430,336"/>
+    <path d="M250,544 L296,552"/>
+    <path d="M374,544 L420,552"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M548,152 C548,118 604,118 604,152 L604,214 L548,214 Z"/>
+    <path d="M540,222 C564,210 588,210 612,222 L624,382 L528,382 Z"/>
+    <path d="M528,382 L516,534"/>
+    <path d="M624,382 L638,534"/>
+    <path d="M540,266 C508,286 486,310 474,336"/>
+    <path d="M612,266 C644,286 666,310 678,336"/>
+    <path d="M498,544 L544,552"/>
+    <path d="M622,544 L668,552"/>
+  </g>
+  <!-- both at full light -->
+  <g fill="none" stroke="#da70d6" stroke-width="8" stroke-linecap="round">
+    <path d="M300,276 C318,266 338,266 356,276"/>
+    <path d="M300,314 C318,304 338,304 356,314"/>
+    <path d="M548,276 C566,266 586,266 604,276"/>
+    <path d="M548,314 C566,304 586,304 604,314"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M316,176 L340,176"/>
+    <path d="M564,176 L588,176"/>
+  </g>
+</svg>

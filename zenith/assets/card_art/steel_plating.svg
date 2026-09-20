@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Plating. The plates close over the arm and across the chest while
+       the spell is still arriving, and it comes apart on them. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="560" cy="180" r="46"/>
+    <path d="M560,226 C572,290 570,344 564,392"/>
+    <path d="M564,392 C526,448 504,502 498,562"/>
+    <path d="M564,392 C620,432 654,488 664,558"/>
+    <path d="M484,568 L530,576"/>
+    <path d="M652,564 L700,572"/>
+    <path d="M560,256 C500,254 450,246 412,232"/>
+    <path d="M566,270 C606,294 640,314 666,326"/>
+  </g>
+  <!-- plates, closing in a run down the arm and across the chest -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M408,206 C386,222 376,246 380,268"/>
+    <path d="M446,212 C426,228 418,250 422,272"/>
+    <path d="M486,220 C468,236 460,256 464,278"/>
+    <path d="M526,232 C510,248 504,268 508,288"/>
+    <path d="M540,300 C568,288 600,292 620,310"/>
+    <path d="M536,342 C566,330 598,334 618,352"/>
+    <path d="M534,384 C562,372 592,376 612,394"/>
+  </g>
+  <!-- the spell coming apart on them -->
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,214 L176,252 L112,282 L244,320"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M280,300 L236,244"/>
+    <path d="M300,336 L246,352"/>
+    <path d="M312,268 L296,214"/>
+    <path d="M330,378 L300,424"/>
+    <path d="M348,226 L362,176"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M256,426 L212,470"/>
+    <path d="M232,176 L206,132"/>
+  </g>
+</svg>

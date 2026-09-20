@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Talon. A boot from above, the toes grown out into hooks, and the
+       floor goes in under it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the leg, coming down out of frame -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M356,0 C362,92 372,168 386,226"/>
+    <path d="M498,0 C494,94 490,172 484,232"/>
+  </g>
+  <!-- the foot, plated, toes drawn to hooks -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M386,226 C420,214 464,214 496,230 C512,268 514,306 502,340 C462,356 418,356 380,340 C368,304 370,264 386,226 Z"/>
+    <path d="M382,278 C418,268 464,268 500,280"/>
+    <path d="M356,346 C330,382 318,416 322,444"/>
+    <path d="M418,356 C404,398 400,436 406,468"/>
+    <path d="M478,354 C486,396 492,434 490,464"/>
+    <path d="M526,340 C554,376 570,410 572,440"/>
+  </g>
+  <!-- and the crater -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M182,566 C260,506 350,478 452,478 C556,478 648,508 724,570"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M120,612 C220,542 332,506 452,506 C574,506 688,544 786,616"/>
+    <path d="M300,520 L246,472"/>
+    <path d="M604,522 L660,476"/>
+    <path d="M452,494 L452,440"/>
+    <path d="M382,502 L350,456"/>
+    <path d="M526,504 L560,458"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M200,462 L160,436"/>
+    <path d="M708,466 L748,440"/>
+  </g>
+</svg>

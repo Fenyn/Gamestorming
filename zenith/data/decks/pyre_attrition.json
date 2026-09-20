@@ -8,7 +8,13 @@
   "relic": "severing_clasp",
   "reserve": [
     "open_challenge",
-    "defacement"
+    "the_watch_goes_dark",
+    "the_watch_goes_dark",
+    "the_watch_goes_dark",
+    "defacement",
+    "no_quarter",
+    "no_quarter",
+    "no_quarter"
   ],
   "archetype": "strike_beatdown",
   "difficulty": "medium",
@@ -23,10 +29,6 @@
   "cards": [
     {
       "id": "trampled_crossroads",
-      "count": 3
-    },
-    {
-      "id": "the_watch_goes_dark",
       "count": 3
     },
     {
@@ -127,10 +129,6 @@
     },
     {
       "id": "vales_sword_draw",
-      "count": 3
-    },
-    {
-      "id": "no_quarter",
       "count": 3
     },
     {

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Bearing Down. The whole weight of it arriving on top of them, and
+       they have nowhere to put it. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the mass coming over -->
+  <g fill="none" stroke="#20b2aa" stroke-width="15" stroke-linecap="round">
+    <path d="M0,120 C180,80 360,120 520,190 C640,244 760,300 904,330"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="11" stroke-linecap="round">
+    <path d="M0,208 C180,170 350,212 500,280 C616,332 740,384 904,412"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="9" stroke-linecap="round">
+    <path d="M0,60 C180,24 360,62 524,132"/>
+    <path d="M40,296 C200,262 360,300 494,360"/>
+  </g>
+  <!-- them, under it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="330" cy="404" r="44"/>
+    <path d="M330,448 C324,496 318,530 310,556"/>
+    <path d="M310,556 C336,580 366,598 396,608"/>
+    <path d="M310,556 C282,578 262,598 250,616"/>
+    <path d="M318,476 C284,470 256,468 234,472"/>
+    <path d="M342,474 C376,470 404,472 424,478"/>
+  </g>
+  <!-- the ground going under -->
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M60,604 C220,584 420,588 560,606"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M600,510 C700,492 800,498 890,516"/>
+  </g>
+</svg>

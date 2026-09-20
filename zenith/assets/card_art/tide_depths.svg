@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Depths. The arm goes down into water you cannot see the bottom of and
+       comes back holding one page. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the surface -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M0,240 C180,214 360,254 540,228 C680,208 800,240 904,222"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M40,300 C200,276 380,312 540,290 C660,274 780,300 880,286"/>
+  </g>
+  <!-- deeper -->
+  <g fill="none" stroke="#87ceeb" stroke-width="6" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M60,400 C220,382 400,412 560,394"/>
+    <path d="M100,500 C260,486 420,510 580,496"/>
+  </g>
+  <!-- the arm, down through it -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M330,40 C348,140 372,262 402,380"/>
+    <path d="M430,30 C448,132 470,254 498,372"/>
+    <path d="M402,380 C382,410 384,442 410,462"/>
+    <path d="M498,372 C518,398 518,430 496,452"/>
+    <path d="M410,462 C438,484 478,476 496,452"/>
+  </g>
+  <!-- and the page in the hand -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M392,476 C436,462 490,460 526,470 C530,522 530,562 526,596 C490,588 436,592 394,608 C390,566 390,518 392,476 Z"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="7" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M424,520 L496,516"/>
+    <path d="M424,556 L488,552"/>
+  </g>
+  <!-- what it disturbed on the way -->
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M300,256 C282,296 282,336 300,368"/>
+    <path d="M560,250 C580,292 580,334 560,366"/>
+  </g>
+</svg>

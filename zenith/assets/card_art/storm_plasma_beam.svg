@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Plasma Beam. A narrow beam straight through the rain, and the one it
+       is aimed at is already turning away. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- rain -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M80,40 l-28,120 M200,10 l-28,140 M320,50 l-28,120 M440,20 l-28,140
+             M560,46 l-28,120 M680,16 l-28,140 M800,44 l-28,120
+             M140,300 l-26,110 M380,310 l-26,110 M620,304 l-26,110 M860,308 l-26,110"/>
+  </g>
+  <!-- the caster -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="150" cy="286" r="44"/>
+    <path d="M150,330 C160,384 158,424 152,462"/>
+    <path d="M152,462 C122,508 106,548 102,592"/>
+    <path d="M152,462 C196,494 224,538 234,592"/>
+    <path d="M154,356 C202,356 244,360 278,368"/>
+    <path d="M144,370 C118,394 102,416 94,436"/>
+  </g>
+  <!-- the beam -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="16" stroke-linecap="round">
+    <path d="M300,368 C440,364 580,360 700,356"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M300,338 C440,334 580,330 690,326"/>
+    <path d="M300,398 C440,394 580,390 690,386"/>
+  </g>
+  <!-- and the one turning away too late -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="772" cy="252" r="44"/>
+    <path d="M772,296 C782,350 782,392 776,430"/>
+    <path d="M776,430 C752,478 738,524 736,568"/>
+    <path d="M776,430 C812,466 834,514 840,566"/>
+    <path d="M766,326 C738,346 718,366 706,386"/>
+    <path d="M782,324 C812,344 836,364 850,382"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-linecap="round">
+    <path d="M712,332 L676,306"/>
+    <path d="M714,392 L678,418"/>
+  </g>
+</svg>

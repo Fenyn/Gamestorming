@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Tide Heavy Water. It is standing in the room and it does not move when
+       anything else does. School card. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the room -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M0,110 C240,96 660,96 904,110"/>
+    <path d="M150,110 C146,200 146,300 150,400"/>
+    <path d="M754,110 C758,200 758,300 754,400"/>
+  </g>
+  <!-- the water, flat and still -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M60,272 C240,262 660,262 844,272"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M60,326 C240,318 660,318 844,326"/>
+    <path d="M80,378 C260,372 640,372 824,378"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M100,428 C280,422 620,422 804,428"/>
+  </g>
+  <!-- the one thing that tried to disturb it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(452,196) rotate(-12)"><path d="M-54,-76 h108 v152 h-108 Z"/></g>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M400,262 C426,254 478,254 506,262"/>
+  </g>
+</svg>

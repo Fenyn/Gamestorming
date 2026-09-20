@@ -1,27 +1,349 @@
 {
-  "_note": "Fixtures for the character/variant split: a keyword and a bloodline are properties of a printing, not of the person, and a card attached to a personality can lend them either one for as long as it rides there.",
+  "_note": "Fixtures for the character/variant split: a keyword and a bloodline are properties of a printing, not of the person, and a card attached to a personality can lend them either one for as long as it rides there. Also a Mastery that buys wounds off with its own discard pile instead of blocking, and an attack that locks out cards which lower an Aspect.",
   "cards": [
-    {"id": "tf_marked_short", "title": "Test Two-Faced", "type": "personality", "character": "Test Two-Faced", "variant": "the Short Road", "tags": ["marked"], "aspects": [
-      {"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]},
-      {"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
-      {"aspect": 3, "surge": 3, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]}
-    ]},
-    {"id": "tf_marked_long", "title": "Test Two-Faced", "type": "personality", "character": "Test Two-Faced", "variant": "the Long Road", "aspects": [
-      {"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]},
-      {"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
-      {"aspect": 3, "surge": 2, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]},
-      {"aspect": 4, "surge": 3, "might": [0, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000]},
-      {"aspect": 5, "surge": 4, "might": [0, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000, 1300000, 1400000]}
-    ]},
-    {"id": "t_marked_rite", "title": "Test Marked Rite", "type": "combat", "only": {"tag": "marked"},
-     "effects": [{"op": "draw", "amount": 1}]},
-    {"id": "t_the_mark", "title": "Test Mark", "type": "non_combat",
-     "effects": [{"trigger": "use", "op": "attach", "to": "duelist"}],
-     "attachment": {"target": "duelist", "grants_tags": ["marked"]}},
-    {"id": "t_blood_rite", "title": "Test Blood Rite", "type": "non_combat",
-     "effects": [{"trigger": "use", "op": "attach", "to": "duelist"}],
-     "attachment": {"target": "duelist", "grants_bloodline": "draconic"}},
-    {"id": "t_marked_count", "title": "Test Marked Count", "type": "art",
-     "attack": {"kind": "art", "life_per_tag": "marked"}}
+    {
+      "id": "tf_marked_short",
+      "title": "Test Two-Faced",
+      "type": "personality",
+      "character": "Test Two-Faced",
+      "variant": "the Short Road",
+      "tags": [
+        "marked"
+      ],
+      "aspects": [
+        {
+          "aspect": 1,
+          "surge": 2,
+          "might": [
+            0,
+            100000,
+            200000,
+            300000,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000
+          ]
+        },
+        {
+          "aspect": 2,
+          "surge": 2,
+          "might": [
+            0,
+            200000,
+            300000,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000,
+            1100000
+          ]
+        },
+        {
+          "aspect": 3,
+          "surge": 3,
+          "might": [
+            0,
+            300000,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000,
+            1100000,
+            1200000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tf_marked_long",
+      "title": "Test Two-Faced",
+      "type": "personality",
+      "character": "Test Two-Faced",
+      "variant": "the Long Road",
+      "aspects": [
+        {
+          "aspect": 1,
+          "surge": 1,
+          "might": [
+            0,
+            100000,
+            200000,
+            300000,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000
+          ]
+        },
+        {
+          "aspect": 2,
+          "surge": 2,
+          "might": [
+            0,
+            200000,
+            300000,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000,
+            1100000
+          ]
+        },
+        {
+          "aspect": 3,
+          "surge": 2,
+          "might": [
+            0,
+            300000,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000,
+            1100000,
+            1200000
+          ]
+        },
+        {
+          "aspect": 4,
+          "surge": 3,
+          "might": [
+            0,
+            400000,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000,
+            1100000,
+            1200000,
+            1300000
+          ]
+        },
+        {
+          "aspect": 5,
+          "surge": 4,
+          "might": [
+            0,
+            500000,
+            600000,
+            700000,
+            800000,
+            900000,
+            1000000,
+            1100000,
+            1200000,
+            1300000,
+            1400000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "t_marked_rite",
+      "title": "Test Marked Rite",
+      "type": "combat",
+      "only": {
+        "tag": "marked"
+      },
+      "effects": [
+        {
+          "op": "draw",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "t_the_mark",
+      "title": "Test Mark",
+      "type": "non_combat",
+      "effects": [
+        {
+          "trigger": "use",
+          "op": "attach",
+          "to": "duelist"
+        }
+      ],
+      "attachment": {
+        "target": "duelist",
+        "grants_tags": [
+          "marked"
+        ]
+      }
+    },
+    {
+      "id": "t_blood_rite",
+      "title": "Test Blood Rite",
+      "type": "non_combat",
+      "effects": [
+        {
+          "trigger": "use",
+          "op": "attach",
+          "to": "duelist"
+        }
+      ],
+      "attachment": {
+        "target": "duelist",
+        "grants_bloodline": "draconic"
+      }
+    },
+    {
+      "id": "t_marked_count",
+      "title": "Test Marked Count",
+      "type": "art",
+      "attack": {
+        "kind": "art",
+        "life_per_tag": "marked"
+      }
+    },
+    {
+      "id": "t_mastery_burn",
+      "title": "Test Burning Mastery",
+      "type": "mastery",
+      "school": "tide",
+      "defense_burn": {
+        "school": "tide",
+        "prevent_per": 2
+      }
+    },
+    {
+      "id": "t_tide_filler",
+      "title": "Test Tide Card",
+      "type": "strike",
+      "school": "tide",
+      "attack": {
+        "kind": "strike",
+        "life": 1
+      }
+    },
+    {
+      "id": "t_aspect_lock",
+      "title": "Test Aspect Lock",
+      "type": "combat",
+      "effects": [
+        {
+          "op": "forbid",
+          "who": "opponent",
+          "what": "lower_aspect",
+          "duration": "combat"
+        }
+      ]
+    },
+    {
+      "id": "t_drop_them",
+      "title": "Test Drop Them",
+      "type": "combat",
+      "effects": [
+        {
+          "op": "lose_aspect",
+          "who": "opponent"
+        }
+      ]
+    },
+    {
+      "id": "t_hold",
+      "title": "Test Hold",
+      "type": "strike",
+      "attack": {
+        "kind": "strike",
+        "life": 1
+      },
+      "effects": [
+        {
+          "op": "float",
+          "who": "opponent",
+          "what": "phase_drain",
+          "duration": "combat",
+          "params": {
+            "energy": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "t_ride_it",
+      "title": "Test Ride It",
+      "type": "strike",
+      "attack": {
+        "kind": "strike",
+        "life": 1
+      },
+      "remain_when": {
+        "when": {
+          "card_in_play": [
+            "Test Marker A",
+            "Test Marker B"
+          ]
+        },
+        "remain": "aspect"
+      }
+    },
+    {
+      "id": "t_marker_b",
+      "title": "Test Marker B",
+      "type": "non_combat"
+    },
+    {
+      "id": "t_reveal_all",
+      "title": "Test Reveal All",
+      "type": "non_combat",
+      "effects": [
+        {
+          "trigger": "use",
+          "op": "look_at",
+          "amount": 7,
+          "from": "top",
+          "to": "play",
+          "pick": {
+            "card_type": "non_combat"
+          },
+          "all_matches": true,
+          "shuffle_after": false
+        }
+      ]
+    },
+    {
+      "id": "t_seal_guard",
+      "title": "Test Guarding Seal",
+      "type": "seal",
+      "seal_set": "moth",
+      "seal_number": 2,
+      "limit_per_deck": 1,
+      "protect_from_removal": true,
+      "effects": []
+    },
+    {
+      "id": "t_wipe_them",
+      "title": "Test Wipe",
+      "type": "combat",
+      "effects": [
+        {
+          "op": "discard_in_play",
+          "who": "opponent",
+          "card_type": "non_combat",
+          "all": true,
+          "remove": true
+        }
+      ]
+    }
   ]
 }

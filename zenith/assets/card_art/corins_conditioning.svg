@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Corin's Conditioning. Sat on bare stone before light, breathing, eyes
+       shut. His card: a discipline, not a school. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- first light, low -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M0,186 C240,170 660,170 904,186"/>
+    <path d="M0,232 C240,218 660,218 904,232"/>
+  </g>
+  <!-- the stone -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,382 C300,364 604,364 604,382 L604,434 L300,434 Z"/>
+    <path d="M300,382 C340,368 564,368 604,382"/>
+  </g>
+  <!-- him, seated and square -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="132" r="46"/>
+    <path d="M420,128 C430,120 442,122 448,130"/>
+    <path d="M458,130 C468,120 482,120 490,128"/>
+    <path d="M452,178 C466,236 468,290 464,326"/>
+    <path d="M464,326 C400,336 352,352 322,372"/>
+    <path d="M464,326 C528,336 576,352 606,372"/>
+    <path d="M458,220 C412,240 380,266 364,296"/>
+    <path d="M466,220 C512,240 546,266 562,296"/>
+    <path d="M364,296 C384,316 410,324 436,320"/>
+    <path d="M562,296 C542,316 516,324 490,320"/>
+  </g>
+  <!-- the breath -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M510,122 C552,106 584,114 622,100"/>
+    <path d="M512,158 C556,144 590,152 628,140"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M100,452 C300,436 620,434 820,450"/>
+  </g>
+</svg>

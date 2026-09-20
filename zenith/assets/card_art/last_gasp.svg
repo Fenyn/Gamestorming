@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Last Gasp. Down on one knee with the light out, and the rest of the deck
+       burning beside them. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- them, one knee down -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="330" cy="212" r="46"/>
+    <path d="M330,258 C340,316 338,358 332,398"/>
+    <path d="M332,398 C298,430 276,466 268,504"/>
+    <path d="M268,504 C238,514 216,522 200,532"/>
+    <path d="M332,398 C372,424 396,462 404,506"/>
+    <path d="M388,514 L436,522"/>
+    <path d="M334,290 C370,318 396,348 412,378"/>
+    <path d="M324,300 C292,330 272,360 262,388"/>
+  </g>
+  <!-- the light, gone -->
+  <g fill="none" stroke="#20b2aa" stroke-width="7" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M260,150 C240,120 236,92 244,68"/>
+    <path d="M404,152 C424,122 430,94 422,70"/>
+  </g>
+  <!-- and the pile burning -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M620,440 C700,420 790,418 856,434"/>
+    <path d="M628,482 C704,464 786,462 848,476"/>
+    <path d="M640,520 C710,504 780,502 838,514"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M664,412 C650,352 668,300 704,266"/>
+    <path d="M760,410 C778,350 764,296 730,262"/>
+    <path d="M820,424 C836,382 830,344 806,316"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M692,406 C684,362 696,326 716,300"/>
+    <path d="M740,406 C752,364 744,330 724,304"/>
+    <path d="M626,428 C620,398 628,372 644,352"/>
+  </g>
+</svg>

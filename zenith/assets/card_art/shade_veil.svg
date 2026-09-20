@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Shade Veil. A curtain drawn across the middle of the frame, and the blade
+       that was coming is somewhere inside it. School card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the blade, entering and not leaving -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M60,120 C160,168 250,214 324,254"/>
+    <path d="M40,160 C142,208 234,256 310,296"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M370,282 C420,306 460,326 492,344"/>
+  </g>
+  <!-- the veil -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M352,0 C330,150 352,300 322,448 C308,516 316,560 340,596"/>
+    <path d="M452,0 C430,156 452,312 422,460 C408,528 416,570 440,600"/>
+    <path d="M552,0 C530,150 552,300 522,448 C508,516 516,560 540,596"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M402,0 C382,152 402,306 374,452 C360,520 368,562 390,598"/>
+    <path d="M502,0 C482,152 502,306 474,452 C460,520 468,562 490,598"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M602,0 C584,150 604,298 576,446"/>
+    <path d="M302,0 C284,150 304,298 276,446"/>
+  </g>
+  <!-- nothing on the far side -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.4" stroke-linecap="round">
+    <path d="M700,280 C760,276 820,278 872,286"/>
+    <path d="M706,340 C764,336 822,338 872,346"/>
+  </g>
+</svg>

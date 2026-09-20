@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Black Water. Deep enough that the light stops partway down, and
+       something is still going in. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the surface -->
+  <g fill="none" stroke="#87ceeb" stroke-width="12" stroke-linecap="round">
+    <path d="M0,150 C180,124 360,164 540,138 C680,118 800,150 904,132"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M40,212 C200,188 380,224 540,202 C660,186 780,212 880,198"/>
+  </g>
+  <!-- the light going out with depth -->
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M60,300 C220,282 400,312 560,294"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="8" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M80,400 C240,384 420,412 580,396"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="7" stroke-opacity="0.18" stroke-linecap="round">
+    <path d="M100,500 C260,486 440,512 600,498"/>
+  </g>
+  <!-- and something on its way down -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(470,268) rotate(-16)"><path d="M-62,-92 h124 v184 h-124 Z"/></g>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(560,420) rotate(22)"><path d="M-56,-84 h112 v168 h-112 Z"/></g>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.25" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(410,548) rotate(-30)"><path d="M-50,-74 h100 v148 h-100 Z"/></g>
+  </g>
+  <!-- the trail they left on the way -->
+  <g fill="none" stroke="#87ceeb" stroke-width="6" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M470,166 C476,214 476,246 470,270"/>
+    <path d="M560,316 C566,354 566,382 560,404"/>
+  </g>
+</svg>

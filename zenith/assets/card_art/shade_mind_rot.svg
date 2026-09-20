@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Mind Rot. Threads into the temples, and two of the pages in their
+       hand go black while they are holding them. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the head, close -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,170 C410,144 500,216 500,340 C500,462 420,540 320,526 C236,514 200,428 204,324 C208,230 244,184 300,170 Z"/>
+    <path d="M254,318 C286,300 326,302 352,322"/>
+    <path d="M396,322 C424,304 460,306 484,326"/>
+    <path d="M262,430 C304,442 356,440 392,426"/>
+  </g>
+  <!-- the threads -->
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <path d="M216,268 C160,246 110,238 66,246"/>
+    <path d="M496,276 C552,252 604,244 648,252"/>
+    <path d="M226,224 C180,190 138,168 100,158"/>
+    <path d="M486,230 C530,196 572,174 612,164"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M232,312 C186,314 148,322 116,336"/>
+    <path d="M482,320 C528,322 566,330 598,344"/>
+  </g>
+  <!-- the hand of pages, two of them going -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(640,468) rotate(-18)"><path d="M-70,-104 h140 v208 h-140 Z"/></g>
+    <g transform="translate(748,452) rotate(-4)"><path d="M-70,-104 h140 v208 h-140 Z"/></g>
+    <g transform="translate(852,470) rotate(12)"><path d="M-70,-104 h140 v208 h-140 Z"/></g>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <g transform="translate(640,468) rotate(-18)">
+      <path d="M-70,-40 h140 M-70,10 h140 M-70,60 h140"/>
+    </g>
+    <g transform="translate(748,452) rotate(-4)">
+      <path d="M-70,-40 h140 M-70,10 h140 M-70,60 h140"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-linecap="round">
+    <path d="M560,388 C596,400 626,418 648,442"/>
+  </g>
+</svg>

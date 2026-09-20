@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Iron Knee. The knee comes up with a plate on it, and a seal lights
+       on the gate behind. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the gate and its seal -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M640,40 C636,220 636,420 640,600"/>
+    <path d="M880,40 C884,220 884,420 880,600"/>
+    <path d="M640,40 C720,26 800,26 880,40"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M694,180 L826,180 L826,312 L694,312 Z"/>
+    <path d="M722,208 L798,208 L798,284 L722,284 Z"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M668,154 L644,128"/>
+    <path d="M852,154 L878,128"/>
+    <path d="M760,336 L760,368"/>
+  </g>
+  <!-- him, knee up -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="230" cy="180" r="46"/>
+    <path d="M230,226 C242,288 240,336 234,376"/>
+    <path d="M234,376 C216,442 206,508 204,570"/>
+    <path d="M190,576 L236,584"/>
+    <path d="M234,376 C294,362 344,340 380,310"/>
+    <path d="M236,256 C294,266 344,282 384,304"/>
+    <path d="M226,272 C196,300 176,328 166,352"/>
+  </g>
+  <!-- the knee plate -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M380,310 C420,286 466,292 484,326 C504,362 482,404 440,414 C402,422 368,402 362,368 C356,338 362,320 380,310 Z"/>
+    <path d="M382,344 C414,330 452,336 472,358"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M520,320 L566,296"/>
+    <path d="M528,372 L576,380"/>
+    <path d="M498,272 L510,228"/>
+  </g>
+</svg>

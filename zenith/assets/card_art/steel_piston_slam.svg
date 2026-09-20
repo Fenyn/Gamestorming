@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Piston Slam. The whole arm goes down like a piston and the loose
+       pages go skidding. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="330" cy="140" r="46"/>
+    <path d="M330,186 C342,244 340,286 334,324"/>
+    <path d="M334,324 C300,376 280,424 274,472"/>
+    <path d="M334,324 C382,358 412,406 422,458"/>
+    <path d="M260,478 L306,486"/>
+    <path d="M410,464 L456,472"/>
+    <path d="M336,212 C378,236 414,264 442,296"/>
+  </g>
+  <!-- the arm, straight down -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M442,296 C458,344 470,392 476,434"/>
+    <path d="M512,286 C526,336 536,386 542,430"/>
+    <path d="M450,340 L518,328"/>
+    <path d="M464,392 L530,382"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M476,434 C516,424 552,442 556,476 C560,512 528,540 486,536 C452,532 434,508 438,480 C442,452 458,438 476,434 Z"/>
+  </g>
+  <!-- the floor it met -->
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-linecap="round">
+    <path d="M260,570 C340,538 430,526 512,530 C600,534 686,556 754,594"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M200,608 C300,570 410,552 512,556 C620,560 720,586 796,624"/>
+  </g>
+  <!-- pages going out sideways -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M660,470 C696,448 736,444 760,458 C748,496 706,506 660,470 Z"/>
+    <path d="M760,376 C792,356 828,354 850,366 C840,400 802,408 760,376 Z"/>
+    <path d="M148,494 C182,472 220,468 244,482 C232,518 192,526 148,494 Z"/>
+  </g>
+</svg>

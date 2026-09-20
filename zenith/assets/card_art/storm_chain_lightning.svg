@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Chain Lightning. It finds the next one, and then the one after that.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- three of them, in a line -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="270" r="42"/>
+    <path d="M200,312 V446"/>
+    <path d="M200,446 L168,562 M200,446 L234,562"/>
+    <path d="M200,346 L146,366 M200,346 L256,366"/>
+    <circle cx="470" cy="216" r="42"/>
+    <path d="M470,258 V392"/>
+    <path d="M470,392 L438,508 M470,392 L504,508"/>
+    <path d="M470,292 L416,312 M470,292 L526,312"/>
+    <circle cx="732" cy="300" r="42"/>
+    <path d="M732,342 V476"/>
+    <path d="M732,476 L700,592 M732,476 L766,592"/>
+    <path d="M732,376 L678,396 M732,376 L788,396"/>
+  </g>
+  <!-- the chain -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,330 L130,300 L96,270 L178,252"/>
+    <path d="M238,250 L318,214 L282,196 L432,190"/>
+    <path d="M508,212 L586,244 L548,264 L694,288"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,380 L140,352 L110,330 L180,312"/>
+    <path d="M240,306 L320,272 L288,254 L430,244"/>
+    <path d="M510,262 L586,290 L552,308 L690,330"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-linecap="round">
+    <path d="M778,268 L838,244"/>
+    <path d="M782,330 L844,344"/>
+  </g>
+</svg>

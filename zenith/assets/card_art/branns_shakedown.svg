@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Brann's Shakedown. One hand tears the circle in half, the other already
+       has the seal. His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, broad, both arms working -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="156" r="50"/>
+    <path d="M452,206 C466,270 466,322 460,370"/>
+    <path d="M460,370 C412,424 384,482 376,552"/>
+    <path d="M460,370 C516,412 552,472 562,548"/>
+    <path d="M362,562 L410,570"/>
+    <path d="M550,554 L600,562"/>
+    <path d="M456,242 C400,254 354,274 320,298"/>
+    <path d="M458,246 C512,262 556,284 588,308"/>
+  </g>
+  <!-- the circle, in two -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round">
+    <path d="M268,318 C210,352 182,428 204,496"/>
+    <path d="M232,540 C272,580 336,592 386,570"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,300 L326,390 L268,420 L312,504"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M180,352 L138,330"/>
+    <path d="M212,552 L176,586"/>
+  </g>
+  <!-- and the seal in the other hand -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M620,290 L756,290 L756,426 L620,426 Z"/>
+    <path d="M654,324 L722,324 L722,392 L654,392 Z"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M790,268 L824,240"/>
+    <path d="M794,448 L828,476"/>
+  </g>
+</svg>

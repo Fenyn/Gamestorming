@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Immovable Guard. Wide stance, nothing given, and the blade is the
+       thing that bends. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="156" r="48"/>
+    <path d="M452,204 C466,268 466,318 460,364"/>
+    <path d="M460,364 C398,410 358,464 342,536"/>
+    <path d="M460,364 C528,404 570,458 584,532"/>
+    <path d="M326,542 L376,550"/>
+    <path d="M570,540 L622,548"/>
+    <path d="M454,238 C400,246 356,258 322,274"/>
+    <path d="M458,250 C508,264 548,280 578,298"/>
+  </g>
+  <!-- the shoulder it came onto -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M552,252 C598,244 634,262 642,296 C650,332 624,362 582,364 C544,366 516,344 514,312 C512,282 532,256 552,252 Z"/>
+    <path d="M540,288 C572,278 608,284 626,302"/>
+  </g>
+  <!-- the blade, bending -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M880,96 C820,150 762,208 716,266 C696,292 676,310 656,320"/>
+    <path d="M896,140 C836,196 782,254 738,310 C720,334 702,350 684,358"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M660,266 L700,236"/>
+    <path d="M672,356 L710,378"/>
+    <path d="M638,228 L648,184"/>
+  </g>
+  <!-- and the floor taking the rest -->
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M300,570 C380,556 520,554 606,566"/>
+    <path d="M356,598 C430,588 512,586 580,594"/>
+  </g>
+</svg>

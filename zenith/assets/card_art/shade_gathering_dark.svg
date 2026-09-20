@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Shade Gathering Dark. The shadow comes in from the whole frame and ends up
+       in one fist. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- everything coming inward -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round">
+    <path d="M60,60 C180,140 280,220 374,286"/>
+    <path d="M844,60 C724,140 624,220 530,286"/>
+    <path d="M60,580 C180,500 280,420 374,354"/>
+    <path d="M844,580 C724,500 624,420 530,354"/>
+    <path d="M40,320 C160,320 280,320 372,320"/>
+    <path d="M864,320 C744,320 624,320 532,320"/>
+    <path d="M452,40 C452,140 452,230 452,280"/>
+    <path d="M452,600 C452,500 452,410 452,360"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M160,160 C240,220 320,266 390,300"/>
+    <path d="M744,160 C664,220 584,266 514,300"/>
+    <path d="M160,480 C240,420 320,374 390,340"/>
+    <path d="M744,480 C664,420 584,374 514,340"/>
+  </g>
+  <!-- the fist it is going into -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M400,264 C452,252 506,278 512,328 C518,380 476,418 424,412 C378,406 354,372 360,330 C366,290 382,268 400,264 Z"/>
+    <path d="M382,304 C420,288 470,296 494,322"/>
+    <path d="M388,358 C426,342 474,350 498,376"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="8" stroke-linecap="round">
+    <path d="M420,240 C450,228 484,232 506,248"/>
+    <path d="M414,432 C446,444 480,442 504,428"/>
+  </g>
+</svg>

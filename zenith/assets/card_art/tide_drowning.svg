@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Drowning. The pool comes up over the circle and the circle stops
+       working. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the circle, half under -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round">
+    <path d="M220,300 C300,226 500,212 632,268"/>
+    <path d="M700,330 C728,414 660,494 540,516"/>
+    <path d="M210,378 C208,438 262,492 348,512"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M300,330 C364,284 496,276 594,314"/>
+  </g>
+  <!-- the water rising over it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="13" stroke-linecap="round">
+    <path d="M0,400 C160,368 320,414 480,388 C620,366 760,404 904,382"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M0,470 C160,442 320,484 480,458 C620,436 760,472 904,452"/>
+    <path d="M40,548 C200,522 360,560 520,538 C650,520 780,552 890,536"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M80,612 C240,586 400,624 560,602 C680,586 800,614 898,600"/>
+  </g>
+  <!-- what the circle is doing about it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M360,262 L346,214"/>
+    <path d="M520,250 L536,204"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-linecap="round">
+    <path d="M300,356 C330,344 366,342 396,350"/>
+    <path d="M520,346 C552,336 588,338 616,348"/>
+  </g>
+</svg>

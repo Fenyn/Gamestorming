@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Deep Anchor. Set into the floor and not coming up, and the line from
+       it runs out of frame. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the floor -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M0,506 C200,482 660,480 904,504"/>
+    <path d="M60,572 C260,548 660,546 860,570"/>
+  </g>
+  <!-- the anchor -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M452,150 C446,270 446,400 452,506"/>
+    <path d="M330,300 C378,288 526,288 574,300"/>
+    <path d="M300,412 C304,480 370,526 452,528 C534,530 600,484 604,414"/>
+    <path d="M300,412 L262,378 M300,412 L276,452"/>
+    <path d="M604,414 L642,380 M604,414 L628,454"/>
+    <path d="M452,150 C434,130 438,104 460,94 C482,84 506,98 504,122 C502,142 482,154 462,150"/>
+  </g>
+  <!-- the line -->
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round">
+    <path d="M504,110 C620,86 740,64 890,52"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M516,146 C630,124 750,104 894,94"/>
+  </g>
+  <!-- the water around it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M120,236 C220,220 320,248 400,234"/>
+    <path d="M540,300 C640,284 740,310 840,296"/>
+    <path d="M100,388 C200,372 300,398 380,384"/>
+  </g>
+</svg>

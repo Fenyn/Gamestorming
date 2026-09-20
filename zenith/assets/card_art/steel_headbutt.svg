@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Headbutt. An iron forehead into a drawn circle, and the circle is
+       what breaks. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the rune circle, coming apart -->
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-linecap="round">
+    <path d="M592,112 C700,140 764,230 750,330"/>
+    <path d="M736,398 C700,464 632,506 556,512"/>
+    <path d="M486,492 C440,458 414,400 420,338"/>
+    <path d="M446,222 C470,180 506,148 548,130"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M610,186 C672,206 708,264 700,326"/>
+    <path d="M660,414 C620,452 566,466 514,452"/>
+    <path d="M478,340 C474,294 494,252 528,222"/>
+  </g>
+  <!-- the pieces that came off -->
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M768,150 L812,120"/>
+    <path d="M792,430 L840,452"/>
+    <path d="M568,548 L556,596"/>
+    <path d="M410,182 L372,146"/>
+  </g>
+  <!-- him, head down and through -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M286,244 C292,340 258,400 194,412"/>
+    <path d="M194,412 C186,470 182,520 184,566"/>
+    <path d="M170,572 L216,580"/>
+    <path d="M194,412 C238,438 268,470 284,506"/>
+    <path d="M272,510 L318,522"/>
+    <path d="M232,308 C180,324 140,346 114,372"/>
+    <path d="M244,338 C200,372 170,406 154,438"/>
+  </g>
+  <!-- the head itself, iron -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M286,244 C286,192 330,158 386,162 C444,166 478,208 474,264 C470,318 430,350 376,346 C324,342 286,300 286,244 Z"/>
+    <path d="M420,178 C452,196 468,230 466,264"/>
+    <path d="M352,178 C332,200 322,228 324,256"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round">
+    <path d="M498,226 L540,206"/>
+    <path d="M500,286 L544,294"/>
+  </g>
+</svg>

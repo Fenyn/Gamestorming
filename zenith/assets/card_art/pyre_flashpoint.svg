@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Flashpoint. The air at one point goes over all at once, and whoever
+       set it off is already past it. School card: the figure is a silhouette going out of frame. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the point it went off at -->
+  <g fill="none" stroke="#ffd700" stroke-width="10" stroke-linecap="round">
+    <path d="M556,320 L556,144"/>
+    <path d="M556,320 L556,500"/>
+    <path d="M556,320 L378,320"/>
+    <path d="M556,320 L736,320"/>
+    <path d="M556,320 L432,196"/>
+    <path d="M556,320 L680,196"/>
+    <path d="M556,320 L432,444"/>
+    <path d="M556,320 L680,444"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M556,116 L556,66"/>
+    <path d="M556,528 L556,578"/>
+    <path d="M350,320 L298,320"/>
+    <path d="M764,320 L816,320"/>
+    <path d="M410,174 L374,138"/>
+    <path d="M702,174 L738,138"/>
+    <path d="M410,466 L374,502"/>
+    <path d="M702,466 L738,502"/>
+  </g>
+  <!-- the front of it, uneven because air is not a diagram -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M556,152 C660,166 730,232 726,318 C722,410 646,478 552,480 C462,482 396,416 392,326 C388,238 458,166 556,152"/>
+    <path d="M556,84 C700,100 802,200 794,322 C786,450 676,540 548,542"/>
+  </g>
+  <path d="M528,286 C560,272 592,292 588,326 C584,360 546,374 522,352 C500,332 506,296 528,286 Z"
+        fill="none" stroke="#fffafa" stroke-width="9"/>
+  <!-- and the one already through it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="150" cy="268" r="44"/>
+    <path d="M150,312 C158,372 156,418 150,462"/>
+    <path d="M150,462 C116,508 98,550 94,592"/>
+    <path d="M150,462 C190,500 212,548 218,592"/>
+    <path d="M154,340 C120,366 98,392 86,418"/>
+    <path d="M154,338 C196,334 234,332 268,334"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M272,256 C318,254 360,256 398,262"/>
+    <path d="M254,352 C300,352 342,356 378,364"/>
+    <path d="M240,448 C286,450 326,456 360,466"/>
+  </g>
+</svg>

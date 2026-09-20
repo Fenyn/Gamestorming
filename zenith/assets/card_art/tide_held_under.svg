@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Tide Held Under. The surface is right there and they are not getting to
+       it. School card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the surface, close above -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M0,150 C180,124 360,164 540,138 C680,118 800,150 904,132"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M0,206 C180,182 360,220 540,194 C680,176 800,206 904,190"/>
+  </g>
+  <!-- them, under it, hand up and short -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="366" r="46"/>
+    <path d="M452,412 C462,462 460,502 454,540"/>
+    <path d="M454,540 C424,566 406,584 398,600"/>
+    <path d="M454,540 C490,566 512,584 520,600"/>
+    <path d="M448,440 C410,410 382,382 366,356"/>
+    <path d="M458,440 C494,408 520,376 534,348"/>
+  </g>
+  <!-- the reaching hand, still short of it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M534,348 C544,318 548,296 546,278"/>
+    <path d="M560,342 C572,314 578,292 578,276"/>
+    <path d="M584,344 C598,318 606,298 608,282"/>
+  </g>
+  <!-- the gap -->
+  <g fill="none" stroke="#87ceeb" stroke-width="7" stroke-opacity="0.8" stroke-dasharray="20 16" stroke-linecap="round">
+    <path d="M578,262 L578,214"/>
+  </g>
+  <!-- what is holding them -->
+  <g fill="none" stroke="#20b2aa" stroke-width="12" stroke-linecap="round">
+    <path d="M200,300 C280,340 360,380 420,420"/>
+    <path d="M704,300 C624,340 544,380 484,420"/>
+    <path d="M160,430 C260,452 356,470 430,482"/>
+    <path d="M744,430 C644,452 548,470 474,482"/>
+  </g>
+</svg>

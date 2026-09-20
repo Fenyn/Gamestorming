@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Emrys Spots the Fraud Drill. The side gate barred from this side, and the
+       people who were counting on it still waiting out there. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the gate -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M262,60 C256,200 256,330 262,442"/>
+    <path d="M642,60 C648,200 648,330 642,442"/>
+    <path d="M262,60 C380,40 524,40 642,60"/>
+    <path d="M240,448 C380,432 524,432 664,448"/>
+    <path d="M452,66 C448,200 448,330 452,440"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M300,140 C340,134 396,132 436,134"/>
+    <path d="M470,136 C510,134 566,136 606,142"/>
+    <path d="M300,340 C340,336 396,334 436,336"/>
+    <path d="M470,338 C510,336 566,338 606,344"/>
+  </g>
+  <!-- the bar, on this side -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214,244 C360,224 548,224 692,246"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M214,214 L214,278"/>
+    <path d="M692,216 L692,280"/>
+    <path d="M452,222 L452,272"/>
+  </g>
+  <!-- the ones on the far side, waiting -->
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M760,180 C760,158 790,158 790,180 C790,200 760,200 760,180 Z"/>
+    <path d="M746,208 C760,198 790,198 804,208 L810,300 L740,300 Z"/>
+    <path d="M828,196 C828,176 854,176 854,196 C854,214 828,214 828,196 Z"/>
+    <path d="M816,222 C828,214 854,214 866,222 L870,300 L812,300 Z"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M700,320 C760,312 830,312 886,322"/>
+  </g>
+</svg>

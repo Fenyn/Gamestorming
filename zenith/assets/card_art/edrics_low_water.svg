@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Edric Waits for Low Water. Sitting on the stones with the tide out,
+       waiting for the ground it will leave him. His card. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the water, a long way out -->
+  <g fill="none" stroke="#20b2aa" stroke-width="10" stroke-linecap="round">
+    <path d="M540,246 C640,232 760,252 904,238"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M580,292 C670,280 780,296 904,284"/>
+  </g>
+  <!-- the mark it came to, higher up -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-dasharray="22 18" stroke-linecap="round">
+    <path d="M60,190 C240,176 660,176 880,190"/>
+  </g>
+  <!-- the stones it left -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M100,330 C180,316 300,318 380,332"/>
+    <path d="M60,392 C160,376 300,378 400,392"/>
+    <path d="M160,436 C260,424 400,426 500,438"/>
+  </g>
+  <!-- him, sitting on them -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="260" cy="146" r="44"/>
+    <path d="M260,190 C272,238 272,274 268,300"/>
+    <path d="M268,300 C316,308 360,314 396,318"/>
+    <path d="M396,318 C404,352 404,378 400,398"/>
+    <path d="M268,300 C240,334 226,368 222,398"/>
+    <path d="M212,404 L254,412"/>
+    <path d="M264,224 C300,242 330,262 352,282"/>
+  </g>
+  <!-- the sword across the knees -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round">
+    <path d="M180,316 C136,324 100,334 72,346"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M200,306 L206,336"/>
+  </g>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Hearthguard. The spell breaks on a banked hearth and the hearth takes
+       it as fuel. The figure only straightens up in the new light. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the hearth -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232,560 C232,468 300,414 400,414 C500,414 568,468 568,560"/>
+    <path d="M196,566 C316,552 486,552 604,568"/>
+    <path d="M280,560 C280,500 330,470 400,470 C470,470 520,500 520,560"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round">
+    <path d="M320,540 C364,510 430,508 476,536"/>
+    <path d="M336,566 C384,540 426,540 466,564"/>
+  </g>
+  <!-- the flare coming up out of it -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M356,512 C340,432 368,352 404,292"/>
+    <path d="M444,516 C462,436 444,350 412,288"/>
+    <path d="M300,540 C286,478 300,424 326,384"/>
+    <path d="M500,542 C516,480 504,424 478,386"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M380,520 C368,452 386,388 406,340"/>
+    <path d="M428,520 C440,452 424,390 406,342"/>
+    <path d="M334,534 C326,486 336,448 354,420"/>
+    <path d="M470,536 C478,488 468,450 452,422"/>
+  </g>
+  <!-- the spell that broke on it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60,120 L184,178 L120,206 L250,264 L188,294 L318,352"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M336,372 L296,342"/>
+    <path d="M340,402 L288,404"/>
+    <path d="M356,336 L326,290"/>
+  </g>
+  <!-- the figure straightening in the light -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="722" cy="172" r="44"/>
+    <path d="M722,216 C730,282 728,336 722,388"/>
+    <path d="M722,388 C696,448 684,506 682,562"/>
+    <path d="M722,388 C762,438 784,498 790,560"/>
+    <path d="M726,246 C692,272 664,300 646,330"/>
+    <path d="M728,250 C766,272 794,296 812,320"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M600,342 C640,330 680,326 716,330"/>
+    <path d="M596,406 C638,394 678,390 712,394"/>
+  </g>
+</svg>

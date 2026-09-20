@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Ashmark Stokes the Coals. Crouched over the brazier, turning it over, and
+       the pages come back up out of it whole. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the brazier -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470,344 C470,300 512,278 570,278 C628,278 670,300 670,344 C670,388 628,410 570,410 C512,410 470,388 470,344 Z"/>
+    <path d="M498,400 C486,432 480,452 478,468"/>
+    <path d="M642,400 C654,432 660,452 662,468"/>
+    <path d="M540,412 C538,442 538,458 540,470"/>
+  </g>
+  <!-- the coals, turned over -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M502,338 C532,320 570,316 604,326"/>
+    <path d="M520,360 C552,346 588,344 620,352"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M528,326 C552,314 578,312 600,318"/>
+    <path d="M552,282 C546,250 552,224 566,204"/>
+    <path d="M604,286 C606,256 600,232 588,212"/>
+  </g>
+  <!-- the crouched figure with the iron -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="164" r="44"/>
+    <path d="M200,208 C214,256 216,290 212,318"/>
+    <path d="M212,318 C258,336 296,356 322,382"/>
+    <path d="M322,382 C348,392 372,392 392,384"/>
+    <path d="M212,318 C176,346 158,378 152,412"/>
+    <path d="M140,416 L182,424"/>
+    <path d="M206,236 C268,248 322,268 366,296"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M382,302 C430,318 478,332 524,344"/>
+  </g>
+  <!-- and the pages coming back whole -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M640,204 C676,184 716,180 740,192 C728,228 690,238 640,204 Z"/>
+    <path d="M708,116 C742,96 780,92 802,104 C790,138 754,148 708,116 Z"/>
+    <path d="M598,140 C630,122 664,120 684,130 C674,160 642,168 598,140 Z"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M660,246 L648,272"/>
+    <path d="M740,160 L730,186"/>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Edric's Vow. On one knee, hilt first, and the water still running off the
+       blade. His card. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- him, kneeling -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="230" r="46"/>
+    <path d="M256,276 C268,332 266,372 260,410"/>
+    <path d="M260,410 C226,442 204,478 196,516"/>
+    <path d="M196,516 C168,526 146,534 130,544"/>
+    <path d="M260,410 C300,436 324,474 332,518"/>
+    <path d="M316,526 L364,534"/>
+    <path d="M262,304 C316,306 366,312 406,322"/>
+  </g>
+  <!-- the sword, offered -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M470,296 C548,282 630,270 706,262"/>
+    <path d="M472,320 C550,306 632,294 706,286"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M440,266 L444,350"/>
+    <path d="M410,308 L438,308"/>
+  </g>
+  <!-- water off it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="7" stroke-linecap="round">
+    <path d="M520,326 C524,362 522,392 514,416"/>
+    <path d="M600,314 C604,348 602,376 594,398"/>
+    <path d="M676,300 C680,330 678,356 670,376"/>
+  </g>
+  <!-- and the gauntlet taking it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M904,214 L800,238"/>
+    <path d="M800,214 L800,290 L742,278 L742,224 Z"/>
+    <path d="M742,236 L700,252"/>
+    <path d="M742,262 L698,274"/>
+    <path d="M770,292 L744,320 L700,308"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M560,438 C600,432 646,432 682,438"/>
+  </g>
+</svg>

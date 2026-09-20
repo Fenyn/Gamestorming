@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Shade Takedown Drill. They are down, and the hand is already past them,
+       reaching for the page. School card. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the one on the floor -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="180" cy="356" r="42"/>
+    <path d="M222,356 C300,344 376,336 440,334"/>
+    <path d="M222,386 C298,384 372,388 432,396"/>
+    <path d="M330,340 C326,300 318,270 306,250"/>
+    <path d="M400,392 C404,424 412,448 424,466"/>
+    <path d="M440,334 C472,326 500,326 522,332"/>
+  </g>
+  <!-- and the hand going past for the page -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M540,120 C608,134 672,156 724,184"/>
+    <path d="M520,180 C588,186 652,202 706,226"/>
+    <path d="M724,184 C756,182 784,190 802,206"/>
+    <path d="M706,226 C738,220 766,222 786,232"/>
+    <path d="M802,206 C822,222 824,246 806,260"/>
+    <path d="M786,232 C806,242 812,258 806,270"/>
+  </g>
+  <!-- the page -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M820,120 C852,110 880,110 898,118 C896,166 896,206 898,238 C878,232 850,234 822,246 C818,206 818,160 820,120 Z"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M786,290 L806,324"/>
+    <path d="M740,268 L738,308"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M60,442 C240,424 520,420 720,436"/>
+  </g>
+</svg>

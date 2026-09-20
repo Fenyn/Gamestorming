@@ -28,7 +28,7 @@ const MAX_ADVANCE_ITERATIONS: int = 100000
 const FORBID_KINDS: Array[String] = [
 	"strike_attacks", "art_attacks", "strike_cards", "art_cards", "combat_cards", "non_combats",
 	"drills", "seals", "mastery", "powers", "stop_all", "end_combat", "non_attack_actions", "skip_combat",
-	"allies",
+	"allies", "lower_aspect",
 ]
 
 var state: GameState = GameState.new()
@@ -950,6 +950,7 @@ func _advance_combat() -> void:
 			state.phase = GameState.Phase.ATTACK
 		GameState.Phase.ATTACK:
 			var p: PlayerState = state.players[state.attacker]
+			_phase_start_drain(p)
 			if p.skip_next_attack_phase:
 				p.skip_next_attack_phase = false
 				# A skipped phase never happened, so the passes around it are not consecutive.
@@ -985,9 +986,26 @@ func _advance_combat() -> void:
 				q.stopped_this_phase = false
 			state.attacker = 1 - state.attacker
 			state.control_asked = false
+			state.attack_phase_count += 1
 			state.phase = GameState.Phase.ATTACK
 		_:
 			assert(false, "Bad combat phase %d" % state.phase)
+
+
+## "Their duelist loses 1 Energy at the beginning of each of their attack phases." The float sits
+## on the player it drains and fires only on their own phases, once each, which the phase counter
+## stamped into it guarantees even when the phase is re-entered for a control question.
+func _phase_start_drain(p: PlayerState) -> void:
+	var f: Dictionary = _floating_first(p.index, "phase_drain")
+	if f.is_empty() or int(f.get("last", -1)) == state.attack_phase_count:
+		return
+	f["last"] = state.attack_phase_count
+	var n: int = maxi(1, int(f.get("energy", 1)))
+	var before: int = p.duelist.energy
+	_lose_energy(p, p.duelist, n)
+	if p.duelist.energy != before:
+		_emit(&"energy_changed", {"player": p.index, "card": p.duelist.uid, "from": before,
+				"to": p.duelist.energy, "source": int(f.get("source", -1))})
 
 
 func _resolve_entering(player_index: int) -> void:
@@ -1956,6 +1974,17 @@ func _prompt_defense() -> void:
 	# A Mastery can itself be the block ("once per Combat, discard a card to stop an attack").
 	if d.mastery != null and not _forbidden(d, "mastery") and _drill_use_available(d.mastery) and _defense_usable(d, d.mastery, kind, focused):
 		opts.append(Command.new(d.index, &"defend", d.mastery.uid))
+	# A Mastery that buys wounds off with the discard pile instead of a block. One option per
+	# number of cards spent, capped at what would clear the attack, so the player never pays more
+	# than the wounds are worth.
+	var burn: Dictionary = d.mastery.def.raw.get("defense_burn", {}) if d.mastery != null else {}
+	if not burn.is_empty() and not _forbidden(d, "mastery"):
+		var per: int = maxi(1, int(burn.get("prevent_per", 2)))
+		var fuel: int = _burn_fuel(d, str(burn.get("school", "")))
+		var wounds: int = int(damage_breakdown(a).get("wounds", 0))
+		var most: int = mini(fuel, int(ceil(float(wounds) / float(per))))
+		for n in range(1, most + 1):
+			opts.append(Command.new(d.index, &"burn_defense", d.mastery.uid, n))
 	var ic: CardInstance = d.in_control()
 	if _power_defends(d, ic, kind, focused):
 		opts.append(Command.new(d.index, &"power_defend", ic.uid))
@@ -1969,6 +1998,36 @@ func _prompt_defense() -> void:
 		return
 	opts.append(Command.new(d.index, &"no_defense"))
 	_set_prompt(d.index, &"defense", opts, {"kind": kind, "focused": focused, "source": int(a.get("source", -1))})
+
+
+## A card in play on this side that turns the opponent's removals into plain discards.
+func _removal_becomes_discard(p: PlayerState) -> bool:
+	for c in p.in_play:
+		if bool(c.def.raw.get("protect_from_removal", false)):
+			return true
+	return false
+
+
+## Cards in this player's discard pile a burning Mastery could spend. An empty school means any card.
+func _burn_fuel(p: PlayerState, school: String) -> int:
+	var n: int = 0
+	for c in p.discard:
+		if school == "" or c.def.school == school:
+			n += 1
+	return n
+
+
+## Removes up to `want` of them from the game, newest first, and says how many actually went.
+func _burn_from_discard(p: PlayerState, school: String, want: int) -> int:
+	var paid: int = 0
+	for i in range(p.discard.size() - 1, -1, -1):
+		if paid >= want:
+			break
+		var c: CardInstance = p.discard[i]
+		if school == "" or c.def.school == school:
+			_remove_from_game(c)
+			paid += 1
+	return paid
 
 
 ## Whether a personality's own Power can answer this attack. A Power's defense may carry a `when`,
@@ -2064,6 +2123,16 @@ func _handle_defense(cmd: Command) -> void:
 			effects.assign(ic.power().get("effects", []))
 			_enqueue(effects, "secondary", d.index, {"attack": a}, ic)
 			_after_defense(a)
+		&"burn_defense":
+			# "Remove any amount of your school's cards in your discard pile instead of using a
+			# Defense, preventing N wounds for each." The cards go from the top down; which ones
+			# leave is not a choice the printed card offers.
+			var burn: Dictionary = d.mastery.def.raw.get("defense_burn", {})
+			var per: int = maxi(1, int(burn.get("prevent_per", 2)))
+			var paid: int = _burn_from_discard(d, str(burn.get("school", "")), int(cmd.value))
+			state.attack["prevent_life"] = int(state.attack.get("prevent_life", 0)) + paid * per
+			_emit(&"defense_burned", {"player": d.index, "cards": paid, "prevented": paid * per})
+			state.phase = GameState.Phase.BATTLE
 		&"no_defense":
 			_emit(&"no_defense", {"player": d.index, "auto": false})
 			state.phase = GameState.Phase.BATTLE
@@ -2352,6 +2421,13 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	if kind == "art" and _has_floating(defender.index, "prevent_art_life") and not no_prevent:
 		adds.append({"source": "Art wounds prevented", "stages": 0, "life": -life})
 		life = 0
+	# Wounds bought off for this one attack, by a Mastery that spends the discard pile instead of
+	# a block. Lives on the attack, so it cannot leak into the next one.
+	var bought: int = int(a.get("prevent_life", 0))
+	if bought > 0 and life > 0 and not no_prevent:
+		var stopped_life: int = mini(life, bought)
+		adds.append({"source": "Wounds prevented", "stages": 0, "life": -stopped_life})
+		life -= stopped_life
 	if cap_stages >= 0 and stages > cap_stages:
 		adds.append({"source": ", ".join(cap_sources), "stages": 0, "life": 0, "cap_stages": cap_stages})
 		stages = cap_stages
@@ -3340,7 +3416,14 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					return false
 			"card_in_play":
 				# "while <card> is in play": the card does not say whose, so either side's counts.
-				if card_in_play_titled(str(v)) == null:
+				# A list is "either of these", which is how a card naming two Seals reads.
+				var wanted: Array = v if v is Array else [v]
+				var found: bool = false
+				for title in wanted:
+					if card_in_play_titled(str(title)) != null:
+						found = true
+						break
+				if not found:
 					return false
 			_:
 				push_warning("DuelEngine: unknown condition '%s'" % key)
@@ -3420,6 +3503,9 @@ func _forbidden(p: PlayerState, what: String) -> bool:
 	for q in state.players:
 		sources.append_array(q.drills())
 		sources.append_array(q.non_combats())
+		# "While you control this Seal, your opponent cannot use his Mastery." A standing rule for
+		# as long as it is on the table, so it ends the moment the Seal leaves or is captured.
+		sources.append_array(q.seals())
 	for c in sources:
 		for rule in c.def.forbid:
 			if str(rule.get("what", "")) != what:
@@ -3688,6 +3774,21 @@ func _look_at(p: PlayerState, e: Dictionary) -> void:
 		if (e.has("pick") or not rearrange) and _search_matches(p, c, pick, to):
 			opts.append(Command.new(p.index, &"pick_option", c.uid))
 	_emit(&"look_at", {"player": p.index, "count": n, "from": from})
+	# "Place in play any Non-Combat cards revealed": every match goes, and there is nothing for the
+	# player to decide, so nothing is asked.
+	if bool(e.get("all_matches", false)):
+		var every: Dictionary = pick.duplicate(true)
+		every["to"] = to
+		every["no_shuffle"] = true
+		if e.has("stages"):
+			every["stages"] = e["stages"]
+		for o in opts:
+			var hit: CardInstance = card(o.card)
+			if hit != null and hit.zone == &"life_deck":
+				_search_take(p, hit, every)
+		if bool(e.get("shuffle_after", false)) and shuffle_decks:
+			rng.shuffle(p.life_deck)
+		return
 	if opts.is_empty():
 		if rearrange:
 			_prompt_rearrange(p, looked, from)
@@ -3735,6 +3836,11 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 	if bool(e.get("all", false)):
 		amount = 99
 	var remove: bool = bool(e.get("remove", false))
+	# "While you control this Seal, what your opponent would remove from the game is discarded
+	# instead." Read off the side losing the cards, and only when the other side is taking them.
+	if remove and owner != target.index and _removal_becomes_discard(target):
+		remove = false
+		_emit(&"removal_softened", {"player": target.index})
 	# "...in play and in all Life Decks": the deck half runs first and on its own, because a card
 	# that finds nothing on the table still has to empty the decks.
 	if bool(e.get("life_decks", false)):
@@ -3801,6 +3907,9 @@ func _in_play_candidates(p: PlayerState, type_name: String) -> Array[CardInstanc
 				ok = t == CardDef.Type.NON_COMBAT or (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.PERSONALITY and not _ally_protected(p, c))
 			"drill_or_ally":
 				ok = (t == CardDef.Type.DRILL and not _drills_protected(p)) or (t == CardDef.Type.PERSONALITY and not _ally_protected(p, c))
+			"attached":
+				# "Discard any cards attached to your duelist": the riders, not what they ride on.
+				ok = c.attached_to != null
 			_:
 				# Seals are immune to card effects unless named, and a card type this match has
 				# not met yet still has to respect what guards the board, or the next one added
@@ -4158,6 +4267,11 @@ func option_outcome(prompt: Prompt, cmd: Command) -> Dictionary:
 			var stages: int = int(damage.get("stages", 0))
 			if cmd.type == &"no_defense":
 				return {"life": life, "stages": stages, "stopped": false}
+			if cmd.type == &"burn_defense":
+				var d2: PlayerState = state.players[cmd.player]
+				var burn: Dictionary = d2.mastery.def.raw.get("defense_burn", {}) if d2.mastery != null else {}
+				var per: int = maxi(1, int(burn.get("prevent_per", 2)))
+				return {"life": maxi(0, life - int(cmd.value) * per), "stages": stages, "stopped": false}
 			# A stop only takes the attack to nothing when it is the one the attack still needs.
 			var stops: int = int(a.get("stop_count", 0)) + 1
 			var stopped: bool = stops >= int(a.get("stops_needed", 1))
@@ -4299,6 +4413,9 @@ func _lose_aspect(p: PlayerState, source_owner: int) -> void:
 	if p.duelist.aspect <= 1:
 		return
 	if source_owner != p.index and p.relic != null and bool(p.relic.def.relic_flags.get("aspect_shield", false)):
+		return
+	# "Cards that lower your Aspect cannot be played or used for the remainder of Combat."
+	if source_owner != p.index and _forbidden(state.players[source_owner], "lower_aspect"):
 		return
 	p.duelist.aspect -= 1
 	p.duelist.energy = LOST_ASPECT_ENERGY
@@ -4968,7 +5085,9 @@ func _finish_card(c: CardInstance, empowered: bool) -> void:
 	var owner: PlayerState = state.players[c.owner]
 	var remain: int = def.remain
 	if not def.remain_when.is_empty() and _cond(def.remain_when.get("when", {}), c.owner, {"attack": state.attack}):
-		remain = maxi(remain, int(def.remain_when.get("remain", 1)))
+		# "...to be used X more times this Combat, X = your duelist's current Aspect."
+		var extra: Variant = def.remain_when.get("remain", 1)
+		remain = maxi(remain, owner.duelist.aspect if extra is String and str(extra) == "aspect" else int(extra))
 	if remain > 0 and c.remain_combat != state.combat_count and state.step == GameState.Step.COMBAT:
 		_erase_from_zone(c)
 		c.zone = &"in_play"

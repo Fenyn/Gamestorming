@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="600" viewBox="0 0 904 600">
+  <!-- Placeholder art: Reckless Ascent. Their own light takes them up off the floor, and the ring
+       of it is coming apart while it does. -->
+  <rect width="904" height="600" fill="#696969"/>
+  <!-- the floor, a long way down now -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M120,544 C300,528 600,526 790,542"/>
+    <path d="M200,576 C360,562 560,560 720,574"/>
+  </g>
+  <!-- them, feet off it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="182" r="46"/>
+    <path d="M452,228 C462,288 460,332 454,374"/>
+    <path d="M454,374 C428,414 412,450 408,484"/>
+    <path d="M454,374 C486,412 504,450 510,484"/>
+    <path d="M452,258 C410,226 380,196 362,170"/>
+    <path d="M456,258 C498,226 528,196 546,170"/>
+  </g>
+  <!-- the light pulling them up -->
+  <g fill="none" stroke="#7b68ee" stroke-width="11" stroke-linecap="round">
+    <path d="M340,470 C336,376 366,286 424,216"/>
+    <path d="M568,470 C572,376 542,286 484,216"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-linecap="round">
+    <path d="M400,486 C396,404 416,326 452,268"/>
+    <path d="M508,486 C512,404 492,326 456,268"/>
+  </g>
+  <!-- the ring tearing -->
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round">
+    <path d="M330,124 C368,92 424,78 476,86"/>
+    <path d="M540,110 C570,132 586,162 588,194"/>
+    <path d="M318,190 C316,158 320,140 330,124"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M520,64 L560,34"/>
+    <path d="M614,216 L656,230"/>
+    <path d="M296,220 L254,238"/>
+  </g>
+</svg>

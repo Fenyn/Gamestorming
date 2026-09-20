@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Siphon's Drain. A gloved hand goes into the circle and cuts the threads
+       that were holding it together. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the circle -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round">
+    <path d="M560,140 C668,168 734,268 714,378 C696,472 618,536 520,532"/>
+    <path d="M436,510 C356,470 314,372 340,280 C360,208 418,158 490,144"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M540,196 C616,218 660,292 644,368"/>
+    <path d="M452,468 C396,436 370,364 388,296"/>
+  </g>
+  <!-- the threads across it, most cut -->
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M382,268 C420,282 458,290 492,292"/>
+    <path d="M568,300 C610,300 654,294 690,282"/>
+    <path d="M396,408 C434,394 472,388 504,388"/>
+    <path d="M580,392 C620,394 660,402 692,414"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-opacity="0.4" stroke-linecap="round">
+    <path d="M500,180 C504,240 504,300 500,356"/>
+  </g>
+  <!-- the hand doing it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,394 C110,372 176,352 232,336"/>
+    <path d="M40,468 C112,452 180,438 236,430"/>
+    <path d="M232,336 C272,316 312,306 346,304"/>
+    <path d="M236,430 C276,414 316,406 348,404"/>
+    <path d="M346,304 C382,298 414,300 440,308"/>
+    <path d="M348,404 C382,396 414,394 440,398"/>
+    <path d="M440,308 C468,316 490,330 504,348"/>
+    <path d="M440,398 C470,388 492,374 504,356"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M180,360 L184,444"/>
+    <path d="M280,326 L282,414"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M540,320 L588,300"/>
+    <path d="M540,352 L586,372"/>
+  </g>
+</svg>

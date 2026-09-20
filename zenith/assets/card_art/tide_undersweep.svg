@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Undersweep. Along the floor, under the guard, and up at the end.
+       School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the guard, held at the wrong height -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M600,120 C642,196 654,296 638,384"/>
+    <path d="M730,140 C770,212 780,308 764,394"/>
+    <path d="M600,120 C642,106 690,114 730,140"/>
+    <path d="M638,384 C678,402 724,404 764,394"/>
+  </g>
+  <!-- the sweep, under it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="15" stroke-linecap="round">
+    <path d="M40,560 C200,532 400,522 560,528 C640,532 690,510 712,462"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="11" stroke-linecap="round">
+    <path d="M60,600 C220,574 420,564 580,572 C662,576 716,548 740,496"/>
+    <path d="M120,510 C260,490 420,484 550,490"/>
+  </g>
+  <!-- and the hook up at the end -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M712,462 C740,438 774,432 800,440"/>
+    <path d="M740,496 C766,478 796,474 818,480"/>
+  </g>
+  <!-- the caster, low -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="150" cy="342" r="42"/>
+    <path d="M150,384 C158,432 156,466 150,496"/>
+    <path d="M150,496 C122,532 106,566 102,596"/>
+    <path d="M150,496 C184,524 204,556 212,590"/>
+    <path d="M154,410 C196,428 230,450 254,474"/>
+  </g>
+</svg>

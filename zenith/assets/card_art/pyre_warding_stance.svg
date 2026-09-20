@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Warding Stance. Low, both forearms up, fire running along them and
+       the blow going over the top. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="430" cy="226" r="46"/>
+    <path d="M430,272 C442,330 442,374 436,414"/>
+    <path d="M436,414 C382,458 350,506 338,566"/>
+    <path d="M436,414 C498,452 538,500 552,562"/>
+    <path d="M324,572 L372,580"/>
+    <path d="M540,568 L590,576"/>
+    <!-- both forearms crossed and up -->
+    <path d="M432,300 C378,282 334,262 302,240"/>
+    <path d="M302,240 C288,272 282,304 284,334"/>
+    <path d="M434,314 C488,300 532,284 564,266"/>
+    <path d="M564,266 C580,296 588,326 588,354"/>
+  </g>
+  <!-- the fire along them -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M292,238 C264,206 252,170 254,132"/>
+    <path d="M574,264 C604,234 620,198 620,162"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M312,244 C292,214 284,184 288,156"/>
+    <path d="M556,270 C580,244 592,214 592,186"/>
+    <path d="M362,282 C352,258 350,236 356,214"/>
+    <path d="M508,290 C522,268 528,246 524,224"/>
+  </g>
+  <!-- the blow going over the top of it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M88,86 C222,116 356,142 470,158"/>
+    <path d="M78,126 C214,158 350,184 466,200"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M120,44 C244,74 366,102 468,120"/>
+    <path d="M60,180 C186,212 306,240 404,256"/>
+  </g>
+</svg>

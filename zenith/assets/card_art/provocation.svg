@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Provocation. Struck, and the head comes straight back into it with the
+       teeth showing. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the head, turned back into the blow -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M356,40 C470,20 556,96 556,220 C556,344 470,424 366,410 C282,398 248,318 252,214 C256,118 296,50 356,40 Z"/>
+    <path d="M296,198 C330,178 372,180 400,202"/>
+    <path d="M444,204 C474,184 512,186 538,208"/>
+    <path d="M292,156 C330,136 374,138 404,154"/>
+    <path d="M440,158 C472,138 514,140 542,158"/>
+    <!-- teeth -->
+    <path d="M300,306 C352,282 448,282 500,306 C448,344 352,344 300,306 Z"/>
+    <path d="M334,294 L340,326"/>
+    <path d="M378,288 L382,332"/>
+    <path d="M422,288 L426,332"/>
+    <path d="M466,294 L462,326"/>
+  </g>
+  <!-- the blow, still on its way out -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M700,168 C760,156 812,176 820,212 C828,250 792,282 742,278 C700,274 678,248 682,216 C686,188 690,170 700,168 Z"/>
+    <path d="M820,212 C858,206 886,208 904,216"/>
+  </g>
+  <!-- and where it landed -->
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-linecap="round">
+    <path d="M600,176 L644,146"/>
+    <path d="M604,228 L652,228"/>
+    <path d="M598,280 L642,308"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="6" stroke-opacity="0.65" stroke-linecap="round">
+    <path d="M180,120 C144,150 126,190 128,232"/>
+  </g>
+</svg>

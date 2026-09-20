@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Mourne's Frantic Rush. Past the point where he could stop, and he lands it
+       anyway, which is not the same as landing well. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- him, already falling forward -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="452" cy="182" r="46"/>
+    <path d="M452,228 C476,272 498,306 514,332"/>
+    <!-- the front foot too far out to recover -->
+    <path d="M514,332 C544,392 566,448 578,500"/>
+    <path d="M578,500 C606,516 632,518 656,510"/>
+    <!-- the back leg still behind him -->
+    <path d="M514,332 C452,364 400,398 358,434"/>
+    <path d="M358,434 C330,440 308,442 290,438"/>
+    <!-- arms thrown forward -->
+    <path d="M478,262 C548,248 614,238 672,234"/>
+    <path d="M470,286 C536,286 598,292 650,304"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M694,226 C754,216 812,210 872,208"/>
+    <path d="M694,248 C754,238 812,232 870,230"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M678,206 L682,270"/>
+  </g>
+  <!-- the ground coming up, and the balance gone -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M220,556 C400,536 620,534 830,554"/>
+    <path d="M280,596 C440,578 640,576 810,592"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M300,200 C360,194 412,194 452,200"/>
+    <path d="M262,300 C330,294 388,296 432,304"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M622,548 L588,584"/>
+    <path d="M676,540 L700,578"/>
+  </g>
+</svg>

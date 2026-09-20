@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Twin Breaker. One from each side, and they arrive together. School
+       card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- left breaker -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M20,580 C60,420 140,296 260,230 C324,196 372,166 400,130"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M60,610 C104,458 186,344 302,282"/>
+    <path d="M120,566 C160,458 226,376 320,334"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M400,130 C428,110 460,106 484,114"/>
+    <path d="M356,182 C382,164 412,160 434,168"/>
+  </g>
+  <!-- right breaker -->
+  <g fill="none" stroke="#20b2aa" stroke-width="14" stroke-linecap="round">
+    <path d="M884,580 C844,420 764,296 644,230 C580,196 532,166 504,130"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M844,610 C800,458 718,344 602,282"/>
+    <path d="M784,566 C744,458 678,376 584,334"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M504,130 C476,110 444,106 420,114"/>
+    <path d="M548,182 C522,164 492,160 470,168"/>
+  </g>
+  <!-- where they meet -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M452,220 L452,170"/>
+    <path d="M404,244 L370,212"/>
+    <path d="M500,244 L534,212"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="8" stroke-opacity="0.7" stroke-linecap="round">
+    <path d="M452,400 C400,414 350,444 314,486"/>
+    <path d="M452,400 C504,414 554,444 590,486"/>
+  </g>
+</svg>

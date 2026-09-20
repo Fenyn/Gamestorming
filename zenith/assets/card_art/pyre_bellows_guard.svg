@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Pyre Bellows Guard. The blow goes into the bracer and comes back out the
+       other side as flame. School card, so the fighter is nobody in particular. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="352" cy="182" r="46"/>
+    <path d="M352,228 C362,294 360,346 354,398"/>
+    <path d="M354,398 C312,452 288,504 282,564"/>
+    <path d="M354,398 C412,436 448,488 462,556"/>
+    <path d="M270,568 L314,576"/>
+    <path d="M450,560 L496,570"/>
+    <!-- the guard arm, taking it -->
+    <path d="M356,256 C418,248 472,244 520,250"/>
+    <path d="M520,250 C528,212 542,180 562,154"/>
+    <path d="M350,268 C314,296 292,326 284,356"/>
+  </g>
+  <!-- the bracer -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M466,222 C472,258 474,290 470,320"/>
+    <path d="M516,220 C522,256 524,288 520,318"/>
+  </g>
+  <!-- the blow that arrived -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M868,88 C766,136 676,180 600,220"/>
+    <path d="M880,130 C784,178 696,222 620,260"/>
+  </g>
+  <!-- and what came back out of it -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M566,286 C650,300 728,330 800,378"/>
+    <path d="M560,330 C644,352 718,390 780,442"/>
+    <path d="M578,246 C662,246 740,262 808,296"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M594,296 C660,314 720,344 770,386"/>
+    <path d="M600,262 C666,266 728,282 780,310"/>
+    <path d="M588,338 C650,362 704,396 746,438"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-linecap="round">
+    <path d="M812,252 C842,258 866,268 884,282"/>
+    <path d="M806,420 C838,432 862,448 878,466"/>
+  </g>
+</svg>

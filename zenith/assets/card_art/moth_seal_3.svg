@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Moth Seal 3 of 7. Three of the seven pattern rings cut. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M110,60 C340,36 570,36 796,62 C806,240 806,400 796,578 C566,604 338,604 110,580 C100,400 100,240 110,60 Z"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M452,120 C560,120 660,182 692,280 C722,372 668,470 570,500 C500,522 452,500 452,452"/>
+    <path d="M452,120 C344,120 244,182 212,280 C182,372 236,470 334,500 C404,522 452,500 452,452"/>
+    <path d="M452,120 C448,222 448,352 452,452"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M452,186 C520,186 574,222 594,278"/>
+    <path d="M452,186 C384,186 330,222 310,278"/>
+    <path d="M452,234 C508,234 554,264 572,310"/>
+    <path d="M452,234 C396,234 350,264 332,310"/>
+    <path d="M452,282 C496,282 534,306 550,342"/>
+    <path d="M452,282 C408,282 370,306 354,342"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M452,330 C486,330 516,350 528,378"/>
+    <path d="M452,330 C418,330 388,350 376,378"/>
+    <path d="M452,376 C478,376 502,392 512,414"/>
+    <path d="M452,376 C426,376 402,392 392,414"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M196,540 C280,528 372,524 452,526"/>
+    <path d="M520,528 C606,528 686,538 744,552"/>
+  </g>
+</svg>

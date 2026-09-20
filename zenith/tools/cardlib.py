@@ -1,8 +1,10 @@
-"""The card-authoring shorthand, shared by the per-deck modules under tools/decks/.
+"""The card-authoring shorthand, for writing a new card compactly.
 
-`data/cards/starter/starter_set.json` is the source of truth for cards; this is only a compact
-way to write new ones. A per-deck module imports these helpers, calls them at import time, and
-`tools/add_cards.py` writes what it built into the card set, touching no other card.
+`data/cards/starter/starter_set.json` is the source of truth for cards; this is only a way to
+write new ones without hand-building the JSON. A spec module imports these helpers and calls them
+at import time; `tools/add_card.py` then adds what it built, one card at a time, and refuses to
+rewrite any card that already exists unless you name it. Once the cards are in the data the spec
+has no further job, so a spec is fine to write in a scratch directory and throw away.
 
 Names are original. Mechanics come from the printed card; check the text against
 `tools/source_cards.tsv` and the rulings document before writing one.
@@ -101,8 +103,9 @@ def grounds(id, title, **k):
     add(id=id, title=title, type="grounds", school="", limit_per_deck=3, **k)
 
 
-def seal(id, title, seal_set, number, effects):
-    add(id=id, title=title, type="seal", school="", seal_set=seal_set, seal_number=number, effects=effects, limit_per_deck=1)
+def seal(id, title, seal_set, number, effects, **k):
+    add(id=id, title=title, type="seal", school="", seal_set=seal_set, seal_number=number,
+        effects=effects, limit_per_deck=1, **k)
 
 
 def ally(id, title, alignment, top, step, power, surge=1, **k):

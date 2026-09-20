@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="480" viewBox="0 0 904 480">
+  <!-- Placeholder art: Weighted Hollow. A shallow bowl of stone where the air itself presses
+       down, and the dust will not come up off the floor. -->
+  <rect width="904" height="480" fill="#696969"/>
+  <!-- the hollow -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M40,280 C200,394 704,394 866,280"/>
+    <path d="M100,254 C240,346 664,346 804,254"/>
+    <path d="M0,230 C240,218 664,218 904,232"/>
+  </g>
+  <!-- the weight on the air -->
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round">
+    <path d="M180,40 C186,96 186,150 180,202"/>
+    <path d="M320,20 C326,84 326,146 320,204"/>
+    <path d="M452,10 C458,80 458,146 452,208"/>
+    <path d="M584,20 C590,84 590,146 584,204"/>
+    <path d="M724,40 C730,96 730,150 724,202"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M160,180 L180,212 L202,180"/>
+    <path d="M300,182 L320,214 L342,182"/>
+    <path d="M432,186 L452,218 L474,186"/>
+    <path d="M564,182 L584,214 L606,182"/>
+    <path d="M704,180 L724,212 L746,180"/>
+  </g>
+  <!-- the dust that will not rise -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="5" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M200,338 C280,328 360,326 428,330"/>
+    <path d="M480,332 C556,330 634,336 700,346"/>
+    <path d="M260,368 C340,360 420,358 486,362"/>
+  </g>
+</svg>

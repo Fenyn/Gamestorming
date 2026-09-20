@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Tide Sweep Aside. The blade is not stopped, it is moved. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the blade's first line, and where it ended up -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M60,300 C180,306 300,314 404,322"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M470,286 C560,222 646,166 740,116"/>
+    <path d="M486,312 C576,248 662,192 756,142"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M420,282 L450,336"/>
+  </g>
+  <!-- the arm of water that moved it -->
+  <g fill="none" stroke="#20b2aa" stroke-width="15" stroke-linecap="round">
+    <path d="M60,520 C180,466 300,404 420,330 C494,284 560,260 630,254"/>
+  </g>
+  <g fill="none" stroke="#87ceeb" stroke-width="10" stroke-linecap="round">
+    <path d="M60,584 C190,526 320,458 444,378"/>
+    <path d="M120,470 C230,424 330,372 424,314"/>
+  </g>
+  <!-- the crest that did it -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round">
+    <path d="M630,254 C658,238 690,236 712,244"/>
+    <path d="M570,294 C598,278 630,276 652,284"/>
+  </g>
+  <!-- and the one behind it, untouched -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="800" cy="374" r="42"/>
+    <path d="M800,416 V528"/>
+    <path d="M800,528 L772,608 M800,528 L830,608"/>
+    <path d="M800,444 L750,462"/>
+  </g>
+</svg>

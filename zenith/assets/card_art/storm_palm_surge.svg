@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Storm Palm Surge. The palm goes out and everything in front of it goes
+       white. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="190" cy="230" r="46"/>
+    <path d="M190,276 C202,338 200,386 194,432"/>
+    <path d="M194,432 C160,484 140,532 134,586"/>
+    <path d="M194,432 C244,470 276,522 288,586"/>
+    <path d="M120,596 L166,604"/>
+    <path d="M276,592 L324,600"/>
+    <path d="M194,306 C248,312 294,322 330,334"/>
+    <path d="M184,320 C154,348 134,374 124,398"/>
+  </g>
+  <!-- the palm -->
+  <g fill="none" stroke="#fffafa" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M330,296 C352,306 358,328 350,346"/>
+    <path d="M346,324 C368,334 374,356 364,374"/>
+    <path d="M330,334 C352,362 348,394 324,410 C300,426 268,420 256,398"/>
+  </g>
+  <!-- the white -->
+  <g fill="none" stroke="#e6e6fa" stroke-width="14" stroke-linecap="round">
+    <path d="M420,212 C470,282 470,398 420,468"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="12" stroke-linecap="round">
+    <path d="M520,168 C584,258 584,422 520,512"/>
+    <path d="M628,130 C708,242 708,438 628,550"/>
+  </g>
+  <g fill="none" stroke="#e6e6fa" stroke-width="8" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M740,100 C832,230 832,450 740,580"/>
+  </g>
+  <g fill="none" stroke="#7b68ee" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M846,76 C894,214 894,466 846,604"/>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Quarr's Crushing Blow. Overhand, both shoulders behind it, and the circle
+       under it is what gives. His card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="272" cy="176" r="50"/>
+    <path d="M272,226 C288,292 288,342 282,388"/>
+    <path d="M282,388 C240,444 216,500 210,566"/>
+    <path d="M282,388 C340,428 376,486 386,560"/>
+    <path d="M194,572 L244,580"/>
+    <path d="M372,566 L424,574"/>
+    <!-- the arm coming over the top -->
+    <path d="M278,256 C348,232 412,232 466,258"/>
+  </g>
+  <!-- the hammer fist -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M466,258 C516,248 558,272 566,312 C574,354 540,390 492,392 C450,394 418,368 416,332 C414,296 440,264 466,258 Z"/>
+    <path d="M444,290 C476,278 516,284 536,306"/>
+  </g>
+  <!-- the circle it came down on -->
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-linecap="round">
+    <path d="M400,486 C470,446 566,442 646,476"/>
+    <path d="M700,520 C716,562 700,600 660,624"/>
+    <path d="M386,548 C388,588 414,616 452,630"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M452,520 C500,496 562,494 610,514"/>
+  </g>
+  <!-- and the pieces of it -->
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M684,436 L736,404"/>
+    <path d="M756,556 L812,566"/>
+    <path d="M596,616 L588,640"/>
+    <path d="M342,470 L292,444"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round">
+    <path d="M596,406 L634,368"/>
+    <path d="M534,420 L536,376"/>
+  </g>
+</svg>

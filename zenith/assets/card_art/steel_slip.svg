@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="640" viewBox="0 0 904 640">
+  <!-- Placeholder art: Steel Slip. The head goes aside by an inch and the blow runs off a cheek
+       that is no longer soft. School card. -->
+  <rect width="904" height="640" fill="#696969"/>
+  <!-- the head, close and turned -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M296,140 C412,112 508,188 508,320 C508,450 420,532 314,516 C224,502 180,414 186,304 C192,206 228,156 296,140 Z"/>
+    <path d="M250,302 C284,282 326,284 354,306"/>
+    <path d="M400,306 C426,288 458,290 480,308"/>
+    <path d="M246,256 C286,236 334,238 364,254"/>
+    <path d="M396,254 C428,238 464,240 488,256"/>
+    <path d="M300,424 C340,432 386,430 418,420"/>
+  </g>
+  <!-- the plate down that side of the face -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M462,206 C504,238 520,300 512,364 C506,412 486,450 458,472"/>
+    <path d="M470,268 C494,290 502,330 498,366"/>
+    <path d="M466,392 C486,404 494,420 494,436"/>
+  </g>
+  <!-- where the head was, an inch ago -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M370,132 C480,108 570,182 570,314 C570,442 486,522 384,508"/>
+  </g>
+  <!-- the blow, going past -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M904,96 C800,164 700,236 618,300"/>
+    <path d="M904,168 C806,232 714,300 636,362"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="8" stroke-linecap="round">
+    <path d="M556,290 L598,258"/>
+    <path d="M550,346 L594,336"/>
+    <path d="M536,244 L546,204"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M700,414 C778,376 848,336 898,300"/>
+    <path d="M740,470 C806,438 862,406 900,378"/>
+  </g>
+</svg>

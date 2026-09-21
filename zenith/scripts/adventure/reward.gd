@@ -99,8 +99,7 @@ func _fill_header() -> void:
 	var taken: CardDef = _aspect_taken_this_stage()
 	if taken != null:
 		aspect_row.visible = true
-		var word: String = taken.aspect_title if taken.aspect_title != "" else "Tier %d" % taken.aspect
-		aspect_line.text = "Aspect %d: %s" % [taken.aspect, word]
+		aspect_line.text = _aspect_caption(taken)
 		ZenithTheme.chip(aspect_line, ZenithTheme.ACCENT, true)
 
 
@@ -114,8 +113,7 @@ func _fill_stack_chips() -> void:
 		if def == null:
 			continue
 		var chip: Label = Label.new()
-		var word: String = def.aspect_title if def.aspect_title != "" else "Tier %d" % def.aspect
-		chip.text = "Aspect %d: %s" % [def.aspect, word]
+		chip.text = _aspect_caption(def)
 		ZenithTheme.chip(chip, ZenithTheme.MUTED)
 		stack_row.add_child(chip)
 
@@ -157,8 +155,13 @@ func _fill_aspect_offer() -> void:
 			_offer_defs.append(def)
 	empty_label.visible = false
 	offer_row.visible = true
+	# A personality card prints no school of its own (`CardDef.card_group()` falls back to
+	# Freestyle for one, which is a gap in that accessor, not a fact about the card), so the tint
+	# comes from the run's own deck style instead.
+	var deck: DeckList = Session.run.deck()
+	var tint: Color = Palette.school_ui(deck.style if deck != null else "")
 	for i in range(_offer_defs.size()):
-		var column: Control = await _build_aspect_card(_offer_defs[i], i)
+		var column: Control = await _build_aspect_card(_offer_defs[i], i, tint)
 		offer_row.add_child(column)
 
 
@@ -227,11 +230,11 @@ func _ordered_bundle_ids(bundle: Dictionary) -> Array[String]:
 	return ids
 
 
-## One offer entry during the Aspect step: a versus-size face in a school-tinted panel, its
-## title, type and school, and nothing else — an Aspect joins the Duelist stack, not the Life
-## Deck, so there is no "in deck" count to show.
-func _build_aspect_card(def: CardDef, index: int) -> Control:
-	var tint: Color = Palette.card_ui(def)
+## One offer entry during the Aspect step: a versus-size face in a panel tinted by the run's own
+## school, and its tier caption — "Aspect 3: Gorging" — since the two options of a split line share
+## one printed title and are told apart by their Aspect, not the character name. An Aspect joins
+## the Duelist stack, not the Life Deck, so there is no type chip or "in deck" count to show.
+func _build_aspect_card(def: CardDef, index: int, tint: Color) -> Control:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _card_style(tint, false, false))
 	var column: VBoxContainer = VBoxContainer.new()
@@ -259,7 +262,7 @@ func _build_aspect_card(def: CardDef, index: int) -> Control:
 	column.add_child(button)
 
 	var title: Label = Label.new()
-	title.text = def.title
+	title.text = _aspect_caption(def)
 	title.theme_type_variation = "HeaderLabel"
 	title.add_theme_font_size_override("font_size", 18)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -267,25 +270,18 @@ func _build_aspect_card(def: CardDef, index: int) -> Control:
 	title.custom_minimum_size.x = CARD_FACE_SIZE.x
 	column.add_child(title)
 
-	var meta: HBoxContainer = HBoxContainer.new()
-	meta.alignment = BoxContainer.ALIGNMENT_CENTER
-	meta.add_theme_constant_override("separation", 6)
-	var icon: TypeIcon = TypeIcon.new()
-	icon.custom_minimum_size = Vector2(16, 16)
-	icon.type = def.type
-	icon.color = Palette.type_ui(def.type)
-	meta.add_child(icon)
-	var group_chip: Label = Label.new()
-	group_chip.text = CardText.card_group_name(def)
-	ZenithTheme.chip(group_chip, tint)
-	meta.add_child(group_chip)
-	column.add_child(meta)
-
 	panel.add_child(column)
 	_card_panels.append(panel)
 	_card_tints.append(tint)
 	_all_faces.append(def)
 	return panel
+
+
+## "Aspect %d: %s", the tier and its printed title, falling back to the character name (the
+## personality card's own title) when a tier card carries no `aspect_title`.
+func _aspect_caption(def: CardDef) -> String:
+	var word: String = def.aspect_title if def.aspect_title != "" else def.title
+	return "Aspect %d: %s" % [def.aspect, word]
 
 
 ## One bundle panel: a working-name heading, a group chip, and its cards as real faces in a row
@@ -476,8 +472,7 @@ func _lift(frame: Control, up: bool) -> void:
 ## working name.
 func _offer_label(index: int) -> String:
 	if Session.run.status == "aspect":
-		var def: CardDef = _offer_defs[index]
-		return def.aspect_title if def.aspect_title != "" else "Aspect %d" % def.aspect
+		return _aspect_caption(_offer_defs[index])
 	return str(_offer_bundles[index].get("name", ""))
 
 

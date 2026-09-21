@@ -2321,7 +2321,7 @@
 	{
 	 "op": "energy",
 	 "amount": "max",
-	 "target": "duelist"
+	 "target": "choose"
 	},
 	{
 	 "op": "fervor",

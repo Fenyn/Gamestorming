@@ -232,7 +232,7 @@ func _test_legal_actions(hud: Node) -> void:
 	hud.option_chosen.connect(func(option: OptionView) -> void: emitted.append(option.to_command(prompt.player).to_dict()))
 	await hud.show_prompt(prompt, view)
 	await process_frame
-	_check(hud.focus.visible and not hud.prompt_title.visible and not hud.prompt_who.visible, "Announced card face replaces repeated decision title and owner text")
+	_check(hud.focus.visible and hud.prompt_title.visible and not hud.prompt_who.visible, "Announced card keeps the actionable decision question without repeated owner text")
 	_check(not hud.exchange_state.visible and not hud.exchange_route.visible and not hud.exchange_response.visible, "Attached status does not repeat card identity, type and response prose")
 	_check(hud.prompt_panel.get_theme_stylebox("panel") is StyleBoxEmpty, "Attached actions have no separate boxed information panel")
 	for window_size in [Vector2i(1280, 720), Vector2i(1600, 900)]:
@@ -244,11 +244,16 @@ func _test_legal_actions(hud: Node) -> void:
 		# occupies the focus width below a 32px caption; test that displayed card footprint.
 		var focus_rect: Rect2 = hud.focus.get_global_rect()
 		var face: Rect2 = Rect2(focus_rect.position + Vector2(0, 32), Vector2(focus_rect.size.x, focus_rect.size.x * 716.0 / 512.0))
-		var actions: Rect2 = hud.prompt_panel.get_global_rect()
+		var decision: Rect2 = hud.prompt_panel.get_global_rect()
 		var viewport: Rect2 = root.get_visible_rect()
-		_check(absf(face.position.x - actions.position.x) < 2.0 and absf(face.size.x - actions.size.x) < 2.0, "Actions share the focused card's column at %dp" % window_size.y)
-		_check(actions.position.y >= face.end.y and actions.position.y - face.end.y <= 20.0, "Status and actions attach immediately below the face at %dp" % window_size.y)
-		_check(viewport.encloses(actions), "Attached response actions stay inside viewport at %dp" % window_size.y)
+		_check(absf(face.position.x - decision.position.x) < 2.0 and absf(face.size.x - decision.size.x) < 2.0, "Decision shares the focused card's column at %dp" % window_size.y)
+		_check(decision.position.y >= face.end.y and decision.position.y - face.end.y <= 20.0, "Decision attaches immediately below the face at %dp" % window_size.y)
+		_check(viewport.encloses(hud.prompt_title.get_global_rect()), "Decision question stays inside viewport at %dp" % window_size.y)
+		_check(viewport.encloses(hud.exchange_damage.get_global_rect()), "Incoming consequence stays inside viewport at %dp" % window_size.y)
+		_check(viewport.encloses(hud.actions_scroll.get_global_rect()), "Response action region stays inside viewport at %dp" % window_size.y)
+		for child in hud.primary_box.get_children():
+			if child is Button and child.visible:
+				_check(viewport.encloses(child.get_global_rect()), "Primary action stays inside viewport at %dp: %s" % [window_size.y, child.text])
 	for child in hud.primary_box.get_children():
 		if child is Button:
 			child.pressed.emit()
@@ -279,6 +284,14 @@ func _test_legal_actions(hud: Node) -> void:
 	var defense_prompt: PromptView = PromptView.of(defense_engine.prompt, defense_engine)
 	await hud.show_prompt(defense_prompt, defense_view)
 	await process_frame
+	var decline_button: Button = hud.primary_box.get_child(0)
+	var decline_before_focus: Rect2 = decline_button.get_global_rect()
+	decline_button.focus_entered.emit()
+	await process_frame
+	_check(hud.prompt_outcome.visible and hud.prompt_outcome.text.begins_with("Preview:"), "Keyboard focus shows the same explicit outcome preview as pointer hover")
+	_check(decline_button.get_global_rect().is_equal_approx(decline_before_focus), "Keyboard outcome preview does not move the focused action")
+	decline_button.focus_exited.emit()
+	await process_frame
 	var before_hover: Rect2 = hud.primary_box.get_global_rect()
 	var defend: OptionView = defense_prompt.find(&"defend", defense_engine.player(1).hand[0].uid)
 	hud.preview_hand_card(defend.card, true)
@@ -287,6 +300,20 @@ func _test_legal_actions(hud: Node) -> void:
 	hud.preview_hand_card(defend.card, false)
 	await process_frame
 	_check(hud.primary_box.get_global_rect().is_equal_approx(before_hover), "Leaving hover does not move response buttons")
+	var complex_view: SeatView = SeatView.from_dict(defense_view.to_dict().duplicate(true))
+	complex_view.attack["stops_needed"] = 3
+	complex_view.attack["stop_count"] = 1
+	complex_view.attack["no_prevent"] = true
+	var complex_prompt: PromptView = PromptView.from_dict(defense_prompt.to_dict().duplicate(true))
+	complex_prompt.title = "Defend against the relentless three-part Focused Strike?"
+	await hud.show_prompt(complex_prompt, complex_view)
+	await process_frame
+	var complex_viewport: Rect2 = root.get_visible_rect()
+	_check(complex_viewport.encloses(hud.prompt_title.get_global_rect()), "Long combat question stays inside the viewport")
+	_check(hud.exchange_stops.visible and complex_viewport.encloses(hud.exchange_stops.get_global_rect()), "Multi-stop and prevention details stay inside the viewport")
+	for child in hud.primary_box.get_children():
+		if child is Button and child.visible:
+			_check(complex_viewport.encloses(child.get_global_rect()), "Complex combat prompt keeps its primary action inside the viewport: " + child.text)
 	var generic: PromptView = PromptView.new()
 	generic.kind = &"control"
 	generic.player = 1

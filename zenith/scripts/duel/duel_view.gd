@@ -105,6 +105,8 @@ func _ready() -> void:
 		ai_seat = Session.ai_seat
 		viewer = 1 - ai_seat
 		rig.rotation.y = 0.0 if viewer == 0 else PI
+	if Session.in_adventure():
+		hud.set_adventure()
 	if not Session.can_start():
 		push_warning("Duel opened without a selection; using the first two shipped decks")
 		Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
@@ -275,7 +277,7 @@ func _parse_dev_args() -> void:
 			_dev_screenshot = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-camera="):
 			_dev_camera = arg.get_slice("=", 1)
-		elif arg.begins_with("--dev-seed=") and not online:
+		elif arg.begins_with("--dev-seed=") and not online and not Session.in_adventure():
 			Session.seed_value = int(arg.get_slice("=", 1))
 		elif arg == "--dev-hide-hud":
 			_dev_hide_hud = true
@@ -283,7 +285,7 @@ func _parse_dev_args() -> void:
 			Engine.time_scale = 8.0
 		elif arg.begins_with("--dev-stop-at="):
 			_dev_stop_kind = StringName(arg.get_slice("=", 1))
-		elif arg.begins_with("--dev-ai") and not online:
+		elif arg.begins_with("--dev-ai") and not online and not Session.in_adventure():
 			# `--dev-ai` or `--dev-ai=hard`: seat 1 is played by the AI.
 			Session.ai_seat = 1
 			if arg.contains("="):
@@ -292,7 +294,7 @@ func _parse_dev_args() -> void:
 			_dev_policy = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-freeze="):
 			_dev_freeze = StringName(arg.get_slice("=", 1))
-		elif arg.begins_with("--dev-pick=") and not online:
+		elif arg.begins_with("--dev-pick=") and not online and not Session.in_adventure():
 			# Online the lobby already agreed on both decks and the seed.
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
 			if picks.size() == 2:
@@ -307,8 +309,11 @@ func _present_prompt() -> void:
 	if view.is_over():
 		_clear_highlights()
 		hud.refresh_state(view, viewer)
-		hud.show_game_over("%s wins" % view.player(view.winner).name, _reason_text(view.win_reason))
+		hud.show_game_over("%s wins" % view.player(view.winner).name, _reason_text(view.win_reason), not Session.in_adventure())
 		if _dev_autoplay:
+			if Session.in_adventure():
+				Session.record_stage(view.winner == viewer)
+				print("adventure stage result: %s, status=%s" % ["won" if view.winner == viewer else "lost", Session.run.status])
 			await _dev_finish()
 		return
 	if view.deciding != viewer:
@@ -968,6 +973,8 @@ func _on_select() -> void:
 		else:
 			Net.leave()
 			Session.go_to_title()
+	elif Session.in_adventure():
+		Session.finish_stage(view.winner == viewer)
 	else:
 		Session.go_to_select()
 

@@ -34,7 +34,7 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 	var playing: AiProfile = _matchup_profile(referee, seat)
 	var cmd: Command = null
 	# The Reserve swap is judged by AiReserve; a playout to the end of the turn says nothing about it.
-	if playing.searches() and pending_kind != &"reserve":
+	if playing.searches() and pending_kind != &"reserve" and not playing.scorer_decides(pending_kind):
 		cmd = search.choose(referee, seat, playing, rng, _matchup)
 	else:
 		search.metrics = {}

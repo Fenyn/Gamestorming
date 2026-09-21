@@ -1,0 +1,459 @@
+{
+	"config": {
+		"a": "hard",
+		"a-branch-margin": 0.0,
+		"a-branches": 0,
+		"a-budget": 0,
+		"a-depth": 0,
+		"a-field": "tide_companions,steel_beatdown",
+		"a-nodes": 0,
+		"a-noise": 0.0,
+		"a-predict-depth": 1,
+		"a-prior": 0.0,
+		"a-responses": 0,
+		"a-rollout-steps": 0,
+		"a-samples": 0,
+		"a-settle-lead": 0.0,
+		"a-settle-plies": 0,
+		"a-steps": 0,
+		"a-styles": true,
+		"a-think": "",
+		"a-top-k": 0,
+		"a-turns": 0,
+		"a_field": [
+			"tide_companions",
+			"steel_beatdown"
+		],
+		"a_side": {
+			"policy": "hard",
+			"styles": true,
+			"think": {
+				"predict_depth": 1,
+				"rollout_steps": 0
+			}
+		},
+		"a_weights": {
+			"steel_beatdown": 1,
+			"tide_companions": 1
+		},
+		"b": "hard",
+		"b-branch-margin": 0.0,
+		"b-branches": 0,
+		"b-budget": 0,
+		"b-depth": 0,
+		"b-field": "tide_companions,steel_beatdown",
+		"b-nodes": 0,
+		"b-noise": 0.0,
+		"b-predict-depth": 0,
+		"b-prior": 0.0,
+		"b-responses": 0,
+		"b-rollout-steps": 0,
+		"b-samples": 0,
+		"b-settle-lead": 0.0,
+		"b-settle-plies": 0,
+		"b-steps": 0,
+		"b-styles": true,
+		"b-think": "",
+		"b-top-k": 0,
+		"b-turns": 0,
+		"b_field": [
+			"tide_companions",
+			"steel_beatdown"
+		],
+		"b_side": {
+			"policy": "hard",
+			"styles": true,
+			"think": {
+
+			}
+		},
+		"b_weights": {
+			"steel_beatdown": 1,
+			"tide_companions": 1
+		},
+		"branch-margin": 0.0,
+		"branches": 0,
+		"budget": 0,
+		"decks": "",
+		"depth": 0,
+		"field": "",
+		"games": 200,
+		"json": "res://../reports_hard/shard_1.json",
+		"limit": 0,
+		"max-steps": 6000,
+		"mode": "matrix",
+		"nodes": 0,
+		"noise": 0.0,
+		"policy": "search",
+		"predict-depth": 0,
+		"prior": 0.0,
+		"progress": 0,
+		"repeats": 1,
+		"responses": 0,
+		"rollout-steps": 0,
+		"samples": 0,
+		"scenario": "",
+		"seed": 21,
+		"settle-lead": 0.0,
+		"settle-plies": 0,
+		"shard": "1/8",
+		"steps": 0,
+		"styles": true,
+		"think": "",
+		"top-k": 0,
+		"tsv": "",
+		"turns": 0,
+		"verbose": false
+	},
+	"decks": {
+		"a": {
+			"tide_companions": {
+				"closest_when_lost": {
+					"survival": 1
+				},
+				"loss_to": {
+					"survival": 1
+				},
+				"margin": {
+					"ascension": 0.0,
+					"n": 0,
+					"seal": 0.0,
+					"survival": 0.0
+				},
+				"mean_turns": 5.0,
+				"played": 1,
+				"shortfall": {
+					"ascension": 1.0,
+					"n": 1,
+					"seal": 7.0,
+					"survival": 0.0
+				},
+				"win_by": {
+
+				},
+				"win_high": 0.793450688208197,
+				"win_low": 0.0,
+				"win_rate": 0.0,
+				"won": 0
+			}
+		},
+		"b": {
+			"steel_beatdown": {
+				"closest_when_lost": {
+
+				},
+				"loss_to": {
+
+				},
+				"margin": {
+					"ascension": 0.5,
+					"n": 1,
+					"seal": 6.0,
+					"survival": 47.0
+				},
+				"mean_turns": 5.0,
+				"played": 1,
+				"shortfall": {
+					"ascension": 0.0,
+					"n": 0,
+					"seal": 0.0,
+					"survival": 0.0
+				},
+				"win_by": {
+					"survival": 1
+				},
+				"win_high": 1.0,
+				"win_low": 0.206549311791803,
+				"win_rate": 1.0,
+				"won": 1
+			}
+		}
+	},
+	"failures": [],
+	"games": 1,
+	"godot_version": "4.6.2-stable (official)",
+	"matchups": {
+		"tide_companions|steel_beatdown": {
+			"a_high": 0.793450688208197,
+			"a_low": 0.0,
+			"a_rate": 0.0,
+			"a_wins": 0,
+			"played": 1
+		}
+	},
+	"side_wins": [
+		0,
+		1
+	],
+	"state": {
+		"failure_notes": [],
+		"failures": 0,
+		"games": 1,
+		"matchup": {
+			"tide_companions|steel_beatdown": [
+				0,
+				1
+			]
+		},
+		"side_rows": [
+			{
+				"tide_companions": {
+					"closest": {
+						"survival": 1
+					},
+					"loss": {
+						"survival": 1
+					},
+					"margin": {
+						"ascension": 0.0,
+						"n": 0,
+						"seal": 0.0,
+						"survival": 0.0
+					},
+					"played": 1,
+					"shortfall": {
+						"ascension": 1.0,
+						"n": 1,
+						"seal": 7.0,
+						"survival": 0.0
+					},
+					"turns": 5,
+					"win": {
+
+					},
+					"won": 0
+				}
+			},
+			{
+				"steel_beatdown": {
+					"closest": {
+
+					},
+					"loss": {
+
+					},
+					"margin": {
+						"ascension": 0.5,
+						"n": 1,
+						"seal": 6.0,
+						"survival": 47.0
+					},
+					"played": 1,
+					"shortfall": {
+						"ascension": 0.0,
+						"n": 0,
+						"seal": 0.0,
+						"survival": 0.0
+					},
+					"turns": 5,
+					"win": {
+						"survival": 1
+					},
+					"won": 1
+				}
+			}
+		],
+		"side_timing": [
+			{
+				"branching_decisions": 84,
+				"decisions": 87,
+				"depth_total": 178,
+				"fallbacks": 0,
+				"max_depth": 4,
+				"max_usec": 1702506,
+				"samples_ms": [
+					5.076,
+					7.519,
+					7.636,
+					33.829,
+					65.484,
+					80.608,
+					81.066,
+					91.054,
+					91.718,
+					94.152,
+					94.247,
+					99.182,
+					99.492,
+					99.53,
+					103.054,
+					103.336,
+					105.978,
+					108.426,
+					110.758,
+					110.898,
+					113.528,
+					115.346,
+					120.309,
+					122.495,
+					123.407,
+					124.078,
+					126.385,
+					131.142,
+					133.388,
+					138.666,
+					142.24,
+					144.056,
+					153.379,
+					154.55,
+					154.807,
+					156.904,
+					162.796,
+					166.597,
+					169.761,
+					170.381,
+					171.479,
+					172.828,
+					174.642,
+					183.314,
+					187.291,
+					188.652,
+					192.625,
+					193.361,
+					195.294,
+					196.418,
+					201.022,
+					202.167,
+					204.078,
+					205.597,
+					217.076,
+					229.649,
+					241.383,
+					242.962,
+					243.265,
+					254.827,
+					255.934,
+					259.018,
+					274.116,
+					295.496,
+					297.771,
+					317.961,
+					319.635,
+					323.768,
+					331.937,
+					361.267,
+					383.741,
+					387.105,
+					423.397,
+					479.928,
+					500.082,
+					505.172,
+					539.623,
+					558.677,
+					592.696,
+					649.93,
+					712.905,
+					890.11,
+					899.49,
+					991.893,
+					1178.168,
+					1238.588,
+					1702.506
+				],
+				"search_decisions": 86,
+				"stops": {
+					"completed": 2,
+					"settled": 84
+				},
+				"total_usec": 24186102
+			},
+			{
+				"branching_decisions": 36,
+				"decisions": 38,
+				"depth_total": 80,
+				"fallbacks": 0,
+				"max_depth": 4,
+				"max_usec": 4002920,
+				"samples_ms": [
+					6.249,
+					13.041,
+					21.679,
+					28.116,
+					52.776,
+					174.559,
+					182.893,
+					213.217,
+					235.854,
+					341.96,
+					342.703,
+					369.378,
+					390.371,
+					438.853,
+					446.29,
+					447.848,
+					481.731,
+					511.658,
+					830.763,
+					896.337,
+					933.98,
+					1015.219,
+					1122.643,
+					1149.714,
+					1152.645,
+					1231.343,
+					1247.278,
+					1267.178,
+					1269.179,
+					1355.426,
+					1464.675,
+					1633.409,
+					2182.508,
+					2447.518,
+					2552.452,
+					3814.564,
+					4002.833,
+					4002.92
+				],
+				"search_decisions": 36,
+				"stops": {
+					"completed": 1,
+					"settled": 33,
+					"time_budget": 2
+				},
+				"total_usec": 40271760
+			}
+		],
+		"side_wins": [
+			0,
+			1
+		]
+	},
+	"timing": [
+		{
+			"branching_decisions": 84,
+			"decisions": 87,
+			"fallbacks": 0,
+			"max_completed_depth": 4,
+			"max_ms": 1702.506,
+			"mean_completed_depth": 2.06976744186047,
+			"mean_ms": 278.001172413793,
+			"median_ms": 183.314,
+			"p95_ms": 899.49,
+			"search_decisions": 86,
+			"stops": {
+				"completed": 2,
+				"settled": 84
+			}
+		},
+		{
+			"branching_decisions": 36,
+			"decisions": 38,
+			"fallbacks": 0,
+			"max_completed_depth": 4,
+			"max_ms": 4002.92,
+			"mean_completed_depth": 2.22222222222222,
+			"mean_ms": 1059.78315789474,
+			"median_ms": 830.763,
+			"p95_ms": 4002.833,
+			"search_decisions": 36,
+			"stops": {
+				"completed": 1,
+				"settled": 33,
+				"time_budget": 2
+			}
+		}
+	],
+	"unusable": 0,
+	"version": 1,
+	"written_unix": 1789958321.123
+}

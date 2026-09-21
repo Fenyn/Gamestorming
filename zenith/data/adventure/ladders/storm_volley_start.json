@@ -1,0 +1,13 @@
+{
+  "starter": "storm_volley_start",
+  "stages": [
+    { "opponent": "tide_companions_t1", "ai_level": "easy", "grant": "", "story": "" },
+    { "opponent": "shade_salvage_t1", "ai_level": "easy", "grant": "aspect", "story": "" },
+    { "opponent": "steel_heir_t2", "ai_level": "easy", "grant": "", "story": "" },
+    { "opponent": "pyre_ascent_t2", "ai_level": "easy", "grant": "", "story": "" },
+    { "opponent": "root_seals_t3", "ai_level": "default", "grant": "", "story": "" },
+    { "opponent": "storm_unbound_t4", "ai_level": "default", "grant": "", "story": "" },
+    { "opponent": "tide_deepwater_t5", "ai_level": "default", "grant": "", "story": "" },
+    { "opponent": "freestyle_swords_boss", "ai_level": "default", "grant": "", "story": "" }
+  ]
+}

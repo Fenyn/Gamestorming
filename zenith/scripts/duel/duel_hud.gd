@@ -24,6 +24,11 @@ const LOG_EXPANDED_FRACTION: float = 0.72
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 const PILE_ROWS_SHOWN: int = 3       # a browsed pile is only read, so it may be taller
+const FOCUS_CAPTION_HEIGHT: float = 32.0
+const CARD_ASPECT: float = 716.0 / 512.0
+const DECISION_GAP: float = 12.0
+const DECISION_BOTTOM_MARGIN: float = 24.0
+const DECISION_RESULT_HEIGHT: float = 54.0
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
 const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard"]
@@ -180,12 +185,13 @@ func _ready() -> void:
 	_compact_prompt()
 
 
-## One column: a real card, computed consequences, then offered controls. Printed card
-## identity and rules remain on the face; ordinary response prose does not repeat them.
+## One bounded column: a real card, the decision and its consequence, then offered controls.
+## Printed identity and rules remain on the face. The question and terse instruction stay visible
+## because a readable card is not enough to say what input the game is waiting for.
 func _compact_prompt() -> void:
 	prompt_who.hide()
-	prompt_title.visible = not focus.visible or (_current_prompt != null and _current_prompt.kind not in [&"defense", &"respond", &"endurance", &"attack_action"])
-	prompt_hint.hide()
+	prompt_title.visible = _current_prompt != null or not focus.visible
+	prompt_hint.visible = _current_prompt != null and not prompt_hint.text.is_empty()
 	exchange_state.hide()
 	exchange_route.hide()
 	exchange_response.hide()
@@ -197,7 +203,10 @@ func _layout_prompt_column() -> void:
 		return
 	prompt_panel.offset_left = focus.offset_left
 	prompt_panel.offset_right = focus.offset_right
-	prompt_panel.offset_top = focus.offset_top + 32.0 + focus.size.x * 716.0 / 512.0 + 12.0 if focus.visible else 210.0
+	# Use the authored rail width rather than a transient child minimum. CardFace renders from a
+	# 512x716 source and may report that unscaled minimum for a frame while the layout settles.
+	var focus_width: float = focus.offset_right - focus.offset_left
+	prompt_panel.offset_top = focus.offset_top + FOCUS_CAPTION_HEIGHT + focus_width * CARD_ASPECT + DECISION_GAP if focus.visible else 210.0
 	# Let the VBox determine height again after a larger prior decision.
 	prompt_panel.offset_bottom = prompt_panel.offset_top
 	_fit_actions()
@@ -208,7 +217,7 @@ func _fit_actions() -> void:
 		return
 	_fitting_actions = true
 	var outside: float = maxf(0.0, prompt_column.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
-	var available: float = maxf(60.0, root.size.y - prompt_panel.offset_top - outside - 24.0)
+	var available: float = maxf(0.0, root.size.y - prompt_panel.offset_top - outside - DECISION_BOTTOM_MARGIN)
 	var desired: float = minf(primary_box.get_combined_minimum_size().y, minf(260.0, available))
 	actions_scroll.custom_minimum_size.y = desired
 	actions_scroll.visible = primary_box.get_child_count() > 0
@@ -224,6 +233,11 @@ func set_online(is_host: bool) -> void:
 	_online = true
 	_is_host = is_host
 	select_button.text = "Back to lobby" if is_host else "Leave duel"
+
+
+## Adventure duel: the select button leads back to the stage screen, not duelist select.
+func set_adventure() -> void:
+	select_button.text = "Continue"
 
 
 ## `live` is the beat's own state (see GameEvent.state) while an update replays, {} otherwise.
@@ -560,11 +574,10 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 
 
 func _reserve_status_height() -> void:
-	# Both labels occupy one slot. Hover must not move the button being pointed at.
-	exchange_damage.custom_minimum_size.y = 0.0
-	var height: float = maxf(54.0, exchange_damage.get_combined_minimum_size().y)
-	exchange_damage.custom_minimum_size.y = height
-	prompt_outcome.custom_minimum_size.y = height
+	# Both labels occupy one stable two-line slot. Measuring a wrapping label before its parent has
+	# width makes a one-line result hundreds of pixels tall and can push the actions off-screen.
+	exchange_damage.custom_minimum_size.y = DECISION_RESULT_HEIGHT
+	prompt_outcome.custom_minimum_size.y = DECISION_RESULT_HEIGHT
 
 
 func _wounds(amount: int) -> String:

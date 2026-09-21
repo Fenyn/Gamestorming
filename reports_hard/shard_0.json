@@ -1,0 +1,487 @@
+{
+	"config": {
+		"a": "hard",
+		"a-branch-margin": 0.0,
+		"a-branches": 0,
+		"a-budget": 0,
+		"a-depth": 0,
+		"a-field": "tide_companions,steel_beatdown",
+		"a-nodes": 0,
+		"a-noise": 0.0,
+		"a-predict-depth": 1,
+		"a-prior": 0.0,
+		"a-responses": 0,
+		"a-rollout-steps": 0,
+		"a-samples": 0,
+		"a-settle-lead": 0.0,
+		"a-settle-plies": 0,
+		"a-steps": 0,
+		"a-styles": true,
+		"a-think": "",
+		"a-top-k": 0,
+		"a-turns": 0,
+		"a_field": [
+			"tide_companions",
+			"steel_beatdown"
+		],
+		"a_side": {
+			"policy": "hard",
+			"styles": true,
+			"think": {
+				"predict_depth": 1,
+				"rollout_steps": 0
+			}
+		},
+		"a_weights": {
+			"steel_beatdown": 1,
+			"tide_companions": 1
+		},
+		"b": "hard",
+		"b-branch-margin": 0.0,
+		"b-branches": 0,
+		"b-budget": 0,
+		"b-depth": 0,
+		"b-field": "tide_companions,steel_beatdown",
+		"b-nodes": 0,
+		"b-noise": 0.0,
+		"b-predict-depth": 0,
+		"b-prior": 0.0,
+		"b-responses": 0,
+		"b-rollout-steps": 0,
+		"b-samples": 0,
+		"b-settle-lead": 0.0,
+		"b-settle-plies": 0,
+		"b-steps": 0,
+		"b-styles": true,
+		"b-think": "",
+		"b-top-k": 0,
+		"b-turns": 0,
+		"b_field": [
+			"tide_companions",
+			"steel_beatdown"
+		],
+		"b_side": {
+			"policy": "hard",
+			"styles": true,
+			"think": {
+
+			}
+		},
+		"b_weights": {
+			"steel_beatdown": 1,
+			"tide_companions": 1
+		},
+		"branch-margin": 0.0,
+		"branches": 0,
+		"budget": 0,
+		"decks": "",
+		"depth": 0,
+		"field": "",
+		"games": 200,
+		"json": "res://../reports_hard/shard_0.json",
+		"limit": 0,
+		"max-steps": 6000,
+		"mode": "matrix",
+		"nodes": 0,
+		"noise": 0.0,
+		"policy": "search",
+		"predict-depth": 0,
+		"prior": 0.0,
+		"progress": 0,
+		"repeats": 1,
+		"responses": 0,
+		"rollout-steps": 0,
+		"samples": 0,
+		"scenario": "",
+		"seed": 21,
+		"settle-lead": 0.0,
+		"settle-plies": 0,
+		"shard": "0/8",
+		"steps": 0,
+		"styles": true,
+		"think": "",
+		"top-k": 0,
+		"tsv": "",
+		"turns": 0,
+		"verbose": false
+	},
+	"decks": {
+		"a": {
+			"tide_companions": {
+				"closest_when_lost": {
+					"survival": 1
+				},
+				"loss_to": {
+					"survival": 1
+				},
+				"margin": {
+					"ascension": 0.0,
+					"n": 0,
+					"seal": 0.0,
+					"survival": 0.0
+				},
+				"mean_turns": 6.0,
+				"played": 1,
+				"shortfall": {
+					"ascension": 1.0,
+					"n": 1,
+					"seal": 7.0,
+					"survival": 0.0
+				},
+				"win_by": {
+
+				},
+				"win_high": 0.793450688208197,
+				"win_low": 0.0,
+				"win_rate": 0.0,
+				"won": 0
+			}
+		},
+		"b": {
+			"steel_beatdown": {
+				"closest_when_lost": {
+
+				},
+				"loss_to": {
+
+				},
+				"margin": {
+					"ascension": 0.5,
+					"n": 1,
+					"seal": 7.0,
+					"survival": 39.0
+				},
+				"mean_turns": 6.0,
+				"played": 1,
+				"shortfall": {
+					"ascension": 0.0,
+					"n": 0,
+					"seal": 0.0,
+					"survival": 0.0
+				},
+				"win_by": {
+					"survival": 1
+				},
+				"win_high": 1.0,
+				"win_low": 0.206549311791803,
+				"win_rate": 1.0,
+				"won": 1
+			}
+		}
+	},
+	"failures": [],
+	"games": 1,
+	"godot_version": "4.6.2-stable (official)",
+	"matchups": {
+		"tide_companions|steel_beatdown": {
+			"a_high": 0.793450688208197,
+			"a_low": 0.0,
+			"a_rate": 0.0,
+			"a_wins": 0,
+			"played": 1
+		}
+	},
+	"side_wins": [
+		0,
+		1
+	],
+	"state": {
+		"failure_notes": [],
+		"failures": 0,
+		"games": 1,
+		"matchup": {
+			"tide_companions|steel_beatdown": [
+				0,
+				1
+			]
+		},
+		"side_rows": [
+			{
+				"tide_companions": {
+					"closest": {
+						"survival": 1
+					},
+					"loss": {
+						"survival": 1
+					},
+					"margin": {
+						"ascension": 0.0,
+						"n": 0,
+						"seal": 0.0,
+						"survival": 0.0
+					},
+					"played": 1,
+					"shortfall": {
+						"ascension": 1.0,
+						"n": 1,
+						"seal": 7.0,
+						"survival": 0.0
+					},
+					"turns": 6,
+					"win": {
+
+					},
+					"won": 0
+				}
+			},
+			{
+				"steel_beatdown": {
+					"closest": {
+
+					},
+					"loss": {
+
+					},
+					"margin": {
+						"ascension": 0.5,
+						"n": 1,
+						"seal": 7.0,
+						"survival": 39.0
+					},
+					"played": 1,
+					"shortfall": {
+						"ascension": 0.0,
+						"n": 0,
+						"seal": 0.0,
+						"survival": 0.0
+					},
+					"turns": 6,
+					"win": {
+						"survival": 1
+					},
+					"won": 1
+				}
+			}
+		],
+		"side_timing": [
+			{
+				"branching_decisions": 100,
+				"decisions": 104,
+				"depth_total": 217,
+				"fallbacks": 0,
+				"max_depth": 4,
+				"max_usec": 2911572,
+				"samples_ms": [
+					7.123,
+					7.491,
+					7.582,
+					8.047,
+					35.081,
+					65.809,
+					94.976,
+					100.898,
+					102.046,
+					103.696,
+					108.474,
+					116.317,
+					117.472,
+					119.766,
+					121.909,
+					139.645,
+					149.19,
+					150.556,
+					154.443,
+					154.638,
+					155.864,
+					156.47,
+					157.845,
+					160.857,
+					161.163,
+					164.139,
+					164.329,
+					170.055,
+					174.514,
+					176.904,
+					176.918,
+					179.178,
+					179.423,
+					186.54,
+					202.951,
+					203.89,
+					205.529,
+					208.653,
+					209.002,
+					212.766,
+					217.572,
+					217.853,
+					225.164,
+					230.158,
+					233.284,
+					235.598,
+					236.712,
+					239.906,
+					242.728,
+					243.334,
+					245.993,
+					248.22,
+					251.018,
+					251.748,
+					251.961,
+					256.812,
+					263.89,
+					266.84,
+					269.547,
+					269.808,
+					292.736,
+					301.812,
+					306.698,
+					311.111,
+					312.237,
+					313.481,
+					315.693,
+					326.624,
+					335.234,
+					355.995,
+					358.593,
+					368.327,
+					391.801,
+					397.875,
+					404.511,
+					413.074,
+					425.76,
+					426.91,
+					451.938,
+					461.473,
+					475.909,
+					485.97,
+					493.963,
+					525.6,
+					525.722,
+					534.602,
+					558.249,
+					672.245,
+					710.503,
+					715.901,
+					723.554,
+					783.101,
+					844.275,
+					945.712,
+					974.523,
+					1032.679,
+					1094.03,
+					1135.169,
+					1360.959,
+					1563.888,
+					1898.903,
+					2057.689,
+					2547.459,
+					2911.572
+				],
+				"search_decisions": 103,
+				"stops": {
+					"completed": 3,
+					"predicted": 2,
+					"settled": 98
+				},
+				"total_usec": 43214355
+			},
+			{
+				"branching_decisions": 43,
+				"decisions": 47,
+				"depth_total": 90,
+				"fallbacks": 0,
+				"max_depth": 4,
+				"max_usec": 4003149,
+				"samples_ms": [
+					5.882,
+					6.373,
+					9.612,
+					12.394,
+					27.766,
+					91.008,
+					137.429,
+					238.718,
+					243.167,
+					259.14,
+					275.156,
+					321.332,
+					326.274,
+					346.639,
+					350.299,
+					362.027,
+					368.312,
+					370.952,
+					371.252,
+					379.454,
+					383.698,
+					389.053,
+					415.637,
+					420.874,
+					421.487,
+					433.433,
+					484.322,
+					499.848,
+					514.285,
+					570.539,
+					575.581,
+					700.548,
+					758.354,
+					760.566,
+					827.466,
+					846.085,
+					882.206,
+					886.662,
+					913.731,
+					948.985,
+					1127.102,
+					1178.312,
+					1255.571,
+					1320.985,
+					3162.146,
+					3228.489,
+					4003.149
+				],
+				"search_decisions": 45,
+				"stops": {
+					"completed": 5,
+					"settled": 39,
+					"time_budget": 1
+				},
+				"total_usec": 32412300
+			}
+		],
+		"side_wins": [
+			0,
+			1
+		]
+	},
+	"timing": [
+		{
+			"branching_decisions": 100,
+			"decisions": 104,
+			"fallbacks": 0,
+			"max_completed_depth": 4,
+			"max_ms": 2911.572,
+			"mean_completed_depth": 2.10679611650485,
+			"mean_ms": 415.522644230769,
+			"median_ms": 248.22,
+			"p95_ms": 1360.959,
+			"search_decisions": 103,
+			"stops": {
+				"completed": 3,
+				"predicted": 2,
+				"settled": 98
+			}
+		},
+		{
+			"branching_decisions": 43,
+			"decisions": 47,
+			"fallbacks": 0,
+			"max_completed_depth": 4,
+			"max_ms": 4003.149,
+			"mean_completed_depth": 2.0,
+			"mean_ms": 689.623404255319,
+			"median_ms": 420.874,
+			"p95_ms": 3162.146,
+			"search_decisions": 45,
+			"stops": {
+				"completed": 5,
+				"settled": 39,
+				"time_budget": 1
+			}
+		}
+	],
+	"unusable": 0,
+	"version": 1,
+	"written_unix": 1789958332.3
+}

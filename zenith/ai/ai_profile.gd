@@ -49,6 +49,11 @@ const DEFAULTS: Dictionary = {
 		# 0 or 1 keeps every candidate; between them it drops the ones the move ordering already
 		# puts far behind the leader. See AiSearch._within_margin.
 		"branch_margin": 0.0,
+		# 1 skips starting a depth that is projected not to finish before the deadline.
+		# See AiSearch._depth_will_not_fit.
+		"predict_depth": 0,
+		# Prompt kinds answered by the scorer alone. See AiProfile.scorer_decides.
+		"scorer_kinds": [],
 		"rollout_steps": 4, "settle_steps": 8, "intent_margin": 0.15, "cache": false,
 		# Stop deepening once the same option has been best for this many completed depths running
 		# and leads the next by `settle_lead`. 0 spends the whole budget every time.
@@ -239,3 +244,11 @@ func think_int(key: String) -> int:
 func searches() -> bool:
 	var g: Dictionary = data["think"]
 	return bool(g.get("search", true))
+
+
+## Prompt kinds this profile answers with the scorer alone, skipping the search. Measured
+## 2026-09-20 with tools/decision_agreement.gd: on these kinds the scorer already picks what the
+## search picks most of the time, so the search spent its budget re-deriving the same answer.
+func scorer_decides(kind: StringName) -> bool:
+	var kinds: Array = (data["think"] as Dictionary).get("scorer_kinds", [])
+	return kinds.has(String(kind))

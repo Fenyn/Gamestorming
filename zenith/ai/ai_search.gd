@@ -20,12 +20,16 @@ var _nodes: int = 0
 var _node_limit: int = 0
 var _aborted: bool = false
 var _last_turn: int = 0
+## Zones where two copies of a card are interchangeable. See `_distinct`.
+const OFF_TABLE: Array[StringName] = [&"hand", &"reserve", &"life_deck", &"discard", &"removed"]
 ## The furthest ahead any profile may look, in turns. See `_last_turn`.
 const MAX_TURNS: int = 7
 var _policy_cache: Dictionary = {}
 ## One reusable engine for the perspective switch in `_scores`. Only one perceived world is alive
 ## at a time there, so a single buffer is enough.
 var _perceived: DuelEngine = null
+## Above zero while a leaf playout is running, so node counts can say tree from playout.
+var _rolling: int = 0
 var _transpositions: Dictionary = {}
 var _old_intent: Dictionary = {}
 var _weights: Dictionary = {}
@@ -40,7 +44,11 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	_nodes = 0
 	metrics = {"algorithm": "sequence", "nodes": 0, "completed_depth": 0, "cutoff": "", "elapsed_ms": 0,
 		"state_pivots": 0, "cache_hits": 0, "intent_status": "new", "rejected": [],
-		"unsettled_leaves": 0, "terminal_leaves": 0}
+		"unsettled_leaves": 0, "terminal_leaves": 0,
+		# Where a decision's time goes. See tools/search_profile.gd.
+		"tree_nodes": 0, "rollout_nodes": 0, "rollout_leaves": 0, "rollout_usec": 0,
+		"scores_calls": 0, "forced_scores": 0, "switches": 0, "switch_usec": 0, "scorer_usec": 0,
+		"clone_usec": 0, "eval_usec": 0, "evals": 0, "discarded_usec": 0}
 	if str((profile.data["think"] as Dictionary).get("algorithm", "sequence")) == "rollout":
 		metrics["algorithm"] = "rollout"
 		var legacy: Command = choose_rollout(referee, seat, profile, rng)
@@ -101,7 +109,12 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	var completed: Array[Dictionary] = []
 	var settled_for: int = 0
 	var settled_on: int = -1
+	var depth_costs: Array[int] = []
 	for depth in range(1, maxi(1, profile.think_int("sequence_depth")) + 1):
+		if _depth_will_not_fit(profile, depth_costs):
+			metrics["cutoff"] = "predicted"
+			break
+		var depth_started: int = Time.get_ticks_usec()
 		var round_results: Array[Dictionary] = []
 		for i in candidates:
 			var next: Array[DuelEngine] = _advance(worlds, prompt.options[i].to_dict())
@@ -115,9 +128,12 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 			result["index"] = i
 			round_results.append(result)
 		if _aborted:
+			# Iterative deepening keeps only whole depths, so an interrupted one is thrown away.
+			_add("discarded_usec", Time.get_ticks_usec() - depth_started)
 			break
 		completed = round_results
 		metrics["completed_depth"] = depth
+		depth_costs.append(Time.get_ticks_usec() - depth_started)
 		var best: float = -INF
 		for result in completed:
 			var i: int = int(result["index"])
@@ -171,6 +187,22 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	intent[root_key] = prompt.options[best_index].to_dict()
 	_finish()
 	return prompt.options[best_index]
+
+
+## Iterative deepening keeps only whole depths, so a depth that runs out of time is thrown away.
+## With `predict_depth` on, the next depth is not started when its cost, projected from how much the
+## last one grew over the one before, would run past the deadline. The decision then returns the
+## answer it already had, sooner, instead of spending the rest of the clock on work it discards.
+func _depth_will_not_fit(profile: AiProfile, costs: Array[int]) -> bool:
+	if profile.think_int("predict_depth") <= 0 or _deadline <= 0 or costs.is_empty():
+		return false
+	var last: float = float(costs[costs.size() - 1])
+	# Before two depths exist there is no measured growth; a depth costs at least a few times the last.
+	var growth: float = 3.0
+	if costs.size() >= 2:
+		growth = clampf(last / maxf(1.0, float(costs[costs.size() - 2])), 1.5, 8.0)
+	var remaining_usec: float = float(_deadline - Time.get_ticks_msec()) * 1000.0
+	return last * growth > remaining_usec
 
 
 ## Stop deepening once the answer has stopped moving: the same option has come out best for
@@ -241,7 +273,10 @@ func _advance(worlds: Array[DuelEngine], wire: Dictionary) -> Array[DuelEngine]:
 			_aborted = true
 			metrics["cutoff"] = "inconsistent_options"
 			return next
+		var cloned_at: int = Time.get_ticks_usec()
 		var sim: DuelEngine = world.clone_into(_free.pop_back()) if not _free.is_empty() else world.clone()
+		_add("clone_usec", Time.get_ticks_usec() - cloned_at)
+		_add("rollout_nodes" if _rolling > 0 else "tree_nodes", 1)
 		_weights[sim.get_instance_id()] = _weight(world)
 		_nodes += 1
 		if not sim.submit(cmd):
@@ -265,7 +300,13 @@ func _visit(worlds: Array[DuelEngine], depth: int, steps: int) -> Dictionary:
 	if not _available():
 		return _result(0.0)
 	if depth <= 0:
-		return _rollout(worlds, mini(_profile.think_int("rollout_steps"), maxi(0, _profile.think_int("max_steps") - steps)))
+		var rolled_at: int = Time.get_ticks_usec()
+		_rolling += 1
+		var rolled: Dictionary = _rollout(worlds, mini(_profile.think_int("rollout_steps"), maxi(0, _profile.think_int("max_steps") - steps)))
+		_rolling -= 1
+		_add("rollout_usec", Time.get_ticks_usec() - rolled_at)
+		_add("rollout_leaves", 1)
+		return rolled
 	if steps >= maxi(1, _profile.think_int("max_steps")):
 		return _evaluate(worlds)
 	var groups: Dictionary = {}
@@ -306,7 +347,7 @@ func _opponent(worlds: Array[DuelEngine], depth: int, steps: int) -> Dictionary:
 	for world in worlds:
 		var single: Array[DuelEngine] = [world]
 		var scores: Array[float] = _scores(single)
-		var choices: Array[int] = _shortlist(world.prompt, scores, maxi(1, _profile.think_int("response_width")))
+		var choices: Array[int] = _shortlist(world.prompt, scores, maxi(1, _profile.think_int("response_width")), world)
 		forced = forced and world.prompt.options.size() == 1
 		var normalizer: float = 0.0
 		for rank in range(choices.size()):
@@ -382,6 +423,9 @@ func _scores(worlds: Array[DuelEngine]) -> Array[float]:
 	var totals: Array[float] = []
 	totals.resize(prompt.options.size())
 	totals.fill(0.0)
+	_add("scores_calls", 1)
+	if prompt.options.size() == 1:
+		_add("forced_scores", 1)
 	for sim in worlds:
 		if not _available():
 			return totals
@@ -390,12 +434,17 @@ func _scores(worlds: Array[DuelEngine]) -> Array[float]:
 		if who != _seat:
 			# Switch perspective through the same public-prior boundary. Shuffling alone
 			# would retain our undisclosed deck composition in the opponent's model.
+			var switched_at: int = Time.get_ticks_usec()
 			_perspective.engine = sim
 			if _perceived == null:
 				_perceived = sim.clone()
 			perceived = _perspective.sim_into(who, 7919 + sim.state.turn, _perceived)
+			_add("switch_usec", Time.get_ticks_usec() - switched_at)
+			_add("switches", 1)
 		var playing: AiProfile = policy_for_sim(perceived, who)
+		var scored_at: int = Time.get_ticks_usec()
 		var values: Array[float] = AiScorer.scores(perceived, playing, who)
+		_add("scorer_usec", Time.get_ticks_usec() - scored_at)
 		var by_command: Dictionary = {}
 		for i in range(values.size()):
 			by_command[AiObservation.command_key(perceived.prompt_of(who).options[i])] = values[i]
@@ -481,7 +530,10 @@ func _value(sim: DuelEngine) -> float:
 		metrics["unsettled_leaves"] = int(metrics["unsettled_leaves"]) + 1
 	if sim.is_over():
 		metrics["terminal_leaves"] = int(metrics["terminal_leaves"]) + 1
+	var evaluated_at: int = Time.get_ticks_usec()
 	var value: float = AiEvaluator.evaluate(sim, _seat, _profile)
+	_add("eval_usec", Time.get_ticks_usec() - evaluated_at)
+	_add("evals", 1)
 	return value if sim.is_over() else clampf(value, -AiEvaluator.WIN + 10.0, AiEvaluator.WIN - 10.0)
 
 
@@ -507,6 +559,10 @@ func _mass(worlds: Array[DuelEngine]) -> float:
 	for world in worlds:
 		total += _weight(world)
 	return total
+
+
+func _add(key: String, amount: int) -> void:
+	metrics[key] = int(metrics.get(key, 0)) + amount
 
 
 static func _result(value: float) -> Dictionary:
@@ -565,6 +621,7 @@ static func _candidates(sim: DuelEngine, prompt: Prompt, prior: Array[float], wi
 	for i in range(prior.size()):
 		order.append(i)
 	order.sort_custom(func(a: int, b: int) -> bool: return prior[a] > prior[b] if prior[a] != prior[b] else a < b)
+	order = _distinct(sim, prompt, order)
 	var out: Array[int] = []
 	var roles: Dictionary = {}
 	for i in order:
@@ -581,6 +638,32 @@ static func _candidates(sim: DuelEngine, prompt: Prompt, prior: Array[float], wi
 				out.append(i)
 			break
 	return out
+
+
+## Keeps the first of any options that are the same move: the same card definition, from the same
+## zone off the table, doing the same thing. Two copies of one Strike in hand are one choice, and
+## expanding both spent a branch slot on a repeat. Cards on the table are never merged, because two
+## copies there can differ (Remain, attachments, cards under them). `order` is kept in its order.
+static func _distinct(sim: DuelEngine, prompt: Prompt, order: Array[int]) -> Array[int]:
+	var seen: Dictionary = {}
+	var out: Array[int] = []
+	for i in order:
+		var key: String = _move_key(sim, prompt.options[i])
+		if seen.has(key):
+			continue
+		seen[key] = true
+		out.append(i)
+	return out
+
+
+static func _move_key(sim: DuelEngine, cmd: Command) -> String:
+	var key: String = "%s|%s" % [cmd.type, str(cmd.value)]
+	if cmd.card < 0:
+		return key
+	var card: CardInstance = sim.card(cmd.card)
+	if card == null or not OFF_TABLE.has(card.zone):
+		return "%s|#%d" % [key, cmd.card]
+	return "%s|%s|%s" % [key, card.def.id, card.zone]
 
 
 static func _role(sim: DuelEngine, cmd: Command) -> String:
@@ -609,11 +692,13 @@ static func _role(sim: DuelEngine, cmd: Command) -> String:
 	return String(cmd.type)
 
 
-static func _shortlist(prompt: Prompt, prior: Array[float], top_k: int) -> Array[int]:
+static func _shortlist(prompt: Prompt, prior: Array[float], top_k: int, sim: DuelEngine = null) -> Array[int]:
 	var order: Array[int] = []
 	for i in range(prior.size()):
 		order.append(i)
 	order.sort_custom(func(a: int, b: int) -> bool: return prior[a] > prior[b] if prior[a] != prior[b] else a < b)
+	if sim != null:
+		order = _distinct(sim, prompt, order)
 	var out: Array[int] = []
 	for i in order:
 		if out.size() < maxi(1, top_k):

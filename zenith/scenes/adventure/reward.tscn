@@ -1,0 +1,240 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/reward.gd" id="1_reward"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="4_tile"]
+
+[node name="Reward" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_reward")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.055, 0.07, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("2_faces")]
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="VBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/Column/Header/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "Stage cleared"
+
+[node name="Opponent" type="Label" parent="Margin/Column/Header/TitleRow"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = ""
+horizontal_alignment = 2
+
+[node name="AspectRow" type="HBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+alignment = 1
+
+[node name="AspectLine" type="Label" parent="Margin/Column/Header/AspectRow"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Aspect unlocked"
+
+[node name="Stats" type="HBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Deck" parent="Margin/Column/Header/Stats" instance=ExtResource("4_tile")]
+layout_mode = 2
+
+[node name="Aspects" parent="Margin/Column/Header/Stats" instance=ExtResource("4_tile")]
+layout_mode = 2
+
+[node name="OfferSection" type="VBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="OfferRow" type="HBoxContainer" parent="Margin/Column/OfferSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+theme_override_constants/separation = 32
+
+[node name="Empty" type="Label" parent="Margin/Column/OfferSection"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 18
+text = "No card can be added this stage."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Skip" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(120, 52)
+layout_mode = 2
+text = "Skip"
+
+[node name="Cut" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(200, 52)
+layout_mode = 2
+text = "Cut a card instead"
+
+[node name="Status" type="Label" parent="Margin/Column/Footer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"WarnLabel"
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Take" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(220, 52)
+layout_mode = 2
+disabled = true
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 18
+text = "Take"
+
+[node name="CutPanel" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Center" type="CenterContainer" parent="CutPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="CutPanel/Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="Header" type="Label" parent="CutPanel/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 22
+text = "Cut a card"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Scroll" type="ScrollContainer" parent="CutPanel/Center/Column"]
+custom_minimum_size = Vector2(480, 380)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="CutPanel/Center/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CutStatus" type="Label" parent="CutPanel/Center/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"WarnLabel"
+text = ""
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Buttons" type="HBoxContainer" parent="CutPanel/Center/Column"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+mouse_filter = 2
+
+[node name="Cancel" type="Button" parent="CutPanel/Center/Column/Buttons"]
+custom_minimum_size = Vector2(140, 52)
+layout_mode = 2
+text = "Cancel"
+
+[node name="Confirm" type="Button" parent="CutPanel/Center/Column/Buttons"]
+custom_minimum_size = Vector2(140, 52)
+layout_mode = 2
+disabled = true
+theme_type_variation = &"AccentButton"
+text = "Cut"
+
+[node name="Inspect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Center" type="CenterContainer" parent="Inspect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Inspect/Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="Inspect/Center/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Click outside the card or press Esc to close."
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Face" parent="Inspect/Center/Column" instance=ExtResource("3_face")]
+layout_mode = 2
+size_flags_horizontal = 4

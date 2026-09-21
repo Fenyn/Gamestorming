@@ -24,6 +24,7 @@ const KNOBS: Dictionary = {
 	"settle-plies": ["settle_plies", true],
 	"settle-lead": ["settle_lead", false],
 	"branch-margin": ["branch_margin", false],
+	"predict-depth": ["predict_depth", true],
 }
 
 ## Policies that are not the name of a level file under `data/ai/profiles`.
@@ -159,5 +160,11 @@ func _parse_think(raw: String) -> void:
 			think[key] = true
 		elif text.to_lower() in ["false", "off", "no"]:
 			think[key] = false
+		elif text.begins_with("[") and text.ends_with("]"):
+			# A list, written [a,b,c]. Used by `scorer_kinds`.
+			var items: Array = []
+			for item in text.substr(1, text.length() - 2).split(",", false):
+				items.append(item.strip_edges())
+			think[key] = items
 		else:
 			think[key] = text

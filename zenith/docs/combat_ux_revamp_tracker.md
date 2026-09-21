@@ -31,23 +31,33 @@ The two fighters remain visible during normal hand browsing and combat decisions
 
 ## P0: decisions must remain usable
 
+Status: complete and verified 2026-09-20.
+
 ### Keep every combat action inside the viewport
 
-- [ ] Replace the current vertical stack of full-size focus card followed by prompt controls with one bounded combat-decision region.
-- [ ] Keep the decision question, consequence, and every primary action visible without scrolling at 1280x720 and 1600x900.
-- [ ] Provide a compact incoming-card presentation during decisions: title, art, type, relevant text, and forecast.
-- [ ] Keep the full card available through hover, focus, or inspection.
-- [ ] Ensure cardless choices such as **Take it**, **Pass**, and **No Endurance** remain reachable even when the hand is tucked.
-- [ ] Prevent long card names, dense rules, multiple stop requirements, and outcome previews from moving buttons outside the viewport.
-- [ ] Preserve keyboard focus and show the same forecast on keyboard focus that pointer hover shows.
+- [x] Replace the current vertical stack of full-size focus card followed by prompt controls with one bounded combat-decision region.
+- [x] Keep the decision question, consequence, and every primary action visible without scrolling at 1280x720 and 1600x900.
+- [x] Provide a compact incoming-card presentation during decisions: title, art, type, relevant text, and forecast.
+- [x] Keep the full card available through hover, focus, or inspection.
+- [x] Ensure cardless choices such as **Take it**, **Pass**, and **No Endurance** remain reachable even when the hand is tucked.
+- [x] Prevent long card names, dense rules, multiple stop requirements, and outcome previews from moving buttons outside the viewport.
+- [x] Preserve keyboard focus and show the same forecast on keyboard focus that pointer hover shows.
 
-Current risk: `DuelHud._compact_prompt()` places the prompt below the focus card. In current captures, the defense question and **Take it** action fall partly or completely below the viewport.
+Resolved defect: `DuelHud._compact_prompt()` previously allowed an incorrectly measured result label to push the defense question and **Take it** action partly or completely below the viewport.
 
 Acceptance criteria:
 
 - At 1280x720, a defense prompt shows the incoming attack, expected Energy/wounds, defense instruction, legal response, and **Take it** together.
 - At 1600x900, opening a legal-card preview does not move or conceal the decision controls.
 - No prompt requires blind scrolling to discover the only legal action.
+
+Implementation notes:
+
+- The focused card, question, consequence, instruction, and actions now share one bounded right-side column.
+- Damage and outcome previews use a stable two-line result slot. This prevents an early one-pixel-wide layout pass from turning a short result into a 413-pixel minimum height.
+- Pointer hover and keyboard focus replace the baseline with an explicitly labeled preview without moving the focused action.
+- Combat presentation tests check the actual question, result, action region, and button rectangles. They also cover a long question, multiple required stops, damage-prevention text, cardless fallback, and a long scrollable action list.
+- Rendered defense states were inspected at 1280x720 and 1600x900 with the hand tucked, a legal-card preview open, and an outcome preview active.
 
 ## P1: make the fighters the visual anchors
 

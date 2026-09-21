@@ -243,8 +243,18 @@ func _init() -> void:
 		test_an_aspect_one_ally_is_legal_in_a_shallow_deck,
 		test_profile_state_key_matches_the_seat_view,
 		test_branch_margin_keeps_the_leader_and_drops_the_tail,
+		test_search_merges_identical_moves_from_hand,
+		test_a_profile_can_leave_prompt_kinds_to_the_scorer,
 		test_an_ally_power_refreshes_each_combat,
 		test_the_taller_ladder_wins_by_standing_above_it,
+		test_an_adventure_run_round_trips_through_json_and_the_save,
+		test_adventure_ladders_field_legal_opponents,
+		test_an_adventure_offer_is_three_legal_cards_the_deck_can_run,
+		test_the_stage_two_grant_raises_the_aspect_count,
+		test_adventure_offers_follow_the_run_seed,
+		test_an_adventure_pick_is_refused_when_it_was_not_offered,
+		test_an_adventure_cut_is_refused_at_the_card_floor,
+		test_adventure_starters_and_opponents_are_legal,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -3731,6 +3741,41 @@ func test_a_printed_limit_beats_the_signature_allowance() -> void:
 		check(not p.contains("t_vigil_ray"), "the allowance still applies where nothing is printed: %s" % p)
 
 
+## Two copies of one card in hand are one move, so the search keeps only the first. A card on the
+## table is never merged with its twin, since the two can differ.
+func test_search_merges_identical_moves_from_hand() -> void:
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler(), "pact"))
+	var hand: Array[CardInstance] = e.player(0).hand
+	var a: CardInstance = null
+	var b: CardInstance = null
+	for i in range(hand.size()):
+		for j in range(i + 1, hand.size()):
+			if a == null and hand[i].def.id == hand[j].def.id:
+				a = hand[i]
+				b = hand[j]
+	check(a != null, "the opening hand holds two copies of one card")
+	if a == null:
+		return
+	var p: Prompt = Prompt.new()
+	p.player = 0
+	p.options = [Command.new(0, &"attack", a.uid), Command.new(0, &"attack", b.uid), Command.new(0, &"pass")] as Array[Command]
+	eq(AiSearch._distinct(e, p, [0, 1, 2] as Array[int]), [0, 2] as Array[int], "the second copy is the same move")
+	eq(AiSearch._distinct(e, p, [1, 0, 2] as Array[int]), [1, 2] as Array[int], "whichever copy ranks first is kept")
+	b.zone = &"in_play"
+	eq(AiSearch._distinct(e, p, [0, 1, 2] as Array[int]).size(), 3, "a copy on the table stays its own move")
+
+
+## A profile can hand named prompt kinds to the scorer. None do unless they say so.
+func test_a_profile_can_leave_prompt_kinds_to_the_scorer() -> void:
+	var plain: AiProfile = AiProfile.default_profile()
+	check(not plain.scorer_decides(&"control"), "the default searches every kind")
+	var gated: AiProfile = AiProfile.default_profile()
+	gated.merge({"think": {"scorer_kinds": ["control", "keep"]}})
+	check(gated.scorer_decides(&"control"), "a listed kind goes to the scorer")
+	check(not gated.scorer_decides(&"attack_action"), "an unlisted kind is still searched")
+	check(not AiProfile.default_profile().scorer_decides(&"control"), "the merge did not reach the defaults")
+
+
 ## The margin cutoff drops candidates the ordering already puts far behind, and always keeps the
 ## leader. 0 and 1 are off, so no profile changes behaviour until it opts in.
 func test_branch_margin_keeps_the_leader_and_drops_the_tail() -> void:
@@ -4736,3 +4781,231 @@ func test_a_one_shot_stop_can_wait_for_the_kind_it_names() -> void:
 		"stopped": false, "unstoppable": false, "spec": {}, "stop_count": 0, "stops_needed": 1, "target": -1}
 	e._apply_shields(me, art_at_me)
 	check(bool(art_at_me["stopped"]), "and the Art it named is stopped")
+
+
+# --- Adventure mode -------------------------------------------------------
+
+const ADVENTURE_SAVE_PATH: String = "user://adventure/test_run.json"
+const ADVENTURE_LADDER_SIZE: int = 8
+const ADVENTURE_TIER_SUFFIXES: Array[String] = ["_start", "_boss", "_t1", "_t2", "_t3", "_t4", "_t5"]
+
+
+## The deck id a starter or an opponent was scaled from, so a ladder can be checked for mirrors.
+func adventure_deck_family(deck_id: String) -> String:
+	for suffix in ADVENTURE_TIER_SUFFIXES:
+		if deck_id.ends_with(suffix):
+			return deck_id.trim_suffix(suffix)
+	return deck_id
+
+
+## A run is saved between every stage, so it has to survive JSON's floats and come back the same.
+func test_an_adventure_run_round_trips_through_json_and_the_save() -> void:
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 4242)
+	check(run != null, "the starter resolves into a run")
+	if run == null:
+		return
+	run.stage = 3
+	run.aspects = 3
+	run.status = "reward"
+	run.pending_offer.append("pyre_kindling")
+	run.picks.append({"stage": 0, "kind": "pick", "id": "pyre_kindling"})
+	var copy: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	eq(copy.starter_id, run.starter_id, "starter survives to_dict")
+	eq(copy.cards.size(), run.cards.size(), "deck survives to_dict")
+	eq(copy.stage, 3, "stage survives to_dict")
+	eq(copy.run_seed, 4242, "seed survives to_dict")
+	eq(copy.pending_offer, run.pending_offer, "the pending offer survives to_dict")
+	eq(copy.picks.size(), 1, "the pick history survives to_dict")
+	# Through a real file, which is where the floats come from.
+	AdventureSave.path_override = ADVENTURE_SAVE_PATH
+	check(AdventureSave.store(run), "the run writes to disk")
+	check(AdventureSave.exists(), "and the save is found again")
+	var loaded: AdventureRun = AdventureSave.load_run()
+	check(loaded != null, "the save parses back into a run")
+	if loaded != null:
+		eq(loaded.stage, 3, "stage came back an int")
+		eq(loaded.aspects, 3, "aspects came back an int")
+		eq(loaded.run_seed, 4242, "seed came back an int")
+		eq(loaded.cards, run.cards, "the deck came back whole")
+		eq(int(loaded.picks[0].get("stage", -1)), 0, "and a pick row came back an int")
+	AdventureSave.clear()
+	check(not AdventureSave.exists(), "clear removes the save")
+	AdventureSave.path_override = ""
+	# Two seed streams off one run seed, neither zero and never the same for a stage.
+	for n in range(ADVENTURE_LADDER_SIZE):
+		check(run.stage_seed(n) > 0, "stage seed %d is positive" % n)
+		check(run.offer_seed(n) > 0, "offer seed %d is positive" % n)
+		check(run.stage_seed(n) != run.offer_seed(n), "stage and offer seeds differ at %d" % n)
+
+
+func test_adventure_ladders_field_legal_opponents() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var starters: Array[String] = AdventureLadder.playable_starters()
+	eq(starters.size(), 4, "four starters have a ladder")
+	for starter_id in starters:
+		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+		check(ladder != null, "%s has a ladder file" % starter_id)
+		if ladder == null:
+			continue
+		eq(ladder.size(), ADVENTURE_LADDER_SIZE, "%s ladder has 8 stages" % starter_id)
+		var own_family: String = adventure_deck_family(starter_id)
+		var granted: int = 0
+		for n in range(ladder.size()):
+			var row: Dictionary = ladder.stage(n)
+			var opponent: String = str(row.get("opponent", ""))
+			var opponent_deck: DeckList = DeckList.resolve(opponent)
+			check(opponent_deck != null, "%s stage %d opponent '%s' resolves" % [starter_id, n + 1, opponent])
+			if opponent_deck != null:
+				var problems: Array[String] = DeckValidator.validate(opponent_deck, shipped)
+				eq(problems.size(), 0, "%s stage %d '%s' is legal: %s" % [starter_id, n + 1, opponent, ", ".join(problems)])
+			check(adventure_deck_family(opponent) != own_family,
+				"%s stage %d is not a mirror of %s" % [starter_id, n + 1, own_family])
+			var level: String = str(row.get("ai_level", ""))
+			check(FileAccess.file_exists("res://data/ai/profiles/%s.json" % level),
+				"%s stage %d ai_level '%s' has a profile" % [starter_id, n + 1, level])
+			eq(str(row.get("story", "x")), "", "%s stage %d has no story text yet" % [starter_id, n + 1])
+			if str(row.get("grant", "")) == "aspect":
+				granted += 1
+		eq(granted, 1, "%s grants exactly one Aspect" % starter_id)
+
+
+## The reward screen never shows a card the validator would refuse, and never someone else's.
+func test_an_adventure_offer_is_three_legal_cards_the_deck_can_run() -> void:
+	var shipped: CardLibrary = shipped_library()
+	for starter_id in AdventureLadder.playable_starters():
+		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+		var run: AdventureRun = AdventureRun.begin(starter_id, 91011)
+		if ladder == null or run == null:
+			check(false, "%s has both a ladder and a starter deck" % starter_id)
+			continue
+		var duelist: CardDef = shipped.defs.get(run.deck().duelist_id)
+		var style: String = run.deck().style
+		for n in range(ladder.size()):
+			AdventureRewards.finish_stage(run, ladder, shipped, true)
+			eq(run.status, "reward", "%s stage %d ends on the reward screen" % [starter_id, n + 1])
+			var offer: Array[String] = run.pending_offer
+			eq(offer.size(), 3, "%s stage %d offers three cards" % [starter_id, n + 1])
+			var seen: Dictionary = {}
+			for id in offer:
+				check(not seen.has(id), "%s stage %d offers distinct ids" % [starter_id, n + 1])
+				seen[id] = true
+				var def: CardDef = shipped.defs.get(id)
+				check(def != null, "%s stage %d offers a known card '%s'" % [starter_id, n + 1, id])
+				if def == null:
+					continue
+				check(def.type != CardDef.Type.PERSONALITY and def.type != CardDef.Type.SEAL
+					and def.type != CardDef.Type.GROUNDS and def.type != CardDef.Type.MASTERY
+					and def.type != CardDef.Type.RELIC,
+					"%s stage %d: '%s' is a Life Deck card type" % [starter_id, n + 1, id])
+				check(def.school == "" or def.school == style,
+					"%s stage %d: '%s' is %s, deck Style is %s" % [starter_id, n + 1, id, def.school, style])
+				if style == "freestyle":
+					eq(def.school, "", "%s stage %d: '%s' carries no school" % [starter_id, n + 1, id])
+				check(def.character == "" or def.character == duelist.character,
+					"%s stage %d: '%s' is not another duelist's signature" % [starter_id, n + 1, id])
+				var trial: DeckList = run.deck()
+				trial.cards.append(id)
+				var problems: Array[String] = DeckValidator.validate(trial, shipped)
+				eq(problems.size(), 0, "%s stage %d: adding '%s' stays legal: %s"
+					% [starter_id, n + 1, id, ", ".join(problems)])
+			check(AdventureRewards.apply_pick(run, shipped, offer[0] if offer.size() > 0 else ""),
+				"%s stage %d picks the first card" % [starter_id, n + 1])
+			AdventureRewards.finish_reward(run, ladder)
+		eq(run.status, "won", "%s reaches the end of its ladder" % starter_id)
+
+
+func test_the_stage_two_grant_raises_the_aspect_count() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	eq(run.aspects, 2, "a starter opens at two Aspects")
+	AdventureRewards.finish_stage(run, ladder, shipped, true)
+	eq(run.aspects, 2, "stage 1 grants nothing")
+	AdventureRewards.apply_skip(run)
+	AdventureRewards.finish_reward(run, ladder)
+	AdventureRewards.finish_stage(run, ladder, shipped, true)
+	eq(run.aspects, 3, "stage 2 grants the third Aspect")
+	var problems: Array[String] = DeckValidator.validate(run.deck(), shipped)
+	eq(problems.size(), 0, "and the deck is still legal: %s" % ", ".join(problems))
+	# A loss ends the run wherever it happens.
+	var lost: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	AdventureRewards.finish_stage(lost, ladder, shipped, false)
+	eq(lost.status, "lost", "a loss ends the run")
+
+
+func test_adventure_offers_follow_the_run_seed() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var first: Array[String] = adventure_offer_sequence(shipped, "pyre_beatdown_start", 555)
+	var again: Array[String] = adventure_offer_sequence(shipped, "pyre_beatdown_start", 555)
+	var other: Array[String] = adventure_offer_sequence(shipped, "pyre_beatdown_start", 556)
+	eq(first, again, "the same run seed offers the same cards")
+	check(first != other, "a different run seed offers a different sequence somewhere")
+
+
+## Every offered id of an all-wins, always-skip run, flattened.
+func adventure_offer_sequence(shipped: CardLibrary, starter_id: String, run_seed: int) -> Array[String]:
+	var out: Array[String] = []
+	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+	var run: AdventureRun = AdventureRun.begin(starter_id, run_seed)
+	if ladder == null or run == null:
+		return out
+	for n in range(ladder.size()):
+		AdventureRewards.finish_stage(run, ladder, shipped, true)
+		out.append_array(run.pending_offer)
+		AdventureRewards.apply_skip(run)
+		AdventureRewards.finish_reward(run, ladder)
+	return out
+
+
+## A stale offer held by a client cannot smuggle a card in.
+func test_an_adventure_pick_is_refused_when_it_was_not_offered() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 31)
+	AdventureRewards.finish_stage(run, ladder, shipped, true)
+	var before: int = run.cards.size()
+	check(not AdventureRewards.apply_pick(run, shipped, "not_a_card_id"), "an unoffered id is refused")
+	eq(run.cards.size(), before, "and the deck is untouched")
+	eq(run.pending_offer.size(), 3, "and the offer is still standing")
+	check(AdventureRewards.apply_pick(run, shipped, run.pending_offer[0]), "an offered id goes in")
+	eq(run.cards.size(), before + 1, "the deck grew by one card")
+	eq(run.pending_offer.size(), 0, "and the offer is spent")
+	eq(str(run.picks[run.picks.size() - 1].get("kind", "")), "pick", "the pick is recorded")
+	eq(run.stage, 0, "picking does not advance the stage")
+
+
+func test_an_adventure_cut_is_refused_at_the_card_floor() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 12)
+	var guard: int = 0
+	while AdventureRewards.can_cut(run) and guard < 200:
+		guard += 1
+		if not AdventureRewards.apply_cut(run, shipped, run.cards[0]):
+			break
+	check(guard > 0, "some cards came out")
+	check(not AdventureRewards.can_cut(run), "the floor stops the cutting")
+	check(not AdventureRewards.apply_cut(run, shipped, run.cards[0]), "and a further cut is refused")
+	var cut_deck: DeckList = run.deck()
+	eq(cut_deck.total_cards(), DeckValidator.MIN_CARDS_ADVENTURE, "the deck sits on the validator's floor")
+	var problems: Array[String] = DeckValidator.validate(cut_deck, shipped)
+	eq(problems.size(), 0, "and it is still legal: %s" % ", ".join(problems))
+	check(not AdventureRewards.apply_cut(run, shipped, "not_a_card_id"), "a card not in the deck cannot be cut")
+
+
+## The check tools/validate_starters.gd runs, so adventure data is covered by the suite.
+func test_adventure_starters_and_opponents_are_legal() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var seen: int = 0
+	for source in ["res://data/adventure/starters", "res://data/adventure/opponents"]:
+		var dir: DirAccess = DirAccess.open(source)
+		check(dir != null, "%s exists" % source)
+		if dir == null:
+			continue
+		for entry in dir.get_files():
+			if not entry.ends_with(".json"):
+				continue
+			seen += 1
+			var d: DeckList = DeckList.load_from(source + "/" + entry)
+			var problems: Array[String] = DeckValidator.validate(d, shipped)
+			eq(problems.size(), 0, "%s legal: %s" % [entry, ", ".join(problems)])
+	check(seen > 80, "every adventure deck was checked, saw %d" % seen)

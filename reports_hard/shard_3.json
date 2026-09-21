@@ -1,0 +1,522 @@
+{
+	"config": {
+		"a": "hard",
+		"a-branch-margin": 0.0,
+		"a-branches": 0,
+		"a-budget": 0,
+		"a-depth": 0,
+		"a-field": "tide_companions,steel_beatdown",
+		"a-nodes": 0,
+		"a-noise": 0.0,
+		"a-predict-depth": 1,
+		"a-prior": 0.0,
+		"a-responses": 0,
+		"a-rollout-steps": 0,
+		"a-samples": 0,
+		"a-settle-lead": 0.0,
+		"a-settle-plies": 0,
+		"a-steps": 0,
+		"a-styles": true,
+		"a-think": "",
+		"a-top-k": 0,
+		"a-turns": 0,
+		"a_field": [
+			"tide_companions",
+			"steel_beatdown"
+		],
+		"a_side": {
+			"policy": "hard",
+			"styles": true,
+			"think": {
+				"predict_depth": 1,
+				"rollout_steps": 0
+			}
+		},
+		"a_weights": {
+			"steel_beatdown": 1,
+			"tide_companions": 1
+		},
+		"b": "hard",
+		"b-branch-margin": 0.0,
+		"b-branches": 0,
+		"b-budget": 0,
+		"b-depth": 0,
+		"b-field": "tide_companions,steel_beatdown",
+		"b-nodes": 0,
+		"b-noise": 0.0,
+		"b-predict-depth": 0,
+		"b-prior": 0.0,
+		"b-responses": 0,
+		"b-rollout-steps": 0,
+		"b-samples": 0,
+		"b-settle-lead": 0.0,
+		"b-settle-plies": 0,
+		"b-steps": 0,
+		"b-styles": true,
+		"b-think": "",
+		"b-top-k": 0,
+		"b-turns": 0,
+		"b_field": [
+			"tide_companions",
+			"steel_beatdown"
+		],
+		"b_side": {
+			"policy": "hard",
+			"styles": true,
+			"think": {
+
+			}
+		},
+		"b_weights": {
+			"steel_beatdown": 1,
+			"tide_companions": 1
+		},
+		"branch-margin": 0.0,
+		"branches": 0,
+		"budget": 0,
+		"decks": "",
+		"depth": 0,
+		"field": "",
+		"games": 200,
+		"json": "res://../reports_hard/shard_3.json",
+		"limit": 0,
+		"max-steps": 6000,
+		"mode": "matrix",
+		"nodes": 0,
+		"noise": 0.0,
+		"policy": "search",
+		"predict-depth": 0,
+		"prior": 0.0,
+		"progress": 0,
+		"repeats": 1,
+		"responses": 0,
+		"rollout-steps": 0,
+		"samples": 0,
+		"scenario": "",
+		"seed": 21,
+		"settle-lead": 0.0,
+		"settle-plies": 0,
+		"shard": "3/8",
+		"steps": 0,
+		"styles": true,
+		"think": "",
+		"top-k": 0,
+		"tsv": "",
+		"turns": 0,
+		"verbose": false
+	},
+	"decks": {
+		"a": {
+			"steel_beatdown": {
+				"closest_when_lost": {
+					"survival": 1
+				},
+				"loss_to": {
+					"survival": 1
+				},
+				"margin": {
+					"ascension": 0.0,
+					"n": 0,
+					"seal": 0.0,
+					"survival": 0.0
+				},
+				"mean_turns": 7.0,
+				"played": 1,
+				"shortfall": {
+					"ascension": 0.555555555555556,
+					"n": 1,
+					"seal": 7.0,
+					"survival": 2.0
+				},
+				"win_by": {
+
+				},
+				"win_high": 0.793450688208197,
+				"win_low": 0.0,
+				"win_rate": 0.0,
+				"won": 0
+			}
+		},
+		"b": {
+			"tide_companions": {
+				"closest_when_lost": {
+
+				},
+				"loss_to": {
+
+				},
+				"margin": {
+					"ascension": 1.0,
+					"n": 1,
+					"seal": 7.0,
+					"survival": 15.0
+				},
+				"mean_turns": 7.0,
+				"played": 1,
+				"shortfall": {
+					"ascension": 0.0,
+					"n": 0,
+					"seal": 0.0,
+					"survival": 0.0
+				},
+				"win_by": {
+					"survival": 1
+				},
+				"win_high": 1.0,
+				"win_low": 0.206549311791803,
+				"win_rate": 1.0,
+				"won": 1
+			}
+		}
+	},
+	"failures": [],
+	"games": 1,
+	"godot_version": "4.6.2-stable (official)",
+	"matchups": {
+		"steel_beatdown|tide_companions": {
+			"a_high": 0.793450688208197,
+			"a_low": 0.0,
+			"a_rate": 0.0,
+			"a_wins": 0,
+			"played": 1
+		}
+	},
+	"side_wins": [
+		0,
+		1
+	],
+	"state": {
+		"failure_notes": [],
+		"failures": 0,
+		"games": 1,
+		"matchup": {
+			"steel_beatdown|tide_companions": [
+				0,
+				1
+			]
+		},
+		"side_rows": [
+			{
+				"steel_beatdown": {
+					"closest": {
+						"survival": 1
+					},
+					"loss": {
+						"survival": 1
+					},
+					"margin": {
+						"ascension": 0.0,
+						"n": 0,
+						"seal": 0.0,
+						"survival": 0.0
+					},
+					"played": 1,
+					"shortfall": {
+						"ascension": 0.555555555555556,
+						"n": 1,
+						"seal": 7.0,
+						"survival": 2.0
+					},
+					"turns": 7,
+					"win": {
+
+					},
+					"won": 0
+				}
+			},
+			{
+				"tide_companions": {
+					"closest": {
+
+					},
+					"loss": {
+
+					},
+					"margin": {
+						"ascension": 1.0,
+						"n": 1,
+						"seal": 7.0,
+						"survival": 15.0
+					},
+					"played": 1,
+					"shortfall": {
+						"ascension": 0.0,
+						"n": 0,
+						"seal": 0.0,
+						"survival": 0.0
+					},
+					"turns": 7,
+					"win": {
+						"survival": 1
+					},
+					"won": 1
+				}
+			}
+		],
+		"side_timing": [
+			{
+				"branching_decisions": 53,
+				"decisions": 55,
+				"depth_total": 120,
+				"fallbacks": 0,
+				"max_depth": 5,
+				"max_usec": 1863359,
+				"samples_ms": [
+					11.251,
+					17.509,
+					30.666,
+					60.395,
+					72.089,
+					75.71,
+					88.212,
+					91.492,
+					91.691,
+					103.332,
+					107.089,
+					118.934,
+					130.847,
+					135.933,
+					137.751,
+					147.619,
+					152.821,
+					159.085,
+					168.867,
+					176.75,
+					179.612,
+					191.796,
+					193.969,
+					199.398,
+					199.411,
+					199.583,
+					200.958,
+					219.937,
+					225.197,
+					234.594,
+					250.226,
+					266.585,
+					267.146,
+					300.671,
+					315.633,
+					329.669,
+					353.031,
+					360.227,
+					368.28,
+					377.961,
+					414.505,
+					427.148,
+					443.308,
+					448.308,
+					452.612,
+					455.028,
+					485.503,
+					488.427,
+					497.584,
+					905.426,
+					953.942,
+					998.983,
+					1085.405,
+					1087.834,
+					1863.359
+				],
+				"search_decisions": 53,
+				"stops": {
+					"settled": 53
+				},
+				"total_usec": 18319299
+			},
+			{
+				"branching_decisions": 130,
+				"decisions": 135,
+				"depth_total": 274,
+				"fallbacks": 0,
+				"max_depth": 3,
+				"max_usec": 4005828,
+				"samples_ms": [
+					6.992,
+					7.677,
+					7.972,
+					8.344,
+					11.44,
+					99.979,
+					162.635,
+					162.637,
+					221.322,
+					226.331,
+					264.048,
+					295.898,
+					327.92,
+					344.879,
+					360.97,
+					372.325,
+					378.557,
+					378.637,
+					381.947,
+					396.512,
+					400.467,
+					411.564,
+					413.789,
+					419.521,
+					419.589,
+					423.057,
+					428.775,
+					434.609,
+					439.709,
+					439.979,
+					453.328,
+					458.78,
+					473.076,
+					479.756,
+					480.441,
+					485.469,
+					510.228,
+					513.641,
+					516.605,
+					520.902,
+					521.023,
+					534.378,
+					549.074,
+					567.931,
+					615.68,
+					636.211,
+					664.497,
+					667.646,
+					673.04,
+					674.395,
+					677.516,
+					724.579,
+					728.319,
+					789.837,
+					811.368,
+					828.241,
+					844.032,
+					844.702,
+					853.996,
+					867.165,
+					877.539,
+					955.926,
+					956.35,
+					975.954,
+					980.471,
+					1003.014,
+					1010.004,
+					1026.63,
+					1041.213,
+					1065.396,
+					1070.888,
+					1072.432,
+					1098.665,
+					1108.285,
+					1118.057,
+					1126.388,
+					1141.765,
+					1173.255,
+					1185.281,
+					1187.426,
+					1188.934,
+					1206.857,
+					1209.389,
+					1220.096,
+					1232.545,
+					1233.788,
+					1235.33,
+					1239.103,
+					1239.757,
+					1241.711,
+					1251.173,
+					1256.075,
+					1262.998,
+					1269.684,
+					1276.518,
+					1277.617,
+					1279.968,
+					1295.307,
+					1299.329,
+					1305.953,
+					1327.801,
+					1337.469,
+					1338.582,
+					1343.163,
+					1402.765,
+					1415.676,
+					1419.349,
+					1454.328,
+					1497.978,
+					1558.017,
+					1953.349,
+					2213.823,
+					2235.027,
+					2342.672,
+					3222.007,
+					3242.364,
+					3642.403,
+					3814.294,
+					3859.809,
+					3911.256,
+					3935.028,
+					4002.661,
+					4002.758,
+					4002.764,
+					4002.803,
+					4002.86,
+					4002.977,
+					4003.214,
+					4003.245,
+					4003.385,
+					4003.402,
+					4004.362,
+					4004.363,
+					4004.865,
+					4005.828
+				],
+				"search_decisions": 134,
+				"stops": {
+					"completed": 11,
+					"settled": 109,
+					"time_budget": 14
+				},
+				"total_usec": 178327655
+			}
+		],
+		"side_wins": [
+			0,
+			1
+		]
+	},
+	"timing": [
+		{
+			"branching_decisions": 53,
+			"decisions": 55,
+			"fallbacks": 0,
+			"max_completed_depth": 5,
+			"max_ms": 1863.359,
+			"mean_completed_depth": 2.26415094339623,
+			"mean_ms": 333.078163636364,
+			"median_ms": 219.937,
+			"p95_ms": 1085.405,
+			"search_decisions": 53,
+			"stops": {
+				"settled": 53
+			}
+		},
+		{
+			"branching_decisions": 130,
+			"decisions": 135,
+			"fallbacks": 0,
+			"max_completed_depth": 3,
+			"max_ms": 4005.828,
+			"mean_completed_depth": 2.04477611940299,
+			"mean_ms": 1320.94559259259,
+			"median_ms": 1026.63,
+			"p95_ms": 4003.245,
+			"search_decisions": 134,
+			"stops": {
+				"completed": 11,
+				"settled": 109,
+				"time_budget": 14
+			}
+		}
+	],
+	"unusable": 0,
+	"version": 1,
+	"written_unix": 1789958453.41
+}

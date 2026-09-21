@@ -11,9 +11,14 @@ var cards: Array[String] = []      # expanded, one entry per copy, like DeckList
 var duelist_ids: Array[String] = []
 var stage: int = 0
 var run_seed: int = 0
+## The bundle ids on offer while `status` is "reward".
 var pending_offer: Array[String] = []
-var status: String = "stage"       # stage | reward | won | lost
-var picks: Array[Dictionary] = []  # {stage, kind: pick | skip | cut, id}
+## The Aspect card ids on offer while `status` is "aspect".
+var pending_aspects: Array[String] = []
+var status: String = "stage"       # stage | aspect | reward | won | lost
+## {stage, kind, id} for every kind, plus "cards" on a bundle pick.
+## kind: bundle | aspect | aspect_skipped | skip | cut
+var picks: Array[Dictionary] = []
 
 
 static func begin(starter_id_value: String, run_seed_value: int) -> AdventureRun:
@@ -41,6 +46,15 @@ func deck() -> DeckList:
 ## How many Aspects the run's Duelist stands at.
 func aspects() -> int:
 	return duelist_ids.size()
+
+
+## Bundle ids already taken this run. A bundle is offered once.
+func taken_bundles() -> Array[String]:
+	var out: Array[String] = []
+	for entry in picks:
+		if str(entry.get("kind", "")) == "bundle":
+			out.append(str(entry.get("id", "")))
+	return out
 
 
 ## Every personality card that could be the run's next Aspect: the same character, one tier up,
@@ -107,9 +121,14 @@ static func _mix(a: int, b: int) -> int:
 
 
 ## Bumped to 2 when each Aspect became its own card (2026-09-21). Version 1 stored `aspects: N`
-## and read the Duelist off the starter deck; `from_dict` migrates one.
-const SAVE_VERSION: int = 2
+## and read the Duelist off the starter deck; `from_dict` migrates one. Bumped to 3 when the
+## reward became a theme bundle: a version 2 `pending_offer` holds card ids, not bundle ids.
+const SAVE_VERSION: int = 3
 const MIGRATION_MAP: String = "res://data/migrations/personality_split.json"
+
+## Set by `from_dict` when an old save's offer was dropped and has to be drawn again. Not saved:
+## AdventureSave rebuilds the offer on load and clears it.
+var needs_offer_rebuild: bool = false
 
 
 func to_dict() -> Dictionary:
@@ -121,6 +140,7 @@ func to_dict() -> Dictionary:
 		"stage": stage,
 		"run_seed": run_seed,
 		"pending_offer": pending_offer.duplicate(),
+		"pending_aspects": pending_aspects.duplicate(),
 		"status": status,
 		"picks": picks.duplicate(true),
 	}
@@ -160,13 +180,31 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 	run.run_seed = int(d.get("run_seed", 0))
 	for id in d.get("pending_offer", []):
 		run.pending_offer.append(str(id))
+	for id in d.get("pending_aspects", []):
+		run.pending_aspects.append(str(id))
 	run.status = str(d.get("status", "stage"))
 	for entry in d.get("picks", []):
 		if entry is Dictionary:
 			var row: Dictionary = entry
-			run.picks.append({
+			var pick: Dictionary = {
 				"stage": int(row.get("stage", 0)),
 				"kind": str(row.get("kind", "")),
 				"id": str(row.get("id", "")),
-			})
+			}
+			var pick_cards: Array[String] = []
+			for id in row.get("cards", []):
+				pick_cards.append(str(id))
+			if not pick_cards.is_empty():
+				pick["cards"] = pick_cards
+			run.picks.append(pick)
+	# A version 2 offer named single cards. The stage the run sits on has not moved, so the same
+	# offer seed draws the bundle offer that stage would have made.
+	if int(d.get("version", 1)) < SAVE_VERSION and not run.pending_offer.is_empty():
+		var stale: bool = false
+		for id in run.pending_offer:
+			if AdventureBundles.by_id(id).is_empty():
+				stale = true
+		if stale:
+			run.pending_offer.clear()
+			run.needs_offer_rebuild = true
 	return run

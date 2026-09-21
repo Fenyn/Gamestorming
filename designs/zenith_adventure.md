@@ -189,10 +189,11 @@ without it. The GBA game's Mastery-as-drop was a novelty and does not transfer.
 
 After every won duel, three cards, pick one.
 
-**Built 2026-09-20, first slice** (`adventure/adventure_rewards.gd`). The pool is:
+**Superseded 2026-09-21 by 12.1, which is what is built.** The first slice offered single cards.
+Its pool was:
 
 - any card of the deck's school,
-- the Freestyle basic core in `data/adventure/freestyle_core.json` (17 cards, a plain list to edit),
+- a 17-card Freestyle basic core list,
 - signature cards that name the run's own duelist, and no other character's.
 
 Strikes, Arts, Combat, Non-Combat and Drills only. A card's `only` gate has to be met by the deck.
@@ -828,7 +829,7 @@ bundle work below is settled.
   Grounds. Masteries and Relics stay out. The validator's rules still bind: Allies at one copy,
   the Ally Aspect rule, alignment gates.
 - **Freestyle is a school like any other, only shared.** Any legal Freestyle card can be bundled.
-  The 17-card core list in `data/adventure/freestyle_core.json` goes away with the bundle build.
+  The old 17-card Freestyle core list is gone.
 - **An Ally always arrives with two of its own named cards.** The bundle is the personality plus
   two cards that name it. An Ally's named cards are offered only in that bundle or once the Ally
   is in the run deck. An Ally with fewer than two named cards cannot be bundled yet.
@@ -837,6 +838,27 @@ bundle work below is settled.
   out of the offer.
 - Open: whether lockouts and limit-1 cards can sit in bundles, whether bundle size grows with the
   stage, whether Grounds get their own reward slot.
+
+**Built 2026-09-21** (`adventure/adventure_bundles.gd`, `adventure/adventure_rewards.gd`).
+
+- 147 bundles in `data/adventure/bundles.json`, transcribed from `zenith/docs/archetypes.md`
+  section 5: 12 Pyre, 15 Steel, 13 Tide, 15 Storm, 15 Root, 13 Shade, 29 Freestyle, 7 Grounds,
+  12 Ally, 16 signature. Each carries `group`, `tier`, its cards with counts, and a `character`
+  (Ally core and signature) or `requires_character` (Ally follow-up).
+- Tier gates by stage, as a fraction of the ladder length: `early` from stage 1, `mid` from a
+  quarter of the way up (stage 3 of 8), `late` from halfway (stage 5 of 8).
+- Every offer holds one bundle of the run's own school group whenever one is eligible; for the
+  Freestyle Style that is a Freestyle bundle. No offer holds more than two bundles of one group.
+  A bundle already taken is never offered again.
+- The hard gate is last and is the working default above: all of a bundle's cards are added
+  together to a copy of the run deck and passed through `DeckValidator`, and one problem drops
+  the whole bundle. Alignment-gated cards (`alignment_only`) are filtered in the reward layer,
+  because `DeckValidator` reads that field on personalities only.
+- **Aspects are a choice.** A stage with `"grant": "aspect"` now sets the run's status to
+  `"aspect"` and lists every legal next-tier card of the Duelist's character. Taking one moves
+  the run to `"reward"`, where the bundle offer is drawn from the deck as it stands afterwards.
+  One option is still shown and confirmed. A Duelist at the top of its ladder, or at 5, records
+  a skipped grant and goes straight to the bundles.
 
 ### 12.2 Pool expansion
 

@@ -221,7 +221,26 @@ func record_stage(won: bool) -> void:
 func finish_stage(won: bool) -> void:
 	if run.status == "stage":
 		record_stage(won)
-	get_tree().change_scene_to_file(ADVENTURE_REWARD_SCENE if run.status == "reward" else ADVENTURE_STAGE_SCENE)
+	get_tree().change_scene_to_file(_reward_or_stage_scene())
+
+
+## The reward scene handles both halves of a win: the Aspect choice, then the bundle offer.
+func _reward_or_stage_scene() -> String:
+	if run.status == "aspect" or run.status == "reward":
+		return ADVENTURE_REWARD_SCENE
+	return ADVENTURE_STAGE_SCENE
+
+
+## Takes the chosen Aspect card and moves the run on to its bundle offer, still on the reward
+## screen. A card the run cannot legally take leaves the run where it is.
+func finish_aspect(card_id: String) -> void:
+	if run.status != "aspect":
+		return
+	if not AdventureRewards.apply_aspect(run, library, card_id):
+		return
+	AdventureRewards.finish_aspect(run, ladder, library)
+	AdventureSave.store(run)
+	get_tree().change_scene_to_file(ADVENTURE_REWARD_SCENE)
 
 
 ## Leaves the reward screen for the next stage, or the run's end.
@@ -239,4 +258,4 @@ func go_to_adventure() -> void:
 	if run == null and not resume_run():
 		get_tree().change_scene_to_file(ADVENTURE_START_SCENE)
 		return
-	get_tree().change_scene_to_file(ADVENTURE_REWARD_SCENE if run.status == "reward" else ADVENTURE_STAGE_SCENE)
+	get_tree().change_scene_to_file(_reward_or_stage_scene())

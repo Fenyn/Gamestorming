@@ -165,9 +165,12 @@ def slots(deck_id, deck, lib, drop_lockouts=True, max_copies=0):
         if drop_lockouts and not is_core and is_lockout(card):
             continue
         copies = entry["count"] if max_copies <= 0 else min(entry["count"], max_copies)
+        # The printed type is not the job. A card that can be used as a defense is a defense card,
+        # whatever band it is printed in: a Strike-typed block is an answer, not offense.
+        role = "answer" if card.get("defense") else ROLE.get(kind, "support")
         for copy_index in range(copies):
             out.append({
-                "id": entry["id"], "role": ROLE.get(kind, "support"), "core": is_core,
+                "id": entry["id"], "role": role, "core": is_core,
                 "copy": copy_index, "precon_count": entry["count"], "power": power(card),
             })
     out.sort(key=lambda s: (not s["core"], s["copy"], -s["precon_count"], s["power"], s["id"]))

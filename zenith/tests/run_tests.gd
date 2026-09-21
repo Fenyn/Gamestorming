@@ -247,16 +247,20 @@ func _init() -> void:
 		test_a_profile_can_leave_prompt_kinds_to_the_scorer,
 		test_an_ally_power_refreshes_each_combat,
 		test_the_taller_ladder_wins_by_standing_above_it,
+		test_edric_gives_ground_goes_under_the_deck_only_for_edric,
 		test_first_to_two_a_deck_out_scores_a_point_and_reshuffles,
 		test_first_to_two_the_hit_that_scores_loses_its_leftover_damage,
 		test_first_to_two_an_ascension_scores_once_and_resets_nothing,
 		test_first_to_two_a_seal_set_still_wins_outright,
 		test_an_adventure_run_round_trips_through_json_and_the_save,
 		test_adventure_ladders_field_legal_opponents,
-		test_an_adventure_offer_is_three_legal_cards_the_deck_can_run,
-		test_the_stage_two_grant_raises_the_aspect_count,
+		test_every_reward_bundle_is_well_formed,
+		test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run,
+		test_the_stage_two_grant_offers_an_aspect_choice,
 		test_adventure_offers_follow_the_run_seed,
-		test_an_adventure_pick_is_refused_when_it_was_not_offered,
+		test_an_adventure_bundle_is_refused_when_it_was_not_offered,
+		test_an_ally_bundle_brings_its_named_cards_and_opens_the_follow_ups,
+		test_a_version_two_adventure_save_migrates_its_offer_to_bundles,
 		test_an_adventure_cut_is_refused_at_the_card_floor,
 		test_adventure_starters_and_opponents_are_legal,
 		test_a_card_can_wait_for_a_five_wound_hit,
@@ -4078,6 +4082,25 @@ func test_first_to_two_a_seal_set_still_wins_outright() -> void:
 	eq(e.state.win_reason, "seal", "as a Seal win")
 
 
+## "If used by X, place this card at the bottom of your Life Deck after use": the source card's
+## rider on Edric's own stop. Anyone else discards it.
+func test_edric_gives_ground_goes_under_the_deck_only_for_edric() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var e: DuelEngine = shipped_engine("pyre_ascent", "steel_beatdown", 11)
+	for seat in range(2):
+		var p: PlayerState = e.player(seat)
+		var c: CardInstance = e._instance(shipped.get_def("quick_retreat"), seat, &"hand")
+		p.hand.append(c)
+		e._finish_card(c, false)
+		if p.duelist.def.character == "Sir Edric Rooke":
+			check(p.life_deck.back() == c, "Edric's copy goes to the bottom of his Life Deck")
+		else:
+			check(p.discard.has(c), "anyone else's copy is discarded")
+	var text: String = CardText.rules_text(shipped.get_def("quick_retreat"))
+	check(text.contains("Raise your or your opponent's Fervor 1") or text.contains("your opponent's Fervor"), "the Fervor line offers either side: %s" % text)
+	check(text.contains("bottom of your Life Deck"), "and the text carries the rider: %s" % text)
+
+
 # --- Simulation support ----------------------------------------------------
 
 func shipped_engine(deck_a: String, deck_b: String, seed_value: int) -> DuelEngine:
@@ -4959,6 +4982,8 @@ func test_a_one_shot_stop_can_wait_for_the_kind_it_names() -> void:
 
 const ADVENTURE_SAVE_PATH: String = "user://adventure/test_run.json"
 const ADVENTURE_LADDER_SIZE: int = 8
+## Bundle `group` values that name a school. The other four are freestyle, grounds, ally, signature.
+const ADVENTURE_SCHOOL_GROUPS: Array[String] = ["pyre", "steel", "tide", "storm", "root", "shade"]
 const ADVENTURE_TIER_SUFFIXES: Array[String] = ["_start", "_boss", "_t1", "_t2", "_t3", "_t4", "_t5"]
 
 
@@ -5041,8 +5066,9 @@ func test_adventure_ladders_field_legal_opponents() -> void:
 		eq(granted, 1, "%s grants exactly one Aspect" % starter_id)
 
 
-## The reward screen never shows a card the validator would refuse, and never someone else's.
-func test_an_adventure_offer_is_three_legal_cards_the_deck_can_run() -> void:
+## The reward screen never shows a bundle the validator would refuse, and never someone else's.
+## An all-wins run over the whole ladder, taking the first bundle offered every time.
+func test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run() -> void:
 	var shipped: CardLibrary = shipped_library()
 	for starter_id in AdventureLadder.playable_starters():
 		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
@@ -5052,59 +5078,112 @@ func test_an_adventure_offer_is_three_legal_cards_the_deck_can_run() -> void:
 			continue
 		var duelist: CardDef = shipped.defs.get(run.deck().duelist_face_id())
 		var style: String = run.deck().style
+		var taken: Dictionary = {}
 		for n in range(ladder.size()):
+			var eligible: Array[String] = AdventureRewards.eligible(run, shipped, n)
 			AdventureRewards.finish_stage(run, ladder, shipped, true)
+			if run.status == "aspect":
+				check(AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0]),
+					"%s stage %d takes the offered Aspect" % [starter_id, n + 1])
+				AdventureRewards.finish_aspect(run, ladder, shipped)
+				eligible = AdventureRewards.eligible(run, shipped, n)
 			eq(run.status, "reward", "%s stage %d ends on the reward screen" % [starter_id, n + 1])
 			var offer: Array[String] = run.pending_offer
-			eq(offer.size(), 3, "%s stage %d offers three cards" % [starter_id, n + 1])
+			if offer.size() != 3:
+				print("    note: %s stage %d offered %d bundles of %d eligible"
+					% [starter_id, n + 1, offer.size(), eligible.size()])
+			check(offer.size() == mini(3, eligible.size()),
+				"%s stage %d offers as many bundles as it can" % [starter_id, n + 1])
 			var seen: Dictionary = {}
+			var groups: Dictionary = {}
+			var own_school_offered: bool = false
 			for id in offer:
-				check(not seen.has(id), "%s stage %d offers distinct ids" % [starter_id, n + 1])
+				check(not seen.has(id), "%s stage %d offers distinct bundles" % [starter_id, n + 1])
 				seen[id] = true
-				var def: CardDef = shipped.defs.get(id)
-				check(def != null, "%s stage %d offers a known card '%s'" % [starter_id, n + 1, id])
-				if def == null:
+				check(not taken.has(id), "%s stage %d does not re-offer '%s'" % [starter_id, n + 1, id])
+				var bundle: Dictionary = AdventureBundles.by_id(id)
+				check(not bundle.is_empty(), "%s stage %d offers a known bundle '%s'" % [starter_id, n + 1, id])
+				if bundle.is_empty():
 					continue
-				check(def.type != CardDef.Type.PERSONALITY and def.type != CardDef.Type.SEAL
-					and def.type != CardDef.Type.GROUNDS and def.type != CardDef.Type.MASTERY
-					and def.type != CardDef.Type.RELIC,
-					"%s stage %d: '%s' is a Life Deck card type" % [starter_id, n + 1, id])
-				check(def.school == "" or def.school == style,
-					"%s stage %d: '%s' is %s, deck Style is %s" % [starter_id, n + 1, id, def.school, style])
-				if style == "freestyle":
-					eq(def.school, "", "%s stage %d: '%s' carries no school" % [starter_id, n + 1, id])
-				check(def.character == "" or def.character == duelist.character,
-					"%s stage %d: '%s' is not another duelist's signature" % [starter_id, n + 1, id])
+				var group: String = str(bundle.get("group", ""))
+				groups[group] = int(groups.get(group, 0)) + 1
+				if group == style:
+					own_school_offered = true
+				var school_group: bool = ADVENTURE_SCHOOL_GROUPS.has(group)
+				check(not school_group or group == style,
+					"%s stage %d: '%s' is a %s bundle, deck Style is %s" % [starter_id, n + 1, id, group, style])
+				if group == AdventureBundles.GROUP_SIGNATURE:
+					eq(str(bundle.get("character", "")), duelist.character,
+						"%s stage %d: '%s' is this Duelist's own signature bundle" % [starter_id, n + 1, id])
+				if str(bundle.get("tier", "")) == "late":
+					check(n >= 4, "%s stage %d: late bundle '%s' waits for stage 5" % [starter_id, n + 1, id])
 				var trial: DeckList = run.deck()
-				trial.cards.append(id)
+				trial.cards.append_array(AdventureBundles.cards_of(bundle))
 				var problems: Array[String] = DeckValidator.validate(trial, shipped)
-				eq(problems.size(), 0, "%s stage %d: adding '%s' stays legal: %s"
+				eq(problems.size(), 0, "%s stage %d: adding '%s' whole stays legal: %s"
 					% [starter_id, n + 1, id, ", ".join(problems)])
-			check(AdventureRewards.apply_pick(run, shipped, offer[0] if offer.size() > 0 else ""),
-				"%s stage %d picks the first card" % [starter_id, n + 1])
+			for group in groups.keys():
+				check(int(groups[group]) <= AdventureRewards.MAX_PER_GROUP,
+					"%s stage %d: no more than two %s bundles" % [starter_id, n + 1, group])
+			var own_eligible: bool = false
+			for id in eligible:
+				if str(AdventureBundles.by_id(id).get("group", "")) == style:
+					own_eligible = true
+			if own_eligible:
+				check(own_school_offered, "%s stage %d offers one of its own school" % [starter_id, n + 1])
+			var picked: String = offer[0] if offer.size() > 0 else ""
+			if picked != "":
+				check(AdventureRewards.apply_bundle(run, shipped, picked),
+					"%s stage %d takes the first bundle" % [starter_id, n + 1])
+				taken[picked] = true
+				eq(DeckValidator.validate(run.deck(), shipped).size(), 0,
+					"%s stage %d: the deck is legal after the bundle" % [starter_id, n + 1])
+			else:
+				AdventureRewards.apply_skip(run)
 			AdventureRewards.finish_reward(run, ladder)
 		eq(run.status, "won", "%s reaches the end of its ladder" % starter_id)
 
 
-func test_the_stage_two_grant_raises_the_aspect_count() -> void:
+## The grant stage stops for an Aspect choice instead of handing one over silently.
+func test_the_stage_two_grant_offers_an_aspect_choice() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
 	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
 	eq(run.aspects(), 2, "a starter opens at two Aspects")
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
-	eq(run.aspects(), 2, "stage 1 grants nothing")
+	eq(run.status, "reward", "stage 1 grants nothing and goes straight to the bundles")
+	eq(run.aspects(), 2, "so the Aspect count is unchanged")
 	AdventureRewards.apply_skip(run)
 	AdventureRewards.finish_reward(run, ladder)
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
-	eq(run.aspects(), 3, "stage 2 grants the third Aspect")
-	eq(run.duelist_ids[2], "personality_bram_ashmark_3_unstoppable",
-		"and the Aspect it grants is the next card of the starter's own line")
-	var problems: Array[String] = DeckValidator.validate(run.deck(), shipped)
-	eq(problems.size(), 0, "and the deck is still legal: %s" % ", ".join(problems))
+	eq(run.status, "aspect", "stage 2 stops for the Aspect choice")
+	eq(run.pending_aspects, ["personality_bram_ashmark_3_gorging", "personality_bram_ashmark_3_unstoppable"],
+		"and lists both of Bram Ashmark's third Aspects")
+	eq(run.pending_offer.size(), 0, "the bundle offer waits until the Aspect is taken")
+	eq(run.aspects(), 2, "and nothing has been granted yet")
+	check(not AdventureRewards.apply_aspect(run, shipped, "personality_siphon_3_unbound"),
+		"an Aspect that was not offered is refused")
+	check(AdventureRewards.apply_aspect(run, shipped, "personality_bram_ashmark_3_unstoppable"),
+		"the Hollow line's third Aspect is taken")
+	eq(run.aspects(), 3, "the stack grew by one card")
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "and the Duelist stack still validates")
+	AdventureRewards.finish_aspect(run, ladder, shipped)
+	eq(run.status, "reward", "then the run moves on to its bundles")
+	check(run.pending_offer.size() > 0, "which were built after the Aspect went in")
+	eq(str(run.picks[run.picks.size() - 1].get("kind", "")), "aspect", "the Aspect is recorded as a pick")
 	# A loss ends the run wherever it happens.
 	var lost: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
 	AdventureRewards.finish_stage(lost, ladder, shipped, false)
 	eq(lost.status, "lost", "a loss ends the run")
+	# A Duelist with nowhere left to climb skips the grant and says so.
+	var topped: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	topped.duelist_ids = ["personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_gnawing",
+		"personality_bram_ashmark_3_gorging", "personality_bram_ashmark_4_consuming",
+		"personality_bram_ashmark_5_insatiable"]
+	topped.stage = 1
+	AdventureRewards.finish_stage(topped, ladder, shipped, true)
+	eq(topped.status, "reward", "a full stack goes straight to the bundles")
+	eq(str(topped.picks[0].get("kind", "")), "aspect_skipped", "and the skipped grant is recorded")
 
 
 func test_adventure_offers_follow_the_run_seed() -> void:
@@ -5112,11 +5191,11 @@ func test_adventure_offers_follow_the_run_seed() -> void:
 	var first: Array[String] = adventure_offer_sequence(shipped, "pyre_beatdown_start", 555)
 	var again: Array[String] = adventure_offer_sequence(shipped, "pyre_beatdown_start", 555)
 	var other: Array[String] = adventure_offer_sequence(shipped, "pyre_beatdown_start", 556)
-	eq(first, again, "the same run seed offers the same cards")
+	eq(first, again, "the same run seed offers the same bundles")
 	check(first != other, "a different run seed offers a different sequence somewhere")
 
 
-## Every offered id of an all-wins, always-skip run, flattened.
+## Every offered bundle id of an all-wins, always-skip run, flattened.
 func adventure_offer_sequence(shipped: CardLibrary, starter_id: String, run_seed: int) -> Array[String]:
 	var out: Array[String] = []
 	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
@@ -5125,27 +5204,48 @@ func adventure_offer_sequence(shipped: CardLibrary, starter_id: String, run_seed
 		return out
 	for n in range(ladder.size()):
 		AdventureRewards.finish_stage(run, ladder, shipped, true)
+		if run.status == "aspect":
+			AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0])
+			AdventureRewards.finish_aspect(run, ladder, shipped)
 		out.append_array(run.pending_offer)
 		AdventureRewards.apply_skip(run)
 		AdventureRewards.finish_reward(run, ladder)
 	return out
 
 
-## A stale offer held by a client cannot smuggle a card in.
-func test_an_adventure_pick_is_refused_when_it_was_not_offered() -> void:
+## A stale offer held by a client cannot smuggle a bundle in, and a bundle is all or nothing.
+func test_an_adventure_bundle_is_refused_when_it_was_not_offered() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
 	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 31)
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
 	var before: int = run.cards.size()
-	check(not AdventureRewards.apply_pick(run, shipped, "not_a_card_id"), "an unoffered id is refused")
+	check(not AdventureRewards.apply_bundle(run, shipped, "not_a_bundle_id"), "an unoffered id is refused")
 	eq(run.cards.size(), before, "and the deck is untouched")
 	eq(run.pending_offer.size(), 3, "and the offer is still standing")
-	check(AdventureRewards.apply_pick(run, shipped, run.pending_offer[0]), "an offered id goes in")
-	eq(run.cards.size(), before + 1, "the deck grew by one card")
+	# A deck that changed since the offer was drawn refuses the whole bundle, not part of it.
+	var blocked: String = run.pending_offer[0]
+	var blocked_cards: Array[String] = AdventureBundles.cards_of_id(blocked)
+	var stuffed: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 31)
+	AdventureRewards.finish_stage(stuffed, ladder, shipped, true)
+	for i in range(DeckValidator.SIGNATURE_LIMIT):
+		stuffed.cards.append(blocked_cards[0])
+	var stuffed_before: int = stuffed.cards.size()
+	check(not AdventureRewards.apply_bundle(stuffed, shipped, blocked),
+		"a bundle whose first card no longer fits is refused whole")
+	eq(stuffed.cards.size(), stuffed_before, "and not one of its cards went in")
+	eq(stuffed.pending_offer.size(), 3, "the offer is still there to choose from")
+	# The clean run takes it.
+	var expected: int = before + blocked_cards.size()
+	check(AdventureRewards.apply_bundle(run, shipped, blocked), "an offered bundle goes in")
+	eq(run.cards.size(), expected, "the deck grew by every card of the bundle")
 	eq(run.pending_offer.size(), 0, "and the offer is spent")
-	eq(str(run.picks[run.picks.size() - 1].get("kind", "")), "pick", "the pick is recorded")
-	eq(run.stage, 0, "picking does not advance the stage")
+	var last: Dictionary = run.picks[run.picks.size() - 1]
+	eq(str(last.get("kind", "")), "bundle", "the pick is recorded as a bundle")
+	eq(str(last.get("id", "")), blocked, "with the bundle id")
+	eq((last.get("cards", []) as Array).size(), blocked_cards.size(), "and the cards it added")
+	eq(run.taken_bundles(), [blocked], "taken_bundles reads it back")
+	eq(run.stage, 0, "taking a bundle does not advance the stage")
 
 
 func test_an_adventure_cut_is_refused_at_the_card_floor() -> void:
@@ -6762,3 +6862,216 @@ func test_a_version_one_adventure_save_migrates_to_duelist_cards() -> void:
 		check(not (loaded.to_dict() as Dictionary).has("aspects"), "with no aspect count left in it")
 	AdventureSave.clear()
 	AdventureSave.path_override = ""
+
+
+## The bundle data file, read on its own terms. Every rule here is one a reward screen would
+## otherwise have to guard against at runtime.
+func test_every_reward_bundle_is_well_formed() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var bundles: Array[Dictionary] = AdventureBundles.all()
+	check(bundles.size() > 100, "the bundle file loaded, saw %d" % bundles.size())
+	var ids: Dictionary = {}
+	for bundle in bundles:
+		var id: String = str(bundle.get("id", ""))
+		check(id != "", "every bundle names an id")
+		check(not ids.has(id), "bundle id '%s' is unique" % id)
+		ids[id] = true
+		var group: String = str(bundle.get("group", ""))
+		check(ADVENTURE_SCHOOL_GROUPS.has(group) or group == AdventureBundles.GROUP_FREESTYLE
+			or group == AdventureBundles.GROUP_GROUNDS or group == AdventureBundles.GROUP_ALLY
+			or group == AdventureBundles.GROUP_SIGNATURE, "'%s' has a known group '%s'" % [id, group])
+		check(AdventureBundles.TIERS.has(str(bundle.get("tier", ""))),
+			"'%s' has a known tier '%s'" % [id, str(bundle.get("tier", ""))])
+		var entries: Array = bundle.get("cards", [])
+		check(entries.size() >= 1 and entries.size() <= 3,
+			"'%s' lists one to three card entries, saw %d" % [id, entries.size()])
+		var cards: Array[String] = AdventureBundles.cards_of(bundle)
+		check(cards.size() >= 2 and cards.size() <= 4,
+			"'%s' holds two to four cards, saw %d" % [id, cards.size()])
+		var counts: Dictionary = {}
+		var schools: Dictionary = {}
+		var personalities: Array[String] = []
+		for card_id in cards:
+			var def: CardDef = shipped.defs.get(card_id)
+			check(def != null, "'%s' names a card that exists: '%s'" % [id, card_id])
+			if def == null:
+				continue
+			counts[card_id] = int(counts.get(card_id, 0)) + 1
+			check(def.type != CardDef.Type.SEAL and def.type != CardDef.Type.MASTERY
+				and def.type != CardDef.Type.RELIC,
+				"'%s' holds no Seal, Mastery or Relic: '%s'" % [id, card_id])
+			check(not bool(def.raw.get("reserve_only", false)),
+				"'%s' holds no Reserve-only card: '%s'" % [id, card_id])
+			if def.school != "":
+				schools[def.school] = true
+			if def.type == CardDef.Type.PERSONALITY:
+				personalities.append(card_id)
+		for card_id in counts.keys():
+			var def: CardDef = shipped.defs[card_id]
+			var limit: int = 1 if def.type == CardDef.Type.PERSONALITY else def.limit_per_deck
+			check(int(counts[card_id]) <= limit,
+				"'%s' holds '%s' x%d, over its own limit of %d" % [id, card_id, counts[card_id], limit])
+		check(schools.size() <= 1, "'%s' mixes no schools: %s" % [id, ", ".join(schools.keys())])
+		if ADVENTURE_SCHOOL_GROUPS.has(group):
+			eq(schools.keys(), [group], "'%s' holds %s cards only" % [id, group])
+		if group == AdventureBundles.GROUP_FREESTYLE or group == AdventureBundles.GROUP_GROUNDS:
+			eq(schools.size(), 0, "'%s' holds no school card" % id)
+		if group == AdventureBundles.GROUP_ALLY:
+			_check_ally_bundle(shipped, bundle, id, personalities, cards)
+		else:
+			eq(personalities.size(), 0, "'%s' holds no personality card" % id)
+		if group == AdventureBundles.GROUP_SIGNATURE:
+			_check_signature_bundle(shipped, bundle, id, cards, schools)
+
+
+## An Ally core bundle is one personality plus exactly two cards of that character; a follow-up
+## holds named cards alone and says which Ally it needs.
+func _check_ally_bundle(shipped: CardLibrary, bundle: Dictionary, id: String,
+		personalities: Array[String], cards: Array[String]) -> void:
+	var requires: String = str(bundle.get("requires_character", ""))
+	if requires != "":
+		eq(personalities.size(), 0, "follow-up '%s' holds no personality" % id)
+		eq(str(bundle.get("character", "")), "", "follow-up '%s' names no Ally of its own" % id)
+		for card_id in cards:
+			var def: CardDef = shipped.defs.get(card_id)
+			if def == null:
+				continue
+			check(def.character == requires or _names_character(def, requires),
+				"follow-up '%s': '%s' names %s" % [id, card_id, requires])
+		return
+	eq(personalities.size(), 1, "Ally bundle '%s' holds exactly one personality" % id)
+	if personalities.is_empty():
+		return
+	var ally: CardDef = shipped.defs[personalities[0]]
+	eq(str(bundle.get("character", "")), ally.character,
+		"Ally bundle '%s' names the character it carries" % id)
+	check(DeckValidator.ally_aspect_allowed(ally.aspect),
+		"Ally bundle '%s' carries an Aspect %d card, which may sit in a Life Deck" % [id, ally.aspect])
+	var named: int = 0
+	for card_id in cards:
+		if card_id == personalities[0]:
+			continue
+		var def: CardDef = shipped.defs.get(card_id)
+		if def == null:
+			continue
+		check(def.character == ally.character or _names_character(def, ally.character),
+			"Ally bundle '%s': '%s' is one of %s's cards" % [id, card_id, ally.character])
+		named += 1
+	eq(named, 2, "Ally bundle '%s' brings two of its Ally's named cards" % id)
+
+
+## A signature bundle belongs to one character. Beside that character's own cards it may hold a
+## schoolless card or one of the deck's own school, and nothing else.
+func _check_signature_bundle(shipped: CardLibrary, bundle: Dictionary, id: String,
+		cards: Array[String], schools: Dictionary) -> void:
+	var character: String = str(bundle.get("character", ""))
+	check(character != "", "signature bundle '%s' names a character" % id)
+	var own: int = 0
+	for card_id in cards:
+		var def: CardDef = shipped.defs.get(card_id)
+		if def == null:
+			continue
+		if def.character != "":
+			eq(def.character, character, "signature bundle '%s': '%s' is %s's" % [id, card_id, character])
+			own += 1
+		else:
+			check(def.school != "" or def.only.has("tag") or def.only.has("duelist_character")
+				or def.school == "",
+				"signature bundle '%s': '%s' is schoolless or of one school" % [id, card_id])
+	check(own >= 1 or schools.size() <= 1,
+		"signature bundle '%s' holds its character's cards or one school's" % id)
+
+
+## Whether a card's `only` gate names a character, which is the other way a card is "named" for
+## an Ally.
+func _names_character(def: CardDef, character: String) -> bool:
+	for key in ["character", "duelist_character"]:
+		var value: Variant = def.only.get(key, null)
+		if value is Array and (value as Array).has(character):
+			return true
+		if value != null and str(value) == character:
+			return true
+	return false
+
+
+## An Ally arrives with two of its own cards, and its other cards only open up afterwards.
+func test_an_ally_bundle_brings_its_named_cards_and_opens_the_follow_ups() -> void:
+	var shipped: CardLibrary = shipped_library()
+	# Siphon's run is Pact and Siphon is not Gideon Mourne, so Mourne is a legal Ally in it.
+	var run: AdventureRun = AdventureRun.begin("storm_volley_start", 606)
+	run.stage = 4
+	var core_id: String = "mourne_ally_core"
+	var follow: String = "mourne_ally_answers"
+	var core: Dictionary = AdventureBundles.by_id(core_id)
+	var before: Array[String] = AdventureRewards.eligible(run, shipped, run.stage)
+	check(before.has(core_id), "the Ally core bundle is eligible")
+	check(not before.has(follow), "and its follow-up is not, with no Mourne in the deck")
+	run.pending_offer = [core_id]
+	check(AdventureRewards.apply_bundle(run, shipped, core_id), "the Ally bundle is taken")
+	for card_id in AdventureBundles.cards_of(core):
+		check(run.cards.has(card_id), "'%s' joined the run deck" % card_id)
+	check(run.cards.has("personality_gideon_mourne_1_mercenary"),
+		"the personality goes in like any Life Deck card")
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "and the deck is legal with the Ally in it")
+	var after: Array[String] = AdventureRewards.eligible(run, shipped, run.stage)
+	check(after.has(follow), "the follow-up bundle is eligible once the Ally is in the deck")
+	check(not after.has(core_id), "and a bundle already taken is not offered again")
+
+
+## A save written before the bundle reward held single card ids in its offer. Loading one draws
+## the bundle offer that stage would have made, and leaves the rest of the run alone.
+func test_a_version_two_adventure_save_migrates_its_offer_to_bundles() -> void:
+	var shipped: CardLibrary = shipped_library()
+	AdventureSave.path_override = ADVENTURE_SAVE_PATH
+	# A run deck the version 2 build would really have written: the starter's own cards.
+	var source: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 99)
+	var old: Dictionary = {
+		"version": 2,
+		"starter_id": "pyre_beatdown_start",
+		"cards": source.cards.duplicate(),
+		"duelist": source.duelist_ids.duplicate(),
+		"stage": 3,
+		"run_seed": 99,
+		"pending_offer": ["pyre_kindling", "pyre_updraft", "second_wind"],
+		"status": "reward",
+		"picks": [{"stage": 0, "kind": "pick", "id": "pyre_kindling"}],
+	}
+	_write_adventure_save(old)
+	var loaded: AdventureRun = AdventureSave.load_run()
+	check(loaded != null, "the version 2 save still parses")
+	if loaded != null:
+		eq(loaded.stage, 3, "the run is still standing on the same stage")
+		eq(loaded.status, "reward", "and still on the reward screen")
+		eq(loaded.cards, source.cards, "the Life Deck is untouched")
+		check(loaded.pending_offer.size() > 0, "a fresh offer was drawn")
+		for id in loaded.pending_offer:
+			check(not AdventureBundles.by_id(id).is_empty(), "'%s' is a bundle id now" % id)
+		var expected: AdventureRun = AdventureRun.from_dict(old.duplicate(true))
+		expected.pending_offer.clear()
+		var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
+		eq(loaded.pending_offer, AdventureRewards.offer(expected, shipped, ladder),
+			"drawn on the same seed rule the stage would have used")
+		eq(int(loaded.to_dict().get("version", 0)), AdventureRun.SAVE_VERSION, "rewritten at version 3")
+	# A save in the middle of a stage has no offer to rebuild and loads unchanged.
+	var mid: Dictionary = old.duplicate(true)
+	mid["status"] = "stage"
+	mid["pending_offer"] = []
+	_write_adventure_save(mid)
+	var resumed: AdventureRun = AdventureSave.load_run()
+	check(resumed != null, "a mid-stage version 2 save parses")
+	if resumed != null:
+		eq(resumed.status, "stage", "it is still mid-stage")
+		eq(resumed.pending_offer.size(), 0, "with no offer invented for it")
+	AdventureSave.clear()
+	AdventureSave.path_override = ""
+
+
+func _write_adventure_save(blob: Dictionary) -> void:
+	var dir: String = ADVENTURE_SAVE_PATH.get_base_dir()
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var handle: FileAccess = FileAccess.open(ADVENTURE_SAVE_PATH, FileAccess.WRITE)
+	check(handle != null, "the test save path is writable")
+	if handle != null:
+		handle.store_string(JSON.stringify(blob, "  "))
+		handle.close()

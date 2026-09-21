@@ -265,7 +265,9 @@ const CARD_TYPE_WORDS: Dictionary = {
 	"non_combat_any": ["Non-Combat card, Drill, or Seal", "Non-Combat cards, Drills, or Seals"],
 	"non_combat_or_drill": ["Non-Combat card or Drill", "Non-Combat cards and Drills"],
 	"non_combat": ["Non-Combat card", "Non-Combat cards"], "non_combat_only": ["Non-Combat card", "Non-Combat cards"],
-	"combat": ["Combat card", "Combat cards"], "strike": ["Strike", "Strikes"], "art": ["Art", "Arts"],
+	# A printed band always reads "X card"; the bare "Strike" and "Art" are kept for the attack
+	# itself ("Stops a Strike"). A Strike card need not perform a Strike, and a block is one too.
+	"combat": ["Combat card", "Combat cards"], "strike": ["Strike card", "Strike cards"], "art": ["Art card", "Art cards"],
 	"attack": ["attack card", "attack cards"], "hand_combat": ["Strike, Art, or Combat card", "Strike, Art, or Combat cards"],
 	"strike_or_art": ["Strike or Art card", "Strike or Art cards"],
 	"seal": ["Seal", "Seals"], "grounds": ["Grounds card", "Grounds cards"],
@@ -549,6 +551,8 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("Placing Grounds skips Combat this turn.")
 	if def.bottom_after_use:
 		lines.append("Place at the bottom of your Life Deck after use.")
+	if def.raw.has("bottom_after_use_when"):
+		lines.append(_conditional(def.raw["bottom_after_use_when"], "place this card at the bottom of your Life Deck after use."))
 	if def.remove_after_use:
 		lines.append("Remove from the game after use.")
 	if def.limit_per_deck != 3:
@@ -569,7 +573,7 @@ static func _and_join(names: PackedStringArray) -> String:
 static func _check_name(e: Dictionary) -> String:
 	match str(e.get("check", "school")):
 		"attack":
-			return "a Strike or an Art"
+			return "a Strike card or an Art card"
 		"signature":
 			return "one of your duelist's Signature cards"
 		"named":
@@ -1528,6 +1532,8 @@ static func search_text(e: Dictionary) -> String:
 		qual.append(str(e["tag"]).capitalize())
 	if str(e.get("signature_of", "")) == "duelist":
 		qual.append("Signature")
+	if str(e.get("character", "")) != "":
+		qual.append("%s Signature" % str(e["character"]))
 	if e.has("aspect"):
 		qual.append("aspect %d" % int(e["aspect"]))
 	var n: int = int(e.get("amount", 1))

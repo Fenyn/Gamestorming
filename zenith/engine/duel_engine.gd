@@ -5352,6 +5352,10 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 		return false
 	if str(e.get("signature_of", "")) == "duelist" and c.def.character != p.duelist.def.character:
 		return false
+	# "A <Name> named card": that character's Signature cards, whoever is searching.
+	var named: String = str(e.get("character", ""))
+	if named != "" and c.def.character != named:
+		return false
 	if e.has("has_effect") and not _def_has_effect(c.def, e["has_effect"]):
 		return false
 	if to == "play" and not _can_place(p, c):
@@ -5756,6 +5760,9 @@ func _finish_card(c: CardInstance, empowered: bool) -> void:
 	if _has_floating_school(c.owner, "after_use_bottom", def.school) and def.school != "":
 		_move_to_deck_bottom(c)
 	elif def.bottom_after_use:
+		_move_to_deck_bottom(c)
+	elif def.raw.has("bottom_after_use_when") and _cond(def.raw["bottom_after_use_when"], c.owner, {"attack": state.attack}):
+		# "If used by X, place this card at the bottom of your Life Deck after use."
 		_move_to_deck_bottom(c)
 	elif def.remove_after_use and not empowered and not _kept_by_seal(def):
 		_remove_from_game(c)

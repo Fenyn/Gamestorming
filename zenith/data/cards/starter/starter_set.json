@@ -52,7 +52,7 @@
    "character": "Bram Ashmark",
    "aspect": 2,
    "aspect_title": "Leeching",
-   "surge": 5,
+   "surge": 6,
    "might": [
 	0,
 	25,
@@ -94,7 +94,7 @@
    "character": "Bram Ashmark",
    "aspect": 3,
    "aspect_title": "Unstoppable",
-   "surge": 6,
+   "surge": 8,
    "might": [
 	0,
 	28,
@@ -470,7 +470,7 @@
    "character": "Halden Quarr",
    "aspect": 2,
    "aspect_title": "Tempered",
-   "surge": 2,
+   "surge": 3,
    "might": [
 	0,
 	21,
@@ -1078,7 +1078,7 @@
    "character": "Sir Edric Rooke",
    "aspect": 1,
    "aspect_title": "the Hero",
-   "surge": 2,
+   "surge": 1,
    "might": [
 	0,
 	5,
@@ -1123,7 +1123,7 @@
    "character": "Sir Edric Rooke",
    "aspect": 2,
    "aspect_title": "the Stranger",
-   "surge": 3,
+   "surge": 2,
    "might": [
 	0,
 	11,
@@ -1264,7 +1264,7 @@
    "character": "Emrys Rooke",
    "aspect": 1,
    "aspect_title": "the Eldest",
-   "surge": 2,
+   "surge": 1,
    "might": [
 	0,
 	4,
@@ -1374,7 +1374,7 @@
    "character": "Emrys Rooke",
    "aspect": 4,
    "aspect_title": "Shaped",
-   "surge": 3,
+   "surge": 4,
    "might": [
 	0,
 	17,
@@ -1406,7 +1406,7 @@
    "character": "Emrys Rooke",
    "aspect": 5,
    "aspect_title": "Scaleclad",
-   "surge": 4,
+   "surge": 5,
    "might": [
 	0,
 	32,
@@ -1948,8 +1948,7 @@
 	 }
 	},
 	"no_control_needed": true
-   },
-   "bloodline": "draconic"
+   }
   },
   {
    "id": "salt_seal_1",
@@ -3542,10 +3541,11 @@
   {
    "id": "rites_unmade",
    "title": "Rites Unmade",
-   "type": "combat",
+   "type": "non_combat",
    "school": "",
    "effects": [
 	{
+	 "trigger": "use",
 	 "op": "discard_in_play",
 	 "who": "opponent",
 	 "card_type": "drill",
@@ -4382,7 +4382,8 @@
 	 "op": "fervor",
 	 "amount": 1
 	}
-   ]
+   ],
+   "reserve_only": true
   },
   {
    "id": "last_ward",
@@ -4417,7 +4418,7 @@
    "effects": [
 	{
 	 "op": "search",
-	 "card_type": "hand_combat",
+	 "character": "Emrys Rooke",
 	 "source": "discard",
 	 "to": "hand"
 	}
@@ -4457,14 +4458,18 @@
    "effects": [
 	{
 	 "op": "fervor",
-	 "amount": 1
+	 "amount": 1,
+	 "choose_side": true
 	},
 	{
 	 "op": "float",
 	 "what": "stop_next",
 	 "duration": "combat"
 	}
-   ]
+   ],
+   "bottom_after_use_when": {
+	"character": "Sir Edric Rooke"
+   }
   },
   {
    "id": "siphons_sidestep",
@@ -4542,7 +4547,7 @@
 	{
 	 "trigger": "use",
 	 "op": "search",
-	 "card_type": "attack",
+	 "card_type": "strike_or_art",
 	 "source": "either",
 	 "to": "hand"
 	}
@@ -5107,7 +5112,7 @@
   {
    "id": "seal_seizure",
    "title": "Seal Seizure",
-   "type": "strike",
+   "type": "combat",
    "school": "",
    "effects": [
 	{
@@ -5200,9 +5205,8 @@
 	 "op": "discard_in_play",
 	 "who": "opponent",
 	 "card_type": "non_combat",
-	 "amount": 2,
-	 "remove": true,
-	 "choose": true
+	 "all": true,
+	 "remove": true
 	}
    ]
   },
@@ -5941,7 +5945,7 @@
    "id": "quarrs_roar",
    "character": "Halden Quarr",
    "title": "Quarr's Roar",
-   "type": "art",
+   "type": "strike",
    "school": "steel",
    "attack": {
 	"kind": "art",

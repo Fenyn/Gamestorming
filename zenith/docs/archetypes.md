@@ -368,12 +368,20 @@ the starter rules already keep them out (`designs/zenith_adventure.md` 6.4).
 
 141 bundles. Names are plain and functional placeholders; none of them is a tone proposal.
 
+**Built 2026-09-21 into `data/adventure/bundles.json`, 147 bundles.** Two changes against the
+table below. `steel_finishers` lost `steel_skull_crack`, which is `reserve_only` and can never sit
+in a Life Deck, and is now `steel_cross` x2. Six Ally bundles were added, which the old Ally rule
+could not have had: `emrys_ally_core` with three follow-ups, `quarr_ally_core` and
+`sable_ally_core`. Marrow was left out; `marrows_retinue` reads
+`only: {duelist_character: "Marrow"}` and is dead in any deck fielding her as an Ally, so she has
+one usable named card, not two.
+
 **Three decisions taken 2026-09-20, and one on 2026-09-21.**
 
 0. **Signature is its own class** (2.8). Freestyle bundles in 5.7 hold no signature card; the
    signature bundles are gathered in 5.10.
-1. **Freestyle is a school like any other, shared by every deck.** The 17-card
-   `data/adventure/freestyle_core.json` list no longer limits anything: any legal schoolless card
+1. **Freestyle is a school like any other, shared by every deck.** The old 17-card Freestyle core
+   list no longer limits anything: any legal schoolless card
    with no `character` can be bundled. For Caedan Vale, whose Style is Freestyle, the Freestyle
    bundles in 5.7 are his school bundles.
 2. **An Ally arrives with two of its own named cards.** An Ally bundle is the personality plus

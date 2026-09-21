@@ -78,6 +78,21 @@ theme_override_font_sizes/font_size = 22
 text = ""
 horizontal_alignment = 1
 
+[node name="StepLine" type="Label" parent="Margin/Column/Header/HeaderCenter/HeaderInner"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 20
+text = "Choose your next Aspect"
+horizontal_alignment = 1
+
+[node name="StackRow" type="HFlowContainer" parent="Margin/Column/Header/HeaderCenter/HeaderInner"]
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+
 [node name="Stats" type="HBoxContainer" parent="Margin/Column/Header/HeaderCenter/HeaderInner"]
 layout_mode = 2
 alignment = 1

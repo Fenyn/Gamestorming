@@ -1,0 +1,111 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_start.gd" id="1_start"]
+[ext_resource type="PackedScene" path="res://scenes/select/select_seat.tscn" id="2_seat"]
+[ext_resource type="PackedScene" path="res://scenes/select/roster_tile.tscn" id="3_tile"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="4_faces"]
+
+[node name="AdventureStart" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_start")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.043, 0.06, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("4_faces")]
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 28
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "Choose your starter"
+
+[node name="Body" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 28
+
+[node name="Library" type="VBoxContainer" parent="Margin/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="Header" type="Label" parent="Margin/Column/Body/Library"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "STARTERS"
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Library"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Roster" type="GridContainer" parent="Margin/Column/Body/Library/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+
+[node name="Seat" parent="Margin/Column/Body" instance=ExtResource("2_seat")]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Back" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+text = "Back"
+
+[node name="Problems" type="Label" parent="Margin/Column/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"WarnLabel"
+text = ""
+horizontal_alignment = 2
+autowrap_mode = 3
+
+[node name="Begin" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+disabled = true
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 18
+text = "Begin"

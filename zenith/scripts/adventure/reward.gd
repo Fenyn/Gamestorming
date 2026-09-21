@@ -4,31 +4,40 @@ extends Control
 ## Session.finish_reward().
 
 const ADVANCE_DELAY: float = 0.6
-const ZOOM_SIZE: Vector2 = Vector2(420, 588)
+const ZOOM_SIZE: Vector2 = Vector2(560, 784)
+## Offer faces render at roughly the versus screen's duelist-card size, not the small tray size:
+## only three cards are ever on screen, so they can be read like the versus panels are.
+const CARD_FACE_SIZE: Vector2 = Vector2(310, 430)
+const CUT_PREVIEW_HINT: String = "Hover or select a card"
 
 @onready var faces: CardFaceCache = $CardFaceCache
-@onready var title_label: Label = $Margin/Column/Header/TitleRow/Title
-@onready var opponent_label: Label = $Margin/Column/Header/TitleRow/Opponent
-@onready var aspect_line: Label = $Margin/Column/Header/AspectRow/AspectLine
-@onready var deck_tile: StatTile = $Margin/Column/Header/Stats/Deck
-@onready var aspects_tile: StatTile = $Margin/Column/Header/Stats/Aspects
-@onready var offer_row: HBoxContainer = $Margin/Column/OfferSection/OfferRow
-@onready var empty_label: Label = $Margin/Column/OfferSection/Empty
+@onready var stage_label: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/Stage
+@onready var opponent_label: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/Opponent
+@onready var aspect_line: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/AspectRow/AspectLine
+@onready var deck_tile: StatTile = $Margin/Column/Header/HeaderCenter/HeaderInner/Stats/Deck
+@onready var aspects_tile: StatTile = $Margin/Column/Header/HeaderCenter/HeaderInner/Stats/Aspects
+@onready var offer_row: HBoxContainer = $Margin/Column/OfferSection/OfferInner/OfferRow
+@onready var empty_label: Label = $Margin/Column/OfferSection/OfferInner/Empty
 @onready var skip_button: Button = $Margin/Column/Footer/Skip
 @onready var cut_button: Button = $Margin/Column/Footer/Cut
 @onready var status_label: Label = $Margin/Column/Footer/Status
 @onready var take_button: Button = $Margin/Column/Footer/Take
 @onready var cut_panel: ColorRect = $CutPanel
-@onready var cut_list: VBoxContainer = $CutPanel/Center/Column/Scroll/List
-@onready var cut_status_label: Label = $CutPanel/Center/Column/CutStatus
-@onready var cut_cancel: Button = $CutPanel/Center/Column/Buttons/Cancel
-@onready var cut_confirm: Button = $CutPanel/Center/Column/Buttons/Confirm
+@onready var cut_dialog: PanelContainer = $CutPanel/Center/Panel
+@onready var cut_list: VBoxContainer = $CutPanel/Center/Panel/Column/Body/Scroll/List
+@onready var cut_preview_face: TextureRect = $CutPanel/Center/Panel/Column/Body/PreviewColumn/PreviewFace
+@onready var cut_preview_caption: Label = $CutPanel/Center/Panel/Column/Body/PreviewColumn/PreviewCaption
+@onready var cut_preview_count: Label = $CutPanel/Center/Panel/Column/Body/PreviewColumn/PreviewCount
+@onready var cut_status_label: Label = $CutPanel/Center/Panel/Column/CutStatus
+@onready var cut_cancel: Button = $CutPanel/Center/Panel/Column/Buttons/Cancel
+@onready var cut_confirm: Button = $CutPanel/Center/Panel/Column/Buttons/Confirm
 @onready var inspect: ColorRect = $Inspect
 @onready var inspect_face: CardFace = $Inspect/Center/Column/Face
 
 var _offer_defs: Array[CardDef] = []
-var _cards_ui: Array[Dictionary] = []   # {frame: PanelContainer, id: String}
-var _cut_rows: Dictionary = {}          # card id -> Button
+var _card_panels: Array[PanelContainer] = []   # one per offer card, in offer order
+var _card_school_colors: Array[Color] = []     # matching edge colour per offer card
+var _cut_rows: Dictionary = {}                 # card id -> Button
 var _selected_index: int = -1
 var _cut_selected_id: String = ""
 var _zoom: TextureRect = null
@@ -49,7 +58,10 @@ func _ready() -> void:
 	cut_cancel.pressed.connect(_on_cut_cancel)
 	cut_confirm.pressed.connect(_on_cut_confirm)
 	inspect.gui_input.connect(_on_inspect_input)
-	status_label.visible = false
+	# The theme's default panel background carries alpha for the translucent duel-HUD panels; the
+	# cut dialog sits over the offer cards and needs a fully opaque backing instead.
+	cut_dialog.add_theme_stylebox_override("panel", ZenithTheme.box(Color(ZenithTheme.BG, 1.0), ZenithTheme.BORDER, 12, 1, 14, 12))
+	status_label.text = ""
 	cut_status_label.visible = false
 	cut_panel.visible = false
 	inspect.visible = false
@@ -64,7 +76,7 @@ func _ready() -> void:
 func _fill_header() -> void:
 	var run: AdventureRun = Session.run
 	var row: Dictionary = Session.ladder.stage(run.stage)
-	title_label.text = "Stage %d cleared" % (run.stage + 1)
+	stage_label.text = "Stage %d cleared" % (run.stage + 1)
 	var opponent: DeckList = DeckList.resolve(str(row.get("opponent", "")))
 	var opp_duelist: CardDef = Session.library.defs.get(opponent.duelist_id) if opponent != null else null
 	opponent_label.text = "Beat %s" % (opp_duelist.title if opp_duelist != null else str(row.get("opponent", "")))
@@ -81,7 +93,8 @@ func _fill_offer() -> void:
 	for child in offer_row.get_children():
 		offer_row.remove_child(child)
 		child.queue_free()
-	_cards_ui.clear()
+	_card_panels.clear()
+	_card_school_colors.clear()
 	_offer_defs.clear()
 	for id in Session.run.pending_offer:
 		var def: CardDef = Session.library.defs.get(id)
@@ -94,21 +107,22 @@ func _fill_offer() -> void:
 		offer_row.add_child(column)
 
 
-## One offer card: its face at the duel tray's size, title, type and school, generated rules
-## text with coloured keywords, and how many copies the run deck already holds.
+## One offer card: a versus-seat-style panel (school-tinted edge) holding the face at a size big
+## enough to read like the matchup screen's duelist card, its title, type and school, and how
+## many copies the run deck already holds. The face itself already prints the rules text.
 func _build_offer_card(def: CardDef, index: int) -> Control:
+	var school_color: Color = Palette.school_ui(def.school)
+	var panel: PanelContainer = PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _card_style(school_color, false, false))
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
-	column.custom_minimum_size.x = DuelHud.TRAY_CARD_SIZE.x
-	var frame: PanelContainer = PanelContainer.new()
-	frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 10, 3, 3, 3))
-	frame.pivot_offset = DuelHud.TRAY_CARD_SIZE * 0.5 + Vector2(3.0, 3.0)
+	column.custom_minimum_size.x = CARD_FACE_SIZE.x
 	var tex: Texture2D = await faces.render_face(def)
 	var button: TextureButton = TextureButton.new()
 	button.texture_normal = tex
 	button.ignore_texture_size = true
 	button.stretch_mode = TextureButton.STRETCH_SCALE
-	button.custom_minimum_size = DuelHud.TRAY_CARD_SIZE
+	button.custom_minimum_size = CARD_FACE_SIZE
 	button.pressed.connect(func() -> void: _select_card(index))
 	button.mouse_entered.connect(func() -> void:
 		_hover_card(index, true)
@@ -122,16 +136,15 @@ func _build_offer_card(def: CardDef, index: int) -> Control:
 		elif event is InputEventMouseButton and (event as InputEventMouseButton).pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT and (event as InputEventMouseButton).double_click:
 			_select_card(index)
 			_on_take())
-	frame.add_child(button)
-	column.add_child(frame)
+	column.add_child(button)
 
 	var title: Label = Label.new()
 	title.text = def.title
 	title.theme_type_variation = "HeaderLabel"
-	title.add_theme_font_size_override("font_size", 17)
+	title.add_theme_font_size_override("font_size", 18)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.custom_minimum_size.x = DuelHud.TRAY_CARD_SIZE.x
+	title.custom_minimum_size.x = CARD_FACE_SIZE.x
 	column.add_child(title)
 
 	var meta: HBoxContainer = HBoxContainer.new()
@@ -144,18 +157,9 @@ func _build_offer_card(def: CardDef, index: int) -> Control:
 	meta.add_child(icon)
 	var school: Label = Label.new()
 	school.text = CardText.school_name(def.school)
-	ZenithTheme.chip(school, Palette.school_ui(def.school))
+	ZenithTheme.chip(school, school_color)
 	meta.add_child(school)
 	column.add_child(meta)
-
-	var text: KeywordLabel = KeywordLabel.new()
-	text.on_dark = true
-	text.custom_minimum_size = Vector2(DuelHud.TRAY_CARD_SIZE.x, 100)
-	text.fit_content = true
-	text.scroll_active = false
-	text.add_theme_font_size_override("normal_font_size", 14)
-	text.set_plain(CardText.rules_text(def))
-	column.add_child(text)
 
 	var copies: Label = Label.new()
 	copies.text = "In deck: %d" % Session.run.cards.count(def.id)
@@ -163,15 +167,27 @@ func _build_offer_card(def: CardDef, index: int) -> Control:
 	copies.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(copies)
 
-	_cards_ui.append({"frame": frame, "id": def.id})
-	return column
+	panel.add_child(column)
+	_card_panels.append(panel)
+	_card_school_colors.append(school_color)
+	return panel
+
+
+## Unselected: an edged panel tinted by the card's school, like a versus seat panel. Hover
+## brightens the tint. Selected: the accent border the tray and TileButton use everywhere else.
+func _card_style(school_color: Color, hover: bool, selected: bool) -> StyleBoxFlat:
+	if selected:
+		return ZenithTheme.box(ZenithTheme.ACCENT_SOFT, ZenithTheme.ACCENT, 14, 2, 20, 18)
+	var edge: Color = school_color.lightened(0.2) if hover else school_color
+	var tint: float = 0.16 if hover else 0.08
+	return ZenithTheme.edged(edge, Color(school_color, tint), 14, 20, 18)
 
 
 func _select_card(index: int) -> void:
 	if index < 0 or index >= _offer_defs.size():
 		return
 	_selected_index = index
-	status_label.visible = false
+	status_label.text = ""
 	_refresh_card_styles()
 	_refresh_footer()
 
@@ -190,20 +206,21 @@ func _move_selection(delta: int) -> void:
 func _hover_card(index: int, over: bool) -> void:
 	if index == _selected_index:
 		return
-	var frame: PanelContainer = _cards_ui[index]["frame"]
-	frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.HOVER if over else Color(0, 0, 0, 0), 10, 3, 3, 3))
-	_lift(frame, over)
+	var panel: PanelContainer = _card_panels[index]
+	panel.add_theme_stylebox_override("panel", _card_style(_card_school_colors[index], over, false))
+	_lift(panel, over)
 
 
 func _refresh_card_styles() -> void:
-	for i in range(_cards_ui.size()):
-		var frame: PanelContainer = _cards_ui[i]["frame"]
+	for i in range(_card_panels.size()):
+		var panel: PanelContainer = _card_panels[i]
 		var on: bool = i == _selected_index
-		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.ACCENT_SOFT if on else Color(0, 0, 0, 0), ZenithTheme.ACCENT if on else Color(0, 0, 0, 0), 10, 3, 3, 3))
-		_lift(frame, on)
+		panel.add_theme_stylebox_override("panel", _card_style(_card_school_colors[i], false, on))
+		_lift(panel, on)
 
 
 func _lift(frame: Control, up: bool) -> void:
+	frame.pivot_offset = frame.size * 0.5
 	var target: Vector2 = Vector2.ONE * (1.05 if up else 1.0)
 	if _reduced_motion:
 		frame.scale = target
@@ -304,7 +321,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_cut_open() -> void:
 	if not AdventureRewards.can_cut(Session.run):
 		return
-	_build_cut_list()
+	await _build_cut_list()
 	cut_status_label.visible = false
 	cut_panel.visible = true
 
@@ -314,7 +331,9 @@ func _on_cut_cancel() -> void:
 	_cut_selected_id = ""
 
 
-## One row per distinct card id in the run deck, with its count; picking one selects it for Cut.
+## One row per distinct card id in the run deck, grouped by type then title, with its count;
+## picking one selects it for Cut. Faces are pre-rendered so hovering a row updates the preview
+## instantly.
 func _build_cut_list() -> void:
 	for child in cut_list.get_children():
 		cut_list.remove_child(child)
@@ -322,6 +341,7 @@ func _build_cut_list() -> void:
 	_cut_rows.clear()
 	_cut_selected_id = ""
 	cut_confirm.disabled = true
+	_clear_cut_preview()
 	var counts: Dictionary = {}
 	var order: Array[String] = []
 	for id in Session.run.cards:
@@ -331,11 +351,16 @@ func _build_cut_list() -> void:
 	order.sort_custom(func(a: String, b: String) -> bool:
 		var da: CardDef = Session.library.defs.get(a)
 		var db: CardDef = Session.library.defs.get(b)
-		return (da.title if da != null else a) < (db.title if db != null else b))
+		if da == null or db == null:
+			return a < b
+		if da.type != db.type:
+			return da.type < db.type
+		return da.title < db.title)
 	for id in order:
 		var def: CardDef = Session.library.defs.get(id)
 		if def == null:
 			continue
+		await faces.render_face(def)
 		cut_list.add_child(_build_cut_row(id, def, int(counts[id])))
 
 
@@ -343,8 +368,14 @@ func _build_cut_row(id: String, def: CardDef, count: int) -> Button:
 	var row: Button = Button.new()
 	row.theme_type_variation = "TileButton"
 	row.toggle_mode = true
-	row.custom_minimum_size = Vector2(460, 52)
+	row.custom_minimum_size = Vector2(0, 52)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var h: HBoxContainer = HBoxContainer.new()
+	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 12
+	h.offset_right = -12
+	h.offset_top = 4
+	h.offset_bottom = -4
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_theme_constant_override("separation", 10)
 	var icon: TypeIcon = TypeIcon.new()
@@ -356,25 +387,49 @@ func _build_cut_row(id: String, def: CardDef, count: int) -> Button:
 	var name_label: Label = Label.new()
 	name_label.text = def.title
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_child(name_label)
 	var count_label: Label = Label.new()
 	count_label.text = "x%d" % count
 	count_label.theme_type_variation = "MutedLabel"
+	count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_child(count_label)
 	row.add_child(h)
-	row.pressed.connect(func() -> void: _select_cut_row(id))
+	row.pressed.connect(func() -> void: _select_cut_row(id, def))
+	row.mouse_entered.connect(func() -> void: _update_cut_preview(id, def))
+	row.mouse_exited.connect(func() -> void:
+		if _cut_selected_id != "":
+			_update_cut_preview(_cut_selected_id, Session.library.defs.get(_cut_selected_id))
+		else:
+			_clear_cut_preview())
 	_cut_rows[id] = row
 	return row
 
 
-func _select_cut_row(id: String) -> void:
+func _select_cut_row(id: String, def: CardDef) -> void:
 	_cut_selected_id = id
 	for row_id in _cut_rows.keys():
 		(_cut_rows[row_id] as Button).set_pressed_no_signal(row_id == id)
 	cut_confirm.disabled = false
 	cut_status_label.visible = false
+	_update_cut_preview(id, def)
+
+
+func _update_cut_preview(id: String, def: CardDef) -> void:
+	if def == null:
+		_clear_cut_preview()
+		return
+	cut_preview_face.texture = faces.face(def)
+	cut_preview_caption.text = def.title
+	cut_preview_count.text = "In deck: %d" % Session.run.cards.count(id)
+
+
+func _clear_cut_preview() -> void:
+	cut_preview_face.texture = null
+	cut_preview_caption.text = CUT_PREVIEW_HINT
+	cut_preview_count.text = ""
 
 
 func _on_cut_confirm() -> void:
@@ -408,7 +463,6 @@ func _on_take() -> void:
 	if not AdventureRewards.apply_pick(Session.run, Session.library, id):
 		_busy = false
 		status_label.text = "That card is no longer available. Choose another, skip, or cut."
-		status_label.visible = true
 		return
 	await _advance()
 

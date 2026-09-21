@@ -12,8 +12,9 @@ Method:
   4. Fill to the target using role quotas taken from the precon's own ratios, so a beatdown deck
      stays a beatdown deck at every size instead of drifting toward whatever scores well.
 
-Run it with no arguments to write every adventure starter:
+Run it with no arguments to write every opponent tier:
     python tools/scale_deck.py
+Starters are hand-authored and are not written by this tool.
 """
 
 import json
@@ -38,7 +39,9 @@ OPPONENT_TIERS = [
 
 # Allies a starter keeps. A deck absent here keeps every ally it runs; the rest are unlocks.
 KEPT_ALLIES = {
-    "tide_companions": ["companion_alpha", "companion_beta"],
+    # Tavin Vale and Ansel Rooke: the pair `bonded_pair` fuses. Keeping any other two leaves
+    # Tide's Bonding card dead.
+    "tide_companions": ["companion_gamma", "companion_delta"],
     "shade_henchmen": ["henchman_alpha", "henchman_beta"],
     "shade_salvage": ["salvage_alpha", "salvage_beta"],
     "storm_unbound": ["salvage_alpha", "salvage_beta"],
@@ -196,7 +199,9 @@ def scale(deck_id, deck, lib, target, drop_lockouts=True, max_copies=0):
     return counts
 
 
-def write_starters(out_dir="data/adventure/starters"):
+def write_starters(out_dir="data/adventure/generated_starters"):
+    """The generated starters, for comparison only. Never point this at data/adventure/starters:
+    those are hand-authored."""
     lib = load_library()
     os.makedirs(out_dir, exist_ok=True)
     for path in sorted(glob.glob("data/decks/*.json")):
@@ -265,8 +270,13 @@ def write_opponents(out_dir="data/adventure/opponents"):
 
 
 if __name__ == "__main__":
-    for deck_id, total, unique, aspects in write_starters():
-        print(f"{deck_id:24} {total:3} cards, {unique:2} unique, {aspects} aspects")
+    # Starters are hand-authored in data/adventure/starters since 2026-09-20, deck by deck around
+    # each deck's plan and its bombs, and this tool must not overwrite them. `write_starters` stays
+    # for comparison: `--starters` writes the generated versions to a scratch folder.
+    import sys
+    if "--starters" in sys.argv:
+        for deck_id, total, unique, aspects in write_starters("data/adventure/generated_starters"):
+            print(f"{deck_id:24} {total:3} cards, {unique:2} unique, {aspects} aspects")
     sizes = {}
     for name, total in write_opponents():
         sizes.setdefault(name.rsplit("_", 1)[1], []).append(total)

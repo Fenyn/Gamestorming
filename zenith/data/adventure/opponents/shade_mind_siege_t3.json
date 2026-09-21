@@ -1,0 +1,163 @@
+{
+  "name": "Mind Siege (T3)",
+  "source_deck": "shade_mind_siege",
+  "tier": "t3",
+  "mode": "adventure",
+  "duelist": "duelist_mu",
+  "aspects": 3,
+  "style": "shade",
+  "alignment": "pact",
+  "mastery": "shade_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "subthemes": [
+    "disruption",
+    "strikes",
+    "energy"
+  ],
+  "ai_profile": "shade_mind_siege",
+  "tagline": "Take their hand, their table and their options, then finish with blows the mark makes focused.",
+  "cards": [
+    {
+      "id": "grounding_step",
+      "count": 1
+    },
+    {
+      "id": "marked_demise",
+      "count": 1
+    },
+    {
+      "id": "marked_lightning",
+      "count": 1
+    },
+    {
+      "id": "shade_fixed_gaze",
+      "count": 1
+    },
+    {
+      "id": "shade_recoil",
+      "count": 1
+    },
+    {
+      "id": "shade_swelling_whisper",
+      "count": 2
+    },
+    {
+      "id": "shade_turned_whisper",
+      "count": 1
+    },
+    {
+      "id": "shade_umbral_lash",
+      "count": 1
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 1
+    },
+    {
+      "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "shade_composure_drill",
+      "count": 1
+    },
+    {
+      "id": "shade_faltering_drill",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "ashmarks_unmaking_whisper",
+      "count": 2
+    },
+    {
+      "id": "marked_strength",
+      "count": 2
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
+      "count": 1
+    },
+    {
+      "id": "relentless_fury",
+      "count": 1
+    },
+    {
+      "id": "scatters_the_ashes",
+      "count": 1
+    },
+    {
+      "id": "shade_bitter_trade",
+      "count": 1
+    },
+    {
+      "id": "shade_dread_grip",
+      "count": 2
+    },
+    {
+      "id": "shade_emptying_whisper",
+      "count": 2
+    },
+    {
+      "id": "shade_hex_recall",
+      "count": 2
+    },
+    {
+      "id": "shade_lingering_whisper",
+      "count": 1
+    },
+    {
+      "id": "shade_nightmare_hold",
+      "count": 2
+    },
+    {
+      "id": "shade_returning_whisper",
+      "count": 2
+    },
+    {
+      "id": "shade_sifting_whisper",
+      "count": 1
+    },
+    {
+      "id": "shade_silenced_whisper",
+      "count": 2
+    },
+    {
+      "id": "shade_stinging_palm",
+      "count": 1
+    },
+    {
+      "id": "shade_warding_burst",
+      "count": 2
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "wall_of_flame",
+      "count": 2
+    }
+  ]
+}

@@ -3,7 +3,7 @@
   "source_deck": "root_seals",
   "mode": "adventure",
   "duelist": "duelist_eta",
-  "aspects": 2,
+  "aspects": 3,
   "style": "root",
   "alignment": "vigil",
   "mastery": "root_mastery",
@@ -11,164 +11,46 @@
   "reserve": [],
   "archetype": "seals",
   "difficulty": "medium",
-  "subthemes": [
-    "arts",
-    "drills"
-  ],
+  "subthemes": ["arts", "drills"],
   "ai_profile": "root_seals",
   "tagline": "Recycle your spent spells and outlast your rival while gathering all seven Seals to claim victory.",
+  "unlock": {"track": "deck_cap", "step": 50},
+  "bombs": ["eyes_beyond_the_gate", "sharp_rebuke"],
   "cards": [
-    {
-      "id": "root_destruction_blast",
-      "count": 2
-    },
-    {
-      "id": "root_dragon_blast",
-      "count": 2
-    },
-    {
-      "id": "root_energy_catch",
-      "count": 2
-    },
-    {
-      "id": "root_energy_deflection",
-      "count": 2
-    },
-    {
-      "id": "sharp_rebuke",
-      "count": 1
-    },
-    {
-      "id": "smoke_screen",
-      "count": 1
-    },
-    {
-      "id": "cut_short",
-      "count": 1
-    },
-    {
-      "id": "dismissal",
-      "count": 1
-    },
-    {
-      "id": "parley",
-      "count": 2
-    },
-    {
-      "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "root_bolt",
-      "count": 2
-    },
-    {
-      "id": "root_energy_focus",
-      "count": 1
-    },
-    {
-      "id": "watchful_eye",
-      "count": 1
-    },
-    {
-      "id": "absorbing_drill",
-      "count": 1
-    },
-    {
-      "id": "guardian_drill",
-      "count": 1
-    },
-    {
-      "id": "keepers_drill",
-      "count": 1
-    },
-    {
-      "id": "mournes_quickness_drill",
-      "count": 1
-    },
-    {
-      "id": "root_preparation_drill",
-      "count": 1
-    },
-    {
-      "id": "first_cut",
-      "count": 1
-    },
-    {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "kins_rescue",
-      "count": 1
-    },
-    {
-      "id": "mournes_plans",
-      "count": 1
-    },
-    {
-      "id": "mournes_smirk",
-      "count": 1
-    },
-    {
-      "id": "sleight",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
-      "count": 1
-    },
-    {
-      "id": "wardens_measure",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_1",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_2",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_3",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_4",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_5",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_6",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_7",
-      "count": 1
-    },
-    {
-      "id": "practiced_guard",
-      "count": 1
-    },
-    {
-      "id": "root_dash",
-      "count": 1
-    },
-    {
-      "id": "root_firm_stance",
-      "count": 1
-    },
-    {
-      "id": "seal_seizure",
-      "count": 2
-    },
-    {
-      "id": "second_wind",
-      "count": 1
-    }
+    {"id": "marble_seal_1", "count": 1},
+    {"id": "marble_seal_2", "count": 1},
+    {"id": "marble_seal_3", "count": 1},
+    {"id": "marble_seal_4", "count": 1},
+    {"id": "marble_seal_5", "count": 1},
+    {"id": "marble_seal_6", "count": 1},
+    {"id": "marble_seal_7", "count": 1},
+    {"id": "first_cut", "count": 1},
+    {"id": "mournes_smirk", "count": 1},
+    {"id": "mournes_plans", "count": 1},
+    {"id": "wardens_measure", "count": 1},
+    {"id": "guardian_drill", "count": 1},
+    {"id": "lucky_find", "count": 1},
+    {"id": "keepers_drill", "count": 3},
+    {"id": "root_dragon_blast", "count": 3},
+    {"id": "root_destruction_blast", "count": 3},
+    {"id": "smoke_screen", "count": 3},
+    {"id": "root_bolt", "count": 3},
+    {"id": "root_dash", "count": 2},
+    {"id": "root_energy_catch", "count": 3},
+    {"id": "root_energy_deflection", "count": 3},
+    {"id": "root_firm_stance", "count": 2},
+    {"id": "practiced_guard", "count": 2},
+    {"id": "second_wind", "count": 3},
+    {"id": "cut_short", "count": 2},
+    {"id": "watchful_eye", "count": 1},
+    {"id": "seal_seizure", "count": 1},
+    {"id": "dismissal", "count": 1},
+    {"id": "root_preparation_drill", "count": 1},
+    {"id": "parley", "count": 1},
+    {"id": "root_energy_focus", "count": 1},
+    {"id": "foresight", "count": 1},
+    {"id": "gates_boon", "count": 1},
+    {"id": "eyes_beyond_the_gate", "count": 1},
+    {"id": "sharp_rebuke", "count": 1}
   ]
 }

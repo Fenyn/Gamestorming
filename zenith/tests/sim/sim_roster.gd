@@ -118,6 +118,16 @@ func _load_all() -> void:
 		decks[name] = loaded
 		all_names.append(name)
 	all_names.sort()
+	# Adventure starters and opponent tiers answer to their exact names only. They stay out of
+	# `all_names`, so `*`, `@archetype` and the default field are still the precons alone.
+	for extra in ["res://data/adventure/starters", "res://data/adventure/opponents"]:
+		if DirAccess.open(extra) == null:
+			continue
+		for file in DirAccess.get_files_at(extra):
+			if file.ends_with(".json"):
+				var adventure: DeckList = DeckList.load_from(extra.path_join(file))
+				if adventure != null:
+					decks[file.trim_suffix(".json")] = adventure
 	if all_names.size() < 2:
 		error = "Need at least two decks in %s" % DECK_DIR
 

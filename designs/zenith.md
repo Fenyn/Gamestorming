@@ -109,7 +109,7 @@ Two rules follow from that, and both matter more than the word itself:
 - **A keyword is not a faction.** The Corven Collegium builds Constructs; so do other people, by other methods, for other reasons. A card that says "Construct" reads what a personality *is*, never whose side it is on. That is why `life_per_tag` counts personalities in play on both sides.
 - **A keyword is not a school.** The Collegium's Constructs happen to field Storm today and Marrow's happen to field Shade, and neither of those facts belongs to the keyword. The same goes for followings in general: the table below records what a following currently fields, not what it is. A house may field more than one school later, and nothing in the data should assume otherwise.
 
-**Theming follows the printing, not the person.** Ruled 2026-09-19. A character may field more than one school across their cards, so what a card looks like is read off that card's own effects and the deck it is fielded in, never off a fixed element attached to the character. Sir Edric Rooke is the case that forced it: he carries water as his wife's Ally and fire in his own list, and both are correct. In the data this means `CAST` in `tools/gen_roster.py` holds only a side and an identity, and the palette comes from the card's school or, for a schoolless card, from the one Style it is fielded in.
+**Theming follows the card, not the person.** Ruled 2026-09-19. A character may field more than one school across their cards, so what a card looks like is read off that card's own effects and the deck it is fielded in, never off a fixed element attached to the character. Sir Edric Rooke is the case that forced it: he carries water as his wife's Ally and fire in his own list, and both are correct. In the data this means `CAST` in `tools/gen_roster.py` holds only a side and an identity, and the palette comes from the card's school or, for a schoolless card, from the one Style it is fielded in.
 
 Keywords also sit on cards, not only on personalities. `marked` on a card means a card of the
 bargain, which is what the source expresses by putting "Majin" in the title; `whisper` names the
@@ -119,7 +119,7 @@ a modifier can filter on `tag` or on `only_tag` and they do not mean the same th
 
 In the data it is `tags: ["construct"]`, and cards reach it four ways: `search` with `tag`, a `when` of `performer_tag` (the personality swinging), `in_control_tag` (whoever holds Combat on that side) or `duelist_tag`, and an attack's `life_per_tag`.
 
-Aspect titles (2026-09-17; in the data as `title` on each Aspect of a personality card). Each Aspect card carries its own title, as in "Bram Ashmark, Insatiable". A character with more than one printing carries a `variant` as well, which names the printing and is what tells two cards of one person apart. Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
+Aspect titles (2026-09-17; in the data as `title` on each Aspect of a personality card). Each Aspect card carries its own title, as in "Bram Ashmark, Insatiable". A character with more than one personality card carries a `variant` as well, which names that card and is what tells two cards of one person apart. Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
 
 | Duelist | Tier titles |
 |---|---|
@@ -177,9 +177,32 @@ Relics: the three Masters become three worn relics, none of them a weapon, so an
 
 ---
 
+## Personalities
+
+Decided 2026-09-21. It replaces the older model where one card held a whole ladder of Aspects.
+
+- **Each Aspect is its own card**, as in the printed game. A personality card has a character, a
+  tier (its Aspect number), a title, a Surge Rate, a stage table, a Power and optionally a
+  Constant Power. Alignment gate, bloodline and keywords sit on the card, so a character can
+  change as they climb.
+- **Duelist and Ally are roles, not kinds of card.** Any personality card can be used either way.
+- **A stack** is a set of personality cards of one character with exactly one card per tier,
+  consecutive from tier 1. Those two anchors are the whole rule. Cards from different lines of the
+  same character mix freely: Bram Ashmark may climb Starved, Leeching, Gorging.
+- **The Duelist** is a stack of 3 to 5 tiers (2 and up in adventure). The deck lists its cards.
+- **An Ally** is a personality card in the Life Deck. A tier 1 card is always legal. A higher tier
+  is legal when it sits at least 2 below the Duelist's highest tier. An Ally climbs by overlaying
+  its next tier. One copy of each personality card, none sharing the Duelist's character,
+  matching alignment.
+- **Ids:** `personality_<first>_<last>_<tier>_<title>`. A card with no title uses its variant
+  word, or nothing: `personality_vesna_draik_1`, `personality_gideon_mourne_1_mercenary`.
+  One-name characters skip the surname: `personality_siphon_1_dormant`. Honorifics are left out.
+- Two lines that share an identical card share the card. Bram Ashmark's two lines both start
+  from `personality_bram_ashmark_1_starved`.
+
 ## Duelist and Ascension
 
-- **Duelist card** has 3 to 5 Aspects. Each aspect lists a Surge Rate, stages 0 to 10 each with a Might rating, a Power (once per turn, Combat only; an aspect change mid-Combat does not refresh it), and optionally a Constant Power (mandatory while that personality is in control of Combat).
+- **The personality used as Duelist** has 3 to 5 Aspects. Each aspect lists a Surge Rate, stages 0 to 10 each with a Might rating, a Power (once per turn, Combat only; an aspect change mid-Combat does not refresh it), and optionally a Constant Power (mandatory while that personality is in control of Combat).
 - **Energy stage** is the current position on the stage table. **Might** is the number in that stage. Might feeds the Strike Table.
 - **Wild Might.** A stage showing Wild instead of a number always yields base damage 2 on the Strike Table, attacking or defending. Double Power Rule ignores Wild.
 - **Fervor** runs 0 to 5, tracked once per player. At 5 or more: put the current aspect at the bottom of the stack, reveal the next aspect, set Energy to highest, discard all your Drills, Fervor to 0. Excess does not carry over.
@@ -317,7 +340,7 @@ The old school labels (Berserker, Warden, Evoker, Rogue, Juggernaut, Ranger-Drui
 - Exactly one Mastery. Its school is the deck's Style.
 - At least 3 consecutive Duelist aspects from Aspect 1, up to 5.
 - 3 copies max. 4 for Signature cards matching your Duelist. "Limit N per deck" and the restricted list override.
-- Allies: at least 2 aspects below the Duelist's highest aspect, 1 copy of each printing, none sharing the Duelist's character, matching alignment. **House rule, 2026-09-20:** an Ally printed only at Aspect 1 is exempt from the 2-aspect gap and is legal in any deck. It can never outgrow a Duelist, and without the exemption a shallow deck can field no following at all, which the adventure starters need. Every Ally that climbs to a second Aspect still obeys the gap.
+- Allies: at least 2 aspects below the Duelist's highest aspect, 1 copy of each personality card, none sharing the Duelist's character, matching alignment. **House rule, 2026-09-20:** a personality whose Aspects stop at 1 is exempt from the 2-aspect gap and is legal as an Ally in any deck. It can never outgrow a Duelist, and without the exemption a shallow deck can field no following at all, which the adventure starters need. Every Ally that climbs to a second Aspect still obeys the gap.
 - Seals: one set, no duplicates.
 - Reserve must obey the same Style and construction rules.
 

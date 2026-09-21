@@ -3,8 +3,11 @@
   "source_deck": "tide_companions",
   "tier": "boss",
   "mode": "adventure",
-  "duelist": "duelist_beta",
-  "aspects": 3,
+  "duelist": [
+    "personality_alder_rooke_1_matriarch",
+    "personality_alder_rooke_2_rising_water",
+    "personality_alder_rooke_3_the_flood"
+  ],
   "style": "tide",
   "alignment": "vigil",
   "mastery": "tide_mastery",
@@ -14,7 +17,7 @@
     "overreach",
     "lobbed_bolt",
     "clean_sweep",
-    "bonded_pair"
+    "personality_ansel_and_tavin_1_back_to_back"
   ],
   "archetype": "allies",
   "subthemes": [
@@ -129,11 +132,11 @@
       "count": 1
     },
     {
-      "id": "companion_delta",
+      "id": "personality_ansel_rooke_1",
       "count": 1
     },
     {
-      "id": "companion_gamma",
+      "id": "personality_tavin_vale_1",
       "count": 1
     },
     {

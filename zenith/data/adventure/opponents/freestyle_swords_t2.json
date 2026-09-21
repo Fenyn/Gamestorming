@@ -3,8 +3,10 @@
   "source_deck": "freestyle_swords",
   "tier": "t2",
   "mode": "adventure",
-  "duelist": "duelist_zeta",
-  "aspects": 2,
+  "duelist": [
+    "personality_caedan_vale_1_last_heir",
+    "personality_caedan_vale_2_unparried"
+  ],
   "style": "freestyle",
   "alignment": "vigil",
   "mastery": "freestyle_mastery",

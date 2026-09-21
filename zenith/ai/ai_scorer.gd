@@ -223,7 +223,7 @@ static func _grounds_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 static func _aspect_jump_value(c: CardInstance, me: PlayerState, profile: AiProfile) -> float:
 	for raw in c.def.effects:
 		if raw is Dictionary and str((raw as Dictionary).get("op", "")) == "set_aspect" and str((raw as Dictionary).get("aspect", "")) == "fervor" and str((raw as Dictionary).get("who", "self")) == "self":
-			var target: int = clampi(me.fervor, me.duelist.def.lowest_aspect(), me.highest_aspect)
+			var target: int = clampi(me.fervor, me.duelist.stack.lowest_aspect(), me.highest_aspect)
 			return float(target - me.duelist.aspect) * profile.w("own", "aspect")
 	return 0.0
 

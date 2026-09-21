@@ -2,8 +2,10 @@
   "name": "Ironblood Onslaught (Starter)",
   "source_deck": "steel_beatdown",
   "mode": "adventure",
-  "duelist": "duelist_epsilon",
-  "aspects": 2,
+  "duelist": [
+    "personality_halden_quarr_1_the_grinder",
+    "personality_halden_quarr_2_tempered"
+  ],
   "style": "steel",
   "alignment": "pact",
   "mastery": "steel_mastery",
@@ -17,7 +19,7 @@
   "bombs": ["steel_immovable_guard", "shrugs_it_off"],
   "cards": [
     {"id": "steel_battering_ram", "count": 2},
-    {"id": "steel_hammer_blow", "count": 2},
+    {"id": "steel_hammer_blow", "count": 3},
     {"id": "steel_iron_fist", "count": 2},
     {"id": "quarrs_crushing_blow", "count": 2},
     {"id": "steel_piston_slam", "count": 2},
@@ -31,13 +33,13 @@
     {"id": "steel_iron_knee", "count": 2},
     {"id": "moth_seal_1", "count": 1},
     {"id": "moth_seal_3", "count": 1},
-    {"id": "steel_ironhide", "count": 2},
-    {"id": "steel_forearm_guard", "count": 2},
-    {"id": "steel_bracing", "count": 2},
+    {"id": "steel_ironhide", "count": 3},
+    {"id": "steel_forearm_guard", "count": 3},
+    {"id": "steel_bracing", "count": 3},
     {"id": "steel_standoff", "count": 1},
     {"id": "cut_short", "count": 2},
     {"id": "cold_appraisal", "count": 2},
     {"id": "steel_immovable_guard", "count": 1},
-    {"id": "shrugs_it_off", "count": 1}
+    {"id": "shrugs_it_off", "count": 2}
   ]
 }

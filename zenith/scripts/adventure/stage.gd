@@ -64,10 +64,10 @@ func _refresh() -> void:
 	var run: AdventureRun = Session.run
 	var ladder: AdventureLadder = Session.ladder
 	var deck: DeckList = run.deck()
-	var duelist: CardDef = Session.library.defs.get(deck.duelist_id)
+	var duelist: CardDef = Session.library.defs.get(deck.duelist_face_id())
 
 	deck_name_label.text = deck.name
-	duelist_label.text = duelist.title if duelist != null else deck.duelist_id
+	duelist_label.text = duelist.title if duelist != null else deck.duelist_face_id()
 	deck_size_label.text = "%d life cards" % deck.cards.size()
 	aspects_label.text = "%d aspects" % deck.aspects
 
@@ -109,7 +109,7 @@ func _build_ladder(run: AdventureRun, ladder: AdventureLadder) -> void:
 func _ladder_row(n: int, row_data: Dictionary, run: AdventureRun) -> PanelContainer:
 	var opponent_id: String = str(row_data.get("opponent", ""))
 	var opp: DeckList = DeckList.resolve(opponent_id)
-	var opp_duelist: CardDef = Session.library.defs.get(opp.duelist_id) if opp != null else null
+	var opp_duelist: CardDef = Session.library.defs.get(opp.duelist_face_id()) if opp != null else null
 	var cleared: bool = n < run.stage
 	var tier: String = AdventureLadder.tier_of(opponent_id)
 	var current: bool = n == run.stage and run.status != "won"
@@ -136,7 +136,7 @@ func _ladder_row(n: int, row_data: Dictionary, run: AdventureRun) -> PanelContai
 	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	if opp_duelist != null:
-		thumb.texture = CardFace.art_texture(opp_duelist, opp_duelist.lowest_aspect())
+		thumb.texture = CardFace.art_texture(opp_duelist, opp_duelist.aspect)
 	h.add_child(thumb)
 
 	var col: VBoxContainer = VBoxContainer.new()

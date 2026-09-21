@@ -189,13 +189,13 @@ theme_override_constants/separation = 6
 
 [node name="State" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 21
 autowrap_mode = 3
 mouse_filter = 2
 
 [node name="Route" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 24
 autowrap_mode = 3
 mouse_filter = 2
 
@@ -207,7 +207,7 @@ mouse_filter = 2
 
 [node name="Damage" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 autowrap_mode = 3
 mouse_filter = 2
 
@@ -220,7 +220,7 @@ autowrap_mode = 3
 
 [node name="Stops" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 19
+theme_override_font_sizes/font_size = 21
 autowrap_mode = 3
 mouse_filter = 2
 

@@ -277,7 +277,7 @@ static func ascension_progress(engine: DuelEngine, p: PlayerState) -> float:
 	if p.no_ascension_win:
 		return 0.0
 	var needed: int = maxi(1, engine.fervor_needed(p))
-	var lowest: int = p.duelist.def.lowest_aspect()
+	var lowest: int = p.duelist.stack.lowest_aspect()
 	var done: float = float(p.duelist.aspect - lowest) + clampf(float(p.fervor) / float(needed), 0.0, 1.0)
 	# The Most Powerful Personality win lands on the Aspect itself, so a taller ladder than the
 	# rival's is a shorter road: the target is the first Aspect above theirs, with no extra meter

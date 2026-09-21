@@ -229,6 +229,24 @@ func _run() -> void:
 	_check(clicks == 0 and host.view_for(0).to_dict() == before, "Browsing hand must never submit a player choice")
 	# Real viewport resizing must preserve the focused card even when page capacity changes.
 	var original_scale: Vector2i = root.content_scale_size
+	var original_window_size: Vector2i = root.size
+	for scale_size: Vector2i in [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1800, 720)]:
+		root.size = scale_size
+		root.content_scale_size = scale_size
+		duel._layout_fixtures()
+		var decision_area: Rect2 = Rect2(Vector2(scale_size.x * 0.66, scale_size.y * 0.14), Vector2(scale_size.x * 0.29, scale_size.y * 0.64))
+		hand.set_decision_rect(decision_area)
+		for index in range(hand._items.size()):
+			hand.preview_index(index)
+			var expanded: Rect2 = hand._expanded_rect
+			var inside_viewport: bool = expanded.position.x >= 0.0 and expanded.position.y >= 0.0 and expanded.end.x <= scale_size.x and expanded.end.y <= scale_size.y
+			var clear_of_hero: bool = expanded.end.x <= hand._hero_left - hand.PREVIEW_MARGIN + 1.0 or expanded.position.x >= hand._hero_right + hand.PREVIEW_MARGIN - 1.0
+			_check(inside_viewport and clear_of_hero and not expanded.intersects(decision_area), "Every hand preview must stay onscreen and clear of the hero and decision at %s" % str(scale_size))
+		for item in hand._items:
+			if (item["node"] as Node3D).visible:
+				var resting_rect: Rect2 = item["rect"]
+				var clear_of_readout: bool = resting_rect.position.y >= hand._hero_bottom + hand.PREVIEW_MARGIN - 1.0 if resting_rect.end.x > hand._hero_left and resting_rect.position.x < hand._hero_right else true
+				_check(not resting_rect.intersects(decision_area) and clear_of_readout, "The open fan must leave hero data and the decision visible at %s" % str(scale_size))
 	root.content_scale_size = Vector2i(1280, 720)
 	hand._layout(true)
 	var narrow_capacity: int = hand._per_page
@@ -248,11 +266,22 @@ func _run() -> void:
 			visible_cards += 1
 	_check(visible_cards > 0, "Resizing an unfocused last page must not leave an empty hand")
 	root.content_scale_size = original_scale
+	root.size = original_window_size
+	duel._layout_fixtures()
 	hand._layout(true)
 	hand.preview_index(1)
 	var overlap: Rect2 = hand._expanded_rect.intersection(hand._items[2]["rect"])
-	_check(overlap.has_area(), "Expanded-card fixture must cover part of its neighbour")
-	_check(hand._hit(overlap.get_center(), true) == 1, "Clicking the expanded face must pick that face, not its covered neighbour")
+	_check(hand._hit(hand._expanded_rect.get_center(), true) == 1, "Clicking the expanded face must select its card")
+	if overlap.has_area():
+		_check(hand._hit(overlap.get_center(), true) == 1, "Clicking an overlap must pick the expanded face, not its covered neighbour")
+	hand._set_hover(-1)
+	var wheel_page_before: int = hand._page
+	var wheel: InputEventMouseButton = InputEventMouseButton.new()
+	wheel.pressed = true
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	wheel.position = Vector2(hand._size.x * 0.52, hand._size.y - 8.0)
+	hand._unhandled_input(wheel)
+	_check(hand._page != wheel_page_before and clicks == 0, "Wheel paging must work in the revealed lower hand band without choosing a card")
 	var under_card: Node3D = duel.views[duel.view.player(0).duelist]
 	under_card.set_hovered(true)
 	duel.hud.peek.show()

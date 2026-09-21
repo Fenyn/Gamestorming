@@ -15,18 +15,47 @@ const SIGNATURE_LIMIT: int = 4
 const DEFAULT_LIMIT: int = 3
 
 
+## Where an Ally may sit. A tier 1 card is always legal (house rule 2026-09-20: a personality that
+## never climbs cannot outgrow any Duelist, and the gap would otherwise ban every following from a
+## shallow deck, which the adventure starters need). Anything above it must sit at least two
+## Aspects below the Duelist's highest.
+static func ally_aspect_allowed(aspect: int, duelist_aspects: int) -> bool:
+	return aspect <= 1 or aspect <= duelist_aspects - 2
+
+
 static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 	var problems: Array[String] = []
-	var duelist: CardDef = library.defs.get(deck.duelist_id)
-	if duelist == null or duelist.type != CardDef.Type.PERSONALITY:
-		problems.append("Duelist '%s' not found" % deck.duelist_id)
+	if deck.duelist_ids.is_empty():
+		problems.append("Deck names no Duelist cards")
 		return problems
+	# The Duelist is a stack: one personality card per Aspect, consecutive from Aspect 1, all of
+	# them the same character. Cards from different printed lines of that character mix freely.
+	var stack_defs: Array[CardDef] = []
+	for id in deck.duelist_ids:
+		var d: CardDef = library.defs.get(id)
+		if d == null or d.type != CardDef.Type.PERSONALITY:
+			problems.append("Duelist card '%s' not found" % id)
+			continue
+		stack_defs.append(d)
+	if stack_defs.size() != deck.duelist_ids.size():
+		return problems
+	var duelist: CardDef = stack_defs[0]
+	var seen_aspects: Dictionary = {}
+	for d in stack_defs:
+		if d.character != duelist.character:
+			problems.append("Duelist card '%s' is %s, not %s" % [d.id, d.character, duelist.character])
+		if seen_aspects.has(d.aspect):
+			problems.append("Duelist has two cards at Aspect %d" % d.aspect)
+		seen_aspects[d.aspect] = true
+		if d.alignment_only != "" and d.alignment_only != deck.alignment:
+			problems.append("Duelist card '%s' does not match alignment %s" % [d.id, deck.alignment])
+	for n in range(1, stack_defs.size() + 1):
+		if not seen_aspects.has(n):
+			problems.append("Duelist is missing Aspect %d; a stack runs from Aspect 1 with no gaps" % n)
 	var adventure: bool = deck.mode == "adventure"
 	var min_aspects: int = MIN_ASPECTS_ADVENTURE if adventure else MIN_ASPECTS
 	if deck.aspects < min_aspects or deck.aspects > MAX_ASPECTS:
 		problems.append("Duelist must run %d to %d aspects" % [min_aspects, MAX_ASPECTS])
-	if deck.aspects > duelist.highest_aspect():
-		problems.append("Duelist only has %d aspects" % duelist.highest_aspect())
 	# A deck may go unlabelled, but a label has to be one the game knows how to show.
 	if deck.archetype != "" and not Archetype.known(deck.archetype):
 		problems.append("Unknown archetype '%s'" % deck.archetype)
@@ -44,6 +73,13 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 	var counts: Dictionary = {}
 	var seal_sets: Dictionary = {}
 	var styled_seen: bool = false
+	var ally_aspects: Dictionary = {}   # character -> {aspect: true} among the Life Deck personalities
+	for id in deck.cards:
+		var pdef: CardDef = library.defs.get(id)
+		if pdef != null and pdef.type == CardDef.Type.PERSONALITY:
+			if not ally_aspects.has(pdef.character):
+				ally_aspects[pdef.character] = {}
+			(ally_aspects[pdef.character] as Dictionary)[pdef.aspect] = true
 	for id in deck.cards:
 		var def: CardDef = library.defs.get(id)
 		if def == null:
@@ -68,14 +104,14 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 				problems.append("Ally '%s' is the same character as the Duelist" % id)
 			if def.alignment_only != "" and def.alignment_only != deck.alignment:
 				problems.append("Ally '%s' does not match alignment %s" % [id, deck.alignment])
-			# The rule is about how far an Ally can climb, so it reads the printing's top aspect.
-			# Reading the lowest let an Ally printed at aspects 3 and 4 pass in a 5-aspect deck on
-			# the strength of its 3 while its 4 broke the rule.
-			# House rule 2026-09-20: an Ally that never climbs past its first Aspect is always
-			# legal. It cannot outgrow any Duelist, and the 2-aspect gap otherwise bans every
-			# following from a shallow deck, which the adventure starters need.
-			if def.highest_aspect() > 1 and def.highest_aspect() > deck.aspects - 2:
+			if not ally_aspect_allowed(def.aspect, deck.aspects):
 				problems.append("Ally '%s' must be at least 2 aspects below the Duelist's highest" % id)
+			# An Ally climbs by overlaying its next Aspect off the top of the Life Deck's own
+			# copy, so a higher Aspect is dead weight without every Aspect under it. This is the
+			# printed game's behaviour and what DuelEngine._can_place already enforces in play.
+			if def.aspect > 1 and not (ally_aspects[def.character] as Dictionary).has(def.aspect - 1):
+				problems.append("Ally '%s' needs Aspect %d of %s in the deck too"
+					% [id, def.aspect - 1, def.character])
 	for id in counts.keys():
 		var def: CardDef = library.defs[id]
 		var limit: int = def.limit_per_deck

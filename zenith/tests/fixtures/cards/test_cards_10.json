@@ -1,15 +1,103 @@
 {
 	"cards": [
-		{"id": "tf_marked_lord", "title": "Test Marked Lord", "type": "personality", "character": "Test Marked Lord", "tags": ["marked"],
-			"aspects": [
-				{"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000],
-					"power": {"attack": {"kind": "art", "printed_life": 6, "focused": true}, "extra_use": {"filter": "tag:marked"}}},
-				{"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000],
-					"constant": {"strike_table_self": 2, "strike_table_against": 2}},
-				{"aspect": 3, "surge": 3, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000],
-					"constant": {"focus_tag": "marked", "focus_tag_kind": "strike",
-						"modifiers": [{"scope": "own", "kind": "strike", "stages": 3, "tag": "marked"}]}}
-			]},
+		{
+		 "id": "tf_marked_lord_1",
+		 "title": "Test Marked Lord",
+		 "type": "personality",
+		 "character": "Test Marked Lord",
+		 "tags": [
+		  "marked"
+		 ],
+		 "aspect": 1,
+		 "surge": 2,
+		 "might": [
+		  0,
+		  100000,
+		  200000,
+		  300000,
+		  400000,
+		  500000,
+		  600000,
+		  700000,
+		  800000,
+		  900000,
+		  1000000
+		 ],
+		 "power": {
+		  "attack": {
+		   "kind": "art",
+		   "printed_life": 6,
+		   "focused": true
+		  },
+		  "extra_use": {
+		   "filter": "tag:marked"
+		  }
+		 }
+		},
+		{
+		 "id": "tf_marked_lord_2",
+		 "title": "Test Marked Lord",
+		 "type": "personality",
+		 "character": "Test Marked Lord",
+		 "tags": [
+		  "marked"
+		 ],
+		 "aspect": 2,
+		 "surge": 2,
+		 "might": [
+		  0,
+		  200000,
+		  300000,
+		  400000,
+		  500000,
+		  600000,
+		  700000,
+		  800000,
+		  900000,
+		  1000000,
+		  1100000
+		 ],
+		 "constant": {
+		  "strike_table_self": 2,
+		  "strike_table_against": 2
+		 }
+		},
+		{
+		 "id": "tf_marked_lord_3",
+		 "title": "Test Marked Lord",
+		 "type": "personality",
+		 "character": "Test Marked Lord",
+		 "tags": [
+		  "marked"
+		 ],
+		 "aspect": 3,
+		 "surge": 3,
+		 "might": [
+		  0,
+		  300000,
+		  400000,
+		  500000,
+		  600000,
+		  700000,
+		  800000,
+		  900000,
+		  1000000,
+		  1100000,
+		  1200000
+		 ],
+		 "constant": {
+		  "focus_tag": "marked",
+		  "focus_tag_kind": "strike",
+		  "modifiers": [
+		   {
+		    "scope": "own",
+		    "kind": "strike",
+		    "stages": 3,
+		    "tag": "marked"
+		   }
+		  ]
+		 }
+		},
 
 		{"id": "t_marked_blow", "title": "Test Marked Blow", "type": "strike", "tags": ["marked"], "attack": {"kind": "strike", "stages": 1}},
 		{"id": "t_plain_blow", "title": "Test Plain Blow", "type": "strike", "attack": {"kind": "strike", "stages": 1}},

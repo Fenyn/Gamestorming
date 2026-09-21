@@ -1,17 +1,142 @@
 {
   "_note": "Fixtures for the Swordsman sheet's rules: an 'X only' gate that lets in a side or either of two named personalities, a card that reads the bottom of the discard pile, an attack that offers the top of the Life Deck for more damage, a modifier that lasts the rest of the game after its card leaves, a Power usable twice in one Combat, and an attack gated on a bloodline.",
   "cards": [
-    {"id": "tf_twice", "title": "Test Twice-Swinger", "type": "personality", "character": "Test Twice-Swinger", "aspects": [
-      {"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000],
-       "power": {"attack": {"kind": "strike", "life": 1}, "uses": 2}},
-      {"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
-      {"aspect": 3, "surge": 3, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]}
-    ]},
-    {"id": "tf_draconic", "title": "Test Dragonblood", "type": "personality", "character": "Test Dragonblood", "bloodline": "draconic", "aspects": [
-      {"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]},
-      {"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000]},
-      {"aspect": 3, "surge": 3, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000]}
-    ]},
+    {
+     "id": "tf_twice_1",
+     "title": "Test Twice-Swinger",
+     "type": "personality",
+     "character": "Test Twice-Swinger",
+     "aspect": 1,
+     "surge": 2,
+     "might": [
+      0,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000
+     ],
+     "power": {
+      "attack": {
+       "kind": "strike",
+       "life": 1
+      },
+      "uses": 2
+     }
+    },
+    {
+     "id": "tf_twice_2",
+     "title": "Test Twice-Swinger",
+     "type": "personality",
+     "character": "Test Twice-Swinger",
+     "aspect": 2,
+     "surge": 2,
+     "might": [
+      0,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000,
+      1100000
+     ]
+    },
+    {
+     "id": "tf_twice_3",
+     "title": "Test Twice-Swinger",
+     "type": "personality",
+     "character": "Test Twice-Swinger",
+     "aspect": 3,
+     "surge": 3,
+     "might": [
+      0,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000,
+      1100000,
+      1200000
+     ]
+    },
+    {
+     "id": "tf_draconic_1",
+     "title": "Test Dragonblood",
+     "type": "personality",
+     "character": "Test Dragonblood",
+     "bloodline": "draconic",
+     "aspect": 1,
+     "surge": 2,
+     "might": [
+      0,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000
+     ]
+    },
+    {
+     "id": "tf_draconic_2",
+     "title": "Test Dragonblood",
+     "type": "personality",
+     "character": "Test Dragonblood",
+     "bloodline": "draconic",
+     "aspect": 2,
+     "surge": 2,
+     "might": [
+      0,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000,
+      1100000
+     ]
+    },
+    {
+     "id": "tf_draconic_3",
+     "title": "Test Dragonblood",
+     "type": "personality",
+     "character": "Test Dragonblood",
+     "bloodline": "draconic",
+     "aspect": 3,
+     "surge": 3,
+     "might": [
+      0,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000,
+      1100000,
+      1200000
+     ]
+    },
     {"id": "t_sided_ward", "title": "Test Sided Ward", "type": "combat",
      "only": {"any_of": [{"alignment": "pact"}, {"character": "Test Twice-Swinger"}, {"character": "Test Dragonblood"}]},
      "defense": {"stops": "art"}},

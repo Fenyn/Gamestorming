@@ -2,10 +2,10 @@ class_name CardDef
 extends RefCounted
 ## Immutable card definition loaded from JSON. See zenith/README.md for the schema.
 
-## There is one personality type, not a Duelist type and an Ally type. Which personality is the
-## Duelist is a property of the deck (`DeckList.duelist_id`), not of the card: every other
-## personality in the Life Deck is an Ally, and the same card can be either in different decks.
-## Deck construction is what limits it, through the aspect rules in DeckValidator.
+## There is one personality type, not a Duelist type and an Ally type, and each Aspect is its own
+## card. Which cards make the Duelist's stack is a property of the deck (`DeckList.duelist_ids`),
+## not of the card: every other personality in the Life Deck is an Ally, and the same card can be
+## either in different decks. Deck construction is what limits it, through DeckValidator.
 enum Type { PERSONALITY, STRIKE, ART, COMBAT, NON_COMBAT, DRILL, SEAL, GROUNDS, MASTERY, RELIC }
 
 ## Card types, plus two role words. A card's own `type` field is always one of the canonical
@@ -38,11 +38,10 @@ var school: String = ""          # "" is Freestyle
 var text: String = ""
 var character: String = ""      # personalities: which character this card belongs to. The identity,
                                 # and the only thing a character owns: see `variant`
-var variant: String = ""        # personalities: which printing of that character this is, for the
-                                # cases where one person has more than one. Everything mechanical
-                                # (side, bloodline, keywords, ladder, powers) belongs to the
-                                # variant, because a person changes between printings and a card
-                                # can change them again mid-duel
+var variant: String = ""        # personalities: a label saying which printed line this Aspect was
+                                # written for, kept for display and for picking a run's next tier.
+                                # It no longer identifies a stack: cards of one character mix
+                                # freely, and a card two lines share carries no variant at all
 var bloodline: String = ""      # personalities: "", "draconic", "verdant". Inherited, so it is
                                 # not the school they trained in nor the side they took. Printed
                                 # here; ask DuelEngine.bloodline_of() for what it is right now
@@ -65,7 +64,15 @@ var modifiers: Array[Dictionary] = [] # {scope: own | against, kind: strike | ar
 var shield: String = ""         # Defense Shield on Drills: "", strike, art, any
 var forbid: Array = []          # standing forbids while in play (Grounds, Drills): [{"who": "all"|"owner"|"opponent", "what": "..."}]
 var attachment: Dictionary = {} # {"target": "in_control"|"duelist", "modifiers": [...], "effects": [...], "damage_removes": bool}
-var aspects: Array[Dictionary] = []     # personalities: {aspect, surge, might: [11 ints], wild, power, constant, shield}
+
+## personalities: the tier this card is, and the title printed on it. Each Aspect is its own card
+## (2026-09-21), so a personality card is exactly one Aspect: its `surge`, `might`, `power`,
+## `power_alt`, `constant`, `shield` and `wild` sit at the top level of the card. A stack of them
+## is a `PersonalityStack`, and which stack a card belongs to is a property of the deck, not of
+## the card.
+var aspect: int = 0
+var aspect_title: String = ""
+var aspects: Array[Dictionary] = []     # the one row above, as the engine reads it
 
 # Derived from `aspects` in from_dict; nothing writes `aspects` after load.
 var _lowest_aspect: int = 0
@@ -116,7 +123,15 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.shield = str(d.get("shield", ""))
 	c.forbid = d.get("forbid", [])
 	c.attachment = d.get("attachment", {})
-	c.aspects.assign(d.get("aspects", []))
+	assert(not d.has("aspects"),
+		"'%s' still carries an `aspects` ladder; each Aspect is its own card since 2026-09-21" % c.id)
+	if c.type == Type.PERSONALITY:
+		c.aspect = int(d.get("aspect", 1))
+		c.aspect_title = str(d.get("aspect_title", ""))
+		c.aspects.assign([CardDef._aspect_row(c, d)])
+		# A personality's `shield` is its Aspect's Defense Shield and lives in the row above;
+		# `CardDef.shield` is the Drill field and stays empty for them.
+		c.shield = ""
 	c.seal_set = str(d.get("seal_set", ""))
 	c.seal_number = int(d.get("seal_number", 0))
 	c.capture_trait = bool(d.get("capture_trait", false))
@@ -125,6 +140,27 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.opponent_aspect_threshold = int(d.get("opponent_aspect_threshold", 0))
 	c._index_aspects()
 	return c
+
+
+## The card's own Aspect, in the row shape the engine has always read. Everything mechanical about
+## a personality sits at the top level of the card now; this gathers it into one dictionary so
+## CardInstance, CardText and the AI keep asking for "the row for Aspect n".
+static func _aspect_row(c: CardDef, d: Dictionary) -> Dictionary:
+	var row: Dictionary = {
+		"aspect": c.aspect,
+		"surge": int(d.get("surge", 0)),
+		"might": d.get("might", []),
+	}
+	if c.aspect_title != "":
+		row["title"] = c.aspect_title
+	for key in ["power", "power_alt", "constant"]:
+		if d.has(key):
+			row[key] = d[key]
+	if str(d.get("shield", "")) != "":
+		row["shield"] = str(d["shield"])
+	if bool(d.get("wild", false)):
+		row["wild"] = true
+	return row
 
 
 ## Walks `aspects` once, since the three lookups over it run per simulated node.

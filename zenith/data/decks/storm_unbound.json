@@ -1,7 +1,10 @@
 {
   "name": "Stormlock",
-  "duelist": "duelist_gamma",
-  "aspects": 3,
+  "duelist": [
+    "personality_siphon_1_dormant",
+    "personality_siphon_2_charged",
+    "personality_siphon_3_unbound"
+  ],
   "style": "storm",
   "alignment": "pact",
   "mastery": "storm_squall_mastery",
@@ -23,15 +26,15 @@
       "count": 3
     },
     {
-      "id": "henchman_epsilon",
+      "id": "personality_pim_1",
       "count": 1
     },
     {
-      "id": "salvage_alpha",
+      "id": "personality_cull_1",
       "count": 1
     },
     {
-      "id": "salvage_beta",
+      "id": "personality_orvath_kell_1",
       "count": 1
     },
     {

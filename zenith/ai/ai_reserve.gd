@@ -89,7 +89,7 @@ static func read_setup(p: PlayerState) -> Dictionary:
 	# A deck sits on its lowest aspect when that aspect's constant power shields its cards.
 	out["camps"] = PRIOR
 	if p.duelist != null:
-		var lowest: Dictionary = p.duelist.def.aspect_data(p.duelist.def.lowest_aspect())
+		var lowest: Dictionary = p.duelist.stack.aspect_data(p.duelist.stack.lowest_aspect())
 		var constant: Dictionary = lowest.get("constant", {})
 		for key in constant.keys():
 			if str(key).begins_with("protect_"):

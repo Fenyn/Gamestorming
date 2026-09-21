@@ -104,11 +104,11 @@ func show_deck(d: DeckList) -> void:
 		$Row/Scroll/Content/Tabs.current_tab = 0
 		_paint()
 		return
-	var duelist: CardDef = Session.library.defs.get(d.duelist_id)
+	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
 	# The panel edge and stamp carry the player colour for this battle; the chip below still
 	# names the school.
 	_color = Session.seat_color(seat)
-	duelist_label.text = duelist.title if duelist != null else d.duelist_id
+	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
 	deck_label.text = d.name
 	tagline_label.text = d.tagline
 	school_chip.text = CardText.school_name(d.style)
@@ -124,27 +124,25 @@ func show_deck(d: DeckList) -> void:
 	blurb_label.text = d.blurb
 	info.show_deck(d, _might_max, faces)
 	$Row/Scroll/Content/Tabs/Details.scroll_vertical = 0
-	show_aspect(duelist.lowest_aspect() if duelist != null else 1)
+	show_aspect(duelist.aspect if duelist != null else 1)
 	_paint()
 
 
 ## Aspects the deck plays with, lowest first.
 func _shown_aspects() -> Array[int]:
 	var out: Array[int] = []
-	var duelist: CardDef = Session.library.defs.get(deck.duelist_id) if deck != null else null
-	if duelist == null:
+	if deck == null:
 		return out
-	for t in duelist.aspects:
-		var aspect: int = int(t.get("aspect", 0))
-		if aspect <= deck.aspects:
-			out.append(aspect)
+	for def in deck.duelist_stack(Session.library).defs:
+		out.append(def.aspect)
 	out.sort()
 	return out
 
 
 ## Shows one Aspect: its art in the portrait, its title and power in the Aspect block, its chip lit.
+## Each Aspect is its own card, so this looks up the card for that tier.
 func show_aspect(aspect: int) -> void:
-	var duelist: CardDef = Session.library.defs.get(deck.duelist_id) if deck != null else null
+	var duelist: CardDef = deck.duelist_stack(Session.library).def_for(aspect) if deck != null else null
 	if duelist == null:
 		return
 	_aspect = aspect

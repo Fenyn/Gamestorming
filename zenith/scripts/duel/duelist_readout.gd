@@ -144,10 +144,10 @@ func update_layout() -> Dictionary:
 		stat_hit_rects.append(Rect2(tracker.position + Vector2(-205, 0), Vector2(185, 160)))
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row - 28, text_width, 34))
-	var lines: PackedStringArray = _wrap_flags(text_width, 27)
+		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row - 34, text_width, 42))
+	var lines: PackedStringArray = _wrap_flags(text_width, 34)
 	for i in range(mini(lines.size(), flag_rows)):
-		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0 - 28, text_width, 34))
+		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0 - 34, text_width, 42))
 	return {"tracker": tracker, "flags": first_row, "middle": middle_x}
 
 
@@ -178,9 +178,9 @@ func _draw() -> void:
 		_diamond(origin + Vector2(204, 18), Vector2(4, 4), GOLD, GOLD)
 	for x in [180.0, 360.0]:
 		draw_line(origin + Vector2(x, 44), origin + Vector2(x, 142), Color(MUTED, 0.22), 1, true)
-	_text("ENERGY", origin + Vector2(10, 61), 160, 25, ENERGY, true)
-	_text("MIGHT", origin + Vector2(190, 61), 160, 25, TEXT, true)
-	_text("FERVOR", origin + Vector2(370, 61), 160, 25, FERVOR, true)
+	_text("ENERGY", origin + Vector2(10, 61), 160, 34, ENERGY, true)
+	_text("MIGHT", origin + Vector2(190, 61), 160, 34, TEXT, true)
+	_text("FERVOR", origin + Vector2(370, 61), 160, 34, FERVOR, true)
 	_text("%d / 10" % _energy, origin + Vector2(10, 109), 160, 42, TEXT, true)
 	_text(CardText.short_number(_might), origin + Vector2(190, 109), 160, 44, TEXT, true)
 	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 109), 160, 40, TEXT, true)
@@ -196,7 +196,7 @@ func _draw() -> void:
 	var rune_start: float = origin.x + 450.0 - step * (_threshold - 1) * 0.5
 	for i in range(_threshold):
 		_diamond(Vector2(rune_start + step * i, origin.y + 133), Vector2(minf(7, step * 0.3), 8), FERVOR if i < _fervor else INK, FERVOR if i < _fervor else Color(MUTED, 0.4))
-	var lines: PackedStringArray = _wrap_flags(text_width, 27)
+	var lines: PackedStringArray = _wrap_flags(text_width, 34)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
 		_draw_seals(first_row, middle_x, text_width)
@@ -204,7 +204,7 @@ func _draw() -> void:
 		var value: String = lines[i]
 		if i == flag_rows - 1 and lines.size() > flag_rows:
 			value = "%s · +%d more" % [lines[i].left(26), lines.size() - flag_rows]
-		_text(value, Vector2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0), text_width, 27, FERVOR, true)
+		_text(value, Vector2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0), text_width, 34, FERVOR, true)
 
 
 func status_text() -> String:

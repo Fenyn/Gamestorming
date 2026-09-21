@@ -3,8 +3,10 @@
   "source_deck": "shade_mind_siege",
   "tier": "t1",
   "mode": "adventure",
-  "duelist": "duelist_mu",
-  "aspects": 2,
+  "duelist": [
+    "personality_gideon_mourne_1_the_marked_lord",
+    "personality_gideon_mourne_2_unflinching"
+  ],
   "style": "shade",
   "alignment": "pact",
   "mastery": "shade_mastery",

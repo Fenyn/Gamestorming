@@ -58,7 +58,7 @@ static func opponent_name(opponent_id: String, library: CardLibrary) -> String:
 	var deck: DeckList = DeckList.resolve(opponent_id)
 	if deck == null:
 		return opponent_id
-	var duelist: CardDef = library.defs.get(deck.duelist_id)
+	var duelist: CardDef = library.defs.get(deck.duelist_face_id())
 	if duelist != null and duelist.title != "":
 		return duelist.title
 	return deck.name if deck.name != "" else opponent_id

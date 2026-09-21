@@ -168,7 +168,8 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 
 
 func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, energy: int = -1, standing: SeatPlayer = null) -> void:
-	var t: int = aspect if aspect > 0 else def.lowest_aspect()
+	# A personality card is one Aspect, so the card decides which number and row it shows.
+	var t: int = def.aspect if def.aspect > 0 else aspect
 	var td: Dictionary = def.aspect_data(t)
 	var dark: Color = color.darkened(0.45)
 	_round(p_aspect_box, dark, 12)
@@ -222,17 +223,14 @@ func _show_fervor(fervor: int, needed: int) -> void:
 		_fervor_pips[i].add_theme_stylebox_override("panel", style)
 
 
-## Card art lives in assets/card_art/<id>.png; duelists may add <id>_a<aspect>.png per aspect.
-## An .svg of the same name is taken when no painting is there yet, which is how the placeholder
-## house crests are picked up. Missing art falls back to the type glyph.
+## Card art lives in assets/card_art/<id>.png. Each Aspect is its own card, so a personality's
+## art is found by that card's id like everything else. An .svg of the same name is taken when no
+## painting is there yet, which is how the placeholder house crests are picked up. Missing art
+## falls back to the type glyph. `aspect` is kept so callers need not know which is which.
 static func art_texture(def: CardDef, aspect: int = 0) -> Texture2D:
-	var stems: Array[String] = []
-	if def.is_personality():
-		var t: int = aspect if aspect > 0 else def.lowest_aspect()
-		stems.append("%s_a%d" % [def.id, t])
-	stems.append(def.id)
+	var _unused: int = aspect
 	var candidates: Array[String] = []
-	for stem in stems:
+	for stem in [def.id]:
 		candidates.append("%s%s.png" % [ART_DIR, stem])
 		candidates.append("%s%s.svg" % [ART_DIR, stem])
 	for path in candidates:

@@ -1,13 +1,96 @@
 {
   "cards": [
-    {"id":"ai_strategy_duelist","title":"Test Strategy Duelist","type":"personality","character":"Test Strategy Duelist","aspects":[
-      {"aspect":1,"surge":1,"might":[1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000]},
-      {"aspect":2,"surge":1,"might":[1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000]},
-      {"aspect":3,"surge":1,"might":[1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000]}
-    ]},
-    {"id":"ai_strategy_caster","title":"Test Strategy Caster","type":"personality","character":"Test Strategy Caster","aspects":[
-      {"aspect":1,"surge":1,"might":[100000,100000,100000,100000,100000,100000,100000,100000,100000,100000,100000],"power":{"attack":{"kind":"art","printed_life":12,"cost_stages":0}}}
-    ]},
+    {
+     "id": "ai_strategy_duelist_1",
+     "title": "Test Strategy Duelist",
+     "type": "personality",
+     "character": "Test Strategy Duelist",
+     "aspect": 1,
+     "surge": 1,
+     "might": [
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000
+     ]
+    },
+    {
+     "id": "ai_strategy_duelist_2",
+     "title": "Test Strategy Duelist",
+     "type": "personality",
+     "character": "Test Strategy Duelist",
+     "aspect": 2,
+     "surge": 1,
+     "might": [
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000
+     ]
+    },
+    {
+     "id": "ai_strategy_duelist_3",
+     "title": "Test Strategy Duelist",
+     "type": "personality",
+     "character": "Test Strategy Duelist",
+     "aspect": 3,
+     "surge": 1,
+     "might": [
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000,
+      1000000
+     ]
+    },
+    {
+     "id": "ai_strategy_caster",
+     "title": "Test Strategy Caster",
+     "type": "personality",
+     "character": "Test Strategy Caster",
+     "aspect": 1,
+     "surge": 1,
+     "might": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000,
+      100000,
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+     ],
+     "power": {
+      "attack": {
+       "kind": "art",
+       "printed_life": 12,
+       "cost_stages": 0
+      }
+     }
+    },
     {"id":"ai_strategy_attack","title":"Test Strategy Tempting Attack","type":"art","attack":{"kind":"art","printed_life":4,"cost_stages":0}},
     {"id":"ai_strategy_distraction","title":"Test Strategy Costly Attack","type":"art","attack":{"kind":"art","printed_life":4,"cost_stages":3}},
     {"id":"ai_strategy_battery","title":"Test Strategy Small Battery","type":"combat","effects":[{"op":"energy","amount":1}]},

@@ -106,8 +106,7 @@ func _worlds() -> Array[DuelEngine]:
 	var decks: Array[DeckList] = []
 	for seat in range(2):
 		var deck: DeckList = DeckList.new()
-		deck.duelist_id = "ai_strategy_duelist"
-		deck.aspects = 3
+		deck.set_duelist(["ai_strategy_duelist_1", "ai_strategy_duelist_2", "ai_strategy_duelist_3"])
 		deck.style = "freestyle"
 		deck.alignment = "vigil" if seat == 0 else "pact"
 		for i in range(40):

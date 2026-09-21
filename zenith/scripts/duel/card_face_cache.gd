@@ -16,7 +16,7 @@ var _rendering: bool = false
 
 static func key_for(def: CardDef, aspect: int = 0) -> String:
 	if def.is_personality():
-		return "%s#%d" % [def.id, aspect if aspect > 0 else def.lowest_aspect()]
+		return "%s#%d" % [def.id, def.aspect if def.aspect > 0 else aspect]
 	return def.id
 
 
@@ -84,7 +84,8 @@ func render_def(def: CardDef) -> void:
 ## Mastery, Relic), which is all a client should assume about the other seat's deck.
 func render_deck(deck: DeckList, library: CardLibrary, public_only: bool = false) -> void:
 	await render_back()
-	await render_def(library.defs.get(deck.duelist_id))
+	for duelist_id in deck.duelist_ids:
+		await render_def(library.defs.get(duelist_id))
 	if deck.mastery_id != "":
 		await render_def(library.defs.get(deck.mastery_id))
 	if deck.relic_id != "":

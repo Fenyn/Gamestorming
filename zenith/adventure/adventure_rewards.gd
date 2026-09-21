@@ -39,7 +39,7 @@ static func candidates(run: AdventureRun, library: CardLibrary) -> Array[String]
 	var deck: DeckList = run.deck()
 	if deck == null:
 		return out
-	var duelist: CardDef = library.defs.get(deck.duelist_id)
+	var duelist: CardDef = library.defs.get(deck.duelist_face_id())
 	if duelist == null:
 		return out
 	var core: Dictionary = core_ids()
@@ -201,16 +201,13 @@ static func finish_stage(run: AdventureRun, ladder: AdventureLadder, library: Ca
 	run.status = "reward"
 
 
-## Capped by what the duelist was printed with as well as by the construction maximum.
+## The run gains the next Aspect card of its Duelist's line. It stops when the character has no
+## card at that tier or when the construction maximum is reached; `AdventureRun.next_tier_options`
+## is what the later client pass offers as a choice.
 static func _grant_aspect(run: AdventureRun, library: CardLibrary) -> void:
-	var deck: DeckList = run.deck()
-	if deck == null:
-		return
-	var duelist: CardDef = library.defs.get(deck.duelist_id)
-	if duelist == null:
-		return
-	var ceiling: int = mini(duelist.highest_aspect(), DeckValidator.MAX_ASPECTS)
-	run.aspects = mini(run.aspects + 1, ceiling)
+	var next: String = run.next_tier(library)
+	if next != "":
+		run.duelist_ids.append(next)
 
 
 ## Leaves the reward screen for the next stage, or ends the run when the ladder is spent.

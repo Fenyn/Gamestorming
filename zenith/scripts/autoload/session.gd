@@ -81,6 +81,9 @@ func build_referee() -> Referee:
 	var pair: Array[DeckList] = [chosen[0], chosen[1]]
 	var names: Array[String] = [player_names[0], player_names[1]]
 	referee.setup(pair, library, strike_table, last_seed, names)
+	# Adventure duels run first to two points; every other mode is the printed game.
+	if in_adventure():
+		referee.engine.set_points_to_win(2)
 	return referee
 
 

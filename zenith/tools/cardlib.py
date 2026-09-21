@@ -108,19 +108,67 @@ def seal(id, title, seal_set, number, effects, **k):
         effects=effects, limit_per_deck=1, **k)
 
 
-def ally(id, title, alignment, top, step, power, surge=1, **k):
-    add(id=id, title=title, type="personality", school="", character=title, alignment_only=alignment, limit_per_deck=1,
-        aspects=[{"aspect": 1, "surge": surge, "might": might(top, step), "power": power}], **k)
+HONORIFICS = {"sir", "dame", "lord", "lady", "master", "the"}
 
 
-def duelist(id, character, aspects, titles, **k):
-    """A Duelist and their Aspect ladder. `titles` is one epithet per Aspect, shown as
-    "Bram Ashmark, Unquenchable". Vigil duelists harden into the watch; Pact duelists come due.
-    A title is read off what that Aspect's power does, never off the school the deck fields."""
-    assert len(titles) == len(aspects), id
+def _slug(s):
+    out = "".join(ch if ch.isalnum() else "_" for ch in s.replace("'", "").replace("’", ""))
+    while "__" in out:
+        out = out.replace("__", "_")
+    return out.strip("_").lower()
+
+
+def personality_id(character, aspect_n, title="", variant=""):
+    """The id rule, decided 2026-09-21: personality_<first>_<last>_<tier>_<title>.
+
+    Honorifics are left out, apostrophes are dropped, spaces and hyphens become underscores. A
+    card with no Aspect title uses its variant word, or nothing. A card two printed lines share
+    carries no variant and so needs an Aspect title to tell it apart.
+    """
+    words = [w for w in character.split(",")[0].split() if w]
+    if words and words[0].lower() in HONORIFICS and len(words) > 1:
+        words = words[1:]
+    tail = _slug(title or variant or (character.split(",", 1)[1] if "," in character else ""))
+    base = "personality_%s_%d" % (_slug(" ".join(words)), aspect_n)
+    return "%s_%s" % (base, tail) if tail else base
+
+
+def personality(character, aspect_n, surge, top, step, power=None, title="", **k):
+    """One Aspect of one character, which is one card. `title` is the Aspect's epithet, read off
+    what that Aspect's Power does and never off the school the deck fields."""
+    card = dict(id=personality_id(character, aspect_n, title, str(k.get("variant", ""))),
+                title=character, type="personality", school="", character=character,
+                aspect=aspect_n, surge=surge, might=might(top, step))
+    if title:
+        card["aspect_title"] = title
+    if power:
+        card["power"] = power
+    card.update(k)
+    add(**card)
+
+
+def ally(title, alignment, top, step, power, surge=1, **k):
+    """A personality printed at a single Aspect. Any personality card can be an Ally; this is
+    only the shorthand for the ones that never climb."""
+    personality(title, 1, surge, top, step, power=power,
+                alignment_only=alignment, limit_per_deck=1, **k)
+
+
+def duelist(character, aspects, titles, **k):
+    """A character's whole printed ladder, as one card per Aspect. `titles` is one epithet per
+    Aspect. Vigil duelists harden into the watch; Pact duelists come due."""
+    assert len(titles) == len(aspects), character
     for a, name in zip(aspects, titles):
         a["title"] = name
-    add(id=id, title=character, type="personality", school="", character=character, aspects=aspects, **k)
+        row = dict(a)
+        n = row.pop("aspect")
+        name_arg = row.pop("title")
+        card = dict(id=personality_id(character, n, name_arg, str(k.get("variant", ""))),
+                    title=character, type="personality", school="", character=character,
+                    aspect=n, aspect_title=name_arg)
+        card.update(row)
+        card.update(k)
+        add(**card)
 
 
 def aspect(n, surge, top, step, power=None, constant=None, shield=None, power_alt=None):

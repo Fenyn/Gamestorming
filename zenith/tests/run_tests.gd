@@ -247,6 +247,10 @@ func _init() -> void:
 		test_a_profile_can_leave_prompt_kinds_to_the_scorer,
 		test_an_ally_power_refreshes_each_combat,
 		test_the_taller_ladder_wins_by_standing_above_it,
+		test_first_to_two_a_deck_out_scores_a_point_and_reshuffles,
+		test_first_to_two_the_hit_that_scores_loses_its_leftover_damage,
+		test_first_to_two_an_ascension_scores_once_and_resets_nothing,
+		test_first_to_two_a_seal_set_still_wins_outright,
 		test_an_adventure_run_round_trips_through_json_and_the_save,
 		test_adventure_ladders_field_legal_opponents,
 		test_an_adventure_offer_is_three_legal_cards_the_deck_can_run,
@@ -321,13 +325,38 @@ func eq(actual: Variant, expected: Variant, msg: String) -> void:
 	check(actual == expected, "%s: expected %s, got %s" % [msg, str(expected), str(actual)])
 
 
+## `duelist` names a stack, not a card: the fixture ladders are one card per Aspect, `<base>_1`
+## up to `<base>_5`, and `aspects` says how many rungs the deck runs. A base with no `_1` card is
+## taken as a character name and resolved against the shipped library, lowest id per Aspect.
+func stack_ids(duelist: String, aspects: int) -> Array[String]:
+	var out: Array[String] = []
+	if lib.has("%s_1" % duelist):
+		for i in range(1, aspects + 1):
+			out.append("%s_%d" % [duelist, i])
+		return out
+	var source: CardLibrary = lib if lib.has("%s_1" % duelist) else shipped()
+	var by_aspect: Dictionary = {}
+	for id in source.all_ids():
+		var def: CardDef = source.defs[id]
+		if not def.is_personality() or def.character != duelist:
+			continue
+		# A character with two printed lines offers two cards at a tier. Prefer the one that
+		# prints an Aspect title, which is the one written as a Duelist rung.
+		var held: String = str(by_aspect.get(def.aspect, ""))
+		if held == "" or (def.aspect_title != "" and (source.defs[held] as CardDef).aspect_title == ""):
+			by_aspect[def.aspect] = id
+	for i in range(1, aspects + 1):
+		if by_aspect.has(i):
+			out.append(str(by_aspect[i]))
+	return out
+
+
 func deck(cards: Array[String], alignment: String = "vigil", style: String = "", mastery: String = "", aspects: int = 3, duelist: String = "tf_vigil", relic: String = "", reserve: Array[String] = []) -> DeckList:
 	var d: DeckList = DeckList.new()
 	d.relic_id = relic
 	d.reserve = reserve.duplicate()
 	d.name = "Test %s" % alignment
-	d.duelist_id = duelist
-	d.aspects = aspects
+	d.set_duelist(stack_ids(duelist, aspects))
 	d.style = style
 	d.alignment = alignment
 	d.mastery_id = mastery
@@ -433,7 +462,8 @@ func skip_to_turn(e: DuelEngine, turn: int) -> void:
 
 func test_library_and_strike_table() -> void:
 	check(lib.defs.size() >= 30, "fixture cards loaded")
-	eq(lib.get_def("tf_vigil").highest_aspect(), 3, "vigil aspects")
+	eq(lib.get_def("tf_vigil_1").aspect, 1, "the fixture ladder is one card per Aspect")
+	eq(PersonalityStack.from_ids(lib, stack_ids("tf_vigil", 3)).highest_aspect(), 3, "vigil aspects")
 	eq(table.band(0), 0, "band A")
 	eq(table.band(1), 1, "band B starts at 1")
 	eq(table.band(4000000), 4, "band E")
@@ -461,7 +491,7 @@ func test_freestyle_mastery_searches_named_support_cards() -> void:
 		var cards: Array[String] = []
 		for i in range(30):
 			cards.append("sword_lunge")
-		var decks: Array[DeckList] = [deck(cards, "vigil", "freestyle", "freestyle_mastery", 3, "duelist_iota"), deck(cards, "pact", "", "", 3, "duelist_zeta")]
+		var decks: Array[DeckList] = [deck(cards, "vigil", "freestyle", "freestyle_mastery", 3, "Sir Edric Rooke"), deck(cards, "pact", "", "", 3, "Caedan Vale")]
 		var e: DuelEngine = DuelEngine.new()
 		e.shuffle_decks = false
 		e.setup(decks, shipped, StrikeTable.load_from("res://data/strike_table.json"), 5)
@@ -1247,7 +1277,7 @@ func test_power_not_refreshed_by_aspect_change() -> void:
 func test_ascension_win_and_gating() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt", "t_strike"])), deck(filler(), "pact"))
 	to_combat(e)
-	e.player(0).duelist.aspect = 2
+	e.player(0).duelist.go_to_aspect(2)
 	e.player(0).fervor = 4
 	e.player(1).highest_aspect = 5
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
@@ -2496,7 +2526,7 @@ func test_relic_shields() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_jeer", "t_set_aspect", "t_strike"])), deck(filler(), "pact", "", "", 3, "tf_vigil", "t_relic_shield"))
 	check(e.player(1).no_ascension_win, "relic forbids the ascension win")
 	e.player(1).fervor = 2
-	e.player(1).duelist.aspect = 2
+	e.player(1).duelist.go_to_aspect(2)
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_jeer"))
 	eq(e.player(1).fervor, 2, "fervor shielded")
@@ -2508,7 +2538,7 @@ func test_relic_shields() -> void:
 
 func test_set_aspect() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_set_aspect", "t_strike", "t_strike"])), deck(filler(), "pact"))
-	e.player(1).duelist.aspect = 3
+	e.player(1).duelist.go_to_aspect(3)
 	to_combat(e)
 	answer(e, &"use", uid_in_hand(e, 0, "t_set_aspect"))
 	eq(e.player(1).duelist.aspect, 1, "dropped to aspect 1")
@@ -3031,21 +3061,19 @@ func test_card_text_wording() -> void:
 	eq(CardText.effect_text({"trigger": "on_place", "op": "name_card"}), "When placed, name a card. Neither player may play or use it while this is in play.", "no doubled lead-in")
 	var uses: Array = [{"trigger": "use", "op": "discard_hand", "amount": 1, "random": false}, {"trigger": "use", "op": "draw", "amount": 2}]
 	eq(CardText.effects_text(uses), PackedStringArray(["Use in Combat: Discard a card from your hand. Draw 2 cards."]), "uses share one label")
-	var f: CardDef = CardDef.from_dict({"id": "x", "title": "X", "type": "personality", "aspects": [
-		{"aspect": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"power": {"attack": {"kind": "strike", "stages": 3}, "effects": [{"op": "energy", "amount": 5}, {"trigger": "if_stopped", "op": "draw", "amount": 1}], "uses": 2},
-			"constant": {"first_styled_unstoppable": true, "forbid_opponent": ["art_attacks"]}, "shield": "strike"},
-	]})
+	var f: CardDef = CardDef.from_dict({"id": "x", "title": "X", "type": "personality",
+		"aspect": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+		"power": {"attack": {"kind": "strike", "stages": 3}, "effects": [{"op": "energy", "amount": 5}, {"trigger": "if_stopped", "op": "draw", "amount": 1}], "uses": 2},
+		"constant": {"first_styled_unstoppable": true, "forbid_opponent": ["art_attacks"]}, "shield": "strike"})
 	var lines: PackedStringArray = CardText.aspect_text(f, 1)
 	eq(lines.size(), 3, "power, constant, and shield lines")
 	eq(lines[0], "Power: Strike doing +3 Energy. Gain 5 Energy. If stopped, draw a card. May be used twice per Combat.", "every part of the Power")
 	eq(lines[1], "Constant: Your first attack each Combat with a school card cannot be stopped. Your opponent may not perform Arts.", "constants render")
 	eq(lines[2], "Defense Shield: stops the first unstopped Strike each Combat.", "shield renders")
 	# An Ally who answers from the side has no other way to tell the player she may be used.
-	var aside: CardDef = CardDef.from_dict({"id": "y", "title": "Y", "type": "personality", "aspects": [
-		{"aspect": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"power": {"defense": {"stops": "strike"}, "no_control_needed": true}},
-	]})
+	var aside: CardDef = CardDef.from_dict({"id": "y", "title": "Y", "type": "personality",
+		"aspect": 1, "surge": 1, "might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+		"power": {"defense": {"stops": "strike"}, "no_control_needed": true}})
 	check(CardText.aspect_text(aside, 1)[0].ends_with("This personality does not have to be in control to use this Power."),
 		"a Power usable from the side says so: %s" % CardText.aspect_text(aside, 1)[0])
 	var relic: CardDef = CardDef.from_dict({"id": "m", "title": "M", "type": "relic", "reserve_size": 13, "uses_per_game": 2, "limit_per_deck": 1,
@@ -3535,7 +3563,7 @@ func test_a_drill_answers_one_successful_attack_a_combat() -> void:
 func test_no_modifiers_are_added_against_the_machine() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_drill_assembly", "t_strike", "t_art"])), deck(filler(), "pact", "", "", 3, "tf_machine"))
 	answer(e, &"place", uid_in_hand(e, 0, "t_drill_assembly"))
-	e.player(1).duelist.aspect = 2
+	e.player(1).duelist.go_to_aspect(2)
 	to_combat(e)
 	var forecasts: Dictionary = e.attack_forecasts(0)
 	var strike: Dictionary = forecasts.get(uid_in_hand(e, 0, "t_strike"), {})
@@ -3549,7 +3577,7 @@ func test_no_modifiers_are_added_against_the_machine() -> void:
 func test_a_power_can_read_another_card_by_title() -> void:
 	for pair in [[false, 2], [true, 6]]:
 		var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_machine"), deck(filler(), "pact"))
-		e.player(0).duelist.aspect = 3
+		e.player(0).duelist.go_to_aspect(3)
 		if bool(pair[0]):
 			inject(e, 0, "t_relay")
 		to_combat(e)
@@ -3565,7 +3593,7 @@ func test_a_card_can_answer_an_ascension_win() -> void:
 		var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 		if bool(pair[0]):
 			inject(e, 1, "t_reckoning")
-		e.player(0).duelist.aspect = 3
+		e.player(0).duelist.go_to_aspect(3)
 		e.player(0).fervor = 4
 		e._change_fervor(e.player(0), 1, 0)
 		if bool(pair[0]):
@@ -3577,7 +3605,7 @@ func test_a_card_can_answer_an_ascension_win() -> void:
 	# Declining the window is still a win.
 	var d: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	inject(d, 1, "t_reckoning")
-	d.player(0).duelist.aspect = 3
+	d.player(0).duelist.go_to_aspect(3)
 	d.player(0).fervor = 4
 	d._change_fervor(d.player(0), 1, 0)
 	answer(d, &"decline")
@@ -3704,7 +3732,7 @@ func test_a_power_can_check_whether_the_drawn_card_attacks() -> void:
 	var left: Array[int] = []
 	for list in [attacks, quiet]:
 		var e: DuelEngine = engine(deck(list, "vigil", "", "", 3, "tf_knight"), deck(filler(), "pact"))
-		e.player(0).duelist.aspect = 2
+		e.player(0).duelist.go_to_aspect(2)
 		to_combat(e)
 		left.append(e.player(1).life_deck.size())
 	eq(left[1] - left[0], 3, "an attack card on top costs the rival three, a Combat card nothing")
@@ -3913,7 +3941,7 @@ func test_the_taller_ladder_wins_by_standing_above_it() -> void:
 	eq(e.mppv_aspect(e.player(0)), 4, "so Aspect 4 is the winning rung")
 	eq(e.mppv_aspect(e.player(1)), 0, "and the shorter ladder has no rung above the taller one")
 	to_combat(e)
-	e.player(0).duelist.aspect = 3
+	e.player(0).duelist.go_to_aspect(3)
 	e.player(0).fervor = 4
 	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
 	eq(e.player(0).duelist.aspect, 4, "the climb lands on Aspect 4")
@@ -3925,7 +3953,7 @@ func test_the_taller_ladder_wins_by_standing_above_it() -> void:
 	var f: DuelEngine = engine(deck(filler(["t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact", "", "", 5, "tf_titan"))
 	eq(f.mppv_aspect(f.player(0)), 0, "level ladders leave no rung above")
 	to_combat(f)
-	f.player(0).duelist.aspect = 3
+	f.player(0).duelist.go_to_aspect(3)
 	f.player(0).fervor = 4
 	answer(f, &"use", uid_in_hand(f, 0, "t_taunt"))
 	eq(f.player(0).duelist.aspect, 4, "it still climbs")
@@ -3935,7 +3963,7 @@ func test_the_taller_ladder_wins_by_standing_above_it() -> void:
 	var g: DuelEngine = engine(deck(filler(["t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
 	to_combat(g)
 	g.player(0).no_ascension_win = true
-	g.player(0).duelist.aspect = 3
+	g.player(0).duelist.go_to_aspect(3)
 	g.player(0).fervor = 4
 	answer(g, &"use", uid_in_hand(g, 0, "t_taunt"))
 	eq(g.player(0).duelist.aspect, 4, "the climb still happens")
@@ -3945,13 +3973,93 @@ func test_the_taller_ladder_wins_by_standing_above_it() -> void:
 	var h: DuelEngine = engine(deck(filler(["t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
 	inject(h, 1, "t_reckoning")
 	to_combat(h)
-	h.player(0).duelist.aspect = 3
+	h.player(0).duelist.go_to_aspect(3)
 	h.player(0).fervor = 4
 	answer(h, &"use", uid_in_hand(h, 0, "t_taunt"))
 	eq(prompt_kind(h), &"respond", "the rival is asked before the win stands")
 	answer(h, &"use", h.player(1).non_combats()[0].uid)
 	eq(h.player(0).duelist.aspect, 3, "the answer knocked them back down a rung")
 	check(not h.is_over(), "so the win does not stand")
+
+
+## Adventure house rule: first to `points_to_win`. Running out of Life Deck costs a point and the
+## discard pile becomes the new deck; removed cards stay out and the table is untouched.
+func test_first_to_two_a_deck_out_scores_a_point_and_reshuffles() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(["t_strike", "t_strike"], "pact"))
+	e.state.points_to_win = 2
+	for i in range(4):
+		to_discard(e, 1, "t_strike")
+	var gone: CardInstance = e._instance(lib.get_def("t_strike"), 1, &"removed")
+	e.player(1).removed.append(gone)
+	var drill: CardInstance = inject(e, 1, "t_drill_strike")
+	to_combat(e)
+	check(not e.is_over(), "the first deck-out does not end a first-to-two duel")
+	eq(e.state.points[0], 1, "it scores the rival a point")
+	eq(e.player(1).hand.size(), 3, "and the draw that ran dry still finishes")
+	eq(e.player(1).life_deck.size(), 3, "out of a new deck made of the four discards")
+	check(e.player(1).discard.is_empty(), "which left the discard pile empty")
+	check(e.player(1).removed.has(gone), "a removed card stays removed")
+	check(e.player(1).in_play.has(drill), "and the table is untouched")
+	# The second time is the duel.
+	e.player(1).life_deck.clear()
+	e._draw(1, 1)
+	check(e.is_over(), "the second deck-out ends it")
+	eq(e.state.winner, 0, "for the duelist who emptied them twice")
+	eq(e.state.win_reason, "survival", "by survival")
+
+	# A duelist with nothing to shuffle back has nothing left to fight with.
+	var f: DuelEngine = engine(deck(filler()), deck(["t_strike", "t_strike"], "pact"))
+	f.state.points_to_win = 2
+	to_combat(f)
+	check(f.is_over(), "an empty discard pile makes the first deck-out final")
+	eq(f.state.winner, 0, "and the rival wins")
+
+
+func test_first_to_two_the_hit_that_scores_loses_its_leftover_damage() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "pact"))
+	e.state.points_to_win = 2
+	to_combat(e)
+	while e.player(1).life_deck.size() > 2:
+		e.player(1).removed.append(e.player(1).life_deck.pop_back())
+	for i in range(3):
+		to_discard(e, 1, "t_strike")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	check(not e.is_over(), "the duel goes on")
+	eq(e.state.points[0], 1, "four wounds into a two-card deck score a point")
+	eq(e.player(1).life_deck.size(), 5, "the new deck is the three old discards and the two wounds")
+	check(e.player(1).discard.is_empty(), "and the rest of the hit never reaches it")
+
+
+func test_first_to_two_an_ascension_scores_once_and_resets_nothing() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
+	e.state.points_to_win = 2
+	to_combat(e)
+	e.player(0).duelist.go_to_aspect(3)
+	e.player(0).fervor = 4
+	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
+	eq(e.player(0).duelist.aspect, 4, "the climb lands above the rival's ladder")
+	check(not e.is_over(), "which is a point and not the duel")
+	eq(e.state.points[0], 1, "one point")
+	# Standing there is still true on every later check, and it must not score again.
+	e.player(0).fervor = 5
+	e._check_aspect_up(e.player(0))
+	eq(e.player(0).duelist.aspect, 5, "the next meter is an ordinary climb")
+	eq(e.state.points[0], 1, "and not a second point")
+	check(not e.is_over(), "so the duel is still on")
+	# The second point has to come from their Life Deck.
+	e.player(1).life_deck.clear()
+	e.player(1).discard.clear()
+	e._draw(1, 1)
+	check(e.is_over(), "Ascension plus an emptied deck is the full win")
+	eq(e.state.winner, 0, "for the climber")
+
+
+func test_first_to_two_a_seal_set_still_wins_outright() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	e.state.points_to_win = 2
+	e._win(0, "seal")
+	check(e.is_over(), "a full Seal set ends a first-to-two duel on the spot")
+	eq(e.state.win_reason, "seal", "as a Seal win")
 
 
 # --- Simulation support ----------------------------------------------------
@@ -4554,17 +4662,17 @@ func test_a_bloodline_can_be_lent_by_an_attachment() -> void:
 ## read them as one person; the ladder, the keywords and the line belong to the printing and are
 ## free to differ, which is why the variant is what tells the cards apart.
 func test_two_variants_of_one_character_are_one_person() -> void:
-	var short_road: CardDef = lib.get_def("tf_marked_short")
-	var long_road: CardDef = lib.get_def("tf_marked_long")
+	var short_road: CardDef = lib.get_def("tf_marked_short_1")
+	var long_road: CardDef = lib.get_def("tf_marked_long_1")
 	eq(short_road.character, long_road.character, "the same person")
 	check(short_road.variant != long_road.variant, "and two printings of them")
-	eq(short_road.highest_aspect(), 3, "one climbs three aspects")
-	eq(long_road.highest_aspect(), 5, "the other five")
+	eq(PersonalityStack.from_ids(lib, stack_ids("tf_marked_short", 3)).highest_aspect(), 3, "one climbs three aspects")
+	eq(PersonalityStack.from_ids(lib, stack_ids("tf_marked_long", 5)).highest_aspect(), 5, "the other five")
 	check(short_road.raw.get("tags", []).has("marked"), "one is marked")
 	check(not long_road.raw.get("tags", []).has("marked"), "and the other is not, which is allowed")
 	eq(CardText.personality_name(short_road), "Test Two-Faced, the Short Road", "the variant names the card")
 	eq(CardText.personality_name(lib.get_def("t_ally_squire")), "Test Squire", "one printing needs no variant")
-	var d: DeckList = deck(filler(["tf_marked_short"]), "vigil", "", "t_mastery_pyre", 3, "tf_marked_long")
+	var d: DeckList = deck(filler(["tf_marked_short_1"]), "vigil", "", "t_mastery_pyre", 3, "tf_marked_long")
 	var problems: Array[String] = DeckValidator.validate(d, lib)
 	check(str(problems).contains("same character as the Duelist"), "and one printing cannot be the other's Ally")
 
@@ -4589,10 +4697,10 @@ func test_a_mastery_can_buy_wounds_off_with_the_discard_pile() -> void:
 func test_a_card_can_lock_out_what_would_drag_an_aspect_down() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_aspect_lock"])), deck(filler(["t_drop_them"]), "pact"))
 	var foe: PlayerState = e.player(1)
-	e.player(0).duelist.aspect = 3
+	e.player(0).duelist.go_to_aspect(3)
 	e._apply_effect({"op": "lose_aspect", "who": "opponent"}, 1, {}, null)
 	eq(e.player(0).duelist.aspect, 2, "without the lock they drag him down a rung")
-	e.player(0).duelist.aspect = 3
+	e.player(0).duelist.go_to_aspect(3)
 	e._apply_effect({"op": "forbid", "who": "opponent", "what": "lower_aspect", "duration": "combat"}, 0, {}, null)
 	e._apply_effect({"op": "lose_aspect", "who": "opponent"}, 1, {}, null)
 	eq(e.player(0).duelist.aspect, 3, "with it in force he stays where he is")
@@ -4632,7 +4740,7 @@ func test_remain_can_count_the_aspect_and_read_either_of_two_cards() -> void:
 	check(not e._cond({"card_in_play": ["Test Marker A", "Test Marker B"]}, 0, ctx), "neither marker is out")
 	inject(e, 0, "t_marker_b")
 	check(e._cond({"card_in_play": ["Test Marker A", "Test Marker B"]}, 0, ctx), "the second one counts")
-	me.duelist.aspect = 3
+	me.duelist.go_to_aspect(3)
 	to_combat(e)
 	answer(e, &"attack", uid_in_hand(e, 0, "t_ride_it"))
 	while e.prompt != null and e.prompt.kind != &"attack_action":
@@ -4687,7 +4795,7 @@ func test_a_seal_can_turn_their_removal_into_a_discard() -> void:
 func test_a_constant_can_read_the_keyword_on_the_card_it_boosts() -> void:
 	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
 	var me: PlayerState = e.player(0)
-	me.duelist.aspect = 3
+	me.duelist.go_to_aspect(3)
 	var marked: CardInstance = e._instance(lib.get_def("t_marked_blow"), 0, &"hand")
 	var plain: CardInstance = e._instance(lib.get_def("t_plain_blow"), 0, &"hand")
 	eq(e._modifiers_for(me, "own", "strike", marked, {}).size(), 1, "the marked card takes the Constant's modifier")
@@ -4702,10 +4810,10 @@ func test_a_constant_can_shift_the_strike_table_both_ways() -> void:
 	var me: PlayerState = e.player(0)
 	var mine: Dictionary = {"attacker": 0, "defender": 1, "kind": "strike", "spec": {}, "target": -1, "empowered": false}
 	var theirs: Dictionary = {"attacker": 1, "defender": 0, "kind": "strike", "spec": {}, "target": -1, "empowered": false}
-	me.duelist.aspect = 1
+	me.duelist.go_to_aspect(1)
 	var plain_mine: int = int(e._damage_calc(mine)["table"])
 	var plain_against: int = int(e._damage_calc(theirs)["table"])
-	me.duelist.aspect = 2
+	me.duelist.go_to_aspect(2)
 	eq(int(e._damage_calc(mine)["table"]), plain_mine + 2, "his own Strikes hit the table 2 harder")
 	eq(int(e._damage_calc(theirs)["table"]), maxi(0, plain_against - 2), "and Strikes at him land 2 softer")
 
@@ -4715,7 +4823,7 @@ func test_a_constant_can_shift_the_strike_table_both_ways() -> void:
 func test_a_power_can_buy_a_second_use_with_a_card_from_hand() -> void:
 	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
 	var me: PlayerState = e.player(0)
-	me.duelist.aspect = 1
+	me.duelist.go_to_aspect(1)
 	me.hand.clear()
 	e._mark_power_used(me.duelist)
 	check(not e._power_available(me, me.duelist), "spent, and nothing in hand to buy it back")
@@ -4736,7 +4844,7 @@ func test_a_power_can_buy_a_second_use_with_a_card_from_hand() -> void:
 func test_grounds_can_read_the_gate_rather_than_the_keyword() -> void:
 	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
 	var me: PlayerState = e.player(0)
-	me.duelist.aspect = 1
+	me.duelist.go_to_aspect(1)
 	e.state.grounds = e._instance(lib.get_def("t_ring"), 0, &"grounds")
 	var gated: CardInstance = e._instance(lib.get_def("t_gated_blow"), 0, &"hand")
 	var carried: CardInstance = e._instance(lib.get_def("t_marked_blow"), 0, &"hand")
@@ -4853,7 +4961,7 @@ func test_an_adventure_run_round_trips_through_json_and_the_save() -> void:
 	if run == null:
 		return
 	run.stage = 3
-	run.aspects = 3
+	run.duelist_ids.append("personality_bram_ashmark_3_unstoppable")
 	run.status = "reward"
 	run.pending_offer.append("pyre_kindling")
 	run.picks.append({"stage": 0, "kind": "pick", "id": "pyre_kindling"})
@@ -4872,7 +4980,7 @@ func test_an_adventure_run_round_trips_through_json_and_the_save() -> void:
 	check(loaded != null, "the save parses back into a run")
 	if loaded != null:
 		eq(loaded.stage, 3, "stage came back an int")
-		eq(loaded.aspects, 3, "aspects came back an int")
+		eq(loaded.duelist_ids, run.duelist_ids, "the Duelist's Aspect cards came back whole")
 		eq(loaded.run_seed, 4242, "seed came back an int")
 		eq(loaded.cards, run.cards, "the deck came back whole")
 		eq(int(loaded.picks[0].get("stage", -1)), 0, "and a pick row came back an int")
@@ -4926,7 +5034,7 @@ func test_an_adventure_offer_is_three_legal_cards_the_deck_can_run() -> void:
 		if ladder == null or run == null:
 			check(false, "%s has both a ladder and a starter deck" % starter_id)
 			continue
-		var duelist: CardDef = shipped.defs.get(run.deck().duelist_id)
+		var duelist: CardDef = shipped.defs.get(run.deck().duelist_face_id())
 		var style: String = run.deck().style
 		for n in range(ladder.size()):
 			AdventureRewards.finish_stage(run, ladder, shipped, true)
@@ -4966,13 +5074,15 @@ func test_the_stage_two_grant_raises_the_aspect_count() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
 	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
-	eq(run.aspects, 2, "a starter opens at two Aspects")
+	eq(run.aspects(), 2, "a starter opens at two Aspects")
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
-	eq(run.aspects, 2, "stage 1 grants nothing")
+	eq(run.aspects(), 2, "stage 1 grants nothing")
 	AdventureRewards.apply_skip(run)
 	AdventureRewards.finish_reward(run, ladder)
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
-	eq(run.aspects, 3, "stage 2 grants the third Aspect")
+	eq(run.aspects(), 3, "stage 2 grants the third Aspect")
+	eq(run.duelist_ids[2], "personality_bram_ashmark_3_unstoppable",
+		"and the Aspect it grants is the next card of the starter's own line")
 	var problems: Array[String] = DeckValidator.validate(run.deck(), shipped)
 	eq(problems.size(), 0, "and the deck is still legal: %s" % ", ".join(problems))
 	# A loss ends the run wherever it happens.
@@ -5616,7 +5726,7 @@ func shipped() -> CardLibrary:
 
 ## A deck of real cards. `root_timber_blow` is the padding: a plain Strike with no rider, there
 ## only so neither deck runs dry, and never the card under test.
-func real_deck(cards: Array[String], alignment: String = "vigil", style: String = "", duelist_id: String = "duelist_eta") -> DeckList:
+func real_deck(cards: Array[String], alignment: String = "vigil", style: String = "", duelist_id: String = "Osric Thornwald") -> DeckList:
 	var out: Array[String] = cards.duplicate()
 	for i in range(24):
 		out.append("root_timber_blow")
@@ -5705,7 +5815,8 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.school, school, "%s carries its school" % id)
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
-	eq(shipped().defs.size(), 397, "and the set is 342 cards plus the 55 new ones")
+	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards.
+	eq(shipped().defs.size(), 432, "and the set is 370 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -5969,7 +6080,7 @@ func test_root_thorn_hedge_answers_the_hit_it_just_took() -> void:
 ## personality being attacked, not off the attacker.
 func test_root_quickening_is_focused_against_a_marked_duelist() -> void:
 	var e: DuelEngine = real_engine(real_deck(["root_quickening"], "vigil", "root"),
-		real_deck([], "pact", "", "duelist_lambda"))
+		real_deck([], "pact", "", "Bram Ashmark"))
 	check(e._cond({"defender_tag": "marked"}, 0, {}), "the personality across the table carries the keyword")
 	check(not e._cond({"defender_tag": "marked"}, 1, {}), "ours does not")
 	# A stop that answers either kind is the one Focused shuts out; a stop that names the kind
@@ -6003,7 +6114,7 @@ func test_root_kin_clearing_needs_an_ally_before_it_clears_the_table() -> void:
 	check(not e._can_play(me, gated), "no Ally, no use")
 	real_inject(e, 1, "root_canopy_drill")
 	real_inject(e, 1, "storm_tight_coil_drill")
-	real_inject(e, 0, "companion_delta")
+	real_inject(e, 0, "personality_ansel_rooke_1")
 	check(e._can_play(me, gated), "with an Ally on the table it is legal")
 	to_attack(e, 0)
 	answer(e, &"use", uid_in_hand(e, 0, "root_kin_clearing"))
@@ -6099,7 +6210,7 @@ func test_the_card_group_tells_signature_from_freestyle() -> void:
 		["shrugs_it_off", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
 		["quarrs_roar", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
 		["quarrs_crushing_blow", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
-		["duelist_alpha", "freestyle", false, "Freestyle", "Freestyle"],
+		["personality_bram_ashmark_1_starved", "freestyle", false, "Freestyle", "Freestyle"],
 		["pyre_mastery", "pyre", false, "Pyre", "Pyre"],
 		["blank_mask", "freestyle", false, "Freestyle", "Freestyle"],
 		["salt_seal_1", "freestyle", false, "Freestyle", "Freestyle"],

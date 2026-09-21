@@ -1,7 +1,10 @@
 {
   "name": "Ironblood Onslaught",
-  "duelist": "duelist_epsilon",
-  "aspects": 3,
+  "duelist": [
+    "personality_halden_quarr_1_the_grinder",
+    "personality_halden_quarr_2_tempered",
+    "personality_halden_quarr_3_ironheart"
+  ],
   "style": "steel",
   "alignment": "pact",
   "mastery": "steel_mastery",

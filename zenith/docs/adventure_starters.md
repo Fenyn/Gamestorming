@@ -6,7 +6,8 @@ their own plan. `tools/scale_deck.py` no longer writes starters; it writes the o
 
 ## The brief
 
-- 40 cards, 45 for Root. Two Aspects.
+- 45 cards for the nine open starters, since 2026-09-21. Two Aspects. The five advanced starters
+  keep their own sizes (50, Root 55).
 - One or two bombs, listed in each file's `bombs` field.
 - Enough interaction: stops for both Strikes and Arts, ways to touch the board or the hand, and
   enough offense or goal cards to win.
@@ -20,8 +21,12 @@ their own plan. `tools/scale_deck.py` no longer writes starters; it writes the o
   and `tide_breakwater` are left out on the same grounds: they prevent all damage, or all Art
   wounds, for the rest of Combat, which plays as a stop-all even though the filter does not flag it.
 - No Grounds. They are unlocks.
-- At most two of any card, with two exceptions where the precon ran out of non-lockout cards:
-  `pyre_cinder_guard` x3 in Pyre Beatdown and `cold_appraisal` x3 in Shade Salvage.
+- No copy cap beyond the game's own limits (3, or 4 for the duelist's own named cards). The old
+  two-copy cap was dropped 2026-09-21: balance matters more than a house limit.
+- The 2026-09-21 pass took every open starter from 40 to 45 by adding five defensive cards from its
+  own precon: third and fourth copies of the stops it already ran, and where the precon had no
+  more non-lockout stops, Endurance attacks, `cut_short`, `cold_appraisal` or an Energy refill.
+  The per-deck stop counts below predate that pass.
 - `cut_short` (stops a Combat card's effects) is in every starter, as the universal answer to a
   trick.
 
@@ -34,7 +39,7 @@ Decided 2026-09-20 after the first playtest. Nine starters are open from the fir
 |---|---|---|---|
 | steel_heir | 50 | 3 | third copies of the Draconic Strikes and both Energy-drain stops, `rites_unmade` |
 | shade_salvage | 50 | 3 | all four Allies (Gideon Mourne, Pim), third copies of the Arts and construct cards, `lucky_find`, `sever_the_leyline` |
-| tide_companions | 50 | 3 | all four companions (Wren, Sir Edric), `edrics_vow`, third copies of the Ally tutors and Arts |
+| tide_companions | 50 | 3 | all four Allies (Wren, Sir Edric), `edrics_vow`, third copies of the Ally tutors and Arts |
 | storm_unbound | 50 | 3 | Pim, third copies of the Storm Arts, the guards and `corins_conditioning` |
 | root_seals | 55 | 3 | third copies of the Arts, stops and `keepers_drill`, `lucky_find`, `gates_boon` |
 
@@ -152,7 +157,7 @@ Sun Seals for draw. Stops: 9. `unerring_bolt` x1 is the 40th card and plays clos
 Plan: Allies out, the Bond, then fight through Allies once the Duelist's Energy is spent.
 Bombs: `warding_call` (an Ally into play, their Seals discarded) and `last_gasp` (5 wounds, sets
 her own Energy to 0, which is the plan).
-Kept: **Tavin Vale and Ansel Rooke, the pair `bonded_pair` fuses**, with `bonding_rite` x2,
+Kept: **Tavin Vale and Ansel Rooke, the pair `personality_ansel_and_tavin_1_back_to_back` fuses**, with `bonding_rite` x2,
 `lucky_find` to tutor it, and `rallying_call` and `tide_springwater` to find Allies.
 Stops: 8. Board: `drowning`, `rookes_deluge`, `watchful_eye`.
 **Correction:** the earlier starter kept Wren and Sir Edric, so its Bonding card had nothing to

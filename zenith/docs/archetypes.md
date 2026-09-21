@@ -139,7 +139,7 @@ and are counted in 2.8, not here.
 
 - Fervor denial is the identity: 12 of 28 cards lower the opponent's Fervor, more than the rest of
   the set put together outside Freestyle.
-- The most even Strike/Art split of any school, and four cards attack and defend from one printing
+- The most even Strike/Art split of any school, and four cards attack and defend on the same card
   (`tide_surge` stops Strikes, `tide_undertow` stops Arts, `tide_confluence`, `tide_twin_breaker`).
 - It reaches sideways rather than hitting hard: `tide_dredge` and `tide_depths` dig, `tide_drowning`
   and `tide_pull_under` strip the board, `tide_springwater` puts an Ally back into play.
@@ -244,7 +244,8 @@ Non-Combats and 8 of its 25 Drills, and it is the only class whose commonest typ
 A signature card is any card with a non-empty `character`. It is a class, not a part of Freestyle.
 **The rules that make it different:** a card naming your own Duelist allows **4 copies** rather than
 3, unless it prints a lower limit, which wins; it is offered only to a run whose Duelist is that
-character, or alongside or after that character's Ally (5.10); an `only` gate naming a character is
+character (5.10 proposes a second route, alongside or after that character as an Ally, which is not
+in code yet); an `only` gate naming a character is
 met by that character being the Duelist **or** an Ally in the deck, and `only: {duelist_character}`
 is met only by the Duelist; and a signature card is legal in every school's deck **including the
 Freestyle-style deck**, because a signature card carries no school. The three exceptions are
@@ -258,33 +259,51 @@ also print a school (`steel`); those are legal in a Steel deck only.
   better in its own character's hands.
 - The one `counter` card in the set is signature (`cut_short`), as are 3 of the 5 attachments.
 
-| Character | Cards | By type | Personality printings | Where the kit can be used |
-|---|---|---|---|---|
-| Emrys Rooke | 9 | 7 Strike, 2 Drill | Duelist `duelist_kappa` (5 Aspects) | **Unreachable.** No Ally printing, and a 5-Aspect printing can never be an Ally |
-| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | Duelist `duelist_iota` (5), Ally `companion_beta` | Own run, and any Vigil run that fields him as an Ally |
-| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | Duelists `duelist_alpha` (3), `duelist_lambda` (5) | Own run only |
-| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | Duelist `duelist_mu` (4), Ally `salvage_gamma` | Any Pact run that fields him as an Ally. His own Duelist run has no ladder yet |
-| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | Duelist `duelist_zeta` (5) | Own run only |
-| Corin Thrace | 5 | 3 Art, 1 Strike, 1 Non-Combat | none | **Unreachable.** No personality card exists at all |
-| Sable Draik | 3 | 3 Art | Duelist `duelist_delta` (3) | **Unreachable.** Ally-legal only in a 5-Aspect deck, and no run runs her |
-| Halden Quarr | 3 | 2 Strike, 1 Art | Duelist `duelist_epsilon` (3) | **Unreachable**, and Steel-only on top |
-| The Fortress | 2 | 1 Strike, 1 Art | none | **Unreachable** |
-| Marrow | 2 | 2 Combat | Duelist `duelist_theta` (4) | **Unreachable.** A 4-Aspect printing is never Ally-legal |
-| Siphon | 2 | 1 Strike, 1 Art | Duelist `duelist_gamma` (3) | Own run only |
-| Dame Alder Rooke | 1 | 1 Combat | Duelist `duelist_beta` (3), Ally `companion_epsilon` | Her one card reads `only: {duelist_character}`, so fielding her as an Ally does not unlock it. Effectively unreachable |
-| Brann Draik | 1 | 1 Strike | Ally `henchman_beta` | Any Pact run that fields him |
-| Halvard Draik | 1 | 1 Strike | Ally `henchman_delta` | Any Pact run that fields him |
-| Vesna Draik | 1 | 1 Strike | Ally `henchman_alpha` | Any Pact run that fields her |
-| Cull | 1 | 1 Drill | Ally `salvage_alpha` | Any Pact run that fields him |
-| Torvan Hask | 1 | 1 Strike | none | **Unreachable** |
-| Scorn | 1 | 1 Combat | none | **Unreachable** |
-| Sledge | 1 | 1 Art | none | **Unreachable** |
-| Mercy | 1 | 1 Non-Combat | none | **Unreachable** |
+**How a signature card actually reaches a deck.** `AdventureRewards._source_ok` offers a card with a
+`character` only when that character is the run's **Duelist**. Fielding the character as an Ally does
+not open their kit; an Ally only satisfies an `only: {character}` gate on a card the run could
+already be offered. So a kit is reachable exactly when some starter names one of that character's
+personality cards as its Duelist.
 
-**28 of the 66 are unreachable by any run**: Emrys 9, Corin 5, Sable 3, Quarr 3, The Fortress 2,
-Marrow 2, and one each for Torvan Hask, Scorn, Sledge and Mercy. Ten characters have no route into
-a Life Deck at all, because a Duelist printing is Ally-legal only when its highest Aspect is 2 below
-the deck's, which no playable run satisfies.
+The **Ally-legal** columns below are `engine/deck_validator.gd`'s rule, not a card type: a
+personality may be fielded as an Ally when its highest Aspect is 1, or at least 2 below the deck's
+Aspect count, and when its `alignment_only` gate matches the deck. No personality in the set tops out
+at Aspect 2, so at 2 and at 3 Aspects the rule admits only the Aspect-1 personalities; the 3-Aspect
+ones become Ally-legal at 5.
+
+| Character | Cards | By type | Personality cards (Aspects, alignment gate) | Ally-legal at 2 / at 3 Aspects | Runs that lead with them |
+|---|---|---|---|---|---|
+| Emrys Rooke | 9 | 7 Strike, 2 Drill | `personality_emrys_rooke_1_the_eldest` 1-5, any | no / no | `steel_heir_start` (3 Aspects) |
+| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | `personality_edric_rooke_1_the_hero` 1-5, any; `personality_edric_rooke_1` 1-1, Vigil | `personality_edric_rooke_1` yes / yes; `personality_edric_rooke_1_the_hero` no / no | `pyre_ascent_start` (2), `tide_deepwater_start` (2) |
+| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | `personality_bram_ashmark_1_starved` 1-3, any; `personality_bram_ashmark_1_starved` 1-5, any | no / no | `pyre_beatdown_start` (2), `pyre_attrition_start` (2) |
+| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | `personality_gideon_mourne_1_the_marked_lord` 1-4, any; `personality_gideon_mourne_1_mercenary` 1-1, Pact | `personality_gideon_mourne_1_mercenary` yes / yes; `personality_gideon_mourne_1_the_marked_lord` no / no | `shade_mind_siege_start` (2) |
+| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | `personality_caedan_vale_1_last_heir` 1-5, any | no / no | `freestyle_swords_start` (2) |
+| Corin Thrace | 5 | 1 Strike, 3 Art, 1 Non-Combat | none | — | **none.** No personality card exists |
+| Sable Draik | 3 | 3 Art | `personality_sable_draik_1_captain` 1-3, any | no / no | `shade_henchmen_start` (2) |
+| Halden Quarr | 3 | 2 Strike, 1 Art | `personality_halden_quarr_1_the_grinder` 1-3, any | no / no | `steel_beatdown_start` (2). His three cards print `steel`, and that run is Steel |
+| The Fortress | 2 | 1 Strike, 1 Art | none | — | **none.** No personality card exists |
+| Marrow | 2 | 2 Combat | `personality_marrow_1_patchwork` 1-4, any | no / no | `shade_salvage_start` (3) |
+| Siphon | 2 | 1 Strike, 1 Art | `personality_siphon_1_dormant` 1-3, any | no / no | `storm_volley_start` (2), `storm_unbound_start` (3) |
+| Dame Alder Rooke | 1 | 1 Combat | `personality_alder_rooke_1_matriarch` 1-3, any; `personality_alder_rooke_1` 1-1, Vigil | `personality_alder_rooke_1` yes / yes; `personality_alder_rooke_1_matriarch` no / no | `tide_companions_start` (3). `rookes_deluge` reads `only: {duelist_character}`, so only that run unlocks it |
+| Brann Draik | 1 | 1 Strike | `personality_brann_draik_1` 1-1, Pact | yes / yes | **none.** Ally-legal everywhere Pact, but no run names him Duelist |
+| Halvard Draik | 1 | 1 Strike | `personality_halvard_draik_1` 1-1, Pact | yes / yes | **none**, as above |
+| Vesna Draik | 1 | 1 Strike | `personality_vesna_draik_1` 1-1, Pact | yes / yes | **none**, as above |
+| Cull | 1 | 1 Drill | `personality_cull_1` 1-1, Pact | yes / yes | **none**, as above |
+| Torvan Hask | 1 | 1 Strike | none | — | **none.** No personality card exists |
+| Scorn | 1 | 1 Combat | none | — | **none.** No personality card exists |
+| Sledge | 1 | 1 Art | none | — | **none.** No personality card exists |
+| Mercy | 1 | 1 Non-Combat | none | — | **none.** No personality card exists |
+
+**15 of the 66 are unreachable by any of the 14 adventure starters**, across 10 characters: Corin
+Thrace 5, The Fortress 2, and one each for Torvan Hask, Scorn, Sledge, Mercy, Brann Draik, Halvard
+Draik, Vesna Draik and Cull. Corrected 2026-09-21; the earlier figure of 28 counted Emrys Rooke,
+Sable Draik, Halden Quarr and Marrow as having no route, but each of them leads a starter
+(`steel_heir_start`, `shade_henchmen_start`, `steel_beatdown_start`, `shade_salvage_start`), and it
+also counted `rookes_deluge`, which `tide_companions_start` unlocks. The remaining gap splits two
+ways: **six characters have no personality card at all** (Corin Thrace, The Fortress, Torvan Hask,
+Scorn, Sledge, Mercy, 11 cards), and **four have only an Aspect-1 personality that no run names as
+its Duelist** (the three Draiks and Cull, 4 cards). Those four are reachable the moment an Ally
+bundle route exists (5.10.1) or one of them gets a personality with a taller ladder.
 
 **What each usable kit does.** Sir Edric's nine are a defensive draw engine: two universal stops, a
 Combat card that answers an attack that already landed, three Strikes and an attachment that all
@@ -294,8 +313,12 @@ twice over. Gideon Mourne's seven are board control: a Drill that draws every Co
 placers, two lockouts and the only answer in the set to an Ascension win. Caedan Vale's seven are a
 tutor chain: fetch a "Sword" card, fetch two signature cards, fetch one back out of the discard, and
 an attachment that pays "Sword" attacks +3 wounds. Siphon's two are a self-replacing Strike stop and
-a Drill removal Art. Brann, Halvard, Vesna and Cull have one card each, which is the reason the
-Ally bundle rule in 5.10.1 cannot reach them.
+a Drill removal Art. Emrys Rooke's nine are the set's "Sword" line, seven Strikes and two Drills
+that `steel_heir_start` opens. Sable Draik's three Arts and Halden Quarr's three Steel-printed cards
+run in `shade_henchmen_start` and `steel_beatdown_start`. Marrow's two Combat cards run in
+`shade_salvage_start`, and Dame Alder's one Combat card in `tide_companions_start`. Brann, Halvard,
+Vesna and Cull have one card each and no run leads with them, which is the reason the Ally bundle
+rule in 5.10.1 cannot reach them.
 
 ---
 
@@ -367,11 +390,11 @@ they are restated so the bundle tables can be read without it.
 - Copies are `limit_per_deck`, default 3. A card naming your own Duelist allows 4 unless it prints a
   lower limit. **Personalities are limit 1 by type**, whatever they print.
 - An Ally may not share the Duelist's character, must match the deck's alignment
-  (`alignment_only`), and if its printing climbs past Aspect 1 its highest Aspect must be at least 2
-  below the deck's Aspect count. **Every Ally printing in the set is Aspect 1 only**, so under the
-  2026-09-20 house rule all 15 of them are legal at 2 Aspects, at 3, and at any count. The rule only
-  bites on a Duelist printing used as an Ally: a 3-Aspect printing needs a 5-Aspect deck, and a 4 or
-  5-Aspect printing is never legal as an Ally.
+  (`alignment_only`), and if its Aspects climb past 1 its highest Aspect must be at least 2
+  below the deck's Aspect count. **Fifteen of the 27 personalities stop at Aspect 1**, so under the
+  2026-09-20 house rule all 15 are Ally-legal at 2 Aspects, at 3, and at any count. The rule only
+  bites on a personality with a taller ladder: one whose Aspects run 1 to 3 needs a 5-Aspect deck,
+  and one that reaches 4 or 5 can never be an Ally.
 - Grounds unlock as a block of 3 copies of one Grounds. A Grounds forces a Combat skip on the turn
   it is placed and a new Grounds removes the old one, so a second Grounds bundle overwrites the
   first.
@@ -593,14 +616,14 @@ lockout marker.
 
 The Signature class has two routes into a run: an Ally's named cards, which arrive with the Ally
 (5.10.1), and the Duelist's own (5.10.2). Signature cards never appear in the Freestyle bundles of
-5.7. The class rules, the copy limit of 4 and the three Steel-printed exceptions are in 2.8; the 28
-signature cards no character can bring into a deck are listed there too and are outside every
-bundle by definition.
+5.7. The class rules, the copy limit of 4 and the three Steel-printed exceptions are in 2.8; the 15
+signature cards no run can bring into a deck are listed there too and are outside every bundle by
+definition.
 
 #### 5.10.1 Allies and their named cards (2 core, 4 follow-up)
 
-An Ally is a Personality card in the Life Deck, limit 1, alignment-matched. Every Ally printing in
-the set is Aspect 1 only, so all 15 are legal from 2 Aspects upward.
+An Ally is a personality in the Life Deck, limit 1, alignment-matched. The 15 personalities used
+this way all stop at Aspect 1, so all 15 are legal from 2 Aspects upward.
 
 **The rule.** An Ally bundle is the personality plus exactly two of its named cards, meaning cards
 whose `character` is that Ally or whose `only` gate names it. An Ally's named cards are offerable
@@ -612,8 +635,8 @@ Mourne with 7. The other 13 have one or none.
 
 | id | name | cards | theme | alignment | tier | why |
 |---|---|---|---|---|---|---|
-| `edric_ally_core` | Edric as Ally | `companion_beta` (Sir Edric Rooke), `quick_retreat`, `edrics_truce` | Ally support, universal stop | Vigil | mid | His power is a Focused Strike paying 2 wounds per Seal the opponent holds. The two cards are the strongest of his nine and neither needs him in control. Illegal in his own run |
-| `mourne_ally_core` | Mourne as Ally | `salvage_gamma` (Gideon Mourne), `mournes_quickness_drill`, `mournes_frantic_rush` | Ally support, recursion | Pact | mid | His Drill draws from the bottom of the discard on entering Combat, which pays whether or not he ever takes control |
+| `edric_ally_core` | Edric as Ally | `personality_edric_rooke_1` (Sir Edric Rooke), `quick_retreat`, `edrics_truce` | Ally support, universal stop | Vigil | mid | His power is a Focused Strike paying 2 wounds per Seal the opponent holds. The two cards are the strongest of his nine and neither needs him in control. Illegal in his own run |
+| `mourne_ally_core` | Mourne as Ally | `personality_gideon_mourne_1_mercenary` (Gideon Mourne), `mournes_quickness_drill`, `mournes_frantic_rush` | Ally support, recursion | Pact | mid | His Drill draws from the bottom of the discard on entering Combat, which pays whether or not he ever takes control |
 
 Follow-up bundles, eligible once that Ally is in the deck:
 
@@ -632,19 +655,19 @@ their named cards.
 
 | Ally | Alignment | Named cards today | Which |
 |---|---|---|---|
-| `henchman_alpha` Vesna Draik | Pact | 1 | `vesnas_ambush` |
-| `henchman_beta` Brann Draik | Pact | 1 | `branns_shakedown` |
-| `henchman_delta` Halvard Draik | Pact | 1 | `halvards_twin_cut` |
-| `salvage_alpha` Cull | Pact | 1 | `absorbing_drill` |
-| `companion_epsilon` Dame Alder Rooke | Vigil | 1, and it is dead | `rookes_deluge`, which needs her as the Duelist |
-| `henchman_gamma` Quill Draik | Pact | 0 | — |
-| `henchman_epsilon` Pim | Pact | 0 | — |
-| `henchman_zeta` Tithe | Pact | 0 | — |
-| `salvage_beta` Orvath Kell | Pact | 0 | — |
-| `companion_alpha` Wren Rooke | Vigil | 0 | — |
-| `companion_gamma` Tavin Vale | Vigil | 0 | — |
-| `companion_delta` Ansel Rooke | Vigil | 0 | — |
-| `bonded_pair` Ansel and Tavin | Vigil | 0, and it lives in a Reserve | — |
+| `personality_vesna_draik_1` Vesna Draik | Pact | 1 | `vesnas_ambush` |
+| `personality_brann_draik_1` Brann Draik | Pact | 1 | `branns_shakedown` |
+| `personality_halvard_draik_1` Halvard Draik | Pact | 1 | `halvards_twin_cut` |
+| `personality_cull_1` Cull | Pact | 1 | `absorbing_drill` |
+| `personality_alder_rooke_1` Dame Alder Rooke | Vigil | 1, and it is dead here | `rookes_deluge`, which needs her as the Duelist, so it belongs to `tide_companions_start` and not to any deck that fields her as an Ally |
+| `personality_quill_draik_1` Quill Draik | Pact | 0 | — |
+| `personality_pim_1` Pim | Pact | 0 | — |
+| `personality_tithe_1` Tithe | Pact | 0 | — |
+| `personality_orvath_kell_1` Orvath Kell | Pact | 0 | — |
+| `personality_wren_rooke_1` Wren Rooke | Vigil | 0 | — |
+| `personality_tavin_vale_1` Tavin Vale | Vigil | 0 | — |
+| `personality_ansel_rooke_1` Ansel Rooke | Vigil | 0 | — |
+| `personality_ansel_and_tavin_1_back_to_back` Ansel and Tavin | Vigil | 0, and it lives in a Reserve | — |
 
 With 2 of 15 Allies offerable, the `allies` archetype has almost no reward path today. Five Allies
 are one named card short, so five new cards would double the Ally bundle count.
@@ -682,7 +705,7 @@ held back with the rest of the Seal cards (section 6).
 | `siphon_dig` | Art dig | `siphons_sidestep`, `storm_overcharge` | draw and search | mid | Both fetch an Art, which is the whole deck |
 
 Siphon has **two** signature cards in the whole set. Three bundles is the honest ceiling and two of
-them share a card. If signature bundles are meant to feel personal, Siphon needs more printings.
+them share a card. If signature bundles are meant to feel personal, Siphon needs more cards.
 
 **Caedan Vale** (`freestyle_swords_start`, Freestyle Style, Vigil, Draconic, 5 Aspects) — 4
 
@@ -711,23 +734,25 @@ brackets unlock only after that Ally is in the deck.
 The Storm expansion moved Siphon's run from 44 to 52 and made it the joint-widest of the four.
 Every run clears the 24 slots, Vale's by the smallest margin because Freestyle is his school and he
 has no second pool to draw on. Sir Edric's run sees **no Ally bundle at all**: the only Vigil Ally
-with enough named cards is his own printing, which an Ally may not share with the Duelist, and
+with enough named cards is his own second personality, which an Ally may not share with the Duelist, and
 Gideon Mourne is Pact.
 
 ---
 
 ## 6. Coverage check
 
-299 reward-eligible cards: the five hand types plus Grounds, excluding Masteries, Relics, Seals
-(not a bundle reward), `shade_ransoming_hand` (Reserve only) and the 28 signature cards of
-characters no run can field (2.8). Personality cards are counted separately below.
+312 reward-eligible cards: the five hand types plus Grounds, excluding Masteries, Relics, Seals
+(not a bundle reward), `shade_ransoming_hand` (Reserve only) and the 15 signature cards no run can
+be offered (2.8). Personality cards are counted separately below. Recounted 2026-09-21 off the
+corrected unreachable list; the bundle columns still describe only the four runs section 5 writes
+bundles for, so the "in 0 bundles" figure grows whenever a run gains no bundles of its own.
 
 | Class | Eligible | In 0 bundles | 1 | 2 | 3+ |
 |---|---|---|---|---|---|
 | School | 187 | 0 | 182 | 5 | 0 |
 | Freestyle | 74 (67 cards + 7 Grounds) | 3 | 70 | 1 | 0 |
-| Signature | 38 | 9 | 21 | 8 | 0 |
-| **Total** | **299** | **12** | **273** | **14** | **0** |
+| Signature | 51 | 22 | 21 | 8 | 0 |
+| **Total** | **312** | **25** | **273** | **14** | **0** |
 
 School coverage is now complete: the Storm and Root expansions are fully bundled, and every one of
 the 187 school cards appears at least once. The five school cards in two bundles are
@@ -741,21 +766,27 @@ Siphon's three signature bundles.
 Seal reward route exists, and `first_cut` and `keepers_drill` are live now in a `root_seals` run,
 which ships its set.
 
-**In no bundle, because nothing can carry them** (6 cards): `vesnas_ambush`, `branns_shakedown`,
-`halvards_twin_cut` and `absorbing_drill` are the lone named card of an Ally that cannot form a
-bundle (5.10.1), so under the Ally rule they cannot be offered at all. `bonding_rite` needs
-`bonded_pair`, which lives in a Reserve. `rookes_deluge` reads
-`only: {duelist_character: "Dame Alder Rooke"}` and needs her as the Duelist, which no run has; it
-should be filtered out in code.
+**In no bundle, because nothing can carry them** (2 cards): `bonding_rite` needs `personality_ansel_and_tavin_1_back_to_back`,
+which lives in a Reserve. `rookes_deluge` reads `only: {duelist_character: "Dame Alder Rooke"}` and
+is carried by `tide_companions_start`, the one run she leads, which has no bundles written for it
+yet. `vesnas_ambush`, `branns_shakedown`, `halvards_twin_cut` and `absorbing_drill` are no longer
+counted here; they are in the excluded 15 of 2.8, because no run names their character as Duelist.
+
+**In no bundle, because section 5 has not written bundles for their run** (17 cards): Emrys Rooke's
+9, Sable Draik's 3, Halden Quarr's 3 and Marrow's 2. Each run exists (`steel_heir_start`,
+`shade_henchmen_start`, `steel_beatdown_start`, `shade_salvage_start`) and can legally be offered
+these cards; 5.10.2 covers four runs and these are not among them.
 
 **Why the repeats repeat.** Eight of the 14 are Sir Edric's and Siphon's named cards, which appear
 once in their own run's bundles and once in the Ally follow-ups or the Storm school list.
 `lone_blade_drill` is both a Vale piece and a generic modifier. A cap of 3 appearances holds
 everywhere, and nothing reaches it.
 
-**Personalities.** 15 Ally printings exist and 2 are in a bundle; the other 13 are in the table in
-5.10.1. The 12 Duelist printings are in none, because a Duelist printing is only legal as an Ally in
-a 5-Aspect deck and none of the four playable runs would want one.
+**Personalities.** 15 of the 27 stop at Aspect 1 and so can be fielded as an Ally anywhere their
+alignment gate allows; 2 of those are in a bundle and the other 13 are in the table in 5.10.1. The
+12 with taller ladders are in no bundle, because a personality whose Aspects reach 3 is Ally-legal
+only in a 5-Aspect deck and none of the four playable runs would want one, and one reaching 4 or 5
+can never be an Ally.
 
 **Cards that are legal but do nothing in the runs that can take them**, flagged rather than dropped:
 `old_trick` (searches the Reserve), `riftcry` (needs a Grounds in play), `pyre_sword_cleave` (lends
@@ -774,7 +805,7 @@ question were settled on 2026-09-20 and are recorded at the head of section 5.
 2. When one card of a bundle cannot legally be added, the working default is to **drop the whole bundle from the offer** rather than substitute the card. Confirm, or should a substitution be tried first?
 3. Should bundle size vary by stage, for example 2 cards early and 3 late, or stay fixed at 2 to 3?
 4. Should Grounds be a separate reward slot rather than competing with cards, since a block of 3 is a much larger deck change than 2 or 3 cards?
-5. Should `rookes_deluge` and `shade_ransoming_hand` be filtered out of the reward pool in code, since no run can ever use them?
-6. Are the 28 unreachable signature cards meant to stay that way, or should Emrys Rooke, Corin Thrace, The Fortress, Torvan Hask, Scorn, Sledge, Mercy, Sable Draik, Halden Quarr and Marrow get Aspect-1 Ally printings?
-7. The 6 Ally-named cards in no bundle (5.10.1) are unreachable under the Ally rule. Should they instead join the normal Freestyle pool as ordinary cards, or stay locked until their Ally has two named cards and can be bundled?
+5. Should `shade_ransoming_hand` be filtered out of the reward pool in code, since no run can ever use it? `rookes_deluge` was on this list until 2026-09-21 and is not: `tide_companions_start` leads with Dame Alder Rooke, so that run can take it.
+6. Are the 15 unreachable signature cards meant to stay that way? Six characters have no personality card at all (Corin Thrace, The Fortress, Torvan Hask, Scorn, Sledge, Mercy, 11 cards) and four have one that stops at Aspect 1 and that no run leads with (Brann Draik, Halvard Draik, Vesna Draik, Cull, 4 cards). Two routes: give the six a personality with a ladder tall enough to lead a run, or give the four a second named card so the Ally bundle rule in 5.10.1 can reach them. Corrected 2026-09-21; the earlier list of 28 wrongly included Emrys Rooke, Sable Draik, Halden Quarr and Marrow, who each lead a starter.
+7. The 4 Ally-named cards of the three Draiks and Cull (5.10.1) are unreachable, because no run names any of them as its Duelist and the Ally bundle route is not written yet. Should they instead join the normal Freestyle pool as ordinary cards, or stay locked until their character has two named cards and can be bundled?
 8. Storm and Root were expanded on 2026-09-21 and now bundle well, but each still has named holes, and five Allies are one named card short. The gap lists in 5.4, 5.5 and 5.10.1 name what each is still missing after the 2026-09-21 expansion; is another pass the next step?

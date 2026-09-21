@@ -39,12 +39,12 @@ OPPONENT_TIERS = [
 
 # Allies a starter keeps. A deck absent here keeps every ally it runs; the rest are unlocks.
 KEPT_ALLIES = {
-    # Tavin Vale and Ansel Rooke: the pair `bonded_pair` fuses. Keeping any other two leaves
+    # Tavin Vale and Ansel Rooke: the pair `personality_ansel_and_tavin_1_back_to_back` fuses. Keeping any other two leaves
     # Tide's Bonding card dead.
-    "tide_companions": ["companion_gamma", "companion_delta"],
-    "shade_henchmen": ["henchman_alpha", "henchman_beta"],
-    "shade_salvage": ["salvage_alpha", "salvage_beta"],
-    "storm_unbound": ["salvage_alpha", "salvage_beta"],
+    "tide_companions": ["personality_tavin_vale_1", "personality_ansel_rooke_1"],
+    "shade_henchmen": ["personality_vesna_draik_1", "personality_brann_draik_1"],
+    "shade_salvage": ["personality_cull_1", "personality_orvath_kell_1"],
+    "storm_unbound": ["personality_cull_1", "personality_orvath_kell_1"],
 }
 
 # Roles the quota is kept in proportion for. `special` is core and sits outside the quota.
@@ -215,8 +215,7 @@ def write_starters(out_dir="data/adventure/generated_starters"):
             "name": deck["name"] + " (Starter)",
             "source_deck": deck_id,
             "mode": "adventure",
-            "duelist": deck["duelist"],
-            "aspects": aspects,
+            "duelist": deck["duelist"][:aspects],
             "style": deck["style"],
             "alignment": deck["alignment"],
             "mastery": deck["mastery"],
@@ -251,8 +250,9 @@ def write_opponents(out_dir="data/adventure/opponents"):
                 "source_deck": deck_id,
                 "tier": tier,
                 "mode": "adventure",
-                "duelist": deck["duelist"],
-                "aspects": aspects if aspects > 0 else deck["aspects"],
+                # A Duelist is a list of Aspect cards; a tier runs the bottom `aspects` of them,
+                # and the boss runs the precon's whole stack.
+                "duelist": deck["duelist"][:aspects] if aspects > 0 else deck["duelist"],
                 "style": deck["style"],
                 "alignment": deck["alignment"],
                 "mastery": deck["mastery"],

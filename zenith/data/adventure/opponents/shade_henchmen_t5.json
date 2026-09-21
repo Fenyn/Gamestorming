@@ -3,8 +3,11 @@
   "source_deck": "shade_henchmen",
   "tier": "t5",
   "mode": "adventure",
-  "duelist": "duelist_delta",
-  "aspects": 3,
+  "duelist": [
+    "personality_sable_draik_1_captain",
+    "personality_sable_draik_2_shrouded",
+    "personality_sable_draik_3_lightless"
+  ],
   "style": "shade",
   "alignment": "pact",
   "mastery": "shade_mastery",
@@ -86,11 +89,11 @@
       "count": 1
     },
     {
-      "id": "henchman_alpha",
+      "id": "personality_brann_draik_1",
       "count": 1
     },
     {
-      "id": "henchman_beta",
+      "id": "personality_vesna_draik_1",
       "count": 1
     },
     {

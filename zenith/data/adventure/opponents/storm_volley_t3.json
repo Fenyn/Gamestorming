@@ -3,8 +3,11 @@
   "source_deck": "storm_volley",
   "tier": "t3",
   "mode": "adventure",
-  "duelist": "duelist_gamma",
-  "aspects": 3,
+  "duelist": [
+    "personality_siphon_1_dormant",
+    "personality_siphon_2_charged",
+    "personality_siphon_3_unbound"
+  ],
   "style": "storm",
   "alignment": "pact",
   "mastery": "storm_mastery",
@@ -124,7 +127,7 @@
       "count": 1
     },
     {
-      "id": "henchman_zeta",
+      "id": "personality_tithe_1",
       "count": 1
     },
     {

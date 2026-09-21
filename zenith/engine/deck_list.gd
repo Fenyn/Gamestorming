@@ -3,8 +3,12 @@ extends RefCounted
 ## A deck as a player builds it. Card ids only; the engine instantiates them.
 
 var name: String = "Deck"
-var duelist_id: String = ""
-var aspects: int = 3
+## The Duelist's Aspect stack, one card id per tier, lowest first. Each Aspect is its own card
+## since 2026-09-21, so a deck names a list and not a single personality.
+var duelist_ids: Array[String] = []
+## Derived from `duelist_ids`; kept as a field because it is read everywhere a deck's height is
+## shown. Anything that sets the list should go through `set_duelist()`.
+var aspects: int = 0
 var style: String = ""             # "freestyle" or a school word; must match the Mastery
 var alignment: String = "vigil"
 var mastery_id: String = ""
@@ -25,8 +29,16 @@ var mode: String = "tournament"
 static func from_dict(d: Dictionary) -> DeckList:
 	var deck: DeckList = DeckList.new()
 	deck.name = str(d.get("name", "Deck"))
-	deck.duelist_id = str(d.get("duelist", ""))
-	deck.aspects = int(d.get("aspects", 3))
+	var duelist: Variant = d.get("duelist", [])
+	if duelist is String:
+		# One release of tolerance, and it refuses rather than guessing: the old form named a
+		# stack card plus a count, and which cards that meant is a migration's job, not a load's.
+		push_error(("Deck '%s' still names a single Duelist card '%s' with \"aspects\": %s. " +
+			"Each Aspect is its own card: \"duelist\" must be the list of its tier card ids. " +
+			"See data/migrations/personality_split.json.")
+			% [deck.name, duelist, str(d.get("aspects", "?"))])
+	else:
+		deck.set_duelist(DeckList._strings(duelist))
 	deck.style = str(d.get("style", ""))
 	deck.alignment = str(d.get("alignment", "vigil"))
 	deck.mastery_id = str(d.get("mastery", ""))
@@ -49,6 +61,30 @@ static func from_dict(d: Dictionary) -> DeckList:
 			for i in range(count):
 				deck.cards.append(id)
 	return deck
+
+
+static func _strings(v: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if v is Array:
+		for id in v:
+			out.append(str(id))
+	return out
+
+
+## The one place `duelist_ids` and the derived `aspects` count are set together.
+func set_duelist(ids: Array[String]) -> void:
+	duelist_ids = ids.duplicate()
+	aspects = duelist_ids.size()
+
+
+## The card a screen shows as the deck's face: the Duelist's first Aspect.
+func duelist_face_id() -> String:
+	return duelist_ids[0] if not duelist_ids.is_empty() else ""
+
+
+## The Duelist's Aspect stack, assembled from the library. Empty when the deck names nothing.
+func duelist_stack(library: CardLibrary) -> PersonalityStack:
+	return PersonalityStack.from_ids(library, duelist_ids)
 
 
 ## Deck ids live in two places: multiplayer precons and adventure starters. Anything that takes a
@@ -78,7 +114,7 @@ static func load_from(path: String) -> DeckList:
 
 ## Cards that count toward deck size: Life Deck, Duelist aspects, Mastery, Relic.
 func total_cards() -> int:
-	var n: int = cards.size() + aspects
+	var n: int = cards.size() + duelist_ids.size()
 	if mastery_id != "":
 		n += 1
 	if relic_id != "":

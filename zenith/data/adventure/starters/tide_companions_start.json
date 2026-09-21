@@ -2,8 +2,11 @@
   "name": "Tidesworn Coven (Starter)",
   "source_deck": "tide_companions",
   "mode": "adventure",
-  "duelist": "duelist_beta",
-  "aspects": 3,
+  "duelist": [
+    "personality_alder_rooke_1_matriarch",
+    "personality_alder_rooke_2_rising_water",
+    "personality_alder_rooke_3_the_flood"
+  ],
   "style": "tide",
   "alignment": "vigil",
   "mastery": "tide_mastery",
@@ -17,10 +20,10 @@
   "unlock": {"track": "deck_cap", "step": 50},
   "bombs": ["warding_call", "last_gasp"],
   "cards": [
-    {"id": "companion_gamma", "count": 1},
-    {"id": "companion_delta", "count": 1},
-    {"id": "companion_alpha", "count": 1},
-    {"id": "companion_beta", "count": 1},
+    {"id": "personality_tavin_vale_1", "count": 1},
+    {"id": "personality_ansel_rooke_1", "count": 1},
+    {"id": "personality_wren_rooke_1", "count": 1},
+    {"id": "personality_edric_rooke_1", "count": 1},
     {"id": "bonding_rite", "count": 2},
     {"id": "edrics_vow", "count": 1},
     {"id": "rallying_call", "count": 3},

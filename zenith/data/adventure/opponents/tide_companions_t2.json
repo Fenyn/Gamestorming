@@ -3,8 +3,10 @@
   "source_deck": "tide_companions",
   "tier": "t2",
   "mode": "adventure",
-  "duelist": "duelist_beta",
-  "aspects": 2,
+  "duelist": [
+    "personality_alder_rooke_1_matriarch",
+    "personality_alder_rooke_2_rising_water"
+  ],
   "style": "tide",
   "alignment": "vigil",
   "mastery": "tide_mastery",
@@ -111,11 +113,11 @@
       "count": 1
     },
     {
-      "id": "companion_delta",
+      "id": "personality_ansel_rooke_1",
       "count": 1
     },
     {
-      "id": "companion_gamma",
+      "id": "personality_tavin_vale_1",
       "count": 1
     },
     {

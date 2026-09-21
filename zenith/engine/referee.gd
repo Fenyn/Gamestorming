@@ -244,7 +244,7 @@ static func _sample_opponent_pool(sim: DuelEngine, seat: int, sample_seed: int, 
 			pool.remove_at(index)
 		var card: CardInstance = sim.card(uid)
 		card.def = def
-		card.aspect = def.lowest_aspect() if def.is_personality() else 1
+		card.aspect = def.aspect if def.is_personality() else 1
 
 
 static func _belief_card_allowed(def: CardDef, player: SeatPlayer, duelist: CardDef) -> bool:
@@ -257,6 +257,6 @@ static func _belief_card_allowed(def: CardDef, player: SeatPlayer, duelist: Card
 			return false
 		if def.alignment_only != "" and def.alignment_only != player.alignment:
 			return false
-		if def.highest_aspect() > player.highest_aspect - 2:
+		if not DeckValidator.ally_aspect_allowed(def.aspect, player.highest_aspect):
 			return false
 	return true

@@ -1,7 +1,10 @@
 {
   "name": "Tempest Engine",
-  "duelist": "duelist_gamma",
-  "aspects": 3,
+  "duelist": [
+    "personality_siphon_1_dormant",
+    "personality_siphon_2_charged",
+    "personality_siphon_3_unbound"
+  ],
   "style": "storm",
   "alignment": "pact",
   "mastery": "storm_mastery",
@@ -29,7 +32,7 @@
   "blurb": "The Ninth Vessel is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy.",
   "cards": [
     {
-      "id": "henchman_zeta",
+      "id": "personality_tithe_1",
       "count": 1
     },
     {

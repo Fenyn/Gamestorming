@@ -15,10 +15,10 @@ func _init() -> void:
 			print("skip %s: no ladder or no starter deck" % starter_id)
 			continue
 		var deck: DeckList = run.deck()
-		var duelist: CardDef = lib.defs.get(deck.duelist_id)
+		var duelist: CardDef = lib.defs.get(deck.duelist_face_id())
 		print("")
 		print("=== %s  style=%s  duelist=%s  candidates=%d" % [
-			starter_id, deck.style, deck.duelist_id,
+			starter_id, deck.style, ", ".join(deck.duelist_ids),
 			AdventureRewards.candidates(run, lib).size()])
 		print("%-5s %-22s %5s %7s  %s" % ["stage", "opponent", "cards", "aspects", "offer"])
 		while run.status != "won" and run.status != "lost":
@@ -30,14 +30,14 @@ func _init() -> void:
 			for id in run.pending_offer:
 				shown.append(_describe(lib, duelist, id))
 			print("%-5d %-22s %5d %7d  %s" % [
-				stage_number, opponent, run.deck().total_cards(), run.aspects,
+				stage_number, opponent, run.deck().total_cards(), run.aspects(),
 				", ".join(shown) if shown.size() > 0 else "(none)"])
 			if not run.pending_offer.is_empty():
 				AdventureRewards.apply_pick(run, lib, run.pending_offer[0])
 			else:
 				AdventureRewards.apply_skip(run)
 			AdventureRewards.finish_reward(run, ladder)
-		print("end: %s, %d cards, %d aspects" % [run.status, run.deck().total_cards(), run.aspects])
+		print("end: %s, %d cards, %d aspects (%s)" % [run.status, run.deck().total_cards(), run.aspects(), ", ".join(run.duelist_ids)])
 	quit(0)
 
 

@@ -152,13 +152,13 @@ Implementation notes:
 
 ## P2: preserve the card-game hand while protecting the center
 
-- [ ] Keep the overlapping or fanned 3D hand.
-- [ ] Bound hover enlargement so it does not cover either fighter or the combat decision.
-- [ ] Keep recognizable art, title, type, cost, and immediate forecast readable at rest or on light focus.
-- [ ] Keep full rules in expanded preview and inspection.
-- [ ] Retain clear legal-action highlighting without making unavailable cards unreadable for planning.
-- [ ] Keep paging usable for crowded hands.
-- [ ] Preserve bottom-edge reveal, keyboard hand opening, and direct card selection.
+- [x] Keep the overlapping or fanned 3D hand.
+- [x] Bound hover enlargement so it does not cover either fighter or the combat decision.
+- [x] Keep recognizable art, title, type, cost, and immediate forecast readable at rest or on light focus.
+- [x] Keep full rules in expanded preview and inspection.
+- [x] Retain clear legal-action highlighting without making unavailable cards unreadable for planning.
+- [x] Keep paging usable for crowded hands.
+- [x] Preserve bottom-edge reveal, keyboard hand opening, and direct card selection.
 
 Acceptance criteria:
 
@@ -166,23 +166,27 @@ Acceptance criteria:
 - Hovering one card does not conceal the primary action or the other legal choices.
 - Large hands, long titles, and mixed legal/unavailable cards remain understandable at 1280x720.
 
+Implemented: the raised card chooses a lane beside the projected Life Deck and fighter. The visible focus card and decision panel reserve the right edge; when they extend into the hand, the fan shifts clear of the action. The fan contracts below the player's stat readout in crowded states, while a hovered card retains its full face, type/title caption, and immediate forecast. Unavailable faces remain recognizable. Wheel paging also works over the revealed lower hand band, including gaps between cards. Geometry and picking checks cover a crowded hand at 1280x720, 1600x900, and 1800x720; rendered attack and defense captures were inspected at those sizes.
+
 ## P2: responsive hierarchy
 
-- [ ] Define explicit layouts or breakpoints for 1280x720, 1600x900, and wide aspect ratios.
-- [ ] Preserve hero values and decision actions before secondary labels when space contracts.
-- [ ] Replace uniform canvas shrinkage with responsive sizing or an intentional UI-scale policy.
-- [ ] Keep primary decision text around 16 displayed pixels or larger at the minimum supported resolution.
-- [ ] Keep secondary information around 14 displayed pixels or larger where it must be read during play.
-- [ ] Keep primary click targets at least 40 displayed pixels high.
-- [ ] Prevent panels, buttons, previews, and enlarged cards from crossing viewport bounds.
+- [x] Define explicit layouts or breakpoints for 1280x720, 1600x900, and wide aspect ratios.
+- [x] Preserve hero values and decision actions before secondary labels when space contracts.
+- [x] Replace uniform canvas shrinkage with responsive sizing or an intentional UI-scale policy.
+- [x] Keep primary decision text around 16 displayed pixels or larger at the minimum supported resolution.
+- [x] Keep secondary information around 14 displayed pixels or larger where it must be read during play.
+- [x] Keep primary click targets at least 40 displayed pixels high.
+- [x] Prevent panels, buttons, previews, and enlarged cards from crossing viewport bounds.
+
+Scale policy: the duel keeps the 1920x1080 canvas base and expands across aspect ratios. At 1280x720 its 2/3 scale gives 24-unit decision text about 16 displayed pixels, 21-unit supporting text about 14, and 60-unit primary buttons 40 displayed pixels high. Combat state, route, damage, and stop text were raised to that minimum where needed. Fighter stat labels and status text were enlarged within their 3D readouts. The hand uses viewport and projected hero/decision bounds rather than a fixed card position, so wide windows create more side room without pulling the exchange away from the fighters.
 
 ## Validation matrix
 
 Capture and inspect each state at 1280x720, 1600x900, and one wide aspect ratio:
 
 - [ ] Neutral non-combat decision with the hand tucked.
-- [ ] Attack-action prompt with legal and unavailable cards.
-- [ ] Incoming defense with Energy-only damage.
+- [x] Attack-action prompt with legal and unavailable cards.
+- [x] Incoming defense with Energy-only damage.
 - [ ] Incoming defense with overflow wounds.
 - [ ] Defense requiring more than one stop.
 - [ ] Successful stop.

@@ -1,7 +1,12 @@
 {
   "name": "Crushing Depths",
-  "duelist": "duelist_iota",
-  "aspects": 5,
+  "duelist": [
+    "personality_edric_rooke_1_the_hero",
+    "personality_edric_rooke_2_the_stranger",
+    "personality_edric_rooke_3_the_realms_hero",
+    "personality_edric_rooke_4_kindled_through",
+    "personality_edric_rooke_5_the_all_powerful"
+  ],
   "style": "tide",
   "alignment": "vigil",
   "mastery": "tide_fathom_mastery",

@@ -148,15 +148,15 @@ Fixed per deck, not randomised.
 
 | deck | starts with | unlockable |
 |---|---|---|
-| tide_companions | companion_gamma (Tavin Vale), companion_delta (Ansel Rooke) | companion_alpha (Wren Rooke), companion_beta (Sir Edric Rooke) |
-| shade_henchmen | henchman_alpha (Vesna Draik), henchman_beta (Brann Draik) | henchman_gamma (Quill Draik), henchman_delta (Halvard Draik), henchman_epsilon (Pim) |
-| shade_salvage | salvage_alpha (Cull), salvage_beta (Orvath Kell) | salvage_gamma (Gideon Mourne), henchman_epsilon (Pim) |
-| storm_unbound | salvage_alpha (Cull), salvage_beta (Orvath Kell) | henchman_epsilon (Pim) |
-| pyre_ascent | companion_epsilon (Dame Alder Rooke) | — |
-| steel_heir | companion_epsilon (Dame Alder Rooke) | — |
-| storm_volley | henchman_zeta (Tithe) | — |
+| tide_companions | personality_tavin_vale_1 (Tavin Vale), personality_ansel_rooke_1 (Ansel Rooke) | personality_wren_rooke_1 (Wren Rooke), personality_edric_rooke_1 (Sir Edric Rooke) |
+| shade_henchmen | personality_vesna_draik_1 (Vesna Draik), personality_brann_draik_1 (Brann Draik) | personality_quill_draik_1 (Quill Draik), personality_halvard_draik_1 (Halvard Draik), personality_pim_1 (Pim) |
+| shade_salvage | personality_cull_1 (Cull), personality_orvath_kell_1 (Orvath Kell) | personality_gideon_mourne_1_mercenary (Gideon Mourne), personality_pim_1 (Pim) |
+| storm_unbound | personality_cull_1 (Cull), personality_orvath_kell_1 (Orvath Kell) | personality_pim_1 (Pim) |
+| pyre_ascent | personality_alder_rooke_1 (Dame Alder Rooke) | — |
+| steel_heir | personality_alder_rooke_1 (Dame Alder Rooke) | — |
+| storm_volley | personality_tithe_1 (Tithe) | — |
 
-Tide starts with Tavin and Ansel because they are the pair `bonded_pair` fuses, and the Bond is the
+Tide starts with Tavin and Ansel because they are the pair `personality_ansel_and_tavin_1_back_to_back` fuses, and the Bond is the
 deck's lever. Corrected 2026-09-20: the first version kept Wren and Edric for Edric's signature
 gates, which left the Bonding card with nothing to fuse. Edric's cards (`edrics_vow`, the Edric
 bonus on `tide_twin_breaker`) wait for him to be unlocked.

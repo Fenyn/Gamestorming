@@ -3,8 +3,11 @@
   "source_deck": "tide_deepwater",
   "tier": "t3",
   "mode": "adventure",
-  "duelist": "duelist_iota",
-  "aspects": 3,
+  "duelist": [
+    "personality_edric_rooke_1_the_hero",
+    "personality_edric_rooke_2_the_stranger",
+    "personality_edric_rooke_3_the_realms_hero"
+  ],
   "style": "tide",
   "alignment": "vigil",
   "mastery": "tide_fathom_mastery",

@@ -17,9 +17,13 @@ var attached_to: int = -1
 var named_card: String = ""
 var under: int = 0             # cards stacked beneath (Bond partners, overlays)
 var bond_timer: int = 0
-var variant: String = ""       # personalities: which printing of the character this card is
+var variant: String = ""       # personalities: which printed line this Aspect was written for
 var tags: Array[String] = []   # personalities: the keywords they carry right now, printed or lent
                                # by an attachment. Clients read this, never the card's own `tags`
+## personalities: the Aspect stack's card ids, lowest first. `def_id` is always the card for the
+## current Aspect, so a client looks that up in its library for the face and the art; the ladder
+## is what the announced stack is, which is public from setup and what MPPV is read off.
+var ladder: Array[String] = []
 
 
 func hidden() -> bool:
@@ -31,7 +35,7 @@ func to_dict() -> Dictionary:
 		"uid": uid, "def": def_id, "title": title, "owner": owner, "controller": controller,
 		"zone": String(zone), "aspect": aspect, "energy": energy, "might": might, "remain": remain,
 		"attached_to": attached_to, "named": named_card, "under": under, "bond_timer": bond_timer,
-		"variant": variant, "tags": tags,
+		"variant": variant, "tags": tags, "ladder": ladder,
 	}
 
 
@@ -53,6 +57,7 @@ static func from_dict(d: Dictionary) -> SeatCard:
 	c.bond_timer = int(d.get("bond_timer", 0))
 	c.variant = str(d.get("variant", ""))
 	c.tags.assign(d.get("tags", []))
+	c.ladder.assign(d.get("ladder", []))
 	return c
 
 
@@ -91,4 +96,5 @@ static func of(c: CardInstance, seat: int, reveal: bool = false, tags: Array[Str
 	v.bond_timer = c.bond_timer
 	v.variant = c.def.variant
 	v.tags = tags
+	v.ladder = c.ladder()
 	return v

@@ -1,0 +1,237 @@
+{
+  "_note": "Personality split, 2026-09-21. Each Aspect became its own card. `personalities` maps an old stack id to its tier cards in tier order; `deck_duelists` records which stack each shipped deck named, for migrating a saved adventure run.",
+  "version": 2,
+  "personalities": {
+    "bonded_pair": [
+      "personality_ansel_and_tavin_1_back_to_back"
+    ],
+    "companion_alpha": [
+      "personality_wren_rooke_1"
+    ],
+    "companion_beta": [
+      "personality_edric_rooke_1"
+    ],
+    "companion_delta": [
+      "personality_ansel_rooke_1"
+    ],
+    "companion_epsilon": [
+      "personality_alder_rooke_1"
+    ],
+    "companion_gamma": [
+      "personality_tavin_vale_1"
+    ],
+    "duelist_alpha": [
+      "personality_bram_ashmark_1_starved",
+      "personality_bram_ashmark_2_leeching",
+      "personality_bram_ashmark_3_unstoppable"
+    ],
+    "duelist_beta": [
+      "personality_alder_rooke_1_matriarch",
+      "personality_alder_rooke_2_rising_water",
+      "personality_alder_rooke_3_the_flood"
+    ],
+    "duelist_delta": [
+      "personality_sable_draik_1_captain",
+      "personality_sable_draik_2_shrouded",
+      "personality_sable_draik_3_lightless"
+    ],
+    "duelist_epsilon": [
+      "personality_halden_quarr_1_the_grinder",
+      "personality_halden_quarr_2_tempered",
+      "personality_halden_quarr_3_ironheart"
+    ],
+    "duelist_eta": [
+      "personality_osric_thornwald_1_greybeard",
+      "personality_osric_thornwald_2_overgrown",
+      "personality_osric_thornwald_3_deep_rooted",
+      "personality_osric_thornwald_4_heartwood",
+      "personality_osric_thornwald_5_grovelord"
+    ],
+    "duelist_gamma": [
+      "personality_siphon_1_dormant",
+      "personality_siphon_2_charged",
+      "personality_siphon_3_unbound"
+    ],
+    "duelist_iota": [
+      "personality_edric_rooke_1_the_hero",
+      "personality_edric_rooke_2_the_stranger",
+      "personality_edric_rooke_3_the_realms_hero",
+      "personality_edric_rooke_4_kindled_through",
+      "personality_edric_rooke_5_the_all_powerful"
+    ],
+    "duelist_kappa": [
+      "personality_emrys_rooke_1_the_eldest",
+      "personality_emrys_rooke_2_first_plate",
+      "personality_emrys_rooke_3_edged",
+      "personality_emrys_rooke_4_shaped",
+      "personality_emrys_rooke_5_scaleclad"
+    ],
+    "duelist_lambda": [
+      "personality_bram_ashmark_1_starved",
+      "personality_bram_ashmark_2_gnawing",
+      "personality_bram_ashmark_3_gorging",
+      "personality_bram_ashmark_4_consuming",
+      "personality_bram_ashmark_5_insatiable"
+    ],
+    "duelist_mu": [
+      "personality_gideon_mourne_1_the_marked_lord",
+      "personality_gideon_mourne_2_unflinching",
+      "personality_gideon_mourne_3_unfettered",
+      "personality_gideon_mourne_4_unrepentant"
+    ],
+    "duelist_theta": [
+      "personality_marrow_1_patchwork",
+      "personality_marrow_2_rebuilt",
+      "personality_marrow_3_overwrought",
+      "personality_marrow_4_fury_amalgam"
+    ],
+    "duelist_zeta": [
+      "personality_caedan_vale_1_last_heir",
+      "personality_caedan_vale_2_unparried",
+      "personality_caedan_vale_3_spellcutter",
+      "personality_caedan_vale_4_the_quiet_blade",
+      "personality_caedan_vale_5_peerless"
+    ],
+    "henchman_alpha": [
+      "personality_vesna_draik_1"
+    ],
+    "henchman_beta": [
+      "personality_brann_draik_1"
+    ],
+    "henchman_delta": [
+      "personality_halvard_draik_1"
+    ],
+    "henchman_epsilon": [
+      "personality_pim_1"
+    ],
+    "henchman_gamma": [
+      "personality_quill_draik_1"
+    ],
+    "henchman_zeta": [
+      "personality_tithe_1"
+    ],
+    "salvage_alpha": [
+      "personality_cull_1"
+    ],
+    "salvage_beta": [
+      "personality_orvath_kell_1"
+    ],
+    "salvage_gamma": [
+      "personality_gideon_mourne_1_mercenary"
+    ]
+  },
+  "deck_duelists": {
+    "freestyle_swords": "duelist_zeta",
+    "pyre_ascent": "duelist_iota",
+    "pyre_attrition": "duelist_lambda",
+    "pyre_beatdown": "duelist_alpha",
+    "root_seals": "duelist_eta",
+    "shade_henchmen": "duelist_delta",
+    "shade_mind_siege": "duelist_mu",
+    "shade_salvage": "duelist_theta",
+    "steel_beatdown": "duelist_epsilon",
+    "steel_heir": "duelist_kappa",
+    "storm_unbound": "duelist_gamma",
+    "storm_volley": "duelist_gamma",
+    "tide_companions": "duelist_beta",
+    "tide_deepwater": "duelist_iota",
+    "freestyle_swords_start": "duelist_zeta",
+    "pyre_ascent_start": "duelist_iota",
+    "pyre_attrition_start": "duelist_lambda",
+    "pyre_beatdown_start": "duelist_alpha",
+    "root_seals_start": "duelist_eta",
+    "shade_henchmen_start": "duelist_delta",
+    "shade_mind_siege_start": "duelist_mu",
+    "shade_salvage_start": "duelist_theta",
+    "steel_beatdown_start": "duelist_epsilon",
+    "steel_heir_start": "duelist_kappa",
+    "storm_unbound_start": "duelist_gamma",
+    "storm_volley_start": "duelist_gamma",
+    "tide_companions_start": "duelist_beta",
+    "tide_deepwater_start": "duelist_iota",
+    "freestyle_swords_boss": "duelist_zeta",
+    "freestyle_swords_t1": "duelist_zeta",
+    "freestyle_swords_t2": "duelist_zeta",
+    "freestyle_swords_t3": "duelist_zeta",
+    "freestyle_swords_t4": "duelist_zeta",
+    "freestyle_swords_t5": "duelist_zeta",
+    "pyre_ascent_boss": "duelist_iota",
+    "pyre_ascent_t1": "duelist_iota",
+    "pyre_ascent_t2": "duelist_iota",
+    "pyre_ascent_t3": "duelist_iota",
+    "pyre_ascent_t4": "duelist_iota",
+    "pyre_ascent_t5": "duelist_iota",
+    "pyre_attrition_boss": "duelist_lambda",
+    "pyre_attrition_t1": "duelist_lambda",
+    "pyre_attrition_t2": "duelist_lambda",
+    "pyre_attrition_t3": "duelist_lambda",
+    "pyre_attrition_t4": "duelist_lambda",
+    "pyre_attrition_t5": "duelist_lambda",
+    "pyre_beatdown_boss": "duelist_alpha",
+    "pyre_beatdown_t1": "duelist_alpha",
+    "pyre_beatdown_t2": "duelist_alpha",
+    "pyre_beatdown_t3": "duelist_alpha",
+    "pyre_beatdown_t4": "duelist_alpha",
+    "pyre_beatdown_t5": "duelist_alpha",
+    "root_seals_boss": "duelist_eta",
+    "root_seals_t1": "duelist_eta",
+    "root_seals_t2": "duelist_eta",
+    "root_seals_t3": "duelist_eta",
+    "root_seals_t4": "duelist_eta",
+    "root_seals_t5": "duelist_eta",
+    "shade_henchmen_boss": "duelist_delta",
+    "shade_henchmen_t1": "duelist_delta",
+    "shade_henchmen_t2": "duelist_delta",
+    "shade_henchmen_t3": "duelist_delta",
+    "shade_henchmen_t4": "duelist_delta",
+    "shade_henchmen_t5": "duelist_delta",
+    "shade_mind_siege_boss": "duelist_mu",
+    "shade_mind_siege_t1": "duelist_mu",
+    "shade_mind_siege_t2": "duelist_mu",
+    "shade_mind_siege_t3": "duelist_mu",
+    "shade_mind_siege_t4": "duelist_mu",
+    "shade_mind_siege_t5": "duelist_mu",
+    "shade_salvage_boss": "duelist_theta",
+    "shade_salvage_t1": "duelist_theta",
+    "shade_salvage_t2": "duelist_theta",
+    "shade_salvage_t3": "duelist_theta",
+    "shade_salvage_t4": "duelist_theta",
+    "shade_salvage_t5": "duelist_theta",
+    "steel_beatdown_boss": "duelist_epsilon",
+    "steel_beatdown_t1": "duelist_epsilon",
+    "steel_beatdown_t2": "duelist_epsilon",
+    "steel_beatdown_t3": "duelist_epsilon",
+    "steel_beatdown_t4": "duelist_epsilon",
+    "steel_beatdown_t5": "duelist_epsilon",
+    "steel_heir_boss": "duelist_kappa",
+    "steel_heir_t1": "duelist_kappa",
+    "steel_heir_t2": "duelist_kappa",
+    "steel_heir_t3": "duelist_kappa",
+    "steel_heir_t4": "duelist_kappa",
+    "steel_heir_t5": "duelist_kappa",
+    "storm_unbound_boss": "duelist_gamma",
+    "storm_unbound_t1": "duelist_gamma",
+    "storm_unbound_t2": "duelist_gamma",
+    "storm_unbound_t3": "duelist_gamma",
+    "storm_unbound_t4": "duelist_gamma",
+    "storm_unbound_t5": "duelist_gamma",
+    "storm_volley_boss": "duelist_gamma",
+    "storm_volley_t1": "duelist_gamma",
+    "storm_volley_t2": "duelist_gamma",
+    "storm_volley_t3": "duelist_gamma",
+    "storm_volley_t4": "duelist_gamma",
+    "storm_volley_t5": "duelist_gamma",
+    "tide_companions_boss": "duelist_beta",
+    "tide_companions_t1": "duelist_beta",
+    "tide_companions_t2": "duelist_beta",
+    "tide_companions_t3": "duelist_beta",
+    "tide_companions_t4": "duelist_beta",
+    "tide_companions_t5": "duelist_beta",
+    "tide_deepwater_boss": "duelist_iota",
+    "tide_deepwater_t1": "duelist_iota",
+    "tide_deepwater_t2": "duelist_iota",
+    "tide_deepwater_t3": "duelist_iota",
+    "tide_deepwater_t4": "duelist_iota",
+    "tide_deepwater_t5": "duelist_iota"
+  }
+}

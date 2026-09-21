@@ -3,8 +3,11 @@
   "source_deck": "pyre_ascent",
   "tier": "t4",
   "mode": "adventure",
-  "duelist": "duelist_iota",
-  "aspects": 3,
+  "duelist": [
+    "personality_edric_rooke_1_the_hero",
+    "personality_edric_rooke_2_the_stranger",
+    "personality_edric_rooke_3_the_realms_hero"
+  ],
   "style": "pyre",
   "alignment": "vigil",
   "mastery": "pyre_ember_mastery",
@@ -79,7 +82,7 @@
       "count": 1
     },
     {
-      "id": "companion_epsilon",
+      "id": "personality_alder_rooke_1",
       "count": 1
     },
     {

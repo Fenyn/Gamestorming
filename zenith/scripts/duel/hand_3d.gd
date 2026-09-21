@@ -16,8 +16,9 @@ const RESTING_VISIBLE_FRACTION: float = 0.15
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
-const DULL_FACE: Color = Color(0.50, 0.52, 0.58)   # a card this prompt has no option for
+const DULL_FACE: Color = Color(0.70, 0.72, 0.76)   # still legible for planning when unavailable
 const BACKLINE_CLEAR: float = 292.0                # right edge of the backline rail, plus a margin
+const PREVIEW_MARGIN: float = 18.0
 
 @export var reduced_motion: bool = false:
 	set(value):
@@ -43,12 +44,36 @@ var _expanded_rect: Rect2
 var _page: int = 0
 var _per_page: int = 7
 var _hint: Label3D
+var _hero_left: float = -1.0
+var _hero_right: float = -1.0
+var _hero_bottom: float = -1.0
+var _decision_rect: Rect2 = Rect2()
 
 
 func _ready() -> void:
 	_camera = get_parent() as Camera3D
 	_hint = _label(21, ZenithTheme.MUTED)
 	add_child(_hint)
+
+
+## The duel scene supplies the player's projected Life-and-fighter span. Only the enlarged
+## card uses it; the fan keeps its physical position along the bottom edge.
+func set_hero_bounds(left: float, right: float, bottom: float) -> void:
+	if absf(_hero_left - left) < 1.0 and absf(_hero_right - right) < 1.0 and absf(_hero_bottom - bottom) < 1.0:
+		return
+	_hero_left = left
+	_hero_right = right
+	_hero_bottom = bottom
+	if revealed:
+		_layout()
+
+
+func set_decision_rect(rect: Rect2) -> void:
+	if _decision_rect.position.distance_to(rect.position) < 1.0 and _decision_rect.size.distance_to(rect.size) < 1.0:
+		return
+	_decision_rect = rect
+	if revealed:
+		_layout()
 
 
 func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView = null) -> void:
@@ -125,7 +150,7 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	var border_fx: Node3D = BORDER_FX.instantiate()
 	holder.add_child(border_fx)
 	# The edge is a slightly enlarged silhouette behind the actual face.
-	var title: Label3D = _label(22, ZenithTheme.TEXT)
+	var title: Label3D = _label(24, ZenithTheme.TEXT)
 	title.text = card.title
 	title.width = CARD_WIDTH * 2.0 - 12.0
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -150,6 +175,8 @@ func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFa
 				item["effect_tint"] = ZenithTheme.ATTACK
 	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect)
 	(item["title"] as Label3D).text = card.title
+	item["title_text"] = card.title
+	item["hover_title"] = "%s · %s" % [CardText.TYPE_LABELS[def.type], card.title]
 	var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
 	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if playable else Color(0.15, 0.20, 0.26, 0.22))
 	var summary: Label3D = item["summary"]
@@ -282,6 +309,11 @@ func _layout(snap: bool = false) -> void:
 	_size = get_viewport().get_visible_rect().size
 	_expanded_rect = Rect2()
 	var width: float = minf(CARD_WIDTH, _size.x * 0.105)
+	if revealed and _hero_bottom >= 0.0:
+		# The open fan remains fully visible below the player's readout; the raised card carries
+		# the legible face and forecast when the lower shelf must contract.
+		var room_below_hero: float = maxf(84.0, _size.y - _hero_bottom - PREVIEW_MARGIN - 20.0)
+		width = minf(width, room_below_hero * FACE_SIZE.x / FACE_SIZE.y)
 	var height: float = width * FACE_SIZE.y / FACE_SIZE.x
 	var band: float = minf(_size.x * 0.53, 1040.0)
 	var old_first: int = _page * _per_page
@@ -290,6 +322,15 @@ func _layout(snap: bool = false) -> void:
 	var first: int = _page * _per_page
 	var count: int = mini(_per_page, _items.size() - first)
 	var step: float = minf(width + 14.0, (band - width) / maxf(1.0, count - 1))
+	var fan_shift: float = 0.0
+	var fan_top: float = _size.y - height - 64.0
+	var fan_right: float = _size.x * 0.52 + (count - 1) * 0.5 * step + width * 0.5
+	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > fan_top:
+		fan_shift = minf(0.0, _decision_rect.position.x - PREVIEW_MARGIN - fan_right)
+	var fan_left: float = _size.x * 0.52 + fan_shift - (count - 1) * 0.5 * step - width * 0.5
+	var fan_drop: float = 0.0
+	if revealed and _hero_bottom >= 0.0 and fan_right + fan_shift > _hero_left and fan_left < _hero_right:
+		fan_drop = maxf(0.0, _hero_bottom + PREVIEW_MARGIN + 20.0 - fan_top)
 	var units: float = _units_per_pixel()
 	for i in range(_items.size()):
 		var item: Dictionary = _items[i]
@@ -310,13 +351,29 @@ func _layout(snap: bool = false) -> void:
 			item["rect"] = Rect2()
 			continue
 		var offset: float = i - first - (count - 1) * 0.5
-		var center: Vector2 = Vector2(_size.x * 0.52 + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0)
+		var center: Vector2 = Vector2(_size.x * 0.52 + fan_shift + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0 + fan_drop)
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
-		var scale_factor: float = minf(EXPANDED_WIDTH / width, (_size.y * 0.58) / height) if over else 1.0
+		var scale_factor: float = 1.0
 		if over:
+			var hero_left: float = _hero_left if _hero_left >= 0.0 else _size.x * 0.40
+			var hero_right: float = _hero_right if _hero_right >= 0.0 else _size.x * 0.58
+			var preview_top: float = _size.y - minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height) * height - 58.0
+			var right_end: float = _size.x - 48.0
+			if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > preview_top:
+				right_end = minf(right_end, _decision_rect.position.x - PREVIEW_MARGIN)
+			var left_width: float = maxf(0.0, hero_left - PREVIEW_MARGIN - BACKLINE_CLEAR)
+			var right_width: float = maxf(0.0, right_end - hero_right - PREVIEW_MARGIN)
+			var left_lane: bool = center.x < (hero_left + hero_right) * 0.5
+			if left_lane and left_width < width and right_width > left_width:
+				left_lane = false
+			elif not left_lane and right_width < width and left_width > right_width:
+				left_lane = true
+			var lane_start: float = BACKLINE_CLEAR if left_lane else hero_right + PREVIEW_MARGIN
+			var lane_end: float = hero_left - PREVIEW_MARGIN if left_lane else right_end
+			scale_factor = minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height)
+			scale_factor = minf(scale_factor, maxf(0.2, (lane_end - lane_start) / width))
 			center.y = _size.y - height * scale_factor * 0.5 - 58.0
-			# Kept clear of the backline rail on the left, which holds real cards to hover.
-			center.x = clampf(center.x, BACKLINE_CLEAR + width * scale_factor * 0.5, _size.x - 455.0)
+			center.x = clampf(center.x, lane_start + width * scale_factor * 0.5, lane_end - width * scale_factor * 0.5)
 			_expanded_rect = Rect2(center - Vector2(width, height) * scale_factor * 0.5, Vector2(width, height) * scale_factor)
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
@@ -343,13 +400,14 @@ func _layout(snap: bool = false) -> void:
 		var title: Label3D = item["title"]
 		title.modulate = ZenithTheme.MUTED if dulled else ZenithTheme.TEXT
 		title.render_priority = face.render_priority
-		title.pixel_size = units * 0.5
-		title.width = width * 2.0 - 12.0
-		title.position = Vector3(0, height * units * 0.5 + 24.0 * units, 0.004)
-		title.visible = revealed and not over
+		title.pixel_size = units * 0.5 / scale_factor
+		title.width = width * 2.0 * scale_factor - 12.0
+		title.position = Vector3(0, height * units * 0.5 + 24.0 * units / scale_factor, 0.004)
+		title.text = item["hover_title"] if over else item["title_text"]
+		title.visible = revealed and (over or fan_drop <= 1.0)
 		var summary: Label3D = item["summary"]
 		summary.render_priority = face.render_priority + 1
-		summary.visible = revealed
+		summary.visible = revealed and (over or fan_drop <= 1.0)
 		summary.pixel_size = units * 0.5 / scale_factor
 		summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units / scale_factor, 0.005)
 		if snap:
@@ -437,6 +495,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event
+		if mb.pressed and mb.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and revealed and _items.size() > _per_page:
+			var hand_band: Rect2 = Rect2(Vector2(0.0, _size.y * (1.0 - REVEAL_FRACTION)), Vector2(_size.x, _size.y * REVEAL_FRACTION))
+			if hand_band.has_point(mb.position) or _hit(mb.position, true) >= 0:
+				var pages: int = ceili(float(_items.size()) / _per_page)
+				_page = posmod(_page + (1 if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), pages)
+				_set_hover(-1)
+				_layout()
+				get_viewport().set_input_as_handled()
+				return
 		var hit: int = _hit(mb.position, true)
 		if hit < 0 or not mb.pressed:
 			return
@@ -445,11 +512,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			inspected.emit(int(_items[hit]["uid"]))
 		elif mb.button_index == MOUSE_BUTTON_LEFT and enabled:
 			clicked.emit(int(_items[hit]["uid"]))
-		elif mb.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
-			var pages: int = maxi(1, ceili(float(_items.size()) / _per_page))
-			_page = posmod(_page + (1 if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1), pages)
-			_set_hover(-1)
-			_layout()
 		get_viewport().set_input_as_handled()
 	elif event is InputEventKey:
 		var key: InputEventKey = event

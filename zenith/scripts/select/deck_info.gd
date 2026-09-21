@@ -34,6 +34,7 @@ var _chip_group: ButtonGroup = ButtonGroup.new()
 var _key_generation: int = 0            # bumps per show_deck so a slow render never lands on a newer deck
 var _zoom: TextureRect = null           # the hovered key card at readable size, following the pointer
 var _duelist: CardDef = null
+var _stack: PersonalityStack = null   # the Duelist's Aspect cards, one per tier
 
 
 func _ready() -> void:
@@ -84,10 +85,11 @@ func set_mirrored(on: bool) -> void:
 ## `faces` renders the key card row, up to `key_max` faces; pass null to leave it out.
 func show_deck(d: DeckList, might_max: int, faces: CardFaceCache = null, key_max: int = KEY_CARD_MAX) -> void:
 	var lib: CardLibrary = Session.library
-	var duelist: CardDef = lib.defs.get(d.duelist_id)
+	var duelist: CardDef = lib.defs.get(d.duelist_face_id())
 	_duelist = duelist
+	_stack = d.duelist_stack(lib)
 	_fill_stats(duelist, d)
-	_fill_aspects(duelist, d.aspects, maxi(1, might_max))
+	_fill_aspects(_stack, maxi(1, might_max))
 	_fill_composition(d, lib)
 	_fill_key_cards(d, duelist, lib, faces, key_max)
 	var problems: Array[String] = Session.deck_problems(d)
@@ -112,13 +114,8 @@ func highlight_aspect(aspect: int) -> void:
 static func might_max_of(decks: Array[DeckList]) -> int:
 	var best: int = 1
 	for d in decks:
-		var def: CardDef = Session.library.defs.get(d.duelist_id)
-		if def == null:
-			continue
-		for t in def.aspects:
-			if int(t.get("aspect", 0)) > d.aspects:
-				continue
-			var might: Array = t.get("might", [])
+		for def in d.duelist_stack(Session.library).defs:
+			var might: Array = def.aspect_data(def.aspect).get("might", [])
 			if might.size() > 0:
 				best = maxi(best, int(might[might.size() - 1]))
 	return best
@@ -222,13 +219,13 @@ func _hide_zoom() -> void:
 
 ## Resource statistics always describe the Aspect currently selected for inspection.
 func _fill_stats(duelist: CardDef, d: DeckList) -> void:
-	_show_aspect_stats(duelist.lowest_aspect() if duelist != null else 1)
+	_show_aspect_stats(_stack.lowest_aspect() if _stack != null and not _stack.is_empty() else 1)
 	life_tile.set_stat("Life Deck", "%d cards" % d.cards.size(), "", ZenithTheme.MUTED)
 	reserve_tile.set_stat("Reserve", "%d cards" % d.reserve.size(), "swap before play", ZenithTheme.MUTED)
 
 
 func _show_aspect_stats(aspect: int) -> void:
-	var data: Dictionary = _duelist.aspect_data(aspect) if _duelist != null else {}
+	var data: Dictionary = _stack.aspect_data(aspect) if _stack != null else {}
 	var might: Array = data.get("might", [])
 	var top: int = int(might[might.size() - 1]) if not might.is_empty() else 0
 	might_tile.set_stat("Peak Might", CardText.short_number(top), "selected Aspect", ZenithTheme.MIGHT)
@@ -240,17 +237,16 @@ func _show_aspect_stats(aspect: int) -> void:
 
 ## One chip per Aspect the deck plays with: the title, then Surge and top Might beneath it.
 ## Clicking a chip asks the screen to show that Aspect.
-func _fill_aspects(duelist: CardDef, aspects: int, _might_max: int) -> void:
+func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 	for child in aspects_box.get_children():
 		child.queue_free()
 	_aspect_names.clear()
 	_aspect_chips.clear()
-	if duelist == null:
+	if stack == null:
 		return
-	for t in duelist.aspects:
-		var aspect: int = int(t.get("aspect", 0))
-		if aspect > aspects:
-			break
+	for duelist in stack.defs:
+		var aspect: int = duelist.aspect
+		var t: Dictionary = duelist.aspect_data(aspect)
 		var might: Array = t.get("might", [])
 		var top: int = int(might[might.size() - 1]) if might.size() > 0 else 0
 		var chip: Button = Button.new()

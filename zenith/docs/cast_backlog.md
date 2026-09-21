@@ -59,8 +59,9 @@ sit is already settled in `world.md`; only the names are missing.
   wife's Ally. That settled the theming rule in `designs/zenith.md`, Keywords: what a card looks
   like comes from that card, not from a fixed element on the person.
 - **2026-09-20, the Black sheet.** **Gideon Mourne** becomes the tenth duelist, `duelist_mu`,
-  four Aspects, Shade, Pact, Draconic and `marked`. Two printings now: `salvage_gamma` is
-  "Gideon Mourne, Mercenary", pre-mark and an Ally in somebody else's crew, and `duelist_mu` is
+  four Aspects, Shade, Pact, Draconic and `marked`. Two personality cards now: `salvage_gamma` is
+  "Gideon Mourne, Mercenary", pre-mark and fielded as an Ally in somebody else's crew, and
+  `duelist_mu` is
   "Gideon Mourne, Lord Mourne". Aspects the Marked Lord / Unflinching / Unfettered / Unrepentant.
   **The Fortress** (approved 2026-09-20) is the broken company's third survivor, the slot
   `world.md` already had agreed. His real name is never given, which is the one exception to the

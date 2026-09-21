@@ -1,6 +1,6 @@
 extends SceneTree
 ## Prints the generated rules text of a personality's Aspects, which `print_text.gd` leaves out.
-## godot --headless --path zenith -s tests/print_aspects.gd -- duelist_iota companion_epsilon
+## godot --headless --path zenith -s tests/print_aspects.gd -- personality_edric_rooke_1_the_hero personality_alder_rooke_1
 
 
 func _init() -> void:

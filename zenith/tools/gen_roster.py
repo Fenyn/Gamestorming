@@ -142,13 +142,13 @@ SEAL_PALETTE = {
 # Which named character each character-bound card shows. Cards not listed take the character
 # from their data (`character`) or none.
 SHOWS = {
-    "duelist_alpha": "Bram Ashmark", "duelist_epsilon": "Halden Quarr", "duelist_delta": "Sable Draik",
-    "duelist_beta": "Dame Alder Rooke", "duelist_eta": "Osric Thornwald", "duelist_gamma": "Siphon",
-    "duelist_zeta": "Caedan Vale",
-    "henchman_alpha": "Vesna Draik", "henchman_beta": "Brann Draik", "henchman_delta": "Halvard Draik",
-    "henchman_epsilon": "Pim", "henchman_gamma": "Quill Draik", "henchman_zeta": "Tithe",
-    "companion_alpha": "Wren Rooke", "companion_beta": "Sir Edric Rooke", "companion_delta": "Ansel Rooke",
-    "companion_gamma": "Tavin Vale", "bonded_pair": "Ansel and Tavin, Back to Back",
+    "personality_bram_ashmark_1_starved": "Bram Ashmark", "personality_halden_quarr_1_the_grinder": "Halden Quarr", "personality_sable_draik_1_captain": "Sable Draik",
+    "personality_alder_rooke_1_matriarch": "Dame Alder Rooke", "personality_osric_thornwald_1_greybeard": "Osric Thornwald", "personality_siphon_1_dormant": "Siphon",
+    "personality_caedan_vale_1_last_heir": "Caedan Vale",
+    "personality_vesna_draik_1": "Vesna Draik", "personality_brann_draik_1": "Brann Draik", "personality_halvard_draik_1": "Halvard Draik",
+    "personality_pim_1": "Pim", "personality_quill_draik_1": "Quill Draik", "personality_tithe_1": "Tithe",
+    "personality_wren_rooke_1": "Wren Rooke", "personality_edric_rooke_1": "Sir Edric Rooke", "personality_ansel_rooke_1": "Ansel Rooke",
+    "personality_tavin_vale_1": "Tavin Vale", "personality_ansel_and_tavin_1_back_to_back": "Ansel and Tavin, Back to Back",
     "practiced_guard": "Corin Thrace", "smoke_screen": "Corin Thrace", "suppressing_shot": "Corin Thrace",
     "threefold_bolt": "Corin Thrace", "corins_conditioning": "Corin Thrace",
     "black_hands": "Sable Draik", "draiks_reckoning": "Sable Draik", "lingering_curse": "Sable Draik",
@@ -160,81 +160,81 @@ SHOWS = {
     "vales_pommel_bash": "Caedan Vale", "vales_quickstep": "Caedan Vale", "vales_riposte": "Caedan Vale",
     "vales_sword_draw": "Caedan Vale", "vales_insight": "Caedan Vale", "heirloom_blade": "Caedan Vale",
     "sledges_stance": "Sledge", "siphons_sidestep": "Siphon", "mercy_smiles": "Mercy", "scorn_smirks": "Scorn",
-    "duelist_theta": "Marrow", "marrows_retinue": "Marrow", "cold_appraisal": "Marrow",
+    "personality_marrow_1_patchwork": "Marrow", "marrows_retinue": "Marrow", "cold_appraisal": "Marrow",
     "mournes_stance": "Gideon Mourne", "mournes_quickness_drill": "Gideon Mourne", "mournes_jolting_arc": "Gideon Mourne",
     "mourne_takes_measure": "Gideon Mourne", "mournes_frantic_rush": "Gideon Mourne", "mournes_smirk": "Gideon Mourne",
     "mournes_plans": "Gideon Mourne",
-    "salvage_alpha": "Cull", "salvage_beta": "Orvath Kell", "salvage_gamma": "Gideon Mourne",
+    "personality_cull_1": "Cull", "personality_orvath_kell_1": "Orvath Kell", "personality_gideon_mourne_1_mercenary": "Gideon Mourne",
     "scattered_ashes": "Bram Ashmark", "sabotage": "Siphon", "absorbing_drill": "Cull",
     "committed_cut": "Sir Edric Rooke", "quick_retreat": "Sir Edric Rooke",
     "first_cut": "Sir Edric Rooke", "keepers_drill": "Sir Edric Rooke",
-    "duelist_iota": "Sir Edric Rooke", "edrics_truce": "Sir Edric Rooke",
+    "personality_edric_rooke_1_the_hero": "Sir Edric Rooke", "edrics_truce": "Sir Edric Rooke",
     "edrics_opening_strike": "Sir Edric Rooke", "edrics_training": "Sir Edric Rooke",
-    "companion_epsilon": "Dame Alder Rooke", "hasks_flying_kick": "Torvan Hask",
+    "personality_alder_rooke_1": "Dame Alder Rooke", "hasks_flying_kick": "Torvan Hask",
     "all_or_nothing": "Emrys Rooke", "hilt_guard": "Emrys Rooke", "no_quarter": "Emrys Rooke",
     "sword_flourish": "Emrys Rooke", "sword_sweep": "Emrys Rooke", "sword_thrust": "Emrys Rooke",
     "locked_gate_drill": "Emrys Rooke", "swordplay_drill": "Emrys Rooke",
-    "duelist_kappa": "Emrys Rooke",
+    "personality_emrys_rooke_1_the_eldest": "Emrys Rooke",
 }
 
 # Slot brief per card: subject, action, two or three concrete details, mood. Short, visual, no rules.
 ART = {
     # Duelists
-    "duelist_alpha_a1": "Kindled. Grinning, blood on his knuckles, embers in his eyes, heat shimmer off the blade, no open flame yet.",
-    "duelist_alpha_a2": "Wildfire. Flame licking off his shoulders, cracks of orange light along his forearms, sword raised overhead, coals glowing in the steel.",
-    "duelist_alpha_a3": "Unquenchable. Fully wreathed in fire, face barely visible in it, caught mid-charge, sparks trailing.",
-    "duelist_epsilon_a1": "The Grinder. Brawler's crouch, fists up, black knuckles, breath steaming, hungry look.",
-    "duelist_epsilon_a2": "Tempered. Chest and shoulders greyed to iron, veins like solder, one foot on a discarded page.",
-    "duelist_epsilon_a3": "Ironheart. Chest plated in living iron, a dull red heart glowing through it, both fists cocked.",
-    "duelist_delta_a1": "Captain. Coat open, boot on a crate, a torn company flag behind her, crew silhouettes at the edges, amused.",
-    "duelist_delta_a2": "Shrouded. Shadow pooled at her feet and climbing her coat, half her face in darkness, one hand out.",
-    "duelist_delta_a3": "Lightless. Eyes fully black, the light in the frame dying toward her, shadow streaming off her arms.",
-    "duelist_iota_a1": "The Hero. Standing easy, sword point down, hand raised to hold a line back, no fire on him yet.",
-    "duelist_iota_a2": "The Stranger. Helm off, looking at his own hands, a thin orange seam of heat along one forearm, the Hask axe on the ground behind him.",
-    "duelist_iota_a3": "The Realm's Hero. Mid-stride into a burning street, coals under his boots, shield arm shielding somebody out of frame.",
-    "duelist_iota_a4": "Kindled Through. Fire running up the blade and along the mail seams, teeth set, one fist cocked.",
-    "duelist_iota_a5": "The All Powerful. Wreathed to the shoulders, the sword a bar of white heat, everything around him going to ash.",
-    "duelist_kappa_a1": "The Eldest. Empty-handed and still, sleeves pushed up, bare forearms, borrowed stances in the set of his feet, no metal anywhere.",
-    "duelist_kappa_a2": "First Plate. Fitted grey metal closed over both forearms like bracers he grew, flexing one hand to test it, surprised at it.",
-    "duelist_kappa_a3": "Edged. The forearm plate drawn out into a working edge along the ulna, held low and ready, one clean cut in the air behind it.",
-    "duelist_kappa_a4": "Shaped. Metal running to the shoulders and moving where he looks, a plate sliding across his chest mid-step, hands open and unhurried.",
-    "duelist_kappa_a5": "Scaleclad. Plated head to boot in overlapping grey scale, the pattern finally reading as a dragon's, one gauntlet cocked, calm.",
-    "duelist_beta_a1": "Matriarch. Shield up, sword low, three hooded coven figures behind her, stern.",
-    "duelist_beta_a2": "Rising Water. Water climbing her mail to the waist, eyes gone sea-glass green, a knight at her shoulder.",
-    "duelist_beta_a3": "The Flood. A wave rising off her shoulders, face calm as deep water, the ground at her feet awash.",
-    "duelist_eta_a1": "Greybeard. Sitting on his heels, staff across his knees, moss on the leathers, reading a torn page.",
-    "duelist_eta_a2": "Overgrown. Bark up both forearms, leaves in the beard, staff mid-swing, green pushing through grey.",
-    "duelist_eta_a3": "Deep-Rooted. Roots running from his boots into the ground, a staff blow landing, a cut on his arm closing over in bark.",
-    "duelist_eta_a4": "Heartwood. Torso gone to living wood, ribs of bark, leaves budding at the shoulders, staff planted.",
-    "duelist_eta_a5": "Grovelord. A standing tree with a bearded face, arms become boughs, one hand still holding the staff.",
-    "duelist_gamma_a1": "Dormant. Standing still as a statue, sigils dark, one hand raised palm out catching a fading bolt.",
-    "duelist_gamma_a2": "Charged. Sigils lit blue-white, a haze of static around it, a blade sliding off a ward of light.",
-    "duelist_gamma_a3": "Unbound. Arcs jumping between its limbs, the glass core bare and blazing, both hands throwing charge.",
-    "duelist_zeta_a1": "Last Heir. Longsword in a textbook guard, chin up, young and exact, a worn sword-school crest on the doublet.",
-    "duelist_zeta_a2": "Unparried. Mid-lunge, the point leading, no wasted motion, a ribbon of displaced air.",
-    "duelist_zeta_a3": "Spellcutter. A cut finishing through a fading spell, the rival's hand at the frame edge pinned.",
-    "duelist_zeta_a4": "The Quiet Blade. Standing still, point steady, grey at the temples, the air around him clear while spells break at a distance.",
-    "duelist_zeta_a5": "Peerless. Older, sword lowered, walking forward unhurried, three faint ghost images of the next moves ahead of him.",
-    "duelist_theta_a1": "Patchwork. Standing square in a field of broken constructs, held together with strap and wire, the stamped name under her jaw catching the light.",
-    "duelist_theta_a2": "Rebuilt. Properly seated joints and beaten-out plate, a struck blade skidding off her shoulder without leaving a mark on it.",
-    "duelist_theta_a3": "Overwrought. Built past what any part was for: too many plates, too much arm, a seam glowing where it should not.",
-    "duelist_theta_a4": "Fury Amalgam. All of it moving at once, mid-swing, pieces of a dozen constructs in one shape and none of them idle.",
+    "personality_bram_ashmark_1_starved": "Kindled. Grinning, blood on his knuckles, embers in his eyes, heat shimmer off the blade, no open flame yet.",
+    "personality_bram_ashmark_2_leeching": "Wildfire. Flame licking off his shoulders, cracks of orange light along his forearms, sword raised overhead, coals glowing in the steel.",
+    "personality_bram_ashmark_3_unstoppable": "Unquenchable. Fully wreathed in fire, face barely visible in it, caught mid-charge, sparks trailing.",
+    "personality_halden_quarr_1_the_grinder": "The Grinder. Brawler's crouch, fists up, black knuckles, breath steaming, hungry look.",
+    "personality_halden_quarr_2_tempered": "Tempered. Chest and shoulders greyed to iron, veins like solder, one foot on a discarded page.",
+    "personality_halden_quarr_3_ironheart": "Ironheart. Chest plated in living iron, a dull red heart glowing through it, both fists cocked.",
+    "personality_sable_draik_1_captain": "Captain. Coat open, boot on a crate, a torn company flag behind her, crew silhouettes at the edges, amused.",
+    "personality_sable_draik_2_shrouded": "Shrouded. Shadow pooled at her feet and climbing her coat, half her face in darkness, one hand out.",
+    "personality_sable_draik_3_lightless": "Lightless. Eyes fully black, the light in the frame dying toward her, shadow streaming off her arms.",
+    "personality_edric_rooke_1_the_hero": "The Hero. Standing easy, sword point down, hand raised to hold a line back, no fire on him yet.",
+    "personality_edric_rooke_2_the_stranger": "The Stranger. Helm off, looking at his own hands, a thin orange seam of heat along one forearm, the Hask axe on the ground behind him.",
+    "personality_edric_rooke_3_the_realms_hero": "The Realm's Hero. Mid-stride into a burning street, coals under his boots, shield arm shielding somebody out of frame.",
+    "personality_edric_rooke_4_kindled_through": "Kindled Through. Fire running up the blade and along the mail seams, teeth set, one fist cocked.",
+    "personality_edric_rooke_5_the_all_powerful": "The All Powerful. Wreathed to the shoulders, the sword a bar of white heat, everything around him going to ash.",
+    "personality_emrys_rooke_1_the_eldest": "The Eldest. Empty-handed and still, sleeves pushed up, bare forearms, borrowed stances in the set of his feet, no metal anywhere.",
+    "personality_emrys_rooke_2_first_plate": "First Plate. Fitted grey metal closed over both forearms like bracers he grew, flexing one hand to test it, surprised at it.",
+    "personality_emrys_rooke_3_edged": "Edged. The forearm plate drawn out into a working edge along the ulna, held low and ready, one clean cut in the air behind it.",
+    "personality_emrys_rooke_4_shaped": "Shaped. Metal running to the shoulders and moving where he looks, a plate sliding across his chest mid-step, hands open and unhurried.",
+    "personality_emrys_rooke_5_scaleclad": "Scaleclad. Plated head to boot in overlapping grey scale, the pattern finally reading as a dragon's, one gauntlet cocked, calm.",
+    "personality_alder_rooke_1_matriarch": "Matriarch. Shield up, sword low, three hooded coven figures behind her, stern.",
+    "personality_alder_rooke_2_rising_water": "Rising Water. Water climbing her mail to the waist, eyes gone sea-glass green, a knight at her shoulder.",
+    "personality_alder_rooke_3_the_flood": "The Flood. A wave rising off her shoulders, face calm as deep water, the ground at her feet awash.",
+    "personality_osric_thornwald_1_greybeard": "Greybeard. Sitting on his heels, staff across his knees, moss on the leathers, reading a torn page.",
+    "personality_osric_thornwald_2_overgrown": "Overgrown. Bark up both forearms, leaves in the beard, staff mid-swing, green pushing through grey.",
+    "personality_osric_thornwald_3_deep_rooted": "Deep-Rooted. Roots running from his boots into the ground, a staff blow landing, a cut on his arm closing over in bark.",
+    "personality_osric_thornwald_4_heartwood": "Heartwood. Torso gone to living wood, ribs of bark, leaves budding at the shoulders, staff planted.",
+    "personality_osric_thornwald_5_grovelord": "Grovelord. A standing tree with a bearded face, arms become boughs, one hand still holding the staff.",
+    "personality_siphon_1_dormant": "Dormant. Standing still as a statue, sigils dark, one hand raised palm out catching a fading bolt.",
+    "personality_siphon_2_charged": "Charged. Sigils lit blue-white, a haze of static around it, a blade sliding off a ward of light.",
+    "personality_siphon_3_unbound": "Unbound. Arcs jumping between its limbs, the glass core bare and blazing, both hands throwing charge.",
+    "personality_caedan_vale_1_last_heir": "Last Heir. Longsword in a textbook guard, chin up, young and exact, a worn sword-school crest on the doublet.",
+    "personality_caedan_vale_2_unparried": "Unparried. Mid-lunge, the point leading, no wasted motion, a ribbon of displaced air.",
+    "personality_caedan_vale_3_spellcutter": "Spellcutter. A cut finishing through a fading spell, the rival's hand at the frame edge pinned.",
+    "personality_caedan_vale_4_the_quiet_blade": "The Quiet Blade. Standing still, point steady, grey at the temples, the air around him clear while spells break at a distance.",
+    "personality_caedan_vale_5_peerless": "Peerless. Older, sword lowered, walking forward unhurried, three faint ghost images of the next moves ahead of him.",
+    "personality_marrow_1_patchwork": "Patchwork. Standing square in a field of broken constructs, held together with strap and wire, the stamped name under her jaw catching the light.",
+    "personality_marrow_2_rebuilt": "Rebuilt. Properly seated joints and beaten-out plate, a struck blade skidding off her shoulder without leaving a mark on it.",
+    "personality_marrow_3_overwrought": "Overwrought. Built past what any part was for: too many plates, too much arm, a seam glowing where it should not.",
+    "personality_marrow_4_fury_amalgam": "Fury Amalgam. All of it moving at once, mid-swing, pieces of a dozen constructs in one shape and none of them idle.",
     # Allies
-    "henchman_alpha": "Coming in from the frame edge, knives out, hood up.",
-    "henchman_beta": "Cracking his knuckles, leaning over the viewer.",
-    "henchman_delta": "Both swords drawn in a crossed guard, cloak lifting.",
-    "henchman_epsilon": "Crouched over a pile of torn pages, holding one up to the light.",
-    "henchman_gamma": "Reading a hex off a page, one finger tracing it, purple ink glowing.",
-    "henchman_zeta": "Stepping in front of the viewer, shoulder first, a spark at the cracked joint.",
-    "companion_alpha": "Gathering loose pages into her satchel, some floating back to her.",
-    "companion_beta": "Sword raised, a focused jet of water along the blade.",
-    "companion_delta": "Shield braced, water refilling a cracked flask at his hip.",
-    "companion_epsilon": "Stepping in front of a blow meant for someone else, shield up, no water raised at all, furious.",
-    "companion_gamma": "Hands open, a globe of water between them, pages settling into a deck at his feet.",
-    "bonded_pair": "Back to back, water curling around the shield, both looking outward.",
-    "salvage_alpha": "Selecting an instrument from the open roll without looking down, mild and unhurried.",
-    "salvage_beta": "Both palms raised over a fallen construct, the hex uncoiling between them, the gorget still buckled on.",
-    "salvage_gamma": "Mid-cast, the broken crest on his chest turned to the viewer, light bleeding off his knuckles.",
+    "personality_vesna_draik_1": "Coming in from the frame edge, knives out, hood up.",
+    "personality_brann_draik_1": "Cracking his knuckles, leaning over the viewer.",
+    "personality_halvard_draik_1": "Both swords drawn in a crossed guard, cloak lifting.",
+    "personality_pim_1": "Crouched over a pile of torn pages, holding one up to the light.",
+    "personality_quill_draik_1": "Reading a hex off a page, one finger tracing it, purple ink glowing.",
+    "personality_tithe_1": "Stepping in front of the viewer, shoulder first, a spark at the cracked joint.",
+    "personality_wren_rooke_1": "Gathering loose pages into her satchel, some floating back to her.",
+    "personality_edric_rooke_1": "Sword raised, a focused jet of water along the blade.",
+    "personality_ansel_rooke_1": "Shield braced, water refilling a cracked flask at his hip.",
+    "personality_alder_rooke_1": "Stepping in front of a blow meant for someone else, shield up, no water raised at all, furious.",
+    "personality_tavin_vale_1": "Hands open, a globe of water between them, pages settling into a deck at his feet.",
+    "personality_ansel_and_tavin_1_back_to_back": "Back to back, water curling around the shield, both looking outward.",
+    "personality_cull_1": "Selecting an instrument from the open roll without looking down, mild and unhurried.",
+    "personality_orvath_kell_1": "Both palms raised over a fallen construct, the hex uncoiling between them, the gorget still buckled on.",
+    "personality_gideon_mourne_1_mercenary": "Mid-cast, the broken crest on his chest turned to the viewer, light bleeding off his knuckles.",
     # Relics and Masteries
     "blank_mask": "A featureless white porcelain mask, no eye holes, on black cloth.",
     "debtors_ring": "A heavy iron ring pressed with someone else's mark, a wax seal beside it.",
@@ -490,15 +490,15 @@ ART = {
     # Backlog: cards added by the tournament imports that the roster was never rebuilt for. The
     # generator refuses to run while any card lacks a brief, so these were written here to unblock
     # the rebuild. They follow the house pattern but have not been reviewed.
-    "duelist_lambda_a1": "Starved. Gaunt and low to the ground, blade held loose, the fire in him down to a few coals, eyes fixed on something out of frame.",
-    "duelist_lambda_a2": "Gnawing. Hunched mid-step, small flames chewing along the blade's edge, a brand showing dark on his forearm.",
-    "duelist_lambda_a3": "Gorging. Fire pouring into him rather than off him, the light around him drawn inward, mouth open.",
-    "duelist_lambda_a4": "Consuming. Wreathed and still, everything near him blackening at the edges, the brand burning white.",
-    "duelist_lambda_a5": "Insatiable. Fully ablaze and empty with it, the fire streaming inward through a hollow at his chest, nothing in his face.",
-    "duelist_mu_a1": "The Marked Lord. Standing square in a ruined hall, brigandine closed, a dark brand across the back of one crackling hand, chin up.",
-    "duelist_mu_a2": "Unflinching. Taking a blow on the shoulder without moving his feet, the brand spreading up the forearm, jaw set.",
-    "duelist_mu_a3": "Unfettered. The broken crest torn off his chest and dropped, both hands lit, moving forward.",
-    "duelist_mu_a4": "Unrepentant. The brand covering half his face, arms wide, the hall behind him going dark, no shame in it.",
+    "personality_bram_ashmark_1_starved": "Starved. Gaunt and low to the ground, blade held loose, the fire in him down to a few coals, eyes fixed on something out of frame.",
+    "personality_bram_ashmark_2_gnawing": "Gnawing. Hunched mid-step, small flames chewing along the blade's edge, a brand showing dark on his forearm.",
+    "personality_bram_ashmark_3_gorging": "Gorging. Fire pouring into him rather than off him, the light around him drawn inward, mouth open.",
+    "personality_bram_ashmark_4_consuming": "Consuming. Wreathed and still, everything near him blackening at the edges, the brand burning white.",
+    "personality_bram_ashmark_5_insatiable": "Insatiable. Fully ablaze and empty with it, the fire streaming inward through a hollow at his chest, nothing in his face.",
+    "personality_gideon_mourne_1_the_marked_lord": "The Marked Lord. Standing square in a ruined hall, brigandine closed, a dark brand across the back of one crackling hand, chin up.",
+    "personality_gideon_mourne_2_unflinching": "Unflinching. Taking a blow on the shoulder without moving his feet, the brand spreading up the forearm, jaw set.",
+    "personality_gideon_mourne_3_unfettered": "Unfettered. The broken crest torn off his chest and dropped, both hands lit, moving forward.",
+    "personality_gideon_mourne_4_unrepentant": "Unrepentant. The brand covering half his face, arms wide, the hall behind him going dark, no shame in it.",
     "ashmarks_choke_hold": "A hold locked on from behind, an arm across the throat, heat shimmer rising off the grip.",
     "ashmarks_ember_spray": "A spray of embers thrown flat from an open hand, a brand glowing on the wrist.",
     "ashmarks_unmaking_whisper": "A blow landing and the air behind it coming apart in black threads, embers going out.",
@@ -621,11 +621,11 @@ def load_cards(path):
 # to carry forward. The CSV wins once it has a value, which is where corrections go.
 NEW_SOURCES = {
     # Saiyan Gohan, read off the sheet 2026-09-19.
-    "duelist_kappa_a1": "Super Saiyan Gohan (Lv 1, Cell Saga IR2)",
-    "duelist_kappa_a2": "Gohan, the Swift (Lv 2, Cell Saga)",
-    "duelist_kappa_a3": "Gohan, Super Saiyan (Lv 3, Cell Saga)",
-    "duelist_kappa_a4": "Gohan, Ascendant (Lv 4, Cell Saga)",
-    "duelist_kappa_a5": "Gohan, the Winner (Lv 5, Cell Saga)",
+    "personality_emrys_rooke_1_the_eldest": "Super Saiyan Gohan (Lv 1, Cell Saga IR2)",
+    "personality_emrys_rooke_2_first_plate": "Gohan, the Swift (Lv 2, Cell Saga)",
+    "personality_emrys_rooke_3_edged": "Gohan, Super Saiyan (Lv 3, Cell Saga)",
+    "personality_emrys_rooke_4_shaped": "Gohan, Ascendant (Lv 4, Cell Saga)",
+    "personality_emrys_rooke_5_scaleclad": "Gohan, the Winner (Lv 5, Cell Saga)",
     "steel_cross": "Saiyan Cross Punch (Capsule Corp Power Pack)",
     "steel_rake": "Saiyan Triple Kick (Cell Saga 41)",
     "steel_talon": "Saiyan Flying Kick (Cell Saga 60)",
@@ -648,12 +648,12 @@ NEW_SOURCES = {
     "corins_conditioning": "Tien's Mental Condition (Androids Saga 86)",
     "provocation": "Enraged! (Saiyan Saga 190)",
     # Red Goku v1.1, read off the sheet 2026-09-19.
-    "duelist_iota_a1": "Goku, the Hero (Lv 1, Cell Saga)",
-    "duelist_iota_a2": "Goku, the Saiyan (Lv 2, Cell Saga)",
-    "duelist_iota_a3": "Goku, Earth's Hero (Lv 3, Cell Saga)",
-    "duelist_iota_a4": "Goku (Lv 4, Cell Saga)",
-    "duelist_iota_a5": "Goku, the All Powerful (Lv 5, Cell Saga)",
-    "companion_epsilon": "Chi-Chi (Lv 1, Saiyan Saga)",
+    "personality_edric_rooke_1_the_hero": "Goku, the Hero (Lv 1, Cell Saga)",
+    "personality_edric_rooke_2_the_stranger": "Goku, the Saiyan (Lv 2, Cell Saga)",
+    "personality_edric_rooke_3_the_realms_hero": "Goku, Earth's Hero (Lv 3, Cell Saga)",
+    "personality_edric_rooke_4_kindled_through": "Goku (Lv 4, Cell Saga)",
+    "personality_edric_rooke_5_the_all_powerful": "Goku, the All Powerful (Lv 5, Cell Saga)",
+    "personality_alder_rooke_1": "Chi-Chi (Lv 1, Saiyan Saga)",
     "pyre_ember_mastery": "Red Style Mastery (Trunks Saga)",
     "braced_guard": "Prepared Dodge (Cell Games Saga)",
     "pyre_bellows_guard": "Red Offensive Stance (Cell Saga)",
@@ -677,13 +677,13 @@ NEW_SOURCES = {
     "siphons_sidestep": "Android 19's Dodge (BSMovie Promo)",
     "mercy_smiles": "Android 16 Smiles (AS Promo)",
     "scorn_smirks": "Android 17 Smirks (Androids Saga)",
-    "duelist_theta_a1": "Android 18 (Lv 1, Cell Saga)",
-    "duelist_theta_a2": "Android 18, the Model (Lv 2, Cell Saga)",
-    "duelist_theta_a3": "Android 18, the Machine (Lv 3, Cell Saga)",
-    "duelist_theta_a4": "Android 18 (Lv 4, Cell Saga)",
-    "salvage_alpha": "Android 20 (Lv 1, Cell Saga)",
-    "salvage_beta": "Piccolo, the Avenger (Lv 1, Trunks Saga)",
-    "salvage_gamma": "Vegeta, the Powerful (Lv 1, Cell Saga)",
+    "personality_marrow_1_patchwork": "Android 18 (Lv 1, Cell Saga)",
+    "personality_marrow_2_rebuilt": "Android 18, the Model (Lv 2, Cell Saga)",
+    "personality_marrow_3_overwrought": "Android 18, the Machine (Lv 3, Cell Saga)",
+    "personality_marrow_4_fury_amalgam": "Android 18 (Lv 4, Cell Saga)",
+    "personality_cull_1": "Android 20 (Lv 1, Cell Saga)",
+    "personality_orvath_kell_1": "Piccolo, the Avenger (Lv 1, Trunks Saga)",
+    "personality_gideon_mourne_1_mercenary": "Vegeta, the Powerful (Lv 1, Cell Saga)",
     "salt_seal_1": "Dende Dragon Ball 1 (Cell Saga)",
     "salt_seal_2": "Dende Dragon Ball 2 (Cell Saga)",
     "salt_seal_3": "Dende Dragon Ball 3 (Cell Saga)",
@@ -790,7 +790,8 @@ def load_decks():
 
         def add(cid, what):
             used.setdefault(cid, []).append("%s %s" % (short, what))
-        add(d["duelist"], "duelist")
+        for cid in d["duelist"]:
+            add(cid, "duelist")
         if d.get("mastery"):
             add(d["mastery"], "Mastery")
         if d.get("relic"):
@@ -808,7 +809,7 @@ def load_decks():
 def duelist_ids():
     out = set()
     for f in sorted(glob.glob("data/decks/*.json")):
-        out.add(json.load(open(f, encoding="utf-8"))["duelist"])
+        out.update(json.load(open(f, encoding="utf-8"))["duelist"])
     return out
 
 
@@ -876,13 +877,9 @@ def main(dump):
     sources = load_sources("docs/card_roster.csv")
     used = load_decks()
     rows = []
-    aspect_count = collections.Counter(c["base"] for c in cards if c["aspect"])
+    # Each Aspect is its own card since 2026-09-21, so one card is one row and one art file,
+    # named by that card's own id, whichever role it fills.
     for c in cards:
-        if c["type"] == "Personality" and aspect_count[c["base"]] == 1:
-            # A personality printed at a single Aspect gets one art file, named by the bare id.
-            # One printed at several gets `<id>_a<n>` per Aspect, whichever role it fills.
-            c["id"] = c["base"]
-            c["title"] = c["title"].removesuffix(", Aspect 1")
         brief = brief_of(c)
         rows.append({
             "Section": section_of(c), "id": c["id"], "Name": c["title"], "Type": c["type_line"],

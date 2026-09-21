@@ -12,9 +12,10 @@ func _initialize() -> void:
 		{"id": "feature_cycle_a", "title": "Test Cycle A", "type": "combat", "effects": [{"op": "search", "title_contains": "Test Cycle B"}]},
 		{"id": "feature_cycle_b", "title": "Test Cycle B", "type": "combat", "effects": [{"op": "search", "source": "hand", "title_contains": "Test Cycle A"}]},
 		{"id": "feature_reward", "title": "Test Feature Reward", "type": "combat", "effects": [{"op": "draw", "amount": 5}]},
-		{"id": "feature_aspect_tutor", "title": "Test Aspect Tutor", "type": "personality", "character": "Test Aspect Tutor", "aspects": [
-			{"aspect": 1, "might": [0], "power": {"effects": [{"op": "search", "title_contains": "Test Absent Reward"}]}},
-			{"aspect": 2, "might": [0], "power": {"effects": [{"op": "search", "title_contains": "Test Feature Reward"}]}}]},
+		{"id": "feature_aspect_tutor_1", "title": "Test Aspect Tutor", "type": "personality", "character": "Test Aspect Tutor",
+			"aspect": 1, "might": [0], "power": {"effects": [{"op": "search", "title_contains": "Test Absent Reward"}]}},
+		{"id": "feature_aspect_tutor_2", "title": "Test Aspect Tutor", "type": "personality", "character": "Test Aspect Tutor",
+			"aspect": 2, "might": [0], "power": {"effects": [{"op": "search", "title_contains": "Test Feature Reward"}]}},
 		{"id": "feature_draw_engine", "title": "Test Draw Engine", "type": "drill", "once_per_combat": true,
 			"effects": [{"trigger": "use", "op": "draw", "amount": 2, "when": {"hand_min": 1}}]},
 		{"id": "feature_empty_engine", "title": "Test Empty Engine", "type": "non_combat",
@@ -39,8 +40,7 @@ func _engine() -> DuelEngine:
 	var decks: Array[DeckList] = []
 	for seat in range(2):
 		var deck: DeckList = DeckList.new()
-		deck.duelist_id = "tf_vigil"
-		deck.aspects = 3
+		deck.set_duelist(["tf_vigil_1", "tf_vigil_2", "tf_vigil_3"])
 		deck.alignment = "vigil"
 		for i in range(30):
 			deck.cards.append("t_strike")
@@ -106,12 +106,14 @@ func _tutor_cycle_and_context() -> void:
 
 func _current_aspect() -> void:
 	var engine: DuelEngine = _engine()
-	var source: CardInstance = _card(engine, "feature_aspect_tutor", &"in_play")
+	var source: CardInstance = _card(engine, "feature_aspect_tutor_1", &"in_play")
 	_card(engine, "feature_reward", &"life_deck")
 	engine.player(0).controlling = source
+	source.stack = PersonalityStack.from_ids(engine.library, ["feature_aspect_tutor_1", "feature_aspect_tutor_2"])
 	var profile: AiProfile = _profile()
 	var first: float = AiScorer.card_value(engine, engine.player(0), source, profile, 3)
-	source.aspect = 2
+	# Climbing swaps the card the Ally is showing, so the Power the AI reads is the new one's.
+	source.go_to_aspect(2)
 	_check(AiScorer.card_value(engine, engine.player(0), source, profile, 3) > first, "Tutor follows current Aspect power")
 
 

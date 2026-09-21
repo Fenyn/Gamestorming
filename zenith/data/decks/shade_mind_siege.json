@@ -1,7 +1,11 @@
 {
   "name": "Mind Siege",
-  "duelist": "duelist_mu",
-  "aspects": 4,
+  "duelist": [
+    "personality_gideon_mourne_1_the_marked_lord",
+    "personality_gideon_mourne_2_unflinching",
+    "personality_gideon_mourne_3_unfettered",
+    "personality_gideon_mourne_4_unrepentant"
+  ],
   "style": "shade",
   "alignment": "pact",
   "mastery": "shade_mastery",

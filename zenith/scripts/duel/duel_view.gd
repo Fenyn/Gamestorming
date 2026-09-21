@@ -215,6 +215,23 @@ func _layout_fixtures() -> void:
 		var count: int = view.player(owner).life_deck.size()
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
 		fixture.anchor_to_card(card, camera)
+	if viewer >= 0 and near_duelist.visible:
+		var near_card: Card3D = views.get(near_duelist.duelist_uid)
+		var life_x: float = camera.unproject_position(near_duelist.life_transform.origin).x
+		var fighter_screen: Vector2 = camera.unproject_position(near_card.global_position)
+		var pixel_scale: float = near_duelist.surface.pixel_size * near_duelist.global_basis.get_scale().x
+		var scale_pixels: float = fighter_screen.distance_to(camera.unproject_position(near_card.global_position + camera.global_basis.x * pixel_scale))
+		near_duelist.readout.update_layout()
+		var hero_bottom: float = fighter_screen.y
+		for hit_rect: Rect2 in near_duelist.readout.stat_hit_rects:
+			hero_bottom = maxf(hero_bottom, fighter_screen.y + hit_rect.end.y * scale_pixels)
+		hand_3d.set_hero_bounds(life_x - size.x * 0.035, fighter_screen.x + size.x * 0.09, hero_bottom)
+	var decision_rect: Rect2 = Rect2()
+	if hud.prompt_panel.visible:
+		decision_rect = hud.prompt_panel.get_global_rect()
+	if hud.focus.visible:
+		decision_rect = decision_rect.merge(hud.focus.get_global_rect()) if decision_rect.has_area() else hud.focus.get_global_rect()
+	hand_3d.set_decision_rect(decision_rect)
 	if not hud.focus.visible:
 		return
 	var focus_rect: Rect2 = hud.focus.get_global_rect()
@@ -735,7 +752,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.ACCENT if up else ZenithTheme.WARN)
-			hud.toast("%s %s to %s" % [view.player(player).name, "rises" if up else "falls", CardText.aspect_name(int(data.get("aspect", 1)), _duelist_def(player))], ZenithTheme.ACCENT if up else ZenithTheme.WARN)
+			hud.toast("%s %s to %s" % [view.player(player).name, "rises" if up else "falls", CardText.stack_aspect_name(int(data.get("aspect", 1)), _duelist_stack(player))], ZenithTheme.ACCENT if up else ZenithTheme.WARN)
 			if v != null:
 				await v.hop(0.2)
 			await _beat(TOAST_BEAT)
@@ -1209,10 +1226,13 @@ func _def(c: SeatCard) -> CardDef:
 	return Session.library.defs.get(c.def_id)
 
 
-## The duelist card of a seat, for its Aspect titles. Null while the view has no such card.
-func _duelist_def(player: int) -> CardDef:
+## The duelist's Aspect stack for a seat, for its Aspect titles. The announced ladder is public,
+## so the view carries its card ids on the duelist's SeatCard. Null while the view has no card.
+func _duelist_stack(player: int) -> PersonalityStack:
 	var c: SeatCard = view.card(view.player(player).duelist)
-	return _def(c) if c != null else null
+	if c == null or c.ladder.is_empty():
+		return null
+	return PersonalityStack.from_ids(Session.library, c.ladder)
 
 
 ## One Card3D per uid the view knows, with the face the view allows (a back for hidden cards).

@@ -3,8 +3,10 @@
   "source_deck": "root_seals",
   "tier": "t2",
   "mode": "adventure",
-  "duelist": "duelist_eta",
-  "aspects": 2,
+  "duelist": [
+    "personality_osric_thornwald_1_greybeard",
+    "personality_osric_thornwald_2_overgrown"
+  ],
   "style": "root",
   "alignment": "vigil",
   "mastery": "root_mastery",

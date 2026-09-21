@@ -3,8 +3,12 @@
   "source_deck": "shade_salvage",
   "tier": "boss",
   "mode": "adventure",
-  "duelist": "duelist_theta",
-  "aspects": 4,
+  "duelist": [
+    "personality_marrow_1_patchwork",
+    "personality_marrow_2_rebuilt",
+    "personality_marrow_3_overwrought",
+    "personality_marrow_4_fury_amalgam"
+  ],
   "style": "shade",
   "alignment": "pact",
   "mastery": "shade_mastery",
@@ -152,11 +156,11 @@
       "count": 1
     },
     {
-      "id": "salvage_alpha",
+      "id": "personality_cull_1",
       "count": 1
     },
     {
-      "id": "salvage_beta",
+      "id": "personality_orvath_kell_1",
       "count": 1
     },
     {

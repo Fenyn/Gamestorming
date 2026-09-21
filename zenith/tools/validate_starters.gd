@@ -19,7 +19,7 @@ func _init() -> void:
 			var problems: Array[String] = DeckValidator.validate(deck, lib)
 			var label: String = entry.trim_suffix(".json")
 			if problems.is_empty():
-				print("ok   %-26s %d cards, %d aspects" % [label, deck.total_cards(), deck.aspects])
+				print("ok   %-26s %d cards, %d aspects" % [label, deck.total_cards(), deck.duelist_ids.size()])
 			else:
 				bad += 1
 				print("FAIL %-26s %s" % [label, ", ".join(problems)])

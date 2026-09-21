@@ -3,8 +3,10 @@
   "source_deck": "steel_beatdown",
   "tier": "t1",
   "mode": "adventure",
-  "duelist": "duelist_epsilon",
-  "aspects": 2,
+  "duelist": [
+    "personality_halden_quarr_1_the_grinder",
+    "personality_halden_quarr_2_tempered"
+  ],
   "style": "steel",
   "alignment": "pact",
   "mastery": "steel_mastery",

@@ -3,8 +3,11 @@
   "source_deck": "pyre_attrition",
   "tier": "t3",
   "mode": "adventure",
-  "duelist": "duelist_lambda",
-  "aspects": 3,
+  "duelist": [
+    "personality_bram_ashmark_1_starved",
+    "personality_bram_ashmark_2_gnawing",
+    "personality_bram_ashmark_3_gorging"
+  ],
   "style": "pyre",
   "alignment": "pact",
   "mastery": "pyre_ember_mastery",

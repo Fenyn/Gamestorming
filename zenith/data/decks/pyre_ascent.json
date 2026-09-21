@@ -1,7 +1,12 @@
 {
   "name": "Ember Ascendant",
-  "duelist": "duelist_iota",
-  "aspects": 5,
+  "duelist": [
+    "personality_edric_rooke_1_the_hero",
+    "personality_edric_rooke_2_the_stranger",
+    "personality_edric_rooke_3_the_realms_hero",
+    "personality_edric_rooke_4_kindled_through",
+    "personality_edric_rooke_5_the_all_powerful"
+  ],
   "style": "pyre",
   "alignment": "vigil",
   "mastery": "pyre_ember_mastery",
@@ -22,7 +27,7 @@
       "count": 3
     },
     {
-      "id": "companion_epsilon",
+      "id": "personality_alder_rooke_1",
       "count": 1
     },
     {

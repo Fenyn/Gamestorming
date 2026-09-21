@@ -52,7 +52,7 @@ func _mirror() -> void:
 
 func show_deck(d: DeckList, tag_text: String) -> void:
 	_deck = d
-	var duelist: CardDef = Session.library.defs.get(d.duelist_id)
+	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
 	var school_color: Color = Palette.school_ui(d.style)
 	var seat_color: Color = Session.seat_color(seat)
 	var panel: StyleBoxFlat = ZenithTheme.edged(seat_color, Color(seat_color, 0.08), 14, 18, 16)
@@ -64,7 +64,7 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 		panel.content_margin_left = 18
 	add_theme_stylebox_override("panel", panel)
 	tag.text = tag_text
-	duelist_label.text = duelist.title if duelist != null else d.duelist_id
+	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
 	deck_label.text = d.name
 	tagline_label.text = d.tagline
 	school_chip.text = CardText.school_name(d.style)
@@ -79,7 +79,7 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 	if mastery_def != null:
 		mastery_caption.text = mastery_def.title
 		_show_mastery(mastery_def)
-	show_aspect(duelist.lowest_aspect() if duelist != null else 1)
+	show_aspect(duelist.aspect if duelist != null else 1)
 
 
 ## A chip in the sheet's own chip row, for a fact only one screen shows (the adventure ladder
@@ -136,13 +136,10 @@ func _on_portrait_input(event: InputEvent) -> void:
 ## Aspects the deck plays with, lowest first.
 func _shown_aspects() -> Array[int]:
 	var out: Array[int] = []
-	var duelist: CardDef = Session.library.defs.get(_deck.duelist_id) if _deck != null else null
-	if duelist == null:
+	if _deck == null:
 		return out
-	for t in duelist.aspects:
-		var aspect: int = int(t.get("aspect", 0))
-		if aspect <= _deck.aspects:
-			out.append(aspect)
+	for def in _deck.duelist_stack(Session.library).defs:
+		out.append(def.aspect)
 	out.sort()
 	return out
 
@@ -150,7 +147,7 @@ func _shown_aspects() -> Array[int]:
 ## With `flip`, the card turns edge-on, swaps its face and turns back, as a card being turned
 ## over; a fresh deck just shows the face.
 func show_aspect(aspect: int, flip: bool = false) -> void:
-	var duelist: CardDef = Session.library.defs.get(_deck.duelist_id) if _deck != null else null
+	var duelist: CardDef = _deck.duelist_stack(Session.library).def_for(aspect) if _deck != null else null
 	if duelist == null:
 		portrait.texture = null
 		portrait_caption.text = ""

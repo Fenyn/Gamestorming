@@ -3,8 +3,10 @@
   "source_deck": "storm_unbound",
   "tier": "t1",
   "mode": "adventure",
-  "duelist": "duelist_gamma",
-  "aspects": 2,
+  "duelist": [
+    "personality_siphon_1_dormant",
+    "personality_siphon_2_charged"
+  ],
   "style": "storm",
   "alignment": "pact",
   "mastery": "storm_squall_mastery",
@@ -116,11 +118,11 @@
       "count": 1
     },
     {
-      "id": "salvage_alpha",
+      "id": "personality_cull_1",
       "count": 1
     },
     {
-      "id": "salvage_beta",
+      "id": "personality_orvath_kell_1",
       "count": 1
     },
     {

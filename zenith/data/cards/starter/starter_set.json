@@ -2,1632 +2,1745 @@
  "_note": "Starter set. Generated; mechanics follow the reference sample decks, names are original.",
  "cards": [
   {
-   "id": "duelist_alpha",
+   "id": "personality_bram_ashmark_1_starved",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 3
-	  },
-	  "effects": [
-	   {
-		"op": "energy",
-		"amount": 5
-	   },
-	   {
-		"trigger": "if_stopped",
-		"op": "draw",
-		"amount": 1
-	   }
-	  ]
-	 },
-	 "title": "Starved"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  25,
-	  26,
-	  27,
-	  28,
-	  29,
-	  30,
-	  31,
-	  32,
-	  33,
-	  34
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "focused": true,
-	   "stages_from_table": true,
-	   "cost_stages": 0
-	  },
-	  "effects": [
-	   {
-		"op": "fervor",
-		"who": "opponent",
-		"amount": -2
-	   }
-	  ]
-	 },
-	 "title": "Leeching"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 6,
-	 "might": [
-	  0,
-	  28,
-	  30,
-	  32,
-	  34,
-	  36,
-	  38,
-	  40,
-	  42,
-	  44,
-	  46
-	 ],
-	 "constant": {
-	  "first_styled_unstoppable": true
-	 },
-	 "title": "Unstoppable"
-	}
+   "aspect": 1,
+   "aspect_title": "Starved",
+   "surge": 2,
+   "might": [
+	0,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24
    ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 3
+	},
+	"effects": [
+	 {
+	  "op": "energy",
+	  "amount": 5
+	 },
+	 {
+	  "trigger": "if_stopped",
+	  "op": "draw",
+	  "amount": 1
+	 }
+	]
+   },
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_bram_ashmark_2_leeching",
+   "title": "Bram Ashmark",
+   "type": "personality",
+   "school": "",
+   "character": "Bram Ashmark",
+   "aspect": 2,
+   "aspect_title": "Leeching",
+   "surge": 5,
+   "might": [
+	0,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32,
+	33,
+	34
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "focused": true,
+	 "stages_from_table": true,
+	 "cost_stages": 0
+	},
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "who": "opponent",
+	  "amount": -2
+	 }
+	]
+   },
    "variant": "the Hollow",
    "tags": [
 	"marked"
    ]
   },
   {
-   "id": "duelist_beta",
+   "id": "personality_bram_ashmark_3_unstoppable",
+   "title": "Bram Ashmark",
+   "type": "personality",
+   "school": "",
+   "character": "Bram Ashmark",
+   "aspect": 3,
+   "aspect_title": "Unstoppable",
+   "surge": 6,
+   "might": [
+	0,
+	28,
+	30,
+	32,
+	34,
+	36,
+	38,
+	40,
+	42,
+	44,
+	46
+   ],
+   "constant": {
+	"first_styled_unstoppable": true
+   },
+   "variant": "the Hollow",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_alder_rooke_1_matriarch",
    "title": "Dame Alder Rooke",
    "type": "personality",
    "school": "",
    "character": "Dame Alder Rooke",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  3,
-	  4,
-	  5,
-	  6,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12
-	 ],
-	 "constant": {
-	  "protect_allies": "draconic",
-	  "turn_start": [
-	   {
-		"op": "advance_aspect",
-		"when": {
-		 "allies_min": 5
-		}
-	   }
-	  ]
-	 },
-	 "title": "Matriarch"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "variants": [
-		{
-		 "when": {
-		  "ally_present": "Sir Edric Rooke"
-		 },
-		 "stages": 4
-		}
-	   ]
+   "aspect": 1,
+   "aspect_title": "Matriarch",
+   "surge": 1,
+   "might": [
+	0,
+	3,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12
+   ],
+   "constant": {
+	"protect_allies": "draconic",
+	"turn_start": [
+	 {
+	  "op": "advance_aspect",
+	  "when": {
+	   "allies_min": 5
 	  }
-	 },
-	 "title": "Rising Water"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  22,
-	  24,
-	  26,
-	  28,
-	  30,
-	  32,
-	  34,
-	  36,
-	  38,
-	  40
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "discard_in_play",
-		"who": "opponent",
-		"card_type": "non_combat",
-		"all": true,
-		"remove": true
-	   }
-	  ]
-	 },
-	 "title": "the Flood"
-	}
-   ]
+	 }
+	]
+   }
   },
   {
-   "id": "duelist_gamma",
+   "id": "personality_alder_rooke_2_rising_water",
+   "title": "Dame Alder Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Dame Alder Rooke",
+   "aspect": 2,
+   "aspect_title": "Rising Water",
+   "surge": 2,
+   "might": [
+	0,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "variants": [
+	  {
+	   "when": {
+		"ally_present": "Sir Edric Rooke"
+	   },
+	   "stages": 4
+	  }
+	 ]
+	}
+   }
+  },
+  {
+   "id": "personality_alder_rooke_3_the_flood",
+   "title": "Dame Alder Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Dame Alder Rooke",
+   "aspect": 3,
+   "aspect_title": "the Flood",
+   "surge": 1,
+   "might": [
+	0,
+	22,
+	24,
+	26,
+	28,
+	30,
+	32,
+	34,
+	36,
+	38,
+	40
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "discard_in_play",
+	  "who": "opponent",
+	  "card_type": "non_combat",
+	  "all": true,
+	  "remove": true
+	 }
+	]
+   }
+  },
+  {
+   "id": "personality_siphon_1_dormant",
    "title": "Siphon",
    "type": "personality",
    "school": "",
    "character": "Siphon",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16
-	 ],
-	 "power": {
-	  "defense": {
-	   "stops": "art"
-	  },
-	  "effects": [
-	   {
-		"op": "energy",
-		"amount": 3
-	   }
-	  ]
-	 },
-	 "title": "Dormant"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "energy",
-		"amount": 5
-	   }
-	  ]
-	 },
-	 "shield": "strike",
-	 "title": "Charged"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  17,
-	  18,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "cost_stages": 0
-	  },
-	  "effects": [
-	   {
-		"op": "draw",
-		"amount": 2
-	   }
-	  ]
-	 },
-	 "title": "Unbound"
-	}
+   "aspect": 1,
+   "aspect_title": "Dormant",
+   "surge": 2,
+   "might": [
+	0,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16
    ],
+   "power": {
+	"defense": {
+	 "stops": "art"
+	},
+	"effects": [
+	 {
+	  "op": "energy",
+	  "amount": 3
+	 }
+	]
+   },
    "tags": [
 	"construct"
    ]
   },
   {
-   "id": "duelist_delta",
+   "id": "personality_siphon_2_charged",
+   "title": "Siphon",
+   "type": "personality",
+   "school": "",
+   "character": "Siphon",
+   "aspect": 2,
+   "aspect_title": "Charged",
+   "surge": 1,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "energy",
+	  "amount": 5
+	 }
+	]
+   },
+   "shield": "strike",
+   "tags": [
+	"construct"
+   ]
+  },
+  {
+   "id": "personality_siphon_3_unbound",
+   "title": "Siphon",
+   "type": "personality",
+   "school": "",
+   "character": "Siphon",
+   "aspect": 3,
+   "aspect_title": "Unbound",
+   "surge": 2,
+   "might": [
+	0,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "cost_stages": 0
+	},
+	"effects": [
+	 {
+	  "op": "draw",
+	  "amount": 2
+	 }
+	]
+   },
+   "tags": [
+	"construct"
+   ]
+  },
+  {
+   "id": "personality_sable_draik_1_captain",
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
    "character": "Sable Draik",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "constant": {
-	  "allies_share": true,
-	  "ally_control_any_stage": true,
-	  "modifiers": [
-	   {
-		"scope": "own",
-		"kind": "any",
-		"stages": 1,
-		"per_ally": true
-	   }
-	  ]
-	 },
-	 "title": "Captain"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28
-	 ],
-	 "constant": {
-	  "allies_share": true,
-	  "ally_control_any_stage": true,
-	  "damage_removes": true,
-	  "modifiers": [
-	   {
-		"scope": "own",
-		"kind": "any",
-		"stages": 3
-	   }
-	  ]
-	 },
-	 "title": "Shrouded"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  27,
-	  28,
-	  29,
-	  30,
-	  31,
-	  32,
-	  33,
-	  34,
-	  35,
-	  36
-	 ],
-	 "constant": {
-	  "allies_share": true,
-	  "ally_control_any_stage": true,
-	  "attacks_focused": true
-	 },
-	 "title": "Lightless"
-	}
-   ]
+   "aspect": 1,
+   "aspect_title": "Captain",
+   "surge": 2,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "constant": {
+	"allies_share": true,
+	"ally_control_any_stage": true,
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "stages": 1,
+	  "per_ally": true
+	 }
+	]
+   }
   },
   {
-   "id": "duelist_epsilon",
+   "id": "personality_sable_draik_2_shrouded",
+   "title": "Sable Draik",
+   "type": "personality",
+   "school": "",
+   "character": "Sable Draik",
+   "aspect": 2,
+   "aspect_title": "Shrouded",
+   "surge": 3,
+   "might": [
+	0,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28
+   ],
+   "constant": {
+	"allies_share": true,
+	"ally_control_any_stage": true,
+	"damage_removes": true,
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "stages": 3
+	 }
+	]
+   }
+  },
+  {
+   "id": "personality_sable_draik_3_lightless",
+   "title": "Sable Draik",
+   "type": "personality",
+   "school": "",
+   "character": "Sable Draik",
+   "aspect": 3,
+   "aspect_title": "Lightless",
+   "surge": 5,
+   "might": [
+	0,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36
+   ],
+   "constant": {
+	"allies_share": true,
+	"ally_control_any_stage": true,
+	"attacks_focused": true
+   }
+  },
+  {
+   "id": "personality_halden_quarr_1_the_grinder",
    "title": "Halden Quarr",
    "type": "personality",
    "school": "",
    "character": "Halden Quarr",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18
-	 ],
-	 "constant": {
-	  "on_attack": [
-	   {
-		"op": "fervor",
-		"amount": 1
-	   }
-	  ]
-	 },
-	 "title": "the Grinder"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28,
-	  29,
-	  30
-	 ],
-	 "constant": {
-	  "entering_combat": [
-	   {
-		"op": "remove_discard",
-		"amount": 1,
-		"when": {
-		 "discard_top_school": "steel"
-		}
-	   },
-	   {
-		"op": "fervor",
-		"amount": 2,
-		"when": {
-		 "discard_top_school": "steel"
-		}
-	   },
-	   {
-		"op": "float",
-		"what": "modifier",
-		"duration": "combat",
-		"params": {
-		 "scope": "own",
-		 "kind": "strike",
-		 "stages": 2
-		},
-		"when": {
-		 "discard_top_school": "steel"
-		}
-	   }
-	  ]
-	 },
-	 "title": "Tempered"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  31,
-	  32,
-	  33,
-	  34,
-	  35,
-	  36,
-	  37,
-	  38,
-	  39,
-	  40
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 4
-	  },
-	  "uses": 2,
-	  "effects": [
-	   {
-		"op": "float",
-		"what": "modifier",
-		"duration": "combat",
-		"params": {
-		 "scope": "own",
-		 "kind": "any",
-		 "life": 2
-		},
-		"when": {
-		 "discard_top_school": "steel"
-		}
-	   }
-	  ]
-	 },
-	 "title": "Ironheart"
-	}
+   "aspect": 1,
+   "aspect_title": "the Grinder",
+   "surge": 1,
+   "might": [
+	0,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18
    ],
+   "constant": {
+	"on_attack": [
+	 {
+	  "op": "fervor",
+	  "amount": 1
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "duelist_zeta",
+   "id": "personality_halden_quarr_2_tempered",
+   "title": "Halden Quarr",
+   "type": "personality",
+   "school": "",
+   "character": "Halden Quarr",
+   "aspect": 2,
+   "aspect_title": "Tempered",
+   "surge": 2,
+   "might": [
+	0,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30
+   ],
+   "constant": {
+	"entering_combat": [
+	 {
+	  "op": "remove_discard",
+	  "amount": 1,
+	  "when": {
+	   "discard_top_school": "steel"
+	  }
+	 },
+	 {
+	  "op": "fervor",
+	  "amount": 2,
+	  "when": {
+	   "discard_top_school": "steel"
+	  }
+	 },
+	 {
+	  "op": "float",
+	  "what": "modifier",
+	  "duration": "combat",
+	  "params": {
+	   "scope": "own",
+	   "kind": "strike",
+	   "stages": 2
+	  },
+	  "when": {
+	   "discard_top_school": "steel"
+	  }
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_halden_quarr_3_ironheart",
+   "title": "Halden Quarr",
+   "type": "personality",
+   "school": "",
+   "character": "Halden Quarr",
+   "aspect": 3,
+   "aspect_title": "Ironheart",
+   "surge": 4,
+   "might": [
+	0,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 4
+	},
+	"uses": 2,
+	"effects": [
+	 {
+	  "op": "float",
+	  "what": "modifier",
+	  "duration": "combat",
+	  "params": {
+	   "scope": "own",
+	   "kind": "any",
+	   "life": 2
+	  },
+	  "when": {
+	   "discard_top_school": "steel"
+	  }
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_caedan_vale_1_last_heir",
    "title": "Caedan Vale",
    "type": "personality",
    "school": "",
    "character": "Caedan Vale",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  3,
-	  4,
-	  5,
-	  6,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "look_at",
-		"amount": 8,
-		"pick": {
-		 "title_contains": "Sword"
-		},
-		"to": "hand",
-		"play_if": {
-		 "title_contains": "Swordplay"
-		},
-		"shuffle_after": true,
-		"from": "top"
-	   }
-	  ]
-	 },
-	 "title": "Last Heir"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "only_first_attack": true,
-	   "stops_needed": 2
-	  }
-	 },
-	 "title": "Unparried"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 5
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_successful",
-		"op": "forbid",
-		"who": "opponent",
-		"what": "art_attacks",
-		"duration": "combat"
-	   }
-	  ]
-	 },
-	 "title": "Spellcutter"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  16,
-	  18,
-	  20,
-	  22,
-	  24,
-	  26,
-	  28,
-	  30,
-	  32,
-	  34
-	 ],
-	 "constant": {
-	  "forbid_opponent": [
-	   "art_attacks"
-	  ]
-	 },
-	 "title": "the Quiet Blade"
-	},
-	{
-	 "aspect": 5,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  31,
-	  32,
-	  33,
-	  34,
-	  35,
-	  36,
-	  37,
-	  38,
-	  39,
-	  40
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "draw",
-		"amount": 3,
-		"role": "active"
-	   }
-	  ]
-	 },
-	 "title": "Peerless"
-	}
+   "aspect": 1,
+   "aspect_title": "Last Heir",
+   "surge": 2,
+   "might": [
+	0,
+	3,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12
    ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "look_at",
+	  "amount": 8,
+	  "pick": {
+	   "title_contains": "Sword"
+	  },
+	  "to": "hand",
+	  "play_if": {
+	   "title_contains": "Swordplay"
+	  },
+	  "shuffle_after": true,
+	  "from": "top"
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "duelist_eta",
+   "id": "personality_caedan_vale_2_unparried",
+   "title": "Caedan Vale",
+   "type": "personality",
+   "school": "",
+   "character": "Caedan Vale",
+   "aspect": 2,
+   "aspect_title": "Unparried",
+   "surge": 2,
+   "might": [
+	0,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "only_first_attack": true,
+	 "stops_needed": 2
+	}
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_caedan_vale_3_spellcutter",
+   "title": "Caedan Vale",
+   "type": "personality",
+   "school": "",
+   "character": "Caedan Vale",
+   "aspect": 3,
+   "aspect_title": "Spellcutter",
+   "surge": 3,
+   "might": [
+	0,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 5
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "forbid",
+	  "who": "opponent",
+	  "what": "art_attacks",
+	  "duration": "combat"
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_caedan_vale_4_the_quiet_blade",
+   "title": "Caedan Vale",
+   "type": "personality",
+   "school": "",
+   "character": "Caedan Vale",
+   "aspect": 4,
+   "aspect_title": "the Quiet Blade",
+   "surge": 4,
+   "might": [
+	0,
+	16,
+	18,
+	20,
+	22,
+	24,
+	26,
+	28,
+	30,
+	32,
+	34
+   ],
+   "constant": {
+	"forbid_opponent": [
+	 "art_attacks"
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_caedan_vale_5_peerless",
+   "title": "Caedan Vale",
+   "type": "personality",
+   "school": "",
+   "character": "Caedan Vale",
+   "aspect": 5,
+   "aspect_title": "Peerless",
+   "surge": 5,
+   "might": [
+	0,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "draw",
+	  "amount": 3,
+	  "role": "active"
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_osric_thornwald_1_greybeard",
    "title": "Osric Thornwald",
    "type": "personality",
    "school": "",
    "character": "Osric Thornwald",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  5,
-	  6,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "draw_discard",
-		"amount": 1,
-		"from": "bottom",
-		"role": "opposing"
-	   }
-	  ]
-	 },
-	 "title": "Greybeard"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "printed_life": 6
-	  }
-	 },
-	 "title": "Overgrown"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  12,
-	  14,
-	  16,
-	  18,
-	  20,
-	  22,
-	  24,
-	  26,
-	  28,
-	  30
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 6
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_successful",
-		"op": "draw_discard",
-		"amount": 1,
-		"from": "bottom"
-	   }
-	  ]
-	 },
-	 "title": "Deep-Rooted"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  15,
-	  17,
-	  19,
-	  21,
-	  23,
-	  25,
-	  27,
-	  29,
-	  31,
-	  33
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike"
-	  },
-	  "effects": [
-	   {
-		"op": "recover",
-		"amount": 3,
-		"from": "bottom"
-	   }
-	  ]
-	 },
-	 "title": "Heartwood"
-	},
-	{
-	 "aspect": 5,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  31,
-	  32,
-	  33,
-	  34,
-	  35,
-	  36,
-	  37,
-	  38,
-	  39,
-	  40
-	 ],
-	 "constant": {
-	  "modifiers": [
-	   {
-		"scope": "own",
-		"kind": "strike",
-		"stages": 5
-	   }
-	  ]
-	 },
-	 "title": "Grovelord"
-	}
+   "aspect": 1,
+   "aspect_title": "Greybeard",
+   "surge": 1,
+   "might": [
+	0,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14
    ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "draw_discard",
+	  "amount": 1,
+	  "from": "bottom",
+	  "role": "opposing"
+	 }
+	]
+   },
    "bloodline": "verdant"
   },
   {
-   "id": "duelist_theta",
+   "id": "personality_osric_thornwald_2_overgrown",
+   "title": "Osric Thornwald",
+   "type": "personality",
+   "school": "",
+   "character": "Osric Thornwald",
+   "aspect": 2,
+   "aspect_title": "Overgrown",
+   "surge": 3,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "printed_life": 6
+	}
+   },
+   "bloodline": "verdant"
+  },
+  {
+   "id": "personality_osric_thornwald_3_deep_rooted",
+   "title": "Osric Thornwald",
+   "type": "personality",
+   "school": "",
+   "character": "Osric Thornwald",
+   "aspect": 3,
+   "aspect_title": "Deep-Rooted",
+   "surge": 3,
+   "might": [
+	0,
+	12,
+	14,
+	16,
+	18,
+	20,
+	22,
+	24,
+	26,
+	28,
+	30
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 6
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "draw_discard",
+	  "amount": 1,
+	  "from": "bottom"
+	 }
+	]
+   },
+   "bloodline": "verdant"
+  },
+  {
+   "id": "personality_osric_thornwald_4_heartwood",
+   "title": "Osric Thornwald",
+   "type": "personality",
+   "school": "",
+   "character": "Osric Thornwald",
+   "aspect": 4,
+   "aspect_title": "Heartwood",
+   "surge": 4,
+   "might": [
+	0,
+	15,
+	17,
+	19,
+	21,
+	23,
+	25,
+	27,
+	29,
+	31,
+	33
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike"
+	},
+	"effects": [
+	 {
+	  "op": "recover",
+	  "amount": 3,
+	  "from": "bottom"
+	 }
+	]
+   },
+   "bloodline": "verdant"
+  },
+  {
+   "id": "personality_osric_thornwald_5_grovelord",
+   "title": "Osric Thornwald",
+   "type": "personality",
+   "school": "",
+   "character": "Osric Thornwald",
+   "aspect": 5,
+   "aspect_title": "Grovelord",
+   "surge": 5,
+   "might": [
+	0,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40
+   ],
+   "constant": {
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "strike",
+	  "stages": 5
+	 }
+	]
+   },
+   "bloodline": "verdant"
+  },
+  {
+   "id": "personality_marrow_1_patchwork",
    "title": "Marrow",
    "type": "personality",
    "school": "",
    "character": "Marrow",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "look_at",
-		"amount": 6,
-		"rearrange": true,
-		"from": "top",
-		"role": "active"
-	   },
-	   {
-		"trigger": "entering_combat",
-		"op": "draw",
-		"amount": 1,
-		"role": "active"
-	   }
-	  ]
-	 },
-	 "title": "Patchwork"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24
-	 ],
-	 "constant": {
-	  "no_modifiers_against": "strike"
-	 },
-	 "title": "Rebuilt"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28,
-	  29,
-	  30
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 7,
-	   "variants": [
-		{
-		 "when": {
-		  "card_in_play": "The Breaker's Yard"
-		 },
-		 "printed_stages": 3
-		}
-	   ]
-	  }
-	 },
-	 "title": "Overwrought"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  20,
-	  22,
-	  24,
-	  26,
-	  28,
-	  30,
-	  32,
-	  34,
-	  36,
-	  38
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 6,
-	   "variants": [
-		{
-		 "when": {
-		  "card_in_play": "The Breaker's Yard"
-		 },
-		 "life": 5
-		}
-	   ]
-	  },
-	  "effects": [
-	   {
-		"op": "fervor",
-		"who": "opponent",
-		"amount": -3
-	   }
-	  ]
-	 },
-	 "title": "Fury Amalgam"
-	}
+   "aspect": 1,
+   "aspect_title": "Patchwork",
+   "surge": 1,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
    ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "look_at",
+	  "amount": 6,
+	  "rearrange": true,
+	  "from": "top",
+	  "role": "active"
+	 },
+	 {
+	  "trigger": "entering_combat",
+	  "op": "draw",
+	  "amount": 1,
+	  "role": "active"
+	 }
+	]
+   },
    "tags": [
 	"construct"
    ]
   },
   {
-   "id": "duelist_iota",
+   "id": "personality_marrow_2_rebuilt",
+   "title": "Marrow",
+   "type": "personality",
+   "school": "",
+   "character": "Marrow",
+   "aspect": 2,
+   "aspect_title": "Rebuilt",
+   "surge": 2,
+   "might": [
+	0,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24
+   ],
+   "constant": {
+	"no_modifiers_against": "strike"
+   },
+   "tags": [
+	"construct"
+   ]
+  },
+  {
+   "id": "personality_marrow_3_overwrought",
+   "title": "Marrow",
+   "type": "personality",
+   "school": "",
+   "character": "Marrow",
+   "aspect": 3,
+   "aspect_title": "Overwrought",
+   "surge": 3,
+   "might": [
+	0,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 7,
+	 "variants": [
+	  {
+	   "when": {
+		"card_in_play": "The Breaker's Yard"
+	   },
+	   "printed_stages": 3
+	  }
+	 ]
+	}
+   },
+   "tags": [
+	"construct"
+   ]
+  },
+  {
+   "id": "personality_marrow_4_fury_amalgam",
+   "title": "Marrow",
+   "type": "personality",
+   "school": "",
+   "character": "Marrow",
+   "aspect": 4,
+   "aspect_title": "Fury Amalgam",
+   "surge": 4,
+   "might": [
+	0,
+	20,
+	22,
+	24,
+	26,
+	28,
+	30,
+	32,
+	34,
+	36,
+	38
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 6,
+	 "variants": [
+	  {
+	   "when": {
+		"card_in_play": "The Breaker's Yard"
+	   },
+	   "life": 5
+	  }
+	 ]
+	},
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "who": "opponent",
+	  "amount": -3
+	 }
+	]
+   },
+   "tags": [
+	"construct"
+   ]
+  },
+  {
+   "id": "personality_edric_rooke_1_the_hero",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  5,
-	  6,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "draw_check",
-		"check": "signature",
-		"effects": [
-		 {
-		  "op": "draw",
-		  "amount": 1,
-		  "when": {
-		   "allies_present": [
-			"Dame Alder Rooke",
-			"Emrys Rooke"
-		   ]
-		  }
-		 }
-		]
-	   }
-	  ]
-	 },
-	 "title": "the Hero"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"op": "fervor",
-		"who": "opponent",
-		"amount": -1
-	   },
-	   {
-		"op": "draw_discard",
-		"amount": 1,
-		"from": "bottom"
-	   }
-	  ]
-	 },
-	 "title": "the Stranger"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "draw_check",
-		"check": "attack",
-		"reveal": true,
-		"effects": [
-		 {
-		  "op": "discard_life",
-		  "who": "opponent",
-		  "amount": 3
-		 }
-		]
-	   }
-	  ]
-	 },
-	 "title": "the Realm's Hero"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  16,
-	  18,
-	  20,
-	  22,
-	  24,
-	  26,
-	  28,
-	  30,
-	  32,
-	  34
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "printed_stages": 5,
-	   "printed_life": 3
-	  }
-	 },
-	 "title": "Kindled Through"
-	},
-	{
-	 "aspect": 5,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  33,
-	  34,
-	  35,
-	  36,
-	  37,
-	  38,
-	  39,
-	  40,
-	  41,
-	  42
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 5,
-	   "life": 5
-	  }
-	 },
-	 "title": "the All Powerful"
-	}
+   "aspect": 1,
+   "aspect_title": "the Hero",
+   "surge": 2,
+   "might": [
+	0,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14
    ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "draw_check",
+	  "check": "signature",
+	  "effects": [
+	   {
+		"op": "draw",
+		"amount": 1,
+		"when": {
+		 "allies_present": [
+		  "Dame Alder Rooke",
+		  "Emrys Rooke"
+		 ]
+		}
+	   }
+	  ]
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "duelist_kappa",
+   "id": "personality_edric_rooke_2_the_stranger",
+   "title": "Sir Edric Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "aspect": 2,
+   "aspect_title": "the Stranger",
+   "surge": 3,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "who": "opponent",
+	  "amount": -1
+	 },
+	 {
+	  "op": "draw_discard",
+	  "amount": 1,
+	  "from": "bottom"
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_edric_rooke_3_the_realms_hero",
+   "title": "Sir Edric Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "aspect": 3,
+   "aspect_title": "the Realm's Hero",
+   "surge": 3,
+   "might": [
+	0,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "draw_check",
+	  "check": "attack",
+	  "reveal": true,
+	  "effects": [
+	   {
+		"op": "discard_life",
+		"who": "opponent",
+		"amount": 3
+	   }
+	  ]
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_edric_rooke_4_kindled_through",
+   "title": "Sir Edric Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "aspect": 4,
+   "aspect_title": "Kindled Through",
+   "surge": 4,
+   "might": [
+	0,
+	16,
+	18,
+	20,
+	22,
+	24,
+	26,
+	28,
+	30,
+	32,
+	34
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "printed_stages": 5,
+	 "printed_life": 3
+	}
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_edric_rooke_5_the_all_powerful",
+   "title": "Sir Edric Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Sir Edric Rooke",
+   "aspect": 5,
+   "aspect_title": "the All Powerful",
+   "surge": 5,
+   "might": [
+	0,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40,
+	41,
+	42
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 5,
+	 "life": 5
+	}
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_emrys_rooke_1_the_eldest",
    "title": "Emrys Rooke",
    "type": "personality",
    "school": "",
    "character": "Emrys Rooke",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  4,
-	  5,
-	  6,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"may": true,
-		"op": "draw",
-		"amount": 1,
-		"role": "attacker"
-	   }
-	  ]
-	 },
-	 "title": "the Eldest"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20,
-	  21
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"trigger": "entering_combat",
-		"op": "search",
-		"card_type": "strike_or_art",
-		"to": "hand"
-	   }
-	  ]
-	 },
-	 "title": "First Plate"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28,
-	  29
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 5
-	  },
-	  "effects": [
-	   {
-		"may": true,
-		"op": "discard_in_play",
-		"who": "any",
-		"card_type": "non_combat",
-		"amount": 1,
-		"choose": true,
-		"remove": true
-	   }
-	  ]
-	 },
-	 "title": "Edged"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  17,
-	  19,
-	  21,
-	  23,
-	  25,
-	  27,
-	  29,
-	  31,
-	  33,
-	  35
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 4,
-	   "printed_stages": 4,
-	   "cost_stages": 0
-	  }
-	 },
-	 "title": "Shaped"
-	},
-	{
-	 "aspect": 5,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  32,
-	  33,
-	  34,
-	  35,
-	  36,
-	  37,
-	  38,
-	  39,
-	  40,
-	  41
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "printed_life": 5
-	  },
-	  "uses": 2
-	 },
-	 "title": "Scaleclad"
-	}
+   "aspect": 1,
+   "aspect_title": "the Eldest",
+   "surge": 2,
+   "might": [
+	0,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13
    ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "may": true,
+	  "op": "draw",
+	  "amount": 1,
+	  "role": "attacker"
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "henchman_alpha",
+   "id": "personality_emrys_rooke_2_first_plate",
+   "title": "Emrys Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Emrys Rooke",
+   "aspect": 2,
+   "aspect_title": "First Plate",
+   "surge": 2,
+   "might": [
+	0,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "search",
+	  "card_type": "strike_or_art",
+	  "to": "hand"
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_emrys_rooke_3_edged",
+   "title": "Emrys Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Emrys Rooke",
+   "aspect": 3,
+   "aspect_title": "Edged",
+   "surge": 3,
+   "might": [
+	0,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 5
+	},
+	"effects": [
+	 {
+	  "may": true,
+	  "op": "discard_in_play",
+	  "who": "any",
+	  "card_type": "non_combat",
+	  "amount": 1,
+	  "choose": true,
+	  "remove": true
+	 }
+	]
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_emrys_rooke_4_shaped",
+   "title": "Emrys Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Emrys Rooke",
+   "aspect": 4,
+   "aspect_title": "Shaped",
+   "surge": 3,
+   "might": [
+	0,
+	17,
+	19,
+	21,
+	23,
+	25,
+	27,
+	29,
+	31,
+	33,
+	35
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 4,
+	 "printed_stages": 4,
+	 "cost_stages": 0
+	}
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_emrys_rooke_5_scaleclad",
+   "title": "Emrys Rooke",
+   "type": "personality",
+   "school": "",
+   "character": "Emrys Rooke",
+   "aspect": 5,
+   "aspect_title": "Scaleclad",
+   "surge": 4,
+   "might": [
+	0,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40,
+	41
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "printed_life": 5
+	},
+	"uses": 2
+   },
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_vesna_draik_1",
    "title": "Vesna Draik",
    "type": "personality",
    "school": "",
    "character": "Vesna Draik",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 6
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_successful",
-		"op": "discard_in_play",
-		"who": "opponent",
-		"card_type": "ally",
-		"amount": 1,
-		"choose": true
-	   }
-	  ]
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 6
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "discard_in_play",
+	  "who": "opponent",
+	  "card_type": "ally",
+	  "amount": 1,
+	  "choose": true
 	 }
-	}
-   ]
+	]
+   }
   },
   {
-   "id": "henchman_beta",
+   "id": "personality_brann_draik_1",
    "title": "Brann Draik",
    "type": "personality",
    "school": "",
    "character": "Brann Draik",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 5
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_successful",
-		"op": "discard_in_play",
-		"who": "opponent",
-		"card_type": "drill",
-		"amount": 1,
-		"choose": true
-	   }
-	  ]
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 5
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "discard_in_play",
+	  "who": "opponent",
+	  "card_type": "drill",
+	  "amount": 1,
+	  "choose": true
 	 }
-	}
-   ]
+	]
+   }
   },
   {
-   "id": "henchman_gamma",
+   "id": "personality_quill_draik_1",
    "title": "Quill Draik",
    "type": "personality",
    "school": "",
    "character": "Quill Draik",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 6
-	  },
-	  "effects": [
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 6
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "may": true,
+	  "then": [
 	   {
-		"trigger": "if_successful",
-		"may": true,
-		"then": [
-		 {
-		  "op": "choose_forbid_type",
-		  "who": "opponent",
-		  "unless_energy_min": 5
-		 }
-		],
-		"op": "discard_hand",
-		"amount": 1,
-		"random": false,
-		"when": {
-		 "hand_min": 1
-		}
+		"op": "choose_forbid_type",
+		"who": "opponent",
+		"unless_energy_min": 5
 	   }
-	  ]
+	  ],
+	  "op": "discard_hand",
+	  "amount": 1,
+	  "random": false,
+	  "when": {
+	   "hand_min": 1
+	  }
 	 }
-	}
-   ]
+	]
+   }
   },
   {
-   "id": "henchman_delta",
+   "id": "personality_halvard_draik_1",
    "title": "Halvard Draik",
    "type": "personality",
    "school": "",
    "character": "Halvard Draik",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 5
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_successful",
-		"op": "discard_hand",
-		"who": "opponent",
-		"amount": 1,
-		"random": false
-	   }
-	  ]
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 5
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "discard_hand",
+	  "who": "opponent",
+	  "amount": 1,
+	  "random": false
 	 }
-	}
-   ]
+	]
+   }
   },
   {
-   "id": "henchman_epsilon",
+   "id": "personality_pim_1",
    "title": "Pim",
    "type": "personality",
    "school": "",
    "character": "Pim",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  6,
-	  6,
-	  6,
-	  6,
-	  6,
-	  6,
-	  6,
-	  6,
-	  6,
-	  6
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike"
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_successful",
-		"op": "draw_discard",
-		"amount": 2,
-		"from": "bottom"
-	   }
-	  ]
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6,
+	6
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike"
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "draw_discard",
+	  "amount": 2,
+	  "from": "bottom"
 	 }
-	}
-   ]
+	]
+   }
   },
   {
-   "id": "henchman_zeta",
+   "id": "personality_tithe_1",
    "title": "Tithe",
    "type": "personality",
    "school": "",
    "character": "Tithe",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "life": 2
-	  },
-	  "effects": [
-	   {
-		"op": "discard_hand",
-		"amount": 1,
-		"random": false
-	   }
-	  ],
-	  "no_control_needed": true
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19
    ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "life": 2
+	},
+	"effects": [
+	 {
+	  "op": "discard_hand",
+	  "amount": 1,
+	  "random": false
+	 }
+	],
+	"no_control_needed": true
+   },
    "tags": [
 	"construct"
    ]
   },
   {
-   "id": "salvage_alpha",
+   "id": "personality_cull_1",
    "title": "Cull",
    "type": "personality",
    "school": "",
    "character": "Cull",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "life_per_tag": "construct"
-	  }
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18
    ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "life_per_tag": "construct"
+	}
+   },
    "tags": [
 	"construct"
    ]
   },
   {
-   "id": "salvage_beta",
+   "id": "personality_orvath_kell_1",
    "title": "Orvath Kell",
    "type": "personality",
    "school": "",
    "character": "Orvath Kell",
    "alignment_only": "pact",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 6
-	  }
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17
    ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 6
+	}
+   },
    "bloodline": "verdant"
   },
   {
-   "id": "salvage_gamma",
+   "id": "personality_gideon_mourne_1_mercenary",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
@@ -1636,230 +1749,206 @@
    "alignment_only": "pact",
    "limit_per_deck": 1,
    "bloodline": "draconic",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "cost_stages": 1
-	  }
-	 }
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "cost_stages": 1
 	}
-   ]
+   }
   },
   {
-   "id": "companion_alpha",
+   "id": "personality_wren_rooke_1",
    "title": "Wren Rooke",
    "type": "personality",
    "school": "",
    "character": "Wren Rooke",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"op": "shuffle_discard",
-		"amount": 1,
-		"per_personality": true
-	   }
-	  ]
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18
    ],
+   "power": {
+	"effects": [
+	 {
+	  "op": "shuffle_discard",
+	  "amount": 1,
+	  "per_personality": true
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "companion_beta",
+   "id": "personality_edric_rooke_1",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "focused": true,
-	   "stages": 2,
-	   "life_per_opponent_seal": 2
-	  }
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16
    ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "focused": true,
+	 "stages": 2,
+	 "life_per_opponent_seal": 2
+	}
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "companion_gamma",
+   "id": "personality_tavin_vale_1",
    "title": "Tavin Vale",
    "type": "personality",
    "school": "",
    "character": "Tavin Vale",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 6
-	  },
-	  "effects": [
-	   {
-		"op": "recover",
-		"amount": 2,
-		"from": "bottom"
-	   }
-	  ]
-	 }
-	}
+   "aspect": 1,
+   "surge": 3,
+   "might": [
+	0,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18
    ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 6
+	},
+	"effects": [
+	 {
+	  "op": "recover",
+	  "amount": 2,
+	  "from": "bottom"
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "companion_delta",
+   "id": "personality_ansel_rooke_1",
    "title": "Ansel Rooke",
    "type": "personality",
    "school": "",
    "character": "Ansel Rooke",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  4,
-	  5,
-	  6,
-	  7,
-	  8,
-	  9,
-	  10,
-	  11,
-	  12,
-	  13
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "printed_stages": 5
-	  },
-	  "effects": [
-	   {
-		"trigger": "if_stopped",
-		"op": "energy",
-		"amount": "max"
-	   }
-	  ]
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13
    ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "printed_stages": 5
+	},
+	"effects": [
+	 {
+	  "trigger": "if_stopped",
+	  "op": "energy",
+	  "amount": "max"
+	 }
+	]
+   },
    "bloodline": "draconic"
   },
   {
-   "id": "companion_epsilon",
+   "id": "personality_alder_rooke_1",
    "title": "Dame Alder Rooke",
    "type": "personality",
    "school": "",
    "character": "Dame Alder Rooke",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 1,
-	 "might": [
-	  0,
-	  5,
-	  5,
-	  5,
-	  5,
-	  5,
-	  5,
-	  5,
-	  5,
-	  5,
-	  5
-	 ],
-	 "power": {
-	  "defense": {
-	   "stops": "strike",
-	   "when": {
-		"defender_character": [
-		 "Sir Edric Rooke",
-		 "Emrys Rooke"
-		]
-	   }
-	  },
-	  "no_control_needed": true
-	 }
-	}
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5,
+	5
    ],
+   "power": {
+	"defense": {
+	 "stops": "strike",
+	 "when": {
+	  "defender_character": [
+	   "Sir Edric Rooke",
+	   "Emrys Rooke"
+	  ]
+	 }
+	},
+	"no_control_needed": true
+   },
    "bloodline": "draconic"
   },
   {
@@ -4576,55 +4665,51 @@
    ]
   },
   {
-   "id": "bonded_pair",
+   "id": "personality_ansel_and_tavin_1_back_to_back",
    "title": "Ansel and Tavin, Back to Back",
    "type": "personality",
    "school": "",
    "character": "Ansel and Tavin, Back to Back",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  26,
-	  28,
-	  30,
-	  32,
-	  34,
-	  36,
-	  38,
-	  40,
-	  42,
-	  44
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "printed_stages": 7
-	  },
-	  "uses": 2,
-	  "effects": [
-	   {
-		"may": true,
-		"then": [
-		 {
-		  "op": "focus_attack"
-		 }
-		],
-		"op": "discard_hand",
-		"amount": 1,
-		"random": false,
-		"when": {
-		 "hand_min": 1
-		}
-	   }
-	  ]
-	 }
-	}
+   "aspect": 1,
+   "surge": 4,
+   "might": [
+	0,
+	26,
+	28,
+	30,
+	32,
+	34,
+	36,
+	38,
+	40,
+	42,
+	44
    ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "printed_stages": 7
+	},
+	"uses": 2,
+	"effects": [
+	 {
+	  "may": true,
+	  "then": [
+	   {
+		"op": "focus_attack"
+	   }
+	  ],
+	  "op": "discard_hand",
+	  "amount": 1,
+	  "random": false,
+	  "when": {
+	   "hand_min": 1
+	  }
+	 }
+	]
+   },
    "bond_of": [
 	"Ansel Rooke",
 	"Tavin Vale"
@@ -7236,175 +7321,163 @@
    }
   },
   {
-   "id": "duelist_lambda",
+   "id": "personality_bram_ashmark_2_gnawing",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20,
-	  21,
-	  22,
-	  23,
-	  24
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 3
-	  },
-	  "effects": [
-	   {
-		"op": "energy",
-		"amount": 5
-	   },
-	   {
-		"trigger": "if_stopped",
-		"op": "draw",
-		"amount": 1
-	   }
-	  ]
-	 },
-	 "title": "Starved"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  11,
-	  12,
-	  13,
-	  14,
-	  15,
-	  16,
-	  17,
-	  18,
-	  19,
-	  20
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "stages": 3
-	  },
-	  "effects": [
-	   {
-		"op": "fervor",
-		"amount": 1
-	   }
-	  ]
-	 },
-	 "constant": {
-	  "modifiers": [
-	   {
-		"scope": "own",
-		"kind": "any",
-		"life": 1
-	   }
-	  ]
-	 },
-	 "title": "Gnawing"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  23,
-	  24,
-	  25,
-	  26,
-	  27,
-	  28,
-	  29,
-	  30,
-	  31,
-	  32
-	 ],
-	 "constant": {
-	  "modifiers": [
-	   {
-		"scope": "own",
-		"kind": "any",
-		"life": 3
-	   }
-	  ],
-	  "energy_gain_multiplier": 2,
-	  "fervor_gain_bonus": 1
-	 },
-	 "title": "Gorging"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  20,
-	  22,
-	  24,
-	  26,
-	  28,
-	  30,
-	  32,
-	  34,
-	  36,
-	  38
-	 ],
-	 "power": {
-	  "effects": [
-	   {
-		"op": "shuffle_discard",
-		"amount": 8
-	   }
-	  ]
-	 },
-	 "title": "Consuming"
-	},
-	{
-	 "aspect": 5,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  33,
-	  34,
-	  35,
-	  36,
-	  37,
-	  38,
-	  39,
-	  40,
-	  41,
-	  42
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "strike",
-	   "focused": true,
-	   "printed_stages": 10
-	  }
-	 },
-	 "power_alt": {
-	  "effects": [
-	   {
-		"op": "shuffle_discard",
-		"amount": 10
-	   }
-	  ]
-	 },
-	 "title": "Insatiable"
-	}
+   "aspect": 2,
+   "aspect_title": "Gnawing",
+   "surge": 2,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
    ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 3
+	},
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "amount": 1
+	 }
+	]
+   },
+   "constant": {
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 1
+	 }
+	]
+   },
+   "variant": "the Glut",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_bram_ashmark_3_gorging",
+   "title": "Bram Ashmark",
+   "type": "personality",
+   "school": "",
+   "character": "Bram Ashmark",
+   "aspect": 3,
+   "aspect_title": "Gorging",
+   "surge": 4,
+   "might": [
+	0,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32
+   ],
+   "constant": {
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 3
+	 }
+	],
+	"energy_gain_multiplier": 2,
+	"fervor_gain_bonus": 1
+   },
+   "variant": "the Glut",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_bram_ashmark_4_consuming",
+   "title": "Bram Ashmark",
+   "type": "personality",
+   "school": "",
+   "character": "Bram Ashmark",
+   "aspect": 4,
+   "aspect_title": "Consuming",
+   "surge": 4,
+   "might": [
+	0,
+	20,
+	22,
+	24,
+	26,
+	28,
+	30,
+	32,
+	34,
+	36,
+	38
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "op": "shuffle_discard",
+	  "amount": 8
+	 }
+	]
+   },
+   "variant": "the Glut",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_bram_ashmark_5_insatiable",
+   "title": "Bram Ashmark",
+   "type": "personality",
+   "school": "",
+   "character": "Bram Ashmark",
+   "aspect": 5,
+   "aspect_title": "Insatiable",
+   "surge": 5,
+   "might": [
+	0,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40,
+	41,
+	42
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "focused": true,
+	 "printed_stages": 10
+	}
+   },
+   "power_alt": {
+	"effects": [
+	 {
+	  "op": "shuffle_discard",
+	  "amount": 10
+	 }
+	]
+   },
    "variant": "the Glut",
    "tags": [
 	"marked"
@@ -7988,127 +8061,153 @@
    ]
   },
   {
-   "id": "duelist_mu",
+   "id": "personality_gideon_mourne_1_the_marked_lord",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
    "character": "Gideon Mourne",
-   "aspects": [
-	{
-	 "aspect": 1,
-	 "surge": 2,
-	 "might": [
-	  0,
-	  1325000,
-	  1400000,
-	  1475000,
-	  1550000,
-	  1625000,
-	  1700000,
-	  1775000,
-	  1850000,
-	  1925000,
-	  2000000
-	 ],
-	 "power": {
-	  "defense": {
-	   "stops": "strike"
-	  },
-	  "effects": [
-	   {
-		"op": "look_at",
-		"amount": 3,
-		"pick": {
-		 "tag": "marked"
-		},
-		"to": "hand",
-		"rearrange": true
-	   }
-	  ]
-	 },
-	 "title": "the Marked Lord"
-	},
-	{
-	 "aspect": 2,
-	 "surge": 3,
-	 "might": [
-	  0,
-	  2100000,
-	  2200000,
-	  2300000,
-	  2400000,
-	  2500000,
-	  2600000,
-	  2700000,
-	  2800000,
-	  2900000,
-	  3000000
-	 ],
-	 "constant": {
-	  "strike_table_self": 2,
-	  "strike_table_against": 2
-	 },
-	 "title": "Unflinching"
-	},
-	{
-	 "aspect": 3,
-	 "surge": 4,
-	 "might": [
-	  0,
-	  3055000,
-	  3160000,
-	  3265000,
-	  3370000,
-	  3475000,
-	  3580000,
-	  3685000,
-	  3790000,
-	  3895000,
-	  4000000
-	 ],
-	 "power": {
-	  "attack": {
-	   "kind": "art",
-	   "printed_life": 6,
-	   "focused": true
-	  },
-	  "extra_use": {
-	   "filter": "tag:marked"
-	  }
-	 },
-	 "title": "Unfettered"
-	},
-	{
-	 "aspect": 4,
-	 "surge": 5,
-	 "might": [
-	  0,
-	  4315000,
-	  4380000,
-	  4445000,
-	  4610000,
-	  4675000,
-	  4740000,
-	  4805000,
-	  4870000,
-	  4935000,
-	  5000000
-	 ],
-	 "constant": {
-	  "focus_tag": "marked",
-	  "focus_tag_kind": "strike",
-	  "modifiers": [
-	   {
-		"scope": "own",
-		"kind": "strike",
-		"stages": 3,
-		"tag": "marked"
-	   }
-	  ]
-	 },
-	 "title": "Unrepentant"
-	}
+   "aspect": 1,
+   "aspect_title": "the Marked Lord",
+   "surge": 2,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
    ],
+   "power": {
+	"defense": {
+	 "stops": "strike"
+	},
+	"effects": [
+	 {
+	  "op": "look_at",
+	  "amount": 3,
+	  "pick": {
+	   "tag": "marked"
+	  },
+	  "to": "hand",
+	  "rearrange": true
+	 }
+	]
+   },
+   "variant": "Lord Mourne",
+   "bloodline": "draconic",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_gideon_mourne_2_unflinching",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 2,
+   "aspect_title": "Unflinching",
+   "surge": 3,
+   "might": [
+	0,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26
+   ],
+   "constant": {
+	"strike_table_self": 2,
+	"strike_table_against": 2
+   },
+   "variant": "Lord Mourne",
+   "bloodline": "draconic",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_gideon_mourne_3_unfettered",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 3,
+   "aspect_title": "Unfettered",
+   "surge": 4,
+   "might": [
+	0,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 6,
+	 "focused": true
+	},
+	"extra_use": {
+	 "filter": "tag:marked"
+	}
+   },
+   "variant": "Lord Mourne",
+   "bloodline": "draconic",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "personality_gideon_mourne_4_unrepentant",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 4,
+   "aspect_title": "Unrepentant",
+   "surge": 5,
+   "might": [
+	0,
+	28,
+	29,
+	30,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38
+   ],
+   "constant": {
+	"focus_tag": "marked",
+	"focus_tag_kind": "strike",
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "strike",
+	  "stages": 3,
+	  "tag": "marked"
+	 }
+	]
+   },
    "variant": "Lord Mourne",
    "bloodline": "draconic",
    "tags": [

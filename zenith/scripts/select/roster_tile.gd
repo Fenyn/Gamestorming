@@ -20,8 +20,8 @@ func setup(pos: int, d: DeckList) -> void:
 	_school_color = Palette.school_ui(d.style)
 	tooltip_text = "%s\n%s\n%s" % [d.name, d.tagline, d.blurb]
 	add_theme_stylebox_override("focus", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 12, 2, 0, 0))
-	var duelist: CardDef = Session.library.defs.get(d.duelist_id)
-	thumb.texture = CardFace.art_texture(duelist, duelist.lowest_aspect()) if duelist != null else null
+	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
+	thumb.texture = CardFace.art_texture(duelist, duelist.aspect) if duelist != null else null
 	var fallback: Label = $Row/Thumb/Fallback
 	fallback.visible = thumb.texture == null
 	fallback.text = duelist.title.left(1) if duelist != null else "?"
@@ -29,7 +29,7 @@ func setup(pos: int, d: DeckList) -> void:
 	fallback.add_theme_stylebox_override("normal", ZenithTheme.box(Color(_school_color, 0.12), Color(_school_color, 0.25), 12, 1))
 	$Row/Column/Difficulty.text = "%s to play  /  %d life cards" % [d.difficulty.capitalize(), d.cards.size()]
 	deck_label.text = d.name
-	duelist_label.text = duelist.title if duelist != null else d.duelist_id
+	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
 	school_label.text = "%s  /  %s" % [CardText.school_name(d.style).to_upper(), Archetype.label(d.archetype)]
 	ZenithTheme.chip(school_label, Palette.school_ui(d.style))
 	badge.visible = false

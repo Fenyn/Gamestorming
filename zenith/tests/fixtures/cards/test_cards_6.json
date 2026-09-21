@@ -1,13 +1,127 @@
 {
   "_note": "Fixtures for the Construct deck rules: a personality keyword, Ally lockout, searches that arrive at full Energy, payment bought in Energy damage, a hand-size Drill, a Drill that answers a successful attack, a card that reads another card by title, and a personality nothing may modify against.",
   "cards": [
-    {"id": "tf_machine", "title": "Test Machine", "type": "personality", "character": "Test Machine", "tags": ["construct"], "aspects": [
-      {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "power": {"attack": {"kind": "art", "printed_life": 1, "life_per_tag": "construct"}}},
-      {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000], "constant": {"no_modifiers_against": "strike"}},
-      {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000], "power": {"attack": {"kind": "art", "printed_life": 2, "variants": [{"when": {"card_in_play": "Test Relay"}, "life": 4}]}}}
-    ]},
-    {"id": "t_ally_cog", "title": "Test Cog", "type": "personality", "character": "Test Cog", "alignment_only": "vigil", "tags": ["construct"],
-     "aspects": [{"aspect": 1, "surge": 1, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]}]},
+    {
+     "id": "tf_machine_1",
+     "title": "Test Machine",
+     "type": "personality",
+     "character": "Test Machine",
+     "tags": [
+      "construct"
+     ],
+     "aspect": 1,
+     "surge": 2,
+     "might": [
+      0,
+      900000,
+      1500000,
+      2500000,
+      3200000,
+      4000000,
+      5000000,
+      6000000,
+      6500000,
+      7000000,
+      7500000
+     ],
+     "power": {
+      "attack": {
+       "kind": "art",
+       "printed_life": 1,
+       "life_per_tag": "construct"
+      }
+     }
+    },
+    {
+     "id": "tf_machine_2",
+     "title": "Test Machine",
+     "type": "personality",
+     "character": "Test Machine",
+     "tags": [
+      "construct"
+     ],
+     "aspect": 2,
+     "surge": 3,
+     "might": [
+      0,
+      1500000,
+      2500000,
+      3500000,
+      4200000,
+      5000000,
+      6000000,
+      7000000,
+      7500000,
+      8000000,
+      8500000
+     ],
+     "constant": {
+      "no_modifiers_against": "strike"
+     }
+    },
+    {
+     "id": "tf_machine_3",
+     "title": "Test Machine",
+     "type": "personality",
+     "character": "Test Machine",
+     "tags": [
+      "construct"
+     ],
+     "aspect": 3,
+     "surge": 4,
+     "might": [
+      0,
+      2500000,
+      3500000,
+      4500000,
+      5200000,
+      6000000,
+      7000000,
+      8000000,
+      8500000,
+      9000000,
+      9500000
+     ],
+     "power": {
+      "attack": {
+       "kind": "art",
+       "printed_life": 2,
+       "variants": [
+        {
+         "when": {
+          "card_in_play": "Test Relay"
+         },
+         "life": 4
+        }
+       ]
+      }
+     }
+    },
+    {
+     "id": "t_ally_cog",
+     "title": "Test Cog",
+     "type": "personality",
+     "character": "Test Cog",
+     "alignment_only": "vigil",
+     "tags": [
+      "construct"
+     ],
+     "aspect": 1,
+     "surge": 1,
+     "might": [
+      0,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000
+     ]
+    },
     {"id": "t_drill_lockout", "title": "Test Lockout Drill", "type": "drill", "forbid": [{"who": "opponent", "what": "allies"}]},
     {"id": "t_drill_assembly", "title": "Test Assembly Drill", "type": "drill",
      "modifiers": [{"scope": "own", "kind": "any", "life": 1}, {"scope": "own", "kind": "any", "life": 1, "when": {"performer_tag": "construct"}}]},
@@ -24,10 +138,71 @@
     {"id": "t_recall_top", "title": "Test Recall", "type": "combat", "effects": [{"op": "search", "source": "discard", "amount": 2, "to": "deck_top"}]},
     {"id": "t_drill_every_turn", "title": "Test Vigil Drill", "type": "drill",
      "effects": [{"trigger": "turn_start", "each_turn": true, "op": "fervor", "amount": 1}]},
-    {"id": "tf_kinwarden", "title": "Test Kin Warden", "type": "personality", "character": "Test Kin Warden", "aspects": [
-      {"aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "constant": {"protect_allies": "draconic"}},
-      {"aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000]},
-      {"aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000]}
-    ]}
+    {
+     "id": "tf_kinwarden_1",
+     "title": "Test Kin Warden",
+     "type": "personality",
+     "character": "Test Kin Warden",
+     "aspect": 1,
+     "surge": 2,
+     "might": [
+      0,
+      900000,
+      1500000,
+      2500000,
+      3200000,
+      4000000,
+      5000000,
+      6000000,
+      6500000,
+      7000000,
+      7500000
+     ],
+     "constant": {
+      "protect_allies": "draconic"
+     }
+    },
+    {
+     "id": "tf_kinwarden_2",
+     "title": "Test Kin Warden",
+     "type": "personality",
+     "character": "Test Kin Warden",
+     "aspect": 2,
+     "surge": 3,
+     "might": [
+      0,
+      1500000,
+      2500000,
+      3500000,
+      4200000,
+      5000000,
+      6000000,
+      7000000,
+      7500000,
+      8000000,
+      8500000
+     ]
+    },
+    {
+     "id": "tf_kinwarden_3",
+     "title": "Test Kin Warden",
+     "type": "personality",
+     "character": "Test Kin Warden",
+     "aspect": 3,
+     "surge": 4,
+     "might": [
+      0,
+      2500000,
+      3500000,
+      4500000,
+      5200000,
+      6000000,
+      7000000,
+      8000000,
+      8500000,
+      9000000,
+      9500000
+     ]
+    }
   ]
 }

@@ -31,6 +31,7 @@ const SPEC_BASE: Dictionary = {
 	"limit": {"type": "int", "default": 0, "min": 0, "max": 1000000},
 	"seed": {"type": "int", "default": 1, "min": 0, "max": 2147483647},
 	"max-steps": {"type": "int", "default": 6000, "min": 100, "max": 1000000},
+	"points": {"type": "int", "default": 1, "min": 1, "max": 9},
 
 	"field": {"type": "str", "default": ""},
 	"decks": {"type": "str", "default": ""},
@@ -114,6 +115,7 @@ func _init() -> void:
 	library.load_dir("res://data/cards")
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
 	var runner: SimMatch = SimMatch.make(library, table, args.int_of("max-steps"))
+	runner.points_to_win = args.int_of("points")
 	var report: SimReport = SimReport.new()
 	var verbose: bool = args.bool_of("verbose")
 	var progress: int = args.int_of("progress")

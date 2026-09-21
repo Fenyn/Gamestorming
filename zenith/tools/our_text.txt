@@ -8,7 +8,7 @@ assembly_drill: Your attacks do +1 wound. If the attack is performed by a Constr
 black_hands: Sable Draik only. Art dealing 6 wounds. For the remainder of Combat, damage from your attacks cannot be prevented. If you have 2 or more Allies in play, Remain 1. Remove from the game after use.
 blank_mask: Reserve 13. Twice per game, during your Non-Combat step: Your opponent may not use a Mastery this turn. Limit 1 per deck.
 blinding_flare: Art. Hit: Your opponent may not use Strike cards for the remainder of Combat.
-bonded_pair: Bond of Ansel Rooke and Tavin Vale. Enters play only through a Bonding card, at full Energy, with both under it. At the start of each of your turns a life card goes under it; at 5 the Bond ends and both return at 3 Energy. Limit 1 per deck.
+personality_ansel_and_tavin_1_back_to_back: Bond of Ansel Rooke and Tavin Vale. Enters play only through a Bonding card, at full Energy, with both under it. At the start of each of your turns a life card goes under it; at 5 the Bond ends and both return at 3 Energy. Limit 1 per deck.
 bonding_rite: Use in Combat: Bond the two named Allies: they leave play under their Bond card, which fights as one Ally at full Energy.
 braced_guard: Stops a Strike or an Art. Lower your opponent's Fervor 1. Remove from the game after use.
 branns_shakedown: Strike doing +4 Energy. If Brann Draik is in control, your opponent discards a Non-Combat card in play of your choice and capture a Seal. Hit: Search your Life Deck for an Ally and put it into play at Energy 4.
@@ -20,11 +20,11 @@ clear_mind: Use in Combat: Search your Life Deck for a Combat card and put it in
 closing_ranks: Draconic only. Your next attack does +2 wounds for each Ally you have in play. Draw a card. Remove from the game after use.
 cold_appraisal: Look at your opponent's hand and choose a card. They discard it.
 committed_cut: Endurance 3. Strike doing +4 Energy. If your duelist is aspect 2 or higher, +4 wounds and Focused. Hit: Search your Life Deck for a Drill and put it into play.
-companion_alpha: Limit 1 per deck.
-companion_beta: Limit 1 per deck.
-companion_delta: Limit 1 per deck.
-companion_epsilon: Limit 1 per deck.
-companion_gamma: Limit 1 per deck.
+personality_wren_rooke_1: Limit 1 per deck.
+personality_edric_rooke_1: Limit 1 per deck.
+personality_ansel_rooke_1: Limit 1 per deck.
+personality_alder_rooke_1: Limit 1 per deck.
+personality_tavin_vale_1: Limit 1 per deck.
 corins_conditioning: When entering Combat, raise your Fervor 1, raise your duelist's Energy to full, and draw the bottom card of your discard pile. Remove from the game after use.
 counterplay_drill: When placed, name a card. Neither player may play or use it while this is in play. Limit 2 per deck.
 cut_short: Use when needed. Stops the effects of any Combat card.
@@ -34,18 +34,18 @@ declaration: Art. Raise your Fervor 2. Lower your opponent's Fervor 2. Remove fr
 defacement: Use in Combat: Your opponent removes a Seal in play of your choice from the game. Remove from the game after use. Limit 1 per deck.
 dismissal: All Allies in play are removed from the game. Remove from the game after use. Limit 2 per deck.
 draiks_reckoning: Focused Art dealing 5 wounds. Set your Fervor to 2. Set your opponent's Fervor to 2. Hit: You may shuffle your removed Allies into your Life Deck. Remove from the game after use.
-duelist_alpha: 
-duelist_beta: 
-duelist_delta: 
-duelist_epsilon: 
-duelist_eta: 
-duelist_gamma: 
-duelist_iota: 
-duelist_kappa: 
-duelist_lambda: 
-duelist_mu: 
-duelist_theta: 
-duelist_zeta: 
+personality_bram_ashmark_1_starved: 
+personality_alder_rooke_1_matriarch: 
+personality_sable_draik_1_captain: 
+personality_halden_quarr_1_the_grinder: 
+personality_osric_thornwald_1_greybeard: 
+personality_siphon_1_dormant: 
+personality_edric_rooke_1_the_hero: 
+personality_emrys_rooke_1_the_eldest: 
+personality_bram_ashmark_1_starved: 
+personality_gideon_mourne_1_the_marked_lord: 
+personality_marrow_1_patchwork: 
+personality_caedan_vale_1_last_heir: 
 edrics_low_water: Use in Combat: Look at the top 7 cards of your Life Deck and put every Non-Combat card among them into play. Shuffle the rest back.
 edrics_opening_strike: Strike. Hit: Draw the bottom card of your discard pile. If Sir Edric Rooke is your duelist, Remain 1. Remove from the game after use. Limit 2 per deck.
 edrics_training: Strike doing +2 Energy. Hit: Draw the bottom card of your discard pile. Remove from the game after use.
@@ -64,12 +64,12 @@ halvards_twin_cut: Focused Strike doing +4 Energy. If Halvard Draik is in contro
 hasks_flying_kick: Strike doing triple the Base Damage.
 headlong_plunge: Endurance 2. Focused Strike doing +3 Energy. Empower 3. Raise your Fervor 1. Lower your opponent's Fervor 1. Your opponent discards an Ally in play of your choice. Gain 3 Energy. Place at the bottom of your Life Deck after use.
 heirloom_blade: Use in Combat: Attach this card to your duelist. While attached to your duelist: Your "Sword" attacks do +3 wounds. Wounds from those attacks are removed from the game.
-henchman_alpha: Limit 1 per deck.
-henchman_beta: Limit 1 per deck.
-henchman_delta: Limit 1 per deck.
-henchman_epsilon: Limit 1 per deck.
-henchman_gamma: Limit 1 per deck.
-henchman_zeta: Limit 1 per deck.
+personality_vesna_draik_1: Limit 1 per deck.
+personality_brann_draik_1: Limit 1 per deck.
+personality_halvard_draik_1: Limit 1 per deck.
+personality_pim_1: Limit 1 per deck.
+personality_quill_draik_1: Limit 1 per deck.
+personality_tithe_1: Limit 1 per deck.
 hilt_guard: Stops a Strike. Search your discard pile for a Strike, Art, or Combat card and put it into your hand. Remove from the game after use.
 hired_blades: Search your Life Deck or discard pile for an Ally and put it into play at Energy 10.
 keen_eye: Draw a card. If it is a Signature card, draw a card. Remove from the game after use.
@@ -208,9 +208,9 @@ salt_seal_4: Raise your duelist's Energy to full. Discard up to 3 Allies in play
 salt_seal_5: Raise your duelist's Energy to full. Choose up to 5 cards from your discard pile and shuffle them into your Life Deck. Limit 1 per deck.
 salt_seal_6: Raise your duelist's Energy to full. Set all of your opponent's personalities to 4 Energy. Limit 1 per deck.
 salt_seal_7: Raise your duelist's Energy to full. Choose up to 3 cards from your discard pile and place them on top of your Life Deck. Limit 1 per deck.
-salvage_alpha: Limit 1 per deck.
-salvage_beta: Limit 1 per deck.
-salvage_gamma: Limit 1 per deck.
+personality_cull_1: Limit 1 per deck.
+personality_orvath_kell_1: Limit 1 per deck.
+personality_gideon_mourne_1_mercenary: Limit 1 per deck.
 scattered_ashes: Focused Art. Empower 2. Hit: Remove all of your opponent's discard pile from the game. Raise your Fervor 1.
 scatters_the_ashes: Endurance 1. Strike doing +4 Energy. Remove the top 5 cards of your opponent's discard pile from the game. Gain 3 Energy.
 scorn_smirks: Your opponent removes all Drills in play from the game. Remove from the game after use. Limit 1 per deck.

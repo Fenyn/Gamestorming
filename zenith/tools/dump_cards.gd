@@ -1,6 +1,7 @@
 extends SceneTree
-## Dumps every shipped card as JSON lines (id, title, type line, school, type, character, rules text,
-## one entry per Aspect for Duelists) for the roster generator. Usage:
+## Dumps every shipped card as JSON lines (id, title, type line, school, type, character, rules
+## text) for the roster generator. A personality card is one Aspect, so it is one line like
+## anything else. Usage:
 ## godot --headless --path zenith -s tools/dump_cards.gd -- <out.jsonl>
 
 
@@ -14,15 +15,15 @@ func _init() -> void:
 	for id in ids:
 		var def: CardDef = lib.defs[id]
 		if def.is_personality():
-			for t in def.aspects:
-				var aspect: int = int(t.get("aspect", 0))
-				out.store_line(JSON.stringify({
-					"id": "%s_a%d" % [def.id, aspect], "base": def.id, "aspect": aspect,
-					"title": "%s, %s" % [def.title, CardText.aspect_name(aspect, def)],
-					"type_line": CardText.type_line(def), "school": def.school, "type": CardText.type_label(def),
-					"character": def.character,
-					"text": "Surge %d. %s" % [int(t.get("surge", 0)), " ".join(CardText.aspect_text(def, aspect))],
-				}))
+			# One card is one Aspect, so one row, named by the card's own id.
+			var t: Dictionary = def.aspect_data(def.aspect)
+			out.store_line(JSON.stringify({
+				"id": def.id, "base": def.id, "aspect": def.aspect,
+				"title": "%s, %s" % [def.title, def.aspect_title] if def.aspect_title != "" else def.title,
+				"type_line": CardText.type_line(def), "school": def.school, "type": CardText.type_label(def),
+				"character": def.character,
+				"text": "Surge %d. %s" % [int(t.get("surge", 0)), " ".join(CardText.aspect_text(def, def.aspect))],
+			}))
 		else:
 			out.store_line(JSON.stringify({
 				"id": def.id, "base": def.id, "aspect": 0, "title": def.title,

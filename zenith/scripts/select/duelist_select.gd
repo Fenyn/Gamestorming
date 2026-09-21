@@ -277,8 +277,8 @@ func _filter_decks() -> void:
 	var school: String = _schools[school_filter.selected] if school_filter.selected >= 0 else ""
 	for tile: RosterTile in _tiles:
 		var d: DeckList = Session.decks[tile.index]
-		var def: CardDef = Session.library.defs.get(d.duelist_id)
-		var haystack: String = "%s %s %s %s %s" % [d.name, def.title if def != null else d.duelist_id, Archetype.label(d.archetype), d.tagline, d.difficulty]
+		var def: CardDef = Session.library.defs.get(d.duelist_face_id())
+		var haystack: String = "%s %s %s %s %s" % [d.name, def.title if def != null else d.duelist_face_id(), Archetype.label(d.archetype), d.tagline, d.difficulty]
 		tile.visible = (school == "" or d.style == school) and (query == "" or haystack.to_lower().contains(query))
 		if tile.visible:
 			_visible_indices.append(tile.index)

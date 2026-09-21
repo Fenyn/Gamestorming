@@ -25,8 +25,7 @@ func _engine() -> DuelEngine:
 	var decks: Array[DeckList] = []
 	for seat in range(2):
 		var deck: DeckList = DeckList.new()
-		deck.duelist_id = "tf_vigil"
-		deck.aspects = 3
+		deck.set_duelist(["tf_vigil_1", "tf_vigil_2", "tf_vigil_3"])
 		deck.alignment = "vigil" if seat == 0 else "pact"
 		for i in range(25):
 			deck.cards.append("t_parry" if seat == 1 and i < 3 else "t_strike")

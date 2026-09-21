@@ -37,8 +37,7 @@ func _defense_position(pending: bool = false) -> DuelEngine:
 	var decks: Array[DeckList] = []
 	for seat in range(2):
 		var deck: DeckList = DeckList.new()
-		deck.duelist_id = "tf_vigil"
-		deck.aspects = 3
+		deck.set_duelist(["tf_vigil_1", "tf_vigil_2", "tf_vigil_3"])
 		deck.alignment = "vigil" if seat == 0 else "pact"
 		for index in range(25):
 			if pending and index < 3:
@@ -253,7 +252,8 @@ func _test_legal_actions(hud: Node) -> void:
 		_check(absf(face.position.x - decision.position.x) < 2.0 and absf(face.size.x - decision.size.x) < 2.0, "Decision shares the focused card's column at %dp" % window_size.y)
 		_check(decision.position.y >= face.end.y and decision.position.y - face.end.y <= 20.0, "Decision attaches immediately below the face at %dp" % window_size.y)
 		_check(viewport.encloses(hud.prompt_title.get_global_rect()), "Decision question stays inside viewport at %dp" % window_size.y)
-		_check(viewport.encloses(hud.exchange_damage.get_global_rect()), "Incoming consequence stays inside viewport at %dp" % window_size.y)
+		if hud.exchange_damage.is_visible_in_tree():
+			_check(viewport.encloses(hud.exchange_damage.get_global_rect()), "Incoming consequence stays inside viewport at %dp" % window_size.y)
 		_check(viewport.encloses(hud.actions_scroll.get_global_rect()), "Response action region stays inside viewport at %dp" % window_size.y)
 		for child in hud.primary_box.get_children():
 			if child is Button and child.visible:

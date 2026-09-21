@@ -73,11 +73,11 @@ func _fill_header() -> void:
 	stage_label.text = "Stage %d cleared" % (run.stage + 1)
 	opponent_label.text = "Beat %s" % AdventureLadder.opponent_name(str(row.get("opponent", "")), Session.library)
 	deck_tile.set_stat("Deck", "%d cards" % run.cards.size(), "", ZenithTheme.MUTED)
-	aspects_tile.set_stat("Aspects", str(run.aspects), "", ZenithTheme.MIGHT)
+	aspects_tile.set_stat("Aspects", str(run.aspects()), "", ZenithTheme.MIGHT)
 	var granted: bool = str(row.get("grant", "")) == "aspect"
 	aspect_line.visible = granted
 	if granted:
-		aspect_line.text = "Aspect %d unlocked" % run.aspects
+		aspect_line.text = "Aspect %d unlocked" % run.aspects()
 		ZenithTheme.chip(aspect_line, ZenithTheme.ACCENT, true)
 
 

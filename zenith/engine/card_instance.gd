@@ -10,6 +10,10 @@ var owner: int = 0
 var controller: int = 0
 var zone: StringName = &"none"   # life_deck, hand, discard, removed, in_play, duelist, grounds, side, reserve, resolving, under
 var aspect: int = 1
+## personalities in play: the whole Aspect stack this card belongs to. `def` is always the card
+## for the current `aspect`, so character, tags, bloodline, alignment and the Aspect's own numbers
+## are read off `def` and follow the climb. Shared by reference between clones and never mutated.
+var stack: PersonalityStack = null
 var energy: int = 0
 var power_used_turn: int = -1
 var power_used_combat: int = -1
@@ -29,7 +33,7 @@ func _init(p_uid: int, p_def: CardDef, p_owner: int) -> void:
 	owner = p_owner
 	controller = p_owner
 	if def != null and def.is_personality():
-		aspect = def.lowest_aspect()
+		aspect = def.aspect
 
 
 ## A copy for a simulated engine. `cards_under` and `attached_to` still point at the original's
@@ -49,6 +53,7 @@ func copy_into(c: CardInstance) -> void:
 	c.controller = controller
 	c.zone = zone
 	c.aspect = aspect
+	c.stack = stack
 	c.energy = energy
 	c.power_used_turn = power_used_turn
 	c.power_used_combat = power_used_combat
@@ -60,6 +65,23 @@ func copy_into(c: CardInstance) -> void:
 	c.attached_to = attached_to
 	c.named_card = named_card
 	c.bond_timer = bond_timer
+
+
+## Moves a personality to another Aspect of its own stack, which swaps the card it is showing.
+## Everything the engine reads off `def` — the Aspect's Might and Power, the keywords the
+## personality carries, their bloodline and alignment gate — changes with it.
+func go_to_aspect(n: int) -> void:
+	aspect = n
+	if stack == null:
+		return
+	var d: CardDef = stack.def_for(n)
+	if d != null:
+		def = d
+
+
+## The stack's public card ids, lowest Aspect first. Empty for a card with no stack.
+func ladder() -> Array[String]:
+	return stack.card_ids() if stack != null else ([] as Array[String])
 
 
 func aspect_data() -> Dictionary:

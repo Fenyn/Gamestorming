@@ -173,7 +173,8 @@ aspect all the way up; the aspect powers feed on the discard pile instead.
 
 Wins by survival, by attrition. Aspect 1 carries `protect_allies`, so the deck wants to stay there;
 Fervor and aspect gains are actively unwanted. Its own aspect 1 also advances on 5 Allies in play,
-which is a hazard to stay under, not a goal: the deck ships four Ally cards on purpose. The Mastery
+which is a hazard to stay under, not a goal: the deck ships four personalities to field as Allies on
+purpose. The Mastery
 is a free block every Combat, paid for with a card from hand, and paid back double when the card
 spent is a Tide card. It is not a damage engine; it is the reason the deck survives to assemble.
 

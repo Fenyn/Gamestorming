@@ -3,8 +3,11 @@
   "source_deck": "pyre_beatdown",
   "tier": "t5",
   "mode": "adventure",
-  "duelist": "duelist_alpha",
-  "aspects": 3,
+  "duelist": [
+    "personality_bram_ashmark_1_starved",
+    "personality_bram_ashmark_2_leeching",
+    "personality_bram_ashmark_3_unstoppable"
+  ],
   "style": "pyre",
   "alignment": "pact",
   "mastery": "pyre_mastery",

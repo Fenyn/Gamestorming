@@ -3,8 +3,11 @@
   "source_deck": "steel_heir",
   "tier": "t4",
   "mode": "adventure",
-  "duelist": "duelist_kappa",
-  "aspects": 3,
+  "duelist": [
+    "personality_emrys_rooke_1_the_eldest",
+    "personality_emrys_rooke_2_first_plate",
+    "personality_emrys_rooke_3_edged"
+  ],
   "style": "steel",
   "alignment": "vigil",
   "mastery": "steel_mastery",
@@ -95,7 +98,7 @@
       "count": 1
     },
     {
-      "id": "companion_epsilon",
+      "id": "personality_alder_rooke_1",
       "count": 1
     },
     {

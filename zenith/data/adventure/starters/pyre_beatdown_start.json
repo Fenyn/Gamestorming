@@ -2,8 +2,10 @@
   "name": "Wildfire Rush (Starter)",
   "source_deck": "pyre_beatdown",
   "mode": "adventure",
-  "duelist": "duelist_alpha",
-  "aspects": 2,
+  "duelist": [
+    "personality_bram_ashmark_1_starved",
+    "personality_bram_ashmark_2_leeching"
+  ],
   "style": "pyre",
   "alignment": "pact",
   "mastery": "pyre_mastery",
@@ -17,7 +19,7 @@
   "bombs": ["bravado_drill", "sever_the_leyline"],
   "cards": [
     {"id": "pyre_kindling", "count": 2},
-    {"id": "pyre_flame_lash", "count": 2},
+    {"id": "pyre_flame_lash", "count": 3},
     {"id": "pyre_rekindling", "count": 2},
     {"id": "pyre_comet_fall", "count": 2},
     {"id": "pyre_furnace_breath", "count": 2},
@@ -29,11 +31,11 @@
     {"id": "pyre_firestorm", "count": 2},
     {"id": "pyre_scouring_flame", "count": 2},
     {"id": "pyre_immolation", "count": 2},
-    {"id": "cold_appraisal", "count": 2},
-    {"id": "cut_short", "count": 2},
+    {"id": "cold_appraisal", "count": 3},
+    {"id": "cut_short", "count": 3},
     {"id": "pyre_cinder_guard", "count": 3},
-    {"id": "wall_of_flame", "count": 2},
-    {"id": "stokes_the_coals", "count": 2},
+    {"id": "wall_of_flame", "count": 3},
+    {"id": "stokes_the_coals", "count": 3},
     {"id": "recalled_lesson", "count": 1},
     {"id": "bravado_drill", "count": 1},
     {"id": "sever_the_leyline", "count": 1}

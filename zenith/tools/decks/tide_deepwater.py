@@ -3,7 +3,7 @@ tournament sheet.
 
     python tools/add_cards.py decks/tide_deepwater
 
-The duelist is `duelist_iota` unchanged. The sheet runs the same five printed personality cards
+The duelist is Sir Edric Rooke's printed ladder unchanged. The sheet runs the same five printed personality cards
 that his Pyre list already uses, so only the school around him changes. That is the theming rule
 working as intended: what a card looks like comes from the card, not from the man.
 

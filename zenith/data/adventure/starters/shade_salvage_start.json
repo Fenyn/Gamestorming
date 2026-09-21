@@ -2,8 +2,11 @@
   "name": "Scrap Requiem (Starter)",
   "source_deck": "shade_salvage",
   "mode": "adventure",
-  "duelist": "duelist_theta",
-  "aspects": 3,
+  "duelist": [
+    "personality_marrow_1_patchwork",
+    "personality_marrow_2_rebuilt",
+    "personality_marrow_3_overwrought"
+  ],
   "style": "shade",
   "alignment": "pact",
   "mastery": "shade_mastery",
@@ -17,10 +20,10 @@
   "unlock": {"track": "deck_cap", "step": 50},
   "bombs": ["marrows_retinue", "unerring_bolt"],
   "cards": [
-    {"id": "salvage_alpha", "count": 1},
-    {"id": "salvage_beta", "count": 1},
-    {"id": "salvage_gamma", "count": 1},
-    {"id": "henchman_epsilon", "count": 1},
+    {"id": "personality_cull_1", "count": 1},
+    {"id": "personality_orvath_kell_1", "count": 1},
+    {"id": "personality_gideon_mourne_1_mercenary", "count": 1},
+    {"id": "personality_pim_1", "count": 1},
     {"id": "shade_rending_palm", "count": 3},
     {"id": "shade_cutting_hand", "count": 3},
     {"id": "shade_umbral_lash", "count": 3},

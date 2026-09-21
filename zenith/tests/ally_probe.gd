@@ -221,8 +221,8 @@ func _init() -> void:
 			"marrows_retinue", "dismissal", "breakers_yard", "locked_gate_drill", "assembly_drill"]:
 		if n.has("played_%s" % id):
 			print("    played %-18s %5.2f per game" % [id, per(n, "played_%s" % id, games)])
-	for id in ["companion_alpha", "companion_beta", "companion_gamma", "companion_delta", "bonded_pair",
-			"salvage_alpha", "salvage_beta", "salvage_gamma", "henchman_epsilon"]:
+	for id in ["personality_wren_rooke_1", "personality_edric_rooke_1", "personality_tavin_vale_1", "personality_ansel_rooke_1", "personality_ansel_and_tavin_1_back_to_back",
+			"personality_cull_1", "personality_orvath_kell_1", "personality_gideon_mourne_1_mercenary", "personality_pim_1"]:
 		if n.has("ally_%s" % id):
 			print("    %-18s reached play in %3.0f%% of games" % [id, 100.0 * per(n, "ally_%s" % id, games)])
 	print("  Allies lost off the table            %5.2f per game (critical %.2f, in an attack %.2f, elsewhere %.2f)" % [

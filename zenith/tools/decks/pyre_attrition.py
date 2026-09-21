@@ -11,13 +11,14 @@ from cardlib import (add, strike, art, block, combat, noncombat, duelist, aspect
                      ALPHA, EMRYS)
 
 # --- The duelist ----------------------------------------------------------
-# The same man as `duelist_alpha` on a second printing: five rungs instead of three, and the
-# hollow with something in it rather than empty. He traded his humanity for power and cannot be
+# Bram Ashmark's second printed line, "the Glut": five rungs instead of the Hollow line's three,
+# and the hollow with something in it rather than empty. He traded his humanity for power and cannot be
 # filled by it (docs/world.md), so the ladder is an appetite escalating: he gnaws, he feasts, he
 # gorges, what he took is turned back into him, and at the top he is still not full. The titles
 # read off the powers and never off the school, because he may field another one later.
-duelist("duelist_lambda", ALPHA, [
-    # The same printed card as duelist_alpha's first rung, so it carries the same numbers.
+duelist(ALPHA, [
+    # The same printed card as the Hollow line's first rung, so it carries the same numbers, and
+    # both lines therefore share the one card `personality_bram_ashmark_1_starved`.
     aspect(1, 2, 24, 1, power={"attack": {"kind": "strike", "stages": 3},
                                "effects": [VIG(5), IFSTOP(E("draw", amount=1))]}),
     aspect(2, 2, 20, 1, power={"attack": {"kind": "strike", "stages": 3}, "effects": [ACC(1)]},

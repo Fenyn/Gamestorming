@@ -2,8 +2,11 @@
   "name": "Stormlock (Starter)",
   "source_deck": "storm_unbound",
   "mode": "adventure",
-  "duelist": "duelist_gamma",
-  "aspects": 3,
+  "duelist": [
+    "personality_siphon_1_dormant",
+    "personality_siphon_2_charged",
+    "personality_siphon_3_unbound"
+  ],
   "style": "storm",
   "alignment": "pact",
   "mastery": "storm_squall_mastery",
@@ -17,9 +20,9 @@
   "unlock": {"track": "deck_cap", "step": 50},
   "bombs": ["declaration", "sun_seal_5"],
   "cards": [
-    {"id": "salvage_alpha", "count": 1},
-    {"id": "salvage_beta", "count": 1},
-    {"id": "henchman_epsilon", "count": 1},
+    {"id": "personality_cull_1", "count": 1},
+    {"id": "personality_orvath_kell_1", "count": 1},
+    {"id": "personality_pim_1", "count": 1},
     {"id": "storm_arc_bolt", "count": 3},
     {"id": "storm_lash", "count": 3},
     {"id": "storm_palm_surge", "count": 3},

@@ -1,7 +1,12 @@
 {
   "name": "Blade Legacy",
-  "duelist": "duelist_zeta",
-  "aspects": 5,
+  "duelist": [
+	"personality_caedan_vale_1_last_heir",
+	"personality_caedan_vale_2_unparried",
+	"personality_caedan_vale_3_spellcutter",
+	"personality_caedan_vale_4_the_quiet_blade",
+    "personality_caedan_vale_5_peerless"
+  ],
   "style": "freestyle",
   "alignment": "vigil",
   "mastery": "freestyle_mastery",

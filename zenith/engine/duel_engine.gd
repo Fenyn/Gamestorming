@@ -206,7 +206,7 @@ func determinize(seat: int, sample_seed: int) -> void:
 		dealer.shuffle(defs)
 		for i in range(hidden.size()):
 			hidden[i].def = defs[i]
-			hidden[i].aspect = defs[i].lowest_aspect() if defs[i].is_personality() else 1
+			hidden[i].aspect = defs[i].aspect if defs[i].is_personality() else 1
 	rng = dealer
 
 
@@ -300,11 +300,15 @@ func _build_player(index: int, deck: DeckList) -> PlayerState:
 	p.style = deck.style
 	p.archetype = deck.archetype
 	p.subthemes = deck.subthemes.duplicate()
-	var fdef: CardDef = library.get_def(deck.duelist_id)
-	assert(fdef != null and fdef.type == CardDef.Type.PERSONALITY, "Deck %s has no duelist" % deck.name)
-	p.duelist = _instance(fdef, index, &"duelist")
+	# The Duelist is a stack of personality cards, one per Aspect. It is assembled once, here, and
+	# the engine then reads "the row for Aspect n" off it exactly as it used to read a ladder card.
+	var stack: PersonalityStack = deck.duelist_stack(library)
+	assert(not stack.is_empty(), "Deck %s has no duelist" % deck.name)
+	p.duelist = _instance(stack.def_for(stack.lowest_aspect()), index, &"duelist")
+	p.duelist.stack = stack
+	p.duelist.aspect = stack.lowest_aspect()
 	p.duelist.energy = STARTING_ENERGY
-	p.highest_aspect = clampi(deck.aspects, 1, fdef.highest_aspect())
+	p.highest_aspect = stack.highest_aspect()
 	p.controlling = p.duelist
 	if deck.mastery_id != "":
 		p.mastery = _instance(library.get_def(deck.mastery_id), index, &"side")
@@ -874,7 +878,7 @@ func _can_place(p: PlayerState, c: CardInstance) -> bool:
 				return false
 			if def.character == p.duelist.def.character or def.character == state.players[1 - p.index].duelist.def.character:
 				return false
-			var aspect: int = def.lowest_aspect()
+			var aspect: int = def.aspect
 			if aspect > p.duelist.aspect:
 				return false
 			var own: CardInstance = _ally_of_character(p, def.character)
@@ -913,12 +917,17 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 		CardDef.Type.PERSONALITY:
 			var existing: CardInstance = _ally_of_character(p, c.def.character)
 			if existing != null:
+				# Climbing: the new Aspect overlays the old one, which goes under it, and the
+				# Ally's stack grows by that card. Entering the Aspect sets it to full Energy.
 				_erase_from_zone(existing)
 				existing.zone = &"under"
 				c.cards_under.append(existing)
 				c.energy = CardInstance.MAX_STAGE
+				c.stack = existing.stack.plus(c.def) if existing.stack != null else PersonalityStack.single(c.def)
 			else:
 				c.energy = ALLY_STARTING_ENERGY
+				c.stack = PersonalityStack.single(c.def)
+			c.aspect = c.def.aspect
 			c.zone = &"in_play"
 			p.in_play.append(c)
 		CardDef.Type.GROUNDS:
@@ -4980,7 +4989,7 @@ func _check_aspect_up(p: PlayerState) -> void:
 
 
 func _aspect_up(p: PlayerState) -> void:
-	p.duelist.aspect += 1
+	p.duelist.go_to_aspect(p.duelist.aspect + 1)
 	p.duelist.energy = CardInstance.MAX_STAGE
 	_discard_drills(p)
 	_emit(&"aspect_up", {"player": p.index, "aspect": p.duelist.aspect})
@@ -4996,7 +5005,7 @@ func _lose_aspect(p: PlayerState, source_owner: int) -> void:
 	# "Cards that lower your Aspect cannot be played or used for the remainder of Combat."
 	if source_owner != p.index and _forbidden(state.players[source_owner], "lower_aspect"):
 		return
-	p.duelist.aspect -= 1
+	p.duelist.go_to_aspect(p.duelist.aspect - 1)
 	p.duelist.energy = LOST_ASPECT_ENERGY
 	_discard_drills(p)
 	_emit(&"aspect_down", {"player": p.index, "aspect": p.duelist.aspect})
@@ -5305,7 +5314,7 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	if type_name == "strike_or_art" and c.def.type != CardDef.Type.STRIKE and c.def.type != CardDef.Type.ART:
 		# A Strike or Art card of any use, attack or block, which is how the source card reads.
 		return false
-	if e.has("aspect") and c.def.lowest_aspect() != int(e["aspect"]):
+	if e.has("aspect") and c.def.aspect != int(e["aspect"]):
 		# "Search for a level 1 Ally": the aspect the personality would come into play at.
 		return false
 	if type_name == "hand_combat" and not c.def.is_hand_combat_card():

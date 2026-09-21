@@ -1,7 +1,10 @@
 {
   "name": "Fixture Deck",
-  "duelist": "tf_vigil",
-  "aspects": 3,
+  "duelist": [
+    "tf_vigil_1",
+    "tf_vigil_2",
+    "tf_vigil_3"
+  ],
   "style": "pyre",
   "alignment": "vigil",
   "mastery": "t_mastery_pyre",

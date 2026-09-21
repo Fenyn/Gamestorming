@@ -133,9 +133,10 @@ static func short_number(n: int) -> String:
 	return str(n)
 
 
-## An Aspect's own title ("Unquenchable") when the duelist's card gives one, else "Aspect N".
-## What to call a personality card. A character with one printing is just their name; where there
-## are several, the variant is what tells them apart, because the character is shared on purpose.
+## An Aspect's own title ("Unquenchable") when the personality card gives one, else "Aspect N".
+## What to call a personality card. A character with one personality card is just their name; where
+## there are several, the variant is what tells them apart, because the character is shared on
+## purpose.
 static func personality_name(def: CardDef) -> String:
 	if def == null:
 		return ""
@@ -144,12 +145,16 @@ static func personality_name(def: CardDef) -> String:
 	return "%s, %s" % [def.title, def.variant]
 
 
+## The title printed on one Aspect card ("Starved"), falling back to its number. `def` is the card
+## for that Aspect; `stack_aspect_name` finds it when all you hold is the stack.
 static func aspect_name(aspect: int, def: CardDef = null) -> String:
-	if def != null:
-		var title: String = str(def.aspect_data(aspect).get("title", ""))
-		if title != "":
-			return title
+	if def != null and def.aspect_title != "":
+		return def.aspect_title
 	return "Aspect %d" % aspect
+
+
+static func stack_aspect_name(aspect: int, stack: PersonalityStack) -> String:
+	return aspect_name(aspect, stack.def_for(aspect) if stack != null else null)
 
 
 ## Short HUD wording for a standing forbid, keyed by the engine's forbid `what` word.
@@ -1633,8 +1638,10 @@ static func modifier_text(m: Dictionary) -> String:
 
 
 ## Power, constants, Defense Shield of one aspect.
+## A personality card is one Aspect, so `aspect` only says which number to print; the numbers
+## always come from this card's own row.
 static func aspect_text(def: CardDef, aspect: int = 0) -> PackedStringArray:
-	var t: int = aspect if aspect > 0 else def.lowest_aspect()
+	var t: int = def.aspect if def.aspect > 0 else aspect
 	var td: Dictionary = def.aspect_data(t)
 	var lines: PackedStringArray = PackedStringArray()
 	var pw: Dictionary = td.get("power", {})
@@ -2147,9 +2154,9 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"fervor_needed_changed":
 			return "%s now needs %d Fervor to rise an aspect." % [pname, int(d.get("to", 0))]
 		&"aspect_up":
-			return "%s ascends: %s!" % [pname, aspect_name(int(d.get("aspect", 1)), _duelist_def(engine, actor))]
+			return "%s ascends: %s!" % [pname, stack_aspect_name(int(d.get("aspect", 1)), _duelist_stack(engine, actor))]
 		&"aspect_down":
-			return "%s falls back: %s." % [pname, aspect_name(int(d.get("aspect", 1)), _duelist_def(engine, actor))]
+			return "%s falls back: %s." % [pname, stack_aspect_name(int(d.get("aspect", 1)), _duelist_stack(engine, actor))]
 		&"fervor_peak":
 			return "%s is already at their last Aspect and recovers full Energy." % pname
 		&"no_ascension_win":
@@ -2439,10 +2446,10 @@ static func signed_damage(stages: int, life: int) -> String:
 	return " ".join(parts)
 
 
-static func _duelist_def(engine: DuelEngine, i: int) -> CardDef:
+static func _duelist_stack(engine: DuelEngine, i: int) -> PersonalityStack:
 	if i < 0 or i >= engine.state.players.size() or engine.state.players[i].duelist == null:
 		return null
-	return engine.state.players[i].duelist.def
+	return engine.state.players[i].duelist.stack
 
 
 static func _pname(engine: DuelEngine, i: int) -> String:

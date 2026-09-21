@@ -159,7 +159,9 @@ func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> v
 	p.position = pos + Vector3(0, 0.05, 0)
 	add_child(p)
 	p.emitting = true
-	get_tree().create_timer(BURST_LIFE + 0.2).timeout.connect(p.queue_free)
+	var cleanup: Tween = create_tween()
+	cleanup.tween_interval(BURST_LIFE + 0.2)
+	cleanup.tween_callback(p.queue_free)
 
 
 ## A bright streak from one card to another, lying just above the table, that fades.

@@ -45,7 +45,13 @@ var _labels: Array[Label3D] = []
 func _card_scale(zone: StringName) -> float:
 	if ROWS.has(zone):
 		return float(ROWS[zone]["scale"])
-	return 1.7 if zone == &"duelist" else (0.65 if zone == &"grounds" else 0.85)
+	if zone == &"duelist":
+		return 1.9
+	if zone == &"grounds":
+		return 0.65
+	if zone == &"resolving":
+		return 0.78
+	return 0.85
 
 
 func _ready() -> void:
@@ -155,9 +161,12 @@ func _zone_rect(zone: StringName) -> Rect2:
 		center = Vector3(1.5, 0, 0)
 	else:
 		center = marker(str(SINGLES[zone]["marker"]))
-	size += Vector2.ONE * ZONE_PAD * 2.0
+	# Resolving cards have no felt mark or label. Validate their visible footprint rather than
+	# reserving decorative padding that would falsely overlap the enlarged fighter cards.
+	if zone != &"resolving":
+		size += Vector2.ONE * ZONE_PAD * 2.0
 	var r: Rect2 = Rect2(Vector2(center.x, center.z) - size * 0.5, size)
-	if zone != &"grounds":
+	if zone != &"grounds" and zone != &"resolving":
 		r.size.y += LABEL_STRIP
 	return r
 

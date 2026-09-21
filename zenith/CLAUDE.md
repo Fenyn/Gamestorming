@@ -10,6 +10,7 @@ Duel card game client. Godot 4.6, GDScript. Design doc is `../designs/zenith.md`
 - Engine stays pure: `engine/` is RefCounted only, no Nodes, no autoloads, no scene access. Deterministic for a seed plus a command list.
 - Every player decision is a `Prompt` with explicit `Command` options. Clients and AI pick from `options`, never construct commands by hand.
 - Clients render from `SeatView` / `PromptView` only, through `Referee`. Never hand a client the `DuelEngine` or a `CardInstance`; if the view lacks something, extend the view.
+- Adventure run state (`adventure/`) is RefCounted only: no Nodes, no autoload access, no scene access, and tested from `tests/run_tests.gd`. The screens under `scripts/adventure/` are the only part that reads `Session`.
 - The AI (`ai/`) is RefCounted only and fair. It gets engines from `Referee.sim_for` and nowhere else, never names a card or deck in code, and takes playstyle from an `AiProfile`. Run `tests/ai_arena.gd` after changing it.
 - Do not automate a player's choice on an assumption. A search of the Life Deck always asks, shows the whole deck to the searcher, allows taking nothing, and shuffles once at the end unless the card says `no_shuffle`. The same goes for any new effect that looks at hidden cards.
 - Card behavior is data first. Add an effect `op` or trigger to `DuelEngine` before reaching for a script hook.

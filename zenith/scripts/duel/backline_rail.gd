@@ -27,7 +27,7 @@ func _ready() -> void:
 		_frames[zone] = well.get_node("Frame")
 		_captions[zone] = well.get_node("Caption")
 		(_frames[zone] as Panel).gui_input.connect(_on_frame_input.bind(zone))
-		_set_frame(zone, false)
+		_set_frame(zone, false, false)
 
 
 ## Only reached for an empty pile: with no card in the well, the frame itself takes the pointer
@@ -47,12 +47,12 @@ func _on_frame_input(event: InputEvent, zone: StringName) -> void:
 func refresh(view: SeatView, seat: int, viewer: int, prompt: PromptView, accent: Color) -> void:
 	player = seat
 	var p: SeatPlayer = view.player(seat)
-	title.text = "%s  ·  %s" % [p.name.to_upper(), "YOU" if seat == viewer else "OPPONENT"]
+	title.text = "BACKLINE"
 	title.add_theme_color_override("font_color", accent)
 	# The two rails sit one above the other, so each carries its seat's colour as a standing edge:
 	# which backline you are looking at reads without going back to the caption.
 	var edge: StyleBoxFlat = StyleBoxFlat.new()
-	edge.bg_color = Color(0.02, 0.03, 0.05, 0.35)
+	edge.bg_color = Color(0.02, 0.03, 0.05, 0.18)
 	edge.set_corner_radius_all(10)
 	edge.border_width_left = 3
 	edge.border_color = Color(accent, 0.85)
@@ -71,7 +71,8 @@ func _fill_card(zone: StringName, uid: int, prompt: PromptView, reserve: int = -
 	var caption: Label = _captions[zone]
 	caption.text = str(CAPTIONS[zone]) if reserve <= 0 else "%s · %d" % [str(CAPTIONS[zone]), reserve]
 	caption.add_theme_color_override("font_color", ZenithTheme.TEXT if uid >= 0 else ZenithTheme.MUTED)
-	_set_frame(zone, uid >= 0 and prompt != null and not prompt.options_for_card(uid).is_empty())
+	caption.visible = uid >= 0 or reserve > 0
+	_set_frame(zone, uid >= 0 and prompt != null and not prompt.options_for_card(uid).is_empty(), uid >= 0)
 	(_frames[zone] as Panel).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
@@ -79,18 +80,19 @@ func _fill_count(zone: StringName, count: int) -> void:
 	var caption: Label = _captions[zone]
 	caption.text = "%s %d" % [str(CAPTIONS[zone]), count]
 	caption.add_theme_color_override("font_color", ZenithTheme.MUTED if count == 0 else ZenithTheme.TEXT)
-	_set_frame(zone, false)
+	caption.visible = count > 0
+	_set_frame(zone, false, count > 0)
 	# With cards in it the stack answers the pointer itself; empty, the frame stands in for it.
 	(_frames[zone] as Panel).mouse_filter = Control.MOUSE_FILTER_STOP if count == 0 else Control.MOUSE_FILTER_IGNORE
 
 
 ## An empty frame: a border and a dark well, so the card pinned behind it reads through.
-func _set_frame(zone: StringName, usable: bool) -> void:
+func _set_frame(zone: StringName, usable: bool, occupied: bool) -> void:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.0, 0.0, 0.0, 0.25)
+	style.bg_color = Color(0.0, 0.0, 0.0, 0.25) if occupied else Color.TRANSPARENT
 	style.set_corner_radius_all(8)
-	style.set_border_width_all(2 if usable else 1)
-	style.border_color = ZenithTheme.ACCENT if usable else ZenithTheme.BORDER
+	style.set_border_width_all(2 if usable else (1 if occupied else 0))
+	style.border_color = ZenithTheme.ACCENT if usable else (ZenithTheme.BORDER if occupied else Color.TRANSPARENT)
 	(_frames[zone] as Panel).add_theme_stylebox_override("panel", style)
 
 
@@ -103,4 +105,4 @@ func row_anchor(zone: StringName) -> Vector2:
 ## How tall a card may be drawn in a well, in pixels.
 func well_height() -> float:
 	var frame: Control = _frames.get(&"mastery")
-	return frame.size.y if frame != null and frame.size.y > 1.0 else 117.0
+	return frame.size.y if frame != null and frame.size.y > 1.0 else 75.0

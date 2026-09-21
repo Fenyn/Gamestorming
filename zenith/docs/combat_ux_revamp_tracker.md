@@ -61,17 +61,19 @@ Implementation notes:
 
 ## P1: make the fighters the visual anchors
 
+Status: complete; Life grouping revised and verified 2026-09-21.
+
 ### Consolidate each fighter's hero data
 
-- [ ] Treat the duelist card, Life, and core resources as one visual unit.
-- [ ] Make Life and Energy the strongest values.
-- [ ] Keep Might clearly readable as the primary combat comparison.
-- [ ] Present Aspect and Fervor as compact progression attached to the same unit.
-- [ ] Show temporary conditions as short contextual chips only while they matter.
-- [ ] Identify a controlling Ally within the same fighter unit when control changes.
-- [ ] Use the same information order for the player and opponent.
-- [ ] Use existing school color and card art to strengthen identity around each fighter.
-- [ ] Remove text overlaps between duelist names, role labels, cards, Life, and resource trackers.
+- [x] Treat the duelist card, Life, and core resources as one visual unit.
+- [x] Make Life and Energy the strongest values.
+- [x] Keep Might clearly readable as the primary combat comparison.
+- [x] Present Aspect and Fervor as compact progression attached to the same unit.
+- [x] Show temporary conditions as short contextual chips only while they matter.
+- [x] Identify a controlling Ally within the same fighter unit when control changes.
+- [x] Use the same information order for the player and opponent.
+- [x] Use existing school color and card art to strengthen identity around each fighter.
+- [x] Remove text overlaps between duelist names, role labels, cards, Life, and resource trackers.
 
 Acceptance criteria:
 
@@ -81,19 +83,19 @@ Acceptance criteria:
 
 ### Remove duplicated identity and counts
 
-- [ ] Show each player's name and **You/Opponent** role once in the primary composition.
-- [ ] Remove duplicate hand, discard, reserve, and status counts from competing locations.
-- [ ] Keep the player's hand count peripheral because the visible hand already communicates most of it.
-- [ ] Associate opponent hand count with the opponent fighter or face-down hand.
+- [x] Show each player's name and **You/Opponent** role once in the primary composition.
+- [x] Remove duplicate hand, discard, reserve, and status counts from competing locations.
+- [x] Keep the player's hand count peripheral because the visible hand already communicates most of it.
+- [x] Associate opponent hand count with the opponent fighter or face-down hand.
 
 ## P1: establish a central combat lane
 
-- [ ] Move the declared attack card into a stable exchange area between the fighters.
-- [ ] Place a defense, counter, or response card in the same exchange area when used.
-- [ ] Attach the current result to that exchange: expected damage, stopped state, dealt damage, and wounds.
-- [ ] Keep the target relationship readable with a restrained directional treatment.
-- [ ] Clear resolved cards back to their correct zones without leaving stale combat information.
-- [ ] Distinguish preview, commitment, and resolution with consistent visual states.
+- [x] Move the declared attack card into a stable exchange area between the fighters.
+- [x] Place a defense, counter, or response card in the same exchange area when used.
+- [x] Attach the current result to that exchange: expected damage, stopped state, dealt damage, and wounds.
+- [x] Keep the target relationship readable with a restrained directional treatment.
+- [x] Clear resolved cards back to their correct zones without leaving stale combat information.
+- [x] Distinguish preview, commitment, and resolution with consistent visual states.
 
 Suggested low-cost feedback vocabulary:
 
@@ -102,7 +104,7 @@ Suggested low-cost feedback vocabulary:
 - Selected response: stronger border and a short positional lock.
 - Stop: defense-color flash and transverse marker.
 - Hit: brief target-card shake, impact flash, and resource change.
-- Wound: Life value accent and visible Life Deck change.
+- Wound: Life value accent, a card lifted and revealed from the Life Deck, then a visible flight into Discard or Out.
 - Resolution: concise result text remains long enough to read, then clears.
 
 Acceptance criteria:
@@ -115,27 +117,38 @@ Acceptance criteria:
 
 ### Backline and piles
 
-- [ ] Replace permanently visible empty Mastery, Relic, Discard, and Out wells with compact representations.
-- [ ] Show Mastery and Relic as cards when occupied or actionable.
-- [ ] Show Discard and Out as compact pile icons and counts until opened.
-- [ ] Associate Reserve count with the hand or Relic/backline area without reserving another large empty slot.
-- [ ] Preserve one-click pile browsing.
-- [ ] Keep Seal progress visible when it represents a victory condition; group unrelated Seal sets separately.
+- [x] Replace permanently visible empty Mastery, Relic, Discard, and Out wells with compact representations.
+- [x] Show Mastery and Relic as cards when occupied or actionable.
+- [x] Show Discard and Out as compact pile icons and counts until opened.
+- [x] Associate Reserve count with the hand or Relic/backline area without reserving another large empty slot.
+- [x] Preserve one-click pile browsing.
+- [x] Keep Seal progress visible when it represents a victory condition; group unrelated Seal sets separately.
 
 ### History, phase, and settings
 
-- [ ] Reduce recent history to one or two readable recent events.
-- [ ] Keep full History expandable and preserve the user's scroll position while browsing.
-- [ ] Consolidate turn, phase, attacker/defender role, and resolution state into one compact top-center strip.
-- [ ] Avoid repeating the same combat state in the phase strip, toast, focus caption, and prompt.
-- [ ] Move Reduced Motion into settings or a compact pause/settings entry.
-- [ ] Keep network and waiting states visible only when relevant.
+- [x] Reduce recent history to one or two readable recent events.
+- [x] Keep full History expandable and preserve the user's scroll position while browsing.
+- [x] Consolidate turn, phase, attacker/defender role, and resolution state into one compact top-center strip.
+- [x] Avoid repeating the same combat state in the phase strip, toast, focus caption, and prompt.
+- [x] Move Reduced Motion into settings or reduce it to a compact peripheral control.
+- [x] Keep network and waiting states visible only when relevant.
 
 Acceptance criteria:
 
 - Empty zones never carry more visual weight than an active fighter.
 - The resting screen has quiet peripheral space.
 - Expanding history or a pile does not alter the underlying combat state.
+
+Implementation notes:
+
+- Each fighter now has a Life Deck tucked beside its card, with its sole prominent Life number directly on that deck. An adjacent three-column readout keeps Energy, Might, and Fervor in the same order, with Aspect and identity in its header. The repeated pile summary is hidden.
+- Fighter identity, **You/Opponent**, and controlling-Ally state live inside that readout, clearing the table center of floating identity labels.
+- Duelist cards are larger while the stable attack and response slots sit on distinct owner sides of the gap between them. The existing attack link, forecast, stop, hit, wound, and toast feedback all point back to this exchange.
+- Backline rails use one compact row. Empty wells and captions disappear; occupied Mastery, Relic, Discard, Out, and Reserve information remain directly browsable.
+- Recent history is reduced to roughly two lines, the phase strip remains compact, and Reduced Motion is a small flat peripheral control.
+- The Life grouping revision was inspected in rendered defense states at 1280x720 and 1600x900. Earlier P1 damage states were inspected at 1600x900. UI smoke tests verify the Life number's deck anchor, compact three-stat geometry, backline behavior, and central owner-specific resolving slots.
+- Life loss now pulses the number on its deck as that deck's card lifts, briefly reveals, and lands in its public pile. Reduced Motion snaps the card to the destination while retaining the number and text cue. The mid-flight state was inspected at 1280x720 and 1600x900.
+- Public opponent cards used during Combat now get a readable face at the right edge while the physical card holds in the central exchange. A stop names the outcome before its effects continue and holds longer for cards with more text. Spent attack routes stay anchored to the fighter rather than stretching from a discard pile. The opponent-stop state was inspected at 1280x720 and 1600x900.
 
 ## P2: preserve the card-game hand while protecting the center
 

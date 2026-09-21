@@ -110,15 +110,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 ## `--dev-pick=N` highlights the Nth starter. `--dev-screenshot=<png>` saves the screen once laid
 ## out, then quits.
 func _dev_args() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	for arg in args:
-		if arg.begins_with("--dev-pick=") and not _starters.is_empty():
-			_pick(clampi(int(arg.get_slice("=", 1)), 0, _starters.size() - 1))
-	for arg in args:
-		if arg.begins_with("--dev-screenshot="):
-			var path: String = arg.get_slice("=", 1)
-			await get_tree().create_timer(0.4).timeout
-			await RenderingServer.frame_post_draw
-			get_viewport().get_texture().get_image().save_png(path)
-			print("screenshot saved to %s" % path)
-			get_tree().quit()
+	var pick_arg: String = AdventureDev.flag("--dev-pick=")
+	if pick_arg != "" and not _starters.is_empty():
+		_pick(clampi(int(pick_arg), 0, _starters.size() - 1))
+	AdventureDev.screenshot(self)

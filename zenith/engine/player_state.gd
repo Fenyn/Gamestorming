@@ -33,6 +33,8 @@ var pass_next_phase: bool = false      # "your opponent must pass during his nex
 var stopped_this_phase: bool = false   # this player stopped an attack in the phase now running
 var stopped_last_phase: bool = false   # ...and in the one before it, which some cards ask about
 var skip_next_attack_phase: bool = false
+var worst_wound_combat: int = 0        # most life cards this player lost to one attack this Combat
+var entering_combat_done: bool = false # their "use when entering Combat" window is closed
 # Cross-turn flags
 var seal_victory_pending: bool = false
 var no_ascension_win: bool = false          # a card effect forbade the Ascension win for the game
@@ -76,6 +78,8 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.stopped_this_phase = stopped_this_phase
 	p.stopped_last_phase = stopped_last_phase
 	p.skip_next_attack_phase = skip_next_attack_phase
+	p.worst_wound_combat = worst_wound_combat
+	p.entering_combat_done = entering_combat_done
 	p.seal_victory_pending = seal_victory_pending
 	p.no_ascension_win = no_ascension_win
 	p.relic_uses = relic_uses
@@ -157,6 +161,8 @@ func reset_combat_flags() -> void:
 	stopped_this_phase = false
 	stopped_last_phase = false
 	skip_next_attack_phase = false
+	worst_wound_combat = 0
+	entering_combat_done = false
 	controlling = duelist
 	attack_count_combat = 0
 

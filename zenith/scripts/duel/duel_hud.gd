@@ -19,7 +19,7 @@ const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
 const TRAY_CARD_SIZE: Vector2 = Vector2(204, 285)
-const LOG_COLLAPSED_BOTTOM: float = 158.0
+const LOG_COLLAPSED_BOTTOM: float = 132.0
 const LOG_EXPANDED_FRACTION: float = 0.72
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
@@ -142,10 +142,13 @@ var _pile_player: int = -1             # whose pile the browser is showing
 var _pile_zone: StringName = &""       # &"discard" or &"removed", &"" when the browser is closed
 var _pile_uids: Array[int] = []        # the pile as the browser last drew it, top first
 var _pile_fill: int = 0                # guards against two fills racing over the same container
+var _replay_focus: bool = false
+var _focus_home: Vector4 = Vector4.ZERO
 
 
 func _ready() -> void:
 	root.theme = ZenithTheme.get_theme()
+	_focus_home = Vector4(focus.offset_left, focus.offset_top, focus.offset_right, focus.offset_bottom)
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	for rail in [near_backline, far_backline]:
@@ -1373,8 +1376,33 @@ func show_focus(uid: int, caption: String) -> void:
 	_compact_prompt()
 
 
+## During an opponent's replay beat the decision column is empty. Put the same readable
+## card there so its text can be read without covering either fighter on the table.
+func show_replay_card(def: CardDef, caption: String, color: Color) -> bool:
+	hide_focus()
+	if def == null or tray.visible or inspect.visible:
+		return false
+	_replay_focus = true
+	focus.offset_left = -342.0
+	focus.offset_top = 100.0
+	focus.offset_right = -22.0
+	focus.offset_bottom = 580.0
+	focus_caption.text = caption.to_upper()
+	focus.visible = true
+	focus_caption.add_theme_color_override("font_color", color)
+	_compact_prompt()
+	return true
+
+
 func hide_focus() -> void:
 	focus.visible = false
+	if _replay_focus:
+		focus.offset_left = _focus_home.x
+		focus.offset_top = _focus_home.y
+		focus.offset_right = _focus_home.z
+		focus.offset_bottom = _focus_home.w
+		focus_caption.remove_theme_color_override("font_color")
+		_replay_focus = false
 	_compact_prompt()
 
 

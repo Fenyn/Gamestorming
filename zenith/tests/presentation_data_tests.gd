@@ -92,3 +92,12 @@ func _test_defense() -> void:
 		if event.type == &"attack_stopped":
 			stopped = true
 	_check(stopped, "The full-stop preview must agree with actual defense resolution")
+	var referee: Referee = Referee.new()
+	referee.engine = engine
+	var updates: Array[SeatUpdate] = referee.take_updates()
+	var public_stop: bool = false
+	for line in updates[0].lines:
+		if str(line.get("type", "")) == "defense_played":
+			var data: Dictionary = line.get("data", {})
+			public_stop = int(data.get("card", -1)) == block.card and str(data.get("id", "")) == engine.card(block.card).def.id
+	_check(public_stop, "The opponent receives the played stop card's public identity for replay even after it leaves play")

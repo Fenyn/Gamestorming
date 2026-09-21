@@ -806,3 +806,71 @@ was asked for.
 - Whether start-of-run upgrades stack freely or are spent from a per-run budget. See 8.1.
 - Whether a Style swap is ever allowed mid-run. Every school check in `deck_validator.gd` assumes
   one Style per deck, so probably not.
+
+---
+
+## 12. Revisions after the first played slice, 2026-09-20
+
+The first slice (section 4.1 as built) played well but one card per win is far too little. These
+decisions supersede 4.1, 8.2 and 8.3 where they conflict. Those sections get folded in once the
+bundle work below is settled.
+
+### 12.1 Rewards are theme bundles
+
+- The pick-3 window offers three **theme bundles**, not three cards. A bundle is 2 or 3 cards that
+  share a theme, shown with their cards visible. Pick one bundle.
+- Bundles come from an analysis of the full roster by school and card type:
+  `zenith/docs/archetypes.md` (mechanic themes, school identities, archetype plans, proposed
+  bundles). That document is wanted for its own sake too.
+- Legality is unchanged: every card in an offered bundle has to pass `DeckValidator` in the run
+  deck. Bundle names are working names until tone approval.
+- Bundles may hold any card legal in the run deck: school cards, Freestyle cards, Allies and
+  Grounds. Masteries and Relics stay out. The validator's rules still bind: Allies at one copy,
+  the Ally Aspect rule, alignment gates.
+- **Freestyle is a school like any other, only shared.** Any legal Freestyle card can be bundled.
+  The 17-card core list in `data/adventure/freestyle_core.json` goes away with the bundle build.
+- **An Ally always arrives with two of its own named cards.** The bundle is the personality plus
+  two cards that name it. An Ally's named cards are offered only in that bundle or once the Ally
+  is in the run deck. An Ally with fewer than two named cards cannot be bundled yet.
+- **No Seals through the bundle choice.** Seals are held for a different reward route.
+- Working default: when any card in a bundle cannot legally be added, the whole bundle is left
+  out of the offer.
+- Open: whether lockouts and limit-1 cards can sit in bundles, whether bundle size grows with the
+  stage, whether Grounds get their own reward slot.
+
+### 12.2 Pool expansion
+
+The school pools are too thin for bundles (Storm 13 cards, Root 9). Decided 2026-09-20:
+
+- Fill gaps first. `zenith/docs/archetypes.md` names what each school lacks by type and theme.
+  Every school comes up to roughly 35 to 40 cards, thin schools first. About 80 to 100 new cards.
+- Every new card parallels one printed card from the reference game's era, later sets included.
+  The rule in `zenith/CLAUDE.md` is unchanged.
+- Candidates go into `zenith/tools/source_candidates.tsv` with a status (candidate, approved,
+  built), beside `source_cards.tsv` and `source_audit.tsv`. They cannot live in
+  `docs/card_roster.csv`, because `tools/gen_roster.py` rebuilds that file from shipped data and
+  would drop them. A built card gets its roster row the usual way.
+- Names are drafted per school and approved before the cards are written.
+- Order: gaps, then cards, then final bundles and the bundle reward screen.
+- New cards join the whole game's pool, not only adventure rewards.
+
+### 12.3 Motes are the meta currency
+
+Motes are the one currency outside a run. Extraction slots are gone.
+
+- **Keeping cards costs Motes.** Nothing banks for free. At the end of a run you see the cards
+  the run added to the deck and pay Motes for the ones you want in the collection.
+- **Winning gives a discount.** Beating the ladder opens a one-time discounted offer on any card
+  in the run deck, available only before the run resets.
+- **Card vendor.** Sells cards outright into the collection for Motes. Rotating stock, so there
+  is a reason to check back and a reason to save.
+- **Income:** a payout per stage cleared, so a lost run still pays for how far it got; a run
+  completion bonus; dissolving collection duplicates.
+- Prices need the rarity tiers from section 5, which are still not built.
+- **A per-run currency is an option, not a decision.** Nothing is assigned to it yet. Candidate
+  uses if it comes in: rerolling a bundle offer, buying a second bundle, paying for cuts, a shop
+  stage on the ladder. Motes stay meta only.
+
+Removed by this: free banking of picked cards (8.2), extraction slots and their meta track (8.1,
+8.3), automatic dissolving of leftover run cards, and the "forge only what you have unlocked"
+rule, which the vendor replaces.

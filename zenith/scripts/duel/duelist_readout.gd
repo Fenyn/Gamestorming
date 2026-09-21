@@ -130,30 +130,25 @@ func _set_flash(value: float) -> void:
 	request_redraw()
 
 
-## All combat resources share one fixture outside both the duelist and Life Deck.
+## All core fighter data shares one fixture outside the duelist card.
 func update_layout() -> Dictionary:
 	stat_hit_rects.clear()
 	var far_side: bool = _player_index != _viewer
 	var middle_x: float = duelist_bounds.get_center().x
 	var tracker_y: float = card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0
 	var tracker: Rect2 = Rect2(middle_x - 270.0, tracker_y, 540.0, 160.0)
-	var title_y: float = tracker_y - 78.0 if far_side else minf(duelist_bounds.position.y, card_bounds.position.y) - 88.0
-	var piles_y: float = title_y - 56.0 if far_side else tracker.end.y + 46.0
-	var first_row: float = piles_y - 84.0 if far_side else piles_y + 40.0
+	var first_row: float = tracker_y - 48.0 if far_side else tracker.end.y + 48.0
 	var text_width: float = 690.0
 	stat_hit_rects.append(tracker)
 	if far_side:
-		stat_hit_rects.append(Rect2(tracker.position + Vector2(-225, 0), Vector2(205, 160)))
-	stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, title_y - 44, text_width, 84))
-	stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, piles_y - 29, text_width, 34))
+		stat_hit_rects.append(Rect2(tracker.position + Vector2(-205, 0), Vector2(185, 160)))
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
 		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row - 28, text_width, 34))
 	var lines: PackedStringArray = _wrap_flags(text_width, 27)
 	for i in range(mini(lines.size(), flag_rows)):
 		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0 - 28, text_width, 34))
-	return {"tracker": tracker, "title": title_y, "control": title_y + 42.0,
-		"piles": piles_y, "flags": first_row, "middle": middle_x}
+	return {"tracker": tracker, "flags": first_row, "middle": middle_x}
 
 
 func _draw() -> void:
@@ -167,9 +162,7 @@ func _draw() -> void:
 	var first_row: float = float(layout["flags"])
 	var text_width: float = 690.0
 	if _player_index != _viewer:
-		_draw_opponent_hand(origin + Vector2(-225, 0))
-	_text(_title, Vector2(middle_x - text_width * 0.5, float(layout["title"])), text_width, 42, TEXT, true)
-	_text(_control, Vector2(middle_x - text_width * 0.5, float(layout["control"])), text_width, 32, _accent, true)
+		_draw_opponent_hand(origin + Vector2(-205, 0))
 	var corners: PackedVector2Array = PackedVector2Array([
 		origin + Vector2(18, 0), origin + Vector2(522, 0),
 		origin + Vector2(540, 18), origin + Vector2(540, 142),
@@ -178,15 +171,17 @@ func _draw() -> void:
 	draw_colored_polygon(corners, INK)
 	corners.append(corners[0])
 	draw_polyline(corners, _accent.lightened(_flash * 0.25), 2.0 + _flash * 2.0, true)
-	_text("ASPECT %d" % _aspect, origin + Vector2(180, 27), 180, 25, GOLD, true)
+	_text(_title, origin + Vector2(10, 27), 200, 25, TEXT, true)
+	_text("ASPECT %d" % _aspect, origin + Vector2(210, 27), 120, 25, GOLD, true)
+	_text(_control, origin + Vector2(340, 27), 190, 22, _accent, true)
 	if _active:
-		_diamond(origin + Vector2(174, 18), Vector2(4, 4), GOLD, GOLD)
+		_diamond(origin + Vector2(204, 18), Vector2(4, 4), GOLD, GOLD)
 	for x in [180.0, 360.0]:
 		draw_line(origin + Vector2(x, 44), origin + Vector2(x, 142), Color(MUTED, 0.22), 1, true)
 	_text("ENERGY", origin + Vector2(10, 61), 160, 25, ENERGY, true)
 	_text("MIGHT", origin + Vector2(190, 61), 160, 25, TEXT, true)
 	_text("FERVOR", origin + Vector2(370, 61), 160, 25, FERVOR, true)
-	_text("%d / 10" % _energy, origin + Vector2(10, 109), 160, 40, TEXT, true)
+	_text("%d / 10" % _energy, origin + Vector2(10, 109), 160, 42, TEXT, true)
 	_text(CardText.short_number(_might), origin + Vector2(190, 109), 160, 44, TEXT, true)
 	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 109), 160, 40, TEXT, true)
 	for i in range(10):
@@ -201,7 +196,6 @@ func _draw() -> void:
 	var rune_start: float = origin.x + 450.0 - step * (_threshold - 1) * 0.5
 	for i in range(_threshold):
 		_diamond(Vector2(rune_start + step * i, origin.y + 133), Vector2(minf(7, step * 0.3), 8), FERVOR if i < _fervor else INK, FERVOR if i < _fervor else Color(MUTED, 0.4))
-	_text(_piles, Vector2(middle_x - text_width * 0.5, float(layout["piles"])), text_width, 27, MUTED, true)
 	var lines: PackedStringArray = _wrap_flags(text_width, 27)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():

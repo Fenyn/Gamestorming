@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/run_deck_list.gd" id="1_list"]
+
+[node name="RunDeckList" type="HBoxContainer"]
+anchors_preset = 0
+offset_right = 1160.0
+offset_bottom = 480.0
+theme_override_constants/separation = 24
+script = ExtResource("1_list")
+
+[node name="List" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Caption" type="Label" parent="List"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+
+[node name="Scroll" type="ScrollContainer" parent="List"]
+custom_minimum_size = Vector2(0, 440)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Columns" type="HBoxContainer" parent="List/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="A" type="VBoxContainer" parent="List/Scroll/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="B" type="VBoxContainer" parent="List/Scroll/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Preview" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Caption" type="Label" parent="Preview"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+horizontal_alignment = 1
+text = "Hover or select a card"
+
+[node name="Face" type="TextureRect" parent="Preview"]
+custom_minimum_size = Vector2(340, 440)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="Preview"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+horizontal_alignment = 1
+text = ""

@@ -15,6 +15,8 @@ const FLIP_TIME: float = 0.11
 @onready var school_chip: Label = $Column/Chips/School
 @onready var alignment_chip: Label = $Column/Chips/Alignment
 @onready var archetype_chip: Label = $Column/Chips/Archetype
+@onready var note_label: Label = $Column/Note
+@onready var story_label: Label = $Column/Story
 @onready var cards: HBoxContainer = $Column/Cards
 @onready var portrait_box: VBoxContainer = $Column/Cards/PortraitBox
 @onready var portrait: TextureRect = $Column/Cards/PortraitBox/Portrait
@@ -30,6 +32,7 @@ var _aspect: int = 1                    # the duelist aspect the card shows
 var _hovered: bool = false
 var _hover_tween: Tween = null
 var _flip_tween: Tween = null
+var _extra_chips: Array[Label] = []   # chips a caller added beside the sheet's own
 
 
 func setup(index: int, faces: CardFaceCache) -> void:
@@ -77,6 +80,35 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 		mastery_caption.text = mastery_def.title
 		_show_mastery(mastery_def)
 	show_aspect(duelist.lowest_aspect() if duelist != null else 1)
+
+
+## A chip in the sheet's own chip row, for a fact only one screen shows (the adventure ladder
+## adds the opponent's tier there).
+func add_chip(text: String, color: Color) -> void:
+	var label: Label = Label.new()
+	label.text = text
+	ZenithTheme.chip(label, color)
+	chips.add_child(label)
+	_extra_chips.append(label)
+
+
+func clear_extra_chips() -> void:
+	for label in _extra_chips:
+		chips.remove_child(label)
+		label.queue_free()
+	_extra_chips.clear()
+
+
+## A muted caption under the chips. Empty text hides it, so it takes no space.
+func set_note(text: String) -> void:
+	note_label.text = text
+	note_label.visible = text != ""
+
+
+## A wrapped line under the caption, for the ladder's stage story. Empty text hides it.
+func set_story(text: String) -> void:
+	story_label.text = text
+	story_label.visible = text != ""
 
 
 ## The card lifts a little under the pointer, the way a hand card does, so it reads as

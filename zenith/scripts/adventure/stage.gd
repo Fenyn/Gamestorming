@@ -3,7 +3,6 @@ extends Control
 ## Opened by Session.go_to_adventure() whenever a run is live.
 
 @onready var faces: CardFaceCache = $CardFaceCache
-@onready var title_label: Label = $Margin/Column/TitleRow/Title
 @onready var deck_name_label: Label = $Margin/Column/HeaderLine/DeckName
 @onready var duelist_label: Label = $Margin/Column/HeaderLine/Duelist
 @onready var stage_status_label: Label = $Margin/Column/HeaderLine/StageStatus
@@ -25,23 +24,15 @@ extends Control
 
 var _abandon_armed: bool = false
 
-## Extra labels grafted onto the reused DeckSheet, alongside its own School/Alignment/Archetype
-## chips and identity column, so the sheet needs no edits of its own.
-var _next_tier_chip: Label = null
-var _next_caption: Label = null
-var _next_story: Label = null
-
 
 func _ready() -> void:
 	theme = ZenithTheme.get_theme()
-	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if Session.run == null:
-		_dev_bootstrap(args)
+		_dev_bootstrap()
 		if Session.run == null:
 			Session.go_to_adventure()
 			return
 	next_sheet.setup(1, faces)
-	_graft_next_opponent_extras()
 	view_deck_button.pressed.connect(_on_view_deck)
 	duel_button.pressed.connect(_on_duel)
 	abandon_button.pressed.connect(_on_abandon)
@@ -49,56 +40,24 @@ func _ready() -> void:
 	new_run_button.pressed.connect(_on_new_run)
 	_refresh()
 	_enter()
-	if args.has("--dev-deck"):
+	if AdventureDev.args().has("--dev-deck"):
 		_on_view_deck()
-	_dev_screenshot()
+	AdventureDev.screenshot(self)
 
 
 ## Only when the stage scene is opened directly with no run in memory: `--dev-adventure=<id>`
 ## builds an unsaved run, `--dev-stage=N` sets its stage, `--dev-status=lost|won` forces that state.
-func _dev_bootstrap(args: PackedStringArray) -> void:
-	var starter_id: String = ""
-	for arg in args:
-		if arg.begins_with("--dev-adventure="):
-			starter_id = arg.get_slice("=", 1)
-	if starter_id == "":
+func _dev_bootstrap() -> void:
+	var starter_id: String = AdventureDev.flag("--dev-adventure=")
+	if starter_id == "" or not AdventureDev.begin_run(starter_id):
 		return
-	Session.run = AdventureRun.begin(starter_id, 12345)
-	Session.ladder = AdventureLadder.load_for(starter_id)
-	if Session.run == null or Session.ladder == null:
-		Session.run = null
-		Session.ladder = null
-		return
-	for arg in args:
-		if arg.begins_with("--dev-stage="):
-			# ladder.size() itself is valid: it is where a real win leaves run.stage.
-			Session.run.stage = clampi(int(arg.get_slice("=", 1)), 0, Session.ladder.size())
-		elif arg.begins_with("--dev-status="):
-			Session.run.status = arg.get_slice("=", 1)
-
-
-## Adds a tier chip into the sheet's own Chips row and a life/Aspects caption plus the hidden
-## story slot right after it, so the extra facts sit with the identity block DeckSheet already
-## draws instead of floating outside the card.
-func _graft_next_opponent_extras() -> void:
-	var chips: HFlowContainer = next_sheet.get_node("Column/Chips") as HFlowContainer
-	_next_tier_chip = Label.new()
-	chips.add_child(_next_tier_chip)
-
-	var column: VBoxContainer = next_sheet.get_node("Column") as VBoxContainer
-	var after: int = chips.get_index() + 1
-	_next_caption = Label.new()
-	_next_caption.theme_type_variation = &"MutedLabel"
-	_next_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(_next_caption)
-	column.move_child(_next_caption, after)
-
-	_next_story = Label.new()
-	_next_story.visible = false
-	_next_story.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_next_story.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(_next_story)
-	column.move_child(_next_story, after + 1)
+	var stage_arg: String = AdventureDev.flag("--dev-stage=")
+	if stage_arg != "":
+		# ladder.size() itself is valid: it is where a real win leaves run.stage.
+		Session.run.stage = clampi(int(stage_arg), 0, Session.ladder.size())
+	var status_arg: String = AdventureDev.flag("--dev-status=")
+	if status_arg != "":
+		Session.run.status = status_arg
 
 
 func _refresh() -> void:
@@ -107,7 +66,6 @@ func _refresh() -> void:
 	var deck: DeckList = run.deck()
 	var duelist: CardDef = Session.library.defs.get(deck.duelist_id)
 
-	title_label.text = "The ladder"
 	deck_name_label.text = deck.name
 	duelist_label.text = duelist.title if duelist != null else deck.duelist_id
 	deck_size_label.text = "%d life cards" % deck.cards.size()
@@ -153,6 +111,7 @@ func _ladder_row(n: int, row_data: Dictionary, run: AdventureRun) -> PanelContai
 	var opp: DeckList = DeckList.resolve(opponent_id)
 	var opp_duelist: CardDef = Session.library.defs.get(opp.duelist_id) if opp != null else null
 	var cleared: bool = n < run.stage
+	var tier: String = AdventureLadder.tier_of(opponent_id)
 	var current: bool = n == run.stage and run.status != "won"
 	var tint: Color = Palette.school_ui(opp.style) if opp != null else ZenithTheme.MUTED
 
@@ -184,7 +143,7 @@ func _ladder_row(n: int, row_data: Dictionary, run: AdventureRun) -> PanelContai
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(col)
 	var title_l: Label = Label.new()
-	title_l.text = opp_duelist.title if opp_duelist != null else opponent_id
+	title_l.text = AdventureLadder.opponent_name(opponent_id, Session.library)
 	col.add_child(title_l)
 	var deck_l: Label = Label.new()
 	deck_l.text = opp.name if opp != null else ""
@@ -193,8 +152,8 @@ func _ladder_row(n: int, row_data: Dictionary, run: AdventureRun) -> PanelContai
 	col.add_child(deck_l)
 
 	var tier_l: Label = Label.new()
-	tier_l.text = _tier_of(opponent_id)
-	ZenithTheme.chip(tier_l, ZenithTheme.WARN if tier_l.text == "BOSS" else ZenithTheme.MUTED)
+	tier_l.text = tier
+	ZenithTheme.chip(tier_l, _tier_color(tier))
 	h.add_child(tier_l)
 
 	if str(row_data.get("grant", "")) == "aspect":
@@ -218,13 +177,11 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 	if opp == null:
 		return
 	next_sheet.show_deck(opp, "NEXT OPPONENT")
-	var tier: String = _tier_of(opponent_id)
-	_next_tier_chip.text = tier
-	ZenithTheme.chip(_next_tier_chip, ZenithTheme.WARN if tier == "BOSS" else ZenithTheme.MUTED)
-	_next_caption.text = "%d life cards   ·   %d aspects" % [opp.cards.size(), opp.aspects]
-	var story: String = str(row_data.get("story", ""))
-	_next_story.visible = story != ""
-	_next_story.text = story
+	var tier: String = AdventureLadder.tier_of(opponent_id)
+	next_sheet.clear_extra_chips()
+	next_sheet.add_chip(tier, _tier_color(tier))
+	next_sheet.set_note("%d life cards   ·   %d aspects" % [opp.cards.size(), opp.aspects])
+	next_sheet.set_story(str(row_data.get("story", "")))
 
 
 func _show_run_over(run: AdventureRun, ladder: AdventureLadder) -> void:
@@ -264,16 +221,15 @@ func _on_view_deck() -> void:
 	deck_panel.open(Session.run.deck(), DeckInfo.might_max_of(Session.decks), faces)
 
 
-## The tier word an opponent deck id ends in: t1..t5 or boss.
-static func _tier_of(opponent_id: String) -> String:
-	var parts: PackedStringArray = opponent_id.split("_")
-	return parts[parts.size() - 1].to_upper() if parts.size() > 0 else ""
+## A boss tier is called out in orange; every other tier is a quiet chip.
+static func _tier_color(tier: String) -> Color:
+	return ZenithTheme.WARN if tier == "BOSS" else ZenithTheme.MUTED
 
 
 ## The ladder and next-opponent panels settle in, matching the versus screen's entrance; skipped
 ## under --reduced-motion.
 func _enter() -> void:
-	if OS.get_cmdline_user_args().has("--reduced-motion"):
+	if AdventureDev.reduced_motion():
 		return
 	var panels: Array[Control] = [ladder_column, right_column]
 	for panel in panels:
@@ -288,15 +244,3 @@ func _enter() -> void:
 		var t: Tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		t.tween_property(panel, "position:y", panel.position.y - dy, 0.3).set_delay(i * 0.05)
 		t.tween_property(panel, "modulate:a", 1.0, 0.3).set_delay(i * 0.05)
-
-
-func _dev_screenshot() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	for arg in args:
-		if arg.begins_with("--dev-screenshot="):
-			var path: String = arg.get_slice("=", 1)
-			await get_tree().create_timer(0.5).timeout
-			await RenderingServer.frame_post_draw
-			get_viewport().get_texture().get_image().save_png(path)
-			print("screenshot saved to %s" % path)
-			get_tree().quit()

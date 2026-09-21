@@ -121,7 +121,11 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"pick_in_play":
 			var mine: bool = c != null and c.controller == seat
 			return (-1.0 if mine else 1.0) * (1.0 + hold_value(c, profile))
+		&"name_card":
+			return _name_card_score(profile, foe, o)
 		&"pick_option":
+			if str(prompt.context.get("purpose", "")) == "look_place":
+				return _look_place_score(engine, me, profile, prompt, o)
 			return _pick_option_score(engine, me, profile, o, c)
 	# Every "do nothing" option, and anything this file has not met yet.
 	return 0.0
@@ -603,6 +607,39 @@ static func combo_progress(engine: DuelEngine, me: PlayerState, profile: AiProfi
 	return best
 
 
+## Naming a card: pick whatever costs the other side most, which is one copy's worth times how many
+## copies the deck this seat is holding says are in there. That deck is the dealt sample, so this is
+## a guess the seat is entitled to make, not sight of the real list.
+static func _name_card_score(profile: AiProfile, foe: PlayerState, o: Command) -> float:
+	if o.value == null:
+		return 0.0
+	var title: String = str(o.value)
+	var copies: int = 0
+	var one: float = 0.0
+	for c in foe.life_deck:
+		if c.def.title == title:
+			copies += 1
+			one = maxf(one, hold_value(c, profile))
+	return one * float(copies)
+
+
+## "All on top or all on the bottom": keep what is worth drawing, bury what is not. The bar is the
+## average card left in the deck, so a look that turned up nothing better than usual goes under.
+static func _look_place_score(engine: DuelEngine, me: PlayerState, profile: AiProfile, prompt: Prompt, o: Command) -> float:
+	var looked: Array = prompt.context.get("library", [])
+	if looked.is_empty() or me.life_deck.is_empty():
+		return 0.0
+	var seen: float = 0.0
+	for uid in looked:
+		seen += hold_value(engine.card(int(uid)), profile)
+	seen /= float(looked.size())
+	var bar: float = 0.0
+	for c in me.life_deck:
+		bar += hold_value(c, profile)
+	bar /= float(me.life_deck.size())
+	return (seen - bar) if str(o.value) == "top" else (bar - seen)
+
+
 static func _pick_option_score(engine: DuelEngine, me: PlayerState, profile: AiProfile, o: Command, c: CardInstance) -> float:
 	if c != null:
 		# A search, a look at the top cards, a Seal to capture: take the best card on offer, which
@@ -721,6 +758,10 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 			return -side * amount * profile.w("effect", "discard_in_play")
 		"discard_hand", "remove_hand":
 			return -side * amount * profile.w("effect", "discard_hand")
+		"reveal_hand":
+			# Showing a hand hands information across the table and takes nothing, so it is a small
+			# price the rest of the card has to pay for.
+			return -side * profile.w("effect", "discard_hand") * 0.25
 		"discard_life":
 			return -side * amount * profile.w("effect", "discard_life")
 		"recover", "shuffle_discard":

@@ -60,6 +60,20 @@ text = "Vigil"
 layout_mode = 2
 text = "Archetype"
 
+[node name="Note" type="Label" parent="Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+horizontal_alignment = 1
+
+[node name="Story" type="Label" parent="Column"]
+visible = false
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="SpaceAbove" type="Control" parent="Column"]
 layout_mode = 2
 size_flags_vertical = 3

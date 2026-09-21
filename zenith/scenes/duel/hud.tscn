@@ -88,8 +88,8 @@ anchor_left = 0.0
 anchor_right = 0.0
 offset_left = 18.0
 offset_top = 16.0
-offset_right = 378.0
-offset_bottom = 158.0
+offset_right = 338.0
+offset_bottom = 132.0
 grow_horizontal = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/Log"]
@@ -253,9 +253,9 @@ offset_bottom = 168.0
 layout_mode = 1
 anchors_preset = 0
 offset_left = 18.0
-offset_top = 512.0
+offset_top = 306.0
 offset_right = 268.0
-offset_bottom = 512.0
+offset_bottom = 306.0
 
 [node name="FarFlags" type="Label" parent="Root"]
 layout_mode = 1
@@ -286,13 +286,14 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -340.0
-offset_top = 22.0
+offset_left = -230.0
+offset_top = 18.0
 offset_right = -18.0
-offset_bottom = 78.0
+offset_bottom = 64.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 17
 text = "Reduced motion"
+flat = true
 tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
 
 
@@ -495,9 +496,9 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -342.0
+offset_left = -650.0
 offset_top = 140.0
-offset_right = -22.0
+offset_right = -330.0
 offset_bottom = 620.0
 grow_horizontal = 2
 mouse_filter = 2

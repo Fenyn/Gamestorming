@@ -138,6 +138,12 @@ static func build() -> Theme:
 	return t
 
 
+## The panel style for a modal over a live screen. The theme's own PanelContainer fill carries
+## BG's alpha, which lets the screen behind show through; this one is opaque.
+static func modal_panel() -> StyleBoxFlat:
+	return box(Color(BG, 1.0), BORDER, 12, 1, 14, 12)
+
+
 ## Small rounded square used for Energy and Fervor pips.
 static func pip(filled: bool, color: Color, round: bool = false) -> StyleBoxFlat:
 	var b: StyleBoxFlat = StyleBoxFlat.new()

@@ -5,10 +5,9 @@ extends Control
 
 const ADVANCE_DELAY: float = 0.6
 const ZOOM_SIZE: Vector2 = Vector2(560, 784)
-## Offer faces render at roughly the versus screen's duelist-card size, not the small tray size:
-## only three cards are ever on screen, so they can be read like the versus panels are.
+## Offer faces render large enough to read the printed rules text at a glance, since only three
+## cards are ever on screen.
 const CARD_FACE_SIZE: Vector2 = Vector2(310, 430)
-const CUT_PREVIEW_HINT: String = "Hover or select a card"
 
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var stage_label: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/Stage
@@ -24,10 +23,7 @@ const CUT_PREVIEW_HINT: String = "Hover or select a card"
 @onready var take_button: Button = $Margin/Column/Footer/Take
 @onready var cut_panel: ColorRect = $CutPanel
 @onready var cut_dialog: PanelContainer = $CutPanel/Center/Panel
-@onready var cut_list: VBoxContainer = $CutPanel/Center/Panel/Column/Body/Scroll/List
-@onready var cut_preview_face: TextureRect = $CutPanel/Center/Panel/Column/Body/PreviewColumn/PreviewFace
-@onready var cut_preview_caption: Label = $CutPanel/Center/Panel/Column/Body/PreviewColumn/PreviewCaption
-@onready var cut_preview_count: Label = $CutPanel/Center/Panel/Column/Body/PreviewColumn/PreviewCount
+@onready var cut_deck_list: RunDeckList = $CutPanel/Center/Panel/Column/DeckList
 @onready var cut_status_label: Label = $CutPanel/Center/Panel/Column/CutStatus
 @onready var cut_cancel: Button = $CutPanel/Center/Panel/Column/Buttons/Cancel
 @onready var cut_confirm: Button = $CutPanel/Center/Panel/Column/Buttons/Confirm
@@ -37,7 +33,6 @@ const CUT_PREVIEW_HINT: String = "Hover or select a card"
 var _offer_defs: Array[CardDef] = []
 var _card_panels: Array[PanelContainer] = []   # one per offer card, in offer order
 var _card_school_colors: Array[Color] = []     # matching edge colour per offer card
-var _cut_rows: Dictionary = {}                 # card id -> Button
 var _selected_index: int = -1
 var _cut_selected_id: String = ""
 var _zoom: TextureRect = null
@@ -48,7 +43,7 @@ var _busy: bool = false
 
 func _ready() -> void:
 	theme = ZenithTheme.get_theme()
-	_reduced_motion = OS.get_cmdline_user_args().has("--reduced-motion")
+	_reduced_motion = AdventureDev.reduced_motion()
 	_dev_setup()
 	if Session.run == null:
 		return
@@ -57,10 +52,9 @@ func _ready() -> void:
 	take_button.pressed.connect(_on_take)
 	cut_cancel.pressed.connect(_on_cut_cancel)
 	cut_confirm.pressed.connect(_on_cut_confirm)
+	cut_deck_list.card_selected.connect(_on_cut_row_selected)
 	inspect.gui_input.connect(_on_inspect_input)
-	# The theme's default panel background carries alpha for the translucent duel-HUD panels; the
-	# cut dialog sits over the offer cards and needs a fully opaque backing instead.
-	cut_dialog.add_theme_stylebox_override("panel", ZenithTheme.box(Color(ZenithTheme.BG, 1.0), ZenithTheme.BORDER, 12, 1, 14, 12))
+	cut_dialog.add_theme_stylebox_override("panel", ZenithTheme.modal_panel())
 	status_label.text = ""
 	cut_status_label.visible = false
 	cut_panel.visible = false
@@ -70,16 +64,14 @@ func _ready() -> void:
 	_refresh_footer()
 	_enter()
 	_dev_after_layout()
-	_dev_screenshot()
+	AdventureDev.screenshot(self)
 
 
 func _fill_header() -> void:
 	var run: AdventureRun = Session.run
 	var row: Dictionary = Session.ladder.stage(run.stage)
 	stage_label.text = "Stage %d cleared" % (run.stage + 1)
-	var opponent: DeckList = DeckList.resolve(str(row.get("opponent", "")))
-	var opp_duelist: CardDef = Session.library.defs.get(opponent.duelist_id) if opponent != null else null
-	opponent_label.text = "Beat %s" % (opp_duelist.title if opp_duelist != null else str(row.get("opponent", "")))
+	opponent_label.text = "Beat %s" % AdventureLadder.opponent_name(str(row.get("opponent", "")), Session.library)
 	deck_tile.set_stat("Deck", "%d cards" % run.cards.size(), "", ZenithTheme.MUTED)
 	aspects_tile.set_stat("Aspects", str(run.aspects), "", ZenithTheme.MIGHT)
 	var granted: bool = str(row.get("grant", "")) == "aspect"
@@ -321,7 +313,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_cut_open() -> void:
 	if not AdventureRewards.can_cut(Session.run):
 		return
-	await _build_cut_list()
+	_cut_selected_id = ""
+	cut_confirm.disabled = true
+	cut_deck_list.show_cards(Session.run.cards, Session.library, faces)
 	cut_status_label.visible = false
 	cut_panel.visible = true
 
@@ -331,105 +325,10 @@ func _on_cut_cancel() -> void:
 	_cut_selected_id = ""
 
 
-## One row per distinct card id in the run deck, grouped by type then title, with its count;
-## picking one selects it for Cut. Faces are pre-rendered so hovering a row updates the preview
-## instantly.
-func _build_cut_list() -> void:
-	for child in cut_list.get_children():
-		cut_list.remove_child(child)
-		child.queue_free()
-	_cut_rows.clear()
-	_cut_selected_id = ""
-	cut_confirm.disabled = true
-	_clear_cut_preview()
-	var counts: Dictionary = {}
-	var order: Array[String] = []
-	for id in Session.run.cards:
-		if not counts.has(id):
-			order.append(id)
-		counts[id] = int(counts.get(id, 0)) + 1
-	order.sort_custom(func(a: String, b: String) -> bool:
-		var da: CardDef = Session.library.defs.get(a)
-		var db: CardDef = Session.library.defs.get(b)
-		if da == null or db == null:
-			return a < b
-		if da.type != db.type:
-			return da.type < db.type
-		return da.title < db.title)
-	for id in order:
-		var def: CardDef = Session.library.defs.get(id)
-		if def == null:
-			continue
-		await faces.render_face(def)
-		cut_list.add_child(_build_cut_row(id, def, int(counts[id])))
-
-
-func _build_cut_row(id: String, def: CardDef, count: int) -> Button:
-	var row: Button = Button.new()
-	row.theme_type_variation = "TileButton"
-	row.toggle_mode = true
-	row.custom_minimum_size = Vector2(0, 52)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var h: HBoxContainer = HBoxContainer.new()
-	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	h.offset_left = 12
-	h.offset_right = -12
-	h.offset_top = 4
-	h.offset_bottom = -4
-	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	h.add_theme_constant_override("separation", 10)
-	var icon: TypeIcon = TypeIcon.new()
-	icon.custom_minimum_size = Vector2(18, 18)
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	icon.type = def.type
-	icon.color = Palette.type_ui(def.type)
-	h.add_child(icon)
-	var name_label: Label = Label.new()
-	name_label.text = def.title
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	h.add_child(name_label)
-	var count_label: Label = Label.new()
-	count_label.text = "x%d" % count
-	count_label.theme_type_variation = "MutedLabel"
-	count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	h.add_child(count_label)
-	row.add_child(h)
-	row.pressed.connect(func() -> void: _select_cut_row(id, def))
-	row.mouse_entered.connect(func() -> void: _update_cut_preview(id, def))
-	row.mouse_exited.connect(func() -> void:
-		if _cut_selected_id != "":
-			_update_cut_preview(_cut_selected_id, Session.library.defs.get(_cut_selected_id))
-		else:
-			_clear_cut_preview())
-	_cut_rows[id] = row
-	return row
-
-
-func _select_cut_row(id: String, def: CardDef) -> void:
+func _on_cut_row_selected(id: String) -> void:
 	_cut_selected_id = id
-	for row_id in _cut_rows.keys():
-		(_cut_rows[row_id] as Button).set_pressed_no_signal(row_id == id)
 	cut_confirm.disabled = false
 	cut_status_label.visible = false
-	_update_cut_preview(id, def)
-
-
-func _update_cut_preview(id: String, def: CardDef) -> void:
-	if def == null:
-		_clear_cut_preview()
-		return
-	cut_preview_face.texture = faces.face(def)
-	cut_preview_caption.text = def.title
-	cut_preview_count.text = "In deck: %d" % Session.run.cards.count(id)
-
-
-func _clear_cut_preview() -> void:
-	cut_preview_face.texture = null
-	cut_preview_caption.text = CUT_PREVIEW_HINT
-	cut_preview_count.text = ""
 
 
 func _on_cut_confirm() -> void:
@@ -501,50 +400,28 @@ func _enter() -> void:
 func _dev_setup() -> void:
 	if Session.run != null:
 		return
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	var starter_id: String = ""
-	for arg in args:
-		if arg.begins_with("--dev-reward="):
-			starter_id = arg.get_slice("=", 1)
-	if starter_id == "":
+	var starter_id: String = AdventureDev.flag("--dev-reward=")
+	if starter_id == "" or not AdventureDev.begin_run(starter_id):
 		return
 	_dev = true
-	Session.run = AdventureRun.begin(starter_id, 12345)
-	Session.ladder = AdventureLadder.load_for(starter_id)
-	if Session.run == null or Session.ladder == null:
-		Session.run = null
-		return
-	for arg in args:
-		if arg.begins_with("--dev-stage="):
-			Session.run.stage = int(arg.get_slice("=", 1))
+	var stage_arg: String = AdventureDev.flag("--dev-stage=")
+	if stage_arg != "":
+		Session.run.stage = clampi(int(stage_arg), 0, Session.ladder.size() - 1)
 	AdventureRewards.finish_stage(Session.run, Session.ladder, Session.library, true)
-	if args.has("--dev-empty"):
+	if AdventureDev.args().has("--dev-empty"):
 		Session.run.pending_offer.clear()
 
 
 ## `--dev-select=N` selects the Nth offered card, `--dev-cut` opens the cut panel, and
 ## `--dev-inspect=N` opens the inspect view on the Nth offered card.
 func _dev_after_layout() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	for arg in args:
-		if arg.begins_with("--dev-select="):
-			_select_card(int(arg.get_slice("=", 1)))
-	if args.has("--dev-cut"):
+	var select_arg: String = AdventureDev.flag("--dev-select=")
+	if select_arg != "":
+		_select_card(int(select_arg))
+	if AdventureDev.args().has("--dev-cut"):
 		_on_cut_open()
-	for arg in args:
-		if arg.begins_with("--dev-inspect="):
-			var index: int = int(arg.get_slice("=", 1))
-			if index >= 0 and index < _offer_defs.size():
-				_open_inspect(_offer_defs[index])
-
-
-func _dev_screenshot() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	for arg in args:
-		if arg.begins_with("--dev-screenshot="):
-			var path: String = arg.get_slice("=", 1)
-			await get_tree().create_timer(0.5).timeout
-			await RenderingServer.frame_post_draw
-			get_viewport().get_texture().get_image().save_png(path)
-			print("screenshot saved to %s" % path)
-			get_tree().quit()
+	var inspect_arg: String = AdventureDev.flag("--dev-inspect=")
+	if inspect_arg != "":
+		var index: int = int(inspect_arg)
+		if index >= 0 and index < _offer_defs.size():
+			_open_inspect(_offer_defs[index])

@@ -46,6 +46,24 @@ static func playable_starters() -> Array[String]:
 	return out
 
 
+## The tier word an opponent deck id ends in: T1..T5 or BOSS.
+static func tier_of(opponent_id: String) -> String:
+	var parts: PackedStringArray = opponent_id.split("_")
+	return parts[parts.size() - 1].to_upper() if parts.size() > 0 else ""
+
+
+## What every screen calls an opponent: its duelist's title, falling back to the deck name and
+## then to the id.
+static func opponent_name(opponent_id: String, library: CardLibrary) -> String:
+	var deck: DeckList = DeckList.resolve(opponent_id)
+	if deck == null:
+		return opponent_id
+	var duelist: CardDef = library.defs.get(deck.duelist_id)
+	if duelist != null and duelist.title != "":
+		return duelist.title
+	return deck.name if deck.name != "" else opponent_id
+
+
 func size() -> int:
 	return stages.size()
 

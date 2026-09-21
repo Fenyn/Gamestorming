@@ -16,6 +16,11 @@ const CREAM: Color = Color(0.93, 0.90, 0.84)
 const CONTENT_WIDTH: float = 452.0        # face width less the margins
 const CONTENT_HEIGHT: float = 664.0
 const TEXT_SIZES: Array[int] = [24, 22, 20, 18, 17, 16, 15, 14, 13, 12]
+## The group line beside the type chip, largest first. Its width is what the chip leaves over.
+const TYPE_REST_SIZES: Array[int] = [22, 20, 18, 17, 16, 15, 14]
+const TYPE_CHIP_SIZE: int = 24          # the chip's own font size, from the scene
+const TYPE_CHIP_FIXED: float = 30.0 + 8.0 + 20.0   # icon, gap, chip padding
+const TYPE_ROW_GAP: float = 10.0
 ## Art box height per type, twice the art canvas in the roster (226 wide) so pictures fill the
 ## box without cropping. Cards that act (Strikes, Arts, Combat, Seals) carry little text and get
 ## the tall picture; cards that stay in play carry rules and get the shorter one.
@@ -109,7 +114,7 @@ func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPla
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color)
-	_style(inner, CREAM)
+	_inner_style(def)
 	var picture: Texture2D = art_texture(def, aspect)
 	if def.is_personality():
 		margin.visible = false
@@ -130,7 +135,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	_mark_type(def, picture != null)
 	title_label.text = def.title
 	title_label.add_theme_color_override("font_color", INK)
-	type_rest.text = _type_rest(def)
+	_fit_type_rest(def)
 	type_rest.add_theme_color_override("font_color", INK)
 	_fit_text(text_label, CardText.rules_text(def), CONTENT_HEIGHT - STANDARD_FIXED - art_height)
 	# Energy cost as a round badge over the art, where the eye checks it first.
@@ -270,6 +275,19 @@ func _fit_text(label: KeywordLabel, plain: String, box_height: float) -> void:
 	label.set_plain(plain)
 
 
+## The cream body. A Signature card gets a second rule just inside the frame, a bone line no
+## school card has, so the group reads from across the table and not only by the frame's colour.
+func _inner_style(def: CardDef) -> void:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = CREAM
+	box.set_corner_radius_all(22)
+	box.anti_aliasing = true
+	if def.is_signature():
+		box.border_color = Palette.SIGNATURE_RULE
+		box.set_border_width_all(5)
+	inner.add_theme_stylebox_override("panel", box)
+
+
 func _style(panel: Panel, color: Color, radius: int = 22) -> void:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = color
@@ -320,10 +338,30 @@ func _mark_type(def: CardDef, has_art: bool) -> void:
 	corner_icon.color = Color.WHITE
 
 
-## What follows the type chip: the school, and any alignment gate.
+## What follows the type chip: the card's group, and any alignment gate. A Signature card says so
+## here and names its character, which is the identity the group stands for.
 func _type_rest(def: CardDef) -> String:
 	var parts: PackedStringArray = PackedStringArray()
-	parts.append(CardText.school_name(def.school))
+	parts.append(CardText.card_group_line(def))
 	if def.alignment_only != "":
 		parts.append(def.alignment_only.capitalize() + "s only")
 	return " · ".join(parts)
+
+
+## The group line is the one row whose length the card does not control: a Signature card prints
+## a character's name after the word. It steps down through TYPE_REST_SIZES until it fits the
+## space the type chip leaves, so the longest name in the data still reads instead of trimming to
+## an ellipsis. The chip is measured rather than read from the tree, since nothing has laid out yet.
+func _fit_type_rest(def: CardDef) -> void:
+	var text: String = _type_rest(def)
+	type_rest.text = text
+	var font: Font = type_rest.get_theme_font("font")
+	var chip_word: String = str(CardText.TYPE_LABELS.get(def.type, "Card")).to_upper()
+	var chip: float = TYPE_CHIP_FIXED + font.get_string_size(chip_word, HORIZONTAL_ALIGNMENT_LEFT, -1, TYPE_CHIP_SIZE).x
+	var room: float = CONTENT_WIDTH - chip - TYPE_ROW_GAP
+	var chosen: int = TYPE_REST_SIZES[TYPE_REST_SIZES.size() - 1]
+	for size in TYPE_REST_SIZES:
+		if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x <= room:
+			chosen = size
+			break
+	type_rest.add_theme_font_size_override("font_size", chosen)

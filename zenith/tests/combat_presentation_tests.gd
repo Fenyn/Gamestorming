@@ -190,6 +190,10 @@ func _test_links(view: SeatView) -> void:
 		expected_target = view.player(1).duelist
 	var cards: Vector2i = script.attack_link_cards(view, view.attack)
 	_check(cards.x == int(view.attack["source"]) and cards.y == expected_target, "Pending attack links its public source to defender's controlling personality")
+	var spent: SeatView = SeatView.from_dict(view.to_dict().duplicate(true))
+	var spent_card: SeatCard = spent.card(int(spent.attack["source"]))
+	spent_card.zone = &"discard"
+	_check(script.attack_link_cards(spent, spent.attack).x == spent.player(0).controlling, "A spent attack links from its fighter instead of its discard rail")
 	var redirected: SeatView = SeatView.from_dict(view.to_dict().duplicate(true))
 	var ally: SeatCard = SeatCard.from_dict({"uid": 990, "def": "fixture_ally", "title": "Visible ally", "zone": "in_play", "owner": 1})
 	redirected.cards[ally.uid] = ally

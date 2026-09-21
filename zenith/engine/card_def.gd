@@ -27,6 +27,10 @@ const TYPE_NAMES: Dictionary = {
 	"relic": Type.RELIC,
 }
 
+## Card groups that are not schools. `card_group()` returns one of these or a school id.
+const GROUP_FREESTYLE: String = "freestyle"
+const GROUP_SIGNATURE: String = "signature"
+
 var id: String = ""
 var title: String = ""
 var type: Type = Type.COMBAT
@@ -142,6 +146,23 @@ func _index_aspects() -> void:
 
 func is_personality() -> bool:
 	return type == Type.PERSONALITY
+
+
+## A card named for a character, and not a personality itself. A personality carries a `character`
+## as its own identity, which is why it is excluded here. In the shipped data only Strikes, Arts,
+## Combat cards, Non-Combat cards and Drills carry one; Mastery, Relic, Seal and Grounds never do.
+func is_signature() -> bool:
+	return character != "" and type != Type.PERSONALITY
+
+
+## The group a card belongs to for identity and display: its school id, GROUP_FREESTYLE for a
+## schoolless card that belongs to nobody, GROUP_SIGNATURE for a card named for a character.
+## This is what the card *is*, not where it is legal: deck Style and DeckValidator still read
+## `school`, so a Signature card stays as legal in a Pyre deck as it ever was.
+func card_group() -> String:
+	if is_signature():
+		return GROUP_SIGNATURE
+	return school if school != "" else GROUP_FREESTYLE
 
 
 func is_hand_combat_card() -> bool:

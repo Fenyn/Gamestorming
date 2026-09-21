@@ -1,6 +1,7 @@
 extends Node
 ## Session: what the select screen chose, carried into the duel scene.
-## Also owns the loaded card library, strike table, and available decks.
+## Also owns the loaded card library, strike table, available decks, and the live adventure run
+## with its ladder; the adventure block at the bottom moves that run between screens and the save.
 
 const CARDS_DIR: String = "res://data/cards"
 const DECKS_DIR: String = "res://data/decks"
@@ -190,17 +191,14 @@ func leave_adventure() -> void:
 ## seed, so quitting mid-duel restarts it unchanged.
 func begin_stage() -> void:
 	var row: Dictionary = ladder.stage(run.stage)
-	var opponent: DeckList = DeckList.resolve(str(row.get("opponent", "")))
+	var opponent_id: String = str(row.get("opponent", ""))
+	var opponent: DeckList = DeckList.resolve(opponent_id)
 	chosen = [run.deck(), opponent]
 	locked = [true, true]
 	ai_seat = 1
 	ai_profile = str(row.get("ai_level", "default"))
 	seed_value = run.stage_seed(run.stage)
-	var duelist: CardDef = library.defs.get(opponent.duelist_id) if opponent != null else null
-	var opponent_name: String = opponent.name if opponent != null else ""
-	if duelist != null and duelist.title != "":
-		opponent_name = duelist.title
-	player_names = [player_names[0], opponent_name]
+	player_names = [player_names[0], AdventureLadder.opponent_name(opponent_id, library)]
 	roll_colors()
 	go_to_duel()
 

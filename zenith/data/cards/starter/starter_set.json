@@ -8578,6 +8578,1019 @@
 	 "choose": true
 	}
    ]
+  },
+  {
+   "id": "storm_rising_gust",
+   "title": "Storm Rising Gust",
+   "type": "strike",
+   "school": "storm",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_twin_earthing",
+   "title": "Storm Twin Earthing",
+   "type": "strike",
+   "school": "storm",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "stop_next",
+	 "duration": "next_attack_phase",
+	 "params": {
+	  "kind": "strike"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_damping_guard",
+   "title": "Storm Damping Guard",
+   "type": "art",
+   "school": "storm",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "storm_returning_front",
+   "title": "Storm Returning Front",
+   "type": "non_combat",
+   "school": "storm",
+   "defense": {
+	"stops": "strike"
+   },
+   "bottom_after_use": true
+  },
+  {
+   "id": "storm_mantle_drill",
+   "title": "Storm Mantle Drill",
+   "type": "drill",
+   "school": "storm",
+   "shield": "strike"
+  },
+  {
+   "id": "storm_dispersal_drill",
+   "title": "Storm Dispersal Drill",
+   "type": "drill",
+   "school": "storm",
+   "shield": "art"
+  },
+  {
+   "id": "storm_tight_coil_drill",
+   "title": "Storm Tight Coil Drill",
+   "type": "drill",
+   "school": "storm",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "art",
+	 "life": 2
+	}
+   ]
+  },
+  {
+   "id": "storm_conduit_drill",
+   "title": "Storm Conduit Drill",
+   "type": "drill",
+   "school": "storm",
+   "modifiers": [
+	{
+	 "scope": "cost",
+	 "kind": "art",
+	 "stages": -1,
+	 "min": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_mustering_peal",
+   "title": "Storm Mustering Peal",
+   "type": "non_combat",
+   "school": "storm",
+   "endurance": 2,
+   "only": {
+	"when": {
+	 "took_wounds_min": 5
+	}
+   },
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "ally",
+	 "source": "discard",
+	 "amount": 3,
+	 "to": "play",
+	 "stages": "max"
+	}
+   ]
+  },
+  {
+   "id": "storm_scattering_gale",
+   "title": "Storm Scattering Gale",
+   "type": "combat",
+   "school": "storm",
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "seal",
+	 "amount": 2,
+	 "up_to": true,
+	 "choose": true,
+	 "to": "deck_bottom"
+	}
+   ],
+   "endurance": 3
+  },
+  {
+   "id": "storm_free_current",
+   "title": "Storm Free Current",
+   "type": "combat",
+   "school": "storm",
+   "use_at": "entering_combat",
+   "attachment": {
+	"target": "duelist",
+	"duration": "combat",
+	"modifiers": [
+	 {
+	  "scope": "cost",
+	  "kind": "any",
+	  "set": 0
+	 }
+	]
+   },
+   "effects": [
+	{
+	 "op": "reveal_hand"
+	},
+	{
+	 "op": "attach",
+	 "to": "duelist",
+	 "when": {
+	  "hand_school_min": {
+	   "school": "storm",
+	   "count": 3
+	  }
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_catching_stance",
+   "title": "Storm Catching Stance",
+   "type": "art",
+   "school": "storm",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 4
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "storm_feeding_arc",
+   "title": "Storm Feeding Arc",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 3,
+	 "target": "duelist"
+	},
+	{
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_return_stroke",
+   "title": "Storm Return Stroke",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "storm_wringing_squall",
+   "title": "Storm Wringing Squall",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike"
+   },
+   "endurance": 3,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false,
+	 "chooser": "owner",
+	 "reveal": true,
+	 "filter": {
+	  "card_type": "strike"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_rolling_peal",
+   "title": "Storm Rolling Peal",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art"
+   },
+   "empower": 3,
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "art",
+	  "life": 1
+	 },
+	 "exclude_source": true,
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "storm_idle_spark",
+   "title": "Storm Idle Spark",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 3,
+	"cost_stages": 0
+   }
+  },
+  {
+   "id": "storm_pent_discharge",
+   "title": "Storm Pent Discharge",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"cost_stages": 3
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false
+	}
+   ]
+  },
+  {
+   "id": "storm_opened_channel",
+   "title": "Storm Opened Channel",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike",
+	"focused": true,
+	"stages": 2
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "art",
+	  "life": 2
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_ungrounded_flash",
+   "title": "Storm Ungrounded Flash",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6,
+	"no_stop_by": "art"
+   }
+  },
+  {
+   "id": "storm_felling_gust",
+   "title": "Storm Felling Gust",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true
+	}
+   ]
+  },
+  {
+   "id": "storm_residual_shock",
+   "title": "Storm Residual Shock",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6
+   },
+   "effects": [
+	{
+	 "trigger": "if_stopped",
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "storm_levelling_wind",
+   "title": "Storm Levelling Wind",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike",
+	"focused": true,
+	"stages": 3
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 4,
+	 "up_to": true,
+	 "choose": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "storm_tailwind",
+   "title": "Storm Tailwind",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "endurance": 3,
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "any",
+	  "stages": 1
+	 },
+	 "exclude_source": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "storm_cold_front",
+   "title": "Storm Cold Front",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "storm_silencing_static",
+   "title": "Storm Silencing Static",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "name_card",
+	 "pool": "opponent_deck",
+	 "filter": {
+	  "attack_kind": "strike"
+	 },
+	 "strip": {
+	  "to": "discard"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "root_windbreak_drill",
+   "title": "Root Windbreak Drill",
+   "type": "drill",
+   "school": "root",
+   "shield": "strike"
+  },
+  {
+   "id": "root_canopy_drill",
+   "title": "Root Canopy Drill",
+   "type": "drill",
+   "school": "root",
+   "shield": "art"
+  },
+  {
+   "id": "root_sightline_drill",
+   "title": "Root Sightline Drill",
+   "type": "drill",
+   "school": "root",
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "look_at",
+	 "amount": 2,
+	 "rearrange": true,
+	 "place": "choose",
+	 "from": "top"
+	}
+   ]
+  },
+  {
+   "id": "root_deep_draught",
+   "title": "Root Deep Draught",
+   "type": "non_combat",
+   "school": "root",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "trigger": "use",
+	 "op": "draw_check",
+	 "school": "root",
+	 "effects": [
+	  {
+	   "op": "search",
+	   "source": "discard",
+	   "amount": 2,
+	   "to": "deck_bottom"
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "root_thorn_hedge",
+   "title": "Root Thorn Hedge",
+   "type": "non_combat",
+   "school": "root",
+   "use_at": "after_damage",
+   "effects": [
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "root_carvers_reach",
+   "title": "Root Carver's Reach",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike"
+   },
+   "alignment_only": "vigil",
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "capture_seal"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_timber_blow",
+   "title": "Root Timber Blow",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   }
+  },
+  {
+   "id": "root_millstone",
+   "title": "Root Millstone",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"printed_life": 6,
+	"cost_stages": 3
+   }
+  },
+  {
+   "id": "root_rising_sap",
+   "title": "Root Rising Sap",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike"
+   },
+   "effects": [
+	{
+	 "op": "shuffle_discard",
+	 "amount": 2,
+	 "no_shuffle": true,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "root_pruning_cut",
+   "title": "Root Pruning Cut",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"life": 2
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "top"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_deadfall",
+   "title": "Root Deadfall",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"focused": true,
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "remove_discard",
+	 "amount": "any"
+	}
+   ]
+  },
+  {
+   "id": "root_briar_tangle",
+   "title": "Root Briar Tangle",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"printed_stages": 3
+   },
+   "remain": 2,
+   "remove_after_use": true
+  },
+  {
+   "id": "root_quickening",
+   "title": "Root Quickening",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"stages": 5,
+	"variants": [
+	 {
+	  "when": {
+	   "defender_tag": "marked"
+	  },
+	  "focused": true
+	 }
+	]
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 4
+	}
+   ]
+  },
+  {
+   "id": "root_snare",
+   "title": "Root Snare",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 1,
+	 "remove": true,
+	 "choose": true
+	}
+   ]
+  },
+  {
+   "id": "root_splitting_wedge",
+   "title": "Root Splitting Wedge",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike"
+   },
+   "endurance": 3,
+   "empower": 4,
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_ally_or_grounds",
+	 "amount": 1,
+	 "choose": true,
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "root_grove_fury",
+   "title": "Root Grove Fury",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"printed_stages": 6
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_bindweed",
+   "title": "Root Bindweed",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "op": "shuffle_discard",
+	 "amount": 2
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_sapwood_guard",
+   "title": "Root Sapwood Guard",
+   "type": "strike",
+   "school": "root",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "root_taproot_brace",
+   "title": "Root Taproot Brace",
+   "type": "strike",
+   "school": "root",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "root_barred_path",
+   "title": "Root Barred Path",
+   "type": "combat",
+   "school": "root",
+   "defense": {
+	"stops": "any"
+   },
+   "remove_after_use": true
+  },
+  {
+   "id": "root_closing_bark",
+   "title": "Root Closing Bark",
+   "type": "combat",
+   "school": "root",
+   "effects": [
+	{
+	 "op": "shuffle_discard",
+	 "amount": 1
+	}
+   ],
+   "endurance": 10,
+   "remove_after_use": true
+  },
+  {
+   "id": "root_trail_cut",
+   "title": "Root Trail Cut",
+   "type": "combat",
+   "school": "root",
+   "effects": [
+	{
+	 "op": "look_at",
+	 "whose": "opponent",
+	 "amount": 4,
+	 "pick": {},
+	 "to": "removed",
+	 "must": true,
+	 "rearrange": true,
+	 "from": "top"
+	}
+   ],
+   "endurance": 4
+  },
+  {
+   "id": "root_kin_clearing",
+   "title": "Root Kin Clearing",
+   "type": "combat",
+   "school": "root",
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "all": true
+	}
+   ],
+   "only": {
+	"allies_min": 1
+   },
+   "remove_after_use": true,
+   "limit_per_deck": 1
+  },
+  {
+   "id": "root_first_frost",
+   "title": "Root First Frost",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "root_auger_splinter",
+   "title": "Root Auger Splinter",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5,
+	"focused": true
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "root_flung_stone",
+   "title": "Root Flung Stone",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 1,
+	 "choose": true
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_scattered_seed",
+   "title": "Root Scattered Seed",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "shuffle_discard",
+	 "amount": 3,
+	 "no_shuffle": true,
+	 "from": "bottom"
+	},
+	{
+	 "trigger": "if_stopped",
+	 "op": "remove_discard",
+	 "amount": 2,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "root_old_growth",
+   "title": "Root Old Growth",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"printed_life": 10,
+	"cost_stages": 4
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_life",
+	 "amount": 3,
+	 "remove": true
+	},
+	{
+	 "trigger": "if_stopped",
+	 "op": "discard_hand",
+	 "all": true,
+	 "random": false
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "root_culling_frost",
+   "title": "Root Culling Frost",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art"
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
   }
  ]
 }

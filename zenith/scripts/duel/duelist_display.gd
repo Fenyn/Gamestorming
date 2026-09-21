@@ -18,6 +18,7 @@ var _hovering: bool = false
 @onready var life_caption: Label3D = $LifeCaption
 var life_transform: Transform3D = Transform3D.IDENTITY
 var _anchor_inputs: Array = []
+var _life_pulse: Tween = null
 
 
 func _ready() -> void:
@@ -50,6 +51,18 @@ func preview_energy(cost: int = 0) -> void:
 	if readout.preview_cost != next_cost:
 		readout.preview_cost = next_cost
 		readout.request_redraw()
+
+
+## The count reacts at the pile the card just left, keeping the visual loss tied to its source.
+func pulse_life_loss() -> void:
+	if _life_pulse != null:
+		_life_pulse.kill()
+	life_value.scale = Vector3.ONE * (1.25 if not reduced_motion else 1.0)
+	life_value.modulate = ZenithTheme.ATTACK
+	_life_pulse = create_tween().set_parallel(true)
+	_life_pulse.tween_property(life_value, "modulate", DuelistReadout.GOLD, 0.38)
+	if not reduced_motion:
+		_life_pulse.tween_property(life_value, "scale", Vector3.ONE, 0.30).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func status_text() -> String:

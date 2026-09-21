@@ -1,0 +1,92 @@
+{
+	"cards": [
+		{"id": "t_rally_after_wound", "title": "Test Rally", "type": "non_combat",
+			"only": {"when": {"took_wounds_min": 5}},
+			"effects": [{"trigger": "use", "op": "energy", "target": "all", "amount": 2}]},
+
+		{"id": "t_sink_seals", "title": "Test Undertow", "type": "combat",
+			"effects": [{"op": "discard_in_play", "who": "opponent", "card_type": "seal",
+				"amount": 2, "up_to": true, "choose": true, "to": "deck_bottom"}]},
+
+		{"id": "t_name_strip", "title": "Test Naming", "type": "combat",
+			"effects": [{"op": "name_card", "pool": "opponent_deck",
+				"filter": {"attack_kind": "strike"}, "strip": {"to": "discard"}}]},
+
+		{"id": "t_name_strip_removes", "title": "Test Naming Exile", "type": "combat",
+			"effects": [{"op": "name_card", "pool": "opponent_deck",
+				"filter": {"attack_kind": "art"}, "strip": {"to": "removed"}}]},
+
+		{"id": "t_foresight_place", "title": "Test Sorting Drill", "type": "drill",
+			"effects": [{"trigger": "entering_combat", "op": "look_at", "from": "top",
+				"amount": 2, "rearrange": true, "place": "choose"}]},
+
+		{"id": "t_deck_raid", "title": "Test Deck Raid", "type": "combat",
+			"effects": [{"op": "look_at", "whose": "opponent", "from": "top", "amount": 4,
+				"pick": {}, "to": "removed", "must": true, "rearrange": true}]},
+
+		{"id": "t_after_hit", "title": "Test Riposte", "type": "non_combat", "use_at": "after_damage",
+			"effects": [{"op": "discard_life", "who": "opponent", "amount": 3}]},
+
+		{"id": "t_after_hit_wounds", "title": "Test Blood Answer", "type": "combat",
+			"use_at": "after_damage", "use_after_damage": "life",
+			"effects": [{"op": "draw", "amount": 1}]},
+
+		{"id": "t_free_hand", "title": "Test Open Hand", "type": "combat", "use_at": "entering_combat",
+			"attachment": {"target": "duelist", "duration": "combat",
+				"modifiers": [{"scope": "cost", "kind": "any", "set": 0}]},
+			"effects": [
+				{"op": "reveal_hand"},
+				{"op": "attach", "to": "duelist", "when": {"hand_school_min": {"school": "pyre", "count": 3}}}
+			]},
+
+		{"id": "t_cheap_arts_drill", "title": "Test Thrift Drill", "type": "drill",
+			"modifiers": [{"scope": "cost", "kind": "art", "stages": -1, "min": 1}]},
+
+		{"id": "t_plain_art_11", "title": "Test Plain Art", "type": "art",
+			"attack": {"kind": "art", "printed_life": 2}},
+
+		{"id": "t_gate_needs_ally", "title": "Test Needs Ally", "type": "combat",
+			"only": {"allies_min": 1},
+			"effects": [{"op": "draw", "amount": 1}]},
+
+		{"id": "t_self_exile", "title": "Test Self Exile", "type": "combat",
+			"effects": [{"op": "discard_life", "who": "self", "amount": 3, "remove": true}]},
+
+		{"id": "t_band_squall", "title": "Test Squall", "type": "strike", "attack": {"kind": "strike", "stages": 1},
+			"effects": [{"trigger": "if_successful", "op": "discard_hand", "who": "opponent", "amount": 1,
+				"random": false, "chooser": "owner", "reveal": true, "filter": {"card_type": "strike"}}]},
+
+		{"id": "t_wedge", "title": "Test Wedge", "type": "combat",
+			"effects": [{"op": "discard_in_play", "who": "opponent", "card_type": "non_combat_ally_or_grounds",
+				"amount": 1, "choose": true}]},
+
+		{"id": "t_bottom_burn", "title": "Test Bottom Burn", "type": "combat",
+			"effects": [{"op": "remove_discard", "amount": 2, "from": "bottom"}]},
+
+		{"id": "t_any_burn", "title": "Test Any Burn", "type": "combat",
+			"effects": [{"op": "remove_discard", "amount": "any"}]},
+
+		{"id": "t_dump_hand", "title": "Test Dump Hand", "type": "combat",
+			"effects": [{"op": "discard_hand", "all": true, "random": false}]},
+
+		{"id": "t_other_attacks", "title": "Test Rallying Cry", "type": "strike",
+			"attack": {"kind": "strike", "stages": 1},
+			"effects": [{"op": "float", "what": "modifier", "duration": "combat", "exclude_source": true,
+				"params": {"scope": "own", "kind": "any", "stages": 3}}]},
+
+		{"id": "t_self_boost", "title": "Test Self Boost", "type": "strike",
+			"attack": {"kind": "strike", "stages": 1},
+			"effects": [{"op": "float", "what": "modifier", "duration": "combat",
+				"params": {"scope": "own", "kind": "any", "stages": 3}}]},
+
+		{"id": "t_guard_echo", "title": "Test Guard Echo", "type": "strike", "defense": {"stops": "strike"},
+			"effects": [{"op": "float", "what": "stop_next", "duration": "next_attack_phase",
+				"params": {"kind": "strike"}}]},
+
+		{"id": "t_grounds_plain", "title": "Test Plain Grounds", "type": "grounds", "limit_per_deck": 1},
+
+		{"id": "t_marked_hunter", "title": "Test Marked Hunter", "type": "strike",
+			"attack": {"kind": "strike", "stages": 1,
+				"variants": [{"when": {"defender_tag": "marked"}, "focused": true}]}}
+	]
+}

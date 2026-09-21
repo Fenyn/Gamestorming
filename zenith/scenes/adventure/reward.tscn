@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/reward.gd" id="1_reward"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
 [ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="4_tile"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/run_deck_list.tscn" id="5_list"]
 
 [node name="Reward" type="Control"]
 layout_mode = 3
@@ -185,48 +186,10 @@ theme_override_font_sizes/font_size = 24
 text = "Cut a card"
 horizontal_alignment = 1
 
-[node name="Body" type="HBoxContainer" parent="CutPanel/Center/Panel/Column"]
+[node name="DeckList" parent="CutPanel/Center/Panel/Column" instance=ExtResource("5_list")]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 24
-
-[node name="Scroll" type="ScrollContainer" parent="CutPanel/Center/Panel/Column/Body"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="List" type="VBoxContainer" parent="CutPanel/Center/Panel/Column/Body/Scroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="PreviewColumn" type="VBoxContainer" parent="CutPanel/Center/Panel/Column/Body"]
-custom_minimum_size = Vector2(360, 0)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 10
-
-[node name="PreviewFace" type="TextureRect" parent="CutPanel/Center/Panel/Column/Body/PreviewColumn"]
-custom_minimum_size = Vector2(340, 475)
-layout_mode = 2
-size_flags_horizontal = 4
-expand_mode = 1
-stretch_mode = 5
-
-[node name="PreviewCaption" type="Label" parent="CutPanel/Center/Panel/Column/Body/PreviewColumn"]
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 18
-text = "Hover or select a card"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="PreviewCount" type="Label" parent="CutPanel/Center/Panel/Column/Body/PreviewColumn"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = ""
-horizontal_alignment = 1
+show_copies = true
 
 [node name="CutStatus" type="Label" parent="CutPanel/Center/Panel/Column"]
 visible = false

@@ -10,10 +10,11 @@ extends RefCounted
 ## Events a client animates, with the fields it may have. Everything named here is public once
 ## the event has happened (a card that reached a pile, a number both players watched land), so
 ## the same data goes to both seats. Any event not listed reaches clients as its line alone.
+## A played card's id remains public for this replay beat even if its final zone is hidden.
 const ANIMATED: Dictionary = {
 	&"combat_begin": [], &"combat_end": [],
 	&"attack_declared": ["kind", "source", "is_power", "is_final", "focused", "empowered"],
-	&"defense_played": ["card", "stopped"], &"defense_power": ["card"], &"shield": ["card"],
+	&"defense_played": ["card", "id", "stopped"], &"defense_power": ["card"], &"shield": ["card"],
 	&"attack_stopped": [], &"attack_successful": [],
 	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
 	&"damage_stages": ["target", "stages", "overflow", "energy"],
@@ -23,7 +24,7 @@ const ANIMATED: Dictionary = {
 	&"attack_end": ["stopped", "stages_dealt", "life_dealt"],
 	&"critical_ally": ["card"], &"critical_fervor": [],
 	&"hand_discarded": ["card"], &"in_play_discarded": ["card", "removed"], &"card_moved": ["card", "to"],
-	&"card_used": ["card"], &"card_placed": ["card"], &"final_strike": ["discarded"],
+	&"card_used": ["card", "id"], &"card_placed": ["card"], &"final_strike": ["discarded"],
 	&"remain": ["card", "uses"],
 	&"power_up": ["gain", "energy", "energies"], &"recover": ["card"],
 	&"energy_changed": ["card", "from", "to", "source"], &"gain_blocked": ["card", "amount"],

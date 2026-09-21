@@ -255,6 +255,47 @@ func _init() -> void:
 		test_an_adventure_pick_is_refused_when_it_was_not_offered,
 		test_an_adventure_cut_is_refused_at_the_card_floor,
 		test_adventure_starters_and_opponents_are_legal,
+		test_a_card_can_wait_for_a_five_wound_hit,
+		test_seals_can_be_put_under_their_owners_life_deck,
+		test_naming_a_strike_strips_every_copy_from_their_deck,
+		test_naming_nothing_still_counts_as_the_search,
+		test_a_look_can_send_the_whole_look_to_either_end,
+		test_a_card_can_reach_into_the_rivals_deck_and_remove_one,
+		test_an_attachment_can_waive_what_attacks_cost,
+		test_the_cost_waiver_needs_the_school_in_hand,
+		test_a_drill_can_price_arts_lower,
+		test_the_entering_combat_window_is_the_only_time_that_card_is_offered,
+		test_both_players_get_an_entering_combat_window_active_first,
+		test_a_card_can_answer_the_hit_it_just_took,
+		test_the_after_damage_window_reads_what_the_attack_actually_dealt,
+		test_a_next_phase_stop_waits_for_the_phase_it_names,
+		test_a_stop_set_while_defending_reaches_their_next_phase,
+		test_a_hand_discard_can_name_the_band_it_takes,
+		test_one_choice_can_reach_a_non_combat_an_ally_or_the_grounds,
+		test_a_burn_can_take_the_bottom_of_the_discard_pile,
+		test_a_burn_can_take_any_number_of_cards_from_the_pile,
+		test_a_hand_effect_reads_from_the_right_side,
+		test_a_standing_bonus_can_leave_out_the_attack_that_set_it,
+		test_a_rider_can_exile_the_top_of_your_own_deck,
+		test_a_gate_can_want_an_ally_and_a_variant_can_read_their_keyword,
+		test_the_expansion_cards_are_in_the_shipped_library,
+		test_the_storm_strike_answers_stop_a_strike,
+		test_storm_twin_earthing_stops_their_next_strike_as_well,
+		test_the_expansion_shield_drills_take_one_attack_of_their_kind,
+		test_storm_conduit_drill_and_idle_spark_move_what_an_art_costs,
+		test_storm_scattering_gale_puts_their_seals_under_their_deck,
+		test_storm_free_current_waives_costs_for_a_storm_hand,
+		test_storm_mustering_peal_waits_for_a_five_wound_hit,
+		test_storm_silencing_static_names_a_strike_and_strips_their_deck,
+		test_storm_return_stroke_refills_and_returning_front_goes_under_the_deck,
+		test_root_sightline_drill_sends_the_whole_look_to_one_end,
+		test_root_trail_cut_reaches_into_their_deck,
+		test_root_thorn_hedge_answers_the_hit_it_just_took,
+		test_root_quickening_is_focused_against_a_marked_duelist,
+		test_root_kin_clearing_needs_an_ally_before_it_clears_the_table,
+		test_root_old_growth_spends_your_own_deck_or_your_hand,
+		test_root_scattered_seed_pays_whether_it_lands_or_not,
+		test_root_briar_tangle_remains_for_two_more_uses,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -2177,8 +2218,13 @@ func test_a_restriction_can_last_one_attack_phase_not_the_whole_combat() -> void
 	check(e._forbidden(foe, "strike_cards"), "the restriction is on")
 	e._expire_attack_phase_floats(0)
 	check(e._forbidden(foe, "strike_cards"), "the other player's phase ending does not lift it")
+	# "Their next attack phase" is the one after the phase it was set in, so the phase running when
+	# it was set neither spends it nor is bound by it.
 	e._expire_attack_phase_floats(1)
-	check(not e._forbidden(foe, "strike_cards"), "their own phase ending lifts it")
+	check(e._forbidden(foe, "strike_cards"), "and the phase it was set in does not spend it")
+	e.state.attack_phase_count += 1
+	e._expire_attack_phase_floats(1)
+	check(not e._forbidden(foe, "strike_cards"), "their own next phase ending lifts it")
 	e._float(1, "forbid", "next_attack_phase", {"what": "strike_cards", "source": -1})
 	check(e._forbidden(foe, "strike_cards"), "set again, with the phase still to come")
 	e._expire_floating("combat")
@@ -5009,3 +5055,1030 @@ func test_adventure_starters_and_opponents_are_legal() -> void:
 			var problems: Array[String] = DeckValidator.validate(d, shipped)
 			eq(problems.size(), 0, "%s legal: %s" % [entry, ", ".join(problems)])
 	check(seen > 80, "every adventure deck was checked, saw %d" % seen)
+
+
+## Answers the windows an attack opens on its way to landing. It never passes, so the phase stays
+## where it is and the Combat's own records are still standing when the test reads them.
+func settle(e: DuelEngine, limit: int = 40, order: Array[StringName] = [&"no_defense", &"no_endure", &"no_critical", &"target", &"decline"]) -> void:
+	var guard: int = 0
+	while e.prompt != null and not e.is_over() and guard < limit:
+		guard += 1
+		var quiet: Command = null
+		for t in order:
+			quiet = e.prompt.find(t)
+			if quiet != null:
+				break
+		if quiet == null:
+			return
+		e.submit(quiet)
+
+
+## "Use only after you have taken 5 or more wounds from a single attack this Combat." The clause is
+## an `only.when`, so it runs through the same `_cond` every other card condition does, and it gates
+## the use rather than the placement.
+func test_a_card_can_wait_for_a_five_wound_hit() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_strike_wound"], 30)), deck(filler([], 30), "pact"))
+	var rally: CardDef = lib.get_def("t_rally_after_wound")
+	var them: PlayerState = e.player(1)
+	inject(e, 1, "t_rally_after_wound")
+	check(not e._can_play(them, rally), "nothing has landed yet, so the card cannot be used")
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
+	settle(e, 6)
+	check(them.worst_wound_combat >= 5, "the hit is remembered as %d wounds" % them.worst_wound_combat)
+	check(e._can_play(them, rally), "and now the card may be used")
+	# The record belongs to the Combat, not the duel.
+	skip_to_turn(e, e.state.turn + 2)
+	eq(them.worst_wound_combat, 0, "a new Combat starts the count again")
+	check(not e._can_play(them, rally), "so the card waits again")
+	check(CardText.rules_text(rally).contains("taken 5 or more wounds from a single attack this Combat"),
+		"the gate prints: %s" % CardText.rules_text(rally))
+
+
+## "Choose 1 or 2 of your opponent's Seals in play and place them at the bottom of their Life Deck."
+## Not a discard: `to: "deck_bottom"` puts them under, in the order the chooser picked them, and the
+## deck is not shuffled, so both players can count on where they went.
+func test_seals_can_be_put_under_their_owners_life_deck() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_sink_seals"], 20)), deck(filler([], 20), "pact"))
+	var first: CardInstance = inject(e, 1, "t_seal_1")
+	var second: CardInstance = inject(e, 1, "t_seal_2")
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_sink_seals"))
+	eq(prompt_kind(e), &"pick_in_play", "the user chooses which Seals go under")
+	eq(e.prompt.player, 0, "and the choice is theirs, not the owner's")
+	check(e.prompt.find(&"pick_none") != null, "\"1 or 2\" lets one of them stay")
+	check(e.submit(Command.new(0, &"pick_in_play", -1, [first.uid, second.uid])), "both go under")
+	var theirs: Array[CardInstance] = e.player(1).life_deck
+	eq(e.card(first.uid).zone, &"life_deck", "the Seal went to the deck, not the discard pile")
+	eq(theirs[theirs.size() - 2].uid, first.uid, "the Seal chosen first sits above the other")
+	eq(theirs[theirs.size() - 1].uid, second.uid, "and the one chosen second is the bottom card")
+	eq(e.player(1).seals().size(), 0, "neither is in play any more")
+	var text: String = CardText.rules_text(lib.get_def("t_sink_seals"))
+	check(text.contains("bottom of their Life Deck"), "the card says where they go: %s" % text)
+
+
+## "Name a card that can perform a Strike. Search your opponent's Life Deck for all copies of it and
+## discard them." A search, so it asks, shows the searcher the whole deck, allows naming nothing,
+## and shuffles once at the end whatever was named.
+func test_naming_a_strike_strips_every_copy_from_their_deck() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_name_strip"], 20)), deck(filler([], 20), "pact"))
+	var them: PlayerState = e.player(1)
+	for i in range(3):
+		to_deck(e, 1, "t_strike_wound")
+	to_deck(e, 1, "t_plain_art_11")
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_name_strip"))
+	eq(prompt_kind(e), &"name_card", "naming is a prompt, not an assumption")
+	eq(e.prompt.player, 0, "the searcher names it")
+	check(e.prompt.find(&"name_card", -1, "Test Wounding Strike") != null, "a card that performs a Strike is on the list")
+	check(e.prompt.find(&"name_card", -1, "Test Plain Art") == null, "an Art is not")
+	check(e.prompt.find(&"pick_none") != null, "and nothing may be named")
+	eq((e.prompt.context.get("library", []) as Array).size(), them.life_deck.size(),
+		"the whole deck is laid out for the searcher")
+	var view: SeatView = SeatView.of(e, 0)
+	check(not view.card(them.life_deck[0].uid).hidden(), "the searcher sees it")
+	var blind: SeatView = SeatView.of(e, 1)
+	check(blind.card(them.life_deck[0].uid).hidden(), "the owner learns nothing new")
+	var before: int = them.life_deck.size()
+	answer(e, &"name_card", -1, "Test Wounding Strike")
+	eq(them.life_deck.size(), before - 3, "all three copies came out")
+	var in_pile: int = 0
+	for c in them.discard:
+		if c.def.id == "t_strike_wound":
+			in_pile += 1
+	eq(in_pile, 3, "and they are in their discard pile")
+
+
+## Naming nothing is a legal answer, and the deck is still searched, so it is still shuffled.
+func test_naming_nothing_still_counts_as_the_search() -> void:
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"), 3, true)
+	to_deck(e, 1, "t_plain_art_11")
+	var namer: CardInstance = to_hand(e, 0, "t_name_strip_removes")
+	to_combat(e)
+	answer(e, &"use", namer.uid)
+	eq(prompt_kind(e), &"name_card", "an Art is in there to name")
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"pick_none")
+	eq(e.player(1).life_deck.size(), before, "nothing left the deck")
+	check(has_event(e, &"deck_shuffled"), "but the deck was searched, so it is shuffled")
+
+
+## "Look at the top 2 cards of your Life Deck and put them all on top or all on the bottom, in any
+## order." The end is one choice for the whole look; the order inside it is the rearrange step.
+func test_a_look_can_send_the_whole_look_to_either_end() -> void:
+	var e: DuelEngine = engine(deck(filler([], 30)), deck(filler([], 30), "pact"))
+	inject(e, 0, "t_foresight_place")
+	to_combat(e)
+	eq(prompt_kind(e), &"pick_option", "the Drill asks which end")
+	eq(str(e.prompt.context.get("purpose", "")), "look_place", "top or bottom, for the whole look")
+	var looked: Array = e.prompt.context.get("library", [])
+	eq(looked.size(), 2, "two cards were looked at")
+	var seen_a: int = int(looked[0])
+	var seen_b: int = int(looked[1])
+	answer(e, &"pick_option", -1, "bottom")
+	eq(prompt_kind(e), &"pick_option", "then the order inside them")
+	check(e.prompt.find(&"pick_option", seen_b) != null, "both are still on offer")
+	answer(e, &"pick_option", seen_b)
+	var mine: Array[CardInstance] = e.player(0).life_deck
+	eq(mine[mine.size() - 1].uid, seen_b, "the card placed first is the bottom card")
+	eq(mine[mine.size() - 2].uid, seen_a, "and the other sits above it")
+	eq(e.card(seen_a).zone, &"life_deck", "no card left the deck")
+	check(not has_event(e, &"deck_shuffled"), "and nothing was shuffled")
+	var text: String = CardText.rules_text(lib.get_def("t_foresight_place"))
+	check(text.contains("all on top or all on the bottom"), "the Drill says so: %s" % text)
+
+
+## "Look at the top 4 cards of your opponent's Life Deck, remove 1 non-Seal card from the game, and
+## put the rest back on top in any order." The looker sees them and sets the order; the owner is
+## told neither. "Remove 1" is not a may, so there is no "take nothing" while a legal card is there.
+func test_a_card_can_reach_into_the_rivals_deck_and_remove_one() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_deck_raid"], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	var them: PlayerState = e.player(1)
+	var seal: CardInstance = e._instance(lib.get_def("t_seal_1"), 1, &"life_deck")
+	them.life_deck.insert(0, seal)
+	var top: Array[int] = []
+	for i in range(4):
+		top.append(them.life_deck[i].uid)
+	answer(e, &"use", uid_in_hand(e, 0, "t_deck_raid"))
+	eq(prompt_kind(e), &"pick_option", "the looker picks what goes")
+	eq(e.prompt.player, 0, "and it is the looker's pick, not the owner's")
+	check(e.prompt.find(&"pick_none") == null, "\"Remove 1\" is not a may")
+	check(e.prompt.find(&"pick_option", seal.uid) == null, "a Seal is never a legal pick")
+	eq((e.prompt.context.get("library", []) as Array).size(), 4, "all four are shown to the looker")
+	var raider: SeatView = SeatView.of(e, 0)
+	check(not raider.card(seal.uid).hidden(), "including the Seal they may not take")
+	check(SeatView.of(e, 1).card(top[3]).hidden(), "the owner sees none of it")
+	var gone: int = top[1]
+	answer(e, &"pick_option", gone)
+	eq(e.card(gone).zone, &"removed", "the picked card left the game")
+	eq(prompt_kind(e), &"pick_option", "the rest go back in the looker's order")
+	answer(e, &"pick_option", top[3])
+	eq(them.life_deck[0].uid, top[3], "the card placed first is the new top card")
+	answer(e, &"pick_option", top[2])
+	eq(them.life_deck[1].uid, top[2], "and the next one sits under it")
+	eq(them.life_deck[2].uid, seal.uid, "the Seal went back with them")
+	var text: String = CardText.rules_text(lib.get_def("t_deck_raid"))
+	check(text.contains("opponent's Life Deck"), "the card says whose deck: %s" % text)
+
+
+## "Reveal your hand; if 3 or more cards in it are of that school, attach this to your duelist.
+## While attached, the attacks that duelist performs cost no Energy." The waiver is a `scope: "cost"`
+## modifier, which is the same mechanism a Drill uses to make Arts cheaper.
+func test_an_attachment_can_waive_what_attacks_cost() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_free_hand", "t_plain_art_11"], 20)), deck(filler([], 20), "pact"))
+	var me: PlayerState = e.player(0)
+	for i in range(3):
+		to_hand(e, 0, "t_strike")
+	var art: Dictionary = lib.get_def("t_plain_art_11").attack
+	eq(e._cost_stages(art, me), 2, "an Art costs 2 to start with")
+	to_combat(e)
+	eq(prompt_kind(e), &"follow_up", "entering Combat opens the card's own window")
+	eq(str(e.prompt.context.get("window", "")), "entering_combat", "and it is that window")
+	eq(e.prompt.player, e.state.active, "the active player prepares first")
+	check(e.prompt.find(&"decline") != null, "using it is optional")
+	var chosen: Command = AiScorer.pick(e, AiProfile.default_profile(), null, 0)
+	eq(chosen.type, &"use", "the scorer takes the window rather than declining")
+	answer(e, &"use", uid_in_hand(e, 0, "t_free_hand"))
+	check(has_event(e, &"hand_revealed"), "the hand was shown before it was counted")
+	var riders: Array[CardInstance] = me.attachments()
+	eq(riders.size(), 1, "three school cards in hand, so it rode onto the duelist")
+	eq(riders[0].attached_to, me.duelist, "onto the duelist, not the card in control")
+	eq(e._cost_stages(art, me), 0, "and attacks cost nothing while it is there")
+	var rider: int = riders[0].uid
+	settle(e, 30, [&"pass", &"no_defense", &"no_endure", &"no_critical", &"done", &"skip"])
+	eq(e.card(rider).zone, &"discard", "it is discarded at the end of Combat")
+	eq(e._cost_stages(art, me), 2, "and the Art costs 2 again")
+
+
+## The count is a real condition: a hand short of the school leaves the card with nothing to do.
+func test_the_cost_waiver_needs_the_school_in_hand() -> void:
+	var e: DuelEngine = engine(deck(["t_free_hand", "t_art", "t_art", "t_art", "t_art", "t_art", "t_art", "t_art", "t_art"]), deck(filler([], 20), "pact"))
+	to_combat(e)
+	eq(prompt_kind(e), &"follow_up", "the window opens whether or not the count will hold")
+	var me: PlayerState = e.player(0)
+	var pyre: int = 0
+	for c in me.hand:
+		if c.def.school == "pyre":
+			pyre += 1
+	check(pyre < 3, "the hand holds %d cards of the school, short of three" % pyre)
+	answer(e, &"use", uid_in_hand(e, 0, "t_free_hand"))
+	check(has_event(e, &"hand_revealed"), "the hand was still shown")
+	eq(me.attachments().size(), 0, "but nothing attached")
+	eq(e._cost_stages(lib.get_def("t_plain_art_11").attack, me), 2, "so attacks still cost what they cost")
+
+
+## The same `scope: "cost"` modifier on a Drill, with a floor: "your Arts cost 1 instead of 2".
+func test_a_drill_can_price_arts_lower() -> void:
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"))
+	inject(e, 0, "t_cheap_arts_drill")
+	var me: PlayerState = e.player(0)
+	eq(e._cost_stages(lib.get_def("t_plain_art_11").attack, me), 1, "the Drill takes an Art from 2 to 1")
+	eq(e._cost_stages(lib.get_def("t_strike").attack, me), 0, "and leaves Strikes where they were")
+	eq(e._cost_stages(lib.get_def("t_plain_art_11").attack, e.player(1)), 2, "the other side pays full price")
+	var text: String = CardText.rules_text(lib.get_def("t_cheap_arts_drill"))
+	check(text.contains("cost 1 less") and text.contains("minimum of 1"), "the Drill prints its price: %s" % text)
+
+
+## `use_at: "entering_combat"` is the only moment that card may be used. It is not an attack-phase
+## action, which is how every other `use_at` already behaves: `_prompt_attack_action` only offers a
+## hand Combat card whose `use_at` is empty.
+func test_the_entering_combat_window_is_the_only_time_that_card_is_offered() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_free_hand"], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	var uid: int = uid_in_hand(e, 0, "t_free_hand")
+	eq(prompt_kind(e), &"follow_up", "the window opened as Combat was entered")
+	check(e.prompt.find(&"use", uid) != null, "and the card is on offer in it")
+	answer(e, &"decline")
+	eq(prompt_kind(e), &"attack_action", "declining carries straight on into Combat")
+	eq(e.prompt.player, e.state.active, "with the active player's attack phase")
+	check(e.prompt.find(&"use", uid) == null, "the card is not an ordinary attack-phase action")
+	eq(e.card(uid).zone, &"hand", "and it is still in hand")
+	check(CardText.rules_text(lib.get_def("t_free_hand")).contains("Use when entering Combat"), "the card says when")
+
+
+## Both sides get the window, the active player first, which is the order the design doc gives for
+## preparing. The opposing player is still on the hand they had: their draw comes after both
+## preparations, so a card drawn for this Combat cannot be used in their own window.
+func test_both_players_get_an_entering_combat_window_active_first() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_free_hand"], 20)), deck(filler([], 20), "pact"))
+	var theirs: CardInstance = to_hand(e, 1, "t_free_hand")
+	to_combat(e)
+	eq(prompt_kind(e), &"follow_up", "the first window")
+	eq(e.prompt.player, e.state.active, "belongs to the active player")
+	eq(str(e.prompt.context.get("role", "")), "active", "and says so")
+	answer(e, &"decline")
+	eq(prompt_kind(e), &"follow_up", "then the other side is asked")
+	eq(e.prompt.player, e.state.opposing(), "the opposing player")
+	eq(str(e.prompt.context.get("role", "")), "opposing", "and that window says so too")
+	check(e.prompt.find(&"use", theirs.uid) != null, "their own copy is on offer")
+	answer(e, &"decline")
+	eq(prompt_kind(e), &"attack_action", "and then Combat proper")
+
+
+## "Use immediately after you take damage from an attack." A Non-Combat answering this timing goes
+## straight from hand: it is never placed first, and it lands in the discard pile like any card
+## used from hand.
+func test_a_card_can_answer_the_hit_it_just_took() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_strike_wound"], 30)), deck(filler([], 30), "pact"))
+	var riposte: CardInstance = to_hand(e, 1, "t_after_hit")
+	to_combat(e)
+	var attacker_deck: int = e.player(0).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_wound"))
+	settle(e, 8, [&"no_defense", &"no_endure", &"target"])
+	eq(prompt_kind(e), &"follow_up", "the player who was hit gets a window")
+	eq(e.prompt.player, 1, "it belongs to the defender, not the attacker")
+	eq(str(e.prompt.context.get("window", "")), "after_damage", "and it is that window")
+	check(e.prompt.find(&"decline") != null, "using it is optional")
+	check(e.prompt.find(&"use", riposte.uid) != null, "the Non-Combat is on offer straight from hand")
+	# The AI answers the new window from the option types it already knows, and takes a card whose
+	# effect is worth something rather than declining by default.
+	var picked: Command = AiScorer.pick(e, AiProfile.default_profile(), null, 1)
+	eq(picked.type, &"use", "the scorer uses it rather than declining")
+	eq(picked.card, riposte.uid, "and picks the card that costs the attacker three")
+	answer(e, &"use", riposte.uid)
+	eq(e.player(0).life_deck.size(), attacker_deck - 3, "the attacker lost the top 3 of their Life Deck")
+	eq(e.card(riposte.uid).zone, &"discard", "and the card went to the pile, never onto the table")
+	check(CardText.rules_text(lib.get_def("t_after_hit")).contains("immediately after you take damage from an attack"),
+		"the card says when: %s" % CardText.rules_text(lib.get_def("t_after_hit")))
+
+
+## The window opens once per attack and only when the attack landed something. `use_after_damage`
+## says which kind of damage a card answers; the default is either.
+func test_the_after_damage_window_reads_what_the_attack_actually_dealt() -> void:
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"))
+	var picky: CardInstance = to_hand(e, 1, "t_after_hit_wounds")
+	var either: CardInstance = to_hand(e, 1, "t_after_hit")
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"follow_up", "an Energy-only hit still opens the window")
+	eq(int(e.prompt.context.get("life", -1)), 0, "no wounds landed")
+	check(int(e.prompt.context.get("stages", 0)) > 0, "but Energy damage did")
+	check(e.prompt.find(&"use", either.uid) != null, "a card that answers either kind is offered")
+	check(e.prompt.find(&"use", picky.uid) == null, "one that wants wounds is not")
+	answer(e, &"decline")
+	eq(prompt_kind(e), &"attack_action", "declining hands the phase over as usual")
+	eq(e.prompt.player, 1, "to the defender, who now fights back")
+	# A stopped attack dealt nothing, so no window opens at all.
+	var f: DuelEngine = engine(deck(filler([], 20)), deck(filler(["t_parry"], 20), "pact"))
+	to_hand(f, 1, "t_after_hit")
+	to_combat(f)
+	answer(f, &"attack", uid_in_hand(f, 0, "t_strike"))
+	answer(f, &"defend", uid_in_hand(f, 1, "t_parry"))
+	eq(prompt_kind(f), &"attack_action", "a stopped attack opens no window")
+
+
+## "Stops a Strike, and stops your opponent's next Strike in their next attack phase." A
+## `next_attack_phase` float is aimed at the attacks it answers, so the phase it waits for is the
+## opponent's, not its owner's own, and the phase it was set in is not the one it means.
+func test_a_next_phase_stop_waits_for_the_phase_it_names() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_late_art_stop"], 20)), deck(filler(["t_art"], 20), "pact"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_late_art_stop"))
+	settle(e, 8, [&"no_defense", &"no_endure", &"no_critical", &"target"])
+	eq(e.state.attacker, 1, "the phase handed over")
+	answer(e, &"attack", uid_in_hand(e, 1, "t_art"))
+	check(bool(e.state.last_attack.get("stopped", false)), "their Art ran into the standing stop")
+
+
+## The same float set from the defending seat has to live through the owner's own phase in between,
+## and must not answer the attack it was played against: that one the card itself stopped.
+func test_a_stop_set_while_defending_reaches_their_next_phase() -> void:
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler(["t_guard_echo"], 20), "pact"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	answer(e, &"defend", uid_in_hand(e, 1, "t_guard_echo"))
+	check(bool(e.state.last_attack.get("stopped", false)), "the card stopped the Strike it answered")
+	var standing: bool = false
+	for f in e.state.floating:
+		if str(f.get("op", "")) == "stop_next":
+			standing = true
+	check(standing, "and its standing stop was not spent on that same attack")
+	eq(e.state.attacker, 1, "the phase handed over to the defender")
+	answer(e, &"pass")
+	eq(e.state.attacker, 0, "and back again")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	check(bool(e.state.last_attack.get("stopped", false)), "their next Strike is stopped by it")
+
+
+## "Look at their hand, choose a Strike card, they discard it." The band is a `_search_matches`
+## spec, so the filter is the same vocabulary a search uses. With nothing of that band in hand
+## nothing is discarded, but the hand was still seen.
+func test_a_hand_discard_can_name_the_band_it_takes() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_band_squall"], 20)), deck(filler([], 20), "pact"))
+	var art: CardInstance = to_hand(e, 1, "t_art")
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_band_squall"))
+	settle(e, 8, [&"no_defense", &"no_endure", &"no_critical", &"target"])
+	eq(prompt_kind(e), &"discard_choice", "the hand is shown and a card is chosen from it")
+	eq(e.prompt.player, 0, "the attacker chooses, not the owner")
+	check(has_event(e, &"hand_revealed"), "and the hand was shown first")
+	check(e.prompt.find(&"discard_choice", art.uid) == null, "an Art is out of the band and not on offer")
+	var strike_uid: int = uid_in_hand(e, 1, "t_strike")
+	check(e.prompt.find(&"discard_choice", strike_uid) != null, "a Strike is on offer")
+	answer(e, &"discard_choice", strike_uid)
+	eq(e.card(strike_uid).zone, &"discard", "the Strike went")
+	eq(e.card(art.uid).zone, &"hand", "the Art stayed")
+	# A hand with nothing of that band: seen, but nothing leaves it.
+	var arts: Array[String] = []
+	for i in range(12):
+		arts.append("t_art")
+	var f: DuelEngine = engine(deck(filler(["t_band_squall"], 20)), deck(arts, "pact"))
+	to_combat(f)
+	var held: int = f.player(1).hand.size()
+	answer(f, &"attack", uid_in_hand(f, 0, "t_band_squall"))
+	settle(f, 8, [&"no_defense", &"no_endure", &"no_critical", &"target"])
+	check(has_event(f, &"hand_revealed"), "the hand was still shown")
+	check(prompt_kind(f) != &"discard_choice", "but there was nothing of that band to choose")
+	eq(f.player(1).hand.size(), held, "and nothing left the hand")
+
+
+## "Discard one of your opponent's Non-Combat, Ally or Grounds in play": one choice over all three.
+## The Grounds is not in anyone's in-play zone, so the candidate list reaches into `state.grounds`,
+## and only when the Grounds on the table is the opponent's own card.
+func test_one_choice_can_reach_a_non_combat_an_ally_or_the_grounds() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_wedge"], 20)), deck(filler([], 20), "pact"))
+	var theirs: CardInstance = inject(e, 1, "t_ally_free")
+	e.state.grounds = e._instance(lib.get_def("t_grounds_plain"), 1, &"grounds")
+	var g: int = e.state.grounds.uid
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_wedge"))
+	eq(prompt_kind(e), &"pick_in_play", "one choice covers all three")
+	check(e.prompt.find(&"pick_in_play", g) != null, "the Grounds is one of the options")
+	check(e.prompt.find(&"pick_in_play", theirs.uid) != null, "and so is their Ally")
+	answer(e, &"pick_in_play", g)
+	check(e.state.grounds == null, "the Grounds left the table")
+	eq(e.card(g).zone, &"discard", "and went to a discard pile")
+	eq(e.card(g).owner, 1, "its owner's, which is the opponent's")
+	eq(e.card(theirs.uid).zone, &"in_play", "the Ally was the other choice, so it stayed")
+	# Your own Grounds is not the opponent's, so it is never the card that goes.
+	var f: DuelEngine = engine(deck(filler(["t_wedge"], 20)), deck(filler([], 20), "pact"))
+	inject(f, 1, "t_ally_free")
+	f.state.grounds = f._instance(lib.get_def("t_grounds_plain"), 0, &"grounds")
+	to_combat(f)
+	answer(f, &"use", uid_in_hand(f, 0, "t_wedge"))
+	check(f.state.grounds != null, "your own Grounds stays on the table")
+	var wedge_text: String = CardText.rules_text(lib.get_def("t_wedge"))
+	check(wedge_text.contains("Non-Combat card, Ally, or Grounds"), "the card names all three: %s" % wedge_text)
+
+
+## "Remove the bottom 2 cards of your discard pile from the game." The pile runs oldest first, so
+## its bottom is the front of the list and its top is the back.
+func test_a_burn_can_take_the_bottom_of_the_discard_pile() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_bottom_burn"], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	var me: PlayerState = e.player(0)
+	me.discard.clear()
+	var pile: Array[CardInstance] = []
+	for id in ["t_art", "t_strike", "t_guard", "t_parry"]:
+		var c: CardInstance = e._instance(lib.get_def(id), 0, &"discard")
+		me.discard.append(c)
+		pile.append(c)
+	answer(e, &"use", uid_in_hand(e, 0, "t_bottom_burn"))
+	eq(e.card(pile[0].uid).zone, &"removed", "the bottom card went")
+	eq(e.card(pile[1].uid).zone, &"removed", "and the one above it")
+	eq(e.card(pile[2].uid).zone, &"discard", "the rest of the pile stayed")
+	eq(e.card(pile[3].uid).zone, &"discard", "the top of it included")
+	var burn_text: String = CardText.rules_text(lib.get_def("t_bottom_burn"))
+	check(burn_text.contains("the bottom 2 cards"), "the card says which end: %s" % burn_text)
+
+
+## "Choose any cards in your discard pile and remove them from the game": no cap, and choosing none
+## is a legal answer, so the whole pile goes up as one batch.
+func test_a_burn_can_take_any_number_of_cards_from_the_pile() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_any_burn"], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	var me: PlayerState = e.player(0)
+	me.discard.clear()
+	var pile: Array[CardInstance] = []
+	for id in ["t_art", "t_strike", "t_guard"]:
+		var c: CardInstance = e._instance(lib.get_def(id), 0, &"discard")
+		me.discard.append(c)
+		pile.append(c)
+	answer(e, &"use", uid_in_hand(e, 0, "t_any_burn"))
+	eq(prompt_kind(e), &"pick_discard", "the pile is put in front of its owner")
+	eq(e.prompt.card_options().size(), 3, "every card in it is on offer")
+	check(e.prompt.find(&"pick_none") != null, "and choosing none is allowed")
+	check(e.submit(Command.new(0, &"pick_option", -1, [pile[0].uid, pile[2].uid])), "two of the three are taken at once")
+	eq(e.card(pile[0].uid).zone, &"removed", "the first picked left the game")
+	eq(e.card(pile[2].uid).zone, &"removed", "and so did the other")
+	eq(e.card(pile[1].uid).zone, &"discard", "the one left alone stayed")
+	var any_text: String = CardText.rules_text(lib.get_def("t_any_burn"))
+	check(any_text.contains("any cards in your discard pile"), "the card names no number: %s" % any_text)
+
+
+## An effect aimed at the card's own user reads as an instruction, not as third person about them.
+func test_a_hand_effect_reads_from_the_right_side() -> void:
+	var mine: String = CardText.effect_text({"op": "discard_hand", "all": true, "random": false})
+	check(mine.contains("Discard your whole hand"), "own side is an instruction: %s" % mine)
+	check(not mine.to_lower().contains("you discards"), "and never 'you discards': %s" % mine)
+	var theirs: String = CardText.effect_text({"op": "discard_hand", "who": "opponent", "all": true, "random": false})
+	check(theirs.contains("Your opponent discards their whole hand"), "their side names them: %s" % theirs)
+	var down: String = CardText.effect_text({"op": "discard_hand", "down_to": 2})
+	check(down.contains("Discard until you have"), "the down-to form too: %s" % down)
+	var gone: String = CardText.effect_text({"op": "discard_hand", "amount": 1, "to": "removed"})
+	check(gone.contains("Remove a card in your hand"), "and the remove form: %s" % gone)
+	var every: String = CardText.effect_text({"op": "discard_hand", "all": true, "random": false, "filter": "non_combat"})
+	check(every.contains("Discard every Non-Combat card in your hand"), "and the filtered form: %s" % every)
+
+
+## "All of your OTHER attacks do +N for the remainder of Combat." The line runs while the attack
+## that carries it is still in the air, so without the flag it would pay itself.
+func test_a_standing_bonus_can_leave_out_the_attack_that_set_it() -> void:
+	var paid_itself: int = float_attack_damage("t_self_boost")
+	var excluded: int = float_attack_damage("t_other_attacks")
+	check(paid_itself > excluded, "the flag keeps the bonus off its own attack: %d against %d" % [paid_itself, excluded])
+	var e: DuelEngine = engine(deck(filler(["t_other_attacks"], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_other_attacks"))
+	settle(e, 8, [&"no_defense", &"no_endure", &"no_critical", &"target"])
+	eq(e._modifiers_for(e.player(0), "own", "strike", null, {}).size(), 1,
+		"and once that attack is over the bonus is there for the ones that follow")
+	var other_text: String = CardText.rules_text(lib.get_def("t_other_attacks"))
+	check(other_text.contains("your other attacks"), "the card says 'other': %s" % other_text)
+
+
+## What one attack takes off the defending duelist's Energy, for comparing two cards.
+func float_attack_damage(id: String) -> int:
+	var e: DuelEngine = engine(deck(filler([id], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	var them: PlayerState = e.player(1)
+	var before: int = them.duelist.energy
+	answer(e, &"attack", uid_in_hand(e, 0, id))
+	settle(e, 8, [&"no_defense", &"no_endure", &"no_critical", &"target"])
+	return before - them.duelist.energy
+
+
+## "Remove the top 3 cards of your own Life Deck from the game." The cards leave off the top the
+## way a cost takes them, so anything that reads a discarded life card still fires; they just do
+## not land in the pile, which puts them past recovery.
+func test_a_rider_can_exile_the_top_of_your_own_deck() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_self_exile"], 20)), deck(filler([], 20), "pact"))
+	to_combat(e)
+	var me: PlayerState = e.player(0)
+	var doomed: Array[int] = [me.life_deck[0].uid, me.life_deck[1].uid, me.life_deck[2].uid]
+	var pile: int = me.discard.size()
+	var deck_before: int = me.life_deck.size()
+	answer(e, &"use", uid_in_hand(e, 0, "t_self_exile"))
+	eq(me.life_deck.size(), deck_before - 3, "three cards came off the top")
+	eq(me.discard.size(), pile + 1, "and none of them reached the discard pile, only the card itself")
+	for uid in doomed:
+		eq(e.card(uid).zone, &"removed", "the card is out of the duel")
+	var text: String = CardText.rules_text(lib.get_def("t_self_exile"))
+	check(text.contains("Remove the top 3 cards of your Life Deck from the game"), "the rider prints: %s" % text)
+
+
+## Two smaller gates the new cards lean on: "you must have an Ally in play to use this", and a
+## conditional Focused that reads the keyword on the personality being attacked.
+func test_a_gate_can_want_an_ally_and_a_variant_can_read_their_keyword() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_gate_needs_ally"], 20)), deck(filler([], 20), "pact", "", "", 3, "tf_marked_lord"))
+	var me: PlayerState = e.player(0)
+	var gated: CardDef = lib.get_def("t_gate_needs_ally")
+	check(not e._can_play(me, gated), "no Ally, no use")
+	inject(e, 0, "t_ally_free")
+	check(e._can_play(me, gated), "with an Ally on the table it is legal")
+	check(CardText.rules_text(gated).contains("must have an Ally in play"), "and it says so")
+	check(e._cond({"defender_tag": "marked"}, 0, {}), "the personality across the table carries the keyword")
+	check(not e._cond({"defender_tag": "marked"}, 1, {}), "ours does not")
+	var f: DuelEngine = engine(deck(filler(["t_marked_hunter"], 20)), deck(filler(["t_guard"], 20), "pact", "", "", 3, "tf_marked_lord"))
+	to_combat(f)
+	if f.prompt != null and f.prompt.player != 0:
+		answer(f, &"pass")   # the first-player rule handed the phase to the other side
+	answer(f, &"attack", uid_in_hand(f, 0, "t_marked_hunter"))
+	var guard_uid: int = uid_in_hand(f, 1, "t_guard")
+	check(guard_uid >= 0, "the defender is holding a Guard")
+	check(f.prompt == null or f.prompt.find(&"defend", guard_uid) == null,
+		"the attack is Focused against a Marked duelist, so a Guard cannot stop it")
+	# The control: the same Strike against a duelist without the keyword is not Focused.
+	var g: DuelEngine = engine(deck(filler(["t_marked_hunter"], 20)), deck(filler(["t_guard"], 20), "pact"))
+	to_combat(g)
+	if g.prompt != null and g.prompt.player != 0:
+		answer(g, &"pass")
+	answer(g, &"attack", uid_in_hand(g, 0, "t_marked_hunter"))
+	eq(prompt_kind(g), &"defense", "an unmarked duelist gets the defence window")
+	check(g.prompt.find(&"defend", uid_in_hand(g, 1, "t_guard")) != null, "and the Guard may stop it")
+
+
+# --- The Storm and Root expansion -----------------------------------------
+# These drive real shipped cards rather than fixtures, so what they assert is what a player meets.
+
+var _shipped_lib: CardLibrary = null
+var _shipped_table: StrikeTable = null
+
+
+func shipped() -> CardLibrary:
+	if _shipped_lib == null:
+		_shipped_lib = shipped_library()
+	return _shipped_lib
+
+
+## A deck of real cards. `root_timber_blow` is the padding: a plain Strike with no rider, there
+## only so neither deck runs dry, and never the card under test.
+func real_deck(cards: Array[String], alignment: String = "vigil", style: String = "", duelist_id: String = "duelist_eta") -> DeckList:
+	var out: Array[String] = cards.duplicate()
+	for i in range(24):
+		out.append("root_timber_blow")
+	return deck(out, alignment, style, "", 3, duelist_id)
+
+
+func real_engine(a: DeckList, b: DeckList, seed_value: int = 1) -> DuelEngine:
+	if _shipped_table == null:
+		_shipped_table = StrikeTable.load_from("res://data/strike_table.json")
+	var e: DuelEngine = DuelEngine.new()
+	e.shuffle_decks = false
+	var decks: Array[DeckList] = [a, b]
+	e.setup(decks, shipped(), _shipped_table, seed_value)
+	e.start()
+	return e
+
+
+func real_to_hand(e: DuelEngine, player: int, id: String) -> CardInstance:
+	var c: CardInstance = e._instance(shipped().get_def(id), player, &"hand")
+	e.player(player).hand.append(c)
+	return c
+
+
+func real_to_deck(e: DuelEngine, player: int, id: String) -> CardInstance:
+	var c: CardInstance = e._instance(shipped().get_def(id), player, &"life_deck")
+	e.player(player).life_deck.append(c)
+	return c
+
+
+func real_inject(e: DuelEngine, player: int, id: String) -> CardInstance:
+	var c: CardInstance = e._instance(shipped().get_def(id), player, &"in_play")
+	e.player(player).in_play.append(c)
+	return c
+
+
+## From the first prompt of a turn to `who`'s attack phase, whichever side the bracket made active.
+func to_attack(e: DuelEngine, who: int) -> void:
+	var guard: int = 0
+	while e.prompt != null and not e.is_over() and guard < 16:
+		guard += 1
+		if e.prompt.kind == &"attack_action" and e.prompt.player == who:
+			return
+		var quiet: Command = null
+		for t in [&"done", &"declare", &"decline", &"pass"]:
+			quiet = e.prompt.find(t)
+			if quiet != null:
+				break
+		if quiet == null:
+			return
+		e.submit(quiet)
+
+
+## Every id the expansion added is in the shipped library, under the school and type it carries.
+func test_the_expansion_cards_are_in_the_shipped_library() -> void:
+	var storm_types: Dictionary = {
+		"storm_rising_gust": "strike", "storm_twin_earthing": "strike", "storm_damping_guard": "art",
+		"storm_returning_front": "non_combat", "storm_mantle_drill": "drill",
+		"storm_dispersal_drill": "drill", "storm_tight_coil_drill": "drill",
+		"storm_conduit_drill": "drill", "storm_mustering_peal": "non_combat",
+		"storm_scattering_gale": "combat", "storm_free_current": "combat",
+		"storm_catching_stance": "art", "storm_feeding_arc": "strike", "storm_return_stroke": "strike",
+		"storm_wringing_squall": "strike", "storm_rolling_peal": "art", "storm_idle_spark": "art",
+		"storm_pent_discharge": "art", "storm_opened_channel": "strike", "storm_ungrounded_flash": "art",
+		"storm_felling_gust": "strike", "storm_residual_shock": "art", "storm_levelling_wind": "strike",
+		"storm_tailwind": "strike", "storm_cold_front": "art", "storm_silencing_static": "art"}
+	var root_types: Dictionary = {
+		"root_windbreak_drill": "drill", "root_canopy_drill": "drill", "root_sightline_drill": "drill",
+		"root_deep_draught": "non_combat", "root_thorn_hedge": "non_combat",
+		"root_carvers_reach": "strike", "root_timber_blow": "strike", "root_millstone": "strike",
+		"root_rising_sap": "strike", "root_pruning_cut": "strike", "root_deadfall": "strike",
+		"root_briar_tangle": "strike", "root_quickening": "strike", "root_snare": "strike",
+		"root_splitting_wedge": "strike", "root_grove_fury": "strike", "root_bindweed": "strike",
+		"root_sapwood_guard": "strike", "root_taproot_brace": "strike", "root_barred_path": "combat",
+		"root_closing_bark": "combat", "root_trail_cut": "combat", "root_kin_clearing": "combat",
+		"root_first_frost": "art", "root_auger_splinter": "art", "root_flung_stone": "art",
+		"root_scattered_seed": "art", "root_old_growth": "art", "root_culling_frost": "art"}
+	eq(storm_types.size(), 26, "26 Storm cards were approved")
+	eq(root_types.size(), 29, "29 Root cards were approved")
+	for school in ["storm", "root"]:
+		var wanted: Dictionary = storm_types if school == "storm" else root_types
+		for id in wanted.keys():
+			var def: CardDef = shipped().get_def(str(id))
+			check(def != null, "%s is in the shipped library" % id)
+			if def == null:
+				continue
+			eq(def.school, school, "%s carries its school" % id)
+			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
+			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
+	eq(shipped().defs.size(), 397, "and the set is 342 cards plus the 55 new ones")
+
+
+## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
+## which is how the band and the stop are read apart.
+func test_the_storm_strike_answers_stop_a_strike() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "storm"))
+	var gust: CardInstance = real_to_hand(e, 1, "storm_rising_gust")
+	var damp: CardInstance = real_to_hand(e, 1, "storm_damping_guard")
+	e.player(0).fervor = 2
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_timber_blow"))
+	eq(prompt_kind(e), &"defense", "the defender is offered an answer")
+	check(e.prompt.find(&"defend", gust.uid) != null, "the Strike-band answer is legal")
+	check(e.prompt.find(&"defend", damp.uid) != null, "so is the one printed in the Art band")
+	answer(e, &"defend", gust.uid)
+	check(has_event(e, &"attack_stopped"), "the Strike was stopped")
+	eq(e.player(1).fervor, 1, "and the blocker's Fervor went up 1")
+	eq(e.player(0).fervor, 2, "the attacker's is untouched by that one")
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "storm"))
+	var damp2: CardInstance = real_to_hand(f, 1, "storm_damping_guard")
+	f.player(0).fervor = 2
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_timber_blow"))
+	answer(f, &"defend", damp2.uid)
+	check(has_event(f, &"attack_stopped"), "the Art-band answer stops the Strike too")
+	eq(f.player(0).fervor, 1, "and takes a Fervor off the attacker")
+
+
+## "Stops a Strike, and stop their next Strike in their next attack phase." The second stop is a
+## floating one, so the card is spent and the stop is still waiting.
+func test_storm_twin_earthing_stops_their_next_strike_as_well() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "storm"))
+	var twin: CardInstance = real_to_hand(e, 1, "storm_twin_earthing")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_timber_blow"))
+	answer(e, &"defend", twin.uid)
+	check(has_event(e, &"attack_stopped"), "the first Strike was stopped")
+	eq(e.card(twin.uid).zone, &"discard", "the card itself is spent")
+	answer(e, &"pass")
+	var deck_before: int = e.player(1).life_deck.size()
+	var energy_before: int = e.player(1).duelist.energy
+	answer(e, &"attack", uid_in_hand(e, 0, "root_timber_blow"))
+	eq(e.player(1).life_deck.size(), deck_before, "their next Strike is stopped with no card spent")
+	check(has_event(e, &"floating_stop"), "the standing effect is what stopped it")
+	check(e.player(1).duelist.energy >= energy_before, "and it cost the defender no Energy either")
+
+
+## Two Drills, one for each attack kind, each answering the first unstopped attack of its kind.
+func test_the_expansion_shield_drills_take_one_attack_of_their_kind() -> void:
+	for pair in [["storm_mantle_drill", "root_timber_blow"], ["root_windbreak_drill", "root_timber_blow"]]:
+		var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "root"))
+		real_inject(e, 1, str(pair[0]))
+		to_attack(e, 0)
+		var before: int = e.player(1).duelist.energy
+		answer(e, &"attack", uid_in_hand(e, 0, str(pair[1])))
+		check(has_event(e, &"shield"), "%s fired against the Strike" % pair[0])
+		eq(e.player(1).duelist.energy, before, "nothing landed")
+	# The Art shields answer an Art and leave a Strike alone.
+	var f: DuelEngine = real_engine(real_deck(["storm_cold_front"], "pact"), real_deck([], "vigil", "root"))
+	real_inject(f, 1, "root_canopy_drill")
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_timber_blow"))
+	check(not has_event(f, &"shield"), "the Art shield does not answer a Strike")
+
+
+## `scope: "cost"` on a Drill against a printed cost of 0 on a card: the two ends of the band.
+func test_storm_conduit_drill_and_idle_spark_move_what_an_art_costs() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_idle_spark"], "pact", "storm"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var plain: Dictionary = shipped().get_def("storm_cold_front").attack
+	eq(e._cost_stages(plain, me), 2, "an Art costs 2 to start with")
+	eq(e._cost_stages(shipped().get_def("storm_idle_spark").attack, me), 0, "the free Art costs nothing")
+	real_inject(e, 0, "storm_conduit_drill")
+	eq(e._cost_stages(plain, me), 1, "the Drill takes an Art from 2 to 1")
+	eq(e._cost_stages(shipped().get_def("root_timber_blow").attack, me), 0, "and leaves Strikes alone")
+	eq(e._cost_stages(plain, e.player(1)), 2, "the other side pays full price")
+
+
+## "Choose 1 or 2 of your opponent's Seals in play and put them at the bottom of their Life Deck."
+func test_storm_scattering_gale_puts_their_seals_under_their_deck() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_scattering_gale"], "pact", "storm"), real_deck([], "vigil"))
+	var first: CardInstance = real_inject(e, 1, "marble_seal_1")
+	var second: CardInstance = real_inject(e, 1, "marble_seal_2")
+	to_attack(e, 0)
+	answer(e, &"use", uid_in_hand(e, 0, "storm_scattering_gale"))
+	eq(prompt_kind(e), &"pick_in_play", "the user chooses which Seals go under")
+	eq(e.prompt.player, 0, "and the choice is theirs, not the owner's")
+	check(e.prompt.find(&"pick_none") != null, "\"1 or 2\" lets one of them stay")
+	check(e.submit(Command.new(0, &"pick_in_play", -1, [first.uid, second.uid])), "both go under")
+	var theirs: Array[CardInstance] = e.player(1).life_deck
+	eq(e.card(first.uid).zone, &"life_deck", "the Seal went to the deck, not the discard pile")
+	eq(theirs[theirs.size() - 2].uid, first.uid, "the one chosen first sits above the other")
+	eq(e.player(1).seals().size(), 0, "neither is in play any more")
+
+
+## "Reveal your hand; if 3 or more cards in it are Storm cards, attach this to your duelist, and
+## while it is there your duelist pays nothing for card effects."
+func test_storm_free_current_waives_costs_for_a_storm_hand() -> void:
+	# The card has to be in hand before either player prepares: the opposing player's own draw
+	# comes after both preparation windows, so a card drawn for this Combat misses its window.
+	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var rider: CardInstance = real_to_hand(e, 0, "storm_free_current")
+	for i in range(3):
+		real_to_hand(e, 0, "storm_cold_front")
+	var art: Dictionary = shipped().get_def("storm_cold_front").attack
+	eq(e._cost_stages(art, me), 2, "an Art costs 2 to start with")
+	if e.prompt != null and e.prompt.kind == &"non_combat":
+		answer(e, &"done")
+	answer(e, &"declare")
+	while e.prompt != null and e.prompt.kind == &"follow_up" and e.prompt.player != 0:
+		answer(e, &"decline")
+	eq(prompt_kind(e), &"follow_up", "entering Combat opens the card's own window")
+	eq(str(e.prompt.context.get("window", "")), "entering_combat", "and it is that window")
+	eq(e.prompt.player, 0, "for the player holding it")
+	check(e.prompt.find(&"decline") != null, "using it is optional")
+	answer(e, &"use", rider.uid)
+	check(has_event(e, &"hand_revealed"), "the hand was shown before it was counted")
+	eq(me.attachments().size(), 1, "three school cards in hand, so it rode onto the duelist")
+	eq(me.attachments()[0].attached_to, me.duelist, "onto the duelist, not the card in control")
+	eq(e._cost_stages(art, me), 0, "and attacks cost nothing while it is there")
+	# A hand short of the school leaves it with nothing to do.
+	var f: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var lone: CardInstance = real_to_hand(f, 0, "storm_free_current")
+	if f.prompt != null and f.prompt.kind == &"non_combat":
+		answer(f, &"done")
+	answer(f, &"declare")
+	while f.prompt != null and f.prompt.kind == &"follow_up" and f.prompt.player != 0:
+		answer(f, &"decline")
+	answer(f, &"use", lone.uid)
+	check(has_event(f, &"hand_revealed"), "the hand was still shown")
+	eq(f.player(0).attachments().size(), 0, "but a hand without the school attaches nothing")
+	eq(f._cost_stages(shipped().get_def("storm_cold_front").attack, f.player(0)), 2, "so an Art still costs 2")
+
+
+## "Use only after you have taken 5 or more wounds from a single attack this Combat. Search your
+## discard pile for up to 3 Allies and put them into play at full Energy."
+func test_storm_mustering_peal_waits_for_a_five_wound_hit() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_old_growth"], "pact"), real_deck([], "vigil", "storm"))
+	var peal: CardDef = shipped().get_def("storm_mustering_peal")
+	var them: PlayerState = e.player(1)
+	real_to_hand(e, 1, "storm_mustering_peal")
+	check(not e._can_play(them, peal), "nothing has landed yet, so the card cannot be used")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_old_growth"))
+	settle(e, 8)
+	check(them.worst_wound_combat >= 5, "the hit is remembered as %d wounds" % them.worst_wound_combat)
+	check(e._can_play(them, peal), "and now the card may be used")
+	check(CardText.rules_text(peal).contains("5 or more wounds from a single attack this Combat"),
+		"the gate prints: %s" % CardText.rules_text(peal))
+
+
+## "Name a card that can perform a Strike. Search their Life Deck for every copy and discard them."
+func test_storm_silencing_static_names_a_strike_and_strips_their_deck() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_silencing_static"], "pact", "storm"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	real_to_deck(e, 1, "storm_cold_front")
+	to_attack(e, 0)
+	var before: int = them.life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_silencing_static"))
+	settle(e, 8)
+	eq(prompt_kind(e), &"name_card", "naming is a prompt, not an assumption")
+	eq(e.prompt.player, 0, "the searcher names it")
+	check(e.prompt.find(&"name_card", -1, "Root Timber Blow") != null, "a card that performs a Strike is on the list")
+	check(e.prompt.find(&"name_card", -1, "Storm Cold Front") == null, "an Art is not")
+	check(e.prompt.find(&"pick_none") != null, "and nothing may be named")
+	answer(e, &"name_card", -1, "Root Timber Blow")
+	check(them.life_deck.size() < before, "every copy came out of their deck")
+	for c in them.life_deck:
+		check(c.def.id != "root_timber_blow", "none of them is left in the deck")
+	var in_pile: int = 0
+	for c in them.discard:
+		if c.def.id == "root_timber_blow":
+			in_pile += 1
+	check(in_pile > 0, "and they are in their discard pile, not out of the game")
+
+
+## An attack that refills on a hit, and a Non-Combat that stops from the table and goes back under
+## the Life Deck rather than to the pile.
+func test_storm_return_stroke_refills_and_returning_front_goes_under_the_deck() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_return_stroke"], "pact", "storm"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	me.duelist.energy = 1
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_return_stroke"))
+	settle(e, 8)
+	eq(me.duelist.energy, CardInstance.MAX_STAGE, "a hit leaves the duelist at full Energy")
+	eq(me.fervor, 1, "and the Fervor rise is not conditional on the hit")
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "storm"))
+	var front: CardInstance = real_inject(f, 1, "storm_returning_front")
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_timber_blow"))
+	check(f.prompt != null and f.prompt.find(&"defend", front.uid) != null, "the Non-Combat can answer from the table")
+	answer(f, &"defend", front.uid)
+	check(has_event(f, &"attack_stopped"), "it stopped the Strike")
+	eq(f.card(front.uid).zone, &"life_deck", "and went into the Life Deck, not the discard pile")
+	eq(f.player(1).life_deck.back().uid, front.uid, "at the bottom of it")
+
+
+## "Look at the top 2 cards of your Life Deck and put them all on top or all on the bottom."
+func test_root_sightline_drill_sends_the_whole_look_to_one_end() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "vigil", "root"), real_deck([], "pact"))
+	real_inject(e, 0, "root_sightline_drill")
+	if e.prompt != null and e.prompt.kind == &"non_combat":
+		answer(e, &"done")
+	answer(e, &"declare")
+	eq(prompt_kind(e), &"pick_option", "the Drill asks which end")
+	eq(str(e.prompt.context.get("purpose", "")), "look_place", "top or bottom, for the whole look")
+	var looked: Array = e.prompt.context.get("library", [])
+	eq(looked.size(), 2, "two cards were looked at")
+	var seen_a: int = int(looked[0])
+	var seen_b: int = int(looked[1])
+	answer(e, &"pick_option", -1, "bottom")
+	answer(e, &"pick_option", seen_b)
+	var mine: Array[CardInstance] = e.player(0).life_deck
+	eq(mine[mine.size() - 1].uid, seen_b, "the card placed first is the bottom card")
+	eq(mine[mine.size() - 2].uid, seen_a, "and the other sits above it")
+	check(not has_event(e, &"deck_shuffled"), "nothing was shuffled")
+
+
+## "Look at the top 4 cards of their Life Deck, remove 1 non-Seal from the game, put the rest back."
+func test_root_trail_cut_reaches_into_their_deck() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_trail_cut"], "vigil", "root"), real_deck([], "pact"))
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var seal: CardInstance = e._instance(shipped().get_def("marble_seal_1"), 1, &"life_deck")
+	them.life_deck.insert(0, seal)
+	var top: Array[int] = []
+	for i in range(4):
+		top.append(them.life_deck[i].uid)
+	answer(e, &"use", uid_in_hand(e, 0, "root_trail_cut"))
+	eq(prompt_kind(e), &"pick_option", "the looker picks what goes")
+	eq(e.prompt.player, 0, "and it is the looker's pick, not the owner's")
+	check(e.prompt.find(&"pick_none") == null, "\"Remove 1\" is not a may")
+	check(e.prompt.find(&"pick_option", seal.uid) == null, "a Seal is never a legal pick")
+	eq((e.prompt.context.get("library", []) as Array).size(), 4, "all four are shown to the looker")
+	check(SeatView.of(e, 1).card(top[3]).hidden(), "the owner sees none of it")
+	var gone: int = top[1]
+	answer(e, &"pick_option", gone)
+	eq(e.card(gone).zone, &"removed", "the picked card left the game")
+
+
+## "Use immediately after you take damage from an attack: they lose the top 3 of their Life Deck."
+func test_root_thorn_hedge_answers_the_hit_it_just_took() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_millstone"], "pact"), real_deck([], "vigil", "root"))
+	var hedge: CardInstance = real_to_hand(e, 1, "root_thorn_hedge")
+	to_attack(e, 0)
+	var attacker_deck: int = e.player(0).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "root_millstone"))
+	settle(e, 8, [&"no_defense", &"no_endure", &"target"])
+	eq(prompt_kind(e), &"follow_up", "the player who was hit gets a window")
+	eq(e.prompt.player, 1, "it belongs to the defender, not the attacker")
+	eq(str(e.prompt.context.get("window", "")), "after_damage", "and it is that window")
+	check(e.prompt.find(&"use", hedge.uid) != null, "the Non-Combat is on offer straight from hand")
+	answer(e, &"use", hedge.uid)
+	eq(e.player(0).life_deck.size(), attacker_deck - 3, "the attacker lost the top 3 of their Life Deck")
+	eq(e.card(hedge.uid).zone, &"discard", "and the card went to the pile, never onto the table")
+
+
+## "If performed against a Marked duelist, this attack is Focused." The keyword is read off the
+## personality being attacked, not off the attacker.
+func test_root_quickening_is_focused_against_a_marked_duelist() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_quickening"], "vigil", "root"),
+		real_deck([], "pact", "", "duelist_lambda"))
+	check(e._cond({"defender_tag": "marked"}, 0, {}), "the personality across the table carries the keyword")
+	check(not e._cond({"defender_tag": "marked"}, 1, {}), "ours does not")
+	# A stop that answers either kind is the one Focused shuts out; a stop that names the kind
+	# still works, which is the game's rule and not this card's.
+	var any_stop: CardInstance = real_to_hand(e, 1, "root_barred_path")
+	var kind_stop: CardInstance = real_to_hand(e, 1, "root_sapwood_guard")
+	to_attack(e, 0)
+	var before: int = e.player(0).duelist.energy
+	answer(e, &"attack", uid_in_hand(e, 0, "root_quickening"))
+	eq(prompt_kind(e), &"defense", "the defence window still opens")
+	check(e.prompt.find(&"defend", any_stop.uid) == null,
+		"the attack is Focused against a Marked duelist, so the universal stop cannot answer it")
+	check(e.prompt.find(&"defend", kind_stop.uid) != null, "a stop that names Strikes still can")
+	settle(e, 8)
+	eq(e.player(0).duelist.energy, mini(CardInstance.MAX_STAGE, before + 4), "and the attacker gained 4 Energy")
+	# The control: the same Strike against an unmarked duelist is not Focused.
+	var g: DuelEngine = real_engine(real_deck(["root_quickening"], "vigil", "root"), real_deck([], "pact"))
+	var open_stop: CardInstance = real_to_hand(g, 1, "root_barred_path")
+	to_attack(g, 0)
+	answer(g, &"attack", uid_in_hand(g, 0, "root_quickening"))
+	eq(prompt_kind(g), &"defense", "an unmarked duelist gets the defence window")
+	check(g.prompt.find(&"defend", open_stop.uid) != null, "and the universal stop may answer it")
+
+
+## "You must have an Ally in play to use this card. They discard all their Non-Combat cards."
+func test_root_kin_clearing_needs_an_ally_before_it_clears_the_table() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_kin_clearing"], "vigil", "root"), real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	var gated: CardDef = shipped().get_def("root_kin_clearing")
+	eq(gated.limit_per_deck, 1, "the printed limit is carried")
+	check(not e._can_play(me, gated), "no Ally, no use")
+	real_inject(e, 1, "root_canopy_drill")
+	real_inject(e, 1, "storm_tight_coil_drill")
+	real_inject(e, 0, "companion_delta")
+	check(e._can_play(me, gated), "with an Ally on the table it is legal")
+	to_attack(e, 0)
+	answer(e, &"use", uid_in_hand(e, 0, "root_kin_clearing"))
+	eq(e.player(1).drills().size(), 0, "every standing card of theirs went")
+	check(CardText.rules_text(gated).contains("must have an Ally in play"), "and the card says so")
+
+
+## The 10-wound finisher: it exiles the top of your own Life Deck when it lands, and costs you the
+## hand when it is stopped.
+func test_root_old_growth_spends_your_own_deck_or_your_hand() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_old_growth"], "vigil", "root"), real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	var doomed: Array[int] = [me.life_deck[0].uid, me.life_deck[1].uid, me.life_deck[2].uid]
+	var pile: int = me.discard.size()
+	var attack_uid: int = uid_in_hand(e, 0, "root_old_growth")
+	answer(e, &"attack", attack_uid)
+	settle(e, 10)
+	for uid in doomed:
+		eq(e.card(uid).zone, &"removed", "a card off the top of your own deck is out of the duel")
+	eq(me.discard.size(), pile, "none of them reached your discard pile")
+	eq(e.card(attack_uid).zone, &"removed", "and the card itself is removed from the game after use")
+	# Stopped instead: the hand goes.
+	var f: DuelEngine = real_engine(real_deck(["root_old_growth"], "vigil", "root"), real_deck([], "pact"))
+	var block: CardInstance = real_to_hand(f, 1, "root_barred_path")
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_old_growth"))
+	check(f.prompt != null and f.prompt.find(&"defend", block.uid) != null, "the universal stop answers an Art")
+	answer(f, &"defend", block.uid)
+	settle(f, 8)
+	eq(f.player(0).hand.size(), 0, "a stopped attack costs the attacker their whole hand")
+	eq(f.card(block.uid).zone, &"removed", "and the stop is removed from the game after use")
+
+
+## "If successful, put the bottom 3 of your discard pile under your Life Deck. If stopped, remove
+## 2 of them from the game." It pays whichever way the attack goes.
+func test_root_scattered_seed_pays_whether_it_lands_or_not() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_scattered_seed"], "vigil", "root"), real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	var oldest: Array[int] = []
+	for i in range(3):
+		var c: CardInstance = e._instance(shipped().get_def("root_timber_blow"), 0, &"discard")
+		me.discard.append(c)
+		oldest.append(c.uid)
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_scattered_seed"))
+	settle(e, 10)
+	for uid in oldest:
+		eq(e.card(uid).zone, &"life_deck", "the oldest three went back into the deck")
+	eq(me.life_deck.back().uid, oldest[2], "under it, in order, with no shuffle")
+	var f: DuelEngine = real_engine(real_deck(["root_scattered_seed"], "vigil", "root"), real_deck([], "pact"))
+	var them_block: CardInstance = real_to_hand(f, 1, "root_barred_path")
+	var burned: CardInstance = f._instance(shipped().get_def("root_timber_blow"), 0, &"discard")
+	f.player(0).discard.append(burned)
+	var second: CardInstance = f._instance(shipped().get_def("root_timber_blow"), 0, &"discard")
+	f.player(0).discard.append(second)
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_scattered_seed"))
+	answer(f, &"defend", them_block.uid)
+	settle(f, 8)
+	eq(f.card(second.uid).zone, &"removed", "a stop costs the seed instead")
+
+
+## "This attack stays on the table to be used 2 more times this Combat."
+func test_root_briar_tangle_remains_for_two_more_uses() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_briar_tangle"], "vigil", "root"), real_deck([], "pact"))
+	to_attack(e, 0)
+	var uid: int = uid_in_hand(e, 0, "root_briar_tangle")
+	answer(e, &"attack", uid)
+	settle(e, 8)
+	eq(e.card(uid).zone, &"in_play", "the card stays on the table")
+	eq(e.card(uid).remain, 2, "with two more uses")
+	answer(e, &"pass")
+	answer(e, &"attack", uid)
+	settle(e, 8)
+	eq(e.card(uid).remain, 1, "one left after the second")
+	answer(e, &"pass")
+	answer(e, &"attack", uid)
+	settle(e, 8)
+	eq(e.card(uid).zone, &"removed", "and it is removed from the game after the third")

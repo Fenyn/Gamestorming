@@ -122,18 +122,33 @@ func _run() -> void:
 	var readout: Control = duel.near_duelist.readout
 	_check(readout._life == duel.view.player(0).life_deck.size(), "Medallion Life must match the displayed seat")
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must display the actual remaining deck size")
+	_check(duel.near_duelist.life_value.visible and duel.far_duelist.life_value.visible, "Life must remain attached to each physical Life Deck")
+	_check(is_equal_approx(float(readout.update_layout()["tracker"].size.x), 540.0), "Fighter readout must keep Energy, Might, and Fervor in one consistent strip")
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
 		_check(is_equal_approx(life_slot.origin.z, identity_slot.origin.z), "Each Life Deck must share its duelist's table row")
-		_check(life_slot.origin.distance_to(identity_slot.origin) < 2.0, "Each Life Deck must sit beside its own duelist")
+		_check(life_slot.origin.distance_to(identity_slot.origin) < 1.1, "Each Life Deck must sit close beside its own duelist")
 	# The backline left the felt: the piles and the two used cards are rail rows, and the table
 	# keeps no zone for them at all.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
 		_check(not TableLayout.SINGLES.has(zone) and not TableLayout.ROWS.has(zone), "The table must hold no %s zone" % zone)
 	for rail in [duel.hud.near_backline, duel.hud.far_backline]:
+		_check(rail.title.text == "BACKLINE" and rail.well_height() <= 75.0, "Backline must stay compact and avoid repeating fighter identity")
+		var rail_player: SeatPlayer = duel.view.player(rail.player)
 		for zone in BacklineRail.ROWS:
 			_check(rail.row_anchor(zone) != Vector2.ZERO, "The rail must anchor its %s row" % zone)
+			var caption: Label = rail._captions[zone]
+			var occupied: bool = rail_player.mastery >= 0 if zone == &"mastery" else (
+				rail_player.relic >= 0 or not rail_player.reserve.is_empty() if zone == &"relic" else (
+					not rail_player.discard.is_empty() if zone == &"discard" else not rail_player.removed.is_empty()))
+			_check(caption.visible == occupied, "Only an occupied %s backline slot may carry a caption" % zone)
+	var near_resolving: Transform3D = duel.zones.slot(0, &"resolving", 0, 1, 0)
+	var far_resolving: Transform3D = duel.zones.slot(1, &"resolving", 0, 1, 0)
+	var near_fighter: Transform3D = duel.zones.slot(0, &"duelist", 0, 1, 0)
+	var far_fighter: Transform3D = duel.zones.slot(1, &"duelist", 0, 1, 0)
+	_check(near_resolving.origin.z > far_fighter.origin.z and near_resolving.origin.z < near_fighter.origin.z, "Committed cards must occupy the exchange lane between fighters")
+	_check(near_resolving.origin.x > 0.0 and far_resolving.origin.x < 0.0, "Attack and response cards must retain readable owner sides in the exchange lane")
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
 	# Camera zoom changes the projected card footprint; attached resource crests must move
@@ -355,3 +370,5 @@ func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	_check(not fixture.hit_test(card_center, duel.camera), "A click on the actual card center must never be intercepted by its resource display")
 	var life_center: Vector2 = duel.camera.unproject_position(fixture.life_transform.origin)
 	_check(not fixture.hit_test(life_center, duel.camera), "Life Deck center must remain clear of surrounding resource hit regions")
+	var life_number: Vector2 = duel.camera.unproject_position(fixture.life_value.global_position)
+	_check(life_number.distance_to(life_center) < 30.0, "Life number must stay visually anchored to the physical Life Deck")

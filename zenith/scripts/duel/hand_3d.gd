@@ -1,7 +1,7 @@
 class_name Hand3D
 extends Node3D
 ## Camera-relative physical cards. Screen rectangles are used only for stable picking; the
-## faces, captions, depth, fan and hover lift are all rendered by the 3D scene.
+## faces, captions, depth, fan and reading preview are all rendered by the 3D scene.
 
 signal clicked(uid: int)
 signal hovered(uid: int, over: bool)
@@ -44,6 +44,13 @@ var _expanded_rect: Rect2
 var _page: int = 0
 var _per_page: int = 7
 var _hint: Label3D
+var _preview: Node3D
+var _preview_face: Sprite3D
+var _preview_edge: MeshInstance3D
+var _preview_border: Node3D
+var _preview_title: Label3D
+var _preview_summary: Label3D
+var _handoff_rect: Rect2 = Rect2()
 var _hero_left: float = -1.0
 var _hero_right: float = -1.0
 var _hero_bottom: float = -1.0
@@ -54,10 +61,36 @@ func _ready() -> void:
 	_camera = get_parent() as Camera3D
 	_hint = _label(21, ZenithTheme.MUTED)
 	add_child(_hint)
+	_preview = Node3D.new()
+	add_child(_preview)
+	_preview_face = Sprite3D.new()
+	_preview_face.shaded = false
+	_preview_face.no_depth_test = true
+	_preview_face.double_sided = false
+	_preview_face.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	_preview_face.render_priority = 30
+	_preview.add_child(_preview_face)
+	_preview_edge = MeshInstance3D.new()
+	_preview_edge.mesh = QuadMesh.new()
+	var preview_aura: ShaderMaterial = ShaderMaterial.new()
+	preview_aura.shader = AURA
+	_preview_edge.material_override = preview_aura
+	_preview_edge.position.z = -0.003
+	_preview.add_child(_preview_edge)
+	_preview_border = BORDER_FX.instantiate()
+	_preview.add_child(_preview_border)
+	_preview_title = _label(24, ZenithTheme.TEXT)
+	_preview_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_preview_title.render_priority = 31
+	_preview.add_child(_preview_title)
+	_preview_summary = _label(23, ZenithTheme.MUTED)
+	_preview_summary.render_priority = 31
+	_preview.add_child(_preview_summary)
+	_preview.hide()
 
 
-## The duel scene supplies the player's projected Life-and-fighter span. Only the enlarged
-## card uses it; the fan keeps its physical position along the bottom edge.
+## The duel scene supplies the player's projected Life-and-fighter span. The reading face
+## uses it; the physical cards keep their fan positions along the bottom edge.
 func set_hero_bounds(left: float, right: float, bottom: float) -> void:
 	if absf(_hero_left - left) < 1.0 and absf(_hero_right - right) < 1.0 and absf(_hero_bottom - bottom) < 1.0:
 		return
@@ -308,10 +341,12 @@ func _layout(snap: bool = false) -> void:
 		return
 	_size = get_viewport().get_visible_rect().size
 	_expanded_rect = Rect2()
+	_handoff_rect = Rect2()
+	_preview.hide()
 	var width: float = minf(CARD_WIDTH, _size.x * 0.105)
 	if revealed and _hero_bottom >= 0.0:
-		# The open fan remains fully visible below the player's readout; the raised card carries
-		# the legible face and forecast when the lower shelf must contract.
+		# The open fan remains fully visible below the player's readout; the separate reading
+		# face carries legible details when the lower shelf must contract.
 		var room_below_hero: float = maxf(84.0, _size.y - _hero_bottom - PREVIEW_MARGIN - 20.0)
 		width = minf(width, room_below_hero * FACE_SIZE.x / FACE_SIZE.y)
 	var height: float = width * FACE_SIZE.y / FACE_SIZE.x
@@ -353,35 +388,13 @@ func _layout(snap: bool = false) -> void:
 		var offset: float = i - first - (count - 1) * 0.5
 		var center: Vector2 = Vector2(_size.x * 0.52 + fan_shift + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0 + fan_drop)
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
-		var scale_factor: float = 1.0
-		if over:
-			var hero_left: float = _hero_left if _hero_left >= 0.0 else _size.x * 0.40
-			var hero_right: float = _hero_right if _hero_right >= 0.0 else _size.x * 0.58
-			var preview_top: float = _size.y - minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height) * height - 58.0
-			var right_end: float = _size.x - 48.0
-			if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > preview_top:
-				right_end = minf(right_end, _decision_rect.position.x - PREVIEW_MARGIN)
-			var left_width: float = maxf(0.0, hero_left - PREVIEW_MARGIN - BACKLINE_CLEAR)
-			var right_width: float = maxf(0.0, right_end - hero_right - PREVIEW_MARGIN)
-			var left_lane: bool = center.x < (hero_left + hero_right) * 0.5
-			if left_lane and left_width < width and right_width > left_width:
-				left_lane = false
-			elif not left_lane and right_width < width and left_width > right_width:
-				left_lane = true
-			var lane_start: float = BACKLINE_CLEAR if left_lane else hero_right + PREVIEW_MARGIN
-			var lane_end: float = hero_left - PREVIEW_MARGIN if left_lane else right_end
-			scale_factor = minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height)
-			scale_factor = minf(scale_factor, maxf(0.2, (lane_end - lane_start) / width))
-			center.y = _size.y - height * scale_factor * 0.5 - 58.0
-			center.x = clampf(center.x, lane_start + width * scale_factor * 0.5, lane_end - width * scale_factor * 0.5)
-			_expanded_rect = Rect2(center - Vector2(width, height) * scale_factor * 0.5, Vector2(width, height) * scale_factor)
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
 			center.y = _size.y + height * (0.5 - RESTING_VISIBLE_FRACTION)
 		var depth: float = DEPTH - (0.2 if over else 0.001 * i)
 		item["target"] = _camera.to_local(_camera.project_position(center, depth))
-		item["scale"] = scale_factor * depth / DEPTH
-		item["angle"] = 0.0 if over else deg_to_rad(-offset * 2.0)
+		item["scale"] = depth / DEPTH
+		item["angle"] = deg_to_rad(-offset * 2.0)
 		var face: Sprite3D = item["face"]
 		face.pixel_size = width / FACE_SIZE.x * units
 		face.render_priority = 30 if over else 10 + i % _per_page
@@ -400,16 +413,18 @@ func _layout(snap: bool = false) -> void:
 		var title: Label3D = item["title"]
 		title.modulate = ZenithTheme.MUTED if dulled else ZenithTheme.TEXT
 		title.render_priority = face.render_priority
-		title.pixel_size = units * 0.5 / scale_factor
-		title.width = width * 2.0 * scale_factor - 12.0
-		title.position = Vector3(0, height * units * 0.5 + 24.0 * units / scale_factor, 0.004)
-		title.text = item["hover_title"] if over else item["title_text"]
-		title.visible = revealed and (over or fan_drop <= 1.0)
+		title.pixel_size = units * 0.5
+		title.width = width * 2.0 - 12.0
+		title.position = Vector3(0, height * units * 0.5 + 24.0 * units, 0.004)
+		title.text = item["title_text"]
+		title.visible = revealed and fan_drop <= 1.0
 		var summary: Label3D = item["summary"]
 		summary.render_priority = face.render_priority + 1
-		summary.visible = revealed and (over or fan_drop <= 1.0)
-		summary.pixel_size = units * 0.5 / scale_factor
-		summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units / scale_factor, 0.005)
+		summary.visible = revealed and fan_drop <= 1.0
+		summary.pixel_size = units * 0.5
+		summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units, 0.005)
+		if over:
+			_layout_preview(item, width, height, units)
 		if snap:
 			node.position = item["target"]
 			node.rotation.z = float(item["angle"])
@@ -421,6 +436,68 @@ func _layout(snap: bool = false) -> void:
 	_hint.pixel_size = units * 0.5
 	_hint.position = _camera.to_local(_camera.project_position(Vector2(_size.x * 0.52, _size.y - 15.0), DEPTH - 0.25))
 	_hint.visible = revealed and not _items.is_empty() and _hovered < 0
+
+
+## The source card stays in its fan slot for direct pointer tracking. A separate face occupies
+## the safe reading lane, so moving the pointer does not leave an invisible card-shaped target.
+func _layout_preview(item: Dictionary, width: float, height: float, units: float) -> void:
+	var source: Rect2 = item["rect"]
+	var hero_left: float = _hero_left if _hero_left >= 0.0 else _size.x * 0.40
+	var hero_right: float = _hero_right if _hero_right >= 0.0 else _size.x * 0.58
+	var preview_top: float = _size.y - minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height) * height - 58.0
+	var right_end: float = _size.x - 48.0
+	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > preview_top:
+		right_end = minf(right_end, _decision_rect.position.x - PREVIEW_MARGIN)
+	var left_end: float = minf(hero_left - PREVIEW_MARGIN, source.position.x - PREVIEW_MARGIN)
+	var right_start: float = maxf(hero_right + PREVIEW_MARGIN, source.end.x + PREVIEW_MARGIN)
+	var left_width: float = maxf(0.0, left_end - BACKLINE_CLEAR)
+	var right_width: float = maxf(0.0, right_end - right_start)
+	var left_lane: bool = source.get_center().x < (hero_left + hero_right) * 0.5
+	if left_lane and left_width < width and right_width > left_width:
+		left_lane = false
+	elif not left_lane and right_width < width and left_width > right_width:
+		left_lane = true
+	var lane_start: float = BACKLINE_CLEAR if left_lane else right_start
+	var lane_end: float = left_end if left_lane else right_end
+	var scale_factor: float = minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height)
+	scale_factor = minf(scale_factor, maxf(0.2, (lane_end - lane_start) / width))
+	var center: Vector2 = source.get_center()
+	center.y = _size.y - height * scale_factor * 0.5 - 58.0
+	center.x = clampf(center.x, lane_start + width * scale_factor * 0.5, lane_end - width * scale_factor * 0.5)
+	_expanded_rect = Rect2(center - Vector2(width, height) * scale_factor * 0.5, Vector2(width, height) * scale_factor)
+	var overlap_top: float = maxf(source.position.y, _expanded_rect.position.y)
+	var overlap_bottom: float = minf(source.end.y, _expanded_rect.end.y)
+	if overlap_bottom > overlap_top:
+		if _expanded_rect.end.x < source.position.x:
+			_handoff_rect = Rect2(Vector2(_expanded_rect.end.x, overlap_top), Vector2(source.position.x - _expanded_rect.end.x, overlap_bottom - overlap_top))
+		elif source.end.x < _expanded_rect.position.x:
+			_handoff_rect = Rect2(Vector2(source.end.x, overlap_top), Vector2(_expanded_rect.position.x - source.end.x, overlap_bottom - overlap_top))
+	var depth: float = DEPTH - 0.2
+	_preview.position = _camera.to_local(_camera.project_position(center, depth))
+	_preview.scale = Vector3.ONE * scale_factor * depth / DEPTH
+	_preview_face.texture = (item["face"] as Sprite3D).texture
+	_preview_face.pixel_size = width / FACE_SIZE.x * units
+	var world: Vector2 = Vector2(width, height) * units
+	(_preview_edge.mesh as QuadMesh).size = world * 1.10
+	var aura: ShaderMaterial = _preview_edge.material_override
+	aura.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
+	aura.set_shader_parameter("selected", 1.0)
+	aura.set_shader_parameter("tint", Color(HOVER_TINT, 1.0))
+	aura.set_shader_parameter("highlight", 1.0)
+	aura.set_shader_parameter("plane_size", world * 1.10)
+	aura.set_shader_parameter("border_extent", world * 0.504)
+	_preview_border.scale = Vector3(width * units / 0.63, height * units / 0.88, 1.0)
+	_preview_border.set_effect(HOVER_TINT, true, reduced_motion)
+	_preview_title.text = item["hover_title"]
+	_preview_title.pixel_size = units * 0.5 / scale_factor
+	_preview_title.width = width * 2.0 * scale_factor - 12.0
+	_preview_title.position = Vector3(0, height * units * 0.5 + 24.0 * units / scale_factor, 0.004)
+	var source_summary: Label3D = item["summary"]
+	_preview_summary.text = source_summary.text
+	_preview_summary.modulate = source_summary.modulate
+	_preview_summary.pixel_size = units * 0.5 / scale_factor
+	_preview_summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units / scale_factor, 0.005)
+	_preview.show()
 
 
 func _units_per_pixel() -> float:
@@ -443,13 +520,13 @@ func _set_hover(index: int) -> void:
 func _hit(point: Vector2, clicking: bool = false) -> int:
 	if not visible or not revealed:
 		return -1
-	if clicking and _hovered >= 0 and _expanded_rect.has_point(point):
+	if _hovered >= 0 and _expanded_rect.has_point(point):
 		return _hovered
-	# Resting slots take precedence so enlarging a card never prevents selecting its neighbour.
+	# The reading face is drawn in front. Elsewhere the card under the pointer owns the hover.
 	for i in range(_items.size() - 1, -1, -1):
 		if (_items[i]["rect"] as Rect2).has_point(point):
 			return i
-	if _hovered >= 0 and _expanded_rect.has_point(point):
+	if not clicking and _hovered >= 0 and _handoff_rect.has_point(point):
 		return _hovered
 	return -1
 
@@ -482,7 +559,7 @@ func blocks_pointer(point: Vector2) -> bool:
 	if not visible or _items.is_empty():
 		return false
 	var bottom: bool = point.y >= _size.y * (1.0 - REVEAL_FRACTION) and Rect2(Vector2.ZERO, _size).has_point(point)
-	return bottom or (revealed and _hit(point, true) >= 0)
+	return bottom or (revealed and (_hit(point, true) >= 0 or _handoff_rect.has_point(point)))
 
 
 func _unhandled_input(event: InputEvent) -> void:

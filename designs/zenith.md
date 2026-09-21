@@ -8,7 +8,7 @@ Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code na
 **Genre:** Collectible card duel, Arena-style client
 **Players:** 2 (hotseat first, online later), plus AI opponents for an adventure mode
 **Presentation target:** a full digital client in the style of MTG Arena: a 3D table, animated card movement, response prompts, combat log
-**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. Two house rules on top of those: the Most Powerful Personality win (see Winning) and Aspect-1 Allies being always legal (see Deck construction). Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
+**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. Two house rules on top of those: the Most Powerful Personality win (see Winning) and, **decided 2026-09-21, that every Ally rule is per player** and nothing in play reads the other side of the table (see Personalities). That second one is a house rule and not an adopted one: the relaunch rulebook sets no in-play Ally uniqueness rule at all, only a one-copy-per-deck limit, and the older rulings document's cross-table restriction is what we dropped. Ally legality by aspect is not a house rule; it follows the rulings document's Aspect 1-to-3 rule (see Deck construction, corrected 2026-09-21). Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
 
 **IP rule:** all names, characters, art, styles, and lore are original. No source-material terms appear in code, data, assets, or this doc. Mechanics are emulated; flavor is not.
 
@@ -190,10 +190,29 @@ Decided 2026-09-21. It replaces the older model where one card held a whole ladd
   consecutive from tier 1. Those two anchors are the whole rule. Cards from different lines of the
   same character mix freely: Bram Ashmark may climb Starved, Leeching, Gorging.
 - **The Duelist** is a stack of 3 to 5 tiers (2 and up in adventure). The deck lists its cards.
-- **An Ally** is a personality card in the Life Deck. A tier 1 card is always legal. A higher tier
-  is legal when it sits at least 2 below the Duelist's highest tier. An Ally climbs by overlaying
-  its next tier. One copy of each personality card, none sharing the Duelist's character,
-  matching alignment.
+- **An Ally** is a personality card in the Life Deck, at tier 1, 2 or 3, whatever height the
+  Duelist runs. The tiers an Ally runs need not be consecutive and need not include tier 1:
+  consecutive-from-1 is a Duelist rule only, and a deck may run a lone tier 2 card. One copy of
+  each personality card, none sharing the Duelist's character, matching alignment. Two different
+  cards of one character at one tier are not copies of each other, so a deck may run both.
+  Checked against the later rulings revision 2026-09-21, which replaced an older "at least 2
+  tiers below the Duelist's highest" rule and, with it, the 2026-09-20 house exemption for tier 1.
+- **An Ally enters play** in the Non-Combat step at Energy 3, at any tier up to the Duelist's
+  **current** tier, with no need for its lower tiers to have been played. It climbs by playing
+  exactly its next tier on top, set to that card's highest stage; the tiers underneath are no
+  longer in play. A climbing Ally **may** pass the Duelist's current tier, because only a fresh
+  placement is capped. Card effects that put an Ally into play may overlay the same way.
+- **Every Ally rule is per player.** The table across from you never restricts what you place: the
+  rival's Allies and the rival's Duelist are not consulted. So a player gets one Ally per
+  character and that is the whole of it, and both players may field the same character at once, at
+  the same tier, even the same card. Your Ally may also share a name with the rival's Duelist.
+  House rule, decided 2026-09-21. It replaces the older game's two cross-table restrictions: that
+  the two sides could not hold the same tier of one Ally, and that no Ally could share a name with
+  a Duelist in play. The relaunch rulebook sets no in-play Ally uniqueness rule at all, so there
+  was nothing to copy and the choice is ours.
+- **An Ally may not share your own Duelist's character**, which is a deck rule and lives only in
+  deck construction. Nothing checks it again in play, because a personality reaches your side of
+  the table only out of your own Life Deck or Reserve, and both are validated.
 - **Ids:** `personality_<first>_<last>_<tier>_<title>`. A card with no title uses its variant
   word, or nothing: `personality_vesna_draik_1`, `personality_gideon_mourne_1_mercenary`.
   One-name characters skip the surname: `personality_siphon_1_dormant`. Honorifics are left out.
@@ -296,7 +315,7 @@ There is one **Personality** type, not a Duelist type and an Ally type (merged 2
 | Type | Zone | Rules |
 |---|---|---|
 | Personality as Duelist | Aspect stack | Not in the Life Deck. Counts toward deck size |
-| Personality as Ally | In play | Placed in Non-Combat at Energy 3. Aspect must be at most the Duelist's current aspect. Overlay next aspect directly, set to highest stage. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase, at battle step 4, and once per card whenever the opponent plays or uses a card outside their Defender Defends phase. Then uses its own Might. Power once per Combat. Fervor never applies to Allies. No same-aspect duplicate of an Ally in play across both players |
+| Personality as Ally | In play | Placed in Non-Combat at Energy 3, at any aspect up to the Duelist's current aspect, whether or not its lower aspects were ever played. Climbs by overlaying exactly its next aspect, set to highest stage, and may pass the Duelist's aspect that way; the aspects underneath leave play and follow it wherever it goes, so a card that discards the Ally discards all of them. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase, at battle step 4, and once per card whenever the opponent plays or uses a card outside their Defender Defends phase. Then uses its own Might. Power once per Combat. Fervor never applies to Allies, so it never moves an Ally's aspect. **Every Ally rule is per player:** one Ally per character per player, and the table across from you never restricts what you place. Both players may field the same character at once, at the same aspect, even the same card, and your Ally may share a name with the rival's Duelist. Not sharing your **own** Duelist's character is a deck rule, checked at construction and never again in play (house rule 2026-09-21, see the baseline note) |
 | Strike | Hand | Performs or stops a Strike, or a utility. Endurance often printed |
 | Art | Hand | Performs or stops an Art. Non-attack uses cost no Energy |
 | Combat | Hand | Utility. All effects are secondary. Used in place of an attack or as a defense if it stops or prevents |
@@ -340,7 +359,7 @@ The old school labels (Berserker, Warden, Evoker, Rogue, Juggernaut, Ranger-Drui
 - Exactly one Mastery. Its school is the deck's Style.
 - At least 3 consecutive Duelist aspects from Aspect 1, up to 5.
 - 3 copies max. 4 for Signature cards matching your Duelist. "Limit N per deck" and the restricted list override.
-- Allies: at least 2 aspects below the Duelist's highest aspect, 1 copy of each personality card, none sharing the Duelist's character, matching alignment. **House rule, 2026-09-20:** a personality whose Aspects stop at 1 is exempt from the 2-aspect gap and is legal as an Ally in any deck. It can never outgrow a Duelist, and without the exemption a shallow deck can field no following at all, which the adventure starters need. Every Ally that climbs to a second Aspect still obeys the gap.
+- Allies: every personality card of Aspect 1, 2 or 3 is legal in any deck, whatever height the Duelist runs. 1 copy of each personality card, none sharing the Duelist's character, matching alignment. The Aspects an Ally runs need not be consecutive and need not include Aspect 1. **Corrected 2026-09-21** against the later rulings revision, which is the basis: this replaces an older "at least 2 aspects below the Duelist's highest" rule and the 2026-09-20 house exemption for Aspect-1 Allies, which the flat rule now covers on its own.
 - Seals: one set, no duplicates.
 - Reserve must obey the same Style and construction rules.
 

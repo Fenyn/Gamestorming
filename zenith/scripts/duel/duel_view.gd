@@ -11,6 +11,7 @@ const CARD_SCENE: PackedScene = preload("res://scenes/duel/card_3d.tscn")
 const SYNC_DURATION: float = 0.3
 const CAMERA_SWING: float = 0.7
 const FLY_TIME: float = 0.34          # a card's arc from one zone to another
+const BULK_RECOVER_TIME: float = 0.42 # a full Life Deck reset moves as one shuffle
 const FLY_LIFT: float = 0.6
 const LIFE_FLY_POP: float = 0.10
 const LIFE_FLY_REVEAL: float = 0.18
@@ -68,6 +69,7 @@ var _dev_done: bool = false
 var _dev_quit_after_replay: bool = false
 var _wounds: int = 0                 # life cards flipped by the attack being replayed
 var _replaying: StringName = &""     # the event whose beat is playing now
+var _second_wind_returning: Dictionary = {} # public cards lost and recovered in this update
 ## The table numbers as they stood at the beat now playing (`GameEvent.state`). While it holds
 ## something, the markers and the player panels read it instead of the update's final view, so a
 ## card that charges up and is drained again in the same update reads as two beats, not one jump.
@@ -512,19 +514,46 @@ func _play_update(up: SeatUpdate) -> void:
 	_adopt_cards()
 	zones.set_viewer(viewer if viewer >= 0 else view.active)
 	var targets: Dictionary = _targets()
-	for l in up.lines:
+	var bulk_recover_end: int = -1
+	_second_wind_returning.clear()
+	for index in range(up.lines.size()):
+		for uid in _second_wind_cards(up.lines, index):
+			_second_wind_returning[uid] = true
+	for index in range(up.lines.size()):
+		var l: Dictionary = up.lines[index]
+		var bulk_cards: Array[int] = []
+		if index > bulk_recover_end:
+			bulk_cards = _second_wind_cards(up.lines, index)
+			if not bulk_cards.is_empty():
+				bulk_recover_end = index + bulk_cards.size() - 1
 		var line: String = str(l.get("line", ""))
-		if line != "":
+		# One Second Wind line describes the full reset; its per-card Recover lines are noise.
+		if line != "" and (index > bulk_recover_end or str(l.get("type", "")) != "recover"):
 			hud.log_line(line)
-		if l.has("data"):
+		if l.has("data") and (index > bulk_recover_end or not bulk_cards.is_empty()):
 			_replaying = StringName(str(l.get("type", "")))
 			# The beat draws the table as it stood when the event fired, not as it stands now.
-			_live = l.get("state", {})
+			_live = (l.get("state", {}) as Dictionary).duplicate(true)
+			if not bulk_cards.is_empty():
+				# Hold the emptied Life number until the pile actually reaches the deck.
+				var counts: Array = _live.get("zones", [])
+				var player: int = int(l.get("player", -1))
+				if player >= 0 and player < counts.size():
+					var seat_counts: Array = counts[player]
+					if not seat_counts.is_empty():
+						seat_counts[0] = 0
 			hud.refresh_state(view, viewer, _live)
 			_refresh_displays()
-			await _replay(_replaying, int(l.get("player", -1)), l["data"], targets)
+			if not bulk_cards.is_empty():
+				await _fly_recover_batch(bulk_cards, targets)
+				_live = up.lines[bulk_recover_end].get("state", {})
+				hud.refresh_state(view, viewer, _live)
+				_refresh_displays()
+			else:
+				await _replay(_replaying, int(l.get("player", -1)), l["data"], targets)
 			_replaying = &""
 	_live = {}
+	_second_wind_returning.clear()
 	_attack_cue = view.attack.duplicate(true)
 	hud.refresh_state(view, viewer)
 	_refresh_displays()
@@ -532,6 +561,23 @@ func _play_update(up: SeatUpdate) -> void:
 	await _sync_layout(true)
 	if _dev_quit_after_replay:
 		_dev_shutdown()
+
+
+## The survival reset is a contiguous run of public Recover events followed by Second Wind.
+## Other recovery effects keep their one-card beats, even when they recover several cards.
+func _second_wind_cards(lines: Array[Dictionary], start: int) -> Array[int]:
+	var cards: Array[int] = []
+	if start >= lines.size() or str(lines[start].get("type", "")) != "recover":
+		return cards
+	var player: int = int(lines[start].get("player", -1))
+	var index: int = start
+	while index < lines.size() and str(lines[index].get("type", "")) == "recover" and int(lines[index].get("player", -1)) == player:
+		var data: Dictionary = lines[index].get("data", {})
+		cards.append(int(data.get("card", -1)))
+		index += 1
+	if index >= lines.size() or str(lines[index].get("type", "")) != "second_wind" or int(lines[index].get("player", -1)) != player:
+		cards.clear()
+	return cards
 
 
 # --- Event beats ----------------------------------------------------------
@@ -623,18 +669,19 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			_attack_cue["landed"] = true
 			_refresh_attack_link()
 			var uid: int = int(data.get("card", -1))
-			await _fly_life_loss(uid, player, targets, "Wound %d" % _wounds)
+			await _fly_life_loss(uid, player, targets, "Wound %d" % _wounds, str(data.get("id", "")))
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
 			# Wounds come in runs, so each one names the card it cost and holds long enough to
 			# read before the next lands.
 			var lost: SeatCard = view.card(uid)
-			var title: String = lost.title if lost != null and not lost.hidden() else "a card"
+			var public_def: CardDef = Session.library.defs.get(str(data.get("id", "")))
+			var title: String = lost.title if lost != null and not lost.hidden() else (public_def.title if public_def != null else "a card")
 			hud.toast("Wound %d  ·  %s" % [_wounds, title], ZenithTheme.ATTACK)
 			await _beat(WOUND_BEAT)
 		&"life_card_lost":
-			await _fly_life_loss(int(data.get("card", -1)), player, targets, "-1 Life")
+			await _fly_life_loss(int(data.get("card", -1)), player, targets, "-1 Life", str(data.get("id", "")))
 		&"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved", &"critical_ally":
 			var uid: int = int(data.get("card", data.get("discarded", -1)))
 			await _fly(uid, targets)
@@ -893,21 +940,55 @@ func _fly(uid: int, targets: Dictionary) -> void:
 	await t.finished
 
 
+## Sweep a discarded Life Deck back into place in one motion. The lost-Life reveal has already
+## played; this beat only communicates that the whole pile was reshuffled for Second Wind.
+func _fly_recover_batch(cards: Array[int], targets: Dictionary) -> void:
+	var tween: Tween = null
+	for uid in cards:
+		var v: Card3D = views.get(uid)
+		if v == null or not targets.has(uid):
+			continue
+		var entry: Array = targets[uid]
+		if not bool(entry[2]):
+			continue
+		var slot_t: Transform3D = entry[0]
+		var target: Transform3D = Transform3D(slot_t.basis * Basis(Vector3.RIGHT, PI), slot_t.origin)
+		v.face_up = false
+		v.visible = true
+		if _reduced_motion:
+			v.transform = target
+			continue
+		if tween == null:
+			tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		tween.tween_property(v, "transform", target, BULK_RECOVER_TIME)
+	if tween != null:
+		await tween.finished
+	elif not _reduced_motion:
+		await _beat(BULK_RECOVER_TIME)
+
+
 ## A lost Life card has a visible source: the top of its owner's Life Deck. Lift that same
 ## Card3D, reveal it briefly over the table, and then send it to its public pile in the rail.
 ## Other destinations (notably a bypassed Seal) keep the ordinary zone transition.
-func _fly_life_loss(uid: int, player: int, targets: Dictionary, label: String) -> void:
+func _fly_life_loss(uid: int, player: int, targets: Dictionary, label: String, public_id: String = "") -> void:
 	var card: SeatCard = view.card(uid)
 	var v: Card3D = views.get(uid)
-	if player < 0 or player >= view.players.size() or card == null or card.hidden() or v == null or not targets.has(uid) or card.zone not in [&"discard", &"removed"]:
+	var returning: bool = _second_wind_returning.has(uid)
+	if player < 0 or player >= view.players.size() or card == null or (card.hidden() and not returning) or v == null or not targets.has(uid) or (card.zone not in [&"discard", &"removed"] and not returning):
 		await _fly(uid, targets)
 		return
 	var entry: Array = targets[uid]
 	if not bool(entry[2]):
 		return
-	var target: Transform3D = entry[0]
 	var counts: Array = _live.get("zones", [])
 	var seat_counts: Array = counts[player] if player < counts.size() else []
+	var target: Transform3D = _rail_slot(player, &"discard", maxi(0, int(seat_counts[2]) - 1)) if returning and seat_counts.size() > 2 else entry[0]
+	if returning and card.hidden() and public_id != "":
+		var public_def: CardDef = Session.library.defs.get(public_id)
+		if public_def != null:
+			if not faces.has_face(public_def):
+				await faces.render_def(public_def)
+			v.set_face_texture(faces.face(public_def))
 	var remaining: int = int(seat_counts[0]) if not seat_counts.is_empty() else view.player(player).life_deck.size()
 	var source: Transform3D = zones.slot(player, &"life_deck", maxi(0, remaining), 1, viewer if viewer >= 0 else view.active)
 	source.basis = source.basis * Basis(Vector3.RIGHT, PI)

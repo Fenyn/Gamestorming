@@ -18,7 +18,7 @@ const ANIMATED: Dictionary = {
 	&"attack_stopped": [], &"attack_successful": [],
 	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
 	&"damage_stages": ["target", "stages", "overflow", "energy"],
-	&"life_card_flipped": ["card", "remaining"], &"life_card_lost": ["card"],
+	&"life_card_flipped": ["card", "id", "remaining"], &"life_card_lost": ["card", "id"],
 	&"endurance_used": ["card", "prevented"], &"endurance_declined": ["card", "endurance", "remaining"],
 	&"seal_bypassed": ["card"], &"seal_captured": ["card"],
 	&"attack_end": ["stopped", "stages_dealt", "life_dealt"],
@@ -257,6 +257,6 @@ static func _belief_card_allowed(def: CardDef, player: SeatPlayer, duelist: Card
 			return false
 		if def.alignment_only != "" and def.alignment_only != player.alignment:
 			return false
-		if not DeckValidator.ally_aspect_allowed(def.aspect, player.highest_aspect):
+		if not DeckValidator.ally_aspect_allowed(def.aspect):
 			return false
 	return true

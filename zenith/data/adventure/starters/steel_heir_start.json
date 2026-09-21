@@ -19,6 +19,7 @@
   "tagline": "Draw deep and spend life cards to power crushing blows as Emrys ascends to even stronger Aspects.",
   "unlock": {"track": "deck_cap", "step": 50},
   "bombs": ["steel_cross", "declaration"],
+  "chaff": ["steel_ironhide", "vales_riposte"],
   "cards": [
     {"id": "personality_alder_rooke_1", "count": 1},
     {"id": "steel_battering_ram", "count": 3},
@@ -37,12 +38,13 @@
     {"id": "steel_forearm_guard", "count": 3},
     {"id": "steel_slip", "count": 3},
     {"id": "steel_sink", "count": 3},
-    {"id": "vales_riposte", "count": 2},
+    {"id": "vales_riposte", "count": 3},
+    {"id": "steel_ironhide", "count": 3},
     {"id": "steel_conditioning_drill", "count": 2},
     {"id": "the_long_year", "count": 3},
     {"id": "foresight", "count": 1},
     {"id": "steel_standoff", "count": 1},
-    {"id": "steel_cross", "count": 1},
+    {"id": "steel_cross", "count": 3},
     {"id": "declaration", "count": 1}
   ]
 }

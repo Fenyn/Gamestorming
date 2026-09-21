@@ -2201,6 +2201,10 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s names %s." % [pname, str(d.get("name", ""))]
 		&"seal_victory_pending":
 			return "%s has carved all seven Seals. The gate opens at the start of their next turn." % pname
+		&"point_scored":
+			return "%s scores a point by %s (%d/%d)." % [pname, "emptying the rival's Life Deck" if str(d.get("reason", "")) == "survival" else "Ascension", int(d.get("points", 0)), int(d.get("to_win", 1))]
+		&"second_wind":
+			return "%s shuffles %d discarded cards into a new Life Deck." % [pname, int(d.get("cards", 0))]
 		&"game_over":
 			var reason: String = str(d.get("reason", ""))
 			var w: String = _pname(engine, int(d.get("winner", -1)))

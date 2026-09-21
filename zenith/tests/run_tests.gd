@@ -240,7 +240,7 @@ func _init() -> void:
 		test_energy_can_reach_any_personality_on_the_table,
 		test_an_ally_can_block_for_one_named_personality,
 		test_a_printed_limit_beats_the_signature_allowance,
-		test_an_aspect_one_ally_is_legal_in_a_shallow_deck,
+		test_ally_legality_does_not_read_the_decks_aspect_count,
 		test_profile_state_key_matches_the_seat_view,
 		test_branch_margin_keeps_the_leader_and_drops_the_tail,
 		test_search_merges_identical_moves_from_hand,
@@ -305,8 +305,12 @@ func _init() -> void:
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
 		test_a_duelist_may_mix_two_printed_lines_of_one_character,
 		test_mppv_reads_the_announced_ladders_off_the_deck_lists,
-		test_ally_aspect_rules_read_the_card_and_the_duelists_height,
+		test_an_ally_in_the_deck_is_any_aspect_one_to_three,
 		test_an_ally_climbs_by_overlaying_its_next_aspect,
+		test_both_players_may_field_the_same_ally,
+		test_an_ally_may_share_a_character_with_the_rival_duelist,
+		test_discarding_an_overlaid_ally_takes_all_of_its_aspects,
+		test_fervor_never_moves_an_allys_aspect,
 		test_a_seat_view_carries_the_current_aspect_card_and_the_public_ladder,
 		test_cloning_and_determinizing_keep_a_stack_whole,
 		test_every_shipped_deck_names_a_legal_duelist_stack,
@@ -3907,23 +3911,23 @@ func test_profile_state_key_matches_the_seat_view() -> void:
 	check(compared >= 10, "compared %d states" % compared)
 
 
-## House rule 2026-09-20: an Ally printed only at its first Aspect can never outgrow a Duelist, so
-## it is legal in any deck. The 2-aspect gap still governs every Ally that climbs.
-func test_an_aspect_one_ally_is_legal_in_a_shallow_deck() -> void:
-	var shallow: Array[String] = filler(["t_ally_squire"])
-	for p in DeckValidator.validate(deck(shallow, "vigil", "", "", 2, "tf_vigil"), lib):
-		check(not p.contains("t_ally_squire"), "an Aspect-1 Ally is legal at 2 aspects: %s" % p)
-	for p in DeckValidator.validate(deck(shallow, "vigil", "", "", 1, "tf_vigil"), lib):
-		check(not p.contains("t_ally_squire"), "and at 1 aspect: %s" % p)
-	# One that climbs to a second Aspect still has to sit two below the Duelist.
-	var climbs: Array[String] = filler(["t_ally_squire_2"])
-	var named: bool = false
-	for p in DeckValidator.validate(deck(climbs, "vigil", "", "", 3, "tf_vigil"), lib):
-		if p.contains("t_ally_squire_2"):
-			named = true
-	check(named, "an Aspect-2 Ally is still illegal at 3 aspects")
-	for p in DeckValidator.validate(deck(climbs, "vigil", "", "", 4, "tf_vigil"), lib):
-		check(not p.contains("t_ally_squire_2"), "and legal at 4: %s" % p)
+## Ally legality does not read the deck's height (2026-09-21, following the later rulings
+## revision). Any Aspect 1 to 3 personality card is legal in any deck; Aspect 4 and up never are.
+func test_ally_legality_does_not_read_the_decks_aspect_count() -> void:
+	for id in ["t_ally_squire", "t_ally_squire_2", "t_ally_squire_3"]:
+		for count in [1, 2, 3, 4, 5]:
+			var d: DeckList = deck(filler([id]), "vigil", "", "", count,
+				"tf_vigil" if count <= 3 else "tf_titan")
+			d.mode = "adventure"
+			for p in DeckValidator.validate(d, lib):
+				check(not p.contains(id), "%s is Ally-legal at %d aspects: %s" % [id, count, p])
+	# Aspect 4 is past the Ally ceiling at every height, including the tallest Duelist.
+	for count in [3, 5]:
+		var named: bool = false
+		for p in DeckValidator.validate(deck(filler(["t_ally_squire_4"]), "vigil", "", "", count, "tf_titan"), lib):
+			if p.contains("t_ally_squire_4"):
+				named = true
+		check(named, "an Aspect 4 Ally is refused at %d aspects" % count)
 
 
 ## Ally and Duelist are one card type now, so "whose Power refreshes when" comes from the seat:
@@ -6392,25 +6396,22 @@ func test_mppv_reads_the_announced_ladders_off_the_deck_lists() -> void:
 	eq(level.mppv_aspect(level.player(0)), 0, "level ladders leave the Fervor road only")
 
 
-## An Ally is a personality card in the Life Deck. Aspect 1 is always legal; anything above it has
-## to sit two Aspects below the Duelist's highest, and needs the Aspects under it in the deck.
-func test_ally_aspect_rules_read_the_card_and_the_duelists_height() -> void:
+## An Ally is a personality card in the Life Deck at Aspect 1, 2 or 3, whatever height the Duelist
+## runs. Its Aspects need not be consecutive and need not include Aspect 1: that is a Duelist rule.
+func test_an_ally_in_the_deck_is_any_aspect_one_to_three() -> void:
 	var three: Array[String] = ["tf_vigil_1", "tf_vigil_2", "tf_vigil_3"]
-	var four: Array[String] = ["tf_titan_1", "tf_titan_2", "tf_titan_3", "tf_titan_4"]
 	eq(DeckValidator.validate(stack_deck(three, ["t_ally_squire"]), lib), [] as Array[String],
-		"an Aspect 1 Ally is legal at three Aspects")
-	var shallow: DeckList = stack_deck(["tf_vigil_1"], ["t_ally_squire"])
-	shallow.mode = "adventure"
-	check(not str(DeckValidator.validate(shallow, lib)).contains("2 aspects below"),
-		"and still legal under a one-Aspect adventure Duelist")
-
-	eq(DeckValidator.validate(stack_deck(four, ["t_ally_squire", "t_ally_squire_2"]), lib), [] as Array[String],
-		"an Aspect 2 Ally is legal under four Aspects")
-	check(str(DeckValidator.validate(stack_deck(three, ["t_ally_squire", "t_ally_squire_2"]), lib))
-		.contains("must be at least 2 aspects below"), "and refused under three")
-	check(str(DeckValidator.validate(stack_deck(four, ["t_ally_squire_2"]), lib))
-		.contains("needs Aspect 1 of Test Squire in the deck too"),
-		"an Ally's higher Aspect needs the rung under it, because that is what it overlays")
+		"an Aspect 1 Ally is legal")
+	eq(DeckValidator.validate(stack_deck(three, ["t_ally_squire_3"]), lib), [] as Array[String],
+		"so is an Aspect 3 Ally under a three-Aspect Duelist, which the old gap rule refused")
+	check(str(DeckValidator.validate(stack_deck(three, ["t_ally_squire_4"]), lib))
+		.contains("an Ally may be Aspect 1 to 3"), "Aspect 4 is past the ceiling")
+	eq(DeckValidator.validate(stack_deck(three, ["t_ally_squire_2"]), lib), [] as Array[String],
+		"a lone Aspect 2 Ally is legal with no Aspect 1 of that character in the deck")
+	eq(DeckValidator.validate(stack_deck(three, ["t_ally_squire_2", "t_ally_squire_3"]), lib), [] as Array[String],
+		"and an Ally's Aspects need not be consecutive nor start at 1")
+	eq(DeckValidator.validate(stack_deck(three, ["t_ally_squire", "t_ally_squire_alt"]), lib), [] as Array[String],
+		"two different cards of one character at one Aspect are not copies of each other")
 
 	check(str(DeckValidator.validate(stack_deck(three, ["t_ally_squire", "t_ally_squire"]), lib))
 		.contains("exceeds limit 1"), "one copy of each personality card")
@@ -6431,13 +6432,14 @@ func test_an_ally_climbs_by_overlaying_its_next_aspect() -> void:
 	var me: PlayerState = e.player(0)
 	var first: CardInstance = to_hand(e, 0, "t_ally_squire")
 	var second: CardInstance = to_hand(e, 0, "t_ally_squire_2")
+	var third: CardInstance = to_hand(e, 0, "t_ally_squire_3")
 	check(e._can_place(me, first), "the Ally's first Aspect may be placed")
-	check(not e._can_place(me, second), "its second may not, over a Duelist still at Aspect 1")
+	check(not e._can_place(me, second), "a fresh placement is capped by the Duelist's current Aspect")
 	e._place(me, first)
 	eq(first.energy, DuelEngine.ALLY_STARTING_ENERGY, "an Ally enters at the rulebook's Energy")
 	eq(first.ladder(), ["t_ally_squire"], "its stack is the card that was placed")
-	e._aspect_up(me)
-	check(e._can_place(me, second), "once the Duelist climbs, the next Aspect may be placed")
+	check(not e._can_place(me, third), "an Ally climbs one Aspect at a time, never skipping one")
+	check(e._can_place(me, second), "the next Aspect may be placed on top, uncapped")
 	e._place(me, second)
 	eq(second.aspect, 2, "the Ally is at its second Aspect")
 	eq(second.def.id, "t_ally_squire_2", "showing that Aspect's card")
@@ -6446,6 +6448,142 @@ func test_an_ally_climbs_by_overlaying_its_next_aspect() -> void:
 	eq(first.zone, &"under", "which has left play")
 	eq(second.ladder(), ["t_ally_squire", "t_ally_squire_2"], "and the stack carries both cards")
 	eq(me.allies().size(), 1, "one Ally on the table, not two")
+	eq(me.duelist.aspect, 1, "the Duelist never moved")
+	# Climbing is uncapped, so the Ally may pass the Duelist, and the pile stays flat.
+	check(e._can_place(me, third), "the third Aspect goes on next, above the Duelist's own")
+	e._place(me, third)
+	eq(third.aspect, 3, "the Ally now stands above the Duelist")
+	eq(third.cards_under.size(), 2, "with both lower Aspects under it, in one flat pile")
+	eq(third.ladder(), ["t_ally_squire", "t_ally_squire_2", "t_ally_squire_3"], "and a three-card stack")
+	eq(me.allies().size(), 1, "still one Ally")
+	# A second card of the same character is not a second Ally, whatever Aspect it is.
+	var twin: CardInstance = to_hand(e, 0, "t_ally_squire_alt")
+	check(not e._can_place(me, twin), "a second personality card of one character is not a second Ally")
+
+
+## An Ally is unique to its controller, not to the table (2014 relaunch rule, adopted 2026-09-21):
+## both players may field the same character, the same Aspect, even the same card, at once. One
+## player still gets only one Ally per character.
+func test_both_players_may_field_the_same_ally() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 4, "tf_titan"),
+		deck(filler(), "vigil", "", "", 4, "tf_titan"))
+	var mine: PlayerState = e.player(0)
+	var theirs: PlayerState = e.player(1)
+	var my_first: CardInstance = to_hand(e, 0, "t_ally_squire")
+	var their_first: CardInstance = to_hand(e, 1, "t_ally_squire")
+	e._place(mine, my_first)
+	check(e._can_place(theirs, their_first), "the rival may field the same card at the same Aspect")
+	e._place(theirs, their_first)
+	eq(mine.allies().size(), 1, "one Ally on my side")
+	eq(theirs.allies().size(), 1, "and one on theirs")
+	eq(my_first.def.id, their_first.def.id, "the same card on both sides of the table")
+	eq(my_first.aspect, their_first.aspect, "at the same Aspect")
+	# One per character per player still holds, at any Aspect.
+	var twin: CardInstance = to_hand(e, 0, "t_ally_squire_alt")
+	check(not e._can_place(mine, twin), "but one player gets only one Ally per character")
+	# Climbing is unaffected by what the rival has on the table.
+	var my_second: CardInstance = to_hand(e, 0, "t_ally_squire_2")
+	check(e._can_place(mine, my_second), "and may climb while the rival sits on the Aspect below")
+	e._place(mine, my_second)
+	eq(my_second.aspect, 2, "my Ally is at Aspect 2")
+	eq(their_first.aspect, 1, "theirs is still at Aspect 1")
+	var their_second: CardInstance = to_hand(e, 1, "t_ally_squire_2")
+	e._aspect_up(theirs)
+	check(e._can_place(theirs, their_second), "they may follow onto the Aspect I already hold")
+	e._place(theirs, their_second)
+	eq(mine.allies().size(), 1, "still one Ally each")
+	eq(theirs.allies().size(), 1, "both now at Aspect 2")
+	# "Discard one of your opponent's Allies" reads sides, not names, so it takes only their copy.
+	eq(e._in_play_candidates(theirs, "ally").size(), 1, "the rival has one Ally to take")
+	e._apply_effect({"op": "discard_in_play", "who": "opponent", "card_type": "ally",
+		"amount": 1, "choose": false}, mine.index, {}, null)
+	eq(theirs.allies().size(), 0, "their Ally went")
+	eq(mine.allies().size(), 1, "mine, of the very same character, stayed")
+	eq(my_second.zone, &"in_play", "and is still the one on my side of the table")
+
+
+## Nothing in play reads the other side of the table, so an Ally may share a character with the
+## rival's Duelist. Not sharing your own Duelist's character is a deck rule and lives there alone.
+func test_an_ally_may_share_a_character_with_the_rival_duelist() -> void:
+	var mine_deck: DeckList = deck(filler(), "vigil", "", "", 3, "tf_vigil")
+	var theirs_deck: DeckList = deck(filler(), "vigil", "", "", 3, "tf_vigil")
+	theirs_deck.set_duelist(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"])
+	var e: DuelEngine = engine(mine_deck, theirs_deck)
+	var mine: PlayerState = e.player(0)
+	var theirs: PlayerState = e.player(1)
+	eq(theirs.duelist.def.character, "Test Climber", "the rival leads Test Climber")
+	var ally: CardInstance = to_hand(e, 0, "t_climber_1")
+	check(e._can_place(mine, ally), "I may field the rival Duelist's character as my Ally")
+	e._place(mine, ally)
+	eq(mine.allies().size(), 1, "it is on the table")
+	eq(ally.energy, DuelEngine.ALLY_STARTING_ENERGY, "at the Ally's own starting Energy")
+	eq(ally.might(), (lib.get_def("t_climber_1").aspect_data(1).get("might", []) as Array)[ally.energy],
+		"and plays with its own Might")
+	# My deck may still not run my own Duelist's character, which is the deck rule doing the work.
+	var self_ally: DeckList = stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"], ["t_climber_1"])
+	check(str(DeckValidator.validate(self_ally, lib)).contains("same character as the Duelist"),
+		"the deck rule still refuses an Ally of my own Duelist")
+	var reserved: DeckList = stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"])
+	reserved.relic_id = "t_relic"
+	reserved.reserve = ["t_climber_1"]
+	check(str(DeckValidator.validate(reserved, lib)).contains("Reserve: Ally"),
+		"and refuses it in the Reserve too, which a swap would put in the Life Deck")
+
+	# An effect aimed at the rival's Duelist finds their card, never my same-named Ally.
+	var ally_before: int = ally.energy
+	var rival_before: int = theirs.duelist.energy
+	e._apply_effect({"op": "energy", "who": "opponent", "target": "duelist", "amount": -2},
+		mine.index, {}, null)
+	eq(theirs.duelist.energy, rival_before - 2, "the rival's Duelist lost the Energy")
+	eq(ally.energy, ally_before, "my Ally of the same name did not")
+
+	# A character gate reads my side only: the rival leading that character does not switch it on.
+	check(e._cond({"ally_present": "Test Climber"}, 0, {}), "my own Ally satisfies the gate")
+	check(not e._cond({"ally_present": "Test Climber"}, 1, {}),
+		"their Duelist is not an Ally, so it does not satisfy theirs")
+	check(not e._cond({"ally_present": "Test Vigil"}, 0, {}),
+		"and the rival's characters never satisfy mine")
+	eq(e._character_in_play(mine, "Test Climber"), ally, "'in play' for me is my Ally")
+	eq(e._character_in_play(theirs, "Test Climber"), theirs.duelist, "and for them, their Duelist")
+
+
+## An overlaid Ally is one thing on the table: whatever takes it out of play takes every Aspect
+## under it, and they all land in the discard pile.
+func test_discarding_an_overlaid_ally_takes_all_of_its_aspects() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 4, "tf_titan"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var one: CardInstance = to_hand(e, 0, "t_ally_squire")
+	var two: CardInstance = to_hand(e, 0, "t_ally_squire_2")
+	var three: CardInstance = to_hand(e, 0, "t_ally_squire_3")
+	e._place(me, one)
+	e._place(me, two)
+	e._place(me, three)
+	var before: int = me.discard.size()
+	e._move_to_discard(three)
+	eq(me.discard.size(), before + 3, "all three Aspects went to the discard")
+	for c in [one, two, three]:
+		eq(c.zone, &"discard", "%s is in the discard" % c.def.id)
+	# The order is fixed rather than asked for: lowest Aspect first, so the Aspect that was in
+	# play ends on top of the pile, which is what "the card just discarded" means everywhere else.
+	eq((me.discard[me.discard.size() - 1] as CardInstance).def.id, "t_ally_squire_3",
+		"the Aspect that was in play is the top card")
+	eq((me.discard[me.discard.size() - 3] as CardInstance).def.id, "t_ally_squire",
+		"and Aspect 1 is the deepest of the three")
+	eq(me.allies().size(), 0, "the Ally is gone from the table")
+	eq(three.cards_under.size(), 0, "and carries nothing under it any more")
+
+
+## Fervor climbs the Duelist and never an Ally.
+func test_fervor_never_moves_an_allys_aspect() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 4, "tf_titan"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var ally: CardInstance = to_hand(e, 0, "t_ally_squire")
+	e._place(me, ally)
+	me.fervor = e.fervor_needed(me)
+	e._check_aspect_up(me)
+	eq(me.duelist.aspect, 2, "full Fervor raised the Duelist")
+	eq(ally.aspect, 1, "and left the Ally where it stood")
+	eq(ally.def.id, "t_ally_squire", "still showing its own card")
 
 
 ## A client renders a personality from the SeatView alone: `def_id` is the card for the Aspect it

@@ -1,5 +1,5 @@
 {
-	"_note": "Personality stacks: one character with two printed lines that share Aspect 1, for the rules that each Aspect is its own card and that lines mix freely.",
+	"_note": "Personality stacks: one character with two printed lines that share Aspect 1, for the rules that each Aspect is its own card and that lines mix freely. Test Squire's Aspects 3 and 4 and a second Aspect 1 printing extend the ladder that starts in test_cards.json, for the Ally construction and overlay rules.",
 	"cards": [
 		{"id": "t_climber_1", "title": "Test Climber", "type": "personality", "character": "Test Climber",
 			"aspect": 1, "aspect_title": "Footing", "surge": 1,
@@ -35,6 +35,24 @@
 		{"id": "t_rival_1", "title": "Test Rival", "type": "personality", "character": "Test Rival",
 			"aspect": 1, "aspect_title": "Fresh", "surge": 1,
 			"might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-			"power": {"attack": {"kind": "strike", "stages": 1}}}
+			"power": {"attack": {"kind": "strike", "stages": 1}}},
+
+		{"id": "t_ally_squire_alt", "title": "Test Squire", "type": "personality", "character": "Test Squire",
+			"alignment_only": "vigil", "variant": "the Other Road",
+			"aspect": 1, "surge": 1,
+			"might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"power": {"attack": {"kind": "strike", "stages": 1}}},
+
+		{"id": "t_ally_squire_3", "title": "Test Squire", "type": "personality", "character": "Test Squire",
+			"alignment_only": "vigil",
+			"aspect": 3, "surge": 2,
+			"might": [0, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+			"power": {"attack": {"kind": "strike", "stages": 3}}},
+
+		{"id": "t_ally_squire_4", "title": "Test Squire", "type": "personality", "character": "Test Squire",
+			"alignment_only": "vigil",
+			"aspect": 4, "surge": 2,
+			"might": [0, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40],
+			"power": {"attack": {"kind": "strike", "stages": 4}}}
 	]
 }

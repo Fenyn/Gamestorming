@@ -876,17 +876,24 @@ func _can_place(p: PlayerState, c: CardInstance) -> bool:
 				return false   # Bonds enter play through a Bonding card, never by placement
 			if _forbidden(p, "allies"):
 				return false
-			if def.character == p.duelist.def.character or def.character == state.players[1 - p.index].duelist.def.character:
-				return false
+			# Every Ally rule is per player, and none of them reads the other side of the table.
+			# "Not your own Duelist's character" is a deck rule and lives in DeckValidator alone:
+			# a personality only reaches your side out of your own Life Deck or Reserve, and both
+			# are validated. The rival's Duelist and the rival's Allies are never consulted.
 			var aspect: int = def.aspect
-			if aspect > p.duelist.aspect:
-				return false
 			var own: CardInstance = _ally_of_character(p, def.character)
-			if own != null and own.aspect != aspect - 1:
+			if own == null:
+				# Placed fresh: any Aspect up to the Duelist's current one, with no need for the
+				# Aspects below it to have been played.
+				if aspect > p.duelist.aspect:
+					return false
+			elif aspect != own.aspect + 1:
+				# Climbing: exactly the next Aspect goes on top. An Ally that climbs may pass the
+				# Duelist's current Aspect; only a fresh placement is capped.
 				return false
-			var theirs: CardInstance = _ally_of_character(state.players[1 - p.index], def.character)
-			if theirs != null and theirs.aspect == aspect:
-				return false
+			# Uniqueness is per player (2014 relaunch rule, adopted 2026-09-21): what the rival
+			# has on their side of the table never blocks a placement, so both players may field
+			# the same character, the same Aspect, even the same card, at the same time.
 			return true
 		CardDef.Type.SEAL:
 			if _forbidden(p, "seals"):
@@ -919,8 +926,12 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 			if existing != null:
 				# Climbing: the new Aspect overlays the old one, which goes under it, and the
 				# Ally's stack grows by that card. Entering the Aspect sets it to full Energy.
+				# The pile is kept flat, lowest Aspect first, so whatever takes the Ally out of
+				# play takes every Aspect under it with one pass.
 				_erase_from_zone(existing)
 				existing.zone = &"under"
+				c.cards_under.append_array(existing.cards_under)
+				existing.cards_under = [] as Array[CardInstance]
 				c.cards_under.append(existing)
 				c.energy = CardInstance.MAX_STAGE
 				c.stack = existing.stack.plus(c.def) if existing.stack != null else PersonalityStack.single(c.def)
@@ -5623,7 +5634,7 @@ func _discard_life(p: PlayerState, n: int, remove: bool = false) -> void:
 		else:
 			_move_to_discard(c)
 			_on_wound(p, c)
-		_emit(&"life_card_lost", {"player": p.index, "card": c.uid})
+		_emit(&"life_card_lost", {"player": p.index, "card": c.uid, "id": c.def.id})
 
 
 ## Cards leave the hand by the engine's seeded RNG when random, else from the front.
@@ -5668,11 +5679,16 @@ func _move_to_discard(c: CardInstance) -> void:
 	c.zone = &"discard"
 	c.attached_to = null
 	c.remain = 0
-	owner.discard.append(c)
+	# An overlaid Ally goes to the discard whole: every Aspect under it follows. They go in
+	# lowest Aspect first, so the Aspect that was actually in play ends on top of the pile, which
+	# is the invariant the rest of the engine reads ("the card just discarded is the top one").
 	for under in c.cards_under:
 		under.zone = &"discard"
+		under.attached_to = null
+		under.remain = 0
 		owner.discard.append(under)
 	c.cards_under.clear()
+	owner.discard.append(c)
 	_drop_attachments(c)
 	_emit(&"card_moved", {"card": c.uid, "to": "discard", "owner": c.owner})
 
@@ -5683,11 +5699,13 @@ func _remove_from_game(c: CardInstance) -> void:
 	c.zone = &"removed"
 	c.attached_to = null
 	c.remain = 0
-	owner.removed.append(c)
 	for under in c.cards_under:
 		under.zone = &"removed"
+		under.attached_to = null
+		under.remain = 0
 		owner.removed.append(under)
 	c.cards_under.clear()
+	owner.removed.append(c)
 	_drop_attachments(c)
 	_emit(&"card_moved", {"card": c.uid, "to": "removed", "owner": c.owner})
 

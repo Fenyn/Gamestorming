@@ -265,30 +265,33 @@ not open their kit; an Ally only satisfies an `only: {character}` gate on a card
 already be offered. So a kit is reachable exactly when some starter names one of that character's
 personality cards as its Duelist.
 
-The **Ally-legal** columns below are `engine/deck_validator.gd`'s rule, not a card type: a
-personality may be fielded as an Ally when its highest Aspect is 1, or at least 2 below the deck's
-Aspect count, and when its `alignment_only` gate matches the deck. No personality in the set tops out
-at Aspect 2, so at 2 and at 3 Aspects the rule admits only the Aspect-1 personalities; the 3-Aspect
-ones become Ally-legal at 5.
+The **Ally-legal** column below is `engine/deck_validator.gd`'s rule, not a card type: a personality
+card may be fielded as an Ally when its Aspect is 1, 2 or 3, when it does not share the Duelist's
+character, and when its `alignment_only` gate matches the deck. The deck's own Aspect count does not
+enter into it (corrected 2026-09-21 against the later rulings revision, which replaced an older
+"at least 2 below the Duelist's highest" rule and the house exemption that went with it). So every
+character's Aspect 1 to 3 cards are Ally-legal in every deck, and the counts below no longer vary by
+the deck's height. The Aspects an Ally runs need not be consecutive, so a deck may run a lone
+Aspect 2 card.
 
-| Character | Cards | By type | Personality cards (Aspects, alignment gate) | Ally-legal at 2 / at 3 Aspects | Runs that lead with them |
+| Character | Cards | By type | Personality cards (Aspects, alignment gate) | Ally-legal cards | Runs that lead with them |
 |---|---|---|---|---|---|
-| Emrys Rooke | 9 | 7 Strike, 2 Drill | `personality_emrys_rooke_*` 1-5, any | no / no | `steel_heir_start` (3 Aspects) |
-| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | `personality_edric_rooke_*` 1-5, any; `personality_edric_rooke_1` 1-1, Vigil | `personality_edric_rooke_1` yes / yes; the rest no / no | `pyre_ascent_start` (2), `tide_deepwater_start` (2) |
-| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | `personality_bram_ashmark_*`: the Hollow 1-3, the Glut 1-5, any. Both lines share Aspect 1 | no / no | `pyre_beatdown_start` (2), `pyre_attrition_start` (2) |
-| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | `personality_gideon_mourne_*` 1-4, any; `personality_gideon_mourne_1_mercenary` 1-1, Pact | `personality_gideon_mourne_1_mercenary` yes / yes; the rest no / no | `shade_mind_siege_start` (2) |
-| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | `personality_caedan_vale_*` 1-5, any | no / no | `freestyle_swords_start` (2) |
+| Emrys Rooke | 9 | 7 Strike, 2 Drill | `personality_emrys_rooke_*` 1-5, any | 3: `_1_the_eldest`, `_2_first_plate`, `_3_edged` | `steel_heir_start` (3 Aspects) |
+| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | `personality_edric_rooke_*` 1-5, any; `personality_edric_rooke_1` 1-1, Vigil | 4: `_1` (Vigil), `_1_the_hero`, `_2_the_stranger`, `_3_the_realms_hero` | `pyre_ascent_start` (2), `tide_deepwater_start` (2) |
+| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | `personality_bram_ashmark_*`: the Hollow 1-3, the Glut 1-5, any. Both lines share Aspect 1 | 5: `_1_starved`, `_2_leeching`, `_2_gnawing`, `_3_unstoppable`, `_3_gorging` | `pyre_beatdown_start` (2), `pyre_attrition_start` (2) |
+| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | `personality_gideon_mourne_*` 1-4, any; `personality_gideon_mourne_1_mercenary` 1-1, Pact | 4: `_1_mercenary` (Pact), `_1_the_marked_lord`, `_2_unflinching`, `_3_unfettered` | `shade_mind_siege_start` (2) |
+| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | `personality_caedan_vale_*` 1-5, any | 3: `_1_last_heir`, `_2_unparried`, `_3_spellcutter` | `freestyle_swords_start` (2) |
 | Corin Thrace | 5 | 1 Strike, 3 Art, 1 Non-Combat | none | — | **none.** No personality card exists |
-| Sable Draik | 3 | 3 Art | `personality_sable_draik_*` 1-3, any | no / no | `shade_henchmen_start` (2) |
-| Halden Quarr | 3 | 2 Strike, 1 Art | `personality_halden_quarr_*` 1-3, any | no / no | `steel_beatdown_start` (2). His three cards print `steel`, and that run is Steel |
+| Sable Draik | 3 | 3 Art | `personality_sable_draik_*` 1-3, any | 3: all of them | `shade_henchmen_start` (2) |
+| Halden Quarr | 3 | 2 Strike, 1 Art | `personality_halden_quarr_*` 1-3, any | 3: all of them | `steel_beatdown_start` (2). His three cards print `steel`, and that run is Steel |
 | The Fortress | 2 | 1 Strike, 1 Art | none | — | **none.** No personality card exists |
-| Marrow | 2 | 2 Combat | `personality_marrow_*` 1-4, any | no / no | `shade_salvage_start` (3) |
-| Siphon | 2 | 1 Strike, 1 Art | `personality_siphon_*` 1-3, any | no / no | `storm_volley_start` (2), `storm_unbound_start` (3) |
-| Dame Alder Rooke | 1 | 1 Combat | `personality_alder_rooke_*` 1-3, any; `personality_alder_rooke_1` 1-1, Vigil | `personality_alder_rooke_1` yes / yes; the rest no / no | `tide_companions_start` (3). `rookes_deluge` reads `only: {duelist_character}`, so only that run unlocks it |
-| Brann Draik | 1 | 1 Strike | `personality_brann_draik_1` 1-1, Pact | yes / yes | **none.** Ally-legal everywhere Pact, but no run names him Duelist |
-| Halvard Draik | 1 | 1 Strike | `personality_halvard_draik_1` 1-1, Pact | yes / yes | **none**, as above |
-| Vesna Draik | 1 | 1 Strike | `personality_vesna_draik_1` 1-1, Pact | yes / yes | **none**, as above |
-| Cull | 1 | 1 Drill | `personality_cull_1` 1-1, Pact | yes / yes | **none**, as above |
+| Marrow | 2 | 2 Combat | `personality_marrow_*` 1-4, any | 3: `_1_patchwork`, `_2_rebuilt`, `_3_overwrought` | `shade_salvage_start` (3) |
+| Siphon | 2 | 1 Strike, 1 Art | `personality_siphon_*` 1-3, any | 3: all of them | `storm_volley_start` (2), `storm_unbound_start` (3) |
+| Dame Alder Rooke | 1 | 1 Combat | `personality_alder_rooke_*` 1-3, any; `personality_alder_rooke_1` 1-1, Vigil | 4: all of them, `_1` Vigil | `tide_companions_start` (3). `rookes_deluge` reads `only: {duelist_character}`, so only that run unlocks it |
+| Brann Draik | 1 | 1 Strike | `personality_brann_draik_1` 1-1, Pact | 1 | **none.** Ally-legal in any Pact deck, but no run names him Duelist |
+| Halvard Draik | 1 | 1 Strike | `personality_halvard_draik_1` 1-1, Pact | 1 | **none**, as above |
+| Vesna Draik | 1 | 1 Strike | `personality_vesna_draik_1` 1-1, Pact | 1 | **none**, as above |
+| Cull | 1 | 1 Drill | `personality_cull_1` 1-1, Pact | 1 | **none**, as above |
 | Torvan Hask | 1 | 1 Strike | none | — | **none.** No personality card exists |
 | Scorn | 1 | 1 Combat | none | — | **none.** No personality card exists |
 | Sledge | 1 | 1 Art | none | — | **none.** No personality card exists |
@@ -390,11 +393,11 @@ they are restated so the bundle tables can be read without it.
 - Copies are `limit_per_deck`, default 3. A card naming your own Duelist allows 4 unless it prints a
   lower limit. **Personalities are limit 1 by type**, whatever they print.
 - An Ally may not share the Duelist's character, must match the deck's alignment
-  (`alignment_only`), and if its Aspects climb past 1 its highest Aspect must be at least 2
-  below the deck's Aspect count. **Fifteen of the 27 personalities stop at Aspect 1**, so under the
-  2026-09-20 house rule all 15 are Ally-legal at 2 Aspects, at 3, and at any count. The rule only
-  bites on a personality with a taller ladder: one whose Aspects run 1 to 3 needs a 5-Aspect deck,
-  and one that reaches 4 or 5 can never be an Ally.
+  (`alignment_only`), and must be an Aspect 1, 2 or 3 card. The deck's own Aspect count does not
+  enter into it (corrected 2026-09-21). **50 of the 62 personality cards are Aspect 1 to 3**, so
+  50 are Ally-legal in any deck their character and alignment allow; the 12 at Aspect 4 or 5 can
+  only ever be Duelist rungs. The Aspects an Ally runs need not be consecutive and need not
+  include Aspect 1.
 - Grounds unlock as a block of 3 copies of one Grounds. A Grounds forces a Combat skip on the turn
   it is placed and a new Grounds removes the old one, so a second Grounds bundle overwrites the
   first.
@@ -782,11 +785,12 @@ once in their own run's bundles and once in the Ally follow-ups or the Storm sch
 `lone_blade_drill` is both a Vale piece and a generic modifier. A cap of 3 appearances holds
 everywhere, and nothing reaches it.
 
-**Personalities.** 15 of the 27 stop at Aspect 1 and so can be fielded as an Ally anywhere their
-alignment gate allows; 2 of those are in a bundle and the other 13 are in the table in 5.10.1. The
-12 with taller ladders are in no bundle, because a personality whose Aspects reach 3 is Ally-legal
-only in a 5-Aspect deck and none of the four playable runs would want one, and one reaching 4 or 5
-can never be an Ally.
+**Personalities.** 50 of the 62 personality cards are Aspect 1 to 3 and so can be fielded as an Ally
+anywhere their character and alignment gate allow; the 15 that are the whole of a one-Aspect
+character are the ones the bundles reach, 2 in a bundle and 13 in the table in 5.10.1. The Aspect 2
+and 3 rungs of the taller characters are in no bundle by choice rather than by rule (2026-09-21:
+the old "only in a 5-Aspect deck" reading is gone), and the 12 cards at Aspect 4 or 5 can never be
+an Ally.
 
 **Cards that are legal but do nothing in the runs that can take them**, flagged rather than dropped:
 `old_trick` (searches the Reserve), `riftcry` (needs a Grounds in play), `pyre_sword_cleave` (lends

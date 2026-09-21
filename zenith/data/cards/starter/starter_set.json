@@ -962,7 +962,7 @@
    "character": "Marrow",
    "aspect": 2,
    "aspect_title": "Rebuilt",
-   "surge": 2,
+   "surge": 1,
    "might": [
 	0,
 	15,
@@ -991,7 +991,7 @@
    "character": "Marrow",
    "aspect": 3,
    "aspect_title": "Overwrought",
-   "surge": 3,
+   "surge": 2,
    "might": [
 	0,
 	21,
@@ -1031,7 +1031,7 @@
    "character": "Marrow",
    "aspect": 4,
    "aspect_title": "Fury Amalgam",
-   "surge": 4,
+   "surge": 3,
    "might": [
 	0,
 	20,
@@ -1717,7 +1717,7 @@
    "alignment_only": "pact",
    "limit_per_deck": 1,
    "aspect": 1,
-   "surge": 1,
+   "surge": 2,
    "might": [
 	0,
 	8,
@@ -3157,7 +3157,10 @@
 	}
    ],
    "alignment_only": "pact",
-   "character": "Marrow"
+   "character": "Marrow",
+   "tags": [
+	"construct"
+   ]
   },
   {
    "id": "sever_the_leyline",
@@ -3416,7 +3419,10 @@
    ],
    "alignment_only": "pact",
    "remove_after_use": true,
-   "limit_per_deck": 1
+   "limit_per_deck": 1,
+   "tags": [
+	"construct"
+   ]
   },
   {
    "id": "steel_standoff",
@@ -4434,7 +4440,8 @@
 	},
 	{
 	 "op": "shuffle_discard",
-	 "amount": 3
+	 "amount": 3,
+	 "from": "bottom"
 	}
    ]
   },
@@ -4987,7 +4994,10 @@
    "defense": {
 	"stops": "art",
 	"cost_life": 2
-   }
+   },
+   "tags": [
+	"construct"
+   ]
   },
   {
    "id": "mournes_quickness_drill",
@@ -5050,6 +5060,9 @@
 	  "performer_tag": "construct"
 	 }
 	}
+   ],
+   "tags": [
+	"construct"
    ]
   },
   {

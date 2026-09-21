@@ -13,14 +13,38 @@ const MAX_ASPECTS: int = 5
 const SIGNATURE_LIMIT: int = 4
 ## What a card allows when it prints no limit of its own; see CardDef.limit_per_deck.
 const DEFAULT_LIMIT: int = 3
+## The highest Aspect a personality card may be to sit in the Life Deck as an Ally.
+const MAX_ALLY_ASPECT: int = 3
 
 
-## Where an Ally may sit. A tier 1 card is always legal (house rule 2026-09-20: a personality that
-## never climbs cannot outgrow any Duelist, and the gap would otherwise ban every following from a
-## shallow deck, which the adventure starters need). Anything above it must sit at least two
-## Aspects below the Duelist's highest.
-static func ally_aspect_allowed(aspect: int, duelist_aspects: int) -> bool:
-	return aspect <= 1 or aspect <= duelist_aspects - 2
+## Where an Ally may sit. A personality card of Aspect 1, 2 or 3 may be in the Life Deck of any
+## deck, whatever height its Duelist runs (2026-09-21, following the later rulings revision; it
+## replaced an older rule that asked for a two-Aspect gap under the Duelist's highest, and with it
+## the 2026-09-20 house exemption for Aspect 1, which this covers). The Aspects an Ally runs need
+## not be consecutive and need not include Aspect 1: that is a Duelist rule only.
+static func ally_aspect_allowed(aspect: int) -> bool:
+	return aspect <= MAX_ALLY_ASPECT
+
+
+## Every Ally rule that reads one card. A personality in the Life Deck is an Ally; there is no
+## Ally card type, the deck names one personality as its Duelist and every other one it runs
+## fights as an Ally. One copy of each personality card, and two different cards of one character
+## at one Aspect are not copies of each other, so a deck may run both.
+##
+## This is where "an Ally may not share your Duelist's character" is enforced, and the only place:
+## the engine does not check it again in play, because a personality can only reach your side of
+## the table out of your own Life Deck or Reserve, both of which pass through here. The Reserve is
+## checked for the same reason, since a Reserve swap puts those cards in the Life Deck at setup.
+static func ally_problems(def: CardDef, deck: DeckList, duelist: CardDef) -> Array[String]:
+	var out: Array[String] = []
+	if def.character == duelist.character:
+		out.append("Ally '%s' is the same character as the Duelist" % def.id)
+	if def.alignment_only != "" and def.alignment_only != deck.alignment:
+		out.append("Ally '%s' does not match alignment %s" % [def.id, deck.alignment])
+	if not ally_aspect_allowed(def.aspect):
+		out.append("Ally '%s' is Aspect %d; an Ally may be Aspect 1 to %d"
+			% [def.id, def.aspect, MAX_ALLY_ASPECT])
+	return out
 
 
 static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
@@ -73,13 +97,6 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 	var counts: Dictionary = {}
 	var seal_sets: Dictionary = {}
 	var styled_seen: bool = false
-	var ally_aspects: Dictionary = {}   # character -> {aspect: true} among the Life Deck personalities
-	for id in deck.cards:
-		var pdef: CardDef = library.defs.get(id)
-		if pdef != null and pdef.type == CardDef.Type.PERSONALITY:
-			if not ally_aspects.has(pdef.character):
-				ally_aspects[pdef.character] = {}
-			(ally_aspects[pdef.character] as Dictionary)[pdef.aspect] = true
 	for id in deck.cards:
 		var def: CardDef = library.defs.get(id)
 		if def == null:
@@ -97,21 +114,8 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		# "Sensei Deck only": legal in the Reserve and nowhere else.
 		if bool(def.raw.get("reserve_only", false)):
 			problems.append("'%s' is Reserve only and cannot be in the Life Deck" % id)
-		# A personality in the Life Deck is an Ally. There is no Ally card type: the deck names
-		# one personality as its Duelist and every other one it runs fights as an Ally.
 		if def.type == CardDef.Type.PERSONALITY:
-			if def.character == duelist.character:
-				problems.append("Ally '%s' is the same character as the Duelist" % id)
-			if def.alignment_only != "" and def.alignment_only != deck.alignment:
-				problems.append("Ally '%s' does not match alignment %s" % [id, deck.alignment])
-			if not ally_aspect_allowed(def.aspect, deck.aspects):
-				problems.append("Ally '%s' must be at least 2 aspects below the Duelist's highest" % id)
-			# An Ally climbs by overlaying its next Aspect off the top of the Life Deck's own
-			# copy, so a higher Aspect is dead weight without every Aspect under it. This is the
-			# printed game's behaviour and what DuelEngine._can_place already enforces in play.
-			if def.aspect > 1 and not (ally_aspects[def.character] as Dictionary).has(def.aspect - 1):
-				problems.append("Ally '%s' needs Aspect %d of %s in the deck too"
-					% [id, def.aspect - 1, def.character])
+			problems.append_array(ally_problems(def, deck, duelist))
 	for id in counts.keys():
 		var def: CardDef = library.defs[id]
 		var limit: int = def.limit_per_deck
@@ -155,6 +159,11 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			continue
 		if def.school != "" and deck.style != def.school:
 			problems.append("Reserve card '%s' is %s, deck Style is %s" % [id, def.school, deck.style])
+		# A Reserve swap puts these cards in the Life Deck before the first turn, so a personality
+		# in the Reserve is an Ally and obeys the Ally rules like any other.
+		if def.type == CardDef.Type.PERSONALITY:
+			for p in ally_problems(def, deck, duelist):
+				problems.append("Reserve: %s" % p)
 		var combined: int = int(counts.get(id, 0)) + deck.reserve.count(id)
 		var limit: int = def.limit_per_deck
 		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:

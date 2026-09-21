@@ -94,10 +94,16 @@ func _run() -> void:
 	var rest_center: Vector2 = hand._items[0]["rect"].get_center()
 	hand._update_pointer(rest_center)
 	_check(hand._hovered == 0, "A revealed hand card must be selectable by hovering its face")
+	hand._layout(true)
+	var source_screen: Vector2 = duel.camera.unproject_position((hand._items[0]["node"] as Node3D).global_position)
+	_check((hand._items[0]["rect"] as Rect2).has_point(source_screen), "The hovered physical card must remain in its pointer target")
+	_check(hand._preview.visible and hand._expanded_rect.has_area(), "Hovering a source card must open its separate readable face")
 	var expanded_point: Vector2 = hand._expanded_rect.get_center()
 	hand._update_pointer(expanded_point)
-	_check(hand.revealed and hand._hovered >= 0, "Expanded face must keep the hand open above its reveal band")
+	_check(hand.revealed and hand._hovered == 0, "The reading face must keep its source card selected above the reveal band")
 	_check(hand.blocks_pointer(expanded_point), "Expanded hand face must suppress board picking above the activation band")
+	hand._update_pointer((hand._items[1]["rect"] as Rect2).get_center())
+	_check(hand._hovered == 1, "Moving across visible cards must follow the card under the pointer")
 	hand._update_pointer(Vector2(viewport_size.x * 0.5, 100.0))
 	_check(not hand.revealed and hand._hovered == -1, "Leaving the hand and bottom band must retract it and clear preview")
 	_check(hand._hit(rest_center, true) == -1, "Former hand slots must stop intercepting the board immediately on retraction")
@@ -241,7 +247,7 @@ func _run() -> void:
 			var expanded: Rect2 = hand._expanded_rect
 			var inside_viewport: bool = expanded.position.x >= 0.0 and expanded.position.y >= 0.0 and expanded.end.x <= scale_size.x and expanded.end.y <= scale_size.y
 			var clear_of_hero: bool = expanded.end.x <= hand._hero_left - hand.PREVIEW_MARGIN + 1.0 or expanded.position.x >= hand._hero_right + hand.PREVIEW_MARGIN - 1.0
-			_check(inside_viewport and clear_of_hero and not expanded.intersects(decision_area), "Every hand preview must stay onscreen and clear of the hero and decision at %s" % str(scale_size))
+			_check(inside_viewport and clear_of_hero and not expanded.intersects(decision_area) and not expanded.intersects(hand._items[index]["rect"]), "Every hand preview must stay onscreen and clear of its source, the hero, and the decision at %s" % str(scale_size))
 		for item in hand._items:
 			if (item["node"] as Node3D).visible:
 				var resting_rect: Rect2 = item["rect"]

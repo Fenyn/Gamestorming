@@ -15,7 +15,7 @@ bundle-eligible on 2026-09-20. Seals did not: they are held for a separate rewar
 **Three classes of card, not two.** Ruled 2026-09-21. A card belongs to a **school** when it prints
 one, to **Freestyle** when it is schoolless with no `character`, and to **Signature** when it prints
 a `character`, whatever else it prints. Freestyle is the shared school; Signature is its own class
-with its own copy limit and its own offer rule, treated in 2.8 and 5.11.
+with its own copy limit and its own offer rule, treated in 2.8 and 5.10.
 
 | Class | Cards | Strike | Art | Combat | Non-Combat | Drill |
 |---|---|---|---|---|---|---|
@@ -108,8 +108,8 @@ class. "Precons" names the decks with that Style; how each is piloted is in `doc
   with dedicated Combat cards.
 - Board removal is on the attack, not on a spell: `pyre_scouring_flame`, `pyre_immolation`,
   `pyre_firestorm` and `pyre_ashfall` strip Drills, Allies and Non-Combats while dealing damage.
-- Ranked themes: Fervor gain 19, stage damage 13, board removal 4, Energy gain 4, removal from the
-  game 4, Endurance 4.
+- Ranked themes: Fervor gain 19, Strike attack 17, Energy damage 13, stop by kind 6, Energy gain 4,
+  removal from the game 4, Endurance 4, board removal 4.
 - What it lacks: Art answers. Exactly two cards stop an Art, `pyre_warding_stance` and
   `pyre_hearthguard` (`remove_after_use`). It has no Drill and no Non-Combat at all, so its whole
   support package has to come from Freestyle.
@@ -127,8 +127,8 @@ and are counted in 2.8, not here.
   and take 3 or 4 stages off the opponent, which sets up the 1:1 conversion.
 - Endurance stands in for blocks: `steel_hammer_blow` 4, `steel_iron_fist` 3, `steel_scar_tissue` 2.
 - Three cards read the Might comparison (`when: {higher_might: true}`), which no other school does.
-- Ranked themes: stage damage 16, stop by kind 5, Endurance 5, Energy drain 3, lockout 3, Fervor
-  gain 4.
+- Ranked themes: Strike attack 19, Energy damage 16, stop by kind 5, life damage 4, Fervor gain 4,
+  draw and search 4, Endurance 4, Energy drain 3.
 - What it lacks: recursion (one card, `steel_scar_tissue`) and any Non-Combat. Two of its best Arts
   and one Art stop are Draconic-gated (`steel_shockwave`, `steel_plating`, plus Strikes
   `steel_rake`, `steel_talon`), so a Steel duelist without the bloodline loses four cards.
@@ -143,95 +143,178 @@ and are counted in 2.8, not here.
   (`tide_surge` stops Strikes, `tide_undertow` stops Arts, `tide_confluence`, `tide_twin_breaker`).
 - It reaches sideways rather than hitting hard: `tide_dredge` and `tide_depths` dig, `tide_drowning`
   and `tide_pull_under` strip the board, `tide_springwater` puts an Ally back into play.
-- Ranked themes: Fervor denial 12, stage damage 8, life damage 8, stop by kind 6, board removal 4.
+- Ranked themes: Fervor denial 13, Strike attack 11, Art attack 11, Energy damage 8, life damage 8,
+  stop by kind 6, draw and search 4, board removal 4.
 - What it lacks: Fervor gain (3 cards), Drills (none), and any large single hit. Its only static
   modifier is `tide_heavy_water` at +1 stage.
 - Precons: `tide_companions` (Dame Alder, Allies and the Bond), `tide_deepwater` (Sir Edric Rooke,
   hold Fervor at 0 and strip).
 
-### Storm — 13 cards (3 Strike, 10 Art, 0 Combat, 0 Non-Combat, 0 Drill)
+### 2.4 Storm — 39 cards (12 Strike, 19 Art, 2 Combat, 2 Non-Combat, 4 Drill)
 
-- Arts and nothing else. Five of them are the same shape, a 5-wound Art with +1 or +2 Fervor
-  (`storm_arc_bolt`, `storm_lash`, `storm_palm_surge`, `storm_chain_lightning`, and
-  `storm_charged_ward` as a stop).
-- Ranked themes: life damage 4, Fervor gain 5, stage damage 3, board removal 3, Endurance 3.
-- What it lacks: nearly everything else. One Art stop that is not also an attack
-  (`storm_earthing_rod`), one Strike answer (`storm_static_field`), one Energy refill
-  (`storm_recharge`), zero Combat cards, zero Non-Combats, zero Drills, zero hand attack, zero
-  recursion, zero Fervor denial.
-- 13 school cards is not enough for bundle variety. It supports 7 honest bundles and no more; see
-  the gap list in section 5.
+Expanded from 13 on 2026-09-21. It is now the second-largest school and the only one with a
+complete card-type spread.
+
+- Still an Art school, 19 of 39, but the Arts now divide into a 5-wound body
+  (`storm_arc_bolt`, `storm_lash`, `storm_palm_surge`, `storm_chain_lightning`), a cost tier from
+  `storm_idle_spark` at 0 stages to `storm_pent_discharge` at 3, and answers that pay
+  (`storm_catching_stance` stops an Art for 4 Energy and a Fervor off them).
+- It now has a real engine. `storm_conduit_drill` takes a stage off every Art to a floor of 1 and
+  `storm_tight_coil_drill` adds 2 wounds to each, which is the only cost-and-payoff Drill pair in
+  the set. `storm_free_current` reads your hand and, on three Storm cards, sets every cost to 0 for
+  the Combat.
+- It defends from the table for free: `storm_mantle_drill` and `storm_dispersal_drill` are the only
+  Defense Shields printed outside Root, and `storm_returning_front` is a Strike stop that goes to
+  the bottom of the Life Deck instead of the discard.
+- Its Strikes exist to serve the Arts. `storm_opened_channel` is a 2-stage Focused Strike that pays
+  your Arts +2 wounds for the Combat; `storm_return_stroke` and `storm_feeding_arc` refill Energy;
+  `storm_tailwind` buffs everything but itself (`exclude_source`).
+- Ranked themes: Art attack 15, Strike attack 10, Endurance 9, Energy damage 8, life damage 8, stop
+  by kind 8, Fervor gain 7, static modifier 7, floating effect 7, Fervor denial 6.
+- What it still lacks: **draw and search is 1 card** (`storm_overcharge`) and **recursion is 1**
+  (`storm_mustering_peal`, and only after you have taken 5 wounds). It has **no universal stop at
+  all**, no Energy drain, and its only Ally support is that same conditional card.
 - Precons: `storm_volley` (Siphon, discounted Art barrage), `storm_unbound` (Siphon, make Strikes
   unaffordable and out-trade).
 
 ### 2.5 Shade — 28 cards (15 Strike, 9 Art, 1 Combat, 0 Non-Combat, 3 Drill)
 
-- Hand attack is Shade's and almost nobody else's: 9 of the 11 cards in the set that touch the
-  opponent's hand are Shade.
+- Hand attack is Shade's and almost nobody else's: 11 of the 16 cards in the set that touch the
+  opponent's hand are Shade. Storm's expansion added the only other school with any (3).
 - The `whisper` keyword sits on 9 cards and `shade_returning_whisper` reads it, putting three
   whispers from the discard on top of the Life Deck.
 - It has the only school Drills that are engines rather than modifiers: `shade_composure_drill`
   (keep 2 in the Discard step), `shade_takedown_drill` (draw on a successful attack),
   `shade_faltering_drill` (pay 1 Energy to empty their hand at the Discard step).
-- Ranked themes: hand attack 9, stage damage 12, life damage 6, stop by kind 5, cost in Energy 4.
+- Ranked themes: Strike attack 14, Energy damage 12, hand attack 11, Art attack 7, life damage 6,
+  stop by kind 5, cost in Energy 4.
 - What it lacks: Fervor of any kind (1 denial, 3 gain), Energy gain (0), board removal (2). Several
   of its best cards are gated: `shade_nightmare_hold` is Pact, `shade_bitter_trade` needs the
   `marked` keyword, and `shade_ransoming_hand` is `reserve_only` and cannot go in a Life Deck at all.
 - Precons: `shade_henchmen` (Sable, company on the table), `shade_salvage` (Marrow, Construct Arts),
   `shade_mind_siege` (Gideon Mourne, take the hand then finish).
 
-### Root — 9 cards (2 Strike, 4 Art, 2 Combat, 1 Drill, 0 Non-Combat)
+### 2.6 Root — 38 cards (16 Strike, 10 Art, 6 Combat, 2 Non-Combat, 4 Drill)
 
-- The smallest pool in the set, and half of it is recursion: `root_dash`,
-  `root_energy_deflection`, `root_dragon_blast` and `root_energy_focus` all move cards out of the
-  discard pile.
-- Two cards fetch an Art (`root_bolt`, `root_energy_focus`), which is the school's only tutor line.
-- `root_dragon_blast` is the only card in the set whose damage scales off a Seal set.
-- Ranked themes: recursion 4, Art attack 3, stop by kind 3.
-- What it lacks: everything at volume. One Strike answer, two Art answers, zero Fervor cards, zero
-  board removal, zero Non-Combats. Two of the nine are Verdant-gated, so a Root duelist without the
-  bloodline has seven cards. 9 school cards supports 5 bundles and no more.
+Expanded from 9 on 2026-09-21, and now the school with the most Combat cards of any.
+
+- Recursion is the identity and it is now deep: 10 cards move cards out of the discard pile, more
+  than the other five schools together. `root_rising_sap` and `root_scattered_seed` put cards back
+  without shuffling, `root_closing_bark` carries Endurance 10, and `root_deep_draught` pays two
+  cards back on a Root draw check.
+- It plays the long game from the table. `root_windbreak_drill` and `root_canopy_drill` are free
+  Defense Shields, `root_preparation_drill` and `root_sightline_drill` reorder decks, and
+  `root_trail_cut` looks at the opponent's top four and takes one out of the game.
+- Fervor denial arrived with the expansion: 8 cards, second only to Tide. `root_taproot_brace`
+  stops a Strike, refills you to full Energy and takes a Fervor off them.
+- It now has Energy of its own, 6 cards, where before it had 2. `root_quickening` attacks for 5
+  stages and gains 4, and turns Focused against a `marked` defender.
+- Ranked themes: Strike attack 13, recursion 10, Art attack 9, Energy damage 8, life damage 8,
+  Fervor denial 8, Energy gain 6, draw and search 6, removal from the game 5, stop by kind 5.
+- What it still lacks: **Fervor gain is 1 card**, which leaves the climb to the Aspect powers
+  entirely to Freestyle. `root_barred_path` is its only universal stop. Its 2 Non-Combats do not
+  touch Seals, and four cards are gated (`root_energy_deflection` and `root_dragon_blast` Verdant,
+  `root_carvers_reach` Vigil, `root_kin_clearing` needs an Ally in play).
 - Precon: `root_seals` (Osric, survive and carve all seven Marble Seals).
 
-### Freestyle — 130 cards (36 Strike, 25 Art, 29 Combat, 27 Non-Combat, 13 Drill)
+### 2.7 Freestyle — 67 cards (9 Strike, 12 Art, 21 Combat, 17 Non-Combat, 8 Drill)
 
-Split in two. **Generic Freestyle** is 67 cards with no `character`; **signature** is 63 cards that
-name one. Freestyle carries the card types the schools do not: 27 of the 28 Non-Combats and 13 of
-the 18 Drills in the whole set are schoolless.
+The shared school: schoolless with no `character`, legal in every deck, and the Style of
+`freestyle_swords`. It carries the card types the schools mostly do not, 17 of the set's 32
+Non-Combats and 8 of its 25 Drills, and it is the only class whose commonest type is Combat.
 
-- Generic themes ranked: draw and search 31, recursion 22, Fervor gain 21, board removal 18,
-  lockout 17, one-shot bombs 16, Fervor denial 11.
-- 55 of the 67 generic cards carry no gate. The other 12 are gated on alignment
-  (`watchful_eye`, `kins_rescue`, `wardens_measure`, `guardian_drill`, `counterplay_drill` are
-  Vigil; `sever_the_leyline`, `terms_of_the_pact` are Pact), on a bloodline (`closing_ranks`,
-  Draconic) or on the `marked` keyword (`marked_demise`, `marked_lightning`, `marked_strength`).
-  `spent_to_the_last` reads `only: {energy_min: 5}`, which is a price and not a gate.
+- It is the utility school. Ranked themes: printed at limit 1 22, draw and search 17, board removal
+  13, one-shot bombs 13, recursion 11, Art attack 9, lockout 9, Fervor gain 8, Fervor denial 7,
+  Seal support 7.
+- It has almost no body of its own: 9 Strikes and 2 cards that deal life damage. What it sells is
+  answers, tutors and permanents, not a damage plan.
+- It holds 22 of the 29 limit-1 cards and 13 of the 20 one-shot bombs in the set, so the late tier
+  of any run is mostly Freestyle.
+- 55 of the 67 carry no gate. The other 12 are gated on alignment (`watchful_eye`, `kins_rescue`,
+  `wardens_measure`, `guardian_drill`, `counterplay_drill` are Vigil; `sever_the_leyline`,
+  `terms_of_the_pact` are Pact), on a bloodline (`closing_ranks`, Draconic) or on the `marked`
+  keyword (`marked_demise`, `marked_lightning`, `marked_strength`). `spent_to_the_last` reads
+  `only: {energy_min: 5}`, which is a price and not a gate.
+- What it lacks by design: no Strike or Art of its own worth building around, and only 2 stops by
+  kind against 3 universal ones.
 - Precon: `freestyle_swords` (Caedan Vale, Drills the Mastery protects, then sword signatures).
 
-Signature cards by character, reward-eligible types only: Emrys Rooke 9, Sir Edric Rooke 9,
-Bram Ashmark 8, Gideon Mourne 7, Caedan Vale 7, Corin Thrace 5, Sable Draik 3, Halden Quarr 3,
-The Fortress 2, Marrow 2, Siphon 2, and one each for Torvan Hask, Dame Alder Rooke, Scorn, Sledge,
-Brann Draik, Halvard Draik, Vesna Draik, Mercy, Cull.
+### 2.8 Signature — 66 cards (29 Strike, 14 Art, 8 Combat, 10 Non-Combat, 5 Drill)
 
-**Twenty-eight of those are unreachable by any run.** A signature card can only be offered when its
-character can be in the deck, as the Duelist or as an Ally. No personality card at all exists for
-Emrys Rooke, Corin Thrace, The Fortress, Torvan Hask, Scorn, Sledge or Mercy: 9 + 5 + 2 + 1 + 1 + 1 +
-1 = 20 cards with no route into a Life Deck. Sable Draik, Halden Quarr and Marrow add 8 more; they
-have Duelist printings only, and a Duelist printing is legal as an Ally only when its highest Aspect
-is 2 below the deck's, so Sable and Quarr need a 5-Aspect deck and Marrow's 4-Aspect printing is
-never legal as an Ally.
+A signature card is any card with a non-empty `character`. It is a class, not a part of Freestyle.
+**The rules that make it different:** a card naming your own Duelist allows **4 copies** rather than
+3, unless it prints a lower limit, which wins; it is offered only to a run whose Duelist is that
+character, or alongside or after that character's Ally (5.10); an `only` gate naming a character is
+met by that character being the Duelist **or** an Ally in the deck, and `only: {duelist_character}`
+is met only by the Duelist; and a signature card is legal in every school's deck **including the
+Freestyle-style deck**, because a signature card carries no school. The three exceptions are
+`shrugs_it_off`, `quarrs_roar` and `quarrs_crushing_blow`, the only signature cards in the set that
+also print a school (`steel`); those are legal in a Steel deck only.
+
+- Ranked themes: Strike attack 21, Energy damage 17, draw and search 14, Fervor gain 13, Art attack
+  12, recursion 11, stop by kind 10, lockout 9, reads the situation 9, Focused 8.
+- Signature cards are where "reads the situation" lives: 9 of the set's 17 `variants`,
+  `remain_when` and `endurance_when` cards are signature, because a named card is written to be
+  better in its own character's hands.
+- The one `counter` card in the set is signature (`cut_short`), as are 3 of the 5 attachments.
+
+| Character | Cards | By type | Personality printings | Where the kit can be used |
+|---|---|---|---|---|
+| Emrys Rooke | 9 | 7 Strike, 2 Drill | Duelist `duelist_kappa` (5 Aspects) | **Unreachable.** No Ally printing, and a 5-Aspect printing can never be an Ally |
+| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | Duelist `duelist_iota` (5), Ally `companion_beta` | Own run, and any Vigil run that fields him as an Ally |
+| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | Duelists `duelist_alpha` (3), `duelist_lambda` (5) | Own run only |
+| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | Duelist `duelist_mu` (4), Ally `salvage_gamma` | Any Pact run that fields him as an Ally. His own Duelist run has no ladder yet |
+| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | Duelist `duelist_zeta` (5) | Own run only |
+| Corin Thrace | 5 | 3 Art, 1 Strike, 1 Non-Combat | none | **Unreachable.** No personality card exists at all |
+| Sable Draik | 3 | 3 Art | Duelist `duelist_delta` (3) | **Unreachable.** Ally-legal only in a 5-Aspect deck, and no run runs her |
+| Halden Quarr | 3 | 2 Strike, 1 Art | Duelist `duelist_epsilon` (3) | **Unreachable**, and Steel-only on top |
+| The Fortress | 2 | 1 Strike, 1 Art | none | **Unreachable** |
+| Marrow | 2 | 2 Combat | Duelist `duelist_theta` (4) | **Unreachable.** A 4-Aspect printing is never Ally-legal |
+| Siphon | 2 | 1 Strike, 1 Art | Duelist `duelist_gamma` (3) | Own run only |
+| Dame Alder Rooke | 1 | 1 Combat | Duelist `duelist_beta` (3), Ally `companion_epsilon` | Her one card reads `only: {duelist_character}`, so fielding her as an Ally does not unlock it. Effectively unreachable |
+| Brann Draik | 1 | 1 Strike | Ally `henchman_beta` | Any Pact run that fields him |
+| Halvard Draik | 1 | 1 Strike | Ally `henchman_delta` | Any Pact run that fields him |
+| Vesna Draik | 1 | 1 Strike | Ally `henchman_alpha` | Any Pact run that fields her |
+| Cull | 1 | 1 Drill | Ally `salvage_alpha` | Any Pact run that fields him |
+| Torvan Hask | 1 | 1 Strike | none | **Unreachable** |
+| Scorn | 1 | 1 Combat | none | **Unreachable** |
+| Sledge | 1 | 1 Art | none | **Unreachable** |
+| Mercy | 1 | 1 Non-Combat | none | **Unreachable** |
+
+**28 of the 66 are unreachable by any run**: Emrys 9, Corin 5, Sable 3, Quarr 3, The Fortress 2,
+Marrow 2, and one each for Torvan Hask, Scorn, Sledge and Mercy. Ten characters have no route into
+a Life Deck at all, because a Duelist printing is Ally-legal only when its highest Aspect is 2 below
+the deck's, which no playable run satisfies.
+
+**What each usable kit does.** Sir Edric's nine are a defensive draw engine: two universal stops, a
+Combat card that answers an attack that already landed, three Strikes and an attachment that all
+draw from the bottom of the discard, and two that reach for Seals. Bram Ashmark's eight are
+discard-pile denial and a `marked` Art loop, with the set's only card that stops a Focused attack
+twice over. Gideon Mourne's seven are board control: a Drill that draws every Combat, three Seal
+placers, two lockouts and the only answer in the set to an Ascension win. Caedan Vale's seven are a
+tutor chain: fetch a "Sword" card, fetch two signature cards, fetch one back out of the discard, and
+an attachment that pays "Sword" attacks +3 wounds. Siphon's two are a self-replacing Strike stop and
+a Drill removal Art. Brann, Halvard, Vesna and Cull have one card each, which is the reason the
+Ally bundle rule in 5.10.1 cannot reach them.
 
 ---
 
-## 3. Per card type across schools
+## 3. Per card type across the classes
 
-| Type | What it does here | How the schools differ |
+| Type | What it does here | How the classes differ |
 |---|---|---|
-| Strike | The main attack and, in four schools, the main defense. 40 of the 92 Strike-attack cards also print a `defense` block or an `endurance` value | Pyre and Steel live here (21 and 24 cards). Storm has 3. Steel carries the Endurance and the raw stage numbers, Pyre the Fervor riders, Shade the hand attack, Tide the Fervor denial |
-| Art | 2 Energy for wounds, ignores the Strike Table, which is how a low-Might duelist threatens a high one | Storm is 10 of 13 Arts, Tide 12 of 28. Pyre has 3 and Steel 7, and most of those are stops rather than attacks. Root's four Arts are its damage and half its Seal engine |
-| Combat | Utility, all effects secondary, used in place of an attack or as a defense when it stops | Almost entirely Freestyle: 29 of the 35. Each school has exactly one (`pyre_twin_flames`, `steel_standoff`, `tide_held_under`, `shade_veil`) except Root with two and Storm with none |
-| Non-Combat | Placed in the Non-Combat step, used once in Combat, then discarded. Where the tutors live: 13 of the 27 generic ones search | Freestyle owns the type. `tide_heavy_water` is the only school Non-Combat in the set |
-| Drill | Stays in play, one school of Drills per player, all discard on an Aspect change | 13 of 18 are Freestyle. The school Drills are static modifiers (`steel_conditioning_drill` +2 stages, `assembly_drill` is Freestyle) except Shade's three, which are engines, and `root_preparation_drill`, which looks at the opponent's top five |
+| Strike (138) | The main attack and, in four schools, the main defense. 29 of the 138 print a `defense` block and no attack, and 23 of the 111 that do attack also carry a `defense` block or an `endurance` value | Pyre 21, Steel 22, Root 16, Shade 15, Tide 14, Storm 12, Freestyle 9, Signature 29. Steel carries the raw stage numbers, Pyre the Fervor riders, Shade the hand attack, Tide the Fervor denial, Storm the Art enablers, Root the recursion |
+| Art (85) | 2 Energy for wounds, ignores the Strike Table, which is how a low-Might duelist threatens a high one | Storm 19 and Tide 12 are the Art schools; Root 10, Shade 9, Steel 6, Pyre 3. Pyre's and Steel's are mostly stops rather than attacks. Storm is the only school with a printed cost tier, 0 to 3 stages |
+| Combat (41) | Utility, all effects secondary, used in place of an attack or as a defense when it stops | Freestyle 21 and Signature 8 hold most of it. Root 6 is by far the largest school share; Storm 2; Pyre, Steel, Tide and Shade have exactly one each |
+| Non-Combat (32) | Placed in the Non-Combat step, used once in Combat, then discarded. Where the tutors live: 13 of the 17 Freestyle ones search | Freestyle 17 and Signature 10 own the type. Only Storm 2, Root 2 and Tide 1 print any at all |
+| Drill (25) | Stays in play, one school of Drills per player, all discard on an Aspect change | Freestyle 8, Signature 5, Storm 4, Root 4, Shade 3, Steel 1, and none in Pyre or Tide. Storm's and Root's are the only Defense Shields in the set; Shade's are hand engines; Steel's and Storm's `tight_coil` are static modifiers |
+
+**Freestyle and Signature split the types in opposite directions.** Freestyle's commonest type is
+Combat (21 of 67) and 57% of it is Combat or Non-Combat: it is answers, tutors and permanents.
+Signature's commonest type is Strike (29 of 66) and 65% of it is an attack of some kind: a named
+card is usually a character doing something, not a piece of table furniture. The exception is the
+two characters whose kits are built for the Non-Combat step, Gideon Mourne (3 of 7) and Sir Edric
+Rooke (2 Non-Combat plus 2 Combat of 9).
 
 ---
 
@@ -242,9 +325,9 @@ For each `Archetype.KINDS` id a precon uses. Order is what the plan needs first.
 | Archetype | 1 engine | 2 payoff | 3 protection | Themes it feeds on | What a 40-card starter is missing |
 |---|---|---|---|---|---|
 | `strike_beatdown` | A Might floor: static modifiers and Energy gain, so every Strike reads a band higher | Big Strikes and Fervor riders | Stops for both kinds, Endurance, and an answer to Drills and Non-Combats | stage damage, Fervor gain, static modifier, Endurance | Copies. A beatdown precon runs its key Strike at 3 and the starter at 1 or 2, so the plan is there but does not turn up. Also Art answers: `pyre_beatdown_start` ships 5 stops in all |
-| `art_beatdown` | Energy to spend and a way to get it back | 5-and-6-wound Arts, Empower, unpreventable finishers | Strike answers, because Arts leave you empty and the 1:1 conversion kills you | life damage, cost in Energy, Energy gain, Focused | Energy refills and Strike answers. Storm has one of each in its whole school pool |
+| `art_beatdown` | Energy to spend and a way to get it back | 5-and-6-wound Arts, Empower, unpreventable finishers | Strike answers, because Arts leave you empty and the 1:1 conversion kills you | life damage, cost in Energy, Energy gain, Focused | Since the 2026-09-21 expansion Storm supplies both (3 Energy Strikes, 3 Strike stops). What it still cannot supply is a way to find or reuse an Art: 1 search card and 1 recursion card in 39 |
 | `allies` | Bodies on the table, and Ally fetch | Ally powers and cards that pay per Ally | Cards that guard Allies, and an answer to the opponent's Ally sweeps | Ally support, life damage, Energy gain | Allies. Starters ship 1 or 2 of a possible 4 or 5. Also the fetch (`rallying_call`, `hired_blades`, `warding_call`) |
-| `drills` | Drills that survive, so a Mastery or a card that guards them | Static modifiers and the attacks that read them | An answer to Drill removal, which is 5 cards across the set | static modifier, draw and search, board removal | Drill count. A row of one Drill is not a row. Also the second copy of the modifier |
+| `drills` | Drills that survive, so a Mastery or a card that guards them | Static modifiers and the attacks that read them | An answer to Drill removal, and Defense Shields, which now exist in Storm and Root | static modifier, draw and search, board removal | Drill count. A row of one Drill is not a row. Storm and Root now print 4 Drills each, so this is the archetype the expansion helped most |
 | `seals` | Seal tutors and a Seal guard | The seventh Seal | Survival: stops, recursion, and something that answers capture | Seal support, recursion, stop by kind | Nothing binary; `root_seals_start` ships all seven. It is missing the protection and the tempo to live long enough |
 | `control` | Stops in volume and hand or board attack | The opponent running dry | Recursion, so spent answers come back | stop by kind, hand attack, Fervor denial, recursion | Stop count and recursion. Stops are the first thing a scaled deck loses |
 | `ascension` (no precon uses it today) | Fervor gain and Aspect count | The climb itself | Fervor denial on their side, and an answer to `no_ascension_win` | Fervor gain, Fervor denial, aspect movement | Aspects. Runs start at 2 and the ladder grants them |
@@ -257,14 +340,16 @@ the starter rules already keep them out (`designs/zenith_adventure.md` 6.4).
 
 ## 5. Proposed theme bundles
 
-123 bundles. Names are plain and functional placeholders; none of them is a tone proposal.
+141 bundles. Names are plain and functional placeholders; none of them is a tone proposal.
 
-**Three decisions taken 2026-09-20.**
+**Three decisions taken 2026-09-20, and one on 2026-09-21.**
 
+0. **Signature is its own class** (2.8). Freestyle bundles in 5.7 hold no signature card; the
+   signature bundles are gathered in 5.10.
 1. **Freestyle is a school like any other, shared by every deck.** The 17-card
-   `data/adventure/freestyle_core.json` list no longer limits anything: any legal schoolless card can
-   be bundled. Signature cards of the run's own Duelist are unchanged. For Caedan Vale, whose Style
-   is Freestyle, the Freestyle bundles in 5.7 are his school bundles.
+   `data/adventure/freestyle_core.json` list no longer limits anything: any legal schoolless card
+   with no `character` can be bundled. For Caedan Vale, whose Style is Freestyle, the Freestyle
+   bundles in 5.7 are his school bundles.
 2. **An Ally arrives with two of its own named cards.** An Ally bundle is the personality plus
    exactly two cards whose `character` is that Ally or whose `only` gate names it. **An Ally's named
    cards are offerable only inside its bundle or after that Ally is in the run deck.**
@@ -353,51 +438,72 @@ are always late.
 | `tide_finishers` | Finishers | `tide_crushing_depth`, `tide_high_water` | life damage | art_beatdown | late | 6 wounds, and a 5-wound Art that fetches a Grounds |
 | `tide_denial_late` | Denial package | `tide_breakwater`, `tide_deadweight`, `tide_deep_anchor` | lockout | control | late | Breakwater is limit 1 and makes Arts deal no wounds for the Combat |
 
-### 5.4 Storm (7 — everything the school honestly supports)
+### 5.4 Storm (15, on the 39-card pool)
 
 | id | name | cards | theme | wants it | tier | why |
 |---|---|---|---|---|---|---|
-| `storm_art_volley` | Art volley | `storm_lash` x2, `storm_palm_surge` | life damage | art_beatdown | early | The 5-wound workhorse at playset count |
-| `storm_fervor_arts` | Fervor Arts | `storm_arc_bolt` x2, `storm_earthing_rod` | Fervor gain, stop by kind | art_beatdown, ascension | early | Arc Bolt pays 2 Fervor; Earthing Rod is the school's only pure Art stop |
-| `storm_art_guard` | Art guards | `storm_charged_ward` x2, `storm_static_field` | stop by kind, static modifier | art_beatdown | early | Charged Ward stops an Art and then adds 2 stages to your attacks for the Combat. Static Field is the school's only Strike answer |
-| `storm_energy_loop` | Energy loop | `storm_recharge`, `storm_overcharge` | Energy gain, draw and search | art_beatdown | mid | Storm's only refill, and the only card that digs for an Art |
-| `storm_board_bolts` | Board bolts | `storm_smiting_bolt` x2, `storm_thunderhead` | board removal, Empower | art_beatdown, control | mid | Storm's whole answer to Drills, Allies and Non-Combats |
-| `storm_finishers` | Finishers | `storm_chain_lightning`, `storm_maelstrom` | Remain, unpreventable | art_beatdown | late | Maelstrom makes the rest of the Combat unpreventable and wipes Freestyle Drills |
-| `storm_late_lock` | Phase lock | `storm_plasma_beam` x2 | lockout | art_beatdown | late | Costs them an attack phase on a hit |
+| `storm_art_volley` | Art volley | `storm_lash`, `storm_palm_surge`, `storm_chain_lightning` | life damage | art_beatdown | early | The three 5-wound Arts; Chain Lightning is Remain 1, so it fires twice |
+| `storm_fervor_arts` | Fervor Arts | `storm_arc_bolt`, `storm_earthing_rod`, `storm_cold_front` | Fervor gain, Fervor denial | art_beatdown, ascension | early | Arc Bolt pays 2 Fervor, Cold Front takes 2 off them, Earthing Rod does it while stopping an Art |
+| `storm_shield_drills` | Shield Drills | `storm_mantle_drill`, `storm_dispersal_drill` | Defense Shield | art_beatdown, drills | early | One free auto-stop per attack kind, from the table, at no card cost. Two halves of the same wall |
+| `storm_strike_answers` | Strike answers | `storm_rising_gust`, `storm_damping_guard`, `storm_returning_front` | stop by kind | art_beatdown | early | The school's Strike problem answered three ways. Returning Front goes to the bottom of the Life Deck rather than the discard |
+| `storm_art_answers` | Art answers | `storm_catching_stance`, `storm_charged_ward`, `storm_static_field` | stop by kind, static modifier | art_beatdown | early | Catching Stance stops an Art for 4 Energy and a Fervor off them; Charged Ward stops one and adds 2 stages for the Combat |
+| `storm_art_engine` | Art engine | `storm_conduit_drill` x2, `storm_tight_coil_drill` | cost reduction, static modifier | art_beatdown, drills | mid | The cost half and the payoff half of one engine: Arts cost a stage less down to a floor of 1, and deal 2 more wounds |
+| `storm_energy_loop` | Energy loop | `storm_recharge`, `storm_return_stroke`, `storm_feeding_arc` | Energy gain | art_beatdown | mid | Three Strikes that pay for the next Art. Return Stroke refills to full on a hit, Feeding Arc gives 3 and strips their discard |
+| `storm_art_boosters` | Art boosters | `storm_opened_channel`, `storm_rolling_peal`, `storm_overcharge` | static modifier, draw and search | art_beatdown | mid | Enabler and payoff: a 2-stage Focused Strike that pays your Arts +2 for the Combat, an Empower 3 Art that pays them +1 more, and the one card in the school that digs for an Art |
+| `storm_tempo_cover` | Tempo cover | `storm_twin_earthing`, `storm_tailwind` | delayed stop, static modifier | control | mid | Twin Earthing stops a Strike now and the next one in the phase after this one; Tailwind adds a stage to everything but itself |
+| `storm_ally_hate` | Ally sweep | `storm_felling_gust`, `storm_levelling_wind` | board removal | anti-allies | mid | Levelling Wind is Focused, Endurance 2, and takes up to four Allies and 2 Fervor |
+| `storm_pressure_arts` | Pressure Arts | `storm_idle_spark` x2, `storm_ungrounded_flash` | cost in Energy, unstoppable | art_beatdown | mid | Idle Spark costs no stages, so it fires from a dry gauge; Ungrounded Flash is 6 wounds that Art cards cannot stop |
+| `storm_hand_press` | Hand press | `storm_wringing_squall`, `storm_pent_discharge`, `storm_residual_shock` | hand attack | control | mid | Wringing Squall reveals their hand and takes a Strike out of it; Residual Shock costs them 2 life cards even when it is stopped |
+| `storm_board_bolts` | Board bolts | `storm_smiting_bolt`, `storm_thunderhead`, `storm_scattering_gale` | board removal, Seal support | art_beatdown, control | mid | Non-Combats and Allies, up to three Drills, and up to two of their Seals back to the bottom of their deck |
+| `storm_comeback` | Comeback | `storm_free_current`, `storm_mustering_peal` | conditional play gate | art_beatdown, allies | late | Both read the board: three Storm cards in hand sets every cost to 0 for the Combat, and 5 wounds taken puts three Allies back into play at full Energy |
+| `storm_late` | Late package | `storm_maelstrom`, `storm_plasma_beam`, `storm_silencing_static` | lockout, unpreventable | art_beatdown | late | Maelstrom makes the Combat unpreventable and wipes Freestyle Drills; Silencing Static names a Strike in their deck and strips it |
 
-**What Storm is missing, by type and theme.** This is the gap list if the school pool is widened.
-It runs 13 cards where Steel runs 33.
+**What Storm still lacks after the expansion.** The printed pool could not supply a third Non-Combat
+or a second plain Combat card, and the data confirms it: Storm has exactly 2 of each, and neither
+Combat card is plain utility (`storm_scattering_gale` carries Endurance 3 and a Seal bounce,
+`storm_free_current` is a conditional attachment).
 
 | Missing | Count wanted | Why |
 |---|---|---|
-| Strike answers | 4 | One card in the school stops a Strike, and it is also an attack. An Art deck that cannot answer a Strike deck loses on the 1:1 conversion |
-| Drills | 3 | Zero. `storm_volley` is a `drills`-adjacent plan with no school Drill to put down |
-| Non-Combats | 3 | Zero. No school tutor, no school setup card, nothing to place in step 2 |
-| Combat cards | 2 | Zero. Every trick and every universal stop has to be Freestyle |
-| Energy gain / recovery | 3 | One card. An Art deck spends 2 Energy a shot and has nothing to refill with |
-| Hand attack or Fervor denial | 2 | Zero of each. The school has no way to interact with the opponent outside damage and board removal |
-| Cheap or variable-cost Arts | 2 | Nine of ten Arts cost the flat 2. There is no low-Energy option for a dry gauge |
+| Draw and search | 3 | 1 card, `storm_overcharge`, and it costs 2 Energy. An Art deck that runs out of Arts has no way to find more |
+| Discard recursion | 3 | 1 card, `storm_mustering_peal`, and it only turns on after 5 wounds. Spent Arts never come back |
+| Non-Combats | 1 | 2 exist. A tutor or a setup card is the shape wanted |
+| Plain Combat cards | 1 | 2 exist and neither is plain utility. Every trick still has to be Freestyle |
+| Universal stops | 2 | Zero. Every Storm stop names one attack kind, so a Focused attack goes straight through |
+| Energy drain | 2 | Zero. It can refill its own gauge but never empty theirs, which is the other half of the 1:1 conversion |
 
-### 5.5 Root (5 — everything the school honestly supports)
+### 5.5 Root (15, on the 38-card pool)
 
 | id | name | cards | theme | wants it | tier | why |
 |---|---|---|---|---|---|---|
-| `root_stops` | Root stops | `root_firm_stance` x2, `root_energy_catch` | stop by kind | seals, control | early | One stop per kind, and Rain Catch refills 3 Energy |
-| `root_foresight` | Foresight | `root_preparation_drill` x2 | draw and search | seals | early | Looks at the opponent's top five on entering Combat and reorders it |
+| `root_strike_guards` | Strike guards | `root_firm_stance`, `root_sapwood_guard`, `root_taproot_brace` | stop by kind, Energy gain | seals, control | early | Three Strike stops that pay: 3 Energy, full Energy, and a Fervor off them |
+| `root_free_stops` | Free stops | `root_windbreak_drill`, `root_canopy_drill`, `root_barred_path` | Defense Shield, universal stop | seals, drills | early | One Shield per attack kind from the table, plus the school's only stops-anything card |
+| `root_art_answers` | Art answers | `root_energy_catch` x2, `root_energy_deflection` | stop by kind, recursion | seals | early | Rain Catch refills 3 Energy; Barkskin puts two cards back from the top and bottom of the discard. Barkskin is Verdant only |
+| `root_foresight` | Foresight | `root_preparation_drill`, `root_sightline_drill`, `root_trail_cut` | draw and search, deck attack | seals, control | early | Reorder their top five, order your own top two, and take one card out of their deck and out of the game |
+| `root_plain_pressure` | Plain pressure | `root_timber_blow` x2, `root_grove_fury` | Energy damage | seals | early | The school's workhorse 3-stage Strike at playset count, and a printed 6 that pays a Fervor |
+| `root_recycle` | Recycle | `root_rising_sap`, `root_bindweed`, `root_closing_bark` | recursion | seals, control | mid | All three put spent cards back. Closing Bark carries Endurance 10, the highest in the set |
+| `root_refuel` | Refuel | `root_dash`, `root_deep_draught`, `root_quickening` | Energy gain, recursion | seals | mid | Three routes to full Energy, two of which also recycle. Quickening turns Focused against a `marked` defender |
 | `root_art_chain` | Art chain | `root_bolt` x2, `root_energy_focus` | draw and search | art_beatdown, seals | mid | Both fetch an Art, so one card is two |
-| `root_recycle` | Recycle | `root_dash`, `root_energy_deflection` | recursion, Energy gain | seals | mid | Boar Rush refills Energy and shuffles 4 back. Barkskin is Verdant only |
-| `root_seal_payoff` | Seal payoff | `root_dragon_blast`, `root_destruction_blast` | Seal support, life damage | seals | late | Wyrmwood Blast deals a wound per Marble Seal and recycles the same number. Verdant only |
+| `root_board_strip` | Board strip | `root_snare`, `root_flung_stone`, `root_splitting_wedge` | board removal | seals, control | mid | A Strike, an Art and an Empower 4 Strike that between them reach Non-Combats, Allies and Grounds |
+| `root_ally_clear` | Ally clear | `root_culling_frost`, `root_kin_clearing` | board removal, Ally support | control | mid | Kin Clearing wipes every Non-Combat they hold but needs an Ally of your own in play. Limit 1 |
+| `root_fervor_denial` | Fervor denial | `root_first_frost` x2, `root_auger_splinter` | Fervor denial | control | mid | -1 and -2 from range; Auger Splinter is Focused |
+| `root_follow_through` | Follow-through | `root_pruning_cut`, `root_deadfall`, `root_thorn_hedge` | timed use window, removal from the game | seals, control | mid | Three riders that fire after the hit: draw off the discard, clear your own discard, and 3 more wounds after damage is dealt |
+| `root_remain_and_cost` | Remain and cost | `root_briar_tangle`, `root_millstone` | Remain, cost in Energy | seals | mid | Briar Tangle attacks twice more this Combat; Millstone buys 6 wounds for 3 stages |
+| `root_late` | Late package | `root_old_growth`, `root_scattered_seed`, `root_destruction_blast` | life damage | art_beatdown, seals | late | 10 wounds for 4 stages, at the price of 3 of your own life cards removed, or your whole hand if it is stopped |
+| `root_seal_payoff` | Seal payoff | `root_dragon_blast`, `root_carvers_reach` | Seal support | seals | late | Wyrmwood Blast deals a wound per Marble Seal and recycles the same number (Verdant only); Carver's Reach captures one on a hit (Vigil only) |
 
-**What Root is missing, by type and theme.** 9 cards, 2 of them Verdant-gated.
+**What Root still lacks after the expansion.** The printed pool could not supply a Non-Combat that
+places or fetches a Seal, nor a second ungated universal stop, and the data confirms both: Root's
+two Non-Combats are `root_deep_draught` and `root_thorn_hedge`, neither of which touches a Seal, and
+`root_barred_path` is the only card in the school with `defense.stops == "any"`.
 
 | Missing | Count wanted | Why |
 |---|---|---|
-| Non-Combats | 4 | Zero. Root is the Seal school and has no school card that places or fetches one |
-| Strikes | 4 | Two, one of which is a stop. A `seals` deck needs a way to pressure while it assembles |
-| Board removal | 2 | Zero. It cannot answer a Seal guard, a Drill or an Ally with a school card |
-| Fervor interaction | 2 | Zero of either direction. Its duelist wants Aspect 4 and 5 and the school gives no help |
-| Universal stops | 2 | Zero. Every stop it has names one attack kind |
-| Ungated recursion | 2 | Two of its four recursion cards are Verdant only, which halves the school for a non-Verdant Duelist |
+| Seal Non-Combats | 2 | Zero. Root is the Seal school and cannot place or fetch a Seal from a school card. `wardens_measure` and Sir Edric's cards do that job and both sit outside the school |
+| Universal stops | 1 | 1, `root_barred_path`, and it removes itself after use. A Focused attack has one answer per copy |
+| Fervor gain | 3 | 1 card. Osric wants Aspects 4 and 5 and the school offers one Fervor toward the climb |
+| Ungated core | 4 | 4 of 38 are gated (2 Verdant, 1 Vigil, 1 needs an Ally), and two of those four are the Seal payoff |
+| Hand attack | 2 | Zero. It reaches their deck and their board but never their hand |
 
 ### 5.6 Shade (13)
 
@@ -454,7 +560,44 @@ everyone else's shared one. The last four carry a gate and are offered only to a
 | `free_pact_pressure` | Pact pressure | `sever_the_leyline`, `terms_of_the_pact` | aspect movement, lockout | Pact | late | Sever drops their Duelist to Aspect 1. Both limit 1 |
 | `free_draconic_push` | Draconic push | `closing_ranks` x2 | Ally support | Draconic, allies | mid | +2 wounds per Ally on one attack, and a card. Draconic Duelist only |
 
-### 5.8 Allies (2 core, 4 follow-up)
+### 5.8 Seals
+
+Not a bundle reward. Seals are held for a different reward route, so nothing in section 5 places
+one. Cards that aim at the **opponent's** Seals stay in the pool and work in a deck holding none
+(`sleight`, `defacement`, `seal_seizure`, `the_watch_goes_dark`, `warding_drill`,
+`storm_scattering_gale`, `root_carvers_reach`). Cards that place or guard your own are listed in
+section 6 as offering nothing yet. `root_seals` is the exception that needs no reward: its starter
+ships all seven Marble Seals, which is why `root_dragon_blast` stays in `root_seal_payoff`.
+
+### 5.9 Grounds (7)
+
+A block of 3 copies of one Grounds. Shared between both players, forces a Combat skip on the turn it
+is placed, and a new Grounds removes the old one from the game. No card text anywhere reads Grounds
+except `riftcry`, which removes one.
+
+| id | name | cards | effect | wants it | tier |
+|---|---|---|---|---|---|
+| `grounds_the_high_watch` | Draw ground | `the_high_watch` x3 | Both draw 1 on entering Combat | any deck that enters Combat every turn | early |
+| `grounds_weighted_hollow` | Strike tax | `weighted_hollow` x3 | Strikes cost 2 more Energy | art_beatdown, control | mid |
+| `grounds_frostbound_moor` | Fervor cap | `frostbound_moor` x3 | Fervor gain capped at 1 | anyone racing an ascension deck, never an ascension deck | mid |
+| `grounds_the_marked_ring` | Marked ground | `the_marked_ring` x3 | +1 stage and +1 wound to `marked` attacks only, and strips an Ally and a Non-Combat | Bram Ashmark, Gideon Mourne | mid |
+| `grounds_ancient_grove` | Drill ground | `ancient_grove` x3 | +2 stages to your attacks and fetches a schoolless Drill into play each Combat | drills, strike_beatdown | late |
+| `grounds_tollgate_yard` | Double costs | `tollgate_yard` x3 | All costs doubled, both players | a deck that pays nothing, against a deck that pays | late |
+| `grounds_trampled_crossroads` | No Non-Combats | `trampled_crossroads` x3 | Neither player may play Non-Combats | strike_beatdown against a setup deck | late |
+
+`ancient_grove` and `trampled_crossroads` are the two that read as bombs: the Grove is a standing +2
+with a free Drill every Combat, and the Crossroads carries a card-level `forbid`, which is the
+lockout marker.
+
+### 5.10 Signature bundles
+
+The Signature class has two routes into a run: an Ally's named cards, which arrive with the Ally
+(5.10.1), and the Duelist's own (5.10.2). Signature cards never appear in the Freestyle bundles of
+5.7. The class rules, the copy limit of 4 and the three Steel-printed exceptions are in 2.8; the 28
+signature cards no character can bring into a deck are listed there too and are outside every
+bundle by definition.
+
+#### 5.10.1 Allies and their named cards (2 core, 4 follow-up)
 
 An Ally is a Personality card in the Life Deck, limit 1, alignment-matched. Every Ally printing in
 the set is Aspect 1 only, so all 15 are legal from 2 Aspects upward.
@@ -506,36 +649,7 @@ their named cards.
 With 2 of 15 Allies offerable, the `allies` archetype has almost no reward path today. Five Allies
 are one named card short, so five new cards would double the Ally bundle count.
 
-### 5.9 Seals
-
-Not a bundle reward. Seals are held for a different reward route, so nothing in section 5 places
-one. Cards that aim at the **opponent's** Seals stay in the pool and work in a deck holding none
-(`sleight`, `defacement`, `seal_seizure`, `the_watch_goes_dark`, `warding_drill`). Cards that place
-or guard your own are listed in section 6 as offering nothing yet. `root_seals` is the exception
-that needs no reward: its starter ships all seven Marble Seals, which is why `root_dragon_blast`
-stays in `root_seal_payoff`.
-
-### 5.10 Grounds (7)
-
-A block of 3 copies of one Grounds. Shared between both players, forces a Combat skip on the turn it
-is placed, and a new Grounds removes the old one from the game. No card text anywhere reads Grounds
-except `riftcry`, which removes one.
-
-| id | name | cards | effect | wants it | tier |
-|---|---|---|---|---|---|
-| `grounds_the_high_watch` | Draw ground | `the_high_watch` x3 | Both draw 1 on entering Combat | any deck that enters Combat every turn | early |
-| `grounds_weighted_hollow` | Strike tax | `weighted_hollow` x3 | Strikes cost 2 more Energy | art_beatdown, control | mid |
-| `grounds_frostbound_moor` | Fervor cap | `frostbound_moor` x3 | Fervor gain capped at 1 | anyone racing an ascension deck, never an ascension deck | mid |
-| `grounds_the_marked_ring` | Marked ground | `the_marked_ring` x3 | +1 stage and +1 wound to `marked` attacks only, and strips an Ally and a Non-Combat | Bram Ashmark, Gideon Mourne | mid |
-| `grounds_ancient_grove` | Drill ground | `ancient_grove` x3 | +2 stages to your attacks and fetches a schoolless Drill into play each Combat | drills, strike_beatdown | late |
-| `grounds_tollgate_yard` | Double costs | `tollgate_yard` x3 | All costs doubled, both players | a deck that pays nothing, against a deck that pays | late |
-| `grounds_trampled_crossroads` | No Non-Combats | `trampled_crossroads` x3 | Neither player may play Non-Combats | strike_beatdown against a setup deck | late |
-
-`ancient_grove` and `trampled_crossroads` are the two that read as bombs: the Grove is a standing +2
-with a free Drill every Combat, and the Crossroads carries a card-level `forbid`, which is the
-lockout marker.
-
-### 5.11 Signature bundles, per playable duelist
+#### 5.10.2 The run's own Duelist
 
 **Bram Ashmark** (`pyre_beatdown_start`, Pyre, Pact, `marked`, 3 Aspects) — 6
 
@@ -582,61 +696,66 @@ them share a card. If signature bundles are meant to feel personal, Siphon needs
 Freestyle is Vale's school, so the 29 bundles in 5.7 are his school bundles. He sees no Pyre, Steel,
 Tide, Storm, Shade or Root bundle at any point in a run.
 
-### 5.12 How many distinct bundles each playable run can see
+### 5.11 How many distinct bundles each playable run can see
 
 An 8-stage ladder shows 3 bundles a stage, 24 slots. "Ally" counts core bundles; follow-ups in
 brackets unlock only after that Ally is in the deck.
 
-| Run | School | Freestyle | Gated Freestyle | Ally | Grounds | Signature | Total |
+| Run | School | Freestyle | Gated Freestyle | Ally | Grounds | Own signature | Total |
 |---|---|---|---|---|---|---|---|
 | Bram Ashmark, `pyre_beatdown_start` | 12 (Pyre) | 25 | 1 (Pact) | 1 (+1) | 7 | 6 | **52 (+1)** |
 | Sir Edric Rooke, `pyre_ascent_start` | 12 (Pyre) | 25 | 3 (Vigil, Draconic) | 0 | 7 | 3 | **50** |
-| Siphon, `storm_volley_start` | 7 (Storm) | 25 | 1 (Pact) | 1 (+1) | 7 | 3 | **44 (+1)** |
+| Siphon, `storm_volley_start` | 15 (Storm) | 25 | 1 (Pact) | 1 (+1) | 7 | 3 | **52 (+1)** |
 | Caedan Vale, `freestyle_swords_start` | — | 25 | 3 (Vigil, Draconic) | 1 (+3) | 7 | 4 | **40 (+3)** |
 
-Every run clears the 24 slots, Vale's by the smallest margin. Sir Edric's run sees **no Ally bundle
-at all**: the only Vigil Ally with enough named cards is his own printing, which an Ally may not
-share with the Duelist, and Gideon Mourne is Pact.
+The Storm expansion moved Siphon's run from 44 to 52 and made it the joint-widest of the four.
+Every run clears the 24 slots, Vale's by the smallest margin because Freestyle is his school and he
+has no second pool to draw on. Sir Edric's run sees **no Ally bundle at all**: the only Vigil Ally
+with enough named cards is his own printing, which an Ally may not share with the Duelist, and
+Gideon Mourne is Pact.
 
 ---
 
 ## 6. Coverage check
 
-244 reward-eligible cards: the five hand types plus Grounds, excluding Masteries, Relics, Seals
+299 reward-eligible cards: the five hand types plus Grounds, excluding Masteries, Relics, Seals
 (not a bundle reward), `shade_ransoming_hand` (Reserve only) and the 28 signature cards of
-characters no run can field (section 2). Personality cards are counted separately below.
+characters no run can field (2.8). Personality cards are counted separately below.
 
-| Bundles containing it | Count | Cards |
-|---|---|---|
-| 0 | 12 | see the two lists below |
-| 1 | 218 | everything not named in this table |
-| 2 | 13 | `committed_cut`, `edrics_low_water`, `edrics_opening_strike`, `edrics_training`, `edrics_truce`, `edrics_vow`, `lone_blade_drill`, `pyre_flashpoint`, `pyre_warding_stance`, `quick_retreat`, `siphons_sidestep`, `storm_earthing_rod`, `storm_overcharge` |
-| 3 | 1 | `storm_smiting_bolt` |
-| more than 3 | 0 | — |
+| Class | Eligible | In 0 bundles | 1 | 2 | 3+ |
+|---|---|---|---|---|---|
+| School | 187 | 0 | 182 | 5 | 0 |
+| Freestyle | 74 (67 cards + 7 Grounds) | 3 | 70 | 1 | 0 |
+| Signature | 38 | 9 | 21 | 8 | 0 |
+| **Total** | **299** | **12** | **273** | **14** | **0** |
+
+School coverage is now complete: the Storm and Root expansions are fully bundled, and every one of
+the 187 school cards appears at least once. The five school cards in two bundles are
+`pyre_flashpoint` and `pyre_warding_stance` (Pyre has few Art stops and few Energy sinks) and
+`storm_earthing_rod`, `storm_overcharge` and `storm_smiting_bolt`, each of which is also in one of
+Siphon's three signature bundles.
 
 **In no bundle, because they need Seals you no longer earn** (6 cards): `first_cut`, `keepers_drill`,
-`mournes_plans`, `mournes_smirk`, `wardens_measure` place or guard your own Seals, and
+`mournes_plans`, `mournes_smirk` and `wardens_measure` place or guard your own Seals, and
 `eyes_beyond_the_gate` turns a successful Art into a placed Seal. Each is live again the moment a
 Seal reward route exists, and `first_cut` and `keepers_drill` are live now in a `root_seals` run,
 which ships its set.
 
 **In no bundle, because nothing can carry them** (6 cards): `vesnas_ambush`, `branns_shakedown`,
-`halvards_twin_cut`, `absorbing_drill` are the lone named card of an Ally that cannot form a bundle
-(5.8), so under the Ally rule they cannot be offered at all. `bonding_rite` needs `bonded_pair`,
-which lives in a Reserve. `rookes_deluge` reads `only: {duelist_character: "Dame Alder Rooke"}` and
-needs her as the Duelist, which no run has; it should be filtered out in code.
+`halvards_twin_cut` and `absorbing_drill` are the lone named card of an Ally that cannot form a
+bundle (5.10.1), so under the Ally rule they cannot be offered at all. `bonding_rite` needs
+`bonded_pair`, which lives in a Reserve. `rookes_deluge` reads
+`only: {duelist_character: "Dame Alder Rooke"}` and needs her as the Duelist, which no run has; it
+should be filtered out in code.
 
-**Why the repeats repeat.** The 14 cards in more than one bundle are cards two different plans
-genuinely want. Six of Sir Edric's named cards appear twice, once in his own run's signature bundles
-and once in the Ally follow-ups for a run that fields him; `siphons_sidestep`, `storm_overcharge`,
-`storm_smiting_bolt` and `storm_earthing_rod` because Storm has 13 cards in total;
-`lone_blade_drill` because it is both a Vale piece and a generic modifier; `pyre_warding_stance` and
-`pyre_flashpoint` because Pyre has so few Art stops and Energy sinks. A cap of 3 appearances holds
-everywhere.
+**Why the repeats repeat.** Eight of the 14 are Sir Edric's and Siphon's named cards, which appear
+once in their own run's bundles and once in the Ally follow-ups or the Storm school list.
+`lone_blade_drill` is both a Vale piece and a generic modifier. A cap of 3 appearances holds
+everywhere, and nothing reaches it.
 
 **Personalities.** 15 Ally printings exist and 2 are in a bundle; the other 13 are in the table in
-5.8. The 12 Duelist printings are in none, because a Duelist printing is only legal as an Ally in a
-5-Aspect deck and none of the four playable runs would want one.
+5.10.1. The 12 Duelist printings are in none, because a Duelist printing is only legal as an Ally in
+a 5-Aspect deck and none of the four playable runs would want one.
 
 **Cards that are legal but do nothing in the runs that can take them**, flagged rather than dropped:
 `old_trick` (searches the Reserve), `riftcry` (needs a Grounds in play), `pyre_sword_cleave` (lends
@@ -657,5 +776,5 @@ question were settled on 2026-09-20 and are recorded at the head of section 5.
 4. Should Grounds be a separate reward slot rather than competing with cards, since a block of 3 is a much larger deck change than 2 or 3 cards?
 5. Should `rookes_deluge` and `shade_ransoming_hand` be filtered out of the reward pool in code, since no run can ever use them?
 6. Are the 28 unreachable signature cards meant to stay that way, or should Emrys Rooke, Corin Thrace, The Fortress, Torvan Hask, Scorn, Sledge, Mercy, Sable Draik, Halden Quarr and Marrow get Aspect-1 Ally printings?
-7. The 6 Ally-named cards in no bundle (5.8) are unreachable under the Ally rule. Should they instead join the normal Freestyle pool as ordinary cards, or stay locked until their Ally has two named cards and can be bundled?
-8. Storm and Root are too thin to bundle well, and five Allies are one named card short. The gap lists in 5.4, 5.5 and 5.8 name what each is missing; is widening those pools the next step?
+7. The 6 Ally-named cards in no bundle (5.10.1) are unreachable under the Ally rule. Should they instead join the normal Freestyle pool as ordinary cards, or stay locked until their Ally has two named cards and can be bundled?
+8. Storm and Root were expanded on 2026-09-21 and now bundle well, but each still has named holes, and five Allies are one named card short. The gap lists in 5.4, 5.5 and 5.10.1 name what each is still missing after the 2026-09-21 expansion; is another pass the next step?

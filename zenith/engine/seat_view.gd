@@ -16,7 +16,9 @@ var active: int = 0
 var attacker: int = 0
 var winner: int = -1
 var win_reason: String = ""
-var deciding: int = -1                 # who the pending prompt belongs to, -1 when none
+var points: Array = [0, 0]             # per seat, toward `points_to_win`
+var points_to_win: int = 1
+var deciding: int = -1                # who the pending prompt belongs to, -1 when none
 var deciding_kind: StringName = &""
 var attack: Dictionary = {}            # public summary of the attack in the air, {} when none
 var battle_step: int = 0               # where the battle sequence stands while `attack` is in the air
@@ -80,7 +82,7 @@ func to_dict() -> Dictionary:
 		cs.append(c.to_dict())
 	return {
 		"seat": seat, "turn": turn, "step": step, "phase": phase, "active": active, "attacker": attacker,
-		"winner": winner, "win_reason": win_reason, "deciding": deciding, "deciding_kind": String(deciding_kind),
+		"winner": winner, "win_reason": win_reason, "points": points, "points_to_win": points_to_win, "deciding": deciding, "deciding_kind": String(deciding_kind),
 		"attack": attack, "battle_step": battle_step, "last_attack": last_attack, "forecasts": forecasts,
 		"grounds": grounds, "standing": standing, "resolving": resolving, "pending_card": pending_card, "players": ps, "cards": cs,
 	}
@@ -101,6 +103,9 @@ static func from_dict(d: Dictionary) -> SeatView:
 	v.attacker = int(d.get("attacker", 0))
 	v.winner = int(d.get("winner", -1))
 	v.win_reason = str(d.get("win_reason", ""))
+	var wire_points: Array = d.get("points", [0, 0])
+	v.points = [int(wire_points[0]), int(wire_points[1])]
+	v.points_to_win = int(d.get("points_to_win", 1))
 	v.deciding = int(d.get("deciding", -1))
 	v.deciding_kind = StringName(str(d.get("deciding_kind", "")))
 	v.attack = d.get("attack", {})
@@ -132,6 +137,8 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	v.attacker = s.attacker
 	v.winner = s.winner
 	v.win_reason = s.win_reason
+	v.points = [s.points[0], s.points[1]]
+	v.points_to_win = s.points_to_win
 	# When both seats hold a decision (the Reserve swap), this seat's own comes first.
 	var pending: Prompt = engine.prompt_of(seat) if engine.prompt_of(seat) != null else engine.prompt
 	if pending != null:

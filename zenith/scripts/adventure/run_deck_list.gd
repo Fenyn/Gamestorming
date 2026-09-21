@@ -84,7 +84,7 @@ func _build() -> void:
 			rows_b += group_rows
 
 
-## One clickable row: a type icon and title tinted by school, and the copy count.
+## One clickable row: a type icon and title tinted by card group, and the copy count.
 func _build_row(def: CardDef, count: int) -> Button:
 	var row: Button = Button.new()
 	row.theme_type_variation = &"TileButton"
@@ -103,7 +103,7 @@ func _build_row(def: CardDef, count: int) -> Button:
 	h.offset_right = -10
 	row.add_child(h)
 
-	var tint: Color = Palette.school_ui(def.school)
+	var tint: Color = Palette.card_ui(def)
 	var icon: TypeIcon = TypeIcon.new()
 	icon.custom_minimum_size = Vector2(16, 16)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER

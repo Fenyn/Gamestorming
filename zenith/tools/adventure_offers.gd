@@ -45,6 +45,8 @@ static func _describe(lib: CardLibrary, duelist: CardDef, id: String) -> String:
 	var def: CardDef = lib.defs.get(id)
 	if def == null:
 		return "%s [missing]" % id
-	var school: String = def.school if def.school != "" else "freestyle"
-	var signature: String = " SIG" if def.character != "" and def.character == duelist.character else ""
-	return "%s (%s%s)" % [id, school, signature]
+	# The group is what the card is; "own" marks the run duelist's own Signature cards, which are
+	# the ones the offer rules let in on top of the deck's Style.
+	var group: String = def.card_group()
+	var own: String = " own" if def.is_signature() and def.character == duelist.character else ""
+	return "%s (%s%s)" % [id, group, own]

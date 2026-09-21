@@ -296,6 +296,8 @@ func _init() -> void:
 		test_root_old_growth_spends_your_own_deck_or_your_hand,
 		test_root_scattered_seed_pays_whether_it_lands_or_not,
 		test_root_briar_tangle_remains_for_two_more_uses,
+		test_the_card_group_tells_signature_from_freestyle,
+		test_every_shipped_card_lands_in_one_group,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -6082,3 +6084,74 @@ func test_root_briar_tangle_remains_for_two_more_uses() -> void:
 	answer(e, &"attack", uid)
 	settle(e, 8)
 	eq(e.card(uid).zone, &"removed", "and it is removed from the game after the third")
+
+
+## Signature is a card group beside the schools, not a school and not Freestyle. A personality
+## carries a `character` as its own identity and is never one; Mastery, Relic, Seal and Grounds
+## carry none at all.
+func test_the_card_group_tells_signature_from_freestyle() -> void:
+	var shipped: CardLibrary = shipped_library()
+	# id, group, is_signature, group word, the line the face prints.
+	var cases: Array = [
+		["pyre_cinder_guard", "pyre", false, "Pyre", "Pyre"],
+		["stillness", "freestyle", false, "Freestyle", "Freestyle"],
+		["relentless_fury", "signature", true, "Signature", "Signature · Bram Ashmark"],
+		["shrugs_it_off", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
+		["quarrs_roar", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
+		["quarrs_crushing_blow", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
+		["duelist_alpha", "freestyle", false, "Freestyle", "Freestyle"],
+		["pyre_mastery", "pyre", false, "Pyre", "Pyre"],
+		["blank_mask", "freestyle", false, "Freestyle", "Freestyle"],
+		["salt_seal_1", "freestyle", false, "Freestyle", "Freestyle"],
+		["trampled_crossroads", "freestyle", false, "Freestyle", "Freestyle"],
+	]
+	for row: Array in cases:
+		var def: CardDef = shipped.defs.get(str(row[0]))
+		check(def != null, "'%s' is in the shipped library" % str(row[0]))
+		if def == null:
+			continue
+		eq(def.card_group(), str(row[1]), "'%s' groups as %s" % [def.id, str(row[1])])
+		eq(def.is_signature(), bool(row[2]), "'%s' signature flag" % def.id)
+		eq(CardText.card_group_name(def), str(row[3]), "'%s' group word" % def.id)
+		eq(CardText.card_group_line(def), str(row[4]), "'%s' prints its group line" % def.id)
+	# The three schooled Signature cards are Signature for identity and still Steel for legality.
+	for id in ["shrugs_it_off", "quarrs_roar", "quarrs_crushing_blow"]:
+		var quarr: CardDef = shipped.defs.get(id)
+		check(quarr != null, "'%s' is in the shipped library" % id)
+		if quarr == null:
+			continue
+		eq(quarr.school, "steel", "'%s' keeps its school for DeckValidator" % id)
+		eq(quarr.card_group(), "signature", "'%s' groups as Signature all the same" % id)
+	eq(CardText.group_name("signature"), "Signature", "the group word for signature")
+	eq(CardText.group_name("freestyle"), "Freestyle", "the group word for freestyle")
+	eq(CardText.group_name(""), "Freestyle", "an empty school is still Freestyle")
+
+
+## Every shipped card lands in exactly one group, and the tally is printed for reference.
+func test_every_shipped_card_lands_in_one_group() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var groups: Array[String] = ["freestyle", "signature", "pyre", "tide", "storm", "shade", "steel", "root"]
+	var counts: Dictionary = {}
+	var signature_types: Dictionary = {}
+	for id: String in shipped.defs.keys():
+		var def: CardDef = shipped.defs[id]
+		var group: String = def.card_group()
+		check(groups.has(group), "'%s' lands in a known group, got '%s'" % [id, group])
+		check(not (def.is_signature() and group != "signature"), "'%s' is in one group only" % id)
+		check(not (group == "signature" and not def.is_signature()), "'%s' is in one group only" % id)
+		check(not (def.is_signature() and def.is_personality()), "'%s': a personality is not a Signature card" % id)
+		counts[group] = int(counts.get(group, 0)) + 1
+		if def.is_signature():
+			signature_types[CardText.type_label(def)] = int(signature_types.get(CardText.type_label(def), 0)) + 1
+	var tally: PackedStringArray = PackedStringArray()
+	for group in groups:
+		tally.append("%s %d" % [group, int(counts.get(group, 0))])
+	print("    card groups: %s" % ", ".join(tally))
+	var kinds: PackedStringArray = PackedStringArray()
+	for kind in signature_types.keys():
+		kinds.append("%s %d" % [str(kind), int(signature_types[kind])])
+	kinds.sort()
+	print("    signature types: %s" % ", ".join(kinds))
+	check(int(counts.get("signature", 0)) > 0, "the shipped library holds Signature cards")
+	for banned in ["Mastery", "Relic", "Seal", "Grounds", "Personality"]:
+		check(not signature_types.has(banned), "no %s card is a Signature card" % banned)

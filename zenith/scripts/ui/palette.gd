@@ -23,7 +23,7 @@ const SCHOOL_COLORS: Dictionary = {
 ## colour trial can swap all three in one place before rendering a comparison sheet.
 static var SIGNATURE_FRAME: Color = Color(0.13, 0.12, 0.16)
 static var SIGNATURE_RULE: Color = Color(0.86, 0.80, 0.64)
-static var SIGNATURE_UI: Color = Color(0.90, 0.84, 0.66)
+static var SIGNATURE_UI: Color = Color(0.97, 0.93, 0.80)
 
 const DUELIST_COLOR: Color = Color(0.62, 0.48, 0.14)
 const SEAL_COLOR: Color = Color(0.55, 0.45, 0.10)

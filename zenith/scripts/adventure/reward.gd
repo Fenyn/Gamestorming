@@ -99,11 +99,11 @@ func _fill_offer() -> void:
 		offer_row.add_child(column)
 
 
-## One offer card: a versus-seat-style panel (school-tinted edge) holding the face at a size big
-## enough to read like the matchup screen's duelist card, its title, type and school, and how
+## One offer card: a versus-seat-style panel (group-tinted edge) holding the face at a size big
+## enough to read like the matchup screen's duelist card, its title, type and card group, and how
 ## many copies the run deck already holds. The face itself already prints the rules text.
 func _build_offer_card(def: CardDef, index: int) -> Control:
-	var school_color: Color = Palette.school_ui(def.school)
+	var school_color: Color = Palette.card_ui(def)
 	var panel: PanelContainer = PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _card_style(school_color, false, false))
 	var column: VBoxContainer = VBoxContainer.new()
@@ -148,9 +148,16 @@ func _build_offer_card(def: CardDef, index: int) -> Control:
 	icon.color = Palette.type_ui(def.type)
 	meta.add_child(icon)
 	var school: Label = Label.new()
-	school.text = CardText.school_name(def.school)
+	school.text = CardText.card_group_name(def)
 	ZenithTheme.chip(school, school_color)
 	meta.add_child(school)
+	# A Signature card that also carries a school says so in a second chip: the group is what the
+	# card is, the school is why deck construction treats it as that school's card.
+	if def.is_signature() and def.school != "":
+		var also: Label = Label.new()
+		also.text = CardText.school_name(def.school)
+		ZenithTheme.chip(also, Palette.school_ui(def.school))
+		meta.add_child(also)
 	column.add_child(meta)
 
 	var copies: Label = Label.new()

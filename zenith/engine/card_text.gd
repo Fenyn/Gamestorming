@@ -180,14 +180,15 @@ static func card_group_name(def: CardDef) -> String:
 	return group_name(def.card_group())
 
 
-## The group word plus, for a Signature card, whose it is: "Signature · Bram Ashmark". A Signature
-## card that also carries a school keeps the school word, because a Steel deck's player still needs
-## to see that it counts as a Steel card: "Steel Signature · Halden Quarr".
+## The group word plus, for a Signature card, whose it is: "Signature · Bram Ashmark". A handful
+## of Signature cards also carry a school. The class wins, so the line still leads with Signature,
+## and the school follows as a secondary mark, since it is what makes the card Steel-only in deck
+## construction: "Signature · Halden Quarr · Steel".
 static func card_group_line(def: CardDef) -> String:
 	if not def.is_signature():
 		return card_group_name(def)
-	var word: String = "Signature" if def.school == "" else "%s Signature" % school_name(def.school)
-	return "%s · %s" % [word, def.character]
+	var line: String = "Signature · %s" % def.character
+	return line if def.school == "" else "%s · %s" % [line, school_name(def.school)]
 
 
 static func type_label(def: CardDef) -> String:

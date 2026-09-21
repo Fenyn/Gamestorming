@@ -8,6 +8,7 @@ const REASONS: Array[String] = ["survival", "seal", "ascension"]
 var library: CardLibrary = null
 var table: StrikeTable = null
 var max_steps: int = 6000
+var points_to_win: int = 1   # 2 is the adventure rule; see DuelEngine.set_points_to_win
 
 
 static func make(lib: CardLibrary, strike_table: StrikeTable, p_max_steps: int) -> SimMatch:
@@ -28,6 +29,7 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 	decks[1 - a_seat] = b_deck
 	var referee: Referee = Referee.new()
 	referee.setup(decks, library, table, seeds[0], [], false)
+	referee.engine.set_points_to_win(points_to_win)
 	referee.start()
 	referee.engine.take_events()
 

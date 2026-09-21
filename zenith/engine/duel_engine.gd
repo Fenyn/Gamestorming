@@ -83,6 +83,12 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 	_emit(&"setup", {"first": state.active, "seed": seed_value})
 
 
+## Call between `setup()` and `start()`. 1 is the printed game; adventure duels use 2.
+func set_points_to_win(n: int) -> void:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_points_to_win() after start()")
+	state.points_to_win = maxi(1, n)
+
+
 func start() -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
 	state.reserve_index = 0
@@ -2836,9 +2842,13 @@ func _deal_stage_damage(defender: PlayerState, a: Dictionary) -> void:
 ## Step 13. Flips one life card at a time; pauses on an Endurance prompt and resumes here.
 func _deal_life_damage(defender: PlayerState, a: Dictionary) -> void:
 	while int(a["life_remaining"]) > 0:
-		if _only_seals_left(defender):
+		if defender.life_deck.is_empty() or _only_seals_left(defender):
 			_lose(defender.index, "survival")
-			return
+			if state.is_over():
+				return
+			# The hit that cost a point ends there; what it had left does not reach the new deck.
+			a["life_remaining"] = 0
+			break
 		var c: CardInstance = _flip_life_card(defender)
 		if c == null:
 			return
@@ -3335,7 +3345,8 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			while who.hand.size() < int(amount) and not state.is_over():
 				if who.life_deck.is_empty():
 					_lose(who_index, "survival")
-					return
+					if state.is_over():
+						return
 				_draw(who_index, 1)
 		"draw_discard":
 			# "Draw up to N cards from the bottom of your discard pile": which cards is settled by
@@ -3472,7 +3483,8 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"draw_check":
 			if who.life_deck.is_empty():
 				_lose(who_index, "survival")
-				return
+				if state.is_over():
+					return
 			# `discard: true` checks a life card thrown away instead of one drawn; `else_effects`
 			# run when the check misses.
 			var discards: bool = bool(e.get("discard", false))
@@ -4936,7 +4948,7 @@ func mppv_aspect(p: PlayerState) -> int:
 ## Both ways the climb ends the duel. True when the duel is over or the question is waiting on the
 ## rival's answer.
 func _try_ascension_win(p: PlayerState) -> bool:
-	if p.no_ascension_win:
+	if p.no_ascension_win or state.ascension_scored[p.index]:
 		return false
 	var mppv: int = mppv_aspect(p)
 	var by_mppv: bool = mppv > 0 and p.duelist.aspect >= mppv
@@ -5564,7 +5576,8 @@ func _draw(player_index: int, n: int) -> void:
 	for i in range(n):
 		if p.life_deck.is_empty():
 			_lose(player_index, "survival")
-			return
+			if state.is_over():
+				return
 		var c: CardInstance = p.life_deck.pop_front()
 		c.zone = &"hand"
 		p.hand.append(c)
@@ -5575,7 +5588,8 @@ func _draw(player_index: int, n: int) -> void:
 func _flip_life_card(p: PlayerState) -> CardInstance:
 	if p.life_deck.is_empty():
 		_lose(p.index, "survival")
-		return null
+		if state.is_over():
+			return null
 	var c: CardInstance = p.life_deck.pop_front()
 	c.zone = &"none"
 	return c
@@ -5791,6 +5805,8 @@ func _ally_of_character(p: PlayerState, character: String) -> CardInstance:
 func _win(player_index: int, reason: String) -> void:
 	if state.is_over():
 		return
+	if _scores_point_only(player_index, reason):
+		return
 	state.winner = player_index
 	state.win_reason = reason
 	state.step = GameState.Step.GAME_OVER
@@ -5801,6 +5817,37 @@ func _win(player_index: int, reason: String) -> void:
 
 func _lose(player_index: int, reason: String) -> void:
 	_win(1 - player_index, reason)
+
+
+## Adventure house rule, 2026-09-21: a duel may run first to `points_to_win`. A survival win and
+## an Ascension each score one point; a full Seal set still wins outright. True when the point was
+## scored and the duel goes on. The table persists: a duelist whose Life Deck ran out shuffles
+## their discard pile into a new one, and cards removed from the game stay out, so the second
+## deck is the weaker one. Nothing is reset for an Ascension beyond the Fervor peak the rules
+## already give a top Aspect, and it scores once per duelist.
+func _scores_point_only(winner: int, reason: String) -> bool:
+	if reason == "seal":
+		return false
+	if reason == "ascension":
+		state.ascension_scored[winner] = true
+	var loser: PlayerState = state.players[1 - winner]
+	state.points[winner] += 1
+	if state.points[winner] >= state.points_to_win:
+		return false
+	# Nothing to shuffle back means nothing left to fight with.
+	if reason == "survival" and loser.discard.is_empty():
+		return false
+	_emit(&"point_scored", {"player": winner, "reason": reason, "points": state.points[winner], "to_win": state.points_to_win})
+	if reason == "survival":
+		_shuffle_discard_into_deck(loser, 0, true)
+		_emit(&"second_wind", {"player": loser.index, "cards": loser.life_deck.size()})
+	else:
+		var p: PlayerState = state.players[winner]
+		if p.duelist.aspect >= p.highest_aspect and p.fervor >= fervor_needed(p):
+			p.fervor = 0
+			p.duelist.energy = CardInstance.MAX_STAGE
+			_emit(&"fervor_peak", {"player": p.index, "energy": p.duelist.energy})
+	return true
 
 
 func _emit(type: StringName, data: Dictionary = {}) -> void:

@@ -67,6 +67,13 @@ func _ready() -> void:
 		mastery_zoom.hide())
 
 
+## Opens the deck detail tab, where the Aspect chips and the Life Deck make-up are. The Details
+## button does the same; this is what `--dev-details` calls for a screenshot.
+func show_details() -> void:
+	if deck != null:
+		($Row/Scroll/Content/Tabs as TabContainer).current_tab = 1
+
+
 ## Points the panel at `index`, showing that seat's current pick and lock state.
 func set_seat(index: int, tag_text: String) -> void:
 	seat = index
@@ -142,19 +149,27 @@ func _shown_aspects() -> Array[int]:
 ## Shows one Aspect: its art in the portrait, its title and power in the Aspect block, its chip lit.
 ## Each Aspect is its own card, so this looks up the card for that tier.
 func show_aspect(aspect: int) -> void:
-	var duelist: CardDef = deck.duelist_stack(Session.library).def_for(aspect) if deck != null else null
+	var stack: PersonalityStack = deck.duelist_stack(Session.library) if deck != null else null
+	var duelist: CardDef = stack.def_for(aspect) if stack != null else null
 	if duelist == null:
 		return
 	_aspect = aspect
 	var aspects: Array[int] = _shown_aspects()
+	var mixed: bool = CardText.stack_mixes_lines(stack)
 	portrait.texture = CardFace.art_texture(duelist, aspect)
-	portrait.tooltip_text = "%s - click to preview next Aspect" % CardText.aspect_name(aspect, duelist)
+	portrait.tooltip_text = "%s\n%s - click to preview next Aspect" % [
+		CardText.rung_label(duelist, mixed), CardText.personality_name(duelist)]
 	silhouette.visible = portrait.texture == null
 	silhouette.text = duelist.title.left(1)
 	silhouette.add_theme_color_override("font_color", _color)
 	_layout_portrait()
-	aspect_header.text = "ASPECT %d OF %d  ·  SURGE %d" % [aspects.find(aspect) + 1, aspects.size(), int(duelist.aspect_data(aspect).get("surge", 0))]
+	# The tier is the card's own Aspect number, not its place in the row: a stack is consecutive
+	# from 1, so the two agree, and reading it off the card is what stays true if that ever changes.
+	aspect_header.text = "ASPECT %d OF %d  ·  SURGE %d" % [duelist.aspect, aspects.size(), int(duelist.aspect_data(aspect).get("surge", 0))]
+	# The line word appears only where a stack climbs through more than one of a character's lines.
 	aspect_title.text = CardText.aspect_name(aspect, duelist)
+	if mixed and duelist.variant != "":
+		aspect_title.text += "  ·  %s" % duelist.variant
 	aspect_power.text = "
 ".join(CardText.aspect_text(duelist, aspect))
 	info.highlight_aspect(aspect)

@@ -112,7 +112,7 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"recover":
 			return 1.0
 		&"pay":
-			return _pay_score(profile, o)
+			return _pay_score(engine, profile, me, o)
 		&"discard_choice":
 			var owner: PlayerState = engine.player(c.controller) if c != null else me
 			# Revealing an opposing discard option does not reveal that player's tutor pool.
@@ -141,7 +141,7 @@ static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerStat
 	if life >= foe.life_deck.size() and life > 0:
 		return AiEvaluator.WIN
 	var v: float = life * profile.w("play", "damage_life") + stages * profile.w("play", "damage_stage")
-	v -= int(f.get("cost_stages", 0)) * profile.w("play", "attack_cost")
+	v -= int(f.get("cost_stages", 0)) * _cost_weight(engine, profile, me)
 	if o.type == &"final_strike":
 		# The card is thrown away and the rest of the Combat is spent passing.
 		return v - profile.w("play", "final_strike_penalty") - me.hand.size() * 0.5
@@ -229,11 +229,25 @@ static func _aspect_jump_value(c: CardInstance, me: PlayerState, profile: AiProf
 
 
 ## Paying Energy into a card: worth it a few stages deep, not to the point of emptying the gauge.
-static func _pay_score(profile: AiProfile, o: Command) -> float:
+static func _pay_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, o: Command) -> float:
 	var amount: int = int(o.value) if o.value != null else 0
-	if amount > 4:
+	var cost: float = _cost_weight(engine, profile, me)
+	# A deck that wants its Duelist spent pays as deep as the card allows; anyone else stops at 4.
+	if amount > 4 and cost >= 0.0:
 		return -float(amount)
-	return amount * (profile.w("play", "damage_life") - profile.w("play", "attack_cost"))
+	return amount * (profile.w("play", "damage_life") - cost)
+
+
+## What one Energy of an attack's cost weighs. Normally a price. A deck that fights through its
+## Allies sets `play.attack_cost_handover` (usually below zero), and the price slides toward it as
+## the handover comes within reach, the same way `effect.energy_self` does: spending the Duelist
+## down to where an Ally takes over is the point of the card. Only while the Duelist is the one
+## paying, since an Ally in control pays from its own Energy.
+static func _cost_weight(engine: DuelEngine, profile: AiProfile, me: PlayerState) -> float:
+	var base: float = profile.w("play", "attack_cost")
+	if not (profile.data["play"] as Dictionary).has("attack_cost_handover") or me.in_control() != me.duelist:
+		return base
+	return lerpf(base, profile.w("play", "attack_cost_handover"), AiEvaluator.handover_progress(engine, me))
 
 
 ## +1 when the chooser is discarding the other seat's cards, -1 when its own.
@@ -647,8 +661,48 @@ static func _pick_option_score(engine: DuelEngine, me: PlayerState, profile: AiP
 		return 1.0 + card_value(engine, me, c, profile, TUTOR_DEPTH)
 	var word: String = str(o.value) if o.value != null else ""
 	if word == "yes":
-		return 0.5
+		return _may_yes_score(engine, me, profile)
 	return 0.0
+
+
+## A "you may" line is free to take unless the yes costs a card from hand. "Discard a card to make
+## this attack Focused" is the common one, and Focus only beats a defence that stops both kinds, so
+## it is worth the card only against a rival who has shown such defences. What the rival has shown
+## is read off their public piles; nothing here looks at a hand.
+static func _may_yes_score(engine: DuelEngine, me: PlayerState, profile: AiProfile) -> float:
+	var e: Dictionary = engine._choice.get("effect", {})
+	if str(e.get("op", "")) != "discard_hand" or str(e.get("who", "self")) != "self" or me.hand.is_empty():
+		return 0.5
+	var cheapest: float = INF
+	for c in me.hand:
+		cheapest = minf(cheapest, hold_value(c, profile))
+	var cost: float = cheapest * maxi(1, int(e.get("amount", 1)))
+	var gain: float = 0.5
+	var focuses: bool = false
+	for t in e.get("then", []):
+		if t is Dictionary and str((t as Dictionary).get("op", "")) == "focus_attack":
+			focuses = true
+	if focuses and not engine.state.attack.is_empty():
+		var d: Dictionary = engine.damage_breakdown(engine.state.attack)
+		var swing: float = float(d.get("life", 0)) * profile.w("play", "damage_life") + float(d.get("stages", 0)) * profile.w("play", "damage_stage")
+		gain = swing * _stop_any_share(engine.player(1 - me.index))
+	return gain - cost
+
+
+## The share of a rival's shown defences that Focus gets past: those that stop both kinds and do
+## not say they stop a Focused attack. One of three until they have shown otherwise.
+static func _stop_any_share(foe: PlayerState) -> float:
+	var any: float = 1.0
+	var total: float = 3.0
+	for pile in [foe.discard, foe.removed, foe.in_play]:
+		for c in pile:
+			var spec: Dictionary = c.def.defense
+			if spec.is_empty():
+				continue
+			total += 1.0
+			if str(spec.get("stops", "")) == "any" and not spec.has("stop_focused"):
+				any += 1.0
+	return any / total
 
 
 ## What a card is worth keeping for, from its data alone.

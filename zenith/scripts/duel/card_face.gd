@@ -31,6 +31,9 @@ const ART_HEIGHTS: Dictionary = {
 }
 const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0
+## The bone outer rule on a Signature frame, in face pixels. The face is 512 wide and drawn at
+## about a quarter of that in the hand, so 6 here is the 1 to 2 px the player actually sees.
+const SIGNATURE_EDGE: int = 6
 const STAGES: int = CardInstance.MAX_STAGE
 
 @onready var frame: Panel = $Frame
@@ -113,7 +116,7 @@ func _ready() -> void:
 func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
-	_style(frame, color)
+	_style(frame, color, 22, Palette.frame_edge(def))
 	_inner_style(def)
 	var picture: Texture2D = art_texture(def, aspect)
 	if def.is_personality():
@@ -286,10 +289,16 @@ func _inner_style(def: CardDef) -> void:
 	inner.add_theme_stylebox_override("panel", box)
 
 
-func _style(panel: Panel, color: Color, radius: int = 22) -> void:
+## `edge` draws a thin outer rule on the frame. Only the Signature group uses it, so its obsidian
+## frame has an outline on the dark table instead of vanishing into it.
+func _style(panel: Panel, color: Color, radius: int = 22, edge: Color = Color(0, 0, 0, 0)) -> void:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = color
 	box.set_corner_radius_all(radius)
+	if edge.a > 0.0:
+		box.border_color = edge
+		box.set_border_width_all(SIGNATURE_EDGE)
+		box.anti_aliasing = true
 	panel.add_theme_stylebox_override("panel", box)
 
 
@@ -338,9 +347,13 @@ func _mark_type(def: CardDef, has_art: bool) -> void:
 
 ## What follows the type chip: the card's group, and any alignment gate. A Signature card says so
 ## here and names its character, which is the identity the group stands for.
+## A Seal, a Grounds and a Relic now answer `card_group()` with their own group, whose word is the
+## type word, so printing it here would read "SEAL · Seal". The chip beside it already says it.
 func _type_rest(def: CardDef) -> String:
 	var parts: PackedStringArray = PackedStringArray()
-	parts.append(CardText.card_group_line(def))
+	var group: String = CardText.card_group_line(def)
+	if group != CardText.type_label(def):
+		parts.append(group)
 	if def.alignment_only != "":
 		parts.append(def.alignment_only.capitalize() + "s only")
 	return " · ".join(parts)

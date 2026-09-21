@@ -3342,6 +3342,7 @@
    "title": "Closing Ranks",
    "type": "combat",
    "school": "",
+   "use_at": "performing_attack",
    "effects": [
 	{
 	 "op": "float",
@@ -3351,8 +3352,9 @@
 	  "scope": "own",
 	  "kind": "any",
 	  "life": 2,
-	  "per_ally": true,
-	  "once": true
+	  "per_bloodline": "draconic",
+	  "once": true,
+	  "this_attack": true
 	 }
 	},
 	{

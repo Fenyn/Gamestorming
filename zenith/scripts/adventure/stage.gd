@@ -69,7 +69,10 @@ func _refresh() -> void:
 	deck_name_label.text = deck.name
 	duelist_label.text = duelist.title if duelist != null else deck.duelist_face_id()
 	deck_size_label.text = "%d life cards" % deck.cards.size()
-	aspects_label.text = "%d aspects" % deck.aspects
+	# The run's own Duelist, rung by rung, rather than a bare count. The opponents' sheets below
+	# keep the count, since the run does not get to read the other side's stack.
+	var rungs: String = ",  ".join(CardText.stack_rungs(deck.duelist_stack(Session.library)))
+	aspects_label.text = rungs if rungs != "" else "%d aspects" % deck.aspects
 
 	match run.status:
 		"won":

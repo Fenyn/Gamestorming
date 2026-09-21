@@ -325,6 +325,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 ## seat). `--dev-lock` locks each seat in turn as picked, so a hotseat run lands on player 2
 ## choosing with one pick or on "both locked" with two; `--dev-autoplay` locks online so both
 ## clients reach the matchup. `--dev-aspect=N` shows the choosing seat's duelist at Aspect N.
+## `--dev-details` opens the deck detail tab on that seat's panel.
 ## `--dev-screenshot=<png>` saves the screen once laid out, then quits, except on an online
 ## autoplay run, where the duel further on takes it.
 func _dev_args() -> void:
@@ -341,6 +342,9 @@ func _dev_args() -> void:
 	for arg in args:
 		if arg.begins_with("--dev-aspect=") and Session.chosen[_seat] != null:
 			seat_panel.show_aspect(int(arg.get_slice("=", 1)))
+	# `--dev-details` opens the deck detail tab, where the Aspect chips live.
+	if args.has("--dev-details"):
+		seat_panel.show_details()
 	for arg in args:
 		if arg.begins_with("--dev-screenshot=") and not (_online and args.has("--dev-autoplay")):
 			var path: String = arg.get_slice("=", 1)

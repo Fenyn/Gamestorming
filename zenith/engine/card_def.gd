@@ -28,8 +28,16 @@ const TYPE_NAMES: Dictionary = {
 }
 
 ## Card groups that are not schools. `card_group()` returns one of these or a school id.
+## The four type groups exist because those cards belong to no school and are not Freestyle
+## either: a personality is a character, a Relic is worn by any school or none, a Seal belongs to
+## an Eidolon's set, and a Grounds is a place. Saying "Freestyle" of any of them was a gap in the
+## accessor, not a fact about the card, and it left four groups sharing one colour.
 const GROUP_FREESTYLE: String = "freestyle"
 const GROUP_SIGNATURE: String = "signature"
+const GROUP_PERSONALITY: String = "personality"
+const GROUP_RELIC: String = "relic"
+const GROUP_SEAL: String = "seal"
+const GROUP_GROUNDS: String = "grounds"
 
 var id: String = ""
 var title: String = ""
@@ -193,11 +201,23 @@ func is_signature() -> bool:
 
 ## The group a card belongs to for identity and display: its school id, GROUP_FREESTYLE for a
 ## schoolless card that belongs to nobody, GROUP_SIGNATURE for a card named for a character.
+## Personality, Relic, Seal and Grounds answer with their own group, because none of them is a
+## school card and none of them is Freestyle. A Mastery keeps its school, which is the truthful
+## answer for it: a Pyre Mastery is a Pyre card, and the one schoolless Mastery is Freestyle.
 ## This is what the card *is*, not where it is legal: deck Style and DeckValidator still read
 ## `school`, so a Signature card stays as legal in a Pyre deck as it ever was.
 func card_group() -> String:
 	if is_signature():
 		return GROUP_SIGNATURE
+	match type:
+		Type.PERSONALITY:
+			return GROUP_PERSONALITY
+		Type.RELIC:
+			return GROUP_RELIC
+		Type.SEAL:
+			return GROUP_SEAL
+		Type.GROUNDS:
+			return GROUP_GROUNDS
 	return school if school != "" else GROUP_FREESTYLE
 
 

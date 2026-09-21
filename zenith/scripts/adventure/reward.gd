@@ -155,11 +155,9 @@ func _fill_aspect_offer() -> void:
 			_offer_defs.append(def)
 	empty_label.visible = false
 	offer_row.visible = true
-	# A personality card prints no school of its own (`CardDef.card_group()` falls back to
-	# Freestyle for one, which is a gap in that accessor, not a fact about the card), so the tint
-	# comes from the run's own deck style instead.
-	var deck: DeckList = Session.run.deck()
-	var tint: Color = Palette.school_ui(deck.style if deck != null else "")
+	# Aspect cards are personalities, which own a group and a colour of their own since
+	# 2026-09-21. The run's deck style is no longer what tints them.
+	var tint: Color = Palette.school_ui(CardDef.GROUP_PERSONALITY)
 	for i in range(_offer_defs.size()):
 		var column: Control = await _build_aspect_card(_offer_defs[i], i, tint)
 		offer_row.add_child(column)
@@ -188,19 +186,13 @@ func _bundle_face_size(bundles: Array[Dictionary]) -> Vector2:
 	return BUNDLE_FACE_SIZE_3 if max_cards >= 3 else BUNDLE_FACE_SIZE_2
 
 
-## `Palette.school_ui` only knows the schools plus Freestyle and Signature. Grounds and Ally
-## bundles borrow the closest existing role rather than add a colour: Root's green is the plainest
-## "ground" association on the wheel, and Steel's neutral silver reads as a roster rather than a
-## school, and neither is one of the four playable starters' own school, so it never sits beside
-## the real thing.
+## Grounds and Ally bundles used to borrow Root's green and Steel's silver, because `school_ui`
+## knew only the schools plus Freestyle and Signature. Both groups have their own colour now; an
+## Ally bundle is personalities, so it takes the Personality gold.
 func _group_tint(group: String) -> Color:
-	match group:
-		AdventureBundles.GROUP_GROUNDS:
-			return Palette.school_ui("root")
-		AdventureBundles.GROUP_ALLY:
-			return Palette.school_ui("steel")
-		_:
-			return Palette.school_ui(group)
+	if group == AdventureBundles.GROUP_ALLY:
+		return Palette.school_ui(CardDef.GROUP_PERSONALITY)
+	return Palette.school_ui(group)
 
 
 func _bundle_counts(bundle: Dictionary) -> Dictionary:
@@ -278,10 +270,12 @@ func _build_aspect_card(def: CardDef, index: int, tint: Color) -> Control:
 
 
 ## "Aspect %d: %s", the tier and its printed title, falling back to the character name (the
-## personality card's own title) when a tier card carries no `aspect_title`.
+## personality card's own title) when a tier card carries no `aspect_title`. The line word
+## follows when the card names one, since the two offers at a tier are usually two lines.
 func _aspect_caption(def: CardDef) -> String:
 	var word: String = def.aspect_title if def.aspect_title != "" else def.title
-	return "Aspect %d: %s" % [def.aspect, word]
+	var caption: String = "Aspect %d: %s" % [def.aspect, word]
+	return caption if def.variant == "" else "%s  ·  %s" % [caption, def.variant]
 
 
 ## One bundle panel: a working-name heading, a group chip, and its cards as real faces in a row

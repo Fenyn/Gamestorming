@@ -1895,7 +1895,16 @@ func _advance_battle() -> void:
 				# failed. Declining leaves `late_stop_done` set, so this step falls through next time.
 				if _prompt_late_stop():
 					return
-				_emit(&"attack_successful", {"player": attacker.index})
+				# This step is re-entered after each of the windows below, so say it once.
+				if not bool(a.get("success_announced", false)):
+					a["success_announced"] = true
+					_emit(&"attack_successful", {"player": attacker.index})
+				# "Use when performing an attack." The attack has connected and nothing is dealt
+				# yet: the card rides along with it, so it costs no attack phase of its own and is
+				# never wasted on an attack that was stopped. Declining leaves `performing_done`
+				# set, so this step falls through next time.
+				if _prompt_performing_attack(attacker, a):
+					return
 				# "Use immediately after a Strike you perform becomes successful." The attacker's
 				# own window, which is not the defender's late stop above: it opens only once the
 				# attack is through, and only for cards that name this timing.
@@ -2965,6 +2974,27 @@ func _handle_follow_up(cmd: Command, context: Dictionary) -> void:
 			state.players[cmd.player].entering_combat_done = true
 		return
 	_use_card(state.players[cmd.player], card(cmd.card), window == "")
+
+
+## "Use when performing an attack": cards in the attacker's hand that name this timing, offered
+## once per attack, after it has connected and before any of its damage is worked out. It reuses
+## the `follow_up` prompt kind; the window name keeps the phase from advancing, because the attack
+## itself is the action.
+func _prompt_performing_attack(attacker: PlayerState, a: Dictionary) -> bool:
+	if bool(a.get("performing_done", false)):
+		return false
+	a["performing_done"] = true
+	var opts: Array[Command] = []
+	for c in attacker.hand:
+		if str(c.def.raw.get("use_at", "")) != "performing_attack" or not _can_play(attacker, c.def):
+			continue
+		if not _band_forbidden(attacker, c.def):
+			opts.append(Command.new(attacker.index, &"use", c.uid))
+	if opts.is_empty():
+		return false
+	opts.append(Command.new(attacker.index, &"decline"))
+	_set_prompt(attacker.index, &"follow_up", opts, {"window": "performing_attack", "source": int(a.get("source", -1))})
+	return true
 
 
 func _prompt_follow_up(attacker: PlayerState, a: Dictionary) -> bool:

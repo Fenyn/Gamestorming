@@ -24,8 +24,15 @@ func open(deck: DeckList, might_max: int, faces: CardFaceCache) -> void:
 	(info.get_node("KeyHeader") as Control).visible = false
 	(info.get_node("KeyCards") as Control).visible = false
 	var mastery_def: CardDef = Session.library.defs.get(deck.mastery_id)
-	deck_list.set_caption("Mastery: %s   ·   Aspects %d   ·   %d cards" % [
-		mastery_def.title if mastery_def != null else "None", deck.aspects, deck.cards.size()])
+	# The Duelist is a stack of cards, so the caption lists the rungs instead of counting them.
+	# Same wording as the deck detail's Aspect chips: "1 · Starved", with the line word added
+	# when the stack climbs through more than one of the character's printed lines.
+	var stack: PersonalityStack = deck.duelist_stack(Session.library)
+	# Commas between rungs: the caption already spends its middle dots on its own fields.
+	var rungs: String = ",  ".join(CardText.stack_rungs(stack))
+	deck_list.set_caption("Mastery: %s   ·   %s   ·   %d cards" % [
+		mastery_def.title if mastery_def != null else "None",
+		rungs if rungs != "" else "Aspects %d" % deck.aspects, deck.cards.size()])
 	deck_list.show_cards(deck.cards, Session.library, faces)
 	visible = true
 	close_button.grab_focus()

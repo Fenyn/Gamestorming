@@ -248,6 +248,7 @@ func _init() -> void:
 		test_an_ally_power_refreshes_each_combat,
 		test_the_taller_ladder_wins_by_standing_above_it,
 		test_edric_gives_ground_goes_under_the_deck_only_for_edric,
+		test_closing_ranks_rides_along_with_the_attack,
 		test_first_to_two_a_deck_out_scores_a_point_and_reshuffles,
 		test_first_to_two_the_hit_that_scores_loses_its_leftover_damage,
 		test_first_to_two_an_ascension_scores_once_and_resets_nothing,
@@ -322,6 +323,12 @@ func _init() -> void:
 		test_gideon_mournes_ladder_sits_where_the_other_four_aspect_duelist_sits,
 		test_an_adventure_run_gains_the_next_aspect_card_of_its_own_line,
 		test_a_version_one_adventure_save_migrates_to_duelist_cards,
+		test_the_card_group_answers_for_every_non_hand_type,
+		test_a_personality_is_named_by_its_character_alone,
+		test_the_deck_detail_labels_a_one_line_stack_and_a_mixed_one,
+		test_an_option_carries_the_owner_only_for_a_card_on_the_table,
+		test_a_side_marker_appears_only_when_two_options_read_alike,
+		test_the_log_names_the_owner_when_both_sides_hold_one_title,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -4101,6 +4108,62 @@ func test_edric_gives_ground_goes_under_the_deck_only_for_edric() -> void:
 	check(text.contains("bottom of your Life Deck"), "and the text carries the rider: %s" % text)
 
 
+## Answers the other seat's prompts with the least eventful option while an attack is in the air.
+func _quiet_defender(e: DuelEngine, seat: int) -> void:
+	var guard: int = 0
+	while e.prompt != null and e.prompt.player != seat and not e.state.attack.is_empty() and guard < 8:
+		guard += 1
+		var quiet: Command = null
+		for t in [&"no_defense", &"no_endure", &"decline", &"control", &"target"]:
+			if quiet == null:
+				quiet = e.prompt.find(t)
+		if quiet == null:
+			return
+		e.submit(quiet)
+
+
+## "Use when performing an attack. That attack does +2 wounds for each Draconic personality you
+## have in play. Draw a card." The source card rides along with an attack; it is not an action of
+## its own, so it is never offered as one and it does not spend an attack phase.
+func test_closing_ranks_rides_along_with_the_attack() -> void:
+	var shipped: CardLibrary = shipped_library()
+	# The starters carry no Reserve, so the duel opens on the first turn and not on a swap.
+	var e: DuelEngine = DuelEngine.new()
+	var pair: Array[DeckList] = [
+		DeckList.load_from("res://data/adventure/starters/steel_beatdown_start.json"),
+		DeckList.load_from("res://data/adventure/starters/pyre_beatdown_start.json")]
+	e.setup(pair, shipped, StrikeTable.load_from("res://data/strike_table.json"), 5)
+	e.start()
+	var seat: int = 0 if e.player(0).duelist.def.character == "Halden Quarr" else 1
+	var p: PlayerState = e.player(seat)
+	var ranks: CardInstance = e._instance(shipped.get_def("closing_ranks"), seat, &"hand")
+	p.hand.append(ranks)
+	var bolt: CardInstance = e._instance(shipped.get_def("unerring_bolt"), seat, &"hand")
+	p.hand.append(bolt)
+	to_attack(e, seat)
+	eq(prompt_kind(e), &"attack_action", "Quarr has an attack phase")
+	check(e.prompt.find(&"use", ranks.uid) == null, "the card is not an action of its own")
+	p.duelist.energy = 10
+	var foe_life: int = e.player(1 - seat).life_deck.size()
+	var hand_before: int = p.hand.size()
+	answer(e, &"attack", bolt.uid)
+	# Nothing can stop this Art. The window opens once it has connected, so first step through
+	# whatever the defender is asked on the way there, and again after it while wounds are dealt.
+	_quiet_defender(e, seat)
+	eq(prompt_kind(e), &"follow_up", "a connected attack opens the window before its damage")
+	eq(str(e.prompt.context.get("window", "")), "performing_attack", "and names it")
+	eq(e.player(1 - seat).life_deck.size(), foe_life, "no wound has been dealt yet")
+	answer(e, &"use", ranks.uid)
+	_quiet_defender(e, seat)
+	# Quarr is Draconic and has no Allies: one Draconic personality, so +2 on the Art's base 4.
+	var dealt: int = foe_life - e.player(1 - seat).life_deck.size()
+	check(dealt >= 6, "the attack it rode on dealt its 4 wounds plus 2: dealt %d" % dealt)
+	check(p.removed.has(ranks), "the card is removed from the game after use")
+	eq(p.hand.size(), hand_before - 2 + 1, "two cards left the hand and one was drawn")
+	var text: String = CardText.rules_text(shipped.get_def("closing_ranks"))
+	check(text.contains("Use when performing an attack.") and text.contains("That attack does +2 wounds for each Draconic personality"), "worded as printed: %s" % text)
+
+
 # --- Simulation support ----------------------------------------------------
 
 func shipped_engine(deck_a: String, deck_b: String, seed_value: int) -> DuelEngine:
@@ -4709,7 +4772,11 @@ func test_two_variants_of_one_character_are_one_person() -> void:
 	eq(PersonalityStack.from_ids(lib, stack_ids("tf_marked_long", 5)).highest_aspect(), 5, "the other five")
 	check(short_road.raw.get("tags", []).has("marked"), "one is marked")
 	check(not long_road.raw.get("tags", []).has("marked"), "and the other is not, which is allowed")
-	eq(CardText.personality_name(short_road), "Test Two-Faced, the Short Road", "the variant names the card")
+	# The name is the character and nothing else since 2026-09-21: the card face already prints the
+	# Aspect title under it, and a card two lines share carries no variant to print at all.
+	eq(CardText.personality_name(short_road), "Test Two-Faced", "the name is the character")
+	eq(CardText.personality_name(long_road), "Test Two-Faced", "both printings read the same")
+	eq(CardText.personality_line(short_road), "the Short Road", "the line is what tells them apart")
 	eq(CardText.personality_name(lib.get_def("t_ally_squire")), "Test Squire", "one printing needs no variant")
 	var d: DeckList = deck(filler(["tf_marked_short_1"]), "vigil", "", "t_mastery_pyre", 3, "tf_marked_long")
 	var problems: Array[String] = DeckValidator.validate(d, lib)
@@ -6326,11 +6393,13 @@ func test_the_card_group_tells_signature_from_freestyle() -> void:
 		["shrugs_it_off", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
 		["quarrs_roar", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
 		["quarrs_crushing_blow", "signature", true, "Signature", "Signature · Halden Quarr · Steel"],
-		["personality_bram_ashmark_1_starved", "freestyle", false, "Freestyle", "Freestyle"],
+		# The four type groups. None of these is a school card and none is Freestyle, which is
+		# what they all used to answer, so all four shared Freestyle's bronze.
+		["personality_bram_ashmark_1_starved", "personality", false, "Personality", "Personality"],
 		["pyre_mastery", "pyre", false, "Pyre", "Pyre"],
-		["blank_mask", "freestyle", false, "Freestyle", "Freestyle"],
-		["salt_seal_1", "freestyle", false, "Freestyle", "Freestyle"],
-		["trampled_crossroads", "freestyle", false, "Freestyle", "Freestyle"],
+		["blank_mask", "relic", false, "Relic", "Relic"],
+		["salt_seal_1", "seal", false, "Seal", "Seal"],
+		["trampled_crossroads", "grounds", false, "Grounds", "Grounds"],
 	]
 	for row: Array in cases:
 		var def: CardDef = shipped.defs.get(str(row[0]))
@@ -6357,7 +6426,8 @@ func test_the_card_group_tells_signature_from_freestyle() -> void:
 ## Every shipped card lands in exactly one group, and the tally is printed for reference.
 func test_every_shipped_card_lands_in_one_group() -> void:
 	var shipped: CardLibrary = shipped_library()
-	var groups: Array[String] = ["freestyle", "signature", "pyre", "tide", "storm", "shade", "steel", "root"]
+	var groups: Array[String] = ["freestyle", "signature", "pyre", "tide", "storm", "shade", "steel", "root",
+		"personality", "relic", "seal", "grounds"]
 	var counts: Dictionary = {}
 	var signature_types: Dictionary = {}
 	for id: String in shipped.defs.keys():
@@ -7075,3 +7145,173 @@ func _write_adventure_save(blob: Dictionary) -> void:
 	if handle != null:
 		handle.store_string(JSON.stringify(blob, "  "))
 		handle.close()
+
+
+# --- Personality client pass (2026-09-21) ---------------------------------
+# Each Aspect is its own card, so a Duelist is a stack; both players may field a personality of
+# one title; and the four non-school types finally answer `card_group()` with their own group.
+
+## Every non-hand type lands in a group that is true of it, and no two groups share a colour.
+func test_the_card_group_answers_for_every_non_hand_type() -> void:
+	var shipped: CardLibrary = shipped_library()
+	# id, group. The first three are the cases the group accessor already answered.
+	var cases: Array = [
+		["pyre_cinder_guard", "pyre"],
+		["stillness", "freestyle"],
+		["relentless_fury", "signature"],
+		["personality_bram_ashmark_1_starved", "personality"],
+		["pyre_mastery", "pyre"],
+		["blank_mask", "relic"],
+		["salt_seal_1", "seal"],
+		["trampled_crossroads", "grounds"],
+	]
+	for row: Array in cases:
+		var def: CardDef = shipped.defs.get(str(row[0]))
+		check(def != null, "'%s' is in the shipped library" % str(row[0]))
+		if def != null:
+			eq(def.card_group(), str(row[1]), "'%s' groups as %s" % [def.id, str(row[1])])
+	# A Mastery keeps its school, which is the truthful answer for it, and the schoolless one
+	# stays Freestyle.
+	eq((shipped.defs.get("tide_mastery") as CardDef).card_group(), "tide", "a Tide Mastery is Tide")
+	eq((shipped.defs.get("freestyle_mastery") as CardDef).card_group(), "freestyle", "the schoolless one is Freestyle")
+	# Every group the shipped cards reach has a display word and a UI colour of its own. Sharing
+	# Freestyle's bronze is what sent the reward screen borrowing Root's green and Steel's silver.
+	var groups: Array[String] = []
+	for id: String in shipped.defs.keys():
+		var group: String = (shipped.defs[id] as CardDef).card_group()
+		if not groups.has(group):
+			groups.append(group)
+		eq(Palette.school_ui(group) == Palette.school_ui("freestyle"), group == "freestyle",
+			"'%s' takes Freestyle's colour only if it is Freestyle" % id)
+	groups.sort()
+	print("    groups in the shipped library: %s" % ", ".join(groups))
+	for a in groups:
+		check(CardText.GROUP_NAMES.has(a), "'%s' has a display word" % a)
+		for b in groups:
+			if a == b:
+				continue
+			check(Palette.school_ui(a) != Palette.school_ui(b), "'%s' and '%s' differ on the UI" % [a, b])
+	# Frames: one per group, read off a real card of each so the type branch is what answers.
+	var faces: Dictionary = {
+		"personality": "personality_bram_ashmark_1_starved", "relic": "blank_mask",
+		"seal": "salt_seal_1", "grounds": "trampled_crossroads", "signature": "relentless_fury",
+		"freestyle": "stillness", "pyre": "pyre_cinder_guard",
+	}
+	var seen: Array[Color] = []
+	for group: String in faces.keys():
+		var frame: Color = Palette.frame_color(shipped.defs.get(str(faces[group])))
+		check(not seen.has(frame), "'%s' has a frame colour of its own" % group)
+		seen.append(frame)
+
+
+## The name is the character and nothing else, including on the tier two of Bram Ashmark's lines
+## share, which carries no line word at all. The line shows where it tells two cards apart.
+func test_a_personality_is_named_by_its_character_alone() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var shared: CardDef = shipped.defs.get("personality_bram_ashmark_1_starved")
+	var glut: CardDef = shipped.defs.get("personality_bram_ashmark_3_gorging")
+	var hollow: CardDef = shipped.defs.get("personality_bram_ashmark_2_leeching")
+	eq(CardText.personality_name(shared), "Bram Ashmark", "the shared tier 1 is just the name")
+	eq(CardText.personality_name(glut), "Bram Ashmark", "and so is a tier that names a line")
+	eq(CardText.personality_line(shared), "", "the shared card belongs to no one line")
+	eq(CardText.personality_line(glut), "the Glut", "the line is carried beside the name")
+	eq(CardText.aspect_name(1, shared), "Starved", "the Aspect title is the card's subtitle")
+	eq(CardText.rung_label(shared), "1 · Starved", "a rung is its tier and its title")
+	eq(CardText.rung_label(hollow, true), "2 · Leeching · the Hollow", "with the line where it is wanted")
+	eq(CardText.rung_label(shared, true), "1 · Starved", "but never on a card that names no line")
+
+
+## The deck detail's rung labels: quiet for a stack that climbs one line, and naming the line for
+## a stack that mixes two.
+func test_the_deck_detail_labels_a_one_line_stack_and_a_mixed_one() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var one_line: PersonalityStack = PersonalityStack.from_ids(shipped, [
+		"personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_gnawing",
+		"personality_bram_ashmark_3_gorging"] as Array[String])
+	check(not CardText.stack_mixes_lines(one_line), "one line, even with a shared tier 1 under it")
+	eq(CardText.stack_rungs(one_line), ["1 · Starved", "2 · Gnawing", "3 · Gorging"] as Array[String],
+		"so the rungs stay quiet")
+	var mixed: PersonalityStack = PersonalityStack.from_ids(shipped, [
+		"personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_leeching",
+		"personality_bram_ashmark_3_gorging"] as Array[String])
+	check(CardText.stack_mixes_lines(mixed), "Starved, Leeching, Gorging climbs two lines")
+	eq(CardText.stack_rungs(mixed),
+		["1 · Starved", "2 · Leeching · the Hollow", "3 · Gorging · the Glut"] as Array[String],
+		"so every rung says where it came from, bar the one both lines share")
+
+
+## An option carries the owner seat only for a card both players can see on the table. A card in
+## a hand, a Life Deck or a Reserve answers -1, so the field tells nobody anything it did not know.
+func test_an_option_carries_the_owner_only_for_a_card_on_the_table() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 4, "tf_titan"),
+		deck(filler(), "vigil", "", "", 4, "tf_titan"))
+	var mine: CardInstance = to_hand(e, 0, "t_ally_squire")
+	eq(OptionView.public_owner(e, mine.uid), -1, "a card in hand names no owner")
+	e._place(e.player(0), mine)
+	eq(OptionView.public_owner(e, mine.uid), 0, "the same card on the table does")
+	var theirs: CardInstance = to_hand(e, 1, "t_ally_squire")
+	eq(OptionView.public_owner(e, theirs.uid), -1, "their hand card stays silent to both seats")
+	e._place(e.player(1), theirs)
+	eq(OptionView.public_owner(e, theirs.uid), 1, "and speaks once it is placed")
+	eq(OptionView.public_owner(e, e.player(0).life_deck[0].uid), -1, "a Life Deck card names no owner")
+	eq(OptionView.public_owner(e, -1), -1, "and an option with no card names none either")
+	var built: OptionView = OptionView.of(Command.new(0, &"discard_ally", mine.uid), e)
+	eq(built.owner, 0, "OptionView.of fills it in")
+	eq(OptionView.from_dict(built.to_dict()).owner, 0, "and it survives the round trip online")
+
+
+## The side marker appears on an option only when another option would read exactly the same, and
+## never on a card whose owner the view withheld.
+func test_a_side_marker_appears_only_when_two_options_read_alike() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 4, "tf_titan"),
+		deck(filler(), "vigil", "", "", 4, "tf_titan"))
+	var mine: CardInstance = to_hand(e, 0, "t_ally_squire")
+	var theirs: CardInstance = to_hand(e, 1, "t_ally_squire")
+	e._place(e.player(0), mine)
+	e._place(e.player(1), theirs)
+	var p: PromptView = PromptView.new()
+	p.player = 0
+	p.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
+	p.options.append(OptionView.of(Command.new(0, &"discard_ally", theirs.uid), e))
+	eq(p.options[0].label, p.options[1].label, "the two options read the same without a marker")
+	var marks: Dictionary = CardText.option_side_marks(p, 0)
+	eq(str(marks.get(mine.uid, "")), " · yours", "mine is marked as mine")
+	eq(str(marks.get(theirs.uid, "")), " · theirs", "and theirs as theirs")
+	eq(str(CardText.option_side_marks(p, 1).get(mine.uid, "")), " · theirs", "seat 1 reads it the other way")
+	# One option of a title, or a second option that already reads differently, needs no marker.
+	var alone: PromptView = PromptView.new()
+	alone.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
+	eq(CardText.option_side_marks(alone, 0).size(), 0, "one option of a title is unambiguous")
+	var other: CardInstance = to_hand(e, 1, "t_ally_kin")
+	e._place(e.player(1), other)
+	var distinct: PromptView = PromptView.new()
+	distinct.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
+	distinct.options.append(OptionView.of(Command.new(0, &"discard_ally", other.uid), e))
+	check(distinct.options[0].label != distinct.options[1].label, "two titles read apart already")
+	eq(CardText.option_side_marks(distinct, 0).size(), 0, "so neither is marked")
+	# A hidden card can never be marked, because the view gave it no owner to mark it by.
+	var in_hand: CardInstance = to_hand(e, 0, "t_ally_squire_alt")
+	var hidden: PromptView = PromptView.new()
+	hidden.options.append(OptionView.of(Command.new(0, &"place", in_hand.uid), e))
+	hidden.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
+	eq(hidden.options[0].owner, -1, "the hand card carries no owner")
+	eq(CardText.option_side_marks(hidden, 0).has(in_hand.uid), false, "and so is never marked")
+
+
+## A log line names the owner of a personality when both sides hold one of that title in play,
+## and says nothing extra when only one side does.
+func test_the_log_names_the_owner_when_both_sides_hold_one_title() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 4, "tf_titan"),
+		deck(filler(), "vigil", "", "", 3, "tf_vigil"))
+	var mine: CardInstance = to_hand(e, 0, "t_ally_squire")
+	e._place(e.player(0), mine)
+	eq(CardText._cname(e, mine.uid), mine.def.title, "one Squire on the table needs no owner")
+	var theirs: CardInstance = to_hand(e, 1, "t_ally_squire")
+	e._place(e.player(1), theirs)
+	eq(CardText._cname(e, mine.uid), "%s (%s's)" % [mine.def.title, e.state.players[0].name],
+		"two Squires and the line says whose")
+	eq(CardText._cname(e, theirs.uid), "%s (%s's)" % [theirs.def.title, e.state.players[1].name],
+		"on both sides")
+	# A card still in hand is named "a card" to the other seat, owner suffix or not.
+	var held: CardInstance = to_hand(e, 0, "t_ally_squire_alt")
+	eq(CardText._cname(e, held.uid, 1, 0), "a card", "and a hidden card leaks nothing new")

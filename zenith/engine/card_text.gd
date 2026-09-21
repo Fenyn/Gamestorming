@@ -11,6 +11,7 @@ const SCHOOL_NAMES: Dictionary = {
 const GROUP_NAMES: Dictionary = {
 	"freestyle": "Freestyle", "signature": "Signature", "pyre": "Pyre", "tide": "Tide",
 	"storm": "Storm", "shade": "Shade", "steel": "Steel", "root": "Root",
+	"personality": "Personality", "relic": "Relic", "seal": "Seal", "grounds": "Grounds",
 }
 const TYPE_LABELS: Dictionary = {
 	CardDef.Type.PERSONALITY: "Personality", CardDef.Type.STRIKE: "Strike",
@@ -133,16 +134,22 @@ static func short_number(n: int) -> String:
 	return str(n)
 
 
-## An Aspect's own title ("Unquenchable") when the personality card gives one, else "Aspect N".
-## What to call a personality card. A character with one personality card is just their name; where
-## there are several, the variant is what tells them apart, because the character is shared on
-## purpose.
+## What to call a personality card: the character's name, and nothing else. Each Aspect is its own
+## card now (2026-09-21), so the card face already prints the Aspect title as the subtitle and the
+## line word (`variant`) would only be a third name in the same breath. Bram Ashmark's shared
+## tier 1 carries no variant at all, so folding the line into the name made one rung of a stack
+## read differently from its neighbours. The line is shown where it tells two cards apart instead:
+## `rung_label` in a stack view, and `personality_line` in the deck detail.
 static func personality_name(def: CardDef) -> String:
 	if def == null:
 		return ""
-	if def.variant == "":
-		return def.title
-	return "%s, %s" % [def.title, def.variant]
+	return def.title
+
+
+## The line a personality card was written for ("the Glut"), or "" when the card belongs to no one
+## line. Only a view that lists several cards of one character prints it.
+static func personality_line(def: CardDef) -> String:
+	return def.variant if def != null else ""
 
 
 ## The title printed on one Aspect card ("Starved"), falling back to its number. `def` is the card
@@ -155,6 +162,68 @@ static func aspect_name(aspect: int, def: CardDef = null) -> String:
 
 static func stack_aspect_name(aspect: int, stack: PersonalityStack) -> String:
 	return aspect_name(aspect, stack.def_for(aspect) if stack != null else null)
+
+
+## True when a stack climbs through more than one of a character's printed lines, which is the one
+## case where a rung has to say where it came from. A card two lines share carries no variant, so
+## it never makes a stack read as mixed on its own.
+static func stack_mixes_lines(stack: PersonalityStack) -> bool:
+	if stack == null:
+		return false
+	var seen: Array[String] = []
+	for d in stack.defs:
+		if d.variant != "" and not seen.has(d.variant):
+			seen.append(d.variant)
+	return seen.size() > 1
+
+
+## One rung of a stack, for a ladder chip or a deck-detail row: "1 · Starved". With `show_line`
+## the printed line follows where the card names one, "2 · Leeching · the Hollow", which is what
+## tells two cards of one character at one tier apart. A one-line stack passes false and stays
+## quiet, and so does the tier a character's lines share.
+static func rung_label(def: CardDef, show_line: bool = false) -> String:
+	if def == null:
+		return ""
+	var label: String = "%d · %s" % [def.aspect, aspect_name(def.aspect, def)]
+	if show_line and def.variant != "":
+		label += " · %s" % def.variant
+	return label
+
+
+## Every rung of a stack, lowest first, each labelled by `rung_label`. The line word appears on
+## all of them or on none, so one call decides it for the whole ladder.
+static func stack_rungs(stack: PersonalityStack) -> Array[String]:
+	var out: Array[String] = []
+	if stack == null:
+		return out
+	var show_line: bool = stack_mixes_lines(stack)
+	for d in stack.defs:
+		out.append(rung_label(d, show_line))
+	return out
+
+
+## Which of a prompt's options need a side marker, as card uid -> " · yours" / " · theirs".
+## Both players may field a personality of one title since 2026-09-21, so two options in one row
+## can read the same. Only options that share a label are marked, and only where the option
+## carries an owner, which `OptionView` fills in for cards on the table and leaves at -1 for a
+## card in a hand, a Life Deck or a Reserve. `viewer` is the seat reading the row.
+static func option_side_marks(p: PromptView, viewer: int) -> Dictionary:
+	var seats_by_label: Dictionary = {}
+	for opt in p.options:
+		if opt.card < 0 or opt.owner < 0:
+			continue
+		var seats: Array = seats_by_label.get(opt.label, [])
+		if not seats.has(opt.owner):
+			seats.append(opt.owner)
+		seats_by_label[opt.label] = seats
+	var out: Dictionary = {}
+	for opt in p.options:
+		if opt.card < 0 or opt.owner < 0:
+			continue
+		if (seats_by_label[opt.label] as Array).size() < 2:
+			continue
+		out[opt.card] = " · yours" if opt.owner == viewer else " · theirs"
+	return out
 
 
 ## Short HUD wording for a standing forbid, keyed by the engine's forbid `what` word.
@@ -390,6 +459,8 @@ static func rules_text(def: CardDef) -> String:
 			"life":
 				counted = "wounds"
 		lines.append("Use immediately after you take %s from an attack." % counted)
+	if str(def.raw.get("use_at", "")) == "performing_attack":
+		lines.append("Use when performing an attack.")
 	if str(def.raw.get("use_at", "")) == "own_successful_attack":
 		var after_kind: String = str(def.raw.get("use_after_kind", ""))
 		lines.append("Use this card immediately after %s you perform succeeds." % [
@@ -1633,7 +1704,8 @@ static func modifier_text(m: Dictionary) -> String:
 			s = _conditional(m["when"], s)
 		return s
 	if bool(m.get("once", false)):
-		s = "Your next attack does %s." % amount
+		# A card used "when performing an attack" boosts the attack it rides on, not a later one.
+		s = ("That attack does %s." if bool(m.get("this_attack", false)) else "Your next attack does %s.") % amount
 	elif scope == "own":
 		s = "Your %s do %s%s." % [what, amount, (" instead" if bool(m.get("instead", false)) else "")]
 	else:
@@ -1930,6 +2002,8 @@ static func prompt_title(p: Prompt) -> String:
 			match str(p.context.get("window", "")):
 				"entering_combat":
 					return "Entering Combat: use a card?"
+				"performing_attack":
+					return "Your attack connected: use a card with it?"
 				"after_damage":
 					var took: int = int(p.context.get("life", 0))
 					return "You took %s: use a card?" % _plural(took, "wound", "wounds") if took > 0 else "You took the hit: use a card?"
@@ -2476,7 +2550,32 @@ static func _cname(engine: DuelEngine, uid: int, seat: int = -1, actor: int = -1
 		return "a card"
 	if seat >= 0 and seat != actor and not SeatCard.visible_to(c, seat):
 		return "a card"
-	return c.def.title
+	return c.def.title + _owner_suffix(engine, c)
+
+
+## " (Bram's)" after a personality's title when the other side has a personality of that title in
+## play too. Every Ally rule is per player now, so both duelists may be the same character and a
+## bare title stops saying whose it is. Only cards in play are looked at, which both players can
+## already see, so the line says nothing new about a hidden card.
+static func _owner_suffix(engine: DuelEngine, c: CardInstance) -> String:
+	if not c.def.is_personality() or not _public(c):
+		return ""
+	for i in range(engine.state.players.size()):
+		if i == c.owner:
+			continue
+		var p: PlayerState = engine.state.players[i]
+		var theirs: Array[CardInstance] = p.allies()
+		if p.duelist != null:
+			theirs.append(p.duelist)
+		for o in theirs:
+			if o.def.title == c.def.title:
+				return " (%s's)" % _pname(engine, c.owner)
+	return ""
+
+
+## A card both seats may see where it stands: on the table, not in a hand, Life Deck or Reserve.
+static func _public(c: CardInstance) -> bool:
+	return SeatCard.visible_to(c, 0) and SeatCard.visible_to(c, 1)
 
 
 static func _sees(engine: DuelEngine, uid: int, seat: int, actor: int) -> bool:

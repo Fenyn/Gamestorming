@@ -147,7 +147,8 @@ func _shown_aspects() -> Array[int]:
 ## With `flip`, the card turns edge-on, swaps its face and turns back, as a card being turned
 ## over; a fresh deck just shows the face.
 func show_aspect(aspect: int, flip: bool = false) -> void:
-	var duelist: CardDef = _deck.duelist_stack(Session.library).def_for(aspect) if _deck != null else null
+	var stack: PersonalityStack = _deck.duelist_stack(Session.library) if _deck != null else null
+	var duelist: CardDef = stack.def_for(aspect) if stack != null else null
 	if duelist == null:
 		portrait.texture = null
 		portrait_caption.text = ""
@@ -155,7 +156,8 @@ func show_aspect(aspect: int, flip: bool = false) -> void:
 	_aspect = aspect
 	var aspects: Array[int] = _shown_aspects()
 	var last: bool = aspects.size() < 2
-	portrait_caption.text = CardText.aspect_name(aspect, duelist) + ("" if last else "  ·  click for the next aspect")
+	# The rung says its tier and title, and its line only where the stack climbs through two.
+	portrait_caption.text = CardText.rung_label(duelist, CardText.stack_mixes_lines(stack)) + ("" if last else "  ·  click for the next aspect")
 	var face: Texture2D = await _faces.render_face(duelist, aspect)
 	if _aspect != aspect:
 		return   # another click came in while the face rendered

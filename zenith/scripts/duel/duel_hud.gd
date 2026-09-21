@@ -144,6 +144,7 @@ var _pile_uids: Array[int] = []        # the pile as the browser last drew it, t
 var _pile_fill: int = 0                # guards against two fills racing over the same container
 var _replay_focus: bool = false
 var _focus_home: Vector4 = Vector4.ZERO
+var _owner_marks: Dictionary = {}      # card uid -> " · yours" / " · theirs", set per prompt
 
 
 func _ready() -> void:
@@ -425,6 +426,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	prompt_panel.show()
 	_view = view
 	_current_prompt = p
+	_owner_marks = CardText.option_side_marks(p, _viewer_seat)
 	var who: SeatPlayer = view.player(p.player)
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
 	prompt_who.add_theme_color_override("font_color", SeatColors.accent(view, p.player, Session.color_seed))
@@ -832,6 +834,7 @@ func clear_prompt() -> void:
 	prompt_panel.hide()
 	prompt_outcome.hide()
 	_current_prompt = null
+	_owner_marks = {}
 	hide_peek()
 	prompt_who.text = ""
 	prompt_title.text = "…"
@@ -851,7 +854,7 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 	for i in range(options.size()):
 		var opt: OptionView = options[i]
 		var b: Button = Button.new()
-		b.text = opt.label
+		b.text = opt.label + str(_owner_marks.get(opt.card, ""))
 		if into == primary_box and _current_prompt != null and _current_prompt.kind == &"endurance" and opt.type == &"endure":
 			b.text = "Use Endurance"
 			b.tooltip_text = opt.label + "\nRemove this card from play."
@@ -1104,8 +1107,13 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 			show_inspect(def, aspect, uid))
 	frame.add_child(b)
 	column.add_child(frame)
+	# Two faces in one tray can be the same card of the same character on opposite sides of the
+	# table. The marker says which is which, and appears only when the labels would read alike.
+	var mark: String = str(_owner_marks.get(uid, ""))
+	if mark != "":
+		b.tooltip_text = opt.label + mark
 	if not sub_choice:
-		var verb: String = str(TRAY_VERBS.get(opt.type, opt.label))
+		var verb: String = str(TRAY_VERBS.get(opt.type, opt.label)) + mark
 		var caption: Label = Label.new()
 		caption.text = verb
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -244,6 +244,9 @@ func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 	_aspect_chips.clear()
 	if stack == null:
 		return
+	# A stack may climb through more than one of a character's printed lines, so a rung says which
+	# line it came from. A one-line stack stays quiet, and so does a tier two lines share.
+	var mixed: bool = CardText.stack_mixes_lines(stack)
 	for duelist in stack.defs:
 		var aspect: int = duelist.aspect
 		var t: Dictionary = duelist.aspect_data(aspect)
@@ -255,7 +258,9 @@ func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 		chip.button_group = _chip_group
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		chip.custom_minimum_size = Vector2(72, 44)   # the labels clip, so five chips always fit the column
-		chip.tooltip_text = "%s\nSurge %d · Peak Might %s" % [CardText.aspect_name(aspect, duelist), int(t.get("surge", 0)), CardText.short_number(top)]
+		chip.tooltip_text = "%s\n%s\nSurge %d · Peak Might %s" % [
+			CardText.rung_label(duelist, mixed), CardText.personality_name(duelist),
+			int(t.get("surge", 0)), CardText.short_number(top)]
 		chip.pressed.connect(func() -> void: aspect_clicked.emit(aspect))
 		var col: VBoxContainer = VBoxContainer.new()
 		col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -266,7 +271,9 @@ func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_theme_constant_override("separation", 0)
 		var name_label: Label = Label.new()
-		name_label.text = CardText.aspect_name(aspect, duelist)
+		# The chip is about 52 px of text, so it carries the tier and the title only; the line
+		# word and the character's name are in the tooltip and in the Aspect block beside it.
+		name_label.text = CardText.rung_label(duelist)
 		name_label.add_theme_font_size_override("font_size", 14)
 		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE

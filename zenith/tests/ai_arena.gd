@@ -48,8 +48,8 @@ func _init() -> void:
 				for a_seat in range(2):
 					# Policy a plays deck_a in seat `a_seat`; policy b plays deck_b in the other.
 					var decks: Array[DeckList] = [null, null]
-					decks[a_seat] = DeckList.load_from("res://data/decks/%s.json" % deck_a)
-					decks[1 - a_seat] = DeckList.load_from("res://data/decks/%s.json" % deck_b)
+					decks[a_seat] = DeckList.resolve(deck_a)
+					decks[1 - a_seat] = DeckList.resolve(deck_b)
 					var ref: Referee = Referee.new()
 					ref.setup(decks, lib, table, 100 + s, [], false)
 					ref.start()

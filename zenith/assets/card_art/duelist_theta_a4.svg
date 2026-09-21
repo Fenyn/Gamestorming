@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Marrow, Fury Amalgam. Diagonal, mid-swing, every piece of a dozen constructs moving at
+       once and not one of them idle. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the arc of the swing, corner to corner -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M20,150 C130,66 322,56 452,150"/>
+    <path d="M12,268 C130,150 350,132 508,246"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="8" stroke-linecap="round">
+    <path d="M40,208 C150,110 344,96 484,196"/>
+  </g>
+  <!-- her, turned hard into it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="rotate(14 330 330)">
+      <path d="M276,268 C276,240 312,228 348,234 C384,240 398,270 394,324 C390,378 366,402 332,400 C296,398 276,368 276,324 Z"/>
+      <path d="M280,308 C312,298 362,298 392,308"/>
+      <path d="M294,366 L376,366"/>
+      <path d="M288,386 L382,386 L382,412 L288,412 Z"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="9" stroke-linecap="round">
+    <g transform="rotate(14 330 330)">
+      <path d="M294,330 C306,320 326,322 338,332"/>
+      <path d="M352,332 C364,322 382,324 392,334"/>
+    </g>
+  </g>
+  <!-- the body, leaning with the blow -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300,434 C304,452 304,466 300,476"/>
+    <path d="M366,424 C370,442 372,456 378,464"/>
+    <path d="M210,516 C252,478 396,466 448,504"/>
+    <path d="M210,516 C186,566 172,646 170,738"/>
+    <path d="M448,504 C478,552 494,632 496,726"/>
+    <path d="M170,738 C172,800 180,846 192,866"/>
+    <path d="M496,726 C494,792 486,842 476,866"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M192,596 C252,556 420,548 484,584"/>
+    <path d="M180,684 C244,642 424,634 492,672"/>
+  </g>
+  <!-- the heavy arm, at the end of the swing, out of the top left -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214,520 C160,494 108,444 78,378"/>
+    <path d="M78,378 C48,364 34,326 56,300 C82,268 144,266 170,296"/>
+  </g>
+  <!-- and the light coming through every seam at once -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M336,486 C332,562 332,634 336,698"/>
+    <path d="M252,632 L202,618"/>
+    <path d="M416,624 L466,612"/>
+    <path d="M268,720 L222,714"/>
+    <path d="M404,712 L448,706"/>
+  </g>
+</svg>

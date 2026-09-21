@@ -1,0 +1,147 @@
+{
+  "name": "Last Standing (T5)",
+  "source_deck": "pyre_attrition",
+  "tier": "t5",
+  "mode": "adventure",
+  "duelist": "duelist_lambda",
+  "aspects": 3,
+  "style": "pyre",
+  "alignment": "pact",
+  "mastery": "pyre_ember_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "subthemes": [
+    "fervor",
+    "disruption",
+    "strikes"
+  ],
+  "ai_profile": "pyre_attrition",
+  "tagline": "Strip the table bare, climb past your rival's last Aspect, and refill your Life Deck while they run out.",
+  "cards": [
+    {
+      "id": "ashmarks_ember_spray",
+      "count": 3
+    },
+    {
+      "id": "declaration",
+      "count": 1
+    },
+    {
+      "id": "pyre_immolation",
+      "count": 3
+    },
+    {
+      "id": "riftcry",
+      "count": 1
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 3
+    },
+    {
+      "id": "cut_short",
+      "count": 3
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "pyre_twin_flames",
+      "count": 2
+    },
+    {
+      "id": "spent_to_the_last",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "will_not_break",
+      "count": 1
+    },
+    {
+      "id": "emrys_rising_blow",
+      "count": 3
+    },
+    {
+      "id": "headlong_plunge",
+      "count": 2
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
+      "count": 1
+    },
+    {
+      "id": "pyre_cinder_guard",
+      "count": 3
+    },
+    {
+      "id": "pyre_firestorm",
+      "count": 3
+    },
+    {
+      "id": "pyre_flame_lash",
+      "count": 2
+    },
+    {
+      "id": "pyre_flashpoint",
+      "count": 2
+    },
+    {
+      "id": "pyre_furnace_breath",
+      "count": 3
+    },
+    {
+      "id": "pyre_knee_bash",
+      "count": 3
+    },
+    {
+      "id": "pyre_rekindling",
+      "count": 2
+    },
+    {
+      "id": "pyre_scouring_flame",
+      "count": 3
+    },
+    {
+      "id": "pyre_searing_guard",
+      "count": 2
+    },
+    {
+      "id": "pyre_snuffing",
+      "count": 3
+    },
+    {
+      "id": "pyre_sword_cleave",
+      "count": 2
+    },
+    {
+      "id": "pyre_warding_stance",
+      "count": 3
+    },
+    {
+      "id": "quick_retreat",
+      "count": 2
+    },
+    {
+      "id": "relentless_fury",
+      "count": 3
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "vales_sword_draw",
+      "count": 2
+    }
+  ]
+}

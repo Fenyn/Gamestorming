@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Emrys Rooke, Edged. In profile, because the point of him now is the line down the outside
+       of the forearm. One cut already closed in the air behind his shoulder. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the cut he made a moment ago -->
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M36,120 C150,206 296,314 424,410"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M32,172 C144,254 288,360 412,452"/>
+  </g>
+  <!-- the head, in profile, facing right -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M224,130 C260,104 318,112 344,154 C368,192 364,246 340,278 C318,308 282,314 256,298"/>
+    <path d="M256,298 C244,278 236,254 232,228"/>
+    <path d="M232,228 C210,222 202,200 210,180 C216,162 228,152 240,150"/>
+    <!-- hair, off the face and tied -->
+    <path d="M218,146 C224,110 268,92 308,102 C334,108 348,124 352,144"/>
+    <path d="M214,168 C196,166 184,180 186,196"/>
+    <!-- the profile itself: brow, nose, mouth, jaw -->
+    <path d="M338,178 C348,186 352,198 348,208"/>
+    <path d="M348,208 C356,216 360,226 354,234"/>
+    <path d="M336,250 C344,250 350,254 350,260"/>
+    <path d="M320,282 C334,284 344,280 348,272"/>
+    <path d="M296,166 C308,160 322,162 330,170"/>
+  </g>
+  <!-- neck and the near shoulder, body turned away -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M262,310 C266,334 266,350 262,362"/>
+    <path d="M316,306 C318,330 320,346 326,358"/>
+    <path d="M172,414 C214,376 342,370 396,404"/>
+    <path d="M172,414 C150,452 138,514 136,588"/>
+    <path d="M396,404 C420,442 432,506 434,580"/>
+    <path d="M136,588 C134,682 138,776 146,858"/>
+    <path d="M434,580 C436,676 432,772 424,858"/>
+  </g>
+  <!-- the edged arm, held low and forward -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M396,412 C438,446 470,494 486,552"/>
+    <path d="M486,552 C500,600 506,646 504,686"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M468,538 C486,592 494,644 492,690"/>
+    <path d="M524,530 C544,588 552,642 550,692"/>
+    <path d="M468,538 C492,524 512,522 524,530"/>
+    <path d="M492,690 C510,702 532,702 550,692"/>
+  </g>
+  <!-- the edge itself -->
+  <g fill="none" stroke="#4682b4" stroke-width="10" stroke-linecap="round">
+    <path d="M566,520 C588,586 596,648 592,704"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-linecap="round">
+    <path d="M578,556 L604,542"/>
+    <path d="M590,644 L604,640"/>
+  </g>
+</svg>

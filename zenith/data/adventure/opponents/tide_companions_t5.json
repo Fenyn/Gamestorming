@@ -1,0 +1,166 @@
+{
+  "name": "Tidesworn Coven (T5)",
+  "source_deck": "tide_companions",
+  "tier": "t5",
+  "mode": "adventure",
+  "duelist": "duelist_beta",
+  "aspects": 3,
+  "style": "tide",
+  "alignment": "vigil",
+  "mastery": "tide_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "allies",
+  "subthemes": [
+    "bond",
+    "arts"
+  ],
+  "ai_profile": "tide_companions",
+  "tagline": "Let your coven absorb the wounds, turn aside attacks, and drain your rival's Energy to replenish your own.",
+  "cards": [
+    {
+      "id": "grounding_step",
+      "count": 1
+    },
+    {
+      "id": "tide_breakwater",
+      "count": 1
+    },
+    {
+      "id": "tide_confluence",
+      "count": 2
+    },
+    {
+      "id": "tide_depths",
+      "count": 1
+    },
+    {
+      "id": "tide_high_water",
+      "count": 3
+    },
+    {
+      "id": "tide_springwater",
+      "count": 3
+    },
+    {
+      "id": "tide_surge",
+      "count": 3
+    },
+    {
+      "id": "tide_torrent",
+      "count": 3
+    },
+    {
+      "id": "tide_twin_breaker",
+      "count": 3
+    },
+    {
+      "id": "tide_twin_swell",
+      "count": 2
+    },
+    {
+      "id": "unerring_bolt",
+      "count": 2
+    },
+    {
+      "id": "closing_ranks",
+      "count": 3
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "edrics_vow",
+      "count": 2
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "last_gasp",
+      "count": 1
+    },
+    {
+      "id": "old_trick",
+      "count": 2
+    },
+    {
+      "id": "rallying_call",
+      "count": 2
+    },
+    {
+      "id": "rookes_deluge",
+      "count": 3
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "warding_call",
+      "count": 1
+    },
+    {
+      "id": "watchful_eye",
+      "count": 2
+    },
+    {
+      "id": "bonding_rite",
+      "count": 2
+    },
+    {
+      "id": "clear_mind",
+      "count": 1
+    },
+    {
+      "id": "lucky_find",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "companion_alpha",
+      "count": 1
+    },
+    {
+      "id": "companion_beta",
+      "count": 1
+    },
+    {
+      "id": "clean_sweep",
+      "count": 1
+    },
+    {
+      "id": "last_ward",
+      "count": 2
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
+      "count": 2
+    },
+    {
+      "id": "tide_drowning",
+      "count": 3
+    },
+    {
+      "id": "tide_ebb",
+      "count": 3
+    },
+    {
+      "id": "tide_undertow",
+      "count": 2
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    }
+  ]
+}

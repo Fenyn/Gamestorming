@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Emrys Rooke, the Eldest. Narrow, long-haired, hands loose at his sides, standing in
+       somebody else's guard because he has not worked out his own yet. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- a long face, hair tied back, a young man trying to look older -->
+    <path d="M254,120 C254,86 288,68 322,74 C356,80 372,114 368,168 C364,226 340,260 306,258 C268,256 254,220 254,172 Z"/>
+    <path d="M250,132 C258,94 296,68 334,78 C356,84 366,98 370,116"/>
+    <path d="M370,116 C388,132 396,158 392,184"/>
+    <path d="M266,152 C278,144 294,146 304,156"/>
+    <path d="M326,158 C338,150 354,152 362,162"/>
+    <path d="M262,136 L300,128"/>
+    <path d="M324,132 L360,142"/>
+    <path d="M312,164 C310,190 306,204 298,214"/>
+    <path d="M278,230 C294,234 314,232 328,226"/>
+    <!-- a narrow neck and narrow shoulders -->
+    <path d="M286,260 C288,282 286,296 280,306"/>
+    <path d="M338,254 C340,276 342,290 348,300"/>
+    <path d="M212,354 C246,320 366,314 416,346"/>
+    <path d="M212,354 C192,392 182,452 182,524"/>
+    <path d="M416,346 C436,386 446,450 446,524"/>
+    <path d="M182,524 C180,620 184,732 192,858"/>
+    <path d="M446,524 C448,620 444,732 436,858"/>
+    <path d="M314,362 C312,462 312,552 316,624"/>
+  </g>
+  <!-- sleeves pushed up, and arms that are just arms -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M212,360 C176,392 152,442 142,502"/>
+    <path d="M416,352 C452,386 476,438 486,498"/>
+    <path d="M142,502 C150,506 160,506 168,500"/>
+    <path d="M486,498 C478,504 468,504 460,498"/>
+    <path d="M142,502 C130,566 128,626 136,682"/>
+    <path d="M486,498 C498,562 500,622 492,678"/>
+    <!-- hands, open and doing nothing at all -->
+    <path d="M136,682 C118,700 116,728 132,744 C150,762 182,756 190,734"/>
+    <path d="M492,678 C510,696 512,724 496,740 C478,758 446,752 438,730"/>
+    <path d="M148,690 C144,714 146,732 154,744"/>
+    <path d="M480,686 C484,710 482,728 474,740"/>
+  </g>
+  <!-- other people's footwork, faint -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M60,820 C110,806 166,802 214,806"/>
+    <path d="M414,806 C462,802 516,808 564,822"/>
+    <path d="M96,852 C154,840 220,836 276,840"/>
+    <path d="M352,840 C410,836 474,842 530,854"/>
+  </g>
+</svg>

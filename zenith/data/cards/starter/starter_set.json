@@ -1632,8 +1632,10 @@
    "type": "personality",
    "school": "",
    "character": "Gideon Mourne",
+   "variant": "Mercenary",
    "alignment_only": "pact",
    "limit_per_deck": 1,
+   "bloodline": "draconic",
    "aspects": [
 	{
 	 "aspect": 1,
@@ -1658,8 +1660,7 @@
 	  }
 	 }
 	}
-   ],
-   "bloodline": "draconic"
+   ]
   },
   {
    "id": "companion_alpha",
@@ -2810,6 +2811,9 @@
    },
    "empower": 2,
    "character": "Bram Ashmark",
+   "tags": [
+	"marked"
+   ],
    "effects": [
 	{
 	 "op": "forbid",
@@ -2863,9 +2867,10 @@
   },
   {
    "id": "unyielding_guard",
-   "title": "Unyielding Guard",
+   "title": "The Fortress' Iron Bulwark",
    "type": "strike",
    "school": "",
+   "character": "The Fortress",
    "defense": {
 	"stops": "strike",
 	"stop_all": "strike"
@@ -2874,9 +2879,10 @@
   },
   {
    "id": "grounding_step",
-   "title": "Grounding Step",
+   "title": "The Fortress' Arcane Aegis",
    "type": "art",
    "school": "",
+   "character": "The Fortress",
    "defense": {
 	"stops": "art",
 	"stop_all": "art"
@@ -3032,8 +3038,11 @@
 	"stop_focused": true
    },
    "only": {
-	"duelist_character": "Bram Ashmark"
+	"tag": "marked"
    },
+   "tags": [
+	"marked"
+   ],
    "remove_after_use": true
   },
   {
@@ -4224,6 +4233,9 @@
 	"stages": 4
    },
    "endurance": 1,
+   "tags": [
+	"marked"
+   ],
    "effects": [
 	{
 	 "op": "remove_discard",
@@ -6282,9 +6294,12 @@
   },
   {
    "id": "shade_unraveling",
-   "title": "Shade Unraveling",
+   "title": "Shade Prying Whisper",
    "type": "strike",
    "school": "shade",
+   "tags": [
+	"whisper"
+   ],
    "attack": {
 	"kind": "strike",
 	"stages": 3
@@ -6338,9 +6353,12 @@
   },
   {
    "id": "shade_umbral_lash",
-   "title": "Shade Umbral Lash",
+   "title": "Shade Answering Whisper",
    "type": "art",
    "school": "shade",
+   "tags": [
+	"whisper"
+   ],
    "attack": {
 	"kind": "art",
 	"printed_life": 5
@@ -6414,9 +6432,12 @@
   },
   {
    "id": "shade_nightmare_hold",
-   "title": "Shade Nightmare Hold",
+   "title": "Shade Insistent Whisper",
    "type": "strike",
    "school": "shade",
+   "tags": [
+	"whisper"
+   ],
    "attack": {
 	"kind": "strike",
 	"stages": 2
@@ -6424,6 +6445,7 @@
    "endurance": 1,
    "empower": 3,
    "alignment_only": "pact",
+   "remove_after_use": true,
    "effects": [
 	{
 	 "op": "discard_hand",
@@ -6432,8 +6454,7 @@
 	 "random": false,
 	 "after_empower": true
 	}
-   ],
-   "remove_after_use": true
+   ]
   },
   {
    "id": "shade_rending_palm",
@@ -7963,6 +7984,598 @@
 	 "op": "fervor",
 	 "who": "opponent",
 	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "duelist_mu",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspects": [
+	{
+	 "aspect": 1,
+	 "surge": 2,
+	 "might": [
+	  0,
+	  1325000,
+	  1400000,
+	  1475000,
+	  1550000,
+	  1625000,
+	  1700000,
+	  1775000,
+	  1850000,
+	  1925000,
+	  2000000
+	 ],
+	 "power": {
+	  "defense": {
+	   "stops": "strike"
+	  },
+	  "effects": [
+	   {
+		"op": "look_at",
+		"amount": 3,
+		"pick": {
+		 "tag": "marked"
+		},
+		"to": "hand",
+		"rearrange": true
+	   }
+	  ]
+	 },
+	 "title": "the Marked Lord"
+	},
+	{
+	 "aspect": 2,
+	 "surge": 3,
+	 "might": [
+	  0,
+	  2100000,
+	  2200000,
+	  2300000,
+	  2400000,
+	  2500000,
+	  2600000,
+	  2700000,
+	  2800000,
+	  2900000,
+	  3000000
+	 ],
+	 "constant": {
+	  "strike_table_self": 2,
+	  "strike_table_against": 2
+	 },
+	 "title": "Unflinching"
+	},
+	{
+	 "aspect": 3,
+	 "surge": 4,
+	 "might": [
+	  0,
+	  3055000,
+	  3160000,
+	  3265000,
+	  3370000,
+	  3475000,
+	  3580000,
+	  3685000,
+	  3790000,
+	  3895000,
+	  4000000
+	 ],
+	 "power": {
+	  "attack": {
+	   "kind": "art",
+	   "printed_life": 6,
+	   "focused": true
+	  },
+	  "extra_use": {
+	   "filter": "tag:marked"
+	  }
+	 },
+	 "title": "Unfettered"
+	},
+	{
+	 "aspect": 4,
+	 "surge": 5,
+	 "might": [
+	  0,
+	  4315000,
+	  4380000,
+	  4445000,
+	  4610000,
+	  4675000,
+	  4740000,
+	  4805000,
+	  4870000,
+	  4935000,
+	  5000000
+	 ],
+	 "constant": {
+	  "focus_tag": "marked",
+	  "focus_tag_kind": "strike",
+	  "modifiers": [
+	   {
+		"scope": "own",
+		"kind": "strike",
+		"stages": 3,
+		"tag": "marked"
+	   }
+	  ]
+	 },
+	 "title": "Unrepentant"
+	}
+   ],
+   "variant": "Lord Mourne",
+   "bloodline": "draconic",
+   "tags": [
+	"marked"
+   ]
+  },
+  {
+   "id": "marked_lightning",
+   "title": "Marked Lightning",
+   "type": "art",
+   "school": "",
+   "only": {
+	"tag": "marked"
+   },
+   "tags": [
+	"marked"
+   ],
+   "use_at": "own_successful_attack",
+   "use_after_kind": "strike",
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat",
+	 "amount": 3,
+	 "choose": true,
+	 "up_to": true
+	},
+	{
+	 "op": "draw",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "marked_strength",
+   "title": "Marked Strength",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 2
+   },
+   "only": {
+	"tag": "marked"
+   },
+   "tags": [
+	"marked"
+   ],
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": -4,
+	 "target": "duelist"
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "combat_cards",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "marked_demise",
+   "title": "Marked Demise",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"damage_trade": {
+	 "per": 1,
+	 "card_type": "drill"
+	}
+   },
+   "empower": 2,
+   "only": {
+	"tag": "marked"
+   },
+   "tags": [
+	"marked"
+   ],
+   "limit_per_deck": 2
+  },
+  {
+   "id": "shade_lingering_whisper",
+   "title": "Shade Lingering Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "stop_next",
+	 "duration": "next_attack_phase",
+	 "params": {
+	  "kind": "art"
+	 }
+	},
+	{
+	 "op": "shuffle_discard",
+	 "amount": 2,
+	 "no_shuffle": true,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "shade_returning_whisper",
+   "title": "Shade Returning Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "tags": [
+	"whisper"
+   ],
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "source": "discard",
+	 "tag": "whisper",
+	 "amount": 3,
+	 "to": "deck_top",
+	 "no_shuffle": true
+	}
+   ]
+  },
+  {
+   "id": "shade_silenced_whisper",
+   "title": "Shade Silenced Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false,
+	 "filter": "non_seal",
+	 "to": "removed"
+	}
+   ]
+  },
+  {
+   "id": "shade_turned_whisper",
+   "title": "Shade Turned Whisper",
+   "type": "art",
+   "school": "shade",
+   "defense": {
+	"stops": "art"
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "shade_swelling_whisper",
+   "title": "Shade Swelling Whisper",
+   "type": "art",
+   "school": "shade",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6,
+	"cost_stages": 5
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "shade_emptying_whisper",
+   "title": "Shade Emptying Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3,
+	"focused": true
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "down_to": 2,
+	 "random": false
+	}
+   ]
+  },
+  {
+   "id": "shade_sifting_whisper",
+   "title": "Shade Sifting Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "empower": 2,
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "all": true,
+	 "random": false,
+	 "filter": "non_combat",
+	 "reveal": true
+	}
+   ]
+  },
+  {
+   "id": "ashmarks_unmaking_whisper",
+   "title": "Ashmark's Unmaking Whisper",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "character": "Bram Ashmark",
+   "tags": [
+	"marked",
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "lose_aspect",
+	 "who": "opponent",
+	 "when": {
+	  "opponent_fervor": 0
+	 }
+	}
+   ]
+  },
+  {
+   "id": "shade_ransoming_hand",
+   "title": "Shade Ransoming Hand",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "reserve_only": true,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "reserve_ransom",
+	 "duration": "combat",
+	 "params": {
+	  "cost": 2,
+	  "card_type": "drill"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "shade_bitter_trade",
+   "title": "Shade Bitter Trade",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "only": {
+	"tag": "marked"
+   },
+   "effects": [
+	{
+	 "may": true,
+	 "op": "discard_in_play",
+	 "card_type": "non_combat_only",
+	 "amount": 1,
+	 "choose": true,
+	 "then": [
+	  {
+	   "op": "discard_in_play",
+	   "who": "opponent",
+	   "card_type": "non_combat",
+	   "amount": 2,
+	   "choose": true
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "shade_faltering_drill",
+   "title": "Shade Faltering Drill",
+   "type": "drill",
+   "school": "shade",
+   "effects": [
+	{
+	 "trigger": "discard_step",
+	 "may": true,
+	 "when": {
+	  "energy_min": 1
+	 },
+	 "op": "energy",
+	 "amount": -1,
+	 "target": "duelist",
+	 "then": [
+	  {
+	   "op": "discard_hand",
+	   "who": "opponent",
+	   "all": true,
+	   "random": false
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "shade_fixed_gaze",
+   "title": "Shade Fixed Gaze",
+   "type": "art",
+   "school": "shade",
+   "attack": {
+	"kind": "art"
+   },
+   "endurance": 1,
+   "empower": 3,
+   "attachment": {
+	"target": "opponent_duelist",
+	"no_prevent": true
+   },
+   "effects": [
+	{
+	 "op": "attach",
+	 "to": "opponent_duelist"
+	}
+   ]
+  },
+  {
+   "id": "shade_stinging_palm",
+   "title": "Shade Stinging Palm",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 2,
+	"focused": true
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": false,
+	 "chooser": "owner"
+	}
+   ]
+  },
+  {
+   "id": "shade_recoil",
+   "title": "Shade Recoil",
+   "type": "art",
+   "school": "shade",
+   "defense": {
+	"stops": "art"
+   },
+   "effects": [
+	{
+	 "may": true,
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false,
+	 "then": [
+	  {
+	   "op": "discard_hand",
+	   "who": "opponent",
+	   "amount": 1,
+	   "random": true
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "the_marked_ring",
+   "title": "The Marked Ring",
+   "type": "grounds",
+   "school": "",
+   "limit_per_deck": 3,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 1,
+	 "life": 1,
+	 "only_tag": "marked"
+	}
+   ],
+   "effects": [
+	{
+	 "trigger": "on_attack",
+	 "when": {
+	  "attack_only_tag": "marked"
+	 },
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true
+	},
+	{
+	 "trigger": "entering_combat",
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "non_combat_only",
+	 "amount": 1,
+	 "choose": true
 	}
    ]
   }

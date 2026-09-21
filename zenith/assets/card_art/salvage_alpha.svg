@@ -1,46 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
-  <!-- Placeholder crest: the Amalgam, Cull. Marrow's mismatched gear, differenced by the
-       spectacles wired to the face-plate and the roll of instruments open at the hip. -->
-  <defs>
-    <radialGradient id="field" cx="50%" cy="42%" r="70%">
-      <stop offset="0" stop-color="#232a33"/>
-      <stop offset="1" stop-color="#07090c"/>
-    </radialGradient>
-    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#d6dbe0"/>
-      <stop offset="1" stop-color="#7d868f"/>
-    </linearGradient>
-    <linearGradient id="copper" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#e3a862"/>
-      <stop offset="1" stop-color="#8a5322"/>
-    </linearGradient>
-  </defs>
-  <rect width="604" height="868" fill="url(#field)"/>
-  <path d="M0,730 C140,706 240,748 340,732 C440,716 520,748 604,728" fill="none" stroke="#c98a42" stroke-opacity="0.18" stroke-width="4"/>
-  <g transform="translate(-466.4,-12.8) scale(1.7)">
-    <path d="M312,84 H592 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#11151a" stroke="#b6c2cc" stroke-opacity="0.5" stroke-width="5"/>
-    <g transform="translate(452,228) scale(0.86)">
-      <path d="M-110,-18 h24 l6,-26 l26,-10 l18,20 l26,-6 V-18 H0 V18 H-10 l-4,28 l-26,10 l-18,-20 l-26,6 V18 h-26 Z" fill="url(#stone)" stroke="#0b0e12" stroke-width="3"/>
-      <path d="M110,-18 h-24 l-6,-26 l-26,-10 l-18,20 l-26,-6 V-18 H0 V18 h10 l4,28 l26,10 l18,-20 l26,6 V18 h26 Z" fill="url(#copper)" stroke="#0b0e12" stroke-width="3"/>
-      <circle cx="0" cy="0" r="40" fill="#11151a" stroke="#b6c2cc" stroke-width="5"/>
-      <path d="M0,-118 V118" stroke="#0b0e12" stroke-width="5"/>
-      <!-- spectacles in place of Marrow's glass core -->
-      <g fill="none" stroke="#e3c072" stroke-width="5">
-        <circle cx="-17" cy="0" r="14"/><circle cx="17" cy="0" r="14"/>
-        <path d="M-3,0 h6"/><path d="M-31,-4 l-16,-10"/><path d="M31,-4 l16,-10"/>
-      </g>
+  <!-- Cull. An old wright who put himself in a frame: stooped brass, a spine of copper, big
+       wired-on spectacles, and a hand already on the instrument he wants without looking. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, low and forward because the frame stoops -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="rotate(12 300 240)">
+      <path d="M236,182 C236,150 272,134 310,140 C350,146 366,182 362,244 C358,306 334,334 300,332 C262,330 236,294 236,244 Z"/>
+      <path d="M244,224 C280,212 326,212 358,224"/>
+      <path d="M254,292 L344,292"/>
+      <path d="M248,312 L350,312 L350,338 L248,338 Z"/>
     </g>
-    <g stroke="#0b0e12" stroke-width="3">
-      <rect x="376" y="322" width="152" height="28" rx="6" fill="#6b5030"/>
-      <g fill="url(#stone)">
-        <rect x="388" y="314" width="8" height="36" rx="3"/>
-        <rect x="408" y="308" width="8" height="42" rx="3"/>
-        <rect x="428" y="314" width="8" height="36" rx="3"/>
-        <rect x="448" y="306" width="8" height="44" rx="3"/>
-        <rect x="468" y="314" width="8" height="36" rx="3"/>
-        <rect x="488" y="310" width="8" height="40" rx="3"/>
-        <rect x="508" y="316" width="8" height="34" rx="3"/>
-      </g>
+  </g>
+  <!-- the spectacles, wired to the plate -->
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <g transform="rotate(12 300 240)">
+      <path d="M240,248 C240,220 292,220 292,248 C292,278 240,278 240,248 Z"/>
+      <path d="M310,252 C310,224 362,224 362,252 C362,282 310,282 310,252 Z"/>
+      <path d="M292,250 L310,252"/>
+      <path d="M240,240 L206,216"/>
+      <path d="M362,244 L394,224"/>
     </g>
+  </g>
+  <!-- the frame: a curved brass back, not a straight one -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M268,354 C272,376 270,392 264,404"/>
+    <path d="M330,346 C334,368 336,384 342,394"/>
+    <path d="M188,448 C228,412 356,404 410,436"/>
+    <path d="M188,448 C158,500 144,576 146,660"/>
+    <path d="M410,436 C438,486 452,566 452,650"/>
+    <path d="M146,660 C148,738 156,802 168,862"/>
+    <path d="M452,650 C452,730 446,796 434,862"/>
+  </g>
+  <!-- the copper spine, showing down the back of it -->
+  <g fill="none" stroke="#8b4513" stroke-width="9" stroke-linecap="round">
+    <path d="M300,420 C296,504 294,584 298,656"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-linecap="round">
+    <path d="M262,470 L338,470"/>
+    <path d="M256,530 L344,530"/>
+    <path d="M254,590 L346,590"/>
+  </g>
+  <!-- the roll of instruments at the hip, open -->
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12,700 C82,686 190,686 260,700 L260,772 L12,772 Z"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-linecap="round">
+    <path d="M44,690 L44,772"/>
+    <path d="M88,682 L88,772"/>
+    <path d="M132,688 L132,772"/>
+    <path d="M220,688 L220,772"/>
+  </g>
+  <!-- the arm, down and across, taking one without looking at it -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M192,458 C170,514 164,580 176,640"/>
+    <path d="M176,640 C180,672 180,696 176,716"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M176,680 C176,634 178,602 182,580"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M176,716 C154,726 146,750 158,766 C174,788 212,786 222,764"/>
+    <path d="M194,720 C192,742 194,758 202,770"/>
   </g>
 </svg>

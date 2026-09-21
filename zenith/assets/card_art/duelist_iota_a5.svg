@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Sir Edric Rooke, the All Powerful. From behind and below: arms out, the sword held up in
+       one hand as a bar of white, and the fire standing off him taller than he is. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the fire, enormous -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M96,860 C50,706 78,540 178,404 C232,330 258,258 250,180"/>
+    <path d="M508,860 C554,706 526,540 426,404 C372,330 346,258 354,180"/>
+    <path d="M24,790 C0,646 42,514 128,414"/>
+    <path d="M580,790 C604,646 562,514 476,414"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="7" stroke-linecap="round">
+    <path d="M158,862 C126,720 154,586 234,478"/>
+    <path d="M446,862 C478,720 450,586 370,478"/>
+    <path d="M300,300 C292,214 300,150 324,104"/>
+  </g>
+  <!-- him, seen from the back, arms wide -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the back of the head and the crop of hair -->
+    <path d="M244,330 C244,290 274,270 306,274 C338,278 354,306 350,344 C346,382 322,398 292,396 C260,394 244,368 244,330 Z"/>
+    <path d="M246,314 C262,288 306,276 338,292 C348,298 352,306 354,316"/>
+    <!-- shoulders, wider than the head by a lot -->
+    <path d="M160,472 C206,426 396,420 444,466"/>
+    <path d="M160,472 C142,516 132,586 132,662"/>
+    <path d="M444,466 C464,510 474,586 474,662"/>
+    <path d="M132,662 C132,742 138,808 148,862"/>
+    <path d="M474,662 C474,742 468,808 458,862"/>
+    <!-- the free arm, out and down -->
+    <path d="M160,478 C118,506 86,548 68,598"/>
+    <path d="M68,598 C48,610 40,632 50,650 C62,672 96,674 112,656"/>
+    <!-- and the sword arm, up -->
+    <path d="M444,472 C486,444 520,404 538,358"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M144,556 C198,526 400,520 468,548"/>
+    <path d="M138,640 C196,610 406,604 474,630"/>
+    <path d="M136,724 C196,696 408,690 474,714"/>
+  </g>
+  <!-- the blade, white through -->
+  <g fill="none" stroke="#fffafa" stroke-width="13" stroke-linecap="round">
+    <path d="M556,300 C556,214 552,132 546,60"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M534,300 C532,218 528,140 522,74"/>
+    <path d="M578,300 C578,218 576,140 570,74"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round">
+    <path d="M520,326 C540,318 576,318 594,326"/>
+  </g>
+  <!-- ash, going up past him -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M86,266 C102,254 120,252 132,258 C126,276 106,282 86,266 Z"/>
+    <path d="M472,206 C488,194 506,192 518,198 C512,216 492,222 472,206 Z"/>
+    <path d="M200,140 C214,130 230,128 240,134 C234,150 218,154 200,140 Z"/>
+  </g>
+</svg>

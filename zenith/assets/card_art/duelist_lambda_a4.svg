@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Bram Ashmark, Consuming. Small in the middle of a wide shot, because the subject is no
+       longer him: it is everything in the room on its way into him. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the room, and everything loose in it going one way -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M0,240 C160,222 440,220 604,238"/>
+    <path d="M0,760 C160,742 440,740 604,758"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24,290 C110,352 180,404 232,444 M172,400 L232,444 L158,450"/>
+    <path d="M580,290 C494,352 424,404 372,444 M432,400 L372,444 L446,450"/>
+    <path d="M24,706 C110,646 180,596 234,556 M172,600 L234,556 L160,548"/>
+    <path d="M580,706 C494,646 424,596 370,556 M432,600 L370,556 L444,548"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-opacity="0.85" stroke-linecap="round">
+    <path d="M12,500 C94,500 172,500 226,500"/>
+    <path d="M592,500 C510,500 432,500 378,500"/>
+  </g>
+  <!-- pages going in with it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(120,388) rotate(-24)"><path d="M-30,-42 h60 v84 h-60 Z"/></g>
+    <g transform="translate(488,612) rotate(28)"><path d="M-28,-40 h56 v80 h-56 Z"/></g>
+    <g transform="translate(150,640) rotate(16)"><path d="M-26,-36 h52 v72 h-52 Z"/></g>
+  </g>
+  <!-- him, in the middle, arms out, feet off the floor -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M272,368 C272,338 296,322 322,326 C350,330 362,356 358,394 C354,432 334,450 310,448 C284,446 272,420 272,388 Z"/>
+    <path d="M268,362 C280,334 314,320 342,332 C356,338 362,348 364,358"/>
+    <path d="M300,398 C298,416 294,426 288,434"/>
+    <path d="M286,452 C290,470 288,482 284,492"/>
+    <path d="M338,448 C340,468 342,480 346,490"/>
+    <path d="M232,530 C262,502 372,496 406,522"/>
+    <path d="M232,530 C216,556 208,592 206,632"/>
+    <path d="M406,522 C424,550 432,588 434,628"/>
+    <path d="M206,632 C208,686 216,734 228,772"/>
+    <path d="M434,628 C432,682 424,730 412,770"/>
+    <!-- arms out, and nothing under the feet -->
+    <path d="M234,534 C204,554 182,582 170,614"/>
+    <path d="M404,528 C434,548 456,578 468,610"/>
+    <path d="M228,772 C236,794 240,810 240,822"/>
+    <path d="M412,770 C404,792 400,808 400,820"/>
+  </g>
+  <!-- and the light inside him -->
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M278,378 C294,368 320,370 336,382"/>
+    <path d="M318,548 C316,616 314,680 312,732"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="7" stroke-linecap="round">
+    <path d="M254,566 C284,600 306,650 316,708"/>
+    <path d="M384,562 C354,598 330,648 320,708"/>
+  </g>
+</svg>

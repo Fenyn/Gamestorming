@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Bram Ashmark, Gorging. Head back, arms open, taking it in with both hands. He has gone from
+       all edges to too much of everything in the space of an Aspect. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- what is going into him -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M20,120 C96,196 168,260 232,306"/>
+    <path d="M584,120 C508,196 436,260 372,306"/>
+    <path d="M12,432 C88,428 164,428 226,432"/>
+    <path d="M592,432 C516,428 440,428 378,432"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M70,80 C144,168 212,240 268,290"/>
+    <path d="M534,80 C460,168 392,240 336,290"/>
+  </g>
+  <!-- him, head tipped back, throat open -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M238,222 C246,158 294,124 350,136 C404,148 424,202 410,264 C396,326 356,356 310,346 C260,336 230,288 238,222 Z"/>
+    <path d="M232,206 C256,152 320,122 372,146 C396,158 408,176 412,196"/>
+    <path d="M262,236 C276,222 300,220 314,232"/>
+    <path d="M340,250 C356,238 378,238 390,250"/>
+    <path d="M326,262 C318,286 310,298 300,306"/>
+    <path d="M284,320 C302,330 326,330 344,322"/>
+    <!-- the throat, going down into the chest -->
+    <path d="M254,340 C260,372 258,392 250,406"/>
+    <path d="M356,330 C362,362 366,382 374,394"/>
+  </g>
+  <!-- a body that has outgrown itself -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M120,480 C186,420 434,414 500,472"/>
+    <path d="M120,480 C90,524 72,594 70,676"/>
+    <path d="M500,472 C532,520 550,594 552,678"/>
+    <path d="M70,676 C70,760 76,818 88,864"/>
+    <path d="M552,678 C552,760 546,818 534,864"/>
+    <!-- both arms open, palms up -->
+    <path d="M124,492 C88,520 58,562 40,612"/>
+    <path d="M498,486 C534,516 564,560 582,610"/>
+    <path d="M40,612 C24,624 18,646 30,662 C46,684 84,682 96,660"/>
+    <path d="M582,610 C598,624 604,646 592,662"/>
+  </g>
+  <!-- full of it -->
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M160,556 C232,594 286,654 312,724"/>
+    <path d="M460,552 C388,592 336,652 312,724"/>
+    <path d="M312,724 C312,782 310,826 306,860"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M196,572 C256,606 300,656 320,714"/>
+    <path d="M428,568 C368,602 326,654 306,712"/>
+  </g>
+</svg>

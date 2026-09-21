@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Emrys Rooke, Shaped. Seen from behind, mid-step, the plate running up across the shoulder
+       blades on its own while he looks back over it, entirely unbothered. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head, turned back over the shoulder: we get the jaw and one eye -->
+    <path d="M322,110 C368,102 404,136 404,192 C404,250 374,282 336,278 C298,274 278,242 280,192 C282,146 298,116 322,110 Z"/>
+    <path d="M276,150 C288,116 328,96 368,106 C390,112 400,126 404,142"/>
+    <path d="M352,176 C366,168 384,170 394,180"/>
+    <path d="M338,196 C336,216 332,228 326,236"/>
+    <path d="M316,254 C332,258 350,256 362,250"/>
+    <path d="M292,206 C300,230 306,246 308,258"/>
+  </g>
+  <!-- the back, wide, plate crossing it -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M316,282 C318,306 316,320 310,330"/>
+    <path d="M366,276 C368,300 370,314 376,326"/>
+    <path d="M150,390 C196,344 384,336 444,378"/>
+    <path d="M150,390 C126,430 112,496 110,572"/>
+    <path d="M444,378 C468,420 480,488 482,566"/>
+    <path d="M110,572 C110,664 116,762 126,862"/>
+    <path d="M482,566 C482,660 476,762 466,862"/>
+    <!-- the spine line, and one arm dropping away -->
+    <path d="M298,346 C296,440 296,534 300,610"/>
+    <path d="M150,396 C116,432 96,484 88,544"/>
+    <path d="M88,544 C82,602 84,652 94,694"/>
+  </g>
+  <!-- the plate, moving across the back -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M134,470 C210,428 380,422 464,458"/>
+    <path d="M124,540 C204,496 386,490 474,528"/>
+    <path d="M138,412 C208,376 376,370 456,402"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="7" stroke-linecap="round">
+    <path d="M128,506 C206,462 384,456 470,494"/>
+    <path d="M300,346 C298,414 298,470 302,516"/>
+  </g>
+  <!-- where he is looking, and the metal going that way -->
+  <g fill="none" stroke="#4682b4" stroke-width="6" stroke-opacity="0.8" stroke-dasharray="18 16" stroke-linecap="round">
+    <path d="M414,188 C476,232 512,314 516,414"/>
+  </g>
+  <!-- mid-step -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M168,850 C222,838 286,834 340,838"/>
+  </g>
+</svg>

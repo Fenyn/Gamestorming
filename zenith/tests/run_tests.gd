@@ -61,6 +61,15 @@ func _init() -> void:
 		test_a_reveal_can_take_every_match_at_once,
 		test_a_seal_can_turn_their_removal_into_a_discard,
 		test_a_card_can_lock_out_what_would_drag_an_aspect_down,
+		test_a_constant_can_read_the_keyword_on_the_card_it_boosts,
+		test_a_constant_can_shift_the_strike_table_both_ways,
+		test_a_power_can_buy_a_second_use_with_a_card_from_hand,
+		test_grounds_can_read_the_gate_rather_than_the_keyword,
+		test_an_attack_can_trade_its_own_damage_for_their_drills,
+		test_a_ransom_spends_the_reserve_to_strip_a_drill,
+		test_an_attachment_on_their_duelist_can_stop_them_preventing_damage,
+		test_a_hand_attack_can_count_down_to_a_number_or_take_every_match,
+		test_a_one_shot_stop_can_wait_for_the_kind_it_names,
 		test_a_bloodline_can_be_lent_by_an_attachment,
 		test_two_variants_of_one_character_are_one_person,
 		test_a_modifier_can_outlast_the_card_that_made_it,
@@ -231,6 +240,9 @@ func _init() -> void:
 		test_energy_can_reach_any_personality_on_the_table,
 		test_an_ally_can_block_for_one_named_personality,
 		test_a_printed_limit_beats_the_signature_allowance,
+		test_an_aspect_one_ally_is_legal_in_a_shallow_deck,
+		test_profile_state_key_matches_the_seat_view,
+		test_branch_margin_keeps_the_leader_and_drops_the_tail,
 		test_an_ally_power_refreshes_each_combat,
 		test_the_taller_ladder_wins_by_standing_above_it,
 	]
@@ -3719,6 +3731,68 @@ func test_a_printed_limit_beats_the_signature_allowance() -> void:
 		check(not p.contains("t_vigil_ray"), "the allowance still applies where nothing is printed: %s" % p)
 
 
+## The margin cutoff drops candidates the ordering already puts far behind, and always keeps the
+## leader. 0 and 1 are off, so no profile changes behaviour until it opts in.
+func test_branch_margin_keeps_the_leader_and_drops_the_tail() -> void:
+	var prior: Array[float] = [10.0, 9.0, 2.0, 0.0]
+	var all: Array[int] = [0, 1, 2, 3]
+	eq(AiSearch._within_margin(all, prior, 0.0).size(), 4, "0 keeps everything")
+	eq(AiSearch._within_margin(all, prior, 1.0).size(), 4, "1 keeps everything")
+	var half: Array[int] = AiSearch._within_margin(all, prior, 0.5)
+	eq(half, [0, 1] as Array[int], "half the spread keeps the leader and the close second")
+	var tight: Array[int] = AiSearch._within_margin(all, prior, 0.05)
+	eq(tight, [0] as Array[int], "a tight margin keeps the leader alone")
+	var flat: Array[float] = [4.0, 4.0, 4.0]
+	eq(AiSearch._within_margin([0, 1, 2] as Array[int], flat, 0.5).size(), 3,
+		"no spread means nothing to cut")
+	eq(AiSearch._within_margin([2] as Array[int], prior, 0.1), [2] as Array[int],
+		"a single candidate is never dropped")
+
+
+## The AI reads a profile's `when` facts straight off the engine instead of building a SeatView,
+## because the search pays that per world per node. Both paths must name the same facts.
+func test_profile_state_key_matches_the_seat_view() -> void:
+	var profile: AiProfile = AiProfile.new()
+	profile.data = {"when": {
+		"bonded": {}, "allies_min:1": {}, "allies_min:2": {}, "aspect_min:1": {},
+		"aspect_min:2": {}, "fervor_min:1": {}, "seals_min:1": {}, "life_below:99": {},
+		"life_below:3": {},
+	}}
+	var e: DuelEngine = engine(deck(filler(["t_ally_squire"]), "vigil", "", "", 3, "tf_vigil"),
+		deck(filler(["t_ally_kin"]), "vigil", "", "", 3, "tf_titan"), 4242, true)
+	var compared: int = 0
+	for step in range(24):
+		for seat in range(2):
+			var from_view: String = profile.state_key(SeatView.of(e, seat, false), seat)
+			var from_engine: String = profile.state_key_of(e, seat)
+			eq(from_engine, from_view, "seat %d, step %d: same facts from either path" % [seat, step])
+			compared += 1
+		if e.is_over() or e.prompt == null or e.prompt.options.is_empty():
+			break
+		e.submit(e.prompt.options[0])
+		e.take_events()
+	check(compared >= 10, "compared %d states" % compared)
+
+
+## House rule 2026-09-20: an Ally printed only at its first Aspect can never outgrow a Duelist, so
+## it is legal in any deck. The 2-aspect gap still governs every Ally that climbs.
+func test_an_aspect_one_ally_is_legal_in_a_shallow_deck() -> void:
+	var shallow: Array[String] = filler(["t_ally_squire"])
+	for p in DeckValidator.validate(deck(shallow, "vigil", "", "", 2, "tf_vigil"), lib):
+		check(not p.contains("t_ally_squire"), "an Aspect-1 Ally is legal at 2 aspects: %s" % p)
+	for p in DeckValidator.validate(deck(shallow, "vigil", "", "", 1, "tf_vigil"), lib):
+		check(not p.contains("t_ally_squire"), "and at 1 aspect: %s" % p)
+	# One that climbs to a second Aspect still has to sit two below the Duelist.
+	var climbs: Array[String] = filler(["t_ally_squire_2"])
+	var named: bool = false
+	for p in DeckValidator.validate(deck(climbs, "vigil", "", "", 3, "tf_vigil"), lib):
+		if p.contains("t_ally_squire_2"):
+			named = true
+	check(named, "an Aspect-2 Ally is still illegal at 3 aspects")
+	for p in DeckValidator.validate(deck(climbs, "vigil", "", "", 4, "tf_vigil"), lib):
+		check(not p.contains("t_ally_squire_2"), "and legal at 4: %s" % p)
+
+
 ## Ally and Duelist are one card type now, so "whose Power refreshes when" comes from the seat:
 ## an Ally's Power is once a Combat, the Main Personality's is once a turn.
 func test_an_ally_power_refreshes_each_combat() -> void:
@@ -4513,3 +4587,152 @@ func test_a_seal_can_turn_their_removal_into_a_discard() -> void:
 	e._apply_effect(wipe, 1, {}, null)
 	eq(me.removed.size(), removed_before, "nothing more leaves the game")
 	eq(me.discard.size(), discard_before + 1, "it is discarded instead")
+
+
+## "All Strikes you perform that are marked do +3 Energy and are focused." The keyword on the card
+## decides, so a plain Strike out of the same hand gets neither half.
+func test_a_constant_can_read_the_keyword_on_the_card_it_boosts() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	me.duelist.aspect = 3
+	var marked: CardInstance = e._instance(lib.get_def("t_marked_blow"), 0, &"hand")
+	var plain: CardInstance = e._instance(lib.get_def("t_plain_blow"), 0, &"hand")
+	eq(e._modifiers_for(me, "own", "strike", marked, {}).size(), 1, "the marked card takes the Constant's modifier")
+	eq(e._modifiers_for(me, "own", "strike", plain, {}).size(), 0, "the plain one does not")
+	eq(str(e._constant(me).get("focus_tag", "")), "marked", "and the Constant focuses the same set")
+
+
+## "Base Damage is reduced by 2 when performed against him and raised by 2 when performed by him."
+## Both halves live on the personality, so they read off whichever side he is on.
+func test_a_constant_can_shift_the_strike_table_both_ways() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var mine: Dictionary = {"attacker": 0, "defender": 1, "kind": "strike", "spec": {}, "target": -1, "empowered": false}
+	var theirs: Dictionary = {"attacker": 1, "defender": 0, "kind": "strike", "spec": {}, "target": -1, "empowered": false}
+	me.duelist.aspect = 1
+	var plain_mine: int = int(e._damage_calc(mine)["table"])
+	var plain_against: int = int(e._damage_calc(theirs)["table"])
+	me.duelist.aspect = 2
+	eq(int(e._damage_calc(mine)["table"]), plain_mine + 2, "his own Strikes hit the table 2 harder")
+	eq(int(e._damage_calc(theirs)["table"]), maxi(0, plain_against - 2), "and Strikes at him land 2 softer")
+
+
+## "You may discard a marked card from your hand. If you do, this Power may be used a second time
+## this Combat." The extra use only exists while the cost is in hand, and it is paid on the way in.
+func test_a_power_can_buy_a_second_use_with_a_card_from_hand() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	me.duelist.aspect = 1
+	me.hand.clear()
+	e._mark_power_used(me.duelist)
+	check(not e._power_available(me, me.duelist), "spent, and nothing in hand to buy it back")
+	var paid: CardInstance = e._instance(lib.get_def("t_marked_blow"), 0, &"hand")
+	me.hand.append(paid)
+	check(e._power_available(me, me.duelist), "a marked card in hand opens the second use")
+	var plain: CardInstance = e._instance(lib.get_def("t_plain_blow"), 0, &"hand")
+	me.hand.append(plain)
+	e._charge_extra_use(me, me.duelist)
+	check(not me.hand.has(paid), "the marked card is what pays")
+	check(me.hand.has(plain), "and the plain one is left alone")
+	e._mark_power_used(me.duelist)
+	check(not e._power_available(me, me.duelist), "with the cost spent there is no third use")
+
+
+## "All marked-only attacks do +1 Energy and +1 wound." The Grounds reads the card's play gate,
+## which is a different set from the cards that carry the keyword themselves.
+func test_grounds_can_read_the_gate_rather_than_the_keyword() -> void:
+	var e: DuelEngine = engine(deck(filler(), "vigil", "", "", 3, "tf_marked_lord"), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	me.duelist.aspect = 1
+	e.state.grounds = e._instance(lib.get_def("t_ring"), 0, &"grounds")
+	var gated: CardInstance = e._instance(lib.get_def("t_gated_blow"), 0, &"hand")
+	var carried: CardInstance = e._instance(lib.get_def("t_marked_blow"), 0, &"hand")
+	eq(e._modifiers_for(me, "own", "strike", gated, {}).size(), 1, "the gated card takes the bonus")
+	eq(e._modifiers_for(me, "own", "strike", carried, {}).size(), 0, "carrying the keyword is not the same thing")
+
+
+## "You may reduce the damage this attack deals by any amount to a minimum of 0. For every wound
+## reduced, discard one of your opponent's Drills in play." Capped by the wounds and by the Drills.
+func test_an_attack_can_trade_its_own_damage_for_their_drills() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var foe: PlayerState = e.player(1)
+	inject(e, 1, "t_plain_drill")
+	inject(e, 1, "t_plain_drill")
+	e.state.attack = {"attacker": 0, "defender": 1, "kind": "art", "life": 3, "stages": 0,
+		"spec": {"damage_trade": {"per": 1, "card_type": "drill"}}, "source": -1, "target": -1}
+	check(e._prompt_damage_trade(e.player(0), foe, e.state.attack), "the trade is offered")
+	eq(e.prompt.options.size(), 3, "none, one Drill or both, and no more than they have")
+	e._handle_trade_damage(Command.new(0, &"trade_damage", -1, 2))
+	eq(int(e.state.attack["life"]), 1, "two wounds given up")
+	eq(foe.drills().size(), 0, "and both Drills gone for them")
+
+
+## "For the remainder of Combat, during your attack phase you may remove 2 cards in your Reserve
+## from the game to remove one of their Drills." It needs both a payable Reserve and a target.
+func test_a_ransom_spends_the_reserve_to_strip_a_drill() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	e._apply_effect({"op": "float", "what": "reserve_ransom", "duration": "combat",
+		"params": {"cost": 2, "card_type": "drill"}}, 0, {}, null)
+	check(e._ransom_options(me).is_empty(), "nothing to pay with and nothing to take")
+	for i in range(3):
+		me.reserve.append(e._instance(lib.get_def("t_plain_blow"), 0, &"reserve"))
+	check(e._ransom_options(me).is_empty(), "a payable Reserve is not enough on its own")
+	inject(e, 1, "t_plain_drill")
+	eq(e._ransom_options(me).size(), 2, "with a target it offers the two cards it would spend")
+	e._handle_ransom(Command.new(0, &"ransom"))
+	eq(me.reserve.size(), 1, "two left the Reserve")
+	eq(me.removed.size(), 2, "and they left the game")
+	eq(e.player(1).drills().size(), 0, "their Drill went with them")
+
+
+## "Attach to your opponent's duelist. While attached and that personality is in control of Combat,
+## damage from your attacks cannot be prevented."
+func test_an_attachment_on_their_duelist_can_stop_them_preventing_damage() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	check(not e._attachment_no_prevent(me), "nothing attached yet")
+	var gaze: CardInstance = e._instance(lib.get_def("t_gaze"), 0, &"resolving")
+	e._attach(gaze, me, "opponent_duelist")
+	eq(gaze.attached_to, e.player(1).duelist, "it rides on their duelist")
+	check(e._attachment_no_prevent(me), "and their duelist holding Combat turns prevention off")
+
+
+## "Discard until they have 2 or fewer cards in hand" counts what is held, not what is taken, and
+## "discard any Non-Combat cards in his hand" takes every match with nothing to decide.
+func test_a_hand_attack_can_count_down_to_a_number_or_take_every_match() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var foe: PlayerState = e.player(1)
+	foe.hand.clear()
+	for i in range(5):
+		foe.hand.append(e._instance(lib.get_def("t_plain_blow"), 1, &"hand"))
+	e._apply_effect({"op": "discard_hand", "who": "opponent", "down_to": 2, "random": false}, 0, {}, null)
+	eq(int(e.prompt.context.get("amount", 0)), 3, "five down to two is three cards")
+	e._choice = {}
+	e.prompt = null
+	e.prompts.clear()
+	foe.hand.clear()
+	for i in range(2):
+		foe.hand.append(e._instance(lib.get_def("t_plain_drill"), 1, &"hand"))
+	foe.hand.append(e._instance(lib.get_def("t_plain_blow"), 1, &"hand"))
+	e._apply_effect({"op": "discard_hand", "who": "opponent", "all": true, "random": false,
+		"filter": "non_combat", "reveal": true}, 0, {}, null)
+	eq(foe.hand.size(), 1, "both Drills went and the attack card stayed")
+	check(e.prompt == null, "and nothing was asked, because nothing was a choice")
+
+
+## "Stops an energy attack during your opponent's next attack phase." A one-shot stop that names a
+## kind waits for that kind instead of spending itself on the first thing thrown.
+func test_a_one_shot_stop_can_wait_for_the_kind_it_names() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	e._apply_effect({"op": "float", "what": "stop_next", "duration": "combat",
+		"params": {"kind": "art"}}, 0, {}, null)
+	var strike_at_me: Dictionary = {"attacker": 1, "defender": 0, "kind": "strike", "focused": false,
+		"stopped": false, "unstoppable": false, "spec": {}, "stop_count": 0, "stops_needed": 1, "target": -1}
+	e._apply_shields(me, strike_at_me)
+	check(not bool(strike_at_me["stopped"]), "a Strike is not what it waits for, so it goes through")
+	var art_at_me: Dictionary = {"attacker": 1, "defender": 0, "kind": "art", "focused": false,
+		"stopped": false, "unstoppable": false, "spec": {}, "stop_count": 0, "stops_needed": 1, "target": -1}
+	e._apply_shields(me, art_at_me)
+	check(bool(art_at_me["stopped"]), "and the Art it named is stopped")

@@ -1,0 +1,197 @@
+{
+  "name": "Crushing Depths (BOSS)",
+  "source_deck": "tide_deepwater",
+  "tier": "boss",
+  "mode": "adventure",
+  "duelist": "duelist_iota",
+  "aspects": 5,
+  "style": "tide",
+  "alignment": "vigil",
+  "mastery": "tide_fathom_mastery",
+  "relic": "blank_mask",
+  "reserve": [
+    "open_challenge",
+    "tide_bearing_down",
+    "tide_bearing_down",
+    "tide_bearing_down",
+    "lobbed_bolt",
+    "dismissal",
+    "dismissal",
+    "tide_heavy_water",
+    "tide_heavy_water",
+    "tide_heavy_water",
+    "tide_full_weight",
+    "tide_held_under",
+    "defacement"
+  ],
+  "archetype": "control",
+  "subthemes": [
+    "fervor",
+    "strikes",
+    "disruption"
+  ],
+  "ai_profile": "tide_deepwater",
+  "tagline": "Hold their Fervor down with every blow, strip what they place, and spend your discard pile instead of blocking.",
+  "cards": [
+    {
+      "id": "tide_black_water",
+      "count": 2
+    },
+    {
+      "id": "tide_crushing_depth",
+      "count": 3
+    },
+    {
+      "id": "tide_depths",
+      "count": 1
+    },
+    {
+      "id": "tide_full_weight",
+      "count": 1
+    },
+    {
+      "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "old_trick",
+      "count": 2
+    },
+    {
+      "id": "reckless_ascent",
+      "count": 3
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
+      "count": 1
+    },
+    {
+      "id": "clear_mind",
+      "count": 1
+    },
+    {
+      "id": "edrics_low_water",
+      "count": 1
+    },
+    {
+      "id": "first_cut",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "lucky_find",
+      "count": 1
+    },
+    {
+      "id": "mournes_plans",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "wardens_measure",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_3",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_4",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_7",
+      "count": 1
+    },
+    {
+      "id": "ashmarks_choke_hold",
+      "count": 3
+    },
+    {
+      "id": "edrics_opening_strike",
+      "count": 2
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
+      "count": 3
+    },
+    {
+      "id": "relentless_fury",
+      "count": 3
+    },
+    {
+      "id": "second_wind",
+      "count": 3
+    },
+    {
+      "id": "tide_deadweight",
+      "count": 3
+    },
+    {
+      "id": "tide_deep_anchor",
+      "count": 3
+    },
+    {
+      "id": "tide_deep_guard",
+      "count": 3
+    },
+    {
+      "id": "tide_deep_sweep",
+      "count": 3
+    },
+    {
+      "id": "tide_dredge",
+      "count": 3
+    },
+    {
+      "id": "tide_drowning",
+      "count": 3
+    },
+    {
+      "id": "tide_pressure_wave",
+      "count": 3
+    },
+    {
+      "id": "tide_pull_under",
+      "count": 3
+    },
+    {
+      "id": "tide_sweep_aside",
+      "count": 1
+    },
+    {
+      "id": "tide_undersweep",
+      "count": 1
+    },
+    {
+      "id": "tide_undertow",
+      "count": 3
+    },
+    {
+      "id": "tide_welling_deep",
+      "count": 3
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    }
+  ]
+}

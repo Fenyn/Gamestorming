@@ -58,6 +58,20 @@ sit is already settled in `world.md`; only the names are missing.
   is the first case of one character fielding two schools: Pyre in his own list, Tide as his
   wife's Ally. That settled the theming rule in `designs/zenith.md`, Keywords: what a card looks
   like comes from that card, not from a fixed element on the person.
+- **2026-09-20, the Black sheet.** **Gideon Mourne** becomes the tenth duelist, `duelist_mu`,
+  four Aspects, Shade, Pact, Draconic and `marked`. Two printings now: `salvage_gamma` is
+  "Gideon Mourne, Mercenary", pre-mark and an Ally in somebody else's crew, and `duelist_mu` is
+  "Gideon Mourne, Lord Mourne". Aspects the Marked Lord / Unflinching / Unfettered / Unrepentant.
+  **The Fortress** (approved 2026-09-20) is the broken company's third survivor, the slot
+  `world.md` already had agreed. His real name is never given, which is the one exception to the
+  two-part-name rule; the article keeps it from reading as a construct's one-word label. His two
+  cards are `unyielding_guard` "The Fortress' Iron Bulwark" and `grounding_step` "The Fortress'
+  Arcane Aegis", the widest retitle so far at ten and eight decks, ids unchanged. Foundation /
+  Fortified / Unbreachable is held for whenever he gets a personality card.
+  **Two card keywords** were added rather than title families: `marked` for the bargain's cards and
+  `whisper` for the Shade working. Three shipped Shade cards were retitled into the Whisper family,
+  ids unchanged: `shade_unraveling`, `shade_nightmare_hold`, `shade_umbral_lash`.
+
 - **Torvan Hask** (approved 2026-09-19), Edric's elder brother from the line he left, closes the
   Raditz row: one card, `hasks_flying_kick`.
 - **Emrys Rooke** (approved 2026-09-19), the eldest son, a swordsman where his parents are

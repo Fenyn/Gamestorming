@@ -8,7 +8,7 @@ Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code na
 **Genre:** Collectible card duel, Arena-style client
 **Players:** 2 (hotseat first, online later), plus AI opponents for an adventure mode
 **Presentation target:** a full digital client in the style of MTG Arena: a 3D table, animated card movement, response prompts, combat log
-**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. One house rule on top of those: the Most Powerful Personality win (see Winning). Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
+**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. Two house rules on top of those: the Most Powerful Personality win (see Winning) and Aspect-1 Allies being always legal (see Deck construction). Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
 
 **IP rule:** all names, characters, art, styles, and lore are original. No source-material terms appear in code, data, assets, or this doc. Mechanics are emulated; flavor is not.
 
@@ -81,6 +81,7 @@ Starter duelists (names approved 2026-09-15; descriptions reworked for the rethe
 | The Corven Collegium, scholars of the Tempest | Pact | Storm | Siphon, a warded construct | Tithe |
 | The Thornwald Grove, druids whose rites regrow what is cut away (added 2026-09-17) | Vigil | Root | Osric Thornwald, an old druid who mends as he fights and outlasts | none |
 | Marrow the Amalgam, a construct assembled from fallen ones and the crew that picks the field over (added 2026-09-18) | Pact | Shade | Marrow, who is not one construct and never was | Cull, Orvath Kell, Gideon Mourne, Pim |
+| none (added 2026-09-20) | Pact | Shade | Gideon Mourne, marked and running his own list | none |
 | none (added 2026-09-19) | Vigil | Pyre | Sir Edric Rooke, the Rooke coven's knight fighting his own fight | Dame Alder Rooke |
 
 ### Bloodlines
@@ -110,6 +111,12 @@ Two rules follow from that, and both matter more than the word itself:
 
 **Theming follows the printing, not the person.** Ruled 2026-09-19. A character may field more than one school across their cards, so what a card looks like is read off that card's own effects and the deck it is fielded in, never off a fixed element attached to the character. Sir Edric Rooke is the case that forced it: he carries water as his wife's Ally and fire in his own list, and both are correct. In the data this means `CAST` in `tools/gen_roster.py` holds only a side and an identity, and the palette comes from the card's school or, for a schoolless card, from the one Style it is fielded in.
 
+Keywords also sit on cards, not only on personalities. `marked` on a card means a card of the
+bargain, which is what the source expresses by putting "Majin" in the title; `whisper` names the
+Shade working the Black kicks all translate to. A card's play gate and its keyword are different
+sets on purpose: a card can be marked-only without being one of the mark's own cards, which is why
+a modifier can filter on `tag` or on `only_tag` and they do not mean the same thing.
+
 In the data it is `tags: ["construct"]`, and cards reach it four ways: `search` with `tag`, a `when` of `performer_tag` (the personality swinging), `in_control_tag` (whoever holds Combat on that side) or `duelist_tag`, and an attack's `life_per_tag`.
 
 Aspect titles (2026-09-17; in the data as `title` on each Aspect of a personality card). Each Aspect card carries its own title, as in "Bram Ashmark, Insatiable". A character with more than one printing carries a `variant` as well, which names the printing and is what tells two cards of one person apart. Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
@@ -126,6 +133,8 @@ Aspect titles (2026-09-17; in the data as `title` on each Aspect of a personalit
 | Caedan Vale | Last Heir, Unparried, Spellcutter, the Quiet Blade, Peerless |
 | Marrow | Patchwork, Rebuilt, Overwrought, Fury Amalgam |
 | Sir Edric Rooke | the Hero, the Stranger, the Realm's Hero, Kindled Through, the All Powerful |
+| Gideon Mourne, Lord Mourne | the Marked Lord, Unflinching, Unfettered, Unrepentant |
+| The Fortress | Foundation, Fortified, Unbreachable (held; he has no personality card yet) |
 
 ### The Eidolons
 
@@ -308,7 +317,7 @@ The old school labels (Berserker, Warden, Evoker, Rogue, Juggernaut, Ranger-Drui
 - Exactly one Mastery. Its school is the deck's Style.
 - At least 3 consecutive Duelist aspects from Aspect 1, up to 5.
 - 3 copies max. 4 for Signature cards matching your Duelist. "Limit N per deck" and the restricted list override.
-- Allies: at least 2 aspects below the Duelist's highest aspect, 1 copy of each printing, none sharing the Duelist's character, matching alignment.
+- Allies: at least 2 aspects below the Duelist's highest aspect, 1 copy of each printing, none sharing the Duelist's character, matching alignment. **House rule, 2026-09-20:** an Ally printed only at Aspect 1 is exempt from the 2-aspect gap and is legal in any deck. It can never outgrow a Duelist, and without the exemption a shallow deck can field no following at all, which the adventure starters need. Every Ally that climbs to a second Aspect still obeys the gap.
 - Seals: one set, no duplicates.
 - Reserve must obey the same Style and construction rules.
 

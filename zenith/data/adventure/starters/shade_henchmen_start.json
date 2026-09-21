@@ -1,0 +1,129 @@
+{
+  "name": "Hexbound Company (Starter)",
+  "source_deck": "shade_henchmen",
+  "mode": "adventure",
+  "duelist": "duelist_delta",
+  "aspects": 2,
+  "style": "shade",
+  "alignment": "pact",
+  "mastery": "shade_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "allies",
+  "difficulty": "easy",
+  "subthemes": [
+    "disruption"
+  ],
+  "ai_profile": "shade_henchmen",
+  "tagline": "Rally a company of hexers and strip away your rival's hand while your allies keep the pressure on.",
+  "cards": [
+    {
+      "id": "black_hands",
+      "count": 2
+    },
+    {
+      "id": "captains_barrage",
+      "count": 1
+    },
+    {
+      "id": "draiks_reckoning",
+      "count": 2
+    },
+    {
+      "id": "knife_volley",
+      "count": 2
+    },
+    {
+      "id": "lingering_curse",
+      "count": 1
+    },
+    {
+      "id": "sabotage",
+      "count": 2
+    },
+    {
+      "id": "scattered_ashes",
+      "count": 1
+    },
+    {
+      "id": "shade_mind_rot",
+      "count": 2
+    },
+    {
+      "id": "shade_umbral_lash",
+      "count": 2
+    },
+    {
+      "id": "unerring_bolt",
+      "count": 1
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 2
+    },
+    {
+      "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "hired_blades",
+      "count": 2
+    },
+    {
+      "id": "rallying_call",
+      "count": 2
+    },
+    {
+      "id": "scorn_smirks",
+      "count": 1
+    },
+    {
+      "id": "shade_veil",
+      "count": 1
+    },
+    {
+      "id": "henchman_alpha",
+      "count": 1
+    },
+    {
+      "id": "henchman_beta",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_3",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_5",
+      "count": 1
+    },
+    {
+      "id": "branns_shakedown",
+      "count": 2
+    },
+    {
+      "id": "halvards_twin_cut",
+      "count": 1
+    },
+    {
+      "id": "shade_dread_grip",
+      "count": 2
+    },
+    {
+      "id": "shade_hex_recall",
+      "count": 2
+    },
+    {
+      "id": "shade_nightmare_hold",
+      "count": 1
+    },
+    {
+      "id": "shade_oblivion_touch",
+      "count": 2
+    },
+    {
+      "id": "vesnas_ambush",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "name": "Ironblood Onslaught (T1)",
+  "source_deck": "steel_beatdown",
+  "tier": "t1",
+  "mode": "adventure",
+  "duelist": "duelist_epsilon",
+  "aspects": 2,
+  "style": "steel",
+  "alignment": "pact",
+  "mastery": "steel_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "subthemes": [
+    "energy",
+    "draw",
+    "might"
+  ],
+  "ai_profile": "steel_beatdown",
+  "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
+  "cards": [
+    {
+      "id": "steel_bracing",
+      "count": 1
+    },
+    {
+      "id": "steel_scar_tissue",
+      "count": 2
+    },
+    {
+      "id": "steel_triple_shock",
+      "count": 1
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 1
+    },
+    {
+      "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "steel_standoff",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_1",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_3",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_4",
+      "count": 1
+    },
+    {
+      "id": "old_habit",
+      "count": 1
+    },
+    {
+      "id": "quarrs_crushing_blow",
+      "count": 2
+    },
+    {
+      "id": "shrugs_it_off",
+      "count": 1
+    },
+    {
+      "id": "steel_battering_ram",
+      "count": 1
+    },
+    {
+      "id": "steel_bull_charge",
+      "count": 2
+    },
+    {
+      "id": "steel_crushing_weight",
+      "count": 2
+    },
+    {
+      "id": "steel_dead_weight",
+      "count": 1
+    },
+    {
+      "id": "steel_forearm_guard",
+      "count": 2
+    },
+    {
+      "id": "steel_hammer_blow",
+      "count": 1
+    },
+    {
+      "id": "steel_headbutt",
+      "count": 1
+    },
+    {
+      "id": "steel_immovable_guard",
+      "count": 1
+    },
+    {
+      "id": "steel_iron_fist",
+      "count": 1
+    },
+    {
+      "id": "steel_iron_jab",
+      "count": 1
+    },
+    {
+      "id": "steel_iron_knee",
+      "count": 2
+    },
+    {
+      "id": "steel_ironhide",
+      "count": 1
+    },
+    {
+      "id": "steel_piston_slam",
+      "count": 1
+    },
+    {
+      "id": "steel_tempering",
+      "count": 1
+    }
+  ]
+}

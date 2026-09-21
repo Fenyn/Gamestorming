@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Emrys Rooke, Scaleclad. Head to boot in overlapping grey, the face gone behind a scaled
+       mask with two lit slits, one gauntlet cocked, and not in any hurry. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, now a scaled mask with a ridged crown -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M206,196 C206,120 254,80 310,86 C368,92 396,144 390,220 C384,296 350,338 300,334 C246,330 206,282 206,196 Z"/>
+    <path d="M204,172 C232,120 300,92 356,116 C378,126 388,142 392,160"/>
+    <path d="M260,84 L268,44"/>
+    <path d="M306,84 L310,38"/>
+    <path d="M350,96 L362,56"/>
+    <path d="M232,288 C262,300 328,300 362,286"/>
+  </g>
+  <g fill="none" stroke="#4682b4" stroke-width="9" stroke-linecap="round">
+    <path d="M232,194 C250,184 274,186 290,198"/>
+    <path d="M314,200 C332,190 354,192 368,204"/>
+  </g>
+  <!-- scale over the head -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="5" stroke-linecap="round">
+    <path d="M214,146 a22,24 0 0 1 44,0"/><path d="M258,146 a22,24 0 0 1 44,0"/>
+    <path d="M302,146 a22,24 0 0 1 44,0"/><path d="M346,150 a22,24 0 0 1 42,0"/>
+    <path d="M236,246 a22,24 0 0 1 44,0"/><path d="M280,246 a22,24 0 0 1 44,0"/>
+    <path d="M324,248 a22,24 0 0 1 42,0"/>
+  </g>
+  <!-- body, heavier than he used to be -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M262,336 C264,358 262,372 256,382"/>
+    <path d="M338,332 C340,354 342,368 348,378"/>
+    <path d="M144,430 C196,384 396,378 458,422"/>
+    <path d="M144,430 C118,470 104,536 102,612"/>
+    <path d="M458,422 C486,464 500,534 502,610"/>
+    <path d="M102,612 C102,706 108,790 118,862"/>
+    <path d="M502,610 C502,702 496,790 486,862"/>
+  </g>
+  <!-- scale over the body -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="6" stroke-linecap="round">
+    <path d="M124,498 a26,28 0 0 1 52,0"/><path d="M176,498 a26,28 0 0 1 52,0"/>
+    <path d="M228,498 a26,28 0 0 1 52,0"/><path d="M280,498 a26,28 0 0 1 52,0"/>
+    <path d="M332,498 a26,28 0 0 1 52,0"/><path d="M384,498 a26,28 0 0 1 52,0"/>
+    <path d="M436,500 a26,28 0 0 1 50,0"/>
+    <path d="M150,566 a26,28 0 0 1 52,0"/><path d="M202,566 a26,28 0 0 1 52,0"/>
+    <path d="M254,566 a26,28 0 0 1 52,0"/><path d="M306,566 a26,28 0 0 1 52,0"/>
+    <path d="M358,566 a26,28 0 0 1 52,0"/><path d="M410,568 a26,28 0 0 1 50,0"/>
+    <path d="M124,634 a26,28 0 0 1 52,0"/><path d="M176,634 a26,28 0 0 1 52,0"/>
+    <path d="M228,634 a26,28 0 0 1 52,0"/><path d="M280,634 a26,28 0 0 1 52,0"/>
+    <path d="M332,634 a26,28 0 0 1 52,0"/><path d="M384,634 a26,28 0 0 1 52,0"/>
+    <path d="M436,636 a26,28 0 0 1 50,0"/>
+    <path d="M150,702 a26,28 0 0 1 52,0"/><path d="M202,702 a26,28 0 0 1 52,0"/>
+    <path d="M254,702 a26,28 0 0 1 52,0"/><path d="M306,702 a26,28 0 0 1 52,0"/>
+    <path d="M358,702 a26,28 0 0 1 52,0"/><path d="M410,704 a26,28 0 0 1 50,0"/>
+  </g>
+  <!-- the gauntlet, cocked and unhurried -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M458,428 C500,450 530,486 540,532"/>
+    <path d="M540,532 C568,542 580,570 568,592 C554,618 510,624 486,606 C468,592 466,568 478,552"/>
+    <path d="M492,556 C512,548 536,554 548,568"/>
+  </g>
+</svg>

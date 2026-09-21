@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Bram Ashmark, Starved. Hunched, arms round himself, looking up from under the brow. All
+       angles and no meat on him, and the Pact has only just started asking. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- a long, narrow, hollow head, chin tucked, eyes up -->
+    <path d="M238,146 C238,104 272,84 308,90 C346,96 362,136 356,204 C350,272 326,306 292,304 C254,302 238,264 238,206 Z"/>
+    <path d="M232,150 C244,110 286,84 326,96 C348,102 358,118 360,136"/>
+    <path d="M236,176 L290,166"/>
+    <path d="M308,168 L356,180"/>
+    <!-- eyes looking up out of the sockets -->
+    <path d="M250,204 C260,192 278,192 288,202"/>
+    <path d="M314,206 C324,194 342,194 352,204"/>
+    <path d="M300,206 C298,238 294,254 288,264"/>
+    <!-- hollow cheeks, thin mouth -->
+    <path d="M250,226 C258,256 262,278 260,294"/>
+    <path d="M348,230 C342,258 338,278 340,292"/>
+    <path d="M268,282 C284,286 308,284 324,278"/>
+    <!-- a thin neck with the cords showing -->
+    <path d="M268,306 C270,330 268,346 262,358"/>
+    <path d="M322,302 C324,326 326,342 332,354"/>
+    <path d="M290,320 C288,340 288,354 290,364"/>
+  </g>
+  <!-- hunched shoulders, arms wrapped round his own ribs -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M186,412 C216,372 380,366 420,404"/>
+    <path d="M186,412 C160,444 146,500 144,570"/>
+    <path d="M420,404 C446,440 458,498 460,566"/>
+    <path d="M144,570 C142,664 146,764 154,862"/>
+    <path d="M460,566 C462,656 458,762 450,862"/>
+    <!-- the arms, crossed over himself -->
+    <path d="M188,432 C170,486 178,538 210,578"/>
+    <path d="M418,424 C438,478 432,532 402,574"/>
+    <path d="M210,578 C262,606 344,604 402,574"/>
+    <path d="M216,548 C266,574 344,572 398,544"/>
+  </g>
+  <!-- ribs under it -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.75" stroke-linecap="round">
+    <path d="M220,634 C268,618 342,618 388,634"/>
+    <path d="M214,680 C266,664 346,664 396,680"/>
+    <path d="M212,726 C266,710 348,710 398,726"/>
+  </g>
+  <!-- the first of it, one thin line under the breastbone -->
+  <g fill="none" stroke="#a52a2a" stroke-width="6" stroke-linecap="round">
+    <path d="M302,614 C300,660 300,700 302,736"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="4" stroke-linecap="round">
+    <path d="M302,634 C300,668 300,698 302,724"/>
+  </g>
+</svg>

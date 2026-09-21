@@ -56,6 +56,12 @@ skill improving, and why he fields no Allies. The agent who laid the mark is a m
 and a yard, who does this for others and takes payment in the usual way. What Ashmark traded away
 still exists elsewhere.
 
+A demon takes the part of the trade that other people could hold the person to, and leaves whatever
+they were using to hold themselves together. Ashmark traded his humanity, so it took the part of him
+that could be satisfied, and there was nothing left, which is why he is a shell. Gideon Mourne traded
+his claim, so it took every other person's power to give it back, and what was left was pride. That
+is why the same mark produced two different men, and why `marked` is not one condition.
+
 ## 3. Clans
 
 A clan is a social fact. It grants nothing mechanically and it is not a school. **What a clan
@@ -145,11 +151,29 @@ Some history is worth carrying and is not a clan. These people are unattached an
 is what they bring.
 
 **The broken company.** A mercenary company that fielded constructs and left them where they fell.
+It fought the two-kings war. Constructs were its front rank because constructs are cheap and a
+destroyed one is not worth going back for, which is what leaving them where they fell means.
+
 Orvath Kell was its last officer and still wears the gorget. He carries Verdant, the same line as
-the Thornwald Grove, and has nothing else in common with it. Gideon Mourne was a lord before he
-was stripped of it, still signs himself Lord Mourne, and nobody corrects him to his face. He
-sells the craft cheap now, to whoever is going somewhere. A third survivor exists and is unnamed:
-a heavy fighter whose whole method is planting himself and not moving.
+the Thornwald Grove, and has nothing else in common with it.
+
+Gideon Mourne was a lord with the company and its constructs at his disposal. The enemy king bought
+him and he betrayed the king who had retained him. Both kings died in the fighting that followed, so
+nobody was left who owed him anything. He was never paid. The title was taken for the betrayal, which
+he has never denied. What he has left is a public disgrace everyone knows about and a private regret
+nobody sees. He still signs himself Lord Mourne and nobody corrects him to his face.
+
+The realm is kingless, so a new king was only a matter of time, and a new king reissues grants. That
+was his way back, and it meant kneeling to someone. He went to the toll gate instead and traded the
+claim itself. No authority can restore him now, including one that does not exist yet. He sold the
+regret with it, so the part of him that knew the betrayal was wrong is gone and the rest of him is
+intact. He is not hollow the way Ashmark is.
+
+**The Fortress** is the company's third survivor, a heavy fighter whose whole method is planting
+himself and not moving. He held ground the company had taken, with nothing behind him, which is why
+he wrote the two wards he is named for: one against what is swung at him and one against what is
+cast. His real name is not recorded and he does not give it. Between a man who sold his name's
+worth and a man who never gave his, nothing of the company is on record except Kell's gorget.
 
 **Marrow's crew.** Marrow is a construct assembled out of several older ones, and Cull is an
 elderly wright who put himself into a frame rather than keep building them for other people. The
@@ -174,7 +198,8 @@ deserve it. Pim came from there. Its captain is unnamed. What retains it is unna
 | Caedan Vale | Draconic | The Vale line | Freestyle, Vigil |
 | Osric Thornwald | Verdant | The Thornwald Grove | Root, Vigil |
 | Orvath Kell | Verdant | The broken company | Shade, Pact |
-| Gideon Mourne | Draconic | The broken company | Shade, Pact |
+| Gideon Mourne | Draconic, `marked` since the toll gate | The broken company | Shade, Pact |
+| The Fortress | Draconic | The broken company | Freestyle, Pact |
 | Siphon, Tithe | `construct` | The Collegium | Storm, Pact |
 | Marrow | `construct` | Marrow's crew | Shade, Pact |
 | Cull | `construct` | Marrow's crew, Collegium-trained | Shade, Pact |
@@ -189,7 +214,6 @@ Slots agreed and not yet named:
 | Close fighter, precise rather than strong | none | The Kingsguard, form A |
 | Distance fighter, disciplined | none | The Kingsguard, form B |
 | The one who claims a form he was never taught | none | The Kingsguard, by his own account |
-| Heavy fighter who plants and does not move | Draconic | The broken company |
 | Captain of the retained guard | none | The retained guard |
 | The agent who lays the demon's mark | none | none, works a toll gate |
 | Highest office of the Vigil | none | The Vigil |

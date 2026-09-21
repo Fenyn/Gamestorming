@@ -1,5 +1,13 @@
 {
-	"_note": "Same strategic values, deeper sequence search with more alternatives and sampled deals. Stops early once two depths running agree on the move; measured over 220 matches at 50.0% against the same profile without it, for 15% less time per decision.",
-	"name": "hard",
-	"think": {"top_k": 8, "samples": 3, "budget_ms": 4000, "node_budget": 16000, "sequence_depth": 10, "branch_width": 4, "settle_plies": 2}
+ "_note": "Same strategic values, deeper sequence search with more alternatives and sampled deals. Stops early once two depths running agree on the move; measured over 220 matches at 50.0% against the same profile without it, for 15% less time per decision.",
+ "name": "hard",
+ "think": {
+  "top_k": 8,
+  "samples": 3,
+  "budget_ms": 4000,
+  "node_budget": 16000,
+  "sequence_depth": 10,
+  "branch_width": 4,
+  "settle_plies": 2
+ }
 }

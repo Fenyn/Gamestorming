@@ -1,0 +1,53 @@
+{
+	"cards": [
+		{"id": "tf_marked_lord", "title": "Test Marked Lord", "type": "personality", "character": "Test Marked Lord", "tags": ["marked"],
+			"aspects": [
+				{"aspect": 1, "surge": 2, "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000],
+					"power": {"attack": {"kind": "art", "printed_life": 6, "focused": true}, "extra_use": {"filter": "tag:marked"}}},
+				{"aspect": 2, "surge": 2, "might": [0, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000],
+					"constant": {"strike_table_self": 2, "strike_table_against": 2}},
+				{"aspect": 3, "surge": 3, "might": [0, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1100000, 1200000],
+					"constant": {"focus_tag": "marked", "focus_tag_kind": "strike",
+						"modifiers": [{"scope": "own", "kind": "strike", "stages": 3, "tag": "marked"}]}}
+			]},
+
+		{"id": "t_marked_blow", "title": "Test Marked Blow", "type": "strike", "tags": ["marked"], "attack": {"kind": "strike", "stages": 1}},
+		{"id": "t_plain_blow", "title": "Test Plain Blow", "type": "strike", "attack": {"kind": "strike", "stages": 1}},
+		{"id": "t_gated_blow", "title": "Test Gated Blow", "type": "strike", "only": {"tag": "marked"}, "attack": {"kind": "strike", "stages": 1}},
+
+		{"id": "t_ring", "title": "Test Marked Ring", "type": "grounds", "limit_per_deck": 3,
+			"modifiers": [{"scope": "own", "kind": "any", "stages": 1, "life": 1, "only_tag": "marked"}],
+			"effects": [{"trigger": "on_attack", "when": {"attack_only_tag": "marked"},
+				"op": "discard_in_play", "who": "any", "card_type": "ally", "amount": 1, "choose": true}]},
+
+		{"id": "t_trade_art", "title": "Test Trade Art", "type": "art",
+			"attack": {"kind": "art", "printed_life": 4, "damage_trade": {"per": 1, "card_type": "drill"}}},
+
+		{"id": "t_ransom", "title": "Test Ransom", "type": "strike", "reserve_only": true, "attack": {"kind": "strike", "stages": 1},
+			"effects": [{"op": "float", "what": "reserve_ransom", "duration": "combat", "params": {"cost": 2, "card_type": "drill"}}]},
+
+		{"id": "t_gaze", "title": "Test Fixed Gaze", "type": "art", "attack": {"kind": "art", "printed_life": 1},
+			"attachment": {"target": "opponent_duelist", "no_prevent": true},
+			"effects": [{"op": "attach", "to": "opponent_duelist"}]},
+
+		{"id": "t_empties", "title": "Test Empties", "type": "strike", "attack": {"kind": "strike", "stages": 1},
+			"effects": [{"trigger": "if_successful", "op": "discard_hand", "who": "opponent", "down_to": 2, "random": false}]},
+
+		{"id": "t_sifts", "title": "Test Sifts", "type": "strike", "attack": {"kind": "strike", "stages": 1},
+			"effects": [{"trigger": "if_successful", "op": "discard_hand", "who": "opponent", "all": true,
+				"random": false, "filter": "non_combat", "reveal": true}]},
+
+		{"id": "t_faltering_drill", "title": "Test Faltering Drill", "type": "drill",
+			"effects": [{"trigger": "discard_step", "may": true, "when": {"energy_min": 1},
+				"op": "energy", "amount": -1, "target": "duelist",
+				"then": [{"op": "discard_hand", "who": "opponent", "all": true, "random": false}]}]},
+
+		{"id": "t_follow_up", "title": "Test Follow Up", "type": "art", "use_at": "own_successful_attack",
+			"use_after_kind": "strike", "effects": [{"op": "draw", "amount": 1}]},
+
+		{"id": "t_late_art_stop", "title": "Test Late Art Stop", "type": "strike", "attack": {"kind": "strike", "stages": 1},
+			"effects": [{"op": "float", "what": "stop_next", "duration": "next_attack_phase", "params": {"kind": "art"}}]},
+
+		{"id": "t_plain_drill", "title": "Test Plain Drill", "type": "drill"}
+	]
+}

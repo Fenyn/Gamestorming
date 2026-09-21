@@ -46,6 +46,9 @@ const DEFAULTS: Dictionary = {
 	"think": {"search": true, "algorithm": "sequence", "top_k": 6, "samples": 2,
 		"budget_ms": 1600, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05,
 		"sequence_depth": 6, "branch_width": 3, "response_width": 2, "node_budget": 6000,
+		# 0 or 1 keeps every candidate; between them it drops the ones the move ordering already
+		# puts far behind the leader. See AiSearch._within_margin.
+		"branch_margin": 0.0,
 		"rollout_steps": 4, "settle_steps": 8, "intent_margin": 0.15, "cache": false,
 		# Stop deepening once the same option has been best for this many completed depths running
 		# and leads the next by `settle_lead`. 0 spends the whole budget every time.
@@ -136,6 +139,49 @@ func for_state(key: String) -> AiProfile:
 		if wanted.has(str(k)) and pivots[k] is Dictionary:
 			out.merge(pivots[k])
 	return out
+
+
+## The same key as `state_key`, read straight off the engine. Every fact below is something the
+## seat already knows about its own side, so this reads no more than the SeatView path did; it
+## only skips building one. `SeatView.of` measured at 1135 us and the search paid it per world per
+## node, which doubled the cost of every deck whose profile carries a `when` block.
+## `test_profile_state_key_matches_the_seat_view` holds the two paths together.
+func state_key_of(engine: DuelEngine, seat: int) -> String:
+	var pivots: Dictionary = data.get("when", {})
+	if pivots.is_empty():
+		return ""
+	var hit: PackedStringArray = PackedStringArray()
+	for k in pivots.keys():
+		if _fact_holds_engine(str(k), engine, seat):
+			hit.append(str(k))
+	return "|".join(hit)
+
+
+static func _fact_holds_engine(key: String, engine: DuelEngine, seat: int) -> bool:
+	var fact: String = key
+	var n: int = 0
+	var colon: int = key.find(":")
+	if colon >= 0:
+		fact = key.substr(0, colon)
+		n = int(key.substr(colon + 1))
+	var me: PlayerState = engine.player(seat)
+	match fact:
+		"bonded":
+			for ally in me.allies():
+				if ally.cards_under.size() > 0:
+					return true
+			return false
+		"allies_min":
+			return me.allies().size() >= n
+		"aspect_min":
+			return me.duelist != null and me.duelist.aspect >= n
+		"fervor_min":
+			return me.fervor >= n
+		"seals_min":
+			return me.seals().size() >= n
+		"life_below":
+			return me.life_deck.size() < n
+	return false
 
 
 ## One `when` fact, read off the seat's own view so it sees only what the table shows.

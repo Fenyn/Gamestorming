@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Sir Edric Rooke, Kindled Through. In close: jaw set, fire running the seams of the mail and
+       up the blade at the edge of the frame. Nothing else fits in the shot. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, filling the top two thirds -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M120,300 C110,166 190,72 318,68 C444,64 514,158 506,300 C498,438 420,520 312,516 C202,512 128,432 120,300 Z"/>
+    <path d="M110,206 C142,110 232,58 334,66 C420,72 478,116 502,186"/>
+    <!-- brows down, hard -->
+    <path d="M160,250 L268,228"/>
+    <path d="M356,228 L470,252"/>
+    <path d="M176,296 C206,274 250,276 276,300"/>
+    <path d="M350,300 C378,276 420,278 448,300"/>
+    <path d="M312,268 C304,330 292,364 274,388"/>
+    <path d="M274,388 C296,400 326,400 348,390"/>
+    <!-- teeth set -->
+    <path d="M212,444 C266,422 356,422 410,444 C356,478 266,478 212,444 Z"/>
+    <path d="M250,432 L252,464"/>
+    <path d="M304,428 L306,470"/>
+    <path d="M358,432 L358,464"/>
+    <!-- jaw and neck -->
+    <path d="M186,466 C226,514 396,514 434,464"/>
+    <path d="M226,520 C230,556 228,580 220,598"/>
+    <path d="M396,520 C392,556 396,580 404,598"/>
+  </g>
+  <!-- the shoulder, in close -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96,700 C150,638 420,628 520,684"/>
+    <path d="M96,700 C82,748 76,808 78,864"/>
+    <path d="M520,684 C540,730 550,800 550,864"/>
+  </g>
+  <!-- the seams, alight -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M92,760 C170,724 430,716 530,748"/>
+    <path d="M86,828 C168,792 438,784 542,814"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-linecap="round">
+    <path d="M100,776 C176,742 428,734 526,764"/>
+    <path d="M94,846 C174,812 436,804 538,832"/>
+  </g>
+  <!-- and the blade at the edge, burning -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round">
+    <path d="M560,60 C566,220 566,420 560,620"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M534,90 C526,250 526,440 534,600"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M588,90 C596,250 596,440 588,600"/>
+  </g>
+</svg>

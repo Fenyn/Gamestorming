@@ -1,0 +1,142 @@
+{
+  "name": "Tidesworn Coven (T2)",
+  "source_deck": "tide_companions",
+  "tier": "t2",
+  "mode": "adventure",
+  "duelist": "duelist_beta",
+  "aspects": 2,
+  "style": "tide",
+  "alignment": "vigil",
+  "mastery": "tide_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "allies",
+  "subthemes": [
+    "bond",
+    "arts"
+  ],
+  "ai_profile": "tide_companions",
+  "tagline": "Let your coven absorb the wounds, turn aside attacks, and drain your rival's Energy to replenish your own.",
+  "cards": [
+    {
+      "id": "tide_breakwater",
+      "count": 1
+    },
+    {
+      "id": "tide_confluence",
+      "count": 1
+    },
+    {
+      "id": "tide_depths",
+      "count": 1
+    },
+    {
+      "id": "tide_high_water",
+      "count": 1
+    },
+    {
+      "id": "tide_springwater",
+      "count": 2
+    },
+    {
+      "id": "tide_surge",
+      "count": 2
+    },
+    {
+      "id": "tide_torrent",
+      "count": 2
+    },
+    {
+      "id": "tide_twin_breaker",
+      "count": 1
+    },
+    {
+      "id": "tide_twin_swell",
+      "count": 1
+    },
+    {
+      "id": "unerring_bolt",
+      "count": 1
+    },
+    {
+      "id": "closing_ranks",
+      "count": 2
+    },
+    {
+      "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "edrics_vow",
+      "count": 1
+    },
+    {
+      "id": "last_gasp",
+      "count": 1
+    },
+    {
+      "id": "old_trick",
+      "count": 1
+    },
+    {
+      "id": "rallying_call",
+      "count": 2
+    },
+    {
+      "id": "rookes_deluge",
+      "count": 2
+    },
+    {
+      "id": "warding_call",
+      "count": 1
+    },
+    {
+      "id": "watchful_eye",
+      "count": 1
+    },
+    {
+      "id": "bonding_rite",
+      "count": 1
+    },
+    {
+      "id": "clear_mind",
+      "count": 1
+    },
+    {
+      "id": "lucky_find",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "companion_alpha",
+      "count": 1
+    },
+    {
+      "id": "companion_beta",
+      "count": 1
+    },
+    {
+      "id": "clean_sweep",
+      "count": 1
+    },
+    {
+      "id": "last_ward",
+      "count": 1
+    },
+    {
+      "id": "tide_drowning",
+      "count": 2
+    },
+    {
+      "id": "tide_ebb",
+      "count": 2
+    },
+    {
+      "id": "tide_undertow",
+      "count": 1
+    }
+  ]
+}

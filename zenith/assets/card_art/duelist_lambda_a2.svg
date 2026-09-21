@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Bram Ashmark, Gnawing. Close on the face, mouth open, one hand at his own sternum as if he
+       could get at the thing doing it. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, filling most of the frame, tipped back -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M128,296 C118,172 190,86 306,82 C424,78 488,164 480,300 C472,432 404,508 300,504 C198,500 138,424 128,296 Z"/>
+    <path d="M118,222 C148,124 226,70 322,80 C404,88 458,132 478,204"/>
+    <!-- brows pulled up and in: this hurts -->
+    <path d="M166,268 C198,236 244,232 272,250"/>
+    <path d="M338,250 C368,232 412,238 444,270"/>
+    <path d="M186,306 C210,290 244,292 264,312"/>
+    <path d="M348,312 C368,290 402,288 428,304"/>
+    <path d="M308,284 C300,344 288,378 270,400"/>
+    <path d="M270,400 C290,412 318,412 340,402"/>
+    <!-- mouth open -->
+    <path d="M206,450 C254,424 358,424 408,450 C368,514 246,514 206,450 Z"/>
+    <path d="M226,446 C262,434 350,434 388,446"/>
+  </g>
+  <!-- the eyes, already lit -->
+  <g fill="none" stroke="#ffd700" stroke-width="8" stroke-linecap="round">
+    <path d="M192,304 C216,288 248,290 268,310"/>
+    <path d="M346,310 C366,290 398,288 422,302"/>
+  </g>
+  <!-- neck, and the hand at the sternum -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214,524 C222,570 220,600 210,624"/>
+    <path d="M400,520 C394,566 398,598 410,622"/>
+    <path d="M120,706 C176,650 448,642 528,692"/>
+    <path d="M120,706 C106,748 100,806 102,864"/>
+    <path d="M528,692 C546,736 554,802 554,864"/>
+    <!-- the hand -->
+    <path d="M296,734 C266,746 254,772 268,794 C284,820 344,822 364,796 C378,776 368,748 340,736"/>
+    <path d="M296,734 C298,706 296,686 290,672"/>
+    <path d="M322,730 C326,700 326,680 322,664"/>
+    <path d="M348,740 C354,712 356,692 354,678"/>
+  </g>
+  <!-- and what it is reaching for -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M316,804 C314,834 312,854 310,868"/>
+    <path d="M252,782 L202,772"/>
+    <path d="M382,782 L432,772"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-linecap="round">
+    <path d="M316,812 C314,838 312,856 310,868"/>
+  </g>
+</svg>

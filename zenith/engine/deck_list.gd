@@ -17,6 +17,9 @@ var ai_profile: String = ""      # playstyle file under data/ai/profiles for an 
 var tagline: String = ""         # one line under the duelist's name on the select screen
 var blurb: String = ""           # two or three sentences on who they are and how the deck plays
 var cards: Array[String] = []   # expanded, one entry per copy
+## "tournament" is a multiplayer precon; "adventure" is a run deck, which DeckValidator holds to
+## lower floors on size and aspect count. See designs/zenith_adventure.md section 9.
+var mode: String = "tournament"
 
 
 static func from_dict(d: Dictionary) -> DeckList:
@@ -35,6 +38,7 @@ static func from_dict(d: Dictionary) -> DeckList:
 	deck.ai_profile = str(d.get("ai_profile", ""))
 	deck.tagline = str(d.get("tagline", ""))
 	deck.blurb = str(d.get("blurb", ""))
+	deck.mode = str(d.get("mode", "tournament"))
 	var entries: Array = d.get("cards", [])
 	for entry in entries:
 		if entry is String:
@@ -45,6 +49,24 @@ static func from_dict(d: Dictionary) -> DeckList:
 			for i in range(count):
 				deck.cards.append(id)
 	return deck
+
+
+## Deck ids live in two places: multiplayer precons and adventure starters. Anything that takes a
+## deck id rather than a path should go through here so both are reachable.
+const DIRS: Array[String] = [
+	"res://data/decks",
+	"res://data/adventure/starters",
+	"res://data/adventure/opponents",
+]
+
+
+static func resolve(deck_id: String) -> DeckList:
+	for dir in DIRS:
+		var path: String = "%s/%s.json" % [dir, deck_id]
+		if FileAccess.file_exists(path):
+			return DeckList.load_from(path)
+	push_error("No deck named '%s' in %s" % [deck_id, ", ".join(DIRS)])
+	return null
 
 
 static func load_from(path: String) -> DeckList:

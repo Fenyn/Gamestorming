@@ -1,0 +1,166 @@
+{
+  "name": "Steel Inheritance (T4)",
+  "source_deck": "steel_heir",
+  "tier": "t4",
+  "mode": "adventure",
+  "duelist": "duelist_kappa",
+  "aspects": 3,
+  "style": "steel",
+  "alignment": "vigil",
+  "mastery": "steel_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "subthemes": [
+    "strikes",
+    "draw"
+  ],
+  "ai_profile": "steel_heir",
+  "tagline": "Draw deep and spend life cards to power crushing blows as Emrys ascends to even stronger Aspects.",
+  "cards": [
+    {
+      "id": "captains_barrage",
+      "count": 3
+    },
+    {
+      "id": "declaration",
+      "count": 1
+    },
+    {
+      "id": "grounding_step",
+      "count": 1
+    },
+    {
+      "id": "steel_plating",
+      "count": 2
+    },
+    {
+      "id": "steel_sink",
+      "count": 2
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "dismissal",
+      "count": 1
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "steel_standoff",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "watchful_eye",
+      "count": 2
+    },
+    {
+      "id": "locked_gate_drill",
+      "count": 1
+    },
+    {
+      "id": "mournes_quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "steel_conditioning_drill",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "spoiled_rite",
+      "count": 1
+    },
+    {
+      "id": "the_long_year",
+      "count": 1
+    },
+    {
+      "id": "companion_epsilon",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_4",
+      "count": 1
+    },
+    {
+      "id": "edrics_training",
+      "count": 2
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "steel_battering_ram",
+      "count": 2
+    },
+    {
+      "id": "steel_cross",
+      "count": 3
+    },
+    {
+      "id": "steel_forearm_guard",
+      "count": 2
+    },
+    {
+      "id": "steel_headbutt",
+      "count": 2
+    },
+    {
+      "id": "steel_rake",
+      "count": 2
+    },
+    {
+      "id": "steel_reverse",
+      "count": 2
+    },
+    {
+      "id": "steel_slip",
+      "count": 2
+    },
+    {
+      "id": "steel_stamp",
+      "count": 2
+    },
+    {
+      "id": "steel_tackle",
+      "count": 2
+    },
+    {
+      "id": "steel_talon",
+      "count": 2
+    },
+    {
+      "id": "steel_tempering",
+      "count": 2
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "vales_riposte",
+      "count": 2
+    }
+  ]
+}

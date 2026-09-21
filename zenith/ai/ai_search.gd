@@ -20,7 +20,12 @@ var _nodes: int = 0
 var _node_limit: int = 0
 var _aborted: bool = false
 var _last_turn: int = 0
+## The furthest ahead any profile may look, in turns. See `_last_turn`.
+const MAX_TURNS: int = 7
 var _policy_cache: Dictionary = {}
+## One reusable engine for the perspective switch in `_scores`. Only one perceived world is alive
+## at a time there, so a single buffer is enough.
+var _perceived: DuelEngine = null
 var _transpositions: Dictionary = {}
 var _old_intent: Dictionary = {}
 var _weights: Dictionary = {}
@@ -58,7 +63,9 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	if prompt == null:
 		_finish()
 		return null
-	_last_turn = base.state.turn + maxi(1, profile.think_int("turns")) - 1
+	# A hard ceiling on the horizon. Past about seven turns the extra plies have never changed a
+	# decision in testing, and a profile asking for more only spends nodes to reach the same move.
+	_last_turn = base.state.turn + clampi(profile.think_int("turns"), 1, MAX_TURNS) - 1
 	_foe_base = AiProfile.default_profile().for_matchup(base.player(seat).archetype, base.player(seat).subthemes)
 	var root_key: String = AiObservation.key(base, seat)
 	var remembered: Dictionary = _old_intent.get(root_key, {})
@@ -215,7 +222,7 @@ func policy_for_sim(sim: DuelEngine, seat: int) -> AiProfile:
 	var base: AiProfile = _policy_base if seat == _seat else _foe_base
 	if (base.data.get("when", {}) as Dictionary).is_empty():
 		return base
-	var key: String = base.state_key(SeatView.of(sim, seat, false), seat)
+	var key: String = base.state_key_of(sim, seat)
 	var cache_key: String = "%d|%s" % [seat, key]
 	if not _policy_cache.has(cache_key):
 		_policy_cache[cache_key] = base.for_state(key)
@@ -344,6 +351,7 @@ func _group(worlds: Array[DuelEngine], depth: int, steps: int, observation: Stri
 	var candidates: Array[int] = _candidates(sim, prompt, scores, maxi(1, width))
 	if observation != "own":
 		_prefer(candidates, prompt, _old_intent.get(observation, {}))
+	candidates = _within_margin(candidates, scores, _profile.w("think", "branch_margin"))
 	var best: Dictionary = _result(-INF)
 	for rank in range(candidates.size()):
 		var i: int = candidates[rank]
@@ -383,7 +391,9 @@ func _scores(worlds: Array[DuelEngine]) -> Array[float]:
 			# Switch perspective through the same public-prior boundary. Shuffling alone
 			# would retain our undisclosed deck composition in the opponent's model.
 			_perspective.engine = sim
-			perceived = _perspective.sim_for(who, 7919 + sim.state.turn)
+			if _perceived == null:
+				_perceived = sim.clone()
+			perceived = _perspective.sim_into(who, 7919 + sim.state.turn, _perceived)
 		var playing: AiProfile = policy_for_sim(perceived, who)
 		var values: Array[float] = AiScorer.scores(perceived, playing, who)
 		var by_command: Dictionary = {}
@@ -524,6 +534,30 @@ static func _prefer(indices: Array[int], prompt: Prompt, wire: Dictionary) -> vo
 			indices.erase(i)
 			indices.push_front(i)
 			return
+
+
+## Drop candidates the move ordering already puts far behind the leader, so the search stops
+## spending nodes to re-derive a decision it has effectively made. `margin` is a fraction of the
+## spread between the best and worst candidate, so it does not depend on the scorer's scale: 1.0
+## keeps everything and is the default, 0.5 keeps the better half of the spread. The leader is
+## always kept.
+static func _within_margin(candidates: Array[int], prior: Array[float], margin: float) -> Array[int]:
+	if margin <= 0.0 or margin >= 1.0 or candidates.size() < 2:
+		return candidates
+	var best: float = -INF
+	var worst: float = INF
+	for i in candidates:
+		best = maxf(best, prior[i])
+		worst = minf(worst, prior[i])
+	var spread: float = best - worst
+	if spread <= 0.0:
+		return candidates
+	var cutoff: float = best - margin * spread
+	var out: Array[int] = []
+	for i in candidates:
+		if out.is_empty() or prior[i] >= cutoff:
+			out.append(i)
+	return out
 
 
 static func _candidates(sim: DuelEngine, prompt: Prompt, prior: Array[float], width: int) -> Array[int]:

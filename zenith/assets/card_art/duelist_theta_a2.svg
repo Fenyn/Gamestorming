@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Marrow, Rebuilt. Close on the shoulder, because the shoulder is the answer: the joints are
+       seated, the plate is beaten out, and the blade is going somewhere else. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, cropped by the top of the frame -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M146,-20 C146,-60 200,-70 250,-60 C302,-50 322,0 316,92 C310,180 278,222 228,218 C176,214 146,166 146,92 Z"/>
+    <path d="M150,66 C190,52 280,52 318,66"/>
+    <path d="M166,150 L300,150"/>
+    <path d="M160,178 L306,178 L306,212 L160,212 Z"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="8" stroke-linecap="round">
+    <path d="M170,100 C186,90 212,92 226,104"/>
+    <path d="M250,104 C266,94 290,96 302,108"/>
+  </g>
+  <!-- the shoulder, huge, lower right -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M214,352 C300,290 452,290 528,356 C552,468 534,566 470,638 C374,650 258,606 206,506 Z"/>
+    <path d="M206,454 C296,410 456,408 544,452"/>
+    <path d="M216,556 C304,514 452,512 536,554"/>
+  </g>
+  <!-- the arm below it -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M244,644 C238,714 240,790 252,862"/>
+    <path d="M474,640 C486,710 490,790 480,862"/>
+    <path d="M60,420 C110,368 172,338 214,330"/>
+    <path d="M60,420 C46,478 42,560 48,652"/>
+  </g>
+  <!-- and the blade, going past without leaving a mark -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M604,150 C542,226 486,290 446,330"/>
+    <path d="M604,228 C548,300 496,360 458,398"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <path d="M480,330 L526,296"/>
+    <path d="M486,394 L534,398"/>
+    <path d="M450,286 L448,236"/>
+  </g>
+  <!-- the seam down the plate, holding -->
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-opacity="0.8" stroke-linecap="round">
+    <path d="M368,304 C366,388 366,470 370,548"/>
+  </g>
+</svg>

@@ -1,34 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
-  <!-- Placeholder crest: House Mourne. The crest is the point: a lord's arms broken across the
-       middle and riveted back on anyway, the signet he has not sold worn above it. -->
-  <defs>
-    <radialGradient id="field" cx="50%" cy="42%" r="70%">
-      <stop offset="0" stop-color="#2b1b3a"/>
-      <stop offset="1" stop-color="#090510"/>
-    </radialGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f0d489"/>
-      <stop offset="1" stop-color="#9a7a2e"/>
-    </linearGradient>
-  </defs>
-  <rect width="604" height="868" fill="url(#field)"/>
-  <path d="M0,740 C140,716 240,758 340,742 C440,726 520,758 604,738" fill="none" stroke="#b98cd6" stroke-opacity="0.2" stroke-width="4"/>
-  <g transform="translate(-466.4,-12.8) scale(1.7)">
-    <!-- upper half, still in place -->
-    <path d="M312,84 H592 V232 L452,254 L312,232 Z" fill="#1b1026" stroke="url(#gold)" stroke-width="5"/>
-    <!-- lower half, set back slightly out of true -->
-    <g transform="translate(14,28) rotate(4 452 320)">
-      <path d="M312,244 L452,266 L592,244 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#1b1026" stroke="url(#gold)" stroke-width="5"/>
-    </g>
-    <path d="M452,132 L486,206 L566,214 L506,266 L522,344 L452,304 L382,344 L398,266 L338,214 L418,206 Z" fill="none" stroke="#b98cd6" stroke-opacity="0.8" stroke-width="6" stroke-linejoin="round"/>
-    <!-- rivets, where he put it back together -->
-    <g fill="url(#gold)">
-      <circle cx="356" cy="246" r="7"/><circle cx="412" cy="252" r="7"/>
-      <circle cx="492" cy="252" r="7"/><circle cx="548" cy="246" r="7"/>
-    </g>
-    <g transform="translate(452,116)">
-      <circle cx="0" cy="0" r="26" fill="url(#gold)" stroke="#3a2a12" stroke-width="3"/>
-      <circle cx="0" cy="0" r="13" fill="#1b1026"/>
-    </g>
+  <!-- Gideon Mourne. Chin up, chest square to you, the broken crest still riveted to the
+       brigandine, and the light already coming off the knuckles. Still signs himself Lord. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head: broad, scarred brow, chin raised so we look up at him -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M218,142 C218,96 262,74 306,80 C352,86 372,128 366,196 C360,264 332,298 292,296 C246,294 218,254 218,196 Z"/>
+    <path d="M212,146 C230,104 282,76 328,88 C352,94 364,110 368,128"/>
+    <!-- the scar across the brow -->
+    <path d="M226,158 L296,142"/>
+    <path d="M232,182 C246,172 266,174 278,186"/>
+    <path d="M308,188 C322,178 342,180 352,192"/>
+    <path d="M300,196 C298,226 294,242 288,254"/>
+    <!-- a mouth that is not asking -->
+    <path d="M254,268 C276,262 306,262 328,268"/>
+    <path d="M230,214 C238,240 242,258 242,272"/>
+    <path d="M358,216 C352,242 348,260 348,274"/>
+  </g>
+  <!-- shoulders, square and wide, chest turned flat to the lens -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M262,300 C264,322 262,336 256,346"/>
+    <path d="M330,296 C332,318 334,332 340,342"/>
+    <path d="M140,402 C196,358 402,352 468,396"/>
+    <path d="M140,402 C116,444 102,512 100,590"/>
+    <path d="M468,396 C494,442 508,512 510,592"/>
+    <path d="M100,590 C100,684 106,776 116,862"/>
+    <path d="M510,592 C510,684 504,776 494,862"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.5" stroke-linecap="round">
+    <path d="M116,486 C186,452 424,446 496,478"/>
+    <path d="M106,570 C180,536 434,530 506,562"/>
+    <path d="M102,654 C178,620 436,614 510,646"/>
+  </g>
+  <!-- the crest, big on the chest, broken across the middle -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M226,448 L384,448 L384,556 L306,612 L226,556 Z"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M282,464 L318,518 L272,542 L312,600"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="6" stroke-linecap="round">
+    <path d="M240,462 L240,468"/>
+    <path d="M370,462 L370,468"/>
+    <path d="M240,542 L240,548"/>
+    <path d="M370,542 L370,548"/>
+  </g>
+  <!-- the casting hand, up and to the side, already going -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M466,404 C506,436 534,484 546,544"/>
+    <path d="M546,544 C526,560 520,590 534,610 C552,636 596,640 604,616"/>
+    <path d="M556,562 C574,556 594,562 604,576"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="9" stroke-linecap="round">
+    <path d="M520,502 C550,486 578,482 596,488"/>
+    <path d="M560,652 C578,676 588,700 590,720"/>
+    <path d="M486,586 C458,596 436,612 422,632"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="6" stroke-linecap="round">
+    <path d="M534,528 C558,516 582,512 598,516"/>
   </g>
 </svg>

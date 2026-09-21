@@ -33,21 +33,24 @@ func _ready() -> void:
 
 func _load_decks() -> void:
 	decks.clear()
-	var dir: DirAccess = DirAccess.open(DECKS_DIR)
-	if dir == null:
-		push_error("Session: cannot open %s" % DECKS_DIR)
-		return
-	var names: Array[String] = []
-	dir.list_dir_begin()
-	var entry: String = dir.get_next()
-	while entry != "":
-		if not dir.current_is_dir() and entry.ends_with(".json"):
-			names.append(entry)
-		entry = dir.get_next()
-	dir.list_dir_end()
-	names.sort()
-	for n in names:
-		decks.append(DeckList.load_from(DECKS_DIR.path_join(n)))
+	# Opponent tiers are generated and numerous; the select screen lists precons and starters only.
+	for source in [DECKS_DIR, "res://data/adventure/starters"]:
+		var dir: DirAccess = DirAccess.open(source)
+		if dir == null:
+			if source == DECKS_DIR:
+				push_error("Session: cannot open %s" % source)
+			continue
+		var names: Array[String] = []
+		dir.list_dir_begin()
+		var entry: String = dir.get_next()
+		while entry != "":
+			if not dir.current_is_dir() and entry.ends_with(".json"):
+				names.append(entry)
+			entry = dir.get_next()
+		dir.list_dir_end()
+		names.sort()
+		for n in names:
+			decks.append(DeckList.load_from(source.path_join(n)))
 
 
 func can_start() -> bool:

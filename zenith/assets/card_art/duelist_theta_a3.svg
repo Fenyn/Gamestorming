@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Marrow, Overwrought. From below, so the mass reads: too many plates, an arm that belongs on
+       something larger, a head too small for it, and a seam lit where no seam should be. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, small, high, dwarfed -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M254,74 C254,52 284,42 314,48 C344,54 356,78 352,120 C348,164 330,184 302,182 C272,180 254,156 254,120 Z"/>
+    <path d="M258,110 C284,102 326,102 350,110"/>
+    <path d="M268,158 L338,158"/>
+    <path d="M264,176 L342,176 L342,198 L264,198 Z"/>
+    <!-- plates bolted over the crown -->
+    <path d="M238,66 C266,44 302,36 334,40"/>
+    <path d="M370,74 C350,50 322,38 300,38"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-linecap="round">
+    <path d="M268,124 C280,116 296,118 306,126"/>
+    <path d="M318,126 C330,118 344,120 352,128"/>
+  </g>
+  <!-- the body, enormous and widening toward the bottom of the frame -->
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M280,210 C282,228 280,240 274,250"/>
+    <path d="M326,206 C328,224 330,236 336,246"/>
+    <path d="M150,314 C204,268 400,262 456,306"/>
+    <path d="M150,314 C110,376 82,472 72,600"/>
+    <path d="M456,306 C500,366 528,470 536,600"/>
+    <path d="M72,600 C64,700 64,790 72,866"/>
+    <path d="M536,600 C542,698 540,790 532,866"/>
+  </g>
+  <!-- too many plates -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round">
+    <path d="M124,398 C200,358 410,354 490,392"/>
+    <path d="M104,486 C188,444 424,440 510,480"/>
+    <path d="M88,578 C178,534 430,530 522,572"/>
+    <path d="M78,672 C172,628 436,624 532,666"/>
+    <path d="M74,766 C170,722 438,718 536,760"/>
+  </g>
+  <!-- the arm that belongs on something bigger -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M486,344 C534,400 564,478 574,566"/>
+    <path d="M574,566 C598,594 600,644 574,668 C544,696 486,690 464,656"/>
+  </g>
+  <!-- and the seam that should not be lit -->
+  <g fill="none" stroke="#9370db" stroke-width="12" stroke-linecap="round">
+    <path d="M300,262 C296,346 296,436 300,512"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M300,290 C296,358 296,432 300,494"/>
+    <path d="M236,382 L182,366"/>
+    <path d="M364,386 L420,370"/>
+  </g>
+</svg>

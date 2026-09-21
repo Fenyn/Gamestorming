@@ -1,0 +1,109 @@
+{
+  "name": "Wildfire Rush (T2)",
+  "source_deck": "pyre_beatdown",
+  "tier": "t2",
+  "mode": "adventure",
+  "duelist": "duelist_alpha",
+  "aspects": 2,
+  "style": "pyre",
+  "alignment": "pact",
+  "mastery": "pyre_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "subthemes": [
+    "fervor"
+  ],
+  "ai_profile": "pyre_beatdown",
+  "tagline": "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",
+  "cards": [
+    {
+      "id": "pyre_immolation",
+      "count": 2
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 2
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "pyre_twin_flames",
+      "count": 2
+    },
+    {
+      "id": "sever_the_leyline",
+      "count": 1
+    },
+    {
+      "id": "will_not_break",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "stokes_the_coals",
+      "count": 2
+    },
+    {
+      "id": "all_or_nothing",
+      "count": 2
+    },
+    {
+      "id": "mournes_frantic_rush",
+      "count": 2
+    },
+    {
+      "id": "pyre_blazing_charge",
+      "count": 2
+    },
+    {
+      "id": "pyre_cinder_guard",
+      "count": 2
+    },
+    {
+      "id": "pyre_comet_fall",
+      "count": 2
+    },
+    {
+      "id": "pyre_firestorm",
+      "count": 2
+    },
+    {
+      "id": "pyre_flame_lash",
+      "count": 1
+    },
+    {
+      "id": "pyre_flashover",
+      "count": 2
+    },
+    {
+      "id": "pyre_furnace_breath",
+      "count": 2
+    },
+    {
+      "id": "pyre_kindling",
+      "count": 1
+    },
+    {
+      "id": "pyre_rekindling",
+      "count": 2
+    },
+    {
+      "id": "pyre_scouring_flame",
+      "count": 2
+    },
+    {
+      "id": "wall_of_flame",
+      "count": 2
+    }
+  ]
+}

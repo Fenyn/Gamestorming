@@ -20,12 +20,12 @@ Codes seen that still need checking against `tools/source_cards.tsv`: `SZ`, `GK`
 
 | Sheet | Slots / distinct | Duelist | Status |
 |---|---|---|---|
-| Red TS Majin Buu | 93 / 44 | Bram Ashmark, `duelist_alpha` | read, see below |
+| Red TS Majin Buu | 93 / 44 | Bram Ashmark, `duelist_lambda` | built, `pyre_attrition` |
 | Saiyan CS Broly | 98 / 50 | Halden Quarr, `duelist_epsilon` | not started |
 | Namekian CS Piccolo | 99 / 54 | Osric Thornwald, `duelist_eta` | not started |
 | Freestyle MBS Trunks Sword | 98 / 57 | Caedan Vale, `duelist_zeta` | not started |
 | Blue MBS Goku | 98 / 55 | Sir Edric Rooke, `duelist_iota` | built, `tide_deepwater` |
-| Black TS Majin Vegeta | 98 / 49 | new, Shade | not started |
+| Black TS Majin Vegeta | 98 / 49 | Gideon Mourne, `duelist_mu` | built, `shade_mind_siege` |
 | Orange TS Yamcha | 94 / 58 | new, Storm | not started |
 | Blue CS Roshi Speedball | 54 / 46 | new, Tide | not started |
 
@@ -46,13 +46,23 @@ Measured prefixes: Vegeta 8, Goku 8, Trunks 9, Piccolo 9, Yamcha 4, Buu 9, Broly
 prefix, 7-8 images a page. Re-derive its structure before extracting.
 
 **The cards between the personality ladder and the Sensei are the Sensei Deck, not the Life Deck.**
-A sheet runs personalities, then the Sensei Deck, then the Sensei, then the Mastery, then the Life
-Deck. Those cards belong in the deck's `reserve`, and several of them print "Sensei Deck Only" on
-the card itself. The number in the Sensei's corner box is the Sensei Deck size: West Kai 7, North
-Kai 13. Both sheets read so far come out at exactly that number once You're Invited is set aside,
-which is right, because You're Invited leaves the Sensei Deck into play before the first turn and
-so takes no slot. `DeckValidator` now counts the Reserve the same way and skips any `start_in_play`
-card.
+A sheet runs personalities, then the Sensei Deck, then the Sensei and the Mastery in either order,
+then the Life Deck. Those cards belong in the deck's `reserve`, and several of them print "Sensei
+Deck Only" on the card itself. The number in the Sensei's corner box is the Sensei Deck size, which
+the card database prints as "(Deck Size: n)": West Kai 7, North Kai 13. The block hits that number
+exactly on every sheet read so far, and You're Invited counts against it like anything else.
+
+**A card can sit in both the Sensei Deck and the Life Deck, and the extractor hides that.** Both
+sections print the same image, so `pypdf` gives one entry with the copies added together, filed at
+its first position. Print each distinct card's slot numbers, not just its count: a card whose slots
+straddle the Sensei boundary is split between the two. Red's Gohan's Kick is slots 10, 11 and 57,
+so two copies are Sensei Deck and one is Life Deck; Blue's Blue Energy Throw is 14 and 76, one
+each; Black's Majin Lightning Hit is 15, 16 and 39, two and one. Missing this puts the Sensei Deck
+one card over the Sensei's limit, which is how it was caught.
+
+**Every sheet so far totals exactly 85** the way `DeckValidator` counts, Life Deck plus Aspects
+plus Mastery plus Relic, with the Sensei Deck outside that count. That is a useful check on a
+finished import.
 
 Triage trick: crop the top-right corner of every distinct card and tile the crops. The set code and
 number are legible, so one image says which cards are fan prints without reading eleven contact
@@ -78,9 +88,10 @@ Three things it needs that we do not have: a fourth Relic for West Kai Sensei, t
 that `world.md` describes but no card carries yet ("Majin only" gates Energy Spray), and a
 character for Kami Fades under the attribution rule in `cast_backlog.md`.
 
-**Sensei Deck, 7 cards:** Kami Fades x3 (`the_watch_goes_dark`), HUH??? (`defacement`), Gohan's
-Kick x3 (`no_quarter`), plus You're Invited (`open_challenge`) free. These were read as Life Deck
-cards on the first pass and have been moved to `reserve`, which took the deck from 90 cards to 84.
+**Sensei Deck, 7 cards:** You're Invited (`open_challenge`), Kami Fades x3
+(`the_watch_goes_dark`), HUH??? (`defacement`), Gohan's Kick x2 (`no_quarter`). The third Gohan's
+Kick is a Life Deck card. These were read as Life Deck cards on the first pass and have been moved
+to `reserve`, which took the deck from 90 cards to 85.
 
 **You're Invited is verified.** It is GK11, a Score World Championships card, ©2003 Score. The
 source audit had `open_challenge` down as the one card it could not source, because the card is
@@ -105,11 +116,12 @@ Ascension win.
 **Sensei Deck, 13 cards:** Blue Mist Kick x3 (fan, swapped to Blue Fist Strike =
 `tide_bearing_down`), Energy Lob (`lobbed_bolt`), Cell's Presence x2 (`dismissal`), Dismal Future
 x3 (fan, swapped to Blue Off-Balancing Opponent Drill = `tide_heavy_water`), Blue Energy Throw x2
-(fan, swapped to Blue Energy Outburst = `tide_full_weight`), Frieza's Deception (fan, swapped to
-Blue Softening Stance = `tide_held_under`), HUH??? (`defacement`), plus You're Invited free. Four
-of the eleven fan prints were Sensei Deck cards, so their replacements sit in `reserve` too. Moving
-them out took the deck from 96 cards to 84, and `old_trick`, which fetches an attack out of the
-Reserve, now has something to fetch.
+(fan, swapped to Blue Energy Outburst = `tide_full_weight`, one copy), Frieza's Deception (fan, swapped to
+Blue Softening Stance = `tide_held_under`), HUH??? (`defacement`), You're Invited
+(`open_challenge`). Blue Energy Throw is one copy here and one in the Life Deck. Four of the eleven
+fan prints were Sensei Deck cards, so their replacements sit in `reserve` too. Moving them out took
+the deck from 96 cards to 85, and `old_trick`, which fetches an attack out of the Reserve, now has
+something to fetch.
 
 **Tide has a second Mastery**, `tide_fathom_mastery`, from the Buu Saga printing: +2 wounds on
 Tide Strikes, and instead of blocking you may remove Tide cards from your discard pile to prevent
@@ -132,6 +144,53 @@ text, which is `marble_seal_4`'s job, and `moth_seal_7` was a placeholder that d
 Both now carry the later printings. **This changes `steel_beatdown`**, which runs `moth_seal_4`:
 it used to wipe their standing cards and now wipes their Allies and guards his own board against
 removal.
+
+## Black TS Majin Vegeta, built 2026-09-20 as `shade_mind_siege`, "Mind Siege"
+
+49 distinct faces, 98 copies: four Aspects, a 13-card Sensei Deck, Black Style Mastery 145
+(`shade_mastery`), North Kai Sensei 140 (`blank_mask`), and 79 Life Deck cards. 85 by our count.
+
+**The duelist is not new.** `cast_backlog.md` records that Gideon Mourne clears the Vegeta row, so
+this is Mourne marked, and it is his first ladder. He already shipped as the Ally `salvage_gamma`,
+which is now the pre-mark printing: Gideon Mourne, Mercenary against Gideon Mourne, Lord Mourne.
+The ladder is Buu Saga 192 / 193 / 191 and Babidi Saga 114, titled the Marked Lord, Unflinching,
+Unfettered, Unrepentant. Card 114's printed Might ladder has one irregular rung, 4,445,000 to
+4,610,000, so it is written out rather than stepped.
+
+**Sensei Deck, 13 cards:** Black Pivot Kick x3 (`shade_unraveling`), Black Front Punch x3
+(`shade_ransoming_hand`, Sensei Deck only), Cell's Presence x2 (`dismissal`), HUH???
+(`defacement`), Cell's Threatening Position (`sever_the_leyline`), Kami Fades
+(`the_watch_goes_dark`), Majin Lightning Hit x2 (`marked_lightning`). The third Majin Lightning Hit
+is a Life Deck card, which the slot numbers 15/16/39 give away.
+
+**Five fan prints, 13 copies of 98.** Black Kick Blast NZ133 to Black Back Kick, Black Pointed Kick
+NZ134 to Black Drop Kick, Black Roundhouse NZ135 to Black Bicycle Kick, Black Negation NZ51 to
+Trunks' Energy Sphere (`cut_short`, the same swap the Blue sheet took), Dismal Future NZ167 to
+Majin Throwdown MM1 (`the_marked_ring`). Four of the five stay inside the Kick family. **Majin
+Mayhem is a two-card set in `source_cards.tsv` and has not been independently confirmed as a Score
+print**; its sibling card references Tuff Enuff, which is Score.
+
+**Two keywords carry the families**, because a tag is exact where a title substring is not.
+`marked` is the set the source writes as "Majin" in the title, and it now sits on Ashmark's
+`relentless_fury`, `scatters_the_ashes` and `wall_of_flame` as well as on the three new Marked
+cards. `whisper` is the Shade working the nine Black kicks translate to; `shade_unraveling`,
+`shade_nightmare_hold` and `shade_umbral_lash` were retitled into the family, ids unchanged.
+
+**A gate and a keyword are not the same set.** Mourne's Aspect 4 boosts cards that carry `marked`;
+The Marked Ring boosts cards *gated* on `marked`. Modifiers filter on `tag` and `only_tag`
+respectively. Black Head Crush (`shade_bitter_trade`) is gated without carrying it, which is what
+the print says.
+
+**`wall_of_flame` was mis-gated and is fixed.** Majin's Perfect Defense prints "Majin only", not
+"Majin Buu only", but we had it on `only: {"duelist_character": "Bram Ashmark"}`, so no second
+marked duelist could ever play it. It now reads the tag, the way `ashmarks_ember_spray` already did.
+
+**Engine work this sheet needed:** `tag` and `only_tag` on modifiers, `strike_table_self` /
+`strike_table_against` and `focus_tag` on a Constant Power, `extra_use` on a Power, attachments on
+the opponent's duelist with `no_prevent`, `damage_trade`, `reserve_ransom`, a `discard_step`
+trigger, `down_to` / `all` / `reveal` on `discard_hand`, a `tag:` hand filter, an attacker-side
+`own_successful_attack` window, a kind on `stop_next`, `no_shuffle` on `shuffle_discard`, and
+`reserve_only` in the deck validator.
 
 ## Per deck, the order of work
 

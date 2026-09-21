@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Sir Edric Rooke, the Realm's Hero. Seen from low down, mid-stride into a street that is
+       already going, shield arm thrown out over somebody the frame does not show. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the street, tall on both sides -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.45" stroke-linecap="round">
+    <path d="M6,40 C2,240 2,460 8,640"/>
+    <path d="M120,120 C116,300 116,480 122,640"/>
+    <path d="M598,40 C602,240 602,460 596,640"/>
+    <path d="M484,120 C488,300 488,480 482,640"/>
+    <path d="M6,40 C40,24 88,24 120,120"/>
+    <path d="M598,40 C564,24 516,24 484,120"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="7" stroke-linecap="round">
+    <path d="M40,330 C24,250 40,182 84,140"/>
+    <path d="M564,330 C580,250 564,182 520,140"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-linecap="round">
+    <path d="M78,326 C68,260 82,208 114,178"/>
+    <path d="M526,326 C536,260 522,208 490,178"/>
+  </g>
+  <!-- him, small against it, coming at you -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M286,280 C286,248 320,232 352,238 C384,244 398,272 392,308 C386,346 362,364 332,362 C300,360 286,334 286,306 Z"/>
+    <path d="M282,268 C296,240 336,228 366,236 C384,242 392,252 396,264"/>
+    <path d="M300,304 C312,298 326,300 334,308"/>
+    <path d="M352,310 C364,304 378,306 386,314"/>
+    <path d="M308,340 C324,346 344,344 358,338"/>
+    <!-- turned across the frame, one leg forward -->
+    <path d="M308,364 C310,384 308,396 302,404"/>
+    <path d="M370,356 C372,376 374,388 380,396"/>
+    <path d="M238,452 C268,414 386,402 438,432"/>
+    <path d="M238,452 C220,488 212,540 214,596"/>
+    <path d="M438,432 C462,468 474,522 476,580"/>
+    <path d="M214,596 C224,664 246,742 282,822"/>
+    <path d="M476,580 C468,652 444,730 404,806"/>
+    <path d="M282,822 C296,842 314,850 332,846"/>
+    <path d="M404,806 C398,830 388,846 374,854"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M224,500 C280,476 386,470 466,490"/>
+    <path d="M216,566 C276,542 390,536 474,554"/>
+  </g>
+  <!-- the shield arm, out over somebody off-frame -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M240,458 C196,470 152,494 118,528"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24,486 C60,458 118,458 152,486 C160,556 146,608 112,644 C70,632 34,590 24,542 Z"/>
+    <path d="M24,530 C62,516 116,516 156,532"/>
+  </g>
+  <!-- coals under the boots -->
+  <g fill="none" stroke="#a52a2a" stroke-width="7" stroke-linecap="round">
+    <path d="M250,848 C290,836 336,834 374,840"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-linecap="round">
+    <path d="M268,862 C306,850 346,848 380,854"/>
+  </g>
+</svg>

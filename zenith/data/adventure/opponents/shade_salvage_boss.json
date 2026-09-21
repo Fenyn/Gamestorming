@@ -1,0 +1,187 @@
+{
+  "name": "Scrap Requiem (BOSS)",
+  "source_deck": "shade_salvage",
+  "tier": "boss",
+  "mode": "adventure",
+  "duelist": "duelist_theta",
+  "aspects": 4,
+  "style": "shade",
+  "alignment": "pact",
+  "mastery": "shade_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "art_beatdown",
+  "subthemes": [
+    "arts",
+    "allies",
+    "disruption"
+  ],
+  "ai_profile": "shade_salvage",
+  "tagline": "Assemble a crew of constructs that strengthen one another, then unleash powerful Arts to overwhelm your rival.",
+  "cards": [
+    {
+      "id": "grounding_step",
+      "count": 1
+    },
+    {
+      "id": "mournes_jolting_arc",
+      "count": 3
+    },
+    {
+      "id": "sabotage",
+      "count": 2
+    },
+    {
+      "id": "shade_cutting_hand",
+      "count": 3
+    },
+    {
+      "id": "shade_rending_palm",
+      "count": 3
+    },
+    {
+      "id": "shade_snaring_web",
+      "count": 3
+    },
+    {
+      "id": "shade_umbral_lash",
+      "count": 3
+    },
+    {
+      "id": "threefold_bolt",
+      "count": 3
+    },
+    {
+      "id": "unerring_bolt",
+      "count": 3
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 4
+    },
+    {
+      "id": "cut_short",
+      "count": 3
+    },
+    {
+      "id": "dismissal",
+      "count": 2
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "marrows_retinue",
+      "count": 2
+    },
+    {
+      "id": "rallying_call",
+      "count": 2
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "scorn_smirks",
+      "count": 1
+    },
+    {
+      "id": "sever_the_leyline",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "terms_of_the_pact",
+      "count": 1
+    },
+    {
+      "id": "absorbing_drill",
+      "count": 2
+    },
+    {
+      "id": "assembly_drill",
+      "count": 3
+    },
+    {
+      "id": "locked_gate_drill",
+      "count": 1
+    },
+    {
+      "id": "mournes_quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "shade_composure_drill",
+      "count": 1
+    },
+    {
+      "id": "shade_takedown_drill",
+      "count": 1
+    },
+    {
+      "id": "breakers_yard",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "lucky_find",
+      "count": 1
+    },
+    {
+      "id": "mercy_smiles",
+      "count": 3
+    },
+    {
+      "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "spoiled_rite",
+      "count": 1
+    },
+    {
+      "id": "salvage_alpha",
+      "count": 1
+    },
+    {
+      "id": "salvage_beta",
+      "count": 1
+    },
+    {
+      "id": "salt_seal_4",
+      "count": 1
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "second_wind",
+      "count": 3
+    },
+    {
+      "id": "shade_gathering_dark",
+      "count": 3
+    },
+    {
+      "id": "shade_warding_burst",
+      "count": 3
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    }
+  ]
+}

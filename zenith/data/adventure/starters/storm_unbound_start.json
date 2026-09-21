@@ -1,0 +1,143 @@
+{
+  "name": "Stormlock (Starter)",
+  "source_deck": "storm_unbound",
+  "mode": "adventure",
+  "duelist": "duelist_gamma",
+  "aspects": 2,
+  "style": "storm",
+  "alignment": "pact",
+  "mastery": "storm_squall_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "art_beatdown",
+  "difficulty": "medium",
+  "subthemes": [
+    "fervor",
+    "disruption",
+    "construct"
+  ],
+  "ai_profile": "storm_unbound",
+  "tagline": "Make enemy attacks costly and land disruptive Arts to shut down Strikes while building your own Fervor.",
+  "cards": [
+    {
+      "id": "captains_barrage",
+      "count": 2
+    },
+    {
+      "id": "declaration",
+      "count": 1
+    },
+    {
+      "id": "sabotage",
+      "count": 2
+    },
+    {
+      "id": "storm_arc_bolt",
+      "count": 2
+    },
+    {
+      "id": "storm_chain_lightning",
+      "count": 2
+    },
+    {
+      "id": "storm_earthing_rod",
+      "count": 2
+    },
+    {
+      "id": "storm_lash",
+      "count": 2
+    },
+    {
+      "id": "storm_palm_surge",
+      "count": 2
+    },
+    {
+      "id": "storm_smiting_bolt",
+      "count": 1
+    },
+    {
+      "id": "threefold_bolt",
+      "count": 1
+    },
+    {
+      "id": "braced_guard",
+      "count": 1
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 1
+    },
+    {
+      "id": "rallying_call",
+      "count": 2
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "scorn_smirks",
+      "count": 1
+    },
+    {
+      "id": "sever_the_leyline",
+      "count": 1
+    },
+    {
+      "id": "assembly_drill",
+      "count": 1
+    },
+    {
+      "id": "mournes_quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "corins_conditioning",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "mercy_smiles",
+      "count": 2
+    },
+    {
+      "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "provocation",
+      "count": 2
+    },
+    {
+      "id": "spoiled_rite",
+      "count": 1
+    },
+    {
+      "id": "salvage_alpha",
+      "count": 1
+    },
+    {
+      "id": "salvage_beta",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_5",
+      "count": 1
+    },
+    {
+      "id": "practiced_guard",
+      "count": 1
+    },
+    {
+      "id": "second_wind",
+      "count": 1
+    }
+  ]
+}

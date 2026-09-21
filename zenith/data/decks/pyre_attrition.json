@@ -13,7 +13,6 @@
     "the_watch_goes_dark",
     "defacement",
     "no_quarter",
-    "no_quarter",
     "no_quarter"
   ],
   "archetype": "strike_beatdown",
@@ -149,6 +148,10 @@
     },
     {
       "id": "spent_to_the_last",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
       "count": 1
     }
   ]

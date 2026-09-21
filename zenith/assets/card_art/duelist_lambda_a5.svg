@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Bram Ashmark, Insatiable. Head and shoulders only, enormous, mouth open, and where the eyes
+       and the throat used to be there is just the light of the thing that is still hungry. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head, cropped by the frame on three sides -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52,330 C40,148 148,20 306,16 C466,12 560,140 550,336 C540,528 452,632 304,628 C160,624 64,520 52,330 Z"/>
+    <path d="M40,220 C86,84 190,8 320,18 C430,26 506,86 538,186"/>
+    <!-- brow -->
+    <path d="M96,282 L254,246"/>
+    <path d="M356,246 L510,286"/>
+    <!-- and the mouth, wide open -->
+    <path d="M136,520 C218,470 390,470 468,520 C398,626 206,626 136,520 Z"/>
+    <path d="M172,510 C238,488 370,488 434,510"/>
+  </g>
+  <!-- what is in there instead of a face -->
+  <g fill="none" stroke="#ffd700" stroke-width="12" stroke-linecap="round">
+    <path d="M128,336 C166,302 226,300 262,330"/>
+    <path d="M344,330 C380,300 440,302 478,336"/>
+    <path d="M302,300 C294,382 282,428 262,458"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="9" stroke-linecap="round">
+    <path d="M112,382 C154,356 212,354 250,378"/>
+    <path d="M356,378 C394,354 452,356 494,382"/>
+    <path d="M204,570 C252,590 354,590 400,570"/>
+    <path d="M232,604 C268,618 338,618 374,604"/>
+  </g>
+  <!-- shoulders, just the tops of them -->
+  <g fill="none" stroke="#fffafa" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M168,664 C202,700 200,744 186,780"/>
+    <path d="M438,662 C404,698 406,742 420,778"/>
+    <path d="M28,864 C86,798 200,762 302,762 C406,762 520,798 578,864"/>
+  </g>
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M98,836 C160,800 232,786 302,786 C374,786 446,800 508,836"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="6" stroke-linecap="round">
+    <path d="M148,846 C204,818 252,808 302,808 C354,808 402,818 458,846"/>
+  </g>
+</svg>

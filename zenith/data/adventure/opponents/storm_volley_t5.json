@@ -1,0 +1,175 @@
+{
+  "name": "Tempest Engine (T5)",
+  "source_deck": "storm_volley",
+  "tier": "t5",
+  "mode": "adventure",
+  "duelist": "duelist_gamma",
+  "aspects": 3,
+  "style": "storm",
+  "alignment": "pact",
+  "mastery": "storm_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "art_beatdown",
+  "subthemes": [
+    "construct",
+    "draw",
+    "fervor"
+  ],
+  "ai_profile": "storm_volley",
+  "tagline": "Build your engine with Drills, charge your Energy, and unleash a barrage of discounted Arts.",
+  "cards": [
+    {
+      "id": "captains_barrage",
+      "count": 3
+    },
+    {
+      "id": "draiks_reckoning",
+      "count": 3
+    },
+    {
+      "id": "lingering_curse",
+      "count": 2
+    },
+    {
+      "id": "sabotage",
+      "count": 3
+    },
+    {
+      "id": "scattered_ashes",
+      "count": 2
+    },
+    {
+      "id": "sledges_stance",
+      "count": 3
+    },
+    {
+      "id": "storm_arc_bolt",
+      "count": 2
+    },
+    {
+      "id": "storm_chain_lightning",
+      "count": 2
+    },
+    {
+      "id": "storm_charged_ward",
+      "count": 2
+    },
+    {
+      "id": "storm_smiting_bolt",
+      "count": 2
+    },
+    {
+      "id": "storm_static_field",
+      "count": 1
+    },
+    {
+      "id": "storm_thunderhead",
+      "count": 1
+    },
+    {
+      "id": "unerring_bolt",
+      "count": 2
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 3
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "mutual_escalation",
+      "count": 2
+    },
+    {
+      "id": "old_trick",
+      "count": 2
+    },
+    {
+      "id": "reckless_ascent",
+      "count": 3
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "scorn_smirks",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
+      "count": 1
+    },
+    {
+      "id": "clear_mind",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "mercy_smiles",
+      "count": 2
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "henchman_zeta",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_1",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_3",
+      "count": 1
+    },
+    {
+      "id": "sun_seal_5",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
+      "count": 2
+    },
+    {
+      "id": "relentless_fury",
+      "count": 2
+    },
+    {
+      "id": "second_wind",
+      "count": 2
+    },
+    {
+      "id": "siphons_sidestep",
+      "count": 3
+    },
+    {
+      "id": "storm_maelstrom",
+      "count": 1
+    },
+    {
+      "id": "storm_overcharge",
+      "count": 1
+    },
+    {
+      "id": "storm_recharge",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Sir Edric Rooke, the Hero. Three-quarter, weight on the back foot, sword planted point
+       down, the off hand out flat toward you: stop there, this is far enough. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head: square jaw, cropped hair, turned to his left -->
+    <path d="M196,166 C196,116 240,92 288,98 C336,104 358,144 352,196 C346,252 316,282 274,280 C228,278 198,238 196,196 Z"/>
+    <path d="M192,150 C204,112 250,90 296,96 C330,100 348,116 354,140"/>
+    <path d="M204,142 L246,134"/><path d="M262,134 L306,142"/>
+    <path d="M212,172 C226,166 242,168 252,178"/>
+    <path d="M276,180 C290,172 306,174 316,184"/>
+    <path d="M262,186 C258,210 254,224 248,232"/>
+    <path d="M232,246 C254,250 278,248 296,242"/>
+    <path d="M216,214 C222,232 226,244 226,254"/>
+    <!-- neck into a mail collar, shoulders wide and sloped -->
+    <path d="M234,282 C236,300 234,312 228,322"/>
+    <path d="M300,272 C302,292 304,306 310,316"/>
+    <path d="M148,378 C180,336 300,320 372,352"/>
+    <path d="M148,378 C124,414 112,470 110,540"/>
+    <path d="M372,352 C404,382 420,436 424,506"/>
+    <path d="M110,540 C108,640 112,748 120,860"/>
+    <path d="M424,506 C430,606 430,742 424,860"/>
+  </g>
+  <!-- mail, hanging in folds not stripes -->
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.6" stroke-linecap="round">
+    <path d="M130,440 C190,410 300,402 402,428"/>
+    <path d="M120,520 C184,490 304,482 412,506"/>
+    <path d="M116,600 C182,572 306,564 418,586"/>
+    <path d="M116,680 C182,654 308,646 420,666"/>
+    <path d="M118,760 C184,736 308,728 422,746"/>
+  </g>
+  <!-- the off hand, out flat and near the lens -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M372,360 C420,378 460,408 484,448"/>
+    <path d="M484,448 C468,410 470,376 490,352"/>
+    <path d="M512,456 C500,416 504,382 524,360"/>
+    <path d="M540,474 C532,438 538,408 556,390"/>
+    <path d="M566,500 C562,472 568,450 582,436"/>
+    <path d="M484,448 C462,470 458,504 474,530 C496,566 560,574 590,546"/>
+  </g>
+  <!-- the sword, planted -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="8" stroke-linecap="round">
+    <path d="M62,516 C56,624 56,738 62,850"/>
+    <path d="M100,516 C106,624 106,738 100,850"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="8" stroke-linecap="round">
+    <path d="M26,510 C52,500 112,500 136,510"/>
+    <path d="M81,500 C79,470 79,450 81,434"/>
+    <path d="M64,428 C74,418 90,418 98,428"/>
+  </g>
+</svg>

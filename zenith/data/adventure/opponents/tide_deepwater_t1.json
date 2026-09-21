@@ -1,0 +1,139 @@
+{
+  "name": "Crushing Depths (T1)",
+  "source_deck": "tide_deepwater",
+  "tier": "t1",
+  "mode": "adventure",
+  "duelist": "duelist_iota",
+  "aspects": 2,
+  "style": "tide",
+  "alignment": "vigil",
+  "mastery": "tide_fathom_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "control",
+  "subthemes": [
+    "fervor",
+    "strikes",
+    "disruption"
+  ],
+  "ai_profile": "tide_deepwater",
+  "tagline": "Hold their Fervor down with every blow, strip what they place, and spend your discard pile instead of blocking.",
+  "cards": [
+    {
+      "id": "tide_black_water",
+      "count": 1
+    },
+    {
+      "id": "tide_crushing_depth",
+      "count": 2
+    },
+    {
+      "id": "tide_depths",
+      "count": 1
+    },
+    {
+      "id": "tide_full_weight",
+      "count": 1
+    },
+    {
+      "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "old_trick",
+      "count": 1
+    },
+    {
+      "id": "reckless_ascent",
+      "count": 1
+    },
+    {
+      "id": "clear_mind",
+      "count": 1
+    },
+    {
+      "id": "edrics_low_water",
+      "count": 1
+    },
+    {
+      "id": "first_cut",
+      "count": 1
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "mournes_plans",
+      "count": 1
+    },
+    {
+      "id": "wardens_measure",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_3",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_4",
+      "count": 1
+    },
+    {
+      "id": "moth_seal_7",
+      "count": 1
+    },
+    {
+      "id": "ashmarks_choke_hold",
+      "count": 1
+    },
+    {
+      "id": "edrics_opening_strike",
+      "count": 1
+    },
+    {
+      "id": "second_wind",
+      "count": 1
+    },
+    {
+      "id": "tide_deep_guard",
+      "count": 2
+    },
+    {
+      "id": "tide_deep_sweep",
+      "count": 1
+    },
+    {
+      "id": "tide_dredge",
+      "count": 2
+    },
+    {
+      "id": "tide_drowning",
+      "count": 1
+    },
+    {
+      "id": "tide_pressure_wave",
+      "count": 1
+    },
+    {
+      "id": "tide_pull_under",
+      "count": 1
+    },
+    {
+      "id": "tide_sweep_aside",
+      "count": 1
+    },
+    {
+      "id": "tide_undersweep",
+      "count": 1
+    },
+    {
+      "id": "tide_undertow",
+      "count": 1
+    },
+    {
+      "id": "tide_welling_deep",
+      "count": 1
+    }
+  ]
+}

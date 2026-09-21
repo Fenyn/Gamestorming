@@ -69,8 +69,8 @@ func _init() -> void:
 				for seat in [0, 1]:
 					games += 1
 					var decks: Array[DeckList] = [null, null]
-					decks[seat] = DeckList.load_from("res://data/decks/%s.json" % pilot)
-					decks[1 - seat] = DeckList.load_from("res://data/decks/%s.json" % foe)
+					decks[seat] = DeckList.resolve(pilot)
+					decks[1 - seat] = DeckList.resolve(foe)
 					var ref: Referee = Referee.new()
 					ref.setup(decks, lib, table, rng.randi(), [], false)
 					ref.start()

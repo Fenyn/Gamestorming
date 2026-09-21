@@ -1,0 +1,154 @@
+{
+  "name": "Ember Ascendant (T4)",
+  "source_deck": "pyre_ascent",
+  "tier": "t4",
+  "mode": "adventure",
+  "duelist": "duelist_iota",
+  "aspects": 3,
+  "style": "pyre",
+  "alignment": "vigil",
+  "mastery": "pyre_ember_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "subthemes": [
+    "fervor",
+    "strikes"
+  ],
+  "ai_profile": "pyre_ascent",
+  "tagline": "Weather the early assault and stoke your Fervor to unleash the Ember Knight's strongest Aspects.",
+  "cards": [
+    {
+      "id": "captains_barrage",
+      "count": 3
+    },
+    {
+      "id": "declaration",
+      "count": 1
+    },
+    {
+      "id": "grounding_step",
+      "count": 1
+    },
+    {
+      "id": "pyre_hearthguard",
+      "count": 2
+    },
+    {
+      "id": "pyre_immolation",
+      "count": 2
+    },
+    {
+      "id": "braced_guard",
+      "count": 2
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "dismissal",
+      "count": 2
+    },
+    {
+      "id": "edrics_truce",
+      "count": 1
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "respite",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "watchful_eye",
+      "count": 2
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "companion_epsilon",
+      "count": 1
+    },
+    {
+      "id": "marble_seal_4",
+      "count": 1
+    },
+    {
+      "id": "edrics_opening_strike",
+      "count": 2
+    },
+    {
+      "id": "edrics_training",
+      "count": 3
+    },
+    {
+      "id": "hasks_flying_kick",
+      "count": 2
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "pyre_ashen_veil",
+      "count": 2
+    },
+    {
+      "id": "pyre_backdraft",
+      "count": 2
+    },
+    {
+      "id": "pyre_bellows_guard",
+      "count": 2
+    },
+    {
+      "id": "pyre_blazing_charge",
+      "count": 2
+    },
+    {
+      "id": "pyre_cinder_guard",
+      "count": 2
+    },
+    {
+      "id": "pyre_comet_fall",
+      "count": 2
+    },
+    {
+      "id": "pyre_ember_strike",
+      "count": 2
+    },
+    {
+      "id": "pyre_firestorm",
+      "count": 2
+    },
+    {
+      "id": "pyre_flashpoint",
+      "count": 2
+    },
+    {
+      "id": "pyre_furnace_breath",
+      "count": 2
+    },
+    {
+      "id": "pyre_updraft",
+      "count": 2
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    }
+  ]
+}

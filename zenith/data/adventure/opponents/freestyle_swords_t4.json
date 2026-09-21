@@ -1,0 +1,158 @@
+{
+  "name": "Blade Legacy (T4)",
+  "source_deck": "freestyle_swords",
+  "tier": "t4",
+  "mode": "adventure",
+  "duelist": "duelist_zeta",
+  "aspects": 3,
+  "style": "freestyle",
+  "alignment": "vigil",
+  "mastery": "freestyle_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "drills",
+  "subthemes": [
+    "strikes",
+    "swords"
+  ],
+  "ai_profile": "freestyle_swords",
+  "tagline": "Build a foundation of Drills, then chain signature sword techniques into increasingly powerful strikes.",
+  "cards": [
+    {
+      "id": "committed_cut",
+      "count": 2
+    },
+    {
+      "id": "lobbed_bolt",
+      "count": 1
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "keen_eye",
+      "count": 1
+    },
+    {
+      "id": "kept_at_bay",
+      "count": 1
+    },
+    {
+      "id": "quiet_study",
+      "count": 1
+    },
+    {
+      "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "watchful_eye",
+      "count": 2
+    },
+    {
+      "id": "absorbing_drill",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
+      "count": 1
+    },
+    {
+      "id": "counterplay_drill",
+      "count": 1
+    },
+    {
+      "id": "lone_blade_drill",
+      "count": 2
+    },
+    {
+      "id": "mournes_quickness_drill",
+      "count": 1
+    },
+    {
+      "id": "no_retreat_drill",
+      "count": 1
+    },
+    {
+      "id": "swordplay_drill",
+      "count": 2
+    },
+    {
+      "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "heirloom_blade",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
+      "count": 1
+    },
+    {
+      "id": "vales_insight",
+      "count": 2
+    },
+    {
+      "id": "hilt_guard",
+      "count": 3
+    },
+    {
+      "id": "mournes_stance",
+      "count": 1
+    },
+    {
+      "id": "no_quarter",
+      "count": 2
+    },
+    {
+      "id": "quick_retreat",
+      "count": 2
+    },
+    {
+      "id": "relentless_fury",
+      "count": 2
+    },
+    {
+      "id": "second_wind",
+      "count": 2
+    },
+    {
+      "id": "sword_flourish",
+      "count": 2
+    },
+    {
+      "id": "sword_lunge",
+      "count": 2
+    },
+    {
+      "id": "sword_sweep",
+      "count": 2
+    },
+    {
+      "id": "sword_thrust",
+      "count": 2
+    },
+    {
+      "id": "unyielding_guard",
+      "count": 1
+    },
+    {
+      "id": "vales_pommel_bash",
+      "count": 2
+    },
+    {
+      "id": "vales_quickstep",
+      "count": 2
+    },
+    {
+      "id": "vales_riposte",
+      "count": 3
+    },
+    {
+      "id": "vales_sword_draw",
+      "count": 3
+    }
+  ]
+}

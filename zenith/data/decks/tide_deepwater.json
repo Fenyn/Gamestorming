@@ -18,7 +18,6 @@
     "tide_heavy_water",
     "tide_heavy_water",
     "tide_full_weight",
-    "tide_full_weight",
     "tide_held_under",
     "defacement"
   ],
@@ -192,6 +191,10 @@
     {
       "id": "old_trick",
       "count": 2
+    },
+    {
+      "id": "tide_full_weight",
+      "count": 1
     }
   ]
 }

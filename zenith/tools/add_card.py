@@ -53,13 +53,16 @@ def decks_running(card_id):
     return out
 
 
-def arg_list(flag):
+def arg_value(flag):
+    """The raw argument after `flag`, which is one comma-joined string, or "" when absent."""
     if flag not in sys.argv:
-        return []
+        return ""
     i = sys.argv.index(flag)
-    if i + 1 >= len(sys.argv):
-        return []
-    return [s.strip() for s in sys.argv[i + 1].split(",") if s.strip()]
+    return sys.argv[i + 1] if i + 1 < len(sys.argv) else ""
+
+
+def arg_list(flag):
+    return [s.strip() for s in arg_value(flag).split(",") if s.strip()]
 
 
 def main():
@@ -89,8 +92,9 @@ def main():
         retired.append(dead)
 
     if args:
-        # Skip the flag values, which are not spec paths.
-        specs = [a for a in args if a not in arg_list("--only") + arg_list("--replace") + retiring]
+        # A flag's value sits in argv like a positional, so drop it before reading spec paths.
+        values = [arg_value(f) for f in ("--only", "--replace", "--retire")]
+        specs = [a for a in args if a not in values]
         import cardlib
         for path in specs:
             load_spec(path)

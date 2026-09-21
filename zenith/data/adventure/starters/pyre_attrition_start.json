@@ -1,0 +1,119 @@
+{
+  "name": "Last Standing (Starter)",
+  "source_deck": "pyre_attrition",
+  "mode": "adventure",
+  "duelist": "duelist_lambda",
+  "aspects": 2,
+  "style": "pyre",
+  "alignment": "pact",
+  "mastery": "pyre_ember_mastery",
+  "relic": "",
+  "reserve": [],
+  "archetype": "strike_beatdown",
+  "difficulty": "medium",
+  "subthemes": [
+    "fervor",
+    "disruption",
+    "strikes"
+  ],
+  "ai_profile": "pyre_attrition",
+  "tagline": "Strip the table bare, climb past your rival's last Aspect, and refill your Life Deck while they run out.",
+  "cards": [
+    {
+      "id": "ashmarks_ember_spray",
+      "count": 2
+    },
+    {
+      "id": "declaration",
+      "count": 1
+    },
+    {
+      "id": "pyre_immolation",
+      "count": 2
+    },
+    {
+      "id": "riftcry",
+      "count": 1
+    },
+    {
+      "id": "cold_appraisal",
+      "count": 2
+    },
+    {
+      "id": "cut_short",
+      "count": 2
+    },
+    {
+      "id": "pyre_twin_flames",
+      "count": 1
+    },
+    {
+      "id": "spent_to_the_last",
+      "count": 1
+    },
+    {
+      "id": "will_not_break",
+      "count": 1
+    },
+    {
+      "id": "emrys_rising_blow",
+      "count": 2
+    },
+    {
+      "id": "headlong_plunge",
+      "count": 1
+    },
+    {
+      "id": "pyre_cinder_guard",
+      "count": 2
+    },
+    {
+      "id": "pyre_firestorm",
+      "count": 2
+    },
+    {
+      "id": "pyre_flame_lash",
+      "count": 2
+    },
+    {
+      "id": "pyre_flashpoint",
+      "count": 1
+    },
+    {
+      "id": "pyre_furnace_breath",
+      "count": 2
+    },
+    {
+      "id": "pyre_knee_bash",
+      "count": 2
+    },
+    {
+      "id": "pyre_rekindling",
+      "count": 2
+    },
+    {
+      "id": "pyre_scouring_flame",
+      "count": 2
+    },
+    {
+      "id": "pyre_searing_guard",
+      "count": 2
+    },
+    {
+      "id": "pyre_sword_cleave",
+      "count": 2
+    },
+    {
+      "id": "pyre_warding_stance",
+      "count": 2
+    },
+    {
+      "id": "quick_retreat",
+      "count": 1
+    },
+    {
+      "id": "vales_sword_draw",
+      "count": 2
+    }
+  ]
+}

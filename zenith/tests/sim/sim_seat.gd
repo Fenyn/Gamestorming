@@ -23,6 +23,7 @@ const KNOBS: Dictionary = {
 	"prior": ["prior", false],
 	"settle-plies": ["settle_plies", true],
 	"settle-lead": ["settle_lead", false],
+	"branch-margin": ["branch_margin", false],
 }
 
 ## Policies that are not the name of a level file under `data/ai/profiles`.

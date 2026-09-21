@@ -1,30 +1,67 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
-  <!-- Placeholder crest: House Rooke, Dame Alder as an Ally. Base Rooke tower over water,
-       differenced by the matriarch's coronet and the shield she puts in the way. -->
-  <defs>
-    <radialGradient id="field" cx="50%" cy="40%" r="70%">
-      <stop offset="0" stop-color="#17384f"/>
-      <stop offset="1" stop-color="#050a11"/>
-    </radialGradient>
-    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#e6f2f5"/>
-      <stop offset="1" stop-color="#75919d"/>
-    </linearGradient>
-  </defs>
-  <rect width="604" height="868" fill="url(#field)"/>
-  <path d="M0,724 C140,700 240,742 340,726 C440,710 520,742 604,722" fill="none" stroke="#4fb8c8" stroke-opacity="0.22" stroke-width="4"/>
-  <path d="M0,776 C150,754 250,792 350,776 C450,760 530,790 604,772" fill="none" stroke="#4fb8c8" stroke-opacity="0.12" stroke-width="4"/>
-  <g transform="translate(-466.4,-12.8) scale(1.7)">
-    <path d="M312,84 H592 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#0d2438" stroke="#4fb8c8" stroke-opacity="0.65" stroke-width="5"/>
-    <path d="M312,84 H592 V132 H312 Z" fill="#4fb8c8" fill-opacity="0.18"/>
-    <!-- the coronet: eldest of the coven -->
-    <path d="M372,124 l16,-32 l20,22 l24,-32 l24,32 l20,-22 l16,32 Z" fill="#d8c07a" stroke="#8e7736" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M402,180 h20 v-22 h22 v22 h16 v-22 h22 v22 h20 V300 h18 l-10,22 h-116 l-10,-22 h18 Z" fill="url(#metal)" stroke="#0a1a26" stroke-width="3"/>
-    <path d="M436,258 a16,16 0 0 1 32,0 V300 h-32 Z" fill="#0d2438"/>
-    <rect x="444" y="196" width="16" height="30" rx="8" fill="#0d2438"/>
-    <!-- a round shield across the tower: she steps in front of blows meant for someone else -->
-    <circle cx="452" cy="292" r="54" fill="#12405c" stroke="#d8c07a" stroke-width="5"/>
-    <circle cx="452" cy="292" r="14" fill="#d8c07a" fill-opacity="0.8"/>
-    <path d="M356,346 q24,-14 48,0 t48,0 t48,0 t48,0" fill="none" stroke="#4fb8c8" stroke-width="6" stroke-linecap="round"/>
+  <!-- Dame Alder Rooke, as an Ally. Sixty years old, straight-backed, long grey hair loose, the
+       shield already where the blow was going. Not a drop of water raised, and furious. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head: long, lined, turned toward the blow -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M286,126 C286,90 324,72 360,78 C398,84 414,124 408,190 C402,254 378,286 344,284 C306,282 286,246 286,194 Z"/>
+    <!-- long grey hair, off the shoulders -->
+    <path d="M280,146 C288,102 328,74 370,82 C396,88 408,104 412,124"/>
+    <path d="M276,150 C252,214 250,320 268,420"/>
+    <path d="M416,140 C442,204 448,312 432,416"/>
+    <path d="M290,132 C320,118 364,118 390,132"/>
+    <!-- brows down: she is angry, not brave -->
+    <path d="M292,178 L340,166"/>
+    <path d="M358,166 L406,180"/>
+    <path d="M300,204 C312,194 328,196 338,206"/>
+    <path d="M364,208 C376,198 392,200 400,210"/>
+    <path d="M350,208 C348,234 344,248 338,258"/>
+    <path d="M318,268 C334,272 356,270 370,264"/>
+    <!-- lines: she has done this before -->
+    <path d="M296,236 C302,254 306,266 306,276"/>
+    <path d="M400,238 C396,256 392,268 392,278"/>
+  </g>
+  <!-- straight back, mail under the gown, sword held low and forgotten -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M318,286 C320,306 318,320 312,330"/>
+    <path d="M382,284 C384,304 386,318 392,328"/>
+    <path d="M244,388 C284,350 430,344 484,382"/>
+    <path d="M244,388 C224,428 214,490 214,566"/>
+    <path d="M484,382 C506,424 516,490 516,568"/>
+    <path d="M214,566 C214,660 218,760 226,862"/>
+    <path d="M516,568 C516,660 512,760 504,862"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M228,464 C282,436 444,430 506,454"/>
+    <path d="M220,552 C278,524 448,518 514,542"/>
+    <path d="M216,640 C276,612 452,606 518,630"/>
+  </g>
+  <!-- the shield arm, thrown across the frame -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M246,396 C202,428 168,476 148,534"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M38,478 C82,442 156,442 200,478 C212,566 190,636 140,684 C82,668 36,614 20,540 Z"/>
+    <path d="M24,534 C82,514 156,514 208,538"/>
+  </g>
+  <g fill="none" stroke="#20b2aa" stroke-width="9" stroke-linecap="round">
+    <path d="M96,560 C112,550 134,552 148,566"/>
+  </g>
+  <!-- the blow, landing on the shield and not on the person behind her -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-opacity="0.9" stroke-linecap="round">
+    <path d="M0,266 C46,322 98,380 142,426"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="8" stroke-linecap="round">
+    <path d="M118,416 L106,368"/>
+    <path d="M170,438 L188,392"/>
+    <path d="M96,452 L50,442"/>
+  </g>
+  <!-- the sword, down at her side, unused -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-linecap="round">
+    <path d="M540,596 C548,682 552,770 550,858"/>
+    <path d="M572,594 C580,680 584,770 582,858"/>
+  </g>
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round">
+    <path d="M516,588 C540,580 588,580 604,586"/>
   </g>
 </svg>

@@ -1,34 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
-  <!-- Placeholder crest: Orvath Kell. A company that no longer exists: the officer's gorget over
-       two staves left standing, with the ground growing back through it. -->
-  <defs>
-    <radialGradient id="field" cx="50%" cy="42%" r="70%">
-      <stop offset="0" stop-color="#1c2a1e"/>
-      <stop offset="1" stop-color="#060906"/>
-    </radialGradient>
-    <linearGradient id="grey" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#cdd4cc"/>
-      <stop offset="1" stop-color="#6e7970"/>
-    </linearGradient>
-  </defs>
-  <rect width="604" height="868" fill="url(#field)"/>
-  <path d="M0,736 C140,712 240,754 340,738 C440,722 520,754 604,734" fill="none" stroke="#8fae6a" stroke-opacity="0.2" stroke-width="4"/>
-  <g transform="translate(-466.4,-12.8) scale(1.7)">
-    <path d="M312,84 H592 V250 C592,332 522,382 452,406 C382,382 312,332 312,250 Z" fill="#101a12" stroke="#8fae6a" stroke-opacity="0.5" stroke-width="5"/>
-    <g stroke="#6b5836" stroke-width="10" stroke-linecap="round">
-      <path d="M372,134 L532,348"/>
-      <path d="M532,134 L372,348"/>
-    </g>
-    <!-- the gorget, never taken off -->
-    <path d="M452,184 C512,184 550,218 550,256 C550,294 508,318 452,318 C396,318 354,294 354,256 C354,218 392,184 452,184 Z" fill="url(#grey)" stroke="#0b0f0b" stroke-width="4"/>
-    <path d="M452,216 C498,216 524,236 524,260 C524,284 494,298 452,298 C410,298 380,284 380,260 C380,236 406,216 452,216 Z" fill="#101a12"/>
-    <circle cx="452" cy="206" r="12" fill="#8fae6a"/>
-    <!-- the ground taking the field back -->
-    <g fill="none" stroke="#8fae6a" stroke-width="5" stroke-linecap="round">
-      <path d="M360,358 C372,324 394,310 408,304"/>
-      <path d="M544,358 C532,324 510,310 496,304"/>
-      <path d="M390,350 q14,-18 32,-16"/>
-      <path d="M514,350 q-14,-18 -32,-16"/>
-    </g>
+  <!-- Orvath Kell. Tall, gaunt, shaven, a high collar and an officer's gorget he has not taken
+       off since the company stopped existing. Both palms down over a frame on the ground. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the head: narrow, shaven, long jaw, eyes down at the work -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M250,104 C250,68 282,52 314,58 C348,64 362,100 358,164 C354,228 332,258 300,256 C266,254 250,218 250,166 Z"/>
+    <path d="M246,120 C256,80 290,56 324,64 C346,70 356,84 360,100"/>
+    <path d="M258,152 C270,142 288,144 298,154"/>
+    <path d="M318,156 C330,146 348,148 356,158"/>
+    <path d="M306,158 C304,186 300,202 292,214"/>
+    <path d="M272,226 C288,230 310,228 326,222"/>
+    <!-- hollow under the cheekbones -->
+    <path d="M256,178 C264,206 268,228 266,244"/>
+    <path d="M352,182 C346,210 342,230 344,244"/>
+  </g>
+  <!-- the high collar, standing up round the neck -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232,336 C242,286 268,262 292,258"/>
+    <path d="M378,332 C368,284 344,260 320,256"/>
+    <path d="M232,336 C266,352 344,352 378,332"/>
+  </g>
+  <!-- the gorget, still buckled -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M240,352 C272,336 340,336 372,352 C378,388 374,412 364,428 C322,440 288,440 248,428 C238,412 234,388 240,352 Z"/>
+    <path d="M244,390 C280,380 332,380 368,390"/>
+  </g>
+  <!-- the coat, long and narrow -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M206,452 C246,420 366,416 408,448"/>
+    <path d="M206,452 C186,492 176,556 176,632"/>
+    <path d="M408,448 C428,490 438,556 438,632"/>
+    <path d="M176,632 C176,700 180,760 188,812"/>
+    <path d="M438,632 C438,700 434,760 426,812"/>
+    <path d="M306,432 C304,520 304,600 308,664"/>
+    <!-- both arms coming down and forward -->
+    <path d="M206,458 C176,506 158,566 152,630"/>
+    <path d="M408,454 C438,502 456,562 462,626"/>
+  </g>
+  <!-- and the hands, palms down, over the work -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M152,630 C132,650 126,680 138,702"/>
+    <path d="M462,626 C482,646 488,676 476,698"/>
+    <path d="M138,702 C162,718 196,716 214,700"/>
+    <path d="M476,698 C452,716 418,714 400,698"/>
+    <path d="M164,706 C160,726 162,742 170,754"/>
+    <path d="M196,706 C194,728 196,744 204,756"/>
+    <path d="M418,704 C422,726 420,742 412,754"/>
+    <path d="M450,702 C452,724 450,740 442,752"/>
+  </g>
+  <!-- the hex uncoiling between them -->
+  <g fill="none" stroke="#9370db" stroke-width="10" stroke-linecap="round">
+    <path d="M206,790 C258,762 348,764 396,796 C440,826 432,866 380,872"/>
+  </g>
+  <g fill="none" stroke="#da70d6" stroke-width="7" stroke-linecap="round">
+    <path d="M240,806 C280,786 332,788 366,810"/>
+  </g>
+  <!-- the frame on the ground under it -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-opacity="0.55" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M54,858 C154,834 456,832 556,856"/>
+    <path d="M120,836 C120,812 162,812 162,836"/>
+    <path d="M442,838 C442,814 484,814 484,838"/>
   </g>
 </svg>

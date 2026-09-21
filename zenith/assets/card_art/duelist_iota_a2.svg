@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Sir Edric Rooke, the Stranger. Head down over his own two hands, cupped and empty, and the
+       seam of heat running out of one sleeve. The axe he did not bring is behind him. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head, bowed, we see the top of it and the brow -->
+    <path d="M206,150 C206,98 250,70 302,76 C356,82 382,128 376,196 C370,262 338,300 292,298 C242,296 206,252 206,196 Z"/>
+    <path d="M200,166 C208,110 256,70 312,80 C348,86 368,106 376,132"/>
+    <!-- eyes down and shadowed under the brow -->
+    <path d="M228,206 L288,192"/>
+    <path d="M308,192 L366,208"/>
+    <path d="M238,232 C254,222 274,224 286,236"/>
+    <path d="M318,236 C332,226 352,228 362,240"/>
+    <path d="M300,214 C296,248 290,266 282,278"/>
+    <path d="M258,290 C280,296 310,294 330,286"/>
+    <!-- neck, and shoulders sloping in because he is leaning over them -->
+    <path d="M254,300 C256,322 254,336 248,346"/>
+    <path d="M332,294 C334,318 336,332 342,342"/>
+    <path d="M150,412 C196,366 388,360 448,404"/>
+    <path d="M150,412 C130,450 120,506 120,570"/>
+    <path d="M448,404 C470,446 480,508 480,574"/>
+    <path d="M120,570 C120,650 124,740 132,862"/>
+    <path d="M480,574 C480,654 476,744 468,862"/>
+  </g>
+  <g fill="none" stroke="#fffafa" stroke-width="4" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M136,480 C196,452 400,446 472,470"/>
+    <path d="M126,556 C190,528 406,522 480,546"/>
+  </g>
+  <!-- both arms coming in, and the two hands cupped at the bottom of the frame -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M152,470 C170,554 204,624 254,676"/>
+    <path d="M478,466 C460,552 424,624 372,678"/>
+    <path d="M254,676 C222,700 214,740 234,768 C266,812 366,812 396,766 C414,738 404,700 372,678"/>
+    <path d="M254,676 C288,662 342,662 372,678"/>
+    <path d="M262,712 C296,700 336,700 366,712"/>
+  </g>
+  <!-- and the seam, down the inside of one forearm -->
+  <g fill="none" stroke="#a52a2a" stroke-width="8" stroke-linecap="round">
+    <path d="M186,486 C202,560 232,626 278,676"/>
+  </g>
+  <g fill="none" stroke="#ffd700" stroke-width="5" stroke-linecap="round">
+    <path d="M200,496 C216,564 242,624 282,670"/>
+  </g>
+  <!-- the axe, behind him on the stones -->
+  <g fill="none" stroke="#8b4513" stroke-width="6" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M12,836 C58,826 112,820 158,820"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="6" stroke-opacity="0.55" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M158,822 C182,810 196,790 192,768 C162,770 142,790 136,818 Z"/>
+  </g>
+</svg>

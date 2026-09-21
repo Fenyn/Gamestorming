@@ -118,6 +118,15 @@ func sim_for(seat: int, sample_seed: int) -> DuelEngine:
 	return sim
 
 
+## The same sample as `sim_for`, written into an engine the caller already owns. Identical result;
+## it only skips the allocation. The search calls this once per world at every opponent node.
+func sim_into(seat: int, sample_seed: int, spare: DuelEngine) -> DuelEngine:
+	engine.clone_into(spare)
+	spare.determinize(seat, sample_seed)
+	_sample_opponent_pool(spare, seat, sample_seed, _belief_candidate_cache)
+	return spare
+
+
 func view_for(seat: int, include_forecasts: bool = true) -> SeatView:
 	return SeatView.of(engine, seat, include_forecasts)
 
@@ -151,29 +160,36 @@ static func _sample_opponent_pool(sim: DuelEngine, seat: int, sample_seed: int, 
 	var unknown: Array[int] = []
 	var counts: Dictionary = {}
 	var seal_set: String = ""
+	# Read the same reveal policy without building a SeatCard per card. Only three facts are
+	# wanted here (owner, hidden, def id) and `SeatCard.of` allocated a full view for each, which
+	# measured at 758 us of the 1350 us this sample costs, once per opponent node.
 	for card in sim.all_cards():
-		var visible: SeatCard = SeatCard.of(card, seat, shown.has(card.uid))
-		if visible.owner != rival.index:
+		if card.owner != rival.index:
 			continue
-		if visible.hidden():
-			unknown.append(visible.uid)
-		else:
-			counts[visible.def_id] = int(counts.get(visible.def_id, 0)) + 1
-			var def: CardDef = sim.library.defs.get(visible.def_id)
-			if def != null and def.type == CardDef.Type.SEAL:
-				seal_set = def.seal_set
+		if not (shown.has(card.uid) or SeatCard.visible_to(card, seat)):
+			unknown.append(card.uid)
+			continue
+		var def_id: String = card.def.id
+		counts[def_id] = int(counts.get(def_id, 0)) + 1
+		var def: CardDef = sim.library.defs.get(def_id)
+		if def != null and def.type == CardDef.Type.SEAL:
+			seal_set = def.seal_set
 	if unknown.is_empty():
 		return
 	unknown.sort()
-	var cache_key: String = JSON.stringify([sim.library.get_instance_id(), sim.library.defs.hash(), rival.style, rival.alignment, rival.highest_aspect, duelist.character])
+	# The library is immutable for the life of a duel, so its instance id identifies it. Hashing
+	# `defs` here re-hashed every card definition on every sample, which the search pays per node.
+	var cache_key: String = "%d|%s|%s|%d|%s" % [sim.library.get_instance_id(), rival.style,
+		rival.alignment, rival.highest_aspect, duelist.character]
 	var ids: Array = []
 	var allowed: Array[CardDef] = []
 	var sets: Array[String] = []
 	if candidate_cache.has(cache_key):
+		# Read the cached arrays in place. `assign` copied several hundred CardDefs per call.
 		var cached: Dictionary = candidate_cache[cache_key]
 		ids = cached["ids"]
-		allowed.assign(cached["allowed"])
-		sets.assign(cached["sets"])
+		allowed = cached["allowed"]
+		sets = cached["sets"]
 	else:
 		ids = sim.library.defs.keys()
 		ids.sort()

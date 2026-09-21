@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="604" height="868" viewBox="0 0 604 868">
+  <!-- Marrow, Patchwork. Full length in the yard she was assembled in. Nothing on her matches:
+       one thin arm, one heavy, straps where joints should be, head tilted like a question. -->
+  <rect width="604" height="868" fill="#696969"/>
+  <!-- the yard -->
+  <g fill="none" stroke="#fffafa" stroke-width="5" stroke-opacity="0.35" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0,690 C160,676 440,674 604,688"/>
+    <path d="M30,690 C26,640 30,606 40,586 C56,600 62,636 60,690"/>
+    <path d="M540,692 C544,646 540,612 530,592 C514,606 508,640 510,692"/>
+    <path d="M96,690 C112,660 140,646 168,650"/>
+  </g>
+  <!-- the head: a stone face-plate, tilted -->
+  <g fill="none" stroke="#dcdcdc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="rotate(-9 300 150)">
+      <path d="M244,90 C244,64 280,52 316,58 C352,64 366,92 362,144 C358,198 336,222 302,220 C266,218 244,190 244,148 Z"/>
+      <path d="M248,130 C280,120 330,120 360,130"/>
+      <path d="M262,186 L342,186"/>
+      <path d="M256,206 L348,206 L348,232 L256,232 Z"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="7" stroke-linecap="round">
+    <g transform="rotate(-9 300 150)">
+      <path d="M262,150 C274,142 292,144 302,154"/>
+      <path d="M318,154 C330,146 346,148 354,158"/>
+    </g>
+  </g>
+  <!-- torso: a war-frame, square and scorched -->
+  <g fill="none" stroke="#fffafa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M268,246 C270,264 268,276 262,286"/>
+    <path d="M336,240 C338,260 340,272 346,282"/>
+    <path d="M214,318 C246,292 364,288 404,314"/>
+    <path d="M214,318 C204,372 200,440 202,502"/>
+    <path d="M404,314 C416,366 420,436 418,500"/>
+    <path d="M202,502 C240,520 380,518 418,500"/>
+    <!-- two legs that did not come off the same frame -->
+    <path d="M238,512 C230,578 228,636 232,684"/>
+    <path d="M286,514 C282,580 282,638 286,686"/>
+    <path d="M340,514 C346,578 350,638 348,686"/>
+    <path d="M396,508 C404,574 408,636 404,684"/>
+    <path d="M222,690 C244,700 274,700 294,690"/>
+    <path d="M338,690 C360,702 392,702 412,690"/>
+  </g>
+  <!-- the thin arm and the heavy one -->
+  <g fill="none" stroke="#fffafa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M216,326 C190,372 176,428 172,486"/>
+    <path d="M172,486 C158,508 158,534 174,548 C192,562 216,554 222,534"/>
+  </g>
+  <g fill="none" stroke="#dcdcdc" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M404,324 C438,368 458,424 464,486"/>
+    <path d="M464,486 C492,500 500,532 482,552 C458,578 408,574 392,548"/>
+  </g>
+  <!-- strap and wire, holding the rest on -->
+  <g fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round">
+    <path d="M206,368 C250,346 372,342 412,364"/>
+    <path d="M202,444 C248,422 376,418 418,440"/>
+  </g>
+  <g fill="none" stroke="#9370db" stroke-width="6" stroke-linecap="round">
+    <path d="M300,292 C298,352 298,414 302,462"/>
+  </g>
+</svg>

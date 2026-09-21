@@ -20,12 +20,12 @@ Codes seen that still need checking against `tools/source_cards.tsv`: `SZ`, `GK`
 
 | Sheet | Slots / distinct | Duelist | Status |
 |---|---|---|---|
-| Red TS Majin Buu | 93 / 44 | Bram Ashmark, `duelist_lambda` | built, `pyre_attrition` |
-| Saiyan CS Broly | 98 / 50 | Halden Quarr, `duelist_epsilon` | not started |
-| Namekian CS Piccolo | 99 / 54 | Osric Thornwald, `duelist_eta` | not started |
-| Freestyle MBS Trunks Sword | 98 / 57 | Caedan Vale, `duelist_zeta` | not started |
-| Blue MBS Goku | 98 / 55 | Sir Edric Rooke, `duelist_iota` | built, `tide_deepwater` |
-| Black TS Majin Vegeta | 98 / 49 | Gideon Mourne, `duelist_mu` | built, `shade_mind_siege` |
+| Red TS Majin Buu | 93 / 44 | Bram Ashmark, the Glut line | built, `pyre_attrition` |
+| Saiyan CS Broly | 98 / 50 | Halden Quarr, `personality_halden_quarr_*` | not started |
+| Namekian CS Piccolo | 99 / 54 | Osric Thornwald, `personality_osric_thornwald_*` | not started |
+| Freestyle MBS Trunks Sword | 98 / 57 | Caedan Vale, `personality_caedan_vale_*` | not started |
+| Blue MBS Goku | 98 / 55 | Sir Edric Rooke, `personality_edric_rooke_*` | built, `tide_deepwater` |
+| Black TS Majin Vegeta | 98 / 49 | Gideon Mourne, the Lord Mourne line | built, `shade_mind_siege` |
 | Orange TS Yamcha | 94 / 58 | new, Storm | not started |
 | Blue CS Roshi Speedball | 54 / 46 | new, Tide | not started |
 
@@ -100,7 +100,7 @@ missing from the LackeyCCG plugin database.
 ## Blue MBS Goku, built 2026-09-20 as `tide_deepwater`, "Crushing Depths"
 
 55 distinct faces, 98 copies, and **no new personality**: the sheet's tiers 1 to 4 are the same
-printed cards `duelist_iota` already uses, and its tier 5 is a fan print, so the real Cell Saga
+printed cards Sir Edric Rooke's ladder already uses, and its tier 5 is a fan print, so the real Cell Saga
 tier 5 we ship slots in. Sir Edric Rooke fields Tide here and Pyre in `pyre_ascent`, which is the
 theming rule working as intended.
 
@@ -151,7 +151,7 @@ removal.
 (`shade_mastery`), North Kai Sensei 140 (`blank_mask`), and 79 Life Deck cards. 85 by our count.
 
 **The duelist is not new.** `cast_backlog.md` records that Gideon Mourne clears the Vegeta row, so
-this is Mourne marked, and it is his first ladder. He already shipped as the Ally `salvage_gamma`,
+this is Mourne marked, and it is his first ladder. He already shipped as the Ally `personality_gideon_mourne_1_mercenary`,
 which is now the pre-mark printing: Gideon Mourne, Mercenary against Gideon Mourne, Lord Mourne.
 The ladder is Buu Saga 192 / 193 / 191 and Babidi Saga 114, titled the Marked Lord, Unflinching,
 Unfettered, Unrepentant. Card 114's printed Might ladder has one irregular rung, 4,445,000 to

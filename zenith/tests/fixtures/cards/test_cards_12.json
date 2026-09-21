@@ -1,0 +1,40 @@
+{
+	"_note": "Personality stacks: one character with two printed lines that share Aspect 1, for the rules that each Aspect is its own card and that lines mix freely.",
+	"cards": [
+		{"id": "t_climber_1", "title": "Test Climber", "type": "personality", "character": "Test Climber",
+			"aspect": 1, "aspect_title": "Footing", "surge": 1,
+			"might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"power": {"attack": {"kind": "strike", "stages": 1}}},
+
+		{"id": "t_climber_2_ashen", "title": "Test Climber", "type": "personality", "character": "Test Climber",
+			"variant": "the Ash Road", "tags": ["marked"], "bloodline": "draconic",
+			"aspect": 2, "aspect_title": "Ashen", "surge": 2,
+			"might": [0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+			"power": {"attack": {"kind": "strike", "stages": 2}},
+			"constant": {"strike_table_self": 2}},
+
+		{"id": "t_climber_2_brined", "title": "Test Climber", "type": "personality", "character": "Test Climber",
+			"variant": "the Salt Road", "bloodline": "verdant",
+			"aspect": 2, "aspect_title": "Brined", "surge": 3,
+			"might": [0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+			"power": {"attack": {"kind": "strike", "stages": 5}}},
+
+		{"id": "t_climber_3_cinder", "title": "Test Climber", "type": "personality", "character": "Test Climber",
+			"variant": "the Ash Road", "tags": ["construct"], "alignment_only": "pact",
+			"aspect": 3, "aspect_title": "Cinderborn", "surge": 4,
+			"might": [0, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+			"power": {"attack": {"kind": "strike", "stages": 3}}},
+
+		{"id": "t_climber_3_tidal", "title": "Test Climber", "type": "personality", "character": "Test Climber",
+			"variant": "the Salt Road",
+			"aspect": 3, "aspect_title": "Tidebound", "surge": 4,
+			"might": [0, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+			"power": {"attack": {"kind": "strike", "stages": 4}},
+			"constant": {"strike_table_against": 1}},
+
+		{"id": "t_rival_1", "title": "Test Rival", "type": "personality", "character": "Test Rival",
+			"aspect": 1, "aspect_title": "Fresh", "surge": 1,
+			"might": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			"power": {"attack": {"kind": "strike", "stages": 1}}}
+	]
+}

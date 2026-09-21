@@ -220,7 +220,7 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 		"life_remaining": int(a.get("life_remaining", 0)),
 		"target": int(a.get("target", -1)),
 		"stopped_by": a.get("stopped_by", {}),
-		"stopped_by_title": _stopper_title(engine, a.get("stopped_by", {})),
+		"stopped_by_title": stopper_title(engine, a.get("stopped_by", {})),
 		"endurance_prevented": int(a.get("endurance_prevented", 0)),
 	}
 	var src: CardInstance = engine.card(int(a.get("source", -1)))
@@ -244,12 +244,12 @@ static func _last_attack_summary(engine: DuelEngine) -> Dictionary:
 	out["source_title"] = str(la.get("source_title", ""))
 	out["performer_title"] = str(la.get("performer_title", ""))
 	out["target_title"] = str(la.get("target_title", ""))
-	out["stopped_by_title"] = _stopper_title(engine, la.get("stopped_by", {}))
+	out["stopped_by_title"] = str(la.get("stopped_by_title", ""))
 	return out
 
 
 ## "Tide Parry", "Dame Alder Rooke's Power", "a Defense Shield", "a standing defense", or "".
-static func _stopper_title(engine: DuelEngine, by: Dictionary) -> String:
+static func stopper_title(engine: DuelEngine, by: Dictionary) -> String:
 	var c: CardInstance = engine.card(int(by.get("card", -1)))
 	match str(by.get("how", "")):
 		"card":

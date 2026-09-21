@@ -321,59 +321,59 @@ set	wall_of_flame	Ashmark's Wall of Flame	Majin's Perfect Defense (Buu Saga)	WGS
 set	watchful_eye	Watchful Eye	Confrontation (TS Promo)	TSPromo	P2	Look at your opponent's hand and shuffle a card of your choice into their Life Deck.	Heroes only.  Look at your opponents hand, choose 1 card and shuffle that card back into their Life Deck.
 set	weighted_hollow	Weighted Hollow	Gravity Chamber (Androids Saga 8)	AndroidsSaga	008	Strikes cost 2 more Energy to perform.	All physical attacks cost +2 Power stages to perform.
 missing	all_or_nothing	Emrys Risks It All	Gohan's All or Nothing (Misc.)			Focused Strike doing +4 Energy. Cannot be stopped by Strike cards. Raise your Fervor 1. Remove from the game after use.	
-missing	personality_ansel_and_tavin_1_back_to_back	Ansel and Tavin, Back to Back	Gotenks (Lv 1, Buu Saga)			Bond of Ansel Rooke and Tavin Vale. Enters play only through a Bonding card, at full Energy, with both under it. At the start of each of your turns a life card goes under it; at 5 the Bond ends and both return at 3 Energy. Limit 1 per deck.	
-missing	personality_wren_rooke_1	Wren Rooke	Pan, Granddaughter of Goku (Lv 1, Kid Buu Saga)			Limit 1 per deck.	
-missing	personality_edric_rooke_1	Sir Edric Rooke	Super Saiyan Goku (M-Level 1, BSMovie Promo)			Limit 1 per deck.	
-missing	personality_ansel_rooke_1	Ansel Rooke	Goten, the Playful (Lv 1, World Games Saga)			Limit 1 per deck.	
+missing	open_challenge	An Open Challenge	You're Invited (Sensei deck card)			Use during your opponent's Declare step: Discard a card from your hand. Your opponent must declare Combat this turn. Begins the game in play. Remove from the game after use. Limit 1 per deck.	
 missing	personality_alder_rooke_1	Dame Alder Rooke	Chi-Chi (Lv 1, Saiyan Saga)			Limit 1 per deck.	
-missing	personality_tavin_vale_1	Tavin Vale	Kid Trunks, Teenager (Lv 1, Kid Buu Saga)			Limit 1 per deck.	
-missing	personality_bram_ashmark_1_starved	Bram Ashmark, Starved	Majin Buu, Evil Buu (Lv 1, Fusion Saga)			Surge 2. Power: Strike doing +3 Energy. Gain 5 Energy. If stopped, draw a card.	
-missing	personality_bram_ashmark_2_leeching	Bram Ashmark, Leeching	Kid Buu, Majin Buu (Lv 4, Kid Buu Saga)			Surge 5. Power: Focused Art, plus the Strike Table result in Energy. Costs 0 Energy to perform. Lower your opponent's Fervor 2.	
-missing	personality_bram_ashmark_3_unstoppable	Bram Ashmark, Unstoppable	Kid Buu, Majin Buu (Lv 5, Kid Buu Saga)			Surge 6. Constant: Your first attack each Combat with a school card cannot be stopped.	
-missing	personality_alder_rooke_1_matriarch	Dame Alder Rooke, Matriarch	Chi-Chi, the Grandmother (Lv 1, Kid Buu Saga)			Surge 1. Constant: Your Draconic Allies cannot be discarded or removed by your opponent's card effects. At the start of your turn, if you have 5 or more Allies in play, advance one Aspect.	
+missing	personality_alder_rooke_1_matriarch	Dame Alder Rooke, Matriarch	Chi-Chi, the Grandmother (Lv 1, Kid Buu Saga)				
 missing	personality_alder_rooke_2_rising_water	Dame Alder Rooke, Rising Water	Chi-Chi (Lv 2, Frieza Saga)			Surge 2. Power: Strike. If Sir Edric Rooke is in play, +4 Energy.	
 missing	personality_alder_rooke_3_the_flood	Dame Alder Rooke, the Flood	Chi-Chi, the Wife (Lv 3, Cell Saga)			Surge 1. Power: When entering Combat, your opponent removes all Non-Combat cards in play from the game.	
-missing	personality_sable_draik_1_captain	Sable Draik, Captain	Bojack (Lv 1, Bojack Unbound)			Surge 2. Constant: Your Allies may take control of Combat at any Energy. Your attacks do +1 Energy for each Ally you have in play. Your Allies get these modifiers too.	
-missing	personality_sable_draik_2_shrouded	Sable Draik, Shrouded	Bojack, the Villainous (Lv 2, Bojack Unbound)			Surge 3. Constant: Wounds from your attacks are removed from the game. Your Allies may take control of Combat at any Energy. Your attacks do +3 Energy. Your Allies get these modifiers too.	
-missing	personality_sable_draik_3_lightless	Sable Draik, Lightless	Bojack, the Notorious (Lv 3, Bojack Unbound)			Surge 5. Constant: All of your attacks are Focused. Your Allies may take control of Combat at any Energy. Your Allies get these modifiers too.	
-missing	personality_halden_quarr_1_the_grinder	Halden Quarr, the Grinder	Broly (Lv 1, BMovie)			Surge 1. Constant: When you perform an attack, raise your Fervor 1.	
-missing	personality_halden_quarr_2_tempered	Halden Quarr, Tempered	Broly, Super Saiyan (Lv 2, BMovie)			Surge 2. Constant: When entering Combat, if the top card of your discard pile is Steel, remove the top card of your discard pile from the game, raise your Fervor 2, and for the remainder of Combat, your Strikes do +2 Energy.	
-missing	personality_halden_quarr_3_ironheart	Halden Quarr, Ironheart	Broly, Super Saiyan (Lv 3, BMovie)			Surge 4. Power: Strike doing +4 Energy. If the top card of your discard pile is Steel, for the remainder of Combat, your attacks do +2 wounds. May be used twice per Combat.	
-missing	personality_osric_thornwald_1_greybeard	Osric Thornwald, Greybeard	Piccolo (Lv 1 HT, Saiyan Saga)			Surge 1. Power: When entering Combat as the opposing, draw the bottom card of your discard pile.	
-missing	personality_osric_thornwald_2_overgrown	Osric Thornwald, Overgrown	Piccolo (Lv 2 HT, Trunks Saga)			Surge 3. Power: Strike dealing 6 wounds.	
-missing	personality_osric_thornwald_3_deep_rooted	Osric Thornwald, Deep-Rooted	Piccolo, the Destroyer (Lv 3, Cell Saga)			Surge 3. Power: Strike doing +6 Energy. Hit: Draw the bottom card of your discard pile.	
-missing	personality_osric_thornwald_4_heartwood	Osric Thornwald, Heartwood	Piccolo, the Namek (Lv 4, Cell Saga)			Surge 4. Power: Strike. Place the bottom 3 cards of your discard pile at the bottom of your Life Deck.	
-missing	personality_osric_thornwald_5_grovelord	Osric Thornwald, Grovelord	Piccolo, the Defender (Lv 5, Cell Games Saga)			Surge 5. Constant: Your Strikes do +5 Energy.	
-missing	personality_siphon_1_dormant	Siphon, Dormant	Android 19 (Lv 1, Cell Saga)			Surge 2. Power: Stops an Art. Gain 3 Energy.	
-missing	personality_siphon_2_charged	Siphon, Charged	Android 19, Recalled (Lv 2, Cell Saga)			Surge 1. Power: When entering Combat, gain 5 Energy. Defense Shield: stops the first unstopped Strike each Combat.	
-missing	personality_siphon_3_unbound	Siphon, Unbound	Android 19, Recharge (Lv 3, Cell Saga)			Surge 2. Power: Art. Costs 0 Energy to perform. Draw 2 cards.	
-missing	personality_edric_rooke_1_the_hero	Sir Edric Rooke, the Hero	Goku, the Hero (Lv 1, Cell Saga)			Surge 2. Power: When entering Combat, draw a card. If it is one of your duelist's Signature cards, if Dame Alder Rooke and Emrys Rooke are in play, draw a card.	
-missing	personality_edric_rooke_2_the_stranger	Sir Edric Rooke, the Stranger	Goku, the Saiyan (Lv 2, Cell Saga)			Surge 3. Power: Lower your opponent's Fervor 1. Draw the bottom card of your discard pile.	
-missing	personality_edric_rooke_3_the_realms_hero	Sir Edric Rooke, the Realm's Hero	Goku, Earth's Hero (Lv 3, Cell Saga)			Surge 3. Power: When entering Combat, draw a card and show it to your opponent. If it is a Strike or an Art, your opponent takes 3 wounds.	
-missing	personality_edric_rooke_4_kindled_through	Sir Edric Rooke, Kindled Through	Goku (Lv 4, Cell Saga)			Surge 4. Power: Strike dealing 5 Energy and 3 wounds.	
-missing	personality_edric_rooke_5_the_all_powerful	Sir Edric Rooke, the All Powerful	Goku, the All Powerful (Lv 5, Cell Saga)			Surge 5. Power: Strike doing +5 Energy and +5 wounds.	
-missing	personality_emrys_rooke_1_the_eldest	Emrys Rooke, the Eldest	Super Saiyan Gohan (Lv 1, Cell Saga IR2)			Surge 2. Power: When entering Combat as the attacker, you may draw a card.	
-missing	personality_emrys_rooke_2_first_plate	Emrys Rooke, First Plate	Gohan, the Swift (Lv 2, Cell Saga)			Surge 2. Power: When entering Combat, search your Life Deck for a Strike or Art card and put it into your hand.	
-missing	personality_emrys_rooke_3_edged	Emrys Rooke, Edged	Gohan, Super Saiyan (Lv 3, Cell Saga)			Surge 3. Power: Strike doing +5 Energy. You may remove a Non-Combat card in play from the game.	
-missing	personality_emrys_rooke_4_shaped	Emrys Rooke, Shaped	Gohan, Ascendant (Lv 4, Cell Saga)			Surge 3. Power: Art dealing 4 Energy and 4 wounds. Costs 0 Energy to perform.	
-missing	personality_emrys_rooke_5_scaleclad	Emrys Rooke, Scaleclad	Gohan, the Winner (Lv 5, Cell Saga)			Surge 4. Power: Strike dealing 5 wounds. May be used twice per Combat.	
-missing	personality_marrow_1_patchwork	Marrow, Patchwork	Android 18 (Lv 1, Cell Saga)			Surge 1. Power: When entering Combat as the active player, look at the top 6 cards of your Life Deck and put them back in any order and draw a card.	
-missing	personality_marrow_2_rebuilt	Marrow, Rebuilt	Android 18, the Model (Lv 2, Cell Saga)			Surge 2. Constant: No modifiers are added to Strikes performed against this personality.	
-missing	personality_marrow_3_overwrought	Marrow, Overwrought	Android 18, the Machine (Lv 3, Cell Saga)			Surge 3. Power: Art dealing 7 wounds. If The Breaker's Yard is in play, .	
-missing	personality_marrow_4_fury_amalgam	Marrow, Fury Amalgam	Android 18 (Lv 4, Cell Saga)			Surge 4. Power: Strike doing +6 Energy. If The Breaker's Yard is in play, +5 wounds. Lower your opponent's Fervor 3.	
-missing	personality_caedan_vale_1_last_heir	Caedan Vale, Last Heir	Trunks, the Weaponmaster (Lv 1, Bojack Unbound)			"Surge 2. Power: When entering Combat, look at the top 8 cards of your Life Deck. You may put a ""Sword"" card from among them into your hand. A ""Swordplay"" card may go into play instead. Shuffle the rest back."	
+missing	personality_ansel_and_tavin_1_back_to_back	Ansel and Tavin, Back to Back	Gotenks (Lv 1, Buu Saga)			Bond of Ansel Rooke and Tavin Vale. Enters play only through a Bonding card, at full Energy, with both under it. At the start of each of your turns a life card goes under it; at 5 the Bond ends and both return at 3 Energy. Limit 1 per deck.	
+missing	personality_ansel_rooke_1	Ansel Rooke	Goten, the Playful (Lv 1, World Games Saga)			Limit 1 per deck.	
+missing	personality_bram_ashmark_1_starved	Bram Ashmark, Starved	Majin Buu, Evil Buu (Lv 1, Fusion Saga)				
+missing	personality_bram_ashmark_2_leeching	Bram Ashmark, Leeching	Kid Buu, Majin Buu (Lv 4, Kid Buu Saga)			Surge 5. Power: Focused Art, plus the Strike Table result in Energy. Costs 0 Energy to perform. Lower your opponent's Fervor 2.	
+missing	personality_bram_ashmark_3_unstoppable	Bram Ashmark, Unstoppable	Kid Buu, Majin Buu (Lv 5, Kid Buu Saga)			Surge 6. Constant: Your first attack each Combat with a school card cannot be stopped.	
+missing	personality_brann_draik_1	Brann Draik	Bido (Lv 1, Bojack Unbound)			Limit 1 per deck.	
+missing	personality_caedan_vale_1_last_heir	Caedan Vale, Last Heir	Trunks, the Weaponmaster (Lv 1, Bojack Unbound)				
 missing	personality_caedan_vale_2_unparried	Caedan Vale, Unparried	Trunks, the Swordsman (Lv 2, Trunks Saga)			Surge 2. Power: Strike. Must be your first attack this Combat. Takes 2 stops to stop.	
 missing	personality_caedan_vale_3_spellcutter	Caedan Vale, Spellcutter	Trunks, the Mighty (Lv 3, Cell Saga)			Surge 3. Power: Strike doing +5 Energy. Hit: Your opponent may not perform Arts for the remainder of Combat.	
 missing	personality_caedan_vale_4_the_quiet_blade	Caedan Vale, the Quiet Blade	Trunks, the Powerful (Lv 4, Cell Saga)			Surge 4. Constant: Your opponent may not perform Arts.	
 missing	personality_caedan_vale_5_peerless	Caedan Vale, Peerless	Trunks, the Battler (Lv 5, Cell Games Saga)			Surge 5. Power: When entering Combat as the active player, draw 3 cards.	
-missing	personality_vesna_draik_1	Vesna Draik	Zangya (Lv 1, Bojack Unbound)			Limit 1 per deck.	
-missing	personality_brann_draik_1	Brann Draik	Bido (Lv 1, Bojack Unbound)			Limit 1 per deck.	
+missing	personality_cull_1	Cull	Android 20 (Lv 1, Cell Saga)			Limit 1 per deck.	
+missing	personality_edric_rooke_1	Sir Edric Rooke	Super Saiyan Goku (M-Level 1, BSMovie Promo)			Limit 1 per deck.	
+missing	personality_edric_rooke_1_the_hero	Sir Edric Rooke, the Hero	Goku, the Hero (Lv 1, Cell Saga)				
+missing	personality_edric_rooke_2_the_stranger	Sir Edric Rooke, the Stranger	Goku, the Saiyan (Lv 2, Cell Saga)			Surge 3. Power: Lower your opponent's Fervor 1. Draw the bottom card of your discard pile.	
+missing	personality_edric_rooke_3_the_realms_hero	Sir Edric Rooke, the Realm's Hero	Goku, Earth's Hero (Lv 3, Cell Saga)			Surge 3. Power: When entering Combat, draw a card and show it to your opponent. If it is a Strike or an Art, your opponent takes 3 wounds.	
+missing	personality_edric_rooke_4_kindled_through	Sir Edric Rooke, Kindled Through	Goku (Lv 4, Cell Saga)			Surge 4. Power: Strike dealing 5 Energy and 3 wounds.	
+missing	personality_edric_rooke_5_the_all_powerful	Sir Edric Rooke, the All Powerful	Goku, the All Powerful (Lv 5, Cell Saga)			Surge 5. Power: Strike doing +5 Energy and +5 wounds.	
+missing	personality_emrys_rooke_1_the_eldest	Emrys Rooke, the Eldest	Super Saiyan Gohan (Lv 1, Cell Saga IR2)				
+missing	personality_emrys_rooke_2_first_plate	Emrys Rooke, First Plate	Gohan, the Swift (Lv 2, Cell Saga)			Surge 2. Power: When entering Combat, search your Life Deck for a Strike or Art card and put it into your hand.	
+missing	personality_emrys_rooke_3_edged	Emrys Rooke, Edged	Gohan, Super Saiyan (Lv 3, Cell Saga)			Surge 3. Power: Strike doing +5 Energy. You may remove a Non-Combat card in play from the game.	
+missing	personality_emrys_rooke_4_shaped	Emrys Rooke, Shaped	Gohan, Ascendant (Lv 4, Cell Saga)			Surge 3. Power: Art dealing 4 Energy and 4 wounds. Costs 0 Energy to perform.	
+missing	personality_emrys_rooke_5_scaleclad	Emrys Rooke, Scaleclad	Gohan, the Winner (Lv 5, Cell Saga)			Surge 4. Power: Strike dealing 5 wounds. May be used twice per Combat.	
+missing	personality_gideon_mourne_1_mercenary	Gideon Mourne	Vegeta, the Powerful (Lv 1, Cell Saga)			Limit 1 per deck.	
+missing	personality_halden_quarr_1_the_grinder	Halden Quarr, the Grinder	Broly (Lv 1, BMovie)				
+missing	personality_halden_quarr_2_tempered	Halden Quarr, Tempered	Broly, Super Saiyan (Lv 2, BMovie)			Surge 2. Constant: When entering Combat, if the top card of your discard pile is Steel, remove the top card of your discard pile from the game, raise your Fervor 2, and for the remainder of Combat, your Strikes do +2 Energy.	
+missing	personality_halden_quarr_3_ironheart	Halden Quarr, Ironheart	Broly, Super Saiyan (Lv 3, BMovie)			Surge 4. Power: Strike doing +4 Energy. If the top card of your discard pile is Steel, for the remainder of Combat, your attacks do +2 wounds. May be used twice per Combat.	
 missing	personality_halvard_draik_1	Halvard Draik	Kogu (Lv 1, Bojack Unbound)			Limit 1 per deck.	
+missing	personality_marrow_1_patchwork	Marrow, Patchwork	Android 18 (Lv 1, Cell Saga)				
+missing	personality_marrow_2_rebuilt	Marrow, Rebuilt	Android 18, the Model (Lv 2, Cell Saga)			Surge 2. Constant: No modifiers are added to Strikes performed against this personality.	
+missing	personality_marrow_3_overwrought	Marrow, Overwrought	Android 18, the Machine (Lv 3, Cell Saga)			Surge 3. Power: Art dealing 7 wounds. If The Breaker's Yard is in play, .	
+missing	personality_marrow_4_fury_amalgam	Marrow, Fury Amalgam	Android 18 (Lv 4, Cell Saga)			Surge 4. Power: Strike doing +6 Energy. If The Breaker's Yard is in play, +5 wounds. Lower your opponent's Fervor 3.	
+missing	personality_orvath_kell_1	Orvath Kell	Piccolo, the Avenger (Lv 1, Trunks Saga)			Limit 1 per deck.	
+missing	personality_osric_thornwald_1_greybeard	Osric Thornwald, Greybeard	Piccolo (Lv 1 HT, Saiyan Saga)				
+missing	personality_osric_thornwald_2_overgrown	Osric Thornwald, Overgrown	Piccolo (Lv 2 HT, Trunks Saga)			Surge 3. Power: Strike dealing 6 wounds.	
+missing	personality_osric_thornwald_3_deep_rooted	Osric Thornwald, Deep-Rooted	Piccolo, the Destroyer (Lv 3, Cell Saga)			Surge 3. Power: Strike doing +6 Energy. Hit: Draw the bottom card of your discard pile.	
+missing	personality_osric_thornwald_4_heartwood	Osric Thornwald, Heartwood	Piccolo, the Namek (Lv 4, Cell Saga)			Surge 4. Power: Strike. Place the bottom 3 cards of your discard pile at the bottom of your Life Deck.	
+missing	personality_osric_thornwald_5_grovelord	Osric Thornwald, Grovelord	Piccolo, the Defender (Lv 5, Cell Games Saga)			Surge 5. Constant: Your Strikes do +5 Energy.	
 missing	personality_pim_1	Pim	Guldo (Lv 1, Frieza Saga)			Limit 1 per deck.	
 missing	personality_quill_draik_1	Quill Draik	Bujin (Lv 1, Bojack Unbound)			Limit 1 per deck.	
+missing	personality_sable_draik_1_captain	Sable Draik, Captain	Bojack (Lv 1, Bojack Unbound)				
+missing	personality_sable_draik_2_shrouded	Sable Draik, Shrouded	Bojack, the Villainous (Lv 2, Bojack Unbound)			Surge 3. Constant: Wounds from your attacks are removed from the game. Your Allies may take control of Combat at any Energy. Your attacks do +3 Energy. Your Allies get these modifiers too.	
+missing	personality_sable_draik_3_lightless	Sable Draik, Lightless	Bojack, the Notorious (Lv 3, Bojack Unbound)			Surge 5. Constant: All of your attacks are Focused. Your Allies may take control of Combat at any Energy. Your Allies get these modifiers too.	
+missing	personality_siphon_1_dormant	Siphon, Dormant	Android 19 (Lv 1, Cell Saga)				
+missing	personality_siphon_2_charged	Siphon, Charged	Android 19, Recalled (Lv 2, Cell Saga)			Surge 1. Power: When entering Combat, gain 5 Energy. Defense Shield: stops the first unstopped Strike each Combat.	
+missing	personality_siphon_3_unbound	Siphon, Unbound	Android 19, Recharge (Lv 3, Cell Saga)			Surge 2. Power: Art. Costs 0 Energy to perform. Draw 2 cards.	
+missing	personality_tavin_vale_1	Tavin Vale	Kid Trunks, Teenager (Lv 1, Kid Buu Saga)			Limit 1 per deck.	
 missing	personality_tithe_1	Tithe	Android 14 (Lv 1, BSMovie Promo)			Limit 1 per deck.	
-missing	open_challenge	An Open Challenge	You're Invited (Sensei deck card)			Use during your opponent's Declare step: Discard a card from your hand. Your opponent must declare Combat this turn. Begins the game in play. Remove from the game after use. Limit 1 per deck.	
-missing	personality_cull_1	Cull	Android 20 (Lv 1, Cell Saga)			Limit 1 per deck.	
-missing	personality_orvath_kell_1	Orvath Kell	Piccolo, the Avenger (Lv 1, Trunks Saga)			Limit 1 per deck.	
-missing	personality_gideon_mourne_1_mercenary	Gideon Mourne	Vegeta, the Powerful (Lv 1, Cell Saga)			Limit 1 per deck.	
+missing	personality_vesna_draik_1	Vesna Draik	Zangya (Lv 1, Bojack Unbound)			Limit 1 per deck.	
+missing	personality_wren_rooke_1	Wren Rooke	Pan, Granddaughter of Goku (Lv 1, Kid Buu Saga)			Limit 1 per deck.	
 missing	tide_twin_breaker	Tide Twin Breaker	Double Whammy (Score set unverified)			Art dealing 5 wounds. If Sir Edric Rooke is in play, +4 wounds and Focused. Lower your opponent's Fervor 2. Raise your Fervor 1. If this card is discarded from your Life Deck, at the start of the next fight-back phase this turn, you may search your Life Deck for an Ally and put it into play.	

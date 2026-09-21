@@ -302,6 +302,18 @@ func _init() -> void:
 		test_root_briar_tangle_remains_for_two_more_uses,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
+		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
+		test_a_duelist_may_mix_two_printed_lines_of_one_character,
+		test_mppv_reads_the_announced_ladders_off_the_deck_lists,
+		test_ally_aspect_rules_read_the_card_and_the_duelists_height,
+		test_an_ally_climbs_by_overlaying_its_next_aspect,
+		test_a_seat_view_carries_the_current_aspect_card_and_the_public_ladder,
+		test_cloning_and_determinizing_keep_a_stack_whole,
+		test_every_shipped_deck_names_a_legal_duelist_stack,
+		test_every_shipped_personality_is_on_the_compact_might_scale,
+		test_gideon_mournes_ladder_sits_where_the_other_four_aspect_duelist_sits,
+		test_an_adventure_run_gains_the_next_aspect_card_of_its_own_line,
+		test_a_version_one_adventure_save_migrates_to_duelist_cards,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -6266,3 +6278,349 @@ func test_every_shipped_card_lands_in_one_group() -> void:
 	check(int(counts.get("signature", 0)) > 0, "the shipped library holds Signature cards")
 	for banned in ["Mastery", "Relic", "Seal", "Grounds", "Personality"]:
 		check(not signature_types.has(banned), "no %s card is a Signature card" % banned)
+
+
+# --- Personality stacks ---------------------------------------------------
+# Each Aspect is its own card (2026-09-21). A stack is one character's cards, exactly one per
+# tier, consecutive from Aspect 1; the deck names the Duelist's, and any other personality in the
+# Life Deck fights as an Ally.
+
+## A legal fixture deck with its Duelist stack swapped, so a validator check sees only the
+## problem it is about.
+func stack_deck(ids: Array[String], extra: Array[String] = []) -> DeckList:
+	var d: DeckList = DeckList.load_from(DECK_PATH)
+	d.set_duelist(ids)
+	# The fixture deck ships with one Ally of its own; a test that names its own following drops
+	# it, and `extra` makes the size back up.
+	if not extra.is_empty():
+		var kept: Array[String] = []
+		for id in d.cards:
+			if not (lib.get_def(id) as CardDef).is_personality():
+				kept.append(id)
+		d.cards = kept
+	d.cards.append_array(extra)
+	while d.total_cards() < DeckValidator.MIN_CARDS:
+		d.cards.append("t_noncombat_draw")
+	return d
+
+
+## The two anchors, and what a deck is refused for when it breaks one.
+func test_a_duelist_stack_is_one_character_consecutive_from_aspect_one() -> void:
+	var good: DeckList = stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"])
+	eq(DeckValidator.validate(good, lib), [] as Array[String], "one card per tier from 1 is legal")
+	var stack: PersonalityStack = good.duelist_stack(lib)
+	eq(stack.size(), 3, "the stack assembles three Aspects")
+	eq(stack.lowest_aspect(), 1, "from Aspect 1")
+	eq(stack.highest_aspect(), 3, "to Aspect 3")
+	eq(stack.def_for(2).id, "t_climber_2_ashen", "and Aspect 2 is the card the deck named")
+	eq(stack.card_ids(), ["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"], "the ladder reads in tier order")
+	eq(good.aspects, 3, "the deck's aspect count is derived from the list")
+	eq(good.duelist_face_id(), "t_climber_1", "and the face is the first Aspect")
+
+	var mixed: Array[String] = DeckValidator.validate(
+		stack_deck(["t_climber_1", "t_climber_2_ashen", "t_rival_1"]), lib)
+	check(str(mixed).contains("is Test Rival, not Test Climber"), "a card of another character is refused")
+
+	var gap: Array[String] = DeckValidator.validate(
+		stack_deck(["t_climber_1", "t_climber_3_tidal", "t_rival_1"]), lib)
+	check(str(gap).contains("missing Aspect 2"), "a gap in the tiers is refused")
+
+	var doubled: Array[String] = DeckValidator.validate(
+		stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_2_brined"]), lib)
+	check(str(doubled).contains("two cards at Aspect 2"), "two cards of one tier are refused")
+
+	var headless: Array[String] = DeckValidator.validate(
+		stack_deck(["t_climber_2_ashen", "t_climber_3_tidal"]), lib)
+	check(str(headless).contains("missing Aspect 1"),
+		"and a stack that does not start at Aspect 1 is refused")
+
+	check(str(DeckValidator.validate(stack_deck([]), lib)).contains("names no Duelist cards"),
+		"so is a deck with none")
+
+	var gated: Array[String] = DeckValidator.validate(
+		stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_3_cinder"]), lib)
+	check(str(gated).contains("does not match alignment vigil"),
+		"a Duelist card's own alignment gate is read")
+
+
+## Bram Ashmark may climb Starved, Leeching, Gorging. The cards of one character mix freely, and
+## everything the engine reads off the Duelist is the current card's.
+func test_a_duelist_may_mix_two_printed_lines_of_one_character() -> void:
+	var d: DeckList = stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"])
+	eq(DeckValidator.validate(d, lib), [] as Array[String], "one rung off each road is a legal stack")
+	var e: DuelEngine = engine(d, deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	eq(me.highest_aspect, 3, "the deck's height is the stack's")
+	eq(me.duelist.def.id, "t_climber_1", "the duel opens on Aspect 1")
+	eq(int(me.duelist.power().get("attack", {}).get("stages", 0)), 1, "with Aspect 1's Power")
+	check(not e.has_tag(me.duelist, "marked"), "Aspect 1 carries no keyword")
+	eq(e.bloodline_of(me.duelist), "", "and no bloodline")
+
+	e._aspect_up(me)
+	eq(me.duelist.aspect, 2, "Ascension raises the Aspect")
+	eq(me.duelist.def.id, "t_climber_2_ashen", "and moves to that Aspect's own card")
+	eq(int(me.duelist.power().get("attack", {}).get("stages", 0)), 2, "the Power is the new card's")
+	eq(int((me.duelist.aspect_data().get("constant", {}) as Dictionary).get("strike_table_self", 0)), 2,
+		"so is the Constant")
+	eq(me.duelist.surge(), 2, "so is the Surge Rate")
+	check(e.has_tag(me.duelist, "marked"), "the keywords follow the card")
+	eq(e.bloodline_of(me.duelist), "draconic", "so does the bloodline")
+
+	e._aspect_up(me)
+	eq(me.duelist.def.id, "t_climber_3_tidal", "the third rung is the other line's card")
+	check(not e.has_tag(me.duelist, "marked"), "and its keywords replace the last card's")
+	eq(e.bloodline_of(me.duelist), "", "as does its bloodline")
+	eq(int((me.duelist.aspect_data().get("constant", {}) as Dictionary).get("strike_table_against", 0)), 1,
+		"with its own Constant in force")
+	e._lose_aspect(me, 0)
+	eq(me.duelist.def.id, "t_climber_2_ashen", "falling back moves to the card below")
+	eq(me.duelist.energy, DuelEngine.LOST_ASPECT_ENERGY, "at the rulebook's Energy")
+
+
+## Most Powerful Personality reads what each side announced, which is now the length of each
+## deck's Duelist list.
+func test_mppv_reads_the_announced_ladders_off_the_deck_lists() -> void:
+	var tall: DeckList = deck(filler(), "vigil", "", "t_mastery_pyre", 5, "tf_titan")
+	var short: DeckList = deck(filler(), "pact", "", "", 3, "tf_vigil")
+	var e: DuelEngine = engine(tall, short)
+	eq(e.player(0).highest_aspect, 5, "five Aspects announced")
+	eq(e.player(1).highest_aspect, 3, "against three")
+	eq(e.mppv_aspect(e.player(0)), 4, "so Aspect 4 stands above their whole ladder")
+	eq(e.mppv_aspect(e.player(1)), 0, "and the shorter ladder has no such Aspect")
+	var level: DuelEngine = engine(deck(filler(), "vigil", "", "t_mastery_pyre", 3, "tf_vigil"),
+		deck(filler(), "pact", "", "", 3, "tf_vigil"))
+	eq(level.mppv_aspect(level.player(0)), 0, "level ladders leave the Fervor road only")
+
+
+## An Ally is a personality card in the Life Deck. Aspect 1 is always legal; anything above it has
+## to sit two Aspects below the Duelist's highest, and needs the Aspects under it in the deck.
+func test_ally_aspect_rules_read_the_card_and_the_duelists_height() -> void:
+	var three: Array[String] = ["tf_vigil_1", "tf_vigil_2", "tf_vigil_3"]
+	var four: Array[String] = ["tf_titan_1", "tf_titan_2", "tf_titan_3", "tf_titan_4"]
+	eq(DeckValidator.validate(stack_deck(three, ["t_ally_squire"]), lib), [] as Array[String],
+		"an Aspect 1 Ally is legal at three Aspects")
+	var shallow: DeckList = stack_deck(["tf_vigil_1"], ["t_ally_squire"])
+	shallow.mode = "adventure"
+	check(not str(DeckValidator.validate(shallow, lib)).contains("2 aspects below"),
+		"and still legal under a one-Aspect adventure Duelist")
+
+	eq(DeckValidator.validate(stack_deck(four, ["t_ally_squire", "t_ally_squire_2"]), lib), [] as Array[String],
+		"an Aspect 2 Ally is legal under four Aspects")
+	check(str(DeckValidator.validate(stack_deck(three, ["t_ally_squire", "t_ally_squire_2"]), lib))
+		.contains("must be at least 2 aspects below"), "and refused under three")
+	check(str(DeckValidator.validate(stack_deck(four, ["t_ally_squire_2"]), lib))
+		.contains("needs Aspect 1 of Test Squire in the deck too"),
+		"an Ally's higher Aspect needs the rung under it, because that is what it overlays")
+
+	check(str(DeckValidator.validate(stack_deck(three, ["t_ally_squire", "t_ally_squire"]), lib))
+		.contains("exceeds limit 1"), "one copy of each personality card")
+	var self_ally: DeckList = stack_deck(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"], ["t_climber_1"])
+	check(str(DeckValidator.validate(self_ally, lib)).contains("same character as the Duelist"),
+		"and none of them shares the Duelist's character")
+	var wrong_side: DeckList = stack_deck(three, ["t_ally_squire"])
+	wrong_side.alignment = "pact"
+	check(str(DeckValidator.validate(wrong_side, lib)).contains("does not match alignment pact"),
+		"an Ally's alignment gate still applies")
+
+
+## Placing the next Aspect of an Ally already in play overlays it: the old card goes underneath,
+## the new one is in play at full Energy, and the Ally's own stack grows by that card.
+func test_an_ally_climbs_by_overlaying_its_next_aspect() -> void:
+	var d: DeckList = deck(filler(), "vigil", "", "", 4, "tf_titan")
+	var e: DuelEngine = engine(d, deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var first: CardInstance = to_hand(e, 0, "t_ally_squire")
+	var second: CardInstance = to_hand(e, 0, "t_ally_squire_2")
+	check(e._can_place(me, first), "the Ally's first Aspect may be placed")
+	check(not e._can_place(me, second), "its second may not, over a Duelist still at Aspect 1")
+	e._place(me, first)
+	eq(first.energy, DuelEngine.ALLY_STARTING_ENERGY, "an Ally enters at the rulebook's Energy")
+	eq(first.ladder(), ["t_ally_squire"], "its stack is the card that was placed")
+	e._aspect_up(me)
+	check(e._can_place(me, second), "once the Duelist climbs, the next Aspect may be placed")
+	e._place(me, second)
+	eq(second.aspect, 2, "the Ally is at its second Aspect")
+	eq(second.def.id, "t_ally_squire_2", "showing that Aspect's card")
+	eq(second.energy, CardInstance.MAX_STAGE, "set to its highest stage")
+	eq(second.cards_under.size(), 1, "with the old card under it")
+	eq(first.zone, &"under", "which has left play")
+	eq(second.ladder(), ["t_ally_squire", "t_ally_squire_2"], "and the stack carries both cards")
+	eq(me.allies().size(), 1, "one Ally on the table, not two")
+
+
+## A client renders a personality from the SeatView alone: `def_id` is the card for the Aspect it
+## stands at, and `ladder` is the announced stack, which is public from setup.
+func test_a_seat_view_carries_the_current_aspect_card_and_the_public_ladder() -> void:
+	var d: DeckList = deck(filler(["t_ally_squire"]), "vigil", "", "t_mastery_pyre")
+	d.set_duelist(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"])
+	var e: DuelEngine = engine(d, deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var view: SeatView = SeatView.of(e, 1)
+	var seen: SeatCard = view.card(me.duelist.uid)
+	eq(seen.def_id, "t_climber_1", "the rival sees the card the Duelist stands at")
+	eq(seen.ladder, ["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"],
+		"and the whole announced ladder, which is what MPPV is read off")
+	e._aspect_up(me)
+	var after: SeatCard = SeatView.of(e, 1).card(me.duelist.uid)
+	eq(after.def_id, "t_climber_2_ashen", "climbing changes the card the view names")
+	eq(after.aspect, 2, "and the Aspect number with it")
+	eq(after.ladder.size(), 3, "the ladder does not move")
+	eq(after.tags, ["marked"], "the keywords shown are the ones carried right now")
+	var hidden_ally: CardInstance = to_deck(e, 0, "t_ally_squire")
+	var from_rival: SeatCard = SeatView.of(e, 1).card(hidden_ally.uid)
+	check(from_rival.hidden(), "a personality in the Life Deck is hidden")
+	eq(from_rival.ladder, [] as Array[String], "and gives away no ladder")
+	var round_trip: SeatCard = SeatCard.from_dict(after.to_dict())
+	eq(round_trip.ladder, after.ladder, "the ladder survives the wire")
+
+
+## The search and the network both copy engines; a stack must come through both intact.
+func test_cloning_and_determinizing_keep_a_stack_whole() -> void:
+	var d: DeckList = deck(filler(["t_ally_squire"]), "vigil", "", "t_mastery_pyre")
+	d.set_duelist(["t_climber_1", "t_climber_2_ashen", "t_climber_3_tidal"])
+	var e: DuelEngine = engine(d, deck(filler(), "pact"))
+	e._aspect_up(e.player(0))
+	var copy: DuelEngine = e.clone()
+	eq(copy.player(0).duelist.aspect, 2, "the clone stands at the same Aspect")
+	eq(copy.player(0).duelist.def.id, "t_climber_2_ashen", "showing the same card")
+	eq(copy.player(0).duelist.ladder(), e.player(0).duelist.ladder(), "with the same ladder")
+	eq(copy.player(0).highest_aspect, 3, "and the same announced height")
+	copy.determinize(0, 77)
+	eq(copy.player(0).duelist.def.id, "t_climber_2_ashen", "sampling never re-deals a Duelist")
+	eq(copy.player(1).duelist.ladder().size(), 3, "nor the rival's, which is public")
+	copy._aspect_up(copy.player(0))
+	eq(copy.player(0).duelist.def.id, "t_climber_3_tidal", "and the sampled engine can still climb")
+	eq(e.player(0).duelist.def.id, "t_climber_2_ashen", "without moving the engine it came from")
+
+
+## Every shipped deck, starter and opponent file names a legal stack.
+func test_every_shipped_deck_names_a_legal_duelist_stack() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var seen: int = 0
+	for dir_path in DeckList.DIRS:
+		var dir: DirAccess = DirAccess.open(dir_path)
+		check(dir != null, "%s is readable" % dir_path)
+		if dir == null:
+			continue
+		for entry in dir.get_files():
+			if not entry.ends_with(".json"):
+				continue
+			seen += 1
+			var d: DeckList = DeckList.load_from("%s/%s" % [dir_path, entry])
+			check(not d.duelist_ids.is_empty(), "%s names its Duelist as a list" % entry)
+			eq(d.aspects, d.duelist_ids.size(), "%s: the aspect count is the list's length" % entry)
+			var stack: PersonalityStack = d.duelist_stack(shipped)
+			eq(stack.size(), d.duelist_ids.size(), "%s: every Aspect card resolves" % entry)
+			eq(DeckValidator.validate(d, shipped), [] as Array[String], "%s validates" % entry)
+	check(seen >= 110, "every shipped deck file was checked, saw %d" % seen)
+
+
+## The printed ladders are converted to the compact Might scale the Strike Table is built on, one
+## band per ten points. A raw printed ladder in the millions would put every duelist in band I.
+func test_every_shipped_personality_is_on_the_compact_might_scale() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var ceiling: int = 100
+	var seen: int = 0
+	for id: String in shipped.defs.keys():
+		var def: CardDef = shipped.defs[id]
+		if not def.is_personality():
+			continue
+		seen += 1
+		var might: Array = def.aspect_data(def.aspect).get("might", [])
+		eq(might.size(), 11, "%s prints eleven stages" % id)
+		if might.size() != 11:
+			continue
+		eq(int(might[0]), 0, "%s starts at 0 Might" % id)
+		var last: int = 0
+		for stage in range(11):
+			var value: int = int(might[stage])
+			check(value <= ceiling, "%s stage %d Might %d is on the compact scale" % [id, stage, value])
+			check(value >= last, "%s stage %d does not go backwards" % [id, stage])
+			last = value
+	check(seen >= 60, "every shipped personality was checked, saw %d" % seen)
+
+
+## Gideon Mourne's ladder was pasted in on the printed million scale and converted 2026-09-21.
+func test_gideon_mournes_ladder_sits_where_the_other_four_aspect_duelist_sits() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var tops: Array[int] = [20, 26, 32, 38]
+	var ids: Array[String] = ["personality_gideon_mourne_1_the_marked_lord", "personality_gideon_mourne_2_unflinching",
+		"personality_gideon_mourne_3_unfettered", "personality_gideon_mourne_4_unrepentant"]
+	for i in range(4):
+		var def: CardDef = shipped.defs.get(ids[i])
+		check(def != null, "%s is in the shipped library" % ids[i])
+		if def == null:
+			continue
+		var might: Array = def.aspect_data(def.aspect).get("might", [])
+		eq(int(might[might.size() - 1]), tops[i], "%s tops at %d" % [ids[i], tops[i]])
+	var strikes: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
+	var marrow: Array = shipped.get_def("personality_marrow_4_fury_amalgam").aspect_data(4).get("might", [])
+	var mourne: Array = shipped.get_def("personality_gideon_mourne_4_unrepentant").aspect_data(4).get("might", [])
+	eq(strikes.band(int(mourne[mourne.size() - 1])), strikes.band(int(marrow[marrow.size() - 1])),
+		"and the two four-Aspect duelists top in the same band")
+
+
+## A run carries its Duelist's cards, and the ladder's Aspect grant hands it the next one.
+func test_an_adventure_run_gains_the_next_aspect_card_of_its_own_line() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var run: AdventureRun = AdventureRun.begin("pyre_attrition_start", 31337)
+	check(run != null, "the starter resolves into a run")
+	if run == null:
+		return
+	eq(run.aspects(), 2, "a starter opens at two Aspects")
+	eq(run.duelist_ids[0], "personality_bram_ashmark_1_starved", "starting from the card both lines share")
+	eq(run.duelist_ids[1], "personality_bram_ashmark_2_gnawing", "and the Glut line's second rung")
+	eq(run.next_tier_options(shipped), ["personality_bram_ashmark_3_gorging", "personality_bram_ashmark_3_unstoppable"],
+		"both of the character's third Aspects are offerable")
+	eq(run.next_tier(shipped), "personality_bram_ashmark_3_gorging",
+		"and the one picked for now stays on the line the starter was written with")
+	# The Hollow line starts from the same shared Aspect 1 and climbs the other way.
+	var hollow: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 31337)
+	eq(hollow.duelist_ids[1], "personality_bram_ashmark_2_leeching", "the other starter runs the Hollow line")
+	eq(hollow.next_tier(shipped), "personality_bram_ashmark_3_unstoppable",
+		"and gains that line's third Aspect from the same pair of options")
+	eq(hollow.next_tier_options(shipped), run.next_tier_options(shipped),
+		"the options are the character's, not the line's")
+	# The line stops at 5, and construction stops there too.
+	var topped: AdventureRun = AdventureRun.begin("pyre_attrition_start", 1)
+	topped.duelist_ids = ["personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_gnawing",
+		"personality_bram_ashmark_3_gorging", "personality_bram_ashmark_4_consuming",
+		"personality_bram_ashmark_5_insatiable"]
+	eq(topped.next_tier_options(shipped), [] as Array[String], "a full stack has nothing left to gain")
+	eq(topped.next_tier(shipped), "", "so the grant hands it nothing")
+
+
+## A save written before the split says `aspects: 2` and names no cards. The migration map says
+## which stack that starter used and what it split into, so the run comes back whole.
+func test_a_version_one_adventure_save_migrates_to_duelist_cards() -> void:
+	var old: Dictionary = {
+		"starter_id": "pyre_beatdown_start",
+		"cards": ["pyre_kindling"],
+		"aspects": 3,
+		"stage": 2,
+		"run_seed": 99,
+		"pending_offer": [],
+		"status": "stage",
+		"picks": [],
+	}
+	var run: AdventureRun = AdventureRun.from_dict(old)
+	eq(run.aspects(), 3, "the old aspect count becomes three cards")
+	eq(run.duelist_ids, ["personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_leeching",
+		"personality_bram_ashmark_3_unstoppable"], "the first three of the line that starter named")
+	eq(run.stage, 2, "and the rest of the run is untouched")
+	eq(run.cards, ["pyre_kindling"], "including the Life Deck")
+	# Through a file, which is where a real migration happens. Never the player's own save.
+	AdventureSave.path_override = ADVENTURE_SAVE_PATH
+	var handle: FileAccess = FileAccess.open(ADVENTURE_SAVE_PATH, FileAccess.WRITE)
+	check(handle != null, "the test save path is writable")
+	if handle != null:
+		handle.store_string(JSON.stringify(old, "  "))
+		handle.close()
+	var loaded: AdventureRun = AdventureSave.load_run()
+	check(loaded != null, "the old save still parses")
+	if loaded != null:
+		eq(loaded.duelist_ids.size(), 3, "and comes back with three Aspect cards")
+		eq(int(loaded.to_dict().get("version", 0)), AdventureRun.SAVE_VERSION, "rewritten at the new version")
+		check(not (loaded.to_dict() as Dictionary).has("aspects"), "with no aspect count left in it")
+	AdventureSave.clear()
+	AdventureSave.path_override = ""

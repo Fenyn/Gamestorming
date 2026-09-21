@@ -52,17 +52,18 @@ sit is already settled in `world.md`; only the names are missing.
   Drain, `absorbing_drill` Cull's Absorbing Drill. Ids were left alone and attribution went in
   `SHOWS` rather than the data's `character` field, so nothing changed mechanically.
 - **The Goku row is closed.** Sir Edric Rooke was already that mirror, through
-  `companion_beta`. Four of the five cards are his now and the fifth, `lodestone_heart`, is the
+  `personality_edric_rooke_1`. Four of the five cards are his now and the fifth, `lodestone_heart`, is the
   Relic exemption.
 - **2026-09-19, the Red sheet.** Sir Edric Rooke became the ninth duelist (`pyre_ascent`), which
   is the first case of one character fielding two schools: Pyre in his own list, Tide as his
   wife's Ally. That settled the theming rule in `designs/zenith.md`, Keywords: what a card looks
   like comes from that card, not from a fixed element on the person.
-- **2026-09-20, the Black sheet.** **Gideon Mourne** becomes the tenth duelist, `duelist_mu`,
-  four Aspects, Shade, Pact, Draconic and `marked`. Two personality cards now: `salvage_gamma` is
-  "Gideon Mourne, Mercenary", pre-mark and fielded as an Ally in somebody else's crew, and
-  `duelist_mu` is
-  "Gideon Mourne, Lord Mourne". Aspects the Marked Lord / Unflinching / Unfettered / Unrepentant.
+- **2026-09-20, the Black sheet.** **Gideon Mourne** becomes the tenth duelist,
+  `personality_gideon_mourne_*`, four Aspects, Shade, Pact, Draconic and `marked`. Two printed
+  lines now: `personality_gideon_mourne_1_mercenary` is "Gideon Mourne, Mercenary", pre-mark and
+  fielded as an Ally in somebody else's crew, and the Lord Mourne line runs the Marked Lord /
+  Unflinching / Unfettered / Unrepentant. Its Might was pasted in on the printed million scale
+  and was converted to the compact scale on 2026-09-21, tops 20 / 26 / 32 / 38.
   **The Fortress** (approved 2026-09-20) is the broken company's third survivor, the slot
   `world.md` already had agreed. His real name is never given, which is the one exception to the
   two-part-name rule; the article keeps it from reading as a construct's one-word label. His two

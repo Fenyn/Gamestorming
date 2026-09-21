@@ -273,18 +273,18 @@ ones become Ally-legal at 5.
 
 | Character | Cards | By type | Personality cards (Aspects, alignment gate) | Ally-legal at 2 / at 3 Aspects | Runs that lead with them |
 |---|---|---|---|---|---|
-| Emrys Rooke | 9 | 7 Strike, 2 Drill | `personality_emrys_rooke_1_the_eldest` 1-5, any | no / no | `steel_heir_start` (3 Aspects) |
-| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | `personality_edric_rooke_1_the_hero` 1-5, any; `personality_edric_rooke_1` 1-1, Vigil | `personality_edric_rooke_1` yes / yes; `personality_edric_rooke_1_the_hero` no / no | `pyre_ascent_start` (2), `tide_deepwater_start` (2) |
-| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | `personality_bram_ashmark_1_starved` 1-3, any; `personality_bram_ashmark_1_starved` 1-5, any | no / no | `pyre_beatdown_start` (2), `pyre_attrition_start` (2) |
-| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | `personality_gideon_mourne_1_the_marked_lord` 1-4, any; `personality_gideon_mourne_1_mercenary` 1-1, Pact | `personality_gideon_mourne_1_mercenary` yes / yes; `personality_gideon_mourne_1_the_marked_lord` no / no | `shade_mind_siege_start` (2) |
-| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | `personality_caedan_vale_1_last_heir` 1-5, any | no / no | `freestyle_swords_start` (2) |
+| Emrys Rooke | 9 | 7 Strike, 2 Drill | `personality_emrys_rooke_*` 1-5, any | no / no | `steel_heir_start` (3 Aspects) |
+| Sir Edric Rooke | 9 | 3 Strike, 1 Art, 2 Combat, 2 Non-Combat, 1 Drill | `personality_edric_rooke_*` 1-5, any; `personality_edric_rooke_1` 1-1, Vigil | `personality_edric_rooke_1` yes / yes; the rest no / no | `pyre_ascent_start` (2), `tide_deepwater_start` (2) |
+| Bram Ashmark | 8 | 4 Strike, 2 Art, 1 Combat, 1 Non-Combat | `personality_bram_ashmark_*`: the Hollow 1-3, the Glut 1-5, any. Both lines share Aspect 1 | no / no | `pyre_beatdown_start` (2), `pyre_attrition_start` (2) |
+| Gideon Mourne | 7 | 2 Strike, 1 Art, 3 Non-Combat, 1 Drill | `personality_gideon_mourne_*` 1-4, any; `personality_gideon_mourne_1_mercenary` 1-1, Pact | `personality_gideon_mourne_1_mercenary` yes / yes; the rest no / no | `shade_mind_siege_start` (2) |
+| Caedan Vale | 7 | 4 Strike, 1 Combat, 2 Non-Combat | `personality_caedan_vale_*` 1-5, any | no / no | `freestyle_swords_start` (2) |
 | Corin Thrace | 5 | 1 Strike, 3 Art, 1 Non-Combat | none | — | **none.** No personality card exists |
-| Sable Draik | 3 | 3 Art | `personality_sable_draik_1_captain` 1-3, any | no / no | `shade_henchmen_start` (2) |
-| Halden Quarr | 3 | 2 Strike, 1 Art | `personality_halden_quarr_1_the_grinder` 1-3, any | no / no | `steel_beatdown_start` (2). His three cards print `steel`, and that run is Steel |
+| Sable Draik | 3 | 3 Art | `personality_sable_draik_*` 1-3, any | no / no | `shade_henchmen_start` (2) |
+| Halden Quarr | 3 | 2 Strike, 1 Art | `personality_halden_quarr_*` 1-3, any | no / no | `steel_beatdown_start` (2). His three cards print `steel`, and that run is Steel |
 | The Fortress | 2 | 1 Strike, 1 Art | none | — | **none.** No personality card exists |
-| Marrow | 2 | 2 Combat | `personality_marrow_1_patchwork` 1-4, any | no / no | `shade_salvage_start` (3) |
-| Siphon | 2 | 1 Strike, 1 Art | `personality_siphon_1_dormant` 1-3, any | no / no | `storm_volley_start` (2), `storm_unbound_start` (3) |
-| Dame Alder Rooke | 1 | 1 Combat | `personality_alder_rooke_1_matriarch` 1-3, any; `personality_alder_rooke_1` 1-1, Vigil | `personality_alder_rooke_1` yes / yes; `personality_alder_rooke_1_matriarch` no / no | `tide_companions_start` (3). `rookes_deluge` reads `only: {duelist_character}`, so only that run unlocks it |
+| Marrow | 2 | 2 Combat | `personality_marrow_*` 1-4, any | no / no | `shade_salvage_start` (3) |
+| Siphon | 2 | 1 Strike, 1 Art | `personality_siphon_*` 1-3, any | no / no | `storm_volley_start` (2), `storm_unbound_start` (3) |
+| Dame Alder Rooke | 1 | 1 Combat | `personality_alder_rooke_*` 1-3, any; `personality_alder_rooke_1` 1-1, Vigil | `personality_alder_rooke_1` yes / yes; the rest no / no | `tide_companions_start` (3). `rookes_deluge` reads `only: {duelist_character}`, so only that run unlocks it |
 | Brann Draik | 1 | 1 Strike | `personality_brann_draik_1` 1-1, Pact | yes / yes | **none.** Ally-legal everywhere Pact, but no run names him Duelist |
 | Halvard Draik | 1 | 1 Strike | `personality_halvard_draik_1` 1-1, Pact | yes / yes | **none**, as above |
 | Vesna Draik | 1 | 1 Strike | `personality_vesna_draik_1` 1-1, Pact | yes / yes | **none**, as above |

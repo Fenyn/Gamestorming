@@ -18,7 +18,7 @@ Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code na
 
 Rethemed 2026-09-17 from a king's tournament of spellsword houses to mage duels. There is no court, no king and no tourney. The world is kept abstract: places of power sit on the leylines, and at each one the wall between worlds is thin enough to cut a gate. The Eidolons are otherworldly entities waiting on the far side. Seven seals carved into a gate open it for one of them, and duelists fight each other for the right to carve. Inside the duel, everything is the duelist.
 
-The rename pass ran on 2026-09-17: this doc, the code, the data and the card text all use the terms below. Card ids, deck ids and art file names were renamed the same day (`duelist_alpha`, `sun_seal_3`, `blank_mask`, `root_seals`; Aspect art is `<id>_a<aspect>.png`).
+The rename pass ran on 2026-09-17: this doc, the code, the data and the card text all use the terms below. Card ids, deck ids and art file names were renamed the same day (`sun_seal_3`, `blank_mask`, `root_seals`). Personality ids and their art were renamed again on 2026-09-21, when each Aspect became its own card: `personality_bram_ashmark_1_starved`, with art at `<id>.png` like every other card. The old-to-new map is `zenith/data/migrations/personality_split.json`.
 
 | Mechanic | In-world |
 |---|---|

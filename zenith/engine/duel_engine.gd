@@ -3086,6 +3086,9 @@ func _finish_attack(attacker: PlayerState, a: Dictionary) -> void:
 		"is_final": bool(a["is_final"]),
 		"stopped": bool(a["stopped"]),
 		"stopped_by": stopped_by,
+		# Taken now, like the other three titles: by the time a client reads this the defence may
+		# be back in a hidden zone, where a simulation would have given it another identity.
+		"stopped_by_title": SeatView.stopper_title(self, stopped_by),
 		"stages_dealt": int(a["stages_dealt"]),
 		"life_dealt": int(a["life_dealt"]),
 		"target": int(a.get("target", -1)),

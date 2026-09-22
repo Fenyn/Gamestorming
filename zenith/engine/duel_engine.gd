@@ -9,7 +9,7 @@ extends RefCounted
 ## so a card's text can ask its owner (or the target) to pick cards mid-resolution.
 
 const STARTING_ENERGY: int = 5
-const STRONG_BAND: int = 3   # band D of the Strike Table; see _apply_first_player_rule
+const DOUBLE_POWER_ENERGY: int = 2   # the stronger duelist's start under the Double Power Rule
 const ALLY_STARTING_ENERGY: int = 3
 const LOST_ASPECT_ENERGY: int = 5
 const DRAW_COUNT: int = 3
@@ -131,6 +131,26 @@ func submit(cmd: Command) -> bool:
 	_handle(kind, chosen, context)
 	_run()
 	return true
+
+
+## Card bookkeeping check, "" when sound. Every card may sit in one zone list only, and a card in
+## the hand, discard, Life Deck, removed pile or Reserve must say so in its own `zone`. A card in
+## two places is how a spent card came back for free use (2026-09-22, the Watchful Eye loop), so
+## the Referee runs this after every command and the sim harness fails the match on it.
+func integrity_problem() -> String:
+	var seen: Dictionary = {}   # uid -> where it was first found
+	for p in state.players:
+		var lists: Dictionary = {&"hand": p.hand, &"discard": p.discard, &"life_deck": p.life_deck,
+			&"removed": p.removed, &"reserve": p.reserve, &"in_play": p.in_play}
+		for zone in lists.keys():
+			for c in (lists[zone] as Array[CardInstance]):
+				var where: String = "player %d %s" % [p.index, zone]
+				if seen.has(c.uid):
+					return "%s #%d is listed twice: %s and %s" % [c.def.id, c.uid, seen[c.uid], where]
+				seen[c.uid] = where
+				if zone != &"in_play" and c.zone != zone:
+					return "%s #%d sits in %s but its zone says %s" % [c.def.id, c.uid, where, c.zone]
+	return ""
 
 
 func is_over() -> bool:
@@ -296,6 +316,85 @@ func player(i: int) -> PlayerState:
 	return state.players[i]
 
 
+## What the engine still has to resolve, first item first, in the order it actually works through
+## them: the attack in the air, the card waiting on its counter window, every job in the effect
+## queue (a `then` job reads first because `_flush_then` inserts it at the front), then the wounds
+## the life-damage loop has left to flip. Exactly one item carries `current`, the one the engine is
+## standing on now.
+##
+## Each item is {kind: StringName, uid: int, title: String, owner: int, target: int, note: String,
+## current: bool}, with `target` -1 when the item has none. This is seat-blind, so it names a card
+## a seat may not be allowed to see: `SeatView.of` masks it before a client ever reads it. Nothing
+## outside `engine/` should call this directly.
+func pending_items() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var a: Dictionary = state.attack
+	var wounds: int = int(a.get("life_remaining", 0)) if not a.is_empty() else 0
+	# Wounds are only a queue of their own once the damage is being dealt; before step 12 the
+	# number is still a forecast the attack item already carries.
+	var wounds_live: bool = wounds > 0 and state.battle_step >= 12
+	var current: StringName = &""
+	if not state.pending_play.is_empty():
+		current = &"pending_card"
+	elif not _queue.is_empty():
+		current = &"trigger"
+	elif wounds_live:
+		current = &"wounds"
+	elif not a.is_empty():
+		current = &"attack"
+	var defender_uid: int = -1
+	if not a.is_empty():
+		defender_uid = int(a.get("target", -1))
+		if defender_uid < 0:
+			defender_uid = state.players[int(a.get("defender", 1))].in_control().uid
+		var src: CardInstance = card(int(a.get("source", -1)))
+		var performer: CardInstance = _performer(a)
+		var b: Dictionary = damage_breakdown(a)
+		out.append({
+			"kind": &"attack",
+			"uid": src.uid if src != null else performer.uid,
+			"title": src.def.title if src != null else performer.def.title,
+			"owner": int(a.get("attacker", state.attacker)),
+			"target": defender_uid,
+			"note": CardText.short_damage(int(b.get("stages", 0)), int(b.get("life", 0))) if not b.is_empty() else "",
+			"current": current == &"attack",
+		})
+	if not state.pending_play.is_empty():
+		var pc: CardInstance = card(int(state.pending_play.get("card", -1)))
+		out.append({
+			"kind": &"pending_card",
+			"uid": pc.uid if pc != null else -1,
+			"title": pc.def.title if pc != null else "",
+			"owner": pc.owner if pc != null else -1,
+			"target": -1,
+			"note": CardText.pending_mode_phrase(str(state.pending_play.get("mode", "use"))),
+			"current": current == &"pending_card",
+		})
+	for i in range(_queue.size()):
+		var job: Dictionary = _queue[i]
+		var source: CardInstance = job.get("source")
+		out.append({
+			"kind": &"trigger",
+			"uid": source.uid if source != null else -1,
+			"title": source.def.title if source != null else "",
+			"owner": int(job.get("owner", -1)),
+			"target": -1,
+			"note": CardText.trigger_phrase(str(job.get("trigger", "secondary"))),
+			"current": current == &"trigger" and i == 0,
+		})
+	if wounds_live:
+		out.append({
+			"kind": &"wounds",
+			"uid": int(a.get("source", -1)),
+			"title": "",
+			"owner": int(a.get("attacker", state.attacker)),
+			"target": defender_uid,
+			"note": "%d wound%s" % [wounds, "" if wounds == 1 else "s"],
+			"current": current == &"wounds",
+		})
+	return out
+
+
 ## Legal commands in the pending prompt that name this card.
 func options_for_card(uid: int) -> Array[Command]:
 	var out: Array[Command] = []
@@ -357,15 +456,28 @@ func _instance(def: CardDef, owner: int, zone: StringName) -> CardInstance:
 
 ## Bracket rule from the later rulings: if only one duelist's starting Might sits in band D or
 ## above, the weaker duelist goes first. Otherwise the Vigil first, or a coin flip. No stage changes.
+## Double Power Rule, from the printed starter rulebook: compare the two duelists' Might at the
+## starting stage. If one is double the other or more, it starts at 2 Energy, the weaker starts
+## at its highest stage and goes first. Wild Might never triggers it. Otherwise the Vigil goes
+## first, and two duelists of the same side go first at random.
 func _apply_first_player_rule() -> void:
 	var a: PlayerState = state.players[0]
 	var b: PlayerState = state.players[1]
 	var wild: bool = a.duelist.is_wild() or b.duelist.is_wild()
-	var a_high: bool = strike_table.band(a.duelist.might()) >= STRONG_BAND
-	var b_high: bool = strike_table.band(b.duelist.might()) >= STRONG_BAND
-	if not wild and a_high != b_high:
-		state.active = 1 if a_high else 0
-		_emit(&"bracket_rule", {"stronger": 0 if a_high else 1})
+	var a_might: int = a.duelist.might()
+	var b_might: int = b.duelist.might()
+	var stronger: int = -1
+	if not wild and a_might > 0 and b_might > 0:
+		if a_might >= 2 * b_might:
+			stronger = 0
+		elif b_might >= 2 * a_might:
+			stronger = 1
+	if stronger >= 0:
+		var weaker: int = 1 - stronger
+		state.players[stronger].duelist.energy = DOUBLE_POWER_ENERGY
+		state.players[weaker].duelist.energy = CardInstance.MAX_STAGE
+		state.active = weaker
+		_emit(&"double_power", {"stronger": stronger, "weaker": weaker, "energy": DOUBLE_POWER_ENERGY})
 	elif a.alignment != b.alignment:
 		state.active = 0 if a.alignment == "vigil" else 1
 	else:
@@ -1043,6 +1155,9 @@ func _advance_combat() -> void:
 		GameState.Phase.FIGHT_BACK:
 			# A restriction aimed at one attack phase ends when that phase is over. Combat runs
 			# many phases back and forth, so this is far shorter than "the rest of Combat".
+			# The hand-over itself gets a beat, so a client can draw Combat as a series of
+			# exchanges rather than one endless Attack. It carries no log line of its own.
+			_emit(&"fight_back", {"player": state.attacker, "next": 1 - state.attacker})
 			_expire_attack_phase_floats(state.attacker)
 			for q in state.players:
 				for item in q.pending_fight_back:
@@ -1095,6 +1210,7 @@ func _prompt_entering_combat(player_index: int) -> bool:
 		opts.append(Command.new(player_index, &"use", c.uid))
 	if opts.is_empty():
 		p.entering_combat_done = true
+		_emit(&"window_skipped", {"player": player_index, "window": "entering_combat"})
 		return false
 	opts.append(Command.new(player_index, &"decline"))
 	_set_prompt(player_index, &"follow_up", opts,
@@ -1164,11 +1280,24 @@ func _prompt_after_damage(defender: PlayerState, a: Dictionary) -> bool:
 					and _damage_window_matches(c.def, stages, wounds) and _drill_use_available(c):
 				opts.append(Command.new(defender.index, &"use", c.uid))
 	if opts.is_empty():
+		_emit(&"window_skipped", {"player": defender.index, "window": "after_damage"})
 		return false
 	opts.append(Command.new(defender.index, &"decline"))
 	_set_prompt(defender.index, &"follow_up", opts,
 		{"window": "after_damage", "source": int(a.get("source", -1)), "stages": stages, "life": wounds})
 	return true
+
+
+## Card data names the side of the entering-Combat window as the printed cards do, "attacker" or
+## "defender"; the window itself is keyed "active" / "opposing" (older data still says so).
+static func role_matches(wanted: String, role: String) -> bool:
+	if wanted == "":
+		return true
+	if wanted == "attacker":
+		return role == "active"
+	if wanted == "defender":
+		return role == "opposing"
+	return wanted == role
 
 
 func _resolve_entering(player_index: int) -> void:
@@ -1178,8 +1307,7 @@ func _resolve_entering(player_index: int) -> void:
 	for c in _in_play_sources(p, true):
 		var effects: Array[Dictionary] = []
 		for e in c.def.effects_for("entering_combat"):
-			var wanted: String = str(e.get("role", ""))
-			if wanted == "" or wanted == role:
+			if role_matches(str(e.get("role", "")), role):
 				effects.append(e)
 		if c.attached_to != null:
 			for e in c.def.attachment.get("effects", []):
@@ -1197,7 +1325,7 @@ func _resolve_entering(player_index: int) -> void:
 	var pw: Dictionary = ic.power()
 	var pw_effects: Array[Dictionary] = []
 	for e in pw.get("effects", []):
-		if str(e.get("trigger", "")) == "entering_combat" and (str(e.get("role", "")) == "" or str(e.get("role", "")) == role):
+		if str(e.get("trigger", "")) == "entering_combat" and role_matches(str(e.get("role", "")), role):
 			pw_effects.append(e)
 	if not pw_effects.is_empty():
 		_enqueue(pw_effects, "entering_combat", player_index, ctx, ic)
@@ -1205,7 +1333,7 @@ func _resolve_entering(player_index: int) -> void:
 	if constant.has("entering_combat"):
 		var ce: Array[Dictionary] = []
 		for e in constant.get("entering_combat", []):
-			if str(e.get("role", "")) == "" or str(e.get("role", "")) == role:
+			if role_matches(str(e.get("role", "")), role):
 				ce.append(e)
 		_enqueue_keyed(ce, "entering_combat", player_index, ctx, ic)
 	_emit(&"entering_combat", {"player": player_index, "role": role})
@@ -1255,6 +1383,7 @@ func _prompt_combat_end() -> void:
 			opts.append(Command.new(seat, &"use", c.uid))
 	if opts.is_empty():
 		state.end_combat_done[seat] = true
+		_emit(&"window_skipped", {"player": seat, "window": "combat_end"})
 		return
 	opts.append(Command.new(seat, &"done"))
 	_set_prompt(seat, &"combat_end", opts)
@@ -1483,6 +1612,10 @@ func _handle_attack_action(cmd: Command) -> void:
 ## Relic). `advance` is false in the end-of-Combat window, where using a card does not take the
 ## place of an attack and so does not hand the phase over.
 func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
+	# A hand card whose zone says elsewhere would fall through to the in-play branch below, which
+	# does nothing for a Combat card and never spends it: the free-reuse loop. Say so loudly.
+	if p.hand.has(c) and c.zone != &"hand":
+		push_error("DuelEngine._use_card: %s #%d is in the hand but its zone says %s" % [c.def.id, c.uid, c.zone])
 	if c.def.type == CardDef.Type.RELIC:
 		_use_relic(p)
 	elif c.zone == &"hand":
@@ -1545,12 +1678,17 @@ func _begin_attack(source: CardInstance, spec: Dictionary, effects: Array[Dictio
 	state.attack = _build_attack(att, source, spec, effects, is_power, is_final, empowered, performer, attacker.attack_count_combat == 1)
 	state.last_attack = {}
 	state.consecutive_passes = 0
-	state.battle_step = 2
-	state.phase = GameState.Phase.BATTLE
+	# The declaration is the last beat of the attack phase, so it is stamped before the phase
+	# moves on. Stamping it BATTLE made the client's tracker skip ATTACK entirely.
+	# `id` names the card while it is public. The same update can send it somewhere hidden before a
+	# client replays the declaration (a Life Deck bottom after use), and the view is read after that.
 	_emit(&"attack_declared", {
 		"player": att, "kind": state.attack["kind"], "source": state.attack["source"],
+		"id": source.def.id if source != null else "",
 		"is_power": is_power, "is_final": is_final, "focused": state.attack["focused"], "empowered": empowered,
 	})
+	state.battle_step = 2
+	state.phase = GameState.Phase.BATTLE
 	var constant: Dictionary = _constant(attacker)
 	if constant.has("on_attack"):
 		_enqueue_keyed(constant.get("on_attack", []), "on_attack", att, {"attack": state.attack}, attacker.in_control())
@@ -1801,6 +1939,9 @@ func _open_counter_window(c: CardInstance, mode: String, control_taken: bool = f
 			if al != opp.in_control():
 				opts.append(Command.new(opp.index, &"control", al.uid))
 	if opts.is_empty():
+		# The rival held nothing that could answer, so the window opened and closed unseen. Say so,
+		# the way any swallowed effect does, rather than letting the card resolve out of silence.
+		_emit(&"window_skipped", {"player": opp.index, "window": "respond"})
 		return false
 	opts.append(Command.new(opp.index, &"decline"))
 	state.pending_play = {"card": c.uid, "mode": mode, "control_taken": control_taken}
@@ -2206,6 +2347,12 @@ func _prompt_defense() -> void:
 		_emit(&"no_defense", {"player": d.index, "auto": true, "reason": "final_strike"})
 		state.phase = GameState.Phase.BATTLE
 		return
+	if bool(a["unstoppable"]):
+		# "Cannot be stopped": no card or Power is offered, since none of them could change
+		# the attack. Endurance, if the attack allows it, still gets its own window later.
+		_emit(&"no_defense", {"player": d.index, "auto": true, "reason": "unstoppable"})
+		state.phase = GameState.Phase.BATTLE
+		return
 	var opts: Array[Command] = []
 	for c in d.hand:
 		if _defense_usable(d, c, kind, focused):
@@ -2304,6 +2451,7 @@ func _prompt_late_stop() -> bool:
 		if _defense_usable(d, c, kind, focused, true):
 			opts.append(Command.new(d.index, &"defend", c.uid))
 	if opts.is_empty():
+		_emit(&"window_skipped", {"player": d.index, "window": "late_stop"})
 		return false
 	opts.append(Command.new(d.index, &"no_defense"))
 	state.phase = GameState.Phase.DEFEND
@@ -2917,10 +3065,12 @@ func _deal_life_damage(defender: PlayerState, a: Dictionary) -> void:
 		if c.def.type == CardDef.Type.SEAL:
 			_bypass_seal(c)
 			continue
+		# The wound event below is the one the client animates; the move itself stays quiet so a
+		# lost life card flies once, not twice.
 		if bool(a["damage_removes"]):
-			_remove_from_game(c)
+			_remove_from_game(c, true)
 		else:
-			_move_to_discard(c)
+			_move_to_discard(c, true)
 		_on_wound(defender, c)
 		a["life_remaining"] = int(a["life_remaining"]) - 1
 		a["life_dealt"] = int(a["life_dealt"]) + 1
@@ -4945,7 +5095,7 @@ func option_outcome(prompt: Prompt, cmd: Command) -> Dictionary:
 				return {"life": maxi(0, life - int(cmd.value) * per), "stages": stages, "stopped": false}
 			# A stop only takes the attack to nothing when it is the one the attack still needs.
 			var stops: int = int(a.get("stop_count", 0)) + 1
-			var stopped: bool = stops >= int(a.get("stops_needed", 1))
+			var stopped: bool = stops >= int(a.get("stops_needed", 1)) and not bool(a.get("unstoppable", false))
 			return {"life": 0 if stopped else life, "stages": 0 if stopped else stages, "stopped": stopped}
 	return {}
 
@@ -5653,10 +5803,19 @@ func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String 
 		if school == "" or c.def.school == school:
 			pool.append(c)
 	var count: int = pool.size() if all else mini(n, pool.size())
+	# Two cursors walk in from the ends, so alternating top and bottom never takes one card twice.
+	# (Indexing both ends by `i` did: with two cards in the pile, the top pick and the second
+	# "bottom" pick were the same card, which then sat in the Life Deck twice.)
+	var front: int = 0
+	var back: int = pool.size() - 1
 	for i in range(count):
 		# The pile runs oldest first, so its top is the end of the array and its bottom is the front.
 		var from_front: bool = from == "bottom" or (from == "top_and_bottom" and i % 2 == 1)
-		var c: CardInstance = pool[i] if from_front else pool[pool.size() - 1 - i]
+		var c: CardInstance = pool[front] if from_front else pool[back]
+		if from_front:
+			front += 1
+		else:
+			back -= 1
 		p.discard.erase(c)
 		c.zone = &"life_deck"
 		p.life_deck.append(c)
@@ -5702,10 +5861,10 @@ func _discard_life(p: PlayerState, n: int, remove: bool = false) -> void:
 		if c.def.type == CardDef.Type.SEAL:
 			_bypass_seal(c)
 		elif remove:
-			_remove_from_game(c)
+			_remove_from_game(c, true)
 			_on_wound(p, c)
 		else:
-			_move_to_discard(c)
+			_move_to_discard(c, true)
 			_on_wound(p, c)
 		_emit(&"life_card_lost", {"player": p.index, "card": c.uid, "id": c.def.id})
 
@@ -5743,7 +5902,7 @@ func _remove_discard(p: PlayerState, n: int, all: bool, from: String = "top") ->
 		_remove_from_game(c)
 
 
-func _move_to_discard(c: CardInstance) -> void:
+func _move_to_discard(c: CardInstance, quiet: bool = false) -> void:
 	if c.def.type == CardDef.Type.SEAL:
 		_bypass_seal(c)
 		return
@@ -5763,10 +5922,13 @@ func _move_to_discard(c: CardInstance) -> void:
 	c.cards_under.clear()
 	owner.discard.append(c)
 	_drop_attachments(c)
-	_emit(&"card_moved", {"card": c.uid, "to": "discard", "owner": c.owner})
+	if not quiet:
+		_emit(&"card_moved", {"card": c.uid, "to": "discard", "owner": c.owner})
 
 
-func _remove_from_game(c: CardInstance) -> void:
+## `quiet` is for a life card lost to damage or a cost: the wound event that follows is the
+## one clients show, so the move itself emits nothing.
+func _remove_from_game(c: CardInstance, quiet: bool = false) -> void:
 	_erase_from_zone(c)
 	var owner: PlayerState = state.players[c.owner]
 	c.zone = &"removed"
@@ -5780,7 +5942,8 @@ func _remove_from_game(c: CardInstance) -> void:
 	c.cards_under.clear()
 	owner.removed.append(c)
 	_drop_attachments(c)
-	_emit(&"card_moved", {"card": c.uid, "to": "removed", "owner": c.owner})
+	if not quiet:
+		_emit(&"card_moved", {"card": c.uid, "to": "removed", "owner": c.owner})
 
 
 func _move_to_deck_bottom(c: CardInstance) -> void:
@@ -6005,4 +6168,7 @@ func _display_state() -> Dictionary:
 		"fervor": fervor, "zones": zones,
 		"turn": state.turn, "step": state.step, "phase": state.phase,
 		"active": state.active, "attacker": state.attacker,
+		# The Combat tracker needs both: how far the battle sequence has run inside this attack,
+		# and which exchange of the Combat the beat belongs to.
+		"battle_step": state.battle_step, "attack_phase_count": state.attack_phase_count,
 	}

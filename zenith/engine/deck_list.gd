@@ -17,7 +17,9 @@ var reserve: Array[String] = []
 var archetype: String = ""         # an Archetype id: what kind of deck this is, shown to both players
 var subthemes: Array[String] = []  # Archetype subtheme ids
 var difficulty: String = ""        # easy | medium | hard to pilot
-var rating: String = ""            # S | A | B | C: measured strength of an adventure starter, "" for none
+var cleared: float = 0.0           # adventure starter: mean ladder stages cleared in the sim sweep, 0 for none
+## Ease-of-play bonus folded into `run_score`: an easy deck is worth two stages, a medium one one.
+const EASE_BONUS: Dictionary = {"easy": 2.0, "medium": 1.0, "hard": 0.0}
 var ai_profile: String = ""      # playstyle file under data/ai/profiles for an AI playing this deck; "" plays the defaults
 var tagline: String = ""         # one line under the duelist's name on the select screen
 var blurb: String = ""           # two or three sentences on who they are and how the deck plays
@@ -48,7 +50,7 @@ static func from_dict(d: Dictionary) -> DeckList:
 	deck.archetype = str(d.get("archetype", ""))
 	deck.subthemes.assign(d.get("subthemes", []))
 	deck.difficulty = str(d.get("difficulty", ""))
-	deck.rating = str(d.get("rating", ""))
+	deck.cleared = float(d.get("cleared", 0.0))
 	deck.ai_profile = str(d.get("ai_profile", ""))
 	deck.tagline = str(d.get("tagline", ""))
 	deck.blurb = str(d.get("blurb", ""))
@@ -80,6 +82,12 @@ func set_duelist(ids: Array[String]) -> void:
 
 
 ## The card a screen shows as the deck's face: the Duelist's first Aspect.
+## One number out of ten for the adventure roster: stages cleared plus the ease bonus. A strong
+## deck that is hard to pilot and an easy deck that stalls mid-ladder land near each other.
+func run_score() -> float:
+	return cleared + float(EASE_BONUS.get(difficulty, 0.0)) if cleared > 0.0 else 0.0
+
+
 func duelist_face_id() -> String:
 	return duelist_ids[0] if not duelist_ids.is_empty() else ""
 

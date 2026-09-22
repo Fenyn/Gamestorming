@@ -297,9 +297,14 @@ static func alignment_name(alignment: String) -> String:
 	return "a %s duelist" % alignment.capitalize()
 
 
-## The side of Combat a card asks about. "Active" needs the noun, attacker and defender do not.
+## The side of Combat a card asks about, in the printed words: the player who declared Combat
+## enters it as the attacker, the other as the defender, whichever way the data spells it.
 static func role_name(role: String) -> String:
-	return "active player" if role == "active" else role
+	if role == "active" or role == "attacker":
+		return "attacker"
+	if role == "opposing" or role == "defender":
+		return "defender"
+	return role
 
 
 ## Who a card's "X only" gate lets play it, without the trailing "only". An `any_of` gate lists
@@ -2099,8 +2104,26 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s puts %d cards back in a chosen order." % [pname, int(d.get("count", 0))]
 		&"power_up":
 			return "%s powers up %d to Energy %d." % [pname, int(d.get("gain", 0)), int(d.get("energy", 0))]
+		&"turn_end":
+			return "%s ends their turn." % pname
 		&"combat_declared":
 			return "%s declares Combat!" % pname
+		&"entering_combat":
+			return "%s prepares as the %s." % [pname, role_name(str(d.get("role", "active")))]
+		&"recover_step":
+			if not bool(d.get("eligible", false)):
+				return "%s has nothing to recover." % pname
+			return ""   # the `recover` line says what came back
+		&"window_skipped":
+			# A window that opened on nothing. The ones that open on every card played stay out of
+			# the log the way a countered defense does; the client still gets the beat.
+			match str(d.get("window", "")):
+				"after_damage":
+					return "%s has no answer to the damage." % pname
+				"late_stop":
+					return "%s cannot stop it now." % pname
+				_:
+					return ""
 		&"combat_skipped":
 			if not bool(d.get("forced", false)):
 				return "%s skips Combat." % pname
@@ -2141,6 +2164,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 					return "%s has no defense." % pname
 				"final_strike":
 					return "%s cannot defend after a Final Strike." % pname
+				"unstoppable":
+					return "%s cannot stop it." % pname
 			return ""   # a standing stop or a countered defense already has its own line
 		&"capture_instead":
 			return "%s's Ally forgoes the damage to capture %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
@@ -2270,8 +2295,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s takes control of Combat." % _cname(engine, int(d.get("card", -1)), seat, actor)
 		&"redirect":
 			return "%s takes the damage." % _cname(engine, int(d.get("card", -1)), seat, actor)
-		&"bracket_rule":
-			return "The weaker duelist opens the duel."
+		&"double_power":
+			return "Double Power: the stronger duelist starts at Energy %d; the weaker starts at full Energy and goes first." % int(d.get("energy", 2))
 		&"reserve_swap":
 			return "%s brings %s in from the Reserve." % [pname, _cname(engine, int(d.get("in", -1)), seat, actor)]
 		&"search":
@@ -2304,6 +2329,20 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 					return "The rival's mind gives out. %s is Eidolarch!" % w
 		_:
 			return ""
+
+
+## Why a card is sitting in its response window, for the pending queue. `mode` is the one
+## `GameState.pending_play` carries.
+static func pending_mode_phrase(mode: String) -> String:
+	match mode:
+		"defend":
+			return "defense awaiting a counter"
+		"declare":
+			return "answering the Declare step"
+		"ascension":
+			return "answering the Ascension"
+		_:
+			return "awaiting a counter"
 
 
 ## When a card's effect fires, for the "<card> triggers ..." log line.

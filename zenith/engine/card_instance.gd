@@ -98,10 +98,16 @@ func is_wild() -> bool:
 
 ## Might at the current Energy stage.
 func might() -> int:
+	return might_at(energy)
+
+
+## Might this Aspect prints at a given Energy stage. Nothing in the rules modifies a printed Might,
+## so this is the whole of it: the number moves only with the Aspect and the Energy stage.
+func might_at(stage: int) -> int:
 	var arr: Array = aspect_data().get("might", [])
 	if arr.is_empty():
 		return 0
-	var idx: int = clampi(energy, 0, arr.size() - 1)
+	var idx: int = clampi(stage, 0, arr.size() - 1)
 	return int(arr[idx])
 
 

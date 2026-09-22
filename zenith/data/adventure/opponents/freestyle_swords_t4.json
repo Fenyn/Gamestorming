@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "committed_cut",
-      "count": 3
+      "count": 2
     },
     {
       "id": "lobbed_bolt",
@@ -111,7 +111,7 @@
     },
     {
       "id": "quick_retreat",
-      "count": 2
+      "count": 3
     },
     {
       "id": "relentless_fury",

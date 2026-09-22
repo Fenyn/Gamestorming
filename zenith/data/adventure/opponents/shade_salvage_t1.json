@@ -51,7 +51,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "dismissal",
@@ -79,7 +79,7 @@
     },
     {
       "id": "absorbing_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "assembly_drill",
@@ -107,7 +107,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mourne_takes_measure",
@@ -115,10 +115,6 @@
     },
     {
       "id": "rites_unmade",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
       "count": 1
     },
     {

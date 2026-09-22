@@ -96,8 +96,20 @@ static func size_cap(deck: DeckList, upgrades: AdventureUpgrades = null) -> int:
 
 
 ## Empty Life Deck slots left: what a starter may still add. A starter may begin with them empty.
+## Never more than the full-deck maximum leaves, which bought Aspect cards also count against, so
+## the slot count and the validator can never disagree about the last card.
 static func room_left(deck: DeckList, upgrades: AdventureUpgrades = null) -> int:
-	return maxi(0, size_cap(deck, upgrades) - deck.cards.size()) if deck != null else 0
+	if deck == null:
+		return 0
+	return maxi(0, mini(size_cap(deck, upgrades) - deck.cards.size(), ceiling_left(deck)))
+
+
+## Cards the whole deck may still take before DeckValidator's maximum (85, or 90 for Root).
+static func ceiling_left(deck: DeckList) -> int:
+	if deck == null:
+		return 0
+	var ceiling: int = DeckValidator.MAX_CARDS_ROOT if deck.style == "root" else DeckValidator.MAX_CARDS
+	return ceiling - deck.total_cards()
 
 
 ## The highest Aspect this starter's stack may reach before a run begins: its own printed height,
@@ -216,6 +228,9 @@ static func add_card(deck: DeckList, in_id: String, library: CardLibrary,
 	if deck == null:
 		problems.append("No deck to add to")
 		return {"deck": null, "problems": problems}
+	if ceiling_left(deck) <= 0:
+		problems.append("The deck is at the %d-card maximum" % (deck.total_cards()))
+		return {"deck": null, "problems": problems}
 	if room_left(deck, upgrades) <= 0:
 		problems.append("The deck is full at %d cards; buy a deck slot to add another"
 			% size_cap(deck, upgrades))
@@ -256,6 +271,9 @@ static func add_aspect(deck: DeckList, in_id: String, library: CardLibrary,
 	var next_tier: int = deck.duelist_ids.size() + 1
 	if next_tier > aspect_cap(deck, upgrades):
 		problems.append("Aspect %d is not unlocked for this starter" % next_tier)
+		return {"deck": null, "problems": problems}
+	if ceiling_left(deck) <= 0:
+		problems.append("The deck is at the %d-card maximum; take a Life Deck card out first" % deck.total_cards())
 		return {"deck": null, "problems": problems}
 	var trial: DeckList = _copy(deck)
 	var stack: Array[String] = trial.duelist_ids.duplicate()

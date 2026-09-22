@@ -14,7 +14,7 @@
   "reserve": [],
   "archetype": "art_beatdown",
   "difficulty": "medium",
-  "rating": "B",
+  "cleared": 5.1,
   "subthemes": ["fervor", "disruption", "construct"],
   "ai_profile": "storm_unbound",
   "tagline": "Make enemy attacks costly and land disruptive Arts to shut down Strikes while building your own Fervor.",

@@ -32,7 +32,9 @@ var duelist_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 var _life: int = 0
 var _hand: int = 0
 var _energy: int = 0
+var _energy_printed: int = 10
 var _might: int = 0
+var _might_printed: int = 0
 var _fervor: int = 0
 var _threshold: int = 5
 var _aspect: int = 1
@@ -42,6 +44,10 @@ var _piles: String = ""
 var _flags: PackedStringArray = PackedStringArray()
 var _seal_sets: Dictionary = {}
 var _reserve: int = 0
+var _lives: int = 1          # how many points the rival needs against this seat
+var _lives_lost: int = 0     # how many of them the rival has scored
+var _show_lives: bool = false  # only when either side has more than one (adventure duels)
+const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
 var _accent: Color = GOLD
 var _active: bool = false
 var _initialized: bool = false
@@ -83,6 +89,10 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	_life = int(counts[0]) if counts.size() > 0 else p.life_deck.size()
 	_energy = int(energies.get(controller.uid, energies.get(str(controller.uid), controller.energy)))
 	_might = int(mights.get(controller.uid, mights.get(str(controller.uid), controller.might)))
+	# The baselines are the engine's: printed Energy and the ladder rung that Energy prints at.
+	# The client only subtracts, which is the same difference `SeatPlayer` publishes.
+	_energy_printed = p.energy_printed
+	_might_printed = p.might_printed
 	_fervor = int(fervors[player_index]) if fervors.size() > player_index else p.fervor
 	_threshold = maxi(1, p.fervor_needed)
 	_aspect = int(aspects.get(duelist.uid, aspects.get(str(duelist.uid), duelist.aspect)))
@@ -114,6 +124,11 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 			held.append(seal_def.seal_number)
 		_seal_sets[seal_def.seal_set] = held
 	_flags = PLAYER_STATUS.flags(p)
+	# Lives: a seat falls when the rival scores `points_to_win[rival]` points against it.
+	var rival: int = 1 - player_index
+	_lives = maxi(1, int(view.points_to_win[rival])) if view.points_to_win.size() == 2 else 1
+	_lives_lost = clampi(int(view.points[rival]), 0, _lives) if view.points.size() == 2 else 0
+	_show_lives = view.points_to_win.size() == 2 and (int(view.points_to_win[0]) > 1 or int(view.points_to_win[1]) > 1)
 	if _initialized and same_identity and old_values != [_life, _energy, _fervor, _aspect] and not reduced_motion:
 		if _tween != null:
 			_tween.kill()
@@ -142,6 +157,8 @@ func update_layout() -> Dictionary:
 	stat_hit_rects.append(tracker)
 	if far_side:
 		stat_hit_rects.append(Rect2(tracker.position + Vector2(-205, 0), Vector2(185, 160)))
+	if _show_lives:
+		stat_hit_rects.append(_lives_tab(tracker))
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
 		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row - 34, text_width, 42))
@@ -181,8 +198,11 @@ func _draw() -> void:
 	_text("ENERGY", origin + Vector2(10, 61), 160, 34, ENERGY, true)
 	_text("MIGHT", origin + Vector2(190, 61), 160, 34, TEXT, true)
 	_text("FERVOR", origin + Vector2(370, 61), 160, 34, FERVOR, true)
-	_text("%d / 10" % _energy, origin + Vector2(10, 109), 160, 42, TEXT, true)
-	_text(CardText.short_number(_might), origin + Vector2(190, 109), 160, 44, TEXT, true)
+	_text("%d / 10" % _energy, origin + Vector2(10, 109), 160, 42, _stat_color(energy_delta()), true)
+	_text(CardText.short_number(_might), origin + Vector2(190, 109), 160, 44, _stat_color(might_delta()), true)
+	# Might has no printed maximum on the strip, so a moved ladder says what it moved from.
+	if might_delta() != 0:
+		_text("base %s" % CardText.short_number(_might_printed), origin + Vector2(190, 137), 160, 20, MUTED, true)
 	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 109), 160, 40, TEXT, true)
 	for i in range(10):
 		var on: bool = i < _energy
@@ -196,6 +216,8 @@ func _draw() -> void:
 	var rune_start: float = origin.x + 450.0 - step * (_threshold - 1) * 0.5
 	for i in range(_threshold):
 		_diamond(Vector2(rune_start + step * i, origin.y + 133), Vector2(minf(7, step * 0.3), 8), FERVOR if i < _fervor else INK, FERVOR if i < _fervor else Color(MUTED, 0.4))
+	if _show_lives:
+		_draw_lives(tracker)
 	var lines: PackedStringArray = _wrap_flags(text_width, 34)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
@@ -207,8 +229,37 @@ func _draw() -> void:
 		_text(value, Vector2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0), text_width, 34, FERVOR, true)
 
 
+## Above the printed baseline the number is green, below it warns, at it stays plain. The colour
+## is the state display, the way a power/toughness box is in Arena.
+func _stat_color(delta: int) -> Color:
+	if delta > 0:
+		return ENERGY
+	if delta < 0:
+		return ZenithTheme.WARN
+	return TEXT
+
+
+func energy_value() -> int:
+	return _energy
+
+
+func might_value() -> int:
+	return _might
+
+
+func energy_delta() -> int:
+	return _energy - _energy_printed
+
+
+func might_delta() -> int:
+	return _might - _might_printed
+
+
 func status_text() -> String:
 	var lines: PackedStringArray = PackedStringArray([_title, _control, _piles])
+	if _show_lives:
+		var left: int = _lives - _lives_lost
+		lines.append("Lives: %d of %d left" % [left, _lives])
 	if _player_index != _viewer:
 		lines.append("Hand %d" % _hand)
 	for set_id in _seal_sets:
@@ -256,6 +307,42 @@ func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -
 		var center: Vector2 = Vector2(middle_x + (34 + i * 36) * ratio, baseline - 12)
 		var filled: bool = held.has(i + 1)
 		_diamond(center, Vector2(10, 11), GOLD if filled else INK, GOLD if filled else GOLD.darkened(0.55))
+
+
+## The lives tab straddles the crest's bottom border, centred: under the Might column for the
+## near seat, and in the gap above the duelist card for the far one.
+func _lives_tab(tracker: Rect2) -> Rect2:
+	var width: float = 104.0 + 32.0 * float(_lives)
+	return Rect2(tracker.get_center().x - width * 0.5, tracker.end.y - 12.0, width, 26.0)
+
+
+func _draw_lives(tracker: Rect2) -> void:
+	var tab: Rect2 = _lives_tab(tracker)
+	var corners: PackedVector2Array = PackedVector2Array([
+		tab.position + Vector2(8, 0), Vector2(tab.end.x - 8, tab.position.y),
+		Vector2(tab.end.x, tab.position.y + 8), Vector2(tab.end.x, tab.end.y - 8),
+		Vector2(tab.end.x - 8, tab.end.y), Vector2(tab.position.x + 8, tab.end.y),
+		Vector2(tab.position.x, tab.end.y - 8), tab.position + Vector2(0, 8)])
+	draw_colored_polygon(corners, INK)
+	corners.append(corners[0])
+	draw_polyline(corners, _accent.lightened(_flash * 0.25), 2.0, true)
+	_text("LIVES", tab.position + Vector2(10, 21), 80, 22, MUTED, false)
+	for i in range(_lives):
+		var left: bool = i < _lives - _lives_lost
+		_heart(Vector2(tab.position.x + 96.0 + 32.0 * i, tab.get_center().y), 9.5, LIFE_RED if left else INK, LIFE_RED if left else Color(MUTED, 0.5))
+
+
+## A small heart: two lobes and a point, filled or hollow.
+func _heart(center: Vector2, r: float, fill: Color, edge: Color) -> void:
+	var points: PackedVector2Array = PackedVector2Array()
+	for k in range(25):
+		var t: float = TAU * float(k) / 24.0
+		# The classic heart curve, scaled to `r` and flipped so the point is at the bottom.
+		var x: float = 16.0 * pow(sin(t), 3)
+		var y: float = 13.0 * cos(t) - 5.0 * cos(2.0 * t) - 2.0 * cos(3.0 * t) - cos(4.0 * t)
+		points.append(center + Vector2(x, -y) * (r / 16.0))
+	draw_colored_polygon(points, fill)
+	draw_polyline(points, edge, 2.0, true)
 
 
 func _diamond(center: Vector2, extent: Vector2, fill: Color, edge: Color) -> void:

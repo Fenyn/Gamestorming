@@ -272,7 +272,7 @@ func _report(starter: String, ladder_size: int, seconds: float) -> void:
 func _survival_table(ladder_size: int) -> void:
 	print("")
 	print("Survival, one line per stage:")
-	print("  %-5s %7s %5s %-20s %6s  %-28s %s" % [
+	print("  %-5s %7s %5s %-22s %6s  %-28s %s" % [
 		"stage", "reached", "wins", "win rate (95% Wilson)", "turns", "losses by route", "lost to"])
 	for n in range(1, ladder_size + 1):
 		var reached: int = 0
@@ -295,7 +295,7 @@ func _survival_table(ladder_size: int) -> void:
 		if reached == 0:
 			continue
 		var bounds: Array[float] = SimReport.wilson(wins, reached)
-		print("  %-5d %7d %5d %5.1f%% (%4.1f-%4.1f)  %6.1f  %-28s %s" % [
+		print("  %-5d %7d %5d %5.1f%% (%5.1f-%5.1f) %6.1f  %-28s %s" % [
 			n, reached, wins, 100.0 * float(wins) / float(reached), 100.0 * bounds[0], 100.0 * bounds[1],
 			float(turns) / float(reached), _counts(routes, 3), _counts(families, 3)])
 

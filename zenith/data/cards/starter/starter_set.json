@@ -732,7 +732,7 @@
 	  "trigger": "entering_combat",
 	  "op": "draw",
 	  "amount": 3,
-	  "role": "active"
+	  "role": "attacker"
 	 }
 	]
    },
@@ -767,7 +767,7 @@
 	  "op": "draw_discard",
 	  "amount": 1,
 	  "from": "bottom",
-	  "role": "opposing"
+	  "role": "defender"
 	 }
 	]
    },
@@ -940,13 +940,13 @@
 	  "amount": 6,
 	  "rearrange": true,
 	  "from": "top",
-	  "role": "active"
+	  "role": "attacker"
 	 },
 	 {
 	  "trigger": "entering_combat",
 	  "op": "draw",
 	  "amount": 1,
-	  "role": "active"
+	  "role": "attacker"
 	 }
 	]
    },
@@ -3435,12 +3435,9 @@
 	 "op": "end_combat"
 	},
 	{
-	 "op": "end_turn"
-	},
-	{
 	 "op": "float",
 	 "what": "keep_hand",
-	 "duration": "next_turn_end"
+	 "duration": "turn"
 	}
    ],
    "remove_after_use": true
@@ -7338,7 +7335,7 @@
 	 "amount": 5,
 	 "rearrange": true,
 	 "from": "top",
-	 "role": "opposing"
+	 "role": "defender"
 	}
    ]
   },

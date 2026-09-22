@@ -179,7 +179,7 @@ func _fill_key_cards(d: DeckList, duelist: CardDef, lib: CardLibrary, faces: Car
 		caption.add_theme_font_size_override("font_size", 16)
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(caption)
-		var face: Texture2D = await faces.render_face(def)
+		var face: Texture2D = await faces.render_face(def, 0, CardFace.mastery_backdrop(d, lib))
 		if generation != _key_generation:
 			return   # a newer deck took over while this face rendered
 		rect.texture = face

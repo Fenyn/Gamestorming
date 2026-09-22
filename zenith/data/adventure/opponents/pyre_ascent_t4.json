@@ -39,11 +39,11 @@
     },
     {
       "id": "pyre_immolation",
-      "count": 2
+      "count": 3
     },
     {
       "id": "braced_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -71,7 +71,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 3
+      "count": 2
     },
     {
       "id": "foresight",
@@ -79,10 +79,6 @@
     },
     {
       "id": "rites_unmade",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -139,7 +135,7 @@
     },
     {
       "id": "pyre_firestorm",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_flashpoint",
@@ -147,7 +143,7 @@
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 3
+      "count": 2
     },
     {
       "id": "pyre_updraft",

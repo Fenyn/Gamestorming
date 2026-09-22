@@ -13,7 +13,7 @@
   "reserve": [],
   "archetype": "strike_beatdown",
   "difficulty": "easy",
-  "rating": "S",
+  "cleared": 5.0,
   "subthemes": ["fervor"],
   "ai_profile": "pyre_beatdown",
   "tagline": "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",

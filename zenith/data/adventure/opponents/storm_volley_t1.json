@@ -27,7 +27,7 @@
     },
     {
       "id": "draiks_reckoning",
-      "count": 2
+      "count": 1
     },
     {
       "id": "lingering_curse",
@@ -55,7 +55,7 @@
     },
     {
       "id": "storm_charged_ward",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_smiting_bolt",
@@ -75,7 +75,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 1
     },
     {
       "id": "cut_short",
@@ -94,10 +94,6 @@
       "count": 1
     },
     {
-      "id": "respite",
-      "count": 1
-    },
-    {
       "id": "scorn_smirks",
       "count": 1
     },
@@ -111,11 +107,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
-    },
-    {
-      "id": "recalled_lesson",
-      "count": 1
+      "count": 3
     },
     {
       "id": "personality_tithe_1",
@@ -135,11 +127,11 @@
     },
     {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     },
     {
       "id": "siphons_sidestep",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_maelstrom",

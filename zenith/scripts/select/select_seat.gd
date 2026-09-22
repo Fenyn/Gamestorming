@@ -103,7 +103,7 @@ func show_deck(d: DeckList) -> void:
 	blurb_label.visible = false
 	aspect_header.visible = has
 	aspect_title.visible = has
-	aspect_power.visible = false
+	aspect_power.visible = has
 	deck_label.visible = true
 	tagline_label.visible = true
 	duelist_label.visible = has

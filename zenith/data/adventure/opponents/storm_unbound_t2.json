@@ -43,7 +43,7 @@
     },
     {
       "id": "storm_earthing_rod",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_lash",
@@ -63,18 +63,14 @@
     },
     {
       "id": "braced_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 1
     },
     {
       "id": "rallying_call",
-      "count": 2
-    },
-    {
-      "id": "respite",
       "count": 1
     },
     {
@@ -103,7 +99,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mourne_takes_measure",

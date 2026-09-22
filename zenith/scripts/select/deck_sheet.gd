@@ -155,7 +155,7 @@ func show_aspect(aspect: int, flip: bool = false) -> void:
 	var last: bool = aspects.size() < 2
 	# The rung says its tier and title, and its line only where the stack climbs through two.
 	portrait_caption.text = CardText.rung_label(duelist, CardText.stack_mixes_lines(stack)) + ("" if last else "  ·  click for the next aspect")
-	var face: Texture2D = await _faces.render_face(duelist, aspect)
+	var face: Texture2D = await _faces.render_face(duelist, aspect, CardFace.mastery_backdrop(_deck, Session.library))
 	if _aspect != aspect:
 		return   # another click came in while the face rendered
 	if not flip or ArcaneBackdrop.motion_reduced():

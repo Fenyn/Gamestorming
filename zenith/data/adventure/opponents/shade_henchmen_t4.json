@@ -22,7 +22,7 @@
   "cards": [
     {
       "id": "black_hands",
-      "count": 3
+      "count": 2
     },
     {
       "id": "captains_barrage",
@@ -30,7 +30,7 @@
     },
     {
       "id": "draiks_reckoning",
-      "count": 3
+      "count": 2
     },
     {
       "id": "knife_volley",
@@ -46,7 +46,7 @@
     },
     {
       "id": "scattered_ashes",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_mind_rot",
@@ -54,7 +54,7 @@
     },
     {
       "id": "shade_umbral_lash",
-      "count": 3
+      "count": 2
     },
     {
       "id": "unerring_bolt",
@@ -126,11 +126,11 @@
     },
     {
       "id": "shade_hex_recall",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_nightmare_hold",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_oblivion_touch",

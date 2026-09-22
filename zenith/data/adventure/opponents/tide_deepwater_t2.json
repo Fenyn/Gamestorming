@@ -27,7 +27,7 @@
     },
     {
       "id": "tide_crushing_depth",
-      "count": 3
+      "count": 2
     },
     {
       "id": "tide_depths",
@@ -43,11 +43,11 @@
     },
     {
       "id": "old_trick",
-      "count": 2
+      "count": 1
     },
     {
       "id": "reckless_ascent",
-      "count": 2
+      "count": 1
     },
     {
       "id": "clear_mind",
@@ -99,7 +99,7 @@
     },
     {
       "id": "second_wind",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_deep_guard",
@@ -111,11 +111,11 @@
     },
     {
       "id": "tide_dredge",
-      "count": 3
+      "count": 2
     },
     {
       "id": "tide_drowning",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_pressure_wave",
@@ -123,7 +123,7 @@
     },
     {
       "id": "tide_pull_under",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_sweep_aside",
@@ -135,7 +135,7 @@
     },
     {
       "id": "tide_undertow",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_welling_deep",

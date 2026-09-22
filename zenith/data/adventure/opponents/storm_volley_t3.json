@@ -32,7 +32,7 @@
     },
     {
       "id": "lingering_curse",
-      "count": 2
+      "count": 1
     },
     {
       "id": "sabotage",
@@ -52,15 +52,15 @@
     },
     {
       "id": "storm_chain_lightning",
-      "count": 2
+      "count": 1
     },
     {
       "id": "storm_charged_ward",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_smiting_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_static_field",
@@ -80,7 +80,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "kept_at_bay",
@@ -88,7 +88,7 @@
     },
     {
       "id": "mutual_escalation",
-      "count": 2
+      "count": 1
     },
     {
       "id": "old_trick",
@@ -96,7 +96,7 @@
     },
     {
       "id": "reckless_ascent",
-      "count": 2
+      "count": 1
     },
     {
       "id": "respite",
@@ -120,7 +120,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
+      "count": 3
     },
     {
       "id": "recalled_lesson",
@@ -152,11 +152,11 @@
     },
     {
       "id": "second_wind",
-      "count": 2
+      "count": 3
     },
     {
       "id": "siphons_sidestep",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_maelstrom",

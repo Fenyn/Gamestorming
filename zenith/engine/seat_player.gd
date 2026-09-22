@@ -19,6 +19,15 @@ var recover_gain: int = 0
 var fervor_shield: bool = false
 var aspect_shield: bool = false
 var energy_blocked: bool = false       # a standing effect swallows every Energy gain
+# The fighter's readout against its printed baseline, so a client colours the number without
+# doing rules maths. `*_printed` is what the card in control prints for where it stands now;
+# `*_delta` is effective minus printed, positive above the card and negative below it.
+var energy: int = 0                    # the personality in control, live
+var energy_printed: int = DuelEngine.STARTING_ENERGY
+var energy_delta: int = 0
+var might: int = 0
+var might_printed: int = 0
+var might_delta: int = 0
 var restrictions: Array[String] = []   # forbid `what` words in force; CardText.restriction_name reads them
 var duelist: int = -1
 var mastery: int = -1
@@ -47,7 +56,10 @@ func to_dict() -> Dictionary:
 		"archetype": archetype, "subthemes": subthemes,
 		"fervor": fervor, "highest_aspect": highest_aspect, "fervor_needed": fervor_needed,
 		"fervor_gain": fervor_gain, "recover_gain": recover_gain, "fervor_shield": fervor_shield,
-		"aspect_shield": aspect_shield, "energy_blocked": energy_blocked, "restrictions": restrictions, "duelist": duelist, "mastery": mastery,
+		"aspect_shield": aspect_shield, "energy_blocked": energy_blocked,
+		"energy": energy, "energy_printed": energy_printed, "energy_delta": energy_delta,
+		"might": might, "might_printed": might_printed, "might_delta": might_delta,
+		"restrictions": restrictions, "duelist": duelist, "mastery": mastery,
 		"relic": relic, "controlling": controlling, "reserve": reserve, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
 		"non_combats": non_combats, "seals": seals, "remain": remain, "attachments": attachments,
@@ -73,6 +85,12 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.fervor_shield = bool(d.get("fervor_shield", false))
 	p.aspect_shield = bool(d.get("aspect_shield", false))
 	p.energy_blocked = bool(d.get("energy_blocked", false))
+	p.energy = int(d.get("energy", 0))
+	p.energy_printed = int(d.get("energy_printed", DuelEngine.STARTING_ENERGY))
+	p.energy_delta = int(d.get("energy_delta", 0))
+	p.might = int(d.get("might", 0))
+	p.might_printed = int(d.get("might_printed", 0))
+	p.might_delta = int(d.get("might_delta", 0))
 	p.restrictions = strings(d.get("restrictions", []))
 	p.duelist = int(d.get("duelist", -1))
 	p.mastery = int(d.get("mastery", -1))
@@ -135,6 +153,18 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.fervor_shield = engine.fervor_shielded(p)
 	v.aspect_shield = engine.aspect_shielded(p)
 	v.energy_blocked = engine.energy_blocked(p)
+	var ic: CardInstance = p.in_control()
+	# The baseline is what this personality takes the field on: a Duelist opens on
+	# `STARTING_ENERGY` and an Ally on `ALLY_STARTING_ENERGY`, and the Aspect's printed Might
+	# ladder read at that stage is the Might it fights at untouched. Nothing in the rules adds to a
+	# printed Might, so `might` only ever moves with the Aspect and the Energy stage, which is why
+	# `_display_state` stamps the effective number alone and needs no printed one beside it.
+	v.energy = ic.energy
+	v.energy_printed = DuelEngine.STARTING_ENERGY if ic == p.duelist else DuelEngine.ALLY_STARTING_ENERGY
+	v.energy_delta = v.energy - v.energy_printed
+	v.might = ic.might()
+	v.might_printed = ic.might_at(v.energy_printed)
+	v.might_delta = v.might - v.might_printed
 	v.restrictions = engine.restrictions(p)
 	v.duelist = p.duelist.uid
 	v.mastery = p.mastery.uid if p.mastery != null else -1

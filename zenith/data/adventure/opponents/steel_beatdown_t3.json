@@ -44,14 +44,10 @@
     },
     {
       "id": "cut_short",
-      "count": 2
-    },
-    {
-      "id": "steel_standoff",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "steel_standoff",
       "count": 1
     },
     {
@@ -100,7 +96,7 @@
     },
     {
       "id": "steel_crushing_weight",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_dead_weight",
@@ -108,7 +104,7 @@
     },
     {
       "id": "steel_forearm_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_hammer_blow",

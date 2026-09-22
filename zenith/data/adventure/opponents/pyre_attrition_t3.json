@@ -32,7 +32,7 @@
     },
     {
       "id": "pyre_immolation",
-      "count": 2
+      "count": 3
     },
     {
       "id": "riftcry",
@@ -44,15 +44,11 @@
     },
     {
       "id": "cut_short",
-      "count": 2
-    },
-    {
-      "id": "kept_at_bay",
       "count": 1
     },
     {
       "id": "pyre_twin_flames",
-      "count": 2
+      "count": 1
     },
     {
       "id": "spent_to_the_last",
@@ -84,11 +80,11 @@
     },
     {
       "id": "pyre_cinder_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_firestorm",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_flame_lash",
@@ -100,7 +96,7 @@
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 3
+      "count": 2
     },
     {
       "id": "pyre_knee_bash",
@@ -116,7 +112,7 @@
     },
     {
       "id": "pyre_searing_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_snuffing",
@@ -128,7 +124,7 @@
     },
     {
       "id": "pyre_warding_stance",
-      "count": 2
+      "count": 3
     },
     {
       "id": "quick_retreat",
@@ -137,10 +133,6 @@
     {
       "id": "relentless_fury",
       "count": 3
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
     },
     {
       "id": "vales_sword_draw",

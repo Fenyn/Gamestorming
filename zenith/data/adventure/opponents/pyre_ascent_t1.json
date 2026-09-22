@@ -34,7 +34,7 @@
     },
     {
       "id": "pyre_immolation",
-      "count": 1
+      "count": 2
     },
     {
       "id": "braced_guard",
@@ -50,7 +50,7 @@
     },
     {
       "id": "edrics_truce",
-      "count": 1
+      "count": 2
     },
     {
       "id": "respite",
@@ -58,7 +58,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 1
     },
     {
       "id": "foresight",
@@ -66,10 +66,6 @@
     },
     {
       "id": "rites_unmade",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -94,7 +90,7 @@
     },
     {
       "id": "pyre_ashen_veil",
-      "count": 2
+      "count": 1
     },
     {
       "id": "pyre_bellows_guard",
@@ -106,7 +102,7 @@
     },
     {
       "id": "pyre_cinder_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_comet_fall",
@@ -114,11 +110,11 @@
     },
     {
       "id": "pyre_ember_strike",
-      "count": 2
+      "count": 1
     },
     {
       "id": "pyre_firestorm",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_flashpoint",

@@ -1,9 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
 [ext_resource type="PackedScene" path="res://scenes/duel/dev_panel.tscn" id="4_dev"]
-[ext_resource type="PackedScene" path="res://scenes/duel/backline_rail.tscn" id="5_rail"]
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -22,9 +21,9 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -340.0
+offset_left = -520.0
 offset_top = 10.0
-offset_right = 340.0
+offset_right = 520.0
 offset_bottom = 100.0
 grow_horizontal = 2
 
@@ -53,15 +52,6 @@ vertical_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 1
-visible = false
-
-[node name="Sub" type="RichTextLabel" parent="Root/PhasePanel/Column"]
-layout_mode = 2
-theme_override_font_sizes/normal_font_size = 21
-bbcode_enabled = true
-text = "[center]PLAYER 1 ATTACKS[/center]"
-fit_content = true
-scroll_active = false
 
 [node name="Toast" type="Label" parent="Root"]
 visible = false
@@ -78,6 +68,23 @@ pivot_offset = Vector2(280, 24)
 mouse_filter = 2
 theme_override_font_sizes/font_size = 26
 text = "Strike"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="QuietBeat" type="Label" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 170.0
+offset_right = 220.0
+offset_bottom = 204.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = "Skipped"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -240,22 +247,6 @@ follow_focus = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
-
-[node name="FarBackline" parent="Root" instance=ExtResource("5_rail")]
-layout_mode = 1
-anchors_preset = 0
-offset_left = 18.0
-offset_top = 168.0
-offset_right = 268.0
-offset_bottom = 168.0
-
-[node name="NearBackline" parent="Root" instance=ExtResource("5_rail")]
-layout_mode = 1
-anchors_preset = 0
-offset_left = 18.0
-offset_top = 306.0
-offset_right = 268.0
-offset_bottom = 306.0
 
 [node name="FarFlags" type="Label" parent="Root"]
 layout_mode = 1
@@ -490,6 +481,39 @@ bbcode_enabled = true
 fit_content = true
 scroll_active = false
 
+[node name="FocusFilament" type="Control" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Thread" type="Line2D" parent="Root/FocusFilament"]
+width = 3.0
+default_color = Color(0.9, 0.38, 0.3, 0.64)
+antialiased = true
+
+[node name="Cap" type="Line2D" parent="Root/FocusFilament"]
+visible = false
+width = 4.0
+default_color = Color(0.9, 0.38, 0.3, 0.9)
+antialiased = true
+
+[node name="Head" type="Line2D" parent="Root/FocusFilament"]
+visible = false
+width = 4.0
+default_color = Color(0.9, 0.38, 0.3, 0.95)
+antialiased = true
+
+[node name="HeadTrail" type="Line2D" parent="Root/FocusFilament"]
+visible = false
+width = 4.0
+default_color = Color(0.9, 0.38, 0.3, 0.95)
+antialiased = true
+
 [node name="Focus" type="Control" parent="Root"]
 visible = false
 layout_mode = 1
@@ -522,6 +546,16 @@ offset_right = 512.0
 offset_bottom = 746.0
 scale = Vector2(0.625, 0.625)
 mouse_filter = 2
+
+[node name="Stack" type="Control" parent="Root/Focus"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+clip_contents = true
 
 [node name="Inspect" type="ColorRect" parent="Root"]
 visible = false

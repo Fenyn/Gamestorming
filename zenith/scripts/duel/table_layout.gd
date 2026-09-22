@@ -1,8 +1,10 @@
 class_name TableLayout
 extends Node3D
 ## Mirrored arena slots: enlarged duelists face each other in the center, with Life Decks
-## beside them. Smaller support rows occupy the flanks; outer piles sit toward the rear.
-## Zone bounds use the same scales as card slots so placement checks include the hero cards.
+## beside them. Smaller support rows occupy the flanks. Every off-field card is on the felt too:
+## the Discard under the Life Deck, Out and the Relic flanking the stat crest, the Mastery on the
+## duelist's other side. Zone bounds use the same scales as card slots so placement checks
+## include the hero cards.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
 const SEAL_SCALE: float = 0.55
@@ -30,16 +32,43 @@ const ROWS: Dictionary = {
 	# duelist fixture draws over that side of the table for both seats.
 	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.35, "direction": -1, "scale": 0.60, "label": "Remain"},
 }
-## Single-card zones: marker and label.
+## Single-card zones: marker and label. Discard and Removed are stacks like the Life Deck; the
+## Relic is one card with its Reserve face down under it.
 const SINGLES: Dictionary = {
 	&"duelist": {"marker": "Duelist", "label": "Duelist"},
 	&"life_deck": {"marker": "LifeDeck", "label": "Life Deck"},
 	&"resolving": {"marker": "Resolving", "label": "Play"},
+	&"discard": {"marker": "Discard", "label": "Discard"},
+	&"removed": {"marker": "Removed", "label": "Out"},
+	&"mastery": {"marker": "Mastery", "label": "Mastery"},
+	&"relic": {"marker": "Relic", "label": "Relic"},
 }
+## Piles: their felt is outlined and clickable even when empty, and a click opens the browser.
+## The Relic with its Reserve under it is one pile.
+const PILES: Array[StringName] = [&"discard", &"removed", &"relic"]
+## Zones whose caption sits on the inner (table-centre) edge. Below them is the stat crest the
+## duelist fixture draws, which would cover a caption on the owner's edge.
+const TOP_CAPTIONS: Array[StringName] = [&"discard", &"removed", &"relic"]
+const MASTERY_SCALE: float = 1.2
+const PILE_SCALE: float = 0.85        # Out, and the Relic with its Reserve
+const DISCARD_SCALE: float = 0.6375   # three quarters of a pile card, so it fits under the Life Deck
+const DISCARD_PAD: float = 0.02
+const DISCARD_STRIP: float = 0.12
+const RESERVE_PEEK: float = 0.02      # each Reserve card shows this much edge past the Relic
+const RESERVE_FAN: float = ZONE_PAD   # the whole Reserve fans no further than the outline's padding
+## The viewer's own seat pulls Out (and the Relic, its mirror) in beside the stat crest. The far
+## seat keeps them outboard, clear of the opponent's IN HAND fan. The near Remain row moves
+## outboard to leave the Relic its room.
+const NEAR_OUT_X: float = -2.05
+const NEAR_REMAIN_X: float = 4.0
+
+## A click on a pile's felt (its outline or its caption), for either seat.
+signal pile_clicked(player: int, zone: StringName)
 
 @onready var p0: Node3D = $P0
 
 var _labels: Array[Label3D] = []
+var _viewer: int = 0
 
 
 func _card_scale(zone: StringName) -> float:
@@ -51,6 +80,12 @@ func _card_scale(zone: StringName) -> float:
 		return 0.65
 	if zone == &"resolving":
 		return 0.78
+	if zone == &"mastery":
+		return MASTERY_SCALE
+	if zone == &"discard":
+		return DISCARD_SCALE
+	if zone == &"removed" or zone == &"relic":
+		return PILE_SCALE
 	return 0.85
 
 
@@ -58,9 +93,19 @@ func _ready() -> void:
 	_draw_marks()
 
 
-func marker(name: String) -> Vector3:
+## `near` is true for the viewer's own seat, which sets Out and Remain differently (NEAR_OUT_X).
+func marker(name: String, near: bool = false) -> Vector3:
+	# The Relic has no marker of its own: it is Out mirrored across the duelist's centre line, so
+	# the two piles flanking the stat crest can never drift apart.
+	if name == "Relic":
+		var out: Vector3 = marker("Removed", near)
+		return Vector3(2.0 * marker("Duelist").x - out.x, out.y, out.z)
 	var m: Node3D = p0.get_node_or_null(NodePath(name))
 	assert(m != null, "TableLayout is missing marker %s" % name)
+	if near and name == "Removed":
+		return Vector3(NEAR_OUT_X, m.position.y, m.position.z)
+	if near and name == "RemainStart":
+		return Vector3(NEAR_REMAIN_X, m.position.y, m.position.z)
 	return m.position
 
 
@@ -71,14 +116,20 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 	var pos: Vector3 = Vector3.ZERO
 	var scale_factor: float = _card_scale(zone)
 	var yaw: float = 0.0
+	var near: bool = player == viewer
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
-		pos = marker(str(row["marker"])) + Vector3(_row_offset(row, index, count), 0.002 * index, 0)
+		pos = marker(str(row["marker"]), near) + Vector3(_row_offset(row, index, count), 0.002 * index, 0)
 		scale_factor = float(row["scale"])
 	else:
 		match zone:
-			&"life_deck":
-				pos = marker(str(SINGLES[zone]["marker"])) + Vector3(0, STACK_STEP * index, 0)
+			&"life_deck", &"discard", &"removed":
+				pos = marker(str(SINGLES[zone]["marker"]), near) + Vector3(0, STACK_STEP * index, 0)
+			&"relic":
+				# Index 0 is the Relic, on top; the Reserve fans out under it toward the owner's
+				# edge, inside the outline's padding, so the stack shows cards wait there.
+				var step: float = minf(RESERVE_PEEK, RESERVE_FAN / float(maxi(1, count - 1)))
+				pos = marker("Relic", near) + Vector3(0, STACK_STEP * float(count - 1 - index), step * index)
 			&"hand":
 				var spread: float = HAND_STEP * (count - 1)
 				pos = marker("HandStart") + Vector3(HAND_STEP * index - spread * 0.5, 0.002 * index, 0)
@@ -108,6 +159,15 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 
 ## Turns the zone labels to read upright for whoever holds the table.
 func set_viewer(viewer: int) -> void:
+	if viewer != _viewer:
+		# The viewer's own seat lays Out, the Relic and Remain differently, so the felt is redrawn.
+		_viewer = viewer
+		for child in get_children():
+			if child != p0:
+				remove_child(child)
+				child.queue_free()
+		_labels.clear()
+		_draw_marks()
 	for l in _labels:
 		l.rotation.y = PI if viewer == 1 else 0.0
 
@@ -129,8 +189,22 @@ func refresh_occupancy(view: SeatView) -> void:
 			&"duelist": count = 1
 			&"resolving": count = view.resolving.size()
 			&"grounds": count = int(view.grounds >= 0)
+			&"discard": count = p.discard.size()
+			&"removed": count = p.removed.size()
+			&"mastery": count = int(p.mastery >= 0)
+			&"relic": count = int(p.relic >= 0) + p.reserve.size()
 		label.visible = count > 0 and zone not in [&"duelist", &"resolving", &"life_deck"]
 		label.text = str(label.get_meta("title"))
+		# A pile keeps its caption while empty, so the felt still says what lands there, and
+		# carries its count once it holds cards. The Relic's count is its Reserve.
+		if zone in PILES:
+			label.visible = true
+			label.modulate = LABEL_COLOR if count > 0 else Color(LABEL_COLOR, LABEL_COLOR.a * 0.6)
+			if zone == &"relic":
+				if not p.reserve.is_empty():
+					label.text = "%s · %d" % [label.text, p.reserve.size()]
+			elif count > 0:
+				label.text = "%s %d" % [label.text, count]
 
 
 ## X offset of card `index` in a row. Past the zone's slot count the row squeezes so the last
@@ -145,8 +219,9 @@ func _row_offset(row: Dictionary, index: int, count: int) -> float:
 
 
 ## Felt rectangle for a zone on the near side: the cards it holds, padding, and a label strip on
-## the owner's (high z) edge. Every zone in a row is the same height, so rows read as bands.
-func _zone_rect(zone: StringName) -> Rect2:
+## the owner's (high z) edge, or the inner edge for TOP_CAPTIONS. Every zone in a row is the same
+## height, so rows read as bands. The Life Deck has no strip: its count rides on the pile.
+func _zone_rect(zone: StringName, near: bool = true) -> Rect2:
 	# Rectangles account for the same card scale and horizontal compression as slot().
 	var size: Vector2 = CARD_SIZE * _card_scale(zone) * 0.92
 	size.x /= 0.72
@@ -155,20 +230,46 @@ func _zone_rect(zone: StringName) -> Rect2:
 		var row: Dictionary = ROWS[zone]
 		var span: float = float(row["step"]) * (int(row["slots"]) - 1)
 		size.x += span
-		center = marker(str(row["marker"])) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
+		center = marker(str(row["marker"]), near) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
 	elif zone == &"grounds":
 		size = Vector2(CARD_SIZE.y / 0.72, CARD_SIZE.x) * _card_scale(zone) * 0.92
 		center = Vector3(1.5, 0, 0)
 	else:
-		center = marker(str(SINGLES[zone]["marker"]))
+		center = marker(str(SINGLES[zone]["marker"]), near)
 	# Resolving cards have no felt mark or label. Validate their visible footprint rather than
 	# reserving decorative padding that would falsely overlap the enlarged fighter cards.
 	if zone != &"resolving":
-		size += Vector2.ONE * ZONE_PAD * 2.0
+		size += Vector2.ONE * _pad(zone) * 2.0
 	var r: Rect2 = Rect2(Vector2(center.x, center.z) - size * 0.5, size)
-	if zone != &"grounds" and zone != &"resolving":
-		r.size.y += LABEL_STRIP
+	var strip: float = _strip(zone)
+	if zone in TOP_CAPTIONS:
+		r.position.y -= strip
+		r.size.y += strip
+	else:
+		r.size.y += strip
 	return r
+
+
+## The card-sized part of a zone's rectangle, without its label strip.
+func _card_rect(zone: StringName, near: bool = true) -> Rect2:
+	var r: Rect2 = _zone_rect(zone, near)
+	var strip: float = _strip(zone)
+	if zone in TOP_CAPTIONS:
+		return Rect2(r.position + Vector2(0, strip), r.size - Vector2(0, strip))
+	return Rect2(r.position, r.size - Vector2(0, strip))
+
+
+## Felt padding around a zone's cards. The Discard squeezes between the Life Deck and the stat
+## crest, so its outline hugs the card.
+func _pad(zone: StringName) -> float:
+	return DISCARD_PAD if zone == &"discard" else ZONE_PAD
+
+
+## Height of a zone's caption strip; none where there is no caption on the felt.
+func _strip(zone: StringName) -> float:
+	if zone in [&"grounds", &"resolving", &"life_deck"]:
+		return 0.0
+	return DISCARD_STRIP if zone == &"discard" else LABEL_STRIP
 
 
 func _draw_marks() -> void:
@@ -179,10 +280,16 @@ func _draw_marks() -> void:
 	zones.append_array(SINGLES.keys())
 	var placed: Array[Rect2] = []
 	for zone in zones:
-		var r: Rect2 = _zone_rect(zone)
 		for player in range(2):
+			var near: bool = player == _viewer
+			var r: Rect2 = _zone_rect(zone, near)
 			# Small inlaid ticks replace the full rectangular zone grid.
-			if SINGLES.has(zone) and zone != &"resolving":
+			if zone in PILES:
+				# An empty pile is still a place: its card-sized outline stays on the felt, and
+				# the whole mark, caption included, opens the pile when clicked.
+				_add_rect(mesh, _card_rect(zone, near), player == 1)
+				_add_pick(zone, r, player)
+			elif SINGLES.has(zone) and zone != &"resolving":
 				_add_tick(mesh, r, player == 1)
 			_add_label(zone, r, player == 1)
 			placed.append(_mirrored(r) if player == 1 else r)
@@ -224,15 +331,51 @@ func _assert_no_overlap(rects: Array[Rect2]) -> void:
 
 func _add_rect(mesh: ImmediateMesh, r: Rect2, mirror: bool) -> void:
 	var s: float = -1.0 if mirror else 1.0
+	# Rects are kept before the horizontal compression slot() applies, so apply it here too.
 	var corners: Array[Vector3] = [
-		Vector3(r.position.x * s, 0, r.position.y * s),
-		Vector3(r.end.x * s, 0, r.position.y * s),
-		Vector3(r.end.x * s, 0, r.end.y * s),
-		Vector3(r.position.x * s, 0, r.end.y * s),
+		Vector3(r.position.x * s * 0.72, 0, r.position.y * s),
+		Vector3(r.end.x * s * 0.72, 0, r.position.y * s),
+		Vector3(r.end.x * s * 0.72, 0, r.end.y * s),
+		Vector3(r.position.x * s * 0.72, 0, r.end.y * s),
 	]
 	for i in range(4):
 		mesh.surface_add_vertex(corners[i])
 		mesh.surface_add_vertex(corners[(i + 1) % 4])
+
+
+## A flat pick box over a pile's whole mark. It sits under the pile's cards, so a card in the
+## pile still takes its own click first; this answers the empty felt and the caption.
+func _add_pick(zone: StringName, r: Rect2, player: int) -> void:
+	var s: float = -1.0 if player == 1 else 1.0
+	var area: Area3D = Area3D.new()
+	area.name = "Pick_%s_%d" % [zone, player]
+	area.monitoring = false
+	area.monitorable = false
+	var shape: CollisionShape3D = CollisionShape3D.new()
+	var box: BoxShape3D = BoxShape3D.new()
+	box.size = Vector3(r.size.x * 0.72, 0.004, r.size.y)
+	shape.shape = box
+	area.add_child(shape)
+	var center: Vector2 = r.get_center()
+	area.position = Vector3(center.x * s * 0.72, 0.0, center.y * s)
+	area.input_event.connect(_on_pick_input.bind(player, zone))
+	add_child(area)
+
+
+## Pile felt takes the pointer only while the board does, the same as the cards on it.
+func set_pickable(on: bool) -> void:
+	for child in get_children():
+		var area: Area3D = child as Area3D
+		if area != null and area.input_ray_pickable != on:
+			area.input_ray_pickable = on
+
+
+func _on_pick_input(_camera: Node, event: InputEvent, _pos: Vector3, _normal: Vector3, _shape: int, player: int, zone: StringName) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mb: InputEventMouseButton = event
+	if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+		pile_clicked.emit(player, zone)
 
 
 func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
@@ -243,15 +386,19 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	l.set_meta("player", 1 if mirror else 0)
 	l.set_meta("title", l.text)
 	l.font_size = 24 if ROWS.has(zone) else 32
-	l.pixel_size = 0.0032 if zone == &"life_deck" else 0.004
+	l.pixel_size = 0.0032 if zone == &"life_deck" or zone == &"discard" else 0.004
 	l.modulate = LABEL_COLOR
 	l.shaded = false
 	l.double_sided = false
-	l.no_depth_test = false
+	# The Discard's caption sits just past the Life Deck, and for the far seat that stack stands
+	# between it and the camera; it is drawn over the stack rather than hidden behind it.
+	l.no_depth_test = zone == &"discard"
 	# Centred in the label strip on the owner's edge; Grounds has no strip, so it sits inside.
 	var s: float = -1.0 if mirror else 1.0
 	var z: float = r.end.y - (LABEL_STRIP * 0.5 if zone != &"grounds" else 0.1)
-	if ROWS.has(zone):
+	if zone in TOP_CAPTIONS:
+		z = r.position.y + _strip(zone) * 0.5
+	elif ROWS.has(zone):
 		# Keep row captions toward the arena center, clear of the duelist's stat crests.
 		z = r.position.y + 0.02
 	l.position = Vector3(r.get_center().x * s * 0.72, LABEL_HEIGHT, z * s)

@@ -83,7 +83,15 @@ func _run() -> void:
 	_check(hand._hit(bottom_pointer, true) == -1, "Retracted hand must have no invisible picking regions")
 	_check(hand.blocks_pointer(bottom_pointer), "Hand activation band must suppress board tooltips before cards expand")
 	_check(not hand.blocks_pointer(Vector2(viewport_size.x * 0.5, 100.0)), "Tucked hand must not suppress unrelated board picking")
-	var hidden_center: Vector2 = duel.camera.unproject_position(hand._items[0]["node"].global_position)
+	# The fan curves down 5 px per step from the centre, so the outer cards of a full page sit
+	# lower than the resting fraction. The affordance is the centre of the strip; measure there.
+	var visible_indices: Array[int] = []
+	for i in range(hand._items.size()):
+		if (hand._items[i]["node"] as Node3D).visible:
+			visible_indices.append(i)
+	_check(not visible_indices.is_empty(), "Tucked hand must still show a page of cards")
+	var middle: int = visible_indices[visible_indices.size() / 2] if not visible_indices.is_empty() else 0
+	var hidden_center: Vector2 = duel.camera.unproject_position(hand._items[middle]["node"].global_position)
 	_check(hidden_center.y > viewport_size.y, "Tucked hand card centers must stay below the viewport")
 	var card_height: float = minf(hand.CARD_WIDTH, viewport_size.x * 0.105) * hand.FACE_SIZE.y / hand.FACE_SIZE.x
 	var exposed_fraction: float = (viewport_size.y - hidden_center.y + card_height * 0.5) / card_height
@@ -133,22 +141,66 @@ func _run() -> void:
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
-		_check(is_equal_approx(life_slot.origin.z, identity_slot.origin.z), "Each Life Deck must share its duelist's table row")
-		_check(life_slot.origin.distance_to(identity_slot.origin) < 1.1, "Each Life Deck must sit close beside its own duelist")
-	# The backline left the felt: the piles and the two used cards are rail rows, and the table
-	# keeps no zone for them at all.
+		# The Life Deck sits a little toward the centre of the table, to leave its Discard room below.
+		_check(absf(life_slot.origin.z) < absf(identity_slot.origin.z) and absf(life_slot.origin.z - identity_slot.origin.z) < 0.5, "Each Life Deck must sit beside its duelist, nudged toward the centre")
+		_check(life_slot.origin.distance_to(identity_slot.origin) < 1.2, "Each Life Deck must sit close beside its own duelist")
+		var life_top: float = absf(life_slot.origin.z) - TableLayout.CARD_SIZE.y * life_slot.basis.get_scale().z * 0.5
+		var duelist_top: float = absf(identity_slot.origin.z) - TableLayout.CARD_SIZE.y * identity_slot.basis.get_scale().z * 0.5
+		_check(life_top >= duelist_top - 0.001, "A Life Deck must not reach past its duelist's inner edge")
+		# Discard directly under the Life Deck, Out further out on the same side, the Mastery on
+		# the duelist's other side. Player 1 mirrors, so sides are read relative to the duelist.
+		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
+		var out_slot: Transform3D = duel.zones.slot(seat, &"removed", 0, 1, 0)
+		var mastery_slot: Transform3D = duel.zones.slot(seat, &"mastery", 0, 1, 0)
+		var side: float = signf(life_slot.origin.x - identity_slot.origin.x)
+		_check(is_equal_approx(discard_slot.origin.x, life_slot.origin.x) and absf(discard_slot.origin.z) > absf(life_slot.origin.z), "Each Discard must sit directly below its Life Deck")
+		_check(signf(out_slot.origin.x - identity_slot.origin.x) == side and absf(out_slot.origin.z) > absf(discard_slot.origin.z), "Each Out pile must sit lower and outboard on the Life Deck's side")
+		_check(signf(mastery_slot.origin.x - identity_slot.origin.x) == -side, "Each Mastery must sit on the duelist's other side")
+		_check(mastery_slot.basis.get_scale().x > life_slot.basis.get_scale().x, "The Mastery must read larger than a pile card")
+		# The Relic mirrors Out across the stat crest: same depth, the Mastery's side.
+		var relic_slot: Transform3D = duel.zones.slot(seat, &"relic", 0, 1, 0)
+		_check(is_equal_approx(relic_slot.origin.x - identity_slot.origin.x, identity_slot.origin.x - out_slot.origin.x) and is_equal_approx(relic_slot.origin.z, out_slot.origin.z), "Each Relic must mirror Out exactly across the duelist's centre line")
+		_check(relic_slot.basis.get_scale().is_equal_approx(out_slot.basis.get_scale()), "The Relic and Out must be the same size")
+		_check(is_equal_approx(discard_slot.basis.get_scale().x, out_slot.basis.get_scale().x * 0.75), "The Discard must be three quarters the size of the other piles")
+		# The Reserve sits under the Relic: lower in the stack, its edge showing past it.
+		var reserve_slot: Transform3D = duel.zones.slot(seat, &"relic", 1, 2, 0)
+		var relic_top: Transform3D = duel.zones.slot(seat, &"relic", 0, 2, 0)
+		_check(reserve_slot.origin.y < relic_top.origin.y and reserve_slot.origin.distance_to(relic_top.origin) > 0.01, "A Reserve card must tuck under its Relic with an edge showing")
+	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
-		_check(not TableLayout.SINGLES.has(zone) and not TableLayout.ROWS.has(zone), "The table must hold no %s zone" % zone)
-	for rail in [duel.hud.near_backline, duel.hud.far_backline]:
-		_check(rail.title.text == "BACKLINE" and rail.well_height() <= 75.0, "Backline must stay compact and avoid repeating fighter identity")
-		var rail_player: SeatPlayer = duel.view.player(rail.player)
-		for zone in BacklineRail.ROWS:
-			_check(rail.row_anchor(zone) != Vector2.ZERO, "The rail must anchor its %s row" % zone)
-			var caption: Label = rail._captions[zone]
-			var occupied: bool = rail_player.mastery >= 0 if zone == &"mastery" else (
-				rail_player.relic >= 0 or not rail_player.reserve.is_empty() if zone == &"relic" else (
-					not rail_player.discard.is_empty() if zone == &"discard" else not rail_player.removed.is_empty()))
-			_check(caption.visible == occupied, "Only an occupied %s backline slot may carry a caption" % zone)
+		_check(TableLayout.SINGLES.has(zone), "The table must hold a %s zone" % zone)
+	_check(duel.hud.get_node_or_null("Root/NearBackline") == null and duel.hud.get_node_or_null("Root/FarBackline") == null, "The backline rail must be gone")
+	# Every pile keeps a caption on the felt, empty or not, and the caption carries the count.
+	# The captions follow the view at each sync; this script moved the view on since the last one.
+	duel.zones.refresh_occupancy(duel.view)
+	for label: Label3D in duel.zones._labels:
+		var zone: StringName = label.get_meta("zone")
+		if zone not in TableLayout.PILES:
+			continue
+		var pile_player: SeatPlayer = duel.view.player(int(label.get_meta("player")))
+		_check(label.visible, "A %s pile must keep its caption while empty" % zone)
+		if zone == &"relic":
+			var reserve: int = pile_player.reserve.size()
+			_check(label.text.ends_with(" %d" % reserve) if reserve > 0 else label.text == "RELIC", "The Relic caption must carry the Reserve count (%s, %d)" % [label.text, reserve])
+			continue
+		var count: int = pile_player.discard.size() if zone == &"discard" else pile_player.removed.size()
+		_check(label.text.ends_with(" %d" % count) if count > 0 else not label.text.contains(" "), "The %s caption must carry the pile count" % zone)
+	# The Relic pile reads the Relic first, then the Reserve, and never shows a hidden card.
+	for seat in range(2):
+		var holder: SeatPlayer = duel.view.player(seat)
+		var listed: Array[int] = duel.hud.pile_contents(holder, &"relic")
+		_check(holder.relic < 0 or (not listed.is_empty() and listed[0] == holder.relic), "The Relic pile must list the Relic first")
+		_check(listed.size() == int(holder.relic >= 0) + holder.reserve.size(), "The Relic pile must hold the Relic and every Reserve card")
+	if duel.view.player(1).relic >= 0 or not duel.view.player(1).reserve.is_empty():
+		await duel.hud.show_pile(duel.view, 1, &"relic")
+		var drawn: int = duel.hud.pile_cards.get_child_count()
+		var visible_cards: int = 0
+		for uid in duel.hud.pile_contents(duel.view.player(1), &"relic"):
+			var seen: SeatCard = duel.view.card(uid)
+			if seen != null and not seen.hidden():
+				visible_cards += 1
+		_check(drawn == visible_cards, "The rival's face-down Reserve must stay out of the pile browser")
+		duel.hud.hide_pile()
 	var near_resolving: Transform3D = duel.zones.slot(0, &"resolving", 0, 1, 0)
 	var far_resolving: Transform3D = duel.zones.slot(1, &"resolving", 0, 1, 0)
 	var near_fighter: Transform3D = duel.zones.slot(0, &"duelist", 0, 1, 0)

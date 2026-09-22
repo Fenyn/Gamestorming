@@ -39,11 +39,11 @@
     },
     {
       "id": "root_energy_catch",
-      "count": 2
+      "count": 3
     },
     {
       "id": "root_energy_deflection",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sharp_rebuke",
@@ -66,12 +66,8 @@
       "count": 1
     },
     {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
       "id": "parley",
-      "count": 2
+      "count": 1
     },
     {
       "id": "respite",
@@ -87,7 +83,7 @@
     },
     {
       "id": "seal_seizure",
-      "count": 2
+      "count": 1
     },
     {
       "id": "stillness",
@@ -95,7 +91,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 1
     },
     {
       "id": "absorbing_drill",
@@ -179,7 +175,7 @@
     },
     {
       "id": "practiced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_dash",
@@ -187,15 +183,11 @@
     },
     {
       "id": "root_firm_stance",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
-      "count": 1
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
+      "count": 2
     }
   ]
 }

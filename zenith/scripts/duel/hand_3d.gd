@@ -16,8 +16,8 @@ const RESTING_VISIBLE_FRACTION: float = 0.15
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
-const DULL_FACE: Color = Color(0.70, 0.72, 0.76)   # still legible for planning when unavailable
-const BACKLINE_CLEAR: float = 292.0                # right edge of the backline rail, plus a margin
+const DULL_FACE: Color = Color(0.42, 0.43, 0.47)   # clearly out of play, still readable up close
+const LEFT_CLEAR: float = 24.0                     # margin the preview keeps from the left screen edge
 const PREVIEW_MARGIN: float = 18.0
 
 @export var reduced_motion: bool = false:
@@ -344,9 +344,10 @@ func _layout(snap: bool = false) -> void:
 	_handoff_rect = Rect2()
 	_preview.hide()
 	var width: float = minf(CARD_WIDTH, _size.x * 0.105)
-	if revealed and _hero_bottom >= 0.0:
+	if _hero_bottom >= 0.0:
 		# The open fan remains fully visible below the player's readout; the separate reading
-		# face carries legible details when the lower shelf must contract.
+		# face carries legible details when the lower shelf must contract. The tucked hand uses
+		# the same size so tucking is a pure drop, not a different set of cards.
 		var room_below_hero: float = maxf(84.0, _size.y - _hero_bottom - PREVIEW_MARGIN - 20.0)
 		width = minf(width, room_below_hero * FACE_SIZE.x / FACE_SIZE.y)
 	var height: float = width * FACE_SIZE.y / FACE_SIZE.x
@@ -372,7 +373,9 @@ func _layout(snap: bool = false) -> void:
 		var node: Node3D = item["node"]
 		node.visible = i >= first and i < first + count
 		var over: bool = revealed and i == _hovered
-		var lit: bool = visible and node.visible and revealed and (over or (enabled and bool(item["legal"])))
+		# Tucked or open, it is the same fan: playable cards keep their rim and sparks, only the
+		# hover highlight needs the hand open.
+		var lit: bool = visible and node.visible and (over or (enabled and bool(item["legal"])))
 		var effect_tint: Color = HOVER_TINT if over else (item["effect_tint"] as Color)
 		var border_fx: Node3D = item["border_fx"]
 		border_fx.scale = Vector3(width * units / 0.63, height * units / 0.88, 1.0)
@@ -390,7 +393,7 @@ func _layout(snap: bool = false) -> void:
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
-			center.y = _size.y + height * (0.5 - RESTING_VISIBLE_FRACTION)
+			center.y = _size.y + height * (0.5 - RESTING_VISIBLE_FRACTION) + absf(offset) * 5.0
 		var depth: float = DEPTH - (0.2 if over else 0.001 * i)
 		item["target"] = _camera.to_local(_camera.project_position(center, depth))
 		item["scale"] = depth / DEPTH
@@ -450,14 +453,14 @@ func _layout_preview(item: Dictionary, width: float, height: float, units: float
 		right_end = minf(right_end, _decision_rect.position.x - PREVIEW_MARGIN)
 	var left_end: float = minf(hero_left - PREVIEW_MARGIN, source.position.x - PREVIEW_MARGIN)
 	var right_start: float = maxf(hero_right + PREVIEW_MARGIN, source.end.x + PREVIEW_MARGIN)
-	var left_width: float = maxf(0.0, left_end - BACKLINE_CLEAR)
+	var left_width: float = maxf(0.0, left_end - LEFT_CLEAR)
 	var right_width: float = maxf(0.0, right_end - right_start)
 	var left_lane: bool = source.get_center().x < (hero_left + hero_right) * 0.5
 	if left_lane and left_width < width and right_width > left_width:
 		left_lane = false
 	elif not left_lane and right_width < width and left_width > right_width:
 		left_lane = true
-	var lane_start: float = BACKLINE_CLEAR if left_lane else right_start
+	var lane_start: float = LEFT_CLEAR if left_lane else right_start
 	var lane_end: float = left_end if left_lane else right_end
 	var scale_factor: float = minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height)
 	scale_factor = minf(scale_factor, maxf(0.2, (lane_end - lane_start) / width))

@@ -13,7 +13,7 @@
   "reserve": [],
   "archetype": "control",
   "difficulty": "medium",
-  "rating": "S",
+  "cleared": 5.5,
   "subthemes": ["fervor", "strikes", "disruption"],
   "ai_profile": "tide_deepwater",
   "tagline": "Hold their Fervor down with every blow, strip what they place, and spend your discard pile instead of blocking.",

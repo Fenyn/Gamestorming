@@ -4,6 +4,8 @@ One PNG per card id: `no_quarter.png`. Duelists may add `<id>_a<aspect>.png`; a 
 
 An `.svg` of the same name is used when no PNG is there. The house crests in here are placeholders in that form: one per character, a base crest per house with a difference for each variant. Drop a PNG in beside one and the PNG wins, so the crest can stay until the painting arrives.
 
+Personality portraits can have a transparent background. The face fills the art box behind them with the Mastery school hue of the deck the card is shown for, darkened (`CardFace.mastery_backdrop`), so one portrait suits any deck the character leads. In a duel each seat uses its own deck's colour.
+
 The image covers the art box and is cropped, so match the box's shape and keep the subject centred. The box is 452 wide and `CardFace.ART_HEIGHTS` tall, which at twice size gives:
 
 | Card type | File size |

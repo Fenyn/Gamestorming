@@ -22,7 +22,7 @@
   "cards": [
     {
       "id": "root_destruction_blast",
-      "count": 2
+      "count": 1
     },
     {
       "id": "root_dragon_blast",
@@ -30,11 +30,11 @@
     },
     {
       "id": "root_energy_catch",
-      "count": 2
+      "count": 3
     },
     {
       "id": "root_energy_deflection",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sharp_rebuke",
@@ -46,7 +46,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "dismissal",
@@ -54,7 +54,7 @@
     },
     {
       "id": "parley",
-      "count": 2
+      "count": 1
     },
     {
       "id": "respite",
@@ -70,11 +70,11 @@
     },
     {
       "id": "seal_seizure",
-      "count": 2
+      "count": 1
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 1
     },
     {
       "id": "absorbing_drill",
@@ -154,15 +154,15 @@
     },
     {
       "id": "practiced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_dash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_firm_stance",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",

@@ -1,0 +1,58 @@
+run	stage	opponent	family	tier	band	ai_level	won	reason	turn	steps	player_points	rival_points	player_life	rival_life	deck	aspects	took	motes	error
+0	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	4	48	1	0	32	0	50	3	free_draw_checks	20	
+0	2	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	6	102	1	0	21	0	53	3	shade_hand_strip	30	
+0	3	steel_heir_t2	steel_heir	t2	weaker	easy	true	survival	4	58	1	0	39	1	56	4	free_recycle_attacks	40	
+0	4	tide_deepwater_t2	tide_deepwater	t2	medium	easy	true	survival	10	157	1	1	39	2	59	4	emrys_ally_core	50	
+0	5	storm_volley_t3	storm_volley	t3	medium	default	false	survival	10	118	0	2	0	11	62	4		0	
+1	1	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	4	61	1	0	22	0	50	3	shade_hand_keep	20	
+1	2	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	5	56	1	0	13	0	53	3	free_any_stops	30	
+1	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	true	survival	7	118	1	1	18	0	56	4	grounds_the_marked_ring	40	
+1	4	shade_henchmen_t2	shade_henchmen	t2	medium	easy	true	survival	6	117	1	1	17	0	59	4	shade_empty_them	50	
+1	5	tide_deepwater_t3	tide_deepwater	t3	medium	default	true	survival	12	153	1	0	1	0	62	4	grounds_ancient_grove	60	
+1	6	pyre_attrition_t4	pyre_attrition	t4	medium	default	false	survival	5	81	0	2	2	40	65	4		0	
+2	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	7	139	1	1	27	0	50	3	grounds_the_high_watch	20	
+2	2	pyre_ascent_t1	pyre_ascent	t1	weaker	easy	true	survival	4	35	1	0	44	1	53	3	shade_hand_strip	30	
+2	3	storm_unbound_t2	storm_unbound	t2	weaker	easy	false	ascension	9	120	0	2	39	2	56	4		0	
+3	1	pyre_ascent_t1	pyre_ascent	t1	weaker	easy	true	survival	4	46	1	0	32	1	50	3	shade_hand_keep	20	
+3	2	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	6	89	1	1	42	1	53	3	grounds_the_high_watch	30	
+3	3	tide_companions_t2	tide_companions	t2	weaker	easy	true	survival	8	139	1	1	43	0	56	4	free_ally_sweep	40	
+3	4	tide_deepwater_t2	tide_deepwater	t2	medium	easy	true	survival	8	113	1	0	19	1	58	4	grounds_the_marked_ring	50	
+3	5	storm_volley_t3	storm_volley	t3	medium	default	true	survival	12	153	1	1	33	0	61	4	shade_empty_them	60	
+3	6	pyre_attrition_t4	pyre_attrition	t4	medium	default	false	survival	8	129	0	2	0	24	64	4		0	
+4	1	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	6	89	1	0	5	1	50	3	free_draw_checks	20	
+4	2	pyre_ascent_t1	pyre_ascent	t1	weaker	easy	true	survival	4	50	1	0	37	0	53	3	free_any_stops	30	
+4	3	tide_companions_t2	tide_companions	t2	weaker	easy	true	survival	3	43	1	0	28	0	56	4	shade_attach	40	
+4	4	shade_henchmen_t2	shade_henchmen	t2	medium	easy	true	survival	8	160	1	1	8	0	58	4	shade_energy_push	50	
+4	5	pyre_beatdown_t3	pyre_beatdown	t3	medium	default	true	survival	6	100	1	0	5	0	61	4	shade_whisper_engine	60	
+4	6	freestyle_swords_t4	freestyle_swords	t4	medium	default	true	survival	10	153	1	1	14	0	63	4	free_gambles	70	
+4	7	root_seals_t5	root_seals	t5	stronger	default	true	survival	16	209	1	1	48	1	66	4	free_ally_call	80	
+4	8	steel_beatdown_boss	steel_beatdown	boss	stronger	default	false	survival	5	100	0	2	3	45	69	4		0	
+5	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	7	121	1	0	26	0	50	3	shade_hand_keep	20	
+5	2	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	4	57	1	0	9	0	53	3	shade_hand_strip	30	
+5	3	steel_heir_t2	steel_heir	t2	weaker	easy	true	survival	6	65	1	0	29	0	56	4	free_draw_checks	40	
+5	4	pyre_beatdown_t2	pyre_beatdown	t2	medium	easy	true	survival	6	108	1	0	30	0	59	4	shade_any_stop	50	
+5	5	freestyle_swords_t3	freestyle_swords	t3	medium	default	true	survival	4	64	1	0	50	0	62	4	mourne_ally_answers	60	
+5	6	shade_henchmen_t4	shade_henchmen	t4	medium	default	true	survival	8	136	1	1	46	1	65	4	free_board_reset	70	
+5	7	root_seals_t5	root_seals	t5	stronger	default	false	seal	17	270	0	2	24	12	68	4		0	
+6	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	4	83	1	0	5	0	50	3	grounds_the_high_watch	20	
+6	2	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	3	36	1	0	40	1	53	3	shade_hand_strip	30	
+6	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	true	survival	4	80	1	0	24	1	56	4	free_tempo_tax	40	
+6	4	pyre_attrition_t2	pyre_attrition	t2	medium	easy	true	survival	4	60	1	0	43	0	58	4	free_recycle_attacks	50	
+6	5	pyre_beatdown_t3	pyre_beatdown	t3	medium	default	true	survival	9	180	1	1	20	0	61	4	free_late_one_shots	60	
+6	6	tide_deepwater_t4	tide_deepwater	t4	medium	default	true	survival	10	173	1	0	2	2	63	4	grounds_ancient_grove	70	
+6	7	root_seals_t5	root_seals	t5	stronger	default	true	survival	16	226	1	0	1	3	66	4	shade_hand_keep	80	
+6	8	shade_mind_siege_boss	shade_mind_siege	boss	stronger	default	false	survival	13	248	0	2	1	11	69	4		0	
+7	1	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	4	55	1	0	33	0	50	3	free_draw_checks	20	
+7	2	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	6	113	1	0	2	0	53	3	grounds_the_high_watch	30	
+7	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	true	survival	6	97	1	1	34	1	56	4	free_answer_fetch	40	
+7	4	tide_deepwater_t2	tide_deepwater	t2	medium	easy	true	survival	8	106	1	0	21	0	59	4	grounds_weighted_hollow	50	
+7	5	pyre_beatdown_t3	pyre_beatdown	t3	medium	default	true	survival	8	125	1	1	43	0	62	4	free_tempo_tax	60	
+7	6	shade_henchmen_t4	shade_henchmen	t4	medium	default	true	survival	9	142	1	1	36	1	64	4	shade_any_stop	70	
+7	7	shade_mind_siege_t5	shade_mind_siege	t5	stronger	default	true	survival	18	290	1	1	22	0	67	4	grounds_frostbound_moor	80	
+7	8	steel_beatdown_boss	steel_beatdown	boss	stronger	default	false	survival	9	186	1	2	0	62	70	4		0	
+8	1	storm_unbound_t1	storm_unbound	t1	weaker	easy	false	ascension	7	109	0	2	13	3	50	3		0	
+9	1	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	8	137	1	1	35	1	50	3	shade_hand_keep	20	
+9	2	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	7	95	1	0	6	0	53	3	shade_hand_strip	30	
+9	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	true	survival	8	97	1	0	33	1	56	4	free_lone_blade	40	
+9	4	tide_deepwater_t2	tide_deepwater	t2	medium	easy	true	survival	11	161	1	1	18	2	58	4	free_ally_sweep	50	
+9	5	storm_volley_t3	storm_volley	t3	medium	default	false	survival	9	145	0	2	1	26	60	4		0	

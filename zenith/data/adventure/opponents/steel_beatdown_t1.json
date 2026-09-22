@@ -39,7 +39,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "steel_standoff",
@@ -75,7 +75,7 @@
     },
     {
       "id": "steel_bull_charge",
-      "count": 2
+      "count": 1
     },
     {
       "id": "steel_crushing_weight",
@@ -115,11 +115,11 @@
     },
     {
       "id": "steel_ironhide",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_piston_slam",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_tempering",

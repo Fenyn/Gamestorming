@@ -42,7 +42,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 1
     },
     {
       "id": "absorbing_drill",
@@ -54,7 +54,7 @@
     },
     {
       "id": "lone_blade_drill",
-      "count": 2
+      "count": 1
     },
     {
       "id": "mournes_quickness_drill",
@@ -82,11 +82,11 @@
     },
     {
       "id": "hilt_guard",
-      "count": 2
+      "count": 1
     },
     {
       "id": "quick_retreat",
-      "count": 1
+      "count": 3
     },
     {
       "id": "second_wind",
@@ -118,7 +118,7 @@
     },
     {
       "id": "vales_riposte",
-      "count": 2
+      "count": 3
     },
     {
       "id": "vales_sword_draw",

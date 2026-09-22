@@ -35,7 +35,7 @@
     },
     {
       "id": "steel_plating",
-      "count": 2
+      "count": 1
     },
     {
       "id": "steel_sink",
@@ -43,7 +43,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "dismissal",
@@ -107,7 +107,7 @@
     },
     {
       "id": "edrics_training",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_stance",
@@ -119,11 +119,11 @@
     },
     {
       "id": "steel_cross",
-      "count": 3
+      "count": 2
     },
     {
       "id": "steel_forearm_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_headbutt",
@@ -163,7 +163,7 @@
     },
     {
       "id": "vales_riposte",
-      "count": 2
+      "count": 3
     }
   ]
 }

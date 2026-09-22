@@ -110,7 +110,7 @@ func _init() -> void:
 		test_reserve_swap,
 		test_reserve_swap_simultaneous,
 		test_reserve_batch,
-		test_bracket_first_player,
+		test_double_power_rule_decides_first_player,
 		test_search_and_in_play_discard,
 		test_if_stopped,
 		test_determinism,
@@ -258,6 +258,11 @@ func _init() -> void:
 		test_first_to_two_an_ascension_scores_once_and_resets_nothing,
 		test_first_to_two_a_seal_set_scores_one_point_under_the_adventure_rules,
 		test_lives_are_per_seat_so_the_player_falls_twice_and_the_opponent_once,
+		test_entering_combat_roles_read_attacker_and_defender,
+		test_a_standoff_keeps_only_the_users_hand,
+		test_a_non_combat_search_that_takes_nothing_is_still_spent,
+		test_recovering_top_and_bottom_never_takes_one_card_twice,
+		test_the_integrity_check_catches_a_card_in_two_places,
 		test_adventure_rules_give_the_boss_two_lives_and_everyone_else_one,
 		test_a_sim_match_with_lives_gives_each_seat_its_own_points_to_win,
 		test_an_adventure_run_round_trips_through_json_and_the_save,
@@ -347,9 +352,21 @@ func _init() -> void:
 		test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest,
 		test_keeping_and_buying_stop_at_the_collection_cap,
 		test_a_loadout_takes_no_more_copies_than_the_collection_holds,
+		test_the_loadout_stops_at_the_full_deck_maximum_before_the_validator_does,
 		test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price,
 		test_an_unlocked_aspect_tier_adds_the_next_card_and_the_run_carries_on,
 		test_the_upgrades_file_round_trips_through_a_path_override,
+		test_the_pending_queue_lists_what_resolves_next_in_order,
+		test_a_pending_job_the_seat_cannot_see_reads_as_hidden,
+		test_the_pending_queue_shows_the_attack_and_the_wounds_it_is_still_flipping,
+		test_a_response_window_with_nothing_in_it_still_says_so,
+		test_the_quiet_combat_beats_reach_the_client_as_events,
+		test_a_lost_life_card_reaches_the_client_once,
+		test_an_unstoppable_attack_offers_no_defense,
+		test_the_view_counts_the_passes_that_would_end_combat,
+		test_combat_beats_are_stamped_with_the_phase_they_belong_to,
+		test_the_fighters_numbers_carry_their_printed_baseline,
+		test_a_portrait_backdrop_takes_the_colour_of_its_decks_mastery,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -530,6 +547,37 @@ func test_deck_list_and_validator() -> void:
 	var bad: DeckList = deck(["t_strike", "t_art"], "vigil", "pyre", "t_mastery_pyre")
 	var bad_problems: Array[String] = DeckValidator.validate(bad, lib)
 	check(bad_problems.size() >= 2, "small mixed-school deck rejected: %s" % ", ".join(bad_problems))
+
+
+func test_a_portrait_backdrop_takes_the_colour_of_its_decks_mastery() -> void:
+	var shipped: CardLibrary = CardLibrary.new()
+	shipped.load_dir("res://data/cards")
+	var pyre: DeckList = DeckList.load_from("res://data/decks/pyre_attrition.json")
+	var tide: DeckList = DeckList.load_from("res://data/decks/tide_deepwater.json")
+	var face: CardDef = shipped.defs.get(pyre.duelist_face_id())
+	var pyre_mastery: CardDef = shipped.defs.get(pyre.mastery_id)
+	var tide_mastery: CardDef = shipped.defs.get(tide.mastery_id)
+	check(face != null and pyre_mastery != null and tide_mastery != null, "shipped decks resolve")
+	if face == null or pyre_mastery == null or tide_mastery == null:
+		return
+	CardFace.default_backdrop = CardFace.NEUTRAL_BACKDROP
+	eq(CardFace.resolve_backdrop(CardFace.NO_BACKDROP), CardFace.NEUTRAL_BACKDROP, "no deck named means the neutral dark")
+	var pyre_color: Color = CardFace.mastery_backdrop(pyre, shipped)
+	eq(pyre_color, Palette.SCHOOL_COLORS[pyre_mastery.school].darkened(CardFace.BACKDROP_DARKEN), "the backdrop is the deck's Mastery hue, darkened")
+	# The same duelist in a deck with another school's Mastery, as both seats of one duel.
+	var borrowed: DeckList = DeckList.load_from("res://data/decks/pyre_attrition.json")
+	borrowed.mastery_id = tide.mastery_id
+	var tide_color: Color = CardFace.mastery_backdrop(borrowed, shipped)
+	check(tide_color != pyre_color, "a Tide Mastery gives the same duelist another backdrop")
+	check(CardFaceCache.key_for(face, 1, pyre_color) != CardFaceCache.key_for(face, 1, tide_color), "one duelist for two decks is two cached faces")
+	eq(CardFaceCache.key_for(face, 1, pyre_color), CardFaceCache.key_for(face, 1, pyre_color), "the key is stable for one deck")
+	var strike: CardDef = null
+	for id in pyre.cards:
+		var def: CardDef = shipped.defs.get(id)
+		if def != null and not def.is_personality():
+			strike = def
+			break
+	check(strike != null and CardFaceCache.key_for(strike, 0, pyre_color) == CardFaceCache.key_for(strike, 0, tide_color), "cards without a portrait ignore the backdrop")
 
 
 func test_freestyle_mastery_searches_named_support_cards() -> void:
@@ -1717,12 +1765,18 @@ func test_reserve_batch() -> void:
 	eq(e2.card(uids[1]).zone, &"life_deck", "and applied it")
 
 
-func test_bracket_first_player() -> void:
+func test_double_power_rule_decides_first_player() -> void:
 	var giant: DeckList = deck(filler(), "vigil", "", "", 3, "tf_giant")
 	var e: DuelEngine = engine(giant, deck(filler(), "vigil", "", "", 3, "tf_pageboy"))
-	eq(e.state.active, 1, "the duelist below band D opens the duel")
-	eq(e.player(0).duelist.energy, 5, "no stage penalty under the bracket rule")
-	check(has_event(e, &"bracket_rule"), "bracket rule event emitted")
+	eq(e.state.active, 1, "the weaker duelist opens the duel")
+	eq(e.player(0).duelist.energy, 2, "the duelist with double the Might starts at Energy 2")
+	eq(e.player(1).duelist.energy, CardInstance.MAX_STAGE, "the weaker starts at full Energy")
+	check(has_event(e, &"double_power"), "Double Power event emitted")
+	# Under double: the side rule decides and nobody's Energy moves.
+	var even: DuelEngine = engine(deck(filler(), "vigil"), deck(filler(), "pact"))
+	eq(even.state.active, 0, "the Vigil goes first when the Double Power Rule does not apply")
+	eq(even.player(1).duelist.energy, 5, "and the second player keeps the usual starting stage")
+	check(not has_event(even, &"double_power"), "no Double Power event")
 
 
 func test_search_and_in_play_discard() -> void:
@@ -1893,9 +1947,12 @@ func test_referee_gates_commands() -> void:
 		eq(r2.submit(1 - att, Command.new(1 - att, &"no_defense").to_dict()), "", "the defender takes the hit")
 		lines.append_array(r2.take_updates()[1 - att].lines)
 	var stages: Dictionary = {}
+	var declared: Dictionary = {}
 	var unlisted: bool = false
 	for l in lines:
 		match str(l.get("type", "")):
+			"attack_declared":
+				declared = l.get("data", {})
 			"damage_stages":
 				stages = l.get("data", {})
 			"attack_successful", "modified_damage":
@@ -1904,6 +1961,9 @@ func test_referee_gates_commands() -> void:
 				if not Referee.ANIMATED.has(StringName(str(l.get("type", "")))):
 					unlisted = unlisted or l.has("data")
 	check(stages.has("target") and stages.has("stages"), "damage lines carry the target and amount for the other seat: %s" % str(stages))
+	# The attack card is public once declared, but the same update can send it to a hidden zone
+	# before the other seat replays the declaration, so the line names it as well as its uid.
+	eq(str(declared.get("id", "")), "t_strike_plus2", "the declared attack carries its card id for the other seat")
 	check(not unlisted, "unlisted events carry no data")
 	eq(next[0].view.seat, 0, "seat 0's view")
 	eq(next[1].view.seat, 1, "seat 1's view")
@@ -4100,6 +4160,101 @@ func test_first_to_two_an_ascension_scores_once_and_resets_nothing() -> void:
 	e._draw(1, 1)
 	check(e.is_over(), "Ascension plus an emptied deck is the full win")
 	eq(e.state.winner, 0, "for the climber")
+
+
+## Steel Standoff (printed: "the user may hold all his extra cards until his next turn"): the user
+## keeps their hand through the Discard step, the opponent discards as usual. It used to carry an
+## end_turn op that skipped the Discard step for both players.
+## The guard for the Watchful Eye loop: the engine names a card listed twice or sitting where its
+## zone does not say, and the Referee records the first such fault after the command that caused it.
+func test_the_integrity_check_catches_a_card_in_two_places() -> void:
+	var r: Referee = Referee.new()
+	var decks: Array[DeckList] = [deck(filler()), deck(filler(), "pact")]
+	r.setup(decks, lib, table, 1, [], false)
+	r.start()
+	eq(r.engine.integrity_problem(), "", "a fresh duel is sound")
+	# Plant the bug: one card in the Life Deck twice.
+	var twin: CardInstance = r.engine.player(0).life_deck[0]
+	r.engine.player(0).life_deck.append(twin)
+	check(r.engine.integrity_problem().contains("listed twice"), "the engine names the duplicate: %s" % r.engine.integrity_problem())
+	var p: Prompt = r.engine.prompt
+	r.submit(p.player, p.options[0].to_dict())
+	check(r.integrity_fault.contains("listed twice"), "the Referee records it after the next command: %s" % r.integrity_fault)
+	r.engine.player(0).life_deck.pop_back()
+	# A card whose own zone disagrees with where it sits.
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var stray: CardInstance = e.player(0).life_deck[0]
+	stray.zone = &"discard"
+	check(e.integrity_problem().contains("zone says discard"), "a stale zone is named too: %s" % e.integrity_problem())
+
+
+## "Shuffle the top and bottom cards of your discard pile into your Life Deck" with two cards in
+## the pile took the same card twice, which then lived in the Life Deck twice and could be used
+## forever from the hand (the long-game stall first blamed on Mourne's Smirk).
+func test_recovering_top_and_bottom_never_takes_one_card_twice() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var a: CardInstance = to_discard(e, 0, "t_strike")
+	var b: CardInstance = to_discard(e, 0, "t_art")
+	var before: int = e.player(0).life_deck.size()
+	e.dev_effect(0, {"op": "shuffle_discard", "amount": 2, "from": "top_and_bottom"})
+	eq(e.player(0).life_deck.size(), before + 2, "two cards went back")
+	check(e.player(0).life_deck.has(a) and e.player(0).life_deck.has(b), "both of them, not one twice")
+	eq(e.player(0).life_deck.count(a), 1, "the first once")
+	eq(e.player(0).life_deck.count(b), 1, "the second once")
+	check(e.player(0).discard.is_empty(), "and the pile is empty")
+
+
+## Mourne's Smirk loop: a Non-Combat whose search found or took nothing stayed in play, so it could
+## be used again and again. Using it spends it whatever the search took.
+func test_a_non_combat_search_that_takes_nothing_is_still_spent() -> void:
+	# With a Seal in the deck, the player looks and takes nothing.
+	var e: DuelEngine = engine(deck(filler(["t_seal_1"])), deck(filler(), "pact"))
+	var fetch: CardInstance = inject(e, 0, "t_seal_fetch")
+	to_combat(e)
+	answer(e, &"use", fetch.uid)
+	eq(prompt_kind(e), &"pick_option", "the search asks")
+	answer(e, &"pick_none")
+	check(fetch.zone != &"in_play", "the card left play after taking nothing (zone %s)" % fetch.zone)
+	# With no Seal in the deck at all.
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var dry: CardInstance = inject(f, 0, "t_seal_fetch")
+	to_combat(f)
+	answer(f, &"use", dry.uid)
+	if prompt_kind(f) == &"pick_option" and f.prompt.find(&"pick_none") != null:
+		answer(f, &"pick_none")
+	check(dry.zone != &"in_play", "a search with nothing to find still spends the card (zone %s)" % dry.zone)
+
+
+func test_a_standoff_keeps_only_the_users_hand() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_standoff", "t_strike", "t_strike"])), deck(filler(), "pact"))
+	to_combat(e)
+	answer(e, &"use", uid_in_hand(e, 0, "t_standoff"))
+	check(has_event(e, &"combat_end"), "the standoff ended Combat")
+	eq(e.state.step, GameState.Step.DISCARD, "and the turn went on to its Discard step")
+	eq(e.prompts.size(), 1, "only one player is asked to discard")
+	eq(e.prompt.player, 1, "the opponent")
+	eq(e.player(0).hand.size(), 2, "the user kept both remaining cards")
+	var held: int = e.player(1).hand.size()
+	check(e.submit(Command.new(1, &"discard_all")), "the opponent discards as usual")
+	eq(e.player(1).discard.size(), held, "their whole hand went to the discard pile")
+	skip_to_turn(e, 2)
+	eq(e.player(0).hand.size(), 2, "the user's hand was still whole when their turn ended")
+	# The keep lasted one Discard step; on the user's own turn the rule is back to normal.
+	check(not e._has_floating(0, "keep_hand"), "and the float is gone by the next turn")
+
+
+## Card data says "attacker" / "defender" at the entering-Combat window; the engine keys the window
+## "active" / "opposing". Emrys Rooke's tier 1 power was written "attacker" and never fired.
+func test_entering_combat_roles_read_attacker_and_defender() -> void:
+	check(DuelEngine.role_matches("attacker", "active"), "attacker is the active player")
+	check(not DuelEngine.role_matches("attacker", "opposing"), "and not the other one")
+	check(DuelEngine.role_matches("defender", "opposing"), "defender is the opposing player")
+	check(not DuelEngine.role_matches("defender", "active"), "and not the active one")
+	check(DuelEngine.role_matches("active", "active") and DuelEngine.role_matches("opposing", "opposing"), "the window's own names still match")
+	check(DuelEngine.role_matches("", "active") and DuelEngine.role_matches("", "opposing"), "no role means either side")
+	eq(CardText.role_name("active"), "attacker", "worded as the attacker")
+	eq(CardText.role_name("opposing"), "defender", "worded as the defender")
+	eq(CardText.role_name("defender"), "defender", "printed words pass through")
 
 
 ## Adventure lives (2026-09-22): the player has two, an ordinary opponent one. `set_lives` is
@@ -8096,6 +8251,32 @@ func test_a_loadout_takes_no_more_copies_than_the_collection_holds() -> void:
 	check(collection.copies("pyre_kindling") == 0, "even with no copy of it in the collection at all")
 
 
+## Every slot bought and an Aspect card added: the 85-card maximum, not the slot count, is the
+## limit, and the loadout says so itself instead of leaving it to the validator.
+func test_the_loadout_stops_at_the_full_deck_maximum_before_the_validator_does() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
+	var upgrades: AdventureUpgrades = AdventureUpgrades.new()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	wallet.earn(10000000, AdventureWallet.REASON_STAGE)
+	var most: int = AdventureLoadout.max_slots(deck)
+	for i in range(most):
+		upgrades.buy_slot(MOTES_STARTER, wallet, most)
+	eq(upgrades.slots(MOTES_STARTER), most, "every slot bought")
+	# One more card in the stack than the starter prints, as a bought Aspect tier gives.
+	var taller: Array[String] = deck.duelist_ids.duplicate()
+	taller.append(taller[taller.size() - 1])
+	deck.set_duelist(taller)
+	while deck.total_cards() < DeckValidator.MAX_CARDS:
+		deck.cards.append("clear_mind")
+	eq(AdventureLoadout.ceiling_left(deck), 0, "the whole deck is at the maximum")
+	check(AdventureLoadout.size_cap(deck, upgrades) > deck.cards.size(), "while a bought slot is still empty")
+	eq(AdventureLoadout.room_left(deck, upgrades), 0, "so there is no room left")
+	var result: Dictionary = AdventureLoadout.add_card(deck, "clear_mind", shipped, null, upgrades)
+	eq(result["deck"], null, "the add is refused")
+	check(str((result["problems"] as Array[String])[0]).contains("maximum"), "by the loadout, naming the maximum: %s" % str(result["problems"]))
+
+
 func test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price() -> void:
 	var shipped: CardLibrary = shipped_library()
 	# The price curve rises every slot and never goes free.
@@ -8292,3 +8473,262 @@ func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
 	AdventureUpgrades.clear()
 	check(not AdventureUpgrades.exists(), "clear removes the file")
 	AdventureUpgrades.path_override = ""
+
+
+# --- Pending queue and the quiet beats -----------------------------------
+
+## `SeatView.pending` is an ordering contract: the engine resolves the queue top to bottom, and a
+## "then" list inserted at the front of the queue jumps ahead of what it interrupted.
+func test_the_pending_queue_lists_what_resolves_next_in_order() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	check(e.pending_items().is_empty(), "nothing is pending at an attack prompt")
+	var waiting: CardInstance = inject(e, 0, "t_strike")
+	var later: Array[Dictionary] = [{"trigger": "on_attack", "op": "fervor", "amount": 1}]
+	e._queue.append({"effects": later, "index": 0, "trigger": "on_attack", "owner": 0, "ctx": {}, "source": waiting})
+	var jumper: CardInstance = inject(e, 0, "t_art")
+	e._pending_then = {"effects": [{"op": "fervor", "amount": 1}], "owner": 0, "ctx": {}, "source": jumper}
+	check(e._flush_then(), "the then list becomes a job of its own")
+	var pending: Array[Dictionary] = e.pending_items()
+	eq(pending.size(), 2, "both jobs are pending")
+	eq(StringName(pending[0]["kind"]), &"trigger", "a queued job reads as a trigger")
+	eq(int(pending[0]["uid"]), jumper.uid, "the then job inserted at the front resolves first")
+	eq(int(pending[1]["uid"]), waiting.uid, "the job it interrupted comes after it")
+	check(bool(pending[0]["current"]) and not bool(pending[1]["current"]), "only the front job is current")
+	eq(str(pending[0]["note"]), CardText.trigger_phrase("then"), "the note words the trigger")
+	eq(str(pending[1]["title"]), e.card(waiting.uid).def.title, "and a public job is named")
+	var v: SeatView = SeatView.of(e, 0)
+	eq(v.pending.size(), 2, "the view carries both in the same order")
+	eq(int(v.pending[0]["uid"]), jumper.uid, "front first")
+	var wire: SeatView = SeatView.from_dict(JSON.parse_string(JSON.stringify(v.to_dict())))
+	eq(int(wire.pending[0]["uid"]), jumper.uid, "and the order survives the wire")
+	eq(StringName(wire.pending[0]["kind"]), &"trigger", "with its kind intact")
+	eq(int(wire.pending[1]["owner"]), 0, "and its owner")
+
+
+## A seat is told that something of the rival's is queued, never what it is.
+func test_a_pending_job_the_seat_cannot_see_reads_as_hidden() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	var theirs: CardInstance = to_hand(e, 1, "t_taunt")
+	var lines: Array[Dictionary] = [{"trigger": "secondary", "op": "fervor", "amount": 1}]
+	e._queue.append({"effects": lines, "index": 0, "trigger": "secondary", "owner": 1, "ctx": {}, "source": theirs})
+	var owner_view: SeatView = SeatView.of(e, 1)
+	eq(owner_view.pending.size(), 1, "the owner sees the job")
+	eq(StringName(owner_view.pending[0]["kind"]), &"trigger", "as their own card")
+	eq(str(owner_view.pending[0]["title"]), "Test Taunt", "named for them")
+	var rival: SeatView = SeatView.of(e, 0)
+	eq(StringName(rival.pending[0]["kind"]), &"hidden", "the rival sees only that something is queued")
+	eq(int(rival.pending[0]["uid"]), -1, "with no uid to look up")
+	eq(str(rival.pending[0]["title"]), "", "no title")
+	eq(str(rival.pending[0]["note"]), "", "and no trigger to read it from")
+	eq(int(rival.pending[0]["owner"]), 1, "though whose it is stays public")
+	check(bool(rival.pending[0]["current"]), "and the fact that it is resolving now stays public too")
+
+
+## Mid-damage the queue carries the attack that is landing and the wounds it still owes, with
+## `current` on the wounds, because that is the loop the engine is actually standing in.
+func test_the_pending_queue_shows_the_attack_and_the_wounds_it_is_still_flipping() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])),
+			deck(filler(["t_parry", "t_parry", "t_parry", "t_strike_endure"]), "pact", "tide", "t_mastery_tide"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	eq(prompt_kind(e), &"endurance", "the life-damage loop pauses on Endurance")
+	var v: SeatView = SeatView.of(e, 1)
+	var kinds: Array = []
+	for item in v.pending:
+		kinds.append(StringName(item["kind"]))
+	check(kinds.has(&"attack") and kinds.has(&"wounds"), "the attack and the wounds it still owes are both listed")
+	check(kinds.find(&"attack") < kinds.find(&"wounds"), "the attack heads the queue and the wounds close it")
+	var attack_item: Dictionary = v.pending[kinds.find(&"attack")]
+	var wounds_item: Dictionary = v.pending[kinds.find(&"wounds")]
+	eq(int(attack_item["target"]), v.player(1).controlling, "the attack points at the defender's fighter")
+	eq(int(attack_item["owner"]), 0, "and belongs to the attacker")
+	eq(int(wounds_item["target"]), v.player(1).controlling, "the wounds land on the same fighter")
+	var left: int = int(e.state.attack["life_remaining"])
+	eq(str(wounds_item["note"]), "%d wound%s" % [left, "" if left == 1 else "s"], "the note counts what is left")
+	check(bool(wounds_item["current"]), "the engine is standing in the wound loop")
+	check(not bool(attack_item["current"]), "not on the declaration that started it")
+
+
+## A counter window the rival could not have used is still a beat, not silence.
+func test_a_response_window_with_nothing_in_it_still_says_so() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	var seat: int = e.state.active
+	to_hand(e, seat, "t_taunt")
+	to_combat(e)
+	e.events.clear()
+	answer(e, &"use", uid_in_hand(e, seat, "t_taunt"))
+	var skipped: Dictionary = {}
+	for ev in e.events:
+		if ev.type == &"window_skipped" and str(ev.data.get("window", "")) == "respond":
+			skipped = ev.data
+			break
+	check(not skipped.is_empty(), "the rival's empty counter window is an event")
+	eq(int(skipped.get("player", -1)), 1 - seat, "and it names the seat that had nothing to answer with")
+	eq(Referee.ANIMATED.has(&"window_skipped"), true, "so a client can show the window opening and closing")
+
+
+## The quiet windows reach a client as data with their keys, not as a log line alone.
+func test_the_quiet_combat_beats_reach_the_client_as_events() -> void:
+	for t in [&"pass", &"attack_phase_skipped", &"entering_combat", &"combat_declared", &"combat_skipped",
+			&"no_defense", &"declined_counter", &"control", &"power_used", &"relic_used",
+			&"turn_start", &"turn_end", &"recover_step", &"window_skipped"]:
+		check(Referee.ANIMATED.has(t), "%s is animated" % t)
+	eq(Referee.ANIMATED[&"no_defense"], ["auto", "reason"], "no_defense carries both of its keys")
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	var seat: int = e.state.active
+	to_hand(e, seat, "t_art")
+	var r: Referee = Referee.new()
+	r.engine = e
+	to_combat(e)
+	r.take_updates()
+	answer(e, &"attack", uid_in_hand(e, seat, "t_art"))
+	var updates: Array[SeatUpdate] = r.take_updates()
+	var data: Dictionary = {}
+	for line in updates[0].lines:
+		if str(line.get("type", "")) == "no_defense":
+			data = line.get("data", {})
+	check(data.has("auto") and data.has("reason"), "a defender with nothing to play reaches both seats as data")
+	eq(bool(data["auto"]), true, "the engine made the call")
+	eq(str(data["reason"]), "none", "and says why there was no defense")
+
+
+## A wound used to arrive as a card move and then the wound event for the same card, so the
+## client flew the card to the pile twice. The move stays quiet; the wound event is the beat.
+func test_a_lost_life_card_reaches_the_client_once() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	var seat: int = e.state.active
+	to_hand(e, seat, "t_art")
+	var r: Referee = Referee.new()
+	r.engine = e
+	to_combat(e)
+	r.take_updates()
+	answer(e, &"attack", uid_in_hand(e, seat, "t_art"))
+	var updates: Array[SeatUpdate] = r.take_updates()
+	var wounded: Array[int] = []
+	var moved: Array[int] = []
+	for line in updates[0].lines:
+		var data: Dictionary = line.get("data", {})
+		match str(line.get("type", "")):
+			"life_card_flipped", "life_card_lost":
+				wounded.append(int(data.get("card", -1)))
+			"card_moved":
+				moved.append(int(data.get("card", -1)))
+	check(wounded.size() > 0, "the unanswered Art costs at least one life card")
+	for uid in wounded:
+		check(not moved.has(uid), "the lost card %d is not also reported as a card move" % uid)
+
+
+## "Cannot be stopped" used to open the defense window anyway and preview the stop as if it
+## would land. Now the window is skipped with its own reason and no preview can say stopped.
+func test_an_unstoppable_attack_offers_no_defense() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	var seat: int = e.state.active
+	to_hand(e, seat, "t_art_unstoppable")
+	to_hand(e, 1 - seat, "t_ward")
+	var r: Referee = Referee.new()
+	r.engine = e
+	to_combat(e)
+	r.take_updates()
+	answer(e, &"attack", uid_in_hand(e, seat, "t_art_unstoppable"))
+	check(prompt_kind(e) != &"defense", "the holder of a matching stop card is not asked to defend")
+	var reason: String = ""
+	for line in r.take_updates()[1 - seat].lines:
+		if str(line.get("type", "")) == "no_defense":
+			reason = str(line.get("data", {}).get("reason", ""))
+	eq(reason, "unstoppable", "and the skipped window says why")
+	var landed: Dictionary = e.state.attack if not e.state.attack.is_empty() else e.state.last_attack
+	eq(bool(landed.get("stopped", true)), false, "the attack lands")
+
+
+## Two passes in a row end Combat, so the count is worth showing before the second one.
+func test_the_view_counts_the_passes_that_would_end_combat() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	var v: SeatView = SeatView.of(e, 0)
+	eq(v.combat_count, 1, "the first Combat of the duel")
+	eq(v.consecutive_passes, 0, "nobody has passed yet")
+	var phases: int = v.attack_phase_count
+	answer(e, &"pass")
+	var after: SeatView = SeatView.of(e, 0)
+	eq(after.consecutive_passes, 1, "one pass stands, so the next one ends Combat")
+	eq(after.attack_phase_count, phases + 1, "and the phase count moved on")
+	eq(after.combat_count, 1, "still the same Combat")
+	eq(SeatView.from_dict(after.to_dict()).consecutive_passes, 1, "the count goes over the wire")
+
+
+## The client's Combat tracker reads each beat's own stamp, so a beat must carry the phase it
+## belongs to rather than the phase the engine has already moved on to. One attack and its answer
+## reads ATTACK on the declaration, DEFEND on the defense window, BATTLE through the damage, then
+## FIGHT_BACK as the exchange changes hands and ATTACK again with the other seat attacking.
+func test_combat_beats_are_stamped_with_the_phase_they_belong_to() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	e.record_display_state = true
+	to_combat(e)
+	e.take_events()
+	var attacker_before: int = e.state.attacker
+	var exchange_before: int = e.state.attack_phase_count
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	var order: Array[StringName] = []
+	var phases: Dictionary = {}
+	var battle_seen: Array[int] = []
+	var defends: int = 0
+	for ev in e.take_events():
+		if ev.type == &"prompt":
+			continue   # the decision that follows the exchange, not a beat inside it
+		check(not ev.state.is_empty(), "every combat beat carries a display stamp: %s" % ev.type)
+		var phase: int = int(ev.state.get("phase", -1))
+		order.append(ev.type)
+		phases[ev.type] = phase
+		if phase == GameState.Phase.DEFEND:
+			defends += 1
+		if phase == GameState.Phase.BATTLE:
+			battle_seen.append(int(ev.state.get("battle_step", -1)))
+		eq(int(ev.state.get("attack_phase_count", -1)), exchange_before, "the beat names the exchange it belongs to: %s" % ev.type)
+	check(order.has(&"attack_declared"), "the attack is declared")
+	eq(phases.get(&"attack_declared", -1), GameState.Phase.ATTACK, "the declaration is stamped with the attack phase, not the battle that follows it")
+	check(defends >= 1, "the defense window gets at least one beat stamped DEFEND")
+	eq(phases.get(&"no_defense", GameState.Phase.DEFEND), GameState.Phase.DEFEND, "an undefended attack says so during DEFEND")
+	eq(phases.get(&"base_damage", -1), GameState.Phase.BATTLE, "base damage is a battle beat")
+	eq(phases.get(&"modified_damage", -1), GameState.Phase.BATTLE, "modified damage is a battle beat")
+	check(battle_seen.size() >= 2, "the battle sequence reaches the client as more than one beat")
+	var advanced: bool = false
+	for i in range(1, battle_seen.size()):
+		if battle_seen[i] > battle_seen[0]:
+			advanced = true
+	check(advanced, "the stamped battle step moves through the sequence: %s" % str(battle_seen))
+	eq(phases.get(&"fight_back", -1), GameState.Phase.FIGHT_BACK, "the hand-over is its own beat, stamped FIGHT_BACK")
+	eq(order.back(), &"fight_back", "the hand-over is the last beat of the exchange")
+	eq(e.state.phase, GameState.Phase.ATTACK, "the exchange settles back on an attack phase")
+	eq(e.state.attacker, 1 - attacker_before, "and the other seat is the one attacking")
+	eq(e.state.attack_phase_count, exchange_before + 1, "which is the next exchange of this Combat")
+
+
+## The readout carries its own baseline, so a client colours the number without doing rules maths.
+## Nothing in the rules modifies a printed Might today, so the whole of the Might swing is the
+## Energy stage the fighter stands on; `might_printed` is the same ladder read at the Energy the
+## personality takes the field on.
+func test_the_fighters_numbers_carry_their_printed_baseline() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	var duelist: CardInstance = e.player(0).duelist
+	var v: SeatView = SeatView.of(e, 0)
+	eq(v.player(0).energy, duelist.energy, "the view carries the fighter's live Energy")
+	eq(v.player(0).energy_printed, DuelEngine.STARTING_ENERGY, "against the Energy a Duelist opens on")
+	eq(v.player(0).energy_delta, duelist.energy - DuelEngine.STARTING_ENERGY, "the delta is the difference and nothing else")
+	eq(v.player(0).might, duelist.might(), "and the Might it fights at")
+	eq(v.player(0).might_printed, duelist.might_at(DuelEngine.STARTING_ENERGY), "against the printed Might at that stage")
+	var baseline: int = v.player(0).might_printed
+	duelist.energy = 2
+	var hurt: SeatPlayer = SeatView.of(e, 0).player(0)
+	eq(hurt.energy_delta, 2 - DuelEngine.STARTING_ENERGY, "a spent Duelist reads below its baseline")
+	check(hurt.might_delta < 0, "and its Might reads below the printed number with it")
+	eq(hurt.might, hurt.might_printed + hurt.might_delta, "effective is always printed plus delta")
+	eq(hurt.might_printed, baseline, "while the baseline itself does not move")
+	duelist.energy = 9
+	var risen: SeatPlayer = SeatView.of(e, 0).player(0)
+	check(risen.might_delta > 0 and risen.energy_delta > 0, "a Duelist above its baseline reads above it")
+	var wire: SeatPlayer = SeatPlayer.from_dict(risen.to_dict())
+	eq(wire.might_delta, risen.might_delta, "the baseline and the delta go over the wire")
+	eq(wire.energy_printed, risen.energy_printed, "both of them")

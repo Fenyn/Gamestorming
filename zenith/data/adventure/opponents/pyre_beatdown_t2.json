@@ -21,11 +21,11 @@
   "cards": [
     {
       "id": "pyre_immolation",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cold_appraisal",
-      "count": 3
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -85,11 +85,11 @@
     },
     {
       "id": "pyre_flashover",
-      "count": 3
+      "count": 2
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 3
+      "count": 2
     },
     {
       "id": "pyre_kindling",
@@ -101,11 +101,11 @@
     },
     {
       "id": "pyre_scouring_flame",
-      "count": 2
+      "count": 3
     },
     {
       "id": "wall_of_flame",
-      "count": 2
+      "count": 3
     }
   ]
 }

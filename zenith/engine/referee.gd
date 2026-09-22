@@ -13,7 +13,7 @@ extends RefCounted
 ## A played card's id remains public for this replay beat even if its final zone is hidden.
 const ANIMATED: Dictionary = {
 	&"combat_begin": [], &"combat_end": [],
-	&"attack_declared": ["kind", "source", "is_power", "is_final", "focused", "empowered"],
+	&"attack_declared": ["kind", "source", "id", "is_power", "is_final", "focused", "empowered"],
 	&"defense_played": ["card", "id", "stopped"], &"defense_power": ["card"], &"shield": ["card"],
 	&"attack_stopped": [], &"attack_successful": [],
 	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
@@ -31,10 +31,22 @@ const ANIMATED: Dictionary = {
 	&"fervor_changed": ["from", "to", "source"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],
 	&"trigger_fired": ["card", "trigger"], &"draw": ["card", "from"],
 	&"countered": ["card", "target"], &"game_over": ["winner", "reason"],
+	# The quiet beats: a window that opened on nothing, a decision taken without a card, a step
+	# boundary. They used to reach a client as a log line alone, so the table stood still through
+	# them. All of it is public once it has happened.
+	&"turn_start": ["turn"], &"turn_end": ["turn"], &"recover_step": ["eligible"],
+	&"combat_declared": ["forced"], &"combat_skipped": ["forced", "reason"],
+	&"entering_combat": ["role"], &"pass": ["forced", "consecutive"], &"fight_back": ["next"],
+	&"attack_phase_skipped": [], &"no_defense": ["auto", "reason"], &"declined_counter": [],
+	&"control": ["card"], &"power_used": ["card", "aspect"], &"relic_used": ["card"],
+	&"window_skipped": ["window"],
 }
 
 var engine: DuelEngine = DuelEngine.new()
 var _pending_events: Array[GameEvent] = []
+## The first bookkeeping fault this duel hit, "" while there has been none. Kept so a harness can
+## fail the match on it; the error itself goes to the log the moment it happens.
+var integrity_fault: String = ""
 # Eligible definitions depend only on immutable rules and public setup declarations.
 var _belief_candidate_cache: Dictionary = {}
 
@@ -72,7 +84,18 @@ func submit(seat: int, wire: Dictionary) -> String:
 	if accepted == null:
 		return "That choice is not open right now."
 	engine.submit(accepted)
+	_check_integrity(accepted)
 	return ""
+
+
+func _check_integrity(cmd: Command) -> void:
+	if integrity_fault != "":
+		return
+	var fault: String = engine.integrity_problem()
+	if fault == "":
+		return
+	integrity_fault = "turn %d, after %s: %s" % [engine.state.turn, cmd.describe(), fault]
+	push_error("DUPLICATED OR MISPLACED CARD: " + integrity_fault)
 
 
 ## Dev tool: {"player": seat, "effect": {...}}. Only the process holding the engine can call it.

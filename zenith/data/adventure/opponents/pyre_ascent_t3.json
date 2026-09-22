@@ -35,7 +35,7 @@
     },
     {
       "id": "pyre_hearthguard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_immolation",
@@ -43,19 +43,19 @@
     },
     {
       "id": "braced_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "dismissal",
-      "count": 2
+      "count": 1
     },
     {
       "id": "edrics_truce",
-      "count": 1
+      "count": 2
     },
     {
       "id": "kept_at_bay",
@@ -148,10 +148,6 @@
     {
       "id": "pyre_updraft",
       "count": 2
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
     }
   ]
 }

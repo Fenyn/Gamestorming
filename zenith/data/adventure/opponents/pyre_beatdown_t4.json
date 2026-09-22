@@ -34,7 +34,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 3
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -46,10 +46,6 @@
     },
     {
       "id": "sever_the_leyline",
-      "count": 1
-    },
-    {
-      "id": "stillness",
       "count": 1
     },
     {
@@ -98,7 +94,7 @@
     },
     {
       "id": "pyre_cinder_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_comet_fall",
@@ -146,7 +142,7 @@
     },
     {
       "id": "wall_of_flame",
-      "count": 2
+      "count": 3
     }
   ]
 }

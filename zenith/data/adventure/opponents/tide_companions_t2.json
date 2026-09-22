@@ -42,7 +42,7 @@
     },
     {
       "id": "tide_surge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_torrent",
@@ -66,11 +66,11 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "edrics_vow",
-      "count": 2
+      "count": 1
     },
     {
       "id": "last_gasp",
@@ -78,7 +78,7 @@
     },
     {
       "id": "old_trick",
-      "count": 2
+      "count": 1
     },
     {
       "id": "rallying_call",
@@ -94,7 +94,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 1
     },
     {
       "id": "bonding_rite",
@@ -122,7 +122,7 @@
     },
     {
       "id": "last_ward",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_drowning",
@@ -130,11 +130,11 @@
     },
     {
       "id": "tide_ebb",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_undertow",
-      "count": 2
+      "count": 3
     }
   ]
 }

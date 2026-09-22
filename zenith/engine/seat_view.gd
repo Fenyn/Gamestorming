@@ -28,6 +28,19 @@ var grounds: int = -1
 var standing: Array[Dictionary] = []   # effects that outlast the Combat: {owner, source, op, kind, stages, life}
 var resolving: Array[int] = []
 var pending_card: int = -1             # announced card awaiting a response, before its effects begin
+## What resolves next, first element first. This IS an ordering contract: the engine works through
+## it in this order, so a client may draw it first to last. Each item is
+## {kind: StringName, uid: int, title: String, owner: int, target: int, note: String,
+## current: bool}, `kind` one of &"attack", &"pending_card", &"trigger", &"wounds", &"hidden",
+## `target` -1 when there is none, and exactly one item carrying `current` when anything is
+## pending. A &"hidden" item stands in for a job whose source this seat may not see: it carries
+## the owner and nothing else, so the shape of the queue is public and the card is not.
+var pending: Array[Dictionary] = []
+# Public counts from the reference rules, so a client can say "one more pass ends Combat" without
+# holding a rule of its own.
+var consecutive_passes: int = 0
+var attack_phase_count: int = 0
+var combat_count: int = 0
 var players: Array[SeatPlayer] = []
 var cards: Dictionary = {}             # uid -> SeatCard
 
@@ -80,7 +93,14 @@ func to_dict() -> Dictionary:
 	var cs: Array = []
 	for c in cards.values():
 		cs.append(c.to_dict())
+	var pend: Array = []
+	for item in pending:
+		var wire: Dictionary = item.duplicate()
+		wire["kind"] = String(item.get("kind", &""))
+		pend.append(wire)
 	return {
+		"pending": pend, "consecutive_passes": consecutive_passes,
+		"attack_phase_count": attack_phase_count, "combat_count": combat_count,
 		"seat": seat, "turn": turn, "step": step, "phase": phase, "active": active, "attacker": attacker,
 		"winner": winner, "win_reason": win_reason, "points": points, "points_to_win": points_to_win, "deciding": deciding, "deciding_kind": String(deciding_kind),
 		"attack": attack, "battle_step": battle_step, "last_attack": last_attack, "forecasts": forecasts,
@@ -119,6 +139,17 @@ static func from_dict(d: Dictionary) -> SeatView:
 		v.standing.append(sd)
 	v.resolving = SeatPlayer.ints(d.get("resolving", []))
 	v.pending_card = int(d.get("pending_card", -1))
+	for item in d.get("pending", []):
+		var w: Dictionary = (item as Dictionary)
+		v.pending.append({
+			"kind": StringName(str(w.get("kind", ""))), "uid": int(w.get("uid", -1)),
+			"title": str(w.get("title", "")), "owner": int(w.get("owner", -1)),
+			"target": int(w.get("target", -1)), "note": str(w.get("note", "")),
+			"current": bool(w.get("current", false)),
+		})
+	v.consecutive_passes = int(d.get("consecutive_passes", 0))
+	v.attack_phase_count = int(d.get("attack_phase_count", 0))
+	v.combat_count = int(d.get("combat_count", 0))
 	for pd in d.get("players", []):
 		v.players.append(SeatPlayer.from_dict(pd))
 	for cd in d.get("cards", []):
@@ -147,6 +178,11 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 		v.deciding_kind = pending.kind
 	v.attack = _attack_summary(engine)
 	v.pending_card = int(s.pending_play.get("card", -1))
+	for item in engine.pending_items():
+		v.pending.append(_mask_pending(item, engine, seat))
+	v.consecutive_passes = s.consecutive_passes
+	v.attack_phase_count = s.attack_phase_count
+	v.combat_count = s.combat_count
 	v.battle_step = s.battle_step
 	v.last_attack = _last_attack_summary(engine)
 	if include_forecasts:
@@ -182,6 +218,24 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 				var in_deck: CardInstance = engine.card(int(uid))
 				v.cards[int(uid)] = SeatCard.of(in_deck, seat, true, engine.tags_of(in_deck) if in_deck.def.is_personality() else NO_TAGS)
 	return v
+
+
+## One pending item as this seat may see it, by the same reveal rule as `SeatCard.visible_to`.
+## The attack's source and the announced card in its counter window are public from the moment
+## they are declared, so only a queued trigger can need masking; a job whose source sits in a
+## hidden zone becomes a &"hidden" item that names its owner and nothing else.
+static func _mask_pending(item: Dictionary, engine: DuelEngine, seat: int) -> Dictionary:
+	var out: Dictionary = item.duplicate()
+	if StringName(out.get("kind", &"")) != &"trigger":
+		return out
+	var uid: int = int(out.get("uid", -1))
+	if uid < 0:
+		return out   # a job with no card behind it hides nothing
+	var c: CardInstance = engine.card(uid)
+	if c != null and SeatCard.visible_to(c, seat):
+		return out
+	return {"kind": &"hidden", "uid": -1, "title": "", "owner": int(out.get("owner", -1)),
+			"target": -1, "note": "", "current": bool(out.get("current", false))}
 
 
 ## The parts of the attack in the air that both players can see.

@@ -21,16 +21,12 @@
   "tagline": "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",
   "cards": [
     {
-      "id": "dead_air",
-      "count": 1
-    },
-    {
       "id": "grounding_step",
       "count": 1
     },
     {
       "id": "pyre_immolation",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cold_appraisal",
@@ -42,18 +38,10 @@
     },
     {
       "id": "pyre_twin_flames",
-      "count": 1
+      "count": 2
     },
     {
       "id": "sever_the_leyline",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "terms_of_the_pact",
       "count": 1
     },
     {
@@ -78,7 +66,7 @@
     },
     {
       "id": "mournes_frantic_rush",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_stance",
@@ -86,11 +74,11 @@
     },
     {
       "id": "no_quarter",
-      "count": 2
+      "count": 1
     },
     {
       "id": "pyre_backdraft",
-      "count": 2
+      "count": 1
     },
     {
       "id": "pyre_blazing_charge",
@@ -98,7 +86,7 @@
     },
     {
       "id": "pyre_cinder_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_comet_fall",
@@ -106,7 +94,7 @@
     },
     {
       "id": "pyre_firestorm",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_flame_lash",
@@ -130,15 +118,15 @@
     },
     {
       "id": "pyre_scouring_flame",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_snuffing",
-      "count": 2
+      "count": 1
     },
     {
       "id": "relentless_fury",
-      "count": 3
+      "count": 2
     },
     {
       "id": "unyielding_guard",
@@ -146,7 +134,7 @@
     },
     {
       "id": "wall_of_flame",
-      "count": 2
+      "count": 3
     }
   ]
 }

@@ -39,7 +39,7 @@
     },
     {
       "id": "tide_high_water",
-      "count": 3
+      "count": 2
     },
     {
       "id": "tide_springwater",
@@ -47,7 +47,7 @@
     },
     {
       "id": "tide_surge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_torrent",
@@ -55,19 +55,19 @@
     },
     {
       "id": "tide_twin_breaker",
-      "count": 3
+      "count": 2
     },
     {
       "id": "tide_twin_swell",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unerring_bolt",
-      "count": 2
+      "count": 3
     },
     {
       "id": "closing_ranks",
-      "count": 3
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -91,11 +91,11 @@
     },
     {
       "id": "rallying_call",
-      "count": 3
+      "count": 2
     },
     {
       "id": "rookes_deluge",
-      "count": 3
+      "count": 2
     },
     {
       "id": "stillness",
@@ -155,11 +155,11 @@
     },
     {
       "id": "tide_ebb",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_undertow",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

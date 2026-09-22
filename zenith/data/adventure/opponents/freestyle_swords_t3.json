@@ -38,10 +38,6 @@
       "count": 1
     },
     {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
       "id": "quiet_study",
       "count": 1
     },
@@ -99,7 +95,7 @@
     },
     {
       "id": "hilt_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_stance",
@@ -111,7 +107,7 @@
     },
     {
       "id": "quick_retreat",
-      "count": 2
+      "count": 3
     },
     {
       "id": "relentless_fury",
@@ -136,10 +132,6 @@
     {
       "id": "sword_thrust",
       "count": 2
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
     },
     {
       "id": "vales_pommel_bash",

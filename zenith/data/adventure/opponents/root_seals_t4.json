@@ -31,19 +31,19 @@
     },
     {
       "id": "root_destruction_blast",
-      "count": 3
+      "count": 2
     },
     {
       "id": "root_dragon_blast",
-      "count": 2
+      "count": 3
     },
     {
       "id": "root_energy_catch",
-      "count": 2
+      "count": 3
     },
     {
       "id": "root_energy_deflection",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sharp_rebuke",
@@ -59,7 +59,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 1
     },
     {
       "id": "dismissal",
@@ -95,7 +95,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 1
     },
     {
       "id": "absorbing_drill",

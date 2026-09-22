@@ -1,16 +1,13 @@
 class_name BacklineRail
 extends PanelContainer
-## One seat's off-field cards as a screen-edge panel: Mastery, Relic and Reserve, and the two
-## public piles. They leave the felt to the fighters without becoming a list. Each well is an
-## empty frame with a caption; the real card is pinned behind it by the table, so it keeps its
-## art, its hover preview and its click. Everything here ignores the pointer so the card under
-## the well answers it, except an empty pile, which has no card to click.
+## One seat's Relic, with its Reserve, as a small screen-edge panel. The Mastery and the two public
+## piles sit on the felt (`TableLayout`); only the Relic is left here. The well is an empty frame
+## with a caption; the real card is pinned behind it by the table, so it keeps its art, its hover
+## preview and its click. Everything here ignores the pointer so the card under the well answers.
 
-signal pile_opened(player: int, zone: StringName)
-
-## Well order, filling the grid left to right, top to bottom.
-const ROWS: Array[StringName] = [&"mastery", &"relic", &"discard", &"removed"]
-const CAPTIONS: Dictionary = {&"mastery": "MASTERY", &"relic": "RELIC", &"discard": "DISCARD", &"removed": "OUT"}
+## Well order, filling the grid left to right.
+const ROWS: Array[StringName] = [&"relic"]
+const CAPTIONS: Dictionary = {&"relic": "RELIC"}
 
 @onready var title: Label = $Column/Title
 @onready var rows: GridContainer = $Column/Rows
@@ -26,22 +23,10 @@ func _ready() -> void:
 		var well: VBoxContainer = rows.get_child(i)
 		_frames[zone] = well.get_node("Frame")
 		_captions[zone] = well.get_node("Caption")
-		(_frames[zone] as Panel).gui_input.connect(_on_frame_input.bind(zone))
 		_set_frame(zone, false, false)
 
 
-## Only reached for an empty pile: with no card in the well, the frame itself takes the pointer
-## so the browser is still one click away.
-func _on_frame_input(event: InputEvent, zone: StringName) -> void:
-	if not (event is InputEventMouseButton):
-		return
-	var mb: InputEventMouseButton = event
-	if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT and (zone == &"discard" or zone == &"removed"):
-		accept_event()
-		pile_opened.emit(player, zone)
-
-
-## Fills the captions for one seat. `prompt` is the viewer's pending decision, so a Mastery this
+## Fills the captions for one seat. `prompt` is the viewer's pending decision, so a Relic this
 ## seat may use now frames in the accent a legal table card carries. The seat colour is passed
 ## in; the rail renders what it is handed and reads no session state of its own.
 func refresh(view: SeatView, seat: int, viewer: int, prompt: PromptView, accent: Color) -> void:
@@ -61,10 +46,7 @@ func refresh(view: SeatView, seat: int, viewer: int, prompt: PromptView, accent:
 	edge.content_margin_top = 8.0
 	edge.content_margin_bottom = 8.0
 	add_theme_stylebox_override("panel", edge)
-	_fill_card(&"mastery", p.mastery, prompt)
 	_fill_card(&"relic", p.relic, prompt, p.reserve.size())
-	_fill_count(&"discard", p.discard.size())
-	_fill_count(&"removed", p.removed.size())
 
 
 func _fill_card(zone: StringName, uid: int, prompt: PromptView, reserve: int = -1) -> void:
@@ -74,16 +56,6 @@ func _fill_card(zone: StringName, uid: int, prompt: PromptView, reserve: int = -
 	caption.visible = uid >= 0 or reserve > 0
 	_set_frame(zone, uid >= 0 and prompt != null and not prompt.options_for_card(uid).is_empty(), uid >= 0)
 	(_frames[zone] as Panel).mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-
-func _fill_count(zone: StringName, count: int) -> void:
-	var caption: Label = _captions[zone]
-	caption.text = "%s %d" % [str(CAPTIONS[zone]), count]
-	caption.add_theme_color_override("font_color", ZenithTheme.MUTED if count == 0 else ZenithTheme.TEXT)
-	caption.visible = count > 0
-	_set_frame(zone, false, count > 0)
-	# With cards in it the stack answers the pointer itself; empty, the frame stands in for it.
-	(_frames[zone] as Panel).mouse_filter = Control.MOUSE_FILTER_STOP if count == 0 else Control.MOUSE_FILTER_IGNORE
 
 
 ## An empty frame: a border and a dark well, so the card pinned behind it reads through.
@@ -104,5 +76,5 @@ func row_anchor(zone: StringName) -> Vector2:
 
 ## How tall a card may be drawn in a well, in pixels.
 func well_height() -> float:
-	var frame: Control = _frames.get(&"mastery")
+	var frame: Control = _frames.get(&"relic")
 	return frame.size.y if frame != null and frame.size.y > 1.0 else 75.0

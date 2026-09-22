@@ -47,7 +47,7 @@
     },
     {
       "id": "storm_lash",
-      "count": 2
+      "count": 1
     },
     {
       "id": "storm_palm_surge",
@@ -55,34 +55,26 @@
     },
     {
       "id": "storm_smiting_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "threefold_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "braced_guard",
-      "count": 1
+      "count": 3
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 1
     },
     {
       "id": "rallying_call",
-      "count": 2
-    },
-    {
-      "id": "respite",
       "count": 1
     },
     {
       "id": "scorn_smirks",
-      "count": 1
-    },
-    {
-      "id": "sever_the_leyline",
       "count": 1
     },
     {
@@ -111,7 +103,7 @@
     },
     {
       "id": "provocation",
-      "count": 2
+      "count": 1
     },
     {
       "id": "rites_unmade",
@@ -135,11 +127,11 @@
     },
     {
       "id": "practiced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     }
   ]
 }

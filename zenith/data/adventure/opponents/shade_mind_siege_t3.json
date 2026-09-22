@@ -36,7 +36,7 @@
     },
     {
       "id": "shade_fixed_gaze",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_recoil",
@@ -63,14 +63,6 @@
       "count": 1
     },
     {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
       "id": "bravado_drill",
       "count": 1
     },
@@ -80,7 +72,7 @@
     },
     {
       "id": "shade_faltering_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "foresight",
@@ -104,11 +96,11 @@
     },
     {
       "id": "no_quarter",
-      "count": 2
+      "count": 1
     },
     {
       "id": "relentless_fury",
-      "count": 2
+      "count": 1
     },
     {
       "id": "scatters_the_ashes",
@@ -124,11 +116,11 @@
     },
     {
       "id": "shade_emptying_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_hex_recall",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_lingering_whisper",
@@ -159,12 +151,8 @@
       "count": 2
     },
     {
-      "id": "unyielding_guard",
-      "count": 1
-    },
-    {
       "id": "wall_of_flame",
-      "count": 1
+      "count": 2
     }
   ]
 }

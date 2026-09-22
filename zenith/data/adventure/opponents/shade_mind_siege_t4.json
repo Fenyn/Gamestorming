@@ -36,7 +36,7 @@
     },
     {
       "id": "shade_fixed_gaze",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_recoil",
@@ -44,7 +44,7 @@
     },
     {
       "id": "shade_swelling_whisper",
-      "count": 3
+      "count": 2
     },
     {
       "id": "shade_turned_whisper",
@@ -56,7 +56,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 3
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -96,7 +96,7 @@
     },
     {
       "id": "marked_strength",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_stance",
@@ -128,7 +128,7 @@
     },
     {
       "id": "shade_hex_recall",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_lingering_whisper",
@@ -136,7 +136,7 @@
     },
     {
       "id": "shade_nightmare_hold",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_returning_whisper",
@@ -148,7 +148,7 @@
     },
     {
       "id": "shade_silenced_whisper",
-      "count": 3
+      "count": 2
     },
     {
       "id": "shade_stinging_palm",
@@ -156,7 +156,7 @@
     },
     {
       "id": "shade_warding_burst",
-      "count": 3
+      "count": 2
     },
     {
       "id": "unyielding_guard",

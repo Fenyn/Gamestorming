@@ -27,7 +27,7 @@
     },
     {
       "id": "shade_cutting_hand",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_rending_palm",
@@ -47,7 +47,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 3
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -55,11 +55,11 @@
     },
     {
       "id": "dismissal",
-      "count": 2
+      "count": 1
     },
     {
       "id": "marrows_retinue",
-      "count": 2
+      "count": 1
     },
     {
       "id": "rallying_call",
@@ -111,7 +111,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mourne_takes_measure",
@@ -139,7 +139,7 @@
     },
     {
       "id": "second_wind",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_gathering_dark",

@@ -13,7 +13,6 @@ signal dev_command(effect: Dictionary)
 signal handoff_confirmed
 signal rematch_requested
 signal select_requested
-signal pile_opened(player: int, zone: StringName)
 
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
@@ -25,6 +24,29 @@ const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 const PILE_ROWS_SHOWN: int = 3       # a browsed pile is only read, so it may be taller
 const FOCUS_CAPTION_HEIGHT: float = 32.0
+## The response stack laid over the pinned attack, inside the Focus rect. A response is drawn at
+## this share of the Focus face, and each level steps up and to the left with a small alternating
+## tilt, so the newest card is wholly in view and the one under it still shows its caption strip.
+## The stack never needs room of its own, so a decision column can open with the state still up.
+const STACK_SCALE: float = 0.8
+const STACK_STEP: Vector2 = Vector2(-26.0, -34.0)
+const STACK_TILT: float = 1.0          # degrees, sign alternating, so a pile never reads as one card
+const STACK_STRIP: float = 26.0        # the caption strip on each card's visible bottom edge
+const STACK_MAX: int = 4               # levels that step; deeper responses sit on the last one
+const STACK_LEAVE: float = 0.25        # how long a resolved response takes to leave the stack
+## Meta on a face the pending list put on the stack, so a later refresh knows which faces are its
+## own to take off again and which a replay beat owns.
+const PENDING_KEY: StringName = &"pending_key"
+## The filament from the pinned card to its target on the table. It is the 2D reading of the same
+## cue `DuelFx.show_attack_link` draws between the two cards: one bowed thread in the attack
+## colour, a transverse cap when the attack is stopped and a second chevron once it has landed.
+const FILAMENT_SAMPLES: int = 24
+const FILAMENT_BOW: float = 0.09          # side offset of the curve, as a share of its own length
+const FILAMENT_TAIL: float = 8.0          # gap between the card's edge and the start of the thread
+const FILAMENT_HEAD: float = 26.0         # gap between the target card's centre and the chevron
+const FILAMENT_CHEVRON: Vector2 = Vector2(17.0, 9.0)   # chevron length along and across the thread
+const FILAMENT_CAP: float = 13.0          # half-width of the transverse cap on a stopped attack
+const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
 const DECISION_GAP: float = 12.0
 const DECISION_BOTTOM_MARGIN: float = 24.0
@@ -38,8 +60,50 @@ const TRAY_VERBS: Dictionary = {
 	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture", &"discard_ally": "Discard",
 	&"final_strike": "Discard",
 }
+## How long the newly lit Combat sub-chip takes to come up, when Reduced Motion is off.
+const CHIP_FADE: float = 0.15
 const TOAST_HOLD: float = 1.1
+const QUIET_HOLD: float = 0.6
 const STEP_LABELS: Array[String] = ["Draw", "Place", "Power Up", "Declare", "Combat", "Discard", "Recover"]
+## Keys for `mark_phase_event`, one per chip of the top strip, in STEP_LABELS order.
+const STEP_KEYS: Array[StringName] = [&"draw", &"place", &"power_up", &"declare", &"combat", &"discard", &"recover"]
+const COMBAT_INDEX: int = 4          # which STEP_LABELS chip expands into the combat sub-strip
+## The Combat step as the player meets it. Every beat of a Combat lands on one of these. Combat is
+## attack and defend back and forth, so a fight back is the same Attack chip with the other seat
+## named under it rather than a step of its own.
+const SUB_LABELS: Array[String] = ["Enter", "Attack", "Defend", "Resolve", "End"]
+const SUB_KEYS: Array[StringName] = [&"enter", &"attack", &"defend", &"resolve", &"end"]
+const SUB_PHASES: Array = [
+	[GameState.Phase.PREPARE_ACTIVE, GameState.Phase.PREPARE_OPPOSING, GameState.Phase.OPPOSING_DRAW],
+	[GameState.Phase.ATTACK, GameState.Phase.FIGHT_BACK], [GameState.Phase.DEFEND],
+	[GameState.Phase.BATTLE], [GameState.Phase.COMBAT_END],
+]
+## A glyph where one helps, `-1` where the word is the whole chip.
+const SUB_GLYPHS: Array[int] = [-1, CardDef.Type.STRIKE, CardDef.Type.COMBAT, CardDef.Type.ART, -1]
+## Index into SUB_LABELS, so the code says which chip it means.
+const SUB_ATTACK: int = 1
+const SUB_DEFEND: int = 2
+const SUB_RESOLVE: int = 3
+const SUB_END: int = 4
+## Room for the sub-chips, in canvas pixels. A chip that carries a seat name is wider, because a
+## 14-character duelist name has to sit under Attack or Defend without touching the next chip.
+const SUB_WIDTH: float = 76.0
+const SUB_NAME_WIDTH: float = 112.0
+const SUB_GAP: int = 16
+## The battle sequence in six readable groups: pay, defend, shields, damage, wounds, after.
+## Each entry is the first and last `SeatView.battle_step` inside that group.
+const BATTLE_GROUPS: Array[Vector2i] = [
+	Vector2i(2, 3), Vector2i(4, 5), Vector2i(7, 8), Vector2i(9, 12), Vector2i(13, 13), Vector2i(14, 16),
+]
+## The label one lone non-card action carries, by prompt kind then option type. A single button is
+## the whole decision, so it says what happens rather than naming the rule it comes from.
+const ACTION_LABELS: Dictionary = {
+	&"pass": "Pass", &"no_defense": "No Defense", &"decline": "Let it resolve", &"done": "Done",
+	&"no_endure": "Take the wound", &"declare": "Declare Combat",
+}
+const ACTION_LABELS_BY_KIND: Dictionary = {
+	&"combat_end": {&"done": "End Combat"}, &"declare": {&"skip": "No Combat"},
+}
 const STEP_ORDER: Array[int] = [
 	GameState.Step.DRAW, GameState.Step.NON_COMBAT, GameState.Step.POWER_UP, GameState.Step.DECLARE,
 	GameState.Step.COMBAT, GameState.Step.DISCARD, GameState.Step.RECOVER,
@@ -56,10 +120,7 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var turn_counter: Label = $Root/PhasePanel/Column/Turn/Counter
 @onready var turn_who: Label = $Root/PhasePanel/Column/Turn/Who
 @onready var steps_box: HBoxContainer = $Root/PhasePanel/Column/Steps
-@onready var phase_sub: RichTextLabel = $Root/PhasePanel/Column/Sub
 @onready var log_scroll: ScrollContainer = $Root/Log/Column/Scroll
-@onready var near_backline: BacklineRail = $Root/NearBackline
-@onready var far_backline: BacklineRail = $Root/FarBackline
 @onready var near_flags: Label = $Root/NearFlags
 @onready var far_flags: Label = $Root/FarFlags
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
@@ -70,6 +131,7 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var peek_forecast: PanelContainer = $Root/Peek/Forecast
 @onready var peek_forecast_text: RichTextLabel = $Root/Peek/Forecast/Text
 @onready var toast_label: Label = $Root/Toast
+@onready var quiet_label: Label = $Root/QuietBeat
 @onready var log_panel: PanelContainer = $Root/Log
 @onready var log_toggle: Button = $Root/Log/Column/Header/Toggle
 @onready var inspect: ColorRect = $Root/Inspect
@@ -89,6 +151,12 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var focus: Control = $Root/Focus
 @onready var focus_caption: Label = $Root/Focus/Caption
 @onready var focus_face: CardFace = $Root/Focus/Face
+@onready var stack: Control = $Root/Focus/Stack
+@onready var filament: Control = $Root/FocusFilament
+@onready var filament_thread: Line2D = $Root/FocusFilament/Thread
+@onready var filament_cap: Line2D = $Root/FocusFilament/Cap
+@onready var filament_head: Line2D = $Root/FocusFilament/Head
+@onready var filament_head_trail: Line2D = $Root/FocusFilament/HeadTrail
 @onready var prompt_outcome: Label = $Root/PromptPanel/Column/Exchange/Lines/Outcome
 @onready var prompt_hint: Label = $Root/PromptPanel/Column/Hint
 @onready var primary_box: VBoxContainer = $Root/PromptPanel/Column/Actions/Primary
@@ -120,6 +188,8 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 
 var external_hand: bool = false
 var scene_flags: bool = false
+## The node that can project a table card's centre, `DuelView`. Set from the parent in `_ready`.
+var table: Node = null
 var _viewer_seat: int = 0
 var _log_lines: int = 0
 var _current_prompt: PromptView = null
@@ -135,25 +205,45 @@ var _confirm: Button = null
 var _online: bool = false
 var _is_host: bool = false
 var _toast: Tween = null
+var _quiet: Tween = null
 var _fitting_actions: bool = false
+var _step_columns: Array[VBoxContainer] = []
+var _combat_strip: HBoxContainer = null   # the five Combat sub-chips, inside the Combat chip
+var _sub_chips: Array[VBoxContainer] = []
+var _sub_labels: Array[Label] = []
+var _sub_icons: Array[TypeIcon] = []
+var _sub_notes: Array[Label] = []
+var _battle_dots: Array[ColorRect] = []
+var _exchange_chip: Label = null          # "Exchange 3", so a long Combat reads as a series
+var _last_sub_active: int = -1            # the sub-chip lit on the previous refresh, -1 when closed
+var _last_attacker: int = -1              # who was attacking then, so a hand-over can be noticed
+var _pulses: Dictionary = {}              # chip -> Tween, so a second pulse replaces the first
+var _single_action: Button = null         # the one large action button, null when there isn't one
 var _damage_available: bool = false
 var _exchange_before_preview: bool = false
 var _pile_player: int = -1             # whose pile the browser is showing
-var _pile_zone: StringName = &""       # &"discard" or &"removed", &"" when the browser is closed
+var _pile_zone: StringName = &""       # &"discard", &"removed" or &"relic", &"" when the browser is closed
 var _pile_uids: Array[int] = []        # the pile as the browser last drew it, top first
 var _pile_fill: int = 0                # guards against two fills racing over the same container
 var _replay_focus: bool = false
-var _focus_home: Vector4 = Vector4.ZERO
 var _owner_marks: Dictionary = {}      # card uid -> " · yours" / " · theirs", set per prompt
+var _stack: Array[Control] = []        # responses over the pinned attack, oldest first
+var _overflow: Label = null            # the "+N" badge on the top face when the queue is deeper
+var _focus_card_uid: int = -1          # the card the Focus slot is holding, -1 when it holds none
+var _caption_base: String = ""         # the Focus caption before the wound line is appended
+var _wounds_note: String = ""          # "3 wounds" while the attack still owes some, else ""
+var _pending_anchor: String = ""       # the pending item this HUD put in the slot, "" when a pin owns it
+var _anchor_target: int = -1           # what the anchored item is aimed at, -1 when it is aimed nowhere
+var _anchor_uid: int = -1
+var _filament_target: int = -1         # the table card the current pending job is aimed at
+var _filament_uid: int = -1            # the card that job belongs to, so the stack can source it
+var _filament_state: StringName = &"pending"
 
 
 func _ready() -> void:
 	root.theme = SanctumUI.theme()
-	_focus_home = Vector4(focus.offset_left, focus.offset_top, focus.offset_right, focus.offset_bottom)
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	for rail in [near_backline, far_backline]:
-		rail.pile_opened.connect(func(player: int, zone: StringName) -> void: pile_opened.emit(player, zone))
 	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.065, 0.065, 0.065, 0.96), Color(0.20, 0.20, 0.20), 2, 1, 14, 10))
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
@@ -163,7 +253,7 @@ func _ready() -> void:
 		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var l: Label = Label.new()
 		l.text = name
-		l.add_theme_font_size_override("font_size", 13)
+		l.add_theme_font_size_override("font_size", 18)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(l)
 		var bar: ColorRect = ColorRect.new()
@@ -172,6 +262,9 @@ func _ready() -> void:
 		steps_box.add_child(column)
 		_step_labels.append(l)
 		_step_bars.append(bar)
+		_step_columns.append(column)
+	_build_combat_strip()
+	table = get_parent()
 	handoff_ready.pressed.connect(func() -> void: handoff_confirmed.emit())
 	rematch_button.pressed.connect(func() -> void: rematch_requested.emit())
 	select_button.pressed.connect(func() -> void: select_requested.emit())
@@ -187,6 +280,67 @@ func _ready() -> void:
 	primary_box.minimum_size_changed.connect(_fit_actions)
 	prompt_column.minimum_size_changed.connect(_fit_actions)
 	_compact_prompt()
+
+
+## The Combat chip carries the whole Combat inside it: five sub-chips in the order the engine
+## works through them, and a six-dot rule under Resolve for the battle sequence. It is built once
+## and hidden until the turn reaches Combat, where it takes the Combat chip's place.
+func _build_combat_strip() -> void:
+	_combat_strip = HBoxContainer.new()
+	_combat_strip.add_theme_constant_override("separation", SUB_GAP)
+	_combat_strip.alignment = BoxContainer.ALIGNMENT_CENTER
+	_combat_strip.visible = false
+	_exchange_chip = Label.new()
+	_exchange_chip.add_theme_font_size_override("font_size", 13)
+	_exchange_chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_exchange_chip.add_theme_color_override("font_color", ZenithTheme.MUTED)
+	_combat_strip.add_child(_exchange_chip)
+	for i in range(SUB_LABELS.size()):
+		var chip: VBoxContainer = VBoxContainer.new()
+		chip.add_theme_constant_override("separation", 1)
+		# Five chips share the room seven used to. Attack and Defend reserve enough width for a
+		# long seat name, the rest only need their word, and the gap keeps neighbours apart.
+		chip.custom_minimum_size = Vector2(SUB_NAME_WIDTH if i == SUB_ATTACK or i == SUB_DEFEND else SUB_WIDTH, 0)
+		var head: HBoxContainer = HBoxContainer.new()
+		head.add_theme_constant_override("separation", 3)
+		head.alignment = BoxContainer.ALIGNMENT_CENTER
+		var icon: TypeIcon = TypeIcon.new()
+		icon.custom_minimum_size = Vector2(15, 15)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if SUB_GLYPHS[i] >= 0:
+			icon.set("type", SUB_GLYPHS[i])
+		else:
+			icon.visible = false
+		head.add_child(icon)
+		var l: Label = Label.new()
+		l.text = SUB_LABELS[i]
+		l.add_theme_font_size_override("font_size", 18)
+		head.add_child(l)
+		chip.add_child(head)
+		var note: Label = Label.new()
+		note.add_theme_font_size_override("font_size", 13)
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		note.visible = false
+		chip.add_child(note)
+		if SUB_PHASES[i].has(GameState.Phase.BATTLE):
+			var dots: HBoxContainer = HBoxContainer.new()
+			dots.add_theme_constant_override("separation", 3)
+			dots.alignment = BoxContainer.ALIGNMENT_CENTER
+			for d in range(BATTLE_GROUPS.size()):
+				var dot: ColorRect = ColorRect.new()
+				dot.custom_minimum_size = Vector2(5, 5)
+				dot.color = ZenithTheme.RAISED_STRONG
+				dots.add_child(dot)
+				_battle_dots.append(dot)
+			chip.add_child(dots)
+		_combat_strip.add_child(chip)
+		_sub_chips.append(chip)
+		_sub_labels.append(l)
+		_sub_icons.append(icon)
+		_sub_notes.append(note)
+	_step_columns[COMBAT_INDEX].add_child(_combat_strip)
+	_step_columns[COMBAT_INDEX].move_child(_combat_strip, 1)
 
 
 ## One bounded column: a real card, the decision and its consequence, then offered controls.
@@ -210,7 +364,11 @@ func _layout_prompt_column() -> void:
 	# Use the authored rail width rather than a transient child minimum. CardFace renders from a
 	# 512x716 source and may report that unscaled minimum for a frame while the layout settles.
 	var focus_width: float = focus.offset_right - focus.offset_left
-	prompt_panel.offset_top = focus.offset_top + FOCUS_CAPTION_HEIGHT + focus_width * CARD_ASPECT + DECISION_GAP if focus.visible else 210.0
+	var focus_bottom: float = focus.offset_top + FOCUS_CAPTION_HEIGHT + focus_width * CARD_ASPECT
+	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
+	_layout_stack()
+	var top: float = focus_bottom + DECISION_GAP if focus.visible else 210.0
+	prompt_panel.offset_top = top
 	# Let the VBox determine height again after a larger prior decision.
 	prompt_panel.offset_bottom = prompt_panel.offset_top
 	_fit_actions()
@@ -256,10 +414,253 @@ func refresh_state(view: SeatView, viewer: int, live: Dictionary = {}) -> void:
 	far_flags.text = " | ".join(PLAYER_STATUS.flags(view.player(1 - me)))
 	near_flags.visible = not scene_flags and not near_flags.text.is_empty()
 	far_flags.visible = not scene_flags and not far_flags.text.is_empty()
-	near_backline.refresh(view, me, me, _current_prompt, SeatColors.accent(view, me, Session.color_seed))
-	far_backline.refresh(view, 1 - me, me, _current_prompt, SeatColors.accent(view, 1 - me, Session.color_seed))
 	_refresh_phase(view, me, live)
+	_reconcile_pending(view, live)
+	_read_filament(view)
 	_sync_pile()
+
+
+## The card the Focus slot is holding: the pinned replay card when one is up, otherwise the card
+## the open decision is about. -1 when the slot is empty or holds nothing a seat can name.
+func focus_uid() -> int:
+	if not focus.visible:
+		return -1
+	if _focus_card_uid >= 0:
+		return _focus_card_uid
+	return _focus_uid(_current_prompt)
+
+
+## Where the filament points and what it means, taken once a beat. The line itself is redrawn every
+## frame, because the camera can move under a settled state.
+func _read_filament(view: SeatView) -> void:
+	_filament_target = -1
+	_filament_uid = -1
+	for item in view.pending:
+		if not bool(item.get("current", false)):
+			continue
+		_filament_target = int(item.get("target", -1))
+		_filament_uid = int(item.get("uid", -1))
+		break
+	# A trigger anchored in the slot without being the engine's `current` job still aims somewhere,
+	# and the thread is the only thing that says where. No target anywhere means no thread.
+	if _filament_target < 0 and _anchor_target >= 0:
+		_filament_target = _anchor_target
+		_filament_uid = _anchor_uid
+	if bool(view.attack.get("stopped", false)):
+		_filament_state = &"stopped"
+	elif bool(view.attack.get("landed", false)):
+		_filament_state = &"landed"
+	else:
+		_filament_state = &"pending"
+
+
+## `SeatView.pending` drives the Focus slot and the stack laid over it, so everything waiting to
+## resolve is one pile on the right rather than a second column somewhere else. The anchor is the
+## declared attack when there is one and otherwise whatever resolves first; every other job is a
+## face stacked over it with the one resolving next on top. A `wounds` job is the attack's own loop
+## rather than a card, so it is a line on the anchor's caption instead of a face of its own.
+func _reconcile_pending(view: SeatView, live: Dictionary) -> void:
+	var queued: Array[Dictionary] = []
+	var wounds: String = ""
+	for item in view.pending:
+		var kind: StringName = StringName(str(item.get("kind", &"")))
+		if kind == &"wounds":
+			var note: String = str(item.get("note", ""))
+			if not note.is_empty():
+				wounds = note
+			continue
+		queued.append(item)
+	_wounds_note = wounds
+	var anchor: int = -1
+	for i in range(queued.size()):
+		if StringName(str(queued[i].get("kind", &""))) == &"attack":
+			anchor = i
+			break
+	if anchor < 0 and not queued.is_empty():
+		anchor = 0
+	var attacker: int = int(live.get("attacker", view.attacker))
+	# A declared attack pinned by the replay, or the card an open decision is about, owns the slot
+	# and its own caption. Anything this HUD anchored itself is ours to move on or take away.
+	var borrowed: bool = focus.visible and _pending_anchor.is_empty()
+	var anchor_uid: int = -1
+	if borrowed:
+		anchor_uid = focus_uid()
+	elif anchor >= 0 and _anchor_pending(view, queued[anchor], attacker):
+		anchor_uid = int(queued[anchor].get("uid", -1))
+	elif not _pending_anchor.is_empty():
+		_pending_anchor = ""
+		_anchor_target = -1
+		_anchor_uid = -1
+		hide_focus()
+	if borrowed or not _pending_anchor.is_empty():
+		_anchor_uid = anchor_uid
+		_anchor_target = int(queued[anchor].get("target", -1)) if anchor >= 0 else -1
+	_apply_caption()
+	_reconcile_stack(view, queued, anchor, anchor_uid, attacker)
+
+
+## Puts one pending job in the Focus slot as the big face the rest stack over. False when the job
+## has no face this seat may look at, which leaves the slot to the next refresh.
+func _anchor_pending(view: SeatView, item: Dictionary, attacker: int) -> bool:
+	var uid: int = int(item.get("uid", -1))
+	var card: SeatCard = view.card(uid)
+	if card == null or card.hidden():
+		return false
+	var def: CardDef = _def(card.def_id)
+	if def == null:
+		return false
+	var owner: int = int(item.get("owner", -1))
+	var tint: Color = ZenithTheme.ATTACK if attacker >= 0 and owner == attacker else ZenithTheme.DEFEND
+	var key: String = _pending_key(item, 0)
+	if key == _pending_anchor and focus.visible:
+		# Already the face in the slot. Only the caption can have moved on, and redrawing the card
+		# every beat would restart the face for nothing.
+		set_focus_caption(_pending_caption(item), tint)
+		_pending_anchor = key
+		return true
+	if not show_replay_card(def, _pending_caption(item), tint, uid):
+		return false
+	_pending_anchor = key
+	return true
+
+
+## What the anchored job says about itself, from its own kind and the engine's note.
+func _pending_caption(item: Dictionary) -> String:
+	var note: String = str(item.get("note", ""))
+	match StringName(str(item.get("kind", &""))):
+		&"attack":
+			return "Attack · " + note if not note.is_empty() and note != "nothing" else "Attack"
+		&"trigger":
+			return "Trigger · " + note if not note.is_empty() else "Trigger"
+		&"pending_card":
+			return note if not note.is_empty() else "Awaiting a counter"
+		&"hidden":
+			return "Opponent's trigger"
+	return note if not note.is_empty() else "Resolving"
+
+
+## The caption strip a stacked pending job carries. One word, because the face under it says the rest.
+func _pending_strip(kind: StringName, item: Dictionary) -> String:
+	match kind:
+		&"hidden":
+			return "Opponent's trigger"
+		&"pending_card":
+			var note: String = str(item.get("note", ""))
+			return note if not note.is_empty() else "Awaiting a counter"
+		&"attack":
+			return "Attack"
+	return "Trigger"
+
+
+## A job's identity across refreshes. A masked job has no uid to be named by, so it is counted
+## among its owner's masked jobs instead: when the first of them resolves, the last one leaves.
+func _pending_key(item: Dictionary, ordinal: int) -> String:
+	var kind: String = str(item.get("kind", ""))
+	var uid: int = int(item.get("uid", -1))
+	if uid >= 0:
+		return "%s:%d" % [kind, uid]
+	return "%s:%d:%d" % [kind, int(item.get("owner", -1)), ordinal]
+
+
+## The queue behind the anchor, as faces over it. Pushed in reverse list order so the job resolving
+## next ends up on top; faces a replay beat already dealt are left alone, and a job that has left
+## the queue without a beat taking its face off goes with the same leaving animation.
+func _reconcile_stack(view: SeatView, queued: Array[Dictionary], anchor: int, anchor_uid: int, attacker: int) -> void:
+	var want: Array[Dictionary] = []          # last to resolve first, so pushing walks up the pile
+	var keys: Array[String] = []
+	var wanted: Dictionary = {}
+	var masked: Dictionary = {}
+	var ordinals: Array[int] = []
+	for i in range(queued.size()):
+		ordinals.append(int(masked.get(int(queued[i].get("owner", -1)), 0)))
+		if int(queued[i].get("uid", -1)) < 0:
+			masked[int(queued[i].get("owner", -1))] = ordinals[i] + 1
+	for i in range(queued.size() - 1, -1, -1):
+		if i == anchor:
+			continue
+		var uid: int = int(queued[i].get("uid", -1))
+		if uid >= 0 and uid == anchor_uid:
+			continue
+		var key: String = _pending_key(queued[i], ordinals[i])
+		want.append(queued[i])
+		keys.append(key)
+		wanted[key] = true
+	for entry in _stack.duplicate():
+		if not entry.has_meta(PENDING_KEY):
+			continue
+		if wanted.has(str(entry.get_meta(PENDING_KEY))):
+			continue
+		_take_off(entry)
+	if not focus.visible or stack == null or tray.visible or inspect.visible:
+		_set_overflow(0)
+		return
+	var fresh: Array[int] = []            # the jobs no face carries yet, furthest from resolving first
+	for i in range(want.size()):
+		if _entry_for_key(keys[i]) != null:
+			continue
+		var held: int = int(want[i].get("uid", -1))
+		if held >= 0 and has_response(held):
+			continue
+		fresh.append(i)
+	# Deeper than the pile can show: the jobs furthest from resolving give up their faces and are
+	# counted on the top one instead.
+	var room: int = maxi(0, STACK_MAX - _stack.size())
+	var extra: int = maxi(0, fresh.size() - room)
+	for n in range(extra, fresh.size()):
+		var i: int = fresh[n]
+		var key: String = keys[i]
+		var uid: int = int(want[i].get("uid", -1))
+		var kind: StringName = StringName(str(want[i].get("kind", &"")))
+		var owner: int = int(want[i].get("owner", -1))
+		var tint: Color = ZenithTheme.ATTACK if attacker >= 0 and owner == attacker else ZenithTheme.DEFEND
+		var strip: String = _pending_strip(kind, want[i])
+		var entry: Control = null
+		var card: SeatCard = view.card(uid) if uid >= 0 else null
+		var def: CardDef = _def(card.def_id) if card != null and not card.hidden() else null
+		if kind == &"hidden" or def == null:
+			entry = _push_back(strip, ZenithTheme.MUTED if kind == &"hidden" else tint)
+		else:
+			entry = _push_face(def, strip, tint, uid)
+		if entry == null:
+			continue
+		entry.set_meta(PENDING_KEY, key)
+	_set_overflow(extra)
+
+
+func _entry_for_key(key: String) -> Control:
+	for entry in _stack:
+		if entry.has_meta(PENDING_KEY) and str(entry.get_meta(PENDING_KEY)) == key:
+			return entry
+	return null
+
+
+func _entry_for_uid(uid: int) -> Control:
+	if uid < 0:
+		return null
+	for entry in _stack:
+		if int(entry.get_meta("uid", -1)) == uid:
+			return entry
+	return null
+
+
+## "+3", on the face at the top of the pile, for the jobs queued behind what the stack can hold.
+func _set_overflow(count: int) -> void:
+	if count <= 0:
+		if _overflow != null:
+			_overflow.queue_free()
+			_overflow = null
+		return
+	if _overflow == null:
+		_overflow = Label.new()
+		_overflow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_overflow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_overflow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_overflow.add_theme_font_size_override("font_size", 19)
+		_overflow.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
+		_overflow.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.ACCENT, Color(0, 0, 0, 0), 8, 0, 8, 2))
+		stack.add_child(_overflow)
+	_overflow.text = "+%d" % count
+	_layout_stack()
 
 
 ## The banner over the table. Whose turn it is and which step of it, both at a size that reads
@@ -274,12 +675,16 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 	var step: int = int(live.get("step", view.step))
 	var active: int = int(live.get("active", view.active))
 	var current: int = STEP_ORDER.find(step)
+	var in_combat: bool = current == COMBAT_INDEX and not over
+	_refresh_combat_strip(view, me, live, in_combat)
 	for i in range(_step_labels.size()):
 		var l: Label = _step_labels[i]
 		var on: bool = i == current and not over
 		var done: bool = current >= 0 and i < current and not over
 		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if on else ZenithTheme.MUTED)
-		l.add_theme_font_size_override("font_size", 15 if on else 13)
+		# The sub-chips need the middle of the strip while Combat runs, so the surrounding steps
+		# give up size rather than their words.
+		l.add_theme_font_size_override("font_size", 14 if in_combat else (20 if on else 18))
 		var bar: ColorRect = _step_bars[i]
 		if on:
 			bar.color = ZenithTheme.ACCENT
@@ -293,7 +698,6 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 	if over:
 		turn_who.text = "DUEL OVER"
 		turn_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
-		phase_sub.visible = false
 		phase_panel.add_theme_stylebox_override("panel", ZenithTheme.get_theme().get_stylebox("panel", "PanelContainer"))
 		return
 
@@ -306,46 +710,119 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 	# A gold left edge while the viewer acts, so the banner itself says whether to reach for a card.
 	phase_panel.add_theme_stylebox_override("panel", SanctumUI.panel())
 
-	var beat: String = _combat_beat(view, me, live)
-	phase_sub.visible = beat != ""
-	phase_sub.text = "[center]%s[/center]" % beat
 
-
-## The beat inside Combat as bbcode in the attack and defence colours, "" outside Combat.
-func _combat_beat(view: SeatView, me: int, live: Dictionary = {}) -> String:
-	if int(live.get("step", view.step)) != GameState.Step.COMBAT:
-		return ""
+## While the turn is in Combat, the Combat chip becomes the whole sequence: which sub-step we are
+## in, who is attacking and who is answering, how far the battle sequence has run, and the warning
+## that the next pass closes Combat. Everything is read from the beat's own state first.
+func _refresh_combat_strip(view: SeatView, me: int, live: Dictionary, on: bool) -> void:
+	_combat_strip.visible = on
+	# Inside Combat the sub-chips take the middle of the strip, so the turn's other steps keep
+	# their words and step down a size rather than falling back to bare rules. The Combat word
+	# itself goes, because the five sub-chips under it say the same thing in more detail.
+	_step_labels[COMBAT_INDEX].visible = not on
+	if not on:
+		_last_sub_active = -1
+		_last_attacker = -1
+		return
+	var phase: int = int(live.get("phase", view.phase))
 	var att: int = int(live.get("attacker", view.attacker))
-	var act: int = int(live.get("active", view.active))
-	var attacker: String = "YOU" if att == me else view.player(att).name.to_upper()
-	var defender: String = "YOU" if att != me else view.player(1 - att).name.to_upper()
-	match int(live.get("phase", view.phase)):
-		GameState.Phase.PREPARE_ACTIVE, GameState.Phase.PREPARE_OPPOSING:
-			return _tint("ENTERING COMBAT", ZenithTheme.MUTED)
-		GameState.Phase.OPPOSING_DRAW:
-			var who: String = "YOU DRAW" if act != me else "%s DRAWS" % view.player(1 - act).name.to_upper()
-			return _tint(who, ZenithTheme.MUTED)
-		GameState.Phase.ATTACK:
-			return _tint("%s %s" % [attacker, "ATTACK" if attacker == "YOU" else "ATTACKS"], ZenithTheme.ATTACK)
-		GameState.Phase.FIGHT_BACK:
-			return _tint("%s %s" % [attacker, "FIGHT BACK" if attacker == "YOU" else "FIGHTS BACK"], ZenithTheme.ATTACK)
-		GameState.Phase.DEFEND:
-			# Both halves at once: the question here is who is swinging at whom.
-			return "%s   %s   %s" % [
-				_tint("%s %s" % [attacker, "ATTACK" if attacker == "YOU" else "ATTACKS"], ZenithTheme.ATTACK),
-				_tint("·", ZenithTheme.MUTED),
-				_tint("%s %s" % [defender, "DEFEND" if defender == "YOU" else "DEFENDS"], ZenithTheme.DEFEND),
-			]
-		GameState.Phase.BATTLE:
-			var whose: String = "YOUR" if att == me else attacker + "'S"
-			return _tint("%s ATTACK RESOLVES" % whose, ZenithTheme.ATTACK)
-		GameState.Phase.COMBAT_END:
-			return _tint("COMBAT ENDS", ZenithTheme.MUTED)
-	return ""
+	var battle: int = int(live.get("battle_step", view.battle_step))
+	var exchange: int = int(live.get("attack_phase_count", view.attack_phase_count))
+	_exchange_chip.text = "Exchange %d" % (exchange + 1)
+	var active: int = -1
+	for i in range(SUB_PHASES.size()):
+		if SUB_PHASES[i].has(phase):
+			active = i
+	# A hand-over keeps the same Attack chip and swaps the names under Attack and Defend. Without
+	# the pulse the chip looks exactly as it did during the previous exchange, which is what made
+	# Combat look frozen.
+	var handover: bool = active == SUB_ATTACK and _last_attacker >= 0 and att != _last_attacker
+	if handover:
+		_sub_chips[SUB_ATTACK].modulate = Color(1, 1, 1, 1)
+		mark_phase_event(&"attack")
+	elif active >= 0 and active != _last_sub_active:
+		_light_sub_chip(active)
+	_last_sub_active = active
+	_last_attacker = att
+	for i in range(_sub_labels.size()):
+		var here: bool = i == active
+		var done: bool = active >= 0 and i < active
+		var color: Color = ZenithTheme.ACCENT if here else (ZenithTheme.MUTED if done else Color(ZenithTheme.MUTED, 0.55))
+		if here and i == SUB_ATTACK:
+			color = ZenithTheme.ATTACK
+		elif here and i == SUB_DEFEND:
+			color = ZenithTheme.DEFEND
+		_sub_labels[i].add_theme_color_override("font_color", color)
+		_sub_labels[i].add_theme_font_size_override("font_size", 20 if here else 18)
+		_sub_icons[i].color = color
+		_sub_notes[i].add_theme_color_override("font_color", color)
+	var attacker_name: String = "You" if att == me else view.player(att).name if att >= 0 else ""
+	var defender_name: String = "You" if att >= 0 and att != me else (view.player(1 - att).name if att >= 0 else "")
+	_set_sub_note(SUB_ATTACK, attacker_name, ZenithTheme.ATTACK if active == SUB_ATTACK else Color(ZenithTheme.MUTED, 0.8), "")
+	_set_sub_note(SUB_DEFEND, defender_name, ZenithTheme.DEFEND if active == SUB_DEFEND else Color(ZenithTheme.MUTED, 0.8), "")
+	var passes: int = view.consecutive_passes
+	_set_sub_note(SUB_END, "1 more pass" if passes == 1 else "", ZenithTheme.WARN,
+		"One more pass ends Combat." if passes == 1 else "")
+	for d in range(BATTLE_GROUPS.size()):
+		var group: Vector2i = BATTLE_GROUPS[d]
+		var dot: ColorRect = _battle_dots[d]
+		if active != SUB_RESOLVE:
+			dot.color = ZenithTheme.RAISED_STRONG
+		elif battle > group.y:
+			dot.color = ZenithTheme.ACCENT_SOFT
+		elif battle >= group.x:
+			dot.color = ZenithTheme.ACCENT
+		else:
+			dot.color = ZenithTheme.RAISED_STRONG
 
 
-func _tint(text: String, color: Color) -> String:
-	return "[color=#%s]%s[/color]" % [color.to_html(false), text]
+## The beat moved to another sub-chip. It comes up rather than appearing, so the eye follows the
+## Combat along the strip. Reduced Motion gets the same chip, lit at once.
+func _light_sub_chip(index: int) -> void:
+	var chip: VBoxContainer = _sub_chips[index]
+	var running: Variant = _pulses.get(chip)
+	if running is Tween:
+		(running as Tween).kill()
+		_pulses.erase(chip)
+	if reduced_motion_toggle.button_pressed:
+		chip.modulate = Color(1, 1, 1, 1)
+		return
+	chip.modulate = Color(1, 1, 1, 0.3)
+	var t: Tween = create_tween()
+	t.tween_property(chip, "modulate", Color(1, 1, 1, 1), CHIP_FADE)
+	_pulses[chip] = t
+
+
+func _set_sub_note(index: int, text: String, color: Color, tip: String) -> void:
+	var note: Label = _sub_notes[index]
+	note.text = text
+	note.visible = text != ""
+	note.add_theme_color_override("font_color", color)
+	_sub_chips[index].tooltip_text = tip
+	_sub_chips[index].mouse_filter = Control.MOUSE_FILTER_STOP if tip != "" else Control.MOUSE_FILTER_IGNORE
+
+
+## Pulses one chip of the strip, for a beat that happened inside a step rather than moving to the
+## next one. A Combat sub-chip key wins over a turn-step key of the same name while Combat is open.
+func mark_phase_event(phase_key: StringName) -> void:
+	var chip: Control = null
+	if _combat_strip.visible:
+		var sub: int = SUB_KEYS.find(phase_key)
+		if sub >= 0:
+			chip = _sub_chips[sub]
+	if chip == null:
+		var step: int = STEP_KEYS.find(phase_key)
+		if step >= 0:
+			chip = _step_columns[step]
+	if chip == null or reduced_motion_toggle.button_pressed:
+		return
+	var running: Variant = _pulses.get(chip)
+	if running is Tween:
+		(running as Tween).kill()
+	chip.modulate = Color(1.7, 1.6, 1.2, 1)
+	var t: Tween = create_tween()
+	t.tween_property(chip, "modulate", Color(1, 1, 1, 1), 0.32)
+	_pulses[chip] = t
 
 
 ## A short banner over the table for the beat that just happened: the attack, what it hit for,
@@ -364,6 +841,26 @@ func toast(text: String, color: Color) -> void:
 	_toast.tween_interval(TOAST_HOLD)
 	_toast.tween_property(toast_label, "modulate:a", 0.0, 0.3)
 	_toast.tween_callback(func() -> void: toast_label.visible = false)
+
+
+## A skipped or passed window still gets a beat, so nothing resolves silently. Quieter and shorter
+## than `toast`, it sits under the toast slot and never interrupts a toast that is still up.
+func quiet_beat(text: String, color: Color) -> void:
+	if _quiet != null:
+		_quiet.kill()
+		_quiet = null
+	quiet_label.text = text
+	quiet_label.add_theme_stylebox_override("normal", ZenithTheme.box(Color(color, 0.20), Color(0, 0, 0, 0), 8, 0, 16, 4))
+	quiet_label.add_theme_color_override("font_color", color.lightened(0.15))
+	quiet_label.modulate = Color(1, 1, 1, 1)
+	quiet_label.visible = true
+	_quiet = create_tween()
+	_quiet.tween_interval(QUIET_HOLD)
+	if reduced_motion_toggle.button_pressed:
+		_quiet.tween_callback(func() -> void: quiet_label.visible = false)
+		return
+	_quiet.tween_property(quiet_label, "modulate:a", 0.0, 0.2)
+	_quiet.tween_callback(func() -> void: quiet_label.visible = false)
 
 
 func _clear_toast() -> void:
@@ -431,6 +928,8 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
 	prompt_who.add_theme_color_override("font_color", SeatColors.accent(view, p.player, Session.color_seed))
 	prompt_title.text = p.title
+	# The response stack stays up. It is laid over the pinned attack inside the same rect, so it
+	# takes no room from the decision column and the player sees the state they are answering.
 	_show_attack(view, p)
 	prompt_who.visible = not exchange_rail.visible
 	show_focus(_focus_uid(p), _focus_caption(p))
@@ -454,6 +953,8 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	elif browse.is_empty():
 		_hide_tray()
 		_fill_buttons(primaries, primary_box, true)
+		if finals.is_empty() and primaries.size() == 1 and primaries[0].card < 0:
+			_make_single_action(p, primaries[0], view)
 		if not finals.is_empty():
 			var b: Button = Button.new()
 			b.text = "Final Strike…"
@@ -465,6 +966,29 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	else:
 		_fill_buttons([], primary_box, true)
 		_show_tray(prompt_who.text, p.title, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
+
+
+## One lone action is the whole decision, so it is offered as one large button that says what
+## will happen rather than naming the rule behind it. Space takes it. Two or more alternatives
+## stay equal-weighted rows, because choosing between them is the decision.
+func _make_single_action(p: PromptView, opt: OptionView, view: SeatView) -> void:
+	if primary_box.get_child_count() != 1:
+		return
+	var b: Button = primary_box.get_child(0)
+	b.text = _single_action_label(p, opt, view)
+	b.custom_minimum_size = Vector2(0, 56)
+	b.add_theme_font_size_override("font_size", 28)
+	b.tooltip_text = opt.label
+	_single_action = b
+	_fit_actions()
+
+
+func _single_action_label(p: PromptView, opt: OptionView, view: SeatView) -> String:
+	var by_kind: Dictionary = ACTION_LABELS_BY_KIND.get(p.kind, {})
+	var text: String = str(by_kind.get(opt.type, ACTION_LABELS.get(opt.type, opt.label)))
+	if opt.type == &"pass" and view != null and view.consecutive_passes == 1:
+		text += " · ends Combat"
+	return text
 
 
 func _needs_tray(p: PromptView, opt: OptionView) -> bool:
@@ -497,7 +1021,9 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 		if card != null and not card.hidden():
 			resolving.append(card.title)
 	if source.is_empty() and not resolving.is_empty():
-		source = resolving[0] if resolving.size() == 1 else "%d cards resolving" % resolving.size()
+		# One public card names itself; a run of them is the pending pile's job, in order, and the
+		# rail only says where to look. `resolving` carries no order to report here.
+		source = resolving[0] if resolving.size() == 1 else "Resolving, in order on the right"
 	if source.is_empty() and p != null:
 		var pending: SeatCard = view.card(int(p.context.get("source", p.context.get("card", -1))))
 		if pending != null and not pending.hidden():
@@ -849,6 +1375,8 @@ func clear_prompt() -> void:
 ## Alternatives without a card use equal emphasis; neither passing nor accepting a hit is
 ## presented as a recommendation. Vertical in the side panel, a row in the tray.
 func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, _first_is_default: bool = false) -> void:
+	if into == primary_box:
+		_single_action = null
 	for child in into.get_children():
 		into.remove_child(child)
 		child.queue_free()
@@ -966,7 +1494,7 @@ func _add_library(library: Array, matches: Array[OptionView]) -> void:
 		var column: VBoxContainer = VBoxContainer.new()
 		column.add_theme_constant_override("separation", 6)
 		var face: TextureRect = TextureRect.new()
-		face.texture = await _faces.render_face(def, c.aspect) if def != null and _faces != null else null
+		face.texture = await _faces.render_face(def, c.aspect, seat_backdrop(c.owner)) if def != null and _faces != null else null
 		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		face.stretch_mode = TextureRect.STRETCH_SCALE
 		face.custom_minimum_size = TRAY_CARD_SIZE
@@ -1074,7 +1602,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 			aspect = c.aspect
 	var tex: Texture2D = null
 	if def != null and _faces != null:
-		tex = await _faces.render_face(def, aspect)
+		tex = await _faces.render_face(def, aspect, _uid_backdrop(uid))
 	elif _faces != null:
 		tex = _faces.back()
 	var column: VBoxContainer = VBoxContainer.new()
@@ -1160,10 +1688,12 @@ func show_pile(view: SeatView, player: int, zone: StringName) -> void:
 	_pile_uids = pile_contents(p, zone)
 	pile_who.text = "%s  ·  %s" % [p.name.to_upper(), "YOU" if player == _viewer_seat else "OPPONENT"]
 	pile_who.add_theme_color_override("font_color", SeatColors.accent(view, player, Session.color_seed))
-	pile_title.text = "Removed from play" if zone == &"removed" else "Discard pile"
+	pile_title.text = "Removed from play" if zone == &"removed" else ("Relic and Reserve" if zone == &"relic" else "Discard pile")
 	var n: int = _pile_uids.size()
 	if n == 0:
 		pile_hint.text = "This pile is empty."
+	elif zone == &"relic":
+		pile_hint.text = _relic_pile_hint(view, p)
 	else:
 		pile_hint.text = "%d card%s, top of the pile first.  Right-click a card to read it." % [n, "" if n == 1 else "s"]
 	pile.visible = true
@@ -1179,11 +1709,58 @@ func hide_pile() -> void:
 
 
 ## A pile top first: Discard keeps its top at the end of the list, Removed has no order that
-## matters, and both read most recent first.
+## matters, and both read most recent first. The Relic pile is the Relic, then its Reserve.
 func pile_contents(p: SeatPlayer, zone: StringName) -> Array[int]:
+	if zone == &"relic":
+		var held: Array[int] = []
+		if p.relic >= 0:
+			held.append(p.relic)
+		held.append_array(p.reserve)
+		return held
 	var uids: Array[int] = (p.removed if zone == &"removed" else p.discard).duplicate()
 	uids.reverse()
 	return uids
+
+
+## What the Relic pile holds, in words. Reserve cards the view keeps hidden are not drawn in the
+## browser, so the hint counts them instead of naming them.
+func _relic_pile_hint(view: SeatView, p: SeatPlayer) -> String:
+	var face_down: int = 0
+	for uid in p.reserve:
+		var c: SeatCard = view.card(uid)
+		if c == null or c.hidden():
+			face_down += 1
+	var parts: PackedStringArray = PackedStringArray()
+	parts.append("The Relic first" if p.relic >= 0 else "No Relic")
+	if p.reserve.is_empty():
+		parts.append("no Reserve")
+	else:
+		parts.append("then %d Reserve card%s" % [p.reserve.size(), "" if p.reserve.size() == 1 else "s"])
+	var text: String = ", ".join(parts) + "."
+	if face_down > 0:
+		text += "  %d face down, not shown." % face_down
+	return text + "  Right-click a card to read it."
+
+
+## A usable Relic's pile, clicked: the action sub-choice a hand card opens, with a single use
+## named "Use it", and "Inspect Reserve" in place of Inspect, which opens the Relic pile.
+func show_relic_choice(options: Array[OptionView], player: int) -> void:
+	var c: SeatCard = _view.card(options[0].card)
+	var single: Array[OptionView] = [options[0]]
+	await _show_tray(prompt_who.text, c.title if c != null else "Relic", "", single, options, true)
+	tray_hint.remove_theme_color_override("font_color")
+	if options.size() == 1 and tray_buttons.get_child_count() > 0:
+		var use: Button = tray_buttons.get_child(0) as Button
+		if use != null:
+			use.tooltip_text = use.text
+			use.text = "Use it"
+	var browse: Button = Button.new()
+	browse.text = "Inspect Reserve"
+	browse.custom_minimum_size = Vector2(200, 60)
+	browse.pressed.connect(func() -> void:
+		_on_back()
+		show_pile(_view, player, &"relic"))
+	tray_buttons.add_child(browse)
 
 
 ## Redraws an open browser when its pile changes under it, and leaves it alone when it has not.
@@ -1226,7 +1803,7 @@ func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	var face: TextureRect = TextureRect.new()
-	face.texture = await _faces.render_face(def, aspect) if def != null and _faces != null else null
+	face.texture = await _faces.render_face(def, aspect, seat_backdrop(c.owner)) if def != null and _faces != null else null
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	face.stretch_mode = TextureRect.STRETCH_SCALE
 	face.custom_minimum_size = TRAY_CARD_SIZE
@@ -1265,7 +1842,7 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), border, 10, 3, 3, 3))
 		frame.pivot_offset = Vector2(HAND_CARD_SIZE.x * 0.5 + 3.0, HAND_CARD_SIZE.y + 6.0)
 		var b: TextureButton = TextureButton.new()
-		b.texture_normal = faces.face(def, c.aspect)
+		b.texture_normal = faces.face(def, c.aspect, seat_backdrop(c.owner))
 		b.ignore_texture_size = true
 		b.stretch_mode = TextureButton.STRETCH_SCALE
 		b.custom_minimum_size = HAND_CARD_SIZE
@@ -1342,6 +1919,19 @@ func clear_hand() -> void:
 
 # --- Inspect and overlays -------------------------------------------------
 
+## The colour behind a personality portrait for `owner`'s cards: that seat's deck Mastery hue.
+## Each seat has its own, so one duelist on both sides still shows two backdrops.
+func seat_backdrop(owner: int) -> Color:
+	if owner < 0 or owner >= Session.chosen.size():
+		return CardFace.NO_BACKDROP
+	return CardFace.mastery_backdrop(Session.chosen[owner], Session.library)
+
+
+func _uid_backdrop(uid: int) -> Color:
+	var c: SeatCard = _view.card(uid) if _view != null and uid >= 0 else null
+	return seat_backdrop(c.owner) if c != null else CardFace.NO_BACKDROP
+
+
 ## Full-size live face over a dimmed table, so keyword hover works. Right-click or Inspect opens
 ## it; Esc or a click outside closes it.
 func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
@@ -1349,7 +1939,7 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 		return
 	hide_peek()
 	hide_focus()
-	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid))
+	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid))
 	var standing: SeatPlayer = _standing(uid)
 	if standing == null and _view != null:
 		for player in _view.players:
@@ -1384,40 +1974,366 @@ func show_focus(uid: int, caption: String) -> void:
 	if def == null:
 		hide_focus()
 		return
-	focus_caption.text = caption.to_upper()
-	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid))
+	_caption_base = caption
+	focus_caption.remove_theme_color_override("font_color")
+	_apply_caption()
+	_replay_focus = false
+	_focus_card_uid = uid
+	_pending_anchor = ""
+	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner))
 	focus.visible = true
 	_compact_prompt()
 
 
-## During an opponent's replay beat the decision column is empty. Put the same readable
-## card there so its text can be read without covering either fighter on the table.
-func show_replay_card(def: CardDef, caption: String, color: Color) -> bool:
-	hide_focus()
+## During a replay beat the decision column is empty. The same slot, at the same place, holds the
+## card the beat is about: a declared attack pinned for the exchange, or an opponent's card being
+## read. The rect never moves, so a prompt's own `show_focus` can take the same card over without
+## the face jumping between the two. `uid` names the card when the caller has one, so the pending
+## column knows this card is already on screen and the filament knows where to start.
+func show_replay_card(def: CardDef, caption: String, color: Color, uid: int = -1) -> bool:
 	if def == null or tray.visible or inspect.visible:
+		hide_focus()
 		return false
 	_replay_focus = true
-	focus.offset_left = -374.0
-	focus.offset_top = 100.0
-	focus.offset_right = -54.0
-	focus.offset_bottom = 580.0
-	focus_caption.text = caption.to_upper()
+	_focus_card_uid = uid
+	_pending_anchor = ""
+	focus_face.show_def(def, 0, -1, null, _uid_backdrop(uid))
+	set_focus_caption(caption, color)
 	focus.visible = true
-	focus_caption.add_theme_color_override("font_color", color)
 	_compact_prompt()
 	return true
 
 
+## The pinned card stays where it is and only its caption moves on, so one attack reads as one
+## continuous thing from declaration to outcome.
+func set_focus_caption(caption: String, color: Color) -> void:
+	_caption_base = caption
+	focus_caption.add_theme_color_override("font_color", color)
+	_apply_caption()
+
+
+## The caption the slot shows: what the anchored card is doing, plus the wound loop the attack still
+## owes when there is one. The wounds are the attack's own job rather than a card, so they are a
+## line here instead of a face on the pile.
+func _apply_caption() -> void:
+	var text: String = _caption_base
+	if not _wounds_note.is_empty() and focus.visible:
+		text += " · %s to resolve" % _wounds_note
+	focus_caption.text = text.to_upper()
+	# The slot is one card wide and the caption is one clipped line, so a long one steps down a
+	# size rather than losing its end to an ellipsis.
+	var size: int = 22
+	if text.length() > 34:
+		size = 15
+	elif text.length() > 26:
+		size = 18
+	focus_caption.add_theme_font_size_override("font_size", size)
+
+
 func hide_focus() -> void:
 	focus.visible = false
+	if filament != null:
+		filament.visible = false
+	_focus_card_uid = -1
+	_pending_anchor = ""
+	_caption_base = ""
+	clear_stack()
 	if _replay_focus:
-		focus.offset_left = _focus_home.x
-		focus.offset_top = _focus_home.y
-		focus.offset_right = _focus_home.z
-		focus.offset_bottom = _focus_home.w
 		focus_caption.remove_theme_color_override("font_color")
 		_replay_focus = false
 	_compact_prompt()
+
+
+## A card answering the pinned attack, pushed onto the stack laid over it. The attack never moves;
+## each response covers it from a little further up and to the left, newest on top, so the exchange
+## reads as one pile that cards enter and leave. `owner` is `&"attack"` for the attacker's own
+## follow-ups and `&"defend"` for the other seat's, and it picks the tint and the leaving direction.
+## `uid` is what `pop_response` will name when the beat that resolves this card arrives.
+func push_response(def: CardDef, caption: String, owner: StringName, uid: int = -1) -> bool:
+	if def == null or stack == null or tray.visible or inspect.visible or not focus.visible:
+		return false
+	var tint: Color = ZenithTheme.ATTACK if owner == &"attack" else ZenithTheme.DEFEND
+	var held: Control = _entry_for_uid(uid)
+	if held != null:
+		# The pending list already dealt this card. The beat renames the face the player is looking
+		# at rather than putting a second copy of the same card on the pile.
+		_recaption(held, caption, tint)
+		return true
+	return _push_face(def, caption, tint, uid) != null
+
+
+## One face onto the pile, returned so a caller can mark whose it is.
+func _push_face(def: CardDef, caption: String, tint: Color, uid: int) -> Control:
+	if def == null or stack == null or not focus.visible:
+		return null
+	var entry: Control = _stack_entry(caption, tint, uid)
+	var face: CardFace = CARD_FACE.instantiate()
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	entry.add_child(face)
+	entry.move_child(face, 0)
+	stack.add_child(entry)
+	# CardFace builds itself from its own @onready children, so it is filled once it is in the tree.
+	face.show_def(def, 0, -1, null, _uid_backdrop(uid))
+	_stack.append(entry)
+	_layout_stack()
+	return entry
+
+
+## A masked job's face: the card back under the same caption strip, because a card this seat may
+## not read is still a card waiting in the pile.
+func _push_back(caption: String, tint: Color) -> Control:
+	if stack == null or not focus.visible:
+		return null
+	var entry: Control = _stack_entry(caption, tint, -1)
+	var back: TextureRect = TextureRect.new()
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	back.stretch_mode = TextureRect.STRETCH_SCALE
+	back.texture = _faces.back() if _faces != null else null
+	entry.add_child(back)
+	entry.move_child(back, 0)
+	stack.add_child(entry)
+	_stack.append(entry)
+	_layout_stack()
+	return entry
+
+
+## The strip and border of a face already on the pile, for a beat that renames what it is doing.
+func _recaption(entry: Control, caption: String, tint: Color) -> void:
+	entry.set_meta("attacker_side", tint == ZenithTheme.ATTACK)
+	var strip: Label = entry.get_node("Strip")
+	strip.text = caption.to_upper()
+	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), 6, 0, 8, 2))
+	var edge: Panel = entry.get_node("Edge")
+	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), tint, 10, 3, 0, 0))
+
+
+## One card on the stack: its face, a border in its owner's role colour, and a caption strip on the
+## bottom edge, which is the edge that stays visible under the card pushed after it.
+func _stack_entry(caption: String, tint: Color, uid: int) -> Control:
+	var entry: Control = Control.new()
+	entry.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	entry.set_meta("uid", uid)
+	entry.set_meta("attacker_side", tint == ZenithTheme.ATTACK)
+	var edge: Panel = Panel.new()
+	edge.name = "Edge"
+	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), tint, 10, 3, 0, 0))
+	entry.add_child(edge)
+	var strip: Label = Label.new()
+	strip.name = "Strip"
+	strip.text = caption.to_upper()
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	strip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	strip.clip_text = true
+	strip.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	strip.add_theme_font_size_override("font_size", 17)
+	strip.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
+	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), 6, 0, 8, 2))
+	entry.add_child(strip)
+	return entry
+
+
+## Where each level of the stack sits inside the Focus rect. Level 0 lies over the lower half of
+## the attack and every level after it steps up and to the left, so the attack keeps its caption
+## and its top band and the newest response is the one wholly in view.
+func _layout_stack() -> void:
+	if stack == null or focus == null or _stack.is_empty():
+		if _overflow != null and is_instance_valid(_overflow):
+			_overflow.visible = false
+		return
+	var width: float = focus.offset_right - focus.offset_left
+	var face_width: float = width * STACK_SCALE
+	var face_height: float = face_width * CARD_ASPECT
+	var attack_height: float = width * CARD_ASPECT
+	var base: Vector2 = Vector2((width - face_width) * 0.5 + 16.0,
+		FOCUS_CAPTION_HEIGHT + attack_height - face_height - 6.0)
+	for i in range(_stack.size()):
+		var entry: Control = _stack[i]
+		var level: int = mini(i, STACK_MAX - 1)
+		var spot: Vector2 = base + STACK_STEP * float(level)
+		entry.size = Vector2(face_width, face_height)
+		entry.pivot_offset = entry.size * 0.5
+		entry.position = Vector2(maxf(2.0, spot.x), maxf(FOCUS_CAPTION_HEIGHT - 2.0, spot.y))
+		entry.rotation_degrees = STACK_TILT if i % 2 == 0 else -STACK_TILT
+		var art: Control = entry.get_child(0)
+		if art is CardFace:
+			art.scale = Vector2(face_width / 512.0, face_width / 512.0)
+		else:
+			# A card back is a texture rather than a drawn face, so it takes the size outright.
+			art.position = Vector2.ZERO
+			art.size = entry.size
+		var edge: Control = entry.get_node("Edge")
+		edge.position = Vector2.ZERO
+		edge.size = entry.size
+		var strip: Control = entry.get_node("Strip")
+		strip.position = Vector2(0.0, face_height - STACK_STRIP)
+		strip.size = Vector2(face_width, STACK_STRIP)
+	if _overflow != null and is_instance_valid(_overflow):
+		# The badge rides the face on top, because that is the one the eye is already on.
+		var top: Control = _stack.back()
+		_overflow.visible = true
+		_overflow.size = Vector2(52.0, 26.0)
+		_overflow.position = top.position + Vector2(top.size.x - 56.0, 4.0)
+
+
+## The beat that resolves a response takes it off the stack. `key` is the card's uid when the stack
+## carries one, and otherwise a level index counted from the bottom. A beat that resolves something
+## the stack never held does nothing, which is what a caller replaying a hidden card wants.
+func pop_response(key: int) -> bool:
+	var index: int = -1
+	for i in range(_stack.size()):
+		if key >= 0 and int(_stack[i].get_meta("uid", -1)) == key:
+			index = i
+			break
+	if index < 0:
+		if key < 0 or key >= _stack.size():
+			return false
+		index = key
+	_take_off(_stack[index])
+	return true
+
+
+## One face off the pile with the same leaving animation, whichever side asked for it: the beat
+## that resolved it, or a refresh finding it gone from `SeatView.pending`.
+func _take_off(entry: Control) -> void:
+	var index: int = _stack.find(entry)
+	if index < 0:
+		return
+	_stack.remove_at(index)
+	_leave_stack(entry)
+	_layout_stack()
+
+
+## A resolved response leaves the stack towards the rail its owner's piles sit on, fading as it
+## goes. Reduced Motion takes it away at once rather than sliding it.
+func _leave_stack(entry: Control) -> void:
+	if reduced_motion_toggle.button_pressed:
+		entry.queue_free()
+		return
+	var drift: Vector2 = Vector2(150.0 if bool(entry.get_meta("attacker_side", false)) else -150.0, 46.0)
+	var leaving: Tween = create_tween().set_parallel(true)
+	leaving.tween_property(entry, "position", entry.position + drift, STACK_LEAVE).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	leaving.tween_property(entry, "modulate:a", 0.0, STACK_LEAVE)
+	leaving.chain().tween_callback(entry.queue_free)
+
+
+## Every reset that takes the Focus down empties the stack with it, so nothing goes stale across
+## an exchange, a cleared decision or the end of Combat.
+func clear_stack() -> void:
+	for entry in _stack:
+		if is_instance_valid(entry):
+			entry.queue_free()
+	_stack.clear()
+	_set_overflow(0)
+
+
+func stack_depth() -> int:
+	return _stack.size()
+
+
+func has_response(uid: int) -> bool:
+	return _entry_for_uid(uid) != null
+
+
+## A card already in the Focus slot or on the pile over it, lit where it stands. A trigger firing
+## from the slot is read there, so it does not hop on the table as well. False when that card is
+## nowhere on the right and the caller should fall back to the table spotlight.
+func pulse_pending(uid: int) -> bool:
+	if uid < 0 or not focus.visible:
+		return false
+	var node: Control = _entry_for_uid(uid)
+	if node == null and focus_uid() == uid:
+		node = focus_face
+	if node == null:
+		return false
+	if reduced_motion_toggle.button_pressed:
+		return true
+	node.modulate = Color(1.7, 1.6, 1.2, 1)
+	var pulse: Tween = create_tween()
+	pulse.tween_property(node, "modulate", Color(1, 1, 1, 1), 0.3)
+	return true
+
+
+func _process(_delta: float) -> void:
+	_draw_filament()
+
+
+## The thread from the pinned card to what it is aimed at, in the language the 3D link on the table
+## already speaks: a bowed line in the attack colour, a transverse cap when the attack is stopped
+## and a double chevron once it has landed. It leaves the left edge of the card in the Focus slot,
+## or of the response on top of the stack when that response is the job resolving now, so the one
+## card on the right is the one the line comes from. Hidden when nothing is pinned, when no job is
+## aimed anywhere, or when the table cannot say where the target is.
+func _draw_filament() -> void:
+	if filament == null:
+		return
+	if not focus.visible or _filament_target < 0 or tray.visible or inspect.visible \
+		or table == null or not table.has_method("screen_anchor"):
+		filament.visible = false
+		return
+	var target: Vector2 = table.screen_anchor(_filament_target)
+	if target.x < 0.0 or target.y < 0.0:
+		filament.visible = false
+		return
+	var origin: Vector2 = _filament_origin()
+	var travel: Vector2 = target - origin
+	if travel.length() < 32.0:
+		filament.visible = false
+		return
+	var direction: Vector2 = travel.normalized()
+	var side: Vector2 = Vector2(-direction.y, direction.x)
+	var base: Vector2 = filament.global_position
+	var start: Vector2 = origin + direction * FILAMENT_TAIL
+	var end: Vector2 = target - direction * FILAMENT_HEAD
+	var middle: Vector2 = (start + end) * 0.5 + side * (travel.length() * FILAMENT_BOW)
+	var color: Color = ZenithTheme.ATTACK.lightened(0.25)
+	if _filament_state == &"stopped":
+		color = ZenithTheme.DEFEND
+	elif _filament_state == &"landed":
+		color = ZenithTheme.ACCENT
+	var points: PackedVector2Array = PackedVector2Array()
+	for i in range(FILAMENT_SAMPLES + 1):
+		var ratio: float = float(i) / float(FILAMENT_SAMPLES)
+		points.append(start.lerp(middle, ratio).lerp(middle.lerp(end, ratio), ratio) - base)
+	filament_thread.points = points
+	filament_thread.default_color = Color(color, 0.38 if _filament_state == &"stopped" else 0.64)
+	var stopped: bool = _filament_state == &"stopped"
+	filament_cap.visible = stopped
+	filament_head.visible = not stopped
+	filament_head_trail.visible = _filament_state == &"landed"
+	if stopped:
+		# A transverse ward closes the path; a stopped attack never gets an arrowhead.
+		filament_cap.points = PackedVector2Array([end - side * FILAMENT_CAP - base, end + side * FILAMENT_CAP - base])
+		filament_cap.default_color = Color(color, 0.9)
+	else:
+		filament_head.points = _chevron(end, direction, side, base)
+		filament_head.default_color = Color(color, 0.95)
+		if filament_head_trail.visible:
+			filament_head_trail.points = _chevron(end - direction * FILAMENT_CHEVRON.x * 0.82, direction, side, base)
+			filament_head_trail.default_color = Color(color, 0.95)
+	filament.visible = true
+
+
+func _chevron(tip: Vector2, direction: Vector2, side: Vector2, base: Vector2) -> PackedVector2Array:
+	var back: Vector2 = tip - direction * FILAMENT_CHEVRON.x
+	return PackedVector2Array([
+		back + side * FILAMENT_CHEVRON.y - base, tip - base, back - side * FILAMENT_CHEVRON.y - base,
+	])
+
+
+## The left edge of the card the line comes from: the pinned attack, or the response on top of the
+## stack when the job resolving now is that response rather than the attack under it.
+func _filament_origin() -> Vector2:
+	var rect: Rect2 = focus.get_global_rect()
+	var face: Rect2 = Rect2(Vector2(rect.position.x, rect.position.y + FOCUS_CAPTION_HEIGHT),
+		Vector2(rect.size.x, rect.size.x * CARD_ASPECT))
+	if _filament_uid >= 0 and not _stack.is_empty():
+		var top_entry: Control = _stack.back()
+		if is_instance_valid(top_entry) and int(top_entry.get_meta("uid", -1)) == _filament_uid:
+			face = Rect2(top_entry.global_position, top_entry.size)
+	return Vector2(face.position.x, face.position.y + face.size.y * 0.5)
 
 
 ## The card the prompt is about: one it names outright, one raised by a card's effect, or the
@@ -1505,7 +2421,7 @@ func set_log_expanded(on: bool) -> void:
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible:
 		return
-	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid))
+	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid))
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast
@@ -1564,6 +2480,38 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif pile.visible and event.is_action_pressed("ui_cancel"):
 		hide_pile()
 		get_viewport().set_input_as_handled()
+	elif _space_takes_single_action(event):
+		_single_action.pressed.emit()
+		get_viewport().set_input_as_handled()
+
+
+## Space takes the lone offered action, and only that: with two alternatives on screen there is
+## nothing for it to mean. A focused button answers Space itself, and the hand answers it while
+## keyboard browsing, so neither reaches here.
+func _space_takes_single_action(event: InputEvent) -> bool:
+	if _single_action == null or not (event is InputEventKey):
+		return false
+	var key: InputEventKey = event
+	if not key.pressed or key.echo or key.keycode != KEY_SPACE:
+		return false
+	if not _single_action.is_visible_in_tree() or _single_action.disabled:
+		return false
+	if tray.visible or pile.visible or inspect.visible or handoff.visible or game_over.visible:
+		return false
+	if get_viewport().gui_get_focus_owner() != null:
+		return false
+	return not _hand_browsing()
+
+
+## True while the in-scene hand owns the keyboard, where Space inspects a card instead.
+func _hand_browsing() -> bool:
+	var parent: Node = get_parent()
+	if parent == null:
+		return false
+	var raw: Variant = parent.get("hand_3d")
+	if not (raw is Node):
+		return false
+	return bool((raw as Node).get("keyboard_active"))
 
 
 func show_handoff(player_name: String) -> void:

@@ -35,6 +35,15 @@ const PERSON_TEXT_HEIGHT: float = 150.0
 ## about a quarter of that in the hand, so 6 here is the 1 to 2 px the player actually sees.
 const SIGNATURE_EDGE: int = 6
 const STAGES: int = CardInstance.MAX_STAGE
+## Personality portraits are painted on a clear background, so the art box behind them shows the
+## colour of the deck the card is being shown for: its Mastery's school hue, darkened. Callers
+## that know the deck pass it as `backdrop`; a clear colour means `default_backdrop`, which the
+## adventure screens set to the run deck and is the neutral dark everywhere else.
+const BACKDROP_DARKEN: float = 0.72
+const NEUTRAL_BACKDROP: Color = Color(0.11, 0.10, 0.10)
+const NO_BACKDROP: Color = Color(0, 0, 0, 0)
+
+static var default_backdrop: Color = NEUTRAL_BACKDROP
 
 @onready var frame: Panel = $Frame
 @onready var inner: Panel = $Inner
@@ -113,7 +122,8 @@ func _ready() -> void:
 ## `energy` is live Energy for a personality in play (-1 for none): the rung for the current stage
 ## lights up. `standing` is the owning player when the card is a duelist in play: Fervor pips
 ## appear under the name, one per point needed, and the Surge badge shows the live Recover gain.
-func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null) -> void:
+## `backdrop` is the deck colour behind a personality portrait (see NO_BACKDROP).
+func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color, 22, Palette.frame_edge(def))
@@ -122,7 +132,7 @@ func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPla
 	if def.is_personality():
 		margin.visible = false
 		person.visible = true
-		_show_person(def, aspect, color, picture, energy, standing)
+		_show_person(def, aspect, color, picture, energy, standing, resolve_backdrop(backdrop))
 	else:
 		person.visible = false
 		margin.visible = true
@@ -170,7 +180,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 		l.add_theme_color_override("font_color", INK)
 
 
-func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, energy: int = -1, standing: SeatPlayer = null) -> void:
+func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NEUTRAL_BACKDROP) -> void:
 	# A personality card is one Aspect, so the card decides which number and row it shows.
 	var t: int = def.aspect if def.aspect > 0 else aspect
 	var td: Dictionary = def.aspect_data(t)
@@ -187,7 +197,7 @@ func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, e
 	_round(p_type_chip, Palette.type_ink(def.type), 8, 6, 6)
 	p_type_icon.type = def.type
 	p_type_icon.color = Color.WHITE
-	_style(p_art, color.darkened(0.35), 14)
+	_style(p_art, backdrop, 14)
 	p_art_image.texture = picture
 	p_art_image.visible = picture != null
 	p_glyph_icon.visible = picture == null
@@ -224,6 +234,22 @@ func _show_fervor(fervor: int, needed: int) -> void:
 		_fervor_pips[i].visible = i < needed
 		var style: StyleBoxFlat = ZenithTheme.pip(true, ZenithTheme.ACCENT if i < fervor else Color(INK, 0.15), true)
 		_fervor_pips[i].add_theme_stylebox_override("panel", style)
+
+
+## The deck's Mastery school hue, darkened for a portrait backdrop; neutral when it has none.
+static func mastery_backdrop(deck: DeckList, library: CardLibrary) -> Color:
+	if deck == null or library == null:
+		return NEUTRAL_BACKDROP
+	var mastery: CardDef = library.defs.get(deck.mastery_id)
+	if mastery == null:
+		return NEUTRAL_BACKDROP
+	var hue: Color = Palette.SCHOOL_COLORS.get(mastery.school, Palette.SCHOOL_COLORS[""])
+	return hue.darkened(BACKDROP_DARKEN)
+
+
+## A clear colour stands for "no deck named": the default backdrop.
+static func resolve_backdrop(backdrop: Color) -> Color:
+	return backdrop if backdrop.a > 0.0 else default_backdrop
 
 
 ## Card art lives in assets/card_art/<id>.png. Each Aspect is its own card, so a personality's

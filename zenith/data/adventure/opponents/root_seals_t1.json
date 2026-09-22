@@ -22,19 +22,19 @@
   "cards": [
     {
       "id": "root_destruction_blast",
-      "count": 2
+      "count": 1
     },
     {
       "id": "root_dragon_blast",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_energy_catch",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_energy_deflection",
-      "count": 1
+      "count": 2
     },
     {
       "id": "sharp_rebuke",
@@ -42,7 +42,7 @@
     },
     {
       "id": "smoke_screen",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -54,18 +54,10 @@
     },
     {
       "id": "parley",
-      "count": 2
-    },
-    {
-      "id": "respite",
       "count": 1
     },
     {
       "id": "root_bolt",
-      "count": 2
-    },
-    {
-      "id": "root_energy_focus",
       "count": 1
     },
     {
@@ -105,10 +97,6 @@
       "count": 1
     },
     {
-      "id": "kins_rescue",
-      "count": 1
-    },
-    {
       "id": "mournes_plans",
       "count": 1
     },
@@ -118,10 +106,6 @@
     },
     {
       "id": "sleight",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -154,7 +138,7 @@
     },
     {
       "id": "practiced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_dash",
@@ -162,11 +146,11 @@
     },
     {
       "id": "root_firm_stance",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     }
   ]
 }

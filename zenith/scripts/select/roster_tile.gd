@@ -10,15 +10,14 @@ signal picked(index: int)
 @onready var duelist_label: Label = $Row/Column/Duelist
 @onready var school_label: Label = $Row/Column/School
 @onready var badge: Label = $Badge
-@onready var hero: Label = $Hero
+@onready var stars: PanelContainer = $Row/Stars
 
-## Tier badge colours, strongest first. Measured from the starter tournaments, not a promise.
-const RATING_COLORS: Dictionary = {
-	"S": Color(0.95, 0.78, 0.35),
-	"A": Color(0.55, 0.80, 0.60),
-	"B": Color(0.60, 0.72, 0.90),
-	"C": Color(0.88, 0.55, 0.45),
-}
+## Pip tint by mean stages cleared of the eight: gold from 6, green from 5, red below.
+const STRENGTH_COLORS: Array = [
+	[6.0, Color(0.95, 0.78, 0.35)],
+	[5.0, Color(0.55, 0.80, 0.60)],
+	[0.0, Color(0.88, 0.55, 0.45)],
+]
 
 var index: int = 0
 var _school_color: Color = ZenithTheme.MUTED
@@ -55,18 +54,32 @@ func setup(pos: int, d: DeckList) -> void:
 	fallback.text = duelist.title.left(1) if duelist != null else "?"
 	fallback.add_theme_color_override("font_color", _school_color.lightened(0.2))
 	fallback.add_theme_stylebox_override("normal", ZenithTheme.box(Color(_school_color, 0.12), Color(_school_color, 0.25), 12, 1))
+	# A starter's pip row says how it plays and how far it gets; the line stays for precons only.
+	$Row/Column/Difficulty.visible = d.cleared <= 0.0
 	$Row/Column/Difficulty.text = "%s to play  /  %d life cards" % [d.difficulty.capitalize(), d.cards.size()]
 	deck_label.text = d.name
 	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
 	school_label.text = "%s  /  %s" % [CardText.school_name(d.style).to_upper(), Archetype.label(d.archetype)]
 	ZenithTheme.chip(school_label, Palette.school_ui(d.style))
 	badge.visible = false
-	# Adventure starters carry a measured strength tier, shown as one big letter in the corner;
-	# tournament precons do not.
-	hero.visible = d.rating != ""
-	if d.rating != "":
-		hero.text = d.rating.to_upper()
-		hero.add_theme_color_override("font_color", RATING_COLORS.get(d.rating.to_upper(), ZenithTheme.MUTED))
+	# Adventure starters carry a five-pip pick rating along the bottom edge: stages cleared plus
+	# ease of play, so the fullest row is the deck a new player should reach for.
+	stars.visible = d.cleared > 0.0
+	if d.cleared > 0.0:
+		var filled: int = clampi(int(round(d.run_score() / 2.0)), 1, 5)
+		var tint: Color = strength_color(d.cleared)
+		stars.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0, 0, 0))
+		for i in range(5):
+			var pip: Panel = $Row/Stars/StarRow.get_child(i)
+			pip.add_theme_stylebox_override("panel", ZenithTheme.pip(i < filled, tint, true))
+		stars.tooltip_text = "How good a first pick this deck is: ease of play and how far it gets in a run."
+
+
+static func strength_color(cleared: float) -> Color:
+	for band in STRENGTH_COLORS:
+		if cleared >= float(band[0]):
+			return band[1]
+	return ZenithTheme.MUTED
 
 
 ## 0 hidden, 1 picked, 2 locked.

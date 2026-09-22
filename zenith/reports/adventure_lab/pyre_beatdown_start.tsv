@@ -1,0 +1,60 @@
+run	stage	opponent	family	tier	band	ai_level	won	reason	turn	steps	player_points	rival_points	player_life	rival_life	deck	aspects	took	motes	error
+0	1	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	6	63	1	0	16	1	50	2	ashmark_fuel	20	
+0	2	pyre_ascent_t1	pyre_ascent	t1	weaker	easy	true	survival	2	30	1	0	41	1	53	2	grounds_the_high_watch	30	
+0	3	steel_heir_t2	steel_heir	t2	weaker	easy	true	survival	4	45	1	0	33	1	56	3	emrys_ally_core	40	
+0	4	storm_volley_t2	storm_volley	t2	medium	easy	true	survival	3	50	1	0	36	2	59	3	grounds_weighted_hollow	50	
+0	5	shade_henchmen_t3	shade_henchmen	t3	medium	default	true	survival	7	117	1	0	10	1	62	3	free_fervor_swing	60	
+0	6	freestyle_swords_t4	freestyle_swords	t4	medium	default	false	survival	5	88	0	2	0	7	64	3		0	
+1	1	pyre_ascent_t1	pyre_ascent	t1	weaker	easy	true	survival	6	101	1	0	17	1	50	2	pyre_basic_climb	20	
+1	2	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	4	51	1	0	31	0	53	2	free_any_stops	30	
+1	3	tide_companions_t2	tide_companions	t2	weaker	easy	true	survival	6	105	1	0	22	0	56	3	pyre_recursion	40	
+1	4	tide_deepwater_t2	tide_deepwater	t2	medium	easy	true	survival	6	89	1	0	30	1	59	3	free_recovery	50	
+1	5	shade_henchmen_t3	shade_henchmen	t3	medium	default	true	survival	6	115	1	0	17	1	62	3	free_late_locks	60	
+1	6	pyre_attrition_t4	pyre_attrition	t4	medium	default	false	survival	7	89	0	2	0	43	65	3		0	
+2	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	4	67	1	0	19	0	50	2	free_draw_checks	20	
+2	2	pyre_ascent_t1	pyre_ascent	t1	weaker	easy	true	survival	4	32	1	0	41	1	53	2	ashmark_fuel	30	
+2	3	shade_salvage_t2	shade_salvage	t2	weaker	easy	true	survival	7	63	1	0	42	0	56	3	pyre_heavy_climb	40	
+2	4	freestyle_swords_t2	freestyle_swords	t2	medium	easy	true	survival	5	73	1	0	37	0	59	3	ashmark_discard_denial	50	
+2	5	storm_volley_t3	storm_volley	t3	medium	default	true	survival	4	53	1	0	38	3	61	3	pyre_art_answer	60	
+2	6	tide_deepwater_t4	tide_deepwater	t4	medium	default	true	survival	8	73	1	0	37	3	64	3	grounds_tollgate_yard	70	
+2	7	shade_mind_siege_t5	shade_mind_siege	t5	stronger	default	false	survival	12	164	0	2	0	1	67	3		0	
+3	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	2	38	1	0	29	0	50	2	pyre_basic_climb	20	
+3	2	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	3	34	1	0	45	0	53	2	ashmark_fuel	30	
+3	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	true	survival	8	70	1	0	46	0	56	3	free_recycle_attacks	40	
+3	4	tide_deepwater_t2	tide_deepwater	t2	medium	easy	true	survival	4	60	1	0	37	3	59	3	pyre_board_burn	50	
+3	5	shade_henchmen_t3	shade_henchmen	t3	medium	default	true	survival	5	111	1	0	20	1	61	3	free_board_reset	60	
+3	6	freestyle_swords_t4	freestyle_swords	t4	medium	default	true	survival	9	148	1	1	35	0	64	3	pyre_lockouts	70	
+3	7	root_seals_t5	root_seals	t5	stronger	default	true	survival	12	146	1	0	3	4	66	3	sable_ally_core	80	
+3	8	shade_mind_siege_boss	shade_mind_siege	boss	stronger	default	true	survival	8	112	2	1	47	0	69	3	grounds_ancient_grove	90	
+4	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	2	46	1	0	24	0	50	2	free_answer_fetch	20	
+4	2	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	3	35	1	0	36	0	53	2	pyre_basic_climb	30	
+4	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	false	survival	5	91	0	2	0	11	56	3		0	
+5	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	3	60	1	0	15	0	50	2	pyre_art_answer	20	
+5	2	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	3	35	1	0	33	1	53	2	free_recovery	30	
+5	3	shade_salvage_t2	shade_salvage	t2	weaker	easy	true	survival	3	45	1	0	34	1	56	3	pyre_heavy_climb	40	
+5	4	storm_volley_t2	storm_volley	t2	medium	easy	true	survival	2	44	1	0	35	1	59	3	free_lone_blade	50	
+5	5	pyre_attrition_t3	pyre_attrition	t3	medium	default	false	survival	6	74	0	2	0	33	61	3		0	
+6	1	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	3	37	1	0	24	0	50	2	pyre_basic_climb	20	
+6	2	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	6	115	1	0	2	0	53	2	grounds_the_high_watch	30	
+6	3	storm_unbound_t2	storm_unbound	t2	weaker	easy	true	survival	5	80	1	0	1	0	56	3	free_seal_reach	40	
+6	4	storm_volley_t2	storm_volley	t2	medium	easy	true	ascension	5	50	1	0	31	26	59	3	free_lone_blade	50	
+6	5	shade_henchmen_t3	shade_henchmen	t3	medium	default	true	survival	5	88	1	0	15	1	61	3	free_recycle_attacks	60	
+6	6	pyre_attrition_t4	pyre_attrition	t4	medium	default	false	survival	5	81	0	2	0	38	64	3		0	
+7	1	storm_unbound_t1	storm_unbound	t1	weaker	easy	true	survival	8	113	1	1	39	0	50	2	ashmark_fuel	20	
+7	2	shade_salvage_t1	shade_salvage	t1	weaker	easy	true	survival	3	39	1	0	36	1	53	2	free_recovery	30	
+7	3	tide_companions_t2	tide_companions	t2	weaker	easy	true	survival	3	47	1	0	35	0	56	3	free_ally_sweep	40	
+7	4	shade_henchmen_t2	shade_henchmen	t2	medium	easy	true	survival	7	143	1	1	37	1	58	3	free_unstoppable	50	
+7	5	tide_deepwater_t3	tide_deepwater	t3	medium	default	true	survival	10	113	1	1	42	0	60	3	pyre_art_answer	60	
+7	6	freestyle_swords_t4	freestyle_swords	t4	medium	default	false	survival	5	101	0	2	0	23	63	3		0	
+8	1	tide_companions_t1	tide_companions	t1	weaker	easy	true	survival	5	94	1	0	14	0	50	2	pyre_art_answer	20	
+8	2	shade_salvage_t1	shade_salvage	t1	weaker	easy	true	survival	2	32	1	0	34	1	53	2	ashmark_fuel	30	
+8	3	pyre_ascent_t2	pyre_ascent	t2	weaker	easy	true	survival	6	85	1	1	19	1	56	3	pyre_energy_for_fervor	40	
+8	4	freestyle_swords_t2	freestyle_swords	t2	medium	easy	true	survival	4	79	1	0	18	0	58	3	pyre_recursion	50	
+8	5	tide_deepwater_t3	tide_deepwater	t3	medium	default	true	survival	8	106	1	1	40	2	61	3	free_ally_call	60	
+8	6	storm_volley_t4	storm_volley	t4	medium	default	true	survival	10	110	1	0	4	2	64	3	ashmark_late	70	
+8	7	root_seals_t5	root_seals	t5	stronger	default	false	seal	15	212	0	2	19	45	67	3		0	
+9	1	shade_salvage_t1	shade_salvage	t1	weaker	easy	true	survival	3	50	1	0	27	1	50	2	pyre_basic_climb	20	
+9	2	steel_heir_t1	steel_heir	t1	weaker	easy	true	survival	3	46	1	0	33	1	53	2	ashmark_fuel	30	
+9	3	tide_companions_t2	tide_companions	t2	weaker	easy	true	survival	7	147	1	0	0	0	56	3	grounds_weighted_hollow	40	
+9	4	pyre_attrition_t2	pyre_attrition	t2	medium	easy	true	ascension	5	69	1	1	25	21	59	3	pyre_board_burn	50	
+9	5	freestyle_swords_t3	freestyle_swords	t3	medium	default	false	survival	4	84	0	2	0	1	61	3		0	

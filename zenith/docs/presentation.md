@@ -27,24 +27,108 @@ referee's presentation data.
 - **Combat lane**: the declared attack and any response card sit in stable slots on their owner's
   side of the gap between the fighters. A filament links source to target; a transverse cap marks
   a stop and a double arrow marks damage landing. Public opponent cards used in Combat also get a
-  readable face at the right edge.
+  readable face at the right edge. A used card stays in its owner's Play slot until its part of
+  the exchange is over (`DuelView._held`), even when the rules already sent it to a pile or the
+  bottom of the Life Deck, and only then flies there.
+- **Read hold and the pinned pair**: every declared attack pins its public face in the Focus slot
+  (`Root/Focus`) and holds there before the next beat, `ATTACK_READ` 2.2 s for an opponent's card
+  and `ATTACK_READ_OWN` 1.0 s for the viewer's own, so an attack the defender cannot meet is read
+  rather than glimpsed. An attack with no card of its own (a duelist Power, a Final Strike from
+  the fighter) pins that personality instead. The card stays in the slot for the whole exchange,
+  across the update boundary the defender's decision sits on, and its caption moves on with it:
+  "Your attack · <title>", "Incoming" while the viewer is asked to defend, "No defense · <reason>",
+  "Stopped", "Hits for N Energy / M wounds", "Dealt …", then the slot clears `FOCUS_RELEASE`
+  0.6 s after `attack_end`. The prompt's own focus card is the same card in the same rect, so the
+  hand-over between a replay beat and a decision does not move it.
+- **Response stack**: a card that answers the attack (a defense, a defense Power, a Shield, a
+  counter, an Endurance) is laid **over** the anchored attack rather than under it, in
+  `Root/Focus/Stack`, which is clipped to the Focus rect and so costs the decision column nothing.
+  Each response is a face at `STACK_SCALE` 0.8 of the Focus face, stepped `STACK_STEP` (-26, -34)
+  up and to the left per level with a ±`STACK_TILT` 2.5° alternating tilt, newest drawn on top, so
+  the attack keeps its caption and its top band and every card under the newest one still shows the
+  caption strip on its bottom edge: "Defense", "Power", "Shield", "Counter", "Endurance". The strip
+  and border take the owner's role colour, attack red for the attacker's own follow-ups and defend
+  blue for the other seat's. A response holds on top for `OPPONENT_DEFENSE_READ` 2.2 s
+  (`OPPONENT_STOP_READ` 3.2 s for a stop) when it is the opponent's and `ANSWER_READ_OWN` 1.0 s
+  when it is the viewer's own, then the beat that resolves it takes it off again: a countered card
+  at `countered` and the counter itself right after its hold, a defense at `attack_stopped` or, if
+  it did not stop the attack, at `attack_successful`, a Shield at its `shield` beat, an Endurance at
+  `endurance_used`. Leaving is a 0.25 s drift towards its owner's rail with a fade, snapped under
+  Reduced Motion. A beat that resolves something the stack never held does nothing. The attack
+  leaves last, at `attack_end`. Because the stack takes no room of its own, a decision opens with it
+  still up: the player answering sees the attack and whatever already answered it under the prompt's
+  own Focus caption, with the prompt panel below the same rect. These holds run through `_beat`, so Space-skip,
+  `--dev-fast` and `--dev-freeze` all still work, but they do not take the queue's pacing scale:
+  reading time is not pacing. Reduced Motion keeps them for the same reason. Outside an attack, a
+  card used or a trigger fired puts its face in the slot for `CARD_USE_READ` 0.8 s when it carries
+  rules text, so a used card is never only a hop and a name.
 - **Decision column**: the focused card sits near the right edge with question, consequence,
   instruction and actions in one bounded column that fits at 1280x720 without scrolling. Damage and
   outcome previews use a fixed two-line result slot. Hovering or keyboard-focusing an offered
   defense or Endurance choice shows a labelled preview from the referee and never changes the game.
   Stop progress shows when more than one stop is needed. Once damage resolves, dealt damage and
-  remaining wounds are shown apart.
+  remaining wounds are shown apart. When the only offered action is one non-card option, it is
+  rendered as a single large button labelled by what it does ("Pass", "No Defense", "Let it
+  resolve", "No Combat"), with " · ends Combat" appended when the next pass would close Combat;
+  Space takes it. Two or more alternatives stay equal-weight rows and Space does nothing.
+- **Everything pending, on the right**: there is no second column anywhere on the screen. The Focus
+  slot and the stack over it are the one place a waiting card appears, and `DuelHud.refresh_state`
+  reconciles that pile against `SeatView.pending` on every beat. The anchor, the big face in the
+  slot, is the `attack` item when there is one and otherwise whatever resolves first; a trigger
+  anchor is captioned "Trigger · <note>", a pending card "Awaiting a counter", and an attack anchor
+  keeps the caption that walks with the exchange. Every other job is a face stacked over the anchor,
+  pushed in reverse list order so the one resolving **next** is on top: a `trigger` with the strip
+  "Trigger" in its owner's role colour, a `hidden` job as a card back reading "Opponent's trigger".
+  A `wounds` job is the attack's own loop rather than a card, so it is no face at all, only
+  "· 3 wounds to resolve" appended to the anchor's caption. Faces the queue dealt are keyed, so a
+  refresh takes one off with the same leaving drift when its job is gone and no beat popped it, and
+  a replay beat naming a card already on the pile renames that face rather than dealing a second
+  copy of it. Past `STACK_MAX` 4 faces the jobs furthest from resolving give up their faces for a
+  "+N" badge on the top one. An emptied queue with no pinned attack clears the slot. A trigger whose
+  card is already in the slot or on the pile is lit and read where it stands for `CARD_USE_READ` and
+  then leaves the pile; only a card that is nowhere on the right still hops on the table. The
+  filament to the target comes off the anchored card: a HUD-layer line (`Root/FocusFilament`) from
+  the left edge of the Focus face, or of the topmost stacked response when that response is the job
+  resolving now, to `DuelView.screen_anchor` of the current pending item's target, or of the
+  anchor's own target when no item is flagged `current`. It is the 2D reading of the same cue the
+  table draws, a bowed thread in the attack colour with a transverse cap when `attack.stopped` and a
+  double chevron once `landed`, and it is redrawn every frame because the camera can move under a
+  settled state. No target or no anchored card means no line.
 - **Pending cards**: an announced card awaiting a response is `SeatView.pending_card`, with its
-  public face; other hand cards stay private. The resolving-zone list is not an ordering contract.
-- **Backline**: one compact rail. Empty Mastery, Relic, Discard, Out and Reserve wells disappear;
-  occupied ones stay browsable in one click. Recent history is about two lines with full History
-  expandable; the phase strip is one compact top-centre line. Reduced Motion is a small peripheral
+  public face; other hand cards stay private. `SeatView.pending` is the ordered list of what
+  resolves next, first element first, and it **is** an ordering contract: the engine works through
+  it top to bottom, so it can be drawn in order. Items are `{kind, uid, title, owner, target,
+  note, current}`, `kind` one of `attack`, `pending_card`, `trigger`, `hidden`, `wounds`, with one
+  item flagged `current`. A `hidden` item stands for a rival job this seat may not see and carries
+  its owner alone. The resolving-zone list is still not an ordering contract.
+- **Off-field cards** sit on the felt, not in a screen-edge rail: Discard under the Life Deck,
+  the Mastery beside the duelist, Out and the Relic (with its Reserve under it) flanking the stat
+  crest. Empty piles keep their outline and caption; every pile is browsable in one click. Recent
+  history is about two lines with full History expandable. Reduced Motion is a small peripheral
   control.
+- **Phase strip**: one top-centre line of seven step chips, each over a rule that fills behind the
+  current step. While the step is Combat, the Combat chip expands in place into Enter, Attack,
+  Defend, Resolve and End, the other chips keep their words at a smaller size, and a six-dot row
+  under Resolve tracks the battle sequence (pay, defend, shields, damage, wounds, after) from
+  `battle_step`. Combat is attack and defend back and forth, so a fight back is not a step of its
+  own: the engine's PREPARE_ACTIVE, PREPARE_OPPOSING and OPPOSING_DRAW all read as Enter, and
+  FIGHT_BACK reads as Attack. Attack and Defend name the seat holding them, the strip counts the
+  exchange ("Exchange 3") from `attack_phase_count` so a long Combat reads as a series, and End
+  warns when one more pass ends Combat. The chip that takes over comes up across 0.15 s,
+  instantly under Reduced Motion; a hand-over swaps the two names and pulses the Attack chip
+  instead, because those names are all that otherwise changes. Sword, shield and burst glyphs
+  come from `TypeIcon`.
+  Everything is read from the beat's own state first, so a replaying update never draws ahead of
+  the cards on the table.
 - **Scale policy**: 1920x1080 canvas base, expanded across aspect ratios. At 1280x720 decision text
   is about 16 displayed pixels, supporting text about 14, click targets at least 40 high.
 
-Feedback vocabulary: declaration slides and scales into the lane; a legal response carries an aura;
-a stop flashes defense colour; a hit shakes and flashes the target with its numbers over it; a wound
+Feedback vocabulary: declaration slides and scales into the lane and pins its face in the Focus
+slot with a caption that follows the exchange to its outcome; an answering card is pushed onto the
+stack over it and drifts off again when the beat that resolves it arrives, so action and reaction
+are on screen together and the exchange reads as one pile emptying; a legal response carries an aura;
+a stop flashes defense colour; a skipped or passed window gets a short quiet banner under the toast
+slot so nothing resolves silently; a hit shakes and flashes the target with its numbers over it; a wound
 pulses the Life number as the card lifts, reveals and flies to its pile; Second Wind returns the
 discard in one shuffle beat; ascension raises a power-up effect. Reduced Motion keeps every state
 distinction through position, border, icon and text, snaps card flights, freezes mist and inlays,
@@ -59,6 +143,9 @@ blocks board picking and tooltips. **H** raises the hand for keyboard browsing w
 Enter chooses, Space inspects, Escape leaves. Scroll over the hand to page. Board hover, hand
 browsing, inspection, history and camera movement stay available while the AI thinks, events
 replay or the network is pending; commands need a settled prompt addressed to the viewer.
+Hold **Space** while an update replays to run the rest of its beats at the 0.05 s floor; letting
+go restores the ordinary pacing. It never answers a prompt, and it is ignored while the hand is
+open for keyboard browsing, where Space inspects.
 `--reduced-motion` enables Reduced Motion at launch.
 
 ## Menus and ambience
@@ -95,8 +182,12 @@ Tuning files:
 - `scripts/duel/arena_atmosphere.gd`: posts, crystals, perimeter particles.
 - `scripts/ui/sanctum_set.gd` (geometry, lights, particles), `scripts/ui/sanctum_ui.gd` (theme and
   menu feedback), `scripts/adventure/tournament_route.gd` (route).
-- `scenes/duel/hud.tscn`, `scripts/duel/duel_hud.gd`: phase, history, prompt, focus, overlays.
-- `scenes/duel/backline_rail.tscn`, `scripts/duel/backline_rail.gd`: the pile rail.
+- `scenes/duel/hud.tscn`, `scripts/duel/duel_hud.gd`: phase strip and its Combat sub-chips,
+  history, prompt, the single action button, banners (`toast`, `quiet_beat`), the `Root/Focus` slot
+  and the `Root/Focus/Stack` over it (`show_focus`, `show_replay_card`, `set_focus_caption`,
+  `push_response`, `pop_response`, `clear_stack`, `focus_uid`, `pulse_pending`), the reconcile of
+  that stack against `SeatView.pending` (`_reconcile_pending`, `_reconcile_stack`, `STACK_MAX`, the
+  "+N" badge), the `Root/FocusFilament` line from that slot to the target on the table, overlays.
 - `scenes/duel/duelist_display.tscn`, `scripts/duel/duelist_display.gd`,
   `scripts/duel/duelist_readout.gd`: the fighter unit.
 - `scripts/duel/hand_3d.gd`: hand reveal, enlargement, paging, keyboard navigation.
@@ -111,7 +202,13 @@ Windowed: `tests/select_ui_smoke.gd`. Check rendered states at 1280x720 and 1600
 Captures use the duel scene with the dev flags in the README: `--dev-stop-at=defense` for a
 defense window, `--dev-stop-at=endurance --dev-hover=0` for an Endurance preview,
 `--dev-stop-at=respond` for a response window, `--dev-policy=showcase --dev-freeze=attack_stopped`
-for a ward. Freezing mid-animation reports resources still alive at exit; that is expected.
+for a ward and a defense stacked on the anchored attack, `--dev-freeze=attack_end` for the same
+attack with the stack emptied, `--dev-policy=attack --dev-freeze=attack_declared`
+for the pinned attack on its own and `--dev-freeze=no_defense` for the same card with its caption
+moved on. For the one pile on the right: `--dev-policy=showcase --dev-stop-at=defense` (nothing in
+the band left of the table, the filament from the Focus card),
+`--dev-policy=showcase --dev-freeze=trigger_fired` (the trigger as a face on the pile) and
+`--dev-policy=attack --dev-stop-at=endurance` (the wound count on the anchor's caption). Freezing mid-animation reports resources still alive at exit; that is expected.
 Reference captures live in `../screenshots/`.
 EffectBlocks captures: [starter](../screenshots/effectblocks-starter.png),
 [combat](../screenshots/effectblocks-combat.png), [tournament](../screenshots/effectblocks-tournament.png).

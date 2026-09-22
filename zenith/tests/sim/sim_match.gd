@@ -84,6 +84,10 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 		if not problem.is_empty():
 			problem = "Rejected %s: %s" % [str(wire), problem]
 			break
+		# A card in two places is a broken match, never a result: fail it and say where.
+		if referee.integrity_fault != "":
+			problem = "Card integrity: %s" % referee.integrity_fault
+			break
 		referee.engine.take_events()
 
 	var finished: bool = problem.is_empty() and referee.is_over()

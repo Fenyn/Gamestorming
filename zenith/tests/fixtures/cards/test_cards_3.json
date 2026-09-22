@@ -456,6 +456,8 @@
     },
     {"id": "t_thief_seek", "title": "Test Fence", "type": "combat", "effects": [{"op": "search", "source": "discard", "has_effect": {"op": "discard_hand", "who": "opponent"}, "to": "hand"}]},
     {"id": "t_end_turn", "title": "Test Withdrawal", "type": "combat", "effects": [{"op": "end_combat"}, {"op": "end_turn"}]},
+    {"id": "t_standoff", "title": "Test Standoff", "type": "combat", "effects": [{"op": "end_combat"}, {"op": "float", "what": "keep_hand", "duration": "turn"}]},
+    {"id": "t_seal_fetch", "title": "Test Seal Fetch", "type": "non_combat", "effects": [{"trigger": "use", "op": "search", "card_type": "seal", "to": "play"}]},
     {"id": "t_summons", "title": "Test Herald", "type": "non_combat", "start_in_play": true, "limit_per_deck": 1, "remove_after_use": true, "effects": [{"trigger": "opponent_declare", "op": "discard_hand", "amount": 1, "random": false}, {"trigger": "opponent_declare", "op": "force_declare", "who": "opponent"}]}
   ]
 }

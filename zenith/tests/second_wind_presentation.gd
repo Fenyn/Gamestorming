@@ -85,7 +85,7 @@ func _run() -> void:
 	for uid in bulk_cards:
 		var card: Card3D = duel.views.get(uid)
 		if card != null:
-			card.transform = duel._rail_slot(0, &"discard", 0)
+			card.transform = duel.zones.slot(0, &"discard", 0)
 	started = Time.get_ticks_msec()
 	await duel._fly_recover_batch(bulk_cards, targets)
 	var tween_elapsed: int = Time.get_ticks_msec() - started

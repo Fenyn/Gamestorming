@@ -31,6 +31,7 @@ var _defs: Array[CardDef] = []
 var _offered: Array[int] = []          # copies on offer when the screen opened, per id
 var _keep_buttons: Array[Button] = []
 var _kept_labels: Array[Label] = []
+var _cap_labels: Array[Label] = []
 var _count_labels: Array[Label] = []
 var _zoom: TextureRect = null
 var _reduced_motion: bool = false
@@ -47,7 +48,7 @@ func _ready() -> void:
 	continue_button.pressed.connect(_on_continue)
 	inspect.gui_input.connect(_on_inspect_input)
 	inspect.visible = false
-	status_label.text = ""
+	status_label.text = Session.take_dissolve_report()
 	_fill_header()
 	await _fill_offers()
 	_refresh()
@@ -109,6 +110,7 @@ func _fill_offers() -> void:
 	_offered.clear()
 	_keep_buttons.clear()
 	_kept_labels.clear()
+	_cap_labels.clear()
 	_count_labels.clear()
 	var rows: Array[Dictionary] = Session.settle_offers()
 	empty_label.visible = rows.is_empty()
@@ -195,6 +197,18 @@ func _build_cell(def: CardDef, row: Dictionary) -> Control:
 	column.add_child(kept)
 	_kept_labels.append(kept)
 
+	# The collection's copy cap, shown only once a row has reached it, so the greyed Keep has a
+	# reason beside it rather than only in a tooltip.
+	var cap: Label = Label.new()
+	cap.theme_type_variation = &"WarnLabel"
+	cap.add_theme_font_size_override("font_size", 12)
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cap.custom_minimum_size.x = FACE_SIZE.x
+	cap.text = ""
+	cap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(cap)
+	_cap_labels.append(cap)
+
 	panel.add_child(column)
 	return panel
 
@@ -254,6 +268,9 @@ func _refresh() -> void:
 		var id: String = _ids[i]
 		var kept_copies: int = int(Session.run.kept.get(id, 0))
 		_kept_labels[i].text = "Kept %d" % kept_copies if kept_copies > 0 else ""
+		var card_cap: int = AdventureCollection.cap(id, Session.library)
+		var at_cap: bool = Session.collection.copies(id) >= card_cap
+		_cap_labels[i].text = "%d max" % card_cap if at_cap else ""
 		var button: Button = _keep_buttons[i]
 		if not by_id.has(id):
 			_count_labels[i].get_parent().visible = false
@@ -377,6 +394,9 @@ func _dev_setup() -> void:
 	AdventureDev.use_scratch_saves()
 	if not AdventureDev.simulate_run(starter_id, lose_at):
 		return
+	# `--dev-motes=N` tops the scratch wallet up so a shot can keep more than the run itself paid
+	# for. Without the flag the run's own earnings stand.
+	AdventureDev.give_motes(Session.wallet.motes)
 	AdventureSettlement.open(Session.run)
 
 

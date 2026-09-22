@@ -26,7 +26,7 @@
     },
     {
       "id": "tide_confluence",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_depths",
@@ -34,11 +34,11 @@
     },
     {
       "id": "tide_high_water",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_springwater",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_surge",
@@ -50,15 +50,15 @@
     },
     {
       "id": "tide_twin_breaker",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_twin_swell",
-      "count": 1
+      "count": 2
     },
     {
       "id": "unerring_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "closing_ranks",
@@ -66,11 +66,11 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_vow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "last_gasp",
@@ -78,7 +78,7 @@
     },
     {
       "id": "old_trick",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rallying_call",
@@ -94,7 +94,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 1
+      "count": 2
     },
     {
       "id": "bonding_rite",
@@ -106,10 +106,6 @@
     },
     {
       "id": "lucky_find",
-      "count": 1
-    },
-    {
-      "id": "recalled_lesson",
       "count": 1
     },
     {
@@ -138,7 +134,7 @@
     },
     {
       "id": "tide_undertow",
-      "count": 1
+      "count": 2
     }
   ]
 }

@@ -35,11 +35,11 @@
     },
     {
       "id": "root_dragon_blast",
-      "count": 2
+      "count": 3
     },
     {
       "id": "root_energy_catch",
-      "count": 2
+      "count": 3
     },
     {
       "id": "root_energy_deflection",
@@ -51,7 +51,7 @@
     },
     {
       "id": "smoke_screen",
-      "count": 2
+      "count": 3
     },
     {
       "id": "suppressing_shot",
@@ -71,7 +71,7 @@
     },
     {
       "id": "parley",
-      "count": 2
+      "count": 3
     },
     {
       "id": "respite",
@@ -84,6 +84,10 @@
     {
       "id": "root_energy_focus",
       "count": 1
+    },
+    {
+      "id": "seal_seizure",
+      "count": 2
     },
     {
       "id": "stillness",
@@ -114,6 +118,10 @@
       "count": 1
     },
     {
+      "id": "eyes_beyond_the_gate",
+      "count": 1
+    },
+    {
       "id": "first_cut",
       "count": 1
     },
@@ -127,6 +135,10 @@
     },
     {
       "id": "kins_rescue",
+      "count": 1
+    },
+    {
+      "id": "lucky_find",
       "count": 1
     },
     {
@@ -191,10 +203,6 @@
     },
     {
       "id": "root_firm_stance",
-      "count": 2
-    },
-    {
-      "id": "seal_seizure",
       "count": 2
     },
     {

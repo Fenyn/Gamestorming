@@ -34,7 +34,7 @@
     },
     {
       "id": "tide_high_water",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_springwater",
@@ -46,7 +46,7 @@
     },
     {
       "id": "tide_torrent",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_twin_breaker",
@@ -62,7 +62,7 @@
     },
     {
       "id": "closing_ranks",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -82,7 +82,7 @@
     },
     {
       "id": "rallying_call",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rookes_deluge",
@@ -94,7 +94,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 1
+      "count": 2
     },
     {
       "id": "bonding_rite",
@@ -106,6 +106,10 @@
     },
     {
       "id": "lucky_find",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
       "count": 1
     },
     {
@@ -126,11 +130,11 @@
     },
     {
       "id": "tide_drowning",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_ebb",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_undertow",

@@ -13,6 +13,7 @@
   "reserve": [],
   "archetype": "strike_beatdown",
   "difficulty": "easy",
+  "rating": "S",
   "subthemes": ["energy", "draw", "might"],
   "ai_profile": "steel_beatdown",
   "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",

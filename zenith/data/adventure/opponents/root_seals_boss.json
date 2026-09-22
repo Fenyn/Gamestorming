@@ -88,6 +88,10 @@
       "count": 1
     },
     {
+      "id": "seal_seizure",
+      "count": 3
+    },
+    {
       "id": "stillness",
       "count": 1
     },
@@ -202,10 +206,6 @@
     {
       "id": "root_firm_stance",
       "count": 2
-    },
-    {
-      "id": "seal_seizure",
-      "count": 3
     },
     {
       "id": "second_wind",

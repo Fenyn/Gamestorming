@@ -36,15 +36,15 @@
     },
     {
       "id": "mournes_jolting_arc",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sabotage",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_arc_bolt",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_chain_lightning",
@@ -64,7 +64,7 @@
     },
     {
       "id": "storm_plasma_beam",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_smiting_bolt",
@@ -76,7 +76,7 @@
     },
     {
       "id": "braced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
@@ -84,14 +84,10 @@
     },
     {
       "id": "rallying_call",
-      "count": 2
+      "count": 3
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -112,7 +108,7 @@
     },
     {
       "id": "assembly_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mournes_quickness_drill",
@@ -128,7 +124,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mourne_takes_measure",
@@ -137,6 +133,10 @@
     {
       "id": "provocation",
       "count": 2
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
     },
     {
       "id": "spoiled_rite",

@@ -31,7 +31,7 @@
     },
     {
       "id": "shade_fixed_gaze",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_recoil",
@@ -51,10 +51,14 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
       "count": 1
     },
     {
@@ -75,11 +79,11 @@
     },
     {
       "id": "ashmarks_unmaking_whisper",
-      "count": 1
+      "count": 2
     },
     {
       "id": "scatters_the_ashes",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_bitter_trade",
@@ -103,7 +107,7 @@
     },
     {
       "id": "shade_nightmare_hold",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_returning_whisper",
@@ -111,7 +115,7 @@
     },
     {
       "id": "shade_sifting_whisper",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_silenced_whisper",
@@ -119,7 +123,7 @@
     },
     {
       "id": "shade_stinging_palm",
-      "count": 1
+      "count": 2
     },
     {
       "id": "wall_of_flame",

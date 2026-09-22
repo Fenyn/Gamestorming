@@ -38,7 +38,7 @@
     },
     {
       "id": "braced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -57,15 +57,19 @@
       "count": 1
     },
     {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
       "id": "watchful_eye",
       "count": 2
     },
     {
       "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -90,15 +94,15 @@
     },
     {
       "id": "pyre_ashen_veil",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_bellows_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_blazing_charge",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_cinder_guard",
@@ -110,7 +114,7 @@
     },
     {
       "id": "pyre_ember_strike",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_firestorm",
@@ -118,11 +122,11 @@
     },
     {
       "id": "pyre_flashpoint",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_updraft",

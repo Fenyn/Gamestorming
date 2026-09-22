@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "steel_bracing",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_scar_tissue",
@@ -35,11 +35,11 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_standoff",
@@ -83,7 +83,7 @@
     },
     {
       "id": "steel_dead_weight",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_forearm_guard",
@@ -91,7 +91,7 @@
     },
     {
       "id": "steel_hammer_blow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_headbutt",
@@ -103,11 +103,11 @@
     },
     {
       "id": "steel_iron_fist",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_iron_jab",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_iron_knee",
@@ -123,7 +123,7 @@
     },
     {
       "id": "steel_tempering",
-      "count": 1
+      "count": 2
     }
   ]
 }

@@ -13,6 +13,7 @@
   "reserve": [],
   "archetype": "art_beatdown",
   "difficulty": "medium",
+  "rating": "A",
   "subthemes": ["construct", "draw", "fervor"],
   "ai_profile": "storm_volley",
   "tagline": "Build your engine with Drills, charge your Energy, and unleash a barrage of discounted Arts.",

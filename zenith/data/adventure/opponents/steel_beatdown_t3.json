@@ -23,10 +23,6 @@
   "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
   "cards": [
     {
-      "id": "quarrs_roar",
-      "count": 2
-    },
-    {
       "id": "steel_bracing",
       "count": 2
     },
@@ -36,11 +32,11 @@
     },
     {
       "id": "steel_shockwave",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_triple_shock",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
@@ -48,7 +44,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_standoff",
@@ -72,7 +68,7 @@
     },
     {
       "id": "no_quarter",
-      "count": 1
+      "count": 2
     },
     {
       "id": "old_habit",
@@ -80,19 +76,23 @@
     },
     {
       "id": "quarrs_crushing_blow",
+      "count": 3
+    },
+    {
+      "id": "quarrs_roar",
       "count": 2
     },
     {
       "id": "relentless_fury",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shrugs_it_off",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_battering_ram",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_bull_charge",
@@ -116,7 +116,7 @@
     },
     {
       "id": "steel_headbutt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_immovable_guard",
@@ -136,7 +136,7 @@
     },
     {
       "id": "steel_ironhide",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_piston_slam",

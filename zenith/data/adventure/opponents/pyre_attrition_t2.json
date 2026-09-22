@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "ashmarks_ember_spray",
-      "count": 2
+      "count": 3
     },
     {
       "id": "declaration",
@@ -39,7 +39,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -47,7 +47,7 @@
     },
     {
       "id": "pyre_twin_flames",
-      "count": 1
+      "count": 2
     },
     {
       "id": "spent_to_the_last",
@@ -63,7 +63,7 @@
     },
     {
       "id": "headlong_plunge",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_cinder_guard",
@@ -71,19 +71,19 @@
     },
     {
       "id": "pyre_firestorm",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_flame_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_flashpoint",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_knee_bash",
@@ -103,7 +103,7 @@
     },
     {
       "id": "pyre_sword_cleave",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_warding_stance",
@@ -111,7 +111,7 @@
     },
     {
       "id": "quick_retreat",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vales_sword_draw",

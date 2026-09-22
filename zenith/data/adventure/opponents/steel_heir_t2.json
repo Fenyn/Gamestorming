@@ -22,7 +22,7 @@
   "cards": [
     {
       "id": "captains_barrage",
-      "count": 2
+      "count": 3
     },
     {
       "id": "declaration",
@@ -34,15 +34,11 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "dismissal",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_standoff",
@@ -69,6 +65,10 @@
       "count": 1
     },
     {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
       "id": "spoiled_rite",
       "count": 1
     },
@@ -90,7 +90,7 @@
     },
     {
       "id": "steel_battering_ram",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_cross",
@@ -106,11 +106,11 @@
     },
     {
       "id": "steel_rake",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_reverse",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_slip",
@@ -118,19 +118,19 @@
     },
     {
       "id": "steel_stamp",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_tackle",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_talon",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_tempering",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vales_riposte",

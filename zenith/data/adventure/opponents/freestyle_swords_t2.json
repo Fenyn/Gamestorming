@@ -30,7 +30,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 3
     },
     {
       "id": "keen_eye",
@@ -42,7 +42,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 1
+      "count": 2
     },
     {
       "id": "absorbing_drill",
@@ -62,7 +62,7 @@
     },
     {
       "id": "swordplay_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "foresight",
@@ -86,7 +86,7 @@
     },
     {
       "id": "quick_retreat",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
@@ -94,11 +94,11 @@
     },
     {
       "id": "sword_flourish",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sword_lunge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sword_sweep",
@@ -110,19 +110,19 @@
     },
     {
       "id": "vales_pommel_bash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vales_quickstep",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vales_riposte",
-      "count": 2
+      "count": 3
     },
     {
       "id": "vales_sword_draw",
-      "count": 2
+      "count": 3
     }
   ]
 }

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/loadout.gd" id="1_loadout"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
 [ext_resource type="PackedScene" path="res://scenes/adventure/run_deck_list.tscn" id="3_list"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="4_tile"]
 
 [node name="Loadout" type="Control"]
 layout_mode = 3
@@ -56,6 +57,57 @@ size_flags_vertical = 4
 theme_type_variation = &"AccentLabel"
 theme_override_font_sizes/font_size = 18
 text = ""
+
+[node name="Upgrades" type="PanelContainer" parent="Margin/Column"]
+layout_mode = 2
+
+[node name="UpgradeRow" type="HBoxContainer" parent="Margin/Column/Upgrades"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Motes" parent="Margin/Column/Upgrades/UpgradeRow" instance=ExtResource("4_tile")]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+
+[node name="SlotBox" type="VBoxContainer" parent="Margin/Column/Upgrades/UpgradeRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="SlotLabel" type="Label" parent="Margin/Column/Upgrades/UpgradeRow/SlotBox"]
+layout_mode = 2
+text = "Deck slots"
+
+[node name="BuySlot" type="Button" parent="Margin/Column/Upgrades/UpgradeRow/SlotBox"]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+disabled = true
+text = "Buy deck slot"
+
+[node name="AspectBox" type="VBoxContainer" parent="Margin/Column/Upgrades/UpgradeRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="AspectLabel" type="Label" parent="Margin/Column/Upgrades/UpgradeRow/AspectBox"]
+layout_mode = 2
+text = "Aspect tiers"
+
+[node name="BuyAspect" type="Button" parent="Margin/Column/Upgrades/UpgradeRow/AspectBox"]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+disabled = true
+text = "Unlock Aspect tier"
+
+[node name="UpgradeStatus" type="Label" parent="Margin/Column/Upgrades/UpgradeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+text = ""
+autowrap_mode = 3
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -143,6 +195,18 @@ autowrap_mode = 3
 custom_minimum_size = Vector2(120, 44)
 layout_mode = 2
 text = "Reset"
+
+[node name="Add" type="Button" parent="Margin/Column/Body/Right/Controls"]
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+disabled = true
+text = "Add"
+
+[node name="AddAspect" type="Button" parent="Margin/Column/Body/Right/Controls"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+disabled = true
+text = "Add Aspect"
 
 [node name="Swap" type="Button" parent="Margin/Column/Body/Right/Controls"]
 custom_minimum_size = Vector2(140, 44)

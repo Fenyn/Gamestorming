@@ -31,10 +31,6 @@
   "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
   "cards": [
     {
-      "id": "quarrs_roar",
-      "count": 3
-    },
-    {
       "id": "steel_bracing",
       "count": 3
     },
@@ -89,6 +85,10 @@
     {
       "id": "quarrs_crushing_blow",
       "count": 4
+    },
+    {
+      "id": "quarrs_roar",
+      "count": 3
     },
     {
       "id": "relentless_fury",

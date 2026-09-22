@@ -40,11 +40,11 @@
     },
     {
       "id": "shade_rending_palm",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_snaring_web",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_umbral_lash",
@@ -60,7 +60,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -68,7 +68,7 @@
     },
     {
       "id": "dismissal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "kept_at_bay",
@@ -76,18 +76,14 @@
     },
     {
       "id": "marrows_retinue",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rallying_call",
-      "count": 1
+      "count": 2
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -108,7 +104,7 @@
     },
     {
       "id": "absorbing_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "assembly_drill",
@@ -151,6 +147,10 @@
       "count": 1
     },
     {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
       "id": "spoiled_rite",
       "count": 1
     },
@@ -176,7 +176,7 @@
     },
     {
       "id": "shade_gathering_dark",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_warding_burst",

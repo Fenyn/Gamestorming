@@ -52,7 +52,7 @@
     },
     {
       "id": "threefold_bolt",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unerring_bolt",
@@ -60,7 +60,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -87,10 +87,6 @@
       "count": 1
     },
     {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
       "id": "scorn_smirks",
       "count": 1
     },
@@ -112,7 +108,7 @@
     },
     {
       "id": "assembly_drill",
-      "count": 2
+      "count": 3
     },
     {
       "id": "locked_gate_drill",
@@ -144,10 +140,14 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -172,7 +172,7 @@
     },
     {
       "id": "second_wind",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_gathering_dark",
@@ -180,7 +180,7 @@
     },
     {
       "id": "shade_warding_burst",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

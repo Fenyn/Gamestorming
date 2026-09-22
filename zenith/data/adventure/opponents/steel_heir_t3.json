@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "captains_barrage",
-      "count": 2
+      "count": 3
     },
     {
       "id": "declaration",
@@ -43,7 +43,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "dismissal",
@@ -51,10 +51,6 @@
     },
     {
       "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -67,6 +63,10 @@
     },
     {
       "id": "watchful_eye",
+      "count": 2
+    },
+    {
+      "id": "locked_gate_drill",
       "count": 1
     },
     {
@@ -83,6 +83,10 @@
     },
     {
       "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -111,11 +115,11 @@
     },
     {
       "id": "steel_battering_ram",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_cross",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_forearm_guard",
@@ -131,7 +135,7 @@
     },
     {
       "id": "steel_reverse",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_slip",
@@ -139,7 +143,7 @@
     },
     {
       "id": "steel_stamp",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_tackle",
@@ -147,11 +151,11 @@
     },
     {
       "id": "steel_talon",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_tempering",
-      "count": 1
+      "count": 2
     },
     {
       "id": "unyielding_guard",

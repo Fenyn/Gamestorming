@@ -1,0 +1,12 @@
+{
+  "stages": [
+    { "tier": "t1", "band": "weaker", "ai_level": "easy", "grant": "", "story": "" },
+    { "tier": "t1", "band": "weaker", "ai_level": "easy", "grant": "aspect", "story": "" },
+    { "tier": "t2", "band": "weaker", "ai_level": "easy", "grant": "", "story": "" },
+    { "tier": "t2", "band": "medium", "ai_level": "easy", "grant": "", "story": "" },
+    { "tier": "t3", "band": "medium", "ai_level": "default", "grant": "", "story": "" },
+    { "tier": "t4", "band": "medium", "ai_level": "default", "grant": "", "story": "" },
+    { "tier": "t5", "band": "stronger", "ai_level": "default", "grant": "", "story": "" },
+    { "tier": "boss", "band": "stronger", "ai_level": "default", "grant": "", "story": "" }
+  ]
+}

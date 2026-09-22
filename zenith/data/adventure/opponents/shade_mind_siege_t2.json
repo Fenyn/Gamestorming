@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "marked_demise",
-      "count": 1
+      "count": 2
     },
     {
       "id": "marked_lightning",
@@ -31,7 +31,7 @@
     },
     {
       "id": "shade_fixed_gaze",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_recoil",
@@ -39,7 +39,7 @@
     },
     {
       "id": "shade_swelling_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_turned_whisper",
@@ -51,7 +51,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -67,7 +67,7 @@
     },
     {
       "id": "shade_faltering_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "foresight",
@@ -87,7 +87,7 @@
     },
     {
       "id": "shade_bitter_trade",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_dread_grip",
@@ -95,7 +95,7 @@
     },
     {
       "id": "shade_emptying_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_hex_recall",
@@ -103,7 +103,7 @@
     },
     {
       "id": "shade_lingering_whisper",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_nightmare_hold",
@@ -115,7 +115,7 @@
     },
     {
       "id": "shade_sifting_whisper",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_silenced_whisper",
@@ -123,7 +123,7 @@
     },
     {
       "id": "shade_stinging_palm",
-      "count": 1
+      "count": 2
     },
     {
       "id": "wall_of_flame",

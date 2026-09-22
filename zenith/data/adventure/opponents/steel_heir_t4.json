@@ -35,7 +35,7 @@
     },
     {
       "id": "steel_plating",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_sink",
@@ -47,14 +47,10 @@
     },
     {
       "id": "dismissal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -90,12 +86,16 @@
       "count": 1
     },
     {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
       "id": "spoiled_rite",
       "count": 1
     },
     {
       "id": "the_long_year",
-      "count": 1
+      "count": 2
     },
     {
       "id": "personality_alder_rooke_1",
@@ -107,7 +107,7 @@
     },
     {
       "id": "edrics_training",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_stance",
@@ -127,11 +127,11 @@
     },
     {
       "id": "steel_headbutt",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_rake",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_reverse",
@@ -147,7 +147,7 @@
     },
     {
       "id": "steel_tackle",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_talon",
@@ -163,7 +163,7 @@
     },
     {
       "id": "vales_riposte",
-      "count": 2
+      "count": 3
     }
   ]
 }

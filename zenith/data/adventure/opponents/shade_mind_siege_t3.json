@@ -28,7 +28,7 @@
     },
     {
       "id": "marked_demise",
-      "count": 1
+      "count": 2
     },
     {
       "id": "marked_lightning",
@@ -36,7 +36,7 @@
     },
     {
       "id": "shade_fixed_gaze",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_recoil",
@@ -56,7 +56,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -68,6 +68,10 @@
     },
     {
       "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
       "count": 1
     },
     {
@@ -100,19 +104,19 @@
     },
     {
       "id": "no_quarter",
-      "count": 1
+      "count": 2
     },
     {
       "id": "relentless_fury",
-      "count": 1
+      "count": 2
     },
     {
       "id": "scatters_the_ashes",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_bitter_trade",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_dread_grip",
@@ -128,7 +132,7 @@
     },
     {
       "id": "shade_lingering_whisper",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_nightmare_hold",
@@ -140,7 +144,7 @@
     },
     {
       "id": "shade_sifting_whisper",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_silenced_whisper",
@@ -148,7 +152,7 @@
     },
     {
       "id": "shade_stinging_palm",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_warding_burst",
@@ -160,7 +164,7 @@
     },
     {
       "id": "wall_of_flame",
-      "count": 2
+      "count": 1
     }
   ]
 }

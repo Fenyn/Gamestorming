@@ -49,9 +49,11 @@ Decided 2026-09-20 after the first playtest. Nine starters are open from the fir
 | root_seals | 55 | 3 | third copies of the Arts, stops and `keepers_drill`, `lucky_find`, `gates_boon` |
 
 Each file carries `"unlock": {"track": "deck_cap", "step": 50}`. Nothing reads that field yet: the
-runtime has no unlock system, and a starter is playable only when it has a ladder file under
-`data/adventure/ladders/`. None of these five has one. Advanced starters may run a third copy of a
-card; the open ones still cap at two.
+runtime has no unlock system, and every starter is playable. All fourteen feed one shared pipeline
+(`data/adventure/ladders/pipeline.json`): eight stages, each a tier (t1 to boss) and a band, and
+the run seed rolls which family from that band is fought. The bands (`weaker`, `medium`,
+`stronger`) live in `data/adventure/opponent_bands.json` and follow the measured starter standings.
+Advanced starters may run a third copy of a card; the open ones still cap at two.
 
 Why these five: in the first playtest (336 games, each starter against six tier-1 opponents) they
 came in lowest. Tide Companions 37.5%, Shade Salvage 41.7%, Steel Heir 41.7%, Storm Unbound 54.2%,

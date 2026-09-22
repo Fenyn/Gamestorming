@@ -35,7 +35,7 @@
     },
     {
       "id": "pyre_hearthguard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_immolation",
@@ -55,7 +55,7 @@
     },
     {
       "id": "edrics_truce",
-      "count": 1
+      "count": 2
     },
     {
       "id": "kept_at_bay",
@@ -66,19 +66,23 @@
       "count": 1
     },
     {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
       "id": "stillness",
       "count": 1
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 3
     },
     {
       "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -99,7 +103,7 @@
     },
     {
       "id": "hasks_flying_kick",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_stance",
@@ -119,7 +123,7 @@
     },
     {
       "id": "pyre_blazing_charge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_cinder_guard",
@@ -139,11 +143,11 @@
     },
     {
       "id": "pyre_flashpoint",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_updraft",

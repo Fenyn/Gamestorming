@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "captains_barrage",
-      "count": 2
+      "count": 3
     },
     {
       "id": "declaration",
@@ -51,23 +51,23 @@
     },
     {
       "id": "storm_palm_surge",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_smiting_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "threefold_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "braced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rallying_call",
@@ -75,10 +75,6 @@
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -99,7 +95,7 @@
     },
     {
       "id": "corins_conditioning",
-      "count": 1
+      "count": 2
     },
     {
       "id": "foresight",
@@ -115,6 +111,10 @@
     },
     {
       "id": "provocation",
+      "count": 2
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -135,11 +135,11 @@
     },
     {
       "id": "practiced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     }
   ]
 }

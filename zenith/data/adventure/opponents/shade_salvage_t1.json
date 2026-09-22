@@ -35,23 +35,23 @@
     },
     {
       "id": "shade_umbral_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "threefold_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "unerring_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "dismissal",
@@ -67,10 +67,6 @@
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -111,10 +107,18 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
+      "id": "spoiled_rite",
       "count": 1
     },
     {
@@ -131,7 +135,7 @@
     },
     {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_gathering_dark",

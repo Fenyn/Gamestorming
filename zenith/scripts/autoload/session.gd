@@ -36,6 +36,12 @@ var ladder: AdventureLadder = null  # the run's ladder, loaded alongside it
 ## whichever call spends or earns.
 var wallet: AdventureWallet = AdventureWallet.new()
 var collection: AdventureCollection = AdventureCollection.new()
+## Deck slots and Aspect tiers bought per starter. Outlives a run like the other two.
+var upgrades: AdventureUpgrades = AdventureUpgrades.new()
+## What the load-time trim dissolved, in AdventureCollection's report shape. The first screen that
+## can show it calls `take_dissolve_report()`, which hands it over and clears it, so the line is
+## shown once and not on every screen after.
+var dissolve_report: Dictionary = {}
 
 
 func _ready() -> void:
@@ -44,6 +50,14 @@ func _ready() -> void:
 	_load_decks()
 	wallet = AdventureWallet.load_wallet()
 	collection = AdventureCollection.load_collection()
+	upgrades = AdventureUpgrades.load_upgrades()
+	# A collection saved under the old caps can hold rows the new ones do not. Trimming pays the
+	# overflow back as Motes rather than leaving copies that nothing can use.
+	var trimmed: Dictionary = collection.trim_to_cap(library, wallet)
+	if int(trimmed.get("copies", 0)) > 0:
+		dissolve_report = trimmed
+		wallet.save()
+		collection.save()
 
 
 func _load_decks() -> void:
@@ -167,7 +181,7 @@ func in_adventure() -> bool:
 ## loadout screen's swaps; null starts from the printed starter.
 func start_run(starter_id: String, loadout_deck: DeckList = null) -> void:
 	run = AdventureLoadout.begin_from(starter_id, loadout_deck, randi_range(1, 2147483646))
-	ladder = AdventureLadder.load_for(starter_id)
+	ladder = AdventureLadder.load_for(starter_id, run.run_seed)
 	AdventureSave.store(run)
 
 
@@ -177,7 +191,7 @@ func resume_run() -> bool:
 	var loaded: AdventureRun = AdventureSave.load_run()
 	if loaded == null:
 		return false
-	var loaded_ladder: AdventureLadder = AdventureLadder.load_for(loaded.starter_id)
+	var loaded_ladder: AdventureLadder = AdventureLadder.load_for(loaded.starter_id, loaded.run_seed)
 	if loaded_ladder == null:
 		return false
 	run = loaded
@@ -342,6 +356,42 @@ func dissolve_card(id: String) -> int:
 		wallet.save()
 		collection.save()
 	return paid
+
+
+## The pending auto-dissolve line, handed over once. "" when there is nothing to show.
+func take_dissolve_report() -> String:
+	var line: String = AdventureCollection.report_line(dissolve_report)
+	dissolve_report = {}
+	return line
+
+
+# --- Deck slots and Aspect tiers --------------------------------------------
+
+## The Aspect stack height `starter_id` prints, which is the floor its unlocked tier is measured
+## against. 0 when the starter cannot be resolved.
+func starter_aspects(starter_id: String) -> int:
+	var deck: DeckList = DeckList.resolve(starter_id)
+	return deck.duelist_ids.size() if deck != null else 0
+
+
+## Buys one more deck slot for `starter_id` and saves. False when it is maxed out or the wallet is
+## short, and nothing moves.
+func buy_slot(starter_id: String) -> bool:
+	if not upgrades.buy_slot(starter_id, wallet):
+		return false
+	wallet.save()
+	upgrades.save()
+	return true
+
+
+## Unlocks the next Aspect tier for `starter_id` and saves. False when there is no tier left to buy
+## or the wallet is short, and nothing moves.
+func buy_aspect_tier(starter_id: String) -> bool:
+	if not upgrades.buy_aspect_tier(starter_id, starter_aspects(starter_id), wallet):
+		return false
+	wallet.save()
+	upgrades.save()
+	return true
 
 
 func go_to_vendor() -> void:

@@ -34,7 +34,7 @@
     },
     {
       "id": "pyre_immolation",
-      "count": 1
+      "count": 2
     },
     {
       "id": "braced_guard",
@@ -42,11 +42,11 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "dismissal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_truce",
@@ -54,10 +54,6 @@
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -69,7 +65,7 @@
       "count": 1
     },
     {
-      "id": "spoiled_rite",
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -82,11 +78,11 @@
     },
     {
       "id": "edrics_opening_strike",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_training",
-      "count": 2
+      "count": 3
     },
     {
       "id": "hasks_flying_kick",
@@ -98,7 +94,7 @@
     },
     {
       "id": "pyre_bellows_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_blazing_charge",
@@ -106,19 +102,19 @@
     },
     {
       "id": "pyre_cinder_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_comet_fall",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_ember_strike",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_firestorm",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_flashpoint",
@@ -130,7 +126,7 @@
     },
     {
       "id": "pyre_updraft",
-      "count": 1
+      "count": 2
     }
   ]
 }

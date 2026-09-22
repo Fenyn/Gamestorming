@@ -52,7 +52,7 @@
     },
     {
       "id": "pyre_twin_flames",
-      "count": 2
+      "count": 3
     },
     {
       "id": "spent_to_the_last",
@@ -92,7 +92,7 @@
     },
     {
       "id": "pyre_flame_lash",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_flashpoint",
@@ -108,7 +108,7 @@
     },
     {
       "id": "pyre_rekindling",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_scouring_flame",
@@ -116,7 +116,7 @@
     },
     {
       "id": "pyre_searing_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_snuffing",
@@ -124,7 +124,7 @@
     },
     {
       "id": "pyre_sword_cleave",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_warding_stance",
@@ -144,7 +144,7 @@
     },
     {
       "id": "vales_sword_draw",
-      "count": 2
+      "count": 3
     }
   ]
 }

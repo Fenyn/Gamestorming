@@ -53,9 +53,9 @@ static func _eligible_sized(run: AdventureRun, library: CardLibrary, stage: int,
 
 
 ## The ladder length a tier gate is measured against. A run carries no ladder, so the stage count
-## is read from the file the run's starter names; 8 when it cannot be read.
+## is read off the pipeline; 8 when it cannot be read.
 static func _ladder_size(run: AdventureRun) -> int:
-	var ladder: AdventureLadder = AdventureLadder.load_for(run.starter_id)
+	var ladder: AdventureLadder = AdventureLadder.load_for(run.starter_id, run.run_seed)
 	return ladder.size() if ladder != null and ladder.size() > 0 else 8
 
 

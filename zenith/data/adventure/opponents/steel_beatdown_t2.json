@@ -31,7 +31,7 @@
     },
     {
       "id": "steel_triple_shock",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
@@ -39,7 +39,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_standoff",
@@ -63,19 +63,19 @@
     },
     {
       "id": "quarrs_crushing_blow",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shrugs_it_off",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_battering_ram",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_bull_charge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_crushing_weight",
@@ -91,11 +91,11 @@
     },
     {
       "id": "steel_hammer_blow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_headbutt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_immovable_guard",
@@ -115,11 +115,11 @@
     },
     {
       "id": "steel_ironhide",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_piston_slam",
-      "count": 1
+      "count": 2
     },
     {
       "id": "steel_tempering",

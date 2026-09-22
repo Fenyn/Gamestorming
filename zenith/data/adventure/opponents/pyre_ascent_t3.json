@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "captains_barrage",
-      "count": 2
+      "count": 3
     },
     {
       "id": "declaration",
@@ -39,19 +39,19 @@
     },
     {
       "id": "pyre_immolation",
-      "count": 1
+      "count": 2
     },
     {
       "id": "braced_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "dismissal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_truce",
@@ -63,10 +63,6 @@
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -82,6 +78,10 @@
       "count": 1
     },
     {
+      "id": "rites_unmade",
+      "count": 1
+    },
+    {
       "id": "personality_alder_rooke_1",
       "count": 1
     },
@@ -91,11 +91,11 @@
     },
     {
       "id": "edrics_opening_strike",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_training",
-      "count": 2
+      "count": 3
     },
     {
       "id": "hasks_flying_kick",
@@ -111,7 +111,7 @@
     },
     {
       "id": "pyre_backdraft",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_bellows_guard",
@@ -127,7 +127,7 @@
     },
     {
       "id": "pyre_comet_fall",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_ember_strike",
@@ -147,7 +147,7 @@
     },
     {
       "id": "pyre_updraft",
-      "count": 1
+      "count": 2
     },
     {
       "id": "unyielding_guard",

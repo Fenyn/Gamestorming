@@ -28,7 +28,7 @@
     },
     {
       "id": "marked_demise",
-      "count": 1
+      "count": 2
     },
     {
       "id": "marked_lightning",
@@ -44,7 +44,7 @@
     },
     {
       "id": "shade_swelling_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_turned_whisper",
@@ -56,7 +56,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -80,7 +80,7 @@
     },
     {
       "id": "shade_faltering_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "foresight",
@@ -124,7 +124,7 @@
     },
     {
       "id": "shade_emptying_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_hex_recall",
@@ -140,7 +140,7 @@
     },
     {
       "id": "shade_returning_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_sifting_whisper",
@@ -148,7 +148,7 @@
     },
     {
       "id": "shade_silenced_whisper",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_stinging_palm",
@@ -156,7 +156,7 @@
     },
     {
       "id": "shade_warding_burst",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

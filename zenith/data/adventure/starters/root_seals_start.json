@@ -14,6 +14,7 @@
   "reserve": [],
   "archetype": "seals",
   "difficulty": "medium",
+  "rating": "A",
   "subthemes": ["arts", "drills"],
   "ai_profile": "root_seals",
   "tagline": "Recycle your spent spells and outlast your rival while gathering all seven Seals to claim victory.",

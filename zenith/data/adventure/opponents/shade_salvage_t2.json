@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "sabotage",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_cutting_hand",
@@ -43,11 +43,11 @@
     },
     {
       "id": "unerring_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -55,22 +55,18 @@
     },
     {
       "id": "dismissal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "marrows_retinue",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rallying_call",
-      "count": 1
+      "count": 2
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -83,7 +79,7 @@
     },
     {
       "id": "absorbing_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "assembly_drill",
@@ -115,10 +111,14 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -139,11 +139,11 @@
     },
     {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_gathering_dark",
-      "count": 2
+      "count": 3
     }
   ]
 }

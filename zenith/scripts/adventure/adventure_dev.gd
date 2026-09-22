@@ -29,7 +29,7 @@ static func reduced_motion() -> bool:
 ## missing, leaving Session as it was.
 static func begin_run(starter_id: String) -> bool:
 	var run: AdventureRun = AdventureRun.begin(starter_id, DEV_SEED)
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id, DEV_SEED)
 	if run == null or ladder == null:
 		return false
 	Session.run = run
@@ -44,7 +44,7 @@ static func scratch_dir() -> String:
 	return dir if dir != "" else OS.get_cache_dir().path_join("adventure_dev")
 
 
-## Points the wallet, collection and run saves at the scratch folder and empties all three in
+## Points the wallet, collection, upgrades and run saves at the scratch folder and empties them in
 ## memory, so a dev screen can spend, buy and settle without the player's save being touched.
 static func use_scratch_saves() -> void:
 	var dir: String = scratch_dir()
@@ -52,15 +52,36 @@ static func use_scratch_saves() -> void:
 		DirAccess.make_dir_recursive_absolute(dir)
 	AdventureWallet.path_override = dir.path_join("wallet.json")
 	AdventureCollection.path_override = dir.path_join("collection.json")
+	AdventureUpgrades.path_override = dir.path_join("upgrades.json")
 	AdventureSave.path_override = dir.path_join("run.json")
 	Session.wallet = AdventureWallet.new()
 	Session.collection = AdventureCollection.new()
+	Session.upgrades = AdventureUpgrades.new()
+	Session.dissolve_report = {}
 
 
 ## Sets the scratch wallet's balance outright, with no ledger line: a starting balance is not
-## something the run earned.
+## something the run earned. `--dev-motes=N` names the amount; the caller's own default stands
+## when the flag is absent.
 static func give_motes(amount: int) -> void:
-	Session.wallet.motes = maxi(0, amount)
+	var flagged: String = flag("--dev-motes=")
+	Session.wallet.motes = maxi(0, int(flagged) if flagged != "" else amount)
+
+
+## `--dev-upgrades=<slots>,<tier>` presets the scratch upgrades for one starter outright, with no
+## Motes spent: a preset is not something the player bought.
+static func preset_upgrades(starter_id: String) -> void:
+	var arg: String = flag("--dev-upgrades=")
+	if arg == "":
+		return
+	var parts: PackedStringArray = arg.split(",")
+	var row: Dictionary = {}
+	if parts.size() > 0 and parts[0] != "":
+		row["extra_slots"] = maxi(0, int(parts[0]))
+	if parts.size() > 1 and parts[1] != "":
+		row["aspect_tiers"] = maxi(0, int(parts[1]))
+	if not row.is_empty():
+		Session.upgrades.rows[starter_id] = row
 
 
 ## Puts `each` copies of every id into the scratch collection, capped the way the collection caps

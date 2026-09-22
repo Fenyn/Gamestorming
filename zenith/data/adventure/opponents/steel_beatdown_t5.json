@@ -23,12 +23,8 @@
   "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
   "cards": [
     {
-      "id": "quarrs_roar",
-      "count": 3
-    },
-    {
       "id": "steel_bracing",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_scar_tissue",
@@ -36,7 +32,7 @@
     },
     {
       "id": "steel_shockwave",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_triple_shock",
@@ -48,7 +44,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_standoff",
@@ -83,6 +79,10 @@
       "count": 3
     },
     {
+      "id": "quarrs_roar",
+      "count": 3
+    },
+    {
       "id": "relentless_fury",
       "count": 2
     },
@@ -112,7 +112,7 @@
     },
     {
       "id": "steel_hammer_blow",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_headbutt",
@@ -140,11 +140,11 @@
     },
     {
       "id": "steel_piston_slam",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_tempering",
-      "count": 2
+      "count": 3
     }
   ]
 }

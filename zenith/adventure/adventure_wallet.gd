@@ -18,6 +18,8 @@ const REASON_DISSOLVE: String = "dissolve"
 const REASON_KEEP: String = "keep"
 const REASON_BUY: String = "buy"
 const REASON_REROLL: String = "reroll"
+const REASON_SLOT: String = "slot"
+const REASON_ASPECT: String = "aspect"
 
 ## Tests point this somewhere else so nothing lands on the player's save.
 static var path_override: String = ""

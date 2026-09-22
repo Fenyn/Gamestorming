@@ -24,7 +24,7 @@
   "cards": [
     {
       "id": "ashmarks_ember_spray",
-      "count": 2
+      "count": 3
     },
     {
       "id": "declaration",
@@ -44,7 +44,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "kept_at_bay",
@@ -52,7 +52,7 @@
     },
     {
       "id": "pyre_twin_flames",
-      "count": 1
+      "count": 2
     },
     {
       "id": "spent_to_the_last",
@@ -72,7 +72,7 @@
     },
     {
       "id": "headlong_plunge",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mournes_stance",
@@ -92,15 +92,15 @@
     },
     {
       "id": "pyre_flame_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_flashpoint",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_furnace_breath",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_knee_bash",
@@ -124,7 +124,7 @@
     },
     {
       "id": "pyre_sword_cleave",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_warding_stance",
@@ -132,11 +132,11 @@
     },
     {
       "id": "quick_retreat",
-      "count": 1
+      "count": 2
     },
     {
       "id": "relentless_fury",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

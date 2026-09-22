@@ -38,7 +38,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_twin_flames",
@@ -70,11 +70,11 @@
     },
     {
       "id": "stokes_the_coals",
-      "count": 1
+      "count": 2
     },
     {
       "id": "all_or_nothing",
-      "count": 2
+      "count": 3
     },
     {
       "id": "mournes_frantic_rush",
@@ -86,15 +86,15 @@
     },
     {
       "id": "no_quarter",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_backdraft",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_blazing_charge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_cinder_guard",
@@ -110,7 +110,7 @@
     },
     {
       "id": "pyre_flame_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_flashover",
@@ -122,7 +122,7 @@
     },
     {
       "id": "pyre_kindling",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_rekindling",
@@ -138,7 +138,7 @@
     },
     {
       "id": "relentless_fury",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",
@@ -146,7 +146,7 @@
     },
     {
       "id": "wall_of_flame",
-      "count": 1
+      "count": 2
     }
   ]
 }

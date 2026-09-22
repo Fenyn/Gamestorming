@@ -11,5 +11,13 @@
 	"discount_fraction": 0.25,
 	"dissolve_fraction": 0.25,
 	"vendor_stock": 6,
-	"vendor_reroll_fee": 40
+	"vendor_reroll_fee": 40,
+	"_slots_note": "Deck slots and Aspect tiers are bought per starter and kept for good. The Nth slot costs the Nth entry of slot_costs; past the end the last entry repeats. A full win pays 490.",
+	"slot_costs": [100, 150, 200, 275, 350, 450, 550, 700, 850, 1000],
+	"slot_max": 10,
+	"aspect_tier_costs": {
+		"3": 200,
+		"4": 400,
+		"5": 800
+	}
 }

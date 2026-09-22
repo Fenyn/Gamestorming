@@ -39,11 +39,11 @@
     },
     {
       "id": "pyre_immolation",
-      "count": 2
+      "count": 3
     },
     {
       "id": "braced_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -66,10 +66,6 @@
       "count": 1
     },
     {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
       "id": "stillness",
       "count": 1
     },
@@ -79,6 +75,10 @@
     },
     {
       "id": "foresight",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -127,7 +127,7 @@
     },
     {
       "id": "pyre_cinder_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_comet_fall",
@@ -135,11 +135,11 @@
     },
     {
       "id": "pyre_ember_strike",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_firestorm",
-      "count": 2
+      "count": 3
     },
     {
       "id": "pyre_flashpoint",
@@ -151,7 +151,7 @@
     },
     {
       "id": "pyre_updraft",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

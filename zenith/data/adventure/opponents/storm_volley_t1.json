@@ -23,11 +23,11 @@
   "cards": [
     {
       "id": "captains_barrage",
-      "count": 1
+      "count": 2
     },
     {
       "id": "draiks_reckoning",
-      "count": 1
+      "count": 2
     },
     {
       "id": "lingering_curse",
@@ -35,7 +35,7 @@
     },
     {
       "id": "sabotage",
-      "count": 1
+      "count": 2
     },
     {
       "id": "scattered_ashes",
@@ -43,7 +43,7 @@
     },
     {
       "id": "sledges_stance",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_arc_bolt",
@@ -75,7 +75,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -111,6 +111,10 @@
     },
     {
       "id": "mercy_smiles",
+      "count": 2
+    },
+    {
+      "id": "recalled_lesson",
       "count": 1
     },
     {
@@ -135,7 +139,7 @@
     },
     {
       "id": "siphons_sidestep",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_maelstrom",

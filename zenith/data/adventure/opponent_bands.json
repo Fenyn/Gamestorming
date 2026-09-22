@@ -1,0 +1,5 @@
+{
+  "weaker": ["pyre_ascent", "tide_companions", "storm_unbound", "shade_salvage", "steel_heir"],
+  "medium": ["shade_henchmen", "pyre_beatdown", "freestyle_swords", "pyre_attrition", "tide_deepwater", "storm_volley"],
+  "stronger": ["steel_beatdown", "root_seals", "shade_mind_siege"]
+}

@@ -125,3 +125,27 @@ static func vendor_stock_size() -> int:
 
 static func vendor_reroll_fee() -> int:
 	return int(data().get("vendor_reroll_fee", 0))
+
+
+# --- Deck slots and Aspect tiers, bought per starter ------------------------
+
+## What the `n`th extra deck slot costs, 1-based. `slot_costs` is a rising list; past its end the
+## last entry repeats, so the price never falls off and never goes free.
+static func slot_cost(n: int) -> int:
+	var costs: Array = data().get("slot_costs", [])
+	if n <= 0 or costs.is_empty():
+		return 0
+	return int(costs[mini(n, costs.size()) - 1])
+
+
+## The most extra slots one starter may buy. A ceiling keeps a grown deck inside DeckValidator's
+## own maximum whatever the cost list says.
+static func slot_max() -> int:
+	return int(data().get("slot_max", 0))
+
+
+## What unlocking Aspect `tier` costs, 0 for a tier that is not for sale. Keyed by tier as a
+## string, because JSON has no integer keys.
+static func aspect_tier_cost(tier: int) -> int:
+	var costs: Dictionary = data().get("aspect_tier_costs", {})
+	return int(costs.get(str(tier), 0))

@@ -927,6 +927,46 @@ with the numbers in `data/adventure/economy.json` and the plumbing in the advent
   run loads with a run id generated and its starting deck read back off the starter file, so a run
   in flight still settles for what it actually added.
 
+**Three rules added 2026-09-21.**
+
+- **Copy caps, and the overflow dissolves.** The collection holds at most **3** copies of a normal
+  card and **4** of a card named for a character. Personalities and Seals are **1** apiece. A card
+  that prints a tighter limit of its own keeps that lower number, so a card printed at two caps at
+  two. Anything that lands past the cap dissolves into Motes on the spot at `dissolve_value`, with
+  a ledger line and a report the screen shows once ("2 copies dissolved for 40 Motes"). The settle
+  screen's Keep and the vendor's Buy stop at the cap instead of dissolving on purchase, so nobody
+  pays full price for a copy that would come straight back at a quarter. The auto-dissolve is for
+  migration and any other path that lands copies the collection cannot hold; `collection.json` is
+  at version 2 and a version 1 file is trimmed on load, the overflow paid back.
+- **A loadout takes no more copies than the collection holds.** The collection is a library shared
+  by every starter, so the same three copies go into as many starters as you like and nothing is
+  consumed. What is limited is one deck: a loadout may put in at most as many copies of a card as
+  the collection holds. The starter's own printed cards are the starter's, not the library's, so
+  they never count against it; `AdventureLoadout` measures what a deck took against the printed
+  starter it was built from.
+- **Deck slots and Aspect tiers are bought with Motes, per starter.** A starter begins at its own
+  printed size (50 Life Deck cards for the shipped starters) and its own stack height. A bought
+  slot raises that starter's loadout size cap by one, filled with any legal pick from the
+  collection; an empty slot is a ceiling and not a requirement, so a starter may begin with it
+  unfilled. An Aspect tier unlock lets the loadout add the next Aspect card of the starter's own
+  character from the collection, one tier at a time and consecutive from Aspect 1; the run's own
+  in-run grant then carries on from wherever the stack ends, offering tier 4 to a stack that
+  reached tier 3 and skipping the grant once the stack is at the construction maximum.
+  `user://adventure/upgrades.json` (version 1) holds `extra_slots` and `aspect_tiers` per starter.
+- **Slot and tier numbers.** Slots cost 100, 150, 200, 275, 350, 450, 550, 700, 850, 1000, ten in
+  all, with the last price repeating if the list is ever extended. Aspect tiers cost 200 for tier
+  3, 400 for tier 4 and 800 for tier 5. A full win pays 490 and a run lost on the fifth stage pays
+  140, so the first slot is inside one good run, the first three cost 450 and land inside two, and
+  the fifth brings the total to 1075, about two and a quarter full wins. The whole ten-slot track
+  is 4725, near ten wins, which is meant to outlast the cards themselves. Tier 3 at 200 sits
+  alongside a couple of kept cards out of one win; tiers 4 and 5 double each time, so a five-Aspect
+  stack costs 1400 on its own.
+- Files: `adventure/adventure_upgrades.gd` with the numbers in `data/adventure/economy.json`
+  (`slot_costs`, `slot_max`, `aspect_tier_costs`), the loadout API in
+  `adventure/adventure_loadout.gd` (`size_cap`, `add_card`, `add_aspect`, `swappable_add`,
+  `swappable_aspect`) and the wrappers in the adventure block of `scripts/autoload/session.gd`
+  (`upgrades`, `buy_slot`, `buy_aspect_tier`, `take_dissolve_report`).
+
 ## 13. First to two, 2026-09-21
 
 Adventure duels run first to two points (`Session.build_referee`, `DuelEngine.set_points_to_win`).

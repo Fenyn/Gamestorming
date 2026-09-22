@@ -28,7 +28,7 @@
     },
     {
       "id": "tide_crushing_depth",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_depths",
@@ -48,7 +48,7 @@
     },
     {
       "id": "old_trick",
-      "count": 1
+      "count": 2
     },
     {
       "id": "reckless_ascent",
@@ -80,6 +80,10 @@
     },
     {
       "id": "mournes_plans",
+      "count": 1
+    },
+    {
+      "id": "recalled_lesson",
       "count": 1
     },
     {
@@ -124,7 +128,7 @@
     },
     {
       "id": "tide_deadweight",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_deep_anchor",
@@ -132,7 +136,7 @@
     },
     {
       "id": "tide_deep_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_deep_sweep",
@@ -140,11 +144,11 @@
     },
     {
       "id": "tide_dredge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_drowning",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_pressure_wave",
@@ -152,7 +156,7 @@
     },
     {
       "id": "tide_pull_under",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_sweep_aside",

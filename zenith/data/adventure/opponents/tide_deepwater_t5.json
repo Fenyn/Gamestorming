@@ -52,10 +52,14 @@
     },
     {
       "id": "reckless_ascent",
-      "count": 2
+      "count": 3
     },
     {
       "id": "stillness",
+      "count": 1
+    },
+    {
+      "id": "bravado_drill",
       "count": 1
     },
     {
@@ -116,7 +120,7 @@
     },
     {
       "id": "no_quarter",
-      "count": 2
+      "count": 3
     },
     {
       "id": "relentless_fury",
@@ -132,7 +136,7 @@
     },
     {
       "id": "tide_deep_anchor",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_deep_guard",
@@ -140,7 +144,7 @@
     },
     {
       "id": "tide_deep_sweep",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_dredge",
@@ -152,7 +156,7 @@
     },
     {
       "id": "tide_pressure_wave",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_pull_under",

@@ -10,6 +10,15 @@ signal picked(index: int)
 @onready var duelist_label: Label = $Row/Column/Duelist
 @onready var school_label: Label = $Row/Column/School
 @onready var badge: Label = $Badge
+@onready var hero: Label = $Hero
+
+## Tier badge colours, strongest first. Measured from the starter tournaments, not a promise.
+const RATING_COLORS: Dictionary = {
+	"S": Color(0.95, 0.78, 0.35),
+	"A": Color(0.55, 0.80, 0.60),
+	"B": Color(0.60, 0.72, 0.90),
+	"C": Color(0.88, 0.55, 0.45),
+}
 
 var index: int = 0
 var _school_color: Color = ZenithTheme.MUTED
@@ -33,6 +42,12 @@ func setup(pos: int, d: DeckList) -> void:
 	school_label.text = "%s  /  %s" % [CardText.school_name(d.style).to_upper(), Archetype.label(d.archetype)]
 	ZenithTheme.chip(school_label, Palette.school_ui(d.style))
 	badge.visible = false
+	# Adventure starters carry a measured strength tier, shown as one big letter in the corner;
+	# tournament precons do not.
+	hero.visible = d.rating != ""
+	if d.rating != "":
+		hero.text = d.rating.to_upper()
+		hero.add_theme_color_override("font_color", RATING_COLORS.get(d.rating.to_upper(), ZenithTheme.MUTED))
 
 
 ## 0 hidden, 1 picked, 2 locked.

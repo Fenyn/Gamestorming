@@ -30,11 +30,11 @@
     },
     {
       "id": "root_energy_catch",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_energy_deflection",
-      "count": 1
+      "count": 2
     },
     {
       "id": "sharp_rebuke",
@@ -42,11 +42,11 @@
     },
     {
       "id": "smoke_screen",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "dismissal",
@@ -54,7 +54,7 @@
     },
     {
       "id": "parley",
-      "count": 1
+      "count": 2
     },
     {
       "id": "respite",
@@ -62,15 +62,19 @@
     },
     {
       "id": "root_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_energy_focus",
       "count": 1
     },
     {
+      "id": "seal_seizure",
+      "count": 2
+    },
+    {
       "id": "watchful_eye",
-      "count": 1
+      "count": 2
     },
     {
       "id": "absorbing_drill",
@@ -117,6 +121,10 @@
       "count": 1
     },
     {
+      "id": "spoiled_rite",
+      "count": 1
+    },
+    {
       "id": "marble_seal_1",
       "count": 1
     },
@@ -157,12 +165,8 @@
       "count": 1
     },
     {
-      "id": "seal_seizure",
-      "count": 1
-    },
-    {
       "id": "second_wind",
-      "count": 1
+      "count": 2
     }
   ]
 }

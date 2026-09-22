@@ -39,15 +39,15 @@
     },
     {
       "id": "storm_chain_lightning",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_earthing_rod",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_palm_surge",
@@ -67,14 +67,14 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rallying_call",
-      "count": 1
+      "count": 2
     },
     {
-      "id": "rites_unmade",
+      "id": "respite",
       "count": 1
     },
     {
@@ -103,7 +103,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mourne_takes_measure",
@@ -111,6 +111,10 @@
     },
     {
       "id": "provocation",
+      "count": 2
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {

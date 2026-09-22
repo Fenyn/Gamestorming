@@ -21,7 +21,7 @@
   "cards": [
     {
       "id": "black_hands",
-      "count": 1
+      "count": 2
     },
     {
       "id": "captains_barrage",
@@ -33,7 +33,7 @@
     },
     {
       "id": "knife_volley",
-      "count": 1
+      "count": 2
     },
     {
       "id": "lingering_curse",
@@ -53,7 +53,7 @@
     },
     {
       "id": "shade_umbral_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "unerring_bolt",
@@ -61,7 +61,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cut_short",
@@ -69,7 +69,7 @@
     },
     {
       "id": "hired_blades",
-      "count": 1
+      "count": 2
     },
     {
       "id": "rallying_call",
@@ -101,7 +101,7 @@
     },
     {
       "id": "branns_shakedown",
-      "count": 1
+      "count": 2
     },
     {
       "id": "halvards_twin_cut",
@@ -113,7 +113,7 @@
     },
     {
       "id": "shade_hex_recall",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_nightmare_hold",
@@ -121,7 +121,7 @@
     },
     {
       "id": "shade_oblivion_touch",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vesnas_ambush",

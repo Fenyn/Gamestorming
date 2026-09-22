@@ -47,7 +47,7 @@ func _ready() -> void:
 	collection_list.card_selected.connect(_on_collection_selected)
 	inspect.gui_input.connect(_on_inspect_input)
 	inspect.visible = false
-	status_label.text = ""
+	status_label.text = Session.take_dissolve_report()
 	reroll_button.text = "Reroll (%d)" % AdventureEconomy.vendor_reroll_fee()
 	await _fill_shelf()
 	_fill_collection()
@@ -238,13 +238,13 @@ func _refresh() -> void:
 			continue
 		var cap: int = AdventureCollection.cap(def.id, Session.library)
 		var held: int = Session.collection.copies(def.id)
-		_owned_labels[i].text = "Owned %d/%d" % [held, cap]
+		_owned_labels[i].text = "Owned %d/%d%s" % [held, cap, "  ·  %d max" % cap if held >= cap else ""]
 		var price: int = AdventureEconomy.price(def)
 		var button: Button = _buy_buttons[i]
 		if held >= cap:
 			button.disabled = true
 			button.text = "Owned"
-			button.tooltip_text = "The collection already holds every copy it may."
+			button.tooltip_text = "The collection already holds every copy it may: %d max." % cap
 		elif not Session.wallet.can_afford(price):
 			button.disabled = true
 			button.text = "Buy"

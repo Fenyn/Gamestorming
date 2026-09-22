@@ -14,6 +14,7 @@
   "reserve": [],
   "archetype": "strike_beatdown",
   "difficulty": "medium",
+  "rating": "B",
   "subthemes": ["strikes", "draw"],
   "ai_profile": "steel_heir",
   "tagline": "Draw deep and spend life cards to power crushing blows as Emrys ascends to even stronger Aspects.",

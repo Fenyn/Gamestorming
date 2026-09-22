@@ -23,11 +23,11 @@
   "cards": [
     {
       "id": "tide_black_water",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_crushing_depth",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_depths",
@@ -43,7 +43,7 @@
     },
     {
       "id": "old_trick",
-      "count": 1
+      "count": 2
     },
     {
       "id": "reckless_ascent",
@@ -91,11 +91,11 @@
     },
     {
       "id": "ashmarks_choke_hold",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_opening_strike",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
@@ -103,15 +103,15 @@
     },
     {
       "id": "tide_deep_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_deep_sweep",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_dredge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_drowning",
@@ -119,7 +119,7 @@
     },
     {
       "id": "tide_pressure_wave",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_pull_under",
@@ -135,7 +135,7 @@
     },
     {
       "id": "tide_undertow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_welling_deep",

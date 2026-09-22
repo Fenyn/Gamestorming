@@ -39,7 +39,7 @@
     },
     {
       "id": "tide_high_water",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_springwater",
@@ -51,11 +51,11 @@
     },
     {
       "id": "tide_torrent",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_twin_breaker",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_twin_swell",
@@ -67,7 +67,7 @@
     },
     {
       "id": "closing_ranks",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -75,7 +75,7 @@
     },
     {
       "id": "edrics_vow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "kept_at_bay",
@@ -91,11 +91,11 @@
     },
     {
       "id": "rallying_call",
-      "count": 2
+      "count": 3
     },
     {
       "id": "rookes_deluge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "stillness",
@@ -151,7 +151,7 @@
     },
     {
       "id": "tide_drowning",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_ebb",

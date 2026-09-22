@@ -341,6 +341,12 @@ func _init() -> void:
 		test_the_vendor_sells_a_rotating_shelf_of_buyable_cards,
 		test_a_loadout_swap_is_legal_only_through_the_validator,
 		test_a_version_three_adventure_save_migrates_into_a_settleable_run,
+		test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest,
+		test_keeping_and_buying_stop_at_the_collection_cap,
+		test_a_loadout_takes_no_more_copies_than_the_collection_holds,
+		test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price,
+		test_an_unlocked_aspect_tier_adds_the_next_card_and_the_run_carries_on,
+		test_the_upgrades_file_round_trips_through_a_path_override,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -5218,18 +5224,31 @@ func test_an_adventure_run_round_trips_through_json_and_the_save() -> void:
 func test_adventure_ladders_field_legal_opponents() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var starters: Array[String] = AdventureLadder.playable_starters()
-	eq(starters.size(), 4, "four starters have a ladder")
+	eq(starters.size(), 14, "every starter feeds the pipeline")
+	# Every banded family fields every tier the pipeline can ask for, whichever roll comes up.
+	for family in AdventureLadder.banded_families():
+		for tier in ["t1", "t2", "t3", "t4", "t5", "boss"]:
+			check(DeckList.resolve("%s_%s" % [family, tier]) != null, "%s fields a %s deck" % [family, tier])
 	for starter_id in starters:
-		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
-		check(ladder != null, "%s has a ladder file" % starter_id)
+		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id, 777)
+		check(ladder != null, "%s rolls a ladder" % starter_id)
 		if ladder == null:
 			continue
 		eq(ladder.size(), ADVENTURE_LADDER_SIZE, "%s ladder has 8 stages" % starter_id)
+		# The same seed rolls the same opponents on resume; another seed rolls a different run.
+		var again: AdventureLadder = AdventureLadder.load_for(starter_id, 777)
+		var other: AdventureLadder = AdventureLadder.load_for(starter_id, 778)
+		eq(again.stages, ladder.stages, "%s: the same run seed rolls the same ladder" % starter_id)
+		check(other.stages != ladder.stages, "%s: a different run seed rolls a different ladder" % starter_id)
 		var own_family: String = adventure_deck_family(starter_id)
 		var granted: int = 0
+		var families: Array[String] = []
 		for n in range(ladder.size()):
 			var row: Dictionary = ladder.stage(n)
 			var opponent: String = str(row.get("opponent", ""))
+			check(not families.has(adventure_deck_family(opponent)), "%s stage %d does not repeat a family" % [starter_id, n + 1])
+			families.append(adventure_deck_family(opponent))
+			eq(AdventureLadder.tier_of(opponent), str(row.get("tier", "")).to_upper(), "%s stage %d fights at its row's tier" % [starter_id, n + 1])
 			var opponent_deck: DeckList = DeckList.resolve(opponent)
 			check(opponent_deck != null, "%s stage %d opponent '%s' resolves" % [starter_id, n + 1, opponent])
 			if opponent_deck != null:
@@ -5251,7 +5270,7 @@ func test_adventure_ladders_field_legal_opponents() -> void:
 func test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run() -> void:
 	var shipped: CardLibrary = shipped_library()
 	for starter_id in AdventureLadder.playable_starters():
-		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+		var ladder: AdventureLadder = AdventureLadder.load_for(starter_id, 91011)
 		var run: AdventureRun = AdventureRun.begin(starter_id, 91011)
 		if ladder == null or run == null:
 			check(false, "%s has both a ladder and a starter deck" % starter_id)
@@ -5327,7 +5346,7 @@ func test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run() -> void:
 ## The grant stage stops for an Aspect choice instead of handing one over silently.
 func test_the_stage_two_grant_offers_an_aspect_choice() -> void:
 	var shipped: CardLibrary = shipped_library()
-	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
+	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start", 7)
 	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
 	eq(run.aspects(), 2, "a starter opens at two Aspects")
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
@@ -5378,7 +5397,7 @@ func test_adventure_offers_follow_the_run_seed() -> void:
 ## Every offered bundle id of an all-wins, always-skip run, flattened.
 func adventure_offer_sequence(shipped: CardLibrary, starter_id: String, run_seed: int) -> Array[String]:
 	var out: Array[String] = []
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id, run_seed)
 	var run: AdventureRun = AdventureRun.begin(starter_id, run_seed)
 	if ladder == null or run == null:
 		return out
@@ -5396,7 +5415,7 @@ func adventure_offer_sequence(shipped: CardLibrary, starter_id: String, run_seed
 ## A stale offer held by a client cannot smuggle a bundle in, and a bundle is all or nothing.
 func test_an_adventure_bundle_is_refused_when_it_was_not_offered() -> void:
 	var shipped: CardLibrary = shipped_library()
-	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start")
+	var ladder: AdventureLadder = AdventureLadder.load_for("pyre_beatdown_start", 31)
 	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 31)
 	AdventureRewards.finish_stage(run, ladder, shipped, true)
 	var before: int = run.cards.size()
@@ -7567,7 +7586,7 @@ func test_the_collection_holds_what_a_deck_may_run_and_dissolves_the_rest() -> v
 ## every taken bundle held and the Aspect cards taken.
 func motes_play_run(shipped: CardLibrary, starter_id: String, run_seed: int,
 		stop_after: int = -1) -> Dictionary:
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id, run_seed)
 	var run: AdventureRun = AdventureRun.begin(starter_id, run_seed)
 	var wallet: AdventureWallet = AdventureWallet.new()
 	var taken: Array[String] = []
@@ -7855,3 +7874,338 @@ func test_a_version_three_adventure_save_migrates_into_a_settleable_run() -> voi
 	eq(int(settled.kept.get("clear_mind", 0)), 1, "and what was already bought")
 	eq(AdventureSettlement.offers(settled, shipped, false).size(), 2,
 		"so the offer no longer lists the copy that was kept")
+
+
+# --- Copy caps, loadout copies, deck slots and Aspect tiers (2026-09-21) ----
+
+const MOTES_UPGRADES_PATH: String = "user://adventure/test_upgrades.json"
+## A second starter, so the "one library, every starter" rule has two decks to share between.
+const MOTES_STARTER_TWO: String = "pyre_attrition_start"
+
+
+func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> void:
+	var shipped: CardLibrary = shipped_library()
+	eq(AdventureCollection.cap("clear_mind", shipped), AdventureCollection.CAP_NORMAL,
+		"a normal card caps at three")
+	eq(AdventureCollection.cap("edrics_training", shipped), AdventureCollection.CAP_SIGNATURE,
+		"a card named for a character caps at four")
+	eq(AdventureCollection.cap("personality_bram_ashmark_1_starved", shipped), 1, "a personality caps at one")
+	eq(AdventureCollection.cap("salt_seal_1", shipped), 1, "a Seal caps at one")
+	eq(AdventureCollection.cap("dismissal", shipped), 2, "a card printed at two keeps the lower cap")
+	eq(AdventureCollection.cap("blank_mask", shipped), 1, "and a card printed at one keeps that")
+	# No shipped card is ever capped above the signature four, nor below its own printed limit
+	# when that limit is the looser of the two.
+	for id: String in shipped.all_ids():
+		var def: CardDef = shipped.defs[id]
+		var cap: int = AdventureCollection.cap(id, shipped)
+		check(cap >= 1 and cap <= AdventureCollection.CAP_SIGNATURE, "'%s' caps between 1 and 4" % id)
+		if def.limit_per_deck < DeckValidator.DEFAULT_LIMIT and def.type != CardDef.Type.SEAL \
+				and def.type != CardDef.Type.PERSONALITY:
+			eq(cap, def.limit_per_deck, "'%s' keeps its tighter printed limit" % id)
+	# Banking past the cap dissolves the overflow instead of dropping it.
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var fresh: AdventureCollection = AdventureCollection.new()
+	var banked: Dictionary = fresh.bank("clear_mind", 5, shipped, wallet)
+	eq(int(banked["added"]), 3, "three of five copies land")
+	eq(int(banked["copies"]), 2, "and the other two dissolve")
+	eq(int(banked["motes"]), 2 * AdventureEconomy.dissolve_value(shipped.defs["clear_mind"]),
+		"paying the dissolve value per copy")
+	eq(wallet.motes, int(banked["motes"]), "into the wallet")
+	eq(AdventureCollection.report_line(banked), "2 copies dissolved for %d Motes" % int(banked["motes"]),
+		"and the screen has a line to show")
+	eq(AdventureCollection.report_line({"copies": 0, "motes": 0}), "", "with nothing to say when nothing dissolved")
+	# A collection saved under the old caps is trimmed on load, and the overflow is paid back.
+	var old: Dictionary = {"version": 1, "cards": {
+		"clear_mind": 5,
+		"dismissal": 4,
+		"personality_bram_ashmark_1_starved": 3,
+		"pyre_kindling": 3,
+	}}
+	var migrated: AdventureCollection = AdventureCollection.from_dict(old)
+	eq(migrated.loaded_version, 1, "the old file says which version it was written at")
+	eq(migrated.copies("clear_mind"), 5, "and loads exactly what it held")
+	var purse: AdventureWallet = AdventureWallet.new()
+	var report: Dictionary = migrated.trim_to_cap(shipped, purse)
+	eq(migrated.copies("clear_mind"), 3, "the trim takes a normal row back to three")
+	eq(migrated.copies("dismissal"), 2, "a card printed at two back to two")
+	eq(migrated.copies("personality_bram_ashmark_1_starved"), 1, "and a personality back to one")
+	eq(migrated.copies("pyre_kindling"), 3, "a row already inside its cap is left alone")
+	eq(int(report["copies"]), 6, "six copies dissolved in all")
+	var expected_motes: int = 2 * AdventureEconomy.dissolve_value(shipped.defs["clear_mind"]) \
+		+ 2 * AdventureEconomy.dissolve_value(shipped.defs["dismissal"]) \
+		+ 2 * AdventureEconomy.dissolve_value(shipped.defs["personality_bram_ashmark_1_starved"])
+	eq(int(report["motes"]), expected_motes, "for what they were worth")
+	eq(purse.motes, expected_motes, "paid into the wallet")
+	eq((report["rows"] as Array).size(), 3, "with one report row per card")
+	eq(int(migrated.trim_to_cap(shipped, purse)["copies"]), 0, "a second trim finds nothing to take")
+	eq(purse.motes, expected_motes, "and pays nothing more")
+	eq(int(migrated.to_dict()["version"]), AdventureCollection.SAVE_VERSION,
+		"and the file is written at the current version from then on")
+
+
+func test_keeping_and_buying_stop_at_the_collection_cap() -> void:
+	var shipped: CardLibrary = shipped_library()
+	# The vendor: a card the collection is already full of cannot be bought at any price.
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var collection: AdventureCollection = AdventureCollection.new()
+	var stock: Array[String] = AdventureVendor.stock(wallet, collection, shipped)
+	var full_id: String = stock[0]
+	collection.add(full_id, AdventureCollection.cap(full_id, shipped), shipped)
+	wallet.earn(10000, AdventureWallet.REASON_STAGE)
+	check(collection.is_full(full_id, shipped), "the row is at its cap")
+	check(not AdventureVendor.buy(full_id, wallet, collection, shipped), "so the vendor will not sell another")
+	eq(wallet.motes, 10000, "and charges nothing for the refusal")
+	eq(collection.copies(full_id), AdventureCollection.cap(full_id, shipped), "the row stays at its cap")
+	# The run-end settlement: the same, through `cap_remaining` 0 rather than a dissolve.
+	var played: Dictionary = motes_play_run(shipped, MOTES_STARTER, 5150, 4)
+	var run: AdventureRun = played["run"]
+	check(AdventureSettlement.open(run), "the lost run settles")
+	var rows: Array[Dictionary] = AdventureSettlement.offers(run, shipped, false, collection)
+	check(not rows.is_empty(), "with cards on offer")
+	var offer_id: String = str(rows[0]["id"])
+	collection.add(offer_id, AdventureCollection.cap(offer_id, shipped), shipped)
+	var capped: Array[Dictionary] = AdventureSettlement.offers(run, shipped, false, collection)
+	for row in capped:
+		if str(row["id"]) == offer_id:
+			eq(int(row["cap_remaining"]), 0, "the row says there is no room left")
+	var before: int = wallet.motes
+	eq(AdventureSettlement.keep(run, offer_id, 1, wallet, collection, shipped), 0,
+		"so Keep banks nothing")
+	eq(wallet.motes, before, "and spends nothing")
+	eq(collection.copies(offer_id), AdventureCollection.cap(offer_id, shipped),
+		"leaving the row at its cap")
+
+
+## The first Life Deck card of `deck` that `in_id` can legally replace, or "" when there is none.
+func loadout_slot_for(deck: DeckList, in_id: String, library: CardLibrary,
+		collection: AdventureCollection) -> String:
+	for out_id in AdventureLoadout.swappable_out(deck):
+		if out_id == in_id:
+			continue
+		if (AdventureLoadout.swap(deck, out_id, in_id, library, collection)["problems"]
+				as Array[String]).is_empty():
+			return out_id
+	return ""
+
+
+func test_a_loadout_takes_no_more_copies_than_the_collection_holds() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var collection: AdventureCollection = AdventureCollection.new()
+	eq(collection.add("clear_mind", 2, shipped), 2, "the collection holds two copies")
+	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
+	eq(AdventureLoadout.starter_of(deck), MOTES_STARTER, "the loadout deck remembers its starter")
+	eq(AdventureLoadout.from_collection(deck, "clear_mind"), 0, "and takes nothing from the library yet")
+	# Two copies in is exactly what two copies owned allows.
+	var first_slot: String = loadout_slot_for(deck, "clear_mind", shipped, collection)
+	check(first_slot != "", "there is a slot the card can take")
+	var one: DeckList = AdventureLoadout.swap(deck, first_slot, "clear_mind", shipped, collection)["deck"]
+	check(one != null, "the first copy swaps in")
+	eq(AdventureLoadout.from_collection(one, "clear_mind"), 1, "one copy is now from the library")
+	var second_slot: String = loadout_slot_for(one, "clear_mind", shipped, collection)
+	check(second_slot != "", "and there is a second slot for it")
+	var two: DeckList = AdventureLoadout.swap(one, second_slot, "clear_mind", shipped, collection)["deck"]
+	check(two != null, "the second copy swaps in as well")
+	eq(two.cards.count("clear_mind") if two != null else -1, 2, "the deck runs two")
+	eq(AdventureLoadout.from_collection(two, "clear_mind"), 2, "both from the library")
+	# A third would be legal to run and is refused anyway: the collection only holds two.
+	var third_slot: String = ""
+	for out_id in AdventureLoadout.swappable_out(two):
+		if out_id != "clear_mind":
+			third_slot = out_id
+			break
+	var third: Dictionary = AdventureLoadout.swap(two, third_slot, "clear_mind", shipped, collection)
+	check(third["deck"] == null, "a third copy is refused")
+	check(swap_problem_mentions(third, "You own 2 copies"), "because the collection only holds two")
+	check(not AdventureLoadout.swappable_in(two, shipped, collection, third_slot).has("clear_mind"),
+		"and it is off the swappable list")
+	eq(collection.copies("clear_mind"), 2, "nothing was consumed either way")
+	# The library is shared: the same two copies go into a second starter at the same time.
+	var other: DeckList = AdventureLoadout.base_deck(MOTES_STARTER_TWO)
+	check(other != null, "the second starter resolves")
+	var other_slot: String = loadout_slot_for(other, "clear_mind", shipped, collection)
+	check(other_slot != "", "which can take the card too")
+	var other_one: DeckList = AdventureLoadout.swap(other, other_slot, "clear_mind", shipped, collection)["deck"]
+	check(other_one != null, "even while the first starter is already running both copies")
+	eq(collection.copies("clear_mind"), 2, "and the collection still holds two")
+	# A starter's own cards are the starter's, not the library's.
+	eq(AdventureLoadout.from_collection(deck, "pyre_kindling"), 0,
+		"a printed card counts against nothing, however many the starter runs")
+	check(collection.copies("pyre_kindling") == 0, "even with no copy of it in the collection at all")
+
+
+func test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price() -> void:
+	var shipped: CardLibrary = shipped_library()
+	# The price list rises and then holds at its last entry.
+	var costs: Array = AdventureEconomy.data().get("slot_costs", [])
+	check(costs.size() >= 5, "the economy prices at least five slots")
+	for i in range(1, costs.size()):
+		check(AdventureEconomy.slot_cost(i + 1) > AdventureEconomy.slot_cost(i),
+			"slot %d costs more than slot %d" % [i + 1, i])
+	eq(AdventureEconomy.slot_cost(costs.size() + 9), AdventureEconomy.slot_cost(costs.size()),
+		"past the end of the list the last price repeats")
+	eq(AdventureEconomy.slot_cost(0), 0, "there is no zeroth slot")
+	var upgrades: AdventureUpgrades = AdventureUpgrades.new()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	eq(upgrades.slots(MOTES_STARTER), 0, "a starter begins with no bought slots")
+	eq(upgrades.next_slot_cost(MOTES_STARTER), AdventureEconomy.slot_cost(1), "and the first slot's price")
+	check(not upgrades.buy_slot(MOTES_STARTER, wallet), "an empty wallet buys no slot")
+	eq(upgrades.slots(MOTES_STARTER), 0, "and nothing moves")
+	wallet.earn(10000, AdventureWallet.REASON_STAGE)
+	var first_cost: int = upgrades.next_slot_cost(MOTES_STARTER)
+	check(upgrades.buy_slot(MOTES_STARTER, wallet), "with Motes it does")
+	eq(wallet.motes, 10000 - first_cost, "the price is taken")
+	eq(upgrades.slots(MOTES_STARTER), 1, "and the starter has a slot")
+	check(upgrades.next_slot_cost(MOTES_STARTER) > first_cost, "the next one costs more")
+	eq(upgrades.slots(MOTES_STARTER_TWO), 0, "a slot is bought per starter and not for all of them")
+	# The loadout cap follows the slots, and Add fills them.
+	var collection: AdventureCollection = AdventureCollection.new()
+	collection.add("clear_mind", 2, shipped)
+	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
+	var printed: int = deck.cards.size()
+	var none: AdventureUpgrades = AdventureUpgrades.new()
+	eq(AdventureLoadout.size_cap(deck, none), printed, "an unbought starter caps at its printed size")
+	eq(AdventureLoadout.room_left(deck, none), 0, "with no room to add")
+	var refused: Dictionary = AdventureLoadout.add_card(deck, "clear_mind", shipped, collection, none)
+	check(refused["deck"] == null, "so Add is refused at the cap")
+	check(swap_problem_mentions(refused, "buy a deck slot"), "and says what would open one")
+	eq(AdventureLoadout.size_cap(deck, upgrades), printed + 1, "a bought slot raises the cap by one")
+	eq(AdventureLoadout.room_left(deck, upgrades), 1, "leaving one slot free")
+	check(AdventureLoadout.swappable_add(deck, shipped, collection, upgrades).has("clear_mind"),
+		"which the collection card can fill")
+	var grown: DeckList = AdventureLoadout.add_card(deck, "clear_mind", shipped, collection, upgrades)["deck"]
+	check(grown != null, "and Add fills it")
+	eq(grown.cards.size() if grown != null else 0, printed + 1, "the deck is one card bigger")
+	eq(AdventureLoadout.room_left(grown, upgrades), 0, "with the slot spent")
+	check(AdventureLoadout.add_card(grown, "clear_mind", shipped, collection, upgrades)["deck"] == null,
+		"and a second Add refused until another slot is bought")
+	# A starter with an empty slot may still begin: the cap is a ceiling, not a requirement.
+	eq(DeckValidator.validate(deck, shipped).size(), 0, "an unfilled slot leaves the deck legal")
+	eq(DeckValidator.validate(grown, shipped).size(), 0, "and so does a filled one")
+
+
+func test_an_unlocked_aspect_tier_adds_the_next_card_and_the_run_carries_on() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
+	var base_aspects: int = deck.duelist_ids.size()
+	eq(base_aspects, 2, "the starter prints a two-card stack")
+	var collection: AdventureCollection = AdventureCollection.new()
+	collection.add("personality_bram_ashmark_3_gorging", 1, shipped)
+	collection.add("personality_bram_ashmark_4_consuming", 1, shipped)
+	var upgrades: AdventureUpgrades = AdventureUpgrades.new()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	eq(upgrades.aspect_tier(MOTES_STARTER, base_aspects), base_aspects,
+		"an unbought starter stands at its own height")
+	eq(upgrades.next_aspect_cost(MOTES_STARTER, base_aspects), AdventureEconomy.aspect_tier_cost(3),
+		"and the next tier is priced")
+	check(AdventureEconomy.aspect_tier_cost(4) > AdventureEconomy.aspect_tier_cost(3),
+		"tier 4 costs more than tier 3")
+	check(AdventureEconomy.aspect_tier_cost(5) > AdventureEconomy.aspect_tier_cost(4),
+		"and tier 5 more again")
+	# Before the unlock the card cannot be added, however many copies are banked.
+	var locked: Dictionary = AdventureLoadout.add_aspect(deck, "personality_bram_ashmark_3_gorging",
+		shipped, collection, upgrades)
+	check(locked["deck"] == null, "a locked tier refuses the card")
+	check(swap_problem_mentions(locked, "not unlocked"), "saying so plainly")
+	check(AdventureLoadout.swappable_aspect(deck, shipped, collection, upgrades).is_empty(),
+		"and offers nothing to add")
+	check(not upgrades.buy_aspect_tier(MOTES_STARTER, base_aspects, wallet), "an empty wallet unlocks nothing")
+	wallet.earn(10000, AdventureWallet.REASON_STAGE)
+	check(upgrades.buy_aspect_tier(MOTES_STARTER, base_aspects, wallet), "with Motes the tier unlocks")
+	eq(wallet.motes, 10000 - AdventureEconomy.aspect_tier_cost(3), "at the tier's price")
+	eq(upgrades.aspect_tier(MOTES_STARTER, base_aspects), 3, "the starter may now run three")
+	eq(AdventureLoadout.aspect_cap(deck, upgrades), 3, "which is what the loadout reads")
+	# Only the next tier can be added, and the stack stays consecutive.
+	var skipped: Dictionary = AdventureLoadout.add_aspect(deck, "personality_bram_ashmark_4_consuming",
+		shipped, collection, upgrades)
+	check(skipped["deck"] == null, "a tier-four card cannot jump onto a two-card stack")
+	var offered_tier: Array[String] = ["personality_bram_ashmark_3_gorging"]
+	eq(AdventureLoadout.swappable_aspect(deck, shipped, collection, upgrades), offered_tier,
+		"only the tier-three card is on offer")
+	var tall: DeckList = AdventureLoadout.add_aspect(deck, "personality_bram_ashmark_3_gorging",
+		shipped, collection, upgrades)["deck"]
+	check(tall != null, "the tier-three card goes on")
+	eq(tall.duelist_ids.size() if tall != null else 0, 3, "making a three-card stack")
+	eq(DeckValidator.validate(tall, shipped).size(), 0, "which is legal to run")
+	check(AdventureLoadout.add_aspect(tall, "personality_bram_ashmark_4_consuming", shipped,
+		collection, upgrades)["deck"] == null, "and tier four stays locked until it is bought")
+	# A run started from that deck carries on from where the stack ends.
+	var run: AdventureRun = AdventureLoadout.begin_from(MOTES_STARTER, tall, 4242)
+	eq(run.duelist_ids.size(), 3, "the run begins three Aspects high")
+	var options: Array[String] = run.next_tier_options(shipped)
+	check(not options.is_empty(), "and its next Aspect is a tier-four card")
+	for id in options:
+		eq((shipped.defs[id] as CardDef).aspect, 4, "'%s' is Aspect 4" % id)
+	# The ladder's own grant then offers that tier rather than the one already held.
+	var ladder: AdventureLadder = AdventureLadder.load_for(MOTES_STARTER, 4242)
+	var granted: bool = false
+	while run.status != "won" and run.status != "lost":
+		AdventureRewards.finish_stage(run, ladder, shipped, true)
+		if run.status == "aspect":
+			granted = true
+			for id in run.pending_aspects:
+				eq((shipped.defs[id] as CardDef).aspect, 4, "the grant offers Aspect 4, not Aspect 3")
+			AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0])
+			AdventureRewards.finish_aspect(run, ladder, shipped)
+		if run.pending_offer.is_empty():
+			AdventureRewards.apply_skip(run)
+		else:
+			AdventureRewards.apply_bundle(run, shipped, run.pending_offer[0])
+		AdventureRewards.finish_reward(run, ladder)
+	check(granted, "the ladder's grant stage did offer an Aspect")
+	eq(run.duelist_ids.size(), 4, "so the run finished four Aspects high")
+	eq(run.added_duelist_cards().size(), 1, "having climbed one tier of its own")
+	# A stack already at the construction maximum is skipped rather than offered nothing.
+	var maxed: AdventureRun = AdventureLoadout.begin_from(MOTES_STARTER, tall, 77)
+	maxed.duelist_ids = ["personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_leeching",
+		"personality_bram_ashmark_3_gorging", "personality_bram_ashmark_4_consuming",
+		"personality_bram_ashmark_5_insatiable"]
+	eq(maxed.next_tier_options(shipped).size(), 0, "a five-card stack has nowhere left to climb")
+	var maxed_ladder: AdventureLadder = AdventureLadder.load_for(MOTES_STARTER, 77)
+	for n in range(2):
+		AdventureRewards.finish_stage(maxed, maxed_ladder, shipped, true)
+		if maxed.status == "reward":
+			AdventureRewards.apply_skip(maxed)
+			AdventureRewards.finish_reward(maxed, maxed_ladder)
+	check(maxed.status != "aspect", "so the grant stage skips the Aspect choice")
+	var skipped_pick: bool = false
+	for pick in maxed.picks:
+		if str(pick.get("kind", "")) == "aspect_skipped":
+			skipped_pick = true
+	check(skipped_pick, "and records that it was skipped")
+
+
+func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
+	AdventureUpgrades.path_override = MOTES_UPGRADES_PATH
+	AdventureUpgrades.clear()
+	var upgrades: AdventureUpgrades = AdventureUpgrades.load_upgrades()
+	eq(upgrades.slots(MOTES_STARTER), 0, "upgrades with no file start empty")
+	eq(upgrades.all_starters().size(), 0, "and name no starter")
+	var wallet: AdventureWallet = AdventureWallet.new()
+	wallet.earn(10000, AdventureWallet.REASON_STAGE)
+	check(upgrades.buy_slot(MOTES_STARTER, wallet), "a slot is bought")
+	check(upgrades.buy_slot(MOTES_STARTER, wallet), "and a second")
+	check(upgrades.buy_aspect_tier(MOTES_STARTER, 2, wallet), "and an Aspect tier")
+	check(upgrades.buy_slot(MOTES_STARTER_TWO, wallet), "a second starter buys its own slot")
+	eq(wallet.ledger[wallet.ledger.size() - 1]["reason"], AdventureWallet.REASON_SLOT,
+		"every purchase leaves a ledger line")
+	check(upgrades.save(), "the upgrades write to disk")
+	var loaded: AdventureUpgrades = AdventureUpgrades.load_upgrades()
+	eq(loaded.slots(MOTES_STARTER), 2, "the slot count came back an int")
+	eq(loaded.aspect_tier(MOTES_STARTER, 2), 3, "and the unlocked tier with it")
+	eq(loaded.slots(MOTES_STARTER_TWO), 1, "each starter keeps its own")
+	eq(loaded.aspect_tier(MOTES_STARTER_TWO, 2), 2, "and an unbought tier stays at the printed height")
+	eq(loaded.all_starters(), upgrades.all_starters(), "the rows came back whole")
+	eq(int(upgrades.to_dict()["version"]), AdventureUpgrades.SAVE_VERSION, "written at the current version")
+	# A tier cannot be bought past the construction maximum.
+	for _i in range(6):
+		upgrades.buy_aspect_tier(MOTES_STARTER, 2, wallet)
+	eq(upgrades.aspect_tier(MOTES_STARTER, 2), DeckValidator.MAX_ASPECTS,
+		"buying stops at the highest Aspect a deck may run")
+	eq(upgrades.next_aspect_cost(MOTES_STARTER, 2), 0, "with nothing left to buy")
+	for _i in range(AdventureEconomy.slot_max() + 3):
+		upgrades.buy_slot(MOTES_STARTER, wallet)
+	eq(upgrades.slots(MOTES_STARTER), AdventureEconomy.slot_max(), "and slots stop at their maximum")
+	eq(upgrades.next_slot_cost(MOTES_STARTER), 0, "with nothing left to buy either")
+	AdventureUpgrades.clear()
+	check(not AdventureUpgrades.exists(), "clear removes the file")
+	AdventureUpgrades.path_override = ""

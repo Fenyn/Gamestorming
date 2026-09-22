@@ -45,7 +45,7 @@
     },
     {
       "id": "scattered_ashes",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_mind_rot",
@@ -57,7 +57,7 @@
     },
     {
       "id": "unerring_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "cold_appraisal",
@@ -65,7 +65,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "hired_blades",
@@ -73,7 +73,7 @@
     },
     {
       "id": "rallying_call",
-      "count": 2
+      "count": 3
     },
     {
       "id": "scorn_smirks",
@@ -81,7 +81,7 @@
     },
     {
       "id": "shade_veil",
-      "count": 1
+      "count": 2
     },
     {
       "id": "personality_brann_draik_1",
@@ -101,11 +101,11 @@
     },
     {
       "id": "branns_shakedown",
-      "count": 1
+      "count": 2
     },
     {
       "id": "halvards_twin_cut",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_dread_grip",
@@ -117,15 +117,15 @@
     },
     {
       "id": "shade_nightmare_hold",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_oblivion_touch",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vesnas_ambush",
-      "count": 1
+      "count": 2
     }
   ]
 }

@@ -52,15 +52,15 @@
     },
     {
       "id": "storm_earthing_rod",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_lash",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_palm_surge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_plasma_beam",
@@ -76,11 +76,11 @@
     },
     {
       "id": "braced_guard",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "rallying_call",
@@ -88,10 +88,6 @@
     },
     {
       "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -120,7 +116,7 @@
     },
     {
       "id": "corins_conditioning",
-      "count": 2
+      "count": 3
     },
     {
       "id": "foresight",
@@ -137,6 +133,10 @@
     {
       "id": "provocation",
       "count": 3
+    },
+    {
+      "id": "rites_unmade",
+      "count": 1
     },
     {
       "id": "spoiled_rite",

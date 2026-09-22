@@ -30,7 +30,7 @@
     },
     {
       "id": "draiks_reckoning",
-      "count": 2
+      "count": 3
     },
     {
       "id": "knife_volley",
@@ -46,11 +46,11 @@
     },
     {
       "id": "scattered_ashes",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_mind_rot",
-      "count": 2
+      "count": 3
     },
     {
       "id": "shade_umbral_lash",
@@ -58,15 +58,15 @@
     },
     {
       "id": "unerring_bolt",
-      "count": 1
-    },
-    {
-      "id": "cold_appraisal",
       "count": 2
     },
     {
+      "id": "cold_appraisal",
+      "count": 3
+    },
+    {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "hired_blades",
@@ -74,7 +74,7 @@
     },
     {
       "id": "rallying_call",
-      "count": 2
+      "count": 3
     },
     {
       "id": "scorn_smirks",
@@ -82,7 +82,7 @@
     },
     {
       "id": "shade_veil",
-      "count": 1
+      "count": 2
     },
     {
       "id": "stillness",
@@ -114,11 +114,11 @@
     },
     {
       "id": "no_quarter",
-      "count": 1
+      "count": 2
     },
     {
       "id": "relentless_fury",
-      "count": 1
+      "count": 2
     },
     {
       "id": "shade_dread_grip",

@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "committed_cut",
-      "count": 2
+      "count": 3
     },
     {
       "id": "lobbed_bolt",
@@ -31,7 +31,7 @@
     },
     {
       "id": "cut_short",
-      "count": 2
+      "count": 3
     },
     {
       "id": "keen_eye",
@@ -63,7 +63,7 @@
     },
     {
       "id": "counterplay_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "lone_blade_drill",
@@ -95,7 +95,7 @@
     },
     {
       "id": "vales_insight",
-      "count": 2
+      "count": 3
     },
     {
       "id": "hilt_guard",
@@ -123,19 +123,19 @@
     },
     {
       "id": "sword_flourish",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sword_lunge",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sword_sweep",
-      "count": 2
+      "count": 3
     },
     {
       "id": "sword_thrust",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

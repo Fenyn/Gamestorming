@@ -4,16 +4,32 @@ extends RefCounted
 ## box of cards. A run copies out of it and never takes anything away, so a card swapped into a
 ## starter is still there for the next run.
 ##
-## The cap per id is what a deck may legally run, read off DeckValidator's own constants: there is
-## no reason to hold four of a card printed at three.
+## The collection holds at most three copies of a normal card and four of a card named for a
+## character. Personalities and Seals are one apiece. A card that prints a tighter limit of its own
+## keeps that lower number, because there is no reason to hold three of a card printed at two.
+##
+## Anything past the cap dissolves into Motes on the spot rather than sitting unusable. The settle
+## screen and the vendor stop selling at the cap instead, so nobody pays full price for a copy that
+## would dissolve for a quarter; the auto-dissolve is for migration and any other path that lands
+## copies the collection cannot hold.
 
 const PATH: String = "user://adventure/collection.json"
-const SAVE_VERSION: int = 1
+## Bumped to 2 when the caps became 3 / 4 / 1 in their own right rather than DeckValidator's deck
+## limits. A version 1 file may hold rows above the new cap, so `trim_to_cap` runs on load and pays
+## the overflow back as Motes.
+const SAVE_VERSION: int = 2
+
+## The most copies of a normal card, and of a card named for a character.
+const CAP_NORMAL: int = 3
+const CAP_SIGNATURE: int = 4
 
 ## Tests point this somewhere else so nothing lands on the player's save.
 static var path_override: String = ""
 
 var counts: Dictionary = {}   # id -> int copies held
+## The version the loaded file was written at, so a caller can tell a migrated file from a fresh
+## one. Not saved: `to_dict` always writes SAVE_VERSION.
+var loaded_version: int = SAVE_VERSION
 
 
 static func path() -> String:
@@ -24,19 +40,19 @@ func copies(id: String) -> int:
 	return int(counts.get(id, 0))
 
 
-## The most copies of `id` the collection will hold: what DeckValidator would allow a deck to run.
-## A personality and a Seal are one apiece; a card named for a character allows the signature
-## fourth, unless it prints a tighter limit of its own; everything else is its printed limit.
-## 0 for a card the library does not know.
+## The most copies of `id` the collection will hold: three for a normal card, four for a card named
+## for a character, one for a personality or a Seal. A card that prints a limit below three keeps
+## that lower number; a printed limit is the tighter rule and wins. 0 for a card the library does
+## not know.
 static func cap(id: String, library: CardLibrary) -> int:
 	var def: CardDef = library.defs.get(id)
 	if def == null:
 		return 0
 	if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 		return 1
-	if def.is_signature() and def.limit_per_deck >= DeckValidator.DEFAULT_LIMIT:
-		return DeckValidator.SIGNATURE_LIMIT
-	return def.limit_per_deck
+	if def.limit_per_deck < DeckValidator.DEFAULT_LIMIT:
+		return def.limit_per_deck
+	return CAP_SIGNATURE if def.is_signature() else CAP_NORMAL
 
 
 ## Room left for `id` before the cap.
@@ -83,6 +99,60 @@ func dissolve(id: String, library: CardLibrary, wallet: AdventureWallet) -> int:
 	return value
 
 
+## Adds `n` copies and dissolves whatever will not fit, paying `wallet` for each dissolved copy.
+## This is the path for copies that land past the cap; the settle screen and the vendor stop at the
+## cap instead. Returns a report: {"added", "copies", "motes", "rows"}, where `copies` is how many
+## dissolved and `rows` is one {"id", "copies", "motes"} per id.
+func bank(id: String, n: int, library: CardLibrary, wallet: AdventureWallet) -> Dictionary:
+	var report: Dictionary = {"added": 0, "copies": 0, "motes": 0, "rows": []}
+	if n <= 0 or not library.defs.has(id):
+		return report
+	var added: int = add(id, n, library)
+	report["added"] = added
+	var spare: int = n - added
+	if spare > 0:
+		_dissolve_into(report, id, spare, library, wallet)
+	return report
+
+
+## Trims every row back to its cap, paying `wallet` the dissolve value of each copy taken. Returns
+## the same report shape as `bank`, with "added" always 0. Cheap and safe to call on a collection
+## that is already within its caps: it reports nothing and touches nothing.
+func trim_to_cap(library: CardLibrary, wallet: AdventureWallet) -> Dictionary:
+	var report: Dictionary = {"added": 0, "copies": 0, "motes": 0, "rows": []}
+	for id in all_ids():
+		var over: int = copies(id) - AdventureCollection.cap(id, library)
+		if over <= 0:
+			continue
+		remove(id, over)
+		_dissolve_into(report, id, over, library, wallet)
+	return report
+
+
+## Pays `n` copies of `id` back as Motes and records the row. The copies are already gone from the
+## counts (or never landed), so this only prices them and credits the wallet.
+func _dissolve_into(report: Dictionary, id: String, n: int, library: CardLibrary,
+		wallet: AdventureWallet) -> void:
+	var def: CardDef = library.defs.get(id)
+	if def == null or n <= 0:
+		return
+	var motes: int = AdventureEconomy.dissolve_value(def) * n
+	if wallet != null and motes > 0:
+		wallet.earn(motes, AdventureWallet.REASON_DISSOLVE, id)
+	report["copies"] = int(report["copies"]) + n
+	report["motes"] = int(report["motes"]) + motes
+	(report["rows"] as Array).append({"id": id, "copies": n, "motes": motes})
+
+
+## The one line a screen shows for a report, or "" when nothing dissolved.
+static func report_line(report: Dictionary) -> String:
+	var copies_value: int = int(report.get("copies", 0))
+	if copies_value <= 0:
+		return ""
+	return "%d %s dissolved for %d Motes" % [
+		copies_value, "copy" if copies_value == 1 else "copies", int(report.get("motes", 0))]
+
+
 ## Every id held, sorted, so a screen lists the collection the same way twice.
 func all_ids() -> Array[String]:
 	var out: Array[String] = []
@@ -114,6 +184,7 @@ func to_dict() -> Dictionary:
 ## Tolerant of JSON, which hands every number back as a float.
 static func from_dict(d: Dictionary) -> AdventureCollection:
 	var c: AdventureCollection = AdventureCollection.new()
+	c.loaded_version = int(d.get("version", 1))
 	var rows: Dictionary = d.get("cards", {})
 	for id in rows.keys():
 		var n: int = int(rows[id])

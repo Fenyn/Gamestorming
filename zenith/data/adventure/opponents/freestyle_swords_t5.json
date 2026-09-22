@@ -51,7 +51,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 3
     },
     {
       "id": "absorbing_drill",
@@ -79,7 +79,7 @@
     },
     {
       "id": "swordplay_drill",
-      "count": 2
+      "count": 3
     },
     {
       "id": "foresight",
@@ -107,15 +107,15 @@
     },
     {
       "id": "no_quarter",
-      "count": 2
+      "count": 3
     },
     {
       "id": "quick_retreat",
-      "count": 2
+      "count": 3
     },
     {
       "id": "relentless_fury",
-      "count": 2
+      "count": 3
     },
     {
       "id": "second_wind",
@@ -147,7 +147,7 @@
     },
     {
       "id": "vales_quickstep",
-      "count": 2
+      "count": 3
     },
     {
       "id": "vales_riposte",

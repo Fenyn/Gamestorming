@@ -54,10 +54,6 @@
       "count": 1
     },
     {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
       "id": "steel_standoff",
       "count": 1
     },
@@ -67,7 +63,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 2
+      "count": 3
     },
     {
       "id": "locked_gate_drill",
@@ -87,6 +83,10 @@
     },
     {
       "id": "mourne_takes_measure",
+      "count": 1
+    },
+    {
+      "id": "rites_unmade",
       "count": 1
     },
     {
@@ -131,7 +131,7 @@
     },
     {
       "id": "steel_rake",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_reverse",
@@ -143,19 +143,19 @@
     },
     {
       "id": "steel_stamp",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_tackle",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_talon",
-      "count": 2
+      "count": 3
     },
     {
       "id": "steel_tempering",
-      "count": 2
+      "count": 3
     },
     {
       "id": "unyielding_guard",

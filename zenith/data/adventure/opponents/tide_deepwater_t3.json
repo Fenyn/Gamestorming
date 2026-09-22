@@ -24,11 +24,11 @@
   "cards": [
     {
       "id": "tide_black_water",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_crushing_depth",
-      "count": 2
+      "count": 3
     },
     {
       "id": "tide_depths",
@@ -52,7 +52,7 @@
     },
     {
       "id": "reckless_ascent",
-      "count": 1
+      "count": 2
     },
     {
       "id": "stillness",
@@ -79,6 +79,10 @@
       "count": 1
     },
     {
+      "id": "wardens_measure",
+      "count": 1
+    },
+    {
       "id": "moth_seal_3",
       "count": 1
     },
@@ -92,11 +96,11 @@
     },
     {
       "id": "ashmarks_choke_hold",
-      "count": 1
+      "count": 2
     },
     {
       "id": "edrics_opening_strike",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mournes_stance",
@@ -104,11 +108,11 @@
     },
     {
       "id": "no_quarter",
-      "count": 1
+      "count": 2
     },
     {
       "id": "relentless_fury",
-      "count": 1
+      "count": 2
     },
     {
       "id": "second_wind",
@@ -120,7 +124,7 @@
     },
     {
       "id": "tide_deep_anchor",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_deep_guard",
@@ -156,7 +160,7 @@
     },
     {
       "id": "tide_undertow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "tide_welling_deep",

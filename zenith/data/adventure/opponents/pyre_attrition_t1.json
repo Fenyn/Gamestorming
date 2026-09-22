@@ -43,11 +43,11 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_twin_flames",
-      "count": 1
+      "count": 2
     },
     {
       "id": "spent_to_the_last",
@@ -59,7 +59,7 @@
     },
     {
       "id": "emrys_rising_blow",
-      "count": 1
+      "count": 2
     },
     {
       "id": "headlong_plunge",
@@ -87,11 +87,11 @@
     },
     {
       "id": "pyre_knee_bash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_rekindling",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_scouring_flame",
@@ -99,11 +99,11 @@
     },
     {
       "id": "pyre_searing_guard",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_sword_cleave",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_warding_stance",
@@ -115,7 +115,7 @@
     },
     {
       "id": "vales_sword_draw",
-      "count": 1
+      "count": 2
     }
   ]
 }

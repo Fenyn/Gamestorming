@@ -33,7 +33,7 @@
     },
     {
       "id": "pyre_twin_flames",
-      "count": 1
+      "count": 2
     },
     {
       "id": "sever_the_leyline",
@@ -53,7 +53,7 @@
     },
     {
       "id": "stokes_the_coals",
-      "count": 1
+      "count": 2
     },
     {
       "id": "all_or_nothing",
@@ -73,7 +73,7 @@
     },
     {
       "id": "pyre_comet_fall",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_firestorm",
@@ -81,7 +81,7 @@
     },
     {
       "id": "pyre_flame_lash",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_flashover",
@@ -93,19 +93,19 @@
     },
     {
       "id": "pyre_kindling",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_rekindling",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_scouring_flame",
-      "count": 1
+      "count": 2
     },
     {
       "id": "wall_of_flame",
-      "count": 1
+      "count": 2
     }
   ]
 }

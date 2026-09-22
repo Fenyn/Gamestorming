@@ -33,7 +33,7 @@ static func load_run() -> AdventureRun:
 ## on the same stage, so the bundle offer that stage would have made is drawn now.
 static func _rebuild_offer(run: AdventureRun) -> void:
 	run.needs_offer_rebuild = false
-	var ladder: AdventureLadder = AdventureLadder.load_for(run.starter_id)
+	var ladder: AdventureLadder = AdventureLadder.load_for(run.starter_id, run.run_seed)
 	if ladder == null:
 		return
 	var library: CardLibrary = CardLibrary.new()

@@ -24,11 +24,11 @@
   "cards": [
     {
       "id": "captains_barrage",
-      "count": 2
+      "count": 3
     },
     {
       "id": "draiks_reckoning",
-      "count": 2
+      "count": 3
     },
     {
       "id": "lingering_curse",
@@ -44,7 +44,7 @@
     },
     {
       "id": "sledges_stance",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_arc_bolt",
@@ -60,7 +60,7 @@
     },
     {
       "id": "storm_smiting_bolt",
-      "count": 1
+      "count": 2
     },
     {
       "id": "storm_static_field",
@@ -76,7 +76,7 @@
     },
     {
       "id": "cold_appraisal",
-      "count": 2
+      "count": 3
     },
     {
       "id": "cut_short",
@@ -92,7 +92,7 @@
     },
     {
       "id": "old_trick",
-      "count": 1
+      "count": 2
     },
     {
       "id": "reckless_ascent",
@@ -111,10 +111,6 @@
       "count": 1
     },
     {
-      "id": "bravado_drill",
-      "count": 1
-    },
-    {
       "id": "clear_mind",
       "count": 1
     },
@@ -124,7 +120,7 @@
     },
     {
       "id": "mercy_smiles",
-      "count": 1
+      "count": 3
     },
     {
       "id": "recalled_lesson",
@@ -160,7 +156,7 @@
     },
     {
       "id": "siphons_sidestep",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_maelstrom",

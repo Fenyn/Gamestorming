@@ -25,15 +25,16 @@ STARTER_SIZE = 40
 STARTER_SIZE_BY_DECK = {"root_seals": 45}
 STARTER_MAX_COPIES = 2
 
-# The ladder. The player starts at 40 and grows toward 70, so tiers 1 and 2 sit under that on
-# purpose: the opening stages are meant to be won while the deck is still a starter.
+# The ladder. The player starts at 50 (Root 55) and grows toward the precon, so tier 1 sits a
+# little under that: the opening stages are meant to be won while the deck is still a starter.
+# 2026-09-21: 40 to the full precon (about 80), from 32 to 66.
 OPPONENT_TIERS = [
     # name, size (0 = the whole precon), lockouts allowed, max copies, aspects
-    ("t1", 32, False, 2, 2),
-    ("t2", 38, False, 2, 2),
-    ("t3", 46, True, 3, 3),
-    ("t4", 56, True, 3, 3),
-    ("t5", 66, True, 3, 3),
+    ("t1", 40, False, 2, 2),
+    ("t2", 48, False, 3, 2),   # 2 copies runs eight precons dry before 48
+    ("t3", 56, True, 3, 3),
+    ("t4", 64, True, 3, 3),
+    ("t5", 72, True, 3, 3),
     ("boss", 0, True, 0, 0),   # 0 aspects means take the precon's own
 ]
 

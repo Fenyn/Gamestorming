@@ -13,6 +13,7 @@
   "reserve": [],
   "archetype": "allies",
   "difficulty": "easy",
+  "rating": "A",
   "subthemes": ["disruption"],
   "ai_profile": "shade_henchmen",
   "tagline": "Rally a company of hexers and strip away your rival's hand while your allies keep the pressure on.",

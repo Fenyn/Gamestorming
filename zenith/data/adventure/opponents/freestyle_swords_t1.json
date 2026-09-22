@@ -22,7 +22,7 @@
   "cards": [
     {
       "id": "committed_cut",
-      "count": 1
+      "count": 2
     },
     {
       "id": "lobbed_bolt",
@@ -30,7 +30,7 @@
     },
     {
       "id": "cut_short",
-      "count": 1
+      "count": 2
     },
     {
       "id": "keen_eye",
@@ -42,7 +42,7 @@
     },
     {
       "id": "watchful_eye",
-      "count": 1
+      "count": 2
     },
     {
       "id": "absorbing_drill",
@@ -54,7 +54,7 @@
     },
     {
       "id": "lone_blade_drill",
-      "count": 1
+      "count": 2
     },
     {
       "id": "mournes_quickness_drill",
@@ -78,7 +78,7 @@
     },
     {
       "id": "vales_insight",
-      "count": 1
+      "count": 2
     },
     {
       "id": "hilt_guard",
@@ -102,11 +102,11 @@
     },
     {
       "id": "sword_sweep",
-      "count": 1
+      "count": 2
     },
     {
       "id": "sword_thrust",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vales_pommel_bash",
@@ -114,7 +114,7 @@
     },
     {
       "id": "vales_quickstep",
-      "count": 1
+      "count": 2
     },
     {
       "id": "vales_riposte",

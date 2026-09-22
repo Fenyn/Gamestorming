@@ -13,7 +13,7 @@ from cardlib import (add, strike, art, block, combat, noncombat, duelist, aspect
 # --- The duelist ----------------------------------------------------------
 # Bram Ashmark's second printed line, "the Glut": five rungs instead of the Hollow line's three,
 # and the hollow with something in it rather than empty. He traded his humanity for power and cannot be
-# filled by it (docs/world.md), so the ladder is an appetite escalating: he gnaws, he feasts, he
+# filled by it (docs/cast.md), so the ladder is an appetite escalating: he gnaws, he feasts, he
 # gorges, what he took is turned back into him, and at the top he is still not full. The titles
 # read off the powers and never off the school, because he may field another one later.
 duelist(ALPHA, [

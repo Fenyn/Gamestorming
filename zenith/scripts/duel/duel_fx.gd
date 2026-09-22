@@ -9,7 +9,6 @@ const TEXT_TIME: float = 1.2
 const TEXT_LIFT: float = 0.3
 const SLASH_TIME: float = 0.4
 const RING_TIME: float = 0.55
-const BURST_LIFE: float = 0.7
 @export var reduced_motion: bool = false
 var _attack_link: MeshInstance3D = null
 var _link_state: StringName = &""
@@ -127,41 +126,11 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> void:
 	if reduced_motion:
 		return
-	var p: CPUParticles3D = CPUParticles3D.new()
-	p.amount = count
-	p.one_shot = true
-	p.explosiveness = 1.0
-	p.lifetime = BURST_LIFE
-	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	p.emission_sphere_radius = 0.08
-	p.direction = Vector3.UP
-	p.spread = 85.0
-	p.initial_velocity_min = speed * 0.4
-	p.initial_velocity_max = speed
-	p.gravity = Vector3(0, -5.0, 0)
-	p.scale_amount_min = 0.5
-	p.scale_amount_max = 1.0
-	var ramp: Gradient = Gradient.new()
-	ramp.set_color(0, color)
-	ramp.set_color(1, Color(color, 0.0))
-	p.color_ramp = ramp
-	var mesh: SphereMesh = SphereMesh.new()
-	mesh.radius = 0.019
-	mesh.height = 0.038
-	mesh.radial_segments = 6
-	mesh.rings = 3
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.vertex_color_use_as_albedo = true
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mesh.material = mat
-	p.mesh = mesh
-	p.position = pos + Vector3(0, 0.05, 0)
-	add_child(p)
-	p.emitting = true
-	var cleanup: Tween = create_tween()
-	cleanup.tween_interval(BURST_LIFE + 0.2)
-	cleanup.tween_callback(p.queue_free)
+	var particles: GPUParticles3D = EffectBlocks.play(self, "impacts/impact_4", pos, color, 1.0, 0.8) as GPUParticles3D
+	particles.amount = count
+	var material: ParticleProcessMaterial = particles.process_material
+	material.initial_velocity_min = speed * 0.4
+	material.initial_velocity_max = speed
 
 
 ## A bright streak from one card to another, lying just above the table, that fades.
@@ -223,6 +192,10 @@ func ring(pos: Vector3, color: Color, size: float = 1.0) -> void:
 
 ## Successful protection closes inward, distinct from an outward damage shock.
 func ward(pos: Vector3, color: Color, size: float = 1.0) -> void:
+	if not reduced_motion:
+		var ward_effect: Node3D = EffectBlocks.play(self, "ground_effects/ground_effect_1", pos, color, size * 1.2, 0.65)
+		var close: Tween = create_tween()
+		close.tween_property(ward_effect, "scale", ward_effect.scale * 0.6, 0.6)
 	var crest: MeshInstance3D = _halo(pos, color, 0.58 * size, 0.035)
 	crest.scale = Vector3.ONE * (1.0 if reduced_motion else 1.28)
 	var mat: StandardMaterial3D = crest.material_override as StandardMaterial3D
@@ -240,7 +213,9 @@ func ward(pos: Vector3, color: Color, size: float = 1.0) -> void:
 func impact(pos: Vector3, color: Color, strength: float = 1.0) -> void:
 	var weight: float = clampf(strength, 0.5, 1.8)
 	ring(pos, color, 0.65 * weight)
-	burst(pos, color, int(12 * weight), 1.5 * weight)
+	burst(pos, color.lightened(0.2), int(22 * weight), 2.0 * weight)
+	if not reduced_motion:
+		EffectBlocks.play(self, "impacts/impact_1", pos, color, 0.8 * weight, 1.0)
 
 
 ## Brief ordered rings make a rank change larger than routine resource feedback.
@@ -248,15 +223,14 @@ func ascend(pos: Vector3, color: Color, rising: bool = true) -> void:
 	if reduced_motion:
 		ring(pos, color, 1.2)
 		return
-	for i in range(3):
-		var halo: MeshInstance3D = _halo(pos, color, 0.45 + i * 0.13, 0.018)
-		var mat: StandardMaterial3D = halo.material_override as StandardMaterial3D
-		var t: Tween = create_tween().set_parallel(true)
-		t.tween_property(halo, "position:y", halo.position.y + (0.35 + i * 0.12 if rising else -0.04), 0.6).set_delay(i * 0.075).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		t.tween_property(halo, "scale", Vector3.ONE * (1.25 if rising else 0.45), 0.6).set_delay(i * 0.075)
-		t.tween_property(mat, "albedo_color:a", 0.0, 0.4).set_delay(0.2 + i * 0.075)
-		t.chain().tween_callback(halo.queue_free)
-	burst(pos, color, 18, 1.8)
+	if rising:
+		var effect: Node3D = EffectBlocks.play(self, "loot/power_up", pos + Vector3.UP * 0.5, color, 1.2, 1.3)
+		var fade: Tween = create_tween()
+		fade.tween_interval(0.75)
+		fade.tween_property(effect, "scale", Vector3.ONE * 0.05, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	else:
+		ward(pos, color, 1.2)
+	burst(pos, color.lightened(0.25), 32, 1.6)
 
 
 ## Gains gather inward; spending releases an outward pulse. Exact values belong to UI.

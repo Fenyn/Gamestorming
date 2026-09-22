@@ -148,13 +148,13 @@ var _owner_marks: Dictionary = {}      # card uid -> " · yours" / " · theirs",
 
 
 func _ready() -> void:
-	root.theme = ZenithTheme.get_theme()
+	root.theme = SanctumUI.theme()
 	_focus_home = Vector4(focus.offset_left, focus.offset_top, focus.offset_right, focus.offset_bottom)
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	for rail in [near_backline, far_backline]:
 		rail.pile_opened.connect(func(player: int, zone: StringName) -> void: pile_opened.emit(player, zone))
-	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.7), Color.TRANSPARENT, 14, 0, 14, 10))
+	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.065, 0.065, 0.065, 0.96), Color(0.20, 0.20, 0.20), 2, 1, 14, 10))
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
 		# the turn: filled behind, gold on the step we are in, empty ahead.
@@ -304,7 +304,7 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 		turn_who.text = "RESERVE"
 	turn_who.add_theme_color_override("font_color", ZenithTheme.ACCENT if mine else ZenithTheme.MUTED)
 	# A gold left edge while the viewer acts, so the banner itself says whether to reach for a card.
-	phase_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.025, 0.035, 0.06, 0.72), Color.TRANSPARENT, 18, 0, 18, 8))
+	phase_panel.add_theme_stylebox_override("panel", SanctumUI.panel())
 
 	var beat: String = _combat_beat(view, me, live)
 	phase_sub.visible = beat != ""
@@ -461,6 +461,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 			b.add_theme_font_size_override("font_size", 24)
 			b.pressed.connect(func() -> void: _show_final_strike(finals))
 			primary_box.add_child(b)
+			_fit_actions()
 	else:
 		_fill_buttons([], primary_box, true)
 		_show_tray(prompt_who.text, p.title, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
@@ -873,6 +874,11 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 			b.focus_entered.connect(func() -> void: _preview_outcome(opt.outcome))
 			b.focus_exited.connect(func() -> void: _preview_outcome({}))
 		into.add_child(b)
+	# The action area shows itself from the box's minimum-size signal, which is deferred and only
+	# fires when the size differs from the last one recorded. Buttons the same size as the ones
+	# just removed leave it silent, and the panel would show its question with nothing under it.
+	if into == primary_box:
+		_fit_actions()
 
 
 # --- Tray -----------------------------------------------------------------
@@ -1391,9 +1397,9 @@ func show_replay_card(def: CardDef, caption: String, color: Color) -> bool:
 	if def == null or tray.visible or inspect.visible:
 		return false
 	_replay_focus = true
-	focus.offset_left = -342.0
+	focus.offset_left = -374.0
 	focus.offset_top = 100.0
-	focus.offset_right = -22.0
+	focus.offset_right = -54.0
 	focus.offset_bottom = 580.0
 	focus_caption.text = caption.to_upper()
 	focus.visible = true
@@ -1577,6 +1583,7 @@ func show_game_over(title: String, reason: String, rematch_possible: bool = true
 	game_over_title.text = title
 	game_over_reason.text = reason
 	game_over.visible = true
+	SanctumUI.enter($Root/GameOver/Center/Column)
 	rematch_button.visible = rematch_possible and (not _online or _is_host)
 	if _online and not _is_host and rematch_possible:
 		game_over_reason.text += "\nThe host can call a rematch."

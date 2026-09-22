@@ -13,23 +13,23 @@ signal name_changed(seat: int, player_name: String)
 @onready var stamp: Label = $Row/Scroll/Content/Tabs/Overview/Hero/PortraitBox/Stamp
 @onready var tag: Label = $Row/Header/Tag
 @onready var name_edit: LineEdit = $Row/Header/Name
-@onready var duelist_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Duelist
-@onready var deck_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Deck
-@onready var tagline_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Tagline
-@onready var chips: HFlowContainer = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips
-@onready var school_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips/School
-@onready var alignment_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips/Alignment
-@onready var archetype_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips/Archetype
-@onready var difficulty_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Chips/Difficulty
-@onready var blurb_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/Blurb
-@onready var aspect_header: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/AspectHeader
-@onready var aspect_title: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/AspectTitle
-@onready var aspect_power: Label = $Row/Scroll/Content/Tabs/Overview/Summary/Identity/AspectPower
+@onready var duelist_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Duelist
+@onready var deck_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Deck
+@onready var tagline_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Tagline
+@onready var chips: HFlowContainer = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Chips
+@onready var school_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Chips/School
+@onready var alignment_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Chips/Alignment
+@onready var archetype_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Chips/Archetype
+@onready var difficulty_chip: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Chips/Difficulty
+@onready var blurb_label: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/Blurb
+@onready var aspect_header: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/AspectHeader
+@onready var aspect_title: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/AspectTitle
+@onready var aspect_power: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/AspectPower
 @onready var lock_button: Button = $Row/Lock
 @onready var hint_label: Label = $Row/Hint
 @onready var info: DeckInfo = $"Row/Scroll/Content/Tabs/Details/Cards & Aspects"
 
-@onready var mastery_box: VBoxContainer = $Row/Scroll/Content/Tabs/Overview/Summary/Mastery
+@onready var mastery_box: Control = $Row/Scroll/Content/Tabs/Overview/Summary/Mastery
 @onready var mastery_card: TextureRect = $Row/Scroll/Content/Tabs/Overview/Summary/Mastery/Card
 @onready var mastery_zoom: TextureRect = $MasteryZoom
 
@@ -45,6 +45,9 @@ var _tween: Tween = null
 
 
 func _ready() -> void:
+	var portrait_material: ShaderMaterial = ShaderMaterial.new()
+	portrait_material.shader = preload("res://assets/hero_portrait.gdshader")
+	portrait.material = portrait_material
 	_might_max = DeckInfo.might_max_of(Session.decks)
 	mastery_card.mouse_entered.connect(_show_mastery_zoom)
 	mastery_card.focus_entered.connect(_show_mastery_zoom)
@@ -62,7 +65,7 @@ func _ready() -> void:
 		tabs.current_tab = 1 - tabs.current_tab
 	)
 	$Row/Scroll/Content/Tabs.tab_changed.connect(func(tab_index: int) -> void:
-		$Row/Details.text = "Back to duelist" if tab_index == 1 else "Deck details"
+		$Row/Details.text = "Back to duelist" if tab_index == 1 else "Details"
 		$Row/Selection.visible = tab_index == 1
 		mastery_zoom.hide())
 
@@ -85,10 +88,11 @@ func set_seat(index: int, tag_text: String) -> void:
 
 func show_deck(d: DeckList) -> void:
 	deck = d
+	$Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll.scroll_vertical = 0
 	_show_mastery(d)
 	$Row/Selection.text = d.name if d != null else "No deck selected"
 	$Row/Scroll/Content/Tabs.current_tab = 0
-	$Row/Details.text = "Deck details"
+	$Row/Details.text = "Details"
 	$Row/Details.disabled = d == null
 	var has: bool = d != null
 	portrait.visible = has
@@ -97,8 +101,8 @@ func show_deck(d: DeckList) -> void:
 	silhouette.visible = not has
 	chips.visible = has
 	blurb_label.visible = false
-	aspect_header.visible = false
-	aspect_title.visible = false
+	aspect_header.visible = has
+	aspect_title.visible = has
 	aspect_power.visible = false
 	deck_label.visible = true
 	tagline_label.visible = true
@@ -187,7 +191,7 @@ func _on_portrait_input(event: InputEvent) -> void:
 func set_locked(on: bool) -> void:
 	locked = on
 	stamp.visible = on
-	lock_button.text = "Change deck" if on else "Confirm deck"
+	lock_button.text = "Change champion" if on else "Confirm champion"
 	lock_button.theme_type_variation = &"Button" if on else &"AccentButton"
 	name_edit.editable = not on
 	if on:
@@ -195,10 +199,13 @@ func set_locked(on: bool) -> void:
 	_paint()
 
 
-## The panel edge and tint follow the seat's player colour.
+## School light and the lock stamp carry identity; the panel uses Godot-drawn styling.
 func _paint() -> void:
-	var edge: Color = _color if deck != null else ZenithTheme.BORDER
-	add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.065, 0.075, 0.095), Color(edge, 0.35), 16, 1, 24, 20))
+	add_theme_stylebox_override("panel", SanctumUI.panel())
+	var aura: ArcaneBackdrop = portrait_box.get_node("Aura")
+	aura.set_school(Palette.school_ui(deck.style) if deck != null else Color(0.34, 0.74, 0.82))
+	if locked:
+		aura.confirm()
 	ZenithTheme.chip(stamp, _color, true)
 	if locked:
 		hint_label.text = "Locked in. Click Change to pick again."
@@ -225,6 +232,10 @@ func _layout_portrait() -> void:
 func _pop(node: Control) -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
+	if ArcaneBackdrop.motion_reduced():
+		node.scale = Vector2.ONE
+		node.modulate = Color.WHITE
+		return
 	node.pivot_offset = node.size * 0.5
 	node.scale = Vector2.ONE * 1.06
 	node.modulate = Color(1.3, 1.3, 1.3)
@@ -233,7 +244,7 @@ func _pop(node: Control) -> void:
 	_tween.tween_property(node, "modulate", Color.WHITE, 0.25)
 
 
-## The front-facing Mastery is secondary to the portrait, with a readable hover/focus view.
+## Mastery geometry is fixed in the scene, independent of the scrolling identity text.
 func _show_mastery(d: DeckList) -> void:
 	_mastery_generation += 1
 	var generation: int = _mastery_generation

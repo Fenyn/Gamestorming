@@ -85,7 +85,7 @@ Red Energy Defensive Stance (27), Red King Cold Observation (143), Dimension Scr
 third personality level.
 
 Three things it needs that we do not have: a fourth Relic for West Kai Sensei, the `marked` tag
-that `world.md` describes but no card carries yet ("Majin only" gates Energy Spray), and a
+that `cast.md` describes but no card carries yet ("Majin only" gates Energy Spray), and a
 character for Kami Fades under the attribution rule in `cast_backlog.md`.
 
 **Sensei Deck, 7 cards:** You're Invited (`open_challenge`), Kami Fades x3

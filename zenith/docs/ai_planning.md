@@ -1,6 +1,6 @@
 # AI planning
 
-Implemented 2026-09-19. See [the design review](ai_strategy_review.md) for the original diagnosis and external research.
+Implemented 2026-09-19.
 
 ## Core behavior
 
@@ -89,4 +89,4 @@ The [strategic arena report](ai_strategy_benchmark_strategic.json) adds eight co
 
 The historical rollout baseline shares the current scorer, evaluator and fair sampler. Comparisons therefore isolate search behavior rather than reproduce the old executable exactly. Small arena runs are integration evidence, not proof of superiority across every archetype. No neural training or learned opponent model is required for this implementation; those remain possible later developments if measured failures warrant them.
 
-A subsequent [weak-deck comparison](deck_ai_comparison.md) tests the four lowest-ranked decks from the latest full tournament against all ten opposing decks. Across 160 paired games at Normal's budget, the planner won 24/80 target appearances versus the current scorer's 25/80. Steel Heir and Pyre Ascent each gained one net win; Tide Companions lost two and Shade Salvage lost one. This limits the earlier positive arena result: the planner is integrated, but improved strategic piloting is not established across the weak decks. The paired runner and selective tournament policy flags preserve these cases for further diagnosis.
+A subsequent weak-deck comparison (2026-09-19, `tests/deck_ai_comparison.gd`) tested the four lowest-ranked decks from the full tournament of that day against all ten opposing decks. Across 160 paired games at Normal's budget, the planner won 24/80 target appearances versus the current scorer's 25/80. Steel Heir and Pyre Ascent each gained one net win; Tide Companions lost two and Shade Salvage lost one. This limits the earlier positive arena result: the planner is integrated, but improved strategic piloting is not established across the weak decks. The paired runner and selective tournament policy flags preserve these cases for further diagnosis.

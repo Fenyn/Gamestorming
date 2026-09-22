@@ -54,14 +54,7 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 	_deck = d
 	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
 	var school_color: Color = Palette.school_ui(d.style)
-	var seat_color: Color = Session.seat_color(seat)
-	var panel: StyleBoxFlat = ZenithTheme.edged(seat_color, Color(seat_color, 0.08), 14, 18, 16)
-	if seat == 1:
-		# The player stripe sits on each panel's outer edge.
-		panel.border_width_right = panel.border_width_left
-		panel.border_width_left = 0
-		panel.content_margin_right = panel.content_margin_left
-		panel.content_margin_left = 18
+	var panel: StyleBoxFlat = SanctumUI.panel()
 	add_theme_stylebox_override("panel", panel)
 	tag.text = tag_text
 	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
@@ -115,6 +108,10 @@ func set_story(text: String) -> void:
 ## something to click.
 func _hover_portrait(over: bool) -> void:
 	_hovered = over
+	if ArcaneBackdrop.motion_reduced():
+		portrait.scale = Vector2.ONE
+		portrait.modulate = Color.WHITE
+		return
 	portrait.pivot_offset = portrait.size * 0.5
 	if _hover_tween != null:
 		_hover_tween.kill()
@@ -161,7 +158,7 @@ func show_aspect(aspect: int, flip: bool = false) -> void:
 	var face: Texture2D = await _faces.render_face(duelist, aspect)
 	if _aspect != aspect:
 		return   # another click came in while the face rendered
-	if not flip:
+	if not flip or ArcaneBackdrop.motion_reduced():
 		portrait.texture = face
 		return
 	if _flip_tween != null:

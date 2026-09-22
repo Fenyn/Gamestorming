@@ -22,7 +22,7 @@ static func flag(prefix: String) -> String:
 
 
 static func reduced_motion() -> bool:
-	return args().has("--reduced-motion")
+	return ArcaneBackdrop.motion_reduced()
 
 
 ## Puts an unsaved run for `starter_id` into Session. False when the starter or its ladder is

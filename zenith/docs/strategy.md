@@ -125,7 +125,7 @@ entering Combat and the Mastery protects Drills.
   change included, so this is the one Drill deck that can climb and keep its board. A card that
   forbids the Mastery for a turn takes that away and makes the climb cost the board again.
 
-### Storm — The Ninth Vessel, `storm_volley` (art_beatdown)
+### Storm — Siphon, `storm_volley` (art_beatdown)
 
 Wins by survival, by barrage. The Relic rules out its Ascension win and shields its Fervor and
 aspect, so Fervor is only fuel for the climb to aspect 3, whose power is a free Art that draws two
@@ -227,7 +227,7 @@ itself, and the bodies on the table are there to make its numbers bigger.
 
 ### Pyre — the ninth deck, Sir Edric Rooke, `pyre_ascent` (strike_beatdown)
 
-Added 2026-09-19 from the Red Goku sheet. Same school as Ashmark and a different Mastery: this one
+Added 2026-09-19 from the Red starter sheet. Same school as Ashmark and a different Mastery: this one
 burns the top of the discard pile once a Combat for Fervor, double when what burns is Pyre. **The
 distinguishing fact is that it has no Drills at all**, one Ally and one Seal, and that almost every
 card in it pays Fervor, blocks included. Ashmark climbs by attacking; this deck climbs whatever
@@ -250,7 +250,7 @@ happens in the Combat.
 
 ### Steel — the eleventh deck, Emrys Rooke, `steel_heir` (strike_beatdown)
 
-Added 2026-09-19 from the Saiyan Gohan sheet. The same school and the same Mastery as Quarr, and a
+Added 2026-09-19 from the Saiyan starter sheet. The same school and the same Mastery as Quarr, and a
 completely different deck around them. Quarr grinds with the Mastery's two cards a Combat; this
 list stacks permanent damage and then cashes it in with a duelist Power that swings twice. Five
 Aspects, 79 life cards, no Relic, no Reserve, one Ally, one Seal. **The distinguishing fact is that

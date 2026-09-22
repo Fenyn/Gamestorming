@@ -24,7 +24,9 @@ var _advancing: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
+	$Margin/Column/Body.move_child(seat_panel, 0)
+	SanctumUI.enter($Margin/Column/Body)
 	# The name field and the second seat belong to the two-seat select flow; a run has one
 	# starter and no player name to type.
 	(seat_panel.get_node("Row/Header/Name") as LineEdit).visible = false
@@ -52,6 +54,7 @@ func _ready() -> void:
 	if not _starters.is_empty():
 		_pick(0)
 	_dev_args()
+	SanctumUI.wire_buttons(self)
 
 
 func _pick(index: int) -> void:
@@ -59,6 +62,7 @@ func _pick(index: int) -> void:
 		return
 	_picked = index
 	var d: DeckList = _starters[index]
+	$Background.set_school(Palette.school_ui(d.style))
 	seat_panel.show_deck(d)
 	var problems: Array[String] = Session.deck_problems(d)
 	problems_label.text = "\n".join(problems)
@@ -104,7 +108,8 @@ func _on_back() -> void:
 
 
 func _resize_grid() -> void:
-	roster.columns = maxi(1, mini(4, int((roster_scroll.size.x + 16) / 236)))
+	seat_panel.custom_minimum_size.x = clampf($Margin/Column/Body.size.x * 0.57, 640.0, 1050.0)
+	roster.columns = maxi(1, mini(4, int((roster_scroll.size.x + 12) / 192)))
 
 
 ## Arrows browse the starter grid, the same as the duelist select screen.

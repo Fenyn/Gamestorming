@@ -22,13 +22,32 @@ const RATING_COLORS: Dictionary = {
 
 var index: int = 0
 var _school_color: Color = ZenithTheme.MUTED
+var _hover_tween: Tween
+
+
+func _ready() -> void:
+	mouse_entered.connect(func() -> void: _hover(true))
+	mouse_exited.connect(func() -> void: _hover(false))
+	focus_entered.connect(func() -> void: _hover(true))
+	focus_exited.connect(func() -> void: _hover(false))
+
+
+func _hover(on: bool) -> void:
+	if ArcaneBackdrop.motion_reduced():
+		return
+	if _hover_tween != null and _hover_tween.is_valid():
+		_hover_tween.kill()
+	thumb.pivot_offset = thumb.size * 0.5
+	_hover_tween = create_tween().set_parallel(true)
+	_hover_tween.tween_property(thumb, "scale", Vector2.ONE * (1.045 if on else 1.0), 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_hover_tween.tween_property(thumb, "modulate", Color(1.12, 1.12, 1.12) if on else Color.WHITE, 0.18)
 
 
 func setup(pos: int, d: DeckList) -> void:
 	index = pos
 	_school_color = Palette.school_ui(d.style)
 	tooltip_text = "%s\n%s\n%s" % [d.name, d.tagline, d.blurb]
-	add_theme_stylebox_override("focus", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 12, 2, 0, 0))
+	add_theme_stylebox_override("focus", ZenithTheme.box(Color.TRANSPARENT, Color(0.8, 0.8, 0.8), 2, 2, 0, 0))
 	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
 	thumb.texture = CardFace.art_texture(duelist, duelist.aspect) if duelist != null else null
 	var fallback: Label = $Row/Thumb/Fallback
@@ -54,9 +73,10 @@ func setup(pos: int, d: DeckList) -> void:
 func set_badge(state: int, _text: String, color: Color) -> void:
 	badge.visible = state > 0
 	badge.text = "READY" if state == 2 else "SELECTED"
-	var fill: Color = Color(_school_color, 0.16) if state > 0 else Color(0.075, 0.085, 0.11)
-	var edge: Color = ZenithTheme.ACCENT if state > 0 else Color(1, 1, 1, 0.10)
-	add_theme_stylebox_override("normal", ZenithTheme.box(fill, edge, 12, 2 if state > 0 else 1, 14, 10))
+	var fill: Color = Color(0.17, 0.17, 0.17) if state > 0 else Color(0.075, 0.075, 0.075, 0.96)
+	var edge: Color = Color(0.65, 0.65, 0.65) if state > 0 else Color(0.22, 0.22, 0.22)
+	add_theme_stylebox_override("normal", ZenithTheme.box(fill, edge, 3, 2 if state > 0 else 1, 10, 10))
+	add_theme_stylebox_override("hover", ZenithTheme.box(Color(0.20, 0.20, 0.20), Color(0.44, 0.44, 0.44), 2, 1, 10, 10))
 	add_theme_stylebox_override("disabled", get_theme_stylebox("normal"))
 	ZenithTheme.chip(badge, color, state == 2)
 

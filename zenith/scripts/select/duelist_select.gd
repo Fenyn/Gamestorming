@@ -38,7 +38,9 @@ var _advancing: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme().duplicate()
+	theme = SanctumUI.theme().duplicate()
+	$Margin/Column/Body.move_child(seat_panel, 0)
+	SanctumUI.enter($Margin/Column/Body)
 	theme.set_stylebox("focus", "Button", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 8, 2, 0, 0))
 	theme.set_stylebox("focus", "TileButton", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 8, 2, 0, 0))
 	theme.set_stylebox("panel", "TabContainer", ZenithTheme.box(Color.TRANSPARENT, Color.TRANSPARENT, 0, 0, 0, 12))
@@ -78,6 +80,7 @@ func _ready() -> void:
 		Session.player_names[Session.ai_seat] = "The AI"
 	_show_seat(_order[0])
 	_dev_args()
+	SanctumUI.wire_buttons(self)
 
 
 func _setup_online() -> void:
@@ -139,6 +142,8 @@ func _on_lock_toggled(seat: int, on: bool) -> void:
 	if Session.chosen[seat] == null:
 		return
 	Session.locked[seat] = on
+	if on:
+		$Background.confirm()
 	seat_panel.set_locked(on)
 	if _online:
 		Net.set_local_pick(Session.decks.find(Session.chosen[seat]), Session.player_names[seat], on)
@@ -200,6 +205,7 @@ func _on_connection_failed(reason: String) -> void:
 ## Tile badges for the choosing seat, the status line, and what Back does.
 func _refresh() -> void:
 	var d: DeckList = Session.chosen[_seat]
+	$Background.set_school(Palette.school_ui(d.style) if d != null else Color(0.34, 0.74, 0.82))
 	for tile in _tiles:
 		var state: int = 0
 		if d != null and Session.decks[tile.index] == d:
@@ -295,7 +301,8 @@ func _reset_filters() -> void:
 
 
 func _resize_grid() -> void:
-	roster.columns = maxi(1, mini(4, int((roster_scroll.size.x + 16) / 236)))
+	seat_panel.custom_minimum_size.x = clampf($Margin/Column/Body.size.x * 0.57, 640.0, 1050.0)
+	roster.columns = maxi(1, mini(4, int((roster_scroll.size.x + 12) / 192)))
 
 
 ## Arrows browse the filtered grid. Confirmation is an explicit, focused button action.

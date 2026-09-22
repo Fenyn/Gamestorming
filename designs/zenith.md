@@ -2,7 +2,7 @@
 
 A two-player dueling card game. Two duelists, mages or plain fighters, contest a place of power where a gate to elsewhere can be opened. Beyond it waits an Eidolon, an otherworldly entity. The one who takes the site becomes its **Eidolarch**, the master of the gate and of what comes through it. Each duelist follows one school of magic, or none. A duel is fought with Strikes and Arts, and it wears down the duelist's Energy and then their mind. A duelist becomes Eidolarch by ascending through every Aspect until the site answers to them, by carving all seven seals into the gate so the Eidolon comes through and answers to them, or by breaking the rival's mind so no one else is left to claim it.
 
-Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code name stay `zenith`. One web search found no game using the name; the "eidol" root is crowded (Eidolon, Eidols, and EIDOL, an early-access card game), and no trademark or store check has been done.
+Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code name stay `zenith`. One web search found no game using the name; the "eidol" root is crowded (Eidolon, Eidols, and EIDOL, an early-access card game). A trademark and store check is still to do.
 
 **Engine:** Godot 4.6, GDScript, 3D playspace with 2D hand and HUD
 **Genre:** Collectible card duel, Arena-style client
@@ -45,21 +45,7 @@ The rename pass ran on 2026-09-17: this doc, the code, the data and the card tex
 | Unsealing win | All seven seals of one set are carved, the gate opens, and the Eidolon comes through answering to the one who carved them |
 | Survival win | The rival's mind gives out and they have nothing left to cast |
 
-Term history (all approved and applied 2026-09-17):
-
-| Before | Now | Note |
-|---|---|---|
-| Acclaim | Fervor | The 0 to 5 counter. Approved 2026-09-17 |
-| Favor tiers (Noticed, Regarded, Esteemed, Honored, Chosen) | Aspects, numbered | Approved 2026-09-17. Each tier card is an Aspect of the duelist with its own title. Tier-up verb: Ascend |
-| Favor win | Ascension win | Approved 2026-09-17 |
-| Token, Token win | Seal, Unsealing win | Approved 2026-09-17 ("fine enough"). Approved before the seals became carvings that open a gate; "Unsealing" now fits poorly and "Summoning win" is the suggested replacement, not yet approved |
-| Survival win | unchanged | |
-| Knight, Knave, Hedge | Vigil, Pact, Hedge | Approved 2026-09-17. "Hedge" covers hedge mages and hedge knights |
-| Master, Armory | Relic, Reserve | Approved 2026-09-17. Grimoire and Pages were used for part of that day and then dropped |
-| Vigor | Energy | Approved 2026-09-17, read as approval of the change and not of "unchanged". Must suit mundane duelists too, which rules out Mana |
-| Fighter | Duelist | Approved 2026-09-17. "Mage" does not suit a Freestyle swordmaster |
-| Guild | School | Approved 2026-09-17 |
-| Strike, Art, Drill, Ally, Grounds, Mastery, Life Deck | unchanged | |
+The pre-retheme terms (Acclaim, Favor tiers, Token, Knight and Knave, Master and Armory, Vigor, Fighter, Guild) were all replaced on 2026-09-17 and appear nowhere now. "Unsealing win" was approved before the seals became carvings that open a gate; "Summoning win" is the suggested replacement, not yet approved.
 
 Tone: earnest, a little grim, no jokes on the cards. Nothing with a voice gets written until approved.
 
@@ -69,20 +55,7 @@ Approved 2026-09-17 as the replacement for Knights and Knaves.
 
 Two sides, open to mages and mundane duelists alike. Both want their own duelist made Eidolarch, for opposite reasons: the Vigil so that whatever comes through answers to someone who will hold it in check, the Pact so that it answers to them. **The Vigil** stands watch over the places where a gate can be cut. It would rather no gate opened at all, and when a Vigil duelist carves the seals it is because the gate will open either way and the Eidolon must not answer to the Pact. A watch needs swords as much as spells. **The Pact** has struck bargains with the Eidolons across the wall, passage in return for power, and fights to deliver on them. Anyone can sign. The Vigil goes first because it already stands at the site and the Pact comes to it. "Vigil only" cards are rites handed down with the watch; "Pact only" cards are workings the Vigil's vow forbids. A following shares its leader's vow or bargain, which is why Allies match alignment. **Hedge** duelists are hedge mages and hedge knights sworn to neither; they take a side for the duel at setup.
 
-Starter duelists (names approved 2026-09-15; descriptions reworked for the retheme and pending approval; deck names in data: Ashmark the Pyromancer, Quarr the Ironblood, The Draik Company, The Rooke Coven, Vale the Swordmaster, The Corven Collegium, The Thornwald Grove):
-
-| Following | Side | School | Duelist | Followers |
-|---|---|---|---|---|
-| none | Pact | Pyre | Bram Ashmark, a warlock who traded his humanity for power and is left hollow and hungry | none |
-| none | Pact | Steel | Halden Quarr, an Ironblood grinder who reads the last blow | none |
-| The Draik Company, hexers for hire | Pact | Shade | Sable Draik, captain | Vesna, Brann, Quill, Halvard Draik, and Pim |
-| The Rooke coven, an old family of water mages | Vigil | Tide | Dame Alder Rooke, matriarch | Wren, Sir Edric, Ansel Rooke, Tavin Vale |
-| none | Vigil | Freestyle | Caedan Vale, the last of a line of swordmasters, no magic at all | none |
-| The Corven Collegium, scholars of the Tempest | Pact | Storm | Siphon, a warded construct | Tithe |
-| The Thornwald Grove, druids whose rites regrow what is cut away (added 2026-09-17) | Vigil | Root | Osric Thornwald, an old druid who mends as he fights and outlasts | none |
-| Marrow the Amalgam, a construct assembled from fallen ones and the crew that picks the field over (added 2026-09-18) | Pact | Shade | Marrow, who is not one construct and never was | Cull, Orvath Kell, Gideon Mourne, Pim |
-| none (added 2026-09-20) | Pact | Shade | Gideon Mourne, marked and running his own list | none |
-| none (added 2026-09-19) | Vigil | Pyre | Sir Edric Rooke, the Rooke coven's knight fighting his own fight | Dame Alder Rooke |
+The duelists, their followings, sides and schools, and who each of them is, are in `zenith/docs/cast.md` (names approved 2026-09-15; the table that used to sit here moved there 2026-09-22).
 
 ### Bloodlines
 
@@ -106,8 +79,8 @@ Documented 2026-09-18. A keyword is a word a group of cards share, and which oth
 
 Two rules follow from that, and both matter more than the word itself:
 
-- **A keyword is not a faction.** The Corven Collegium builds Constructs; so do other people, by other methods, for other reasons. A card that says "Construct" reads what a personality *is*, never whose side it is on. That is why `life_per_tag` counts personalities in play on both sides.
-- **A keyword is not a school.** The Collegium's Constructs happen to field Storm today and Marrow's happen to field Shade, and neither of those facts belongs to the keyword. The same goes for followings in general: the table below records what a following currently fields, not what it is. A house may field more than one school later, and nothing in the data should assume otherwise.
+- **A keyword is not a faction.** The Collegium builds Constructs; so do other people, by other methods, for other reasons. A card that says "Construct" reads what a personality *is*, never whose side it is on. That is why `life_per_tag` counts personalities in play on both sides.
+- **A keyword is not a school.** The Collegium's Constructs happen to field Storm today and Marrow's happen to field Shade, and neither of those facts belongs to the keyword. The same goes for followings in general: the index in `zenith/docs/cast.md` records what a following currently fields, not what it is. A house may field more than one school later, and nothing in the data should assume otherwise.
 
 **Theming follows the card, not the person.** Ruled 2026-09-19. A character may field more than one school across their cards, so what a card looks like is read off that card's own effects and the deck it is fielded in, never off a fixed element attached to the character. Sir Edric Rooke is the case that forced it: he carries water as his wife's Ally and fire in his own list, and both are correct. In the data this means `CAST` in `tools/gen_roster.py` holds only a side and an identity, and the palette comes from the card's school or, for a schoolless card, from the one Style it is fielded in.
 
@@ -119,33 +92,18 @@ a modifier can filter on `tag` or on `only_tag` and they do not mean the same th
 
 In the data it is `tags: ["construct"]`, and cards reach it four ways: `search` with `tag`, a `when` of `performer_tag` (the personality swinging), `in_control_tag` (whoever holds Combat on that side) or `duelist_tag`, and an attack's `life_per_tag`.
 
-Aspect titles (2026-09-17; in the data as `title` on each Aspect of a personality card). Each Aspect card carries its own title, as in "Bram Ashmark, Insatiable". A character with more than one personality card carries a `variant` as well, which names that card and is what tells two cards of one person apart. Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human.
-
-| Duelist | Tier titles |
-|---|---|
-| Bram Ashmark, the Hollow | Starved, Leeching, Unstoppable |
-| Bram Ashmark, the Glut | Starved, Gnawing, Gorging, Consuming, Insatiable |
-| Halden Quarr | the Grinder, Tempered, Ironheart |
-| Sable Draik | Captain, Shrouded, Lightless |
-| Siphon | Dormant, Charged, Unbound |
-| Dame Alder Rooke | Matriarch, Rising Water, the Flood |
-| Osric Thornwald | Greybeard, Overgrown, Deep-Rooted, Heartwood, Grovelord |
-| Caedan Vale | Last Heir, Unparried, Spellcutter, the Quiet Blade, Peerless |
-| Marrow | Patchwork, Rebuilt, Overwrought, Fury Amalgam |
-| Sir Edric Rooke | the Hero, the Stranger, the Realm's Hero, Kindled Through, the All Powerful |
-| Gideon Mourne, Lord Mourne | the Marked Lord, Unflinching, Unfettered, Unrepentant |
-| The Fortress | Foundation, Fortified, Unbreachable (held; he has no personality card yet) |
+Aspect titles (2026-09-17; in the data as `aspect_title` on each personality card). Each Aspect card carries its own title, as in "Bram Ashmark, Insatiable". A character with more than one personality card carries a `variant` as well, which names that card and is what tells two cards of one person apart. Vigil duelists harden into the watch: each tier has less of the person and more of the office or the element. Pact duelists come due: each tier shows more of the bargain. The school supplies the imagery and the tier's power supplies the meaning. A mundane duelist is changed by will, so his titles stay human. Every character's titles are listed with their forms in `zenith/docs/cast.md`.
 
 ### The Eidolons
 
-Chosen 2026-09-17. Physical, demigod-scale beings from elsewhere, one behind each set of seven seals (three at first, four since 2026-09-18). They are flavored by vibe, not by what their seals do. The pairing of Eidolon to set is a loose fit; it went into the data with the rename pass and can still be moved. The names are coined and unchecked.
+Chosen 2026-09-17. Physical, demigod-scale beings from elsewhere, one behind each set of seven seals (three at first, four since 2026-09-18). They are flavored by vibe, not by what their seals do. The pairing of Eidolon to set is a loose fit; it went into the data with the rename pass and can still be moved. The names are coined and unchecked. Bodies and temperaments are in `zenith/docs/cast.md` (moved there 2026-09-22).
 
-| Eidolon | Set id in data | Body | Temperament |
-|---|---|---|---|
-| Maruth, the Drowned Sun | sun | A giant in gold plate, twice the height of a gate tower. The armor is full of seawater and there is no body inside. Light pours out of the visor and every joint | Regal and warm, and certain that everything it shines on belongs to it |
-| Ysmere, the Moth Queen | moth | A tall pale woman-shape in a mantle of living white moths, with feathered antennae for a crown. Where the mantle brushes something, that thing fades | Soft-spoken, patient and tender, and always hungry |
-| Korrag the Unfinished | marble | A titan that is half made. One side is flawless marble muscle; the other is scaffold, bare bone and gold wire. It carries the chisel that is carving it | Proud and restless. It wants to be completed and takes material wherever it finds it |
-| Thessa, the Kind Hand (added 2026-09-18, name pending approval) | salt | A stooped surgeon's shape in a clean apron, taller than it should be, with more arms than it should have, each ending in an instrument instead of a hand. There is a low steady lamp where the face belongs | Gentle, tireless and entirely certain it is helping. It makes you well by taking out whatever in you was aching, and it does not distinguish between the ache and the part of you that was doing the aching |
+| Eidolon | Set id in data |
+|---|---|
+| Maruth, the Drowned Sun | sun |
+| Ysmere, the Moth Queen | moth |
+| Korrag the Unfinished | marble |
+| Thessa, the Kind Hand (added 2026-09-18, name pending approval) | salt |
 
 Seal names (applied 2026-09-17; Marble is the user's pick over Chisel). Each set is named loosely after its Eidolon, numbered 1 to 7, the way the old sets were "Crown Token 3":
 
@@ -283,7 +241,7 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 11. In-control Ally may choose Seal capture instead of life-card damage, if that Ally has the capture trait.
 12. Energy damage is dealt.
 13. Life card damage is dealt one card at a time. Endurance may be used as each card flips.
-14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, discard an Ally the defender controls, or lower the defender's Fervor by 1. Card text beats the rulebook, so a card that says an Ally cannot be discarded, or that Fervor cannot be lowered, stops that option here as it does anywhere else; the attacker picks from whatever is left. (Corrected 2026-09-18: this used to be treated as a game rule that overrode printed immunity, which contradicted the Golden Rule and was costing House Rooke 2.2 Allies a game.)
+14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, discard an Ally the defender controls, or lower the defender's Fervor by 1. Card text beats the rulebook, so a card that says an Ally cannot be discarded, or that Fervor cannot be lowered, stops that option here as it does anywhere else; the attacker picks from whatever is left. (Corrected 2026-09-18: this used to be treated as a game rule that overrode printed immunity, which contradicted the Golden Rule and was costing the Rooke Coven 2.2 Allies a game.)
 15. "If successful" effects resolve, attacker picks the order.
 
 "Use when needed" cards fit between steps, never inside one. Outside Combat they can be used at any time.
@@ -344,7 +302,7 @@ The first word of a card title sets its school. Everything else is Freestyle. Si
 | Root | Druidry | What is cut away grows back | Regeneration and foresight. Known spells return from discard to the deck bottom, top-deck looks and reorders, 90-card allowance. Mastery recovers cards every Combat. The druids are the patient seal openers | Mixed | Seal win | Low burst |
 | Freestyle | none, mundane | Will, footwork and steel. Every mage carries some; a swordmaster carries nothing else | Signature cards, Allies, Seals, unstyled Drills, Desperation moves. Fits any deck | Melee | any | Weak Mastery |
 
-The old school labels (Berserker, Warden, Evoker, Rogue, Juggernaut, Ranger-Druid) are retired. Card naming pass done 2026-09-17 for all seven decks: each title marries the mechanic to the school's doctrine (Pyre burns and rekindles, Tide ebbs and floods, Storm charges and releases, Shade hexes the mind, Root regrows, Freestyle stays mundane). Steel alone keeps hand-to-hand names, because the Ironblood body is the spell. Titles are short move names, never sentences.
+Card naming: each title marries the mechanic to the school's doctrine (Pyre burns and rekindles, Tide ebbs and floods, Storm charges and releases, Shade hexes the mind, Root regrows, Freestyle stays mundane). Steel alone keeps hand-to-hand names, because the Ironblood body is the spell. Titles are short move names, never sentences.
 
 - **Style.** Every deck carries exactly one Mastery, and that Mastery's school is the deck's Style. All school cards in the deck share that school. A Freestyle Mastery allows no school cards. Nothing is declared at setup. The old single-school Surge bonus stays as a flat +1 at Power Up for every deck.
 - **No gates.** Any duelist may train in any school. "School only" text does not exist; gating comes from alignment and duelist names only.
@@ -399,7 +357,7 @@ Seal capture: critical damage (battle sequence step 14), an in-control capture-t
 | Cards under cards | Face-down stacks under an in-play card, discarded when the host leaves play |
 | Copied attacks | A virtual card with the copied text, vanishes after use |
 | Cherry picking | Deck searches reveal the chosen cards and reshuffle |
-| Bond | Two named Allies fight back to back as one. A Bonding card folds them under their Bond card, which enters at full Energy with its own power. At the start of each of the owner's turns a life card goes under it; at 5 the Bond ends, the Allies return at 3 Energy, and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it. Implemented 2026-09-15 for House Rooke (Ansel and Tavin) |
+| Bond | Two named Allies fight back to back as one. A Bonding card folds them under their Bond card, which enters at full Energy with its own power. At the start of each of the owner's turns a life card goes under it; at 5 the Bond ends, the Allies return at 3 Energy, and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it. Implemented 2026-09-15 for the Rooke Coven (Ansel and Tavin) |
 
 **Timing rules.** No simultaneous effects: the active player resolves all of theirs first in any order, then the opponent. "Entering Combat" effects resolve before the opposing player draws. Card effects resolve in printed order. Cards discard immediately after their last effect. Skipped phases never happened for "beginning of phase" effects. Only one damage multiplier applies.
 
@@ -440,39 +398,32 @@ Rules engine and presentation are separate so the same engine drives hotseat, AI
 
 ---
 
-## Adventure mode (later)
+## Adventure mode
 
-- Node map across contested places of power. Each node is a duel against a fixed Duelist and deck.
-- Rewards: cards, packs, new Duelists. Collection and deckbuilder screens.
-- AI is one evaluator and a short lookahead search for every deck (`zenith/ai/`). An opponent's playstyle is a weight profile in `data/ai/profiles/`, tuned per opponent; no per-deck scripts.
-- Saves through `godot-base` SaveFileHandler.
+Built. Design and decisions are in `zenith_adventure.md`; what ships (ladders, rewards, Motes, the collection, loadouts) is in `zenith/README.md`. Opponents are the one AI with a weight profile per playstyle in `data/ai/profiles/`, never a per-deck script.
 
 ---
 
-## Milestones
+## Status
 
-1. Engine plus headless test scene. Full 7-step turn, 6-phase Combat, 15-step battle sequence, all three wins reachable, Strike Table and damage conversion, Allies, Drills, Seals, Grounds. Done 2026-09-15.
-2. Playspace spike: 3D table, camera, card faces rendered to texture, card flight tweens. Done 2026-09-15 with click-to-play; drag from the 2D hand is still open.
-3. Hotseat duel client on the spike, with deck select and placeholder decks. Done 2026-09-15.
-3b. Full rule support for the six starter decks: effect queue with choice prompts, Remain, Empower, counter window, floating forbids, attachments, constant powers, Relic powers, named-card locks, attack variants, "you may" and pay-any-Energy prompts, look-at-N inspection, chosen searches, instead-of-damage choices, two-stop attacks, Ally powers without control, Drill self-maintenance. Done 2026-09-15; the few remaining approximations are listed in `zenith/README.md`.
-4. AI opponent. First pass done 2026-09-17: fair AI through `Referee.sim_for`, scorer plus lookahead search, Easy, Normal and Hard, Duel the AI on the title. Open: per-deck playstyle profiles, an offline weight tuner over `tests/ai_arena.gd`, memory of cards the AI has seen.
-5. Online over ENet. Done 2026-09-15: host or join from the title, the select screen as lobby. Reworked 2026-09-16 from lockstep to host-authoritative seat views: the joiner holds no engine. Open: a headless referee process, encrypted transport, matchmaking or relay, reconnects and turn timers.
-6. Deckbuilder and collection.
-7. Adventure mode.
-8. Later keywords: Brawl format (Survival only), Bond Duelists (a Bond that replaces the duelist rather than two Allies).
+Done: the engine with headless tests (every rule above, all three wins), the 3D playspace and hotseat client, fourteen starter decks, the fair AI at three levels, online play refereed on a headless duel server, and adventure mode with its economy. The card pool is counted in `zenith/docs/archetypes.md`; the remaining rules approximations are listed in `zenith/README.md`.
 
-Starter pool as built 2026-09-15: six Duelists, ten Allies, three Relics, six Masteries, two Seal sets, and 193 functional-name cards in all, with six starter loadouts modelled card-for-card on a community set of sample decks for the reference game: two physical beatdowns, two ally decks, a Freestyle drill deck, and an energy deck. Counts and roles are kept and each card carries the real mechanics of the card it stands in for, written in the effect schema. The set is generated by `zenith/tools/gen_starters.py`.
+Open, in rough order:
+
+- Card art and flavor text. Names are approved; everything with a voice waits on tone approval.
+- Deckbuilder and collection screens outside a run.
+- Online: encrypted transport, matchmaking or relay, reconnects and turn timers.
+- AI: an offline weight tuner over `tests/ai_arena.gd`, memory of cards the AI has seen.
+- Drag from the 2D hand to the table (click-to-play is what ships).
+- Later keywords: Brawl format (Survival only), Bond Duelists (a Bond that replaces the duelist rather than two Allies).
 
 ---
 
 ## Open items
 
-- Portraits and card flavor text. Duelist names for the starters are approved (see Setting); everything else waits on tone approval.
-- Retheme follow-ups (2026-09-17). The rename pass is done. Still open: whether the Root deck should run the Marble Seals (Root Wyrmwood Blast counts them) or another set; "Summoning win" in place of "Unsealing win"; place-of-power names for the Grounds cards; a themed card naming pass for Pyre, Tide, Storm, Shade and Steel; rewriting the art briefs in `zenith/docs/card_roster.csv` and `.md`, which have the new ids and terms but still describe the old chivalric look (half-plate, heraldry, the king's gold coins).
-- Game name settled 2026-09-17: Eidolarch, applied to the title screen, window title and README. Still to do: a trademark and store check.
+- "Summoning win" in place of "Unsealing win".
+- Trademark and store check on the name.
 - Deck size default for v1 (50 minimum is legal).
 - Ascension pacing with unequal stacks: a 3-aspect Duelist wins Ascension at 15 Fervor, a 5-aspect one at 25. Accepted for now; taller stacks trade a slower Ascension win for stronger top aspects.
-- Might ladders were compressed onto the compact scale on 2026-09-16 (Ashmark no longer reaches band H at aspect 2, Corven now climbs to D). Per-duelist variety in Surge and Might stays; tune further from play.
-- Quarr's aspect 1 was pulled back to 3-12 on 2026-09-18, off the hand-raised 9-18 and onto the rung his source card sits at (it is the lowest aspect-1 ladder of the seven, as the printed card is). Over 756 matches it cost Steel 0.5 points of win rate, so Steel's lead is not coming from the Strike Table.
+- Might ladders sit on the compact scale (2026-09-16), with per-duelist variety in Surge and Might kept; tune further from play.
 - Restricted list policy: none in v1.
-- Tide or Bastion as the water school's style word.

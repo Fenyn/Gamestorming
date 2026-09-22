@@ -46,9 +46,9 @@ slider. No separate health bar, no healing item, no new engine concept.
 | Griftlands | Persistent NPCs | Opponents who return stronger within a run |
 | Roguebook | Wound cards jam the deck | Damage that enters the deck as junk |
 
-What the GBA game got right and is worth copying: Guldo runs a 52-card deck with no Mastery, the
-late villains run 74 with one. Difficulty was deck size and Mastery access. Cell, the final boss,
-gets a stated rule exemption printed on screen rather than a stat bump.
+What the GBA game got right and is worth copying: the first opponent runs a 52-card deck with no
+Mastery, the late villains run 74 with one. Difficulty was deck size and Mastery access. The final
+boss gets a stated rule exemption printed on screen rather than a stat bump.
 
 What it got wrong and is not worth copying: batches of ten random cards after every win, of which
 three or four are useful. Pick one from three instead.
@@ -486,10 +486,10 @@ a strong dial against setup archetypes, which lose the time their plan needs, an
 against aggression. `steel_beatdown` at 32 cards still holds a 40-card starter to even.
 
 **Deck identity swings harder than any tier.** The same player deck goes from 50% to 98% purely by
-changing which deck it faces at the same tier. The historical standings in
-`docs/deck_ai_comparison.md` (Steel Heir 19.2%, Pyre Ascent 24.6%, Tide Companions 27.1%, Shade
-Salvage 27.1%, Storm Volley 49.2%, Storm Unbound 52.9%) are the right starting order for a ladder,
-with the caveat recorded there that they are uncontrolled.
+changing which deck it faces at the same tier. The 2026-09-19 scorer standings (Steel Heir 19.2%,
+Pyre Ascent 24.6%, Tide Companions 27.1%, Shade Salvage 27.1%, Storm Volley 49.2%, Storm Unbound
+52.9%) are the right starting order for a ladder, with the caveat that they were uncontrolled; the
+current baseline is `docs/deck_tournament_2026-09-20.md`.
 
 **So the ladder is fitted, not computed.** Pick a target win rate per stage, something like 85% at
 stage 1 easing to 30% at the gate, and choose the (deck, tier) pair that measures closest at each
@@ -543,8 +543,8 @@ rules that already exist:
 - You open one Aspect higher.
 - A named Rival returns two stages later at a larger deck size.
 
-Gate bosses get one stated rule exemption printed on screen, following Cell, instead of inflated
-numbers.
+Gate bosses get one stated rule exemption printed on screen, following the GBA game's final boss,
+instead of inflated numbers.
 
 ### 7.3 Losing
 

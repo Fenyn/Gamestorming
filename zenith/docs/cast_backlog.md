@@ -23,7 +23,7 @@ reports them as a note (exemption added 2026-09-19).
 Rules 1 and 2 are clean as of 2026-09-19: 28 characters, every attributed card leading with its
 name. Rule 3 has **20 cards** left, every one blocked on a character who does not exist yet. The
 audit counts 19 of them; the twentieth is Kami, whom it cannot see. Where most of those characters
-sit is already settled in `world.md`; only the names are missing.
+sit is already settled in `cast.md`; only the names are missing.
 
 ## Naming conventions in force
 
@@ -65,7 +65,7 @@ sit is already settled in `world.md`; only the names are missing.
   Unflinching / Unfettered / Unrepentant. Its Might was pasted in on the printed million scale
   and was converted to the compact scale on 2026-09-21, tops 20 / 26 / 32 / 38.
   **The Fortress** (approved 2026-09-20) is the broken company's third survivor, the slot
-  `world.md` already had agreed. His real name is never given, which is the one exception to the
+  `cast.md` already had agreed. His real name is never given, which is the one exception to the
   two-part-name rule; the article keeps it from reading as a construct's one-word label. His two
   cards are `unyielding_guard` "The Fortress' Iron Bulwark" and `grounding_step` "The Fortress'
   Arcane Aegis", the widest retitle so far at ten and eight decks, ids unchanged. Foundation /
@@ -130,7 +130,7 @@ say what kind of person the cards imply.
 
 ### Where each of them already sits
 
-Placed in `world.md` on 2026-09-19, so only the name is outstanding. (Gohan is placed there as a
+Placed in `cast.md` (then `world.md`) on 2026-09-19, so only the name is outstanding. (Gohan is placed there as a
 Rooke by blood, Vale-trained in the sword and Thornwald-taught in the rest; that is Emrys Rooke
 and it is done.) Krillin is the Kingsguard's form at
 contact; Corin Thrace, who is done, was its form at distance. Bulma is a Vale and Caedan's mother. Nappa is the

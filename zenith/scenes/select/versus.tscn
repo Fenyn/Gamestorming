@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/select/versus.gd" id="1_versus"]
 [ext_resource type="PackedScene" path="res://scenes/select/deck_sheet.tscn" id="2_sheet"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="3_faces"]
+[ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="4_atmosphere"]
 
 [node name="Versus" type="Control"]
 layout_mode = 3
@@ -21,6 +22,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.06, 0.055, 0.07, 1)
+script = ExtResource("4_atmosphere")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
 
@@ -50,7 +52,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
-text = "The matchup"
+text = "The challenge"
 
 [node name="Status" type="Label" parent="Margin/Column/TitleRow"]
 layout_mode = 2

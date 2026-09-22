@@ -6,7 +6,7 @@ one process per pair, 8 concurrent, Godot 4.6.2 mono.
 
 Scorer, not the Normal sequence-search profile. Normal at this sample size is a multi-day run;
 see `designs/zenith_adventure.md` for the timing curve. These are directly comparable to the
-historical standings in `deck_ai_comparison.md`, which were also scorer.
+2026-09-19 standings quoted in `designs/zenith_adventure.md`, which were also scorer.
 
 ## Standings
 

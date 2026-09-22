@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/stage.gd" id="1_stage"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
 [ext_resource type="PackedScene" path="res://scenes/select/deck_sheet.tscn" id="3_sheet"]
 [ext_resource type="PackedScene" path="res://scenes/adventure/stage_deck_panel.tscn" id="4_deckpanel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="5_tile_stat"]
+[ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="6_backdrop"]
 
 [node name="Stage" type="Control"]
 layout_mode = 3
@@ -23,6 +24,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.06, 0.055, 0.07, 1)
+script = ExtResource("6_backdrop")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("2_faces")]
 
@@ -33,10 +35,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 28
 
 [node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
@@ -51,7 +53,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
-text = "The ladder"
+text = "The ascent"
 
 [node name="HeaderLine" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -109,7 +111,14 @@ theme_override_constants/separation = 24
 [node name="Ladder" type="VBoxContainer" parent="Margin/Column/Body"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.85
 theme_override_constants/separation = 10
+
+[node name="RouteTitle" type="Label" parent="Margin/Column/Body/Ladder"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "PATH TO THE FINAL"
+horizontal_alignment = 1
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Ladder"]
 layout_mode = 2
@@ -119,6 +128,7 @@ horizontal_scroll_mode = 0
 [node name="List" type="VBoxContainer" parent="Margin/Column/Body/Ladder/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 8
 
 [node name="Right" type="VBoxContainer" parent="Margin/Column/Body"]
@@ -174,7 +184,7 @@ custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
 theme_override_font_sizes/font_size = 18
-text = "Duel"
+text = "Enter the arena"
 
 [node name="Abandon" type="Button" parent="Margin/Column/Footer"]
 custom_minimum_size = Vector2(150, 48)

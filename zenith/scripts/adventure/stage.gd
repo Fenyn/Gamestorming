@@ -27,13 +27,18 @@ var _abandon_armed: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
 	if Session.run == null:
 		_dev_bootstrap()
 		if Session.run == null:
 			Session.go_to_adventure()
 			return
 	next_sheet.setup(1, faces)
+	# Keep room for the tournament header and footer around the card preview.
+	next_sheet.portrait.custom_minimum_size = Vector2(314, 440)
+	next_sheet.portrait_caption.custom_minimum_size.x = 314
+	next_sheet.mastery.custom_minimum_size = Vector2(240, 336)
+	next_sheet.mastery_caption.custom_minimum_size.x = 240
 	view_deck_button.pressed.connect(_on_view_deck)
 	duel_button.pressed.connect(_on_duel)
 	abandon_button.pressed.connect(_on_abandon)
@@ -44,6 +49,7 @@ func _ready() -> void:
 	if AdventureDev.args().has("--dev-deck"):
 		_on_view_deck()
 	AdventureDev.screenshot(self)
+	SanctumUI.wire_buttons(self)
 
 
 ## Only when the stage scene is opened directly with no run in memory: `--dev-adventure=<id>`
@@ -66,6 +72,7 @@ func _refresh() -> void:
 	var ladder: AdventureLadder = Session.ladder
 	var deck: DeckList = run.deck()
 	var duelist: CardDef = Session.library.defs.get(deck.duelist_face_id())
+	$Background.set_school(Palette.school_ui(deck.style), true)
 
 	deck_name_label.text = deck.name
 	duelist_label.text = duelist.title if duelist != null else deck.duelist_face_id()
@@ -104,76 +111,18 @@ func _refresh() -> void:
 func _build_ladder(run: AdventureRun, ladder: AdventureLadder) -> void:
 	for child in ladder_list.get_children():
 		child.queue_free()
-	for n in range(ladder.size()):
-		ladder_list.add_child(_ladder_row(n, ladder.stage(n), run))
-
-
-## One ladder row: stage number, opponent portrait, title, deck name, tier, and an Aspect marker
-## when the stage grants one. Cleared rows carry a chip, the current stage is edge-lit, later
-## stages are dimmed but stay on screen.
-func _ladder_row(n: int, row_data: Dictionary, run: AdventureRun) -> PanelContainer:
-	var opponent_id: String = str(row_data.get("opponent", ""))
-	var opp: DeckList = DeckList.resolve(opponent_id)
-	var opp_duelist: CardDef = Session.library.defs.get(opp.duelist_face_id()) if opp != null else null
-	var cleared: bool = n < run.stage
-	var tier: String = AdventureLadder.tier_of(opponent_id)
-	var current: bool = n == run.stage and run.status != "won"
-	var tint: Color = Palette.school_ui(opp.style) if opp != null else ZenithTheme.MUTED
-
-	var row: PanelContainer = PanelContainer.new()
-	var edge: Color = ZenithTheme.ACCENT if current else Color(tint, 0.35)
-	var bg: Color = ZenithTheme.BG_ACTIVE if current else ZenithTheme.RAISED
-	row.add_theme_stylebox_override("panel", ZenithTheme.edged(edge, bg, 10, 12, 8))
-	row.modulate = Color(1, 1, 1, 1.0) if (cleared or current) else Color(1, 1, 1, 0.55)
-
-	var h: HBoxContainer = HBoxContainer.new()
-	h.add_theme_constant_override("separation", 10)
-	row.add_child(h)
-
-	var num: Label = Label.new()
-	num.text = str(n + 1)
-	num.custom_minimum_size = Vector2(26, 0)
-	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	h.add_child(num)
-
-	var thumb: TextureRect = TextureRect.new()
-	thumb.custom_minimum_size = Vector2(48, 64)
-	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	if opp_duelist != null:
-		thumb.texture = CardFace.art_texture(opp_duelist, opp_duelist.aspect)
-	h.add_child(thumb)
-
-	var col: VBoxContainer = VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	h.add_child(col)
-	var title_l: Label = Label.new()
-	title_l.text = AdventureLadder.opponent_name(opponent_id, Session.library)
-	col.add_child(title_l)
-	var deck_l: Label = Label.new()
-	deck_l.text = opp.name if opp != null else ""
-	deck_l.theme_type_variation = &"MutedLabel"
-	deck_l.add_theme_font_size_override("font_size", 13)
-	col.add_child(deck_l)
-
-	var tier_l: Label = Label.new()
-	tier_l.text = tier
-	ZenithTheme.chip(tier_l, _tier_color(tier))
-	h.add_child(tier_l)
-
-	if str(row_data.get("grant", "")) == "aspect":
-		var mark: Label = Label.new()
-		mark.text = "ASPECT"
-		ZenithTheme.chip(mark, ZenithTheme.ACCENT)
-		h.add_child(mark)
-
-	if cleared:
-		var cleared_l: Label = Label.new()
-		cleared_l.text = "CLEARED"
-		ZenithTheme.chip(cleared_l, ZenithTheme.MUTED)
-		h.add_child(cleared_l)
-
-	return row
+	var route: TournamentRoute = TournamentRoute.new()
+	ladder_list.add_child(route)
+	route.setup(run, ladder)
+	route.stage_selected.connect(func(index: int) -> void:
+		if Session.run.status != "stage":
+			return
+		_show_next_opponent(Session.ladder.stage(index))
+		next_sheet.tag.text = "NEXT CHALLENGER" if index == Session.run.stage else "ROUND %02d  /  SCOUTING" % (index + 1)
+		duel_button.disabled = index != Session.run.stage
+		duel_button.text = "Enter the arena" if index == Session.run.stage else "Select the current round to duel"
+		SanctumUI.enter(next_sheet)
+	)
 
 
 func _show_next_opponent(row_data: Dictionary) -> void:
@@ -181,7 +130,8 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 	var opp: DeckList = DeckList.resolve(opponent_id)
 	if opp == null:
 		return
-	next_sheet.show_deck(opp, "NEXT OPPONENT")
+	next_sheet.show_deck(opp, "NEXT CHALLENGER")
+	$Background.set_rival(Palette.school_ui(opp.style))
 	var tier: String = AdventureLadder.tier_of(opponent_id)
 	next_sheet.clear_extra_chips()
 	next_sheet.add_chip(tier, _tier_color(tier))
@@ -191,10 +141,10 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 
 func _show_run_over(run: AdventureRun, ladder: AdventureLadder) -> void:
 	if run.status == "won":
-		run_over_heading.text = "Run complete"
+		run_over_heading.text = "Tournament conquered"
 		run_over_reached.text = "Cleared all %d stages." % ladder.size()
 	else:
-		run_over_heading.text = "Run over"
+		run_over_heading.text = "Your ascent ends here"
 		run_over_reached.text = "Fell at stage %d of %d." % [mini(run.stage + 1, ladder.size()), ladder.size()]
 
 

@@ -26,13 +26,15 @@ var _leaving: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
 	_online = Net.active()
 	_dev_setup()
 	if not Session.can_start():
 		Session.go_to_select()
 		return
 	seed_edit.text = str(Session.seed_value)
+	$Background.set_school(Palette.school_ui(Session.chosen[1].style), true)
+	$Background.set_rival(Palette.school_ui(Session.chosen[0].style))
 	seed_edit.text_changed.connect(func(t: String) -> void: Session.seed_value = int(t))
 	advanced.toggled.connect(func(on: bool) -> void:
 		seed_label.visible = on
@@ -56,6 +58,7 @@ func _ready() -> void:
 	_refresh()
 	_enter()
 	_dev_screenshot()
+	SanctumUI.wire_buttons(self)
 
 
 func _tag(seat: int) -> String:
@@ -75,6 +78,8 @@ func _tag(seat: int) -> String:
 ## The two sheets slide in from their edges and the VS mark lands between them. Waits for the
 ## container's first layout so the slide starts from the settled position.
 func _enter() -> void:
+	if ArcaneBackdrop.motion_reduced():
+		return
 	vs_mark.scale = Vector2.ZERO
 	for s in sheets:
 		s.modulate.a = 0.0

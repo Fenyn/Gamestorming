@@ -1,11 +1,9 @@
 # Eidolarch
 
-The [in-scene interface redesign](docs/ui_redesign.md) documents the 3D hand, portrait displays, combat effects, controls, and review screenshots.
-
 A two-player dueling card game. Two duelists, mages or plain fighters, contest a place of power where a gate can be opened for an otherworldly Eidolon; the winner becomes its Eidolarch. The folder and code name are still `zenith`. Design: `../designs/zenith.md`.
 
 - **Engine:** Godot 4.6 (Forward Plus), GDScript
-- **Status:** playable hotseat and online prototype. Rules engine with headless tests, 3D playspace, deck select, nine starter decks whose cards carry their full mechanics (themed titles, no flavor text yet).
+- **Status:** playable hotseat, AI, online and adventure prototype. Rules engine with headless tests, 3D playspace, deck select, fourteen starter decks whose cards carry their full mechanics (themed titles, no flavor text yet). Screens and effects: `docs/presentation.md`. Who the characters are: `docs/cast.md`. How each deck is piloted: `docs/strategy.md`.
 - **Run:** Open `zenith/project.godot` in Godot 4.6 and press F5. Title → Duel the AI (second option; Hotseat duel sits under Local) → pick duelists → matchup → play. The table swings to whoever has to decide, behind a hand-off screen.
 - **Adventure:** Title → Adventure (first option) → pick a starter → a fixed ladder of eight opponents. Each win offers one of three theme bundles of 2 to 4 cards to add to the Life Deck, which can be skipped or traded for cutting a card. A stage that grants an Aspect first asks which next-tier card of the Duelist to take, then offers the bundles. A loss ends the run. One run is saved at a time (`user://adventure/run.json`), so closing the game and coming back resumes at the stage screen. The ladders live in `data/adventure/`, the run state in `adventure/`, and the screens in `scenes/adventure/`.
 - **Motes:** the one currency outside a run. A cleared stage pays Motes (more the higher up the ladder), beating the ladder pays a bonus, and dissolving a spare copy pays a quarter of its price. Nothing banks for free: when a run ends, won or lost, its cards go on offer and each copy kept costs Motes, at a discount and across the whole run deck when the ladder was beaten. The card vendor sells cards outright off a short shelf that rolls over after every run, or for a fee on the spot. Prices are flat by a printed tell in three bands (`base`, `limited`, `restricted`), and every number lives in `data/adventure/economy.json`. The collection (`user://adventure/collection.json`) is a library, not a box: before a run its cards can be swapped into the starter, one out and one in, and a run only copies from it. Motes and the vendor's shelf sit in `user://adventure/wallet.json`.
@@ -30,6 +28,7 @@ A two-player dueling card game. Two duelists, mages or plain fighters, contest a
 | `data/decks/` | The starter loadouts (78 to 84 life cards plus Reserves), hand-edited, validated and self-played by the tests |
 | `assets/card_art/` | Card art, one PNG per card id (`<id>_a<aspect>.png` for a duelist aspect). Loaded by id at face render time; missing art shows the type glyph |
 | `docs/card_roster.csv` | Every starter card, one row per art image: section, id, name, type, Aseprite canvas size, rules text, art brief, source card, deck usage. The one file allowed to name source cards. Regenerate with `tools/dump_cards.gd` (engine rules text) then `tools/gen_roster.py`, which holds the prompt pieces (style, framing per type, palette per school, cast identity strings, a slot brief per card) and assembles the `Prompt` column, writing both the CSV and `card_roster.md` |
+| `docs/cast.md` | The cast: every character's lore, appearance, arc and Aspects, the clans, origins and Eidolons. The record for who somebody is; the design doc holds the rules |
 | `scripts/ui/zenith_theme.gd` | The runtime-built dark theme, applied to every screen. Gold means "act here", green is Energy, red an attack, blue a defence, orange a warning; school colours mark identity only |
 | `scripts/autoload/session.gd` | `Session`: loaded library, decks, the two chosen decks, scene changes |
 | `scripts/autoload/net.gd` | `Net`: host, join or serve through a `NetTransport`; seats map to peers, the authority assigns each client its seat, updates are addressed per seat |
@@ -134,21 +133,28 @@ Online without clicks, launching the project (title scene) twice: the first inst
 
 ## Loadouts
 
-Seven starter decks, six of them modelled card-for-card on a community set of sample decks for the reference game, ordered easy to advanced. Counts and roles are kept and each card carries the mechanics of the card it stands in for, written in the effect schema below; every name is original. `data/cards/starter/starter_set.json` and the deck files are generated together by `tools/gen_starters.py` (run it from `zenith/`), so edit the generator rather than the JSON by hand.
+Fourteen starter decks, hand-edited in `data/decks/`. Every card parallels one printed card of the reference game's era and carries its mechanics in the effect schema below; every name is original. Who each duelist is: `docs/cast.md`. How each deck is piloted: `docs/strategy.md`. What the pool is made of: `docs/archetypes.md`.
 
-Each deck file also carries a `tagline` (one line under the duelist's name on the select screen) and a `blurb` (two or three sentences on who they are and how the deck plays), set in the generator's `DECK_IDENTITY`; the select screen's key card row is the Mastery, the Relic and every card whose title carries a word of the duelist's name.
+Each deck file carries a `tagline` (one line under the duelist's name on the select screen) and a `blurb` (two or three sentences on who they are and how the deck plays); the select screen's key card row is the Mastery, the Relic and every card whose title carries a word of the duelist's name.
 
-Each deck file names its **archetype** (`strike_beatdown`, `art_beatdown`, `allies`, `drills`, `seals`, `ascension`, `control`), its `subthemes` (one word each for what the deck leans on: `fervor`, `energy`, `draw`, `might`, `disruption`, `bond`, `arts`, `strikes`, `swords`, `automatons`, `seals`, `allies`, `drills`) and a `difficulty`, the way the sample-deck sheet labels its decks. The vocabulary, labels and one-line plans live in `engine/archetype.gd`; the generator's `DECK_KINDS` sets them per deck and `DeckValidator` rejects a word it does not know. The archetype is public, like the duelist and the Mastery: it rides on `PlayerState` and `SeatPlayer`, shows as a chip and a plan line on the select screen and after the style in the duel's player panel, and `AiReserve.read_setup` takes the signs it declares (an `allies` deck reads as an Ally deck, a `seals` subtheme as a likely Seal deck) on top of what the setup cards show.
+Each deck file names its **archetype** (`strike_beatdown`, `art_beatdown`, `allies`, `drills`, `seals`, `ascension`, `control`), its `subthemes` (one word each for what the deck leans on: `fervor`, `energy`, `draw`, `might`, `disruption`, `bond`, `arts`, `strikes`, `swords`, `automatons`, `seals`, `allies`, `drills`) and a `difficulty`. The vocabulary, labels and one-line plans live in `engine/archetype.gd`, and `DeckValidator` rejects a word it does not know. The archetype is public, like the duelist and the Mastery: it rides on `PlayerState` and `SeatPlayer`, shows as a chip and a plan line on the select screen and after the style in the duel's player panel, and `AiReserve.read_setup` takes the signs it declares (an `allies` deck reads as an Ally deck, a `seals` subtheme as a likely Seal deck) on top of what the setup cards show.
 
-| Deck | Type | Plan |
-|---|---|---|
-| Ashmark the Pyromancer, Bram Ashmark, Pyre Pact (80 + 12 Reserve) | Physical beatdown, easy | High-Might duelist, Strikes that raise Fervor, the single-copy stop-alls, a Mastery that spends a life card to make an Pyre attack Focused and sends used Pyre blocks under the Life Deck |
-| Quarr the Ironblood, Halden Quarr, Steel Pact (80 + 7 Reserve) | Physical beatdown, easy | Brute Strikes, a Mastery that throws away a life card on entry and draws two for a Steel card or one otherwise, Energy denial (Face Jab, Wrist Block) to lock the opponent out of attacking, Endurance in place of blocks, three Seals, Steel Standoff |
-| The Draik Company, Sable Draik, Shade Pact (80 + 4 Reserve) | Ally deck, easy | Five sworn blades who share the captain's constant power, ally search, hand disruption |
-| The Rooke Coven, Dame Alder Rooke, Tide Vigil (79 + 3 Reserve) | Ally deck, medium | Four protected kin, Arts, a Mastery that raises the opponent's aspect threshold |
-| Vale the Swordmaster, Caedan Vale, Freestyle Vigil (78 + 6 Reserve) | Drill deck, medium | Five-aspect swordsman, "Sword" title synergies, protected Drills, a named-card lock |
-| The Corven Collegium, The Ninth Vessel, Storm Pact (80 + 9 Reserve) | Art beatdown, medium | Cheaper Arts that search more Arts, Fervor ramp, a Relic that shields Fervor and aspect |
-| The Thornwald Grove, Osric Thornwald, Root Vigil (84, no Relic) | Seal deck, medium | The seven Marble Seals with eight ways to fetch or capture them, a Drill that guards the set, Arts for damage, a Mastery and blocks that keep pulling the discard pile back. Follows a separate starter list, not the sample-deck sheet, and uses the Root allowance of 90 cards |
+| File | Deck | Duelist | Style, side | Archetype, difficulty |
+|---|---|---|---|---|
+| `pyre_beatdown` | Wildfire Rush | Bram Ashmark | Pyre, Pact | strike_beatdown, easy |
+| `pyre_attrition` | Last Standing | Bram Ashmark | Pyre, Pact | strike_beatdown, medium |
+| `pyre_ascent` | Ember Ascendant | Sir Edric Rooke | Pyre, Vigil | strike_beatdown, easy |
+| `steel_beatdown` | Ironblood Onslaught | Halden Quarr | Steel, Pact | strike_beatdown, easy |
+| `steel_heir` | Steel Inheritance | Emrys Rooke | Steel, Vigil | strike_beatdown, medium |
+| `shade_henchmen` | Hexbound Company | Sable Draik | Shade, Pact | allies, easy |
+| `shade_salvage` | Scrap Requiem | Marrow | Shade, Pact | art_beatdown, medium |
+| `shade_mind_siege` | Mind Siege | Gideon Mourne | Shade, Pact | strike_beatdown, hard |
+| `tide_companions` | Tidesworn Coven | Dame Alder Rooke | Tide, Vigil | allies, medium |
+| `tide_deepwater` | Crushing Depths | Sir Edric Rooke | Tide, Vigil | control, medium |
+| `storm_volley` | Tempest Engine | Siphon | Storm, Pact | art_beatdown, medium |
+| `storm_unbound` | Stormlock | Siphon | Storm, Pact | art_beatdown, medium |
+| `root_seals` | Sevenfold Grove | Osric Thornwald | Root, Vigil | seals, medium |
+| `freestyle_swords` | Blade Legacy | Caedan Vale | Freestyle, Vigil | drills, medium |
 
 Alignment strings are `vigil` and `pact` (the Vigil and the Pact; see the design doc's Setting). Vigil open the duel when the bracket rule does not decide it.
 
@@ -158,7 +164,7 @@ Structural rules from the 2014 relaunch, adopted 2026-09-16: every deck carries 
 
 Remaining approximations in the starter set:
 
-- Cold Appraisal and Watchful Eye show the owner the opponent's whole hand as the choice list. Seals 2, 6 and 7 of each set are simple fillers the sheets never use.
+- Marrow's Appraisal and Watchful Eye show the owner the opponent's whole hand as the choice list. Seals 2, 6 and 7 of each set are simple fillers the sheets never use.
 - Steel Standoff ends the turn for both players: nobody takes a Discard step.
 - Bonds (the two-Allies-as-one card): the Bond burns one life card per turn of its owner and ends at five; the two Allies return at 3 Energy and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it.
 
@@ -232,37 +238,15 @@ Side flags: `--policy` for both sides, `--a` and `--b` for one (`random`, `score
 
 An unknown flag stops the run and says so, so `--repeat=20` no longer quietly runs the default. Any set of flags can live in a scenario file under `tests/scenarios/`, loaded with `--scenario=`; anything on the command line overrides it, which is how you vary one axis against a fixed baseline. Four ship: `balance.json`, `difficulty.json`, `think_time.json`, `beatdown_bracket.json`.
 
-`tests/deck_report.gd` and `tests/deck_outcomes.gd` are the older, narrower versions of the same run and are superseded by `matchlab`.
+`tests/deck_report.gd` (random pairings, `--games=N`) and `tests/deck_outcomes.gd` (full matrix with endgame state: how far each loser still had to go on every route, `--repeats=N` per ordered pair per seat, `--tsv=` for one row per match) are the older, narrower tournament runners. Both take `--policy=`, `--decks=`, `--seed=`, `--styles=off`, and `--search-decks=a,b` to give the sequence planner to those decks only. The standing baseline from `deck_outcomes` is `docs/deck_tournament_2026-09-20.md`.
 
-`tests/deck_report.gd` asks the other question: how the shipped decks fare against each other. Every deck pilots the same share of the matches against a random other deck from a random seat, and the report lines up each deck's win rate, which route its wins took, which route beat it, and its average game length. `--games=N` (default 200), `--policy=` (default `search`, the shipped sequence planner; use `scorer` explicitly for fast heuristic-only runs), `--decks=`, `--seed=`, `--styles=off` to play every deck on the default profile, `--verbose` for a line per match.
-
-```powershell
-& $godot --headless --path zenith -s tests/deck_report.gd -- --games=420 --seed=4
-```
-
-`tests/deck_outcomes.gd` runs the same field as a full matrix and attaches the endgame state. Every deck pilots the same number of matches against every other deck from both seats, and when a game ends it records how far each side still had to go on all three routes: life cards left to lose, Seals missing from its best set, and the share of the Fervor climb still unclimbed. On top of the win record it prints how close each deck came when it lost and which route it was nearest to, what the winner still had in hand, and the full matchup grid. `--repeats=N` matches per ordered pair per seat (default 9, so ten decks give 162 matches per pilot and 1620 in all), plus `--policy=`, `--decks=`, `--seed=`, `--budget=`, `--samples=`, `--styles=off`, and `--tsv=<absolute path>` for one row per match.
-
-```powershell
-& $godot --headless --path zenith -s tests/deck_outcomes.gd -- --repeats=9 --seed=77
-```
-
-Both tournament runners accept `--search-decks=steel_heir,pyre_ascent,tide_companions,shade_salvage` to enable the sequence planner for just those decks while the rest use `--policy` (default `search`; pass `--policy=scorer` for a mixed field). Their output prints this policy assignment.
-
-`tests/deck_ai_comparison.gd` measures the change directly: each target faces the full opposing field from both seats, first with the scorer and then with the sequence planner, using identical starting seeds. Opponents remain on the scorer in both runs. JSON reports preserve per-match results, paired gains/losses and search diagnostics. See [weak-deck comparison](docs/deck_ai_comparison.md) for the historical standings and measured results.
-
-```powershell
-& $godot --headless --path zenith -s tests/deck_ai_comparison.gd -- --targets=steel_heir,pyre_ascent,tide_companions,shade_salvage --seeds=1 --seed=77 --budget=400 --samples=2 --report=res://docs/deck_ai_comparison.json
-```
+`tests/deck_ai_comparison.gd -- --targets=a,b --seeds=N --budget=MS --samples=N --report=<json>` plays each target against the full field from both seats, first with the scorer and then with the sequence planner on identical seeds, and reports the paired gains and losses.
 
 `tests/ally_probe.gd -- --deck=<name> --repeats=N` plays one deck against the whole field and counts what happens to its Allies: turns with one in play, turns with the Duelist spent enough for a takeover, turns with both at once, control prompts split by attacker and defender, attack phases an Ally held, and who actually performed the attacks. It separates an Ally deck losing on its cards from one losing because the takeover condition never comes up.
 
 `tests/ai_trace.gd` plays one game (`--deck=`, `--foe=`, `--seed=`, `--budget=`) with the search AI in seat 0 and prints a line of table state per turn plus a tally of seat 0's commands and events, which shows whether a playstyle profile does what it says. `tests/print_text.gd -- <card ids>` prints generated rules text. `tools/prompt_census.gd` plays random duels between the shipped decks and counts prompts by kind and how many had a single option (`-- --detail` lists those), to find needless stops in the flow. `tools/validate_starters.gd` prints one line per deck under `data/adventure/starters` and `data/adventure/opponents` with its size and any DeckValidator problem, and exits non-zero when a deck fails, for a quick check while rebalancing; the suite covers the same data in `test_adventure_starters_and_opponents_are_legal`. `tools/adventure_offers.gd` plays an all-wins, always-take-the-first-bundle run of every playable starter and prints the three bundles offered at each stage, the Aspect card taken, and how many bundles are eligible per stage, to see what a run's reward pool looks like. It opens with the economy as it stands (payout per stage, price and card count per band, the vendor's shelf) and ends each run with the Motes it earned, what its added cards cost to keep and how many rows the run-end offer lists.
 
-The core route is `AiPlayer` → `AiSearch` for Easy, Normal and Hard and for ordinary simulation runs. Easy uses a 200 ms, one-sample, shallow/noisy planner; Normal uses 1600 ms/two samples; Hard uses 4000 ms/three samples. The pregame Reserve swap keeps its specialized `AiReserve` valuation. Scorer fallback remains available when a decision exhausts its search budget.
-
-`tests/matchlab.gd`, its balance and beatdown scenarios, both tournament runners, ally diagnostics and decision traces default to sequence search. Large default tournaments therefore take longer; select `--policy=scorer` explicitly for a fast baseline. The paired AI comparison and arena's explicitly labeled opponent policy remain comparison tools.
-
-Policies are `random`, `scorer`, `search`, or a profile name (`easy`, `hard`); matchlab and the AI arena also support `rollout` for historical comparison. `--decks=a,b` limits the decks, `--samples=N` and `--budget=MS` override the profile, `--verbose` prints a line per game.
+Every runner defaults to the sequence planner (`search`), so a large default tournament is slow; pass `--policy=scorer` for a fast baseline. Policies are `random`, `scorer`, `search`, `rollout` (the historical root-only search) or a profile name (`easy`, `hard`).
 
 Visual check without a screen:
 

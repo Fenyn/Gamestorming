@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/select/duelist_select.gd" id="1_select"]
 [ext_resource type="PackedScene" path="res://scenes/select/select_seat.tscn" id="2_seat"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="3_faces"]
+[ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="4_atmosphere"]
 
 [node name="DuelistSelect" type="Control"]
 layout_mode = 3
@@ -21,6 +22,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.035, 0.043, 0.06, 1)
+script = ExtResource("4_atmosphere")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
 
@@ -134,11 +136,11 @@ theme_override_font_sizes/font_size = 14
 text = "on your clipboard"
 
 [node name="Subtitle" type="Label" parent="Margin/Column"]
-visible = false
+visible = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 theme_override_font_sizes/font_size = 18
-text = "Find your playstyle. Choose a deck, meet its duelist, and make it yours."
+text = "THE CONTEST OF EIDOLARCHS     /     Choose the power you will bring to the arena"
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -166,7 +168,7 @@ custom_minimum_size = Vector2(185, 48)
 layout_mode = 2
 
 [node name="Count" type="Label" parent="Margin/Column/Body/Library"]
-visible = false
+visible = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "STARTER DECKS"
@@ -181,8 +183,8 @@ follow_focus = true
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 3
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="Empty" type="Label" parent="Margin/Column/Body/Library"]
 visible = false
@@ -203,6 +205,6 @@ theme_type_variation = &"MutedLabel"
 text = "Browse with arrow keys   /   Enter to select a deck   /   Confirm when ready"
 
 [node name="Seat" parent="Margin/Column/Body" instance=ExtResource("2_seat")]
-custom_minimum_size = Vector2(640, 0)
+custom_minimum_size = Vector2(1050, 0)
 layout_mode = 2
 size_flags_horizontal = 0

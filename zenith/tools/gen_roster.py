@@ -21,9 +21,9 @@ CANVAS = {"Personality": "151x217", "Strike": "226x160", "Art": "226x160", "Seal
           "Mastery": "100x100", "Relic": "100x100"}
 
 SCHOOL_SECTION = {"pyre": "Pyre (Ashmark and Rooke)", "steel": "Steel (Quarr)", "shade": "Shade (Draik and Salvage)",
-                  "tide": "Tide (Rooke)", "storm": "Storm (Corven)", "root": "Root (Thornwald)"}
+                  "tide": "Tide (Rooke)", "storm": "Storm (Collegium)", "root": "Root (Thornwald)"}
 SECTION_ORDER = ["Duelists", "Allies", "Relics and Masteries", "Pyre (Ashmark and Rooke)", "Steel (Quarr)",
-                 "Shade (Draik and Salvage)", "Tide (Rooke)", "Storm (Corven)", "Root (Thornwald)",
+                 "Shade (Draik and Salvage)", "Tide (Rooke)", "Storm (Collegium)", "Root (Thornwald)",
                  "Freestyle: Strikes and Arts", "Freestyle: Combat cards", "Freestyle: Non-Combats and Drills",
                  "Seals", "Grounds"]
 SEAL_RENAMES = {"crown_seal": "sun_seal", "signet_seal": "moth_seal", "scepter_seal": "marble_seal"}
@@ -64,10 +64,11 @@ PERSONALITY_PALETTE = "Accent warm gold and pale ivory, deep umber shadow, one w
 
 # Character identities: a fixed string reused verbatim on every card that shows the character,
 # so a generator keeps them consistent. (name, school/side, deck, identity, note for the md)
+# docs/cast.md copies every identity and note by hand; change it there when this changes.
 CAST = [
     ("Bram Ashmark", "Pact", "Ashmark the Pyromancer",
      "Bram Ashmark: man in his early twenties, lean, soot-streaked pale skin, singed short dark hair, half-plate over a scorched gambeson, plain longsword with a heat shimmer.",
-     "The Pact shows as light under the skin: faint at Kindled, cracks by Unquenchable."),
+     "The Pact shows as light under the skin: faint at Starved, cracks by Gorging, streaming inward by Insatiable."),
     ("Halden Quarr", "Pact", "Quarr the Ironblood",
      "Halden Quarr: huge man in his forties, shaved head, brawler's build, bare arms, skin greying to iron in patches, black knuckles, raised welded scars, no armour.",
      "The Pact shows as iron spreading over more of him each Aspect."),
@@ -96,10 +97,10 @@ CAST = [
     ("Caedan Vale", "Vigil", "Vale the Swordmaster",
      "Caedan Vale: slight man in his late twenties, dark hair, grey fencing doublet, one longsword, no magic.",
      "Aspects stay human: stiller each time, grey at the temples by Peerless."),
-    ("Siphon", "Pact", "The Corven Collegium",
+    ("Siphon", "Pact", "The Collegium",
      "Siphon: humanoid construct of grey stone and copper wire, sigils cut into its chest, a smooth faceless head, a glass core at the sternum.",
      "Dormant it is a statue, charged it hums, unbound it arcs."),
-    ("Tithe", "Pact", "The Corven Collegium",
+    ("Tithe", "Pact", "The Collegium",
      "Tithe: smaller stone-and-copper construct, cruder sigils than Siphon's, a cracked shoulder never repaired, a slot in its chest where cards go in.",
      "Works from the side and never asks to lead. It takes one, and it is paid."),
     # Constructs from outside the Collegium. One word each, naming what they are for.
@@ -180,9 +181,8 @@ SHOWS = {
 # Slot brief per card: subject, action, two or three concrete details, mood. Short, visual, no rules.
 ART = {
     # Duelists
-    "personality_bram_ashmark_1_starved": "Kindled. Grinning, blood on his knuckles, embers in his eyes, heat shimmer off the blade, no open flame yet.",
-    "personality_bram_ashmark_2_leeching": "Wildfire. Flame licking off his shoulders, cracks of orange light along his forearms, sword raised overhead, coals glowing in the steel.",
-    "personality_bram_ashmark_3_unstoppable": "Unquenchable. Fully wreathed in fire, face barely visible in it, caught mid-charge, sparks trailing.",
+    "personality_bram_ashmark_2_leeching": "Leeching. Flame licking off his shoulders, cracks of orange light along his forearms, sword raised overhead, coals glowing in the steel.",
+    "personality_bram_ashmark_3_unstoppable": "Unstoppable. Fully wreathed in fire, face barely visible in it, caught mid-charge, sparks trailing.",
     "personality_halden_quarr_1_the_grinder": "The Grinder. Brawler's crouch, fists up, black knuckles, breath steaming, hungry look.",
     "personality_halden_quarr_2_tempered": "Tempered. Chest and shoulders greyed to iron, veins like solder, one foot on a discarded page.",
     "personality_halden_quarr_3_ironheart": "Ironheart. Chest plated in living iron, a dull red heart glowing through it, both fists cocked.",
@@ -935,11 +935,9 @@ def write_md(rows):
     out.append("- Cards carrying a character's name: %s" % PERSONALITY_PALETTE)
     for s, p in SEAL_PALETTE.items():
         out.append("- %s seals: %s" % (s.capitalize(), p))
-    out += ["", "## Cast", "", "Identity strings are reused verbatim on every card that shows the character.", "",
-            "| Character | Side | Deck | Identity | Across Aspects |", "|---|---|---|---|---|"]
-    for name, side, deck, identity, note in CAST:
-        out.append("| %s | %s | %s | %s | %s |" % (name, side, deck, esc(identity), esc(note)))
-    out.append("")
+    out += ["", "## Cast", "",
+            "Identity strings are reused verbatim on every card that shows the character. They are listed",
+            "with each character's lore and forms in `cast.md`; the source is `CAST` in `tools/gen_roster.py`.", ""]
     section = None
     for i, r in enumerate(rows):
         if r["Section"] != section:

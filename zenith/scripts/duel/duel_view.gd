@@ -48,6 +48,8 @@ var view: SeatView = null            # what the viewer may see right now
 var prompt: PromptView = null        # the viewer's pending decision, null when it is not theirs
 var views: Dictionary = {}           # uid -> Card3D
 var _markers: Dictionary = {}        # uid -> StatusMarkers on personalities in play
+var _rail_pins: Dictionary = {}      # uid -> [player, zone, index] for cards pinned over the rail
+var _rail_rest: Dictionary = {}      # uid -> the rail transform the card was last put at
 var viewer: int = -1
 var busy: bool = false
 var online: bool = false
@@ -96,7 +98,7 @@ func _ready() -> void:
 		fixture.clicked.connect(_on_card_clicked)
 		fixture.inspected.connect(_on_card_inspected)
 		fixture.hovered.connect(_on_card_hovered)
-	_set_reduced_motion(OS.get_cmdline_user_args().has("--reduced-motion"))
+	_set_reduced_motion(ArcaneBackdrop.motion_reduced())
 	hud.option_chosen.connect(_on_option_chosen)
 	hud.card_clicked.connect(_on_card_clicked)
 	hud.handoff_confirmed.connect(_on_handoff_confirmed)
@@ -130,6 +132,8 @@ func _ready() -> void:
 
 func _set_reduced_motion(on: bool) -> void:
 	_reduced_motion = on
+	ArcaneBackdrop.reduced_motion = on
+	$Atmosphere.reduced_motion = on
 	fx.reduced_motion = on
 	hand_3d.reduced_motion = on
 	near_duelist.reduced_motion = on
@@ -161,6 +165,7 @@ func _process(_delta: float) -> void:
 		hud.hide_peek()
 	_watch_for_stall(overlay)
 	_layout_fixtures()
+	_follow_rail()
 	focus_card.visible = hud.focus.visible and not overlay
 	if focus_card.visible and view != null:
 		var shown_def: CardDef = _replay_focus_def
@@ -509,6 +514,7 @@ func _apply(seat: int, wire: Dictionary) -> void:
 ## layout; the sync at the end catches whatever the beats did not move.
 func _play_update(up: SeatUpdate) -> void:
 	view = up.view
+	$Atmosphere.set_schools(Palette.school_ui(view.player(0).style), Palette.school_ui(view.player(1).style))
 	prompt = up.prompt
 	await faces.render_missing(view, Session.library)
 	_adopt_cards()
@@ -1375,6 +1381,36 @@ func _rail_slot(player: int, zone: StringName, index: int) -> Transform3D:
 	return Transform3D(facing.scaled(Vector3.ONE * scale_factor), origin)
 
 
+## Records that `uid` lives over the rail, so `_follow_rail` can keep it there, and returns its slot.
+func _pin_rail(uid: int, player: int, zone: StringName, index: int) -> Transform3D:
+	_rail_pins[uid] = [player, zone, index]
+	return _rail_slot(player, zone, index)
+
+
+## The rail slots are built from where the camera and the HUD wells are at sync time, but the
+## camera keeps moving afterwards (wheel, pan, the glide home) while the wells stay put on
+## screen, so a card left in world space drifts off its well. Every frame, a rail card that is
+## resting at its slot is moved to the slot as it is now. A card still in flight (its transform
+## is not the rest it was last put at) is left to its tween; it snaps over once it lands.
+func _follow_rail() -> void:
+	if view == null or _rail_pins.is_empty():
+		return
+	for uid in _rail_pins.keys():
+		var v: Card3D = views.get(uid)
+		if v == null or not v.visible or not _rail_rest.has(uid):
+			continue
+		var rest: Transform3D = _rail_rest[uid]
+		if not v.transform.is_equal_approx(rest):
+			continue
+		var pin: Array = _rail_pins[uid]
+		var slot: Transform3D = _rail_slot(int(pin[0]), pin[1] as StringName, int(pin[2]))
+		var target: Transform3D = slot if v.face_up else Transform3D(slot.basis * Basis(Vector3.RIGHT, PI), slot.origin)
+		if target.is_equal_approx(rest):
+			continue
+		v.transform = target
+		_rail_rest[uid] = target
+
+
 ## World units one screen pixel covers at `depth`, the same measure the hand lays itself out with.
 func _units_per_pixel(depth: float) -> float:
 	return camera.project_position(Vector2.ZERO, depth).distance_to(camera.project_position(Vector2(1, 0), depth))
@@ -1384,6 +1420,7 @@ func _units_per_pixel(depth: float) -> float:
 func _targets() -> Dictionary:
 	var out: Dictionary = {}
 	var vw: int = viewer if viewer >= 0 else view.active
+	_rail_pins.clear()
 	for p in view.players:
 		var n: int = p.life_deck.size()
 		for i in range(n):
@@ -1392,9 +1429,9 @@ func _targets() -> Dictionary:
 		# table is left to the fighters. They are still real cards pinned over their rail row,
 		# which keeps every arc and stack reading the way it did on the table.
 		for i in range(p.discard.size()):
-			out[p.discard[i]] = [_rail_slot(p.index, &"discard", i), true, true]
+			out[p.discard[i]] = [_pin_rail(p.discard[i], p.index, &"discard", i), true, true]
 		for i in range(p.removed.size()):
-			out[p.removed[i]] = [_rail_slot(p.index, &"removed", i), true, true]
+			out[p.removed[i]] = [_pin_rail(p.removed[i], p.index, &"removed", i), true, true]
 		var hn: int = p.hand.size()
 		for i in range(hn):
 			out[p.hand[i]] = [zones.slot(p.index, &"hand", i, hn, vw), false, p.index != viewer]
@@ -1410,13 +1447,13 @@ func _targets() -> Dictionary:
 			out[p.remain[i]] = [zones.slot(p.index, &"remain", i, p.remain.size(), vw), true, true]
 		out[p.duelist] = [zones.slot(p.index, &"duelist", 0, 1, vw), true, true]
 		if p.mastery >= 0:
-			out[p.mastery] = [_rail_slot(p.index, &"mastery", 0), true, true]
+			out[p.mastery] = [_pin_rail(p.mastery, p.index, &"mastery", 0), true, true]
 		var reserve_n: int = p.reserve.size()
 		if p.relic >= 0:
-			out[p.relic] = [_rail_slot(p.index, &"relic", 0), true, true]
+			out[p.relic] = [_pin_rail(p.relic, p.index, &"relic", 0), true, true]
 		for i in range(reserve_n):
 			# Reserve cards sit face down under the Relic; only their owner sees them in the prompt.
-			out[p.reserve[i]] = [_rail_slot(p.index, &"relic", i + 1), false, true]
+			out[p.reserve[i]] = [_pin_rail(p.reserve[i], p.index, &"relic", i + 1), false, true]
 	# An attachment has no zone of its own: it rides the card it is attached to, tucked behind it
 	# and a little smaller. Without this it is in play and drawn nowhere, so an effect that asks
 	# the player to pick it has nothing to click.
@@ -1514,13 +1551,21 @@ func _sync_layout(animated: bool, pinned_uid: int = -1) -> void:
 		var basis: Basis = slot_t.basis if face_up else slot_t.basis * Basis(Vector3.RIGHT, PI)
 		var target: Transform3D = Transform3D(basis, slot_t.origin)
 		v.face_up = face_up
+		# A card already resting in the rail is only re-pinned under the current camera; that is a
+		# correction, not a move, so it snaps rather than sliding.
+		var railed: bool = _rail_pins.has(uid)
+		var settled: bool = railed and _rail_rest.has(uid) and v.transform.is_equal_approx(_rail_rest[uid])
+		if railed:
+			_rail_rest[uid] = target
+		else:
+			_rail_rest.erase(uid)
 		if not visible:
 			v.visible = false
 			v.transform = target
 			continue
 		var was_visible: bool = v.visible
 		v.visible = true
-		if not was_visible or not animated:
+		if not was_visible or not animated or settled:
 			v.transform = target
 			continue
 		if v.transform.origin.distance_to(target.origin) < 0.0005 and v.transform.basis.is_equal_approx(target.basis):

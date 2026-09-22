@@ -257,6 +257,9 @@ func _init() -> void:
 		test_first_to_two_the_hit_that_scores_loses_its_leftover_damage,
 		test_first_to_two_an_ascension_scores_once_and_resets_nothing,
 		test_first_to_two_a_seal_set_scores_one_point_under_the_adventure_rules,
+		test_lives_are_per_seat_so_the_player_falls_twice_and_the_opponent_once,
+		test_adventure_rules_give_the_boss_two_lives_and_everyone_else_one,
+		test_a_sim_match_with_lives_gives_each_seat_its_own_points_to_win,
 		test_an_adventure_run_round_trips_through_json_and_the_save,
 		test_adventure_ladders_field_legal_opponents,
 		test_every_reward_bundle_is_well_formed,
@@ -4031,7 +4034,7 @@ func test_the_taller_ladder_wins_by_standing_above_it() -> void:
 ## discard pile becomes the new deck; removed cards stay out and the table is untouched.
 func test_first_to_two_a_deck_out_scores_a_point_and_reshuffles() -> void:
 	var e: DuelEngine = engine(deck(filler()), deck(["t_strike", "t_strike"], "pact"))
-	e.state.points_to_win = 2
+	e.state.points_to_win = [2, 2]
 	for i in range(4):
 		to_discard(e, 1, "t_strike")
 	var gone: CardInstance = e._instance(lib.get_def("t_strike"), 1, &"removed")
@@ -4054,7 +4057,7 @@ func test_first_to_two_a_deck_out_scores_a_point_and_reshuffles() -> void:
 
 	# A duelist with nothing to shuffle back has nothing left to fight with.
 	var f: DuelEngine = engine(deck(filler()), deck(["t_strike", "t_strike"], "pact"))
-	f.state.points_to_win = 2
+	f.state.points_to_win = [2, 2]
 	to_combat(f)
 	check(f.is_over(), "an empty discard pile makes the first deck-out final")
 	eq(f.state.winner, 0, "and the rival wins")
@@ -4062,7 +4065,7 @@ func test_first_to_two_a_deck_out_scores_a_point_and_reshuffles() -> void:
 
 func test_first_to_two_the_hit_that_scores_loses_its_leftover_damage() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "pact"))
-	e.state.points_to_win = 2
+	e.state.points_to_win = [2, 2]
 	to_combat(e)
 	while e.player(1).life_deck.size() > 2:
 		e.player(1).removed.append(e.player(1).life_deck.pop_back())
@@ -4077,7 +4080,7 @@ func test_first_to_two_the_hit_that_scores_loses_its_leftover_damage() -> void:
 
 func test_first_to_two_an_ascension_scores_once_and_resets_nothing() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_taunt", "t_taunt"]), "vigil", "", "", 5, "tf_titan"), deck(filler(), "pact"))
-	e.state.points_to_win = 2
+	e.state.points_to_win = [2, 2]
 	to_combat(e)
 	e.player(0).duelist.go_to_aspect(3)
 	e.player(0).fervor = 4
@@ -4099,16 +4102,76 @@ func test_first_to_two_an_ascension_scores_once_and_resets_nothing() -> void:
 	eq(e.state.winner, 0, "for the climber")
 
 
+## Adventure lives (2026-09-22): the player has two, an ordinary opponent one. `set_lives` is
+## seat-ordered, so seat 1 needs two points against a two-life seat 0 and seat 0 needs one.
+func test_lives_are_per_seat_so_the_player_falls_twice_and_the_opponent_once() -> void:
+	var e: DuelEngine = DuelEngine.new()
+	e.shuffle_decks = false
+	var decks: Array[DeckList] = [deck(filler()), deck(filler(), "pact")]
+	e.setup(decks, lib, table, 1)
+	e.set_lives([2, 1])
+	e.start()
+	eq(e.state.points_to_win[0], 1, "one point beats a one-life opponent")
+	eq(e.state.points_to_win[1], 2, "two beat a two-life player")
+	to_combat(e)
+	to_discard(e, 0, "t_strike")
+	to_discard(e, 1, "t_strike")
+	e._win(1, "survival")
+	check(not e.is_over(), "the player's first fall is a point")
+	eq(e.state.points[1], 1, "one point to the rival")
+	e._win(0, "survival")
+	check(e.is_over(), "the opponent's first fall is the duel")
+	eq(e.state.winner, 0, "for the player")
+	# A boss has two lives as well, so the rule is symmetric again.
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	f.state.points_to_win = [2, 2]
+	to_combat(f)
+	to_discard(f, 1, "t_strike")
+	f._win(0, "survival")
+	check(not f.is_over(), "a boss survives the first fall")
+	f._win(0, "survival")
+	check(f.is_over(), "and not the second")
+
+
+## The lives numbers moved out of Session so a headless SceneTree runner can read them.
+func test_adventure_rules_give_the_boss_two_lives_and_everyone_else_one() -> void:
+	var plain: Array[int] = AdventureRules.lives_for({"opponent": "steel_beatdown_t3", "tier": "t3"})
+	eq(plain[0], AdventureRules.PLAYER_LIVES, "the player has two lives on an ordinary stage")
+	eq(plain[1], AdventureRules.OPPONENT_LIVES, "and an ordinary opponent has one")
+	var boss: Array[int] = AdventureRules.lives_for({"opponent": "steel_beatdown_boss", "tier": "boss"})
+	eq(boss[0], AdventureRules.PLAYER_LIVES, "the player still has two against the boss")
+	eq(boss[1], AdventureRules.BOSS_LIVES, "and the boss has two as well")
+	# A row that names no tier is an ordinary stage, not a boss.
+	eq(AdventureRules.lives_for({})[1], AdventureRules.OPPONENT_LIVES, "an unnamed tier is ordinary")
+
+
+## SimMatch.lives is seat-ordered and overrides the symmetric points_to_win, which is what lets
+## tests/adventure_lab.gd play a ladder stage the way the client does.
+func test_a_sim_match_with_lives_gives_each_seat_its_own_points_to_win() -> void:
+	var runner: SimMatch = SimMatch.make(lib, table, 4000)
+	runner.lives = [2, 1]
+	var side: SimSeat = SimSeat.from_legacy("random", {})
+	eq(side.error, "", "the random side builds")
+	var result: Dictionary = runner.play(deck(filler()), deck(filler(), "pact"), 0, side, side,
+		[7, 8, 9, 10])
+	check(bool(result["ok"]), "the staged duel finished: %s" % str(result["error"]))
+	var points: Array = result["points"]
+	var winner: int = int(result["winner_seat"])
+	# Seat 0 has two lives, so seat 1 needs two points to take it; seat 0 needs one.
+	eq(int(points[winner]), 2 if winner == 1 else 1, "the winner scored exactly what its rival's lives cost")
+	check(int(points[1 - winner]) < (2 if winner == 0 else 1), "and the loser fell short")
+
+
 func test_first_to_two_a_seal_set_scores_one_point_under_the_adventure_rules() -> void:
 	# The printed game, and first-to-two without the option: the set is the duel.
 	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
-	e.state.points_to_win = 2
+	e.state.points_to_win = [2, 2]
 	e._win(0, "seal")
 	check(e.is_over(), "a full Seal set ends a first-to-two duel on the spot")
 	eq(e.state.win_reason, "seal", "as a Seal win")
 	# The adventure rule set: the set is one point, once, and a second set scores nothing more.
 	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
-	f.state.points_to_win = 2
+	f.state.points_to_win = [2, 2]
 	f.state.seal_scores_point = true
 	f._win(0, "seal")
 	check(not f.is_over(), "with the option the set is a point and the duel goes on")
@@ -8035,27 +8098,39 @@ func test_a_loadout_takes_no_more_copies_than_the_collection_holds() -> void:
 
 func test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price() -> void:
 	var shipped: CardLibrary = shipped_library()
-	# The price list rises and then holds at its last entry.
-	var costs: Array = AdventureEconomy.data().get("slot_costs", [])
-	check(costs.size() >= 5, "the economy prices at least five slots")
-	for i in range(1, costs.size()):
+	# The price curve rises every slot and never goes free.
+	eq(AdventureEconomy.slot_cost(0), 0, "there is no zeroth slot")
+	eq(AdventureEconomy.slot_cost(1), 100, "the first slot costs 100")
+	for i in range(1, 40):
 		check(AdventureEconomy.slot_cost(i + 1) > AdventureEconomy.slot_cost(i),
 			"slot %d costs more than slot %d" % [i + 1, i])
-	eq(AdventureEconomy.slot_cost(costs.size() + 9), AdventureEconomy.slot_cost(costs.size()),
-		"past the end of the list the last price repeats")
-	eq(AdventureEconomy.slot_cost(0), 0, "there is no zeroth slot")
+	var full_win: int = motes_expected(ADVENTURE_LADDER_SIZE, true)
+	check(AdventureEconomy.slot_cost(1) <= full_win, "the first slot is inside one full win")
+	check(AdventureEconomy.slot_cost_total(3) <= full_win, "and so are the first three together")
+	eq(AdventureEconomy.slot_cost_total(3), 330, "which is 330 Motes of that 490")
+	# The ceiling is the validator's own card maximum, measured from what the starter prints.
+	var starter_deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
+	eq(starter_deck.total_cards(), 53, "the starter prints 53 cards in all")
+	eq(AdventureLoadout.max_slots(starter_deck), DeckValidator.MAX_CARDS - 53,
+		"so it has 32 slots to buy before it hits the maximum")
+	eq(AdventureLoadout.max_slots_for(MOTES_STARTER), AdventureLoadout.max_slots(starter_deck),
+		"and the starter id answers the same")
+	var root_deck: DeckList = AdventureLoadout.base_deck("root_seals_start")
+	eq(AdventureLoadout.max_slots(root_deck), DeckValidator.MAX_CARDS_ROOT - root_deck.total_cards(),
+		"a Root deck is measured against the higher Root maximum")
+	var most: int = AdventureLoadout.max_slots(starter_deck)
 	var upgrades: AdventureUpgrades = AdventureUpgrades.new()
 	var wallet: AdventureWallet = AdventureWallet.new()
 	eq(upgrades.slots(MOTES_STARTER), 0, "a starter begins with no bought slots")
-	eq(upgrades.next_slot_cost(MOTES_STARTER), AdventureEconomy.slot_cost(1), "and the first slot's price")
-	check(not upgrades.buy_slot(MOTES_STARTER, wallet), "an empty wallet buys no slot")
+	eq(upgrades.next_slot_cost(MOTES_STARTER, most), AdventureEconomy.slot_cost(1), "and the first slot's price")
+	check(not upgrades.buy_slot(MOTES_STARTER, wallet, most), "an empty wallet buys no slot")
 	eq(upgrades.slots(MOTES_STARTER), 0, "and nothing moves")
-	wallet.earn(10000, AdventureWallet.REASON_STAGE)
-	var first_cost: int = upgrades.next_slot_cost(MOTES_STARTER)
-	check(upgrades.buy_slot(MOTES_STARTER, wallet), "with Motes it does")
-	eq(wallet.motes, 10000 - first_cost, "the price is taken")
+	wallet.earn(100000, AdventureWallet.REASON_STAGE)
+	var first_cost: int = upgrades.next_slot_cost(MOTES_STARTER, most)
+	check(upgrades.buy_slot(MOTES_STARTER, wallet, most), "with Motes it does")
+	eq(wallet.motes, 100000 - first_cost, "the price is taken")
 	eq(upgrades.slots(MOTES_STARTER), 1, "and the starter has a slot")
-	check(upgrades.next_slot_cost(MOTES_STARTER) > first_cost, "the next one costs more")
+	check(upgrades.next_slot_cost(MOTES_STARTER, most) > first_cost, "the next one costs more")
 	eq(upgrades.slots(MOTES_STARTER_TWO), 0, "a slot is bought per starter and not for all of them")
 	# The loadout cap follows the slots, and Add fills them.
 	var collection: AdventureCollection = AdventureCollection.new()
@@ -8182,10 +8257,12 @@ func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
 	eq(upgrades.all_starters().size(), 0, "and name no starter")
 	var wallet: AdventureWallet = AdventureWallet.new()
 	wallet.earn(10000, AdventureWallet.REASON_STAGE)
-	check(upgrades.buy_slot(MOTES_STARTER, wallet), "a slot is bought")
-	check(upgrades.buy_slot(MOTES_STARTER, wallet), "and a second")
+	var most: int = AdventureLoadout.max_slots_for(MOTES_STARTER)
+	check(upgrades.buy_slot(MOTES_STARTER, wallet, most), "a slot is bought")
+	check(upgrades.buy_slot(MOTES_STARTER, wallet, most), "and a second")
 	check(upgrades.buy_aspect_tier(MOTES_STARTER, 2, wallet), "and an Aspect tier")
-	check(upgrades.buy_slot(MOTES_STARTER_TWO, wallet), "a second starter buys its own slot")
+	check(upgrades.buy_slot(MOTES_STARTER_TWO, wallet, AdventureLoadout.max_slots_for(MOTES_STARTER_TWO)),
+		"a second starter buys its own slot")
 	eq(wallet.ledger[wallet.ledger.size() - 1]["reason"], AdventureWallet.REASON_SLOT,
 		"every purchase leaves a ledger line")
 	check(upgrades.save(), "the upgrades write to disk")
@@ -8202,10 +8279,16 @@ func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
 	eq(upgrades.aspect_tier(MOTES_STARTER, 2), DeckValidator.MAX_ASPECTS,
 		"buying stops at the highest Aspect a deck may run")
 	eq(upgrades.next_aspect_cost(MOTES_STARTER, 2), 0, "with nothing left to buy")
-	for _i in range(AdventureEconomy.slot_max() + 3):
-		upgrades.buy_slot(MOTES_STARTER, wallet)
-	eq(upgrades.slots(MOTES_STARTER), AdventureEconomy.slot_max(), "and slots stop at their maximum")
-	eq(upgrades.next_slot_cost(MOTES_STARTER), 0, "with nothing left to buy either")
+	wallet.earn(1000000, AdventureWallet.REASON_STAGE)
+	for _i in range(most + 3):
+		upgrades.buy_slot(MOTES_STARTER, wallet, most)
+	eq(upgrades.slots(MOTES_STARTER), most, "slots stop where the card maximum does")
+	eq(upgrades.next_slot_cost(MOTES_STARTER, most), 0, "with nothing left to buy either")
+	check(upgrades.next_slot_cost(MOTES_STARTER, -1) > 0,
+		"though a caller with no deck to measure against is not stopped")
+	# The whole track is a long-term goal: the last slot alone is worth several full wins.
+	check(AdventureEconomy.slot_cost(most) > motes_expected(ADVENTURE_LADDER_SIZE, true) * 3,
+		"the last slot costs more than three full wins")
 	AdventureUpgrades.clear()
 	check(not AdventureUpgrades.exists(), "clear removes the file")
 	AdventureUpgrades.path_override = ""

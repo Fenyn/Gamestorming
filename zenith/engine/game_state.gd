@@ -33,7 +33,7 @@ var pending_ascension: int = -1        # an Ascension win the opponent answered;
 var declare_window_done: bool = false  # the opponent already had their Declare-step response this turn
 var winner: int = -1
 var win_reason: String = ""
-var points_to_win: int = 1                         # adventure duels run first to 2; see DuelEngine._win
+var points_to_win: Array[int] = [1, 1]             # per seat: the points that seat needs; see DuelEngine.set_lives
 var points: Array[int] = [0, 0]
 var ascension_scored: Array[bool] = [false, false]  # an Ascension scores once per duelist per duel
 var seal_scored: Array[bool] = [false, false]       # so does a full Seal set, when `seal_scores_point`
@@ -74,7 +74,7 @@ func copy(cards: Dictionary) -> GameState:
 	s.declare_window_done = declare_window_done
 	s.winner = winner
 	s.win_reason = win_reason
-	s.points_to_win = points_to_win
+	s.points_to_win = points_to_win.duplicate()
 	s.points = points.duplicate()
 	s.ascension_scored = ascension_scored.duplicate()
 	s.seal_scored = seal_scored.duplicate()

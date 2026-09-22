@@ -40,10 +40,12 @@ func aspect_tier(starter_id: String, base: int) -> int:
 	return maxi(base, int(_row(starter_id).get("aspect_tiers", 0)))
 
 
-## What the next slot costs, 0 when this starter has bought every slot there is.
-func next_slot_cost(starter_id: String) -> int:
+## What the next slot costs, 0 when this starter has bought every slot it has room for.
+## `max_slots` is how many the starter may ever buy, which is what DeckValidator's card maximum
+## leaves above the deck it prints; -1 means "do not check", for a caller that has no deck to hand.
+func next_slot_cost(starter_id: String, max_slots: int = -1) -> int:
 	var bought: int = slots(starter_id)
-	if bought >= AdventureEconomy.slot_max():
+	if max_slots >= 0 and bought >= max_slots:
 		return 0
 	return AdventureEconomy.slot_cost(bought + 1)
 
@@ -57,11 +59,12 @@ func next_aspect_cost(starter_id: String, base: int) -> int:
 	return AdventureEconomy.aspect_tier_cost(next_tier)
 
 
-## Buys one slot. False, and nothing moves, when the starter is maxed out or the wallet is short.
-func buy_slot(starter_id: String, wallet: AdventureWallet) -> bool:
+## Buys one slot. False, and nothing moves, when the starter has no room left for another or the
+## wallet is short. See `next_slot_cost` for `max_slots`.
+func buy_slot(starter_id: String, wallet: AdventureWallet, max_slots: int = -1) -> bool:
 	if wallet == null:
 		return false
-	var cost: int = next_slot_cost(starter_id)
+	var cost: int = next_slot_cost(starter_id, max_slots)
 	if cost <= 0 or not wallet.spend(cost, AdventureWallet.REASON_SLOT, starter_id):
 		return false
 	_write(starter_id, "extra_slots", slots(starter_id) + 1)

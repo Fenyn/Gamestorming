@@ -97,12 +97,13 @@ func _refresh_upgrades() -> void:
 	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
 	var bought: int = Session.upgrades.slots(starter_id)
 	var base_size: int = AdventureLoadout.size_cap(_deck)
-	var slot_cost: int = Session.upgrades.next_slot_cost(starter_id)
-	slot_label.text = "Deck slots: %d%s" % [base_size, " + %d" % bought if bought > 0 else ""]
+	var most: int = AdventureLoadout.max_slots(_deck)
+	var slot_cost: int = Session.upgrades.next_slot_cost(starter_id, most)
+	slot_label.text = "Deck slots: %d + %d of %d" % [base_size, bought, most]
 	if slot_cost <= 0:
 		buy_slot_button.text = "Deck slots maxed"
 		buy_slot_button.disabled = true
-		buy_slot_button.tooltip_text = "This starter has bought every deck slot there is."
+		buy_slot_button.tooltip_text = "This deck is as big as a deck may be."
 	else:
 		buy_slot_button.text = "Buy next slot: %d Motes" % slot_cost
 		buy_slot_button.disabled = not Session.wallet.can_afford(slot_cost)

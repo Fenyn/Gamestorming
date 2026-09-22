@@ -9,6 +9,10 @@ var library: CardLibrary = null
 var table: StrikeTable = null
 var max_steps: int = 6000
 var points_to_win: int = 1   # 2 is the adventure rule; see DuelEngine.set_points_to_win
+## Lives per seat, seat-ordered (entry 0 is seat 0, whichever side sits there). Empty leaves the
+## symmetric `points_to_win` alone; non-empty overrides it, since a ladder stage gives the player
+## two lives and an ordinary opponent one. See AdventureRules.lives_for.
+var lives: Array[int] = []
 
 
 static func make(lib: CardLibrary, strike_table: StrikeTable, p_max_steps: int) -> SimMatch:
@@ -30,8 +34,14 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 	var referee: Referee = Referee.new()
 	referee.setup(decks, library, table, seeds[0], [], false)
 	referee.engine.set_points_to_win(points_to_win)
+	var multi_point: bool = points_to_win > 1
+	# Lives come second so they override the symmetric setting.
+	if not lives.is_empty():
+		referee.engine.set_lives(lives)
+		for n in lives:
+			multi_point = multi_point or n > 1
 	# The adventure rule set: a first-to-N duel also scores a full Seal set as one point.
-	referee.engine.set_points_options(points_to_win > 1, false)
+	referee.engine.set_points_options(multi_point, false)
 	referee.start()
 	referee.engine.take_events()
 
@@ -94,6 +104,8 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 		"reason": str(referee.engine.state.win_reason) if finished else "",
 		"turn": referee.engine.state.turn,
 		"steps": steps,
+		# Seat-ordered, unlike `timing` and `distance`: the points each seat scored.
+		"points": [int(referee.engine.state.points[0]), int(referee.engine.state.points[1])],
 		"timing": timing,
 		"full_life": full_life,
 		"distance": [

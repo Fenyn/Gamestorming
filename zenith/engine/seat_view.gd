@@ -17,7 +17,7 @@ var attacker: int = 0
 var winner: int = -1
 var win_reason: String = ""
 var points: Array = [0, 0]             # per seat, toward `points_to_win`
-var points_to_win: int = 1
+var points_to_win: Array = [1, 1]      # per seat, the points that seat needs to win
 var deciding: int = -1                # who the pending prompt belongs to, -1 when none
 var deciding_kind: StringName = &""
 var attack: Dictionary = {}            # public summary of the attack in the air, {} when none
@@ -105,7 +105,8 @@ static func from_dict(d: Dictionary) -> SeatView:
 	v.win_reason = str(d.get("win_reason", ""))
 	var wire_points: Array = d.get("points", [0, 0])
 	v.points = [int(wire_points[0]), int(wire_points[1])]
-	v.points_to_win = int(d.get("points_to_win", 1))
+	var wire_to_win: Array = d.get("points_to_win", [1, 1])
+	v.points_to_win = [int(wire_to_win[0]), int(wire_to_win[1])]
 	v.deciding = int(d.get("deciding", -1))
 	v.deciding_kind = StringName(str(d.get("deciding_kind", "")))
 	v.attack = d.get("attack", {})
@@ -138,7 +139,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	v.winner = s.winner
 	v.win_reason = s.win_reason
 	v.points = [s.points[0], s.points[1]]
-	v.points_to_win = s.points_to_win
+	v.points_to_win = [s.points_to_win[0], s.points_to_win[1]]
 	# When both seats hold a decision (the Reserve swap), this seat's own comes first.
 	var pending: Prompt = engine.prompt_of(seat) if engine.prompt_of(seat) != null else engine.prompt
 	if pending != null:

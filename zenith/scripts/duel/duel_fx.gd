@@ -122,7 +122,7 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 	t.tween_callback(l.queue_free)
 
 
-## Sparks thrown out from `pos` that fall and fade.
+## Authored EffectBlocks sparks radiate from `pos` and fade.
 func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> void:
 	if reduced_motion:
 		return
@@ -131,6 +131,7 @@ func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> v
 	var material: ParticleProcessMaterial = particles.process_material
 	material.initial_velocity_min = speed * 0.4
 	material.initial_velocity_max = speed
+	particles.restart()
 
 
 ## A bright streak from one card to another, lying just above the table, that fades.
@@ -218,13 +219,20 @@ func impact(pos: Vector3, color: Color, strength: float = 1.0) -> void:
 		EffectBlocks.play(self, "impacts/impact_1", pos, color, 0.8 * weight, 1.0)
 
 
-## Brief ordered rings make a rank change larger than routine resource feedback.
+## A rising power-up effect distinguishes ascension from routine resource feedback.
 func ascend(pos: Vector3, color: Color, rising: bool = true) -> void:
 	if reduced_motion:
 		ring(pos, color, 1.2)
 		return
 	if rising:
 		var effect: Node3D = EffectBlocks.play(self, "loot/power_up", pos + Vector3.UP * 0.5, color, 1.2, 1.3)
+		var arrows: GPUParticles3D = effect.get_node("PowerUp")
+		var arrow_material: StandardMaterial3D = arrows.draw_pass_1.surface_get_material(0)
+		arrow_material.albedo_color.a = 0.24
+		arrow_material.emission_energy_multiplier = 4.0
+		arrows.lifetime = 0.8
+		arrows.explosiveness = 0.5
+		arrows.restart()
 		var fade: Tween = create_tween()
 		fade.tween_interval(0.75)
 		fade.tween_property(effect, "scale", Vector3.ONE * 0.05, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)

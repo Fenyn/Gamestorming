@@ -46,9 +46,9 @@ referee's presentation data.
 Feedback vocabulary: declaration slides and scales into the lane; a legal response carries an aura;
 a stop flashes defense colour; a hit shakes and flashes the target with its numbers over it; a wound
 pulses the Life number as the card lifts, reveals and flies to its pile; Second Wind returns the
-discard in one shuffle beat; ascension raises a light column. Reduced Motion keeps every state
-distinction through position, border, icon and text, snaps card flights, freezes mist, inlays and
-the portal, and drops particles, waves, sparks and columns.
+discard in one shuffle beat; ascension raises a power-up effect. Reduced Motion keeps every state
+distinction through position, border, icon and text, snaps card flights, freezes mist and inlays,
+and hides the animated portal and particles.
 
 ## Controls
 
@@ -65,6 +65,12 @@ replay or the network is pending; commands need a settled prompt addressed to th
 
 Art constraint: **no AI-generated artwork**. Environments are Godot meshes, shaders, lights and
 particles, plus four stone material maps whose sources are in `../assets/materials/SOURCES.md`.
+EffectBlocks v4 supplies the hall's layered fire, smoke, dust and portal, arena-edge fireflies,
+and combat sparks, resolved-hit impacts, protection and ascension. Eight native Godot scenes
+and their dependencies are imported; provenance is in
+[`../PolyBlocks/EffectBlocks/SOURCES.md`](../PolyBlocks/EffectBlocks/SOURCES.md).
+The old custom portal and ritual-wave shaders have been removed. Instance materials are private,
+demo keyboard scripts are detached, and combat effects clean up after their animation.
 
 - **Selection** (duel and adventure starter) puts a large featured portrait on the left with deck
   identity, Aspect and Mastery beside it, and a compact searchable roster on the right. Panels use
@@ -85,7 +91,7 @@ Tuning files:
 
 - `assets/arcane_backdrop.gdshader`: selection stone, sigils, mist, motes.
 - `assets/arena_surface.gdshader`, `assets/arena_mist.gdshader`: combat surface and atmosphere.
-- `assets/ritual_wave.gdshader`, `scripts/duel/duel_fx.gd`: impact, ward and ascension effects.
+- `scripts/ui/effect_blocks.gd`, `scripts/duel/duel_fx.gd`: pack integration, impact, ward and ascension.
 - `scripts/duel/arena_atmosphere.gd`: posts, crystals, perimeter particles.
 - `scripts/ui/sanctum_set.gd` (geometry, lights, particles), `scripts/ui/sanctum_ui.gd` (theme and
   menu feedback), `scripts/adventure/tournament_route.gd` (route).
@@ -107,6 +113,8 @@ defense window, `--dev-stop-at=endurance --dev-hover=0` for an Endurance preview
 `--dev-stop-at=respond` for a response window, `--dev-policy=showcase --dev-freeze=attack_stopped`
 for a ward. Freezing mid-animation reports resources still alive at exit; that is expected.
 Reference captures live in `../screenshots/`.
+EffectBlocks captures: [starter](../screenshots/effectblocks-starter.png),
+[combat](../screenshots/effectblocks-combat.png), [tournament](../screenshots/effectblocks-tournament.png).
 
 ## Open
 

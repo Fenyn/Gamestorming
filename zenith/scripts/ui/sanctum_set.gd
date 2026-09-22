@@ -95,7 +95,6 @@ func _ready() -> void:
 	_mesh(rim, Vector3(0, 3.4, -9.12), bronze).rotation.x = PI * 0.5
 	_portal = EffectBlocks.make("other/portal_magic")
 	_portal.name = "EffectBlocksPortal"
-	_portal.rotation = Vector3.ZERO
 	_portal.position = Vector3(0, 3.4, -9.05)
 	_portal.scale = Vector3.ONE * 2.3
 	add_child(_portal)

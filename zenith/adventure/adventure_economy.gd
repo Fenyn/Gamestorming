@@ -129,19 +129,27 @@ static func vendor_reroll_fee() -> int:
 
 # --- Deck slots and Aspect tiers, bought per starter ------------------------
 
-## What the `n`th extra deck slot costs, 1-based. `slot_costs` is a rising list; past its end the
-## last entry repeats, so the price never falls off and never goes free.
+## What the `n`th extra deck slot costs, 1-based: a base price multiplied by a growth factor per
+## slot already bought, rounded to keep the prices readable. A curve rather than a list because the
+## track runs the whole way to DeckValidator's card maximum, which is a different length for every
+## starter, and a list long enough for the longest one is a list nobody can read.
 static func slot_cost(n: int) -> int:
-	var costs: Array = data().get("slot_costs", [])
-	if n <= 0 or costs.is_empty():
+	if n <= 0:
 		return 0
-	return int(costs[mini(n, costs.size()) - 1])
+	var base: float = float(data().get("slot_cost_base", 0))
+	var growth: float = float(data().get("slot_cost_growth", 1.0))
+	var step: int = maxi(1, int(data().get("slot_cost_round", 1)))
+	var raw: float = base * pow(growth, float(n - 1))
+	return int(round(raw / float(step))) * step
 
 
-## The most extra slots one starter may buy. A ceiling keeps a grown deck inside DeckValidator's
-## own maximum whatever the cost list says.
-static func slot_max() -> int:
-	return int(data().get("slot_max", 0))
+## What every slot from the 1st to the `n`th costs together, which is the number a screen shows as
+## the whole track.
+static func slot_cost_total(n: int) -> int:
+	var sum: int = 0
+	for i in range(1, n + 1):
+		sum += slot_cost(i)
+	return sum
 
 
 ## What unlocking Aspect `tier` costs, 0 for a tier that is not for sale. Keyed by tier as a

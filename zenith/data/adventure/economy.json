@@ -12,10 +12,12 @@
 	"dissolve_fraction": 0.25,
 	"vendor_stock": 6,
 	"vendor_reroll_fee": 40,
-	"_slots_note": "Deck slots and Aspect tiers are bought per starter and kept for good. The Nth slot costs the Nth entry of slot_costs; past the end the last entry repeats. A full win pays 490.",
-	"slot_costs": [100, 150, 200, 275, 350, 450, 550, 700, 850, 1000],
-	"slot_max": 10,
+	"_slots_note": "Deck slots and Aspect tiers are bought per starter and kept for good. The Nth slot costs slot_cost_base * slot_cost_growth^(N-1), rounded to slot_cost_round. A starter may buy slots until its deck reaches DeckValidator's maximum, so a 53-card starter has 32 to buy and the whole track costs 20110, about 41 full wins at 490 each.",
+	"slot_cost_base": 100,
+	"slot_cost_growth": 1.1,
+	"slot_cost_round": 10,
 	"aspect_tier_costs": {
+		"2": 100,
 		"3": 200,
 		"4": 400,
 		"5": 800

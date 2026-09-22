@@ -83,10 +83,18 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 	_emit(&"setup", {"first": state.active, "seed": seed_value})
 
 
-## Call between `setup()` and `start()`. 1 is the printed game; adventure duels use 2.
+## Call between `setup()` and `start()`. 1 is the printed game; adventure duels use 2 for both.
 func set_points_to_win(n: int) -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_points_to_win() after start()")
-	state.points_to_win = maxi(1, n)
+	state.points_to_win = [maxi(1, n), maxi(1, n)]
+
+
+## Lives per seat: how many points the rival has to score against that seat. Adventure gives the
+## player two and an ordinary opponent one, a boss two (2026-09-22). Call between `setup()` and
+## `start()`.
+func set_lives(lives: Array) -> void:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_lives() after start()")
+	state.points_to_win = [maxi(1, int(lives[1])), maxi(1, int(lives[0]))]
 
 
 ## Two first-to-N options under trial, both off unless asked for: a full Seal set scores one point
@@ -5917,8 +5925,9 @@ func _lose(player_index: int, reason: String) -> void:
 	_win(1 - player_index, reason)
 
 
-## Adventure house rule, 2026-09-21: a duel may run first to `points_to_win`. A survival win and
-## an Ascension each score one point; a full Seal set still wins outright. True when the point was
+## Adventure house rule, 2026-09-21: a duel may run first to `points_to_win`, which is per seat
+## (a seat with two lives takes two points to beat). A survival win and an Ascension each score
+## one point; a full Seal set still wins outright. True when the point was
 ## scored and the duel goes on. The table persists: a duelist whose Life Deck ran out shuffles
 ## their discard pile into a new one, and cards removed from the game stay out, so the second
 ## deck is the weaker one. Nothing is reset for an Ascension beyond the Fervor peak the rules
@@ -5936,7 +5945,7 @@ func _scores_point_only(winner: int, reason: String) -> bool:
 		state.ascension_scored[winner] = true
 	var loser: PlayerState = state.players[1 - winner]
 	state.points[winner] += 1
-	if state.points[winner] >= state.points_to_win:
+	if state.points[winner] >= state.points_to_win[winner]:
 		return false
 	# On trial: cards that removed themselves after use come back for the second Life Deck.
 	var returning: Array[CardInstance] = []
@@ -5947,7 +5956,7 @@ func _scores_point_only(winner: int, reason: String) -> bool:
 	# Nothing to shuffle back means nothing left to fight with.
 	if reason == "survival" and loser.discard.is_empty() and returning.is_empty():
 		return false
-	_emit(&"point_scored", {"player": winner, "reason": reason, "points": state.points[winner], "to_win": state.points_to_win})
+	_emit(&"point_scored", {"player": winner, "reason": reason, "points": state.points[winner], "to_win": state.points_to_win[winner]})
 	if reason == "survival":
 		for c in returning:
 			loser.removed.erase(c)

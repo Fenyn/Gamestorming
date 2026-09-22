@@ -104,9 +104,10 @@ func build_referee() -> Referee:
 	var pair: Array[DeckList] = [chosen[0], chosen[1]]
 	var names: Array[String] = [player_names[0], player_names[1]]
 	referee.setup(pair, library, strike_table, last_seed, names)
-	# Adventure duels run first to two points; every other mode is the printed game.
+	# Adventure duels run on lives: the player has two, an ordinary opponent one, a boss two
+	# (2026-09-22). Every other mode is the printed game.
 	if in_adventure():
-		referee.engine.set_points_to_win(2)
+		referee.engine.set_lives(stage_lives())
 		# A full Seal set is one of the two points, not the whole duel (2026-09-21).
 		referee.engine.set_points_options(true, false)
 	return referee
@@ -175,6 +176,13 @@ func go_to_title() -> void:
 ## True whenever a run is live in memory.
 func in_adventure() -> bool:
 	return run != null
+
+
+## Lives for the current stage, player first. `AdventureRules` owns the numbers, so the headless
+## runners read the same rule the client does.
+func stage_lives() -> Array[int]:
+	var row: Dictionary = ladder.stage(run.stage) if ladder != null else {}
+	return AdventureRules.lives_for(row)
 
 
 ## Starts a fresh run for `starter_id` and saves it. `loadout_deck` is the starter after the
@@ -377,7 +385,7 @@ func starter_aspects(starter_id: String) -> int:
 ## Buys one more deck slot for `starter_id` and saves. False when it is maxed out or the wallet is
 ## short, and nothing moves.
 func buy_slot(starter_id: String) -> bool:
-	if not upgrades.buy_slot(starter_id, wallet):
+	if not upgrades.buy_slot(starter_id, wallet, AdventureLoadout.max_slots_for(starter_id)):
 		return false
 	wallet.save()
 	upgrades.save()

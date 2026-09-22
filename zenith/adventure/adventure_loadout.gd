@@ -19,7 +19,9 @@ const META_STARTER: String = "loadout_starter_id"
 const META_BASE_COUNTS: String = "loadout_base_counts"
 const META_BASE_SIZE: String = "loadout_base_size"
 const META_BASE_ASPECTS: String = "loadout_base_aspects"
-const META_KEYS: Array[String] = [META_STARTER, META_BASE_COUNTS, META_BASE_SIZE, META_BASE_ASPECTS]
+const META_BASE_TOTAL: String = "loadout_base_total"
+const META_KEYS: Array[String] = [META_STARTER, META_BASE_COUNTS, META_BASE_SIZE,
+	META_BASE_ASPECTS, META_BASE_TOTAL]
 
 
 ## The printed starter, untouched, as a run would begin from it, tagged with what it printed so a
@@ -32,6 +34,7 @@ static func base_deck(starter_id: String) -> DeckList:
 	deck.set_meta(META_BASE_COUNTS, _counts_of(deck))
 	deck.set_meta(META_BASE_SIZE, deck.cards.size())
 	deck.set_meta(META_BASE_ASPECTS, deck.duelist_ids.size())
+	deck.set_meta(META_BASE_TOTAL, deck.total_cards())
 	return deck
 
 
@@ -63,6 +66,22 @@ static func _base_counts(deck: DeckList) -> Dictionary:
 static func from_collection(deck: DeckList, id: String) -> int:
 	var held: Dictionary = _counts_of(deck)
 	return maxi(0, int(held.get(id, 0)) - int(_base_counts(deck).get(id, 0)))
+
+
+## The most slots this starter may ever buy: what DeckValidator's card maximum leaves above the
+## deck the starter prints. A 53-card starter under the 85-card maximum has 32 to buy; a Root deck
+## is measured against the higher maximum it is allowed. The printed total is what this is measured
+## from, so adding an Aspect card eats into the room a filled deck has rather than the slot count.
+static func max_slots(deck: DeckList) -> int:
+	if deck == null:
+		return 0
+	var ceiling: int = DeckValidator.MAX_CARDS_ROOT if deck.style == "root" else DeckValidator.MAX_CARDS
+	return maxi(0, ceiling - int(deck.get_meta(META_BASE_TOTAL, deck.total_cards())))
+
+
+## The same, from a starter id, for a caller with no deck to hand.
+static func max_slots_for(starter_id: String) -> int:
+	return max_slots(base_deck(starter_id))
 
 
 ## How many Life Deck cards this starter may run: its own printed size plus the slots bought for it.

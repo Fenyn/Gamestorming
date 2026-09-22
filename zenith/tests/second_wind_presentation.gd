@@ -44,7 +44,7 @@ func _run() -> void:
 		return
 	duel._set_reduced_motion(true)
 	var host: DuelHost = duel.duel_host
-	host.referee.engine.state.points_to_win = 2
+	host.referee.engine.state.points_to_win = [2, 2]
 	var life_count: int = host.referee.engine.player(0).life_deck.size()
 	var result: Dictionary = host.dev(0, {"op": "discard_life", "amount": life_count + 1})
 	_check(str(result.get("problem", "")) == "", "Supported debug effect must resolve a survival point")

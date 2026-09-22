@@ -948,29 +948,44 @@ with the numbers in `data/adventure/economy.json` and the plumbing in the advent
   printed size (50 Life Deck cards for the shipped starters) and its own stack height. A bought
   slot raises that starter's loadout size cap by one, filled with any legal pick from the
   collection; an empty slot is a ceiling and not a requirement, so a starter may begin with it
-  unfilled. An Aspect tier unlock lets the loadout add the next Aspect card of the starter's own
+  unfilled. Slots run all the way to `DeckValidator`'s own card maximum: a starter may buy
+  `MAX_CARDS` (85, or `MAX_CARDS_ROOT` 90 for a Root deck) minus its printed `total_cards()`, so a
+  53-card starter has 32 to buy. An Aspect tier unlock lets the loadout add the next Aspect card of the starter's own
   character from the collection, one tier at a time and consecutive from Aspect 1; the run's own
   in-run grant then carries on from wherever the stack ends, offering tier 4 to a stack that
   reached tier 3 and skipping the grant once the stack is at the construction maximum.
   `user://adventure/upgrades.json` (version 1) holds `extra_slots` and `aspect_tiers` per starter.
-- **Slot and tier numbers.** Slots cost 100, 150, 200, 275, 350, 450, 550, 700, 850, 1000, ten in
-  all, with the last price repeating if the list is ever extended. Aspect tiers cost 200 for tier
-  3, 400 for tier 4 and 800 for tier 5. A full win pays 490 and a run lost on the fifth stage pays
-  140, so the first slot is inside one good run, the first three cost 450 and land inside two, and
-  the fifth brings the total to 1075, about two and a quarter full wins. The whole ten-slot track
-  is 4725, near ten wins, which is meant to outlast the cards themselves. Tier 3 at 200 sits
-  alongside a couple of kept cards out of one win; tiers 4 and 5 double each time, so a five-Aspect
-  stack costs 1400 on its own.
+- **Slot and tier numbers.** The Nth slot costs `slot_cost_base` 100 times `slot_cost_growth` 1.1
+  to the power of N-1, rounded to the nearest 10. A curve rather than a list, because the track
+  runs to the card maximum and that is a different length for every starter. Against a full win of
+  490:
+
+  | Slot | Price | Track so far | Full wins |
+  | --- | --- | --- | --- |
+  | 1 | 100 | 100 | 0.2 |
+  | 3 | 120 | 330 | 0.7 |
+  | 5 | 150 | 610 | 1.2 |
+  | 10 | 240 | 1590 | 3.2 |
+  | 20 | 610 | 5740 | 11.7 |
+  | 32 | 1920 | 20110 | 41.0 |
+
+  So the first slot is inside one run, the first three inside one win with change to spare, and the
+  whole 32-slot track is about 41 wins: a goal to keep, not a thing to finish. The 32nd slot alone
+  is nearly four wins. Aspect tiers double: 100 for tier 2, 200 for tier 3, 400 for tier 4, 800 for
+  tier 5, so a starter climbing from two Aspects to five pays 1400.
 - Files: `adventure/adventure_upgrades.gd` with the numbers in `data/adventure/economy.json`
-  (`slot_costs`, `slot_max`, `aspect_tier_costs`), the loadout API in
-  `adventure/adventure_loadout.gd` (`size_cap`, `add_card`, `add_aspect`, `swappable_add`,
-  `swappable_aspect`) and the wrappers in the adventure block of `scripts/autoload/session.gd`
+  (`slot_cost_base`, `slot_cost_growth`, `slot_cost_round`, `aspect_tier_costs`), the loadout API in
+  `adventure/adventure_loadout.gd` (`size_cap`, `max_slots`, `add_card`, `add_aspect`,
+  `swappable_add`, `swappable_aspect`) and the wrappers in the adventure block of `scripts/autoload/session.gd`
   (`upgrades`, `buy_slot`, `buy_aspect_tier`, `take_dissolve_report`).
 
-## 13. First to two, 2026-09-21
+## 13. Lives, 2026-09-21 (asymmetric since 2026-09-22)
 
-Adventure duels run first to two points (`Session.build_referee`, `DuelEngine.set_points_to_win`).
-Every other mode is the printed game.
+Adventure duels run on lives. The player has two lives; an ordinary opponent has one; the boss
+has two (`Session.stage_lives`, `DuelEngine.set_lives`). A seat with two lives takes two points
+to beat, so the player needs one point against a normal opponent and two against the boss, while
+every opponent needs two against the player. Every other mode is the printed game. The engine
+stores this as a points-to-win count per seat.
 
 - **Survival point.** A Life Deck that runs out scores the rival a point. The discard pile shuffles
   into a new Life Deck; cards removed from the game stay out, so the second deck is the weaker

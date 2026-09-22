@@ -135,7 +135,8 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 	var tier: String = AdventureLadder.tier_of(opponent_id)
 	next_sheet.clear_extra_chips()
 	next_sheet.add_chip(tier, _tier_color(tier))
-	next_sheet.set_note("%d life cards   ·   %d aspects" % [opp.cards.size(), opp.aspects])
+	var lives: int = AdventureRules.BOSS_LIVES if tier == "BOSS" else AdventureRules.OPPONENT_LIVES
+	next_sheet.set_note("%d life cards   ·   %d aspects   ·   %s" % [opp.cards.size(), opp.aspects, _lives_text(lives)])
 	next_sheet.set_story(str(row_data.get("story", "")))
 
 
@@ -174,6 +175,11 @@ func _on_new_run() -> void:
 
 func _on_view_deck() -> void:
 	deck_panel.open(Session.run.deck(), DeckInfo.might_max_of(Session.decks), faces)
+
+
+## "2 lives" for a boss, "1 life" for anyone else; the player always has two.
+static func _lives_text(lives: int) -> String:
+	return "%d %s (you have %d)" % [lives, "life" if lives == 1 else "lives", AdventureRules.PLAYER_LIVES]
 
 
 ## A boss tier is called out in orange; every other tier is a quiet chip.

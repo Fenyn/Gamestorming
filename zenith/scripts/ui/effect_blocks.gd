@@ -3,11 +3,20 @@ extends RefCounted
 ## Instantiates the authored pack scenes with private materials and game-owned timing.
 ## Demo input scripts are detached before _ready: Enter must never replay an effect.
 
-const ROOT: String = "res://PolyBlocks/EffectBlocks/assets/"
+const SCENES: Dictionary = {
+	"fire/fire_light": preload("res://PolyBlocks/EffectBlocks/assets/fire/fire_light.tscn"),
+	"other/dust": preload("res://PolyBlocks/EffectBlocks/assets/other/dust.tscn"),
+	"other/fireflies": preload("res://PolyBlocks/EffectBlocks/assets/other/fireflies.tscn"),
+	"other/portal_magic": preload("res://PolyBlocks/EffectBlocks/assets/other/portal_magic.tscn"),
+	"impacts/impact_1": preload("res://PolyBlocks/EffectBlocks/assets/impacts/impact_1.tscn"),
+	"impacts/impact_4": preload("res://PolyBlocks/EffectBlocks/assets/impacts/impact_4.tscn"),
+	"ground_effects/ground_effect_1": preload("res://PolyBlocks/EffectBlocks/assets/ground_effects/ground_effect_1.tscn"),
+	"loot/power_up": preload("res://PolyBlocks/EffectBlocks/assets/loot/power_up.tscn"),
+}
 
 
 static func make(effect: String) -> Node3D:
-	var scene: PackedScene = load(ROOT + effect + ".tscn")
+	var scene: PackedScene = SCENES[effect]
 	var node: Node3D = scene.instantiate()
 	_prepare(node)
 	return node

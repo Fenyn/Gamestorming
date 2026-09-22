@@ -6,8 +6,15 @@ their own plan. `tools/scale_deck.py` no longer writes starters; it writes the o
 
 ## The brief
 
-- 45 cards for the nine open starters, since 2026-09-21. Two Aspects. The five advanced starters
-  keep their own sizes (50, Root 55).
+- 50 cards for every starter, 55 for Root, since the 2026-09-21 rebuild. Adventure duels are first
+  to two points, so a deck is fought through twice and removed cards do not come back.
+- A stop floor by archetype, as a minimum: most aggressive 8, beatdown 10, midrange 12, control or
+  setup 14. About a third of a deck's stops stop either kind, so a Focused attack means something.
+- The precon is a guideline, not a fence. A starter may hold any legal card that fills a need,
+  preferring its school's own flavour and its duelist's Signature cards. Filler that is meant to be
+  replaced is listed in the file's `chaff` field.
+- Tide Companions alone carries a Relic and a Reserve, because its Bond card and its toolbox live
+  there on the source sheet and the deck cannot fuse without them.
 - One or two bombs, listed in each file's `bombs` field.
 - Enough interaction: stops for both Strikes and Arts, ways to touch the board or the hand, and
   enough offense or goal cards to win.
@@ -15,18 +22,16 @@ their own plan. `tools/scale_deck.py` no longer writes starters; it writes the o
 
 ## Rules held across every deck
 
-- Every card comes from that deck's own precon, at or under the precon's count.
-- No lockouts: nothing that stops all attacks, or all of a kind, for the rest of Combat, and nothing
+- No lockouts, with one exception: Shade Salvage holds three on-hit lockout attacks, granted
+  2026-09-21 because it is the weakest deck. For everyone else: nothing that stops all attacks, or all of a kind, for the rest of Combat, and nothing
   that forbids a card type. Those stay in the precons as ladder threats and unlocks. `will_not_break`
   and `tide_breakwater` are left out on the same grounds: they prevent all damage, or all Art
   wounds, for the rest of Combat, which plays as a stop-all even though the filter does not flag it.
 - No Grounds. They are unlocks.
 - No copy cap beyond the game's own limits (3, or 4 for the duelist's own named cards). The old
   two-copy cap was dropped 2026-09-21: balance matters more than a house limit.
-- The 2026-09-21 pass took every open starter from 40 to 45 by adding five defensive cards from its
-  own precon: third and fourth copies of the stops it already ran, and where the precon had no
-  more non-lockout stops, Endurance attacks, `cut_short`, `cold_appraisal` or an Energy refill.
-  The per-deck stop counts below predate that pass.
+- The per-deck notes further down were written for the 40-card builds and predate the 2026-09-21
+  rebuild. The card lists in the files are current; the notes are not.
 - `cut_short` (stops a Combat card's effects) is in every starter, as the universal answer to a
   trick.
 

@@ -896,3 +896,56 @@ Motes are the one currency outside a run. Extraction slots are gone.
 Removed by this: free banking of picked cards (8.2), extraction slots and their meta track (8.1,
 8.3), automatic dissolving of leftover run cards, and the "forge only what you have unlocked"
 rule, which the vendor replaces.
+
+**Built 2026-09-21.** Logic and data only; the settle, vendor and loadout screens are a separate
+pass. `adventure/adventure_economy.gd` (prices and payouts), `adventure_wallet.gd` (Motes and a
+ledger), `adventure_collection.gd` (the card library), `adventure_vendor.gd` (the shelf),
+`adventure_settlement.gd` (the run-end screen's rules), `adventure_loadout.gd` (pre-run swaps),
+with the numbers in `data/adventure/economy.json` and the plumbing in the adventure block of
+`scripts/autoload/session.gd`.
+
+- **Bands.** Prices are flat by a printed tell, in three bands, because the game prints no rarity
+  and section 5's power tiers are still not built. `base` 80 Motes is anything a deck may run
+  three of; `limited` 160 is a card printed at two, plus every personality and every Grounds;
+  `restricted` 320 is a lockout (`is_lockout`, ported from `tools/scale_deck.py`), a card printed
+  at one, and every Seal. A rarity system later changes `economy.json` and
+  `AdventureEconomy.band()` and nothing else.
+- **First numbers.** Stage payout 20 + 10 per stage index (20 through 90, 440 over eight stages),
+  completion bonus 50, win discount 25%, dissolve 25% of price, vendor shelf 6 cards, reroll 40.
+  A full win pays 490, which keeps about five or six of the roughly 22 cards a run adds, or buys
+  one or two of the vendor's better cards. A run lost on the fifth stage pays 140, which keeps one
+  or two.
+- **The collection is a library, not a box.** A run copies cards out of it and never empties it,
+  so a card swapped into a starter is still there next run. Copies per id cap at what a deck may
+  legally run, read off `DeckValidator`'s own constants.
+- **The run-end settlement** is a status of its own, `"settle"`, reached from `"won"` or
+  `"lost"`. A loss puts the cards the run added on offer at full price. A win puts the whole run
+  deck on offer, the starter's own cards included, at the discount, on that screen only. Closing
+  it ends the run and rolls the vendor's shelf over.
+- Files: `user://adventure/wallet.json` (Motes, ledger, the vendor's `stock_seed`) and
+  `user://adventure/collection.json` (id to copy count). The run save is at version 4: a version 3
+  run loads with a run id generated and its starting deck read back off the starter file, so a run
+  in flight still settles for what it actually added.
+
+## 13. First to two, 2026-09-21
+
+Adventure duels run first to two points (`Session.build_referee`, `DuelEngine.set_points_to_win`).
+Every other mode is the printed game.
+
+- **Survival point.** A Life Deck that runs out scores the rival a point. The discard pile shuffles
+  into a new Life Deck; cards removed from the game stay out, so the second deck is the weaker
+  one. The table is untouched. The hit that scored loses whatever damage it had left. An empty
+  discard pile at that moment is the loss.
+- **Ascension point.** Entering the top Aspect or standing above the rival's ladder (the MPPV
+  house rule) scores once per duelist and resets nothing beyond the Fervor peak the printed rules
+  already give a top Aspect.
+- **Seal point.** A full Seal set scores once per duelist and the Seals stay in play
+  (`set_points_options`). Decided 2026-09-21 after measuring: with the set as an outright win,
+  Root won 72% of a 14-starter round robin; as one point it still won 72%, so the change costs
+  Root nothing and removes the one route that ended a duel in a single stroke.
+- **Rejected the same day:** returning "remove from the game after use" cards for the second
+  Life Deck. Measured, it helped the strongest decks most (Steel Beatdown 81 to 83, Root 72 to
+  78) and moved the Art decks not at all. The switch stays in the engine, off.
+- Measured against best-of-one on the same seeds, first to two lengthens a duel from about 5
+  turns to about 8 and favours the slow engines (Root, the Drill deck) over the Art and Ally decks,
+  whose one-shot cards do not come back.

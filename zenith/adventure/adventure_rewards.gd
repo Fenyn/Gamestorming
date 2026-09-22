@@ -303,24 +303,29 @@ static func apply_aspect(run: AdventureRun, library: CardLibrary, card_id: Strin
 
 ## Applies the stage result. A win that grants an Aspect stops at the Aspect choice first, so the
 ## bundle offer is drawn from the deck the player will actually run.
-static func finish_stage(run: AdventureRun, ladder: AdventureLadder, library: CardLibrary, won: bool) -> void:
+##
+## Returns the Motes the win is worth. Nothing here touches the wallet or a file: the caller
+## credits it and decides when to save, which is what keeps adventure/ free of IO decisions.
+static func finish_stage(run: AdventureRun, ladder: AdventureLadder, library: CardLibrary, won: bool) -> int:
 	if not won:
 		run.pending_offer.clear()
 		run.pending_aspects.clear()
 		run.status = "lost"
-		return
+		return 0
+	var payout: int = AdventureEconomy.stage_payout(run.stage)
 	var row: Dictionary = ladder.stage(run.stage)
 	if str(row.get("grant", "")) == "aspect":
 		var options: Array[String] = aspect_options(run, library)
 		if not options.is_empty():
 			run.pending_aspects = options
 			run.status = "aspect"
-			return
+			return payout
 		# The Duelist is at the top of its character's ladder or at the construction maximum.
 		run.picks.append({"stage": run.stage, "kind": "aspect_skipped", "id": ""})
 	run.pending_aspects.clear()
 	run.pending_offer = offer(run, library, ladder)
 	run.status = "reward"
+	return payout
 
 
 ## Leaves the Aspect step for the bundle offer, which is built from the deck as it now stands.
@@ -330,8 +335,13 @@ static func finish_aspect(run: AdventureRun, ladder: AdventureLadder, library: C
 	run.status = "reward"
 
 
-## Leaves the reward screen for the next stage, or ends the run when the ladder is spent.
-static func finish_reward(run: AdventureRun, ladder: AdventureLadder) -> void:
+## Leaves the reward screen for the next stage, or ends the run when the ladder is spent. Returns
+## the completion bonus when the ladder is beaten and 0 otherwise; the caller credits it.
+static func finish_reward(run: AdventureRun, ladder: AdventureLadder) -> int:
 	run.pending_offer.clear()
 	run.stage += 1
-	run.status = "won" if run.stage >= ladder.size() else "stage"
+	if run.stage < ladder.size():
+		run.status = "stage"
+		return 0
+	run.status = "won"
+	return AdventureEconomy.completion_bonus()

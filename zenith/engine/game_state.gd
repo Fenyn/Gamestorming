@@ -36,6 +36,10 @@ var win_reason: String = ""
 var points_to_win: int = 1                         # adventure duels run first to 2; see DuelEngine._win
 var points: Array[int] = [0, 0]
 var ascension_scored: Array[bool] = [false, false]  # an Ascension scores once per duelist per duel
+var seal_scored: Array[bool] = [false, false]       # so does a full Seal set, when `seal_scores_point`
+# Two first-to-N options under trial, both off by default. See DuelEngine.set_points_options.
+var seal_scores_point: bool = false    # a full Seal set is one point, not the whole duel
+var second_life_returns_used: bool = false  # "remove after use" cards rejoin the new Life Deck
 
 
 ## A copy for a simulated engine. `cards` maps uid to that engine's own CardInstance.
@@ -73,6 +77,9 @@ func copy(cards: Dictionary) -> GameState:
 	s.points_to_win = points_to_win
 	s.points = points.duplicate()
 	s.ascension_scored = ascension_scored.duplicate()
+	s.seal_scored = seal_scored.duplicate()
+	s.seal_scores_point = seal_scores_point
+	s.second_life_returns_used = second_life_returns_used
 	return s
 
 

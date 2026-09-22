@@ -6610,6 +6610,41 @@
    ]
   },
   {
+   "id": "shade_preparation",
+   "title": "Shade Preparation",
+   "type": "art",
+   "school": "shade",
+   "attack": {
+	"kind": "art",
+	"focused": true
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "shade_draining_blast",
+   "title": "Shade Draining Blast",
+   "type": "art",
+   "school": "shade",
+   "attack": {
+	"kind": "art",
+	"printed_stages": 4,
+	"cost_stages": 2
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "energy",
+	 "amount": 4
+	}
+   ]
+  },
+  {
    "id": "shade_warding_burst",
    "title": "Shade Warding Burst",
    "type": "strike",
@@ -9053,6 +9088,82 @@
 	"kind": "art",
 	"printed_life": 6,
 	"no_stop_by": "art"
+   }
+  },
+  {
+   "id": "storm_focused_bolt",
+   "title": "Storm Focused Bolt",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "float",
+	 "what": "prevent_strike_damage",
+	 "duration": "next_attack_phase"
+	}
+   ]
+  },
+  {
+   "id": "storm_assailing_arc",
+   "title": "Storm Assailing Arc",
+   "type": "art",
+   "school": "storm",
+   "endurance": 2,
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 6
+   },
+   "effects": [
+	{
+	 "op": "set_energy",
+	 "who": "opponent",
+	 "target": "in_control",
+	 "amount": "match_attacker"
+	}
+   ]
+  },
+  {
+   "id": "storm_trick_shot",
+   "title": "Storm Trick Shot",
+   "type": "art",
+   "school": "storm",
+   "endurance": 3,
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "energy_on_hit",
+	 "duration": "combat",
+	 "params": {
+	  "energy": 2
+	 }
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "storm_narrow_focus",
+   "title": "Storm Narrow Focus",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_stages": 5,
+	"cost_stages": 1
    }
   },
   {

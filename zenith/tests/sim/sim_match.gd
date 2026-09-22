@@ -30,6 +30,8 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 	var referee: Referee = Referee.new()
 	referee.setup(decks, library, table, seeds[0], [], false)
 	referee.engine.set_points_to_win(points_to_win)
+	# The adventure rule set: a first-to-N duel also scores a full Seal set as one point.
+	referee.engine.set_points_options(points_to_win > 1, false)
 	referee.start()
 	referee.engine.take_events()
 

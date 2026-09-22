@@ -13,6 +13,9 @@ const TITLE_SCENE: String = "res://scenes/main.tscn"
 const ADVENTURE_START_SCENE: String = "res://scenes/adventure/adventure_start.tscn"
 const ADVENTURE_STAGE_SCENE: String = "res://scenes/adventure/stage.tscn"
 const ADVENTURE_REWARD_SCENE: String = "res://scenes/adventure/reward.tscn"
+const ADVENTURE_SETTLE_SCENE: String = "res://scenes/adventure/settle.tscn"
+const ADVENTURE_VENDOR_SCENE: String = "res://scenes/adventure/vendor.tscn"
+const ADVENTURE_LOADOUT_SCENE: String = "res://scenes/adventure/loadout.tscn"
 
 var library: CardLibrary = CardLibrary.new()
 var strike_table: StrikeTable = null
@@ -29,12 +32,18 @@ var ai_seat: int = -1               # the seat an AiPlayer drives, -1 for none. 
 var ai_profile: String = "default"  # level file under AiProfile.DIR, without .json
 var run: AdventureRun = null        # the live adventure run, null outside adventure mode
 var ladder: AdventureLadder = null  # the run's ladder, loaded alongside it
+## Motes and the card collection. Both outlive a run, so they are loaded once here and saved by
+## whichever call spends or earns.
+var wallet: AdventureWallet = AdventureWallet.new()
+var collection: AdventureCollection = AdventureCollection.new()
 
 
 func _ready() -> void:
 	library.load_dir(CARDS_DIR)
 	strike_table = StrikeTable.load_from(TABLE_PATH)
 	_load_decks()
+	wallet = AdventureWallet.load_wallet()
+	collection = AdventureCollection.load_collection()
 
 
 func _load_decks() -> void:
@@ -84,6 +93,8 @@ func build_referee() -> Referee:
 	# Adventure duels run first to two points; every other mode is the printed game.
 	if in_adventure():
 		referee.engine.set_points_to_win(2)
+		# A full Seal set is one of the two points, not the whole duel (2026-09-21).
+		referee.engine.set_points_options(true, false)
 	return referee
 
 
@@ -152,9 +163,10 @@ func in_adventure() -> bool:
 	return run != null
 
 
-## Starts a fresh run for `starter_id` and saves it.
-func start_run(starter_id: String) -> void:
-	run = AdventureRun.begin(starter_id, randi_range(1, 2147483646))
+## Starts a fresh run for `starter_id` and saves it. `loadout_deck` is the starter after the
+## loadout screen's swaps; null starts from the printed starter.
+func start_run(starter_id: String, loadout_deck: DeckList = null) -> void:
+	run = AdventureLoadout.begin_from(starter_id, loadout_deck, randi_range(1, 2147483646))
 	ladder = AdventureLadder.load_for(starter_id)
 	AdventureSave.store(run)
 
@@ -206,14 +218,17 @@ func begin_stage() -> void:
 	go_to_duel()
 
 
-## Applies the stage result to the run and saves it. A loss ends the run: the save is cleared but
-## `run` stays in memory so the stage screen can show the lost state.
+## Applies the stage result to the run, credits the Motes a win pays, and saves. A loss ends the
+## run and goes straight to the run-end settlement, which is where the run's cards are bought.
+## The save is kept until the settlement closes, so quitting on that screen does not lose it.
 func record_stage(won: bool) -> void:
-	AdventureRewards.finish_stage(run, ladder, library, won)
-	if won:
-		AdventureSave.store(run)
-	else:
-		AdventureSave.clear()
+	var payout: int = AdventureRewards.finish_stage(run, ladder, library, won)
+	if payout > 0:
+		wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
+		wallet.save()
+	if not won:
+		AdventureSettlement.open(run)
+	AdventureSave.store(run)
 
 
 ## Ends the duel for the current stage: records the result once, then moves on. Guarded so the
@@ -224,11 +239,20 @@ func finish_stage(won: bool) -> void:
 	get_tree().change_scene_to_file(_reward_or_stage_scene())
 
 
-## The reward scene handles both halves of a win: the Aspect choice, then the bundle offer.
+## The reward scene handles both halves of a win: the Aspect choice, then the bundle offer. A
+## finished run goes to the settle screen instead of the stage screen's run-over panel.
 func _reward_or_stage_scene() -> String:
 	if run.status == "aspect" or run.status == "reward":
 		return ADVENTURE_REWARD_SCENE
+	if run.status == "settle":
+		return _scene_or_start(ADVENTURE_SETTLE_SCENE)
 	return ADVENTURE_STAGE_SCENE
+
+
+## A scene that may not be built yet falls back to the adventure start screen rather than
+## crashing. The settle, vendor and loadout screens are a later pass.
+func _scene_or_start(path: String) -> String:
+	return path if ResourceLoader.exists(path) else ADVENTURE_START_SCENE
 
 
 ## Takes the chosen Aspect card and moves the run on to its bundle offer, still on the reward
@@ -243,14 +267,89 @@ func finish_aspect(card_id: String) -> void:
 	get_tree().change_scene_to_file(ADVENTURE_REWARD_SCENE)
 
 
-## Leaves the reward screen for the next stage, or the run's end.
+## Leaves the reward screen for the next stage, or the run's end. Beating the ladder pays the
+## completion bonus and opens the settlement, where the run deck is on offer at a discount.
 func finish_reward() -> void:
-	AdventureRewards.finish_reward(run, ladder)
+	var bonus: int = AdventureRewards.finish_reward(run, ladder)
+	if bonus > 0:
+		wallet.earn(bonus, AdventureWallet.REASON_COMPLETION, run.run_id)
+		wallet.save()
 	if run.status == "won":
-		AdventureSave.clear()
-	else:
-		AdventureSave.store(run)
-	get_tree().change_scene_to_file(ADVENTURE_STAGE_SCENE)
+		AdventureSettlement.open(run)
+	AdventureSave.store(run)
+	get_tree().change_scene_to_file(_reward_or_stage_scene())
+
+
+# --- Motes, the collection and the run-end settlement -----------------------
+
+## Buys `count` copies of an offered card into the collection and saves both files. Returns how
+## many landed; 0 when the settlement is closed, the wallet is short or the collection is full.
+func keep_card(id: String, count: int = 1) -> int:
+	var kept: int = AdventureSettlement.keep(run, id, count, wallet, collection, library)
+	if kept > 0:
+		wallet.save()
+		collection.save()
+	return kept
+
+
+## The run-end offer rows, in the shape the settle screen lists them.
+func settle_offers() -> Array[Dictionary]:
+	if run == null:
+		return []
+	return AdventureSettlement.offers(run, library, AdventureSettlement.won(run), collection)
+
+
+## Closes the run-end screen: the run is over, the vendor's shelf rolls over, and the save goes.
+func finish_settlement() -> void:
+	if run != null:
+		AdventureSettlement.close(run)
+	AdventureVendor.reroll(wallet, false)
+	wallet.save()
+	collection.save()
+	AdventureSave.clear()
+	run = null
+	ladder = null
+	get_tree().change_scene_to_file(ADVENTURE_START_SCENE)
+
+
+## The vendor's shelf right now.
+func vendor_stock() -> Array[String]:
+	return AdventureVendor.stock(wallet, collection, library)
+
+
+## Buys one copy off the shelf. False when it is not on sale, the wallet is short, or the
+## collection already holds every copy it may.
+func buy_card(id: String) -> bool:
+	if not AdventureVendor.buy(id, wallet, collection, library):
+		return false
+	wallet.save()
+	collection.save()
+	return true
+
+
+## The paid once-per-visit reroll. False when the wallet cannot cover the fee.
+func reroll_vendor() -> bool:
+	if not AdventureVendor.reroll(wallet, true):
+		return false
+	wallet.save()
+	return true
+
+
+## Dissolves one collection copy into Motes. Returns what it paid, 0 when there was no copy.
+func dissolve_card(id: String) -> int:
+	var paid: int = collection.dissolve(id, library, wallet)
+	if paid > 0:
+		wallet.save()
+		collection.save()
+	return paid
+
+
+func go_to_vendor() -> void:
+	get_tree().change_scene_to_file(_scene_or_start(ADVENTURE_VENDOR_SCENE))
+
+
+func go_to_loadout() -> void:
+	get_tree().change_scene_to_file(_scene_or_start(ADVENTURE_LOADOUT_SCENE))
 
 
 ## Resumes a run in progress, or opens the start screen for a new one.

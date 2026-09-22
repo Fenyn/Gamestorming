@@ -7,13 +7,43 @@ const RUN_SEED: int = 20260920
 const SAMPLE_STAGES: Array[int] = [0, 2, 4]
 
 
+## How many cards the settlement's "what would five cost" line prices.
+const KEEP_SAMPLE: int = 5
+
+
 func _init() -> void:
 	var lib: CardLibrary = CardLibrary.new()
 	lib.load_dir("res://data/cards")
 	_print_pool()
+	_print_economy(lib)
 	for starter_id in AdventureLadder.playable_starters():
 		_run_one(starter_id, lib)
 	quit(0)
+
+
+## The Motes side of the file as it stands: what a ladder pays, what a band costs, and how much of
+## the library sits in each band.
+func _print_economy(lib: CardLibrary) -> void:
+	var payouts: PackedStringArray = PackedStringArray()
+	var total: int = 0
+	for n in range(8):
+		payouts.append(str(AdventureEconomy.stage_payout(n)))
+		total += AdventureEconomy.stage_payout(n)
+	print("")
+	print("economy: stage payouts %s = %d, completion bonus %d, full win %d" % [
+		", ".join(payouts), total, AdventureEconomy.completion_bonus(),
+		total + AdventureEconomy.completion_bonus()])
+	var counts: Dictionary = {}
+	for id in lib.all_ids():
+		var band: String = AdventureEconomy.band(lib.defs[id])
+		counts[band] = int(counts.get(band, 0)) + 1
+	var band_parts: PackedStringArray = PackedStringArray()
+	for band in AdventureEconomy.BANDS:
+		band_parts.append("%s %d Motes (%d cards)" % [
+			band, AdventureEconomy.band_price(band), int(counts.get(band, 0))])
+	print("  bands: %s" % ", ".join(band_parts))
+	print("  vendor: %d cards on the shelf, reroll %d Motes" % [
+		AdventureEconomy.vendor_stock_size(), AdventureEconomy.vendor_reroll_fee()])
 
 
 ## The data file as it stands, by group and by tier.
@@ -56,12 +86,13 @@ func _run_one(starter_id: String, lib: CardLibrary) -> void:
 		sample_parts.append("stage %d: %d" % [n, AdventureRewards.eligible(fresh, lib, n).size()])
 	print("eligible on the starting deck  %s" % ", ".join(sample_parts))
 
+	var earned: int = 0
 	while run.status != "won" and run.status != "lost":
 		var row: Dictionary = ladder.stage(run.stage)
 		var stage_number: int = run.stage + 1
 		var opponent: String = str(row.get("opponent", ""))
 		var eligible_now: int = AdventureRewards.eligible(run, lib, run.stage).size()
-		AdventureRewards.finish_stage(run, ladder, lib, true)
+		earned += AdventureRewards.finish_stage(run, ladder, lib, true)
 		var aspect_taken: String = "-"
 		if run.status == "aspect":
 			var options: Array[String] = run.pending_aspects.duplicate()
@@ -79,9 +110,37 @@ func _run_one(starter_id: String, lib: CardLibrary) -> void:
 			for id in run.pending_offer:
 				print("    %s" % _describe(lib, id))
 			AdventureRewards.apply_bundle(run, lib, run.pending_offer[0])
-		AdventureRewards.finish_reward(run, ladder)
+		earned += AdventureRewards.finish_reward(run, ladder)
 	print("end: %s, %d cards, %d aspects (%s)" % [
 		run.status, run.deck().total_cards(), run.aspects(), ", ".join(run.duelist_ids)])
+	_print_settlement(run, lib, earned)
+
+
+## What the run-end screen would show: the Motes the run paid, how much is on offer, and what
+## keeping the five cheapest of the cards the run added would cost.
+func _print_settlement(run: AdventureRun, lib: CardLibrary, earned: int) -> void:
+	AdventureSettlement.open(run)
+	var won: bool = AdventureSettlement.won(run)
+	var rows: Array[Dictionary] = AdventureSettlement.offers(run, lib, won)
+	# What the run added, priced the way this run-end screen would charge for it.
+	var prices: Array[int] = []
+	var added: Array[String] = run.added_cards()
+	added.append_array(run.added_duelist_cards())
+	for id in added:
+		var def: CardDef = lib.defs.get(id)
+		if def == null:
+			continue
+		prices.append(AdventureEconomy.discount_price(def) if won else AdventureEconomy.price(def))
+	var whole: int = 0
+	for p in prices:
+		whole += p
+	prices.sort()
+	var five: int = 0
+	for i in range(mini(KEEP_SAMPLE, prices.size())):
+		five += prices[i]
+	var average: int = whole / maxi(1, prices.size())
+	print("motes: earned %d, added %d cards costing %d (%d each on average), keeping the %d cheapest costs %d; the offer lists %d rows" % [
+		earned, prices.size(), whole, average, KEEP_SAMPLE, five, rows.size()])
 
 
 ## `name [group/tier]: card x2, card`, the line the reward screen will show as a bundle.

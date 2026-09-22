@@ -9,7 +9,10 @@ const ADVANCE_DELAY: float = 0.6
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var roster: GridContainer = $Margin/Column/Body/Library/Scroll/Roster
 @onready var roster_scroll: ScrollContainer = $Margin/Column/Body/Library/Scroll
+@onready var motes_tile: StatTile = $Margin/Column/TitleRow/Motes
+@onready var vendor_button: Button = $Margin/Column/TitleRow/Vendor
 @onready var back_button: Button = $Margin/Column/Footer/Back
+@onready var loadout_button: Button = $Margin/Column/Footer/Loadout
 @onready var begin_button: Button = $Margin/Column/Footer/Begin
 @onready var problems_label: Label = $Margin/Column/Footer/Problems
 
@@ -28,7 +31,10 @@ func _ready() -> void:
 	(seat_panel.get_node("Row/Lock") as Button).visible = false
 	(seat_panel.get_node("Row/Header/Tag") as Label).text = "STARTER"
 	seat_panel.faces = faces
+	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
+	vendor_button.pressed.connect(_on_vendor)
 	back_button.pressed.connect(_on_back)
+	loadout_button.pressed.connect(_on_loadout)
 	begin_button.pressed.connect(_on_begin)
 	for id: String in AdventureLadder.playable_starters():
 		var d: DeckList = DeckList.resolve(id)
@@ -57,6 +63,7 @@ func _pick(index: int) -> void:
 	var problems: Array[String] = Session.deck_problems(d)
 	problems_label.text = "\n".join(problems)
 	begin_button.disabled = not problems.is_empty()
+	loadout_button.disabled = false
 	for i in range(_tiles.size()):
 		_tiles[i].set_badge(1 if i == index else 0, "", ZenithTheme.ACCENT)
 
@@ -66,6 +73,7 @@ func _on_begin() -> void:
 		return
 	_advancing = true
 	begin_button.disabled = true
+	loadout_button.disabled = true
 	back_button.disabled = true
 	for i in range(_tiles.size()):
 		_tiles[i].disabled = true
@@ -74,6 +82,20 @@ func _on_begin() -> void:
 	await get_tree().create_timer(ADVANCE_DELAY).timeout
 	Session.start_run(starter_id)
 	Session.go_to_adventure()
+
+
+## Opens the loadout screen for the highlighted starter. No signal carries the pick there today,
+## so it is stashed on the loadout screen's own static var, the way AdventureDev's flags fill it
+## for a dev launch.
+func _on_loadout() -> void:
+	if _advancing or _picked < 0:
+		return
+	Loadout.starter_id = _starter_ids[_picked]
+	Session.go_to_loadout()
+
+
+func _on_vendor() -> void:
+	Session.go_to_vendor()
 
 
 func _on_back() -> void:

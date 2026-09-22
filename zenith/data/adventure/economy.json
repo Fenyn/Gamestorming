@@ -1,0 +1,15 @@
+{
+	"_note": "Motes: the one currency outside a run. Bands are a printed tell for now, so a rarity system later changes this file and AdventureEconomy.band() and nothing else.",
+	"bands": {
+		"base": 80,
+		"limited": 160,
+		"restricted": 320
+	},
+	"stage_payout_base": 20,
+	"stage_payout_step": 10,
+	"completion_bonus": 50,
+	"discount_fraction": 0.25,
+	"dissolve_fraction": 0.25,
+	"vendor_stock": 6,
+	"vendor_reroll_fee": 40
+}

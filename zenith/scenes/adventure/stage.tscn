@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/stage.gd" id="1_stage"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
 [ext_resource type="PackedScene" path="res://scenes/select/deck_sheet.tscn" id="3_sheet"]
 [ext_resource type="PackedScene" path="res://scenes/adventure/stage_deck_panel.tscn" id="4_deckpanel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="5_tile_stat"]
 
 [node name="Stage" type="Control"]
 layout_mode = 3
@@ -72,6 +73,11 @@ text = ""
 [node name="Spacer" type="Control" parent="Margin/Column/HeaderLine"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="Motes" parent="Margin/Column/HeaderLine" instance=ExtResource("5_tile_stat")]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
 
 [node name="StageStatus" type="Label" parent="Margin/Column/HeaderLine"]
 layout_mode = 2

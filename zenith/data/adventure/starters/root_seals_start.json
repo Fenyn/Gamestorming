@@ -28,11 +28,9 @@
     {"id": "marble_seal_6", "count": 1},
     {"id": "marble_seal_7", "count": 1},
     {"id": "first_cut", "count": 1},
-    {"id": "mournes_smirk", "count": 1},
     {"id": "mournes_plans", "count": 1},
     {"id": "wardens_measure", "count": 1},
     {"id": "guardian_drill", "count": 1},
-    {"id": "lucky_find", "count": 1},
     {"id": "keepers_drill", "count": 3},
     {"id": "root_dragon_blast", "count": 3},
     {"id": "root_destruction_blast", "count": 3},
@@ -40,8 +38,8 @@
     {"id": "root_bolt", "count": 3},
     {"id": "root_dash", "count": 2},
     {"id": "root_energy_catch", "count": 3},
-    {"id": "root_energy_deflection", "count": 3},
-    {"id": "root_firm_stance", "count": 2},
+    {"id": "root_energy_deflection", "count": 1},
+    {"id": "root_firm_stance", "count": 1},
     {"id": "practiced_guard", "count": 2},
     {"id": "second_wind", "count": 3},
     {"id": "cut_short", "count": 2},
@@ -54,6 +52,8 @@
     {"id": "foresight", "count": 1},
     {"id": "gates_boon", "count": 1},
     {"id": "eyes_beyond_the_gate", "count": 1},
-    {"id": "sharp_rebuke", "count": 1}
+    {"id": "sharp_rebuke", "count": 1},
+    {"id": "root_barred_path", "count": 3},
+    {"id": "braced_guard", "count": 2}
   ]
 }

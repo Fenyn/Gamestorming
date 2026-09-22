@@ -5,6 +5,7 @@ extends Control
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var deck_name_label: Label = $Margin/Column/HeaderLine/DeckName
 @onready var duelist_label: Label = $Margin/Column/HeaderLine/Duelist
+@onready var motes_tile: StatTile = $Margin/Column/HeaderLine/Motes
 @onready var stage_status_label: Label = $Margin/Column/HeaderLine/StageStatus
 @onready var deck_size_label: Label = $Margin/Column/SubHeader/DeckSize
 @onready var aspects_label: Label = $Margin/Column/SubHeader/Aspects
@@ -68,6 +69,7 @@ func _refresh() -> void:
 
 	deck_name_label.text = deck.name
 	duelist_label.text = duelist.title if duelist != null else deck.duelist_face_id()
+	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
 	deck_size_label.text = "%d life cards" % deck.cards.size()
 	# The run's own Duelist, rung by rung, rather than a bare count. The opponents' sheets below
 	# keep the count, since the run does not get to read the other side's stack.

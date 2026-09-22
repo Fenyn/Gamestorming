@@ -26,21 +26,22 @@
     {"id": "quick_retreat", "count": 3},
     {"id": "edrics_truce", "count": 2},
     {"id": "pyre_ashen_veil", "count": 2},
-    {"id": "braced_guard", "count": 1},
+    {"id": "braced_guard", "count": 2},
     {"id": "pyre_hearthguard", "count": 1},
     {"id": "committed_cut", "count": 3},
     {"id": "captains_barrage", "count": 3},
     {"id": "declaration", "count": 1},
     {"id": "pyre_immolation", "count": 3},
-    {"id": "pyre_ashfall", "count": 2},
+    {"id": "pyre_ashfall", "count": 3},
     {"id": "sharp_rebuke", "count": 1},
     {"id": "edrics_opening_strike", "count": 2},
-    {"id": "edrics_training", "count": 1},
+    {"id": "edrics_training", "count": 2},
     {"id": "pyre_furnace_breath", "count": 2},
     {"id": "pyre_twin_flames", "count": 3},
     {"id": "pyre_flashpoint", "count": 1},
     {"id": "cut_short", "count": 2},
     {"id": "foresight", "count": 1},
-    {"id": "provocation", "count": 1}
+    {"id": "provocation", "count": 1},
+    {"id": "pyre_ember_strike", "count": 2}
   ]
 }

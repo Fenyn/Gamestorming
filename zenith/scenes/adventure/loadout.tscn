@@ -1,0 +1,178 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/loadout.gd" id="1_loadout"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/run_deck_list.tscn" id="3_list"]
+
+[node name="Loadout" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_loadout")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.055, 0.07, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("2_faces")]
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "Loadout"
+
+[node name="DeckName" type="Label" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"AccentLabel"
+theme_override_font_sizes/font_size = 18
+text = ""
+
+[node name="Body" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="Left" type="VBoxContainer" parent="Margin/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Margin/Column/Body/Left"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "STARTER DECK"
+
+[node name="RungRow" type="HFlowContainer" parent="Margin/Column/Body/Left"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+
+[node name="DeckList" parent="Margin/Column/Body/Left" instance=ExtResource("3_list")]
+layout_mode = 2
+size_flags_vertical = 3
+show_copies = true
+
+[node name="DeckStatus" type="HBoxContainer" parent="Margin/Column/Body/Left"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DeckSize" type="Label" parent="Margin/Column/Body/Left/DeckStatus"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+
+[node name="Right" type="VBoxContainer" parent="Margin/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Margin/Column/Body/Right"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "COLLECTION"
+
+[node name="SwapHint" type="Label" parent="Margin/Column/Body/Right"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Pick a deck card or a Duelist rung to see what could swap in"
+autowrap_mode = 3
+
+[node name="SwapScroll" type="ScrollContainer" parent="Margin/Column/Body/Right"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SwapGrid" type="HFlowContainer" parent="Margin/Column/Body/Right/SwapScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+
+[node name="SwapEmpty" type="Label" parent="Margin/Column/Body/Right"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 16
+text = "Nothing in the collection can legally take this place."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Controls" type="HBoxContainer" parent="Margin/Column/Body/Right"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SwapStatus" type="Label" parent="Margin/Column/Body/Right/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"WarnLabel"
+text = ""
+autowrap_mode = 3
+
+[node name="Reset" type="Button" parent="Margin/Column/Body/Right/Controls"]
+custom_minimum_size = Vector2(120, 44)
+layout_mode = 2
+text = "Reset"
+
+[node name="Swap" type="Button" parent="Margin/Column/Body/Right/Controls"]
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+disabled = true
+theme_type_variation = &"AccentButton"
+text = "Swap"
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Back" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+text = "Back"
+
+[node name="Problems" type="Label" parent="Margin/Column/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"WarnLabel"
+text = ""
+horizontal_alignment = 2
+autowrap_mode = 3
+
+[node name="Begin" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(200, 52)
+layout_mode = 2
+disabled = true
+theme_type_variation = &"AccentButton"
+theme_override_font_sizes/font_size = 18
+text = "Begin run"

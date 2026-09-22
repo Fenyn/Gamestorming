@@ -249,10 +249,14 @@ func _init() -> void:
 		test_the_taller_ladder_wins_by_standing_above_it,
 		test_edric_gives_ground_goes_under_the_deck_only_for_edric,
 		test_closing_ranks_rides_along_with_the_attack,
+		test_storm_focused_bolt_blanks_their_next_attack_phase_of_strikes,
+		test_storm_assailing_arc_pulls_their_energy_down_to_yours,
+		test_storm_trick_shot_pays_energy_for_every_later_hit,
+		test_shade_draining_blast_deals_energy_and_refunds_its_user,
 		test_first_to_two_a_deck_out_scores_a_point_and_reshuffles,
 		test_first_to_two_the_hit_that_scores_loses_its_leftover_damage,
 		test_first_to_two_an_ascension_scores_once_and_resets_nothing,
-		test_first_to_two_a_seal_set_still_wins_outright,
+		test_first_to_two_a_seal_set_scores_one_point_under_the_adventure_rules,
 		test_an_adventure_run_round_trips_through_json_and_the_save,
 		test_adventure_ladders_field_legal_opponents,
 		test_every_reward_bundle_is_well_formed,
@@ -329,6 +333,14 @@ func _init() -> void:
 		test_an_option_carries_the_owner_only_for_a_card_on_the_table,
 		test_a_side_marker_appears_only_when_two_options_read_alike,
 		test_the_log_names_the_owner_when_both_sides_hold_one_title,
+		test_motes_price_a_card_by_its_printed_tell,
+		test_the_wallet_earns_spends_and_refuses_what_it_cannot_pay,
+		test_the_collection_holds_what_a_deck_may_run_and_dissolves_the_rest,
+		test_a_won_run_pays_out_and_settles_its_cards_at_a_discount,
+		test_a_run_lost_at_stage_five_keeps_four_payouts_and_pays_full_price,
+		test_the_vendor_sells_a_rotating_shelf_of_buyable_cards,
+		test_a_loadout_swap_is_legal_only_through_the_validator,
+		test_a_version_three_adventure_save_migrates_into_a_settleable_run,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -4081,12 +4093,25 @@ func test_first_to_two_an_ascension_scores_once_and_resets_nothing() -> void:
 	eq(e.state.winner, 0, "for the climber")
 
 
-func test_first_to_two_a_seal_set_still_wins_outright() -> void:
+func test_first_to_two_a_seal_set_scores_one_point_under_the_adventure_rules() -> void:
+	# The printed game, and first-to-two without the option: the set is the duel.
 	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
 	e.state.points_to_win = 2
 	e._win(0, "seal")
 	check(e.is_over(), "a full Seal set ends a first-to-two duel on the spot")
 	eq(e.state.win_reason, "seal", "as a Seal win")
+	# The adventure rule set: the set is one point, once, and a second set scores nothing more.
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	f.state.points_to_win = 2
+	f.state.seal_scores_point = true
+	f._win(0, "seal")
+	check(not f.is_over(), "with the option the set is a point and the duel goes on")
+	eq(f.state.points[0], 1, "one point")
+	f._win(0, "seal")
+	check(not f.is_over(), "the same set cannot score twice")
+	eq(f.state.points[0], 1, "still one point")
+	f._win(0, "survival")
+	check(f.is_over(), "the set plus an emptied deck is the full win")
 
 
 ## "If used by X, place this card at the bottom of your Life Deck after use": the source card's
@@ -4162,6 +4187,94 @@ func test_closing_ranks_rides_along_with_the_attack() -> void:
 	eq(p.hand.size(), hand_before - 2 + 1, "two cards left the hand and one was drawn")
 	var text: String = CardText.rules_text(shipped.get_def("closing_ranks"))
 	check(text.contains("Use when performing an attack.") and text.contains("That attack does +2 wounds for each Draconic personality"), "worded as printed: %s" % text)
+
+
+## A Focused Art that, once it lands, blanks every Strike in the rival's next attack phase: the
+## Energy and the wounds both, since a Strike can carry either.
+func test_storm_focused_bolt_blanks_their_next_attack_phase_of_strikes() -> void:
+	# Both sides Storm, so the defender can be handed a Storm Strike with printed stages below.
+	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil", "storm"))
+	var bolt: CardInstance = real_to_hand(e, 0, "storm_focused_bolt")
+	# A Strike with printed stages on top of the table, so there is real damage to blank: two
+	# duelists of the same Might would otherwise trade 0 off the table and prove nothing.
+	var blow: CardInstance = real_to_hand(e, 1, "storm_recharge")
+	to_attack(e, 0)
+	e.player(0).duelist.energy = 5
+	var foe_life: int = e.player(1).life_deck.size()
+	answer(e, &"attack", bolt.uid)
+	eq(foe_life - e.player(1).life_deck.size(), 5, "the bolt dealt its printed 5 wounds")
+	check(has_event(e, &"floating"), "and left a standing effect behind")
+	eq(e.prompt.player, 1, "their attack phase")
+	var life_before: int = e.player(0).life_deck.size()
+	var energy_before: int = e.player(0).duelist.energy
+	answer(e, &"attack", blow.uid)
+	eq(e.player(0).life_deck.size(), life_before, "no wounds from their Strike")
+	eq(e.player(0).duelist.energy, energy_before, "and no Energy lost to it")
+	eq(int(e.state.last_attack.get("stages_dealt", -1)), 0, "the +2 Strike dealt nothing")
+	var text: String = CardText.rules_text(shipped().get_def("storm_focused_bolt"))
+	check(text.contains("Focused Art dealing 5 wounds") and text.contains("Prevent all damage from Strikes during your opponent's next attack phase"), "worded as printed: %s" % text)
+
+
+## "If their personality in control has more Energy than yours, lower it to match": a leveller
+## that only ever pulls the rival down, read after the Art's own cost is paid.
+func test_storm_assailing_arc_pulls_their_energy_down_to_yours() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var first: CardInstance = real_to_hand(e, 0, "storm_assailing_arc")
+	var second: CardInstance = real_to_hand(e, 0, "storm_assailing_arc")
+	to_attack(e, 0)
+	e.player(0).duelist.energy = 5
+	e.player(1).duelist.energy = 9
+	answer(e, &"attack", first.uid)
+	eq(e.player(0).duelist.energy, 3, "the Art cost 2")
+	eq(e.player(1).duelist.energy, 3, "their duelist came down to match")
+	answer(e, &"pass")
+	e.player(1).duelist.energy = 1
+	answer(e, &"attack", second.uid)
+	eq(e.player(1).duelist.energy, 1, "a duelist already below is never raised")
+	var text: String = CardText.rules_text(shipped().get_def("storm_assailing_arc"))
+	check(text.contains("Endurance 2.") and text.contains("Focused Art dealing 6 wounds") and text.contains("lower it to match"), "worded as printed: %s" % text)
+
+
+## "All your attacks gain 'Hit: your duelist gains 2 Energy'" for the rest of Combat: the shot
+## itself earns its cost back, and a plain Strike later in the same Combat is paid too.
+func test_storm_trick_shot_pays_energy_for_every_later_hit() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var shot: CardInstance = real_to_hand(e, 0, "storm_trick_shot")
+	to_attack(e, 0)
+	e.player(0).duelist.energy = 5
+	e.player(1).fervor = 2
+	answer(e, &"attack", shot.uid)
+	eq(e.player(1).fervor, 0, "their Fervor dropped 2")
+	eq(e.player(0).duelist.energy, 5, "the shot paid its 2 and earned them back on landing")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "root_timber_blow"))
+	eq(e.player(0).duelist.energy, 7, "a later Strike that lands pays 2 more")
+	var text: String = CardText.rules_text(shipped().get_def("storm_trick_shot"))
+	check(text.contains("Endurance 3.") and text.contains("your attacks gain \"Hit: your duelist gains 2 Energy.\""), "worded as printed: %s" % text)
+
+
+## An Art that deals Energy instead of wounds and refunds more than it cost when it lands, and a
+## plain Focused Art that raises Fervor on landing.
+func test_shade_draining_blast_deals_energy_and_refunds_its_user() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "shade"), real_deck([], "vigil"))
+	var blast: CardInstance = real_to_hand(e, 0, "shade_draining_blast")
+	var prep: CardInstance = real_to_hand(e, 0, "shade_preparation")
+	to_attack(e, 0)
+	e.player(0).duelist.energy = 6
+	e.player(1).duelist.energy = 8
+	var foe_life: int = e.player(1).life_deck.size()
+	answer(e, &"attack", blast.uid)
+	eq(e.player(1).duelist.energy, 4, "4 Energy of damage")
+	eq(e.player(1).life_deck.size(), foe_life, "and no wounds")
+	eq(e.player(0).duelist.energy, 8, "paid 2, got 4 back")
+	answer(e, &"pass")
+	var fervor_before: int = e.player(0).fervor
+	answer(e, &"attack", prep.uid)
+	eq(e.player(0).fervor, fervor_before + 1, "the Focused Art raised Fervor on landing")
+	var text: String = CardText.rules_text(shipped().get_def("shade_preparation"))
+	check(text.contains("Focused Art.") and text.contains("Hit: Raise your Fervor 1"), "worded as printed: %s" % text)
+	var blast_text: String = CardText.rules_text(shipped().get_def("shade_draining_blast"))
+	check(blast_text.contains("Art dealing 4 Energy") and blast_text.contains("Costs 2 Energy"), "worded as printed: %s" % blast_text)
 
 
 # --- Simulation support ----------------------------------------------------
@@ -5999,7 +6112,7 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards.
-	eq(shipped().defs.size(), 432, "and the set is 370 other cards plus 62 Aspect cards")
+	eq(shipped().defs.size(), 438, "and the set is 376 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -7315,3 +7428,430 @@ func test_the_log_names_the_owner_when_both_sides_hold_one_title() -> void:
 	# A card still in hand is named "a card" to the other seat, owner suffix or not.
 	var held: CardInstance = to_hand(e, 0, "t_ally_squire_alt")
 	eq(CardText._cname(e, held.uid, 1, 0), "a card", "and a hidden card leaks nothing new")
+
+
+# --- Motes: the economy, the wallet, the collection, the vendor ------------
+#
+# Every file these touch goes through a path override, so a test never reaches the player's save.
+
+const MOTES_WALLET_PATH: String = "user://adventure/test_wallet.json"
+const MOTES_COLLECTION_PATH: String = "user://adventure/test_collection.json"
+const MOTES_STARTER: String = "pyre_beatdown_start"
+
+
+## A card of each printed tell, and what band it belongs in.
+const MOTES_BAND_CASES: Array = [
+	["clear_mind", AdventureEconomy.BAND_BASE],                   # three copies, answers one card
+	["dismissal", AdventureEconomy.BAND_LIMITED],                 # printed at two
+	["no_quarter", AdventureEconomy.BAND_RESTRICTED],             # three copies, but a lockout
+	["blank_mask", AdventureEconomy.BAND_RESTRICTED],             # printed at one
+	["personality_bram_ashmark_1_starved", AdventureEconomy.BAND_LIMITED],
+	["ancient_grove", AdventureEconomy.BAND_LIMITED],             # a Grounds sits in the middle
+	["trampled_crossroads", AdventureEconomy.BAND_LIMITED],       # even one that forbids
+	["salt_seal_1", AdventureEconomy.BAND_RESTRICTED],
+]
+
+
+func test_motes_price_a_card_by_its_printed_tell() -> void:
+	var shipped: CardLibrary = shipped_library()
+	for row: Array in MOTES_BAND_CASES:
+		var def: CardDef = shipped.defs.get(str(row[0]))
+		check(def != null, "'%s' is in the shipped library" % str(row[0]))
+		if def == null:
+			continue
+		eq(AdventureEconomy.band(def), str(row[1]), "'%s' is a %s card" % [def.id, str(row[1])])
+	check(AdventureEconomy.is_lockout(shipped.defs.get("no_quarter")), "a forbid is a lockout")
+	check(AdventureEconomy.is_lockout(shipped.defs.get("stillness")), "and so is stopping everything")
+	check(not AdventureEconomy.is_lockout(shipped.defs.get("clear_mind")), "a search is not")
+	check(not AdventureEconomy.is_lockout(shipped.defs.get("salt_seal_1")), "a Seal is exempt by name")
+	# Every card in the library is priced, and the bands climb.
+	var prices: Array[int] = []
+	for band in AdventureEconomy.BANDS:
+		prices.append(AdventureEconomy.band_price(band))
+	for i in range(1, prices.size()):
+		check(prices[i] > prices[i - 1], "band %d costs more than the one below" % i)
+	for id: String in shipped.all_ids():
+		var def: CardDef = shipped.defs[id]
+		check(AdventureEconomy.BANDS.has(AdventureEconomy.band(def)), "'%s' has a band" % id)
+		check(AdventureEconomy.price(def) > 0, "'%s' has a price" % id)
+		check(AdventureEconomy.discount_price(def) < AdventureEconomy.price(def),
+			"'%s' costs less after a win" % id)
+		check(AdventureEconomy.dissolve_value(def) < AdventureEconomy.price(def),
+			"'%s' dissolves for less than it costs" % id)
+	# A later stage pays more than an earlier one, and the ladder end pays a bonus on top.
+	for n in range(1, ADVENTURE_LADDER_SIZE):
+		check(AdventureEconomy.stage_payout(n) > AdventureEconomy.stage_payout(n - 1),
+			"stage %d pays more than stage %d" % [n + 1, n])
+	check(AdventureEconomy.completion_bonus() > 0, "beating the ladder pays a bonus")
+
+
+func test_the_wallet_earns_spends_and_refuses_what_it_cannot_pay() -> void:
+	AdventureWallet.path_override = MOTES_WALLET_PATH
+	AdventureWallet.clear()
+	var wallet: AdventureWallet = AdventureWallet.load_wallet()
+	eq(wallet.motes, 0, "a wallet with no file starts empty")
+	eq(wallet.earn(120, AdventureWallet.REASON_STAGE, "run-1", 2), 120, "earning adds")
+	eq(wallet.earn(0, AdventureWallet.REASON_STAGE, "run-1"), 120, "nothing is not an earning")
+	eq(wallet.ledger.size(), 1, "and leaves no ledger entry")
+	check(wallet.spend(50, AdventureWallet.REASON_BUY, "card"), "spending what is there works")
+	eq(wallet.motes, 70, "the balance comes down")
+	check(not wallet.spend(71, AdventureWallet.REASON_BUY, "card"), "spending what is not there does not")
+	eq(wallet.motes, 70, "and moves nothing")
+	eq(wallet.ledger.size(), 2, "a refused spend is not in the ledger")
+	var first: Dictionary = wallet.ledger[0]
+	eq(int(first["amount"]), 120, "an earning is positive")
+	eq(int(first["stage"]), 2, "a stage payout says which stage")
+	eq(str(first["run_id"]), "run-1", "and which run")
+	eq(int(wallet.ledger[1]["amount"]), -50, "a spend is negative")
+	eq(int(wallet.recent(1).size()), 1, "the screen reads the newest first")
+	eq(str(wallet.recent(1)[0]["reason"]), AdventureWallet.REASON_BUY, "newest first")
+	# The ledger is a tail, not a history.
+	for i in range(AdventureWallet.LEDGER_MAX + 5):
+		wallet.earn(1, AdventureWallet.REASON_DISSOLVE)
+	eq(wallet.ledger.size(), AdventureWallet.LEDGER_MAX, "the ledger keeps the last N entries")
+	wallet.stock_seed = 4242
+	check(wallet.save(), "the wallet writes to disk")
+	var loaded: AdventureWallet = AdventureWallet.load_wallet()
+	eq(loaded.motes, wallet.motes, "the balance came back an int")
+	eq(loaded.stock_seed, 4242, "and so did the vendor's seed")
+	eq(loaded.ledger.size(), wallet.ledger.size(), "the ledger came back whole")
+	eq(int(loaded.ledger[0]["amount"]), int(wallet.ledger[0]["amount"]), "with its amounts as ints")
+	AdventureWallet.clear()
+	check(not AdventureWallet.exists(), "clear removes the wallet")
+	AdventureWallet.path_override = ""
+
+
+func test_the_collection_holds_what_a_deck_may_run_and_dissolves_the_rest() -> void:
+	var shipped: CardLibrary = shipped_library()
+	AdventureCollection.path_override = MOTES_COLLECTION_PATH
+	AdventureWallet.path_override = MOTES_WALLET_PATH
+	AdventureCollection.clear()
+	var collection: AdventureCollection = AdventureCollection.load_collection()
+	eq(collection.total_copies(), 0, "a collection with no file starts empty")
+	# The cap is what DeckValidator would allow, read off its own constants.
+	eq(AdventureCollection.cap("clear_mind", shipped), DeckValidator.DEFAULT_LIMIT, "a plain card caps at three")
+	eq(AdventureCollection.cap("dismissal", shipped), 2, "a card printed at two caps at two")
+	eq(AdventureCollection.cap("edrics_training", shipped), DeckValidator.SIGNATURE_LIMIT,
+		"a card named for a character caps at the signature fourth")
+	eq(AdventureCollection.cap("personality_bram_ashmark_1_starved", shipped), 1, "a personality caps at one")
+	eq(AdventureCollection.cap("salt_seal_1", shipped), 1, "a Seal caps at one")
+	eq(AdventureCollection.cap("not_a_card", shipped), 0, "an unknown card is not collectable")
+	eq(collection.add("clear_mind", 2, shipped), 2, "two copies land")
+	eq(collection.add("clear_mind", 5, shipped), 1, "and only the third of the next five")
+	eq(collection.copies("clear_mind"), 3, "the cap holds")
+	check(collection.is_full("clear_mind", shipped), "and the row is full")
+	eq(collection.add("not_a_card", 1, shipped), 0, "an unknown card never lands")
+	eq(collection.add("personality_bram_ashmark_1_starved", 3, shipped), 1, "a personality lands once")
+	# Dissolving pays a fraction of the price and takes the copy away.
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var def: CardDef = shipped.defs.get("clear_mind")
+	var paid: int = collection.dissolve("clear_mind", shipped, wallet)
+	eq(paid, AdventureEconomy.dissolve_value(def), "dissolving pays the card's dissolve value")
+	eq(wallet.motes, paid, "into the wallet")
+	eq(collection.copies("clear_mind"), 2, "and one copy is gone")
+	eq(collection.dissolve("not_held", shipped, wallet), 0, "a card you do not hold dissolves for nothing")
+	eq(collection.remove("clear_mind", 9), 2, "removing takes what is there")
+	check(not collection.all_ids().has("clear_mind"), "and an empty row leaves the collection")
+	collection.add("dismissal", 2, shipped)
+	check(collection.save(), "the collection writes to disk")
+	var loaded: AdventureCollection = AdventureCollection.load_collection()
+	eq(loaded.copies("dismissal"), 2, "the count came back an int")
+	eq(loaded.all_ids(), collection.all_ids(), "and the rows came back whole")
+	AdventureCollection.clear()
+	AdventureCollection.path_override = ""
+	AdventureWallet.path_override = ""
+
+
+## Plays an all-wins run, taking the first bundle and the first Aspect card every time, and stops
+## after `stop_after` stages when that is not -1. Returns the run, the Motes it paid, the cards
+## every taken bundle held and the Aspect cards taken.
+func motes_play_run(shipped: CardLibrary, starter_id: String, run_seed: int,
+		stop_after: int = -1) -> Dictionary:
+	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+	var run: AdventureRun = AdventureRun.begin(starter_id, run_seed)
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var taken: Array[String] = []
+	var aspects: Array[String] = []
+	var cleared: int = 0
+	while run.status != "won" and run.status != "lost":
+		var won: bool = stop_after < 0 or cleared < stop_after
+		wallet.earn(AdventureRewards.finish_stage(run, ladder, shipped, won),
+			AdventureWallet.REASON_STAGE, run.run_id, run.stage)
+		if not won:
+			break
+		cleared += 1
+		if run.status == "aspect":
+			var card_id: String = run.pending_aspects[0]
+			if AdventureRewards.apply_aspect(run, shipped, card_id):
+				aspects.append(card_id)
+			AdventureRewards.finish_aspect(run, ladder, shipped)
+		if run.pending_offer.is_empty():
+			AdventureRewards.apply_skip(run)
+		else:
+			var bundle_id: String = run.pending_offer[0]
+			var cards: Array[String] = AdventureBundles.cards_of_id(bundle_id)
+			if AdventureRewards.apply_bundle(run, shipped, bundle_id):
+				taken.append_array(cards)
+		wallet.earn(AdventureRewards.finish_reward(run, ladder),
+			AdventureWallet.REASON_COMPLETION, run.run_id)
+	return {"run": run, "ladder": ladder, "wallet": wallet, "taken": taken, "aspects": aspects}
+
+
+## The Motes an all-wins ladder of `stages` pays, plus the bonus when the ladder is beaten.
+func motes_expected(stages: int, completed: bool) -> int:
+	var total: int = 0
+	for n in range(stages):
+		total += AdventureEconomy.stage_payout(n)
+	return total + (AdventureEconomy.completion_bonus() if completed else 0)
+
+
+func test_a_won_run_pays_out_and_settles_its_cards_at_a_discount() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var played: Dictionary = motes_play_run(shipped, MOTES_STARTER, 20260921)
+	var run: AdventureRun = played["run"]
+	var wallet: AdventureWallet = played["wallet"]
+	eq(run.status, "won", "the all-wins run beats the ladder")
+	eq(wallet.motes, motes_expected(ADVENTURE_LADDER_SIZE, true),
+		"it is paid for all eight stages and the completion bonus")
+	# What the run added is what the bundles brought plus the Aspect cards it climbed to.
+	var expected: Array[String] = (played["taken"] as Array[String]).duplicate()
+	expected.sort()
+	eq(run.added_cards(), expected, "added_cards is the bundle cards, and only those")
+	eq(run.added_duelist_cards(), played["aspects"], "and the Aspect cards sit apart from them")
+	check(not expected.is_empty(), "the run did add something")
+	# The run-end screen. A win opens the whole deck, the starter's own cards included.
+	check(AdventureSettlement.open(run), "a finished run opens its settlement")
+	eq(run.status, "settle", "which is a state of its own")
+	check(AdventureSettlement.won(run), "and it remembers the run was won")
+	var collection: AdventureCollection = AdventureCollection.new()
+	var rows: Array[Dictionary] = AdventureSettlement.offers(run, shipped, true, collection)
+	check(rows.size() > expected.size() / 3, "a won run offers more rows than a loss would")
+	var starter_offered: bool = false
+	for row in rows:
+		var def: CardDef = shipped.defs.get(str(row["id"]))
+		eq(int(row["price"]), AdventureEconomy.price(def), "'%s' shows its full price" % def.id)
+		eq(int(row["discount_price"]), AdventureEconomy.discount_price(def),
+			"'%s' shows the win discount" % def.id)
+		eq(int(row["unit"]), int(row["discount_price"]), "and charges the discount on a won run")
+		eq(int(row["cap_remaining"]), AdventureCollection.cap(def.id, shipped),
+			"'%s' says how much room is left" % def.id)
+		if run.starter_cards.has(def.id):
+			starter_offered = true
+	check(starter_offered, "beating the ladder puts the starter's own cards on offer too")
+	# Keeping cards spends exactly what the rows said and lands them in the collection.
+	var kept_ids: Array[String] = []
+	var cost: int = 0
+	for row in rows:
+		if kept_ids.size() >= 3:
+			break
+		if int(row["count"]) < 1:
+			continue
+		kept_ids.append(str(row["id"]))
+		cost += int(row["unit"])
+	var before: int = wallet.motes
+	wallet.earn(cost, AdventureWallet.REASON_STAGE, run.run_id)
+	for id in kept_ids:
+		eq(AdventureSettlement.keep(run, id, 1, wallet, collection, shipped), 1,
+			"keeping '%s' banks one copy" % id)
+		eq(collection.copies(id), 1, "'%s' is in the collection" % id)
+	eq(wallet.motes, before, "and the Motes for it are gone, to the Mote")
+	# A run cannot be settled twice.
+	AdventureSettlement.close(run)
+	check(run.settled, "closing settles the run")
+	eq(run.status, "won", "and leaves it reading as the win it was")
+	check(not AdventureSettlement.is_open(run), "a settled run is not open")
+	wallet.earn(10000, AdventureWallet.REASON_STAGE, run.run_id)
+	eq(AdventureSettlement.keep(run, kept_ids[0], 1, wallet, collection, shipped), 0,
+		"and nothing more can be bought from it")
+	check(not AdventureSettlement.open(run), "nor can it be reopened")
+
+
+func test_a_run_lost_at_stage_five_keeps_four_payouts_and_pays_full_price() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var played: Dictionary = motes_play_run(shipped, MOTES_STARTER, 771, 4)
+	var run: AdventureRun = played["run"]
+	var wallet: AdventureWallet = played["wallet"]
+	eq(run.status, "lost", "the run ends on the fifth stage")
+	eq(run.stage, 4, "standing on stage 5 of 8")
+	eq(wallet.motes, motes_expected(4, false), "paid for the four stages it cleared and no bonus")
+	check(wallet.motes > 0, "a lost run still pays")
+	check(AdventureSettlement.open(run), "a lost run settles too")
+	check(not AdventureSettlement.won(run), "knowing it was lost")
+	var collection: AdventureCollection = AdventureCollection.new()
+	var rows: Array[Dictionary] = AdventureSettlement.offers(run, shipped, false, collection)
+	check(not rows.is_empty(), "with the cards it managed to add on offer")
+	var offered: Array[String] = []
+	for row in rows:
+		var def: CardDef = shipped.defs.get(str(row["id"]))
+		eq(int(row["unit"]), AdventureEconomy.price(def), "'%s' is full price after a loss" % def.id)
+		offered.append(def.id)
+	# Only what the run added: nothing the starter printed is on offer.
+	for row in rows:
+		var id: String = str(row["id"])
+		check(run.added_cards().has(id) or run.added_duelist_cards().has(id),
+			"'%s' is a card the run added" % id)
+	# A wallet that cannot cover the copy buys nothing at all.
+	var poor: AdventureWallet = AdventureWallet.new()
+	eq(AdventureSettlement.keep(run, offered[0], 1, poor, collection, shipped), 0,
+		"an empty wallet keeps nothing")
+	eq(collection.total_copies(), 0, "and the collection stays empty")
+
+
+func test_the_vendor_sells_a_rotating_shelf_of_buyable_cards() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var collection: AdventureCollection = AdventureCollection.new()
+	var stock: Array[String] = AdventureVendor.stock(wallet, collection, shipped)
+	eq(stock.size(), AdventureEconomy.vendor_stock_size(), "the shelf holds what the economy says")
+	for id in stock:
+		var def: CardDef = shipped.defs.get(id)
+		check(def != null, "'%s' is a real card" % id)
+		check(def.type != CardDef.Type.MASTERY, "'%s' is not a Mastery" % id)
+		check(def.type != CardDef.Type.RELIC, "'%s' is not a Relic" % id)
+		check(def.type != CardDef.Type.SEAL, "'%s' is not a Seal" % id)
+	eq(AdventureVendor.stock(wallet, collection, shipped), stock, "the same seed shows the same shelf")
+	# A card the collection is already full of is off the shelf.
+	var full_id: String = stock[0]
+	collection.add(full_id, AdventureCollection.cap(full_id, shipped), shipped)
+	var after: Array[String] = AdventureVendor.stock(wallet, collection, shipped)
+	check(not after.has(full_id), "a card you hold every copy of is not for sale")
+	eq(after.size(), AdventureEconomy.vendor_stock_size(), "and the shelf stays full")
+	# Buying spends and banks.
+	var buy_id: String = after[0]
+	var cost: int = AdventureVendor.price(buy_id, shipped)
+	check(not AdventureVendor.buy(buy_id, wallet, collection, shipped), "an empty wallet buys nothing")
+	wallet.earn(cost, AdventureWallet.REASON_STAGE)
+	check(AdventureVendor.buy(buy_id, wallet, collection, shipped), "with the Motes it does")
+	eq(wallet.motes, 0, "and the price is gone")
+	eq(collection.copies(buy_id), 1, "the card is in the collection")
+	check(not AdventureVendor.buy("clear_mind_not_on_sale", wallet, collection, shipped),
+		"a card that is not on the shelf cannot be bought")
+	# The paid reroll takes the fee; a free one is the roll at the end of a run.
+	check(not AdventureVendor.reroll(wallet, true), "a reroll nobody can pay for is refused")
+	wallet.earn(AdventureEconomy.vendor_reroll_fee(), AdventureWallet.REASON_STAGE)
+	var before_seed: int = AdventureVendor.seed_of(wallet)
+	check(AdventureVendor.reroll(wallet, true), "paying for one works")
+	eq(wallet.motes, 0, "the fee is taken")
+	check(AdventureVendor.seed_of(wallet) != before_seed, "and the shelf is drawn from a new seed")
+	var rolled: Array[String] = AdventureVendor.stock(wallet, collection, shipped)
+	check(rolled != after, "which shows a different shelf")
+	check(AdventureVendor.reroll(wallet, false), "the roll at the end of a run costs nothing")
+	eq(wallet.motes, 0, "and takes no fee")
+	check(AdventureVendor.stock(wallet, collection, shipped) != rolled, "but still turns the shelf over")
+
+
+func test_a_loadout_swap_is_legal_only_through_the_validator() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var collection: AdventureCollection = AdventureCollection.new()
+	for id in ["clear_mind", "steel_standoff", "pyre_kindling", "salt_seal_1",
+			"personality_bram_ashmark_2_gnawing", "personality_bram_ashmark_3_gorging"]:
+		collection.add(str(id), 1, shipped)
+	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
+	check(deck != null, "the starter resolves")
+	var size: int = deck.cards.size()
+	check(AdventureLoadout.swappable_out(deck).has("pyre_kindling"), "a card in the deck can go out")
+	check(not AdventureLoadout.swappable_out(deck).has("clear_mind"), "a card that is not cannot")
+	# One out, one in, and the deck stays the size it was.
+	var legal: Dictionary = AdventureLoadout.swap(deck, "pyre_kindling", "clear_mind", shipped, collection)
+	eq((legal["problems"] as Array[String]).size(), 0, "a legal swap has nothing to answer for")
+	var swapped: DeckList = legal["deck"]
+	check(swapped != null, "and hands back the swapped deck")
+	if swapped != null:
+		eq(swapped.cards.size(), size, "the starter keeps its size")
+		eq(swapped.cards.count("clear_mind"), 1, "the new card is in")
+		eq(swapped.cards.count("pyre_kindling"), deck.cards.count("pyre_kindling") - 1, "one copy of the old one is out")
+	eq(deck.cards.size(), size, "and the deck it was asked about is untouched")
+	# The validator's own words come back for each refusal.
+	var off_school: Dictionary = AdventureLoadout.swap(deck, "pyre_kindling", "steel_standoff", shipped, collection)
+	check(swap_problem_mentions(off_school, "steel"), "an off-school card is refused as off-school")
+	check(off_school["deck"] == null, "and no deck comes back")
+	var over_limit: Dictionary = AdventureLoadout.swap(deck, "wall_of_flame", "pyre_kindling", shipped, collection)
+	check(swap_problem_mentions(over_limit, "exceeds limit"), "a fourth copy is refused as over the limit")
+	var seal_deck: DeckList = AdventureLoadout.base_deck("root_seals_start")
+	var seal_swap: Dictionary = AdventureLoadout.swap(seal_deck, "marble_seal_1", "salt_seal_1", shipped, collection)
+	check(swap_problem_mentions(seal_swap, "Seal set"), "a Seal of another set is refused")
+	var unowned: Dictionary = AdventureLoadout.swap(deck, "pyre_kindling", "stillness", shipped, collection)
+	check(swap_problem_mentions(unowned, "collection"), "a card you do not own is not swappable in")
+	check(AdventureLoadout.swappable_in(deck, shipped, collection, "pyre_kindling").has("clear_mind"),
+		"the swappable list holds the legal card")
+	check(not AdventureLoadout.swappable_in(deck, shipped, collection, "pyre_kindling").has("steel_standoff"),
+		"and not the illegal one")
+	# A Duelist rung trades for another card of the same character at the same tier.
+	var rung: Dictionary = AdventureLoadout.swap_rung(deck, 2, "personality_bram_ashmark_2_gnawing", shipped, collection)
+	eq((rung["problems"] as Array[String]).size(), 0, "a same-character, same-tier rung swap is legal")
+	var rung_deck: DeckList = rung["deck"]
+	check(rung_deck != null and rung_deck.duelist_ids[1] == "personality_bram_ashmark_2_gnawing",
+		"and the rung is the new card")
+	eq(rung_deck.aspects if rung_deck != null else 0, deck.aspects, "the stack keeps its height")
+	var wrong_tier: Dictionary = AdventureLoadout.swap_rung(deck, 2, "personality_bram_ashmark_3_gorging", shipped, collection)
+	check(not (wrong_tier["problems"] as Array[String]).is_empty(), "a card of the wrong tier is refused")
+	check(wrong_tier["deck"] == null, "with no deck to run")
+	check(AdventureLoadout.swap_rung(deck, 9, "personality_bram_ashmark_2_gnawing", shipped).has("problems"),
+		"and a rung the Duelist does not have is refused too")
+	check(AdventureLoadout.swappable_rungs(deck, shipped, collection, 2).has("personality_bram_ashmark_2_gnawing"),
+		"the rung list holds the tier-two card")
+	check(not AdventureLoadout.swappable_rungs(deck, shipped, collection, 2).has("personality_bram_ashmark_3_gorging"),
+		"and not the tier-three one")
+	# The run starts from what was assembled, so the settlement charges for what the run added.
+	var run: AdventureRun = AdventureLoadout.begin_from(MOTES_STARTER, swapped, 99)
+	check(run != null, "a swapped deck begins a run")
+	if run != null:
+		eq(run.starter_cards, swapped.cards, "whose starting list is the swapped one")
+		eq(run.cards, swapped.cards, "and whose deck starts there")
+		eq(run.added_cards().size(), 0, "so it has added nothing yet")
+		check(run.run_id != "", "and it is named for the ledger")
+
+
+## True when any problem of a refused swap holds `needle`.
+func swap_problem_mentions(result: Dictionary, needle: String) -> bool:
+	for problem in result["problems"] as Array[String]:
+		if problem.contains(needle):
+			return true
+	return false
+
+
+func test_a_version_three_adventure_save_migrates_into_a_settleable_run() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var printed: DeckList = DeckList.resolve(MOTES_STARTER)
+	# A version 3 save: no run id, no starting deck, and a run part way up the ladder.
+	var grown: Array[String] = printed.cards.duplicate()
+	grown.append("clear_mind")
+	grown.append("clear_mind")
+	var old: Dictionary = {
+		"version": 3,
+		"starter_id": MOTES_STARTER,
+		"cards": grown,
+		"duelist": ["personality_bram_ashmark_1_starved", "personality_bram_ashmark_2_leeching",
+			"personality_bram_ashmark_3_gorging"],
+		"stage": 4,
+		"run_seed": 8181,
+		"pending_offer": [],
+		"pending_aspects": [],
+		"status": "stage",
+		"picks": [],
+	}
+	var run: AdventureRun = AdventureRun.from_dict(old)
+	check(run != null, "a version 3 save still loads")
+	eq(run.duelist_ids.size(), 3, "its Duelist stack is left alone, not re-migrated")
+	eq(run.run_id, AdventureRun.id_for(MOTES_STARTER, 8181), "a run id is generated for it")
+	eq(run.starter_cards, printed.cards, "and the printed starter becomes its starting deck")
+	eq(run.starter_duelist, printed.duelist_ids, "stack included")
+	eq(run.added_cards(), ["clear_mind", "clear_mind"] as Array[String],
+		"so the run settles for what it actually added")
+	eq(run.added_duelist_cards(), ["personality_bram_ashmark_3_gorging"] as Array[String],
+		"and for the Aspect it climbed to")
+	eq(run.settled, false, "a migrated run has not been settled")
+	# Everything written from here carries the new fields.
+	var again: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	eq(int(run.to_dict()["version"]), AdventureRun.SAVE_VERSION, "and is written at the current version")
+	eq(again.run_id, run.run_id, "the run id survives the round trip")
+	eq(again.starter_cards, run.starter_cards, "and so does the starting deck")
+	run.status = "lost"
+	AdventureSettlement.open(run)
+	run.kept["clear_mind"] = 1
+	var settled: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	eq(settled.status, "settle", "a run saved on the settle screen comes back to it")
+	eq(settled.outcome, "lost", "knowing which way it ended")
+	eq(int(settled.kept.get("clear_mind", 0)), 1, "and what was already bought")
+	eq(AdventureSettlement.offers(settled, shipped, false).size(), 2,
+		"so the offer no longer lists the copy that was kept")

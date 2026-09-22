@@ -89,6 +89,15 @@ func set_points_to_win(n: int) -> void:
 	state.points_to_win = maxi(1, n)
 
 
+## Two first-to-N options under trial, both off unless asked for: a full Seal set scores one point
+## in place of winning outright, and a duelist's own "remove from the game after use" cards rejoin
+## the Life Deck that is rebuilt when they lose a point.
+func set_points_options(seal_scores_point: bool, second_life_returns_used: bool) -> void:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_points_options() after start()")
+	state.seal_scores_point = seal_scores_point
+	state.second_life_returns_used = second_life_returns_used
+
+
 func start() -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
 	state.reserve_index = 0
@@ -610,7 +619,9 @@ func _begin_turn() -> void:
 		p.seal_victory_pending = false
 		if _controls_full_set(p):
 			_win(p.index, "seal")
-			return
+			# A Seal set that only scored a point leaves the turn to carry on.
+			if state.is_over():
+				return
 	# Beginning-of-turn effects belong to both players, active first, the same order every other
 	# shared window uses. Today only the active player's own cards say "your turn", but a card
 	# that does not should still fire here rather than be silently skipped.
@@ -1978,6 +1989,14 @@ func _advance_battle() -> void:
 			state.battle_step = 15
 		15:
 			_enqueue(a["effects"], "if_successful", attacker.index, {"attack": a}, _attack_source())
+			# "All your attacks gain 'If successful, your Main Personality gains N power stages'":
+			# a standing grant, paid to the duelist whichever personality landed the attack.
+			for f in state.floating:
+				if int(f.get("owner", -1)) == attacker.index and str(f.get("op", "")) == "energy_on_hit" and _phase_float_live(f):
+					var before: int = attacker.duelist.energy
+					_gain_energy_from_card(attacker, attacker.duelist, maxi(1, int(f.get("energy", 2))))
+					if attacker.duelist.energy != before:
+						_emit(&"energy_changed", {"player": attacker.index, "card": attacker.duelist.uid, "from": before, "to": attacker.duelist.energy, "source": int(f.get("source", -1))})
 			if attacker.mastery != null and not _forbidden(attacker, "mastery"):
 				_enqueue(attacker.mastery.def.effects, "on_success", attacker.index, {"attack": a}, attacker.mastery)
 			# A Non-Combat in play that answers a successful attack. It spends itself in its own text.
@@ -2659,6 +2678,12 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 		life *= multiply
 	if kind == "art" and _has_floating(defender.index, "prevent_art_life") and not no_prevent:
 		adds.append({"source": "Art wounds prevented", "stages": 0, "life": -life})
+		life = 0
+	# "Prevent all damage from any physical attack during your opponent's next attack phase":
+	# both the Energy and the wounds, since a Strike can carry either.
+	if kind == "strike" and _has_floating(defender.index, "prevent_strike_damage") and not no_prevent:
+		adds.append({"source": "Strike damage prevented", "stages": -stages, "life": -life})
+		stages = 0
 		life = 0
 	# Wounds bought off for this one attack, by a Mastery that spends the discard pile instead of
 	# a block. Lives on the attack, so it cannot leak into the next one.
@@ -3513,9 +3538,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					crew.append(who.duelist)
 				_:
 					crew.append(who.in_control())
+			# "If their personality in control has more Energy than yours, lower it to match":
+			# never a raise, and nothing at all when the user is the one behind.
+			var match_mine: bool = amount is String and str(amount) == "match_attacker"
 			for target in crew:
 				var before: int = target.energy
-				target.energy = clampi(int(amount), 0, CardInstance.MAX_STAGE)
+				if match_mine:
+					target.energy = mini(before, me.in_control().energy)
+				else:
+					target.energy = clampi(int(amount), 0, CardInstance.MAX_STAGE)
 				if target.energy != before:
 					_emit(&"energy_changed", {"player": who_index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
 		"advance_aspect":
@@ -3903,7 +3934,7 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 ## in, which is the opponent's phase and not the owner's own. A restriction like `forbid` is the
 ## other way round: it binds its owner during their own phase. `params.phase_of` ("self" or
 ## "opponent", read from the owner) overrides the guess where a card needs the other reading.
-const DEFENSIVE_FLOATS: Array[String] = ["stop_next", "stop_all", "prevent_all", "prevent_art_life", "no_endurance"]
+const DEFENSIVE_FLOATS: Array[String] = ["stop_next", "stop_all", "prevent_all", "prevent_art_life", "prevent_strike_damage", "no_endurance"]
 
 
 func _float(owner: int, op: String, duration: String, params: Dictionary = {}) -> void:
@@ -5894,18 +5925,34 @@ func _lose(player_index: int, reason: String) -> void:
 ## already give a top Aspect, and it scores once per duelist.
 func _scores_point_only(winner: int, reason: String) -> bool:
 	if reason == "seal":
-		return false
+		# On trial: the set is one point, once, and the Seals stay where they are. Without the
+		# option a full set is still the whole duel.
+		if not state.seal_scores_point:
+			return false
+		if state.seal_scored[winner]:
+			return true
+		state.seal_scored[winner] = true
 	if reason == "ascension":
 		state.ascension_scored[winner] = true
 	var loser: PlayerState = state.players[1 - winner]
 	state.points[winner] += 1
 	if state.points[winner] >= state.points_to_win:
 		return false
+	# On trial: cards that removed themselves after use come back for the second Life Deck.
+	var returning: Array[CardInstance] = []
+	if reason == "survival" and state.second_life_returns_used:
+		for c in loser.removed:
+			if c.def.remove_after_use:
+				returning.append(c)
 	# Nothing to shuffle back means nothing left to fight with.
-	if reason == "survival" and loser.discard.is_empty():
+	if reason == "survival" and loser.discard.is_empty() and returning.is_empty():
 		return false
 	_emit(&"point_scored", {"player": winner, "reason": reason, "points": state.points[winner], "to_win": state.points_to_win})
 	if reason == "survival":
+		for c in returning:
+			loser.removed.erase(c)
+			c.zone = &"discard"
+			loser.discard.append(c)
 		_shuffle_discard_into_deck(loser, 0, true)
 		_emit(&"second_wind", {"player": loser.index, "cards": loser.life_deck.size()})
 	else:

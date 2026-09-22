@@ -5,7 +5,14 @@ extends RefCounted
 
 ## `stage` is the 0-based index of the stage still to fight.
 var starter_id: String = ""
+## Names this run in the wallet's ledger, so a payout can be traced back to the run that paid it.
+var run_id: String = ""
 var cards: Array[String] = []      # expanded, one entry per copy, like DeckList.cards
+## The deck the run began from, as it was at `begin`: after a loadout swap that is the swapped
+## list, not the printed starter. `added_cards()` is everything in `cards` beyond it, which is
+## what the run-end settlement charges for.
+var starter_cards: Array[String] = []
+var starter_duelist: Array[String] = []
 ## The Duelist's Aspect stack as it stands, one card id per tier. Each Aspect is its own card, so
 ## a run grows by gaining the next tier card, not by raising a number.
 var duelist_ids: Array[String] = []
@@ -15,7 +22,14 @@ var run_seed: int = 0
 var pending_offer: Array[String] = []
 ## The Aspect card ids on offer while `status` is "aspect".
 var pending_aspects: Array[String] = []
-var status: String = "stage"       # stage | aspect | reward | won | lost
+var status: String = "stage"       # stage | aspect | reward | settle | won | lost
+## Which way the run ended, kept while `status` is "settle" so the run-end screen knows whether it
+## is showing a win or a loss. "" until the run ends.
+var outcome: String = ""
+## True once the run-end settlement is closed. A settled run cannot be reopened or bought from.
+var settled: bool = false
+## id -> copies already bought at the run-end settlement, so a card cannot be kept twice.
+var kept: Dictionary = {}
 ## {stage, kind, id} for every kind, plus "cards" on a bundle pick.
 ## kind: bundle | aspect | aspect_skipped | skip | cut
 var picks: Array[Dictionary] = []
@@ -25,12 +39,54 @@ static func begin(starter_id_value: String, run_seed_value: int) -> AdventureRun
 	var starter: DeckList = DeckList.resolve(starter_id_value)
 	if starter == null:
 		return null
+	return AdventureRun.begin_with(starter_id_value, run_seed_value,
+		starter.cards, starter.duelist_ids)
+
+
+## The same, from a deck the player assembled instead of the printed starter: a loadout swap
+## begins here so `starter_cards` records what the run actually started with.
+static func begin_with(starter_id_value: String, run_seed_value: int,
+		cards_value: Array[String], duelist_value: Array[String]) -> AdventureRun:
 	var run: AdventureRun = AdventureRun.new()
 	run.starter_id = starter_id_value
-	run.cards = starter.cards.duplicate()
-	run.duelist_ids = starter.duelist_ids.duplicate()
+	run.cards = cards_value.duplicate()
+	run.duelist_ids = duelist_value.duplicate()
+	run.starter_cards = cards_value.duplicate()
+	run.starter_duelist = duelist_value.duplicate()
 	run.run_seed = run_seed_value
+	run.run_id = AdventureRun.id_for(starter_id_value, run_seed_value)
 	return run
+
+
+## A run's name in the ledger. Derived, so a save written before run ids existed gets the same one
+## back on load.
+static func id_for(starter: String, run_seed_value: int) -> String:
+	return "%s-%d" % [starter, run_seed_value]
+
+
+## The cards the run added to the Life Deck, one entry per copy: everything in `cards` beyond the
+## list it started from. This is what the run-end settlement charges for.
+func added_cards() -> Array[String]:
+	var left: Dictionary = {}
+	for id in starter_cards:
+		left[id] = int(left.get(id, 0)) + 1
+	var out: Array[String] = []
+	for id in cards:
+		if int(left.get(id, 0)) > 0:
+			left[id] = int(left[id]) - 1
+			continue
+		out.append(id)
+	out.sort()
+	return out
+
+
+## The Aspect cards the run climbed to above the stack it started with.
+func added_duelist_cards() -> Array[String]:
+	var out: Array[String] = []
+	for id in duelist_ids:
+		if not starter_duelist.has(id):
+			out.append(id)
+	return out
 
 
 ## The starter reloaded with this run's Life Deck and Aspect stack in place of the printed ones.
@@ -123,7 +179,9 @@ static func _mix(a: int, b: int) -> int:
 ## Bumped to 2 when each Aspect became its own card (2026-09-21). Version 1 stored `aspects: N`
 ## and read the Duelist off the starter deck; `from_dict` migrates one. Bumped to 3 when the
 ## reward became a theme bundle: a version 2 `pending_offer` holds card ids, not bundle ids.
-const SAVE_VERSION: int = 3
+## Bumped to 4 for Motes: a version 3 save carries no `run_id` and no `starter_cards`, so an
+## in-flight run would have nothing to settle. Both are rebuilt on load.
+const SAVE_VERSION: int = 4
 const MIGRATION_MAP: String = "res://data/migrations/personality_split.json"
 
 ## Set by `from_dict` when an old save's offer was dropped and has to be drawn again. Not saved:
@@ -135,13 +193,19 @@ func to_dict() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"starter_id": starter_id,
+		"run_id": run_id,
 		"cards": cards.duplicate(),
 		"duelist": duelist_ids.duplicate(),
+		"starter_cards": starter_cards.duplicate(),
+		"starter_duelist": starter_duelist.duplicate(),
 		"stage": stage,
 		"run_seed": run_seed,
 		"pending_offer": pending_offer.duplicate(),
 		"pending_aspects": pending_aspects.duplicate(),
 		"status": status,
+		"outcome": outcome,
+		"settled": settled,
+		"kept": kept.duplicate(),
 		"picks": picks.duplicate(true),
 	}
 
@@ -168,10 +232,11 @@ static func _migrate_duelist(starter: String, aspects_count: int) -> Array[Strin
 ## Tolerant of JSON, which hands every number back as a float.
 static func from_dict(d: Dictionary) -> AdventureRun:
 	var run: AdventureRun = AdventureRun.new()
+	var version: int = int(d.get("version", 1))
 	run.starter_id = str(d.get("starter_id", ""))
 	for id in d.get("cards", []):
 		run.cards.append(str(id))
-	if int(d.get("version", 1)) < SAVE_VERSION or not d.has("duelist"):
+	if version < 2 or not d.has("duelist"):
 		run.duelist_ids = AdventureRun._migrate_duelist(run.starter_id, int(d.get("aspects", 2)))
 	else:
 		for id in d.get("duelist", []):
@@ -183,6 +248,11 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 	for id in d.get("pending_aspects", []):
 		run.pending_aspects.append(str(id))
 	run.status = str(d.get("status", "stage"))
+	run.outcome = str(d.get("outcome", ""))
+	run.settled = bool(d.get("settled", false))
+	var kept_rows: Dictionary = d.get("kept", {})
+	for id in kept_rows.keys():
+		run.kept[str(id)] = int(kept_rows[id])
 	for entry in d.get("picks", []):
 		if entry is Dictionary:
 			var row: Dictionary = entry
@@ -197,9 +267,25 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 			if not pick_cards.is_empty():
 				pick["cards"] = pick_cards
 			run.picks.append(pick)
+	run.run_id = str(d.get("run_id", ""))
+	if run.run_id == "":
+		run.run_id = AdventureRun.id_for(run.starter_id, run.run_seed)
+	for id in d.get("starter_cards", []):
+		run.starter_cards.append(str(id))
+	for id in d.get("starter_duelist", []):
+		run.starter_duelist.append(str(id))
+	# Version 3 and older named no starting deck, so a run in flight would settle as though it had
+	# added everything. The printed starter is what such a run began from: loadout swaps came in
+	# with the same version that started recording this.
+	if run.starter_cards.is_empty():
+		var printed: DeckList = DeckList.resolve(run.starter_id)
+		if printed != null:
+			run.starter_cards = printed.cards.duplicate()
+			if run.starter_duelist.is_empty():
+				run.starter_duelist = printed.duelist_ids.duplicate()
 	# A version 2 offer named single cards. The stage the run sits on has not moved, so the same
 	# offer seed draws the bundle offer that stage would have made.
-	if int(d.get("version", 1)) < SAVE_VERSION and not run.pending_offer.is_empty():
+	if version < 3 and not run.pending_offer.is_empty():
 		var stale: bool = false
 		for id in run.pending_offer:
 			if AdventureBundles.by_id(id).is_empty():

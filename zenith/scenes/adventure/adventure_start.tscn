@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/adventure_start.gd" id="1_start"]
 [ext_resource type="PackedScene" path="res://scenes/select/select_seat.tscn" id="2_seat"]
 [ext_resource type="PackedScene" path="res://scenes/select/roster_tile.tscn" id="3_tile"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="4_faces"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="5_tile_stat"]
 
 [node name="AdventureStart" type="Control"]
 layout_mode = 3
@@ -51,6 +52,16 @@ size_flags_horizontal = 3
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
 text = "Choose your starter"
+
+[node name="Vendor" type="Button" parent="Margin/Column/TitleRow"]
+custom_minimum_size = Vector2(130, 44)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Vendor"
+
+[node name="Motes" parent="Margin/Column/TitleRow" instance=ExtResource("5_tile_stat")]
+layout_mode = 2
+size_flags_horizontal = 0
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -101,6 +112,12 @@ theme_type_variation = &"WarnLabel"
 text = ""
 horizontal_alignment = 2
 autowrap_mode = 3
+
+[node name="Loadout" type="Button" parent="Margin/Column/Footer"]
+custom_minimum_size = Vector2(140, 52)
+layout_mode = 2
+disabled = true
+text = "Loadout"
 
 [node name="Begin" type="Button" parent="Margin/Column/Footer"]
 custom_minimum_size = Vector2(240, 52)

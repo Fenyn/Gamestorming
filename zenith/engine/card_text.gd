@@ -41,6 +41,7 @@ const FLOAT_TEXT: Dictionary = {
 	"no_endurance": "your opponent cannot use Endurance",
 	"stop_next": "the next attack against you is stopped",
 	"prevent_art_life": "Arts against you deal no wounds",
+	"prevent_strike_damage": "Strikes against you deal no damage",
 }
 
 
@@ -945,7 +946,9 @@ static func _effect_body(e: Dictionary) -> String:
 			else:
 				body = "%s %d Energy." % [("Gain" if n >= 0 else "Lose"), absi(n)]
 		"set_energy":
-			if str(e.get("target", "duelist")) == "all":
+			if str(e.get("amount", "")) == "match_attacker":
+				body = "If %s personality in control has more Energy than the one performing this attack, lower it to match." % owner
+			elif str(e.get("target", "duelist")) == "all":
 				body = "Set all of %s personalities to %d Energy." % [owner, n]
 			else:
 				body = "Set %s Energy to %d." % [owner, n]
@@ -1145,6 +1148,10 @@ static func _effect_body(e: Dictionary) -> String:
 					("attack" if only_kind == "any" else only_kind.capitalize()), stop_span]
 			elif what == "after_use_bottom":
 				body = "For the remainder of Combat, %s attacks you use go to the bottom of your Life Deck instead." % school_name(str(params.get("school", "")))
+			elif what == "prevent_strike_damage" and str(e.get("duration", "")) == "next_attack_phase":
+				body = "Prevent all damage from Strikes during your opponent's next attack phase."
+			elif what == "energy_on_hit":
+				body = "For the remainder of Combat, your attacks gain \"Hit: your duelist gains %d Energy.\"" % maxi(1, int(params.get("energy", 2)))
 			else:
 				var span: String = "For the remainder of Combat" if str(e.get("duration", "combat")) == "combat" else ("Until the end of your next turn" if str(e.get("duration", "")) == "next_turn_end" else "For the rest of the turn")
 				body = "%s, %s." % [span, str(FLOAT_TEXT.get(what, what))]
@@ -2390,6 +2397,10 @@ static func _floating_line(engine: DuelEngine, d: Dictionary) -> String:
 			return "%s%s's wounds remove cards from the game%s." % [lead, pname, span]
 		"next_attack_tax":
 			return "%s%s's next attack costs %d more Energy." % [lead, pname, int(d.get("stages", 0))]
+		"prevent_strike_damage":
+			return "%s%s prevents all Strike damage%s." % [lead, pname, span]
+		"energy_on_hit":
+			return "%s%s's attacks now gain Energy when they land%s." % [lead, pname, span]
 		"modifier", "stopped_last", "prevent_art_life", "copied_attack":
 			return ""
 		_:

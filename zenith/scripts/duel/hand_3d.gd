@@ -509,6 +509,11 @@ func _units_per_pixel() -> float:
 	return a.distance_to(b)
 
 
+## The uid of the hand card the pointer or keyboard is on, -1 for none.
+func hovered_uid() -> int:
+	return int(_items[_hovered]["uid"]) if _hovered >= 0 and _hovered < _items.size() else -1
+
+
 func _set_hover(index: int) -> void:
 	if _hovered == index:
 		return

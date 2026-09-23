@@ -27,7 +27,7 @@ signal name_changed(seat: int, player_name: String)
 @onready var aspect_power: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/AspectPower
 @onready var lock_button: Button = $Row/Lock
 @onready var hint_label: Label = $Row/Hint
-@onready var info: DeckInfo = $"Row/Scroll/Content/Tabs/Details/Cards & Aspects"
+@onready var deck_list: RunDeckList = $Row/Scroll/Content/Tabs/Details
 
 @onready var mastery_box: Control = $Row/Scroll/Content/Tabs/Overview/Summary/Mastery
 @onready var mastery_card: TextureRect = $Row/Scroll/Content/Tabs/Overview/Summary/Mastery/Card
@@ -39,7 +39,6 @@ var faces: CardFaceCache = null   # set by the screen before the first set_seat
 var deck: DeckList = null
 var locked: bool = false
 var _aspect: int = 1              # the Aspect the portrait and the Aspect block show
-var _might_max: int = 1
 var _color: Color = ZenithTheme.MUTED
 var _tween: Tween = null
 
@@ -48,7 +47,6 @@ func _ready() -> void:
 	var portrait_material: ShaderMaterial = ShaderMaterial.new()
 	portrait_material.shader = preload("res://assets/hero_portrait.gdshader")
 	portrait.material = portrait_material
-	_might_max = DeckInfo.might_max_of(Session.decks)
 	mastery_card.mouse_entered.connect(_show_mastery_zoom)
 	mastery_card.focus_entered.connect(_show_mastery_zoom)
 	mastery_card.mouse_exited.connect(func() -> void: mastery_zoom.hide())
@@ -59,7 +57,6 @@ func _ready() -> void:
 	lock_button.pressed.connect(func() -> void: lock_toggled.emit(seat, not locked))
 	portrait_box.resized.connect(_layout_portrait)
 	portrait.gui_input.connect(_on_portrait_input)
-	info.aspect_clicked.connect(func(aspect: int) -> void: show_aspect(aspect))
 	$Row/Details.pressed.connect(func() -> void:
 		var tabs: TabContainer = $Row/Scroll/Content/Tabs
 		tabs.current_tab = 1 - tabs.current_tab
@@ -70,7 +67,7 @@ func _ready() -> void:
 		mastery_zoom.hide())
 
 
-## Opens the deck detail tab, where the Aspect chips and the Life Deck make-up are. The Details
+## Opens the deck detail tab: the whole Life Deck grouped by card type. The Details
 ## button does the same; this is what `--dev-details` calls for a screenshot.
 func show_details() -> void:
 	if deck != null:
@@ -133,8 +130,7 @@ func show_deck(d: DeckList) -> void:
 	difficulty_chip.text = "%s to play" % d.difficulty.capitalize()
 	ZenithTheme.chip(difficulty_chip, ZenithTheme.ACCENT)
 	blurb_label.text = d.blurb
-	info.show_deck(d, _might_max, faces)
-	$Row/Scroll/Content/Tabs/Details.scroll_vertical = 0
+	deck_list.show_cards(d.cards, Session.library, faces)
 	show_aspect(duelist.aspect if duelist != null else 1)
 	_paint()
 
@@ -176,7 +172,6 @@ func show_aspect(aspect: int) -> void:
 		aspect_title.text += "  ·  %s" % duelist.variant
 	aspect_power.text = "
 ".join(CardText.aspect_text(duelist, aspect))
-	info.highlight_aspect(aspect)
 	_pop(portrait)
 
 
@@ -210,19 +205,26 @@ func _paint() -> void:
 	if locked:
 		hint_label.text = "Locked in. Click Change to pick again."
 	elif deck != null:
-		hint_label.text = "Choose an Aspect to inspect its stats." if $Row/Scroll/Content/Tabs.current_tab == 1 else "Click the portrait to preview the next Aspect."
+		hint_label.text = "Hover a card to read it." if $Row/Scroll/Content/Tabs.current_tab == 1 else "Click the portrait to preview the next Aspect."
 	else:
 		hint_label.text = ""
 
 
-## Fit the complete portrait to the available stage without cropping or stretching.
+## Fit the complete portrait to the available stage without cropping or stretching, at a whole
+## number of screen pixels per art pixel. A fractional scale draws some art pixels two screen
+## pixels wide and their neighbours three, which reads as blur on pixel art.
 func _layout_portrait() -> void:
 	if portrait.texture == null:
 		return
 	var tex: Vector2 = portrait.texture.get_size()
 	var box: Vector2 = portrait_box.size
 	var fit: float = minf(box.x / tex.x, box.y / tex.y)
+	# Screen pixels per canvas unit: the window stretch sits between this scale and the screen.
+	var screen: float = portrait_box.get_global_transform_with_canvas().get_scale().x \
+			* get_viewport().get_final_transform().get_scale().x
 	var k: float = fit
+	if fit * screen >= 1.0:
+		k = floorf(fit * screen) / screen
 	portrait.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	portrait.size = tex * k
 	portrait.position = (box - portrait.size) * 0.5

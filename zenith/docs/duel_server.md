@@ -8,6 +8,10 @@ The client reads the address from the project setting `zenith/net/duel_server` (
 
 Measured with `tools/load_probe.gd`: about 365 KB and 6 ms of CPU per command per live duel, 3.5 to 4.7 KB on the wire per update. The headless process idles near 100 MB. A 512 MB, 1 vCore box carries dozens of duels at once. Around 1,000 concurrent players (500 duels, roughly 165 commands a second) it would take one full core and about 1 MB/s; delta updates instead of whole views (the view build is 90% of the cost) and a second core cover that.
 
+## Presence
+
+Each client tells the other what its player is doing right now (`scripts/net/presence_state.gd`): the pointer as a point on the table plane in shared table coordinates (`TableLayout.to_shared`), the uid of a public table card under it, the slot index of a hovered hand card, and which pile, public card or panel is open (a Discard, Out or Relic pile by seat, an inspected public card by uid, the log, or "choosing" for any tray). It never carries a card id, a title, or the uid of anything in a hand, a Reserve or a Life Deck; a tray, including a Life Deck search, is only "choosing". It goes out only when something changed, at most 20 times a second, on its own `unreliable_ordered` channel (`Net.PRESENCE_CHANNEL`), so commands and updates never wait on it. The server relays it only to the other seat of the sender's started room, and a LAN host takes it only from its seated joiner during a duel; both run `PresenceState.sanitise` first (allowed keys and types only, point clamped to the table, slots and uids range-checked, strings capped and matched to a fixed list) and drop more than 40 messages a second from one peer. Presence never reaches a `DuelHost` or the `Referee`. The receiving client sanitises again and drops any uid its own view cannot see. Hotseat, vs AI and adventure send and draw nothing.
+
 ## Export the server
 
 Once, in the editor: Editor, Manage Export Templates, download for this version. Then from the repo root:

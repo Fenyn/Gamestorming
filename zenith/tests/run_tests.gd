@@ -367,6 +367,11 @@ func _init() -> void:
 		test_combat_beats_are_stamped_with_the_phase_they_belong_to,
 		test_the_fighters_numbers_carry_their_printed_baseline,
 		test_a_portrait_backdrop_takes_the_colour_of_its_decks_mastery,
+		test_presence_keeps_only_known_keys_with_the_right_types,
+		test_presence_clamps_the_pointer_and_the_hand_slot,
+		test_presence_hand_hover_is_a_slot_and_nothing_else,
+		test_presence_never_names_a_card_the_receiver_cannot_see,
+		test_presence_caps_strings_and_refuses_unknown_looks,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -8732,3 +8737,90 @@ func test_the_fighters_numbers_carry_their_printed_baseline() -> void:
 	var wire: SeatPlayer = SeatPlayer.from_dict(risen.to_dict())
 	eq(wire.might_delta, risen.might_delta, "the baseline and the delta go over the wire")
 	eq(wire.energy_printed, risen.energy_printed, "both of them")
+
+
+# --- Presence -----------------------------------------------------------------
+
+func test_presence_keeps_only_known_keys_with_the_right_types() -> void:
+	var clean: Dictionary = PresenceState.sanitise({"on": true, "x": 1.0, "z": -1.0, "card": 12,
+		"def": "tf_vigil_1", "title": "Test Vigil", "uid": 44, "cards": [1, 2, 3]})
+	eq(clean.keys().size(), PresenceState.KEYS.size(), "the output carries exactly the allowed keys")
+	for key in clean.keys():
+		check(PresenceState.KEYS.has(key), "no unknown key survives (%s)" % str(key))
+	check(not clean.has("def") and not clean.has("title"), "a card id or title riding along is dropped")
+	eq(int(clean["card"]), 12, "an allowed uid stays")
+	eq(PresenceState.sanitise({"on": "yes"}), {}, "a string where a bool belongs rejects the payload")
+	eq(PresenceState.sanitise({"on": true, "x": "1.0"}), {}, "a string coordinate rejects it")
+	eq(PresenceState.sanitise({"card": 3.5}), {}, "a float uid rejects it")
+	eq(PresenceState.sanitise({"on": true, "x": NAN}), {}, "a NaN coordinate rejects it")
+	eq(PresenceState.sanitise([1, 2]), {}, "anything but a dictionary is nothing")
+	eq(PresenceState.sanitise("hello"), {}, "a bare string is nothing")
+	var flood: Dictionary = {}
+	for i in range(PresenceState.MAX_RAW_KEYS + 1):
+		flood["k%d" % i] = i
+	eq(PresenceState.sanitise(flood), {}, "an oversized payload is not even read")
+	eq(PresenceState.sanitise({}), PresenceState.idle(), "an empty payload reads as idle")
+
+
+func test_presence_clamps_the_pointer_and_the_hand_slot() -> void:
+	var bounds: Rect2 = PresenceState.TABLE_BOUNDS
+	var far: Dictionary = PresenceState.sanitise({"on": true, "x": 999.0, "z": -999})
+	eq(float(far["x"]), bounds.end.x, "x is clamped to the table edge")
+	eq(float(far["z"]), bounds.position.y, "z is clamped to the other edge, and an int is accepted")
+	var off: Dictionary = PresenceState.sanitise({"on": false, "x": 2.0, "z": 1.0})
+	eq(float(off["x"]), 0.0, "a pointer off the table carries no point")
+	eq(int(PresenceState.sanitise({"hand": PresenceState.MAX_HAND_SLOT + 1})["hand"]), -1, "a slot past the range is dropped")
+	eq(int(PresenceState.sanitise({"hand": -5})["hand"]), -1, "a negative slot is dropped")
+	eq(int(PresenceState.sanitise({"hand": 3})["hand"]), 3, "a sane slot stays")
+	eq(int(PresenceState.sanitise({"card": PresenceState.MAX_UID + 1})["card"]), -1, "an absurd uid is dropped")
+	eq(int(PresenceState.sanitise({"look": "pile", "seat": 7, "zone": "discard"})["seat"]), -1, "a pile of no seat is dropped")
+	eq(str(PresenceState.sanitise({"look": "pile", "seat": 7, "zone": "discard"})["look"]), "", "and so is the look")
+
+
+func test_presence_hand_hover_is_a_slot_and_nothing_else() -> void:
+	var clean: Dictionary = PresenceState.sanitise({"hand": 2, "card": 41, "def": "tf_vigil_1"})
+	eq(int(clean["hand"]), 2, "the slot index goes through")
+	eq(int(clean["card"]), -1, "a card uid sent with a hand hover is stripped")
+	check(not clean.has("def"), "and no card id rides with it")
+	# The sender's side: a card in its own hand or Reserve is visible to it but never public.
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	var mine: SeatView = SeatView.of(e, 0)
+	var own_hand: int = mine.player(0).hand[0]
+	check(not mine.card(own_hand).hidden(), "the sender sees its own hand card")
+	check(not PresenceState.is_public(mine.card(own_hand)), "but it is not public, so it is never named")
+	check(PresenceState.is_public(mine.card(mine.player(1).duelist)), "the rival's duelist is public")
+
+
+func test_presence_never_names_a_card_the_receiver_cannot_see() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	var receiver: SeatView = SeatView.of(e, 1)
+	var hidden_uid: int = receiver.player(0).hand[0]
+	var life_uid: int = receiver.player(0).life_deck[0]
+	var duelist: int = receiver.player(0).duelist
+	check(receiver.card(hidden_uid).hidden(), "the sender's hand card is hidden from the receiver")
+	var forged: Dictionary = PresenceState.sanitise({"card": hidden_uid, "look": "inspect", "look_card": life_uid})
+	var shown: Dictionary = PresenceState.for_view(forged, receiver)
+	eq(int(shown["card"]), -1, "a hidden hand card's uid is stripped")
+	eq(int(shown["look_card"]), -1, "a Life Deck card being inspected is stripped")
+	eq(str(shown["look"]), "", "and the inspect becomes nothing")
+	var fair: Dictionary = PresenceState.for_view(PresenceState.sanitise({"card": duelist, "look": "inspect", "look_card": duelist}), receiver)
+	eq(int(fair["card"]), duelist, "a public card stays")
+	eq(str(fair["look"]), "inspect", "and so does an inspect of it")
+	eq(int(PresenceState.for_view(PresenceState.sanitise({"card": 999999}), receiver)["card"]), -1, "an unknown uid is stripped")
+
+
+func test_presence_caps_strings_and_refuses_unknown_looks() -> void:
+	var long: String = "discard".repeat(2000)
+	var clean: Dictionary = PresenceState.sanitise({"look": long, "zone": long, "seat": 0})
+	for key in clean.keys():
+		if clean[key] is String:
+			check((clean[key] as String).length() <= PresenceState.MAX_TEXT, "no string over the cap survives (%s)" % str(key))
+	eq(str(clean["look"]), "", "an oversized look is refused")
+	eq(str(PresenceState.sanitise({"look": "Inspecting Test Card"})["look"]), "", "free text is never a look")
+	var pile: Dictionary = PresenceState.sanitise({"look": "pile", "seat": 1, "zone": "relic"})
+	eq(str(pile["look"]), "pile", "a known pile look stays")
+	eq(str(pile["zone"]), "relic", "with its zone")
+	eq(str(PresenceState.sanitise({"look": "pile", "seat": 1, "zone": "life_deck"})["look"]), "", "a pile that is not public is refused")
+	eq(PresenceState.sanitise({"look": 5}), {}, "a number where text belongs rejects the payload")

@@ -70,6 +70,7 @@ const HELD_STEP: float = 0.004        # a second held card of the same seat sits
 @onready var near_duelist: DuelistDisplay = $NearDuelist
 @onready var far_duelist: DuelistDisplay = $FarDuelist
 @onready var focus_card: Sprite3D = $CameraRig/Camera/FocusCard
+@onready var presence: DuelPresence = $Presence
 
 var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
 var view: SeatView = null            # what the viewer may see right now
@@ -129,6 +130,16 @@ var _fast_triggers: Dictionary = {}  # line index -> run length, for a batched r
 var _shown_stats: Dictionary = {}    # player -> [energy, might] as the readout last drew them
 var _reduced_motion: bool = false
 var _stall_since: int = 0            # when the viewer was first owed a decision with no panel up
+## Online presence (`PresenceState`): what the other player is doing, drawn here, and what this
+## one is doing, sent from here. Off in hotseat, vs AI and adventure.
+var _presence_on: bool = false
+var _hover_uid: int = -1             # the table card under our own pointer, -1 for none
+var _their_presence: Dictionary = {} # the other player's last sanitised state
+var _presence_drawn_view: SeatView = null
+var _presence_card: int = -1         # the table card carrying their highlight
+var _presence_demo: String = ""      # `--dev-presence-demo[=card|hand|look]`: a scripted pointer
+const PRESENCE_DEMO_LINGER: float = 4.0   # real seconds a demo sender stays up after its last step
+const PRESENCE_ZONES: Dictionary = {"discard": "Discard", "removed": "Out pile", "relic": "Relic pile"}
 
 
 func _ready() -> void:
@@ -167,6 +178,10 @@ func _ready() -> void:
 		rig.rotation.y = 0.0 if viewer == 0 else PI
 	if Session.in_adventure():
 		hud.set_adventure()
+	_presence_on = online and not Session.in_adventure() and viewer >= 0
+	if _presence_on:
+		presence.set_color(Session.seat_color(1 - viewer))
+		Net.presence_received.connect(_on_presence)
 	if not Session.can_start():
 		push_warning("Duel opened without a selection; using the first two shipped decks")
 		Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
@@ -183,6 +198,7 @@ func _set_reduced_motion(on: bool) -> void:
 	ArcaneBackdrop.reduced_motion = on
 	$Atmosphere.reduced_motion = on
 	fx.reduced_motion = on
+	presence.reduced_motion = on
 	hand_3d.reduced_motion = on
 	near_duelist.reduced_motion = on
 	far_duelist.reduced_motion = on
@@ -213,6 +229,11 @@ func _process(_delta: float) -> void:
 	if hand_blocks or preview_blocks:
 		hud.hide_peek()
 	_watch_for_stall(overlay)
+	if _presence_on and view != null:
+		presence.offer(_demo_presence() if _presence_demo != "" else _local_presence(board_interactive))
+		if view != _presence_drawn_view:
+			_presence_drawn_view = view
+			_draw_presence(false)
 	_layout_fixtures()
 	focus_card.visible = hud.focus.visible and not overlay
 	if focus_card.visible and view != null:
@@ -409,6 +430,8 @@ func _parse_dev_args() -> void:
 			_dev_policy = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-freeze="):
 			_dev_freeze = StringName(arg.get_slice("=", 1))
+		elif arg == "--dev-presence-demo" or arg.begins_with("--dev-presence-demo="):
+			_presence_demo = arg.get_slice("=", 1) if arg.contains("=") else "cycle"
 		elif arg.begins_with("--dev-pick=") and not online and not Session.in_adventure():
 			# Online the lobby already agreed on both decks and the seed.
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
@@ -1816,6 +1839,8 @@ func _on_net_rejected(reason: String) -> void:
 
 
 func _on_peer_left() -> void:
+	_their_presence = {}
+	_draw_presence(false)
 	if _dev_done:
 		return
 	busy = true
@@ -1842,6 +1867,153 @@ func _on_select() -> void:
 		Session.finish_stage(view.winner == viewer)
 	else:
 		Session.go_to_select()
+
+
+# --- Presence -------------------------------------------------------------
+
+## What this player is doing right now, in `PresenceState` terms. A hand hover is a slot index
+## only; a table card is named only when both seats can see it; the pointer is a point on the
+## felt in the shared layout, and is left off while it is over the HUD, an overlay, the hand, or
+## outside a window that has lost focus.
+func _local_presence(board_interactive: bool) -> Dictionary:
+	var state: Dictionary = PresenceState.idle()
+	if view == null or viewer < 0:
+		return state
+	var look: Dictionary = hud.presence_look(view)
+	for key in look.keys():
+		state[key] = look[key]
+	var mouse: Vector2 = get_viewport().get_mouse_position()
+	if not get_window().has_focus() or not get_viewport().get_visible_rect().has_point(mouse):
+		return state
+	var hand_uid: int = hand_3d.hovered_uid()
+	if hand_uid >= 0 and _hand_blocks_board():
+		state["hand"] = view.player(viewer).hand.find(hand_uid)
+		return state
+	if not board_interactive or _pointer_over_hud():
+		return state
+	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(mouse), camera.project_ray_normal(mouse))
+	if hit == null:
+		return state
+	var point: Vector3 = hit
+	var shared: Vector2 = zones.to_shared(Vector2(point.x, point.z), viewer)
+	if not PresenceState.TABLE_BOUNDS.has_point(shared):
+		return state
+	state["on"] = true
+	state["x"] = shared.x
+	state["z"] = shared.y
+	if _hover_uid >= 0 and PresenceState.is_public(view.card(_hover_uid)):
+		state["card"] = _hover_uid
+	return state
+
+
+## A HUD control with its own mouse handling is under the pointer (the log, the phase strip, a
+## button). The full-screen HUD root passes the table through, so it does not count.
+func _pointer_over_hud() -> bool:
+	var over: Control = get_viewport().gui_get_hovered_control()
+	return over != null and over != hud.root
+
+
+## `--dev-presence-demo`: a scripted pointer instead of the mouse, for a screenshot on the other
+## instance. `=card` circles over our own Mastery, `=hand` reads a hand slot, `=look` has the
+## rival's Discard open; the bare flag cycles through the three.
+func _demo_presence() -> Dictionary:
+	var state: Dictionary = PresenceState.idle()
+	if view == null or viewer < 0:
+		return state
+	var t: float = Time.get_ticks_msec() / 1000.0
+	var phase: String = _presence_demo
+	if phase == "cycle":
+		var at: float = fmod(t, 5.0)
+		phase = "card" if at < 2.5 else ("hand" if at < 4.0 else "look")
+	var hand: Array[int] = view.player(viewer).hand
+	if phase == "hand" and not hand.is_empty():
+		state["hand"] = mini(1, hand.size() - 1)
+		return state
+	if phase == "look":
+		state["look"] = "pile"
+		state["seat"] = 1 - viewer
+		state["zone"] = "discard"
+		return state
+	# Our own Mastery when there is one: a public card with no fight role glowing over the hover.
+	var target: int = view.player(viewer).mastery if view.player(viewer).mastery >= 0 else view.player(1 - viewer).duelist
+	var card: Card3D = views.get(target)
+	if card == null:
+		return state
+	var centre: Vector3 = card.global_position
+	var shared: Vector2 = zones.to_shared(Vector2(centre.x + cos(t * 1.7) * 0.15, centre.z + sin(t * 2.3) * 0.2), viewer)
+	state["on"] = true
+	state["x"] = shared.x
+	state["z"] = shared.y
+	state["card"] = target
+	return state
+
+
+## The other player's presence arrived. Sanitised here again whatever the relay did.
+func _on_presence(raw: Dictionary) -> void:
+	var clean: Dictionary = PresenceState.sanitise(raw)
+	if clean.is_empty():
+		return
+	_their_presence = clean
+	_draw_presence(true)
+
+
+## Draws the other player's presence against our own view: their card highlight, the face-down
+## hand card they are reading, the pointer and the line saying what they have open. `heard` is
+## false for a redraw after our view changed, which must not refresh the pointer's fade clock.
+func _draw_presence(heard: bool) -> void:
+	var state: Dictionary = PresenceState.for_view(_their_presence, view)
+	var drawable: bool = not state.is_empty() and view != null and viewer >= 0
+	var rival: int = 1 - viewer
+	var color: Color = Session.seat_color(rival) if drawable else Color.TRANSPARENT
+	var slot: int = -1
+	var card_uid: int = -1
+	if drawable:
+		if int(state["hand"]) < view.player(rival).hand.size():
+			slot = int(state["hand"])
+		card_uid = int(state["card"])
+		if not views.has(card_uid) or not (views[card_uid] as Card3D).visible:
+			card_uid = -1
+	# Their hand is the fan of backs on their fixture; the slot they read rises in it.
+	far_duelist.readout.set_peek(slot)
+	if card_uid != _presence_card:
+		if views.has(_presence_card):
+			(views[_presence_card] as Card3D).set_presence(Color.TRANSPARENT)
+		_presence_card = card_uid
+	if views.has(card_uid):
+		(views[card_uid] as Card3D).set_presence(color)
+	if not drawable:
+		presence.clear()
+		hud.set_presence_line("", Color.WHITE)
+		return
+	if heard:
+		var fan: Variant = far_duelist.peek_screen(slot, camera) if slot >= 0 else null
+		var over_fan: Variant = null
+		if fan != null:
+			over_fan = Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(fan), camera.project_ray_normal(fan))
+		if over_fan != null:
+			presence.place(over_fan)
+		elif bool(state["on"]):
+			var p: Vector2 = zones.from_shared(Vector2(float(state["x"]), float(state["z"])), viewer)
+			presence.place(Vector3(p.x, 0.0, p.y))
+		else:
+			presence.place(null)
+	hud.set_presence_line(_presence_text(state, rival), color)
+
+
+func _presence_text(state: Dictionary, rival: int) -> String:
+	var who: String = view.player(rival).name
+	match str(state["look"]):
+		"pile":
+			var whose: String = "their" if int(state["seat"]) == rival else "your"
+			return "%s is viewing %s %s" % [who, whose, str(PRESENCE_ZONES.get(str(state["zone"]), "pile"))]
+		"inspect":
+			var c: SeatCard = view.card(int(state["look_card"]))
+			return "%s is reading %s" % [who, c.title] if c != null else ""
+		"log":
+			return "%s is reading the log" % who
+		"choice":
+			return "%s is choosing" % who
+	return ""
 
 
 # --- Cards ----------------------------------------------------------------
@@ -1933,6 +2105,10 @@ func _pile_of(uid: int) -> Vector2i:
 
 
 func _on_card_hovered(uid: int, over: bool) -> void:
+	if over:
+		_hover_uid = uid
+	elif _hover_uid == uid:
+		_hover_uid = -1
 	if _hand_blocks_board() or _preview_blocks_point(hud.root.get_global_mouse_position()):
 		hud.hide_peek()
 		var board_card: Card3D = views.get(uid)
@@ -2231,6 +2407,10 @@ func _reason_text(reason: String) -> String:
 
 func _dev_step() -> void:
 	await get_tree().create_timer(0.05).timeout
+	# Online, while both seats decide at once, the other seat's update can play underneath our
+	# open decision and never presents it again, so a step that lands in it waits it out.
+	while busy and online and not _dev_done:
+		await get_tree().process_frame
 	if _dev_done or prompt == null or busy or _awaiting_answer:
 		return
 	if _dev_stop_kind != &"" and _dev_stop_matches():
@@ -2365,6 +2545,9 @@ func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 		var img: Image = get_viewport().get_texture().get_image()
 		img.save_png(_dev_screenshot)
 		print("screenshot saved to %s" % _dev_screenshot)
+	if _presence_on and _presence_demo != "":
+		# A demo sender stays up a little, so the other instance can screenshot what it sends.
+		await get_tree().create_timer(PRESENCE_DEMO_LINGER, true, false, true).timeout
 	if after_replay:
 		_dev_quit_after_replay = true
 	else:

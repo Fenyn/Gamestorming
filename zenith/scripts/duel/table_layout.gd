@@ -157,6 +157,38 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 	return Transform3D(basis, pos + Vector3(0, CARD_LIFT, 0))
 
 
+## Zones laid out differently on the viewer's own seat (NEAR_OUT_X, NEAR_REMAIN_X).
+const SHIFTING: Array[StringName] = [&"removed", &"relic", &"remain"]
+
+
+## A point on the table plane (world x, z) as `viewer` sees it, moved into the layout both seats
+## share for presence. World space is the same on both clients (seat 0 on +z, seat 1 mirrored
+## through the centre; each camera rig turns rather than the table), except that the viewer's
+## own Out, Relic and Remain sit in their near places. The shared layout puts every seat's piles
+## in their far places, so a point over one of the viewer's own shifted zones moves by the same
+## offset its zone did. Everything else is already shared.
+func to_shared(point: Vector2, viewer: int) -> Vector2:
+	return _shift_own_zone(point, viewer, true)
+
+
+## The reverse of `to_shared`, for the receiving `viewer`: a point in the shared layout over one
+## of that viewer's own shifted zones moves to where this client draws that zone.
+func from_shared(point: Vector2, viewer: int) -> Vector2:
+	return _shift_own_zone(point, viewer, false)
+
+
+func _shift_own_zone(point: Vector2, viewer: int, from_near: bool) -> Vector2:
+	var s: float = -1.0 if viewer == 1 else 1.0
+	# Into the unmirrored, uncompressed frame the zone rectangles are kept in.
+	var local: Vector2 = Vector2(point.x * s / 0.72, point.y * s)
+	for zone in SHIFTING:
+		var from_rect: Rect2 = _zone_rect(zone, from_near)
+		if from_rect.has_point(local):
+			local += _zone_rect(zone, not from_near).get_center() - from_rect.get_center()
+			return Vector2(local.x * 0.72 * s, local.y * s)
+	return point
+
+
 ## Turns the zone labels to read upright for whoever holds the table.
 func set_viewer(viewer: int) -> void:
 	if viewer != _viewer:

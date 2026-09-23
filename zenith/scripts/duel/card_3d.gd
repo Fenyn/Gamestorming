@@ -16,7 +16,6 @@ const BADGE_PIXELS: int = 128
 ## A corner of the face. The z reach is a compromise: the two seats project the same local offset
 ## at different rates, and this keeps the badge inside the card on both sides of the table.
 const BADGE_OFFSET: Vector3 = Vector3(-0.21, 0.012, -0.18)
-
 var uid: int = -1
 var face_up: bool = true
 @export var reduced_motion: bool = false:
@@ -49,6 +48,7 @@ var _badge_viewport: SubViewport = null
 var _badge_icon: TypeIcon = null
 var _badge_type: int = -1
 var _badge_color: Color = Color.TRANSPARENT
+var _presence_color: Color = Color.TRANSPARENT   # the other online player's hover, in their seat colour
 
 
 func _ready() -> void:
@@ -90,10 +90,28 @@ func set_ghost(on: bool) -> void:
 
 func set_highlight(on: bool) -> void:
 	_highlighted = on
-	glow.visible = on or _hovering
-	_glow_mat.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 1.0) if on else Color(0.55, 0.85, 1.0, 0.85))
+	var presence_only: bool = not on and not _hovering and _presence_color.a > 0.0 and face_up
+	glow.visible = on or _hovering or presence_only
+	var tint: Color = Color(0.55, 0.85, 1.0, 0.85)
+	if on:
+		tint = Color(ZenithTheme.ACCENT, 1.0)
+	elif presence_only:
+		tint = Color(_presence_color, 0.9)
+	_glow_mat.set_shader_parameter("tint", tint)
 	_glow_mat.set_shader_parameter("highlight", 1.0 if on else 0.0)
 	_update_border()
+
+
+## The other online player's pointer is over this card: the same glow and border a local hover
+## gets, in their seat colour, plus the wide role aura when the card has no fight role. A
+## transparent colour clears it. The viewer's own hover and a legal choice take the inner glow and
+## the border first; the wide aura still shows theirs.
+func set_presence(color: Color) -> void:
+	if _presence_color == color:
+		return
+	_presence_color = color
+	_update_role()
+	set_highlight(_highlighted)
 
 
 ## Visual lift does not move the picking area, or contend with resolution motion on Body.
@@ -114,9 +132,16 @@ func set_hovered(on: bool) -> void:
 ## a transparent colour clears it.
 func set_role(color: Color) -> void:
 	_role_color = color
-	role.visible = color.a > 0.0
-	_role_mat.set_shader_parameter("tint", Color(color, 0.9))
+	_update_role()
 	_update_border()
+
+
+## The wide aura carries the fight role, and otherwise the other online player's hover, so their
+## hover still reads on a card that already glows as a legal choice.
+func _update_role() -> void:
+	var color: Color = _role_color if _role_color.a > 0.0 else _presence_color
+	role.visible = color.a > 0.0 and (face_up or _role_color.a > 0.0)
+	_role_mat.set_shader_parameter("tint", Color(color, 0.9))
 
 
 ## Second cue for the same role: the type glyph the rest of the client already uses, drawn by
@@ -158,8 +183,14 @@ func set_role_glyph(type: int, color: Color) -> void:
 
 
 func _update_border() -> void:
-	var active: bool = face_up and (_highlighted or _hovering or _role_color.a > 0.0)
-	var color: Color = _role_color if _role_color.a > 0.0 else (ZenithTheme.ACCENT if _highlighted else Color(0.55, 0.85, 1.0))
+	var active: bool = face_up and (_highlighted or _hovering or _role_color.a > 0.0 or _presence_color.a > 0.0)
+	var color: Color = Color(0.55, 0.85, 1.0)
+	if _role_color.a > 0.0:
+		color = _role_color
+	elif _highlighted:
+		color = ZenithTheme.ACCENT
+	elif not _hovering and _presence_color.a > 0.0:
+		color = _presence_color
 	border_fx.set_effect(Color(color, 1.0), active, reduced_motion)
 	_glow_mat.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
 	_role_mat.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)

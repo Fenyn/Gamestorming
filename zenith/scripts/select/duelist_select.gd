@@ -349,7 +349,7 @@ func _dev_args() -> void:
 	for arg in args:
 		if arg.begins_with("--dev-aspect=") and Session.chosen[_seat] != null:
 			seat_panel.show_aspect(int(arg.get_slice("=", 1)))
-	# `--dev-details` opens the deck detail tab, where the Aspect chips live.
+	# `--dev-details` opens the deck detail tab, the decklist.
 	if args.has("--dev-details"):
 		seat_panel.show_details()
 	for arg in args:

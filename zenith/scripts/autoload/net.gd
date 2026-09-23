@@ -20,8 +20,14 @@ signal command_rejected(reason: String)
 signal room_started(code: String)                     # server: both seats locked, deal
 signal room_command(code: String, seat: int, cmd: Dictionary)   # server: a seat's choice
 signal room_closed(code: String)                      # server: a player left
+signal presence_received(state: Dictionary)           # host and client: the other player's sanitised presence
 
 const HOST_ID: int = 1      # the ENet server's multiplayer id, and always the authority
+## Presence rides its own unreliable channel so it never holds up or reorders commands and updates.
+const PRESENCE_CHANNEL: int = 1
+## The most presence messages a relay passes on from one peer in a second; a client sends at
+## most 20.
+const PRESENCE_PER_SECOND: int = 40
 
 var mode: String = ""          # "" offline, "host", "client", "server"
 var local_player: int = 0      # the seat this process plays; -1 on a server or before seating
@@ -40,6 +46,8 @@ var _room_request: String = ""    # client: "" opens a room, a code joins one
 var _via_server: bool = false     # client: talking to the duel server, not a hosting client
 var _other_present: bool = false  # client: the other seat has a player behind it
 var _pending_updates: Array[Dictionary] = []   # updates that arrived before the duel scene listened
+var _in_duel: bool = false        # host and client: a started duel is on the table
+var _presence_heard: Dictionary = {}   # peer id -> [window start msec, messages in that window]
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _log: bool = OS.get_cmdline_user_args().has("--dev-net-log")
 
@@ -225,6 +233,8 @@ func leave() -> void:
 	rooms.clear()
 	_peer_room.clear()
 	_pending_updates.clear()
+	_in_duel = false
+	_presence_heard.clear()
 	reset_lobby()
 
 
@@ -288,6 +298,7 @@ func _on_connection_failed() -> void:
 
 func _on_peer_disconnected(id: int) -> void:
 	note("peer %d disconnected" % id)
+	_presence_heard.erase(id)
 	if is_server():
 		_close_room_of(id)
 		return
@@ -540,6 +551,7 @@ func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: S
 	# The hosting client rolls its own in build_referee; a joiner has no seed, so it takes this.
 	Session.color_seed = color_seed
 	_pending_updates.clear()
+	_in_duel = true
 	Session.go_to_duel()
 
 
@@ -547,6 +559,7 @@ func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: S
 func _rpc_to_lobby(color_seed: int = 0) -> void:
 	if color_seed != 0:
 		Session.color_seed = color_seed
+	_in_duel = false
 	Session.go_to_select()
 
 
@@ -618,3 +631,56 @@ func _rpc_reject(reason: String) -> void:
 	if multiplayer.get_remote_sender_id() != HOST_ID:
 		return
 	command_rejected.emit(reason)
+
+
+# --- Presence ---------------------------------------------------------------
+
+## Host and client: tell the other player what this one is doing (`PresenceState`). The duel
+## scene calls this only when something changed, at most 20 times a second.
+func send_presence(state: Dictionary) -> void:
+	if not _in_duel:
+		return
+	if mode == "client":
+		_rpc_presence.rpc_id(HOST_ID, state)
+	elif is_host() and peer_id != 0:
+		_rpc_presence.rpc_id(peer_id, state)
+
+
+## One presence message. The server relays it to the other seat of the sender's started room and
+## a hosting client takes it from its joiner; both sanitise it first and neither hands it to the
+## rules. A client takes it only from the authority, and sanitises it again.
+@rpc("any_peer", "call_remote", "unreliable_ordered", PRESENCE_CHANNEL)
+func _rpc_presence(raw: Variant) -> void:
+	var sender: int = multiplayer.get_remote_sender_id()
+	if is_server():
+		var room: DuelRoom = _room_of(sender)
+		if room == null or not room.started or room.seat_of(sender) < 0 or _presence_flooding(sender):
+			return
+		var other: int = room.other_peer(room.seat_of(sender))
+		var relayed: Dictionary = PresenceState.sanitise(raw)
+		if other != 0 and not relayed.is_empty():
+			_rpc_presence.rpc_id(other, relayed)
+		return
+	if not _in_duel:
+		return
+	if is_host():
+		if sender != peer_id or peer_id == 0 or _presence_flooding(sender):
+			return
+	elif mode != "client" or sender != HOST_ID:
+		return
+	var clean: Dictionary = PresenceState.sanitise(raw)
+	if not clean.is_empty():
+		presence_received.emit(clean)
+
+
+## A peer sending faster than any client would is dropped for the rest of that second. The budget
+## is a count per second rather than a gap between messages, so a burst that network jitter
+## bunched together still gets through.
+func _presence_flooding(sender: int) -> bool:
+	var now: int = Time.get_ticks_msec()
+	var window: Array = _presence_heard.get(sender, [now, 0])
+	if now - int(window[0]) >= 1000:
+		window = [now, 0]
+	window[1] = int(window[1]) + 1
+	_presence_heard[sender] = window
+	return int(window[1]) > PRESENCE_PER_SECOND

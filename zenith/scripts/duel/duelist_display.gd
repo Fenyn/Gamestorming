@@ -138,6 +138,18 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 
 
+## Screen position of the back the rival is reading in the fan (`DuelistReadout.peek_point`), or
+## null when this fixture draws no fan.
+func peek_screen(slot: int, camera: Camera3D) -> Variant:
+	var local: Variant = readout.peek_point(slot)
+	if local == null or not visible or camera.is_position_behind(global_position):
+		return null
+	var pixel_scale: float = surface.pixel_size * global_basis.get_scale().x
+	var center_screen: Vector2 = camera.unproject_position(global_position)
+	var scale_pixels: float = center_screen.distance_to(camera.unproject_position(global_position + camera.global_basis.x * pixel_scale))
+	return center_screen + (local as Vector2) * scale_pixels
+
+
 ## Only the flanking stat crests are interactive. The center belongs to the actual card.
 func hit_test(point: Vector2, camera: Camera3D) -> bool:
 	if camera.is_position_behind(global_position):

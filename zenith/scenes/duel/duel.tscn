@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/duel/duelist_display.tscn" id="8_display"]
 [ext_resource type="Shader" path="res://assets/arena_surface.gdshader" id="9_surface"]
 [ext_resource type="Script" path="res://scripts/duel/arena_atmosphere.gd" id="10_atmosphere"]
+[ext_resource type="Script" path="res://scripts/duel/duel_presence.gd" id="11_presence"]
 
 [sub_resource type="Environment" id="Environment_duel"]
 background_mode = 2
@@ -37,6 +38,26 @@ shader = ExtResource("9_surface")
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.1, 40)
+
+[sub_resource type="TorusMesh" id="Torus_presence"]
+inner_radius = 0.13
+outer_radius = 0.18
+rings = 32
+ring_segments = 8
+
+[sub_resource type="CylinderMesh" id="Cylinder_presence_dot"]
+top_radius = 0.045
+bottom_radius = 0.045
+height = 0.004
+radial_segments = 16
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_presence"]
+transparency = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.85)
+render_priority = 2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.014, 0.022, 0.035, 1)
@@ -136,6 +157,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.35)
 
 [node name="Fx" type="Node3D" parent="."]
 script = ExtResource("6_fx")
+
+[node name="Presence" type="Node3D" parent="."]
+script = ExtResource("11_presence")
+
+[node name="Pointer" type="MeshInstance3D" parent="Presence"]
+visible = false
+cast_shadow = 0
+mesh = SubResource("Torus_presence")
+material_override = SubResource("Material_presence")
+
+[node name="Dot" type="MeshInstance3D" parent="Presence/Pointer"]
+cast_shadow = 0
+mesh = SubResource("Cylinder_presence_dot")
+material_override = SubResource("Material_presence")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("4_cache")]
 

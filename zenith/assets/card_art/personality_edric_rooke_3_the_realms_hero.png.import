@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bft40cy6u4i2g"
-path="res://.godot/imported/personality_osric_thornwald_2_overgrown.png-e09779635b117c96206982662aa37f7f.ctex"
+uid="uid://bxm2o4jllk1sh"
+path="res://.godot/imported/personality_edric_rooke_3_the_realms_hero.png-c300e34bee3a9ef35e74b97b7d667089.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/personality_osric_thornwald_2_overgrown.png"
-dest_files=["res://.godot/imported/personality_osric_thornwald_2_overgrown.png-e09779635b117c96206982662aa37f7f.ctex"]
+source_file="res://assets/card_art/personality_edric_rooke_3_the_realms_hero.png"
+dest_files=["res://.godot/imported/personality_edric_rooke_3_the_realms_hero.png-c300e34bee3a9ef35e74b97b7d667089.ctex"]
 
 [params]
 

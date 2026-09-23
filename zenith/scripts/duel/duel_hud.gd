@@ -123,6 +123,7 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var log_scroll: ScrollContainer = $Root/Log/Column/Scroll
 @onready var near_flags: Label = $Root/NearFlags
 @onready var far_flags: Label = $Root/FarFlags
+@onready var presence_line: Label = $Root/PresenceLine
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
 @onready var dev_toggle: Button = $Root/DevToggle
 @onready var dev_panel: DevPanel = $Root/DevPanel
@@ -238,6 +239,7 @@ var _anchor_uid: int = -1
 var _filament_target: int = -1         # the table card the current pending job is aimed at
 var _filament_uid: int = -1            # the card that job belongs to, so the stack can source it
 var _filament_state: StringName = &"pending"
+var inspect_uid: int = -1              # the card the inspect overlay shows, -1 when closed or unknown
 
 
 func _ready() -> void:
@@ -1958,6 +1960,7 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 			lines.append(flags)
 		inspect_status.text = "\n".join(lines)
 		inspect_status_scroll.scroll_vertical = 0
+	inspect_uid = uid
 	inspect.visible = true
 
 
@@ -2459,6 +2462,30 @@ func hide_peek() -> void:
 
 func hide_inspect() -> void:
 	inspect.visible = false
+	inspect_uid = -1
+
+
+## What this player has open, for online presence: {look, seat, zone, look_card} in
+## `PresenceState` terms. The inspect overlay names its card only when the card is public.
+func presence_look(view: SeatView) -> Dictionary:
+	if inspect.visible:
+		if view != null and PresenceState.is_public(view.card(inspect_uid)):
+			return {"look": "inspect", "look_card": inspect_uid}
+		return {}
+	if pile.visible and _pile_zone != &"":
+		return {"look": "pile", "seat": _pile_player, "zone": String(_pile_zone)}
+	if tray.visible:
+		return {"look": "choice"}
+	if _log_expanded:
+		return {"look": "log"}
+	return {}
+
+
+## One quiet line on the opponent's side of the screen saying what they have open; "" hides it.
+func set_presence_line(text: String, color: Color) -> void:
+	presence_line.visible = text != ""
+	presence_line.text = text
+	presence_line.add_theme_color_override("font_color", color)
 
 
 func _is_inspect_click(event: InputEvent) -> bool:

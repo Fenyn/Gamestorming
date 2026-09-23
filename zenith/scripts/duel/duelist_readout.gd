@@ -57,6 +57,12 @@ var _duelist_uid: int = -1
 var _flash: float = 0.0
 var _tween: Tween
 var _font: Font = ThemeDB.fallback_font
+const PEEK_RISE: float = 18.0   # canvas pixels the back the rival is reading rises
+const PEEK_TIP: float = 0.12    # and how far it tips outward, in radians
+var _peek_slot: int = -1       # the slot drawn raised, kept while it settles back down
+var _peek_target: int = -1     # the slot asked for, -1 for none
+var _peek: float = 0.0
+var _peek_tween: Tween = null
 
 
 func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = {}) -> void:
@@ -269,18 +275,70 @@ func status_text() -> String:
 	return "\n".join(lines)
 
 
+## The other online player is reading one of their hand cards: its slot in their hand (their
+## left to right), or -1. The matching back in the fan rises and tips. Only the slot is known.
+func set_peek(slot: int) -> void:
+	if slot == _peek_target:
+		return
+	_peek_target = slot
+	if slot >= 0:
+		_peek_slot = slot
+	if _peek_tween != null:
+		_peek_tween.kill()
+	var target: float = 1.0 if slot >= 0 else 0.0
+	if reduced_motion:
+		_set_peek_amount(target)
+		_peek_slot = slot
+		return
+	_peek_tween = create_tween()
+	_peek_tween.tween_method(_set_peek_amount, _peek, target, 0.14)
+	if slot < 0:
+		_peek_tween.tween_callback(func() -> void: _peek_slot = -1)
+
+
+func _set_peek_amount(value: float) -> void:
+	_peek = value
+	request_redraw()
+
+
+## Where the back for hand `slot` sits in the fan, relative to the canvas centre, or null when
+## the fan is not drawn.
+func peek_point(slot: int) -> Variant:
+	if _player_index == _viewer or _hand <= 0:
+		return null
+	var layout: Dictionary = update_layout()
+	var origin: Vector2 = (layout["tracker"] as Rect2).position + Vector2(-205, 0)
+	var shown: int = mini(_hand, 7)
+	var offset: float = _fan_index(slot, shown) - (shown - 1) * 0.5
+	return origin + Vector2(102 + offset * 18, 56 + absf(offset) * 3 - PEEK_RISE)
+
+
+## The fan faces the viewer, so the owner's leftmost card is drawn on the viewer's right. Slots
+## past the seven drawn backs land on the last one.
+func _fan_index(slot: int, shown: int) -> int:
+	return shown - 1 - clampi(slot, 0, shown - 1)
+
+
 ## Only the public count is used; card faces and identities never enter this display.
 func _draw_opponent_hand(origin: Vector2) -> void:
 	var shown: int = mini(_hand, 7)
+	var peeked: int = _fan_index(_peek_slot, shown) if _peek_slot >= 0 and shown > 0 else -1
+	var order: Array[int] = []
 	for i in range(shown):
+		if i != peeked:
+			order.append(i)
+	if peeked >= 0:
+		order.append(peeked)   # the raised back is drawn over its neighbours
+	for i in order:
 		var offset: float = i - (shown - 1) * 0.5
-		var center: Vector2 = origin + Vector2(102 + offset * 18, 56 + absf(offset) * 3)
-		draw_set_transform(size * 0.5 + center, offset * 0.09)
+		var lift: float = _peek if i == peeked else 0.0
+		var center: Vector2 = origin + Vector2(102 + offset * 18, 56 + absf(offset) * 3 - PEEK_RISE * lift)
+		draw_set_transform(size * 0.5 + center, offset * 0.09 + PEEK_TIP * lift * (1.0 if offset >= 0.0 else -1.0))
 		var back: Rect2 = Rect2(-27, -38, 54, 76)
 		draw_rect(back, INK)
-		draw_rect(back, _accent, false, 2.5)
-		draw_rect(back.grow(-6), Color(_accent, 0.35), false, 1.5)
-		_diamond(Vector2.ZERO, Vector2(9, 13), Color(_accent, 0.2), _accent)
+		draw_rect(back, _accent.lightened(0.35 * lift), false, 2.5 + 2.0 * lift)
+		draw_rect(back.grow(-6), Color(_accent, 0.35 + 0.4 * lift), false, 1.5)
+		_diamond(Vector2.ZERO, Vector2(9, 13), Color(_accent, 0.2 + 0.4 * lift), _accent)
 	draw_set_transform(size * 0.5)
 	if shown == 0:
 		_text("EMPTY", origin + Vector2(0, 69), 205, 27, MUTED, true)

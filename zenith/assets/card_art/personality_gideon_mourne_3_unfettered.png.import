@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dbf15uk08dqev"
-path="res://.godot/imported/personality_caedan_vale_4_the_quiet_blade.png-e4ce66c626ebfdc30fa474bc63be839c.ctex"
+uid="uid://dk34wp0qoelfl"
+path="res://.godot/imported/personality_gideon_mourne_3_unfettered.png-1b1dcdd08533f3adf94c64cee79486d0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/personality_caedan_vale_4_the_quiet_blade.png"
-dest_files=["res://.godot/imported/personality_caedan_vale_4_the_quiet_blade.png-e4ce66c626ebfdc30fa474bc63be839c.ctex"]
+source_file="res://assets/card_art/personality_gideon_mourne_3_unfettered.png"
+dest_files=["res://.godot/imported/personality_gideon_mourne_3_unfettered.png-1b1dcdd08533f3adf94c64cee79486d0.ctex"]
 
 [params]
 

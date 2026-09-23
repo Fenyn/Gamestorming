@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dbf15uk08dqev"
-path="res://.godot/imported/personality_caedan_vale_4_the_quiet_blade.png-e4ce66c626ebfdc30fa474bc63be839c.ctex"
+uid="uid://du5fa0d0i1had"
+path="res://.godot/imported/personality_emrys_rooke_3_edged.png-67011049355df65e20caef52a3c07316.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/personality_caedan_vale_4_the_quiet_blade.png"
-dest_files=["res://.godot/imported/personality_caedan_vale_4_the_quiet_blade.png-e4ce66c626ebfdc30fa474bc63be839c.ctex"]
+source_file="res://assets/card_art/personality_emrys_rooke_3_edged.png"
+dest_files=["res://.godot/imported/personality_emrys_rooke_3_edged.png-67011049355df65e20caef52a3c07316.ctex"]
 
 [params]
 

@@ -1513,7 +1513,8 @@ func _end_combat() -> void:
 func may_ally_control(p: PlayerState) -> bool:
 	if p.allies().is_empty() or _has_floating(p.index, "no_ally_control"):
 		return false
-	return p.duelist.energy <= ALLY_CONTROL_MAX_ENERGY or bool(_constant(p).get("ally_control_any_stage", false))
+	return p.duelist.energy <= ALLY_CONTROL_MAX_ENERGY or bool(_constant(p).get("ally_control_any_stage", false)) \
+		or _has_floating(p.index, "ally_control_any_stage")
 
 
 ## Who can absorb one attack's damage, the one in control first. The whole attack lands on a single
@@ -1691,7 +1692,7 @@ func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
 		_emit(&"card_used", {"player": p.index, "card": c.uid, "id": c.def.id})
 		if c.def.type == CardDef.Type.COMBAT:
 			p.combat_cards_used_combat = state.combat_count
-		var pays: int = int(c.def.only.get("duelist_pays", 0))
+		var pays: int = _card_cost(p, int(c.def.only.get("duelist_pays", 0)))
 		if pays > 0:
 			p.duelist.energy = maxi(0, p.duelist.energy - pays)
 			_emit(&"cost_paid", {"player": p.index, "stages": pays, "life": 0, "energy": p.duelist.energy})
@@ -2494,6 +2495,18 @@ func _cost_stages(spec: Dictionary, p: PlayerState, src: CardInstance = null) ->
 	return maxi(0, base)
 
 
+## "The power stage costs of cards you use are reduced by 1, to a minimum of 1", for the costs that
+## are not an attack's price (a block's cost, a use's payment). Attack prices take the same Drill's
+## `scope: "cost"` modifier.
+func _card_cost(p: PlayerState, n: int) -> int:
+	if n <= 1 or _forbidden(p, "drills"):
+		return n
+	var less: int = 0
+	for d in _active(p.drills()):
+		less += int(d.def.raw.get("card_cost_less", 0))
+	return maxi(1, n - less)
+
+
 ## Mastery-style discounts on Arts ("cost 1 less to a minimum of 1").
 func _art_cost_delta(p: PlayerState) -> int:
 	var delta: int = 0
@@ -2681,10 +2694,10 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 		return false
 	if focused and str(def.defense.get("stop_focused", "")) == "discard_hand" and d.hand.size() < 2:
 		return false
-	if d.hand.size() < int(def.defense.get("cost_hand", 0)):
+	if _hand_filtered(d, def.defense.get("cost_hand_filter", "")).size() < int(def.defense.get("cost_hand", 0)):
 		return false
 	var ic: CardInstance = d.in_control()
-	if int(def.defense.get("cost_stages", 0)) > ic.energy:
+	if _card_cost(d, int(def.defense.get("cost_stages", 0))) > ic.energy:
 		return false
 	if int(def.defense.get("cost_life", 0)) >= d.life_deck.size():
 		return false
@@ -2741,7 +2754,7 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 			_erase_from_zone(c)
 			c.zone = &"resolving"
 	var ic: CardInstance = d.in_control()
-	var cost_stages: int = int(def.defense.get("cost_stages", 0))
+	var cost_stages: int = _card_cost(d, int(def.defense.get("cost_stages", 0)))
 	if cost_stages > 0:
 		ic.energy = maxi(0, ic.energy - cost_stages)
 	if int(def.defense.get("cost_life", 0)) > 0:
@@ -2759,7 +2772,8 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 	if int(def.defense.get("cost_hand", 0)) > 0:
 		# "Discard a card from your hand to stop an attack." The discard is queued ahead of the
 		# card's own lines, so a line that asks what was discarded reads it off the discard pile.
-		_enqueue([{"trigger": "secondary", "op": "discard_hand", "amount": int(def.defense["cost_hand"]), "random": false}], "secondary", d.index, {"attack": a}, c)
+		_enqueue([{"trigger": "secondary", "op": "discard_hand", "amount": int(def.defense["cost_hand"]), "random": false,
+			"filter": def.defense.get("cost_hand_filter", "")}], "secondary", d.index, {"attack": a}, c)
 	if bool(a["focused"]) and str(def.defense.get("stop_focused", "")) == "discard_hand":
 		# "Discard a card from your hand to have this card stop a Focused attack." Which card goes
 		# is the defender's call, and every effect on a card used as a defence is a secondary
@@ -2854,6 +2868,8 @@ func _apply_shields(defender: PlayerState, a: Dictionary) -> void:
 
 func _available_shields(defender: PlayerState, kind: String, focused: bool) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
+	if _has_floating(defender.index, "no_shields"):
+		return out
 	var ic: CardInstance = defender.in_control()
 	if ic.shield_used_combat != state.combat_count and _shield_matches(ic.aspect_shield(), kind, focused):
 		out.append(ic)
@@ -3888,6 +3904,10 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 					board_opts.append(Command.new(owner, &"pick_option", c.uid))
 				_set_prompt(owner, &"pick_option", board_opts, _choice_context(source, "energy_target"))
 				return
+			elif aim == "allies":
+				for al in who.allies():
+					_set_personality_energy(who, al, e, amount, source)
+				return
 			elif aim == "all" or aim == "choose":
 				# "Raise all of your personalities" / "raise any one of them": the Duelist and every
 				# Ally. A choice with only the Duelist to choose from is not worth a prompt.
@@ -3987,6 +4007,8 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				amount = surge_of(me)
 			elif amount is String and str(amount) == "twice_fervor":
 				amount = 2 * who.fervor
+			elif amount is String and str(amount) == "per_ally":
+				amount = who.allies().size()
 			if int(amount) <= 0:
 				return
 			if _offer_deck_loss_guard(who, int(amount), owner):
@@ -4130,11 +4152,16 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			# `discard: true` checks a life card thrown away instead of one drawn; `else_effects`
 			# run when the check misses.
 			var discards: bool = bool(e.get("discard", false))
-			var drawn: CardInstance = who.life_deck[0]
+			var from_bottom: bool = str(e.get("from", "top")) == "bottom"
+			var drawn: CardInstance = who.life_deck.back() if from_bottom else who.life_deck[0]
 			if discards:
 				_discard_life(who, 1)
+			elif from_bottom:
+				_apply_effect({"op": "draw", "amount": 1, "from": "bottom"}, who_index, ctx, source)
 			else:
 				_draw(who_index, 1)
+			if bool(e.get("reveal", false)):
+				_emit(&"cards_revealed", {"player": who_index, "cards": [drawn.uid]})
 			var matched: bool = _draw_check_matches(who, drawn, e)
 			_emit(&"draw_check", {"player": who_index, "card": drawn.uid, "matched": matched, "discard": discards, "check": str(e.get("check", "school")), "school": str(e.get("school", "")), "source": source.uid if source != null else -1})
 			if state.is_over():
@@ -4225,7 +4252,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				count *= who.allies().size() + 1
 			# "Place the bottom 2 cards of your discard pile at the bottom of your Life Deck" puts
 			# them where the player can count on them, so that one does not shuffle afterwards.
+			var moved_top: CardInstance = who.discard.back() if not who.discard.is_empty() else null
 			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")), str(e.get("school", "")), not bool(e.get("no_shuffle", false)))
+			# "Shuffle the top card of your discard pile into your Life Deck. If that card is a
+			# Namekian Style card, draw a card."
+			if moved_top != null and (e.has("effects") or e.has("else_effects")):
+				if _draw_check_matches(who, moved_top, e.get("if", {})):
+					_enqueue(e.get("effects", []), "secondary", owner, ctx, source)
+				else:
+					_enqueue(e.get("else_effects", []), "secondary", owner, ctx, source)
 		"recover":
 			_recover_top(who, int(amount), str(e.get("from", "top")))
 		"end_combat":
@@ -4306,6 +4341,44 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"spend_source":
 			if source != null and source.zone == &"in_play" and source.def.type == CardDef.Type.NON_COMBAT:
 				_finish_card(source, false)
+		"silence_drill":
+			# "Choose 1 of your opponent's Drills in play. Your opponent cannot use the power of that
+			# Drill for the remainder of the game."
+			var quiet_opts: Array[Command] = []
+			for d in who.drills():
+				if not d.silenced:
+					quiet_opts.append(Command.new(owner, &"pick_option", d.uid))
+			if quiet_opts.size() == 1:
+				card(quiet_opts[0].card).silenced = true
+			elif quiet_opts.size() > 1:
+				_choice = {"kind": "silence_drill"}
+				_set_prompt(owner, &"pick_option", quiet_opts, _choice_context(source, "silence_drill"))
+		"choose_one":
+			var picks: Array[Command] = []
+			var options: Array = e.get("choices", [])
+			for i in range(options.size()):
+				picks.append(Command.new(owner, &"pick_option", -1, str(i)))
+			_choice = {"kind": "choose_one", "choices": options, "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+			var labels: Array[String] = []
+			for o in options:
+				labels.append(str((o as Dictionary).get("label", "")))
+			var one_ctx: Dictionary = _choice_context(source, "choose_one")
+			one_ctx["labels"] = labels
+			_set_prompt(owner, &"pick_option", picks, one_ctx)
+		"sift_discard":
+			# "Choose up to 4 cards in your discard pile. Remove 2 of them from the game. Shuffle the
+			# remaining cards back into your Life Deck."
+			if who.discard.is_empty():
+				return
+			var most: int = mini(int(amount), who.discard.size())
+			var pile: Array[Command] = []
+			for c in who.discard:
+				pile.append(Command.new(owner, &"pick_option", c.uid))
+			pile.append(Command.new(owner, &"pick_none"))
+			_choice = {"kind": "sift_pick", "player": who_index, "remove": int(e.get("remove", 2))}
+			_set_prompt(owner, &"pick_option", pile, {"amount": most, "up_to": true, "purpose": "sift_pick",
+				"source": source.uid if source != null else -1, "card_title": source.def.title if source != null else ""})
+			prompt.set_batch(&"pick_option", 1, most)
 		"exile_source":
 			# "If successful ... remove this card from the game": the card in the air goes now, so
 			# the finish that follows finds it gone.
@@ -4837,7 +4910,7 @@ func _gate_ok(p: PlayerState, def: CardDef, gate: Dictionary) -> bool:
 		return false
 	# "Your Main Personality pays 5 power stages to ...": the duelist pays, whoever holds Combat,
 	# and pays as the card is used (`_use_card`).
-	if gate.has("duelist_pays") and p.duelist.energy < int(gate["duelist_pays"]):
+	if gate.has("duelist_pays") and p.duelist.energy < _card_cost(p, int(gate["duelist_pays"])):
 		return false
 	# A keyword gate, "Marked only". Like the bloodline gate it reads the personality in control,
 	# not the player, so a following can reach a card its duelist cannot.
@@ -5235,11 +5308,9 @@ func _active(cards: Array[CardInstance]) -> Array[CardInstance]:
 		for c in p.in_play:
 			if c.attached_to != null and bool(c.def.attachment.get("disables_host", false)):
 				held[c.attached_to.uid] = true
-	if held.is_empty():
-		return cards
 	var out: Array[CardInstance] = []
 	for c in cards:
-		if not held.has(c.uid):
+		if not held.has(c.uid) and not c.silenced:
 			out.append(c)
 	return out
 
@@ -5413,6 +5484,16 @@ func _capture_prompt(p: PlayerState) -> void:
 	_set_prompt(p.index, &"pick_option", opts, _choice_context(_effect_source, "capture"))
 
 
+func _sift_back(p: PlayerState, uids: Array[int]) -> void:
+	if uids.is_empty():
+		return
+	for uid in uids:
+		_move_to_deck_bottom(card(uid))
+	if shuffle_decks:
+		rng.shuffle(p.life_deck)
+		_emit(&"deck_shuffled", {"player": p.index})
+
+
 ## Shows `shown`'s hand to `viewer` and nobody else: a prompt whose only answer is to be done
 ## looking, carrying the cards as its `library`, which is how a seat is shown hidden cards.
 func _show_hand_to(shown: PlayerState, viewer: int, source: CardInstance) -> void:
@@ -5525,6 +5606,41 @@ func _handle_choice(cmd: Command) -> void:
 				return
 		"look_hand":
 			pass
+		"silence_drill":
+			card(cmd.card).silenced = true
+		"choose_one":
+			var chosen_line: Dictionary = (_choice["choices"] as Array)[int(str(cmd.value))]
+			var chosen_effects: Array[Dictionary] = []
+			chosen_effects.assign(chosen_line.get("effects", []))
+			_queue.insert(0, {"effects": chosen_effects, "index": 0, "trigger": "then", "owner": int(_choice["owner"]),
+				"ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
+		"sift_pick":
+			var sifter: PlayerState = state.players[int(_choice["player"])]
+			var sifted: Array[int] = [] if cmd.type == &"pick_none" else Prompt.cards_of(cmd)
+			var to_remove: int = mini(int(_choice["remove"]), sifted.size())
+			if to_remove >= sifted.size():
+				for uid in sifted:
+					_remove_from_game(card(uid))
+			elif to_remove > 0:
+				var keep_opts: Array[Command] = []
+				for uid in sifted:
+					keep_opts.append(Command.new(cmd.player, &"pick_option", uid))
+				_choice = {"kind": "sift_remove", "player": sifter.index, "picked": sifted}
+				_set_prompt(cmd.player, &"pick_option", keep_opts, {"amount": to_remove, "purpose": "sift_remove"})
+				prompt.set_batch(&"pick_option", to_remove, to_remove)
+				return
+			else:
+				_sift_back(sifter, sifted)
+		"sift_remove":
+			var sifter2: PlayerState = state.players[int(_choice["player"])]
+			var gone_uids: Array[int] = Prompt.cards_of(cmd)
+			var rest_uids: Array[int] = []
+			for uid in _choice["picked"]:
+				if gone_uids.has(int(uid)):
+					_remove_from_game(card(int(uid)))
+				else:
+					rest_uids.append(int(uid))
+			_sift_back(sifter2, rest_uids)
 		"reveal_pick":
 			var revealer: PlayerState = state.players[int(_choice["player"])]
 			var chosen_card: CardInstance = card(cmd.card)
@@ -5700,7 +5816,13 @@ func recover_gain(p: PlayerState) -> int:
 
 ## The duelist's Surge Rate as it stands: printed, or 0 while a card holds it there.
 func surge_of(p: PlayerState) -> int:
-	return 0 if _has_floating(p.index, "surge_zero") else p.duelist.surge()
+	if _has_floating(p.index, "surge_zero"):
+		return 0
+	var bonus: int = 0
+	if not _forbidden(p, "drills"):
+		for d in _active(p.drills()):
+			bonus += int(d.def.raw.get("surge_bonus", 0))
+	return p.duelist.surge() + bonus
 
 
 ## "All of your opponent's personalities gain 1 less power stage when they power up during the
@@ -6660,6 +6782,14 @@ func _move_to_discard(c: CardInstance, quiet: bool = false) -> void:
 	if c.def.type == CardDef.Type.SEAL:
 		_bypass_seal(c)
 		return
+	# "When one of your Non-Namekian Style cards goes to the discard pile, remove it from the game
+	# instead."
+	var keeper: PlayerState = state.players[c.owner]
+	if keeper.mastery != null and not _forbidden(keeper, "mastery"):
+		var kept_school: String = str(keeper.mastery.def.raw.get("discard_only_school", ""))
+		if kept_school != "" and c.def.school != kept_school:
+			_remove_from_game(c, quiet)
+			return
 	_erase_from_zone(c)
 	var owner: PlayerState = state.players[c.owner]
 	c.zone = &"discard"

@@ -88,10 +88,9 @@ static func terrain(act: int) -> Array[Texture2D]:
 	return out
 
 
-## Top and bottom text padding per button state, matched to each piece's face and base.
-const BUTTON_PAD: Dictionary = {
-	"normal": Vector2i(8, 18), "hover": Vector2i(8, 18), "pressed": Vector2i(8, 12), "disabled": Vector2i(8, 10),
-}
+## The button pieces' stepped corners, kept whole when the face stretches (Kenney border 022,
+## doubled: 12 px corners become 24).
+const BUTTON_MARGIN: int = 24
 
 ## Passed as `color` to mean "use the current trim tint".
 const USE_TINT: Color = Color(0, 0, 0, 0)
@@ -183,17 +182,16 @@ static func draw_hsliced(canvas: CanvasItem, tex: Texture2D, rect: Rect2, cap: f
 	canvas.draw_texture_rect_region(tex, right, Rect2(tw - cap, 0, cap, th), tint)
 
 
-## A button face from one of the Ornate bevelled squares, in the trim tint: corners kept whole,
-## text padded wide.
-static func button_box(piece: String, color: Color = USE_TINT) -> StyleBox:
-	var box: StyleBox = _sliced(piece, 16, 0, tint if color == USE_TINT else color)
-	box.content_margin_left = 22
-	box.content_margin_right = 22
-	# The bevelled pieces stand on a base below their face (14 px raised, 8 px pressed, 4 px flat),
-	# so the text is padded to centre on the face, and drops a little when pressed.
-	var pad: Vector2i = BUTTON_PAD.get(piece.trim_prefix("accent_").trim_prefix("button_"), Vector2i(8, 18))
-	box.content_margin_top = pad.x
-	box.content_margin_bottom = pad.y
+## A button face: Kenney's stepped-corner rule over a flat fill, one piece per state, composed by
+## tools/import_map_art.py. Never tinted. The face is flat, so the text centres on it and drops a
+## pixel when pressed.
+static func button_box(piece: String) -> StyleBox:
+	var box: StyleBox = _sliced(piece, BUTTON_MARGIN, 0, Color.WHITE)
+	box.content_margin_left = 24
+	box.content_margin_right = 24
+	var pressed: bool = piece.ends_with("_pressed")
+	box.content_margin_top = 13 if pressed else 12
+	box.content_margin_bottom = 11 if pressed else 12
 	return box
 
 

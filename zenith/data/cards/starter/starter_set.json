@@ -7272,7 +7272,9 @@
 	 "to": "hand"
 	}
    ],
-   "remove_after_use": true
+   "only": {
+	"character": "Osric Thornwald"
+   }
   },
   {
    "id": "root_strike_01",
@@ -7409,7 +7411,8 @@
 	 "op": "search",
 	 "source": "discard",
 	 "amount_per_set_seal": "marble",
-	 "to": "deck_bottom"
+	 "to": "deck_bottom",
+	 "must": true
 	}
    ],
    "only": {
@@ -9402,12 +9405,14 @@
 	 "trigger": "use",
 	 "op": "draw_check",
 	 "school": "root",
+	 "reveal": true,
 	 "effects": [
 	  {
 	   "op": "search",
 	   "source": "discard",
 	   "amount": 2,
-	   "to": "deck_bottom"
+	   "to": "deck_bottom",
+	   "must": true
 	  }
 	 ]
 	}
@@ -9578,8 +9583,8 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "who": "opponent",
-	 "card_type": "non_combat",
+	 "who": "any",
+	 "card_type": "non_combat_card",
 	 "amount": 1,
 	 "remove": true,
 	 "choose": true
@@ -9689,9 +9694,16 @@
    "title": "Root Bramble Wall",
    "type": "combat",
    "school": "root",
-   "defense": {
-	"stops": "any"
-   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "stop_next",
+	 "duration": "combat",
+	 "params": {
+	  "kind": "any"
+	 }
+	}
+   ],
    "remove_after_use": true
   },
   {
@@ -9736,7 +9748,7 @@
 	{
 	 "op": "discard_in_play",
 	 "who": "opponent",
-	 "card_type": "non_combat",
+	 "card_type": "non_combat_card",
 	 "all": true
 	}
    ],
@@ -9793,8 +9805,8 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "who": "opponent",
-	 "card_type": "non_combat",
+	 "who": "any",
+	 "card_type": "non_combat_card",
 	 "amount": 1,
 	 "choose": true
 	}
@@ -12025,6 +12037,359 @@
 	 ]
 	}
    ]
+  },
+  {
+   "id": "root_strike_17",
+   "title": "Root Creeping Vine",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"stages": 2
+   },
+   "endurance": 4,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "source": "discard",
+	 "to": "deck_shuffle",
+	 "must": true
+	}
+   ]
+  },
+  {
+   "id": "root_art_12",
+   "title": "Root Hurled Thorns",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5,
+	"cost_stages": 1
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "shuffle_discard",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "root_art_11",
+   "title": "Root Seed Burst",
+   "type": "art",
+   "school": "root",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "sift_discard",
+	 "amount": 4,
+	 "remove": 2
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "exile_source"
+	}
+   ]
+  },
+  {
+   "id": "root_combat_08",
+   "title": "Root New Shoots",
+   "type": "combat",
+   "school": "root",
+   "effects": [
+	{
+	 "op": "choose_one",
+	 "choices": [
+	  {
+	   "label": "Top 3",
+	   "effects": [
+		{
+		 "op": "shuffle_discard",
+		 "amount": 3
+		}
+	   ]
+	  },
+	  {
+	   "label": "Bottom 3",
+	   "effects": [
+		{
+		 "op": "shuffle_discard",
+		 "amount": 3,
+		 "from": "bottom"
+		}
+	   ]
+	  }
+	 ]
+	}
+   ],
+   "only": {
+	"bloodline": "verdant"
+   }
+  },
+  {
+   "id": "root_combat_07",
+   "title": "Root Swallowing Earth",
+   "type": "combat",
+   "school": "root",
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "strike",
+	  "stages": 2
+	 }
+	},
+	{
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "seal",
+	 "amount": 1,
+	 "choose": true,
+	 "to": "deck_bottom"
+	}
+   ]
+  },
+  {
+   "id": "root_strike_19",
+   "title": "Root Oakheart Guard",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike"
+   },
+   "defense": {
+	"stops": "strike"
+   },
+   "endurance": 3,
+   "only": {
+	"bloodline": "verdant"
+   }
+  },
+  {
+   "id": "root_drill_06",
+   "title": "Root Frost Watch Drill",
+   "type": "drill",
+   "school": "root",
+   "surge_bonus": 2,
+   "defense": {
+	"stops": "art",
+	"cost_hand": 1,
+	"cost_hand_filter": {
+	 "attack_kind": "art"
+	}
+   }
+  },
+  {
+   "id": "root_strike_18",
+   "title": "Root Stone Cleaver",
+   "type": "strike",
+   "school": "root",
+   "attack": {
+	"kind": "strike",
+	"focused": true,
+	"stages": 3
+   },
+   "endurance": 4,
+   "empower": 3,
+   "effects": [
+	{
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "no_shields",
+	 "duration": "combat",
+	 "after_empower": true
+	},
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 3,
+	 "up_to": true,
+	 "choose": true,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "root_noncombat_05",
+   "title": "Root Strangling Vine",
+   "type": "non_combat",
+   "school": "root",
+   "only": {
+	"character": "Osric Thornwald"
+   },
+   "limit_per_deck": 8,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "silence_drill",
+	 "who": "opponent"
+	}
+   ]
+  },
+  {
+   "id": "root_drill_05",
+   "title": "Root Sap Flow Drill",
+   "type": "drill",
+   "school": "root",
+   "drill_lock_exempt": true,
+   "card_cost_less": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2
+	},
+	{
+	 "scope": "cost",
+	 "kind": "any",
+	 "stages": -1,
+	 "min": 1
+	}
+   ]
+  },
+  {
+   "id": "root_noncombat_03",
+   "title": "Root Fallen Oak",
+   "type": "non_combat",
+   "school": "root",
+   "only": {
+	"character": "Osric Thornwald",
+	"allies_min": 1
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_in_play",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true,
+	 "remove": true,
+	 "then": [
+	  {
+	   "op": "fervor",
+	   "amount": 2
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "root_noncombat_04",
+   "title": "Root Grove Kin",
+   "type": "non_combat",
+   "school": "root",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "allies"
+	},
+	{
+	 "trigger": "use",
+	 "op": "float",
+	 "what": "ally_control_any_stage",
+	 "duration": "combat"
+	},
+	{
+	 "trigger": "use",
+	 "op": "discard_life",
+	 "amount": "per_ally"
+	}
+   ]
+  },
+  {
+   "id": "root_mastery_02",
+   "title": "Root Compost Mastery",
+   "type": "mastery",
+   "school": "root",
+   "duelist_bloodline": "verdant",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "shuffle_discard",
+	 "amount": 1,
+	 "if": {
+	  "check": "school",
+	  "school": "root"
+	 },
+	 "effects": [
+	  {
+	   "op": "draw",
+	   "amount": 1
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "root_mastery_03",
+   "title": "Root Deeproot Mastery",
+   "type": "mastery",
+   "school": "root",
+   "duelist_bloodline": "verdant",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw_check",
+	 "school": "root",
+	 "from": "bottom",
+	 "effects": [
+	  {
+	   "may": true,
+	   "op": "show_checked",
+	   "then": [
+		{
+		 "op": "draw",
+		 "amount": 1,
+		 "from": "bottom"
+		}
+	   ]
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "root_mastery_04",
+   "title": "Root Sacred Grove Mastery",
+   "type": "mastery",
+   "school": "root",
+   "duelist_bloodline": "verdant",
+   "limit_per_deck": 1,
+   "discard_only_school": "root",
+   "grant_attack_lines": {
+	"school": "root",
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "recover",
+	  "amount": 2,
+	  "from": "bottom"
+	 },
+	 {
+	  "trigger": "if_successful",
+	  "op": "energy",
+	  "amount": 3
+	 }
+	]
+   }
   }
  ]
 }

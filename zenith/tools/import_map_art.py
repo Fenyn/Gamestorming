@@ -11,7 +11,7 @@ import os
 import re
 import shutil
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "assets", "adventure_map")
@@ -79,15 +79,6 @@ ORNATE_PIECES = {
     "corner_tr": (GOLD, (568, 212, 12, 13)),
     "corner_bl": (GOLD, (548, 231, 12, 13)),
     "corner_br": (GOLD, (568, 231, 12, 13)),
-    # Buttons: the bevelled squares, drawn nine-slice. Dark for ordinary buttons, cream for the
-    # one primary action on a screen.
-    "button_normal": (GOLD, (484, 20, 48, 48)),
-    "button_hover": (GOLD, (548, 20, 48, 48)),
-    "button_pressed": (GOLD, (612, 22, 47, 45)),
-    "button_disabled": (GOLD, (356, 20, 48, 48)),
-    "accent_normal": (GOLD, (484, 116, 48, 48)),
-    "accent_hover": (GOLD, (548, 116, 48, 48)),
-    "accent_pressed": (GOLD, (612, 118, 47, 45)),
 }
 
 ## Kenney Fantasy UI Borders (CC0): white line art, made to be tinted. Every set is copied, doubled,
@@ -101,6 +92,19 @@ PANEL_FILL = (54, 54, 58, 238)
 ## The map board: parchment with an inked rule, never tinted.
 BOARD_FILL = (208, 196, 164, 255)
 BOARD_INK = (92, 64, 40, 255)
+## Buttons: Kenney's stepped-corner rule over a flat fill, one piece per state, never tinted.
+## Ordinary buttons are dark with a light rule; the one primary action on a screen is ivory with
+## a dark rule. name -> (fill, line).
+BUTTON_BORDER = "Default/Border/panel-border-022.png"
+BUTTON_PIECES = {
+    "button_normal": ((46, 46, 50, 242), (196, 192, 184, 255)),
+    "button_hover": ((72, 72, 76, 246), (255, 255, 255, 255)),
+    "button_pressed": ((32, 32, 35, 246), (255, 255, 255, 255)),
+    "button_disabled": ((40, 40, 43, 200), (96, 96, 96, 255)),
+    "accent_normal": ((208, 202, 190, 255), (58, 54, 48, 255)),
+    "accent_hover": ((230, 225, 214, 255), (36, 33, 29, 255)),
+    "accent_pressed": ((178, 172, 160, 255), (36, 33, 29, 255)),
+}
 
 ## Card face rules: Kenney borders scaled up so a line survives the card face (512 px) being drawn
 ## at a quarter of that in hand, each scaled so its lines land inside the face's 18 px colour
@@ -164,6 +168,21 @@ def compose_panel(border, fill, line):
     return base
 
 
+def compose_button(border, fill, line):
+    """A button face: `fill` inside the border's outline only (the stepped corners stay clear),
+    under the border's lines recoloured to `line`."""
+    lines_mask = border.getchannel("A").point(lambda a: 255 if a > 0 else 0)
+    region = lines_mask.copy()
+    ImageDraw.floodfill(region, (region.width // 2, region.height // 2), 128)
+    inside = region.point(lambda v: 255 if v > 0 else 0)
+    base = Image.new("RGBA", border.size, (0, 0, 0, 0))
+    base.paste(Image.new("RGBA", border.size, fill), mask=inside)
+    lines = Image.new("RGBA", border.size, line)
+    lines.putalpha(lines_mask)
+    base.alpha_composite(lines)
+    return base
+
+
 def import_kenney(art, rows):
     if os.path.isdir(KENNEY_OUT):
         shutil.rmtree(KENNEY_OUT)
@@ -191,6 +210,11 @@ def import_kenney(art, rows):
     border = border.resize((border.width * UI_SCALE, border.height * UI_SCALE), Image.NEAREST)
     compose_panel(border, PANEL_FILL, (255, 255, 255, 255)).save(os.path.join(OUT, "ui", "panel.png"))
     compose_panel(border, BOARD_FILL, BOARD_INK).save(os.path.join(OUT, "ui", "board.png"))
+    button = Image.open(os.path.join(art, KENNEY, BUTTON_BORDER)).convert("RGBA")
+    button = button.resize((button.width * UI_SCALE, button.height * UI_SCALE), Image.NEAREST)
+    for name, (fill, line) in BUTTON_PIECES.items():
+        compose_button(button, fill, line).save(os.path.join(OUT, "ui", name + ".png"))
+        rows.append(("ui/%s.png" % name, "%s, over a flat fill" % BUTTON_BORDER))
     if os.path.isdir(CARD_RULE_OUT):
         shutil.rmtree(CARD_RULE_OUT)
     os.makedirs(CARD_RULE_OUT)

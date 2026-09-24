@@ -929,6 +929,7 @@ func routes(p: PromptView, view: SeatView) -> Dictionary:
 func show_prompt(p: PromptView, view: SeatView) -> void:
 	hide_pile()   # a decision arrived; the browser is not what the player needs to be looking at
 	prompt_panel.show()
+	_center_prompt_text(false)
 	_view = view
 	_current_prompt = p
 	_owner_marks = CardText.option_side_marks(p, _viewer_seat)
@@ -1259,6 +1260,7 @@ func _hint_for(p: PromptView) -> String:
 ## Online: the other player is deciding. The panel says who and roughly what, with no options.
 func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void:
 	prompt_panel.show()
+	_center_prompt_text(true)
 	_view = view
 	_current_prompt = null
 	prompt_who.text = "%s  ·  DECIDING" % player_name.to_upper()
@@ -1307,12 +1309,21 @@ func _waiting_hint(kind: StringName) -> String:
 			return "They are resolving a card."
 
 
+## A panel with nothing to choose (waiting on the other player, or on the host) centres its text;
+## a decision reads left-aligned above its buttons.
+func _center_prompt_text(on: bool) -> void:
+	var align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_CENTER if on else HORIZONTAL_ALIGNMENT_LEFT
+	for label: Label in [prompt_who, prompt_title, prompt_hint, exchange_state, exchange_route, exchange_response, exchange_damage, prompt_outcome, exchange_stops]:
+		label.horizontal_alignment = align
+
+
 ## Online joiner: the choice went to the host and its answer is not back yet.
 func show_sending() -> void:
 	for child in primary_box.get_children():
 		(child as Control).hide()
 	_fill_buttons([], primary_box, true)
 	prompt_panel.show()
+	_center_prompt_text(true)
 	exchange_rail.hide()
 	prompt_outcome.hide()
 	_hide_tray()

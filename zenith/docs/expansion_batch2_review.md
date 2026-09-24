@@ -6,8 +6,9 @@ naming pass including first-name signature titles and the four named-source card
 section renames a card, the later name wins. **Built:** Pyre, all 25 cards and both Masteries
 (2026-09-23, `tools/decks/pyre_expansion.py`), Steel, all 20 cards and three Masteries (same
 day, `tools/decks/steel_expansion.py`), Tide, all 22 cards and both Masteries (same day,
-`tools/decks/tide_expansion.py`), and Shade, all 20 cards and three Masteries (same day,
-`tools/decks/shade_expansion.py`); their ids are in `docs/card_pool.md` and their
+`tools/decks/tide_expansion.py`), Shade, all 20 cards and three Masteries (same day,
+`tools/decks/shade_expansion.py`), and Root, all 12 cards and three Masteries (same day,
+`tools/decks/root_expansion2.py`); their ids are in `docs/card_pool.md` and their
 `tools/source_candidates.tsv` rows read `built`. The ids in this sheet are the old proposals and are
 kept as a record. Still open: the
 11 characters the blocked named cards wait on, and whether ids change with the titles when the

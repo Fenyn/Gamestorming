@@ -2,12 +2,14 @@ class_name SanctumUI
 extends RefCounted
 ## Shared panel styling and restrained movement. Fonts inherit the project theme.
 ##
-## Panels are the Kenney inner rule over a dark fill, and buttons the Ornate bevelled squares,
-## both from the art library through MapArt, always in neutral white here: the adventure screens
-## tint their own copy to the run's school. Small plain panels (`Panel`) and roster tiles
-## (`TileButton`) keep the flat boxes, since a nine-slice frame does not fit them.
+## Panels are the Kenney inner rule over a dark fill, and buttons Kenney's stepped-corner rule
+## over a flat fill, both from the art library through MapArt. Panels are neutral white here (the
+## adventure screens tint their own copy to the run's school); buttons are never tinted. Small
+## plain panels (`Panel`) and roster tiles (`TileButton`) keep the flat boxes, since a nine-slice
+## frame does not fit them.
 
-const PRIMARY_FACE: Color = Color(0.80, 0.78, 0.74)
+## Text on the ivory primary button.
+const PRIMARY_TEXT: Color = Color(0.10, 0.10, 0.10)
 
 static var _theme: Theme
 
@@ -21,22 +23,18 @@ static func theme() -> Theme:
 	_theme.set_stylebox("panel", "Panel", flat_panel())
 	_theme.set_stylebox("panel", "TabContainer", StyleBoxEmpty.new())
 	_theme.set_color("font_color", "AccentLabel", ZenithTheme.TEXT)
-	var neutral: Color = Color.WHITE
 	for kind: String in ["Button", "OptionButton", "AccentButton"]:
 		var primary: bool = kind == "AccentButton"
 		var prefix: String = "accent" if primary else "button"
-		# The primary pieces grey out to pure white, which reads as a glaring slab; a warm light
-		# grey keeps them the brightest thing on screen without shouting.
-		var face: Color = PRIMARY_FACE if primary else neutral
-		_theme.set_stylebox("normal", kind, MapArt.button_box(prefix + "_normal", face))
-		_theme.set_stylebox("hover", kind, MapArt.button_box(prefix + "_hover", face))
-		_theme.set_stylebox("pressed", kind, MapArt.button_box(prefix + "_pressed", face))
-		_theme.set_stylebox("disabled", kind, MapArt.button_box("button_disabled", neutral))
+		_theme.set_stylebox("normal", kind, MapArt.button_box(prefix + "_normal"))
+		_theme.set_stylebox("hover", kind, MapArt.button_box(prefix + "_hover"))
+		_theme.set_stylebox("pressed", kind, MapArt.button_box(prefix + "_pressed"))
+		_theme.set_stylebox("disabled", kind, MapArt.button_box("button_disabled"))
 		_theme.set_stylebox("focus", kind, StyleBoxEmpty.new())
-		for state: String in ["font_color", "font_pressed_color", "font_focus_color"]:
-			_theme.set_color(state, kind, Color(0.10, 0.10, 0.10) if primary else ZenithTheme.TEXT)
-		# The ordinary button's hover piece is pale, so its text turns dark to stay readable.
-		_theme.set_color("font_hover_color", kind, Color(0.10, 0.10, 0.10))
+		# Ordinary buttons stay dark in every state, so their text stays light; the primary is ivory
+		# with dark text.
+		for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+			_theme.set_color(state, kind, PRIMARY_TEXT if primary else ZenithTheme.TEXT)
 		_theme.set_color("font_disabled_color", kind, Color(0.42, 0.42, 0.42))
 	_theme.set_stylebox("normal", "TileButton", ZenithTheme.box(Color(0.13, 0.13, 0.13), Color(0.30, 0.30, 0.30), 2, 1, 18, 10))
 	_theme.set_stylebox("hover", "TileButton", ZenithTheme.box(Color(0.20, 0.20, 0.20), Color(0.44, 0.44, 0.44), 2, 1, 18, 10))

@@ -380,6 +380,17 @@ func _init() -> void:
 		test_shade_stolen_secret_looks_skips_and_banks,
 		test_shade_drills_answer_hits_and_stops,
 		test_shade_masteries_discard_to_hurt_their_hand,
+		test_root_vine_and_thorns_shuffle_discards_back,
+		test_root_seed_burst_sifts_four_and_removes_two,
+		test_root_new_shoots_takes_the_top_or_bottom_three,
+		test_root_swallowing_earth_puts_a_seal_under_its_deck,
+		test_root_guards_stop_their_kind,
+		test_root_stone_cleaver_bars_shields_and_takes_allies,
+		test_root_strangling_vine_silences_a_drill_for_the_game,
+		test_root_sap_flow_discounts_costs_outside_the_drill_lock,
+		test_root_fallen_oak_and_grove_kin_spend_allies,
+		test_root_compost_and_deeproot_masteries_draw_on_a_root_card,
+		test_root_sacred_grove_exiles_other_schools_and_grants_a_hit,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -6609,6 +6620,14 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 		"root_combat_04": "combat", "root_combat_05": "combat", "root_combat_06": "combat",
 		"root_art_05": "art", "root_art_06": "art", "root_art_07": "art",
 		"root_art_08": "art", "root_art_09": "art", "root_art_10": "art"}
+	var root2_types: Dictionary = {
+		"root_strike_17": "strike", "root_strike_18": "strike", "root_strike_19": "strike",
+		"root_art_11": "art", "root_art_12": "art", "root_drill_05": "drill", "root_drill_06": "drill",
+		"root_combat_07": "combat", "root_combat_08": "combat", "root_noncombat_03": "non_combat",
+		"root_noncombat_04": "non_combat", "root_noncombat_05": "non_combat",
+		"root_mastery_02": "mastery", "root_mastery_03": "mastery", "root_mastery_04": "mastery"}
+	eq(root2_types.size(), 15, "12 more Root cards and 3 Root Masteries were approved")
+	root_types.merge(root2_types)
 	var pyre_types: Dictionary = {}
 	for n in range(22, 29):
 		pyre_types["pyre_strike_%d" % n] = "strike"
@@ -6621,7 +6640,7 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 	for id in ["pyre_mastery_03", "pyre_mastery_04"]:
 		pyre_types[id] = "mastery"
 	eq(storm_types.size(), 26, "26 Storm cards were approved")
-	eq(root_types.size(), 29, "29 Root cards were approved")
+	eq(root_types.size(), 44, "29 Root cards, then 15 more, were approved")
 	eq(pyre_types.size(), 27, "25 Pyre cards and 2 Pyre Masteries were approved")
 	var steel_types: Dictionary = {}
 	for n in range(23, 29):
@@ -6674,8 +6693,8 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
-	# expansion added 27, Steel 23, Tide 24 and Shade 23.
-	eq(shipped().defs.size(), 535, "and the set is 473 other cards plus 62 Aspect cards")
+	# expansion added 27, Steel 23, Tide 24, Shade 23 and the second Root batch 15.
+	eq(shipped().defs.size(), 550, "and the set is 488 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -6944,7 +6963,7 @@ func test_root_quickening_is_focused_against_a_marked_duelist() -> void:
 	check(not e._cond({"defender_tag": "marked"}, 1, {}), "ours does not")
 	# A stop that answers either kind is the one Focused shuts out; a stop that names the kind
 	# still works, which is the game's rule and not this card's.
-	var any_stop: CardInstance = real_to_hand(e, 1, "root_combat_03")
+	var any_stop: CardInstance = real_to_hand(e, 1, "steel_strike_03")
 	var kind_stop: CardInstance = real_to_hand(e, 1, "root_strike_15")
 	to_attack(e, 0)
 	var before: int = e.player(0).duelist.energy
@@ -6957,7 +6976,7 @@ func test_root_quickening_is_focused_against_a_marked_duelist() -> void:
 	eq(e.player(0).duelist.energy, mini(CardInstance.MAX_STAGE, before + 4), "and the attacker gained 4 Energy")
 	# The control: the same Strike against an unmarked duelist is not Focused.
 	var g: DuelEngine = real_engine(real_deck(["root_strike_10"], "vigil", "root"), real_deck([], "pact"))
-	var open_stop: CardInstance = real_to_hand(g, 1, "root_combat_03")
+	var open_stop: CardInstance = real_to_hand(g, 1, "steel_strike_03")
 	to_attack(g, 0)
 	answer(g, &"attack", uid_in_hand(g, 0, "root_strike_10"))
 	eq(prompt_kind(g), &"defense", "an unmarked duelist gets the defence window")
@@ -6998,14 +7017,14 @@ func test_root_old_growth_spends_your_own_deck_or_your_hand() -> void:
 	eq(e.card(attack_uid).zone, &"removed", "and the card itself is removed from the game after use")
 	# Stopped instead: the hand goes.
 	var f: DuelEngine = real_engine(real_deck(["root_art_09"], "vigil", "root"), real_deck([], "pact"))
-	var block: CardInstance = real_to_hand(f, 1, "root_combat_03")
+	var block: CardInstance = real_to_hand(f, 1, "steel_strike_03")
 	to_attack(f, 0)
 	answer(f, &"attack", uid_in_hand(f, 0, "root_art_09"))
 	check(f.prompt != null and f.prompt.find(&"defend", block.uid) != null, "the universal stop answers an Art")
 	answer(f, &"defend", block.uid)
 	settle(f, 8)
 	eq(f.player(0).hand.size(), 0, "a stopped attack costs the attacker their whole hand")
-	eq(f.card(block.uid).zone, &"removed", "and the stop is removed from the game after use")
+	eq(f.card(block.uid).zone, &"discard", "and the stop went to the pile")
 
 
 ## "If successful, put the bottom 3 of your discard pile under your Life Deck. If stopped, remove
@@ -7025,7 +7044,7 @@ func test_root_scattered_seed_pays_whether_it_lands_or_not() -> void:
 		eq(e.card(uid).zone, &"life_deck", "the oldest three went back into the deck")
 	eq(me.life_deck.back().uid, oldest[2], "under it, in order, with no shuffle")
 	var f: DuelEngine = real_engine(real_deck(["root_art_08"], "vigil", "root"), real_deck([], "pact"))
-	var them_block: CardInstance = real_to_hand(f, 1, "root_combat_03")
+	var them_block: CardInstance = real_to_hand(f, 1, "steel_strike_03")
 	var burned: CardInstance = f._instance(shipped().get_def("root_strike_04"), 0, &"discard")
 	f.player(0).discard.append(burned)
 	var second: CardInstance = f._instance(shipped().get_def("root_strike_04"), 0, &"discard")
@@ -10301,3 +10320,257 @@ func test_shade_masteries_discard_to_hurt_their_hand() -> void:
 	var plain: CardInstance = real_to_hand(f, 0, "root_strike_04")
 	var other: Dictionary = f._build_attack(0, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
 	eq(str(((other["effects"] as Array).back() as Dictionary).get("card_type", "")), "drill", "any other attack gains the Drill line")
+
+
+# --- The second Root expansion, 2026-09-23 --------------------------------
+
+## "If successful, choose a card in your discard pile and shuffle it back into your Life Deck" and
+## "shuffle the top card of your discard pile back into your Life Deck".
+func test_root_vine_and_thorns_shuffle_discards_back() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var older: CardInstance = real_to_discard(e, 0, "tide_drill_05")
+	var top: CardInstance = real_to_discard(e, 0, "tide_drill_06")
+	e._apply_effect(shipped().get_def("root_strike_17").effects[0], 0, {}, null)
+	eq(prompt_kind(e), &"pick_option", "Creeping Vine asks which card")
+	check(e.prompt.find(&"pick_none") == null, "and the choice is not optional")
+	answer(e, &"pick_option", older.uid)
+	eq(older.zone, &"life_deck", "the chosen card went back into the deck")
+	eq(top.zone, &"discard", "the other stayed")
+	e._apply_effect(shipped().get_def("root_art_12").effects[0], 0, {}, null)
+	eq(top.zone, &"life_deck", "Hurled Thorns took the top card")
+
+
+## "Choose up to 4 cards in your discard pile. Remove 2 of them from the game. Shuffle the remaining
+## cards back into your Life Deck. If successful, remove from the game."
+func test_root_seed_burst_sifts_four_and_removes_two() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var pile: Array[CardInstance] = []
+	for id in ["tide_drill_05", "tide_drill_06", "storm_drill_03", "storm_drill_04", "steel_drill_01"]:
+		pile.append(real_to_discard(e, 0, id))
+	var burst: CardDef = shipped().get_def("root_art_11")
+	check(bool(burst.attack.get("focused", false)), "it is a Focused Art")
+	e._apply_effect(burst.effects[0], 0, {}, null)
+	eq(prompt_kind(e), &"pick_option", "the pile is laid out")
+	check(e.prompt.find(&"pick_none") != null, "\"up to\" allows none")
+	check(e.submit(Command.new(0, &"pick_option", -1, [pile[0].uid, pile[1].uid, pile[2].uid])), "three are chosen")
+	eq(prompt_kind(e), &"pick_option", "then two of the three are picked to remove")
+	check(e.submit(Command.new(0, &"pick_option", -1, [pile[0].uid, pile[2].uid])), "two are named")
+	eq(pile[0].zone, &"removed", "the first named left the game")
+	eq(pile[2].zone, &"removed", "and the second")
+	eq(pile[1].zone, &"life_deck", "the third went back into the deck")
+	eq(pile[3].zone, &"discard", "an unchosen card stayed in the pile")
+	var f: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var burning: CardInstance = f._instance(burst, 0, &"resolving")
+	f._apply_effect(burst.effects[1], 0, {}, burning)
+	eq(burning.zone, &"removed", "and the hit removes the card itself")
+
+
+## "Namekian Heritage only. Shuffle the top or bottom 3 cards from your discard pile into your Life
+## Deck."
+func test_root_new_shoots_takes_the_top_or_bottom_three() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_combat_08"], "pact", "root"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	var pile: Array[CardInstance] = []
+	for id in ["tide_drill_05", "tide_drill_06", "storm_drill_03", "storm_drill_04", "steel_drill_01", "steel_drill_04"]:
+		pile.append(real_to_discard(e, 0, id))
+	answer(e, &"use", uid_in_hand(e, 0, "root_combat_08"))
+	eq(prompt_kind(e), &"pick_option", "top or bottom is asked")
+	answer(e, &"pick_option", -1, "1")
+	for i in range(3):
+		eq(pile[i].zone, &"life_deck", "bottom card %d went back" % (i + 1))
+	for i in range(3, 6):
+		eq(pile[i].zone, &"discard", "top card %d stayed" % (i - 2))
+
+
+## "All of your physical attacks do +2 power stages of damage for the remainder of Combat. Take a
+## Dragon Ball in play and place it at the bottom of its owner's Life Deck."
+func test_root_swallowing_earth_puts_a_seal_under_its_deck() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_combat_07"], "pact", "root"), real_deck([], "vigil"))
+	var mine: CardInstance = real_inject(e, 0, "seal_08")
+	var theirs: CardInstance = real_inject(e, 1, "seal_09")
+	to_attack(e, 0)
+	answer(e, &"use", uid_in_hand(e, 0, "root_combat_07"))
+	eq(prompt_kind(e), &"pick_in_play", "a Seal is chosen")
+	check(e.prompt.find(&"pick_in_play", mine.uid) != null and e.prompt.find(&"pick_in_play", theirs.uid) != null, "from either side")
+	answer(e, &"pick_in_play", theirs.uid)
+	eq(theirs.zone, &"life_deck", "it went to a Life Deck")
+	eq(e.player(1).life_deck.back(), theirs, "its owner's, at the bottom")
+	var total: int = 0
+	for entry in e._modifiers_for(e.player(0), "own", "strike", null, {}):
+		total += int((entry["m"] as Dictionary).get("stages", 0))
+	eq(total, 2, "Strikes do +2 for the Combat")
+	eq(e._modifiers_for(e.player(0), "own", "art", null, {}).size(), 0, "Arts do not")
+
+
+## "Physical attack, or stops a physical attack" and "you may discard a card in your hand that can
+## perform an energy attack to stop an energy attack. Raise your Main Personality's PUR by +2."
+func test_root_guards_stop_their_kind() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "root"))
+	var them: PlayerState = e.player(1)
+	var guard: CardInstance = real_to_hand(e, 1, "root_strike_19")
+	check(e._defense_usable(them, guard, "strike", false), "Oakheart Guard stops a Strike")
+	check(not e._defense_usable(them, guard, "art", false), "not an Art")
+	var surge: int = e.surge_of(them)
+	var watch: CardInstance = real_inject(e, 1, "root_drill_06")
+	eq(e.surge_of(them), surge + 2, "Frost Watch raises Surge by 2")
+	e._move_to_discard(guard)
+	for c in them.hand.duplicate():
+		if c.def.is_attack() and c.def.attack_kind() == "art":
+			e._move_to_discard(c)
+	check(not e._defense_usable(them, watch, "art", false), "with no Art in hand it cannot stop")
+	real_to_hand(e, 1, "root_art_12")
+	check(e._defense_usable(them, watch, "art", false), "an Art in hand lets it stop an Art")
+	check(not e._defense_usable(them, watch, "strike", false), "but never a Strike")
+
+
+## "Focused physical attack doing +3. Empower 3. Your opponent cannot use Defense Shields for the
+## remainder of Combat. Discard up to 3 of your opponent's Allies in play."
+func test_root_stone_cleaver_bars_shields_and_takes_allies() -> void:
+	var cleaver: CardDef = shipped().get_def("root_strike_18")
+	for line in cleaver.effects:
+		check(bool(line.get("after_empower", false)), "%s is printed after Empower" % str(line.get("op", "")))
+	var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil", "storm"))
+	var them: PlayerState = e.player(1)
+	real_inject(e, 1, "storm_drill_01")
+	check(not e._available_shields(them, "strike", false).is_empty(), "their Drill shields a Strike")
+	e._apply_effect(cleaver.effects[0], 0, {}, null)
+	check(e._available_shields(them, "strike", false).is_empty(), "no shield is left for the Combat")
+	var ally: CardInstance = real_inject(e, 1, _an_ally_id())
+	e._apply_effect(cleaver.effects[1], 0, {}, null)
+	if prompt_kind(e) == &"pick_in_play":
+		check(e.prompt.find(&"pick_none") != null, "\"up to\" lets them all stay")
+		answer(e, &"pick_in_play", ally.uid)
+	eq(ally.zone, &"discard", "the Ally was discarded")
+
+
+## "Choose 1 of your opponent's Drills in play. Your opponent cannot use the power of that Drill for
+## the remainder of the game. You may have up to 8 copies. Remove from the game after use."
+func test_root_strangling_vine_silences_a_drill_for_the_game() -> void:
+	var vine: CardDef = shipped().get_def("root_noncombat_05")
+	eq(vine.limit_per_deck, 8, "eight copies are allowed")
+	check(vine.remove_after_use, "and it leaves the game after use")
+	var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	var hard: CardInstance = real_inject(e, 1, "steel_drill_01")
+	var other: CardInstance = real_inject(e, 1, "steel_drill_04")
+	eq(e._modifiers_for(them, "own", "strike", null, {}).size(), 1, "their Drill adds to Strikes")
+	e._apply_effect(vine.effects[0], 0, {}, null)
+	eq(prompt_kind(e), &"pick_option", "the user picks which Drill")
+	answer(e, &"pick_option", hard.uid)
+	check(hard.silenced, "that Drill is silenced")
+	check(not other.silenced, "the other is not")
+	eq(hard.zone, &"in_play", "it stays in play")
+	eq(e._modifiers_for(them, "own", "strike", null, {}).size(), 0, "and adds nothing")
+	skip_to_turn(e, 3)
+	check(hard.silenced, "for the rest of the game")
+
+
+## "(Does not count towards Styled Drills.) Your attacks do +2 power stages of damage. The power stage
+## costs of cards you use are reduced by 1, to a minimum of 1."
+func test_root_sap_flow_discounts_costs_outside_the_drill_lock() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	real_inject(e, 0, "root_drill_05")
+	eq(me.drill_school(), "", "it does not set the Drill school")
+	real_inject(e, 0, "storm_drill_03")
+	eq(me.drill_school(), "storm", "so a Storm Drill still does")
+	eq(e._card_cost(me, 3), 2, "a cost of 3 becomes 2")
+	eq(e._card_cost(me, 1), 1, "a cost of 1 stays 1")
+	eq(e._cost_stages(shipped().get_def("root_art_12").attack, me), 1, "an Art costing 1 stays at 1")
+	var total: int = 0
+	for entry in e._modifiers_for(me, "own", "art", null, {}):
+		total += int((entry["m"] as Dictionary).get("stages", 0))
+	check(total >= 2, "attacks do +2")
+
+
+## "Remove one of your allies from the game to raise your anger 2 levels" and "raise all of your
+## Allies to their highest power stage ... discard 1 card from the top of your Life Deck for each Ally".
+func test_root_fallen_oak_and_grove_kin_spend_allies() -> void:
+	var oak: CardDef = shipped().get_def("root_noncombat_03")
+	var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	check(not e._can_play(me, oak), "Fallen Oak needs an Ally")
+	var ally: CardInstance = real_inject(e, 0, _an_ally_id())
+	check(e._can_play(me, oak), "with one in play it may be placed")
+	me.fervor = 0
+	# The turn's own prompt is still standing in this hand-driven test; the lines wait behind it.
+	e.prompts.clear()
+	e._enqueue([oak.effects[0]], "use", 0, {}, null)
+	e._drain()
+	if prompt_kind(e) == &"pick_in_play":
+		answer(e, &"pick_in_play", ally.uid)
+	e._drain()
+	eq(ally.zone, &"removed", "the Ally left the game")
+	eq(me.fervor, 2, "and Fervor rose 2")
+	var f: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var p: PlayerState = f.player(0)
+	var a1: CardInstance = real_inject(f, 0, _an_ally_id())
+	var a2: CardInstance = real_inject(f, 0, _an_ally_id())
+	p.duelist.energy = 5
+	var deck: int = p.life_deck.size()
+	for line in shipped().get_def("root_noncombat_04").effects:
+		f._apply_effect(line, 0, {}, null)
+	f._drain()
+	eq(a1.energy, CardInstance.MAX_STAGE, "the first Ally is at full")
+	eq(a2.energy, CardInstance.MAX_STAGE, "and the second")
+	check(f.may_ally_control(p), "an Ally may take control though the duelist is well above 1")
+	eq(deck - p.life_deck.size(), 2, "and the owner lost a card per Ally")
+
+
+## "When entering Combat, shuffle the top card from your discard pile into your Life Deck. If that
+## card is a Namekian Style card, draw a card" and "draw the bottom card of your Life Deck. If it is
+## a Namekian Style Card, you may show it to your opponent and draw another card from the bottom".
+func test_root_compost_and_deeproot_masteries_draw_on_a_root_card() -> void:
+	var compost: Dictionary = shipped().get_def("root_mastery_02").effects[0]
+	for top_id in ["root_strike_04", "tide_drill_05"]:
+		var e: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+		var me: PlayerState = e.player(0)
+		var top: CardInstance = real_to_discard(e, 0, top_id)
+		var held: int = me.hand.size()
+		e.prompts.clear()
+		e._enqueue([compost], "entering_combat", 0, {}, null)
+		e._drain()
+		eq(top.zone, &"life_deck", "the top discard went into the deck")
+		eq(me.hand.size() - held, 1 if top_id == "root_strike_04" else 0, "a draw only for a Root card (%s)" % top_id)
+	var deep: Dictionary = shipped().get_def("root_mastery_03").effects[0]
+	for bottom_id in ["root_strike_04", "tide_drill_05"]:
+		var f: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+		var p: PlayerState = f.player(0)
+		var below: CardInstance = real_to_deck(f, 0, bottom_id)
+		var next_below: CardInstance = p.life_deck[p.life_deck.size() - 2]
+		f.prompts.clear()
+		f._enqueue([deep], "entering_combat", 0, {}, null)
+		f._drain()
+		eq(below.zone, &"hand", "the bottom card was drawn (%s)" % bottom_id)
+		if bottom_id == "root_strike_04":
+			eq(prompt_kind(f), &"pick_option", "showing it is optional")
+			answer(f, &"pick_option", -1, "yes")
+			f._drain()
+			check(has_event(f, &"cards_revealed"), "it was shown")
+			eq(next_below.zone, &"hand", "and the next bottom card was drawn")
+		else:
+			eq(next_below.zone, &"life_deck", "no second draw for another school")
+
+
+## "When one of your Non-Namekian Style cards goes to the discard pile, remove it from the game
+## instead. All of your Namekian Style attacks gain 'If successful, place the bottom 2 cards of your
+## discard pile on the bottom of your Life Deck and gain 3 power stages.'"
+func test_root_sacred_grove_exiles_other_schools_and_grants_a_hit() -> void:
+	var d: DeckList = real_deck([], "pact", "root")
+	d.mastery_id = "root_mastery_04"
+	var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+	var other: CardInstance = real_to_hand(e, 0, "tide_strike_16")
+	e._move_to_discard(other)
+	eq(other.zone, &"removed", "another school's card leaves the game")
+	var own: CardInstance = real_to_hand(e, 0, "root_strike_04")
+	e._move_to_discard(own)
+	eq(own.zone, &"discard", "a Root card is discarded")
+	var theirs: CardInstance = real_to_hand(e, 1, "tide_strike_16")
+	e._move_to_discard(theirs)
+	eq(theirs.zone, &"discard", "the opponent's cards are untouched")
+	var strike_card: CardInstance = real_to_hand(e, 0, "root_strike_05")
+	var built: Dictionary = e._build_attack(0, strike_card, strike_card.def.attack, strike_card.def.effects, false, false, false, null, true)
+	eq((built["effects"] as Array).size(), strike_card.def.effects.size() + 2, "a Root attack gains the two lines")
+	var plain: CardInstance = e._instance(shipped().get_def("tide_strike_16"), 0, &"hand")
+	var other_built: Dictionary = e._build_attack(0, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
+	eq((other_built["effects"] as Array).size(), plain.def.effects.size(), "another school's attack gains nothing")

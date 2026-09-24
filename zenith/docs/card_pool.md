@@ -13,7 +13,7 @@ Counts leave out Masteries and signature cards and include gated cards. Rows are
 | Tide | 50 | 0 | 21 | 15 | 4 | 3 | 7 |
 | Storm | 50 | 7 | 14 | 24 | 2 | 2 | 8 |
 | Shade | 50 | 0 | 23 | 13 | 5 | 2 | 7 |
-| Root | 50 | 12 | 19 | 12 | 8 | 5 | 6 |
+| Root | 50 | 0 | 19 | 12 | 8 | 5 | 6 |
 | Freestyle | 63 | 0 | 7 | 11 | 20 | 18 | 7 |
 
 Not listed below: 7 Grounds, 62 Personality, 4 Relic, 28 Seal.
@@ -342,36 +342,36 @@ Masteries:
 
 ## Root (thorn, sap, stone and frost; needs a Verdant Duelist): 50 cards
 
-Subthemes: Recursion 13, Seals 3, Table defense 9, Fervor denial 8, Board strip 7, Costly Arts 5, Root attacks 12.
+Subthemes: Recursion 13, Seals 3, Table defense 9, Fervor denial 8, Board strip 5, Costly Arts 5, Root attacks 14.
 
 Masteries:
 
 - **Root Regrowth Mastery** (`root_mastery_01`): Verdant duelists only. When entering Combat, you may draw the bottom card of your discard pile. If that card is a Root card, raise your duelist's Energy to full. Limit 1 per deck.
-- **Root Compost Mastery** (new): Entering Combat, shuffle the top card of your discard pile into your deck. If it is Root, draw a card
-- **Root Deeproot Mastery** (new): Entering Combat, draw the bottom card of your deck. If it is Root, you may show it and draw the next bottom card too
-- **Root Sacred Grove Mastery** (new): Your non-Root cards are removed from the game instead of going to the discard pile. Your Root attacks gain "Hit: put the bottom 2 of your discard pile under your deck and gain 3 Energy"
+- **Root Compost Mastery** (`root_mastery_02`): Verdant duelists only. When entering Combat, shuffle the top card of your discard pile into your Life Deck. If it is a Root card, draw a card. Limit 1 per deck.
+- **Root Deeproot Mastery** (`root_mastery_03`): Verdant duelists only. When entering Combat, draw the bottom card of your Life Deck. If it is a Root card, you may show it to your opponent. If you do, draw the bottom card of your Life Deck. Limit 1 per deck.
+- **Root Sacred Grove Mastery** (`root_mastery_04`): Verdant duelists only. When one of your cards that is not a Root would go to your discard pile, remove it from the game instead. Your Root attacks gain "Hit: Place the bottom 2 cards of your discard pile at the bottom of your Life Deck and gain 3 Energy." Limit 1 per deck.
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
-| Root Bindweed | Strike | Endurance 2. Strike doing +3 Energy. Shuffle 2 cards from your discard pile into your Life Deck. Remove from the game after use. | Recursion |  | `root_strike_14` |
-| Root Boar Rush | Strike | Strike doing +5 Energy. Raise your duelist's Energy to full. Shuffle 4 cards from your discard pile into your Life Deck. Remove from the game after use. | Recursion |  | `root_strike_01` |
-| Root Creeping Vine | Strike | Endurance 4. +2 Energy. Hit: shuffle a card from your discard pile back in | Recursion, Table defense | new |  |
+| Root Bindweed | Strike | Endurance 2. Strike doing +3 Energy. Shuffle the top 2 cards of your discard pile into your Life Deck. Remove from the game after use. | Recursion |  | `root_strike_14` |
+| Root Boar Rush | Strike | Strike doing +5 Energy. Raise your duelist's Energy to full. Shuffle the top 4 cards of your discard pile into your Life Deck. Remove from the game after use. | Recursion |  | `root_strike_01` |
+| Root Creeping Vine | Strike | Endurance 4. Strike doing +2 Energy. Hit: Choose a card from your discard pile and shuffle it into your Life Deck. | Recursion, Table defense |  | `root_strike_17` |
 | Root Rising Sap | Strike | Strike. Place 2 cards from the bottom of your discard pile at the bottom of your Life Deck. | Recursion |  | `root_strike_06` |
 | Root Barkskin Deflection | Art | Verdant only. Stops an Art. Shuffle the top and bottom cards of your discard pile into your Life Deck. | Recursion |  | `root_art_01` |
-| Root Hurled Thorns | Art | 5 wounds for 1 Energy. Hit: shuffle your top discard back in | Recursion, Costly Arts | new |  |
+| Root Hurled Thorns | Art | Art dealing 5 wounds. Costs 1 Energy to perform. Hit: Shuffle the top card of your discard pile into your Life Deck. | Recursion, Costly Arts |  | `root_art_12` |
 | Root Scattered Seed | Art | Art dealing 6 wounds. Hit: Place 3 cards from the bottom of your discard pile at the bottom of your Life Deck. If stopped, remove the bottom 2 cards of your discard pile from the game. | Recursion |  | `root_art_08` |
-| Root Seed Burst | Art | Focused, 5 wounds. Hit: choose up to 4 discards; 2 leave the game and the rest shuffle back in. Removed after use | Recursion | new |  |
+| Root Seed Burst | Art | Focused Art dealing 5 wounds. Hit: Choose up to 4 cards in your discard pile. Remove 2 of them from the game and shuffle the rest into your Life Deck. Remove this card from the game. | Recursion |  | `root_art_11` |
 | Root Wyrmwood Blast | Art | Verdant only. Art, plus 1 wound for each Marble Seal in play. Choose X cards from your discard pile and place them on the bottom of your Life Deck. X = the number of Marble Seals in play. | Recursion, Seals |  | `root_art_04` |
-| Root Closing Bark | Combat | Endurance 10. Shuffle a card from your discard pile into your Life Deck. Remove from the game after use. | Recursion, Table defense |  | `root_combat_04` |
+| Root Closing Bark | Combat | Endurance 10. Shuffle the top card of your discard pile into your Life Deck. Remove from the game after use. | Recursion, Table defense |  | `root_combat_04` |
 | Root Grove Focus | Combat | Draw the bottom card of your discard pile. If that card is a Root card, search your Life Deck for an Art card and put it into your hand. Remove from the game after use. | Recursion |  | `root_combat_02` |
-| Root New Shoots | Combat | Verdant only. Shuffle the top or bottom 3 cards of your discard pile into your deck | Recursion | new |  |
-| Root Deep Draught | Non-Combat | Use in Combat: Raise your duelist's Energy to full. Draw a card. If it is a Root card, choose up to 2 cards from your discard pile and place them on the bottom of your Life Deck. Remove from the game after use. | Recursion |  | `root_noncombat_01` |
+| Root New Shoots | Combat | Verdant only. Choose one: shuffle the top 3 cards of your discard pile into your Life Deck or shuffle 3 cards from the bottom of your discard pile into your Life Deck. | Recursion |  | `root_combat_08` |
+| Root Deep Draught | Non-Combat | Use in Combat: Raise your duelist's Energy to full. Draw a card and show it to your opponent. If it is a Root card, choose 2 cards from your discard pile and place them on the bottom of your Life Deck. Remove from the game after use. | Recursion |  | `root_noncombat_01` |
 | Root Carver's Reach | Strike | Strike. Hit: Capture a Seal. Lower your opponent's Fervor 2. Remove from the game after use. | Seals, Fervor denial |  | `root_strike_03` |
-| Root Swallowing Earth | Combat | Your Strikes do +2 Energy this Combat. A Seal in play goes to the bottom of its owner's Life Deck | Seals | new |  |
-| Root Oakheart Guard | Strike | Verdant only. Endurance 3. Strike, or stops a Strike | Table defense | new |  |
+| Root Swallowing Earth | Combat | For the remainder of Combat, your Strikes do +2 Energy. Place a Seal in play at the bottom of its owner's Life Deck. | Seals |  | `root_combat_07` |
+| Root Oakheart Guard | Strike | Verdant only. Endurance 3. Strike. Stops a Strike. | Table defense |  | `root_strike_19` |
 | Root Trail Cut | Combat | Endurance 4. Look at the top 4 cards of your opponent's Life Deck and remove 1 of them that is not a Seal from the game. Put the rest back on the top in any order. | Table defense |  | `root_combat_05` |
 | Root Canopy Drill | Drill | Defense Shield: stops the first unstopped Art each Combat. | Table defense |  | `root_drill_03` |
-| Root Frost Watch Drill | Drill | Discard an Art from hand to stop an Art. Your Surge +2 | Table defense | new |  |
+| Root Frost Watch Drill | Drill | Discard a card that can perform an Art from your hand to stop an Art. Your duelist's Surge Rate is +2 while this is in play. | Table defense |  | `root_drill_06` |
 | Root Sightline Drill | Drill | When entering Combat, look at the top 2 cards of your Life Deck and put them all on top or all on the bottom, in any order. | Table defense |  | `root_drill_04` |
 | Root Tracker's Drill | Drill | When entering Combat as the defender, look at the top 5 cards of your Life Deck and put them back in any order. | Table defense |  | `root_drill_01` |
 | Root Windbreak Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat. | Table defense |  | `root_drill_02` |
@@ -382,26 +382,26 @@ Masteries:
 | Root Auger Splinter | Art | Focused Art dealing 5 wounds. Lower your opponent's Fervor 2. | Fervor denial |  | `root_art_06` |
 | Root Culling Frost | Art | Endurance 2. Art. Hit: Your opponent discards an Ally in play of your choice. Lower your opponent's Fervor 1. | Fervor denial, Board strip |  | `root_art_10` |
 | Root First Frost | Art | Art. Lower your opponent's Fervor 1. | Fervor denial |  | `root_art_05` |
-| Root Snare | Strike | Strike doing +3 Energy. Hit: Your opponent removes a Non-Combat card in play of your choice from the game. | Board strip |  | `root_strike_11` |
-| Root Stone Cleaver | Strike | Endurance 4. Focused, +3 Energy. Empower 3. They cannot use Defense Shields this Combat. Discard up to 3 of their Allies | Board strip | new |  |
-| Root Flung Stone | Art | Art dealing 5 wounds. Hit: Your opponent discards a Non-Combat card in play of your choice. Remove from the game after use. | Board strip |  | `root_art_07` |
+| Root Stone Cleaver | Strike | Endurance 4. Focused Strike doing +3 Energy. Empower 3. For the remainder of Combat, your opponent cannot use Defense Shields. Your opponent discards up to 3 Allies in play of your choice. | Board strip |  | `root_strike_18` |
 | Root Kin Clearing | Combat | You must have an Ally in play to use this card. Your opponent discards all Non-Combat cards in play. Remove from the game after use. Limit 1 per deck. | Board strip |  | `root_combat_06` |
-| Root Strangling Vine | Non-Combat | One of their Drills loses its power for the rest of the game. Removed after use | Board strip | new |  |
+| Root Strangling Vine | Non-Combat | Osric Thornwald only. Use in Combat: Choose one of your opponent's Drills in play. Your opponent cannot use its power for the rest of the game. Remove from the game after use. Limit 8 per deck. | Board strip |  | `root_noncombat_05` |
 | Root Millstone | Strike | Strike dealing 6 wounds. Costs 3 Energy to perform. | Costly Arts |  | `root_strike_05` |
 | Root Old Growth | Art | Art dealing 10 wounds. Costs 4 Energy to perform. Hit: Remove the top 3 cards of your Life Deck from the game. If stopped, discard your whole hand. Remove from the game after use. | Costly Arts |  | `root_art_09` |
 | Root Uprooting Blast | Art | Art dealing 7 wounds. Costs 4 Energy to perform. | Costly Arts |  | `root_art_03` |
-| Root Sap Flow Drill | Drill | Your attacks do +2 Energy. Your card costs are 1 Energy less, to a minimum of 1 | Costly Arts | new |  |
+| Root Sap Flow Drill | Drill | Your attacks do +2 Energy. Your attacks cost 1 less Energy to perform, to a minimum of 1. The Energy costs of cards you use are 1 less, to a minimum of 1. This Drill does not count towards or against the one school of Drills you may have in play. | Costly Arts |  | `root_drill_05` |
 | Root Briar Tangle | Strike | Strike dealing 3 Energy. Remain 2. Remove from the game after use. | Root attacks |  | `root_strike_09` |
 | Root Deadfall | Strike | Focused Strike doing +3 Energy. Hit: Remove any cards in your discard pile from the game. | Root attacks |  | `root_strike_08` |
 | Root Grove Fury | Strike | Strike dealing 6 Energy. Raise your Fervor 1. Remove from the game after use. | Root attacks |  | `root_strike_13` |
 | Root Quickening | Strike | Strike doing +5 Energy. If the attack is against a Marked personality, focused. Gain 4 Energy. | Root attacks |  | `root_strike_10` |
 | Root Sapwood Guard | Strike | Stops a Strike. Gain 3 Energy. | Root attacks |  | `root_strike_15` |
+| Root Snare | Strike | Strike doing +3 Energy. Hit: Remove a Non-Combat card in play from the game. | Root attacks |  | `root_strike_11` |
 | Root Timber Blow | Strike | Strike doing +3 Energy. | Root attacks |  | `root_strike_04` |
 | Root Drinking Leaves | Art | Stops an Art. Gain 3 Energy. | Root attacks |  | `root_art_02` |
-| Root Bramble Wall | Combat | Stops a Strike or an Art. Remove from the game after use. | Root attacks |  | `root_combat_03` |
-| Root Thorn Volley | Combat | Art. Search your Life Deck for an Art card and put it into your hand. Remove from the game after use. | Root attacks |  | `root_combat_01` |
-| Root Fallen Oak | Non-Combat | Remove one of your Allies from the game. Fervor +2. Removed after use | Root attacks | new |  |
-| Root Grove Kin | Non-Combat | Fill your Allies' Energy; you may use their powers this Combat. Discard your top card for each Ally | Root attacks | new |  |
+| Root Flung Stone | Art | Art dealing 5 wounds. Hit: Discard a Non-Combat card in play. Remove from the game after use. | Root attacks |  | `root_art_07` |
+| Root Bramble Wall | Combat | The next attack performed against you this Combat is stopped. Remove from the game after use. | Root attacks |  | `root_combat_03` |
+| Root Thorn Volley | Combat | Osric Thornwald only. Art. Search your Life Deck for an Art card and put it into your hand. | Root attacks |  | `root_combat_01` |
+| Root Fallen Oak | Non-Combat | Osric Thornwald only. You must have an Ally in play to use this card. Use in Combat: Remove one of your Allies in play from the game. If you do, raise your Fervor 2. Remove from the game after use. | Root attacks |  | `root_noncombat_03` |
+| Root Grove Kin | Non-Combat | Use in Combat: Raise every one of your Allies' Energy to full. For the remainder of Combat, your Allies may take control of Combat and use their Powers at any Energy. Take a wound for each Ally you have in play. | Root attacks |  | `root_noncombat_04` |
 | Root Thorn Hedge | Non-Combat | Use immediately after you take damage from an attack. Your opponent takes 3 wounds. | Root attacks |  | `root_noncombat_02` |
 
 ## Freestyle (shared, mundane): 63 cards
@@ -500,7 +500,7 @@ Tied to a named character, schoolless unless noted. Listed by character, largest
 | Bram Ashmark | Ashmark Leaves Nothing | Art | Focused Art. Empower 2. Hit: Remove all of your opponent's discard pile from the game. Raise your Fervor 1. | `signature_art_02` |
 | Bram Ashmark | Ashmark's Ember Spray | Art | Marked only. Art dealing 5 wounds. Raise your Fervor 2. Hit: Search your discard pile for a Marked Art card and put it into your hand. Remove from the game after use. | `signature_art_14` |
 | Bram Ashmark | Ashmark Will Not Break | Combat | Bram Ashmark only. Stops a Strike or an Art. For the remainder of Combat, all damage from attacks against you is prevented. Limit 1 per deck. | `signature_combat_02` |
-| Bram Ashmark | Ashmark Stokes the Coals | Non-Combat | Bram Ashmark only. Use in Combat: Raise your duelist's Energy to full. Shuffle 5 cards from your discard pile into your Life Deck. Raise your Fervor 1. | `signature_noncombat_04` |
+| Bram Ashmark | Ashmark Stokes the Coals | Non-Combat | Bram Ashmark only. Use in Combat: Raise your duelist's Energy to full. Shuffle the top 5 cards of your discard pile into your Life Deck. Raise your Fervor 1. | `signature_noncombat_04` |
 | Emrys Rooke | Emrys Gives No Quarter | Strike | Strike doing +3 Energy. Neither player may use cards that end Combat or use cards that stop all attacks for the remainder of Combat. | `signature_strike_01` |
 | Emrys Rooke | Emrys Risks It All | Strike | Focused Strike doing +4 Energy. Cannot be stopped by Strike cards. Raise your Fervor 1. Remove from the game after use. | `signature_strike_09` |
 | Emrys Rooke | Emrys' Hilt Guard | Strike | Stops a Strike. Search your discard pile for an Emrys Rooke Signature card and put it into your hand. Remove from the game after use. | `signature_strike_22` |

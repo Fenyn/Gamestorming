@@ -710,6 +710,21 @@ ART = {
     "shade_mastery_02": "A coin offered into darkness, a card taken back out of it.",
     "shade_mastery_03": "Black rot spreading over a planted rune stone.",
     "shade_mastery_04": "An eclipse, the sun's rim burning round a black disc.",
+    "root_drill_05": "Sap welling from a cut in green bark, running bright down the trunk.",
+    "root_combat_07": "Soft earth folding over a glowing seal-stone, swallowing it from sight.",
+    "root_mastery_02": "A compost heap steaming in cold air, a seedling pushing out of its top.",
+    "root_mastery_03": "A taproot plunging deep through layered soil into dark water below.",
+    "root_mastery_04": "A ring of ancient trees round a mossy clearing, lit by a single shaft of sun.",
+    "root_noncombat_03": "A great oak fallen across a clearing, its roots torn up and still clutching earth.",
+    "root_noncombat_04": "Saplings leaning together in a tight grove, their branches woven into one canopy.",
+    "root_combat_08": "Pale green shoots breaking through a charred forest floor.",
+    "root_strike_17": "A vine snaking low across the ground and hooking round an ankle.",
+    "root_art_11": "A seed pod bursting mid-air, seeds scattering like shot.",
+    "root_strike_18": "A stone-edged hand chopping down, splitting a boulder clean in two.",
+    "root_drill_06": "A lone watcher on a frosted ridge, breath misting, eyes on the valley below.",
+    "root_art_12": "A spray of hard thorns flung from an outstretched palm.",
+    "root_noncombat_05": "Thick vines coiling round an iron gear, locking it still.",
+    "root_strike_19": "A fighter braced behind an oak's broad trunk as a blow glances off the bark.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1018,6 +1033,21 @@ NEW_SOURCES = {
     "shade_mastery_02": "Black Style Mastery (Cell Saga)",
     "shade_mastery_03": "Black Style Mastery (World Games)",
     "shade_mastery_04": "Black Style Mastery (Buu Saga)",
+    "root_drill_05": "Namekian Remedy Drill (Kid Buu Saga 18)",
+    "root_combat_07": "Namekian Offense (World Games Saga 77)",
+    "root_mastery_02": "Namekian Style Mastery (Cell Saga)",
+    "root_mastery_03": "Namekian Style Mastery (World Games)",
+    "root_mastery_04": "Namekian Style Mastery (Buu Saga)",
+    "root_noncombat_03": "Namekian Fighting (Trunks Saga 52)",
+    "root_noncombat_04": "Namekian Teamwork (Androids Saga 103)",
+    "root_combat_08": "Namekian Regeneration (Cell Saga 111)",
+    "root_strike_17": "Namekian Foot Lunge (Cell Games 13)",
+    "root_art_11": "Namekian Quick Blast (Cell Games 65)",
+    "root_strike_18": "Namekian Shuto (Buu Saga 80)",
+    "root_drill_06": "Namekian Precise Aim Drill (Movie promo M33)",
+    "root_art_12": "Namekian Final Flash (World Games Saga 70)",
+    "root_noncombat_05": "Namekian Blocking Stance (Androids Saga 21)",
+    "root_strike_19": "Namekian Fist Dodge (Cell Games 11)",
 }
 
 

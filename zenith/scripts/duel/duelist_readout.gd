@@ -75,7 +75,6 @@ var _lives_lost: int = 0     # how many of them the rival has scored
 var _show_lives: bool = false  # only when either side has more than one (adventure duels)
 const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
 var _accent: Color = IVORY
-var _active: bool = false
 var _initialized: bool = false
 var _player_index: int = -1
 var _viewer: int = -1
@@ -133,7 +132,6 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	if controller.uid != duelist.uid:
 		_control = "%s IN CONTROL" % controller.title
 	_accent = SeatColors.accent(view, player_index, Session.color_seed)
-	_active = int(live.get("active", view.active)) == player_index and not view.is_over()
 	_hand = maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
 	var discard: int = int(counts[2]) if counts.size() > 2 else p.discard.size()
 	var removed: int = int(counts[3]) if counts.size() > 3 else p.removed.size()
@@ -246,9 +244,6 @@ func _draw_tracker(tracker: Rect2) -> void:
 	# The fighter's name centred along the top; the Aspect is printed under the card instead.
 	_text(_title, origin + Vector2(110, 31), 320, 25, TEXT, true)
 	_text(_control, origin + Vector2(424, 31), 106, 20, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
-	if _active:
-		# The seat taking the turn: a short bar under its name, not a glowing jewel.
-		draw_rect(Rect2(origin + Vector2(234, 38), Vector2(72, 3)), IVORY)
 	for x in [180.0, 360.0]:
 		draw_line(origin + Vector2(x, 48), origin + Vector2(x, 140), Color(MUTED, 0.25), 1, true)
 	_text("ENERGY", origin + Vector2(10, 65), 160, 34, ENERGY, true)
